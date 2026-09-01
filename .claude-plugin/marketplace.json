@@ -1,0 +1,17 @@
+{
+  "name": "hatsu",
+  "owner": {
+    "name": "zheref",
+    "url": "https://github.com/zheref"
+  },
+  "metadata": {
+    "description": "Hatsu — the local plane of the Akatsuki system. Kurapika (/kurapika) leads in six declared Nen-type work-modes, named per reply; Gon, Hisoka, Phinks and Uvogin stand beside him as ratified independents. Runs on your own credentials — no App, no bot identity. Hard dependency on the Nen CLI, checked at warm-up and failing closed with auto-install."
+  },
+  "plugins": [
+    {
+      "name": "hatsu",
+      "source": "./",
+      "description": "Hatsu — the local plane of the Akatsuki system. Kurapika (/kurapika) leads in six declared Nen-type work-modes, named per reply — Enhancer (product code), Conjurer (canon & governance), Transmuter (machinery), Manipulator (GitHub-side ops), Emitter (release & fan-out), Specialist (product intake). Gon is the mission-scoped delegate who crosses no gate until his delegation grammar is ratified; Hisoka reviews UI/UX and measures quality before a PR posts; Phinks runs adversarial pre-release QA on proven findings; Uvogin measures the fixed seven performance metrics with method blocks and baselines. Illumi, Killua and the Genei Ryodan bench are recorded OPEN. Runs on your own credentials — no App, no bot identity. Hard dependency on the Nen CLI, checked at warm-up against nen.contract.json, failing closed with auto-install."
+    }
+  ]
+}
