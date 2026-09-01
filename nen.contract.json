@@ -1,0 +1,55 @@
+{
+  "contract": "hatsu-nen-dependency",
+  "contract_version": 1,
+  "decision": "D10",
+  "summary": "Hatsu depends hard on the Nen CLI. Every deterministic step is a Nen verb. The dependency fails closed with auto-install: below the declared minimum or absent, the checksum-verified bootstrap runs itself; only if the bootstrap fails does the session halt with the exact command. A Nen-owned operation is NEVER improvised in prose.",
+  "dependency": {
+    "name": "nen",
+    "source": "zheref/nen",
+    "repository": "https://github.com/zheref/nen",
+    "minimum": "0.1",
+    "minimum_semantics": "MAJOR.MINOR. Satisfied when the installed version's major equals the minimum's major AND its minor is >= the minimum's minor. Backward-compatible within a major, so a newer minor or patch satisfies it; a different major does NOT.",
+    "pinned_ref": "v0.1.0",
+    "pinned_ref_semantics": "The ref the bootstrap installs when the contract is unsatisfied. Never 'latest' — an unpinned fetch converts a source-pinned supply chain into an unpinned one.",
+    "version_probe": "nen --version",
+    "version_probe_output": "A bare semver on stdout, e.g. '0.1.0' — no 'v' prefix, no other text."
+  },
+  "bootstrap": {
+    "vendored": false,
+    "vendoring_forbidden": "Hatsu never carries a copy of this script. A vendored copy is a second, unreviewed supply chain that drifts from the manifest it verifies against. Hatsu fetches nen's own published script at the pinned ref, every time.",
+    "script_path_in_source": "bootstrap/nen.sh",
+    "url": "https://raw.githubusercontent.com/zheref/nen/v0.1.0/bootstrap/nen.sh",
+    "invocation": "bash <fetched-script> --ref v0.1.0",
+    "flags": {
+      "--ref": "Required, no default. The tag to pin to.",
+      "--source": "owner/name to fetch release assets from. Defaults to zheref/nen.",
+      "--cache-dir": "Cache root. Defaults to ${XDG_CACHE_HOME:-$HOME/.cache}/nen."
+    },
+    "stdout": "On success, the resolved and checksum-verified binary path — and nothing else. Execute exactly that path.",
+    "exit_codes": {
+      "0": "verified — the path on stdout is safe to execute",
+      "2": "EXIT_USAGE — the invocation is wrong; nothing was attempted",
+      "3": "EXIT_UNSUPPORTED_HOST — this platform/arch ships no nen binary",
+      "4": "EXIT_DOWNLOAD — the binary asset could not be retrieved (the retryable one)",
+      "5": "EXIT_CHECKSUM — SECURITY: bytes did not verify, or could not be verified",
+      "6": "EXIT_MANIFEST — SHA256SUMS unfetchable, missing, malformed, or silent about the artifact"
+    },
+    "retry_policy": "Exit 4 may be retried once. Exits 5 and 6 are NEVER retried — retrying a checksum failure is how a fail-closed guard becomes a fail-open one by attrition. Exits 2 and 3 are not retryable either; they will not change by being asked again.",
+    "published_binaries": [
+      "nen-linux-x64",
+      "nen-darwin-arm64",
+      "nen-windows-x64.exe"
+    ],
+    "manifest_asset": "SHA256SUMS"
+  },
+  "halt": {
+    "when": "ONLY when the bootstrap itself fails (any non-zero exit above). An absent or below-minimum nen is not a halt — it is an auto-install.",
+    "message_template": "Nen is unavailable and the checksum-verified bootstrap failed (exit ${EXIT_CODE} — ${EXIT_MEANING}). This operation is Nen-owned and will not be improvised. Run this yourself, then re-invoke:\n\n    curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.1.0/bootstrap/nen.sh | bash -s -- --ref v0.1.0\n",
+    "after_halt": "Stop. Do not perform the Nen-owned operation by another route — not with raw gh, not with a shell equivalent, not from memory. The operation does not happen."
+  },
+  "no_improvised_fallback": {
+    "rule": "There is no LLM-improvised fallback for a Nen-owned operation, ever.",
+    "scope": "A Nen-owned operation is any operation for which a nen verb exists — readiness determination, backlog fetch and ordering, board assembly and render, gate derivation, label application, changelog collation, fan-out computation, method-block validation, perf comparison, and the rest of `nen --help`.",
+    "consequence": "If nen is unavailable and the bootstrap failed, the operation does not happen. Reporting that is the correct outcome; substituting a hand-rolled equivalent is not."
+  }
+}
