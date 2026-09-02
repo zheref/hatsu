@@ -15,7 +15,8 @@ local variant, because there is no CI run to name. The git author is always the 
 
 ## Kurapika — the lead persona
 
-**`claude/agents/kurapika.md`** · badge 🟨 · six declared Nen-type work-modes, **one named in every reply**.
+**`claude/agents/kurapika.md`** · summoned with **`/kurapika`** (`claude/commands/kurapika.md`) · badge 🟨 ·
+six declared Nen-type work-modes, **one named in every reply**.
 
 Kurapika is a Specialist who trained all six Nen types, and his canonical trick is not power but
 **conditions**: a binding accepted in advance, stated out loud, paid in full. The six types are his
@@ -114,9 +115,25 @@ Hatsu depends hard on the [Nen](https://github.com/zheref/nen) CLI (**D10**). Th
 at [`../nen.contract.json`](../nen.contract.json) and executed by the
 [`hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md) skill, which every agent runs first, every session:
 
-1. Probe `nen --version` against the declared minimum — backward-compatible **within** a major.
-2. Absent or below minimum → **auto-install**: run nen's own checksum-verified `bootstrap/nen.sh` at the
-   pinned ref, fetched from `zheref/nen`, **never vendored here**.
+**The contract file is the single source of truth**; the values below are convenience copies of what lives
+there, and where a copy disagrees the contract wins.
+
+1. **Probe** `nen --version` against the declared range. *Current pin, echoed for convenience:*
+   `minimum: "0.1"`. **While nen's line is `0.x` that means `>=0.1.0 <0.2.0` exactly — a different minor is
+   out of range in BOTH directions**, so `0.2.0` fails it as surely as `0.0.9` does. At major zero the
+   *minor* is SemVer's breaking-change vehicle (clause 4), so reading it as "backward-compatible within a
+   major" would fail **open** in the one range where compatibility is least guaranteed. That familiar rule
+   applies from **`1.0` onward**, and the contract is bumped to say so when nen gets there.
+2. **Auto-install — two cases, two paths**, chosen by the probe and never by preference:
+   - nen **absent** → run nen's own checksum-verified `bootstrap/nen.sh` at the pinned ref. This is the
+     **sole** chicken-and-egg carve-out for shell on any Hatsu path: `nen bootstrap` is a `nen` subcommand,
+     so it presupposes the binary that is missing.
+   - nen **present but out of range** → re-pin **through the verb**:
+     `nen bootstrap --ref <pinned> --source zheref/nen --script <fetched script>`. `--script` is required —
+     the verb *runs* the bootstrap rather than reimplementing it, so it needs the script on disk, and
+     without it exits `7`.
+   - Either way the script is **fetched to a file and then run — never `curl … | bash`**, which dies on
+     `${BASH_SOURCE[0]}` under `set -u`. And it is **fetched, never vendored here**.
 3. **Halt only if the bootstrap itself fails** — printing the exact command, raised as a **G5** (`CON-47`).
 4. **No LLM-improvised fallback for a Nen-owned operation, ever.** If nen is unavailable and the bootstrap
    failed, the operation does not happen. Reporting that is the correct outcome.

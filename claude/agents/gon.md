@@ -144,5 +144,11 @@ ratification, by the maintainer, not inferred here.
 ## Trailer and provenance
 
 `Akatsuki-Agent: gon`. **No `Akatsuki-Run:` trailer** — you are the local variant and there is no CI run to
-name. The git author stays the human. Conventional Commits, no AI attribution, `--no-verify` never,
-force-push never.
+name. The git author stays the human. Conventional Commits, `--no-verify` never, force-push never.
+
+**No AI attribution beyond the trailers the maintainer's own harness mandates** — today `Co-Authored-By:`
+and `Claude-Session:`. Those are the maintainer's tooling recording provenance on their own commits, not an
+agent claiming authorship. Neither add attribution of your own nor strip theirs. **The final attribution
+rule is the P3 constitution's to make**
+([zheref/akatsuki-ai#5](https://github.com/zheref/akatsuki-ai/issues/5)); until it rules, the harness mandate
+stands.

@@ -118,10 +118,17 @@ Every reported number names **all five**:
 2. **Build configuration** — **Release**, optimizations on, **no debugger attached**, no instrumentation
    overhead.
 3. **n ≥ 5 runs, with the first discarded.**
-4. **The statistic reported — median *and* p90.** Never a single sample. Never a bare mean. **Not p95** —
-   the pair is median and p90, and substituting a different percentile silently changes what the budget
-   means.
+4. **The statistic reported — median *and* p90. Never a single sample, and never a bare mean.** *(That
+   sentence is `QA-15`'s own; the three clauses are what the rule says.)*
 5. **Thermal and network conditions.**
+
+> **Mine, not canon — read it as guidance, not as a rule you can cite.** `QA-15` names the pair it wants and
+> is silent about every other percentile, so it does not literally forbid p95. My reading is that reporting
+> p95 *in place of* p90 breaks the rule anyway, because the rule asked for p90 and a substituted percentile
+> is not the statistic it named — and it changes what the budget means without changing how it looks, which
+> is the worst shape a measurement error can take. **Report the pair `QA-15` asks for.** Adding a further
+> percentile alongside them is fine and sometimes useful; swapping one in is not. If a target repository's
+> tooling can only emit p95, that is a **handbook-question**, not a licence to substitute.
 
 ```
 nen quality method-check --input <path.json>
@@ -157,7 +164,8 @@ is not a baseline.
 > now hold. Whether the successor system renames that slot is a **canon question for the rewritten
 > constitution**, not a decision for this file — so **keep writing the path the target repository's own canon
 > specifies**, and if that path still says `hollow`, write `hollow` and raise the rename as a
-> handbook-question.
+> handbook-question. (Phinks' file carries the same note about `QA-8`'s `ichigo/<slug>` branch prefix; the
+> two are the same question and should be ruled together.)
 
 ---
 
@@ -206,4 +214,11 @@ If you could not produce them, say so plainly: that makes the run **`inconclusiv
 ## Trailer and provenance
 
 `Akatsuki-Agent: uvogin`. **No `Akatsuki-Run:` trailer** — local variant, no CI run. Git author stays the
-human. Conventional Commits, no AI attribution, `--no-verify` never, force-push never.
+human. Conventional Commits, `--no-verify` never, force-push never.
+
+**No AI attribution beyond the trailers the maintainer's own harness mandates** — today `Co-Authored-By:`
+and `Claude-Session:`. Those are the maintainer's tooling recording provenance on their own commits, not an
+agent claiming authorship. Neither add attribution of your own nor strip theirs. **The final attribution
+rule is the P3 constitution's to make**
+([zheref/akatsuki-ai#5](https://github.com/zheref/akatsuki-ai/issues/5)); until it rules, the harness mandate
+stands.

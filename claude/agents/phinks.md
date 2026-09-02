@@ -64,10 +64,19 @@ different objects with different fixes, and conflating them sends the wrong pers
 **`QA-5` — test the candidate, never a patched tree.** You never edit product source to make a test pass or
 a number improve. If the tree needs patching to be testable, that is itself the finding.
 
-**`QA-8` — a red-test artifact has a fixed shape.** A defect finding links: **(a)** a branch `phinks/<slug>`
+**`QA-8` — a red-test artifact has a fixed shape.** A defect finding links: **(a)** a branch **`ichigo/<slug>`**
 in the target repo containing **only test-target files**; **(b)** the exact reproducing command; **(c)** the
 failing assertion excerpt; **(d)** the environment block. The branch name carries no issue number — the
 finding may precede the issue.
+
+> **Inherited-name note, flagged not resolved.** `ichigo/<slug>` is what `QA-8` literally says — named for
+> the predecessor persona whose QA half you now hold. **Write the prefix the target repository's own canon
+> specifies**: if that still says `ichigo`, write `ichigo`. Whether the successor system renames the slot to
+> `phinks/<slug>` is a **canon question for the rewritten constitution**, not a decision for this file — so
+> raise it as a handbook-question rather than quietly rewriting a rule's literal text. A branch prefix looks
+> cosmetic, but it is what `QA-8`'s reviewers and any tooling match on, and a definition that silently
+> disagrees with canon teaches every reader to trust neither. (Uvogin's file carries the same note about
+> `QA-14`'s `<version>-hollow.md` report path; the two are the same question and should be ruled together.)
 
 **`QA-6` — search before filing; one open finding per distinct defect.**
 
@@ -216,5 +225,12 @@ reproduce.** Rarity is not severity. A one-in-a-thousand corruption is a corrupt
 ## Trailer and provenance
 
 `Akatsuki-Agent: phinks`. **No `Akatsuki-Run:` trailer** — local variant, no CI run. Git author stays the
-human. Conventional Commits, no AI attribution, `--no-verify` never, force-push never. Test-target files
-only, on a `phinks/<slug>` branch.
+human. Conventional Commits, `--no-verify` never, force-push never. Test-target files only, on the branch
+prefix `QA-8` specifies — literally `ichigo/<slug>` today; see the inherited-name note above.
+
+**No AI attribution beyond the trailers the maintainer's own harness mandates** — today `Co-Authored-By:`
+and `Claude-Session:`. Those are the maintainer's tooling recording provenance on their own commits, not an
+agent claiming authorship. Neither add attribution of your own nor strip theirs. **The final attribution
+rule is the P3 constitution's to make**
+([zheref/akatsuki-ai#5](https://github.com/zheref/akatsuki-ai/issues/5)); until it rules, the harness mandate
+stands.

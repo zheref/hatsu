@@ -30,8 +30,9 @@ plainly rather than implying inherited authority.
 Inherited canon has three checkpoints and none of them is this one:
 
 1. **Build-time self-application** — the builder applies `UX-{n}` to their own work as they write it.
-2. **Evidence at PR open** — `UZF-26` requires the visual-evidence set *in the PR description*, at the
-   moment it opens.
+2. **Evidence at PR open** — `UZF-26` requires the visual-evidence set on the PR, at the moment it opens
+   (embedded in the description by default, or named-and-linked in Files changed on a stack with no assets
+   mirror).
 3. **The pre-release quality gate** — `QA-20`, which runs against the tag candidate, **downstream** of the
    PR entirely.
 
@@ -70,8 +71,9 @@ finding's clothes, and it will be argued with forever.
 ### Accessibility — priority 1, `critical` territory
 
 - **`UX-1`** — contrast **≥ 4.5:1** (**≥ 3:1** for large text ≥ 24px / 18px-bold, and for meaningful
-  graphical and UI components); every focusable control shows a **visible focus indicator**. Removing or
-  suppressing focus rings is the classic violation. *(WCAG 2.2 SC 1.4.3, 1.4.11, 2.4.7.)*
+  graphical and UI components); every **keyboard- or pointer-focusable** control shows a **visible focus
+  indicator**. Removing or suppressing focus rings is the classic violation. *(WCAG 2.2 SC 1.4.3, 1.4.11,
+  2.4.7.)*
 - **`UX-2`** — operable by keyboard/switch, with an accessible name on every control
   (`.accessibilityLabel` / `contentDescription` / `aria-label`). Icon-only buttons with no label are the
   classic violation. *(SC 2.1.1, 4.1.2.)*
@@ -81,8 +83,10 @@ finding's clothes, and it will be argued with forever.
 - **`UX-3`** — touch targets **≥ 44×44 pt (iOS HIG) / 48×48 dp (Material)** with **≥ 8px spacing**.
   Hover-only interactions violate it outright. *(SC 2.5.8, 2.5.5.)*
 - **`UX-4`** — every async or state-changing action gives **immediate feedback** — loading, progress,
-  disabled, or an optimistic update — so no tap feels dead. Instant 0 ms state swaps count as a violation.
-  *(SC 4.1.3.)*
+  disabled, or an optimistic update — so no tap feels dead. The violation is a **0 ms state swap with no
+  transition or affordance**, not speed itself: an instant response is the goal, and a genuinely instant
+  action that still shows the user *what changed* satisfies the rule. What fails is the swap that leaves
+  the user unsure their tap registered. *(SC 4.1.3.)*
 
 ### Visual system
 
@@ -109,17 +113,40 @@ finding's clothes, and it will be argued with forever.
 ### The evidence set — `UZF-26`
 
 A change that adds or alters a rendered UI surface carries the images its snapshot / visual-regression tests
-produced, **in the PR description**, one entry per user-visible state the branch actually adds or re-records,
-mirroring that set 1:1. **The recorded test images *are* the screenshots** — never separately-staged
-captures.
+produced, one entry per user-visible state **the branch actually adds or re-records**, mirroring *that* set
+1:1 — never a static inventory of the page's total states. **The recorded test images *are* the
+screenshots** — never separately-staged captures — so the evidence cannot silently drift from what the tests
+assert, and a reviewer can judge the change without building.
 
-Presentation is part of the rule, not a template preference: **one table per top-level screen**, titled with
-the issue(s) that composed it, with the changed states (typical / empty / loading / failure / not-editable /
-overflow / …) as **columns** — horizontal space, never a tall stack of images. A logic-only change is exempt
-and says so in the PR.
+**Two mechanisms, and a stack uses exactly one.** The **default** is an **embedded** image in the PR
+description, hosted per the stack's hosting rule. A stack with **no registered public-assets-mirror** for
+that hosting mechanism instead **names each scene** and points the reviewer at its **committed snapshot
+path** in the PR's **Files changed** tab. A stack rule states which mechanism it uses and **never mixes the
+two within one rule** — so before you call a PR non-conformant for lacking embedded images, check which
+mechanism that stack is on. A Files-changed-tab PR that names its scenes is **conformant**, not a shortfall.
+(Under that mechanism an unchanged golden does not even appear in the diff, which is the other half of why
+"1:1" means the branch's changed scenes and not the page's full preview count.)
 
-**The mandate never weakens: the fix for "I can't record baselines" is a snapshot-capable runner, not a
-missing screenshot.** Pre-PR is exactly when that is still fixable, so check it here.
+Presentation is part of the rule, not a template preference: **one table per top-level user-facing screen**,
+titled with the issue(s) that composed it, with the changed states (typical / empty / loading / failure /
+not-editable / overflow / …) as **columns** — horizontal space, never a tall stack of images. Each screen
+gets one row of cells, one per state, carrying that state's evidence in the stack's own mechanism. A
+logic-only change is **exempt**, stated in the PR.
+
+**The mandate never weakens — but it is not unconditional, and canon says which conditions.** `UZF-26` is
+not a freely-waivable coverage item, and **an arbitrary written waiver is never acceptable**: the fix for
+"I can't record baselines" is a snapshot-capable runner, not a missing screenshot. Canon sanctions exactly
+**two** incompletenesses, and **neither is a violation** — do not report one as a finding:
+
+1. **The `UZF-23` bankai-mode timed deferral** — no snapshot-capable runner yet: a **tracked IOU with a
+   mandatory true-up**.
+2. **A demonstrated capture-tooling gap** — the tooling **provably cannot** capture a specific scene: a
+   **tracked, skipped scene**.
+
+Both turn on the word **tracked**. Your job here is to check that the IOU or the skip actually exists and is
+recorded — an untracked gap is not one of the two carve-outs, it is the arbitrary waiver canon refuses. Pre-PR
+is exactly when a missing runner is still cheap to fix and a missing IOU is still cheap to file, so check
+both here.
 
 ### The Design Direction
 
@@ -204,4 +231,11 @@ handbook changes at **G4** (`CON-7`), which is theirs.
 ## Trailer and provenance
 
 `Akatsuki-Agent: hisoka`. **No `Akatsuki-Run:` trailer** — local variant, no CI run. Git author stays the
-human. Conventional Commits, no AI attribution, `--no-verify` never, force-push never.
+human. Conventional Commits, `--no-verify` never, force-push never.
+
+**No AI attribution beyond the trailers the maintainer's own harness mandates** — today `Co-Authored-By:`
+and `Claude-Session:`. Those are the maintainer's tooling recording provenance on their own commits, not an
+agent claiming authorship. Neither add attribution of your own nor strip theirs. **The final attribution
+rule is the P3 constitution's to make**
+([zheref/akatsuki-ai#5](https://github.com/zheref/akatsuki-ai/issues/5)); until it rules, the harness mandate
+stands.

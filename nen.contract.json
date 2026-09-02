@@ -2,13 +2,21 @@
   "contract": "hatsu-nen-dependency",
   "contract_version": 1,
   "decision": "D10",
-  "summary": "Hatsu depends hard on the Nen CLI. Every deterministic step is a Nen verb. The dependency fails closed with auto-install: below the declared minimum or absent, the checksum-verified bootstrap runs itself; only if the bootstrap fails does the session halt with the exact command. A Nen-owned operation is NEVER improvised in prose.",
+  "authority": "THIS FILE IS THE SINGLE SOURCE OF TRUTH for the Nen dependency. Any version, ref, URL or command echoed in README.md, docs/, an agent definition or a SKILL.md is a convenience copy of a value that lives here. Where a copy disagrees with this file, this file wins and the copy is the bug. Read the values from here at run time; never act on a remembered version.",
+  "summary": "Hatsu depends hard on the Nen CLI. Every deterministic step is a Nen verb. The dependency fails closed with auto-install: out of the declared range or absent, the checksum-verified bootstrap runs itself; only if the bootstrap fails does the session halt with the exact command. A Nen-owned operation is NEVER improvised in prose.",
   "dependency": {
     "name": "nen",
     "source": "zheref/nen",
     "repository": "https://github.com/zheref/nen",
     "minimum": "0.1",
-    "minimum_semantics": "MAJOR.MINOR. Satisfied when the installed version's major equals the minimum's major AND its minor is >= the minimum's minor. Backward-compatible within a major, so a newer minor or patch satisfies it; a different major does NOT.",
+    "minimum_semantics": "MAJOR.MINOR, interpreted according to the major. See zero_major_caveat — while nen's line is 0.x this means >=0.1.0 <0.2.0 EXACTLY.",
+    "zero_major_caveat": {
+      "applies_while": "the installed and pinned majors are both 0",
+      "rule": "minimum '0.1' resolves to the range >=0.1.0 <0.2.0. A DIFFERENT MINOR IS OUT OF RANGE IN BOTH DIRECTIONS — 0.2.0 fails it exactly as 0.0.9 does.",
+      "why": "SemVer 2.0.0 clause 4: at major version zero the public API is unstable and anything MAY change at any time, so at 0.x the MINOR is the breaking-change vehicle. Treating 0.2.0 as backward-compatible with 0.1 would be a fail-OPEN read of the one range where compatibility is least guaranteed.",
+      "on_a_higher_minor": "Out of range is out of range: re-pin to pinned_ref, exactly as for a lower minor. Do not proceed on a newer 0.x because newer sounds safer.",
+      "from_1_0_onward": "Once nen reaches 1.0, minimum 'X.Y' means >=X.Y.0 <(X+1).0.0 — backward-compatible WITHIN the major, so a higher minor or patch satisfies it. This contract is bumped to say so when that happens; until then the 0.x rule above is the operative one."
+    },
     "pinned_ref": "v0.1.0",
     "pinned_ref_semantics": "The ref the bootstrap installs when the contract is unsatisfied. Never 'latest' — an unpinned fetch converts a source-pinned supply chain into an unpinned one.",
     "version_probe": "nen --version",
@@ -19,7 +27,13 @@
     "vendoring_forbidden": "Hatsu never carries a copy of this script. A vendored copy is a second, unreviewed supply chain that drifts from the manifest it verifies against. Hatsu fetches nen's own published script at the pinned ref, every time.",
     "script_path_in_source": "bootstrap/nen.sh",
     "url": "https://raw.githubusercontent.com/zheref/nen/v0.1.0/bootstrap/nen.sh",
-    "invocation": "bash <fetched-script> --ref v0.1.0",
+    "fetch": "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.1.0/bootstrap/nen.sh -o <local-file>",
+    "fetch_must_be_two_step": {
+      "rule": "ALWAYS fetch to a file, then run that file. NEVER pipe the script into bash.",
+      "why": "The script runs under `set -u` and reads ${BASH_SOURCE[0]}. Piped into `bash -s --` there is no BASH_SOURCE, so it dies with `BASH_SOURCE[0]: unbound variable` and exits 1 — a code that appears in NO table here, from a script that never reached its own argument parsing. It looks like an ordinary failure and is not one; it means the invocation form was wrong. Reproduced against this contract's pinned ref.",
+      "wrong": "curl -fsSL <url> | bash -s -- --ref v0.1.0",
+      "right": "curl -fsSL <url> -o /tmp/nen-bootstrap.sh && bash /tmp/nen-bootstrap.sh --ref v0.1.0"
+    },
     "flags": {
       "--ref": "Required, no default. The tag to pin to.",
       "--source": "owner/name to fetch release assets from. Defaults to zheref/nen.",
@@ -32,9 +46,10 @@
       "3": "EXIT_UNSUPPORTED_HOST — this platform/arch ships no nen binary",
       "4": "EXIT_DOWNLOAD — the binary asset could not be retrieved (the retryable one)",
       "5": "EXIT_CHECKSUM — SECURITY: bytes did not verify, or could not be verified",
-      "6": "EXIT_MANIFEST — SHA256SUMS unfetchable, missing, malformed, or silent about the artifact"
+      "6": "EXIT_MANIFEST — SHA256SUMS unfetchable, missing, malformed, or silent about the artifact",
+      "7": "raised by `nen bootstrap` only, never by the script: no bootstrap/nen.sh found on disk. Not a supply-chain failure — a wiring failure. Supply --script."
     },
-    "retry_policy": "Exit 4 may be retried once. Exits 5 and 6 are NEVER retried — retrying a checksum failure is how a fail-closed guard becomes a fail-open one by attrition. Exits 2 and 3 are not retryable either; they will not change by being asked again.",
+    "retry_policy": "Exit 4 may be retried once. Exits 5 and 6 are NEVER retried — retrying a checksum failure is how a fail-closed guard becomes a fail-open one by attrition. Exits 2, 3 and 7 are not retryable either; they will not change by being asked again.",
     "published_binaries": [
       "nen-linux-x64",
       "nen-darwin-arm64",
@@ -42,14 +57,41 @@
     ],
     "manifest_asset": "SHA256SUMS"
   },
+  "install_paths": {
+    "note": "TWO cases, TWO paths. Which one applies is decided by the probe, never by preference.",
+    "nen_absent": {
+      "when": "`nen --version` is not found on PATH, exits non-zero, or prints something unparseable.",
+      "path": "The shell bootstrap, directly.",
+      "commands": [
+        "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.1.0/bootstrap/nen.sh -o <local-file>",
+        "bash <local-file> --ref v0.1.0"
+      ],
+      "why_shell_here": "Chicken-and-egg, and it is the ONLY reason shell is permitted anywhere on this path. `nen bootstrap` is a nen subcommand, so invoking it presupposes the binary that is precisely what is missing. The script exists because a bootstrap written in the language its own output provides cannot run before that output exists. This is the sole carve-out; it does not generalize to any other operation."
+    },
+    "nen_present_out_of_range": {
+      "when": "`nen --version` parses but falls outside the range in dependency.zero_major_caveat.",
+      "path": "Re-pin THROUGH NEN'S OWN VERB. A working nen is on PATH, so the chicken-and-egg rationale does not apply and the shell path is not the one to reach for.",
+      "commands": [
+        "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.1.0/bootstrap/nen.sh -o <local-file>",
+        "nen bootstrap --ref v0.1.0 --source zheref/nen --script <local-file>"
+      ],
+      "why_script_flag_is_required": "VERIFIED, and it contradicts what the verb's name suggests: `nen bootstrap` does not fetch the script. It runs the checksum bootstrap rather than reimplementing it, so it needs bootstrap/nen.sh ON DISK — from a checkout carrying it (--repo) or named with --script / $NEN_BOOTSTRAP_SH. A Hatsu user has no nen checkout, so --script with the freshly fetched file is the form that works; without it the verb exits 7. Deliberate on nen's part: a compiled binary has no sibling bootstrap/ directory, and guessing one is how a nonexistent path becomes a silent failure.",
+      "exit_codes": "The verb propagates the script's codes unchanged — a forced failure through the verb returns 6, verified — plus its own 7 above."
+    }
+  },
   "halt": {
-    "when": "ONLY when the bootstrap itself fails (any non-zero exit above). An absent or below-minimum nen is not a halt — it is an auto-install.",
-    "message_template": "Nen is unavailable and the checksum-verified bootstrap failed (exit ${EXIT_CODE} — ${EXIT_MEANING}). This operation is Nen-owned and will not be improvised. Run this yourself, then re-invoke:\n\n    curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.1.0/bootstrap/nen.sh | bash -s -- --ref v0.1.0\n",
+    "when": "ONLY when the bootstrap itself fails (any non-zero exit above). An absent or out-of-range nen is not a halt — it is an auto-install.",
+    "message_template": "Nen is unavailable and the checksum-verified bootstrap failed (exit ${EXIT_CODE} — ${EXIT_MEANING}). This operation is Nen-owned and will not be improvised. Run this yourself, then re-invoke:\n\n    curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.1.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh\n    bash /tmp/nen-bootstrap.sh --ref v0.1.0\n\nTwo steps, never a pipe: the script reads ${BASH_SOURCE[0]} under `set -u`, so `curl … | bash` dies before it starts.\n",
     "after_halt": "Stop. Do not perform the Nen-owned operation by another route — not with raw gh, not with a shell equivalent, not from memory. The operation does not happen."
   },
   "no_improvised_fallback": {
     "rule": "There is no LLM-improvised fallback for a Nen-owned operation, ever.",
     "scope": "A Nen-owned operation is any operation for which a nen verb exists — readiness determination, backlog fetch and ordering, board assembly and render, gate derivation, label application, changelog collation, fan-out computation, method-block validation, perf comparison, and the rest of `nen --help`.",
     "consequence": "If nen is unavailable and the bootstrap failed, the operation does not happen. Reporting that is the correct outcome; substituting a hand-rolled equivalent is not."
+  },
+  "no_jq": {
+    "rule": "Nothing on this path shells out to jq, yq or python to read this file.",
+    "why": "The ratified plan retires jq/yq as a DX friction — a machine needs one binary plus git and gh. And the reader here is an LLM agent that has already opened this file: parsing JSON by subprocess to hand values back to the entity that just read them buys a dependency for nothing.",
+    "how_instead": "Read this file, take the literal values, and issue plain curl / bash / nen commands with those literals substituted in."
   }
 }

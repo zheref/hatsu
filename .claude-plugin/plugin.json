@@ -26,5 +26,6 @@
     "./claude/agents/phinks.md",
     "./claude/agents/uvogin.md"
   ],
+  "commands": "./claude/commands/",
   "skills": "./claude/skills/"
 }
