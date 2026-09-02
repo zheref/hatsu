@@ -30,7 +30,7 @@ other than `hatsu`'s own `p2/2-tensho` branch.
 | 2 | "Read the current checkout before moving anything" — the four-row table (must-move / same-effort continue / different-effort fresh branch / clean), reasoned from `git status`/`git log` by hand | `nen wc classify --repo <path> --base <target>` — reports one of three cases (`must-move`, `on-branch-dirty`, `on-branch-clean`) with the evidence printed; verified live it never folds a `git` failure into a zero/empty reading (§ 2.1) |
 | 3 | Deciding whether uncommitted work is the "same effort" as a branch's existing commits — a judgement call with no stated evidence source | Still judgement — but `nen wc classify`'s `on-branch-dirty` case now **prints** the exact evidence (existing commit subjects, uncommitted paths) this skill used to have to go gather itself |
 | 4 | Resolving which product code a working copy belongs to — never a stated command, left to the agent to infer | `nen repo resolve --repo <path> --from <path>` (origin match) or `nen repo resolve <CODE> --repo <path>` (explicit) — with a real finding on the origin-match path (§ 4.2, § 2.9) |
-| 5 | The staging flag table — 6 categories (secret, ignored, binary, out-of-scope, local-config, unmentioned deletion), each detected by the agent reading the diff by eye | `nen stage triage --repo <path> [--scope ...] [--mentions ...]` covers **5 of 6** (§ 2.2) — `secret-shape`, `ignored`, `binary`, `out-of-scope`, `unmentioned-deletion`. **2 residual categories with no detector**: local-config files and "unusually large" files (§ 4.3/4.4) — both verified live to report clean when they hit neither an existing detector, and both stay this skill's to ask about by eye |
+| 5 | The staging flag table — 7 categories (secret, ignored, binary, out-of-scope, local-config, unmentioned-deletion, unusually-large), each detected by the agent reading the diff by eye | `nen stage triage --repo <path> [--scope ...] [--mentions ...]` covers **5 of 7** (§ 2.2) — `secret-shape`, `ignored`, `binary`, `out-of-scope`, `unmentioned-deletion`. **2 residual categories with no detector**: local-config files and "unusually large" files (§ 4.3/4.4) — both verified live to report clean when they hit neither an existing detector, and both stay this skill's to ask about by eye |
 | 6 | "The ask on every flagged file stays human" | **Unchanged, verbatim** — `nen stage triage` detects, never decides, and its own `--help` says the yes is never its to give |
 | 7 | Conventional Commits shape (type, subject length, trailing punctuation), checked (or not) by eye | `nen commit format --type ... --subject ...` — validates shape only, exits `2` on a violation (§ 2.3) |
 | 8 | The two "not optional" PR body sections, hand-read against the diff | `nen pr body-check --body-from ... --requirements-from ...` — checks every requirement, never stops at the first miss (§ 2.4) |
@@ -337,6 +337,9 @@ refusal message enumerates it). Recorded as a finding, § 4.2.
 **Citation, not re-proof.** Verdict parity between `nen pr ready` and `pr_ready_gate.sh` is already
 established across the live estate by `docs/ab/pr-state.md` (17/17 agreeing, per nen's shadow
 window). This is a spot confirmation only, reusing the same PR `pr-state`'s own doc already recorded:
+`zheref/bankai-core#925` — the identical PR `docs/ab/pr-state.md` § 2.1 already A/B'd — run again
+here deliberately, as a spot-confirmation that the handover is wired correctly, not as a claim of
+any new verdict coverage.
 
 ```
 $ export GH_TOKEN=$(gh auth token)
