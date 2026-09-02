@@ -6,12 +6,12 @@ evaluate, report, poll in-shell, pace"). New mechanics: `nen parse izanami` (the
 command classification) and `nen watch until` (the loop itself).
 
 Run: 2026-09-02T02:05Z (UTC). `nen` `0.1.0` (`<cache>\nen\v0.1.0\nen-windows-x64.exe`).
-`gh` authenticated as `zheref` (`GH_TOKEN=$(gh auth token)` exported for every bankai-core read below).
-Old skill source: `refpack/skills/izanami.SKILL.md` (bankai-core `v0.11.3`-era). No shell oracle exists
+`gh` authenticated as `zheref` (`GH_TOKEN=$(gh auth token)` exported for every `<reference-repo>` read below).
+Old skill source: `refpack/skills/izanami.SKILL.md` (`<reference-repo>` `v0.11.3`-era). No shell oracle exists
 for izanami — the old skill's "loop" and "classify" steps were pure agent prose, never a script, so
 there is no old-side command to run in parallel; the A/B here is against that prose, by contract.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
@@ -40,23 +40,23 @@ classifier does not yet cover.
 
 No shell oracle exists to run in parallel (izanami's old "mechanics" were agent prose, never a script),
 so every transcript below is `nen`'s own behavior, verified directly against the real binary and,
-where the loop's *content* was tested against a live target, against the real `zheref/bankai-core`
+where the loop's *content* was tested against a live target, against the real `<reference-repo>`
 backlog.
 
 ### 2.1 — `nen parse izanami`, valid invocations, both grammar forms
 
 ```
-$ nen parse izanami "gh pr checks 925 --repo zheref/bankai-core until they are all green"
+$ nen parse izanami "gh pr checks 925 --repo <reference-repo> until they are all green"
 until: they are all green
-  [read-only] gh pr checks 925 --repo zheref/bankai-core
+  [read-only] gh pr checks 925 --repo <reference-repo>
 $ echo $?
 0
 ```
 
 ```
-$ nen parse izanami $'until they are all green\ngh pr checks 925 --repo zheref/bankai-core'
+$ nen parse izanami $'until they are all green\ngh pr checks 925 --repo <reference-repo>'
 until: they are all green
-  [read-only] gh pr checks 925 --repo zheref/bankai-core
+  [read-only] gh pr checks 925 --repo <reference-repo>
 $ echo $?
 0
 ```
@@ -98,10 +98,10 @@ A genuinely mutating command mixed with a read-only one — the WHOLE run refuse
 line:
 
 ```
-$ nen parse izanami $'until the PR merges\ngh pr checks 925 --repo zheref/bankai-core\ngh pr merge 925 --repo zheref/bankai-core'
+$ nen parse izanami $'until the PR merges\ngh pr checks 925 --repo <reference-repo>\ngh pr merge 925 --repo <reference-repo>'
 until: the PR merges
-  [read-only] gh pr checks 925 --repo zheref/bankai-core
-  [mutating] gh pr merge 925 --repo zheref/bankai-core
+  [read-only] gh pr checks 925 --repo <reference-repo>
+  [mutating] gh pr merge 925 --repo <reference-repo>
 nen: at least one command does not classify as read-only -- the WHOLE run is refused. Use 'nen parse
 izanagi <task> until <condition> up to <N>' for a loop that must act.
 $ echo $?
@@ -114,18 +114,18 @@ Every command below was run as `nen parse izanami "until X\n<command>"` and the 
 read off:
 
 ```
-[read-only]  gh pr view 925 --repo zheref/bankai-core
-[read-only]  gh pr checks 925 --repo zheref/bankai-core
-[read-only]  gh pr list --repo zheref/bankai-core
-[read-only]  gh pr diff 925 --repo zheref/bankai-core
-[read-only]  gh pr status --repo zheref/bankai-core
-[read-only]  gh issue view 918 --repo zheref/bankai-core
-[read-only]  gh issue list --repo zheref/bankai-core
-[read-only]  gh run view 123 --repo zheref/bankai-core
-[read-only]  gh run list --repo zheref/bankai-core
-[read-only]  gh run watch 123 --repo zheref/bankai-core
-[read-only]  gh repo view zheref/bankai-core
-[read-only]  gh api /repos/zheref/bankai-core/issues/918
+[read-only]  gh pr view 925 --repo <reference-repo>
+[read-only]  gh pr checks 925 --repo <reference-repo>
+[read-only]  gh pr list --repo <reference-repo>
+[read-only]  gh pr diff 925 --repo <reference-repo>
+[read-only]  gh pr status --repo <reference-repo>
+[read-only]  gh issue view 918 --repo <reference-repo>
+[read-only]  gh issue list --repo <reference-repo>
+[read-only]  gh run view 123 --repo <reference-repo>
+[read-only]  gh run list --repo <reference-repo>
+[read-only]  gh run watch 123 --repo <reference-repo>
+[read-only]  gh repo view <reference-repo>
+[read-only]  gh api /repos/<reference-repo>/issues/918
 [read-only]  git fetch origin
 [read-only]  git log -1
 [read-only]  git diff main
@@ -142,19 +142,19 @@ read off:
 [unknown]    type somefile.txt
 [unknown]    test -f somefile.txt
 [mutating]   gh api -X POST /repos/x/y/labels
-[mutating]   gh pr merge 925 --repo zheref/bankai-core
-[mutating]   gh pr comment 925 --body hi --repo zheref/bankai-core
-[mutating]   gh pr close 925 --repo zheref/bankai-core
-[mutating]   gh pr reopen 925 --repo zheref/bankai-core
-[mutating]   gh issue create --title x --body y --repo zheref/bankai-core
-[mutating]   gh issue edit 918 --title x --repo zheref/bankai-core
-[mutating]   gh issue close 918 --repo zheref/bankai-core
-[mutating]   gh label create bug --repo zheref/bankai-core
-[mutating]   gh label edit bug --repo zheref/bankai-core
-[mutating]   gh label delete bug --repo zheref/bankai-core
-[mutating]   gh release create v1.0.0 --repo zheref/bankai-core
-[mutating]   gh release edit v1.0.0 --repo zheref/bankai-core
-[mutating]   gh release delete v1.0.0 --repo zheref/bankai-core
+[mutating]   gh pr merge 925 --repo <reference-repo>
+[mutating]   gh pr comment 925 --body hi --repo <reference-repo>
+[mutating]   gh pr close 925 --repo <reference-repo>
+[mutating]   gh pr reopen 925 --repo <reference-repo>
+[mutating]   gh issue create --title x --body y --repo <reference-repo>
+[mutating]   gh issue edit 918 --title x --repo <reference-repo>
+[mutating]   gh issue close 918 --repo <reference-repo>
+[mutating]   gh label create bug --repo <reference-repo>
+[mutating]   gh label edit bug --repo <reference-repo>
+[mutating]   gh label delete bug --repo <reference-repo>
+[mutating]   gh release create v1.0.0 --repo <reference-repo>
+[mutating]   gh release edit v1.0.0 --repo <reference-repo>
+[mutating]   gh release delete v1.0.0 --repo <reference-repo>
 [mutating]   git push origin main
 [mutating]   git commit -m x
 [mutating]   git merge foo
@@ -169,10 +169,10 @@ read off:
 [mutating]   git remote rename origin upstream
 [mutating]   git remote prune origin
 [mutating]   git remote set-head origin -a
-[unknown]    nen pr ready 925 --gh-repo zheref/bankai-core
-[unknown]    nen backlog fetch --repo-slug zheref/bankai-core
-[unknown]    nen board build --repo-slug zheref/bankai-core --rows-from x.json
-[unknown]    nen label apply BC-IS-#1 --label x --repo-slug zheref/bankai-core --run
+[unknown]    nen pr ready 925 --gh-repo <reference-repo>
+[unknown]    nen backlog fetch --repo-slug <reference-repo>
+[unknown]    nen board build --repo-slug <reference-repo> --rows-from x.json
+[unknown]    nen label apply RR-IS-#1 --label x --repo-slug <reference-repo> --run
 ```
 
 The `git`/`gh` rows reproduce the old skill's allow/refuse table exactly on every row that table
@@ -208,19 +208,19 @@ $ echo $?
 0
 ```
 
-### 2.5 — `nen watch until`, a real bankai-core read-only condition, already true
+### 2.5 — `nen watch until`, a real `<reference-repo>` read-only condition, already true
 
 ```
 $ export GH_TOKEN=$(gh auth token)
-$ nen watch until --command "gh pr view 925 --repo zheref/bankai-core --json state -q .state" --true-pattern "OPEN" --interval-ms 2000 --max-iterations 3
+$ nen watch until --command "gh pr view 925 --repo <reference-repo> --json state -q .state" --true-pattern "OPEN" --interval-ms 2000 --max-iterations 3
 [1] condition is true (exit 0)
 condition became true after 1 observation(s)
 $ echo $?
 0
 ```
 
-`zheref/bankai-core#925` was open at run time (confirmed separately: `gh pr list --repo
-zheref/bankai-core --state open` listed `#925` and `#940`), so the condition was true on the first
+`<reference-repo>#925` was open at run time (confirmed separately: `gh pr list --repo
+<reference-repo> --state open` listed `#925` and `#940`), so the condition was true on the first
 observation — a degenerate but genuine case, the same shape the pr-state port's § 2.2 recorded for
 closed PRs.
 
@@ -240,7 +240,7 @@ $ echo $?
 Three consecutive observation errors stop the run, regardless of `--max-iterations`:
 
 ```
-$ nen watch until --command "gh pr view 999999 --repo zheref/bankai-core --json state -q .state" --true-pattern "OPEN" --interval-ms 1000
+$ nen watch until --command "gh pr view 999999 --repo <reference-repo> --json state -q .state" --true-pattern "OPEN" --interval-ms 1000
 [1] observation failed: GraphQL: Could not resolve to a PullRequest with the number of 999999. (repository.pullRequest)
 [2] observation failed: GraphQL: Could not resolve to a PullRequest with the number of 999999. (repository.pullRequest)
 [3] observation failed: GraphQL: Could not resolve to a PullRequest with the number of 999999. (repository.pullRequest)

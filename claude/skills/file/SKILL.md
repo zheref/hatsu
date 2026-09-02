@@ -140,7 +140,7 @@ Guard every candidate first:
 nen issue open-pr-check --target <owner/name> --issues <n1,n2,...>
 ```
 
-**Exits `1`** when any candidate carries an open PR (verified live against `zheref/bankai-core`:
+**Exits `1`** when any candidate carries an open PR (verified live against `<reference-repo>`:
 scanned every open PR, matched by both `closingIssuesReferences` and body mentions, and flagged
 every issue either one touches — cross-checked by hand against `gh pr view <n> --json
 closingIssuesReferences,body`, byte-identical). **Exit `0`** clears every candidate.

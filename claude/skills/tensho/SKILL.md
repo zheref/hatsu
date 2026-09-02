@@ -86,15 +86,15 @@ nen repo resolve <CODE> --repo <path>               # matches an explicit code i
 ```
 
 > **Finding: `nen repo resolve`'s no-token form cannot resolve the registry-owning repo to its own
-> code.** Verified live standing inside a `bankai-core` checkout: `nen repo resolve --repo <path>
+> code.** Verified live standing inside a `<reference-repo>` checkout: `nen repo resolve --repo <path>
 > --from <path>` (no token) matches the working copy's `origin` remote only against
-> `schemas/repos.json`'s **`consumers[]`** entries — repos that consume bankai-core — and refuses
+> `schemas/repos.json`'s **`consumers[]`** entries — repos that consume `<reference-repo>` — and refuses
 > with `that is not in this registry`, even though `BC` is a valid, listed code (the refusal's own
-> text enumerates it). `bankai-core` is the registry's owner, not one of its own consumers, so it
+> text enumerates it). `<reference-repo>` is the registry's owner, not one of its own consumers, so it
 > is never a `consumers[]` row to match an origin against. **Working inside the repo whose own
 > registry this is, pass the code explicitly** (`nen repo resolve BC --repo <path>`, which resolves
 > fine) rather than relying on the no-token origin match. This does not affect tensho run from
-> inside any *consumer* repo (`KroApple`, `KroAndroid`, `bankai-scaffold`, hatsu itself once it
+> inside any *consumer* repo (`<product-repo-A>`, `<product-repo-B>`, `<scaffold-repo>`, hatsu itself once it
 > ships its own registry) — only from inside the repo that ships the registry.
 
 ## 3. Staging — every file is looked at, and some are asked about
@@ -210,7 +210,7 @@ nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,schemas/" \
   --files <the changed paths> [--asserted G2|G4]
 ```
 
-These are `bankai-core`'s own two-tier split, verbatim from `hatsu`'s own `drive.SKILL.md`
+These are `<reference-repo>`'s own two-tier split, verbatim from `hatsu`'s own `drive.SKILL.md`
 prose: `CONSTITUTION.md`/`handbooks/`/`agents/`/`schemas/` derive G4 as classic policy/spec
 (`CON-7`); `.github/workflows/`/`claude/`/`scripts/`/`tests/`/`docs/` derive G4 too, for the
 different reason that in a repository whose product is its process, a process change *is* a policy
@@ -232,7 +232,7 @@ nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers copilot
 On the maintainer's **user** token it registers, where a bot token silently no-ops — `nen`'s own
 `--help` states this and that it cannot enforce which credential ran it, only warn. This is a
 mutating GitHub call; per this port's ground rules it is A/B'd by contract inspection only
-(`docs/ab/tensho.md` § 3), never exercised live against `bankai-core`.
+(`docs/ab/tensho.md` § 3), never exercised live against `<reference-repo>`.
 
 ## 6. Then drive it to its gate
 
@@ -248,7 +248,7 @@ needs): the readiness **check** by itself is [`hatsu:pr-state`](../pr-state/SKIL
 
 ```bash
 export GH_TOKEN=$(gh auth token)
-nen pr ready <CODE>#<N> --repo <path> --gates "$CLAUDE_PLUGIN_ROOT/contracts/bankai-core.gates.json" --explain
+nen pr ready <CODE>#<N> --repo <path> --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
 ```
 
 Quote the verdict verbatim, render the conjunct table `--explain` prints, and apply
@@ -257,7 +257,7 @@ not made — never a paraphrase, never `ready` for a PR that came back `unevalua
 that this was a check and not a drive: it reports where the PR stands and moves nothing.
 
 Render the stop with `nen stop --who kurapika --gate <G2|G4> <efforts.md>` (verified live,
-`docs/ab/tensho.md` § 2.8) and say the handover out loud: *"PR open at BC-PR-#N; `<verdict>`
+`docs/ab/tensho.md` § 2.8) and say the handover out loud: *"PR open at RR-PR-#N; `<verdict>`
 against G4."*
 
 ## 7. Authority

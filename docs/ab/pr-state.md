@@ -6,12 +6,12 @@ with its conjunct-by-conjunct breakdown. Old mechanics: `REPO=<owner>/<repo> scr
 `unevaluated` classification by hand. New mechanics: `nen pr ready <ref> --explain`.
 
 Run: 2026-09-02T00:25Z (UTC). `nen` `0.1.0` (`<cache>\nen\v0.1.0\nen-windows-x64.exe`).
-`gh` authenticated as `zheref`. Oracle checkout: `zheref/bankai-core` tag `v0.11.3`
+`gh` authenticated as `zheref`. Oracle checkout: `<reference-repo>` tag `v0.11.3`
 (`2269fe723e355dc69bf535ab40f22556e4fe4081`, working tree clean) — `scripts/pr_ready_gate.sh` extracted
 read-only via `git show v0.11.3:scripts/pr_ready_gate.sh` into a scratch file, never written back to
-the bankai-core checkout.
+the `<reference-repo>` checkout.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
@@ -22,19 +22,19 @@ Every deterministic or hand-reconstructed step the old `SKILL.md` carried, and w
 | # | Old (prose / shell) | New (`nen`) |
 |---|---|---|
 | 1 | Resolve `<repo_code>` against `schemas/repos.json` → `product_codes` — described in prose as "read from the registry at run time," with no command given; left to the agent to `cat`/grep the file by hand | `nen pr ready <CODE>#<N> --repo <path>` resolves the code itself, against the same file, and refuses an unknown one by name (verified live, § 2.3) |
-| 2 | `REPO=<owner>/<repo> scripts/pr_ready_gate.sh --verdict <N>` | `nen pr ready <CODE>#<N> --repo <path> --gates "$CLAUDE_PLUGIN_ROOT/contracts/bankai-core.gates.json"` (or `<N> --gh-repo <owner/repo> --gates …`) — the `$CLAUDE_PLUGIN_ROOT` anchor is load-bearing, not stylistic: a bare `contracts/bankai-core.gates.json` only resolves from this checkout's own root as cwd and `ENOENT`s from any other (verified live, § 2.6) |
+| 2 | `REPO=<owner>/<repo> scripts/pr_ready_gate.sh --verdict <N>` | `nen pr ready <CODE>#<N> --repo <path> --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"` (or `<N> --gh-repo <owner/repo> --gates …`) — the `$CLAUDE_PLUGIN_ROOT` anchor is load-bearing, not stylistic: a bare `contracts/reference.gates.json` only resolves from this checkout's own root as cwd and `ENOENT`s from any other (verified live, § 2.6) |
 | 3 | The 6-row conjunct table in SKILL.md § 3 was **static documentation**, not computed — the agent read a single terse verdict string (e.g. `not-ready: 3 unresolved review thread(s) (CON-32d)`) and matched it BY EYE against a lookup table baked into the skill file, marking every row after the match `—` by hand | `nen pr ready … --explain` (or `--json`'s `conjuncts[]`) renders the same six rows, in the same evaluation order, with `ready`/`FAILED`/`unevaluated` status already assigned per row and the short-circuit already applied — nothing to reconstruct (verified live, § 2.1–2.2) |
 | 4 | The "what the gate does NOT decide" caveats (`CON-32c` approximation, the empty-rollup-fails note, `CON-32e` channel-less findings) were static prose the skill instructed the agent to append **from memory** every time | `nen pr ready … --explain`/`--json` prints the identical three caveats automatically, every invocation — no longer something the agent can forget or paraphrase (verified live, § 2.1) |
 | 5 | `unevaluated` classification ("exit anything other than 0/1, or no output, is `unevaluated`") was a rule the agent applied by inspecting the shell's exit code and stderr | `nen` emits `unevaluated: <reason>` **as the verdict string itself** — no exit-code table to hold in the agent's head (verified live, § 2.4) |
 | 6 | `--copilot-policy` never passed, to keep the settled `bounded` default | `--round-policy` never passed, same default, same rule; flag renamed by `nen`, semantics unchanged |
 | 7 | `--exclude-run $GITHUB_RUN_ID`, in-job only | `--exclude-run <id>`, identical carve-out, same flag name |
-| 8 | Dynamic reviewer-set enrolment (base `sasuke,tenma,copilot`; `+bisky`/`+bugbot` only when their check is present at head) lived inside the shell script's own bash, invisible to the skill text | Same computation now lives in `nen`'s ported `predicates.ts`, driven by `contracts/bankai-core.gates.json`'s `enrolment_check_pattern` fields — data, not shell, but the skill still never re-derives it by hand |
+| 8 | Dynamic reviewer-set enrolment (base `sasuke,tenma,copilot`; `+bisky`/`+bugbot` only when their check is present at head) lived inside the shell script's own bash, invisible to the skill text | Same computation now lives in `nen`'s ported `predicates.ts`, driven by `contracts/reference.gates.json`'s `enrolment_check_pattern` fields — data, not shell, but the skill still never re-derives it by hand |
 | 9 | `<repo_code>#<PR_NUMBER>` was parsed by the agent's own prose reading, by hand, every invocation | **Not** `nen parse` — checked `nen parse --help` live: it validates a skill's own custom grammar against a caller-supplied `--grammar` template (or one of three named skills, `futon`/`izanagi`/`izanami`, that carry a built-in one), and `pr-state` publishes no such template. `nen pr ready <ref>` parses its own `<CODE>#<N>` / bare-`<N>` ref internally instead (`src/verbs/pr_ready.ts`'s `CODED_REF` regex) — the ref grammar is the verb's own contract, not a separate `nen parse` invocation this skill would gain anything by adding |
 
 **Count.** Before: 4 steps the agent had to perform **manually, in prose, per invocation** (rows 1, 3,
 4, 5 above — resolving the code, reconstructing the table, appending the caveats, classifying
 `unevaluated`), on top of remembering to run the oracle at all rather than eyeballing the PR (the whole
-reason [BC-IS-#681](https://github.com/zheref/bankai-core/issues/681) exists). After: **0** — all four
+reason RR-IS-#681 exists). After: **0** — all four
 are computed and printed by `nen pr ready --explain`/`--json`. What remains is one **required flag
 decision** (`--repo`/`--gh-repo`/`--gates`), which is plumbing the verb demands, not something the old
 skill left to improvisation.
@@ -50,31 +50,31 @@ after two real disagreements were found and fixed during that project — an emp
 misclassification, and a check-rollup pagination cap that produced a false green past 100 contexts).
 **Reason text is not claimed byte-equal across all 17**: that same evidence file records one declared,
 normalized divergence — the oracle's reason string for an empty rollup carries a trailing
-`(bankai-core#671)` citation that nen's own taxonomy-purity rule forbids `src/gates/ready.ts` from
+`(<reference-repo>#671)` citation that nen's own taxonomy-purity rule forbids `src/gates/ready.ts` from
 emitting, so `reasonAgrees()` strips that one named substring before comparing; every other compared
 row (verdicts that are not a bare `ready`, where there is reason text on both sides to compare at all)
 matches with zero normalization applied. What follows is this skill's own **spot confirmation**, run
-directly against real bankai-core PRs as part of this port, not a re-run of that whole harness.
+directly against real `<reference-repo>` PRs as part of this port, not a re-run of that whole harness.
 
-> **Transcript cwd note.** The `--gates contracts/bankai-core.gates.json` in the transcripts below is
+> **Transcript cwd note.** The `--gates contracts/reference.gates.json` in the transcripts below is
 > cwd-relative because every run in this document was executed from the hatsu checkout root, where that
 > path resolves — the commands are pasted as they actually ran, and rewriting them would falsify the
 > record. The **copy/paste-safe form** for any other cwd is the one the skill mandates:
-> `--gates "$CLAUDE_PLUGIN_ROOT/contracts/bankai-core.gates.json"` — § 2.6 demonstrates the `ENOENT`
+> `--gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"` — § 2.6 demonstrates the `ENOENT`
 > you get when the relative form leaves this directory.
 
 ### 2.1 — `nen pr ready`, `--explain`, an open PR with a real failure
 
 ```
 $ export GH_TOKEN=$(gh auth token)
-$ nen pr ready 925 --gh-repo zheref/bankai-core --gates contracts/bankai-core.gates.json --explain
+$ nen pr ready 925 --gh-repo <reference-repo> --gates contracts/reference.gates.json --explain
 ```
 
 ```
-zheref/bankai-core#925: not-ready: required checks reported but are not all green (CON-32a)
+<reference-repo>#925: not-ready: required checks reported but are not all green (CON-32a)
 
   head 702868f12487fa189b7bf0e35fc140391c19fd24 · reviewers sasuke,tenma,copilot · approvers sasuke,tenma
-  policy bounded · delivery PR no · identities contracts/bankai-core.gates.json
+  policy bounded · delivery PR no · identities contracts/reference.gates.json
 
   The gate is a CONJUNCTION, evaluated in this order, short-circuiting on the
   first failure. Everything after the failing row is genuinely unknown.
@@ -96,7 +96,7 @@ zheref/bankai-core#925: not-ready: required checks reported but are not all gree
 **Oracle, same PR, read-only (`--verdict`, posts nothing):**
 
 ```
-$ export REPO=zheref/bankai-core
+$ export REPO=<reference-repo>
 $ bash pr_ready_gate.sh --verdict 925
 #925: not-ready: required checks reported but are not all green (CON-32a)
 ```
@@ -107,11 +107,11 @@ reason text on both sides.
 ### 2.2 — two closed PRs, `mergeable=UNKNOWN`
 
 ```
-$ nen pr ready 934 --gh-repo zheref/bankai-core --gates contracts/bankai-core.gates.json
-zheref/bankai-core#934: not-ready: mergeable=UNKNOWN (expected MERGEABLE — CON-42/1's added predicate)
+$ nen pr ready 934 --gh-repo <reference-repo> --gates contracts/reference.gates.json
+<reference-repo>#934: not-ready: mergeable=UNKNOWN (expected MERGEABLE — CON-42/1's added predicate)
 
-$ nen pr ready 932 --gh-repo zheref/bankai-core --gates contracts/bankai-core.gates.json
-zheref/bankai-core#932: not-ready: mergeable=UNKNOWN (expected MERGEABLE — CON-42/1's added predicate)
+$ nen pr ready 932 --gh-repo <reference-repo> --gates contracts/reference.gates.json
+<reference-repo>#932: not-ready: mergeable=UNKNOWN (expected MERGEABLE — CON-42/1's added predicate)
 ```
 
 Oracle, both PRs, read-only:
@@ -132,7 +132,7 @@ record.)
 ### 2.3 — a closed, unmerged PR, plus `--json`
 
 ```
-$ nen pr ready 927 --gh-repo zheref/bankai-core --gates contracts/bankai-core.gates.json --json
+$ nen pr ready 927 --gh-repo <reference-repo> --gates contracts/reference.gates.json --json
 {
   "verdict": "not-ready",
   "gateLine": "not-ready: required checks reported but are not all green (CON-32a)",
@@ -151,7 +151,7 @@ $ bash pr_ready_gate.sh --verdict 927
 ```
 
 **Verdict: SAME.** 4/4 PRs checked this run (`#925` open, `#927` closed/unmerged, `#932`/`#934` merged)
-agree on both readiness and full reason text — a mix of open and closed, as available (bankai-core had
+agree on both readiness and full reason text — a mix of open and closed, as available (`<reference-repo>` had
 exactly one open PR, `#925`, at run time; `nen backlog fetch` or `gh pr list --state open` will confirm
 this is a live, moving fact rather than a fixed count, same caveat the shadow window itself names).
 
@@ -159,8 +159,8 @@ this is a live, moving fact rather than a fixed count, same caveat the shadow wi
 
 ```
 $ unset GH_TOKEN
-$ nen pr ready 925 --gh-repo zheref/bankai-core --gates contracts/bankai-core.gates.json
-zheref/bankai-core#925: unevaluated: no usable token, so GitHub could not be read
+$ nen pr ready 925 --gh-repo <reference-repo> --gates contracts/reference.gates.json
+<reference-repo>#925: unevaluated: no usable token, so GitHub could not be read
 nen: this pull request could NOT be evaluated, which is a finding and never a pass. GH_TOKEN is not
 set -- this client never picks a token up ambiently the way gh does, so the caller must mint one and
 name the variable it lives in
@@ -168,7 +168,7 @@ name the variable it lives in
 
 ```
 $ export GH_TOKEN=$(gh auth token)
-$ nen pr ready 925 --gh-repo zheref/bankai-core
+$ nen pr ready 925 --gh-repo <reference-repo>
 nen: no reviewer identities. This gate never falls back to a built-in reviewer set: a binary that
 guessed the reviewers would judge this repository against another one's and report success. Give it
 one of: --gates <path>, a 'schemas/gates.json' in the target repository (looked for at
@@ -176,15 +176,15 @@ one of: --gates <path>, a 'schemas/gates.json' in the target repository (looked 
 ```
 
 Both confirm the operational truths this port encodes: `GH_TOKEN` is never ambient, and a frozen
-bankai-core PR is unjudgeable without `--gates` pointed at `contracts/bankai-core.gates.json`.
+`<reference-repo>` PR is unjudgeable without `--gates` pointed at `contracts/reference.gates.json`.
 
 ### 2.5 — the no-`#` shorthand, a finding (not A/B, a defect against the binary)
 
 ```
-$ nen pr ready BC9   --repo <bankai-core checkout> --gates contracts/bankai-core.gates.json
-zheref/bankai-core#9: not-ready: mergeable=UNKNOWN (expected MERGEABLE — CON-42/1's added predicate)
+$ nen pr ready BC9   --repo <reference-repo checkout> --gates contracts/reference.gates.json
+<reference-repo>#9: not-ready: mergeable=UNKNOWN (expected MERGEABLE — CON-42/1's added predicate)
 
-$ nen pr ready BC925 --repo <bankai-core checkout> --gates contracts/bankai-core.gates.json
+$ nen pr ready BC925 --repo <reference-repo checkout> --gates contracts/reference.gates.json
 nen: 'BC92' is not a product code in the target repository's registry. Known codes: ...
 ```
 
@@ -202,20 +202,20 @@ rather than routing around it by hand.
 
 ```
 $ cd <hatsu checkout>
-$ nen pr ready BC#925 --repo <bankai-core checkout> --gates contracts/bankai-core.gates.json --explain
-zheref/bankai-core#925: not-ready: required checks reported but are not all green (CON-32a)
+$ nen pr ready BC#925 --repo <reference-repo checkout> --gates contracts/reference.gates.json --explain
+<reference-repo>#925: not-ready: required checks reported but are not all green (CON-32a)
   ...
 
-$ cd <bankai-core checkout>
-$ nen pr ready BC#925 --repo <bankai-core checkout> --gates contracts/bankai-core.gates.json --explain
-nen: ENOENT: no such file or directory, open 'contracts/bankai-core.gates.json'
+$ cd <reference-repo checkout>
+$ nen pr ready BC#925 --repo <reference-repo checkout> --gates contracts/reference.gates.json --explain
+nen: ENOENT: no such file or directory, open 'contracts/reference.gates.json'
 
-$ nen pr ready BC#925 --repo <bankai-core checkout> --gates <hatsu checkout>/contracts/bankai-core.gates.json --explain
-zheref/bankai-core#925: not-ready: required checks reported but are not all green (CON-32a)
+$ nen pr ready BC#925 --repo <reference-repo checkout> --gates <hatsu checkout>/contracts/reference.gates.json --explain
+<reference-repo>#925: not-ready: required checks reported but are not all green (CON-32a)
   ...
 ```
 
-The first draft of the ported `SKILL.md` wrote `--gates contracts/bankai-core.gates.json` as a bare
+The first draft of the ported `SKILL.md` wrote `--gates contracts/reference.gates.json` as a bare
 relative path, which only resolves when the caller's cwd happens to be this checkout's own root — it
 `ENOENT`s from anywhere else, verified live above. This is a **skill-authoring bug, not a `nen` defect**
 (the flag is a plain path argument; `nen` does not owe it any particular resolution base), fixed in
@@ -248,8 +248,8 @@ SKILL.md` § 0 already establishes for exactly this — which the last command a
   authority, not a transfer of it." That is `nen`'s own internal governance question, separate from
   hatsu#2's mandate (already decided at the orchestrator level, per the shared brief) to port hatsu's
   skills onto `nen`'s verb surface now. Recorded here for completeness, not routed around.
-- **The historical incident table (§ 1 of the skill) is bankai-core's own recorded history**
-  ([BC-IS-#681](https://github.com/zheref/bankai-core/issues/681) and its antecedents) and is kept
+- **The historical incident table (§ 1 of the skill) is `<reference-repo>`'s own recorded history**
+  (RR-IS-#681 and its antecedents) and is kept
   verbatim as the skill's motivating record. **The old skill's four repo-code examples (`BC`, `BS`,
   `KP`, `KN`) were not carried over** — they are dropped, not kept, in this port; the registry now also
   lists `KW`, `KC` and the taxonomy's own `$comment` (§ 4's third finding), which is exactly why this
@@ -271,8 +271,8 @@ SKILL.md` § 0 already establishes for exactly this — which the last command a
    (likely in the ref-splitting regex `nen pr ready`'s bare-ref path uses).
 
 2. **A PR ref that names an issue instead surfaces as a misleading `unevaluated`, not a clean "that's
-   an issue" error.** Verified live: `nen pr ready BC#918 --repo <bankai-core checkout> --gates
-   <path>` (`918` is an open issue on `zheref/bankai-core`, not a PR) returns
+   an issue" error.** Verified live: `nen pr ready BC#918 --repo <reference-repo checkout> --gates
+   <path>` (`918` is an open issue on `<reference-repo>`, not a PR) returns
    `unevaluated: GitHub could not be read (… Could not resolve to a PullRequest with the number of
    918.)`, followed by `nen`'s generic remedy — "Check the token's grants (pull-requests:read AND
    checks:read AND actions:read), that it is not expired, and that the network reached github.com."
@@ -283,7 +283,7 @@ SKILL.md` § 0 already establishes for exactly this — which the last command a
    silently reclassifying it.
 
 3. **The unknown-product-code refusal lists `$comment` as if it were a valid product code.** Verified
-   live: `nen pr ready BC92 --repo <bankai-core checkout> --gates <path>` (an unparseable code from the
+   live: `nen pr ready BC92 --repo <reference-repo checkout> --gates <path>` (an unparseable code from the
    no-`#` bug above, finding 1) refuses with `'BC92' is not a product code in the target repository's
    registry. Known codes: $comment, BC, BS, KC, KN, KP, KW.` — `$comment` is `schemas/repos.json`'s own
    documentation key, not a `product_codes` entry, and should not be enumerated alongside the real ones

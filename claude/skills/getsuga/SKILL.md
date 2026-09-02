@@ -38,7 +38,7 @@ nen release resolve-target --repo <path to the checkout> --token <token>
 
 This re-fetches `origin/main` itself, then runs `git merge-base --is-ancestor <resolved>
 origin/main`, and refuses a dirty `checkout` outright (uncommitted work is not in any commit, so
-there is nothing to tag). Verified live against the real `zheref/bankai-core` (`docs/ab/getsuga.md`
+there is nothing to tag). Verified live against the real `<reference-repo>` (`docs/ab/getsuga.md`
 § 2.1): `--token main` and `--token last-commit` both resolve to the freshly re-fetched
 `origin/main` tip and report `an ancestor of the trunk -- safe to cut`; a branch token pointing at a
 live `integration/*` branch reports `NOT an ancestor of the trunk -- it has to reach the trunk first
@@ -83,14 +83,14 @@ GitHub reads that produce the raw facts:
   targets `main` from it (`gh pr list --state open --json baseRefName,headRefName`). `nen` computes
   the AND per chore and the "none live" verdict; point the file at `[]` to assert none are live.
 
-Verified live against the real `zheref/bankai-core` backlog (`docs/ab/getsuga.md` § 2.2 —
+Verified live against the real `<reference-repo>` backlog (`docs/ab/getsuga.md` § 2.2 —
 zero open `critical` issues, `RELEASE_HOLD` read as `false`, sixteen historical `integration/*`
 branches gathered and fed through, one of them — `879-g2-gate-definition` — carrying a genuinely
 open chore issue but no PR targeting it or `main`, so the three-part AND still reads **not live**):
 every row the table used to check by separate hand-run command now comes back in one report.
 
 > **Finding, load-bearing: `nen release preflight`'s `RELEASE_HOLD` row does not parse the
-> variable's boolean value — it reads ANY set value as HELD.** Verified live: `zheref/bankai-core`'s
+> variable's boolean value — it reads ANY set value as HELD.** Verified live: `<reference-repo>`'s
 > `RELEASE_HOLD` GitHub Actions Variable is literally the string `"false"` (`gh variable get
 > RELEASE_HOLD` prints `false`, meaning *not* held under the old `scripts/tag_cut.sh` semantics,
 > whose `hold_active()` treats only case-insensitive `true`/`1`/`yes` as active). `nen release
@@ -131,7 +131,7 @@ every row the table used to check by separate hand-run command now comes back in
 
 **Check the cut point, not the tip.** `--range`'s second half and `--changelog` must both name the
 **cut point**, not `main`'s current tip — `main` moves while a release is assembled
-([BC-IS-#683](https://github.com/zheref/bankai-core/issues/683) has run six laps on exactly this),
+(RR-IS-#683 has run six laps on exactly this),
 and a precondition verified against a tip that has since moved was never verified at all.
 
 ## 3. The release unit — fold everything that can fold into ONE PR
@@ -158,7 +158,7 @@ it:**
    > section renders fragments newest-first (highest numeric prefix first) — `CON-33(b)`'s own
    > convention, "placed newest-first, directly below `### Unreleased`" — and this is **exactly** what
    > the old script's own `list_fragment_files` (`sort -k1,1nr`, numeric-descending) and every real
-   > shipped `CHANGELOG.md` section (e.g. `zheref/bankai-core`'s `v0.11.3`: #899, #898, #890…
+   > shipped `CHANGELOG.md` section (e.g. `<reference-repo>`'s `v0.11.3`: #899, #898, #890…
    > descending) already do — `nen`'s written body matches the old script's written body
    > byte-for-byte on the same fixture. The **printed manifest line**, however, lists the same
    > fragments in plain ascending filesystem-read order (`10-a.md`, `20-b.md`, `30-c.md`) — the
@@ -185,7 +185,7 @@ it:**
      --changelog <path to CHANGELOG.md> --owner-repo <owner/name> [--fragment-dir changelog.d]
    ```
 
-   Verified live against the real `zheref/bankai-core` range `v0.11.2..v0.11.3`
+   Verified live against the real `<reference-repo>` range `v0.11.2..v0.11.3`
    (`docs/ab/getsuga.md` § 2.4): **same verdict** as the old
    `scripts/changelog_release_completeness_check.sh v0.11.2 v0.11.3` run read-only side by side —
    both report every merged PR reconciled, exit `0`.
@@ -205,14 +205,14 @@ nen release self-check --repo <path> --pr-merge-sha <sha> --previous-tag <vPrev>
 
 True iff the release PR's own merge commit is reachable from `--cut-point` and **not already**
 reachable from `--previous-tag` — a git-mechanical fact, never a judgement. Verified live against
-the real `v0.11.3` release PR ([BC-PR-#916](https://github.com/zheref/bankai-core/pull/916)):
+the real `v0.11.3` release PR (RR-PR-#916):
 `nen` reports it **should list ITSELF** against `v0.11.2..v0.11.3` (correct — that PR's merge is the
 cut point), and **should NOT list itself** against `v0.11.3..v0.11.3` (correct — already reachable
-from its own tag). Four laps got this wrong by hand in bankai-core
-([BC-PR-#651](https://github.com/zheref/bankai-core/pull/651),
-[BC-PR-#679](https://github.com/zheref/bankai-core/pull/679),
-[BC-PR-#682](https://github.com/zheref/bankai-core/pull/682),
-[BC-PR-#691](https://github.com/zheref/bankai-core/pull/691)) before this existed.
+from its own tag). Four laps got this wrong by hand in `<reference-repo>`
+(RR-PR-#651,
+RR-PR-#679,
+RR-PR-#682,
+RR-PR-#691) before this existed.
 
 > **Collation manufactures contradictions — look for them.** Two fragments written weeks apart are
 > each true when written and become **simultaneous claims** in one dated section. Before opening the
@@ -243,14 +243,14 @@ nen tag cut --repo <path> --name <vX.Y.Z> --at <the release PR's merge SHA> \
 > follow: if `main` advanced between the merge and the cut, `HEAD` is a *later* commit, and the tag
 > then covers PRs whose fragments are still uncollated. **Check out the release PR's merge SHA and
 > cut there**, after re-verifying § 2 at that SHA — exactly how the `v0.10.0` window kept
-> re-filling ([BC-IS-#683](https://github.com/zheref/bankai-core/issues/683)).
+> re-filling (RR-IS-#683).
 
 - **Cut the reconciled commit, not necessarily the tip.** Verify § 2 again at that exact SHA before
   cutting; if either the `changelog.d/` or `CON-33(c)` row fails there, the cut needs another
   collation lap.
 - **`--at` not an ancestor of `origin/main` → refused, never tagged off-trunk.** **The tag name
   already existing, locally or on origin → refused, never re-tagged.** Both verified live in a
-  disposable scratch repo, never against `bankai-core` or `hatsu` (`docs/ab/getsuga.md` § 2.5):
+  disposable scratch repo, never against `<reference-repo>` or `hatsu` (`docs/ab/getsuga.md` § 2.5):
   cutting at an unreachable commit refuses with `is not an ancestor of origin/main ... Use 'nen
   release resolve-target' first`; re-cutting an existing name refuses with `already exists locally
   -- never re-tagged`.
@@ -293,8 +293,8 @@ The maintainer's ruling: an unreachable target is **driven to `main` first**, no
    *Fallback only if `drive` cannot run at all* (an unresolvable code, say): the readiness call by
    itself is [`hatsu:pr-state`](../pr-state/SKILL.md)'s verb — `nen pr ready <ref> --explain`, with
    `GH_TOKEN` exported and `--gates` pointing at the target repository's own `schemas/gates.json`
-   (when it ships one) or `contracts/bankai-core.gates.json` where the target is frozen
-   bankai-core — quoted verbatim. That is a **check**, not a drive: it reports where the PR stands
+   (when it ships one) or `contracts/reference.gates.json` where the target is frozen
+   `<reference-repo>` — quoted verbatim. That is a **check**, not a drive: it reports where the PR stands
    and nothing moves it.
 4. **Stop at G2/G4.** The maintainer merges.
 5. **Re-resolve the target** — it is now a commit on `main`, and a *different* commit than the
@@ -314,8 +314,8 @@ nen --repo <path> fanout compute --range <vPrev>..<newTag>
 it, or an implicit N/A. Verified live against the real range `v0.11.2..v0.11.3`
 (`docs/ab/getsuga.md` § 2.6): `nen`'s output reproduces the historical `CON-22` determination
 recorded by hand at that release's own registry entry
-([BC-PR-#916](https://github.com/zheref/bankai-core/pull/916)) **exactly** — `zheref/KroApple`
-affected via the same five files, `zheref/KroAndroid` via the same four, `zheref/bankai-scaffold`
+(RR-PR-#916) **exactly** — `<product-repo-A>`
+affected via the same five files, `<product-repo-B>` via the same four, `<scaffold-repo>`
 via the same one. **Record every unaffected consumer as an explicit N/A with its basis** — an
 unstated N/A is indistinguishable from an unswept repo.
 
@@ -346,7 +346,7 @@ this skill's own action** — it targets *other repositories*, which no `nen` ve
 
 - **Never tags a commit unreachable from `origin/main`** — `nen release resolve-target` and
   `nen tag cut`'s own `--at` check both enforce this; verified live in scratch, never against
-  `bankai-core` or `hatsu`.
+  `<reference-repo>` or `hatsu`.
 - **Never tags past an open `critical`, an active `RELEASE_HOLD`, or an unreconciled `CON-33(c)`** —
   and read the `RELEASE_HOLD` row exactly as printed, per § 2's finding: a value present is HELD,
   even when that value itself reads `false`.

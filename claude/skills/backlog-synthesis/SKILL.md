@@ -20,7 +20,7 @@ conflict, and the last one to land silently supersedes the other two — after a
 
 The output is not a report. It is **fewer, better issues**.
 
-The old (bankai-core) version of this skill computed every deterministic step below by improvised
+The old (`<reference-repo>`) version of this skill computed every deterministic step below by improvised
 prose and hand-typed `gh` — the four searches were eyeballed, the sub-issue attach was a raw `gh
 api .../sub_issues` call the agent had to remember takes an id and not a number, and the close
 choreography was a manually-ordered sequence of separate `gh issue comment`/`gh issue close`
@@ -72,17 +72,17 @@ to `all` and never a guess).
 > resolved repo's issues plainly converge on product features rather than process, say so plainly
 > and ask whether this is really the intended target, rather than running the wrong analysis.
 
-> ⚠️ **`bankai-core` (`BC`) never takes a write from this skill — but that is a limit on § 5
-> (execution), not a blanket refusal of every use of this skill against it.** bankai-core is
+> ⚠️ **`<reference-repo>` (`BC`) never takes a write from this skill — but that is a limit on § 5
+> (execution), not a blanket refusal of every use of this skill against it.** `<reference-repo>` is
 > **frozen** — every sibling port that touches it says so, and this skill's whole job in § 5 is to
 > *write* (file, attach, close, label). **Refuse specifically at § 5**: if the invocation's own
 > target — the repo whose backlog this run intends to file into, attach against and close issues
-> in — resolves to `zheref/bankai-core`, say so and stop before any write, because bankai-core's
+> in — resolves to `<reference-repo>`, say so and stop before any write, because `<reference-repo>`'s
 > own process backlog no longer takes writes from any tool, this skill included. **This does not
-> forbid §§ 2–4 (fetch, group, plan) from reading bankai-core** — as the invocation's own read-only
+> forbid §§ 2–4 (fetch, group, plan) from reading `<reference-repo>`** — as the invocation's own read-only
 > planning target (producing a plan that is itself never executed against it), as evidence, as a
 > worked example, or as a second opinion while synthesizing a *different* repo's backlog. The live
-> A/B evidence in `docs/ab/backlog-synthesis.md` reads bankai-core's real backlog for exactly this
+> A/B evidence in `docs/ab/backlog-synthesis.md` reads `<reference-repo>`'s real backlog for exactly this
 > reason: it is the richest real dataset available, read-only throughout, and no A/B run of this
 > port ever executed § 5 against it.
 
@@ -100,7 +100,7 @@ presented as complete, and a consolidation computed over a truncated set closes 
 read.
 
 - **State the resolved set before the plan**: *"88 open issues; 7 `high`, 60 `medium`, 14 `low`, 7
-  untriaged."* (Real counts, from a live, uncapped fetch against `zheref/bankai-core` — § 1 of
+  untriaged."* (Real counts, from a live, uncapped fetch against `<reference-repo>` — § 1 of
   `docs/ab/backlog-synthesis.md`.) A reader who cannot see what was swept cannot tell a small
   backlog from a short fetch.
 - **The row schema is thin by design** (`{issueNumber, title, labels, prNumbers[], createdAt}` —
@@ -141,7 +141,7 @@ nen issue search --target <owner/name> --subject "<shared topic>" \
 This is the same verb [`hatsu:file`](../file/SKILL.md) § 3 uses for duplicate reconciliation,
 turned here toward clustering instead of deduplication: the `files-and-rule-ids` and `lane` passes
 surface every other open issue sharing a file, a clause or a lane, mechanically, without
-re-deriving the query by hand. **Verified live against the real `zheref/bankai-core` backlog**
+re-deriving the query by hand. **Verified live against the real `<reference-repo>` backlog**
 (`docs/ab/backlog-synthesis.md` § 2.2): a search on `scripts/pr_ready_gate.sh` + `CON-32` surfaced
 a seven-issue cluster (`#912, #877, #914, #791, #538, #539, #771`) sharing both signals — real
 grouping input, not a fabricated example.
@@ -273,7 +273,7 @@ nen issue consolidate-close --target <owner/name> --parent <consolidated#> \
 > print no mention of `--severity-family` at all, despite the flag being declared and accepted
 > (`command.ts`'s own `flags.values` list) — a caller reading only the printed help would never
 > know to pass it. **Always pass `--severity-family <the target repo's severity label family>`**
-> explicitly (for bankai-core this is `bankai:severity` — its real severity family prefix, read
+> explicitly (for `<reference-repo>` this is `bankai:severity` — its real severity family prefix, read
 > from `schemas/labels.json` at the snapshot, where every severity label is
 > `bankai:severity/<level>`); never rely on the default.
 
@@ -333,7 +333,7 @@ only — never applied blanket to a set the plan did not name it for.
 > reporting the attach as done. Relaying the JSON field without performing this write leaves a
 > **claimed graph that does not exist** — exactly the failure mode the old skill's own prose warned
 > about, now with a concrete mechanism to avoid it rather than a restated warning. **Not verified
-> live**: every repo this port's A/B pass tested (`zheref/bankai-core`, and a refused
+> live**: every repo this port's A/B pass tested (`<reference-repo>`, and a refused
 > nonexistent-repo probe) supports the sub-issues API natively or fails before the fallback path is
 > reached, so the fallback condition never actually fired in practice —
 > `docs/ab/backlog-synthesis.md` § 3 records the field's *shape* as read from source and JSON
@@ -376,8 +376,8 @@ separate go-signal.
 
 ## 8. Hard limits
 
-- **Never runs § 5 against `bankai-core`.** It is frozen; when the invocation's own resolved target
-  is `zheref/bankai-core`, the run stops before any write — but §§ 2–4 (fetch, group, plan) are not
+- **Never runs § 5 against `<reference-repo>`.** It is frozen; when the invocation's own resolved target
+  is `<reference-repo>`, the run stops before any write — but §§ 2–4 (fetch, group, plan) are not
   themselves forbidden against it, per § 1's own carve-out: a plan may still be produced and
   published for read-only reference, evidence, or as a worked example, it simply can never be
   executed there.

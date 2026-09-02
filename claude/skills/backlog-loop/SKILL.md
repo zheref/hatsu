@@ -26,10 +26,10 @@ the maintainer's decision. Those get **briefed**, never guessed (§ 4).
 
 ## 0. Declared process change — read this before § 6
 
-The old (bankai-core) version of this skill spent most of its bulk (§§ 4–5) on a CI plane: routing
+The old (`<reference-repo>`) version of this skill spent most of its bulk (§§ 4–5) on a CI plane: routing
 an issue to `bankai:agent/naruto`/`yamamoto`/`kisuke`, then verifying the resulting wake actually
 reached that builder — the `probe`/`build` job distinction, the comment-then-label
-concurrency-group hazard (`BC-IS-#554`), the swallowed-wake and reply-only-mode failure shapes.
+concurrency-group hazard (`RR-IS-#554`), the swallowed-wake and reply-only-mode failure shapes.
 
 **Hatsu holds no CI plane at all** — no App, no workflow, no bot identity
 (`claude/agents/kurapika.md` header) — the identical structural fact [`build`](../build/SKILL.md)'s
@@ -96,7 +96,7 @@ Ready), and whenever the monitor (§ 7) sees a PR state change.
    nen backlog fetch --repo-slug <owner/name> --json
    ```
    **Never cached, never capped** — omit `--limit` entirely. Verified live against the real
-   `zheref/bankai-core` backlog: `88` rows, `truncated: false`, paginated past GitHub's 100-row
+   `<reference-repo>` backlog: `88` rows, `truncated: false`, paginated past GitHub's 100-row
    clamp without needing to be (`docs/ab/backlog-loop.md` § 2.3). A `truncated: true` fetch is never
    rendered as complete.
 2. **Triage** anything with no `bankai:severity/*` label (§ 4).
@@ -128,7 +128,7 @@ explicitly for this skill ("while a named `backlog-loop` run is active
 | **Fire or verify a wake itself** | That authority lives entirely in `drive` (§ 6) |
 
 > **`CON-46(c-i)`'s stale-chore-merge carve-out is retired here, not restated.** The old
-> (bankai-core) skill inherited the one merge a local persona may perform — a stale CI author's
+> (`<reference-repo>`) skill inherited the one merge a local persona may perform — a stale CI author's
 > Ready sub-PR onto an `integration/<chore>` branch, once that author demonstrably stops responding.
 > It does not apply to this port: Hatsu holds no CI plane at all (§ 0), so there is no CI-authored
 > chore sub-PR that can ever go stale in the sense `CON-46(c-i)` requires. [`drive`](../drive/SKILL.md)
@@ -146,8 +146,8 @@ nen label apply <CODE>-IS-#<N> --label bankai:severity/<level> --repo-slug <owne
   --reason "<why, for the ledger>" --run
 ```
 
-Never exercised live against the real, frozen `zheref/bankai-core` (the shared brief's read-only
-rule) — contract-verified only, `docs/ab/backlog-loop.md` § 3. `bankai-core`'s own taxonomy carries
+Never exercised live against the real, frozen `<reference-repo>` (the shared brief's read-only
+rule) — contract-verified only, `docs/ab/backlog-loop.md` § 3. `<reference-repo>`'s own taxonomy carries
 four severities (`critical`, `high`, `medium`, `low` — verified live off `schemas/labels.json`); a
 different target repository's own taxonomy is read the same way, never hard-coded.
 
@@ -177,10 +177,10 @@ another issue**, then **affects consumer behaviour/DX**, then **age** (oldest fi
 number. Verified live against the real backlog: the seven real open `high` rows sort strictly
 oldest-first ahead of every `medium`/`low`/untriaged row (`docs/ab/backlog-loop.md` § 2.4).
 
-> **`--blocks`/`--affects-consumers` take the row's own `id` string (`BC-IS-#928`), not the bare
+> **`--blocks`/`--affects-consumers` take the row's own `id` string (`RR-IS-#928`), not the bare
 > issue number `--help`'s own `<n,n>` notation reads as** — verified live: passing the bare numbers
 > `928,929` is silently accepted, produces no error, and simply never marks either row
-> `blocksOther: true`; passing the `id` strings `BC-IS-#928,BC-IS-#929` correctly promotes both to
+> `blocksOther: true`; passing the `id` strings `RR-IS-#928,RR-IS-#929` correctly promotes both to
 > the front of their severity band, tied on age between themselves (`docs/ab/backlog-loop.md`
 > § 2.4). Not a defect — the verb reads exactly what `--rows-from`'s own `id` field carries — but a
 > caller who follows the `--help` text's `<n,n>` literally gets a silent no-op, not a refusal. **This
@@ -198,7 +198,7 @@ the static ranking it returns:**
   any `critical` is open**, at any batch boundary (§ 8).
 - **`low` never starts while anything above it is still *actionable*** (not yet Ready and handed to
   the maintainer) — same shared "the queue never idles on the maintainer" rule the old skill named
-  (`BC-IS-#545`). Once everything above `low` is merged or Ready-and-waiting, `low` proceeds; the
+  (`RR-IS-#545`). Once everything above `low` is merged or Ready-and-waiting, `low` proceeds; the
   merge-order discipline still holds at the other end (a `low` PR is delivered Ready, but the
   maintainer merges the higher-severity PRs above it first).
 - **Seize the wait.** Whenever the only open work is PRs already Ready-and-waiting, immediately
@@ -259,7 +259,7 @@ addresses those directly (reply on thread, push the fix, re-request review).
 
 **The wake channel is not dead — it is narrower, and it lives in `drive`, not here.**
 `backlog-loop` is written to drive whichever repository's backlog it is pointed at (§ 1), not only
-`bankai-core`'s, and a PR authored by a genuinely external automated participant — a
+`<reference-repo>`'s, and a PR authored by a genuinely external automated participant — a
 `<!-- bankai agent=… run=… -->` stamp, or an assigned GitHub-hosted coding-agent PR — is exactly the
 shape [`drive`](../drive/SKILL.md) § 5 already names and fires `nen wake fire`/`nen wake verify`
 for. **This skill itself never calls either verb.** Its own job is only to recognise, from the PR
@@ -292,7 +292,7 @@ state) — polling happens in-shell, in-session, exactly as `drive` § 3 already
 > `integration/<chore>` branch still carries unmerged scope. Detect it **mechanically**: the
 > chore's issue is open AND its `integration/<chore>` branch exists (a plain `gh issue view`/`git
 > branch -r` check — no `nen` verb owns this composite fact; residue, § 12). **Not live-exercisable
-> today**: `bankai-core`'s own taxonomy carries no `chore` label and no open `bankai:epic` issue at
+> today**: `<reference-repo>`'s own taxonomy carries no `chore` label and no open `bankai:epic` issue at
 > all (`build`'s own A/B, `docs/ab/build.md` § 2.7/§ 2.9) — this branch is contract-verified against
 > the check's own shape, not confirmed against a real live chore.
 
@@ -302,7 +302,7 @@ state) — polling happens in-shell, in-session, exactly as `drive` § 3 already
 nen changelog completeness --range <vPrev>..<vNew> --changelog CHANGELOG.md --owner-repo <owner/name> [--fragment-dir changelog.d]
 ```
 
-Verified live against the real, historical `zheref/bankai-core` range `v0.11.2..v0.11.3`:
+Verified live against the real, historical `<reference-repo>` range `v0.11.2..v0.11.3`:
 `every PR merged in v0.11.2..v0.11.3 has a CHANGELOG entry or fragment.` (`docs/ab/backlog-loop.md`
 § 2.7) — genuinely read-only, no GitHub write, no local write.
 
@@ -313,7 +313,7 @@ nen changelog fragment-required --spec-paths "<policy paths>" --fragment-dir cha
   --files-from <path> --head-changelog CHANGELOG.md
 ```
 
-Verified live against the real `zheref/bankai-core#940`'s changed-file set: reports `release-move`
+Verified live against the real `<reference-repo>#940`'s changed-file set: reports `release-move`
 — *"changelog.d/ fragment(s) collated and deleted, Unreleased already empty, new dated section
 landed -- satisfied natively"* (`docs/ab/backlog-loop.md` § 2.8).
 
@@ -324,10 +324,10 @@ nen changelog collate --version <vX.Y.Z> --theme "<text>" --changelog CHANGELOG.
 ```
 
 **Without `--write`, this is genuinely read-only** — reports the rendered result untouched.
-Verified live on a scratch copy of `bankai-core`'s real `CHANGELOG.md` (never the real checkout):
+Verified live on a scratch copy of `<reference-repo>`'s real `CHANGELOG.md` (never the real checkout):
 the file's own hash is identical before and after the dry-run call, and the synthetic fragment file
 is still present afterward (`docs/ab/backlog-loop.md` § 2.9). **`--write` is never exercised against
-the real, frozen `zheref/bankai-core`** — it would delete fragments and rewrite the file, exactly
+the real, frozen `<reference-repo>`** — it would delete fragments and rewrite the file, exactly
 the write the shared brief forbids — contract-inspected only.
 
 **Computing the fan-out set, genuinely read-only:**
@@ -336,8 +336,8 @@ the write the shared brief forbids — contract-inspected only.
 nen fanout compute --range <vPrev>..<vNew> [--workflows-dir .github/workflows]
 ```
 
-Verified live against the real range `v0.11.2..v0.11.3`: three real consumers (`KroApple`,
-`KroAndroid`, `bankai-scaffold`) each reported `affected` with the matched workflow basenames and a
+Verified live against the real range `v0.11.2..v0.11.3`: three real consumers (`<product-repo-A>`,
+`<product-repo-B>`, `<scaffold-repo>`) each reported `affected` with the matched workflow basenames and a
 stated basis (`docs/ab/backlog-loop.md` § 2.10) — no consumer came back a silent, unstated `n/a`.
 
 **Recording it for audit is a LOCAL write, never a GitHub one** — safe to exercise live:
@@ -359,7 +359,7 @@ nen tag cut --repo <path> --name <vX.Y.Z> --at <sha> [--message <text>] [--trunk
 ```
 
 Mutating — creates a real git tag object even without `--push` (locally). **Never exercised against
-the real `zheref/bankai-core`, in any form**, per the shared brief's boundary: contract-inspected
+the real `<reference-repo>`, in any form**, per the shared brief's boundary: contract-inspected
 only (`docs/ab/backlog-loop.md` § 3), same precedent [`pr-state`](../pr-state/SKILL.md) and
 [`backlog-state`](../backlog-state/SKILL.md)'s own A/B docs already set (neither dry-ran a mutating
 verb against `zheref/hatsu` either, since none was genuinely needed to write the skill). Honour an
@@ -392,7 +392,7 @@ same way those ports document. Verified live end to end, including a finding wor
 > **`refs` must be an array of pre-formatted `nen ref format` strings, not a joined string.**
 > Verified live: passing `refs` as a plain string crashes `board build` outright —
 > `row.refs.join is not a function` — because the render layer calls `.join(", ")` on it. Passing
-> an **array** (`["BC-IS-#937","BC-PR-#940"]`, or a single-element array from `nen ref format`)
+> an **array** (`["RR-IS-#937","RR-PR-#940"]`, or a single-element array from `nen ref format`)
 > builds and renders correctly (`docs/ab/backlog-loop.md` § 2.12). Never hand-join a `refs` cell
 > into one string before calling `board build`.
 
@@ -428,7 +428,7 @@ briefed and awaiting a maintainer decision. **Say the run has ended**, so the `C
 
 1. **`nen backlog order`'s `--blocks`/`--affects-consumers` silently no-op on the bare issue number
    `--help`'s own `<n,n>` notation suggests, rather than refusing.** Verified live (§ 5): the flag
-   reads the row's own `id` field (`BC-IS-#928`), and a caller who passes `928` instead gets no
+   reads the row's own `id` field (`RR-IS-#928`), and a caller who passes `928` instead gets no
    error, no `blocksOther: true`, and no different ordering — a silent miss, not a loud one.
 2. **`nen board build` crashes on a `refs` value that is not an array**, with no type-checked
    refusal — `row.refs.join is not a function` (§ 9). The documented `BoardRow` shape
@@ -438,7 +438,7 @@ briefed and awaiting a maintainer decision. **Say the run has ended**, so the `C
    first filed against [`build`](../build/SKILL.md) (`docs/ab/build.md` § 2.10); reproduced
    identically here (§ 6) because this skill calls the same verb independently.
 4. **(Not re-exercised, cited)** `nen pr fetch`/`nen pr next-blocker` are broken against every real
-   `bankai-core` PR tried — filed against [`drive`](../drive/SKILL.md) (`docs/ab/drive.md` § 4),
+   `<reference-repo>` PR tried — filed against [`drive`](../drive/SKILL.md) (`docs/ab/drive.md` § 4),
    whose engine this skill delegates all PR-shaped work to. `backlog-loop` never calls either verb
    itself, so the finding is cited rather than re-reproduced.
 
@@ -475,7 +475,7 @@ briefed and awaiting a maintainer decision. **Say the run has ended**, so the `C
   entirely in `drive` (§ 6).
 - **Never cuts a tag or publishes a release against the real target repository during this port's
   own verification** — `nen tag cut` and `--write` on `nen changelog collate` are contract-inspected
-  only against `zheref/bankai-core` (§ 8); in a live run against a repository this skill is actually
+  only against `<reference-repo>` (§ 8); in a live run against a repository this skill is actually
   authorized to write to, the cut still never auto-pushes without `--push`, and the release itself
   stays `G3` — the maintainer's alone.
 - **Never exceeds two concurrently-driven efforts** (`nen loop slots --local-cap 2`, § 6), and never

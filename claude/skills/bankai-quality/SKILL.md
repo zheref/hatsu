@@ -5,7 +5,7 @@ description: Resolve the right adversarial-test tooling, performance-measurement
 
 # Resolving Bankai quality tooling & rules
 
-`handbooks/quality-baseline.md` (`QA-{n}`), read live from the **frozen** `bankai-core` checkout — Hatsu
+`handbooks/quality-baseline.md` (`QA-{n}`), read live from the **frozen** `<reference-repo>` checkout — Hatsu
 ships no handbooks of its own yet, and `docs/ROSTER.md`'s own Sources section directs the same read — is
 the **single canonical source** for adversarial-QA method, test tooling, and performance budgets. This
 skill is a **resolver**: it resolves *which* tooling, budget thresholds, and rules apply to the repo in
@@ -30,7 +30,7 @@ eye. That is now a verb:
 nen repo scenario --repo <path to a checkout carrying schemas/repos.json> --target <owner/name>
 ```
 
-`--repo` is a **path**, not a slug — today that path is the frozen `bankai-core` checkout, since that is
+`--repo` is a **path**, not a slug — today that path is the frozen `<reference-repo>` checkout, since that is
 where the consumer registry Naruto kept (`schemas/repos.json`) lives; `--target` is the product repo's
 `owner/name`. The verb reads the scenario **live**, off the same `CON-14`-factual registry
 `pr-state`'s `--repo` flag and `warmup`'s stale-pin sweep already read — never a value remembered from a
@@ -38,18 +38,18 @@ prior session. **Exits 1**, naming the repo and the registry path, when the targ
 consumer or carries no scenario (verified live, `docs/ab/bankai-quality.md` § 2.1) — that refusal is
 itself a finding about the registry, never a licence to guess a scenario.
 
-> **`bankai-core` itself is the one case this verb cannot resolve, and that is expected, not a defect.**
-> A repository cannot be its own consumer, so `bankai-core` carries no entry for itself in
-> `schemas/repos.json` — `nen repo scenario --target zheref/bankai-core` refuses identically to an
-> unknown repo (verified live, § 2.1). For `bankai-core` as the target, its scenario is the **fixed
-> literal `bankai-core`**, stated directly in its own `.github/workflows/bankai.yml` header comment
-> (`bankai_scenario: 'bankai-core'`) — read that value directly rather than routing it through this verb.
+> **`<reference-repo>` itself is the one case this verb cannot resolve, and that is expected, not a defect.**
+> A repository cannot be its own consumer, so `<reference-repo>` carries no entry for itself in
+> `schemas/repos.json` — `nen repo scenario --target <reference-repo>` refuses identically to an
+> unknown repo (verified live, § 2.1). For `<reference-repo>` as the target, its scenario is the **fixed
+> literal `<reference-repo>`**, stated directly in its own `.github/workflows/bankai.yml` header comment
+> (`bankai_scenario: '<reference-repo>'`) — read that value directly rather than routing it through this verb.
 > This is the one scenario resolution this skill still does by direct read, and only because there is
 > structurally no registry entry to resolve it against.
 
 ## 2. Load the quality canon — always, live, never from memory
 
-1. `handbooks/quality-baseline.md` (`QA-{n}`) — every scenario, `bankai-core` included.
+1. `handbooks/quality-baseline.md` (`QA-{n}`) — every scenario, `<reference-repo>` included.
 2. The **existing** testing canon, so a run extends it instead of duplicating it (`QA-9`):
    `handbooks/uzf-core.md` `UZF-18`/`UZF-19`/`UZF-20`/`UZF-26`, plus `handbooks/stacks/<scenario>/rules/`
    — `07-testing.md` (swiftui) or `09-testing.md` (compose, react). A missing unit test or a
@@ -57,7 +57,7 @@ itself a finding about the registry, never a licence to guess a scenario.
 3. `handbooks/stacks/<scenario>/architecture.md` — only when a finding needs a stack rule cited
    (`SW-{n}` / `KT-{n}` / `RC-{n}` / `BC-{n}`). Never load another scenario's folder.
 
-All three are read from the frozen `bankai-core` checkout at its snapshot tag, never at a branch, and
+All three are read from the frozen `<reference-repo>` checkout at its snapshot tag, never at a branch, and
 never written to — no issue, comment, label, branch, push or PR against it, ever.
 
 ## 3. Resolve the scenario's tooling — `nen quality tooling`
@@ -70,14 +70,14 @@ nen quality tooling --table <path.json> --scenario <name>
 remembered here. Exits 1 when the scenario has no entry: a finding about the manifest, never a licence to
 pick a tool by improvisation.
 
-**No repo in the reachable estate ships this JSON file today** — verified: the frozen `bankai-core`
+**No repo in the reachable estate ships this JSON file today** — verified: the frozen `<reference-repo>`
 checkout carries the tooling matrix only as markdown (`handbooks/quality-baseline.md` § B), and Hatsu
 carries no such file at all. This is genuine residue (`docs/ab/bankai-quality.md` § 3), not a defect in
 the verb — the manifest is deliberately the caller's, per its own `--help` text. Until a target repo
 authors one (conventionally at `docs/Quality/tooling.json`, keyed by scenario, in the shape `nen quality
 tooling` expects — see `docs/ab/bankai-quality.md` § 2.2 for a worked, clearly-labelled constructed
 example transcribed from the live handbook), the values below are the **reference content to seed it
-with**, transcribed from `bankai-core`'s live `quality-baseline.md` § B (current as of `v0.11.3`) — cite
+with**, transcribed from `<reference-repo>`'s live `quality-baseline.md` § B (current as of `v0.11.3`) — cite
 the handbook when reporting a tooling choice, never invent a value, and prefer running the verb the moment
 a manifest exists over reading this table by eye.
 
@@ -87,7 +87,7 @@ a manifest exists over reading this table by eye.
 | `compose-uzf-v2` | Compose UI Test on a Gradle Managed Device; Espresso/UIAutomator for cross-app and system dialogs | JUnit5 + Turbine | Appium, Selenium |
 | `react-uzf-v1` (web) | Playwright (`page.route` for degradation; `--repeat-each=3` for `QA-4`) | Vitest | Selenium, Cypress |
 | `react-uzf-v1` (Expo) | Maestro against a dev-client build | Jest (`jest-expo`) + RNTL | Detox, Appium |
-| `bankai-core` | bats over `scripts/*.sh` + `yq` assertions over `.github/workflows/*.yml` | pytest | — |
+| `<reference-repo>` | bats over `scripts/*.sh` + `yq` assertions over `.github/workflows/*.yml` | pytest | — |
 
 Selenium and Appium are **never a default** — use one only where a target has no first-party driver (a
 legacy browser matrix, a physical-device farm), and say so in the report (`QA-7`).
@@ -130,7 +130,7 @@ pinning the tool is the only thing that makes this percentage mean anything.
 | `compose-uzf-v2` | Jetpack Macrobenchmark — `StartupTimingMetric`, `FrameTimingMetric`, `MemoryUsageMetric`, `TraceSectionMetric` around the HTTP span + OkHttp `EventListener`, with a `BaselineProfile`; AAB analyzer for size | Perfetto |
 | `react-uzf-v1` (web) | Lighthouse CI on a pinned mobile preset (Moto-G-class, 4× CPU, Slow 4G) + Web Vitals (LCP/INP/CLS/TBT) collected in the Playwright run; a CDP heap sample via Playwright (P4 memory); Playwright `page.on('request'\|'response')` totals (P6 network); `next build` + `@next/bundle-analyzer` for bytes | Lighthouse CI (`@lhci/cli`), pinned mobile preset |
 | `react-uzf-v1` (Expo) | Reuse the Apple/Android row for the native build under test (P1/P2); EAS build artifact size (P5); RN network inspector, as web (P6) | — |
-| `bankai-core` | wall-clock of `make test` from a clean checkout + per-guard-script wall clock | `gh run view --json jobs` durations |
+| `<reference-repo>` | wall-clock of `make test` from a clean checkout + per-guard-script wall clock | `gh run view --json jobs` durations |
 
 ## 5. Method-block validation — `nen quality method-check`
 
@@ -160,7 +160,7 @@ Report the verb's verdict rather than a hand-reading of the block — a block th
 fails validation (a stray empty string in `networkCondition`, a `sampleSize` of exactly 5 with the first
 discarded miscounted) is exactly the class of gap this verb exists to catch instead of missing by eye.
 
-## 6. Machinery scenario (`bankai-core`) — `QA-16`–`QA-18`
+## 6. Machinery scenario (`<reference-repo>`) — `QA-16`–`QA-18`
 
 - `make lint` and `make test` green **from a clean checkout**.
 - Drive changed `scripts/*.sh` with the hostile-input corpus — empty, missing, malformed
@@ -174,11 +174,11 @@ discarded miscounted) is exactly the class of gap this verb exists to catch inst
 ## Rules this resolver still carries
 
 - **Cite findings by rule id, never invent one.** A gap no `QA-{n}` covers is a canon question. But
-  `bankai-core` is **frozen** — no issue, comment, label, branch, push or PR against it, ever — and Hatsu
+  `<reference-repo>` is **frozen** — no issue, comment, label, branch, push or PR against it, ever — and Hatsu
   ships no handbooks of its own yet, so `quality-baseline.md` cannot be amended through any PR today.
   **Record the gap, do not invent a landing repository for it, and do not treat it as silently resolved.**
   Where the rewritten constitution lands is itself an **open item** tracked at the P3 rewrite
-  ([zheref/akatsuki-ai#5](https://github.com/zheref/akatsuki-ai/issues/5)) — an OPEN item stays OPEN.
+  (the migration tracker, private) — an OPEN item stays OPEN.
 - **Extend, never duplicate** the stack's existing test minimums (`QA-9`) — a coverage-floor breach
   routes to the architecture reviewer, never here.
 - **One default tool per scenario per layer** (`QA-7`); a deviation states its reason in the report.

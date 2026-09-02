@@ -15,7 +15,7 @@ Each skill is a directory holding a `SKILL.md` with `name` and `description` fro
 
 ## The seventeen ported skills
 
-Ported from bankai-core **under their existing names** — only the mechanics changed: **every deterministic
+Ported from the frozen reference implementation **under their existing names** — only the mechanics changed: **every deterministic
 step that has a verb** is a [Nen](https://github.com/zheref/nen) verb, where it used to be improvised shell
 (`gh`, `git`, hand-rolled API calls). What stayed with the skill is deliberate — severity reasoning,
 synthesized titles, root-cause grouping, the adversarial confirmation pass, and the *ask* on every flagged

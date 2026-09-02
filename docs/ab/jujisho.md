@@ -12,10 +12,10 @@ union of the branches' diffs equals the original working-copy diff" with no comm
 Run: 2026-09-02T01:42Z (UTC). `nen` `0.1.0` (`<cache>\nen\v0.1.0\nen-windows-x64.exe`).
 `gh` authenticated as `zheref`.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 `split verify` is LOCAL — every transcript in § 2 below runs against a constructed scratch git
-repository built for this port, **labeled constructed throughout**, never against bankai-core.
+repository built for this port, **labeled constructed throughout**, never against `<reference-repo>`.
 `pr retarget` mutates a PR — § 3 contract-inspects it (`--help` plus refusal behavior against a
 bogus target and a nonexistent/wrong-kind object) without touching any real PR's base, live against
 `zheref/hatsu` and a nonexistent repository, which is the only "real transcript" this doc contains.
@@ -35,7 +35,7 @@ Every deterministic or hand-reconstructed step the old `SKILL.md` improvised, an
 | 5 | Every-file staging review ("secrets, ignored files, binaries, out-of-scope files, local config, unmentioned deletions... flagged and asked about") was `tensho`'s own hand-applied checklist, inherited unchanged by jujisho § 5 | `nen stage triage --repo <path> [--scope ...] [--mentions "..."]` — detects five of the old six shapes (secrets, ignored, binary, out-of-scope, unmentioned-deletion), decides none of them, exits 1 on any flag; **local-config has no detector** (§ 4 finding 2, § 5 residue) |
 | 6 | Conventional-commit formatting was written by hand per commit, per axis | `nen commit format --type ... --subject "..." [--scope] [--body] [--trailer ...]` — validates shape, never content |
 | 7 | The `changelog.d/` fragment requirement (`CON-33(a)`) was a fixed path-glob list the agent matched against the diff by eye: `CONSTITUTION.md`, `handbooks/*`, `schemas/*`, `agents/*`, `.github/workflows/*` | `nen changelog fragment-required --files <paths> --spec-paths <list> --fragment-dir changelog.d --head-changelog CHANGELOG.md` — same glob, now a computed answer per axis instead of a memorized list applied twice by hand |
-| 8 | The sibling-PR reference in each body ("`BC-PR-#<A>`") was hand-typed object notation | `nen ref format --code <CODE> --kind PR --number <N> [--state <s>]` |
+| 8 | The sibling-PR reference in each body ("`RR-PR-#<A>`") was hand-typed object notation | `nen ref format --code <CODE> --kind PR --number <N> [--state <s>]` |
 | 9 | Resolving the `owner/name` slug for a retarget/cascade call was left to reading `git remote -v` by hand | `nen repo resolve [<token>] --from <dir>` — resolves a product code, slug, short name or the working directory's own `origin`, against the registry, never guessed |
 
 **Count.** Before: 6 steps performed **by prose or raw git/gh, per invocation, with no verb backing
@@ -49,7 +49,7 @@ caller data rather than a computed step, same category the pr-state port already
 
 ---
 
-## 2. Constructed A/B — `nen split verify` (LOCAL, no bankai-core involvement)
+## 2. Constructed A/B — `nen split verify` (LOCAL, no `<reference-repo>` involvement)
 
 **Scratch repo**: initialized fresh at
 `<scratch>\jujisho-scratch`, one commit seeding `src/parser.py` and
@@ -172,7 +172,7 @@ producing the false `ALTERED`. Filed as finding 1, § 4.
 
 ## 3. Contract-inspection — `nen pr retarget` (no mutation attempted)
 
-Per the shared brief: `pr retarget` mutates a PR, so it is never exercised against bankai-core, and
+Per the shared brief: `pr retarget` mutates a PR, so it is never exercised against `<reference-repo>`, and
 here only against a bogus/nonexistent target — verified to fail closed, before touching anything,
 in three shapes:
 

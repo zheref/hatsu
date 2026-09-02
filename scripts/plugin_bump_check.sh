@@ -10,11 +10,12 @@
 # it happened.
 #
 # THE INCIDENT RECORD (inherited, kept deliberately)
-# This guard is a port of bankai-core's `scripts/plugin_bump_check.sh`, filed
-# there as BC-IS-#557 item 5 after BC-PR-#546 changed four plugin-shipped
-# surfaces — an agent definition, a skill, a script, and the registry read at
-# warm-up — without bumping the version. The fix never reached an installed
-# plugin until BC-PR-#578 bumped it retroactively. The guard moves to Hatsu
+# This guard is a port of the frozen reference implementation's own
+# `scripts/plugin_bump_check.sh`, filed there after a prior incident in which a
+# single PR changed four plugin-shipped surfaces — an agent definition, a skill,
+# a script, and the registry read at warm-up — without bumping the version. The
+# fix never reached an installed plugin until a later PR bumped it
+# retroactively. The guard moves to Hatsu
 # because guards live beside the surface they guard, and this is now that
 # surface (zheref/hatsu#3; the migration plan's §3 and §10).
 #
@@ -53,7 +54,7 @@ fi
 #                       skill and by the agent definitions, and it is the single
 #                       source of truth for the pinned nen ref. A stale copy
 #                       pins an installed plugin to the wrong nen build.
-#   contracts/*       — `bankai-core.gates.json`, passed as `nen pr ready
+#   contracts/*       — `reference.gates.json`, passed as `nen pr ready
 #                       --gates "$CLAUDE_PLUGIN_ROOT/contracts/…"` by pr-state,
 #                       drive, backlog-state, futon and tensho. Stale reviewer
 #                       identities produce a wrong readiness verdict, silently.
@@ -188,9 +189,9 @@ docs/delegation-grammar-DRAFT.md, hooks/**, or .mcp.json) but leaves
 
 Claude Code keys its plugin cache on that field. An already-installed Hatsu
 will never pick this change up until the version is bumped — no error, no
-warning, the change simply does not ship. (Ported from bankai-core's
-BC-IS-#557 item 5, filed after exactly this omission shipped BC-PR-#546 to
-nobody.)
+warning, the change simply does not ship. (Ported from the frozen reference
+implementation's own guard, filed after exactly this omission shipped a
+four-surface change to nobody.)
 
 Bump `.claude-plugin/plugin.json`'s `version` (semver):
   - patch  — wording/fix-only change to a shipped surface.

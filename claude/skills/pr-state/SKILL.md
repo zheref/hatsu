@@ -12,16 +12,16 @@ This skill answers exactly one question, the same way every time:
 > **Is this PR `CON-32`-Ready, and if not, which conjunct failed?**
 
 It exists because the rule already existed and was skipped anyway. `scripts/pr_ready_gate.sh`
-was `CON-32`'s sole authority in bankai-core since [BC-PR-#577](https://github.com/zheref/bankai-core/pull/577) — and
-[BC-IS-#681](https://github.com/zheref/bankai-core/issues/681) was filed after a readiness claim was
+was `CON-32`'s sole authority in `<reference-repo>` since RR-PR-#577 — and
+RR-IS-#681 was filed after a readiness claim was
 made without running it. The verdicts, when it was finally run across the open set:
 
 | PR | claimed | actual verdict |
 | --- | --- | --- |
-| [#575](https://github.com/zheref/bankai-core/pull/575) | "merge it" | `not-ready` — `CON-32(a)` |
-| [#679](https://github.com/zheref/bankai-core/pull/679) | "once green" | `not-ready` — 1 unresolved thread |
-| [#603](https://github.com/zheref/bankai-core/pull/603) | ready | **`ready`** |
-| [#622](https://github.com/zheref/bankai-core/pull/622), [#678](https://github.com/zheref/bankai-core/pull/678) | "driving to ready" | `not-ready` — `CONFLICTING` |
+| #575 | "merge it" | `not-ready` — `CON-32(a)` |
+| #679 | "once green" | `not-ready` — 1 unresolved thread |
+| #603 | ready | **`ready`** |
+| #622, #678 | "driving to ready" | `not-ready` — `CONFLICTING` |
 
 **Three of four wrong.** Not for want of a tool — the tool evaluated 19 of 21 PRs fine on that same
 host. It was skipped. **A deterministic authority an agent may skip is a suggestion**, so this skill
@@ -66,7 +66,7 @@ working directory.
 
 > **A wrong number is caught by GitHub, not by `nen`, and the remedy it prints can mislead.**
 > `nen pr ready` never checks whether `<PR_NUMBER>` names a pull request before asking GitHub —
-> verified against the real binary, `BC#918` (`918` is an issue on `zheref/bankai-core`, not a PR) does
+> verified against the real binary, `BC#918` (`918` is an issue on `<reference-repo>`, not a PR) does
 > **not** come back as "that's an issue." It comes back
 > `unevaluated: GitHub could not be read (… Could not resolve to a PullRequest with the number of
 > 918.)`, followed by `nen`'s generic token-grants remedy (`pull-requests:read AND checks:read AND
@@ -89,31 +89,31 @@ Then:
 
 ```bash
 nen pr ready <CODE>#<N> --repo <path to a checkout carrying schemas/repos.json> \
-  --gates "$CLAUDE_PLUGIN_ROOT/contracts/bankai-core.gates.json" --explain
+  --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
 ```
 
 or, with a bare number against a repo slug directly:
 
 ```bash
-nen pr ready <N> --gh-repo <owner/repo> --gates "$CLAUDE_PLUGIN_ROOT/contracts/bankai-core.gates.json" --explain
+nen pr ready <N> --gh-repo <owner/repo> --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
 ```
 
-**Always the `$CLAUDE_PLUGIN_ROOT`-anchored form, never a bare `contracts/bankai-core.gates.json`.**
+**Always the `$CLAUDE_PLUGIN_ROOT`-anchored form, never a bare `contracts/reference.gates.json`.**
 The bare relative path only resolves from this checkout's own root as the process's cwd — verified
 live: run from anywhere else, `nen` refuses `ENOENT: no such file or directory, open
-'contracts/bankai-core.gates.json'`. `$CLAUDE_PLUGIN_ROOT` is the house convention for exactly this
+'contracts/reference.gates.json'`. `$CLAUDE_PLUGIN_ROOT` is the house convention for exactly this
 (`claude/skills/hatsu-warmup/SKILL.md` § 0) and is cwd-independent.
 
 - **`--repo <path>`** is the TARGET repository's working-tree root — a path, never an `owner/name`
   slug — used to resolve `<CODE>` against its `schemas/repos.json`. **`--gh-repo <owner/name>`** is the
   slug the API read runs against, needed whenever the ref is a bare number — `--repo <path>` is itself a
   path argument, not the cwd, so it already works from anywhere without `--gh-repo` alongside it.
-- **`--gates "$CLAUDE_PLUGIN_ROOT/contracts/bankai-core.gates.json"`** — bankai-core is FROZEN and ships
+- **`--gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"`** — `<reference-repo>` is FROZEN and ships
   no `schemas/gates.json` of its own; without `--gates` (or a `--reviewers` override) `nen pr ready`
   refuses outright with `no reviewer identities` rather than guessing a reviewer set (verified live, § 2
-  of `docs/ab/pr-state.md`). This repository's `contracts/bankai-core.gates.json` carries the same
+  of `docs/ab/pr-state.md`). This repository's `contracts/reference.gates.json` carries the same
   reviewer identities the oracle script hard-codes — see that file's own header. **A repo that ships its
-  own `schemas/gates.json` needs no `--gates` flag at all**; this one is bankai-core-specific plumbing,
+  own `schemas/gates.json` needs no `--gates` flag at all**; this one is `<reference-repo>`-specific plumbing,
   not a general rule.
 - **`--explain`** renders the conjunct-by-conjunct table in evaluation order, short-circuit rows
   included, plus the fixed "what the gate does NOT decide" caveats — all computed and printed by the
@@ -129,11 +129,11 @@ live: run from anywhere else, `nen` refuses `ENOENT: no such file or directory, 
   reclassify it as a refusal.
 
 **Never pass `--round-policy strict`.** `bounded` is the default and the settled `CON-32(b)` reading
-(mirrors `pr_ready_gate.sh`'s own `--copilot-policy bounded` default, [BC-IS-#572](https://github.com/zheref/bankai-core/issues/572)); inheriting it is what keeps every
+(mirrors `pr_ready_gate.sh`'s own `--copilot-policy bounded` default, RR-IS-#572); inheriting it is what keeps every
 asker consistent when the policy is next revisited.
 
 **Pass `--exclude-run $GITHUB_RUN_ID` only from inside a job asking about its own PR**
-([BC-IS-#708](https://github.com/zheref/bankai-core/issues/708)) — it drops that run's own rollup
+(RR-IS-#708) — it drops that run's own rollup
 entries so an in-flight job cannot self-block the verdict. A human or a local session asking about
 someone else's PR passes nothing.
 
@@ -169,7 +169,7 @@ skill must never omit or soften when relaying it:
   thread's substance was actually answered. Replying remains the author's obligation.
 - **A build check existing SPECIFICALLY** is not asserted — but *some* check must report. Row 2's
   check-green conjunct is `length > 0 and all(… SUCCESS/NEUTRAL/SKIPPED)`, so an **empty** rollup
-  **fails**. **Absence is a finding here, not a pass** ([BC-IS-#680](https://github.com/zheref/bankai-core/issues/680)).
+  **fails**. **Absence is a finding here, not a pass** (RR-IS-#680).
   What the gate cannot tell you is *which* checks reported — a repo where `CON-19` requires a build
   check gets `ready` from any other green check alone, so confirm by eye that the build one is among
   them.
@@ -190,7 +190,7 @@ followed by its own remedy line. **Relay that remedy line verbatim, never paraph
 names the fix, and a paraphrase risks losing the exact grant or cause it points at.
 
 **Never `ready`, and never silently omitted.** This is
-[BC-IS-#680](https://github.com/zheref/bankai-core/issues/680)'s principle in its smallest form:
+RR-IS-#680's principle in its smallest form:
 *absence is never a pass.* An unevaluated PR is a row that needs attention, not one that cleared.
 
 **What would fix it — quote `nen`'s own remedy line, verified live (and against `nen`'s pinned `v0.1.0`
@@ -219,7 +219,7 @@ source) for each shape below:**
   itself is missing `--gates`/`--reviewers` and a `schemas/gates.json` — fix the command, per § 2.
 
 > **Historical note, kept because it is the reason this rule is written down.**
-> [BC-IS-#639](https://github.com/zheref/bankai-core/issues/639) found the shell gate hitting `E2BIG` on
+> RR-IS-#639 found the shell gate hitting `E2BIG` on
 > 2 of 21 PRs whose check rollup exceeded the Windows argv cap. That specific cause is **fixed** in the
 > shell oracle — the large blobs reach `jq` through files, never argv — and `nen pr ready` never shells
 > the payload through argv at all, reading it over the GraphQL API instead. Do **not** report it as a
@@ -233,7 +233,7 @@ source) for each shape below:**
 No agent — CI or local — and no session may describe a PR as *ready*, *G2-ready*, *G4-ready* or
 *mergeable* on any other basis. Not a checks-page reading. Not *"I just fixed it"*. Not the absence
 of a red mark. Not *"the reviewers approved"*. Not the checks being **not yet reported**, which is
-the specific error [BC-IS-#681](https://github.com/zheref/bankai-core/issues/681) records: pending
+the specific error RR-IS-#681 records: pending
 was read as green.
 
 A skill nobody is obliged to use changes nothing, so the obligation is the rule and the skill is

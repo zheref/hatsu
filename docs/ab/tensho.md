@@ -15,12 +15,12 @@ Run: 2026-09-01 (local clock; `nen 0.1.0` at `<cache>\nen\v0.1.0\nen-windows-x64
 (`<scratch>\scratch-tensho`, never pushed anywhere, seeded and
 discarded for this run only) and, for `--files`/`--policy-paths`-shaped verbs that take a path list
 rather than a live checkout, constructed inline file lists. GitHub-touching read-only verbs
-(`pr ready`, `ref format`, `repo resolve`) were run against the real `zheref/bankai-core` (read-only:
+(`pr ready`, `ref format`, `repo resolve`) were run against the real `<reference-repo>` (read-only:
 `gh pr list`, `nen pr ready`, `nen ref format`, `nen repo resolve` — nothing mutating). No verb was
-ever run against `bankai-core` in a way that could write to it, and nothing was pushed to any remote
+ever run against `<reference-repo>` in a way that could write to it, and nothing was pushed to any remote
 other than `hatsu`'s own `p2/2-tensho` branch.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
@@ -41,7 +41,7 @@ other than `hatsu`'s own `p2/2-tensho` branch.
 | 11 | `Closes #N`/`Part of #N` and `<CODE>-<IS\|PR>-#<N>` object notation, formatted by hand | `nen ref format`/`nen ref parse` (§ 2.7) |
 | 12 | "Request Copilot on open" — raw `gh pr edit --add-reviewer` | `nen pr request-reviews --target ... --pr ... --add-reviewers copilot` — contract-inspected only, never exercised live (§ 3) |
 | 13 | "tensho hands straight to `bankai:drive`... same one-directional readiness rule" | `hatsu:drive` is not ported yet (`hatsu#2`); the interim mechanics are the same verb `hatsu:pr-state` already ports, `nen pr ready ... --explain` (§ 2.10), quoted verbatim under the same binding rule |
-| 14 | The gate-stop banner, rendered by hand or via `scripts/gate_stop.sh` in bankai-core | `nen stop --who kurapika --gate <g> <efforts.md>` (§ 2.8) |
+| 14 | The gate-stop banner, rendered by hand or via `scripts/gate_stop.sh` in `<reference-repo>` | `nen stop --who kurapika --gate <g> <efforts.md>` (§ 2.8) |
 
 **Count.** Before: **9 hand-reasoned steps per invocation** (rows 1, 2, 5, 6's detection half, 7, 8,
 9, 10, 11 — every one of them prose the agent executed by reading the diff, with zero runnable
@@ -274,18 +274,18 @@ G4: the diff touches policy/spec (CONSTITUTION.md), which only the human merges.
 `--json` reproduces the same as `{gate, changed[], hits[], basis, asserted, corrected,
 readinessNote}` — `hits[]` names which pattern and which set (`policy`/`process`) matched.
 
-### 2.7 — `nen ref format` / `nen ref parse`, against the real `bankai-core` registry (read-only)
+### 2.7 — `nen ref format` / `nen ref parse`, against the real `<reference-repo>` registry (read-only)
 
 ```
-$ nen ref format --code BC --kind PR --number 925 --state open --repo <bankai-core checkout>
-🔀 BC-PR-#925
+$ nen ref format --code BC --kind PR --number 925 --state open --repo <reference-repo checkout>
+🔀 RR-PR-#925
 
-$ nen ref format --code BC --kind IS --number 12 --repo <bankai-core checkout> \
-    --url "https://github.com/zheref/bankai-core/issues/12"
-📄 [BC-IS-#12](https://github.com/zheref/bankai-core/issues/12)
+$ nen ref format --code BC --kind IS --number 12 --repo <reference-repo checkout> \
+    --url "https://github.com/<reference-repo>/issues/12"
+📄 RR-IS-#12
 
-$ nen ref parse "BC-PR-#925"
-ref:    BC-PR-#925
+$ nen ref parse "RR-PR-#925"
+ref:    RR-PR-#925
 code:   BC
 kind:   PR
 number: 925
@@ -309,28 +309,28 @@ shelled out to.
 see the table below. No banner above => nothing needs you right now.
 
 | Effort     | State               | Gate | Needs        | Owner      |
-| BC-PR-#925 | not-ready (CON-32a) | G4   | green checks | maintainer |
+| RR-PR-#925 | not-ready (CON-32a) | G4   | green checks | maintainer |
 ```
 
 ### 2.9 — `nen repo resolve`, a real finding against the binary (read-only, live)
 
 ```
-$ nen repo resolve --repo <bankai-core checkout> --from <bankai-core checkout>
-nen repo: 'C:\...\bankai-core' has an 'origin' of 'https://github.com/zheref/bankai-core.git', which
-resolves to 'zheref/bankai-core' -- and that is not in this registry (...\schemas\repos.json). An
+$ nen repo resolve --repo <reference-repo checkout> --from <reference-repo checkout>
+nen repo: 'C:\...\<reference-repo>' has an 'origin' of 'https://github.com/<reference-repo>.git', which
+resolves to '<reference-repo>' -- and that is not in this registry (...\schemas\repos.json). An
 origin is a token like any other: it is an error, never a fallback to every repository. Codes:
-$comment (...), BC (zheref/bankai-core), BS (zheref/bankai-scaffold), KP (zheref/KroApple), KN
-(zheref/KroAndroid), KW (zheref/KroWindows), KC (zheref/kro-pwa). Repositories: zheref/KroApple,
-zheref/KroAndroid, zheref/bankai-scaffold.
+$comment (...), BC (<reference-repo>), BS (<scaffold-repo>), KP (<product-repo-A>), KN
+(<product-repo-B>), KW (<product-repo-C>), KC (zheref/kro-pwa). Repositories: <product-repo-A>,
+<product-repo-B>, <scaffold-repo>.
 exit=1
 
-$ nen repo resolve BC --repo <bankai-core checkout>
-zheref/bankai-core  (BC)  via code
+$ nen repo resolve BC --repo <reference-repo checkout>
+<reference-repo>  (BC)  via code
 exit=0
 ```
 
 The no-token form's origin match only ever compares against `schemas/repos.json`'s `consumers[]`
-array (three repos, printed above) — `bankai-core` itself is the registry's owner, never one of its
+array (three repos, printed above) — `<reference-repo>` itself is the registry's owner, never one of its
 own `consumers[]` rows, so this path refuses even though `BC` is a valid, listed code (the same
 refusal message enumerates it). Recorded as a finding, § 4.2.
 
@@ -339,14 +339,14 @@ refusal message enumerates it). Recorded as a finding, § 4.2.
 **Citation, not re-proof.** Verdict parity between `nen pr ready` and `pr_ready_gate.sh` is already
 established across the live estate by `docs/ab/pr-state.md` (17/17 agreeing, per nen's shadow
 window). This is a spot confirmation only, reusing the same PR `pr-state`'s own doc already recorded:
-`zheref/bankai-core#925` — the identical PR `docs/ab/pr-state.md` § 2.1 already A/B'd — run again
+`<reference-repo>#925` — the identical PR `docs/ab/pr-state.md` § 2.1 already A/B'd — run again
 here deliberately, as a spot-confirmation that the handover is wired correctly, not as a claim of
 any new verdict coverage.
 
 ```
 $ export GH_TOKEN=$(gh auth token)
-$ nen pr ready 925 --gh-repo zheref/bankai-core --gates <hatsu>/contracts/bankai-core.gates.json --explain
-zheref/bankai-core#925: not-ready: required checks reported but are not all green (CON-32a)
+$ nen pr ready 925 --gh-repo <reference-repo> --gates <hatsu>/contracts/reference.gates.json --explain
+<reference-repo>#925: not-ready: required checks reported but are not all green (CON-32a)
   ...
   1  ready       CON-42/1          Mergeable
   2  FAILED      CON-32(a)         Every reported check green, on the latest run per check name
@@ -372,7 +372,7 @@ pr edit --add-reviewer`, once per name (`nen pr --help`'s own description). Per 
 rules, a mutating GitHub verb is A/B'd by contract inspection against the old skill's raw `gh pr edit
 --add-reviewer copilot` (same effect, same caveat — "on the maintainer's user token it registers,
 where a bot token silently no-ops," verified by `nen`'s own `--help` text carrying the identical
-caveat verbatim) rather than exercised against a real `bankai-core` or `hatsu` PR. No dry run against
+caveat verbatim) rather than exercised against a real `<reference-repo>` or `hatsu` PR. No dry run against
 `hatsu` was performed either: the maintainer's own open PRs on `hatsu` were left untouched, since
 adding a reviewer is a real, visible side effect on a PR nobody asked this port to touch.
 
@@ -394,7 +394,7 @@ authoring choice, a defect against the binary's generic grammar engine, worth fi
 ### 4.2 — `nen repo resolve`'s no-token path cannot resolve the registry-owning repo to its own code
 
 See § 2.9. Not necessarily a defect — arguably correct, since `schemas/repos.json`'s `consumers[]`
-is deliberately a list of repos that *consume* bankai-core, and bankai-core consuming itself would be
+is deliberately a list of repos that *consume* `<reference-repo>`, and `<reference-repo>` consuming itself would be
 a category error — but it means tensho, when run from inside the very checkout that ships the
 registry, cannot use the convenient no-token form and must pass the code explicitly. Documented in
 the skill (§ 2) as a named finding rather than a silent workaround.
@@ -418,7 +418,7 @@ states in § 3, since no `nen` verb computes it.
 
 Every other deterministic step the old skill improvised in prose has a `nen` verb, verified live
 against a constructed fixture or (where GitHub was actually involved) the real, read-only
-`zheref/bankai-core`. The two gaps above (§ 4.3, § 4.4) are declared detection boundaries the verb's
+`<reference-repo>`. The two gaps above (§ 4.3, § 4.4) are declared detection boundaries the verb's
 own `--help` names explicitly ("Detects... secret shapes, git-ignored files, binaries, out-of-scope
 paths and unmentioned deletions") — not silences to be discovered later.
 

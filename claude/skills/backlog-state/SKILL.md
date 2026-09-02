@@ -20,7 +20,7 @@ repos, on demand, in one table.
 > pushes, opens, closes or comments. If reading the board makes the next action obvious, *say what
 > the action is* — do not take it.
 
-The old (bankai-core) version of this skill computed every one of §§2–7, 11 below by improvised
+The old (`<reference-repo>`) version of this skill computed every one of §§2–7, 11 below by improvised
 prose: hand-grepping `schemas/repos.json`, eyeballing check pages, reconstructing a colour
 precedence table from memory, hand-sorting rows by severity. This port replaces every one of those
 steps with a `nen` verb — `nen backlog fetch|order`, `nen gate derive`, `nen color status`,
@@ -75,9 +75,9 @@ nen repo resolve --repo <path> --from <cwd>
 > **A verified gap when the standing repo is the registry's own source, not a listed consumer.**
 > `nen repo resolve` (no-token form) matches the resolved origin against the registry's `consumers`
 > **∪** `maintained_tools` arrays only — **not** the full `product_codes` map. Verified live,
-> standing in `bankai-core` itself: `nen repo resolve --repo <bankai-core path> --from <same path>`
-> refuses with *"'zheref/bankai-core' ... is not in this registry"*, even though the **same
-> refusal's own printed code list** shows `BC (zheref/bankai-core)` right there in
+> standing in `<reference-repo>` itself: `nen repo resolve --repo <reference-repo path> --from <same path>`
+> refuses with *"'`<reference-repo>`' ... is not in this registry"*, even though the **same
+> refusal's own printed code list** shows `BC (<reference-repo>)` right there in
 > `product_codes`. `nen repo resolve BC --repo <path>` (the explicit-code form) resolves it
 > instantly — the map has the entry, only the origin-matching path refuses to consult it. This
 > reproduces for exactly the shape this skill hits constantly (backlog-state is asked from inside
@@ -90,7 +90,7 @@ nen repo resolve --repo <path> --from <cwd>
 > failed and list `product_codes`. It is never a fallback to `all`.
 
 **An unknown repo is an error, never a guess.** Say which token failed and list the codes `nen repo
-resolve`'s own refusal names. Resolving `Kro` to `KroApple` because it is the only prefix match is
+resolve`'s own refusal names. Resolving `Kro` to `<product-repo-A>` because it is the only prefix match is
 exactly the kind of helpfulness that reports the wrong repo's backlog.
 
 ## 2. Resolving the repo set
@@ -101,8 +101,8 @@ nen repo resolve all --repo <path>
 
 `all` enumerates the registry's `consumers` ∪ `maintained_tools` entries. **Whether the standing
 repo also appears in that set is registry-content-dependent, not a fixed rule** — verified live
-against bankai-core's own registry (`docs/ab/backlog-state.md` § 2.2): `bankai-core` (`BC`) *does*
-show up in `all`'s own output here, because bankai-core's registry happens to list itself among the
+against `<reference-repo>`'s own registry (`docs/ab/backlog-state.md` § 2.2): `<reference-repo>` (`BC`) *does*
+show up in `all`'s own output here, because `<reference-repo>`'s registry happens to list itself among the
 enumerated entries even though it is the source, not a consumer, of that registry. A different
 registry that omits the source repo from both arrays would produce the gap the old skill's prose
 named and worked around by hand. **Check the returned rows by code before doing anything else**:
@@ -113,7 +113,7 @@ named and worked around by hand. **Check the returned rows by code before doing 
   BC --repo <path>`) and fold it into the swept set alongside whatever `all` returned.
 
 Either way, **state the resolved set before the table**, so a reader can see what was actually
-swept: *"6 repos: bankai-core, bankai-scaffold, KroApple, KroAndroid, KroWindows, kro-pwa."* A
+swept: *"6 repos: `<reference-repo>`, `<scaffold-repo>`, `<product-repo-A>`, `<product-repo-B>`, `<product-repo-C>`, kro-pwa."* A
 reader who cannot see what was swept cannot tell an empty band from an unswept one.
 
 > **A second, sharper finding in the same output.** `nen repo resolve all`'s row set also includes
@@ -181,7 +181,7 @@ Has an open PR?
 ```
 
 **The base-ref branch is new in this port and is load-bearing** — carried in from a **live, open**
-finding against the source this skill ports (`BC-IS-#929`, discovered while running this port's own
+finding against the source this skill ports (`RR-IS-#929`, discovered while running this port's own
 A/B pass): the old tree derived a gate from the diff alone, so a product-code sub-PR based on
 `integration/epic-*` fell through to G2 and issued a `MERGE` ask the maintainer does not own — that
 merge is Roy's (`CON-5`), and reporting it as the maintainer's hands them a merge that skips
@@ -201,9 +201,9 @@ nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,schemas/" \
                 --files <comma-separated changed paths>
 ```
 
-Verified live against two real bankai-core PRs: `BC-PR-#925` (touches
+Verified live against two real `<reference-repo>` PRs: `RR-PR-#925` (touches
 `.github/workflows/*.yml`, `scripts/`, `tests/`) derived `G4` — *"the diff touches the process
-surface ... in a repository whose product is its process, that is a policy change"*; `BC-PR-#916`
+surface ... in a repository whose product is its process, that is a policy change"*; `RR-PR-#916`
 (touches `schemas/repos.json`) derived `G4` — *"the diff touches policy/spec (schemas/), which only
 the human merges."* Both match the tree above exactly, computed rather than eyeballed.
 
@@ -217,8 +217,8 @@ owns — nothing owns this fetch yet).
 side: *"the invocation asserted G4; the diff derives G2, and the derived gate stands"* — the gate
 is a property of the diff, not of a prior belief.
 
-**In bankai-core almost every PR is G4** — it is a governance and machinery repo, so its process
-surface *is* its product. In a consumer repo (KroApple, KroAndroid) product code is the norm and
+**In `<reference-repo>` almost every PR is G4** — it is a governance and machinery repo, so its process
+surface *is* its product. In a consumer repo (`<product-repo-A>`, `<product-repo-B>`) product code is the norm and
 G2 dominates. Do not carry one repo's ratio into the other; decide per diff.
 
 ### G5 is not the default bucket — this is the rule this skill exists to enforce
@@ -250,7 +250,7 @@ with the discipline of quoting rather than paraphrasing, is
 ```bash
 export GH_TOKEN=$(gh auth token)
 nen pr ready <CODE>#<N> --repo <path> \
-  --gates "$CLAUDE_PLUGIN_ROOT/contracts/bankai-core.gates.json" --explain
+  --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
 ```
 
 (or `<N> --gh-repo <owner/repo> --gates ...` for a bare number.) **Always the
@@ -270,11 +270,11 @@ Two things follow, unchanged from the old skill:
 > **`nen pr fetch` is broken against every real PR tested, and this port never routes around it.**
 > `nen pr fetch --target <owner/name> --pr <n>` is documented to return "one typed snapshot: head
 > SHA, mergeability, the check rollup, reviews PER COMMIT, review threads ..." — verified live, it
-> crashes on **every** PR tried, in **two different repositories** (`zheref/bankai-core#925`,
+> crashes on **every** PR tried, in **two different repositories** (`<reference-repo>#925`,
 > `#927`, `#916`, `#932`; `zheref/hatsu#5`), plain and `--json` output printing the identical error:
 > `nen pr: could not fetch <owner/repo>#<n> reviews: gh: Unprocessable Entity (HTTP 422)`.
 > GitHub's reviews sub-fetch itself is failing inside the verb, on every repo
-> this port tried it against, not a bankai-core-specific quirk. **This skill does not use `nen pr
+> this port tried it against, not a `<reference-repo>`-specific quirk. **This skill does not use `nen pr
 > fetch` for anything** as a result — readiness comes from `nen pr ready` (a different code path,
 > confirmed working), and nothing else in this skill needs `pr fetch`'s remaining fields (base ref
 > excepted — § 4's own caveat). Filed as a finding, `docs/ab/backlog-state.md` § 4; not a gap this
@@ -288,7 +288,7 @@ nen color status --repo <path> --present <a,b,c>
 
 Resolves the target repository's own `schemas/colors.yml` precedence for whatever category values
 are true of one row, and prints the first match plus what it outranked. Verified live against
-bankai-core's own file:
+`<reference-repo>`'s own file:
 
 | Test | Result |
 |---|---|
@@ -360,7 +360,7 @@ saying what the item is about, in plain terms:
 | Raw | Synthesized |
 |---|---|
 | `[Machinery] probe_hosted_health.sh cannot detect a billing block — it checks run…` | Billing blocks go undetected |
-| `CON-22 fan-out: five reusable workflows changed by BC-PR-#603` | Fan-out owed for five reusables |
+| `CON-22 fan-out: five reusable workflows changed by RR-PR-#603` | Fan-out owed for five reusables |
 
 Synthesize; never truncate. Never editorialise a title into a claim the issue does not make.
 
@@ -370,7 +370,7 @@ One line, naming **the action and its actor** — judgment, unchanged:
 
 | Bad | Good |
 |---|---|
-| "Needs attention" | "Merge — `BC-PR-#588`, ready since 14:02" |
+| "Needs attention" | "Merge — `RR-PR-#588`, ready since 14:02" |
 | "Blocked" | "Create the `integration/*` ruleset — only you can (`CON-2`)" |
 | "In review" | "Kisuke addresses 4 Copilot threads" |
 

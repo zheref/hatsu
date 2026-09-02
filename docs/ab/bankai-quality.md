@@ -8,11 +8,11 @@ never computed. New mechanics: `nen repo scenario`, `nen quality tooling`, `nen 
 `nen quality method-check`.
 
 Run: 2026-09-02T01:01Z (UTC). `nen` `0.1.0` (`<cache>\nen\v0.1.0\nen-windows-x64.exe`).
-Oracle/registry checkout: `zheref/bankai-core` tag `v0.11.3`
+Oracle/registry checkout: `<reference-repo>` tag `v0.11.3`
 (`2269fe723e355dc69bf535ab40f22556e4fe4081`, working tree clean, read-only throughout — no issue,
 comment, label, branch, push or PR against it at any point in this run).
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
@@ -39,58 +39,58 @@ resolver's.
 
 ## 2. Live A/B transcript (read-only)
 
-Every command below was actually run this session, against the real, frozen `bankai-core` checkout for
+Every command below was actually run this session, against the real, frozen `<reference-repo>` checkout for
 the registry- and canon-backed verbs, and against clearly-labelled **constructed** sample inputs for the
 three verbs (`quality tooling`, `quality perf-compare`, `quality method-check`) whose data — a per-repo
 tooling manifest, a measured number, a method block — has no live counterpart to read (§ 3 explains why).
 No output below is fabricated or replayed from a prior run; every line is this session's actual stdout.
 
-### 2.1 — `nen repo scenario`, live against `bankai-core`'s own registry
+### 2.1 — `nen repo scenario`, live against `<reference-repo>`'s own registry
 
 ```
-$ nen repo scenario --repo <bankai-core checkout> --target zheref/KroApple
+$ nen repo scenario --repo <reference-repo checkout> --target <product-repo-A>
 swiftui-tca-uzf-v2
 $ echo exit: $?
 exit: 0
 
-$ nen repo scenario --repo <bankai-core checkout> --target zheref/KroAndroid
+$ nen repo scenario --repo <reference-repo checkout> --target <product-repo-B>
 compose-uzf-v2
 exit: 0
 
-$ nen repo scenario --repo <bankai-core checkout> --target zheref/bankai-scaffold
-bankai-core
+$ nen repo scenario --repo <reference-repo checkout> --target <scaffold-repo>
+<reference-repo>
 exit: 0
 ```
 
 All three match the `scenario` field recorded for that repo in `schemas/repos.json` at `v0.11.3`,
-read directly from the same file to confirm (`zheref/KroApple` → `"scenario": "swiftui-tca-uzf-v2"`,
-`zheref/KroAndroid` → `"compose-uzf-v2"`, `zheref/bankai-scaffold` → `"bankai-core"`). **Same, on all
+read directly from the same file to confirm (`<product-repo-A>` → `"scenario": "swiftui-tca-uzf-v2"`,
+`<product-repo-B>` → `"compose-uzf-v2"`, `<scaffold-repo>` → `"<reference-repo>"`). **Same, on all
 three.**
 
-**The one structural gap, verified live — `bankai-core` cannot resolve its own scenario this way:**
+**The one structural gap, verified live — `<reference-repo>` cannot resolve its own scenario this way:**
 
 ```
-$ nen repo scenario --repo <bankai-core checkout> --target zheref/bankai-core
-nen: 'zheref/bankai-core' is not a consumer in <bankai-core checkout>\schemas\repos.json. Its
+$ nen repo scenario --repo <reference-repo checkout> --target <reference-repo>
+nen: '<reference-repo>' is not a consumer in <reference-repo checkout>\schemas\repos.json. Its
 scenario cannot be read from a registry that does not know it.
 exit: 1
 
-$ nen repo scenario --repo <bankai-core checkout> --target zheref/NotARepo
-nen: 'zheref/NotARepo' is not a consumer in <bankai-core checkout>\schemas\repos.json. Its
+$ nen repo scenario --repo <reference-repo checkout> --target zheref/NotARepo
+nen: 'zheref/NotARepo' is not a consumer in <reference-repo checkout>\schemas\repos.json. Its
 scenario cannot be read from a registry that does not know it.
 exit: 1
 ```
 
-`bankai-core` is not listed as its own consumer (a repo cannot consume itself), so the refusal is
+`<reference-repo>` is not listed as its own consumer (a repo cannot consume itself), so the refusal is
 identical in shape to a genuinely unknown repo — this is **expected, not a defect** (§ 3), and the ported
-skill's § 1 carve-out reads `bankai-core`'s scenario directly off its own workflow's hardcoded
-`bankai_scenario: 'bankai-core'` instead, since there is structurally no registry row to resolve it
+skill's § 1 carve-out reads `<reference-repo>`'s scenario directly off its own workflow's hardcoded
+`bankai_scenario: '<reference-repo>'` instead, since there is structurally no registry row to resolve it
 against.
 
 ### 2.2 — `nen quality tooling`, against a constructed manifest
 
 No repository in the reachable estate ships the JSON manifest `--table` wants (§ 3), so this transcribes
-the live `handbooks/quality-baseline.md` § B "Tooling matrix" (`bankai-core` `v0.11.3`) into JSON,
+the live `handbooks/quality-baseline.md` § B "Tooling matrix" (`<reference-repo>` `v0.11.3`) into JSON,
 labelled `tooling-table.CONSTRUCTED.json`, to prove the verb against real canon content rather than
 placeholder strings:
 
@@ -109,13 +109,13 @@ exit: 0
 
 $ nen quality tooling --table tooling-table.CONSTRUCTED.json --scenario dotnet-winui-uzf-v1
 nen: 'dotnet-winui-uzf-v1' has no entry in this tooling table. Known scenarios:
-  swiftui-tca-uzf-v2, compose-uzf-v2, react-uzf-v1, bankai-core
+  swiftui-tca-uzf-v2, compose-uzf-v2, react-uzf-v1, <reference-repo>
 exit: 1
 
-$ nen quality tooling --table tooling-table.CONSTRUCTED.json --scenario bankai-core --json
+$ nen quality tooling --table tooling-table.CONSTRUCTED.json --scenario <reference-repo> --json
 {
   "ok": true,
-  "scenario": "bankai-core",
+  "scenario": "<reference-repo>",
   "tooling": {
     "e2e": "bats (tests/*.bats) driving scripts/*.sh, plus yq assertions over .github/workflows/*.yml",
     "adversarial": "pytest for the Python guards (tests/test_*.py)",
@@ -130,7 +130,7 @@ exit: 0
 
 **Old-side comparison:** the old skill had no command here at all — the agent matched the resolved
 scenario against the markdown table by eye. There is no read-only old-side invocation to run in
-parallel; the comparison is that the verb's output for `swiftui-tca-uzf-v2` and `bankai-core`
+parallel; the comparison is that the verb's output for `swiftui-tca-uzf-v2` and `<reference-repo>`
 reproduces the same content the handbook's own markdown table states for those rows, field for field —
 confirmed by re-reading `handbooks/quality-baseline.md` § B alongside the JSON above.
 
@@ -229,7 +229,7 @@ validator reports **exactly** the fields that fail, never a blanket "invalid blo
   ported `SKILL.md` therefore stays a plain, live file read — unchanged from the old skill's own
   mechanic — and is flagged here rather than silently left inconsistent with the rest of this doc's
   "mechanize everything deterministic" thrust.
-- **No repository in the reachable estate ships a JSON tooling manifest.** Verified: `bankai-core`
+- **No repository in the reachable estate ships a JSON tooling manifest.** Verified: `<reference-repo>`
   `v0.11.3`'s tree carries the tooling and measurement matrices only as markdown inside
   `handbooks/quality-baseline.md`; Hatsu's own tree carries no such file at all
   (`git ls-tree -r origin/main` has no `docs/Quality/` path). This is **not a defect in `nen quality
@@ -247,12 +247,12 @@ validator reports **exactly** the fields that fail, never a blanket "invalid blo
   `src/quality/perf.ts`: no ceiling constant exists in that module at all).
 - **Where a `QA-{n}` gap lands is now genuinely open, and this port does not resolve it.** The old skill
   closed with "`quality-baseline.md` and `INDEX.md` change only through a PR the human merges at G4" —
-  true while `bankai-core` was live. `bankai-core` is now frozen (no PR against it, ever), and Hatsu ships
+  true while `<reference-repo>` was live. `<reference-repo>` is now frozen (no PR against it, ever), and Hatsu ships
   no handbooks of its own, so that sentence is no longer true as written and is **not carried forward**.
   The ported `SKILL.md`'s "Rules" section names this as an open item rather than inventing a landing
   repository for a canon amendment — consistent with `docs/ROSTER.md`'s own OPEN-item discipline
   (`CONSTITUTION.md`'s eventual rewrite is tracked at
-  [zheref/akatsuki-ai#5](https://github.com/zheref/akatsuki-ai/issues/5), not here).
+  `<migration-tracker>`#5, not here).
 - **Judgment kept, per the shared brief's boundary list:** which of the eight `QA-2` hypothesis classes
   applies, a finding's severity, the recommended action (`hold`/`ship-with-known-issue`/`fix-first`), and
   the `Quality-Gate:`/severity-routing logic all stay with Phinks and Uvogin (`docs/ROSTER.md`,
@@ -280,7 +280,7 @@ table is a deliberate design choice, confirmed against its own source comment, n
 ## 5. Corrections from adversarial review
 
 The ported `SKILL.md`'s § 4 Measurement matrix was carried over from the old skill file **unverified**
-against the frozen `bankai-core` snapshot rather than re-read from it. An adversarial review caught the
+against the frozen `<reference-repo>` snapshot rather than re-read from it. An adversarial review caught the
 drift below; each cell was then re-checked row-by-row against `handbooks/quality-baseline.md` § C at
 `v0.11.3` and corrected in place (never silently — recorded here per this port's own "record the gap,
 don't route around it" discipline).
@@ -296,7 +296,7 @@ don't route around it" discipline).
     and its **P6 network harness** (Playwright `page.on('request'|'response')` totals) — both restored.
   - `compose-uzf-v2`'s P6 cell dropped the `+ OkHttp EventListener` half of canon's `TraceSectionMetric
     around the HTTP span + OkHttp EventListener` — restored.
-  - `bankai-core`'s Diagnosis cell read `—`; canon's actual Diagnosis value for that row is `` `gh run
+  - `<reference-repo>`'s Diagnosis cell read `—`; canon's actual Diagnosis value for that row is `` `gh run
     view --json jobs` durations `` — the ported row had instead folded that text into the Harness cell
     and left Diagnosis empty. Diagnosis and Harness were each corrected to carry the right content.
   - **The entire `react-uzf-v1` (Expo) row was missing** from the ported Measurement matrix (it is present,

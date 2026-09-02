@@ -4,18 +4,17 @@
 >
 > This document is **OPEN-2** of the ratified migration plan. It is drafted **here**, in Hatsu, at
 > [zheref/hatsu#1][h1]; it is **ratified elsewhere**, with the rewritten constitution at
-> [zheref/akatsuki-ai#5][a5] (P3, a G4-class review).
+> the migration tracker (private; P3, a G4-class review).
 >
 > **Until it is ratified, Gon crosses no gate.** Not a named one, not a small one, not one the maintainer
 > waves at in conversation. The grammar below describes the *shape* a future grant would take — it does
 > **not** enable a grant, and nothing in this repository reads it as authority. An agent that acts on a
 > draft has ratified it by itself, which is the precise failure the draft exists to avoid.
 >
-> Do not cite this file as a rule. Cite it as a proposal, and cite [zheref/akatsuki-ai#5][a5] for its
+> Do not cite this file as a rule. Cite it as a proposal, and cite the migration tracker (private) for its
 > status.
 
 [h1]: https://github.com/zheref/hatsu/issues/1
-[a5]: https://github.com/zheref/akatsuki-ai/issues/5
 
 ---
 
@@ -218,5 +217,5 @@ as having settled OPEN-1.
 ratified. Gon crosses no gate.**
 
 If the maintainer offers Gon a grant today, the correct response is to say exactly that, point at
-[zheref/akatsuki-ai#5][a5], and offer to do the work **without** the gate crossing — stopping at the gate
+the migration tracker (private), and offer to do the work **without** the gate crossing — stopping at the gate
 and handing it over, the way every agent does by default.

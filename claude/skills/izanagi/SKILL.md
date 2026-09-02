@@ -16,7 +16,7 @@ read-only half. The split is deliberate: a loop that writes needs a bound a loop
 not, and **making the bound part of the grammar means it can never be defaulted, inherited, or
 forgotten.**
 
-The old bankai-core skill enforced the cap and the parse by an agent reading its own prose grammar
+The old `<reference-repo>` skill enforced the cap and the parse by an agent reading its own prose grammar
 by eye, every invocation. This port replaces the parse and the per-iteration condition check with
 `nen`: `nen parse izanagi` splits the line and refuses outright when the cap is missing or
 malformed, and `nen watch until` — the same read-only observation engine `izanami`'s port uses —
@@ -46,8 +46,8 @@ occurrence of each**, and echoes `task:` / `until:` / `cap:` back before anythin
 **Verified live, a well-formed invocation:**
 
 ```
-$ nen parse izanagi "gh pr merge 925 --repo zheref/bankai-core until it is merged up to 3"
-task: gh pr merge 925 --repo zheref/bankai-core
+$ nen parse izanagi "gh pr merge 925 --repo <reference-repo> until it is merged up to 3"
+task: gh pr merge 925 --repo <reference-repo>
 until: it is merged
 cap: 3
 $ echo $?
@@ -75,9 +75,9 @@ integer-cap check instead). Never offer a second form to the maintainer; there i
 **The missing-cap case — the load-bearing refusal, verified live:**
 
 ```
-$ nen parse izanagi "gh pr merge 925 --repo zheref/bankai-core until it is merged"
+$ nen parse izanagi "gh pr merge 925 --repo <reference-repo> until it is merged"
 nen: no 'up to <N>'. Izanagi is the MUTATING half of the loop pair and the cap is required grammar, never defaulted or inferred -- an invocation without it is refused rather than run once 'to see'.
-  try: gh pr merge 925 --repo zheref/bankai-core until it is merged up to <N>
+  try: gh pr merge 925 --repo <reference-repo> until it is merged up to <N>
 $ echo $?
 2
 ```
@@ -89,21 +89,21 @@ mean something, and it is `nen`'s to enforce now, not the agent's to remember.
 **Missing `until`, and a malformed cap — both refused, verified live:**
 
 ```
-$ nen parse izanagi "gh pr merge 925 --repo zheref/bankai-core up to 3"
+$ nen parse izanagi "gh pr merge 925 --repo <reference-repo> up to 3"
 nen: no 'until <condition>'. Expected '<task> until <condition> up to <N>'.
-  try: gh pr merge 925 --repo zheref/bankai-core until <condition> up to 3
+  try: gh pr merge 925 --repo <reference-repo> until <condition> up to 3
 $ echo $?
 2
 
-$ nen parse izanagi "gh pr merge 925 --repo zheref/bankai-core until it is merged up to zero"
+$ nen parse izanagi "gh pr merge 925 --repo <reference-repo> until it is merged up to zero"
 nen: 'up to zero' is not a positive integer cap.
-  try: gh pr merge 925 --repo zheref/bankai-core until it is merged up to 3
+  try: gh pr merge 925 --repo <reference-repo> until it is merged up to 3
 $ echo $?
 2
 
-$ nen parse izanagi "gh pr merge 925 --repo zheref/bankai-core until it is merged up to 0"
+$ nen parse izanagi "gh pr merge 925 --repo <reference-repo> until it is merged up to 0"
 nen: 'up to 0' is not a positive integer cap.
-  try: gh pr merge 925 --repo zheref/bankai-core until it is merged up to 3
+  try: gh pr merge 925 --repo <reference-repo> until it is merged up to 3
 $ echo $?
 2
 ```
@@ -123,8 +123,8 @@ ceiling nobody needed.
 izanagi's task is *expected* to mutate:
 
 ```
-$ nen parse izanagi "gh pr checks 925 --repo zheref/bankai-core until all green up to 4"
-task: gh pr checks 925 --repo zheref/bankai-core
+$ nen parse izanagi "gh pr checks 925 --repo <reference-repo> until all green up to 4"
+task: gh pr checks 925 --repo <reference-repo>
 until: all green
 cap: 4
 $ echo $?
@@ -211,7 +211,7 @@ $ echo $?
 0
 
 $ export GH_TOKEN=$(gh auth token)
-$ nen watch until --command "gh pr view 925 --repo zheref/bankai-core --json state -q .state" --true-pattern "OPEN" --max-iterations 1 --interval-ms 1000
+$ nen watch until --command "gh pr view 925 --repo <reference-repo> --json state -q .state" --true-pattern "OPEN" --max-iterations 1 --interval-ms 1000
 [1] condition is true (exit 0)
 condition became true after 1 observation(s)
 $ echo $?

@@ -34,7 +34,7 @@ on PR mechanics and this skill wins on what happens before a PR exists.
 > himself, in this same session, in the mode § 3 confirms — or, where the work is something a
 > local session structurally cannot do at all, this run stops at **G5** and says so, rather than
 > pretending a wake occurred. This is a declared change from the retired skill's behaviour, not a
-> silent one — per the ratified migration plan and `zheref/akatsuki-ai#1`.
+> silent one — per the ratified migration plan and its tracking issue (private).
 
 ---
 
@@ -59,15 +59,15 @@ that port's own A/B doc § 3) — no bracket-swallowing bug was found here.
 Resolve `<code>` against the registry, never from memory:
 
 ```bash
-nen repo resolve <CODE> --repo <bankai-core checkout>
+nen repo resolve <CODE> --repo <reference-repo checkout>
 ```
 
-case-insensitive (`bc` and `BC` both resolve to `zheref/bankai-core` — `docs/ab/build.md` § 2.2);
+case-insensitive (`bc` and `BC` both resolve to `<reference-repo>` — `docs/ab/build.md` § 2.2);
 **an unresolved code is an error and never a guess.**
 
 **If `#<N>` is a PR, hand straight to [`hatsu:drive <CODE>#<N>`](../drive/SKILL.md) and say so.** `nen issue chain-position`/`nen issue terminus` do **not** make this check
 for you — verified live, `docs/ab/build.md` § 2.3: pointed at a real PR number
-(`zheref/bankai-core#925`), `chain-position` answers `routable` and `terminus` answers `own-pr` as
+(`<reference-repo>#925`), `chain-position` answers `routable` and `terminus` answers `own-pr` as
 if it were an ordinary issue, with no error and no hint that the number names a PR. **This is a
 finding against the binary, filed, not routed around silently** (§ 10) — the issue-vs-PR check
 stays a plain read this skill performs first: `gh api repos/<owner>/<repo>/issues/<N> --jq
@@ -82,18 +82,18 @@ delegation nobody announced is a delegation nobody can end.
 ## 2. Read the issue before touching it — where is it on the chain?
 
 ```bash
-nen issue chain-position --target <owner/name> --issue <N> --repo <bankai-core checkout> \
+nen issue chain-position --target <owner/name> --issue <N> --repo <reference-repo checkout> \
   --chain-labels "idea=bankai:stage/idea,researched=bankai:stage/researched,\
 approved-team=bankai:stage/ready-for-bankai,approved-direct=bankai:stage/ready-for-shikai,\
 building=bankai:stage/building,in-review=bankai:stage/in-review,epic=bankai:epic"
 ```
 
-`--chain-labels` is caller data — bankai-core's own label names for each chain role, read from its
+`--chain-labels` is caller data — `<reference-repo>`'s own label names for each chain role, read from its
 `schemas/labels.json`, never guessed. Its taxonomy carries **no `chore` label** at all (verified:
 `gh label list` names none) — omit the `chore=` entry; that is this repository's own fact, not a
 gap in the verb. **Supply every role your repo actually uses.** Verified live, an incomplete map is
 refused outright rather than half-answered: with no `--chain-labels` at all, a real `in-review`
-issue (`zheref/bankai-core#918`) comes back `undecidable: role(s) building, in-review, idea, epic
+issue (`<reference-repo>#918`) comes back `undecidable: role(s) building, in-review, idea, epic
 were never mapped … a run that reads a building issue as routable releases it twice` (exit `1`) —
 and an unknown role name in the map (`bogus=foo`) is refused outright at exit `2` (`docs/ab/build.md`
 § 2.7). Never guess past either refusal.
@@ -104,22 +104,22 @@ objects (`docs/ab/build.md` §§ 2.4, 2.4a, 2.5, 2.7, 2.7a):
 
 | `chain-position` reports | The issue is… | First move |
 |---|---|---|
-| `closed` | closed | **The run ends** with what closed it and which PR delivered it (verified live, `zheref/bankai-core#733` — a closed epic — reports exactly this). Re-opening is the maintainer's call |
-| `building` | already released — **with or without an open PR**, `in-review` folds into this same bucket (verified live, `zheref/bankai-core#918`/`#337`/`#879` all report `building` — `docs/ab/build.md` §§ 2.4, 2.4a) | Skip straight to § 4's drive step — the release already happened |
+| `closed` | closed | **The run ends** with what closed it and which PR delivered it (verified live, `<reference-repo>#733` — a closed epic — reports exactly this). Re-opening is the maintainer's call |
+| `building` | already released — **with or without an open PR**, `in-review` folds into this same bucket (verified live, `<reference-repo>#918`/`#337`/`#879` all report `building` — `docs/ab/build.md` §§ 2.4, 2.4a) | Skip straight to § 4's drive step — the release already happened |
 | `idea` | a raw brief (`bankai:stage/idea`) | Wake **Gon** so it is decomposed into an epic — his delegation grammar is **unratified** (`docs/ROSTER.md`), so this itself does not cross a gate on its own; he hands the decomposition back and this run takes it to § 3/§ 4 |
 | `epic-awaiting-approval` | an epic that carries the epic label but no mode label yet | **Stop at G1.** The mode label is the maintainer's and is never delegated (`CON-4`) — § 3/§ 4 |
 | `epic-approved` | an epic that carries the epic label **and** a mode label (`approved-team` or `approved-direct`) | Children advance wave by wave — § 4's epic-wave release step |
 | `routable` | a routable child or a standalone task (no idea/epic/release label at all — verified live, `#673`/`#710`/`#494`) | Confirm the mode (§ 3), release it (§ 5), then build it |
-| `undecidable` | a role in play was never mapped in `--chain-labels`, so this issue's true position cannot be told apart from another (verified live, `zheref/bankai-core#918` with no `--chain-labels` at all — § 2.7) | **Refuse the guess.** Supply the missing role and re-run; never proceed on a guess |
+| `undecidable` | a role in play was never mapped in `--chain-labels`, so this issue's true position cannot be told apart from another (verified live, `<reference-repo>#918` with no `--chain-labels` at all — § 2.7) | **Refuse the guess.** Supply the missing role and re-run; never proceed on a guess |
 
-**No open `bankai-core` issue currently carries `bankai:stage/idea`, `bankai:stage/researched`,
+**No open `<reference-repo>` issue currently carries `bankai:stage/idea`, `bankai:stage/researched`,
 `bankai:stage/ready-for-bankai` or `bankai:stage/ready-for-shikai`** (verified live, `gh issue list
 --state all --label ...` for all four returns empty — `docs/ab/build.md` § 2.7). The `idea`,
 `epic-awaiting-approval` and `epic-approved` rows are therefore contract-verified against `nen
 issue chain-position --help` and the label taxonomy plus a **live run against a constructed role
-map on a real object** (`zheref/akatsuki-ai#31` — `docs/ab/build.md` § 2.7a), not against a
-`bankai-core` issue that natively carries those labels; say so rather than silently presenting
-every row as proven against `bankai-core` itself.
+map on a real object** (an object in the private migration tracker — `docs/ab/build.md` § 2.7a), not against a
+`<reference-repo>` issue that natively carries those labels; say so rather than silently presenting
+every row as proven against `<reference-repo>` itself.
 
 An epic reported `epic-approved` is further split by which mode label it actually carries —
 `bankai:stage/ready-for-bankai` vs `ready-for-shikai` — read directly off the issue;
@@ -182,9 +182,9 @@ child:
    owns writing an issue body back to GitHub (residue, § 11).
 
    **This repository's own live epics do not use the checklist shape `nen` expects.** Both real
-   epics checked (`zheref/bankai-core#733`, closed; `#568`, closed) write their phases as a
+   epics checked (`<reference-repo>#733`, closed; `#568`, closed) write their phases as a
    markdown table or bold-prefixed bullets with a markdown-linked reference
-   (`[BC-IS-#570](url)`), never a bare `- [ ] #<N>`, and `nen epic next-wave` reads `{"total":0,
+   (`[RR-IS-#570](url)`), never a bare `- [ ] #<N>`, and `nen epic next-wave` reads `{"total":0,
    "done":0}` against both — zero children recognised (`docs/ab/build.md` § 2.9). Any epic this
    skill decomposes going forward (§ 2's Gon step) must write its checklist in the shape `nen`
    parses, stated to Gon explicitly, or this verb never sees a child at all.
@@ -196,14 +196,14 @@ child:
      --integration-prefix "integration/" --trunk main
    ```
    Verified live: an issue with no epic/chore label answers `own-pr` — "the terminus is this
-   issue's own PR into `main`" (`zheref/bankai-core#918`/`#673`/`#337`, and the real PR `#925`
+   issue's own PR into `main`" (`<reference-repo>#918`/`#673`/`#337`, and the real PR `#925`
    too — the same PR-vs-issue gap § 1 already flags; `#918` and `#337` transcribed in
    `docs/ab/build.md` §§ 2.6, 2.4a); a closed issue answers `run-already-ended`
    (`#733`, `docs/ab/build.md` § 2.6). For a `bankai`-mode epic that is the single
    `integration/* → main` PR the maintainer merges at G2; for shikai mode it is each child's own PR;
    for a `CON-36` chore it is the `integration/<chore> → main` delivery PR — **no live epic or
    chore-labelled object exists today to confirm those two branches on the real backlog**
-   (`bankai:epic` has zero open issues, and bankai-core's taxonomy carries no chore label at all —
+   (`bankai:epic` has zero open issues, and `<reference-repo>`'s taxonomy carries no chore label at all —
    § 2); they stand contract-verified against `nen issue terminus --help` only. **A sub-PR merged
    onto a chore or integration branch is not the gate** and never ends the run.
 
@@ -236,11 +236,11 @@ Release is still `bankai:stage/building` — the G1-M go-signal (`CON-25`) — b
 still real bookkeeping: [`backlog-state`](../backlog-state/SKILL.md)/[`backlog-board`](../backlog-board/SKILL.md)
 (both already landed) read it to place the issue on the board, and `CON-9` still requires exactly
 one stage label at a time. Applying it is
-logged, contract-verified against the binary (never exercised live against `bankai-core` — the
+logged, contract-verified against the binary (never exercised live against `<reference-repo>` — the
 shared brief's read-only rule):
 
 ```bash
-nen label apply BC-IS-#<N> --label bankai:stage/building --repo-slug <owner/name> \
+nen label apply RR-IS-#<N> --label bankai:stage/building --repo-slug <owner/name> \
   --reason "<why, for the ledger>" --run
 ```
 
@@ -358,7 +358,7 @@ fresh session does not re-derive it, and **never trust it over a fetch**.
 
 1. **`nen issue chain-position` and `nen issue terminus` never check whether the number they were
    given names an issue or a pull request.** Verified live against a real PR
-   (`zheref/bankai-core#925`): both answer as if it were an ordinary issue (`routable` /
+   (`<reference-repo>#925`): both answer as if it were an ordinary issue (`routable` /
    `own-pr`), with no error and no distinguishing signal — § 1's manual `gh api
    repos/<owner>/<repo>/issues/<N> --jq '.pull_request'` check exists because of this gap.
 2. **A `--chain-labels` map missing any role in play is not a partial answer — it is
@@ -367,7 +367,7 @@ fresh session does not re-derive it, and **never trust it over a fetch**.
 3. **`nen epic next-wave`'s checklist recognises only `- [ ] #<N> …` / `- [x] #<N> …`** — the
    checkbox immediately followed by the child reference. A trailing `#<N>`, a markdown-linked
    reference, or a bold-prefixed label before the number are all invisible to it, silently
-   contributing zero children rather than erroring (§ 4). Neither of `bankai-core`'s own two real
+   contributing zero children rather than erroring (§ 4). Neither of `<reference-repo>`'s own two real
    epics uses the shape this verb expects.
 4. **`nen loop slots`'s local-plane default cap is `7`**, not `2` — this skill's own hard limit
    must be passed explicitly every time (§ 4).

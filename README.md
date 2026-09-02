@@ -12,10 +12,10 @@ verifies; the skill supplies only the judgment a binary cannot. Where no verb ex
 
 No GitHub App. No bot identity. Nothing here merges `main`, publishes a release, or casts a review vote.
 
-> **`v0.1.0`.** Hatsu is the local plane of the Akatsuki system, and it succeeds the local plane of a
-> predecessor system called *bankai-core*, which it also **serves live today** — the seventeen skills were
-> ported name-for-name and proven against that system's real backlog before this version was cut. The
-> evidence is in [`docs/ab/`](docs/ab/), one file per skill.
+> **`v0.1.1`.** Hatsu is the local plane of the Akatsuki system, and it succeeds the local plane of a
+> predecessor system — the frozen reference implementation — which it also **serves live today**: the
+> seventeen skills were ported name-for-name and proven against that system's real backlog before this
+> version was cut. The evidence is in [`docs/ab/`](docs/ab/), one file per skill.
 
 ---
 
@@ -55,7 +55,7 @@ claude plugin install hatsu@hatsu
 Confirm what landed:
 
 ```sh
-claude plugin list                  # hatsu@hatsu — Version: 0.1.0
+claude plugin list                  # hatsu@hatsu — Version: 0.1.1
 claude plugin details hatsu@hatsu   # the full component inventory
 ```
 
@@ -154,7 +154,7 @@ Four, each with a discipline Kurapika delegates to rather than absorbing.
 > The clause that would make a gate-crossing grant *valid* — **mission · gates · conditions · expiry ·
 > logging** — is drafted here at [`docs/delegation-grammar-DRAFT.md`](docs/delegation-grammar-DRAFT.md) and
 > **ratified elsewhere**: with the rewritten constitution at
-> [zheref/akatsuki-ai#5](https://github.com/zheref/akatsuki-ai/issues/5), a G4-class review (this is
+> the migration tracker (private), a G4-class review (this is
 > **OPEN-2** in [`docs/ROSTER.md`](docs/ROSTER.md)). **No grant can be given today, because there is
 > no valid form for one to take.** Gon does the work, takes it to the gate, and stops there, exactly as
 > every agent does by default. A delegate that acts on a draft has ratified the draft by itself.
@@ -231,6 +231,10 @@ the port, the mechanics after, and a live transcript against a real backlog show
 with fewer improvised commands — `nen` invocations where the old transcript had raw `gh`. The surface was
 proven before this version was cut; it is not an aspiration.
 
+Those transcripts were recorded against repositories that are **not public**, so every private repository
+name in this repository is replaced by a stable placeholder. The legend, and what is deliberately left
+alone, are in [`docs/PUBLIC-REDACTION.md`](docs/PUBLIC-REDACTION.md).
+
 ### Rollback
 
 **For you, as a public reader, rollback is simply uninstalling Hatsu** — `claude plugin uninstall
@@ -299,9 +303,7 @@ claude plugin validate . --strict
 
 ## License
 
-**This repository is not yet licensed.** There is no `LICENSE` file, and until one is added no open-source
-grant is made — default copyright applies, and you should not assume permission to use, modify or
-redistribute this code.
+**MIT** — see [`LICENSE`](LICENSE).
 
-The license is a pending maintainer ruling (the standing proposal is MIT). It is stated here plainly rather
-than defaulted quietly: a repository that *looks* open and is not is worse than one that says so.
+The maintainer has ruled MIT. The `LICENSE` file carrying that grant lands in its own change; where a
+checkout predates it, the file — not this line — is the authority once it arrives.

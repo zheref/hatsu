@@ -1,6 +1,6 @@
 # Evidence — the plugin-bump guard (zheref/hatsu#3)
 
-Port of bankai-core's `scripts/plugin_bump_check.sh` into Hatsu as
+Port of `<reference-repo>`'s `scripts/plugin_bump_check.sh` into Hatsu as
 [`scripts/plugin_bump_check.sh`](../../scripts/plugin_bump_check.sh), wired as the
 [`plugin-bump-check`](../../.github/workflows/plugin-bump-check.yml) PR workflow.
 
@@ -14,7 +14,7 @@ adversarial-review fixes in this commit, base `main` at `992427c714d8fcd6ee26981
 plain files, which is the whole point of the comparison logic living in the script rather than in YAML.
 
 *Paths sanitized: this machine's local absolute paths appear as `<tmp>` (a throwaway fixture directory).
-Nothing else below is altered — the transcripts are otherwise verbatim.*
+Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered — the transcripts are otherwise verbatim.*
 
 > ### Corrections recorded at `v0.1.0` — read these first
 >
@@ -47,16 +47,16 @@ plugin-shipped surface without changing that field and the change is real in the
 every machine that already has the plugin installed. There is no error, no warning, and nothing in the PR
 that says so.
 
-The inherited incident record, kept in the script's header: the guard is bankai-core's **BC-IS-#557 item
-5**, filed after **BC-PR-#546** changed four plugin-shipped surfaces — an agent definition, a skill, a
+The inherited incident record, kept in the script's header: the guard is `<reference-repo>`'s **RR-IS-#557 item
+5**, filed after **RR-PR-#546** changed four plugin-shipped surfaces — an agent definition, a skill, a
 script, and the registry read at warm-up — without bumping the version. The fix never reached an installed
-plugin until **BC-PR-#578** bumped it retroactively.
+plugin until **RR-PR-#578** bumped it retroactively.
 
 It moves to Hatsu because guards live beside the surface they guard, and this is now that surface.
 
 ## 2. What changed in the port
 
-| | bankai-core `v0.11.3` | Hatsu |
+| | `<reference-repo>` `v0.11.3` | Hatsu |
 |---|---|---|
 | **Comparison logic** | `path_is_plugin_surface`, `any_path_is_plugin_surface`, `plugin_version`, `version_bumped`, `pr_body_has_opt_out`, then a 4-argument CLI | **unchanged**, function for function |
 | **Surface globs** | `claude/*`, `scripts/ichigo_prompt.sh`, `scripts/ichigo_board.sh`, `scripts/ichigo_pix.txt`, `scripts/gate_stop.sh`, `scripts/attention_signal.sh`, `schemas/repos.json`, `.claude-plugin/*` | `.claude-plugin/*`, `claude/*`, `nen.contract.json`, `contracts/*`, `docs/ROSTER.md`, `docs/delegation-grammar-DRAFT.md`, `hooks/*`, `.mcp.json` |
@@ -65,7 +65,7 @@ It moves to Hatsu because guards live beside the surface they guard, and this is
 | **Trusted-script posture** | guard checked out from `main`, never run from the PR | **intended to be unchanged, and was BROKEN on first submission — now fixed.** See the correction box above and § 5. The posture only became real once the script was committed `100755` and the workflow's gate became `-f` |
 | **Exec-bit assertion** | `tests/workflow_script_exec_bit.bats` | **no bats harness in Hatsu** — the equivalent assertion is a workflow step reading `git ls-files -s` (§ 5.1). Stated as a real difference, not a parity claim |
 | **Credential posture** | `persist-credentials: false` on both checkouts; diff and base manifest over the API | **unchanged** |
-| **Enforcement** | required by bankai-core's own branch protection | **advisory** in Hatsu until the maintainer requires the check (§ 6) |
+| **Enforcement** | required by `<reference-repo>`'s own branch protection | **advisory** in Hatsu until the maintainer requires the check (§ 6) |
 
 ### Why *these* globs
 
@@ -77,8 +77,8 @@ time** — staleness in either is the same failure.
 | `.claude-plugin/*` | the manifests themselves. |
 | `claude/*` | everything `plugin.json` points at: `agents` (kurapika, gon, hisoka, phinks, uvogin), `commands` (`/kurapika`), `skills` (the 17 ports + `hatsu-warmup`). |
 | `nen.contract.json` | read at run time as `$CLAUDE_PLUGIN_ROOT/nen.contract.json` by `hatsu-warmup` and by the agent definitions. It carries the **pinned nen ref**: a stale copy pins an installed plugin to the wrong nen build. |
-| `contracts/*` | `bankai-core.gates.json`, passed as `nen pr ready --gates "$CLAUDE_PLUGIN_ROOT/contracts/…"` by `pr-state`, `drive`, `backlog-state`, `futon` and `tensho`. Stale reviewer identities produce a **wrong readiness verdict, silently** — the worst failure mode in the repo. |
-| `docs/ROSTER.md` | cited by `claude/agents/kurapika.md` and `claude/commands/kurapika.md` as *the authority* on who exists and what standing they have. An installed plugin reading a stale roster can act as an agent whose row changed, or miss one that was added. This is the direct analogue of bankai-core covering `schemas/repos.json` and `scripts/ichigo_pix.txt` — data the agent reads, not code it runs. |
+| `contracts/*` | `reference.gates.json`, passed as `nen pr ready --gates "$CLAUDE_PLUGIN_ROOT/contracts/…"` by `pr-state`, `drive`, `backlog-state`, `futon` and `tensho`. Stale reviewer identities produce a **wrong readiness verdict, silently** — the worst failure mode in the repo. |
+| `docs/ROSTER.md` | cited by `claude/agents/kurapika.md` and `claude/commands/kurapika.md` as *the authority* on who exists and what standing they have. An installed plugin reading a stale roster can act as an agent whose row changed, or miss one that was added. This is the direct analogue of `<reference-repo>` covering `schemas/repos.json` and `scripts/ichigo_pix.txt` — data the agent reads, not code it runs. |
 | `docs/delegation-grammar-DRAFT.md` | **Added by the review correction.** The same criterion as `ROSTER`, and the first cut got it wrong. `claude/agents/gon.md` § 1 says, in the shipped file: *"Read `docs/delegation-grammar-DRAFT.md` before your first act of any run"* — that is a **run-time read by an installed copy**, and `claude/agents/kurapika.md` cites it for the unratified-grant rule too. The original justification ("a draft, cited by link, never executed") confused a statement about the document's *authority* with a statement about whether it *ships*. A stale draft is exactly as invisible to an installed plugin as a stale roster, and the consequence is worse: an agent reading a superseded grammar. |
 | `hooks/*` | **Forward-proofing.** Nothing lives here today. The day a hook is added it is plugin-shipped and executed every session — and a guard that has to be *remembered* at that moment is a guard that is not there. |
 | `.mcp.json` | **Forward-proofing**, same reasoning: an MCP server declaration is read by the installed plugin at start-up. |
@@ -100,7 +100,7 @@ COVERED      claude/skills/drive/SKILL.md
 COVERED      claude/skills/hatsu-warmup/SKILL.md
 COVERED      claude/skills/README.md
 COVERED      nen.contract.json
-COVERED      contracts/bankai-core.gates.json
+COVERED      contracts/reference.gates.json
 COVERED      docs/ROSTER.md
 COVERED      docs/delegation-grammar-DRAFT.md
 COVERED      hooks/session_start.sh
@@ -134,9 +134,9 @@ plugin.json version bumped — plugin-bump guard satisfied      # 0.0.1 -> "not-
 [exit 0]
 ```
 
-This is **inherited from the bankai-core original, function for function**, and it is left that way here
+This is **inherited from the `<reference-repo>` original, function for function**, and it is left that way here
 deliberately: the guard's job is to catch the *silent no-bump*, which is the failure that actually shipped
-(BC-PR-#546). A wrong-direction or malformed bump is visible in the diff and caught by review. Recorded so
+(RR-PR-#546). A wrong-direction or malformed bump is visible in the diff and caught by review. Recorded so
 that nobody reads "guard satisfied" as "the version is correct" — it means only "the field changed".
 
 ---
@@ -163,8 +163,8 @@ docs/delegation-grammar-DRAFT.md, hooks/**, or .mcp.json) but leaves
 
 Claude Code keys its plugin cache on that field. An already-installed Hatsu
 will never pick this change up until the version is bumped — no error, no
-warning, the change simply does not ship. (Ported from bankai-core's
-BC-IS-#557 item 5, filed after exactly this omission shipped BC-PR-#546 to
+warning, the change simply does not ship. (Ported from <reference-repo>'s
+RR-IS-#557 item 5, filed after exactly this omission shipped RR-PR-#546 to
 nobody.)
 
 Bump `.claude-plugin/plugin.json`'s `version` (semver):
@@ -332,7 +332,7 @@ With `-f`, the bootstrap sentence becomes true as written: `scripts/plugin_bump_
 copy — **loudly**, via `::warning::`. Once the file exists on `main`, the branch is genuinely never taken
 again.
 
-**The exec-bit assertion, and a named gap.** bankai-core catches this whole class with
+**The exec-bit assertion, and a named gap.** `<reference-repo>` catches this whole class with
 `tests/workflow_script_exec_bit.bats`. **Hatsu has no bats harness, and adding one is out of this PR's
 scope** — so the equivalent assertion lives in the workflow itself, as a step that reads the index of the PR
 head:
