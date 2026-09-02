@@ -41,7 +41,7 @@ prose, every invocation, which is exactly what §§ 4, 6, 7, 11 below now mechan
 | # | Old (prose) | New (`nen`) |
 |---|---|---|
 | 1 | "Read the registry; never work from a remembered list" — no command given, the agent greps `schemas/repos.json` by hand | `nen repo resolve <token>\|all --repo <path>` — resolves a token or enumerates the registry itself (with two verified gaps, § 4.1–4.2) |
-| 2 | Fetch open issues + PRs "with, at minimum: labels, assignees, linked issues/PRs, the check rollup, review state..." via unspecified `gh api` calls, hand-assembled into one row per effort | `nen backlog fetch --repo-slug <owner/name> [--limit n]` — paginated, never cached, assembles issue+PR rows itself; `truncated` is reported explicitly rather than silently capped |
+| 2 | Fetch open issues + PRs "with, at minimum: labels, assignees, linked issues/PRs, the check rollup, review state..." via unspecified `gh api` calls, hand-assembled into one row per effort | `nen backlog fetch --repo-slug <owner/name> [--limit n]` — paginated, never cached, assembles issue+PR rows itself; `truncated` is reported explicitly rather than silently capped (verified live, § 2.10) |
 | 3 | The G2/G4/G1/G1-M/G3/G5 decision tree (§4) was reasoned by eye per row, including "does the diff touch CONSTITUTION.md, handbooks/, agents/, schemas/, or the process surface" | `nen gate derive --policy-paths ... --process-paths ... --files ...` — computed, verified live against two real PRs (§ 3.1) |
 | 4 | Readiness "decided by the script, never by eye" (already true in the old skill) — `scripts/pr_ready_gate.sh` | `nen pr ready` via `hatsu:pr-state`, unchanged pointer — see `docs/ab/pr-state.md` for that A/B; § 2.4 below is a spot-confirmation, not a re-proof |
 | 5 | The colour precedence table (§6) was a hard-coded markdown table in the skill file, applied by eye, "precedence, when more than one could apply" reasoned by the agent per row | `nen color status --repo <path> --present <a,b,c>` — reads `schemas/colors.yml` itself and reports the first match plus what it outranked; verified live (§ 3.2) byte-identical to the old hard-coded table |
@@ -149,7 +149,7 @@ whose product is its process, that is a policy change.
 $ gh pr diff 916 --repo zheref/bankai-core --name-only
 .claude-plugin/plugin.json
 CHANGELOG.md
-changelog.d/... (33 fragment files)
+changelog.d/... (34 fragment files)
 schemas/repos.json
 
 $ nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,schemas/" \
@@ -183,30 +183,29 @@ are not all green (CON-32a)` verdict this doc's own § 2.3 above independently r
 
 ```
 $ nen pr fetch --target zheref/bankai-core --pr 925
-nen pr: zheref/bankai-core#925: $.reviews -- expected an array, got object ({"id":5084574852,...,
-"state":"PENDING",...})
+nen pr: could not fetch zheref/bankai-core#925 reviews: gh: Unprocessable Entity (HTTP 422)
 
 $ nen pr fetch --target zheref/bankai-core --pr 925 --json
 nen pr: could not fetch zheref/bankai-core#925 reviews: gh: Unprocessable Entity (HTTP 422)
 
 $ nen pr fetch --target zheref/bankai-core --pr 927   # closed, unmerged
-nen pr: zheref/bankai-core#927: $.reviews -- expected an array, got object (...)
+nen pr: could not fetch zheref/bankai-core#927 reviews: gh: Unprocessable Entity (HTTP 422)
 
 $ nen pr fetch --target zheref/bankai-core --pr 916   # merged
-nen pr: zheref/bankai-core#916: $.reviews -- expected an array, got object (...)
+nen pr: could not fetch zheref/bankai-core#916 reviews: gh: Unprocessable Entity (HTTP 422)
 
 $ nen pr fetch --target zheref/bankai-core --pr 932   # merged
-nen pr: zheref/bankai-core#932: $.reviews -- expected an array, got object (...)
+nen pr: could not fetch zheref/bankai-core#932 reviews: gh: Unprocessable Entity (HTTP 422)
 
 $ nen pr fetch --target zheref/hatsu --pr 5           # different repo entirely
-nen pr: zheref/hatsu#5: $.reviews -- expected an array, got object (...)
+nen pr: could not fetch zheref/hatsu#5 reviews: gh: Unprocessable Entity (HTTP 422)
 ```
 
-**Five for five, across two repositories, every state (open/closed/merged).** The `--json` run
-surfaces the real cause: GitHub's reviews endpoint itself returns `422 Unprocessable Entity` to
-whatever request `nen pr fetch` issues, and the non-JSON path's schema validator then chokes on the
-single raw review object gh's error path hands back, presenting it as a shape-mismatch rather than
-the underlying `422`. **Filed as a finding** (`SKILL.md` § 5) — this port never calls `nen pr fetch`
+**Five for five, across two repositories, every state (open/closed/merged) — plain and `--json`
+modes print the identical error string.** There is no schema-validation variant of this error at
+all; GitHub's reviews endpoint itself returns `422 Unprocessable Entity` to whatever request `nen pr
+fetch` issues, and both output modes surface exactly that, verbatim, with no shape-mismatch framing
+in either. **Filed as a finding** (`SKILL.md` § 5) — this port never calls `nen pr fetch`
 for anything; `nen pr ready` (a working, separately-verified code path) supplies everything this
 skill needs except base ref.
 
@@ -265,7 +264,25 @@ $ nen ref format --repo <bankai-core checkout> --code BC --kind PR --number 916 
 🔀 [BC-PR-#916](https://github.com/zheref/bankai-core/pull/916) ✓
 
 $ nen ref parse "BC-PR-#925"
-ref: BC-PR-#925 · code: BC · kind: PR · number: 925 · glyph: 🔀
+ref:    BC-PR-#925
+code:   BC
+kind:   PR
+number: 925
+glyph:  🔀
+```
+
+Multi-line, tab-aligned output — one field per line, not a single `·`-joined line. Confirmed
+identical in shape with `--json`:
+
+```
+$ nen ref parse "BC-PR-#925" --json
+{
+  "ref": "BC-PR-#925",
+  "code": "BC",
+  "kind": "PR",
+  "number": 925,
+  "glyph": "🔀"
+}
 ```
 
 Matches object notation exactly as the old skill typed by hand.
@@ -290,6 +307,63 @@ $ nen backlog order --rows-from rows.json --severity-order critical,high,medium,
 `high`, the older row (929, 18:26) sorts before the newer one (937, 22:55) — age tie-break, exactly
 as documented. `--json` confirms `severityRank: null` for the unrecognised value rather than a
 silent default.
+
+### 2.10 — `nen backlog fetch` — the foundational verb, live
+
+```
+$ nen backlog fetch --repo-slug zheref/bankai-core --limit 5
+4 row(s) -- 4 issue(s), 2 PR(s)
+TRUNCATED at --limit 5: the fetch may not be complete. Raise --limit, or omit it to fetch every open row.
+#939 [#925]  [Machinery] Nothing guards against bash 4 constructs, but unit_tests runs on macOS bash 3.2 — ${AGENT^} silently failed 8 tests on BC-PR-#925
+#938  port pr_ready_gate.sh's plugin-cache guard classification into cli/src/ports/pr_ready_gate.ts (BC-IS-#733 plane parity)
+#937 [#940]  [Canon] Record the ruling that BC-11 does not bind a patch on the frozen v0.11.z line — it exists only in PR comments and has blocked two PRs
+#936  [Handbook question] Should a CON-42/1 readiness claim be required to carry its provenance line when quoted?
+
+$ nen backlog fetch --repo-slug zheref/bankai-core --limit 5 --json
+{
+  "repo": "zheref/bankai-core",
+  "truncated": true,
+  "rows": [
+    {
+      "issueNumber": 939,
+      "title": "[Machinery] Nothing guards against bash 4 constructs, but unit_tests runs on macOS bash 3.2 — ${AGENT^} silently failed 8 tests on BC-PR-#925",
+      "labels": ["bankai:bug", "bankai:severity/medium", "bankai:agent/kisuke"],
+      "prNumbers": [925],
+      "createdAt": "2026-09-01T23:47:08Z"
+    },
+    {
+      "issueNumber": 938,
+      "title": "port pr_ready_gate.sh's plugin-cache guard classification into cli/src/ports/pr_ready_gate.ts (BC-IS-#733 plane parity)",
+      "labels": ["bankai:agent/kisuke"],
+      "prNumbers": [],
+      "createdAt": "2026-09-01T23:19:42Z"
+    },
+    {
+      "issueNumber": 937,
+      "title": "[Canon] Record the ruling that BC-11 does not bind a patch on the frozen v0.11.z line — it exists only in PR comments and has blocked two PRs",
+      "labels": ["documentation", "bankai:severity/high", "bankai:agent/yamamoto"],
+      "prNumbers": [940],
+      "createdAt": "2026-09-01T22:55:36Z"
+    },
+    {
+      "issueNumber": 936,
+      "title": "[Handbook question] Should a CON-42/1 readiness claim be required to carry its provenance line when quoted?",
+      "labels": ["bankai:agent/naruto", "bankai:handbook-question"],
+      "prNumbers": [],
+      "createdAt": "2026-09-01T22:13:35Z"
+    }
+  ],
+  "issueCount": 4,
+  "prCount": 2
+}
+```
+
+Both forms agree: 4 issue rows, `truncated: true` at `--limit 5` (the live `bankai-core` backlog
+has more than 5 open issues), each row's `prNumbers[]` carrying the issue-to-PR assembly this
+skill's § 3 describes (`#939` → `[#925]`, `#937` → `[#940]`, `#938`/`#936` → none open). Confirms
+the thin row schema (`issueNumber, title, labels, prNumbers[], createdAt` — no severity field, no
+PR-level detail) exactly as `SKILL.md` § 3 states, and that `truncated` is reported explicitly
+rather than silently capping the result.
 
 ---
 

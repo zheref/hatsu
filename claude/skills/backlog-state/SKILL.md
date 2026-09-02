@@ -262,10 +262,9 @@ Two things follow, unchanged from the old skill:
 > `nen pr fetch --target <owner/name> --pr <n>` is documented to return "one typed snapshot: head
 > SHA, mergeability, the check rollup, reviews PER COMMIT, review threads ..." — verified live, it
 > crashes on **every** PR tried, in **two different repositories** (`zheref/bankai-core#925`,
-> `#927`, `#916`, `#932`; `zheref/hatsu#5`): plain output fails schema validation
-> (`$.reviews -- expected an array, got object`, printing one raw REST review payload), and
-> `--json` surfaces the real cause underneath — `could not fetch ...#N reviews: gh: Unprocessable
-> Entity (HTTP 422)`. GitHub's reviews sub-fetch itself is failing inside the verb, on every repo
+> `#927`, `#916`, `#932`; `zheref/hatsu#5`), plain and `--json` output printing the identical error:
+> `nen pr: could not fetch <owner/repo>#<n> reviews: gh: Unprocessable Entity (HTTP 422)`.
+> GitHub's reviews sub-fetch itself is failing inside the verb, on every repo
 > this port tried it against, not a bankai-core-specific quirk. **This skill does not use `nen pr
 > fetch` for anything** as a result — readiness comes from `nen pr ready` (a different code path,
 > confirmed working), and nothing else in this skill needs `pr fetch`'s remaining fields (base ref
