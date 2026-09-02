@@ -24,8 +24,8 @@ A/B'd by flag mapping, never by a live call against `bankai-core`.
 |---|---|---|
 | 1 | This skill's own `<CODE>#<N>` invocation, split by hand, "same resolution rules as `drive` § 1" | `nen parse build --grammar "<code>#<n>" --line "<invocation>"` — a working two-slot grammar (verified live, § 2.1) |
 | 2 | "Codes from `schemas/repos.json` → `product_codes`, case-insensitive" — read by hand | `nen repo resolve <CODE> --repo <path>` (verified live, § 2.2) |
-| 3 | "If `#<N>` is a PR, hand straight to `drive`" — no mechanism given at all | Attempted via `nen issue chain-position`/`terminus` — **does not detect it** (verified live, § 2.3, filed as a finding); kept as a plain `gh issue view --json pull_request` check, disclosed, not mechanized |
-| 4 | § 2's whole "decide from labels, body and linked objects, never the title" — a five-way judgment call made by eye every time | `nen issue chain-position --target ... --issue N --chain-labels ...` — one call, five states, verified live against six real objects (§§ 2.4–2.7) |
+| 3 | "If `#<N>` is a PR, hand straight to `drive`" — no mechanism given at all | Attempted via `nen issue chain-position`/`terminus` — **does not detect it** (verified live, § 2.3, filed as a finding); kept as a plain `gh api repos/<owner>/<repo>/issues/<N> --jq '.pull_request'` check, verified live against a real PR and a real issue (§ 2.3), disclosed, not mechanized |
+| 4 | § 2's whole "decide from labels, body and linked objects, never the title" — a multi-way judgment call made by eye every time | `nen issue chain-position --target ... --issue N --chain-labels ...` — one call, seven states (`closed \| building \| idea \| epic-awaiting-approval \| epic-approved \| routable \| undecidable`), verified live against real objects (§§ 2.4–2.7a) |
 | 5 | § 4's "the delivery PR is the terminus" — reasoned per-case (epic mode, shikai mode, chore) | `nen issue terminus --target ... --issue N --chain-labels ...` — verified live (§ 2.6) |
 | 6 | § 4's epic-wave release — "with a coordinator ... the coordinator releases the next unblocked child" / "where there is no coordinator, releasing the next child is this run's job", computed by reading the checklist by eye | `nen epic next-wave --body-file ... --citation ... [--completed] [--inflight] --cap 2 --out ...` — verified live end-to-end including flip/redraw/cap/duplicate-refusal (§ 2.8), and against two real (if stale-shaped) epic bodies (§ 2.9) |
 | 7 | § 4's "never drive more than two PRs concurrently" — eyeballed | `nen loop slots --efforts ... --local-cap 2 --json` — verified live, occupied/free/binding computed, freed only on `ready && prompted` for the local plane (§ 2.10) |
@@ -107,6 +107,40 @@ terminus: own-pr
 `docs/ab/pr-state.md`), not an issue. Neither verb noticed — both answered exactly as they would
 for an ordinary routable issue, with no error and no distinguishing field in `--json` either.
 **Filed** (`SKILL.md` § 10, finding 1).
+
+The manual pre-check `SKILL.md` § 1 relies on instead is **not** `gh issue view <N> --json
+pull_request` — that field does not exist on `gh issue view`'s JSON schema and the command errors
+on every object, PR or issue alike. Verified live, dead on arrival either way:
+
+```
+$ gh issue view 925 --repo zheref/bankai-core --json pull_request
+Unknown JSON field: "pull_request"
+Available fields:
+  assignees, author, body, closed, closedAt, closedByPullRequestsReferences, comments, createdAt,
+  id, isPinned, labels, milestone, number, projectCards, projectItems, reactionGroups, state,
+  stateReason, title, updatedAt, url
+(exit 1)
+
+$ gh issue view 918 --repo zheref/bankai-core --json pull_request
+Unknown JSON field: "pull_request"
+(exit 1, identical field list)
+```
+
+The working replacement — `gh api repos/<owner>/<repo>/issues/<N> --jq '.pull_request'` — was
+verified against both the same real PR and the same real issue:
+
+```
+$ gh api repos/zheref/bankai-core/issues/925 --jq '.pull_request'
+{"diff_url":"https://github.com/zheref/bankai-core/pull/925.diff","html_url":"https://github.com/zheref/bankai-core/pull/925","merged_at":null,"patch_url":"https://github.com/zheref/bankai-core/pull/925.patch","url":"https://api.github.com/repos/zheref/bankai-core/pulls/925"}
+
+$ gh api repos/zheref/bankai-core/issues/918 --jq '.pull_request'
+(empty output)
+```
+
+`#925` (a real PR) returns a populated `pull_request` object; `#918` (a real issue) returns nothing
+at all. `gh api repos/<owner>/<repo>/issues/<N> --jq '.pull_request'` is the check `SKILL.md` § 1
+actually performs — a populated object means the number names a PR, empty output means it names an
+issue.
 
 ### 2.4 — `chain-position`, an `in-review`/`building` issue
 
@@ -196,8 +230,41 @@ $ gh issue list --repo zheref/bankai-core --state all --label "bankai:epic" --li
 ```
 
 Those four chain-role rows in `SKILL.md` § 2 are contract-verified against `nen issue
-chain-position --help` and the label taxonomy only — not live-confirmed on a real object. Said so
-plainly rather than presenting all five rows as equally proven.
+chain-position --help` and the label taxonomy only — not live-confirmed on a real `bankai-core`
+object that natively carries them. Said so plainly rather than presenting every row as equally
+proven against `bankai-core` itself. § 2.7a below closes part of that gap with a live run against
+a constructed role map on a real object in a different repository.
+
+### 2.7a — `chain-position`, `epic-approved` and `epic-awaiting-approval`, live
+
+`bankai-core` currently has no open issue carrying an epic label with, or without, a mode label
+(§ 2.7's `gh issue list` sweep), so these two states are demonstrated live against a real object in
+a different repository — `zheref/akatsuki-ai#31` (open; labels `mig:phase/P0`, `mig:seed`,
+`mig:machinery`, `sev/medium`) — using constructed `--chain-labels` role mappings that assign the
+issue's own real labels to roles, exactly as the reviewer reproduced it:
+
+```
+$ nen issue chain-position --target zheref/akatsuki-ai --issue 31 \
+    --chain-labels "idea=no-such-idea-label,epic=mig:machinery,approved-team=no-such-approved-team,\
+approved-direct=no-such-approved-direct,building=bankai:stage/building,in-review=bankai:stage/in-review,\
+researched=mig:seed"
+#31: epic-awaiting-approval
+  carries 'mig:machinery' and 'mig:seed' but no mode label -- the mode label is a human gate and is
+  never applied by a run
+
+$ nen issue chain-position --target zheref/akatsuki-ai --issue 31 \
+    --chain-labels "idea=no-such-idea-label,epic=mig:machinery,approved-team=mig:seed,\
+building=bankai:stage/building,in-review=bankai:stage/in-review"
+#31: epic-approved
+  carries 'mig:machinery' and the mode label 'mig:seed' -- children advance wave by wave
+```
+
+Both runs are read-only (`chain-position` only ever reads the target issue) and against a live
+object. `epic-awaiting-approval` fires when the `epic` role's label is present and neither
+`approved-team` nor `approved-direct` is; `epic-approved` fires when `epic` and one of those two
+are both present. The `researched` role never appears in either output — it is one of the
+**input** keys `--chain-labels` accepts (`researched=<label>`), never a state `chain-position`
+prints; the old draft of this table conflated the two.
 
 ### 2.8 — `nen epic next-wave`, synthetic checklist, full lifecycle
 
@@ -397,8 +464,9 @@ itself be the exact write this port must never make.
 1. **`nen issue chain-position` / `nen issue terminus` never verify the object number they were
    given actually names an issue, not a pull request.** Reproduced live against a real PR
    (`zheref/bankai-core#925`, § 2.3) — both answer as if it were an ordinary issue. This port's own
-   `SKILL.md` § 1 keeps a manual `gh issue view --json pull_request` check ahead of both verbs as a
-   direct result.
+   `SKILL.md` § 1 keeps a manual `gh api repos/<owner>/<repo>/issues/<N> --jq '.pull_request'` check
+   ahead of both verbs as a direct result (`gh issue view --json pull_request` is not usable here —
+   no such field exists and the command errors on every object, verified live, § 2.3).
 2. **`--chain-labels` has no partial-credit mode.** Any role actually in play that is missing from
    the map makes the whole call `undecidable` (exit `1`); an unknown role name is refused outright
    (exit `2`). Both reproduced live (§ 2.7). Not a defect — the refusal text says exactly why — but

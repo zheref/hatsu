@@ -72,9 +72,11 @@ for you — verified live, `docs/ab/build.md` § 2.3: pointed at a real PR numbe
 (`zheref/bankai-core#925`), `chain-position` answers `routable` and `terminus` answers `own-pr` as
 if it were an ordinary issue, with no error and no hint that the number names a PR. **This is a
 finding against the binary, filed, not routed around silently** (§ 10) — the issue-vs-PR check
-stays a plain read this skill performs first: `gh issue view <N> --repo <owner/name> --json
-pull_request` (a non-null `pull_request` field means it is a PR), before either verb is ever
-called on `<N>`.
+stays a plain read this skill performs first: `gh api repos/<owner>/<repo>/issues/<N> --jq
+'.pull_request'` (a populated object means it is a PR; empty output means it is an issue —
+`gh issue view <N> --json pull_request` is **not** a substitute: there is no such JSON field on
+that command and it errors on every object — verified live, `docs/ab/build.md` § 2.3), before
+either verb is ever called on `<N>`.
 
 **Say the run has started.** A named skill run holds a bounded `CON-25` delegation (§ 6), and a
 delegation nobody announced is a delegation nobody can end.
@@ -99,27 +101,35 @@ and an unknown role name in the map (`bogus=foo`) is refused outright at exit `2
 § 2.7). Never guess past either refusal.
 
 This one call replaces the old skill's "decide from labels, body and linked objects, never the
-title" prose. Its five reported states map onto the same five first moves, verified live against
-real objects (`docs/ab/build.md` §§ 2.4, 2.5, 2.7):
+title" prose. Its seven reported states map onto the same first moves, verified live against real
+objects (`docs/ab/build.md` §§ 2.4, 2.5, 2.7, 2.7a):
 
 | `chain-position` reports | The issue is… | First move |
 |---|---|---|
-| `idea` | a raw brief (`bankai:stage/idea`) | Wake **Gon** so it is decomposed into an epic — his delegation grammar is **unratified** (`docs/ROSTER.md`), so this itself does not cross a gate on its own; he hands the decomposition back and this run takes it to § 3/§ 4 |
-| `researched` | an epic awaiting approval | **Stop at G1.** The mode label is the maintainer's and is never delegated (`CON-4`) — § 3/§ 4 |
-| `building` | already released — **with or without an open PR**, `in-review` folds into this same bucket (verified live, `zheref/bankai-core#918`/`#337`/`#879` all report `building`) | Skip straight to § 4's drive step — the release already happened |
-| `routable` | a routable child or a standalone task (no idea/epic/release label at all — verified live, `#673`/`#710`/`#494`) | Confirm the mode (§ 3), release it (§ 5), then build it |
 | `closed` | closed | **The run ends** with what closed it and which PR delivered it (verified live, `zheref/bankai-core#733` — a closed epic — reports exactly this). Re-opening is the maintainer's call |
+| `building` | already released — **with or without an open PR**, `in-review` folds into this same bucket (verified live, `zheref/bankai-core#918`/`#337`/`#879` all report `building`) | Skip straight to § 4's drive step — the release already happened |
+| `idea` | a raw brief (`bankai:stage/idea`) | Wake **Gon** so it is decomposed into an epic — his delegation grammar is **unratified** (`docs/ROSTER.md`), so this itself does not cross a gate on its own; he hands the decomposition back and this run takes it to § 3/§ 4 |
+| `epic-awaiting-approval` | an epic that carries the epic label but no mode label yet | **Stop at G1.** The mode label is the maintainer's and is never delegated (`CON-4`) — § 3/§ 4 |
+| `epic-approved` | an epic that carries the epic label **and** a mode label (`approved-team` or `approved-direct`) | Children advance wave by wave — § 4's epic-wave release step |
+| `routable` | a routable child or a standalone task (no idea/epic/release label at all — verified live, `#673`/`#710`/`#494`) | Confirm the mode (§ 3), release it (§ 5), then build it |
+| `undecidable` | a role in play was never mapped in `--chain-labels`, so this issue's true position cannot be told apart from another (verified live, `zheref/bankai-core#918` with no `--chain-labels` at all — § 2.7) | **Refuse the guess.** Supply the missing role and re-run; never proceed on a guess |
 
 **No open `bankai-core` issue currently carries `bankai:stage/idea`, `bankai:stage/researched`,
 `bankai:stage/ready-for-bankai` or `bankai:stage/ready-for-shikai`** (verified live, `gh issue list
---state all --label ...` for all four returns empty — `docs/ab/build.md` § 2.7). Those four rows
-are contract-verified against `nen issue chain-position --help` and the label taxonomy, not
-live-confirmed on a real object; say so rather than silently presenting them as equally proven.
+--state all --label ...` for all four returns empty — `docs/ab/build.md` § 2.7). The `idea`,
+`epic-awaiting-approval` and `epic-approved` rows are therefore contract-verified against `nen
+issue chain-position --help` and the label taxonomy plus a **live run against a constructed role
+map on a real object** (`zheref/akatsuki-ai#31` — `docs/ab/build.md` § 2.7a), not against a
+`bankai-core` issue that natively carries those labels; say so rather than silently presenting
+every row as proven against `bankai-core` itself.
 
-An `approved epic` (`researched` state, past its G1 stop) is further split by which mode label it
-actually carries — `bankai:stage/ready-for-bankai` vs `ready-for-shikai` — read directly off the
-issue; `chain-position` does not distinguish the two itself (both are stops the maintainer already
-resolved at G1, and § 4 reads which one from the labels present).
+An epic reported `epic-approved` is further split by which mode label it actually carries —
+`bankai:stage/ready-for-bankai` vs `ready-for-shikai` — read directly off the issue;
+`chain-position` folds both into the single `epic-approved` state and does not distinguish the two
+itself (both are stops the maintainer already resolved at G1, and § 4 reads which one from the
+labels present). Note also that `researched` is an **input role name** — one of the
+`--chain-labels` keys the caller supplies (`researched=<label>`) — never a `chain-position` output
+state; do not confuse the two.
 
 ## 3. The mode is confirmed before anything is released
 
@@ -140,7 +150,7 @@ shape. Ask it as a **`DECIDE`** through the harness's question interface, with t
 options, the ⭐ recommendation and its basis, and what would tip it (`CON-37`).
 
 **A G1 stop is never a mode question.** If the issue is an unapproved epic (`chain-position`
-reports `researched`), the ask is the mode label — `bankai:stage/ready-for-bankai` (integration-
+reports `epic-awaiting-approval`), the ask is the mode label — `bankai:stage/ready-for-bankai` (integration-
 branch team delivery) or `bankai:stage/ready-for-shikai` (direct-to-main) — and **only the
 maintainer applies it** (`CON-4`). Present the trade-off; never apply either, inside a run or
 outside it.
@@ -225,8 +235,9 @@ this; it stays this run's own judgment.
 ## 5. Releasing into build — no CI plane to release *to*
 
 Release is still `bankai:stage/building` — the G1-M go-signal (`CON-25`) — because the label is
-still real bookkeeping: `backlog-state`/`backlog-board` (both already landed) read it to place the
-issue on the board, and `CON-9` still requires exactly one stage label at a time. Applying it is
+still real bookkeeping: [`backlog-state`](../backlog-state/SKILL.md)/[`backlog-board`](../backlog-board/SKILL.md)
+(both already landed) read it to place the issue on the board, and `CON-9` still requires exactly
+one stage label at a time. Applying it is
 logged, contract-verified against the binary (never exercised live against `bankai-core` — the
 shared brief's read-only rule):
 
@@ -309,8 +320,8 @@ inversion § 5 describes:
   stop, not a routing decision.
 
 **Filing an issue is a legitimate outcome of a build run.** If what blocks the delivery is a real
-defect elsewhere, file it with `hatsu:file` (lands with a later port of hatsu#2), link it, and say
-the build is held on it — a `🔵 on hold` effort naming what it waits on, not an abandoned one.
+defect elsewhere, file it with [`file`](../file/SKILL.md), link it, and say the build is held on
+it — a `🔵 on hold` effort naming what it waits on, not an abandoned one.
 
 ## 8. Reporting and the stop
 
@@ -350,8 +361,8 @@ fresh session does not re-derive it, and **never trust it over a fetch**.
 1. **`nen issue chain-position` and `nen issue terminus` never check whether the number they were
    given names an issue or a pull request.** Verified live against a real PR
    (`zheref/bankai-core#925`): both answer as if it were an ordinary issue (`routable` /
-   `own-pr`), with no error and no distinguishing signal — § 1's manual `gh issue view --json
-   pull_request` check exists because of this gap.
+   `own-pr`), with no error and no distinguishing signal — § 1's manual `gh api
+   repos/<owner>/<repo>/issues/<N> --jq '.pull_request'` check exists because of this gap.
 2. **A `--chain-labels` map missing any role in play is not a partial answer — it is
    `undecidable`** (exit `1`), and an unknown role name is refused outright (exit `2`). Both
    verified live (§ 2). Supply the full map every time; there is no safe subset.
