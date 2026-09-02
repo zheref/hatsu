@@ -15,6 +15,10 @@ irrelevant here since only `git show`-extracted, read-only files were used) —
 `scripts/ichigo_board.sh` and `scripts/ichigo_pix.txt` extracted read-only via `git show
 v0.11.3:<path>` into a scratch directory outside the bankai-core checkout, never written back to it.
 
+**§2.4 re-run for this review fix:** 2026-09-02T01:24 UTC, same extracted `ichigo_board.sh`, same
+`v0.11.3` oracle checkout, against the exact `board.json` now embedded in §2.4 — done to make the
+byte-count claim there independently checkable (adversarial-review MINOR-2).
+
 ---
 
 ## 1. Command mapping table
@@ -113,6 +117,18 @@ $ nen color status --repo <bankai-core checkout> --present "in_progress" --categ
 }
 ```
 
+> **Snapshot caveat.** Everything in this section is a single point-in-time read, not a standing
+> truth. Within minutes of the board sample's own `generatedAt` (`2026-09-02T00:57:42.267Z`, §2.2
+> below), issue `#937` gained an open PR — `zheref/bankai-core#940`, titled *"feat(bc11): a fifth
+> shell clause for a frozen-line patch, expiring with the freeze"*, body opening `Closes #937`,
+> opened `2026-09-02T01:03:46Z` (confirmed live via `gh pr view 940 --repo zheref/bankai-core
+> --json createdAt,body`) — about six minutes after this sweep ran. Re-fetching now would collapse
+> `#937`'s row into a PR-anchored effort the way `#918`'s row already is here, and its gate/status
+> would move with it (routed-not-building → building, at minimum). Nothing below was re-run to
+> chase that drift; §§2.2–2.6 stand as the live snapshot they always were, not a board that stays
+> current on its own — a fresh `hatsu:backlog-board` invocation re-sweeps every time, per the skill
+> file's own rule against publishing rows held in session memory.
+
 ### 2.2 — `nen board build`, the real 3-row sample
 
 Rows built by hand from § 2.1's real data (the collapsed `918`/`939`/`877`/`925` effort) plus two
@@ -160,26 +176,93 @@ bare comma-joined strings with **no links and no state marks**.
 
 `scripts/ichigo_board.sh` is a pure renderer — it never fetches — so it can be run read-only on a
 hand-built input at its own schema, extracted via `git show v0.11.3:scripts/ichigo_board.sh` into a
-scratch directory (never written back to the bankai-core checkout):
+scratch directory (never written back to the bankai-core checkout).
+
+**The exact input, so this run is independently repeatable** — this is the constructed `board.json`
+this doc's §2.4 run actually used, hand-built from §2.1–2.2's real row data at the OLD schema
+(`--schema`'s contract), not asserted from a file that was later discarded:
+
+```json
+{
+  "title": "Gate Register",
+  "dek": "zheref/bankai-core -- G1-M",
+  "eyebrow": "Bankai . local plane",
+  "live": "2 need you",
+  "generated": "2026-09-02T00:57:42.267Z",
+  "tally": [
+    {"n": 2, "label": "Need you", "tone": "hot"},
+    {"n": 1, "label": "In flight", "tone": "cool"}
+  ],
+  "gates": [
+    {"gate": "G1-M", "name": "Routed, ready to build", "status": "open",
+     "asks": [
+        {"rank": 1, "first": true, "recommended": false,
+         "ask": "DO -- release BC-IS-#937 into build",
+         "why": "Routed to Yamamoto (bankai:agent/yamamoto), not yet building -- ready to be released into build.",
+         "objects": [ {"ref": "BC-IS-#937", "url": "https://github.com/zheref/bankai-core/issues/937"} ]},
+        {"rank": 2,
+         "ask": "DO -- release BC-IS-#936 into build",
+         "why": "Handbook question routed to Naruto -- ready to be released into build.",
+         "objects": [ {"ref": "BC-IS-#936", "url": "https://github.com/zheref/bankai-core/issues/936"} ]}
+     ]},
+    {"gate": "G2 . G3 . G4", "name": "Merges and release", "status": "clear",
+     "note": "No PR is CON-32-Ready right now."}
+  ],
+  "efforts": [
+    {"title": "Cancelled build leaves bankai:stage/building silently stuck",
+     "state": "awaiting", "pill": "In progress", "lane": "unresolved", "open": true,
+     "objects": [
+        {"ref": "BC-IS-#918", "url": "https://github.com/zheref/bankai-core/issues/918"},
+        {"ref": "BC-IS-#939", "url": "https://github.com/zheref/bankai-core/issues/939"},
+        {"ref": "BC-IS-#877", "url": "https://github.com/zheref/bankai-core/issues/877"},
+        {"ref": "BC-PR-#925", "url": "https://github.com/zheref/bankai-core/pull/925"}
+     ],
+     "summary": "PR #925 is not-ready -- required checks reported but are not all green (CON-32a). Author iterating; not yet the human's.",
+     "fields": [ {"k": "Readiness objection", "text": "required checks reported but are not all green (CON-32a)"} ]},
+    {"title": "Record the ruling that BC-11 doesn't bind the frozen v0.11.z line",
+     "state": "awaiting", "pill": "Ready . G1-M", "lane": "unresolved", "open": true,
+     "objects": [ {"ref": "BC-IS-#937", "url": "https://github.com/zheref/bankai-core/issues/937"} ],
+     "summary": "Routed to Yamamoto (bankai:agent/yamamoto), not yet building -- ready to be released into build."},
+    {"title": "Should a CON-42/1 readiness claim carry its provenance line?",
+     "state": "awaiting", "pill": "Ready . G1-M", "lane": "unresolved", "open": true,
+     "objects": [ {"ref": "BC-IS-#936", "url": "https://github.com/zheref/bankai-core/issues/936"} ],
+     "summary": "Handbook question routed to Naruto -- ready to be released into build."}
+  ],
+  "legend": [ {"heading": "Gates", "items": [ {"term": "G1-M", "def": "Routed, ready to build"} ]} ],
+  "footer": [ "3 of 88 open rows shown (sample)." ]
+}
+```
+
+Run against exactly that file, re-verified for this fix:
 
 ```
-$ ./ichigo_board.sh --out board.html board.json
+$ python3 -c "import json; json.load(open('board.json'))"   # valid JSON, confirmed first
+$ bash ichigo_board.sh --out board.html board.json
+$ echo $?
+0
 $ wc -c board.html
-28760 board.html
+28092 board.html
 ```
 
-exit `0`, zero stderr warnings (the hand-built input conformed to `--schema`'s contract cleanly).
-The output is a self-contained HTML page carrying: the design shell, a `G1-M` desk with two ranked
-`DO` asks (`#937`, `#936`) and their `why`, a "Merges and release" gate rendered **cleared, with a
-note** (no PR is `CON-32`-Ready right now), the `#918` effort row with its `not-ready` evidence, a
-tally strip, and a footer disclosing the sample is 3 of 88 open rows.
+Exit `0`, zero `--schema`-contract warnings on stderr (the only stderr line is a BOM artifact from
+the `git show` extraction re-executing the shebang line under `bash script.sh` invocation, not a
+schema warning — it does not affect the output). The output is a self-contained HTML page carrying:
+the design shell, a `G1-M` desk with two ranked `DO` asks (`#937`, `#936`) and their `why`, a
+"Merges and release" gate rendered **cleared, with a note** (no PR is `CON-32`-Ready right now), the
+`#918` effort row with its `not-ready` evidence, a tally strip, and a footer disclosing the sample
+is 3 of 88 open rows. Confirmed present in the actual `board.html`: `<title>Gate Register</title>`,
+`G1-M` (6 occurrences), `BC-IS-#937` (3 occurrences, ask + effort + object), a well-formed
+`<head>`/`<style>` shell.
 
 **Same content, same gate/status verdicts on both sides** (`G1-M`/`ready_g1` for `#937`/`#936`, no
 gate/`in_progress` for the `#918` effort — nothing in the port disagrees with what the old renderer
-would have shown for identical input). **The surfaces are not the same**: 28,760 bytes of
+would have shown for identical input). **The surfaces are not the same**: 28,092 bytes of
 self-contained HTML with a design shell and a DECIDE/DO/MERGE desk, vs. ~700 bytes of plain
 markdown with no shell, no grouping, and no grammar. This gap is § 4's finding in the skill file —
-recorded here as the quantified evidence for it, not asserted without a run behind it.
+recorded here as the quantified, re-runnable evidence for it, not asserted without a run behind it.
+(An earlier draft of this doc reported 28,760 bytes for this same claim without the input attached,
+making the number impossible to independently check; this section supersedes that number with the
+input that actually produced it.)
 
 ### 2.5 — `nen board diff`, two real ways
 
@@ -256,6 +339,12 @@ concept of an optional separator with a defaulted counterpart slot.
 - **Verdict parity between `nen pr ready` and `pr_ready_gate.sh`** is `docs/ab/pr-state.md`'s to
   establish, cited rather than re-proven here; this doc's own PR-925 readiness read (§2.1) matches
   that doc's own run of the same PR.
+- **Commit-message style on this branch does not match house precedent.** This port's own commit
+  reads `port(backlog-board): …`; the house form established on prior ports is
+  `feat(skills): port <name> … (hatsu#<N>)`. Recorded here rather than silently left unremarked —
+  it is not rewritten because the commit is already pushed and rewriting it would need a
+  force-push, which this fix deliberately does not do. The fix commit that resolves this review's
+  findings uses the house form.
 
 ---
 
@@ -264,14 +353,15 @@ concept of an optional separator with a defaulted counterpart slot.
 1. **`nen board render` has no HTML output mode.** Verified live: `nen board --help` lists exactly
    `build`/`render`/`diff`, no fourth verb and no `--format` flag anywhere in the family; `render`'s
    own help text states it emits "the padded-markdown table this port's source repository
-   established" and nothing else. The retired `ichigo_board.sh` produced a 28,760-byte
-   self-contained HTML page (design shell, per-gate desk, DECIDE/DO/MERGE grammar, tally, legend,
-   footer, identity sprite) from the same 3-row input that `nen board render` turns into a ~700-byte
-   plain table with no links, no colour glyphs and no grouping. The HTML-authoring mechanism this
-   port exists to deliver has no home in `nen` and is not something a file-set restricted to
-   `SKILL.md` + `docs/ab/backlog-board.md` can replace with a shipped generator — it is authored by
-   Kurapika directly at render time instead (skill §4), which is disclosed as a real cost and
-   behavior change, not hidden behind "the same board, painted."
+   established" and nothing else. The retired `ichigo_board.sh`, run against the exact input
+   embedded in §2.4, produced a 28,092-byte self-contained HTML page (design shell, per-gate desk,
+   DECIDE/DO/MERGE grammar, tally, legend, footer, identity sprite) from the same 3-row input that
+   `nen board render` turns into a ~700-byte plain table with no links, no colour glyphs and no
+   grouping. The HTML-authoring mechanism this port exists to deliver has no home in `nen` and is
+   not something a file-set restricted to `SKILL.md` + `docs/ab/backlog-board.md` can replace with
+   a shipped generator — it is authored by Kurapika directly at render time instead (skill §4),
+   which is disclosed as a real cost and behavior change, not hidden behind "the same board,
+   painted."
 2. **`nen parse`'s grammar mini-language cannot express an optional separator with a defaulted
    slot.** Verified live (§2.6): a bare `all` line, meant to parse as `all@all` per `backlog-state`
    §1's own stated shorthand, is refused as "gate is required" instead. The same gap would refuse

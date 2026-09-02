@@ -29,10 +29,11 @@ as an **Artifact**, so the maintainer reads it in the panel he is already in. Fo
 hatsu:backlog-board <repo name | all>@<G1 | G1-M | G2 | G3 | G4 | G5 | all> [every <turn | state-change | once>]
 ```
 
-**The `<repo>@<gate>` half is identical grammar to `backlog-state` § 1, deliberately** — the same
-repo tokens, the same gate tokens, the same case-insensitivity, the same optional `@`, the same
-`G1` ⊇ `G1-M` inclusion, and the same rule that **an unknown repo is an error, never a guess**. Do
-not restate that section; read it and obey it.
+**The `<repo>@<gate>` half is identical grammar to backlog-state's invocation grammar,
+deliberately** — the same repo tokens, the same gate tokens, the same case-insensitivity, the same
+optional `@`, the same `G1` ⊇ `G1-M` inclusion, and the same rule that **an unknown repo is an
+error, never a guess**. Do not restate that grammar here; read it (§ 2 below links the file) and
+obey it.
 
 That includes **the no-repo default** — with no repo token the subject is **the repo you are
 standing in**, resolved from the working directory's `origin` against `schemas/repos.json`, named
@@ -58,8 +59,8 @@ say the line, stop.
 > optional, and a bare `all` means `all@all`" or "an omitted repo token resolves to the working
 > directory's `origin`" — tested live, a bare `all` line is refused as "gate is required" rather
 > than accepted as `all@all`. **This is a finding, not a defect to route around**: those two rules
-> stay exactly what `backlog-state` § 1 already made them — read from prose, applied by hand,
-> identically on every invocation — while the enumerated-token and frequency-clause validation
+> stay exactly what backlog-state's invocation grammar already made them — read from prose, applied
+> by hand, identically on every invocation — while the enumerated-token and frequency-clause validation
 > `nen parse` **does** cover is worth taking, since it replaces one more hand-checked rule with a
 > refusal the binary renders and corrects itself.
 
@@ -136,7 +137,7 @@ Field by field, from a row `backlog-state` already produced:
   of `nen gate derive`'s diff-half (verified live against the real open PR, `BC#925`: touches
   `.github/workflows/`, `scripts/`, `tests/` → `"gate": "G4"`, `"basis": "the diff touches the
   process surface … in a repository whose product is its process, that is a policy change"`) with
-  `nen pr ready`'s readiness verdict, per `backlog-state` § 4's tree. **`gate derive` itself says
+  `nen pr ready`'s readiness verdict, per backlog-state's gate-derivation tree. **`gate derive` itself says
   so** — its own `readinessNote` reads: *"This is the diff's half of the derivation only. A pull
   request that is not ready has NO GATE … so compose this with a readiness verdict before putting
   a row in anyone's queue."* `#925` is `not-ready` (`CON-32a`), so the composed gate is `null`
@@ -145,7 +146,7 @@ Field by field, from a row `backlog-state` already produced:
   Verified live for the same row: `--present in_progress` resolves `{"name": "in_progress", "emoji":
   "🟠", "label": "In progress", …}` from the target repo's own `schemas/colors.yml` precedence — no
   glyph is hard-coded here or anywhere in this pipeline.
-- **`needs`** ← the § 9 expected-action line, one string, naming the action and its actor.
+- **`needs`** ← backlog-state's expected-action line, one string, naming the action and its actor.
 
 **One collapsing step `nen backlog fetch` does NOT do for you — a finding, not a missing verb.**
 Verified live: three real open issues on `zheref/bankai-core` (`#918`, `#939`, `#877`) all reference
@@ -202,10 +203,13 @@ zheref/bankai-core -- generated 2026-09-02T00:57:50.925Z
 
 The **same 3-row content**, run read-only through the retired `scripts/ichigo_board.sh` (extracted
 via `git show v0.11.3:scripts/ichigo_board.sh` into a scratch dir, never written back to
-bankai-core) at the OLD schema it actually consumes, produces a **28,760-byte self-contained HTML
+bankai-core) at the OLD schema it actually consumes, produces a **28,092-byte self-contained HTML
 page** — design shell, per-gate desk with ranked `DECIDE`/`DO`/`MERGE` asks, a tally strip, a
 legend, a footer, and the identity sprite. `nen board`'s markdown table has none of that: no gate
-grouping, no DECIDE/DO/MERGE grammar, no options tables, no tally, no legend, no sprite.
+grouping, no DECIDE/DO/MERGE grammar, no options tables, no tally, no legend, no sprite. The exact
+input JSON behind that byte count — the constructed old-schema `board.json` for this 3-row sample —
+is embedded in `docs/ab/backlog-board.md` § 2.4, so the claim is independently re-runnable rather
+than asserted from a discarded file.
 
 **This is the load-bearing finding of this port.** The old script's whole reason to exist — quoted
 in its own header — was that its ~2.8k-token design shell **never changes**, so generating it from
@@ -227,11 +231,27 @@ the page rather than while assembling JSON for a generator to consume:
   widest blast radius first, pure hygiene last. A gate with no rows renders **cleared, with a
   note**, never omitted.
 - **Rows that need nobody go to `G0`, which sorts last** — real, worth showing, not his.
-- **The § 9 expected-action line is the ask, promoted to a real ask** — leading with its kind
-  (`DECIDE`/`DO`/`MERGE`, uppercase, first word), and a `DECIDE` owes `The question:`, lettered
+- **backlog-state's expected-action line is the ask, promoted to a real ask** — leading with its
+  kind (`DECIDE`/`DO`/`MERGE`, uppercase, first word), and a `DECIDE` owes `The question:`, lettered
   options and a ⭐ recommendation.
 - **The register is every row**, collapsible, one per effort, carrying the evidence `nen` computed
   (readiness objection, colour reason, diff basis) — never restating the row, only backing it.
+- **The header carries what the one-line summary carried — every one of these derived, never
+  asserted.** `dek` ← the resolved `<repo>@<gate>` scope this render answered, stated as the repo
+  set and the gate filter (the same words §1 uses to name it before the board). `live` ← the count
+  of rows on the desk, i.e. rows whose gate is the maintainer's (`G1`/`G1-M`/`G2`/`G3`/`G4`/`G5`),
+  never rows at `G0`. `tally` ← one count per status/gate band actually present on this render —
+  bucket the rendered rows and count each bucket; never a fixed set of buckets restated from a
+  previous render. `generated` ← the render's own absolute ISO-8601 UTC timestamp, taken verbatim
+  from `nen board build --json`'s `generatedAt`, never a relative string ("3 minutes ago") computed
+  by hand.
+- **The footer states the old page's shape line, adapted, and derived fresh from these rows —
+  never asserted.** The old page's own wording was *"31 rows. 9 close on one tag cut. 6 are one
+  merge away. 2 need only you."* — say the same shape for Kurapika's board: `<N>` = the register's
+  total row count; "close on one tag cut" = rows whose only remaining blocker is a release/tag;
+  "one merge away" = rows blocked on exactly one open, otherwise-`CON-32`-ready PR; "need only you"
+  = the same count as `live` above. Every number is counted straight off the rows this render just
+  produced, never carried over from a prior render and never estimated.
 - **No shipped Kurapika sprite exists yet in this repository** (`hatsu`'s roster carries agent
   definitions, not a pixel-map asset). Render the identity as Kurapika's own text badge — 🟨
   **Kurapika · Manipulator** — rather than inventing or porting an ASCII sprite file this port was
