@@ -102,12 +102,12 @@ and an unknown role name in the map (`bogus=foo`) is refused outright at exit `2
 
 This one call replaces the old skill's "decide from labels, body and linked objects, never the
 title" prose. Its seven reported states map onto the same first moves, verified live against real
-objects (`docs/ab/build.md` §§ 2.4, 2.5, 2.7, 2.7a):
+objects (`docs/ab/build.md` §§ 2.4, 2.4a, 2.5, 2.7, 2.7a):
 
 | `chain-position` reports | The issue is… | First move |
 |---|---|---|
 | `closed` | closed | **The run ends** with what closed it and which PR delivered it (verified live, `zheref/bankai-core#733` — a closed epic — reports exactly this). Re-opening is the maintainer's call |
-| `building` | already released — **with or without an open PR**, `in-review` folds into this same bucket (verified live, `zheref/bankai-core#918`/`#337`/`#879` all report `building`) | Skip straight to § 4's drive step — the release already happened |
+| `building` | already released — **with or without an open PR**, `in-review` folds into this same bucket (verified live, `zheref/bankai-core#918`/`#337`/`#879` all report `building` — `docs/ab/build.md` §§ 2.4, 2.4a) | Skip straight to § 4's drive step — the release already happened |
 | `idea` | a raw brief (`bankai:stage/idea`) | Wake **Gon** so it is decomposed into an epic — his delegation grammar is **unratified** (`docs/ROSTER.md`), so this itself does not cross a gate on its own; he hands the decomposition back and this run takes it to § 3/§ 4 |
 | `epic-awaiting-approval` | an epic that carries the epic label but no mode label yet | **Stop at G1.** The mode label is the maintainer's and is never delegated (`CON-4`) — § 3/§ 4 |
 | `epic-approved` | an epic that carries the epic label **and** a mode label (`approved-team` or `approved-direct`) | Children advance wave by wave — § 4's epic-wave release step |
@@ -198,9 +198,10 @@ child:
    nen issue terminus --target <owner/name> --issue <N> --chain-labels "<same map as § 2, minus role prefixes that don't apply>" \
      --integration-prefix "integration/" --trunk main
    ```
-   Verified live: a routable child with no epic/chore label answers `own-pr` — "the terminus is this
+   Verified live: an issue with no epic/chore label answers `own-pr` — "the terminus is this
    issue's own PR into `main`" (`zheref/bankai-core#918`/`#673`/`#337`, and the real PR `#925`
-   too — the same PR-vs-issue gap § 1 already flags); a closed issue answers `run-already-ended`
+   too — the same PR-vs-issue gap § 1 already flags; `#918` and `#337` transcribed in
+   `docs/ab/build.md` §§ 2.6, 2.4a); a closed issue answers `run-already-ended`
    (`#733`, `docs/ab/build.md` § 2.6). For a `bankai`-mode epic that is the single
    `integration/* → main` PR the maintainer merges at G2; for shikai mode it is each child's own PR;
    for a `CON-36` chore it is the `integration/<chore> → main` delivery PR — **no live epic or

@@ -156,6 +156,43 @@ stage label. `chain-position` folds it into `building` — confirmed correct: it
 PR (`#925` above references it), so the old skill's own "already building, with or without a PR —
 skip to the drive engine" row is exactly right.
 
+### 2.4a — `chain-position`, two more `in-review` issues (`#337`, `#879`)
+
+`SKILL.md` §§ 1 and 4 (the `building` row of the state table) cite `zheref/bankai-core#337` and
+`#879` alongside `#918` as issues `chain-position` reports `building`. Run live, same
+`--chain-labels` map as § 2.3–2.4:
+
+```
+$ nen issue chain-position --target zheref/bankai-core --issue 337 --repo <bankai-core checkout> \
+    --chain-labels "<same map as § 2.3>"
+#337: building
+  carries 'bankai:stage/in-review' -- the release already happened, so the next move is the PR-shaped one
+
+$ nen issue chain-position --target zheref/bankai-core --issue 879 --repo <bankai-core checkout> \
+    --chain-labels "<same map as § 2.3>"
+#879: building
+  carries 'bankai:stage/in-review' -- the release already happened, so the next move is the PR-shaped one
+```
+
+Both are real, open issues. `#337` carries `bankai:stage/in-review`, `bankai:severity/low`,
+`bankai:agent/kisuke` and no other stage label; `#879` carries `bankai:stage/in-review`,
+`bankai:agent/naruto`, `bankai:bug`, `bankai:severity/high` and no other stage label — in each case
+`in-review` is the only stage label present, and `chain-position` folds it into `building` exactly
+as § 2.4 confirmed for `#918`. The claim in `SKILL.md` §§ 1 and 4 stands as written.
+
+`SKILL.md` § 5 also cites `#337` (alongside `#918`/`#673`) for `terminus`'s `own-pr` answer.
+Verified live with the same flags as § 2.6:
+
+```
+$ nen issue terminus --target zheref/bankai-core --issue 337 --chain-labels "<same map>" --integration-prefix "integration/" --trunk main
+terminus: own-pr
+  no epic or chore label -- the terminus is this issue's own PR into 'main'
+```
+
+`#337` carries neither an epic nor a chore label, so `terminus` answers `own-pr` regardless of its
+`chain-position` bucket (`building`, per above) — the two verbs read disjoint label sets. The claim
+in `SKILL.md` § 5 stands as written.
+
 ### 2.5 — `chain-position`, routable children (no stage label at all)
 
 ```
