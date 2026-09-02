@@ -18,11 +18,11 @@ there is no old-side command to run in parallel; the A/B here is against that pr
 | # | Old (prose, applied by the agent by hand) | New (`nen`) |
 |---|---|---|
 | 1 | Split `<task> until <condition>` on the LAST whole-word `until`, matched case-insensitively — described in prose, performed by the agent reading the line | `nen parse izanami "<line>"` splits it, echoes `until: <condition>`, verified live (§2.1) |
-| 2 | Classify every task/command against the hand-authored allow/refuse table (§2 of the old skill) — one line at a time, by eye | `nen parse izanami` / `nen watch until` tag every command `[read-only]` / `[mutating]` / `[unknown]` mechanically, before iteration 1, verified live to match the old table's `git`/`gh` rows exactly (§2.2) |
+| 2 | Classify every task/command against the hand-authored allow/refuse table (§2 of the old skill) — one line at a time, by eye | `nen parse izanami` / `nen watch until` tag every command `[read-only]` / `[mutating]` / `[unknown]` mechanically, before iteration 1, verified live to match the old table's `git`/`gh` rows exactly (§2.3) |
 | 3 | "Refuse the whole run, not the offending step" — a rule stated in prose, enforced by the agent's own discipline | Both verbs refuse the WHOLE invocation (exit `1`/`2`) the instant any one command fails classification — mechanical, not a discipline the agent has to remember, verified live (§2.1, §2.3) |
 | 4 | The 5-step loop ("fetch, evaluate the condition, true⇒stop, false⇒report one line, poll in-shell, pace the interval") — hand-run by the agent, one iteration at a time, in its own words | `nen watch until --command … --true-pattern … --interval-ms …` runs the entire loop, printing exactly one line per iteration and stopping on its own, verified live (§2.4–2.6) |
 | 5 | "Stop after 3 consecutive observation errors — a loop that cannot see is not watching" — a rule stated in prose | `nen watch until` counts and stops itself, verified live (§2.6) |
-| 6 | `git fetch` special-cased in prose as "allowed and usually required" | Classifies `[read-only]` by the verb's own table, no special-casing needed in the skill text (§2.2) |
+| 6 | `git fetch` special-cased in prose as "allowed and usually required" | Classifies `[read-only]` by the verb's own table, no special-casing needed in the skill text (§2.3) |
 | 7 | Echoing the parsed condition "and how it will be decided" before iteration 1 — the agent's own paraphrase | `nen parse izanami` prints `until: <condition>` verbatim as part of its classification output; `nen watch until` takes the same decision explicitly as `--true-pattern` (or exit-code-as-truth, stated) |
 
 **Count.** Before: **4** steps performed by the agent, in prose, per invocation (rows 1, 2, 4, 5 —

@@ -109,7 +109,7 @@ transcription from memory:
 | `gh run view`, `gh run list`, `gh run watch` | `gh label create`, `gh label edit`, `gh label delete` |
 | `gh repo view` | `gh release create`, `gh release edit`, `gh release delete` |
 | `gh api` (a plain GET, no `-X`) | `gh api` with `-X POST`/`PUT`/`PATCH`/`DELETE` |
-| `git fetch`, `log`, `diff`, `status`, `ls-tree`, `show` | `git push`, `commit`, `merge`, `tag`, `rebase`, `reset`, `clean` (the classifier's own refused pattern: `^git\s+(push\|commit\|merge\|tag\|rebase\|reset\|clean)\b`) |
+| `git fetch`, `git log`, `git diff`, `git status`, `git ls-tree`, `git show` | `git push`, `commit`, `merge`, `tag`, `rebase`, `reset`, `clean` (the classifier's own refused pattern: `^git\s+(push\|commit\|merge\|tag\|rebase\|reset\|clean)\b`) |
 | `git branch` — **listing forms only**: bare, `-a`, `--list` | `git branch -D`, `git branch -m` (same family, delete/rename mutate) |
 | `git remote` — **listing forms only**: bare, `-v`, `show` | `git remote add`, `remove`, `rm`, `set-url`, `rename`, `prune`, `set-head` (same family, every mutating subcommand) |
 | | `git checkout -b` (branch creation) |
@@ -150,7 +150,8 @@ remain allowed **in spirit** — but see the finding below: not every one of tho
    exactly like mutating (`nen: at least one command does not classify as read-only`). **A watch over a
    local file's contents cannot go through `nen watch until` today** — poll it by hand, in-shell,
    applying this skill's own judgment about read-only-ness, or express the same fact through a `git`
-   read against a tracked file instead (§4's live transcript does exactly that).
+   read against a tracked file instead (`docs/ab/izanami.md` § 2.4's live transcript does exactly
+   that).
 2. **`nen`'s own verb surface is not recognized by izanami's classifier at all** — `nen pr ready`,
    `nen backlog fetch`, `nen board build`, and even a genuinely *mutating* `nen label apply --run` all
    come back `[unknown]` and are refused, regardless of what the verb itself does. **A watch cannot poll
@@ -159,7 +160,8 @@ remain allowed **in spirit** — but see the finding below: not every one of tho
    judgment-driven manual iteration outside `nen watch until` entirely.
 
 **Refuse the whole run, not the offending step.** Both `nen parse izanami` and `nen watch until` do
-this themselves — a mixed command list refuses before iteration 1 ever runs, verified live in §4.
+this themselves — a mixed command list refuses before iteration 1 ever runs, verified live in
+`docs/ab/izanami.md` § 2.2.
 
 ## 3. The condition
 
