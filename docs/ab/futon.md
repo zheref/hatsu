@@ -7,10 +7,12 @@ correction note in § 5 itself.
 
 Port of `zheref/hatsu#2` for the `futon` skill. Method: the shared port brief this migration
 session's orchestrator issued for Stage B (session artifact, not checked in) — a command mapping
-table, live read-only transcripts against the real `zheref/bankai-core` backlog, and residue. `nen` verified: `C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`
+table, live read-only transcripts against the real `zheref/bankai-core` backlog, and residue. `nen` verified: `<cache>\nen\v0.1.0\nen-windows-x64.exe`
 (`0.1.0`). No mutating verb was exercised against `zheref/bankai-core` (frozen, read-only per the
 brief); mutating verbs are A/B'd by contract inspection (flag-by-flag against the old skill's
 improvised commands) and their own `--help` output.
+
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 Verdict parity between `nen pr ready` and `scripts/pr_ready_gate.sh` was already proven across the
 live estate by nen's shadow window (`docs/evidence/shadow-window-p1.md` in `zheref/nen`, 16/16 then
@@ -47,7 +49,7 @@ the G5 diagnosis, and the discipline of keeping exactly one `bankai:stage/*` lab
 ## 1. `nen parse futon` — every band shape, both terminals, live
 
 All run with `--repo` pointed at the real `zheref/bankai-core` checkout
-(`C:\Users\zhere\Code\WebStorm\Claude\bankai-core`, `git describe --tags` = `v0.11.3`). This verb
+(`<checkout>\bankai-core`, `git describe --tags` = `v0.11.3`). This verb
 reads only `schemas/repos.json` on disk — no `GH_TOKEN`, no network call.
 
 ### 1.1 Bare band, no terminal

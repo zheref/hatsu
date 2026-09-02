@@ -371,7 +371,7 @@ For each consolidated issue, offer the next verb in one line:
 hatsu:build <CODE>#<N>
 ```
 
-(lands with a later port of hatsu#2). **Offer it; never start it.** Releasing into build is a
+— [`hatsu:build`](../build/SKILL.md). **Offer it; never start it.** Releasing into build is a
 separate go-signal.
 
 ## 8. Hard limits

@@ -333,14 +333,14 @@ takes no further action on it) is independent of this run.
 
 **Everything else about the cut — the whole-repo `critical` check regardless of band, the `CON-36`
 live-chore check, honouring an active `RELEASE_HOLD`, collating `changelog.d/`, bumping `latest`,
-cutting the tag, and the `CON-22` fan-out computation — is `hatsu:getsuga`'s own lane** (lands with
-a later port of hatsu#2), not restated or reimplemented here. `nen release preflight` and `nen
+cutting the tag, and the `CON-22` fan-out computation — is
+[`hatsu:getsuga`](../getsuga/SKILL.md)'s own lane**, not restated or reimplemented here. `nen release preflight` and `nen
 fanout compute/record` are that skill's own verbs by the binary's own documentation (`nen release
 preflight --help` cites *"getsuga SKILL.md § 2"*; `nen fanout compute --help` cites *"getsuga
 SKILL.md § 7"* — verified live, `docs/ab/futon.md` § 6) — `futon` never calls either.
 
-**`then tag`**: once § 8's own gate is clear, hand off to `hatsu:getsuga` (lands with a later port of
-hatsu#2) for the cut. **Fan-out is skipped, and its issues stay open** — say this explicitly: the
+**`then tag`**: once § 8's own gate is clear, hand off to
+[`hatsu:getsuga`](../getsuga/SKILL.md) for the cut. **Fan-out is skipped, and its issues stay open** — say this explicitly: the
 `bankai:handbook-question` fan-out issues this cut *would have* covered are **still open**, the
 consumers are **still pinned to the previous tag**, and closing that gap is a later `then
 tag+fanout` or a `getsuga` run of its own.

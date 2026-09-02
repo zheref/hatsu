@@ -5,11 +5,13 @@ with its conjunct-by-conjunct breakdown. Old mechanics: `REPO=<owner>/<repo> scr
 --verdict <N>`, plus prose the skill file itself carried to reconstruct the per-conjunct table and the
 `unevaluated` classification by hand. New mechanics: `nen pr ready <ref> --explain`.
 
-Run: 2026-09-02T00:25Z (UTC). `nen` `0.1.0` (`C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`).
+Run: 2026-09-02T00:25Z (UTC). `nen` `0.1.0` (`<cache>\nen\v0.1.0\nen-windows-x64.exe`).
 `gh` authenticated as `zheref`. Oracle checkout: `zheref/bankai-core` tag `v0.11.3`
 (`2269fe723e355dc69bf535ab40f22556e4fe4081`, working tree clean) — `scripts/pr_ready_gate.sh` extracted
 read-only via `git show v0.11.3:scripts/pr_ready_gate.sh` into a scratch file, never written back to
 the bankai-core checkout.
+
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 

@@ -56,10 +56,25 @@ set -euo pipefail
 #                       exists and what standing they have. An installed plugin
 #                       reading a stale roster can act as an agent whose row was
 #                       changed, or miss one that was added.
+#   docs/delegation-grammar-DRAFT.md
+#                     — SAME CRITERION AS ROSTER, and it was wrong to exclude it
+#                       for being "a draft": `claude/agents/gon.md` § mandates
+#                       "Read `docs/delegation-grammar-DRAFT.md` before your
+#                       first act of any run", and `claude/agents/kurapika.md`
+#                       cites it for the unratified-grant rule. An installed
+#                       copy reads it AT RUN TIME. Being a draft is a statement
+#                       about its authority, not about whether it ships — a
+#                       stale draft is exactly as invisible as a stale roster.
+#   hooks/*           — forward-proofing. Nothing lives here today; the day a
+#                       hook is added it is plugin-shipped and executed on every
+#                       session, and a guard that had to be remembered at that
+#                       moment is a guard that is not there.
+#   .mcp.json         — forward-proofing, same reasoning: an MCP server
+#                       declaration is read by the installed plugin at start-up.
 #
 # Deliberately NOT covered — nothing installed reads them at run time:
-#   README.md, docs/ab/**, docs/delegation-grammar-DRAFT.md (a draft, cited by
-#   link and never executed), scripts/** (CI-only; no agent or skill invokes
+#   README.md, docs/ab/** (the evidence records; read by humans on GitHub, never
+#   by an installed copy), scripts/** (CI-only; no agent or skill invokes
 #   anything here), .github/**.
 #
 # Bash `[[ == glob ]]` matches `*` across `/` — it is pattern matching, not
@@ -70,6 +85,9 @@ PLUGIN_SURFACE_GLOBS=(
   'nen.contract.json'
   'contracts/*'
   'docs/ROSTER.md'
+  'docs/delegation-grammar-DRAFT.md'
+  'hooks/*'
+  '.mcp.json'
 )
 
 # --- path_is_plugin_surface PATH --------------------------------------------
@@ -158,7 +176,8 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 
   cat >&2 <<'EOF'
 This PR changes a plugin-shipped surface (.claude-plugin/**, claude/**,
-nen.contract.json, contracts/**, or docs/ROSTER.md) but leaves
+nen.contract.json, contracts/**, docs/ROSTER.md,
+docs/delegation-grammar-DRAFT.md, hooks/**, or .mcp.json) but leaves
 .claude-plugin/plugin.json's `version` field unchanged.
 
 Claude Code keys its plugin cache on that field. An already-installed Hatsu

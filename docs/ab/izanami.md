@@ -5,11 +5,13 @@ allow/refuse markdown table applied by eye per invocation, plus a hand-written 5
 evaluate, report, poll in-shell, pace"). New mechanics: `nen parse izanami` (the invocation split and
 command classification) and `nen watch until` (the loop itself).
 
-Run: 2026-09-02T02:05Z (UTC). `nen` `0.1.0` (`C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`).
+Run: 2026-09-02T02:05Z (UTC). `nen` `0.1.0` (`<cache>\nen\v0.1.0\nen-windows-x64.exe`).
 `gh` authenticated as `zheref` (`GH_TOKEN=$(gh auth token)` exported for every bankai-core read below).
 Old skill source: `refpack/skills/izanami.SKILL.md` (bankai-core `v0.11.3`-era). No shell oracle exists
 for izanami — the old skill's "loop" and "classify" steps were pure agent prose, never a script, so
 there is no old-side command to run in parallel; the A/B here is against that prose, by contract.
+
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 

@@ -15,8 +15,8 @@ Nen's to decide. Say the pair when a diff genuinely spans both, and which one le
 
 > **Take what I have here and turn it into one PR, ready for me.**
 
-Where `hatsu:jujisho` (tracked under [zheref/hatsu#2](https://github.com/zheref/hatsu/issues/2),
-not yet ported) splits a working copy into *several* efforts, tensho treats it as **one**. If the
+Where [`hatsu:jujisho`](../jujisho/SKILL.md) splits a working copy into *several* efforts, tensho
+treats it as **one**. If the
 changes are plainly two unrelated efforts, say so and offer jujisho rather than filing one PR that
 carries two concerns.
 
@@ -234,10 +234,17 @@ On the maintainer's **user** token it registers, where a bot token silently no-o
 mutating GitHub call; per this port's ground rules it is A/B'd by contract inspection only
 (`docs/ab/tensho.md` § 3), never exercised live against `bankai-core`.
 
-## 6. Then check its gate
+## 6. Then drive it to its gate
 
-**`hatsu:drive` is not ported yet** (tracked at [zheref/hatsu#2](https://github.com/zheref/hatsu/issues/2)).
-Until it lands, tensho's own drive phase is the same verb `hatsu:pr-state` already ports:
+**Tensho's drive phase is [`hatsu:drive`](../drive/SKILL.md)'s engine** — the whole of it, not a
+substitute. Once the PR is open, hand it over as `hatsu:drive <CODE>#<N> to <G2|G4>` against the
+gate § 5's `nen gate derive` named, and let that skill do what it owns: the first-blocking-condition
+diagnosis, thread stewardship, the wake channel fired alone, the adversarial confirmation pass, and
+the stop at the gate. Tensho does not restate or reimplement any of it, and it does not stop at a
+bare readiness reading when the PR can actually be driven.
+
+*Fallback only, when `drive` cannot run at all* (an unresolvable code, no network for the checks it
+needs): the readiness **check** by itself is [`hatsu:pr-state`](../pr-state/SKILL.md)'s verb —
 
 ```bash
 export GH_TOKEN=$(gh auth token)
@@ -246,9 +253,8 @@ nen pr ready <CODE>#<N> --repo <path> --gates "$CLAUDE_PLUGIN_ROOT/contracts/ban
 
 Quote the verdict verbatim, render the conjunct table `--explain` prints, and apply
 `hatsu:pr-state`'s own binding rule unchanged: a readiness claim is that verdict, quoted, or it is
-not made — never a paraphrase, never `ready` for a PR that came back `unevaluated`. This is a
-**check**, not the multi-round wake/escalation loop `hatsu:drive` will own once it ports — tensho
-opens the PR and reports where it stands against its gate, and stops there.
+not made — never a paraphrase, never `ready` for a PR that came back `unevaluated`. Say plainly
+that this was a check and not a drive: it reports where the PR stands and moves nothing.
 
 Render the stop with `nen stop --who kurapika --gate <G2|G4> <efforts.md>` (verified live,
 `docs/ab/tensho.md` § 2.8) and say the handover out loud: *"PR open at BC-PR-#N; `<verdict>`
@@ -257,11 +263,12 @@ against G4."*
 ## 7. Authority
 
 - **Permitted:** branch, commit, push a **non-`main`** branch, open/update a PR, request reviewers,
-  and check its readiness via `hatsu:pr-state`'s own verb.
-- **Not permitted:** `hatsu:agent/*` (none exist yet), any G1 mode label, any merge, any review
+  and hand the PR to [`hatsu:drive`](../drive/SKILL.md) (or, in the § 6 fallback, read its
+  readiness via `hatsu:pr-state`'s own verb).
+- **Not permitted:** `bankai:agent/*`, `bankai:stage/*`, any G1 mode label, any merge, any review
   vote — `request_changes` above all, since Kurapika acts on the maintainer's own credentials and
-  the vote would be recorded as theirs. tensho creates work; it does not route, release, or drive
-  it to green.
+  the vote would be recorded as theirs. tensho creates work and hands it off; it does not route or
+  release it.
 
 ## 8. Hard limits
 
@@ -271,5 +278,6 @@ against G4."*
 - **Never puts two unrelated efforts in one PR** — that is jujisho's job, offered not assumed.
 - **Never opens a PR without `# What this changes for you`, `## How to verify`, and the
   `changelog.d/` fragment where one is owed** — all three checked by verb, none by eye.
-- **Never claims readiness by eye** — § 6's verdict is `nen pr ready`'s, quoted, or it is not made.
+- **Never claims readiness by eye** — the verdict § 6 reports is `nen pr ready`'s (whether it
+  arrives through `drive` or through the fallback check), quoted, or it is not made.
 - **Never merges** — G2 and G4 are the maintainer's.

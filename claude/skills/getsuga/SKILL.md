@@ -284,14 +284,18 @@ The maintainer's ruling: an unreachable target is **driven to `main` first**, no
    needs one — check that branch out first, then hand it to
    [`hatsu:tensho`](../tensho/SKILL.md), which works on **the current checkout**, not on a branch
    named as an argument. Its § 2 (`nen wc classify`) then sees "on a branch, clean" and opens the PR.
-3. **Drive it to `CON-32` readiness.** `hatsu:drive` is not ported yet (lands with a later port of
-   hatsu#2). Until it lands, the interim mechanics are the same verb
-   [`hatsu:pr-state`](../pr-state/SKILL.md) already ports — repeat `nen pr ready <ref> --explain`
-   (with `GH_TOKEN` exported and `--gates` pointing at the target repository's own
-   `schemas/gates.json` (when it ships one), or `contracts/bankai-core.gates.json` where the target
-   is frozen bankai-core) after every round, quoting the verdict verbatim each time, the same interim
-   substitution tensho's own § 6 uses for the identical gap. This is a **check repeated across
-   rounds**, not the multi-round wake/escalation loop `hatsu:drive` will own once it ports.
+3. **Drive it to `CON-32` readiness.** Hand it to [`hatsu:drive`](../drive/SKILL.md) — its full
+   engine, not a substitute for one: the first-blocking-condition diagnosis, thread stewardship,
+   the wake channel, the adversarial confirmation pass and the escalation ladder are all that
+   skill's, and getsuga does not restate or reimplement any of them. Invoke it as
+   `hatsu:drive <CODE>#<N> to <G2|G4>` against the gate `nen gate derive` named, and take its
+   stop-at-the-gate report as the readiness call.
+   *Fallback only if `drive` cannot run at all* (an unresolvable code, say): the readiness call by
+   itself is [`hatsu:pr-state`](../pr-state/SKILL.md)'s verb — `nen pr ready <ref> --explain`, with
+   `GH_TOKEN` exported and `--gates` pointing at the target repository's own `schemas/gates.json`
+   (when it ships one) or `contracts/bankai-core.gates.json` where the target is frozen
+   bankai-core — quoted verbatim. That is a **check**, not a drive: it reports where the PR stands
+   and nothing moves it.
 4. **Stop at G2/G4.** The maintainer merges.
 5. **Re-resolve the target** — it is now a commit on `main`, and a *different* commit than the
    branch tip was (a merge commit). Tag that. Then § 2 from the top, because every precondition must
@@ -329,11 +333,11 @@ this skill's own action** — it targets *other repositories*, which no `nen` ve
 - **Permitted:** the tag cut (`CON-33(b)`/`CON-41` — Kurapika's own duty, **not** a `CON-25`
   delegation), the release PR, and the repin PRs.
 - **No routing and no release delegation — none, including while driving.** Driving an off-`main`
-  target runs entirely through [`hatsu:tensho`](../tensho/SKILL.md) and `hatsu:drive` (not yet
-  ported — lands with a later port of hatsu#2), and **neither of those releases anything**
-  (`CON-25`, fourth carve-out). If a target genuinely needs an issue routed or released to reach
-  `main`, that is `hatsu:build`'s job (not yet ported — lands with a later port of hatsu#2) and its
-  own invocation — **say so and stop**, rather than borrowing its authority from inside this run.
+  target runs entirely through [`hatsu:tensho`](../tensho/SKILL.md) and
+  [`hatsu:drive`](../drive/SKILL.md), and **neither of those releases anything** (`CON-25`, fourth
+  carve-out). If a target genuinely needs an issue routed or released to reach `main`, that is
+  [`hatsu:build`](../build/SKILL.md)'s job and its own invocation — **say so and stop**, rather
+  than borrowing its authority from inside this run.
 - **Never:** merge `main`; publish a GitHub Release or authorize a release (**G3 is the
   maintainer's**, `CON-6`); move or delete a tag; write `latest` for a tag that does not resolve;
   apply a G1 mode label.

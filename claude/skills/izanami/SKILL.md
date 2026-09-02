@@ -11,9 +11,9 @@ when he runs it.
 
 > **Keep checking this until that is true, then tell me.**
 
-Izanami is the **read-only** half of the loop pair. Its mutating twin is `hatsu:izanagi` (lands
-with a later port of hatsu#2), which requires an explicit cap in its grammar precisely because it
-acts. **The split is the safety property**: a loop that cannot write cannot compound a
+Izanami is the **read-only** half of the loop pair. Its mutating twin is
+[`hatsu:izanagi`](../izanagi/SKILL.md), which requires an explicit cap in its grammar precisely
+because it acts. **The split is the safety property**: a loop that cannot write cannot compound a
 mistake, however many times it runs.
 
 The old bankai-core skill enforced that split by an agent reading a hand-authored allow/refuse table
@@ -133,10 +133,11 @@ never fetches watches a frozen picture. It is the one write-shaped thing that is
 observation, and it classifies `[read-only]` exactly as the old skill's table said it should.
 
 Skill-level refusals the classifier cannot see — because they are not shell commands at all — stay a
-judgment rule, unchanged from the old skill: never run `drive`, `build`, `file`, `tensho`,
-`jujisho`, `getsuga`, `backlog-synthesis` or `backlog-loop` (each lands with a later port of
-hatsu#2) inside a watch, and never post a comment, apply a label or publish an Artifact as part of
-one.
+judgment rule, unchanged from the old skill: never run [`drive`](../drive/SKILL.md),
+[`build`](../build/SKILL.md), [`file`](../file/SKILL.md), [`tensho`](../tensho/SKILL.md),
+[`jujisho`](../jujisho/SKILL.md), [`getsuga`](../getsuga/SKILL.md),
+[`backlog-synthesis`](../backlog-synthesis/SKILL.md) or [`backlog-loop`](../backlog-loop/SKILL.md)
+inside a watch, and never post a comment, apply a label or publish an Artifact as part of one.
 [`backlog-state`](../backlog-state/SKILL.md), reading a page, and a genuinely read-only checker script
 remain allowed **in spirit** — but see the finding below: not every one of those actually classifies
 `[read-only]` when handed to `nen` as a `--command`.

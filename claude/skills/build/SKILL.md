@@ -14,12 +14,11 @@ The contract:
 > **Give me an issue; I give you back a PR that is `CON-32`-Ready at its human gate — or a G5
 > stop that says exactly why it could not get there.**
 
-`build` is the issue-shaped verb. Its PR-shaped half is `drive` (lands with a later port of
-hatsu#2) — **everything after the first PR appears is that skill's engine**: the readiness call
-(`nen pr ready`, already landed — see [`pr-state`](../pr-state/SKILL.md)), the unblocking
-channels and the escalation ladder are inherited from it once it lands, not restated here. Where
-the two disagree, `drive` wins on PR mechanics and this skill wins on what happens before a PR
-exists.
+`build` is the issue-shaped verb. Its PR-shaped half is [`drive`](../drive/SKILL.md) —
+**everything after the first PR appears is that skill's engine**: the readiness call
+(`nen pr ready` — see [`pr-state`](../pr-state/SKILL.md)), the unblocking channels and the
+escalation ladder are inherited from it, not restated here. Where the two disagree, `drive` wins
+on PR mechanics and this skill wins on what happens before a PR exists.
 
 > **Declared process change — read this before § 5.** The old skill released a routed issue to a
 > CI builder (`bankai:stage/building` woke Kisuke, Sasuke, Naruto or Yamamoto's workflow) and then
@@ -66,8 +65,7 @@ nen repo resolve <CODE> --repo <bankai-core checkout>
 case-insensitive (`bc` and `BC` both resolve to `zheref/bankai-core` — `docs/ab/build.md` § 2.2);
 **an unresolved code is an error and never a guess.**
 
-**If `#<N>` is a PR, hand straight to `hatsu:drive <CODE>#<N>` (lands with a later port of
-hatsu#2) and say so.** `nen issue chain-position`/`nen issue terminus` do **not** make this check
+**If `#<N>` is a PR, hand straight to [`hatsu:drive <CODE>#<N>`](../drive/SKILL.md) and say so.** `nen issue chain-position`/`nen issue terminus` do **not** make this check
 for you — verified live, `docs/ab/build.md` § 2.3: pointed at a real PR number
 (`zheref/bankai-core#925`), `chain-position` answers `routable` and `terminus` answers `own-pr` as
 if it were an ordinary issue, with no error and no hint that the number names a PR. **This is a
@@ -190,9 +188,8 @@ child:
    "done":0}` against both — zero children recognised (`docs/ab/build.md` § 2.9). Any epic this
    skill decomposes going forward (§ 2's Gon step) must write its checklist in the shape `nen`
    parses, stated to Gon explicitly, or this verb never sees a child at all.
-4. **Each child's PR is driven** by `drive`'s engine (lands with a later port of hatsu#2) to
-   `CON-32` readiness — reported, never eyeballed, via `nen pr ready` (landed; see
-   [`pr-state`](../pr-state/SKILL.md)).
+4. **Each child's PR is driven** by [`drive`](../drive/SKILL.md)'s engine to `CON-32` readiness —
+   reported, never eyeballed, via `nen pr ready` (see [`pr-state`](../pr-state/SKILL.md)).
 5. **The delivery PR is the terminus.** Compute it, never infer it:
    ```bash
    nen issue terminus --target <owner/name> --issue <N> --chain-labels "<same map as § 2, minus role prefixes that don't apply>" \
@@ -285,7 +282,7 @@ classes only**.
 **No `Wake` row.** The retired skill's third row — `bankai:wake/iterate`, fired alone — existed to
 re-fire a *CI builder's* stalled loop. Hatsu has no CI builder for `build` to hold that authority
 over; a wake against some other automated participant on a PR (a stalled review round, say) is
-`drive`'s authority once it lands, not this skill's. Dropping the row here is itself part of the
+[`drive`](../drive/SKILL.md)'s authority, not this skill's. Dropping the row here is itself part of the
 declared change (§ 1 callout) — say so rather than quietly carrying an authority forward that no
 longer has anything to act on.
 

@@ -5,9 +5,10 @@ credentials.**
 
 One lead persona — **Kurapika**, who names which of six declared work-modes he is holding before he acts —
 plus a small roster of focused independents, and **seventeen skills** that take a backlog, a pull request or
-a release from where it is to the human gate where a person decides. Every deterministic step is a verb from
-the [**Nen**](https://github.com/zheref/nen) CLI: Nen detects, computes, formats and verifies; the skill
-supplies only the judgment a binary cannot.
+a release from where it is to the human gate where a person decides. **Every deterministic step that has a
+verb is a verb** from the [**Nen**](https://github.com/zheref/nen) CLI: Nen detects, computes, formats and
+verifies; the skill supplies only the judgment a binary cannot. Where no verb exists yet, the residue is
+**named per skill** in [`docs/ab/`](docs/ab/) rather than quietly improvised.
 
 No GitHub App. No bot identity. Nothing here merges `main`, publishes a release, or casts a review vote.
 
@@ -26,7 +27,9 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 | [`nen`](https://github.com/zheref/nen) **`>= 0.1`** | a **hard** dependency — see [The Nen contract](#the-nen-contract-d10). You do **not** need to install it yourself; the warm-up does it, checksum-verified. |
 | `git` + [`gh`](https://cli.github.com), authenticated | the skills read and write GitHub as **you**. |
 
-Nothing here needs `jq`, `yq` or Python. One binary, plus `git` and `gh`.
+**On the installed plugin path**, nothing here needs `jq`, `yq` or Python: one binary, plus `git` and `gh`.
+(The repository's own CI is a separate matter — `scripts/plugin_bump_check.sh` uses `jq`, but nothing an
+installed copy runs does.)
 
 ## Install
 
@@ -119,14 +122,16 @@ is always the human.**
 
 ### Kurapika — the lead persona
 
-Summoned with **`/kurapika`**. He trained all six Nen types, and his canonical trick is not power but
-**conditions**: a binding accepted in advance, stated out loud, paid in full. The six types are his
+Defined at **[`claude/agents/kurapika.md`](claude/agents/kurapika.md)**, summoned with **`/kurapika`**
+([`claude/commands/kurapika.md`](claude/commands/kurapika.md)). He trained all six Nen types, and his
+canonical trick is not power but **conditions**: a binding accepted in advance, stated out loud, paid in
+full. The six types are his
 work-modes, and **naming the mode in play is not decoration** — it tells you which authority he believes he
 is holding, so you can catch him holding the wrong one *before* he acts on it.
 
 | Mode | Lane | Where its work stops |
 |---|---|---|
-| **Enhancer** | **Product code** — edit, build and test locally, open the PR. | the merge gate — **yours** |
+| **Enhancer** | **Product code** — edit, build and test locally, open the PR. Never merges, never votes, never self-reviews. | the merge gate — **yours** |
 | **Conjurer** | **Canon & governance authoring** — constitutions, handbooks, schemas, agent definitions, taxonomies, thresholds. Conjured contracts *with conditions*: a clause states what it binds, what it costs, when it lapses, and what happens when it is broken. | the policy gate — **yours** |
 | **Transmuter** | **Machinery** — Nen verbs and their tests, scaffolding, hooks, workflows, generators, plugin manifests, contract files. The standing transmutation is *improvised shell → deterministic verb*. | the policy gate — **yours** |
 | **Manipulator** | **GitHub-side ops** — drives, wakes, labels, retargets, cascades, thread stewardship. | drives *to* a gate, crosses none |
@@ -148,7 +153,9 @@ Four, each with a discipline Kurapika delegates to rather than absorbing.
 >
 > The clause that would make a gate-crossing grant *valid* — **mission · gates · conditions · expiry ·
 > logging** — is drafted here at [`docs/delegation-grammar-DRAFT.md`](docs/delegation-grammar-DRAFT.md) and
-> **ratified elsewhere**, with the rewritten constitution. **No grant can be given today, because there is
+> **ratified elsewhere**: with the rewritten constitution at
+> [zheref/akatsuki-ai#5](https://github.com/zheref/akatsuki-ai/issues/5), a G4-class review (this is
+> **OPEN-2** in [`docs/ROSTER.md`](docs/ROSTER.md)). **No grant can be given today, because there is
 > no valid form for one to take.** Gon does the work, takes it to the gate, and stops there, exactly as
 > every agent does by default. A delegate that acts on a draft has ratified the draft by itself.
 
@@ -160,8 +167,8 @@ repository's. What follows is recorded **verbatim as proposals**. Neither has a 
 
 | Agent | *Proposed* role | Status |
 |---|---|---|
-| **Illumi** | *Proposed:* long-running loop engines — `backlog-loop`, `futon`, `senkei`; needle control of many bodies at once. | **OPEN** |
-| **Killua** | *Proposed:* delegate-run watchdog paired with Gon — a Gon mission never runs unwatched — plus fast single-object interventions. | **OPEN** |
+| **Illumi** | *Proposed:* long-running loop engines (backlog-loop / futon / senkei — needle control of many bodies at once) | **OPEN** |
+| **Killua** | *Proposed:* delegate-run watchdog paired with Gon — a Gon mission never runs unwatched — plus fast single-object interventions | **OPEN** |
 
 **Killua's row touches Gon's grammar and must not be collapsed into it.** If ratification adopts the pairing,
 `watched` becomes a *mandatory* condition on every Gon grant; if it does not, `watched` stays optional or is
@@ -198,21 +205,21 @@ Seventeen, invoked as `hatsu:<name>`. Longer descriptions in
 |---|---|
 | `backlog-state` | The whole backlog as one gate-oriented table — every open issue, its PRs, the gate it sits at, what it needs next. Read-only. |
 | `backlog-board` | The identical sweep and computation, painted as an HTML gate board published as an Artifact. Read-only. |
-| `backlog-loop` | Drives a repository's backlog to zero open actionable issues, in severity order, as gate-ready PRs. |
-| `backlog-synthesis` | Groups open issues sharing a clause, a machinery file or a root cause into one consolidated issue, originals attached as sub-issues. |
+| `backlog-loop` | Drives a repository's backlog to zero open actionable issues, in severity order, as gate-ready PRs. **Also cuts the release tag and opens the consumers' repin PRs at declared severity-batch boundaries** — never publishes a release. |
+| `backlog-synthesis` | Groups open issues sharing a clause, a machinery file or a root cause into one consolidated issue, attaches the originals as sub-issues **and closes them** — behind a plan you approve first. |
 | `bankai-handbooks` | Resolves which handbooks govern a repo and scenario, and which rule-ID prefix each one owns, so a citation is never improvised. |
 | `bankai-quality` | Resolves the adversarial-test tooling, performance tooling and QA rules for a repo's scenario, before a release is cut. |
 | `build` | Takes one issue from wherever it sits to a delivery PR standing ready at its human gate. |
 | `drive` | Drives one open PR to readiness at its gate and stops there — first blocking condition, threads, wakes. |
 | `file` | Files one well-formed, correctly-labelled, non-duplicate issue — reconciled against the open backlog first. |
-| `futon` | Takes one whole severity band from open issues to PRs with an actor behind them, then runs the terminal step you typed. |
-| `getsuga` | Cuts a release tag locally, end to end — preconditions, one folded release PR, the tag, the fan-out. Never publishes. |
+| `futon` | Takes one whole severity band from open issues to PRs with an actor behind them, then **gates** the terminal step you typed — it clears its own gate and hands the cut to `getsuga`; it never cuts a tag itself. |
+| `getsuga` | **Cuts** a release tag locally, end to end — preconditions, one folded release PR, the tag, the fan-out and the consumers' repin PRs. Never publishes a release. |
 | `izanagi` | Repeats a task that **acts** until a condition holds, under a **mandatory** iteration cap. No cap, no run. |
 | `izanami` | Repeats a **read-only** task until a condition holds. It looks, reports, and stops. |
 | `jujisho` | Splits a mixed working copy into up to two stacked branches and PRs, by axis, proving nothing was left behind. |
 | `pr-state` | Reports one PR's readiness as the deterministic gate's verdict, quoted, with the conjunct that failed. Read-only. |
-| `senkei` | Inventories a consuming product repo's own backlog and states a Ready/not-Ready call for every open PR. |
-| `tensho` | Turns a dirty working copy into one PR standing ready at its gate, reviewing every file before staging it. |
+| `senkei` | Inventories a consuming product repo's own backlog and states a Ready/not-Ready call for every open PR. **It writes as well as reads**: it re-runs failed checks (`nen run rerun-failed`) and fires `bankai:wake/iterate` on a stalled PR. Never merges. |
+| `tensho` | Turns a dirty working copy into one PR, reviewing every file before staging it, then hands that PR to `drive`'s engine to reach its gate. |
 
 Plus [`hatsu-warmup`](claude/skills/hatsu-warmup/) — the Nen contract, executing — and the `/kurapika`
 summon command.
@@ -226,22 +233,32 @@ proven before this version was cut; it is not an aspiration.
 
 ### Rollback
 
-Reinstall the bankai plugin; nothing server-side changed.
+**For you, as a public reader, rollback is simply uninstalling Hatsu** — `claude plugin uninstall
+hatsu@hatsu`. Nothing server-side changed, so there is nothing else to undo.
+
+Reinstalling the predecessor *bankai* plugin is the **maintainer's own** path back, not a public
+one: its marketplace is private, and the links to it in this repository resolve only for someone
+who already has access.
 
 ---
 
 ## The gates
 
-Hatsu drives work **to** a gate and stops. It does not cross one.
+Hatsu drives work **to** a gate and stops there. **One gate is partially delegated, and exactly
+one**: `CON-25` names four exhaustive carve-outs under which *release into build* — applying the
+building stage label — may be crossed without a per-issue confirmation, inside a named run that
+logs every application and lapses when the run ends. **Every other gate in the table below is
+yours, without exception.** Clause ids are the inherited constitution's, kept stable across the
+rewrite; [`docs/ROSTER.md`](docs/ROSTER.md) carries the same table.
 
-| Gate | Delegable? |
-|---|---|
-| **Epic approval** — the human applies one delivery-mode label | **Never** |
-| **Release into build** — applying the building stage label | Only under four exhaustive, named carve-outs |
-| **Merge to `main`** | **Never** by these agents. No agent here merges `main`, or its own PR anywhere. |
-| **Release go/no-go** | **Never.** Preparing a release is allowed; publishing is not. |
-| **Policy / spec change** | **Never** |
-| **Anything else human-only** | **Never** — its definition *is* "the decision is yours" |
+| Gate | Clause | Delegable? |
+|---|---|---|
+| **G1 — Epic approval** — the human applies one delivery-mode label | `CON-4` | **Never** |
+| **G1-M — Release into build** — applying the building stage label | `CON-25` | **The one delegated crossing** — only under `CON-25`'s four exhaustive, named carve-outs |
+| **G2 — Merge to `main`** | `CON-5` | **Never** by these agents. No agent here merges `main`, or its own PR anywhere. |
+| **G3 — Release go/no-go** | `CON-6` | **Never.** Preparing a release is allowed; publishing is not. |
+| **G4 — Policy / spec change** | `CON-7` | **Never** |
+| **G5 — Anything else human-only** | `CON-47` | **Never** — its definition *is* "the decision is yours" |
 
 **No agent in this roster casts a `request_changes` review — for any reason, on any PR.** They run on your
 credentials, so GitHub records the vote as **yours**, and casting one manufactures your governance vote on a
@@ -260,11 +277,17 @@ that already has the plugin installed** — no error, no warning, the fix ships 
 
 [`scripts/plugin_bump_check.sh`](scripts/plugin_bump_check.sh), wired as the
 [`plugin-bump-check`](.github/workflows/plugin-bump-check.yml) workflow, fails a PR that tries. The guarded
-surface is `.claude-plugin/**`, `claude/**`, `nen.contract.json`, `contracts/**` and `docs/ROSTER.md` —
-everything an installed copy reads. Bump `version` (patch for wording, minor for behaviour or a new skill,
-major for a breaking interface change); or, if a change provably cannot affect the shipped surface, write
-`no plugin bump: <reason>` in the PR body. Recorded refuse/pass transcripts:
-[`docs/ab/plugin-bump-guard.md`](docs/ab/plugin-bump-guard.md).
+surface is `.claude-plugin/**`, `claude/**`, `nen.contract.json`, `contracts/**`, `docs/ROSTER.md`,
+`docs/delegation-grammar-DRAFT.md`, `hooks/**` and `.mcp.json` — everything an installed copy reads. Bump
+`version` (patch for wording, minor for behaviour or a new skill, major for a breaking interface change);
+or, if a change provably cannot affect the shipped surface, write `no plugin bump: <reason>` in the PR
+body. Recorded refuse/pass transcripts: [`docs/ab/plugin-bump-guard.md`](docs/ab/plugin-bump-guard.md).
+
+**The check is advisory today.** Until the maintainer adds branch protection or a ruleset that *requires*
+it on `main`, a failing `plugin-bump-check` blocks nothing — and because GitHub runs a same-repo PR against
+that PR's *own* workflow definition, a PR may edit the workflow and be judged by the edited version. The
+hardening is repo settings, which is a human gate and is recommended rather than performed here: require
+the check, and protect `.github/**` with a ruleset or `CODEOWNERS`.
 
 ### Validate locally
 

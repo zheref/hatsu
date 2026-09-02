@@ -57,7 +57,7 @@ Parsing rules, all of them the same rule: **resolve or fail, never guess.**
   registry's real codes (never a guess, never a prefix match). Feed that `owner/name` into every
   flag below that wants `--gh-repo`/`--target`/`--repo-slug` — never re-derive it a second way.
 - **This skill drives PRs, never issues.** If `#<N>` resolves to an issue, say so and point at
-  `hatsu:build` (lands with a later port of hatsu#2), which is the issue-shaped verb. Do not
+  [`hatsu:build`](../build/SKILL.md), which is the issue-shaped verb. Do not
   silently switch — releasing work into an agent's autonomous build is a different authority than
   driving a PR that is already running.
 - **A closed or merged PR ends the run immediately** with what happened to it. There is nothing to
@@ -312,8 +312,8 @@ released.
 
 - **Permitted:** `nen wake fire` — a non-vote wake, never a routing decision.
 - **Not permitted, ever:** any G1 mode label, any merge, any review vote, any routing/release
-  label. If driving this PR turns out to need one, that is `hatsu:build`'s job (lands with a later
-  port of hatsu#2) — say so and stop rather than reaching for it here.
+  label. If driving this PR turns out to need one, that is
+  [`hatsu:build`](../build/SKILL.md)'s job — say so and stop rather than reaching for it here.
 - **Log every label application** (object, label, time) in the stop, exactly as a named run does.
 
 ## 8. The stop

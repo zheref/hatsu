@@ -12,7 +12,7 @@ issue open-pr-check`, `nen issue file`, `nen issue attach-sub`, `nen issue conso
 ref format`, `nen repo resolve`, `nen stop`.
 
 Run: 2026-09-01 (local clock; today's date per session context). `nen` `0.1.0`
-(`C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`. Target
+(`<cache>\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`. Target
 for every read-only run: the live `zheref/bankai-core` backlog, `--repo` pointed at the local
 `bankai-core` checkout (working tree clean, read-only throughout — nothing was written back to
 it). **Per this build's explicit constraint (stricter than the shared brief's general one):
@@ -23,6 +23,8 @@ reach a real write — and their choreography against `--help`'s own contract te
 against a real repository (`zheref/hatsu`, using its own two open issues) was attempted for
 `attach-sub` and refused by the session's own auto-mode classifier before it ran at all (§ 2.6);
 recorded as residue, not routed around.
+
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 Verdict parity between `nen pr ready` and `pr_ready_gate.sh` was already proven across the live
 estate by nen's shadow window (`docs/evidence/shadow-window-p1.md` in zheref/nen); this skill uses

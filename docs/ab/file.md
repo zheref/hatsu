@@ -9,7 +9,7 @@ computing or reporting any of it. New mechanics: `nen issue search`, `nen issue 
 `nen issue file`.
 
 Run: 2026-09-01 (local clock; today's date per session context). `nen` `0.1.0`
-(`C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`. Target
+(`<cache>\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`. Target
 for every read-only run: the live `zheref/bankai-core` backlog, `--repo` pointed at the local
 `bankai-core` checkout (tag `v0.11.3`, working tree clean, read-only throughout — nothing was
 written back to it). No mutating verb (`nen issue file` without `--dry-run`, `nen label apply
@@ -18,6 +18,8 @@ the shared brief's constraint; the mutating half is A/B'd by contract inspection
 `--dry-run` runs against that same repo (which print the exact `gh` call and write nothing) —
 never a real filed-and-closed test issue, which this port judged unnecessary: the mutating half's
 dry-run transcripts (§ 2.5–2.7) are the evidence, not a claim resting on contract inspection alone.
+
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
@@ -271,7 +273,7 @@ passed), and `--ledger` pointed at a scratch path outside any checkout so nothin
 
 ```
 $ nen label apply HT-IS-#1 --label bankai:severity/low --repo-slug zheref/hatsu \
-    --repo "C:\Users\zhere\Code\WebStorm\Claude\bankai-core" \
+    --repo "<checkout>\bankai-core" \
     --reason "verifying --repo makes the taxonomy check resolve correctly (dry run, no --run)" \
     --ledger "<scratch path>\label-ledger.jsonl"
 (dry run) would apply 'bankai:severity/low' to HT-IS-#1

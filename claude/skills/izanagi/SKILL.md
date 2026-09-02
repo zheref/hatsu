@@ -145,15 +145,16 @@ izanagi's own up-front confirmation stands in for, or widens, what Kurapika's ow
 already requires (`claude/agents/kurapika.md`: "Gate labels: per action by default… a 'go ahead' for
 one issue is not authority for the next"):
 
-- A looped `hatsu:build` *(lands with a later port of hatsu#2)* would hold `build`'s own delegation
-  for that iteration only, lapsing when the iteration ends.
-- A looped `hatsu:drive` *(lands with a later port of hatsu#2)* holds no routing or release
-  delegation at all — that is `drive`'s own scope.
-- A looped `hatsu:file` or a backlog-synthesis skill *(both land with a later port of hatsu#2)* still
-  **present their plan and take their own confirmation** — izanagi's single up-front confirmation
-  does **not** stand in for it. A loop that pre-approves N unseen plans is not a loop with oversight.
-- A looped `hatsu:tensho` or `hatsu:jujisho` *(both land with a later port of hatsu#2)* — same rule:
-  their own PR-posting and split confirmations are never waived by izanagi's.
+- A looped [`hatsu:build`](../build/SKILL.md) holds `build`'s own delegation for that iteration
+  only, lapsing when the iteration ends.
+- A looped [`hatsu:drive`](../drive/SKILL.md) holds no routing or release delegation at all — that
+  is `drive`'s own scope.
+- A looped [`hatsu:file`](../file/SKILL.md) or
+  [`hatsu:backlog-synthesis`](../backlog-synthesis/SKILL.md) still **presents its plan and takes
+  its own confirmation** — izanagi's single up-front confirmation does **not** stand in for it. A
+  loop that pre-approves N unseen plans is not a loop with oversight.
+- A looped [`hatsu:tensho`](../tensho/SKILL.md) or [`hatsu:jujisho`](../jujisho/SKILL.md) — same
+  rule: their own PR-posting and split confirmations are never waived by izanagi's.
 
 **The confirmation in § 1 authorizes the repetition, not the contents.** Anything the looped task
 would have asked for on its own, it still asks for.

@@ -6,10 +6,12 @@ Bankai-consuming repo. Old mechanics: prose the skill file carried directly — 
 `.github/workflows/bankai.yml` by hand. New mechanics: `nen repo scenario` + `nen canon resolve`.
 
 Run: 2026-09-01 (America/local session time). `nen` `0.1.0`
-(`C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`). Oracle/canon checkout: `zheref/bankai-core`,
+(`<cache>\nen\v0.1.0\nen-windows-x64.exe`). Oracle/canon checkout: `zheref/bankai-core`,
 working tree clean, `HEAD` at tag `v0.11.3` (`2269fe723e355dc69bf535ab40f22556e4fe4081` — confirmed via
 `git describe --tags` and `git log -1`), matching `contracts/bankai-core.gates.json`'s own header. No
 `GH_TOKEN` was exported for any command in this document — both verbs are pure local-file reads.
+
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 

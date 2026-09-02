@@ -9,8 +9,10 @@ union of the branches' diffs equals the original working-copy diff" with no comm
 `nen pr cascade-main --trunk <A>`, `nen changelog fragment-required`, `nen ref format`,
 `nen repo resolve`.
 
-Run: 2026-09-02T01:42Z (UTC). `nen` `0.1.0` (`C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`).
+Run: 2026-09-02T01:42Z (UTC). `nen` `0.1.0` (`<cache>\nen\v0.1.0\nen-windows-x64.exe`).
 `gh` authenticated as `zheref`.
+
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 `split verify` is LOCAL — every transcript in § 2 below runs against a constructed scratch git
 repository built for this port, **labeled constructed throughout**, never against bankai-core.
@@ -50,7 +52,7 @@ caller data rather than a computed step, same category the pr-state port already
 ## 2. Constructed A/B — `nen split verify` (LOCAL, no bankai-core involvement)
 
 **Scratch repo**: initialized fresh at
-`C:\Users\zhere\.claude\jobs\4f1fdef1\tmp\jujisho-scratch`, one commit seeding `src/parser.py` and
+`<scratch>\jujisho-scratch`, one commit seeding `src/parser.py` and
 `docs/readme.md`, then a mixed uncommitted change touching both files — a parser perf tweak plus a
 new `normalize()` function in `src/parser.py` (axis "parser"), and a documentation addition in
 `docs/readme.md` (axis "docs"). Every transcript below is against this constructed repo, never

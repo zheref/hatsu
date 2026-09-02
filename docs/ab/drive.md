@@ -9,7 +9,7 @@ verify`, `nen gate derive`, plus contract-only inspection of `nen wake fire`, `n
 `nen pr request-reviews`, `nen pr retarget`.
 
 Run: 2026-09-01, UTC times as logged by each command. `nen` `0.1.0`
-(`C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`. All GitHub
+(`<cache>\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`. All GitHub
 reads below ran **read-only** against the live `zheref/bankai-core` repository (its two real open
 PRs at run time, `#925` and `#940`) or against local scratch JSON with no GitHub write of any kind.
 Nothing was labelled, merged, pushed, commented on, retargeted, cascaded, or woken. Verdict parity
@@ -18,6 +18,8 @@ by nen's shadow window (`docs/evidence/shadow-window-p1.md` in `zheref/nen`, mos
 and re-confirmed for this repository by `pr-state`'s own A/B (`docs/ab/pr-state.md`) — not
 re-proven here; this doc's `nen pr ready` runs are spot confirmation feeding `drive`'s own
 composition (§ 2.1 below), same discipline `backlog-state`'s A/B doc already used.
+
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 

@@ -8,8 +8,9 @@ description: Inventory a consuming product repo's own backlog — open epics, li
 **Nature: Manipulator.** GitHub-side ops/reporting over a product repo's own backlog. Kurapika
 says so when he runs it.
 
-This is the **product-repo counterpart** of `backlog-loop` (plain text — lands with a later port
-of hatsu#2). `backlog-loop` will drive bankai-core's own backlog to zero as G4-ready PRs; `senkei`
+This is the **product-repo counterpart** of
+[`backlog-loop`](../backlog-loop/SKILL.md). `backlog-loop` drives bankai-core's own backlog to
+zero as G4-ready PRs; `senkei`
 inventories **one consuming product repo's** backlog — its open epics, live `integration/*`
 branches, and open PRs — and drives those PRs to `CON-32`/**G2**-readiness. It never touches
 bankai-core's own backlog, and it never mutates the target repo's product code.
@@ -26,8 +27,8 @@ label→input reshape, the Ready/not-Ready narrative, the escalation channel, th
 stays this skill's judgment. See `docs/ab/senkei.md` for the full mapping, the live evidence
 against two real consumer repos, and every finding filed against the binary along the way.
 
-> **Read the target repo's own backlog only.** Never bankai-core's — that is `backlog-loop`'s job
-> (plain text — lands with a later port of hatsu#2), and this skill carries no delegation to touch
+> **Read the target repo's own backlog only.** Never bankai-core's — that is
+> [`backlog-loop`](../backlog-loop/SKILL.md)'s job, and this skill carries no delegation to touch
 > it, read or write.
 
 ---
@@ -261,9 +262,9 @@ these explicitly, by name, in the determination:
   flag it, don't guess which one is authoritative.
 
 **Where a PR is stuck for a reason `nen run rerun-failed` doesn't cover** (a swallowed wake, a
-`request_changes` vote substituted for one), use the same unblock channel as `backlog-loop`/`drive`
-(plain text — both land with a later port of hatsu#2): `bankai:wake/iterate`, fired ALONE, never in
-the same breath as a comment. That mechanization (`nen wake fire`) is outside this port's own
+`request_changes` vote substituted for one), use the same unblock channel as
+[`backlog-loop`](../backlog-loop/SKILL.md)/[`drive`](../drive/SKILL.md): `bankai:wake/iterate`,
+fired ALONE, never in the same breath as a comment. That mechanization (`nen wake fire`) is outside this port's own
 Scope (zheref/hatsu#2 names only `nen repo inventory`, `nen effort classify`, `nen run
 rerun-failed` for `senkei`) and is left as prose here, exactly as the old skill carried it — see
 `docs/ab/senkei.md` § 6 residue.
@@ -293,7 +294,7 @@ the table — a status-only pass reports plainly, no banner.
 ## Explicitly out of scope
 
 - **No new authority.** `CON-25`'s third carve-out (run-scoped label delegation) belongs to
-  `backlog-loop` by name (plain text — lands with a later port of hatsu#2); `senkei` applies **no**
+  [`backlog-loop`](../backlog-loop/SKILL.md) by name; `senkei` applies **no**
   `bankai:agent/*` or `bankai:stage/*` label without the maintainer's explicit per-action
   confirmation, same as Kurapika outside a named run.
 - **No merging, anywhere.** G2 is the target repo's maintainer's, same as it is on bankai-core.

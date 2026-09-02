@@ -20,6 +20,22 @@
 #      come over the API with the workflow's own read-only token, so both
 #      checkouts set `persist-credentials: false` — nothing here pushes or
 #      authenticates as the repository.
+#
+# The trusted-copy test below is `-f`, not `-x`, on purpose. This job invokes
+# the guard as `bash "$guard"`, which needs the file to exist and be readable,
+# not to be executable — so `-f` is the predicate that matches what is actually
+# done with it. An `-x` test here was a real hole: it silently routed every PR
+# to the PR's OWN copy of the guard whenever the in-tree file lacked its exec
+# bit, which is exactly the "a PR rewrites the guard judging it" failure choice
+# 1 exists to prevent. The exec bit is separately asserted in-tree, below.
+#
+# ENFORCEMENT POSTURE (honest, as of v0.1.0): this check is ADVISORY until the
+# maintainer adds branch protection or a ruleset that REQUIRES it. And GitHub
+# runs a same-repo PR against the PR's own workflow definition, so a PR may
+# edit this file and be judged by the edited version. The recommended repo
+# settings hardening — a maintainer action, not something this file can do —
+# is: (a) require the `plugin-bump-check` check on `main`, and (b) protect
+# `.github/**` with a ruleset or CODEOWNERS so a PR cannot silently rewrite it.
 name: plugin-bump-check
 
 on:
@@ -57,6 +73,26 @@ jobs:
           path: .trusted
           persist-credentials: false
 
+      - name: Assert the guard script keeps its exec bit in-tree
+        # bankai-core catches this class with `tests/workflow_script_exec_bit.bats`;
+        # Hatsu has no bats harness, so the equivalent assertion runs here. A
+        # committed-100644 guard is what made the old `-x` test above fail every
+        # PR over to the PR's own copy. Reads the PR head checkout as data — the
+        # git index, not anything executed from it.
+        shell: bash
+        run: |
+          set -euo pipefail
+          mode="$(git ls-files -s -- scripts/plugin_bump_check.sh | awk '{print $1}')"
+          if [ -z "$mode" ]; then
+            echo "::error::scripts/plugin_bump_check.sh is not tracked on this PR head."
+            exit 1
+          fi
+          if [ "$mode" != "100755" ]; then
+            echo "::error::scripts/plugin_bump_check.sh is committed $mode, expected 100755. Fix with: git update-index --chmod=+x scripts/plugin_bump_check.sh"
+            exit 1
+          fi
+          echo "scripts/plugin_bump_check.sh: $mode (exec bit present)"
+
       - name: Compute changed files + base .claude-plugin/plugin.json (API — no git credential)
         env:
           GH_TOKEN: ${{ github.token }}
@@ -93,8 +129,10 @@ jobs:
           # BOOTSTRAP: scripts/plugin_bump_check.sh does not exist on `main`
           # until zheref/hatsu#3 itself merges, so on that PR — and only until
           # then — there is no trusted copy to run. Fall back loudly rather than
-          # silently; after the merge this branch is never taken again.
-          if [ -x .trusted/scripts/plugin_bump_check.sh ]; then
+          # silently; the test is `-f` (file present) because the invocation is
+          # `bash "$guard"`, so once the file exists on main this branch is
+          # genuinely never taken again.
+          if [ -f .trusted/scripts/plugin_bump_check.sh ]; then
             guard=.trusted/scripts/plugin_bump_check.sh
           else
             echo "::warning::scripts/plugin_bump_check.sh not found on trusted main — running the PR's own copy (bootstrap only, zheref/hatsu#3). This path disappears once that PR merges."
