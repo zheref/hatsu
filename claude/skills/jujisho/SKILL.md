@@ -163,9 +163,9 @@ editor state, OS cruft) that is neither git-ignored nor out of the declared `--s
 **clean** — the verb names five detectors and local-config is not one of them. Ask about any
 local-config path by name regardless of what the verb reports, per axis.
 
-Format each commit with `nen commit format --type <t> --subject "<...>" [--scope <s>] [--body "..."]
-[--trailer Akatsuki-Agent=kurapika]` — it validates shape (declared type, non-empty subject under 72
-characters, no trailing punctuation), never content; what changed and why stays yours to write.
+Format each commit with `nen commit format --type <t> --subject "<...>" [--scope <s>] [--body "..."] [--trailer Akatsuki-Agent=kurapika]` —
+it validates shape (declared type, non-empty subject under 72 characters, no trailing punctuation),
+never content; what changed and why stays yours to write.
 
 Branches are `kurapika/<slug>` per axis (the local plane's own convention — not `CON-27`, which
 governs worktree isolation), slugs from the axes, not `part-1`/`part-2` — the names are what a
