@@ -63,7 +63,7 @@ refusal prints — never a guess, never a prefix match.
 
 **Product repos do not reliably ship their own registry.** Verified live against the real
 `zheref/KroApple`: it carries no `schemas/` directory at all — no `repos.json`, no `gates.json`,
-no `colors.yml`, no `labels.json` (`docs/ab/senkei.md` § 2.2, two `404`s). The registry that names
+no `colors.yml`, no `labels.json` (`docs/ab/senkei.md` § 4.1, three `404`s). The registry that names
 its product code (`KP`) and its Nen scenario (`swiftui-tca-uzf-v2`) lives in **bankai-core's own**
 `schemas/repos.json`, under `consumers`, alongside `KroAndroid` (`KN`). So `--repo <path>` for
 resolution and object notation points at a local bankai-core checkout, never at the product repo

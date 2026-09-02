@@ -401,7 +401,7 @@ job to safely rerun).
 
 ## 6. Supporting verbs, unchanged pointers
 
-### 6.1 — `nen repo resolve` / `nen repo scanario`, against bankai-core's registry
+### 6.1 — `nen repo resolve` / `nen repo scenario`, against bankai-core's registry
 
 KroApple ships no registry of its own (§ 4.1); the registry that names its product code lives in
 bankai-core's own `schemas/repos.json`:
