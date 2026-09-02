@@ -123,9 +123,10 @@ live: run from anywhere else, `nen` refuses `ENOENT: no such file or directory, 
 - **Exit `1`** → the verdict is either `not-ready: <first failing reason>` **or** `unevaluated: <what
   went wrong>` — read the printed verdict string itself to tell them apart; both share the exit code.
 - **Exit `2`** → the invocation itself was refused before evaluation ever started (an unknown code, an
-  unparseable ref, no reviewer identities, no `GH_TOKEN`-bearing token reachable in a way that stops the
-  call outright). Never render this as any of the three verdicts — report the refusal text verbatim and
-  fix the invocation.
+  unparseable ref, no reviewer identities). Never render this as any of the three verdicts — report the
+  refusal text verbatim and fix the invocation. A missing or expired `GH_TOKEN` is **not** this case: it
+  surfaces as the `unevaluated` verdict on exit `1` (§ 4), verified live — quote that verdict, don't
+  reclassify it as a refusal.
 
 **Never pass `--round-policy strict`.** `bounded` is the default and the settled `CON-32(b)` reading
 (mirrors `pr_ready_gate.sh`'s own `--copilot-policy bounded` default, [BC-IS-#572](https://github.com/zheref/bankai-core/issues/572)); inheriting it is what keeps every

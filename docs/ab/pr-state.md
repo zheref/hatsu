@@ -54,6 +54,13 @@ row (verdicts that are not a bare `ready`, where there is reason text on both si
 matches with zero normalization applied. What follows is this skill's own **spot confirmation**, run
 directly against real bankai-core PRs as part of this port, not a re-run of that whole harness.
 
+> **Transcript cwd note.** The `--gates contracts/bankai-core.gates.json` in the transcripts below is
+> cwd-relative because every run in this document was executed from the hatsu checkout root, where that
+> path resolves — the commands are pasted as they actually ran, and rewriting them would falsify the
+> record. The **copy/paste-safe form** for any other cwd is the one the skill mandates:
+> `--gates "$CLAUDE_PLUGIN_ROOT/contracts/bankai-core.gates.json"` — § 2.6 demonstrates the `ENOENT`
+> you get when the relative form leaves this directory.
+
 ### 2.1 — `nen pr ready`, `--explain`, an open PR with a real failure
 
 ```

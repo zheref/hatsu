@@ -158,8 +158,10 @@ verified — plus its own `7`.
 
 `4` is the transport failure and may be retried **once**. `5` and `6` are never retried: retrying a checksum
 failure is exactly how a fail-closed guard becomes a fail-open one by attrition, and a manifest that is
-absent, stripped or malformed does not become present by being asked again. `2`, `3` and `7` will not change
-either.
+absent, stripped or malformed does not become present by being asked again. `3` will not change on this host
+at all. `2` and `7` are invocation errors — re-running the **same** command is pointless, but the **fixed**
+command (correct usage; for `7`, `--script <fetched file>` supplied) is expected to succeed: fix and re-run,
+never halt on them as if they were bootstrap failures.
 
 ---
 
