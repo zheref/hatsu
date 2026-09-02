@@ -190,6 +190,15 @@ gate with worse evidence.
 
 ## 5. Unblocking — the channel is decided by who authored the PR
 
+> **Disclosure: the CI-agent branch below is structurally inapplicable to hatsu's own PRs.** A PR
+> in `hatsu` itself is authored locally, on the maintainer's/Kurapika's own credentials — there is
+> no CI builder in this repository to carry a `<!-- bankai agent=… run=… -->` stamp, so no hatsu PR
+> can ever match the first branch's trigger. `nen wake fire`/`nen wake verify` are exercised in this
+> port's own A/B (`docs/ab/drive.md` § 2.6, § 3) only against **bankai-core's** CI-authored objects
+> (`zheref/bankai-core#925`, `#940`, both stamped by a CI builder), never against `hatsu` itself.
+> Driving a `hatsu` PR always takes the second branch below (Kurapika authored it) or the third
+> (conflicted).
+
 **A CI agent authored it** (a `<!-- bankai agent=… run=… -->` stamp on the body or a commit): the
 fix is that agent's to make. The channel is **`nen wake fire`, fired ALONE**:
 
@@ -284,8 +293,8 @@ diagnose that before spending a wake attempt on it:
    swallowed wake (`nen wake verify` found a run concluding `action_required` with 0 jobs), a
    `dirty` PR (zero `build` runs at all — the label was never consumable), a reply-only builder
    mode, a red check the builder cannot fix, a required check that never reports.
-5. **File the defect** with `hatsu:file` (lands with a later port of hatsu#2) — routed by scope,
-   with the run links and both wake attempts as evidence.
+5. **File the defect** with [`hatsu:file`](../file/SKILL.md) — routed by scope, with the run links
+   and both wake attempts as evidence.
 6. **Stop at G5** with the board: what is stuck, what was tried, the filed issue, and the options
    with a recommendation.
 

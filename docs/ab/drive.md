@@ -90,6 +90,8 @@ row 4's stopgap composition.
 
 ### 2.2 — `nen pr fetch`, reproduced broken on BOTH real open PRs, two different shapes
 
+**As observed at this doc's original run time (2026-09-01, per the header above):**
+
 ```
 $ nen pr fetch --target zheref/bankai-core --pr 925
 nen pr: could not fetch zheref/bankai-core#925 reviews: gh: Unprocessable Entity (HTTP 422)
@@ -103,15 +105,56 @@ nen pr: zheref/bankai-core#940: $.reviews -- expected an array, got object ({"id
   "state":"PENDING", ..., "commit_id":"8831f0b867dcddda64c3d28315c3d5c746c2ee9b"})
 ```
 
-**`#925` reproduces the same `422 Unprocessable Entity` `backlog-state`'s own A/B already caught on
+**`#925` reproduced the same `422 Unprocessable Entity` `backlog-state`'s own A/B already caught on
 this exact PR** (`docs/ab/backlog-state.md` § 2.5 — five-for-five across two repos at that time).
-**`#940` is a NEW failure shape, not previously reproduced**: instead of a 422, the verb's own
-schema validation rejects a *successful* GitHub response because a single, still-`PENDING` (never
-submitted) review comes back as a bare JSON object rather than wrapped in the array `nen` expects.
-Two genuinely different bugs in the same reviews-fetch path, both real, both against real PRs, in
-the same run. **Confirms `nen pr fetch` is not usable for anything this skill needs** — neither
-failure mode is bankai-core-specific data (both are real GitHub response shapes for real reviews on
-real open PRs), so no plausible flag combination routes around either.
+**`#940` was a NEW failure shape, not previously reproduced at that time**: instead of a 422, the
+verb's own schema validation rejected a *successful* GitHub response because a single, still-
+`PENDING` (never submitted) review came back as a bare JSON object rather than wrapped in the array
+`nen` expects. Two genuinely different bugs in the same reviews-fetch path, both real, both against
+real PRs, in the same run.
+
+**The failing shape is review-state-dependent, and has since moved on.** Re-verified live at
+`2026-09-02T02:28:17Z`, `#940` has accumulated further review activity since the transcript above
+and **no longer reproduces the schema-validation shape — it now 422s, identically to `#925`**:
+
+```
+$ nen pr fetch --target zheref/bankai-core --pr 925
+nen pr: could not fetch zheref/bankai-core#925 reviews: gh: Unprocessable Entity (HTTP 422)
+
+$ nen pr fetch --target zheref/bankai-core --pr 940
+nen pr: could not fetch zheref/bankai-core#940 reviews: gh: Unprocessable Entity (HTTP 422)
+```
+
+This does not withdraw the finding — the schema-validation shape is real, was reproduced live above,
+and is a distinct bug from the 422 (the verb's own code path treats a single unwrapped review object
+differently from a fetch-layer rejection). It means the *specific PR* that exhibits it is a moving
+target: the shape depends on a PR carrying **exactly one review, and that review still `PENDING`**
+(never submitted) at fetch time — once a second review lands (submitted or not), the reviews payload
+is no longer a lone object and the verb's regular (422-prone) path runs instead.
+
+**Independent reproduction, also since moved on:** the reviewer who first flagged this cited
+`zheref/hatsu#14` as reproducing the same unwrapped-lone-PENDING-review shape independently. `#14`
+has since merged (`2026-09-02T02:18:58Z`) and, checked live just now, its reviews endpoint carries
+two reviews (one `PENDING`, one `COMMENTED` from `copilot-pull-request-reviewer[bot]`) rather than a
+lone `PENDING` one — `nen pr fetch --target zheref/hatsu --pr 14` now also 422s, for the same
+review-state-dependent reason:
+
+```
+$ nen pr fetch --target zheref/hatsu --pr 14
+nen pr: could not fetch zheref/hatsu#14 reviews: gh: Unprocessable Entity (HTTP 422)
+```
+
+**A live target reproducing the schema-validation shape today was not found.** Checked, at
+`2026-09-02T02:28:17Z`, every other currently-open PR this session has read access to
+(`zheref/akatsuki-ai#38`, `zheref/KroApple#509`, `zheref/kro-pwa#86`, `zheref/KroAndroid#186`,
+`zheref/bankai-scaffold#21`, `#23`, `zheref/AnteikuTV#22`) — none carries a lone `PENDING` review;
+each has either zero, or two or more, reviews. The bug class stays documented on the strength of the
+original live reproduction (both transcripts above are genuine, not fabricated) and the reviewer's
+independent one; **neither still reproduces today**, and that absence is itself consistent with the
+shape being review-state-dependent rather than disproven. **Confirms `nen pr fetch` is not usable
+for anything this skill needs** regardless — the 422 shape alone (reproduced live against every real
+PR checked, both originally and just now) is sufficient on its own; neither failure mode is
+bankai-core-specific data, so no plausible flag combination routes around either.
 
 ### 2.3 — `nen gate derive`, both real open PRs (re-confirming `backlog-state`'s pointer)
 
@@ -237,14 +280,20 @@ $ cat wakes-notstale.json   # second wake DID produce a commit
 [{"at":"2026-09-01T20:00:00Z","noCommit":true},{"at":"2026-09-01T21:00:00Z","noCommit":false}]
 $ nen pr staleness --wakes-from wakes-notstale.json --last-activity 2026-09-01T21:00:00Z --now 2026-09-01T22:30:00Z
 not stale
+merge not permitted
 1/2 verified no-commit wake(s)
 90/60 idle minute(s) (met)
 
 $ nen pr staleness --wakes-from wakes-stale.json --last-activity 2026-09-01T22:00:00Z --now 2026-09-01T22:30:00Z   # only 30 min idle
 not stale
+merge not permitted
 2/2 verified no-commit wake(s) (met)
 30/60 idle minute(s)
 ```
+
+(Both not-stale cases print an extra `merge not permitted` line the earlier transcript omitted —
+verified live, re-run at `2026-09-02T02:28:17Z`: the verb prints this line for every case except
+`stale + --ready`, not only the stale-but-not-ready case shown above it.)
 
 All four cases match the documented rule exactly (≥2 verified no-commit wakes AND ≥60 idle minutes,
 both required; `--ready` is the sole switch between "not permitted" and "PERMITTED"). **Finding,
@@ -307,11 +356,17 @@ and `backlog-state`'s own A/B docs, neither of which dry-ran a mutating verb aga
 1. **`nen pr fetch` is broken against real bankai-core PRs in (at least) two distinct ways in the
    same reviews-fetch path.** `#925`: `could not fetch ... reviews: gh: Unprocessable Entity (HTTP
    422)` (matches `backlog-state`'s own earlier five-for-five reproduction on this same PR,
-   `docs/ab/backlog-state.md` § 2.5). `#940`: a *different* failure — `$.reviews -- expected an
-   array, got object`, because a single still-`PENDING` review comes back from GitHub as a bare
-   object rather than wrapped in an array, and the verb's schema validation rejects it outright
-   rather than normalizing a one-element case. Reproduced live, this run (§ 2.2). This port never
-   calls `nen pr fetch`.
+   `docs/ab/backlog-state.md` § 2.5). `#940`, at this doc's original run time: a *different*
+   failure — `$.reviews -- expected an array, got object`, because a single still-`PENDING` review
+   came back from GitHub as a bare object rather than wrapped in an array, and the verb's schema
+   validation rejected it outright rather than normalizing a one-element case. Reproduced live at
+   that time (§ 2.2). **This failure shape is review-state-dependent**: it requires a PR with
+   exactly one, still-`PENDING`, review at fetch time, and both `#940` and the reviewer's
+   independently-cited `zheref/hatsu#14` have since accumulated further review activity and no
+   longer reproduce it (re-verified live, § 2.2) — the bug class stays documented on the strength of
+   the original reproduction, not withdrawn, but no live target reproduces it as of this port's
+   final commit. The 422 shape alone is reproduced live, unchanged, against both PRs. This port
+   never calls `nen pr fetch`.
 
 2. **`nen pr next-blocker` cannot evaluate any real bankai-core PR, for two compounding reasons.**
    First, it has no `--gates` override at all (only `--reviewers`/`--approvers`, per `--help`), and
@@ -341,6 +396,20 @@ and `backlog-state`'s own A/B docs, neither of which dry-ran a mutating verb aga
    `mergePermitted` field, as a matter of policy.
 
 ---
+
+## 4a. Disclosure — the CI-wake branch is structurally inapplicable to hatsu's own PRs
+
+`SKILL.md` § 5's "a CI agent authored it" branch (`nen wake fire`/`nen wake verify`) is exercised in
+this A/B — § 2.6 above, and the contract-only inspection in § 3 — **exclusively against
+`zheref/bankai-core`'s own CI-authored objects** (`#925`, `#940`, both carrying a `<!-- bankai
+agent=… run=… -->` stamp from a CI builder). `hatsu` has no CI builder of its own; every PR in this
+repository, this port's own included, is authored locally on the maintainer's/Kurapika's own
+credentials and carries no agent stamp. **The CI-wake branch this section documents can never
+trigger on a `hatsu` PR** — driving one of hatsu's own PRs always resolves to `SKILL.md` § 5's
+second branch (Kurapika authored it) or third (conflicted, cascade `main` in). This is disclosed
+here rather than left implicit so a reader does not assume the wake path was validated end-to-end
+against the repository this skill actually lives in — it was validated against bankai-core, which is
+what `drive` is for driving.
 
 ## 5. Residue
 
