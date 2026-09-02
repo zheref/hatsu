@@ -5,7 +5,7 @@ description: File one well-formed, correctly-labelled, non-duplicate issue — r
 
 # File — one issue, reconciled against the backlog before it is written
 
-**Nature: Manipulator** — the filing itself is GitHub-side reconciliation and label
+**Nature: Manipulator.** The filing itself is GitHub-side reconciliation and label
 application, the same discipline as a drive or a wake. Name a second mode alongside it when
 the underlying problem is squarely governance (**Conjurer**), machinery (**Transmuter**), or
 product code (**Enhancer**) — say which leads, per the identity header's rule against blending
@@ -23,7 +23,7 @@ empty. So filing is the *last* of five steps, and four of them are about what is
 ## 1. Invocation
 
 ```
-hatsu:file <problem to file> <product|repo_code>
+hatsu:file <problem to file> <repo_token>
 hatsu:file <problem to file>
 hatsu:file
 ```
@@ -121,8 +121,9 @@ skill's own `hatsu` checkout; verified live, docs/ab/file.md § 2.7). Point it a
 repo's own checkout** — the one named by `--repo-slug` — never at the checkout `file` happens to
 be running from.
 
-only once the plan is confirmed (§ 4) — say what changed the assessment (broader blast radius, a
-second occurrence, a consumer now affected). One open issue per distinct problem.
+Raise the severity only once the plan is confirmed (§ 4) — say what changed the assessment
+(broader blast radius, a second occurrence, a consumer now affected). One open issue per distinct
+problem.
 
 **(b) Fold — near, not same.** A different problem whose **scope and authority level** are close
 enough that one PR would sanely deliver both: same lane, same files or same clause, same
