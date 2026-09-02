@@ -122,7 +122,10 @@ both `out-of-scope` **and** `unmentioned-deletion` in the same row).
 **Present every flagged file at once, with the reason(s) `nen` printed, and take one answer per
 file. A flagged file is never committed without an explicit yes** — not "it was probably fine,"
 not "it was in the diff already." That yes is never the verb's to give (its own `--help` says so
-verbatim), and it stays this skill's.
+verbatim), and it stays this skill's. **`secret-shape` is the one flag category that is never
+askable** — the per-file ask above applies to the other flag categories only. There is no yes for
+`secret-shape`; the answer is always no, and the fix is to rotate or remove the secret, never to
+stage it. § 8's hard limit is authoritative here: a secret is never committed, full stop.
 
 **Two of the old flag categories have no detector in `nen stage triage` at all — residue, not
 routed around by hand, still asked about by eye:**
@@ -262,7 +265,8 @@ against G4."*
 
 ## 8. Hard limits
 
-- **Never commits a flagged file without an explicit yes**, and never a secret at all.
+- **Never commits a flagged file without an explicit yes**, and never a secret at all —
+  `secret-shape` is not one of the categories that ask is for; rotate or remove it instead.
 - **Never pushes `main`, never force-pushes, never `--no-verify`.**
 - **Never puts two unrelated efforts in one PR** — that is jujisho's job, offered not assumed.
 - **Never opens a PR without `# What this changes for you`, `## How to verify`, and the
