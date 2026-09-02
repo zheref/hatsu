@@ -102,7 +102,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          gh api "repos/${REPO}/pulls/${PR}/files" --paginate --jq '.[].filename' \
+          # Both .filename AND .previous_filename: a rename that moves a
+          # plugin-surface file OUT of the covered globs still changed that
+          # surface, and only previous_filename carries the old path.
+          gh api "repos/${REPO}/pulls/${PR}/files" --paginate \
+            --jq '.[] | .filename, (.previous_filename // empty)' \
             > "${RUNNER_TEMP:-/tmp}/changed_files.txt"
           # A base without the manifest at all (the very first commit) is not a
           # failure: `{}` yields an empty version, which any real HEAD version

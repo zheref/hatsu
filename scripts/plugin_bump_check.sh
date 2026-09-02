@@ -31,7 +31,13 @@
 # `.github/workflows/plugin-bump-check.yml` calls, after that workflow has
 # already computed the changed-files list, the base `plugin.json` and the PR
 # body from the event payload and the API.
-set -euo pipefail
+#
+# Strict mode is gated to the EXECUTED path: sourcing this file to exercise
+# the pure functions must not mutate the caller shell's options (an inherited
+# `-u`/`-e` in a sourcing harness is a side effect, not a safety).
+if [ "${BASH_SOURCE[0]:-}" = "${0}" ]; then
+  set -euo pipefail
+fi
 
 # --- The plugin-shipped surface ---------------------------------------------
 # Derived from what `.claude-plugin/plugin.json` actually declares, plus the
