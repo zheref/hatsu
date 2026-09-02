@@ -39,8 +39,8 @@ no readiness verb, so that citation is inherited context, not independently re-p
 | 3 | Grouping signals 1–2 ("same clause", "same machinery file") confirmed by re-reading bodies and cross-referencing by eye, one candidate pair at a time | `nen issue search --files <f> --rule-ids <r> --lane-labels <l>` — the same verb `file` § 3 uses for duplicates, turned toward clustering: one call surfaces every open issue sharing a file, clause or lane (verified live, § 2.2 — a real 9-row cluster on `scripts/pr_ready_gate.sh` + `CON-32`) |
 | 4 | "An issue with an OPEN PR is `link-only`" — checked, per the old skill's own prose, by reading each candidate's timeline by eye for a referencing PR | `nen issue open-pr-check --target <o/n> --issues n,n,n` — one call, every open PR fetched once and matched against every candidate (verified live against a real cluster, § 2.3: flagged exactly the one member — `#877` — that carries an open PR, `#925`) |
 | 5 | Sub-issue attach: `gh api repos/{owner}/{repo}/issues/{n}/sub_issues`, one call per child, with the agent responsible for remembering the API takes the child's **id**, not its number, and resolving it first by a separate read | `nen issue attach-sub --target <o/n> --parent <n> --children 1,2` — resolves each child's id internally before writing; the id-vs-number distinction is now the verb's own job (verified live against a repo that cannot resolve at all, § 2.4: it fails at exactly the id-resolution read, before any write is attempted) |
-| 6 | Close-with-comment: `gh issue close <n> --comment "<text naming the consolidated issue and which section absorbed it>"`, run once per member, in a hand-maintained order (file, then attach, then close) | `nen issue consolidate-close --target <o/n> --parent <n> --children 1,2 --repo <path>` — the whole file→attach→close ordering in one call, re-running the open-PR guard immediately before closing and refusing the entire close (not the first failure) if anything is blocked (contract-inspected, § 2.5; see § 4 finding 1 for what this call does **not** let the caller customize) |
-| 7 | Label union (severity = highest, lanes = union) — computed by hand, reading every member's labels and taking the max/union manually | `nen issue consolidate-close` computes and reports the label union and severity maximum from the children's own current labels as part of the same call (contract-inspected only, § 3 — never observed live; see § 4 finding 2) |
+| 6 | Close-with-comment: `gh issue close <n> --comment "<text naming the consolidated issue and which section absorbed it>"`, run once per member, in a hand-maintained order (file, then attach, then close) | `nen issue consolidate-close --target <o/n> --parent <n> --children 1,2 --repo <path> --severity-family <family>` — the whole file→attach→close ordering in one call, re-running the open-PR guard **before the attach**, refusing the entire call (not the first failure) if anything is blocked (§ 2.5; see § 4 finding 1 for what this call does **not** let the caller customize, and § 4 finding 5 for `--severity-family`'s undocumented default) |
+| 7 | Label union (severity = highest, lanes = union) — computed by hand, reading every member's labels and taking the max/union manually | `nen issue consolidate-close --severity-family <family>` computes and reports the label union and severity maximum from the children's own current labels as part of the same call (contract-inspected only, § 3 — never observed live) — **`--severity-family` is required in practice despite defaulting silently to `""`, see § 4 finding 5** |
 | 8 | Object notation, hand-typed `<CODE>-IS-#<N>` | `nen ref format --code <CODE> --kind IS --number <n> [--state <s>] --repo <path>` (verified live, § 2.6 — including a finding that `--repo` is required and accepted despite not appearing in the printed usage line) |
 | 9 | The `G5` stop banner: `scripts/gate_stop.sh --gate G5` | `nen stop --who Kurapika --gate G5 efforts.md` — same renderer family already adopted by `pr-state`'s and `file`'s sibling ports; not separately re-verified here beyond `nen stop --help` |
 | 10 | Body/comments/sub-issue-graph fetch for the grouping read — `gh issue view <n> --json body,comments` per issue, by hand | **No `nen` verb replaces this.** `nen backlog fetch`'s row schema is thin by design (same class of gap `backlog-state`'s own doc records for PR-level detail) — residue, § 3 |
@@ -98,10 +98,28 @@ $ nen issue search --repo <bankai-core checkout> --target zheref/bankai-core \
   #571  CLOSED  [Definitions] Bind every readiness asker ... to pr_ready_gate.sh --verdict N ...
 [files-and-rule-ids] query: "scripts/pr_ready_gate.sh" OR "CON-32"
   #912 #771 #791 #914 #877 #936 #763 #710 #903 #675 #937 #918 #799 #538 #539 #677 #337 #643 #535
-       #587 #878 #634  (23 rows total)
+       #587 #878 #634  (22 rows total)
 [lane] query: label:"bankai:agent/kisuke"
   #939 #938 #935 #933 #929 #922 #921 #920 #918 #917 #915 #914 #878 #877 ...  (43 rows total)
 ```
+
+**Regression caught in review: the row count printed above the count itself was wrong.** 22 issue
+numbers are listed on the `files-and-rule-ids` line, not 23 — a hand-recount confirms 22
+(`nen`'s own output has no built-in row-count line; the parenthetical count is added by whoever
+transcribes the run, and it was mis-added here by one). Fixed above.
+
+**Re-run live for this fix, and the set has genuinely moved — a point-in-time disclosure, not
+another miscount.** Re-running the identical query today returns **24** rows on
+`files-and-rule-ids`, not 22: two issues absent from the original capture now match —
+`#935` ("[Machinery] Roll provenance-on-stderr + plugin-cache guard out to the rest of the
+verification script family") and `#938` ("port pr_ready_gate.sh's plugin-cache guard classification
+into cli/src/ports/pr_ready_gate.ts (BC-IS-#733 plane parity)") — both newly filed/labelled against
+`scripts/pr_ready_gate.sh`/`CON-32` since the original run, both also present in the `lane` pass.
+This does not change the seven-member cluster this section's own analysis is built on (`#912, #877,
+#914, #791, #538, #539, #771` are unaffected — still present, still the same seven), but it is
+recorded here because a synthesis run against a live backlog should expect exactly this kind of
+drift between the plan's fetch and its execution (`SKILL.md` § 5 step 2's re-guard exists for the
+same reason, one layer over).
 
 **Real grouping signal, not a fabricated example.** Cross-referencing the `files-and-rule-ids` pass
 against the `lane` pass by hand narrows to a genuine same-file/same-clause/same-lane cluster:
@@ -175,10 +193,17 @@ nen issue: could not read zheref/this-repo-does-not-exist-xyz123#2: gh: Not Foun
 exit code: `1`.
 
 Same shape as § 2.4: the read-before-write guard fires before `--repo`'s own `schemas/labels.json`
-is ever consulted, and before the "file (already done) -> attach -> close" choreography's own
-internal open-PR re-guard would run. Confirms the ordering `--help` documents: children are
-resolved/read first, labels/taxonomy second, the open-PR guard third, the close itself last —
-never observed reordered.
+is ever consulted.
+
+**Regression caught in review: the ordering originally stated here was wrong about where the
+open-PR guard sits.** Read from `nen` `v0.1.0`'s own source (`src/issue/command.ts`'s `consolidate`
+function): the real order is `--repo`'s taxonomy loaded → every child resolved/read (as part of
+`planConsolidation`, which also computes the label union/severity) → **the open-PR guard, which can
+refuse the entire call right here** → only then `attachSub` (the sub-issue writes) → only then the
+per-child closes. **The guard runs before the attach, not immediately before the close** — stronger
+than "attach, then guard, then close": a child still carrying an open PR at this point is refused
+before it is ever attached to the consolidated issue's graph, not merely left unclosed after being
+attached. (`SKILL.md` § 5 step 3 previously described the weaker ordering; corrected there too.)
 
 ### 2.6 — `nen ref format`, real objects, and a documentation gap
 
@@ -235,6 +260,10 @@ itself never ran.
   quoted in § 1 row 7 and § 2.5) and the read-before-write ordering that precedes it
   (§ 2.4–2.5). The computation itself — which labels, in what precedence, become the "maximum" —
   is contract-inspection only, per the shared brief's explicit allowance for this exact situation.
+  **What was fully verified from source, without a live run**: the computation only works at all
+  when `--severity-family` is supplied — omitted, it silently breaks both the union and the
+  severity-max (§ 4 finding 5), which is not a live-observation gap but a documented, source-proven
+  behaviour.
 - **The comment-posting gap `file`'s own A/B doc already found (`docs/ab/file.md` § 3, finding 1)
   reappears here, sharper.** Neither `nen issue attach-sub` nor `nen issue consolidate-close`
   exposes a `--comment`/`--body` flag of any kind (confirmed against the full `--help` text, § 1's
@@ -258,13 +287,16 @@ itself never ran.
 ## 4. Findings (report separately, do not route around)
 
 1. **Neither `nen issue attach-sub` nor `nen issue consolidate-close` accepts a caller-supplied
-   close/attach comment.** The old skill's § 5 step 4 required naming, per member, "which section
-   absorbed it" — there is no flag on either verb to carry that text through. Worth filing against
-   `nen`: a `--comment`/`--body-template` on `consolidate-close` (or a documented convention for
-   what it posts today, if anything) would retire the last hand-authored text in this skill's
-   entire execution phase. Until then, the ported skill's plan (§ 4) states the attribution and
-   the report (§ 5 step 5) restates it, but nothing on GitHub itself carries that per-member
-   sentence the way a real close comment would.
+   close/attach comment.** `consolidate-close` posts only a fixed `"Consolidated into #N."`
+   (`nen` `v0.1.0` `src/issue/subissue.ts`'s `consolidateClose`, the literal comment text). The old
+   skill's § 5 step 4 required naming, per member, "which section absorbed it" — there is no flag
+   on either verb to carry that text through. **Compensating step added to `SKILL.md` § 5** (after
+   step 3): post one `gh issue comment <child#> --body "<section that absorbed it>"` per closed
+   child, immediately after `consolidate-close` returns — this stays a raw `gh` call by necessity,
+   the same class of gap `file`'s own A/B doc already found for a general comment primitive, now
+   confirmed absent from these two purpose-built verbs specifically. Worth filing against `nen`
+   separately: a `--comment`/`--body-template` on `consolidate-close` would retire this last
+   hand-authored call in the skill's execution phase.
 2. **`nen ref format`'s printed usage line omits a flag it requires.** `--repo <path>` is not in
    `nen ref --help`'s own usage string but is both accepted and necessary (§ 2.6) — a caller
    reading only the printed help would hit the taxonomy-missing refusal on the first real attempt.
@@ -272,14 +304,35 @@ itself never ran.
    (`docs/ab/file.md` § 2.7), now seen on a second, unrelated verb family — worth a documentation
    pass across `nen ref`, and possibly a wider sweep of other verbs' printed usage lines against
    their actual accepted flags.
-3. **`fallbackTaskList`'s non-null behaviour is unverified.** The JSON schema (§ 2.4) carries the
-   field, but every live failure this port could safely trigger was a 404-class "the repository
-   does not exist" failure, not the "the repository exists but its sub-issues API is unavailable"
-   condition the fallback is presumably for. No repository available to this port's safe testing
-   surface (a nonexistent repo, or a real repo this build must not mutate) could exercise that
-   path. Flagged for whoever next touches a repository old enough, or configured oddly enough,
-   to lack native sub-issues support.
+3. **`fallbackTaskList` is DETECTED, never PERFORMED — confirmed from source, not merely
+   inferred.** `nen` `v0.1.0`'s `src/issue/subissue.ts` header states this outright ("FALLBACK IS
+   DETECTED, NOT PERFORMED... it does not rewrite a body on its own"). The JSON schema (§ 2.4)
+   carries the field, but every live failure this port could safely trigger was a 404-class "the
+   repository does not exist" failure, not the "the repository exists but its sub-issues API is
+   unavailable" condition the fallback is for, so the condition itself was never observed live. The
+   source is unambiguous regardless: **relaying the field is not enough — `SKILL.md` § 5 step 4 now
+   requires the skill itself to perform the fallback write** (`gh issue edit` appending the returned
+   task-list lines to the parent's body) and re-verify it landed, whenever `fallbackTaskList` comes
+   back non-null. No repository available to this port's safe testing surface (a nonexistent repo,
+   or a real repo this build must not mutate) could exercise the condition live; flagged for
+   whoever next touches a repository old enough, or configured oddly enough, to lack native
+   sub-issues support, to confirm the write-it-yourself instruction against a real firing.
 4. **No missing verb found among the read-only half.** `nen backlog fetch`, `nen issue search`,
    `nen issue open-pr-check` and `nen ref format` between them cover every deterministic step this
    skill's planning phase (§§ 2–4) needs, and all four were run live against the real
    `zheref/bankai-core` backlog with real, checkable results (§§ 2.1–2.3, 2.6).
+5. **`nen issue consolidate-close`'s `--severity-family` is undocumented, and silently wrong when
+   omitted — proven from source, not inferred.** Neither `nen issue consolidate-close --help` nor
+   `nen issue --help` mentions `--severity-family` anywhere in their printed text, yet the flag is
+   declared and accepted (`nen` `v0.1.0` `src/issue/command.ts`'s `flags.values` list, and its
+   `consolidate` function reads `context.args.values["severity-family"] ?? ""` at line 346).
+   Omitting it defaults the family to `""`, and `src/issue/subissue.ts`'s `planConsolidation`
+   (lines 213–238) then never matches any real severity label's `namespace:family` (e.g.
+   `bankai:severity`) against that empty string — so **severity-max never fires** (the consolidated
+   issue is filed with no severity) **and every severity label folds into the general label union
+   instead of being excluded from it** (the consolidated issue can end up carrying several
+   contradictory severities at once). `SKILL.md` § 5 step 3 now states `--severity-family
+   bankai:severity` explicitly in the command and documents this failure mode in full; worth filing
+   against `nen` separately, both for the missing `--help` text and for whether an empty
+   `--severity-family` should instead refuse the call outright rather than silently computing a
+   wrong union.

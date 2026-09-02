@@ -72,14 +72,19 @@ to `all` and never a guess).
 > resolved repo's issues plainly converge on product features rather than process, say so plainly
 > and ask whether this is really the intended target, rather than running the wrong analysis.
 
-> ⚠️ **The resolved target must never be `bankai-core` (`BC`).** bankai-core is **frozen** —
-> every sibling port that touches it says so, and this skill's whole job in § 5 is to *write*
-> (file, attach, close, label). If `nen repo resolve` resolves to `zheref/bankai-core`, **refuse
-> the run** and say why: bankai-core's own process backlog no longer takes writes from any tool,
-> this skill included. Read-only reference against bankai-core (as evidence, as a worked example,
-> as a second opinion) is fine — § 2–§ 4 may run against it to *plan* — but § 5 never executes
-> there. The live A/B evidence in `docs/ab/backlog-synthesis.md` reads bankai-core's real backlog
-> for exactly this reason: it is the richest real dataset available, read-only throughout.
+> ⚠️ **`bankai-core` (`BC`) never takes a write from this skill — but that is a limit on § 5
+> (execution), not a blanket refusal of every use of this skill against it.** bankai-core is
+> **frozen** — every sibling port that touches it says so, and this skill's whole job in § 5 is to
+> *write* (file, attach, close, label). **Refuse specifically at § 5**: if the invocation's own
+> target — the repo whose backlog this run intends to file into, attach against and close issues
+> in — resolves to `zheref/bankai-core`, say so and stop before any write, because bankai-core's
+> own process backlog no longer takes writes from any tool, this skill included. **This does not
+> forbid §§ 2–4 (fetch, group, plan) from reading bankai-core** — as the invocation's own read-only
+> planning target (producing a plan that is itself never executed against it), as evidence, as a
+> worked example, or as a second opinion while synthesizing a *different* repo's backlog. The live
+> A/B evidence in `docs/ab/backlog-synthesis.md` reads bankai-core's real backlog for exactly this
+> reason: it is the richest real dataset available, read-only throughout, and no A/B run of this
+> port ever executed § 5 against it.
 
 ## 2. Fetch the whole set — no caps, no samples
 
@@ -138,7 +143,8 @@ turned here toward clustering instead of deduplication: the `files-and-rule-ids`
 surface every other open issue sharing a file, a clause or a lane, mechanically, without
 re-deriving the query by hand. **Verified live against the real `zheref/bankai-core` backlog**
 (`docs/ab/backlog-synthesis.md` § 2.2): a search on `scripts/pr_ready_gate.sh` + `CON-32` surfaced
-a nine-issue cluster sharing both signals — real grouping input, not a fabricated example.
+a seven-issue cluster (`#912, #877, #914, #791, #538, #539, #771`) sharing both signals — real
+grouping input, not a fabricated example.
 
 **Four anti-rules, and they matter more than the signals** — an over-eager grouping destroys
 information that took weeks to accumulate:
@@ -247,19 +253,58 @@ force the plan's original classification through**.
 
 ```bash
 nen issue consolidate-close --target <owner/name> --parent <consolidated#> \
-  --children <closeSet> --repo <path>
+  --children <closeSet> --repo <path> --severity-family <the target repo's severity label family>
 ```
 
-This **is** the file→attach→close choreography's second and third acts in one call: it resolves
-each child's id (the sub-issues API takes an id, not a number — the old skill's own parenthetical
-about this is now the verb's job, not a step to remember), attaches every child as a sub-issue of
-the parent, runs the **same** `open-pr-check` guard over the whole set **again** immediately before
-closing (refusing the *entire* close and naming the blocking PRs if anything slipped through step
-2), and only then closes each child — reporting the **label union** and **severity maximum** it
-computed from the children's own current labels as it goes. **Cross-check that computed union
-against the plan's own union and severity call** — a mismatch means a child's labels moved between
-the plan and this execution, and that discrepancy is surfaced, never silently reconciled by
-trusting whichever number is newer.
+> ⚠️ **`--severity-family` is not optional in practice, even though `nen` lets you omit it.**
+> **Finding, load-bearing, proven from source
+> (`nen` `v0.1.0` `src/issue/subissue.ts:213-238`, `src/issue/command.ts:346`):** when
+> `--severity-family` is omitted, `command.ts:346` defaults it to the empty string
+> (`context.args.values["severity-family"] ?? ""`), and `subissue.ts`'s `planConsolidation` then
+> compares each label's own `namespace:family` (e.g. `bankai:severity`, from
+> `bankai:severity/critical`) against that empty string — never equal, so **no label is ever
+> recognised as a severity**. Two silent consequences follow, both wrong: `severity` never gets set
+> (severity-max never fires — the consolidated issue is filed with no severity carried forward at
+> all), and every severity label on every child (`bankai:severity/critical`, `.../high`, …) falls
+> into the **general label union** instead of being excluded from it — so the consolidated issue can
+> end up labelled with several contradictory severities at once, the exact "state-machine
+> violation" `subissue.ts`'s own header comment says a single severity label must never become.
+> **This is entirely undocumented**: `nen issue consolidate-close --help` and `nen issue --help`
+> print no mention of `--severity-family` at all, despite the flag being declared and accepted
+> (`command.ts`'s own `flags.values` list) — a caller reading only the printed help would never
+> know to pass it. **Always pass `--severity-family bankai:severity`** (this repository's real
+> severity family prefix, read from `schemas/labels.json` at the snapshot — every severity label
+> there is `bankai:severity/<level>`) explicitly; never rely on the default.
+
+This **is** the file→attach→close choreography's second and third acts in one call, and its actual
+internal order is **stronger than "attach, then guard, then close"**: `nen` first resolves every
+child (reading each one to compute the label union/severity plan), then runs the **same**
+`open-pr-check` guard over the whole set **again** — this time **before attaching anything** —
+refusing the *entire* call and naming the blocking PRs if anything slipped through step 2, and only
+if the guard clears does it proceed to attach every child as a sub-issue of the parent and then
+close each one. So a child that still carries an open PR at this point is never even attached to
+the consolidated issue, not merely left unclosed — reporting the **label union** and **severity
+maximum** it computed from the children's own current labels as it goes, **provided
+`--severity-family` named the real family** (see the finding above — omitting it silently breaks
+both computations at once).
+**Cross-check that computed union against the plan's own union and severity call** — a mismatch
+means a child's labels moved between the plan and this execution, and that discrepancy is surfaced,
+never silently reconciled by trusting whichever number is newer.
+
+> **Compensating step, required immediately after `consolidate-close` returns: post the
+> "which section absorbed it" comment by hand, per child.** The old skill's own § 5 step 4
+> required every close to carry a comment naming the consolidated issue **and which section of it
+> absorbed that member** — its own stated rationale: a member closed with only "consolidated into
+> #N" loses the one thing a later reader actually needs, *where in #N did my acceptance criteria
+> go*. `nen issue consolidate-close` posts only `"Consolidated into #N."` on each child (its own
+> `--help` and JSON report carry no `--comment`/`--body` flag of any kind — confirmed absent, not
+> merely unused; existing finding, `docs/ab/backlog-synthesis.md` § 4 finding 1) — the old skill's
+> obligation has no channel through the verb built for exactly this choreography. **So, for every
+> member `consolidate-close` just closed, run one more `gh issue comment <child#> --repo
+> <owner/name> --body "<text naming the section of #<parent> that absorbed this issue's acceptance
+> criteria>"`, immediately after the call returns, before moving to the next group.** This stays a
+> raw `gh` call by necessity, not a shortcut — neither `attach-sub` nor `consolidate-close` accepts
+> a comment body, so there is no verb to route this through instead.
 
 **4 — Attach the `linkOnlySet`, without closing:**
 
@@ -274,15 +319,25 @@ close one of these anyway (their call, made with the open PR in front of them), 
 to step 3's `closeSet` instead, with `--allow-open-pr` passed to `consolidate-close` for that call
 only — never applied blanket to a set the plan did not name it for.
 
-> **`nen issue attach-sub`'s JSON result carries a `fallbackTaskList` field** — when the sub-issues
-> API is unavailable for the target repository, the verb falls back to a task-list block in the
-> parent's body and reports which form it used, rather than the caller needing to detect the
-> failure and improvise the fallback itself. **Not verified live**: every repo this port's A/B
-> pass tested (`zheref/bankai-core`, and a refused nonexistent-repo probe) supports the sub-issues
-> API natively or fails before the fallback path is reached, so the fallback never fired in
-> practice — `docs/ab/backlog-synthesis.md` § 3 records this as inferred from the JSON schema, not
-> observed. **Relay whichever form the JSON reports** — a claimed sub-issue graph that does not
-> exist misleads every later sweep, same warning the old skill's own prose carried.
+> **`nen issue attach-sub`'s JSON result carries a `fallbackTaskList` field — but the verb only
+> DETECTS the fallback condition, it never performs the fallback write.** Proven from source
+> (`nen` `v0.1.0` `src/issue/subissue.ts:19-24`, the module's own header comment: "FALLBACK IS
+> DETECTED, NOT PERFORMED... this module reports that condition and hands back the exact task-list
+> lines; it does not rewrite a body on its own"). **This means relaying the field alone is not
+> enough — if `fallbackTaskList` comes back non-null, this skill must itself perform the write the
+> field describes**: take the returned task-list lines and fold them into the consolidated parent's
+> body with `gh issue edit <parent#> --repo <owner/name> --body "<parent's existing body, with the
+> returned task-list block appended>"`, then **re-verify** by re-reading the parent's body (`gh
+> issue view <parent#> --json body`) and confirming the task-list lines are actually present before
+> reporting the attach as done. Relaying the JSON field without performing this write leaves a
+> **claimed graph that does not exist** — exactly the failure mode the old skill's own prose warned
+> about, now with a concrete mechanism to avoid it rather than a restated warning. **Not verified
+> live**: every repo this port's A/B pass tested (`zheref/bankai-core`, and a refused
+> nonexistent-repo probe) supports the sub-issues API natively or fails before the fallback path is
+> reached, so the fallback condition never actually fired in practice —
+> `docs/ab/backlog-synthesis.md` § 3 records the field's *shape* as read from source and JSON
+> schema, not observed live; the write-it-yourself instruction above follows directly from the
+> source comment regardless of whether the condition has yet been observed to fire.
 
 **5 — Report**: the consolidated issues filed, the members closed and the members link-only-attached
 (each in object notation via `nen ref format`), the count before and after, the label union/severity
@@ -320,8 +375,11 @@ separate go-signal.
 
 ## 8. Hard limits
 
-- **Never runs § 5 against `bankai-core`.** It is frozen; a resolved target of `zheref/bankai-core`
-  refuses at § 1, before the fetch even runs.
+- **Never runs § 5 against `bankai-core`.** It is frozen; when the invocation's own resolved target
+  is `zheref/bankai-core`, the run stops before any write — but §§ 2–4 (fetch, group, plan) are not
+  themselves forbidden against it, per § 1's own carve-out: a plan may still be produced and
+  published for read-only reference, evidence, or as a worked example, it simply can never be
+  executed there.
 - **Never closes an issue the approved plan did not name**, and never before the consolidated issue
   exists and links it.
 - **Never hands a mixed close/link-only group to one `consolidate-close` call.** Partition first
