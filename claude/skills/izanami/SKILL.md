@@ -11,9 +11,9 @@ when he runs it.
 
 > **Keep checking this until that is true, then tell me.**
 
-Izanami is the **read-only** half of the loop pair. Its mutating twin is
-[`hatsu:izanagi`](../izanagi/SKILL.md), which requires an explicit cap in its grammar precisely
-because it acts. **The split is the safety property**: a loop that cannot write cannot compound a
+Izanami is the **read-only** half of the loop pair. Its mutating twin is `hatsu:izanagi` (lands
+with a later port of hatsu#2), which requires an explicit cap in its grammar precisely because it
+acts. **The split is the safety property**: a loop that cannot write cannot compound a
 mistake, however many times it runs.
 
 The old bankai-core skill enforced that split by an agent reading a hand-authored allow/refuse table
@@ -104,22 +104,39 @@ transcription from memory:
 
 | Allowed — verified `[read-only]` | Refused — verified `[mutating]` |
 |---|---|
-| `gh pr view`, `gh pr checks`, `gh pr list` | `git push`, `commit`, `merge`, `tag`, `rebase`, `reset`, `clean` (the classifier's own refused pattern: `^git\s+(push\|commit\|merge\|tag\|rebase\|reset\|clean)\b`) |
-| `gh issue view`, `gh issue list` | `gh api` with `-X POST`/`PUT`/`PATCH`/`DELETE` |
-| `gh run view`, `gh run list` | any invocation `nen parse izanagi` would need instead |
-| `gh api` (a plain GET, no `-X`) | |
-| `git fetch`, `log`, `diff`, `status`, `ls-tree`, `show` | |
+| `gh pr view`, `gh pr checks`, `gh pr list`, `gh pr diff`, `gh pr status` | `gh pr merge`, `gh pr comment`, `gh pr close`, `gh pr reopen` |
+| `gh issue view`, `gh issue list` | `gh issue create`, `gh issue edit`, `gh issue close` |
+| `gh run view`, `gh run list`, `gh run watch` | `gh label create`, `gh label edit`, `gh label delete` |
+| `gh repo view` | `gh release create`, `gh release edit`, `gh release delete` |
+| `gh api` (a plain GET, no `-X`) | `gh api` with `-X POST`/`PUT`/`PATCH`/`DELETE` |
+| `git fetch`, `log`, `diff`, `status`, `ls-tree`, `show` | `git push`, `commit`, `merge`, `tag`, `rebase`, `reset`, `clean` (the classifier's own refused pattern: `^git\s+(push\|commit\|merge\|tag\|rebase\|reset\|clean)\b`) |
+| `git branch` — **listing forms only**: bare, `-a`, `--list` | `git branch -D`, `git branch -m` (same family, delete/rename mutate) |
+| `git remote` — **listing forms only**: bare, `-v`, `show` | `git remote add`, `remove`, `rm`, `set-url`, `rename`, `prune`, `set-head` (same family, every mutating subcommand) |
+| | `git checkout -b` (branch creation) |
+| | any invocation `nen parse izanagi` would need instead |
+
+**This table is a sample, spot-verified live against the shipped binary, not an exhaustive
+transcription** — a command not listed here is checked with `nen parse izanami` before it is ever
+handed to `nen watch until`, never assumed from this table by analogy. Note in particular that
+`git branch` and `git remote` split **within the same family**: the bare/listing form is
+`[read-only]`, a specific mutating subcommand of the same command is `[mutating]` — the classifier
+looks at the full shape, not just the leading verb.
+
+**Where `nen` is stricter than the old skill's prose table — a behavior change, not a bug:** the old
+allow table admitted "reading a file, running a checker script" by category. `nen`'s classifier has
+no such category — anything it does not recognize as one of the specific `git`/`gh` shapes above is
+`[unknown]`, and **`[unknown]` refuses exactly like `[mutating]`** (§ 4 finding 1). A command the old
+skill would have allowed by eye can now be refused outright. This is disclosed, not routed around.
 
 **`git fetch` is allowed and is usually required** — it writes only to local refs, and a watch that
 never fetches watches a frozen picture. It is the one write-shaped thing that is genuinely
 observation, and it classifies `[read-only]` exactly as the old skill's table said it should.
 
 Skill-level refusals the classifier cannot see — because they are not shell commands at all — stay a
-judgment rule, unchanged from the old skill: never run
-[`drive`](../drive/SKILL.md), [`build`](../build/SKILL.md), [`file`](../file/SKILL.md),
-[`tensho`](../tensho/SKILL.md), [`jujisho`](../jujisho/SKILL.md), [`getsuga`](../getsuga/SKILL.md),
-[`backlog-synthesis`](../backlog-synthesis/SKILL.md) or [`backlog-loop`](../backlog-loop/SKILL.md)
-inside a watch, and never post a comment, apply a label or publish an Artifact as part of one.
+judgment rule, unchanged from the old skill: never run `drive`, `build`, `file`, `tensho`,
+`jujisho`, `getsuga`, `backlog-synthesis` or `backlog-loop` (each lands with a later port of
+hatsu#2) inside a watch, and never post a comment, apply a label or publish an Artifact as part of
+one.
 [`backlog-state`](../backlog-state/SKILL.md), reading a page, and a genuinely read-only checker script
 remain allowed **in spirit** — but see the finding below: not every one of those actually classifies
 `[read-only]` when handed to `nen` as a `--command`.
