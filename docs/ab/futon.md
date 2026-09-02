@@ -1,5 +1,10 @@
 # A/B evidence — `futon`
 
+Run: 2026-09-02T02:37Z (UTC) for the original port session (commit `876efa7`, authored
+`2026-09-01T21:37:43-05:00`) — every transcript below except § 5. § 5's `nen loop slots`
+transcripts were re-run for the M1 review-finding fix at 2026-09-02T02:50–02:52Z (UTC); see the
+correction note in § 5 itself.
+
 Port of `zheref/hatsu#2` for the `futon` skill. Method: the shared Stage-B brief
 (`STAGE-B-SHARED-BRIEF.md`) — a command mapping table, live read-only transcripts against the real
 `zheref/bankai-core` backlog, and residue. `nen` verified: `C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`
@@ -330,20 +335,42 @@ CI-authored PR this port never created and never drives, reported here only beca
 
 ## 5. `nen loop slots` — both budgets, live, futon's own caps as defaults
 
+Efforts-file schema, confirmed live (`nen loop slots --help`): a JSON array of `{"id", "plane":
+"ci"|"local", "prOpen": bool, "ready": bool, "prompted": bool}`. The verb's own contract, quoted from
+that same `--help`: *"A CI slot frees when the PR OPENS ... A LOCAL slot frees only when the PR is
+READY and the human has been PROMPTED."* Readiness is irrelevant to the CI plane's own free rule.
+
 ```
 $ nen loop slots --efforts efforts.json --ci-cap 2 --local-cap 7
 ci: 1/2 occupied, 1 free
-    BC-IS-102: released, but no PR yet
+    BC-IS-950: released, but no PR yet
 local: 6/7 occupied, 1 free
     BC-IS-201: PR open but not ready -- nothing else is behind a locally-authored PR, so this run still owns it
     BC-IS-203: ready, but the human has not been prompted -- readiness nobody was told about is not a handover
-    BC-IS-204/205/206/207: PR open but not ready -- ...
-freed: BC-IS-101, BC-IS-202
+    BC-IS-204: PR open but not ready -- nothing else is behind a locally-authored PR, so this run still owns it
+    BC-IS-205: PR open but not ready -- nothing else is behind a locally-authored PR, so this run still owns it
+    BC-IS-206: PR open but not ready -- nothing else is behind a locally-authored PR, so this run still owns it
+    BC-IS-207: PR open but not ready -- nothing else is behind a locally-authored PR, so this run still owns it
+freed: BC-IS-939, BC-IS-202
 exit 0
 ```
-`efforts.json` mixed one real CI-plane row modelled on the live `BC#925` fact (open, not ready, no
-one prompted since this run doesn't drive it) with clearly-synthetic local-plane rows to demonstrate
-the cap boundary — the run itself never fabricated seven real local PRs.
+`efforts.json` carries **one CI-plane row that genuinely models the live `BC#925` fact** —
+`BC-IS-939` (`bankai-core` issue `#939`'s own number), `prOpen: true, ready: false` — plus **one
+clearly-synthetic CI-plane row with no live counterpart**, `BC-IS-950`, `prOpen: false`, to
+demonstrate the occupied case; and six clearly-synthetic local-plane rows to demonstrate the cap
+boundary. The run itself never fabricated seven real local PRs.
+
+> **Correction (M1, adversarial review).** An earlier version of this section named the
+> occupied-CI row `BC-IS-102` and described it as *"modelled on the live `BC#925` fact (open, not
+> ready)"* — but `BC#925` **is** open (`PR-#925`, verified live, § 2/§ 4 above), and the verb's own
+> contract (quoted above) frees a CI slot the moment the PR opens, regardless of readiness. A row
+> claiming to model `BC#925` while sitting at `prOpen: false` was simply inconsistent with itself,
+> and the earlier transcript never actually showed what its own prose claimed. Rebuilt above: the
+> truthful `BC#925` row (`BC-IS-939`, `prOpen: true`) now shows up in `freed:` where the contract
+> puts it, and the occupied-CI example (`BC-IS-950`) is honestly labelled synthetic instead of
+> borrowing a live fact it didn't match. The occupied/free counts (`ci: 1/2`, `local: 6/7`) are
+> unchanged from the earlier section — only which row is which, and what each is honestly said to
+> model, changed. `SKILL.md` § 6's own prose is corrected to match.
 
 **Confirmed `--ci-cap`/`--local-cap` defaults, run with no override flags at all**:
 ```
@@ -361,9 +388,21 @@ happens to match today.
 ```
 $ nen loop slots --efforts efforts_full.json --ci-cap 2 --local-cap 7
 ci: 2/2 occupied, 0 free  <- BINDING
+    BC-IS-950: released, but no PR yet
+    BC-IS-951: released, but no PR yet
 local: 7/7 occupied, 0 free  <- BINDING
+    BC-IS-201: PR open but not ready -- nothing else is behind a locally-authored PR, so this run still owns it
+    BC-IS-203: ready, but the human has not been prompted -- readiness nobody was told about is not a handover
+    BC-IS-204: PR open but not ready -- nothing else is behind a locally-authored PR, so this run still owns it
+    BC-IS-205: PR open but not ready -- nothing else is behind a locally-authored PR, so this run still owns it
+    BC-IS-206: PR open but not ready -- nothing else is behind a locally-authored PR, so this run still owns it
+    BC-IS-207: PR open but not ready -- nothing else is behind a locally-authored PR, so this run still owns it
+    BC-IS-208: PR open but not ready -- nothing else is behind a locally-authored PR, so this run still owns it
 exit 1
 ```
+Both CI rows here are clearly-synthetic no-PR-yet rows — a genuinely-open CI PR would just free its
+own slot, so filling the CI plane to capacity necessarily means two rows with no live counterpart,
+never two facts like `BC#925`.
 
 ## 6. `nen release preflight` / `nen fanout` — confirmed as `getsuga`'s own verbs, not `futon`'s
 

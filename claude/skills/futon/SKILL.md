@@ -48,7 +48,10 @@ three things and `backlog-loop` wins on everything else:
 > whose PR was **already open before this run started**, authored by a CI identity that predates
 > the migration and belongs to the *target* repository's own machinery (not Hatsu's) —
 > `zheref/bankai-core#939`, whose PR `BC-PR-#925` was opened by `app/kisuke-bankai[bot]` before the
-> freeze, is exactly this, verified live (`docs/ab/futon.md` § 2). That PR keeps **its own** done
+> freeze, is exactly this, verified live (`docs/ab/futon.md` § 2). **Detected mechanically, not
+> eyeballed**: the PR author's login matches a bot/App identity pattern — a `[bot]` suffix or an
+> `app/` prefix — read via `gh pr view --json author`; `app/kisuke-bankai[bot]` is exactly that
+> pattern, the concrete instance above. That PR keeps **its own** done
 > rule — open is its milestone, because something else was once driving it — and occupies the **CI**
 > half of § 6's two budgets. `futon` never *creates* a new one: it cannot route to a plane that does
 > not exist for Hatsu, and on `bankai-core` specifically no new one is even possible — the repo is
@@ -277,11 +280,14 @@ are exactly what the verb already assumes; passing them explicitly is a belt-and
 habit, not a correction (`docs/ab/futon.md` § 5).
 
 Two exercised transcripts, built from a mix of the two real open PRs above plus clearly-labelled
-illustrative fill (`docs/ab/futon.md` § 5): with one CI PR pre-existing and open (`BC#925`, not yet
-ready — irrelevant to its own plane's free rule) and six local efforts none yet Ready-and-prompted,
-`ci: 1/2 occupied, 1 free` / `local: 6/7 occupied, 1 free`, exit `0`; fill both planes to capacity
-and the report reads `ci: 2/2 occupied, 0 free <- BINDING` / `local: 7/7 occupied, 0 free <-
-BINDING`, exit `1`. **The two budgets are never traded against each other** — the local budget
+illustrative fill (`docs/ab/futon.md` § 5): `BC#925` modelled truly (`prOpen: true, ready: false`)
+already shows up in `freed:` — the PR **opening** is what frees a CI slot, readiness is irrelevant to
+that plane's rule — while one clearly-synthetic CI-plane row with no live counterpart (no PR yet)
+still occupies the other slot, alongside six clearly-synthetic local efforts none yet
+Ready-and-prompted: `ci: 1/2 occupied, 1 free` / `local: 6/7 occupied, 1 free`, exit `0`; fill both
+planes to capacity (both CI rows synthetic and PR-less, since a genuinely-open CI PR would just free
+its own slot) and the report reads `ci: 2/2 occupied, 0 free <- BINDING` / `local: 7/7 occupied, 0
+free <- BINDING`, exit `1`. **The two budgets are never traded against each other** — the local budget
 filling up and staying full while its PRs work through review rounds is back-pressure, not a bug:
 it stops the run from authoring more locally than it can actually drive to the gate. Never let two
 efforts, in either plane, touch one file.
