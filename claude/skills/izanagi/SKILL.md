@@ -169,7 +169,10 @@ Each iteration, in order:
 
 1. **Re-read live state and evaluate the condition FIRST**, before acting. Never act on the
    previous iteration's picture; that is how a loop repeats an action that already succeeded. If
-   the condition already holds, stop — iteration 0 counts.
+   the condition already holds before any act has run, stop and report it as **iteration 0** — a
+   reporting label for "true before the loop ever acted," never one of the N acting iterations.
+   **Iteration 0 does not spend the cap**: it costs nothing against `N`, so if the pre-check instead
+   finds the condition not yet true, the loop still has all N acting iterations available to it.
 2. **Run the task**, under § 2.
 3. **Re-evaluate**, and report **one line**: iteration number, what was done, what changed, and the
    condition's current value.
@@ -185,8 +188,12 @@ nen watch until --command "<the read-only condition check>" [--true-pattern <reg
 
 `--max-iterations 1` makes this exactly one observation: exit `0` means the condition is already
 true, exit `1` means "not yet true" (never treated as an error), and an observation error is
-reported and relayed as such, never silently folded into "not yet". **Verified live**, the same
-condition false, then true, then reused against a real target:
+reported and relayed as such, never silently folded into "not yet". When this call is the very
+first one of the run — before any act — an exit `0` here is exactly the **iteration 0** case (§ 3's
+opening step): reported, but not counted against the cap. Every other call to this same command,
+before or after an iteration's act, is an ordinary part of that iteration's own step 1 or step 3,
+not a fresh "iteration 0". **Verified live**, the same condition false, then true, then reused
+against a real target:
 
 ```
 $ nen watch until --command "git diff" --true-pattern "DONE" --max-iterations 1 --cwd . --interval-ms 100
@@ -238,7 +245,10 @@ Reused single-shot per iteration above, it bounds *one condition check*, not the
 iterations. **Counting 1..N mutating iterations and stopping at the cap is the skill's own
 responsibility**, exactly as it was in the old skill's prose loop — `nen` gives it a parsed,
 refusal-enforced `N` to count against, and a mechanical per-check truth reading, but the counting
-itself is not delegated to any verb.
+itself is not delegated to any verb. **The count starts at iteration 1's act, not at iteration 0's
+pre-check** (§ 3's opening step): iteration 0 is a reporting label for a condition already true
+before anything ran, spends none of the cap, and when the condition is *not* already true the loop
+still has the full N acting iterations ahead of it.
 
 **Verified live — the full composed loop, converging before the cap** (`cap: 5`, condition becomes
 true on the act itself, at iteration 3):

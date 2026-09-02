@@ -180,6 +180,12 @@ $ echo $?
 1
 ```
 
+Note: the `(exit N)` inside each bracketed `[k] condition is/is not yet true (exit N)` line is the
+**watched command's** own exit code (`git diff --stat` here, which always exits `0` whether or not
+its output matches) — not `nen watch until`'s own exit status. That process-level status is the
+separate `$ echo $?` after the whole invocation returns (`1` above, for the cap reached without the
+condition becoming true).
+
 **Full composed loop, demonstrating izanagi's OWN mandatory cap** (which `nen` does not enforce —
 the skill counts it), reusing `nen watch until --max-iterations 1` as the per-iteration condition
 check:
@@ -222,6 +228,10 @@ $ echo $?
 0
 report: [3] appended 'DONE'; condition TRUE -- stop, cap (5) not reached
 ```
+
+Note: as in § 2.4, each `(exit N)` inside a bracketed `[k] condition is/is not yet true (exit N)`
+line is `git diff`'s own exit code (the watched command), not `nen watch until`'s — the invocation's
+own process exit status is the standalone `$ echo $?` line after it returns.
 
 Cap-out (`cap: 3`, the condition never becomes true — a fresh scratch file, watching for `FINISHED`
 instead of `DONE`):
