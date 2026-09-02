@@ -11,6 +11,9 @@ local variant, because there is no CI run to name. The git author is always the 
 **This file is the authority on who exists and what standing they have.** The agent definitions in
 `claude/agents/` are the authority on what each one does.
 
+> **Redaction notice.** Where this roster and the agent definitions it points at name a repository that
+> is not public, the name is a stable placeholder — see [`PUBLIC-REDACTION.md`](PUBLIC-REDACTION.md).
+
 ---
 
 ## Kurapika — the lead persona
@@ -32,7 +35,7 @@ believes he is holding, so they can catch him holding the wrong one before he ac
 | **Emitter** | **Release & fan-out** — the tag cut, changelog collation, preflight, and the repin fan-out across consumers. Prepares a release; never publishes one. | **G3** stays the human's (`CON-6`) |
 | **Specialist** | **Product intake** — his kept Product-Owner canon. A raw thought elicited into a decision-complete brief, filed only on explicit confirmation. | **G1** stays the human's (`CON-4`) |
 
-**Kurapika is local-only.** His prior trajectory in bankai-core canon — local surface retired into another
+**Kurapika is local-only.** His prior trajectory in the upstream canon — local surface retired into another
 persona's nature, himself earmarked as a CI Product-Owner App — is **superseded** by the ratified migration
 plan (maintainer decision, recorded in the plan's corrections section). The Product-Owner canon is not lost;
 it is his Specialist mode.
@@ -55,13 +58,12 @@ Four, each with a discipline Kurapika delegates to rather than absorbing.
 The clause that would make a gate-crossing grant *valid* — **mission · gates · conditions · expiry ·
 logging**, the `CON-25` carve-outs generalized — is **drafted in this repository** at
 [`docs/delegation-grammar-DRAFT.md`](delegation-grammar-DRAFT.md) and **ratified elsewhere**: with the
-rewritten constitution at [zheref/akatsuki-ai#5][a5], a **G4-class** review. This is **OPEN-2**.
+rewritten constitution in the migration tracker (private), a **G4-class** review. This is **OPEN-2**.
 
 No grant can be given today, because there is no valid form for one to take. Gon does the work, takes it to
 the gate, and **stops there**, exactly as every agent does by default. A delegate that acts on a draft has
 ratified the draft by itself.
 
-[a5]: https://github.com/zheref/akatsuki-ai/issues/5
 
 ---
 
@@ -165,7 +167,7 @@ delivered, and a **filed issue** for a substantive finding of the agent's own.
 | Item | What is open | Where it is decided |
 |---|---|---|
 | **OPEN-1** | Illumi's and Killua's final roles | A G4-class ruling by the maintainer. **Unmade.** |
-| **OPEN-2** | Gon's delegation-grammar clause | Drafted here; ratified with the P3 constitution at [zheref/akatsuki-ai#5][a5]. **Until then, Gon crosses no gate.** |
+| **OPEN-2** | Gon's delegation-grammar clause | Drafted here; ratified with the P3 constitution in the migration tracker (private). **Until then, Gon crosses no gate.** |
 | **OPEN-3** | Genei Ryodan bench adoption — which profiles activate, and when | Unscheduled. **Bench doc only.** |
 
 **None of these is resolved by this document, and none may be resolved by reading it confidently.**
@@ -174,11 +176,11 @@ delivered, and a **filed issue** for a substantive finding of the agent's own.
 
 ## Sources
 
-- The ratified migration plan — [`docs/migration/the-akatsuki-migration.html`](https://github.com/zheref/akatsuki-ai/blob/main/docs/migration/the-akatsuki-migration.html)
-  in `zheref/akatsuki-ai`: §1 (target architecture), §4 (the Hatsu roster, and the local-plane row), D10
-  (the Nen dependency), D17 (local DX ships first), §12 (the P2 card), §13 (the OPEN items). **It supersedes
-  bankai-core canon.**
+- The ratified migration plan, held in the migration tracker (private): §1 (target architecture), §4 (the
+  Hatsu roster, and the local-plane row), D10 (the Nen dependency), D17 (local DX ships first), §12 (the P2
+  card), §13 (the OPEN items). **It supersedes the upstream constitution and handbooks.**
 - Anything not stated there or in [zheref/hatsu#1](https://github.com/zheref/hatsu/issues/1) resolves through
-  bankai-core canon, cited by path and rule id: `CONSTITUTION.md`, `handbooks/quality-baseline.md`
-  (`QA-{n}`), `handbooks/ux-baseline.md` (`UX-{n}`), `handbooks/uzf-core.md` (`UZF-26`). bankai-core is
-  **frozen**; read it at its snapshot tag, never at `main`, and never write to it.
+  the upstream constitution and handbooks — the canon of the frozen reference implementation, cited by path
+  and rule id: `CONSTITUTION.md`, `handbooks/quality-baseline.md` (`QA-{n}`), `handbooks/ux-baseline.md`
+  (`UX-{n}`), `handbooks/uzf-core.md` (`UZF-26`). That repository is **frozen**; read it at its snapshot tag,
+  never at `main`, and never write to it.

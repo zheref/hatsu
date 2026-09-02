@@ -16,7 +16,7 @@ Izanami is the **read-only** half of the loop pair. Its mutating twin is
 because it acts. **The split is the safety property**: a loop that cannot write cannot compound a
 mistake, however many times it runs.
 
-The old bankai-core skill enforced that split by an agent reading a hand-authored allow/refuse table
+The old `<reference-repo>` skill enforced that split by an agent reading a hand-authored allow/refuse table
 by eye, every invocation. This port replaces both halves of that with `nen`: `nen parse izanami`
 splits and classifies the invocation before iteration 1, and `nen watch until` runs the loop itself —
 fetch, evaluate, report one line, pace, stop. Judgment stays where the old skill kept it: naming which
@@ -49,9 +49,9 @@ classification tag — `[read-only]`, `[mutating]` or `[unknown]` — before any
 **Verified live**, first form, all read-only:
 
 ```
-$ nen parse izanami "gh pr checks 925 --repo zheref/bankai-core until they are all green"
+$ nen parse izanami "gh pr checks 925 --repo <reference-repo> until they are all green"
 until: they are all green
-  [read-only] gh pr checks 925 --repo zheref/bankai-core
+  [read-only] gh pr checks 925 --repo <reference-repo>
 $ echo $?
 0
 ```
@@ -60,9 +60,9 @@ Second form (`until <condition>` with commands on following lines — pass the w
 newline-separated argument):
 
 ```
-$ nen parse izanami $'until they are all green\ngh pr checks 925 --repo zheref/bankai-core'
+$ nen parse izanami $'until they are all green\ngh pr checks 925 --repo <reference-repo>'
 until: they are all green
-  [read-only] gh pr checks 925 --repo zheref/bankai-core
+  [read-only] gh pr checks 925 --repo <reference-repo>
 $ echo $?
 0
 ```
@@ -226,7 +226,7 @@ already prints one line and stops there.
 | `2` | The invocation itself was refused before the loop ever started (a mutating/unknown `--command`) |
 
 **Verified live A/B transcripts backing every row above are in `docs/ab/izanami.md` § 2** — a genuine
-false→true multi-iteration watch over a real `git diff --stat` condition, a bankai-core read-only watch
+false→true multi-iteration watch over a real `git diff --stat` condition, a `<reference-repo>` read-only watch
 that is already true on the first observation (`gh pr view … --json state`), a refused mutating
 `--command` (`git push origin main`), and a 3-consecutive-error stop against a nonexistent PR number.
 

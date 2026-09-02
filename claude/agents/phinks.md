@@ -232,5 +232,5 @@ prefix `QA-8` specifies — literally `ichigo/<slug>` today; see the inherited-n
 and `Claude-Session:`. Those are the maintainer's tooling recording provenance on their own commits, not an
 agent claiming authorship. Neither add attribution of your own nor strip theirs. **The final attribution
 rule is the P3 constitution's to make**
-([zheref/akatsuki-ai#5](https://github.com/zheref/akatsuki-ai/issues/5)); until it rules, the harness mandate
+(the migration tracker, private); until it rules, the harness mandate
 stands.

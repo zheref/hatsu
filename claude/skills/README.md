@@ -11,11 +11,17 @@ reserved any more, and nothing here is a placeholder.
 Each skill is a directory holding a `SKILL.md` with `name` and `description` frontmatter. Invoke one as
 `hatsu:<name>`.
 
+> **Redaction notice — applies to every file under `claude/`.** These skills and agents quote real tool
+> output in which the names, slugs and object ids of repositories that are not public are replaced by
+> stable placeholders (`<reference-repo>`, `<product-repo-A>`, `RR-IS-#<n>`, `RA-PR-#<n>`, …). The
+> transcripts are otherwise verbatim. The legend and the deliberate survivors are documented once, in
+> [`docs/PUBLIC-REDACTION.md`](../../docs/PUBLIC-REDACTION.md).
+
 ---
 
 ## The seventeen ported skills
 
-Ported from bankai-core **under their existing names** — only the mechanics changed: **every deterministic
+Ported from the frozen reference implementation **under their existing names** — only the mechanics changed: **every deterministic
 step that has a verb** is a [Nen](https://github.com/zheref/nen) verb, where it used to be improvised shell
 (`gh`, `git`, hand-rolled API calls). What stayed with the skill is deliberate — severity reasoning,
 synthesized titles, root-cause grouping, the adversarial confirmation pass, and the *ask* on every flagged

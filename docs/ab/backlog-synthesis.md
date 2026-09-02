@@ -13,10 +13,10 @@ ref format`, `nen repo resolve`, `nen stop`.
 
 Run: 2026-09-01 (local clock; today's date per session context). `nen` `0.1.0`
 (`<cache>\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`. Target
-for every read-only run: the live `zheref/bankai-core` backlog, `--repo` pointed at the local
-`bankai-core` checkout (working tree clean, read-only throughout — nothing was written back to
+for every read-only run: the live `<reference-repo>` backlog, `--repo` pointed at the local
+`<reference-repo>` checkout (working tree clean, read-only throughout — nothing was written back to
 it). **Per this build's explicit constraint (stricter than the shared brief's general one):
-`nen issue attach-sub` and `nen issue consolidate-close` were never run against `zheref/bankai-core`
+`nen issue attach-sub` and `nen issue consolidate-close` were never run against `<reference-repo>`
 at all, dry-run or not.** Their refusal-before-mutation shape was instead verified against a
 repository that does not exist (§ 2.4–2.5) — a target where no call, however shaped, can ever
 reach a real write — and their choreography against `--help`'s own contract text. A dry-run probe
@@ -24,7 +24,7 @@ against a real repository (`zheref/hatsu`, using its own two open issues) was at
 `attach-sub` and refused by the session's own auto-mode classifier before it ran at all (§ 2.6);
 recorded as residue, not routed around.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 Verdict parity between `nen pr ready` and `pr_ready_gate.sh` was already proven across the live
 estate by nen's shadow window (`docs/evidence/shadow-window-p1.md` in zheref/nen); this skill uses
@@ -36,7 +36,7 @@ no readiness verb, so that citation is inherited context, not independently re-p
 
 | # | Old (prose / hand-run `gh`) | New (`nen`) |
 |---|---|---|
-| 1 | "The repo is `bankai-core`" — hardcoded, no resolution step existed at all | `nen repo resolve <token>` / `nen repo resolve` (no token, cwd origin) — the same mechanism [`hatsu:file`](../../claude/skills/file/SKILL.md) § 1 and [`hatsu:backlog-state`](../../claude/skills/backlog-state/SKILL.md) § 1 already adopt; genuinely NEW here because the old skill never targeted anything but one fixed repo |
+| 1 | "The repo is `<reference-repo>`" — hardcoded, no resolution step existed at all | `nen repo resolve <token>` / `nen repo resolve` (no token, cwd origin) — the same mechanism [`hatsu:file`](../../claude/skills/file/SKILL.md) § 1 and [`hatsu:backlog-state`](../../claude/skills/backlog-state/SKILL.md) § 1 already adopt; genuinely NEW here because the old skill never targeted anything but one fixed repo |
 | 2 | "Fetch every open issue matching the filter … no silent caps … state the resolved set" — the agent ran `gh issue list --search "label:bankai:severity/high" --json ...` paged by hand, tracking whether a page came back short | `nen backlog fetch --repo-slug <owner/name>` (no `--limit`) — paginated automatically until a short page, `truncated` reported explicitly rather than inferred (verified live, § 2.1: 88 rows, `truncated: false`) |
 | 3 | Grouping signals 1–2 ("same clause", "same machinery file") confirmed by re-reading bodies and cross-referencing by eye, one candidate pair at a time | `nen issue search --files <f> --rule-ids <r> --lane-labels <l>` — the same verb `file` § 3 uses for duplicates, turned toward clustering: one call surfaces every open issue sharing a file, clause or lane (verified live, § 2.2 — a 22-row raw pass on `scripts/pr_ready_gate.sh` + `CON-32` narrowed to a real 7-member cluster) |
 | 4 | "An issue with an OPEN PR is `link-only`" — checked, per the old skill's own prose, by reading each candidate's timeline by eye for a referencing PR | `nen issue open-pr-check --target <o/n> --issues n,n,n` — one call, every open PR fetched once and matched against every candidate (verified live against a real cluster, § 2.3: flagged exactly the one member — `#877` — that carries an open PR, `#925`) |
@@ -62,18 +62,18 @@ whole computation.
 
 ## 2. Live A/B transcript (read-only)
 
-All against the real `zheref/bankai-core` backlog unless stated otherwise. `GH_TOKEN` exported
+All against the real `<reference-repo>` backlog unless stated otherwise. `GH_TOKEN` exported
 before every run.
 
 ### 2.1 — `nen backlog fetch`, uncapped, real counts
 
 ```
-$ nen backlog fetch --repo-slug zheref/bankai-core --json
+$ nen backlog fetch --repo-slug <reference-repo> --json
 ```
 
 ```json
 {
-  "repo": "zheref/bankai-core",
+  "repo": "<reference-repo>",
   "truncated": false,
   "rows": [ /* 88 entries */ ]
 }
@@ -87,7 +87,7 @@ uncapped fetch, exactly § 2's own requirement.
 ### 2.2 — `nen issue search`, a real clustering signal
 
 ```
-$ nen issue search --repo <bankai-core checkout> --target zheref/bankai-core \
+$ nen issue search --repo <reference-repo checkout> --target <reference-repo> \
     --subject "pr_ready_gate readiness" --files scripts/pr_ready_gate.sh \
     --rule-ids CON-32 --lane-labels bankai:agent/kisuke
 ```
@@ -115,7 +115,7 @@ another miscount.** Re-running the identical query today returns **24** rows on
 `files-and-rule-ids`, not 22: two issues absent from the original capture now match —
 `#935` ("[Machinery] Roll provenance-on-stderr + plugin-cache guard out to the rest of the
 verification script family") and `#938` ("port pr_ready_gate.sh's plugin-cache guard classification
-into cli/src/ports/pr_ready_gate.ts (BC-IS-#733 plane parity)") — both newly filed/labelled against
+into cli/src/ports/pr_ready_gate.ts (RR-IS-#733 plane parity)") — both newly filed/labelled against
 `scripts/pr_ready_gate.sh`/`CON-32` since the original run, both also present in the `lane` pass.
 This does not change the seven-member cluster this section's own analysis is built on (`#912, #877,
 #914, #791, #538, #539, #771` are unaffected — still present, still the same seven), but it is
@@ -133,7 +133,7 @@ issue bodies.
 ### 2.3 — `nen issue open-pr-check`, the same cluster, real open-PR result
 
 ```
-$ nen issue open-pr-check --repo <bankai-core checkout> --target zheref/bankai-core \
+$ nen issue open-pr-check --repo <reference-repo checkout> --target <reference-repo> \
     --issues 912,771,791,914,877,538,539
 ```
 
@@ -152,7 +152,7 @@ exit code: `1`.
 Applied to the ported skill's own § 5 partition: of this seven-member cluster, **six** would go to
 `closeSet` and **one** (`#877`) to `linkOnlySet` — exactly the shape § 5's mixed-group handling
 exists for. Also confirmed: this call needed **no `--repo`** at all — re-run from the `hatsu`
-worktree (`nen issue open-pr-check --target zheref/bankai-core --issues 877,538`, no `--repo`, no
+worktree (`nen issue open-pr-check --target <reference-repo> --issues 877,538`, no `--repo`, no
 local taxonomy file) produced the identical result. Matches `file`'s own finding for `issue search`
 (`docs/ab/file.md` § 2.2): the read-only issue verbs hit the GitHub API directly and never consult
 a local `schemas/*.json`.
@@ -189,7 +189,7 @@ own schema carries a fallback slot (§ 3, § 4 finding 3 for what remains unveri
 
 ```
 $ nen issue consolidate-close --target zheref/this-repo-does-not-exist-xyz123 --parent 1 \
-    --children 2,3 --repo <bankai-core checkout> --dry-run
+    --children 2,3 --repo <reference-repo checkout> --dry-run
 nen issue: could not read zheref/this-repo-does-not-exist-xyz123#2: gh: Not Found (HTTP 404)
 ```
 exit code: `1`.
@@ -210,10 +210,10 @@ attached. (`SKILL.md` § 5 step 3 previously described the weaker ordering; corr
 ### 2.6 — `nen ref format`, real objects, and a documentation gap
 
 ```
-$ nen ref format --code BC --kind IS --number 877 --repo <bankai-core checkout>
-📄 BC-IS-#877
-$ nen ref format --code BC --kind PR --number 925 --state open --repo <bankai-core checkout>
-🔀 BC-PR-#925
+$ nen ref format --code BC --kind IS --number 877 --repo <reference-repo checkout>
+📄 RR-IS-#877
+$ nen ref format --code BC --kind PR --number 925 --state open --repo <reference-repo checkout>
+🔀 RR-PR-#925
 ```
 
 Both correct against the real objects (`#877`'s open PR is `#925`, per § 2.3). **Finding**:
@@ -256,7 +256,7 @@ itself never ran.
   PR-level detail (`docs/ab/backlog-state.md` § 3).
 - **`nen issue consolidate-close`'s label-union/severity-max computation was never observed
   live.** Every live attempt against a real, non-fictional target either targeted a repository
-  this build must never write to (`bankai-core`, forbidden outright by this build's own
+  this build must never write to (`<reference-repo>`, forbidden outright by this build's own
   instructions) or was refused by the session's own auto-mode classifier before it ran
   (§ 2.7, against `zheref/hatsu`). What is verified is the contract text (`nen issue --help`,
   quoted in § 1 row 7 and § 2.5) and the read-before-write ordering that precedes it
@@ -280,9 +280,9 @@ itself never ran.
   a chore instead of one PR.
 - **No repo-specific rule ID baked into the skill text.** Like `file`, this port generalises the
   *mechanism* (any target repo's own taxonomy, registry and canon, read at run time) rather than
-  hardcoding `bankai-core`'s own `CON-{n}` numbering — the ported skill cites `CON-25`/`CON-9` as
+  hardcoding `<reference-repo>`'s own `CON-{n}` numbering — the ported skill cites `CON-25`/`CON-9` as
   hatsu's own constitution's rule IDs (the same convention `kurapika.md` and `file`'s port already
-  use for hatsu), not as a literal copy of bankai-core's canon.
+  use for hatsu), not as a literal copy of `<reference-repo>`'s canon.
 
 ---
 
@@ -322,7 +322,7 @@ itself never ran.
 4. **No missing verb found among the read-only half.** `nen backlog fetch`, `nen issue search`,
    `nen issue open-pr-check` and `nen ref format` between them cover every deterministic step this
    skill's planning phase (§§ 2–4) needs, and all four were run live against the real
-   `zheref/bankai-core` backlog with real, checkable results (§§ 2.1–2.3, 2.6).
+   `<reference-repo>` backlog with real, checkable results (§§ 2.1–2.3, 2.6).
 5. **`nen issue consolidate-close`'s `--severity-family` is undocumented, and silently wrong when
    omitted — proven from source, not inferred.** Neither `nen issue consolidate-close --help` nor
    `nen issue --help` mentions `--severity-family` anywhere in their printed text, yet the flag is

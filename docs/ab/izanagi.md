@@ -10,16 +10,16 @@ mechanics: `nen parse izanagi` (the invocation split, and the cap refusal) and `
 
 Run: 2026-09-01, this session. `nen` `0.1.0`
 (`<cache>\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`
-(`GH_TOKEN=$(gh auth token)` exported for the one live bankai-core read below). Old skill source:
-`refpack/skills/izanagi.SKILL.md` (bankai-core `v0.11.3`-era). No shell oracle exists for izanagi,
+(`GH_TOKEN=$(gh auth token)` exported for the one live `<reference-repo>` read below). Old skill source:
+`refpack/skills/izanagi.SKILL.md` (`<reference-repo>` `v0.11.3`-era). No shell oracle exists for izanagi,
 same as `izanami` — the old skill's "parse" and "loop" steps were pure agent prose, never a script,
 so there is no old-side command to run in parallel; the A/B here is against that prose, by contract,
 plus every `nen` transcript below run against the real binary. **Nothing was mutated against
-zheref/bankai-core** — every bankai-core call below is a read (`gh pr view … --json state`), and
+`<reference-repo>`** — every `<reference-repo>` call below is a read (`gh pr view … --json state`), and
 every genuinely mutating demonstration runs against a disposable local scratch git repository
-(`/tmp/izanagi-scratch/repo`), never against bankai-core or hatsu itself.
+(`/tmp/izanagi-scratch/repo`), never against `<reference-repo>` or hatsu itself.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
@@ -55,8 +55,8 @@ gap between what the grammar enforces at parse time and what the loop needs enfo
 ### 2.1 — `nen parse izanagi`, the one valid shape, both matching rules verified
 
 ```
-$ nen parse izanagi "gh pr merge 925 --repo zheref/bankai-core until it is merged up to 3"
-task: gh pr merge 925 --repo zheref/bankai-core
+$ nen parse izanagi "gh pr merge 925 --repo <reference-repo> until it is merged up to 3"
+task: gh pr merge 925 --repo <reference-repo>
 until: it is merged
 cap: 3
 $ echo $?
@@ -78,9 +78,9 @@ $ echo $?
 `--json` form:
 
 ```
-$ nen parse izanagi "gh pr merge 925 --repo zheref/bankai-core until it is merged up to 3" --json
+$ nen parse izanagi "gh pr merge 925 --repo <reference-repo> until it is merged up to 3" --json
 {
-  "task": "gh pr merge 925 --repo zheref/bankai-core",
+  "task": "gh pr merge 925 --repo <reference-repo>",
   "condition": "it is merged",
   "cap": 3
 }
@@ -93,9 +93,9 @@ does not parse as task/commands the way it does for `izanami`; it is read as tra
 `up to` clause and fails the integer check:
 
 ```
-$ nen parse izanagi $'until it is merged up to 3\ngh pr merge 925 --repo zheref/bankai-core'
+$ nen parse izanagi $'until it is merged up to 3\ngh pr merge 925 --repo <reference-repo>'
 nen: 'up to 3
-gh pr merge 925 --repo zheref/bankai-core' is not a positive integer cap.
+gh pr merge 925 --repo <reference-repo>' is not a positive integer cap.
   try: until it is merged up to 3
 $ echo $?
 2
@@ -115,9 +115,9 @@ $ echo $?
 ### 2.2 — the missing-cap REFUSAL (load-bearing case)
 
 ```
-$ nen parse izanagi "gh pr merge 925 --repo zheref/bankai-core until it is merged"
+$ nen parse izanagi "gh pr merge 925 --repo <reference-repo> until it is merged"
 nen: no 'up to <N>'. Izanagi is the MUTATING half of the loop pair and the cap is required grammar, never defaulted or inferred -- an invocation without it is refused rather than run once 'to see'.
-  try: gh pr merge 925 --repo zheref/bankai-core until it is merged up to <N>
+  try: gh pr merge 925 --repo <reference-repo> until it is merged up to <N>
 $ echo $?
 2
 ```
@@ -130,9 +130,9 @@ never infers a cap from the task, and hands back a corrected line rather than a 
 Missing `until` entirely:
 
 ```
-$ nen parse izanagi "gh pr merge 925 --repo zheref/bankai-core up to 3"
+$ nen parse izanagi "gh pr merge 925 --repo <reference-repo> up to 3"
 nen: no 'until <condition>'. Expected '<task> until <condition> up to <N>'.
-  try: gh pr merge 925 --repo zheref/bankai-core until <condition> up to 3
+  try: gh pr merge 925 --repo <reference-repo> until <condition> up to 3
 $ echo $?
 2
 ```
@@ -140,9 +140,9 @@ $ echo $?
 Non-integer cap:
 
 ```
-$ nen parse izanagi "gh pr merge 925 --repo zheref/bankai-core until it is merged up to zero"
+$ nen parse izanagi "gh pr merge 925 --repo <reference-repo> until it is merged up to zero"
 nen: 'up to zero' is not a positive integer cap.
-  try: gh pr merge 925 --repo zheref/bankai-core until it is merged up to 3
+  try: gh pr merge 925 --repo <reference-repo> until it is merged up to 3
 $ echo $?
 2
 ```
@@ -150,9 +150,9 @@ $ echo $?
 Zero cap — refused identically to a non-integer cap, not treated as "a valid but degenerate N":
 
 ```
-$ nen parse izanagi "gh pr merge 925 --repo zheref/bankai-core until it is merged up to 0"
+$ nen parse izanagi "gh pr merge 925 --repo <reference-repo> until it is merged up to 0"
 nen: 'up to 0' is not a positive integer cap.
-  try: gh pr merge 925 --repo zheref/bankai-core until it is merged up to 3
+  try: gh pr merge 925 --repo <reference-repo> until it is merged up to 3
 $ echo $?
 2
 ```
@@ -270,27 +270,27 @@ What iteration 4 would have done: append another attempt line.
 Both runs are genuine — the mutating "act" (`echo … >> watched.txt`) runs directly in the shell, at
 no point handed to any `nen` verb, exactly as § 3's composition boundary requires.
 
-### 2.5 — the condition check, reused against a real bankai-core read (read-only)
+### 2.5 — the condition check, reused against a real `<reference-repo>` read (read-only)
 
 ```
 $ export GH_TOKEN=$(gh auth token)
-$ nen watch until --command "gh pr view 925 --repo zheref/bankai-core --json state -q .state" --true-pattern "OPEN" --max-iterations 1 --interval-ms 1000
+$ nen watch until --command "gh pr view 925 --repo <reference-repo> --json state -q .state" --true-pattern "OPEN" --max-iterations 1 --interval-ms 1000
 [1] condition is true (exit 0)
 condition became true after 1 observation(s)
 $ echo $?
 0
 ```
 
-`zheref/bankai-core#925` was open at run time (`gh pr list --repo zheref/bankai-core --state open`
+`<reference-repo>#925` was open at run time (`gh pr list --repo <reference-repo> --state open`
 listed `#925` and `#940` at this run), so the single-shot check reads true on its first observation —
 this is a read against the live repository, never a write.
 
-A real (never executed) mutating task parsed against a live bankai-core object, to confirm `nen parse
+A real (never executed) mutating task parsed against a live `<reference-repo>` object, to confirm `nen parse
 izanagi` accepts a genuinely mutating task without classifying it (§ 2.6 for why):
 
 ```
-$ nen parse izanagi "nen wake fire --repo-slug zheref/bankai-core --ref BC-PR-#925 --label bankai:iterate --run until PR 925's checks are all green up to 3"
-task: nen wake fire --repo-slug zheref/bankai-core --ref BC-PR-#925 --label bankai:iterate --run
+$ nen parse izanagi "nen wake fire --repo-slug <reference-repo> --ref RR-PR-#925 --label bankai:iterate --run until PR 925's checks are all green up to 3"
+task: nen wake fire --repo-slug <reference-repo> --ref RR-PR-#925 --label bankai:iterate --run
 until: PR 925's checks are all green
 cap: 3
 $ echo $?
@@ -298,7 +298,7 @@ $ echo $?
 ```
 
 This task was **only parsed, never run** — per the shared brief, a mutating verb is never exercised
-against bankai-core from this session.
+against `<reference-repo>` from this session.
 
 ### 2.6 — the composition boundary: `nen watch until` refuses the act
 

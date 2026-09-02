@@ -10,16 +10,16 @@ computing or reporting any of it. New mechanics: `nen issue search`, `nen issue 
 
 Run: 2026-09-01 (local clock; today's date per session context). `nen` `0.1.0`
 (`<cache>\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`. Target
-for every read-only run: the live `zheref/bankai-core` backlog, `--repo` pointed at the local
-`bankai-core` checkout (tag `v0.11.3`, working tree clean, read-only throughout — nothing was
+for every read-only run: the live `<reference-repo>` backlog, `--repo` pointed at the local
+`<reference-repo>` checkout (tag `v0.11.3`, working tree clean, read-only throughout — nothing was
 written back to it). No mutating verb (`nen issue file` without `--dry-run`, `nen label apply
---run`, `nen issue attach-sub`/`consolidate-close`) was ever run against `zheref/bankai-core`, per
+--run`, `nen issue attach-sub`/`consolidate-close`) was ever run against `<reference-repo>`, per
 the shared brief's constraint; the mutating half is A/B'd by contract inspection and by
 `--dry-run` runs against that same repo (which print the exact `gh` call and write nothing) —
 never a real filed-and-closed test issue, which this port judged unnecessary: the mutating half's
 dry-run transcripts (§ 2.5–2.7) are the evidence, not a claim resting on contract inspection alone.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
@@ -30,7 +30,7 @@ Every deterministic or hand-reconstructed step the old `SKILL.md` carried, and w
 | # | Old (prose / hand-run `gh`) | New (`nen`) |
 |---|---|---|
 | 1 | "The last whitespace-delimited token is taken as the repo only if it resolves against `schemas/repos.json`" — no command given; the agent read the file by eye | `nen repo resolve <token>` — exit `0` (repo) vs exit `1` (part of the problem text), refusal text names every valid code/repo (verified live, § 2.4) |
-| 2 | "Resolve the current working directory's `origin` remote to a registry entry… if not a registry repo, ask — with the resolved candidates listed" — the agent ran `git remote get-url origin`, grepped `schemas/repos.json` by hand, and typed the candidate list itself | `nen repo resolve` (no token) reads `origin` and resolves it the same way; its own refusal text **is** the candidate list (verified live, § 2.4 — reproduced from inside the `bankai-core` checkout itself) |
+| 2 | "Resolve the current working directory's `origin` remote to a registry entry… if not a registry repo, ask — with the resolved candidates listed" — the agent ran `git remote get-url origin`, grepped `schemas/repos.json` by hand, and typed the candidate list itself | `nen repo resolve` (no token) reads `origin` and resolves it the same way; its own refusal text **is** the candidate list (verified live, § 2.4 — reproduced from inside the `<reference-repo>` checkout itself) |
 | 3 | "Search open issues first, and recently closed ones too… by subject terms, by the files and rule IDs involved, and by lane label — three passes" (four searches total incl. subject/open) — each pass was a hand-typed `gh issue list --search "…"` the agent had to remember to run, in the right order, and report even when empty | `nen issue search --target <o/n> --subject "<t>" [--files][--rule-ids][--lane-labels]` — all four passes, same order, each labelled with what it is for, `skipped` reported explicitly when a pass has no terms (verified live, § 2.1–2.2) |
 | 4 | "An issue with an OPEN PR is never quietly closed" — checked by the agent running `gh pr list --search "<n> in:body"` or reading each candidate issue's timeline by eye, one at a time | `nen issue open-pr-check --target <o/n> --issues n,n,n` — one call, every open PR fetched once and matched against every candidate by both `closingIssuesReferences` and body mentions, exit `1` iff any candidate is blocked (verified live and cross-checked by hand, § 2.3) |
 | 5 | "Applied in the create call, never as a follow-up edit" — the agent typed `gh issue create --repo … --title … --body-file … --label a,b --assignee u` from memory, with no check that a label existed in the taxonomy before submitting it | `nen issue file --target <o/n> --repo <path> --title <t> --body-file <p> --label a,b --assignee u [--forbid-family ns:family] [--dry-run]` — validates every label against `schemas/labels.json` **before** attempting anything, and now also enforces `--forbid-family` as a hard refusal (verified live, § 2.5–2.6) |
@@ -54,7 +54,7 @@ attach/close choreography (row 8, named but deliberately not invoked by `file` i
 
 ## 2. Live A/B transcript (read-only)
 
-All read-only, against the real `zheref/bankai-core` backlog. `GH_TOKEN` exported before every
+All read-only, against the real `<reference-repo>` backlog. `GH_TOKEN` exported before every
 run (`export GH_TOKEN=$(gh auth token)`). No old-skill script exists to A/B against (§ 1's premise
 — the old mechanics were unscripted prose), so each subsection below pairs the live `nen` output
 with the equivalent **hand-run `gh` call** an agent following the old prose would have typed, and
@@ -63,13 +63,13 @@ states a same/different verdict on the *content*, not on a script's exit code.
 ### 2.1 — `nen issue search`, all four passes, real candidates found
 
 ```
-$ nen issue search --repo <bankai-core checkout> --target zheref/bankai-core \
+$ nen issue search --repo <reference-repo checkout> --target <reference-repo> \
     --subject "mergeStateStatus pr_ready_gate" --files scripts/pr_ready_gate.sh \
     --rule-ids CON-32 --lane-labels bankai:agent/kisuke
 ```
 
 ```
-repository: zheref/bankai-core
+repository: <reference-repo>
 
 [subject-open] the same problem, already open -- amend it with the new evidence instead of filing a second one
   query: mergeStateStatus pr_ready_gate
@@ -84,9 +84,9 @@ repository: zheref/bankai-core
   #912  OPEN  pr_ready_gate: a reviewer check that cannot start (NEUTRAL) counts as green
   #771  OPEN  CON-40 does not say what readiness means when the ONE holistic pass on `opened` never posted — the gate is one inference ahead of canon
   #935  OPEN  [Machinery] Roll provenance-on-stderr + plugin-cache guard out to the rest of the verification script family
-  #938  OPEN  port pr_ready_gate.sh's plugin-cache guard classification into cli/src/ports/pr_ready_gate.ts (BC-IS-#733 plane parity)
+  #938  OPEN  port pr_ready_gate.sh's plugin-cache guard classification into cli/src/ports/pr_ready_gate.ts (RR-IS-#733 plane parity)
   #791  OPEN  [Machinery] Dependabot PRs can never reach CON-32-Ready — the CON-30 shim posts a check, pr_ready_gate.sh reads reviews
-  #914  OPEN  [Machinery] pr_ready_gate.sh: wire bankai-core#877's mergeStateStatus predicate into the LIVE fetch (shell + TS port + dual-run corpus)
+  #914  OPEN  [Machinery] pr_ready_gate.sh: wire <reference-repo>#877's mergeStateStatus predicate into the LIVE fetch (shell + TS port + dual-run corpus)
   #877  OPEN  [Machinery] pr_ready_gate.sh cannot see an unreported REQUIRED context — it never reads the required-contexts list, flattens across check suites, and ignores mergeStateStatus
   ... (23 rows total, truncated here)
 
@@ -98,10 +98,10 @@ repository: zheref/bankai-core
 **Manual equivalent (what the old prose asked the agent to type, one at a time):**
 
 ```
-$ gh issue list --repo zheref/bankai-core --state open   --search "mergeStateStatus pr_ready_gate" --json number,title
-$ gh issue list --repo zheref/bankai-core --state closed --search "mergeStateStatus pr_ready_gate closed:>=2026-06-04" --json number,title
-$ gh issue list --repo zheref/bankai-core --state open   --search "\"scripts/pr_ready_gate.sh\" OR \"CON-32\"" --json number,title
-$ gh issue list --repo zheref/bankai-core --state open   --label "bankai:agent/kisuke" --json number,title
+$ gh issue list --repo <reference-repo> --state open   --search "mergeStateStatus pr_ready_gate" --json number,title
+$ gh issue list --repo <reference-repo> --state closed --search "mergeStateStatus pr_ready_gate closed:>=2026-06-04" --json number,title
+$ gh issue list --repo <reference-repo> --state open   --search "\"scripts/pr_ready_gate.sh\" OR \"CON-32\"" --json number,title
+$ gh issue list --repo <reference-repo> --state open   --label "bankai:agent/kisuke" --json number,title
 ```
 
 `nen issue search --json` prints the exact `argv` it runs for each pass (verified in the raw
@@ -115,11 +115,11 @@ spot, and the `skipped`-vs-empty distinction (§ 2.2) is explicit instead of imp
 ### 2.2 — a search with no `--files`/`--rule-ids`/`--lane-labels`: `skipped`, not silently empty
 
 ```
-$ nen issue search --target zheref/bankai-core --subject "test subject xyz123 no match expected"
+$ nen issue search --target <reference-repo> --subject "test subject xyz123 no match expected"
 ```
 
 ```
-repository: zheref/bankai-core
+repository: <reference-repo>
 
 [subject-open] ... no candidates
 [subject-recently-closed] ... no candidates
@@ -135,10 +135,10 @@ local taxonomy file is consulted. **Finding for the skill, not the binary**: thi
 § 3 of the ported skill does not mandate `--repo` on `issue search`/`open-pr-check`, only on
 `issue file` (§ 2.5, where the taxonomy check makes it load-bearing).
 
-### 2.3 — `nen issue open-pr-check`, real open PRs on `zheref/bankai-core`, cross-checked by hand
+### 2.3 — `nen issue open-pr-check`, real open PRs on `<reference-repo>`, cross-checked by hand
 
 ```
-$ nen issue open-pr-check --repo <bankai-core checkout> --target zheref/bankai-core \
+$ nen issue open-pr-check --repo <reference-repo checkout> --target <reference-repo> \
     --issues 877,879,912,914,918,935,938,939
 ```
 
@@ -155,15 +155,15 @@ open pull requests scanned: 2
 ```
 exit code: `1` (a candidate is blocked).
 
-Manual cross-check — the two open PRs `bankai-core` actually had at run time:
+Manual cross-check — the two open PRs `<reference-repo>` actually had at run time:
 
 ```
-$ gh pr list --repo zheref/bankai-core --state open --json number,title,url
+$ gh pr list --repo <reference-repo> --state open --json number,title,url
 [{"number":940,...},{"number":925,...}]
 
-$ gh pr view 925 --repo zheref/bankai-core --json closingIssuesReferences -q '.closingIssuesReferences[].number'
+$ gh pr view 925 --repo <reference-repo> --json closingIssuesReferences -q '.closingIssuesReferences[].number'
 918
-$ gh pr view 925 --repo zheref/bankai-core --json body -q .body | grep -oE '#[0-9]+' | sort -u
+$ gh pr view 925 --repo <reference-repo> --json body -q .body | grep -oE '#[0-9]+' | sort -u
 #877
 #918
 #939
@@ -178,26 +178,26 @@ exit code tracks the finding, not a fixed non-zero-on-any-output default.
 ### 2.4 — `nen repo resolve`, the § 1 parsing rule
 
 ```
-$ nen repo resolve BC --repo <bankai-core checkout>
-zheref/bankai-core  (BC)  via code                    # exit 0
+$ nen repo resolve BC --repo <reference-repo checkout>
+<reference-repo>  (BC)  via code                    # exit 0
 
-$ nen repo resolve notarealtoken --repo <bankai-core checkout>
+$ nen repo resolve notarealtoken --repo <reference-repo checkout>
 nen repo: 'notarealtoken' does not name a repository in this registry (...\schemas\repos.json).
-It is matched exactly ... Codes: $comment (...), BC (zheref/bankai-core), BS (...), KP (...),
-KN (...), KW (...), KC (...). Repositories: zheref/KroApple, zheref/KroAndroid,
-zheref/bankai-scaffold.                                # exit 1
+It is matched exactly ... Codes: $comment (...), BC (<reference-repo>), BS (...), RA (...),
+RB (...), RC (...), KC (...). Repositories: <product-repo-A>, <product-repo-B>,
+<scaffold-repo>.                                # exit 1
 
-$ cd <bankai-core checkout> && nen repo resolve      # no token -- resolves cwd's own origin
-nen repo: '<path>' has an 'origin' of 'https://github.com/zheref/bankai-core.git', which resolves
-to 'zheref/bankai-core' -- and that is not in this registry (...). ... Codes: ... Repositories:
-zheref/KroApple, zheref/KroAndroid, zheref/bankai-scaffold.                    # exit 1
+$ cd <reference-repo checkout> && nen repo resolve      # no token -- resolves cwd's own origin
+nen repo: '<path>' has an 'origin' of 'https://github.com/<reference-repo>.git', which resolves
+to '<reference-repo>' -- and that is not in this registry (...). ... Codes: ... Repositories:
+<product-repo-A>, <product-repo-B>, <scaffold-repo>.                    # exit 1
 ```
 
 The third run is a real, reproducible nuance, **not a defect**: `schemas/repos.json`'s
-`consumers[]` array (the list the no-token/origin path checks) records only bankai-core's
-*downstream consumers* (`KroApple`, `KroAndroid`, `bankai-scaffold`) — bankai-core itself is
+`consumers[]` array (the list the no-token/origin path checks) records only `<reference-repo>`'s
+*downstream consumers* (`<product-repo-A>`, `<product-repo-B>`, `<scaffold-repo>`) — `<reference-repo>` itself is
 reachable only by its `product_codes` entry (`BC`), never by resolving its own origin, because
-the file's own header states it is a "Consuming-repo registry." Standing inside the `bankai-core`
+the file's own header states it is a "Consuming-repo registry." Standing inside the `<reference-repo>`
 checkout itself and invoking bare `nen repo resolve` therefore refuses — correctly, per the
 ported skill's own § 1 rule ("if the cwd is not a registry repo, ask, with the resolved
 candidates listed"): the refusal text **is** that candidate list, verified live above.
@@ -205,19 +205,19 @@ candidates listed"): the refusal text **is** that candidate list, verified live 
 ### 2.5 — `nen issue file --dry-run`: labels-in-create-call, taxonomy-checked, nothing written
 
 ```
-$ nen issue file --repo <bankai-core checkout> --target zheref/bankai-core \
+$ nen issue file --repo <reference-repo checkout> --target <reference-repo> \
     --title "TEST DRY RUN — do not file" --body-file <scratch file> \
     --label bankai:severity/low --assignee zheref --dry-run
-would run: gh issue create --repo zheref/bankai-core --title TEST DRY RUN — do not file --body-file <path> --assignee zheref --label bankai:severity/low
+would run: gh issue create --repo <reference-repo> --title TEST DRY RUN — do not file --body-file <path> --assignee zheref --label bankai:severity/low
 ```
 
 Confirms the create call carries `--assignee` and `--label` **in the same invocation** as
 `--title`/`--body-file` — exactly § 5's "applied in the create call, never as a follow-up edit"
 rule, now enforced by the verb's own argv shape rather than the agent's memory. Nothing was
-written to `zheref/bankai-core`: `--dry-run` only prints the `gh` call it would make.
+written to `<reference-repo>`: `--dry-run` only prints the `gh` call it would make.
 
 ```
-$ nen issue file --repo <bankai-core checkout> --target zheref/bankai-core \
+$ nen issue file --repo <reference-repo checkout> --target <reference-repo> \
     --title "TEST" --body-file <scratch file> \
     --label bankai:not-a-real-label --assignee zheref --dry-run
 nen: label 'bankai:not-a-real-label' is not in this repository's taxonomy (...\schemas\labels.json).
@@ -229,7 +229,7 @@ any GitHub call would have happened either way.
 ### 2.6 — `--forbid-family`: the stage-label guard, mechanically enforced
 
 ```
-$ nen issue file --repo <bankai-core checkout> --target zheref/bankai-core \
+$ nen issue file --repo <reference-repo checkout> --target <reference-repo> \
     --title "TEST" --body-file <scratch file> \
     --label bankai:stage/building --assignee zheref --forbid-family bankai:stage --dry-run
 nen: label 'bankai:stage/building' is in the 'bankai:stage' family, which this invocation
@@ -265,21 +265,21 @@ the target's own checkout>` alongside `--repo-slug <owner/name>` (§ 3(a) of
 
 **Reverified live, with the fix applied**, without re-triggering the auto-mode classifier block
 already recorded in § 3 below (which fires on `nen label apply` invocations that target the real
-`zheref/bankai-core` by both `--repo` and `--repo-slug` at once): `--repo` pointed at the local
-`bankai-core` checkout only to supply a real `schemas/labels.json`, `--repo-slug` pointed at
+`<reference-repo>` by both `--repo` and `--repo-slug` at once): `--repo` pointed at the local
+`<reference-repo>` checkout only to supply a real `schemas/labels.json`, `--repo-slug` pointed at
 `zheref/hatsu` (a fixture value — nothing is sent anywhere without `--run`, and `--run` was never
 passed), and `--ledger` pointed at a scratch path outside any checkout so nothing lands in
-`bankai-core` even as a local, uncommitted file:
+`<reference-repo>` even as a local, uncommitted file:
 
 ```
 $ nen label apply HT-IS-#1 --label bankai:severity/low --repo-slug zheref/hatsu \
-    --repo "<checkout>\bankai-core" \
+    --repo "<checkout>\<reference-repo>" \
     --reason "verifying --repo makes the taxonomy check resolve correctly (dry run, no --run)" \
     --ledger "<scratch path>\label-ledger.jsonl"
 (dry run) would apply 'bankai:severity/low' to HT-IS-#1
 ledger: <scratch path>\label-ledger.jsonl
 ```
-exit code: `0`. `bankai-core`'s own working tree (`git status --porcelain`) stayed empty
+exit code: `0`. `<reference-repo>`'s own working tree (`git status --porcelain`) stayed empty
 throughout — confirmed before and after. This is the fixed invocation shape working: `--repo`
 resolves the taxonomy file that was previously missing, and the call proceeds to its normal
 dry-run report instead of refusing.
@@ -299,32 +299,32 @@ dry-run report instead of refusing.
   skill owns consolidation — contract-inspected only (§ 2's usage text), never run, per the
   shared brief's mutating-verb constraint and because the umbrella case is explicitly deferred by
   the ported skill's § 3(d), same as the old one.
-- **`nen label apply --run` for a duplicate's severity bump against `zheref/bankai-core`
+- **`nen label apply --run` for a duplicate's severity bump against `<reference-repo>`
   specifically was contract-inspected, not run live**, on top of the shared brief's mutating-verb
   constraint: the auto-mode classifier refused even a no-`--run` dry invocation of `nen label
-  apply` that named `zheref/bankai-core` as both `--repo` and `--repo-slug` mid-session (blocked
+  apply` that named `<reference-repo>` as both `--repo` and `--repo-slug` mid-session (blocked
   before execution, no output produced) — recorded here rather than silently retried or routed
   around. Its contract (`nen label --help`, quoted in the skill and in this doc's § 1 row 7) is
   unambiguous: `--reason` is ledger-only text, never sent to GitHub, and outcome is recorded only
   `--run` and only after the call resolves — nothing here contradicts that reading. The `--repo`
   flag itself — the MAJOR finding this port's review raised — **was** reverified live (§ 2.7),
-  using `bankai-core`'s checkout only to supply a real `schemas/labels.json` and a fixture
-  `--repo-slug` (`zheref/hatsu`) so the classifier's `zheref/bankai-core`-targeting block never
+  using `<reference-repo>`'s checkout only to supply a real `schemas/labels.json` and a fixture
+  `--repo-slug` (`zheref/hatsu`) so the classifier's `<reference-repo>`-targeting block never
   applied; what remains contract-inspected only is the severity-bump call shape against the real
   backlog, not the `--repo` fix.
 - **No missing verb found among the read-only half.** `nen issue search` and `nen issue
   open-pr-check` between them cover every deterministic step `file`'s reconciliation phase needs;
-  both were run live against the real `zheref/bankai-core` backlog and both matched a manual
+  both were run live against the real `<reference-repo>` backlog and both matched a manual
   `gh`-by-hand reconstruction exactly (§ 2.1, § 2.3).
 - **Judgment kept, per the shared brief's boundary list:** what counts as a duplicate vs a fold
   vs a supersede; severity assessment and its one-line basis; the drafted title/body; whether a
   cluster of 3+ candidates is a consolidation; the `DECIDE` options and the ⭐ recommendation.
   `nen` searches, guards and creates; it never decides which candidate is which shape of overlap.
-- **The old skill's CON-{n}/H9/BC-IS-# citations were bankai-core's own process rules**
+- **The old skill's CON-{n}/H9/RR-IS-# citations were `<reference-repo>`'s own process rules**
   (idempotent-escalation, the dry-run-first convention, the G1 delegation carve-out) — this port
   generalises the *mechanism* (any target repo's own taxonomy and registry, read at run time) but
   keeps no repo-specific rule ID baked into the skill text itself, since `file` now targets
-  whatever repo the maintainer names, not only `bankai-core`.
+  whatever repo the maintainer names, not only `<reference-repo>`.
 
 ---
 
@@ -340,7 +340,7 @@ dry-run report instead of refusing.
    <text>` distinct from `consolidate-close`) would retire the one hand-run `gh` call this port
    could not replace.
 2. **`nen repo resolve`'s no-token/origin path checks a narrower list (`consumers[]`) than its
-   own `product_codes` map**, so a repo that owns the registry (like `bankai-core` owning its own
+   own `product_codes` map**, so a repo that owns the registry (like `<reference-repo>` owning its own
    `schemas/repos.json`) cannot resolve itself via bare `nen repo resolve` from its own checkout —
    only via an explicit code (`nen repo resolve BC`). This is very likely intentional (the file's
    own header says "Consuming-repo registry"), and the resulting refusal text is exactly what the

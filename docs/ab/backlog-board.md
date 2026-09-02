@@ -8,14 +8,14 @@ derive`, `nen color status`, `nen pr ready` (all `backlog-state`'s, adopted by r
 ref format`.
 
 Run: 2026-09-02 (UTC). `nen 0.1.0` (`<cache>\nen\v0.1.0\nen-windows-x64.exe`). `gh`
-authenticated as `zheref`. Live target: `zheref/bankai-core` (real, open backlog, 88 open rows at
-run time). Oracle checkout: `zheref/bankai-core` tag `v0.11.3`
+authenticated as `zheref`. Live target: `<reference-repo>` (real, open backlog, 88 open rows at
+run time). Oracle checkout: `<reference-repo>` tag `v0.11.3`
 (`2269fe723e355dc69bf535ab40f22556e4fe4081`, working tree clean, 16 commits behind `origin/main` —
 irrelevant here since only `git show`-extracted, read-only files were used) —
 `scripts/ichigo_board.sh` and `scripts/ichigo_pix.txt` extracted read-only via `git show
-v0.11.3:<path>` into a scratch directory outside the bankai-core checkout, never written back to it.
+v0.11.3:<path>` into a scratch directory outside the `<reference-repo>` checkout, never written back to it.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 **§2.4 re-run for this review fix:** 2026-09-02T01:24 UTC, same extracted `ichigo_board.sh`, same
 `v0.11.3` oracle checkout, against the exact `board.json` now embedded in §2.4 — done to make the
@@ -55,9 +55,9 @@ does not allow.
 
 ```
 $ export GH_TOKEN=$(gh auth token)
-$ nen backlog fetch --repo-slug zheref/bankai-core --json
+$ nen backlog fetch --repo-slug <reference-repo> --json
 {
-  "repo": "zheref/bankai-core", "truncated": false,
+  "repo": "<reference-repo>", "truncated": false,
   "rows": [
     { "issueNumber": 939, "title": "[Machinery] Nothing guards against bash 4 constructs …",
       "labels": ["bankai:bug","bankai:severity/medium","bankai:agent/kisuke"],
@@ -75,7 +75,7 @@ $ nen backlog fetch --repo-slug zheref/bankai-core --json
 ```
 
 Three real issues (`#918`, `#939`, `#877`) all reference the **one** open PR — confirmed by
-`gh pr view 925 --repo zheref/bankai-core --json files`, whose changed-file set is:
+`gh pr view 925 --repo <reference-repo> --json files`, whose changed-file set is:
 
 ```
 .github/workflows/dev-build.yml       .github/workflows/kisuke-build.yml
@@ -88,7 +88,7 @@ tests/report_cancelled_build.bats
 Gate, from the diff alone:
 
 ```
-$ nen gate derive --repo <bankai-core checkout> \
+$ nen gate derive --repo <reference-repo checkout> \
   --policy-paths "CONSTITUTION.md,handbooks/,agents/,schemas/" \
   --process-paths ".github/workflows/,claude/,scripts/,tests/,docs/" \
   --files ".github/workflows/dev-build.yml,…,tests/report_cancelled_build.bats" --json
@@ -111,7 +111,7 @@ here was inferred beyond what it printed.
 Colour, for that same composed state:
 
 ```
-$ nen color status --repo <bankai-core checkout> --present "in_progress" --category status --json
+$ nen color status --repo <reference-repo checkout> --present "in_progress" --category status --json
 {
   "category": "status", "present": ["in_progress"],
   "resolved": { "name": "in_progress", "emoji": "🟠", "hex": "#ef6c00", "label": "In progress",
@@ -121,9 +121,9 @@ $ nen color status --repo <bankai-core checkout> --present "in_progress" --categ
 
 > **Snapshot caveat.** Everything in this section is a single point-in-time read, not a standing
 > truth. Within minutes of the board sample's own `generatedAt` (`2026-09-02T00:57:42.267Z`, §2.2
-> below), issue `#937` gained an open PR — `zheref/bankai-core#940`, titled *"feat(bc11): a fifth
+> below), issue `#937` gained an open PR — `<reference-repo>#940`, titled *"feat(bc11): a fifth
 > shell clause for a frozen-line patch, expiring with the freeze"*, body opening `Closes #937`,
-> opened `2026-09-02T01:03:46Z` (confirmed live via `gh pr view 940 --repo zheref/bankai-core
+> opened `2026-09-02T01:03:46Z` (confirmed live via `gh pr view 940 --repo <reference-repo>
 > --json createdAt,body`) — about six minutes after this sweep ran. Re-fetching now would collapse
 > `#937`'s row into a PR-anchored effort the way `#918`'s row already is here, and its gate/status
 > would move with it (routed-not-building → building, at minimum). Nothing below was re-run to
@@ -138,19 +138,19 @@ more real, label-driven rows (`#937`, `#936` — no open PR, routed via a `banka
 without `bankai:stage/building`, so `backlog-state`'s tree reads `G1-M`/`ready_g1` for both):
 
 ```
-$ nen board build --repo-slug zheref/bankai-core --rows-from boardrows.json --json
+$ nen board build --repo-slug <reference-repo> --rows-from boardrows.json --json
 {
-  "repo": "zheref/bankai-core", "generatedAt": "2026-09-02T00:57:42.267Z",
+  "repo": "<reference-repo>", "generatedAt": "2026-09-02T00:57:42.267Z",
   "rows": [
     { "id": "918", "title": "Cancelled build leaves bankai:stage/building silently stuck",
-      "refs": ["BC-IS-#918","BC-IS-#939","BC-IS-#877","BC-PR-#925"],
+      "refs": ["RR-IS-#918","RR-IS-#939","RR-IS-#877","RR-PR-#925"],
       "gate": null, "status": "in_progress",
       "needs": "PR #925 is not-ready — required checks reported but are not all green (CON-32a). Author iterating; not yet the human's." },
     { "id": "937", "title": "Record the ruling that BC-11 doesn't bind the frozen v0.11.z line",
-      "refs": ["BC-IS-#937"], "gate": "G1-M", "status": "ready_g1",
+      "refs": ["RR-IS-#937"], "gate": "G1-M", "status": "ready_g1",
       "needs": "Routed to Yamamoto (bankai:agent/yamamoto), not yet building — ready to be released into build." },
     { "id": "936", "title": "Should a CON-42/1 readiness claim carry its provenance line?",
-      "refs": ["BC-IS-#936"], "gate": "G1-M", "status": "ready_g1",
+      "refs": ["RR-IS-#936"], "gate": "G1-M", "status": "ready_g1",
       "needs": "Handbook question routed to Naruto — ready to be released into build." }
   ]
 }
@@ -163,12 +163,12 @@ compute, gate or status.
 
 ```
 $ nen board render --board-from boardA.json
-zheref/bankai-core -- generated 2026-09-02T00:57:50.925Z
+<reference-repo> -- generated 2026-09-02T00:57:50.925Z
 
 | Effort                                                            | Refs                                            | Status (gate)   | Needs …
-| Cancelled build leaves bankai:stage/building silently stuck       | BC-IS-#918, BC-IS-#939, BC-IS-#877, BC-PR-#925  | in_progress     | PR #925 is not-ready …
-| Record the ruling that BC-11 doesn't bind the frozen v0.11.z line | BC-IS-#937                                      | ready_g1 (G1-M) | Routed to Yamamoto …
-| Should a CON-42/1 readiness claim carry its provenance line?      | BC-IS-#936                                      | ready_g1 (G1-M) | Handbook question …
+| Cancelled build leaves bankai:stage/building silently stuck       | RR-IS-#918, RR-IS-#939, RR-IS-#877, RR-PR-#925  | in_progress     | PR #925 is not-ready …
+| Record the ruling that BC-11 doesn't bind the frozen v0.11.z line | RR-IS-#937                                      | ready_g1 (G1-M) | Routed to Yamamoto …
+| Should a CON-42/1 readiness claim carry its provenance line?      | RR-IS-#936                                      | ready_g1 (G1-M) | Handbook question …
 ```
 
 Plain pipe table, raw status strings (`in_progress`, `ready_g1 (G1-M)` — no 🟠/🟡 glyph), refs as
@@ -178,7 +178,7 @@ bare comma-joined strings with **no links and no state marks**.
 
 `scripts/ichigo_board.sh` is a pure renderer — it never fetches — so it can be run read-only on a
 hand-built input at its own schema, extracted via `git show v0.11.3:scripts/ichigo_board.sh` into a
-scratch directory (never written back to the bankai-core checkout).
+scratch directory (never written back to the `<reference-repo>` checkout).
 
 **The exact input, so this run is independently repeatable** — this is the constructed `board.json`
 this doc's §2.4 run actually used, hand-built from §2.1–2.2's real row data at the OLD schema
@@ -187,7 +187,7 @@ this doc's §2.4 run actually used, hand-built from §2.1–2.2's real row data 
 ```json
 {
   "title": "Gate Register",
-  "dek": "zheref/bankai-core -- G1-M",
+  "dek": "<reference-repo> -- G1-M",
   "eyebrow": "Bankai . local plane",
   "live": "2 need you",
   "generated": "2026-09-02T00:57:42.267Z",
@@ -199,13 +199,13 @@ this doc's §2.4 run actually used, hand-built from §2.1–2.2's real row data 
     {"gate": "G1-M", "name": "Routed, ready to build", "status": "open",
      "asks": [
         {"rank": 1, "first": true, "recommended": false,
-         "ask": "DO -- release BC-IS-#937 into build",
+         "ask": "DO -- release RR-IS-#937 into build",
          "why": "Routed to Yamamoto (bankai:agent/yamamoto), not yet building -- ready to be released into build.",
-         "objects": [ {"ref": "BC-IS-#937", "url": "https://github.com/zheref/bankai-core/issues/937"} ]},
+         "objects": [ {"ref": "RR-IS-#937", "url": "https://github.com/<reference-repo>/issues/937"} ]},
         {"rank": 2,
-         "ask": "DO -- release BC-IS-#936 into build",
+         "ask": "DO -- release RR-IS-#936 into build",
          "why": "Handbook question routed to Naruto -- ready to be released into build.",
-         "objects": [ {"ref": "BC-IS-#936", "url": "https://github.com/zheref/bankai-core/issues/936"} ]}
+         "objects": [ {"ref": "RR-IS-#936", "url": "https://github.com/<reference-repo>/issues/936"} ]}
      ]},
     {"gate": "G2 . G3 . G4", "name": "Merges and release", "status": "clear",
      "note": "No PR is CON-32-Ready right now."}
@@ -214,20 +214,20 @@ this doc's §2.4 run actually used, hand-built from §2.1–2.2's real row data 
     {"title": "Cancelled build leaves bankai:stage/building silently stuck",
      "state": "awaiting", "pill": "In progress", "lane": "unresolved", "open": true,
      "objects": [
-        {"ref": "BC-IS-#918", "url": "https://github.com/zheref/bankai-core/issues/918"},
-        {"ref": "BC-IS-#939", "url": "https://github.com/zheref/bankai-core/issues/939"},
-        {"ref": "BC-IS-#877", "url": "https://github.com/zheref/bankai-core/issues/877"},
-        {"ref": "BC-PR-#925", "url": "https://github.com/zheref/bankai-core/pull/925"}
+        {"ref": "RR-IS-#918", "url": "https://github.com/<reference-repo>/issues/918"},
+        {"ref": "RR-IS-#939", "url": "https://github.com/<reference-repo>/issues/939"},
+        {"ref": "RR-IS-#877", "url": "https://github.com/<reference-repo>/issues/877"},
+        {"ref": "RR-PR-#925", "url": "https://github.com/<reference-repo>/pull/925"}
      ],
      "summary": "PR #925 is not-ready -- required checks reported but are not all green (CON-32a). Author iterating; not yet the human's.",
      "fields": [ {"k": "Readiness objection", "text": "required checks reported but are not all green (CON-32a)"} ]},
     {"title": "Record the ruling that BC-11 doesn't bind the frozen v0.11.z line",
      "state": "awaiting", "pill": "Ready . G1-M", "lane": "unresolved", "open": true,
-     "objects": [ {"ref": "BC-IS-#937", "url": "https://github.com/zheref/bankai-core/issues/937"} ],
+     "objects": [ {"ref": "RR-IS-#937", "url": "https://github.com/<reference-repo>/issues/937"} ],
      "summary": "Routed to Yamamoto (bankai:agent/yamamoto), not yet building -- ready to be released into build."},
     {"title": "Should a CON-42/1 readiness claim carry its provenance line?",
      "state": "awaiting", "pill": "Ready . G1-M", "lane": "unresolved", "open": true,
-     "objects": [ {"ref": "BC-IS-#936", "url": "https://github.com/zheref/bankai-core/issues/936"} ],
+     "objects": [ {"ref": "RR-IS-#936", "url": "https://github.com/<reference-repo>/issues/936"} ],
      "summary": "Handbook question routed to Naruto -- ready to be released into build."}
   ],
   "legend": [ {"heading": "Gates", "items": [ {"term": "G1-M", "def": "Routed, ready to build"} ]} ],
@@ -253,7 +253,7 @@ the design shell, a `G1-M` desk with two ranked `DO` asks (`#937`, `#936`) and t
 "Merges and release" gate rendered **cleared, with a note** (no PR is `CON-32`-Ready right now), the
 `#918` effort row with its `not-ready` evidence, a tally strip, and a footer disclosing the sample
 is 3 of 88 open rows. Confirmed present in the actual `board.html`: `<title>Gate Register</title>`,
-`G1-M` (6 occurrences), `BC-IS-#937` (3 occurrences, ask + effort + object), a well-formed
+`G1-M` (6 occurrences), `RR-IS-#937` (3 occurrences, ask + effort + object), a well-formed
 `<head>`/`<style>` shell.
 
 **Same content, same gate/status verdicts on both sides** (`G1-M`/`ready_g1` for `#937`/`#936`, no
@@ -336,7 +336,7 @@ concept of an optional separator with a defaulted counterpart slot.
   of a fetch, for the (apparently common, live-verified) case of one PR closing several issues.
 - **`$comment` appears among `nen repo resolve all`'s registry entries**, same defect already
   reported in `docs/ab/pr-state.md` §4 finding 3 — not re-filed here, only re-observed live
-  (`nen repo resolve all --repo <bankai-core checkout> --json` lists a `code: "$comment"` entry
+  (`nen repo resolve all --repo <reference-repo checkout> --json` lists a `code: "$comment"` entry
   whose `repo` field is the schema's own documentation string).
 - **Verdict parity between `nen pr ready` and `pr_ready_gate.sh`** is `docs/ab/pr-state.md`'s to
   establish, cited rather than re-proven here; this doc's own PR-925 readiness read (§2.1) matches

@@ -13,17 +13,17 @@ Run: 2026-09-01 (local clock; `nen 0.1.0` at `<cache>\nen\v0.1.0\nen-windows-x64
 `gh` authenticated as `zheref`, `GH_TOKEN=$(gh auth token)` exported for every call that touches
 GitHub. Read-only verbs (`release resolve-target`, `release preflight`, `release self-check`,
 `changelog completeness`, `fanout compute`) were run against the **real, live**
-`zheref/bankai-core` — nothing mutating was ever sent to it: no tag, no push, no issue, no comment,
+`<reference-repo>` — nothing mutating was ever sent to it: no tag, no push, no issue, no comment,
 no label. `changelog collate --write` (mutating: rewrites a file, deletes fragments) was run only
-against **constructed, disposable fixtures** under `%TEMP%`, never against `bankai-core` or
+against **constructed, disposable fixtures** under `%TEMP%`, never against `<reference-repo>` or
 `hatsu`. `tag cut` (mutating: creates and optionally pushes a tag) was run only against a
 **disposable scratch repo + scratch bare "origin"** under `%TEMP%`, seeded and discarded for this
-run, with its own remote — never `bankai-core`, never `hatsu`. `fanout record` (mutating: appends
+run, with its own remote — never `<reference-repo>`, never `hatsu`. `fanout record` (mutating: appends
 to a local audit ledger) was A/B'd by contract inspection only, never executed. `nen release
 --help`, `nen changelog --help`, `nen tag --help`, `nen fanout --help` were re-run live against the
 pinned binary before writing any of this (§ 0) — they match the shared refpack dump byte for byte.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
@@ -55,7 +55,7 @@ not against memory or the refpack alone.
 | 7 | `git ls-remote --tags origin`, read by hand for "does the tag already exist" | Folded into `nen release preflight`, and independently re-checked by `nen tag cut` itself before cutting (§ 2.5) |
 | 8 | `scripts/changelog_collate_fragments.sh` | `nen changelog collate --version --theme --changelog --fragment-dir [--write]` — written body verified byte-for-byte identical to the old script (descending, newest-first); **with a documented printed-manifest defect**, § 2.3.1 |
 | 9 | `git ls-tree -r <prevTag> -- changelog.d`, read by hand to decide whether a fragment is stranded from the *previous* release | **No `nen` verb owns this decision.** Residue — § 3 |
-| 10 | Self-enumeration ("does this release PR list itself?") — reasoned by hand, wrong four times in bankai-core history | `nen release self-check --repo <path> --pr-merge-sha <sha> --previous-tag <ref> --cut-point <ref>` (§ 2.4b) |
+| 10 | Self-enumeration ("does this release PR list itself?") — reasoned by hand, wrong four times in `<reference-repo>` history | `nen release self-check --repo <path> --pr-merge-sha <sha> --previous-tag <ref> --cut-point <ref>` (§ 2.4b) |
 | 11 | Bump `latest` in `schemas/repos.json`, by hand | **No `nen` verb owns this write.** Residue — § 3 |
 | 12 | Bump `.claude-plugin/plugin.json`, by hand | **No `nen` verb owns this write.** Residue — § 3 |
 | 13 | `scripts/tag_cut.sh <new> <prev> [changelog]` — one script bundling the HOLD read, the reachability check, the completeness re-check, the actual `git tag`, **and an unconditional `git push`** | `nen tag cut --repo <path> --name <vX.Y.Z> --at <sha> [--push]` — deliberately narrower: only the name-uniqueness and `--at`-is-ancestor checks are its own (the rest now live in `release preflight`/`resolve-target`), and the push is an **explicit, separate flag** rather than automatic (§ 2.5) |
@@ -76,21 +76,21 @@ around quietly; see § 3.
 
 ## 2. Live transcripts
 
-### 2.1 — `nen release resolve-target` (real `zheref/bankai-core`)
+### 2.1 — `nen release resolve-target` (real `<reference-repo>`)
 
 ```
 $ export GH_TOKEN=$(gh auth token)
-$ nen release resolve-target --repo <bankai-core checkout> --token main
+$ nen release resolve-target --repo <reference-repo checkout> --token main
 main -> 345c79b2ab316f896e7415fc38734cdd9cd59d0a
 an ancestor of the trunk -- safe to cut
 exit=0
 
-$ nen release resolve-target --repo <bankai-core checkout> --token last-commit
+$ nen release resolve-target --repo <reference-repo checkout> --token last-commit
 last-commit -> 345c79b2ab316f896e7415fc38734cdd9cd59d0a
 an ancestor of the trunk -- safe to cut
 exit=0
 
-$ nen release resolve-target --repo <bankai-core checkout> --token checkout
+$ nen release resolve-target --repo <reference-repo checkout> --token checkout
 checkout -> 2269fe723e355dc69bf535ab40f22556e4fe4081
 an ancestor of the trunk -- safe to cut
 exit=0
@@ -98,14 +98,14 @@ exit=0
 
 Both `main` and `last-commit` resolved to the same, freshly re-fetched `origin/main` tip
 (`345c79b2`) — **note this is a different, newer commit than the local checkout's own `HEAD`**
-(`2269fe72`, the `v0.11.3` tag commit): `bankai-core` received at least one more commit today
+(`2269fe72`, the `v0.11.3` tag commit): `<reference-repo>` received at least one more commit today
 (2026-09-01) despite being nominally frozen for the Akatsuki migration — consistent with
-`akatsuki-ai`'s own ledger disclosure of concurrent `bankai-core` activity. This is exactly the
+`<migration-tracker>`'s own ledger disclosure of concurrent `<reference-repo>` activity. This is exactly the
 "re-fetching, not the checkout's stale idea of the tip" behaviour § 1 depends on, caught live rather
 than assumed.
 
 ```
-$ nen release resolve-target --repo <bankai-core checkout> --token origin/integration/879-g2-gate-definition
+$ nen release resolve-target --repo <reference-repo checkout> --token origin/integration/879-g2-gate-definition
 origin/integration/879-g2-gate-definition -> 3476c03e4dd8c2e92f9d7eb6b50b3b3bc6c927d3
 NOT an ancestor of the trunk -- it has to reach the trunk first before it can be tagged
 exit=1
@@ -120,7 +120,7 @@ exists. Not a defect in `nen` (the same bare name would fail the same way under 
 rev-parse`, too) — just a usage note: pass a fully-qualified `origin/<branch>` for a branch never
 checked out locally.
 
-### 2.2 — `nen release preflight` (real `zheref/bankai-core`)
+### 2.2 — `nen release preflight` (real `<reference-repo>`)
 
 Data gathered live, per § 1's mapping:
 
@@ -131,13 +131,13 @@ the broken form and the corrected one, plus `--state all` to confirm the correct
 matches real (historical) data rather than also silently matching nothing:
 
 ```
-$ gh issue list --repo zheref/bankai-core --label critical --state open --json number,title
+$ gh issue list --repo <reference-repo> --label critical --state open --json number,title
 []
 
-$ gh issue list --repo zheref/bankai-core --label "bankai:severity/critical" --state open --json number,title
+$ gh issue list --repo <reference-repo> --label "bankai:severity/critical" --state open --json number,title
 []
 
-$ gh issue list --repo zheref/bankai-core --label "bankai:severity/critical" --state all --json number,title,state
+$ gh issue list --repo <reference-repo> --label "bankai:severity/critical" --state all --json number,title,state
 [{"number":844,"state":"CLOSED", ...}, {"number":835,"state":"CLOSED", ...}, {"number":831,"state":"CLOSED", ...},
  {"number":656,"state":"CLOSED", ...}, {"number":559,"state":"CLOSED", ...}, {"number":551,"state":"CLOSED", ...},
  {"number":550,"state":"CLOSED", ...}, {"number":545,"state":"CLOSED", ...}, {"number":521,"state":"CLOSED", ...},
@@ -147,7 +147,7 @@ $ gh issue list --repo zheref/bankai-core --label "bankai:severity/critical" --s
 ```
 
 **Both the broken and the corrected `--state open` query return `[]` — same verdict for this
-precondition today, by coincidence (`bankai-core` genuinely has zero open criticals right now), not
+precondition today, by coincidence (`<reference-repo>` genuinely has zero open criticals right now), not
 because the bare `critical` label was ever valid.** The `--state all` run against the corrected
 label proves the label itself is real and the query mechanism works — 14 historical criticals, every
 one already closed — which the broken label could never have returned regardless of state, since it
@@ -155,15 +155,15 @@ never matched any issue in this repository's history. The fix stands regardless 
 a query that silently matches nothing is not equivalent to a query that correctly finds nothing.
 
 ```
-$ gh variable get RELEASE_HOLD --repo zheref/bankai-core
+$ gh variable get RELEASE_HOLD --repo <reference-repo>
 false
 
 $ for n in 304 306 312 379 388 389 400 416 422 444 488 531 571 698 737 879; do
-    gh issue view $n --repo zheref/bankai-core --json state -q .state
+    gh issue view $n --repo <reference-repo> --json state -q .state
   done
 CLOSED (×15), OPEN (879 only)
 
-$ gh pr list --repo zheref/bankai-core --state open --json number,baseRefName,headRefName
+$ gh pr list --repo <reference-repo> --state open --json number,baseRefName,headRefName
 [{"number":940,"baseRefName":"main","headRefName":"ichigo/937-bc11-frozen-line-patch"},
  {"number":925,"baseRefName":"main","headRefName":"kisuke/918-cancelled-build-report"}]
 ```
@@ -175,9 +175,9 @@ per historical `integration/*` branch still present on `origin`, all but 879's i
 closed).
 
 ```
-$ nen --repo <bankai-core checkout> release preflight \
-    --repo-slug zheref/bankai-core --tag v0.11.4 --range v0.11.3..HEAD \
-    --changelog /tmp/bc-changelog-v0.11.3.md --owner-repo zheref/bankai-core \
+$ nen --repo <reference-repo checkout> release preflight \
+    --repo-slug <reference-repo> --tag v0.11.4 --range v0.11.3..HEAD \
+    --changelog /tmp/bc-changelog-v0.11.3.md --owner-repo <reference-repo> \
     --critical-issues '' --live-chores-from .ab-fixtures/bc-live-chores.json
 FAIL  RELEASE_HOLD -- HELD: RELEASE_HOLD = 'false'
 ok    open critical issues -- none open
@@ -236,9 +236,9 @@ would confound the isolation):
 $ which gh
 which: no gh in (...)   # GitHub CLI's directory removed from PATH for this run only
 
-$ nen --repo <bankai-core checkout> release preflight \
-    --repo-slug zheref/bankai-core --tag v0.11.4 --range v0.11.3..HEAD \
-    --changelog /tmp/bc-changelog-v0.11.3.md --owner-repo zheref/bankai-core \
+$ nen --repo <reference-repo checkout> release preflight \
+    --repo-slug <reference-repo> --tag v0.11.4 --range v0.11.3..HEAD \
+    --changelog /tmp/bc-changelog-v0.11.3.md --owner-repo <reference-repo> \
     --critical-issues '' --live-chores-from /tmp/empty-chores.json
 FAIL  RELEASE_HOLD -- could not be read: Executable not found in $PATH: "gh"
 ok    open critical issues -- none open
@@ -318,9 +318,9 @@ behaviour on the identical fixture below, rather than assumed to be a regression
 **Regression caught in review: this finding was originally recorded backwards.** The written body
 is not the defect — it is descending (newest-first) and matches `CON-33(b)`'s own convention
 ("placed newest-first, directly below `### Unreleased`") and the real, shipped
-`zheref/bankai-core` `v0.11.3` `CHANGELOG.md` section (`#899, #898, #890…`, descending). The actual
+`<reference-repo>` `v0.11.3` `CHANGELOG.md` section (`#899, #898, #890…`, descending). The actual
 defect is narrower: the **printed manifest** disagrees with what was written. Re-verified live, with
-the real `changelog_collate_fragments.sh` (extracted read-only from `bankai-core` at `v0.11.3`) run
+the real `changelog_collate_fragments.sh` (extracted read-only from `<reference-repo>` at `v0.11.3`) run
 side by side against `nen changelog collate --write` on the identical fixture:
 
 ```
@@ -388,14 +388,14 @@ correctly-descending changelog into oldest-first.
 ```
 $ git show v0.11.3:CHANGELOG.md > /tmp/bc-changelog-v0.11.3.md
 $ nen changelog completeness --range v0.11.2..v0.11.3 \
-    --changelog /tmp/bc-changelog-v0.11.3.md --owner-repo zheref/bankai-core
+    --changelog /tmp/bc-changelog-v0.11.3.md --owner-repo <reference-repo>
 every PR merged in v0.11.2..v0.11.3 has a CHANGELOG entry or fragment.
 exit=0
 ```
 
 Old script, extracted read-only via `git show v0.11.3:scripts/changelog_release_completeness_check.sh`
 to a temp file and run against the **exact same** range and changelog file, from inside the real
-`bankai-core` checkout (a pure `git log --merges` read plus two file reads — no write, no push, no
+`<reference-repo>` checkout (a pure `git log --merges` read plus two file reads — no write, no push, no
 API call):
 
 ```
@@ -410,29 +410,29 @@ confirmed on the real repository the fragment-aware completeness check was writt
 #### 2.4b — `nen release self-check`, real release PR
 
 ```
-$ gh pr view 916 --repo zheref/bankai-core --json mergeCommit,mergedAt,title
+$ gh pr view 916 --repo <reference-repo> --json mergeCommit,mergedAt,title
 {"mergeCommit":{"oid":"2269fe723e355dc69bf535ab40f22556e4fe4081"}, ...
  "title":"chore(release): collate 34 fragments into v0.11.3 — the final v0.11.x tag before the Akatsuki freeze"}
 
-$ nen release self-check --repo <bankai-core checkout> \
+$ nen release self-check --repo <reference-repo checkout> \
     --pr-merge-sha 2269fe723e355dc69bf535ab40f22556e4fe4081 \
     --previous-tag v0.11.2 --cut-point v0.11.3
 #2269fe723e355dc69bf535ab40f22556e4fe4081 should list ITSELF -- it falls inside <v0.11.2>..<v0.11.3>
 exit=0
 
-$ nen release self-check --repo <bankai-core checkout> \
+$ nen release self-check --repo <reference-repo checkout> \
     --pr-merge-sha 2269fe723e355dc69bf535ab40f22556e4fe4081 \
     --previous-tag v0.11.3 --cut-point v0.11.3
 #2269fe723e355dc69bf535ab40f22556e4fe4081 should NOT list itself -- it is outside <v0.11.3>..<v0.11.3>
 exit=0
 ```
 
-Both correct: `BC-PR-#916` **is** `v0.11.3`'s own release PR and correctly self-lists against
+Both correct: `RR-PR-#916` **is** `v0.11.3`'s own release PR and correctly self-lists against
 `v0.11.2..v0.11.3`; the second call moves the "previous tag" goalpost to `v0.11.3` itself (as if
 querying the *next* release) and correctly flips to "should NOT list itself," since the commit is
 already reachable from that tag.
 
-### 2.5 — `nen tag cut`, scratch repo only (never `bankai-core`, never `hatsu`)
+### 2.5 — `nen tag cut`, scratch repo only (never `<reference-repo>`, never `hatsu`)
 
 Disposable bare "origin" + a clone, both under `%TEMP%`, discarded after this run:
 
@@ -499,26 +499,26 @@ message present). Nothing was ever pushed anywhere but this scratch bare repo.
 ### 2.6 — `nen fanout compute`, real range, vs. the real historical registry determination
 
 ```
-$ nen --repo <bankai-core checkout> fanout compute --range v0.11.2..v0.11.3
+$ nen --repo <reference-repo checkout> fanout compute --range v0.11.2..v0.11.3
 changed workflows in v0.11.2..v0.11.3: bankai.yml, build-cli.yml, cascade-ancestry-guard.yml,
 changelog-guard.yml, clause-id-guard.yml, clause-leaf-guard.yml, cli-release-assets.yml,
 closes-collision-guard.yml, consumer-tag-precondition-guard.yml, db-migrate.yml,
 handbook-question-dedupe.yml, kisuke-build.yml, labels-length-guard.yml, plugin-bump-guard.yml,
 registry-drift-guard.yml, release-refusal-guard.yml, repo-health-guard.yml, roy-build.yml,
 sync-canon.yml, tag-precondition-guard.yml, unit-tests.yml
-AFFECTED  zheref/KroApple (KP)  -- consumes cascade-ancestry-guard.yml, db-migrate.yml,
+AFFECTED  <product-repo-A> (RA)  -- consumes cascade-ancestry-guard.yml, db-migrate.yml,
   handbook-question-dedupe.yml, roy-build.yml, sync-canon.yml, which changed in this range
-AFFECTED  zheref/KroAndroid (KN)  -- consumes roy-build.yml, sync-canon.yml,
+AFFECTED  <product-repo-B> (RB)  -- consumes roy-build.yml, sync-canon.yml,
   cascade-ancestry-guard.yml, handbook-question-dedupe.yml, which changed in this range
-AFFECTED  zheref/bankai-scaffold (BS)  -- consumes kisuke-build.yml, which changed in this range
+AFFECTED  <scaffold-repo> (BS)  -- consumes kisuke-build.yml, which changed in this range
 exit=0
 ```
 
-`schemas/repos.json`'s own `v0.11.3` consumer notes (written by hand at `BC-PR-#916` when the tag
-was actually cut) record: KroApple affected via **five** files — `cascade-ancestry-guard.yml,
-db-migrate.yml, handbook-question-dedupe.yml, roy-build.yml, sync-canon.yml`; KroAndroid via
+`schemas/repos.json`'s own `v0.11.3` consumer notes (written by hand at `RR-PR-#916` when the tag
+was actually cut) record: `<product-repo-A>` affected via **five** files — `cascade-ancestry-guard.yml,
+db-migrate.yml, handbook-question-dedupe.yml, roy-build.yml, sync-canon.yml`; `<product-repo-B>` via
 **four** — `cascade-ancestry-guard.yml, handbook-question-dedupe.yml, roy-build.yml, sync-canon.yml`;
-bankai-scaffold via **one** — `kisuke-build.yml`. **`nen fanout compute`'s live output matches every
+`<scaffold-repo>` via **one** — `kisuke-build.yml`. **`nen fanout compute`'s live output matches every
 one of these three consumers and every one of their matched files, exactly**, computed fresh against
 the same range rather than read from the old notes. This is the strongest possible same-verdict
 confirmation available for this verb: it reproduces a real, already-recorded, hand-computed
@@ -554,7 +554,7 @@ severity reasoning for what counts as blocking, the `G5` ask's own framing and r
 recognising a contradiction's *net effect* in prose.
 
 **Two mutating verbs A/B'd by contract inspection only, never exercised against a live repository**
-(per the ground rules — mutating verbs are never run against `bankai-core`, and `hatsu` itself has
+(per the ground rules — mutating verbs are never run against `<reference-repo>`, and `hatsu` itself has
 no release yet to fan out from):
 
 - `nen fanout record` — its `--help` contract (appends one line per consumer to `--ledger`, never
@@ -582,7 +582,7 @@ no release yet to fan out from):
   original unsorted `names` array (plain `readdirSync` order) — two different orderings of the same
   fragment set, by construction, not a fixture-size-dependent coincidence. The rule holds for any
   fragment count, not just the 2- and 3-fragment fixtures exercised live (§ 2.3.1).
-- **A live `CON-36` clause-4 `G5` disagreement** — bankai-core's one open chore
+- **A live `CON-36` clause-4 `G5` disagreement** — `<reference-repo>`'s one open chore
   (`879-g2-gate-definition`) resolved cleanly to "not live" (no PR targets it or `main`), so no
   genuine mechanical-vs-partial-scope tension was available to exercise live; `SKILL.md` § 5's
   handling is carried over from the old skill's prose, unverified against a real disagreement.

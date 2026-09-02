@@ -7,7 +7,7 @@ description: Drive one open PR to CON-32 readiness at its human gate, then stop 
 
 **Nature: Manipulator.** GitHub-side ops — drives, wakes, labels, retargets, cascades, thread
 stewardship. Kurapika says so when he runs it. Unlike the old skill's per-diff nature switch
-(bankai-core's Ichigo had no dedicated ops mode, so it borrowed Shinigami/Quincy to signal the
+(`<reference-repo>`'s Ichigo had no dedicated ops mode, so it borrowed Shinigami/Quincy to signal the
 PR's own domain), Kurapika drives a product-shaped PR and a governance-shaped PR through the exact
 same mode, because the *action* here is always GitHub ops, never the code — Manipulator does not
 switch with the diff.
@@ -21,13 +21,13 @@ renders where everything sits; `drive` moves **one named PR** from wherever it s
 where the only remaining actor is the maintainer. It never crosses the gate — G2 and G4 are theirs
 (`CON-5`/`CON-7`), and Kurapika never merges `main`.
 
-The old (bankai-core) version of this skill improvised almost every deterministic step by hand: a
+The old (`<reference-repo>`) version of this skill improvised almost every deterministic step by hand: a
 raw `scripts/pr_ready_gate.sh --verdict` call for readiness (already ported — see
 [`pr-state`](../pr-state/SKILL.md)), then prose reconstructing the first blocking condition, prose
 verifying a wake landed, and a hand-maintained round count. This port replaces every one of those
 with a `nen` verb — `nen pr ready`, `nen pr staleness`, `nen wake verify`, `nen pr body-check`, `nen
 gate derive`, `nen pr cascade-main`, `nen wake fire`, `nen stop` — per zheref/hatsu#2. **One verb
-this port needed does not work against real bankai-core PRs at all** (`nen pr next-blocker`,
+this port needed does not work against real `<reference-repo>` PRs at all** (`nen pr next-blocker`,
 sharing `nen pr fetch`'s reviews-endpoint crash) — see § 3 for the disclosed stopgap, and
 `docs/ab/drive.md` for the reproduction.
 
@@ -41,7 +41,7 @@ hatsu:drive <product_code>#<pr_number> to <G2 | G4>
 
 | Part | Accepts | Notes |
 |---|---|---|
-| `product_code` | a code from the target repository's `schemas/repos.json` → `product_codes` | A short name (`bankai-core`) or `owner/repo` is also accepted |
+| `product_code` | a code from the target repository's `schemas/repos.json` → `product_codes` | A short name (`<reference-repo>`) or `owner/repo` is also accepted |
 | `pr_number` | an **open PR** on that repo | An issue number is an error — see below |
 | gate | `G2` or `G4` | `to <gate>` may be omitted; the gate is then derived (§ 2) |
 
@@ -84,7 +84,7 @@ mismatch itself (*"the invocation asserted G4; the diff derives G2, and the deri
 When `to <gate>` is omitted entirely, derive it silently.
 
 > **`nen gate derive` reads the diff's half only — it does not know the PR's base branch.**
-> `backlog-state`'s own A/B doc records this as a live, open finding (`BC-IS-#929`): a sub-PR based
+> `backlog-state`'s own A/B doc records this as a live, open finding (`RR-IS-#929`): a sub-PR based
 > on an `integration/*` branch is not a maintainer gate row at all (Roy's cascade lane, `CON-5`),
 > and the diff alone cannot tell you that. `nen pr fetch` would supply `baseRefName` and does not
 > work (§ 3) — read it directly: `gh pr view <n> --repo <owner/name> --json baseRefName -q
@@ -96,14 +96,14 @@ Re-run from the top on **every** state change; never act on a picture older than
 
 1. **Fetch the PR's state**, per-verb rather than one snapshot:
    - Readiness and the conjunct table: `nen pr ready <CODE>#<N> --repo <path> --gates
-     "$CLAUDE_PLUGIN_ROOT/contracts/bankai-core.gates.json" --explain` (§ 4).
+     "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain` (§ 4).
    - Body requirements: `nen pr body-check --body-from <path> --requirements-from <path>`.
    - Checks/comments/base ref not carried by the above: `gh pr checks`, `gh pr view --json
      body,comments,baseRefName`.
 
    > **`nen pr fetch` — the verb documented to return this whole snapshot in one call — is broken
-   > against every real bankai-core PR tried.** Reproduced live against both open PRs at port time:
-   > `zheref/bankai-core#925` crashes `could not fetch ... reviews: gh: Unprocessable Entity (HTTP
+   > against every real `<reference-repo>` PR tried.** Reproduced live against both open PRs at port time:
+   > `<reference-repo>#925` crashes `could not fetch ... reviews: gh: Unprocessable Entity (HTTP
    > 422)`; `#940` crashes with a *different* shape, `$.reviews -- expected an array, got object`
    > (a lone `PENDING` review returned unwrapped). Two distinct failure modes, same verb, same
    > session — see `docs/ab/drive.md` § 2 for both transcripts. **This skill never calls `nen pr
@@ -118,9 +118,9 @@ Re-run from the top on **every** state change; never act on a picture older than
    conflict re-invalidates the checks anyway.
 
    > **`nen pr next-blocker` — the verb built to name this order for you — does not work against
-   > real bankai-core PRs either, and for the identical underlying reason.** `next-blocker` has no
+   > real `<reference-repo>` PRs either, and for the identical underlying reason.** `next-blocker` has no
    > `--gates` override at all (only `--reviewers`/`--approvers`, and passing them does not help):
-   > against frozen bankai-core, which ships no `schemas/gates.json`, it refuses outright —
+   > against frozen `<reference-repo>`, which ships no `schemas/gates.json`, it refuses outright —
    > `schemas/gates.json: no such file ... has no built-in copy to fall back on`, reproduced live
    > against both open PRs. Supplying that file into a scratch checkout satisfies the refusal, but
    > the verb then hits `nen pr fetch`'s own crash underneath — `could not fetch ...#925 reviews: gh:
@@ -138,7 +138,7 @@ Re-run from the top on **every** state change; never act on a picture older than
 5. **Poll in-shell** (`gh pr checks`, `gh pr view --comments`). Never a background primitive, never
    a scheduled wake-up: Kurapika has no App and no sweeper.
 6. **Count the round**, mechanically — § 6. Five rounds on one PR is the cap
-   (bankai-core's own `agents/_conventions.md`: *"max 5 build↔review rounds per PR, then escalate
+   (`<reference-repo>`'s own `agents/_conventions.md`: *"max 5 build↔review rounds per PR, then escalate
    to the human"*); the sixth is an escalation, not a retry.
 
 ## 4. Readiness — the verb decides; the confirmation pass may only **veto**
@@ -150,7 +150,7 @@ satisfied.** Both are deterministic; neither is re-derived by eye. This is exact
 ```bash
 export GH_TOKEN=$(gh auth token)
 nen pr ready <CODE>#<N> --repo <path> \
-  --gates "$CLAUDE_PLUGIN_ROOT/contracts/bankai-core.gates.json" --explain
+  --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
 ```
 
 `--gates` anchored on `$CLAUDE_PLUGIN_ROOT`, never a bare relative path (`pr-state`'s own A/B proves
@@ -194,8 +194,8 @@ gate with worse evidence.
 > in `hatsu` itself is authored locally, on the maintainer's/Kurapika's own credentials — there is
 > no CI builder in this repository to carry a `<!-- bankai agent=… run=… -->` stamp, so no hatsu PR
 > can ever match the first branch's trigger. `nen wake fire`/`nen wake verify` are exercised in this
-> port's own A/B (`docs/ab/drive.md` § 2.6, § 3) only against **bankai-core's** CI-authored objects
-> (`zheref/bankai-core#925`, `#940`, both stamped by a CI builder), never against `hatsu` itself.
+> port's own A/B (`docs/ab/drive.md` § 2.6, § 3) only against **`<reference-repo>`'s** CI-authored objects
+> (`<reference-repo>#925`, `#940`, both stamped by a CI builder), never against `hatsu` itself.
 > Driving a `hatsu` PR always takes the second branch below (Kurapika authored it) or the third
 > (conflicted).
 
@@ -206,15 +206,15 @@ fix is that agent's to make. The channel is **`nen wake fire`, fired ALONE**:
 nen wake fire --repo-slug <owner/name> --ref <CODE>-PR-#<N> --label bankai:wake/iterate --run
 ```
 
-(`bankai:wake/iterate` is the real label name, read off bankai-core's own `schemas/labels.json`:
+(`bankai:wake/iterate` is the real label name, read off `<reference-repo>`'s own `schemas/labels.json`:
 *"CON-26/CON-38 non-vote wake: re-fires a builder's own ITERATE on its open PR; edge-triggered."*)
 `--run` is required — without it `nen wake fire` writes nothing (CON-38's dry-run-first
-convention), which this port never exercises against bankai-core itself (mutating; contract
+convention), which this port never exercises against `<reference-repo>` itself (mutating; contract
 inspected only, per the shared brief's boundary — see `docs/ab/drive.md` § 3).
 
 > ⚠️ **Never apply the label in the same breath as a comment.** Both dispatch runs into the same
 > concurrency group seconds apart and the second **cancels the first's `probe`**, so `build` never
-> starts and the wake dies silently (BC-IS-#554). If context must be added first: post the comment,
+> starts and the wake dies silently (RR-IS-#554). If context must be added first: post the comment,
 > **wait for its run to settle**, then fire the label. If the findings are already on the PR — and
 > after any automated review round they are — fire the label alone and add nothing.
 
@@ -224,12 +224,12 @@ inspected only, per the shared brief's boundary — see `docs/ab/drive.md` § 3)
 nen wake verify --repo-slug <owner/name> --now <ISO-8601> --author-pattern <ci-agent-login-regex>
 ```
 
-Without `--run` this is **genuinely read-only** — verified live against the real bankai-core repo
+Without `--run` this is **genuinely read-only** — verified live against the real `<reference-repo>` repo
 (`docs/ab/drive.md` § 2): it scans open PRs whose author matches the pattern for a run that
 concluded `action_required`/`startup_failure` with **no job executed**, which is exactly "a `probe`
 that is `cancelled` with no `build` job" — a **failed** wake, not an attempt, and must be re-fired
 rather than counted. `--run` additionally auto-redrives what can safely be redriven and posts a flag
-comment otherwise — mutating; never fired at bankai-core by this port (contract inspected only).
+comment otherwise — mutating; never fired at `<reference-repo>` by this port (contract inspected only).
 
 **Kurapika authored it** (local, on the maintainer's creds): address it yourself. Reply on each
 thread with the disposition — the fix SHA, or a cited pushback — **and** resolve it. Push the fix.
@@ -252,10 +252,10 @@ Merges (never rebases) the trunk in and pushes on a clean merge; reports a confl
 resolving it. Mutating; contract inspected only. A conflicted PR gets *no checks at all*, which
 reads as "clean" rather than "broken". **`nen wake fire` is a known no-op here — do not re-fire it
 and wait.** A `CONFLICTING` PR dispatches no `pull_request`-family event, including the `labeled`
-event the wake label needs (BC-IS-#798); it is also edge-triggered, so a label already present from
+event the wake label needs (RR-IS-#798); it is also edge-triggered, so a label already present from
 an earlier failed attempt must be removed, then re-applied, before it can even be tried again — and
 on a still-conflicted PR, that still will not help. Cascade `main` in instead.
-`copilot-sweeper.yml`'s `conflict_guard` job (bankai-core, unchanged infrastructure, outside `nen`'s
+`copilot-sweeper.yml`'s `conflict_guard` job (`<reference-repo>`, unchanged infrastructure, outside `nen`'s
 scope) auto-detects a `dirty` PR and redrives a `kisuke-bankai[bot]`-authored PR only; for every
 other author it still only leaves a flag comment, and cascading `main` in yourself is faster than
 waiting on it.
@@ -325,12 +325,12 @@ nen stop --who Kurapika --gate <G2|G4> [--notified] efforts.md
 ```
 
 Paste the banner verbatim — verified live end to end (`docs/ab/drive.md` § 2), a real `ready`
-bankai-core PR (`BC-PR-#940`) renders:
+`<reference-repo>` PR (`RR-PR-#940`) renders:
 
 ```
 | Effort                                                                 | Refs                   | Status (gate) | Needs                   |
 | ----------------------------------------------------------------------- | ---------------------- | ------------- | ----------------------- |
-| A fifth shell clause for a frozen-line patch, expiring with the freeze | BC-IS-#937, BC-PR-#940 | 🟢 (G4)       | Merge — maintainer only |
+| A fifth shell clause for a frozen-line patch, expiring with the freeze | RR-IS-#937, RR-PR-#940 | 🟢 (G4)       | Merge — maintainer only |
 ```
 
 Then publish the gate board as an Artifact and link it — the same `nen board build`/`nen board
@@ -338,7 +338,7 @@ render` machinery [`backlog-state`](../backlog-state/SKILL.md) uses, fed this on
 **`MERGE`** kind — the verdict says everything, so it takes no options:
 
 ```
-MERGE — BC-PR-#940 is CON-32-Ready at G4
+MERGE — RR-PR-#940 is CON-32-Ready at G4
 why:   nen pr ready: ready · nen pr body-check: 2/2 satisfied · the confirmation pass found
        nothing the gate missed.
 ```
@@ -377,4 +377,4 @@ Say when the run **starts** and when it **ends**.
   `nen pr staleness --wakes-from` entry to manufacture a stale verdict.
 - **Never exceeds the 5-round cap** on one PR — the sixth round is an escalation.
 - **Never calls `nen pr fetch` or `nen pr next-blocker`** — both are reproduced broken against real
-  bankai-core PRs (§ 3) and are filed as defects, not routed around by hand.
+  `<reference-repo>` PRs (§ 3) and are filed as defects, not routed around by hand.

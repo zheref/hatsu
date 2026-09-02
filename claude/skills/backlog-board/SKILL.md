@@ -3,7 +3,7 @@ name: backlog-board
 description: Render the current backlog as the Kurapika gate board — the same sweep, arguments and gate assignment as hatsu:backlog-state, painted as one self-contained HTML page published as an Artifact instead of a markdown table. Use when the maintainer asks to see the board, the gate register, or the state as a page, or invokes hatsu:backlog-board <repo|all>@<G1|G1-M|G2|G3|G4|G5|all> [every <turn|state-change|once>] — the optional trailing clause makes the board re-render on every turn or whenever a scoped item's state (including its gate) changes, instead of the once-and-stop default. Strictly read-only — it never labels, merges, pushes, comments or opens anything.
 ---
 
-# Backlog board — the same board, painted (ex-`BC-IS-#700`)
+# Backlog board — the same board, painted (ex-`RR-IS-#700`)
 
 **Nature: Manipulator.** The board-facing half of the work. Kurapika says so when he runs it.
 
@@ -112,15 +112,15 @@ computed** rows — verified live (`nen board build --help`): *"a row's gate fro
 its colour from `nen color status`. `--rows-from` is a JSON array of BoardRow: `{ id, title, refs,
 gate, status, needs }`."* It does not fetch, derive a gate, or resolve a colour itself — it only
 assembles and echoes back what you already decided in § 2, plus a `repo` / `generatedAt` header.
-Confirmed live against the real `zheref/bankai-core` backlog:
+Confirmed live against the real `<reference-repo>` backlog:
 
 ```
-$ nen board build --repo-slug zheref/bankai-core --rows-from boardrows.json --json
+$ nen board build --repo-slug <reference-repo> --rows-from boardrows.json --json
 {
-  "repo": "zheref/bankai-core",
+  "repo": "<reference-repo>",
   "generatedAt": "2026-09-02T00:57:42.267Z",
-  "rows": [ { "id": "918", "title": "…", "refs": ["BC-IS-#918", "BC-IS-#939", "BC-IS-#877",
-             "BC-PR-#925"], "gate": null, "status": "in_progress", "needs": "…" }, … ]
+  "rows": [ { "id": "918", "title": "…", "refs": ["RR-IS-#918", "RR-IS-#939", "RR-IS-#877",
+             "RR-PR-#925"], "gate": null, "status": "in_progress", "needs": "…" }, … ]
 }
 ```
 
@@ -149,7 +149,7 @@ Field by field, from a row `backlog-state` already produced:
 - **`needs`** ← backlog-state's expected-action line, one string, naming the action and its actor.
 
 **One collapsing step `nen backlog fetch` does NOT do for you — a finding, not a missing verb.**
-Verified live: three real open issues on `zheref/bankai-core` (`#918`, `#939`, `#877`) all reference
+Verified live: three real open issues on `<reference-repo>` (`#918`, `#939`, `#877`) all reference
 the **same** open PR (`#925`) and `nen backlog fetch` returns **three separate rows**, one per
 issue, each carrying `prNumbers: [925]` — it assembles "an issue plus the PRs that reference it,
 or a lone PR", one row **per issue-anchor**, not one row per shared PR. `backlog-state`'s own rule
@@ -193,17 +193,17 @@ above, the output is a plain pipe table with raw status strings (`ready_g1 (G1-M
 links:
 
 ```
-zheref/bankai-core -- generated 2026-09-02T00:57:50.925Z
+<reference-repo> -- generated 2026-09-02T00:57:50.925Z
 
 | Effort              | Refs         | Status (gate)   | Needs        |
 | -------------------- | ------------ | --------------- | ------------ |
-| Cancelled build …     | BC-IS-#918, …| in_progress     | PR #925 is … |
-| Record the ruling …   | BC-IS-#937   | ready_g1 (G1-M) | Routed to …  |
+| Cancelled build …     | RR-IS-#918, …| in_progress     | PR #925 is … |
+| Record the ruling …   | RR-IS-#937   | ready_g1 (G1-M) | Routed to …  |
 ```
 
 The **same 3-row content**, run read-only through the retired `scripts/ichigo_board.sh` (extracted
 via `git show v0.11.3:scripts/ichigo_board.sh` into a scratch dir, never written back to
-bankai-core) at the OLD schema it actually consumes, produces a **28,092-byte self-contained HTML
+`<reference-repo>`) at the OLD schema it actually consumes, produces a **28,092-byte self-contained HTML
 page** — design shell, per-gate desk with ranked `DECIDE`/`DO`/`MERGE` asks, a tally strip, a
 legend, a footer, and the identity sprite. `nen board`'s markdown table has none of that: no gate
 grouping, no DECIDE/DO/MERGE grammar, no options tables, no tally, no legend, no sprite. The exact

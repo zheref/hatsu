@@ -1,6 +1,6 @@
 ---
 name: senkei
-description: Inventory a consuming product repo's own backlog — open epics, live integration branches, and open PRs — classify each effort, and drive every open PR to a CON-32/G2-readiness determination. Use when the maintainer asks for the status of a product repo (KroApple, KroAndroid, or any other Bankai consumer), wants its existing efforts driven forward, or invokes `hatsu:senkei`. Kurapika (Manipulator) enumerates the target repo's backlog, classifies each effort (delivering/building/stalled/queued/idle/undecidable), states a Ready/not-Ready call with the reason for every open PR, and reports one status table per pass. Carries no CON-25 delegation and never merges — G2 stays the maintainer's.
+description: Inventory a consuming product repo's own backlog — open epics, live integration branches, and open PRs — classify each effort, and drive every open PR to a CON-32/G2-readiness determination. Use when the maintainer asks for the status of a product repo (`<product-repo-A>`, `<product-repo-B>`, or any other Bankai consumer), wants its existing efforts driven forward, or invokes `hatsu:senkei`. Kurapika (Manipulator) enumerates the target repo's backlog, classifies each effort (delivering/building/stalled/queued/idle/undecidable), states a Ready/not-Ready call with the reason for every open PR, and reports one status table per pass. Carries no CON-25 delegation and never merges — G2 stays the maintainer's.
 ---
 
 # Senkei — inventory and drive a product repo's own backlog to G2-readiness
@@ -9,13 +9,13 @@ description: Inventory a consuming product repo's own backlog — open epics, li
 says so when he runs it.
 
 This is the **product-repo counterpart** of
-[`backlog-loop`](../backlog-loop/SKILL.md). `backlog-loop` drives bankai-core's own backlog to
+[`backlog-loop`](../backlog-loop/SKILL.md). `backlog-loop` drives `<reference-repo>`'s own backlog to
 zero as G4-ready PRs; `senkei`
 inventories **one consuming product repo's** backlog — its open epics, live `integration/*`
 branches, and open PRs — and drives those PRs to `CON-32`/**G2**-readiness. It never touches
-bankai-core's own backlog, and it never mutates the target repo's product code.
+`<reference-repo>`'s own backlog, and it never mutates the target repo's product code.
 
-The old (bankai-core) version of this skill computed every one of §§2–4 below by improvised prose
+The old (`<reference-repo>`) version of this skill computed every one of §§2–4 below by improvised prose
 and raw `gh`: hand-listing epics and their children over `gh issue list`, hand-computing
 ahead/behind for each `integration/*` branch, hand-reasoning the five-class taxonomy from labels,
 and re-running a dead reviewer job with a bare `gh run rerun <id> --failed`. This port replaces
@@ -27,7 +27,7 @@ label→input reshape, the Ready/not-Ready narrative, the escalation channel, th
 stays this skill's judgment. See `docs/ab/senkei.md` for the full mapping, the live evidence
 against two real consumer repos, and every finding filed against the binary along the way.
 
-> **Read the target repo's own backlog only.** Never bankai-core's — that is
+> **Read the target repo's own backlog only.** Never `<reference-repo>`'s — that is
 > [`backlog-loop`](../backlog-loop/SKILL.md)'s job, and this skill carries no delegation to touch
 > it, read or write.
 
@@ -40,14 +40,14 @@ hatsu:senkei <repo>
 ```
 
 `<repo>` is a product code, a short name, or a full `owner/repo` — take it from the invocation
-(`hatsu:senkei KroApple`, or `hatsu:senkei zheref/KroApple`); **never guess it**. Mechanized:
+(`hatsu:senkei <product-repo-A>`, or `hatsu:senkei <product-repo-A>`); **never guess it**. Mechanized:
 
 ```
 nen parse senkei --grammar "<repo>" --line "<what the maintainer typed>"
 ```
 
 Verified live (`docs/ab/senkei.md` § 2.1): a single mandatory slot with no bracketed optional
-clause parses correctly both ways (`KroApple`, `zheref/KroApple`) and refuses cleanly with a
+clause parses correctly both ways (`<product-repo-A>`, `<product-repo-A>`) and refuses cleanly with a
 corrected line when the slot is empty. This is the same generic `--grammar` path
 [`backlog-state`](../backlog-state/SKILL.md) found broken for a *bracketed* clause — the defect is
 specific to `[ ... ]`, not to `nen parse` as a whole, and senkei's own grammar has no bracket to
@@ -63,16 +63,16 @@ An unknown repo is an error that names the token and lists the codes `nen repo r
 refusal prints — never a guess, never a prefix match.
 
 **Product repos do not reliably ship their own registry.** Verified live against the real
-`zheref/KroApple`: it carries no `schemas/` directory at all — no `repos.json`, no `gates.json`,
+`<product-repo-A>`: it carries no `schemas/` directory at all — no `repos.json`, no `gates.json`,
 no `colors.yml`, no `labels.json` (`docs/ab/senkei.md` § 4.1, three `404`s). The registry that names
-its product code (`KP`) and its Nen scenario (`swiftui-tca-uzf-v2`) lives in **bankai-core's own**
-`schemas/repos.json`, under `consumers`, alongside `KroAndroid` (`KN`). So `--repo <path>` for
-resolution and object notation points at a local bankai-core checkout, never at the product repo
+its product code (`RA`) and its Nen scenario (`swiftui-tca-uzf-v2`) lives in **`<reference-repo>`'s own**
+`schemas/repos.json`, under `consumers`, alongside `<product-repo-B>` (`RB`). So `--repo <path>` for
+resolution and object notation points at a local `<reference-repo>` checkout, never at the product repo
 itself — resolve once, up front, and carry the resolved `owner/repo` slug forward:
 
 ```
-nen repo resolve KP --repo <bankai-core checkout>          # zheref/KroApple  (KP)  via code
-nen repo scenario --repo <bankai-core checkout> --target zheref/KroApple   # swiftui-tca-uzf-v2
+nen repo resolve RA --repo <reference-repo checkout>          # <product-repo-A>  (RA)  via code
+nen repo scenario --repo <reference-repo checkout> --target <product-repo-A>   # swiftui-tca-uzf-v2
 ```
 
 ## 2. Enumerate the target repo's backlog — `nen repo inventory`
@@ -87,16 +87,16 @@ carrying `--epic-label` with its children, every branch under `--integration-pre
 ahead/behind vs `--trunk`, and every open PR. **Always fetched live** — never work from a cached
 list; labels, branches and PRs change under you.
 
-- **`--epic-label`** is the target repo's own epic marker (`bankai:epic` on KroApple/KroAndroid —
-  confirm against the repo's label set rather than assuming the bankai-core name matches).
+- **`--epic-label`** is the target repo's own epic marker (`bankai:epic` on `<product-repo-A>`/`<product-repo-B>` —
+  confirm against the repo's label set rather than assuming the `<reference-repo>` name matches).
 - **`--integration-prefix` has no default.** The naming convention for a live integration branch
-  (`integration/` on KroApple) is the target repository's own; never hard-code a literal here.
+  (`integration/` on `<product-repo-A>`) is the target repository's own; never hard-code a literal here.
 - **`--trunk`** defaults to `main`.
 
-**Verified live against the real `zheref/KroApple`** (`docs/ab/senkei.md` § 3.1):
+**Verified live against the real `<product-repo-A>`** (`docs/ab/senkei.md` § 3.1):
 
 ```
-nen repo inventory --target zheref/KroApple --epic-label "bankai:epic" \
+nen repo inventory --target <product-repo-A> --epic-label "bankai:epic" \
                    --integration-prefix "integration/" --trunk main
 ```
 
@@ -105,7 +105,7 @@ open/closed — verified live, re-run 2026-09-01, `docs/ab/senkei.md` § 3.1), *
 branches**, **1 open PR**. Two of the four integration branches — `integration/epic-193` and
 `integration/epic-213` — belong to epics **already closed** (confirmed independently against the
 live issues, `docs/ab/senkei.md` § 3.2): exactly the **idle** class in § 3 below, found on real
-data, not constructed. This is the same defect shape `bankai-core#929`
+data, not constructed. This is the same defect shape `<reference-repo>#929`
 (`docs/ab/backlog-state.md` § 5) names for a different skill: state that outlives the object it was
 opened for, left alive because nothing swept it.
 
@@ -140,7 +140,7 @@ guessing which is authoritative.
 >   label list — both live under the same `bankai:stage/*` prefix) makes a G1-approved-but-not-yet-
 >   released epic misclassify as `building`, because the verb reads *any* non-empty `stageLabels`
 >   as "released" — regardless of which label it is. Reproduced against the real
->   `KP-IS-#17` / `KP-IS-#178` epics: feeding their real `bankai:stage/ready-for-bankai` label into
+>   `RA-IS-#17` / `RA-IS-#178` epics: feeding their real `bankai:stage/ready-for-bankai` label into
 >   `stageLabels` reports `building`; excluding it (mode label → `modeLabelPresent: true`,
 >   `stageLabels: []`) reports the correct `queued` — *"G1-approved (a mode label was picked) but
 >   not yet released with a stage label"* — matching the old skill's own taxonomy exactly.
@@ -151,7 +151,7 @@ guessing which is authoritative.
 >   classification universe at all: **do not feed it to `nen effort classify`** — report it
 >   separately as "not yet G1-approved," never as `stalled`.
 > - **`queued` is reachable ONLY when `stageLabels` is empty** and `modeLabelPresent` is `true` —
->   confirmed true even with an alive integration branch (`KP-IS-#17`/`#178` again): an alive
+>   confirmed true even with an alive integration branch (`RA-IS-#17`/`#178` again): an alive
 >   branch does not upgrade a `queued` row to `building` on its own; only a genuine (non-mode)
 >   stage label does.
 >
@@ -182,51 +182,51 @@ export GH_TOKEN=$(gh auth token)
 nen pr ready <ref> --gh-repo <owner/name> [--gates <path> | --reviewers a,b,c [--approvers a,b]] --explain
 ```
 
-**Most product repos ship no `schemas/gates.json` of their own — verified against KroApple, not
+**Most product repos ship no `schemas/gates.json` of their own — verified against `<product-repo-A>`, not
 assumed.** Without `--gates` or `--reviewers`, `nen pr ready` refuses outright: *"no reviewer
 identities. This gate never falls back to a built-in reviewer set..."* (exit `2`) — reproduced
-live against the real `zheref/KroApple#509` (`docs/ab/senkei.md` § 4.1). This is the same refusal
-[`pr-state`](../pr-state/SKILL.md) documents for bankai-core, and the fix is the same shape but a
-**different file**: hatsu's `contracts/bankai-core.gates.json` is bankai-core's own reviewer
+live against the real `<product-repo-A>#509` (`docs/ab/senkei.md` § 4.1). This is the same refusal
+[`pr-state`](../pr-state/SKILL.md) documents for `<reference-repo>`, and the fix is the same shape but a
+**different file**: hatsu's `contracts/reference.gates.json` is `<reference-repo>`'s own reviewer
 identities and must **never** be reused for a different repo's PR — that would judge one repo
 against another's vocabulary. For a product repo with no `--gates` file of its own:
 
 - If the repo ships `schemas/gates.json`, no flag is needed at all.
 - Otherwise, pass `--reviewers`/`--approvers` naming **that repo's own** configured reviewer
   bots — derived from **its own** `.github/workflows/*.yml`, read directly, not assumed and not
-  copied from bankai-core's registry. **Verified live, read-only, against KroApple's own
+  copied from `<reference-repo>`'s registry. **Verified live, read-only, against `<product-repo-A>`'s own
   workflow files**: `bankai-review-gates.yml` calls `sasuke-review.yml`, `tenma-review.yml` and
-  `bisky-review.yml` as reusable workflows — a genuine review **trio**, not a pair, and bankai-core's
+  `bisky-review.yml` as reusable workflows — a genuine review **trio**, not a pair, and `<reference-repo>`'s
   own `schemas/repos.json` `consumes` list for this repo corroborates the same three (plus `copilot`
   nowhere in it as a review identity — `copilot-sweeper.yml` is a different, non-review workflow).
-  **Never guess a reviewer set and never substitute bankai-core's own `contracts/bankai-core.gates.json`.**
+  **Never guess a reviewer set and never substitute `<reference-repo>`'s own `contracts/reference.gates.json`.**
 - **A disclosed limitation, not routed around:** the reduced `--reviewers a,b,c [--approvers a,b]`
   CLI path is a flat, static list — it cannot model `bisky`'s **conditional** approver behaviour,
   which only joins the approval set for a PR it has actually posted a review on **at the current
   head** (`approves_when_posted_at_head`). This is exactly the dynamic-enrolment shape
-  [`pr-state`](../pr-state/SKILL.md)'s own gates-contract precedent names for bankai-core itself
+  [`pr-state`](../pr-state/SKILL.md)'s own gates-contract precedent names for `<reference-repo>` itself
   (`docs/ab/pr-state.md` § 1 row 8: "`+bisky`/`+bugbot` only when their check is present at head",
   driven by `enrolment_check_pattern` in a real `gates.json`, never by a flat CLI list) — the same
   structural gap, reproduced against a different repo. **Verified live** (`docs/ab/senkei.md`
-  § 4.2): `bisky-bankai` had already posted an `APPROVED` review on `zheref/KroApple#509` at the
+  § 4.2): `bisky-bankai` had already posted an `APPROVED` review on `<product-repo-A>#509` at the
   head evaluated, yet the `--reviewers sasuke,tenma,copilot --approvers sasuke,tenma` call this
   port actually runs neither names `bisky` nor sees that approval — it is invisible to the verdict
   computed this way, not merely omitted from the writeup.
 - **Why this set, stated plainly:** `sasuke,tenma,copilot` (reviewers) / `sasuke,tenma` (approvers)
-  is **bankai-core's own convention** (`contracts/bankai-core.gates.json`'s `base_reviewers`/
-  `default_approvers`), reused here as the **pragmatic fallback** — not because KroApple's own
+  is **`<reference-repo>`'s own convention** (`contracts/reference.gates.json`'s `base_reviewers`/
+  `default_approvers`), reused here as the **pragmatic fallback** — not because `<product-repo-A>`'s own
   workflows call for `copilot` as a review-pair identity (they don't; `copilot-pull-request-reviewer`
   shows up only as a PR commenter, per `gh pr view --json reviews`, never as a reusable-workflow
   review-pair job) but because the CLI's flat `--reviewers`/`--approvers` shape cannot express
   `bisky`'s conditional round anyway, so naming it as a plain reviewer would misrepresent it as
-  unconditional. **The gap this leaves**: a full `schemas/gates.json` authored for KroApple itself,
-  modeling `bisky` the way bankai-core's own contract does, is what would close this fully — until
-  one exists, say so every time this fallback is used, rather than presenting `sasuke,tenma,copilot`
-  as KroApple's own considered choice.
+  unconditional. **The gap this leaves**: a full `schemas/gates.json` authored for
+  `<product-repo-A>` itself, modeling `bisky` the way `<reference-repo>`'s own contract does, is what
+  would close this fully — until one exists, say so every time this fallback is used, rather than
+  presenting `sasuke,tenma,copilot` as `<product-repo-A>`'s own considered choice.
 - If neither is available, the refusal **is** the report — surface it verbatim (`nen pr` never
   falls back to a guess), never route around it with an assumed identity set.
 
-**Real verdict, verified live** against `zheref/KroApple#509` with its actual reviewer identities
+**Real verdict, verified live** against `<product-repo-A>#509` with its actual reviewer identities
 supplied (`docs/ab/senkei.md` § 4.2): `not-ready: required checks reported but are not all green
 (CON-32a)` — the conjunct table (`--explain`) shows exactly which check rollup entries are not yet
 green, at the current head, short-circuited before any reviewer-round conjunct is evaluated.
@@ -236,7 +236,7 @@ Two rules unchanged from [`pr-state`](../pr-state/SKILL.md) and
 eye** (the current-head rule catches what a glance at the checks page misses), and **the
 adversarial confirmation pass may only veto a `ready` verdict, never promote a `not-ready` one**.
 
-Product repos hit failure modes bankai-core's own backlog does not surface as often — check for
+Product repos hit failure modes `<reference-repo>`'s own backlog does not surface as often — check for
 these explicitly, by name, in the determination:
 
 - **A reviewer job that died mid-run**, leaving a stale `CHANGES_REQUESTED` on a required check.
@@ -278,15 +278,15 @@ than counted.
 One status table per pass, `<CODE>-<IS|PR>-#<N>` notation (`nen ref format`), gate named per row:
 
 ```
-nen ref format --repo <bankai-core checkout> --code KP --kind IS --number 178 --state open \
-              --url https://github.com/zheref/KroApple/issues/178
-# 📄 [KP-IS-#178](https://github.com/zheref/KroApple/issues/178)
+nen ref format --repo <reference-repo checkout> --code RA --kind IS --number 178 --state open \
+              --url https://github.com/<product-repo-A>/issues/178
+# 📄 RA-IS-#178
 ```
 
 | Issue | Class | PR | Checks | Reviews | Ready? | Awaiting |
 | --- | --- | --- | --- | --- | --- | --- |
-| [KP-IS-#178](https://github.com/zheref/KroApple/issues/178) | queued | — | — | — | — | Release to a builder — G1-M |
-| [KP-PR-#509](https://github.com/zheref/KroApple/pull/509) | building | [KP-PR-#509](https://github.com/zheref/KroApple/pull/509) | not all green | — | ❌ not-Ready | `CON-32(a)` — checks |
+| RA-IS-#178 | queued | — | — | — | — | Release to a builder — G1-M |
+| RA-PR-#509 | building | RA-PR-#509 | not all green | — | ❌ not-Ready | `CON-32(a)` — checks |
 
 Draw the gate-stop banner (`nen stop`) only when the maintainer must actually act on something in
 the table — a status-only pass reports plainly, no banner.
@@ -297,7 +297,7 @@ the table — a status-only pass reports plainly, no banner.
   [`backlog-loop`](../backlog-loop/SKILL.md) by name; `senkei` applies **no**
   `bankai:agent/*` or `bankai:stage/*` label without the maintainer's explicit per-action
   confirmation, same as Kurapika outside a named run.
-- **No merging, anywhere.** G2 is the target repo's maintainer's, same as it is on bankai-core.
+- **No merging, anywhere.** G2 is the target repo's maintainer's, same as it is on `<reference-repo>`.
 - **No writes to product code by this skill.** It **inventories and drives** — it never edits the
   target repo's product source itself.
 
@@ -311,7 +311,7 @@ the table — a status-only pass reports plainly, no banner.
 - Never guess the target repo when none is given (§ 1).
 - Never feed a pre-G1 or mode-carrying label straight into `nen effort classify`'s `stageLabels`
   without the reshape § 3 requires — verified live to misclassify.
-- Never reuse `contracts/bankai-core.gates.json` (or any other repo's reviewer identities) for a
+- Never reuse `contracts/reference.gates.json` (or any other repo's reviewer identities) for a
   different repo's `nen pr ready` call (§ 4).
 - Never exercise `nen run rerun-failed`'s affirmative rerun path against a repo whose PRs you do
   not control the consequences of — this port only confirms the refusal shape (§ 4).

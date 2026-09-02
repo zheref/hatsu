@@ -1,6 +1,6 @@
 # A/B evidence — `backlog-loop` (zheref/hatsu#2)
 
-Port of `claude/skills/backlog-loop/SKILL.md`: drive `bankai-core`'s backlog to zero open
+Port of `claude/skills/backlog-loop/SKILL.md`: drive `<reference-repo>`'s backlog to zero open
 actionable issues, in severity order, as G4-ready PRs. The old skill's own deterministic steps were
 either raw `gh`/hand-reasoning (fetch, severity-order sort, the concurrency cap, the gate-stop
 table) or CI-plane machinery this port structurally cannot reuse at all (the wake-verification half
@@ -13,18 +13,18 @@ delegation of every issue→PR and PR→Ready step to the already-landed `build`
 
 Run: 2026-09-02, UTC times as logged by each command. `nen` `0.1.0`
 (`<cache>\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`. All
-commands below ran **read-only** against the live `zheref/bankai-core` repository (backlog fetch,
-`changelog completeness`, `fanout compute`), against a **scratch copy** of `bankai-core`'s own
+commands below ran **read-only** against the live `<reference-repo>` repository (backlog fetch,
+`changelog completeness`, `fanout compute`), against a **scratch copy** of `<reference-repo>`'s own
 `CHANGELOG.md` (never the real checkout — `changelog collate` without
 `--write`), or against local scratch JSON/markdown with **no GitHub write of any kind**. `nen label
 apply`, `nen tag cut`, `nen wake fire`, and `nen changelog collate --write` (the four mutating
-verbs this port's text cites) were **never exercised live** against `zheref/bankai-core` — contract
+verbs this port's text cites) were **never exercised live** against `<reference-repo>` — contract
 inspected only, per the shared brief's rule and the identical precedent `pr-state`'s and
 `backlog-state`'s own A/B docs already set (`docs/ab/pr-state.md`, `docs/ab/backlog-state.md`). `nen
 fanout record` is exercised live because it writes **only** a local scratch ledger file, never
 GitHub — confirmed in § 2.11.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
@@ -32,7 +32,7 @@ GitHub — confirmed in § 2.11.
 
 | # | Old (prose / raw `gh`) | New (`nen`) |
 |---|---|---|
-| 1 | § 1 "Fetch every open `bankai-core` issue with its labels, comments, linked PRs and current check/review state. Never work from a cached list" | `nen backlog fetch --repo-slug <owner/name> --json` — paginated, never cached, `truncated` reported explicitly (verified live, § 2.3) |
+| 1 | § 1 "Fetch every open `<reference-repo>` issue with its labels, comments, linked PRs and current check/review state. Never work from a cached list" | `nen backlog fetch --repo-slug <owner/name> --json` — paginated, never cached, `truncated` reported explicitly (verified live, § 2.3) |
 | 2 | § 2 "Propose a severity ... Apply it" — a raw `gh issue edit --add-label` implied | `nen label apply <ref> --label bankai:severity/<level> --repo-slug <owner/name> --reason ... --run` — contract-verified only (§ 3), same verb `build`'s own port already contract-maps for `bankai:stage/building` |
 | 3 | § 2's whole priority order — "severity first ... within a severity: blocks, affects consumers, age" — hand-sorted | `nen backlog order --rows-from <path> --severity-order critical,high,medium,low [--blocks <id,...>] [--affects-consumers <id,...>]` — verified live against the real 88-row backlog (§ 2.4) |
 | 4 | § 4 "Work at most TWO issues ... Never three" — eyeballed | `nen loop slots --efforts efforts.json --local-cap 2 --json` — verified live, occupied/free/binding computed (§ 2.5) |
@@ -42,8 +42,8 @@ GitHub — confirmed in § 2.11.
 | 8 | § 6 "Collate `changelog.d/` fragments ... via `scripts/changelog_collate_fragments.sh`" | `nen changelog collate --version ... --theme ... --changelog ... --fragment-dir ... [--write]` — verified live on a scratch copy without `--write` (§ 2.9); `--write` itself contract inspected only (§ 3) |
 | 9 | § 6 "Compute affected consumers factually (`changed-workflows ∩ consumes`), open a repin PR to each, record every unaffected consumer as an explicit N/A" — hand-computed | `nen fanout compute --range <vPrev>..<vNew>` — verified live against the real `v0.11.2..v0.11.3` range (§ 2.10); `nen fanout record --ledger <path>` for the audit trail — verified live, local-only write (§ 2.11) |
 | 10 | § 7's `docs/Loop/<run-id>/` write and § 8's hand-formatted status table + `scripts/ichigo_board.sh` | `nen board build`/`nen board render` — verified live, including a `refs`-shape finding (§ 2.12); `nen stop --who Kurapika --gate <Gn> board.md` for the gate banner — verified live (§ 2.13) |
-| 11 | This skill's own resolution of "which repo" — no command given in the old skill's prose at all (it hard-coded `bankai-core` throughout) | `nen parse backlog-loop --grammar "<repo>" --line "<invocation>"` (§ 2.1) then `nen repo resolve <CODE> --repo <path>` (§ 2.2) — generalized across repos, same as every other ported skill in this wave |
-| 12 | CON-33(a)'s "does this change owe a fragment" check — read by eye | `nen changelog fragment-required --spec-paths ... --fragment-dir ... --files-from ... --head-changelog ...` — verified live against the real `zheref/bankai-core#940` (§ 2.8) |
+| 11 | This skill's own resolution of "which repo" — no command given in the old skill's prose at all (it hard-coded `<reference-repo>` throughout) | `nen parse backlog-loop --grammar "<repo>" --line "<invocation>"` (§ 2.1) then `nen repo resolve <CODE> --repo <path>` (§ 2.2) — generalized across repos, same as every other ported skill in this wave |
+| 12 | CON-33(a)'s "does this change owe a fragment" check — read by eye | `nen changelog fragment-required --spec-paths ... --fragment-dir ... --files-from ... --head-changelog ...` — verified live against the real `<reference-repo>#940` (§ 2.8) |
 | 13 | CON-33(c)'s "every merged PR has an entry" completeness check — read by eye | `nen changelog completeness --range ... --changelog ... --owner-repo ...` — verified live against the real `v0.11.2..v0.11.3` range (§ 2.7) |
 
 **Count.** Before: **zero** deterministic steps in §§ 1–2, 4, 6–8 of the old skill — fetch,
@@ -51,7 +51,7 @@ severity triage, priority ordering, the concurrency cap, the tag-cut trigger tab
 collation/completeness, fan-out computation, and the status board were all agent prose, raw `gh`,
 or a shell script invoked by hand. After: **eleven** of those (rows 1, 3, 4, 6, 7 (contract), 8, 9,
 10, 11, 12, 13) are now single `nen` verb calls, seven of them verified live against the real
-`zheref/bankai-core` repository or a faithful scratch copy of it, four contract-inspected only
+`<reference-repo>` repository or a faithful scratch copy of it, four contract-inspected only
 because they mutate GitHub or an immutable git object (label apply, tag cut, `changelog collate
 --write`, and — inherited — wake fire). What remains prose: severity/mode reasoning (§ 4 of the
 skill), critical-preemption/low-deferral/seize-the-wait (§ 5), the live-chore detection ahead of a
@@ -89,21 +89,21 @@ for the same gap to bite. Genuinely mechanized, not routed around.
 ### 2.2 — `nen repo resolve`, case-insensitive
 
 ```
-$ nen repo resolve BC --repo <bankai-core checkout>
-zheref/bankai-core  (BC)  via code
+$ nen repo resolve BC --repo <reference-repo checkout>
+<reference-repo>  (BC)  via code
 
-$ nen repo resolve bc --repo <bankai-core checkout>
-zheref/bankai-core  (BC)  via code
+$ nen repo resolve bc --repo <reference-repo checkout>
+<reference-repo>  (BC)  via code
 ```
 
 Same verb, same behavior every sibling port already confirmed (`docs/ab/build.md` § 2.2); not
 re-derived differently here.
 
-### 2.3 — `nen backlog fetch`, the real `zheref/bankai-core` backlog
+### 2.3 — `nen backlog fetch`, the real `<reference-repo>` backlog
 
 ```
 $ export GH_TOKEN=$(gh auth token)
-$ nen backlog fetch --repo-slug zheref/bankai-core --json > bloop-fetch.json
+$ nen backlog fetch --repo-slug <reference-repo> --json > bloop-fetch.json
 $ python3 -c "import json; d=json.load(open('bloop-fetch.json')); print('truncated:', d['truncated']); print('rows:', len(d['rows']))"
 truncated: False
 rows: 88
@@ -117,7 +117,7 @@ the verb.
 
 ### 2.4 — `nen backlog order`, the real backlog, severity + `--blocks` tie-break
 
-Rows reshaped to `{id, severity, createdAt, number}` (`id` = `BC-IS-#<issueNumber>`, `severity`
+Rows reshaped to `{id, severity, createdAt, number}` (`id` = `RR-IS-#<issueNumber>`, `severity`
 read off the `bankai:severity/*` label or `"untriaged"` when absent):
 
 ```
@@ -128,14 +128,14 @@ The 7 real `high` rows sort strictly ahead of every `medium`/`low`/`untriaged` r
 within the band:
 
 ```
-BC-IS-#877  2026-08-29T17:16:02Z  severityRank:1
-BC-IS-#878  2026-08-29T17:43:13Z  severityRank:1
-BC-IS-#879  2026-08-29T20:06:05Z  severityRank:1
-BC-IS-#918  2026-09-01T17:35:29Z  severityRank:1
-BC-IS-#928  2026-09-01T18:26:51Z  severityRank:1
-BC-IS-#929  2026-09-01T18:26:57Z  severityRank:1
-BC-IS-#937  2026-09-01T22:55:36Z  severityRank:1
-BC-IS-#494  2026-08-21T16:31:24Z  severityRank:2   <- first medium row
+RR-IS-#877  2026-08-29T17:16:02Z  severityRank:1
+RR-IS-#878  2026-08-29T17:43:13Z  severityRank:1
+RR-IS-#879  2026-08-29T20:06:05Z  severityRank:1
+RR-IS-#918  2026-09-01T17:35:29Z  severityRank:1
+RR-IS-#928  2026-09-01T18:26:51Z  severityRank:1
+RR-IS-#929  2026-09-01T18:26:57Z  severityRank:1
+RR-IS-#937  2026-09-01T22:55:36Z  severityRank:1
+RR-IS-#494  2026-08-21T16:31:24Z  severityRank:2   <- first medium row
 ...
 ```
 
@@ -149,14 +149,14 @@ confirmed against real objects, not synthetic ones, matching `backlog-state`'s o
 $ nen backlog order --rows-from bloop-rows.json --severity-order critical,high,medium,low --blocks 928,929 --json
 # high band unchanged: all 7 rows still oldest-first, blocksOther:false for every one
 
-$ nen backlog order --rows-from bloop-rows.json --severity-order critical,high,medium,low --blocks "BC-IS-#928,BC-IS-#929" --json
-BC-IS-#928  2026-09-01T18:26:51Z  blocksOther:true   <- promoted to the front
-BC-IS-#929  2026-09-01T18:26:57Z  blocksOther:true   <- promoted to the front
-BC-IS-#877  2026-08-29T17:16:02Z  blocksOther:false
-BC-IS-#878  2026-08-29T17:43:13Z  blocksOther:false
-BC-IS-#879  2026-08-29T20:06:05Z  blocksOther:false
-BC-IS-#918  2026-09-01T17:35:29Z  blocksOther:false
-BC-IS-#937  2026-09-01T22:55:36Z  blocksOther:false
+$ nen backlog order --rows-from bloop-rows.json --severity-order critical,high,medium,low --blocks "RR-IS-#928,RR-IS-#929" --json
+RR-IS-#928  2026-09-01T18:26:51Z  blocksOther:true   <- promoted to the front
+RR-IS-#929  2026-09-01T18:26:57Z  blocksOther:true   <- promoted to the front
+RR-IS-#877  2026-08-29T17:16:02Z  blocksOther:false
+RR-IS-#878  2026-08-29T17:43:13Z  blocksOther:false
+RR-IS-#879  2026-08-29T20:06:05Z  blocksOther:false
+RR-IS-#918  2026-09-01T17:35:29Z  blocksOther:false
+RR-IS-#937  2026-09-01T22:55:36Z  blocksOther:false
 ```
 
 **Confirmed: the flag reads the row's own `id` field, not the bare `number`.** `--help`'s own
@@ -169,15 +169,15 @@ refusal. Filed (`SKILL.md` § 12, finding 1).
 ```
 $ cat bloop-efforts1.json
 [
-  {"id":"BC-IS-#877","plane":"local","prOpen":false,"ready":false,"prompted":false},
-  {"id":"BC-IS-#878","plane":"local","prOpen":true,"ready":false,"prompted":false}
+  {"id":"RR-IS-#877","plane":"local","prOpen":false,"ready":false,"prompted":false},
+  {"id":"RR-IS-#878","plane":"local","prOpen":true,"ready":false,"prompted":false}
 ]
 
 $ nen loop slots --efforts bloop-efforts1.json --local-cap 2 --json
 {"ci":{"plane":"ci","cap":2,"occupied":0,"free":2,"holding":[],"binding":false},
  "local":{"plane":"local","cap":2,"occupied":2,"free":0,
-   "holding":[{"id":"BC-IS-#877","why":"authored locally, no PR yet"},
-              {"id":"BC-IS-#878","why":"PR open but not ready -- nothing else is behind a locally-authored PR, so this run still owns it"}],
+   "holding":[{"id":"RR-IS-#877","why":"authored locally, no PR yet"},
+              {"id":"RR-IS-#878","why":"PR open but not ready -- nothing else is behind a locally-authored PR, so this run still owns it"}],
    "binding":true},"done":[]}
 (exit 1)
 
@@ -218,24 +218,24 @@ simplification `drive`'s own A/B § 5 already names).
 ### 2.7 — `nen changelog completeness`, the real historical release range
 
 ```
-$ nen changelog completeness --range v0.11.2..v0.11.3 --changelog CHANGELOG.md --owner-repo zheref/bankai-core
+$ nen changelog completeness --range v0.11.2..v0.11.3 --changelog CHANGELOG.md --owner-repo <reference-repo>
 every PR merged in v0.11.2..v0.11.3 has a CHANGELOG entry or fragment.
 (exit 0)
 ```
 
-Run from inside the real `bankai-core` checkout, read-only — no write, no `--fragment-dir` needed
+Run from inside the real `<reference-repo>` checkout, read-only — no write, no `--fragment-dir` needed
 since the range is fully collated already.
 
-### 2.8 — `nen changelog fragment-required`, the real `BC-PR-#940`
+### 2.8 — `nen changelog fragment-required`, the real `RR-PR-#940`
 
 ```
-$ gh pr diff 940 --repo zheref/bankai-core --name-only > pr940-files.txt
+$ gh pr diff 940 --repo <reference-repo> --name-only > pr940-files.txt
 changelog.d/937-bc11-frozen-line-patch.md
 cli/src/guards/bc11-allowlist.txt
 cli/src/guards/bc11.repo.test.ts
 cli/src/guards/bc11.test.ts
 cli/src/guards/bc11.ts
-handbooks/stacks/bankai-core/architecture.md
+handbooks/stacks/<reference-repo>/architecture.md
 
 $ nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,agents/,schemas/,.github/workflows/,cli/" \
     --fragment-dir changelog.d --files-from pr940-files.txt --head-changelog CHANGELOG.md
@@ -248,11 +248,11 @@ Real diff, real repo, genuinely read-only.
 
 ### 2.9 — `nen changelog collate`, without `--write`, on a scratch copy
 
-**Never run against the real `bankai-core` checkout** — a scratch copy of its real `CHANGELOG.md`
+**Never run against the real `<reference-repo>` checkout** — a scratch copy of its real `CHANGELOG.md`
 plus a synthetic fragment, in a throwaway directory:
 
 ```
-$ mkdir -p scratch/changelog.d && cp <bankai-core>/CHANGELOG.md scratch/CHANGELOG.md
+$ mkdir -p scratch/changelog.d && cp <reference-repo>/CHANGELOG.md scratch/CHANGELOG.md
 $ cat > scratch/changelog.d/999-test-fragment.md <<'EOF'
 ### Test fragment (scratch, never real)
 - what: nothing, this is a dry-run proof
@@ -274,7 +274,7 @@ $ ls changelog.d
 
 **Confirmed genuinely read-only without `--write`**: the file hash is identical before and after,
 and the fragment file was not consumed. `--write` itself (which would delete the fragment and
-rewrite `CHANGELOG.md`) is never exercised against the real, frozen `bankai-core` — contract
+rewrite `CHANGELOG.md`) is never exercised against the real, frozen `<reference-repo>` — contract
 inspected only (§ 3).
 
 ### 2.10 — `nen fanout compute`, the real historical release range
@@ -285,13 +285,13 @@ $ nen fanout compute --range v0.11.2..v0.11.3 --json
   "range": "v0.11.2..v0.11.3",
   "changedWorkflows": [21 real workflow basenames, e.g. "bankai.yml", "roy-build.yml", ...],
   "rows": [
-    {"repo":"zheref/KroApple","code":"KP","status":"affected",
+    {"repo":"<product-repo-A>","code":"RA","status":"affected",
      "matchedWorkflows":["cascade-ancestry-guard.yml","db-migrate.yml","handbook-question-dedupe.yml","roy-build.yml","sync-canon.yml"],
      "basis":"consumes cascade-ancestry-guard.yml, db-migrate.yml, handbook-question-dedupe.yml, roy-build.yml, sync-canon.yml, which changed in this range"},
-    {"repo":"zheref/KroAndroid","code":"KN","status":"affected",
+    {"repo":"<product-repo-B>","code":"RB","status":"affected",
      "matchedWorkflows":["roy-build.yml","sync-canon.yml","cascade-ancestry-guard.yml","handbook-question-dedupe.yml"],
      "basis":"..."},
-    {"repo":"zheref/bankai-scaffold","code":"BS","status":"affected",
+    {"repo":"<scaffold-repo>","code":"BS","status":"affected",
      "matchedWorkflows":["kisuke-build.yml"], "basis":"..."}
   ]
 }
@@ -309,9 +309,9 @@ recorded 3 row(s) to .../bloop-fanout-ledger.jsonl
 (exit 0)
 
 $ cat bloop-fanout-ledger.jsonl
-{"range":"v0.11.2..v0.11.3","at":"2026-09-02T02:27:16.553Z","repo":"zheref/KroApple", ...}
-{"range":"v0.11.2..v0.11.3","at":"2026-09-02T02:27:16.553Z","repo":"zheref/KroAndroid", ...}
-{"range":"v0.11.2..v0.11.3","at":"2026-09-02T02:27:16.553Z","repo":"zheref/bankai-scaffold", ...}
+{"range":"v0.11.2..v0.11.3","at":"2026-09-02T02:27:16.553Z","repo":"<product-repo-A>", ...}
+{"range":"v0.11.2..v0.11.3","at":"2026-09-02T02:27:16.553Z","repo":"<product-repo-B>", ...}
+{"range":"v0.11.2..v0.11.3","at":"2026-09-02T02:27:16.553Z","repo":"<scaffold-repo>", ...}
 ```
 
 Three JSON lines appended to a scratch path outside any tracked checkout. Same underlying
@@ -326,9 +326,9 @@ this doc.
 
 ```
 $ cat bloop-boardrows.json
-[{"id":"BC-IS-#877", "refs":"BC-IS-#877", ...}]
+[{"id":"RR-IS-#877", "refs":"RR-IS-#877", ...}]
 
-$ nen board build --repo-slug zheref/bankai-core --rows-from bloop-boardrows.json --json
+$ nen board build --repo-slug <reference-repo> --rows-from bloop-boardrows.json --json
 nen board: row.refs.join is not a function. (In 'row.refs.join(", ")', 'row.refs.join' is undefined)
 (exit 1)
 ```
@@ -337,28 +337,28 @@ nen board: row.refs.join is not a function. (In 'row.refs.join(", ")', 'row.refs
 
 ```
 $ nen ref format --code BC --kind IS --number 877 --state open \
-    --url "https://github.com/zheref/bankai-core/issues/877" --no-glyphs --repo <bankai-core checkout>
-[BC-IS-#877](https://github.com/zheref/bankai-core/issues/877)
+    --url "https://github.com/<reference-repo>/issues/877" --no-glyphs --repo <reference-repo checkout>
+RR-IS-#877
 
 $ cat bloop-boardrows3.json
 [
-  {"id":"BC-IS-#877","title":"[oldest open high-severity issue]",
-   "refs":["[BC-IS-#877](https://github.com/zheref/bankai-core/issues/877)"],
+  {"id":"RR-IS-#877","title":"[oldest open high-severity issue]",
+   "refs":"[RR-IS-#877"],
    "gate":"","status":"in_progress","needs":"Triage next move"},
-  {"id":"BC-IS-#937","title":"Record the BC-11 frozen-line ruling",
-   "refs":["BC-IS-#937","BC-PR-#940"],
+  {"id":"RR-IS-#937","title":"Record the BC-11 frozen-line ruling",
+   "refs":["RR-IS-#937","RR-PR-#940"],
    "gate":"G4","status":"ready_g2_g4","needs":"Merge -- maintainer only"}
 ]
 
-$ nen board build --repo-slug zheref/bankai-core --rows-from bloop-boardrows3.json --json > board.json
+$ nen board build --repo-slug <reference-repo> --rows-from bloop-boardrows3.json --json > board.json
 (exit 0)
 $ nen board render --board-from board.json
-zheref/bankai-core -- generated 2026-09-02T02:26:45.410Z
+<reference-repo> -- generated 2026-09-02T02:26:45.410Z
 
 | Effort                              | Refs                                                            | Status (gate)     | Needs                     |
 | ------------------------------------ | ---------------------------------------------------------------- | ------------------- | --------------------------- |
-| [oldest open high-severity issue]   | [BC-IS-#877](https://github.com/zheref/bankai-core/issues/877) | in_progress ()     | Triage next move          |
-| Record the BC-11 frozen-line ruling | BC-IS-#937, BC-PR-#940                                          | ready_g2_g4 (G4)  | Merge -- maintainer only  |
+| [oldest open high-severity issue]   | RR-IS-#877 | in_progress ()     | Triage next move          |
+| Record the BC-11 frozen-line ruling | RR-IS-#937, RR-PR-#940                                          | ready_g2_g4 (G4)  | Merge -- maintainer only  |
 ```
 
 **Confirmed: `refs` must be an array of pre-formatted strings, never a plain string.** A caller who
@@ -373,7 +373,7 @@ render` never itself resolves a colour glyph — the caller passes the resolved 
 $ cat bloop-efforts.md
 | Effort | Refs | Status (gate) | Needs |
 | --- | --- | --- | --- |
-| Untriaged issue needs a severity proposal | BC-IS-#938 | 🟡 | Confirm proposed severity |
+| Untriaged issue needs a severity proposal | RR-IS-#938 | 🟡 | Confirm proposed severity |
 
 $ nen stop --who Kurapika --gate G5 bloop-efforts.md
 === YOUR INPUT IS NEEDED ==============================
@@ -385,7 +385,7 @@ see the table below. No banner above => nothing needs you right now.
 
 | Effort                                    | Refs       | Status (gate) | Needs                     |
 | ------------------------------------------ | ------------ | --------------- | --------------------------- |
-| Untriaged issue needs a severity proposal | BC-IS-#938 | 🟡            | Confirm proposed severity |
+| Untriaged issue needs a severity proposal | RR-IS-#938 | 🟡            | Confirm proposed severity |
 ```
 
 Renders the banner, both notification-rung status lines, and the padded table from a plain
@@ -394,10 +394,10 @@ proof of this verb.
 
 ---
 
-## 3. Mutating verbs — contract inspection only (never exercised against `bankai-core`)
+## 3. Mutating verbs — contract inspection only (never exercised against `<reference-repo>`)
 
 Per the shared brief's boundary: these MUTATE GitHub or an immutable git object, and are never
-fired at the real, frozen `zheref/bankai-core` by this port. Their full `--help` contracts (from
+fired at the real, frozen `<reference-repo>` by this port. Their full `--help` contracts (from
 the pinned `v0.1.0` binary) are what `SKILL.md` cites; no dry run against `zheref/hatsu` was
 attempted either, for the same reason `pr-state`/`backlog-state`'s own A/B docs already gave (none
 was genuinely needed to write the skill).
@@ -426,7 +426,7 @@ No behavioural gap found in any of these contracts themselves.
 1. **`nen backlog order`'s `--blocks`/`--affects-consumers` silently no-op on a bare issue number**
    rather than refusing, even though `--help`'s own `<n,n>` example notation reads as "numbers."
    Reproduced live (§ 2.4): passing `928,929` produces no error and no change in ordering; passing
-   the row's own `id` string (`BC-IS-#928,BC-IS-#929`) works exactly as documented. A caller who
+   the row's own `id` string (`RR-IS-#928,RR-IS-#929`) works exactly as documented. A caller who
    follows the literal help text gets silently wrong output, not a loud refusal.
 2. **`nen board build` crashes uncaught (`row.refs.join is not a function`) when `refs` is a plain
    string instead of an array.** Reproduced live (§ 2.12). The documented `BoardRow` shape does not
@@ -437,7 +437,7 @@ No behavioural gap found in any of these contracts themselves.
    filed against `build` (`docs/ab/build.md` § 2.10); reproduced identically here (§ 2.5) because
    this skill calls the verb independently, for the same reason.
 4. **(Cited, not re-exercised)** `nen pr fetch`/`nen pr next-blocker` are broken against every real
-   `zheref/bankai-core` PR tried — filed against `drive` (`docs/ab/drive.md` § 4), whose engine this
+   `<reference-repo>` PR tried — filed against `drive` (`docs/ab/drive.md` § 4), whose engine this
    skill delegates all PR-shaped work to. `backlog-loop` never calls either verb itself.
 
 ---
@@ -451,7 +451,7 @@ No behavioural gap found in any of these contracts themselves.
 - **The live-chore detection ahead of a tag-cut** (`SKILL.md` § 8) — "the chore's issue is open AND
   its `integration/<chore>` branch exists" — has no `nen` verb; a plain `gh issue view`/`git
   branch -r` composite check, same residue `build`'s own port already names for the identical
-  structural gap (no live chore exists today to test it against — `bankai-core`'s own taxonomy
+  structural gap (no live chore exists today to test it against — `<reference-repo>`'s own taxonomy
   carries no `chore` label at all, `docs/ab/build.md` § 2.7/§ 2.9).
 - **Opening a fan-out consumer's repin PR** is a plain `gh pr create` per row; `nen fanout record`
   only logs the decision, never opens anything (§ 2.11).

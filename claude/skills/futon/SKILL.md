@@ -29,7 +29,7 @@ three things and `backlog-loop` wins on everything else:
 2. an **explicit terminal the maintainer typed**, instead of an automatic batch-boundary trigger;
 3. **who is behind every PR** — and here the retired skill's whole premise stopped applying.
 
-> **Declared process change — read this before § 4.** The retired (bankai-core) skill's central
+> **Declared process change — read this before § 4.** The retired (`<reference-repo>`) skill's central
 > mechanic was a *choice*: route to a CI lane agent by default, and take local authorship only on
 > stall or structural impossibility. That choice presupposed a CI plane to route to.
 > [`hatsu:build`](../build/SKILL.md) already established, for the identical structural gap, that
@@ -41,20 +41,20 @@ three things and `backlog-loop` wins on everything else:
 > PR-open, locally-authored means held to Ready — **collapses to one rule for every PR this run
 > ever originates**: `CON-32` Ready, prompted, nothing less (§ 5). This is a declared change from
 > the retired skill's behaviour, not a silent one, per the ratified migration plan and
-> `zheref/akatsuki-ai#1` — the same declaration [`hatsu:build`](../build/SKILL.md) made and
+> its tracking issue (private) — the same declaration [`hatsu:build`](../build/SKILL.md) made and
 > [`bankai-handbooks`](../bankai-handbooks/SKILL.md) made before it for its own identical gap.
 >
 > **One qualification, not a reopening of the choice.** A band's queue can still contain an issue
 > whose PR was **already open before this run started**, authored by a CI identity that predates
 > the migration and belongs to the *target* repository's own machinery (not Hatsu's) —
-> `zheref/bankai-core#939`, whose PR `BC-PR-#925` was opened by `app/kisuke-bankai[bot]` before the
+> `<reference-repo>#939`, whose PR `RR-PR-#925` was opened by `app/kisuke-bankai[bot]` before the
 > freeze, is exactly this, verified live (`docs/ab/futon.md` § 2). **Detected mechanically, not
 > eyeballed**: the PR author's login matches a bot/App identity pattern — a `[bot]` suffix or an
 > `app/` prefix — read via `gh pr view --json author`; `app/kisuke-bankai[bot]` is exactly that
 > pattern, the concrete instance above. That PR keeps **its own** done
 > rule — open is its milestone, because something else was once driving it — and occupies the **CI**
 > half of § 6's two budgets. `futon` never *creates* a new one: it cannot route to a plane that does
-> not exist for Hatsu, and on `bankai-core` specifically no new one is even possible — the repo is
+> not exist for Hatsu, and on `<reference-repo>` specifically no new one is even possible — the repo is
 > frozen. On a still-live consumer this could reappear; say so if it does, rather than assuming
 > every open PR in the band is this run's own.
 
@@ -85,28 +85,28 @@ bounded `CON-25` delegation (§ 7), and a delegation nobody announced is a deleg
 
 ### Verified live, every band shape and both terminals
 
-Run against the real `zheref/bankai-core` checkout (`--repo` = that checkout's path; `GH_TOKEN` not
+Run against the real `<reference-repo>` checkout (`--repo` = that checkout's path; `GH_TOKEN` not
 needed — this verb reads only `schemas/repos.json` on disk, no GitHub call):
 
 | Invocation | Result |
 |---|---|
-| `@high` (bare — "the repo you are standing in") | `repo: zheref/bankai-core` · `band: high -> high` · `terminal: (none -- build-only)` |
-| `zheref/bankai-core@high+` | `band: high+ -> critical, high` · no terminal |
+| `@high` (bare — "the repo you are standing in") | `repo: <reference-repo>` · `band: high -> high` · `terminal: (none -- build-only)` |
+| `<reference-repo>@high+` | `band: high+ -> critical, high` · no terminal |
 | `@high+ then tag` (bare, no `--self` needed) | `band: high+ -> critical, high` · `terminal: tag` |
-| `zheref/bankai-core@high+ then tag+fanout` | `band: high+ -> critical, high` · `terminal: tag+fanout` |
-| `@medium` (`--json`) | `{"repo":"zheref/bankai-core","code":null,"isSelf":true,"band":{"severity":"medium","plus":false,"severities":["medium"]},"terminal":null}` |
+| `<reference-repo>@high+ then tag+fanout` | `band: high+ -> critical, high` · `terminal: tag+fanout` |
+| `@medium` (`--json`) | `{"repo":"<reference-repo>","code":null,"isSelf":true,"band":{"severity":"medium","plus":false,"severities":["medium"]},"terminal":null}` |
 
-Full transcripts, including a `KP@high+` cross-check that expands the same way for a real consumer,
+Full transcripts, including an `RA@high+` cross-check that expands the same way for a real consumer,
 are in `docs/ab/futon.md` § 1.
 
 ### Refusals — every one exit `2`, every one with the corrected line ready to paste
 
 | Invocation tried | Refusal (trimmed) |
 |---|---|
-| `KP@high then tag` (standing in `bankai-core`) | *"'then tag' is refused against 'zheref/KroApple' -- the terminal is that repository's own release machinery, and it is not the one you are standing in (zheref/bankai-core)."* → `try: KP@high` |
-| `KP@urgent` | *"'urgent' is not a severity. Expected one of critical, high, medium, low, optionally suffixed '+'."* → `try: KP@critical` |
-| `KP@high then release` | *"'then release' is not a recognized terminal. Only 'then tag' and 'then tag+fanout' are accepted."* → `try: KP@high then tag` |
-| `ZZ@high` | *"'ZZ' does not resolve against this registry's product_codes ($comment, BC, BS, KP, KN, KW, KC) or its consumers. Resolving it to a near match would point a mutating run at the wrong backlog."* |
+| `RA@high then tag` (standing in `<reference-repo>`) | *"'then tag' is refused against '`<product-repo-A>`' -- the terminal is that repository's own release machinery, and it is not the one you are standing in (`<reference-repo>`)."* → `try: RA@high` |
+| `RA@urgent` | *"'urgent' is not a severity. Expected one of critical, high, medium, low, optionally suffixed '+'."* → `try: RA@critical` |
+| `RA@high then release` | *"'then release' is not a recognized terminal. Only 'then tag' and 'then tag+fanout' are accepted."* → `try: RA@high then tag` |
+| `ZZ@high` | *"'ZZ' does not resolve against this registry's product_codes ($comment, BC, BS, RA, RB, RC, KC) or its consumers. Resolving it to a near match would point a mutating run at the wrong backlog."* |
 | `kp@HIGH+ then TAG` | Case-insensitive parsing confirmed (band/terminal parsed correctly); refused on the **same** self-mismatch as row 1, with the corrected line preserving the caller's own casing: `try: kp@high+` |
 
 **`+` means this band or higher, never anything else; a bare severity never quietly widens.**
@@ -115,35 +115,35 @@ is read from the LAST whole-word `then`**, so an issue title containing the word
 mistaken for one — this is the built-in grammar's own job, never a hand-rolled `sed`.
 
 **The terminal's scope rule generalizes beyond what the retired skill assumed, and that is a
-finding, not a bug.** The retired skill hard-coded *"a `then` clause is valid on `bankai-core`
+finding, not a bug.** The retired skill hard-coded *"a `then` clause is valid on `<reference-repo>`
 ONLY."* `nen parse futon` instead enforces *"valid only on the repo you are standing in"* —
-verified live: pointed at the same registry with `--self zheref/KroApple`, `KP@high then tag`
+verified live: pointed at the same registry with `--self <product-repo-A>`, `RA@high then tag`
 **parses** (`docs/ab/futon.md` § 1.4). Nothing in this port exploits that generality — the release
-machinery a `then` hands off to (§ 8) is `bankai-core`'s specifically (`consumes`/`CON-22`), and
-Kurapika's real sessions stand in `bankai-core` when they type it — but the grammar itself does not
+machinery a `then` hands off to (§ 8) is `<reference-repo>`'s specifically (`consumes`/`CON-22`), and
+Kurapika's real sessions stand in `<reference-repo>` when they type it — but the grammar itself does not
 hard-code that assumption the way the retired prose did, and a future run standing in a different
 registry-owning repo would get the identical protection with no code change.
 
 > **Finding against the binary — a genuine usability gap, not a refusal that is doing its job.**
 > **The product-code form fails to resolve the registry's OWN repo, and only the owner/name or
 > short-name form works.** Verified live, reproduced three ways: `nen parse futon --repo
-> <bankai-core checkout> "BC@medium"` — no terminal, no `+`, nothing exotic — refuses at exit `2`:
-> *"'BC' resolves to 'zheref/bankai-core' in this registry's own product_codes, but no owner is
-> recorded for it (it names no consumer) and the checkout you are standing in ('zheref/bankai-core')
-> is not it."* The **identical** invocation with `zheref/bankai-core@medium` or `bankai-core@medium`
+> <reference-repo checkout> "BC@medium"` — no terminal, no `+`, nothing exotic — refuses at exit `2`:
+> *"'BC' resolves to '`<reference-repo>`' in this registry's own product_codes, but no owner is
+> recorded for it (it names no consumer) and the checkout you are standing in ('`<reference-repo>`')
+> is not it."* The **identical** invocation with `<reference-repo>@medium` or `<reference-repo>@medium`
 > parses cleanly (`docs/ab/futon.md` § 1.5–1.7), and the same refusal reproduces for `KC` (`kro-pwa`,
 > a `pending_onboarding` entry, not yet a `consumers` row) — the resolution path apparently checks
 > only the `consumers[]` array for a code lookup, which structurally never lists the registry's own
-> source repo (bankai-core does not consume itself) or an onboarding-pending one. **A different `nen`
+> source repo (`<reference-repo>` does not consume itself) or an onboarding-pending one. **A different `nen`
 > verb on the very same registry does not have this gap** — `nen repo resolve BC` (run from inside
-> the same checkout) answers `zheref/bankai-core (BC) via code` instantly (`docs/ab/futon.md` § 1.8)
+> the same checkout) answers `<reference-repo> (BC) via code` instantly (`docs/ab/futon.md` § 1.8)
 > — and [`hatsu:backlog-state`](../backlog-state/SKILL.md)'s own A/B doc records the *same* family of
 > bug in a third verb (`nen repo resolve`'s no-token form), on the same repo, for the same
 > structural reason. Three verbs, one recurring blind spot: **the maintainer's most natural
 > invocation for driving their own backlog — `hatsu:futon BC@high`, matching the retired skill's own
 > worked examples verbatim — refuses.** Filed as a finding, not routed around silently. **The
-> corrected form to use against `bankai-core` until this is fixed: the bare form (`@<severity>`,
-> when standing in the checkout) or the full `zheref/bankai-core@<severity>` — never the `BC` code
+> corrected form to use against `<reference-repo>` until this is fixed: the bare form (`@<severity>`,
+> when standing in the checkout) or the full `<reference-repo>@<severity>` — never the `BC` code
 > — and say so plainly when the maintainer types the code form and hits the refusal.**
 
 **An unparseable invocation is refused with the corrected line ready to paste** — the same
@@ -154,7 +154,7 @@ valid reading "to see"; this run applies labels and opens PRs.
 
 Fetch the repo's open issues whole, with labels, comments, linked PRs and check/review state
 (`nen backlog fetch --repo-slug <owner/name>`, paginated past GitHub's 100-row clamp — never a
-cached list). Verified live against the real `zheref/bankai-core` backlog: 88 open issues, of which
+cached list). Verified live against the real `<reference-repo>` backlog: 88 open issues, of which
 **0 critical, 7 high, 60 medium, 14 low, 7 untriaged** (no `bankai:severity/*` label at all) —
 counts sum exactly, confirmed no issue double-carries a severity label
 (`docs/ab/futon.md` § 2). A capped fetch (`--limit`) is always reported **truncated**, never
@@ -191,7 +191,7 @@ re-derive any of it — if that skill's engine changes, `futon` changes with it,
 point of composing rather than duplicating.
 
 **Where the retired skill's routing table named CI lane labels** (`bankai:agent/naruto` /
-`yamamoto` / `kisuke` on `bankai-core`, or a consumer's own equivalents), **that label now picks
+`yamamoto` / `kisuke` on `<reference-repo>`, or a consumer's own equivalents), **that label now picks
 Kurapika's MODE instead** — the identical substitution [`hatsu:build`](../build/SKILL.md) § 3 makes:
 a governance/`CON-{n}` label or a handbook/schema/agent-def label means **Conjurer**; a machinery-only
 label an existing rule already sanctions means **Transmuter**. When an issue in the band carries
@@ -209,7 +209,7 @@ nen label apply <CODE>-IS-#<N> --label bankai:stage/building --repo-slug <owner/
   --reason "<why, for the ledger>" --run
 ```
 
-Contract-inspected only against `bankai-core` — never exercised live there (the shared brief's
+Contract-inspected only against `<reference-repo>` — never exercised live there (the shared brief's
 read-only rule); the flag surface matches `nen label --help` exactly (`docs/ab/futon.md` § 3).
 
 **Then Kurapika builds it, in this same session, in the mode just confirmed.** There is no wake to
@@ -226,13 +226,13 @@ structurally cannot do at all, **stop at G5 immediately** and name the gap — t
 
 ```bash
 export GH_TOKEN=$(gh auth token)
-nen pr ready <CODE>#<N> --repo <path> --gates "$CLAUDE_PLUGIN_ROOT/contracts/bankai-core.gates.json" --explain
+nen pr ready <CODE>#<N> --repo <path> --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
 ```
 
-`--gates` anchored on `$CLAUDE_PLUGIN_ROOT` for `bankai-core` specifically (frozen, ships no
+`--gates` anchored on `$CLAUDE_PLUGIN_ROOT` for `<reference-repo>` specifically (frozen, ships no
 `schemas/gates.json` of its own — [`hatsu:pr-state`](../pr-state/SKILL.md)'s own doc proves the
 `ENOENT` from any other path); a repo that ships its own `schemas/gates.json` needs no `--gates`
-flag. **Verified live against both of `bankai-core`'s real open PRs**, contrasting a Ready
+flag. **Verified live against both of `<reference-repo>`'s real open PRs**, contrasting a Ready
 maintainer-authored PR against a not-Ready pre-existing CI one (`docs/ab/futon.md` § 4):
 
 - `BC#940` (opened by the maintainer, `zheref`, matching this run's own authorship pattern):
@@ -328,7 +328,7 @@ cut. Do not "helpfully" cut because a band happens to look finished.
 authored anywhere in the band is short of `CON-32` Ready** (§ 5) — this run owns those PRs; nothing
 else drives them, so cutting past one is the half-done release a terminal exists to avoid. Hold the
 cut, name every PR still short of Ready with its verdict, and keep driving them. A PR under the
-legacy-CI exception does not hold the cut — its own actor (or the fact that `bankai-core` is frozen and
+legacy-CI exception does not hold the cut — its own actor (or the fact that `<reference-repo>` is frozen and
 takes no further action on it) is independent of this run.
 
 **Everything else about the cut — the whole-repo `critical` check regardless of band, the `CON-36`
@@ -366,8 +366,8 @@ asks:
 
 | Issue | Sev | Mode | Plane | PR | Done? | Awaiting you | Logged label |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| [BC-IS-#937](https://github.com/zheref/bankai-core/issues/937) | high | Conjurer | **local** | [BC-PR-#940](https://github.com/zheref/bankai-core/pull/940) | ✅ `ready` (both conjuncts verbatim) | **G4 merge** | `stage/building` — |
-| [BC-IS-#939](https://github.com/zheref/bankai-core/issues/939) | medium | — | **CI (legacy)** | [BC-PR-#925](https://github.com/zheref/bankai-core/pull/925) | ⏳ `not-ready: required checks reported but are not all green (CON-32a)` — pre-existing, its own actor | — | — |
+| RR-IS-#937 | high | Conjurer | **local** | RR-PR-#940 | ✅ `ready` (both conjuncts verbatim) | **G4 merge** | `stage/building` — |
+| RR-IS-#939 | medium | — | **CI (legacy)** | RR-PR-#925 | ⏳ `not-ready: required checks reported but are not all green (CON-32a)` — pre-existing, its own actor | — | — |
 
 **The `Plane` column is not decoration.** A `local` row not yet Ready is **this run's** outstanding
 obligation; a `CI (legacy)` row is a fact this run reports and never drives (the callout above). For a local row,
