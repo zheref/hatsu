@@ -5,8 +5,8 @@ actionable issues, in severity order, as G4-ready PRs. The old skill's own deter
 either raw `gh`/hand-reasoning (fetch, severity-order sort, the concurrency cap, the gate-stop
 table) or CI-plane machinery this port structurally cannot reuse at all (the wake-verification half
 of § 4, the `probe`/`build` job distinction) because Hatsu holds no CI plane. New mechanics: `nen
-backlog fetch|order`, `nen loop slots`, `nen pr staleness`, `nen wake verify` (read-only half only),
-`nen tag cut`, `nen fanout compute|record`, `nen changelog collate|completeness|fragment-required`,
+backlog fetch|order`, `nen loop slots`, `nen pr staleness`, `nen tag cut`, `nen fanout
+compute|record`, `nen changelog collate|completeness|fragment-required`,
 `nen board build|render`, `nen stop`, `nen parse`, `nen repo resolve` — plus a deliberate
 delegation of every issue→PR and PR→Ready step to the already-landed `build`/`drive` ports, per
 `SKILL.md` § 0's declared structural adaptation.
@@ -14,8 +14,8 @@ delegation of every issue→PR and PR→Ready step to the already-landed `build`
 Run: 2026-09-02, UTC times as logged by each command. `nen` `0.1.0`
 (`C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`. All
 commands below ran **read-only** against the live `zheref/bankai-core` repository (backlog fetch,
-`changelog completeness`, `fanout compute`, `wake verify` without `--run`), against a **scratch
-copy** of `bankai-core`'s own `CHANGELOG.md` (never the real checkout — `changelog collate` without
+`changelog completeness`, `fanout compute`), against a **scratch copy** of `bankai-core`'s own
+`CHANGELOG.md` (never the real checkout — `changelog collate` without
 `--write`), or against local scratch JSON/markdown with **no GitHub write of any kind**. `nen label
 apply`, `nen tag cut`, `nen wake fire`, and `nen changelog collate --write` (the four mutating
 verbs this port's text cites) were **never exercised live** against `zheref/bankai-core` — contract
@@ -328,7 +328,7 @@ $ cat bloop-boardrows.json
 
 $ nen board build --repo-slug zheref/bankai-core --rows-from bloop-boardrows.json --json
 nen board: row.refs.join is not a function. (In 'row.refs.join(", ")', 'row.refs.join' is undefined)
-(exit 2)
+(exit 1)
 ```
 
 **Corrected — `refs` as an array, one element per `nen ref format` output:**

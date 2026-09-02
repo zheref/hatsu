@@ -108,7 +108,10 @@ Ready), and whenever the monitor (§ 7) sees a PR state change.
 
 ## 3. Authority — what this run may and may not do
 
-`CON-25`'s fourth carve-out, identical in shape to [`build`](../build/SKILL.md) § 6:
+`CON-25`'s **third carve-out** — the run-scoped standing delegation the constitution names
+explicitly for this skill ("while a named `backlog-loop` run is active
+(`claude/skills/backlog-loop/`)"), not the fourth carve-out's per-skill table
+[`build`](../build/SKILL.md) § 6 carries:
 
 | | `backlog-loop` may |
 |---|---|
@@ -122,6 +125,13 @@ Ready), and whenever the monitor (§ 7) sees a PR state change.
 | **Vote** | No review, ever — and never `request_changes` |
 | **Cut a tag or publish a release** | § 8 stops at the maintainer's `G3` for the official release; the tag itself is prepared, never merged past a refusal |
 | **Fire or verify a wake itself** | That authority lives entirely in `drive` (§ 6) |
+
+> **`CON-46(c-i)`'s stale-chore-merge carve-out is retired here, not restated.** The old
+> (bankai-core) skill inherited the one merge a local persona may perform — a stale CI author's
+> Ready sub-PR onto an `integration/<chore>` branch, once that author demonstrably stops responding.
+> It does not apply to this port: Hatsu holds no CI plane at all (§ 0), so there is no CI-authored
+> chore sub-PR that can ever go stale in the sense `CON-46(c-i)` requires. [`drive`](../drive/SKILL.md)
+> states the identical rule for the same reason — never merges `main`, and not a chore branch either.
 
 **The delegation expires when the run ends. Say when it ends.**
 
