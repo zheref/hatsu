@@ -231,8 +231,9 @@ validator reports **exactly** the fields that fail, never a blanket "invalid blo
   `v0.11.3`'s tree carries the tooling and measurement matrices only as markdown inside
   `handbooks/quality-baseline.md`; Hatsu's own tree carries no such file at all
   (`git ls-tree -r origin/main` has no `docs/Quality/` path). This is **not a defect in `nen quality
-  tooling`** — the verb's own `--help` and source (`src/quality/tooling.ts`'s header comment) are explicit
-  that the table is deliberately the caller's, never one shipped in the binary, precisely so a
+  tooling`** — the verb's own `--help` and source (`zheref/nen@v0.1.0`'s `src/quality/tooling.ts`
+  header comment) are explicit that the table is deliberately the caller's, never one shipped in the
+  binary, precisely so a
   per-repository vocabulary never leaks into shared code. It is a **real gap in the estate**: the first
   repo actually run through this resolver in earnest will need to author `docs/Quality/tooling.json` (or
   wherever its own canon-values convention points) before `nen quality tooling` can do anything for it.
@@ -240,8 +241,8 @@ validator reports **exactly** the fields that fail, never a blanket "invalid blo
 - **Absolute performance ceilings have no verb, and are not expected to.** `perf-compare` computes only
   the regression-relative half of `QA-13`; the flat ceilings (`P1 ≤ 2000 ms`, `P7 ≤ 250 ms`/`≤5%`
   jank/`≤200 ms` INP, `P5 web ≤ 300 KB`) stay skill-stated citations, unchanged from the old skill, because
-  the verb's own scope never claimed to cover them (confirmed against `src/quality/perf.ts`: no ceiling
-  constant exists in that module at all).
+  the verb's own scope never claimed to cover them (confirmed against `zheref/nen@v0.1.0`'s
+  `src/quality/perf.ts`: no ceiling constant exists in that module at all).
 - **Where a `QA-{n}` gap lands is now genuinely open, and this port does not resolve it.** The old skill
   closed with "`quality-baseline.md` and `INDEX.md` change only through a PR the human merges at G4" —
   true while `bankai-core` was live. `bankai-core` is now frozen (no PR against it, ever), and Hatsu ships
