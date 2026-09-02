@@ -97,7 +97,17 @@ $ nen repo scenario --repo <bankai-core checkout> --target KP
 nen repo: --target takes an owner/name repository slug and 'KP' is not one. It is the GitHub side of
 the pair: --repo names a checkout on disk, --target names the repository on GitHub.
 (exit 1)
+
+$ nen repo scenario --repo <bankai-core checkout>
+nen repo: --target owner/name is required.
+(exit 1)
 ```
+
+**Both invocation mistakes on `nen repo scenario` — a malformed `--target` and a missing one — exit
+`1`, the same code as a genuine not-a-consumer refusal (§ 2.2).** Only an unusable `--repo` path exits
+`2` for this verb (§ 2.5). This is a distinct, verb-specific behavior: `nen canon resolve`'s missing
+`--target` exits `2` (§ 2.5) — do not generalize one verb's exit-code shape onto the other. Filed as
+finding 5 (§ 4): tell these apart by the refusal text, never by the code.
 
 Confirmed live: a product code is refused outright by both verbs (`canon resolve` gives the identical
 message). Resolving `KP` → `zheref/KroApple` needs `nen repo resolve KP`, which — verified live —
@@ -148,10 +158,17 @@ Also confirmed with `--json` (KroApple): `{"scenario":"swiftui-tca-uzf-v2","alwa
 - **Always-load, old prose:** `uzf-core.md`, `security-baseline.md`, `release-policy.md` (3 files —
   no `ux-baseline.md`, no `quality-baseline.md`). **`handbooks/INDEX.md`'s live "Always load" table
   names 5 today** (adding `ux-baseline.md` / `UX-{n}` and `quality-baseline.md` / `QA-{n}`). **This is
-  a real divergence** — but it is canon that moved (`INDEX.md` grew two rows since the old skill was
-  written), not a mechanism disagreement: applying the OLD skill's static list today would silently
+  a real divergence, and it is a repeated maintenance failure, not passive drift** — verified directly
+  against the bankai-core history (`git -C <bankai-core checkout> log`/`show`, read-only):
+  `3a463b4` (2026-08-08) added `ux-baseline.md` to `INDEX.md`'s table without touching the retired
+  skill's hardcoded list, and `c711f4e` (2026-08-20) added `quality-baseline.md` to that same table
+  **in the same diff that edited the retired skill file itself** (`claude/skills/bankai-handbooks/
+  SKILL.md`'s "## Rules" section) — yet still left the "## What to load" always-load prose at three
+  files. Two separate commits touched both the table and, in the second case, the retired skill in one
+  diff; neither reconciled the list. Applying the OLD skill's static list today would silently
   under-load two handbooks that genuinely govern every scenario now. This is exactly the failure mode
-  § 2 of the ported skill exists to prevent, demonstrated concretely rather than asserted.
+  § 2 of the ported skill exists to prevent — the read-`INDEX.md`-fresh-every-time rule — demonstrated
+  concretely, as a repeat offense, rather than asserted as one-off drift.
 - **Stack handbook, old prose (`KroApple`, `KroAndroid`):** the old skill's 2-row table maps
   `swiftui-tca-uzf-v2` → `stacks/swiftui-tca-uzf-v2/architecture.md` (`SW-{n}`) and `compose-uzf-v2` →
   `stacks/compose-uzf-v2/architecture.md` (`KT-{n}`) — **identical to `nen`'s output for both repos.**
@@ -193,11 +210,13 @@ nen repo: --repo C:\nonexistent\path resolves to 'C:\nonexistent\path', which do
 (exit 2)
 ```
 
-Confirms the exit-code split the skill relies on: `--target`/`--stack-dir`/`--always-load` refuse
-outright (exit `2`) when omitted; `--repo` has **no such refusal** and silently falls back to the
-process's cwd, only surfacing as a failure once that cwd's `schemas/repos.json` is missing (exit `1`,
-indistinguishable in shape from a genuine "not a consumer" refusal). Filed as a finding (§ 4) and
-encoded directly in the skill (§ 2): never omit `--repo`.
+Confirms the exit-code split the skill relies on for `nen canon resolve`: its own `--target`/
+`--stack-dir`/`--always-load` refuse outright (exit `2`) when omitted; `--repo` has **no such
+refusal** and silently falls back to the process's cwd, only surfacing as a failure once that cwd's
+`schemas/repos.json` is missing (exit `1`, indistinguishable in shape from a genuine "not a consumer"
+refusal). Filed as a finding (§ 4) and encoded directly in the skill (§ 2): never omit `--repo`. **This
+`--target`-exits-2 behavior does not carry over to `nen repo scenario`** — that verb's own missing/
+malformed `--target` exits `1` instead (§ 2.3), a separate, verb-specific asymmetry (finding 5, § 4).
 
 ---
 
@@ -263,3 +282,15 @@ encoded directly in the skill (§ 2): never omit `--repo`.
    own consumer's `bankai.yml` (the same class of drift `CON-14`'s correction notes throughout
    `schemas/repos.json` describe happening to `pinned`/`consumes` repeatedly) would resolve silently
    wrong under either description equally, since neither the old skill nor `nen` cross-checks the two.
+
+5. **`nen repo scenario` conflates invocation errors with "not a recorded consumer" under a single
+   exit code.** Verified live (§ 2.2, § 2.3): a missing `--target`, a code-shaped `--target` (`KP`),
+   and a genuine not-a-consumer target (`zheref/bankai-core`, `zheref/KroWindows`, `zheref/kro-pwa`)
+   all exit `1`. Only an unusable `--repo` path exits `2` for this verb (§ 2.5) — there is no exit-`2`
+   case here for a bad `--target` at all, unlike `nen canon resolve`, whose missing `--target` exits
+   `2` (§ 2.5). A caller who reads the exit code alone cannot tell "I mistyped the command" from "this
+   repo genuinely isn't onboarded"; the refusal text is the only reliable signal, and the two texts are
+   distinguishable (`--target owner/name is required`; `--target takes an owner/name repository slug
+   and '<value>' is not one`; `'<owner/name>' is not a consumer in <checkout>\schemas\repos.json`).
+   The ported skill (§ 1) now encodes this explicitly rather than presenting exit `2` as covering any
+   `--target` failure, which it does not for this verb.

@@ -11,10 +11,18 @@ Conjurer. Name that mode when you invoke this; this skill only resolves the set 
 from.
 
 The handbooks in `bankai-core` are the **single canonical source** for Bankai work. Load the *right*
-ones and no more — **a rule cited from memory is a rule that has already drifted**, and this canon
-already has: the "always load" set was three files when the retired skill was written and is five
-today (§ 2 below; recorded live in `docs/ab/bankai-handbooks.md` § 1). Resolve fresh, every time; never
-carry a fixed list forward from a previous session or from this file's own prose.
+ones and no more — **a rule cited from memory is a rule that has already drifted**, and this is not a
+hypothetical: the retired skill's own "always load" list went stale **twice**, by its own repo's
+history, not by passive drift. `3a463b4` (2026-08-08) added `ux-baseline.md` to `handbooks/INDEX.md`'s
+table without touching the retired skill's hardcoded list; `c711f4e` (2026-08-20) added
+`quality-baseline.md` to that same table **and edited the retired skill file itself in the same
+diff** — yet still left its "always load" prose at three files, never reconciling it against the
+table it grew in the very same commit. Two chances to fix it, in the very act of touching the file,
+both missed: the set is five files today (§ 2 below; recorded live in
+`docs/ab/bankai-handbooks.md` § 1, verified directly against both commits). This is exactly the
+repeated maintenance failure the **read `handbooks/INDEX.md` fresh every time** rule exists to
+prevent, not a one-off oversight — resolve fresh, every time; never carry a fixed list forward from a
+previous session or from this file's own prose.
 
 > **bankai-core is FROZEN**, at the tag `contracts/bankai-core.gates.json`'s header names (`v0.11.3` as
 > of this port — verify the checkout you point at actually sits on that tag with `git -C <checkout>
@@ -60,12 +68,30 @@ its separate `maintained_tools` ownership entry).
   `docs/ab/bankai-handbooks.md` § 2.2 — filed as a finding, not routed around by hand).
 - **No `GH_TOKEN` needed anywhere in this skill.** Both verbs here are pure local-file reads against
   the checkout on disk — verified live with no token exported at all.
-- **Exit `1`** → `<owner/name>` is not a recorded consumer. This covers two different real states —
-  never onboarded at all, or recorded only under `pending_onboarding`/`maintained_tools` without a
-  `scenario` field — and `nen`'s refusal text does **not** distinguish them. Check `schemas/repos.json`
-  yourself before reporting which one it is.
-- **Exit `2`** → the invocation itself was refused (an unusable `--repo` path, a missing `--target`,
-  a `--target` that is not an `owner/name` slug). Fix the command; never read this as "no scenario."
+- **Exit `1`** → covers **two unrelated failure classes that share the same code** — verified live,
+  re-checked against the binary for this port, not carried over from an earlier draft:
+  - `<owner/name>` is not a recorded consumer. This itself covers two different real states — never
+    onboarded at all, or recorded only under `pending_onboarding`/`maintained_tools` without a
+    `scenario` field — and `nen`'s refusal text does **not** distinguish them. Check
+    `schemas/repos.json` yourself before reporting which one it is.
+  - **An invocation mistake — a missing `--target`, or a `--target` that is not an `owner/name`
+    slug — also exits `1`, not `2`.** Do not read exit `1` alone as "not a consumer"; tell the two
+    apart **only by the refusal text**, never by the code: a missing `--target` says `--target
+    owner/name is required`; a malformed one says `--target takes an owner/name repository slug and
+    '<value>' is not one`; a real not-a-consumer refusal names the target and
+    `schemas/repos.json` (`'<owner/name>' is not a consumer in <checkout>\schemas\repos.json`).
+- **Exit `2`** → only an unusable `--repo` path (a checkout that does not exist on disk). This is the
+  **one and only** exit-`2` case for this verb — verified live; a missing or malformed `--target` does
+  **not** produce it. Fix the command; never read exit `2` as "no scenario."
+
+> **Finding, filed against `nen` (not routed around by hand):** `nen repo scenario` conflates
+> invocation errors with "not a recorded consumer" under a single exit code (`1`). Verified live,
+> reproduced for this port: a missing `--target`, a code-shaped `--target`, and a genuine
+> not-a-consumer target all exit `1`; only a bad `--repo` path exits `2`. A caller relying on the exit
+> code alone cannot tell "I mistyped the command" from "this repo genuinely isn't onboarded" — the
+> refusal text is the only reliable signal, and this skill's report step (§ 3) must read it, never
+> just the code. Recorded in full, with the live transcript, in `docs/ab/bankai-handbooks.md` §§ 2.2–
+> 2.3 and finding 5 of § 4.
 
 ## 2. Resolve the handbook set
 
@@ -78,7 +104,8 @@ nen canon resolve --repo <bankai-core checkout> --target <owner/name> \
 
 **`--always-load` is caller data — read fresh from `handbooks/INDEX.md`'s own "Always load" table, at
 the same checkout, every time.** It is not looked up by the verb; you supply it. It is also not stable:
-the table already changed once (three files → five). Verified live at the frozen tag, it resolves to:
+the table has already grown twice while the retired skill's own copy of it sat frozen (three files →
+four → five, § above). Verified live at the frozen tag, it resolves to:
 
 ```
 handbooks/uzf-core.md, handbooks/security-baseline.md, handbooks/ux-baseline.md,
@@ -145,9 +172,13 @@ gap stays OPEN (`claude/agents/kurapika.md` § Conjurer, "An OPEN item stays OPE
 
 ## 5. What this skill must never do
 
-- **Hardcode the always-load set or the scenario/stack table across sessions.** Both drifted once
-  already (§§ 1–2 above); re-read `handbooks/INDEX.md` at the pinned checkout every time, never from
+- **Hardcode the always-load set or the scenario/stack table across sessions.** Both drifted **twice**
+  already, by the same repeated maintenance failure of an edit not reconciling a table it grew in the
+  same diff (§§ 1–2 above); re-read `handbooks/INDEX.md` at the pinned checkout every time, never from
   this file's own prose.
+- **Read `nen repo scenario`'s exit code alone as the diagnosis.** Exit `1` covers both "not a
+  recorded consumer" and an invocation mistake (missing/malformed `--target`); read the refusal text
+  to tell them apart (§ 1).
 - **Load more than one stack folder**, or guess a scenario when `nen repo scenario` refuses one.
 - **Improvise a policy** that is not written in one of the resolved files, or cite a rule ID from a
   file that did not resolve for this repo.
