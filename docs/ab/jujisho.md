@@ -30,7 +30,7 @@ Every deterministic or hand-reconstructed step the old `SKILL.md` improvised, an
 | 2 | `gh pr edit <B> --base main`, run by hand after A merges | `nen pr retarget --target <owner/name> --pr <B> --base <branch>` (§ 3) |
 | 3 | "Cascade A into B in the same pass... merge, never rebase" — no command, left to the agent's own `git merge` | `nen pr cascade-main --repo <path> --trunk <A's-branch-name>` while B is checked out — merges (never rebases) whatever branch `--trunk` names into the current branch and pushes on a clean merge |
 | 4 | Reading the current checkout's state ("On `main`, dirty" / "on a feature branch...") was a hand-read table in `tensho`'s own prose, inherited by jujisho's "decide the base before cutting branches" step | `nen wc classify --repo <path> --base <target base>` — `must-move` / `on-branch-dirty` / `on-branch-clean`, exits 0 for all three (report, not a guard) |
-| 5 | Every-file staging review ("secrets, ignored files, binaries, out-of-scope files, local config, unmentioned deletions... flagged and asked about") was `tensho`'s own hand-applied checklist, inherited unchanged by jujisho § 5 | `nen stage triage --repo <path> [--scope ...] [--mentions "..."]` — detects the same six shapes, decides none of them, exits 1 on any flag |
+| 5 | Every-file staging review ("secrets, ignored files, binaries, out-of-scope files, local config, unmentioned deletions... flagged and asked about") was `tensho`'s own hand-applied checklist, inherited unchanged by jujisho § 5 | `nen stage triage --repo <path> [--scope ...] [--mentions "..."]` — detects five of the old six shapes (secrets, ignored, binary, out-of-scope, unmentioned-deletion), decides none of them, exits 1 on any flag; **local-config has no detector** (§ 4 finding 2, § 5 residue) |
 | 6 | Conventional-commit formatting was written by hand per commit, per axis | `nen commit format --type ... --subject "..." [--scope] [--body] [--trailer ...]` — validates shape, never content |
 | 7 | The `changelog.d/` fragment requirement (`CON-33(a)`) was a fixed path-glob list the agent matched against the diff by eye: `CONSTITUTION.md`, `handbooks/*`, `schemas/*`, `agents/*`, `.github/workflows/*` | `nen changelog fragment-required --files <paths> --spec-paths <list> --fragment-dir changelog.d --head-changelog CHANGELOG.md` — same glob, now a computed answer per axis instead of a memorized list applied twice by hand |
 | 8 | The sibling-PR reference in each body ("`BC-PR-#<A>`") was hand-typed object notation | `nen ref format --code <CODE> --kind PR --number <N> [--state <s>]` |
@@ -143,8 +143,14 @@ ALTERED (in branch 1, header matches but the body does not): src/parser.py  @@ -
 ```
 
 And the single-file, two-hunk case (§ 2.1's `two_hunks.py`, both hunks assigned to one branch,
-identical text) verifies clean — proving the defect is at the **file boundary** in `--original`,
-not the hunk boundary within one file:
+identical text) verifies clean when nothing is actually missing — confirming a complete single-file
+diff parses correctly regardless of hunk count. **This is not proof the defect is confined to file
+boundaries**: § 2.1's other `two_hunks.py` transcript (same file, same two hunks, second hunk
+genuinely dropped from the branch side) already shows the identical false `ALTERED` firing at a
+hunk boundary within this same single file, alongside the correctly-reported `MISSING` line for the
+hunk that really is gone. The defect fires whenever a hunk — a whole file's worth, or one hunk
+within a file — is genuinely absent from the branch side being compared; never when the two sides
+are complete and byte-identical:
 
 ```
 $ nen split verify --original two_hunks_original.diff --branches two_hunks_branch.diff
@@ -153,9 +159,12 @@ OK -- every hunk in the original lands in exactly one branch, unaltered, and not
 ```
 
 **Root cause characterization** (behavioral, not sourced from `nen`'s TypeScript — not inspected for
-this port): `nen split verify`'s `--original` parser appends a phantom trailing line to every file's
-hunk body except the file named last in the diff text, which then never matches the branch-side
-parse of that same, correctly-terminated hunk. Filed as finding 1, § 4.
+this port): `nen split verify` appends a phantom trailing line to a hunk's body whenever that hunk
+is not the last one the parser accounts for in the comparison — the last **file** named in a
+multi-file `--original` (this section), or, within one file, the last hunk the parser can actually
+match once the branch side is short a hunk for that file (§ 2.1's dropped-hunk transcript). Either
+way the phantom line never matches the branch-side parse of that same, correctly-terminated hunk,
+producing the false `ALTERED`. Filed as finding 1, § 4.
 
 ---
 
@@ -197,19 +206,34 @@ ahead of the mutating call.
 
 ## 4. Findings (report separately, do not route around)
 
-1. **`nen split verify` misparses every file except the last one named in `--original` when the
-   diff spans more than one file**, producing a false `ALTERED` on an otherwise byte-identical hunk.
-   Reproduced independently four ways (§ 2.2): two-file order A, the same two files reversed, a
-   three-file original, and — combined with a genuine defect, in § 2.1's last transcript — a
-   doctored single-file case where a real `MISSING` hunk is correctly caught alongside a false
-   `ALTERED` on the surviving one. A single file's diff, however many hunks it carries, parses
-   correctly (§ 2.1, § 2.2's last transcript) — the defect is specifically at the `diff --git` file
-   boundary, not the hunk boundary. **This is the verb this skill's core proof step depends on**, so
-   the port does not route around it silently: § 2's SKILL.md text mandates running `split verify`
-   once per touched file (each slice exempt by construction) plus a separate plain file-set
-   equality check, which together reconstruct the same guarantee a correct combined run would give.
-   Worth filing against `nen` directly (likely in the original-diff hunk-body extraction that
-   determines where one file's parsed hunk ends).
+1. **`nen split verify` produces a false `ALTERED` on an otherwise byte-identical hunk whenever a
+   hunk is genuinely absent elsewhere in the comparison** — at the `diff --git` file boundary when
+   `--original` spans more than one file (every file misparses except the one named last), and
+   equally **at a hunk boundary within a single file** when that file's branch-side diff is itself
+   short a hunk (the surviving hunk is falsely `ALTERED` alongside the correctly-reported `MISSING`
+   line for the one truly missing). Reproduced independently five ways (§ 2.1–2.2): two-file order
+   A, the same two files reversed, a three-file original, a single-file two-hunk case with a hunk
+   genuinely dropped, and the same single-file two-hunk case with nothing dropped — which verifies
+   clean, confirming the defect needs a genuine gap to fire; a complete diff, single-file or
+   multi-hunk, never trips it. **This is the verb this skill's core proof step depends on**, so the
+   port does not route around it silently: § 2's SKILL.md text mandates running `split verify` once
+   per touched file plus a separate plain file-set equality check. A per-file slice is not immune to
+   the same false `ALTERED` — the hunk-boundary case can still fire inside one — **but the
+   workaround stays safe**, because a real gap always also produces its own `MISSING` line: the
+   split is never reported as a clean `OK` when a hunk has genuinely been left behind, so together
+   the per-file runs plus the file-set check reconstruct the same guarantee a correct combined run
+   would give. Worth filing against `nen` directly (likely in the original-diff hunk-body
+   extraction that determines where one file's, or one hunk's, parsed body ends).
+
+2. **No local-config detector in `nen stage triage`** — the same finding as `hatsu:tensho`'s own
+   (`docs/ab/tensho.md` § 4.3): a `.claude/settings.local.json`-shaped file that is neither
+   git-ignored nor out of a declared `--scope` reports **clean**, verified live against the same
+   binary tensho verified against (`nen stage triage --help` names five detectors; local-config is
+   not one of them). The old jujisho staging checklist (§ 5, inherited unchanged from tensho's own
+   checklist) named local config as its own flagged category — the port does not silently drop the
+   check: § 5 of the SKILL.md now states it as a by-eye judgement item, same as tensho does, and
+   this is the disclosure for § 1 row 5's now-corrected "detects five of the old six shapes" line
+   above.
 
 ---
 
@@ -221,6 +245,10 @@ ahead of the mutating call.
   the `CON-36` chore case; the *ask* on every flagged staging file (`nen stage triage` detects,
   never decides); and the content of every commit message and PR body (the verbs validate shape
   only). None of this is Nen's to decide, and nothing above hands it any of that.
+- **One flag category from the old six-shape staging checklist has no `nen stage triage` detector:
+  local config.** Same finding as `hatsu:tensho`'s own § 4.3 — this skill's § 5 explicitly asks
+  about a local-config path by name, per axis, rather than treating the verb as if it still covered
+  it.
 - **`nen` exposes no read-back for a PR's current base branch.** After `nen pr retarget`, confirming
   the base actually changed has no verb counterpart; `gh pr view <B> --json baseRefName` remains,
   unmigrated, as the confirmation step (SKILL.md § 4). This is a small residual raw-`gh` read, not a

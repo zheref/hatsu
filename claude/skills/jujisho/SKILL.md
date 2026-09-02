@@ -73,28 +73,35 @@ nen split verify --original original.diff --branches axis-a.diff,axis-b.diff
 body, and reports `MISSING` / `DUPLICATED` / `ALTERED` / extra otherwise. Exit `0` means proven;
 exit `1` means the split is incomplete and nothing is opened until it reads `OK`.
 
-> **Known defect — verified live, `docs/ab/jujisho.md` § 2.1.** When `--original` spans **more than
-> one file** (more than one `diff --git` block), `nen split verify` misparses every file **except
-> the last one named in the original diff**: it reports a false `ALTERED` on an otherwise
+> **Known defect — verified live, `docs/ab/jujisho.md` § 2.1–2.2.** When `--original` spans **more
+> than one file** (more than one `diff --git` block), `nen split verify` misparses every file
+> **except the last one named in the original diff**: it reports a false `ALTERED` on an otherwise
 > byte-identical hunk, with the diagnostic reading exactly
 > `line N: original "(absent)" vs branch ""` at the position one past that hunk's true last line.
-> A single file's diff — however many hunks it carries — parses correctly; the defect is at the
-> **file boundary**, not the hunk boundary. **Reproduced independently four ways** (two-file order
-> A, the same two files reversed, a three-file original, and a doctored single-file two-hunk case)
-> — it is not a fluke of one construction.
+> **The same false `ALTERED` also fires within a single file, at a hunk boundary rather than a
+> file boundary**, whenever that one file's branch-side diff is genuinely short a hunk: the
+> surviving hunk is falsely reported `ALTERED` alongside the correctly-reported `MISSING` line for
+> the hunk that really is absent. **Reproduced independently five ways** (two-file order A, the
+> same two files reversed, a three-file original, a single-file two-hunk case with a hunk
+> genuinely dropped, and the same single-file two-hunk case with nothing dropped, which verifies
+> clean) — it is not a fluke of one construction.
 >
 > **The mandated workaround, until this is fixed upstream:** run `nen split verify` **once per
 > touched file**, slicing `--original` into one per-file diff for each file the working copy
-> touches (each slice is trivially exempt, since it names only one file) and slicing `--branches`
-> into the matching per-file diff from whichever axis branch(es) carry that file — comma-separate
-> more than one only where a hunk is deliberately shared per the lower-axis rule above. Confirm
-> every per-file run reads `OK`. **Then separately confirm the file set itself**: the set of files
-> named across every `--branches` diff must equal the set of files named in `--original`, with none
-> extra and none missing — a plain comparison of each diff's `diff --git` lines, not a verb call.
-> Together these reconstruct exactly the guarantee one correct multi-file run would give, without
-> tripping the defect. **File this as a finding against `nen` (`docs/ab/jujisho.md` § 4); never
-> quietly trust a bare `OK`/`ALTERED` verdict from a multi-file `--original` run as-is, and never
-> silently widen the workaround into skipping the proof.**
+> touches and slicing `--branches` into the matching per-file diff from whichever axis branch(es)
+> carry that file — comma-separate more than one only where a hunk is deliberately shared per the
+> lower-axis rule above. **A per-file slice is not immune to the false `ALTERED`** — the
+> hunk-boundary case above can still produce one — **but the workaround stays safe**, because a
+> real gap (a hunk truly missing on the branch side) always also produces its own `MISSING` line:
+> the split is never reported as a clean `OK` when a hunk has genuinely been left behind. Confirm
+> every per-file run reads `OK` with no `MISSING` line. **Then separately confirm the file set
+> itself**: the set of files named across every `--branches` diff must equal the set of files
+> named in `--original`, with none extra and none missing — a plain comparison of each diff's
+> `diff --git` lines, not a verb call. Together these reconstruct exactly the guarantee one
+> correct combined run would give, without ever letting a genuine gap through undetected. **File
+> this as a finding against `nen` (`docs/ab/jujisho.md` § 4); never quietly trust a bare
+> `OK`/`ALTERED` verdict from a multi-file `--original` run as-is, and never silently widen the
+> workaround into skipping the proof.**
 
 ## 3. Three or more axes — report, then ask
 
@@ -149,6 +156,13 @@ binaries, out-of-scope paths, unmentioned deletions — and exits `1` on anythin
 flagged file is never committed without an explicit yes**; that yes is the skill's to give, never
 the verb's.
 
+**One flag category from the old checklist has no detector in `nen stage triage` at all — residue,
+not routed around by hand, still asked about by eye,** same finding as
+[`hatsu:tensho`](../tensho/SKILL.md) § 3: a local-config file (`.claude/settings.local.json`,
+editor state, OS cruft) that is neither git-ignored nor out of the declared `--scope` reports
+**clean** — the verb names five detectors and local-config is not one of them. Ask about any
+local-config path by name regardless of what the verb reports, per axis.
+
 Format each commit with `nen commit format --type <t> --subject "<...>" [--scope <s>] [--body "..."]
 [--trailer Akatsuki-Agent=kurapika]` — it validates shape (declared type, non-empty subject under 72
 characters, no trailing punctuation), never content; what changed and why stays yours to write.
@@ -179,9 +193,9 @@ Additionally, **each body carries the split itself**:
 
 ## 7. After
 
-Report both PRs with the stack drawn, then hand them to [`hatsu:drive`](../drive/SKILL.md) — **A
-first**. Driving B to readiness while A is unmerged produces a PR that is ready against a base that
-will change; take A to its gate, and start B once A's merge retargets it.
+Report both PRs with the stack drawn, then hand them to `hatsu:drive` (lands with a later port of
+hatsu#2) — **A first**. Driving B to readiness while A is unmerged produces a PR that is ready
+against a base that will change; take A to its gate, and start B once A's merge retargets it.
 
 ## 8. Authority
 
