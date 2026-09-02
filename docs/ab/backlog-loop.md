@@ -1,6 +1,6 @@
 # A/B evidence — `backlog-loop` (zheref/hatsu#2)
 
-Port of `claude/skills/backlog-loop.SKILL.md`: drive `bankai-core`'s backlog to zero open
+Port of `claude/skills/backlog-loop/SKILL.md`: drive `bankai-core`'s backlog to zero open
 actionable issues, in severity order, as G4-ready PRs. The old skill's own deterministic steps were
 either raw `gh`/hand-reasoning (fetch, severity-order sort, the concurrency cap, the gate-stop
 table) or CI-plane machinery this port structurally cannot reuse at all (the wake-verification half
@@ -31,8 +31,8 @@ GitHub — confirmed in § 2.11.
 | # | Old (prose / raw `gh`) | New (`nen`) |
 |---|---|---|
 | 1 | § 1 "Fetch every open `bankai-core` issue with its labels, comments, linked PRs and current check/review state. Never work from a cached list" | `nen backlog fetch --repo-slug <owner/name> --json` — paginated, never cached, `truncated` reported explicitly (verified live, § 2.3) |
-| 2 | § 2 "Propose a severity ... Apply it" — a raw `gh issue edit --add-label` implied | `nen label apply <ref> --label bankai:severity/<n> --repo-slug <owner/name> --reason ... --run` — contract-verified only (§ 3), same verb `build`'s own port already contract-maps for `bankai:stage/building` |
-| 3 | § 2's whole priority order — "severity first ... within a severity: blocks, affects consumers, age" — hand-sorted | `nen backlog order --rows-from <path> --severity-order critical,high,medium,low [--blocks][--affects-consumers]` — verified live against the real 88-row backlog (§ 2.4) |
+| 2 | § 2 "Propose a severity ... Apply it" — a raw `gh issue edit --add-label` implied | `nen label apply <ref> --label bankai:severity/<level> --repo-slug <owner/name> --reason ... --run` — contract-verified only (§ 3), same verb `build`'s own port already contract-maps for `bankai:stage/building` |
+| 3 | § 2's whole priority order — "severity first ... within a severity: blocks, affects consumers, age" — hand-sorted | `nen backlog order --rows-from <path> --severity-order critical,high,medium,low [--blocks <id,...>] [--affects-consumers <id,...>]` — verified live against the real 88-row backlog (§ 2.4) |
 | 4 | § 4 "Work at most TWO issues ... Never three" — eyeballed | `nen loop slots --efforts efforts.json --local-cap 2 --json` — verified live, occupied/free/binding computed (§ 2.5) |
 | 5 | § 4's whole CI-routing + wake-verification half — "apply the lane label ... verify the wake actually reached the builder ... a `probe` that is `cancelled` with no `build` job" | **No replacement** — this is the declared structural change (`SKILL.md` § 0, § 6): the issue→PR step is `build`'s engine, the PR→Ready step (including any wake) is `drive`'s engine. This skill never routes to a CI agent and never fires or verifies a wake itself |
 | 6 | § 4's stale-chore-sub-PR merge bar — "≥2 wake attempts producing no commit, ≥60 min since last activity" — hand-counted | `nen pr staleness --wakes-from <path> --last-activity <ISO> --now <ISO> [--ready]` — verified live, both cases (§ 2.6), byte-identical to `drive`'s own proof |
