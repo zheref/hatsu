@@ -39,7 +39,7 @@ resolver's.
 
 Every command below was actually run this session, against the real, frozen `bankai-core` checkout for
 the registry- and canon-backed verbs, and against clearly-labelled **constructed** sample inputs for the
-two verbs (`quality tooling`, `quality perf-compare`, `quality method-check`) whose data — a per-repo
+three verbs (`quality tooling`, `quality perf-compare`, `quality method-check`) whose data — a per-repo
 tooling manifest, a measured number, a method block — has no live counterpart to read (§ 3 explains why).
 No output below is fabricated or replayed from a prior run; every line is this session's actual stdout.
 
@@ -271,3 +271,35 @@ easiest to get wrong (`10.0%` reading `ok`, `25.0%` reading `high` and not `crit
 baseline refusal. The estate-level gap recorded in § 3 (no committed JSON tooling manifest anywhere
 reachable) is a finding about **the estate**, not about `nen` — the verb's refusal to ship a built-in
 table is a deliberate design choice, confirmed against its own source comment, not an omission.
+
+---
+
+## 5. Corrections from adversarial review
+
+The ported `SKILL.md`'s § 4 Measurement matrix was carried over from the old skill file **unverified**
+against the frozen `bankai-core` snapshot rather than re-read from it. An adversarial review caught the
+drift below; each cell was then re-checked row-by-row against `handbooks/quality-baseline.md` § C at
+`v0.11.3` and corrected in place (never silently — recorded here per this port's own "record the gap,
+don't route around it" discipline).
+
+- **`react-uzf-v1` (web) Diagnosis cell was wrong.** It read "Chrome DevTools performance trace" — no such
+  tool appears in the canon row at all. Canon (§ C, Measurement matrix) reads: `Lighthouse CI
+  (`@lhci/cli`), pinned mobile preset`. Fixed to match verbatim.
+- **`swiftui-tca-uzf-v2`'s P6 network harness was silently dropped.** Canon lists `URLSession` metrics via
+  a test-only `URLProtocol` recorder; the ported row omitted it entirely. Restored.
+- **Re-checking every remaining row surfaced three further silent drops, not separately flagged by the
+  review but the same class of error:**
+  - `react-uzf-v1` (web) also silently dropped its **P4 memory harness** (a CDP heap sample via Playwright)
+    and its **P6 network harness** (Playwright `page.on('request'|'response')` totals) — both restored.
+  - `compose-uzf-v2`'s P6 cell dropped the `+ OkHttp EventListener` half of canon's `TraceSectionMetric
+    around the HTTP span + OkHttp EventListener` — restored.
+  - `bankai-core`'s Diagnosis cell read `—`; canon's actual Diagnosis value for that row is `` `gh run
+    view --json jobs` durations `` — the ported row had instead folded that text into the Harness cell
+    and left Diagnosis empty. Diagnosis and Harness were each corrected to carry the right content.
+  - **The entire `react-uzf-v1` (Expo) row was missing** from the ported Measurement matrix (it is present,
+    correctly, in § 3's Tooling matrix, but the Measurement matrix table simply had no row for it at all).
+    Canon's row (P1/P2 reuse the Apple/Android row for the native build under test; P5 EAS build artifact
+    size; P6 RN network inspector, as web; Diagnosis `—`) is now restored.
+
+No other cell in § 4's table diverges from `handbooks/quality-baseline.md` § C at `v0.11.3`, verified by a
+full re-read of that section alongside the corrected table above.

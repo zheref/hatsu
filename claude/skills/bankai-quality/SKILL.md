@@ -126,10 +126,11 @@ pinning the tool is the only thing that makes this percentage mean anything.
 
 | Scenario | Harness | Diagnosis |
 | --- | --- | --- |
-| `swiftui-tca-uzf-v2` | `XCTMetric` in an XCTest perf test — `XCTApplicationLaunchMetric`, `XCTMemoryMetric`, `XCTClockMetric`, `XCTOSSignpostMetric` over `os_signpost` intervals; App Thinning size report | Instruments (Time Profiler, Allocations, Animation Hitches, Hangs) |
-| `compose-uzf-v2` | Jetpack Macrobenchmark — `StartupTimingMetric`, `FrameTimingMetric`, `MemoryUsageMetric`, `TraceSectionMetric`, with a `BaselineProfile`; AAB analyzer for size | Perfetto |
-| `react-uzf-v1` (web) | Lighthouse CI on a pinned mobile preset (Moto-G-class, 4× CPU, Slow 4G) + Web Vitals (LCP/INP/CLS/TBT) collected in the Playwright run; `next build` + `@next/bundle-analyzer` for bytes | Chrome DevTools performance trace |
-| `bankai-core` | wall-clock of `make test` from a clean checkout + per-guard timing; `gh run view --json jobs` for job durations | — |
+| `swiftui-tca-uzf-v2` | `XCTMetric` in an XCTest perf test — `XCTApplicationLaunchMetric`, `XCTMemoryMetric`, `XCTClockMetric`, `XCTOSSignpostMetric` over `os_signpost` intervals; App Thinning size report; `URLSession` metrics via a test-only `URLProtocol` recorder (P6 network) | Instruments (Time Profiler, Allocations, Animation Hitches, Hangs) |
+| `compose-uzf-v2` | Jetpack Macrobenchmark — `StartupTimingMetric`, `FrameTimingMetric`, `MemoryUsageMetric`, `TraceSectionMetric` around the HTTP span + OkHttp `EventListener`, with a `BaselineProfile`; AAB analyzer for size | Perfetto |
+| `react-uzf-v1` (web) | Lighthouse CI on a pinned mobile preset (Moto-G-class, 4× CPU, Slow 4G) + Web Vitals (LCP/INP/CLS/TBT) collected in the Playwright run; a CDP heap sample via Playwright (P4 memory); Playwright `page.on('request'\|'response')` totals (P6 network); `next build` + `@next/bundle-analyzer` for bytes | Lighthouse CI (`@lhci/cli`), pinned mobile preset |
+| `react-uzf-v1` (Expo) | Reuse the Apple/Android row for the native build under test (P1/P2); EAS build artifact size (P5); RN network inspector, as web (P6) | — |
+| `bankai-core` | wall-clock of `make test` from a clean checkout + per-guard-script wall clock | `gh run view --json jobs` durations |
 
 ## 5. Method-block validation — `nen quality method-check`
 
