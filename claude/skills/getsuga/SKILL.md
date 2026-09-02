@@ -130,9 +130,9 @@ every row the table used to check by separate hand-run command now comes back in
 | Tag does not already exist | Stop. Re-tagging is never the fix |
 
 **Check the cut point, not the tip.** `--range`'s second half and `--changelog` must both name the
-**cut point**, not `main`'s current tip — `main` moves while a release is assembled
-(RR-IS-#683 has run six laps on exactly this),
-and a precondition verified against a tip that has since moved was never verified at all.
+**cut point**, not `main`'s current tip — `main` moves while a release is assembled (RR-IS-#683 has
+run six laps on exactly this), and a precondition verified against a tip that has since moved was
+never verified at all.
 
 ## 3. The release unit — fold everything that can fold into ONE PR
 
@@ -205,14 +205,10 @@ nen release self-check --repo <path> --pr-merge-sha <sha> --previous-tag <vPrev>
 
 True iff the release PR's own merge commit is reachable from `--cut-point` and **not already**
 reachable from `--previous-tag` — a git-mechanical fact, never a judgement. Verified live against
-the real `v0.11.3` release PR (RR-PR-#916):
-`nen` reports it **should list ITSELF** against `v0.11.2..v0.11.3` (correct — that PR's merge is the
-cut point), and **should NOT list itself** against `v0.11.3..v0.11.3` (correct — already reachable
-from its own tag). Four laps got this wrong by hand in `<reference-repo>`
-(RR-PR-#651,
-RR-PR-#679,
-RR-PR-#682,
-RR-PR-#691) before this existed.
+the real `v0.11.3` release PR (RR-PR-#916): `nen` reports it **should list ITSELF** against
+`v0.11.2..v0.11.3` (correct — that PR's merge is the cut point), and **should NOT list itself**
+against `v0.11.3..v0.11.3` (correct — already reachable from its own tag). Four laps got this wrong
+by hand in `<reference-repo>` (RR-PR-#651, RR-PR-#679, RR-PR-#682, RR-PR-#691) before this existed.
 
 > **Collation manufactures contradictions — look for them.** Two fragments written weeks apart are
 > each true when written and become **simultaneous claims** in one dated section. Before opening the
@@ -242,8 +238,8 @@ nen tag cut --repo <path> --name <vX.Y.Z> --at <the release PR's merge SHA> \
 > `nen tag cut --help` states this outright. "Cut from `main`" is not an instruction the verb can
 > follow: if `main` advanced between the merge and the cut, `HEAD` is a *later* commit, and the tag
 > then covers PRs whose fragments are still uncollated. **Check out the release PR's merge SHA and
-> cut there**, after re-verifying § 2 at that SHA — exactly how the `v0.10.0` window kept
-> re-filling (RR-IS-#683).
+> cut there**, after re-verifying § 2 at that SHA — exactly how the `v0.10.0` window kept re-filling
+> (RR-IS-#683).
 
 - **Cut the reconciled commit, not necessarily the tip.** Verify § 2 again at that exact SHA before
   cutting; if either the `changelog.d/` or `CON-33(c)` row fails there, the cut needs another
@@ -313,10 +309,9 @@ nen --repo <path> fanout compute --range <vPrev>..<newTag>
 `schemas/repos.json` — every consumer comes back `AFFECTED` with the workflow basenames that hit
 it, or an implicit N/A. Verified live against the real range `v0.11.2..v0.11.3`
 (`docs/ab/getsuga.md` § 2.6): `nen`'s output reproduces the historical `CON-22` determination
-recorded by hand at that release's own registry entry
-(RR-PR-#916) **exactly** — `<product-repo-A>`
-affected via the same five files, `<product-repo-B>` via the same four, `<scaffold-repo>`
-via the same one. **Record every unaffected consumer as an explicit N/A with its basis** — an
+recorded by hand at that release's own registry entry (RR-PR-#916) **exactly** — `<product-repo-A>`
+affected via the same five files, `<product-repo-B>` via the same four, `<scaffold-repo>` via the
+same one. **Record every unaffected consumer as an explicit N/A with its basis** — an
 unstated N/A is indistinguishable from an unswept repo.
 
 **An empty affected set is a real and common result.** Say so with the basis; do not go looking for

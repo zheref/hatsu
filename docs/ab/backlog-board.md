@@ -15,7 +15,7 @@ irrelevant here since only `git show`-extracted, read-only files were used) —
 `scripts/ichigo_board.sh` and `scripts/ichigo_pix.txt` extracted read-only via `git show
 v0.11.3:<path>` into a scratch directory outside the `<reference-repo>` checkout, never written back to it.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 **§2.4 re-run for this review fix:** 2026-09-02T01:24 UTC, same extracted `ichigo_board.sh`, same
 `v0.11.3` oracle checkout, against the exact `board.json` now embedded in §2.4 — done to make the

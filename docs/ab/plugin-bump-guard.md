@@ -14,7 +14,7 @@ adversarial-review fixes in this commit, base `main` at `992427c714d8fcd6ee26981
 plain files, which is the whole point of the comparison logic living in the script rather than in YAML.
 
 *Paths sanitized: this machine's local absolute paths appear as `<tmp>` (a throwaway fixture directory).
-Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered — the transcripts are otherwise verbatim.*
+Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered — the transcripts are otherwise verbatim.*
 
 > ### Corrections recorded at `v0.1.0` — read these first
 >

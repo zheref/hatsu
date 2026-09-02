@@ -96,17 +96,17 @@ needed — this verb reads only `schemas/repos.json` on disk, no GitHub call):
 | `<reference-repo>@high+ then tag+fanout` | `band: high+ -> critical, high` · `terminal: tag+fanout` |
 | `@medium` (`--json`) | `{"repo":"<reference-repo>","code":null,"isSelf":true,"band":{"severity":"medium","plus":false,"severities":["medium"]},"terminal":null}` |
 
-Full transcripts, including a `KP@high+` cross-check that expands the same way for a real consumer,
+Full transcripts, including an `RA@high+` cross-check that expands the same way for a real consumer,
 are in `docs/ab/futon.md` § 1.
 
 ### Refusals — every one exit `2`, every one with the corrected line ready to paste
 
 | Invocation tried | Refusal (trimmed) |
 |---|---|
-| `KP@high then tag` (standing in `<reference-repo>`) | *"'then tag' is refused against '`<product-repo-A>`' -- the terminal is that repository's own release machinery, and it is not the one you are standing in (`<reference-repo>`)."* → `try: KP@high` |
-| `KP@urgent` | *"'urgent' is not a severity. Expected one of critical, high, medium, low, optionally suffixed '+'."* → `try: KP@critical` |
-| `KP@high then release` | *"'then release' is not a recognized terminal. Only 'then tag' and 'then tag+fanout' are accepted."* → `try: KP@high then tag` |
-| `ZZ@high` | *"'ZZ' does not resolve against this registry's product_codes ($comment, BC, BS, KP, KN, KW, KC) or its consumers. Resolving it to a near match would point a mutating run at the wrong backlog."* |
+| `RA@high then tag` (standing in `<reference-repo>`) | *"'then tag' is refused against '`<product-repo-A>`' -- the terminal is that repository's own release machinery, and it is not the one you are standing in (`<reference-repo>`)."* → `try: RA@high` |
+| `RA@urgent` | *"'urgent' is not a severity. Expected one of critical, high, medium, low, optionally suffixed '+'."* → `try: RA@critical` |
+| `RA@high then release` | *"'then release' is not a recognized terminal. Only 'then tag' and 'then tag+fanout' are accepted."* → `try: RA@high then tag` |
+| `ZZ@high` | *"'ZZ' does not resolve against this registry's product_codes ($comment, BC, BS, RA, RB, RC, KC) or its consumers. Resolving it to a near match would point a mutating run at the wrong backlog."* |
 | `kp@HIGH+ then TAG` | Case-insensitive parsing confirmed (band/terminal parsed correctly); refused on the **same** self-mismatch as row 1, with the corrected line preserving the caller's own casing: `try: kp@high+` |
 
 **`+` means this band or higher, never anything else; a bare severity never quietly widens.**
@@ -117,7 +117,7 @@ mistaken for one — this is the built-in grammar's own job, never a hand-rolled
 **The terminal's scope rule generalizes beyond what the retired skill assumed, and that is a
 finding, not a bug.** The retired skill hard-coded *"a `then` clause is valid on `<reference-repo>`
 ONLY."* `nen parse futon` instead enforces *"valid only on the repo you are standing in"* —
-verified live: pointed at the same registry with `--self <product-repo-A>`, `KP@high then tag`
+verified live: pointed at the same registry with `--self <product-repo-A>`, `RA@high then tag`
 **parses** (`docs/ab/futon.md` § 1.4). Nothing in this port exploits that generality — the release
 machinery a `then` hands off to (§ 8) is `<reference-repo>`'s specifically (`consumes`/`CON-22`), and
 Kurapika's real sessions stand in `<reference-repo>` when they type it — but the grammar itself does not

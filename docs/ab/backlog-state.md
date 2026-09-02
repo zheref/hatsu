@@ -18,7 +18,7 @@ reads, `gh pr diff --name-only`, `gh pr view --json baseRefName`) or against loc
 files with no GitHub write of any kind. Nothing was labelled, merged, pushed, commented on, or
 opened.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
@@ -79,7 +79,7 @@ $ nen repo resolve --repo <reference-repo checkout> --from <reference-repo check
 nen repo: 'C:\...\<reference-repo>' has an 'origin' of 'https://github.com/<reference-repo>.git',
 which resolves to '<reference-repo>' -- and that is not in this registry
 (C:\...\<reference-repo>\schemas\repos.json). ... Codes: $comment (...), BC (<reference-repo>),
-BS (<scaffold-repo>), KP (<product-repo-A>), KN (<product-repo-B>), KW (<product-repo-C>),
+BS (<scaffold-repo>), RA (<product-repo-A>), RB (<product-repo-B>), RC (<product-repo-C>),
 KC (zheref/kro-pwa). Repositories: <product-repo-A>, <product-repo-B>, <scaffold-repo>.
 ```
 
@@ -94,12 +94,12 @@ source repo itself, no argument given.
 
 ```
 $ nen repo resolve all --repo <reference-repo checkout>
-<product-repo-A>  (KP)  via all
-<product-repo-B>  (KN)  via all
+<product-repo-A>  (RA)  via all
+<product-repo-B>  (RB)  via all
 <scaffold-repo>  (BS)  via all
 Object-reference notation (...)  ($comment)  via all
 <reference-repo>  (BC)  via all
-<product-repo-C>  (KW)  via all
+<product-repo-C>  (RC)  via all
 zheref/kro-pwa  (KC)  via all
 ```
 

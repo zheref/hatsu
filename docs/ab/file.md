@@ -19,7 +19,7 @@ the shared brief's constraint; the mutating half is A/B'd by contract inspection
 never a real filed-and-closed test issue, which this port judged unnecessary: the mutating half's
 dry-run transcripts (§ 2.5–2.7) are the evidence, not a claim resting on contract inspection alone.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
@@ -183,8 +183,8 @@ $ nen repo resolve BC --repo <reference-repo checkout>
 
 $ nen repo resolve notarealtoken --repo <reference-repo checkout>
 nen repo: 'notarealtoken' does not name a repository in this registry (...\schemas\repos.json).
-It is matched exactly ... Codes: $comment (...), BC (<reference-repo>), BS (...), KP (...),
-KN (...), KW (...), KC (...). Repositories: <product-repo-A>, <product-repo-B>,
+It is matched exactly ... Codes: $comment (...), BC (<reference-repo>), BS (...), RA (...),
+RB (...), RC (...), KC (...). Repositories: <product-repo-A>, <product-repo-B>,
 <scaffold-repo>.                                # exit 1
 
 $ cd <reference-repo checkout> && nen repo resolve      # no token -- resolves cwd's own origin

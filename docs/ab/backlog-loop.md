@@ -24,7 +24,7 @@ inspected only, per the shared brief's rule and the identical precedent `pr-stat
 fanout record` is exercised live because it writes **only** a local scratch ledger file, never
 GitHub — confirmed in § 2.11.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
@@ -285,10 +285,10 @@ $ nen fanout compute --range v0.11.2..v0.11.3 --json
   "range": "v0.11.2..v0.11.3",
   "changedWorkflows": [21 real workflow basenames, e.g. "bankai.yml", "roy-build.yml", ...],
   "rows": [
-    {"repo":"<product-repo-A>","code":"KP","status":"affected",
+    {"repo":"<product-repo-A>","code":"RA","status":"affected",
      "matchedWorkflows":["cascade-ancestry-guard.yml","db-migrate.yml","handbook-question-dedupe.yml","roy-build.yml","sync-canon.yml"],
      "basis":"consumes cascade-ancestry-guard.yml, db-migrate.yml, handbook-question-dedupe.yml, roy-build.yml, sync-canon.yml, which changed in this range"},
-    {"repo":"<product-repo-B>","code":"KN","status":"affected",
+    {"repo":"<product-repo-B>","code":"RB","status":"affected",
      "matchedWorkflows":["roy-build.yml","sync-canon.yml","cascade-ancestry-guard.yml","handbook-question-dedupe.yml"],
      "basis":"..."},
     {"repo":"<scaffold-repo>","code":"BS","status":"affected",

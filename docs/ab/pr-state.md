@@ -11,7 +11,7 @@ Run: 2026-09-02T00:25Z (UTC). `nen` `0.1.0` (`<cache>\nen\v0.1.0\nen-windows-x64
 read-only via `git show v0.11.3:scripts/pr_ready_gate.sh` into a scratch file, never written back to
 the `<reference-repo>` checkout.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
@@ -251,8 +251,8 @@ SKILL.md` § 0 already establishes for exactly this — which the last command a
 - **The historical incident table (§ 1 of the skill) is `<reference-repo>`'s own recorded history**
   (RR-IS-#681 and its antecedents) and is kept
   verbatim as the skill's motivating record. **The old skill's four repo-code examples (`BC`, `BS`,
-  `KP`, `KN`) were not carried over** — they are dropped, not kept, in this port; the registry now also
-  lists `KW`, `KC` and the taxonomy's own `$comment` (§ 4's third finding), which is exactly why this
+  `RA`, `RB`) were not carried over** — they are dropped, not kept, in this port; the registry now also
+  lists `RC`, `KC` and the taxonomy's own `$comment` (§ 4's third finding), which is exactly why this
   skill's own instruction is to resolve codes from the live file at run time rather than repeat any
   fixed list from memory, this doc's included.
 
@@ -285,6 +285,6 @@ SKILL.md` § 0 already establishes for exactly this — which the last command a
 3. **The unknown-product-code refusal lists `$comment` as if it were a valid product code.** Verified
    live: `nen pr ready BC92 --repo <reference-repo checkout> --gates <path>` (an unparseable code from the
    no-`#` bug above, finding 1) refuses with `'BC92' is not a product code in the target repository's
-   registry. Known codes: $comment, BC, BS, KC, KN, KP, KW.` — `$comment` is `schemas/repos.json`'s own
+   registry. Known codes: $comment, BC, BS, KC, RA, RB, RC.` — `$comment` is `schemas/repos.json`'s own
    documentation key, not a `product_codes` entry, and should not be enumerated alongside the real ones
    in a message whose whole purpose is to name the valid choices.

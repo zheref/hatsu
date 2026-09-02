@@ -9,11 +9,11 @@ Run: 2026-09-02 (this session). `nen` `0.1.0` (`<cache>\nen\v0.1.0\nen-windows-x
 `gh` authenticated as `zheref` (`GH_TOKEN=$(gh auth token)` exported before every `nen` call that
 reaches GitHub, per the shared brief — `nen` never picks a token up ambiently).
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 **Everything below ran read-only, against real repositories, with one narrow exception (§ 5) that
 was itself a read-only-safe refusal probe.** No local checkout of `<product-repo-A>` or `<product-repo-B>` exists on
-this machine (checked: `<checkout>\` has no `Kro*` directory) — both
+this machine (checked: `<checkout>\` holds no directory for either) — both
 consumer repos are private but readable with this session's token, so every live call below is
 **API-only** against the real `<product-repo-A>`, plus one call against the real `zheref/hatsu`
 (§ 5) and reads of the frozen `<reference-repo>` registry (`git show`, per the ground rules).
@@ -33,7 +33,7 @@ than an exercised mutation.
 | 3 | The five-class taxonomy (delivering/building/stalled/queued/idle) reasoned by eye per row, from labels + branch/PR presence | `nen effort classify --input <rows.json>` — mechanical, verified live across 14 constructed rows plus the real `<product-repo-A>` epics (§ 3.3–3.5); returns a **sixth** class (`undecidable`) the old prose never named |
 | 4 | "Re-run the failed job (`gh run rerun <id> --failed`)" — a literal raw `gh` invocation in the old skill's own prose | `nen run rerun-failed --target <owner/name> --run-id <n>` — the verb's own `--help` names this "senkei's dead-reviewer recovery"; refusal shape verified live against a real `zheref/hatsu` run (§ 5.1), affirmative path not exercised (mutating, no dry-run mode) |
 | 5 | Readiness "decided by `scripts/pr_ready_gate.sh --verdict <PR>`" | `nen pr ready` via [`pr-state`](../../claude/skills/pr-state/SKILL.md)'s pointer — unchanged; spot-confirmed live against a real `<product-repo-A>` PR with no gates file of its own (§ 4.1–4.2), a shape `pr-state`'s own `<reference-repo>`-only A/B never had to test |
-| 6 | Object references (`KP-IS-#178`, `KP-PR-#509`) typed by hand | `nen ref format --code KP --kind IS\|PR --number <n> [--state <s>] [--url <u>]` — verified live (§ 6.1), unchanged from `backlog-state`'s own confirmation of this verb |
+| 6 | Object references (`RA-IS-#178`, `RA-PR-#509`) typed by hand | `nen ref format --code RA --kind IS\|PR --number <n> [--state <s>] [--url <u>]` — verified live (§ 6.1), unchanged from `backlog-state`'s own confirmation of this verb |
 | 7 | "Use the same unblock channel as `backlog-loop`: `bankai:wake/iterate`, fired ALONE" — no raw command given, delegated to the sibling skill's own prose | **Not mechanized in this port.** `nen wake fire` exists and matches this exact remove-then-reapply pattern, but is outside this port's declared Scope (the issue names only `nen repo inventory`, `nen effort classify`, `nen run rerun-failed` for `senkei`); kept as prose, forward-referencing `backlog-loop`/`drive` (neither landed yet) — § 7 residue |
 
 **Count.** Before: **four** raw/improvised steps in the old skill's own text — the invocation split,
@@ -147,7 +147,7 @@ verb's `--help` documents, seeded from real `<product-repo-A>` objects where pos
 **3.3 — feeding the mode label into `stageLabels` misclassifies a real epic:**
 
 ```
-$ cat classify-rows.json   # (excerpt) KP-IS-#17-epic, KP-IS-#178-epic:
+$ cat classify-rows.json   # (excerpt) RA-IS-#17-epic, RA-IS-#178-epic:
 {"kind":"epic","issueState":"open","stageLabels":["bankai:stage/ready-for-bankai"],
  "modeLabelPresent":true,"hasPr":false,"integrationBranchAlive":true, ...}
 
@@ -158,7 +158,7 @@ building
   carries the released stage label 'bankai:stage/ready-for-bankai'; a branch exists but no PR yet
 ```
 
-Both `KP-IS-#17` and `KP-IS-#178` are real, live epics: G1-approved (`bankai:stage/ready-for-bankai`)
+Both `RA-IS-#17` and `RA-IS-#178` are real, live epics: G1-approved (`bankai:stage/ready-for-bankai`)
 with an alive integration branch and no delivery PR, and neither has actually released a child to
 `bankai:stage/building` yet (`#178`'s two open children, `#190`/`#335`, both carry only
 `bankai:stage/researched`). The old skill's own taxonomy calls this **queued**. Feeding the mode
@@ -352,7 +352,7 @@ $ nen pr ready 509 --gh-repo <product-repo-A> --reviewers sasuke,tenma,copilot \
 Cross-checked against the PR's own live check rollup
 (`gh pr view 509 --json statusCheckRollup`): several checks in the rollup carry no `conclusion`
 (still queued/running) alongside a run of `SUCCESS`/`SKIPPED` entries — a genuinely non-green
-rollup, matching the verdict exactly. `KP-PR-#509` is `not-ready` for a real, verifiable reason —
+rollup, matching the verdict exactly. `RA-PR-#509` is `not-ready` for a real, verifiable reason —
 the CON-32(a) check-greenness conjunct short-circuits the run before the reviewer-round conjuncts
 (where `bisky`'s omission would otherwise matter) are ever evaluated, so this particular verdict
 happens not to turn on the gap just disclosed. A PR that reached the reviewer-round conjuncts with
@@ -409,15 +409,15 @@ job to safely rerun).
 `<reference-repo>`'s own `schemas/repos.json`:
 
 ```
-$ nen repo resolve KP --repo <reference-repo checkout>
-<product-repo-A>  (KP)  via code
+$ nen repo resolve RA --repo <reference-repo checkout>
+<product-repo-A>  (RA)  via code
 
 $ nen repo scenario --repo <reference-repo checkout> --target <product-repo-A>
 swiftui-tca-uzf-v2
 ```
 
 Matches `<reference-repo>`'s frozen registry read directly (`git -C <reference-repo> show
-v0.11.3:schemas/repos.json`): `KP` → `<product-repo-A>`, `consumes` listing
+v0.11.3:schemas/repos.json`): `RA` → `<product-repo-A>`, `consumes` listing
 `sasuke-review.yml`/`tenma-review.yml`/`bisky-review.yml` among others — corroborating, not the
 basis for, § 4.2's reviewer-identity trail: that section reads `<product-repo-A>`'s own
 `bankai-review-gates.yml` directly as the primary source, exactly the rule `SKILL.md` § 4 states
@@ -427,17 +427,17 @@ basis for, § 4.2's reviewer-identity trail: that section reads `<product-repo-A
 ### 6.2 — `nen ref format`
 
 ```
-$ nen ref format --repo <reference-repo checkout> --code KP --kind IS --number 178 --state open \
+$ nen ref format --repo <reference-repo checkout> --code RA --kind IS --number 178 --state open \
                  --url https://github.com/<product-repo-A>/issues/178
-📄 KP-IS-#178
+📄 RA-IS-#178
 
-$ nen ref format --repo <reference-repo checkout> --code KP --kind PR --number 509 --state open \
+$ nen ref format --repo <reference-repo checkout> --code RA --kind PR --number 509 --state open \
                  --url https://github.com/<product-repo-A>/pull/509
-🔀 KP-PR-#509
+🔀 RA-PR-#509
 ```
 
 Unchanged from `backlog-state`'s own confirmation of this verb (`docs/ab/backlog-state.md` § 2.8) —
-re-run here only to confirm it resolves a **different** product code (`KP`, not `BC`) correctly.
+re-run here only to confirm it resolves a **different** product code (`RA`, not `BC`) correctly.
 
 ---
 

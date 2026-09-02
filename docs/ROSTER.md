@@ -11,6 +11,9 @@ local variant, because there is no CI run to name. The git author is always the 
 **This file is the authority on who exists and what standing they have.** The agent definitions in
 `claude/agents/` are the authority on what each one does.
 
+> **Redaction notice.** Where this roster and the agent definitions it points at name a repository that
+> is not public, the name is a stable placeholder — see [`PUBLIC-REDACTION.md`](PUBLIC-REDACTION.md).
+
 ---
 
 ## Kurapika — the lead persona

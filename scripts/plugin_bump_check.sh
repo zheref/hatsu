@@ -14,10 +14,9 @@
 # `scripts/plugin_bump_check.sh`, filed there after a prior incident in which a
 # single PR changed four plugin-shipped surfaces — an agent definition, a skill,
 # a script, and the registry read at warm-up — without bumping the version. The
-# fix never reached an installed plugin until a later PR bumped it
-# retroactively. The guard moves to Hatsu
-# because guards live beside the surface they guard, and this is now that
-# surface (zheref/hatsu#3; the migration plan's §3 and §10).
+# fix never reached an installed plugin until a later PR bumped it retroactively.
+# The guard moves to Hatsu because guards live beside the surface they guard, and
+# this is now that surface (zheref/hatsu#3; the migration plan, private).
 #
 # WHAT IT DOES
 # A PR whose diff touches a plugin-shipped surface but leaves
@@ -29,9 +28,9 @@
 # `BASH_SOURCE` guard runs without git, gh or a network, so it can be sourced
 # and exercised directly (see docs/ab/plugin-bump-guard.md for the recorded
 # refuse/pass transcripts). The CLI is what
-# `.github/workflows/plugin-bump-check.yml` calls, after that workflow has
-# already computed the changed-files list, the base `plugin.json` and the PR
-# body from the event payload and the API.
+# `.github/workflows/plugin-bump-check.yml` calls, after that workflow has already
+# computed the changed-files list, the base `plugin.json` and the PR body from the
+# event payload and the API.
 #
 # Strict mode is gated to the EXECUTED path: sourcing this file to exercise
 # the pure functions must not mutate the caller shell's options (an inherited

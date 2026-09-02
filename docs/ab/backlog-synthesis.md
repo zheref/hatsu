@@ -24,7 +24,7 @@ against a real repository (`zheref/hatsu`, using its own two open issues) was at
 `attach-sub` and refused by the session's own auto-mode classifier before it ran at all (§ 2.6);
 recorded as residue, not routed around.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 Verdict parity between `nen pr ready` and `pr_ready_gate.sh` was already proven across the live
 estate by nen's shadow window (`docs/evidence/shadow-window-p1.md` in zheref/nen); this skill uses

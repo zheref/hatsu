@@ -65,13 +65,13 @@ refusal prints — never a guess, never a prefix match.
 **Product repos do not reliably ship their own registry.** Verified live against the real
 `<product-repo-A>`: it carries no `schemas/` directory at all — no `repos.json`, no `gates.json`,
 no `colors.yml`, no `labels.json` (`docs/ab/senkei.md` § 4.1, three `404`s). The registry that names
-its product code (`KP`) and its Nen scenario (`swiftui-tca-uzf-v2`) lives in **`<reference-repo>`'s own**
-`schemas/repos.json`, under `consumers`, alongside `<product-repo-B>` (`KN`). So `--repo <path>` for
+its product code (`RA`) and its Nen scenario (`swiftui-tca-uzf-v2`) lives in **`<reference-repo>`'s own**
+`schemas/repos.json`, under `consumers`, alongside `<product-repo-B>` (`RB`). So `--repo <path>` for
 resolution and object notation points at a local `<reference-repo>` checkout, never at the product repo
 itself — resolve once, up front, and carry the resolved `owner/repo` slug forward:
 
 ```
-nen repo resolve KP --repo <reference-repo checkout>          # <product-repo-A>  (KP)  via code
+nen repo resolve RA --repo <reference-repo checkout>          # <product-repo-A>  (RA)  via code
 nen repo scenario --repo <reference-repo checkout> --target <product-repo-A>   # swiftui-tca-uzf-v2
 ```
 
@@ -140,7 +140,7 @@ guessing which is authoritative.
 >   label list — both live under the same `bankai:stage/*` prefix) makes a G1-approved-but-not-yet-
 >   released epic misclassify as `building`, because the verb reads *any* non-empty `stageLabels`
 >   as "released" — regardless of which label it is. Reproduced against the real
->   `KP-IS-#17` / `KP-IS-#178` epics: feeding their real `bankai:stage/ready-for-bankai` label into
+>   `RA-IS-#17` / `RA-IS-#178` epics: feeding their real `bankai:stage/ready-for-bankai` label into
 >   `stageLabels` reports `building`; excluding it (mode label → `modeLabelPresent: true`,
 >   `stageLabels: []`) reports the correct `queued` — *"G1-approved (a mode label was picked) but
 >   not yet released with a stage label"* — matching the old skill's own taxonomy exactly.
@@ -151,7 +151,7 @@ guessing which is authoritative.
 >   classification universe at all: **do not feed it to `nen effort classify`** — report it
 >   separately as "not yet G1-approved," never as `stalled`.
 > - **`queued` is reachable ONLY when `stageLabels` is empty** and `modeLabelPresent` is `true` —
->   confirmed true even with an alive integration branch (`KP-IS-#17`/`#178` again): an alive
+>   confirmed true even with an alive integration branch (`RA-IS-#17`/`#178` again): an alive
 >   branch does not upgrade a `queued` row to `building` on its own; only a genuine (non-mode)
 >   stage label does.
 >
@@ -219,10 +219,10 @@ against another's vocabulary. For a product repo with no `--gates` file of its o
   shows up only as a PR commenter, per `gh pr view --json reviews`, never as a reusable-workflow
   review-pair job) but because the CLI's flat `--reviewers`/`--approvers` shape cannot express
   `bisky`'s conditional round anyway, so naming it as a plain reviewer would misrepresent it as
-  unconditional. **The gap this leaves**: a full `schemas/gates.json` authored for `<product-repo-A>` itself,
-  modeling `bisky` the way `<reference-repo>`'s own contract does, is what would close this fully — until
-  one exists, say so every time this fallback is used, rather than presenting `sasuke,tenma,copilot`
-  as `<product-repo-A>`'s own considered choice.
+  unconditional. **The gap this leaves**: a full `schemas/gates.json` authored for
+  `<product-repo-A>` itself, modeling `bisky` the way `<reference-repo>`'s own contract does, is what
+  would close this fully — until one exists, say so every time this fallback is used, rather than
+  presenting `sasuke,tenma,copilot` as `<product-repo-A>`'s own considered choice.
 - If neither is available, the refusal **is** the report — surface it verbatim (`nen pr` never
   falls back to a guess), never route around it with an assumed identity set.
 
@@ -278,15 +278,15 @@ than counted.
 One status table per pass, `<CODE>-<IS|PR>-#<N>` notation (`nen ref format`), gate named per row:
 
 ```
-nen ref format --repo <reference-repo checkout> --code KP --kind IS --number 178 --state open \
+nen ref format --repo <reference-repo checkout> --code RA --kind IS --number 178 --state open \
               --url https://github.com/<product-repo-A>/issues/178
-# 📄 KP-IS-#178
+# 📄 RA-IS-#178
 ```
 
 | Issue | Class | PR | Checks | Reviews | Ready? | Awaiting |
 | --- | --- | --- | --- | --- | --- | --- |
-| KP-IS-#178 | queued | — | — | — | — | Release to a builder — G1-M |
-| KP-PR-#509 | building | KP-PR-#509 | not all green | — | ❌ not-Ready | `CON-32(a)` — checks |
+| RA-IS-#178 | queued | — | — | — | — | Release to a builder — G1-M |
+| RA-PR-#509 | building | RA-PR-#509 | not all green | — | ❌ not-Ready | `CON-32(a)` — checks |
 
 Draw the gate-stop banner (`nen stop`) only when the maintainer must actually act on something in
 the table — a status-only pass reports plainly, no banner.

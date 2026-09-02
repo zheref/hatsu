@@ -12,9 +12,9 @@ This skill answers exactly one question, the same way every time:
 > **Is this PR `CON-32`-Ready, and if not, which conjunct failed?**
 
 It exists because the rule already existed and was skipped anyway. `scripts/pr_ready_gate.sh`
-was `CON-32`'s sole authority in `<reference-repo>` since RR-PR-#577 — and
-RR-IS-#681 was filed after a readiness claim was
-made without running it. The verdicts, when it was finally run across the open set:
+was `CON-32`'s sole authority in `<reference-repo>` since RR-PR-#577 — and RR-IS-#681 was filed
+after a readiness claim was made without running it. The verdicts, when it was finally run across
+the open set:
 
 | PR | claimed | actual verdict |
 | --- | --- | --- |
@@ -129,13 +129,12 @@ live: run from anywhere else, `nen` refuses `ENOENT: no such file or directory, 
   reclassify it as a refusal.
 
 **Never pass `--round-policy strict`.** `bounded` is the default and the settled `CON-32(b)` reading
-(mirrors `pr_ready_gate.sh`'s own `--copilot-policy bounded` default, RR-IS-#572); inheriting it is what keeps every
-asker consistent when the policy is next revisited.
+(mirrors `pr_ready_gate.sh`'s own `--copilot-policy bounded` default, RR-IS-#572); inheriting it is
+what keeps every asker consistent when the policy is next revisited.
 
 **Pass `--exclude-run $GITHUB_RUN_ID` only from inside a job asking about its own PR**
-(RR-IS-#708) — it drops that run's own rollup
-entries so an in-flight job cannot self-block the verdict. A human or a local session asking about
-someone else's PR passes nothing.
+(RR-IS-#708) — it drops that run's own rollup entries so an in-flight job cannot self-block the
+verdict. A human or a local session asking about someone else's PR passes nothing.
 
 ## 3. The report — verdict verbatim, then the breakdown
 
@@ -189,8 +188,7 @@ rollup that could not be read — `nen` itself prints:
 followed by its own remedy line. **Relay that remedy line verbatim, never paraphrased** — it already
 names the fix, and a paraphrase risks losing the exact grant or cause it points at.
 
-**Never `ready`, and never silently omitted.** This is
-RR-IS-#680's principle in its smallest form:
+**Never `ready`, and never silently omitted.** This is RR-IS-#680's principle in its smallest form:
 *absence is never a pass.* An unevaluated PR is a row that needs attention, not one that cleared.
 
 **What would fix it — quote `nen`'s own remedy line, verified live (and against `nen`'s pinned `v0.1.0`
@@ -233,8 +231,7 @@ source) for each shape below:**
 No agent — CI or local — and no session may describe a PR as *ready*, *G2-ready*, *G4-ready* or
 *mergeable* on any other basis. Not a checks-page reading. Not *"I just fixed it"*. Not the absence
 of a red mark. Not *"the reviewers approved"*. Not the checks being **not yet reported**, which is
-the specific error RR-IS-#681 records: pending
-was read as green.
+the specific error RR-IS-#681 records: pending was read as green.
 
 A skill nobody is obliged to use changes nothing, so the obligation is the rule and the skill is
 merely the convenient way to satisfy it. **Where the gate cannot evaluate, the claim is

@@ -12,7 +12,7 @@ table, live read-only transcripts against the real `<reference-repo>` backlog, a
 brief); mutating verbs are A/B'd by contract inspection (flag-by-flag against the old skill's
 improvised commands) and their own `--help` output.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 Verdict parity between `nen pr ready` and `scripts/pr_ready_gate.sh` was already proven across the
 live estate by nen's shadow window (`docs/evidence/shadow-window-p1.md` in `zheref/nen`, 16/16 then
@@ -73,7 +73,7 @@ terminal: (none -- build-only)
 exit `0`. Cross-checked on a real consumer code too:
 ```
 $ nen parse futon --repo <reference-repo> "<product-repo-A>@high+"
-repo: <product-repo-A> (KP)
+repo: <product-repo-A> (RA)
 band: high+ -> critical, high
 terminal: (none -- build-only)
 ```
@@ -106,15 +106,15 @@ terminal: tag
 ### 1.4 The terminal's scope rule generalizes to "the repo you are standing in," not hardcoded to `<reference-repo>`
 
 ```
-$ nen parse futon --repo <reference-repo> "KP@high then tag" --self "<product-repo-A>"
-repo: <product-repo-A> (KP)
+$ nen parse futon --repo <reference-repo> "RA@high then tag" --self "<product-repo-A>"
+repo: <product-repo-A> (RA)
 band: high -> high
 terminal: tag
 ```
 exit `0`. Same with `tag+fanout`:
 ```
 $ nen parse futon --repo <reference-repo> "<product-repo-A>@high then tag+fanout" --self "<product-repo-A>"
-repo: <product-repo-A> (KP)
+repo: <product-repo-A> (RA)
 band: high -> high
 terminal: tag+fanout
 ```
@@ -158,7 +158,7 @@ nen: 'KC' resolves to 'zheref/kro-pwa' in this registry's own product_codes, but
 recorded for it (it names no consumer) ...
 exit 2
 ```
-A real **consumer** code (`KP`) resolves without issue (§ 1.2). The pattern: the code-lookup path
+A real **consumer** code (`RA`) resolves without issue (§ 1.2). The pattern: the code-lookup path
 appears to check the `consumers[]` array only — never `product_codes` directly for confirmation,
 and never `maintained_tools`/`pending_onboarding` — so a code naming the registry's *own* source
 repo, or a not-yet-onboarded one, can never resolve, while the identical string typed as an
@@ -185,26 +185,26 @@ narrower instance of it. **Corrected invocation for `<reference-repo>` until fix
 ### 1.9 Refusals — bad severity, bad terminal, unresolvable token
 
 ```
-$ nen parse futon --repo <reference-repo> "KP@urgent"
+$ nen parse futon --repo <reference-repo> "RA@urgent"
 nen: 'urgent' is not a severity. Expected one of critical, high, medium, low, optionally suffixed '+'.
-  try: KP@critical
+  try: RA@critical
 exit 2
 
-$ nen parse futon --repo <reference-repo> "KP@high then release"
+$ nen parse futon --repo <reference-repo> "RA@high then release"
 nen: 'then release' is not a recognized terminal. Only 'then tag' and 'then tag+fanout' are accepted.
-  try: KP@high then tag
+  try: RA@high then tag
 exit 2
 
 $ nen parse futon --repo <reference-repo> "ZZ@high"
-nen: 'ZZ' does not resolve against this registry's product_codes ($comment, BC, BS, KP, KN, KW, KC)
+nen: 'ZZ' does not resolve against this registry's product_codes ($comment, BC, BS, RA, RB, RC, KC)
 or its consumers. Resolving it to a near match would point a mutating run at the wrong backlog.
 exit 2
 
-$ nen parse futon --repo <reference-repo> "KP@high then tag"
+$ nen parse futon --repo <reference-repo> "RA@high then tag"
 nen: 'then tag' is refused against '<product-repo-A>' -- the terminal is that repository's own
 release machinery, and it is not the one you are standing in (<reference-repo>). Try the
 corrected build-only line:
-  try: KP@high
+  try: RA@high
 exit 2
 ```
 
@@ -219,15 +219,15 @@ exit 2
 The band and terminal both parsed correctly regardless of case (confirmed by the value echoed in
 the refusal, `tag`, and by the corrected line preserving `high+`) — the refusal fires on the same
 self-mismatch as § 1.9, not on casing. The corrected line preserves the caller's own casing (`kp`,
-not `KP`).
+not `RA`).
 
 ### 1.11 `--json`
 
 ```
-$ nen parse futon --repo <reference-repo> "KP@high+" --json
+$ nen parse futon --repo <reference-repo> "RA@high+" --json
 {
   "repo": "<product-repo-A>",
-  "code": "KP",
+  "code": "RA",
   "isSelf": false,
   "band": { "severity": "high", "plus": true, "severities": ["critical", "high"] },
   "terminal": null

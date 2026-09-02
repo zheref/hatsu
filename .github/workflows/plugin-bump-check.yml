@@ -11,9 +11,8 @@
 # decision lives in that script, so it can be exercised offline — the recorded
 # refuse/pass transcripts are in `docs/ab/plugin-bump-guard.md`.
 #
-# Two hardening choices carried over from the reference implementation's
-# original, both
-# load-bearing:
+# Two hardening choices carried over from the reference implementation's original,
+# both load-bearing:
 #   1. The guard script is checked out from trusted `main`, never run from the
 #      PR. A PR that could rewrite the guard judging it makes the guard worth
 #      nothing.
@@ -76,11 +75,11 @@ jobs:
 
       - name: Assert the guard script keeps its exec bit in-tree
         # The reference implementation catches this class with
-        # `tests/workflow_script_exec_bit.bats`;
-        # Hatsu has no bats harness, so the equivalent assertion runs here. A
-        # committed-100644 guard is what made the old `-x` test above fail every
-        # PR over to the PR's own copy. Reads the PR head checkout as data — the
-        # git index, not anything executed from it.
+        # `tests/workflow_script_exec_bit.bats`; Hatsu has no bats harness, so
+        # the equivalent assertion runs here. A committed-100644 guard is what
+        # made the old `-x` test above fail every PR over to the PR's own copy.
+        # Reads the PR head checkout as data — the git index, not anything
+        # executed from it.
         shell: bash
         run: |
           set -euo pipefail

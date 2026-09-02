@@ -11,7 +11,7 @@ working tree clean, `HEAD` at tag `v0.11.3` (`2269fe723e355dc69bf535ab40f22556e4
 `git describe --tags` and `git log -1`), matching `contracts/reference.gates.json`'s own header. No
 `GH_TOKEN` was exported for any command in this document — both verbs are pure local-file reads.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
@@ -95,8 +95,8 @@ onboarded" with "not a Bankai repo."
 ### 2.3 — `nen repo scenario` / `nen canon resolve`, code-vs-slug and no-`GH_TOKEN` findings
 
 ```
-$ nen repo scenario --repo <reference-repo checkout> --target KP
-nen repo: --target takes an owner/name repository slug and 'KP' is not one. It is the GitHub side of
+$ nen repo scenario --repo <reference-repo checkout> --target RA
+nen repo: --target takes an owner/name repository slug and 'RA' is not one. It is the GitHub side of
 the pair: --repo names a checkout on disk, --target names the repository on GitHub.
 (exit 1)
 
@@ -112,15 +112,15 @@ nen repo: --target owner/name is required.
 finding 5 (§ 4): tell these apart by the refusal text, never by the code.
 
 Confirmed live: a product code is refused outright by both verbs (`canon resolve` gives the identical
-message). Resolving `KP` → `<product-repo-A>` needs `nen repo resolve KP`, which — verified live —
+message). Resolving `RA` → `<product-repo-A>` needs `nen repo resolve RA`, which — verified live —
 reads `schemas/repos.json` from the **process's own cwd**, not from a `--repo`/`--from`-named path, in
 the token-supplied form:
 
 ```
-$ cd <reference-repo checkout> && nen repo resolve KP
-<product-repo-A>  (KP)  via code
+$ cd <reference-repo checkout> && nen repo resolve RA
+<product-repo-A>  (RA)  via code
 
-$ cd <migration-tracker checkout> && nen repo resolve KP --from <reference-repo checkout>
+$ cd <migration-tracker checkout> && nen repo resolve RA --from <reference-repo checkout>
 nen repo: <migration-tracker checkout>\schemas\repos.json: no such file. ...
 ```
 
@@ -286,7 +286,7 @@ malformed `--target` exits `1` instead (§ 2.3), a separate, verb-specific asymm
    wrong under either description equally, since neither the old skill nor `nen` cross-checks the two.
 
 5. **`nen repo scenario` conflates invocation errors with "not a recorded consumer" under a single
-   exit code.** Verified live (§ 2.2, § 2.3): a missing `--target`, a code-shaped `--target` (`KP`),
+   exit code.** Verified live (§ 2.2, § 2.3): a missing `--target`, a code-shaped `--target` (`RA`),
    and a genuine not-a-consumer target (`<reference-repo>`, `<product-repo-C>`, `zheref/kro-pwa`)
    all exit `1`. Only an unusable `--repo` path exits `2` for this verb (§ 2.5) — there is no exit-`2`
    case here for a bad `--target` at all, unlike `nen canon resolve`, whose missing `--target` exits

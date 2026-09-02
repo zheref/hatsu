@@ -20,7 +20,7 @@ rather than a live checkout, constructed inline file lists. GitHub-touching read
 ever run against `<reference-repo>` in a way that could write to it, and nothing was pushed to any remote
 other than `hatsu`'s own `p2/2-tensho` branch.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
@@ -319,8 +319,8 @@ $ nen repo resolve --repo <reference-repo checkout> --from <reference-repo check
 nen repo: 'C:\...\<reference-repo>' has an 'origin' of 'https://github.com/<reference-repo>.git', which
 resolves to '<reference-repo>' -- and that is not in this registry (...\schemas\repos.json). An
 origin is a token like any other: it is an error, never a fallback to every repository. Codes:
-$comment (...), BC (<reference-repo>), BS (<scaffold-repo>), KP (<product-repo-A>), KN
-(<product-repo-B>), KW (<product-repo-C>), KC (zheref/kro-pwa). Repositories: <product-repo-A>,
+$comment (...), BC (<reference-repo>), BS (<scaffold-repo>), RA (<product-repo-A>), RB
+(<product-repo-B>), RC (<product-repo-C>), KC (zheref/kro-pwa). Repositories: <product-repo-A>,
 <product-repo-B>, <scaffold-repo>.
 exit=1
 

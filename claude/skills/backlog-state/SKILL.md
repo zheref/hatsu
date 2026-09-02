@@ -90,8 +90,9 @@ nen repo resolve --repo <path> --from <cwd>
 > failed and list `product_codes`. It is never a fallback to `all`.
 
 **An unknown repo is an error, never a guess.** Say which token failed and list the codes `nen repo
-resolve`'s own refusal names. Resolving `Kro` to `<product-repo-A>` because it is the only prefix match is
-exactly the kind of helpfulness that reports the wrong repo's backlog.
+resolve`'s own refusal names. Resolving a bare `<prefix>` to the one registry entry whose name
+happens to begin with it is exactly the kind of helpfulness that reports the wrong repo's
+backlog.
 
 ## 2. Resolving the repo set
 
@@ -113,8 +114,13 @@ named and worked around by hand. **Check the returned rows by code before doing 
   BC --repo <path>`) and fold it into the swept set alongside whatever `all` returned.
 
 Either way, **state the resolved set before the table**, so a reader can see what was actually
-swept: *"6 repos: `<reference-repo>`, `<scaffold-repo>`, `<product-repo-A>`, `<product-repo-B>`, `<product-repo-C>`, kro-pwa."* A
-reader who cannot see what was swept cannot tell an empty band from an unswept one.
+swept:
+
+```
+6 repos: <reference-repo>, <scaffold-repo>, <product-repo-A>, <product-repo-B>, <product-repo-C>, kro-pwa.
+```
+
+A reader who cannot see what was swept cannot tell an empty band from an unswept one.
 
 > **A second, sharper finding in the same output.** `nen repo resolve all`'s row set also includes
 > a spurious entry: `schemas/repos.json`'s own `$comment` documentation key, printed as if it were

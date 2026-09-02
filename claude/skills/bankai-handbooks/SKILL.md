@@ -61,7 +61,7 @@ its separate `maintained_tools` ownership entry).
 
 - **`--repo`** is a path to a checkout, always a `<reference-repo>` one — never an `owner/name` slug.
 - **`--target`** is an `owner/name` slug — never a product code. `nen repo scenario` refuses a code
-  outright, verified live: `--target takes an owner/name repository slug and 'KP' is not one`. If you
+  outright, verified live: `--target takes an owner/name repository slug and 'RA' is not one`. If you
   only have a code, resolve it first with `nen repo resolve <CODE>` run **from inside** that same
   `<reference-repo>` checkout — `repo resolve`'s token form takes no `--repo` and ignores `--from` for this
   purpose; it reads `schemas/repos.json` from the process's own **cwd** regardless (verified live,

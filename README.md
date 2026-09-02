@@ -304,6 +304,3 @@ claude plugin validate . --strict
 ## License
 
 **MIT** — see [`LICENSE`](LICENSE).
-
-The maintainer has ruled MIT. The `LICENSE` file carrying that grant lands in its own change; where a
-checkout predates it, the file — not this line — is the authority once it arrives.

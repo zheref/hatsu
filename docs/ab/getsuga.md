@@ -23,7 +23,7 @@ to a local audit ledger) was A/B'd by contract inspection only, never executed. 
 --help`, `nen changelog --help`, `nen tag --help`, `nen fanout --help` were re-run live against the
 pinned binary before writing any of this (§ 0) — they match the shared refpack dump byte for byte.
 
-*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
@@ -506,9 +506,9 @@ closes-collision-guard.yml, consumer-tag-precondition-guard.yml, db-migrate.yml,
 handbook-question-dedupe.yml, kisuke-build.yml, labels-length-guard.yml, plugin-bump-guard.yml,
 registry-drift-guard.yml, release-refusal-guard.yml, repo-health-guard.yml, roy-build.yml,
 sync-canon.yml, tag-precondition-guard.yml, unit-tests.yml
-AFFECTED  <product-repo-A> (KP)  -- consumes cascade-ancestry-guard.yml, db-migrate.yml,
+AFFECTED  <product-repo-A> (RA)  -- consumes cascade-ancestry-guard.yml, db-migrate.yml,
   handbook-question-dedupe.yml, roy-build.yml, sync-canon.yml, which changed in this range
-AFFECTED  <product-repo-B> (KN)  -- consumes roy-build.yml, sync-canon.yml,
+AFFECTED  <product-repo-B> (RB)  -- consumes roy-build.yml, sync-canon.yml,
   cascade-ancestry-guard.yml, handbook-question-dedupe.yml, which changed in this range
 AFFECTED  <scaffold-repo> (BS)  -- consumes kisuke-build.yml, which changed in this range
 exit=0
