@@ -119,7 +119,7 @@ is a set of open issues that **one unit of work would resolve together**. Four c
 signals, strongest first:
 
 1. **The same rule or clause.** Two issues both amending the same numbered rule (`CON-{n}` in this
-   repo's own constitution, or the equivalent citation form its canon uses) are one amendment;
+   repo's own constitution, or the equivalent citation from its canon uses) are one amendment;
    landing them separately means the second rewrites the first's text.
 2. **The same machinery file or surface.** Two issues both changing the same script, or both adding
    a guard to the same workflow, will conflict in the diff.
@@ -272,9 +272,10 @@ nen issue consolidate-close --target <owner/name> --parent <consolidated#> \
 > **This is entirely undocumented**: `nen issue consolidate-close --help` and `nen issue --help`
 > print no mention of `--severity-family` at all, despite the flag being declared and accepted
 > (`command.ts`'s own `flags.values` list) — a caller reading only the printed help would never
-> know to pass it. **Always pass `--severity-family bankai:severity`** (this repository's real
-> severity family prefix, read from `schemas/labels.json` at the snapshot — every severity label
-> there is `bankai:severity/<level>`) explicitly; never rely on the default.
+> know to pass it. **Always pass `--severity-family <the target repo's severity label family>`**
+> explicitly (for bankai-core this is `bankai:severity` — its real severity family prefix, read
+> from `schemas/labels.json` at the snapshot, where every severity label is
+> `bankai:severity/<level>`); never rely on the default.
 
 This **is** the file→attach→close choreography's second and third acts in one call, and its actual
 internal order is **stronger than "attach, then guard, then close"**: `nen` first resolves every
