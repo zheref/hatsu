@@ -12,11 +12,13 @@ rules**, not a runnable script diff. Where a runnable counterpart exists (`nen p
 `pr_ready_gate.sh`), it is cited rather than re-proven — see § 2.4.
 
 Run: 2026-09-02T00:45–01:05Z (UTC). `nen` `0.1.0`
-(`C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`.
+(`<cache>\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`.
 All commands below ran **read-only** against the live `zheref/bankai-core` repository (issue/PR
 reads, `gh pr diff --name-only`, `gh pr view --json baseRefName`) or against local scratch JSON
 files with no GitHub write of any kind. Nothing was labelled, merged, pushed, commented on, or
 opened.
+
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 

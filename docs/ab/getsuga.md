@@ -9,7 +9,7 @@ preconditions, one folded release PR, the tag, then the `CON-22` fan-out. Old me
 preflight|resolve-target|self-check`, `nen changelog collate|completeness`, `nen tag cut`,
 `nen fanout compute|record`.
 
-Run: 2026-09-01 (local clock; `nen 0.1.0` at `C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`).
+Run: 2026-09-01 (local clock; `nen 0.1.0` at `<cache>\nen\v0.1.0\nen-windows-x64.exe`).
 `gh` authenticated as `zheref`, `GH_TOKEN=$(gh auth token)` exported for every call that touches
 GitHub. Read-only verbs (`release resolve-target`, `release preflight`, `release self-check`,
 `changelog completeness`, `fanout compute`) were run against the **real, live**
@@ -22,6 +22,8 @@ run, with its own remote — never `bankai-core`, never `hatsu`. `fanout record`
 to a local audit ledger) was A/B'd by contract inspection only, never executed. `nen release
 --help`, `nen changelog --help`, `nen tag --help`, `nen fanout --help` were re-run live against the
 pinned binary before writing any of this (§ 0) — they match the shared refpack dump byte for byte.
+
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 

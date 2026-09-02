@@ -9,7 +9,7 @@ mechanics: `nen parse izanagi` (the invocation split, and the cap refusal) and `
 1..N iteration count, stay with the skill; see § 4's findings for exactly why.
 
 Run: 2026-09-01, this session. `nen` `0.1.0`
-(`C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`
+(`<cache>\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`
 (`GH_TOKEN=$(gh auth token)` exported for the one live bankai-core read below). Old skill source:
 `refpack/skills/izanagi.SKILL.md` (bankai-core `v0.11.3`-era). No shell oracle exists for izanagi,
 same as `izanami` — the old skill's "parse" and "loop" steps were pure agent prose, never a script,
@@ -18,6 +18,8 @@ plus every `nen` transcript below run against the real binary. **Nothing was mut
 zheref/bankai-core** — every bankai-core call below is a read (`gh pr view … --json state`), and
 every genuinely mutating demonstration runs against a disposable local scratch git repository
 (`/tmp/izanagi-scratch/repo`), never against bankai-core or hatsu itself.
+
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 

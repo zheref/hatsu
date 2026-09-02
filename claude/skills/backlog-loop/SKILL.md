@@ -123,7 +123,8 @@ explicitly for this skill ("while a named `backlog-loop` run is active
 | **Apply a G1 mode label** | Never, inside a run or outside it |
 | **Merge** | Not `main`, not a chore/integration branch, not its own PR anywhere |
 | **Vote** | No review, ever — and never `request_changes` |
-| **Cut a tag or publish a release** | § 8 stops at the maintainer's `G3` for the official release; the tag itself is prepared, never merged past a refusal |
+| **Publish a release** | Never. The official GitHub Release is **`G3`, the maintainer's alone** (`CON-6`) — § 8 prepares it with its developer-facing notes and stops there |
+| **Cut a tag outside a batch boundary** | The tag cut is **permitted, and only** at the severity-batch boundaries § 8's table declares (all `critical` merged, all `high` merged, all `medium` merged, `low` merged) — `nen tag cut`, after the changelog-collation release PR the maintainer merges, never past a refused tag capability, never on an `--at` that is not an ancestor of `origin/main`. Opening each affected consumer's repin PR (§ 8's fan-out) is likewise permitted at those boundaries and nowhere else. A cut because a band "looks finished" is not a boundary |
 | **Fire or verify a wake itself** | That authority lives entirely in `drive` (§ 6) |
 
 > **`CON-46(c-i)`'s stale-chore-merge carve-out is retired here, not restated.** The old

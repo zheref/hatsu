@@ -7,13 +7,15 @@ mechanics: `nen board build | render | diff`, composed with `nen backlog fetch|o
 derive`, `nen color status`, `nen pr ready` (all `backlog-state`'s, adopted by reference) and `nen
 ref format`.
 
-Run: 2026-09-02 (UTC). `nen 0.1.0` (`C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`). `gh`
+Run: 2026-09-02 (UTC). `nen 0.1.0` (`<cache>\nen\v0.1.0\nen-windows-x64.exe`). `gh`
 authenticated as `zheref`. Live target: `zheref/bankai-core` (real, open backlog, 88 open rows at
 run time). Oracle checkout: `zheref/bankai-core` tag `v0.11.3`
 (`2269fe723e355dc69bf535ab40f22556e4fe4081`, working tree clean, 16 commits behind `origin/main` —
 irrelevant here since only `git show`-extracted, read-only files were used) —
 `scripts/ichigo_board.sh` and `scripts/ichigo_pix.txt` extracted read-only via `git show
 v0.11.3:<path>` into a scratch directory outside the bankai-core checkout, never written back to it.
+
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 **§2.4 re-run for this review fix:** 2026-09-02T01:24 UTC, same extracted `ichigo_board.sh`, same
 `v0.11.3` oracle checkout, against the exact `board.json` now embedded in §2.4 — done to make the

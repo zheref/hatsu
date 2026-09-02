@@ -5,13 +5,15 @@ each effort, and drive every open PR to `CON-32`/G2-readiness. Scope per the iss
 `nen repo inventory`, `nen effort classify`, `nen run rerun-failed`; readiness composed from
 `nen pr ready` (unchanged pointer, shared with `hatsu:pr-state`).
 
-Run: 2026-09-02 (this session). `nen` `0.1.0` (`C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`).
+Run: 2026-09-02 (this session). `nen` `0.1.0` (`<cache>\nen\v0.1.0\nen-windows-x64.exe`).
 `gh` authenticated as `zheref` (`GH_TOKEN=$(gh auth token)` exported before every `nen` call that
 reaches GitHub, per the shared brief — `nen` never picks a token up ambiently).
 
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
+
 **Everything below ran read-only, against real repositories, with one narrow exception (§ 5) that
 was itself a read-only-safe refusal probe.** No local checkout of KroApple or KroAndroid exists on
-this machine (checked: `C:\Users\zhere\Code\WebStorm\Claude\` has no `Kro*` directory) — both
+this machine (checked: `<checkout>\` has no `Kro*` directory) — both
 consumer repos are private but readable with this session's token, so every live call below is
 **API-only** against the real `zheref/KroApple`, plus one call against the real `zheref/hatsu`
 (§ 5) and reads of the frozen `zheref/bankai-core` registry (`git show`, per the ground rules).

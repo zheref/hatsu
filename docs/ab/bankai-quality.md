@@ -7,10 +7,12 @@ prose rules (`>10%`/`>25%` regression severity; the five-field `QA-15` method bl
 never computed. New mechanics: `nen repo scenario`, `nen quality tooling`, `nen quality perf-compare`,
 `nen quality method-check`.
 
-Run: 2026-09-02T01:01Z (UTC). `nen` `0.1.0` (`C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`).
+Run: 2026-09-02T01:01Z (UTC). `nen` `0.1.0` (`<cache>\nen\v0.1.0\nen-windows-x64.exe`).
 Oracle/registry checkout: `zheref/bankai-core` tag `v0.11.3`
 (`2269fe723e355dc69bf535ab40f22556e4fe4081`, working tree clean, read-only throughout — no issue,
 comment, label, branch, push or PR against it at any point in this run).
+
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 

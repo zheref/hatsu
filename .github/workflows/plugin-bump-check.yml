@@ -1,0 +1,150 @@
+# plugin-bump-check — the plugin-version bump guard, wired as a real PR check.
+#
+# Claude Code keys its plugin cache on `.claude-plugin/plugin.json`'s `version`
+# field. A PR that changes a plugin-shipped surface without bumping it ships to
+# nobody — the repository is right and every installed copy stays wrong, with no
+# error anywhere. This job fails such a PR.
+#
+# Deterministic and agent-free: it computes the changed-files list, the base
+# `.claude-plugin/plugin.json` and the PR body from the triggering event and the
+# API, then hands all four inputs to `scripts/plugin_bump_check.sh`. The whole
+# decision lives in that script, so it can be exercised offline — the recorded
+# refuse/pass transcripts are in `docs/ab/plugin-bump-guard.md`.
+#
+# Two hardening choices carried over from the bankai-core original, both
+# load-bearing:
+#   1. The guard script is checked out from trusted `main`, never run from the
+#      PR. A PR that could rewrite the guard judging it makes the guard worth
+#      nothing.
+#   2. No git credential survives into the job. The diff and the base manifest
+#      come over the API with the workflow's own read-only token, so both
+#      checkouts set `persist-credentials: false` — nothing here pushes or
+#      authenticates as the repository.
+#
+# The trusted-copy test below is `-f`, not `-x`, on purpose. This job invokes
+# the guard as `bash "$guard"`, which needs the file to exist and be readable,
+# not to be executable — so `-f` is the predicate that matches what is actually
+# done with it. An `-x` test here was a real hole: it silently routed every PR
+# to the PR's OWN copy of the guard whenever the in-tree file lacked its exec
+# bit, which is exactly the "a PR rewrites the guard judging it" failure choice
+# 1 exists to prevent. The exec bit is separately asserted in-tree, below.
+#
+# ENFORCEMENT POSTURE (honest, as of v0.1.0): this check is ADVISORY until the
+# maintainer adds branch protection or a ruleset that REQUIRES it. And GitHub
+# runs a same-repo PR against the PR's own workflow definition, so a PR may
+# edit this file and be judged by the edited version. The recommended repo
+# settings hardening — a maintainer action, not something this file can do —
+# is: (a) require the `plugin-bump-check` check on `main`, and (b) protect
+# `.github/**` with a ruleset or CODEOWNERS so a PR cannot silently rewrite it.
+name: plugin-bump-check
+
+on:
+  pull_request:
+    # `edited` matters: the `no plugin bump: <reason>` opt-out lives in the PR
+    # body, so re-running when the body changes is what makes the opt-out
+    # usable without an empty push.
+    types: [opened, synchronize, reopened, edited]
+
+concurrency:
+  group: plugin-bump-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  # for the API-based diff below, which replaces a credentialed `git fetch`.
+  pull-requests: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout PR head (data only — nothing from here is executed)
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          # shallow: the API step below supplies the diff, so no history is read.
+          persist-credentials: false
+
+      - name: Checkout the guard script from trusted main (never from the PR)
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          path: .trusted
+          persist-credentials: false
+
+      - name: Assert the guard script keeps its exec bit in-tree
+        # bankai-core catches this class with `tests/workflow_script_exec_bit.bats`;
+        # Hatsu has no bats harness, so the equivalent assertion runs here. A
+        # committed-100644 guard is what made the old `-x` test above fail every
+        # PR over to the PR's own copy. Reads the PR head checkout as data — the
+        # git index, not anything executed from it.
+        shell: bash
+        run: |
+          set -euo pipefail
+          mode="$(git ls-files -s -- scripts/plugin_bump_check.sh | awk '{print $1}')"
+          if [ -z "$mode" ]; then
+            echo "::error::scripts/plugin_bump_check.sh is not tracked on this PR head."
+            exit 1
+          fi
+          if [ "$mode" != "100755" ]; then
+            echo "::error::scripts/plugin_bump_check.sh is committed $mode, expected 100755. Fix with: git update-index --chmod=+x scripts/plugin_bump_check.sh"
+            exit 1
+          fi
+          echo "scripts/plugin_bump_check.sh: $mode (exec bit present)"
+
+      - name: Compute changed files + base .claude-plugin/plugin.json (API — no git credential)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Both .filename AND .previous_filename: a rename that moves a
+          # plugin-surface file OUT of the covered globs still changed that
+          # surface, and only previous_filename carries the old path.
+          gh api "repos/${REPO}/pulls/${PR}/files" --paginate \
+            --jq '.[] | .filename, (.previous_filename // empty)' \
+            > "${RUNNER_TEMP:-/tmp}/changed_files.txt"
+          # A base without the manifest at all (the very first commit) is not a
+          # failure: `{}` yields an empty version, which any real HEAD version
+          # differs from, so the guard reads it as bumped.
+          gh api "repos/${REPO}/contents/.claude-plugin/plugin.json?ref=${BASE_SHA}" \
+            -H "Accept: application/vnd.github.raw" \
+            > "${RUNNER_TEMP:-/tmp}/base_plugin.json" 2>/dev/null \
+            || echo '{}' > "${RUNNER_TEMP:-/tmp}/base_plugin.json"
+          echo "changed files: $(wc -l < "${RUNNER_TEMP:-/tmp}/changed_files.txt")"
+
+      - name: Write PR body to file
+        # via env, never inlined into the script body: a PR title/body is
+        # attacker-controlled text and `${{ }}` interpolation into a shell line
+        # is a script-injection vector.
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        shell: bash
+        run: printf '%s' "$PR_BODY" > "${RUNNER_TEMP:-/tmp}/pr_body.md"
+
+      - name: Plugin-bump guard check
+        shell: bash
+        run: |
+          set -euo pipefail
+          # BOOTSTRAP: scripts/plugin_bump_check.sh does not exist on `main`
+          # until zheref/hatsu#3 itself merges, so on that PR — and only until
+          # then — there is no trusted copy to run. Fall back loudly rather than
+          # silently; the test is `-f` (file present) because the invocation is
+          # `bash "$guard"`, so once the file exists on main this branch is
+          # genuinely never taken again.
+          if [ -f .trusted/scripts/plugin_bump_check.sh ]; then
+            guard=.trusted/scripts/plugin_bump_check.sh
+          else
+            echo "::warning::scripts/plugin_bump_check.sh not found on trusted main — running the PR's own copy (bootstrap only, zheref/hatsu#3). This path disappears once that PR merges."
+            guard=scripts/plugin_bump_check.sh
+          fi
+          echo "guard script: $guard"
+          bash "$guard" \
+            "${RUNNER_TEMP:-/tmp}/changed_files.txt" \
+            "${RUNNER_TEMP:-/tmp}/base_plugin.json" \
+            .claude-plugin/plugin.json \
+            "${RUNNER_TEMP:-/tmp}/pr_body.md"

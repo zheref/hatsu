@@ -12,7 +12,7 @@ delegation of every issue→PR and PR→Ready step to the already-landed `build`
 `SKILL.md` § 0's declared structural adaptation.
 
 Run: 2026-09-02, UTC times as logged by each command. `nen` `0.1.0`
-(`C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`. All
+(`<cache>\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`. All
 commands below ran **read-only** against the live `zheref/bankai-core` repository (backlog fetch,
 `changelog completeness`, `fanout compute`), against a **scratch copy** of `bankai-core`'s own
 `CHANGELOG.md` (never the real checkout — `changelog collate` without
@@ -23,6 +23,8 @@ inspected only, per the shared brief's rule and the identical precedent `pr-stat
 `backlog-state`'s own A/B docs already set (`docs/ab/pr-state.md`, `docs/ab/backlog-state.md`). `nen
 fanout record` is exercised live because it writes **only** a local scratch ledger file, never
 GitHub — confirmed in § 2.11.
+
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 

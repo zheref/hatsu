@@ -10,15 +10,17 @@ fragment-required`, `nen gate derive`, `nen ref format|parse`, `nen repo resolve
 request-reviews`, and — for the phase the old skill handed to `bankai:drive` — `nen pr ready` via
 `hatsu:pr-state`.
 
-Run: 2026-09-01 (local clock; `nen 0.1.0` at `C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`).
+Run: 2026-09-01 (local clock; `nen 0.1.0` at `<cache>\nen\v0.1.0\nen-windows-x64.exe`).
 `gh` authenticated as `zheref`. Local verbs exercised against a **constructed** scratch git repo
-(`C:\Users\zhere\.claude\jobs\4f1fdef1\tmp\scratch-tensho`, never pushed anywhere, seeded and
+(`<scratch>\scratch-tensho`, never pushed anywhere, seeded and
 discarded for this run only) and, for `--files`/`--policy-paths`-shaped verbs that take a path list
 rather than a live checkout, constructed inline file lists. GitHub-touching read-only verbs
 (`pr ready`, `ref format`, `repo resolve`) were run against the real `zheref/bankai-core` (read-only:
 `gh pr list`, `nen pr ready`, `nen ref format`, `nen repo resolve` — nothing mutating). No verb was
 ever run against `bankai-core` in a way that could write to it, and nothing was pushed to any remote
 other than `hatsu`'s own `p2/2-tensho` branch.
+
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
@@ -434,8 +436,17 @@ paths and unmentioned deletions") — not silences to be discovered later.
   (same binding rule `hatsu:pr-state` § 5 states) and stops; deciding what happens next is the
   maintainer's or `hatsu:drive`'s, once it lands.
 
-### 4.7 — `hatsu:drive` and `hatsu:jujisho` are not yet ported
+### 4.7 — `hatsu:drive` and `hatsu:jujisho` were not yet ported *at this run*
 
-Both are referenced in the ported skill (§ 1, § 6) as forward pointers to `zheref/hatsu#2`'s own
-scope list, in prose only — no relative markdown link to a file that does not exist in this repo yet,
-matching the precedent `hatsu:pr-state` set for the same situation with `drive`.
+At the time of this run both were referenced in the ported skill (§ 1, § 6) as forward pointers to
+`zheref/hatsu#2`'s own scope list, in prose only — no relative markdown link to a file that did not
+exist in this repo yet, matching the precedent `hatsu:pr-state` set for the same situation with
+`drive`.
+
+> **Superseded at `v0.1.0` — corrected here, not rewritten above.** Both siblings landed before this
+> version was cut, and the skill now links them. The substantive change is not the links: **tensho's
+> § 6 drive phase is now [`hatsu:drive`](../../claude/skills/drive/SKILL.md)'s full engine**, and the
+> repeated `nen pr ready --explain` reading this run recorded as the interim substitution survives
+> only as an explicitly-labelled fallback for when `drive` cannot run at all. Row 13 of § 1's table
+> and the last bullet of § 4.6 describe the interim state this run measured; they stand verbatim as
+> the record of that run, and this note is what corrects them.

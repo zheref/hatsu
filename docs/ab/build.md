@@ -9,12 +9,14 @@ eyeballing "never drive more than two." There is no runnable old-side script for
 `pr-state`'s `scripts/pr_ready_gate.sh`) — it was agent judgment and raw `gh`, every invocation.
 
 Run: 2026-09-01T (local session). `nen` `0.1.0`
-(`C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`. All
+(`<cache>\nen\v0.1.0\nen-windows-x64.exe`). `gh` authenticated as `zheref`. All
 commands below ran **read-only** against the live `zheref/bankai-core` repository (issue reads,
 label reads, `gh issue view --json`) or against local scratch JSON/markdown files with **no**
 GitHub write of any kind. `nen label apply` (the one mutating verb this port uses) was **never
 exercised live** — contract-inspected only, per the shared brief's rule that a mutating verb is
 A/B'd by flag mapping, never by a live call against `bankai-core`.
+
+*Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Nothing else below is altered -- the transcripts are otherwise verbatim.*
 
 ---
 
