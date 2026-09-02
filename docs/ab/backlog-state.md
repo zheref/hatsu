@@ -421,9 +421,9 @@ not a choice to skip mechanizing it, a verified dead end.
 
 3. **`nen pr fetch` is completely broken** against every PR tried, in two unrelated repositories,
    across every PR state (open/closed/merged): the underlying GitHub reviews sub-fetch returns
-   `422 Unprocessable Entity`, and the non-`--json` path additionally mis-reports this as a schema
-   validation failure rather than surfacing the real HTTP error. Reproduced live five times (§ 2.5).
-   This port does not use `nen pr fetch` anywhere as a result.
+   `422 Unprocessable Entity`, and both the plain and `--json` output modes print that identical
+   HTTP error string verbatim — neither mode wraps it in schema-validation framing. Reproduced live
+   five times (§ 2.5). This port does not use `nen pr fetch` anywhere as a result.
 
 4. **`nen parse <skill> --grammar <template>`'s `[ ... ]` optional-clause syntax does not work with
    a single-slot template** — the whole remainder of the line, bracketed clause included, is

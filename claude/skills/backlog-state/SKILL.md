@@ -99,26 +99,35 @@ exactly the kind of helpfulness that reports the wrong repo's backlog.
 nen repo resolve all --repo <path>
 ```
 
-**Verified live against bankai-core's own registry: this enumerates every `consumers` and
-`maintained_tools` entry — and never the source repo itself.** `bankai-core` appears in neither
-array (it is the source, not a consumer of itself), so `all`'s own output omits `BC` — exactly the
-gap the old skill's prose already named and worked around by hand
-(`bankai-core` is the registry it reads FROM, and a registry does not enumerate its own reader).
-**Add the source repo explicitly** — resolve it via its own product code (`nen repo resolve BC
---repo <path>`) and fold it into the swept set alongside whatever `all` returned. State the
-resolved set before the table: *"5 repos: bankai-core, bankai-scaffold, KroApple, KroAndroid,
-KroWindows."* A reader who cannot see what was swept cannot tell an empty band from an unswept one.
+`all` enumerates the registry's `consumers` ∪ `maintained_tools` entries. **Whether the standing
+repo also appears in that set is registry-content-dependent, not a fixed rule** — verified live
+against bankai-core's own registry (`docs/ab/backlog-state.md` § 2.2): `bankai-core` (`BC`) *does*
+show up in `all`'s own output here, because bankai-core's registry happens to list itself among the
+enumerated entries even though it is the source, not a consumer, of that registry. A different
+registry that omits the source repo from both arrays would produce the gap the old skill's prose
+named and worked around by hand. **Check the returned rows by code before doing anything else**:
+
+- **If the standing repo's code is already among the rows** `all` returned, use the set as-is —
+  adding it again would duplicate the row.
+- **If it is missing**, add it explicitly — resolve it via its own product code (`nen repo resolve
+  BC --repo <path>`) and fold it into the swept set alongside whatever `all` returned.
+
+Either way, **state the resolved set before the table**, so a reader can see what was actually
+swept: *"6 repos: bankai-core, bankai-scaffold, KroApple, KroAndroid, KroWindows, kro-pwa."* A
+reader who cannot see what was swept cannot tell an empty band from an unswept one.
 
 > **A second, sharper finding in the same output.** `nen repo resolve all`'s row set also includes
 > a spurious entry: `schemas/repos.json`'s own `$comment` documentation key, printed as if it were
-> a resolvable repository (`Object-reference notation (...) ($comment) via all`) alongside the six
-> real ones. This is the same schema-loader defect pr-state's own A/B doc records against the
+> a resolvable repository (`Object-reference notation (...) ($comment) via all`) alongside the real
+> ones. This is the same schema-loader defect pr-state's own A/B doc records against the
 > unknown-code refusal path (`docs/ab/pr-state.md` § 4 finding 3) — here it surfaces inside a
 > *successful* sweep result instead of only an error message, which is worse: a caller counting rows
 > off `all`'s output silently gets one extra, non-repository row. **Never silently drop it** — name
-> it in the resolved-set line (*"`all` returned 4 rows; one, `$comment`, is the registry's own
+> it in the resolved-set line (*"`all` returned N rows; one, `$comment`, is the registry's own
 > documentation key, not a repository, and is excluded from the sweep"*) rather than quietly
-> filtering it with no trace. Filed as a finding, `docs/ab/backlog-state.md` § 4.
+> filtering it with no trace. **Never hard-code N** — count whatever the live call actually
+> returned; it varies with the registry's own content. Filed as a finding, `docs/ab/backlog-state.md`
+> § 4.
 
 ## 3. Fetching
 
