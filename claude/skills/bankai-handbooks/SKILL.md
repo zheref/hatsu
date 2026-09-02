@@ -34,9 +34,9 @@ previous session or from this file's own prose.
 > The two-read-path split `CON-13` describes — CI reads bankai-core **live** from a checkout;
 > build/local agents auto-load a product repo's generated, pinned `.claude/rules/` **mirror** of it —
 > **collapses to ONE path here.** `nen canon resolve` computes the identical resolved set, live and
-> deterministically, straight from a bankai-core checkout: there is no reason left to trust a possibly
-> -stale mirror when the live computation is this cheap and this exact. Point `--repo` at the checkout,
-> never at a product repo's mirror.
+> deterministically, straight from a bankai-core checkout: there is no reason left to trust a
+> possibly-stale mirror when the live computation is this cheap and this exact. Point `--repo` at
+> the checkout, never at a product repo's mirror.
 
 ---
 
@@ -65,7 +65,7 @@ its separate `maintained_tools` ownership entry).
   only have a code, resolve it first with `nen repo resolve <CODE>` run **from inside** that same
   bankai-core checkout — `repo resolve`'s token form takes no `--repo` and ignores `--from` for this
   purpose; it reads `schemas/repos.json` from the process's own **cwd** regardless (verified live,
-  `docs/ab/bankai-handbooks.md` § 2.2 — filed as a finding, not routed around by hand).
+  `docs/ab/bankai-handbooks.md` § 2.3 — filed as a finding, not routed around by hand).
 - **No `GH_TOKEN` needed anywhere in this skill.** Both verbs here are pure local-file reads against
   the checkout on disk — verified live with no token exported at all.
 - **Exit `1`** → covers **two unrelated failure classes that share the same code** — verified live,
