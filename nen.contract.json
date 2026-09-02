@@ -49,7 +49,7 @@
       "6": "EXIT_MANIFEST — SHA256SUMS unfetchable, missing, malformed, or silent about the artifact",
       "7": "raised by `nen bootstrap` only, never by the script: no bootstrap/nen.sh found on disk. Not a supply-chain failure — a wiring failure. Supply --script."
     },
-    "retry_policy": "Exit 4 may be retried once. Exits 5 and 6 are NEVER retried — retrying a checksum failure is how a fail-closed guard becomes a fail-open one by attrition. Exits 2, 3 and 7 are not retryable either; they will not change by being asked again.",
+    "retry_policy": "Exit 4 may be retried once. Exits 5 and 6 are NEVER retried — retrying a checksum failure is how a fail-closed guard becomes a fail-open one by attrition. Exit 3 will not change on this host. Exits 2 and 7 are invocation errors: never retry the same command, but the FIXED invocation (correct usage; for 7, supply --script) is expected to succeed — fix and re-run rather than halting on them.",
     "published_binaries": [
       "nen-linux-x64",
       "nen-darwin-arm64",
