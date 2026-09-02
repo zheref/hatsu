@@ -5,9 +5,9 @@ Run: 2026-09-02T02:37Z (UTC) for the original port session (commit `876efa7`, au
 transcripts were re-run for the M1 review-finding fix at 2026-09-02T02:50–02:52Z (UTC); see the
 correction note in § 5 itself.
 
-Port of `zheref/hatsu#2` for the `futon` skill. Method: the shared Stage-B brief
-(`STAGE-B-SHARED-BRIEF.md`) — a command mapping table, live read-only transcripts against the real
-`zheref/bankai-core` backlog, and residue. `nen` verified: `C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`
+Port of `zheref/hatsu#2` for the `futon` skill. Method: the shared port brief this migration
+session's orchestrator issued for Stage B (session artifact, not checked in) — a command mapping
+table, live read-only transcripts against the real `zheref/bankai-core` backlog, and residue. `nen` verified: `C:\Users\zhere\.cache\nen\v0.1.0\nen-windows-x64.exe`
 (`0.1.0`). No mutating verb was exercised against `zheref/bankai-core` (frozen, read-only per the
 brief); mutating verbs are A/B'd by contract inspection (flag-by-flag against the old skill's
 improvised commands) and their own `--help` output.
