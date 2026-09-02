@@ -29,7 +29,7 @@ every genuinely mutating demonstration runs against a disposable local scratch g
 | 2 | "The cap is required — an invocation without it is refused" — a rule stated in prose, enforced by the agent remembering to check for it every time | `nen parse izanagi` refuses a missing `up to <N>` mechanically, exit `2`, with the corrected line ready to paste — verified live (§ 2.2), the load-bearing case |
 | 3 | Reject a non-integer or non-positive cap — implied by "a positive integer" in prose, never mechanically checked | `nen parse izanagi` refuses `up to zero` and `up to 0` identically, exit `2` (§ 2.3) |
 | 4 | "Echo the full parse before iteration 1" — the agent's own paraphrase of task/condition/cap | `nen parse izanagi`'s own stdout IS the echo — `task:`/`until:`/`cap:` printed verbatim, nothing to reconstruct |
-| 5 | Evaluate the condition each iteration ("re-read live state… evaluate first") — hand-run by the agent, one observation at a time, in its own words | `nen watch until --command "<check>" --true-pattern … --max-iterations 1` runs exactly one observation and reports true/not-yet/error mechanically, reusing `izanami`'s own engine (§ 2.5) |
+| 5 | Evaluate the condition each iteration ("re-read live state… evaluate first") — hand-run by the agent, one observation at a time, in its own words. The old skill's step 1 carried an explicit stale-state warning ("Never act on the previous iteration's picture; that is how a loop repeats an action that already succeeded.") — dropped from an earlier draft of the ported SKILL.md's § 3 step 1 and restored verbatim on review | `nen watch until --command "<check>" --true-pattern … --max-iterations 1` runs exactly one observation and reports true/not-yet/error mechanically, reusing `izanami`'s own engine (§ 2.5); the stale-state warning itself stays prose (SKILL.md § 3 step 1) — no `nen` verb owns "don't act on a stale picture" |
 | 6 | Track the iteration count against `N` and stop there — done in the agent's head, one increment per loop turn | **Not replaced** — see finding 1, § 4. `nen parse izanagi` gives a parsed, refusal-enforced `N`; no verb counts against it across a running loop |
 | 7 | Run the task itself | **Not replaced, and structurally cannot be** — `nen watch until` refuses a mutating/unknown `--command` outright (verified live, § 2.6); the act stays the looped task's own machinery under its own authority |
 | 8 | "3 consecutive no-op iterations end the run" — a rule stated in prose | **Not replaced** — no `nen` verb detects a no-op iteration; judgment, unchanged |
@@ -355,8 +355,16 @@ human gate, impossible condition, the mutation log) the old skill also left to t
    discipline `izanami`'s port already carries), and the per-run mutation log (no `nen` ledger exists
    for izanagi the way `nen label apply --ledger` exists for one label call).
 
-7. **Sibling skills izanagi's old text loops over — `build`, `drive`, `file`, `tensho`, `jujisho`,
-   `backlog-synthesis`, `getsuga`, `backlog-loop` — are not on `origin/main` at this commit.** Per the
-   forward-reference ruling, they are named as plain text annotated "(lands with a later port of
-   hatsu#2)" in the ported SKILL.md rather than linked. `hatsu:izanami` is on `origin/p2/2-izanami` and
-   lands before this port in merge order, so it is linked normally (`../izanami/SKILL.md`).
+7. **Sibling skills named in § 2's authority section — `build`, `drive`, `file`,
+   `backlog-synthesis`, `tensho`, `jujisho`, and (in this doc's own commentary) `getsuga`,
+   `backlog-loop` — are not on `origin/main` at this commit.** Of these, only `build`, `drive`,
+   `file` and `backlog-synthesis` come from the old skill's own § 2 (it never named `tensho`,
+   `jujisho`, `getsuga` or `backlog-loop` as something izanagi loops over); `tensho` and `jujisho`'s
+   mention in the ported SKILL.md's § 2, and `getsuga`/`backlog-loop`'s mention above, are this
+   port's own additions, not carried forward from the old text. Per the forward-reference ruling,
+   all of them are named as plain text annotated "(lands with a later port of hatsu#2)" in the
+   ported SKILL.md rather than linked. `hatsu:izanami`, by contrast, has now **merged to `main`**
+   (PR #13, `05272f9`) — verified live on the rebased base of this branch:
+   `git show HEAD:claude/skills/izanami/SKILL.md` resolves, so the port's `../izanami/SKILL.md`
+   links (SKILL.md § 1's "read-only half" line and its "point at `hatsu:izanami`" line) are real,
+   working relative links, not a forward reference held on trust.

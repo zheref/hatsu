@@ -167,8 +167,9 @@ for a single label call; it is the skill's own bookkeeping across the whole run.
 
 Each iteration, in order:
 
-1. **Re-read live state and evaluate the condition FIRST**, before acting. If it already holds, stop
-   — iteration 0 counts.
+1. **Re-read live state and evaluate the condition FIRST**, before acting. Never act on the
+   previous iteration's picture; that is how a loop repeats an action that already succeeded. If
+   the condition already holds, stop — iteration 0 counts.
 2. **Run the task**, under § 2.
 3. **Re-evaluate**, and report **one line**: iteration number, what was done, what changed, and the
    condition's current value.
