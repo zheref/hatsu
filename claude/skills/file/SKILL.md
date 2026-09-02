@@ -109,8 +109,17 @@ doc), and **raise its severity** where the new evidence justifies it, via:
 
 ```bash
 nen label apply <CODE>-IS-#<n> --label <severity-label> --repo-slug <owner/name> \
+  --repo <path to the target's own checkout> \
   --reason "<what changed the assessment>" --run
 ```
+
+`--repo` is not optional: `nen label` reads the taxonomy from `schemas/labels.json` **in the
+checkout `--repo` points at**, not in whatever directory the skill happens to be invoked from, and
+has no built-in copy to fall back on — omit it and the call refuses with `schemas\labels.json: no
+such file` the moment it is run from a checkout that doesn't carry that file itself (e.g. this
+skill's own `hatsu` checkout; verified live, docs/ab/file.md § 2.7). Point it at **the target
+repo's own checkout** — the one named by `--repo-slug` — never at the checkout `file` happens to
+be running from.
 
 only once the plan is confirmed (§ 4) — say what changed the assessment (broader blast radius, a
 second occurrence, a consumer now affected). One open issue per distinct problem.

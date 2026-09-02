@@ -16,8 +16,8 @@ written back to it). No mutating verb (`nen issue file` without `--dry-run`, `ne
 --run`, `nen issue attach-sub`/`consolidate-close`) was ever run against `zheref/bankai-core`, per
 the shared brief's constraint; the mutating half is A/B'd by contract inspection and by
 `--dry-run` runs against that same repo (which print the exact `gh` call and write nothing) —
-never a real filed-and-closed test issue, which this port judged unnecessary: the contract
-inspection below is conclusive on its own.
+never a real filed-and-closed test issue, which this port judged unnecessary: the mutating half's
+dry-run transcripts (§ 2.5–2.7) are the evidence, not a claim resting on contract inspection alone.
 
 ---
 
@@ -33,7 +33,7 @@ Every deterministic or hand-reconstructed step the old `SKILL.md` carried, and w
 | 4 | "An issue with an OPEN PR is never quietly closed" — checked by the agent running `gh pr list --search "<n> in:body"` or reading each candidate issue's timeline by eye, one at a time | `nen issue open-pr-check --target <o/n> --issues n,n,n` — one call, every open PR fetched once and matched against every candidate by both `closingIssuesReferences` and body mentions, exit `1` iff any candidate is blocked (verified live and cross-checked by hand, § 2.3) |
 | 5 | "Applied in the create call, never as a follow-up edit" — the agent typed `gh issue create --repo … --title … --body-file … --label a,b --assignee u` from memory, with no check that a label existed in the taxonomy before submitting it | `nen issue file --target <o/n> --repo <path> --title <t> --body-file <p> --label a,b --assignee u [--forbid-family ns:family] [--dry-run]` — validates every label against `schemas/labels.json` **before** attempting anything, and now also enforces `--forbid-family` as a hard refusal (verified live, § 2.5–2.6) |
 | 6 | "`bankai:stage/*` … applying it here would fire the builder" — a rule the agent had to remember never to violate, with nothing stopping a mistaken `--label bankai:stage/building` from reaching `gh issue create` | `--forbid-family` on `nen issue file` refuses the call outright before any GitHub call is made (verified live, § 2.6) — the rule is now a call refusal, not a discipline |
-| 7 | Severity bump on a duplicate: `gh issue edit <n> --add-label bankai:severity/high` typed by hand, with no ledger | `nen label apply <ref> --label <sev> --repo-slug <o/n> --reason "<text>" --run` — logged (object, label, time, outcome) to a ledger file; contract inspection only, per the shared brief (§ 3) |
+| 7 | Severity bump on a duplicate: `gh issue edit <n> --add-label bankai:severity/high` typed by hand, with no ledger | `nen label apply <ref> --label <sev> --repo-slug <o/n> --repo <path> --reason "<text>" --run` — logged (object, label, time, outcome) to a ledger file; `--repo` fix reverified live (§ 2.7), the severity-bump call shape against the real backlog is contract inspection only, per the shared brief (§ 3) |
 | 8 | Umbrella check (3+ fold/supersede candidates): the old skill deferred to `bankai:backlog-synthesis` by name, with no verb backing the attach/close choreography it would need | `nen issue attach-sub` / `nen issue consolidate-close` exist and are named in the ported skill as what that consolidation would use, but `file` itself still defers rather than invoking them — contract inspection only (§ 3) |
 | 9 | Posting the actual comment for amend/fold/supersede | **No `nen` verb owns this** — genuine residue, see § 4. Still `gh issue comment`/`gh issue close --comment`, unchanged |
 | 10 | The `G5` stop banner: `scripts/gate_stop.sh --gate G5` | `nen stop --who Kurapika --gate G5 efforts.md` — same renderer family `pr-state`'s sibling ports already adopt; not separately re-verified here beyond `nen stop --help` (§ 2 note) |
@@ -239,6 +239,49 @@ stage label" was a sentence the agent had to remember every single call; `--forb
 it into a refusal the binary enforces on the invocation itself, before any label taxonomy lookup
 or GitHub call. Verified live, `--dry-run` present either way — nothing written.
 
+### 2.7 — `nen label apply` needs `--repo`: reproduced, fixed in the skill, reverified live
+
+**MAJOR finding from adversarial review:** § 3(a)'s `nen label apply` invocation, as originally
+ported, carried `--repo-slug <owner/name>` but no `--repo <path>` at all. Reproduced from this
+port's own `hatsu` checkout, which carries no `schemas/labels.json` of its own:
+
+```
+$ nen label apply FX-IS-#1 --label bankai:severity/low \
+    --repo-slug zheref/does-not-exist-fixture --reason "verifying missing --repo flag causes schemas lookup failure"
+nen label: C:\...\hatsu\schemas\labels.json: no such file. Nen reads this repository's taxonomy
+from 'schemas/labels.json' in the TARGET repo and has no built-in copy to fall back on -- a binary
+that guessed the names would report a taxonomy this repository does not have. Point it at a
+checkout that carries the file with --repo <path>, or add the file.
+```
+exit code: `1`.
+
+`--repo-slug` names *which* GitHub repository the mutation would run against; it says nothing
+about *where on disk* to read that repository's `schemas/labels.json` from, and `nen` has no
+built-in taxonomy to fall back on. The skill's invocation is fixed to carry both: `--repo <path to
+the target's own checkout>` alongside `--repo-slug <owner/name>` (§ 3(a) of
+`claude/skills/file/SKILL.md`, above).
+
+**Reverified live, with the fix applied**, without re-triggering the auto-mode classifier block
+already recorded in § 3 below (which fires on `nen label apply` invocations that target the real
+`zheref/bankai-core` by both `--repo` and `--repo-slug` at once): `--repo` pointed at the local
+`bankai-core` checkout only to supply a real `schemas/labels.json`, `--repo-slug` pointed at
+`zheref/hatsu` (a fixture value — nothing is sent anywhere without `--run`, and `--run` was never
+passed), and `--ledger` pointed at a scratch path outside any checkout so nothing lands in
+`bankai-core` even as a local, uncommitted file:
+
+```
+$ nen label apply HT-IS-#1 --label bankai:severity/low --repo-slug zheref/hatsu \
+    --repo "C:\Users\zhere\Code\WebStorm\Claude\bankai-core" \
+    --reason "verifying --repo makes the taxonomy check resolve correctly (dry run, no --run)" \
+    --ledger "<scratch path>\label-ledger.jsonl"
+(dry run) would apply 'bankai:severity/low' to HT-IS-#1
+ledger: <scratch path>\label-ledger.jsonl
+```
+exit code: `0`. `bankai-core`'s own working tree (`git status --porcelain`) stayed empty
+throughout — confirmed before and after. This is the fixed invocation shape working: `--repo`
+resolves the taxonomy file that was previously missing, and the call proceeds to its normal
+dry-run report instead of refusing.
+
 ---
 
 ## 3. Residue
@@ -254,14 +297,19 @@ or GitHub call. Verified live, `--dry-run` present either way — nothing writte
   skill owns consolidation — contract-inspected only (§ 2's usage text), never run, per the
   shared brief's mutating-verb constraint and because the umbrella case is explicitly deferred by
   the ported skill's § 3(d), same as the old one.
-- **`nen label apply --run` for a duplicate's severity bump was contract-inspected, not run
-  live**, on top of the shared brief's mutating-verb constraint: the auto-mode classifier refused
-  even a no-`--run` dry invocation of `nen label apply` against `zheref/bankai-core` mid-session
-  (blocked before execution, no output produced) — recorded here rather than silently retried or
-  routed around. Its contract (`nen label --help`, quoted in the skill and in this doc's § 1 row
-  7) is unambiguous: `--reason` is ledger-only text, never sent to GitHub, and outcome is recorded
-  only `--run` and only after the call resolves — nothing here contradicts that reading, but it
-  is disclosed as unverified-live rather than claimed proven.
+- **`nen label apply --run` for a duplicate's severity bump against `zheref/bankai-core`
+  specifically was contract-inspected, not run live**, on top of the shared brief's mutating-verb
+  constraint: the auto-mode classifier refused even a no-`--run` dry invocation of `nen label
+  apply` that named `zheref/bankai-core` as both `--repo` and `--repo-slug` mid-session (blocked
+  before execution, no output produced) — recorded here rather than silently retried or routed
+  around. Its contract (`nen label --help`, quoted in the skill and in this doc's § 1 row 7) is
+  unambiguous: `--reason` is ledger-only text, never sent to GitHub, and outcome is recorded only
+  `--run` and only after the call resolves — nothing here contradicts that reading. The `--repo`
+  flag itself — the MAJOR finding this port's review raised — **was** reverified live (§ 2.7),
+  using `bankai-core`'s checkout only to supply a real `schemas/labels.json` and a fixture
+  `--repo-slug` (`zheref/hatsu`) so the classifier's `zheref/bankai-core`-targeting block never
+  applied; what remains contract-inspected only is the severity-bump call shape against the real
+  backlog, not the `--repo` fix.
 - **No missing verb found among the read-only half.** `nen issue search` and `nen issue
   open-pr-check` between them cover every deterministic step `file`'s reconciliation phase needs;
   both were run live against the real `zheref/bankai-core` backlog and both matched a manual
