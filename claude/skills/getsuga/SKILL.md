@@ -68,9 +68,14 @@ nen --repo <path to the checkout> release preflight \
 verb** — `nen` owns the AND-logic and the "not supplied — not checked" honesty; it does not own the
 GitHub reads that produce the raw facts:
 
-- **Critical issues**: `gh issue list --repo <owner/name> --label critical --state open --json
-  number`. Pass the numbers, or `--critical-issues ''` to assert there are none — never omit the
-  flag, which reports the row as **not checked** and fails the table.
+- **Critical issues**: `gh issue list --repo <owner/name> --label "bankai:severity/critical" --state
+  open --json number`. **The label is the full `bankai:severity/critical`, never the bare
+  `critical`** — a bare `critical` label does not exist in `schemas/labels.json` and the query
+  silently returns zero matches rather than erroring, which would defeat this precondition without
+  ever surfacing a mistake (regression caught in review; re-verified live with `--state all` that
+  the corrected query returns the real historical criticals — `docs/ab/getsuga.md` § 2.2). Pass the
+  numbers, or `--critical-issues ''` to assert there are none — never omit the flag, which reports
+  the row as **not checked** and fails the table.
 - **Live chores (`CON-36`'s three-part test)**: per candidate `integration/<chore>` branch, gather
   `{ name, issueOpen, integrationBranchExists, openPrTargetsIntegrationOrMain }` — the chore
   issue's state (`gh issue view <n> --json state`), whether the branch exists
@@ -98,6 +103,22 @@ every row the table used to check by separate hand-run command now comes back in
 > exactly as `nen` prints it** (per § 2's own instruction to honour a HELD row and say who set it),
 > but flag this specific shape to the maintainer by name — the fix on their side is to *delete* the
 > Variable, not merely set it `false`. Recorded in full at `docs/ab/getsuga.md` § 2.2.1.
+
+> **A second, safer divergence: `nen release preflight`'s `RELEASE_HOLD` read fails CLOSED on an
+> unreachable `gh`, where the old `scripts/tag_cut.sh` failed OPEN.** Verified live (`docs/ab/getsuga.md`
+> § 2.2.2): with `gh` made unreachable, `nen` reports `FAIL  RELEASE_HOLD -- could not be read:
+> Executable not found in $PATH: "gh"` and the whole table exits `1` — a `gh` outage refuses the
+> release rather than silently waving it through. The old script's own `hold_value="$(gh variable
+> get RELEASE_HOLD 2>/dev/null || true)"` (`scripts/tag_cut.sh`, read at the frozen `v0.11.3`
+> snapshot) instead swallows the failure into an empty string, which `hold_active("")` reads as
+> *inactive* — a `gh` outage under the old mechanics let a release proceed unheld. Stated for
+> awareness, not as a rule to follow: this divergence needs no operational instruction, since the
+> safer behavior is also the one that fires automatically.
+
+> **Maintainer-awareness note, not a routed path: the old `scripts/tag_cut.sh --mode marker` escape
+> hatch (`CON-7`) has no `nen` equivalent.** No `getsuga` path — this port, or any real cut recorded
+> in `docs/ab/getsuga.md` — has ever used it; stated here only so its absence is a known gap, not a
+> silent one, should the maintainer ever reach for it.
 
 | Precondition | On failure |
 |---|---|
@@ -130,14 +151,27 @@ it:**
    collated fragment** — verified live against a constructed fixture (`docs/ab/getsuga.md` § 2.3):
    never hand-write the section, never leave a fragment behind.
 
-   > **Finding, load-bearing: `--write`'s own manifest order does not match the order it writes.**
-   > Verified live, twice, with numerically-named fragments (`docs/ab/getsuga.md` § 2.3.1): `nen`
-   > **reports** collating fragments `10-a.md`, `20-b.md`, `30-c.md` in ascending order, but the
-   > **dated section it actually writes** renders their bodies `30`, `20`, `10` — the exact reverse.
-   > `CON-33(c)`'s own rule below requires numeric order "with a monotonicity assertion rather than
-   > hand placement" — this verb's `--write` does not deliver that placement, despite its own report
-   > claiming the correct order. **Read the collated section after `--write` and re-order it by eye
-   > before opening the PR** — never trust the printed manifest as proof of the written order.
+   > **Finding, cosmetic, load-bearing to read correctly: `--write`'s printed manifest disagrees with
+   > its own written order — the manifest is the wrong one, not the write.** Re-verified live, twice,
+   > with numerically-named fragments, side by side against the real, extracted
+   > `changelog_collate_fragments.sh` (`docs/ab/getsuga.md` § 2.3.1): the **written** `CHANGELOG.md`
+   > section renders fragments newest-first (highest numeric prefix first) — `CON-33(b)`'s own
+   > convention, "placed newest-first, directly below `### Unreleased`" — and this is **exactly** what
+   > the old script's own `list_fragment_files` (`sort -k1,1nr`, numeric-descending) and every real
+   > shipped `CHANGELOG.md` section (e.g. `zheref/bankai-core`'s `v0.11.3`: #899, #898, #890…
+   > descending) already do — `nen`'s written body matches the old script's written body
+   > byte-for-byte on the same fixture. The **printed manifest line**, however, lists the same
+   > fragments in plain ascending filesystem-read order (`10-a.md`, `20-b.md`, `30-c.md`) — the
+   > reverse of what was actually written. **The defect is the manifest disagreeing with the write,
+   > not the write disagreeing with the shipping convention.** `CON-33(c)` — cited here in the earlier
+   > draft of this finding — actually governs the *completeness check*'s own ascending numeric
+   > comparison (§ 3.3 below), not this body-rendering order; the clause that governs the written
+   > section's newest-first placement is `CON-33(b)`, already named above. **Never re-order the
+   > written section by eye** — the written order is already correct, and hand-reordering it would
+   > corrupt a real changelog into oldest-first. **The operational rule: trust the written order as
+   > correct; note the printed manifest's mismatch as a `nen` defect** (a cosmetic report bug, not a
+   > data-integrity one) so a reviewer diffing the PR by the manifest alone isn't misled into "fixing"
+   > a section that was already right.
 
 2. **Back-fill anything stranded.** A fragment present at the *previous* tag but never collated into
    that tag's section belongs **in the previous section**, not this one — decide it with
@@ -316,5 +350,7 @@ this skill's own action** — it targets *other repositories*, which no `nen` ve
 - **Never deletes a superseded CHANGELOG entry** to resolve a contradiction.
 - **Never publishes the release.** Preparing it is the job; G3 is not.
 - **Never routes around a refused capability.**
-- **Never trusts `nen changelog collate --write`'s printed manifest as proof of the written
-  order** — verified live, it is reversed; re-check the section by eye (§ 3).
+- **Never re-orders `nen changelog collate --write`'s written section by eye.** The written body is
+  already correct (newest-first, `CON-33(b)`) — verified live against the old script's own written
+  output, byte-for-byte. Only the **printed manifest** disagrees with the write; note that mismatch
+  as a `nen` defect, never "fix" the section itself (§ 3).

@@ -45,12 +45,12 @@ live run, not against memory or the refpack alone.
 |---|---|---|
 | 1 | `git merge-base --is-ancestor <resolved> origin/main`, run by hand after resolving the invocation token by eye | `nen release resolve-target --repo <path> --token <token>` — re-fetches `origin/main` itself, then runs the same test, and refuses a dirty `checkout` outright (§ 2.1) |
 | 2 | `gh variable get RELEASE_HOLD`, read by eye | Folded into `nen release preflight`'s own row — **with a documented behavioural gap**, § 2.2.1 |
-| 3 | "Open `critical` issues" — a `bankai:severity/critical` label query, reasoned by hand | `nen release preflight --critical-issues <n,n>` — `nen` owns the pass/fail and the "not supplied" honesty; the caller still gathers the numbers via `gh issue list --label critical --state open` (§ 2.2) |
+| 3 | "Open `critical` issues" — a `bankai:severity/critical` label query, reasoned by hand | `nen release preflight --critical-issues <n,n>` — `nen` owns the pass/fail and the "not supplied" honesty; the caller still gathers the numbers via `gh issue list --label "bankai:severity/critical" --state open` — **the full label, not the bare `critical`, which silently matches nothing** (§ 2.2) |
 | 4 | The `CON-36` three-part live-chore test — AND'd by hand across an issue-state read, a branch-existence read, and an open-PR read | `nen release preflight --live-chores-from <path>` — `nen` owns the AND per chore and the "none live" verdict; the caller still gathers the three booleans per chore the same way (§ 2.2) |
 | 5 | `ls changelog.d` at the cut point, by hand | Folded into `nen release preflight` (`--fragment-dir`, defaults `changelog.d`) (§ 2.2) |
 | 6 | `scripts/changelog_release_completeness_check.sh <vPrev> <cut-point>` | Folded into `nen release preflight`, or standalone `nen changelog completeness --range ... --changelog ... --owner-repo ...` (§ 2.4) |
 | 7 | `git ls-remote --tags origin`, read by hand for "does the tag already exist" | Folded into `nen release preflight`, and independently re-checked by `nen tag cut` itself before cutting (§ 2.5) |
-| 8 | `scripts/changelog_collate_fragments.sh` | `nen changelog collate --version --theme --changelog --fragment-dir [--write]` — **with a documented write-order defect**, § 2.3.1 |
+| 8 | `scripts/changelog_collate_fragments.sh` | `nen changelog collate --version --theme --changelog --fragment-dir [--write]` — written body verified byte-for-byte identical to the old script (descending, newest-first); **with a documented printed-manifest defect**, § 2.3.1 |
 | 9 | `git ls-tree -r <prevTag> -- changelog.d`, read by hand to decide whether a fragment is stranded from the *previous* release | **No `nen` verb owns this decision.** Residue — § 3 |
 | 10 | Self-enumeration ("does this release PR list itself?") — reasoned by hand, wrong four times in bankai-core history | `nen release self-check --repo <path> --pr-merge-sha <sha> --previous-tag <ref> --cut-point <ref>` (§ 2.4b) |
 | 11 | Bump `latest` in `schemas/repos.json`, by hand | **No `nen` verb owns this write.** Residue — § 3 |
@@ -121,10 +121,37 @@ checked out locally.
 
 Data gathered live, per § 1's mapping:
 
+**Regression caught in review: the label as first written here, `critical`, is not a real label —
+`schemas/labels.json`'s severity family is `bankai:severity/<level>`, so `--label critical` matches
+nothing and silently reports "no open criticals" whether or not that is true.** Re-run live, both
+the broken form and the corrected one, plus `--state all` to confirm the corrected label genuinely
+matches real (historical) data rather than also silently matching nothing:
+
 ```
 $ gh issue list --repo zheref/bankai-core --label critical --state open --json number,title
 []
 
+$ gh issue list --repo zheref/bankai-core --label "bankai:severity/critical" --state open --json number,title
+[]
+
+$ gh issue list --repo zheref/bankai-core --label "bankai:severity/critical" --state all --json number,title,state
+[{"number":844,"state":"CLOSED", ...}, {"number":835,"state":"CLOSED", ...}, {"number":831,"state":"CLOSED", ...},
+ {"number":656,"state":"CLOSED", ...}, {"number":559,"state":"CLOSED", ...}, {"number":551,"state":"CLOSED", ...},
+ {"number":550,"state":"CLOSED", ...}, {"number":545,"state":"CLOSED", ...}, {"number":521,"state":"CLOSED", ...},
+ {"number":403,"state":"CLOSED", ...}, {"number":397,"state":"CLOSED", ...}, {"number":390,"state":"CLOSED", ...},
+ {"number":379,"state":"CLOSED", ...}, {"number":273,"state":"CLOSED", ...}]
+ (14 historical entries, all CLOSED)
+```
+
+**Both the broken and the corrected `--state open` query return `[]` — same verdict for this
+precondition today, by coincidence (`bankai-core` genuinely has zero open criticals right now), not
+because the bare `critical` label was ever valid.** The `--state all` run against the corrected
+label proves the label itself is real and the query mechanism works — 14 historical criticals, every
+one already closed — which the broken label could never have returned regardless of state, since it
+never matched any issue in this repository's history. The fix stands regardless of today's verdict:
+a query that silently matches nothing is not equivalent to a query that correctly finds nothing.
+
+```
 $ gh variable get RELEASE_HOLD --repo zheref/bankai-core
 false
 
@@ -193,6 +220,47 @@ semantics the old skill (and its underlying script) documented, not a skill-auth
 name the specific misleading shape (`RELEASE_HOLD = 'false'` read as HELD) to the maintainer, whose
 fix is to delete the Variable rather than set it `false`.
 
+#### 2.2.2 — `nen`'s `RELEASE_HOLD` read fails CLOSED on an unreachable `gh`; the old script failed OPEN
+
+`nen release preflight --help` states this outright: "`--hold-var <name>` … A `gh` that cannot be
+reached (missing, unauthenticated, no variable-read scope) fails this check rather than reading as
+'not set'." Verified live by making `gh` genuinely unreachable (stripped from `$PATH`, rather than
+supplying a bad token — a bad `GH_TOKEN` also breaks this checkout's own `git` credential helper,
+since `credential.https://github.com.helper` here shells out to `gh auth git-credential`, which
+would confound the isolation):
+
+```
+$ which gh
+which: no gh in (...)   # GitHub CLI's directory removed from PATH for this run only
+
+$ nen --repo <bankai-core checkout> release preflight \
+    --repo-slug zheref/bankai-core --tag v0.11.4 --range v0.11.3..HEAD \
+    --changelog /tmp/bc-changelog-v0.11.3.md --owner-repo zheref/bankai-core \
+    --critical-issues '' --live-chores-from /tmp/empty-chores.json
+FAIL  RELEASE_HOLD -- could not be read: Executable not found in $PATH: "gh"
+ok    open critical issues -- none open
+ok    CON-36 live chores -- none live (issue open AND branch exists AND an open PR targets it or main)
+ok    changelog.d/ empty at cut point -- empty
+ok    CON-33(c) reconciled -- every merged PR has a CHANGELOG entry or fragment
+ok    tag does not already exist -- clear
+exit=1
+```
+
+`nen` refuses the table outright when it cannot read the hold. The old `scripts/tag_cut.sh`, read
+at the frozen `v0.11.3` snapshot, does the opposite by construction:
+
+```
+$ git show v0.11.3:scripts/tag_cut.sh | grep -n 'hold_value='
+264:  hold_value="$(gh variable get RELEASE_HOLD 2>/dev/null || true)"
+```
+
+`2>/dev/null || true` swallows any `gh` failure (missing binary, auth failure, network outage) into
+an empty string, and `hold_active("")` (case-insensitive `true`/`1`/`yes` only) reads empty as
+*inactive* — the old mechanics let a release proceed unheld exactly when the check that was
+supposed to gate it could not run. `nen`'s behavior is the safer of the two; recorded here for
+awareness, not as an operational rule the skill must add — the safer behavior already fires on its
+own.
+
 ### 2.3 — `nen changelog collate`, without and with `--write` (constructed fixture)
 
 Constructed under `%TEMP%\getsuga-collate-fixture`, two fragments, a `CHANGELOG.md` carrying an
@@ -236,39 +304,81 @@ _(nothing awaiting release.)_
 - Added the widget factory (#1).
 ```
 
-`--write` deleted both fragments and rewrote `CHANGELOG.md` — matching the contract. **But note the
+`--write` deleted both fragments and rewrote `CHANGELOG.md` — matching the contract. **Note the
 body order**: the manifest above (and printed by `nen` itself) lists `42-...` then `47-...`; the
-written section renders `47`'s content first, `42`'s second — reversed. Isolated and reproduced
-cleanly below.
+written section renders `47`'s content first, `42`'s second — reversed **from the manifest**.
+Isolated, reproduced twice, and — per review correction — checked against the real old script's own
+behaviour on the identical fixture below, rather than assumed to be a regression against it.
 
-#### 2.3.1 — the write-order finding, isolated and reproduced twice
+#### 2.3.1 — the write-order finding, isolated, reproduced twice, and checked against the real old script
+
+**Regression caught in review: this finding was originally recorded backwards.** The written body
+is not the defect — it is descending (newest-first) and matches `CON-33(b)`'s own convention
+("placed newest-first, directly below `### Unreleased`") and the real, shipped
+`zheref/bankai-core` `v0.11.3` `CHANGELOG.md` section (`#899, #898, #890…`, descending). The actual
+defect is narrower: the **printed manifest** disagrees with what was written. Re-verified live, with
+the real `changelog_collate_fragments.sh` (extracted read-only from `bankai-core` at `v0.11.3`) run
+side by side against `nen changelog collate --write` on the identical fixture:
 
 ```
 $ mkdir changelog.d && printf '**What changed**: FRAG-10.\n' > changelog.d/10-a.md
 $ printf '**What changed**: FRAG-20.\n' > changelog.d/20-b.md
 $ printf '**What changed**: FRAG-30.\n' > changelog.d/30-c.md
-$ nen changelog collate --version v0.3.0 --theme "order probe" \
+
+$ bash changelog_collate_fragments.sh v0.2.0 "order probe" CHANGELOG.md changelog.d
+CON-33(b): collated 3 fragment(s) from 'changelog.d' into 'CHANGELOG.md' ### v0.2.0 — order probe, and removed the collated files.
+  changelog.d/30-c.md
+  changelog.d/20-b.md
+  changelog.d/10-a.md
+$ cat CHANGELOG.md
+# Changelog
+
+### Unreleased
+_(nothing awaiting release.)_
+
+### v0.2.0 — order probe
+**What changed**: FRAG-30.
+**What changed**: FRAG-20.
+**What changed**: FRAG-10.
+### v0.1.0 — initial cut
+- Added the widget factory (#1).
+```
+
+```
+$ nen --repo . changelog collate --version v0.2.0 --theme "order probe" \
     --changelog CHANGELOG.md --fragment-dir changelog.d --write
-collated 3 fragment(s) into .../CHANGELOG.md ### v0.3.0 — order probe
+collated 3 fragment(s) into CHANGELOG.md ### v0.2.0 — order probe
   10-a.md
   20-b.md
   30-c.md
 $ cat CHANGELOG.md
+# Changelog
+
 ### Unreleased
 _(nothing awaiting release.)_
 
-### v0.3.0 — order probe
+### v0.2.0 — order probe
 **What changed**: FRAG-30.
 **What changed**: FRAG-20.
 **What changed**: FRAG-10.
+### v0.1.0 — initial cut
+- Added the widget factory (#1).
 ```
 
-**Reproduced identically**: the printed manifest is ascending (`10, 20, 30`); the written section
-body is fully reversed (`30, 20, 10`). `CON-33(c)` (`SKILL.md` § 3.3) requires numeric order "with a
-monotonicity assertion rather than hand placement" — `--write`'s actual output does not deliver
-that, despite its own report claiming the ascending order it collated *from*. This is a genuine
-defect against the binary (`docs/ab/getsuga.md`, cited from `SKILL.md` § 3): **the collated section
-must be read and re-ordered by eye before the release PR opens**, every time.
+**The written `CHANGELOG.md` is byte-for-byte identical between the old script and `nen`** —
+`FRAG-30, FRAG-20, FRAG-10`, descending, on the same fixture. **The old script's own printed
+manifest is also descending** (`30-c.md, 20-b.md, 10-a.md`), because it prints the same
+already-sorted array it collated from. `nen`'s printed manifest is the outlier: it prints the
+fragment names in plain ascending filesystem-`readdir` order (`10-a.md, 20-b.md, 30-c.md`) — a
+different, unsorted list from the one `sortFragments` actually built and wrote
+(`src/changelog/collate.ts`/`command.ts` at the pinned `v0.1.0` tag: `collateCmd` renders from
+`sortFragments(fragments)` but prints from the original unsorted `names`). **This is a manifest/log
+defect in `nen`, not a body-rendering defect** — `CON-33(c)` (`SKILL.md` § 3.3) governs the
+*completeness check*'s own ascending numeric comparison, a different mechanism entirely; the clause
+governing this body's newest-first order is `CON-33(b)`. The corrected operational rule: **trust the
+written section as correct (it already matches the old script and the convention); note the printed
+manifest as unreliable** — never re-order the written section by eye, which would corrupt a real,
+correctly-descending changelog into oldest-first.
 
 ### 2.4 — `nen changelog completeness`, real range, vs. the old script read-only
 
@@ -461,11 +571,14 @@ no release yet to fan out from):
   from two data points, not read from source. Reported as a finding regardless — the operational
   consequence (never trust a bare `false` string to mean "not held" through this verb) holds either
   way.
-- **`changelog collate --write`'s exact ordering rule** (§ 2.3.1) — confirmed reversed order on two
-  independent 2- and 3-fragment fixtures; not tested against a single-fragment or >10-fragment case,
-  which might reveal a different rule (e.g. "last-modified first" happening to look like reverse-
-  numeric on freshly-created fixtures where mtime and filename order coincide). The operational
-  instruction (re-check by eye) does not depend on knowing the exact rule.
+- ~~`changelog collate --write`'s exact ordering rule~~ — **resolved, not merely inferred**: `nen`'s
+  source at the pinned `v0.1.0` tag (`src/changelog/collate.ts`, `src/changelog/command.ts`) was read
+  directly. `collateCmd` renders the written section from `sortFragments(fragments)` (numeric-
+  descending by leading `<n>-` prefix, matching `CON-33(b)`'s newest-first convention and the old
+  `changelog_collate_fragments.sh`'s own `sort -k1,1nr`), but prints its manifest line from the
+  original unsorted `names` array (plain `readdirSync` order) — two different orderings of the same
+  fragment set, by construction, not a fixture-size-dependent coincidence. The rule holds for any
+  fragment count, not just the 2- and 3-fragment fixtures exercised live (§ 2.3.1).
 - **A live `CON-36` clause-4 `G5` disagreement** — bankai-core's one open chore
   (`879-g2-gate-definition`) resolved cleanly to "not live" (no PR targets it or `main`), so no
   genuine mechanical-vs-partial-scope tension was available to exercise live; `SKILL.md` § 5's
@@ -474,3 +587,7 @@ no release yet to fan out from):
   entirely** ("not supplied — not checked") — read from `--help`, not separately reproduced live in
   this port (the shape is already verified for an analogous flag in `nen warmup`'s own
   `--questions-from`, per the shared brief's operational truths).
+- **The old `scripts/tag_cut.sh --mode marker` escape hatch (`CON-7`)** — a maintainer-awareness gap,
+  not a routed-around one: no `nen tag cut` flag corresponds to it, and no `getsuga` path, this port
+  included, has ever exercised it live (no real cut in this history used `--mode marker`). Recorded
+  in `SKILL.md` § 2 so its absence is stated, not silently dropped.
