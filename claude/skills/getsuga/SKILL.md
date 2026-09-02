@@ -287,9 +287,9 @@ The maintainer's ruling: an unreachable target is **driven to `main` first**, no
 3. **Drive it to `CON-32` readiness.** `hatsu:drive` is not ported yet (lands with a later port of
    hatsu#2). Until it lands, the interim mechanics are the same verb
    [`hatsu:pr-state`](../pr-state/SKILL.md) already ports — repeat `nen pr ready <ref> --explain`
-   (with `GH_TOKEN` exported and `--gates` pointing at this repository's own
-   `schemas/gates.json`, or `contracts/bankai-core.gates.json` where the target is frozen
-   bankai-core) after every round, quoting the verdict verbatim each time, the same interim
+   (with `GH_TOKEN` exported and `--gates` pointing at the target repository's own
+   `schemas/gates.json` (when it ships one), or `contracts/bankai-core.gates.json` where the target
+   is frozen bankai-core) after every round, quoting the verdict verbatim each time, the same interim
    substitution tensho's own § 6 uses for the identical gap. This is a **check repeated across
    rounds**, not the multi-round wake/escalation loop `hatsu:drive` will own once it ports.
 4. **Stop at G2/G4.** The maintainer merges.

@@ -33,9 +33,10 @@ $ nen --version
 ```
 
 `nen release --help`, `nen changelog --help`, `nen tag --help`, `nen fanout --help` were each run
-against the pinned binary and diffed by eye against `refpack/nen-help-full.txt`'s equivalent
-sections — identical. Not re-pasted here in full; every flag cited below was confirmed against this
-live run, not against memory or the refpack alone.
+against the pinned binary and diffed by eye against the port-orchestration session's own
+`--help` refpack dump (a session artifact, not checked into this repo)'s equivalent sections —
+identical. Not re-pasted here in full; every flag cited below was confirmed against this live run,
+not against memory or the refpack alone.
 
 ---
 
