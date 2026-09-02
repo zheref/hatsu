@@ -20,7 +20,7 @@ ahead/behind for each `integration/*` branch, hand-reasoning the five-class taxo
 and re-running a dead reviewer job with a bare `gh run rerun <id> --failed`. This port replaces
 those steps with `nen repo inventory`, `nen effort classify` and `nen run rerun-failed` — the three
 verbs zheref/hatsu#2 names for this port — plus `nen pr ready` for readiness (unchanged pointer,
-shared with every other ported skill via [`hatsu:pr-state`](../pr-state/SKILL.md)) and
+shared with every other ported skill via [`pr-state`](../pr-state/SKILL.md)) and
 `nen parse` for the invocation grammar. What remains genuinely un-mechanizable (the five-class
 label→input reshape, the Ready/not-Ready narrative, the escalation channel, the closing table)
 stays this skill's judgment. See `docs/ab/senkei.md` for the full mapping, the live evidence
@@ -99,7 +99,8 @@ nen repo inventory --target zheref/KroApple --epic-label "bankai:epic" \
                    --integration-prefix "integration/" --trunk main
 ```
 
-returned **7 open epics** (34 children total, a mix of open/closed), **4 live integration
+returned **7 open epics** (42 children total — 6+6+6+7+6+5+6 across the seven epics, a mix of
+open/closed — verified live, re-run 2026-09-01, `docs/ab/senkei.md` § 3.1), **4 live integration
 branches**, **1 open PR**. Two of the four integration branches — `integration/epic-193` and
 `integration/epic-213` — belong to epics **already closed** (confirmed independently against the
 live issues, `docs/ab/senkei.md` § 3.2): exactly the **idle** class in § 3 below, found on real
@@ -191,11 +192,36 @@ against another's vocabulary. For a product repo with no `--gates` file of its o
 
 - If the repo ships `schemas/gates.json`, no flag is needed at all.
 - Otherwise, pass `--reviewers`/`--approvers` naming **that repo's own** configured reviewer
-  bots — readable off its `.github/workflows/*.yml` review-pair jobs, or stated by the maintainer.
-  **Never guess a reviewer set and never substitute bankai-core's.** Verified live: KroApple's
-  review-pair reuses the same `sasuke`/`tenma`/`copilot` identities bankai-core's does (its
-  `bankai:stage/in-review` label literally reads *"Sasuke and Tenma reviewing"*), which is a fact
-  about *this* consumer's CI wiring, not a rule this skill assumes holds for every consumer.
+  bots — derived from **its own** `.github/workflows/*.yml`, read directly, not assumed and not
+  copied from bankai-core's registry. **Verified live, read-only, against KroApple's own
+  workflow files**: `bankai-review-gates.yml` calls `sasuke-review.yml`, `tenma-review.yml` and
+  `bisky-review.yml` as reusable workflows — a genuine review **trio**, not a pair, and bankai-core's
+  own `schemas/repos.json` `consumes` list for this repo corroborates the same three (plus `copilot`
+  nowhere in it as a review identity — `copilot-sweeper.yml` is a different, non-review workflow).
+  **Never guess a reviewer set and never substitute bankai-core's own `contracts/bankai-core.gates.json`.**
+- **A disclosed limitation, not routed around:** the reduced `--reviewers a,b,c [--approvers a,b]`
+  CLI path is a flat, static list — it cannot model `bisky`'s **conditional** approver behaviour,
+  which only joins the approval set for a PR it has actually posted a review on **at the current
+  head** (`approves_when_posted_at_head`). This is exactly the dynamic-enrolment shape
+  [`pr-state`](../pr-state/SKILL.md)'s own gates-contract precedent names for bankai-core itself
+  (`docs/ab/pr-state.md` § 1 row 8: "`+bisky`/`+bugbot` only when their check is present at head",
+  driven by `enrolment_check_pattern` in a real `gates.json`, never by a flat CLI list) — the same
+  structural gap, reproduced against a different repo. **Verified live** (`docs/ab/senkei.md`
+  § 4.2): `bisky-bankai` had already posted an `APPROVED` review on `zheref/KroApple#509` at the
+  head evaluated, yet the `--reviewers sasuke,tenma,copilot --approvers sasuke,tenma` call this
+  port actually runs neither names `bisky` nor sees that approval — it is invisible to the verdict
+  computed this way, not merely omitted from the writeup.
+- **Why this set, stated plainly:** `sasuke,tenma,copilot` (reviewers) / `sasuke,tenma` (approvers)
+  is **bankai-core's own convention** (`contracts/bankai-core.gates.json`'s `base_reviewers`/
+  `default_approvers`), reused here as the **pragmatic fallback** — not because KroApple's own
+  workflows call for `copilot` as a review-pair identity (they don't; `copilot-pull-request-reviewer`
+  shows up only as a PR commenter, per `gh pr view --json reviews`, never as a reusable-workflow
+  review-pair job) but because the CLI's flat `--reviewers`/`--approvers` shape cannot express
+  `bisky`'s conditional round anyway, so naming it as a plain reviewer would misrepresent it as
+  unconditional. **The gap this leaves**: a full `schemas/gates.json` authored for KroApple itself,
+  modeling `bisky` the way bankai-core's own contract does, is what would close this fully — until
+  one exists, say so every time this fallback is used, rather than presenting `sasuke,tenma,copilot`
+  as KroApple's own considered choice.
 - If neither is available, the refusal **is** the report — surface it verbatim (`nen pr` never
   falls back to a guess), never route around it with an assumed identity set.
 

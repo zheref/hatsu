@@ -30,7 +30,7 @@ than an exercised mutation.
 | 2 | "Every open epic and its child issues... every live `integration/*` branch, with ahead/behind vs. trunk... every open PR" — hand-assembled via unspecified `gh issue list` / `gh api repos/.../branches` / `gh pr list` calls, cross-referenced by eye | `nen repo inventory --target <owner/name> --epic-label <label> --integration-prefix <prefix> --trunk main` — one call, one JSON shape, verified live against the real `zheref/KroApple` (§ 3.1) |
 | 3 | The five-class taxonomy (delivering/building/stalled/queued/idle) reasoned by eye per row, from labels + branch/PR presence | `nen effort classify --input <rows.json>` — mechanical, verified live across 14 constructed rows plus the real KroApple epics (§ 3.3–3.5); returns a **sixth** class (`undecidable`) the old prose never named |
 | 4 | "Re-run the failed job (`gh run rerun <id> --failed`)" — a literal raw `gh` invocation in the old skill's own prose | `nen run rerun-failed --target <owner/name> --run-id <n>` — the verb's own `--help` names this "senkei's dead-reviewer recovery"; refusal shape verified live against a real `zheref/hatsu` run (§ 5.1), affirmative path not exercised (mutating, no dry-run mode) |
-| 5 | Readiness "decided by `scripts/pr_ready_gate.sh --verdict <PR>`" | `nen pr ready` via [`hatsu:pr-state`](../../claude/skills/pr-state/SKILL.md)'s pointer — unchanged; spot-confirmed live against a real `zheref/KroApple` PR with no gates file of its own (§ 4.1–4.2), a shape `pr-state`'s own bankai-core-only A/B never had to test |
+| 5 | Readiness "decided by `scripts/pr_ready_gate.sh --verdict <PR>`" | `nen pr ready` via [`pr-state`](../../claude/skills/pr-state/SKILL.md)'s pointer — unchanged; spot-confirmed live against a real `zheref/KroApple` PR with no gates file of its own (§ 4.1–4.2), a shape `pr-state`'s own bankai-core-only A/B never had to test |
 | 6 | Object references (`KP-IS-#178`, `KP-PR-#509`) typed by hand | `nen ref format --code KP --kind IS\|PR --number <n> [--state <s>] [--url <u>]` — verified live (§ 6.1), unchanged from `backlog-state`'s own confirmation of this verb |
 | 7 | "Use the same unblock channel as `backlog-loop`: `bankai:wake/iterate`, fired ALONE" — no raw command given, delegated to the sibling skill's own prose | **Not mechanized in this port.** `nen wake fire` exists and matches this exact remove-then-reapply pattern, but is outside this port's declared Scope (the issue names only `nen repo inventory`, `nen effort classify`, `nen run rerun-failed` for `senkei`); kept as prose, forward-referencing `backlog-loop`/`drive` (neither landed yet) — § 7 residue |
 
@@ -108,11 +108,17 @@ open PRs: 1
 (exit 0)
 ```
 
-7 epics, 34 children (mix of open/closed), 4 live integration branches, 1 open PR — one call,
+7 epics, **42 children** (mix of open/closed), 4 live integration branches, 1 open PR — one call,
 matching `gh issue list --label bankai:epic --state open` (independently re-run, § 3.2) exactly in
 epic count and numbers. `--json` returns the same content typed (`epics[].epic`,
 `epics[].children[]`, `integrationBranches[]`, `openPrs[]`) — confirmed by piping to a file and
 inspecting both ends.
+
+**The child total is 42, not 34** — re-run live on 2026-09-01 (this fix pass) against the same
+`zheref/KroApple` target: `#178` 6, `#27` 6, `#20` 6, `#17` 7, `#15` 6, `#13` 5, `#5` 6 — summing
+the transcript's own per-epic counts above (`6+6+6+7+6+5+6 = 42`) confirms the live output, not the
+run's earlier arithmetic. No drift between the original run and this re-run: both enumerate the
+same 42 children across the same seven epics.
 
 ### 3.2 — the `idle` finding, found on real data
 
@@ -250,12 +256,78 @@ gap. `SKILL.md` § 4's rule follows: **never** point this refusal at `contracts/
 for a non-bankai-core repo — that file's reviewer identities are bankai-core's own and would judge
 a different repo against the wrong vocabulary.
 
-### 4.2 — a real verdict, with KroApple's own identities supplied
+### 4.2 — a real verdict, with KroApple's own identities supplied — and the honest sourcing trail
 
-KroApple's own `bankai:stage/in-review` label reads *"Sasuke and Tenma reviewing"* — the same
-review-pair bots bankai-core uses (both are Bankai-CI consumers reusing bankai-core's own
-`sasuke-review.yml`/`tenma-review.yml`/`bisky-review.yml`, confirmed against bankai-core's own
-`schemas/repos.json` `consumes` list for this repo, § 6.1). Supplying them explicitly:
+**Where the identity set actually comes from.** The earlier draft of this section said KroApple's
+review-pair "reuses the same sasuke/tenma/copilot identities bankai-core's does," sourced from the
+`bankai:stage/in-review` label text ("Sasuke and Tenma reviewing"). That is not where the trail
+actually runs, and it silently dropped a live reviewer while adding one KroApple's own workflows
+never name. Corrected, read directly off KroApple's own `.github/workflows/*.yml` (read-only, no
+write of any kind):
+
+```
+$ gh api repos/zheref/KroApple/contents/.github/workflows --jq '.[].name'
+bankai-review-gates.yml
+bankai.yml
+db-migrate.yml
+lint.yml
+tests.yml
+
+$ gh api repos/zheref/KroApple/contents/.github/workflows/bankai-review-gates.yml --jq '.content' \
+    | base64 -d | grep -n 'uses:\|sasuke\|tenma\|bisky'
+18:  sasuke:
+19:    uses: zheref/bankai-core/.github/workflows/sasuke-review.yml@v0.11.2
+29:  tenma:
+30:    uses: zheref/bankai-core/.github/workflows/tenma-review.yml@v0.11.2
+40:  bisky:
+41:    uses: zheref/bankai-core/.github/workflows/bisky-review.yml@v0.11.2
+```
+
+KroApple's own review-pair workflow calls three reusables — `sasuke`, `tenma`, `bisky` — a **trio**,
+not a pair, and no `copilot` reusable review job anywhere. Bankai-core's own `schemas/repos.json`
+`consumes` list for this repo (§ 6.1) corroborates the same three; it is **not** the primary source
+here (the repo's own workflow files are), but it is where the earlier draft's identity set was
+actually traceable to, not the label text it cited.
+
+**`bisky` was silently dropped, and it is live on this PR:**
+
+```
+$ gh pr view 509 --repo zheref/KroApple --json reviews --jq '.reviews[] | {author: .author.login, state: .state}'
+{"author":"copilot-pull-request-reviewer","state":"COMMENTED"}
+{"author":"sasuke-bankai","state":"CHANGES_REQUESTED"}
+{"author":"zheref","state":"COMMENTED"}
+{"author":"copilot-pull-request-reviewer","state":"COMMENTED"}
+{"author":"sasuke-bankai","state":"APPROVED"}
+{"author":"bisky-bankai","state":"APPROVED"}
+{"author":"sasuke-bankai","state":"APPROVED"}
+{"author":"copilot-pull-request-reviewer","state":"COMMENTED"}
+
+$ gh pr view 509 --repo zheref/KroApple --json statusCheckRollup \
+    --jq '.statusCheckRollup[] | select(.name | test("bisky")) | {name, conclusion}'
+{"name":"bisky / probe / probe","conclusion":"SUCCESS"}
+{"name":"bisky / review","conclusion":""}
+```
+
+`bisky-bankai` has already posted a live `APPROVED` review on `#509`, and `bisky / review` is a
+live, named check at the current head. `copilot-pull-request-reviewer` posts only `COMMENTED`
+reviews here — never an approving vote — and has no reusable review-pair workflow call in
+KroApple's own `bankai-review-gates.yml` at all.
+
+**Why the call below still passes `--reviewers sasuke,tenma,copilot --approvers sasuke,tenma`
+rather than including `bisky`.** The reduced CLI path is a flat, static list; it cannot express
+`bisky`'s conditional-approver behaviour — bankai-core's own `contracts/bankai-core.gates.json`
+models `bisky` with `"approves_when_posted_at_head": true` (joins the approval set only for a PR
+it has actually reviewed at the current head), the same dynamic-enrolment shape `pr-state`'s own
+gates-contract precedent names (`docs/ab/pr-state.md` § 1 row 8: "`+bisky`/`+bugbot` only when
+their check is present at head"). Naming `bisky` as a plain `--approvers` entry would misrepresent
+a conditional round as an unconditional one. `sasuke,tenma,copilot` / `sasuke,tenma` is
+**bankai-core's own `base_reviewers`/`default_approvers` convention**, reused here as the
+pragmatic fallback precisely because the flat CLI shape cannot model `bisky` correctly either way —
+**not** because it is KroApple's own considered reviewer set (it isn't: KroApple's own workflows
+call `bisky`, not `copilot`, as the third reviewer). The limitation is disclosed, not routed
+around: this call's verdict does not see `bisky`'s live `APPROVED` at all, and a `schemas/gates.json`
+authored for KroApple itself — modeling `bisky` the way bankai-core's own contract does — is what
+would close this gap fully.
 
 ```
 $ nen pr ready 509 --gh-repo zheref/KroApple --reviewers sasuke,tenma,copilot \
@@ -278,8 +350,12 @@ zheref/KroApple#509: not-ready: required checks reported but are not all green (
 Cross-checked against the PR's own live check rollup
 (`gh pr view 509 --json statusCheckRollup`): several checks in the rollup carry no `conclusion`
 (still queued/running) alongside a run of `SUCCESS`/`SKIPPED` entries — a genuinely non-green
-rollup, matching the verdict exactly. `KP-PR-#509` is `not-ready` for a real, verifiable reason,
-not a guess.
+rollup, matching the verdict exactly. `KP-PR-#509` is `not-ready` for a real, verifiable reason —
+the CON-32(a) check-greenness conjunct short-circuits the run before the reviewer-round conjuncts
+(where `bisky`'s omission would otherwise matter) are ever evaluated, so this particular verdict
+happens not to turn on the gap just disclosed. A PR that reached the reviewer-round conjuncts with
+`bisky`'s approval genuinely load-bearing would not be safe to call this way without the gates.json
+this section recommends.
 
 **Verdict parity for the core gate itself** (mergeable/checks/reviewer-round/thread conjuncts) was
 already proven across bankai-core's live estate by nen's shadow window
@@ -340,8 +416,11 @@ swiftui-tca-uzf-v2
 
 Matches bankai-core's frozen registry read directly (`git -C bankai-core show
 v0.11.3:schemas/repos.json`): `KP` → `zheref/KroApple`, `consumes` listing
-`sasuke-review.yml`/`tenma-review.yml`/`bisky-review.yml` among others — the basis for § 4.2's
-reviewer-identity choice.
+`sasuke-review.yml`/`tenma-review.yml`/`bisky-review.yml` among others — corroborating, not the
+basis for, § 4.2's reviewer-identity trail: that section reads KroApple's own
+`bankai-review-gates.yml` directly as the primary source, exactly the rule `SKILL.md` § 4 states
+(derive identities from the target repo's own workflows, never from the registry or from
+bankai-core's own gates.json).
 
 ### 6.2 — `nen ref format`
 
@@ -362,6 +441,25 @@ re-run here only to confirm it resolves a **different** product code (`KP`, not 
 
 ## 7. Residue
 
+- **Upstream `nen` doc gap, worth a `nen` issue (not filed here — out of this port's scope, noted
+  for the record):** `nen effort classify --help`'s own first line reads *"senkei §3's **five-class**
+  taxonomy, mechanical half"* and its usage block names only `delivering, building, stalled, queued,
+  idle, or state-machine-violation` — six names, called five-class, and **`undecidable` appears in
+  neither count nor list**, despite being a real, live output (§ 3.5 above: a fully bare row reports
+  it, confirmed live). Verified directly:
+
+  ```
+  $ nen effort classify --help
+  nen effort classify -- senkei §3's five-class taxonomy, mechanical half.
+  ...
+  Classifies each entry as delivering, building, stalled, queued, idle, or
+  state-machine-violation (two stage labels at once -- flagged, never resolved
+  by guessing). ...
+  ```
+
+  The verb's behaviour is correct and already verified live (§ 3.5); only its own `--help` text is
+  stale against its output vocabulary. Worth a `nen` issue against the help string itself, not a
+  finding this port routes around.
 - **The unblock channel (`bankai:wake/iterate`, fired ALONE) is not mechanized in this port.**
   `nen wake fire --repo-slug <owner/name> --ref <object-ref> --label <name> [--comment <text>]
   [--run]` exists and matches this exact remove-then-reapply pattern (confirmed via `nen wake
