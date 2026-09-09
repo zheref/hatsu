@@ -215,7 +215,7 @@ close. A skill that files first and reconciles afterwards has already created th
 Applied **in the create call**, never as a follow-up edit:
 
 ```bash
-nen issue file --target <owner/name> --repo <path to a checkout carrying nen/labels.json> \
+nen issue file --target <owner/name> --repo <path to a checkout carrying nen/labels.json — or schemas/labels.json under the fallback nen keeps until v0.4.0> \
   --title "<title>" --body-file <path> --label <a,b,...> --assignee <user> \
   --forbid-family <the target repo's stage-label family>
 ```

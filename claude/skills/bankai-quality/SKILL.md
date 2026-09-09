@@ -27,7 +27,7 @@ The old mechanic read `bankai_scenario` out of the target repo's own `.github/wo
 eye. That is now a verb:
 
 ```
-nen repo scenario --repo <path to a checkout carrying nen/repos.json> --target <owner/name>
+nen repo scenario --repo <path to a checkout carrying nen/repos.json — or schemas/repos.json under the fallback nen keeps until v0.4.0> --target <owner/name>
 ```
 
 `--repo` is a **path**, not a slug — today that path is the frozen `<reference-repo>` checkout, since that is

@@ -90,7 +90,7 @@ export GH_TOKEN=$(gh auth token)
 Then:
 
 ```bash
-nen pr ready <CODE>#<N> --repo <path to a checkout carrying nen/repos.json> \
+nen pr ready <CODE>#<N> --repo <path to a checkout carrying nen/repos.json — or schemas/repos.json under the fallback nen keeps until v0.4.0> \
   --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
 ```
 

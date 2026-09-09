@@ -56,7 +56,7 @@ trip it.
 **When no repo is given**, resolve the registry and ask:
 
 ```
-nen repo resolve all --repo <path to a checkout carrying nen/repos.json>
+nen repo resolve all --repo <path to a checkout carrying nen/repos.json — or schemas/repos.json under the fallback nen keeps until v0.4.0>
 ```
 
 An unknown repo is an error that names the token and lists the codes `nen repo resolve`'s own
