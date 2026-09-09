@@ -47,26 +47,28 @@ hatsu:pr-state <repo_code>#<PR_NUMBER>        e.g.  hatsu:pr-state BC#603
 
 | Part | Accepts | Rule |
 |---|---|---|
-| `<repo_code>` | a product code from the target repository's `schemas/repos.json` → `product_codes` | **case-insensitive**; an unknown code is an **error** that names the valid ones, never a guess |
-| `<PR_NUMBER>` | a positive integer | a number that names an **issue**, not a PR, is **not** caught as one before the call — verified against the real binary, it comes back `unevaluated: GitHub could not be read (… Could not resolve to a PullRequest with the number of <N>.)`, carrying `nen`'s generic token-grants remedy even though the token is fine — see the callout below and § 4 |
+| `<repo_code>` | a product code from the target repository's `nen/repos.json` → `product_codes` (or, until `v0.4.0`, its legacy `schemas/repos.json`) | **case-insensitive**; an unknown code is an **error** that names the valid ones, never a guess |
+| `<PR_NUMBER>` | a positive integer | a number that names an **issue**, not a PR, is **not** caught as one before the call — verified against `v0.1.0`, it comes back `unevaluated: GitHub could not be read (… Could not resolve to a PullRequest with the number of <N>.)`, carrying `nen`'s generic token-grants remedy even though the token is fine — see the callout below and § 4. No `v0.2.0`/`v0.3.0` changelog entry touches this path; it is not re-verified at `v0.3.0` (a live GitHub read) |
 
 The codes are read from the registry **at run time, never from memory** — they change. `nen pr ready`
 does this itself: pass the ref straight through and let the verb resolve it against
-`--repo <path>`'s `schemas/repos.json`. Do not pre-resolve the code by hand or guess one from the
-working directory.
+`--repo <path>`'s `nen/repos.json` (nen reads `nen/` first and, for the whole `v0.3` line, falls back to
+the legacy `schemas/repos.json`; a refusal names both). Do not pre-resolve the code by hand or guess one
+from the working directory.
 
-> **Always write the `#`.** `nen pr ready --help` documents `<CODE>#<N>` "or a bare `<N>` with
-> `--gh-repo`" and states the `#` is optional on its own refusal text — but **verified against the
-> real binary, it is not, for any PR number with two or more digits**: `nen pr ready BC925 --repo
-> <path>` refuses with `'BC92' is not a product code`, because the no-`#` parser splits off only the
-> LAST digit as the number and misreads everything before it — including trailing digits — as the
-> code. `BC9` (a genuinely single-digit ref) resolves fine; `BC92`, `BC925`, `BC9925` all fail the same
-> way. **This is a finding against the binary, not a skill rule to route around by hand** — never
-> improvise a different split. Always write `<CODE>#<N>` with the `#` present; it is unaffected.
+> **Write the `#`.** This port filed a finding against `v0.1.0` (`docs/ab/pr-state.md` § 4): the no-`#`
+> shorthand split off only the **last** digit, so `BC925` refused with `'BC92' is not a product code`.
+> **Closed by nen `v0.2.0` (#72, closes zheref/nen#26)** — the shorthand now reads the **longest
+> trailing digit run** as the number, and `nen pr ready --help` says so. Verified live at `v0.3.0`
+> against the bundled registry: `nen pr ready BC925 --repo <path>` and `nen pr ready BC#925 --repo
+> <path>` both resolve to `zheref/bankai-core#925` (and then, with no token, `unevaluated` at exit `1` —
+> the ref resolved; GitHub was not read). The instruction stands as belt-and-braces rather than as a
+> workaround: `<CODE>#<N>` is the unambiguous form, and a product code that itself **ends in a digit**
+> still needs the `#`, by the verb's own account.
 
 > **A wrong number is caught by GitHub, not by `nen`, and the remedy it prints can mislead.**
 > `nen pr ready` never checks whether `<PR_NUMBER>` names a pull request before asking GitHub —
-> verified against the real binary, `BC#918` (`918` is an issue on `<reference-repo>`, not a PR) does
+> verified against `v0.1.0`, `BC#918` (`918` is an issue on `<reference-repo>`, not a PR) does
 > **not** come back as "that's an issue." It comes back
 > `unevaluated: GitHub could not be read (… Could not resolve to a PullRequest with the number of
 > 918.)`, followed by `nen`'s generic token-grants remedy (`pull-requests:read AND checks:read AND
@@ -88,7 +90,7 @@ export GH_TOKEN=$(gh auth token)
 Then:
 
 ```bash
-nen pr ready <CODE>#<N> --repo <path to a checkout carrying schemas/repos.json> \
+nen pr ready <CODE>#<N> --repo <path to a checkout carrying nen/repos.json> \
   --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
 ```
 
@@ -98,23 +100,31 @@ or, with a bare number against a repo slug directly:
 nen pr ready <N> --gh-repo <owner/repo> --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
 ```
 
-**Always the `$CLAUDE_PLUGIN_ROOT`-anchored form, never a bare `contracts/reference.gates.json`.**
-The bare relative path only resolves from this checkout's own root as the process's cwd — verified
-live: run from anywhere else, `nen` refuses `ENOENT: no such file or directory, open
-'contracts/reference.gates.json'`. `$CLAUDE_PLUGIN_ROOT` is the house convention for exactly this
-(`claude/skills/hatsu-warmup/SKILL.md` § 0) and is cwd-independent.
+**Always the `$CLAUDE_PLUGIN_ROOT`-anchored form, never a bare `contracts/reference.gates.json`.** The
+reason moved with nen `v0.2.0` (#86) and the practice did not: a **relative** `--gates` now resolves
+against **`--repo`'s root, never the cwd** — verified live at `v0.3.0`, from `/tmp` with `--repo` pointed
+at a checkout that lacks the file: `nen: <repo>/contracts/reference.gates.json: no such file. --gates was
+given 'contracts/reference.gates.json', which is RELATIVE, so it was resolved against the target
+repository root … not the current directory` (exit `2`). The file lives in *this* plugin's checkout, not in
+the target's, so only an **absolute** path reaches it from any `--repo`; `$CLAUDE_PLUGIN_ROOT` is the
+house convention for exactly this (`claude/skills/hatsu-warmup/SKILL.md` § 0). `--explain` and `--json`'s
+`meta.identities.path` print the resolved absolute path (`identities <abs path>` on the `--explain` header
+line), so the report itself says which file decided.
 
 - **`--repo <path>`** is the TARGET repository's working-tree root — a path, never an `owner/name`
-  slug — used to resolve `<CODE>` against its `schemas/repos.json`. **`--gh-repo <owner/name>`** is the
-  slug the API read runs against, needed whenever the ref is a bare number — `--repo <path>` is itself a
-  path argument, not the cwd, so it already works from anywhere without `--gh-repo` alongside it.
+  slug — used to resolve `<CODE>` against its `nen/repos.json` (legacy `schemas/repos.json` until
+  `v0.4.0`). **`--gh-repo <owner/name>`** is the slug the API read runs against, needed whenever the ref
+  is a bare number — `--repo <path>` is itself a path argument, not the cwd, so it already works from
+  anywhere without `--gh-repo` alongside it.
 - **`--gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"`** — `<reference-repo>` is FROZEN and ships
-  no `schemas/gates.json` of its own; without `--gates` (or a `--reviewers` override) `nen pr ready`
-  refuses outright with `no reviewer identities` rather than guessing a reviewer set (verified live, § 2
-  of `docs/ab/pr-state.md`). This repository's `contracts/reference.gates.json` carries the same
-  reviewer identities the oracle script hard-codes — see that file's own header. **A repo that ships its
-  own `schemas/gates.json` needs no `--gates` flag at all**; this one is `<reference-repo>`-specific plumbing,
-  not a general rule.
+  no gates file of its own (neither `nen/gates.json` nor the legacy `schemas/gates.json`); without
+  `--gates` (or a `--reviewers` override) `nen pr ready` refuses outright with `no reviewer identities`
+  rather than guessing a reviewer set — verified live at `v0.3.0`, and the refusal now names **both**
+  locations it looked in. This repository's `contracts/reference.gates.json` carries the same reviewer
+  identities the oracle script hard-codes — see that file's own header. **A repo that ships its own
+  `nen/gates.json` (or, until `v0.4.0`, `schemas/gates.json`) needs no `--gates` flag at all**; this one
+  is `<reference-repo>`-specific plumbing, not a general rule. `--gates` itself **never** falls back to
+  either taxonomy location: a path you hand it is taken literally.
 - **`--explain`** renders the conjunct-by-conjunct table in evaluation order, short-circuit rows
   included, plus the fixed "what the gate does NOT decide" caveats — all computed and printed by the
   verb itself; see § 3. Add `--json` instead when a caller needs the same content structured
@@ -148,8 +158,10 @@ Then the conjunct-by-conjunct table — **rendered by `--explain`, not reconstru
 is a conjunction evaluated **in this order**, and it **short-circuits on the first failure**, so
 everything after the failing row is genuinely *unknown* and `nen` itself prints it as `unevaluated`
 rather than as passing. The "what a failure reads as" column below is illustrative, verified live and
-against `nen`'s own source (pinned `v0.1.0`) — **relay `--explain`'s own printed text, never retype it
-from memory**, since more than one of these rows has more than one real shape:
+against `nen`'s own source at the port (pinned `v0.1.0`; the six rows, their order and the three "does
+NOT decide" caveats re-verified byte-for-byte in `--explain`'s output at `v0.3.0`, and no `v0.2.0`/`v0.3.0`
+changelog entry touches a conjunct's text) — **relay `--explain`'s own printed text, never retype it from
+memory**, since more than one of these rows has more than one real shape:
 
 | # | Conjunct | Clause | What a failure reads as (illustrative — quote `--explain`, don't retype) |
 |---|---|---|---|
@@ -191,17 +203,19 @@ names the fix, and a paraphrase risks losing the exact grant or cause it points 
 **Never `ready`, and never silently omitted.** This is RR-IS-#680's principle in its smallest form:
 *absence is never a pass.* An unevaluated PR is a row that needs attention, not one that cleared.
 
-**What would fix it — quote `nen`'s own remedy line, verified live (and against `nen`'s pinned `v0.1.0`
-source) for each shape below:**
+**What would fix it — quote `nen`'s own remedy line, verified live (and against `nen`'s `v0.1.0` source
+at the port; the first shape re-verified live at `v0.3.0`, the others untouched by any later changelog
+entry) for each shape below:**
 
 - `unevaluated: no usable token, so GitHub could not be read` — the `GH_TOKEN` export in § 2 was
-  skipped or the token it names has expired; export a fresh one and re-run. This is verified live: an
-  invocation with no `GH_TOKEN` set prints this exact string and a second line naming the cause —
-  `GH_TOKEN is not set -- this client never picks a token up ambiently the way gh does`. Never read this
-  as "the PR is not ready" — it is a caller-side setup gap.
+  skipped or the token it names has expired; export a fresh one and re-run. This is verified live at
+  `v0.3.0`: an invocation with no `GH_TOKEN` set prints this exact string and a second line naming the
+  cause — `GH_TOKEN is not set -- this client never picks a token up ambiently the way gh does, so the
+  caller must mint one and name the variable it lives in`. Never read this as "the PR is not ready" — it
+  is a caller-side setup gap.
 - `unevaluated: the check rollup could not be read for <owner>/<repo>#<N>` — the remedy is a **missing
   token grant**: `checks:read` alone is not enough, the rollup's own `checkSuite.workflowRun` sub-field
-  needs `actions:read` too (verified against `src/github/pr_state.ts` at the pinned `v0.1.0` tag). `nen`
+  needs `actions:read` too (verified against `src/github/pr_state.ts` at the `v0.1.0` tag). `nen`
   deliberately **refuses to conflate this with an EMPTY rollup** — a genuinely empty, *readable* rollup
   is `CON-32(a)`'s own `not-ready` instead (see § 3's build-check caveat). Unreadable and empty are two
   different findings with two different remedies; never collapse one into the other.
@@ -214,7 +228,8 @@ source) for each shape below:**
   defect against `nen`** (§ 1, § 6) — recorded in `docs/ab/pr-state.md` § 4 alongside the `#`-parser
   bug, not routed around by hand.
 - A bare `nen: no reviewer identities …` refusal (exit `2`, not a verdict at all) means the invocation
-  itself is missing `--gates`/`--reviewers` and a `schemas/gates.json` — fix the command, per § 2.
+  itself is missing `--gates`/`--reviewers` and the target carries no `nen/gates.json` (nor a legacy
+  `schemas/gates.json`) — the refusal names both paths it looked in; fix the command, per § 2.
 
 > **Historical note, kept because it is the reason this rule is written down.**
 > RR-IS-#639 found the shell gate hitting `E2BIG` on
@@ -244,8 +259,9 @@ merely the convenient way to satisfy it. **Where the gate cannot evaluate, the c
 - **Paraphrase the verdict.** Quote it. A summarised verdict is a re-derived one.
 - **Report `ready` for a PR it could not evaluate.** See § 4.
 - **Guess a repo code**, or infer one from the working directory when none was given.
-- **Improvise a no-`#` split by hand.** § 1's finding means `BC925` cannot be trusted through this
-  verb at all — always write `<CODE>#<N>`.
+- **Improvise a no-`#` split by hand.** `<CODE>#<N>` is the unambiguous form; the shorthand resolves
+  since `v0.2.0` (§ 1) but a code ending in a digit still needs the `#`, and there is never a reason to
+  re-split a ref yourself.
 - **Take an `unevaluated: GitHub could not be read (…)` token-grants remedy at face value for an
   issue-number ref.** § 1's second finding means that remedy is printed identically whether the token
   is actually missing a grant or the number simply names an issue, not a PR — check which before acting

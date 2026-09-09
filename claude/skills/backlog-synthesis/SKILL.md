@@ -227,11 +227,14 @@ Per approved group:
 [`hatsu:file`](../file/SKILL.md) § 5's own discipline exactly:
 
 ```bash
-nen issue file --target <owner/name> --repo <path to a checkout carrying schemas/*.json> \
+nen issue file --target <owner/name> --repo <path to a checkout carrying nen/labels.json> \
   --title "<title>" --body-file <path> \
   --label <severity>,<lane-union>,<kind> --assignee <human> \
   --forbid-family <the target repo's stage-label family>
 ```
+
+(`--repo` names the checkout whose `nen/labels.json` — or, until `v0.4.0`, legacy `schemas/labels.json` —
+validates the labels; `--body-file` resolves against the cwd, so pass an absolute path.)
 
 Body carries: the merged problem statement; every member's acceptance criteria, attributed; the
 shape (one PR, or a chore with its legs); the convergence rationale (§ 3's signal, quoted); and the
@@ -253,59 +256,66 @@ force the plan's original classification through**.
 
 ```bash
 nen issue consolidate-close --target <owner/name> --parent <consolidated#> \
-  --children <closeSet> --repo <path> --severity-family <the target repo's severity label family>
+  --children <closeSet> --repo <path> --severity-family <the target repo's severity label family> \
+  --close-comment-map <abs path to close-comments.json> [--dry-run]
 ```
 
-> ⚠️ **`--severity-family` is not optional in practice, even though `nen` lets you omit it.**
-> **Finding, load-bearing, proven from source
-> (`nen` `v0.1.0` `src/issue/subissue.ts:213-238`, `src/issue/command.ts:346`):** when
-> `--severity-family` is omitted, `command.ts:346` defaults it to the empty string
-> (`context.args.values["severity-family"] ?? ""`), and `subissue.ts`'s `planConsolidation` then
-> compares each label's own `namespace:family` (e.g. `bankai:severity`, from
-> `bankai:severity/critical`) against that empty string — never equal, so **no label is ever
-> recognised as a severity**. Two silent consequences follow, both wrong: `severity` never gets set
-> (severity-max never fires — the consolidated issue is filed with no severity carried forward at
-> all), and every severity label on every child (`bankai:severity/critical`, `.../high`, …) falls
-> into the **general label union** instead of being excluded from it — so the consolidated issue can
-> end up labelled with several contradictory severities at once, the exact "state-machine
-> violation" `subissue.ts`'s own header comment says a single severity label must never become.
-> **This is entirely undocumented**: `nen issue consolidate-close --help` and `nen issue --help`
-> print no mention of `--severity-family` at all, despite the flag being declared and accepted
-> (`command.ts`'s own `flags.values` list) — a caller reading only the printed help would never
-> know to pass it. **Always pass `--severity-family <the target repo's severity label family>`**
-> explicitly (for `<reference-repo>` this is `bankai:severity` — its real severity family prefix, read
-> from `schemas/labels.json` at the snapshot, where every severity label is
-> `bankai:severity/<level>`); never rely on the default.
+> **`--severity-family` — always pass it, and since nen `v0.2.0` the binary enforces that.** This port
+> filed a finding against `v0.1.0` (`docs/ab/backlog-synthesis.md` § 4): omitting the flag defaulted
+> it to `""`, so no label was ever recognised as a severity, severity-max never fired, and every child's
+> severity label fell into the general union — the consolidated issue could carry several contradictory
+> severities at once, silently, at exit `0`, and the flag was undocumented. **Closed by nen `v0.2.0`
+> (#62, closes zheref/nen#22)**: `nen issue consolidate-close` without `--severity-family` now **refuses
+> at exit `1`, before any write**, whenever the plain union would put two or more labels from one family
+> on the parent, naming the colliding family and its labels (`--json`: `{ plan, refused: true }`), and
+> `nen issue --help` documents the flag (verified live at `v0.3.0`). The instruction stands — pass the
+> target repo's real severity family, `bankai:severity` for `<reference-repo>`, read from its
+> `nen/labels.json` (legacy `schemas/labels.json` until `v0.4.0`) — but the silent-union failure mode is
+> gone; what remains is a refusal to relay, never a wrong parent. A malformed family (no `:`, or a leaf
+> instead of a family) is exit `2`; a well-formed family the taxonomy does not declare is exit `1` naming
+> the ones it does.
+
+> **`--close-comment-map` is the "which section absorbed it" channel — new in nen `v0.2.0` (#75), and it
+> retires the compensating raw `gh issue comment` this port used to require after every close.** The old
+> skill's § 5 step 4 wanted every close to carry a comment naming the consolidated issue **and which
+> section of it absorbed that member**; `v0.1.0`'s verb posted only `Consolidated into #N.` and took no
+> comment flag. Now: write a JSON object `{"<child>": "<text>", …}` whose key set is **exactly**
+> `closeSet` (a missing or extra key is refused before any call), one text per child naming the section of
+> `#<parent>` that absorbed its acceptance criteria, and pass it as `--close-comment-map` — the path
+> resolves against `--repo`'s root, so pass it absolute. The texts are templates over exactly two
+> placeholders, `{parent}` and `{child}`, substituting the **bare** numbers (write the `#` yourself); any
+> other brace run is a usage error before any call. `--close-comment <template>` is the one-text-for-every-
+> child form and is mutually exclusive with the map; with neither, every child still gets the fixed
+> `Consolidated into #<parent>.` byte for byte. Preview the rendered close comments with `--dry-run`
+> (which **still reads GitHub** — it certifies every number is an issue and runs the open-PR guard — so it
+> needs a token). Contract-verified against `nen issue --help` at `v0.3.0`; not exercised live, since
+> even the dry run reaches GitHub.
 
 This **is** the file→attach→close choreography's second and third acts in one call, and its actual
-internal order is **stronger than "attach, then guard, then close"**: `nen` first resolves every
-child (reading each one to compute the label union/severity plan), then runs the **same**
-`open-pr-check` guard over the whole set **again** — this time **before attaching anything** —
-refusing the *entire* call and naming the blocking PRs if anything slipped through step 2, and only
-if the guard clears does it proceed to attach every child as a sub-issue of the parent and then
-close each one. So a child that still carries an open PR at this point is never even attached to
-the consolidated issue, not merely left unclosed — reporting the **label union** and **severity
-maximum** it computed from the children's own current labels as it goes, **provided
-`--severity-family` named the real family** (see the finding above — omitting it silently breaks
-both computations at once).
+internal order is **stronger than "attach, then guard, then close"**: `nen` first **certifies every
+number** — `--parent` and each child — as an **issue, never a pull request** (new in `v0.2.0`, #82/#84:
+issues and PRs share one number sequence and one `issues/{n}` endpoint, so a PR handed in here would
+attach and close silently; a mixed list now refuses the whole call at exit `1` with nothing attached,
+nothing closed, and the pinned `--json` shape `{ parent, children, pullRequests, refused: true, reason
+}`, ahead of every other refusal), then resolves every child (reading each one to compute the label
+union/severity plan), then runs the **same** `open-pr-check` guard over the whole set **again** — this
+time **before attaching anything** — refusing the *entire* call and naming the blocking PRs if anything
+slipped through step 2 (`--json`: `{ plan, openPrs, refused: true }`), and only if the guard clears does
+it proceed to attach every child as a sub-issue of the parent and then close each one with its own text
+from the map. So a child that still carries an open PR at this point is never even attached to the
+consolidated issue, not merely left unclosed — reporting the **label union** and **severity maximum** it
+computed from the children's own current labels as it goes.
 **Cross-check that computed union against the plan's own union and severity call** — a mismatch
 means a child's labels moved between the plan and this execution, and that discrepancy is surfaced,
 never silently reconciled by trusting whichever number is newer.
 
-> **Compensating step, required immediately after `consolidate-close` returns: post the
-> "which section absorbed it" comment by hand, per child.** The old skill's own § 5 step 4
-> required every close to carry a comment naming the consolidated issue **and which section of it
-> absorbed that member** — its own stated rationale: a member closed with only "consolidated into
-> #N" loses the one thing a later reader actually needs, *where in #N did my acceptance criteria
-> go*. `nen issue consolidate-close` posts only `"Consolidated into #N."` on each child (its own
-> `--help` and JSON report carry no `--comment`/`--body` flag of any kind — confirmed absent, not
-> merely unused; existing finding, `docs/ab/backlog-synthesis.md` § 4 finding 1) — the old skill's
-> obligation has no channel through the verb built for exactly this choreography. **So, for every
-> member `consolidate-close` just closed, run one more `gh issue comment <child#> --repo
-> <owner/name> --body "<text naming the section of #<parent> that absorbed this issue's acceptance
-> criteria>"`, immediately after the call returns, before moving to the next group.** This stays a
-> raw `gh` call by necessity, not a shortcut — neither `attach-sub` nor `consolidate-close` accepts
-> a comment body, so there is no verb to route this through instead.
+> **No compensating comment step remains.** The per-child "which section absorbed it" text travels
+> inside the close itself through `--close-comment-map` (above), so the raw `gh issue comment` this
+> port carried after every `consolidate-close` return is retired, and there is no longer any raw `gh`
+> in this skill's execution path. Where a member needs a comment that is *not* its close — a later
+> clarification, a pointer from the parent back to a member — the verb is `nen issue comment --target
+> <owner/name> --issue <n> --body-file <abs path>` (`--dry-run` to see the exact bytes first), never a
+> hand-run `gh`.
 
 **4 — Attach the `linkOnlySet`, without closing:**
 
@@ -313,18 +323,23 @@ never silently reconciled by trusting whichever number is newer.
 nen issue attach-sub --target <owner/name> --parent <consolidated#> --children <linkOnlySet>
 ```
 
-Same id resolution, same sub-issue attach — but this verb never closes anything, so a member with
-an open PR in flight is linked into the consolidated issue's graph and **left open**, exactly as
-the plan's `link-only` disposition promised. If the maintainer's approved plan explicitly said to
-close one of these anyway (their call, made with the open PR in front of them), that member moves
-to step 3's `closeSet` instead, with `--allow-open-pr` passed to `consolidate-close` for that call
-only — never applied blanket to a set the plan did not name it for.
+Same id resolution, same sub-issue attach, same issue-not-PR certification of every number before the
+first write (a pull request anywhere in the list refuses the whole call at exit `1`, attaching nothing) —
+but this verb never closes anything and **posts no comment** (its own `--help`: a comment at attach time
+is a claim about a consolidation a failed attach stops before completing; compose `nen issue comment`
+beside it when one is wanted), so a member with an open PR in flight is linked into the consolidated
+issue's graph and **left open**, exactly as the plan's `link-only` disposition promised. If the
+maintainer's approved plan explicitly said to close one of these anyway (their call, made with the open
+PR in front of them), that member moves to step 3's `closeSet` instead, with `--allow-open-pr` passed to
+`consolidate-close` for that call only — never applied blanket to a set the plan did not name it for.
 
 > **`nen issue attach-sub`'s JSON result carries a `fallbackTaskList` field — but the verb only
-> DETECTS the fallback condition, it never performs the fallback write.** Proven from source
+> DETECTS the fallback condition, it never performs the fallback write.** Proven from source at the port
 > (`nen` `v0.1.0` `src/issue/subissue.ts:19-24`, the module's own header comment: "FALLBACK IS
 > DETECTED, NOT PERFORMED... this module reports that condition and hands back the exact task-list
-> lines; it does not rewrite a body on its own"). **This means relaying the field alone is not
+> lines; it does not rewrite a body on its own"); no `v0.2.0`/`v0.3.0` changelog entry touches the
+> fallback, and `nen issue --help` at `v0.3.0` still describes the 404/410 task-list fallback as
+> reported, not performed. **This means relaying the field alone is not
 > enough — if `fallbackTaskList` comes back non-null, this skill must itself perform the write the
 > field describes**: take the returned task-list lines and fold them into the consolidated parent's
 > body with `gh issue edit <parent#> --repo <owner/name> --body "<parent's existing body, with the
@@ -340,9 +355,10 @@ only — never applied blanket to a set the plan did not name it for.
 > schema, not observed live; the write-it-yourself instruction above follows directly from the
 > source comment regardless of whether the condition has yet been observed to fire.
 
-**5 — Report**: the consolidated issues filed, the members closed and the members link-only-attached
-(each in object notation via `nen ref format`), the count before and after, the label union/severity
-max each `consolidate-close` call computed, and every label application.
+**5 — Report**: the consolidated issues filed, the members closed (each with the section its close
+comment named) and the members link-only-attached (each in object notation via `nen ref format`), the
+count before and after, the label union/severity max each `consolidate-close` call computed, and every
+label application.
 
 **Order matters.** File before attach, attach before close — a close comment that points at an
 issue that does not exist yet is a dead reference, and `nen issue consolidate-close`'s own
@@ -398,3 +414,5 @@ separate go-signal.
   an old page presented as current carries stale numbers with a fresh page's authority.
 - **Never trusts a re-guard's absence.** Step 2's `open-pr-check` runs immediately before step 3,
   never reused from the plan's own earlier run — the backlog moves under a long-running synthesis.
+- **Never posts a comment with a raw `gh issue comment`.** The per-child close text is
+  `--close-comment-map`'s; any other comment is `nen issue comment`'s (nen `v0.2.0`).

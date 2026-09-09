@@ -78,6 +78,25 @@ Where the target is the **machinery** rather than a product, the budget is delib
 guard that takes minutes taxes every PR in every consuming repo. Measure the test suite's wall clock from a
 clean checkout and each guard's own wall clock on the recorded machine, and record which machine.
 
+**Produce the candidate build through the verbs the repository declares**, never from a command you
+remember. `QA-15`'s Release-with-no-debugger configuration is what the declared production build is:
+
+```bash
+nen shu tools --repo <path>                # the host toolchain the declaration pins; exit 5 names what is missing
+nen shu run --repo <path> --dry-run --json # the declared PRODUCTION build's exact argv, before you start it
+nen shu run --repo <path>                  # start it, long-running, on this terminal — P1/P2/P3/P4/P6/P7 are measured against this
+nen shu archive --repo <path>              # the declared distributable, where one is declared — P5 is its size
+```
+
+Exit `4` on `archive` or `run` means the lane declares no such verb — quote the seat's reason and produce
+the artifact by the stack's own documented means, stating that the declaration carries no `archive` (that
+gap is a finding for whoever owns the repository's machinery). Exit `5` is a missing tool: relay `shu
+tools`' per-tool remedy, never install with elevation. Exit `3` is a host that cannot run it: the metric is
+**not measured, with the host named**. A repository `nen shu detect` proposes nothing for is built by its
+own documented commands, said so in the method block. `claude/agents/kurapika.md` § *The `shu` verbs* has
+the table. A number measured against a build produced any other way than the declared production
+configuration is a `diagnostic`, for the same reason a cross-tool number is.
+
 ---
 
 ## `QA-13` — regression-relative, floored by absolute ceilings
@@ -205,8 +224,11 @@ If you could not produce them, say so plainly: that makes the run **`inconclusiv
 - **You never move a baseline.** That is the release PR's act, at G3, with the human accepting the numbers.
 - **You never report a number without its method block**, and never report a diagnostic as a budget check.
 - **You never merge, and never cast a review vote.** You run on the human's credentials.
-- **You never improvise a Nen-owned operation.** `perf-compare`, `method-check` and `tooling` are verbs; if
-  `nen` is unavailable and the bootstrap failed, the comparison does not happen — see `nen.contract.json`.
+- **You never improvise a Nen-owned operation.** `perf-compare`, `method-check` and `tooling` are verbs, and
+  so are the candidate's build, run and archive (`nen shu`); if `nen` is unavailable and the bootstrap
+  failed, the comparison does not happen — see `nen/contract.json`.
+- **You never run `nen shu deploy --run`**, or any deploy. The plan without `--run` is a read; sending it is
+  the maintainer's G3 act.
 - **You never authorize or edit a permission setting.**
 
 ---

@@ -70,8 +70,8 @@ GitHub reads that produce the raw facts:
 
 - **Critical issues**: `gh issue list --repo <owner/name> --label "bankai:severity/critical" --state
   open --json number`. **The label is the full `bankai:severity/critical`, never the bare
-  `critical`** — a bare `critical` label does not exist in `schemas/labels.json` and the query
-  silently returns zero matches rather than erroring, which would defeat this precondition without
+  `critical`** — a bare `critical` label does not exist in `nen/labels.json` (legacy
+  `schemas/labels.json` until `v0.4.0`) and the query silently returns zero matches rather than erroring, which would defeat this precondition without
   ever surfacing a mistake (regression caught in review; re-verified live with `--state all` that
   the corrected query returns the real historical criticals — `docs/ab/getsuga.md` § 2.2). Pass the
   numbers, or `--critical-issues ''` to assert there are none — never omit the flag, which reports
@@ -89,20 +89,20 @@ branches gathered and fed through, one of them — `879-g2-gate-definition` — 
 open chore issue but no PR targeting it or `main`, so the three-part AND still reads **not live**):
 every row the table used to check by separate hand-run command now comes back in one report.
 
-> **Finding, load-bearing: `nen release preflight`'s `RELEASE_HOLD` row does not parse the
-> variable's boolean value — it reads ANY set value as HELD.** Verified live: `<reference-repo>`'s
-> `RELEASE_HOLD` GitHub Actions Variable is literally the string `"false"` (`gh variable get
-> RELEASE_HOLD` prints `false`, meaning *not* held under the old `scripts/tag_cut.sh` semantics,
-> whose `hold_active()` treats only case-insensitive `true`/`1`/`yes` as active). `nen release
-> preflight` against that same repo reports `FAIL  RELEASE_HOLD -- HELD: RELEASE_HOLD = 'false'` —
-> and a repo where the variable is genuinely unset (`zheref/hatsu`, confirmed live) reports
-> `ok  RELEASE_HOLD -- not set` instead. So the row's pass/fail turns on whether the Variable
-> **exists**, not on what it says — a repo that has ever set `RELEASE_HOLD=false` (rather than
-> deleting it) reads permanently HELD through this verb, contradicting the old script's own
-> semantics. This is a defect against the binary, not a skill rule to route around: **relay the row
-> exactly as `nen` prints it** (per § 2's own instruction to honour a HELD row and say who set it),
-> but flag this specific shape to the maintainer by name — the fix on their side is to *delete* the
-> Variable, not merely set it `false`. Recorded in full at `docs/ab/getsuga.md` § 2.2.1.
+> **Finding this port filed against `v0.1.0`, closed by nen `v0.2.0` (#63, closes zheref/nen#23):
+> `RELEASE_HOLD` is now parsed for truthiness, not mere presence.** At the port, `<reference-repo>`'s
+> `RELEASE_HOLD` Variable — literally the string `"false"`, meaning *not* held under the old
+> `scripts/tag_cut.sh` semantics — reported `FAIL  RELEASE_HOLD -- HELD: RELEASE_HOLD = 'false'`, so a
+> repo that had ever set the Variable to `false` read permanently HELD (`docs/ab/getsuga.md` § 2.2.1).
+> At `v0.3.0` the rule is the old script's own, stated in `nen release --help` (verified): *"Case-
+> insensitive `true`/`1`/`yes` reads as a recognized active hold; `false`/`0`/`no` (or an unset
+> variable) reads as not held; any OTHER non-empty value (an arbitrary hold message) is not recognized
+> and fails closed as an active hold."* So `RELEASE_HOLD=false` no longer holds a release, and the
+> "delete the Variable rather than set it false" workaround is retired. **Relay the row exactly as `nen`
+> prints it** (per § 2's own instruction to honour a HELD row and say who set it); a HELD row on an
+> arbitrary message is the fail-closed branch doing its job, not the old defect. Not re-run live at
+> `v0.3.0` (the row is a `gh variable get` read); the `--help` text and the `v0.2.0` changelog are the
+> evidence.
 
 > **A second, safer divergence: `nen release preflight`'s `RELEASE_HOLD` read fails CLOSED on an
 > unreachable `gh`, where the old `scripts/tag_cut.sh` failed OPEN.** Verified live (`docs/ab/getsuga.md`
@@ -122,7 +122,7 @@ every row the table used to check by separate hand-run command now comes back in
 
 | Precondition | On failure |
 |---|---|
-| `RELEASE_HOLD` | **Honour it as printed** (see the finding above for the one shape that misleads). Stop and say who set it |
+| `RELEASE_HOLD` | **Honour it as printed.** Stop and say who set it. (`false`/`0`/`no`/unset is not held since nen `v0.2.0`; any other non-empty value fails closed as held) |
 | Open `critical` issues | **Stop.** A release shipping past an open `critical` is the failure the severity exists to name |
 | `CON-36` live chores | **Hold**, unless none has partial scope on `main` — and that reading is a `G5` ask for the maintainer, never your call (§ 5) |
 | `changelog.d/` empty at the cut point | Collate — § 3 |
@@ -188,8 +188,19 @@ it:**
    Verified live against the real `<reference-repo>` range `v0.11.2..v0.11.3`
    (`docs/ab/getsuga.md` § 2.4): **same verdict** as the old
    `scripts/changelog_release_completeness_check.sh v0.11.2 v0.11.3` run read-only side by side —
-   both report every merged PR reconciled, exit `0`.
-4. **Bump `latest`** in `schemas/repos.json`. No `nen` verb owns this write — residue, a direct edit.
+   both report every merged PR reconciled, exit `0`. Since nen `v0.2.0` (#83) `--fragment-dir` defaults
+   to `changelog.d` here **and** in `release preflight` — the two verbs reconcile the same range and
+   can no longer disagree about where fragments live — and an **empty** value, or a path that is not a
+   directory, is refused; a directory that does not exist contributes no fragments. Omit the flag or
+   pass a real directory; never `""`.
+4. **Bump `latest`** in the registry — `nen/repos.json`, or, until `v0.4.0`, a `schemas/repos.json`
+   the target has not migrated. No `nen` verb owns this write — residue, a direct edit — **so make
+   sure it lands in the file nen reads**: `nen schema check --repo <path>` prints the row at the path
+   it was actually read from (`ok nen/repos.json …`, or `warn schemas/repos.json … ^ legacy
+   location`), and a copy present in **both** places with different bytes is a *shadowed leftover*
+   that fails the check, because `nen/` wins the read and the edit you just made is the one nen
+   ignores. Edit the file the row names; if both exist, migrate first (`git rm` the `schemas/` copy
+   once the bytes agree).
 5. **Bump `.claude-plugin/plugin.json`** — same reasoning as the old skill: a cached plugin would
    report consumers current while they sit a tag behind. No `nen` verb owns this write either —
    residue, a direct edit; prefer the bump to a `no plugin bump:` opt-out.
@@ -288,8 +299,9 @@ The maintainer's ruling: an unreachable target is **driven to `main` first**, no
    stop-at-the-gate report as the readiness call.
    *Fallback only if `drive` cannot run at all* (an unresolvable code, say): the readiness call by
    itself is [`hatsu:pr-state`](../pr-state/SKILL.md)'s verb — `nen pr ready <ref> --explain`, with
-   `GH_TOKEN` exported and `--gates` pointing at the target repository's own `schemas/gates.json`
-   (when it ships one) or `contracts/reference.gates.json` where the target is frozen
+   `GH_TOKEN` exported and, where the target ships its own `nen/gates.json` (or a legacy
+   `schemas/gates.json`), no `--gates` at all — or `--gates
+   "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"` (absolute) where the target is frozen
    `<reference-repo>` — quoted verbatim. That is a **check**, not a drive: it reports where the PR stands
    and nothing moves it.
 4. **Stop at G2/G4.** The maintainer merges.
@@ -306,8 +318,8 @@ nen --repo <path> fanout compute --range <vPrev>..<newTag>
 ```
 
 `changed-workflows(vPrev..newTag)` intersected against each registered consumer's `consumes` from
-`schemas/repos.json` — every consumer comes back `AFFECTED` with the workflow basenames that hit
-it, or an implicit N/A. Verified live against the real range `v0.11.2..v0.11.3`
+`nen/repos.json` (legacy `schemas/repos.json` until `v0.4.0`) — every consumer comes back `AFFECTED`
+with the workflow basenames that hit it, or an implicit N/A. Verified live against the real range `v0.11.2..v0.11.3`
 (`docs/ab/getsuga.md` § 2.6): `nen`'s output reproduces the historical `CON-22` determination
 recorded by hand at that release's own registry entry (RR-PR-#916) **exactly** — `<product-repo-A>`
 affected via the same five files, `<product-repo-B>` via the same four, `<scaffold-repo>` via the
@@ -323,10 +335,31 @@ audit ledger — it **never opens a repin PR itself**, per its own `--help`; thi
 a live repo (`docs/ab/getsuga.md` § 3). **Opening the repin PR in each affected consumer remains
 this skill's own action** — it targets *other repositories*, which no `nen` verb here does.
 
+## 7a. A deploy — the plan is printed at G3; the run is the maintainer's
+
+A tag is not a release, and a release is not a deploy. Where the repository being cut **declares** a
+`deploy` verb and a named destination in its `nen/contract.json` (`project.verbs.<lane>.deploy` plus a
+key of `project.targets` — nen `v0.3.0`), the G3 stop carries the plan beside the preflight table:
+
+```bash
+nen shu deploy --repo <path> --lane <lane> --target <name>      # the plan: exit 0, nothing sent
+```
+
+Without `--run` the verb prints the fully resolved plan — the destination's `args` substituted into the
+lane's own argv, every precondition and `requiresEnv` variable **asserted** (never read or printed),
+each step as `would run:` — and spawns **nothing**, at exit `0`; `--target` is required with no default,
+even for a single declared destination, and `--run --dry-run` together is exit `2`. **`--run` is the
+maintainer's word at G3 (`CON-6`), per target, recorded in the release PR body — never this skill's.** A
+lane whose `deploy` is a seat answers exit `4` with the declaration's own reason whatever `--target`
+says (verified live at `v0.3.0` on a scaffolded `nextjs` tree: *"'deploy' is unsupported on lane
+'nextjs' … The declaration's own reason: PROPOSED SEAT — replace it …"*), and that is the whole report
+for such a repository: it declares no deploy. A repository with no declaration at all is not deployed
+through nen and this section does not apply. `<reference-repo>` is machinery and declares none.
+
 ## 8. Authority
 
 - **Permitted:** the tag cut (`CON-33(b)`/`CON-41` — Kurapika's own duty, **not** a `CON-25`
-  delegation), the release PR, and the repin PRs.
+  delegation), the release PR, the repin PRs, and printing a declared deploy's **plan** (§ 7a).
 - **No routing and no release delegation — none, including while driving.** Driving an off-`main`
   target runs entirely through [`hatsu:tensho`](../tensho/SKILL.md) and
   [`hatsu:drive`](../drive/SKILL.md), and **neither of those releases anything** (`CON-25`, fourth
@@ -334,8 +367,8 @@ this skill's own action** — it targets *other repositories*, which no `nen` ve
   [`hatsu:build`](../build/SKILL.md)'s job and its own invocation — **say so and stop**, rather
   than borrowing its authority from inside this run.
 - **Never:** merge `main`; publish a GitHub Release or authorize a release (**G3 is the
-  maintainer's**, `CON-6`); move or delete a tag; write `latest` for a tag that does not resolve;
-  apply a G1 mode label.
+  maintainer's**, `CON-6`); run `nen shu deploy --run`, in any spelling; move or delete a tag; write
+  `latest` for a tag that does not resolve; apply a G1 mode label.
 
 ## 9. Hard limits
 
@@ -343,8 +376,9 @@ this skill's own action** — it targets *other repositories*, which no `nen` ve
   `nen tag cut`'s own `--at` check both enforce this; verified live in scratch, never against
   `<reference-repo>` or `hatsu`.
 - **Never tags past an open `critical`, an active `RELEASE_HOLD`, or an unreconciled `CON-33(c)`** —
-  and read the `RELEASE_HOLD` row exactly as printed, per § 2's finding: a value present is HELD,
-  even when that value itself reads `false`.
+  and read the `RELEASE_HOLD` row exactly as printed: since nen `v0.2.0` `true`/`1`/`yes` is held,
+  `false`/`0`/`no`/unset is not, and any other non-empty value fails closed as held (§ 2).
+- **Never deploys.** § 7a's plan is the most this skill prints; `--run` is the maintainer's at G3.
 - **Never rules on `CON-36` clause 4 itself** — that is `G5`.
 - **Never deletes a superseded CHANGELOG entry** to resolve a contradiction.
 - **Never publishes the release.** Preparing it is the job; G3 is not.

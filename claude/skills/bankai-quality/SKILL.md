@@ -27,21 +27,26 @@ The old mechanic read `bankai_scenario` out of the target repo's own `.github/wo
 eye. That is now a verb:
 
 ```
-nen repo scenario --repo <path to a checkout carrying schemas/repos.json> --target <owner/name>
+nen repo scenario --repo <path to a checkout carrying nen/repos.json> --target <owner/name>
 ```
 
 `--repo` is a **path**, not a slug — today that path is the frozen `<reference-repo>` checkout, since that is
-where the consumer registry Naruto kept (`schemas/repos.json`) lives; `--target` is the product repo's
-`owner/name`. The verb reads the scenario **live**, off the same `CON-14`-factual registry
-`pr-state`'s `--repo` flag and `warmup`'s stale-pin sweep already read — never a value remembered from a
-prior session. **Exits 1**, naming the repo and the registry path, when the target is not a recorded
-consumer or carries no scenario (verified live, `docs/ab/bankai-quality.md` § 2.1) — that refusal is
-itself a finding about the registry, never a licence to guess a scenario.
+where the consumer registry Naruto kept lives (its `schemas/repos.json`, which nen reads through the
+legacy fallback until `v0.4.0`; a migrated checkout carries it at `nen/repos.json`); `--target` is the
+product repo's `owner/name`. **`--repo` is required** — omitted, exit `2` by name (nen `v0.2.0`, #73;
+verified live at `v0.3.0`), never a silent cwd default. The verb reads the scenario **live**, off the
+same `CON-14`-factual registry `pr-state`'s `--repo` flag and `warmup`'s stale-pin sweep already read —
+never a value remembered from a prior session. **Exits 1** with a **distinct** reason for each of: the
+checkout carries no registry at all (the refusal names both `nen/repos.json` and the legacy path), the
+target is not recorded anywhere in it, or it is recorded but carries no `scenario` field (verified live
+at `v0.3.0` against nen's bundled registry) — every one a finding about the registry, never a licence to
+guess a scenario.
 
 > **`<reference-repo>` itself is the one case this verb cannot resolve, and that is expected, not a defect.**
-> A repository cannot be its own consumer, so `<reference-repo>` carries no entry for itself in
-> `schemas/repos.json` — `nen repo scenario --target <reference-repo>` refuses identically to an
-> unknown repo (verified live, § 2.1). For `<reference-repo>` as the target, its scenario is the **fixed
+> A repository cannot be its own consumer, so `<reference-repo>` carries no `consumers[]` entry for itself
+> in its registry — `nen repo scenario --target <reference-repo>` refuses at exit `1` (since `v0.2.0` with
+> the *recorded-but-not-a-consumer* reason: *"only a consumers[] entry carries a 'scenario' field"*),
+> where at the port it refused identically to an unknown repo (`docs/ab/bankai-quality.md` § 2.1). For `<reference-repo>` as the target, its scenario is the **fixed
 > literal `<reference-repo>`**, stated directly in its own `.github/workflows/bankai.yml` header comment
 > (`bankai_scenario: '<reference-repo>'`) — read that value directly rather than routing it through this verb.
 > This is the one scenario resolution this skill still does by direct read, and only because there is
@@ -160,9 +165,38 @@ Report the verb's verdict rather than a hand-reading of the block — a block th
 fails validation (a stray empty string in `networkCondition`, a `sampleSize` of exactly 5 with the first
 discarded miscounted) is exactly the class of gap this verb exists to catch instead of missing by eye.
 
+## 5a. The candidate's own build, test, lint and coverage — `nen shu`, where the repository declares them
+
+Since nen `v0.3.0` the candidate's build, test suite, lint and coverage report are verbs that run **what
+the target repository declares** in its `nen/contract.json` `project` block — never a command remembered
+from a handbook. Phinks and Uvogin run these against the exact commit proposed for the tag; this resolver
+names them so a report can cite which form produced a number:
+
+```
+nen shu tools --repo <path>                        # the host toolchain the declaration pins; exit 5 = a not-testable-here, tool named
+nen shu build --repo <path> [--lane <lane>]        # the declared build
+nen shu test  --repo <path> [--lane <lane>]        # the declared suite
+nen shu lint  --repo <path> [--lane <lane>]        # the declared lint and format check
+nen shu coverage --repo <path> [--threshold <n>]   # runs the declared coverage command and PARSES its report
+```
+
+`--dry-run` on any of them prints the exact argv and spawns nothing. `shu coverage` reads the first path
+under the verb's own `artifacts` whose format nen knows (Istanbul/Vitest JSON summary, `xccov` JSON,
+Cobertura, JaCoCo, LCOV) into one shape — a total and a row per target — and **`--threshold` only reports
+`met`, never moving the exit code** (a coverage-floor breach stays `UZF-19`'s finding for the architecture
+reviewer, `QA-9`; this verb gives it a number, not a verdict). Exit `4` on any of these is the lane's own
+seat — quote its reason, run the repository's documented command, say that you did; exit `3` is a host
+the declaration excludes — `not-testable-here`, host named; a repository with no declaration (`nen shu
+detect` exits `1`) is tested by its own documented commands, and the report says so
+(`claude/agents/kurapika.md` § *The `shu` verbs*). `nen shu deploy --run` is never this resolver's, nor
+Phinks' nor Uvogin's: the plan without `--run` is a read of where the candidate would go; the run is G3.
+
 ## 6. Machinery scenario (`<reference-repo>`) — `QA-16`–`QA-18`
 
-- `make lint` and `make test` green **from a clean checkout**.
+- `make lint` and `make test` green **from a clean checkout** — `<reference-repo>` is bash and
+  markdown, not one of nen's seven stacks, and declares no `project` block, so its own `Makefile` is the
+  documented command here (§ 5a); a machinery repository that *does* declare its verbs runs `nen shu
+  lint` and `nen shu test` on a tree `nen shu warmup --repo <path> --branch qa/<slug>` has just cut.
 - Drive changed `scripts/*.sh` with the hostile-input corpus — empty, missing, malformed
   JSON/YAML, non-UTF-8, oversized, a path with spaces, an extra field — and require **fail-closed**.
 - Assert every privileged or wake-bearing workflow `if:` **conjunct by conjunct** with `yq` in a

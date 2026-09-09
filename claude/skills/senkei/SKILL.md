@@ -56,24 +56,44 @@ trip it.
 **When no repo is given**, resolve the registry and ask:
 
 ```
-nen repo resolve all --repo <path to a checkout carrying schemas/repos.json>
+nen repo resolve all --repo <path to a checkout carrying nen/repos.json>
 ```
 
 An unknown repo is an error that names the token and lists the codes `nen repo resolve`'s own
 refusal prints — never a guess, never a prefix match.
 
 **Product repos do not reliably ship their own registry.** Verified live against the real
-`<product-repo-A>`: it carries no `schemas/` directory at all — no `repos.json`, no `gates.json`,
-no `colors.yml`, no `labels.json` (`docs/ab/senkei.md` § 4.1, three `404`s). The registry that names
-its product code (`RA`) and its Nen scenario (`swiftui-tca-uzf-v2`) lives in **`<reference-repo>`'s own**
-`schemas/repos.json`, under `consumers`, alongside `<product-repo-B>` (`RB`). So `--repo <path>` for
-resolution and object notation points at a local `<reference-repo>` checkout, never at the product repo
-itself — resolve once, up front, and carry the resolved `owner/repo` slug forward:
+`<product-repo-A>` at the port: it carried no `schemas/` directory at all — no `repos.json`, no
+`gates.json`, no `colors.yml`, no `labels.json` (`docs/ab/senkei.md` § 4.1, three `404`s) — and the
+check at the current pin is "no `nen/` directory **or** `schemas/` directory", since nen `v0.3.0` reads
+the four files from `nen/` first and from `schemas/` as a fallback until `v0.4.0` (`nen schema check
+--repo <checkout>` answers it in one call, per file, with where each was read from). The registry that
+names its product code (`RA`) and its Nen scenario (`swiftui-tca-uzf-v2`) lives in **`<reference-repo>`'s
+own** registry (`schemas/repos.json` at its frozen tag, read through the fallback), under `consumers`,
+alongside `<product-repo-B>` (`RB`). So `--repo <path>` for resolution and object notation points at a
+local `<reference-repo>` checkout, never at the product repo itself — resolve once, up front, and carry
+the resolved `owner/repo` slug forward:
 
 ```
 nen repo resolve RA --repo <reference-repo checkout>          # <product-repo-A>  (RA)  via code
 nen repo scenario --repo <reference-repo checkout> --target <product-repo-A>   # swiftui-tca-uzf-v2
 ```
+
+**A product repo's own build declaration is a different file, and senkei reads it rather than writes
+it.** A consumer product repo is, unlike `<reference-repo>`, one of nen's seven stacks (a
+`swiftui-tca-uzf-v2` scenario is an `xcode-ios` tree; `compose-uzf-v2` a `gradle-android` one), so with
+a local checkout of it in hand:
+
+```
+nen shu detect --repo <product repo checkout>        # exit 0: a project block proposed, withheld rows and their reasons; exit 1: no lane detected
+nen schema check --repo <product repo checkout>      # which taxonomy files it carries, and where nen read each from
+```
+
+Report what `detect` proposes and withholds (an `xcode-ios` lane proposes **no command row on any
+tree** — every row names a simulator only the machine knows — and says what it *did* answer) as part of
+the status pass; a product repo with no `nen/contract.json` is a finding for **that repo's maintainer**,
+and writing the declaration is a PR into that repo at its own gate, never a `--write` this skill runs.
+Driving that repo's PRs to readiness (§ 4) does not depend on it.
 
 ## 2. Enumerate the target repo's backlog — `nen repo inventory`
 
@@ -182,22 +202,24 @@ export GH_TOKEN=$(gh auth token)
 nen pr ready <ref> --gh-repo <owner/name> [--gates <path> | --reviewers a,b,c [--approvers a,b]] --explain
 ```
 
-**Most product repos ship no `schemas/gates.json` of their own — verified against `<product-repo-A>`, not
+**Most product repos ship no gates file of their own — verified against `<product-repo-A>`, not
 assumed.** Without `--gates` or `--reviewers`, `nen pr ready` refuses outright: *"no reviewer
-identities. This gate never falls back to a built-in reviewer set..."* (exit `2`) — reproduced
+identities. This gate never falls back to a built-in reviewer set..."* (exit `2`; at `v0.3.0` the
+refusal names both `nen/gates.json` and the legacy `schemas/gates.json` it looked for) — reproduced
 live against the real `<product-repo-A>#509` (`docs/ab/senkei.md` § 4.1). This is the same refusal
 [`pr-state`](../pr-state/SKILL.md) documents for `<reference-repo>`, and the fix is the same shape but a
 **different file**: hatsu's `contracts/reference.gates.json` is `<reference-repo>`'s own reviewer
 identities and must **never** be reused for a different repo's PR — that would judge one repo
 against another's vocabulary. For a product repo with no `--gates` file of its own:
 
-- If the repo ships `schemas/gates.json`, no flag is needed at all.
+- If the repo ships `nen/gates.json` (or, until `v0.4.0`, `schemas/gates.json`), no flag is needed at
+  all.
 - Otherwise, pass `--reviewers`/`--approvers` naming **that repo's own** configured reviewer
   bots — derived from **its own** `.github/workflows/*.yml`, read directly, not assumed and not
   copied from `<reference-repo>`'s registry. **Verified live, read-only, against `<product-repo-A>`'s own
   workflow files**: `bankai-review-gates.yml` calls `sasuke-review.yml`, `tenma-review.yml` and
   `bisky-review.yml` as reusable workflows — a genuine review **trio**, not a pair, and `<reference-repo>`'s
-  own `schemas/repos.json` `consumes` list for this repo corroborates the same three (plus `copilot`
+  own registry's `consumes` list for this repo corroborates the same three (plus `copilot`
   nowhere in it as a review identity — `copilot-sweeper.yml` is a different, non-review workflow).
   **Never guess a reviewer set and never substitute `<reference-repo>`'s own `contracts/reference.gates.json`.**
 - **A disclosed limitation, not routed around:** the reduced `--reviewers a,b,c [--approvers a,b]`
@@ -219,7 +241,7 @@ against another's vocabulary. For a product repo with no `--gates` file of its o
   shows up only as a PR commenter, per `gh pr view --json reviews`, never as a reusable-workflow
   review-pair job) but because the CLI's flat `--reviewers`/`--approvers` shape cannot express
   `bisky`'s conditional round anyway, so naming it as a plain reviewer would misrepresent it as
-  unconditional. **The gap this leaves**: a full `schemas/gates.json` authored for
+  unconditional. **The gap this leaves**: a full `nen/gates.json` authored for
   `<product-repo-A>` itself, modeling `bisky` the way `<reference-repo>`'s own contract does, is what
   would close this fully — until one exists, say so every time this fallback is used, rather than
   presenting `sasuke,tenma,copilot` as `<product-repo-A>`'s own considered choice.

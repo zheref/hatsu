@@ -35,11 +35,14 @@ resolves**:
 nen repo resolve <token>
 ```
 
-against the current checkout's `schemas/repos.json` — a `product_code`, an owner/name slug, or
-a repository's short name, matched exactly and case-insensitively, never as a prefix (verified
-live: `nen repo resolve BC` exits `0` with the resolved slug; `nen repo resolve notarealtoken`
-exits `1` and its own refusal text names every valid code and repository — that refusal text
-**is** the candidate list, never re-derived by hand). **Exit `0`** → the token is the repo;
+against the current checkout's `nen/repos.json` (or, until `v0.4.0`, its legacy `schemas/repos.json`
+— nen reads `nen/` first and falls back; `--repo <path>` names another checkout's registry) — a
+`product_code`, an owner/name slug, or a repository's short name, matched exactly and
+case-insensitively, never as a prefix, and since nen `v0.2.0` resolved from **everything** the registry
+records — consumers, `product_codes` keys *and* values, `maintained_tools`, `pending_onboarding`
+(verified live at `v0.3.0`: `nen repo resolve BC --repo <path>` exits `0` with the resolved slug;
+`nen repo resolve notarealtoken --repo <path>` exits `1` and its own refusal text names every valid
+code and repository — that refusal text **is** the candidate list, never re-derived by hand). **Exit `0`** → the token is the repo;
 everything before it is the problem. **Exit `1`** → the token is **part of the problem text**,
 not a typo'd repo — never silently repoint a filing at a repo the maintainer did not name.
 
@@ -103,9 +106,21 @@ not run at all — "found nothing" and "could not look" must never read the same
 here is itself a finding to report, not a clean empty search.
 
 **(a) Duplicates — amend, do not file.** Same problem, same scope, same lane. Comment on the
-existing issue with the new evidence (`gh issue comment <n> --repo <owner/name> --body-file
-<path>` — **residue**: no `nen` verb owns posting a plain issue comment; see the port's A/B
-doc), and **raise its severity** where the new evidence justifies it, via:
+existing issue with the new evidence:
+
+```bash
+nen issue comment --target <owner/name> --issue <n> --body-file <path> --dry-run   # the exact gh call and the exact bytes
+nen issue comment --target <owner/name> --issue <n> --body-file <path>             # post it
+```
+
+`nen issue comment` is new in nen `v0.2.0` and **retires the residue this port carried** (the A/B doc's
+"no `nen` verb owns posting a plain issue comment" is history): exactly one of `--body`/`--body-file`,
+an empty or whitespace-only body refused at exit `2`, `--issue` held to digits only (`1e3` is refused,
+not read as 1000), and `--dry-run` fully offline — it prints `would run: gh issue comment …` and the
+body fenced between `--- body as it would be posted ---` markers, stating whether it ends in a newline
+(verified live at `v0.3.0`). `--body-file` resolves against **the process's cwd**, not `--repo` — pass an
+absolute path. Post the comment only once the plan is confirmed (§ 4), and **raise its severity** where
+the new evidence justifies it, via:
 
 ```bash
 nen label apply <CODE>-IS-#<n> --label <severity-label> --repo-slug <owner/name> \
@@ -113,13 +128,14 @@ nen label apply <CODE>-IS-#<n> --label <severity-label> --repo-slug <owner/name>
   --reason "<what changed the assessment>" --run
 ```
 
-`--repo` is not optional: `nen label` reads the taxonomy from `schemas/labels.json` **in the
-checkout `--repo` points at**, not in whatever directory the skill happens to be invoked from, and
-has no built-in copy to fall back on — omit it and the call refuses with `schemas\labels.json: no
-such file` the moment it is run from a checkout that doesn't carry that file itself (e.g. this
-skill's own `hatsu` checkout; verified live, docs/ab/file.md § 2.7). Point it at **the target
-repo's own checkout** — the one named by `--repo-slug` — never at the checkout `file` happens to
-be running from.
+`--repo` is not optional: `nen label` reads the taxonomy from `nen/labels.json` (or, until `v0.4.0`,
+the legacy `schemas/labels.json`) **in the checkout `--repo` points at**, not in whatever directory the
+skill happens to be invoked from, and has no built-in copy to fall back on — omit it and the call
+refuses with `nen/labels.json: no such file` naming **both** locations the moment it is run from a
+checkout that doesn't carry that file itself (e.g. this skill's own `hatsu` checkout; verified live
+against `v0.1.0` in docs/ab/file.md § 2.7, and the refusal shape re-verified at `v0.3.0` through
+`nen schema check --repo <hatsu checkout>`). Point it at **the target repo's own checkout** — the one
+named by `--repo-slug` — never at the checkout `file` happens to be running from.
 
 Raise the severity only once the plan is confirmed (§ 4) — say what changed the assessment
 (broader blast radius, a second occurrence, a consumer now affected). One open issue per distinct
@@ -128,8 +144,9 @@ problem.
 **(b) Fold — near, not same.** A different problem whose **scope and authority level** are close
 enough that one PR would sanely deliver both: same lane, same files or same clause, same
 severity band. Folding adds the new requirement to that issue as a checklist item plus a comment
-explaining the addition (same residue as (a) — a plain `gh issue comment`). **Do not fold across
-lanes** — a governance change and the machinery that implements it are a dependency chain, not
+explaining the addition — the comment through `nen issue comment`, exactly as in (a); the checklist
+edit to the issue **body** stays a `gh issue edit <n> --repo <owner/name> --body-file <path>` (residue:
+no `nen` verb writes an issue body back). **Do not fold across lanes** — a governance change and the machinery that implements it are a dependency chain, not
 one issue; if they must ship together, say so and name it as a chore instead.
 
 **(c) Supersede — this obsoletes those.** Where the new requirement makes an existing issue's
@@ -148,10 +165,13 @@ closingIssuesReferences,body`, byte-identical). **Exit `0`** clears every candid
 > ⚠️ **An issue with an OPEN PR is never quietly closed.** `open-pr-check`'s exit code is the
 > guard, but the decision is still the plan's: flag it prominently with a recommendation —
 > usually *exclude it from the supersede set and let its PR land first* — and let the
-> maintainer's approval cover whatever the plan states. Closing the issue itself is `gh issue
-> close <n> --repo <owner/name> --comment "<text>"` — **residue**: the same gap as (a)/(b), no
-> `nen` verb closes a single issue with free-text comment outside the multi-child
-> `consolidate-close` choreography in (d).
+> maintainer's approval cover whatever the plan states. Closing the issue itself is two acts: the
+> comment naming this issue and why goes through `nen issue comment --target <owner/name> --issue <n>
+> --body-file <path>` (never a raw `gh issue comment`), and the close is `gh issue close <n> --repo
+> <owner/name>` — **residue**, narrowed: no `nen` verb closes a *single* issue outside the multi-child
+> `consolidate-close` choreography in (d), which is the one verb that closes, and it takes two or more
+> children and a parent. Comment first, then close, so the close never points at a comment that does
+> not exist yet.
 
 **(d) Umbrella check.** If three or more open issues would be folded or superseded, this is not a
 filing — it is a **consolidation**, and `nen issue attach-sub` / `nen issue consolidate-close`
@@ -195,13 +215,14 @@ close. A skill that files first and reconciles afterwards has already created th
 Applied **in the create call**, never as a follow-up edit:
 
 ```bash
-nen issue file --target <owner/name> --repo <path to a checkout carrying schemas/*.json> \
+nen issue file --target <owner/name> --repo <path to a checkout carrying nen/labels.json> \
   --title "<title>" --body-file <path> --label <a,b,...> --assignee <user> \
   --forbid-family <the target repo's stage-label family>
 ```
 
-`nen issue file` checks every label against the target repository's `schemas/labels.json`
-**before** attempting anything (verified live: an unknown label refuses with `is not in this
+(`--body-file` is handed to `gh` verbatim, so it resolves against the cwd, never `--repo` — pass an
+absolute path.) `nen issue file` checks every label against the target repository's `nen/labels.json`
+(or, until `v0.4.0`, its legacy `schemas/labels.json`) **before** attempting anything (verified live: an unknown label refuses with `is not in this
 repository's taxonomy … GitHub would CREATE it rather than refuse, so a typo becomes a permanent
 undocumented label` — GitHub itself never catches this, only the taxonomy check does) and enforces
 `--forbid-family` as a hard, machine-checked guard (verified live: a label in a forbidden family
@@ -213,7 +234,7 @@ this skill's prose has to remember into one `nen issue file` refuses to violate.
 
 | Class | What to apply | Basis |
 |---|---|---|
-| **Lane / agent** | Whichever labels route this problem to its owning discipline in the target repo's own taxonomy — several when it spans lanes | Read from `schemas/labels.json` at run time, never from memory; a label this port hasn't seen before is still a real one if the taxonomy carries it |
+| **Lane / agent** | Whichever labels route this problem to its owning discipline in the target repo's own taxonomy — several when it spans lanes | Read from `nen/labels.json` (legacy `schemas/labels.json` until `v0.4.0`) at run time, never from memory; a label this port hasn't seen before is still a real one if the taxonomy carries it |
 | **Severity** | Exactly one severity label from the target repo's own severity vocabulary | Propose with one line of reasoning; the plan carries it |
 | **Kind** | Bug / handbook-question / epic / QA / observation-fix, as the target repo's taxonomy names them | What the issue *is* |
 | **Stage** | **None** | Zero stage labels before release; the stage-that-is-the-release-trigger is the human's, and `--forbid-family` (above) makes that a call refusal, not a rule to remember |
@@ -246,8 +267,8 @@ go-signal, given by a separate invocation. An offer that starts itself is not an
 `file` carries **routing delegation only, and only for what the approved plan named**:
 
 - **Permitted:** the lane/agent labels on the issue it files and on the neighbours the plan
-  names; the severity and kind labels; the comments and closes the plan states; `nen label
-  apply --run` for a severity bump the plan named, logged in its ledger.
+  names; the severity and kind labels; the comments (`nen issue comment`) and closes the plan states;
+  `nen label apply --run` for a severity bump the plan named, logged in its ledger.
 - **Not permitted:** any stage label (`--forbid-family` makes this a refusal, not just a rule), any
   G1 mode label, any merge, any review vote, any close the plan did not name.
 - **Log every application** — object, label, time — in the report. `nen label apply` writes its
@@ -270,3 +291,6 @@ go-signal, given by a separate invocation. An offer that starts itself is not an
 - **Never hand-roll `attach-sub`/`consolidate-close`'s choreography** for a 1-or-2-candidate
   supersede that doesn't need it, and never invoke the umbrella verbs on fewer than three
   candidates just because they exist.
+- **Never posts a comment with a raw `gh issue comment`.** `nen issue comment` owns that step since
+  nen `v0.2.0`; the only raw `gh` this skill still carries is the single-issue `gh issue close` and the
+  body edit, each named as residue above.

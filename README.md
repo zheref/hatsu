@@ -12,10 +12,13 @@ verifies; the skill supplies only the judgment a binary cannot. Where no verb ex
 
 No GitHub App. No bot identity. Nothing here merges `main`, publishes a release, or casts a review vote.
 
-> **`v0.2.0`.** Hatsu is the local plane of the Akatsuki system, and it succeeds the local plane of a
+> **`v0.3.0`.** Hatsu is the local plane of the Akatsuki system, and it succeeds the local plane of a
 > predecessor system — the frozen reference implementation — which it also **serves live today**: the
-> seventeen skills were ported name-for-name and proven against that system's real backlog before this
-> version was cut. The evidence is in [`docs/ab/`](docs/ab/), one file per skill.
+> seventeen skills were ported name-for-name and proven against that system's real backlog before `v0.1.0`
+> was cut. The evidence is in [`docs/ab/`](docs/ab/), one file per skill — dated records of the port against
+> nen `0.1.0`. `v0.3.0` reconciles every skill and persona with nen **`v0.3.0`**: the findings those records
+> filed that nen has since fixed are corrected in the skills, the `schemas/`→`nen/` taxonomy move is
+> carried, and nen's new `shu` family and `issue comment` verb are folded into the roster's own procedures.
 
 ---
 
@@ -55,7 +58,7 @@ claude plugin install hatsu@hatsu
 Confirm what landed:
 
 ```sh
-claude plugin list                  # hatsu@hatsu — Version: 0.2.0
+claude plugin list                  # hatsu@hatsu — Version: 0.3.0
 claude plugin details hatsu@hatsu   # the full component inventory
 ```
 
@@ -66,11 +69,27 @@ claude plugin details hatsu@hatsu   # the full component inventory
 Hatsu's skills do not improvise shell. Every deterministic step is a `nen` verb, and the dependency on that
 binary is **hard**, **version-ranged**, and **fail-closed with auto-install**.
 
-**[`nen.contract.json`](nen.contract.json) is the single source of truth.** Every version, ref, URL and
+**[`nen/contract.json`](nen/contract.json) is the single source of truth.** Every version, ref, URL and
 command echoed anywhere else — this README included — is a convenience copy of a value that lives there.
 **Where a copy disagrees with the contract, the contract wins and the copy is the bug.** The
 [`hatsu-warmup`](claude/skills/hatsu-warmup/) skill executes it at the start of every session, before any
 other Nen-owned work.
+
+The file sits where nen itself looks for a repository's dependency declaration — `nen/contract.json`, in
+nen's own shape (`dependency.version_probe` as an argv array, `dependency.bootstrap` nested inside
+`dependency`) — so that nen validates it rather than merely tolerating it:
+
+```sh
+nen schema check --repo <this checkout>
+#   ok    nen/contract.json  dependency (nen >= 0.3, pinned v0.3.0)
+```
+
+(The three taxonomy rows above that line `FAIL` and the command exits `1`: Hatsu ships no `labels.json`,
+`repos.json` or `colors.yml` of its own, and `schema check` requires them of a repository that carries a
+taxonomy. The contract row is the one this repository owns.) Every Hatsu-authored key beside nen's own —
+the zero-major caveat, the two install paths, the halt template, the no-`jq` rule — is preserved verbatim by
+nen's loader and read by nothing in nen. There is deliberately no second copy: it was `nen.contract.json` at
+the root through `v0.2.0`.
 
 ### The range
 
@@ -224,6 +243,21 @@ Seventeen, invoked as `hatsu:<name>`. Longer descriptions in
 Plus [`hatsu-warmup`](claude/skills/hatsu-warmup/) — the Nen contract, executing — and the `/kurapika`
 summon command.
 
+### What nen `v0.3.0` adds to the roster's own procedures
+
+nen's **`shu`** family runs whatever a target repository *declares* in its `nen/contract.json` `project`
+block — and nothing else — so `build`, `futon`, Gon, Hisoka, Phinks and Uvogin now start a piece of work with
+`nen shu warmup` (clean → fresh trunk → your branch → the declared build), check a fresh host with
+`nen shu tools`, and verify with `nen shu build`/`test`/`lint`/`coverage`, each with `--dry-run` printing
+the exact argv first. Kurapika's Transmuter mode stands a repository up with `nen shu detect` →
+`nen scaffold init` (or `nen scaffold new` for a tree that does not exist yet) → `nen schema check` →
+`nen shu tools`. `nen shu deploy --target <name>` prints a plan and sends nothing; `--run` is the
+maintainer's word at **G3** and no skill here adds it. And `nen issue comment` replaces the raw
+`gh issue comment` two skills used to carry as residue. A repository that is not one of nen's seven
+stacks (this one included: `nen shu detect --repo . ` answers *no lane detected*) gets the git half of the
+warm-up and its own documented commands, said plainly — the full rules are in
+[`claude/agents/kurapika.md`](claude/agents/kurapika.md) § *The `shu` verbs*.
+
 ### Evidence
 
 Every one of the seventeen ships with its own A/B record in **[`docs/ab/`](docs/ab/)**: the mechanics before
@@ -281,17 +315,17 @@ that already has the plugin installed** — no error, no warning, the fix ships 
 
 [`scripts/plugin_bump_check.sh`](scripts/plugin_bump_check.sh), wired as the
 [`plugin-bump-check`](.github/workflows/plugin-bump-check.yml) workflow, fails a PR that tries. The guarded
-surface is `.claude-plugin/**`, `claude/**`, `nen.contract.json`, `contracts/**`, `docs/ROSTER.md`,
+surface is `.claude-plugin/**`, `claude/**`, `nen/**`, `contracts/**`, `docs/ROSTER.md`,
 `docs/delegation-grammar-DRAFT.md`, `hooks/**` and `.mcp.json` — everything an installed copy reads. Bump
 `version` (patch for wording, minor for behaviour or a new skill, major for a breaking interface change);
 or, if a change provably cannot affect the shipped surface, write `no plugin bump: <reason>` in the PR
 body. Recorded refuse/pass transcripts: [`docs/ab/plugin-bump-guard.md`](docs/ab/plugin-bump-guard.md).
 
-**The check is advisory today.** Until the maintainer adds branch protection or a ruleset that *requires*
-it on `main`, a failing `plugin-bump-check` blocks nothing — and because GitHub runs a same-repo PR against
-that PR's *own* workflow definition, a PR may edit the workflow and be judged by the edited version. The
-hardening is repo settings, which is a human gate and is recommended rather than performed here: require
-the check, and protect `.github/**` with a ruleset or `CODEOWNERS`.
+**The check is required on `main`** by the repository ruleset *main: plugin-bump guard required*
+(`enforcement: active`), so a failing `plugin-bump-check` blocks the merge. What that ruleset does not do
+is protect `.github/**`: GitHub runs a same-repo PR against that PR's *own* workflow definition, so a PR may
+still edit the workflow and be judged by the edited version. Closing that is a further repo-settings act —
+a human gate, recommended rather than performed here: protect `.github/**` with a ruleset or `CODEOWNERS`.
 
 ### Validate locally
 

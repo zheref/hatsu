@@ -36,33 +36,33 @@ error, never a guess**. Do not restate that grammar here; read it (§ 2 below li
 obey it.
 
 That includes **the no-repo default** — with no repo token the subject is **the repo you are
-standing in**, resolved from the working directory's `origin` against `schemas/repos.json`, named
-before the board, and an **error** — never a silent widening to `all` — when it resolves to
-nothing.
+standing in**, resolved from the working directory's `origin` against `nen/repos.json` (legacy
+`schemas/repos.json` until `v0.4.0`), named before the board, and an **error** — never a silent
+widening to `all` — when it resolves to nothing.
 
 **The trailing `every <…>` clause is this skill's own** — `backlog-state` renders a table, not a
 page kept open in front of the maintainer, so it has nothing here to mirror. Omitting the clause
 entirely, and writing it out as `every once`, mean the same thing: **`once`** — render, publish,
 say the line, stop.
 
-> **`nen parse` can check the `<repo>@<gate>` shape, but not the whole grammar — verified live.**
-> This skill's invocation is not one of `nen parse`'s three built-in grammars (`futon`/`izanagi`/
-> `izanami`), so it must supply its own `--grammar` template:
+> **`nen parse` checks the whole `<repo>[@<gate>] [every <freq>]` shape — verified live at the
+> contract's pinned ref.** This skill's invocation is not one of `nen parse`'s three built-in grammars
+> (`futon`/`izanagi`/`izanami`), so it supplies its own `--grammar` template, with the gate clause
+> **bracketed** — which nen `v0.2.0` (#67, closes zheref/nen#30) made parse correctly, closing the
+> finding [`backlog-state`](../backlog-state/SKILL.md) § 1 filed at the port:
 > ```
 > nen parse backlog-board \
->   --grammar "<repo>@<gate:G1|G1-M|G2|G3|G4|G5|all> [every <freq:turn|state-change|once>]" \
+>   --grammar "<repo>[@<gate:G1|G1-M|G2|G3|G4|G5|all>] [every <freq:turn|state-change|once>]" \
 >   --line "BC@G4 every state-change"
 > ```
-> Run against the real binary, this correctly accepts `BC@G4`, `BC@G4 every state-change`, refuses
-> `BC@G9` naming the enumerated values and a corrected line, and refuses a missing gate. **But it
-> cannot express two of § 1's own rules**: the grammar mini-language has no way to say "`@` is
-> optional, and a bare `all` means `all@all`" or "an omitted repo token resolves to the working
-> directory's `origin`" — tested live, a bare `all` line is refused as "gate is required" rather
-> than accepted as `all@all`. **This is a finding, not a defect to route around**: those two rules
-> stay exactly what backlog-state's invocation grammar already made them — read from prose, applied
-> by hand, identically on every invocation — while the enumerated-token and frequency-clause validation
-> `nen parse` **does** cover is worth taking, since it replaces one more hand-checked rule with a
-> refusal the binary renders and corrects itself.
+> Run against `v0.3.0`: `BC@G4 every state-change` → `repo: BC`, `gate: G4`, `freq: state-change`;
+> `BC every turn` → `repo: BC`, `freq: turn`; a bare `all` → `repo: all` with both clauses absent;
+> `all every once` → `repo: all`, `freq: once`; and `BC@G9 every turn` is **refused at exit `2`**
+> naming the enumerated values, with the corrected line on stderr. (At the port the unbracketed
+> `<repo>@<gate:…>` form was the only one that parsed, and it refused a bare `all` as "gate is
+> required" — the bracketed form was broken; now it is the right one.) Two of § 1's rules still live in
+> prose on top of the parse, because the grammar cannot say them: an absent `@<gate>` clause means
+> **`all`**, and an omitted repo token resolves to the working directory's `origin`.
 
 ## 1a. Rendering frequency — `once` / `every turn` / `every state-change`
 
@@ -144,8 +144,9 @@ Field by field, from a row `backlog-state` already produced:
   (in progress), not the `G4` `gate derive` alone would suggest — do not stop at the diff half.
 - **`status`** ← `nen color status --present <values> --category status --json`'s `resolved.name`.
   Verified live for the same row: `--present in_progress` resolves `{"name": "in_progress", "emoji":
-  "🟠", "label": "In progress", …}` from the target repo's own `schemas/colors.yml` precedence — no
-  glyph is hard-coded here or anywhere in this pipeline.
+  "🟠", "label": "In progress", …}` from the target repo's own `nen/colors.yml` (legacy
+  `schemas/colors.yml` until `v0.4.0`) precedence — no glyph is hard-coded here or anywhere in this
+  pipeline.
 - **`needs`** ← backlog-state's expected-action line, one string, naming the action and its actor.
 
 **One collapsing step `nen backlog fetch` does NOT do for you — a finding, not a missing verb.**
@@ -175,13 +176,21 @@ Verified live, two ways:
   ```
   The unchanged row (`937`) is silently absent from the diff — no need to eyeball which of three
   rows moved.
+- **A malformed snapshot is refused, never diffed.** Since nen `v0.3.0` (#99, closes zheref/nen#92)
+  `board diff` — like `render` and `build` — validates both files at the read seam and refuses at exit
+  `2` naming the file, row and field (verified live: a `refs` given as a string instead of an array →
+  *"row '1' has the wrong shape for 'refs': expected an ARRAY of ref strings"*), where `v0.1.0` diffed
+  the string `"undefined"`. A hand-built snapshot that trips this is a caller bug in the § 3 mapping,
+  not a diff result; fix the row and re-run.
 
-**Untested in this port, noted rather than assumed:** `nen watch until` could in principle drive
-the whole poll (its `--command` runs an arbitrary shell command and `--true-pattern` tests its
-stdout, so a command chaining fetch → `board build` → `board diff` and matching `"changed": true`
-is plausible) but this was not exercised live here, and the loop as specified in § 1a runs directly
-under the session's own pacing instead, per `izanami`'s borrowed discipline. Do not assume `nen
-watch` composes cleanly with a multi-step pipeline until it has actually been run that way.
+**`nen watch until` cannot drive this poll, and that is now verified rather than assumed.** Its
+`--command` is spawned **directly, with no shell** — one program, classified before the first run — and
+a pipeline classifies `[unknown]`, which refuses (verified live at `v0.3.0`: `nen parse izanami "gh pr
+view 1 | grep MERGED until done"` → `[unknown]`, exit `1`). A fetch → `board build` → `board diff` chain
+is three programs, so it has no single `--command`. The loop as specified in § 1a runs directly under the
+session's own pacing, per `izanami`'s borrowed discipline; what `nen watch until` *can* watch is one
+read-only verb's own output (`nen pr ready …` classifies `[read-only]` since `v0.2.0`), which is not
+this board.
 
 ## 4. Author the HTML — this is now a skill-authored step, not a verb call
 

@@ -1,14 +1,20 @@
 ---
 name: hatsu-warmup
-description: Satisfy Hatsu's hard Nen dependency (D10) before any Nen-owned work — probe `nen --version` against the range declared in nen.contract.json, and when it is absent or out of range, install the pinned build through nen's own checksum-verified bootstrap. Fail-closed with auto-install. Use at the start of every Hatsu session, and again any time a `nen` invocation reports the binary is missing. It halts with the exact command ONLY if the bootstrap itself fails — and a Nen-owned operation is never improvised in prose.
+description: Satisfy Hatsu's hard Nen dependency (D10) before any Nen-owned work — probe `nen --version` against the range declared in nen/contract.json, and when it is absent or out of range, install the pinned build through nen's own checksum-verified bootstrap. Fail-closed with auto-install. Use at the start of every Hatsu session, and again any time a `nen` invocation reports the binary is missing. It halts with the exact command ONLY if the bootstrap itself fails — and a Nen-owned operation is never improvised in prose.
 ---
 
 # Hatsu warm-up — the Nen dependency contract, executed
 
-**`nen.contract.json` at the plugin root is the single source of truth.** This file is the procedure that
+**`nen/contract.json` at the plugin root is the single source of truth.** This file is the procedure that
 enforces it. Every version, ref, URL and command below is a **convenience copy** of a value that lives
 there; where a copy disagrees with the contract, **the contract wins and the copy is the bug** — fix this
 file.
+
+The contract sits at `nen/contract.json` — nen's own location and shape for a repository's dependency
+declaration (USAGE v0.3.0, *Taxonomy as data*) — so that nen itself validates it: `dependency.version_probe`
+is an argv **array**, `dependency.bootstrap` nests inside `dependency`, and every Hatsu-authored key beside
+those is preserved verbatim and read by nothing in nen. It was `nen.contract.json` at the root until Hatsu
+`v0.3.0`; there is deliberately no second copy.
 
 Run this **first, every session**, before any work that touches a Nen verb. Run it again mid-session the
 moment a `nen` invocation reports the binary is missing (a cache eviction, a `PATH` change, a different
@@ -21,13 +27,31 @@ shell).
 ## 0 · Read the contract yourself — no jq, no subprocess
 
 ```bash
-cat "$CLAUDE_PLUGIN_ROOT/nen.contract.json"
+cat "$CLAUDE_PLUGIN_ROOT/nen/contract.json"
 ```
 
 **You are the JSON parser.** You have just opened the file; read `dependency.minimum`,
-`dependency.zero_major_caveat`, `dependency.pinned_ref`, `dependency.source`, `bootstrap.url` and
+`dependency.zero_major_caveat`, `dependency.pinned_ref`, `dependency.source`, `dependency.version_probe`
+(an argv array — run exactly those elements, with no shell between them), `dependency.bootstrap.url` and
 `install_paths` straight off the page, and substitute the **literal values** into the plain `curl` / `bash` /
 `nen` commands below.
+
+**Once nen is on `PATH` (§ 4), let nen read the same file back.** This is the one machine read of the
+contract, and it is a validation, never a way of extracting values:
+
+```bash
+nen schema check --repo "$CLAUDE_PLUGIN_ROOT"
+```
+
+Verified live against `v0.3.0`: the `nen/contract.json` row prints
+`ok    nen/contract.json  dependency (nen >= 0.3, pinned v0.3.0)` — the floor and the pin nen parsed are the
+ones you just read, and a drift between them and this file's prose is a bug in the prose. **The three
+`FAIL` rows above it (`nen/labels.json`, `nen/repos.json`, `nen/colors.yml`) and the overall exit `1` are
+expected and are not a warm-up failure**: Hatsu ships no taxonomy of its own, and `schema check` requires
+those three for a repository that does. Read the contract row and only the contract row. (`--json` puts it
+at `checks[].file == "nen/contract.json"`, `ok: true`.) A contract row that reads `FAIL` — a
+`version_probe` that became a string, a `bootstrap` that moved out of `dependency`, a `minimum` that is not
+exactly two components — is a defect in this repository to fix before anything else runs.
 
 **Do not shell out to `jq`, `yq` or `python` to do this.** The ratified plan retires jq/yq as a DX friction —
 a machine needs one binary plus `git` and `gh` — and spawning a JSON parser to hand values back to the
@@ -45,7 +69,8 @@ already drifted.
 nen --version
 ```
 
-Three outcomes, and exactly three:
+(That is `dependency.version_probe` — `["nen", "--version"]` — spelled out; it prints a bare semver such
+as `0.3.0`.) Three outcomes, and exactly three:
 
 | Outcome | Meaning | Next |
 |---|---|---|
@@ -219,9 +244,20 @@ reports `{"checked": false}` rather than an empty finding set.
 ## What this skill is not
 
 It is **not** `nen warmup`. That verb is a different thing entirely: it detects stale pins across a target
-repository's `schemas/repos.json` (default pins *and* per-caller overrides) and optionally sweeps handbook
-questions. It presupposes a working `nen` — it cannot run when `nen` is the thing that is missing, which is
-precisely the case this skill exists to handle.
+repository's `nen/repos.json` (or, until `v0.4.0`, its legacy `schemas/repos.json` — default pins *and*
+per-caller overrides) and optionally sweeps handbook questions. It presupposes a working `nen` — it cannot
+run when `nen` is the thing that is missing, which is precisely the case this skill exists to handle. Two
+things about it changed in nen `v0.2.0` that a reader of its report must carry: a consumer recorded with
+**no pin at all** is now an `unpinned` finding that **fails the run (exit `1`)** exactly as a stale pin
+does, and its `--json` `pinFindings[].pinned` is `string | null` rather than always a string. An omitted
+`--questions-from` is still reported as `NOT CHECKED` / `{"checked": false}`, never as clean.
+
+It is **not** `nen shu warmup` either. That verb — new in `v0.3.0` — warms a **working copy** (refuse or
+`--discard` uncommitted work, fetch, fast-forward the trunk, cut the branch you name, prove the declared
+build) and is the one `shu` verb that **mutates git state**; `nen warmup` warms a **registry** and reads
+only. Same word, two verbs, resolved by nesting, and neither is a rename of the other. The build-loop
+skills ([`build`](../build/SKILL.md) § 5, [`futon`](../futon/SKILL.md) § 4) are where `nen shu warmup`
+belongs; it has no place in this warm-up.
 
 The two compose, in order: **this skill first** (is there a `nen` at all, in a version the contract accepts),
 **then** `nen warmup --current <vX.Y.Z>` against the target repository (is that repository's policy inbox

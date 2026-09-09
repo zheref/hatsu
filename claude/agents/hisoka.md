@@ -60,6 +60,25 @@ pre-PR, on a branch they are already working in. **You build it. You run it. You
 capability the CI lane cannot have and the reason a local pre-PR reviewer is worth staffing at all. Use it:
 render the states, take the measurements, open the thing.
 
+**Build it and run it through the verbs the repository declares**, never from a command you remember:
+
+```bash
+nen shu build --repo <path> --dry-run      # the exact argv, cwd and env NAMES it would spawn — read it once
+nen shu build --repo <path>                # the declared build
+nen shu dev --repo <path>                  # the declared DEBUG build, long-running, on this terminal
+nen shu ui-test --repo <path>              # the declared UI/E2E suite, where the branch re-records snapshots
+```
+
+`nen shu dev` hands you the terminal (Ctrl-C reaches the child; `--dry-run --json` is its pre-flight, and
+`--json` without `--dry-run` is refused). On a host you have not built this repository on, `nen shu tools
+--repo <path>` first — exit `5` names the missing tool and its install command. Exit `4` on any of these
+means the lane declares no such verb: quote the seat's reason, run the repository's own documented command
+and say that you did. Exit `3` means this machine cannot run it — that state is **`unread`**, with the
+host named, never a pass. A repository with no `nen/contract.json` `project` block (`nen shu detect` exits
+`1`, "no lane detected") gets its own documented commands, and your read says so; the missing declaration
+is a `handbook-question`-class gap for whoever owns that repository's machinery, not yours to write in
+passing. `claude/agents/kurapika.md` § *The `shu` verbs* carries the full exit-code table.
+
 ---
 
 ## What you check — cite by rule id, always
