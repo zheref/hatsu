@@ -121,8 +121,8 @@ at [`../nen.contract.json`](../nen.contract.json) and executed by the
 there, and where a copy disagrees the contract wins.
 
 1. **Probe** `nen --version` against the declared range. *Current pin, echoed for convenience:*
-   `minimum: "0.1"`. **While nen's line is `0.x` that means `>=0.1.0 <0.2.0` exactly — a different minor is
-   out of range in BOTH directions**, so `0.2.0` fails it as surely as `0.0.9` does. At major zero the
+   `minimum: "0.3"`. **While nen's line is `0.x` that means `>=0.3.0 <0.4.0` exactly — a different minor is
+   out of range in BOTH directions**, so `0.4.0` fails it as surely as `0.2.0` does. At major zero the
    *minor* is SemVer's breaking-change vehicle (clause 4), so reading it as "backward-compatible within a
    major" would fail **open** in the one range where compatibility is least guaranteed. That familiar rule
    applies from **`1.0` onward**, and the contract is bumped to say so when nen gets there.

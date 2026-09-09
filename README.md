@@ -12,7 +12,7 @@ verifies; the skill supplies only the judgment a binary cannot. Where no verb ex
 
 No GitHub App. No bot identity. Nothing here merges `main`, publishes a release, or casts a review vote.
 
-> **`v0.1.1`.** Hatsu is the local plane of the Akatsuki system, and it succeeds the local plane of a
+> **`v0.2.0`.** Hatsu is the local plane of the Akatsuki system, and it succeeds the local plane of a
 > predecessor system — the frozen reference implementation — which it also **serves live today**: the
 > seventeen skills were ported name-for-name and proven against that system's real backlog before this
 > version was cut. The evidence is in [`docs/ab/`](docs/ab/), one file per skill.
@@ -24,7 +24,7 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 | | |
 |---|---|
 | [Claude Code](https://claude.com/claude-code) | the host. The `claude plugin` subcommands below are its own. |
-| [`nen`](https://github.com/zheref/nen) **`>= 0.1`** | a **hard** dependency — see [The Nen contract](#the-nen-contract-d10). You do **not** need to install it yourself; the warm-up does it, checksum-verified. |
+| [`nen`](https://github.com/zheref/nen) **`>= 0.3`** | a **hard** dependency — see [The Nen contract](#the-nen-contract-d10). You do **not** need to install it yourself; the warm-up does it, checksum-verified. |
 | `git` + [`gh`](https://cli.github.com), authenticated | the skills read and write GitHub as **you**. |
 
 **On the installed plugin path**, nothing here needs `jq`, `yq` or Python: one binary, plus `git` and `gh`.
@@ -55,7 +55,7 @@ claude plugin install hatsu@hatsu
 Confirm what landed:
 
 ```sh
-claude plugin list                  # hatsu@hatsu — Version: 0.1.1
+claude plugin list                  # hatsu@hatsu — Version: 0.2.0
 claude plugin details hatsu@hatsu   # the full component inventory
 ```
 
@@ -74,11 +74,11 @@ other Nen-owned work.
 
 ### The range
 
-*Current pin, echoed for convenience:* **`nen >= 0.1`**.
+*Current pin, echoed for convenience:* **`nen >= 0.3`**.
 
-**While nen's line is `0.x`, that means `>=0.1.0 <0.2.0` — exactly.** A different minor is out of range in
-**both** directions: `0.2.0` fails it as surely as `0.0.9` does. At major version zero, SemVer 2.0.0 clause 4
-makes the *minor* the breaking-change vehicle, so reading `>= 0.1` as "anything backward-compatible within
+**While nen's line is `0.x`, that means `>=0.3.0 <0.4.0` — exactly.** A different minor is out of range in
+**both** directions: `0.4.0` fails it as surely as `0.2.0` does. At major version zero, SemVer 2.0.0 clause 4
+makes the *minor* the breaking-change vehicle, so reading `>= 0.3` as "anything backward-compatible within
 major 0" would fail **open** in precisely the range where compatibility is least guaranteed. The familiar
 "compatible within a major" reading applies from **`1.0` onward**, and the contract is bumped to say so when
 nen gets there.

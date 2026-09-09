@@ -57,14 +57,14 @@ Three outcomes, and exactly three:
 
 `minimum` is `MAJOR.MINOR`. **What it means depends on the major, and getting this backwards fails open.**
 
-**While nen's line is `0.x` — which it is today — `minimum: "0.1"` means exactly `>=0.1.0 <0.2.0`.**
+**While nen's line is `0.x` — which it is today — `minimum: "0.3"` means exactly `>=0.3.0 <0.4.0`.**
 
-**A different minor is out of range in BOTH directions.** `0.2.0` fails it exactly as `0.0.9` does.
+**A different minor is out of range in BOTH directions.** `0.4.0` fails it exactly as `0.2.0` does.
 
 > **Why, so nobody "corrects" it back:** SemVer 2.0.0 clause 4 says that at major version zero the public
 > API is unstable and **anything MAY change at any time** — at `0.x` the **minor** is the breaking-change
 > vehicle, the role `major` plays later. So "backward-compatible within a major" is precisely the wrong rule
-> here: applied at `0.x` it would wave through `0.9.0` against a `0.1` minimum, in the one version range
+> here: applied at `0.x` it would wave through `0.9.0` against a `0.3` minimum, in the one version range
 > where compatibility is *least* guaranteed. A higher `0.x` is **not** safer for being higher. Re-pin it.
 
 **From `1.0` onward** the familiar rule takes over: `X.Y` means `>=X.Y.0 <(X+1).0.0`, and a higher minor or
@@ -84,14 +84,14 @@ never by preference.**
 Both start with the same fetch, and **it is always two steps**:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.1.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
+curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.3.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
 ```
 
 > ### ⚠️ Fetch to a file. **Never pipe the script into bash.**
 >
 > ```bash
 > # WRONG — dies before it starts:
-> curl -fsSL <url> | bash -s -- --ref v0.1.0
+> curl -fsSL <url> | bash -s -- --ref v0.3.0
 > ```
 >
 > The script runs under `set -u` and reads `${BASH_SOURCE[0]}`. Piped into `bash -s --` there is no
@@ -103,7 +103,7 @@ curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.1.0/bootstrap/nen.sh 
 ### 2a · nen is **absent** → run the shell bootstrap directly
 
 ```bash
-bash /tmp/nen-bootstrap.sh --ref v0.1.0
+bash /tmp/nen-bootstrap.sh --ref v0.3.0
 ```
 
 **Why shell is permitted here, and only here.** Chicken-and-egg: `nen bootstrap` is a `nen` subcommand, so
@@ -115,7 +115,7 @@ grounds that this one does.
 ### 2b · nen is **present but out of range** → re-pin through nen's own verb
 
 ```bash
-nen bootstrap --ref v0.1.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
+nen bootstrap --ref v0.3.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
 ```
 
 A working `nen` is on `PATH`, so the chicken-and-egg rationale does not apply and the shell path is **not**
@@ -177,8 +177,8 @@ Print `halt.message_template` from the contract, with the code and its meaning f
 > yourself, then re-invoke:
 >
 > ```
-> curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.1.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
-> bash /tmp/nen-bootstrap.sh --ref v0.1.0
+> curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.3.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
+> bash /tmp/nen-bootstrap.sh --ref v0.3.0
 > ```
 >
 > Two steps, never a pipe: the script reads `${BASH_SOURCE[0]}` under `set -u`, so `curl … | bash` dies
@@ -205,9 +205,9 @@ computation, method-block validation, perf comparison, and the rest of `nen --he
 
 State the outcome before doing anything else, so the maintainer knows which of the four happened:
 
-- `Nen 0.1.0 · in range (>=0.1.0 <0.2.0) · warm-up clear`
-- `Nen absent · bootstrapped to v0.1.0 (checksum verified) · warm-up clear`
-- `Nen 0.0.9 out of range (>=0.1.0 <0.2.0) · re-pinned to v0.1.0 via nen bootstrap (checksum verified) · warm-up clear`
+- `Nen 0.3.0 · in range (>=0.3.0 <0.4.0) · warm-up clear`
+- `Nen absent · bootstrapped to v0.3.0 (checksum verified) · warm-up clear`
+- `Nen 0.2.0 out of range (>=0.3.0 <0.4.0) · re-pinned to v0.3.0 via nen bootstrap (checksum verified) · warm-up clear`
 - `Nen unavailable · bootstrap failed (exit 6, EXIT_MANIFEST) · HALTED — G5`
 
 **Silence is not one of the four.** A warm-up that did not run is reported as *not run*, never rendered as
