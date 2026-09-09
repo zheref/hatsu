@@ -114,7 +114,8 @@ Adopting one is a deliberate act with its own decision, not a consequence of it 
 ## The Nen dependency — every agent, every session
 
 Hatsu depends hard on the [Nen](https://github.com/zheref/nen) CLI (**D10**). The contract is machine-readable
-at [`../nen.contract.json`](../nen.contract.json) and executed by the
+at [`../nen/contract.json`](../nen/contract.json) — nen's own location and shape for a repository's dependency
+declaration, so `nen schema check` validates it — and executed by the
 [`hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md) skill, which every agent runs first, every session:
 
 **The contract file is the single source of truth**; the values below are convenience copies of what lives
