@@ -201,7 +201,8 @@ Bump `.claude-plugin/plugin.json`'s `version` (semver):
   - minor  — an agent definition's or a skill's BEHAVIOUR changes; a new skill;
              a new pinned nen ref in nen/contract.json.
   - major  — a breaking change to the plugin's public interface (a command, an
-             agent's invocation contract, the shape of the Nen contract).
+             agent's invocation contract, the shape of the Nen contract) — on a
+             0.x plugin, the MINOR carries these, per SemVer 2.0.0 clause 4.
 
 Or, if this change provably does not affect the shipped plugin surface (e.g. a
 comment-only edit), state `no plugin bump: <reason>` in the PR body.

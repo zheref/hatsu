@@ -13,6 +13,10 @@ adversarial-review fixes in this commit, base `main` at `992427c714d8fcd6ee26981
 5.2.37 (`x86_64-pc-msys`), `jq` 1.8.2. No network, no `gh`, no GitHub: the four inputs the CLI takes are
 plain files, which is the whole point of the comparison logic living in the script rather than in YAML.
 
+**Re-run:** 2026-09-08 (UTC), Hatsu `0.3.0`, branch `chore/reconcile-nen-v0.3.0` (zheref/hatsu#28) against
+base `main` at `e38bc0efc5e54a2087e8578d8f6e7b038bfc6f52`; GNU bash 3.2.57 (`arm64-apple-darwin25`), `jq`
+1.8.2. The § 2 sweep, § 3.1–3.2 and the new § 7 carry this run; everything else is the `v0.1.0` record.
+
 *Paths sanitized: this machine's local absolute paths appear as `<tmp>` (a throwaway fixture directory).
 Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered — the transcripts are otherwise verbatim.*
 
@@ -36,7 +40,28 @@ Private repository names, and the product codes that identified them, are redact
 >    link, never executed", which was the wrong criterion. `claude/agents/gon.md` mandates reading it at run
 >    time. It is covered now, along with forward-proofing globs for `hooks/**` and `.mcp.json` (§ 2).
 > 3. **Enforcement was overstated by omission.** The guard is **advisory** until the maintainer requires
->    the check; see § 6.
+>    the check; see § 6. *(Superseded 2026-09-08 — the check is now required; the box below and § 6.)*
+
+> ### Re-recorded at Hatsu `0.3.0` — 2026-09-08
+>
+> zheref/hatsu#28 changed three things this record states. The record is corrected in place rather than
+> left to disagree with the script it is the evidence for; the `v0.1.0` transcripts it does not re-run are
+> kept as history and say so where a line has since changed:
+>
+> 1. **The surface glob `nen.contract.json` became `nen/*`.** The contract moved to `nen/contract.json` —
+>    nen's own location and shape, so `nen schema check` validates it — and the glob covers the directory:
+>    any taxonomy file that ever lands beside it is read by an installed copy for the same reason. § 2's
+>    two tables and its sweep, and § 3.1–3.2, are re-run against the `0.3.0` script; § 4's `v0.1.0`
+>    counterfactual is kept with the changed line noted; § 7 runs the guard against #28's own diff, both
+>    directions.
+> 2. **The check is REQUIRED on `main`** by the repository ruleset *main: plugin-bump guard required*
+>    (`enforcement: active`; required status check context `check`, the job id). § 6 is rewritten; the
+>    "advisory" posture in correction 3 above is superseded, not deleted.
+> 3. **The refusal text's `major` line carries the 0.x caveat.** It names "the shape of the Nen contract"
+>    as a major trigger; #28 changed exactly that and bumped the **minor** (`0.2.0 → 0.3.0`), on the
+>    reading Hatsu applies to nen's own line — at major zero the minor is the breaking-change vehicle
+>    (SemVer 2.0.0 clause 4). The line now says so, so text and practice agree. That is a decision taken
+>    in #28, flagged for the maintainer there.
 
 ---
 
@@ -59,13 +84,13 @@ It moves to Hatsu because guards live beside the surface they guard, and this is
 | | `<reference-repo>` `v0.11.3` | Hatsu |
 |---|---|---|
 | **Comparison logic** | `path_is_plugin_surface`, `any_path_is_plugin_surface`, `plugin_version`, `version_bumped`, `pr_body_has_opt_out`, then a 4-argument CLI | **unchanged**, function for function |
-| **Surface globs** | `claude/*`, `scripts/ichigo_prompt.sh`, `scripts/ichigo_board.sh`, `scripts/ichigo_pix.txt`, `scripts/gate_stop.sh`, `scripts/attention_signal.sh`, `schemas/repos.json`, `.claude-plugin/*` | `.claude-plugin/*`, `claude/*`, `nen.contract.json`, `contracts/*`, `docs/ROSTER.md`, `docs/delegation-grammar-DRAFT.md`, `hooks/*`, `.mcp.json` |
+| **Surface globs** | `claude/*`, `scripts/ichigo_prompt.sh`, `scripts/ichigo_board.sh`, `scripts/ichigo_pix.txt`, `scripts/gate_stop.sh`, `scripts/attention_signal.sh`, `schemas/repos.json`, `.claude-plugin/*` | `.claude-plugin/*`, `claude/*`, `nen/*` (was `nen.contract.json` until `0.3.0`), `contracts/*`, `docs/ROSTER.md`, `docs/delegation-grammar-DRAFT.md`, `hooks/*`, `.mcp.json` |
 | **Opt-out** | `no plugin bump: <reason>` in the PR body | **unchanged** |
 | **Workflow** | reusable `workflow_call` with a self-hosted-runner probe and a GitHub App token | a plain `pull_request` job on `ubuntu-latest` — Hatsu has no runner fleet and no App |
 | **Trusted-script posture** | guard checked out from `main`, never run from the PR | **intended to be unchanged, and was BROKEN on first submission — now fixed.** See the correction box above and § 5. The posture only became real once the script was committed `100755` and the workflow's gate became `-f` |
 | **Exec-bit assertion** | `tests/workflow_script_exec_bit.bats` | **no bats harness in Hatsu** — the equivalent assertion is a workflow step reading `git ls-files -s` (§ 5.1). Stated as a real difference, not a parity claim |
 | **Credential posture** | `persist-credentials: false` on both checkouts; diff and base manifest over the API | **unchanged** |
-| **Enforcement** | required by `<reference-repo>`'s own branch protection | **advisory** in Hatsu until the maintainer requires the check (§ 6) |
+| **Enforcement** | required by `<reference-repo>`'s own branch protection | **required** on `main` by the repository ruleset *main: plugin-bump guard required* since 2026-09-08 (Hatsu `0.3.0`); advisory from `v0.1.0` until then (§ 6) |
 
 ### Why *these* globs
 
@@ -76,7 +101,7 @@ time** — staleness in either is the same failure.
 |---|---|
 | `.claude-plugin/*` | the manifests themselves. |
 | `claude/*` | everything `plugin.json` points at: `agents` (kurapika, gon, hisoka, phinks, uvogin), `commands` (`/kurapika`), `skills` (the 17 ports + `hatsu-warmup`). |
-| `nen.contract.json` | read at run time as `$CLAUDE_PLUGIN_ROOT/nen.contract.json` by `hatsu-warmup` and by the agent definitions. It carries the **pinned nen ref**: a stale copy pins an installed plugin to the wrong nen build. |
+| `nen/*` | `nen/contract.json`, read at run time as `$CLAUDE_PLUGIN_ROOT/nen/contract.json` by `hatsu-warmup` and by the agent definitions. It carries the **pinned nen ref**: a stale copy pins an installed plugin to the wrong nen build. The glob covers the directory rather than the file because `nen/` is nen's own location for a repository's contract *and* taxonomy — a `nen/labels.json` landing beside it would be read by an installed copy for the same reason. (It was `nen.contract.json` at the root until Hatsu `0.3.0`; the old path is no longer covered, and does not need to be — the move was caught by its new name, and a rename *out* of `nen/` is caught because the workflow lists `previous_filename` too.) |
 | `contracts/*` | `reference.gates.json`, passed as `nen pr ready --gates "$CLAUDE_PLUGIN_ROOT/contracts/…"` by `pr-state`, `drive`, `backlog-state`, `futon` and `tensho`. Stale reviewer identities produce a **wrong readiness verdict, silently** — the worst failure mode in the repo. |
 | `docs/ROSTER.md` | cited by `claude/agents/kurapika.md` and `claude/commands/kurapika.md` as *the authority* on who exists and what standing they have. An installed plugin reading a stale roster can act as an agent whose row changed, or miss one that was added. This is the direct analogue of `<reference-repo>` covering `schemas/repos.json` and `scripts/ichigo_pix.txt` — data the agent reads, not code it runs. |
 | `docs/delegation-grammar-DRAFT.md` | **Added by the review correction.** The same criterion as `ROSTER`, and the first cut got it wrong. `claude/agents/gon.md` § 1 says, in the shipped file: *"Read `docs/delegation-grammar-DRAFT.md` before your first act of any run"* — that is a **run-time read by an installed copy**, and `claude/agents/kurapika.md` cites it for the unratified-grant rule too. The original justification ("a draft, cited by link, never executed") confused a statement about the document's *authority* with a statement about whether it *ships*. A stale draft is exactly as invisible to an installed plugin as a stale roster, and the consequence is worse: an agent reading a superseded grammar. |
@@ -87,7 +112,8 @@ Deliberately **not** covered, because nothing installed reads them at run time: 
 (these evidence records — read by humans on GitHub, never by an installed copy), `scripts/**` (CI-only — no
 agent or skill invokes anything there), `.github/**`.
 
-Verified by classification sweep, re-run after the glob change:
+Verified by classification sweep, re-run 2026-09-08 against the `0.3.0` script (the `v0.1.0` sweep differed
+only in its `nen.contract.json` row, then `COVERED`):
 
 ```
 $ bash -c 'source scripts/plugin_bump_check.sh; for p in …; do path_is_plugin_surface "$p" && echo "COVERED      $p" || echo "not covered  $p"; done'
@@ -99,12 +125,14 @@ COVERED      claude/commands/kurapika.md
 COVERED      claude/skills/drive/SKILL.md
 COVERED      claude/skills/hatsu-warmup/SKILL.md
 COVERED      claude/skills/README.md
-COVERED      nen.contract.json
+COVERED      nen/contract.json
+COVERED      nen/labels.json
 COVERED      contracts/reference.gates.json
 COVERED      docs/ROSTER.md
 COVERED      docs/delegation-grammar-DRAFT.md
 COVERED      hooks/session_start.sh
 COVERED      .mcp.json
+not covered  nen.contract.json
 not covered  README.md
 not covered  docs/ab/drive.md
 not covered  docs/ab/plugin-bump-guard.md
@@ -112,8 +140,9 @@ not covered  scripts/plugin_bump_check.sh
 not covered  .github/workflows/plugin-bump-check.yml
 ```
 
-`hooks/session_start.sh` is a **hypothetical** path — the directory does not exist yet. That is the point of
-the row: the glob is in place before the file is.
+`hooks/session_start.sh` and `nen/labels.json` are **hypothetical** paths — neither exists in this
+repository. That is the point of the rows: the glob is in place before the file is. `nen.contract.json` is
+the **retired** path, listed to show it is not covered and why that is fine (the row above).
 
 Note `claude/skills/README.md` is covered: `claude/*` is a bash pattern match, not filename globbing, so `*`
 crosses `/` and the glob covers any depth. That is inherited behaviour, and it is the behaviour wanted.
@@ -144,10 +173,16 @@ that nobody reads "guard satisfied" as "the version is correct" — it means onl
 ## 3. The acceptance transcripts — refuse, then pass
 
 **Every transcript in this section was re-run after the review fixes** (the new globs and the exec-bit
-change), against the same fixtures, and the verdicts are unchanged.
+change), against the same fixtures, and the verdicts are unchanged. **§ 3.1 and § 3.2 were re-recorded
+again on 2026-09-08 against the `0.3.0` script** — the verdicts are unchanged from `v0.1.0`; what changed
+is the refusal text (the `nen/**` glob line, the redacted provenance sentence, and the `major` line's 0.x
+caveat), and the transcripts below are that text. § 3.3–3.5 are the `v0.1.0` record: their output has no
+line the `0.3.0` script changed.
 
-**The fixtures**, all in a throwaway directory shown as `<tmp>`. `base_plugin.json` is `main`'s real
-manifest (`version` `0.0.1`, confirmed by `git show main:.claude-plugin/plugin.json`); `head_bumped.json` is
+**The fixtures**, all in a throwaway directory shown as `<tmp>`. At `v0.1.0`, `base_plugin.json` was `main`'s
+real manifest (`version` `0.0.1`, confirmed by `git show main:.claude-plugin/plugin.json`); for the
+2026-09-08 re-record it is a `{name, version}` manifest carrying the same `0.0.1` — the guard reads only
+`.version`, so the two are the same input to it. `head_bumped.json` is
 the same file with `version` set to `0.1.0`; `head_unbumped.json` is a byte-identical copy of the base.
 `changed_surface.txt` contains one line, `claude/skills/drive/SKILL.md`; `changed_nonsurface.txt` contains
 `README.md`, `docs/ab/drive.md`, `scripts/plugin_bump_check.sh`.
@@ -157,22 +192,23 @@ the same file with `version` set to `0.1.0`; `head_unbumped.json` is a byte-iden
 ```
 $ bash scripts/plugin_bump_check.sh <tmp>/changed_surface.txt <tmp>/base_plugin.json <tmp>/head_unbumped.json <tmp>/pr_body_empty.md
 This PR changes a plugin-shipped surface (.claude-plugin/**, claude/**,
-nen.contract.json, contracts/**, docs/ROSTER.md,
+nen/**, contracts/**, docs/ROSTER.md,
 docs/delegation-grammar-DRAFT.md, hooks/**, or .mcp.json) but leaves
 .claude-plugin/plugin.json's `version` field unchanged.
 
 Claude Code keys its plugin cache on that field. An already-installed Hatsu
 will never pick this change up until the version is bumped — no error, no
-warning, the change simply does not ship. (Ported from <reference-repo>'s
-RR-IS-#557 item 5, filed after exactly this omission shipped RR-PR-#546 to
-nobody.)
+warning, the change simply does not ship. (Ported from the frozen reference
+implementation's own guard, filed after exactly this omission shipped a
+four-surface change to nobody.)
 
 Bump `.claude-plugin/plugin.json`'s `version` (semver):
   - patch  — wording/fix-only change to a shipped surface.
   - minor  — an agent definition's or a skill's BEHAVIOUR changes; a new skill;
-             a new pinned nen ref in nen.contract.json.
+             a new pinned nen ref in nen/contract.json.
   - major  — a breaking change to the plugin's public interface (a command, an
-             agent's invocation contract, the shape of the Nen contract).
+             agent's invocation contract, the shape of the Nen contract) — on a
+             0.x plugin, the MINOR carries these, per SemVer 2.0.0 clause 4.
 
 Or, if this change provably does not affect the shipped plugin surface (e.g. a
 comment-only edit), state `no plugin bump: <reason>` in the PR body.
@@ -285,6 +321,10 @@ docs/delegation-grammar-DRAFT.md, hooks/**, or .mcp.json) but leaves
 [exit 1]
 ```
 
+*(The `v0.1.0` transcript, kept as recorded: its second line names `nen.contract.json`, which the `0.3.0`
+script prints as `nen/**`. § 7 is the same exercise against zheref/hatsu#28's own diff, with the current
+text.)*
+
 The guard would have refused this very PR without its bump, and passes it with one. That is the acceptance
 criterion, met against real content rather than a fixture.
 
@@ -352,25 +392,100 @@ default token is the honest wiring, not a reduced one.
 
 ---
 
-## 6. Enforcement — what this check does NOT do today
+## 6. Enforcement — required on `main` since 2026-09-08
 
-Two things are true right now, and neither is a defect in the script:
+**The posture this section recorded at `v0.1.0`, kept as history:** the guard shipped **advisory**. Nothing
+required the check, a red run blocked no merge, and this section said so — together with the
+recommendation that the maintainer require it — rather than let a green check be read as an enforced one.
 
-1. **The check is advisory.** Nothing requires it. Until the maintainer adds branch protection or a
-   repository ruleset that marks `plugin-bump-check` a **required** status check on `main`, a red check
-   blocks no merge. The guard tells the truth; it does not yet enforce it.
-2. **A same-repo PR is judged by its own workflow definition.** That is GitHub's behaviour, not a choice
-   made here: for a pull request from a branch in the same repository, the workflow file that runs is the
-   one on the PR head. Checking the *guard script* out of `main` (§ 5.1) closes the script half of that hole
-   and is the reason it matters; it cannot close the YAML half, because the YAML is what does the checking
-   out.
+**The posture now (Hatsu `0.3.0`, 2026-09-08):** the repository ruleset **`main: plugin-bump guard
+required`** (`enforcement: active`) lists this workflow's `check` job as a **required status check** on
+`main`. A failing `plugin-bump-check` run blocks the merge. That closes the first of the two `v0.1.0`
+recommendations; what is true beside it:
 
-**Recommended hardening — repository settings, which is a human gate.** This is a recommendation, not
-something this PR performs or could perform:
+1. **The required context is the job id, `check`** — not the workflow name `plugin-bump-check`. Renaming
+   the job, or giving it a `name:`, changes the context and silently un-requires the check until the ruleset
+   is edited to match. The workflow header says so beside the job, so the trap is named where it would be
+   sprung.
+2. **A same-repo PR is still judged by its own workflow definition.** That is GitHub's behaviour, not a
+   choice made here: for a pull request from a branch in the same repository, the workflow file that runs is
+   the one on the PR head. Checking the *guard script* out of `main` (§ 5.1) closes the script half of that
+   hole and is the reason it matters; it cannot close the YAML half, because the YAML is what does the
+   checking out. The ruleset requires the check; it does not protect `.github/**`.
 
-- Require the `plugin-bump-check` status check on `main` (branch protection or a ruleset).
-- Protect `.github/**` with a ruleset or a `CODEOWNERS` entry, so a PR cannot silently rewrite the workflow
-  that judges it and have the rewrite take effect on that same PR.
+**Remaining hardening — repository settings, which is a human gate.** A recommendation, not something a PR
+performs or could perform: protect `.github/**` with a ruleset or a `CODEOWNERS` entry, so a PR cannot
+silently rewrite the workflow that judges it and have the rewrite take effect on that same PR.
 
-Stated here, and in one line in the README's *Contributing* section, so that no reader takes a green check
-for an enforced one.
+Stated here, in the workflow header, and in one line in the README's *Contributing* section, so that the
+three agree on what a green check means.
+
+---
+
+## 7. Re-run at Hatsu `0.3.0` — against zheref/hatsu#28's own diff
+
+**Run:** 2026-09-08 (UTC), branch `chore/reconcile-nen-v0.3.0` against base `main` at
+`e38bc0efc5e54a2087e8578d8f6e7b038bfc6f52`; GNU bash 3.2.57 (`arm64-apple-darwin25`), `jq` 1.8.2. The same
+four plain-file inputs; the only `gh` call read the PR body into a file.
+
+The changed-file list is in the API's shape the workflow computes — `.filename` **and** `.previous_filename`
+— so the contract move appears twice: `nen.contract.json` (the old path, no longer covered) and
+`nen/contract.json` (covered). Thirty-four paths, of which **twenty-nine** are guarded surfaces (both
+`.claude-plugin/*` manifests, every changed `claude/**` file, `nen/contract.json`,
+`contracts/reference.gates.json`, `docs/ROSTER.md`) and five are not (`README.md`, `nen.contract.json`,
+`scripts/plugin_bump_check.sh`, `.github/workflows/plugin-bump-check.yml`, `docs/ab/plugin-bump-guard.md`):
+
+```
+$ bash -c 'source scripts/plugin_bump_check.sh; while read -r p; do path_is_plugin_surface "$p" && echo "COVERED      $p" || echo "not covered  $p"; done < <tmp>/changed_pr28.txt' | awk '{print $1}' | sort | uniq -c
+  29 COVERED
+   5 not
+```
+
+**With the real bump** — base is `main`'s manifest (`0.2.0`), head is this branch's (`0.3.0`), the body is
+PR #28's, which carries no `no plugin bump:` opt-out (checked with the script's own regex), so the pass is
+the bump's alone:
+
+```
+$ bash scripts/plugin_bump_check.sh <tmp>/changed_pr28.txt <tmp>/base_020.json <tmp>/head_030.json <tmp>/pr_body_28.md
+plugin.json version bumped — plugin-bump guard satisfied
+[exit 0]
+```
+
+**Counterfactual — the identical diff with base == head** (`0.3.0` on both sides, empty body):
+
+```
+$ bash scripts/plugin_bump_check.sh <tmp>/changed_pr28.txt <tmp>/head_030.json <tmp>/head_030.json <tmp>/pr_body_empty.md
+This PR changes a plugin-shipped surface (.claude-plugin/**, claude/**,
+nen/**, contracts/**, docs/ROSTER.md,
+docs/delegation-grammar-DRAFT.md, hooks/**, or .mcp.json) but leaves
+.claude-plugin/plugin.json's `version` field unchanged.
+
+Claude Code keys its plugin cache on that field. An already-installed Hatsu
+will never pick this change up until the version is bumped — no error, no
+warning, the change simply does not ship. (Ported from the frozen reference
+implementation's own guard, filed after exactly this omission shipped a
+four-surface change to nobody.)
+
+Bump `.claude-plugin/plugin.json`'s `version` (semver):
+  - patch  — wording/fix-only change to a shipped surface.
+  - minor  — an agent definition's or a skill's BEHAVIOUR changes; a new skill;
+             a new pinned nen ref in nen/contract.json.
+  - major  — a breaking change to the plugin's public interface (a command, an
+             agent's invocation contract, the shape of the Nen contract) — on a
+             0.x plugin, the MINOR carries these, per SemVer 2.0.0 clause 4.
+
+Or, if this change provably does not affect the shipped plugin surface (e.g. a
+comment-only edit), state `no plugin bump: <reason>` in the PR body.
+[exit 1]
+```
+
+Two things this run says that § 4 could not:
+
+- **The `nen/**` glob is live and the refusal names it.** The contract's new path is a guarded surface by
+  the directory rule, and a PR that touched only `nen/contract.json` without a bump would be refused by
+  this line.
+- **On PR #28 itself, CI was judged by `main`'s copy of the guard** (§ 5 — never the PR's), whose glob line
+  still read `nen.contract.json`. That copy applies through `claude/**` regardless and passes on the same
+  bump; the `nen/*` glob becomes the judging copy once #28 merges. The script is not itself a guarded
+  surface (`scripts/**`), so changing it carries no bump requirement of its own — the bump this PR carries
+  is owed to the twenty-nine surfaces above.

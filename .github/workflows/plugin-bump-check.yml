@@ -29,13 +29,18 @@
 # bit, which is exactly the "a PR rewrites the guard judging it" failure choice
 # 1 exists to prevent. The exec bit is separately asserted in-tree, below.
 #
-# ENFORCEMENT POSTURE (honest, as of v0.1.0): this check is ADVISORY until the
-# maintainer adds branch protection or a ruleset that REQUIRES it. And GitHub
-# runs a same-repo PR against the PR's own workflow definition, so a PR may
-# edit this file and be judged by the edited version. The recommended repo
-# settings hardening — a maintainer action, not something this file can do —
-# is: (a) require the `plugin-bump-check` check on `main`, and (b) protect
-# `.github/**` with a ruleset or CODEOWNERS so a PR cannot silently rewrite it.
+# ENFORCEMENT POSTURE (as of 2026-09-08, Hatsu 0.3.0): this check is REQUIRED
+# on `main`. The repository ruleset `main: plugin-bump guard required`
+# (`enforcement: active`) lists the `check` job below as a required status
+# check — the context is the job id, `check`, so renaming that job silently
+# un-requires it — and a failing run blocks the merge. This supersedes the
+# "ADVISORY until the maintainer requires it" posture recorded here at v0.1.0
+# (docs/ab/plugin-bump-guard.md § 6 carries the dated record). What the ruleset
+# does NOT do: GitHub runs a same-repo PR against the PR's own workflow
+# definition, so a PR may still edit this file and be judged by the edited
+# version. Closing that is a further repo-settings act — a maintainer action,
+# not something this file can do: protect `.github/**` with a ruleset or
+# CODEOWNERS so a PR cannot silently rewrite the workflow that judges it.
 name: plugin-bump-check
 
 on:
