@@ -280,7 +280,7 @@ repository declares**, in this order (nen `v0.3.0`'s `shu` family; `claude/agent
    inspected — it runs `git reset --hard` then `git clean -fd`), refuses a name that already exists
    locally or on `origin`, and runs the lane's declared `build` (and `test` with `--tests`) on the branch
    it just cut. `--repo` is **required** here — the one `shu` verb that mutates git state. Verified live at
-   `v0.3.0` in `--dry-run` form against this plugin's own checkout: the twelve git steps print in order,
+   `v0.3.0` in `--dry-run` form against this plugin's own checkout: the thirteen git steps print in order,
    exit `0`, and a repository with **no** `project` block gets the git half with `no declaration --
    build/test verification skipped` on stderr — still exit `0`.
 2. **On a host this repository has not been built on, check the toolchain first:**
@@ -303,11 +303,16 @@ repository declares**, in this order (nen `v0.3.0`'s `shu` family; `claude/agent
    documented command, say that you did, and where the seat should be a real row, land the declaration
    change as its own PR at **G4**. Exit **`5`** is the declared program not on `PATH` — back to step 2.
    Exit **`3`** is a host the declaration excludes — a **G5** stop naming the host that can, never a retry.
-   **A repository with no `nen/contract.json` `project` block at all** (`nen shu detect --repo <path>`
-   exits `1`, *no lane detected* — this plugin's own checkout, the frozen reference implementation, any
-   repository outside nen's seven stacks) refuses every `shu` verb but `warmup` at exit `2` naming the
-   missing file: run its own documented commands (`make test`, its package scripts), **say plainly that
-   no declaration exists yet**, and treat writing one by hand as a G4 change to propose, not a blocker.
+   **A repository with no `nen/contract.json` `project` block at all** refuses every `shu` verb but
+   `warmup` at exit `2` naming the missing file (or, as on this plugin's own checkout, the file's
+   missing `project` block) — that is the no-declaration fact, and it is read off `shu build`/`test`/
+   `lint`, never off `detect`. `nen shu detect --repo <path>` exiting `1` (*no lane detected*) is a
+   different fact — no marker on disk that nen recognises — and the two coincide only outside nen's
+   seven stacks (this checkout, the frozen reference implementation, any bash-and-markdown repository):
+   an Xcode tree with no declaration is `detect` exit `0` with a proposal and `shu build` exit `2`,
+   verified live at `v0.3.0`. Either way: run its own documented commands (`make test`, its package
+   scripts), **say plainly that no declaration exists yet, and which case it was**, and treat writing
+   one by hand as a G4 change to propose, not a blocker.
 
 **Where the work is something a local session structurally cannot do at all** — it needs a
 credential only a retired CI identity held, or the decision is one only that now-nonexistent plane

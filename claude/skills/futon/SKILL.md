@@ -218,9 +218,10 @@ verify, no `build` job to poll, no probe run to distinguish from a swallowed one
 CI plane Hatsu does not have (the declared-change callout above). The build itself runs through the
 verbs the target repository declares, exactly as [`hatsu:build`](../build/SKILL.md) § 5 lays them out
 and this skill invokes rather than restates: per issue, `nen shu warmup --repo <path> --branch
-kurapika/<slug>` to cut the branch from the fresh trunk tip and prove the declared build (on a band of
-several issues the one worktree-per-effort rule holds, so the warm-up runs in that effort's own
-worktree), `nen shu tools --repo <path>` once on a fresh host, then `nen shu build`/`test`/`lint` as
+kurapika/<slug>` — `--dry-run` first, then bare — to cut the branch from the fresh trunk tip and prove the
+declared build (on a band of several issues the one worktree-per-effort rule holds, so the warm-up runs
+in that effort's own worktree), `nen shu tools --repo <path>` once on a fresh host, then
+`nen shu build`/`test`/`lint` as
 the work goes — with exit `4` quoted as the lane's own seat, exit `5` sent back to `shu tools`, exit `3`
 a **G5** naming the host, and a repository with no declaration built by its own documented commands,
 said so (`claude/agents/kurapika.md` § *The `shu` verbs*). Where the work is something a local

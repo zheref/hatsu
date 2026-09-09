@@ -74,10 +74,15 @@ nen shu ui-test --repo <path>              # the declared UI/E2E suite, where th
 --repo <path>` first — exit `5` names the missing tool and its install command. Exit `4` on any of these
 means the lane declares no such verb: quote the seat's reason, run the repository's own documented command
 and say that you did. Exit `3` means this machine cannot run it — that state is **`unread`**, with the
-host named, never a pass. A repository with no `nen/contract.json` `project` block (`nen shu detect` exits
-`1`, "no lane detected") gets its own documented commands, and your read says so; the missing declaration
-is a `handbook-question`-class gap for whoever owns that repository's machinery, not yours to write in
-passing. `claude/agents/kurapika.md` § *The `shu` verbs* carries the full exit-code table.
+host named, never a pass. A repository with no `nen/contract.json` `project` block answers `shu build`,
+`dev` and `ui-test` with exit `2` naming the missing file (or the file's missing `project` block) — that
+is the no-declaration fact, and it is read off those verbs. `nen shu detect` exiting `1` ("no lane
+detected") is a different fact — no marker on disk that nen recognises — and the two coincide only
+outside nen's seven stacks: an Xcode tree with no declaration is `detect` exit `0` with a proposal and
+`shu build` exit `2`. Either way the repository gets its own documented commands, your read says which
+case it was, and the missing declaration is a `handbook-question`-class gap for whoever owns that
+repository's machinery, not yours to write in passing. `claude/agents/kurapika.md` § *The `shu` verbs*
+carries the full exit-code table.
 
 ---
 

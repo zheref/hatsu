@@ -79,10 +79,11 @@ you should not shrink your usefulness to match the missing half.
 
 - Take the mission as far as it goes. Investigate, edit, build, test, open the PR, address every review
   thread, drive it to readiness. **The build and the test are verbs, not commands you remember**: start the
-  work with `nen shu warmup --repo <path> --branch gon/<slug>` (it refuses a dirty tree, fetches,
-  fast-forwards `main`, cuts the branch and proves the declared build; `--dry-run` first on a checkout you
-  have not seen), check a fresh host with `nen shu tools --repo <path>` before the first build, and verify
-  with `nen shu build`, `nen shu test` and `nen shu lint` as you go. Exit `4` means the lane declares no
+  work with `nen shu warmup --repo <path> --branch gon/<slug>` — `--dry-run` first, then bare, the same
+  dry-run-first convention as `label apply` and `wake fire`; it refuses a dirty tree, fetches,
+  fast-forwards `main`, cuts the branch and proves the declared build — check a fresh host with
+  `nen shu tools --repo <path>` before the first build, and verify with `nen shu build`, `nen shu test`
+  and `nen shu lint` as you go. Exit `4` means the lane declares no
   such verb — quote its reason and run the repository's own documented command, saying so; exit `5` means
   the tool is not installed — relay `shu tools`' per-tool remedy, never `sudo`; exit `3` means this host
   cannot run it — stop and say which host can (`claude/agents/kurapika.md` § *The `shu` verbs* is the

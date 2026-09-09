@@ -60,11 +60,14 @@ in the verb's own words** (`QA-3`) — relay its per-tool remedy and file the to
 with elevation and never a version the declaration did not pin. **Exit `3`** is the same `not-testable-here`
 with the host named. **Exit `4`** means the lane declares no such verb: quote the seat's reason, run the
 repository's own documented command and say that you did — the seat itself is a finding for whoever owns
-that repository's machinery. A repository with no declaration at all (`nen shu detect` exits `1`) is tested
-by its own documented commands, and the report says so. The full table is in `claude/agents/kurapika.md`
-§ *The `shu` verbs*. **You never run `nen shu deploy --run`** — a deploy is a G3 act; the plan without
-`--run` (`nen shu deploy --repo <path> --target <name>`) is the most you print, and only to read where the
-candidate would go.
+that repository's machinery. A repository with no declaration at all answers every verb above with exit
+`2` naming the missing `nen/contract.json` (or its missing `project` block) — read the fact off those
+verbs, not off `nen shu detect`, whose exit `1` means something else: no marker nen recognises. The two
+coincide only outside the seven stacks (an Xcode tree with no declaration is `detect` exit `0` and `shu
+build` exit `2`). Either way the candidate is tested by its own documented commands, and the report says
+which case it was. The full table is in `claude/agents/kurapika.md` § *The `shu` verbs*. **You never run
+`nen shu deploy --run`** — a deploy is a G3 act; the plan without `--run` (`nen shu deploy --repo <path>
+--target <name>`) is the most you print, and only to read where the candidate would go.
 
 ---
 
@@ -162,8 +165,8 @@ because it is nobody's feature.
   a path containing spaces, an unexpected extra field. **Each must fail closed** — non-zero, with a message
   — never pass silently. Where the machinery repository declares its verbs, "green from a clean checkout"
   is `nen shu lint --repo <path>` and `nen shu test --repo <path>` on a tree `nen shu warmup --repo <path>
-  --branch qa/<slug>` has just cut from the fresh trunk tip; where it declares none, it is the repository's
-  own `make lint`/`make test`, said so.
+  --branch qa/<slug>` (`--dry-run` first, then bare) has just cut from the fresh trunk tip; where it
+  declares none, it is the repository's own `make lint`/`make test`, said so.
 - **`QA-17`** — **workflow wake conditions are asserted, not eyeballed.** Every condition gating a
   privileged, secret-bearing or wake-bearing job needs an assertion reading the **live** workflow definition
   and checking **each conjunct independently** — event name, action, label name, author login, sender gate.

@@ -172,8 +172,9 @@ build system and knows no tool's name. So the verbs exist for **any** stack that
 
 1. **Warm the working copy** — `nen shu warmup --repo <path> --branch kurapika/<slug> [--tests]`. Refuses a
    dirty tree (never `--discard` on a tree you did not inspect), fetches, fast-forwards `main`, cuts the
-   branch from `origin/main`'s fresh tip and runs the declared `build` (and `test` with `--tests`). Preview
-   with `--dry-run` first on an unfamiliar checkout; it prints every git command and runs none.
+   branch from `origin/main`'s fresh tip and runs the declared `build` (and `test` with `--tests`).
+   `--dry-run` first, then bare — the same dry-run-first convention as `label apply` and `wake fire`; the
+   dry run prints every git command and runs none.
 2. **Check the host before the first build on a fresh machine** — `nen shu tools --repo <path>`. Exit `5`
    names, per tool, the exact install command; `--install` acts only through `corepack` and never with
    elevation. `--dry-run` prints the probes and spawns nothing.
@@ -206,10 +207,13 @@ to accept. That is not a defect to file against nen: the verbs are declaration-d
 told nen how this repository is built. What you do: if the repository has a build worth declaring, **write
 the `project` block by hand** (`nen shu --help` names the fields; a verb it does not have is an explicit
 `{"unsupported": "<why>"}` seat, never left out) and land it as a PR at **G4** — it is machinery. Until it
-lands, `nen shu build`/`test`/`lint` refuse at exit `2` naming the missing file, and you run the repository's
+lands, `nen shu build`/`test`/`lint` refuse at exit `2` naming the missing file (or, where a
+`dependency`-only contract exists as on Hatsu, its missing `project` block), and you run the repository's
 own documented commands (its `Makefile`, its package scripts) **and say plainly that no declaration exists
-yet**. `nen shu warmup --repo <path> --branch <name>` still works on such a repository — the git half runs,
-the build half is skipped with a line saying so, exit `0`.
+yet**. Read the no-declaration fact off those verbs: `detect` exit `1` is about markers, not declarations,
+and a stack-shaped tree with no declaration is `detect` exit `0` and `shu build` exit `2`.
+`nen shu warmup --repo <path> --branch <name>` still works on such a repository — the git half runs, the
+build half is skipped with a line saying so, exit `0`.
 
 **`nen shu deploy` is behind the release gate, and only the plan is yours.** `nen shu deploy --repo <path>
 --lane <lane> --target <name>` prints the fully resolved plan — the destination substituted into the argv,
@@ -236,11 +240,14 @@ answers exit `4` with its own reason whatever `--target` says; a runnable row wi
 4. `nen shu tools --repo <path>` — the host verdict, on its own exit code.
 
 For a project that does not exist yet: `nen scaffold new --stack <id> --name <project> --dir <path>
---dry-run`, then without — the manifest that identifies the stack, `nen/contract.json` as `shu detect`
-proposes it off that marker, the hook, the CI workflow and `.gitignore`, into an empty directory it refuses
-to merge into; every post-step (`git init`, the dependency install) is printed and none is run. Only
-`expo`, `gatsby` and `nextjs` have a fresh-tree form; the refusal for the others names `scaffold init` as the
-way forward after the stack's own generator has run.
+[--agent-trailer <key> --run-trailer <key> --marker-env <VAR>] --dry-run`, then without — the manifest
+that identifies the stack, `nen/contract.json` as `shu detect` proposes it off that marker, the CI workflow
+and `.gitignore`, into an empty directory it refuses to merge into. The commit-msg hook is written **only
+when all three trailer flags are given**; omitted, the line reads `skipped: .git/hooks/commit-msg -- no
+trailer convention was stated` and the post-steps name the `scaffold init` line that installs it (verified
+live at `v0.3.0` both ways). Every post-step (`git init`, the dependency install) is printed and none is
+run. Only `expo`, `gatsby` and `nextjs` have a fresh-tree form; the refusal for the others names
+`scaffold init` as the way forward after the stack's own generator has run.
 
 ---
 
@@ -251,10 +258,11 @@ way forward after the stack's own generator has run.
 Enhancement is the type that strengthens what already exists, and that is what product work is: the
 codebase is the object, you make it more of what it is. Edit product/feature code directly in the current
 local checkout, build and test **LOCALLY**, then open a PR the human merges at **G2**. Branch
-`kurapika/<slug>` — cut it with `nen shu warmup --repo <path> --branch kurapika/<slug>`, which also proves
-the declared build still passes before you touch anything; verify with `nen shu build`, `nen shu test` and
-`nen shu lint` as you go, and `nen shu tools --repo <path>` first on a host you have not built this
-repository on (§ *The `shu` verbs* above has the exit-code table). A repository with no declaration gets
+`kurapika/<slug>` — cut it with `nen shu warmup --repo <path> --branch kurapika/<slug>` (`--dry-run` first,
+then bare), which also proves the declared build still passes before you touch anything; verify with
+`nen shu build`, `nen shu test` and `nen shu lint` as you go, and `nen shu tools --repo <path>` first on a
+host you have not built this repository on (§ *The `shu` verbs* above has the exit-code table). A
+repository with no declaration gets
 the git half of the warm-up and the repository's own documented commands, said plainly.
 
 No idea issue for a direct request — go straight to editing. Product repos only; the system repos

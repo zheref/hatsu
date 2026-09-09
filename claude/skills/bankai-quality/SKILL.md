@@ -186,9 +186,11 @@ Cobertura, JaCoCo, LCOV) into one shape — a total and a row per target — and
 `met`, never moving the exit code** (a coverage-floor breach stays `UZF-19`'s finding for the architecture
 reviewer, `QA-9`; this verb gives it a number, not a verdict). Exit `4` on any of these is the lane's own
 seat — quote its reason, run the repository's documented command, say that you did; exit `3` is a host
-the declaration excludes — `not-testable-here`, host named; a repository with no declaration (`nen shu
-detect` exits `1`) is tested by its own documented commands, and the report says so
-(`claude/agents/kurapika.md` § *The `shu` verbs*). `nen shu deploy --run` is never this resolver's, nor
+the declaration excludes — `not-testable-here`, host named; a repository with no declaration answers
+exit `2` naming the missing `nen/contract.json` (or its missing `project` block) — a fact read off these
+verbs, not off `nen shu detect`, whose exit `1` means no marker nen recognises; the two coincide only
+outside the seven stacks — and is tested by its own documented commands, the report saying which case it
+was (`claude/agents/kurapika.md` § *The `shu` verbs*). `nen shu deploy --run` is never this resolver's, nor
 Phinks' nor Uvogin's: the plan without `--run` is a read of where the candidate would go; the run is G3.
 
 ## 6. Machinery scenario (`<reference-repo>`) — `QA-16`–`QA-18`
@@ -196,7 +198,8 @@ Phinks' nor Uvogin's: the plan without `--run` is a read of where the candidate 
 - `make lint` and `make test` green **from a clean checkout** — `<reference-repo>` is bash and
   markdown, not one of nen's seven stacks, and declares no `project` block, so its own `Makefile` is the
   documented command here (§ 5a); a machinery repository that *does* declare its verbs runs `nen shu
-  lint` and `nen shu test` on a tree `nen shu warmup --repo <path> --branch qa/<slug>` has just cut.
+  lint` and `nen shu test` on a tree `nen shu warmup --repo <path> --branch qa/<slug>` (`--dry-run` first,
+  then bare) has just cut.
 - Drive changed `scripts/*.sh` with the hostile-input corpus — empty, missing, malformed
   JSON/YAML, non-UTF-8, oversized, a path with spaces, an extra field — and require **fail-closed**.
 - Assert every privileged or wake-bearing workflow `if:` **conjunct by conjunct** with `yq` in a

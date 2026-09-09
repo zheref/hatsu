@@ -348,7 +348,13 @@ nen shu deploy --repo <path> --lane <lane> --target <name>      # the plan: exit
 Without `--run` the verb prints the fully resolved plan — the destination's `args` substituted into the
 lane's own argv, every precondition and `requiresEnv` variable **asserted** (never read or printed),
 each step as `would run:` — and spawns **nothing**, at exit `0`; `--target` is required with no default,
-even for a single declared destination, and `--run --dry-run` together is exit `2`. **`--run` is the
+even for a single declared destination, and `--run --dry-run` together is exit `2`. Exit `0` is the plan
+on a host that could send it: an unsatisfied precondition — the lane's own, or a variable the target's
+`requiresEnv` names that is not set here — is exit `2` **with the report** (the plan still prints, the
+failing rows marked `FAIL`, and the last line says how many preconditions are unmet; verified live at
+`v0.3.0`: *"1 precondition on lane 'site' is not satisfied. nen ASSERTS a precondition and never performs
+it"*), and a `--target` naming no declared destination is exit `2` listing the declared ones. A G3 stop
+carries whichever of those the host produced, never a plan rewritten to look sendable. **`--run` is the
 maintainer's word at G3 (`CON-6`), per target, recorded in the release PR body — never this skill's.** A
 lane whose `deploy` is a seat answers exit `4` with the declaration's own reason whatever `--target`
 says (verified live at `v0.3.0` on a scaffolded `nextjs` tree: *"'deploy' is unsupported on lane
