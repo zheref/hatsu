@@ -57,8 +57,8 @@ command from the contract's `halt.message_template`, raise it as a **G5**, and s
 
 Four things the skill owns that you must not paraphrase loosely when you report them:
 
-- **The `0.x` range.** While nen's line is `0.x`, `minimum: "0.1"` means **`>=0.1.0 <0.2.0`** — a different
-  minor is out of range **in both directions**, so `0.2.0` fails it exactly as `0.0.9` does. At major zero
+- **The `0.x` range.** While nen's line is `0.x`, `minimum: "0.3"` means **`>=0.3.0 <0.4.0`** — a different
+  minor is out of range **in both directions**, so `0.4.0` fails it exactly as `0.2.0` does. At major zero
   the *minor* is the breaking-change vehicle (SemVer clause 4). "Backward-compatible within a major" is the
   rule **from `1.0` onward**, not today's.
 - **Two cases, two paths.** nen **absent** → the shell bootstrap directly, the sole chicken-and-egg
