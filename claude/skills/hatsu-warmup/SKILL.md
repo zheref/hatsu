@@ -36,8 +36,8 @@ cat "$CLAUDE_PLUGIN_ROOT/nen/contract.json"
 `install_paths` straight off the page, and substitute the **literal values** into the plain `curl` / `bash` /
 `nen` commands below.
 
-**Once nen is on `PATH` (§ 4), let nen read the same file back.** This is the one machine read of the
-contract, and it is a validation, never a way of extracting values:
+**Once nen is on `PATH` (§ 1 finds it there, or § 2 puts it there), let nen read the same file back.**
+This is the one machine read of the contract, and it is a validation, never a way of extracting values:
 
 ```bash
 nen schema check --repo "$CLAUDE_PLUGIN_ROOT"
@@ -45,13 +45,15 @@ nen schema check --repo "$CLAUDE_PLUGIN_ROOT"
 
 Verified live against `v0.3.0`: the `nen/contract.json` row prints
 `ok    nen/contract.json  dependency (nen >= 0.3, pinned v0.3.0)` — the floor and the pin nen parsed are the
-ones you just read, and a drift between them and this file's prose is a bug in the prose. **The three
-`FAIL` rows above it (`nen/labels.json`, `nen/repos.json`, `nen/colors.yml`) and the overall exit `1` are
-expected and are not a warm-up failure**: Hatsu ships no taxonomy of its own, and `schema check` requires
-those three for a repository that does. Read the contract row and only the contract row. (`--json` puts it
-at `checks[].file == "nen/contract.json"`, `ok: true`.) A contract row that reads `FAIL` — a
-`version_probe` that became a string, a `bootstrap` that moved out of `dependency`, a `minimum` that is not
-exactly two components — is a defect in this repository to fix before anything else runs.
+ones you just read, and a drift between them and this file's prose is a bug in the prose. **The four
+taxonomy rows above it — three `FAIL` (`nen/labels.json`, `nen/repos.json`, `nen/colors.yml`) and one
+`warn` (`nen/gates.json`) — and the overall exit `1` are expected and are not a warm-up failure**: Hatsu
+ships no taxonomy of its own; `schema check` requires those three for a repository that does, and only
+warns on the fourth, which `pr ready` can take by `--gates` instead. Read the contract row and only the
+contract row. (`--json` puts it at `checks[].file == "nen/contract.json"`, `ok: true`.) A contract row
+that reads `FAIL` — a `version_probe` that became a string, a `bootstrap` that moved out of `dependency`,
+a `minimum` that is not exactly two components — is a defect in this repository to fix before anything
+else runs.
 
 **Do not shell out to `jq`, `yq` or `python` to do this.** The ratified plan retires jq/yq as a DX friction —
 a machine needs one binary plus `git` and `gh` — and spawning a JSON parser to hand values back to the

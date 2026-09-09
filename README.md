@@ -84,12 +84,13 @@ nen schema check --repo <this checkout>
 #   ok    nen/contract.json  dependency (nen >= 0.3, pinned v0.3.0)
 ```
 
-(The three taxonomy rows above that line `FAIL` and the command exits `1`: Hatsu ships no `labels.json`,
-`repos.json` or `colors.yml` of its own, and `schema check` requires them of a repository that carries a
-taxonomy. The contract row is the one this repository owns.) Every Hatsu-authored key beside nen's own —
-the zero-major caveat, the two install paths, the halt template, the no-`jq` rule — is preserved verbatim by
-nen's loader and read by nothing in nen. There is deliberately no second copy: it was `nen.contract.json` at
-the root through `v0.2.0`.
+(Four taxonomy rows print above that line — three `FAIL` (`nen/labels.json`, `nen/repos.json`,
+`nen/colors.yml`) and one `warn` (`nen/gates.json`) — and the command exits `1`: Hatsu ships no taxonomy of
+its own, `schema check` requires the three of a repository that carries one, and only warns on the fourth,
+which `pr ready` can take by `--gates` instead. The contract row is the one this repository owns.) Every
+Hatsu-authored key beside nen's own — the zero-major caveat, the two install paths, the halt template, the
+no-`jq` rule — is preserved verbatim by nen's loader and read by nothing in nen. There is deliberately no
+second copy: it was `nen.contract.json` at the root through `v0.2.0`.
 
 ### The range
 
@@ -247,14 +248,14 @@ summon command.
 
 nen's **`shu`** family runs whatever a target repository *declares* in its `nen/contract.json` `project`
 block — and nothing else — so `build`, `futon`, Gon, Hisoka, Phinks and Uvogin now start a piece of work with
-`nen shu warmup` (clean → fresh trunk → your branch → the declared build), check a fresh host with
-`nen shu tools`, and verify with `nen shu build`/`test`/`lint`/`coverage`, each with `--dry-run` printing
-the exact argv first. Kurapika's Transmuter mode stands a repository up with `nen shu detect` →
-`nen scaffold init` (or `nen scaffold new` for a tree that does not exist yet) → `nen schema check` →
-`nen shu tools`. `nen shu deploy --target <name>` prints a plan and sends nothing; `--run` is the
-maintainer's word at **G3** and no skill here adds it. And `nen issue comment` replaces the raw
-`gh issue comment` two skills used to carry as residue. A repository that is not one of nen's seven
-stacks (this one included: `nen shu detect --repo . ` answers *no lane detected*) gets the git half of the
+`nen shu warmup` (`--dry-run` first, then bare: clean → fresh trunk → your branch → the declared build),
+check a fresh host with `nen shu tools`, and verify with `nen shu build`/`test`/`lint`/`coverage`, each
+with `--dry-run` printing the exact argv first. Kurapika's Transmuter mode stands a repository up with
+`nen shu detect` → `nen scaffold init` (or `nen scaffold new` for a tree that does not exist yet) →
+`nen schema check` → `nen shu tools`. `nen shu deploy --target <name>` prints a plan and sends nothing;
+`--run` is the maintainer's word at **G3** and no skill here adds it. And `nen issue comment` replaces the
+raw `gh issue comment` two skills used to carry as residue. A repository that is not one of nen's seven
+stacks (this one included: `nen shu detect --repo .` answers *no lane detected*) gets the git half of the
 warm-up and its own documented commands, said plainly — the full rules are in
 [`claude/agents/kurapika.md`](claude/agents/kurapika.md) § *The `shu` verbs*.
 
@@ -317,7 +318,8 @@ that already has the plugin installed** — no error, no warning, the fix ships 
 [`plugin-bump-check`](.github/workflows/plugin-bump-check.yml) workflow, fails a PR that tries. The guarded
 surface is `.claude-plugin/**`, `claude/**`, `nen/**`, `contracts/**`, `docs/ROSTER.md`,
 `docs/delegation-grammar-DRAFT.md`, `hooks/**` and `.mcp.json` — everything an installed copy reads. Bump
-`version` (patch for wording, minor for behaviour or a new skill, major for a breaking interface change);
+`version` (patch for wording, minor for behaviour or a new skill, major for a breaking interface change —
+which the minor carries while Hatsu is on `0.x`, SemVer clause 4, the reading applied to nen's own line);
 or, if a change provably cannot affect the shipped surface, write `no plugin bump: <reason>` in the PR
 body. Recorded refuse/pass transcripts: [`docs/ab/plugin-bump-guard.md`](docs/ab/plugin-bump-guard.md).
 
