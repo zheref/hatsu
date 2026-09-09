@@ -97,10 +97,12 @@ exit code.
 
 ## 2. Read-only, enforced before the first iteration — `nen`'s classifier IS the table
 
-The old skill's allow/refuse table was **hand-applied prose**. Verified against the real binary, `nen
-parse izanami` / `nen watch until` implement a fixed classifier that reproduces the same shape
-mechanically — every row below is a live-verified `[read-only]` or `[mutating]` tag, not a
-transcription from memory:
+The old skill's allow/refuse table was **hand-applied prose**. Verified against the real binary at the
+contract's pinned ref (`v0.3.0`), `nen parse izanami` / `nen watch until` implement a fixed classifier that
+reproduces the same shape mechanically — every row below is a live-verified `[read-only]`, `[mutating]` or
+`[unknown]` tag, not a transcription from memory. nen `v0.2.0` **widened** the allowlist (plain file reads
+and nen's own verbs, #74) and `v0.2.0`/`v0.3.0` **tightened** the metacharacter seam (#76, #104), so every
+row was re-run rather than carried over:
 
 | Allowed — verified `[read-only]` | Refused — verified `[mutating]` |
 |---|---|
@@ -108,25 +110,41 @@ transcription from memory:
 | `gh issue view`, `gh issue list` | `gh issue create`, `gh issue edit`, `gh issue close` |
 | `gh run view`, `gh run list`, `gh run watch` | `gh label create`, `gh label edit`, `gh label delete` |
 | `gh repo view` | `gh release create`, `gh release edit`, `gh release delete` |
-| `gh api` (a plain GET, no `-X`) | `gh api` with `-X POST`/`PUT`/`PATCH`/`DELETE` |
-| `git fetch`, `git log`, `git diff`, `git status`, `git ls-tree`, `git show` | `git push`, `commit`, `merge`, `tag`, `rebase`, `reset`, `clean` (the classifier's own refused pattern: `^git\s+(push\|commit\|merge\|tag\|rebase\|reset\|clean)\b`) |
+| `gh api` (a plain GET, no `-X`/`--method`) | `gh api` with `-X POST`/`PUT`/`PATCH`/`DELETE`, and the `--method POST` spelling |
+| `git fetch`, `git log`, `git diff`, `git status`, `git ls-tree`, `git show` | `git push`, `commit`, `merge`, `tag`, `rebase`, `reset`, `clean` |
 | `git branch` — **listing forms only**: bare, `-a`, `--list` | `git branch -D`, `git branch -m` (same family, delete/rename mutate) |
 | `git remote` — **listing forms only**: bare, `-v`, `show` | `git remote add`, `remove`, `rm`, `set-url`, `rename`, `prune`, `set-head` (same family, every mutating subcommand) |
-| | `git checkout -b` (branch creation) |
+| **plain file reads** — `cat <file>`, `test -f <file>`, `type <name>` (new in `v0.2.0`) | `git checkout -b` (branch creation) |
+| **nen's own read-only verbs** — `nen pr ready …`, `nen backlog fetch …`, `nen board build …`, `nen schema check …`, `nen shu detect`, `nen warmup …` (new in `v0.2.0`) | **nen's own mutating verbs, in every form** — `nen label apply …` (with **or without** `--run`), `nen tag cut …`, `nen shu detect --write`, `nen shu warmup …` (**`--dry-run` included** — the one dry run that still classifies mutating, by design), `nen shu tools --install` (with or without `--dry-run`) |
+| **the dry-run forms** of the gated verbs — `nen shu build --dry-run` (and `test`, `lint`, `coverage`, `ui-test` …), `nen scaffold init … --dry-run`, `nen scaffold new … --dry-run`, `nen issue comment … --dry-run`, `nen shu tools --dry-run` | **the bare forms** of the same — `nen shu build`, `nen shu test`, `nen scaffold init …`, `nen issue comment …` (the argv comes from somebody else's file, or writes to GitHub) |
+| `nen shu deploy --target <name>` bare, and with `--dry-run` — the plan; nen spawns nothing without `--run`, whatever the declaration says | `nen shu deploy --target <name> --run` |
 | | any invocation `nen parse izanagi` would need instead |
+
+**And three shapes that classify `[unknown]` — refused exactly like `[mutating]`, verified live at
+`v0.3.0`:** a **script path** (`./scripts/check.sh` — nen cannot read what it does), a **pipeline or any
+shell metacharacter** (`gh pr view 1 | grep MERGED`; there is no shell, so the whole line is one thing nen
+does not recognise), and a **`--` end-of-options marker** in front of further tokens (`gh api … --
+--fields`, `nen pr ready 42 -- --run`) — the classification seam refuses a line it cannot prove has no
+hidden write flag behind the marker. **`nen shu tools` bare is `[unknown]` too**, deliberately: the check
+spawns the *target repository's* declared version probes, so nen labels it "not provably a read" rather
+than "writes"; `nen shu tools --dry-run` spawns nothing and is `[read-only]`. Quoted arguments are fine
+(`gh pr view 1 --json state --jq '.state'` is `[read-only]`); a pipe is not.
 
 **This table is a sample, spot-verified live against the shipped binary, not an exhaustive
 transcription** — a command not listed here is checked with `nen parse izanami` before it is ever
 handed to `nen watch until`, never assumed from this table by analogy. Note in particular that
 `git branch` and `git remote` split **within the same family**: the bare/listing form is
 `[read-only]`, a specific mutating subcommand of the same command is `[mutating]` — the classifier
-looks at the full shape, not just the leading verb.
+looks at the full shape, not just the leading verb. nen's own verbs split the same way, on the flag that
+acts (`--run`, `--write`, `--install`) or on the dry run that renders (`--dry-run`), per verb.
 
 **Where `nen` is stricter than the old skill's prose table — a behavior change, not a bug:** the old
-allow table admitted "reading a file, running a checker script" by category. `nen`'s classifier has
-no such category — anything it does not recognize as one of the specific `git`/`gh` shapes above is
-`[unknown]`, and **`[unknown]` refuses exactly like `[mutating]`** (§ 4 finding 1). A command the old
-skill would have allowed by eye can now be refused outright. This is disclosed, not routed around.
+allow table admitted "reading a file, running a checker script" by category. Since `v0.2.0` the classifier
+admits the plain **file read** (`cat`, `test -f`, `type`); it still has no category for a **checker
+script** — a script is a program nen cannot read, so it is `[unknown]`, and **`[unknown]` refuses exactly
+like `[mutating]`**. A script the old skill would have allowed by eye is refused outright. This is
+disclosed, not routed around: express the check as the `git`/`gh`/`nen` read the script itself would run,
+or run the script by hand outside the watch and say so.
 
 **`git fetch` is allowed and is usually required** — it writes only to local refs, and a watch that
 never fetches watches a frozen picture. It is the one write-shaped thing that is genuinely
@@ -139,30 +157,32 @@ judgment rule, unchanged from the old skill: never run [`drive`](../drive/SKILL.
 [`backlog-synthesis`](../backlog-synthesis/SKILL.md) or [`backlog-loop`](../backlog-loop/SKILL.md)
 inside a watch, and never post a comment, apply a label or publish an Artifact as part of one.
 [`backlog-state`](../backlog-state/SKILL.md), reading a page, and a genuinely read-only checker script
-remain allowed **in spirit** — but see the finding below: not every one of those actually classifies
-`[read-only]` when handed to `nen` as a `--command`.
+remain allowed **in spirit** — the first two now classify `[read-only]` when handed to `nen` as a
+`--command`; the script does not (above).
 
-**Two findings against the binary, not routed around (full detail in `docs/ab/izanami.md` § 4):**
+**Two findings this port filed against nen `v0.1.0`, both closed by nen `v0.2.0` (#74, closes
+zheref/nen#31) — recorded here so the A/B file's § 4 is read as history, not as a live limit:**
 
-1. **A plain file read or a local checker script classifies `[unknown]`, not `[read-only]`** — `cat`,
-   `type`, `test -f`, and an arbitrary script all refuse, even though the old skill's own allow table
-   names "reading a file, running a checker script" as allowed. `nen`'s classifier only recognizes the
-   specific `git`/`gh` shapes in the table above; anything else is `unknown`, and unknown is refused
-   exactly like mutating (`nen: at least one command does not classify as read-only`). **A watch over a
-   local file's contents cannot go through `nen watch until` today** — poll it by hand, in-shell,
-   applying this skill's own judgment about read-only-ness, or express the same fact through a `git`
-   read against a tracked file instead (`docs/ab/izanami.md` § 2.4's live transcript does exactly
-   that).
-2. **`nen`'s own verb surface is not recognized by izanami's classifier at all** — `nen pr ready`,
-   `nen backlog fetch`, `nen board build`, and even a genuinely *mutating* `nen label apply --run` all
-   come back `[unknown]` and are refused, regardless of what the verb itself does. **A watch cannot poll
-   a computed `nen` verdict directly** — it must instead poll the underlying `gh`/`git` read the verb
-   itself would consult (e.g., watch `gh pr checks` rather than `nen pr ready`), or fall back to
-   judgment-driven manual iteration outside `nen watch until` entirely.
+1. *A plain file read classified `[unknown]`.* **Fixed.** Verified live at `v0.3.0`:
+   `nen parse izanami "cat README.md until it says DONE"` → `[read-only] cat README.md`, exit `0`; `test
+   -f` and `type` the same. **A watch over a local file's contents goes through `nen watch until`
+   directly now** — with one caveat the verb's own `--help` states: it spawns `<bin>` with **no shell**, so
+   a *builtin* (`type`, or `cat`/`test` on a host where they are not real executables on `PATH`) fails at
+   spawn on every observation and the watch stops on the error streak. On macOS and Linux `cat` and `test`
+   are real binaries and the watch runs; if the first observation errors, that is why — read the file
+   through a `git show`/`git diff` against a tracked path instead, and say so.
+2. *nen's own verb surface classified `[unknown]`.* **Fixed.** Verified live at `v0.3.0`: `nen parse
+   izanami "nen pr ready BC#925 until it is ready"` → `[read-only] nen pr ready BC#925`, exit `0`; `nen
+   backlog fetch` and `nen board build` the same, and a mutating `nen label apply …` — with or without
+   `--run` — is `[mutating]` rather than `[unknown]` (#104). **A watch may poll a computed `nen` verdict
+   directly**: `nen watch until --command "nen pr ready <CODE>#<N> --repo <path> --gates <abs path>"`
+   is the natural form for "tell me when it is Ready" (exit `0` on `ready` is the truth reading; export
+   `GH_TOKEN` first, as every `nen pr ready` call needs). The old workaround — poll the underlying `gh`
+   read instead — is no longer needed, though it still classifies fine.
 
 **Refuse the whole run, not the offending step.** Both `nen parse izanami` and `nen watch until` do
 this themselves — a mixed command list refuses before iteration 1 ever runs, verified live in
-`docs/ab/izanami.md` § 2.2.
+`docs/ab/izanami.md` § 2.2 and re-verified at `v0.3.0`.
 
 ## 3. The condition
 
@@ -187,8 +207,10 @@ nen watch until --command "<the classified read-only command>" \
 ```
 
 - **`--command`** is classified against izanami's table (§2) **before the first run** — a mutating or
-  unknown command is refused outright, naming `nen parse izanagi` instead. Never hand it a raw string
-  you have not already checked with `nen parse izanami`.
+  unknown command is refused outright (exit `2`), naming `nen parse izanagi` instead. Never hand it a raw
+  string you have not already checked with `nen parse izanami`. It is spawned **directly, with no shell**:
+  `<bin>` must be a real executable on `PATH` (a shell builtin fails at spawn), and a pipeline is not a
+  command it can classify — one observation, one program.
 - **`--true-pattern <regex>`** — tested against stdout. Omit it to treat exit code `0` as true (the
   default a check-style command uses). **When given, a non-zero exit is an OBSERVATION ERROR**, not a
   false reading — the pattern alone decides truth.
@@ -260,5 +282,6 @@ does not lend it one.
 - **Never loops on a condition that cannot become true.**
 - **Never fires the gate banner mid-watch**, and never reports a condition met without the evidence.
 - **Never routes around a `[unknown]` refusal** by hand-rolling the same observation outside `nen watch
-  until` and presenting it as though the verb had run it — a file read or a `nen`-verb poll that the
-  classifier refuses (§2's two findings) is reported as a finding, not quietly worked around.
+  until` and presenting it as though the verb had run it — a checker script, a pipeline or a `--`-marked
+  line the classifier refuses (§2) is reported as a finding, not quietly worked around. (A plain file read
+  and a `nen`-verb poll no longer need routing around: both classify `[read-only]` since nen `v0.2.0`.)

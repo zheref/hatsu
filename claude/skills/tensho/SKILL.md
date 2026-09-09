@@ -8,8 +8,9 @@ description: Turn a dirty working copy into one PR standing ready at its gate. U
 **Nature: Manipulator** carries every run — branching, staging, committing, opening and requesting
 review on a PR is GitHub-side operation by definition, whichever nature authored the diff.
 **Which authorship nature the diff itself is: Enhancer** (product code), **Conjurer** (governance/
-canon — `CONSTITUTION.md`, `handbooks/`, `schemas/`, `agents/`), or **Transmuter** (machinery —
-workflows, scripts, hooks, scaffolding). `nen gate derive` (§ 5) narrows this to G2-or-G4 and names
+canon — `CONSTITUTION.md`, `handbooks/`, `nen/` (the taxonomy; legacy `schemas/`), `agents/`), or
+**Transmuter** (machinery — workflows, scripts, hooks, scaffolding, a `nen/contract.json` `project`
+block). `nen gate derive` (§ 5) narrows this to G2-or-G4 and names
 *which* path set hit; Conjurer-vs-Transmuter inside a G4 hit is judgment this skill states, never
 Nen's to decide. Say the pair when a diff genuinely spans both, and which one leads.
 
@@ -38,16 +39,18 @@ what "done" looks like: the delivery PR is the integration branch's, not this on
 is the whole divergence rather than the change. Cut from the base you are targeting, always, and
 re-fetch it first.
 
-> **`nen parse` was considered for this grammar and declined — a finding, not a stylistic choice.**
-> Verified live: `nen parse`'s generic `<skill> --grammar <template> --line <invocation>` documents
-> `[ ... ]` as "an optional trailing clause," but a single slot wrapped in brackets is **not**
-> actually optional in practice — `nen parse tensho --grammar "[<target-branch>]" --line ""`
-> refuses with `<target-branch> is required and the line does not supply it`, and
-> `--grammar "onto [<target-branch>]" --line "onto"` (nothing after the introducing word)
-> misreads the literal `onto` itself as the slot's value rather than reporting it omitted. Tensho's
-> own grammar is one optional word with a fixed default, which this engine cannot express safely —
-> so the default-to-`main` handling below stays this skill's own rule, in prose, not a `nen parse`
-> invocation. Reported as a finding against the binary, not routed around by hand.
+> **`nen parse` was considered for this grammar and declined — and nen `v0.2.0` (#67) made the
+> refusal explicit rather than silent.** At the port `nen parse tensho --grammar "[<target-branch>]"
+> --line ""` refused with `<target-branch> is required`, and `--grammar "onto [<target-branch>]"
+> --line "onto"` misread the literal as the value. Verified live at `v0.3.0`: the bare-bracket template
+> is now refused **at the template**, by design — *"template '[<target-branch>]' is refused: its
+> leading slot <target-branch> is bracketed but nothing introduces it, so an omitted value cannot be
+> told apart from a mistyped one. Anchor it behind a literal ('word [<target-branch>]') or drop the
+> brackets"* (exit `2`) — and the anchored form `onto [<target-branch>]` parses `onto` with the clause
+> absent. Tensho's own grammar is one optional word with a fixed default and **no** introducing
+> literal, which this engine deliberately will not express — so the default-to-`main` handling below
+> stays this skill's own rule, in prose, not a `nen parse` invocation. Not a finding any more; a
+> documented boundary.
 
 ## 2. Where the work goes
 
@@ -85,17 +88,17 @@ nen repo resolve --repo <path> --from <path>       # matches the checkout's own 
 nen repo resolve <CODE> --repo <path>               # matches an explicit code instead
 ```
 
-> **Finding: `nen repo resolve`'s no-token form cannot resolve the registry-owning repo to its own
-> code.** Verified live standing inside a `<reference-repo>` checkout: `nen repo resolve --repo <path>
-> --from <path>` (no token) matches the working copy's `origin` remote only against
-> `schemas/repos.json`'s **`consumers[]`** entries — repos that consume `<reference-repo>` — and refuses
-> with `that is not in this registry`, even though `BC` is a valid, listed code (the refusal's own
-> text enumerates it). `<reference-repo>` is the registry's owner, not one of its own consumers, so it
-> is never a `consumers[]` row to match an origin against. **Working inside the repo whose own
-> registry this is, pass the code explicitly** (`nen repo resolve BC --repo <path>`, which resolves
-> fine) rather than relying on the no-token origin match. This does not affect tensho run from
-> inside any *consumer* repo (`<product-repo-A>`, `<product-repo-B>`, `<scaffold-repo>`, hatsu itself once it
-> ships its own registry) — only from inside the repo that ships the registry.
+> **Finding this port filed against `v0.1.0`, closed by nen `v0.2.0` (#66, closes zheref/nen#27).** At
+> the port `nen repo resolve --repo <path> --from <path>` (no token), standing inside a
+> `<reference-repo>` checkout, matched the working copy's `origin` only against the registry's
+> `consumers[]` entries and refused the registry's own repo with `that is not in this registry`, even
+> though `BC` was a listed code. Since `v0.2.0` every token — the origin included — resolves from
+> **everything** the registry records (consumers, `product_codes` keys and values, `maintained_tools`,
+> `pending_onboarding`; `nen repo --help` at `v0.3.0`, and `src/repo/resolve.ts` rule 5 names this exact
+> case). The token form is verified live at `v0.3.0` (`nen repo resolve BC --repo <path>` → `bankai-core
+> (BC) via code`); the origin form needs a checkout whose `origin` the registry records and was not
+> re-run here. Either form works from inside the registry-owning repo now; if the origin form ever
+> refuses a repository its own code list names, pass the code explicitly and file it as a new finding.
 
 ## 3. Staging — every file is looked at, and some are asked about
 
@@ -163,8 +166,9 @@ exit `2` (`docs/ab/tensho.md` § 2.3); `--trailer` accepts comma-separated `key=
 
 ## 5. The PR
 
-Body follows the target repository's own PR template (e.g. `schemas/templates/pr.md`), and two
-parts are checked, never eyeballed:
+Body follows the target repository's own PR template (e.g. `schemas/templates/pr.md` — a template is
+not one of the four taxonomy files nen's `schemas/`→`nen/` migration moved, so it stays wherever the
+target keeps it), and two parts are checked, never eyeballed:
 
 ```bash
 nen pr body-check --body-from <path to the drafted body> --requirements-from <path>
@@ -190,10 +194,15 @@ the acceptance criteria).
 at changed paths:
 
 ```bash
-nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,schemas/,agents/,.github/workflows/" \
+nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,nen/,schemas/,agents/,.github/workflows/" \
   --fragment-dir changelog.d --files <the changed paths> --head-changelog <path to CHANGELOG.md> \
   [--body-from <path to the drafted PR body>]
 ```
+
+(`--spec-paths` is a literal prefix list, outside nen's `schemas/`→`nen/` fallback — it names **both**
+directories for the whole `v0.3` line so a taxonomy edit owes a fragment whether the target has migrated
+or not; drop `schemas/` once `nen schema check --repo <path> --json` reports `deprecations: []` for that
+target, and by `v0.4.0` at the latest.)
 
 Verified live (`docs/ab/tensho.md` § 2.5): reports `not-applicable` when the diff touches none of
 `--spec-paths`; `required` when it does and no fragment is among the **changed files** (a fragment
@@ -205,16 +214,17 @@ this verb reports against — it was never a satisfying diff shape.
 **The target gate is derived, never asserted:**
 
 ```bash
-nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,schemas/" \
+nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/" \
   --process-paths ".github/workflows/,claude/,scripts/,tests/,docs/" \
   --files <the changed paths> [--asserted G2|G4]
 ```
 
 These are `<reference-repo>`'s own two-tier split, verbatim from `hatsu`'s own `drive.SKILL.md`
-prose: `CONSTITUTION.md`/`handbooks/`/`agents/`/`schemas/` derive G4 as classic policy/spec
-(`CON-7`); `.github/workflows/`/`claude/`/`scripts/`/`tests/`/`docs/` derive G4 too, for the
-different reason that in a repository whose product is its process, a process change *is* a policy
-change. A **different repository's own path sets are its own canon** — these are `nen`'s own
+prose: `CONSTITUTION.md`/`handbooks/`/`agents/` and the taxonomy directory — `nen/` since nen
+`v0.3.0`, `schemas/` before it and as a fallback until `v0.4.0`; **both listed**, because
+`--policy-paths` is a literal nen's fallback never sees — derive G4 as classic policy/spec (`CON-7`);
+`.github/workflows/`/`claude/`/`scripts/`/`tests/`/`docs/` derive G4 too, for the different reason
+that in a repository whose product is its process, a process change *is* a policy change. A **different repository's own path sets are its own canon** — these are `nen`'s own
 words, verified live: "There are no built-in path sets." Verified live against constructed file
 lists: a diff touching neither set reports `G2`; one touching `handbooks/` reports `G4` with the
 reason named; passing `--asserted G2` against a diff that actually hits `handbooks/` reports the
@@ -222,7 +232,11 @@ disagreement and **the derived gate stands** (`docs/ab/tensho.md` § 2.6).
 
 `Closes #N` only if the PR completes an issue; `Part of #N` otherwise (`nen ref format`/`nen ref
 parse` render and read the `<CODE>-<IS|PR>-#<N>` notation itself — verified live, `docs/ab/tensho.md`
-§ 2.7). Request Copilot on open:
+§ 2.7). **Before the PR opens, prove the work through the verbs the repository declares** — `nen shu
+build`, `nen shu test`, `nen shu lint` (`--dry-run` once on a repository you have not built; exit `4` is
+a seat to quote, exit `5` sends you to `nen shu tools`, a repository with no declaration runs its own
+documented commands, said so — `claude/agents/kurapika.md` § *The `shu` verbs*). Request Copilot on
+open:
 
 ```bash
 export GH_TOKEN=$(gh auth token)

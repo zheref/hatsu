@@ -51,19 +51,21 @@ Parsing rules:
   (`CON-25`) and someone will type it. When the filter is `G1`, **include `G1-M` rows** and name
   them `G1-M` in the state cell; they are the same human, the same moment in the lifecycle.
 
-> **Not mechanized by `nen parse`, and that is a finding, not an oversight.** `nen parse <skill>
-> --grammar <template>` is the verb built for exactly this (a skill's own custom grammar) — checked
-> live against `<repo>[@<gate:G1|G1-M|G2|G3|G4|G5|all>]`, a template written the documented way,
-> using the `[ ... ]` optional-clause syntax `nen parse --help` itself describes. **It does not
-> work**: with only one named slot ahead of the bracketed clause, everything after the slot —
-> including an out-of-enum value like `G9` — is swallowed silently into that one slot's captured
-> value, reported `"ok": true`, rather than split or refused. Reproduced with the enum present, with
-> a bare unconstrained slot, and with a plain literal trailing clause carrying no slot at all — all
-> three collapse the same way. `futon`/`izanagi`/`izanami` carry their own hand-written grammars
-> (per `nen parse --help`'s own text) rather than going through this generic path, which is
-> presumably why the gap was never hit before. Filed as a finding (`docs/ab/backlog-state.md` § 4);
-> this skill keeps splitting `<repo>@<gate>` by hand, the same prose rule the old skill used, rather
-> than trusting a verb verified not to enforce it.
+**Mechanized by `nen parse` since nen `v0.2.0`** — this port filed a finding against `v0.1.0`
+(`docs/ab/backlog-state.md` § 4: a lone leading slot swallowed the whole bracketed `[@<gate>]` clause,
+so `BC@G9` parsed as `repo: BC@G9` at `"ok": true`), and nen `v0.2.0` closed it (#67, closes
+zheref/nen#30). Split the invocation through the verb:
+
+```bash
+nen parse backlog-state --grammar "<repo>[@<gate:G1|G1-M|G2|G3|G4|G5|all>]" --line "<the raw invocation>"
+```
+
+Verified live at `v0.3.0`: `BC@G4` → `repo: BC`, `gate: G4`; `BC` → `repo: BC` with the clause absent
+(exit `0`); `all` → `repo: all`, no gate; and `BC@G9` is **refused at exit `2`** — *"`<gate>` is one of
+G1 | G1-M | G2 | G3 | G4 | G5 | all (case-insensitively), and 'G9' is none of them"* — with the corrected
+line on stderr. Two of § 1's rules stay prose on top of the parse, because the grammar cannot say them:
+an absent `@<gate>` clause means **`all`**, and `G1` **includes `G1-M`** rows. (Do not write the gate slot
+without the brackets: the unbracketed `<repo>@<gate>` form refuses a bare `all` as "gate is required".)
 
 **With no repo token, the subject is the repo you are standing in.** Resolve the working
 directory's `origin` remote against the target registry:
@@ -72,19 +74,19 @@ directory's `origin` remote against the target registry:
 nen repo resolve --repo <path> --from <cwd>
 ```
 
-> **A verified gap when the standing repo is the registry's own source, not a listed consumer.**
-> `nen repo resolve` (no-token form) matches the resolved origin against the registry's `consumers`
-> **∪** `maintained_tools` arrays only — **not** the full `product_codes` map. Verified live,
-> standing in `<reference-repo>` itself: `nen repo resolve --repo <reference-repo path> --from <same path>`
-> refuses with *"'`<reference-repo>`' ... is not in this registry"*, even though the **same
-> refusal's own printed code list** shows `BC (<reference-repo>)` right there in
-> `product_codes`. `nen repo resolve BC --repo <path>` (the explicit-code form) resolves it
-> instantly — the map has the entry, only the origin-matching path refuses to consult it. This
-> reproduces for exactly the shape this skill hits constantly (backlog-state is asked from inside
-> the source repo itself, not only from a consumer): **when the no-token form refuses this way,
-> reuse the code its own refusal text just printed for that origin — never re-derive or guess one
-> by hand-reading the registry file.** Filed as a finding, not routed around
-> (`docs/ab/backlog-state.md` § 4).
+> **A gap this port filed against `v0.1.0`, closed by nen `v0.2.0` (#66, closes zheref/nen#27).** At the
+> port the no-token form matched the resolved origin against `consumers` ∪ `maintained_tools` only —
+> never the `product_codes` map — so, standing in `<reference-repo>` itself, `nen repo resolve --repo
+> <path> --from <same path>` refused with *"'`<reference-repo>`' … is not in this registry"* while the
+> same refusal's code list showed `BC (<reference-repo>)` (`docs/ab/backlog-state.md` § 4). Since
+> `v0.2.0` **a token — the origin included — resolves from everything the registry records**:
+> consumers, `product_codes` keys *and* values, `maintained_tools`, `pending_onboarding` (`nen repo
+> --help` at `v0.3.0` says so; `src/repo/resolve.ts` rule 5 names this port's exact case, "refused the
+> registry's own origin FROM ITS OWN CHECKOUT — five independent skill ports tripped on exactly that").
+> The origin form is not re-run live here (it needs a checkout with an `origin` remote in the registry);
+> the token form is: `nen repo resolve BC --repo <path>` → `bankai-core (BC) via code`. If the origin form
+> ever refuses a repository the code list names, that is a new finding — reuse the code its refusal
+> printed and file it, never hand-read the registry.
 >
 > An `origin` that resolves to nothing in the registry at all is a genuine error — say which remote
 > failed and list `product_codes`. It is never a fallback to `all`.
@@ -122,18 +124,16 @@ swept:
 
 A reader who cannot see what was swept cannot tell an empty band from an unswept one.
 
-> **A second, sharper finding in the same output.** `nen repo resolve all`'s row set also includes
-> a spurious entry: `schemas/repos.json`'s own `$comment` documentation key, printed as if it were
-> a resolvable repository (`Object-reference notation (...) ($comment) via all`) alongside the real
-> ones. This is the same schema-loader defect pr-state's own A/B doc records against the
-> unknown-code refusal path (`docs/ab/pr-state.md` § 4 finding 3) — here it surfaces inside a
-> *successful* sweep result instead of only an error message, which is worse: a caller counting rows
-> off `all`'s output silently gets one extra, non-repository row. **Never silently drop it** — name
-> it in the resolved-set line (*"`all` returned N rows; one, `$comment`, is the registry's own
-> documentation key, not a repository, and is excluded from the sweep"*) rather than quietly
-> filtering it with no trace. **Never hard-code N** — count whatever the live call actually
-> returned; it varies with the registry's own content. Filed as a finding, `docs/ab/backlog-state.md`
-> § 4.
+> **A second finding from the same output at the port, closed by nen `v0.2.0` (#81, closes
+> zheref/nen#17).** `nen repo resolve all`'s row set used to include the registry's own `$comment`
+> documentation key inside `product_codes`, printed as if it were a resolvable repository
+> (`Object-reference notation (...) ($comment) via all`), and the same key appeared in the unknown-code
+> refusal's list (`docs/ab/pr-state.md` § 4 finding 3). Since `v0.2.0` a `$`-prefixed key in
+> `product_codes` loads silently as metadata — verified live at `v0.3.0` against a registry carrying
+> exactly that key: `nen repo resolve all` lists six repositories and no `$comment` row, and `nen parse
+> futon`'s refusal lists codes only. **Still never hard-code N** — count whatever the live call returned;
+> it varies with the registry's own content — and if a non-repository row ever appears again, name it in
+> the resolved-set line rather than filtering it silently.
 
 ## 3. Fetching
 
@@ -172,9 +172,9 @@ Has an open PR?
 │        │        PR carries `bankai:observation-fix` (CON-34), which IS a maintainer integration
 │        │        merge and must be worded as one, never as "G2"
 │        └─ NO  → is it CON-32-Ready?  (nen pr ready — § 5)
-│                 ├─ YES → does the diff touch CONSTITUTION.md, handbooks/, agents/, or schemas/,
-│        │                 or the process surface (.github/workflows/, claude/, scripts/, tests/,
-│        │                 docs/)?  →  nen gate derive (below)
+│                 ├─ YES → does the diff touch CONSTITUTION.md, handbooks/, agents/, nen/ (or the
+│        │                 legacy schemas/), or the process surface (.github/workflows/, claude/,
+│        │                 scripts/, tests/, docs/)?  →  nen gate derive (below)
 │        │                 │        ├─ YES → G4   (CON-7 — policy/spec, or process-as-product)
 │        │                 │        └─ NO  → G2   (CON-5 — product code)
 │        │                 └─ NO  → NO GATE. In progress, owned by its author. See § 6.
@@ -202,7 +202,7 @@ whose base could not be determined is reported `unresolved`, never defaulted to 
 **Deriving the diff half, mechanically:**
 
 ```
-nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,schemas/" \
+nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/" \
                 --process-paths ".github/workflows/,claude/,scripts/,tests/,docs/" \
                 --files <comma-separated changed paths>
 ```
@@ -212,6 +212,18 @@ Verified live against two real `<reference-repo>` PRs: `RR-PR-#925` (touches
 surface ... in a repository whose product is its process, that is a policy change"*; `RR-PR-#916`
 (touches `schemas/repos.json`) derived `G4` — *"the diff touches policy/spec (schemas/), which only
 the human merges."* Both match the tree above exactly, computed rather than eyeballed.
+
+**`--policy-paths` is a literal, and the taxonomy directory under it moved.** Since nen `v0.3.0` a
+target's four taxonomy files live canonically under `nen/`, with `schemas/` read as a fallback until
+`v0.4.0` — but that fallback answers only for paths nen resolves itself, and a prefix handed to `gate
+derive` is taken literally (USAGE: *"Move those pins along with the files, in the same change; `schema
+check` will not warn about them, because it never sees them"*). So the set above names **both**
+`nen/` and `schemas/` for the whole `v0.3` line — a taxonomy edit derives G4 whether the target has
+migrated or not, and a prefix matching no file is harmless. Which state a target is in is `nen schema
+check --repo <path> --json`'s answer: `checks[].location` per file, and `deprecations: []` once
+migrated — drop `schemas/` for that target then, and by `v0.4.0` at the latest. (`RR-PR-#916`'s `G4`
+above was derived at the port against `schemas/repos.json`; the same diff on a migrated target touches
+`nen/repos.json` and derives the same `G4` through the `nen/` prefix.)
 
 **No `nen` verb fetches a remote PR's changed-file set** — `--files`/`--files-from` are caller
 data, and `--range` shells `git diff` against a **local** checkout, which a PR you have not
@@ -260,9 +272,11 @@ nen pr ready <CODE>#<N> --repo <path> \
 ```
 
 (or `<N> --gh-repo <owner/repo> --gates ...` for a bare number.) **Always the
-`$CLAUDE_PLUGIN_ROOT`-anchored gates path** — a bare relative one only resolves from this
-checkout's own cwd (`pr-state`'s own A/B doc § 2.6 proves the `ENOENT` live). A repo that ships its
-own `schemas/gates.json` needs no `--gates` flag at all.
+`$CLAUDE_PLUGIN_ROOT`-anchored gates path** — since nen `v0.2.0` a relative `--gates` resolves
+against **`--repo`'s root, never the cwd** (verified live at `v0.3.0`, [`pr-state`](../pr-state/SKILL.md)
+§ 2), and the file lives in this plugin's checkout, not the target's, so only an absolute path reaches
+it. A repo that ships its own `nen/gates.json` (or, until `v0.4.0`, `schemas/gates.json`) needs no
+`--gates` flag at all.
 
 Two things follow, unchanged from the old skill:
 
@@ -273,18 +287,21 @@ Two things follow, unchanged from the old skill:
   (c) and (e) are approximated, not asserted — see `pr-state/SKILL.md` § 3). If you believe a row
   is ready and the verb disagrees, the row is **not** green — say what it objected to.
 
-> **`nen pr fetch` is broken against every real PR tested, and this port never routes around it.**
-> `nen pr fetch --target <owner/name> --pr <n>` is documented to return "one typed snapshot: head
-> SHA, mergeability, the check rollup, reviews PER COMMIT, review threads ..." — verified live, it
-> crashes on **every** PR tried, in **two different repositories** (`<reference-repo>#925`,
-> `#927`, `#916`, `#932`; `zheref/hatsu#5`), plain and `--json` output printing the identical error:
-> `nen pr: could not fetch <owner/repo>#<n> reviews: gh: Unprocessable Entity (HTTP 422)`.
-> GitHub's reviews sub-fetch itself is failing inside the verb, on every repo
-> this port tried it against, not a `<reference-repo>`-specific quirk. **This skill does not use `nen pr
-> fetch` for anything** as a result — readiness comes from `nen pr ready` (a different code path,
-> confirmed working), and nothing else in this skill needs `pr fetch`'s remaining fields (base ref
-> excepted — § 4's own caveat). Filed as a finding, `docs/ab/backlog-state.md` § 4; not a gap this
-> skill improvises around with a raw `gh api` equivalent presented as if a verb produced it.
+> **`nen pr fetch` was broken against every real PR tested at `v0.1.0`, and this port never routes
+> around it.** `nen pr fetch --target <owner/name> --pr <n>` is documented to return "one typed
+> snapshot: head SHA, mergeability, the check rollup, reviews PER COMMIT, review threads ..." —
+> verified live at the port, it crashed on **every** PR tried, in **two different repositories**
+> (`<reference-repo>#925`, `#927`, `#916`, `#932`; `zheref/hatsu#5`), plain and `--json` output printing
+> the identical error: `nen pr: could not fetch <owner/repo>#<n> reviews: gh: Unprocessable Entity
+> (HTTP 422)`. **Provenance at the current pin:** nen `v0.2.0` (#59) made every `gh api` argv in the
+> PR fetch name its HTTP method explicitly; no `v0.2.0`/`v0.3.0` changelog entry says the 422 is fixed,
+> and the crash is not re-verified at `v0.3.0` (a live GitHub read this reconciliation did not run).
+> **This skill still does not use `nen pr fetch` for anything**, on the recorded evidence — readiness
+> comes from `nen pr ready` (a different code path, confirmed working), and nothing else in this skill
+> needs `pr fetch`'s remaining fields (base ref excepted — § 4's own caveat). Filed as a finding,
+> `docs/ab/backlog-state.md` § 4; not a gap this skill improvises around with a raw `gh api`
+> equivalent presented as if a verb produced it. An A/B pass against the pinned binary is what lifts
+> this, not a changelog inference.
 
 ## 6. Status colour — mechanized, never reconstructed from memory
 
@@ -292,9 +309,12 @@ Two things follow, unchanged from the old skill:
 nen color status --repo <path> --present <a,b,c>
 ```
 
-Resolves the target repository's own `schemas/colors.yml` precedence for whatever category values
-are true of one row, and prints the first match plus what it outranked. Verified live against
-`<reference-repo>`'s own file:
+Resolves the target repository's own `nen/colors.yml` (legacy `schemas/colors.yml` until `v0.4.0`)
+precedence for whatever category values are true of one row, and prints the first match plus what it
+outranked. Verified live against `<reference-repo>`'s own file at the port, and the exit codes re-verified
+at `v0.3.0` against nen's bundled fixture: a resolved row exits `0`; `unresolved` — nothing present, or a
+name that is not a value of the category — exits `1` (a finding, per below); a `--category` the file does
+not declare is a **usage error, exit `2`**, naming the categories it does (nen `v0.2.0`, #83):
 
 | Test | Result |
 |---|---|
@@ -340,7 +360,13 @@ rows (one G4/in-progress, one G1-M/ready-to-start) through `build` then `render`
 
 with each row's `status` cell holding whatever string was passed — pass the **resolved glyph** from
 § 6 (`🟠`, not the bare word `in_progress`), verified live: the render layer does not itself look up
-`colors.yml`, it prints the cell verbatim.
+`colors.yml`, it prints the cell verbatim. Two facts about that cell since nen `v0.2.0`/`v0.3.0`: a
+`refs` value that is not an **array** of ref strings is **refused at exit `2` naming the file, row and
+field** by `build`, `render` and `diff` alike (verified live at `v0.3.0`; at the port `build` crashed
+with `row.refs.join is not a function`), and `render` — like `nen stop` — escapes a `|` in a cell as
+`\|` and flattens an embedded newline to one space (#83), so a title carrying either no longer shifts
+the columns. This skill relays the rendered table and never re-splits it; a consumer that does must
+split on `(?<!\\)\|`.
 
 **Two columns the old skill's table carried have no slot in `nen`'s `BoardRow` schema** —
 `{id, title, refs, gate, status, needs}` has no field for the conditional **Repo** column (only
@@ -421,7 +447,14 @@ unrecognised severity string, which ranks last rather than erroring); `--blocks`
 consumers` only break ties **within** one severity, exactly as documented. Feed `nen backlog
 fetch --json`'s rows reshaped to `{id, severity, createdAt, number}` (severity read off the
 `bankai:severity/*` label) — the reshape itself is expected caller work, per the verb's own
-`--help` example.
+`--help` example, **and since nen `v0.3.0` (#107) it is enforced at the read seam**: `backlog fetch
+--json`'s document handed straight through is refused at exit `2` (*"must be a JSON ARRAY of rows {
+id, severity, createdAt, number }, got an object"*), and so is a row missing `id` (*"row at index 0
+needs a string 'id'"*) — both verified live — instead of the `{} is not iterable` crash of before.
+`id`/`number` come from `issueNumber` (or the lone `prNumbers` entry for a PR-only effort),
+`createdAt` must be an ISO-8601 instant (ordering compares it as text). `--blocks`/`--affects-
+consumers` take a row's `id` **or** its bare issue number, and a token naming no row is refused at
+`2` (nen `v0.2.0`, #64) — never silently ignored.
 
 ## 12. Close with the shape, not just the rows
 
@@ -439,8 +472,9 @@ computed from them.
 - Fabricate a session name, a run link, or a colour whose precedence it did not get from `nen color
   status`.
 - Render a truncated fetch (`nen backlog fetch`'s own `truncated` field) as if it were complete.
-- Silently drop `nen repo resolve all`'s spurious `$comment` row, or silently add the source repo
-  to a sweep without saying so (§ 2).
-- Route around `nen pr fetch`'s live crash, or `nen parse`'s live grammar gap, with a hand-rolled
-  equivalent presented as if a verb produced it — both are filed findings
-  (`docs/ab/backlog-state.md` § 4), not gaps this skill papers over.
+- Silently add the source repo to a sweep without saying so, or silently filter a non-repository
+  row out of `nen repo resolve all`'s output should one ever reappear (§ 2).
+- Route around `nen pr fetch`'s recorded crash with a hand-rolled equivalent presented as if a verb
+  produced it — a filed finding (`docs/ab/backlog-state.md` § 4), not re-verified at the pinned ref,
+  not a gap this skill papers over. (`nen parse`'s bracket gap and `repo resolve`'s origin gap are
+  closed — § 1 — and the verbs are used.)

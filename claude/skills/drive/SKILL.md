@@ -26,10 +26,11 @@ raw `scripts/pr_ready_gate.sh --verdict` call for readiness (already ported — 
 [`pr-state`](../pr-state/SKILL.md)), then prose reconstructing the first blocking condition, prose
 verifying a wake landed, and a hand-maintained round count. This port replaces every one of those
 with a `nen` verb — `nen pr ready`, `nen pr staleness`, `nen wake verify`, `nen pr body-check`, `nen
-gate derive`, `nen pr cascade-main`, `nen wake fire`, `nen stop` — per zheref/hatsu#2. **One verb
-this port needed does not work against real `<reference-repo>` PRs at all** (`nen pr next-blocker`,
-sharing `nen pr fetch`'s reviews-endpoint crash) — see § 3 for the disclosed stopgap, and
-`docs/ab/drive.md` for the reproduction.
+gate derive`, `nen pr cascade-main`, `nen wake fire`, `nen issue comment`, `nen stop` — per
+zheref/hatsu#2. **One verb this port needed did not work against real `<reference-repo>` PRs at
+`v0.1.0`** (`nen pr next-blocker`, sharing `nen pr fetch`'s reviews-endpoint crash) — see § 3 for the
+disclosed stopgap, its provenance at the contract's current pin, and `docs/ab/drive.md` for the
+reproduction.
 
 ---
 
@@ -41,7 +42,7 @@ hatsu:drive <product_code>#<pr_number> to <G2 | G4>
 
 | Part | Accepts | Notes |
 |---|---|---|
-| `product_code` | a code from the target repository's `schemas/repos.json` → `product_codes` | A short name (`<reference-repo>`) or `owner/repo` is also accepted |
+| `product_code` | a code from the target repository's `nen/repos.json` → `product_codes` (legacy `schemas/repos.json` until `v0.4.0`) | A short name (`<reference-repo>`) or `owner/repo` is also accepted |
 | `pr_number` | an **open PR** on that repo | An issue number is an error — see below |
 | gate | `G2` or `G4` | `to <gate>` may be omitted; the gate is then derived (§ 2) |
 
@@ -69,14 +70,21 @@ Parsing rules, all of them the same rule: **resolve or fail, never guess.**
 [`backlog-state`](../backlog-state/SKILL.md) uses:
 
 ```bash
-nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,schemas/" \
+nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/" \
                 --process-paths ".github/workflows/,claude/,scripts/,tests/,docs/" \
                 --files <comma-separated changed paths>
 ```
 
 `--files`/`--files-from` are caller data — `nen gate derive` fetches nothing itself, so the changed
 path set still comes from `gh pr diff <n> --repo <owner/name> --name-only` (residue: no `nen` verb
-fetches a remote diff, per `backlog-state`'s own A/B).
+fetches a remote diff, per `backlog-state`'s own A/B). **`--policy-paths` is a literal, and the
+taxonomy directory moved under it.** Since nen `v0.3.0` a target's `labels.json`/`repos.json`/
+`colors.yml`/`gates.json` live canonically under `nen/`, with `schemas/` read as a fallback until
+`v0.4.0` — but nen's fallback answers only for paths *nen* resolves; a prefix you hand `gate derive` is
+taken literally (USAGE: *"`schema check` will not warn about them, because it never sees them"*). So
+list **both** `nen/` and `schemas/` for the whole `v0.3` line: a taxonomy change derives G4 whether the
+target has migrated or not, and a prefix that matches no file is harmless. Drop `schemas/` for a target
+once `nen schema check --repo <path> --json` reports `deprecations: []`, and by `v0.4.0` at the latest.
 
 If the derived gate differs from the one typed, **say so in one line, drive to the derived gate,
 and carry the correction into the stop** — `nen gate derive --asserted <G2|G4>` reports the
@@ -101,14 +109,18 @@ Re-run from the top on **every** state change; never act on a picture older than
    - Checks/comments/base ref not carried by the above: `gh pr checks`, `gh pr view --json
      body,comments,baseRefName`.
 
-   > **`nen pr fetch` — the verb documented to return this whole snapshot in one call — is broken
-   > against every real `<reference-repo>` PR tried.** Reproduced live against both open PRs at port time:
-   > `<reference-repo>#925` crashes `could not fetch ... reviews: gh: Unprocessable Entity (HTTP
-   > 422)`; `#940` crashes with a *different* shape, `$.reviews -- expected an array, got object`
+   > **`nen pr fetch` — the verb documented to return this whole snapshot in one call — was broken
+   > against every real `<reference-repo>` PR tried at `v0.1.0`.** Reproduced live against both open PRs
+   > at port time: `<reference-repo>#925` crashed `could not fetch ... reviews: gh: Unprocessable Entity
+   > (HTTP 422)`; `#940` crashed with a *different* shape, `$.reviews -- expected an array, got object`
    > (a lone `PENDING` review returned unwrapped). Two distinct failure modes, same verb, same
-   > session — see `docs/ab/drive.md` § 2 for both transcripts. **This skill never calls `nen pr
-   > fetch`.** Readiness comes from `nen pr ready` (a separately-verified, working code path); the
-   > rest comes from the calls listed above.
+   > session — see `docs/ab/drive.md` § 2 for both transcripts. **Provenance at the current pin:** nen
+   > `v0.2.0` (#59) changed every `gh api` argv in the PR fetch to name its HTTP method explicitly, and
+   > no `v0.2.0`/`v0.3.0` changelog entry says the reviews-endpoint 422 or the unwrapped-review shape is
+   > fixed. The crash is **not re-verified at `v0.3.0`** — it needs a live GitHub read, which this
+   > reconciliation did not run — so **this skill still never calls `nen pr fetch`**, on the recorded
+   > evidence, until an A/B pass against the pinned binary says otherwise. Readiness comes from `nen pr
+   > ready` (a separately-verified, working code path); the rest comes from the calls listed above.
 
 2. **Decide readiness** — § 4. Ready ⇒ go to § 8 and stop.
 3. **Name the FIRST blocking condition**, in this order, and act only on that one:
@@ -117,22 +129,28 @@ Re-run from the top on **every** state change; never act on a picture older than
    one). Fixing the fourth thing while the branch is conflicted wastes a cycle, because the
    conflict re-invalidates the checks anyway.
 
-   > **`nen pr next-blocker` — the verb built to name this order for you — does not work against
-   > real `<reference-repo>` PRs either, and for the identical underlying reason.** `next-blocker` has no
-   > `--gates` override at all (only `--reviewers`/`--approvers`, and passing them does not help):
-   > against frozen `<reference-repo>`, which ships no `schemas/gates.json`, it refuses outright —
-   > `schemas/gates.json: no such file ... has no built-in copy to fall back on`, reproduced live
-   > against both open PRs. Supplying that file into a scratch checkout satisfies the refusal, but
-   > the verb then hits `nen pr fetch`'s own crash underneath — `could not fetch ...#925 reviews: gh:
-   > Unprocessable Entity (HTTP 422)`, and, on retry, the identical 422 for `#940` too (not the
-   > schema-shape error `pr fetch` gave that PR standalone — the two verbs' internal calls disagree
-   > with each other on the same live data). **This port never calls `nen pr next-blocker`.** The
-   > disclosed stopgap: `nen pr ready --explain`'s conjunct table already evaluates conflict → checks
-   > → reviewer-round legs in this same short-circuit order (§ 4's six rows collapse onto
-   > `next-blocker`'s first four buckets); run `nen pr body-check` separately for the fifth
+   > **`nen pr next-blocker` — the verb built to name this order for you — did not work against
+   > real `<reference-repo>` PRs at `v0.1.0` either, and for the identical underlying reason.** Two
+   > halves, with different fates. **The `--gates` half is fixed:** at `v0.1.0` `next-blocker` had no
+   > `--gates` override (only `--reviewers`/`--approvers`), so against frozen `<reference-repo>`, which
+   > ships no gates file, it refused outright — `schemas/gates.json: no such file`. nen `v0.2.0` (#60,
+   > closes zheref/nen#20; #86) gave it the **same `--gates` flag and resolver `pr ready` uses** —
+   > verified at `v0.3.0` in `nen pr next-blocker --help`: *"`--gates <path>` … the same flag `ready`
+   > takes, through the same resolver, so a checkout that ships no gates file can still be evaluated.
+   > A RELATIVE path is resolved against `--repo`, NOT the current directory"* — so the invocation is
+   > now `nen pr next-blocker --target <owner/name> --pr <n> --repo <path> --gates
+   > "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"`, and `--repo` is **required** at exit `2`
+   > (`v0.2.0` #73). **The crash half is not re-verified:** with the gates file supplied at the port, the
+   > verb hit `nen pr fetch`'s own crash underneath — `could not fetch ...#925 reviews: gh: Unprocessable
+   > Entity (HTTP 422)`, on retry the identical 422 for `#940` too — and no later changelog entry says
+   > that endpoint read is fixed (the `pr fetch` callout above). **So this port still does not call
+   > `nen pr next-blocker` for a verdict**, on the recorded evidence, until an A/B pass against the
+   > pinned binary re-verifies it against a real PR; the flag-shape defect is closed and is no longer a
+   > reason. The disclosed stopgap stands: `nen pr ready --explain`'s conjunct table already evaluates
+   > conflict → checks → reviewer-round legs in this same short-circuit order (§ 4's six rows collapse
+   > onto `next-blocker`'s first four buckets); run `nen pr body-check` separately for the fifth
    > (missing-body-requirement) leg, since `nen pr ready` never asserts body content at all. See
-   > `docs/ab/drive.md` § 2 for the full reproduction, filed as a defect against both verbs, not
-   > routed around silently.
+   > `docs/ab/drive.md` § 2 for the full reproduction.
 
 4. **Act through the right channel** — § 5.
 5. **Poll in-shell** (`gh pr checks`, `gh pr view --comments`). Never a background primitive, never
@@ -153,8 +171,10 @@ nen pr ready <CODE>#<N> --repo <path> \
   --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
 ```
 
-`--gates` anchored on `$CLAUDE_PLUGIN_ROOT`, never a bare relative path (`pr-state`'s own A/B proves
-the `ENOENT` you get from any other cwd). A repo that ships its own `schemas/gates.json` needs no
+`--gates` anchored on `$CLAUDE_PLUGIN_ROOT`, never a bare relative path — since nen `v0.2.0` a relative
+`--gates` resolves against **`--repo`'s root, never the cwd** (verified live at `v0.3.0`, `pr-state`
+§ 2), and the file lives in this plugin's checkout, not the target's, so only an absolute path reaches
+it. A repo that ships its own `nen/gates.json` (or, until `v0.4.0`, `schemas/gates.json`) needs no
 `--gates` flag at all.
 
 **Never re-derive readiness by eye.** Two approvals that predate the last push look exactly like
@@ -206,17 +226,22 @@ fix is that agent's to make. The channel is **`nen wake fire`, fired ALONE**:
 nen wake fire --repo-slug <owner/name> --ref <CODE>-PR-#<N> --label bankai:wake/iterate --run
 ```
 
-(`bankai:wake/iterate` is the real label name, read off `<reference-repo>`'s own `schemas/labels.json`:
-*"CON-26/CON-38 non-vote wake: re-fires a builder's own ITERATE on its open PR; edge-triggered."*)
-`--run` is required — without it `nen wake fire` writes nothing (CON-38's dry-run-first
-convention), which this port never exercises against `<reference-repo>` itself (mutating; contract
-inspected only, per the shared brief's boundary — see `docs/ab/drive.md` § 3).
+(`bankai:wake/iterate` is the real label name, read off `<reference-repo>`'s own `nen/labels.json` —
+legacy `schemas/labels.json` at the port: *"CON-26/CON-38 non-vote wake: re-fires a builder's own
+ITERATE on its open PR; edge-triggered."*) `--run` is required — without it `nen wake fire` writes
+nothing (CON-38's dry-run-first convention), which this port never exercises against `<reference-repo>`
+itself (mutating; contract inspected only, per the shared brief's boundary — see `docs/ab/drive.md` § 3).
 
 > ⚠️ **Never apply the label in the same breath as a comment.** Both dispatch runs into the same
 > concurrency group seconds apart and the second **cancels the first's `probe`**, so `build` never
-> starts and the wake dies silently (RR-IS-#554). If context must be added first: post the comment,
-> **wait for its run to settle**, then fire the label. If the findings are already on the PR — and
-> after any automated review round they are — fire the label alone and add nothing.
+> starts and the wake dies silently (RR-IS-#554). If context must be added first: post the comment
+> through the verb — `nen issue comment --target <owner/name> --issue <N> --body-file <abs path>`
+> (`--dry-run` to see the exact bytes; a PR number is accepted here **deliberately**, by the verb's own
+> `--help`, since commenting on a PR carries none of the hazards attaching or closing one would; new in
+> nen `v0.2.0`, never a raw `gh pr comment`) — **wait for its run to settle**, then fire the label. If the
+> findings are already on the PR — and after any automated review round they are — fire the label alone
+> and add nothing. (`nen wake fire --comment <text>` posts a *settle* comment **after** the re-apply —
+> the opposite order — so it is not the way to add context first.)
 
 **Verify the wake reached the builder — mechanically, not by eyeballing `gh pr checks`:**
 
@@ -232,7 +257,12 @@ rather than counted. `--run` additionally auto-redrives what can safely be redri
 comment otherwise — mutating; never fired at `<reference-repo>` by this port (contract inspected only).
 
 **Kurapika authored it** (local, on the maintainer's creds): address it yourself. Reply on each
-thread with the disposition — the fix SHA, or a cited pushback — **and** resolve it. Push the fix.
+thread with the disposition — the fix SHA, or a cited pushback — **and** resolve it. (An inline
+review-thread reply and a thread resolution are review-API acts no `nen` verb owns — residue; a
+**PR-level** comment, where one is wanted, is `nen issue comment --target <owner/name> --issue <N>`.)
+Push the fix — and before you do, prove it through the verbs the repository declares: `nen shu build`,
+`nen shu test`, `nen shu lint` (`claude/agents/kurapika.md` § *The `shu` verbs*; a repository with no
+declaration runs its own documented commands, said so).
 Re-request review where a round is owed, on the maintainer's own user token (a bot token silently
 no-ops here):
 
@@ -376,5 +406,9 @@ Say when the run **starts** and when it **ends**.
 - **Never counts an unverified wake** toward the escalation ladder, and never fabricates a
   `nen pr staleness --wakes-from` entry to manufacture a stale verdict.
 - **Never exceeds the 5-round cap** on one PR — the sixth round is an escalation.
-- **Never calls `nen pr fetch` or `nen pr next-blocker`** — both are reproduced broken against real
-  `<reference-repo>` PRs (§ 3) and are filed as defects, not routed around by hand.
+- **Never calls `nen pr fetch` or `nen pr next-blocker` for a verdict** — both were reproduced broken
+  against real `<reference-repo>` PRs at `v0.1.0` (§ 3), the crash is not re-verified at the pinned
+  `v0.3.0`, and the recorded evidence stands until an A/B pass says otherwise; filed as defects, not
+  routed around by hand. (`next-blocker`'s missing `--gates` is fixed and is no longer the reason.)
+- **Never posts a comment with a raw `gh pr comment`/`gh issue comment`** — `nen issue comment` owns
+  that step since nen `v0.2.0` (§ 5).

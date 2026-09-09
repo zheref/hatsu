@@ -65,16 +65,18 @@ nen repo resolve <CODE> --repo <reference-repo checkout>
 case-insensitive (`bc` and `BC` both resolve to `<reference-repo>` — `docs/ab/build.md` § 2.2);
 **an unresolved code is an error and never a guess.**
 
-**If `#<N>` is a PR, hand straight to [`hatsu:drive <CODE>#<N>`](../drive/SKILL.md) and say so.** `nen issue chain-position`/`nen issue terminus` do **not** make this check
-for you — verified live, `docs/ab/build.md` § 2.3: pointed at a real PR number
-(`<reference-repo>#925`), `chain-position` answers `routable` and `terminus` answers `own-pr` as
-if it were an ordinary issue, with no error and no hint that the number names a PR. **This is a
-finding against the binary, filed, not routed around silently** (§ 10) — the issue-vs-PR check
-stays a plain read this skill performs first: `gh api repos/<owner>/<repo>/issues/<N> --jq
-'.pull_request'` (a populated object means it is a PR; empty output means it is an issue —
-`gh issue view <N> --json pull_request` is **not** a substitute: there is no such JSON field on
-that command and it errors on every object — verified live, `docs/ab/build.md` § 2.3), before
-either verb is ever called on `<N>`.
+**If `#<N>` is a PR, hand straight to [`hatsu:drive <CODE>#<N>`](../drive/SKILL.md) and say so.** Since
+nen `v0.2.0` **the verb makes this check for you**: `nen issue chain-position` and `nen issue terminus`
+both **refuse (exit `1`)** when `--issue` names a pull request, with the pinned `--json` shape
+`{ issue, refused: true, reason }` (#71, closes zheref/nen#25; `nen issue --help` at `v0.3.0`: *"a
+delivery-chain position is defined only for issues — classifying a PR's labels answers something
+plausible and silently wrong. Ask the `nen pr` family about a pull request"*). So § 2's
+`chain-position` call **is** the issue-vs-PR check: a `refused: true` naming a pull request is the
+signal to hand over to `drive`, not a failure. The raw `gh api repos/<owner>/<repo>/issues/<N> --jq
+'.pull_request'` read this port used to perform first is **retired** — it existed only because
+`v0.1.0` answered `routable`/`own-pr` for a real PR (`docs/ab/build.md` § 2.3, a finding this port filed
+and nen closed). Contract-verified against `nen issue --help` and the `v0.2.0` changelog; not exercised
+live at `v0.3.0`, since the check is a GitHub read.
 
 **Say the run has started.** A named skill run holds a bounded `CON-25` delegation (§ 6), and a
 delegation nobody announced is a delegation nobody can end.
@@ -89,7 +91,7 @@ building=bankai:stage/building,in-review=bankai:stage/in-review,epic=bankai:epic
 ```
 
 `--chain-labels` is caller data — `<reference-repo>`'s own label names for each chain role, read from its
-`schemas/labels.json`, never guessed. Its taxonomy carries **no `chore` label** at all (verified:
+`nen/labels.json` (or, until `v0.4.0`, its legacy `schemas/labels.json`), never guessed. Its taxonomy carries **no `chore` label** at all (verified:
 `gh label list` names none) — omit the `chore=` entry; that is this repository's own fact, not a
 gap in the verb. **Supply every role your repo actually uses.** Verified live, an incomplete map is
 refused outright rather than half-answered: with no `--chain-labels` at all, a real `in-review`
@@ -171,23 +173,31 @@ child:
    nen epic next-wave --body-file epic-body.md --citation <the clause the progress footer cites> \
      [--completed <n>] [--inflight <a,b>] --cap 2 --out epic-body-out.md --json
    ```
-   Verified live end-to-end, including the redraw: a checklist item is only counted when the
-   checkbox is *immediately* followed by `#<N>` (`- [ ] #101 …`) — a trailing `#<N>` elsewhere in
-   the line is **not** recognised (`docs/ab/build.md` § 2.8, a finding worth knowing before
-   authoring or reformatting an epic body by hand). A child releases only when every blocker named
-   in its `(blocked by #a, #b)` annotation is a known, checked sibling; a duplicate child id refuses
-   the whole computation at exit `1` rather than guessing a tie-break (verified live). **`--out`
-   only rewrites the local file** — posting the redrawn body back to the real epic issue is a plain
-   `gh issue edit <epic-N> --repo <owner/name> --body-file epic-body-out.md`, since no `nen` verb
+   **The checklist parser widened in nen `v0.2.0` (#65) and `v0.3.0` (#103)** — re-verified live at
+   `v0.3.0` against a hand-written body: a child line is any `- [ ]` / `- [x]` checkbox, at any indent,
+   that references its issue **anywhere** on the line — a bare `#123`, an `owner/repo#123`, a
+   `[#123](url)` markdown link, or a link to an `/issues/123` URL under **any** link text (so
+   `- [ ] [RR-IS-#105](https://…/issues/105)` and `- [ ] **Phase 2** trailing ref #106` both count,
+   where `v0.1.0` counted neither — `docs/ab/build.md` § 2.8 is history). The **first** such reference
+   identifies the child; every ref inside a `blocked by` / `blocks` clause is an **edge**, never the
+   line's identity, and a checkbox whose only ref sits in such a clause is reported **`unparsed`**
+   (stderr warning plus `unparsed[]` in `--json`), never counted as a phantom child. A child releases
+   only when every declared blocker is a known, checked sibling; a duplicate child id, or a checklist
+   with checkbox lines none of which resolves, refuses at exit `1` rather than guessing (verified live).
+   **`--body-file` and `--out` resolve against the process cwd, not `--repo`** — pass absolute paths.
+   **`--out` only rewrites the local file** — posting the redrawn body back to the real epic issue is a
+   plain `gh issue edit <epic-N> --repo <owner/name> --body-file epic-body-out.md`, since no `nen` verb
    owns writing an issue body back to GitHub (residue, § 11).
 
-   **This repository's own live epics do not use the checklist shape `nen` expects.** Both real
-   epics checked (`<reference-repo>#733`, closed; `#568`, closed) write their phases as a
-   markdown table or bold-prefixed bullets with a markdown-linked reference
-   (`[RR-IS-#570](url)`), never a bare `- [ ] #<N>`, and `nen epic next-wave` reads `{"total":0,
-   "done":0}` against both — zero children recognised (`docs/ab/build.md` § 2.9). Any epic this
-   skill decomposes going forward (§ 2's Gon step) must write its checklist in the shape `nen`
-   parses, stated to Gon explicitly, or this verb never sees a child at all.
+   **This repository's own live epics still do not all use a shape `nen` reads.** Both real epics
+   checked at the port (`<reference-repo>#733`, closed; `#568`, closed) write their phases as a
+   **markdown table** or as bullets with a markdown-linked reference (`[RR-IS-#570](url)`). The linked
+   bullet form is readable since `v0.2.0` **when the bullet is a checkbox**; a table row is not a
+   checkbox line and is still invisible, and `nen epic next-wave` reads `{"total":0,"done":0}` against
+   a table-shaped epic (`docs/ab/build.md` § 2.9 — a finding about those epics' shape, not about the
+   verb). Any epic this skill decomposes going forward (§ 2's Gon step) writes its children as
+   checkbox lines carrying a resolvable reference, stated to Gon explicitly, or this verb never sees a
+   child at all.
 4. **Each child's PR is driven** by [`drive`](../drive/SKILL.md)'s engine to `CON-32` readiness —
    reported, never eyeballed, via `nen pr ready` (see [`pr-state`](../pr-state/SKILL.md)).
 5. **The delivery PR is the terminus.** Compute it, never infer it:
@@ -221,11 +231,15 @@ locally-authored PR."* Verified live: two efforts with neither ready nor prompte
 `local: 2/2 occupied, 0 free <- BINDING` at exit `1`; flip one to `ready:true, prompted:true` and it
 frees, `local: 1/2 occupied, 1 free` at exit `0` (`docs/ab/build.md` § 2.10).
 
-**Always pass `--local-cap 2` explicitly.** Verified live, the verb's own **default is `7`**, not
-`2` (and `--ci-cap` defaults to `2`, a plane this skill never populates) — omitting the flag would
-silently triple this skill's own concurrency limit rather than enforcing it (`docs/ab/build.md`
-§ 2.10, a finding). Say which effort is waiting when the cap binds — a PR **Ready and handed to the
-maintainer frees its slot**, otherwise the run deadlocks the moment two PRs are waiting on a human.
+**Always pass `--local-cap 2` — the flag is now REQUIRED, not merely advisable.** This port filed a
+finding against `v0.1.0` (`docs/ab/build.md` § 2.10): the verb defaulted the local plane to `7`, so a
+forgotten flag silently tripled this skill's concurrency limit. **nen `v0.2.0` removed that default
+(#69, closes zheref/nen#52)** — verified live at `v0.3.0`, `nen loop slots --efforts <path>` without
+`--local-cap` refuses at exit `2`: *"--local-cap is required. The old default of 7 was removed (issue
+#52): a concurrency guard must be chosen, not inherited."* `--ci-cap` still defaults to `2`, a plane this
+skill never populates. `--efforts` resolves against the process cwd, not `--repo` — pass an absolute
+path. Say which effort is waiting when the cap binds — a PR **Ready and handed to the maintainer frees
+its slot**, otherwise the run deadlocks the moment two PRs are waiting on a human.
 
 **Never let two children touch the same file at once.** Sequence them and say so — no verb governs
 this; it stays this run's own judgment.
@@ -241,17 +255,64 @@ shared brief's read-only rule):
 
 ```bash
 nen label apply RR-IS-#<N> --label bankai:stage/building --repo-slug <owner/name> \
-  --reason "<why, for the ledger>" --run
+  --repo <the target repo's own checkout> --reason "<why, for the ledger>" --run
 ```
 
-Inside this run it may be applied without a further prompt, under the fourth carve-out (§ 6), **for
-the named issue and for children created beneath it**. Every application is logged: object, label,
-time, exactly as `--reason`/the ledger record (defaulting to `<repo>/label-ledger.jsonl`).
+(`--repo` names the checkout whose `nen/labels.json` — legacy `schemas/labels.json` until `v0.4.0` —
+validates the label; the ledger defaults to that checkout's `label-ledger.jsonl`.) Inside this run it may
+be applied without a further prompt, under the fourth carve-out (§ 6), **for the named issue and for
+children created beneath it**. Every application is logged: object, label, time, exactly as
+`--reason`/the ledger record.
 
 **Then — the declared change (see the callout above § 1): Kurapika builds it himself, in this same
 session, in the mode § 3 confirmed.** There is no separate wake to verify, no `build` job to poll,
 no `probe` run to distinguish from a swallowed one — those all describe a CI plane Hatsu does not
-have. Say plainly that the build is local, and proceed to author it.
+have. Say plainly that the build is local, and proceed to author it — **through the verbs the target
+repository declares**, in this order (nen `v0.3.0`'s `shu` family; `claude/agents/kurapika.md` § *The
+`shu` verbs* carries the full exit-code table this step reacts to):
+
+1. **Warm the working copy and cut the branch from the fresh trunk tip:**
+   ```bash
+   nen shu warmup --repo <the target checkout> --branch kurapika/<slug> --dry-run   # every git + toolchain command, nothing run
+   nen shu warmup --repo <the target checkout> --branch kurapika/<slug> [--tests]   # refuse a dirty tree, fetch, ff main, cut, prove the declared build
+   ```
+   It refuses a dirty tree at exit `2` listing every path (never `--discard` a tree you have not
+   inspected — it runs `git reset --hard` then `git clean -fd`), refuses a name that already exists
+   locally or on `origin`, and runs the lane's declared `build` (and `test` with `--tests`) on the branch
+   it just cut. `--repo` is **required** here — the one `shu` verb that mutates git state. Verified live at
+   `v0.3.0` in `--dry-run` form against this plugin's own checkout: the thirteen git steps print in order,
+   exit `0`, and a repository with **no** `project` block gets the git half with `no declaration --
+   build/test verification skipped` on stderr — still exit `0`.
+2. **On a host this repository has not been built on, check the toolchain first:**
+   ```bash
+   nen shu tools --repo <the target checkout>            # exit 5 names, per tool, the exact command that fixes it
+   nen shu tools --repo <the target checkout> --install  # only what corepack can activate; never sudo, never an unpinned version
+   ```
+3. **Verify as you author** — the exact argv printed by `--dry-run` once, then for real:
+   ```bash
+   nen shu build --repo <the target checkout> [--lane <lane>]
+   nen shu test  --repo <the target checkout> [--lane <lane>]
+   nen shu lint  --repo <the target checkout> [--lane <lane>]
+   nen shu coverage --repo <the target checkout> [--threshold <n>]   # reports `met`; never moves the exit code
+   ```
+   Exit `1` is the ordinary red build — the tool's own code is in `steps[].exitCode`. Exit **`4`** means
+   the lane declares no such verb (a seat, with the declaration's own reason quoted at the refusal) —
+   verified live at `v0.3.0` on a freshly scaffolded `nextjs` tree whose `build` row `detect` withheld:
+   `nen shu build: lane 'nextjs' (nextjs) declares no 'build'. It declares: archive, deploy, release,
+   ui-test.` That is a fact about the repository, not a failure: quote it, run the repository's own
+   documented command, say that you did, and where the seat should be a real row, land the declaration
+   change as its own PR at **G4**. Exit **`5`** is the declared program not on `PATH` — back to step 2.
+   Exit **`3`** is a host the declaration excludes — a **G5** stop naming the host that can, never a retry.
+   **A repository with no `nen/contract.json` `project` block at all** refuses every `shu` verb but
+   `warmup` at exit `2` naming the missing file (or, as on this plugin's own checkout, the file's
+   missing `project` block) — that is the no-declaration fact, and it is read off `shu build`/`test`/
+   `lint`, never off `detect`. `nen shu detect --repo <path>` exiting `1` (*no lane detected*) is a
+   different fact — no marker on disk that nen recognises — and the two coincide only outside nen's
+   seven stacks (this checkout, the frozen reference implementation, any bash-and-markdown repository):
+   an Xcode tree with no declaration is `detect` exit `0` with a proposal and `shu build` exit `2`,
+   verified live at `v0.3.0`. Either way: run its own documented commands (`make test`, its package
+   scripts), **say plainly that no declaration exists yet, and which case it was**, and treat writing
+   one by hand as a G4 change to propose, not a blocker.
 
 **Where the work is something a local session structurally cannot do at all** — it needs a
 credential only a retired CI identity held, or the decision is one only that now-nonexistent plane
@@ -354,23 +415,23 @@ actually are. Write run state to `docs/Loop/<run-id>/` — decisions, every logg
 and (since there is no wake to track any more) every local build session's own progress — so a
 fresh session does not re-derive it, and **never trust it over a fetch**.
 
-## 10. Findings against the binary (report, never route around)
+## 10. Findings against the binary — filed at `v0.1.0`, reconciled against `v0.3.0`
 
-1. **`nen issue chain-position` and `nen issue terminus` never check whether the number they were
-   given names an issue or a pull request.** Verified live against a real PR
-   (`<reference-repo>#925`): both answer as if it were an ordinary issue (`routable` /
-   `own-pr`), with no error and no distinguishing signal — § 1's manual `gh api
-   repos/<owner>/<repo>/issues/<N> --jq '.pull_request'` check exists because of this gap.
-2. **A `--chain-labels` map missing any role in play is not a partial answer — it is
+1. **CLOSED — `nen issue chain-position`/`terminus` now refuse a pull-request number** (nen `v0.2.0`
+   #71, closes zheref/nen#25). At the port both answered `routable`/`own-pr` for a real PR
+   (`<reference-repo>#925`) with no signal; now both exit `1` with `{ issue, refused: true, reason }`,
+   and § 1's manual `gh api … --jq '.pull_request'` read is retired.
+2. **UNCHANGED — a `--chain-labels` map missing any role in play is not a partial answer — it is
    `undecidable`** (exit `1`), and an unknown role name is refused outright (exit `2`). Both
-   verified live (§ 2). Supply the full map every time; there is no safe subset.
-3. **`nen epic next-wave`'s checklist recognises only `- [ ] #<N> …` / `- [x] #<N> …`** — the
-   checkbox immediately followed by the child reference. A trailing `#<N>`, a markdown-linked
-   reference, or a bold-prefixed label before the number are all invisible to it, silently
-   contributing zero children rather than erroring (§ 4). Neither of `<reference-repo>`'s own two real
-   epics uses the shape this verb expects.
-4. **`nen loop slots`'s local-plane default cap is `7`**, not `2` — this skill's own hard limit
-   must be passed explicitly every time (§ 4).
+   verified live at the port (§ 2); `nen issue --help` at `v0.3.0` states the same rule. Supply the
+   full map every time; there is no safe subset.
+3. **CLOSED — `nen epic next-wave`'s checklist parser** (nen `v0.2.0` #65, `v0.3.0` #103). It read only
+   `- [ ] #<N> …` at the port; it now reads a ref anywhere on a checkbox line in four spellings, treats
+   every ref in a `blocked by`/`blocks` clause as an edge, and reports an unresolvable checkbox as
+   `unparsed` rather than dropping it (§ 4, re-verified live). Table-shaped epics remain invisible.
+4. **CLOSED — `nen loop slots` no longer defaults the local plane to `7`** (nen `v0.2.0` #69, closes
+   zheref/nen#52): `--local-cap` is required at exit `2`, verified live (§ 4). This skill's `--local-cap
+   2` is now the only way the verb runs, not a defensive override.
 
 ## 11. Residue — what stays this skill's own judgment, or has no verb yet
 
@@ -379,10 +440,12 @@ fresh session does not re-derive it, and **never trust it over a fetch**.
   brief's boundary list).
 - **Posting an epic's redrawn body back to GitHub** (§ 4) has no `nen` verb — `gh issue edit
   --body-file` remains a necessary raw call, same as the retired skill's own coordinator would have
-  needed.
+  needed. (A *comment* on the epic is `nen issue comment`; a body write is not a comment.)
 - **Keeping exactly one `bankai:stage/*` label on an object at a time** (§ 5, `CON-9`) is not
   enforced by `nen label apply` itself, which only ever applies and logs the one label it was given.
-- **The issue-vs-PR check** (§ 1, finding 1) stays a plain `gh` read until `nen` grows one.
+- **Building a repository that declares no `project` block** (§ 5) runs that repository's own
+  documented commands, said so; writing the declaration is a G4 change, not this run's residue to
+  paper over.
 
 ## 12. Hard limits
 
@@ -393,5 +456,9 @@ fresh session does not re-derive it, and **never trust it over a fetch**.
   lets two children touch one file.
 - **Never claims a CI builder is doing the work.** Hatsu has none — say plainly, every time, that
   Kurapika builds it himself (§ 5).
+- **Never builds, tests or lints a declared repository from a remembered command line** — `nen shu
+  build`/`test`/`lint` run what the declaration states (§ 5), and a repository that declares nothing is
+  said to declare nothing.
+- **Never runs `nen shu deploy --run`.** A deploy is a G3 act; this run stops at G2/G4.
 - **Never publishes a release** — G3 is the maintainer's.
 - **Never leaves the delegation open** — the run says when it ends.

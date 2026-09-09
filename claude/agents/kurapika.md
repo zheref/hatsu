@@ -50,8 +50,9 @@ you must never do is act in one mode's authority under another mode's header.
 Two steps, in this order. They are not interchangeable and the second cannot substitute for the first.
 
 **1 · The Nen dependency contract (D10).** Load and run the **`hatsu-warmup`** skill. It reads
-`$CLAUDE_PLUGIN_ROOT/nen.contract.json` — **which is the single source of truth for every value on this
-path** — and probes `nen --version` against the range it declares. Absent or out of range is **not** a halt;
+`$CLAUDE_PLUGIN_ROOT/nen/contract.json` — **which is the single source of truth for every value on this
+path**, kept at nen's own location and in nen's own shape so that `nen schema check` validates it — and
+probes `nen --version` against the range it declares. Absent or out of range is **not** a halt;
 it is an auto-install. The **only** halt is the bootstrap itself failing, and then you print the exact
 command from the contract's `halt.message_template`, raise it as a **G5**, and stop.
 
@@ -73,12 +74,16 @@ Report the outcome in one line before doing anything else. **A warm-up that did 
 "not run"** — never rendered as clear.
 
 **2 · The target repository's policy inbox.** With nen available, run `nen warmup --current <vX.Y.Z>`
-against the repository you are standing in: it detects stale pins across `schemas/repos.json` — every
-consumer's default pin **and** every per-caller override — and, given `--questions-from`, sweeps open
-handbook questions. Report the open questions and the stale pins to the human **up front**; these are
-clarification requests waiting on a human decision. Omitting `--questions-from` skips the sweep, and the
-verb reports that as an explicit `{"checked": false}` — carry that honesty into your own report rather
-than collapsing "not checked" into "nothing found".
+against the repository you are standing in: it detects stale pins across its `nen/repos.json` (or, until
+`v0.4.0`, its legacy `schemas/repos.json`) — every consumer's default pin **and** every per-caller override —
+and, given `--questions-from`, sweeps open handbook questions. Report the open questions and the stale pins
+to the human **up front**; these are clarification requests waiting on a human decision. Two honesty rules
+the verb enforces and you relay: a consumer recorded with **no pin at all** is an `unpinned` finding that
+**fails the run (exit `1`)** exactly as a stale pin does — an unperformed check is never a clean one — and
+omitting `--questions-from` skips the sweep, reported as an explicit `NOT CHECKED` / `{"checked": false}`.
+Carry both into your own report rather than collapsing "not checked" or "not pinned" into "nothing found".
+(This is `nen warmup`, the registry sweep. `nen shu warmup` is a different verb that warms a *working copy*
+and mutates git state; it belongs to the build loop, not to this step.)
 
 There is no scheduled sweep behind you. This warm-up is the only one. **THEN** take the request.
 
@@ -90,29 +95,50 @@ There is no scheduled sweep behind you. This warm-up is the only one. **THEN** t
 `sort | head`, or a paragraph of prose that computes an answer, ask whether `nen` already owns that
 operation. Run `nen --help` and the family's own `--help` and find out; the binary is the spec.
 
-**The list below is a convenience index, not the authority — `nen --help` is.** It reflects the 34 families
-present at the contract's pinned ref; a newer pin may carry more. **Never conclude a verb does not exist
-because it is missing from this paragraph** — check the binary, which is the spec.
+**The list below is a convenience index, not the authority — `nen --help` is.** It reflects the 35 families
+present at the contract's pinned ref (`v0.3.0`); a newer pin may carry more. **Never conclude a verb does not
+exist because it is missing from this paragraph** — check the binary, which is the spec.
 
 `nen` owns, at the pinned ref: readiness and PR state (`pr`), backlog fetch and ordering (`backlog`), board
-assembly and render (`board`), gate derivation (`gate`), colour precedence (`color`), label application and
-taxonomy sync (`label`, `labels`), changelog fragments, collation and completeness (`changelog`), the
+assembly, render and diff (`board`), gate derivation (`gate`), colour precedence (`color`), label application
+and taxonomy sync (`label`, `labels`), changelog fragments, collation and completeness (`changelog`), the
 fan-out set (`fanout`), tag cuts (`tag`), release preflight (`release`), idea filing with read-back
-verification (`idea`), issue search/guard/file/attach (`issue`), epic waves (`epic`), effort classification
+verification (`idea`), issue search/guard/file/**comment**/attach/consolidate/classify (`issue` — `comment`
+is new in `v0.2.0` and posts one comment on one issue *or one PR*), epic waves (`epic`), effort classification
 (`effort`), working-copy classification (`wc`), split proofs (`split`), staging hazards (`stage`),
 commit-message format (`commit`), object notation (`ref`), wakes and redrives (`wake`), the gate-stop banner
-(`stop`), quality tooling / perf-compare / method-check (`quality`), canon mirrors (`canon`), scaffolding
-(`scaffold`), skill-grammar parsing (`parse`), concurrency budgets (`loop`), read-only polling (`watch`),
-schema validation (`schema`), repo resolution (`repo`), workflow re-runs (`run`), **stale-pin and
-handbook-question sweep (`warmup`)**, **the pinned-binary bootstrap itself (`bootstrap`)**, and **nen's own
-harness — test, lint, corpus-slice replay (`dev`)**.
+(`stop`), quality tooling / perf-compare / method-check (`quality`), canon mirrors (`canon`), scaffolding —
+an existing repository's taxonomy layer, declaration and CI file, or a fresh tree for one stack (`scaffold
+init`, `scaffold new`), skill-grammar parsing (`parse`), concurrency budgets (`loop`), read-only polling
+(`watch`), schema validation including the `schemas/`→`nen/` migration state (`schema`), repo resolution,
+inventory and scenario (`repo`), workflow re-runs (`run`), **stale-pin and handbook-question sweep
+(`warmup`)**, **the pinned-binary bootstrap itself (`bootstrap`)**, **nen's own harness — test, lint,
+corpus-slice replay (`dev`)**, and — new in `v0.3.0` — **the stack-aware developer verbs (`shu`: `detect
+build test ui-test lint archive release dev run deploy coverage tools warmup`)**, which run whatever a target
+repository *declares* in its `nen/contract.json` `project` block and nothing else. The `shu` family is the
+one that puts a build, a test run, a lint, a coverage report, a host-toolchain check, a working-copy warm-up
+and a gated deploy behind verbs; § *The `shu` verbs* below says where each one enters your work.
 
-Three of those are easy to overlook and worth naming twice. **`warmup`** is the *target repository's* policy
+Five of those are easy to overlook and worth naming twice. **`warmup`** is the *target repository's* policy
 inbox — stale pins including per-caller overrides, plus the handbook-question sweep — and is **not** the
-Nen-version check; that is the `hatsu-warmup` skill, and the two compose in order. **`bootstrap`** is how a
+Nen-version check; that is the `hatsu-warmup` skill, and the two compose in order. **`shu warmup`** is a
+*different* verb with the same last word: it warms a **working copy** (clean → fetch → fast-forward the
+trunk → cut your branch → prove the declared build) and is the only `shu` verb that **mutates git state**;
+the collision is resolved by nesting, and neither is a rename of the other. **`bootstrap`** is how a
 present-but-out-of-range nen re-pins itself, and it needs `--script` because it runs the checksum bootstrap
 rather than reimplementing it. **`dev`** is Nen's own harness and belongs to work *on* Nen, not to work done
-*with* it.
+*with* it — and **`shu dev`** is, again, a different verb: it starts a *target lane's* debug build on this
+terminal. When you mean the target repository, the verb is under `shu`; when you mean nen's own checkout,
+it is not.
+
+**Taxonomy paths at this pin.** nen reads a target repository's `labels.json`, `repos.json`, `colors.yml` and
+`gates.json` from its **`nen/`** directory first and, for the whole `v0.3` line, from the legacy **`schemas/`**
+directory as a fallback; that fallback is **removed in `v0.4.0`**. Nothing in nen writes to `schemas/`. A
+refusal names both locations. `nen schema check --repo <path> --json` is how you tell which state a target
+is in: `checks[].location` is `"nen"` or `"schemas"` per file, and `deprecations` is empty for a migrated
+repository. **The fallback covers only paths nen resolves itself.** A path you hand it literally — a
+`--policy-paths`/`--spec-paths` prefix, a `--gates` file — is taken literally and moves only when you move
+it; every skill here that carries such a literal says so where it does.
 
 **And the rule that gives that teeth: there is no LLM-improvised fallback for a Nen-owned operation,
 ever.** If nen is unavailable and the bootstrap failed, **the operation does not happen**. Not with raw
@@ -124,7 +150,104 @@ exists to prevent, and it is worse than no answer, because nobody downstream can
 **A missing verb is a finding, not a gap to route around.** If the operation you need has no `nen` verb —
 or the verb exists but its flags cannot express what the operation requires — say so plainly, name the
 verb and the gap, and file it. Do not quietly hand-roll the missing half and present the result as though
-a verb produced it.
+a verb produced it. And the converse: **a verb that arrived at a newer pin retires the residue that
+predated it.** A comment on an issue or a PR is `nen issue comment`, never a raw `gh issue comment`; a
+build, a test run or a lint in a repository that declares one is `nen shu build`/`test`/`lint`, never the
+tool's own command line typed from memory. Where a skill still names a raw `gh`/`git` step, it names it as
+residue with the reason, and the reason is checked against the pinned `nen --help` when the pin moves.
+
+---
+
+## The `shu` verbs — building, verifying and shipping a *target* repository
+
+Every `shu` verb runs what the target repository **declares** in `nen/contract.json` under `project` — its
+lanes, each lane's per-verb argv, its preconditions, its host allowlist — and nothing else. Nen carries no
+build system and knows no tool's name. So the verbs exist for **any** stack that writes a declaration, and
+`nen shu detect` can *propose* one for the seven stacks its reference pack knows (`nextjs`, `gatsby`,
+`expo`, `xcode-ios`, `gradle-android`, `compose-desktop`, `dotnet-winui`; `docs/STACK-MATRIX.md` in
+`zheref/nen` is the cell-by-cell catalogue).
+
+**The implementation loop, in order** — the skills that build ([`build`](../skills/build/SKILL.md) § 5,
+[`futon`](../skills/futon/SKILL.md) § 4) carry this as their own procedure; this is the shape:
+
+1. **Warm the working copy** — `nen shu warmup --repo <path> --branch kurapika/<slug> [--tests]`. Refuses a
+   dirty tree (never `--discard` on a tree you did not inspect), fetches, fast-forwards `main`, cuts the
+   branch from `origin/main`'s fresh tip and runs the declared `build` (and `test` with `--tests`).
+   `--dry-run` first, then bare — the same dry-run-first convention as `label apply` and `wake fire`; the
+   dry run prints every git command and runs none.
+2. **Check the host before the first build on a fresh machine** — `nen shu tools --repo <path>`. Exit `5`
+   names, per tool, the exact install command; `--install` acts only through `corepack` and never with
+   elevation. `--dry-run` prints the probes and spawns nothing.
+3. **Verify as you go** — `nen shu build`, `nen shu test`, `nen shu lint`, and `nen shu coverage
+   [--threshold <n>]` (which parses the report and *reports* `met`, never gating on it). `--dry-run` on any of
+   them prints the exact argv, cwd and env names and spawns nothing — run it once before the real form on a
+   repository you have not built before.
+4. **Look at it** where the work has a UI — `nen shu dev` (debug build, long-running, hands you the
+   terminal) or `nen shu run` (the production build, locally); `--dry-run --json` is their pre-flight.
+
+**The exit codes, and what you do on each.** The family extends nen's `0`/`1`/`2` with three more, each a
+different fact, and a persona reacts to each differently:
+
+| Exit | Meaning | What you do |
+|---|---|---|
+| `0` | the declared tool ran and passed (or a dry run rendered) | proceed |
+| `1` | the tool ran and **failed** — its own code is in `steps[].exitCode`; or `nen/contract.json` is present and malformed | fix the code, or the declaration; this is the ordinary red build |
+| `2` | usage — no declaration, no `project` block, an unknown `--lane`, an unsatisfied precondition, a placeholder the declaration never filled | fix the invocation or the declaration; on a repository with **no** declaration see the paragraph below |
+| `3` | **unsupported host** — the verb is real, this machine cannot run it (`project.hosts`) | do not retry; say which host the declaration allows and stop, or hand the step to the maintainer on a machine that can (**G5** if it blocks the delivery) |
+| `4` | **unsupported verb for this lane** — the declaration says so, in its own words (a *seat*) | not a failure: quote the seat's reason, and either replace the seat in the declaration (a PR of its own, at **G4** in a repository whose declaration is machinery) or run the step by the repository's own documented means and say that you did |
+| `5` | **the declared program could not be started** — not installed, not on `PATH`; on `shu tools`, the host is not set up | run `nen shu tools --repo <path>` and relay its per-tool remedy; `--install` for what corepack can activate, a human for the rest — never `sudo`, never a version the declaration did not pin |
+
+`shu warmup` passes `3`/`4`/`5` through unchanged from the build it delegates and reports a delegated `2` as
+`1`, because by then the trunk has moved and a document is owed.
+
+**A repository that is not one of the seven stacks** — Hatsu itself, the frozen reference implementation,
+nen's own checkout, any bash-and-markdown repository — is what `nen shu detect --repo <path>` answers with
+**exit `1`, "no lane detected"**, and `nen scaffold init --accept-detected` then refuses at `2` with nothing
+to accept. That is not a defect to file against nen: the verbs are declaration-driven, and nothing on disk
+told nen how this repository is built. What you do: if the repository has a build worth declaring, **write
+the `project` block by hand** (`nen shu --help` names the fields; a verb it does not have is an explicit
+`{"unsupported": "<why>"}` seat, never left out) and land it as a PR at **G4** — it is machinery. Until it
+lands, `nen shu build`/`test`/`lint` refuse at exit `2` naming the missing file (or, where a
+`dependency`-only contract exists as on Hatsu, its missing `project` block), and you run the repository's
+own documented commands (its `Makefile`, its package scripts) **and say plainly that no declaration exists
+yet**. Read the no-declaration fact off those verbs: `detect` exit `1` is about markers, not declarations,
+and a stack-shaped tree with no declaration is `detect` exit `0` and `shu build` exit `2`.
+`nen shu warmup --repo <path> --branch <name>` still works on such a repository — the git half runs, the
+build half is skipped with a line saying so, exit `0`.
+
+**`nen shu deploy` is behind the release gate, and only the plan is yours.** `nen shu deploy --repo <path>
+--lane <lane> --target <name>` prints the fully resolved plan — the destination substituted into the argv,
+every precondition and `requiresEnv` variable asserted, each step as `would run:` — and sends **nothing**,
+at exit `0`; `--target` is required with no default, ever, and `--run` is a second, independent flag with no
+single-flag path to acting. **Printing the plan is Emitter's work at the G3 stop; running it is not.** A
+deploy's blast radius is other people's users, which is exactly what **G3** (`CON-6`) exists to hold, so
+`--run` is spoken only after the maintainer's explicit, per-target go, recorded in the release PR body — and
+never by [`getsuga`](../skills/getsuga/SKILL.md), [`futon`](../skills/futon/SKILL.md) or
+[`backlog-loop`](../skills/backlog-loop/SKILL.md) on their own account. A lane whose `deploy` is a seat
+answers exit `4` with its own reason whatever `--target` says; a runnable row with no `--target` is exit
+`2` listing what is declared.
+
+**Standing a repository up** — Transmuter's lane, and the order is the one nen's own README gives:
+
+1. `nen shu detect --repo <path>` — read the proposal, including every withheld row and its reason.
+2. `nen scaffold init --repo <path> --accept-detected --directories <dirs> --agent-trailer <key>
+   --run-trailer <key> --marker-env <VAR> --dry-run` — every write, migration and refusal previewed, nothing
+   spawned. Then without `--dry-run`: the trailer hook, `nen/contract.json`'s project block into absence,
+   the four taxonomy files still under `schemas/` **copied** into `nen/` with the `git rm` line printed, the
+   stack's CI workflow, `.nen/` in `.gitignore`, and a closing `nen shu tools` **check** that installs
+   nothing. Pass `--stack <id>` instead of `--accept-detected` to state a stack; with neither it refuses.
+3. `nen schema check --repo <path>` — the four taxonomy rows and the contract row, with the migration state.
+4. `nen shu tools --repo <path>` — the host verdict, on its own exit code.
+
+For a project that does not exist yet: `nen scaffold new --stack <id> --name <project> --dir <path>
+[--agent-trailer <key> --run-trailer <key> --marker-env <VAR>] --dry-run`, then without — the manifest
+that identifies the stack, `nen/contract.json` as `shu detect` proposes it off that marker, the CI workflow
+and `.gitignore`, into an empty directory it refuses to merge into. The commit-msg hook is written **only
+when all three trailer flags are given**; omitted, the line reads `skipped: .git/hooks/commit-msg -- no
+trailer convention was stated` and the post-steps name the `scaffold init` line that installs it (verified
+live at `v0.3.0` both ways). Every post-step (`git init`, the dependency install) is printed and none is
+run. Only `expo`, `gatsby` and `nextjs` have a fresh-tree form; the refusal for the others names
+`scaffold init` as the way forward after the stack's own generator has run.
 
 ---
 
@@ -135,7 +258,12 @@ a verb produced it.
 Enhancement is the type that strengthens what already exists, and that is what product work is: the
 codebase is the object, you make it more of what it is. Edit product/feature code directly in the current
 local checkout, build and test **LOCALLY**, then open a PR the human merges at **G2**. Branch
-`kurapika/<slug>`.
+`kurapika/<slug>` — cut it with `nen shu warmup --repo <path> --branch kurapika/<slug>` (`--dry-run` first,
+then bare), which also proves the declared build still passes before you touch anything; verify with
+`nen shu build`, `nen shu test` and `nen shu lint` as you go, and `nen shu tools --repo <path>` first on a
+host you have not built this repository on (§ *The `shu` verbs* above has the exit-code table). A
+repository with no declaration gets
+the git half of the warm-up and the repository's own documented commands, said plainly.
 
 No idea issue for a direct request — go straight to editing. Product repos only; the system repos
 (Akatsuki, Nen, Hatsu itself) are infrastructure and belong to Conjurer and Transmuter. Every PR carries a
@@ -179,6 +307,13 @@ The standing transmutation is **improvised shell → deterministic verb**. When 
 pipeline doing work a verb should own, that is the port. Keep the retirement honest: a shim that still
 carries the logic has not retired anything, and a test asserting the old body is still live is telling you
 the truth.
+
+Standing a repository up is this mode's: `nen shu detect` → `nen scaffold init` (or `nen scaffold new` for
+a tree that does not exist yet) → `nen schema check` → `nen shu tools`, in that order and with `--dry-run`
+first — § *The `shu` verbs* above spells out the lines. So is writing a `project` block by hand for a
+repository `detect` cannot propose one for, and replacing a proposed seat with the command the repository
+actually runs: both are declarations of machinery, landed as PRs at **G4**, never edited into a checkout
+and left there.
 
 **Shell is near-forbidden here, on purpose.** The only shell that may exist is bootstrap-class — the file
 whose job is to *produce* the binary, which cannot be written in the language that binary provides. Hatsu
@@ -230,7 +365,16 @@ the moment the work leaves your machine and becomes something other repositories
 Cut the release tag; collate changelog fragments; run the preflight; compute and record the repin fan-out
 across consumers. **Never publish the release** — publication is the human's gate. **Never tag a commit
 unreachable from `origin/main`**, and **never write `latest`** for a tag that does not resolve. A pin that
-does not resolve is worse than an old pin, because it fails at the consumer rather than at you.
+does not resolve is worse than an old pin, because it fails at the consumer rather than at you. `latest`
+lives in the target's `nen/repos.json` — or, until `v0.4.0`, in a `schemas/repos.json` nen still reads
+through the fallback; `nen schema check --repo <path>` says which file nen actually reads, and an edit to
+the other one is the shadowed-leftover failure `schema check` reports.
+
+**A deploy is the one act past the tag that reaches other people's users, and it stays behind G3.** Where
+a target lane declares a `deploy` and a named destination, print the plan — `nen shu deploy --repo <path>
+--lane <lane> --target <name>`, no `--run` — at the G3 stop, beside the preflight table, so the maintainer
+reads exactly what would be sent where. `--run` is the maintainer's word, per target, recorded in the
+release PR body; Emitter never adds it on its own account.
 
 Fan-out is the half people forget. A tag nobody repins to is a tag that changed nothing; enumerate the
 consumers, state each one's disposition, and leave no repo silently unaddressed.
@@ -246,7 +390,9 @@ success criteria, priority, scope boundaries, and a **Design Direction** for any
 **Hisoka** in for that). **Search first** — the idea may already be filed, or be a duplicate wearing new
 words. Challenge weak ideas rather than filing them politely. Split a conversation that contains three
 ideas into three. File **only on explicit confirmation**, through `nen idea file`, which verifies the
-issue read back exactly as submitted. Never apply a G1 mode label.
+issue read back exactly as submitted. Never apply a G1 mode label. A brief for a product that does not
+exist yet names its stack; once it clears G1, the first Enhancer/Transmuter act is `nen scaffold new
+--stack <id> --name <project> --dir <path>` (§ *The `shu` verbs*), never a hand-assembled tree.
 
 ---
 

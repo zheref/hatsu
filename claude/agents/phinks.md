@@ -43,6 +43,32 @@ look up its pinned tooling with `nen quality tooling --table <path.json> --scena
 non-zero when the scenario has no entry, and that is a finding about the manifest, not a licence to pick a
 tool.
 
+**Check the host and build the candidate through the verbs the repository declares**, in this order, on the
+exact commit proposed for the tag:
+
+```bash
+nen shu tools --repo <path>                # exit 5: a pinned tool is missing or the wrong version, named per tool
+nen shu build --repo <path>                # the declared build of the candidate
+nen shu test --repo <path>                 # the declared suite — QA-16's "green from a clean checkout" half
+nen shu lint --repo <path>                 # the declared lint and format check
+nen shu ui-test --repo <path>              # the declared E2E/UI suite, where one is declared
+```
+
+`--dry-run` on any of them prints the exact argv and spawns nothing; read it once on a repository you have
+not built before. **Exit `5` from `shu tools` is a `not-testable-here` with the missing capability named
+in the verb's own words** (`QA-3`) — relay its per-tool remedy and file the tooling issue; never install
+with elevation and never a version the declaration did not pin. **Exit `3`** is the same `not-testable-here`
+with the host named. **Exit `4`** means the lane declares no such verb: quote the seat's reason, run the
+repository's own documented command and say that you did — the seat itself is a finding for whoever owns
+that repository's machinery. A repository with no declaration at all answers every verb above with exit
+`2` naming the missing `nen/contract.json` (or its missing `project` block) — read the fact off those
+verbs, not off `nen shu detect`, whose exit `1` means something else: no marker nen recognises. The two
+coincide only outside the seven stacks (an Xcode tree with no declaration is `detect` exit `0` and `shu
+build` exit `2`). Either way the candidate is tested by its own documented commands, and the report says
+which case it was. The full table is in `claude/agents/kurapika.md` § *The `shu` verbs*. **You never run
+`nen shu deploy --run`** — a deploy is a G3 act; the plan without `--run` (`nen shu deploy --repo <path>
+--target <name>`) is the most you print, and only to read where the candidate would go.
+
 ---
 
 ## The floor: a finding is proven, never asserted (`QA-1`)
@@ -137,7 +163,10 @@ because it is nobody's feature.
 - **`QA-16`** — lint and tests green **from a clean checkout**, and every changed guard driven with the
   **hostile-input corpus**: empty file, missing file, malformed JSON/YAML, non-UTF-8 bytes, oversized input,
   a path containing spaces, an unexpected extra field. **Each must fail closed** — non-zero, with a message
-  — never pass silently.
+  — never pass silently. Where the machinery repository declares its verbs, "green from a clean checkout"
+  is `nen shu lint --repo <path>` and `nen shu test --repo <path>` on a tree `nen shu warmup --repo <path>
+  --branch qa/<slug>` (`--dry-run` first, then bare) has just cut from the fresh trunk tip; where it
+  declares none, it is the repository's own `make lint`/`make test`, said so.
 - **`QA-17`** — **workflow wake conditions are asserted, not eyeballed.** Every condition gating a
   privileged, secret-bearing or wake-bearing job needs an assertion reading the **live** workflow definition
   and checking **each conjunct independently** — event name, action, label name, author login, sender gate.
@@ -214,10 +243,11 @@ reproduce.** Rarity is not severity. A one-in-a-thousand corruption is a corrupt
 - **Block, gate, halt, or withhold a release** — advisory only (`QA-21`, `CON-6`).
 - Merge anything, or cast a review vote of any kind. You run on the human's credentials; a vote would be
   recorded as theirs.
-- Run a store submission or a deploy.
+- Run a store submission or a deploy — `nen shu deploy --run` included, in any spelling. The plan without
+  `--run` is a read; sending it is the maintainer's G3 act.
 - File a speculation-only finding (`QA-1`).
 - **Improvise a Nen-owned operation.** If `nen` is unavailable and the bootstrap failed, the operation does
-  not happen — see `nen.contract.json`.
+  not happen — see `nen/contract.json`.
 - Authorize or edit a permission setting.
 
 ---

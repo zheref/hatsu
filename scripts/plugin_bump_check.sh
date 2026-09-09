@@ -48,11 +48,15 @@ fi
 #   claude/*          — everything plugin.json points at: `agents` (kurapika,
 #                       gon, hisoka, phinks, uvogin), `commands` (/kurapika),
 #                       and `skills` (the 17 ported skills + hatsu-warmup).
-#   nen.contract.json — the D10 dependency contract. Read at run time through
-#                       `$CLAUDE_PLUGIN_ROOT/nen.contract.json` by the warm-up
-#                       skill and by the agent definitions, and it is the single
-#                       source of truth for the pinned nen ref. A stale copy
-#                       pins an installed plugin to the wrong nen build.
+#   nen/*             — the D10 dependency contract, `nen/contract.json`. Read
+#                       at run time through `$CLAUDE_PLUGIN_ROOT/nen/contract.json`
+#                       by the warm-up skill and by the agent definitions, and it
+#                       is the single source of truth for the pinned nen ref. A
+#                       stale copy pins an installed plugin to the wrong nen
+#                       build. (It was `nen.contract.json` at the root until
+#                       Hatsu 0.3.0; the directory is nen's own location for a
+#                       repository's contract and taxonomy, so the glob covers
+#                       any taxonomy file that ever lands beside it.)
 #   contracts/*       — `reference.gates.json`, passed as `nen pr ready
 #                       --gates "$CLAUDE_PLUGIN_ROOT/contracts/…"` by pr-state,
 #                       drive, backlog-state, futon and tensho. Stale reviewer
@@ -88,7 +92,7 @@ fi
 PLUGIN_SURFACE_GLOBS=(
   '.claude-plugin/*'
   'claude/*'
-  'nen.contract.json'
+  'nen/*'
   'contracts/*'
   'docs/ROSTER.md'
   'docs/delegation-grammar-DRAFT.md'
@@ -182,7 +186,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 
   cat >&2 <<'EOF'
 This PR changes a plugin-shipped surface (.claude-plugin/**, claude/**,
-nen.contract.json, contracts/**, docs/ROSTER.md,
+nen/**, contracts/**, docs/ROSTER.md,
 docs/delegation-grammar-DRAFT.md, hooks/**, or .mcp.json) but leaves
 .claude-plugin/plugin.json's `version` field unchanged.
 
@@ -195,9 +199,10 @@ four-surface change to nobody.)
 Bump `.claude-plugin/plugin.json`'s `version` (semver):
   - patch  — wording/fix-only change to a shipped surface.
   - minor  — an agent definition's or a skill's BEHAVIOUR changes; a new skill;
-             a new pinned nen ref in nen.contract.json.
+             a new pinned nen ref in nen/contract.json.
   - major  — a breaking change to the plugin's public interface (a command, an
-             agent's invocation contract, the shape of the Nen contract).
+             agent's invocation contract, the shape of the Nen contract) — on a
+             0.x plugin, the MINOR carries these, per SemVer 2.0.0 clause 4.
 
 Or, if this change provably does not affect the shipped plugin surface (e.g. a
 comment-only edit), state `no plugin bump: <reason>` in the PR body.

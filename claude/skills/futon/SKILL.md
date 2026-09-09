@@ -86,7 +86,8 @@ bounded `CON-25` delegation (§ 7), and a delegation nobody announced is a deleg
 ### Verified live, every band shape and both terminals
 
 Run against the real `<reference-repo>` checkout (`--repo` = that checkout's path; `GH_TOKEN` not
-needed — this verb reads only `schemas/repos.json` on disk, no GitHub call):
+needed — this verb reads only `nen/repos.json` — legacy `schemas/repos.json` until `v0.4.0` — on disk,
+no GitHub call):
 
 | Invocation | Result |
 |---|---|
@@ -106,7 +107,7 @@ are in `docs/ab/futon.md` § 1.
 | `RA@high then tag` (standing in `<reference-repo>`) | *"'then tag' is refused against '`<product-repo-A>`' -- the terminal is that repository's own release machinery, and it is not the one you are standing in (`<reference-repo>`)."* → `try: RA@high` |
 | `RA@urgent` | *"'urgent' is not a severity. Expected one of critical, high, medium, low, optionally suffixed '+'."* → `try: RA@critical` |
 | `RA@high then release` | *"'then release' is not a recognized terminal. Only 'then tag' and 'then tag+fanout' are accepted."* → `try: RA@high then tag` |
-| `ZZ@high` | *"'ZZ' does not resolve against this registry's product_codes ($comment, BC, BS, RA, RB, RC, KC) or its consumers. Resolving it to a near match would point a mutating run at the wrong backlog."* |
+| `ZZ@high` | *"'ZZ' does not resolve against this registry's product_codes (BC, BS, RA, RB, RC, KC), its consumers, or its maintained_tools/pending_onboarding listings. Resolving it to a near match would point a mutating run at the wrong backlog."* — at the port the code list also printed the registry's own `$comment` documentation key as if it were a code; nen `v0.2.0` (#81, closes zheref/nen#17) skips `$`-prefixed keys as metadata, and the refusal at `v0.3.0` (re-verified live against a registry carrying one) lists codes only |
 | `kp@HIGH+ then TAG` | Case-insensitive parsing confirmed (band/terminal parsed correctly); refused on the **same** self-mismatch as row 1, with the corrected line preserving the caller's own casing: `try: kp@high+` |
 
 **`+` means this band or higher, never anything else; a bare severity never quietly widens.**
@@ -124,27 +125,22 @@ Kurapika's real sessions stand in `<reference-repo>` when they type it — but t
 hard-code that assumption the way the retired prose did, and a future run standing in a different
 registry-owning repo would get the identical protection with no code change.
 
-> **Finding against the binary — a genuine usability gap, not a refusal that is doing its job.**
-> **The product-code form fails to resolve the registry's OWN repo, and only the owner/name or
-> short-name form works.** Verified live, reproduced three ways: `nen parse futon --repo
-> <reference-repo checkout> "BC@medium"` — no terminal, no `+`, nothing exotic — refuses at exit `2`:
-> *"'BC' resolves to '`<reference-repo>`' in this registry's own product_codes, but no owner is
-> recorded for it (it names no consumer) and the checkout you are standing in ('`<reference-repo>`')
-> is not it."* The **identical** invocation with `<reference-repo>@medium` or `<reference-repo>@medium`
-> parses cleanly (`docs/ab/futon.md` § 1.5–1.7), and the same refusal reproduces for `KC` (`kro-pwa`,
-> a `pending_onboarding` entry, not yet a `consumers` row) — the resolution path apparently checks
-> only the `consumers[]` array for a code lookup, which structurally never lists the registry's own
-> source repo (`<reference-repo>` does not consume itself) or an onboarding-pending one. **A different `nen`
-> verb on the very same registry does not have this gap** — `nen repo resolve BC` (run from inside
-> the same checkout) answers `<reference-repo> (BC) via code` instantly (`docs/ab/futon.md` § 1.8)
-> — and [`hatsu:backlog-state`](../backlog-state/SKILL.md)'s own A/B doc records the *same* family of
-> bug in a third verb (`nen repo resolve`'s no-token form), on the same repo, for the same
-> structural reason. Three verbs, one recurring blind spot: **the maintainer's most natural
-> invocation for driving their own backlog — `hatsu:futon BC@high`, matching the retired skill's own
-> worked examples verbatim — refuses.** Filed as a finding, not routed around silently. **The
-> corrected form to use against `<reference-repo>` until this is fixed: the bare form (`@<severity>`,
-> when standing in the checkout) or the full `<reference-repo>@<severity>` — never the `BC` code
-> — and say so plainly when the maintainer types the code form and hits the refusal.**
+> **Finding this port filed against `v0.1.0`, closed by nen `v0.2.0` (#66, closes zheref/nen#27).**
+> At the port the product-code form failed to resolve the registry's **own** repo: `nen parse futon
+> --repo <reference-repo checkout> "BC@medium"` refused at exit `2` (*"'BC' resolves to
+> '`<reference-repo>`' in this registry's own product_codes, but no owner is recorded for it (it names
+> no consumer) …"*), the same refusal reproduced for a `pending_onboarding` entry (`KC`), and only the
+> owner/name or short-name form parsed (`docs/ab/futon.md` § 1.5–1.8). The cause was structural — the
+> lookup stopped at `consumers[]`, which never lists the registry's own source repo — and
+> [`backlog-state`](../backlog-state/SKILL.md)/[`tensho`](../tensho/SKILL.md) hit the same blind spot in
+> `nen repo resolve`'s no-token form. **nen `v0.2.0` widened every token lookup to everything the
+> registry records** — consumers, `product_codes` keys *and* values, `maintained_tools`,
+> `pending_onboarding` — and the no-token origin form resolves by the same rules. Verified live at
+> `v0.3.0` against nen's bundled registry: `nen parse futon --repo <path> "BC@medium" --self
+> zheref/bankai-core` → `repo: zheref/bankai-core (BC) · band: medium -> medium · terminal: (none --
+> build-only)`, exit `0`; `"BC@high+ then tag"` → `terminal: tag`, exit `0`. **`hatsu:futon BC@high` —
+> the maintainer's most natural invocation — now parses**, and the bare `@<severity>` and
+> `<owner/name>@<severity>` forms still do.
 
 **An unparseable invocation is refused with the corrected line ready to paste** — the same
 discipline [`hatsu:izanagi`](../izanagi/SKILL.md) applies to its own grammar. Never run the closest
@@ -175,8 +171,13 @@ Then:
 - **Order within the band**: `nen backlog order --rows-from <path> --severity-order
   critical,high,medium,low --blocks <ids> --affects-consumers <ids>` — verified live against a
   three-row sample drawn from the real fetch, ranking `937` (high) ahead of `938`/`939` (medium,
-  tie-broken by age) exactly as expected (`docs/ab/futon.md` § 2). With `+`, the higher severity is
-  worked first and **`critical` pre-empts everything**.
+  tie-broken by age) exactly as expected (`docs/ab/futon.md` § 2). `--rows-from` is **not** `backlog
+  fetch --json`'s output: reshape each fetched row to `{ id, severity, createdAt, number }` first
+  (severity read off the `bankai:severity/*` label). Since nen `v0.3.0` (#107) the verb validates that
+  file at the read seam and refuses a fetch document, or a row missing `id`, at exit `2` naming the file,
+  row and field — verified live — instead of crashing. `--blocks`/`--affects-consumers` take a row's
+  `id` **or** its bare issue number, and an unmatched token is refused at `2` (nen `v0.2.0`, #64). With
+  `+`, the higher severity is worked first and **`critical` pre-empts everything**.
 
 **State the queue before advancing anything**: the count, every issue in it, and what was excluded
 and why. The band is the run's whole scope, so a reader who cannot see it cannot audit the run.
@@ -214,8 +215,17 @@ read-only rule); the flag surface matches `nen label --help` exactly (`docs/ab/f
 
 **Then Kurapika builds it, in this same session, in the mode just confirmed.** There is no wake to
 verify, no `build` job to poll, no probe run to distinguish from a swallowed one — those describe a
-CI plane Hatsu does not have (the declared-change callout above). Where the work is something a local session
-structurally cannot do at all, **stop at G5 immediately** and name the gap — the same move
+CI plane Hatsu does not have (the declared-change callout above). The build itself runs through the
+verbs the target repository declares, exactly as [`hatsu:build`](../build/SKILL.md) § 5 lays them out
+and this skill invokes rather than restates: per issue, `nen shu warmup --repo <path> --branch
+kurapika/<slug>` — `--dry-run` first, then bare — to cut the branch from the fresh trunk tip and prove the
+declared build (on a band of several issues the one worktree-per-effort rule holds, so the warm-up runs
+in that effort's own worktree), `nen shu tools --repo <path>` once on a fresh host, then
+`nen shu build`/`test`/`lint` as
+the work goes — with exit `4` quoted as the lane's own seat, exit `5` sent back to `shu tools`, exit `3`
+a **G5** naming the host, and a repository with no declaration built by its own documented commands,
+said so (`claude/agents/kurapika.md` § *The `shu` verbs*). Where the work is something a local
+session structurally cannot do at all, **stop at G5 immediately** and name the gap — the same move
 [`hatsu:build`](../build/SKILL.md) § 5 makes for its own identical hole.
 
 ## 5. Done is `CON-32` Ready and prompted — for every PR this run originates
@@ -229,11 +239,14 @@ export GH_TOKEN=$(gh auth token)
 nen pr ready <CODE>#<N> --repo <path> --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
 ```
 
-`--gates` anchored on `$CLAUDE_PLUGIN_ROOT` for `<reference-repo>` specifically (frozen, ships no
-`schemas/gates.json` of its own — [`hatsu:pr-state`](../pr-state/SKILL.md)'s own doc proves the
-`ENOENT` from any other path); a repo that ships its own `schemas/gates.json` needs no `--gates`
-flag. **Verified live against both of `<reference-repo>`'s real open PRs**, contrasting a Ready
-maintainer-authored PR against a not-Ready pre-existing CI one (`docs/ab/futon.md` § 4):
+`--gates` anchored on `$CLAUDE_PLUGIN_ROOT` for `<reference-repo>` specifically (frozen, ships no gates
+file of its own — neither `nen/gates.json` nor the legacy `schemas/gates.json`; and since nen `v0.2.0`
+a relative `--gates` resolves against `--repo`'s root rather than the cwd, so only an absolute path
+reaches a file that lives in *this* plugin's checkout — [`hatsu:pr-state`](../pr-state/SKILL.md) § 2
+has the live transcript); a repo that ships its own `nen/gates.json` (or, until `v0.4.0`,
+`schemas/gates.json`) needs no `--gates` flag. **Verified live against both of `<reference-repo>`'s
+real open PRs**, contrasting a Ready maintainer-authored PR against a not-Ready pre-existing CI one
+(`docs/ab/futon.md` § 4):
 
 - `BC#940` (opened by the maintainer, `zheref`, matching this run's own authorship pattern):
   `ready` — all six conjuncts pass (mergeable, checks green, no owed round, every approval at
@@ -273,11 +286,13 @@ nen loop slots --efforts efforts.json --ci-cap 2 --local-cap 7 --json
 | **CI** | 2 | the PR **opens** | only the legacy-CI exception noted above — a PR this run never originates |
 | **Local** | 7 | the PR is **Ready and prompted** | every PR this run itself authors |
 
-**Verified live, `--ci-cap 2 --local-cap 7` are `nen loop slots`'s own DEFAULTS** — unlike
-[`hatsu:build`](../build/SKILL.md)'s finding that its analogous verb call needs an explicit
-`--local-cap 2` override (the binary defaults to `7`), `futon`'s own stated caps (the table above)
-are exactly what the verb already assumes; passing them explicitly is a belt-and-braces
-habit, not a correction (`docs/ab/futon.md` § 5).
+**`--local-cap 7` is `futon`'s own policy and must be passed; `--ci-cap 2` is still the verb's default.**
+At the port (`docs/ab/futon.md` § 5) both were the verb's own defaults, so passing them was
+belt-and-braces. **nen `v0.2.0` removed the local-plane default of `7`** (#69, closes zheref/nen#52: a
+concurrency guard must be chosen, never inherited) — verified live at `v0.3.0`, `nen loop slots
+--efforts <path>` without `--local-cap` refuses at exit `2` naming the flag — so the invocation above,
+which always passed the flag, is unchanged and now mandatory; `--ci-cap` defaults to `2` as before.
+`--efforts` resolves against the process cwd, not `--repo` — pass an absolute path.
 
 Two exercised transcripts, built from a mix of the two real open PRs above plus clearly-labelled
 illustrative fill (`docs/ab/futon.md` § 5): `BC#925` modelled truly (`prOpen: true, ready: false`)
@@ -430,4 +445,6 @@ where the objects actually are.
 - **Never batches the merge prompts.** One prompt and one gate stop per PR, as it becomes Ready.
 - **Never invokes `nen release preflight` or `nen fanout compute/record` itself** — both are
   `getsuga`'s own verbs (§ 8).
+- **Never runs `nen shu deploy --run`** — a deploy is past the tag and behind **G3**, which no `then`
+  clause this grammar accepts can name.
 - **Never leaves the delegation open** — the run says when it ends.

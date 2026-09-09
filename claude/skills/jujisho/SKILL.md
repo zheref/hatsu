@@ -73,35 +73,22 @@ nen split verify --original original.diff --branches axis-a.diff,axis-b.diff
 body, and reports `MISSING` / `DUPLICATED` / `ALTERED` / extra otherwise. Exit `0` means proven;
 exit `1` means the split is incomplete and nothing is opened until it reads `OK`.
 
-> **Known defect — verified live, `docs/ab/jujisho.md` § 2.1–2.2.** When `--original` spans **more
-> than one file** (more than one `diff --git` block), `nen split verify` misparses every file
-> **except the last one named in the original diff**: it reports a false `ALTERED` on an otherwise
-> byte-identical hunk, with the diagnostic reading exactly
-> `line N: original "(absent)" vs branch ""` at the position one past that hunk's true last line.
-> **The same false `ALTERED` also fires within a single file, at a hunk boundary rather than a
-> file boundary**, whenever that one file's branch-side diff is genuinely short a hunk: the
-> surviving hunk is falsely reported `ALTERED` alongside the correctly-reported `MISSING` line for
-> the hunk that really is absent. **Reproduced independently five ways** (two-file order A, the
-> same two files reversed, a three-file original, a single-file two-hunk case with a hunk
-> genuinely dropped, and the same single-file two-hunk case with nothing dropped, which verifies
-> clean) — it is not a fluke of one construction.
->
-> **The mandated workaround, until this is fixed upstream:** run `nen split verify` **once per
-> touched file**, slicing `--original` into one per-file diff for each file the working copy
-> touches and slicing `--branches` into the matching per-file diff from whichever axis branch(es)
-> carry that file — comma-separate more than one only where a hunk is deliberately shared per the
-> lower-axis rule above. **A per-file slice is not immune to the false `ALTERED`** — the
-> hunk-boundary case above can still produce one — **but the workaround stays safe**, because a
-> real gap (a hunk truly missing on the branch side) always also produces its own `MISSING` line:
-> the split is never reported as a clean `OK` when a hunk has genuinely been left behind. Confirm
-> every per-file run reads `OK` with no `MISSING` line. **Then separately confirm the file set
-> itself**: the set of files named across every `--branches` diff must equal the set of files
-> named in `--original`, with none extra and none missing — a plain comparison of each diff's
-> `diff --git` lines, not a verb call. Together these reconstruct exactly the guarantee one
-> correct combined run would give, without ever letting a genuine gap through undetected. **File
-> this as a finding against `nen` (`docs/ab/jujisho.md` § 4); never quietly trust a bare
-> `OK`/`ALTERED` verdict from a multi-file `--original` run as-is, and never silently widen the
-> workaround into skipping the proof.**
+> **Defect this port filed against `v0.1.0`, closed by nen `v0.2.0` (#61, closes zheref/nen#21).**
+> At the port a multi-file `--original` misparsed every file but the last (a false `ALTERED` reading
+> `line N: original "(absent)" vs branch ""` one past the hunk's true end), and the same false
+> `ALTERED` fired at a hunk boundary inside one file whenever a hunk was genuinely missing —
+> reproduced five ways, `docs/ab/jujisho.md` § 2.1–2.2. The cause was the hunk-body terminator: the
+> parser stopped a body at the next header rather than at the `@@` counts, and `v0.2.0` fixed exactly
+> that. **Verified live at `v0.3.0`** with a hand-written two-file original split across two axis
+> diffs: `files: 2 in original, 2 across branches` / `OK -- every hunk in the original lands in exactly
+> one branch, unaltered, and nothing extra was found.` (exit `0`); with the second axis omitted:
+> `MISSING (in original, in no branch): b.txt  @@ -1,2 +1,3 @@` and exit `1`, with no false `ALTERED`
+> beside it. **The per-file-slice workaround is retired**: run the proof **once, over the whole
+> original**, and read `OK` as proven and any `MISSING`/`DUPLICATED`/`ALTERED`/extra line as the split
+> being incomplete. The report also prints the file count on each side (`files: N in original, M
+> across branches`), which is the file-set check the workaround used to do by hand. If a bare
+> `ALTERED` on a hunk you know is byte-identical ever reappears, that is a **new** finding to file with
+> the two diffs attached — not a reason to trust the split.
 
 ## 3. Three or more axes — report, then ask
 
@@ -173,12 +160,15 @@ reader sees in the PR list.
 
 ## 6. The PRs
 
-Both carry what `schemas/templates/pr.md` requires — `# What this changes for you` (`CON-17(a)`),
-`## How to verify` (`CON-17`). Check whether a `changelog.d/` fragment is owed with
+Both carry what the target's PR template requires (e.g. `schemas/templates/pr.md` — a template is not
+one of the four files nen's `schemas/`→`nen/` migration moved) — `# What this changes for you`
+(`CON-17(a)`), `## How to verify` (`CON-17`). Check whether a `changelog.d/` fragment is owed with
 `nen changelog fragment-required --files <this axis's changed paths> --spec-paths
-CONSTITUTION.md,handbooks,schemas,agents,.github/workflows --fragment-dir changelog.d
+"CONSTITUTION.md,handbooks/,nen/,schemas/,agents/,.github/workflows/" --fragment-dir changelog.d
 --head-changelog CHANGELOG.md` (`CON-33(a)`) rather than eyeballing the path list by hand — it
-answers per axis, since the two PRs' changed-path sets differ.
+answers per axis, since the two PRs' changed-path sets differ. `--spec-paths` is a literal prefix list
+outside nen's taxonomy fallback, so it names both `nen/` and `schemas/` for the whole `v0.3` line
+([`tensho`](../tensho/SKILL.md) § 5 says when to drop the second).
 
 Additionally, **each body carries the split itself**:
 
@@ -208,7 +198,11 @@ against a base that will change; take A to its gate, and start B once A's merge 
 ## 9. Hard limits
 
 - **Never leaves a hunk behind.** The union of the splits equals the original diff, proven by
-  `nen split verify` — per file, per § 2's mandated workaround while the multi-file defect stands.
+  `nen split verify` over the whole original — the multi-file defect § 2 records is closed since nen
+  `v0.2.0`, and the proof runs once.
+- **Never opens a PR for an axis it has not proved through the repository's declared verbs** — `nen
+  shu build`/`test`/`lint` per axis branch, as [`tensho`](../tensho/SKILL.md) § 5 does for one; a
+  repository with no declaration runs its own documented commands, said so.
 - **Never merges two unrelated axes** to fit the cap — it reports and asks.
 - **Never rebases a pushed branch**; A reaches B by merge (`nen pr cascade-main --trunk <A>`,
   `CON-21`).

@@ -148,8 +148,11 @@ nen label apply <CODE>-IS-#<N> --label bankai:severity/<level> --repo-slug <owne
 
 Never exercised live against the real, frozen `<reference-repo>` (the shared brief's read-only
 rule) — contract-verified only, `docs/ab/backlog-loop.md` § 3. `<reference-repo>`'s own taxonomy carries
-four severities (`critical`, `high`, `medium`, `low` — verified live off `schemas/labels.json`); a
-different target repository's own taxonomy is read the same way, never hard-coded.
+four severities (`critical`, `high`, `medium`, `low` — verified live off its `schemas/labels.json`, which
+nen reads through the legacy fallback until `v0.4.0`; a migrated target carries `nen/labels.json`); a
+different target repository's own taxonomy is read the same way, never hard-coded. Pass `--repo <the
+target's checkout>` so the label is validated against that file, never against the checkout the loop
+happens to run from.
 
 **`bankai:handbook-question` and design calls.** These need a **decision**, not a fix. Analyse
 each, then **brief** the maintainer through `nen stop --gate G5` (§ 9) with a `DECIDE` ask: what is
@@ -177,15 +180,15 @@ another issue**, then **affects consumer behaviour/DX**, then **age** (oldest fi
 number. Verified live against the real backlog: the seven real open `high` rows sort strictly
 oldest-first ahead of every `medium`/`low`/untriaged row (`docs/ab/backlog-loop.md` § 2.4).
 
-> **`--blocks`/`--affects-consumers` take the row's own `id` string (`RR-IS-#928`), not the bare
-> issue number `--help`'s own `<n,n>` notation reads as** — verified live: passing the bare numbers
-> `928,929` is silently accepted, produces no error, and simply never marks either row
-> `blocksOther: true`; passing the `id` strings `RR-IS-#928,RR-IS-#929` correctly promotes both to
-> the front of their severity band, tied on age between themselves (`docs/ab/backlog-loop.md`
-> § 2.4). Not a defect — the verb reads exactly what `--rows-from`'s own `id` field carries — but a
-> caller who follows the `--help` text's `<n,n>` literally gets a silent no-op, not a refusal. **This
-> skill always builds `--blocks`/`--affects-consumers` from the same `id` strings the row set
-> itself carries.**
+> **`--blocks`/`--affects-consumers` take a row's `id` string (`RR-IS-#928`) OR its bare issue
+> number, and an unmatched token is refused** — nen `v0.2.0` (#64, closes zheref/nen#24) closed the
+> finding this port filed at `v0.1.0` (`docs/ab/backlog-loop.md` § 2.4: bare numbers were silently
+> accepted and never marked a row). Verified live at `v0.3.0`: `--blocks 929` and `--blocks RR-IS-#929`
+> both mark the same row `blocks`; `--blocks 999` against rows that carry no such number refuses at
+> exit `2` naming every row and its number. **And the row file is validated at the read seam** (nen
+> `v0.3.0`, #107): `backlog fetch --json`'s document handed straight through is refused at `2` (*"must
+> be a JSON ARRAY of rows { id, severity, createdAt, number }, got an object"*), as is a row missing
+> `id` — verified live — so the reshape above is enforced, not merely expected.
 
 **What `nen backlog order` does NOT compute — stays this skill's own judgment, layered on top of
 the static ranking it returns:**
@@ -227,10 +230,12 @@ ready nor prompted report `local: 2/2 occupied, 0 free` at exit `1`; flip one to
 `ready:true, prompted:true` and it frees, `1/2 occupied` at exit `0`
 (`docs/ab/backlog-loop.md` § 2.5).
 
-> **Always pass `--local-cap 2` explicitly.** Verified live, reconfirming
-> [`build`](../build/SKILL.md)'s own already-filed finding on the identical verb (that port's
-> `docs/ab/build.md` § 2.10, its `SKILL.md` § 10 finding 4): the default local cap is **`7`**, not
-> `2`. Omitting the flag would silently triple this skill's own hard concurrency limit.
+> **Always pass `--local-cap 2` — the flag is REQUIRED since nen `v0.2.0`** (#69, closes
+> zheref/nen#52), which closed the finding this port and [`build`](../build/SKILL.md) both filed at
+> `v0.1.0` (a default of `7` that a forgotten flag silently inherited). Verified live at `v0.3.0`:
+> `nen loop slots --efforts <path>` without it refuses at exit `2` — *"a concurrency guard must be
+> chosen, not inherited"*. `--efforts` resolves against the process cwd, not `--repo`; pass an absolute
+> path.
 
 **When a slot is free**, take the next row `nen backlog order` returned (respecting § 5's
 critical-preemption/low-deferral layer) and hand it to [`build`](../build/SKILL.md)
@@ -371,9 +376,13 @@ capability is refused, HALT and hand the maintainer the exact command.**
 **The official release is `G3` — the maintainer's alone.** Prepare it; never publish it.
 
 **Fan-out, closing the loop.** Every affected consumer from `nen fanout compute`'s own row gets a
-repin PR opened against it (plain `gh pr create`, residue), every unaffected consumer is the
-verb's own explicit `n/a` row with its stated basis, and every `bankai:handbook-question` fan-out
-issue this cut covers is closed with the reference.
+repin PR opened against it (plain `gh pr create`, residue — that PR's own description is where the
+consumer's `nen/contract.json` pin, or its vendored `bootstrap/nen.sh` `DEFAULT_REF`, moves), every
+unaffected consumer is the verb's own explicit `n/a` row with its stated basis, and every
+`bankai:handbook-question` fan-out issue this cut covers is closed with the reference — the reference
+posted through `nen issue comment --target <owner/name> --issue <n> --body-file <abs path>` (nen
+`v0.2.0`; `--dry-run` first), then the close as a plain `gh issue close <n> --repo <owner/name>`
+(residue: no `nen` verb closes a single issue outside the multi-child `consolidate-close`).
 
 ## 9. The status board
 
@@ -390,11 +399,13 @@ already use — this port adds no new columns and reuses `nen gate derive`/`nen 
 same way those ports document. Verified live end to end, including a finding worth stating plainly:
 
 > **`refs` must be an array of pre-formatted `nen ref format` strings, not a joined string.**
-> Verified live: passing `refs` as a plain string crashes `board build` outright —
-> `row.refs.join is not a function` — because the render layer calls `.join(", ")` on it. Passing
-> an **array** (`["RR-IS-#937","RR-PR-#940"]`, or a single-element array from `nen ref format`)
-> builds and renders correctly (`docs/ab/backlog-loop.md` § 2.12). Never hand-join a `refs` cell
-> into one string before calling `board build`.
+> At the port a string `refs` crashed `board build` outright — `row.refs.join is not a function`
+> (`docs/ab/backlog-loop.md` § 2.12). Since nen `v0.2.0` (#68, closes zheref/nen#32) and `v0.3.0`
+> (#99) all three `board` verbs validate the row shape at the read seam and **refuse at exit `2`**
+> naming the file, row and field — verified live at `v0.3.0`: *"row '1' has the wrong shape for 'refs':
+> expected an ARRAY of ref strings, one per reference"* — instead of crashing. Passing an **array**
+> (`["RR-IS-#937","RR-PR-#940"]`, or a single-element array from `nen ref format`) builds and renders
+> correctly. Never hand-join a `refs` cell into one string before calling `board build`.
 
 `nen stop --who Kurapika --gate <Gn> [--notified] board.md` renders the gate banner. Verified live,
 a real `G5` example (an untriaged issue awaiting a severity confirmation) rendered the full banner
@@ -424,23 +435,23 @@ The run ends when the actionable queue is empty — every issue either delivered
 briefed and awaiting a maintainer decision. **Say the run has ended**, so the `CON-25` delegation
 (§ 3) lapses, and give a final board plus what remains on the maintainer's plate.
 
-## 12. Findings against the binary (report, never route around)
+## 12. Findings against the binary — filed at `v0.1.0`, reconciled against `v0.3.0`
 
-1. **`nen backlog order`'s `--blocks`/`--affects-consumers` silently no-op on the bare issue number
-   `--help`'s own `<n,n>` notation suggests, rather than refusing.** Verified live (§ 5): the flag
-   reads the row's own `id` field (`RR-IS-#928`), and a caller who passes `928` instead gets no
-   error, no `blocksOther: true`, and no different ordering — a silent miss, not a loud one.
-2. **`nen board build` crashes on a `refs` value that is not an array**, with no type-checked
-   refusal — `row.refs.join is not a function` (§ 9). The documented `BoardRow` shape
-   (`{id,title,refs,gate,status,needs}`) does not itself say `refs` must be a pre-built array of
-   `nen ref format` outputs.
-3. **(Reconfirmed, not newly filed)** `nen loop slots`'s local-plane default cap is `7`, not `2` —
-   first filed against [`build`](../build/SKILL.md) (`docs/ab/build.md` § 2.10); reproduced
-   identically here (§ 6) because this skill calls the same verb independently.
-4. **(Not re-exercised, cited)** `nen pr fetch`/`nen pr next-blocker` are broken against every real
-   `<reference-repo>` PR tried — filed against [`drive`](../drive/SKILL.md) (`docs/ab/drive.md` § 4),
-   whose engine this skill delegates all PR-shaped work to. `backlog-loop` never calls either verb
-   itself, so the finding is cited rather than re-reproduced.
+1. **CLOSED — `nen backlog order`'s `--blocks`/`--affects-consumers` accept a bare issue number and
+   refuse an unmatched token** (nen `v0.2.0` #64, closes zheref/nen#24). At the port a bare number was
+   a silent no-op; now both token forms mark the row and a miss is exit `2` (§ 5, verified live).
+2. **CLOSED — `nen board build` refuses a non-array `refs` at exit `2` naming the row and field**
+   (nen `v0.2.0` #68, closes zheref/nen#32; `render`/`diff` the same since `v0.3.0` #99) instead of
+   crashing with `row.refs.join is not a function` (§ 9, verified live). `nen board --help` now states
+   the array rule.
+3. **CLOSED — `nen loop slots` requires `--local-cap`** (nen `v0.2.0` #69, closes zheref/nen#52); the
+   default of `7` this skill and [`build`](../build/SKILL.md) both filed against is gone (§ 6,
+   verified live).
+4. **(Not re-exercised, cited)** `nen pr fetch`/`nen pr next-blocker` were broken against every real
+   `<reference-repo>` PR tried at `v0.1.0` — filed against [`drive`](../drive/SKILL.md)
+   (`docs/ab/drive.md` § 4), whose engine this skill delegates all PR-shaped work to, and whose § 3
+   records the provenance at the current pin (the `--gates` half fixed, the crash not re-verified).
+   `backlog-loop` never calls either verb itself.
 
 ## 13. Residue — what stays this skill's own judgment, or has no verb yet
 
@@ -451,7 +462,9 @@ briefed and awaiting a maintainer decision. **Say the run has ended**, so the `C
 - **The live-chore detection** (§ 8) — "the chore's issue is open AND its `integration/<chore>`
   branch exists" — is a plain `gh`/`git` composite check; no `nen` verb owns this fact.
 - **Opening each fan-out consumer's repin PR** (§ 8) is a plain `gh pr create` per row; `nen fanout
-  record` only logs the decision, it never opens anything itself.
+  record` only logs the decision, it never opens anything itself. **Closing a single fan-out issue** is
+  a plain `gh issue close` after `nen issue comment` has posted the reference — the comment half is a
+  verb since nen `v0.2.0`; the single-issue close is not.
 - **Keeping exactly one `bankai:stage/*` label on an object at a time** (`CON-9`) is `build`'s own
   residue, inherited unchanged — `nen label apply` applies and logs exactly the one label it is
   given.

@@ -46,52 +46,61 @@ previous session or from this file's own prose.
 nen repo scenario --repo <reference-repo checkout> --target <owner/name>
 ```
 
-Reads the `scenario` value **recorded for `<owner/name>` in that checkout's `schemas/repos.json`** —
-verified live against the real registry: `<product-repo-A>` → `swiftui-tca-uzf-v2`, `<product-repo-B>`
+Reads the `scenario` value **recorded for `<owner/name>` in that checkout's registry** —
+`nen/repos.json`, or, until `v0.4.0`, the legacy `schemas/repos.json` the frozen `<reference-repo>`
+still carries and nen reads through the fallback — verified live against the real registry: `<product-repo-A>` → `swiftui-tca-uzf-v2`, `<product-repo-B>`
 → `compose-uzf-v2`, `<scaffold-repo>` → `<reference-repo>` (the self-review/machinery scenario — no
 product code, `BC-{n}` citations only, and this repo is ALSO a genuine registry consumer, distinct from
 its separate `maintained_tools` ownership entry).
 
 > **Finding against the retired skill's prose, not the binary.** The old `bankai-handbooks` skill said
 > the scenario comes "from `.github/workflows/bankai.yml`". Verified live: `nen repo scenario` never
-> reads that file — it reads the value **recorded** for the target in `schemas/repos.json`, which
-> Naruto/`CON-14` keeps factual against the live workflow file by hand, one layer removed. The
+> reads that file — it reads the value **recorded** for the target in the registry (`nen/repos.json`,
+> legacy `schemas/repos.json`), which Naruto/`CON-14` keeps factual against the live workflow file by
+> hand, one layer removed. The
 > distinction matters when the two disagree: resolve from the registry, the way the verb does, never
 > by opening `bankai.yml` yourself.
 
-- **`--repo`** is a path to a checkout, always a `<reference-repo>` one — never an `owner/name` slug.
+- **`--repo`** is a path to a checkout, always a `<reference-repo>` one — never an `owner/name` slug —
+  and it is **required**: omitted, the verb refuses at exit `2` by name (nen `v0.2.0`, #73, closes
+  zheref/nen#28; verified live at `v0.3.0`), never a silent cwd default.
 - **`--target`** is an `owner/name` slug — never a product code. `nen repo scenario` refuses a code
-  outright, verified live: `--target takes an owner/name repository slug and 'RA' is not one`. If you
-  only have a code, resolve it first with `nen repo resolve <CODE>` run **from inside** that same
-  `<reference-repo>` checkout — `repo resolve`'s token form takes no `--repo` and ignores `--from` for this
-  purpose; it reads `schemas/repos.json` from the process's own **cwd** regardless (verified live,
-  `docs/ab/bankai-handbooks.md` § 2.3 — filed as a finding, not routed around by hand).
+  outright, verified live at `v0.3.0`: `--target takes an owner/name repository slug and 'RA' is not one`.
+  If you only have a code, resolve it first with `nen repo resolve <CODE> --repo <reference-repo
+  checkout>` — since nen `v0.2.0` `--repo` is valid on the token form too (*"the same flag its siblings
+  take, valid with and without a token"*, `nen repo --help`; verified live: `nen repo resolve BC --repo
+  <path>` from an unrelated cwd resolves), which closes the finding this port filed against `v0.1.0`
+  (`docs/ab/bankai-handbooks.md` § 2.3: the token form read the registry from the process's cwd
+  regardless). `--from` is the no-token form's flag only and is refused beside a token.
 - **No `GH_TOKEN` needed anywhere in this skill.** Both verbs here are pure local-file reads against
   the checkout on disk — verified live with no token exported at all.
-- **Exit `1`** → covers **two unrelated failure classes that share the same code** — verified live,
-  re-checked against the binary for this port, not carried over from an earlier draft:
-  - `<owner/name>` is not a recorded consumer. This itself covers two different real states — never
-    onboarded at all, or recorded only under `pending_onboarding`/`maintained_tools` without a
-    `scenario` field — and `nen`'s refusal text does **not** distinguish them. Check
-    `schemas/repos.json` yourself before reporting which one it is.
+- **Exit `1`** → still covers **two unrelated failure classes that share the same code** — re-verified
+  against `v0.3.0`, and nen's `v0.2.0` changelog (#73) split the *scenario* refusal by cause without
+  moving the invocation mistakes off `1`:
+  - `<owner/name>`'s scenario cannot be read from this registry. Since `v0.2.0` the verb gives a
+    **distinct reason** for each state, so you no longer open the file to tell them apart: the checkout
+    carries **no registry** (`<checkout>/nen/repos.json: no such file … or, until v0.4.0, the legacy
+    'schemas/repos.json'`); the target is **not recorded anywhere** in it (*"not as a consumer, a
+    product-code value, a maintained tool, or a pending onboarding"*); or it **is recorded but not as
+    a consumer** — under `maintained_tools`, `pending_onboarding`, or only as a `product_codes` value —
+    and *"only a consumers[] entry carries a 'scenario' field"*. Relay the sentence; it is the
+    diagnosis.
   - **An invocation mistake — a missing `--target`, or a `--target` that is not an `owner/name`
-    slug — also exits `1`, not `2`.** Do not read exit `1` alone as "not a consumer"; tell the two
-    apart **only by the refusal text**, never by the code: a missing `--target` says `--target
-    owner/name is required`; a malformed one says `--target takes an owner/name repository slug and
-    '<value>' is not one`; a real not-a-consumer refusal names the target and
-    `schemas/repos.json` (`'<owner/name>' is not a consumer in <checkout>\schemas\repos.json`).
-- **Exit `2`** → only an unusable `--repo` path (a checkout that does not exist on disk). This is the
-  **one and only** exit-`2` case for this verb — verified live; a missing or malformed `--target` does
-  **not** produce it. Fix the command; never read exit `2` as "no scenario."
+    slug — also exits `1`, not `2`** (USAGE `v0.3.0` records this as the family's own inconsistency,
+    zheref/nen#93). Do not read exit `1` alone as "not a consumer"; tell the two apart **by the refusal
+    text**: a missing `--target` says `--target owner/name is required`; a malformed one says `--target
+    takes an owner/name repository slug and '<value>' is not one`.
+- **Exit `2`** → an omitted `--repo`, or a `--repo` path that does not exist on disk — both verified
+  live at `v0.3.0`. A missing or malformed `--target` does **not** produce it. Fix the command; never
+  read exit `2` as "no scenario."
 
-> **Finding, filed against `nen` (not routed around by hand):** `nen repo scenario` conflates
-> invocation errors with "not a recorded consumer" under a single exit code (`1`). Verified live,
-> reproduced for this port: a missing `--target`, a code-shaped `--target`, and a genuine
-> not-a-consumer target all exit `1`; only a bad `--repo` path exits `2`. A caller relying on the exit
-> code alone cannot tell "I mistyped the command" from "this repo genuinely isn't onboarded" — the
-> refusal text is the only reliable signal, and this skill's report step (§ 3) must read it, never
-> just the code. Recorded in full, with the live transcript, in `docs/ab/bankai-handbooks.md` §§ 2.2–
-> 2.3 and finding 5 of § 4.
+> **Finding this port filed against `v0.1.0`, half-closed by nen `v0.2.0` (#73, closes zheref/nen#28):**
+> `nen repo scenario` conflated every failure under exit `1`, and read the registry from the cwd when
+> `--repo` was forgotten. Now `--repo` is required (exit `2`), and the scenario refusals are split by
+> cause in their text — but a missing or code-shaped `--target` still exits `1`, which USAGE `v0.3.0`
+> records as an open, family-wide inconsistency (zheref/nen#93). So this skill's report step (§ 3) still
+> reads the refusal text, never just the code. Recorded in full, with the live transcript at the port,
+> in `docs/ab/bankai-handbooks.md` §§ 2.2–2.3 and finding 5 of § 4.
 
 ## 2. Resolve the handbook set
 
@@ -176,14 +185,15 @@ gap stays OPEN (`claude/agents/kurapika.md` § Conjurer, "An OPEN item stays OPE
   already, by the same repeated maintenance failure of an edit not reconciling a table it grew in the
   same diff (§§ 1–2 above); re-read `handbooks/INDEX.md` at the pinned checkout every time, never from
   this file's own prose.
-- **Read `nen repo scenario`'s exit code alone as the diagnosis.** Exit `1` covers both "not a
-  recorded consumer" and an invocation mistake (missing/malformed `--target`); read the refusal text
-  to tell them apart (§ 1).
+- **Read `nen repo scenario`'s exit code alone as the diagnosis.** Exit `1` covers both "this
+  registry cannot give a scenario" (three distinct reasons, in the text) and an invocation mistake
+  (missing/malformed `--target`); read the refusal text to tell them apart (§ 1).
 - **Load more than one stack folder**, or guess a scenario when `nen repo scenario` refuses one.
 - **Improvise a policy** that is not written in one of the resolved files, or cite a rule ID from a
   file that did not resolve for this repo.
-- **Treat "not a consumer" as "not a Bankai repo."** Check `pending_onboarding` / `maintained_tools`
-  in `schemas/repos.json` before reporting which one it actually is.
+- **Treat "not a consumer" as "not a Bankai repo."** Since nen `v0.2.0` the refusal itself says
+  whether the target is recorded under `pending_onboarding` / `maintained_tools` / a `product_codes`
+  value — report which one it actually is, in the verb's own words.
 - **Open, edit, comment on, or otherwise write to `<reference-repo>`** to fix a handbook gap. It is frozen;
   file the finding and stop at `G5` instead (§ 4).
 - **Fall back to a product repo's `.claude/rules/` mirror** when a live `<reference-repo>` checkout is

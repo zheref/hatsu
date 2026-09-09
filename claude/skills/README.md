@@ -29,6 +29,11 @@ staging file. Nen detects, computes, formats and verifies; it never decides what
 
 **Some deterministic steps still have no verb**, and those are not silently improvised either: the leftover
 is **named per skill**, as a residue section, in that skill's own file under [`../../docs/ab/`](../../docs/ab/).
+A residue lapses when the pin moves and a verb arrives for it — `nen issue comment` (`v0.2.0`) retired the
+raw `gh issue comment` that `file` and `backlog-synthesis` carried, and the `nen shu` family (`v0.3.0`)
+gave `build`, `futon` and the roster's builders a declared build, test, lint, coverage and warm-up to run
+instead of a remembered command line. The A/B files record the mechanics *at port time*; each `SKILL.md`
+is reconciled to the contract's pinned ref and is what runs.
 
 **Each one carries its own A/B evidence** in [`../../docs/ab/`](../../docs/ab/): the old mechanics, the new
 mechanics, and a live transcript showing the same verdict from fewer improvised commands.
@@ -62,7 +67,7 @@ them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |
 |---|---|
-| [`hatsu-warmup/SKILL.md`](hatsu-warmup/SKILL.md) | The **D10 dependency contract executing**. It probes `nen --version` against the range declared in [`../../nen.contract.json`](../../nen.contract.json) (at `0.x`, `minimum: "0.3"` means `>=0.3.0 <0.4.0` — a different minor is out of range in *both* directions); when nen is **absent** it runs nen's own checksum-verified bootstrap directly, and when nen is **present but out of range** it re-pins through `nen bootstrap --script`. It halts with the exact command **only** if that bootstrap itself fails. It must run before any other Nen-owned work, including every skill above. |
+| [`hatsu-warmup/SKILL.md`](hatsu-warmup/SKILL.md) | The **D10 dependency contract executing**. It probes `nen --version` against the range declared in [`../../nen/contract.json`](../../nen/contract.json) — kept at nen's own location and in nen's own shape, so `nen schema check --repo <this checkout>` validates the `dependency` block it reads (at `0.x`, `minimum: "0.3"` means `>=0.3.0 <0.4.0` — a different minor is out of range in *both* directions); when nen is **absent** it runs nen's own checksum-verified bootstrap directly, and when nen is **present but out of range** it re-pins through `nen bootstrap --script`. It halts with the exact command **only** if that bootstrap itself fails. It must run before any other Nen-owned work, including every skill above. |
 | [`../commands/kurapika.md`](../commands/kurapika.md) | The `/kurapika` summon surface both manifests advertise. An agent definition alone creates no invocable command, so without this the manifests would describe a surface that does not exist. |
 
 ---
