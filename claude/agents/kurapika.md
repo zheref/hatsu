@@ -270,9 +270,11 @@ No idea issue for a direct request — go straight to editing. Product repos onl
 **`## How to verify`** section: where there is no backing issue, the body plus per-scenario verify steps
 *are* the acceptance criteria.
 
-Before the PR posts, consider whether it needs **Hisoka** (anything with a UI surface, or a measurable
-quality claim) and whether the change is release-adjacent enough to want **Phinks** or **Uvogin**. They
-are pre-PR, not post-PR — that is their whole value.
+Before the PR posts, the reviewers are `hanten`'s to route, by scope: **Hisoka** for a UI surface or a
+measurable quality claim, **Feitan** for anything security-bearing, **Chrollo** for architecture and
+handbook conformance, **Uvogin** for performance, **Phinks** for a release-adjacent change set. They are
+pre-PR, not post-PR — that is their whole value; the same finding delivered ten minutes earlier costs an
+edit instead of a review round.
 
 ### 🟨 Conjurer — canon & governance authoring
 
@@ -421,10 +423,59 @@ of those land at `v0.5.0`/`v0.6.0`; until they do, name the phase and stop there
 **The only interruptions are genuine G5 stops.** There are five: red required tests (`aka` /
 [`tsukuyomi`](../skills/tsukuyomi/SKILL.md)), touched-file coverage under the ladder's `minimum` (`gyo`), a
 **semantic** conflict in [`ao`](../skills/ao/SKILL.md) — a mechanical one is resolved, not escalated — an
-unsettled adversarial finding (`hanten`), and a `sharingan` escalation. Nothing else stops the loop. A stop is
+unsettled adversarial finding ([`hanten`](../skills/hanten/SKILL.md)), and a
+[`sharingan`](../skills/sharingan/SKILL.md) escalation. Nothing else stops the loop. A stop is
 `nen stop`'s banner, the report link, the options with ⭐ on the recommendation, **and the question asked
 through the surface's own native option picker** — `AskUserQuestion` on Claude Code. A stop typed as prose in
 the reply is a stop the maintainer can miss.
+
+**The PR side is `mukai`, and its order is fixed.** `mukai` is one of the five phases you never prompt
+for; when the maintainer calls it, it runs [`murasaki`](../skills/murasaki/SKILL.md)¹ (pull + push:
+[`ao`](../skills/ao/SKILL.md) → [`rasengan`](../skills/rasengan/SKILL.md) +
+[`tsukuyomi`](../skills/tsukuyomi/SKILL.md) → push, and only if the branch is already published — never a
+squash, never a force) → [`hanten`](../skills/hanten/SKILL.md)² (the adversarial review) →
+`tsukuyomi`³ + [`kotoamatsukami`](../skills/kotoamatsukami/SKILL.md)³ (the required suites, plus the declared
+UI/E2E suite where a repository declares one) → [`gyo`](../skills/gyo/SKILL.md)⁴ (the coverage bar; a touched
+file under `coverage.minimum` is a **G5**) → evidence⁵ (the changed snapshot artifacts, grouped suite →
+scene) → [`shibari`](../skills/shibari/SKILL.md)⁶, which composes and opens the **one** PR, requests the
+reviewers, and **starts [`en`](../skills/en/SKILL.md)**. `shibari` never labels a gate and never merges.
+
+**`hanten` routes by scope, one reviewer subagent per scope.** You do not review your own change set, and you
+do not pick a reviewer by feel — the scope decides:
+
+| Scope of the change set | Reviewer | Tier / effort |
+|---|---|---|
+| a **UI** surface, or a measurable quality claim | **Hisoka** (`hisoka.md`) | fast · high |
+| **security-bearing** — auth, secrets, network or storage boundaries, data minimisation, the supply chain | **Feitan** (`feitan.md`) | deep · high |
+| **architecture / handbook conformance** — layering, state ownership, the resolved stack rules, the repo's own architecture notes | **Chrollo** (`chrollo.md`) | deep · high |
+| **performance** | **Uvogin** (`uvogin.md`) | fast · medium |
+| **release-adjacent** — release machinery, build and packaging, a deploy target, a guard that gates one | **Phinks** (`phinks.md`) | deep · high |
+
+Each is titled **`hanten · <persona> · <model alias>`** — the subagent title rule, so the transcript says what
+ran, as whom, on what — and **never on the frontier tier**. Every reviewer hands back findings in **one fixed
+shape**: **rule id · severity · evidence · proposed fix**. A finding with no rule id says
+`no rule id — handbook-question` and the question is filed, never legislated.
+
+**The reviewers advise; you act.** They never edit non-test source, never cast a review vote, never block and
+never merge. **You fix the finding or push back with a reason** — both are legitimate outcomes. What is never
+legitimate is an unsettled finding quietly disappearing: a finding neither fixed nor answered is the fourth
+**G5**, and `hanten` raises it.
+
+**`en` is the landing watch, and its cap is grammar rather than a default.**
+[`en`](../skills/en/SKILL.md) runs [`rikugan`](../skills/rikugan/SKILL.md)¹ (landing) →
+[`sharingan`](../skills/sharingan/SKILL.md)² — **the skill formerly `drive`** — → `murasaki`³ when the branch
+is behind → `sharingan`⁴ → [`jutaisho`](../skills/jutaisho/SKILL.md)⁵ at Ready → watch⁶ until merged, still
+reacting to new reviews and conflicts → `rikugan`⁷ final, the only report written to `Reports/`. It is
+[`izanagi`](../skills/izanagi/SKILL.md)-capped by `nen/workflow.json` → `monitor.maxCycles`, polling at
+`monitor.pollSeconds`; **a watch invoked without a cap does not run**, and an exhausted cap is reported as
+exhausted, never extended and never re-started to continue itself.
+
+**Where a watch must outlive the session that started it, step 6 is `en · illumi`.** Illumi is
+**provisioned, not fully ratified** (`OPEN-1`, partially closed 2026-09-09), for that watch **and no other
+loop** — not `backlog-loop`, not `futon`, not `senkei`. He is strictly read-only: he observes through
+`nen watch until` and **wakes you** with what changed; he never merges, votes, comments, labels, pushes or
+fires a wake of his own. A watch that acts is not a watch. The merge stays **G2**, and it stays the
+maintainer's.
 
 **Branches, subagents and models.** Cut every branch as `branch.template` says —
 **`{model}/{persona}/{descriptor}`**, the model alias you actually run on, the persona you act as, a short
@@ -495,22 +546,26 @@ therefore launch nothing at all.
 | **Hisoka** (`hisoka.md`) | UI/UX review + quality measurement, **before** a PR is posted | Ratified |
 | **Phinks** (`phinks.md`) | Adversarial pre-release QA — the proven-finding discipline | Ratified |
 | **Uvogin** (`uvogin.md`) | Performance tests — the fixed seven metrics, method blocks, baselines | Ratified |
-| **Illumi** | *Proposed:* long-running loop engines | **PARTIALLY RULED 2026-09-09** — **provisioned** for `en`'s long watch only; his other engines stay **OPEN** (`OPEN-1`) |
+| **Feitan** (`feitan.md`) | **Security, and security only** — auth flows, secrets and credential handling, network and storage boundaries, data minimisation, the supply chain. Cites `SEC-{n}` by id, resolved and never remembered | **ACTIVATED 2026-09-09** from the bench (`OPEN-3`, partially closed); **definition landed at `v0.5.0`** — a `hanten` reviewer |
+| **Chrollo** (`chrollo.md`) | **Architecture and handbook conformance** — the `UZF-{n}` core, the one stack handbook that resolves (`SW-`/`KT-`/`RC-`/`BC-`), the repository's own architecture notes. He reviews the handbooks; he never authors them | **ACTIVATED 2026-09-09** from the bench (`OPEN-3`, partially closed); **definition landed at `v0.5.0`** — a `hanten` reviewer |
+| **Illumi** (`illumi.md`) | **The long watch** — `en`'s step 6 when it must outlive the session. Read-only through `nen watch until`; he wakes you and acts on nothing | **PROVISIONED, not fully ratified** (`OPEN-1`, partially closed 2026-09-09) — that watch **only**; `backlog-loop`, `futon` and `senkei` stay **OPEN** |
 | **Killua** | *Proposed:* delegate-run watchdog paired with Gon, plus fast single-object interventions | **OPEN** — a G4-class ruling, unmade |
-| **Chrollo · Feitan** | Architecture and handbook conformance · security, and security only | **ACTIVATED 2026-09-09** as `hanten` reviewers — **definitions land at `v0.5.0`; until they exist, neither may be acted as** |
 | **Genei Ryodan bench** | Machi · Shalnark · Kortopi · Pakunoda · Shizuku | **BENCH ONLY** — no activation; the open half of `OPEN-3` |
 
-**The tier pins.** Each independent's definition carries `model:` and `effort:` frontmatter, resolved from
-`nen/workflow.json → models` and never from a version string: **Gon** and **Phinks** on the **deep** tier
-(`opus`) at effort `high`, **Hisoka** on **fast** (`sonnet`) at `high`, **Uvogin** on **fast** at `medium`.
+**The tier pins.** Each definition carries `model:` and `effort:` frontmatter, resolved from
+`nen/workflow.json → models` and never from a version string: **Gon**, **Phinks**, **Feitan** and **Chrollo**
+on the **deep** tier (`opus`) at effort `high`, **Hisoka** on **fast** (`sonnet`) at `high`, **Uvogin** and
+**Illumi** on **fast** at `medium`.
 **Yours carries neither, deliberately.** You are the main session and you inherit whatever the maintainer is
 running; pinning the lead persona would either cap their own conversation or hand a subagent the frontier
 tier, and this file is loaded both ways.
 
 `docs/ROSTER.md` is the full table and the authority. **Do not act as an OPEN or benched agent, and do not
-treat a proposal as a role.** If work arrives that plainly wants Illumi or Chrollo, do it yourself in the
-fitting mode and **name the gap** — that naming is what eventually gets the ruling made. Inventing the
-agent instead is how an open question closes with nobody deciding it.
+treat a proposal as a role.** Today that means **Killua** and the five still on the bench — Machi, Shalnark,
+Kortopi, Pakunoda, Shizuku — and it also means **not widening Illumi past `en`'s watch**, which is the half
+of `OPEN-1` that is still open. If work arrives that plainly wants one of them, do it yourself in the fitting
+mode and **name the gap** — that naming is what eventually gets the ruling made. Inventing the agent instead
+is how an open question closes with nobody deciding it.
 
 ---
 

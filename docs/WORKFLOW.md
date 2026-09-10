@@ -165,7 +165,7 @@ conflict waiting to be resolved by coin toss.
 
 `jutaisho`'s ladder, innermost first: `push` is the surface's own turn-complete signal, `os` an OS
 notification, `sound` a system sound. **A rung absent from the list is not rung.** `sound` names
-`/System/Library/Sounds/<sound>.aiff` on macOS. See § 5 for who actually rings rungs 2 and 3.
+`/System/Library/Sounds/<sound>.aiff` on macOS. See § 6 for who actually rings rungs 2 and 3.
 
 ### `commits`
 
@@ -210,7 +210,7 @@ happens to carry.
 
 `en`'s `izanagi` cap and its poll interval. **The cap is grammar, not a default**: a watch loop invoked
 without one does not run, exactly as [`izanagi`](../claude/skills/izanagi/) refuses an invocation with no
-`up to <N>`.
+`up to <N>`. § 5 is where both keys are actually spent, and where the long watch hands over to Illumi.
 
 ### `models`
 
@@ -315,7 +315,7 @@ It loops. **It never pushes and never opens a pull request.**
 | Phase | What it does | Why it is the human's |
 |---|---|---|
 | `aka` | tests → squash the unpushed commits → `ao` → push | publishing work is a decision, and a squash is destructive |
-| `mukai` | `murasaki` → `hanten` review → tests + UI tests → `gyo` → evidence → `shibari` opens the PR → starts `en` | a PR is a request for other people's attention |
+| `mukai` | `murasaki` → `hanten` review → tests + UI tests → `gyo` → evidence → `shibari` opens the PR → starts `en`. **§ 5 is the full shape** | a PR is a request for other people's attention |
 | **merge** | **G2** (`CON-5`) | never delegated, by any agent, anywhere |
 | `kagutsuchi` | a non-production upload, **per target** | the blast radius leaves this machine |
 | `mugetsu` | publication, **per target**, **G3** (`CON-6`) | the blast radius is other people's users |
@@ -338,7 +338,159 @@ scroll past, and one they scroll past is one that did not happen.
 
 ---
 
-## 5 · The hooks
+## 5 · The PR side — `mukai`, and everything it runs
+
+`ren` (§ 4) never opens a pull request. **`mukai` is the phase that does**, and like the other four it is the
+maintainer's to call. Its order is fixed, and each step has exactly one job.
+
+### `mukai` — the steps, and the stops
+
+| | Step | What it does | Where it stops |
+|---|---|---|---|
+| **1** | [`murasaki`](../claude/skills/murasaki/) | pull + push: [`ao`](../claude/skills/ao/) → [`rasengan`](../claude/skills/rasengan/) + [`tsukuyomi`](../claude/skills/tsukuyomi/) → push, **only if the branch is already published**. Never squashes, never force-pushes | **G5** on a *semantic* conflict in `ao` — a mechanical one is resolved |
+| **2** | [`hanten`](../claude/skills/hanten/) | the adversarial review: classify the change set by scope, one reviewer subagent per scope | **G5** on an unsettled finding — after Kurapika has fixed it or pushed back with a reason |
+| **3** | `tsukuyomi` + [`kotoamatsukami`](../claude/skills/kotoamatsukami/) | `tests.required` (+ `extra`), and the declared `ui-test` where a repository declares one. Re-recorded snapshots feed step 5 | **G5** on red required tests. A seat (exit `4`) is quoted, never routed around |
+| **4** | [`gyo`](../claude/skills/gyo/) | the coverage bar, against the `coverage` ladder of § 2 | **G5** when a touched file is under `minimum` and cannot honestly clear it |
+| **5** | evidence | the changed visual artifacts, from `project.evidence` (§ 3), grouped **suite → scene** | not a gate event |
+| **6** | [`shibari`](../claude/skills/shibari/) | composes and opens **one** PR, requests the reviewers, writes the body back, and **starts [`en`](../claude/skills/en/)** | never labels a gate, never merges |
+
+**Four of the five G5 conditions of § 4 live inside this one phase.** That is not an accident of layout: a
+pull request is the moment work stops being private, so it is the moment the honest questions are cheapest to
+ask and most expensive to skip.
+
+### `hanten` — the routing, and the one finding shape
+
+`hanten` classifies the change set by **scope** and spawns **one reviewer subagent per scope**. The scope
+decides the reviewer; nobody picks by feel.
+
+| Scope of the change set | Reviewer | Tier · effort |
+|---|---|---|
+| a **UI** surface, or a measurable quality claim | **Hisoka** ([`hisoka.md`](../claude/agents/hisoka.md)) | fast · high |
+| **security-bearing** — auth flows, secrets and credential handling, network and storage boundaries, data minimisation, the supply chain | **Feitan** ([`feitan.md`](../claude/agents/feitan.md)) | deep · high |
+| **architecture / handbook conformance** — layering, state ownership, the resolved stack rules, the repository's own architecture notes | **Chrollo** ([`chrollo.md`](../claude/agents/chrollo.md)) | deep · high |
+| **performance** | **Uvogin** ([`uvogin.md`](../claude/agents/uvogin.md)) | fast · medium |
+| **release-adjacent** — release machinery, build and packaging, a deploy target, a guard that gates one | **Phinks** ([`phinks.md`](../claude/agents/phinks.md)) | deep · high |
+
+Each subagent is titled **`hanten · <persona> · <model alias>`** — the rule of § 2's `models` — and **never
+runs on the frontier tier**. A change set with no matching scope gets no reviewer, said out loud; a change
+set matching three gets three.
+
+**The finding shape is fixed, and it has four fields, in this order:**
+
+| Field | What it must be |
+|---|---|
+| **rule id** | the governing rule, cited by id — `UX-{n}`, `SEC-{n}`, `UZF-{n}`, the one resolved stack prefix, `QA-{n}` — or the repository's own note by path and heading. No un-cited opinions. Where genuinely nothing covers it: `no rule id — handbook-question`, **filed, never legislated** |
+| **severity** | `critical` / `high` / `medium` / `low`, on the shared scale |
+| **evidence** | file and line, the quoted snippet, and the concrete path from the code as written to the consequence |
+| **proposed fix** | one concrete change in the repository's own idiom. The reviewer **proposes**; it does not apply |
+
+**Reviewers advise; Kurapika acts.** They never edit non-test source (a test that demonstrates a finding is
+the exception), never cast a review vote, never block, never merge, never label. Kurapika **fixes the finding
+or pushes back with a reason** — both are legitimate. What is not legitimate is a finding that is neither
+fixed nor answered: that is the G5, and `hanten` raises it, never the reviewer.
+
+**Pre-PR, a finding's home is the working copy, not the tracker.** The whole value of the position is that a
+`critical` here is a fix in the next commit rather than an issue with a lifecycle. An issue is filed only
+when the finding **outlives the branch**.
+
+### `gyo` — the ladder, spent
+
+`gyo` is where § 2's `coverage` ladder stops being a table and becomes a decision. It reads **touched-file
+line coverage** — the files in `git diff --name-only <base>...HEAD`, never the repository total — and reports
+each file against the three rungs:
+
+| Band | What `gyo` does |
+|---|---|
+| below `minimum` (80) | **adds tests** until the file clears it; when it cannot be cleared honestly, **G5** |
+| `minimum` … `recommended` (80–85) | reported, and aimed past |
+| `recommended` … `ideal` (85–90) | reported as the band it is |
+| at or above `ideal` (90) | said out loud, because it is worth saying |
+
+**The bar is never lowered to clear it.** That is the one move `gyo` will not make: a repository that cannot
+honestly reach `minimum` is a **G5**, not a smaller number. And `nen shu coverage` **reports** `met` and
+never changes its exit code — nen does not decide whether a number is good enough, which is exactly why this
+step is a skill and not a flag.
+
+### `shibari` — one PR, and the body it must carry
+
+`shibari` opens the pull request **from the last pushed commit**, against `branch.base`, and it opens
+**exactly one**. The body is not a template preference; it is what makes the PR reviewable by someone who was
+not in the session:
+
+| Section | What goes in it |
+|---|---|
+| **why** | the problem, in the reader's terms — effect first, cost stated |
+| **how** | the approach, and what was rejected |
+| **what changes for the consumer** | the observable delta for whoever depends on this |
+| **how to verify** | runnable steps. Where there is no backing issue, this section **is** the acceptance criteria |
+| **a mermaid diagram** | where a flow changed — and only then |
+| **the evidence table** | one table per top-level screen, states as **columns**, in the stack's own `project.evidence` mechanism (§ 3) |
+| **the checklist** | the repository's own |
+| **`Closes #N`** | GitHub's native autolink, kept beside the object notation |
+
+The verbs: `nen pr body-check` (the body's completeness), `nen changelog fragment-required` (whether this
+change owes a fragment), `nen gate derive` (which gate the PR stands at — **derived, never labelled by
+`shibari`**), `nen pr edit-body` to write the body back, and `nen pr request-reviews` to request the
+reviewers. **`nen pr edit-body` does not exist at the pinned `0.3.0`** — the residue is `gh pr edit
+--body-file`, named as residue in the skill rather than improvised (§ 7).
+
+**The evidence mechanism is assumed with confirmation, not guessed**: a stack with a registered
+public-assets mirror embeds the images; a stack without one names each scene and points at its committed
+snapshot path in **Files changed**. A Files-changed PR that names its scenes is **conformant**, not a
+shortfall — and a rule never mixes the two mechanisms.
+
+Then `shibari` hands the PR to `en` and stops. It never applies a gate label and it never merges.
+
+### `en` — the landing watch, its two keys, and the Illumi hand-off
+
+```json
+"monitor": { "maxCycles": 20, "pollSeconds": 300 }
+```
+
+`en`'s order: [`rikugan`](../claude/skills/rikugan/)¹ (landing — the PR body and the readiness verdict) →
+[`sharingan`](../claude/skills/sharingan/)² → [`murasaki`](../claude/skills/murasaki/)³ when the branch is
+behind → `sharingan`⁴ → [`jutaisho`](../claude/skills/jutaisho/)⁵ at Ready → **watch⁶ until merged**, still
+reacting to new reviews and new conflicts → `rikugan`⁷ final, **the only report written to `Reports/`**.
+
+| Key | What it bounds |
+|---|---|
+| `maxCycles` | the `izanagi` cap on the watch. **Grammar, not a default** — a watch invoked without one does not run |
+| `pollSeconds` | the interval between observation cycles. Never shortened because something looks close, never lengthened to stretch the cap |
+
+**An exhausted cap is reported as exhausted.** It is never extended in place, never continued by a second
+watch started to finish the first, and never rendered as "still watching". Raising the cap is the
+maintainer's word, in a new invocation.
+
+**When the watch must outlive the session that started it, step 6 is handed to Illumi** —
+[`illumi.md`](../claude/agents/illumi.md), titled `en · illumi · <model alias>`, on the **fast** tier at
+effort `medium`. He is **provisioned, not ratified** (`OPEN-1`, partially closed 2026-09-09) for this watch
+**and no other loop**: not `backlog-loop`, not `futon`, not `senkei`.
+
+He is **read-only by construction** — his frontmatter carries no `Edit`, `Write` or `MultiEdit` — and he acts
+on nothing. Each cycle he records five facts (the readiness verdict *quoted*, the checks, review activity,
+base drift, terminal state), compares them against the previous cycle, and **wakes Kurapika** when one of
+seven conditions fires: Ready, a new review or thread, a check gone red, the branch behind or conflicted,
+merged, closed-or-drafted, or the cap exhausted. The hand-off names **what changed, since when, the PR's
+current state, and the act it needs** — *names* the act; never performs it. **A watch that acts is not a
+watch**, and the merge stays **G2**.
+
+### `drive` is now `sharingan`
+
+The skill that drives one open PR to readiness at its gate was `drive`; from **`v0.5.0` it is
+[`sharingan`](../claude/skills/sharingan/)**. **Nothing about its behaviour changed** — first blocking
+condition, thread stewardship, wakes, the deterministic readiness verdict quoted rather than eyeballed, no
+merge and no vote. What changed is the name, and it changed for one reason: `drive` was the only skill in the
+loop named after what it does rather than out of the shared naming, and a name that stands outside the scheme
+is a name that reads as a different kind of thing.
+
+Concretely: the directory is `claude/skills/sharingan/`, the invocation is **`hatsu:sharingan`**, the
+evidence record is `docs/ab/sharingan.md`, and every reference in the other skills and in this documentation
+moves with it. **`hatsu:drive` no longer resolves** — an installed copy that still answers it is a stale
+cache, which is what the version bump in `.claude-plugin/plugin.json` exists to prevent.
+
+---
+
+## 6 · The hooks
 
 [`../hooks/hooks.json`](../hooks/hooks.json) carries two Claude Code hooks. **Neither is a nen-owned step.**
 They are executed by the harness *around* a session rather than by a skill *inside* one, and they exist for
@@ -416,7 +568,7 @@ the installed plugin directory, which changes on every update, so it is never wr
 
 ---
 
-## 6 · What is not here yet
+## 7 · What is not here yet
 
 At nen **`0.3.0`**, several deterministic steps in the loop above have **no verb**, and each is named as
 **residue** in the skill that carries it rather than quietly improvised: build proof and the stall guard
@@ -427,7 +579,9 @@ forbidden-trailer refusal in `commit format` (`kokusen`). **A residue lapses whe
 arrives for it** — and a missing verb is a finding to file, never a gap to route around.
 
 Skill availability follows the same honesty: `breath`, `rasengan`, `kokusen`, `amaterasu`, `tsukuyomi`,
-`rikugan`, `jutaisho`, `ao`, `aka` and `ren` ship at Hatsu **`v0.4.0`**. `mukai`, `murasaki`, `en`, `hanten`,
-`gyo`, `shibari`, `jujutsu`, `kotoamatsukami`, `susanoo`, `kagutsuchi`, `mugetsu` and the `drive` →
-`sharingan` rename arrive at **`v0.5.0`/`v0.6.0`**. Until a phase exists, **name it and stop there anyway** —
-the phase boundary is the governance, and it holds whether or not a skill file has been written for it.
+`rikugan`, `jutaisho`, `ao`, `aka` and `ren` shipped at Hatsu **`v0.4.0`**. **`v0.5.0` adds the PR side of
+§ 5** — `mukai`, `murasaki`, `hanten`, `gyo`, `kotoamatsukami`, `shibari`, `en` and `jujutsu`, plus the
+`drive` → `sharingan` rename — and the three agent definitions it needs: Feitan, Chrollo and Illumi.
+**`susanoo` (archive and packaging), `kagutsuchi` (non-production upload) and `mugetsu` (publication, G3)
+arrive at `v0.6.0`.** Until a phase exists, **name it and stop there anyway** — the phase boundary is the
+governance, and it holds whether or not a skill file has been written for it.
