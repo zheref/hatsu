@@ -418,14 +418,35 @@ by hand before the run:
 
 ```sh
 git worktree add "$rev" HEAD                      # the isolated copy — hanten's own act
-codex exec -C "$rev" -s workspace-write -m sol \
-  -o "$rev/finding.json" "<the scope, the base, the paths, and § 5's required shape>"
+codex exec -C "$rev" -s workspace-write \
+  --add-dir "$(git -C "$rev" rev-parse --path-format=absolute --git-common-dir)" \
+  -m sol -o "$rev/finding.json" "<the scope, the base, the paths, and § 5's required shape>"
 ```
 
+> **`--add-dir` is not optional here, and this is the one place in the repository where the omission
+> bites.** `git worktree add` makes a **linked** worktree, whose `.git` is a *file* pointing at
+> `<main repo>/.git/worktrees/<name>/` — so `HEAD`, the index, `FETCH_HEAD`, the objects, `refs/` and
+> `info/exclude` all sit **outside** the directory `-C` makes writable, and `-s workspace-write` refuses
+> every git write in it: no `git add`, no `git commit`, no `git fetch`, no local exclude. Reproduced on a
+> fixture on this host — the same `git add && git commit` died at exit **`128`**, *"fatal: Unable to
+> create `…/.git/worktrees/wt/index.lock`: Operation not permitted"*, and exited **`0`** with
+> `--add-dir "$(git rev-parse --path-format=absolute --git-common-dir)"` added and nothing else changed
+> (`docs/ab/surfaces.md` § 7, F3; the full account is `docs/SURFACES.md` § 5).
+> **`--git-common-dir`, not `--git-dir`:** the latter answers `<main>/.git/worktrees/<name>` and leaves
+> the objects and `refs/` outside. A reviewer that only reads a diff never notices; one that writes a test
+> to prove a finding — which § 5's evidence rule asks for — notices immediately, and reads the refusal as
+> the repository being broken.
+>
+> **The alternative is a standalone clone** (`git clone <repo> "$rev"`), whose `.git` is inside the
+> workspace and needs no extra root. Take it where the review needs no shared object store; take the
+> worktree plus `--add-dir` where it must see the branch as the maintainer's repository has it.
+
 `-s workspace-write` is deliberate and is the **narrow** choice: the reviewer may write inside its own
-worktree — a test, a note, the finding document — and reaches nothing outside it. Never
+worktree — a test, a note, the finding document — and reaches nothing outside it. **`--add-dir` widens
+that by exactly one directory, and it is a git directory.** Never
 `--dangerously-bypass-approvals-and-sandbox` for a review; a reviewer that needs to bypass a sandbox to
-read a diff is not reviewing a diff.
+read a diff is not reviewing a diff, and reaching for it *because a git write was refused* trades a named
+hole for an unbounded one.
 
 **On Cursor the reviewer is a subagent definition, so the model is named where the definition is**, not on
 a command line — `model:` frontmatter in `.cursor/agents/<persona>.md`, mirrored there from
@@ -480,6 +501,10 @@ of the transcript can tell the two apart.
 5. **The worktree a Codex reviewer runs in is hanten's own `git worktree add`** (§ 9a). `codex exec -C`
    takes a directory and makes none, and no nen verb makes one either — `nen` owns operations, not
    checkouts. Named residue, on that surface only; on Claude Code `isolation: "worktree"` still does it.
+   **Computing the extra writable root is residue with it** — `git rev-parse --path-format=absolute
+   --git-common-dir`, read by hand and passed to `--add-dir`. No verb answers "which directories must a
+   sandbox open for this checkout to be writable", and that is a property of one surface's sandbox rather
+   than of the repository, so none should.
 6. **A persona's `model:` pin does not survive a surface change, and nothing resolves it.**
    `nen surface mirror generate` carries `model` through to `.cursor/agents/<persona>.md` verbatim —
    correctly, since it mirrors and does not translate — so Hisoka's `sonnet` arrives on Cursor as a
