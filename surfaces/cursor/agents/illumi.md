@@ -149,7 +149,7 @@ nen watch until --command "<one read-only observation>" [--true-pattern "<regex>
   --interval-ms <pollSeconds × 1000> --max-iterations <a safety bound>
 ```
 
-> **Those are the flags the pinned `nen 0.6.0` actually carries**, re-read live from its own
+> **Those are the flags the pinned `nen 0.7.0` actually carries**, re-read live from its own
 > `nen watch until --help` at the pin (`docs/ab/en.md` § 2.6, § *Retired at nen 0.5*). Two more are there
 > and are worth knowing: `--cwd <path>`, and `--error-exit-threshold <n>` — **only meaningful when
 > `--true-pattern` is NOT given**, where it says which exit code stops being "not yet" and starts being an
@@ -165,7 +165,7 @@ nen watch until --command "<one read-only observation>" [--true-pattern "<regex>
 > stopping at it, is yours**: the same by-hand bookkeeping [`en`](../skills/en/SKILL.md) § *Residue* 2
 > names, and it is **residue**, not a verb. Say so in the watch's first line, every watch.
 
-Re-read `nen watch until --help` at whatever ref is actually pinned — the flags above are `0.6.0`'s, and a
+Re-read `nen watch until --help` at whatever ref is actually pinned — the flags above are `0.7.0`'s, and a
 later pin may differ. Where a flag you need does not exist, **name it as a finding** and report the gap —
 never hand-roll the missing half and present the result as though the verb produced it.
 

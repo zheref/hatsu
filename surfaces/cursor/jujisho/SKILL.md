@@ -103,6 +103,33 @@ nen split verify --original original.diff --branches axis-a.diff,axis-b.diff
 body, and reports `MISSING` / `DUPLICATED` / `ALTERED` / extra otherwise. Exit `0` means proven;
 exit `1` means the split is incomplete and nothing is opened until it reads `OK`.
 
+> ### RETIRED at nen `0.7`: an unreadable diff that read like a failed split
+>
+> **A `--original` or `--branches` file this verb cannot read is exit `2`, not `1`** — and the two
+> now say different things. Through the pinned `v0.6.0` a mistyped path escaped as a raw errno under
+> the code that means *"the thing you asked for did not work"*, for what is *"you typed it wrong"*:
+>
+> ```text
+> v0.6.0  $ nen split verify --original /nope/a.diff --branches /nope/b.diff        # exit 1
+>         nen: could not read --original '/nope/a.diff': Error: ENOENT: no such file or directory, open '/nope/a.diff'
+>
+> 0.7.0   $ nen split verify --original /nope/a.diff --branches /nope/b.diff        # exit 2
+>         nen split: could not read '/nope/a.diff' (ENOENT). --original names the diff every branch is
+>         compared against, so an unreadable one is refused rather than compared against nothing.
+> ```
+>
+> Verified live at the pinned `0.7.0` (`docs/ab/jujisho.md` § *Retired at nen 0.7*). **This verb's
+> whole answer is a comparison between files**, so one of them being absent is a question that was
+> never asked rather than a verdict that came out negative — which is exactly the reading this skill
+> needs, because `1` is the code that stops the split from being opened. **So: exit `1` is a real
+> finding about the split and stops everything; exit `2` is a mistyped path — fix the invocation and
+> re-run, and never report it as an incomplete split.** A branch file that could not be read now
+> says WHICH one.
+>
+> The path flags move with it: a relative `--original`/`--branches` resolves against **`--repo`'s
+> root** from nen `0.7`, not the process's cwd (`zheref/nen#100`) — so pass `--repo`, or pass
+> absolute paths as the block above does.
+
 > **Defect this port filed against `v0.1.0`, closed by nen `v0.2.0` (#61, closes zheref/nen#21).**
 > At the port a multi-file `--original` misparsed every file but the last (a false `ALTERED` reading
 > `line N: original "(absent)" vs branch ""` one past the hunk's true end), and the same false
@@ -173,12 +200,14 @@ binaries, out-of-scope paths, unmentioned deletions — and exits `1` on anythin
 flagged file is never committed without an explicit yes**; that yes is the skill's to give, never
 the verb's.
 
-**One flag category from the old checklist has no detector in `nen stage triage` at all — residue,
-not routed around by hand, still asked about by eye,** same finding as
-[`/tensho`](../tensho/SKILL.md) § 3: a local-config file (`.claude/settings.local.json`,
-editor state, OS cruft) that is neither git-ignored nor out of the declared `--scope` reports
-**clean** — the verb names five detectors and local-config is not one of them. Ask about any
-local-config path by name regardless of what the verb reports, per axis.
+> **RETIRED at nen `0.7`: the local-config category with no detector.** `nen stage triage` carries
+> **`local-config`** (the `.local` filename infix — `settings.local.json`, `.env.local`,
+> `config.local.yml`) and **`large`** (at or over `--large-bytes`, default 1 MiB) as detectors of
+> its own, so the by-eye pass this skill and [`/tensho`](../tensho/SKILL.md) § 3 each ran is
+> gone. Verified live at the pinned `0.7.0` (`docs/ab/kokusen.md` § *Retired at nen 0.7*). **Read
+> the flags per axis and take one answer per flagged path**; a path flagged on one axis is flagged
+> on whichever axis actually carries it, so run the triage per axis rather than once for the whole
+> working copy.
 
 Format each commit with `nen commit format --type <t> --subject "<...>" [--scope <s>] [--body "..."] [--trailer Hatsu-Agent=kurapika]` —
 it validates shape (declared type, non-empty subject under 72 characters, no trailing punctuation),

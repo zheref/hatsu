@@ -75,7 +75,7 @@ keys; never carry a remembered value.
 > rather than a copy retained of it. One file that is always the latest render is not a retained
 > report — a retained report is one you can still find after the next turn.
 
-> **`nen schema check` VALIDATES this file at the pinned `v0.6.0` — verified live
+> **`nen schema check` VALIDATES this file at the pinned `v0.7.0` — verified live
 > (`docs/ab/rikugan.md` § *Retired at nen 0.5*).** Run against `hatsu`'s own checkout it reports
 > **six** rows, and the sixth is `ok    nen/workflow.json  coverage 80/85/90 (touched), branch
 > '{model}/{persona}/{descriptor}' off 'main', checks: lint`. So the SHAPE is nen's to judge: a
@@ -93,7 +93,7 @@ nen report data --repo <path> --base origin/<branch.base> [--tiers <json>] --jso
 ```
 
 **RETIRED at nen `0.5`: `nen report data` is the verb that owns this step, and it is the ONLY path.**
-Verified live at the pinned `v0.6.0` against this repository, exit `0`: one `nen.report.data/v0.1`
+Verified live at the pinned `v0.7.0` against this repository, exit `0`: one `nen.report.data/v0.1`
 document carrying `repo`, `branch`, `base`, `generatedAt`, 33 `commits[]`, the `files[]` merge-base
 set, `evidence[]`, `coverage`, `proof` and `lastStop` (`docs/ab/rikugan.md` § *Retired at nen 0.5*).
 **Do not assemble any of it by hand** — a page whose facts came from a different reading than the
@@ -154,7 +154,7 @@ never answered as a branch with nothing on it.
 >   sandbox refused — say so on the page in those words and leave the section empty. An unmeasured delta is
 >   reported as unmeasured, never rendered from whatever ref happened to resolve.
 
-**Three companion verbs fill the extension lists, and all three exist at the pinned `v0.6.0`** —
+**Three companion verbs fill the extension lists, and all three exist at the pinned `v0.7.0`** —
 each verified live (`docs/ab/rikugan.md` § *Retired at nen 0.5*):
 
 - **`nen shu evidence --repo <path> --base <ref>`** — **RETIRED at nen `0.5`**, exit `0`, rows grouped
@@ -183,7 +183,7 @@ nen report render --template templates/rikugan.html --data <the § 3 document> -
 ```
 
 **RETIRED at nen `0.5`: `nen report render` is the verb that owns this step, and there is no renderer
-to write.** Verified live at the pinned `v0.6.0` against `templates/rikugan.html`: `--dry-run` lists
+to write.** Verified live at the pinned `v0.7.0` against `templates/rikugan.html`: `--dry-run` lists
 **40** tokens at exit `0`, and the real render wrote a **38 283-byte** page with **zero** `{{` left in
 it, a value carrying `<v0.5.0>` arriving as `&lt;v0.5.0&gt;` (`docs/ab/rikugan.md` § *Retired at nen
 0.5*).
@@ -282,7 +282,7 @@ nen report render --template templates/rikugan.html --data <data file> \
   --out <reports.dir>/current.html --repo <path> [--dry-run]
 ```
 
-**Verified end to end at the pinned `v0.6.0`, against this repository:** `report data --json` → the
+**Verified end to end at the pinned `v0.7.0`, against this repository:** `report data --json` → the
 merge above → `report render --dry-run` (40 tokens, exit `0`) → `report render` (exit `0`, 38 283
 bytes written, zero `{{` remaining). The same run against the **unmerged** document refuses at exit
 `2` naming `title` — which is the extension doing its job, not a defect.
@@ -315,7 +315,7 @@ place this verb will write.
 > emitted and hidden by CSS off `data-variant` (§ 5)**, because a page whose shape changes with its
 > variant is three pages. `{{#if}}` guards a **null**; it does not choose a layout.
 >
-> **There is no residue path to owe them to.** At the pinned `0.6.0` the engine is the verb's, and a
+> **There is no residue path to owe them to.** At the pinned `0.7.0` the engine is the verb's, and a
 > hand-written renderer would be a second one nobody reviews.
 
 ### Escaping — the contract, and it binds the residue path too
@@ -326,7 +326,7 @@ gets published as an Artifact.
 
 - **Every `{{token}}` is HTML-escaped by the renderer.** `nen report render` escapes by default —
   `&`, `<`, `>`, `"`, `'` become entities — in text content and inside an attribute alike. No token
-  on this page opts out. **Verified at the pinned `v0.6.0`** rather than assumed: an accomplished row
+  on this page opts out. **Verified at the pinned `v0.7.0`** rather than assumed: an accomplished row
   carrying `<v0.5.0>` rendered as `&lt;v0.5.0&gt;` (§ 4). If a future pin ever ships without escaping
   by default, the fix is nen's, not a template full of pre-escaped values.
 - **`{{{ }}}` is the raw form, and `templates/rikugan.html` uses it nowhere.** The only slot it
@@ -421,7 +421,7 @@ notation is never typed from memory (`claude/agents/kurapika.md` § *How you wor
 
 > **When the resolution fails, the title falls back — it is never typed from memory instead.** The
 > taxonomy lives in the **target** repository, and plenty of repositories do not carry it: verified
-> live at the pinned `0.6.0`, neither `zheref/hatsu` nor `zheref/nen` has a `nen/repos.json`, so
+> live at the pinned `0.7.0`, neither `zheref/hatsu` nor `zheref/nen` has a `nen/repos.json`, so
 > `nen repo resolve --repo <path> …` refuses in both — *"`<path>/nen/repos.json`: no such file. Nen
 > reads this repository's taxonomy from 'nen/repos.json' in the TARGET repo and has no built-in copy
 > to fall back on"*.

@@ -200,27 +200,37 @@ it:**
    collated fragment** — verified live against a constructed fixture (`docs/ab/getsuga.md` § 2.3):
    never hand-write the section, never leave a fragment behind.
 
-   > **Finding, cosmetic, load-bearing to read correctly: `--write`'s printed manifest disagrees with
-   > its own written order — the manifest is the wrong one, not the write.** Re-verified live, twice,
-   > with numerically-named fragments, side by side against the real, extracted
-   > `changelog_collate_fragments.sh` (`docs/ab/getsuga.md` § 2.3.1): the **written** `CHANGELOG.md`
-   > section renders fragments newest-first (highest numeric prefix first) — `CON-33(b)`'s own
-   > convention, "placed newest-first, directly below `### Unreleased`" — and this is **exactly** what
-   > the old script's own `list_fragment_files` (`sort -k1,1nr`, numeric-descending) and every real
-   > shipped `CHANGELOG.md` section (e.g. `<reference-repo>`'s `v0.11.3`: #899, #898, #890…
-   > descending) already do — `nen`'s written body matches the old script's written body
-   > byte-for-byte on the same fixture. The **printed manifest line**, however, lists the same
-   > fragments in plain ascending filesystem-read order (`10-a.md`, `20-b.md`, `30-c.md`) — the
-   > reverse of what was actually written. **The defect is the manifest disagreeing with the write,
-   > not the write disagreeing with the shipping convention.** `CON-33(c)` — cited here in the earlier
-   > draft of this finding — actually governs the *completeness check*'s own ascending numeric
-   > comparison (§ 3.3 below), not this body-rendering order; the clause that governs the written
-   > section's newest-first placement is `CON-33(b)`, already named above. **Never re-order the
-   > written section by eye** — the written order is already correct, and hand-reordering it would
-   > corrupt a real changelog into oldest-first. **The operational rule: trust the written order as
-   > correct; note the printed manifest's mismatch as a `nen` defect** (a cosmetic report bug, not a
-   > data-integrity one) so a reviewer diffing the PR by the manifest alone isn't misled into "fixing"
-   > a section that was already right.
+   > ### RETIRED at nen `0.7`: the manifest that disagreed with the write
+   >
+   > **The printed manifest and the written section now agree, and the manifest is the one that
+   > moved.** Through the pinned `v0.6.0` the manifest was printed in `readdirSync` order while the
+   > section was rendered by the fragment sort — newest-first by the leading `<n>-` prefix,
+   > `CON-33(b)`'s own convention — so the two disagreed **by construction, at any fragment count**.
+   > Verified live, the same fixture through both binaries (`docs/ab/getsuga.md`
+   > § *Retired at nen 0.7*):
+   >
+   > ```text
+   > v0.6.0  collated 3 fragment(s) …        0.7.0  collated 3 fragment(s) …
+   >           10-a.md                                 30-c.md
+   >           20-b.md                                 20-b.md
+   >           30-c.md                                 10-a.md
+   > ```
+   >
+   > while **both** wrote `FRAG-30, FRAG-20, FRAG-10` into the section. `--json`'s `fragments[]` is
+   > read off the same sorted list, so the machine form carries the fix too — it was the consumer
+   > least able to notice the disagreement.
+   >
+   > **Nothing was ever dropped, duplicated or misattributed and the written content was always
+   > right**; what was wrong is the record a caller cross-checks the section against, and getsuga
+   > relays this manifest to the maintainer as the answer to *"did my fragment land where I
+   > expected"*. **So relay the manifest as the record it now is** — and § Hard limits' rule stands
+   > unchanged for the other reason it was written: **never re-order the written section by eye**,
+   > because the written order was correct all along and hand-reordering it would corrupt a real
+   > changelog into oldest-first.
+   >
+   > `CON-33(c)` — cited in an earlier draft of this finding — governs the *completeness check*'s own
+   > ascending numeric comparison (§ 3.3 below), not this body-rendering order; the clause that
+   > governs the written section's newest-first placement is `CON-33(b)`.
 
 2. **Back-fill anything stranded.** A fragment present at the *previous* tag but never collated into
    that tag's section belongs **in the previous section**, not this one — decide it with
@@ -242,7 +252,7 @@ it:**
    can no longer disagree about where fragments live — and an **empty** value, or a path that is not a
    directory, is refused; a directory that does not exist contributes no fragments. Omit the flag or
    pass a real directory; never `""`.
-4. **Bump `latest`** in the registry — `nen/repos.json`, which at the pinned nen `0.6.0` is the ONLY
+4. **Bump `latest`** in the registry — `nen/repos.json`, which at the pinned nen `0.7.0` is the ONLY
    file nen reads it from. No `nen` verb owns this write — residue, a direct edit — **so make
    sure it lands in the file nen reads**: `nen schema check --repo <path>` prints the row
    (`ok nen/repos.json …`, or a FAIL naming the migration where a copy sits only under `schemas/`).
@@ -350,7 +360,7 @@ The maintainer's ruling: an unreachable target is **driven to `main` first**, no
    itself is [`/pr-state`](../pr-state/SKILL.md)'s verb — `nen pr ready <ref> --explain`, with
    `GH_TOKEN` exported, quoted verbatim. **The identities come from [`sharingan`](../sharingan/SKILL.md)
    § 4's rule, never from memory:** the target's own `nen/gates.json` first, with no `--gates` at all
-   — the `schemas/gates.json` location is not a fallback at the pinned nen `0.6.0`, REMOVED at
+   — the `schemas/gates.json` location is not a fallback at the pinned nen `0.7.0`, REMOVED at
    `v0.4.0`, so a gates file only there is refused exactly like one carrying none; `--gates
    "$hatsu_root/contracts/reference.gates.json"` (absolute — `$hatsu_root` being the Hatsu checkout as
    [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it on every surface, absolute and
@@ -455,5 +465,6 @@ through nen and this section does not apply. `<reference-repo>` is machinery and
 - **Never routes around a refused capability.**
 - **Never re-orders `nen changelog collate --write`'s written section by eye.** The written body is
   already correct (newest-first, `CON-33(b)`) — verified live against the old script's own written
-  output, byte-for-byte. Only the **printed manifest** disagrees with the write; note that mismatch
-  as a `nen` defect, never "fix" the section itself (§ 3).
+  output, byte-for-byte. **RETIRED at nen `0.7`: the printed manifest no longer disagrees with the
+  write** (§ 3), so relay it as the record of what landed rather than as a defect to note — and the
+  rule against re-ordering the section stands on its own, unchanged.

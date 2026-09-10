@@ -87,7 +87,7 @@ nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/
 path set still comes from `gh pr diff <n> --repo <owner/name> --name-only` (residue: no `nen` verb
 fetches a remote diff, per `backlog-state`'s own A/B). **`--policy-paths` is a literal, and the
 taxonomy directory moved under it.** A target's `labels.json`/`repos.json`/`colors.yml`/`gates.json`
-live canonically under `nen/`, and **at the pinned nen `0.6.0` the `schemas/` fallback is REMOVED**:
+live canonically under `nen/`, and **at the pinned nen `0.7.0` the `schemas/` fallback is REMOVED**:
 a repository carrying a file only there is refused exactly like one carrying it nowhere. **That is
 about what nen resolves and changes nothing here** — a prefix you hand `gate derive` is taken
 literally, and nen's resolution never sees it (USAGE: *"`schema check` will not warn about them,
@@ -228,9 +228,35 @@ nen pr ready <CODE>#<N> --repo <path> --explain            # the target ships ne
 > this pull request."** A `ready` verdict standing on a vacuous row is still `ready`; it is just not
 > the thing a reader assumes it is.
 
+> ### Two things the verdict now carries, from nen `0.7` — relay both
+>
+> **The provenance line.** `--explain`'s header gains `decided by nen <version> (<path>) at
+> <timestamp>` — the resolved path of the binary that produced the verdict, not just the version it
+> claims — and `--json` gains `meta.generator.executable`. Verified live at the pinned `0.7.0`
+> (`docs/ab/pr-state.md` § *Retired at nen 0.7*), where `v0.6.0` printed no such line.
+> [`pr-state`](../pr-state/SKILL.md) § 3 states the reasoning; **sharingan's obligation is the same
+> one it already has for the verdict — quote it, do not summarise it.** A drive that changed a
+> verdict is a drive that has to say which binary read it.
+>
+> **CON-30's dependency-author carve-out.** Where the target's own `nen/gates.json` declares
+> `dependabot_carve_out`, rows 3, 4 and 5 can be satisfied by the review shim's own green contexts
+> rather than by a review round — never silently: `--explain` prints the reason under each row it
+> satisfied, `conjuncts[].note` carries the same string, and `meta.dependabotCarveOut` says whether
+> it fired (`false` on an ordinary evaluation, `null` on `unevaluated`). **This changes what
+> `sharingan` should DO on a dependency PR**: a `ready` reached through the carve-out is still
+> `ready`, and the fix for a not-ready one is to make the shim's contexts green, never to open a
+> review round the carve-out exists to stand in for. `contracts/reference.gates.json` declares no
+> carve-out, so nothing changes on the frozen reference repository. `pr-state` § 3's box is the
+> authority on where it sits in the conjunction.
+
 **Never a bare relative `--gates` path.** Since nen `v0.2.0` a relative `--gates` resolves against
 **`--repo`'s root, never the cwd** (verified live at `v0.3.0`, `pr-state` § 2), and the reference file
 lives in this plugin's checkout rather than the target's, so only an absolute path reaches it.
+**From nen `0.7` that is the rule for EVERY relative path flag, not just this one** — `--body-file`,
+`--out`, `--input`, `--efforts`, `--original`/`--branches` and `--table` all resolve against
+`--repo`'s root now, where they used to resolve against the process's own directory. It changes
+nothing for `--gates`, which has resolved that way since `v0.2.0`; it changes § 5's
+`nen issue comment --body-file`, which now has ONE base rather than two.
 
 > **Where the plugin root comes from, when a run needs it.** It is `$hatsu_root` — the Hatsu checkout
 > as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it, and it is resolved rather

@@ -110,6 +110,35 @@ to run without one. **A repository whose `monitor` block is missing gets `20`, s
 it does not get an unbounded watch, because "the file said nothing" is exactly the case an
 inherited-and-forgotten default is dangerous in.
 
+> ### RETIRED at nen `0.7`: counting the acting cycles by hand
+>
+> **Every acting cycle is CLAIMED before it acts, and the cap is enforced by the claim being
+> refused** — [`izanagi`](../izanagi/SKILL.md) § 3's retirement, inherited whole:
+>
+> ```bash
+> nen loop iterate --id en-<CODE>-<N> \
+>   --line "take <CODE>-PR-#<N> to Ready and keep it there until it is merged up to <monitor.maxCycles>" \
+>   --repo <path>
+> ```
+>
+> Exit `0` prints `iteration <n>/<cap>` and how many remain — the verb's own word is *iteration*, and
+> en's cycle is what it is claiming; **exit `1` IS the cap** and ends the run at § 6's cap-out row,
+> with the invocation named in nen's own refusal. The `--line` is the same string
+> `nen parse izanagi` echoed above, restated on every claim, so **`monitor.maxCycles` cannot be
+> quietly raised mid-run**: a claim carrying a different `N` is exit `2` naming both lines (verified
+> live against exactly this shape — `up to 3` running, `up to 20` claimed —
+> `docs/ab/izanagi.md` § *Retired at nen 0.7*).
+>
+> **The `--id` is the PULL REQUEST, not the session**, and that is a decision with a consequence
+> worth stating: the ledger is `.nen/loop/en-<CODE>-<N>.json` under `--repo`, it outlives the
+> session (§ 7), so **a re-invoked `$en` on the same PR resumes the same cap rather than
+> starting again at cycle 1**. That is the honest reading of "twenty cycles to land this PR" — a cap
+> a session boundary reset would be a cap nobody has. When the landing genuinely ends — merged,
+> closed, or handed to the maintainer at a gate — close the ledger with
+> `nen loop iterate --id en-<CODE>-<N> --line "<same line>" --release "<why>"`; a loop at its cap can
+> always still be released, and a fresh cap after that is a **new `--id`**, chosen deliberately and
+> said out loud, never a re-typed line.
+
 **The cap is a ceiling, not a target.** Reaching it is a failure to land and is reported as one:
 what is still not true, and what the next cycle would have done. `izanagi` § 4's rule, unchanged.
 
@@ -207,17 +236,19 @@ nen watch until --command "nen pr ready <CODE>#<N> --repo <path> --gates <abs pa
 structurally cannot be the verb that ends it**, which is a property worth having rather than a
 limitation to route around.
 
-> **`--max-iterations` is not the cap.** Its own `--help` says so — *"a SAFETY bound, not izanagi's
-> mandatory cap"* — and it bounds **one observation**, not the count of acting cycles. **Counting
-> cycles 1..N against `monitor.maxCycles` is this skill's own bookkeeping**, exactly as
-> `izanagi` § 3's finding states: nen supplies a parsed, refusal-enforced `N` to count against and a
-> mechanical per-check truth reading, and the counting is not delegated to any verb.
+> **`--max-iterations` is still not the cap.** Its own `--help` says so — *"a SAFETY bound, not
+> izanagi's mandatory cap"* — and it bounds **one observation**, not the count of acting cycles.
+> **The cap is `nen loop iterate`'s from nen `0.7`** (§ 2): a cycle is claimed against
+> `monitor.maxCycles` before it acts, and the claim is refused at the cap. Two different verbs, two
+> different bounds, and neither substitutes for the other.
 
-**What counts as a cycle.** A cycle is spent when en **acts** — goes back to step 2, pushes a fix,
-re-requests a review. **An observation that finds nothing changed is not a cycle**, and neither is
-the pre-check before the first act (`izanagi`'s *iteration 0*): it costs nothing against `N`.
-Otherwise a four-hour poll at five-minute intervals would exhaust a cap of 20 in under two hours
-without a single thing having happened.
+**What counts as a cycle — and it is what en CLAIMS, not what the watch observes.** A cycle is spent
+when en **acts**: goes back to step 2, pushes a fix, re-requests a review. **An observation that
+finds nothing changed is not a cycle and is never claimed**, and neither is the pre-check before the
+first act (`izanagi`'s *iteration 0*). Otherwise a four-hour poll at five-minute intervals would
+exhaust a cap of 20 in under two hours without a single thing having happened — and since nen `0.7`
+that is a mistake with a ledger behind it rather than a miscount nobody can see: claim only where
+en acts, and the `<n>/<cap>` the verb prints is the number the report carries.
 
 **What the watch reacts to**, and the only two things:
 
@@ -248,6 +279,11 @@ reached, the last verdict, and that the watch ends with the session; the run is 
 re-invocation** — `$en on <CODE>#<N>` re-fetches everything and re-decides from live evidence
 (`sharingan` § 9's rule). Notes worth keeping go in the run's transcript, never trusted over a
 fetch.
+
+**One thing does survive the session, deliberately: the cap.** `.nen/loop/en-<CODE>-<N>.json` is a
+file, so a re-invocation on the same PR resumes the same count (§ 2) — the watch is per session, the
+cap is per landing. Say the resumed `<n>/<cap>` out loud on the first claim of a resumed run, so the
+maintainer sees a budget being continued rather than one silently restarting.
 
 > **A watch measured in hours is [`Illumi`](../../agents/illumi.md)'s, and from `v0.5.0` he has a
 > definition to be raised as.** The roster's ruling of 2026-09-09 **partially closes `OPEN-1`** —
@@ -304,12 +340,16 @@ and the final report's path. Nothing after the merge is en's: the tag is
    and its missing `--no-push` (step 3, named in [`ao`](../ao/SKILL.md)), `nen stop` plus the
    `osascript`/`afplay` fallback and the `.nen/last-stop.json` marker (step 5, named in
    [`jutaisho`](../jutaisho/SKILL.md)).
-2. **Counting cycles against the cap is this skill's own bookkeeping** — no nen verb enforces it
-   (§ 6, `izanagi` § 3's finding). `nen parse izanagi` refuses a missing `N` once, at parse time;
-   `nen watch until --max-iterations` bounds one observation. The ledger of acting cycles, and the
-   stop at `N`, are en's.
+2. **RETIRED at nen `0.7`: counting cycles against the cap.** `nen loop iterate --id en-<CODE>-<N>
+   --line "<the invocation>"` claims each acting cycle and REFUSES the claim at
+   `monitor.maxCycles`, exit `1` (§ 2, § 6; `izanagi` § 3's retirement, verified live in
+   `docs/ab/izanagi.md` § *Retired at nen 0.7*). `nen parse izanagi` still refuses a missing `N`
+   once at parse time and `nen watch until --max-iterations` still bounds one observation — three
+   different jobs, and only the middle one used to be this skill's. **What stays en's is DECIDING
+   which cycles to claim** (§ 6: en acts, so en claims; an observation that changed nothing does
+   not), and that is judgment rather than residue.
 3. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
-   an `ok  nen/workflow.json` row at the pinned `v0.6.0` (verified live, `docs/ab/en.md` § *Retired at
+   an `ok  nen/workflow.json` row at the pinned `v0.7.0` (verified live, `docs/ab/en.md` § *Retired at
    nen 0.5*), and a malformed `monitor` block is a FAIL by pointer. § 2's keys are still read here;
    reading a file is not residue.
 4. **A watch that survives the session has no mechanism at all** (§ 7) — not a missing verb: no

@@ -93,7 +93,7 @@ default.** [`sharingan`](../sharingan/SKILL.md) § 4 states the rule in full and
 the short form is three shapes, and there is no fourth:
 
 ```bash
-# the target ships its own nen/gates.json — no identity flag at all (the schemas/ fallback is REMOVED at the pinned nen 0.6.0; a gates file only there is refused, same as none at all)
+# the target ships its own nen/gates.json — no identity flag at all (the schemas/ fallback is REMOVED at the pinned nen 0.7.0; a gates file only there is refused, same as none at all)
 nen pr ready <CODE>#<N> --repo <path> --explain
 
 # the target IS <reference-repo> itself — frozen, ships no gates file of its own.
@@ -193,6 +193,28 @@ line of the answer. `gateLine` (the plain-text tail, or the `--json` field of th
 the part after the `: ` — e.g. `not-ready: 3 unresolved review thread(s) (CON-32d)` — never the
 `<repo>#<N>` prefix in front of it.
 
+> ### RETIRED at nen `0.7`: a verdict that could not say which binary decided it
+>
+> **Relay `--explain`'s provenance line, verbatim, with the verdict.** From the pinned `0.7.0` the
+> header carries a third line:
+>
+> ```text
+> decided by nen 0.7.0 (/Users/<you>/.cache/nen/zheref_nen/v0.7.0/nen-darwin-arm64) at 2026-09-10T21:07:18Z
+> ```
+>
+> Verified live (`docs/ab/pr-state.md` § *Retired at nen 0.7*); at `v0.6.0` the same invocation
+> printed the two header lines and no third. `--json` gains `meta.generator.executable` beside the
+> `program` and `version` it has carried since `v0.1`.
+>
+> **It is the VERSION and the PATH, and the distinction is the whole point.** `nen --version` says
+> which nen a caller *believes* it has; `executable` says which file actually answered — a
+> checksum-verified binary under the bootstrap cache, a locally built one, or `bun src/index.ts` out
+> of a working tree, all three able to carry the same version string and different behaviour. It is
+> deliberately **not** a checkout SHA: a compiled binary has no checkout at evaluation time, and its
+> bytes are verifiable against the release's published `SHA256SUMS` instead. **A readiness claim
+> relayed without it is a verdict nobody can reproduce**, which is the same reason § 4 refuses to
+> paraphrase the verdict itself.
+
 Then the conjunct-by-conjunct table — **rendered by `--explain`, not reconstructed by hand.** The gate
 is a conjunction evaluated **in this order**, and it **short-circuits on the first failure**, so
 everything after the failing row is genuinely *unknown* and `nen` itself prints it as `unevaluated`
@@ -210,6 +232,39 @@ memory**, since more than one of these rows has more than one real shape:
 | 4 | No configured reviewer's round **owed** at the current head | `CON-32(b)` | `a configured reviewer's round is still owed at the current head (CON-32b): <reviewer> (…)` |
 | 5 | Every approving reviewer's **latest** round is an APPROVE at the **current head** | `CON-32(b)`/`CON-16` | `not every approving reviewer's latest round is an APPROVE (CON-32b): <unapproved>` — the printed text does not repeat "at the current head"; that reading lives in the conjunct's own definition (`CON-16`), not in the failure string |
 | 6 | Zero unresolved review threads | `CON-32(d)` | `N unresolved review thread(s) (CON-32d)` |
+
+> ### CON-30's dependency-author carve-out — new at nen `0.7`, and never silent
+>
+> **Rows 3, 4 and 5 can be satisfied by a review SHIM rather than by a review round**, where the
+> target repository's own `nen/gates.json` declares `dependabot_carve_out` (`author_pattern` plus
+> `satisfied_by_context`). The field has been data since it was written and **no build parsed it**
+> until this pin — `nen schema check` reported `ok` because the block was IGNORED, not because it
+> was understood — so the shim workflow and the decider were agreeing about a rule only one of them
+> could see. The decider carries it now, which is CON-30's own instruction.
+>
+> **Where it sits in the conjunction is the design, and it is what you relay.** Row 2 (`CON-32(a)`)
+> runs **first**, so a dependency PR is never exempted from having checks or from their being green
+> — an empty rollup still fails and a red one still fails. Row 6 (`CON-32(d)`) runs **after**,
+> untouched: a human who opened a thread is owed an answer whether or not a shim covered the rounds.
+> It is satisfied by **PRESENCE, never by absence** — a PR missing one of the named contexts has not
+> been shimmed, it has merely not been reviewed — and every named context must be green on its
+> **latest** run.
+>
+> **Read it off the report, never infer it.** `--explain` prints the reason under each row it
+> satisfied (`conjuncts[].note` under `--json` — a **separate field from `reason`**, which means
+> "the gate's own words for what FAILED"; rendering one as the other reports a satisfied row as a
+> problem), and **`meta.dependabotCarveOut`** says whether it fired. Verified live at the pinned
+> `0.7.0` (`docs/ab/pr-state.md` § *Retired at nen 0.7*): **`false`** on an ordinary evaluation,
+> **`null`** on an `unevaluated` report — where the gate never ran far enough to ask, and `false`
+> there would read as "asked, and no", a claim about evidence nobody looked at.
+>
+> **Two absences to state rather than assume.** The carve-out **never applies on the `--reviewers`
+> identity path**, which names no file and therefore declares none. And
+> `contracts/reference.gates.json` — the file this skill passes for the frozen reference
+> implementation — **declares no carve-out**, so every verdict it produces is `dependabotCarveOut:
+> false`. An **empty `satisfied_by_context` is refused at LOAD**, exit `2` (verified live): a
+> carve-out satisfied by no context is satisfied by nothing, and would open `CON-32(b)` outright for
+> the one author whose whole premise is that nobody reviews its work.
 
 **Name what the gate does NOT decide.** `--explain`/`--json` prints this block automatically, every
 time — it is no longer boilerplate the skill has to remember to append by hand, only content this

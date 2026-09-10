@@ -163,17 +163,25 @@ askable** — the per-file ask above applies to the other flag categories only. 
 `secret-shape`; the answer is always no, and the fix is to rotate or remove the secret, never to
 stage it. § 8's hard limit is authoritative here: a secret is never committed, full stop.
 
-**Two of the old flag categories have no detector in `nen stage triage` at all — residue, not
-routed around by hand, still asked about by eye:**
-
-- **A local-config file** (`.claude/settings.local.json`, editor state, OS cruft) that happens to
-  be **neither git-ignored nor out of the declared `--scope`** is reported **clean**, verified
-  live — the verb names five detectors and a local-config shape is not one of them. It is only
-  caught incidentally, when it happens to also be ignored or out-of-scope. Ask about any
-  local-config path by name regardless of what the verb reports.
-- **"Unusually large"** is not a detector either — a large plain-text file (a 2.6&nbsp;MB
-  constructed fixture, verified live) reports clean, same reason: size is not one of the five
-  shapes `nen` looks for. Weigh repo weight by eye.
+> ### RETIRED at nen `0.7`: the two flag categories with no detector
+>
+> **Both are detectors now** — this skill and [`/kokusen`](../kokusen/SKILL.md) § 4 were each
+> compensating for the same gap by eye, which is what made it a gap rather than a preference:
+>
+> - **`local-config`** matches the `.local` filename infix (`settings.local.json`, `.env.local`,
+>   `config.local.yml`, a bare `notes.local`). It is a FILENAME check like the secret shape, not a
+>   directory rule — `.claude/` and `.vscode/` hold committed project configuration as often as
+>   personal settings, and flagging every file under them would bury the rows that need a decision.
+>   So `.claude/settings.local.json` is caught **by its name**, and a `.claude/settings.json` that
+>   belongs to the project is not.
+> - **`large`** flags a file at or over `--large-bytes`, default **1 MiB**. The same 2.6 MB
+>   constructed fixture that reported **clean** at `v0.6.0` comes back `big.txt [large]` at the
+>   pinned `0.7.0` (verified live, `docs/ab/kokusen.md` § *Retired at nen 0.7*). A path the verb
+>   could not measure — a deletion, a broken symlink — is never flagged `large`.
+>
+> **Ask about them the same way as every other flag**, one answer per path, from the reasons the
+> verb printed. The by-eye pass is retired; do not run it in parallel and do not report a category
+> the verb did not name.
 
 **Deliberately untracked leftovers stay untracked.** If something should be ignored rather than
 committed, say so and offer the `.gitignore` line; do not commit it to be tidy.
@@ -244,7 +252,7 @@ nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,nen/,sc
 
 (`--spec-paths` is a literal prefix list, outside nen's taxonomy resolution entirely — it names
 **both** directories so a taxonomy edit owes a fragment whether the target has migrated or not. **At
-the pinned nen `0.6.0` the `schemas/`→`nen/` fallback is removed**, which changes what nen *reads*
+the pinned nen `0.7.0` the `schemas/`→`nen/` fallback is removed**, which changes what nen *reads*
 and changes nothing about a literal prefix: an un-migrated target still edits a real `schemas/*.json`
 and still owes a fragment for it, so both stay listed.)
 

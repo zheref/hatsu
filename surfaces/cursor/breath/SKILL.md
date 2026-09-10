@@ -53,7 +53,7 @@ workflow.json: using the built-in defaults from `docs/WORKFLOW.md`"* — and use
 default does not cover, and never write the file to make the message go away — authoring a
 `workflow.json` for a repository is a policy change that lands as its own PR at **G4**.
 
-**`nen` VALIDATES `nen/workflow.json` at the pinned ref.** Re-verified live at `v0.6.0` against this
+**`nen` VALIDATES `nen/workflow.json` at the pinned ref.** Re-verified live at `v0.7.0` against this
 repository: `nen schema check --repo <path>` reports **six** rows — the four taxonomy files,
 `nen/contract.json` and `nen/workflow.json` — and the sixth reads
 `ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off
@@ -78,7 +78,7 @@ the same table for its own phase):
 | `on-branch-clean` **on a branch** | An effort is already warm. Report the branch and return — do not cut a second one |
 | `must-move` — on the trunk, dirty | **The one thing breath asks about.** Show every uncommitted path and ask: carry the work onto the new branch (the ordinary answer — `git stash`, cut, `git stash pop`, each step named as residue in § 8), **exclude it locally** where the paths are not work at all (the third door, below), or stop so the maintainer can deal with it. **Never `--discard`** |
 | `on-branch-dirty` | Uncommitted work on an existing branch. Not breath's to judge whether it is this effort: report the commit subjects and paths the verb printed, and hand the turn to [`/kokusen`](../kokusen/SKILL.md) or the maintainer |
-| **a detached `HEAD`** | **Classified like any other working copy at the pinned `0.6.0`**, into one of the three rows above with `branch: null` — never `must-move`, because a commit made there lands on no branch. Read `detachedAt`, say it in § 7's line, go on; see the box below |
+| **a detached `HEAD`** | **Classified like any other working copy at the pinned `0.7.0`**, into one of the three rows above with `branch: null` — never `must-move`, because a commit made there lands on no branch. Read `detachedAt`, say it in § 7's line, go on; see the box below |
 
 ### RETIRED at nen `0.6`: a detached `HEAD` is CLASSIFIED, not refused
 
@@ -92,7 +92,7 @@ not a symbolic ref). This usually means a detached HEAD … and refuses rather t
 of empty output.
 ```
 
-**At the pinned `0.6.0` the branch is a FIELD of the answer rather than a precondition of it.**
+**At the pinned `0.7.0` the branch is a FIELD of the answer rather than a precondition of it.**
 Classification is decided by *trunk-or-not* and *dirty-or-not*, and a detached `HEAD` answers both:
 `state.branch` is `string | null`, a new `state.detachedAt` carries the short sha, `isTrunk` is false
 there whatever `--base` says, every evidence line reads `on a detached HEAD at <sha>`, and the text
@@ -168,7 +168,7 @@ exclude="$(git -C <path> rev-parse --git-path info/exclude)"     # NOT "$(rev-pa
 
 A `--base` that does not resolve is **not** folded into a case: `nen wc classify` reports it on
 stderr and exits `1`, and breath stops there rather than warming something it could not read. **A
-detached `HEAD` is no longer one of those** — at the pinned `0.6.0` it exits `0` with a case, and the
+detached `HEAD` is no longer one of those** — at the pinned `0.7.0` it exits `0` with a case, and the
 only non-zero left on this verb besides an unresolvable `--base` is a repository holding no commit at
 all.
 
@@ -190,7 +190,7 @@ install; say which tool and which pin, and do not install it another way. A repo
 > § 5 fast-forwards the trunk, so every `shu` verb at this point reads the declaration as it stood at
 > the checkout's old tip. On a checkout whose `nen/contract.json` was added — or whose `project`
 > block was written — on the fetched tip, `nen shu tools` refuses at `2` with *"no such file:
-> `<repo>/nen/contract.json` … this repository declares nothing"* (verified live, unchanged at the pinned `0.6.0`), and the
+> `<repo>/nen/contract.json` … this repository declares nothing"* (verified live, unchanged at the pinned `0.7.0`), and the
 > table above is unreachable: none of `0`, `3`, `4`, `5` is what the host actually is. **Do not treat
 > that `2` as a verdict and do not run `nen shu detect --write` to make it go away** — the
 > declaration is very probably already sitting on `origin/<branch.base>`. Record the `2` as
@@ -229,7 +229,7 @@ locally → `fetch origin` → the divergence test → the fast-forward → the 
 > to force-move the trunk: *fatal: cannot force update the branch 'main' used by worktree at '…'*.
 > Through `v0.5.0` that landed mid-run, after the fetch.
 >
-> **At the pinned `0.6.0` warmup reads `git worktree list --porcelain` FIRST** — step 4a, among the
+> **At the pinned `0.7.0` warmup reads `git worktree list --porcelain` FIRST** — step 4a, among the
 > checks that need no mutation, so a list that cannot be read refuses at exit `2` *before* the fetch
 > rather than after it — matching the **full** ref, so a branch called `feat/main` is never mistaken
 > for the trunk. When another worktree holds it the local update is **skipped**, the report says
@@ -301,7 +301,7 @@ that file is the whole repository's, so an exclude nobody was told about is a ch
 stopped reporting a file), and — where it applies — the `no workflow.json` sentence from § 2. A warm-up
 that did not run is reported as **not run**, never rendered as clear.
 
-## 8. Residue — what has no verb at the pinned nen `0.6.0`
+## 8. Residue — what has no verb at the pinned nen `0.7.0`
 
 - **Rendering `branch.template`.** `nen shu warmup --branch` is required with no default; the
   substitution of `{model}`/`{persona}`/`{descriptor}` is this skill's, from `workflow.json`. No verb

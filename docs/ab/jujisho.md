@@ -274,3 +274,45 @@ ahead of the mutating call.
   copy read, per-branch staging triage, commit formatting, the changelog-fragment check, object
   notation, and repository-token resolution — has a `nen` verb, confirmed against the live binary
   (`nen <family> --help`) before being written into the SKILL.md.
+
+---
+
+## Retired at nen 0.7 — 2026-09-10
+
+Run against the released `zheref/nen` `v0.7.0` binary (`nen-darwin-arm64`, sha256
+`a0545d02…e7b6c323`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.7.0`, on `PATH` as
+`nen`; `nen --version` → `0.7.0`), against the same invocation run through `v0.6.0` first.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| an unreadable diff answering like a failed split | `nen split verify --original /nope/a.diff --branches /nope/b.diff` | **`2`** (was `1`) |
+| the by-eye local-config check | `nen stage triage` — see [`kokusen`](kokusen.md) § *Retired at nen 0.7* | `1`, `[local-config]` |
+
+### An unreadable `--original` is now a question that was never asked
+
+```text
+v0.6.0  $ nen split verify --original /nope/a.diff --branches /nope/b.diff                  # exit 1
+        nen: could not read --original '/nope/a.diff': Error: ENOENT: no such file or directory,
+        open '/nope/a.diff'
+
+0.7.0   $ nen split verify --original /nope/a.diff --branches /nope/b.diff                  # exit 2
+        nen split: could not read '/nope/a.diff' (ENOENT). --original names the diff every branch is
+        compared against, so an unreadable one is refused rather than compared against nothing.
+```
+
+**`split verify`'s move from `1` to `2` is the substantive one of the three `zheref/nen#101`
+touches**, and it matters here specifically: `1` is the code this skill treats as *the split is
+incomplete, open nothing*. Through `v0.6.0` a mistyped path was indistinguishable from a real
+`MISSING`/`ALTERED` finding by exit code alone, so the honest reading required parsing the stderr
+line. Now the two are different facts with different codes, and the refusal names the RESOLVED path,
+the errno, and what the file was for. A branch file that could not be read says WHICH one.
+
+**The operational rule this puts into SKILL.md § 2**: exit `1` is a finding about the split and stops
+everything; exit `2` is a mistyped path — fix the invocation and re-run — and it is never reported as
+an incomplete split.
+
+Alongside it, a relative `--original`/`--branches` resolves against `--repo`'s root from this pin
+rather than the process's own directory (`zheref/nen#100`; the decoy transcript is in
+[`senkei`](senkei.md) § *Retired at nen 0.7*). The block in SKILL.md § 2 writes the diffs into the
+working directory and names them relatively, so **pass `--repo`** — or absolute paths — when the run
+is not standing in the repository.

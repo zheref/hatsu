@@ -296,3 +296,55 @@ malformed `--target` exits `1` instead (§ 2.3), a separate, verb-specific asymm
    and '<value>' is not one`; `'<owner/name>' is not a consumer in <checkout>\schemas\repos.json`).
    The ported skill (§ 1) now encodes this explicitly rather than presenting exit `2` as covering any
    `--target` failure, which it does not for this verb.
+
+---
+
+## Retired at nen 0.7 — 2026-09-10
+
+Run against the released `zheref/nen` `v0.7.0` binary (`nen-darwin-arm64`, sha256
+`a0545d02…e7b6c323`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.7.0`, on `PATH` as
+`nen`; `nen --version` → `0.7.0`), against the same invocations run through `v0.6.0` first.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| a missing `--target` answering like a registry finding | `nen repo scenario --repo <nen checkout>` | **`2`** (was `1`) |
+| a malformed `--target` doing the same | `… --target not-a-slug` | **`2`** (was `1`) |
+
+### The family-wide inconsistency finding 5 recorded is closed
+
+```text
+v0.6.0  $ nen repo scenario --repo <nen>                                                    # exit 1
+        nen repo: --target owner/name is required.
+
+        $ nen repo scenario --repo <nen> --target not-a-slug                                # exit 1
+        nen repo: --target takes an owner/name repository slug and 'not-a-slug' is not one. It is the
+        GitHub side of the pair: --repo names a checkout on disk, --target names the repository on GitHub.
+
+0.7.0   $ nen repo scenario --repo <nen>                                                    # exit 2
+        nen repo: --target owner/name is required. It is the GitHub side of the pair; --repo names a
+        checkout on disk and is never used to address the API.
+        Run 'nen repo --help'.
+
+        $ nen repo scenario --repo <nen> --target not-a-slug                                # exit 2
+        nen repo: --target takes an owner/name repository slug and 'not-a-slug' is not one. It is the
+        GitHub side of the pair: --repo names a checkout on disk, --target names the repository on GitHub.
+        Run 'nen repo --help'.
+```
+
+**Sixteen verbs across four families move together** — `repo`, `labels`, `pr`, `issue` — each of
+which had kept a private `requireTarget` that threw a plain `Error`. A **malformed** value moves too,
+which it did not in the half-fix: `parseTarget`'s refusal is not a usage error by construction, so a
+bad slug used to come back as exit `1` even where a missing flag had already been corrected, and
+fixing only the absence would have replaced one inconsistency with a narrower one.
+
+**It is not cosmetic, and the reason is why this skill now branches on the code.** A retry wrapper
+honouring the distinction retries a `1` and gives up on a `2`, so the wrong code turned a forgotten
+flag into a loop. § 3's rule becomes: **exit `1` is a finding about the registry** — no registry, not
+recorded, recorded but not as a consumer, each with its own sentence — **and exit `2` is a finding
+about the command.** Relay the refusal text either way; it is still the diagnosis.
+
+**Not exercised here**: the other fifteen verbs. `nen`'s own `src/cli/target-flag.test.ts` drives
+fourteen of the sixteen through the real CLI for both a missing and a malformed value, and names the
+two it does not (`pr cascade-main`, which reaches the helper only after a `git fetch`, and
+`pr edit-body`, which reads `--body-file` first) with their reasons. This record verifies the one
+verb this skill actually calls.

@@ -317,3 +317,38 @@ $ nen schema check --repo <fx>
 **The loader has no filesystem.** Pointers are checked at load; paths at use. So a green
 `schema check` is never evidence that a declaration's paths are contained, and § 4a says so in the
 skill rather than leaving a reader to infer it from an `ok` row.
+
+---
+
+## Retired at nen 0.7 — 2026-09-10
+
+**Nothing in this skill's residue retires at this pin**, and that is recorded rather than left silent:
+the containment rule, the stall guard and the build proof all landed at `v0.6.0` and are unchanged at
+`v0.7.0`. One observation about the shared report is worth writing down, because § 9 reads it.
+
+### Finding against the binary: the shared run report carries `proof` on every executing verb
+
+`docs/USAGE.md`'s shared-report section says the key order is
+`{ contract, lane, stack, verb, target, steps, cwd, env, host, preconditions, exitCode, durationMs,
+artifacts, log }` and that **`build` adds one key after `log`: `proof`**. Run against the released
+`v0.7.0` binary, `lint` carries it too:
+
+```text
+$ nen shu lint --repo . --json | keys
+['contract', 'lane', 'stack', 'verb', 'target', 'steps', 'cwd', 'env', 'host',
+ 'preconditions', 'exitCode', 'durationMs', 'artifacts', 'log', 'proof']
+$ … .proof
+null
+```
+
+**It costs this skill nothing and it is not a defect to route around.** `proof` is `null` on every
+verb but a green `build`, which is exactly what § 9 already reads it as — the file
+`.nen/proof/<lane>.json` records, or nothing. What is inaccurate is only the *documentation's* claim
+that the key is `build`-only; the shape a consumer sees is one key wider on every executing verb, and
+a consumer that reads `proof` off a non-`build` report gets `null` rather than a missing key.
+
+Recorded here as a finding, filed nowhere: nen's own `docs/USAGE.md` is the authority on its shapes,
+and this is a sentence in it to correct rather than behaviour to change. Every other `--json`
+document Hatsu parses matched its golden at this pin — `nen.report.data/v0.1`, `nen.stop.mark/v0.1`,
+`nen.pr.ready/v0.1` (with the additive `conjuncts[].note` and `meta.generator.executable`), and the
+new `nen.loop.iterate/v0.1`.

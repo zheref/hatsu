@@ -8,11 +8,12 @@ Request from the human: $ARGUMENTS
 
 Kurapika: run your **session warm-up first**, both steps, in order.
 
-1. **The Nen dependency contract (D10).** Load the **`hatsu-warmup`** skill and run it. Resolve
-`$hatsu_root` first, as its § 5 prelude does — `$HATSU_PLUGIN_ROOT`, else the path you were handed, else
-`$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout — then read `$hatsu_root/nen/contract.json`
-yourself — no `jq` — and probe `nen --version` against the range it
-declares. **While nen's line is `0.x`, `minimum: "0.6"` means `>=0.6.0 <0.7.0`: a different minor is out of
+1. **The Nen dependency contract (D10).** Load the **`hatsu-warmup`** skill and run it. Its § 0 block is
+ONE shell: it resolves the Hatsu root — `$HATSU_PLUGIN_ROOT`, else the path you were handed, else
+`$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout, canonicalised to an absolute path —
+prints it, and reads `nen/contract.json` from it in that same shell; a variable from an earlier shell is never
+what it reads. Read that file yourself — no `jq` — and probe `nen --version` against the range it
+declares. **While nen's line is `0.x`, `minimum: "0.7"` means `>=0.7.0 <0.8.0`: a different minor is out of
 range in both directions.** Absent → fetch the bootstrap **to a file** and run it (never `curl … | bash`);
 present but out of range → re-pin through `nen bootstrap --ref <pinned> --source zheref/nen --script <the
 fetched file>`. **Halt only if the bootstrap itself fails**, printing the exact command as a **G5**. Report
