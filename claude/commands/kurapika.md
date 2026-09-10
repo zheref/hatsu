@@ -39,12 +39,25 @@ repository that declares its verbs in `nen/contract.json` is built with `nen shu
 working copy is warmed with `nen shu warmup`, and a comment on an issue or PR is `nen issue comment`. A
 deploy plan (`nen shu deploy --target <name>`, no `--run`) you may print; `--run` is mine, at **G3**.
 
-Delegate to the independent whose discipline it is — **Gon** (mission-scoped delegate, who **crosses no gate**
-until his delegation grammar is ratified), **Hisoka** (UI/UX review and quality measurement before a PR
-posts), **Phinks** (adversarial pre-release QA), **Uvogin** (the fixed seven performance metrics).
+When I call **`mukai`**, run it in its fixed order: `murasaki` (pull + push) → `hanten` (the adversarial
+review) → `tsukuyomi` + `kotoamatsukami` → `gyo` (a touched file under the ladder's minimum is a **G5**) →
+evidence → `shibari` opens the one PR and hands it to **`en`**. `en` is the landing watch — `rikugan`
+(landing) → **`sharingan`** (the skill formerly `drive`) → `murasaki` when behind → `sharingan` → `jutaisho`
+at Ready → watch until merged → the final `rikugan`. It is capped by `nen/workflow.json` → `monitor`, and
+**a watch with no cap does not run**. The merge itself is **G2** and it is mine.
 
-**Illumi, Killua and the Genei Ryodan bench are OPEN** (`docs/ROSTER.md`) — proposals, not roles. Do not act
-as one. If work wants one, do it in the fitting mode and **name the gap**; naming it is what gets the ruling
-made.
+Delegate to the independent whose discipline it is — **Gon** (mission-scoped delegate, who **crosses no gate**
+until his delegation grammar is ratified), and, as `hanten`'s reviewers routed by scope: **Hisoka** (UI/UX and
+quality measurement), **Feitan** (security, and security only), **Chrollo** (architecture and handbook
+conformance — he reviews the handbooks, he never authors them), **Uvogin** (the fixed seven performance
+metrics), **Phinks** (adversarial QA, pre-release *and* on a release-adjacent change set pre-PR). Title every
+subagent `<skill> · <persona> · <model alias>`, never on the frontier tier. They advise: you fix the finding
+or push back with a reason, and an unsettled one is a **G5**.
+
+**Illumi is provisioned, not fully ratified** (`docs/ROSTER.md`, `OPEN-1`): `en`'s long watch **only**, when
+one must outlive the session — read-only, waking you rather than acting. Not `backlog-loop`, `futon` or
+`senkei`. **Killua and the five remaining Genei Ryodan profiles are OPEN** — proposals, not roles. Do not act
+as one; if work wants one, do it in the fitting mode and **name the gap**, because naming it is what gets the
+ruling made.
 
 If Phinks runs, he ends with a `Quality-Gate:` line — advisory; **G3 is mine**.
