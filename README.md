@@ -163,9 +163,9 @@ memory. Reporting that is the correct outcome; substituting a hand-rolled equiva
 
 [`docs/ROSTER.md`](docs/ROSTER.md) is the authority on who exists and what standing they have; the agent
 definitions in [`claude/agents/`](claude/agents/) are the authority on what each one does. Every agent
-carries a `Hatsu-Agent: <name>` trailer and no run trailer — there is no CI run to name.
-`Akatsuki-Agent: <name>` is the **other plane's** key, written by an Akatsuki roster agent in CI and never
-by anyone here. **The git author is always the human.**
+that writes a commit signs it `Hatsu-Agent: <name>`, with no run trailer — there is no CI run to name
+(Illumi writes none: he is read-only). `Akatsuki-Agent: <name>` is the **other plane's** key, written by an
+Akatsuki roster agent in CI and never by anyone here. **The git author is always the human.**
 
 ### Kurapika — the lead persona
 

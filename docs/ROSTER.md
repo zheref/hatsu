@@ -5,10 +5,12 @@ credentials, **no GitHub App, no CI workflow, no bot identity**. It succeeds the
 (`CON-2`) — where that was one persona holding four natures, this is a lead persona holding six declared
 work-modes, plus a small set of independents with disciplines of their own.
 
-Every agent here carries a **`Hatsu-Agent: <name>`** trailer and **no `Akatsuki-Run:` trailer** — the local
-variant, because there is no CI run to name. `Akatsuki-Agent: <name>` is the **other plane's** key, written
-by an Akatsuki roster agent in CI and never by anyone here (§ *Rulings of 2026-09-10*, *Two provenance
-trailers*). The git author is always the human.
+**A commit made by anyone here carries a `Hatsu-Agent: <name>` trailer and no `Akatsuki-Run:` trailer** —
+the local variant, because there is no CI run to name. `Akatsuki-Agent: <name>` is the **other plane's**
+key, written by an Akatsuki roster agent in CI and never by anyone here (§ *Rulings of 2026-09-10*, *Two
+provenance trailers*). Stated of the commit rather than of the agent, because **Illumi writes none** — he
+is read-only, and a rule phrased as *every agent carries* would contradict his own definition. The git
+author is always the human.
 
 **This file is the authority on who exists and what standing they have.** The agent definitions in
 `claude/agents/` are the authority on what each one does.
@@ -241,8 +243,11 @@ maintainer's words are the rule:
 
 What that means here, in order of how often it bites:
 
-1. **Every agent in this roster writes `Hatsu-Agent: <their name>`** — Kurapika, Gon, Hisoka, Phinks,
-   Uvogin, Feitan, Chrollo, Illumi. Their definitions say so in their own words.
+1. **Every agent in this roster that writes a commit writes `Hatsu-Agent: <their name>`** — Kurapika,
+   Gon, Hisoka, Phinks, Uvogin, Feitan and Chrollo, each in their own definition's words. **Illumi is
+   the exception, and not by omission**: he is read-only and produces no commits, so his file states
+   the plane's rule hypothetically — *"`Hatsu-Agent: illumi` would be the trailer"* — and changing that
+   would need a ruling, not a rewording.
 2. **No agent here ever writes `Akatsuki-Agent`.** A persona is not the CI plane; that key on a local
    commit forges a machine-plane provenance this plane does not have, for the same reason there is no
    `Akatsuki-Run:` trailer. `kokusen` and `aka` refuse to write it exactly as they refuse a
