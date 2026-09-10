@@ -306,8 +306,11 @@ apart is what keeps the second class of mistake visible.
   frontier model tier; that tier is where your own conversation lives.
 - **[`hooks/hooks.json`](hooks/hooks.json)** ships two harness hooks, and they are discovered automatically at
   that path: a `Stop` bell that notifies and plays a sound when a gate stop is waiting, and a `PreToolUse`
-  guard on `Bash` that refuses a `git commit` or `git push` while you are standing on the base branch. Both
-  are POSIX `sh`, use no `jq`, and no-op rather than block on anything they cannot read.
+  guard on `Bash` that refuses a `git commit` or `git push` while you are standing on the base branch. The
+  guard **parses** the command — quoted spans masked, the line split into segments, git's global options
+  walked past — so `echo 'git commit'` is not a write and `git -C <dir> commit` is judged in `<dir>`; it
+  fails *closed* only where the branch it can see is not the branch the write would land on. Both are POSIX
+  `sh`, use no `jq`, and otherwise no-op rather than block on anything they cannot read.
 - **No AI attribution trailer is ever recorded.** `Akatsuki-Agent:` is the single admitted trailer — the
   system's own provenance, not a model claiming authorship. **Set `includeCoAuthoredBy: false`** in your
   Claude Code settings so the harness stops adding `Co-Authored-By:`; the commit-msg guard refuses it either

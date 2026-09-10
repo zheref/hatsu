@@ -320,6 +320,17 @@ model has stopped talking, or has already typed the push, it is too late.
 | [`stop-bell.sh`](../hooks/stop-bell.sh) | `Stop` | rings `notifications` rungs **2 and 3** off the marker at `.nen/last-stop.json`, then consumes it |
 | [`guard-base-branch.sh`](../hooks/guard-base-branch.sh) | `PreToolUse`, matcher `Bash` | exits `2` — blocking the tool call — on a `git commit` or `git push` while the branch equals `branch.base` |
 
+**The guard parses the command; it does not match a substring.** Quoted spans are masked to one token, the
+line is split into segments on `;` `|` `&` `(` `)` and the backtick, and a segment counts only when its
+**first** token is `git` and the token after git's own global options — `-C <dir>`, `-c <k=v>`, `--no-pager`,
+`--git-dir=…`, `--work-tree=…`, `--namespace` — is `commit` or `push`. So `echo 'git commit'` and
+`git commit-tree` are not writes, while `git --no-pager commit` is. The repository judged is the segment's own
+`-C <dir>` when it has one and the working directory otherwise, and a `cd` earlier in the same line moves that
+working directory — judging `cwd` after a `cd` is judging the wrong repository. It **fails closed** on the two
+forms where the branch it can see is not the branch the write would land on: a line that both changes branch
+(`switch`, `checkout`, `branch -f|-m|-M`) and writes, and a `-C` path quoted in a form it cannot recover. The
+script's own header carries the twenty-four cases this was verified against.
+
 **The stop marker** is `hatsu.stop-marker/v0.1`, written by `jutaisho` and read by the hook:
 
 ```json
@@ -334,14 +345,20 @@ SKILL.md § 3 states) and a future `nen stop --mark` may write a subset — `who
 
 Freshness is taken from the **file's mtime**, not from `at`: comparing a timestamp inside a string needs a
 date parser, and the mtime is the same fact without one. A marker older than ten minutes belongs to a stop
-already seen, and is removed without ringing. Absence of the marker, a stale marker, a non-macOS host and a
-missing `osascript` are each a silent exit `0` — a `Stop` hook runs after **every** turn, and a bell that
-rings on a turn that was not a gate stop is a bell nobody hears any more. **Where no hook is installed,
-`jutaisho` rings the bell itself and says that it did.**
+already seen, and is removed without ringing. Absence of the marker and a stale marker are each a silent exit
+`0` — a `Stop` hook runs after **every** turn, and a bell that rings on a turn that was not a gate stop is a
+bell nobody hears any more. **Where no hook is installed, `jutaisho` rings the bell itself and says that it
+did.**
+
+**Each rung fails open on its own, and the marker is always consumed.** A missing tool disables one rung, not
+the hook: a host that is not macOS, or a macOS host without `osascript`, skips rung 2 and still plays rung 3
+if `afplay` is there; a host with neither rings nothing and **still removes the marker**, because a marker
+left behind would ring that same stop on a later turn, on a machine that by then can. Nothing in the hook
+exits before marker cleanup.
 
 Both scripts are POSIX `sh` and use **no `jq`, `yq` or Python** — Hatsu's installed path is one binary plus
-`git` and `gh` — so they read their JSON with `sed`. Both **fail open** on anything they cannot read; the one
-deliberate exception is the guard, which fails *closed* on the single comparison it can actually make.
+`git` and `gh` — so they read their JSON with `sed`. Both **fail open** on anything they cannot read; the
+deliberate exception is the guard's two closed forms above.
 
 `--no-verify` does not reach either of them: a harness hook is not a git hook.
 
