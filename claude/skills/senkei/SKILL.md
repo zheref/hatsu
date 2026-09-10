@@ -31,6 +31,17 @@ against two real consumer repos, and every finding filed against the binary alon
 > [`backlog-loop`](../backlog-loop/SKILL.md)'s job, and this skill carries no delegation to touch
 > it, read or write.
 
+**In phase-lattice terms, and changing no mechanics below: `senkei` is an inventory phase, not a
+delivery one.** It enumerates (§ 2), classifies (§ 3), and drives each open PR to a `CON-32`
+determination through [`sharingan`](../sharingan/SKILL.md)'s own engine — **invoked once per open
+PR**, its first-blocking-condition ordering, its unblock channel and its escalation ladder, exactly
+as § 4 already describes them rather than a second implementation of them. It **calls none of the
+five human-called phases** — `aka`, `mukai`, the **merge**, `kagutsuchi` and `mugetsu` are the
+maintainer's ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4) — and it never prompts for one:
+it opens no PR, pushes nothing, merges nothing, uploads nothing and publishes nothing. What it
+produces is a table and a Ready/not-Ready call per PR; every gate in that table stays exactly where
+it was.
+
 ---
 
 ## 1. Invocation
