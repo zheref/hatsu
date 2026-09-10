@@ -4,11 +4,12 @@ This directory is the plugin's skill surface (`plugin.json` → `"skills": "./cl
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together
 under *Skills* by `claude plugin details`, which is why they are described together here.
 
-**Thirty-five skills at `v0.5.0`**: the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
+**Thirty-eight skills at `v0.6.0`**: the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
 surface complete at `v0.1.0` — one of them, `drive`, **renamed to [`sharingan`](sharingan/) at `v0.5.0`** —
-the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side, and
-the **two roster-machinery residents** that arrived with the skeleton ([zheref/hatsu#1][1]) and are counted
-separately. Nothing here is reserved, and nothing here is a placeholder.
+the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side, the
+**three added at `v0.6.0`** that close the release side, and the **two roster-machinery residents** that
+arrived with the skeleton ([zheref/hatsu#1][1]) and are counted separately. Nothing here is reserved, and
+nothing here is a placeholder.
 
 Each skill is a directory holding a `SKILL.md` with `name` and `description` frontmatter. Invoke one as
 `hatsu:<name>`.
@@ -51,7 +52,7 @@ mechanics, and a live transcript showing the same verdict from fewer improvised 
 | [`build`](build/) | Takes one issue from wherever it sits to a delivery PR standing ready at its human gate. Never applies a mode label. |
 | [`file`](file/) | Files one well-formed, correctly-labelled, non-duplicate issue — reconciled against the open backlog first, on one explicit confirmation. |
 | [`futon`](futon/) | Takes one whole severity band from open issues to PRs with an actor behind them, then **gates** the terminal step you typed (`then tag`, `then tag+fanout`): it holds the cut until no PR this run authored is short of Ready, and hands the cut itself to [`getsuga`](getsuga/). It cuts no tag and runs no fan-out of its own. |
-| [`getsuga`](getsuga/) | **Cuts** a release tag locally, end to end — preconditions, one folded release PR the maintainer merges, the tag, the `CON-22` fan-out and the consumers' repin PRs. Prepares a release; never publishes one. |
+| [`getsuga`](getsuga/) | **Cuts** a release tag locally, end to end — preconditions, one folded **release-proposal** PR the maintainer merges at **G4**, the **post-merge** tag, the `CON-22` fan-out and the consumers' repin PRs. The release unit it folds in is [`susanoo`](susanoo/)'s; publication is [`mugetsu`](mugetsu/)'s, at **G3**. Prepares a release; never publishes one. |
 | [`izanagi`](izanagi/) | Repeats a task that **acts** until a condition holds, under a **mandatory** iteration cap — an invocation without `up to <N>` is refused. |
 | [`izanami`](izanami/) | Repeats a **read-only** task until a condition holds. It looks, reports and stops; it never writes. |
 | [`jujisho`](jujisho/) | Splits a mixed working copy into up to two stacked branches and PRs, by axis, proving the union of the splits equals the original diff. |
@@ -64,7 +65,7 @@ mechanics, and a live transcript showing the same verdict from fewer improvised 
 
 ## The way of working
 
-The seventeen above each answer a request. The eighteen below are the **loop that carries every request** —
+The seventeen above each answer a request. The twenty-one below are the **loop that carries every request** —
 warm up, build, commit, launch, report, ring; pull, test, push — and the phases the maintainer calls by
 hand. [`../../docs/WORKFLOW.md`](../../docs/WORKFLOW.md) is the authority on all of it: the two configuration
 files ([`nen/contract.json`](../../nen/contract.json) → `project`, what nen **executes**;
@@ -78,9 +79,10 @@ required tests, coverage under the ladder's minimum, a semantic conflict, an uns
 `sharingan` escalation. A stop is `nen stop`'s banner plus the question asked through the surface's own
 native option picker.
 
-### The eighteen workflow skills — fourteen atomic, four composite
+### The twenty-one workflow skills — seventeen atomic, four composite
 
-**Atomic** — one phase each. The first nine shipped at `v0.4.0`; the five after them at `v0.5.0`:
+**Atomic** — one phase each. The first nine shipped at `v0.4.0`; the five after them at `v0.5.0`; the last
+three at `v0.6.0`:
 
 | Skill | What it does |
 |---|---|
@@ -98,6 +100,9 @@ native option picker.
 | [`kotoamatsukami`](kotoamatsukami/) | **End-to-end / UI tests.** Runs the declared `ui-test` where a repository declares one; the re-recorded snapshots are what feeds the evidence table. An unsupported seat (exit `4`) is a fact, quoted — never routed around. |
 | [`shibari`](shibari/) | **Composes and opens the PR** — why, how, what changes for the consumer, how to verify, a mermaid diagram where a flow changed, the evidence table, the checklist, `Closes #N`. **One** PR, opened from the last pushed commit; it writes the body back, requests the reviewers and hands the PR to [`en`](en/). It never labels a gate and never merges. |
 | [`jujutsu`](jujutsu/) | **Device pairing.** Walks the maintainer through pairing a physical device — iOS: trust, Developer Mode, `devicectl list devices`; Android: USB debugging, the RSA prompt, `adb devices` — and registers it as a launch target **through a repository PR**. It writes the declaration and nothing else. |
+| [`susanoo`](susanoo/) | **Archive and packaging.** Runs the lane's declared `archive` through `nen shu archive` and produces the distributable **locally**: it uploads nothing, and nen never synthesises signing material. A seat (exit `4`) is quoted with the declaration's own reason, never routed around. This is the release unit [`getsuga`](getsuga/) folds into the release PR and the two phases below send. |
+| [`kagutsuchi`](kagutsuchi/) | **Non-production deploy or upload — human-called, per target.** The plan is printed always (`nen shu deploy --target <name>`, no `--run`), every precondition and `requiresEnv` variable asserted rather than read; `--run` acts **only** on the maintainer's own call naming the target, and **never from a composite**. `--target` is required with no default, even where exactly one destination is declared. The call is the stop. |
+| [`mugetsu`](mugetsu/) | **Publication — human-called, per target, G3.** Only on the maintainer's recorded per-target go, with `nen release preflight` green and the tag already cut: `nen shu release`, or `nen shu deploy --target production --run`. **One target per call**, and never reached from [`getsuga`](getsuga/), [`futon`](futon/) or [`en`](en/). It is the one phase that reaches other people's users. |
 
 **Composite** — an order, not a new capability. `ren` shipped at `v0.4.0`; the three after it at `v0.5.0`:
 
@@ -108,16 +113,19 @@ native option picker.
 | [`mukai`](mukai/) | **The review-and-PR phase — human-called.** `murasaki`¹ → [`hanten`](hanten/)² → `tsukuyomi`³ + [`kotoamatsukami`](kotoamatsukami/)³ → [`gyo`](gyo/)⁴ → evidence⁵ → [`shibari`](shibari/)⁶, which opens the PR and **starts [`en`](en/)**. Four of the five G5 stops live inside it. |
 | [`en`](en/) | **The landing watch, `izanagi`-capped** by `nen/workflow.json` → `monitor`. [`rikugan`](rikugan/)¹ (landing) → [`sharingan`](sharingan/)² → `murasaki`³ when the branch is behind → `sharingan`⁴ → [`jutaisho`](jutaisho/)⁵ at Ready → watch⁶ until merged → `rikugan`⁷ final. **A watch with no cap does not run**; where one must outlive the session, step 6 is handed to **Illumi**, read-only, who wakes Kurapika and acts on nothing. |
 
-> **Arriving at `v0.6.0`, and deliberately not here yet:** `susanoo` (archive and packaging), `kagutsuchi`
-> (non-production upload, per target) and `mugetsu` (publication, per target, **G3**). Until a phase has a
-> skill, **name the phase and stop there anyway**: the boundary is the governance, and it holds whether or
-> not a file has been written for it.
+> **The release side closed at `v0.6.0`.** [`susanoo`](susanoo/), [`kagutsuchi`](kagutsuchi/) and
+> [`mugetsu`](mugetsu/) are the last three rows of the atomic table above, so **every phase a skill can
+> carry now has one** — and of the five the maintainer calls (`aka`, `mukai`, **the merge**,
+> `kagutsuchi`, `mugetsu`), **four are skill-backed**. The fifth is the merge, and it has no file because
+> there is nothing for one to describe: **G2** (`CON-5`) is an action no agent in this plane performs.
+> The rule that carried the other four while they were only names is unchanged and was never contingent
+> on the file: **name the phase and stop there anyway** — the boundary is the governance.
 
 ---
 
 ## The two roster-machinery residents
 
-Neither is one of the thirty-five. They landed with the skeleton because the plugin does not function
+Neither is one of the thirty-eight. They landed with the skeleton because the plugin does not function
 without them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |

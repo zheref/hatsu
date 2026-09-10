@@ -339,11 +339,18 @@ It loops. **It never pushes and never opens a pull request.**
 
 | Phase | What it does | Why it is the human's |
 |---|---|---|
-| `aka` | tests → squash the unpushed commits → `ao` → push | publishing work is a decision, and a squash is destructive |
-| `mukai` | `murasaki` → `hanten` review → tests + UI tests → `gyo` → evidence → `shibari` opens the PR → starts `en`. **§ 5 is the full shape** | a PR is a request for other people's attention |
+| [`aka`](../claude/skills/aka/) | tests → squash the unpushed commits → `ao` → push | publishing work is a decision, and a squash is destructive |
+| [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → tests + UI tests → `gyo` → evidence → `shibari` opens the PR → starts `en`. **§ 5 is the full shape** | a PR is a request for other people's attention |
 | **merge** | **G2** (`CON-5`) | never delegated, by any agent, anywhere |
-| `kagutsuchi` | a non-production upload, **per target** | the blast radius leaves this machine |
-| `mugetsu` | publication, **per target**, **G3** (`CON-6`) | the blast radius is other people's users |
+| [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always, and `--run` acts only on a call that **names the target** | the blast radius leaves this machine |
+| [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3** (`CON-6`): only on a recorded per-target go, with the preflight green and the tag already cut — one target per call | the blast radius is other people's users |
+
+**The per-target rule is the whole of the last two rows, and it is not a formality.** A go for one
+destination is a go for *that* destination: `--target` is required with no default even where exactly one
+is declared, and a second destination is a second call the maintainer makes. Neither phase is ever reached
+from a composite — not from [`futon`](../claude/skills/futon/)'s `then` clause, not from
+[`getsuga`](../claude/skills/getsuga/), not from [`en`](../claude/skills/en/) — and the release unit both
+of them send is built by [`susanoo`](../claude/skills/susanoo/), which uploads nothing itself.
 
 Asking *"shall I push now?"* at the end of a turn is how a human-called phase becomes an agent-called one by
 attrition. The loop simply stops and waits.
@@ -538,16 +545,27 @@ counts only when its **first** token is `git` and the token after git's own glob
 and the `--key=value` form — is `commit` or `push`. So `echo 'git commit'` and `git commit-tree` are not
 writes, while `git --no-pager commit` is.
 
-The repository judged is whichever repository-selecting option the segment carries — `--work-tree`, then `-C`,
-then `--git-dir` — and the working directory when it carries none; a `cd` earlier in the same line moves that
-working directory, because judging `cwd` after a `cd` is judging the wrong repository.
+**The directory git targets is the directory judged — never the session's own.** Every `-C` the segment
+carries is applied *cumulatively*, in argv order, exactly as git applies it (`git -C a -C b` runs in `a/b`);
+`--git-dir` and `--work-tree` are then resolved against the directory that chain arrived at. Only a segment
+carrying none of them is judged in the working directory, and a `cd` earlier in the same line moves *that*,
+because judging `cwd` after a `cd` is judging the wrong repository. So a session standing on `main` may drive
+a worktree that stands on a feature branch — `git -C <worktree> push` is **allowed** — and a session standing
+on a feature branch may not drive a checkout that stands on `main`, which is **refused**. Reading the session's
+own branch answers both of those wrongly, and a worktree effort types the first shape all day.
 
-It **fails closed** on the four forms where the branch it can see is not the branch the write would land on: a
+It **fails closed** on the five forms where the branch it can see is not the branch the write would land on: a
 line that both changes branch (`switch`, `checkout`, `branch -f|-m|-M`) and writes; a repository-selecting path
-quoted in a form it cannot recover; a `git` segment carrying a `commit`/`push` token whose **subcommand the
-option walk could not establish** — an unrecognised global option must not hide the write behind it; and a
-shell wrapper whose payload cannot be read on a line that carries a write token. The script's own header
-carries the thirty-seven cases this was verified against.
+quoted in a form it cannot recover, *including two DIFFERENT quoted paths for one flag anywhere on the line*,
+whether both on one segment or one on each of two, because recovery is line-global and cannot tell whose span is
+whose; a `git` segment carrying a
+`commit`/`push` token alongside a **global option the guard does not know** — an unknown `-…` may or may not
+swallow the token after it, so it is named in the refusal rather than walked past; a `git` segment whose
+subcommand the option walk could not establish for any other reason; and a shell wrapper whose payload cannot
+be read on a line that carries a write token. The policy it compares against comes from the checkout the branch
+came from — for a bare `--git-dir` aimed at a linked worktree, that worktree's own `nen/workflow.json`, not the
+primary checkout's. The script's own header carries the fifty-seven cases this was
+verified against, and [`ab/guard-base-branch.md`](ab/guard-base-branch.md) carries the transcripts.
 
 **The stop marker** is `hatsu.stop-marker/v0.1`, written by `jutaisho` and read by the hook:
 
@@ -610,6 +628,10 @@ Skill availability follows the same honesty: `breath`, `rasengan`, `kokusen`, `a
 `rikugan`, `jutaisho`, `ao`, `aka` and `ren` shipped at Hatsu **`v0.4.0`**. **`v0.5.0` adds the PR side of
 § 5** — `mukai`, `murasaki`, `hanten`, `gyo`, `kotoamatsukami`, `shibari`, `en` and `jujutsu`, plus the
 `drive` → `sharingan` rename — and the three agent definitions it needs: Feitan, Chrollo and Illumi.
-**`susanoo` (archive and packaging), `kagutsuchi` (non-production upload) and `mugetsu` (publication, G3)
-arrive at `v0.6.0`.** Until a phase exists, **name it and stop there anyway** — the phase boundary is the
-governance, and it holds whether or not a skill file has been written for it.
+**`v0.6.0` closes the release side**: `susanoo` (archive and packaging), `kagutsuchi` (non-production
+upload, per target) and `mugetsu` (publication, per target, **G3**) are skills now, so **four of § 4's
+five human-called phases have files** — `aka`, `mukai`, `kagutsuchi`, `mugetsu`. The fifth is **the
+merge**, and it stays a rule with no file: **G2** is an action no agent performs, so there is no
+procedure to write down. The rule that held while the other four had no file still holds and always did:
+**a phase boundary is the governance, not the file** — name the phase and stop there whether or not
+something has been written for it.

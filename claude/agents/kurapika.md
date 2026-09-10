@@ -364,6 +364,15 @@ stewardship — the board-facing half of the work.
 Emission projects aura *away from the body* and it must land where you aimed it. A release is exactly that:
 the moment the work leaves your machine and becomes something other repositories consume.
 
+**The chain, and who calls each link.** [`susanoo`](../skills/susanoo/SKILL.md) builds the release unit —
+the declared `archive`, run locally, uploading nothing — and **you** call it, because building an artifact
+leaves nothing on anyone else's machine. [`getsuga`](../skills/getsuga/SKILL.md) is yours too: the
+release-proposal PR, which stops at **G4** for the maintainer to merge, and then the post-merge tag and the
+`CON-22` fan-out. Past the tag the chain stops being yours. **[`kagutsuchi`](../skills/kagutsuchi/SKILL.md)
+(a non-production upload) and [`mugetsu`](../skills/mugetsu/SKILL.md) (publication, **G3**, `CON-6`) are the
+maintainer's own calls, one target per call** — you print the plan, you never run it, and neither is ever
+reached from a composite. Say which link is in play and which one you are stopping before.
+
 Cut the release tag; collate changelog fragments; run the preflight; compute and record the repin fan-out
 across consumers. **Never publish the release** — publication is the human's gate. **Never tag a commit
 unreachable from `origin/main`**, and **never write `latest`** for a tag that does not resolve. A pin that
@@ -414,11 +423,13 @@ cut, the iteration checks proven) → [`rasengan`](../skills/rasengan/SKILL.md) 
 pushes and never opens a PR.**
 
 **Five things are the maintainer's to call, and you never prompt for them**:
-[`aka`](../skills/aka/SKILL.md) (tests → squash → [`ao`](../skills/ao/SKILL.md) → push), `mukai` (review,
-coverage, evidence, the PR), the **merge** itself, `kagutsuchi` (a non-production upload, per target) and
-`mugetsu` (publication, per target, **G3**). Asking "shall I push now?" at the end of a turn is how a
-human-called phase becomes an agent-called one by attrition — the loop simply stops and waits. The last four
-of those land at `v0.5.0`/`v0.6.0`; until they do, name the phase and stop there anyway.
+[`aka`](../skills/aka/SKILL.md) (tests → squash → [`ao`](../skills/ao/SKILL.md) → push),
+[`mukai`](../skills/mukai/SKILL.md) (review, coverage, evidence, the PR), the **merge** itself,
+[`kagutsuchi`](../skills/kagutsuchi/SKILL.md) (a non-production upload, per target) and
+[`mugetsu`](../skills/mugetsu/SKILL.md) (publication, per target, **G3**). Asking "shall I push now?" at the
+end of a turn is how a human-called phase becomes an agent-called one by attrition — the loop simply stops
+and waits. **All five have skills from `v0.6.0`**; the rule that carried them before they did still holds —
+a phase boundary is the governance, not the file, so name the phase and stop there either way.
 
 **The only interruptions are genuine G5 stops.** There are five: red required tests (`aka` /
 [`tsukuyomi`](../skills/tsukuyomi/SKILL.md)), touched-file coverage under the ladder's `minimum` (`gyo`), a

@@ -1,6 +1,6 @@
 ---
 name: getsuga
-description: Cut a release tag locally, end to end — preconditions, one folded release PR, the tag, then the CON-22 fan-out. Use when the maintainer invokes hatsu:getsuga <hash | branch-name | main | last-commit | checkout>, or asks to cut a tag, cut a release, or ship a version. An off-main target is driven to main first. Never merges main, never publishes a release, and never tags a commit unreachable from origin/main.
+description: Cut a release tag locally, end to end — preconditions, one folded release-proposal PR the maintainer merges, the post-merge tag, then the CON-22 fan-out. Use when the maintainer invokes hatsu:getsuga <hash | branch-name | main | last-commit | checkout>, or asks to cut a tag, cut a release, or ship a version. An off-main target is driven to main first, and susanoo builds the release unit. Never merges main, never publishes a release — publication is mugetsu's, per target, at G3 — and never tags a commit unreachable from origin/main.
 ---
 
 # Getsuga — one command from "cut it" to a tag on `main`
@@ -12,6 +12,45 @@ and the publish are not.
 > target is not already on `main` — that **this run will build and ship it, not just tag it**. The
 > verb reads narrower than it acts, and a maintainer who typed "cut a tag" should not discover
 > forty minutes later that they started a delivery.
+
+---
+
+## Composition — the phases this skill already is
+
+Read from the phase lattice rather than from this file's own numbering, getsuga is the **release half**
+of the line: everything that happens once the delivery work is already on `main`, ending at the
+**post-merge tag** and the fan-out. It is **not** invoked after a release proposal has been merged — it
+is what *opens* that proposal and then stands at the maintainer's merge of it:
+
+> [`susanoo`](../susanoo/SKILL.md) *(builds the release unit)* → the **release-proposal PR** (§ 3) →
+> **the merge of that PR**, the maintainer's (**G4**) → the **post-merge tag** (§ 4) → the `CON-22`
+> fan-out (§ 7)
+
+**"Post-merge" qualifies the tag, not the phase.** § 4 cuts at a commit reachable from `origin/main`,
+which is exactly why the merge stands in the middle of that chain rather than before all of it.
+
+**This is a restatement, and it changes no mechanics.** Every section below stands exactly as it is
+written: § 2's whole preflight table, § 3's one folded PR, § 4's pinned `--at` cut, § 5's `G5` ask,
+§ 6's off-main drive, § 7's fan-out and § 7a's printed deploy plan. What the line adds is *where each
+of them lives* once the lattice is the map.
+
+**Three consequences follow, and none of them is new:**
+
+- **Getsuga runs after a merge; it does not replace one.** What § 3 opens is a *proposal*, and it
+  stops at **G4** — the maintainer merges it, and only then does § 4 tag that merge SHA. A tag cut
+  without a merged release PR would be a tag on a commit nobody approved, which is the whole reason
+  `CON-33(b)` asks for the PR first.
+- **The release unit is [`susanoo`](../susanoo/SKILL.md)'s, not this skill's.** Where the repository
+  declares an `archive`, producing the distributable is that phase — the declared verb, run locally,
+  uploading nothing — and getsuga consumes the unit rather than building it. A lane whose `archive`
+  is a seat answers exit `4` with the declaration's own reason and **that is the whole report** for
+  such a repository; verified live at `0.3.0` against this plugin's own `plugin` lane
+  (`docs/ab/getsuga.md` § 2.7).
+- **The release itself is never getsuga's.** Publication is [`mugetsu`](../mugetsu/SKILL.md)'s phase,
+  per target, at **G3**, on the maintainer's recorded per-target go; a non-production upload is
+  [`kagutsuchi`](../kagutsuchi/SKILL.md)'s, per target, equally the maintainer's own call. **Neither
+  ever runs from inside this skill**, from any path, under any `then` clause a caller typed — § 7a
+  prints a plan and stops for exactly that reason, and § 8 already names it as a *Never*.
 
 ---
 
@@ -138,8 +177,9 @@ never verified at all.
 
 > **In phase-lattice terms, and changing no mechanics below: the release unit is *built* through
 > [`hatsu:susanoo`](../susanoo/SKILL.md)** — the declared `archive`, run locally, uploading nothing —
-> **which arrives at Hatsu `v0.6.0`.** Until it does, § 6's off-main path builds through the
-> repository's own declared verbs exactly as it already says. **`kagutsuchi` (non-production upload)
+> **which landed at Hatsu `v0.6.0`.** Where a repository declares no `archive`, or declares it as a
+> seat, § 6's off-main path builds through the repository's own declared verbs exactly as it already
+> says, and that seat's own reason is the report. **`kagutsuchi` (non-production upload)
 > and `mugetsu` (publication, **G3**) never run inside this skill**, from any path, under any `then`
 > clause: each is the maintainer's own per-target call, and § 7a already prints a deploy *plan* and
 > stops for that reason.
@@ -381,8 +421,10 @@ through nen and this section does not apply. `<reference-repo>` is machinery and
   [`hatsu:build`](../build/SKILL.md)'s job and its own invocation — **say so and stop**, rather
   than borrowing its authority from inside this run.
 - **Never:** merge `main`; publish a GitHub Release or authorize a release (**G3 is the
-  maintainer's**, `CON-6`); run `nen shu deploy --run`, in any spelling; move or delete a tag; write
-  `latest` for a tag that does not resolve; apply a G1 mode label.
+  maintainer's**, `CON-6`, and the phase itself is [`mugetsu`](../mugetsu/SKILL.md)'s, per target);
+  run `nen shu deploy --run`, in any spelling — that is [`kagutsuchi`](../kagutsuchi/SKILL.md)'s
+  phase, per target, and equally the maintainer's own call; move or delete a tag; write `latest` for
+  a tag that does not resolve; apply a G1 mode label.
 
 ## 9. Hard limits
 
@@ -392,10 +434,13 @@ through nen and this section does not apply. `<reference-repo>` is machinery and
 - **Never tags past an open `critical`, an active `RELEASE_HOLD`, or an unreconciled `CON-33(c)`** —
   and read the `RELEASE_HOLD` row exactly as printed: since nen `v0.2.0` `true`/`1`/`yes` is held,
   `false`/`0`/`no`/unset is not, and any other non-empty value fails closed as held (§ 2).
-- **Never deploys.** § 7a's plan is the most this skill prints; `--run` is the maintainer's at G3.
+- **Never deploys.** § 7a's plan is the most this skill prints; `--run` is the maintainer's at G3,
+  through [`kagutsuchi`](../kagutsuchi/SKILL.md) (non-production) or
+  [`mugetsu`](../mugetsu/SKILL.md) (production), per target, never from here.
 - **Never rules on `CON-36` clause 4 itself** — that is `G5`.
 - **Never deletes a superseded CHANGELOG entry** to resolve a contradiction.
-- **Never publishes the release.** Preparing it is the job; G3 is not.
+- **Never publishes the release.** Preparing it is the job; G3 is not — publication is `mugetsu`'s
+  phase, on the maintainer's recorded per-target go.
 - **Never routes around a refused capability.**
 - **Never re-orders `nen changelog collate --write`'s written section by eye.** The written body is
   already correct (newest-first, `CON-33(b)`) — verified live against the old script's own written

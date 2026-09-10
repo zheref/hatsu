@@ -21,7 +21,16 @@ The contract:
 **In phase-lattice terms, and changing no mechanics below:** per issue, `futon` is
 [`hatsu:build`](../build/SKILL.md) → [`hatsu:tensho`](../tensho/SKILL.md) →
 [`hatsu:en`](../en/SKILL.md), and the terminal a `then` clause typed is handed to
-[`hatsu:getsuga`](../getsuga/SKILL.md) rather than performed here.
+[`hatsu:getsuga`](../getsuga/SKILL.md) rather than performed here — the tag and the
+release-proposal PR, whose own release unit is [`hatsu:susanoo`](../susanoo/SKILL.md)'s.
+
+**Neither phase past the tag is reachable from here, and each is unreachable for its own reason.**
+[`hatsu:kagutsuchi`](../kagutsuchi/SKILL.md) — a non-production upload, per target — **never runs
+from a composite at all**: it is the maintainer's own per-target call, and no `then` clause this
+grammar accepts can name it (§ 1's refusal table; the only two terminals are `tag` and
+`tag+fanout`). [`hatsu:mugetsu`](../mugetsu/SKILL.md) — publication, per target, **G3** — runs only
+on the maintainer's recorded per-target go **after** a tag is cut, so `futon` reaches it neither
+directly nor through `getsuga`, which never publishes either (§ 8, *G3 is never crossed*).
 
 `futon` is a **scoped, terminated [`hatsu:backlog-loop`](../backlog-loop/SKILL.md)** — not a second
 implementation of it. The engine — fetching the backlog, ordering it, advancing an issue, the
@@ -452,4 +461,7 @@ where the objects actually are.
   `getsuga`'s own verbs (§ 8).
 - **Never runs `nen shu deploy --run`** — a deploy is past the tag and behind **G3**, which no `then`
   clause this grammar accepts can name.
+- **Never reaches `kagutsuchi` or `mugetsu`**, directly or through the terminal it hands to
+  `getsuga`. Both are the maintainer's own per-target calls, and a composite is not where either
+  begins (the phase-lattice callout above).
 - **Never leaves the delegation open** — the run says when it ends.
