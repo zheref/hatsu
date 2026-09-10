@@ -16,6 +16,12 @@ harness that *builds* the payloads, standing in for the harness that normally do
 Copilot opened against this script on PR #32. Same host, same git, a sixth checkout added to the
 fixture; the whole header sweep was re-run against the amended script, not just the new rows.
 
+**§ 3.5 was added on 2026-09-10 on `opus/kurapika/run-findings`**, from two live runs the guard
+refused wrongly — the Galaxy launch validation's **F6** and the headless Cursor run's **F8**. Same
+host (`/bin/sh` = bash `3.2.57`, git `2.50.1`, macOS 26.4.1, `arm64`), the fixture rebuilt from the
+same six checkouts, and again the **whole** sweep re-run: **63 cases, 0 failures**, and the six new
+ones re-run against `origin/main`'s copy of the script to show which of them the fix moved.
+
 *The fixture root — a throwaway directory under the session scratchpad, deleted after this run — appears
 below as `$FIX`. Nothing else is altered; both repositories are public and nothing here is redacted.*
 
@@ -144,10 +150,10 @@ Run against `fable/kurapika/wave-3`'s copy, unchanged, to show which of these th
 
 ### 3.2 The full sweep
 
-All fifty-seven cases in the script's header were run against the fixed script in one pass and every one
-matched the exit code the header records: fourteen standing on the base branch, twenty-one standing on a
-feature branch, two in the `develop`-declaring checkout, fourteen in the directory-git-targets group, and
-the six added by the two Copilot threads below. Nothing that
+All **sixty-three** cases in the script's header were run against the fixed script in one pass and every
+one matched the exit code the header records: fourteen standing on the base branch, twenty-one standing on
+a feature branch, two in the `develop`-declaring checkout, fourteen in the directory-git-targets group, the
+six added by the two Copilot threads below, and the **six added by § 3.5**. Nothing that
 passed before this change regresses — the compound-command refusal (`git switch main && git commit`,
 `git checkout main; git push`, `git branch -f main HEAD && git push`), the shell-wrapper unwrapping
 (`bash -c "cd <main> && git push"` → `2`, `sh -c 'git status'` → `0`), the quoted-span masking
@@ -217,6 +223,84 @@ in that directory holds `$FIX/wt2/.git` — the worktree's own `.git` file, whos
 checkout the branch came from. Only when the resolved git dir carries no `/worktrees/` segment (a
 primary checkout, or a bare repository) does the common dir's parent still answer, exactly as before, so
 `--git-dir=<primary>/.git` and `--git-dir=<worktree on feat/x>/.git` are unchanged.
+
+### 3.5 A multi-line payload, and a heredoc body (the Galaxy run's F6, the Cursor run's F8)
+
+**Added on 2026-09-10 on `opus/kurapika/run-findings`**, from two real runs that the guard refused
+and should not have. Same host, same fixture, rebuilt; the whole sweep was re-run against the
+amended script, and it is **sixty-three cases now, not fifty-seven**.
+
+**Both defects have one cause: the payload writes a newline as the two-character escape `\n`**, so a
+multi-line command arrived at the guard as **one line**. `json_str` never translated it, and step 2
+splits on shell operators only — so the whole script was a single segment whose first token was
+whatever the first line assigned, and everything after it was judged against a directory no `cd`
+had ever moved.
+
+**F6 — a `cd` on its own line did not move the directory.** The Galaxy run typed the ordinary shape
+of a worktree effort and was refused for standing on `main`, which it was not:
+
+```
+$ printf '{"cwd":"$FIX/trunk","tool_input":{"command":"SP=/tmp/s\\ncd $FIX/feature\\ngit add -A && git commit -F $SP/m 2>&1 | tail -5"}}' \
+    | hooks/guard-base-branch.sh; echo "exit $?"
+exit 0                                  # before: exit 2, "refusing git commit on main"
+```
+
+and the mirror, which the same defect let through — a `cd` onto the trunk, then a commit:
+
+```
+$ printf '{"cwd":"$FIX/feature","tool_input":{"command":"cd $FIX/trunk\\ngit commit -m x"}}' \
+    | hooks/guard-base-branch.sh; echo "exit $?"
+hatsu: refusing git commit on main — main is the workflow base (nen/workflow.json branch.base) …
+exit 2                                  # before: exit 0
+```
+
+**F8 — a heredoc body that QUOTED a git write was read as one.** The Cursor run was writing its own
+evidence record; the document contained the string `git push -u origin HEAD` in a markdown table,
+and the guard refused the write:
+
+```
+$ printf '{"cwd":"$FIX/trunk","tool_input":{"command":"cat >> record.md <<'\''MD'\''\\n| step | what happened |\\n| push | `git push -u origin HEAD` -> `0`, `* [new branch]` |\\nMD"}}' \
+    | hooks/guard-base-branch.sh; echo "exit $?"
+exit 0                                  # before: exit 2, "refusing git push on main"
+```
+
+Nothing git-related was being run. Step 2 splits on `|` and the backtick, both of which a markdown
+table is made of, so one of the segments began `git push -u origin HEAD`. **Hatsu's own
+documentation quotes the commands it guards on nearly every page**, which is what makes this the
+loud, recurring shape rather than a corner.
+
+**And a body a SHELL is handed is still parsed, because a shell runs it** — the same rule step 0
+applies to `sh -c '<script>'`:
+
+```
+$ printf '{"cwd":"$FIX/trunk","tool_input":{"command":"sh <<EOF\\ngit commit -m x\\nEOF"}}' \
+    | hooks/guard-base-branch.sh; echo "exit $?"
+hatsu: refusing git commit on main — main is the workflow base (nen/workflow.json branch.base) …
+exit 2                                  # before: exit 0 — the write was one line in, unsplit
+```
+
+| payload | pre-fix | post-fix |
+|---|---|---|
+| `SP=…` / `cd <worktree>` / `git add -A && git commit …`, cwd on `main` | **`2`** | **`0`** |
+| `cd <trunk>` / `git commit -m x`, cwd on `feat/x` | **`0`** | **`2`** |
+| `cat >> record.md <<'MD'` … a table quoting `git push` … `MD`, cwd on `main` | **`2`** | **`0`** |
+| `cat > f <<EOF` / `git commit -m x` / `EOF`, cwd on `main` | `0` | `0` |
+| `sh <<EOF` / `git commit -m x` / `EOF`, cwd on `main` | **`0`** | **`2`** |
+| `printf '%s' 'a\ngit push -u origin HEAD\nb' > f`, cwd on `main` | `0` | `0` |
+
+**The two rows that do not move are the regressions the fix had to avoid, not passes it can take
+credit for.** Both were `0` before only because nothing was ever split: the `cat > f <<EOF` body and
+the multi-line quoted string were each one un-newlined line whose first token was not `git`. The
+moment step 1b makes the newlines real, both become segments beginning `git commit` / `git push` —
+so 1e (heredoc bodies) and 1a (a quoted span carrying a `\n`, masked while the payload is still one
+line) exist to keep them at `0`. A fix for F6 without them would have traded one false refusal for
+two.
+
+**The order of step 1 is load-bearing and is written down in the script's header for that reason:**
+1a masks multi-line quoted spans while they are still on one line; 1b translates the escapes; 1c
+unquotes `<<'EOF'` to `<<EOF` so the opener survives 1d; 1d masks the remaining quoted spans per
+line; 1e masks heredoc bodies. Doing 1d before 1c would leave `<<@` and no delimiter to match a
+terminator against; doing 1a after 1b would leave a multi-line string unmasked.
 
 ## 4. Residue
 

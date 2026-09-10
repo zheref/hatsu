@@ -29,8 +29,33 @@
 #   1. Every quoted span (`'…'` or `"…"`) is then replaced by the single token
 #      `@`, so quoted text can contribute neither an operator nor a space nor
 #      the word `git` to the parse. `echo 'git commit'` reads as `echo @`.
-#   2. The masked line is split into segments on `;` `|` `&` `(` `)` and the
-#      backtick, so `&&`, `||`, a pipeline, a subshell and `$( … )` all separate.
+#      Three things happen around that masking, in this order, and each exists
+#      because a real payload was misjudged without it:
+#        a. A quoted span carrying the escape `\n` is a MULTI-LINE string. It is
+#           masked first, while the payload is still one line, because the
+#           per-line masking cannot see a span once the escape has become a real
+#           newline — and a document quoting `git push` inside one would then be
+#           read as a command.
+#        b. The payload writes a newline as the two-character escape `\n`, so a
+#           multi-line command arrives as ONE line. It is translated to real
+#           newlines (protecting a backslash the command genuinely contains, so
+#           that `tr … '\n'` is left alone), because a `cd` on its own line
+#           moves the directory every later line writes in, and without the
+#           translation the whole script is one segment whose first token is
+#           whatever the first line assigned.
+#        c. A heredoc BODY is data the command WRITES, not commands it runs. The
+#           body is masked to `@`, so a document quoting `git push -u origin
+#           HEAD` as evidence is not read as a push — the shape that refused a
+#           write of this repository's own evidence file. The exception is an
+#           opener that hands the body to a shell (`sh <<EOF`, `… | bash <<EOF`),
+#           which RUNS it: that body is kept and parsed. `<<'EOF'` and `<<"EOF"`
+#           are unquoted to `<<EOF` before masking so the opener survives it, and
+#           a `<<` that is itself inside a quoted span is gone by then and opens
+#           nothing. `<<<` is a here-string and has no body.
+#   2. The masked text is split into segments on `;` `|` `&` `(` `)` and the
+#      backtick, so `&&`, `||`, a pipeline, a subshell and `$( … )` all separate —
+#      and on the newlines of 1b, so each line of a multi-line command is its own
+#      segment.
 #   3. A segment is a git call only when its FIRST token is `git`. Git's own
 #      global options are walked past FROM A LIST — the value-taking forms
 #      `-C <dir>`, `-c <k=v>`, `--git-dir <dir>`, `--work-tree <dir>`,
@@ -49,9 +74,11 @@
 #      the last, so `git -C a -C b` runs in `a/b`), then `--work-tree` and
 #      `--git-dir` resolved against that, exactly as git resolves them. Only a
 #      segment carrying none of them is judged in the working directory. The
-#      working directory is the payload `cwd` moved by any `cd` earlier in the
-#      same line, because a write after a `cd` lands in the repository it moved
-#      to. `--git-dir` is queried as `git --git-dir=… branch --show-current`,
+#      working directory is the payload `cwd` moved by any `cd` EARLIER IN THE
+#      COMMAND — on the same line or on a line above it, since 1b makes the
+#      payload's newlines real — because a write after a `cd` lands in the
+#      repository it moved to. `--git-dir` is queried as
+#      `git --git-dir=… branch --show-current`,
 #      which reads the branch of a linked worktree's `.git` FILE as happily as
 #      of a real directory; `nen/workflow.json` is then read from THE CHECKOUT
 #      THAT BRANCH CAME FROM — the work tree when one was given, otherwise the
@@ -96,7 +123,7 @@
 # blocks on uncertainty blocks the session.
 #
 # TEST CASES — payload on stdin, {"cwd": "<dir>", "tool_input": {"command": "…"}}
-# All fifty-seven run live against a constructed fixture of three repositories
+# All sixty-three run live against a constructed fixture of three repositories
 # and six checkouts — a trunk on `main`, a LINKED WORKTREE of it on `feat/x`, a
 # second linked worktree of it on `b2` whose own checked-out workflow.json
 # declares `b2`, a checkout on `main` under a path with spaces, a repository
@@ -176,6 +203,15 @@
 #   workflow.json declares `branch.base: b2`:
 #     git --git-dir=<that worktree>/.git commit -m x -> 2   its own base is read
 #     git --git-dir=<a worktree on feat/x>/.git commit -m x -> 0
+#   MULTI-LINE COMMANDS AND HEREDOC BODIES — the payload writes a newline as the
+#   escape `\n`, and both of these arrived as ONE line before step 1b. From a
+#   session standing on `main` (cwd = the trunk):
+#     SP=…\ncd <worktree>\ngit add -A && git commit -F $SP/m 2>&1 | tail -5 -> 0
+#     cd <the trunk>\ngit commit -m x        (cwd = the worktree, on feat/x) -> 2
+#     python3 - <<'PY'\n… | git push -u origin HEAD | …\nPY                  -> 0
+#     cat > f <<EOF\ngit commit -m x\nEOF                                    -> 0
+#     sh <<EOF\ngit commit -m x\nEOF                       -> 2  a shell RUNS it
+#     printf '%s' 'a\ngit push -u origin HEAD\nb' > f      -> 0  one quoted span
 #
 # NO jq. Hatsu's installed path is one binary plus git and gh (README,
 # 'On the installed plugin path'), so the JSON here is read with sed.
@@ -187,6 +223,11 @@ set -uf
 nl='
 '
 tab=$(printf '\t')
+# Two control characters, used as placeholders while the payload's escapes are
+# translated. Neither can occur in the payload: JSON escapes every control
+# character below 0x20 inside a string, so a raw one never survives to here.
+bs_mark=$(printf '\001')
+nl_mark=$(printf '\002')
 
 payload=$(cat 2>/dev/null || :)
 
@@ -278,6 +319,114 @@ EOF
   return 1
 }
 
+mask_spanning_quotes() {
+  # A quoted span that CONTAINS the escape `\n` is a MULTI-LINE string. It is
+  # masked here, while the payload is still one line, because the per-line
+  # masking of step 1d cannot see a span once that escape has become a real
+  # newline — and a document quoted into a command would then have every one of
+  # its lines parsed as a command of its own.
+  printf '%s\n' "$1" | sed -e "s/'[^']*\\\\n[^']*'/@/g" -e 's/"[^"]*\\n[^"]*"/@/g'
+}
+
+unescape_newlines() {
+  # The payload writes a newline as the two-character escape `\n`, and a
+  # backslash the command genuinely contains as `\\`. Protect the second before
+  # translating the first, or `tr ';|()&' '\n\n\n\n\n'` — an ordinary command,
+  # and this script's own step 2 — would sprout newlines it never had.
+  printf '%s\n' "$1" \
+    | sed -e "s/\\\\\\\\/$bs_mark/g" -e "s/\\\\n/$nl_mark/g" -e "s/$bs_mark/\\\\\\\\/g" \
+    | tr "$nl_mark" '\n'
+}
+
+unquote_heredoc_delims() {
+  # `<<'EOF'` and `<<"EOF"` name the same delimiter as `<<EOF` — the quotes
+  # decide whether the BODY is expanded, which is nothing to this guard. They
+  # are removed before step 1d masks quoted spans, so that the opener survives
+  # the masking and step 1e can still find the body. A `<<` that is itself
+  # inside a quoted span (`echo "a << b"`) is masked away with its span and
+  # opens nothing.
+  printf '%s\n' "$1" \
+    | sed -e "s/<<\\(-\\{0,1\\}\\)'\\([A-Za-z0-9_.:-]\\{1,\\}\\)'/<<\\1\\2/g" \
+          -e 's/<<\(-\{0,1\}\)"\([A-Za-z0-9_.:-]\{1,\}\)"/<<\1\2/g'
+}
+
+heredoc_delimiters() {
+  # Every heredoc delimiter opened on the line $1, one per line, in order.
+  # `<<<` is a here-STRING — no body, no delimiter — and is stepped over.
+  hd_rest=$1
+  while :; do
+    case "$hd_rest" in
+      *'<<'*) hd_rest=${hd_rest#*<<} ;;
+      *) return 0 ;;
+    esac
+    case "$hd_rest" in '<'*) hd_rest=${hd_rest#<}; continue ;; esac
+    case "$hd_rest" in '-'*) hd_rest=${hd_rest#-} ;; esac
+    while :; do
+      case "$hd_rest" in ' '*|"$tab"*) hd_rest=${hd_rest#?} ;; *) break ;; esac
+    done
+    hd_word=""
+    hd_scan=$hd_rest
+    while :; do
+      case "$hd_scan" in
+        [A-Za-z0-9_.:-]*) hd_word="$hd_word${hd_scan%"${hd_scan#?}"}"; hd_scan=${hd_scan#?} ;;
+        *) break ;;
+      esac
+    done
+    [ -n "$hd_word" ] && printf '%s\n' "$hd_word"
+  done
+}
+
+mask_heredoc_bodies() {
+  # A heredoc body is what the command WRITES, not what it runs: a markdown
+  # table quoting `git push -u origin HEAD` as evidence is a document, and this
+  # guard refused a write of exactly that. Each body line becomes `@`.
+  #
+  # THE EXCEPTION IS A BODY A SHELL RUNS. `sh <<EOF`, `bash <<EOF`, `… | sh
+  # <<EOF` execute what they are handed, so those bodies are kept and parsed
+  # like any other line — the same reason step 0 unwraps `sh -c '<script>'`.
+  hb_out=""
+  hb_pending=""
+  hb_shell=0
+  while IFS= read -r hb_line; do
+    if [ -n "$hb_pending" ]; then
+      hb_first=${hb_pending%%"$nl"*}
+      hb_trim=$hb_line
+      while :; do
+        case "$hb_trim" in
+          ' '*|"$tab"*) hb_trim=${hb_trim#?} ;;
+          *' '|*"$tab") hb_trim=${hb_trim%?} ;;
+          *) break ;;
+        esac
+      done
+      if [ "$hb_trim" = "$hb_first" ]; then
+        # Pop the delimiter just closed. A `#*` on a list of one would answer
+        # with the list itself, so the last one is emptied explicitly.
+        case "$hb_pending" in
+          *"$nl"*) hb_pending=${hb_pending#*"$nl"} ;;
+          *) hb_pending=""; hb_shell=0 ;;
+        esac
+        hb_out="$hb_out$hb_line$nl"
+        continue
+      fi
+      if [ "$hb_shell" -eq 1 ]; then hb_out="$hb_out$hb_line$nl"; else hb_out="$hb_out@$nl"; fi
+      continue
+    fi
+    hb_out="$hb_out$hb_line$nl"
+    case "$hb_line" in *'<<'*) ;; *) continue ;; esac
+    hb_pending=$(heredoc_delimiters "$hb_line")
+    [ -n "$hb_pending" ] || continue
+    hb_shell=0
+    for hb_t in $hb_line; do
+      case "$hb_t" in
+        sh|bash|zsh|dash|ksh|/bin/sh|/bin/bash|/bin/zsh) hb_shell=1; break ;;
+      esac
+    done
+  done <<EOF
+$1
+EOF
+  printf '%s' "$hb_out"
+}
+
 resolve() {
   # $1 = a path as written, $2 = the directory it is relative to.
   case "$1" in
@@ -330,12 +479,24 @@ case "$command_line" in
     ;;
 esac
 
-# --- step 1: mask quoted spans ----------------------------------------------
-# Single-quoted first: a `'` inside a double-quoted span has no partner and so
-# matches nothing, while a `"` inside a single-quoted span would.
-masked=$(printf '%s\n' "$expanded" | sed -e "s/'[^']*'/@/g" -e 's/"[^"]*"/@/g')
+# --- step 1: quoted spans, real newlines, heredoc bodies --------------------
+# 1a. Multi-line quoted spans, masked while the payload is still one line.
+masked=$(mask_spanning_quotes "$expanded")
+# 1b. The payload's `\n` escapes become real newlines, so a `cd` on its own line
+#     moves the directory every line under it writes in.
+masked=$(unescape_newlines "$masked")
+# 1c. `<<'EOF'` -> `<<EOF`, so the opener survives 1d.
+masked=$(unquote_heredoc_delims "$masked")
+# 1d. The remaining quoted spans, per line. Single-quoted first: a `'` inside a
+#     double-quoted span has no partner and so matches nothing, while a `"`
+#     inside a single-quoted span would.
+masked=$(printf '%s\n' "$masked" | sed -e "s/'[^']*'/@/g" -e 's/"[^"]*"/@/g')
+# 1e. Heredoc bodies — data, unless a shell is the one being handed them.
+masked=$(mask_heredoc_bodies "$masked")
 
 # --- step 2: split into segments --------------------------------------------
+# The `tr` turns each shell operator into a newline; the newlines 1b produced are
+# already separators, so every line of a multi-line command is its own segment.
 segments=$(printf '%s\n' "$masked" | tr ';|()&`' '\n\n\n\n\n\n')
 
 # --- step 3: the git argv walk ----------------------------------------------
