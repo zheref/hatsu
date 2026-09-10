@@ -75,7 +75,7 @@ points at [`$jujisho`](../jujisho/SKILL.md), which is the split-shaped verb, and
 | `project.evidence.scene` | `nen/contract.json` | the template that turns a path into a suite-and-scene pair | `{suite}-{scene}` |
 | `project.evidence.mechanism` | `nen/contract.json` | `public-mirror` or the committed-path mechanism — **which of `UZF-26`'s two the stack is on** (§ 5) | none — **undeclared is the committed-path mechanism**, never the mirror |
 
-> **`nen schema check` VALIDATES `nen/workflow.json` at the pinned `v0.7.0`** — verified live: six
+> **`nen schema check` VALIDATES `nen/workflow.json` at the pinned build** — verified live: six
 > rows, the sixth the workflow file, `ok`. A malformed key is a FAIL **by pointer** and this skill
 > quotes that pointer rather than judging the shape itself. Every default above is still stated out
 > loud whenever it is what applied — nen validates the file, it does not hand the values out.
@@ -163,7 +163,7 @@ gh pr create --repo <owner/name> --base <branch.base> --head <branch> \
   --title "<the one commit's subject, or the effort in one line>" --body-file <path>
 ```
 
-> **Residue, and genuinely still residue at the pinned `v0.7.0`: no `nen` verb opens a pull request.**
+> **Residue, and genuinely still residue at the pinned build: no `nen` verb opens a pull request.**
 > `nen pr --help` lists nine subcommands at this pin — `ready`, `staleness`, `body-check`, `fetch`,
 > `next-blocker`, `cascade-main`, `retarget`, `request-reviews` and the new `edit-body` — and `create`
 > is still not among them. `gh pr create` is git-forge tooling, named here, and it is the **only**
@@ -432,7 +432,7 @@ Ready. This is [`$rikugan`](../rikugan/SKILL.md) § 8's carve-out, for the same 
 
 ## Residue
 
-1. **`gh pr create` — no `nen` verb opens a pull request** at the pinned `v0.7.0`; `nen pr` carries
+1. **`gh pr create` — no `nen` verb opens a pull request** at the pinned build; `nen pr` carries
    no `create` subcommand (§ 4). **Genuinely still residue.**
 1b. **RETIRED at nen `0.6`: requesting Copilot.** `nen pr request-reviews --add-bots BOT_kgDOCnlnWA`
    is the mechanic, verified live (§ 9). What is NOT retired is reading the mutation's own answer
@@ -455,7 +455,7 @@ Ready. This is [`$rikugan`](../rikugan/SKILL.md) § 8's carve-out, for the same 
    comparison (§ 4). `nen wc classify` reports the branch and its distance from the **base**, never
    from the remote branch.
 7. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
-   an `ok  nen/workflow.json` row at the pinned `v0.7.0` (verified live). § 2's keys are still read
+   an `ok  nen/workflow.json` row at the pinned build (verified live). § 2's keys are still read
    here; reading a file is not residue.
 
 ## Authority

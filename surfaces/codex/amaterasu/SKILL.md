@@ -178,7 +178,7 @@ Where the target declares a `device`, run its `resolve` probe **as declared** an
 | Absent, and `launch.fallback` is `null` | say so and stop. Not a gate: a device nobody plugged in is a fact, and picking a different one is a guess |
 | The target declares no `device` at all | nothing to resolve — a desktop or web lane, § 5 straight through |
 
-> **Present-but-unusable is a THIRD outcome, and at the pinned nen `0.7.0` the DECLARATION decides
+> **Present-but-unusable is a THIRD outcome, and at the pinned build the DECLARATION decides
 > whether nen can see it.** `project.launch.<name>.device.readyWhen` names which of the probe's own
 > states count — `{field, in}` for a probe that prints lines, `{path, in}` for one that prints JSON —
 > and a row that is present and not one of them is **exit `5` naming the device, the state seen and
@@ -203,7 +203,7 @@ listing three devices none of which is the declared one is an absent device, not
 Pairing a device that has never been set up is `$jujutsu`'s work, not this skill's.
 
 **The match is byte for byte** — exact string equality, no case folding, no Unicode normalisation, no
-smoothing of punctuation — which is what `--target` implements at the pinned nen `0.7.0`, and nen's
+smoothing of punctuation — which is what `--target` implements at the pinned build, and nen's
 own `docs/USAGE.md` says so in as many words from that release. The practical consequence is one
 character: a device named
 `Sergio’s iPhone` carries **U+2019**, not the ASCII `'`, and a declaration written with the typed
@@ -297,7 +297,7 @@ did; `5` is the program not on `PATH` — `nen shu tools --repo <path>` and rela
 
 A declared `after[]` — install the artifact onto the device, launch the bundle id, open the `.app` —
 runs **after** the verb, in order, with `{device.id}` from § 4 and `{artifact}` substituted. **At the
-pinned nen `0.7.0` nen runs these**, as part of the same `--target` invocation (§ 5), so there is
+pinned build nen runs these**, as part of the same `--target` invocation (§ 5), so there is
 nothing to run by hand and nothing to report as by-hand.
 
 **Which path `{artifact}` reads is a fact the dry run states**, and it is worth quoting into the
@@ -324,7 +324,7 @@ refused outside the tree, refused as an empty string, and refused when **no afte
 > Nothing here is a step this skill takes; it is a line to read correctly in a report, and quoting
 > `artifacts:` where `substitutes:` was meant is how the two roots get confused again.
 
-## 7. Residue — what has no verb at the pinned nen `0.7.0`
+## 7. Residue — what has no verb at the pinned build
 
 - **RETIRED at nen `0.5`: `--target` on a launch verb.** `nen shu dev --repo <path> --target sim
   --dry-run` renders the target, the device, the appended `args`, the after-steps and both

@@ -1107,7 +1107,7 @@ nen watch until --command "<one read-only observation>" [--true-pattern "<regex>
   --interval-ms <pollSeconds × 1000> --max-iterations <a safety bound>
 ```
 
-> **Those are the flags the pinned `nen 0.7.0` actually carries**, re-read live from its own
+> **Those are the flags the pinned build actually carries**, re-read live from its own
 > `nen watch until --help` at the pin (`docs/ab/en.md` § 2.6, § *Retired at nen 0.5*). Two more are there
 > and are worth knowing: `--cwd <path>`, and `--error-exit-threshold <n>` — **only meaningful when
 > `--true-pattern` is NOT given**, where it says which exit code stops being "not yet" and starts being an
@@ -1352,7 +1352,7 @@ There is no scheduled sweep behind you. This warm-up is the only one. **THEN** t
 operation. Run `nen --help` and the family's own `--help` and find out; the binary is the spec.
 
 **The list below is a convenience index, not the authority — `nen --help` is.** It reflects the **37**
-families present at the contract's pinned ref (`v0.7.0`), across **95** verbs — `loop iterate` is the one
+families present at the contract's pinned ref, across **95** verbs — `loop iterate` is the one
 `v0.7.0` adds; a newer pin may carry more.
 **Never conclude a verb does not exist because it is missing from this paragraph** — check the binary, which
 is the spec.
@@ -1700,7 +1700,7 @@ exist yet names its stack; once it clears G1, the first Enhancer/Transmuter act 
 Every parameter below is read, never remembered: **`nen/workflow.json`** holds the policy (branch shape,
 iteration checks, the coverage ladder, reports, notifications, the trailer allow-list, the model matrix) and
 **`nen/contract.json` → `project`** holds what nen executes (lanes, per-verb argv, preconditions, hosts,
-targets, `launch` and `evidence`). **Both of those last two are PARSED at the pinned `v0.7.0`, not merely
+targets, `launch` and `evidence`). **Both of those last two are PARSED at the pinned build, not merely
 preserved**, and each block key is guarded against a near-miss — `launches`/`Launch`, `evidences`/`Evidence`
 — because a silently-kept misspelling is read by nobody while the verb that needs it refuses. `launch`
 targets may also declare their own `lane` and `artifact`. `docs/WORKFLOW.md` is the full shape of both.
