@@ -1,6 +1,6 @@
 ---
 name: rikugan
-description: Render one turn of work as a rich HTML report — accomplished, challenges, not delivered, architecture delta, screenshots, the exact launch command, decisions — from the one fixed template, never as a markdown summary. Use when the maintainer invokes hatsu:rikugan [as turn|landing|final], asks to see the report, the turn report or the final report, or whenever hatsu:ren, hatsu:mukai or hatsu:en reaches its reporting step. The landing variant adds the PR body and the readiness verdict; the final variant adds the tests run and the touched-file coverage, and is the only one written to Reports/. Not a gate event — it publishes a page and rings nothing.
+description: Render one turn of work as a rich HTML report — accomplished, challenges, not delivered, architecture delta, screenshots, the exact launch command, decisions — from the one fixed template, never as a markdown summary. Use when the maintainer invokes hatsu:rikugan [as turn|landing|final], asks to see the report, the turn report or the final report, or whenever hatsu:ren, hatsu:mukai or hatsu:en reaches its reporting step. The landing variant adds the PR body and the readiness verdict; the final variant adds the tests run and the touched-file coverage, and is the only one kept as a dated file under Reports/. Not a gate event — it publishes a page and rings nothing.
 ---
 
 # Rikugan — the turn, seen
@@ -62,10 +62,18 @@ keys; never carry a remembered value.
 |---|---|---|
 | `reports.dir` | where the **final** variant is written | `Reports` |
 | `reports.template` | which template renders | `rikugan` → `templates/rikugan.html` |
-| `reports.retain` | how many reports survive on disk | `final-only` |
+| `reports.retain` | **which renders are KEPT** — `final-only` means only the final variant gets a dated file of its own | `final-only` |
 | `reports.captures` | where screenshot PNGs are read from | `<reports.dir>/captures` |
 | `coverage.minimum` / `.recommended` / `.ideal` | the band on each coverage row | `80` / `85` / `90` |
 | `branch.base` | the report's `base` field, and the diff's left-hand side | `main` |
+
+> **`retain` governs what is KEPT, not whether a working file exists** (maintainer's ruling,
+> 2026-09-09, § 13 of the fold-in report). `final-only` means **only the final variant gets a dated
+> file of its own** under `<reports.dir>`. It does **not** forbid the **transient**
+> `<reports.dir>/current.html` § 6 writes on a surface that cannot publish an Artifact: that file is
+> overwritten by every render, is never dated, is git-ignored, and is a way of *opening* a page
+> rather than a copy retained of it. One file that is always the latest render is not a retained
+> report — a retained report is one you can still find after the next turn.
 
 > **`nen schema check` does not validate this file at `v0.3.0` — verified live
 > (`docs/ab/rikugan.md` § 2.4).** Run against `hatsu`'s own checkout it reports exactly five rows —
@@ -188,11 +196,16 @@ gets published as an Artifact.
 
 ## 5. The three variants
 
-| Variant | Called by | Sections | Written to disk? |
+| Variant | Called by | Sections | **Kept** on disk? |
 |---|---|---|---|
-| **`turn`** | [`hatsu:ren`](../ren/SKILL.md) § step 5, every turn | 01–07 | **No** |
-| **`landing`** | [`hatsu:mukai`](../mukai/SKILL.md), and [`hatsu:en`](../en/SKILL.md)'s first step | 01–07 **+ 08 PR body + 09 Readiness** | **No** |
-| **`final`** | [`hatsu:en`](../en/SKILL.md)'s last step, after the merge | 01–09 **+ 10 Tests run + 11 Touched coverage** | **Yes** — the only one |
+| **`turn`** | [`hatsu:ren`](../ren/SKILL.md) § step 5, every turn | 01–07 | **No** — an Artifact, or the transient `current.html` (§ 6) |
+| **`landing`** | [`hatsu:mukai`](../mukai/SKILL.md), and [`hatsu:en`](../en/SKILL.md)'s first step | 01–07 **+ 08 PR body + 09 Readiness** | **No** — the same two |
+| **`final`** | [`hatsu:en`](../en/SKILL.md)'s last step, after the merge | 01–09 **+ 10 Tests run + 11 Touched coverage** | **Yes** — the only one with a file of its own |
+
+**"Kept" is the column, and it is not "touched the filesystem."** `retain: final-only` decides which
+render survives the next one: only `final` gets its own dated file. A `turn` or `landing` render on a
+surface with no Artifact still has to be *opened* from somewhere, and § 6's `current.html` — one
+path, overwritten every render, git-ignored — is that somewhere.
 
 The seven fixed sections, in this order, always: **01 Accomplished · 02 Challenges · 03 Not
 delivered · 04 Architecture delta · 05 Screenshots · 06 How to launch · 07 Decisions.**
@@ -219,14 +232,19 @@ The title is the object notation and the branch (§ 4's `{{title}}`), stable for
 branch. Resolve the code with `nen repo resolve` and render the ref with `nen ref format` — object
 notation is never typed from memory (`claude/agents/kurapika.md` § *How you work*).
 
-**On any other surface, the page is opened from `Reports/current.html`** — `<reports.dir>` from § 2 —
-written fresh each render and git-ignored. Say which of the two happened; never let a reader guess
+**On any other surface, the page is opened from `<reports.dir>/current.html`** — one path, written
+fresh by every render, overwritten by the next, git-ignored. It is **transient**, not retained: it
+is how a surface with no Artifact opens the page at all, and it is admitted under `final-only` by
+the maintainer's ruling of 2026-09-09 (§ 2). Say which of the two happened; never let a reader guess
 whether they are looking at a link or a file.
 
-**Only the `final` variant is written to `Reports/<YYYY-MM-DD>-<branch-slug>-final.html`.** Turn and
-landing renders live at their address and nowhere else, because `reports.retain: final-only` is what
-the workflow asks for and a directory of forty turn reports is a directory nobody opens. `Reports/`
-and `.nen/` are git-ignored; **rikugan writes under `<reports.dir>` and nowhere else in the tree.**
+**Only the `final` variant gets a file of its own**, at
+`<reports.dir>/<YYYY-MM-DD>-<branch-slug>-final.html`, and **that is what `retain: final-only`
+governs** — what survives the next render. Turn and landing renders live at their address, and on a
+non-Artifact surface at `current.html` until the following turn replaces them; a directory of forty
+dated turn reports is the thing the retention rule exists to prevent, and one always-latest working
+file is not that. `Reports/` and `.nen/` are git-ignored; **rikugan writes under `<reports.dir>` and
+nowhere else in the tree.**
 
 **Say one line in chat and stop**: the variant, the branch, the link or the path. Not a prose
 summary of the page underneath it — that is the thing the page exists to replace.
@@ -296,7 +314,9 @@ carries it — so that the day the verbs land, the retirement is visible.
 ## Hard limits
 
 - **Never renders the report as markdown**, or lets a chat summary stand in for the page (§ 7).
-- **Never writes outside `<reports.dir>`**, and never writes a `turn` or `landing` render to disk.
+- **Never writes outside `<reports.dir>`**, and never gives a `turn` or `landing` render a **kept**
+  file — no dated name, no second path. The one transient `current.html` is the whole of what those
+  variants may touch, and only on a surface that cannot publish an Artifact (§ 6).
 - **Never publishes a second URL for a branch that already has a report** — republish, having read
   first (§ 6).
 - **Never claims readiness by eye** — § 5's row 09 is `nen pr ready`'s verdict, quoted, or absent.

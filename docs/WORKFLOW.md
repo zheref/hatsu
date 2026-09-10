@@ -136,16 +136,23 @@ question, not an answered one.
 | Key | Default | Meaning |
 |---|---|---|
 | `dir` | `Reports` | **git-ignored.** The only directory a report is ever written to |
-| `retain` | `final-only` | **the retention rule** — see below |
+| `retain` | `final-only` | **the retention rule — what is KEPT**; see below |
 | `template` | `rikugan` | `templates/<name>.html` in this repository |
 | `captures` | `Reports/captures` | where screenshots land before they are inlined as data URIs |
 
-**The retention rule.** `rikugan` runs at three moments — every turn, at landing, and once after the merge —
-and `retain: final-only` means **only the last one is written to disk**. The per-turn and landing reports are
-published to the conversation and nowhere else. A directory holding one report per turn is a directory nobody
-opens; the final report is the one with tests run, scenarios, touched coverage and the architecture delta, and
-it is the one worth finding six months later. `dir` is git-ignored for the same reason a build output is: it
-is derived, and a derived file in git is a merge conflict waiting to be resolved by coin toss.
+**The retention rule — and what it does *not* say.** `rikugan` runs at three moments — every turn, at
+landing, and once after the merge — and `retain: final-only` means **only the last one is KEPT**: only the
+final report gets a dated file of its own, `<dir>/<YYYY-MM-DD>-<branch-slug>-final.html`. A directory holding
+one report per turn is a directory nobody opens; the final report is the one with tests run, scenarios,
+touched coverage and the architecture delta, and it is the one worth finding six months later.
+
+**It is a rule about what survives, not about whether a working file exists** (maintainer's ruling,
+2026-09-09). Turn and landing reports are published to the conversation as an Artifact; on a surface that
+cannot publish one they are opened from the **transient** `<dir>/current.html` — one path, rewritten by every
+render, never dated, git-ignored. That file is **admitted** under `final-only`, because a page that is always
+the latest render and can never be found again after the next turn is not a retained report. `dir` is
+git-ignored for the same reason a build output is: it is derived, and a derived file in git is a merge
+conflict waiting to be resolved by coin toss.
 
 ### `notifications`
 

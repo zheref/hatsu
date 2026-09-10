@@ -33,7 +33,7 @@
     "retain": "final-only",
     "template": "rikugan",
     "captures": "Reports/captures",
-    "$comment": "`dir` is git-ignored (.gitignore). `retain: final-only` means the per-turn and landing rikugan reports are published to the conversation and NOT written to disk; only the final post-merge report is written under `dir`. `template` names templates/<name>.html in this repository."
+    "$comment": "`dir` is git-ignored (.gitignore). `retain: final-only` governs what is KEPT, not whether a working file exists (maintainer's ruling, 2026-09-09): only the final post-merge report gets a dated file of its own under `dir`, and the per-turn and landing reports are published to the conversation as an Artifact -- or, on a surface that cannot publish one, opened from the TRANSIENT `<dir>/current.html`, which every render overwrites and git ignores. One always-latest working file is not a retained report. `template` names templates/<name>.html in this repository."
   },
   "notifications": {
     "rungs": ["push", "os", "sound"],
