@@ -12,10 +12,10 @@ there; where a copy disagrees with the contract, **the contract wins and the cop
 file.
 
 The contract sits at `nen/contract.json` — nen's own location and shape for a repository's dependency
-declaration (USAGE v0.3.0, *Taxonomy as data*) — so that nen itself validates it: `dependency.version_probe`
+declaration (USAGE v0.5.0, *Taxonomy as data*) — so that nen itself validates it: `dependency.version_probe`
 is an argv **array**, `dependency.bootstrap` nests inside `dependency`, and every Hatsu-authored key beside
 those is preserved verbatim and read by nothing in nen. It was `nen.contract.json` at the root until Hatsu
-`v0.3.0`; there is deliberately no second copy.
+`v0.5.0`; there is deliberately no second copy.
 
 Run this **first, every session**, before any work that touches a Nen verb. Run it again mid-session the
 moment a `nen` invocation reports the binary is missing (a cache eviction, a `PATH` change, a different
@@ -50,17 +50,32 @@ This is the one machine read of the contract, and it is a validation, never a wa
 nen schema check --repo "$CLAUDE_PLUGIN_ROOT"
 ```
 
-Verified live against `v0.3.0`: the `nen/contract.json` row prints
-`ok    nen/contract.json  dependency (nen >= 0.3, pinned v0.3.0)` — the floor and the pin nen parsed are the
-ones you just read, and a drift between them and this file's prose is a bug in the prose. **The four
-taxonomy rows above it — three `FAIL` (`nen/labels.json`, `nen/repos.json`, `nen/colors.yml`) and one
-`warn` (`nen/gates.json`) — and the overall exit `1` are expected and are not a warm-up failure**: Hatsu
-ships no taxonomy of its own; `schema check` requires those three for a repository that does, and only
-warns on the fourth, which `pr ready` can take by `--gates` instead. Read the contract row and only the
-contract row. (`--json` puts it at `checks[].file == "nen/contract.json"`, `ok: true`.) A contract row
-that reads `FAIL` — a `version_probe` that became a string, a `bootstrap` that moved out of `dependency`,
-a `minimum` that is not exactly two components — is a defect in this repository to fix before anything
-else runs.
+Verified live against the pinned `v0.5.0`: the `nen/contract.json` row prints
+`ok    nen/contract.json  dependency (nen >= 0.5, pinned v0.5.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)`
+— the floor and the pin nen parsed are the ones you just read, and a drift between them and this file's
+prose is a bug in the prose. **`schema check` reports SIX rows at this pin, and four of them are expected
+non-`ok`**: three `FAIL` (`nen/labels.json`, `nen/repos.json`, `nen/colors.yml`), one `warn`
+(`nen/gates.json`), and the overall exit `1` — **none of which is a warm-up failure**. Hatsu ships no
+taxonomy of its own; `schema check` requires those three for a repository that does, and only warns on the
+fourth, which `pr ready` can take by `--gates` instead.
+
+**The sixth row is `nen/workflow.json`, and reading it is part of the warm-up now.** It reads
+`ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off 'main',
+checks: lint`, and a malformed policy key is a **FAIL by pointer** — so the shape of the policy file is
+nen's to judge, not something a skill squints at. Read the contract row, the workflow row, and nothing
+else. (`--json` puts them at `checks[].file == "nen/contract.json"` and `== "nen/workflow.json"`,
+`ok: true`.) A contract row that reads `FAIL` — a `version_probe` that became a string, a `bootstrap` that
+moved out of `dependency`, a `minimum` that is not exactly two components — is a defect in this repository
+to fix before anything else runs.
+
+> **RETIRED at nen `0.5`: there is no `schemas/` fallback, and the registry is `nen/repos.json` ONLY.**
+> The fallback v0.3.0 announced and v0.4.0 held open was **removed** in the release this contract pins: a
+> repository carrying a taxonomy file only under `schemas/` is refused exactly like one carrying it
+> nowhere, and the refusal names the migration. Verified live at the pin, and the refusal says it in as
+> many words — *"A legacy 'schemas/repos.json' is present -- run 'nen scaffold init --accept-detected' (or
+> copy it) to migrate; the schemas/ fallback was removed in v0.5.0."* The `--json` row shape moved with it:
+> `location`, `shadow` and `shadowed` are **gone**, and a new boolean `legacy` says a `schemas/<file>` copy
+> is on disk, detected, never read. **Never offer `schemas/` as a second place to look.**
 
 **Do not shell out to `jq`, `yq` or `python` to do this.** The ratified plan retires jq/yq as a DX friction —
 a machine needs one binary plus `git` and `gh` — and spawning a JSON parser to hand values back to the
@@ -79,7 +94,7 @@ nen --version
 ```
 
 (That is `dependency.version_probe` — `["nen", "--version"]` — spelled out; it prints a bare semver such
-as `0.3.0`.) Three outcomes, and exactly three:
+as `0.5.0`.) Three outcomes, and exactly three:
 
 | Outcome | Meaning | Next |
 |---|---|---|
@@ -91,14 +106,18 @@ as `0.3.0`.) Three outcomes, and exactly three:
 
 `minimum` is `MAJOR.MINOR`. **What it means depends on the major, and getting this backwards fails open.**
 
-**While nen's line is `0.x` — which it is today — `minimum: "0.3"` means exactly `>=0.3.0 <0.4.0`.**
+**While nen's line is `0.x` — which it is today — `minimum: "0.5"` means exactly `>=0.5.0 <0.6.0`.**
 
-**A different minor is out of range in BOTH directions.** `0.4.0` fails it exactly as `0.2.0` does.
+**A different minor is out of range in BOTH directions.** `0.6.0` fails it exactly as `0.4.0` does.
+
+> **And on this line the rule has teeth it did not have before.** nen `v0.5.0` is the first release since
+> `v0.1.0` that **removes** something a consumer could rely on — the `schemas/` fallback — so a minor here
+> is a breaking change in the plainest sense, not just a feature bump.
 
 > **Why, so nobody "corrects" it back:** SemVer 2.0.0 clause 4 says that at major version zero the public
 > API is unstable and **anything MAY change at any time** — at `0.x` the **minor** is the breaking-change
 > vehicle, the role `major` plays later. So "backward-compatible within a major" is precisely the wrong rule
-> here: applied at `0.x` it would wave through `0.9.0` against a `0.3` minimum, in the one version range
+> here: applied at `0.x` it would wave through `0.9.0` against a `0.5` minimum, in the one version range
 > where compatibility is *least* guaranteed. A higher `0.x` is **not** safer for being higher. Re-pin it.
 
 **From `1.0` onward** the familiar rule takes over: `X.Y` means `>=X.Y.0 <(X+1).0.0`, and a higher minor or
@@ -118,14 +137,14 @@ never by preference.**
 Both start with the same fetch, and **it is always two steps**:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.3.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
+curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.5.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
 ```
 
 > ### ⚠️ Fetch to a file. **Never pipe the script into bash.**
 >
 > ```bash
 > # WRONG — dies before it starts:
-> curl -fsSL <url> | bash -s -- --ref v0.3.0
+> curl -fsSL <url> | bash -s -- --ref v0.5.0
 > ```
 >
 > The script runs under `set -u` and reads `${BASH_SOURCE[0]}`. Piped into `bash -s --` there is no
@@ -137,7 +156,7 @@ curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.3.0/bootstrap/nen.sh 
 ### 2a · nen is **absent** → run the shell bootstrap directly
 
 ```bash
-bash /tmp/nen-bootstrap.sh --ref v0.3.0
+bash /tmp/nen-bootstrap.sh --ref v0.5.0
 ```
 
 **Why shell is permitted here, and only here.** Chicken-and-egg: `nen bootstrap` is a `nen` subcommand, so
@@ -149,7 +168,7 @@ grounds that this one does.
 ### 2b · nen is **present but out of range** → re-pin through nen's own verb
 
 ```bash
-nen bootstrap --ref v0.3.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
+nen bootstrap --ref v0.5.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
 ```
 
 A working `nen` is on `PATH`, so the chicken-and-egg rationale does not apply and the shell path is **not**
@@ -211,8 +230,8 @@ Print `halt.message_template` from the contract, with the code and its meaning f
 > yourself, then re-invoke:
 >
 > ```
-> curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.3.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
-> bash /tmp/nen-bootstrap.sh --ref v0.3.0
+> curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.5.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
+> bash /tmp/nen-bootstrap.sh --ref v0.5.0
 > ```
 >
 > Two steps, never a pipe: the script reads `${BASH_SOURCE[0]}` under `set -u`, so `curl … | bash` dies
@@ -239,9 +258,9 @@ computation, method-block validation, perf comparison, and the rest of `nen --he
 
 State the outcome before doing anything else, so the maintainer knows which of the four happened:
 
-- `Nen 0.3.0 · in range (>=0.3.0 <0.4.0) · warm-up clear`
-- `Nen absent · bootstrapped to v0.3.0 (checksum verified) · warm-up clear`
-- `Nen 0.2.0 out of range (>=0.3.0 <0.4.0) · re-pinned to v0.3.0 via nen bootstrap (checksum verified) · warm-up clear`
+- `Nen 0.5.0 · in range (>=0.5.0 <0.6.0) · warm-up clear`
+- `Nen absent · bootstrapped to v0.5.0 (checksum verified) · warm-up clear`
+- `Nen 0.4.0 out of range (>=0.5.0 <0.6.0) · re-pinned to v0.5.0 via nen bootstrap (checksum verified) · warm-up clear`
 - `Nen unavailable · bootstrap failed (exit 6, EXIT_MANIFEST) · HALTED — G5`
 
 **Silence is not one of the four.** A warm-up that did not run is reported as *not run*, never rendered as
@@ -551,10 +570,14 @@ a Claude, a GPT — is not a better choice made locally; it is a different budge
    local exclude file, and none should — it is a property of one working copy, which is the opposite of
    what a repository-driven CLI reads. **Proving it took is residue too**: `git status --porcelain`, and
    `git check-ignore -v <path>` when it did not come back clean.
-4. **`nen surface` does not exist at the pinned nen `0.3.0`** — `nen surface` answers *"nen: unknown command
-   'surface'"* at exit `2` (verified live, `docs/ab/surfaces.md` § 2.3). The mirrors are committed in this
-   repository precisely so that a warm-up at the pin can still install them; only *regenerating* them needs
-   a newer nen, and that happens here, not in a target repository.
+4. **RETIRED at nen `0.5`: `nen surface` EXISTS at the pin** — `nen surface mirror generate|check` is in
+   the pinned binary (it answered *"nen: unknown command 'surface'"* at exit `2` through `v0.4.0`,
+   `docs/ab/surfaces.md` § 2.3). Verified live at `v0.5.0`:
+   `bash scripts/surface_mirror_check.sh` exits `0`, `codex ok: 40`, `cursor ok: 47`, nothing missing,
+   extra, stale or hand-edited — so `.github/workflows/surface-mirror-check.yml` runs a real check now
+   rather than skipping with a notice. The mirrors are **still committed** in this repository, and for the
+   original reason: a warm-up installs what is on disk rather than regenerating anything in a target
+   repository. What changed is that *regenerating* them no longer needs a nen newer than the pin.
 5. **Resolving `$hatsu_root` is by hand, and there is no registry behind it off Claude Code** (§ 5's
    prelude). `$CLAUDE_PLUGIN_ROOT` is Claude Code's, `claude plugin list --json` is Claude Code's CLI, and
    Codex and Cursor have neither — so the root is an environment variable the session was started with, or
@@ -570,15 +593,17 @@ a Claude, a GPT — is not a better choice made locally; it is a different budge
 ## What this skill is not
 
 It is **not** `nen warmup`. That verb is a different thing entirely: it detects stale pins across a target
-repository's `nen/repos.json` (or, until `v0.4.0`, its legacy `schemas/repos.json` — default pins *and*
-per-caller overrides) and optionally sweeps handbook questions. It presupposes a working `nen` — it cannot
+repository's **`nen/repos.json`** — default pins *and* per-caller overrides — and optionally sweeps
+handbook questions. **There is no `schemas/repos.json` fallback at this pin**: it was removed in `v0.5.0`,
+so a target carrying the registry only under `schemas/` is refused, not read, and the refusal names the
+migration (`nen scaffold init --accept-detected`). Say `nen/repos.json` and nothing else. It presupposes a working `nen` — it cannot
 run when `nen` is the thing that is missing, which is precisely the case this skill exists to handle. Two
 things about it changed in nen `v0.2.0` that a reader of its report must carry: a consumer recorded with
 **no pin at all** is now an `unpinned` finding that **fails the run (exit `1`)** exactly as a stale pin
 does, and its `--json` `pinFindings[].pinned` is `string | null` rather than always a string. An omitted
 `--questions-from` is still reported as `NOT CHECKED` / `{"checked": false}`, never as clean.
 
-It is **not** `nen shu warmup` either. That verb — new in `v0.3.0` — warms a **working copy** (refuse or
+It is **not** `nen shu warmup` either. That verb — which arrived in `v0.3.0` — warms a **working copy** (refuse or
 `--discard` uncommitted work, fetch, fast-forward the trunk, cut the branch you name, prove the declared
 build) and is the one `shu` verb that **mutates git state**; `nen warmup` warms a **registry** and reads
 only. Same word, two verbs, resolved by nesting, and neither is a rename of the other. The build-loop

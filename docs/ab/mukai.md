@@ -157,3 +157,34 @@ never opens a PR from a run that stopped. **No verb can refuse a sentence**, whi
 § 4.4 already records for `ren`'s own never-propose-`aka` rule. The redundancy across
 `aka` § 1, `mukai` § 1 and `WORKFLOW.md` § 4 is deliberate for the same reason it is there: a rule
 that lives in only one file survives exactly as long as nobody reads that one.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| `nen/workflow.json` unvalidated at step 1 | `nen schema check --repo .` | `1` overall, six rows, the workflow row `ok` |
+
+```
+  ok    nen/contract.json  dependency (nen >= 0.5, pinned v0.5.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)
+  ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off 'main', checks: lint
+```
+
+§ 2.2 recorded five rows, none of them the workflow file. **Every step of this composite reads that file**
+— the branch template, the iteration checks, the ladder, the reports directory, the trailers — and a
+malformed key is now a FAIL by pointer rather than a thing each step has to notice for itself.
+
+The verbs the composed skills gained at this pin are recorded in their own A/B files:
+`docs/ab/murasaki.md` (`pr cascade-main --no-push`), `docs/ab/gyo.md` (`shu coverage --touched`),
+`docs/ab/kotoamatsukami.md` (`shu evidence`), `docs/ab/shibari.md` (`pr edit-body`) and
+`docs/ab/rikugan.md` (`report data`, `report render`).
+
+**Step 7's mirror check is a real check now** rather than a skip: `bash scripts/surface_mirror_check.sh`
+exits `0` at this pin, `codex ok: 40`, `cursor ok: 47`.

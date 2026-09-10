@@ -164,3 +164,24 @@ mapping tables in `docs/ab/build.md` and `docs/ab/backlog-loop.md` each keep `dr
 that describes a past run, with a pointer added rather than a substitution made. **A grep for
 `drive` in this repository will therefore never come back empty, and should not.** Recorded so that
 a later reader does not read the remaining hits as an incomplete rename and "finish" it.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| `--policy-paths`' prose about a live `schemas/` fallback | the fallback is **removed**; the list itself is unchanged | — |
+
+The reasoning is recorded once, in `docs/ab/tensho.md` § *Retired at nen 0.5*: `gate derive` takes a
+prefix literally and nen's taxonomy resolution never sees it, so an un-migrated target still edits a real
+`schemas/*.json` and that edit is still policy. **Dropping the prefix would under-derive a gate.**
+
+Nothing else in this skill's verb surface moved at the pin; the `pr` family gained `edit-body`, which
+`shibari` owns.

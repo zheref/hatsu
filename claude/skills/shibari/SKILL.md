@@ -74,10 +74,10 @@ points at [`hatsu:jujisho`](../jujisho/SKILL.md), which is the split-shaped verb
 | `project.evidence.scene` | `nen/contract.json` | the template that turns a path into a suite-and-scene pair | `{suite}-{scene}` |
 | `project.evidence.mechanism` | `nen/contract.json` | `public-mirror` or the committed-path mechanism — **which of `UZF-26`'s two the stack is on** (§ 5) | none — **undeclared is the committed-path mechanism**, never the mirror |
 
-> **`nen schema check` does not validate `nen/workflow.json` at the pinned `v0.3.0`** — verified live
-> in this wave and in `docs/ab/rikugan.md` § 2.4: five rows, none of them the workflow file. It is
-> read as data, and every default above is stated out loud whenever it is what applied. **A
-> malformed file is reported and the defaults used, said out loud** — never silently repaired.
+> **`nen schema check` VALIDATES `nen/workflow.json` at the pinned `v0.5.0`** — verified live: six
+> rows, the sixth the workflow file, `ok`. A malformed key is a FAIL **by pointer** and this skill
+> quotes that pointer rather than judging the shape itself. Every default above is still stated out
+> loud whenever it is what applied — nen validates the file, it does not hand the values out.
 
 > **The range is `origin/<branch.base>...HEAD`, after `git -C <path> fetch origin <branch.base>`.**
 > `branch.base` is a **branch name**, and nothing in the local plane fast-forwards *local* `main`
@@ -88,9 +88,9 @@ points at [`hatsu:jujisho`](../jujisho/SKILL.md), which is the split-shaped verb
 > and a wrong file set gives them a confident wrong answer** — a gate forecast about somebody else's
 > week, a changelog fragment demanded for a spec path this branch never opened.
 
-> **`project.evidence` is preserved and unread by nen at `v0.3.0`** ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md)
-> § 3), so the three keys above are read by this skill, by hand, and `nen shu evidence --base <ref>`
-> — the verb that will own it at `0.4.0` — is residue today. The rows come from **[`mukai`](../mukai/SKILL.md)
+> **RETIRED at nen `0.5`: `project.evidence` is PARSED by nen, and `nen shu evidence --repo <path>
+> --base <ref>` reads it** ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 3) — verified live at the
+> pin, exit `0`, rows grouped suite → scene. The rows come from **[`mukai`](../mukai/SKILL.md)
 > § 2's step 6 evidence pass**, which has already done exactly that filter over
 > [`kotoamatsukami`](../kotoamatsukami/SKILL.md)'s re-recorded artifacts; **shibari re-uses those
 > rows rather than re-deriving them**, and [`rikugan`](../rikugan/SKILL.md) § 3 fills its own
@@ -162,11 +162,12 @@ gh pr create --repo <owner/name> --base <branch.base> --head <branch> \
   --title "<the one commit's subject, or the effort in one line>" --body-file <path>
 ```
 
-> **Residue: no `nen` verb opens a pull request.** Verified live at `v0.3.0` — `nen pr --help` lists
-> exactly eight subcommands (`ready`, `staleness`, `body-check`, `fetch`, `next-blocker`,
-> `cascade-main`, `retarget`, `request-reviews`) and `create` is not among them. `gh pr create` is
-> git-forge tooling, named here, and it is the **only** GitHub write this skill makes besides § 7's
-> reviewer request and § 8's body edit.
+> **Residue, and genuinely still residue at the pinned `v0.5.0`: no `nen` verb opens a pull request.**
+> `nen pr --help` lists nine subcommands at this pin — `ready`, `staleness`, `body-check`, `fetch`,
+> `next-blocker`, `cascade-main`, `retarget`, `request-reviews` and the new `edit-body` — and `create`
+> is still not among them. `gh pr create` is git-forge tooling, named here, and it is the **only**
+> GitHub write this skill makes besides § 7's reviewer request. **§ 8's body edit is no longer one of
+> them: that is a verb now.**
 
 **Draft or ready-for-review is the repository's convention, not this skill's invention.** State which
 one was used and why in the handover line.
@@ -265,10 +266,15 @@ nen changelog fragment-required \
 Verified live (`docs/ab/shibari.md` § 2.2), all four verdicts: `not-applicable` (exit `0`) when the
 diff touches none of `--spec-paths`; `required` (exit **`1`**) when it does and no fragment is in
 the diff; `fragment-present` (exit `0`) once one is; `opt-out` (exit `0`) when `--body-from` carries
-a `no CHANGELOG entry: <reason>` line. **`--spec-paths` is a literal prefix list outside nen's
-`schemas/`→`nen/` fallback**, so it names **both** directories for the whole `v0.3` line; drop
-`schemas/` for a target once `nen schema check --repo <path> --json` reports `deprecations: []`, and
-by `v0.4.0` at the latest.
+a `no CHANGELOG entry: <reason>` line. **`--spec-paths` is a literal prefix list, and it still names BOTH
+directories — but the reason changed at nen `0.5`.** The `schemas/`→`nen/` **fallback is removed**:
+`nen/` is the only directory any taxonomy-reading verb reads from, and a repository carrying a file
+only under `schemas/` is refused exactly like one carrying it nowhere, with the refusal naming the
+migration. That is about what *nen resolves*, and a prefix handed to this verb is taken literally —
+nen's resolution never sees it. So an **un-migrated** target still edits a real `schemas/*.json`,
+and that edit is still a spec change owing a fragment; a **migrated** one has at most a stale
+duplicate there, which a prefix matching nothing important costs nothing. **Listing both
+under-derives nothing; dropping `schemas/` would.**
 
 > **Two live findings about this verb, both recorded rather than routed around
 > (`docs/ab/shibari.md` § 4).** (i) **`--head-changelog` must exist or the verb refuses at exit `2`**
@@ -310,16 +316,32 @@ The body is drafted, checked (§ 7), and only then attached. Where the PR is ope
 `--body-file` (§ 4) the first write is the create itself; **every later revision is an edit**:
 
 ```bash
-gh pr edit <n> --repo <owner/name> --body-file <path>
+export GH_TOKEN=$(gh auth token)
+nen pr edit-body --target <owner/name> --pr <n> --body-file <path> [--dry-run] [--json]
 ```
 
-> **Residue: `nen pr edit-body` does not exist at `v0.3.0`** — verified live, twice, in the two
-> shapes the mistake takes: `nen pr edit-body` refuses with *"unknown 'pr' subcommand 'edit-body'.
-> Known: ready, staleness, body-check, fetch, next-blocker, cascade-main, retarget,
-> request-reviews"*, and `nen pr edit-body --pr 1 --body-file <f>` refuses on the flag,
-> *"unknown option '--body-file'"* — **both exit `2`** (`docs/ab/shibari.md` § 2.4). The verb is P2
-> (brief § 4, `pr edit-body` / `issue edit-body --body-file`), and until it lands the edit is `gh`'s,
-> by hand, named here.
+> **RETIRED at nen `0.5`: `nen pr edit-body` is the verb, and `gh pr edit --body-file` is retired
+> with it.** It replaces the body **outright** with the file's bytes — no trimming, no template — and
+> it **certifies the number BEFORE any write**: it reads `gh api repos/<target>/pulls/<n>` and refuses
+> a 404/410, worded so it never claims the number IS an issue, only that it is not a pull request.
+> Verified live at the pin against this repository's own PR, exit `0`:
+>
+> ```
+> would run: gh pr edit 30 --repo zheref/hatsu --body-file <path>
+> target: zheref/hatsu
+> number: 30
+> bytes: 48
+> first line: …
+> last line: …
+> ```
+>
+> **`--dry-run` still performs that certifying read** — this verb is not network-free, the same shape
+> `issue attach-sub` already has — and prints the target, the number, the byte count and the first and
+> last line instead of writing. `--json` publishes `nen.pr.edit-body/v0.1`:
+> `{ contract, target, number, bytes, written, dryRun }`. **The sibling refuses the other family's
+> object**: `nen issue edit-body --issue 30` against this same PR number is exit `2` — *"#30 names a
+> pull request in zheref/hatsu, not an issue … nothing was changed"* (verified live,
+> `docs/ab/shibari.md` § *Retired at nen 0.5*).
 
 **Always `--body-file`, never `--body` with an inline string.** A body carries backticks, `$`, mermaid
 fences and newlines; passing it as a shell argument is one quoting mistake away from a mangled PR or
@@ -334,8 +356,8 @@ nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <a,b>
 
 The verb's own `--help` states what it does and what it cannot enforce — *"`gh pr edit
 --add-reviewer`, once per name. Request on the **MAINTAINER's** user token — a bot token silently
-no-ops on this call (S6); this verb cannot enforce which credential ran it, only warn"* (read live at
-`v0.3.0`, `docs/ab/shibari.md` § 2.5). **On a bot token the call succeeds and does nothing**, which is
+no-ops on this call (S6); this verb cannot enforce which credential ran it, only warn"*
+(`docs/ab/shibari.md` § 2.5). **On a bot token the call succeeds and does nothing**, which is
 the failure mode worth naming out loud in the handover line rather than discovering three days later.
 
 > **Copilot is the exception, and it is two facts, neither of them verified live by this port.**
@@ -371,14 +393,14 @@ Ready. This is [`hatsu:rikugan`](../rikugan/SKILL.md) § 8's carve-out, for the 
 
 ## Residue
 
-1. **`gh pr create` — no `nen` verb opens a pull request** at `v0.3.0`; `nen pr` carries eight
-   subcommands and `create` is not one (§ 4, verified live).
-2. **`nen pr edit-body --body-file` does not exist** — verified live at exit `2` in both the
-   subcommand and the flag shape (§ 8). The write-back is `gh pr edit --body-file`, by hand. P2.
-3. **`nen shu evidence --base <ref>` does not exist** — `project.evidence` is preserved and unread
-   by nen at this pin. The rows are `git diff --name-only origin/<base>...HEAD` filtered by
-   `project.evidence.globs` and grouped by `project.evidence.scene`, **re-used from
-   [`hatsu:rikugan`](../rikugan/SKILL.md)'s § 3 assembly rather than derived a second time** (§ 2).
+1. **`gh pr create` — no `nen` verb opens a pull request** at the pinned `v0.5.0`; `nen pr` carries
+   nine subcommands and `create` is not one (§ 4). **Genuinely still residue.**
+2. **RETIRED at nen `0.5`: `nen pr edit-body --target <owner/name> --pr <n> --body-file <path>`** —
+   verified live at exit `0`, with the number certified before any write (§ 8). `gh pr edit
+   --body-file` is not the path any more.
+3. **RETIRED at nen `0.5`: `nen shu evidence --base <ref>`** — `project.evidence` is parsed by nen
+   and the verb reads it, exit `0` (§ 2). The rows are **re-used from
+   [`hatsu:rikugan`](../rikugan/SKILL.md)'s § 3 assembly rather than derived a second time**.
 4. **The evidence mirror's publish step is the target repository's own script**, not a nen verb —
    on KroApple, `ci_scripts/pr_screenshots.sh -y` (§ 5). Nen shells out to `git` and `gh` and
    nothing else, by design; a hosting mechanism is a stack's own machinery.
@@ -388,8 +410,9 @@ Ready. This is [`hatsu:rikugan`](../rikugan/SKILL.md) § 8's carve-out, for the 
 6. **The last-pushed-commit precondition is git's** — `git fetch` plus a two-ref `git rev-parse`
    comparison (§ 4). `nen wc classify` reports the branch and its distance from the **base**, never
    from the remote branch.
-7. **`nen/workflow.json` is unvalidated at `v0.3.0`** — no row in `nen schema check` (verified live).
-   § 2's keys are read as data, with the defaults stated.
+7. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
+   an `ok  nen/workflow.json` row at the pinned `v0.5.0` (verified live). § 2's keys are still read
+   here; reading a file is not residue.
 
 ## Authority
 

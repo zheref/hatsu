@@ -149,8 +149,11 @@ nen watch until --command "<one read-only observation>" [--true-pattern "<regex>
   --interval-ms <pollSeconds × 1000> --max-iterations <a safety bound>
 ```
 
-> **Those are the flags the pinned `nen 0.3.0` actually carries**, read live from its own
-> `nen watch until --help` and recorded in `docs/ab/en.md` § 2.6. There is no `--interval`, no
+> **Those are the flags the pinned `nen 0.5.0` actually carries**, re-read live from its own
+> `nen watch until --help` at the pin (`docs/ab/en.md` § 2.6, § *Retired at nen 0.5*). Two more are there
+> and are worth knowing: `--cwd <path>`, and `--error-exit-threshold <n>` — **only meaningful when
+> `--true-pattern` is NOT given**, where it says which exit code stops being "not yet" and starts being an
+> observation error (default `2`, because `0`/`1` are the true/false pair most CLIs use). There is no `--interval`, no
 > `--max-cycles` and no bare `<condition>`: the observation is `--command`, the pace is `--interval-ms`
 > (so `monitor.pollSeconds` is multiplied by 1000 before it is passed — `300` → `300000`), and the command
 > is spawned **directly, with no shell**, so `<bin>` must be a real executable on `PATH` and a pipeline is
@@ -162,7 +165,7 @@ nen watch until --command "<one read-only observation>" [--true-pattern "<regex>
 > stopping at it, is yours**: the same by-hand bookkeeping [`en`](../skills/en/SKILL.md) § *Residue* 2
 > names, and it is **residue**, not a verb. Say so in the watch's first line, every watch.
 
-Re-read `nen watch until --help` at whatever ref is actually pinned — the flags above are `0.3.0`'s, and a
+Re-read `nen watch until --help` at whatever ref is actually pinned — the flags above are `0.5.0`'s, and a
 later pin may differ. Where a flag you need does not exist, **name it as a finding** and report the gap —
 never hand-roll the missing half and present the result as though the verb produced it.
 

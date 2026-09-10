@@ -297,3 +297,33 @@ at the defaults, a poll every `300` seconds would exhaust a cap of `20` in **100
 observation counted, which for a PR waiting on a human reviewer is a cap-out that says nothing about
 the PR. **The rule is stated in the skill and counted by the skill**, and this entry exists so a
 reader knows the number in the report is a count of *actions*, not of *minutes*.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| `nen/workflow.json` unvalidated — `monitor` included | `nen schema check --repo .` | `1` overall, that row `ok` |
+
+```
+  ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off 'main', checks: lint
+```
+
+§ 2.5 recorded five rows and no workflow row. There are six now, and a malformed `monitor` block is a
+FAIL by pointer rather than something a landing watch discovers mid-loop.
+
+**`nen watch until`'s flag surface is unchanged at this pin** and was re-read from its own `--help`:
+`--command`, `--true-pattern`, `--interval-ms`, `--max-iterations`, `--cwd` and `--error-exit-threshold`.
+That last one is worth carrying into the watch's first line: **only meaningful when `--true-pattern` is
+NOT given**, where it decides which exit code stops being "not yet" and becomes an observation error
+(default `2`).
+
+**Still residue:** counting cycles 1..N against `monitor.maxCycles`. `--max-iterations` is the verb's own
+safety bound and bounds one observation run, which its help says in as many words.

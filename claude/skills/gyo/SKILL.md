@@ -66,16 +66,22 @@ at the bottom rung.
 | **under the floor** | `percent < minimum` | **`under minimum` — § 7** |
 | **not measured** | the report has no row for this file | § 4's rules 2, 2b and 3 — three different reasons, and never a band |
 
-`nen schema check` does not validate `nen/workflow.json` at `v0.3.0` (verified live,
-`docs/ab/rikugan.md` § 2.4); it is read as data, and the defaults above are stated whenever they are
-what applied.
+`nen schema check --repo <path>` VALIDATES this file at the pinned `v0.5.0` — verified live, the row
+reads `ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}'
+off 'main', checks: lint`. A malformed key is a FAIL **by pointer**, so this skill no longer checks
+the shape by eye; it reads the values, and states the defaults whenever they are what applied.
 
 ## 3. Measure — `nen shu coverage`, which reports and never gates
 
 ```bash
-nen shu coverage --repo <path> [--lane <lane>] --threshold <minimum> --dry-run   # once per repo per session
-nen shu coverage --repo <path> [--lane <lane>] --threshold <minimum>
+nen shu coverage --repo <path> [--lane <lane>] --touched --base origin/<base> --dry-run   # once per repo per session
+nen shu coverage --repo <path> [--lane <lane>] --touched --base origin/<base>
 ```
+
+**`--touched` requires `--base`, and either flag given without the other is exit `2`.** With
+`--threshold` absent — which is how gyo runs it — nen loads `nen/workflow.json`'s
+`coverage.{minimum,recommended,ideal}` through the same loader `nen schema check` validates, and
+bands every row itself.
 
 The verb runs the lane's declared coverage command and then **parses the report it produced** into
 one shape: a total, a row per target, and — with `--threshold` — whether the number cleared the bar.
@@ -102,14 +108,32 @@ not; `4` a **seat** (§ 8); `5` the tool is not on `PATH` → `nen shu tools`.
 **A dry run is told by `exitCode: 0` with `total: null`** — there is no `dryRun` boolean, and nothing
 else produces that pair. Verified live against `zheref/nen`'s own checkout (`docs/ab/gyo.md` § 2.2).
 
-## 4. Filter to the touched files — and say what could not be matched
+## 4. The touched set — nen narrows it, this skill states what it could not match
 
-**The scope is `touched`, and the verb has no flag for it at this pin.** The per-target table is
-whole-repository, so the filter is by hand:
+**RETIRED at nen `0.5`: the filter is `--touched --base <ref>`.** After the run and the parse, nen
+computes `git diff --name-only <base>...HEAD` in the repository root and narrows `targets` to the
+rows that diff names — file-grain formats (`istanbul-summary`, `lcov`) matched by exact path,
+package-grain ones (`cobertura`, `jacoco`) matched when a touched file sits **under** the package,
+and `xccov-report` read at **file** grain only under this flag, because "this whole app was touched"
+is true of nearly every diff. `--json` gains `touched: { base, files, matched, unmatched }`, and the
+text report prints the same:
+
+```
+touched:       base main: 1 file (0 matched, 1 unmatched)
+  unmatched: src/__Snapshots__/test_snapshot_Settings.png
+```
+
+Verified live at `v0.5.0`, exit `0` (`docs/ab/gyo.md` § *Retired at nen 0.5*). **`unmatched` is the
+line this skill reads hardest**: it is the changed set minus what the report has a row for, which is
+exactly the input to rules 2 and 2b below. Nen reports it; deciding *why* each entry is unmatched —
+a format the tool does not measure, or a file its configuration excluded — is still this skill's,
+and is stated.
+
+**Still fetch the base first, and pass its remote ref**, because nen computes the diff and does not
+fetch:
 
 ```bash
 git -C <path> fetch origin <base>
-git -C <path> diff --name-only origin/<base>...HEAD
 ```
 
 > **The range is `origin/<base>...HEAD`, after that fetch — never the bare branch name.**
@@ -121,9 +145,10 @@ git -C <path> diff --name-only origin/<base>...HEAD
 > `git merge-base origin/<base> HEAD` is the same set as a SHA, and is the form to quote in the
 > report. **A base named in § 1 is a branch name; the range is that branch's remote ref.**
 
-The result is the **changed set**. The **touched set** — what the ladder is applied to — is the
-changed set minus what rules 2 and 2b remove. Then intersect it with `targets[].name`. Rules, and the
-last is the one that gets skipped:
+Nen's `touched.files` is the **changed set**. The **touched set** — what the ladder is applied to —
+is the changed set minus what rules 2 and 2b remove, which is what nen reports as `matched` plus
+whatever of `unmatched` is a real gap rather than an exclusion. Rules, and the last is the one that
+gets skipped:
 
 1. **Match on the path the report gives, resolved against the lane's `cwd`** — never on a basename. A
    repository with `src/gate.ts` and `legacy/gate.ts` has two files whose basenames are identical and
@@ -271,26 +296,26 @@ A run that cannot produce a number after the repair says that, and says which ar
 
 ## Residue
 
-1. **`nen shu coverage --touched --base <ref>`** — **`--touched` is not a known option at `v0.3.0`**,
-   verified live: exit `2`, *"unknown option '--touched'"*, listing the family's whole option surface
-   (`docs/ab/gyo.md` § 2.3). **It landed on nen `main` during the week of 2026-09-08 and ships at
-   `0.4.0`** (brief § 4.4) — a pin that has not moved, not a feature to file. Until it does, § 4's
-   filter is `git diff --name-only origin/<base>...HEAD` intersected with `targets[].name` by hand,
-   with the per-file `met` decided against § 2's ladder by this skill, and reported as by-hand.
-2. **Per-file `met`** — at this pin `--threshold` compares against the report's **total** only
-   (`threshold: {value, met}` is one object, not a column on `targets[]`). Verified live: a table
-   whose files ran 92 / 84 / 71 reported one `met: false` for the 79.50% total. Every per-file band in
-   § 4's table is therefore computed by this skill from `targets[].lines.percent`.
-3. **`nen shu test-report`** — absent at this pin (`docs/ab/tsukuyomi.md` § 2.4). Where a coverage gap
-   turns out to be a suite that did not run, the evidence is the runner's own summary, quoted.
-4. **`nen/workflow.json` is unvalidated at `v0.3.0`** — no row in `nen schema check`. § 2's ladder is
-   read as data with the defaults stated. From `0.4.0` `nen shu coverage` reads the ladder itself for
-   its default threshold (brief § 4.1).
+1. **RETIRED at nen `0.5`: `nen shu coverage --touched --base <ref>`** — the filter is the verb's
+   (§ 4), verified live at exit `0` with a `touched:` line reporting `matched`/`unmatched`. What is
+   still this skill's is **naming the reason** each `unmatched` entry is unmatched.
+2. **RETIRED at nen `0.5`: per-file `met` and per-file bands** — each narrowed row gains its own
+   `met` when `--threshold` is given, and its own `band` (`under-minimum` / `minimum` /
+   `recommended` / `ideal`) against the workflow ladder when it is not. Both are on the counts and
+   never on the rounded percentage.
+3. **RETIRED at nen `0.5`: `nen shu test-report`** — the verb exists (`tsukuyomi` § 6). Where a
+   coverage gap turns out to be a suite that did not run, run it and quote its rows.
+4. **RETIRED at nen `0.5`: the ladder is nen's to read.** `nen shu coverage --touched --base <ref>`
+   with no `--threshold` loads `nen/workflow.json`'s `coverage.{minimum,recommended,ideal}` itself and
+   prints a `ladder:` line plus a `band` per row — verified live, exit `0`, *"ladder: nen/workflow.json
+   -- minimum 80% / recommended 85% / ideal 90%. REPORTED per row as 'band', and never enforced"*. The
+   file is validated too: `nen schema check` carries an `ok  nen/workflow.json` row. § 2's table stays
+   as the statement of what the bands MEAN, which is policy nen reports and never enforces.
 5. **The touched set's exclusions** (§ 4, rules 2 and 2b) — read out of the repository's own
-   coverage configuration by hand and named in the table. No verb reports what a coverage tool was
-   configured not to instrument, and `--touched` at `0.4.0` filters the rows nen parsed rather than
-   deriving the set: a file the tool never instrumented has no row either way, so the exclusion is
-   still this skill's to state.
+   coverage configuration by hand and named in the table. **Genuinely still residue at the pinned
+   `0.5.0`**: no verb reports what a coverage tool was configured not to instrument, and `--touched`
+   narrows the rows nen parsed rather than deriving the set — a file the tool never instrumented has
+   no row either way, so it lands in `unmatched` and the *reason* is this skill's to state.
 6. **Deciding whether a test asserts anything** stays judgment (§ 5), and a loud one.
 
 Each is run in the open and reported as by-hand, per the Nen-first rule's second half

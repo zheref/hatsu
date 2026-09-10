@@ -53,8 +53,10 @@ has none, and inventing an optional clause so that a parse can be echoed would b
 | `commits.allowedAttributionTrailers` | the only trailers § 4's commit may carry | `["Akatsuki-Agent"]` |
 | `commits.forbiddenTrailers` | trailers that refuse the commit outright | `["Co-Authored-By", "Claude-Session", "Signed-off-by"]` |
 
-`nen schema check` does not validate this file at `v0.3.0` (verified live, `docs/ab/rikugan.md`
-§ 2.4); it is read as data, and the defaults above are stated whenever they are what applied.
+`nen schema check --repo <path>` VALIDATES this file at the pinned `v0.5.0` — verified live, the row
+reads `ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}'
+off 'main', checks: lint`. A malformed key is a FAIL **by pointer**, so this skill no longer checks
+the shape by eye; it reads the values, and states the defaults whenever they are what applied.
 
 > **Declared change from `claude/agents/kurapika.md` § *How you work* — named, not slipped in.**
 > The agent definition today reads *"No AI attribution beyond the trailers the maintainer's own
@@ -231,22 +233,38 @@ trailing period) each refuse at exit `2` with a named reason — the transcripts
    branch has been rewritten under this run and the state is reported instead.
 4. **A forbidden trailer refuses.** § 2's `commits.forbiddenTrailers`.
 
-> **`nen wc squash` does not exist at `v0.3.0`; nor does the trailer guard — both verified live,
-> and both are residue.** `nen wc` carries exactly one verb, `classify` (its own `--help`). And
-> **`nen commit format` renders a forbidden trailer without complaint**: verified live,
-> `--trailer "Co-Authored-By=Claude <noreply@anthropic.com>"` prints
-> `Co-Authored-By: Claude <noreply@anthropic.com>` and exits **`0`** (`docs/ab/aka.md` § 2.2). The
-> `--repo`-aware refusal is P2 (brief § 4).
+> **RETIRED at nen `0.5`: `nen wc squash` IS the verb, and it enforces all four refusals itself.**
 
-**Enforcement is three-layered, and only the first layer is this skill's.** (a) **This skill refuses
-to write the trailer** — the rendered message is read and compared against
+```bash
+nen wc squash --repo <path> --onto <ref> --message-file <file> [--dry-run] [--json]
+```
+
+> It folds every commit `git merge-base <onto> HEAD` finds into ONE, whose message is held to the
+> same shape `nen commit format` enforces — a Conventional Commits header ≤ 72 characters, trailers
+> as `Key: value` lines in the final paragraph, and **any attribution trailer this repository's
+> `nen/workflow.json` does not admit refused**, in the same words that verb uses. Every refusal runs
+> **before a single write**, all at exit `2`: a dirty working tree (every uncommitted and untracked
+> path named); an `--onto` that is not an ancestor of `HEAD` (what `git merge-base` found instead,
+> quoted); and any commit in the range already reachable from `@{upstream}`, fetched first — *"already
+> published; squashing would rewrite pushed history"*. **Fewer than two commits to fold is not a
+> refusal**: exit `0`, one line, nothing moves.
+>
+> Both refusals verified live at `v0.5.0` (`docs/ab/aka.md` § *Retired at nen 0.5*): against a dirty
+> fixture, exit `2` naming all five paths; against this branch, exit `2` naming the already-published
+> commit by SHA and subject. The mechanism is `git reset --soft <merge-base>` then `git commit -F`,
+> both through the seam — so a commit that then fails leaves the originals recoverable from
+> `ORIG_HEAD` and the reflog, which the verb's own error names. It never touches a remote beyond the
+> read-only fetch, never pushes, and never force-anything.
+
+**Enforcement of the trailer rule is three-layered, and the third layer is now the binary's.** (a)
+**This skill refuses to write the trailer** — the rendered message is read and compared against
 `commits.forbiddenTrailers` before the commit, agent-side, and it is the layer that is live
-everywhere; (b) the **target repository's `commit-msg` hook**, which `nen scaffold init` generates
-from `commits.allowedAttributionTrailers` at **nen `0.4.0`** (in flight; KroApple and kro-pwa
-already carry one); (c) **`nen commit format --repo`** refusing it, also at `0.4.0`. **At the pinned
-`0.3.0`, (b) and (c) are target-dependent**: say which of them the repository in front of you
-actually has, and where it has neither, say that the refusal is the agent's alone — never describe
-it as mechanical where no hook is installed.
+everywhere and survives a forgotten flag; (b) the **target repository's `commit-msg` hook**, which
+`nen scaffold init` generates from `commits.allowedAttributionTrailers`, and which stays
+**target-dependent** — it exists only in a repository that has been scaffolded, and hatsu's own
+checkout has not; (c) **`nen commit format --repo` and `nen wc squash`** refusing it outright, both
+at the pinned `0.5.0`, verified live. Say which of (b) and (c) the repository in front of you
+actually has; never describe a hook as installed where none is.
 
 **One commit, the maintainer as git author, `Akatsuki-Agent: kurapika` and nothing else.** No
 `Co-Authored-By`, no `Claude-Session`, no `Signed-off-by`, no "Generated with" line, no model name
@@ -276,11 +294,11 @@ git -C <path> push origin HEAD                # already published
 git -C <path> push -u origin HEAD             # first publish: also sets upstream
 ```
 
-**Residue: there is no push verb at `v0.3.0`.** `nen pr cascade-main` pushes, but only as the tail of
-a merge it performed itself, and only to the branch it just merged into — it is a cascade, not a
-push (its own `--help`: *"Merges (never rebases) the trunk into the current branch and pushes on a
-clean merge"*), and `docs/ab/ao.md` § 2.3 records it doing exactly that live. So the push is git's,
-by hand, named here.
+**Residue, and still residue at the pinned `0.5.0`: there is no push verb.** `nen pr cascade-main`
+pushes, but only as the tail of a merge it performed itself, and only to the branch it just merged
+into — it is a cascade, not a push (its own `--help`: *"Merges (never rebases) the trunk into the
+current branch and pushes on a clean merge"*), and its new `--no-push` moves in the other direction
+entirely. So the push is git's, by hand, named here.
 
 - **Never `--force`, never `--force-with-lease`, never `+refs/`.** § 4's range computation exists so
   that a plain push always suffices; if a plain push is rejected as non-fast-forward, that is a
@@ -308,26 +326,29 @@ invent one.
 
 ## Residue
 
-1. **`nen wc squash --onto <ref> --message-file <f>`** — absent at `v0.3.0` (`nen wc` has one verb,
-   `classify`). § 4 runs `git reset --soft <computed point>` plus one `nen commit format`-shaped
-   commit **gated on the formatter's exit code, with stdout and stderr kept apart** (§ 4), and
-   enforces the verb's four refusals by hand first. **Making the squash point usable is
-   part of that by-hand half**: `git cat-file -e <sha>^{commit}` (with `git fetch origin <branch>`
-   when the object is not local — `ls-remote` transfers none) and `git merge-base --is-ancestor
-   <sha> HEAD`. Both are named here because both are steps the verb will own when it lands.
-2. **The forbidden-trailer refusal in `nen commit format`** — verified live to be absent: a
-   `Co-Authored-By` trailer renders at exit `0`. Until the P2 `--repo`-aware guard lands, the
-   refusal is **this skill's rule** (always), plus a `commit-msg` hook **only in a repository that
-   has been scaffolded with one** — which hatsu's own checkout has not.
+1. **RETIRED at nen `0.5`: `nen wc squash --onto <ref> --message-file <f>`** — the verb folds the
+   range and enforces all four refusals itself, before a single write (§ 4, both refusals verified
+   live at exit `2`). `git reset --soft` plus a hand-gated `nen commit format` is no longer the path,
+   and **the by-hand precondition checks go with it**: the verb runs the ancestry and upstream tests.
+   Making an `--onto` that names an object this checkout has not got usable is still the caller's —
+   `git fetch origin <branch>` first, since `ls-remote` transfers no objects.
+2. **RETIRED at nen `0.5`: the forbidden-trailer refusal in `nen commit format --repo`** — verified
+   live at the pin, exit `2` naming the file and the admitted key. The refusal is now (a) this
+   skill's rule, (c) the verb's, and (b) a `commit-msg` hook **only in a repository that has been
+   scaffolded with one** — which hatsu's own checkout still has not.
 3. **The published/unpublished test** — `git ls-remote --heads origin refs/heads/<branch>`, asked of
    the remote directly, which is the default form; `git fetch origin <base> <branch>` (a missing
    remote branch tolerated) **then** `git rev-parse --verify --quiet refs/remotes/origin/<branch>` is
    the fallback (§ 4). `nen wc classify --json` reports the branch and its distance from the base,
    never the remote, and nothing in nen refreshes the branch's tracking ref for this decision.
 4. **The push itself** — `git push [-u] origin HEAD`. `nen pr cascade-main` pushes only as the tail
-   of its own merge and is not a push verb.
-5. **`nen/workflow.json` is unvalidated at `v0.3.0`** — no row in `nen schema check` (verified live).
-   § 2's keys are read as data with the defaults stated.
+   of its own merge and is not a push verb. **Genuinely still residue at the pinned `0.5.0`.**
+5. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
+   an `ok  nen/workflow.json` row at the pinned `v0.5.0` (verified live, exit `1` on Hatsu's own
+   taxonomy-less checkout with that row `ok`), and a malformed policy file is a FAIL **by pointer**
+   rather than something this skill notices by eye. § 2's keys are still read here — reading a file is
+   not residue; nothing in nen hands the policy out except `shu coverage`'s ladder and
+   `commit format`'s trailer list.
 
 ## Authority
 

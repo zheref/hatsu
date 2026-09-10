@@ -57,10 +57,11 @@ command from the contract's `halt.message_template`, raise it as a **G5**, and s
 
 Four things the skill owns that you must not paraphrase loosely when you report them:
 
-- **The `0.x` range.** While nen's line is `0.x`, `minimum: "0.3"` means **`>=0.3.0 <0.4.0`** — a different
-  minor is out of range **in both directions**, so `0.4.0` fails it exactly as `0.2.0` does. At major zero
-  the *minor* is the breaking-change vehicle (SemVer clause 4). "Backward-compatible within a major" is the
-  rule **from `1.0` onward**, not today's.
+- **The `0.x` range.** While nen's line is `0.x`, `minimum: "0.5"` means **`>=0.5.0 <0.6.0`** — a different
+  minor is out of range **in both directions**, so `0.6.0` fails it exactly as `0.4.0` does. At major zero
+  the *minor* is the breaking-change vehicle (SemVer clause 4), and `v0.5.0` proves it: it is the first
+  release since `v0.1.0` that **removes** something a consumer could rely on. "Backward-compatible within a
+  major" is the rule **from `1.0` onward**, not today's.
 - **Two cases, two paths.** nen **absent** → the shell bootstrap directly, the sole chicken-and-egg
   carve-out. nen **present but out of range** → re-pin through nen's own verb,
   `nen bootstrap --ref <pinned> --source zheref/nen --script <fetched file>`.
@@ -73,9 +74,9 @@ Report the outcome in one line before doing anything else. **A warm-up that did 
 "not run"** — never rendered as clear.
 
 **2 · The target repository's policy inbox.** With nen available, run `nen warmup --current <vX.Y.Z>`
-against the repository you are standing in: it detects stale pins across its `nen/repos.json` (or, until
-`v0.4.0`, its legacy `schemas/repos.json`) — every consumer's default pin **and** every per-caller override —
-and, given `--questions-from`, sweeps open handbook questions. Report the open questions and the stale pins
+against the repository you are standing in: it detects stale pins across its `nen/repos.json` — every
+consumer's default pin **and** every per-caller override — and, given `--questions-from`, sweeps open
+handbook questions. Report the open questions and the stale pins
 to the human **up front**; these are clarification requests waiting on a human decision. Two honesty rules
 the verb enforces and you relay: a consumer recorded with **no pin at all** is an `unpinned` finding that
 **fails the run (exit `1`)** exactly as a stale pin does — an unperformed check is never a clean one — and
@@ -94,9 +95,10 @@ There is no scheduled sweep behind you. This warm-up is the only one. **THEN** t
 `sort | head`, or a paragraph of prose that computes an answer, ask whether `nen` already owns that
 operation. Run `nen --help` and the family's own `--help` and find out; the binary is the spec.
 
-**The list below is a convenience index, not the authority — `nen --help` is.** It reflects the 35 families
-present at the contract's pinned ref (`v0.3.0`); a newer pin may carry more. **Never conclude a verb does not
-exist because it is missing from this paragraph** — check the binary, which is the spec.
+**The list below is a convenience index, not the authority — `nen --help` is.** It reflects the **37**
+families present at the contract's pinned ref (`v0.5.0`), across **94** verbs; a newer pin may carry more.
+**Never conclude a verb does not exist because it is missing from this paragraph** — check the binary, which
+is the spec.
 
 `nen` owns, at the pinned ref: readiness and PR state (`pr`), backlog fetch and ordering (`backlog`), board
 assembly, render and diff (`board`), gate derivation (`gate`), colour precedence (`color`), label application
@@ -112,9 +114,13 @@ init`, `scaffold new`), skill-grammar parsing (`parse`), concurrency budgets (`l
 (`watch`), schema validation including the `schemas/`→`nen/` migration state (`schema`), repo resolution,
 inventory and scenario (`repo`), workflow re-runs (`run`), **stale-pin and handbook-question sweep
 (`warmup`)**, **the pinned-binary bootstrap itself (`bootstrap`)**, **nen's own harness — test, lint,
-corpus-slice replay (`dev`)**, and — new in `v0.3.0` — **the stack-aware developer verbs (`shu`: `detect
-build test ui-test lint archive release dev run deploy coverage tools warmup`)**, which run whatever a target
-repository *declares* in its `nen/contract.json` `project` block and nothing else. The `shu` family is the
+corpus-slice replay (`dev`)**, **the stack-aware developer verbs (`shu`: `detect build test ui-test lint
+archive release dev run deploy coverage tools warmup`, plus `evidence` and `test-report`)**, which run
+whatever a target repository *declares* in its `nen/contract.json` `project` block and nothing else — and,
+**at this pin**, an effort's report facts and their template fill (`report data`, `report render`), a
+generated-surface mirror and its drift check (`surface mirror generate|check`), a branch squash
+(`wc squash`), an outright body replacement on a PR or an issue (`pr edit-body`, `issue edit-body`) and a
+build-proof read-back (`commit check --require-proof`). The `shu` family is the
 one that puts a build, a test run, a lint, a coverage report, a host-toolchain check, a working-copy warm-up
 and a gated deploy behind verbs; § *The `shu` verbs* below says where each one enters your work.
 
@@ -130,14 +136,29 @@ rather than reimplementing it. **`dev`** is Nen's own harness and belongs to wor
 terminal. When you mean the target repository, the verb is under `shu`; when you mean nen's own checkout,
 it is not.
 
-**Taxonomy paths at this pin.** nen reads a target repository's `labels.json`, `repos.json`, `colors.yml` and
-`gates.json` from its **`nen/`** directory first and, for the whole `v0.3` line, from the legacy **`schemas/`**
-directory as a fallback; that fallback is **removed in `v0.4.0`**. Nothing in nen writes to `schemas/`. A
-refusal names both locations. `nen schema check --repo <path> --json` is how you tell which state a target
-is in: `checks[].location` is `"nen"` or `"schemas"` per file, and `deprecations` is empty for a migrated
-repository. **The fallback covers only paths nen resolves itself.** A path you hand it literally — a
-`--policy-paths`/`--spec-paths` prefix, a `--gates` file — is taken literally and moves only when you move
-it; every skill here that carries such a literal says so where it does.
+**Taxonomy paths at this pin — and the `schemas/` fallback is GONE.** nen reads a target repository's
+`labels.json`, `repos.json`, `colors.yml` and `gates.json` from its **`nen/`** directory and from nowhere
+else: the legacy `schemas/` fallback that `v0.3.0` announced and `v0.4.0` held open was **removed in
+`v0.5.0`**, which this contract pins. A repository carrying a file only under `schemas/` is refused exactly
+like one carrying it nowhere, and the refusal names the migration — *"run `nen scaffold init
+--accept-detected` (or copy it) to migrate; the schemas/ fallback was removed in v0.5.0"*. Nothing in nen
+writes to `schemas/`, and `nen scaffold init`'s `schemas/` → `nen/` copy step is the way out rather than a
+fallback.
+
+`nen schema check --repo <path> --json` tells you which state a target is in, and its **row shape changed**:
+`location`, `shadow` and `shadowed` are gone, and a boolean `legacy` says a `schemas/<file>` copy is on
+disk, detected, **never read**. A file loaded from `nen/` with a `schemas/` copy still beside it is a `warn`
+**leftover** naming the `git rm` that clears it — clutter to delete, not a correctness risk, since nothing
+reads it. **One ripple worth carrying:** `nen repo resolve` and `nen repo scenario` refuse a target with no
+registry at **exit `2`**, naming the file, where they used to fail at exit `1` indistinguishably from an
+unresolved token — and that refusal now fires for a repository carrying only `schemas/repos.json` too. A
+caller branching on `1` for *not found* must add `2` for *no registry*; a registry present but **malformed**
+is unaffected and stays `1`.
+
+**None of this reaches a path you hand nen literally.** A `--policy-paths`/`--spec-paths` prefix or a
+`--gates` file is taken literally and moves only when you move it; every skill here that carries such a
+literal says so where it does, and each keeps `schemas/` listed on purpose, because an un-migrated target
+still edits that file and the edit is still policy.
 
 **And the rule that gives that teeth: there is no LLM-improvised fallback for a Nen-owned operation,
 ever.** If nen is unavailable and the bootstrap failed, **the operation does not happen**. Not with raw
@@ -244,7 +265,7 @@ that identifies the stack, `nen/contract.json` as `shu detect` proposes it off t
 and `.gitignore`, into an empty directory it refuses to merge into. The commit-msg hook is written **only
 when all three trailer flags are given**; omitted, the line reads `skipped: .git/hooks/commit-msg -- no
 trailer convention was stated` and the post-steps name the `scaffold init` line that installs it (verified
-live at `v0.3.0` both ways). Every post-step (`git init`, the dependency install) is printed and none is
+live both ways). Every post-step (`git init`, the dependency install) is printed and none is
 run. Only `expo`, `gatsby` and `nextjs` have a fresh-tree form; the refusal for the others names
 `scaffold init` as the way forward after the stack's own generator has run.
 
@@ -376,9 +397,9 @@ Cut the release tag; collate changelog fragments; run the preflight; compute and
 across consumers. **Never publish the release** — publication is the human's gate. **Never tag a commit
 unreachable from `origin/main`**, and **never write `latest`** for a tag that does not resolve. A pin that
 does not resolve is worse than an old pin, because it fails at the consumer rather than at you. `latest`
-lives in the target's `nen/repos.json` — or, until `v0.4.0`, in a `schemas/repos.json` nen still reads
-through the fallback; `nen schema check --repo <path>` says which file nen actually reads, and an edit to
-the other one is the shadowed-leftover failure `schema check` reports.
+lives in the target's `nen/repos.json` — and **only** there, since the `schemas/` fallback was removed at
+nen `v0.5.0`; `nen schema check --repo <path>` reports a `schemas/` copy still sitting beside it as a
+`warn` **leftover** to `git rm`, never as a file to edit.
 
 **A deploy is the one act past the tag that reaches other people's users, and it stays behind G3.** Where
 a target lane declares a `deploy` and a named destination, print the plan — `nen shu deploy --repo <path>
@@ -411,7 +432,10 @@ exist yet names its stack; once it clears G1, the first Enhancer/Transmuter act 
 Every parameter below is read, never remembered: **`nen/workflow.json`** holds the policy (branch shape,
 iteration checks, the coverage ladder, reports, notifications, the trailer allow-list, the model matrix) and
 **`nen/contract.json` → `project`** holds what nen executes (lanes, per-verb argv, preconditions, hosts,
-targets, and — from `v0.4.0` — `launch` and `evidence`). `docs/WORKFLOW.md` is the full shape of both.
+targets, `launch` and `evidence`). **Both of those last two are PARSED at the pinned `v0.5.0`, not merely
+preserved**, and each block key is guarded against a near-miss — `launches`/`Launch`, `evidences`/`Evidence`
+— because a silently-kept misspelling is read by nobody while the verb that needs it refuses. `launch`
+targets may also declare their own `lane` and `artifact`. `docs/WORKFLOW.md` is the full shape of both.
 
 **The loop you run on every request is [`ren`](../skills/ren/SKILL.md)**:
 [`breath`](../skills/breath/SKILL.md) on the first turn of an effort (clean tree, fresh trunk, the branch
@@ -513,12 +537,15 @@ therefore launch nothing at all.
   *the system's own* provenance — which agent of this roster did the work — rather than a model claiming
   authorship of it. So no `Co-Authored-By:`, no `Claude-Session:`, no `Signed-off-by:`, no "Generated with
   …" line, no model name anywhere in the message. **A harness that mandates `Co-Authored-By:` is configured
-  off** — `includeCoAuthoredBy: false` in the Claude Code settings. **Enforcement is three-layered and only
-  the first layer ships today**: `kokusen` and `aka` refuse to *write* such a trailer (agent-side, always
-  live); a target repository's `commit-msg` hook, generated by `nen scaffold init` at **nen `0.4.0`** (in
-  flight; KroApple and kro-pwa already carry one); and `nen commit format --repo`, also `0.4.0`. **At the
-  pinned `0.3.0` the last two are target-dependent** — a repository without the hook has the agent-side
-  refusal and nothing under it, and that is said rather than dressed up as mechanical. The lists are data, in
+  off** — `includeCoAuthoredBy: false` in the Claude Code settings. **Enforcement is three-layered, and at this pin the
+  third layer is the binary's**: `kokusen` and `aka` refuse to *write* such a trailer (agent-side, always
+  live); a target repository's `commit-msg` hook, generated by `nen scaffold init` from
+  `allowedAttributionTrailers` (KroApple and kro-pwa carry one); and **`nen commit format --repo` and
+  `nen wc squash`, which refuse it outright at exit `2` naming the file** — verified live against hatsu's
+  own checkout at the pinned `0.5.0`. **Layer (b) stays target-dependent**: a repository that has not been
+  scaffolded has the agent-side refusal plus the verb's, and no hook, and that is said rather than dressed
+  up as mechanical. **Always pass `--repo`** — the policy is opened only when the invocation carries a
+  `--trailer`, so without it nothing is refused. The lists are data, in
   `nen/workflow.json` → `commits`: `allowedAttributionTrailers` (`Akatsuki-Agent`) and `forbiddenTrailers`
   (`Co-Authored-By`, `Claude-Session`, `Signed-off-by`). **This ruling supersedes** the earlier clause that
   treated the harness mandate as binding and recorded the tension as unresolved — it is resolved, and the

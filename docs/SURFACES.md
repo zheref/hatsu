@@ -155,11 +155,11 @@ hand-written `AGENTS.md` safe from an `--out` pointed one directory too high.
 **Run this whenever a `SKILL.md` or an agent definition changes**, in the same commit. That is the whole
 discipline; the check exists because "in the same commit" is a thing people forget.
 
-> **`nen surface` does not exist at the pinned nen `0.3.0`.** `nen surface` answers
-> *"nen: unknown command 'surface'"* at exit `2` (transcript: [`docs/ab/surfaces.md`](ab/surfaces.md) § 2.3).
-> The mirrors committed here were generated with a build from nen `main`, and regenerating them needs that
-> build until [`nen/contract.json`](../nen/contract.json)'s `pinned_ref` moves. **Using them needs nothing** —
-> they are files in this repository.
+> **RETIRED at nen `0.5`: `nen surface` IS in the pinned binary.** It answered *"nen: unknown command
+> 'surface'"* at exit `2` through `v0.4.0` (transcript: [`docs/ab/surfaces.md`](ab/surfaces.md) § 2.3); at the
+> pinned `v0.5.0` both `mirror generate` and `mirror check` run, and the mirrors committed here were
+> regenerated with that build. **Using them still needs nothing** — they are files in this repository — and
+> regenerating them now needs only the pinned nen.
 
 ---
 
@@ -193,11 +193,17 @@ regeneration, in `mukai`, before `shibari` opens the PR.
 ### In CI
 
 [`.github/workflows/surface-mirror-check.yml`](../.github/workflows/surface-mirror-check.yml) bootstraps nen
-**at the ref `nen/contract.json` pins**, then runs the script. While that pin is `v0.3.0` — a nen with no
-`surface` verb — the job **skips with a `::notice::` and passes**, naming the pin and what will change. It
-becomes a real check the moment the repin lands, with no edit to the workflow. A job that failed every PR
-until an unrelated repin merged would be turned off within a week, and a check that is turned off is worth
-less than one that says exactly why it is not running yet.
+**at the ref `nen/contract.json` pins**, then runs the script. **At the pinned `v0.5.0` that is a real
+check**: the pinned nen carries the verb, so the job regenerates in memory and fails on drift.
+
+Through `v0.4.0` it **skipped with a `::notice::` and passed**, naming the pin and what would change — a job
+that failed every PR until an unrelated repin merged would have been turned off within a week. The skip was
+decided by the script's own exit `2` precisely so that it would disappear with no edit to the workflow, and
+that is what happened. **That branch is now an error rather than a skip**: at a pin that carries the verb,
+exit `2` means the pin or the bootstrap is wrong, which is a thing to report and never to pass through.
+
+The job is **advisory** until the maintainer lists the `surface-mirror-check` context in a repository
+ruleset. Renaming the job silently un-requires it.
 
 ---
 

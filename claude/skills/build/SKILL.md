@@ -91,7 +91,7 @@ building=bankai:stage/building,in-review=bankai:stage/in-review,epic=bankai:epic
 ```
 
 `--chain-labels` is caller data — `<reference-repo>`'s own label names for each chain role, read from its
-`nen/labels.json` (or, until `v0.4.0`, its legacy `schemas/labels.json`), never guessed. Its taxonomy carries **no `chore` label** at all (verified:
+`nen/labels.json`, never guessed. Its taxonomy carries **no `chore` label** at all (verified:
 `gh label list` names none) — omit the `chore=` entry; that is this repository's own fact, not a
 gap in the verb. **Supply every role your repo actually uses.** Verified live, an incomplete map is
 refused outright rather than half-answered: with no `--chain-labels` at all, a real `in-review`
@@ -258,7 +258,7 @@ nen label apply RR-IS-#<N> --label bankai:stage/building --repo-slug <owner/name
   --repo <the target repo's own checkout> --reason "<why, for the ledger>" --run
 ```
 
-(`--repo` names the checkout whose `nen/labels.json` — legacy `schemas/labels.json` until `v0.4.0` —
+(`--repo` names the checkout whose `nen/labels.json`
 validates the label; the ledger defaults to that checkout's `label-ledger.jsonl`.) Inside this run it may
 be applied without a further prompt, under the fourth carve-out (§ 6), **for the named issue and for
 children created beneath it**. Every application is logged: object, label, time, exactly as

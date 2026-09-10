@@ -479,3 +479,42 @@ re-run here only to confirm it resolves a **different** product code (`RA`, not 
   only because it would recur if a future port asked this skill to.
 - **`nen pr fetch`'s live crash** (`docs/ab/backlog-state.md` § 2.5) was not re-tested here — this
   skill never calls it, for the same reason `backlog-state` stopped calling it.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| the two-directory registry probe (`nen/` **or** `schemas/`) | the `schemas/` fallback is **removed**; `nen/` is the only location | — |
+| `nen repo resolve` failing at exit `1` for a target with no registry | `nen repo resolve BC --repo <fixture-with-no-registry>` | `2` |
+
+```
+$ nen repo resolve BC --repo <fixture>
+nen repo: <fixture>/nen/repos.json: no such file. Nen reads this repository's taxonomy from
+'nen/repos.json' in the TARGET repo and has no built-in copy to fall back on -- a binary that guessed
+the names would report a taxonomy this repository does not have. Point it at a checkout that carries the
+file with --repo <path>, or add the file.
+exit=2
+```
+
+And with a legacy copy present under `schemas/` and nothing under `nen/` — the case that used to resolve
+silently through the fallback:
+
+```
+$ nen repo resolve BC --repo <fixture with schemas/repos.json only>
+nen repo: <fixture>/nen/repos.json: no such file. … A legacy 'schemas/repos.json' is present -- run
+'nen scaffold init --accept-detected' (or copy it) to migrate; the schemas/ fallback was removed in
+v0.5.0. …
+exit=2
+```
+
+**So § 2's presence check is now one directory, not two**, and a caller branching on exit `1` for *not
+found* must add exit `2` for *no registry*. A registry that is present but **malformed** is unaffected and
+stays exit `1`.

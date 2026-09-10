@@ -32,12 +32,12 @@
 # run is an unperformed check rendered as a passing one — the failure
 # nen/contract.json § no_improvised_fallback names, and the same failure the
 # plugin-bump guard was filed after. The pinned nen in nen/contract.json is
-# v0.3.0, which predates the verb (`nen surface` → "nen: unknown command
-# 'surface'", exit 2; transcript in docs/ab/surfaces.md § 2.3), so 2 is the
-# EXPECTED answer at the current pin and the caller decides what to do with it:
-# a developer regenerates with a newer nen, and .github/workflows/
-# surface-mirror-check.yml turns it into a skip-with-notice rather than a
-# failure until the repin lands.
+# v0.5.0, which CARRIES the verb — it predated it through v0.4.0 (`nen surface` →
+# "nen: unknown command 'surface'", exit 2; transcript in docs/ab/surfaces.md
+# § 2.3). So 2 is now UNEXPECTED: at this pin it means the nen on PATH is not the
+# pinned one, and .github/workflows/surface-mirror-check.yml turns it into an
+# ERROR rather than the skip-with-notice it used to be. Verified against the
+# pinned build: this script exits 0 with `codex ok: 40` and `cursor ok: 47`.
 #
 # NOT A SECOND LINT. nen/contract.json's `plugin` lane keeps exactly one lint
 # seat — `claude plugin validate . --strict` — and nen/workflow.json's
@@ -104,7 +104,7 @@ surfaces/ were NOT checked. This is reported rather than passed: a check that
 could not run is not a check that succeeded.
 
   nen on PATH : $("$nen" --version 2>/dev/null || echo "unreadable")
-  the verb     : nen surface mirror generate|check  (added after v0.3.0)
+  the verb     : nen surface mirror generate|check  (present from v0.5.0)
   the pin      : nen/contract.json -> dependency.pinned_ref
 
 Regenerate and check with a nen that carries the verb; the pinned build is

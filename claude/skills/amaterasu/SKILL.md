@@ -78,11 +78,22 @@ and ask which one; **with no `project.launch` either, this is § 1's no-launch c
 `no launch target declared; skipped` and continue, and where the lane does declare a plain `dev`
 row, run § 5's dry run and paste the command as the thing the maintainer could start by hand.
 
-**`project.launch` is Hatsu's key, not nen's, at this pin.** nen `0.3.0` preserves it and reads it by
-nothing — verified live: with a `launch` block present, `nen schema check` still reports
-`ok nen/contract.json project (1 lane: app; 4 verbs; 1 toolchain entry)` and every `shu` verb behaves
-exactly as before (`docs/ab/amaterasu.md` § 2.4). So every part of the block below that nen does not
-execute is executed by this skill, by hand, and named as residue (§ 7).
+**`project.launch` is NEN's key at the pinned `0.5.0`, and `nen shu dev|run --target <name>` executes
+it.** The loader parses the block rather than preserving it — a key one spelling out (`arg`,
+`devices`, `resolver`, `verbs`, or the block key itself as `launches`/`Launch`) is refused **by
+pointer** naming which misspelling it is, because preserved it would be read by nobody and two thirds
+of a launch would silently not happen. Two optional per-target keys land with it:
+`project.launch.<name>.lane` (which lane the target's verb, `args` and after-steps are read from — a
+device build is routinely a different declared row from the one a developer iterates in) and
+`project.launch.<name>.artifact` (the repo-relative path `{artifact}` is substituted with **instead
+of** the verb's first `artifacts` entry — "the first artifact" is the right answer for the thing a
+lane *builds* and the wrong one for the thing a device *installs*).
+
+Verified live at `v0.5.0` against a declared block, exit `0`: `target: sim  (appends no argument)  --
+on lane 'app', which this target declares`, and `substitutes: {device.id} <- 'iPhone 17 Pro' itself --
+a simulated device is addressed by its name, so nothing is probed; {artifact} <- Reports/app.bin
+(project.launch.sim.artifact, not the verb's own)`. **So the whole of the block below is nen's to run**
+— § 7 records what is left.
 
 ## 3. The core working directory, never a worktree
 
@@ -128,8 +139,9 @@ listing three devices none of which is the declared one is an absent device, not
 Pairing a device that has never been set up is `hatsu:jujutsu`'s work, not this skill's.
 
 **The match is byte for byte** — exact string equality, no case folding, no Unicode normalisation, no
-smoothing of punctuation — which is what `--target` implements from nen `0.4.0` and what the by-hand
-path here holds itself to today. The practical consequence is one character: a device named
+smoothing of punctuation — which is what `--target` implements at the pinned nen `0.5.0`, and nen's
+own `docs/USAGE.md` says so in as many words from that release. The practical consequence is one
+character: a device named
 `Sergio’s iPhone` carries **U+2019**, not the ASCII `'`, and a declaration written with the typed
 apostrophe is a *different name* — so the probe's list will not contain it and this table's second
 row fires, reporting a device that is plugged in as absent. Copy the name out of the probe's output;
@@ -152,32 +164,29 @@ came from. That is the whole contract of the paste: what the maintainer runs by 
 byte-identical to what this skill ran, and the dry run is the only rendering that guarantees it
 (*"the argv printed is the argv that would be spawned, from the same rendering"*).
 
-Then start it — **and which of these two lines starts it depends on whether the target declares
-`args`, because nen cannot carry them at this pin:**
+Then start it — **one line, whether or not the target declares `args`, because at the pinned
+`0.5.0` nen appends them itself:**
 
 ```bash
-# the target declares NO args — nen owns the run
-nen shu <verb> --repo <core working directory> [--lane <lane>]
-
-# the target DECLARES args — nen has no flag that appends argv to a shu verb
-# (`nen shu <verb>` takes only --repo, --lane, --dry-run, --json, verified live),
-# so the composed line is run directly, as NAMED RESIDUE
-<the --dry-run argv, verbatim> <project.launch.<target>.args…>
+nen shu <verb> --repo <core working directory> --target <name> [--lane <lane>]
 ```
 
-> **`project.launch.<target>.args` has no supported invocation at nen `0.3.0`, and running the bare
-> verb instead is the one thing this skill must not do.** nen `0.3.0` does not read `project.launch`
-> at all (§ 2, verified live), so `nen shu dev` runs the lane's declared argv and *nothing else*: a
-> target such as `mac` with `args: ["-scheme", "Kro for Mac (All Flags)"]` would silently start a
-> different build, and the pasted `would run:` line would not be the line that ran. Neither is
-> acceptable — the paste's whole contract is that it is what ran.
+> **RETIRED at nen `0.5`: composing the line by hand.** `--target` is read by `shu dev` and `shu run`,
+> and the verb becomes three things in order — the declared `device.resolve` probe, the lane's own verb
+> **with the target's `args` appended**, then the `after` steps with `{device.id}` and `{artifact}`
+> substituted. So a target such as `mac` with `args: ["-scheme", "Kro for Mac (All Flags)"]` now starts
+> the build it declares, and the pasted `would run:` line is the line that ran, because both come from
+> the same rendering.
 >
-> So: **compose, run the composed line by hand, and say all three things** — that nen did not run it,
-> what was appended and from which declaration, and that the composed line is the one pasted into the
-> report and into chat. **If the composed argv cannot be built faithfully** — a declaration this skill
-> cannot render, a quoting question it cannot answer — **refuse the target by name**, paste the
-> composed line for the maintainer to run, and record `launch not run` in the turn report. A launch
-> reported as run must be the launch that ran.
+> **One thing that was accepted through v0.4.0 and is now refused: `{device.id}` or `{artifact}`
+> written into `project.launch.<name>.args` is exit `2` naming the token.** Substitution reaches the
+> target's `after` steps and nowhere else, so a token in `args` was never unfillable — it was simply
+> unfilled, and reached the child process as itself. If a declaration in front of you carries one,
+> that is a repository defect and a PR of its own; never work around it by composing the line here.
+>
+> **An explicit `--lane` that contradicts `project.launch.<name>.lane` is exit `2` naming both**, because
+> two stated facts are not something nen picks between. Where the target declares its own lane, drop
+> the flag: the key exists to make it unnecessary.
 
 `dev` and `run` are **long-running**: nen inherits the terminal and hands it to the child. So
 `--json` without `--dry-run` is refused at exit `2` — verified live, with the reason (*"a --json report
@@ -195,35 +204,40 @@ relay the per-tool remedy.
 ## 6. The after-steps
 
 A declared `after[]` — install the artifact onto the device, launch the bundle id, open the `.app` —
-runs **after** the verb, in order, with `{device.id}` from § 4 and `{artifact}` from the verb row's
-first `artifacts` entry substituted. At nen `0.3.0` **nen does not run these**: `--target` is not a
-flag `shu dev` accepts, so there is no verb that reads `project.launch` at all (§ 7). Run each step
-exactly as the declaration writes it — `exe` plus `argv`, no shell, no expansion, no improvised
-extra argument — print each one, and say plainly that these ran by hand rather than through a verb.
+runs **after** the verb, in order, with `{device.id}` from § 4 and `{artifact}` substituted. **At the
+pinned nen `0.5.0` nen runs these**, as part of the same `--target` invocation (§ 5), so there is
+nothing to run by hand and nothing to report as by-hand.
 
-## 7. Residue — what has no verb at nen `0.3.0`
+**Which path `{artifact}` reads is a fact the dry run states**, and it is worth quoting into the
+report: `project.launch.<name>.artifact` where the target declares one — printed as `{artifact} <-
+<path>  (project.launch.<name>.artifact, not the verb's own)` — and otherwise the verb's own first
+`artifacts` entry. The `artifacts:` line keeps reporting what the **verb** declares; the two answer
+different questions and collapsing them would hide the override rather than show it. That override is
+refused outside the tree, refused as an empty string, and refused when **no after-step names
+`{artifact}`** — a target that never writes the token has stated a path nothing reads.
 
-- **`--target` on a launch verb does not exist.** Verified live: `nen shu dev --target sim --dry-run`
-  refuses at exit `2` — *"--target is not read by 'shu dev'. A flag accepted and ignored is worse than
-  one refused: the ignored thing is the instruction you gave"* — and `--target` on `shu deploy` is a
-  different thing entirely (a G3 destination). So the whole of `project.launch` is executed by this
-  skill: resolving the target, the device probe and its name match, appending `args`, and the `after`
-  steps with their substitutions. Each one is stated in the report as run by hand.
-- **Appending `project.launch.<target>.args` has no invocation at all.** `nen shu <verb>` accepts
-  only `--repo`, `--lane`, `--dry-run` and `--json` — verified live against `nen shu dev --help` —
-  so there is no flag, and no `--` passthrough, that would put the declared `args` on the end of the
-  lane's argv. A target that declares `args` is therefore launched by running the composed line
-  directly (§ 5), reported as by-hand, or refused by name where it cannot be composed faithfully.
-  **Never the bare verb**: that runs a different command from the one declared, and pastes a
-  `would run:` line that did not run.
-- **`{device.id}` / `{artifact}` substitution** is this skill's string work, from the probe's output
-  and the verb row's declared `artifacts` — nen substitutes placeholders only inside the rows it
-  itself executes.
+## 7. Residue — what has no verb at the pinned nen `0.5.0`
+
+- **RETIRED at nen `0.5`: `--target` on a launch verb.** `nen shu dev --repo <path> --target sim
+  --dry-run` renders the target, the device, the appended `args`, the after-steps and both
+  substitutions, exit `0` (verified live; `docs/ab/amaterasu.md` § *Retired at nen 0.5*). Resolving
+  the target, the probe and its exact name match, appending `args` and running the `after` steps are
+  all nen's now, and none of them is reported as by-hand any more.
+- **RETIRED at nen `0.5`: appending `project.launch.<target>.args`** — the flag carries them (§ 5).
+  There is still no `--` passthrough and no way to append an argument that is not in the
+  declaration, which is the point: an argv nobody declared is an argv nobody reviewed.
+- **RETIRED at nen `0.5`: `{device.id}` / `{artifact}` substitution** — nen substitutes both inside
+  the after-steps it executes, and `--dry-run` prints a `substitutes:` line saying what each one was
+  read from. Both tokens stay **unfilled** in the printed step, `{artifact}` included, because the
+  printed argv is what a real run composes.
 - **The core-working-directory check** (§ 3). No verb knows what a "core" checkout is; `nen shu dev`
   runs wherever `--repo` points, worktree included, verified live. The check is
   `git rev-parse --git-common-dir` against the session's own checkout, by hand, named here.
-- **Reading `nen/workflow.json`** — no loader and no `nen schema check` row at this pin
-  ([`hatsu:breath`](../breath/SKILL.md) § 2). `launch.default` and `launch.fallback` are read as data.
+- **RETIRED at nen `0.5`: validating `nen/workflow.json`** — `nen schema check` carries the row
+  ([`hatsu:breath`](../breath/SKILL.md) § 2). `launch.default` and `launch.fallback` are still read
+  here; a read is not a residue, and nen has no flag that would take the default from the policy file
+  for you — **there is no default target ever**, so `--target` is named on every launch or the launch
+  is the bare verb.
 - **Stopping the app.** Nothing in nen stops a long-running child; the terminal is the control.
 
 ## 8. Authority

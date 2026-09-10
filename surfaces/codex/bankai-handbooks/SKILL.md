@@ -48,7 +48,7 @@ nen repo scenario --repo <reference-repo checkout> --target <owner/name>
 ```
 
 Reads the `scenario` value **recorded for `<owner/name>` in that checkout's registry** —
-`nen/repos.json`, or, until `v0.4.0`, the legacy `schemas/repos.json` the frozen `<reference-repo>`
+`nen/repos.json` — the registry the frozen `<reference-repo>`
 still carries and nen reads through the fallback — verified live against the real registry: `<product-repo-A>` → `swiftui-tca-uzf-v2`, `<product-repo-B>`
 → `compose-uzf-v2`, `<scaffold-repo>` → `<reference-repo>` (the self-review/machinery scenario — no
 product code, `BC-{n}` citations only, and this repo is ALSO a genuine registry consumer, distinct from
@@ -57,7 +57,7 @@ its separate `maintained_tools` ownership entry).
 > **Finding against the retired skill's prose, not the binary.** The old `bankai-handbooks` skill said
 > the scenario comes "from `.github/workflows/bankai.yml`". Verified live: `nen repo scenario` never
 > reads that file — it reads the value **recorded** for the target in the registry (`nen/repos.json`,
-> legacy `schemas/repos.json`), which Naruto/`CON-14` keeps factual against the live workflow file by
+> which Naruto/`CON-14` keeps factual against the live workflow file by
 > hand, one layer removed. The
 > distinction matters when the two disagree: resolve from the registry, the way the verb does, never
 > by opening `bankai.yml` yourself.

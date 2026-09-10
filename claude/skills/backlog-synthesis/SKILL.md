@@ -233,7 +233,7 @@ nen issue file --target <owner/name> --repo <path to a checkout carrying nen/lab
   --forbid-family <the target repo's stage-label family>
 ```
 
-(`--repo` names the checkout whose `nen/labels.json` — or, until `v0.4.0`, legacy `schemas/labels.json` —
+(`--repo` names the checkout whose `nen/labels.json`
 validates the labels; `--body-file` resolves against the cwd, so pass an absolute path.)
 
 Body carries: the merged problem statement; every member's acceptance criteria, attributed; the
@@ -270,7 +270,7 @@ nen issue consolidate-close --target <owner/name> --parent <consolidated#> \
 > on the parent, naming the colliding family and its labels (`--json`: `{ plan, refused: true }`), and
 > `nen issue --help` documents the flag (verified live at `v0.3.0`). The instruction stands — pass the
 > target repo's real severity family, `bankai:severity` for `<reference-repo>`, read from its
-> `nen/labels.json` (legacy `schemas/labels.json` until `v0.4.0`) — but the silent-union failure mode is
+> `nen/labels.json` — but the silent-union failure mode is
 > gone; what remains is a refusal to relay, never a wrong parent. A malformed family (no `:`, or a leaf
 > instead of a family) is exit `2`; a well-formed family the taxonomy does not declare is exit `1` naming
 > the ones it does.

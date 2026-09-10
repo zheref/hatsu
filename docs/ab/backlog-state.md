@@ -474,3 +474,29 @@ not a choice to skip mechanizing it, a verified dead end.
   verbatim — those are `<reference-repo>` skills/personas with no hatsu counterpart yet. The port keeps
   the *shape* of that argument (nothing else answers this question) without naming `<reference-repo>`
   skills hatsu does not yet have ported.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| `checks[].location` / `deprecations` as the migration read | the `schemas/` fallback is **removed**; the `--json` row shape changed | — |
+| `nen repo resolve` failing at exit `1` for a target with no registry | `nen repo resolve BC --repo <fixture>` | `2` |
+
+**`nen schema check --json`'s row shape moved with the removal**: `location`, `shadow` and `shadowed` are
+gone, and a boolean `legacy` says a `schemas/<file>` copy is on disk, detected, **never read**. A file
+loaded from `nen/` with a `schemas/` copy beside it is a `warn` **leftover** naming the `git rm` that
+clears it, rather than the old `FAIL`-on-differing-bytes *shadowed leftover* — there is no read left to
+protect, so a stale duplicate is clutter, not a correctness risk.
+
+**`--policy-paths` keeps `schemas/` listed**, for the reason recorded in `docs/ab/tensho.md`
+§ *Retired at nen 0.5*: a literal prefix is not a resolution.
+
+The `repo resolve` exit-`2` transcript is in `docs/ab/file.md` § *Retired at nen 0.5*.

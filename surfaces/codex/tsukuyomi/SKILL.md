@@ -122,17 +122,42 @@ perfectly well ([`$rasengan`](../rasengan/SKILL.md) § 6, verified live in both 
 
 ## 6. Reading the results, and what may be changed
 
-`nen shu test-report` **does not exist at nen `0.3.0`** — verified live: *"unknown 'shu' subcommand
-'test-report'. Known: detect, build, test, ui-test, lint, archive, release, dev, run, deploy,
-coverage, tools, warmup"*, exit `2` (`docs/ab/tsukuyomi.md` § 2.4). So there is no parsed
-`{tests[], passed, failed, skipped}` document at this pin, and tsukuyomi does not pretend there is:
+**`nen shu test-report` is the verb that reads the results, and it exists at the pinned nen `0.5.0`:**
+
+```bash
+nen shu test-report --repo <path> [--lane <lane>] [--from-artifacts] [--json]
+```
+
+It declares nothing of its own — it runs `project.verbs.<lane>.test` and reads *that* row's
+`artifacts` — and parses JUnit XML (one file, or a whole directory of them, merged), the
+`testResults[].assertionResults[]` JSON a JavaScript runner writes, and the JSON summary a **declared**
+result-bundle extraction step writes, into `nen.shu.test-report/v0.1`: a row per test (`name`, `suite`,
+`status`, `durationMs`) and the four counts. Verified live at `v0.5.0` against a declared `test` row,
+exit `1` with the report absent — *"no test report at Reports/junit.xml. The declaration names it
+under the lane's 'test' verb 'artifacts' and it is not there: either the runner writes its report
+somewhere else -- correct the path -- or no run has produced one"* — which is the shape of its
+refusals: a damaged or absent report is named, never folded into a number
+(`docs/ab/tsukuyomi.md` § *Retired at nen 0.5*).
+
+Three rules of the verb that this skill relies on:
+
+- **A run that FAILED is still parsed** — the one place this verb disagrees with `nen shu coverage`,
+  because a failing suite is the report anybody asked for. A run that started *nothing* (a dry run, an
+  unmet precondition, a program that would not spawn) parses nothing, since the file on disk is then
+  certainly an earlier run's.
+- **The failures never move the exit code**, in either direction: it is the run's, and under
+  `--from-artifacts` — which reads the declared results and starts no process at all — it is about the
+  read, so a report full of failures that parsed cleanly exits `0`. **So the verdict is still read off
+  the counts, never off the exit code.**
+- **An outcome word nen has not met is a refusal naming it**, rather than a guess that could make a
+  red suite look green.
+
+**Where the verb answers a seat or a refusal, the old discipline is exactly what to fall back to:**
 
 - **Read the runner's own summary** off the output nen relayed, and **quote it** — "`1 passed, 1
   failed`", "`FAIL src/app.test.js > renders`" — rather than restating it as a number of your own.
 - **Never state a count nen did not print and the runner did not say.** A pass count nobody produced
   is the exact failure this rule exists to prevent.
-- Where the declaration names `artifacts` for the suite (a JUnit XML, an `.xcresult`), say the file
-  exists and where; parsing it is residue (§ 7), not a claim to make from its filename.
 
 **Fix the code, not the test.** A failing test is a finding until it is proven otherwise. Never
 delete, skip, `.only`-narrow, retry-loop, loosen an assertion or widen a tolerance to get green. A
@@ -144,16 +169,23 @@ it is a decision for the maintainer, not for this run.
 is its verb and reports `met`, never gating. A lane declaring no `coverage` answers exit `4` — a fact
 about the repository, and not tsukuyomi's to report as a test failure.
 
-## 7. Residue — what has no verb at nen `0.3.0`
+## 7. Residue — what has no verb at the pinned nen `0.5.0`
 
-- **`nen shu test-report`.** No parsed results document (§ 6). Read the runner's summary; quote it.
-- **Parsing a declared test artifact** — JUnit XML, `.xcresult`, a vitest JSON reporter — has no verb
-  either. Where the numbers matter, say which file holds them.
+- **RETIRED at nen `0.5`: `nen shu test-report`** (§ 6) — the parsed `{tests[], passed, failed,
+  skipped}` document is a verb, exit `0` on a report that parsed and a named refusal on one that did
+  not.
+- **RETIRED at nen `0.5`: parsing a declared test artifact** — JUnit XML (a file or a directory of
+  them), a JavaScript runner's JSON, and the JSON summary a **declared** result-bundle extraction step
+  writes are all read by that verb. **What stays residue is the extraction step itself**: nen opens no
+  `.xcresult` bundle, because the only supported way to read one is a program no declaration named —
+  so a repository on that toolchain declares the `xcrun xcresulttool` step (and, at this pin, may
+  point its `stdoutTo` at the file `test-report` then reads).
 - **No log file.** `log:` reports *"not captured to a file … A `.nen/logs/` transcript is not in this
   release (zheref/nen#91)"*; each step's output is relayed as it finishes, so the turn's report is the
   only record.
-- **Reading `nen/workflow.json`** — no loader and no `nen schema check` row at this pin
-  ([`$breath`](../breath/SKILL.md) § 2). `tests.required` and `tests.extra` are read as data.
+- **RETIRED at nen `0.5`: validating `nen/workflow.json`** — `nen schema check` carries the row
+  ([`$breath`](../breath/SKILL.md) § 2). `tests.required` and `tests.extra` are still read here;
+  a read is not a residue.
 - **Deciding whether a failing test is wrong** stays judgment, and a loud one (§ 6).
 
 ## 8. Authority

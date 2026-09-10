@@ -322,3 +322,26 @@ What the skill owes in exchange is § 9 — a written contract for what an adapt
 a tier, the finding shape, the title) — so that the boundary is a *specified* boundary rather than "it
 depends on the surface". Recorded as the counter-example to §§ 4.1–4.3: not every gap is a backlog item,
 and calling this one would produce a worse system.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| `nen/workflow.json` unvalidated — `models` and `reports.dir` read blind | `nen schema check --repo .` | `1` overall, that row `ok` |
+
+```
+  ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off 'main', checks: lint
+```
+
+**`models` is an OPEN map and nen validates nothing inside it** — the near-miss rule that guards every
+other block is deliberately not applied there — so the matrix stays this skill's own read. That is a read,
+not a residue: what the row buys is that a malformed `reports` or `coverage` block is caught by a verb
+before a reviewer is raised against it.

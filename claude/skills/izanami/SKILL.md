@@ -97,8 +97,10 @@ exit code.
 
 ## 2. Read-only, enforced before the first iteration — `nen`'s classifier IS the table
 
-The old skill's allow/refuse table was **hand-applied prose**. Verified against the real binary at the
-contract's pinned ref (`v0.3.0`), `nen parse izanami` / `nen watch until` implement a fixed classifier that
+The old skill's allow/refuse table was **hand-applied prose**. Verified against the real binary at the pin
+that then stood (`v0.3.0`; the contract now pins `v0.5.0`, whose CHANGELOG records no change to this
+classifier beyond the new `stop --mark` and `commit check` rows), `nen parse izanami` /
+`nen watch until` implement a fixed classifier that
 reproduces the same shape mechanically — every row below is a live-verified `[read-only]`, `[mutating]` or
 `[unknown]` tag, not a transcription from memory. nen `v0.2.0` **widened** the allowlist (plain file reads
 and nen's own verbs, #74) and `v0.2.0`/`v0.3.0` **tightened** the metacharacter seam (#76, #104), so every

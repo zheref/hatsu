@@ -76,15 +76,16 @@ keys; never carry a remembered value.
 > rather than a copy retained of it. One file that is always the latest render is not a retained
 > report — a retained report is one you can still find after the next turn.
 
-> **`nen schema check` does not validate this file at `v0.3.0` — verified live
-> (`docs/ab/rikugan.md` § 2.4).** Run against `hatsu`'s own checkout it reports exactly five rows —
-> `nen/labels.json`, `nen/repos.json`, `nen/colors.yml`, `nen/gates.json`, `nen/contract.json` — and
-> **no `nen/workflow.json` row**. The workflow schema and its loader are P1 (brief § 4.1) and land
-> at `v0.4.0`. Until then this skill reads the file as data itself, exactly the way
-> `claude/agents/kurapika.md` § *Session warm-up* has it read `nen/contract.json`: open it, take the
-> literal values, substitute them. **No `jq`** — a subprocess to parse JSON for the entity that just
-> read it buys a dependency for nothing. A malformed `nen/workflow.json` is reported and the
-> defaults above are used, said out loud; it is never silently repaired.
+> **`nen schema check` VALIDATES this file at the pinned `v0.5.0` — verified live
+> (`docs/ab/rikugan.md` § *Retired at nen 0.5*).** Run against `hatsu`'s own checkout it reports
+> **six** rows, and the sixth is `ok    nen/workflow.json  coverage 80/85/90 (touched), branch
+> '{model}/{persona}/{descriptor}' off 'main', checks: lint`. So the SHAPE is nen's to judge: a
+> malformed key is a FAIL by pointer and this skill quotes it rather than deciding for itself.
+> The VALUES are still read here, exactly the way `claude/agents/kurapika.md` § *Session warm-up*
+> has it read `nen/contract.json`: open it, take the literal values, substitute them. **No `jq`** —
+> a subprocess to parse JSON for the entity that just read it buys a dependency for nothing. A file
+> `schema check` FAILs is reported with its pointer and the defaults above are used, said out loud;
+> it is never silently repaired.
 
 ## 3. Assemble the data
 
@@ -92,29 +93,37 @@ keys; never carry a remembered value.
 nen report data --repo <path> --base origin/<branch.base> [--tiers <json>] --json
 ```
 
-`nen report data` is the verb that owns this step and **it does not exist at `v0.3.0`** — verified
-live, exit `2` (`docs/ab/rikugan.md` § 2.2). It is P1 (brief § 4.3), and until it lands the assembly is
-**named residue**, run by hand in this order and reported as by-hand:
+**RETIRED at nen `0.5`: `nen report data` is the verb that owns this step, and it is the ONLY path.**
+Verified live at the pinned `v0.5.0` against this repository, exit `0`: one `nen.report.data/v0.1`
+document carrying `repo`, `branch`, `base`, `generatedAt`, 33 `commits[]`, the `files[]` merge-base
+set, `evidence[]`, `coverage`, `proof` and `lastStop` (`docs/ab/rikugan.md` § *Retired at nen 0.5*).
+**Do not assemble any of it by hand** — a page whose facts came from a different reading than the
+document's is a page nobody can check against the document.
 
-> **Quote the refusal the pin actually gives, and it depends on how much of the command you typed.** The
-> *full* invocation above is refused by the **global option parser**, before the command name is ever
-> weighed — *"nen: unknown option `--base`. Known options here: `--cache-dir <value>`, `--help`, `--json`,
-> `--ref <value>`, `--repo <value>`, `--script <value>`, `--source <value>`, `--version`."* — and only the
-> bare `nen report` answers *"nen: unknown command 'report'"*. **Both exit `2` and both mean the same
-> thing**, so the operational conclusion is unchanged; the quoted text is not, and a report that quotes a
-> sentence the binary did not print is a report nobody can check. § 4's `nen report render --template …`
-> is refused the same way, on `--template` (all verified live at this pin; `docs/ab/surfaces.md` § 7, F12).
-> This is the trap `docs/ab/surfaces.md` F5 already records for `--help`: **on an older nen, the option
-> parser speaks first.**
+What the verb answers, and how to read each answer:
 
-| Field | Residue command | Becomes |
+| Field | What it is | How an absence reads |
 |---|---|---|
-| `commits[]` | `git -C <path> log --format='%h %s' origin/<base>..HEAD` | the accomplished list's evidence |
-| `files[]` | `git -C <path> diff --name-status origin/<base>...HEAD` | **04 Architecture delta**'s rows (`path`, `status`) |
-| `tier` per file | the caller's own path→tier map | the tier chip on each of those rows |
-| `evidence[]` | `git -C <path> diff --name-only origin/<base>...HEAD` filtered by `project.evidence.globs` | **05 Screenshots**' rows |
-| `coverage` | the last coverage artifact on disk, if the lane declares one | the final variant's coverage rows |
-| `proof`, `lastStop` | `.nen/proof/<lane>.json`, `.nen/last-stop.json` where they exist | the footer's provenance |
+| `commits[]` | `<base>..HEAD`, split on a unit separator so a subject carrying a tab stays one field | an empty list is a branch with nothing on it |
+| `files[]` | `<base>...HEAD`, the merge-base set a pull request shows; a rename reported at its **destination** with git's own status token | — |
+| `tier` per file | `--tiers <file>`'s answer, whose **key order is the precedence**; a pattern with no `*`/`?` matches as a path prefix on segment boundaries | `null` where no table was passed |
+| `evidence[]` | the `nen shu evidence` rows | `[]` — see the note below |
+| `coverage` | the lane's coverage report **if one is already on disk**, parsed by `nen shu coverage`'s own reader | `null` with the reason on stderr |
+| `proof`, `lastStop` | `.nen/proof/<lane>.json` and `.nen/last-stop.json`, verbatim | `null` |
+
+**It READS and never writes** — four git reads and some file opens, no write path in any flag
+combination, which is what lets `nen parse izanami` classify it read-only. **Every absence is `null`
+with the reason on stderr**, and this skill quotes that reason rather than inventing one: against
+this repository the run printed *"coverage: lane 'plugin' declares no artifact nen recognises as a
+coverage report, so there is none to read"*. **What is not folded into a null is a git command that
+FAILS** — an unresolvable `--base` is exit `2` naming the ref with nothing read, so a bad base is
+never answered as a branch with nothing on it.
+
+> **`evidence[]` is still `[]` from this verb, and that is the seam rather than a gap.** Those rows
+> belong to `nen shu evidence`, which owns `project.evidence`; `report data` ships the field so a
+> template written against the contract does not change shape. **Run
+> [`nen shu evidence --base <ref>`](../kotoamatsukami/SKILL.md) and merge its rows in** — § 4's merge
+> is where they land, each row gaining `src`.
 
 > **Every range is `origin/<base>`, after `git -C <path> fetch origin <base>` — never the bare branch
 > name.** `branch.base` is a **branch name** (`main`), and nothing in the local plane fast-forwards
@@ -146,25 +155,22 @@ live, exit `2` (`docs/ab/rikugan.md` § 2.2). It is P1 (brief § 4.3), and until
 >   sandbox refused — say so on the page in those words and leave the section empty. An unmeasured delta is
 >   reported as unmeasured, never rendered from whatever ref happened to resolve.
 
-**Three companion verbs are missing with it, and each is its own residue** — verified live at
-`v0.3.0`, all exit `2` (`docs/ab/rikugan.md` § 2.2):
+**Three companion verbs fill the extension lists, and all three exist at the pinned `v0.5.0`** —
+each verified live (`docs/ab/rikugan.md` § *Retired at nen 0.5*):
 
-- **`nen shu evidence --base <ref>`** — not a `shu` subcommand (`--base` is not even a known option
-  on the family). The evidence rows come from `git diff --name-only origin/<base>...HEAD` filtered by
-  `nen/contract.json` → `project.evidence.globs`, with `project.evidence.scene`'s `{suite}-{scene}`
-  template read by eye to split each path into its `suite` and `scene`. **This residue outlives the
-  pin**: `nen report data` at `0.4.0` emits `evidence: []` unconditionally — *"empty in this release
-  — `nen shu evidence` owns them"* — so the rows are the caller's either way until that verb is
-  wired into it.
-- **`nen shu test-report`** — not a `shu` subcommand. The **final** variant's test rows come from
-  the runner's own summary output, read as the runner printed it and quoted, never re-tabulated
-  from memory.
-- **`nen shu coverage --touched --base <ref>`** — `--touched` is not a known option. The **final**
-  variant's coverage rows come from `nen shu coverage`'s ordinary per-target table, filtered by hand
-  to `git diff --name-only origin/<base>...HEAD` — [`gyo`](../gyo/SKILL.md) § 4's touched set, its
-  exclusions included — with the band assigned against § 2's ladder. **The banding stays the
-  caller's at every pin**: `report data`'s `coverage` object carries the parsed report and no band,
-  because a band is policy and the document holds only facts.
+- **`nen shu evidence --repo <path> --base <ref>`** — **RETIRED at nen `0.5`**, exit `0`, rows grouped
+  suite → scene with a git status each. Those rows are merged into `evidence[]`, and each gains
+  `src`, the capture as a `data:` URI, because no verb turns a PNG into one.
+- **`nen shu test-report --repo <path> [--lane <lane>]`** — **RETIRED at nen `0.5`**. The **final**
+  variant's `tests[]` rows are that document's `{name, suite, status}`, read off the parse rather
+  than re-tabulated from the runner's prose.
+- **`nen shu coverage --repo <path> --touched --base <ref>`** — **RETIRED at nen `0.5`**, exit `0`,
+  with a `touched:` line and a `band` on every narrowed row. The **final** variant's
+  `touchedCoverage[]` rows are `{file, percent, band}` read straight off it. **The band is nen's
+  now**, taken from `nen/workflow.json`'s ladder when no `--threshold` is given — what stays this
+  skill's is saying *why* each `unmatched` file is unmatched ([`gyo`](../gyo/SKILL.md) § 4).
+  `report data`'s own `coverage` object still carries the parsed report and **no** band, because the
+  document holds facts and a band is policy.
 
 **Screenshots are embedded, never linked, before the PR exists.** A capture under
 `reports.captures` becomes a `data:image/png;base64,…` URI in `states[].src`. A relative path into a
@@ -177,44 +183,34 @@ moment the branch is deleted.
 nen report render --template templates/rikugan.html --data <the § 3 document> --out <file>
 ```
 
-`nen report render` is the verb that owns this step and **it does not exist at `v0.3.0`** — verified
-live, exit `2` (`docs/ab/rikugan.md` § 2.2). It is P1 (brief § 4.3): `{{token}}` substitution with
-`{{#each list}}…{{/each}}` blocks and no logic beyond that. **Until it lands, this skill fills the
-identical template by hand — named residue — and the template is `templates/rikugan.html` either
-way.** Never author a second page shape "just for this turn": a hand-filled render and a
-verb-rendered one must be the same bytes for the same data, or the verb's arrival is a redesign
-instead of a retirement.
+**RETIRED at nen `0.5`: `nen report render` is the verb that owns this step, and there is no renderer
+to write.** Verified live at the pinned `v0.5.0` against `templates/rikugan.html`: `--dry-run` lists
+**40** tokens at exit `0`, and the real render wrote a **38 283-byte** page with **zero** `{{` left in
+it, a value carrying `<v0.5.0>` arriving as `&lt;v0.5.0&gt;` (`docs/ab/rikugan.md` § *Retired at nen
+0.5*).
 
-> **Say plainly what that residue is: it is a small renderer, not a fill-in-the-blanks.** "Fill the
-> template" undersells the work and hides its one real hazard. To produce the same bytes the verb
-> would, the residue path has to implement, at minimum: `{{token}}` substitution; `{{#each list}}`
-> blocks **including the nested case** the screenshot block needs (the finding below); HTML-escaping
-> of every substituted value; and the two extra validations on `{{src}}` and `{{percent}}` (§ 4,
-> *Escaping*). That is on the order of sixty lines of real code — a **renderer**, and it should be
-> written and named as one rather than improvised token by token, because a per-turn improvisation is
-> where an unescaped value gets through.
->
-> **Where it may live: the session's scratchpad, and nowhere else.** It is a throwaway for a verb
-> that is already written upstream, so it is never a file in the target repository — not a script
-> under `scripts/`, not a `tools/` helper, not a committed one-off. Committing it would put a second
-> renderer in a repository that is about to get the real one, and it would need reviewing,
-> versioning, and eventually deleting. Write it to the scratchpad, run it, say on the page that the
-> render was by hand (§ Residue), and let it die with the session.
->
-> **From nen `0.4.0` there is no renderer to write, and the path is two verbs with a merge between
-> them** — the exact commands are in *The merge* below, and `<reports.dir>` is read from
-> `nen/workflow.json` as always, which is `Reports/current.html` on a repository taking § 2's default.
-> The merge is not optional and is not glue: the document is the facts, the extension is everything a
-> git read cannot know, and the file the renderer reads is both.
+**The path is two verbs with a merge between them** — the exact commands are in *The merge* below,
+and `<reports.dir>` is read from `nen/workflow.json` as always, which is `Reports/current.html` on a
+repository taking § 2's default. The merge is not optional and is not glue: the document is the
+facts, the extension is everything a git read cannot know, and the file the renderer reads is both.
+**Never author a second page shape "just for this turn", and never write a renderer of your own** —
+a hand-filled page and a verb-rendered one are not the same bytes, and only one of them is checkable.
+
+> **The engine's whole language, so nothing is invented into a template:** `{{token}}` (HTML-escaped),
+> `{{{token}}}` (raw), `{{#each <list>}}…{{/each}}` (nested, with `{{.}}` and `{{@index}}`) and
+> `{{#if <key>}}…{{/if}}`. No helpers, no partials, no comments, no expressions — because a program
+> in a data file is a thing nobody reviews. **A token the data has not got is exit `2` naming it**,
+> since a blank cell in a published report reads as a fact; a present `null` renders empty, and an
+> object or list reaching a value tag is refused rather than printed as `[object Object]`.
 >
 > **The template documents the syntax in WORDS, and that is a rule rather than a style — finding
 > F12.** `nen report render` substitutes over the whole file, comments included: it is a text
 > substituter, not an HTML or CSS parser, and it has no idea a `<style>` comment is a comment. The
 > template used to spell its own examples — a double-brace token, the triple-brace raw form, an
-> `each` block — inside its opening comment, and the `0.4.0` verb refused it **three times over**,
-> once per example, every refusal quoting a piece of prose: *"`''` is not a token `'{{{ }}}'` can
-> name"*, then *"`'{{token}}'` names `'token'`, which the data document has not got"*, then
-> *"`'{{/each}}'` closes a block that was never opened."* Each fix uncovered the next.
+> `each` block — inside its opening comment, and the verb refused it **three times over**, once per
+> example, every refusal quoting a piece of prose: *"`''` is not a token `'{{{ }}}'` can name"*, then
+> *"`'{{token}}'` names `'token'`, which the data document has not got"*, then *"`'{{/each}}'` closes
+> a block that was never opened."* Each fix uncovered the next.
 >
 > **So the syntax is written out here, in this file, and described in words there.** The template's
 > comment says *double-brace tags*, *the triple-brace raw form*, *a repeat block*, *a presence
@@ -222,23 +218,18 @@ instead of a retirement.
 > documents its own markup inside itself is a template that cannot be rendered, and the check is
 > `nen report render --dry-run`, which reads the file exactly as the render does.
 
-> **Both verbs exist on `zheref/nen`'s `main` today** — verified against the source rather than the
-> binary, which is still the pinned `0.3.0`: `git -C <nen checkout> log --oneline -3 origin/main --
-> src/report` returns `feat(report): add the report family -- data and render`, `docs(report):
-> document the report family, its two verbs and the counts`, and `fix(report): exit 1 on a failed git
-> read, not 2, in report data`, over the files `src/report/command.ts`, `data.ts`, `render.ts`,
-> `template.ts`, their three `*.test.ts` neighbours and `src/report/fixtures/report.html`. **They are
-> merged, not released**, which is exactly why § 3 and this section still describe the by-hand path:
-> the day the release moves the pin, the residue is deleted rather than migrated, and this skill's
-> only change is which of the two paragraphs above it runs.
+> **Both verbs are in the PINNED binary now, not merely on `main`** — the pin moved to `v0.5.0`, and
+> the by-hand paragraphs this section used to carry were deleted rather than migrated. `nen report
+> --help` lists `data` and `render`; both were exercised against this repository at the pin, and the
+> transcripts are in `docs/ab/rikugan.md` § *Retired at nen 0.5*.
 
 ### The token vocabulary is `nen report data`'s, plus a named extension
 
 **Every slot whose value the document carries is spelled the way the document spells it.** The two
 verbs are documented as the two halves of one pipeline — `nen report data … > <data file>`, then
-`nen report render --data <data file>` — and at `0.4.0` **a token the data document has not got is
-refused at exit `2`, naming it**. So a template speaking a different vocabulary from the document
-does not degrade; it does not render at all. That is the right behaviour (*"a blank renders as a
+`nen report render --data <data file>` — and **a token the data document has not got is refused at
+exit `2`, naming it**. So a template speaking a different vocabulary from the document does not
+degrade; it does not render at all. That is the right behaviour (*"a blank renders as a
 fact"*) and it makes the vocabularies one question, not two.
 
 **Half the template used to speak its own** — `generated` against the document's `generatedAt`,
@@ -261,32 +252,41 @@ fact"*) and it makes the vocabularies one question, not two.
 | `{{#each accomplished}}` · `challenges` · `notDelivered` · `decisions` | extension | `{text, why}` per row |
 | `{{#each prBody}}` | extension | `{markdown}`, zero or one row — landing and final |
 | `{{#each readiness}}` | extension | `{verdict, reason, gate}`, zero or one row — landing and final |
-| `{{#each tests}}` | extension | `{name, suite, status}` — final; from `nen shu test-report`, a **different** document |
+| `{{#each tests}}` | extension | `{name, suite, status}` — final; read off `nen shu test-report`, a **different** document |
 | `{{#each touchedCoverage}}` | extension | `{file, percent, band}` — final; **renamed** so it cannot collide with the document's `coverage` object |
 
 **The extension is not a second vocabulary — it is the half no git read can produce.** Four narrative
 lists are judgement; a launch line is what [`amaterasu`](../amaterasu/SKILL.md) ran; a PR body is
 [`shibari`](../shibari/SKILL.md)'s; a readiness verdict is `nen pr ready`'s; test rows are
-`nen shu test-report`'s; a *band* is `nen/workflow.json`'s ladder applied to a number, which is
-policy and not a fact. A document that carried any of them would be a document making decisions.
+`nen shu test-report`'s; a *band* is `nen shu coverage --touched`'s, read off that verb's rows. A
+`report data` document that carried any of them would be a document making decisions.
 
 ### The merge — one data file, and every key always present
 
 **The skill writes ONE data file: `nen report data`'s document with the extension keys added at the
-top level.** No key of the document is renamed, dropped or rewritten; the extension only adds. Two
-rows are the exception worth naming: `evidence[]` is **enriched** — each row keeps its four document
-fields and gains `src`, the capture as a `data:` URI, because no git read turns a PNG into one — and
-at `0.4.0` `report data` emits `evidence: []` unconditionally (*"empty in this release — `nen shu
-evidence` owns them"*), so in practice the rows are the caller's whole own.
+top level.** No key of the document is renamed, dropped or rewritten; the extension only adds. One
+row is the exception worth naming: `evidence[]` is **enriched** — each row keeps its four fields from
+`nen shu evidence` and gains `src`, the capture as a `data:` URI, because no verb turns a PNG into
+one — and `report data` itself emits `evidence: []`, so those rows come from the `shu` verb and are
+merged in here.
 
 ```bash
 nen report data --repo <path> --base origin/<branch.base> [--tiers <file>] --json > <base data>
+nen shu evidence --repo <path> --base origin/<branch.base> --json          > <evidence>   # rows
+nen shu test-report --repo <path> --json                                   > <tests>      # final only
+nen shu coverage --repo <path> --touched --base origin/<branch.base> --json > <coverage>  # final only
 # merge: <base data> ∪ { variant, title, residue, footerNote, launch, accomplished[], challenges[],
-#                        notDelivered[], decisions[], prBody[], readiness[], tests[],
-#                        touchedCoverage[], evidence[] (each row + src) }   → <data file>
+#                        notDelivered[], decisions[], prBody[], readiness[],
+#                        tests[] (from <tests>), touchedCoverage[] (from <coverage>),
+#                        evidence[] (from <evidence>, each row + src) }   → <data file>
 nen report render --template templates/rikugan.html --data <data file> \
   --out <reports.dir>/current.html --repo <path> [--dry-run]
 ```
+
+**Verified end to end at the pinned `v0.5.0`, against this repository:** `report data --json` → the
+merge above → `report render --dry-run` (40 tokens, exit `0`) → `report render` (exit `0`, 38 283
+bytes written, zero `{{` remaining). The same run against the **unmerged** document refuses at exit
+`2` naming `title` — which is the extension doing its job, not a defect.
 
 **Every extension key is written on every render, empty where there is nothing** — `""` for a
 scalar, `[]` for a list. An omitted key is exit `2`, so "there was no readiness verdict" is
@@ -299,16 +299,13 @@ vocabulary drift. `--out` must resolve **inside `--repo`** (symlinks resolved) o
 exit `2` naming the resolved path, so `<reports.dir>` is where the page goes and `/tmp` is not a
 place this verb will write.
 
-> **Verified end to end, live, on the `0.4.0` binary against `zheref/nen`** — the transcript is in
-> `docs/ab/rikugan.md` § 5. `--dry-run` lists **40** tokens and exits `0`; the real render writes a
-> 39 452-byte landing page with **zero** `{{` left in it; a value carrying `<nen>` arrives as
-> `&lt;nen&gt;`; `{{#if coverage}}` renders its body against a real report and renders **nothing**
-> against `coverage: null` rather than refusing; and an empty `{{#each}}` renders nothing without
-> asking for its row tokens. The same run against the **unmerged** document refuses at exit `2`
-> naming `title` — which is the extension doing its job, not a defect.
+> **What the engine does with an absence, checked rather than assumed** — the transcript is in
+> `docs/ab/rikugan.md` § 5 and § *Retired at nen 0.5*: `{{#if coverage}}` renders its body against a
+> real report and renders **nothing** against `coverage: null` rather than refusing, and an empty
+> `{{#each}}` renders nothing without asking for its row tokens. So `coverage: null` on a turn
+> variant is not a hole to fill; it is the document saying there is no report on disk.
 
-> **Two facts about the engine, checked rather than assumed, that this section used to have
-> backwards.** It **does** nest `{{#each}}` (*"nested; `{{.}}` is a scalar item and `{{@index}}` its
+> **Two facts about the engine, checked rather than assumed.** It **does** nest `{{#each}}` (*"nested; `{{.}}` is a scalar item and `{{@index}}` its
 > position"*), which answers the finding this section filed against the P1 spec — in the
 > affirmative, and the template no longer needs it: **04** and **05** are flat lists in the document,
 > and the substituter has no group-by, so grouping would have to be done by the caller composing a
@@ -319,9 +316,8 @@ place this verb will write.
 > emitted and hidden by CSS off `data-variant` (§ 5)**, because a page whose shape changes with its
 > variant is three pages. `{{#if}}` guards a **null**; it does not choose a layout.
 >
-> **The residue path owes both constructs too.** A hand-written renderer at the pin implements
-> `{{token}}`, `{{{token}}}`, `{{#each}}` (nested) and `{{#if}}`, or it is not producing the same
-> bytes the verb would.
+> **There is no residue path to owe them to.** At the pinned `0.5.0` the engine is the verb's, and a
+> hand-written renderer would be a second one nobody reviews.
 
 ### Escaping — the contract, and it binds the residue path too
 
@@ -331,11 +327,9 @@ gets published as an Artifact.
 
 - **Every `{{token}}` is HTML-escaped by the renderer.** `nen report render` escapes by default —
   `&`, `<`, `>`, `"`, `'` become entities — in text content and inside an attribute alike. No token
-  on this page opts out. **That verb does not exist at `v0.3.0`** (§ 4's opening), so this rule is
-  two things at once: the **contract `nen report render` must meet** when it lands at `v0.4.0`, and
-  — today, on the only path there is — **the residue's own job**. Check it the day the verb lands,
-  alongside the nested-`{{#each}}` finding above; if the verb ships without escaping by default, the
-  fix is nen's, not a template full of pre-escaped values.
+  on this page opts out. **Verified at the pinned `v0.5.0`** rather than assumed: an accomplished row
+  carrying `<v0.5.0>` rendered as `&lt;v0.5.0&gt;` (§ 4). If a future pin ever ships without escaping
+  by default, the fix is nen's, not a template full of pre-escaped values.
 - **`{{{ }}}` is the raw form, and `templates/rikugan.html` uses it nowhere.** The only slot it
   would ever be admitted for is a **pre-escaped data-URI `src`**, which must first match
   `^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$`. Even that slot is written `{{ }}`, because
@@ -348,10 +342,10 @@ gets published as an Artifact.
   closing; it does not stop `1;background:url(…)` adding a declaration). **A value that fails its
   check is not rendered** — drop the row and name the gap in **03 Not delivered**, the same way § 7
   handles a capture that will not embed.
-- **Hand-filling is held to the identical rule.** Until `nen report render` lands this skill writes
-  the tokens itself, and it **escapes `& < > " '` in every value it writes and runs the same two
-  validations** before it writes them. The residue path is the one that has no engine underneath it,
-  which makes it the path where this is the skill's own job rather than a default it inherits.
+- **The two validations stay this skill's, because the engine escapes and does not validate.**
+  `{{src}}` and `{{percent}}` are checked against their regexes **before** they are written into the
+  data file — escaping stops an attribute closing, and stops nothing else. A value that fails is not
+  rendered: drop the row and name the gap in **03 Not delivered**.
 
 ## 5. The three variants
 
@@ -428,11 +422,19 @@ notation is never typed from memory (`claude/agents/kurapika.md` § *How you wor
 
 > **When the resolution fails, the title falls back — it is never typed from memory instead.** The
 > taxonomy lives in the **target** repository, and plenty of repositories do not carry it: verified
-> live at `0.3.0`, neither `zheref/hatsu` nor `zheref/nen` has a `nen/repos.json` (nor the legacy
-> `schemas/repos.json`), so `nen repo resolve --repo <path> --target <owner/name>` refuses in both —
-> *"`<path>/nen/repos.json`: no such file. Nen reads this repository's taxonomy from … and has no
-> built-in copy to fall back on"*, exit `1`. That refusal is correct and is **not** a reason to
-> supply the code from memory, which is exactly what § *How you work* forbids and exactly what a
+> live at the pinned `0.5.0`, neither `zheref/hatsu` nor `zheref/nen` has a `nen/repos.json`, so
+> `nen repo resolve --repo <path> …` refuses in both — *"`<path>/nen/repos.json`: no such file. Nen
+> reads this repository's taxonomy from 'nen/repos.json' in the TARGET repo and has no built-in copy
+> to fall back on"*.
+>
+> **RETIRED at nen `0.5`: that refusal is exit `2`, not exit `1`, and the distinction is the one to
+> branch on.** A missing registry is a PRECONDITION the verb cannot proceed past at all — the same
+> class of thing as an omitted `--repo` — and is now separated from exit `1`, which stays "the
+> registry opened fine and the token did not resolve". **A reader branching on `1` for *not found*
+> must add `2` for *no registry*.** There is also no `schemas/repos.json` fallback any more: a
+> repository carrying the file only there is refused exactly like one carrying it nowhere, and the
+> refusal names the migration. Either way the refusal is correct and is **not** a reason to supply
+> the code from memory, which is exactly what § *How you work* forbids and exactly what a
 > plausible-looking wrong code costs.
 >
 > **The fallback title is the repository name plus the branch** — `zheref/nen ·
@@ -509,34 +511,34 @@ report never suppresses one.
 
 ## Residue
 
-Everything here is named, and every entry is a verb this repository expects at `v0.4.0`:
+**Six of this section's seven entries were retired when the pin moved to nen `0.5.0`.** They are
+listed as retired rather than deleted, because a reader coming from an older Hatsu needs to see that
+the by-hand path is gone rather than merely unmentioned.
 
-1. **`nen report data`** — the whole family is absent at `v0.3.0` (exit `2`; the *bare* `nen report` says
-   *"unknown command 'report'"*, the **full** documented invocation is refused earlier on
-   *"unknown option `--base`"* — § 3). § 3's table is the by-hand assembly, run as `git log` /
-   `git diff --name-status` / `git diff --name-only` and reported as by-hand.
-2. **`nen report render --template`** — absent with it. § 4 fills `templates/rikugan.html` by hand,
-   same template, same tokens, same bytes for the same data — **and the escaping the verb would do
-   by default is this skill's own job on that path**: escape `& < > " '` in every value written,
-   validate `{{src}}` against the data-URI regex and `{{percent}}` as a bare `0`–`100`
-   (§ 4, *Escaping*).
-3. **`nen shu evidence --base <ref>`** — not a `shu` subcommand at `v0.3.0`. Screenshot rows come
-   from `git diff --name-only` filtered by `project.evidence.globs`.
-4. **`nen shu test-report`** — not a `shu` subcommand. The final variant's test rows are read off
-   the runner's own summary and quoted.
-5. **`nen shu coverage --touched --base <ref>`** — `--touched` is not a known option. Coverage rows
-   are `nen shu coverage`'s per-target table filtered by `git diff --name-only`, banded against
-   § 2's ladder.
-6. **`nen/workflow.json` is unvalidated** — no row in `nen schema check` at `v0.3.0`. This skill
-   reads it as data and states the defaults it fell back to.
+1. **RETIRED at nen `0.5`: `nen report data`** — exit `0` against this repository, one
+   `nen.report.data/v0.1` document (§ 3). The `git log` / `git diff --name-status` assembly is gone.
+2. **RETIRED at nen `0.5`: `nen report render --template`** — exit `0`, 40 tokens, 38 283 bytes
+   written, zero `{{` remaining (§ 4). **There is no hand-written renderer any more**, and the
+   escaping is the engine's by default — verified, not assumed.
+3. **RETIRED at nen `0.5`: `nen shu evidence --base <ref>`** — exit `0`, rows grouped suite → scene
+   (§ 3). Screenshot rows come from that verb, enriched here with `src`.
+4. **RETIRED at nen `0.5`: `nen shu test-report`** — the final variant's `tests[]` rows are read off
+   its parse.
+5. **RETIRED at nen `0.5`: `nen shu coverage --touched --base <ref>`** — exit `0`, with `band` on
+   every narrowed row. Coverage rows and their bands are the verb's.
+6. **RETIRED at nen `0.5`: `nen/workflow.json` is validated** — `nen schema check` carries the row
+   (§ 2). This skill still reads the values and states the defaults it fell back to; a read is not a
+   residue.
 7. **The Artifact publish itself has no verb and never will** — it is the surface's tool, not a
-   deterministic step nen owns. Named here so that the absence is a boundary rather than a silence.
+   deterministic step nen owns. **Genuinely still residue**, and named here so that the absence is a
+   boundary rather than a silence.
+8. **Embedding a capture as a `data:` URI is still this skill's** (§ 7). No verb turns a PNG into a
+   data URI, and `{{src}}`'s validation goes with it. **Genuinely still residue.**
 
-**None of these is routed around.** Each is run by hand, in the open, with the sentence *"this was
-assembled by hand; `nen report data` does not exist at the pinned ref"* attached to the report that
-carries it — so that the day the verbs land, the retirement is visible.
+**What is left is not routed around.** Each remaining entry is run in the open and named on the page
+it produced.
 
-**`{{residue}}` is where that sentence goes, and it exists now (finding F11).** It renders in **03
+**`{{residue}}` is where a residue sentence goes, and it exists (finding F11).** It renders in **03
 Not delivered**'s lead, which is the section whose whole job is naming what is not there. The
 requirement used to have no slot at all, so the run that hit it wrote the sentence into 03's *rows*
 by hand — the right section, reached the wrong way, and nothing in this file said so. Like

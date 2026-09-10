@@ -225,3 +225,52 @@ than presented as a verified `5`.
    recorded because a skill quoting the block to a human should say what it means.
 4. **No missing verb.** Every deterministic step of the iteration loop that is not in § 3 is a verb,
    exercised live above with its exit code.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| build proof — no `.nen/proof/<lane>.json` | `nen shu build --repo <fixture> --lane app` | `0`, and the file written |
+| no `nen commit check --require-proof` | `nen commit check --repo <fixture> --require-proof app` | `0` |
+| the stall guard — no `stallTimeoutMs`, no `onStall` | a declared `stall` block, rendered by the same build | `0` |
+
+```
+$ nen shu build --repo <fixture> --lane app
+ran:           sh -c 'echo built'  -- exit 0 in 4ms
+on stall:      after 60000ms elapsed AND 30000ms with no output: sh -c 'echo kill'  (up to 2 times)
+proof:         .nen/proof/app.json  tree c5b7212497b7ba97f127a65af56c29e2ed7a54b4 at 2026-09-10T09:09:52.482Z
+exit=0
+
+$ cat <fixture>/.nen/proof/app.json
+{ "contract": "nen.shu.proof/v0.1", "lane": "app", "verb": "build",
+  "treeHash": "c5b7212497b7ba97f127a65af56c29e2ed7a54b4",
+  "at": "2026-09-10T09:09:52.482Z", "exitCode": 0 }
+
+$ nen commit check --repo <fixture> --require-proof app
+lane:      app
+tree:      c5b7212497b7ba97f127a65af56c29e2ed7a54b4
+proof:     .nen/proof/app.json  tree c5b7212497b7ba97f127a65af56c29e2ed7a54b4 at 2026-09-10T09:09:52.482Z
+verdict:   OK -- this working copy is the one the build proved green.
+exit=0
+```
+
+**The two hashes are computed the same way on both sides** — git's tree object for the *working copy*,
+through a scratch index under `.nen/` — which is what lets the check run a moment before a commit with
+everything staged and still agree.
+
+**Against hatsu's own checkout the pair answers differently, and correctly**: `nen shu build --repo .
+--lane plugin` is exit `4` (the lane declares a `build` **seat**) and
+`nen commit check --repo . --require-proof plugin` is exit `1` (*"NOT PROVED -- there is no build proof
+for lane 'plugin'"*). A lane that declares no build never produces a proof, so kokusen says so and runs
+the lane's real checks instead.
+
+**Still residue:** watching a lane that declares **no** `stall` block, and running that declaration's
+prose remedy by hand.

@@ -160,11 +160,17 @@ exists to replace, and duplicating it is how the page stops being read.
    conversations (§ 4, verified live). Ren's ordering is prose because it is a *sequence of other
    skills*, each of which is verb-backed where a verb exists. **Every deterministic step inside a
    turn is a verb or a named residue in the skill that owns it** — `nen shu build` and
-   `nen shu tools` (step 2), `nen stage triage` and `nen commit format` (step 3), `nen shu dev`
-   (step 4), the missing `nen report data` / `nen report render` (step 5, named there),
-   `nen stop` and the `osascript`/`afplay` fallback (step 6, named there). **Ren adds no residue of
-   its own**, and if a step in this file ever grows a bare shell command, it belongs in that step's
-   own skill as named residue instead.
+   `nen shu tools` (step 2), `nen commit check --require-proof`, `nen stage triage` and
+   `nen commit format --repo` (step 3), `nen shu dev --target` (step 4), `nen report data` and
+   `nen report render` (step 5), `nen stop` and the `osascript`/`afplay` fallback (step 6, named
+   there). **Ren adds no residue of its own**, and if a step in this file ever grows a bare shell
+   command, it belongs in that step's own skill as named residue instead.
+
+   > **RETIRED at nen `0.5`.** Step 5 used to be named here as *"the missing `nen report data` /
+   > `nen report render`"*. Both are in the pinned binary and both were exercised against this
+   > repository at the pin — `data` exit `0`, `render` exit `0` writing a 38 283-byte page — so the
+   > by-hand assembly and the scratch renderer are gone rather than deferred
+   > ([`/rikugan`](../rikugan/SKILL.md) §§ 3–4).
 
 ## Authority
 

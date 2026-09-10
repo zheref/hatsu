@@ -211,3 +211,58 @@ not. `nen` deliberately spawns git and gh and nothing else — the property that
 `nen parse izanami`'s classifier meaningful at all — and a verb that shelled out to `osascript`
 would put an unclassifiable host program inside the binary whose whole job is to classify host
 programs. **The correct home for rungs 2–3 is the harness hook**, which is where this wave puts it.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| `notifications.turn` in no schema, validated by nothing | `nen schema check` against a fixture declaring `"turn": "loud"` | that row `FAIL`, by pointer |
+| the same, with a legal value | `"turn": "all"` | that row `ok` |
+| `nen/workflow.json` unvalidated | `nen schema check --repo .` | that row `ok` |
+
+```
+FAIL  nen/workflow.json  …/nen/workflow.json: at notifications.turn, 'loud' is not one nen implements.
+                          It is one of a CLOSED set: rung1, all
+```
+
+So the key this skill defined to settle finding F8 is now nen's, refused by pointer on anything outside
+the two-value set and written into every policy file `nen scaffold init` generates. Hatsu's own
+`nen/workflow.json` declares it explicitly, `"rung1"`, in this same change.
+
+### `nen stop --mark` — available, and deliberately NOT adopted
+
+```
+$ nen stop --mark --repo <fixture> --who kurapika --gate G5
+=== YOUR INPUT IS NEEDED ==============================
+who: kurapika
+gate: G5 -- decision / human-only action
+rung 1 (push notification): NOT fired -- the caller's to have sent, before this renders.
+rungs 2-3 (OS notification, audible cue): not fired by nen -- only git/gh subprocesses are ever shelled
+out to.
+marked: <fixture>/.nen/last-stop.json -- a host hook may ring rungs 2-3 off it.
+exit=0
+
+$ cat <fixture>/.nen/last-stop.json
+{ "contract": "nen.stop.mark/v0.1", "who": "kurapika", "gate": "G5", "notified": false,
+  "at": "2026-09-10T09:10:05.340Z" }
+```
+
+**The verb works and the marker is the wrong shape for this bell.** It carries no `title`, no `body`, no
+`reportUrl`, no `sound` and no `rungs`, and it **replaces** an existing marker. `hooks/stop-bell.sh`
+reads `gate` and `title` and falls back to *"A decision is waiting."* when `title` is absent — so
+adopting nen's marker would ring the generic line on every gate and drop the report link out of the
+notification entirely.
+
+**The decision the skill recorded as due is therefore taken, and it is to keep `hatsu.stop-marker/v0.1`.**
+Recorded here as a **kept residue with its reason**, not an oversight. It lapses the day nen's marker
+carries a title, or the day Hatsu decides a generic bell is acceptable — neither of which is a default.
+What *is* adopted from the release: `nen parse izanami` now classifies `stop` **write-flag-gated** on
+`--mark`, `--mark --template` is exit `2`, and a marker that cannot be written is exit `1` with the errno.

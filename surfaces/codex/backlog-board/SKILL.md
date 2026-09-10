@@ -38,7 +38,7 @@ obey it.
 
 That includes **the no-repo default** — with no repo token the subject is **the repo you are
 standing in**, resolved from the working directory's `origin` against `nen/repos.json` (legacy
-`schemas/repos.json` until `v0.4.0`), named before the board, and an **error** — never a silent
+named before the board, and an **error** — never a silent
 widening to `all` — when it resolves to nothing.
 
 **The trailing `every <…>` clause is this skill's own** — `backlog-state` renders a table, not a
@@ -146,7 +146,7 @@ Field by field, from a row `backlog-state` already produced:
 - **`status`** ← `nen color status --present <values> --category status --json`'s `resolved.name`.
   Verified live for the same row: `--present in_progress` resolves `{"name": "in_progress", "emoji":
   "🟠", "label": "In progress", …}` from the target repo's own `nen/colors.yml` (legacy
-  `schemas/colors.yml` until `v0.4.0`) precedence — no glyph is hard-coded here or anywhere in this
+  precedence — no glyph is hard-coded here or anywhere in this
   pipeline.
 - **`needs`** ← backlog-state's expected-action line, one string, naming the action and its actor.
 

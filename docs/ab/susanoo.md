@@ -228,3 +228,26 @@ are two rows, two artifact lists and two exit codes, and susanoo never reports o
    that reason.
 4. **No missing verb for the archive itself.** Every deterministic step of the packaging phase that
    is not in § 3 is a verb, exercised live above with its exit code.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| build proof tying the package to a proved tree | `nen shu build` writes `.nen/proof/<lane>.json`; `nen commit check --require-proof <lane>` reads it | `0` / `0` |
+
+The transcripts are in `docs/ab/rasengan.md` § *Retired at nen 0.5*. Row 9 of § 3's table — *"Build proof
+tying the package to the tree — residue, does not exist at this pin"* — is **half retired**: the proof
+binds a **tree** to a **build**, and `commit check` says whether this working copy is that tree, so
+susanoo can now state that fact before it archives instead of asserting it.
+
+**What stays residue is the ARTIFACT side of the same question.** Nothing records that `dist/app.tgz`
+came out of the proved tree rather than an earlier run — that is rows 1, 2 and 4 of the same table
+(size, freshness, a checksum), all still by hand, all still named where they are reported.

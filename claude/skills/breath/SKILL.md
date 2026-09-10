@@ -52,11 +52,12 @@ workflow.json: using the built-in defaults from `docs/WORKFLOW.md`"* — and use
 default does not cover, and never write the file to make the message go away — authoring a
 `workflow.json` for a repository is a policy change that lands as its own PR at **G4**.
 
-**`nen` does not validate `nen/workflow.json` at the pinned ref.** Verified live: `nen schema check
---repo <path>` reports five rows — the four taxonomy files and `nen/contract.json` — and no
-`nen/workflow.json` row at all (`docs/ab/breath.md` § 2.6). The file is read by this skill, by eye,
-against the shape in `docs/WORKFLOW.md`; a malformed one is a finding to report, not a schema
-failure anything will catch for you. That row arrives with nen `0.4.0`.
+**`nen` VALIDATES `nen/workflow.json` at the pinned ref.** Verified live at `v0.5.0`: `nen schema
+check --repo <path>` reports **six** rows — the four taxonomy files, `nen/contract.json` and
+`nen/workflow.json` — and the sixth reads `ok    nen/workflow.json  coverage 80/85/90 (touched),
+branch '{model}/{persona}/{descriptor}' off 'main', checks: lint` (`docs/ab/breath.md`
+§ *Retired at nen 0.5*). **So the warm-up runs the verb rather than reading the shape by eye**: a
+malformed key is a FAIL by pointer from `schema check`, not a finding this skill has to notice.
 
 ## 3. Where the checkout sits — read it, never assume it
 
@@ -176,7 +177,7 @@ install; say which tool and which pin, and do not install it another way. A repo
 > § 5 fast-forwards the trunk, so every `shu` verb at this point reads the declaration as it stood at
 > the checkout's old tip. On a checkout whose `nen/contract.json` was added — or whose `project`
 > block was written — on the fetched tip, `nen shu tools` refuses at `2` with *"no such file:
-> `<repo>/nen/contract.json` … this repository declares nothing"* (verified live at `0.3.0`), and the
+> `<repo>/nen/contract.json` … this repository declares nothing"* (verified live, unchanged at the pinned `0.5.0`), and the
 > table above is unreachable: none of `0`, `3`, `4`, `5` is what the host actually is. **Do not treat
 > that `2` as a verdict and do not run `nen shu detect --write` to make it go away** — the
 > declaration is very probably already sitting on `origin/<branch.base>`. Record the `2` as
@@ -260,14 +261,17 @@ that file is the whole repository's, so an exclude nobody was told about is a ch
 stopped reporting a file), and — where it applies — the `no workflow.json` sentence from § 2. A warm-up
 that did not run is reported as **not run**, never rendered as clear.
 
-## 8. Residue — what has no verb at nen `0.3.0`
+## 8. Residue — what has no verb at the pinned nen `0.5.0`
 
 - **Rendering `branch.template`.** `nen shu warmup --branch` is required with no default; the
   substitution of `{model}`/`{persona}`/`{descriptor}` is this skill's, from `workflow.json`. No verb
   formats a branch name, and `nen parse` is a grammar engine for invocations, not a templater.
-- **Reading `nen/workflow.json` at all.** No loader, no `schema check` row at `0.3.0` (§ 2, verified
-  live). Read it as data, state the defaults when it is absent, and report a malformed one as a
-  finding.
+- **RETIRED at nen `0.5`: validating `nen/workflow.json`.** There is a loader and a `schema check` row
+  (§ 2, verified live at `v0.5.0`: `ok    nen/workflow.json  coverage 80/85/90 (touched), branch
+  '{model}/{persona}/{descriptor}' off 'main', checks: lint`). Run the verb; quote its pointer on a
+  FAIL. **Reading the values is still this skill's**, and that is a read rather than a residue —
+  nothing in nen hands the policy out except `shu coverage`'s ladder and `commit format`'s trailer
+  list.
 - **Carrying a dirty trunk onto the new branch** (§ 3's `must-move` answer) is `git stash` → the
   warm-up → `git stash pop`, run by hand and named. `nen shu warmup` offers exactly two doors — refuse,
   or `--discard` — and neither of them preserves work.

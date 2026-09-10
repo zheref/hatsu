@@ -97,7 +97,8 @@ target is *meaningful* for the lane it is used on. On a repository with two depl
 the `target:` line and the composed `would run:` before answering, every time.
 
 **Non-production is the declaration's word, not this skill's — and it is PROSE, not a typed field.**
-Nothing in nen `0.3.0` marks a target as production or not: `project.targets.<name>` carries `args`,
+**Nothing in nen marks a target as production or not, at the pinned `0.5.0` either — genuinely still
+residue:** `project.targets.<name>` carries `args`,
 `requiresEnv`, `why` and `unsupported`, and none of them says which side of **G3** a destination is on
 (§ *Residue* 1; `docs/ab/kagutsuchi.md` § 4.1 files it as the finding worth acting on). So the test is
 a **read of a sentence**, and it is written to fail closed in all three directions:
@@ -259,7 +260,7 @@ I promote it". The next call is the maintainer's and they know they have it.
 - **Never chooses a target**, never defaults one, never sends to a near-match of a mistyped one, and
   never adds a target to the declaration so that a line will run.
 - **Never sends to production or a store.** That is `/mugetsu` at **G3**. The test is a read of
-  the declaration's `why` prose, because nen `0.3.0` has no field for it, so it is written to refuse
+  the declaration's `why` prose, because nen has no field for it at this pin, so it is written to refuse
   three cases and not one: a `why` that reaches end users, a target with no `why`, and a `why` that
   does not clearly say the destination is non-production (§ 2). A `why` that is simply **untrue** is
   outside what any reading can catch, and is a defect in the declaration rather than a route through

@@ -77,11 +77,13 @@ refusal prints — never a guess, never a prefix match.
 **Product repos do not reliably ship their own registry.** Verified live against the real
 `<product-repo-A>` at the port: it carried no `schemas/` directory at all — no `repos.json`, no
 `gates.json`, no `colors.yml`, no `labels.json` (`docs/ab/senkei.md` § 4.1, three `404`s) — and the
-check at the current pin is "no `nen/` directory **or** `schemas/` directory", since nen `v0.3.0` reads
-the four files from `nen/` first and from `schemas/` as a fallback until `v0.4.0` (`nen schema check
---repo <checkout>` answers it in one call, per file, with where each was read from). The registry that
-names its product code (`RA`) and its Nen scenario (`swiftui-tca-uzf-v2`) lives in **`<reference-repo>`'s
-own** registry (`schemas/repos.json` at its frozen tag, read through the fallback), under `consumers`,
+check at the current pin is **"no `nen/` directory"** — nothing else. **RETIRED at nen `0.5`: there is
+no `schemas/` fallback.** It was removed in the release this repository pins, so a target carrying the
+four files only under `schemas/` is refused exactly like one carrying them nowhere, with the refusal
+naming the migration; `nen schema check --repo <checkout>` answers it in one call, per file, and its
+`--json` row now carries `legacy` — a boolean saying a `schemas/<file>` copy is on disk, detected,
+**never read**. The registry that names its product code (`RA`) and its Nen scenario
+(`swiftui-tca-uzf-v2`) lives in **`<reference-repo>`'s own** registry, under `consumers`,
 alongside `<product-repo-B>` (`RB`). So `--repo <path>` for resolution and object notation points at a
 local `<reference-repo>` checkout, never at the product repo itself — resolve once, up front, and carry
 the resolved `owner/repo` slug forward:
@@ -217,14 +219,14 @@ nen pr ready <ref> --gh-repo <owner/name> [--gates <path> | --reviewers a,b,c [-
 **Most product repos ship no gates file of their own — verified against `<product-repo-A>`, not
 assumed.** Without `--gates` or `--reviewers`, `nen pr ready` refuses outright: *"no reviewer
 identities. This gate never falls back to a built-in reviewer set..."* (exit `2`; at `v0.3.0` the
-refusal names both `nen/gates.json` and the legacy `schemas/gates.json` it looked for) — reproduced
+refusal names `nen/gates.json`, the one file it looks for) — reproduced
 live against the real `<product-repo-A>#509` (`docs/ab/senkei.md` § 4.1). This is the same refusal
 [`pr-state`](../pr-state/SKILL.md) documents for `<reference-repo>`, and the fix is the same shape but a
 **different file**: hatsu's `contracts/reference.gates.json` is `<reference-repo>`'s own reviewer
 identities and must **never** be reused for a different repo's PR — that would judge one repo
 against another's vocabulary. For a product repo with no `--gates` file of its own:
 
-- If the repo ships `nen/gates.json` (or, until `v0.4.0`, `schemas/gates.json`), no flag is needed at
+- If the repo ships `nen/gates.json`, no flag is needed at
   all.
 - Otherwise, pass `--reviewers`/`--approvers` naming **that repo's own** configured reviewer
   bots — derived from **its own** `.github/workflows/*.yml`, read directly, not assumed and not

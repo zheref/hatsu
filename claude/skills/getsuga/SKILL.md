@@ -109,8 +109,8 @@ GitHub reads that produce the raw facts:
 
 - **Critical issues**: `gh issue list --repo <owner/name> --label "bankai:severity/critical" --state
   open --json number`. **The label is the full `bankai:severity/critical`, never the bare
-  `critical`** — a bare `critical` label does not exist in `nen/labels.json` (legacy
-  `schemas/labels.json` until `v0.4.0`) and the query silently returns zero matches rather than erroring, which would defeat this precondition without
+  `critical`** — a bare `critical` label does not exist in `nen/labels.json`,
+  and the query silently returns zero matches rather than erroring, which would defeat this precondition without
   ever surfacing a mistake (regression caught in review; re-verified live with `--state all` that
   the corrected query returns the real historical criticals — `docs/ab/getsuga.md` § 2.2). Pass the
   numbers, or `--critical-issues ''` to assert there are none — never omit the flag, which reports
@@ -241,14 +241,14 @@ it:**
    can no longer disagree about where fragments live — and an **empty** value, or a path that is not a
    directory, is refused; a directory that does not exist contributes no fragments. Omit the flag or
    pass a real directory; never `""`.
-4. **Bump `latest`** in the registry — `nen/repos.json`, or, until `v0.4.0`, a `schemas/repos.json`
-   the target has not migrated. No `nen` verb owns this write — residue, a direct edit — **so make
-   sure it lands in the file nen reads**: `nen schema check --repo <path>` prints the row at the path
-   it was actually read from (`ok nen/repos.json …`, or `warn schemas/repos.json … ^ legacy
-   location`), and a copy present in **both** places with different bytes is a *shadowed leftover*
-   that fails the check, because `nen/` wins the read and the edit you just made is the one nen
-   ignores. Edit the file the row names; if both exist, migrate first (`git rm` the `schemas/` copy
-   once the bytes agree).
+4. **Bump `latest`** in the registry — `nen/repos.json`, which at the pinned nen `0.5.0` is the ONLY
+   file nen reads it from. No `nen` verb owns this write — residue, a direct edit — **so make
+   sure it lands in the file nen reads**: `nen schema check --repo <path>` prints the row
+   (`ok nen/repos.json …`, or a FAIL naming the migration where a copy sits only under `schemas/`).
+   **RETIRED at nen `0.5`: there is no *shadowed leftover* FAIL any more**, because there is no read
+   to protect — `nen/` is the only file anything reads. A `schemas/` copy sitting beside a loaded
+   `nen/` one is a `warn` **leftover** naming the `git rm` that clears it, and whether its bytes
+   still agree no longer changes the verdict. Edit `nen/repos.json`; delete the stale duplicate.
 5. **Bump `.claude-plugin/plugin.json`** — same reasoning as the old skill: a cached plugin would
    report consumers current while they sit a tag behind. No `nen` verb owns this write either —
    residue, a direct edit; prefer the bump to a `no plugin bump:` opt-out.
@@ -366,7 +366,7 @@ nen --repo <path> fanout compute --range <vPrev>..<newTag>
 ```
 
 `changed-workflows(vPrev..newTag)` intersected against each registered consumer's `consumes` from
-`nen/repos.json` (legacy `schemas/repos.json` until `v0.4.0`) — every consumer comes back `AFFECTED`
+`nen/repos.json` — every consumer comes back `AFFECTED`
 with the workflow basenames that hit it, or an implicit N/A. Verified live against the real range `v0.11.2..v0.11.3`
 (`docs/ab/getsuga.md` § 2.6): `nen`'s output reproduces the historical `CON-22` determination
 recorded by hand at that release's own registry entry (RR-PR-#916) **exactly** — `<product-repo-A>`

@@ -165,8 +165,9 @@ to it before there is any declaration to refuse from.
 with no normalisation, no case folding, no Unicode equivalence and no punctuation smoothing — so a
 device name carrying a typographic apostrophe (U+2019, as in `Sergio’s iPhone`) must be declared with
 that same character and not with the ASCII `'` a keyboard produces. That is the contract
-`nen shu dev --target` implements from `0.4.0`, and it is the rule the by-hand path holds itself to
-today (`--target` refuses at `0.3.0`, verified live: *"--target is not read by 'shu dev'"*).
+`nen shu dev --target` implements at the pinned `0.5.0`, and nen's own `docs/USAGE.md` states it in
+that release's `nen shu dev` section: the comparison has no Unicode normalisation, so the declared
+string must carry the same bytes the probe printed.
 
 **Take `device.name` from the probe's own output.** Verified live (`docs/ab/jujutsu.md` § 2.2): the
 device this machine sees is
@@ -224,11 +225,15 @@ filling it:
 nen schema check --repo <path>
 ```
 
-Verified live (`docs/ab/jujutsu.md` § 2.5): a declaration carrying `project.launch` reports
-`ok nen/contract.json project (…)`. **At `v0.3.0` nen preserves the block verbatim and reads it with
-nothing** (`docs/WORKFLOW.md` § 3), so the row being `ok` says the file is well-formed — it does **not**
-say the target works, and jujutsu never reports it as if it did. What says the target works is § 4's
-probe resolving the name, run and shown.
+Verified live (`docs/ab/jujutsu.md` § *Retired at nen 0.5*): a declaration carrying `project.launch`
+reports `ok nen/contract.json project (…)`. **At the pinned `v0.5.0` nen PARSES the block rather than
+preserving it** (`docs/WORKFLOW.md` § 3), so the row being `ok` now says more than it used to: a key
+one spelling out — `arg`, `devices`, `resolver`, `verbs`, or the block key itself as `launches` or
+`Launch` — is refused **by pointer** naming which misspelling it is, instead of being kept and read by
+nobody. It still does **not** say the target works, and jujutsu never reports it as if it did. What
+says the target works is § 4's probe resolving the name, run and shown — and, once the block is on
+`main`, `nen shu dev --repo <path> --target <name> --dry-run`, which renders the whole plan without
+spawning a thing.
 
 **Then the pull request, at G4.** [`/aka`](../aka/SKILL.md) publishes the branch on the
 maintainer's call and [`/mukai`](../mukai/SKILL.md) opens the PR; jujutsu writes the block, states
@@ -270,21 +275,24 @@ argv, whether `launch.default` moved, and the gate the PR stands at. Where the r
 
 ## Residue
 
-1. **`nen shu dev --target <name>` does not exist at `v0.3.0`** — verified live: exit `2`, *"--target
-   is not read by 'shu dev'. A flag accepted and ignored is worse than one refused: the ignored thing
-   is the instruction you gave"* (`docs/ab/jujutsu.md` § 2.5). So a target this skill registers
-   **cannot yet be launched by nen**: [`/amaterasu`](../amaterasu/SKILL.md) runs the lane's
-   declared `dev` and then the `after` steps by hand, and says so. It is P1 (brief § 4.2) and ships at
-   `0.4.0` — a pin that has not moved, not a feature to file. **Say this in the PR body**, so a target
-   registered today is not read as a target that launches today.
+1. **RETIRED at nen `0.5`: `nen shu dev --target <name>`.** Verified live at `v0.5.0`, exit `0`: the
+   dry run prints `target: sim  (appends no argument)  -- on lane 'app', which this target declares`,
+   the device row, both `would run:` lines and one `substitutes:` line
+   (`docs/ab/jujutsu.md` § *Retired at nen 0.5*). **A target this skill registers is launched by nen**
+   — [`/amaterasu`](../amaterasu/SKILL.md) § 5 runs one `--target` invocation and nothing by
+   hand. **Say that in the PR body**, and say two more things the pin makes true: a target may declare
+   its own `lane` (a device build is routinely a different declared row from the iteration one) and
+   its own `artifact` (the thing the device installs, which is rarely the verb's first artifact), and
+   `{device.id}`/`{artifact}` written into `args` is now exit `2` naming the token.
 2. **The pairing steps themselves have no verb and never will** — a boundary, not a gap (§ 3). They
    are acts on a device's own screen, by a person, and the security property depends on that.
 3. **Waiting for the device has no loop primitive** — `nen watch until` refuses the probes, verified
    live (§ 3). Jujutsu asks and waits.
 4. **The first probe is run from the platform's documented command**, before any declaration exists to
    read it from (§ 4). Named every run; from the second run onward it is read from the file.
-5. **`nen/workflow.json` is unvalidated at `v0.3.0`** — no row in `nen schema check`
-   (`docs/ab/rikugan.md` § 2.4). `launch.default` and `launch.fallback` are read as data.
+5. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
+   an `ok  nen/workflow.json` row at the pinned `v0.5.0`, so a `launch.default` naming nothing is caught
+   by a verb. The two keys are still read here; reading a file is not residue.
 
 ## Authority
 

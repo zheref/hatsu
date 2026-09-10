@@ -310,3 +310,34 @@ a seat* (`4`) and *the runner is not installed* (`5`).
 **Nothing about the run half is missing.** Which of those five is a G5 and which is a fix is policy, and
 policy is the skill's. Noted as the counter-example to § 4.1: where nen owns a step it owns it
 completely, and the gap is precisely and only at the images.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| the evidence enumeration, `git diff` + `:(glob)` by hand | `nen shu evidence --repo <fixture> --base main` | `0` |
+| `project.evidence` preserved and unread | `nen schema check --repo <fixture>` → `ok nen/contract.json project (…)`, block parsed | row `ok` |
+
+```
+$ nen shu evidence --repo <fixture> --base main
+evidence: 1 changed file across 1 suite (public-mirror), against main...HEAD
+
+suite: __Snapshots__
+  added    Settings                 src/__Snapshots__/test_snapshot_Settings.png
+exit=0
+```
+
+The fixture declares `globs: ["**/__Snapshots__/**/*.png"]`, `mechanism: "public-mirror"` and
+`scene: "{suite}-{scene}"`, and the branch adds one snapshot over `main`. **The verb carries its own
+dependency-free glob matcher**, in which `**` matches zero directories on either side — which is exactly
+the trap § 2.4 recorded against a bare git pathspec, closed at the source rather than worked around. From
+this release the block KEY is also guarded against a near-miss (`evidences`, `Evidence`, `evidenc`),
+refused by pointer instead of preserved and read by nobody.

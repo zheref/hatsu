@@ -149,7 +149,7 @@ nen label apply <CODE>-IS-#<N> --label bankai:severity/<level> --repo-slug <owne
 Never exercised live against the real, frozen `<reference-repo>` (the shared brief's read-only
 rule) — contract-verified only, `docs/ab/backlog-loop.md` § 3. `<reference-repo>`'s own taxonomy carries
 four severities (`critical`, `high`, `medium`, `low` — verified live off its `schemas/labels.json`, which
-nen reads through the legacy fallback until `v0.4.0`; a migrated target carries `nen/labels.json`); a
+a target carries `nen/labels.json` and nen reads it from there and nowhere else); a
 different target repository's own taxonomy is read the same way, never hard-coded. Pass `--repo <the
 target's checkout>` so the label is validated against that file, never against the checkout the loop
 happens to run from.
