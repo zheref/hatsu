@@ -679,8 +679,10 @@ it to make. § 2 now says how to bind the name.
 "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"` cannot reliably load the gates file on either
 surface, where that variable is normally unset — or, exported from a shell profile, names a different
 plugin (§ 8.4, F3). The review added that *the same issue affects the other touched mirrored skills*, and it
-is wider than that PR: the anchor predates it, and a grep of the SOURCE found it in seven skills plus the
-Kurapika definition, every one carried verbatim into both mirrors.
+is wider than that PR: the anchor predates it, and a grep of the SOURCE found it in ten files — eight skills
+(`hatsu-warmup` among them, where the mentions are deliberate and define the convention), the Kurapika
+persona, and the Claude-only `/kurapika` command. Everything but the command is carried verbatim into both
+mirrors; the command is Claude Code's own and is not mirrored.
 
 ### 9.1 Where it was, and why `check` never flagged it
 
@@ -911,3 +913,19 @@ fenced-block check still reports zero, and the plugin validates.
 
 **Still not verified:** a Codex or Cursor session running the mirrored blocks — same caveat as § 9.3 and
 § 9.5. Verified: the blocks a mirror carries are byte-identical to these, and these run.
+
+### 9.7 Copilot's fourth round — quoting, and three records set straight
+
+Run against the head before the second catch-up. Two threads, two suppressed comments.
+
+| finding | disposition |
+|---|---|
+| the explicit-input line `hatsu_root=<the absolute path § 0 printed>` is an unquoted assignment — a checkout at `/work/Hatsu Plugin` becomes an assignment followed by a command | **Fixed**: `hatsu_root='<the absolute path § 0 printed>'`, single-quoted, in § 0's `schema check`, § 5a's copy loop and § 5c's `ours`, and in the two prose mentions of the form (`hatsu-warmup` § 5, `docs/WORKFLOW.md`). The resolver's handed slot was already double-quoted |
+| the PR body's footer still read `0.10.0 → 0.11.0` against a manifest that had moved | **Already fixed on the live body** before this round was read — the footer says `0.12.0 → 0.13.0` and names the two catch-ups; the review ran against the earlier text |
+| `docs/WORKFLOW.md`'s handed-path row dropped the surface prefixes | **Fixed**: `$hatsu-warmup <path>` on Codex, `/hatsu-warmup <path>` on Cursor, citing `docs/SURFACES.md` § 1 |
+| § 9's inventory said *seven skills plus the Kurapika definition, every one mirrored* over a listing of ten files including the unmirrored command | **Fixed**: ten files — eight skills, the persona, and the Claude-only command, which is not mirrored |
+
+The quoted form, exercised: `hatsu_root='/tmp/hatsu space test'; printf '%s\n' "$hatsu_root"` prints the
+path as one word; the unquoted form of the same line is *"command not found: test"* after an assignment
+of `/tmp/hatsu`. Mirrors regenerated clean after the change, the fenced-block check reports zero, the plugin
+validates.

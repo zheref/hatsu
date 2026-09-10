@@ -70,7 +70,7 @@ cat "$hatsu_root/nen/contract.json"
 This is the one machine read of the contract, and it is a validation, never a way of extracting values:
 
 ```bash
-hatsu_root=<the absolute path § 0 printed>   # explicit input (§ 5's rule); a variable from another shell is not here
+hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule), QUOTED: a path with a space is still one word; a variable from another shell is not here
 nen schema check --repo "$hatsu_root"
 ```
 
@@ -519,7 +519,7 @@ echo "hatsu_root: $hatsu_root"   # a later shell cannot inherit this variable; i
   - **§ 0's resolver, verbatim** — the same three candidates, the same `is_hatsu` test, the same
     `pwd -P`, six lines above the command. `pr-state` § 2, `futon` § 5 and `tensho` § 6 carry it, with
     the printed root as the second candidate.
-  - **the one-line explicit input** `hatsu_root=<the absolute path § 0 printed>` — this skill's own later
+  - **the one-line explicit input** `hatsu_root='<the absolute path § 0 printed>'`, quoted — this skill's own later
     blocks (§ 0's `schema check`, § 5a's copy loop, § 5c's `ours`) open with it, and `backlog-state` and
     `getsuga` spell the same input as `<hatsu root>` in prose, substituted literally.
 
@@ -556,7 +556,7 @@ a second trap with it: through a symlink the mirror's own `../../../nen/workflow
 **plugin's** policy file rather than the target's (§ 5d, F10). The copy fixes both.
 
 ```sh
-hatsu_root=<the absolute path § 0 printed>   # explicit input (§ 5's rule); a variable from another shell is not here
+hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule), QUOTED: a path with a space is still one word; a variable from another shell is not here
 mkdir -p "$target/.agents/skills"
 for d in "$hatsu_root"/surfaces/codex/*/; do
   name=$(basename "$d"); dest="$target/.agents/skills/$name"
@@ -706,7 +706,7 @@ and thirty-nine of them are being claimed at once.
 | **anything else — and a TRACKED path is always anything else** | **leave it untouched**, install nothing under that name, and **name it in § 4's line** |
 
 ```sh
-hatsu_root=<the absolute path § 0 printed>   # explicit input (§ 5's rule); a variable from another shell is not here
+hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule), QUOTED: a path with a space is still one word; a variable from another shell is not here
 # ours DEST — true only for a destination this skill made. Tracked is never ours,
 # whatever it looks like: a repository's own history outranks a marker comment.
 ours() {
