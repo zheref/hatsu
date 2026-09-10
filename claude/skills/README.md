@@ -88,9 +88,9 @@ three at `v0.6.0`:
 
 | Skill | What it does |
 |---|---|
-| [`breath`](breath/) | **Warm-up, once per effort.** On the base branch and clean: fetch, fast-forward, cut `{model}/{persona}/{descriptor}` from the fresh trunk, prove the declared iteration checks. Asks only on a dirty tree, and never discards a tree it has not inspected. |
-| [`rasengan`](rasengan/) | **Build, before every commit.** Runs every `workflow.json → iteration.checks` entry through the lane's declared verb, dry-run first on a repository it has not built. A red build is fixed, never committed over; a seat (exit `4`) is quoted, never routed around. |
-| [`kokusen`](kokusen/) | **The automatic local commit.** `rasengan` green first, then `nen stage triage` with an **ask on every flagged file** and never a secret, then `nen commit format`. Commits, and only commits — it never pushes. |
+| [`breath`](breath/) | **Warm-up, once per effort.** On the base branch and clean: fetch, fast-forward, cut `{model}/{persona}/{descriptor}` from the fresh trunk, then prove the declared iteration checks **on that fresh tip** — a base that does not build is a **G5** stop taken before any of the change is authored. Asks only on a dirty tree, and never discards a tree it has not inspected. |
+| [`rasengan`](rasengan/) | **The change itself — the authoring phase.** Reads the request, resolves the stack from `nen/contract.json`, plans the change and writes it on the branch `breath` cut, with the declared `iteration.checks` run as the author's own feedback while the work is in front of them. It commits nothing, edits nothing outside the request's scope, and **never lowers a bar** to make a check pass. |
+| [`kokusen`](kokusen/) | **Verify, then commit — locally, automatically.** **The compile-before-commit is this skill's**: every `workflow.json → iteration.checks` entry, run over the finished tree, red refused with the failing check quoted. Then `nen stage triage` with an **ask on every flagged file** and never a secret, then `nen commit format`. Commits, and only commits — it never pushes. |
 | [`amaterasu`](amaterasu/) | **Launch, every turn.** Builds the configured target and starts it **from the core working directory, never a worktree**; the dry-run argv goes into the report and the chat. A disconnected device is reported by name. Parallel subagent efforts launch nothing. |
 | [`tsukuyomi`](tsukuyomi/) | **Tests health.** Runs `workflow.json → tests.required`, parses the results, fixes and re-runs — or stops at **G5**. It never patches a test to make it pass. |
 | [`rikugan`](rikugan/) | **The rich report** — turn, landing and final — rendered from `templates/rikugan.html`, **never markdown**: accomplished, challenges, not delivered, architecture delta, screenshots, how to launch, decisions. Only the final one is written to `Reports/`. |
@@ -110,8 +110,8 @@ three at `v0.6.0`:
 
 | Skill | Order inside |
 |---|---|
-| [`ren`](ren/) | **The per-request loop.** `breath`¹ (first turn only) → `rasengan`² → `kokusen`³ → `amaterasu`⁴ → `rikugan`⁵ → `jutaisho`⁶. It loops until the maintainer calls the next phase, and **it never pushes**. |
-| [`murasaki`](murasaki/) | **Pull + push.** [`ao`](ao/)¹ → [`rasengan`](rasengan/)² + [`tsukuyomi`](tsukuyomi/)² → push³, and **only if the branch is already published**. It never squashes and never force-pushes. |
+| [`ren`](ren/) | **The per-request loop.** `breath`¹ (first turn only, and it proves the base) → `rasengan`² (author the change) → `kokusen`³ (verify the tree, then commit) → `amaterasu`⁴ → `rikugan`⁵ → `jutaisho`⁶. It loops until the maintainer calls the next phase, and **it never pushes**. |
+| [`murasaki`](murasaki/) | **Pull + push.** [`ao`](ao/)¹ → the declared `iteration.checks` over the merged tree² + [`tsukuyomi`](tsukuyomi/)² → push³, and **only if the branch is already published**. A red merged tree goes to [`rasengan`](rasengan/) to be authored. It never squashes and never force-pushes. |
 | [`mukai`](mukai/) | **The review-and-PR phase — human-called.** `murasaki`¹ → [`hanten`](hanten/)² → `tsukuyomi`³ + [`kotoamatsukami`](kotoamatsukami/)³ → [`gyo`](gyo/)⁴ → evidence⁵ → [`shibari`](shibari/)⁶, which opens the PR and **starts [`en`](en/)**. Four of the five G5 stops live inside it. |
 | [`en`](en/) | **The landing watch, `izanagi`-capped** by `nen/workflow.json` → `monitor`. [`rikugan`](rikugan/)¹ (landing) → [`sharingan`](sharingan/)² → `murasaki`³ when the branch is behind → `sharingan`⁴ → [`jutaisho`](jutaisho/)⁵ at Ready → watch⁶ until merged → `rikugan`⁷ final. **A watch with no cap does not run**; where one must outlive the session, step 6 is handed to **Illumi**, read-only, who wakes Kurapika and acts on nothing. |
 

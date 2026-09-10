@@ -51,7 +51,8 @@ about a successful archive is authorization for either: a package on disk is a p
 
 Nothing susanoo reads comes from `nen/workflow.json`: packaging is what a repository *does*, not what
 the workflow *decides*. There is no `archive` entry in `iteration.checks` and there should not be —
-[`$rasengan`](../rasengan/SKILL.md) runs the iteration, and an archive is not one.
+the iteration is what [`$rasengan`](../rasengan/SKILL.md) runs as its inner loop while authoring
+and what [`$kokusen`](../kokusen/SKILL.md) runs at the commit gate, and an archive is neither.
 
 ## 3. The dry run, then the run
 

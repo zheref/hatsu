@@ -118,7 +118,7 @@ is a repository that declared nothing at all, and answers exit `2`.
 run the repository's own documented test command, **say plainly that no declaration exists yet**, and
 treat writing one as a **G4** change to propose. Read that fact off `test`/`build`/`lint` and **never
 off `nen shu detect`**, which answers a different question and reports `1` for repositories that test
-perfectly well ([`$rasengan`](../rasengan/SKILL.md) § 6, verified live in both directions).
+perfectly well ([`$rasengan`](../rasengan/SKILL.md) § 7, verified live in both directions).
 
 ## 6. Reading the results, and what may be changed
 

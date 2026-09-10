@@ -4,6 +4,12 @@
 `iteration.checks`, run through the target repository's own declaration, with one stated reaction per
 exit code.
 
+> **Dated 2026-09-10 — the skill was RE-SCOPED after this record was written.** `rasengan` is the
+> **authoring** phase; the verbs and transcripts below are unchanged and still exercised by it, but
+> they are now its **inner loop**, and the compile-before-commit belongs to `kokusen`. Read
+> § *Re-scoped 2026-09-10: authoring, not compiling* at the foot of this file **first** — it carries
+> the ruling, the phase boundary and every section pointer that moved. Nothing above it is edited.
+
 **Not a port.** There is no retired skill behind it; what it replaces is the habit of typing a build
 command from memory between edits. § 2 records what each step is at nen `0.3.0`, live, with exit
 codes.
@@ -352,3 +358,50 @@ and this is a sentence in it to correct rather than behaviour to change. Every o
 document Hatsu parses matched its golden at this pin — `nen.report.data/v0.1`, `nen.stop.mark/v0.1`,
 `nen.pr.ready/v0.1` (with the additive `conjuncts[].note` and `meta.generator.executable`), and the
 new `nen.loop.iterate/v0.1`.
+
+---
+
+## Re-scoped 2026-09-10: authoring, not compiling
+
+**Everything above stays exactly as it was recorded.** The transcripts in §§ 2.1–2.7 and in the three
+*Retired at nen* sections are evidence about `nen shu build`/`test`/`lint`/`detect`/`tools` and about
+the build proof, and none of that changed. What changed is **which phase those verbs belong to**.
+
+**The ruling** (maintainer, 2026-09-10 — [`../ROSTER.md`](../ROSTER.md) § *Rulings of 2026-09-10*,
+*`rasengan` is the AUTHORING phase*): `rasengan` **builds the thing** — it is the phase in which
+Kurapika writes the code that answers the request, on the stack the declaration names. It was never
+"run the build command before committing".
+
+**So read the record above with the phase boundary redrawn:**
+
+| What § 1's table called it | Where it lives now |
+|---|---|
+| steps 1–5 — read `iteration.checks`, dry-run, run each check, react to the exit code, host probe | **`rasengan`'s inner loop** (`SKILL.md` §§ 5–9) — the author's own feedback while the change is being written, *and* **`kokusen`'s commit gate** (`kokusen/SKILL.md` § 3), *and* **`breath`'s base-tip proof** (`breath/SKILL.md` § 6). Same verbs, same exit table, three phases, three questions |
+| step 6 — read the no-declaration fact off `build`/`test`/`lint`, never off `detect` | unchanged, and it is now `SKILL.md` **§ 7** (was § 5's neighbour at § 6) |
+| step 7 — build proof, stall guard | both retired at nen `0.5` (see the sections above); the proof is now the **handshake** between the author's loop and the gate, `SKILL.md` § 10 |
+
+**Section pointers that moved**, for anything citing this file or the skill: the exit table is
+`SKILL.md` **§ 6** (was § 5); the no-declaration rule is **§ 7** (was § 6); containment is **§ 5a**
+(was § 4a); the stall guard is **§ 9** (was § 8); the proof is **§ 10** (was § 9); residue is **§ 11**
+(was § 10). [`../../claude/skills/tsukuyomi/SKILL.md`](../../claude/skills/tsukuyomi/SKILL.md) and
+[`susanoo.md`](susanoo.md) were updated to the new numbers in the same change.
+
+**One sentence in § 3 above would now mislead and is corrected here rather than edited there.**
+Residue entry 1 reads *"which is precisely why `hatsu:kokusen` re-runs this skill before every commit
+instead of reading a file"* — written at nen `0.3.0`, when there was no proof file. At the pinned
+`0.7.0` **kokusen does not re-run this skill**: it runs the declared `iteration.checks` itself, over
+the finished tree, and reads `nen commit check --require-proof <lane>` against them
+(`kokusen/SKILL.md` § 3, and the live transcripts in [`kokusen.md`](kokusen.md)
+§ *The commit gate at the ruling of 2026-09-10*). Re-running an authoring phase to obtain a build
+would be exactly the confusion the ruling removes.
+
+**The count, restated for the re-scoped skill.** The authoring itself — reading the request, reading
+the tree's own conventions, choosing the shape, writing the code and the tests beside it — is
+**named residue and a boundary rather than a gap** (`SKILL.md` § 11, first two entries), on the same
+grounds [`ren.md`](ren.md) gives for the turn loop: nen owns operations, not the judgement that
+decides what to write. **Every deterministic step inside the phase is still a verb**, and every one
+of them is exercised live above.
+
+**Nothing new was run for this section.** It records a boundary change, not a binary change; the
+verbs, their exit codes and their transcripts are the ones already above, at the pins they were taken
+at.

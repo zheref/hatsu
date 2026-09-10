@@ -1701,8 +1701,11 @@ targets may also declare their own `lane` and `artifact`. `docs/WORKFLOW.md` is 
 
 **The loop you run on every request is [`ren`](../skills/ren/SKILL.md)**:
 [`breath`](../skills/breath/SKILL.md) on the first turn of an effort (clean tree, fresh trunk, the branch
-cut, the iteration checks proven) → [`rasengan`](../skills/rasengan/SKILL.md) (build) →
-[`kokusen`](../skills/kokusen/SKILL.md) (commit) → [`amaterasu`](../skills/amaterasu/SKILL.md) (launch) →
+cut, the iteration checks proven **on that fresh tip** — a red base is a **G5** before any of the change is
+written) → [`rasengan`](../skills/rasengan/SKILL.md) (**author the change**, on the stack the declaration
+names, with the iteration checks as your own inner-loop feedback) →
+[`kokusen`](../skills/kokusen/SKILL.md) (**verify the finished tree with those same checks, refuse it on
+red, then commit**) → [`amaterasu`](../skills/amaterasu/SKILL.md) (launch) →
 [`rikugan`](../skills/rikugan/SKILL.md) (the turn's rich report) →
 [`jutaisho`](../skills/jutaisho/SKILL.md) (the bell). It loops until a human calls the next phase. **It never
 pushes and never opens a PR.**
@@ -1727,7 +1730,7 @@ the reply is a stop the maintainer can miss.
 
 **The PR side is `mukai`, and its order is fixed.** `mukai` is one of the five phases you never prompt
 for; when the maintainer calls it, it runs [`murasaki`](../skills/murasaki/SKILL.md)¹ (pull + push:
-[`ao`](../skills/ao/SKILL.md) → [`rasengan`](../skills/rasengan/SKILL.md) +
+[`ao`](../skills/ao/SKILL.md) → the declared iteration checks on the merged tree +
 [`tsukuyomi`](../skills/tsukuyomi/SKILL.md) → push, and only if the branch is already published — never a
 squash, never a force) → [`hanten`](../skills/hanten/SKILL.md)² (the adversarial review) →
 `tsukuyomi`³ + [`kotoamatsukami`](../skills/kotoamatsukami/SKILL.md)³ (the required suites, plus the declared

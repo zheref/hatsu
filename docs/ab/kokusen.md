@@ -4,6 +4,14 @@
 flagged path, a shape-checked Conventional Commits message, `Akatsuki-Agent: kurapika` and no other
 trailer, and no push.
 
+> **Dated 2026-09-10 — the phase boundary moved after this record was written.** Row 2 of § 1 below
+> credits `hatsu:rasengan` with the checks that must be green. The maintainer's ruling of 2026-09-10
+> ([`../ROSTER.md`](../ROSTER.md)) makes `rasengan` the **authoring** phase and seats the
+> compile-before-commit **in kokusen**: it runs the declared `iteration.checks` over the finished tree
+> itself. The verbs and transcripts below are unchanged; read
+> § *The commit gate at the ruling of 2026-09-10* at the foot of this file for what the gate now runs,
+> verified live on this repository.
+
 **Not a port.** The nearest existing relative is [`tensho`](../../claude/skills/tensho/SKILL.md),
 which stages and commits on the way to a **PR**; kokusen is the same two verbs with the GitHub half
 removed and one rule added that tensho does not carry — **no AI attribution trailer at all**. § 2
@@ -428,3 +436,78 @@ toward flagging.
   symlink — because "not measured" rendering as "measured and small" is the one reading this must not
   produce. An IGNORED path is not measured either: it can never reach `flagged`, so statting a
   `node_modules/` tree would buy one unread field for thousands of synchronous stats per invocation.
+
+---
+
+## The commit gate at the ruling of 2026-09-10
+
+**The maintainer's ruling of 2026-09-10** ([`../ROSTER.md`](../ROSTER.md) § *Rulings of 2026-09-10*,
+*`rasengan` is the AUTHORING phase*) seats the compile-before-commit **here**: kokusen runs this
+repository's declared `iteration.checks` over the finished tree and refuses to commit on red. The
+rows above are untouched; this section records what that gate actually does on **this** repository,
+where the `plugin` lane declares `lint` and **seats** `build`.
+
+**Run:** 2026-09-10, released `zheref/nen` `v0.7.0` binary on `PATH` (`nen --version` → `0.7.0`),
+from the worktree `.claude/worktrees/rasengan-authors` of this checkout. Read-only against the
+working copy: no commit was made by these three invocations.
+
+### A seat is not red — it is quoted, and the run continues
+
+```text
+$ nen shu build --repo .
+nen shu build: 'build' is unsupported on lane 'plugin' (claude-code-plugin). The declaration's own
+reason: Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON
+manifests, one POSIX hook pair and one bash guard script, all read as-is by Claude Code. `lint` (claude
+plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs.
+                                                                                                # exit 4
+```
+
+`iteration.checks` here is `["lint"]`, so `build` is not even in the gate's list — the invocation
+above is recorded to show what the gate must **not** do with an exit `4` if a repository ever puts a
+seated verb in that list: quote the declaration's own reason and go on to the next check. Converting
+it into "the build failed" would refuse a commit on a repository that said, in its own words, that it
+has nothing to compile.
+
+### The check the gate actually runs, green
+
+```text
+$ nen shu lint --repo .
+Validating marketplace manifest: …/.claude-plugin/marketplace.json
+✔ Validation passed
+lane:          plugin  (claude-code-plugin)
+verb:          lint
+host:          darwin -- supported (declared: darwin, linux, win32)
+preconditions:
+  ok    path .claude-plugin/plugin.json
+  ok    path .claude-plugin/marketplace.json
+ran:           claude plugin validate . --strict  -- exit 0 in 916ms                            # exit 0
+```
+
+**This one line is the whole of the gate on this repository**, and a red here is what kokusen refuses
+to commit over.
+
+### The proof is a `1` forever on a seated lane, and that is not a red build
+
+```text
+$ nen commit check --repo . --require-proof plugin
+lane:      plugin
+tree:      56870e6ec9655e90c190fcbac5f5875a4fa9d1f5
+proof:     (none)
+verdict:   NOT PROVED -- there is no build proof for lane 'plugin': .nen/proof/plugin.json is not there. A
+           green 'nen shu build --lane plugin' records one; a build that came out red removes it, so this
+           is also what a failed build since the last green one looks like.                     # exit 1
+```
+
+**Only a green `nen shu build` writes `.nen/proof/<lane>.json`**, and this lane's `build` is a seat,
+so the file can never exist here. The verdict's own sentence names all three causes of a `1` — no
+proof, a moved tree, a red build since the last green — and on this lane it is permanently the first.
+`SKILL.md` § 3.2 says so and reads the gate off the `lint` run instead. Re-verified today at the
+pinned `0.7.0`; the same pair was recorded at `v0.5.0` in [`rasengan.md`](rasengan.md)
+§ *Retired at nen 0.5*.
+
+### Findings against the binary
+
+**None.** All three verbs behaved exactly as their `--help` and `docs/USAGE.md` describe, and the
+`1` on a seated lane is correct rather than awkward: the verb reports the absence of a proof, and
+deciding what an absence means on a lane that declares a seat is the caller's, which is what
+`SKILL.md` § 3 now does explicitly.
