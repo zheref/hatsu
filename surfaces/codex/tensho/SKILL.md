@@ -308,11 +308,15 @@ needs): the readiness **check** by itself is [`$pr-state`](../pr-state/SKILL.md)
 
 ```bash
 export GH_TOKEN=$(gh auth token)
-nen pr ready <CODE>#<N> --repo <path> --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
+# $hatsu_root is THIS plugin's checkout, resolved as hatsu-warmup § 5's prelude does — never assumed
+nen pr ready <CODE>#<N> --repo <path> --gates "$hatsu_root/contracts/reference.gates.json" --explain
 ```
 
 The `--gates` shown is [`sharingan`](../sharingan/SKILL.md) § 4's identity rule, cited rather than
-copied: it holds ONLY where the target is frozen `<reference-repo>` itself (no gates file of its own);
+copied, its `$hatsu_root` anchor included — the Hatsu checkout as
+[`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it on every surface, never
+`$CLAUDE_PLUGIN_ROOT` alone, which is Claude Code's: it holds ONLY where the target is frozen
+`<reference-repo>` itself (no gates file of its own);
 a target that ships its own `nen/gates.json` needs no identity flag at all; any OTHER target with no
 `nen/gates.json` gets `--reviewers` supplied by hand — from its `CODEOWNERS` or the PR's own requested
 reviewers, never this file, because a repository is never judged by another repository's reviewers.
