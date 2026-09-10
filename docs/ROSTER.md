@@ -67,6 +67,93 @@ ratified the draft by itself.
 
 ---
 
+## Rulings of 2026-09-09
+
+**These are the maintainer's, recorded here because this file is the authority on standing.** Each one closes
+something that was previously open or unstated; each names what it does **not** close. Everything not listed
+below is unchanged, including every word of the OPEN and BENCH sections that follows.
+
+### 1 · The phases a human calls
+
+The local loop is [`ren`](../claude/skills/ren/) and it runs on every request without being asked:
+`breath` → `rasengan` → `kokusen` → `amaterasu` → `rikugan` → `jutaisho`. **It never pushes and never opens a
+pull request.** Five phases are the maintainer's to call, and **no agent ever prompts for any of them**:
+`aka` (push), `mukai` (review, coverage, evidence, the PR), the **merge** itself (**G2**, `CON-5`),
+`kagutsuchi` (a non-production upload, per target) and `mugetsu` (publication, per target, **G3**, `CON-6`).
+
+**Only a genuine G5 (`CON-47`) interrupts the maintainer, and there are five**: red required tests, touched-
+file coverage under the ladder's `minimum`, a *semantic* merge conflict, an unsettled adversarial finding, and
+a stuck-PR escalation. A stop is `nen stop`'s banner, the report link, options with ⭐ on the recommendation,
+**and the question asked through the surface's own native option picker** (`AskUserQuestion` on Claude Code).
+The full shape is [`WORKFLOW.md`](WORKFLOW.md).
+
+### 2 · Attribution — settled
+
+**NO AI attribution trailer is ever recorded.** `Akatsuki-Agent: <name>` is the **single admitted** trailer,
+admitted precisely because it is not AI attribution: it names *the system's own* provenance — which agent of
+this roster did the work — rather than a model claiming authorship of it. There is still no `Akatsuki-Run:`
+trailer, because there is no CI run to name, and the git author is still always the human.
+
+No `Co-Authored-By:`, no `Claude-Session:`, no `Signed-off-by:`, no "Generated with …" line, no model name in
+a commit message. **A harness that mandates `Co-Authored-By:` is configured off** (`includeCoAuthoredBy:
+false`) **and the commit-msg guard refuses the trailer regardless of what any harness mandates** — the setting
+is the convenience, the guard is the rule. The two lists are data, in
+[`../nen/workflow.json`](../nen/workflow.json) → `commits`.
+
+**This supersedes** the clause every agent definition carried, which treated the harness mandate as binding
+and deferred the question to the P3 constitution. It is answered; the constitution inherits the answer.
+
+### 3 · Models and subagent titles
+
+Model choice is by **tier**, from [`../nen/workflow.json`](../nen/workflow.json) → `models` — `frontier`,
+`deep`, `fast`, `economy` per surface — and **never by version**: a pinned version is a pin that rots.
+
+- **A subagent is never given the frontier tier** (`fable` on Claude, `astra` on Codex). That tier is where
+  the maintainer's own conversation lives, and a delegate that outranks its caller has inverted the
+  delegation.
+- **Every subagent is titled `<skill> · <persona> · <model alias>`** — what ran, as whom, on what.
+- The pins are frontmatter in the definitions: **Gon** and **Phinks** `model: opus` / `effort: high`;
+  **Hisoka** `model: sonnet` / `effort: high`; **Uvogin** `model: sonnet` / `effort: medium`. **Kurapika
+  carries neither** — he is the main session and inherits whatever the maintainer is running.
+
+### 4 · Two bench profiles activate — **OPEN-3 partially closed**
+
+| Bench member | Activated for | Not activated for |
+|---|---|---|
+| **Feitan** | **Security, and security only.** The security-bearing scope of an adversarial review: he is the reviewer `hanten` routes a change to when it touches authentication, credentials, permissions, input trust boundaries or the supply chain. | anything else. A performance question is Uvogin's, a UI question Hisoka's, and Feitan does not take either. |
+| **Chrollo** | **Architecture and handbook conformance.** The architecture scope of an adversarial review, and the citation of a governing rule by its id rather than by memory. | authoring the handbooks. That is Kurapika's Conjurer mode, at **G4**. |
+
+**Their definitions land at `v0.5.0`**, with `hanten`. Until a definition exists in `claude/agents/`, **neither
+may be acted as** — an activation is a decision about standing, not a licence to improvise the agent. Both
+inherit every default: they never merge, never vote, never edit non-test source, and they stop at the gate.
+
+**What this does not close.** `OPEN-3` asked which of the seven Genei Ryodan profiles activate and when. Two
+are now answered. **Machi, Shalnark, Kortopi, Pakunoda and Shizuku remain bench only**, on the wording below,
+and adopting one is still a deliberate act with its own decision.
+
+### 5 · Illumi is provisioned — **OPEN-1 partially closed**
+
+**Illumi is provisioned for `en`'s long watch, and only when one is needed.** `en` is the capped landing
+watch — `izanagi` under `monitor.maxCycles` — and a watch that runs for hours is exactly the shape the
+proposal named: needle control of many bodies at once. Provisioned means *he may be stood up for that work
+when the work exists*; it does not mean a definition exists, and it does not widen to the other loop engines
+(`backlog-loop`, `futon`, `senkei`) that the original proposal also listed.
+
+**What this does not close.** **Killua's row is untouched and remains fully OPEN**, and it must not be
+collapsed into Gon's grammar — if ratification adopts the pairing, `watched` becomes a *mandatory* condition
+on every Gon grant; if it does not, `watched` stays optional or is dropped. Neither is assumed. **OPEN-2 —
+Gon's delegation grammar — is untouched**, and until it is ratified Gon still crosses no gate.
+
+### 6 · Phinks gains a pre-PR trigger at `v0.5.0`
+
+Today Phinks is invoked by hand before a release. From `v0.5.0` he is also a **routing target of `hanten`**:
+a release-adjacent change set gets an adversarial pass **before the PR is posted**, not after. Nothing else
+about him changes — the proven-finding discipline (`QA-1`), the eight hypothesis classes with a recorded
+disposition each (`QA-2`, `QA-3`), the advisory `Quality-Gate:` line (`QA-21`), and the release gate staying
+the maintainer's. A trigger is a new way to be called, never a new authority.
+
+---
+
 ## 🔶 OPEN — Illumi and Killua
 
 > **These rows are OPEN sub-decisions. The ruling is G4-class and it has not been made.** This is
@@ -76,7 +163,7 @@ ratified the draft by itself.
 
 | Agent | **Proposed** role | Status |
 |---|---|---|
-| **Illumi** | *Proposed:* long-running loop engines (backlog-loop / futon / senkei — needle control of many bodies at once) | **OPEN** |
+| **Illumi** | *Proposed:* long-running loop engines (backlog-loop / futon / senkei — needle control of many bodies at once) | **PARTIALLY RULED, 2026-09-09** — provisioned for `en`'s long watch, when one is needed. The rest of the row (backlog-loop / futon / senkei) stays **OPEN**, and no definition exists |
 | **Killua** | *Proposed:* delegate-run watchdog paired with Gon — a Gon mission never runs unwatched — plus fast single-object interventions | **OPEN** |
 
 **Killua's row touches Gon's grammar and must not be collapsed into it.** If ratification adopts the
@@ -96,18 +183,21 @@ open question with nobody deciding it.
 > **OPEN-3** of the ratified migration plan. These are *extensible professional-profile agents, adopted as
 > needed* — a list of shapes the roster can grow into, not a roster.
 
-| Bench member | Professional profile |
-|---|---|
-| **Chrollo** | Architecture |
-| **Feitan** | Security |
-| **Machi** | Integration surgery |
-| **Shalnark** | Automation |
-| **Kortopi** | Scaffolding |
-| **Pakunoda** | Repo forensics |
-| **Shizuku** | Cleanup |
+| Bench member | Professional profile | Standing |
+|---|---|---|
+| **Chrollo** | Architecture | **ACTIVATED 2026-09-09** — architecture and handbook conformance, as a `hanten` reviewer. **Definition lands at `v0.5.0`; until it does, he may not be acted as** |
+| **Feitan** | Security | **ACTIVATED 2026-09-09** — security, and security only, as a `hanten` reviewer. **Definition lands at `v0.5.0`; until it does, he may not be acted as** |
+| **Machi** | Integration surgery | Bench |
+| **Shalnark** | Automation | Bench |
+| **Kortopi** | Scaffolding | Bench |
+| **Pakunoda** | Repo forensics | Bench |
+| **Shizuku** | Cleanup | Bench |
 
-None has a definition in `claude/agents/`, none is listed in `plugin.json`, and none may be acted as.
-Adopting one is a deliberate act with its own decision, not a consequence of it being written here.
+**For the five rows still marked Bench**: none has a definition in `claude/agents/`, none is listed in
+`plugin.json`, and none may be acted as. Adopting one is a deliberate act with its own decision, not a
+consequence of it being written here. **Activation is a decision about standing, not a licence to improvise
+the agent** — which is why Chrollo and Feitan, activated above, still may not be acted as until their
+definitions exist.
 
 ---
 
@@ -167,11 +257,13 @@ delivered, and a **filed issue** for a substantive finding of the agent's own.
 
 | Item | What is open | Where it is decided |
 |---|---|---|
-| **OPEN-1** | Illumi's and Killua's final roles | A G4-class ruling by the maintainer. **Unmade.** |
-| **OPEN-2** | Gon's delegation-grammar clause | Drafted here; ratified with the P3 constitution in the migration tracker (private). **Until then, Gon crosses no gate.** |
-| **OPEN-3** | Genei Ryodan bench adoption — which profiles activate, and when | Unscheduled. **Bench doc only.** |
+| **OPEN-1** | Illumi's and Killua's final roles | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 5): Illumi is provisioned for `en`'s long watch. His other proposed engines, **and the whole of Killua's row, remain OPEN** — a G4-class ruling by the maintainer, **unmade**. |
+| **OPEN-2** | Gon's delegation-grammar clause | **Untouched.** Drafted here; ratified with the P3 constitution in the migration tracker (private). **Until then, Gon crosses no gate.** |
+| **OPEN-3** | Genei Ryodan bench adoption — which profiles activate, and when | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 4): **Feitan** (security only) and **Chrollo** (architecture and handbook conformance) are activated, definitions at `v0.5.0`. The other five profiles remain **bench doc only**, unscheduled. |
+| **Attribution** | Which trailers a commit may carry | **RULED 2026-09-09** (§ *Rulings*, 2): `Akatsuki-Agent` alone. **Closed.** |
 
-**None of these is resolved by this document, and none may be resolved by reading it confidently.**
+**Nothing above is resolved by reading this document confidently.** Where a row says PARTIALLY RULED, the
+unruled half is as open as it was, and the ruled half is the maintainer's, recorded — not inferred.
 
 ---
 
