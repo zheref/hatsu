@@ -76,6 +76,7 @@ writes the marker; the hook reads it, fires, and removes it.**
 ```
 .nen/last-stop.json
 {
+  "contract":  "hatsu.stop-marker/v0.1",
   "at":        "<absolute ISO-8601 UTC timestamp>",
   "gate":      "G5" | null,
   "who":       "kurapika",

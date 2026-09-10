@@ -324,8 +324,13 @@ model has stopped talking, or has already typed the push, it is too late.
 
 ```json
 { "contract": "hatsu.stop-marker/v0.1", "at": "<ISO-8601>", "gate": "G5",
-  "title": "<one line>", "repo": "<name>", "report": "<url or path>" }
+  "who": "kurapika", "title": "<one line>", "body": "<one line>",
+  "reportUrl": "<url or path>", "sound": "<notifications.sound>", "rungs": ["os", "sound"] }
 ```
+
+The hook reads **`gate` and `title` only**; every other key is jutaisho's own record (the shape its
+SKILL.md § 3 states) and a future `nen stop --mark` may write a subset — `who`, `gate`, `notified`,
+`at` — which the hook reads the same way.
 
 Freshness is taken from the **file's mtime**, not from `at`: comparing a timestamp inside a string needs a
 date parser, and the mtime is the same fact without one. A marker older than ten minutes belongs to a stop
