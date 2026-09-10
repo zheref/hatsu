@@ -136,8 +136,16 @@ escalation § 1 just withheld.
 ```
 
 - **`.nen/` is git-ignored**, and the marker is the only file this skill writes anywhere.
-- **The hook treats a marker older than 10 minutes as stale**: it removes it without firing. A stale
-  bell for a turn that ended while the machine was asleep is worse than no bell.
+- **The hook treats a marker older than 10 minutes as stale**: it decides from the file's **mtime**
+  (`find "$marker" -mmin -10`, `hooks/stop-bell.sh`) and removes it without firing. A stale bell for a turn
+  that ended while the machine was asleep is worse than no bell. **So the marker is written whole, in the
+  turn it describes** — never amended later, never carried over from a previous turn with its content
+  edited, because the freshness the hook reads is the mtime and not the `at` field.
+- **`who` is the persona, and it stays the persona whatever the surface calls itself.** On a host whose
+  own instructions give the session another name, the transcript may open as that name while the work is
+  done as Kurapika (`docs/SURFACES.md` § 1). `who` here, `--who` on `nen stop`, and the `Akatsuki-Agent`
+  trailer are Hatsu's record of who acted; **none of them is ever set from what the surface introduced
+  itself as.**
 - **One marker, overwritten.** A second turn's marker replaces the first; there is no queue, because
   a backlog of notifications is exactly what this skill exists to prevent.
 - **The hook is `hooks/hooks.json`'s** — a harness hook, POSIX `sh`, documented as the harness's and
@@ -229,9 +237,138 @@ afplay /System/Library/Sounds/<notifications.sound>.aiff
   tool as the reason: no `osascript` (or a host that is not macOS) unfires rung 2 **and leaves rung 3
   to fire on its own** if `afplay` is there. One absent tool never unfires the other rung, and
   `hooks/stop-bell.sh` consumes the marker either way. **An unfired rung is never rendered as fired.**
+- **A present tool is not a delivered notification.** `osascript` exits `0` on a session with no
+  Notification Center seat and reports the failure on **stderr** only — so capture stderr from both lines
+  and read it, on every surface, before saying a rung fired. § 6 carries the measured output and the
+  exact wording to report; the rule is the same here.
 - **The fallback is announced, every time.** *"No Stop hook is installed; rungs 2–3 were fired
   in-session."* A maintainer who thinks the hook is working when it is not will eventually miss a
   gate.
+
+## 6. Surfaces — Codex and Cursor have no `Stop` hook, so this skill rings
+
+**§ 3 and § 5 assume a harness that fires a hook when a turn ends. Only Claude Code does.**
+[`hooks/hooks.json`](../../../hooks/hooks.json) is a *Claude Code* manifest — a `Stop` event and a
+`PreToolUse` matcher, discovered by that host at the plugin's own `hooks/` path. **Neither Codex nor Cursor
+reads it, and neither documents a turn-end hook of its own** ([`docs/SURFACES.md`](../../../docs/SURFACES.md)
+§ *What each surface reads*). So on those two surfaces § 5 is not a fallback for a hook that failed to
+install — **it is the only path there is**, and it is taken every time rungs 2–3 are owed.
+
+| Surface | Who fires rungs 2–3 | What this skill does |
+|---|---|---|
+| **Claude Code** | [`hooks/stop-bell.sh`](../../../hooks/stop-bell.sh), off the § 3 marker | writes the marker, and stops |
+| **Codex** (`$jutaisho`) | **this skill, in-session** | writes the marker, then runs `osascript` and `afplay` itself, and says so |
+| **Cursor** (`/jutaisho`) | **this skill, in-session** | the same |
+
+**The order is marker first, then the two rungs — and the marker is still written.** It is not bookkeeping
+for a hook that is not there: it is the record that this stop happened, at what instant, at which gate, and
+whether rung 1 had already fired, and the next thing to read the working copy (a resumed session, a
+`sharingan` pass, the maintainer) reads it. A bell rung with no marker is a bell with no evidence.
+
+```sh
+# 1 · the marker — § 3's BY-HAND WRITE of .nen/last-stop.json, whole and fresh.
+#     NOT `nen stop --mark`, for two reasons, both in the box below: at the pinned
+#     0.3.0 that option does not exist ("unknown option '--mark'", exit 2, verified
+#     live), and where it does exist its marker carries no `title`, so every bell it
+#     rings says "A decision is waiting." Probe before reaching for it, never a
+#     remembered version — and the shape is the second condition, not just the pin:
+#         nen stop --help 2>&1 | grep -q -- '--mark'
+
+# 2 · rung 2, in-session, values sanitised exactly as § 5 requires. READ STDERR, NOT THE EXIT CODE
+osascript -e 'display notification "<body>" with title "<title>"' 2>&1
+
+# 3 · rung 3
+afplay /System/Library/Sounds/<notifications.sound>.aiff 2>&1
+
+# 4 · the marker is removed once the stop has been answered — nothing else will remove it here
+rm -f .nen/last-stop.json
+```
+
+> ### On a headless session both rungs are `not applicable — no seat`, and rung 2 LIES ABOUT IT
+>
+> A `codex exec` (or any `cursor-agent -p`) run has no Notification Center session and no audio device.
+> Measured live inside `codex exec -s workspace-write` on this host (`docs/ab/surfaces.md` § 7, F8):
+>
+> | rung | command | exit | what actually happened |
+> |---|---|---:|---|
+> | 2 | `osascript -e 'display notification …'` | **`0`** | **nothing was delivered.** stderr: *"NSNotificationCenter connection invalid"*, *"Connection to notification center invalid. ServerConnectionFailure: 1"* |
+> | 3 | `afplay …/Glass.aiff` | `1` | nothing was played. stderr: *"Error: AudioQueueStart failed (-66680)"* |
+>
+> **Rung 2's exit code is not evidence it fired**, and a skill that checks the exit code alone reports a
+> bell that never rang — which is the one failure this file's hard limits single out
+> (*"never claims a rung fired that did not"*). So on any surface:
+>
+> - **Capture stderr and read it.** Non-empty stderr from `osascript` containing `notification center`,
+>   `Connection invalid` or `ServerConnectionFailure` means **rung 2 did not fire**, whatever the exit code
+>   said. `afplay`'s exit `1` with `AudioQueueStart failed` means the same for rung 3.
+> - **Report it as `not applicable — no seat`, by name, per rung**, exactly the way § 5 reports an absent
+>   `osascript`. Not "fired", not "failed" — there is nobody at this machine's Notification Center to fire
+>   at, and that is a property of the session rather than a fault to retry.
+> - **Then the stop still stands.** § 4's four parts are the real bell on a headless surface: the banner,
+>   the report link, the lettered options, the question. Rungs 2–3 were always the *escalation*, and an
+>   escalation with no seat to escalate to costs nothing to skip and everything to fake.
+> - **Never retry them, and never substitute another noise-maker** (`say`, `terminal-notifier`, a bell
+>   character). A rung is what `notifications.rungs` declares; anything else is a new rung nobody policy'd.
+
+> ### The marker is a live fact, not a log — write it fresh, and remove it when the stop is answered
+>
+> **`hooks/stop-bell.sh` decides freshness from the file's mtime** — `find "$marker" -mmin -10` — and a
+> marker older than ten minutes is removed **without ringing**. Two consequences, and both were observed:
+>
+> - **A marker re-used across turns must be re-written, not amended in place by a reader.** Every write of
+>   `.nen/last-stop.json` is a whole-file write in this turn, so its mtime is this turn's. A marker whose
+>   content is current but whose mtime is stale is a bell that silently will not ring.
+> - **On a surface with no hook, nothing ever removes it, so this skill does.** After a headless run that
+>   ended successfully with the branch pushed, `.nen/last-stop.json` still read `gate: "G5"` with a blocker
+>   answered three passes earlier (`docs/ab/surfaces.md` § 7, F13). A later reader — a resumed session, a
+>   `sharingan` pass, or a `hooks/stop-bell.sh` that runs in *some other* session standing in that
+>   directory — sees a gate that is not open. **Where this skill wrote the marker itself and fired the
+>   rungs itself, this skill removes it** once the stop has been answered or the run has moved past it.
+>   On Claude Code it does **not**: the hook consumes the marker, and removing it first is removing the
+>   bell.
+
+> **`nen stop --mark` is real, and it is NOT available at the pinned `0.3.0` — verified live both ways
+> (`docs/ab/surfaces.md` § 4).** At `0.3.0` `nen stop --help` documents `--who`, `--gate`, `--notified`,
+> `efforts.md` and `--template`, and no `--mark`; a build from nen `main` documents it as *"Also write
+> `.nen/last-stop.json` under `--repo` … the ONLY form of this verb that writes."* **So at the pin, § 3's
+> by-hand write stands and this section changes nothing about it**, and the block above therefore spells
+> the by-hand write rather than a command that exits `2` on every session this section is for
+> (Copilot review thread `PRRT_kwDOUKPjxM6hAjMh`).
+>
+> **Two conditions have to hold before the verb replaces it, not one.** The pin has to move — probed as
+> `nen stop --help 2>&1 | grep -q -- '--mark'`, never inferred from a remembered version number — **and**
+> the marker shapes have to agree — and they do not. nen's `--mark` writes
+> `{ contract: "nen.stop.mark/v0.1", who, gate, notified, at }`; § 3's is
+> `hatsu.stop-marker/v0.1` and carries `title`, `body`, `reportUrl`, `sound` and `rungs` besides.
+> `hooks/stop-bell.sh` reads only `gate` and `title` and falls back to *"A decision is waiting."* when
+> `title` is absent, so nen's marker would ring — **with the generic line, every time**. That is a
+> degradation, not a failure, and it is written down (§ Residue 6) rather than discovered later by a
+> maintainer wondering why every notification says the same thing.
+
+**Whether an ordinary turn escalates at all is still `notifications.turn`'s answer, on every surface**
+(§ 1, § 2). The default `"rung1"` means a Codex or Cursor turn rings the surface's own turn-end line and
+runs neither command below it; only a gate, or a repository declaring `"turn": "all"`, reaches this section
+at all. **A surface without a hook is not a reason to be louder.**
+
+> **`notifications.turn` is still not in nen's workflow schema, and the target has moved from `0.4.0` to
+> `0.5.0` — verified against the shipped loader rather than assumed.** § 2 said it must be admitted "when
+> the loader lands at nen `0.4.0`". The loader landed: `src/schema/workflow.ts` on nen `main` parses
+> `notifications` and states *"A notifications policy's two keys are"* — `rungs` and `sound` — so `0.4.0`
+> came and went **without** `turn`. It is therefore a **nen `0.5.0`** addition, and residue on the pinned
+> `0.3.0` exactly as before: read as data, default `"rung1"`, validated by nothing. Corrected here rather
+> than left standing (`docs/ab/surfaces.md` § 4.2).
+
+**The report says which surface rang, and how.** One line, every time rungs 2–3 are owed on a surface with
+no hook: *"Codex: no Stop hook on this surface — rung 2 not applicable (no Notification Center seat:
+`osascript` exit 0, stderr `NSNotificationCenter connection invalid`), rung 3 not applicable (`afplay`
+exit 1, `AudioQueueStart failed`); marker written by hand at `.nen/last-stop.json` (nen 0.3.0 has no
+`stop --mark`) and removed once the stop was answered."* The maintainer must be able to tell a bell the
+harness rang from a bell the model rang **from a bell nobody rang**, on every surface, without asking.
+
+**Rung 1 is the surface's own, and it is not this skill's to fake.** Codex and Cursor each end a turn with
+their own signal; that is rung 1, and `nen stop --notified` may be passed **only** if it actually went out
+(§ 2). A surface whose turn-end signal is a line in a terminal nobody is watching has rung rung 1 all the
+same — that is what rungs 2 and 3 are for.
 
 ## Residue
 
@@ -245,9 +382,29 @@ afplay /System/Library/Sounds/<notifications.sound>.aiff
    workflow row (verified live, `docs/ab/rikugan.md` § 2.4). § 2's keys are read as data with the
    defaults stated.
 5. **`notifications.turn` does not exist in the `nen.workflow/v0.1` shape the brief sketched** — it
-   is defined by this skill (§ 2) to settle F8, with `"rung1"` the default, and it must be admitted
-   by the workflow schema when the loader lands at nen `0.4.0`. Until then nothing validates it and
-   nothing rejects it, which is exactly why it is written down here rather than relied on silently.
+   is defined by this skill (§ 2) to settle F8, with `"rung1"` the default. **This entry said the
+   workflow schema must admit it "when the loader lands at nen `0.4.0`"; the loader landed at `0.4.0`
+   without it** (`src/schema/workflow.ts`: *"A notifications policy's two keys are"* `rungs` and
+   `sound`), so the target is now nen **`0.5.0`** and this is residue on the pinned `0.3.0` as before —
+   verified live rather than carried forward (`docs/ab/surfaces.md` § 4.2). Until then nothing
+   validates it and nothing rejects it, which is exactly why it is written down here.
+6. **`nen stop --mark` exists from nen `0.4.0` and not at the pin** (§ 6), and its marker is
+   `nen.stop.mark/v0.1` — `{ contract, who, gate, notified, at }` — which is **not** § 3's
+   `hatsu.stop-marker/v0.1`. `hooks/stop-bell.sh` reads `gate` and `title`, so nen's marker rings with
+   the generic *"A decision is waiting."* line. When the pin moves, either the hook learns nen's shape
+   or the skill keeps writing its own; **the choice is a decision, not a default**, and until it is made
+   § 3's by-hand write is what runs.
+7. **No surface but Claude Code has a turn-end hook** (§ 6). That is a fact about those products, not a
+   missing verb — nen shells out to git and gh and owns no notifier on any surface — so it is named here
+   and never filed.
+8. **Removing the marker on a hookless surface is this skill's own `rm -f`** (§ 6). `nen stop --mark`
+   writes and never removes — its own help calls it *"the ONLY form of this verb that writes"* — and
+   `hooks/stop-bell.sh`, which does remove, is a Claude Code manifest nothing else reads. So on Codex and
+   Cursor the cleanup is by hand, named here, and it is the reason a stop answered three passes ago does
+   not keep reading as open (`docs/ab/surfaces.md` § 7, F13).
+9. **`osascript`'s exit code is not a delivery receipt, and nothing on any surface gives one** (§ 6). The
+   only evidence available is its stderr, read by this skill. That is a property of the macOS notification
+   API rather than a gap in nen, so it is named and never filed.
 
 ## Authority
 
@@ -271,11 +428,21 @@ afplay /System/Library/Sounds/<notifications.sound>.aiff
   with ⭐ on the report, and the question through the surface's own picker.
 - **Never passes `--notified` for a push notification that did not go out.**
 - **Never claims a rung fired that did not** — an absent `osascript`, a hook that is not installed,
-  a rung the workflow does not list, are each reported by name.
+  a rung the workflow does not list, are each reported by name. **And never reads `osascript`'s exit `0`
+  as proof it fired**: on a headless session it exits `0` with the notification undelivered and says so
+  only on stderr (§ 6, verified). Read the stderr; report `not applicable — no seat`.
 - **Never queues or replays a stale bell** — a marker older than ten minutes is removed, not fired.
+- **Never leaves its own marker behind on a surface with no hook** (§ 6). Where this skill wrote it and
+  rang the rungs itself, this skill removes it once the stop is answered; nothing else there will.
+- **Never writes `who` from the name the surface introduced itself as** (§ 3). The persona is Hatsu's
+  record, and a host-level identity instruction does not change who acted.
 - **Never interpolates an unsanitised value into the § 5 fallback.** The title and body lose `"`,
   `\` and every newline and are passed as one argument; the sound name is reduced to
   `[A-Za-z0-9_-]` before it becomes a path. The in-session fallback is held to
   `hooks/stop-bell.sh`'s rule, not to a looser one for being typed rather than installed.
 - **Never suppresses a real stop** because a turn bell already rang, and never fires a real stop's
   noise twice.
+- **Never rings rungs 2–3 in-session without saying so** (§ 5, § 6). On Codex and Cursor that line is
+  owed on *every* stop, because on those surfaces there is no hook that could have rung them instead.
+- **Never escalates an ordinary turn just because a surface has no hook** (§ 6). `notifications.turn`
+  decides, on all three surfaces, and its default is `"rung1"`.

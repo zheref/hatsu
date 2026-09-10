@@ -1,0 +1,216 @@
+# surface-mirror-check — the generated-surface drift guard, wired as a real PR check.
+#
+# `claude/skills/**` and `claude/agents/**` are the one authored copy; the
+# mirrors under `surfaces/codex/**` and `surfaces/cursor/**` are generated from
+# them by `nen surface mirror generate` and committed, because Codex and Cursor
+# have no plugin loader and read what the warm-up places in the repository they
+# are standing in. Edit a skill without regenerating and those two surfaces keep
+# serving the old wording, silently — the same class of failure an un-bumped
+# `plugin.json` produces, and the reason both guards exist.
+#
+# The whole decision lives in `scripts/surface_mirror_check.sh` so it can be
+# exercised offline; the recorded transcripts are in `docs/ab/surfaces.md`.
+#
+# The two hardening choices are `plugin-bump-check.yml`'s, deliberately identical:
+#   1. The guard script is checked out from trusted `main` and never run from the
+#      PR — a PR that can rewrite the guard judging it makes the guard worth
+#      nothing. It is handed the PR's checkout as its ROOT ARGUMENT, so trusted
+#      code judges untrusted data rather than the other way round.
+#   2. No git credential survives into the job: both checkouts set
+#      `persist-credentials: false`. Nothing here pushes or authenticates.
+#
+# WHY THIS JOB CAN SKIP, AND WHY THAT IS NOT A HOLE
+# It bootstraps nen at the ref `nen/contract.json` pins — the single source of
+# truth for this repository's nen dependency (D10), read here rather than
+# hard-coded, so the job follows the pin instead of drifting from it. That pin
+# is currently `v0.3.0`, a nen that PREDATES the `surface` verb: `nen surface`
+# answers "unknown command 'surface'" at exit 2. So the job would fail every
+# pull request, on a condition no pull request can fix, until an unrelated repin
+# lands. A check that fails for a reason the author cannot act on is a check
+# that gets turned off within a week.
+#
+# So it SKIPS — loudly, with a `::notice::` naming the pin, the verb and what
+# will change — and passes. The skip is decided by the SCRIPT's own exit 2,
+# which means the skip disappears by itself the moment the pinned nen carries
+# the verb: no edit to this file, no remembering. What it must never do is
+# report success as though the mirrors had been checked, and it does not: the
+# notice says, in those words, that they were not.
+#
+# ENFORCEMENT POSTURE (2026-09-10, Hatsu 0.7.0): ADVISORY. This check is not yet
+# listed in a repository ruleset, and requiring a job that currently skips would
+# require a skip. Require it — the context is the job id below, `surface-mirror-check`,
+# so renaming that job silently un-requires it — in the same change that moves
+# `dependency.pinned_ref` past v0.3.0. That is a repo-settings act and a
+# maintainer's, not something this file can do.
+name: surface-mirror-check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: surface-mirror-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  surface-mirror-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout PR head (data only — nothing from here is executed)
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Checkout the guard script from trusted main (never from the PR)
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          path: .trusted
+          persist-credentials: false
+
+      - name: Assert the guard script keeps its exec bit in-tree
+        # Same assertion, same reason, as plugin-bump-check.yml's: Hatsu has no
+        # bats harness, and a committed-100644 guard is the failure that made
+        # that workflow's old `-x` test route every PR to the PR's own copy.
+        shell: bash
+        run: |
+          set -euo pipefail
+          mode="$(git ls-files -s -- scripts/surface_mirror_check.sh | awk '{print $1}')"
+          if [ -z "$mode" ]; then
+            echo "::error::scripts/surface_mirror_check.sh is not tracked on this PR head."
+            exit 1
+          fi
+          if [ "$mode" != "100755" ]; then
+            echo "::error::scripts/surface_mirror_check.sh is committed $mode, expected 100755. Fix with: git update-index --chmod=+x scripts/surface_mirror_check.sh"
+            exit 1
+          fi
+          echo "scripts/surface_mirror_check.sh: $mode (exec bit present)"
+
+      - name: Read the pinned nen ref from nen/contract.json
+        # nen/contract.json is the SINGLE SOURCE OF TRUTH for the nen dependency
+        # (its own `authority` clause). It is read here, never echoed from
+        # memory. `jq` is fine on this path: the contract's `no_jq` rule is about
+        # the INSTALLED PLUGIN path — an agent that has already opened the file
+        # spawning a parser to hand values back to itself — and a CI runner is
+        # not that reader.
+        #
+        # AND IT IS PULL-REQUEST DATA, SO IT IS VALIDATED HERE, ONCE, BEFORE ANY
+        # LATER STEP CAN SEE IT. `nen/contract.json` comes from the PR's own
+        # checkout, which means `dependency.pinned_ref` is a string an author
+        # chooses. Everything downstream — a shell assignment, a URL, a
+        # `::notice::` — treats it as trusted after this gate, so the gate is the
+        # only place it has to hold: a git ref shape and nothing else. A value
+        # carrying a quote could otherwise close a shell assignment, and one
+        # carrying a newline could forge a `::error::` workflow command out of an
+        # echoed notice. Neither survives this pattern.
+        id: pin
+        shell: bash
+        run: |
+          set -euo pipefail
+          ref="$(jq -r '.dependency.pinned_ref // empty' nen/contract.json)"
+          [ -n "$ref" ] || { echo "::error::nen/contract.json carries no dependency.pinned_ref."; exit 1; }
+          # A tag or branch name: alphanumeric start, then alphanumerics and the
+          # four punctuation characters git refs actually use. No quote, no
+          # newline, no space, no shell metacharacter, no leading '-' to be read
+          # as an option, and the `..`/`//` forms git itself refuses.
+          case "$ref" in
+            *..*|*//*) echo "::error::dependency.pinned_ref '$ref' is not a valid git ref (contains '..' or '//')."; exit 1 ;;
+          esac
+          # bash's own `=~` and NOT `grep -E`: grep matches LINE BY LINE, so a
+          # two-line value whose first line is `v0.3.0` passes an anchored grep
+          # and carries `::error::…` on the second — the forged-workflow-command
+          # case this gate is here to stop, and a multi-line value would break
+          # $GITHUB_OUTPUT's own key=value framing besides. `[[ =~ ]]` anchors to
+          # the whole string.
+          if [[ ! "$ref" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$ ]]; then
+            echo "::error::dependency.pinned_ref is not a plain git ref ([A-Za-z0-9][A-Za-z0-9._/-]{0,99}); refusing to use it in a URL or a shell."
+            exit 1
+          fi
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "pinned nen ref: $ref"
+
+      - name: Bootstrap nen at the pinned ref (checksum-verified, two steps, never a pipe)
+        # The contract's own install path: fetch bootstrap/nen.sh at the pinned
+        # ref TO A FILE, then run that file. Never `curl | bash` — the script
+        # reads ${BASH_SOURCE[0]} under `set -u` and dies before parsing its own
+        # arguments when piped (nen/contract.json §
+        # dependency.bootstrap.fetch_must_be_two_step). On success it prints the
+        # verified binary path on stdout and nothing else.
+        #
+        # THE REF ARRIVES THROUGH `env`, NEVER THROUGH `${{ }}` INSIDE THE SCRIPT.
+        # An expression written into a `run:` block is substituted into the shell
+        # SOURCE before bash parses it, so a value with a quote in it is code
+        # rather than data — the classic Actions script injection, and it would
+        # run here BEFORE the trusted guard below ever does. `env` hands bash a
+        # variable instead, which no quoting can escape. The `pin` step above has
+        # already refused anything that is not a plain git ref, so this is the
+        # second of the two independent reasons the value is safe.
+        id: nen
+        env:
+          PINNED_REF: ${{ steps.pin.outputs.ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ref="$PINNED_REF"
+          url="https://raw.githubusercontent.com/zheref/nen/${ref}/bootstrap/nen.sh"
+          curl -fsSL "$url" -o "${RUNNER_TEMP}/nen-bootstrap.sh"
+          bin="$(bash "${RUNNER_TEMP}/nen-bootstrap.sh" --ref "$ref")"
+          [ -x "$bin" ] || { echo "::error::bootstrap printed '$bin', which is not executable."; exit 1; }
+          echo "bin=$bin" >> "$GITHUB_OUTPUT"
+          echo "nen: $("$bin" --version) at $bin"
+
+      - name: Surface-mirror drift check (skips while the pinned nen has no `surface` verb)
+        env:
+          NEN_BIN: ${{ steps.nen.outputs.bin }}
+          PINNED_REF: ${{ steps.pin.outputs.ref }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          # BOOTSTRAP: scripts/surface_mirror_check.sh does not exist on `main`
+          # until this change itself merges, so until then there is no trusted
+          # copy to run. Fall back loudly, exactly as plugin-bump-check.yml does
+          # for its own first landing; `-f` (present and readable) because the
+          # invocation is `bash "$guard"`.
+          if [ -f .trusted/scripts/surface_mirror_check.sh ]; then
+            guard=.trusted/scripts/surface_mirror_check.sh
+          else
+            echo "::warning::scripts/surface_mirror_check.sh not found on trusted main — running the PR's own copy (bootstrap only). This path disappears once this change merges."
+            guard=scripts/surface_mirror_check.sh
+          fi
+          echo "guard script: $guard"
+
+          # The PR checkout is the ROOT the trusted guard judges.
+          #
+          # `code=0; cmd || code=$?` and NOT a bare `cmd` followed by `code=$?`.
+          # `shell: bash` runs `bash --noprofile --norc -e -o pipefail`, so the
+          # `-e` is GitHub's and `set -uo pipefail` above does not clear it: the
+          # bare form KILLED THE STEP on the guard's exit 2 before `code` was ever
+          # read, and the documented skip-with-a-notice never happened — the job
+          # failed every pull request, which is the outcome the header says it
+          # exists to avoid. Same idiom, same reason, as the loop inside
+          # scripts/surface_mirror_check.sh.
+          code=0
+          bash "$guard" "$PWD" || code=$?
+
+          case "$code" in
+            0)
+              echo "surfaces/ matches a fresh generation."
+              ;;
+            2)
+              echo "::notice title=surface-mirror-check skipped::The pinned nen (${PINNED_REF}) has no 'surface mirror' verb, so surfaces/codex and surfaces/cursor were NOT checked on this PR. This is a SKIP, not a pass. It disappears on its own — with no edit to this workflow — when nen/contract.json's dependency.pinned_ref moves to a nen that carries the verb. See docs/SURFACES.md § 4."
+              exit 0
+              ;;
+            3)
+              echo "::error::no nen binary reached the check step — the bootstrap above should have made this impossible."
+              exit 1
+              ;;
+            *)
+              echo "::error::surfaces/ has drifted from claude/skills + claude/agents. Regenerate with 'nen surface mirror generate' (both surfaces) and commit the result — see the guard output above and docs/SURFACES.md § 3."
+              exit "$code"
+              ;;
+          esac

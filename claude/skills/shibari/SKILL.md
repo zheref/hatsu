@@ -1,6 +1,6 @@
 ---
 name: shibari
-description: Compose the pull request body and open the PR — why, how, what changes for the consumer, how to verify, a mermaid diagram where a flow changed, the UZF-26 evidence table, the completion checklist, and Closes #N where an issue exists — then check it by verb and hand the PR to hatsu:en. Use when hatsu:mukai reaches its sixth and last step, or when the maintainer invokes hatsu:shibari directly. It opens exactly one PR, from the last pushed commit, against the workflow's base; it derives the gate but never labels one, requests reviewers, and never merges.
+description: Compose the pull request body and open the PR — why, how, what changes for the consumer, how to verify, a mermaid diagram where a flow changed, the UZF-26 evidence table, the completion checklist, and Closes #N where an issue exists — then check it by verb and hand the PR to hatsu:en. Use when hatsu:mukai reaches its seventh step, or when the maintainer invokes hatsu:shibari directly. It opens exactly one PR, from the last pushed commit, against the workflow's base; it derives the gate but never labels one, requests reviewers, and never merges.
 ---
 
 # Shibari — the work becomes a request for attention
@@ -13,15 +13,27 @@ named inside the body**, in *Why*, and is never adopted by this skill — the sa
 > **Turn everything the run proved into one body a reviewer can act on, open the PR on it, and hand
 > it to `en`.**
 
-Shibari is the **sixth and last step of [`hatsu:mukai`](../mukai/SKILL.md)**. Everything above it in
-that run — [`murasaki`](../murasaki/SKILL.md)'s catch-up, [`hanten`](../hanten/SKILL.md)'s review,
+Shibari is **step 7 of [`hatsu:mukai`](../mukai/SKILL.md)'s run** — the last step that writes
+anything, and the only one that writes to GitHub. Everything above it in that run —
+[`murasaki`](../murasaki/SKILL.md)'s catch-up, [`hanten`](../hanten/SKILL.md)'s review,
 [`tsukuyomi`](../tsukuyomi/SKILL.md) and [`kotoamatsukami`](../kotoamatsukami/SKILL.md)'s suites,
-[`gyo`](../gyo/SKILL.md)'s coverage bar, the evidence pass — exists to produce the facts this body
-states. **Shibari proves nothing of its own.** If a section has no fact behind it, the section says
-so; it does not get written from what the change was supposed to do.
+[`gyo`](../gyo/SKILL.md)'s coverage bar, step 5's commit-and-push and step 6's evidence pass — exists
+to produce the facts this body states. **Shibari proves nothing of its own.** If a section has no
+fact behind it, the section says so; it does not get written from what the change was supposed to do.
 
-**It is the last step, not the finish.** The PR it opens is not ready; [`hatsu:en`](../en/SKILL.md)
-takes it from open to Ready, and this skill hands over rather than lingering.
+> **The landing report is rendered AFTER this step, not before it — [`mukai`](../mukai/SKILL.md)
+> § 2 step 8 (finding F6).** [`rikugan`](../rikugan/SKILL.md) § 5's `landing` variant is 01–07 **plus
+> 08 PR body and 09 Readiness**, and this skill is where both of those come from: the body § 3
+> composes, and a `nen pr ready` verdict that needs a PR number to answer about. Rendered before
+> shibari — which is where mukai used to run it — the variant carries two empty sections, and an
+> empty **09** is indistinguishable from `not-ready`. **So the body is written back to the PR first
+> (§ 8), and the page is rendered from what is on the PR.** The report does not wait on this skill
+> for anything else: its other seven sections were assembled at step 3 and are unchanged by opening
+> a pull request.
+
+**It is the last writing step, not the finish.** The PR it opens is not ready;
+[`hatsu:en`](../en/SKILL.md) takes it from open to Ready, and this skill hands over rather than
+lingering.
 
 ---
 
@@ -55,7 +67,7 @@ points at [`hatsu:jujisho`](../jujisho/SKILL.md), which is the split-shaped verb
 
 | Key | File | Used for | Default when the key (or the file) is absent |
 |---|---|---|---|
-| `branch.base` | `nen/workflow.json` | the PR's base, and the `<base>...HEAD` range every section is computed over | `main` |
+| `branch.base` | `nen/workflow.json` | the PR's base, and the `origin/<base>...HEAD` range every section is computed over — **the remote ref, after a fetch, never the local branch** (below) | `main` |
 | `commits.allowedAttributionTrailers` | `nen/workflow.json` | read only to **state** what the commits carry; shibari writes no commit | `["Akatsuki-Agent"]` |
 | `coverage.minimum` / `.recommended` / `.ideal` | `nen/workflow.json` | the band the checklist's coverage line reports against — [`hatsu:gyo`](../gyo/SKILL.md) measured it, this body quotes it | `80` / `85` / `90` |
 | `project.evidence.globs` | `nen/contract.json` | which changed artifacts are visual evidence | none — **no globs is the no-evidence case**, stated in the body |
@@ -67,12 +79,23 @@ points at [`hatsu:jujisho`](../jujisho/SKILL.md), which is the split-shaped verb
 > read as data, and every default above is stated out loud whenever it is what applied. **A
 > malformed file is reported and the defaults used, said out loud** — never silently repaired.
 
+> **The range is `origin/<branch.base>...HEAD`, after `git -C <path> fetch origin <branch.base>`.**
+> `branch.base` is a **branch name**, and nothing in the local plane fast-forwards *local* `main`
+> after [`hatsu:breath`](../breath/SKILL.md) cut the branch from it — measured at 13, then 36, then
+> 50 commits behind in a single run, where `main...HEAD` named **43** changed files against the
+> branch's own **8** (`docs/ab/mukai.md`). Every section of the body is computed over that set, and
+> so are § 7's two verbs: **`nen gate derive` and `nen changelog fragment-required` take `--files`,
+> and a wrong file set gives them a confident wrong answer** — a gate forecast about somebody else's
+> week, a changelog fragment demanded for a spec path this branch never opened.
+
 > **`project.evidence` is preserved and unread by nen at `v0.3.0`** ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md)
 > § 3), so the three keys above are read by this skill, by hand, and `nen shu evidence --base <ref>`
-> — the verb that will own it at `0.4.0` — is residue today. The rows come from
-> [`hatsu:rikugan`](../rikugan/SKILL.md)'s § 3 assembly, which has already done exactly that filter
-> for the landing report; **shibari re-uses those rows rather than re-deriving them**, because two
-> derivations of one set is how a report and a PR body come to disagree.
+> — the verb that will own it at `0.4.0` — is residue today. The rows come from **[`mukai`](../mukai/SKILL.md)
+> § 2's step 6 evidence pass**, which has already done exactly that filter over
+> [`kotoamatsukami`](../kotoamatsukami/SKILL.md)'s re-recorded artifacts; **shibari re-uses those
+> rows rather than re-deriving them**, and [`rikugan`](../rikugan/SKILL.md) § 3 fills its own
+> `evidence[]` from the same set at step 8. Two derivations of one set is how a report and a PR body
+> come to disagree.
 
 ## 3. The body — eight parts, in this order
 
@@ -186,8 +209,11 @@ never mixed inside one body.
 > "I can't record baselines" is a snapshot-capable runner, never a missing table. Where the IOU or
 > the skip does not exist yet, say so; filing it is [`hatsu:file`](../file/SKILL.md)'s.
 
-**Pre-PR, the same images are data URIs in the landing report** ([`hatsu:rikugan`](../rikugan/SKILL.md)
-§ 3) — that is the report's rule, not the PR's, and the two do not borrow each other's hosting.
+**The same images are data URIs in the landing report** ([`hatsu:rikugan`](../rikugan/SKILL.md)
+§ 3) — that is the report's rule, not the PR's, and the two do not borrow each other's hosting. The
+report is rendered after this step, so the images have already reached whatever host the mechanism
+names by then; it embeds them anyway, because a page that outlives a branch cannot depend on the
+branch's hosting.
 
 ## 6. The completion checklist
 
@@ -350,7 +376,7 @@ Ready. This is [`hatsu:rikugan`](../rikugan/SKILL.md) § 8's carve-out, for the 
 2. **`nen pr edit-body --body-file` does not exist** — verified live at exit `2` in both the
    subcommand and the flag shape (§ 8). The write-back is `gh pr edit --body-file`, by hand. P2.
 3. **`nen shu evidence --base <ref>` does not exist** — `project.evidence` is preserved and unread
-   by nen at this pin. The rows are `git diff --name-only <base>...HEAD` filtered by
+   by nen at this pin. The rows are `git diff --name-only origin/<base>...HEAD` filtered by
    `project.evidence.globs` and grouped by `project.evidence.scene`, **re-used from
    [`hatsu:rikugan`](../rikugan/SKILL.md)'s § 3 assembly rather than derived a second time** (§ 2).
 4. **The evidence mirror's publish step is the target repository's own script**, not a nen verb —

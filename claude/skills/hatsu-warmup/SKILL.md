@@ -1,6 +1,6 @@
 ---
 name: hatsu-warmup
-description: Satisfy Hatsu's hard Nen dependency (D10) before any Nen-owned work — probe `nen --version` against the range declared in nen/contract.json, and when it is absent or out of range, install the pinned build through nen's own checksum-verified bootstrap. Fail-closed with auto-install. Use at the start of every Hatsu session, and again any time a `nen` invocation reports the binary is missing. It halts with the exact command ONLY if the bootstrap itself fails — and a Nen-owned operation is never improvised in prose.
+description: Satisfy Hatsu's hard Nen dependency (D10) before any Nen-owned work — probe `nen --version` against the range declared in nen/contract.json, and when it is absent or out of range, install the pinned build through nen's own checksum-verified bootstrap. Fail-closed with auto-install. Use at the start of every Hatsu session, and again any time a `nen` invocation reports the binary is missing. It halts with the exact command ONLY if the bootstrap itself fails — and a Nen-owned operation is never improvised in prose. On Codex and Cursor it also places the generated skill and persona mirrors from `surfaces/` into the target repository (`.agents/skills/` copied afresh each session + an untracked `AGENTS.override.md`, or `.cursor/skills/` + `.cursor/agents/`), excluded through the repository's `info/exclude` (`git rev-parse --git-path info/exclude`) and never through `.gitignore`, and it never writes a tracked `AGENTS.md`; on Claude Code nothing in the target repository changes.
 ---
 
 # Hatsu warm-up — the Nen dependency contract, executed
@@ -29,6 +29,12 @@ shell).
 ```bash
 cat "$CLAUDE_PLUGIN_ROOT/nen/contract.json"
 ```
+
+**On Codex and Cursor that variable is empty and the plugin root is `$hatsu_root`** — the same resolution
+§ 5's prelude carries (`$HATSU_PLUGIN_ROOT`, else the path this invocation was handed), for the same reason:
+`$CLAUDE_PLUGIN_ROOT` is exported by Claude Code's harness and by no other. Resolve it there first, and read
+`$hatsu_root/nen/contract.json`. **A root that will not resolve stops the warm-up** — § 5's `NOT INSTALLED`
+line — rather than reading an empty path and reporting a missing contract.
 
 **You are the JSON parser.** You have just opened the file; read `dependency.minimum`,
 `dependency.zero_major_caveat`, `dependency.pinned_ref`, `dependency.source`, `dependency.version_probe`
@@ -240,6 +246,323 @@ State the outcome before doing anything else, so the maintainer knows which of t
 **Silence is not one of the four.** A warm-up that did not run is reported as *not run*, never rendered as
 clear — the same discipline `nen warmup`'s own `--questions-from` omission follows, where a skipped sweep
 reports `{"checked": false}` rather than an empty finding set.
+
+**On a surface that is not Claude Code, the report carries § 5's line too** — which surface, what was
+installed into the target repository, and by which mechanism. A surface warm-up that silently did nothing
+is the same failure as a dependency warm-up that silently did nothing.
+
+---
+
+## 5 · Surfaces — what a target repository gets on Codex and Cursor
+
+**On Claude Code, nothing here runs and nothing in the target repository changes.** Claude Code loads the
+plugin's own `claude/skills/` and `claude/agents/` directly from `$CLAUDE_PLUGIN_ROOT`; there is nothing to
+install into somebody else's checkout, and installing anything would be a write with no reason behind it.
+Say *"surface: claude-code — nothing installed, the plugin is read in place"* and move on.
+
+**On Codex and on Cursor there is no plugin loader for this plugin**, so the skills and the personas have to
+be *placed* in the repository the session is standing in. [`docs/SURFACES.md`](../../../docs/SURFACES.md) is
+the authority on the whole mechanism; this section is the part the warm-up performs.
+
+The mirrors are **generated and committed** in this plugin at
+[`surfaces/codex/`](../../../surfaces/codex/) and [`surfaces/cursor/`](../../../surfaces/cursor/) — the
+output of `nen surface mirror generate`, one `SKILL.md` per skill plus the surface's own persona shape.
+**The warm-up never generates them.** It copies or links what is already there; regeneration is a change to
+this repository, made on a branch, checked in CI (§ *The check* in `docs/SURFACES.md`).
+
+> **On Codex, check the sandbox can write git BEFORE reporting the warm-up clear — a linked worktree
+> usually cannot.** `codex exec -s workspace-write` makes the *workspace* writable, and a linked worktree
+> keeps `HEAD`, the index, `FETCH_HEAD`, the objects, `refs/` **and `info/exclude`** under
+> `<main repo>/.git/`, outside it. Every git write § 5c needs, and every one
+> [`breath`](../breath/SKILL.md) and [`aka`](../aka/SKILL.md) need after it, is then refused with
+> *"Operation not permitted"* at exit `128`. **The session must have been launched either with
+> `--add-dir "$(git -C <repo> rev-parse --path-format=absolute --git-common-dir)"`, or against a
+> standalone clone whose `.git` is inside the workspace** — `docs/SURFACES.md` § 5 carries the probe and
+> both forms, and [`hanten`](../hanten/SKILL.md) § 9a carries it for a reviewer's worktree. This skill
+> cannot add the flag to a session already running: **it reports the condition and stops**, naming the
+> flag, rather than writing half an install into a checkout that cannot commit it.
+
+### 5 · prelude — `$hatsu_root`, and why `$CLAUDE_PLUGIN_ROOT` cannot be it here
+
+**Every path below reads from `$hatsu_root`, and resolving it is the first thing this section does.**
+`$CLAUDE_PLUGIN_ROOT` is a **Claude Code** variable — that harness exports it inside a skill invocation
+and nowhere else ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *`$CLAUDE_PLUGIN_ROOT` is set inside a
+skill invocation, and nowhere else*). **This section only ever runs on Codex and Cursor**, where there is
+no plugin loader, so there is nothing to export it: it is empty in exactly the sessions these commands are
+written for. The fallback that section gives — `claude plugin list --json` → `installPath` — is the Claude
+Code CLI's own registry and is not a question those two surfaces can answer either.
+
+> **An unresolved root does not fail loudly on its own, which is why it is resolved rather than assumed.**
+> With the variable empty, `for d in "$CLAUDE_PLUGIN_ROOT"/surfaces/codex/*/` globs `/surfaces/codex/*/`,
+> matches nothing, and bash runs the body **once on the unexpanded pattern** — so `name` becomes `*`, the
+> `rm -rf` fires on a literal `*` path and the `cp -R` fails on a source that was never there. The session
+> then reports a copy error rather than *"no Hatsu source root"*, and the skills are simply absent
+> (Copilot review thread `PRRT_kwDOUKPjxM6hAjLJ`).
+
+| `$hatsu_root` comes from | when |
+|---|---|
+| **`$HATSU_PLUGIN_ROOT`** | the environment variable the session was started with — **the form that works on all three surfaces**, and the one to prefer |
+| the path the invocation was handed | `$hatsu-warmup <path>` on Codex, `/hatsu-warmup <path>` on Cursor |
+| **`$CLAUDE_PLUGIN_ROOT`** | Claude Code only, where § 5 does not run — kept in the order so one resolution serves every surface, never because it can fire here |
+
+```sh
+hatsu_root="${HATSU_PLUGIN_ROOT:-${1:-${CLAUDE_PLUGIN_ROOT:-}}}"
+[ -n "$hatsu_root" ] && [ -d "$hatsu_root/surfaces/$surface" ] || {
+  echo "surface: $surface — NOT INSTALLED. No Hatsu source root: \$HATSU_PLUGIN_ROOT is unset, no path" \
+       "was handed to this invocation, and this surface has no plugin registry to ask." >&2
+  exit 1        # § 4's line says NOT INSTALLED and names this. Never a partial install.
+}
+```
+
+**There is no bootstrap on these two surfaces, and that is stated rather than implied.** A plugin loader is
+what would fetch Hatsu; neither surface has one, so the **first** install is a human act — clone
+`zheref/hatsu` on the host and export `HATSU_PLUGIN_ROOT=<that checkout>`. What this section automates is
+the *refresh*, every session, from a root that already exists. **A warm-up that cannot find the root reports
+`NOT INSTALLED` and stops** — the § 4 discipline, unchanged: a warm-up that did not run is reported as not
+run, never rendered as clear.
+
+### 5a · Codex
+
+| | |
+|---|---|
+| skills go to | `<target>/.agents/skills/<name>/` — **one `cp -R` per skill directory**, from `$hatsu_root/surfaces/codex/<name>`, refreshed **every session** |
+| personas go to | `<target>/AGENTS.override.md` — an **untracked** file this skill writes whole (below). A tracked `AGENTS.md` is **never** edited |
+| invocation | `$<name>` — e.g. `$breath`, `$rasengan`. The mirror already carries that spelling; the `hatsu:` prefix does not exist on this surface |
+
+**Copies, not symlinks, and the reason is what Codex advertises.** Codex lists a skill under its
+frontmatter `name`, **namespaced by the plugin manifest above the directory the path resolves to** — so a
+symlink into this checkout, which carries `.claude-plugin/plugin.json` (`"name": "hatsu"`), is listed as
+`hatsu:aka`, while a `cp -R` of the same directory is listed as the bare `ren`. Three controlled
+`codex debug prompt-input` renders on this host, no model called (`docs/ab/surfaces.md` § 7, F1). A
+symlink install therefore tells the reader to type one thing and shows the surface another — and it drags
+a second trap with it: through a symlink the mirror's own `../../../nen/workflow.json` resolves into the
+**plugin's** policy file rather than the target's (§ 5d, F10). The copy fixes both.
+
+```sh
+mkdir -p "$target/.agents/skills"
+for d in "$hatsu_root"/surfaces/codex/*/; do
+  name=$(basename "$d"); dest="$target/.agents/skills/$name"
+  # § 5c's rule: a destination this skill did not make is left alone and named.
+  if { [ -e "$dest" ] || [ -L "$dest" ]; } && ! ours "$dest"; then
+    kept="$kept $name"; continue
+  fi
+  rm -rf "$dest"
+  cp -R "$d" "$dest"
+done
+```
+
+> **A copy is not self-healing, so the re-copy is what heals it — and that is why the loop is
+> unconditional.** `rm -rf` then `cp -R`, every session, for every mirrored directory: this skill already
+> runs **first, every session** (§ 0), so a target repository is at most one warm-up behind the plugin.
+> **Say the mechanism and the freshness in § 4's line** — *"surface: codex — 39 skill directories re-copied
+> from `surfaces/codex/` (plugin v<X.Y.Z>)"* — because the one failure mode a copy has is a session that
+> never warmed up serving last month's wording with no error anywhere. **Never diff-and-skip**: a
+> hand-edited copy inside the target is not a change to preserve, it is drift to overwrite, and the
+> authored file is `claude/skills/<name>/SKILL.md` in this repository.
+
+**The personas go to `AGENTS.override.md`, and it REPLACES the target's `AGENTS.md` rather than joining
+it.** That is Codex's own rule, verified live on this host with `codex debug prompt-input`
+(`docs/ab/surfaces.md` § 7, F9): with both files present, only `AGENTS.override.md`'s content reached the
+instruction envelope — the project's `AGENTS.md` was not merged, it was **superseded**. So the file this
+skill writes is the *whole* document:
+
+```text
+… the target's own AGENTS.md, verbatim, when it has one …
+
+<!-- BEGIN hatsu personas (generated — nen surface mirror, surface: codex) -->
+… the contents of $hatsu_root/surfaces/codex/AGENTS.md, verbatim …
+<!-- END hatsu personas (generated — nen surface mirror, surface: codex) -->
+```
+
+- **The target's own `AGENTS.md` is copied in first, unchanged, every time.** Writing the block alone would
+  silently delete that repository's instructions from every Codex session — an override that drops what it
+  overrode is worse than no install at all. Re-read it on each warm-up; do not cache it.
+- **A target with no `AGENTS.md` gets a file containing the block and nothing else.**
+- **A tracked `AGENTS.md` is never written, never appended to, never touched.** Verified live, both halves:
+  before the exclude the file stands as `?? AGENTS.override.md`; after § 5c's exclude
+  `git status --porcelain` prints **nothing**, and `nen wc classify` reports `on-branch-clean`
+  (`docs/ab/surfaces.md` § 7, F9). That is the whole point — see the box in § 5c.
+- The generated file's own `GENERATED by nen surface mirror` line rides along inside the block; that is
+  deliberate, and it is what tells a reader where the prose came from. **Nothing outside the two markers is
+  this skill's to write**, and on a re-run the file is rebuilt from the two sources rather than patched.
+
+### 5b · Cursor
+
+| | |
+|---|---|
+| skills go to | `<target>/.cursor/skills/<name>/` — one symlink per skill directory, pointing at `$hatsu_root/surfaces/cursor/<name>` |
+| personas go to | `<target>/.cursor/agents/<persona>.md` — one markdown subagent file each, symlinked from `$hatsu_root/surfaces/cursor/agents/` |
+| invocation | `/<name>` — e.g. `/breath`, `/rasengan` |
+
+**Both rows go through § 5c's `ours` check first**, per destination — a `.cursor/skills/<name>` or a
+`.cursor/agents/<persona>.md` the target already has is left alone and named in the report, never linked
+over. `ln -sfn` replaces silently, and `.cursor/agents/` is a directory a Cursor user is *expected* to keep
+their own subagents in, so this surface is where the collision is likeliest.
+
+`.cursor/agents/` is the surface's documented subagent directory and it is **the row's own fact**, not this
+skill's guess: `nen`'s `src/surface/rules.ts` carries `agents.dir: "agents"` under `--out` for the `cursor`
+row, cited to `https://cursor.com/docs/agent/subagents`, and that is why the generated mirror already has an
+`agents/` directory beside the skills.
+
+**Cursor's link-following is NOT verified on this host** — `cursor-agent status` reports *Not logged in*, so
+no discovery run could be made (`docs/ab/surfaces.md` § 3.3). The symlink form is kept here because nothing
+has been observed on Cursor that argues against it, and **the report says it is unverified on Cursor**. If a
+skill does not appear in a Cursor session, fall back to `cp -R` and say so.
+
+> **§ 5a's two reasons for copying are Codex facts and are not claimed for Cursor.** The plugin-manifest
+> namespacing and the `../../../nen/workflow.json` resolution were both measured on Codex only
+> (`docs/ab/surfaces.md` § 7, F1 and F10). They are *plausible* here — a symlink resolves the same way on
+> the same filesystem — so **the first logged-in Cursor session checks both**: what the surface lists a
+> skill as, and which repository a mirror's relative link lands in. Until then this row is documented,
+> not verified, and no conclusion from the Codex column is written into it.
+
+### 5c · Both — the target's history, and the file that is never touched
+
+**A destination this skill did not create is never replaced, and `info/exclude` does not make it safe to
+try.** An exclude file governs **untracked** paths only: a target that tracks a `.cursor/agents/reviewer.md`,
+or a `.agents/skills/build/` of its own, keeps it tracked, and the § 5b `ln -sfn` or the § 5a `rm -rf` +
+`cp -R` over it **destroys a file that is in somebody's history** — the same act § 5c already refuses one
+directory over for `.gitignore`, and refused there for the same reason (Copilot review thread
+`PRRT_kwDOUKPjxM6hAjLf`). A name collision is not rare, either: `build`, `file` and `en` are ordinary words
+and thirty-nine of them are being claimed at once.
+
+| what stands at the destination | what the warm-up does |
+|---|---|
+| **nothing** | create it |
+| **a previous Hatsu install** — a symlink into `$hatsu_root/surfaces/`, or a directory whose `SKILL.md` carries the generator's `GENERATED by nen surface mirror` line | **replace it.** § 5a's *never diff-and-skip* is about exactly this case and is unchanged |
+| **anything else — and a TRACKED path is always anything else** | **leave it untouched**, install nothing under that name, and **name it in § 4's line** |
+
+```sh
+# ours DEST — true only for a destination this skill made. Tracked is never ours,
+# whatever it looks like: a repository's own history outranks a marker comment.
+ours() {
+  git -C "$target" ls-files --error-unmatch -- "$1" >/dev/null 2>&1 && return 1
+  [ -L "$1" ] && case "$(readlink "$1")" in "$hatsu_root"/surfaces/*) return 0 ;; esac
+  grep -qs 'GENERATED by nen surface mirror' "$1/SKILL.md" "$1" 2>/dev/null
+}
+# … and at each destination, before the rm -rf / ln -sfn:
+if { [ -e "$dest" ] || [ -L "$dest" ]; } && ! ours "$dest"; then
+  kept="$kept $name"; continue
+fi
+```
+
+**A skipped name is reported, never swallowed** — *"surface: cursor — 37 of 39 linked; `build` and
+`reviewer` left alone, the target tracks its own"*. Silence here would be the worst of both: the maintainer
+believes Hatsu is installed, `/build` runs the target's own file, and nothing anywhere says why. **This is a
+hard limit and it takes precedence over the refresh**: the warm-up would rather install thirty-seven skills
+and say so than overwrite one file it did not write.
+
+**Every path this section writes into the target repository is excluded through the repository's
+`info/exclude`, and never through `.gitignore`.**
+
+```sh
+exclude="$(git -C "$target" rev-parse --git-path info/exclude)"
+mkdir -p "$(dirname "$exclude")"
+for line in '.agents/skills/' 'AGENTS.override.md' '.cursor/skills/' '.cursor/agents/'; do
+  grep -qxF "$line" "$exclude" 2>/dev/null || printf '%s\n' "$line" >> "$exclude"
+done
+git -C "$target" status --porcelain          # must print nothing for these paths
+```
+
+> **`--git-path info/exclude`, never `"$(git rev-parse --git-dir)/info/exclude"` — and the difference is
+> not cosmetic.** In a **linked worktree** `--git-dir` answers `<main repo>/.git/worktrees/<name>`, so the
+> older form wrote `<main>/.git/worktrees/<name>/info/exclude` — **a file git never reads for excludes.**
+> Verified live on a fixture (`docs/ab/surfaces.md` § 7, F2): after writing `.agents/skills/` there,
+> `git status --porcelain` still printed `?? .agents/` and `git check-ignore -v .agents/skills/ren/SKILL.md`
+> exited **`1`** (not ignored). Writing the same line to the `--git-path` answer silenced the status and
+> made `check-ignore` exit **`0`**, naming `<main>/.git/info/exclude:7:.agents/skills/`. **Prove it the
+> same way** — `git status --porcelain` after the append, and `git check-ignore -v <one path>` when it does
+> not come back clean.
+>
+> **And that file is per-REPOSITORY, not per-checkout.** `--git-path` resolves to the **main** repository's
+> `.git/info/exclude`, which every linked worktree and the primary checkout share. Writing it is a change
+> to what *all* of them ignore, so it is stated in the report by path — not described as local to the
+> directory the warm-up was run in.
+
+**`.gitignore` is a tracked file in somebody else's repository.** Writing to it is a change that lands in
+their diff, their review and their history, made by a warm-up they invoked to install a tool — and it
+imposes this plugin's layout on every other contributor to that repository. `info/exclude` is
+**untracked and never pushed**: it is the correct place for a thing one developer's tooling put in one
+developer's working copy. **This is a hard limit, not a preference: never write a target repository's
+`.gitignore`.**
+
+> **`AGENTS.override.md` is excluded, and a tracked `AGENTS.md` is never written at all. Those two
+> sentences are one rule, and this section used to say the opposite.** It read that `AGENTS.md` *"is the
+> exception and is not excluded: it is a real document of the target repository that a human may well want
+> to commit."* On a target that tracks no `AGENTS.md` — `zheref/nen` does not — that left `?? AGENTS.md`
+> standing in the tree **forever**, and it is not cosmetic: `nen shu warmup` refuses at exit **`2`** on an
+> untracked path it did not put there, so `hatsu:breath` could not warm the checkout at all and
+> `hatsu:aka` § 4's first refusal would refuse the squash for the same reason. A whole headless run
+> stopped on exactly this (`docs/ab/surfaces.md` § 7, F9).
+>
+> **The resolution is § 5a's:** the personas go to `AGENTS.override.md`, which is this skill's own file
+> rather than the repository's, so excluding it takes nothing away from anybody. **A human who wants the
+> personas in their history commits them themselves, through a PR, into their own `AGENTS.md`** — and the
+> warm-up will keep copying that `AGENTS.md` into the override verbatim afterwards. What the warm-up
+> installs is never the thing a human is asked to review.
+
+### 5d · The model matrix, per surface
+
+The warm-up states the matrix for the surface it just warmed, read from **the target repository's own
+`nen/workflow.json`** → `models`, and never from memory:
+
+> **Named by path, deliberately not as a link.** A relative link here reads differently on every surface:
+> in this repository `../../../nen/workflow.json` is Hatsu's own policy file, and inside a mirror installed
+> in a target it is `<target>/nen/workflow.json` — which is the one that was meant. Through a **symlinked**
+> mirror it resolved to the *plugin's* file instead, silently and with no error, which is why § 5a copies
+> and why this line is a path (`docs/ab/surfaces.md` § 7, F10). **Read the file in the repository the
+> session is standing in.** Where that repository has none, say so and use the defaults, exactly as
+> [`breath`](../breath/SKILL.md) § 2 does — never fall back to this plugin's copy, whose `models` block is
+> Hatsu's policy and not theirs.
+
+| tier | `claude` | `codex` | `cursor` |
+|---|---|---|---|
+| `frontier` | `fable` | `astra` | `grok` |
+| `deep` | `opus` | `sol` | `grok` |
+| `fast` | `sonnet` | `terra` | `composer` |
+| `economy` | `haiku` | `luna` | `composer` |
+
+`models.roles` maps a role to a tier — `reviewer: deep`, `worker: fast`, `measurer: fast`,
+`orchestrator: frontier` — and `models.rule` is *"latest alias only, never a version; subagents never on the
+frontier tier"*.
+
+**The Cursor-native rule, verbatim from the file:**
+
+> `"note": "Cursor-native only; provider models there are reserved for Bugbot"`
+
+So on Cursor a role resolves to `grok` or `composer` and to nothing else. Naming a provider model there —
+a Claude, a GPT — is not a better choice made locally; it is a different budget, reserved elsewhere.
+
+### 5e · Residue in this section
+
+1. **Placing the mirror has no verb.** `nen surface mirror generate` writes a mirror into a directory it is
+   given; **it does not install one into a target repository**, and it is not expected to — `--out` is a
+   path, not a deployment. The `rm -rf` / `cp -R` loop above (and Cursor's `ln -sfn`) is named residue,
+   done by hand, in the open. **`nen surface mirror check` does not check an installed copy either** — it
+   diffs this repository's `surfaces/` against a fresh generation of `claude/skills/`, which is a different
+   question from "is the copy in that target current". The re-copy every session is the answer to the
+   second question, and it is a discipline rather than a check
+   ([`scripts/surface_mirror_check.sh`](../../../scripts/surface_mirror_check.sh) is the first).
+2. **Composing `AGENTS.override.md` has no verb either.** The generator writes a *whole* `AGENTS.md` for
+   the surface; concatenating the target's own document with it under the marker block is this skill's own
+   construction, and the re-run's rebuild is a by-hand write.
+3. **`info/exclude` is plain `git rev-parse --git-path` plus an append.** No nen verb owns a checkout's
+   local exclude file, and none should — it is a property of one working copy, which is the opposite of
+   what a repository-driven CLI reads. **Proving it took is residue too**: `git status --porcelain`, and
+   `git check-ignore -v <path>` when it did not come back clean.
+4. **`nen surface` does not exist at the pinned nen `0.3.0`** — `nen surface` answers *"nen: unknown command
+   'surface'"* at exit `2` (verified live, `docs/ab/surfaces.md` § 2.3). The mirrors are committed in this
+   repository precisely so that a warm-up at the pin can still install them; only *regenerating* them needs
+   a newer nen, and that happens here, not in a target repository.
+5. **Resolving `$hatsu_root` is by hand, and there is no registry behind it off Claude Code** (§ 5's
+   prelude). `$CLAUDE_PLUGIN_ROOT` is Claude Code's, `claude plugin list --json` is Claude Code's CLI, and
+   Codex and Cursor have neither — so the root is an environment variable the session was started with, or
+   a path handed to the invocation, and **nothing else**. nen owns no plugin registry and should not: it
+   reads repositories, and where Hatsu is checked out on a host is a property of the host. The failure is
+   handled rather than filed — an unresolved root reports `NOT INSTALLED` and stops.
+6. **The first install on Codex and Cursor is a human act.** There is no plugin loader to fetch anything,
+   so this skill refreshes an existing checkout and never obtains one. Named here so the absence is read as
+   a boundary rather than as a step somebody forgot to write.
 
 ---
 

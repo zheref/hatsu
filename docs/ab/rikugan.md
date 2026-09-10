@@ -277,3 +277,98 @@ it**. That is deliberate — a report whose shape drifts between turns is not co
 which is most of what a per-turn report is for. So the P1 verb rikugan wants is
 `nen report render --template <file>`, a substitution engine over a template the repository owns —
 **not** a `--html` flag on a renderer that owns the shape.
+
+---
+
+## 5. The `0.4.0` render, end to end — the wave-3 findings, closed and re-verified
+
+**Added in wave 4**, against the wave-3 validation's findings F10–F14. Everything below was run on
+**2026-09-10** with the `0.4.0` binary at `/Users/zheref/Code/WebStorm/Claude/nen/.nen/bin/nen-0.4.0`
+(the `PATH` binary is still the pinned `0.3.0`), against the **`zheref/nen`** checkout at
+`64c175a` on `opus/kurapika/launch-lane-artifact`. The template under test is this repository's
+`templates/rikugan.html` as edited on `opus/kurapika/wave-3-validation-fixes`.
+
+### 5.1 — F12: the template parses now, and the refusals that remain are the honest ones
+
+Wave 3 recorded three refusals in a row, each one a substitution tag the template spelled inside its
+own CSS comment. With the comment rewritten to describe the syntax in words, the parse is clean and
+the only refusal left is a token the data document genuinely has not got:
+
+```
+$ nen-0.4.0 report render --template <hatsu>/templates/rikugan.html \
+    --data /tmp/tpl/base6.json --out Reports/dry.html --repo <nen> --dry-run
+nen report: <hatsu>/templates/rikugan.html: '{{title}}' names 'title', which the data document has
+not got. Every token a template names must be in the data -- a blank renders as a fact, so nen
+refuses the whole render rather than publishing a report with a hole in it. … This template names 40
+token(s): title, variant, repo, branch, base, generatedAt, accomplished, text, why, challenges,
+residue, notDelivered, files, tier, path, status, evidence, suite, scene, src, launch, decisions,
+prBody, markdown, readiness, verdict, reason, gate, tests, name, coverage, coverage.path,
+coverage.format, coverage.lane, coverage.total.lines.percent, touchedCoverage, file, band, percent,
+footerNote.                                                                              exit=2
+```
+
+**`title` is an extension key, not a document key** — so this refusal is § 4's merge doing its job,
+and it is the last one: no refusal quotes a comment, and none names a token the vocabulary got wrong.
+
+### 5.2 — F13: the merged data file, and the landing variant rendered
+
+```
+$ nen-0.4.0 report data --repo <nen> --base HEAD~6 --tiers /tmp/tpl/tiers.json --json > base6.json
+   exit=0 — nen.report.data/v0.1, 69 commits, 108 files, evidence [], coverage lcov 94.4%
+$ # merge: base6.json ∪ the extension keys (§ 4's merge shape), one evidence row given a src
+$ nen-0.4.0 report render --template <hatsu>/templates/rikugan.html \
+    --data /tmp/tpl/merged6.json --out Reports/landing.html --repo <nen> --dry-run
+tokens: 40 … (dry run) nothing written -- the tokens above are every one this template asks for.
+                                                                                         exit=0
+$ nen-0.4.0 report render --template <hatsu>/templates/rikugan.html \
+    --data /tmp/tpl/merged6.json --out Reports/landing.html --repo <nen>
+wrote Reports/landing.html                                                               exit=0
+$ wc -c < Reports/landing.html          →  39452
+$ grep -c '{{' Reports/landing.html     →  0
+```
+
+What the bytes prove, checked one at a time:
+
+| Claim | Evidence in the rendered page |
+|---|---|
+| the vocabulary lines up | `data-variant="landing"` on the article; **zero** `{{` left |
+| **04** is flat and tier-chipped | `<li><span class="chip chip-tier">documentation</span><span class="path">CHANGELOG.md</span><span class="st">M</span></li>` |
+| a `null` tier renders an empty chip the CSS hides | `<li><span class="chip chip-tier"></span><span class="path">.gitignore</span>…` |
+| **05** reads `evidence[]` | `<td>SettingsSuite</td>` … `<td>row-default</td>`, with the capture's `data:` URI in the `img` |
+| **11**'s lead reads the document's own coverage | *"Read from `coverage/lcov.info` (lcov, lane nen); the repository total is 94.4% and is not the verdict."* |
+| escaping is on by default | a note containing `<nen>` rendered `&lt;nen&gt;` |
+| **F10**'s slot carries the failed resolution | `<span class="footer-note">nen repo resolve … exited 1 (nen/repos.json: no such file), so the title is the repository name plus the branch.</span>` |
+| **F11**'s slot carries the by-hand sentence | `<span class="provenance">This page was assembled by …</span>` in **03**'s lead |
+
+### 5.3 — Two engine facts § 4 had backwards, measured
+
+```
+$ # {{#if coverage}} against a document whose coverage is a real report
+B-if-null:[TOTAL 94.4]
+$ # the same template against the same document with coverage forced to null
+B-if-null:[]                                             exit=0 — rendered, not refused
+$ # {{#each evidence}} over []
+C-each-empty:[]                                          exit=0 — the row's tokens are never asked for
+```
+
+So `{{#if <key>}}` **exists** (§ 4 said it would not) and guards a `null` without refusing, and an
+empty `{{#each}}` does not demand its row tokens. The engine also nests `{{#each}}` — its own
+`--help` says *"nested; `{{.}}` is a scalar item and `{{@index}}` its position"* — which answers
+§ 4.1's filed finding **in the affirmative**. The template no longer needs the nesting: `files[]` and
+`evidence[]` are flat in the document, so § 4.1 is closed by the data's shape rather than by the
+engine's.
+
+### 5.4 — Two refusals worth knowing before you hit them
+
+```
+$ nen-0.4.0 report render … --out /tmp/tpl/dry.html --repo <nen>
+nen report: --out '/tmp/tpl/dry.html' resolves outside the repository at <nen>. '/tmp/tpl' is a
+symlink to '/private/tmp/tpl' … 'report render' writes the report INTO the repository it is
+reporting on and nowhere else.                                                           exit=2
+
+$ # a template naming a key the data has not got, anywhere -- including inside an {{#if}}
+nen report: … '{{#if}}' names 'notAKey', which the data document has not got.            exit=2
+```
+
+The first is why § 4's command writes to `<reports.dir>` and not to a scratchpad. The second is why
+§ 4 requires **every extension key on every render**, `""` or `[]` where there is nothing.

@@ -184,11 +184,46 @@ trailer at exit `0`; shape violations (a bad type, an empty subject, a header ov
 trailing period) each refuse at exit `2` with a named reason — the transcripts
 [`hatsu:tensho`](../tensho/SKILL.md) § 4 already records, re-confirmed here at this pin.
 
+> **Then the message file, and the gate on it.** The verb writes the message to **stdout** and its
+> refusal to **stderr**, and at exit `2` stdout is **empty** — verified live, `0` bytes out, the
+> sentence on stderr; a clean run is the mirror, `0` bytes on stderr. So:
+>
+> ```bash
+> nen commit format … > <message file>     # exit 0 REQUIRED before the next line; NEVER 2>&1
+> git -C <path> commit --file <message file>
+> ```
+>
+> **Read the exit code before committing, and never merge the streams into that file.** `2>&1`
+> commits the refusal *as the message* — which happened, landing *"nen: header line is 75 characters,
+> over the 72-character convention"* as a commit subject (`docs/ab/mukai.md`) — and a plain redirect
+> that ignores the code commits an empty file. **Exit `0` → use it. Exit `2` → stop, the message was
+> refused and the reason is on stderr; fix the input and re-run. Exit `1` → the trailer policy could
+> not be read** (`v0.4.0`+ with `--repo`, a malformed `nen/workflow.json`), **which is a repository
+> defect to report and never to commit past.** An empty `<message file>` is the tell for either
+> refusal, and it is checked whichever way the code was read. The verb's own behaviour is correct;
+> the residue path around it is what needed the gate.
+>
+> **This matters more in `aka` than anywhere else**, because § 4's commit lands on top of a
+> `git reset --soft`: a refusal committed here becomes the *only* message for every squashed commit,
+> and the branch is about to be published. It is cheap to catch before § 6's push and expensive
+> after.
+
 **Four refusals run before the reset, every time** — these are `nen wc squash`'s own refusals
 (brief § 4, P2), enforced by this skill until the verb exists:
 
 1. **A dirty tree refuses.** `nen wc classify --repo <path> --base <base> --json` must report
    `on-branch-clean`; `state.uncommittedPaths[]` is printed if it does not.
+
+   > **A detached `HEAD` refuses here too, and it is a different refusal — read it as one.** The verb
+   > exits **`1`** with prose on stdout even under `--json` — *"could not determine the current branch …
+   > This usually means a detached HEAD"* (verified live on a fixture; `docs/ab/surfaces.md` § 7, F5). That
+   > is not a dirty tree and it is not a branch that needs cleaning: it is a checkout with **no branch to
+   > publish**, which `aka` cannot invent — `git push -u origin HEAD` from a detached `HEAD` publishes a
+   > ref nobody named, and the squash range in the table above has no `<branch>` to ask `origin` about.
+   > **Stop, say the checkout is detached, and say the fix is [`hatsu:breath`](../breath/SKILL.md) § 3** —
+   > which warms a detached `HEAD` through `nen shu warmup` and cuts the effort's branch from the trunk's
+   > fresh tip. This is the ordinary starting shape of a Codex reviewer's worktree, so it is a case rather
+   > than a curiosity, and it is **not** a G5: nothing has gone wrong, a step was skipped.
 2. **A commit already on the upstream refuses.** The § 4 table's range is computed, never assumed,
    and a range that would include an already-pushed commit is refused outright, not force-pushed
    past.
@@ -275,7 +310,8 @@ invent one.
 
 1. **`nen wc squash --onto <ref> --message-file <f>`** — absent at `v0.3.0` (`nen wc` has one verb,
    `classify`). § 4 runs `git reset --soft <computed point>` plus one `nen commit format`-shaped
-   commit, and enforces the verb's four refusals by hand first. **Making the squash point usable is
+   commit **gated on the formatter's exit code, with stdout and stderr kept apart** (§ 4), and
+   enforces the verb's four refusals by hand first. **Making the squash point usable is
    part of that by-hand half**: `git cat-file -e <sha>^{commit}` (with `git fetch origin <branch>`
    when the object is not local — `ls-remote` transfers none) and `git merge-base --is-ancestor
    <sha> HEAD`. Both are named here because both are steps the verb will own when it lands.
@@ -316,6 +352,9 @@ invent one.
 - **Never carries an AI attribution trailer** — `Akatsuki-Agent` alone, per § 2's `commits` block;
   never `Co-Authored-By`, `Claude-Session`, `Signed-off-by`, a "Generated with" line, or a model
   name in the message.
+- **Never runs `git commit --file` on a message file `nen commit format` did not exit `0` for**,
+  and never merges the verb's two streams into that file (§ 4). On top of a `reset --soft`, a
+  refusal committed as the message is the whole effort's message.
 - **Never `--no-verify`**, and never pushes `main` or any configured base.
 - **Never opens a pull request** — that is `hatsu:mukai`'s, and the split is deliberate.
 - **Never patches a test to pass** — tsukuyomi's rule, binding here because this is where it is

@@ -70,13 +70,32 @@ the file, and this skill neither adds nor removes an entry from it.
 nen shu ui-test --repo <path> [--lane <lane>] --dry-run
 ```
 
-The exact argv, cwd, env **names** and declared artifacts, spawning nothing. Verified live
-(`docs/ab/kotoamatsukami.md` § 2.2), exit `0`, `--json` carrying
+**Where the lane declares a `ui-test` row**, this prints the exact argv, cwd, env **names** and
+declared artifacts, spawning nothing: exit `0`, `--json` carrying
 `{contract: "nen.shu.ui-test/v0.1", lane, stack, verb, steps[], …, artifacts[], log.mode: "dry-run"}`.
+Verified live against a lane declaring `npx playwright test` — exit `0`, the argv table, `log: dry
+run -- nothing was executed`.
 
 Once per repository per session, before the first real run. A UI suite is the slow one and the one
 most likely to be wired to a simulator, a device or a browser you did not expect — reading the argv
 costs seconds and reading it wrong costs the run.
+
+> **The dry run is `0` only when there is something to dry-run, and § 4's table applies to it in
+> full.** It is not a probe that always succeeds — it resolves the declaration first, and a
+> declaration that has nothing to resolve refuses at the same code the real run would:
+>
+> | The repository | `--dry-run` | Same as the real run? |
+> |---|---|---|
+> | the lane declares `ui-test` | **`0`** — the argv table above | no: the real run spawns it |
+> | the lane declares a **seat** for `ui-test` | **`4`** — the seat's own sentence, on stderr | **yes, byte for byte** |
+> | no `nen/contract.json`, or no `project` block | **`2`** — *"'nen shu' runs what a repository DECLARES … this repository declares nothing"* | yes |
+>
+> All three verified live at this pin: `zheref/nen`'s `nen` lane and Hatsu's own `plugin` lane each
+> answer `4` to the dry run and `4` to the run, with the identical sentence; a repository with no
+> declaration answers `2` and points at `nen shu detect`. **So a `4` here is § 5's answer arriving
+> one step earlier than expected, not a broken dry run** — quote it and stop; there is no real run
+> left to make. A run that reads exit `0` as *"the dry run worked"* and exit `4` as *"the dry run
+> failed"* has the verb backwards on both counts.
 
 ## 4. The run, and the exit codes
 
@@ -184,8 +203,16 @@ hand that set on:
 the base, never a directory listing: an unchanged golden must not appear.
 
 ```bash
-git -C <path> diff --name-status <base>...HEAD -- ':(glob)**/__Snapshots__/**/*.png'
+git -C <path> fetch origin <base>
+git -C <path> diff --name-status origin/<base>...HEAD -- ':(glob)**/__Snapshots__/**/*.png'
 ```
+
+> **`origin/<base>`, after that fetch — never the bare branch name.** `branch.base` is a branch
+> name, and local `main` is never fast-forwarded after [`hatsu:breath`](../breath/SKILL.md) cut the
+> branch from it: measured live at 13, then 36, then 50 commits behind in one run
+> (`docs/ab/mukai.md`). Against a stale local ref the enumeration carries every golden anybody
+> re-recorded on the trunk this week as though this branch had, which is the same failure as the
+> silent-empty one below with the sign flipped.
 
 > **The `:(glob)` prefix is load-bearing, and leaving it off fails silently — verified live
 > (`docs/ab/kotoamatsukami.md` § 2.4).** A `project.evidence.globs` entry is written in **shell-glob**
@@ -195,7 +222,7 @@ git -C <path> diff --name-status <base>...HEAD -- ':(glob)**/__Snapshots__/**/*.
 > three. **An empty evidence table read as "this change re-recorded nothing" is the worst failure
 > mode this skill has** — it is indistinguishable from the truthful case and it silently drops the
 > pull request's evidence. So either pass every glob with `:(glob)`, or take the full
-> `git diff --name-status <base>...HEAD` and filter the paths **in the reader**, which is what
+> `git diff --name-status origin/<base>...HEAD` and filter the paths **in the reader**, which is what
 > [`hatsu:rikugan`](../rikugan/SKILL.md) § 3's residue row does. **Never pass a declared glob to git
 > as a bare pathspec.**
 
@@ -225,7 +252,7 @@ exists and where; parsing it is residue (§ Residue), not a claim to make from i
    refusal lands on the option, *"unknown option '--base'"*, listing the family's whole option surface
    (`docs/ab/kotoamatsukami.md` § 2.4). **It landed on nen `main` during the week of 2026-09-08 and
    ships at `0.4.0`** (brief § 4.6) — it is not a missing feature to file, it is a pin that has not
-   moved. Until it does, § 7's enumeration is `git diff --name-status <base>...HEAD` against
+   moved. Until it does, § 7's enumeration is `git diff --name-status origin/<base>...HEAD` against
    `project.evidence.globs`, **with `:(glob)` magic or filtered in the reader**, grouped by
    `project.evidence.scene` read by eye, and reported as by-hand.
 2. **`nen shu test-report`** — not a `shu` subcommand at this pin
