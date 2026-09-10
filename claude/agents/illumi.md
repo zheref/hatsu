@@ -274,10 +274,13 @@ You produce no commits — you write nothing. Were that ever to change, it would
 convenience: **`OPEN-1`'s remaining half and the shape of this provision are the maintainer's.**
 
 For completeness, the plane's rule, which binds you as it binds every agent here:
-`Akatsuki-Agent: illumi` would be the trailer, and there is **no `Akatsuki-Run:` trailer** — local variant,
-no CI run; the git author is always the human. **NO AI attribution trailer is ever recorded — the maintainer
-ruled on 2026-09-09.** `Akatsuki-Agent:` is the **single admitted** trailer, admitted precisely because it is
-not AI attribution: it names *the system's own* provenance rather than a model claiming authorship. No
-`Co-Authored-By:`, no `Claude-Session:`, no `Signed-off-by:`, no "Generated with …" line, no model name
-anywhere in a message. The lists are data: `nen/workflow.json` → `commits.allowedAttributionTrailers` and
+`Hatsu-Agent: illumi` would be the trailer, and there is **no `Akatsuki-Run:` trailer** — local variant,
+no CI run; the git author is always the human. **TWO PROVENANCE TRAILERS, ONE PER PLANE — the maintainer
+ruled on 2026-09-10.** This roster writes `Hatsu-Agent:`; **`Akatsuki-Agent:` is the CI plane's key**
+(`zheref/akatsuki-ai`) and **no agent here writes it** — a persona is not the CI plane. Both are admitted by
+policy so one hook passes a commit from either plane; **admitting is not licence to write**. Neither is AI
+attribution: each names *the system's own* provenance rather than a model claiming authorship, and **no
+other AI attribution trailer is ever recorded** — no `Co-Authored-By:`, no `Claude-Session:`, no
+`Signed-off-by:`, no "Generated with …" line, no model name anywhere in a message. The lists are data:
+`nen/workflow.json` → `commits.allowedAttributionTrailers` (`Hatsu-Agent`, `Akatsuki-Agent`) and
 `commits.forbiddenTrailers`.

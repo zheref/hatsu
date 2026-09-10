@@ -5,8 +5,10 @@ credentials, **no GitHub App, no CI workflow, no bot identity**. It succeeds the
 (`CON-2`) — where that was one persona holding four natures, this is a lead persona holding six declared
 work-modes, plus a small set of independents with disciplines of their own.
 
-Every agent here carries an **`Akatsuki-Agent: <name>`** trailer and **no `Akatsuki-Run:` trailer** — the
-local variant, because there is no CI run to name. The git author is always the human.
+Every agent here carries a **`Hatsu-Agent: <name>`** trailer and **no `Akatsuki-Run:` trailer** — the local
+variant, because there is no CI run to name. `Akatsuki-Agent: <name>` is the **other plane's** key, written
+by an Akatsuki roster agent in CI and never by anyone here (§ *Rulings of 2026-09-10*, *Two provenance
+trailers*). The git author is always the human.
 
 **This file is the authority on who exists and what standing they have.** The agent definitions in
 `claude/agents/` are the authority on what each one does.
@@ -100,10 +102,12 @@ The full shape is [`WORKFLOW.md`](WORKFLOW.md).
 
 ### 2 · Attribution — settled
 
-**NO AI attribution trailer is ever recorded.** `Akatsuki-Agent: <name>` is the **single admitted** trailer,
-admitted precisely because it is not AI attribution: it names *the system's own* provenance — which agent of
-this roster did the work — rather than a model claiming authorship of it. There is still no `Akatsuki-Run:`
-trailer, because there is no CI run to name, and the git author is still always the human.
+**NO AI attribution trailer is ever recorded.** A **provenance** trailer is admitted, and it is admitted
+precisely because it is not AI attribution: it names *the system's own* provenance — which agent did the
+work — rather than a model claiming authorship of it. **Which key that is was refined on 2026-09-10** into
+one per plane: this roster writes **`Hatsu-Agent: <name>`**, and `Akatsuki-Agent: <name>` is the CI plane's
+(§ *Rulings of 2026-09-10*, *Two provenance trailers*). There is still no `Akatsuki-Run:` trailer, because
+there is no CI run to name, and the git author is still always the human.
 
 No `Co-Authored-By:`, no `Claude-Session:`, no `Signed-off-by:`, no "Generated with …" line, no model name in
 a commit message. **A harness that mandates `Co-Authored-By:` is configured off** (`includeCoAuthoredBy:
@@ -193,6 +197,8 @@ the maintainer's. A trigger is a new way to be called, never a new authority.
 
 ## Rulings of 2026-09-10
 
+### The release side lands at `v0.6.0` — and `kagutsuchi` is the spelling
+
 **The release side of the lattice lands at `v0.6.0`, and its spelling is settled.** Recorded here for the
 same reason the rulings above are: this file is the authority on standing.
 
@@ -220,6 +226,39 @@ inventing one would put two names on one phase, which is the failure this ruling
 **What this does not close.** `OPEN-1`, `OPEN-2` (Gon's delegation grammar, still a DRAFT — he crosses no
 gate) and `OPEN-3` are untouched. No agent definition changes at `v0.6.0`, and no new independent is
 activated by it.
+
+### Two provenance trailers, one per plane — the attribution ruling, refined
+
+**Ruled 2026-09-10, after the CI plane landed.** The ruling of 2026-09-09 (§ *Rulings of 2026-09-09*, 2)
+admitted exactly one key, at a moment when only one plane existed to write it. Two do now, and the
+maintainer's words are the rule:
+
+> A commit carries `Akatsuki-Agent: <persona>` **only** when an Akatsuki roster agent — the autonomous CI
+> plane, `zheref/akatsuki-ai` — made it. A commit made by Hatsu's local roster (Kurapika and the
+> independents, on the maintainer's own credentials) carries `Hatsu-Agent: <persona>`. Both are the
+> **system's own provenance**, never an AI-authorship claim; **no other AI attribution trailer is ever
+> recorded**. Existing commits are not rewritten.
+
+What that means here, in order of how often it bites:
+
+1. **Every agent in this roster writes `Hatsu-Agent: <their name>`** — Kurapika, Gon, Hisoka, Phinks,
+   Uvogin, Feitan, Chrollo, Illumi. Their definitions say so in their own words.
+2. **No agent here ever writes `Akatsuki-Agent`.** A persona is not the CI plane; that key on a local
+   commit forges a machine-plane provenance this plane does not have, for the same reason there is no
+   `Akatsuki-Run:` trailer. `kokusen` and `aka` refuse to write it exactly as they refuse a
+   `Co-Authored-By`-shaped trailer.
+3. **Both keys stay admitted** in [`../nen/workflow.json`](../nen/workflow.json) →
+   `commits.allowedAttributionTrailers`, so that one `commit-msg` hook and one
+   `nen commit format --repo` accept a commit from either plane in a repository both write to.
+   **Admitting a key is not licence to write it** — rule 2 is what decides that.
+4. **Nothing is rewritten.** Commits already on `main` carrying `Akatsuki-Agent` from a local session stay
+   as they are: they record what was written when they were written. The evidence records in
+   [`ab/`](ab/) that quote such a run keep their transcripts verbatim, dated where the old key would
+   otherwise read as current instruction.
+
+`nen` documents both keys — `zheref/nen#164`, `docs/USAGE.md` § *Two provenance trailers* — and nen's own
+policy file admits both. The layer table is [`WORKFLOW.md`](WORKFLOW.md) § `commits`.
+
 
 ---
 
@@ -332,7 +371,7 @@ delivered, and a **filed issue** for a substantive finding of the agent's own.
 | **OPEN-1** | Illumi's and Killua's final roles | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 5): Illumi is **provisioned** for `en`'s long watch, and his definition landed at `v0.5.0` scoped to exactly that. His other proposed engines — `backlog-loop`, `futon`, `senkei` — **and the whole of Killua's row, remain OPEN**: a G4-class ruling by the maintainer, **unmade**. Provisioned is not ratified. |
 | **OPEN-2** | Gon's delegation-grammar clause | **Untouched.** Drafted here; ratified with the P3 constitution in the migration tracker (private). **Until then, Gon crosses no gate.** |
 | **OPEN-3** | Genei Ryodan bench adoption — which profiles activate, and when | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 4): **Feitan** (security only) and **Chrollo** (architecture and handbook conformance) are activated; **their definitions landed at `v0.5.0`** and both are now ratified independents. The other five profiles remain **bench doc only**, unscheduled. |
-| **Attribution** | Which trailers a commit may carry | **RULED 2026-09-09** (§ *Rulings*, 2): `Akatsuki-Agent` alone. **Closed.** |
+| **Attribution** | Which trailers a commit may carry, and which of them this plane writes | **RULED 2026-09-09** (§ *Rulings of 2026-09-09*, 2), **REFINED 2026-09-10** (§ *Rulings of 2026-09-10*, *Two provenance trailers*): two provenance trailers, one per plane — this roster writes `Hatsu-Agent`, the CI plane writes `Akatsuki-Agent`, both are admitted by policy, and no other AI attribution trailer is ever recorded. **Closed.** |
 
 **Nothing above is resolved by reading this document confidently.** Where a row says PARTIALLY RULED, the
 unruled half is as open as it was, and the ruled half is the maintainer's, recorded — not inferred.
