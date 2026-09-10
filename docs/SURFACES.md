@@ -26,6 +26,7 @@ is adding a row there, not a branch here.**
 | turn-end hook | **yes** — `Stop`, `hooks/hooks.json` | **no** | **no** |
 | in-session subagent | **yes** — the Agent tool | **no** — a reviewer is a second `codex exec` run | **yes** — `.cursor/agents/` |
 | reviewer tier → alias (`models.roles.reviewer` = `deep`) | `opus` | `sol` | `grok` — **Cursor-native only** |
+| minimum CLI build | n/a — the plugin loader is the harness | not established | **`2026.01.*`** — below it the surface sees NO skills (below) |
 
 The two consequences that are not cosmetic have their own homes:
 [`claude/skills/jutaisho/SKILL.md`](../claude/skills/jutaisho/SKILL.md) § 6 for the missing `Stop` hook, and
@@ -88,6 +89,95 @@ the skill does, then its trigger, then its never-clauses, inside the first ~180 
 after that is what this surface throws away, and the clause naming the invocation and the refusals is
 exactly the part a model-invocation decision is made from. A long tail is still worth writing for the two
 surfaces that keep it; it is not worth *relying* on here.
+
+### Cursor has a MINIMUM `cursor-agent` version, and below it every Hatsu skill is silently absent
+
+**A `cursor-agent` that predates skills support answers your prompt, runs your commands, exits `0` —
+and has not loaded one of the thirty-nine.** With the mirror installed exactly as
+[`hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md) § 5b mandates, `2025.09.18-39624ef` answered
+a discovery probe with the whole reply **`NO SKILLS VISIBLE`**, seventeen bytes. The controlled
+fixture that followed is what settles it: the same build cannot see a **`cp -R` copy** either, and it
+reached its answer by `Searched files (**/*zzcopyprobe*)` — it was grepping the working tree, having
+no skills mechanism at all (`docs/ab/surfaces.md` § 8, F2).
+
+**That nearly became a false finding against the symlink row.** The natural reading of the first
+probe was *"Cursor does not follow symlinks"*, which is wrong: on `2026.09.08-6caf4ff` a symlink
+inside the workspace, a symlink pointing **outside** it, and a copy are all discovered
+(`docs/ab/surfaces.md` § 8, § 1.4 P3–P5). The variable was the **binary**, not the install.
+
+| | |
+|---|---|
+| **the minimum** | **`2026.01.*`** — [Cursor's CLI changelog](https://cursor.com/docs/cli/changelog) dates *"Skills, rules, and commands in the CLI"* to its **January 2026** entry |
+| **how exact it is** | the changelog groups by **month**, not by build id, and `cursor-agent -v` prints `YYYY.MM.DD-<sha>` — so the floor is a month and there is no exact version string to pin. Compare the date part |
+| **the build that demonstrably SAW the mirror** | `2026.09.08-6caf4ff` — all 39 listed, bare |
+| **the build that demonstrably saw NOTHING** | `2025.09.18-39624ef` — *pre-skills*. Where `docs/ab/surfaces.md` § 3.3 records it, that is what it is: **not** a reference build |
+| **later, and worth having** | `.cursor/skills` in subdirectories (May 2026); skills discovered through symlinks, stated by Cursor (June 2026) |
+
+**So the warm-up prints `cursor-agent -v` beside the install count and refuses to claim the surface
+below the minimum** ([`hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md) § 5b). *A surface whose
+skills are invisible must be reported, not inferred* — an install that succeeded onto a build that
+cannot read it is the exact shape of an unperformed step reported as a passing one.
+
+### Cursor's skill name space is FLAT, GLOBAL and shared — and a collision silently wins
+
+**Cursor lists a mirrored skill under its bare frontmatter `name`** — no plugin namespacing, even
+through a symlink into this checkout, which carries `.claude-plugin/plugin.json` (`"name": "hatsu"`).
+That is good news and it answers half of § 5b's open question: **Codex's F1 does not reproduce on
+Cursor**, and the mirrors' `/aka` spelling is honest here (`docs/ab/surfaces.md` § 8, § 1.4 P4).
+
+**The cost of bare names is that there is no namespace left to disambiguate with**, and the space a
+Cursor session sees is not just the repository's `.cursor/skills/`. On this host one listing carried
+the 39 mirrored skills **plus** Cursor's own built-ins from `~/.cursor/skills-cursor/` (`autopilot`,
+`create-hook`, `loop`, `review-bugbot`, …) **plus this host's Claude Code plugin skills** — the
+`adobe-*` family, `ui-ux-pro-max`, `slides`, and decisively **`build`** and **`drive`**, both of which
+sit at `~/.claude/plugins/marketplaces/bankai/claude/skills/`. `drive` is not a Hatsu skill at all; it
+was renamed to `sharingan` at v0.5.0 and `surfaces/cursor/drive` does not exist.
+
+**On Claude Code this cannot happen** — `hatsu:build` and `bankai:build` are distinct names, which the
+Codex-half record called *"luck rather than design"*. **On Cursor the luck runs out.** The names Hatsu
+claims that are ordinary enough to collide with somebody: **`build`, `file`, `en`, `ao`, `ren`,
+`breath`**, and thirty-nine are claimed at once.
+
+> **The shadowing itself is INFERRED, not proven, and it is written here as such.** The evidence is
+> one listing's grouping and one alphabetical gap — `build` appeared once, outside the Hatsu block's
+> otherwise unbroken run (`…, breath, en, file, …`), grouped with the bankai/adobe cluster. **Two
+> probes tried to confirm it and could not**, because the descriptions the surface keeps are far too
+> short to tell the two rival `build` entries apart (below). Confirming it needs a different method:
+> the mirror installed on a host with **no** bankai plugin, or the surface asked to *run* `/build` and
+> watched for whose procedure it follows. **Until then this is a documented hazard and not a
+> documented mechanism** — but the flat name space is real, measured, and the reason the skill `name`
+> is doing nearly all the routing work here.
+>
+> [`hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md) § 5c's `ours` guard **cannot help with
+> this**: it inspects the target repository, and this collision is entirely outside it. What the
+> warm-up can do, and now does, is **list every name already standing under `.cursor/skills/` before
+> it installs anything** — and say plainly that a host-level collision it cannot see may still win.
+
+### Cursor keeps roughly THIRTY characters of a description — and that is not a shorter Codex
+
+`docs/ab/surfaces.md` measured Codex cutting descriptions to 186–190 characters and this file draws
+an authoring rule from it (below). **On Cursor the surviving text appears to be an order of magnitude
+shorter.** Three probes with the full 39-skill mirror installed (`docs/ab/surfaces.md` § 8, F13):
+asked for the first fifteen words of `/ren`'s description, the session returned **six** and
+volunteered that the text was truncated; asked whether `build`'s description mentions Ichigo or
+Kurapika — the two names that sit near character 190 in the rival copies — **neither**; asked for the
+length, **"The description text is 30 characters long; its final 10 characters are `whereve…`"**.
+
+Thirty characters is `Take one issue from whereve…`. **The description dies inside its own first
+clause**: the trigger, the invocation spelling and every never-clause are gone. Codex at least keeps
+the opening sentence.
+
+**Two caveats, and they are why no number is being written into the authoring rule.** It is the
+model's self-report — Cursor has no `codex debug prompt-input` equivalent, so there is no way to see
+what it was actually handed — and if the budget is *shared* across visible skills the way Codex's is,
+~30 characters is a symptom of ~70 skills being visible on this host rather than a constant. It needs
+measuring against a varying skill count before it is a number.
+
+**So: do not shorten a description to fit this.** There is no length that survives here, the two other
+surfaces keep the tail, and a description trimmed to thirty characters would be worse everywhere and
+no better on Cursor. What follows from it instead is that **on Cursor the skill `name` is doing almost
+all of the routing work** — an argument for keeping the names distinctive, and the second reason the
+flat name space above matters.
 
 ### One honest limitation of a verbatim mirror
 
@@ -312,22 +402,89 @@ the old one.
 ### Cursor
 
 ```sh
-cursor-agent -p --output-format text --model <cursor-native-alias> -f "<prompt>"
+# the deep/frontier tier's id AS THE HOST SPELLS IT TODAY — resolved, never remembered (see below)
+grok="$(cursor-agent models | sed -n 's/^\(cursor-grok-[0-9.]*-high\) - .*$/\1/p' | sort -Vr | head -n 1)"
+[ -n "$grok" ] || { echo "cursor-agent models lists no cursor-grok id" >&2; exit 1; }
+
+cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
 ```
+
+> ### ⚠️ `--model grok` does not exist. `cursor-agent` refuses it and nothing runs.
+>
+> This block used to read `--model <cursor-native-alias>`, and `grok` is what a reader substituted.
+> Run verbatim on this host (`docs/ab/surfaces.md` § 8, F1):
+>
+> ```
+> $ cursor-agent -p --output-format text --model grok -f "<prompt>"
+> Cannot use this model: grok. Available models: auto, gpt-5.3-codex-low, … cursor-grok-4.6-high,
+> composer-2.5, …
+> ```
+>
+> **`grok` is the tier ALIAS in [`nen/workflow.json`](../nen/workflow.json) → `models.cursor.deep` /
+> `.frontier`, and an alias is all a configuration file may carry** — `models.rule` is *"latest alias
+> only, never a version"*. A command line needs the **id** the host is serving today, which is a live
+> fact and belongs in a command substitution. This is the same defect this file already corrected for
+> Codex, where `-m gpt-6-sol` became a substitution off `codex debug models`; the Cursor block had
+> never had the same treatment.
+>
+> **The catalogue is `cursor-agent models` (equivalently `--list-models`), read live on 2026-09-10 at
+> build `2026.09.08-6caf4ff`, exit `0`** — it prints `<id> - <label>`, one per line. The Cursor-native
+> rows there today: `cursor-grok-4.6-{low,medium,high,xhigh}[-fast]`, `cursor-grok-4.5-high[-fast]`,
+> `composer-2.5[-fast]`. **The alias resolves to the newest `cursor-grok`'s plain `-high`, which the
+> catalogue labels with no qualifier at all** — `cursor-grok-4.6-high - Cursor Grok 4.6`, beside
+> `-xhigh - Cursor Grok 4.6 Extra High` and `-high-fast - Cursor Grok 4.6 Fast`. The id is a
+> **two-axis** choice, version and reasoning tier, so the rule is written down rather than left to
+> each caller: **newest version, plain `-high`, never `-fast`**. The `sed` / `sort -Vr` above is that
+> rule, executable. `composer` resolves the same way —
+> `composer="$(cursor-agent models | sed -n 's/^\(composer-[0-9.]*\) - .*$/\1/p' | sort -Vr | head -n 1)"`
+> → `composer-2.5`.
+>
+> **On the build this file used to record there was no catalogue to read.** `2025.09.18-39624ef`'s
+> `--help` listed `-v --api-key -p --output-format -b --resume --model -f` and nothing else — no
+> `models` subcommand, no `--list-models` — and the only enumeration available was the refusal message
+> itself (`cursor-agent -p --model __resolve__ -f x 2>&1`, which is what the wave-5 run used). That is
+> not a second supported way to read the catalogue; it is what a build below the minimum leaves you
+> with. **Read § 1's minimum version first.**
 
 - `-p, --print` is the non-interactive form; `--output-format` takes `text`, `json` or `stream-json` and
   **only works with `--print`**. `-f, --force` allows commands unless explicitly denied.
-- `--model` is **Cursor-native only** — `grok` or `composer`, per the matrix's own note. Note that
-  `cursor-agent --help`'s own examples are *provider* models (`gpt-5`, `sonnet-4`, `sonnet-4-thinking`):
-  the CLI accepts them and **this policy does not**. A provider model named here is out of policy, not
-  merely unusual, and the reason is in the file — *"provider models there are reserved for Bugbot"*.
+- **`-f` is `--force`, and it is NOT a file flag.** The block reads `-f "<prompt>"` and parses
+  correctly only because `-f` takes no value and the prompt is a **positional** argument. The Codex
+  block above uses no such adjacency, and a reader copying one line is being invited to misread it —
+  so it is said here rather than left to the options list.
+- **The working root.** On `2025.09.18-39624ef` there was no working-directory flag at all: the root
+  was **the shell's own `cd`**, which is why the block above leads with one. On `2026.09.08-6caf4ff`
+  there is `--workspace <path-or-name>` and `--add-dir <path>` (and `-w, --worktree [name]`), read
+  live from `--help` on 2026-09-10. **The `cd` form works on both**, and it is what this block keeps.
+- **There is no sandbox to widen, and that is a difference rather than an absence.** Codex's whole
+  `--add-dir` box above exists because `-s workspace-write` cannot perform a single git write in a
+  linked worktree. Cursor has no counterpart to that failure — `-f/--force` allows commands unless
+  denied — and a headless run fetched, cut a branch, rebased and first-published inside a **linked
+  worktree** with no permission failure of any kind (`docs/ab/surfaces.md` § 8). No `--add-dir`, no
+  standalone clone, no workaround.
+- **Answering a G5 stop is `--resume`, and it is a FLAG on the same command line.** Unlike
+  `codex exec resume` — which accepts almost none of the first invocation's options — `--resume
+  [chatId]` sits beside `-p`, `--output-format`, `--model` and `-f`, so a stop is answered with the
+  same line plus the id. Fix the id up front with `cursor-agent create-chat`, which prints one (the
+  wave-5 run used `dc796003-a2c1-46e3-b867-70dc0a59bf3e`), rather than relying on `--resume`'s
+  "latest"; `ls` and `resume` reach the latest when you have not. **The path is unexercised**: no G5
+  fired in that run, so `--resume` was never used in anger.
+- **Give a `-p` run a timeout.** Observed once, on `2025.09.18-39624ef`: the process printed its
+  complete answer and then stayed alive at 0% CPU, still running twelve minutes later. There is no
+  `-o/--output-last-message` equivalent to read a result from, so a caller waiting on process exit
+  rather than on output hangs. Not reproduced on `2026.09.08-6caf4ff`, where every run exited `0`.
+- `--model` is **Cursor-native only** — the `cursor-grok` and `composer` families, per the matrix's own
+  note. `cursor-agent models` lists provider ids too (`claude-opus-5-*`, `gpt-5.3-codex-*`,
+  `gemini-3.7-*`) and `--help`'s own examples are provider models: the CLI accepts them and **this
+  policy does not**. A provider model named here is out of policy, not merely unusual, and the reason
+  is in the file — *"provider models there are reserved for Bugbot"*.
 
-> **`cursor-agent` is NOT logged in on this host.** `cursor-agent status` prints *"Not logged in"*, so no
-> Cursor run has been made and none of Cursor's *runtime* behaviour is verified here — including whether it
-> follows the symlinks the warm-up installs. **This is a maintainer action:** run `cursor-agent login`, then
-> the command above. Everything claimed about Cursor in this file is read from its documented rules (nen's
-> `cursor` row and the pages it cites) or from the generated files themselves; nothing is claimed from a
-> session that did not happen.
+> **`cursor-agent` IS logged in on this host, and the first logged-in run has happened.** This block
+> used to carry a box saying the opposite. `cursor-agent status` → *"Logged in"*, and a headless
+> `/ren` + `/aka` run against a linked worktree of `zheref/nen` completed with no G5 stop, publishing
+> a branch and touching neither the primary checkout nor a pull request (`docs/ab/surfaces.md` § 8).
+> **What that run verified, corrected and left open** is § 8 of the evidence file; the three facts
+> that changed this page are F1 above, § 1's minimum version, and § 1's flat name space.
 
 ---
 

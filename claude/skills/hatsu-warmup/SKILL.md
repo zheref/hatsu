@@ -30,11 +30,18 @@ shell).
 cat "$CLAUDE_PLUGIN_ROOT/nen/contract.json"
 ```
 
-**On Codex and Cursor that variable is empty and the plugin root is `$hatsu_root`** — the same resolution
-§ 5's prelude carries (`$HATSU_PLUGIN_ROOT`, else the path this invocation was handed), for the same reason:
-`$CLAUDE_PLUGIN_ROOT` is exported by Claude Code's harness and by no other. Resolve it there first, and read
+**On Codex and Cursor that variable is usually empty and the plugin root is `$hatsu_root`** — the same
+resolution § 5's prelude carries, **identity check included**: `$HATSU_PLUGIN_ROOT`, else the path this
+invocation was handed, else `$CLAUDE_PLUGIN_ROOT`, and **each accepted only if it holds a
+`.claude-plugin/plugin.json` naming `hatsu`**. Resolve it there first, and read
 `$hatsu_root/nen/contract.json`. **A root that will not resolve stops the warm-up** — § 5's `NOT INSTALLED`
-line — rather than reading an empty path and reporting a missing contract.
+line, naming every path it rejected — rather than reading an empty path and reporting a missing contract.
+
+> **"Usually empty" rather than "empty", and the difference bit.** `$CLAUDE_PLUGIN_ROOT` is exported by
+> Claude Code's harness — and on this host it is *also* exported from the user's shell profile, pointing
+> at **a different plugin**, so every Codex and Cursor session inherits it (`docs/ab/surfaces.md` § 8,
+> F3). A resolution that trusts the variable's presence reads another plugin's contract. § 5's prelude
+> carries the check and the reasoning.
 
 **You are the JSON parser.** You have just opened the file; read `dependency.minimum`,
 `dependency.zero_major_caveat`, `dependency.pinned_ref`, `dependency.source`, `dependency.version_probe`
@@ -192,8 +199,48 @@ verified — plus its own `7`.
 - **It fails closed, always.** An unfetchable, missing, malformed or artifact-silent `SHA256SUMS` refuses; a
   missing `sha256sum`/`shasum`/`openssl` refuses; bytes that disagree are **deleted** and refused. Never
   warn-and-continue, and never a path to a binary it did not verify.
-- **On success it prints the verified binary path on stdout, and nothing else.** Execute exactly that path —
-  or put its directory on `PATH` — and re-probe §1 to confirm.
+- **On success it prints the verified binary path on stdout, and nothing else.** Execute exactly that
+  path, or **bind the name `nen` to it** (below), and re-probe §1 to confirm.
+
+### The path it prints is not reachable as `nen`, and putting its directory on `PATH` does not fix it
+
+**This section used to say "or put its directory on `PATH`", and that does not work.** The verified
+binary is named for its platform, not for the command:
+
+```sh
+$ nen bootstrap --ref v0.5.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
+nen bootstrap: cache hit for zheref/nen@v0.5.0 (nen-darwin-arm64), checksum verified.   # exit 0
+$ ls ~/.cache/nen/v0.5.0
+nen-darwin-arm64                       # ← there is nothing here called `nen`
+```
+
+So `PATH` gains a directory holding `nen-darwin-arm64`, the name `nen` still resolves to whatever it
+resolved to before, and **the probe in § 1 answers with the version you were re-pinning away from** —
+a warm-up that reports itself clear while every later verb runs the wrong binary. Observed live
+(`docs/ab/surfaces.md` § 8, F5): `~/.local/bin/nen` was still the old target after an exit-`0`
+bootstrap.
+
+**Bind the name. Two forms, and which one to use is not a preference:**
+
+```sh
+verified=$(nen bootstrap --ref <pinned ref> --source zheref/nen --script /tmp/nen-bootstrap.sh | tail -n 1)
+
+# (a) THE HOST's `nen`, when the maintainer asked for the pin to stick — this is what this host does:
+ln -sfn "$verified" ~/.local/bin/nen        # ~/.local/bin is on PATH; the symlink IS the binding
+
+# (b) THIS SESSION's `nen`, when the re-pin is the session's business and not the host's:
+mkdir -p /tmp/nen-session-bin && ln -sfn "$verified" /tmp/nen-session-bin/nen
+export PATH=/tmp/nen-session-bin:$PATH
+```
+
+- **(b) is the default for a session that re-pinned because a repository's contract asked it to.**
+  Overwriting `~/.local/bin/nen` changes which nen every *other* session on the host runs, and a
+  warm-up invoked to satisfy one repository's range has no business doing that. A headless Cursor run
+  reached exactly this fork, chose (b) unprompted, and was right (`docs/ab/surfaces.md` § 8, F5).
+- **(a) is the maintainer's call, said out loud.** Take it when they asked for the host pin to move,
+  and **say which of the two you did in § 4's line**, with the path.
+- **Never copy the binary and never rename it in place.** The bootstrap's cache is what makes the next
+  run idempotent; a symlink leaves it intact and a copy quietly forks it.
 
 ### The exit codes are a contract, not a label
 
@@ -268,7 +315,18 @@ reports `{"checked": false}` rather than an empty finding set.
 
 **On a surface that is not Claude Code, the report carries § 5's line too** — which surface, what was
 installed into the target repository, and by which mechanism. A surface warm-up that silently did nothing
-is the same failure as a dependency warm-up that silently did nothing.
+is the same failure as a dependency warm-up that silently did nothing. **Four more facts belong in that
+line, and each of them is a real failure this warm-up has already had:**
+
+- **the surface CLI's own version**, and on Cursor whether it clears § 5b's minimum — *"cursor-agent
+  2026.09.08-6caf4ff, above the 2026.01 skills minimum"*. Below it, the surface is **not** claimed,
+  whatever was installed (§ 5b · i);
+- **every candidate root that was rejected**, by path (§ 5's prelude) — the resolution can succeed on
+  a later candidate and still have found something worth saying;
+- **the names already standing under the surface's skill directory**, and that a same-named skill from
+  another plugin on this host would not be visible from there (§ 5b · ii);
+- **which `nen` the name now resolves to**, when § 2 bound one — the host's or this session's, with
+  the path.
 
 ---
 
@@ -322,16 +380,63 @@ Code CLI's own registry and is not a question those two surfaces can answer eith
 |---|---|
 | **`$HATSU_PLUGIN_ROOT`** | the environment variable the session was started with — **the form that works on all three surfaces**, and the one to prefer |
 | the path the invocation was handed | `$hatsu-warmup <path>` on Codex, `/hatsu-warmup <path>` on Cursor |
-| **`$CLAUDE_PLUGIN_ROOT`** | Claude Code only, where § 5 does not run — kept in the order so one resolution serves every surface, never because it can fire here |
+| **`$CLAUDE_PLUGIN_ROOT`** | Claude Code's own, kept last so one resolution serves every surface. **It is NOT inert off Claude Code — see the box — and it is accepted here only if it passes the identity check** |
+
+> ### ⚠️ `$CLAUDE_PLUGIN_ROOT` CAN fire here, and on this host it names a different plugin
+>
+> This table used to end *"never because it can fire here"*. It fired. A headless Cursor session
+> recorded, unprompted, *"HATSU_PLUGIN_ROOT unset; CLAUDE_PLUGIN_ROOT pointed at bankai 0.10.0"* — and
+> the variable is exported from the user's **shell profile**, so every Codex and Cursor session on that
+> host inherits it (`docs/ab/surfaces.md` § 8, F3):
+>
+> ```
+> $ grep -n CLAUDE_PLUGIN_ROOT ~/.zshrc
+> 26:export CLAUDE_PLUGIN_ROOT=/Users/zheref/.claude/plugins/cache/bankai/bankai/0.10.0
+> ```
+>
+> **A `[ -d "$hatsu_root/surfaces/$surface" ]` guard checks SHAPE, not IDENTITY.** On that host it
+> happened to fail — bankai carries no `surfaces/` directory — so the warm-up would have reported
+> `NOT INSTALLED`, which is the *safe* failure for the *wrong* reason and with a misleading message.
+> **A plugin checkout that did carry a `surfaces/` directory would have installed the wrong plugin's
+> skills into somebody's repository with no error anywhere.** So a candidate root is checked for what
+> it **is**, not for what it contains.
+
+**Every candidate is verified before it is used**, in order, and the first one that passes wins:
 
 ```sh
-hatsu_root="${HATSU_PLUGIN_ROOT:-${1:-${CLAUDE_PLUGIN_ROOT:-}}}"
+# is_hatsu ROOT — true only for a checkout of THIS plugin. No jq: the file is read as text.
+is_hatsu() {
+  [ -n "${1:-}" ] && [ -f "$1/.claude-plugin/plugin.json" ] &&
+    grep -qE '"name"[[:space:]]*:[[:space:]]*"hatsu"' "$1/.claude-plugin/plugin.json"
+}
+
+hatsu_root=""; rejected=""
+for cand in "${HATSU_PLUGIN_ROOT:-}" "${1:-}" "${CLAUDE_PLUGIN_ROOT:-}"; do
+  [ -n "$cand" ] || continue
+  if is_hatsu "$cand"; then hatsu_root=$cand; break; fi
+  rejected="$rejected $cand"
+done
+
 [ -n "$hatsu_root" ] && [ -d "$hatsu_root/surfaces/$surface" ] || {
-  echo "surface: $surface — NOT INSTALLED. No Hatsu source root: \$HATSU_PLUGIN_ROOT is unset, no path" \
-       "was handed to this invocation, and this surface has no plugin registry to ask." >&2
+  echo "surface: $surface — NOT INSTALLED. No Hatsu source root." \
+       "${rejected:+Rejected (no .claude-plugin/plugin.json naming hatsu):$rejected.}" \
+       "\$HATSU_PLUGIN_ROOT is unset or is not a Hatsu checkout, no usable path was handed to this" \
+       "invocation, and this surface has no plugin registry to ask." >&2
   exit 1        # § 4's line says NOT INSTALLED and names this. Never a partial install.
 }
 ```
+
+- **A rejected candidate is named BY PATH, in the report.** *"surface: cursor — NOT INSTALLED.
+  Rejected: `/Users/…/plugins/cache/bankai/bankai/0.10.0` — not a Hatsu checkout"* is a sentence the
+  maintainer can act on in one step; *"no Hatsu source root"* on a host where the variable is plainly
+  set sends them looking in the wrong place.
+- **Falling through to the next candidate is right; reporting silently is not.** Name every rejected
+  path even when a later one succeeded — a stale `$CLAUDE_PLUGIN_ROOT` in a shell profile is a thing
+  to fix, and this is where it becomes visible.
+- **The check costs nothing on Claude Code and holds there too**: inside a Hatsu skill invocation
+  `$CLAUDE_PLUGIN_ROOT` *is* the Hatsu checkout, so it passes on the first comparison. § 0's read of
+  `nen/contract.json` uses this same resolution, and a root that will not resolve stops the warm-up
+  there as well.
 
 **There is no bootstrap on these two surfaces, and that is stated rather than implied.** A plugin loader is
 what would fetch Hatsu; neither surface has one, so the **first** install is a human act — clone
@@ -423,17 +528,72 @@ skill's guess: `nen`'s `src/surface/rules.ts` carries `agents.dir: "agents"` und
 row, cited to `https://cursor.com/docs/agent/subagents`, and that is why the generated mirror already has an
 `agents/` directory beside the skills.
 
-**Cursor's link-following is NOT verified on this host** — `cursor-agent status` reports *Not logged in*, so
-no discovery run could be made (`docs/ab/surfaces.md` § 3.3). The symlink form is kept here because nothing
-has been observed on Cursor that argues against it, and **the report says it is unverified on Cursor**. If a
-skill does not appear in a Cursor session, fall back to `cp -R` and say so.
+**RESOLVED: Cursor's link-following IS verified on this host.** This row used to carry a box saying it was
+not, because `cursor-agent status` reported *Not logged in*. The maintainer logged in, and four controlled
+probes on `2026.09.08-6caf4ff` found a skill through a symlink **inside** the workspace and through one
+pointing **outside** it, and listed a symlink into this plugin checkout under its **bare** name — so
+**Codex's F1 does not reproduce here** and the mirrors' `/<name>` spelling is honest (`docs/ab/surfaces.md`
+§ 8, § 1.4 P3/P4). The symlink row stands as written. **The other half of that old box is still open:**
+which repository a mirror's relative `../../../nen/workflow.json` lands in through a symlink was not
+re-tested, so § 5d's *read the file in the repository the session is standing in* is the rule that carries
+it, and the report says the link-resolution half is unverified on Cursor.
 
-> **§ 5a's two reasons for copying are Codex facts and are not claimed for Cursor.** The plugin-manifest
-> namespacing and the `../../../nen/workflow.json` resolution were both measured on Codex only
-> (`docs/ab/surfaces.md` § 7, F1 and F10). They are *plausible* here — a symlink resolves the same way on
-> the same filesystem — so **the first logged-in Cursor session checks both**: what the surface lists a
-> skill as, and which repository a mirror's relative link lands in. Until then this row is documented,
-> not verified, and no conclusion from the Codex column is written into it.
+### 5b · i — the version check, BEFORE the install count means anything
+
+**Print `cursor-agent -v` and compare it against the minimum, every session, in § 4's line:**
+
+```sh
+cav=$(cursor-agent -v 2>/dev/null)                       # e.g. 2026.09.08-6caf4ff
+cad=${cav%%-*}                                           # the date part: 2026.09.08
+```
+
+| | |
+|---|---|
+| **the minimum** | **`2026.01.*`** — [Cursor's CLI changelog](https://cursor.com/docs/cli/changelog) dates *"Skills, rules, and commands in the CLI"* to its **January 2026** entry |
+| **how exact it is** | the changelog groups by **month**, not by build id, so the floor is a month and **there is no exact version string to pin**. Compare the date part, and say that is what you compared |
+| **verified to see the mirror** | `2026.09.08-6caf4ff` — all 39 listed |
+| **verified to see NOTHING** | `2025.09.18-39624ef` — pre-skills |
+
+**Below the minimum the install is reported and the surface is NOT claimed:** *"surface: cursor —
+39 skills linked, but `cursor-agent` is `2025.09.18-39624ef`, below the `2026.01` skills minimum:
+**this session will not see any of them**. Update with `cursor-agent update`."* That is a `NOT
+INSTALLED`-class report even though every symlink was made, and § 4's discipline is the one that
+applies: **a warm-up whose work the surface cannot read is reported as not done, never rendered as
+clear.**
+
+> **Why this is a version check and not an install check.** With the mirror installed exactly as this
+> row mandates, `2025.09.18-39624ef` answered a discovery probe with the whole reply **`NO SKILLS
+> VISIBLE`**, seventeen bytes — and then answered the *next* question by grepping the working tree.
+> **Every Hatsu skill is silently absent on that build and the session still runs and still answers**,
+> which is the worst failure shape there is. It nearly became a false finding against the symlink row
+> above: the natural reading was *"Cursor does not follow symlinks"*, and the control probe — the same
+> build cannot see a `cp -R` **copy** either — is what showed the variable was the binary
+> (`docs/ab/surfaces.md` § 8, F2).
+
+### 5b · ii — list the names already standing there, before installing anything
+
+**Cursor's skill name space is FLAT, GLOBAL and shared.** A mirrored skill is advertised under its
+bare `name` with no plugin namespace, and the space a session sees is not only the repository's
+`.cursor/skills/`: on this host it also carried Cursor's own built-ins and **this host's Claude Code
+plugin skills**, `build` and `drive` among them (`docs/SURFACES.md` § 1, `docs/ab/surfaces.md` § 8,
+F4). Thirty-nine ordinary words are being claimed at once — `build`, `file`, `en`, `ao`, `ren`.
+
+```sh
+# every name already standing under .cursor/skills/, whoever made it, BEFORE anything is installed
+ls -1A "$target/.cursor/skills" 2>/dev/null
+```
+
+- **Report what that listed, by name**, beside the install count — *"surface: cursor — 37 of 39
+  linked; `.cursor/skills/` already held `build` and `reviewer`, left alone (§ 5c)"*. § 5c decides
+  what happens to each one; **this step is what makes the collision visible before the decision**,
+  rather than as a count that does not add up.
+- **And say what this check CANNOT see.** A collision with another plugin's skill of the same name
+  lives outside the target repository entirely, so `ours` and this listing both miss it, and the
+  surface may still resolve `/build` to somebody else's file with no error anywhere. **State that as
+  a caveat on the report, once**, rather than implying the listing is exhaustive: *"a same-named
+  skill from another plugin on this host would shadow the mirror and is not visible from here."*
+- **Never install under a name this listing showed and § 5c did not clear.** That is § 5c's hard
+  limit and this step feeds it.
 
 ### 5c · Both — the target's history, and the file that is never touched
 
@@ -586,6 +746,17 @@ a Claude, a GPT — is not a better choice made locally; it is a different budge
 6. **The first install on Codex and Cursor is a human act.** There is no plugin loader to fetch anything,
    so this skill refreshes an existing checkout and never obtains one. Named here so the absence is read as
    a boundary rather than as a step somebody forgot to write.
+7. **The surface CLI's version check is `cursor-agent -v` and a string comparison** (§ 5b · i). No verb
+   knows what a surface binary is, and none should — nen reads repositories. The minimum itself is
+   read out of Cursor's own changelog, which groups by month, so **the comparison is a date part and
+   not a semver**, and that is stated in the report rather than dressed up as a range check.
+8. **Verifying a candidate `$hatsu_root`** is `grep` against `.claude-plugin/plugin.json` (§ 5's
+   prelude) — no jq, on the one path that has to work before anything is installed. `nen schema check`
+   validates a contract *inside* a root; it does not answer "is this root the right plugin's".
+9. **Listing what already stands under the surface's skill directory** is `ls -1A` (§ 5b · ii), and
+   **the host-global half of that question has no answer at all from inside a repository** — a
+   same-named skill from another plugin is outside every path this skill can read. Named as a
+   boundary, and carried into the report as a caveat rather than left implicit.
 
 ---
 

@@ -32,6 +32,32 @@ with the clause absent, exit `0`. The clause is anchored behind a literal for th
 [`hatsu:rikugan`](../rikugan/SKILL.md) § 1 records — a lone bracketed slot is refused at the
 template, so every optional clause in this wave gets an introducing word.
 
+> ### The plain-turn spelling is `--line "at"`, not `--line ""`
+>
+> **An ordinary turn's bell carries no clause, and the empty line is REFUSED** — re-verified live at
+> the pinned `v0.5.0`, both halves:
+>
+> ```
+> $ nen parse jutaisho --grammar "at [<gate:G1|G1-M|G2|G3|G4|G5>]" --line ""
+> nen parse: the line must open with the literal 'at' -- it is what introduces <gate>.
+>
+> Corrected line:
+>   jutaisho at                                                                    # exit 2
+>
+> $ nen parse jutaisho --grammar "at [<gate:G1|G1-M|G2|G3|G4|G5>]" --line "at"     # exit 0, clause absent
+> ```
+>
+> **So the turn bell is `--line "at"`** — the literal that anchors the clause, with the clause left
+> off. That is the consequence of the anchoring rule above and it is worth spelling out, because a
+> turn bell is invoked with nothing at all and the obvious translation of "nothing" is `""`. A
+> headless Cursor run found this by trying both and recorded the working form
+> (`docs/ab/surfaces.md` § 8, F11). **The refusal is a good one** — it prints the corrected line —
+> but it costs a round trip on the most-invoked step in the whole loop.
+>
+> **Residue, and it is nen's:** a grammar whose only clause is optional could accept an empty line.
+> Filed as [`zheref/nen#170`](https://github.com/zheref/nen/issues/170). Until it lands, **`"at"` is
+> the spelling on every ordinary turn** — never `""`, and never skipping the parse to avoid it.
+
 **The clause is a gate, and its absence is meaningful, not a default.** With no `at <gate>` the run
 is a **turn bell**: nothing is asked and no `nen stop` banner is rendered. With a gate, this is a
 **stop**, and § 4's whole shape is owed.

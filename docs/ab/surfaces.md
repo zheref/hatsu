@@ -233,7 +233,7 @@ appended into `AGENTS.md` under a marker block rather than written as per-person
 there is no per-persona markdown file to write, which is exactly what nen's `codex` row says
 (`agents: { kind: "appendix", file: "AGENTS.md" }`) and what its printed caveat repeats.
 
-### 3.3 Cursor — **not verified, and not logged in**
+### 3.3 Cursor — not logged in **on 2026-09-09**, and superseded by § 8
 
 ```bash
 cursor-agent status
@@ -242,11 +242,15 @@ cursor-agent status
 Not logged in
 ```
 
-`cursor-agent` version `2025.09.18-39624ef`. **No Cursor session was run**, so nothing about Cursor's
-*runtime* behaviour is verified here — including whether it follows the symlinks the warm-up installs.
-Everything this repository says about Cursor comes from nen's `cursor` row and the pages that row cites
-(`https://cursor.com/docs/skills`, `https://cursor.com/docs/agent/subagents`) or from the generated files
-themselves. **The validation run is a maintainer action:** `cursor-agent login`, then `docs/SURFACES.md` § 5.
+`cursor-agent` version `2025.09.18-39624ef`. **No Cursor session was run on that date**, so nothing
+about Cursor's *runtime* behaviour was verified in this section — including whether it follows the
+symlinks the warm-up installs.
+
+> **Read this section as a dated snapshot, not as the state of the surface.** The maintainer logged in
+> on 2026-09-10 and the first logged-in run is recorded in **§ 8**, which answers most of what this
+> section left open. **And the version above is a `pre-skills` build**: `2025.09.18-39624ef` has no
+> `.cursor/skills` mechanism at all and sees *no* Hatsu skill, copied or symlinked (§ 8, F2). It is
+> **not** the reference build for anything, and `docs/SURFACES.md` § 1 now carries a minimum.
 
 ### 3.4 `codex exec --help` — no subagent, and the flags the docs quote
 
@@ -373,7 +377,12 @@ Per the evidence-record convention: these are recorded, not filed.
 
 ---
 
-## 7. Findings from the wave-5 headless run — one line each, and what changed here
+## 7. Findings from the wave-5 headless CODEX run — one line each, and what changed here
+
+> **These finding ids are the Codex half's.** The Cursor half ran on 2026-09-10 and has its own
+> F1–F13 in **§ 8**; a citation elsewhere in this repository always names the section as well as the
+> finding, and `§ 7, F13` and `§ 8, F13` are different findings about different things.
+
 
 **The run:** a real headless Codex session (`codex-cli 0.149.0`, model id `gpt-5.6-sol` — the `sol` alias,
 read from `codex debug models` at the moment of use; **no Astra model at any point**) took `$ren` and then
@@ -456,3 +465,203 @@ skill's `name` must match its folder name, which nen mirrors and does not enforc
 
 **Still residue:** placing a mirror into a target repository. `--out` is a path, not a deployment, and
 `mirror check` diffs `surfaces/` against a fresh generation rather than checking an installed copy.
+
+---
+
+## 8. The first logged-in Cursor run — 2026-09-10
+
+> **The finding ids below are this run's own**, numbered from F1 independently of § 7's Codex half.
+
+**What it was.** A real headless `cursor-agent` session, model id **`cursor-grok-4.6-high`** (the
+`grok` alias, resolved from the host at the moment of use), running `/ren` then `/aka` against a
+**linked worktree** of `zheref/nen` at `origin/main`. Cursor-native only: no provider model was named
+anywhere. nen's primary checkout was not touched; no PR, no merge, no force-push, no `--no-verify`.
+`cursor-agent status` → **`Logged in`**, checked before anything else ran. **This is the half § 3.3
+recorded as pending.**
+
+**Two things moved under the run and both are recorded rather than smoothed over.** `~/.local/bin/nen`
+was retargeted `0.3.0` → `0.5.0` mid-session, and Cursor caught it: it read hatsu's `nen/contract.json`
+(`>=0.3.0 <0.4.0` at the time), declared 0.5.0 out of range, re-pinned with `nen bootstrap` (checksum
+verified) and put it on its **session** `PATH` only, deliberately not overwriting the user's symlink.
+And `zheref/nen`'s `main` gained the two-trailer policy mid-flight. **The run therefore executed
+against nen `0.3.0`, which is no longer hatsu's pin** — every residue it hit is read against that
+pin, not against `v0.5.0`.
+
+### 8.1 The findings that changed this repository
+
+| | finding | where it landed |
+|---|---|---|
+| **F1** | `--model grok` is refused; the id is `cursor-grok-4.6-high` | `docs/SURFACES.md` § 5 — a resolve-at-use substitution |
+| **F2** | the recorded build sees **no** skills at all | `docs/SURFACES.md` § 1 minimum; `hatsu-warmup` § 5b prints `cursor-agent -v` |
+| **F3** | `$CLAUDE_PLUGIN_ROOT` is exported on this host, to **another plugin** | `hatsu-warmup` § 5 prelude verifies the root's identity |
+| **F4** | the Cursor skill space is flat, global and shared | `docs/SURFACES.md` § 1; `hatsu-warmup` § 5b lists collisions |
+| **F5** | `nen bootstrap` prints a path the name `nen` does not reach | `hatsu-warmup` § 2 — bind the name with a symlink |
+| **F6** | three operational facts the Cursor block omitted | `docs/SURFACES.md` § 5 |
+| **F8** | the guard hook refuses a document that QUOTES a git write | `hooks/guard-base-branch.sh`, `docs/ab/guard-base-branch.md` § 3.5 |
+| **F11** | `nen parse jutaisho --line ""` is refused | `jutaisho` § 1 — the spelling is `--line "at"` (`zheref/nen#170`) |
+| **F12** | `nen commit format` ignored `--repo` at `0.3.0` | nothing to change: at the pinned `0.5.0` the verb enforces it |
+| **F13** | Cursor keeps roughly **thirty** characters of a description | `docs/SURFACES.md` § 1 — stated, and no description shortened |
+
+**F7, F9 and F10 are nen-side or are already filed** — `zheref/nen#168` (`shu warmup` in a linked
+worktree), `#169` (`stage triage`'s ignored bucket), `#170` (`parse` on an empty clause), plus the
+`-p` process that does not exit, which is a Cursor bug and is recorded as a timeout instruction in
+`docs/SURFACES.md` § 5.
+
+### 8.2 F1 — the model id, and how it is read
+
+```
+$ cursor-agent -p --output-format text --model grok -f "<prompt>"
+Cannot use this model: grok. Available models: auto, gpt-5.3-codex-low, … cursor-grok-4.6-high,
+composer-2.5, …
+```
+
+Nothing ran. The wave-5 run had no catalogue command to fall back on — `2025.09.18-39624ef`'s
+`--help` lists no `models` subcommand and no `--list-models` — so it enumerated from the refusal
+message itself. **On the current build there IS a catalogue**, read live from this session on
+2026-09-10:
+
+```
+$ cursor-agent -v
+2026.09.08-6caf4ff
+$ cursor-agent models                                                               # exit 0
+Available models
+
+auto - Auto (default)
+…
+cursor-grok-4.6-high - Cursor Grok 4.6
+cursor-grok-4.6-xhigh - Cursor Grok 4.6 Extra High
+cursor-grok-4.6-high-fast - Cursor Grok 4.6 Fast
+composer-2.5 - Composer 2.5
+…
+$ cursor-agent models | sed -n 's/^\(cursor-grok-[0-9.]*-high\) - .*$/\1/p' | sort -Vr | head -n 1
+cursor-grok-4.6-high
+$ cursor-agent models | sed -n 's/^\(composer-[0-9.]*\) - .*$/\1/p' | sort -Vr | head -n 1
+composer-2.5
+```
+
+**`--help` on the same build also lists `--workspace`, `--add-dir` and `-w, --worktree`** — three
+flags the recorded build did not have, and the reason `docs/SURFACES.md` § 5 now states the working
+root per build rather than as an absence. **The catalogue and the working-directory flag both arrived
+with a newer binary, which is F2 seen from a third side.**
+
+### 8.3 F2 — the version confound, and the five probes that isolated it
+
+None of these wrote anything. P1 and P2 ran against the nen worktree; P3–P5 against a purpose-built
+fixture, afterwards, to find out what P1 had actually measured.
+
+| # | install | build | answer |
+|---|---|---|---|
+| P1 | **39 symlinks** into `$hatsu_root/surfaces/cursor/` (§ 5b as written) | `2025.09.18-39624ef` | **`NO SKILLS VISIBLE`** — the whole reply, 17 bytes |
+| P2 | **39 `cp -R` copies** of the same directories | `2026.09.08-6caf4ff` | all **39**, listed **bare** |
+| P3 | one copy + one symlink **inside** the workspace | `2026.09.08-6caf4ff` | **both** found |
+| P4 | + a symlink **outside** the workspace, + a symlink into the hatsu checkout (which carries `.claude-plugin/plugin.json`) | `2026.09.08-6caf4ff` | both found; the push skill listed as **`aka`** — **bare, not `hatsu:aka`** |
+| P5 | the P4 tree, unchanged | **`2025.09.18-39624ef`** | **nothing found**, reached by `Searched files (**/*zzcopyprobe*)` — grepping the tree, no skills loaded |
+
+**P5 is the control that settles it.** Same fixture, same prompt, and the old build cannot see a
+**copied** skill either. So P1 measured the **binary**, not the install, and its `NO SKILLS VISIBLE`
+says nothing whatever about symlinks. `~/.local/share/cursor-agent/versions/` holds both directories;
+the new one was created while P1's process was still running the old build.
+
+**What survives, and it is good news for § 5b:** symlinks work on Cursor, inside the workspace and
+pointing outside it; **Codex's F1 does not reproduce here** — a symlink into a plugin checkout is
+still advertised bare, which is what the mirrors' `/aka` spelling needs. **Still open:** which
+repository a mirror's relative `../../../nen/workflow.json` lands in through a symlink. The run used
+copies and the fixture probes did not follow a relative link.
+
+> **One mechanical caveat on § 5c's proof step, and it is not a finding.** While the skills were
+> *symlinks*, `git check-ignore -v .cursor/skills/ren/SKILL.md` exited **`128`** — *"fatal: pathspec
+> … is beyond a symbolic link"*. git refuses to path-check **through** a symlink, so § 5c's own proof
+> step cannot be run against a file inside a symlinked skill directory at all. `git status
+> --porcelain` was silent either way, so nothing was hidden — but a reader following § 5c literally
+> on a symlink install gets a `128` and no answer.
+
+### 8.4 F3 — `$CLAUDE_PLUGIN_ROOT` fired, and pointed at another plugin
+
+§ 5's prelude listed it third and said it was *"never because it can fire here"*. It fired. Cursor's
+own warm-up step recorded, unprompted, *"HATSU_PLUGIN_ROOT unset; CLAUDE_PLUGIN_ROOT pointed at
+bankai 0.10.0"*, and it is exported from the user's shell profile:
+
+```
+$ grep -n CLAUDE_PLUGIN_ROOT ~/.zshrc
+26:export CLAUDE_PLUGIN_ROOT=/Users/zheref/.claude/plugins/cache/bankai/bankai/0.10.0
+```
+
+**Every Codex and Cursor session on this host inherits it**, and it names a different plugin at a
+version that is not even the installed one. Followed literally, the warm-up would have resolved
+`$hatsu_root` to the bankai checkout, found `surfaces/cursor` absent and reported `NOT INSTALLED` —
+the *safe* failure, for the wrong reason, with a misleading message. **A bankai checkout that did
+carry a `surfaces/` directory would have installed the wrong plugin's skills with no error at all.**
+The existing `[ -d "$hatsu_root/surfaces/$surface" ]` guard checks **shape, not identity**; § 5's
+prelude now checks identity.
+
+### 8.5 F4 — what the flat name space actually looked like
+
+P2's listing carried the 39 mirrored skills **and** Cursor's own built-ins from
+`~/.cursor/skills-cursor/` **and** this host's Claude Code plugin skills — including `build` and
+`drive`, both at `~/.claude/plugins/marketplaces/bankai/claude/skills/`. `drive` is not a Hatsu skill
+at all (renamed to `sharingan` at v0.5.0; `surfaces/cursor/drive` does not exist). And **`build`
+appeared once, outside the Hatsu block's otherwise unbroken alphabetical run** (`…, breath, en,
+file, …`), grouped with the bankai/adobe cluster.
+
+**The shadowing is inferred from that grouping and that gap, and two probes could not confirm it** —
+the rival `build` descriptions are byte-identical for their first ~120 characters and diverge only at
+the invocation spelling and, later, at the persona name, both far beyond F13's cut. `docs/SURFACES.md`
+§ 1 records it as a hazard rather than a mechanism, and says what would confirm it.
+
+### 8.6 F5 — the bootstrap prints a path the name `nen` does not reach
+
+```
+$ nen bootstrap --ref v0.3.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
+nen bootstrap: cache hit for zheref/nen@v0.3.0 (nen-darwin-arm64), checksum verified.     # exit 0
+$ ls ~/.cache/nen/v0.3.0
+nen-darwin-arm64
+$ ls -la ~/.local/bin/nen
+… -> /Users/zheref/.cache/nen/v0.5.0/nen-darwin-arm64
+```
+
+§ 2's remedy — *"execute that path, or put its directory on `PATH`"* — **does not work in the second
+form**: the cache directory contains a file called `nen-darwin-arm64` and nothing called `nen`, so
+`nen` still resolves to whatever it did before. Cursor's own residue was a session shim
+(`ln -sfn <cached binary> /tmp/nen-session-bin/nen; export PATH=/tmp/nen-session-bin:$PATH`), and it
+deliberately did **not** overwrite `~/.local/bin/nen` — the right call, and one the skill did not tell
+it to make. § 2 now says how to bind the name.
+
+### 8.7 What the run did NOT verify — read this before treating the surface as validated
+
+1. **No commit was made, so the commit path is unexercised on this surface.** The chosen task
+   (`zheref/nen#139`) turned out to need no change — Cursor checked both halves of the issue against
+   the files and found neither still true, which is the right *outcome* and a poor *exercise*. So
+   `/kokusen`'s ask-on-flagged, `nen wc squash`'s residue over a real range, and the
+   **`Hatsu-Agent: kurapika` trailer on an actual commit object** all went untested. The trailer was
+   only ever *rendered* by `nen commit format`.
+2. **No G5 stop fired**, so `--resume` was never used in anger.
+3. **Whether a mirror's relative link resolves into the plugin or the target is still open** (§ 8.3).
+4. **F4's shadowing is inferred** (§ 8.5).
+5. **F13's ~30 characters is a self-report and possibly a shared budget** — measured with ~70 skills
+   visible, and never against a varying count.
+6. **The pin moved.** The run executed against nen `0.3.0`; hatsu now pins `v0.5.0`.
+
+### 8.8 What worked exactly as written
+
+- **§ 5c's `--git-path info/exclude`** — resolved to the **main** repository's `.git/info/exclude`,
+  `git status --porcelain` silent immediately afterwards for both `.cursor/skills/` and
+  `.cursor/agents/`, and `check-ignore` naming the line at `…/nen/.git/info/exclude:14`. The Codex
+  half's F2 fix is now confirmed on a second surface.
+- **§ 5b's symlink row**, once the version confound was removed (§ 8.3, P3/P4).
+- **The bare `/name` spelling.** Honest here; Codex's F1 does not reproduce.
+- **No sandbox problem at all.** Codex's F3 — the CRITICAL one, where `-s workspace-write` cannot
+  perform a single git write in a linked worktree — has **no Cursor counterpart**. The fetch, branch
+  cut, rebase and first-publish all ran in a linked worktree with no permission failure.
+- **The workflow's own discipline.** `--dry-run` before every spawning verb; exit codes read and
+  reacted to rather than retried past; the launch step skipped without asking, per `/ren` § 2; `/aka`
+  run only because the maintainer's call was in the instruction; residue named every time a verb was
+  missing, with the missing verb identified. `nen shu test` → **`0`, 167 files, 4197 tests passed**,
+  re-run independently afterwards with identical numbers.
+- **Every hard limit held.** No PR, no merge, no force-push, no `--no-verify`, no AI attribution
+  trailer, nothing written to the primary checkout, nothing committed under `.cursor/`, `.nen/` or
+  `Reports/`.
+- **The persona presented** — the first line was `🟨 Kurapika · Conjurer — Hatsu's local plane,
+  entire`, with `Manipulator` named alongside for the reporting and push steps: the mode-declaration
+  discipline `claude/agents/kurapika.md` requires, and a visible contrast with the Codex half's F11.
+  **This is not evidence about Cursor's agent-loading mechanism**, though: the prompt told it to read
+  `.cursor/agents/kurapika.md`, so what is shown is that the file governs once read.
