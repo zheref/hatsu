@@ -256,3 +256,78 @@ Through `v0.4.0` the same invocation answered *"--target is not read by 'shu dev
 Note also the `port` precondition row above: a new precondition kind at this release, asserted by
 connecting to `127.0.0.1:<port>` and destroying the socket, with `expect` **required** out of a closed
 two-member set.
+
+## The Galaxy launch run — 2026-09-10, `zheref/KroAndroid`
+
+The first time this skill's launch path was run against a **physical** device, with `nen 0.5.0`.
+Three findings land in the skill text; the device-state half of the transcript is in
+`docs/ab/jujutsu.md` § *The Galaxy pairing run* and is not repeated.
+
+**F2 — the seat answers before the target does.** The target `galaxy` declares `verb: "dev"`:
+
+```
+$ nen shu run --repo . --target galaxy --dry-run
+nen shu run: 'run' is unsupported on lane 'android' (gradle-android). The declaration's own reason:
+a release install to a device is a deploy, not a local run, and no such invocation exists in this
+repository                                                                                       # exit 4
+```
+
+A correct exit `4`, and the wrong sentence to act on: nen's own verb-mismatch message exists, is far
+better, and is exit `2` — *"launch target 't' is declared for 'dev', and this is 'run' … run 'dev
+--target t'"* (proved on a fixture at the same pin). The seat check simply runs first. Filed as
+`zheref/nen#166`; **§ 5 now says plainly that the subcommand is `project.launch.<target>.verb`**, and
+that an exit `4` from a launch verb is re-read against that key before it is quoted.
+
+**The plan, once the subcommand was right, exit `0`:**
+
+```
+lane:          android  (gradle-android)
+verb:          dev
+target:        galaxy  (appends no argument)
+device:        R52X603Q9BA  -- id not resolved (nothing was probed)
+preconditions:
+  ok    path local.properties
+  ok    path bankai/BankaiCore/settings.gradle.kts
+would run:     adb devices -l
+would run:     ./gradlew installDebug
+would run:     adb -s {device.id} shell am start -n io.zheref.kro/io.zheref.kro.application.MainActivity
+substitutes:   {device.id} <- the id of device 'R52X603Q9BA', read from the probe above
+cwd:           …/.claude/worktrees/launch-check                                                  # exit 0
+```
+
+All three thirds are present and correct in shape — probe, verb, after-step — and `substitutes:`
+names the device the match will be made against.
+
+**F5 — this run did the thing § 3 forbids, and knowingly.** It launched from a **linked worktree**,
+because a declaration PR that nothing has ever run is reviewed on the strength of a dry run. Two
+facts from it are stronger than § 3's racing-builds argument and are now quoted there: a fresh
+worktree **fails the declaration's own preconditions** —
+
+```
+preconditions:
+  FAIL  path local.properties -- not present
+  FAIL  path bankai/BankaiCore/settings.gradle.kts -- not present
+2 preconditions on lane 'android' are not satisfied. nen ASSERTS a precondition and never performs
+it: satisfy them with this repository's own tooling, then run this again.                        # exit 2
+```
+
+(`local.properties` is gitignored, `bankai/` is a submodule; both had to be supplied by hand) — and
+**the launch writes to a shared device anyway**, so worktree isolation buys nothing on the axis that
+matters. **§ 3a is the resolution**: a validation run against a declaration under review, with the
+delegation naming the device and the target, is admissible from a non-core checkout and says so in
+the report. The ban on unattended composites is unchanged and is stated as absolute.
+
+**What the run proved on the phone**, and what it did not:
+
+```
+$ adb -s R5CY213GAST shell am start -n io.zheref.kro/io.zheref.kro.application.MainActivity
+Starting: Intent { cmp=io.zheref.kro/.application.MainActivity }                                 # exit 0
+$ adb -s R5CY213GAST shell dumpsys activity activities | grep io.zheref.kro
+    topResumedActivity=ActivityRecord{… io.zheref.kro/.application.MainActivity …}
+```
+
+The declared activity is correct and the `after` step's `adb -s <id>` form reaches the phone. It does
+**not** prove the APK that was just built is the one running — it is not; the install was blocked by
+a signature mismatch whose only remedy deletes the maintainer's app data, and no agent takes that
+decision. **A launch is never reported as successful on the strength of a step that did not run**, which
+is § 9's last hard limit and is why this run reported a blocker rather than a green launch.
