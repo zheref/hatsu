@@ -484,6 +484,19 @@ All four run live against the fixture, each FAIL naming `project.launch.t.device
 once, and without this check it reads one column to the left of the state on every launch forever
 while the file looks right.
 
+### What was NOT exercised: the JSON (`path`) shape
+
+**The fixture above proves the `field` shape only** — the one § 4's Android table needs, and the one
+the Galaxy run failed on. The `{ "path": "<dotted key>", "in": […] }` form against
+`xcrun devicectl list devices --json-output -` is **read off nen's own `docs/USAGE.md` and its
+loader's validation, not run against a device here**: it needs a physical iPhone attached in a known
+state, which this session did not have. § 6's iOS example declares
+`"path": "connectionProperties.tunnelState"` because devicectl nests the device's `name` under
+`deviceProperties` and its state under the sibling `connectionProperties`, one level out from the
+object that carries the name — which is inside the two-level walk nen documents for `path` and
+already makes for the id. **Treat that one line as a declaration to confirm against the probe's own
+JSON on the first device that registers with it**, and say in that PR's body what the probe printed.
+
 ### What is NOT retired
 
 **`readyWhen` is absent-means-unchanged.** A target that does not declare one behaves exactly as it

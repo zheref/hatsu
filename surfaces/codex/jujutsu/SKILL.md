@@ -285,6 +285,12 @@ Two shapes, and which one a probe takes is decided by what the probe **prints**,
 - **Absent means unchanged, in every particular** — which is why a jujutsu run that omits it has
   quietly shipped the `0.5.0` behaviour into a `0.6.0` declaration. Say in the PR body which states
   the rule admits and which the probe offered.
+- **The `path` form is confirmed against the probe's own JSON on the run that first writes it.** The
+  `field` form is exercised live in `docs/ab/jujutsu.md` § *Retired at nen 0.6*; the iOS `path` above
+  is read off nen's documented two-level walk and devicectl's own nesting (`name` under
+  `deviceProperties`, the state in the sibling `connectionProperties`) and **has not been run against
+  a physical device**. Read the probe's JSON, paste the object into the PR body, and say which key
+  you took.
 
 ### The rule that decides where each step goes, and it is one sentence
 
