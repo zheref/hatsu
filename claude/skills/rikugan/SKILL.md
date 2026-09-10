@@ -138,12 +138,48 @@ way.** Never author a second page shape "just for this turn": a hand-filled rend
 verb-rendered one must be the same bytes for the same data, or the verb's arrival is a redesign
 instead of a retirement.
 
+> **Say plainly what that residue is: it is a small renderer, not a fill-in-the-blanks.** "Fill the
+> template" undersells the work and hides its one real hazard. To produce the same bytes the verb
+> would, the residue path has to implement, at minimum: `{{token}}` substitution; `{{#each list}}`
+> blocks **including the nested case** the screenshot block needs (the finding below); HTML-escaping
+> of every substituted value; and the two extra validations on `{{src}}` and `{{percent}}` (§ 4,
+> *Escaping*). That is on the order of sixty lines of real code — a **renderer**, and it should be
+> written and named as one rather than improvised token by token, because a per-turn improvisation is
+> where an unescaped value gets through.
+>
+> **Where it may live: the session's scratchpad, and nowhere else.** It is a throwaway for a verb
+> that is already written upstream, so it is never a file in the target repository — not a script
+> under `scripts/`, not a `tools/` helper, not a committed one-off. Committing it would put a second
+> renderer in a repository that is about to get the real one, and it would need reviewing,
+> versioning, and eventually deleting. Write it to the scratchpad, run it, say on the page that the
+> render was by hand (§ Residue), and let it die with the session.
+>
+> **From nen `0.4.0` there is no renderer to write, and the path is two verbs:**
+>
+> ```bash
+> nen report data --repo <path> --base <branch.base> [--tiers <json>] --json > <data file>
+> nen report render --template templates/rikugan.html --data <data file> --out <reports.dir>/current.html
+> ```
+>
+> — with `<reports.dir>` read from `nen/workflow.json` as always, which is `Reports/current.html` on
+> a repository taking § 2's default.
+>
+> **Both verbs exist on `zheref/nen`'s `main` today** — verified against the source rather than the
+> binary, which is still the pinned `0.3.0`: `git -C <nen checkout> log --oneline -3 origin/main --
+> src/report` returns `feat(report): add the report family -- data and render`, `docs(report):
+> document the report family, its two verbs and the counts`, and `fix(report): exit 1 on a failed git
+> read, not 2, in report data`, over the files `src/report/command.ts`, `data.ts`, `render.ts`,
+> `template.ts`, their three `*.test.ts` neighbours and `src/report/fixtures/report.html`. **They are
+> merged, not released**, which is exactly why § 3 and this section still describe the by-hand path:
+> the day the release moves the pin, the residue is deleted rather than migrated, and this skill's
+> only change is which of the two paragraphs above it runs.
+
 The tokens the template publishes, and what each is:
 
 | Token | Value |
 |---|---|
 | `{{variant}}` | `turn` \| `landing` \| `final` — written onto the root element; **§ 5's gating reads it** |
-| `{{title}}` | the object notation and the branch, e.g. `HA-PR-#31 · opus/kurapika/skills-turn-2` (`nen ref format`, § 6) |
+| `{{title}}` | the object notation and the branch, e.g. `HA-PR-#31 · opus/kurapika/skills-turn-2` (`nen ref format`, § 6) — or § 6's stated fallback where the code cannot be resolved |
 | `{{branch}}`, `{{base}}`, `{{generated}}` | the branch, `branch.base`, and an absolute ISO-8601 UTC timestamp — never a relative string |
 | `{{#each accomplished}}` · `challenges` · `notDelivered` · `decisions` | `{text, why}` per row |
 | `{{#each architecture}}` | `{tier, files:[{path, status}]}` |
@@ -211,6 +247,19 @@ render survives the next one: only `final` gets its own dated file. A `turn` or 
 surface with no Artifact still has to be *opened* from somewhere, and § 6's `current.html` — one
 path, overwritten every render, git-ignored — is that somewhere.
 
+> **After [`hatsu:aka`](../aka/SKILL.md), rikugan re-renders `turn`. There is no fourth variant.**
+> `aka` leaves the effort in a state the three-row table does not obviously name: pushed, but with no
+> pull request — so the last `turn` render, truthful when it was written, now says *"nothing pushed,
+> no PR"* about a branch that is on `origin`. **`landing` is not the answer**: it adds **08 PR body**
+> and **09 Readiness**, and at this point there is no PR body to carry and no `nen pr ready` verdict
+> to quote, and § 5's own rule is that a readiness claim is that verdict or it is not made. `final`
+> is post-merge. **So the state is carried by the `turn` variant, re-rendered**, with the push
+> written into **01 Accomplished** as the plain fact it is — the branch, the pushed SHA, and that no
+> PR was opened because opening one is [`hatsu:mukai`](../mukai/SKILL.md)'s and the maintainer's.
+> This is deliberate rather than a gap: a fourth variant would exist to describe a *pause*, and a
+> variant per pause is how three sections become nine. **Re-render `turn` at the same address**
+> (§ 6's republish rule holds), so the page a maintainer left open stops being stale about the push.
+
 The seven fixed sections, in this order, always: **01 Accomplished · 02 Challenges · 03 Not
 delivered · 04 Architecture delta · 05 Screenshots · 06 How to launch · 07 Decisions.**
 
@@ -235,6 +284,26 @@ version this session did not publish, means the page moved and is re-read first.
 The title is the object notation and the branch (§ 4's `{{title}}`), stable for the life of the
 branch. Resolve the code with `nen repo resolve` and render the ref with `nen ref format` — object
 notation is never typed from memory (`claude/agents/kurapika.md` § *How you work*).
+
+> **When the resolution fails, the title falls back — it is never typed from memory instead.** The
+> taxonomy lives in the **target** repository, and plenty of repositories do not carry it: verified
+> live at `0.3.0`, neither `zheref/hatsu` nor `zheref/nen` has a `nen/repos.json` (nor the legacy
+> `schemas/repos.json`), so `nen repo resolve --repo <path> --target <owner/name>` refuses in both —
+> *"`<path>/nen/repos.json`: no such file. Nen reads this repository's taxonomy from … and has no
+> built-in copy to fall back on"*, exit `1`. That refusal is correct and is **not** a reason to
+> supply the code from memory, which is exactly what § *How you work* forbids and exactly what a
+> plausible-looking wrong code costs.
+>
+> **The fallback title is the repository name plus the branch** — `zheref/nen ·
+> opus/kurapika/launch-lane-artifact` — both of which are facts about the checkout in front of you
+> rather than facts about a taxonomy nobody could read. **And the failed resolution is named on the
+> page**, in the footer beside the branch and base: which verb was run, against which target, and
+> the one-line reason it refused. A page whose title silently degraded is a page that will be read as
+> if the code had been resolved.
+>
+> The fallback is the title only. `{{#each}}` rows that would carry an object notation — a
+> `Closes #N`, a PR reference in **08 PR body** — are still `nen ref format`'s, which needs no
+> taxonomy and answers at exit `0` (verified live). Only the *code* is unresolvable.
 
 **On any other surface, the page is opened from `<reports.dir>/current.html`** — one path, written
 fresh by every render, overwritten by the next, git-ignored. It is **transient**, not retained: it
