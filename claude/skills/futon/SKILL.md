@@ -8,7 +8,7 @@ description: Take one whole severity band of a repo's backlog from open issues t
 **No fixed mode.** Futon is a composed run, not a single-nature one: **Conjurer/Transmuter**
 (occasionally **Enhancer**) while an issue in the band is being authored — the same mode-confirmation
 [`hatsu:build`](../build/SKILL.md) § 3 makes, invoked per issue — and **Manipulator** while a PR
-that authorship produced is being driven to its gate ([`hatsu:drive`](../drive/SKILL.md)'s engine).
+that authorship produced is being driven to its gate ([`hatsu:sharingan`](../sharingan/SKILL.md)'s engine).
 Name the mode in play and say when it switches; never blend two under one header
 (`claude/agents/kurapika.md`).
 
@@ -21,7 +21,7 @@ The contract:
 `futon` is a **scoped, terminated [`hatsu:backlog-loop`](../backlog-loop/SKILL.md)** — not a second
 implementation of it. The engine — fetching the backlog, ordering it, advancing an issue, the
 monitor, conflict discipline, the hard limits — is that skill's, invoked the way
-[`hatsu:build`](../build/SKILL.md) invokes [`hatsu:drive`](../drive/SKILL.md): *"everything after the
+[`hatsu:build`](../build/SKILL.md) invokes [`hatsu:sharingan`](../sharingan/SKILL.md): *"everything after the
 first PR appears is literally that skill's engine."* Where the two would disagree, `futon` wins on
 three things and `backlog-loop` wins on everything else:
 
@@ -255,7 +255,7 @@ real open PRs**, contrasting a Ready maintainer-authored PR against a not-Ready 
   required checks reported but are not all green (CON-32a)`, short-circuited at conjunct 2.
 
 **`nen pr ready`'s verdict is never re-derived by eye.** Then run the confirmation pass — one
-directional, a veto only, never a promotion — exactly [`hatsu:drive`](../drive/SKILL.md) § 4's own
+directional, a veto only, never a promotion — exactly [`hatsu:sharingan`](../sharingan/SKILL.md) § 4's own
 discipline: does every summary-level finding have an inline disposition, was any thread resolved
 without a reply, does `nen pr body-check` pass (`## How to verify`, the `changelog.d/` fragment).
 Both must pass for Ready; either failing is Not ready, full stop.
@@ -264,7 +264,7 @@ Both must pass for Ready; either failing is Not ready, full stop.
 happens** — never a batched list held until the run ends (§ 10). The terminal (§ 8) waits on **all**
 of them.
 
-**A PR that stalls is driven by [`hatsu:drive`](../drive/SKILL.md)'s own engine** — its
+**A PR that stalls is driven by [`hatsu:sharingan`](../sharingan/SKILL.md)'s own engine** — its
 first-blocking-condition ordering (conflict → red check → owed round → unresolved thread → missing
 body requirement), its unblocking channels, and its escalation ladder are this run's, invoked, not
 restated. Since Kurapika authored the PR himself, the channel is always the "Kurapika authored it"
@@ -320,7 +320,7 @@ efforts, in either plane, touch one file.
 **No `Route` row and no `Wake` row.** The retired skill's routing row chose a CI lane; there is none
 to choose (the callout above). Its wake row re-fired a CI builder's own stalled loop; there is no CI builder for
 `futon`'s own PRs to wake (§ 5) — a stalled review round on a Kurapika-authored PR is
-[`hatsu:drive`](../drive/SKILL.md)'s own channel (reply/resolve/re-request), never a label fire.
+[`hatsu:sharingan`](../sharingan/SKILL.md)'s own channel (reply/resolve/re-request), never a label fire.
 Dropping both rows is part of the declared change (the callout above), not an oversight.
 
 | | `futon` may **not** |

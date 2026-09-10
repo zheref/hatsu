@@ -184,13 +184,13 @@ Additionally, **each body carries the split itself**:
 ## 7. After
 
 Report both PRs with the stack drawn, then hand them to
-[`hatsu:drive`](../drive/SKILL.md) — **A first**. Driving B to readiness while A is unmerged produces a PR that is ready
+[`hatsu:sharingan`](../sharingan/SKILL.md) — **A first**. Driving B to readiness while A is unmerged produces a PR that is ready
 against a base that will change; take A to its gate, and start B once A's merge retargets it.
 
 ## 8. Authority
 
 - **Permitted:** branch, commit, push non-`main` branches, open PRs, request reviewers (`nen pr
-  request-reviews`), cascade A into B, retarget B once A merges, and everything `drive` is
+  request-reviews`), cascade A into B, retarget B once A merges, and everything `sharingan` is
   permitted.
 - **Not permitted:** `bankai:agent/*`, `bankai:stage/*`, G1 mode labels, any merge (including
   merging A to unblock B), any review vote (never `request_changes` — Manipulator's standing rule).

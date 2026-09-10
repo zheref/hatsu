@@ -151,7 +151,7 @@ never fetches watches a frozen picture. It is the one write-shaped thing that is
 observation, and it classifies `[read-only]` exactly as the old skill's table said it should.
 
 Skill-level refusals the classifier cannot see — because they are not shell commands at all — stay a
-judgment rule, unchanged from the old skill: never run [`drive`](../drive/SKILL.md),
+judgment rule, unchanged from the old skill: never run [`sharingan`](../sharingan/SKILL.md),
 [`build`](../build/SKILL.md), [`file`](../file/SKILL.md), [`tensho`](../tensho/SKILL.md),
 [`jujisho`](../jujisho/SKILL.md), [`getsuga`](../getsuga/SKILL.md),
 [`backlog-synthesis`](../backlog-synthesis/SKILL.md) or [`backlog-loop`](../backlog-loop/SKILL.md)

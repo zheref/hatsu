@@ -285,7 +285,7 @@ these explicitly, by name, in the determination:
 
 **Where a PR is stuck for a reason `nen run rerun-failed` doesn't cover** (a swallowed wake, a
 `request_changes` vote substituted for one), use the same unblock channel as
-[`backlog-loop`](../backlog-loop/SKILL.md)/[`drive`](../drive/SKILL.md): `bankai:wake/iterate`,
+[`backlog-loop`](../backlog-loop/SKILL.md)/[`sharingan`](../sharingan/SKILL.md): `bankai:wake/iterate`,
 fired ALONE, never in the same breath as a comment. That mechanization (`nen wake fire`) is outside this port's own
 Scope (zheref/hatsu#2 names only `nen repo inventory`, `nen effort classify`, `nen run
 rerun-failed` for `senkei`) and is left as prose here, exactly as the old skill carried it — see

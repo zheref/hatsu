@@ -8,7 +8,8 @@ of § 4, the `probe`/`build` job distinction) because Hatsu holds no CI plane. N
 backlog fetch|order`, `nen loop slots`, `nen pr staleness`, `nen tag cut`, `nen fanout
 compute|record`, `nen changelog collate|completeness|fragment-required`,
 `nen board build|render`, `nen stop`, `nen parse`, `nen repo resolve` — plus a deliberate
-delegation of every issue→PR and PR→Ready step to the already-landed `build`/`drive` ports, per
+delegation of every issue→PR and PR→Ready step to the already-landed `build`/`drive` ports (`drive`
+is `sharingan` since `v0.5.0`; every mention below is the name it carried at this run), per
 `SKILL.md` § 0's declared structural adaptation.
 
 Run: 2026-09-02, UTC times as logged by each command. `nen` `0.1.0`

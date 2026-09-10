@@ -436,7 +436,7 @@ paths and unmentioned deletions") — not silences to be discovered later.
   (same binding rule `hatsu:pr-state` § 5 states) and stops; deciding what happens next is the
   maintainer's or `hatsu:drive`'s, once it lands.
 
-### 4.7 — `hatsu:drive` and `hatsu:jujisho` were not yet ported *at this run*
+### 4.7 — `hatsu:drive` (now `hatsu:sharingan`) and `hatsu:jujisho` were not yet ported *at this run*
 
 At the time of this run both were referenced in the ported skill (§ 1, § 6) as forward pointers to
 `zheref/hatsu#2`'s own scope list, in prose only — no relative markdown link to a file that did not
@@ -445,7 +445,8 @@ exist in this repo yet, matching the precedent `hatsu:pr-state` set for the same
 
 > **Superseded at `v0.1.0` — corrected here, not rewritten above.** Both siblings landed before this
 > version was cut, and the skill now links them. The substantive change is not the links: **tensho's
-> § 6 drive phase is now [`hatsu:drive`](../../claude/skills/drive/SKILL.md)'s full engine**, and the
+> § 6 drive phase is now [`hatsu:drive`](../../claude/skills/sharingan/SKILL.md)'s full engine**
+> (that skill is **`hatsu:sharingan`** since Hatsu `v0.5.0`, and the link follows the rename), and the
 > repeated `nen pr ready --explain` reading this run recorded as the interim substitution survives
 > only as an explicitly-labelled fallback for when `drive` cannot run at all. Row 13 of § 1's table
 > and the last bullet of § 4.6 describe the interim state this run measured; they stand verbatim as
