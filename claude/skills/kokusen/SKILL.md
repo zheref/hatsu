@@ -67,16 +67,20 @@ the author's inner loop, not inherited from the warm-up, not skipped because the
    `iteration.lane`:**
 
    ```bash
-   nen shu build --repo <path> --lane <iteration.lane>
-   nen shu lint  --repo <path> --lane <iteration.lane>
+   nen shu <check> --repo <path> --lane <iteration.lane>   # one call per iteration.checks entry, in order
    ```
+
+   **`<check>` is whatever the file lists and nothing else** — never a `build` added because a gate
+   ought to have one. On this repository the list is `["lint"]`, so the gate is one
+   `nen shu lint --repo . --lane plugin`, and running `build` beside it would be running a verb the
+   policy did not ask for on a lane that seats it.
 
    The exit table is [`hatsu:rasengan`](../rasengan/SKILL.md) § 6's — the same seven rows, read the
    same way — and it differs in exactly one place: **here, a `1` ends the commit.** Quote the failing
    check verbatim (the tool's own output, `step N of M`, the tool's code from `steps[].exitCode` and
    nen's own `1`), commit nothing, and hand the turn back to
    [`hatsu:rasengan`](../rasengan/SKILL.md) to author the fix. Re-run this gate over the repaired
-   tree. **A red the turn cannot honestly clear is a G5 stop with the failing check quoted** — never
+   tree. **A red check the turn cannot honestly clear is a G5 stop, with that check quoted** — never
    a commit "so the fix is saved", and never a narrowed check (`rasengan` § 4).
 
    **A seat (exit `4`) is not red.** Verified live against this repository on 2026-09-10 at the
@@ -99,12 +103,32 @@ the author's inner loop, not inherited from the warm-up, not skipped because the
    never converted into "the build failed", and never used as a reason to skip the checks the lane
    *does* declare.
 
-2. **Read the proof back, where the lane can produce one.** A green `nen shu build` writes
-   `.nen/proof/<lane>.json`; step 1 is what writes it, and this is what reads it:
+2. **Read the proof back — ONLY when step 1 actually ran a green `build` on this lane.**
+   `.nen/proof/<lane>.json` is written by `nen shu build` and by nothing else, so this check has an
+   answer in exactly one case: **`build` is an entry of `iteration.checks`** *and* step 1's run of it
+   came back exit `0`. Read the condition off the policy file before running the verb, not off the
+   verb's exit code afterwards:
 
    ```bash
-   nen commit check --repo <path> --require-proof <iteration.lane>
+   nen commit check --repo <path> --require-proof <iteration.lane>   # only if `build` ∈ iteration.checks
+                                                                     # and step 1's build was exit 0
    ```
+
+   **In every other case there is nothing to read, and the gate is step 1's own run.** Say which case
+   this repository is in and go on to § 4 — do not run the verb to collect a `1` you already know the
+   reason for, and never re-enter step 1 because of it. The three cases that have no proof to read:
+
+   | Case | Why there is no proof | What kokusen does |
+   |---|---|---|
+   | `build` is **not** in `iteration.checks` — Hatsu's own case, where the list is `["lint"]` | step 1 never ran `build`, so nothing wrote a proof | **skip this step.** The gate is step 1's green `lint`, named in the report |
+   | `build` **is** in the list but the lane **seats** it (exit `4`) | a seat runs nothing and writes nothing, forever | **skip this step**, quote the seat, and rest the gate on the checks that did run |
+   | step 1's `build` came back red | a red build **removes** an existing proof | the commit already ended at step 1; this step is never reached |
+
+   **This is the loop the condition exists to prevent:** a lane with a perfectly executable `build`
+   row and `iteration.checks: ["lint"]` passes its declared check, writes no proof because nothing
+   asked for one, and — if this step were unconditional — would answer `1`, be sent back to step 1,
+   pass `lint` again, and answer `1` again. The verb is right every time; the caller would be asking
+   it a question the policy never posed.
 
    A red `nen shu build` **removes** the file, and this check compares the proof's `treeHash` against
    **this working copy's** tree — so it answers "was THIS tree proved", not "did something pass
@@ -116,14 +140,16 @@ the author's inner loop, not inherited from the warm-up, not skipped because the
    | Exit | What it means | What kokusen does |
    |---|---|---|
    | `0` | this tree is the proved one | stage and commit |
-   | `1` | no proof, another lane's proof, or **the tree has moved** (both hashes printed) — also what a red build since the last green one looks like | re-run step 1 over this tree, then check again. A tree that has moved is not a red build and is not reported as one |
+   | `1` | no proof, another lane's proof, or **the tree has moved** (both hashes printed) — also what a red build since the last green one looks like | **reached only when this step's condition held**, so the honest reading is *the tree has moved since step 1's build*: re-run step 1's `build` over this tree and check again. A moved tree is not a red build and is never reported as one |
    | `2` | a missing flag, a lane escaping the tree, or a proof present and unreadable | **stop** and report it; this is never folded into "absent" |
 
    **It reports and blocks nothing** — no commit is refused and no file is written — so the refusal
    is still this skill's, and step 1's run is what it rests on.
 
-   **A lane whose `build` is a declared seat never produces a proof, and that is a `1` forever.**
-   Verified live against this repository on 2026-09-10 at the pinned `0.7.0`:
+   **What the skipped cases would have answered, recorded so the condition is not taken on trust.**
+   This repository is the first row of the table above — `iteration.checks` is `["lint"]` — *and* the
+   second: the `plugin` lane seats `build`. Run against it anyway on 2026-09-10 at the pinned
+   `0.7.0`, the verb answers exactly what the condition predicts, forever:
 
    ```text
    $ nen commit check --repo . --require-proof plugin
@@ -136,11 +162,11 @@ the author's inner loop, not inherited from the warm-up, not skipped because the
                                                                                               # exit 1
    ```
 
-   **Say so, and read the gate off step 1 instead**: on this repository the verdict a commit rests on
-   is `nen shu lint --repo .` at exit `0` and the `build` seat quoted, not a proof file that the
-   declaration guarantees will never exist. Reporting that `1` as a red build would be reporting a
-   seat as a failure, which is § 9's hard limit in the other direction. **A red build is never
-   committed over**, not even "so the fix is saved."
+   **So the verdict a commit rests on here is `nen shu lint --repo .` at exit `0`**, with the `build`
+   seat quoted beside it — not a proof file the declaration guarantees will never exist. Reporting
+   that `1` as a red build would be reporting a seat as a failure, which is § 9's hard limit in the
+   other direction, and running the verb at all on this repository is a question the policy never
+   posed. **A red check is never committed over**, not even "so the fix is saved."
 3. **This is not the trunk.** `nen wc classify --repo <path> --base <branch.base>` reporting
    `must-move` means the work is on the trunk and belongs on a branch first —
    [`hatsu:breath`](../breath/SKILL.md)'s job, not this one's. Kokusen commits on a branch or it does

@@ -266,7 +266,7 @@ the whole family):
 | `1` | a git step ran and failed, **or** the delegated build failed, **or** the executor refused the build with a `2` | nothing is rolled back and the trunk has already moved: report `steps[]` verbatim. **A failed build here is a red BASE TIP — a G5 stop before any authoring** (§ 6), never handed forward as this effort's red |
 | `2` | a refusal *before* any mutation: a dirty tree (every path listed), a merge/rebase/cherry-pick in progress, a detached `HEAD` carrying unreachable commits, no `origin`, a diverged trunk, a `git worktree list` that cannot be read at all, a name git will not accept or that already exists locally or on `origin` | fix the named condition and re-run. **Never reach for `--discard`** |
 | `3` | the declaration excludes this host | **G5** — name the host the declaration allows; never retry |
-| `4` | the lane declares no `build` (a seat) | quote the declaration's own reason, run the repository's documented command, say that you did |
+| `4` | the lane declares no `build` (a seat) | quote the declaration's own reason — **and note that `shu warmup` has now proved nothing**, so § 6's own loop over `iteration.checks` is the whole of the base-tip proof (this repository's case) |
 | `5` | the declared program is not on `PATH` | back to § 4 |
 
 **`--discard` is never breath's flag.** It runs `git reset --hard` then `git clean -fd`, and the
@@ -287,14 +287,23 @@ on it yet, so the checks run here are a verdict on THE BASE, not on this effort.
 point of taking them now: the first line of the change must land on a tree that is already known to
 build, so that the first red anybody sees is one this effort caused.
 
-`shu warmup` proves the lane's `build` (and, with `--tests`, its `test`) on the branch it just cut,
-re-reading the declaration **on that branch**. That covers `iteration.checks` when the list is the
-default `["build"]`. When `workflow.json` declares more than `build`, breath runs the remaining
-entries itself, in the order the file lists them, for `iteration.lane`:
+`shu warmup` proves the lane's **`build`** (and, with `--tests`, its `test`) on the branch it just
+cut, re-reading the declaration **on that branch**. **`build` is the only check it runs, whatever
+`iteration.checks` says** — the sequence in § 5 ends at the lane's declared `build` row and knows
+nothing about the policy file. So the base-tip proof is not finished when `shu warmup` returns:
+**breath runs every entry of `iteration.checks` itself**, in the order the file lists them, for
+`iteration.lane`, skipping only an entry `shu warmup` has just proved on this same tree:
 
 ```bash
 nen shu <check> --repo <path> --lane <iteration.lane>      # every entry of iteration.checks, in order
 ```
+
+**Never infer the base-tip verdict from `shu warmup`'s exit code alone.** On this repository that
+inference is exactly wrong: `iteration.checks` is `["lint"]` and the `plugin` lane **seats** `build`,
+so `shu warmup` reports the seat and proves nothing the policy asked for, while
+`nen shu lint --repo . --lane plugin` — exit `0`, verified live at the pinned `0.7.0` — is the whole
+of the proof. A list of one entry that is not `build` is the case a warm-up most easily skips
+entirely, and a skipped proof reported as a warm base is the failure this section exists to prevent.
 
 The exit table is [`/rasengan`](../rasengan/SKILL.md) § 6's — the same seven rows, read the same
 way — with one row that means something different here, because of what has not happened yet:

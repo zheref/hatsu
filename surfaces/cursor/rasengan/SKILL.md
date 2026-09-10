@@ -114,11 +114,13 @@ is in front of you.
 feedback, as often as the work wants them:
 
 ```bash
-nen shu build --repo <path> [--lane <lane>]
-nen shu lint  --repo <path> [--lane <lane>]
+nen shu <check> --repo <path> [--lane <lane>]     # one call per iteration.checks entry, in order
 ```
 
-§§ 5–9 are the whole of how those runs are read. **Red is not a stop here — it is the loop working.**
+**`<check>` is whatever `iteration.checks` lists, and nothing else.** On this repository that is
+`["lint"]` alone, and the `plugin` lane **seats** `build`: an inner loop that reached for `build`
+because a build is what an author expects would be running a verb the policy did not ask for and the
+lane says it does not have. §§ 5–9 are the whole of how those runs are read. **Red is not a stop here — it is the loop working.**
 Fix what it named and run it again; that is what the inner loop is for. What is never done is
 softening the check so it stops saying so (§ 4).
 
@@ -284,14 +286,15 @@ Say the checks were green *in this turn* and name the proof file; never "the bui
 standing property, because the file's whole point is that it stops being true the moment the tree
 moves — and between the inner loop's last run and the commit, the tree moves whenever the author
 writes one more line. **[`/kokusen`](../kokusen/SKILL.md) § 3 runs the declared checks again over
-the finished tree and reads `nen commit check --repo <path> --require-proof <lane>` against it**, and
-that run is what a commit rests on.
+the finished tree**, and reads `nen commit check --repo <path> --require-proof <lane>` back **only
+where `build` is one of those checks and came back green** — the proof is written by `nen shu build`
+and by nothing else. That run is what a commit rests on.
 
 **A red tree is never handed over, never committed over, and never worked around.** Not by narrowing
 the check, not by handing it on "so the fix is on the branch", not by declaring a seat where a real
 row failed. The one exception is a code `3` host fact and a code `4` seat, both of which are facts
-about the repository that rasengan quotes and hands upward. **A red the turn cannot honestly clear is
-a G5 stop** for the phase that called this one — which is the same escalation kokusen raises at the
+about the repository that rasengan quotes and hands upward. **A red check the turn cannot honestly
+clear is a G5 stop** for the phase that called this one — which is the same escalation kokusen raises at the
 gate, from the same fact.
 
 ## 11. Residue — what has no verb at the pinned nen `0.7.0`
@@ -330,7 +333,7 @@ gate, from the same fact.
   a declaration on the fly. A declaration that is wrong is a **G4** PR of its own, not a local edit
   left in the checkout.
 - **Not a gate event**, with two exceptions it raises rather than owns: exit `3` (unsupported host)
-  and a red it cannot honestly clear in-session are **G5** stops for the phase that called it.
+  and a red check it cannot honestly clear in-session are **G5** stops for the phase that called it.
 
 ## 13. Hard limits
 

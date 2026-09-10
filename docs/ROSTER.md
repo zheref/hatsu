@@ -285,7 +285,8 @@ What that settles, in the order it bites:
    bar** to make a check pass.
 2. **[`kokusen`](../claude/skills/kokusen/) carries the compile-before-commit.** It runs every
    `iteration.checks` entry over the **finished** tree, reads `nen commit check --require-proof <lane>`
-   against it, and **refuses to commit on red**, quoting the failing check. The two runs are not a
+   back where `build` is one of those checks and came back green, and **refuses to commit on red**,
+   quoting the failing check. The two runs are not a
    duplication: a tree moves with every line written after the author's last check, so the only run a commit
    can rest on is the one taken by the phase holding the index.
 3. **[`breath`](../claude/skills/breath/) proves the BASE tip.** It already ran the checks on the branch it
@@ -303,7 +304,7 @@ What that settles, in the order it bites:
 
 **What this does not change.** The five G5 conditions that interrupt a running loop
 (§ *Rulings of 2026-09-09*, 1) are the same five: a red iteration check is fixed where it is found, and only
-a red the turn cannot honestly clear escalates — the escalation `rasengan` already carried. `breath`'s red
+a red check the turn cannot honestly clear escalates — the escalation `rasengan` already carried. `breath`'s red
 base tip is a stop at step 1, before anything has started to be interrupted. No agent definition changes, no
 authority widens, and no phase moves across a human gate: `aka`, `mukai`, the merge, `kagutsuchi` and
 `mugetsu` are still the maintainer's alone. The skill surface stays **thirty-eight skills**.

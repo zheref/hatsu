@@ -579,7 +579,7 @@ attrition. The loop simply stops and waits.
 
 **A red *iteration* check is not a sixth condition, and the ruling of 2026-09-10 did not make it one.** It is
 fixed where it is found: inside `rasengan`'s inner loop while the change is being written, or by handing the
-tree back to `rasengan` when `kokusen`'s gate refuses to commit it. Only a red the turn cannot honestly clear
+tree back to `rasengan` when `kokusen`'s gate refuses to commit it. Only a red check the turn cannot honestly clear
 escalates, which is the escalation `rasengan` has always carried. **The one stop that is genuinely new in
 shape rather than in kind is `breath`'s**: a base tip that does not build stops the effort at step 1, *before*
 a line is authored, because a broken trunk is its own effort and folding it into this one buries a trunk
