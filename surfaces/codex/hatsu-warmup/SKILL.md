@@ -140,11 +140,10 @@ nen's own compatibility floor to it, and prints the exact range the verdict was 
 > answer a question nobody asked. (`$hatsu_root` is § 5's prelude's resolution, run in § 0.)
 
 **The verb is present on every binary this pin can meet.** `nen shu tools` ships from **`v0.3.0`**
-(`zheref/nen#120`) — and so does the `dependency`-derived `nen` row it is read for, which has been
-synthesised from that block since the same release. Four minors below `minimum`, so at any version the
-range admits, both are there. If it is
-**not** — `nen: unknown command` — the binary is older than this plugin supports at all, and that is
-§ 2b, exactly as a version below the pin is.
+(`zheref/nen#120`), and so does the `dependency`-derived `nen` row it is read for — four minors below
+`minimum`, so at any version the range admits, both are there. If the verb answers
+`nen: unknown command` the binary is older than this plugin supports at all, and that is **§ 2b**, exactly
+as a version below the pin is.
 
 A live run at nen `0.7.0` against this repository:
 
@@ -162,7 +161,7 @@ dependency.minimum nen 0.8.0 satisfies)` — printed on **every** run and carrie
 top-level `compatibleMinorFloor`, including in a report whose declaration has no `dependency` block at all,
 because *"do I owe a repin"* is a question about nen and not about the declaration that asked. A `0.7.0`
 binary prints neither: the floor is what `0.8.0` added. **Say so rather than inventing one** — § 4's line
-carries `floor: not reported (nen 0.7.0)` there.
+carries `floor not reported (nen 0.7.0)` there.
 
 | The `nen` row | `--json` `state` | What it means | Next |
 |---|---|---|---|
