@@ -17,11 +17,17 @@ and the publish are not.
 
 ## Composition — the phases this skill already is
 
-Read from the phase lattice rather than from this file's own numbering, getsuga is the **post-merge**
-half of a release, and only that half:
+Read from the phase lattice rather than from this file's own numbering, getsuga is the **release half**
+of the line: everything that happens once the delivery work is already on `main`, ending at the
+**post-merge tag** and the fan-out. It is **not** invoked after a release proposal has been merged — it
+is what *opens* that proposal and then stands at the maintainer's merge of it:
 
 > [`susanoo`](../susanoo/SKILL.md) *(builds the release unit)* → the **release-proposal PR** (§ 3) →
-> **the merge**, the maintainer's (**G4**) → the **tag** (§ 4) → the `CON-22` fan-out (§ 7)
+> **the merge of that PR**, the maintainer's (**G4**) → the **post-merge tag** (§ 4) → the `CON-22`
+> fan-out (§ 7)
+
+**"Post-merge" qualifies the tag, not the phase.** § 4 cuts at a commit reachable from `origin/main`,
+which is exactly why the merge stands in the middle of that chain rather than before all of it.
 
 **This is a restatement, and it changes no mechanics.** Every section below stands exactly as it is
 written: § 2's whole preflight table, § 3's one folded PR, § 4's pinned `--at` cut, § 5's `G5` ask,
