@@ -213,6 +213,17 @@ trailing period) each refuse at exit `2` with a named reason — the transcripts
 
 1. **A dirty tree refuses.** `nen wc classify --repo <path> --base <base> --json` must report
    `on-branch-clean`; `state.uncommittedPaths[]` is printed if it does not.
+
+   > **A detached `HEAD` refuses here too, and it is a different refusal — read it as one.** The verb
+   > exits **`1`** with prose on stdout even under `--json` — *"could not determine the current branch …
+   > This usually means a detached HEAD"* (verified live on a fixture; `docs/ab/surfaces.md` § 7, F5). That
+   > is not a dirty tree and it is not a branch that needs cleaning: it is a checkout with **no branch to
+   > publish**, which `aka` cannot invent — `git push -u origin HEAD` from a detached `HEAD` publishes a
+   > ref nobody named, and the squash range in the table above has no `<branch>` to ask `origin` about.
+   > **Stop, say the checkout is detached, and say the fix is [`hatsu:breath`](../breath/SKILL.md) § 3** —
+   > which warms a detached `HEAD` through `nen shu warmup` and cuts the effort's branch from the trunk's
+   > fresh tip. This is the ordinary starting shape of a Codex reviewer's worktree, so it is a case rather
+   > than a curiosity, and it is **not** a G5: nothing has gone wrong, a step was skipped.
 2. **A commit already on the upstream refuses.** The § 4 table's range is computed, never assumed,
    and a range that would include an already-pushed commit is refused outright, not force-pushed
    past.
