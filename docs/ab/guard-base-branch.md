@@ -19,8 +19,10 @@ fixture; the whole header sweep was re-run against the amended script, not just 
 **§ 3.5 was added on 2026-09-10 on `opus/kurapika/run-findings`**, from two live runs the guard
 refused wrongly — the Galaxy launch validation's **F6** and the headless Cursor run's **F8**. Same
 host (`/bin/sh` = bash `3.2.57`, git `2.50.1`, macOS 26.4.1, `arm64`), the fixture rebuilt from the
-same six checkouts, and again the **whole** sweep re-run: **63 cases, 0 failures**, and the six new
-ones re-run against `origin/main`'s copy of the script to show which of them the fix moved.
+same six checkouts, and again the **whole** sweep re-run. **§ 3.6 followed on the same branch**, from
+Copilot's review round against § 3.5's first cut — three real defects in the body-masking, two of them
+fail-open. Final: **71 cases, 0 failures**, with all fourteen new ones re-run against `origin/main`'s
+copy of the script to show which of them the fix moved (**7 failures** there).
 
 *The fixture root — a throwaway directory under the session scratchpad, deleted after this run — appears
 below as `$FIX`. Nothing else is altered; both repositories are public and nothing here is redacted.*
@@ -150,10 +152,11 @@ Run against `fable/kurapika/wave-3`'s copy, unchanged, to show which of these th
 
 ### 3.2 The full sweep
 
-All **sixty-three** cases in the script's header were run against the fixed script in one pass and every
+All **seventy-one** cases in the script's header were run against the fixed script in one pass and every
 one matched the exit code the header records: fourteen standing on the base branch, twenty-one standing on
 a feature branch, two in the `develop`-declaring checkout, fourteen in the directory-git-targets group, the
-six added by the two Copilot threads below, and the **six added by § 3.5**. Nothing that
+six added by the two Copilot threads below, the **six added by § 3.5** and the **eight added by § 3.6**.
+Nothing that
 passed before this change regresses — the compound-command refusal (`git switch main && git commit`,
 `git checkout main; git push`, `git branch -f main HEAD && git push`), the shell-wrapper unwrapping
 (`bash -c "cd <main> && git push"` → `2`, `sh -c 'git status'` → `0`), the quoted-span masking
@@ -228,7 +231,8 @@ primary checkout, or a bare repository) does the common dir's parent still answe
 
 **Added on 2026-09-10 on `opus/kurapika/run-findings`**, from two real runs that the guard refused
 and should not have. Same host, same fixture, rebuilt; the whole sweep was re-run against the
-amended script, and it is **sixty-three cases now, not fifty-seven**.
+amended script, and it is **seventy-one cases now, not fifty-seven** — sixty-three for the two
+defects below, and eight more in § 3.6 for the heredoc rules Copilot's review round asked for.
 
 **Both defects have one cause: the payload writes a newline as the two-character escape `\n`**, so a
 multi-line command arrived at the guard as **one line**. `json_str` never translated it, and step 2
@@ -301,6 +305,45 @@ two.
 unquotes `<<'EOF'` to `<<EOF` so the opener survives 1d; 1d masks the remaining quoted spans per
 line; 1e masks heredoc bodies. Doing 1d before 1c would leave `<<@` and no delimiter to match a
 terminator against; doing 1a after 1b would leave a multi-line string unmasked.
+
+### 3.6 The heredoc rules — delimiter, terminator, consumer (Copilot review round 1, PR #35)
+
+Copilot opened three threads against § 3.5's first cut, and all three were right. Each is a way for
+the body-masking to answer wrongly — two of them **fail open**, which is the direction that matters,
+because a masked body is a body this guard does not read at all.
+
+| what was wrong | which way it failed | what it is now |
+|---|---|---|
+| the consumer was decided by scanning every whitespace-split token for `sh`, `bash`, … | **open** — `/usr/bin/sh <<EOF` was not matched, so a real `git commit` body was masked and allowed. And **closed** the other way — `cat sh <<EOF` matched on a filename and kept a document parsed | the line is split into COMMAND POSITIONS, leading `VAR=value` assignments are stepped over, and each part's first token is compared by **basename**. A part whose command cannot be established answers "shell", which fails closed |
+| the terminator comparison trimmed leading and trailing whitespace for every form | **open** — a `  EOF` line inside a document closed the body early and handed the rest of it to the parser | `<<EOF` closes on a line that is **exactly** `EOF`; `<<-EOF` strips leading **tabs** and nothing else, which is all `<<-` does. The form is carried per delimiter as a flag character |
+| the delimiter charset was `[A-Za-z0-9_.:-]`, so a quoted delimiter with a space or a `<<\EOF` produced no delimiter at all | **closed** — no delimiter meant no masking, so `<<'END OF FILE'` recreated the very false refusal § 3.5 fixes | `<<\EOF` is unquoted like `<<'EOF'`. A quoted delimiter **containing a space** cannot be, becomes `<<@`, and is read as *unrecoverable*: the mask runs to the end of the command, the conservative answer for a body of unknown extent. A delimiter must also **start with a letter or `_`**, so `$((1<<2))` is an arithmetic shift and not a marker |
+
+A fourth defect surfaced while fixing the third and is the reason the `<<\EOF` case is in the sweep:
+**the payload's `\\` and `\t` escapes were never translated either.** `\n` alone was not enough — JSON
+writes one backslash as `\\`, so `<<\EOF` reached the parser as `<<\\EOF` and matched nothing, and a
+tab-indented `<<-` terminator arrived as a literal backslash-`t`. Step 1b now translates all three,
+`\\` protected first so that `tr ';|()&' '\n\n\n\n\n'` keeps its literal backslash-n.
+
+The eight cases, all from a session standing on `main` (cwd = the trunk):
+
+| payload | pre-fix | post-fix |
+|---|---|---|
+| `cat >> f <<'END OF FILE'` / `git push …` / `END OF FILE` | `0` | `0` |
+| `cat >> f <<EOF` / `intro` / `  EOF` / `git push …` / `EOF` | `0` | `0` |
+| `cat >> f <<-EOF` / `git push …` / `<TAB>EOF` / `git status` | `0` | `0` |
+| `/usr/bin/sh <<EOF` / `git commit -m x` / `EOF` | **`0`** | **`2`** |
+| `cat sh >> f <<EOF` / `git commit -m x` / `EOF` | `0` | `0` |
+| `cat <<EOF \| sh` / `git commit -m x` / `EOF` | **`0`** | **`2`** |
+| `x=$((1<<2))` / `git commit -m x` | **`0`** | **`2`** |
+| `cat >> f <<\EOF` / `git push …` / `EOF` / `git status` | `0` | `0` |
+
+**The five rows that read `0` both ways are the ones the rules exist to keep at `0`** — every one of
+them becomes a segment beginning `git push` or `git commit` under step 1b alone, so they are
+regressions avoided rather than behaviour unchanged. The three that move are the fail-open cases,
+and two of them (`/usr/bin/sh`, `| sh`) are writes that were being masked away.
+
+**Whole sweep after the amendment: 71 cases, 0 failures. Against `origin/main`'s copy: 7 failures** —
+the four of § 3.5 plus these three.
 
 ## 4. Residue
 
