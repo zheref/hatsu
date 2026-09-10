@@ -75,7 +75,7 @@ points at [`$jujisho`](../jujisho/SKILL.md), which is the split-shaped verb, and
 | `project.evidence.scene` | `nen/contract.json` | the template that turns a path into a suite-and-scene pair | `{suite}-{scene}` |
 | `project.evidence.mechanism` | `nen/contract.json` | `public-mirror` or the committed-path mechanism — **which of `UZF-26`'s two the stack is on** (§ 5) | none — **undeclared is the committed-path mechanism**, never the mirror |
 
-> **`nen schema check` VALIDATES `nen/workflow.json` at the pinned `v0.5.0`** — verified live: six
+> **`nen schema check` VALIDATES `nen/workflow.json` at the pinned `v0.6.0`** — verified live: six
 > rows, the sixth the workflow file, `ok`. A malformed key is a FAIL **by pointer** and this skill
 > quotes that pointer rather than judging the shape itself. Every default above is still stated out
 > loud whenever it is what applied — nen validates the file, it does not hand the values out.
@@ -163,7 +163,7 @@ gh pr create --repo <owner/name> --base <branch.base> --head <branch> \
   --title "<the one commit's subject, or the effort in one line>" --body-file <path>
 ```
 
-> **Residue, and genuinely still residue at the pinned `v0.5.0`: no `nen` verb opens a pull request.**
+> **Residue, and genuinely still residue at the pinned `v0.6.0`: no `nen` verb opens a pull request.**
 > `nen pr --help` lists nine subcommands at this pin — `ready`, `staleness`, `body-check`, `fetch`,
 > `next-blocker`, `cascade-main`, `retarget`, `request-reviews` and the new `edit-body` — and `create`
 > is still not among them. `gh pr create` is git-forge tooling, named here, and it is the **only**
@@ -352,26 +352,55 @@ an executed substitution. The file is written first, checked, then handed over b
 
 ```bash
 export GH_TOKEN=$(gh auth token)
-nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <a,b>
+nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <a,b> [--add-bots <id,...>]
 ```
 
-The verb's own `--help` states what it does and what it cannot enforce — *"`gh pr edit
---add-reviewer`, once per name. Request on the **MAINTAINER's** user token — a bot token silently
-no-ops on this call (S6); this verb cannot enforce which credential ran it, only warn"*
-(`docs/ab/shibari.md` § 2.5). **On a bot token the call succeeds and does nothing**, which is
-the failure mode worth naming out loud in the handover line rather than discovering three days later.
+**Two routes, chosen per name, and the verb chooses them — not you.** Every `--add-reviewers` login is
+resolved FIRST, against the pull request's own known bots (its `reviewRequests` / `timelineItems`) and
+`--target`'s collaborators, and is then routed to whichever mutation actually reaches it: a
+collaborator through `gh pr edit --add-reviewer`, a bot through GitHub's `requestReviews` mutation's
+`botIds`. An entry containing a `/` is an `org/team` slug and goes straight to `gh pr edit
+--add-reviewer` with no lookup at all. **A bare login that resolves to NEITHER is refused at exit `2`,
+naming it and pointing at `--add-bots`** — verified live at the pinned `0.6.0`, `--add-reviewers
+copilot` against `zheref/hatsu#36`. Both flags absent is exit `1` naming both of this verb's own
+flags. Run `--dry-run` first: it performs the same resolution and prints the route each name would
+take, requesting nothing.
 
-> **Copilot is the exception, and it is two facts, neither of them verified live by this port.**
-> (i) **GitHub's Copilot code review may already be configured to review automatically** on the
-> target repository — where it is, requesting it is a no-op at best and a duplicate review at worst,
-> so **check the repository's setting before adding it by hand**. (ii) Where it is requested
-> explicitly, **Copilot is a bot, requested by its bot id and not by a login** — a plain
-> `--add-reviewers copilot` is a username lookup, and it fails or silently resolves to nothing.
-> Both facts need a live GitHub read against a repository whose settings this port did not have in
-> scope, so **they are stated as caveats to confirm, not as verified mechanics**
-> (`docs/ab/shibari.md` § 4.3). Where the request cannot be made to land, **say so** — an
-> un-requested reviewer that the handover reports as requested is the one error that makes `en`'s
-> whole reviewer-round leg wrong.
+The verb still cannot enforce **which credential** ran it. Request on the **MAINTAINER's** user token —
+a bot token silently no-ops on the user route (S6) — and say so in the handover line rather than
+discovering it three days later.
+
+> ### RETIRED at nen `0.6`: Copilot has a mechanic, and it is `--add-bots BOT_kgDOCnlnWA`
+>
+> **`--add-bots <node id,...>` routes straight to the `requestReviews` mutation's `botIds`** — the one
+> mutation that resolves a Bot reviewer at all. `gh pr edit --add-reviewer` goes through
+> `requestReviewsByLogin`, which never resolves a Bot, which is why a plain `--add-reviewers copilot`
+> was a dead end rather than a spelling problem. Verified live at the pinned `0.6.0` against
+> `zheref/hatsu#36`, exit `0` (`docs/ab/shibari.md` § *Retired at nen 0.6*):
+>
+> ```
+> $ nen pr request-reviews --target zheref/hatsu --pr 36 --add-reviewers zheref \
+>     --add-bots BOT_kgDOCnlnWA --dry-run
+> would request review on zheref/hatsu#36:
+>   zheref -> user [add-reviewers]
+>   BOT_kgDOCnlnWA -> bot [add-bots]
+> ```
+>
+> **`BOT_kgDOCnlnWA` is Copilot's reviewer node id**, and it is data rather than a rule — read the id
+> off the target's own reviewer set where a repository has a different one.
+>
+> **The caveat that survives, and it is not a flake.** The identical mutation call has been observed
+> answering `NOT_FOUND` for a botId under one token and succeeding under another — a
+> permission-scoped difference in what a token can resolve, and nen's own `src/pr/bots.ts` header
+> records it as such. The verb is built for exactly that: it reports success
+> from the **mutation's OWN response** — which bots now read as pending review — never assumed from
+> the ids it sent. **So read the verb's answer, and when it does not name the bot, say the request did
+> not land and why.** An un-requested reviewer that the handover reports as requested is the one error
+> that makes `en`'s whole reviewer-round leg wrong.
+>
+> **The first fact is unchanged and is still checked first**: GitHub's Copilot code review may already
+> be configured to review this repository **automatically** — `zheref/hatsu` is such a repository —
+> and where it is, requesting it by hand is a no-op at best and a duplicate review at worst.
 
 **Shibari requests; it never reviews.** Kurapika runs on the maintainer's credentials, so any review
 vote he cast would be recorded as **theirs** — a governance vote on a PR they have not read. That
@@ -394,8 +423,13 @@ Ready. This is [`$rikugan`](../rikugan/SKILL.md) § 8's carve-out, for the same 
 
 ## Residue
 
-1. **`gh pr create` — no `nen` verb opens a pull request** at the pinned `v0.5.0`; `nen pr` carries
-   nine subcommands and `create` is not one (§ 4). **Genuinely still residue.**
+1. **`gh pr create` — no `nen` verb opens a pull request** at the pinned `v0.6.0`; `nen pr` carries
+   no `create` subcommand (§ 4). **Genuinely still residue.**
+1b. **RETIRED at nen `0.6`: requesting Copilot.** `nen pr request-reviews --add-bots BOT_kgDOCnlnWA`
+   is the mechanic, verified live (§ 9). What is NOT retired is reading the mutation's own answer
+   before reporting the request as landed — the same call answers `NOT_FOUND` under a token that
+   cannot resolve the bot, which is a permission scope rather than a flake. That reading is this
+   skill's, and it is a read rather than a residue.
 2. **RETIRED at nen `0.5`: `nen pr edit-body --target <owner/name> --pr <n> --body-file <path>`** —
    verified live at exit `0`, with the number certified before any write (§ 8). `gh pr edit
    --body-file` is not the path any more.
@@ -412,7 +446,7 @@ Ready. This is [`$rikugan`](../rikugan/SKILL.md) § 8's carve-out, for the same 
    comparison (§ 4). `nen wc classify` reports the branch and its distance from the **base**, never
    from the remote branch.
 7. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
-   an `ok  nen/workflow.json` row at the pinned `v0.5.0` (verified live). § 2's keys are still read
+   an `ok  nen/workflow.json` row at the pinned `v0.6.0` (verified live). § 2's keys are still read
    here; reading a file is not residue.
 
 ## Authority

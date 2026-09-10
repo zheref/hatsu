@@ -244,7 +244,7 @@ nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,nen/,sc
 
 (`--spec-paths` is a literal prefix list, outside nen's taxonomy resolution entirely — it names
 **both** directories so a taxonomy edit owes a fragment whether the target has migrated or not. **At
-the pinned nen `0.5.0` the `schemas/`→`nen/` fallback is removed**, which changes what nen *reads*
+the pinned nen `0.6.0` the `schemas/`→`nen/` fallback is removed**, which changes what nen *reads*
 and changes nothing about a literal prefix: an un-migrated target still edits a real `schemas/*.json`
 and still owes a fragment for it, so both stay listed.)
 

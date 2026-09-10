@@ -274,3 +274,46 @@ the lane's real checks instead.
 
 **Still residue:** watching a lane that declares **no** `stall` block, and running that declaration's
 prose remedy by hand.
+
+## Retired at nen 0.6 — 2026-09-10
+
+Run against the released `zheref/nen` `v0.6.0` binary (`nen-darwin-arm64`, sha256
+`2674dc58…151737e1`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.6.0`, on `PATH` as
+`nen`; `nen --version` → `0.6.0`).
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| a lexical containment check that a symlink walks straight out of | `nen shu build --repo <fx> --dry-run`, `cwd` a symlink out of the tree | **`2`** before anything spawns |
+| — and the boundary that is NOT retired | `nen schema check --repo <fx>` on the same file | `ok`, deliberately |
+
+### The refusal names the link and where it points
+
+A fixture whose one lane declares `"cwd": "build"`, where `build` is a symlink to a directory outside
+the repository:
+
+```text
+$ nen shu build --repo <fx> --dry-run
+nen shu: project.lanes.a.cwd names 'build', which really resolves to '<…>/v6/outside', outside the
+repository at '<…>/v6/contain': '<…>/v6/contain/build' is a symlink pointing at '<…>/v6/outside'. nen
+touches only what its report says it touches, so this path is refused rather than followed.       # exit 2
+```
+
+Through `v0.5.0` `insideRepo` asked only the **lexical** question, so a `build/payload` that reads as
+plainly inside the tree walked out of it whenever `build/` was a symlink — and `--dry-run` reported
+`ok` about every one of those paths. **What was lost was not a new attacker capability** (an
+after-step's literal argv is not containment-checked at all, so a declaration that can write that
+symlink can already name an absolute path outright) but the guarantee the refusal *states*, and the
+assurance a reviewer takes from a clean `--dry-run`. A check that reports clean about a property it
+never tested is the failure mode nen refuses everywhere else, and the same one
+`nen/contract.json` § `no_improvised_fallback` names.
+
+### The same file, through `nen schema check` — `ok`, and that is the design
+
+```text
+$ nen schema check --repo <fx>
+  ok    nen/contract.json  project (1 lane: a; 1 verb; 0 toolchain entries)
+```
+
+**The loader has no filesystem.** Pointers are checked at load; paths at use. So a green
+`schema check` is never evidence that a declaration's paths are contained, and § 4a says so in the
+skill rather than leaving a reader to infer it from an `ok` row.

@@ -53,12 +53,15 @@ workflow.json: using the built-in defaults from `docs/WORKFLOW.md`"* — and use
 default does not cover, and never write the file to make the message go away — authoring a
 `workflow.json` for a repository is a policy change that lands as its own PR at **G4**.
 
-**`nen` VALIDATES `nen/workflow.json` at the pinned ref.** Verified live at `v0.5.0`: `nen schema
-check --repo <path>` reports **six** rows — the four taxonomy files, `nen/contract.json` and
-`nen/workflow.json` — and the sixth reads `ok    nen/workflow.json  coverage 80/85/90 (touched),
-branch '{model}/{persona}/{descriptor}' off 'main', checks: lint` (`docs/ab/breath.md`
-§ *Retired at nen 0.5*). **So the warm-up runs the verb rather than reading the shape by eye**: a
-malformed key is a FAIL by pointer from `schema check`, not a finding this skill has to notice.
+**`nen` VALIDATES `nen/workflow.json` at the pinned ref.** Re-verified live at `v0.6.0` against this
+repository: `nen schema check --repo <path>` reports **six** rows — the four taxonomy files,
+`nen/contract.json` and `nen/workflow.json` — and the sixth reads
+`ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off
+'main', checks: lint` (`docs/ab/breath.md` §§ *Retired at nen 0.5* and *Retired at nen 0.6*). **So the
+warm-up runs the verb rather than reading the shape by eye**: a malformed key is a FAIL by pointer
+from `schema check`, not a finding this skill has to notice. On a repository that ships no taxonomy —
+Hatsu itself — the other four rows are three `FAIL` and one `warn` and the overall exit is `1`, which
+is not a warm-up failure and is what [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 1 documents.
 
 ## 3. Where the checkout sits — read it, never assume it
 
@@ -75,12 +78,13 @@ the same table for its own phase):
 | `on-branch-clean` **on a branch** | An effort is already warm. Report the branch and return — do not cut a second one |
 | `must-move` — on the trunk, dirty | **The one thing breath asks about.** Show every uncommitted path and ask: carry the work onto the new branch (the ordinary answer — `git stash`, cut, `git stash pop`, each step named as residue in § 8), **exclude it locally** where the paths are not work at all (the third door, below), or stop so the maintainer can deal with it. **Never `--discard`** |
 | `on-branch-dirty` | Uncommitted work on an existing branch. Not breath's to judge whether it is this effort: report the commit subjects and paths the verb printed, and hand the turn to [`/kokusen`](../kokusen/SKILL.md) or the maintainer |
-| **the verb refuses — a detached `HEAD`** | **Not a case `wc classify` can answer, and not a stop either.** Go to § 5 and let `nen shu warmup` speak; see the box below |
+| **a detached `HEAD`** | **Classified like any other working copy at the pinned `0.6.0`**, into one of the three rows above with `branch: null` — never `must-move`, because a commit made there lands on no branch. Read `detachedAt`, say it in § 7's line, go on; see the box below |
 
-### A detached `HEAD` is warmable, and `nen wc classify` is the wrong thing to ask
+### RETIRED at nen `0.6`: a detached `HEAD` is CLASSIFIED, not refused
 
-`nen wc classify` **refuses a detached `HEAD` outright** — verified live on a fixture, exit **`1`**, and
-`--json` prints the same prose rather than a document:
+Through `v0.5.0` `nen wc classify` refused a detached `HEAD` outright — exit **`1`**, the code this
+family reserves for *the tree is not clean*, with `--json` printing the same prose rather than a
+document, so a caller could tell neither refusal apart nor parse the answer at all:
 
 ```text
 nen wc: could not determine the current branch ('git symbolic-ref --short HEAD' failed: fatal: ref HEAD is
@@ -88,14 +92,23 @@ not a symbolic ref). This usually means a detached HEAD … and refuses rather t
 of empty output.
 ```
 
-**That refusal is about the classifier, not about the checkout**, and stopping on it would make breath
-unusable in the shape the Codex surface is native to: a `git worktree add --detach` is what
-[`hanten`](../hanten/SKILL.md) § 9a makes for every Codex reviewer, and it was the starting state of a whole
-headless run that stopped here for want of this row (`docs/ab/surfaces.md` § 7, F4).
+**At the pinned `0.6.0` the branch is a FIELD of the answer rather than a precondition of it.**
+Classification is decided by *trunk-or-not* and *dirty-or-not*, and a detached `HEAD` answers both:
+`state.branch` is `string | null`, a new `state.detachedAt` carries the short sha, `isTrunk` is false
+there whatever `--base` says, every evidence line reads `on a detached HEAD at <sha>`, and the text
+output carries a `branch:` line on **every** path — a name, or `(detached HEAD at <short sha>)`. Exit
+`0` for all three cases, detached included. **One refusal remains and it now says what it means**: a
+`HEAD` that names no branch *and* resolves to no commit — a repository with no commits yet — has no
+working copy to classify. That one is still a stop; there is no tip to cut from.
 
-**§ 5's verb already knows better, and it is the one to ask.** `nen shu warmup` scopes its own refusal to a
-detached `HEAD` *carrying unreachable commits*; from a `HEAD` detached at the trunk's tip it reports and
-proceeds. Verified live on a fixture:
+**This matters here because the detached shape is the one the Codex surface is native to**: a
+`git worktree add --detach` is what [`hanten`](../hanten/SKILL.md) § 9a makes for every Codex reviewer,
+and it was the starting state of a whole headless run that stopped at this row for want of an answer
+(`docs/ab/surfaces.md` § 7, F4). Read the classification, put `detachedAt` in § 7's line, and go on.
+
+**§ 5's verb still owns the one genuine stop**, and it is a different question. `nen shu warmup` scopes
+its own refusal to a detached `HEAD` *carrying unreachable commits*; from a `HEAD` detached at the
+trunk's tip it reports and proceeds. Verified live on a fixture:
 
 ```text
 ran: git branch --show-current -- exit 0
@@ -105,11 +118,9 @@ ran: git rev-list --count HEAD --not --branches --remotes -- exit 0
      from the trunk's fresh tip, so where HEAD sits now decides only how the trunk itself is fast-forwarded
 ```
 
-**So: a `wc classify` refusal naming a detached `HEAD` goes to § 5, and § 5's own exit code is the verdict**
-— `0` warms, `2` on unreachable commits is the genuine stop (the commits would be orphaned by the cut, and
-only the reflog would remember them: **G5**, listed by SHA, never `--discard`). Say in § 7's line that the
-checkout was detached and which of the two answers the verb gave. **A repository with no commits at all
-refuses the same way and is not this case** — there is no tip to cut from; report it and stop.
+So a detached checkout is **classified** here and **warmed** there, and § 5's exit `2` on unreachable
+commits is the real stop: the commits would be orphaned by the cut and only the reflog would remember
+them — **G5**, listed by SHA, never `--discard`.
 
 **The third door — untracked paths that are not work.** Very often the tree that blocks a warm-up is
 dirty with nothing anybody wrote: `.idea/` from the IDE, `.claude/worktrees/` from a previous wave,
@@ -156,9 +167,10 @@ exclude="$(git -C <path> rev-parse --git-path info/exclude)"     # NOT "$(rev-pa
 > paths — an exclude nobody was told about is a checkout that silently stopped reporting a file.
 
 A `--base` that does not resolve is **not** folded into a case: `nen wc classify` reports it on
-stderr and exits non-zero, and breath stops there rather than warming something it could not read.
-A detached `HEAD` exits non-zero too and is **not** that — it is the fourth row above, and it goes
-to § 5 rather than to a stop.
+stderr and exits `1`, and breath stops there rather than warming something it could not read. **A
+detached `HEAD` is no longer one of those** — at the pinned `0.6.0` it exits `0` with a case, and the
+only non-zero left on this verb besides an unresolvable `--base` is a repository holding no commit at
+all.
 
 ## 4. The host, before the first build on it
 
@@ -178,7 +190,7 @@ install; say which tool and which pin, and do not install it another way. A repo
 > § 5 fast-forwards the trunk, so every `shu` verb at this point reads the declaration as it stood at
 > the checkout's old tip. On a checkout whose `nen/contract.json` was added — or whose `project`
 > block was written — on the fetched tip, `nen shu tools` refuses at `2` with *"no such file:
-> `<repo>/nen/contract.json` … this repository declares nothing"* (verified live, unchanged at the pinned `0.5.0`), and the
+> `<repo>/nen/contract.json` … this repository declares nothing"* (verified live, unchanged at the pinned `0.6.0`), and the
 > table above is unreachable: none of `0`, `3`, `4`, `5` is what the host actually is. **Do not treat
 > that `2` as a verdict and do not run `nen shu detect --write` to make it go away** — the
 > declaration is very probably already sitting on `origin/<branch.base>`. Record the `2` as
@@ -205,9 +217,36 @@ nen shu warmup --repo <path> --branch <rendered name> --from <branch.base> [--te
 
 The dry run prints the whole sequence with each step's own refusal condition attached, and the bare
 run performs it: `branch --show-current` → the in-progress check → the working-copy check → `remote`
-→ the trunk exists → `check-ref-format` → the name is free locally → `fetch origin` → the divergence
-test → the fast-forward → the name is free on `origin` → **`switch -c <branch> origin/<branch.base>`**
-→ the lane's declared `build`.
+→ the trunk exists → `check-ref-format` → **`git worktree list --porcelain`** → the name is free
+locally → `fetch origin` → the divergence test → the fast-forward → the name is free on `origin` →
+**`switch -c <branch> origin/<branch.base>`** → the lane's declared `build`.
+
+> ### RETIRED at nen `0.6`: cutting by hand when another worktree holds the trunk
+>
+> **The ordinary shape of this whole way of working used to break the verb half-way through.** A
+> primary checkout standing on `main` with every effort in its own `git worktree` beside it — which is
+> what `docs/WORKFLOW.md` § 0 asks for and what every delegated run here does — means git **refuses**
+> to force-move the trunk: *fatal: cannot force update the branch 'main' used by worktree at '…'*.
+> Through `v0.5.0` that landed mid-run, after the fetch.
+>
+> **At the pinned `0.6.0` warmup reads `git worktree list --porcelain` FIRST** — step 4a, among the
+> checks that need no mutation, so a list that cannot be read refuses at exit `2` *before* the fetch
+> rather than after it — matching the **full** ref, so a branch called `feat/main` is never mistaken
+> for the trunk. When another worktree holds it the local update is **skipped**, the report says
+> `trunk held by worktree <path>; cutting from origin/<trunk> directly`, and `--branch` is cut from
+> `origin/<trunk>` **exactly as it always was**: the cut never read the local ref, which is why the
+> local fast-forward was never needed for it. The fast-forward now has three shapes rather than two —
+> a merge when *this* checkout is on the trunk, a ref move when no worktree holds it, and nothing at
+> all when another one does.
+>
+> **`--dry-run`'s guarantee changes, and the change is worth knowing.** It used to be *runs nothing*;
+> it is now **mutates nothing**, plus exactly ONE closed-list read-only command — that `worktree
+> list`. Its row is labelled `ran:` and carries a real exit code while every planned row is labelled
+> `would run:`, and `--json` gains a top-level **`dryRun`** boolean (after `discard`) precisely
+> because `steps[].exitCode` can no longer tell the two forms apart on its own. **Read `dryRun`, not
+> the exit codes**, when a report has to say which form produced it.
+>
+> A **diverged** trunk still refuses, and that refusal now says this run would not have moved it.
 
 > **`--from` is passed every time, with the value read from `nen/workflow.json` → `branch.base`, and
 > `origin/main` is never written as a literal.** The flag *defaults* to `main` when that local branch
@@ -225,7 +264,7 @@ the whole family):
 |---|---|---|
 | `0` | warm — the branch is cut from the fetched tip and the declared build passed on it | proceed to § 6 |
 | `1` | a git step ran and failed, **or** the delegated build failed, **or** the executor refused the build with a `2` | nothing is rolled back and the trunk has already moved: report `steps[]` verbatim, then hand the red build to [`/rasengan`](../rasengan/SKILL.md) |
-| `2` | a refusal *before* any mutation: a dirty tree (every path listed), a merge/rebase/cherry-pick in progress, a detached `HEAD` carrying unreachable commits, no `origin`, a diverged trunk, a name git will not accept or that already exists locally or on `origin` | fix the named condition and re-run. **Never reach for `--discard`** |
+| `2` | a refusal *before* any mutation: a dirty tree (every path listed), a merge/rebase/cherry-pick in progress, a detached `HEAD` carrying unreachable commits, no `origin`, a diverged trunk, a `git worktree list` that cannot be read at all, a name git will not accept or that already exists locally or on `origin` | fix the named condition and re-run. **Never reach for `--discard`** |
 | `3` | the declaration excludes this host | **G5** — name the host the declaration allows; never retry |
 | `4` | the lane declares no `build` (a seat) | quote the declaration's own reason, run the repository's documented command, say that you did |
 | `5` | the declared program is not on `PATH` | back to § 4 |
@@ -262,7 +301,7 @@ that file is the whole repository's, so an exclude nobody was told about is a ch
 stopped reporting a file), and — where it applies — the `no workflow.json` sentence from § 2. A warm-up
 that did not run is reported as **not run**, never rendered as clear.
 
-## 8. Residue — what has no verb at the pinned nen `0.5.0`
+## 8. Residue — what has no verb at the pinned nen `0.6.0`
 
 - **Rendering `branch.template`.** `nen shu warmup --branch` is required with no default; the
   substitution of `{model}`/`{persona}`/`{descriptor}` is this skill's, from `workflow.json`. No verb

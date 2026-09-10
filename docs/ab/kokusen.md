@@ -243,3 +243,91 @@ The proof transcripts are in `docs/ab/rasengan.md` § *Retired at nen 0.5*; the 
 
 **Against a lane whose `build` is a declared seat** — hatsu's own `plugin` lane — `commit check` is exit
 `1` forever, because no proof is ever written. That is a fact to state, not a failure to fix.
+
+## Retired at nen 0.6 — 2026-09-10
+
+Run against the released `zheref/nen` `v0.6.0` binary (`nen-darwin-arm64`, sha256
+`2674dc58…151737e1`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.6.0`, on `PATH` as
+`nen`; `nen --version` → `0.6.0`).
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| partitioning the ignored rows out of `flagged` by hand | `nen stage triage --repo <fixture>` | **`0`** on a tree of only ignored rows |
+| — the same run, machine-readable | `nen stage triage --repo <fixture> --json` | `0`, with `ignored[]` |
+| the generated commit-msg hook's fixed trailer pair | `nen scaffold init --repo <fx> --accept-detected --dry-run` (no trailer flags) | **`2`** naming only `--marker-env` |
+
+### `ignored` is the verb's own bucket, and the exit code follows `flagged` alone
+
+A throwaway repository holding one committed file, a `.gitignore` naming `node_modules/`, and an
+ignored `node_modules/leftpad/` carrying both an ordinary file and its own `.env`:
+
+```text
+$ nen stage triage --repo <fixture>
+clean: 0 file(s)
+ignored: 2 file(s), not listed                                                                    # exit 0
+```
+
+```json
+{ "clean": [], "flagged": [],
+  "ignored": [ { "path": "node_modules/leftpad/.env",      "reasons": ["ignored", "secret-shape"] },
+               { "path": "node_modules/leftpad/index.js",  "reasons": ["ignored"] } ] }
+```
+
+**Exit `0`, where `v0.5.0` answered `1`** — the tree has nothing a human must decide about, and the
+exit code now says so. This is the change `zero_major_caveat.why` in `nen/contract.json` names as one
+of the three silent ones at this minor: a caller gating on that exit code reads the opposite verdict
+from the same tree, which is exactly why a different 0.x minor is out of range in both directions.
+
+**The rule § 4 used to carry is now the verb's, and it was carried because the alternative was
+unusable**: a full `ren` run against the `zheref/nen` checkout flagged **5905** paths on one turn and
+5907 on the next, of which all but one were `[ignored, out-of-scope]`. A per-file ask at that width
+is a procedure everybody skips, and a skipped triage is worse than a narrow one. So: read `ignored:`
+off the verb, relay it, and take answers only on `flagged` — which now holds only paths a plain
+`git add` could actually stage.
+
+**The both-buckets case is decided the safe way and stays decided.** A `.env` inside an ignored tree
+lands in `ignored[]` carrying `["ignored", "secret-shape"]` and **never** in `flagged` — so § 4's
+"reported and left alone" bullet is the verb's shape now rather than a softening this skill applies
+to a categorical rule. § 9's hard limit is untouched: a `secret-shape` on a path this commit *could*
+contain is never askable.
+
+**Run live against this repository's own worktree during the repin**, for the ordinary case:
+`ignored: 0 file(s), not listed`, with every edited source file in `clean`.
+
+### The scaffolded hook's automated half follows the repository's policy
+
+Layer (b) of § 5's three-layer table is `nen scaffold init`'s generated `commit-msg` hook. At
+`v0.5.0` it required a hard-coded trailer pair and was written **only when all three trailer flags
+were given**. At `v0.6.0` it is derived:
+
+```text
+$ nen scaffold init --repo <fx> --accept-detected --dry-run
+nen scaffold: scaffold init requires --marker-env <VAR>: the generated commit-msg hook reads it to recognise
+an automated commit. --agent-trailer <key> is optional -- omitted, it defaults to 'Akatsuki-Agent', this
+project family's own CI-plane provenance trailer (docs/USAGE.md's "Two provenance trailers") -- and
+--run-trailer <key> is optional with no default: when this repository's nen/workflow.json does not exist
+yet, this run writes commits.runTrailer from it and the generated hook then also requires a run
+identifier; when nen/workflow.json already exists, that file's own commits.runTrailer wins and this flag
+is ignored (a printed note says so) -- edit the file directly to change it. Missing: --marker-env. # exit 2
+```
+
+And with `--marker-env` alone the run plans the hook and writes a policy carrying the resolved key,
+with the run trailer as a **separate, optional** key rather than a second mandatory one:
+
+```text
+$ nen scaffold init --repo <fx> --stack nextjs --marker-env NEN_AUTOMATED --dry-run
+hook: would-install (<fx>/.git/hooks/commit-msg)
+would-create: .git/hooks/commit-msg -- no hook is installed there
+    "allowedAttributionTrailers": [ "Akatsuki-Agent" ],
+    "forbiddenTrailers": [],
+    "runTrailer": null                                                                            # exit 0
+```
+
+**What this changes for a reader of § 5.** The hook is no longer "the pair, or nothing": it requires
+exactly the one attribution trailer the repository's own policy resolved, plus `commits.runTrailer`
+when that key is stated. A policy whose `allowedAttributionTrailers` does **not** admit the resolved
+key generates a hook whose automated half refuses every automated commit outright, naming the missing
+policy — there is no message such a repository could write that would satisfy a check for a trailer
+it does not admit, and a hook that pretended to check for one would be a guard that cannot fire.
+**Hatsu still carries no such hook**: layers (a) and (c) are what this repository actually has, and
+§ 7 says so.

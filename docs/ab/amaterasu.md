@@ -331,3 +331,73 @@ The declared activity is correct and the `after` step's `adb -s <id>` form reach
 a signature mismatch whose only remedy deletes the maintainer's app data, and no agent takes that
 decision. **A launch is never reported as successful on the strength of a step that did not run**, which
 is § 9's last hard limit and is why this run reported a blocker rather than a green launch.
+
+## Retired at nen 0.6 — 2026-09-10
+
+Run against the released `zheref/nen` `v0.6.0` binary (`nen-darwin-arm64`, sha256
+`2674dc58…151737e1`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.6.0`, on `PATH` as
+`nen`; `nen --version` → `0.6.0`), against the same throwaway fixture `docs/ab/jujutsu.md`
+§ *Retired at nen 0.6* describes.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| re-reading `project.launch.<t>.verb` behind an exit-`4` seat | `nen shu run --repo <fx> --target paired --dry-run` | **`2`**, naming the fix |
+| reading the resolved device's STATE — where `readyWhen` is declared | `nen shu dev --repo <fx> --target paired` | **`5`** |
+| — the same, on a ready row | `nen shu dev --repo <fx> --target ok` | `0` |
+| `{artifact}` resolved against the wrong root on a non-root lane | `nen shu dev --repo <fx> --target nested --dry-run` | `0`, with both strings |
+
+### F2 from the Galaxy run, closed: the target's verb answers before the lane's seat
+
+```text
+$ nen shu run --repo <fx> --target paired --dry-run
+nen shu: launch target 'paired' is declared for 'dev', and this is 'run'. project.launch.paired.verb says
+which of the two long-running verbs the target's arguments and after-steps were written against, and nen
+does not carry them across: run 'dev --target paired', or declare a separate target for 'run'.  # exit 2
+```
+
+Through `v0.5.0` that same invocation answered with the **lane's seat** instead — a correct exit `4`
+(*"'run' is unsupported on lane 'android' … a release install to a device is a deploy, not a local
+run"*, the Galaxy run above) and the wrong sentence to act on, because the declaration's answer was
+one line away and the seat never mentioned it. The check order moved; the sentence that ends the
+problem is now the one printed.
+
+**And the rest of the order is unchanged, which is why § 5 still tells you to quote a seat.** A seat
+answered with **no** `--target` is a real seat and reads exactly as before:
+
+```text
+$ nen shu run --repo <fx> --dry-run
+nen shu run: 'run' is unsupported on lane 'app' (generic). The declaration's own reason: a release install
+to a device is a deploy, not a local run                                                          # exit 4
+```
+
+### `{artifact}` is what the after-step's own directory sees
+
+The fixture's `nested` target runs on the `embedded` lane, whose `cwd` is `native`, and whose verb
+declares `artifacts: ["native/build/App.app"]`:
+
+```text
+$ nen shu dev --repo <fx> --target nested --dry-run
+lane:          embedded  (generic)
+target:        nested  (appends no argument)  -- on lane 'embedded', which this target declares
+would run:     sh -c 'echo embedded dev'
+would run:     sh -c 'echo install {artifact} on {device.id}'
+substitutes:   {device.id} <- 'Bench 2' itself -- a simulated device is addressed by its name, so nothing is
+               probed; {artifact} <- build/App.app  (declared native/build/App.app, as the after-steps' own
+               directory sees it -- lane 'embedded' does not sit at the repository root)
+cwd:           <fx>/native
+artifacts:     native/build/App.app (absent)                                                      # exit 0
+```
+
+**Two roots, one file, and both lines are needed.** `artifacts:` keeps reporting the
+repository-relative string — what this build *produces* — while `substitutes:` reports what the child
+will actually receive. Through `v0.5.0` the installer was handed the repository-relative string and
+answered *"no such file"* about a file sitting right there, on any lane whose `cwd` is not `.`.
+**Nothing in Hatsu is affected**: its one `plugin` lane sits at the root, and a root lane gets back
+the identical string. What changes here is a line to read correctly rather than a step to take, which
+is why § 6 records it as a reading rather than as a retired procedure.
+
+### Nothing retired: the core-working-directory check
+
+`nen shu dev` still runs wherever `--repo` points, worktree included, with no warning — § 2.5's
+transcript is unchanged at this pin. § 3's rule and § 3a's four conditions stay this skill's, and no
+verb could judge them.

@@ -33,31 +33,32 @@ with the clause absent, exit `0`. The clause is anchored behind a literal for th
 [`$rikugan`](../rikugan/SKILL.md) § 1 records — a lone bracketed slot is refused at the
 template, so every optional clause in this wave gets an introducing word.
 
-> ### The plain-turn spelling is `--line "at"`, not `--line ""`
+> ### RETIRED at nen `0.6`: an ordinary turn may be spelled `--line ""`
 >
-> **An ordinary turn's bell carries no clause, and the empty line is REFUSED** — re-verified live at
-> the pinned `v0.5.0`, both halves:
+> **Both spellings now parse identically**, re-verified live at the pinned `v0.6.0`:
 >
 > ```
 > $ nen parse jutaisho --grammar "at [<gate:G1|G1-M|G2|G3|G4|G5>]" --line ""
-> nen parse: the line must open with the literal 'at' -- it is what introduces <gate>.
+> gate: (clause absent)                                                            # exit 0
 >
-> Corrected line:
->   jutaisho at                                                                    # exit 2
->
-> $ nen parse jutaisho --grammar "at [<gate:G1|G1-M|G2|G3|G4|G5>]" --line "at"     # exit 0, clause absent
+> $ nen parse jutaisho --grammar "at [<gate:G1|G1-M|G2|G3|G4|G5>]" --line "at"
+> gate: (clause absent)                                                            # exit 0
 > ```
 >
-> **So the turn bell is `--line "at"`** — the literal that anchors the clause, with the clause left
-> off. That is the consequence of the anchoring rule above and it is worth spelling out, because a
-> turn bell is invoked with nothing at all and the obvious translation of "nothing" is `""`. A
-> headless Cursor run found this by trying both and recorded the working form
-> (`docs/ab/surfaces.md` § 8, F11). **The refusal is a good one** — it prints the corrected line —
-> but it costs a round trip on the most-invoked step in the whole loop.
+> Through `v0.5.0` the empty line was exit `2` — *"the line must open with the literal 'at'"* — while
+> a bare `at` was exit `0` with the clause absent, so the ORDINARY invocation of the most-invoked step
+> in the whole loop was the one a caller had to be told about. A headless Cursor run found it by
+> trying both and recorded the working form (`docs/ab/surfaces.md` § 8, F11). **At `0.6.0` a grammar
+> whose every slot is bracketed accepts the empty line**, whichever side of the brackets the template
+> writes the separator on, and the echo gains a `<name>: (clause absent)` line for an optional slot
+> nobody filled — because a slot simply MISSING from the echo cannot be told apart from a template
+> that never declared it.
 >
-> **Residue, and it is nen's:** a grammar whose only clause is optional could accept an empty line.
-> Filed as [`zheref/nen#170`](https://github.com/zheref/nen/issues/170). Until it lands, **`"at"` is
-> the spelling on every ordinary turn** — never `""`, and never skipping the parse to avoid it.
+> **`--line "at"` stays the documented alternative and is still exactly correct**: it is the same
+> parse, and a run that already spells it that way needs no change. What lapses is the rule that it
+> was the ONLY spelling. **A grammar carrying a REQUIRED slot is untouched** — an empty line there is
+> still exit `2` naming the slot, with the corrected line to paste, which is why this is a narrowing
+> of the refusal and not its removal.
 
 **The clause is a gate, and its absence is meaningful, not a default.** With no `at <gate>` the run
 is a **turn bell**: nothing is asked and no `nen stop` banner is rendered. With a gate, this is a
@@ -111,7 +112,7 @@ degradation, and it is reported as configured rather than as missing.
 >
 > **RETIRED at nen `0.5`: `notifications.turn` IS in `nen.workflow/v0.1`.** The loader admits
 > `"rung1"` (the default, and what an absent key reads as) or `"all"` — a **closed two-value set**,
-> refused by pointer on anything else. Verified live at the pinned `v0.5.0`: a policy file declaring
+> refused by pointer on anything else. Verified live at the pinned `v0.6.0`: a policy file declaring
 > `"turn": "loud"` FAILs `nen schema check` with *"at notifications.turn, 'loud' is not one nen
 > implements. It is one of a CLOSED set: rung1, all"*, and `"turn": "all"` validates `ok`
 > (`docs/ab/jutaisho.md` § *Retired at nen 0.5*). `nen scaffold init`/`new` now write the key into
@@ -302,7 +303,7 @@ whether rung 1 had already fired, and the next thing to read the working copy (a
 
 ```sh
 # 1 · the marker — § 3's BY-HAND WRITE of .nen/last-stop.json, whole and fresh.
-#     NOT `nen stop --mark`. At the pinned 0.5.0 that option DOES exist and writes
+#     NOT `nen stop --mark`. At the pinned 0.6.0 that option DOES exist and writes
 #     (exit 0, verified live) — and it is still not the one used here, because its
 #     nen.stop.mark/v0.1 document carries no `title`, so every bell it rings says
 #     "A decision is waiting." and drops the report link. That is a kept residue
@@ -362,7 +363,7 @@ rm -f .nen/last-stop.json
 >   On Claude Code it does **not**: the hook consumes the marker, and removing it first is removing the
 >   bell.
 
-> **`nen stop --mark` exists at the pinned `0.5.0`, and § 3's by-hand write is KEPT anyway — the
+> **`nen stop --mark` exists at the pinned `0.6.0`, and § 3's by-hand write is KEPT anyway — the
 > decision this section said was due is taken here, with its reason.** Verified live at the pin, exit
 > `0`: `nen stop --mark --repo <path> --who kurapika --gate G5` prints `marked: <path>/.nen/last-stop.json
 > -- a host hook may ring rungs 2-3 off it` and writes
@@ -411,7 +412,7 @@ same — that is what rungs 2 and 3 are for.
 ## Residue
 
 1. **KEPT residue, deliberately: `.nen/last-stop.json` is written by this skill, in Hatsu's own
-   shape** (§ 3). `nen stop --mark` exists at the pinned `0.5.0` and writes
+   shape** (§ 3). `nen stop --mark` exists at the pinned `0.6.0` and writes
    `nen.stop.mark/v0.1` — `{ contract, who, gate, notified, at }`, verified live at exit `0` — but
    that document carries no `title`, `body`, `reportUrl`, `sound` or `rungs`, and it **replaces** an
    existing marker. `hooks/stop-bell.sh` would then ring *"A decision is waiting."* on every gate,
@@ -423,8 +424,12 @@ same — that is what rungs 2 and 3 are for.
 3. **The `Stop` hook and the `PreToolUse` trunk guard are `hooks/hooks.json`'s**, this repository's
    harness files. This skill reads whether one exists; it never writes one.
 4. **RETIRED at nen `0.5`: `nen/workflow.json` is validated** — `nen schema check --repo <path>`
-   carries an `ok  nen/workflow.json` row at the pinned `v0.5.0`, so a malformed policy file is a
+   carries an `ok  nen/workflow.json` row at the pinned `v0.6.0`, so a malformed policy file is a
    FAIL by pointer. § 2's keys are still read here; a read is not a residue.
+4b. **RETIRED at nen `0.6`: the empty `--line` refusal** (§ 1). `nen parse jutaisho --grammar
+   "at [<gate:…>]" --line ""` is exit `0` with `gate: (clause absent)`, identical to `--line "at"`
+   (`docs/ab/jutaisho.md` § *Retired at nen 0.6*). The bare `at` stays documented and stays correct;
+   what lapses is having to know it.
 5. **RETIRED at nen `0.5`: `notifications.turn` is in `nen.workflow/v0.1`** — a closed set of
    `"rung1"` and `"all"`, refused by pointer on anything else and written into every scaffolded
    policy file (§ 2, verified live both ways: `"loud"` FAILs naming the set, `"all"` validates `ok`).
@@ -436,7 +441,7 @@ same — that is what rungs 2 and 3 are for.
    missing verb — nen shells out to git and gh and owns no notifier on any surface — so it is named here
    and never filed.
 8. **Removing the marker on a hookless surface is this skill's own `rm -f`** (§ 6), and **genuinely
-   still residue at the pinned `0.5.0`**: `nen stop --mark` writes and never removes — its own help
+   still residue at the pinned `0.6.0`**: `nen stop --mark` writes and never removes — its own help
    calls it *"the ONLY form of this verb that writes"* — and
    `hooks/stop-bell.sh`, which does remove, is a Claude Code manifest nothing else reads. So on Codex and
    Cursor the cleanup is by hand, named here, and it is the reason a stop answered three passes ago does

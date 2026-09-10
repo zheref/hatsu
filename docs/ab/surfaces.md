@@ -498,13 +498,17 @@ pin, not against `v0.5.0`.
 | **F5** | `nen bootstrap` prints a path the name `nen` does not reach | `hatsu-warmup` § 2 — bind the name with a symlink |
 | **F6** | three operational facts the Cursor block omitted | `docs/SURFACES.md` § 5 |
 | **F8** | the guard hook refuses a document that QUOTES a git write | `hooks/guard-base-branch.sh`, `docs/ab/guard-base-branch.md` § 3.5 |
-| **F11** | `nen parse jutaisho --line ""` is refused | `jutaisho` § 1 — the spelling is `--line "at"` (`zheref/nen#170`) |
-| **F12** | `nen commit format` ignored `--repo` at `0.3.0` | nothing to change: at the pinned `0.5.0` the verb enforces it |
+| **F11** | `nen parse jutaisho --line ""` is refused | `jutaisho` § 1 — **closed at nen `0.6.0`**: both spellings parse identically, exit `0` (`zheref/nen#170`, re-verified live 2026-09-10; `docs/ab/jutaisho.md` § *Retired at nen 0.6*) |
+| **F12** | `nen commit format` ignored `--repo` at `0.3.0` | nothing to change: at the pinned `0.6.0` the verb enforces it |
 | **F13** | Cursor keeps roughly **thirty** characters of a description | `docs/SURFACES.md` § 1 — stated, and no description shortened |
 
-**F7, F9 and F10 are nen-side or are already filed** — `zheref/nen#168` (`shu warmup` in a linked
-worktree), `#169` (`stage triage`'s ignored bucket), `#170` (`parse` on an empty clause), plus the
-`-p` process that does not exit, which is a Cursor bug and is recorded as a timeout instruction in
+**F7, F9 and F10 were nen-side, and all three are CLOSED at nen `0.6.0`** — `zheref/nen#168`
+(`shu warmup` in a linked worktree: the trunk held elsewhere is now skipped and named, `--json` gains
+`dryRun`), `#169` (`stage triage`'s own `ignored` bucket, with the exit code following `flagged`
+alone), `#170` (`parse` on an empty clause). Each was re-verified live against the released `0.6.0`
+binary on 2026-09-10; the transcripts are in `docs/ab/breath.md`, `docs/ab/kokusen.md` and
+`docs/ab/jutaisho.md` under *Retired at nen 0.6*. What remains from that run is the `-p` process that
+does not exit, which is a Cursor bug and is recorded as a timeout instruction in
 `docs/SURFACES.md` § 5.
 
 ### 8.2 F1 — the model id, and how it is read

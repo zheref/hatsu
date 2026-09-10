@@ -92,7 +92,7 @@ default.** [`sharingan`](../sharingan/SKILL.md) § 4 states the rule in full and
 the short form is three shapes, and there is no fourth:
 
 ```bash
-# the target ships its own nen/gates.json — no identity flag at all (the schemas/ fallback is REMOVED at the pinned nen 0.5.0; a gates file only there is refused, same as none at all)
+# the target ships its own nen/gates.json — no identity flag at all (the schemas/ fallback is REMOVED at the pinned nen 0.6.0; a gates file only there is refused, same as none at all)
 nen pr ready <CODE>#<N> --repo <path> --explain
 
 # the target IS <reference-repo> itself — frozen, ships no gates file of its own

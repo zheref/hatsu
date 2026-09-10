@@ -366,3 +366,82 @@ rather than an overwritten body. Through `v0.4.0` both spellings answered *"unkn
 'edit-body'"* / *"unknown option '--body-file'"* at exit `2` (§ 2.4).
 
 **Still residue:** `gh pr create`. `nen pr` carries nine subcommands at this pin and `create` is not one.
+
+## Retired at nen 0.6 — 2026-09-10
+
+Run against the released `zheref/nen` `v0.6.0` binary (`nen-darwin-arm64`, sha256
+`2674dc58…151737e1`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.6.0`, on `PATH` as
+`nen`; `nen --version` → `0.6.0`), with `GH_TOKEN=$(gh auth token)` — the maintainer's own user
+token — against the real `zheref/hatsu#36`.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| § 4.3's two Copilot caveats, stated as unverified | `nen pr request-reviews … --add-bots BOT_kgDOCnlnWA --dry-run` | **`0`**, routed |
+| a login that resolves to neither a bot nor a collaborator | `… --add-reviewers copilot --dry-run` | **`2`**, naming it |
+| the empty-input refusal naming the wrong flag | `nen pr request-reviews --target … --pr 36` | **`1`**, naming its own two |
+
+### `--add-bots` is the mechanic, and the route is printed before anything is requested
+
+```text
+$ nen pr request-reviews --target zheref/hatsu --pr 36 --add-reviewers zheref \
+    --add-bots BOT_kgDOCnlnWA --dry-run
+would request review on zheref/hatsu#36:
+  zheref -> user [add-reviewers]
+  BOT_kgDOCnlnWA -> bot [add-bots]                                                                # exit 0
+```
+
+**Two routes, chosen per name, and the verb chooses them.** A bot goes through GitHub's
+`requestReviews` GraphQL mutation's `botIds`; a collaborator goes through `gh pr edit
+--add-reviewer`, unchanged. The split exists because `gh pr edit --add-reviewer` resolves through
+`requestReviewsByLogin`, which **never resolves a Bot reviewer at all** — which is why the old
+`--add-reviewers copilot` was a dead end rather than a spelling problem, and why § 9 could only state
+it as a caveat. An `--add-reviewers` entry containing a `/` is an `org/team` slug and goes straight
+to `gh pr edit --add-reviewer` with no lookup.
+
+### The refusal that replaces the silent no-op
+
+```text
+$ nen pr request-reviews --target zheref/hatsu --pr 36 --add-reviewers copilot --dry-run
+nen pr: 'copilot' does not resolve to a Bot already known to zheref/hatsu#36 (its own reviewRequests or
+timelineItems) or a collaborator of zheref/hatsu. A login this pull request has never requested a review
+from, or received one from, cannot be told apart from a genuine typo -- if it is a bot's login, name it by
+its node id with --add-bots instead.                                                              # exit 2
+```
+
+**This is a behaviour change, not only an addition**, and `nen/contract.json`'s
+`zero_major_caveat.why` names it as one of the three at this minor: `v0.5.0` passed that login
+through. A caller who typed `copilot` and read exit `0` learned nothing; a caller who reads exit `2`
+is pointed at the flag that works.
+
+```text
+$ nen pr request-reviews --target zheref/hatsu --pr 36
+no reviewers named -- --add-reviewers takes a comma-separated list of logins, or --add-bots a
+comma-separated list of node ids                                                                  # exit 1
+```
+
+The wording names **this verb's own** flags. A prior version named `--reviewers`, which belongs to
+`pr ready` / `pr next-blocker` and was never this verb's spelling (`zheref/nen#95`).
+
+### The caveat that survives, and why the verb is built around it
+
+**`BOT_kgDOCnlnWA` is Copilot's reviewer node id — data, not a rule.** Read the id off the target's
+own reviewer set where a repository has a different one.
+
+**The identical mutation call has been observed answering `NOT_FOUND` for a botId under one token and
+succeeding under another** — a permission-scoped difference in what a token can resolve, recorded in
+nen's own `src/pr/bots.ts` header, and not a flake. So the verb reports success from the **mutation's
+own response** — which bots now read as pending review — never assumed from the ids it sent. § 9's
+instruction follows from that and is the operative one: **read the verb's answer, and where it does
+not name the bot, say the request did not land and why.** An un-requested reviewer that the handover
+reports as requested is the one error that makes `en`'s whole reviewer-round leg wrong.
+
+**The first of § 4.3's two caveats is unchanged and is still checked first.** `zheref/hatsu` has
+GitHub's Copilot code review configured to review **automatically**, so on this repository requesting
+it by hand is a no-op at best and a duplicate review at worst — the mechanic above is for a target
+that does not have it configured.
+
+### Nothing retired: `gh pr create`
+
+`nen pr` at `v0.6.0` carries `ready`, `staleness`, `body-check`, `fetch`, `next-blocker`,
+`cascade-main`, `retarget`, `request-reviews` and `edit-body`. `create` is not among them
+(`nen pr --help`, read live at this pin). § 4's `gh pr create` is **genuinely still residue**.

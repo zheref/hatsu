@@ -404,3 +404,104 @@ the right way round rather than diagnosed afterwards.
 `build` is exit `1` — *"'build' is not one nen implements. It is one of a CLOSED set: dev, run"* —
 and `shu run --target t` against a target declared `dev` is exit `2` naming the fix. Both refusals
 are good; `hatsu:amaterasu` § 5 carries them, because typing the subcommand is its step.
+
+## Retired at nen 0.6 — 2026-09-10
+
+Run against the released `zheref/nen` `v0.6.0` binary (`nen-darwin-arm64`, sha256
+`2674dc58…151737e1`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.6.0` and put on
+`PATH` as `nen`; `nen --version` → `0.6.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.5.0` to `v0.6.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| reading the device's STATE at LAUNCH time | `nen shu dev --repo <fx> --target paired` (present, not ready) | **`5`** |
+| — the same rule, on a row that IS ready | `nen shu dev --repo <fx> --target ok` | `0` |
+| — the rule, knowable with nothing connected | `nen shu dev --repo <fx> --target paired --dry-run` → `readiness:` line | `0` |
+| a `readyWhen` nen cannot act on is caught at LOAD | `nen schema check --repo <fx>` on four malformed rules | FAIL by pointer, ×4 |
+
+**The fixture.** A throwaway repository whose `app` lane declares a `dev` row and whose `paired` /
+`ok` targets share one line-printing probe — `/usr/bin/printf` emitting two rows, one `unpaired` and
+one `ready` — with `"readyWhen": { "field": 2, "in": ["ready"] }` on both. `paired` names the
+unready row, `ok` names the ready one. That is § 4's Android shape exactly: a serial in field 1, the
+state in field 2.
+
+**The rule, printed beside a probe that has not run:**
+
+```text
+$ nen shu dev --repo <fx> --target paired --dry-run
+lane:          app  (generic)
+verb:          dev
+target:        paired  (appends no argument)
+device:        PH0000000001  -- id not resolved (nothing was probed)
+readiness:     field 2 of the device's own row (counting from 1) must be one of: ready  (project.launch.paired.device.readyWhen)
+…                                                                                                # exit 0
+```
+
+**The refusal, on a real run against the unready row:**
+
+```text
+$ nen shu dev --repo <fx> --target paired
+nen shu dev: the device 'PH0000000001' is on the probe's list and its state is 'unpaired', which is not one
+project.launch.paired.device.readyWhen accepts. Accepted: 'ready' -- read from field 2 of the device's own
+row (counting from 1), which is how nen reads a probe that prints LINES. A device that is PRESENT is not a
+device that is READY: every step this launch would run next addresses it by id, and nen will not report the
+probe green and let each of them fail one at a time. The probe printed: PH0000000001   unpaired |
+PH0000000009   ready usb:1-1. Get the device into one of the accepted states -- unlock it, answer its
+pairing prompt, wait for it to finish starting -- or, if this state IS usable here, add it to
+readyWhen.in.                                                                                    # exit 5
+```
+
+(wrapped here; nen prints it as one line.) **This is the Galaxy run's F1, closed.** That run matched
+`R52X603Q9BA` in a row reading `unauthorized`, printed it as resolved at exit `0`, and every
+`adb -s usb:33-3.2 …` after it failed one at a time. The declaration can now say which states count,
+and § 6 makes writing one part of every registration.
+
+**And the ready row still resolves, so the rule costs nothing where the device is usable:**
+
+```text
+$ nen shu dev --repo <fx> --target ok
+device:        PH0000000009  id usb:1-1
+readiness:     field 2 of the device's own row (counting from 1) must be one of: ready  (project.launch.ok.device.readyWhen)
+ran:           /usr/bin/printf …  -- exit 0 in 1ms
+ran:           sh -c 'echo dev'
+ran:           sh -c 'echo install usb:1-1'                                                      # exit 0
+```
+
+### The four load-time refusals, each by pointer
+
+A rule nen could not act on is refused at `nen schema check`, not at the first launch a year later.
+All four run live against the fixture, each FAIL naming `project.launch.t.device.readyWhen`:
+
+| The declaration | What nen says |
+|---|---|
+| `{ "field": 0, "in": [...] }` | *"expected a POSITIVE whole number of fields, counting the row's first token as 1, got number (0). A field position nen could not act on — zero, a fraction, a negative, a string — is a declaration nen refuses rather than rounds"* |
+| `{ "field": 2, "path": "state", "in": [...] }` | *"states BOTH 'field' and 'path', and a readiness rule is exactly one of the two … a rule naming both would leave nen choosing between them against a document it has not seen yet"* |
+| a rule on a device with **no `resolve`** | *"is declared on a device with no 'resolve' probe … so this rule would never be read, while reading in the file exactly like a check that is protecting the launch"* |
+| `"readywhen"` (case slip) | *"differs from 'readyWhen' only in case, which IS a key nen reads … 'readywhen' would be kept, read by nobody, and this entry would run with 'readyWhen' silently unset"* |
+
+**The zero-indexed one is the one worth having.** `field: 0` is the mistake a reader makes exactly
+once, and without this check it reads one column to the left of the state on every launch forever
+while the file looks right.
+
+### What was NOT exercised: the JSON (`path`) shape
+
+**The fixture above proves the `field` shape only** — the one § 4's Android table needs, and the one
+the Galaxy run failed on. The `{ "path": "<dotted key>", "in": […] }` form against
+`xcrun devicectl list devices --json-output -` is **read off nen's own `docs/USAGE.md` and its
+loader's validation, not run against a device here**: it needs a physical iPhone attached in a known
+state, which this session did not have. § 6's iOS example declares
+`"path": "connectionProperties.tunnelState"` because devicectl nests the device's `name` under
+`deviceProperties` and its state under the sibling `connectionProperties`, one level out from the
+object that carries the name — which is inside the two-level walk nen documents for `path` and
+already makes for the id. **Treat that one line as a declaration to confirm against the probe's own
+JSON on the first device that registers with it**, and say in that PR's body what the probe printed.
+
+### What is NOT retired
+
+**`readyWhen` is absent-means-unchanged.** A target that does not declare one behaves exactly as it
+did at `v0.5.0`: nen takes the row carrying the name and reports the device resolved. So the rule
+protects nobody until it is written, which is why § 6 writes one on every registration and § *Hard
+limits* refuses a target without one. And at **pairing** time the target does not exist yet — § 4's
+first read of the state column is still by eye, which is the same chicken-and-egg the first probe
+already had (§ Residue 4).

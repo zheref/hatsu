@@ -50,7 +50,7 @@ nothing about attribution gets the workflow's rule, not the harness's habit.
 
 ## 3. Before anything is staged
 
-1. **The checks are green FOR THIS TREE.** At the pinned nen `0.5.0` that is a verb, not a memory:
+1. **The checks are green FOR THIS TREE.** At the pinned nen `0.6.0` that is a verb, not a memory:
 
    ```bash
    nen commit check --repo <path> --require-proof <iteration.lane>
@@ -86,38 +86,53 @@ nothing about attribution gets the workflow's rule, not the harness's habit.
 nen stage triage --repo <path> [--scope <in-scope prefixes>] [--mentions "<the message you are about to write>"]
 ```
 
-Detects, never decides, and exits `1` whenever anything is flagged. The five detectors, verified live
-against a constructed working copy carrying one of each (`docs/ab/kokusen.md` § 2.1):
+Detects, never decides, and **exits `1` whenever anything is FLAGGED — `flagged` alone decides the
+exit code at the pinned `0.6.0`**, so a tree whose only dirty rows are git-ignored is exit `0`. The
+detectors, verified live against a constructed working copy carrying one of each
+(`docs/ab/kokusen.md` § 2.1 and § *Retired at nen 0.6*):
 
-| Flag | Trigger |
+| Bucket / flag | Trigger |
 |---|---|
 | `secret-shape` | `.env`, `*.pem`, `*.key`, `credentials*`, or a token/key shape in the diff |
-| `ignored` | the path is git-ignored and would need `-f` to stage |
 | `binary` | the file's content is binary |
 | `out-of-scope` | the path falls outside every `--scope` prefix — **omitted entirely** when `--scope` is not passed |
 | `unmentioned-deletion` | a tracked path was deleted and its basename does not appear in `--mentions` |
+| **`ignored`** | the path is git-ignored. **Its own bucket at the pinned `0.6.0`, not a flag on `flagged`** — a fact, not a question, because a plain `git add` cannot stage it at all |
 
 One path can carry several reasons at once. **Present every flagged file together, with the reasons
-`nen` printed, and take one answer per file** — for the paths this commit could actually contain.
+`nen` printed, and take one answer per file** — and at this pin `flagged` holds only paths a plain
+`git add` could actually stage, so every row in it is a row worth asking about.
 
-> **`ignored` is a count, not a question.** `nen stage triage` walks git-ignored directories, so in
-> any repository with dependencies on disk the flagged list is not a list a human can answer: a full
-> `ren` run against the `zheref/nen` checkout flagged **5905** paths on one turn and 5907 on the
-> next, of which all but one were `[ignored, out-of-scope]`. A per-file ask at that width is not a
-> procedure anybody executes — it is a procedure everybody skips, and a skipped triage is worse than
-> a narrow one. **A flagged path that is git-ignored needs no per-file answer.** It is unstageable
-> without `-f`, § 6 never passes `-f`, and § 9 bars it — so report the ignored rows as *a count with
-> their reasons*, name any directory prefix that dominates them, and take answers only on the paths
-> that are not ignored. Where an ignored path genuinely belongs in the commit, that is a deliberate
-> `-f` the maintainer asks for by name, and then it is one path with one answer.
+> ### RETIRED at nen `0.6`: counting the ignored rows by hand
+>
+> **`ignored` is a bucket the VERB reports, and its count is the verb's line.** Text output carries
+> `ignored: <n> file(s), not listed` — a count only, since this verb has no `--verbose` flag, so the
+> paths themselves print under `--json`, which gains a full `ignored[]` array of
+> `{ path, reasons[] }`. **And the exit code follows `flagged` ALONE**: a working copy whose only
+> dirty rows are ignored is exit `0`, where through `v0.5.0` it was exit `1`. Verified live
+> (`docs/ab/kokusen.md` § *Retired at nen 0.6*).
+>
+> **The rule this skill used to carry is now the verb's**, and it was carrying it because the
+> alternative was unusable: a full `ren` run against the `zheref/nen` checkout flagged **5905** paths
+> on one turn and 5907 on the next, of which all but one were `[ignored, out-of-scope]`. A per-file
+> ask at that width is not a procedure anybody executes — it is a procedure everybody skips, and a
+> skipped triage is worse than a narrow one.
+>
+> **So read `ignored:` off the verb and relay it, and take answers only on `flagged`.** Do not
+> re-partition the rows yourself and do not report a count you computed. Where an ignored path
+> genuinely belongs in the commit, that is a deliberate `-f` the maintainer asks for by name, and
+> then it is one path with one answer. **An entry that is both ignored and secret-shaped stays in
+> `ignored`** with `secret-shape` recorded alongside `ignored`, and never appears in `flagged` —
+> which is the next bullet, now stated by the verb rather than only here.
 
 - **`secret-shape` is never askable, in the tree this commit could contain.** There is no yes; the
   fix is to rotate or remove it. This is § 9's hard limit, and it is not softened by "it is only
   local, it is not pushed" — a commit is permanent the moment it exists, and the push that would
   publish it is one `hatsu:aka` away.
-- **A `secret-shape` inside an ignored dependency tree is reported and left alone.** Verified live,
-  unchanged at the pinned `0.5.0`: a `.env` under an ignored `node_modules/` is flagged `[ignored, secret-shape,
-  out-of-scope]` — the same row shape a real run found on `node_modules/bottleneck/.env`. Read
+- **A `secret-shape` inside an ignored dependency tree is reported and left alone.** Verified live
+  at the pinned `0.6.0`: a `.env` under an ignored `node_modules/` lands in **`ignored[]`** carrying
+  `["ignored", "secret-shape"]` and never in `flagged` — the same row shape a real run found on
+  `node_modules/bottleneck/.env`, in the bucket that now says what it is. Read
   literally, the categorical rule would have this skill rotate or delete a third-party package's
   fixture file, which is not this repository's secret, not this commit's business and not a thing a
   commit phase has any authority to touch. **Scope the rule to what the commit could carry:** the
@@ -177,7 +192,7 @@ changed and why is this skill's to write, never nen's.
 > their commit. It refuses to *add* one; deleting someone else's provenance metadata is a governance
 > decision nobody asked for.
 
-**`nen commit format --repo <path>` ENFORCES this rule at the pinned `0.5.0`, and the `--repo` is what
+**`nen commit format --repo <path>` ENFORCES this rule at the pinned `0.6.0`, and the `--repo` is what
 turns it on.** Verified live against this repository: `--trailer "Co-Authored-By=someone"` is refused
 at exit `2` — *"trailer key 'Co-Authored-By' is an attribution trailer this repository refuses.
 '…/nen/workflow.json' admits 'Hatsu-Agent', 'Akatsuki-Agent' under
@@ -188,7 +203,7 @@ you**: it admits both keys, so `--trailer "Akatsuki-Agent=kurapika"` also render
 refusal is this skill's, per the rule above — layer (a), and the only layer that holds it.
 
 **Always pass `--repo`, and do not rely on being rescued when you forget.** Re-verified live on
-2026-09-10 at the pinned `0.5.0`, from this repository's own checkout: the refusal above fires **with
+2026-09-10 at the pinned `0.6.0`, from this repository's own checkout: the refusal above fires **with
 `--repo`**, and it also fired **without** it — the verb found `nen/workflow.json` from the working
 directory. **That is a courtesy of where the command happened to be run, not a contract**: name the
 repository and the policy that is read is the one you meant. Reading the rendered output against
@@ -200,7 +215,7 @@ only one (§ 7).
 > stale.** A headless Cursor run against nen `0.3.0` found `--repo` **accepted and silently ignored**,
 > so `--trailer "Hatsu-Agent=kurapika"` rendered at exit `0` where a refusal was expected
 > (`docs/ab/surfaces.md` § 8, F12) — *"a flag that is accepted and ignored is worse than one that is
-> rejected: it reads like the guard ran."* **That was `0.3.0`. Hatsu pins `v0.5.0`**, where the verb
+> rejected: it reads like the guard ran."* **That was `0.3.0`. Hatsu pins `v0.6.0`**, where the verb
 > has its own `--repo`, opens the policy and refuses by name. § 7's residue list says `RETIRED` for
 > exactly this reason.
 
@@ -227,7 +242,7 @@ git commit --file <message file>          # residue, § 7: no nen verb writes a 
 > | `2` | **refused.** A shape violation (undeclared type, empty subject, header over 72 characters, trailing punctuation) or — with `--repo` — an attribution trailer `nen/workflow.json` does not admit | **stop.** Quote the sentence from stderr, fix the input, re-run. Never commit the file — it is empty |
 > | `1` | the trailer policy could not be read — `nen/workflow.json` present and **malformed** (with `--repo`) | **stop.** Report it as a repository defect and point at `nen schema check`; a message shaped under a policy nobody could read is not shaped |
 >
-> Verified live at the pinned `v0.5.0`: a malformed `nen/workflow.json` answers `1` — *"nen will not
+> Verified live at the pinned `v0.6.0`: a malformed `nen/workflow.json` answers `1` — *"nen will not
 > shape a message under a policy it could not read"* — and a `Co-Authored-By` trailer answers `2`
 > naming the file that refuses it. **An empty `<message file>` is the tell for either refusal**, and
 > it is checked before `git commit` whichever way the exit code was read.
@@ -237,7 +252,7 @@ git commit --file <message file>          # residue, § 7: no nen verb writes a 
 fix what it named. Stage explicitly, path by path, from § 4's clean list plus every flagged path that
 got an explicit yes; `git add -A` is barred (§ 9).
 
-## 7. Residue — what has no verb at the pinned nen `0.5.0`
+## 7. Residue — what has no verb at the pinned nen `0.6.0`
 
 - **RETIRED at nen `0.5`: the forbidden-trailer refusal.** `nen commit format --repo <path>` refuses
   an unadmitted attribution trailer at exit `2`, naming the file (§ 5, verified live against this
@@ -252,6 +267,10 @@ got an explicit yes; `git add -A` is barred (§ 9).
   gate on the formatter's exit code and the two-stream discipline are part of that residue** (§ 6):
   a verb that refuses on stderr at exit `2` with an empty stdout is safe on its own and unsafe
   behind a redirect that ignores either fact.
+- **RETIRED at nen `0.6`: partitioning the ignored rows out of `flagged`.** `nen stage triage`
+  reports them in its own `ignored` bucket with its own `ignored: <n> file(s), not listed` count, and
+  the exit code follows `flagged` alone (§ 4, verified live at exit `0` on a tree of only ignored
+  rows). **Relay the verb's count; never compute one.**
 - **Local-config and size detection** in staging (§ 4) — no detector, by the verb's own account.
 - **RETIRED at nen `0.5`: validating `nen/workflow.json`** — `nen schema check` carries the row
   ([`hatsu:breath`](../breath/SKILL.md) § 2). Reading the values is still this skill's, and a read is
@@ -277,7 +296,7 @@ got an explicit yes; `git add -A` is barred (§ 9).
   `secret-shape` inside an ignored tree is reported and left alone (§ 4), never rotated, never
   deleted.
 - **Never `git add -A`**, and never `git add -f`, and never stages a path it did not name. `-f` is
-  the maintainer's explicit call on one named path, never this skill's way past an `ignored` flag.
+  the maintainer's explicit call on one named path, never this skill's way past an `ignored` row.
 - **Never adds an AI attribution trailer** — not `Co-Authored-By:`, not `Claude-Session:`, not a
   "Generated with …" line, not a model name in the subject or body. `Hatsu-Agent: kurapika` is the
   whole of it.

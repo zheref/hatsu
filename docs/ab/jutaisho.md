@@ -266,3 +266,53 @@ Recorded here as a **kept residue with its reason**, not an oversight. It lapses
 carries a title, or the day Hatsu decides a generic bell is acceptable — neither of which is a default.
 What *is* adopted from the release: `nen parse izanami` now classifies `stop` **write-flag-gated** on
 `--mark`, `--mark --template` is exit `2`, and a marker that cannot be written is exit `1` with the errno.
+
+## Retired at nen 0.6 — 2026-09-10
+
+Run against the released `zheref/nen` `v0.6.0` binary (`nen-darwin-arm64`, sha256
+`2674dc58…151737e1`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.6.0`, on `PATH` as
+`nen`; `nen --version` → `0.6.0`).
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| the empty `--line` refusal on an all-optional grammar | `nen parse jutaisho --grammar "at [<gate:…>]" --line ""` | **`0`** |
+| — the documented alternative, unchanged | the same, `--line "at"` | `0` |
+| — a supplied clause, unchanged | the same, `--line "at G5"` | `0` |
+
+```text
+$ nen parse jutaisho --grammar "at [<gate:G1|G1-M|G2|G3|G4|G5>]" --line ""
+gate: (clause absent)                                                                             # exit 0
+
+$ nen parse jutaisho --grammar "at [<gate:G1|G1-M|G2|G3|G4|G5>]" --line "at"
+gate: (clause absent)                                                                             # exit 0
+
+$ nen parse jutaisho --grammar "at [<gate:G1|G1-M|G2|G3|G4|G5>]" --line "at G5"
+gate: G5                                                                                          # exit 0
+```
+
+**Both spellings parse identically now.** Through `v0.5.0` the empty line was exit `2` — *"the line
+must open with the literal 'at' — it is what introduces `<gate>`"*, with the corrected line printed —
+while a bare `at` was exit `0` with the clause absent. So the **ordinary** invocation of the
+most-invoked step in the whole loop was the one a caller had to be told about, and the refusal read
+like a malformed invocation rather than like a spelling note. A headless Cursor run found it by
+trying both and recorded the working form (`docs/ab/surfaces.md` § 8, F11 — now marked closed).
+
+**Three things worth carrying into § 1.** The rule is *every slot bracketed*, and it holds whichever
+side of the brackets the template writes the separator on (`[onto <slot>]` already worked; `at
+[<gate>]` did not). The echo gains a `<name>: (clause absent)` line for an optional slot nobody
+filled — because a slot simply MISSING from the echo cannot be told apart from a template that never
+declared it, which is how a successful parse of such a grammar used to print nothing at all;
+`slots[]` under `--json` is unchanged and still carries only what the line supplied. And a grammar
+with a **required** slot is untouched: `nen parse backlog-state --grammar "<repo>[@<gate:…>]" --line
+""` still refuses at exit `2` naming `<repo>`.
+
+**`--line "at"` stays documented and stays correct.** It is the same parse; what lapses is having to
+know it. § 1 keeps both spellings so a run already written the long way needs no change.
+
+### Nothing retired: the marker's shape, and the hookless-surface cleanup
+
+§ Residue 1, 6 and 8 are unchanged at this pin. `nen stop --mark` still writes
+`nen.stop.mark/v0.1` — no `title`, no `body`, no `reportUrl`, no `sound`, no `rungs` — and still
+replaces an existing marker, so `hooks/stop-bell.sh` would ring the generic line on every gate.
+`hatsu.stop-marker/v0.1` is kept **on purpose**, and the `rm -f` on Codex and Cursor is still by
+hand because `nen stop --mark` writes and never removes.

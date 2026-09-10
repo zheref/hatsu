@@ -173,7 +173,7 @@ actually returned.
 | `nen/workflow.json` unvalidated at step 1 | `nen schema check --repo .` | `1` overall, six rows, the workflow row `ok` |
 
 ```
-  ok    nen/contract.json  dependency (nen >= 0.5, pinned v0.5.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)
+  ok    nen/contract.json  dependency (nen >= 0.6, pinned v0.6.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)
   ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off 'main', checks: lint
 ```
 

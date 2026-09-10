@@ -58,10 +58,13 @@ command from the contract's `halt.message_template`, raise it as a **G5**, and s
 
 Four things the skill owns that you must not paraphrase loosely when you report them:
 
-- **The `0.x` range.** While nen's line is `0.x`, `minimum: "0.5"` means **`>=0.5.0 <0.6.0`** — a different
-  minor is out of range **in both directions**, so `0.6.0` fails it exactly as `0.4.0` does. At major zero
-  the *minor* is the breaking-change vehicle (SemVer clause 4), and `v0.5.0` proves it: it is the first
-  release since `v0.1.0` that **removes** something a consumer could rely on. "Backward-compatible within a
+- **The `0.x` range.** While nen's line is `0.x`, `minimum: "0.6"` means **`>=0.6.0 <0.7.0`** — a different
+  minor is out of range **in both directions**, so `0.7.0` fails it exactly as `0.5.0` does. At major zero
+  the *minor* is the breaking-change vehicle (SemVer clause 4), and both of the last two releases prove it:
+  `v0.5.0` **removed** something a consumer could rely on (the `schemas/` fallback), and `v0.6.0` changes
+  three behaviours in place — `nen stage triage`'s exit code now follows the `flagged` bucket alone,
+  `nen wc classify`'s `state.branch` becomes `string | null`, and `nen pr request-reviews` refuses at exit
+  `2` a login it can resolve to neither a bot nor a collaborator. "Backward-compatible within a
   major" is the rule **from `1.0` onward**, not today's.
 - **Two cases, two paths.** nen **absent** → the shell bootstrap directly, the sole chicken-and-egg
   carve-out. nen **present but out of range** → re-pin through nen's own verb,
@@ -97,7 +100,7 @@ There is no scheduled sweep behind you. This warm-up is the only one. **THEN** t
 operation. Run `nen --help` and the family's own `--help` and find out; the binary is the spec.
 
 **The list below is a convenience index, not the authority — `nen --help` is.** It reflects the **37**
-families present at the contract's pinned ref (`v0.5.0`), across **94** verbs; a newer pin may carry more.
+families present at the contract's pinned ref (`v0.6.0`), across **94** verbs; a newer pin may carry more.
 **Never conclude a verb does not exist because it is missing from this paragraph** — check the binary, which
 is the spec.
 
@@ -251,9 +254,11 @@ answers exit `4` with its own reason whatever `--target` says; a runnable row wi
 **Standing a repository up** — Transmuter's lane, and the order is the one nen's own README gives:
 
 1. `nen shu detect --repo <path>` — read the proposal, including every withheld row and its reason.
-2. `nen scaffold init --repo <path> --accept-detected --directories <dirs> --agent-trailer <key>
-   --run-trailer <key> --marker-env <VAR> --dry-run` — every write, migration and refusal previewed, nothing
-   spawned. Then without `--dry-run`: the trailer hook, `nen/contract.json`'s project block into absence,
+2. `nen scaffold init --repo <path> --accept-detected --directories <dirs> --marker-env <VAR>
+   [--agent-trailer <key>] [--run-trailer <key>] --dry-run` — every write, migration and refusal previewed,
+   nothing spawned. **`--marker-env` is the only one of the three still required** at the pinned `0.6.0`:
+   `--agent-trailer` defaults to `Akatsuki-Agent`, the family's own CI-plane provenance key, and
+   `--run-trailer` is optional with no default, recorded under the separate `commits.runTrailer`. Then without `--dry-run`: the trailer hook, `nen/contract.json`'s project block into absence,
    the four taxonomy files still under `schemas/` **copied** into `nen/` with the `git rm` line printed, the
    stack's CI workflow, `.nen/` in `.gitignore`, and a closing `nen shu tools` **check** that installs
    nothing. Pass `--stack <id>` instead of `--accept-detected` to state a stack; with neither it refuses.
@@ -261,12 +266,16 @@ answers exit `4` with its own reason whatever `--target` says; a runnable row wi
 4. `nen shu tools --repo <path>` — the host verdict, on its own exit code.
 
 For a project that does not exist yet: `nen scaffold new --stack <id> --name <project> --dir <path>
-[--agent-trailer <key> --run-trailer <key> --marker-env <VAR>] --dry-run`, then without — the manifest
+--marker-env <VAR> [--agent-trailer <key> --run-trailer <key>] --dry-run`, then without — the manifest
 that identifies the stack, `nen/contract.json` as `shu detect` proposes it off that marker, the CI workflow
-and `.gitignore`, into an empty directory it refuses to merge into. The commit-msg hook is written **only
-when all three trailer flags are given**; omitted, the line reads `skipped: .git/hooks/commit-msg -- no
-trailer convention was stated` and the post-steps name the `scaffold init` line that installs it (verified
-live both ways). Every post-step (`git init`, the dependency install) is printed and none is
+and `.gitignore`, into an empty directory it refuses to merge into. **At the pinned `0.6.0` the commit-msg
+hook's automated half is DERIVED from the resolved policy** rather than from a hard-coded trailer pair: it
+requires the one key `--agent-trailer` resolved to, plus `commits.runTrailer` only where the policy states
+one, and `--marker-env` is the single flag still required unconditionally — its missing-flag refusal names
+itself and says what the other two default to (verified live, exit `2`). A policy whose
+`commits.allowedAttributionTrailers` does not admit the resolved key generates a hook that refuses every
+automated commit outright, naming the missing policy, rather than checking for a trailer no commit there
+could honestly carry. Every post-step (`git init`, the dependency install) is printed and none is
 run. Only `expo`, `gatsby` and `nextjs` have a fresh-tree form; the refusal for the others names
 `scaffold init` as the way forward after the stack's own generator has run.
 
@@ -433,7 +442,7 @@ exist yet names its stack; once it clears G1, the first Enhancer/Transmuter act 
 Every parameter below is read, never remembered: **`nen/workflow.json`** holds the policy (branch shape,
 iteration checks, the coverage ladder, reports, notifications, the trailer allow-list, the model matrix) and
 **`nen/contract.json` → `project`** holds what nen executes (lanes, per-verb argv, preconditions, hosts,
-targets, `launch` and `evidence`). **Both of those last two are PARSED at the pinned `v0.5.0`, not merely
+targets, `launch` and `evidence`). **Both of those last two are PARSED at the pinned `v0.6.0`, not merely
 preserved**, and each block key is guarded against a near-miss — `launches`/`Launch`, `evidences`/`Evidence`
 — because a silently-kept misspelling is read by nobody while the verb that needs it refuses. `launch`
 targets may also declare their own `lane` and `artifact`. `docs/WORKFLOW.md` is the full shape of both.
@@ -548,7 +557,7 @@ therefore launch nothing at all.
   live); a target repository's `commit-msg` hook, generated by `nen scaffold init` from
   `allowedAttributionTrailers` (KroApple and kro-pwa carry one); and **`nen commit format --repo` and
   `nen wc squash`, which refuse it outright at exit `2` naming the file** — verified live against hatsu's
-  own checkout at the pinned `0.5.0`. **Layer (b) stays target-dependent**: a repository that has not been
+  own checkout at the pinned `0.6.0`. **Layer (b) stays target-dependent**: a repository that has not been
   scaffolded has the agent-side refusal plus the verb's, and no hook, and that is said rather than dressed
   up as mechanical. **Always pass `--repo`** — the policy is opened only when the invocation carries a
   `--trailer`, so without it nothing is refused. The lists are data, in

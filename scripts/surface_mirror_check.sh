@@ -32,7 +32,7 @@
 # run is an unperformed check rendered as a passing one — the failure
 # nen/contract.json § no_improvised_fallback names, and the same failure the
 # plugin-bump guard was filed after. The pinned nen in nen/contract.json is
-# v0.5.0, which CARRIES the verb — it predated it through v0.4.0 (`nen surface` →
+# v0.6.0, which CARRIES the verb — it predated it through v0.4.0 (`nen surface` →
 # "nen: unknown command 'surface'", exit 2; transcript in docs/ab/surfaces.md
 # § 2.3). So 2 is now UNEXPECTED: at this pin it means the nen on PATH is not the
 # pinned one, and .github/workflows/surface-mirror-check.yml turns it into an

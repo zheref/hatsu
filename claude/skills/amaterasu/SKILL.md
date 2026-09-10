@@ -65,7 +65,7 @@ otherwise be worth reading — and `ren` is automatic, so the cost is per turn, 
 | The targets that exist | `nen/contract.json` → `project.launch` (a map of target name → row) |
 | Which verb the target runs | `project.launch.<target>.verb` (`dev`, ordinarily) |
 | Extra argv for that verb | `project.launch.<target>.args` |
-| The device to resolve | `project.launch.<target>.device` — `name`, `kind` (`simulator` marks one), and `resolve` (`{exe, argv}`, the probe) |
+| The device to resolve | `project.launch.<target>.device` — `name`, `kind` (`simulator` marks one), `resolve` (`{exe, argv}`, the probe), and `readyWhen` (which of the probe's own states count as ready — § 4) |
 | What happens after the build | `project.launch.<target>.after[]` — steps carrying `{device.id}` and `{artifact}` |
 | The verb's real command line | `nen/contract.json` → `project.verbs.<lane>.<verb>` |
 | Where it runs, and what it produces | `project.lanes.<lane>.cwd`, the row's `artifacts` (`{artifact}` is the **first** entry) |
@@ -78,7 +78,7 @@ and ask which one; **with no `project.launch` either, this is § 1's no-launch c
 `no launch target declared; skipped` and continue, and where the lane does declare a plain `dev`
 row, run § 5's dry run and paste the command as the thing the maintainer could start by hand.
 
-**`project.launch` is NEN's key at the pinned `0.5.0`, and `nen shu dev|run --target <name>` executes
+**`project.launch` is NEN's key at the pinned `0.6.0`, and `nen shu dev|run --target <name>` executes
 it.** The loader parses the block rather than preserving it — a key one spelling out (`arg`,
 `devices`, `resolver`, `verbs`, or the block key itself as `launches`/`Launch`) is refused **by
 pointer** naming which misspelling it is, because preserved it would be read by nobody and two thirds
@@ -94,6 +94,14 @@ on lane 'app', which this target declares`, and `substitutes: {device.id} <- 'iP
 a simulated device is addressed by its name, so nothing is probed; {artifact} <- Reports/app.bin
 (project.launch.sim.artifact, not the verb's own)`. **So the whole of the block below is nen's to run**
 — § 7 records what is left.
+
+**A third optional key lands at `0.6.0`, and it is the one this skill reads hardest:
+`project.launch.<name>.device.readyWhen`** — `{ "field": <n>, "in": [ … ] }` against a probe that
+prints lines, `{ "path": "<dotted key>", "in": [ … ] }` against one that prints JSON. It says which of
+the probe's own states count as READY, and a row that is present and not one of them is exit `5`
+rather than a resolution nothing can use (§ 4). It is validated at load by pointer — exactly one of
+`field`/`path`, `in` non-empty, `field` ≥ 1, and refused outright on a device with no `resolve` probe
+— **and absent it changes nothing at all**, which is why § 4 has two paths rather than one.
 
 ## 3. The core working directory, never a worktree
 
@@ -164,29 +172,37 @@ Where the target declares a `device`, run its `resolve` probe **as declared** an
 | Outcome | What amaterasu does |
 |---|---|
 | The named device is present **and in a usable state** | take its id, substitute `{device.id}` into the `after` steps (§ 6) |
-| The named device is **present but NOT in a usable state** — `unauthorized`, `offline`, `no permissions` on Android; `available (paired)` or `unavailable` on iOS | **Refuse the launch, and do not fall back.** Say it in those words — "`<device.name>` is attached and `unauthorized`; the probe saw: `<the whole list>`" — name the on-device step that closes it ([`hatsu:jujutsu`](../jujutsu/SKILL.md) § 3), and stop. **nen resolves this row and reports it as resolved** (below), so the state is read here or it is not read at all |
+| The named device is **present but NOT in a usable state** — `unauthorized`, `offline`, `no permissions` on Android; `available (paired)` or `unavailable` on iOS | **Refuse the launch, and do not fall back.** Where the target declares `device.readyWhen`, **nen has already refused it** at exit `5` naming the device, the state seen and the states accepted — relay that sentence, do not restate it in your own words, and name the on-device step that closes it ([`hatsu:jujutsu`](../jujutsu/SKILL.md) § 3). Where it declares **no** rule, nen resolves the row and reports it resolved, so the state is read here or not at all — refuse in those words, *"`<device.name>` is attached and `unauthorized`; the probe saw: `<the whole list>`"*, and say that the target is missing a `readyWhen` (below) |
 | The named device is **absent** | **Report it by name** — "`<device.name>` is not connected; the probe saw: `<what it listed>`" — then fall back to `workflow.json → launch.fallback`, which is a target whose `device.kind` is `simulator`. Say the fallback was taken and which target it was |
 | Absent, and `launch.fallback` is `null` | say so and stop. Not a gate: a device nobody plugged in is a fact, and picking a different one is a guess |
 | The target declares no `device` at all | nothing to resolve — a desktop or web lane, § 5 straight through |
 
-> **Present-but-unusable is a THIRD outcome, and until [`zheref/nen#165`](https://github.com/zheref/nen/issues/165)
-> lands nen cannot see it.** `device.resolve` is `{exe, argv}` plus a name to match, with nowhere to
-> say which states count, so nen matches the name and stops there. Observed live on 2026-09-10
-> against `zheref/KroAndroid`: `nen shu dev --target galaxy` matched a row reading
-> `R52X603Q9BA unauthorized usb:33-3.2`, printed `device: R52X603Q9BA  id usb:33-3.2` as resolved,
-> and every `adb -s usb:33-3.2 …` after it answered `adb: device unauthorized`. **So read the
-> probe's own state column before trusting the resolution** — the second column of `adb devices -l`,
-> the **State** column of `xcrun devicectl list devices` — and refuse on anything but
-> `device` / `connected`. **Do not take the simulator fallback here**: the fallback answers "nobody
-> plugged it in", and this device *is* plugged in and one tap from working. Taking it would launch
-> somewhere else and report success.
+> **Present-but-unusable is a THIRD outcome, and at the pinned nen `0.6.0` the DECLARATION decides
+> whether nen can see it.** `project.launch.<name>.device.readyWhen` names which of the probe's own
+> states count — `{field, in}` for a probe that prints lines, `{path, in}` for one that prints JSON —
+> and a row that is present and not one of them is **exit `5` naming the device, the state seen and
+> the states accepted**, listing what the probe offered, *before* the missing-id refusal. Absent, the
+> behaviour is exactly what it was: nen matches the name and stops there. Observed live on 2026-09-10
+> against `zheref/KroAndroid` at the then-pinned `0.5.0`: `nen shu dev --target galaxy` matched a row
+> reading `R52X603Q9BA unauthorized usb:33-3.2`, printed `device: R52X603Q9BA  id usb:33-3.2` as
+> resolved, and every `adb -s usb:33-3.2 …` after it answered `adb: device unauthorized`.
+>
+> **So there are two readings here and the dry run says which one applies:** the `readiness:` line is
+> printed only where a rule is declared, with nothing connected. **Rule declared → the exit `5` is
+> nen's and is relayed verbatim. No rule → read the probe's own state column yourself** — the second
+> column of `adb devices -l`, the **State** column of `xcrun devicectl list devices` — refuse on
+> anything but `device` / `connected`, and **report the missing `readyWhen` as a declaration defect**
+> ([`hatsu:jujutsu`](../jujutsu/SKILL.md) § 6 writes one; it is a PR, not a thing to add here).
+> **Do not take the simulator fallback on either path**: the fallback answers "nobody plugged it in",
+> and this device *is* plugged in and one tap from working. Taking it would launch somewhere else and
+> report success.
 
 **Never refuse-by-shape and never match loosely.** The declared name is the whole test: a probe
 listing three devices none of which is the declared one is an absent device, not "close enough."
 Pairing a device that has never been set up is `hatsu:jujutsu`'s work, not this skill's.
 
 **The match is byte for byte** — exact string equality, no case folding, no Unicode normalisation, no
-smoothing of punctuation — which is what `--target` implements at the pinned nen `0.5.0`, and nen's
+smoothing of punctuation — which is what `--target` implements at the pinned nen `0.6.0`, and nen's
 own `docs/USAGE.md` says so in as many words from that release. The practical consequence is one
 character: a device named
 `Sergio’s iPhone` carries **U+2019**, not the ASCII `'`, and a declaration written with the typed
@@ -216,16 +232,20 @@ nen shu <verb> --repo <core working directory> [--lane <lane>] --dry-run --json 
 > 'dev --target t', or declare a separate target for 'run'."* Both verified live on a fixture at
 > `v0.5.0`.
 >
-> **The trap is that the wrong subcommand usually answers with the LANE'S SEAT instead**, and a seat
-> reads like a dead end. Observed live on 2026-09-10 against `zheref/KroAndroid`, whose `galaxy`
-> target declares `verb: "dev"`: `nen shu run --repo . --target galaxy --dry-run` answered at exit
-> `4` — *"'run' is unsupported on lane 'android' … a release install to a device is a deploy, not a
-> local run"* — because the seat check runs **before** the target check. That is a correct exit `4`
-> and it is the wrong sentence to act on: the declaration's answer was `dev --target galaxy`, one
-> line away, and the seat never mentions it. **So on an exit `4` from a launch verb, re-read
-> `project.launch.<target>.verb` before quoting the seat** — a seat is a fact about the lane, and it
-> is not a fact about the target. Filed as [`zheref/nen#166`](https://github.com/zheref/nen/issues/166),
-> which reorders the two checks; until it lands, the re-read is this skill's.
+> **RETIRED at nen `0.6`: re-reading the target's verb behind a seat.** With `--target` given, the
+> target's **declared verb is checked BEFORE the lane's seat**, so the wrong subcommand now answers
+> with nen's own exit `2` naming the fix rather than with a seat that never mentions the target. The
+> trap this closes, observed live on 2026-09-10 against `zheref/KroAndroid` at the then-pinned
+> `0.5.0`, whose `galaxy` target declares `verb: "dev"`: `nen shu run --repo . --target galaxy
+> --dry-run` answered at exit `4` — *"'run' is unsupported on lane 'android' … a release install to a
+> device is a deploy, not a local run"* — a correct exit `4` and the wrong sentence to act on, because
+> the declaration's answer was `dev --target galaxy`, one line away.
+>
+> **The rest of the order is unchanged and is worth holding on to.** A lane's seat still answers `4`
+> when the target's verb *does* match — there the seat is the whole answer and there is nothing
+> better behind it — a target with no command line at all is still `4` in the repository's own words,
+> and an undeclared `--target` still refuses at `2` on the lane you named. So an exit `4` from a
+> launch verb **with a target named** is now a real seat, and is quoted as one.
 
 The dry run prints the exact argv, the cwd, the env **names** and the declared artifacts and spawns
 nothing. **The command amaterasu pastes into the turn's report and into chat is that `would run:`
@@ -267,16 +287,16 @@ the terminal back; say the app is running and what is holding the terminal.
 **Reactions, by exit code** (`claude/agents/kurapika.md` § *The `shu` verbs*): `1` is a failed build —
 hand it to [`hatsu:rasengan`](../rasengan/SKILL.md), do not relaunch; `2` is usage or an unsatisfied
 precondition, named; `3` is a host the declaration excludes — **G5**, never a retry; `4` is a seat
-(the lane declares no verb by that name) — **first re-read `project.launch.<target>.verb`, because a
-seat is what a target invoked through the wrong subcommand answers with** (the box above), and only
-then quote the declaration's own words and run the repository's documented command, saying that you
+(the lane declares no verb by that name) and, with `--target` named, at the pinned `0.6.0` it is a
+**real** seat rather than a mis-typed subcommand — the target's own verb is checked first (§ 5) — so
+quote the declaration's own words and run the repository's documented command, saying that you
 did; `5` is the program not on `PATH` — `nen shu tools --repo <path>` and relay the per-tool remedy.
 
 ## 6. The after-steps
 
 A declared `after[]` — install the artifact onto the device, launch the bundle id, open the `.app` —
 runs **after** the verb, in order, with `{device.id}` from § 4 and `{artifact}` substituted. **At the
-pinned nen `0.5.0` nen runs these**, as part of the same `--target` invocation (§ 5), so there is
+pinned nen `0.6.0` nen runs these**, as part of the same `--target` invocation (§ 5), so there is
 nothing to run by hand and nothing to report as by-hand.
 
 **Which path `{artifact}` reads is a fact the dry run states**, and it is worth quoting into the
@@ -287,7 +307,23 @@ different questions and collapsing them would hide the override rather than show
 refused outside the tree, refused as an empty string, and refused when **no after-step names
 `{artifact}`** — a target that never writes the token has stated a path nothing reads.
 
-## 7. Residue — what has no verb at the pinned nen `0.5.0`
+> **`{artifact}` is substituted as the AFTER-STEP'S OWN DIRECTORY sees it, from nen `0.6.0`.** Two
+> roots exist here and they are not the same one: `artifacts` and `project.launch.<name>.artifact` are
+> stated against the **repository root**, like every declared path, while an after-step is spawned
+> with its cwd set to `project.lanes.<lane>.cwd`. On a lane whose cwd is not `.` the installer used to
+> be handed a path that resolved against the wrong root and answered *"no such file"* about a file
+> that was sitting there. The `substitutes:` line now says both strings when they differ —
+> `{artifact} <- ../build/App.app  (declared build/App.app, as the after-steps' own directory sees it
+> -- lane '<name>' does not sit at the repository root)` — while `artifacts:` keeps reporting the
+> repository-relative string, because the two answer different questions: what does this build
+> produce, and what will the child receive. `--json`'s `target` gains `artifactAs` beside `artifact`.
+>
+> **A lane sitting at the root — which is nearly all of them, Hatsu's own `plugin` lane included —
+> passes exactly the bytes it always did**, which is why the fix is relative rather than absolute.
+> Nothing here is a step this skill takes; it is a line to read correctly in a report, and quoting
+> `artifacts:` where `substitutes:` was meant is how the two roots get confused again.
+
+## 7. Residue — what has no verb at the pinned nen `0.6.0`
 
 - **RETIRED at nen `0.5`: `--target` on a launch verb.** `nen shu dev --repo <path> --target sim
   --dry-run` renders the target, the device, the appended `args`, the after-steps and both
@@ -305,16 +341,18 @@ refused outside the tree, refused as an empty string, and refused when **no afte
   runs wherever `--repo` points, worktree included, verified live. The check is
   `git rev-parse --git-common-dir` against the session's own checkout, by hand, named here. **§ 3a's
   four conditions are judged by hand too**, and there is no verb that could judge them.
-- **Reading the resolved device's STATE** (§ 4). `device.resolve` carries an argv and a name to match
-  and nothing that says which states count, so nen resolves an `unauthorized` row and prints it as
-  resolved — observed live. The state column is read here, by hand, off the probe's own output.
-  Filed as [`zheref/nen#165`](https://github.com/zheref/nen/issues/165); a `readyWhen` on the probe
-  retires this row.
-- **Re-reading `project.launch.<target>.verb` on an exit `4`** (§ 5). The lane's seat check runs
-  before the target check, so the wrong subcommand answers with a seat rather than with nen's own,
-  far better verb-mismatch message. Filed as
-  [`zheref/nen#166`](https://github.com/zheref/nen/issues/166); until it lands, the re-read is a step
-  this skill takes and names.
+- **RETIRED at nen `0.6`: reading the resolved device's STATE — where the target declares
+  `readyWhen`** (§ 4). The rule names which of the probe's own states count and a row that is present
+  and not one of them is nen's exit `5`, naming the device, the state seen and the states accepted
+  (`docs/ab/amaterasu.md` § *Retired at nen 0.6*). **What is NOT retired is the target that declares
+  no rule**: absent, the key changes nothing, nen resolves an `unauthorized` row and prints it as
+  resolved, and the state column is read here by hand off the probe's own output. That reading is
+  **residue with a fix attached** — it lapses per target, the moment a jujutsu PR writes the rule —
+  so the report names the missing `readyWhen` rather than quietly compensating for it forever.
+- **RETIRED at nen `0.6`: re-reading `project.launch.<target>.verb` on an exit `4`** (§ 5). With
+  `--target` given, the target's declared verb is checked **before** the lane's seat, so the wrong
+  subcommand answers with nen's own exit `2` naming the fix. A seat behind a named target is now a
+  real seat and is quoted as one.
 - **RETIRED at nen `0.5`: validating `nen/workflow.json`** — `nen schema check` carries the row
   ([`hatsu:breath`](../breath/SKILL.md) § 2). `launch.default` and `launch.fallback` are still read
   here; a read is not a residue, and nen has no flag that would take the default from the policy file
@@ -345,8 +383,8 @@ refused outside the tree, refused as an empty string, and refused when **no afte
 - **Never falls back to a simulator for a device that is present but unusable** (§ 4) — the fallback
   answers "nobody plugged it in", and refusing is the honest answer to "nobody accepted the prompt".
 - **Never types a `shu` subcommand the target did not declare** (§ 5). It is
-  `project.launch.<target>.verb`, and an exit `4` seat is re-read against that key before it is
-  quoted.
+  `project.launch.<target>.verb`, and at the pinned `0.6.0` naming the other one is nen's exit `2`
+  telling you which to run — never worked around by dropping `--target`.
 - **Never invents a target.** No `launch.default` and no argument, but `project.launch` declares
   targets → name what exists and ask.
 - **Never asks when the declaration already answered.** `project.launch` absent or empty, or
@@ -356,7 +394,7 @@ refused outside the tree, refused as an empty string, and refused when **no afte
 - **Never substitutes a plausible command for a declared one**, and never re-types the pasted command
   from memory — it is the `--dry-run` argv, verbatim (plus the target's declared `args`, appended
   visibly), or it is not pasted.
-- **Never runs the bare lane verb for a target that declares `args`.** At the pinned `0.5.0` nen
+- **Never runs the bare lane verb for a target that declares `args`.** At the pinned `0.6.0` nen
   appends them itself (§ 5), so the one line with `--target` is the whole of it; a bare
   `nen shu dev` starts a different build than the declaration names. Name the target, or refuse it by
   name — never quietly run the shorter line.

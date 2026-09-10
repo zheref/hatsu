@@ -83,7 +83,7 @@ here fails in CI.
 | `0` | the declared step ran and passed (or the dry run rendered) | next check; when the list is exhausted, report and hand back |
 | `1` | **the ordinary red build** — the tool ran and failed; its own code is in `steps[].exitCode`, nen's is always `1` | **Fix it here.** Relay the tool's own output, name the failing step (`step N of M`), fix the code or the declaration, re-run. Never commit over it (§ 9) |
 | `1` | *also*: `nen/contract.json` is present and **malformed** | a repository defect, not a red build. The refusal names the file and the pointer — fix the declaration, and land it as machinery at **G4** where it is not this effort's own file |
-| `2` | usage: no declaration, no `project` block, an unknown `--lane`, an unsubstituted placeholder, a path outside the repo, or an **unsatisfied precondition** | fix the invocation or the declaration. A precondition is nen's to assert and never to perform: satisfy it yourself and say which one it was. § 6 covers the no-declaration case |
+| `2` | usage: no declaration, no `project` block, an unknown `--lane`, an unsubstituted placeholder, a path that **really** lands outside the repo (§ 4a), or an **unsatisfied precondition** | fix the invocation or the declaration. A precondition is nen's to assert and never to perform: satisfy it yourself and say which one it was. § 6 covers the no-declaration case |
 | `3` | **unsupported host** — the verb is real, this machine is not on `project.hosts` | **G5.** Name the host the declaration allows and stop; never retry, never route around it |
 | `4` | **a seat** — the lane declares no such verb, in the declaration's own words | Not a failure. **Quote the seat's reason verbatim**, run the repository's own documented command for that check, say that you did — and where the seat should be a real row, land the declaration change as its own PR at **G4** |
 | `5` | the declared program could not be started at all | run `nen shu tools --repo <path>` and relay its per-tool remedy; `--install` for what `corepack` can activate, a human for the rest. Never `sudo`, never a version the declaration did not pin |
@@ -111,9 +111,34 @@ fully declared repository undeclared.
 - A **host** row excludes this machine at exit `3`. That is a G5, not a retry.
 - An **unsubstituted placeholder** is exit `2`. Fill it in the declaration, not on the command line.
 
+### 4a. Containment — the path the kernel would reach, not the one the file spells
+
+**From nen `0.6.0` every declared path a run reads or writes is contained against the repository's
+REAL root, symlinks resolved, at the moment of use** — `project.lanes.<lane>.cwd`, a `path`
+precondition, every `artifacts[i]`, a launch target's `artifact`, a step's `stdoutTo`, and the
+coverage and test reports `shu coverage` / `shu test-report` read back. Verified live at exit `2`
+before anything was spawned (`docs/ab/rasengan.md` § *Retired at nen 0.6*):
+
+```text
+nen shu: project.lanes.a.cwd names 'build', which really resolves to '<outside>', outside the repository
+at <repo>: '<repo>/build' is a symlink pointing at '<outside>'. nen touches only what its report says it
+touches, so this path is refused rather than followed.                                            # exit 2
+```
+
+Through `v0.5.0` the test was **lexical**: `build/payload` read as plainly inside the tree and walked
+straight out of it whenever `build/` was a symlink, and `--dry-run` reported `ok` about every one of
+those paths. **A symlink that stays inside the tree is ordinary and still allowed** — the question is
+where the path *lands*, never whether a link was involved.
+
+> **`nen schema check` is deliberately silent about it, and a clean row is NOT a containment
+> verdict.** The loader has no filesystem, so a `cwd` of `../../../../etc` reads as a well-formed
+> declaration and is refused at the moment of use instead: **pointers are checked at load, paths at
+> use** (verified — the symlinked fixture above reports `ok nen/contract.json`). Never report a green
+> `schema check` as evidence that a declaration's paths are contained.
+
 ## 8. Long-running checks, and the stall guard the declaration owns
 
-**A captured verb may declare a stall guard, and at the pinned nen `0.5.0` nen runs the repository's
+**A captured verb may declare a stall guard, and at the pinned nen `0.6.0` nen runs the repository's
 own remedy.** The shape is `"stall": { "elapsedMs", "quietMs", "onStall": { "exe", "argv" },
 "maxStrikes" }`, on an invocation or on one `steps[]` entry; it fires only once **both** budgets are
 past — total elapsed **and** a quiet window with no output — because a guard acting on silence alone
@@ -134,7 +159,7 @@ a check to escape a stall; a check nobody watched is a check nobody ran.
 
 ## 9. What "green" means, and what it is worth
 
-Rasengan's output is the turn's **build proof**, and at the pinned nen `0.5.0` that proof is a FILE
+Rasengan's output is the turn's **build proof**, and at the pinned nen `0.6.0` that proof is a FILE
 as well as a transcript: a green `nen shu build` writes `.nen/proof/<lane>.json`
 (`nen.shu.proof/v0.1`: `contract`, `lane`, `verb`, `treeHash`, `at`, `exitCode`) and a red one
 **removes** an existing file, so a stale proof never outlives the tree it proved. Verified live at
@@ -157,7 +182,7 @@ not by committing "so the fix is on the branch", not by declaring a seat where a
 one exception is a code `3` host fact and a code `4` seat, both of which are facts about the
 repository that rasengan quotes and hands upward.
 
-## 10. Residue — what has no verb at the pinned nen `0.5.0`
+## 10. Residue — what has no verb at the pinned nen `0.6.0`
 
 - **RETIRED at nen `0.5`: build proof.** `nen shu build` writes `.nen/proof/<lane>.json` on green and
   removes it on red, and `nen commit check --require-proof <lane>` reads it back (§ 9, both verified

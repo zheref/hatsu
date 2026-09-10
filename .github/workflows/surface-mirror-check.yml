@@ -29,7 +29,7 @@
 # exit 2, precisely so that it would disappear by itself the moment the pinned
 # nen carried the verb — no edit to this file, no remembering.
 #
-# The pin is `v0.5.0` and that nen carries `nen surface mirror generate|check`.
+# The pin is `v0.6.0` and that nen carries `nen surface mirror generate|check`.
 # Verified locally against this branch: `bash scripts/surface_mirror_check.sh`
 # exits 0, `codex ok: 40` and `cursor ok: 47`, no missing/extra/stale/hand-edited
 # rows. So the skip branch is unreachable at this pin, and it is kept as an
@@ -206,8 +206,8 @@ jobs:
             2)
               # Unreachable at a pin that carries the verb, and kept as a FAILURE
               # rather than deleted. Through v0.4.0 this branch was a loud skip,
-              # because the pinned nen predated `nen surface`. At v0.5.0 the verb
-              # is in the pinned binary, so this exit means the pin or the
+              # because the pinned nen predated `nen surface`. From v0.5.0 onward the
+              # verb is in the pinned binary, so this exit means the pin or the
               # bootstrap is wrong — a thing to report, never to pass through.
               echo "::error title=surface-mirror-check could not run::The bootstrapped nen (${PINNED_REF}) has no 'surface mirror' verb, so surfaces/codex and surfaces/cursor were NOT checked. At this pin that is a defect in the pin or the bootstrap, not a condition to skip past: nen/contract.json's dependency.pinned_ref is expected to name a nen carrying the verb. See docs/SURFACES.md § 4."
               exit 1

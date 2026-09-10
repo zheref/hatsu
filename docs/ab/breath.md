@@ -280,7 +280,7 @@ $ nen schema check --repo .
   FAIL  nen/repos.json    … no such file …
   FAIL  nen/colors.yml    … no such file …
   warn  nen/gates.json    … no such file …
-  ok    nen/contract.json  dependency (nen >= 0.5, pinned v0.5.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)
+  ok    nen/contract.json  dependency (nen >= 0.6, pinned v0.6.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)
   ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off 'main', checks: lint
 exit=1
 ```
@@ -296,3 +296,115 @@ FAIL  nen/workflow.json  …: at notifications.turn, 'loud' is not one nen imple
 ```
 
 **Reading the values is still this skill's**, and that is a read rather than a residue.
+
+## Retired at nen 0.6 — 2026-09-10
+
+Run against the released `zheref/nen` `v0.6.0` binary (`nen-darwin-arm64`, sha256
+`2674dc58…151737e1`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.6.0`, on `PATH` as
+`nen`; `nen --version` → `0.6.0`). Two residues retire here and both were found by real runs rather
+than by reading the changelog: one stopped a headless Codex run dead (`docs/ab/surfaces.md` § 7, F4),
+the other is the shape every delegated effort in this repository actually has.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| a detached `HEAD` refused by `wc classify` | `nen wc classify --repo <detached worktree> --base main` | **`0`**, with a case |
+| cutting by hand when another worktree holds the trunk | `nen shu warmup --repo <linked worktree> --branch … --from main --dry-run` | **`0`**, decision printed |
+
+### `nen wc classify` CLASSIFIES a detached `HEAD`
+
+A throwaway repository with a primary checkout on `main` and a second worktree added with
+`git worktree add --detach`:
+
+```text
+$ nen wc classify --repo <detached> --base main
+case: on-branch-clean
+branch: (detached HEAD at bafd762)
+  on a detached HEAD at bafd762 with nothing uncommitted -- open or report the existing PR      # exit 0
+```
+
+```json
+{ "state": { "branch": null, "detachedAt": "bafd762", "isTrunk": false, "dirty": false,
+             "aheadOfBase": 0, "existingCommitSubjects": [], "uncommittedPaths": [] },
+  "result": { "case": "on-branch-clean",
+              "evidence": ["on a detached HEAD at bafd762 with nothing uncommitted -- open or report the existing PR"] } }
+```
+
+Through `v0.5.0` the identical call was exit **`1`** — the code this family reserves for *the tree is
+not clean* — printing its prose on **stdout** under `--json`, so a caller could tell neither "not
+clean" from "cannot classify" nor parse the answer at all. **The branch is a field of the answer
+now**, not a precondition of it: `state.branch` is `string | null`, `state.detachedAt` carries the
+short sha, `isTrunk` is false there whatever `--base` says (`must-move` cannot apply — a commit made
+on a detached `HEAD` lands on no branch), and the text output carries a `branch:` line on every path.
+**One refusal remains and it says what it means**: a `HEAD` that names no branch *and* resolves to no
+commit — a repository with no commits yet — has no working copy to classify.
+
+**Why this one mattered here.** `hanten` § 9a makes a `git worktree add --detach` for every Codex
+reviewer, so the surface Hatsu ships to was the surface whose ordinary starting state stopped § 3
+before it began. The skill used to route that refusal to § 5 and let `shu warmup` speak; § 3 now
+reads the classification like any other and § 5 still owns the one genuine stop — a detached `HEAD`
+carrying **unreachable commits**, which is exit `2` and **G5**, because the cut would orphan them.
+
+### `nen shu warmup` survives a trunk held by ANOTHER worktree
+
+The ordinary shape of this whole way of working — a primary checkout standing on `main`, every effort
+in its own `git worktree` beside it — is the shape git refuses to force-move the trunk in. Against a
+throwaway repository built that way, with `--from main` and the trunk held by the primary checkout:
+
+```text
+$ nen shu warmup --repo <effort worktree> --branch demo/kurapika/x --from main --dry-run
+…
+would run:     git show-ref --verify --quiet refs/heads/main
+               --from names the LOCAL branch this warm-up fast-forwards, and it must already exist
+ran:           git worktree list --porcelain  -- exit 0 in 12ms
+               which worktree of this repository has 'main' checked out. Git refuses to force-move a branch
+               that is checked out ANYWHERE ('fatal: cannot force update the branch ... used by worktree at
+               ...'), and the local ref is not needed for the cut: the new branch comes off origin/main
+               either way
+               trunk held by worktree <…>/primary; cutting from origin/main directly. The local 'main' is
+               left exactly where it is -- moving it is git's to refuse, and nothing here needs it moved
+would run:     git check-ref-format --branch demo/kurapika/x
+…
+would run:     git switch -c demo/kurapika/x origin/main                                          # exit 0
+```
+
+**Three things this settles.** The `worktree list` read sits **before the fetch**, among the checks
+that need no mutation, so a list that cannot be read refuses at exit `2` before anything moves rather
+than after. The fast-forward now has **three** shapes rather than two — a merge when this checkout is
+on the trunk, a ref move when no worktree holds it, and **nothing at all** when another one does. And
+the cut is unchanged: `origin/main` either way, because it never read the local ref, which is exactly
+why the local fast-forward was never needed for it.
+
+**`--dry-run`'s guarantee changed with it, and `--json` says so.** It is *mutates nothing* rather than
+*runs nothing* — one closed-list read-only command — and the `worktree list` row carries a real exit
+code while every planned row is `null`:
+
+```text
+$ nen shu warmup --repo <effort worktree> --branch demo/kurapika/y --from main --dry-run --json
+contract: nen.shu.warmup/v0.1 | dryRun: true | discard: false
+worktree row exitCode: 0
+null-exitCode rows: 12 of 13
+top-level keys: contract, repo, trunk, remote, branch, discard, dryRun, steps, lane, exitCode
+```
+
+**Read `dryRun`, never the exit codes**, when a report has to say which form produced it — that is
+the whole reason the key was added.
+
+### Re-verified at this pin, not carried forward: the `nen/workflow.json` row
+
+§ 2's six-row claim is a **statement about the current pin**, so it was re-run rather than inherited
+from the v0.5 section above. Against this repository's own checkout, with the `v0.6.0` binary:
+
+```text
+$ nen schema check --repo <this checkout>
+  FAIL  nen/labels.json   … no such file …
+  FAIL  nen/repos.json    … no such file …
+  FAIL  nen/colors.yml    … no such file …
+  warn  nen/gates.json    … no such file …
+  ok    nen/contract.json  dependency (nen >= 0.6, pinned v0.6.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)
+  ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off 'main', checks: lint
+                                                                                                  # exit 1
+```
+
+**Six rows, the two this skill reads both `ok`, and the exit `1` is Hatsu shipping no taxonomy** —
+identical in shape to the same call against `origin/main` before this repin (also exit `1`, also four
+non-`ok` rows), so nothing here regressed. `hatsu-warmup` § 1 is the authority on all six.
