@@ -101,7 +101,7 @@ bounded `CON-25` delegation (§ 7), and a delegation nobody announced is a deleg
 ### Verified live, every band shape and both terminals
 
 Run against the real `<reference-repo>` checkout (`--repo` = that checkout's path; `GH_TOKEN` not
-needed — this verb reads only `nen/repos.json` — legacy `schemas/repos.json` until `v0.4.0` — on disk,
+needed — this verb reads only `nen/repos.json` on disk,
 no GitHub call):
 
 | Invocation | Result |
@@ -255,11 +255,10 @@ nen pr ready <CODE>#<N> --repo <path> --gates "$CLAUDE_PLUGIN_ROOT/contracts/ref
 ```
 
 `--gates` anchored on `$CLAUDE_PLUGIN_ROOT` for `<reference-repo>` specifically (frozen, ships no gates
-file of its own — neither `nen/gates.json` nor the legacy `schemas/gates.json`; and since nen `v0.2.0`
+file of its own — no `nen/gates.json`; and since nen `v0.2.0`
 a relative `--gates` resolves against `--repo`'s root rather than the cwd, so only an absolute path
 reaches a file that lives in *this* plugin's checkout — [`/pr-state`](../pr-state/SKILL.md) § 2
-has the live transcript); a repo that ships its own `nen/gates.json` (or, until `v0.4.0`,
-`schemas/gates.json`) needs no `--gates` flag. **Verified live against both of `<reference-repo>`'s
+has the live transcript); a repo that ships its own `nen/gates.json` needs no `--gates` flag. **Verified live against both of `<reference-repo>`'s
 real open PRs**, contrasting a Ready maintainer-authored PR against a not-Ready pre-existing CI one
 (`docs/ab/futon.md` § 4):
 

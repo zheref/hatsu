@@ -308,8 +308,10 @@ and the final report's path. Nothing after the merge is en's: the tag is
    (§ 6, `izanagi` § 3's finding). `nen parse izanagi` refuses a missing `N` once, at parse time;
    `nen watch until --max-iterations` bounds one observation. The ledger of acting cycles, and the
    stop at `N`, are en's.
-3. **`nen/workflow.json` is unvalidated at `v0.3.0`** — no row in `nen schema check` (verified live,
-   `docs/ab/en.md` § 2.5). § 2's keys are read as data with the defaults stated.
+3. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
+   an `ok  nen/workflow.json` row at the pinned `v0.5.0` (verified live, `docs/ab/en.md` § *Retired at
+   nen 0.5*), and a malformed `monitor` block is a FAIL by pointer. § 2's keys are still read here;
+   reading a file is not residue.
 4. **A watch that survives the session has no mechanism at all** (§ 7) — not a missing verb: no
    timer, no background pass, no deferral primitive anywhere in this plane. **The long watch itself
    is no longer a gap** — [`illumi.md`](../../agents/illumi.md) landed at `v0.5.0` and step 6 hands

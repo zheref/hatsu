@@ -179,9 +179,10 @@ maintainer tuning the file knows where the effect lands:
 overrides one — a composite that quietly substituted a value would make the file a lie for the step
 that owns it.
 
-> **`nen schema check` does not validate `nen/workflow.json` at the pinned `v0.3.0`** — verified live
-> (`docs/ab/rikugan.md` § 2.4, re-run in this wave, `docs/ab/mukai.md` § 2.2): five rows, none of
-> them the workflow file. Every step reads it as data and states the defaults it fell back to.
+> **`nen schema check` VALIDATES `nen/workflow.json` at the pinned `v0.5.0`** — verified live
+> (`docs/ab/mukai.md` § *Retired at nen 0.5*): six rows, the sixth the workflow file, `ok`. A
+> malformed key is a FAIL by pointer, so no step here checks the shape by eye; every step still reads
+> the values and states the defaults it fell back to.
 
 ## 6. Reporting the run
 

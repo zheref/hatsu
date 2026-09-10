@@ -82,7 +82,7 @@ nen repo resolve --repo <path> --from <cwd>
 > same refusal's code list showed `BC (<reference-repo>)` (`docs/ab/backlog-state.md` § 4). Since
 > `v0.2.0` **a token — the origin included — resolves from everything the registry records**:
 > consumers, `product_codes` keys *and* values, `maintained_tools`, `pending_onboarding` (`nen repo
-> --help` at `v0.3.0` says so; `src/repo/resolve.ts` rule 5 names this port's exact case, "refused the
+> --help` says so; `src/repo/resolve.ts` rule 5 names this port's exact case, "refused the
 > registry's own origin FROM ITS OWN CHECKOUT — five independent skill ports tripped on exactly that").
 > The origin form is not re-run live here (it needs a checkout with an `origin` remote in the registry);
 > the token form is: `nen repo resolve BC --repo <path>` → `bankai-core (BC) via code`. If the origin form
@@ -211,18 +211,22 @@ nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/
 Verified live against two real `<reference-repo>` PRs: `RR-PR-#925` (touches
 `.github/workflows/*.yml`, `scripts/`, `tests/`) derived `G4` — *"the diff touches the process
 surface ... in a repository whose product is its process, that is a policy change"*; `RR-PR-#916`
-(touches `schemas/repos.json`) derived `G4` — *"the diff touches policy/spec (schemas/), which only
-the human merges."* Both match the tree above exactly, computed rather than eyeballed.
+(touches `schemas/repos.json`, at a port where that was still the canonical location) derived `G4` —
+*"the diff touches policy/spec (schemas/), which only the human merges."* Both match the tree above exactly, computed rather than eyeballed.
 
-**`--policy-paths` is a literal, and the taxonomy directory under it moved.** Since nen `v0.3.0` a
-target's four taxonomy files live canonically under `nen/`, with `schemas/` read as a fallback until
-`v0.4.0` — but that fallback answers only for paths nen resolves itself, and a prefix handed to `gate
-derive` is taken literally (USAGE: *"Move those pins along with the files, in the same change; `schema
-check` will not warn about them, because it never sees them"*). So the set above names **both**
-`nen/` and `schemas/` for the whole `v0.3` line — a taxonomy edit derives G4 whether the target has
-migrated or not, and a prefix matching no file is harmless. Which state a target is in is `nen schema
-check --repo <path> --json`'s answer: `checks[].location` per file, and `deprecations: []` once
-migrated — drop `schemas/` for that target then, and by `v0.4.0` at the latest. (`RR-PR-#916`'s `G4`
+**`--policy-paths` is a literal, and the taxonomy directory under it moved.** A target's four
+taxonomy files live canonically under `nen/`, and **at the pinned nen `0.5.0` the `schemas/` fallback
+is REMOVED** — a repository carrying a file only under `schemas/` is refused exactly like one
+carrying it nowhere, with the refusal naming the migration (`nen scaffold init --accept-detected`).
+**That changes what nen resolves and changes nothing here**, because a prefix handed to `gate derive`
+is taken literally and nen's resolution never sees it (USAGE: *"Move those pins along with the files,
+in the same change; `schema check` will not warn about them, because it never sees them"*). So the
+set above still names **both** `nen/` and `schemas/`: an un-migrated target edits a real
+`schemas/*.json` and that edit is still policy, a migrated one has at most a stale duplicate there,
+and a prefix matching no file is harmless. **Dropping `schemas/` would under-derive a gate;
+keeping it costs nothing.** Which state a target is in is `nen schema check --repo <path> --json`'s
+answer, whose row now carries `legacy` — a boolean saying a `schemas/<file>` copy is on disk,
+detected, never read. (`RR-PR-#916`'s `G4`
 above was derived at the port against `schemas/repos.json`; the same diff on a migrated target touches
 `nen/repos.json` and derives the same `G4` through the `nen/` prefix.)
 
@@ -276,7 +280,7 @@ nen pr ready <CODE>#<N> --repo <path> \
 `$CLAUDE_PLUGIN_ROOT`-anchored gates path** — since nen `v0.2.0` a relative `--gates` resolves
 against **`--repo`'s root, never the cwd** (verified live at `v0.3.0`, [`pr-state`](../pr-state/SKILL.md)
 § 2), and the file lives in this plugin's checkout, not the target's, so only an absolute path reaches
-it. A repo that ships its own `nen/gates.json` (or, until `v0.4.0`, `schemas/gates.json`) needs no
+it. A repo that ships its own `nen/gates.json` needs no
 `--gates` flag at all.
 
 Two things follow, unchanged from the old skill:
@@ -310,7 +314,7 @@ Two things follow, unchanged from the old skill:
 nen color status --repo <path> --present <a,b,c>
 ```
 
-Resolves the target repository's own `nen/colors.yml` (legacy `schemas/colors.yml` until `v0.4.0`)
+Resolves the target repository's own `nen/colors.yml`
 precedence for whatever category values are true of one row, and prints the first match plus what it
 outranked. Verified live against `<reference-repo>`'s own file at the port, and the exit codes re-verified
 at `v0.3.0` against nen's bundled fixture: a resolved row exits `0`; `unresolved` — nothing present, or a

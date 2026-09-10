@@ -111,37 +111,63 @@ fully declared repository undeclared.
 - A **host** row excludes this machine at exit `3`. That is a G5, not a retry.
 - An **unsubstituted placeholder** is exit `2`. Fill it in the declaration, not on the command line.
 
-## 8. Long-running checks, and the stall that has no guard
+## 8. Long-running checks, and the stall guard the declaration owns
 
-Per-step `stallTimeoutMs` and a declared `onStall` step **do not exist at nen `0.3.0`** — they are
-named for a later wave. So a check that hangs hangs, and nothing times it out. Rasengan's guard is
-stated, not automated: watch the step, and where the declaration names a stall procedure in prose,
-run it by hand and **say that you ran it by hand** (§ 10). Never background a check to escape a stall;
-a check nobody watched is a check nobody ran.
+**A captured verb may declare a stall guard, and at the pinned nen `0.5.0` nen runs the repository's
+own remedy.** The shape is `"stall": { "elapsedMs", "quietMs", "onStall": { "exe", "argv" },
+"maxStrikes" }`, on an invocation or on one `steps[]` entry; it fires only once **both** budgets are
+past — total elapsed **and** a quiet window with no output — because a guard acting on silence alone
+would fire at a healthy build that went quiet early. Verified live at `v0.5.0` against a declared
+guard: `--dry-run` prints `on stall: after 60000ms elapsed AND 30000ms with no output: sh -c 'echo
+kill'  (up to 2 times)` and the real run reports the same line, exit `0`.
+
+**Read what nen does and does not do here.** It never signals the child it started, at any strike
+count: after `maxStrikes` the step is reported **stalled** at exit `1` with `exitCode: null`, nen
+releases its hold and says the process is still running and is the caller's to stop. A guard is
+declarable only where nen READS the output — `build`, `test`, `ui-test`, `lint`, `archive`,
+`coverage`, `test-report`; on `dev`/`run`/`release`/`deploy` it is **exit `2` naming the set**.
+
+**Residue: whether a lane declares one is the repository's business, not this skill's.** Where a lane
+declares no `stall`, a check that hangs still hangs and nothing times it out — watch the step, run
+the declaration's prose remedy by hand, and **say that you ran it by hand** (§ 10). Never background
+a check to escape a stall; a check nobody watched is a check nobody ran.
 
 ## 9. What "green" means, and what it is worth
 
-Rasengan's output is the turn's **build proof**: the lane, each check's argv, each step's own exit
-code, and nen's. That proof is a **statement in this turn's report** — there is no
-`.nen/proof/<lane>.json` at `0.3.0`, and no `nen commit check --require-proof` to read one (§ 10).
-Which is exactly why [`/kokusen`](../kokusen/SKILL.md) **re-runs rasengan before each commit**
-rather than trusting a file that does not exist. Say the checks were green *in this turn*, never "the
-build is green" as a standing property.
+Rasengan's output is the turn's **build proof**, and at the pinned nen `0.5.0` that proof is a FILE
+as well as a transcript: a green `nen shu build` writes `.nen/proof/<lane>.json`
+(`nen.shu.proof/v0.1`: `contract`, `lane`, `verb`, `treeHash`, `at`, `exitCode`) and a red one
+**removes** an existing file, so a stale proof never outlives the tree it proved. Verified live at
+`v0.5.0`: the run's report carries `proof: .nen/proof/app.json  tree c5b72124… at
+2026-09-10T09:09:52.482Z`, exit `0`, and the file on disk holds exactly those fields.
+
+**`treeHash` is git's tree object for the WORKING COPY, not the index** — computed through a scratch
+index under `.nen/`, so the repository's own index is never read or written and no ref moves. That is
+what makes `nen commit check --repo <path> --require-proof <lane>` cheap enough to run a moment
+before a commit with everything staged (verified live, exit `0`, *"verdict: OK -- this working copy
+is the one the build proved green"*). It reports and blocks nothing.
+
+So say the checks were green *in this turn* and name the proof file; never "the build is green" as a
+standing property, because the file's whole point is that it stops being true the moment the tree
+moves. [`/kokusen`](../kokusen/SKILL.md) § 2 now READS the proof rather than re-running this
+skill blind.
 
 **A red build is fixed, never committed over, and never worked around.** Not by narrowing the check,
 not by committing "so the fix is on the branch", not by declaring a seat where a real row failed. The
 one exception is a code `3` host fact and a code `4` seat, both of which are facts about the
 repository that rasengan quotes and hands upward.
 
-## 10. Residue — what has no verb at nen `0.3.0`
+## 10. Residue — what has no verb at the pinned nen `0.5.0`
 
-- **Build proof.** `.nen/proof/<lane>.json` (`{treeHash, lane, exitCode, at}`) and
-  `nen commit check --require-proof <lane>` are not in this release. The proof is the transcript in
-  the turn's report, and the guard is kokusen re-running this skill.
-- **Stall guard.** No per-step `stallTimeoutMs`, no declared `onStall` step (§ 8). Watching is the
-  skill's; running a declared stall procedure is by hand, and named.
-- **Reading `nen/workflow.json`.** No loader and no `nen schema check` row at `0.3.0`; `iteration.checks`
-  is read as data by this skill (see [`/breath`](../breath/SKILL.md) § 2).
+- **RETIRED at nen `0.5`: build proof.** `nen shu build` writes `.nen/proof/<lane>.json` on green and
+  removes it on red, and `nen commit check --require-proof <lane>` reads it back (§ 9, both verified
+  live, exit `0`). A repository that does not ignore `.nen/` will see the file in `git status`.
+- **RETIRED at nen `0.5`: the stall guard** (§ 8) — a declared `stall` block is nen's to run. What
+  stays this skill's is watching a lane that declares **none**, and running that declaration's prose
+  remedy by hand, named.
+- **RETIRED at nen `0.5`: validating `nen/workflow.json`.** `nen schema check` carries the row.
+  Reading `iteration.checks` is still this skill's (see [`/breath`](../breath/SKILL.md) § 2),
+  and a read is not a residue.
 - **A per-run log file.** `log:` reports *"not captured to a file … A `.nen/logs/` transcript is not in
   this release (zheref/nen#91)"* — each step's output is relayed as it finishes, so the turn's report
   is the only record. Quote what matters; do not claim a log exists.

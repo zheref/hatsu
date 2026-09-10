@@ -9,7 +9,7 @@ description: Turn a dirty working copy into one PR standing ready at its gate. U
 **Nature: Manipulator** carries every run — branching, staging, committing, opening and requesting
 review on a PR is GitHub-side operation by definition, whichever nature authored the diff.
 **Which authorship nature the diff itself is: Enhancer** (product code), **Conjurer** (governance/
-canon — `CONSTITUTION.md`, `handbooks/`, `nen/` (the taxonomy; legacy `schemas/`), `agents/`), or
+canon — `CONSTITUTION.md`, `handbooks/`, `nen/` (the taxonomy), `agents/`), or
 **Transmuter** (machinery — workflows, scripts, hooks, scaffolding, a `nen/contract.json` `project`
 block). `nen gate derive` (§ 5) narrows this to G2-or-G4 and names
 *which* path set hit; Conjurer-vs-Transmuter inside a G4 hit is judgment this skill states, never
@@ -122,11 +122,16 @@ nen repo resolve <CODE> --repo <path>               # matches an explicit code i
 > `consumers[]` entries and refused the registry's own repo with `that is not in this registry`, even
 > though `BC` was a listed code. Since `v0.2.0` every token — the origin included — resolves from
 > **everything** the registry records (consumers, `product_codes` keys and values, `maintained_tools`,
-> `pending_onboarding`; `nen repo --help` at `v0.3.0`, and `src/repo/resolve.ts` rule 5 names this exact
-> case). The token form is verified live at `v0.3.0` (`nen repo resolve BC --repo <path>` → `bankai-core
-> (BC) via code`); the origin form needs a checkout whose `origin` the registry records and was not
-> re-run here. Either form works from inside the registry-owning repo now; if the origin form ever
-> refuses a repository its own code list names, pass the code explicitly and file it as a new finding.
+> `pending_onboarding`; `nen repo --help`, and `src/repo/resolve.ts` rule 5 names this exact case). The
+> token form is verified live (`nen repo resolve BC --repo <path>` → `bankai-core (BC) via code`); the
+> origin form needs a checkout whose `origin` the registry records and was not re-run here. Either form
+> works from inside the registry-owning repo now; if the origin form ever refuses a repository its own
+> code list names, pass the code explicitly and file it as a new finding.
+>
+> **RETIRED at nen `0.5`: a target with NO registry refuses at exit `2`, naming the file** — where through
+> `v0.4.0` it failed at exit `1`, indistinguishable from an unresolved token. Read `1` as *the registry
+> opened and the token is not in it* and `2` as *there is no registry here*; a registry present but
+> malformed stays `1`.
 
 ## 3. Staging — every file is looked at, and some are asked about
 
@@ -234,10 +239,11 @@ nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,nen/,sc
   [--body-from <path to the drafted PR body>]
 ```
 
-(`--spec-paths` is a literal prefix list, outside nen's `schemas/`→`nen/` fallback — it names **both**
-directories for the whole `v0.3` line so a taxonomy edit owes a fragment whether the target has migrated
-or not; drop `schemas/` once `nen schema check --repo <path> --json` reports `deprecations: []` for that
-target, and by `v0.4.0` at the latest.)
+(`--spec-paths` is a literal prefix list, outside nen's taxonomy resolution entirely — it names
+**both** directories so a taxonomy edit owes a fragment whether the target has migrated or not. **At
+the pinned nen `0.5.0` the `schemas/`→`nen/` fallback is removed**, which changes what nen *reads*
+and changes nothing about a literal prefix: an un-migrated target still edits a real `schemas/*.json`
+and still owes a fragment for it, so both stay listed.)
 
 Verified live (`docs/ab/tensho.md` § 2.5): reports `not-applicable` when the diff touches none of
 `--spec-paths`; `required` when it does and no fragment is among the **changed files** (a fragment
@@ -256,9 +262,10 @@ nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/
 
 These are `<reference-repo>`'s own two-tier split, verbatim from `hatsu`'s own
 [`sharingan`](../sharingan/SKILL.md) prose (that skill was `drive` when this paragraph was written):
-`CONSTITUTION.md`/`handbooks/`/`agents/` and the taxonomy directory — `nen/` since nen
-`v0.3.0`, `schemas/` before it and as a fallback until `v0.4.0`; **both listed**, because
-`--policy-paths` is a literal nen's fallback never sees — derive G4 as classic policy/spec (`CON-7`);
+`CONSTITUTION.md`/`handbooks/`/`agents/` and the taxonomy directory — canonically `nen/`, with
+`schemas/` the pre-`v0.3` location whose fallback was **removed at nen `0.5.0`**; **both still
+listed**, because `--policy-paths` is a literal nen's resolution never sees and an un-migrated target
+still edits the old path — derive G4 as classic policy/spec (`CON-7`);
 `.github/workflows/`/`claude/`/`scripts/`/`tests/`/`docs/` derive G4 too, for the different reason
 that in a repository whose product is its process, a process change *is* a policy change. A **different repository's own path sets are its own canon** — these are `nen`'s own
 words, verified live: "There are no built-in path sets." Verified live against constructed file

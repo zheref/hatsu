@@ -55,11 +55,14 @@ to parse — and the resolved lane is named out loud either way.
 | How a path becomes a suite and a scene | `project.evidence.scene` | `{suite}-{scene}` |
 | How the images reach a PR body | `project.evidence.mechanism` | — |
 
-**`project.evidence` is Hatsu's own extension to nen's `project` block, and at `v0.3.0` nen preserves
-it verbatim and reads it with nothing** (`docs/WORKFLOW.md` § 3). Verified live
-(`docs/ab/kotoamatsukami.md` § 2.5): a declaration carrying `evidence` and `launch` blocks still
-reports `ok nen/contract.json project (…)` under `nen schema check`. So declaring it today is safe,
-and reading it is this skill's job until `nen shu evidence` arrives (§ 7).
+**`project.evidence` is NEN's block at the pinned `v0.5.0`, and `nen shu evidence` reads it.** The
+loader parses it rather than preserving it, and from this release **the block key itself is guarded
+against a near-miss**: `evidences`, `Evidence` or `evidenc` would have been preserved, read by
+nobody, and `nen shu evidence` would then have refused at exit `2` saying the repository declares no
+evidence block — about a file that plainly declares one. Now it is refused by pointer. Verified live
+(`docs/ab/kotoamatsukami.md` § *Retired at nen 0.5*): a declaration carrying `evidence` and `launch`
+reports `ok nen/contract.json project (…)` under `nen schema check`, and `nen shu evidence --base
+main` groups the changed artifacts suite → scene at exit `0`.
 
 **Extra suites are added by name, never by narrowing.** `nen/workflow.json → tests.extra` may name
 `ui-test` where a repository wants it in tsukuyomi's sweep too; that is a policy decision recorded in
@@ -200,37 +203,54 @@ hand that set on:
 - to [`$shibari`](../shibari/SKILL.md), which puts the same table in the PR body through the
   mechanism `project.evidence.mechanism` names.
 
-**Enumerating the changed artifacts is residue at this pin**, and the enumeration is a diff against
-the base, never a directory listing: an unchanged golden must not appear.
+**RETIRED at nen `0.5`: enumerating the changed artifacts is a verb.**
 
 ```bash
 git -C <path> fetch origin <base>
-git -C <path> diff --name-status origin/<base>...HEAD -- ':(glob)**/__Snapshots__/**/*.png'
+nen shu evidence --repo <path> --base origin/<base> [--json]
 ```
+
+It matches `git diff --name-status <base>...HEAD` — through the seam, spawning no invocation the
+repository declared, only `git diff` itself — against `project.evidence`, derives each surviving
+file's **suite** and **scene**, and reports them grouped suite → scene. Verified live at `v0.5.0`,
+exit `0`:
+
+```
+evidence: 1 changed file across 1 suite (public-mirror), against main...HEAD
+
+suite: __Snapshots__
+  added    Settings                 src/__Snapshots__/test_snapshot_Settings.png
+```
+
+`--json` publishes `nen.shu.evidence/v0.1`. **A repository with no `project.evidence` block is exit
+`2` naming it** — the one usage refusal this verb has — and **no changed file matching a glob is exit
+`0` with an empty row set**, never an error. Read those two apart: the first is a declaration to
+write, the second is a truthful "this change re-recorded nothing".
 
 > **`origin/<base>`, after that fetch — never the bare branch name.** `branch.base` is a branch
 > name, and local `main` is never fast-forwarded after [`$breath`](../breath/SKILL.md) cut the
 > branch from it: measured live at 13, then 36, then 50 commits behind in one run
 > (`docs/ab/mukai.md`). Against a stale local ref the enumeration carries every golden anybody
-> re-recorded on the trunk this week as though this branch had, which is the same failure as the
-> silent-empty one below with the sign flipped.
+> re-recorded on the trunk this week as though this branch had. `nen shu evidence --base` takes a
+> **ref**, so pass `origin/<base>` and the whole class goes away.
 
-> **The `:(glob)` prefix is load-bearing, and leaving it off fails silently — verified live
-> (`docs/ab/kotoamatsukami.md` § 2.4).** A `project.evidence.globs` entry is written in **shell-glob**
-> terms, where `**` crosses directory separators. A git **pathspec** is not that: passed bare,
+> **What the verb's arrival retires is a real trap, and it is worth knowing why.** A
+> `project.evidence.globs` entry is written in **shell-glob** terms, where `**` crosses directory
+> separators; a git **pathspec** is not that. Passed bare to `git diff`,
 > `'**/__Snapshots__/**/*.png'` matched **zero** of three changed snapshots against a tree that
-> plainly contains them, exit `0`, no warning. With `:(glob)` magic the same string matched all
-> three. **An empty evidence table read as "this change re-recorded nothing" is the worst failure
-> mode this skill has** — it is indistinguishable from the truthful case and it silently drops the
-> pull request's evidence. So either pass every glob with `:(glob)`, or take the full
-> `git diff --name-status origin/<base>...HEAD` and filter the paths **in the reader**, which is what
-> [`$rikugan`](../rikugan/SKILL.md) § 3's residue row does. **Never pass a declared glob to git
-> as a bare pathspec.**
+> plainly contains them, exit `0`, no warning (verified live, `docs/ab/kotoamatsukami.md` § 2.4).
+> **An empty evidence table read as "this change re-recorded nothing" is the worst failure mode this
+> skill has** — indistinguishable from the truthful case, and it silently drops the pull request's
+> evidence. `nen shu evidence` carries its own dependency-free matcher, in which `**` correctly
+> matches zero directories on either side, so the class is gone rather than worked around. **Never
+> pass a declared glob to git as a bare pathspec** in whatever is left of the by-hand path.
 
-Group the rows by `project.evidence.scene` — `{suite}-{scene}` read off the path by eye — and carry
-each row's git status: `A` a scene this change **adds**, `M` a scene it **re-records**, `D` a scene it
-**removes**. All three belong in the report; a removed scene is a state the product no longer has,
-which is exactly the kind of thing a reviewer wants to be told.
+Nen groups the rows by suite and derives the scene: the nearest ancestor directory whose name ends
+with `suiteSuffix` names the suite (suffix stripped), falling back to the immediate parent; the scene
+is the basename with its extension, a trailing `.<n>` and the `test_snapshot_`/`test_` prefixes
+stripped, in that order. Each row carries its git status: `A` a scene this change **adds**, `M` a
+scene it **re-records**, `D` a scene it **removes**. All three belong in the report; a removed scene
+is a state the product no longer has, which is exactly the kind of thing a reviewer wants to be told.
 
 **Where the declaration carries no `project.evidence` block**, say so — *"no evidence globs declared;
 no scene table"* — and do not invent a glob. A repository that records no images is entitled to say
@@ -249,25 +269,22 @@ exists and where; parsing it is residue (§ Residue), not a claim to make from i
 
 ## Residue
 
-1. **`nen shu evidence --base <ref>`** — **not a `shu` subcommand at `v0.3.0`**, verified live: the
-   refusal lands on the option, *"unknown option '--base'"*, listing the family's whole option surface
-   (`docs/ab/kotoamatsukami.md` § 2.4). **It landed on nen `main` during the week of 2026-09-08 and
-   ships at `0.4.0`** (brief § 4.6) — it is not a missing feature to file, it is a pin that has not
-   moved. Until it does, § 7's enumeration is `git diff --name-status origin/<base>...HEAD` against
-   `project.evidence.globs`, **with `:(glob)` magic or filtered in the reader**, grouped by
-   `project.evidence.scene` read by eye, and reported as by-hand.
-2. **`nen shu test-report`** — not a `shu` subcommand at this pin
-   (`docs/ab/tsukuyomi.md` § 2.4). There is no parsed `{tests[], passed, failed, skipped}` document,
-   so the suite's verdict is the runner's own summary, quoted.
-3. **Parsing a declared UI-test artifact** — an `.xcresult`, a JUnit XML, a Playwright JSON report —
-   has no verb either. Where the numbers matter, say which file holds them.
+1. **RETIRED at nen `0.5`: `nen shu evidence --base <ref>`** (§ 7, verified live, exit `0`). The
+   enumeration, the glob matching, the suite/scene derivation and the grouping are all the verb's.
+2. **RETIRED at nen `0.5`: `nen shu test-report`** (`tsukuyomi` § 6) — the parsed `{tests[], passed,
+   failed, skipped}` document is a verb, so the counts are read off it.
+3. **Parsing a declared UI-test artifact.** `nen shu test-report` reads JUnit XML, a JavaScript
+   runner's JSON and a **declared** result-bundle summary. **Genuinely still residue at the pinned
+   `0.5.0`**: a Playwright HTML report, and an `.xcresult` for which the repository declares no
+   extraction step, are read by nothing — say which file holds the numbers rather than claiming
+   them.
 4. **Looking at an image** has no verb and will not get one. Named here so the absence is a boundary
    rather than a silence: § 6's "look at every re-recorded image" is a person's act on a surface that
    can show one, and where the surface cannot, **say that the goldens were not looked at** rather
    than reporting the suite as clean.
-5. **`nen/workflow.json` is unvalidated at `v0.3.0`** — no row in `nen schema check`
-   (`docs/ab/rikugan.md` § 2.4). `iteration.lane` and `tests.extra` are read as data with the
-   defaults stated.
+5. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
+   an `ok  nen/workflow.json` row at the pinned `v0.5.0`. `iteration.lane` and `tests.extra` are still
+   read here; reading a file is not residue.
 
 Every one is run in the open and reported as by-hand, per the Nen-first rule's second half
 (`claude/agents/kurapika.md`).

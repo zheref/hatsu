@@ -83,12 +83,20 @@ degradation, and it is reported as configured rather than as missing.
 > *ungated* run may use. A repository with `"rungs": ["push"]` and `"turn": "all"` still rings only
 > rung 1, because `turn` cannot conjure a rung `rungs` withheld.
 >
-> **`notifications.turn` is an addition to `nen/workflow.json`'s shape, defined here** — it is not
-> in the schema the brief sketched, so nen's `nen.workflow/v0.1` must grow it when the loader lands
-> at `0.4.0`, alongside the `nen schema check` row for the file itself. **Recorded as residue**
-> (§ Residue 5) rather than assumed: a key a schema does not admit is a key that becomes a
-> validation error the day validation arrives. A repository whose file omits it is not malformed —
-> the default applies and is stated.
+> **RETIRED at nen `0.5`: `notifications.turn` IS in `nen.workflow/v0.1`.** The loader admits
+> `"rung1"` (the default, and what an absent key reads as) or `"all"` — a **closed two-value set**,
+> refused by pointer on anything else. Verified live at the pinned `v0.5.0`: a policy file declaring
+> `"turn": "loud"` FAILs `nen schema check` with *"at notifications.turn, 'loud' is not one nen
+> implements. It is one of a CLOSED set: rung1, all"*, and `"turn": "all"` validates `ok`
+> (`docs/ab/jutaisho.md` § *Retired at nen 0.5*). `nen scaffold init`/`new` now write the key into
+> every fresh policy file, explicitly `"rung1"`.
+>
+> **nen reads and validates the key and fires none of the three rungs itself**, exactly as the rest
+> of `notifications` already works: this is policy data for whichever host hook rings them. And the
+> two rules § 1 states are nen's own words now — a gate always rings everything `rungs` lists
+> regardless of `turn`, and `turn` can only **withhold** an escalation `rungs` already grants, never
+> conjure a rung `rungs` does not list. A repository whose file omits the key is not malformed; the
+> default applies and is stated.
 
 | Rung | What it is | Who fires it |
 |---|---|---|
@@ -323,39 +331,44 @@ rm -f .nen/last-stop.json
 >   On Claude Code it does **not**: the hook consumes the marker, and removing it first is removing the
 >   bell.
 
-> **`nen stop --mark` is real, and it is NOT available at the pinned `0.3.0` — verified live both ways
-> (`docs/ab/surfaces.md` § 4).** At `0.3.0` `nen stop --help` documents `--who`, `--gate`, `--notified`,
-> `efforts.md` and `--template`, and no `--mark`; a build from nen `main` documents it as *"Also write
-> `.nen/last-stop.json` under `--repo` … the ONLY form of this verb that writes."* **So at the pin, § 3's
-> by-hand write stands and this section changes nothing about it** — the residue lapses when the pin moves,
-> and not before.
+> **`nen stop --mark` exists at the pinned `0.5.0`, and § 3's by-hand write is KEPT anyway — the
+> decision this section said was due is taken here, with its reason.** Verified live at the pin, exit
+> `0`: `nen stop --mark --repo <path> --who kurapika --gate G5` prints `marked: <path>/.nen/last-stop.json
+> -- a host hook may ring rungs 2-3 off it` and writes
 >
-> **And when it does move, the two marker shapes do not yet agree.** nen's writes
-> `{ contract: "nen.stop.mark/v0.1", who, gate, notified, at }`; § 3's is
-> `hatsu.stop-marker/v0.1` and carries `title`, `body`, `reportUrl`, `sound` and `rungs` besides.
-> `hooks/stop-bell.sh` reads only `gate` and `title` and falls back to *"A decision is waiting."* when
-> `title` is absent, so nen's marker would ring — **with the generic line, every time**. That is a
-> degradation, not a failure, and it is written down (§ Residue 6) rather than discovered later by a
-> maintainer wondering why every notification says the same thing.
+> ```json
+> { "contract": "nen.stop.mark/v0.1", "who": "kurapika", "gate": "G5", "notified": false,
+>   "at": "2026-09-10T09:10:05.340Z" }
+> ```
+>
+> **That shape carries no `title`, no `body`, no `reportUrl`, no `sound` and no `rungs`** — and it
+> **replaces** an existing marker, because the latest stop is the one to ring for. `hooks/stop-bell.sh`
+> reads `gate` and `title` and falls back to *"A decision is waiting."* when `title` is absent, so
+> adopting nen's marker would ring the generic line **every time**, on every gate, and would drop the
+> report link out of the notification entirely. That is a downgrade, not a retirement, so § 3's
+> `hatsu.stop-marker/v0.1` stays and § Residue 1 says why.
+>
+> **What DOES change at the pin, and is worth knowing:** `--mark` is the only form of this verb that
+> writes, so `nen parse izanami` classifies `stop` **write-flag-gated** on it rather than plain
+> read-only; the marker is written **last**, after every refusal; `--mark --template` is exit `2`; and
+> a marker that cannot be written is exit `1` with the errno. Where a *nen-driven* flow has written
+> nen's marker into a checkout, read it as the fact of a stop and expect the generic line.
 
 **Whether an ordinary turn escalates at all is still `notifications.turn`'s answer, on every surface**
 (§ 1, § 2). The default `"rung1"` means a Codex or Cursor turn rings the surface's own turn-end line and
 runs neither command below it; only a gate, or a repository declaring `"turn": "all"`, reaches this section
 at all. **A surface without a hook is not a reason to be louder.**
 
-> **`notifications.turn` is still not in nen's workflow schema, and the target has moved from `0.4.0` to
-> `0.5.0` — verified against the shipped loader rather than assumed.** § 2 said it must be admitted "when
-> the loader lands at nen `0.4.0`". The loader landed: `src/schema/workflow.ts` on nen `main` parses
-> `notifications` and states *"A notifications policy's two keys are"* — `rungs` and `sound` — so `0.4.0`
-> came and went **without** `turn`. It is therefore a **nen `0.5.0`** addition, and residue on the pinned
-> `0.3.0` exactly as before: read as data, default `"rung1"`, validated by nothing. Corrected here rather
-> than left standing (`docs/ab/surfaces.md` § 4.2).
+> **RETIRED at nen `0.5`: `notifications.turn` is validated.** It arrived in the release the pin now
+> names — the loader admits `"rung1"` and `"all"` and refuses anything else by pointer (§ 2, verified
+> live). So the key is no longer a Hatsu extension the schema does not know about: it is policy nen
+> reads, validates and fires nothing off, which is exactly the division this section describes.
 
 **The report says which surface rang, and how.** One line, every time rungs 2–3 are owed on a surface with
 no hook: *"Codex: no Stop hook on this surface — rung 2 not applicable (no Notification Center seat:
 `osascript` exit 0, stderr `NSNotificationCenter connection invalid`), rung 3 not applicable (`afplay`
-exit 1, `AudioQueueStart failed`); marker written by hand at `.nen/last-stop.json` (nen 0.3.0 has no
-`stop --mark`) and removed once the stop was answered."* The maintainer must be able to tell a bell the
+exit 1, `AudioQueueStart failed`); marker written by hand at `.nen/last-stop.json` in Hatsu's own
+`hatsu.stop-marker/v0.1` shape (§ 6) and removed once the stop was answered."* The maintainer must be able to tell a bell the
 harness rang from a bell the model rang **from a bell nobody rang**, on every surface, without asking.
 
 **Rung 1 is the surface's own, and it is not this skill's to fake.** Codex and Cursor each end a turn with
@@ -365,33 +378,34 @@ same — that is what rungs 2 and 3 are for.
 
 ## Residue
 
-1. **`.nen/last-stop.json` is written by this skill, not by nen** (§ 3). `nen stop` renders the
-   banner and states rung 1's status; it creates no file.
+1. **KEPT residue, deliberately: `.nen/last-stop.json` is written by this skill, in Hatsu's own
+   shape** (§ 3). `nen stop --mark` exists at the pinned `0.5.0` and writes
+   `nen.stop.mark/v0.1` — `{ contract, who, gate, notified, at }`, verified live at exit `0` — but
+   that document carries no `title`, `body`, `reportUrl`, `sound` or `rungs`, and it **replaces** an
+   existing marker. `hooks/stop-bell.sh` would then ring *"A decision is waiting."* on every gate,
+   with no report link. **This is a residue kept on purpose rather than one nobody noticed**: the
+   choice was named as due in § 6 and is taken here. It lapses the day nen's marker carries a title,
+   or the day Hatsu decides a generic bell is acceptable — neither of which is a default.
 2. **`osascript` / `afplay` are harness-level shell** (§ 5), classified `[unknown]` by nen's own
    table and refused by `nen watch until` — named, with the reason, never presented as a verb.
 3. **The `Stop` hook and the `PreToolUse` trunk guard are `hooks/hooks.json`'s**, this repository's
    harness files. This skill reads whether one exists; it never writes one.
-4. **`nen/workflow.json` is unvalidated at `v0.3.0`** — `nen schema check` reports five rows and no
-   workflow row (verified live, `docs/ab/rikugan.md` § 2.4). § 2's keys are read as data with the
-   defaults stated.
-5. **`notifications.turn` does not exist in the `nen.workflow/v0.1` shape the brief sketched** — it
-   is defined by this skill (§ 2) to settle F8, with `"rung1"` the default. **This entry said the
-   workflow schema must admit it "when the loader lands at nen `0.4.0`"; the loader landed at `0.4.0`
-   without it** (`src/schema/workflow.ts`: *"A notifications policy's two keys are"* `rungs` and
-   `sound`), so the target is now nen **`0.5.0`** and this is residue on the pinned `0.3.0` as before —
-   verified live rather than carried forward (`docs/ab/surfaces.md` § 4.2). Until then nothing
-   validates it and nothing rejects it, which is exactly why it is written down here.
-6. **`nen stop --mark` exists from nen `0.4.0` and not at the pin** (§ 6), and its marker is
-   `nen.stop.mark/v0.1` — `{ contract, who, gate, notified, at }` — which is **not** § 3's
-   `hatsu.stop-marker/v0.1`. `hooks/stop-bell.sh` reads `gate` and `title`, so nen's marker rings with
-   the generic *"A decision is waiting."* line. When the pin moves, either the hook learns nen's shape
-   or the skill keeps writing its own; **the choice is a decision, not a default**, and until it is made
-   § 3's by-hand write is what runs.
+4. **RETIRED at nen `0.5`: `nen/workflow.json` is validated** — `nen schema check --repo <path>`
+   carries an `ok  nen/workflow.json` row at the pinned `v0.5.0`, so a malformed policy file is a
+   FAIL by pointer. § 2's keys are still read here; a read is not a residue.
+5. **RETIRED at nen `0.5`: `notifications.turn` is in `nen.workflow/v0.1`** — a closed set of
+   `"rung1"` and `"all"`, refused by pointer on anything else and written into every scaffolded
+   policy file (§ 2, verified live both ways: `"loud"` FAILs naming the set, `"all"` validates `ok`).
+   It is no longer this skill's private extension.
+6. **KEPT residue, deliberately: the marker's SHAPE** — see 1. `nen stop --mark` is available and is
+   not adopted, because `nen.stop.mark/v0.1` carries neither `title` nor `sound` nor `rungs` and
+   would ring the generic line on every gate.
 7. **No surface but Claude Code has a turn-end hook** (§ 6). That is a fact about those products, not a
    missing verb — nen shells out to git and gh and owns no notifier on any surface — so it is named here
    and never filed.
-8. **Removing the marker on a hookless surface is this skill's own `rm -f`** (§ 6). `nen stop --mark`
-   writes and never removes — its own help calls it *"the ONLY form of this verb that writes"* — and
+8. **Removing the marker on a hookless surface is this skill's own `rm -f`** (§ 6), and **genuinely
+   still residue at the pinned `0.5.0`**: `nen stop --mark` writes and never removes — its own help
+   calls it *"the ONLY form of this verb that writes"* — and
    `hooks/stop-bell.sh`, which does remove, is a Claude Code manifest nothing else reads. So on Codex and
    Cursor the cleanup is by hand, named here, and it is the reason a stop answered three passes ago does
    not keep reading as open (`docs/ab/surfaces.md` § 7, F13).

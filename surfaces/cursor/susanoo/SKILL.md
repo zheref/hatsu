@@ -195,11 +195,17 @@ are not one flag apart here.
 2. **Artifact freshness.** Nothing distinguishes a path this run wrote from one a previous run left
    (§ 5, verified live at § 2.3 — `exists: true` on a run that spawned nothing). Recording mtime or
    size before and after is by hand.
-3. **Build proof.** `.nen/proof/<lane>.json` (`{treeHash, lane, exitCode, at}`) and
-   `nen commit check --require-proof <lane>` **do not exist at nen `0.3.0`** — they arrive at nen
-   `≥ 0.5`. So there is no artifact-side proof that the package corresponds to the tree that was
-   tagged: the proof is the transcript in this phase's report, and it is the caller's to carry
-   forward. Same residue [`/rasengan`](../rasengan/SKILL.md) § 10 names for the build.
+3. **RETIRED at nen `0.5`: build proof.** A green `nen shu build` writes
+   `.nen/proof/<lane>.json` (`nen.shu.proof/v0.1`: `contract`, `lane`, `verb`, `treeHash`, `at`,
+   `exitCode`), a red one removes it, and `nen commit check --repo <path> --require-proof <lane>`
+   reads it back against **this working copy's** tree — all verified live at the pin, exit `0`
+   (`docs/ab/susanoo.md` § *Retired at nen 0.5*). So before archiving, run that check and quote its
+   verdict: it is the answer to "is the tree I am packaging the tree the build proved".
+
+   **What is still residue is the ARTIFACT side of that question.** The proof binds a *tree* to a
+   *build*, not a *package* to a tag: nothing records that `dist/app.tgz` came out of the proved
+   tree rather than an earlier one. Freshness (2) and a manifest (4) are still the answer there, and
+   still by hand.
 4. **A checksum or manifest of what was produced.** Nothing in nen hashes an artifact. Where a
    repository wants one, it is a step of its own `archive` row (the fixture in `docs/ab/susanoo.md`
    declares `dist/app.tgz.sha256` for exactly that reason) — never a hash computed here and reported

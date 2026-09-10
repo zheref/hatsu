@@ -497,8 +497,10 @@ of the transcript can tell the two apart.
 5. **`nen/workflow.json` carries no `review` block at `nen.workflow/v0.1`**, so § 2's path→scope map
    cannot be declared per repository. Read as this skill's default, stated every run, corrected by hand
    where a repository's layout defeats it — and filed (`docs/ab/hanten.md` § 4.2).
-6. **`nen/workflow.json` is unvalidated at `v0.3.0`** — no row in `nen schema check`
-   (`docs/ab/rikugan.md` § 2.4). `models` and `reports.dir` are read as data with the defaults stated.
+6. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
+   an `ok  nen/workflow.json` row at the pinned `v0.5.0` (`docs/ab/rikugan.md` § *Retired at nen 0.5*).
+   `models` is an OPEN map nen preserves and validates nothing inside, so the matrix stays this skill's
+   own read — which is a read, not a residue.
 5. **The worktree a Codex reviewer runs in is hanten's own `git worktree add`** (§ 9a). `codex exec -C`
    takes a directory and makes none, and no nen verb makes one either — `nen` owns operations, not
    checkouts. Named residue, on that surface only; on Claude Code `isolation: "worktree"` still does it.

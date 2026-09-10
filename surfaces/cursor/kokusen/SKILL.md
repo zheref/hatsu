@@ -51,10 +51,29 @@ nothing about attribution gets the workflow's rule, not the harness's habit.
 
 ## 3. Before anything is staged
 
-1. **The checks are green in this turn.** Run [`/rasengan`](../rasengan/SKILL.md) — do not trust
-   an earlier turn's green. There is no build proof on disk at nen `0.3.0` and no
-   `nen commit check --require-proof` to read one (that skill's § 10), so the only proof is a run that
-   just happened. **A red build is never committed over**, not even "so the fix is saved."
+1. **The checks are green FOR THIS TREE.** At the pinned nen `0.5.0` that is a verb, not a memory:
+
+   ```bash
+   nen commit check --repo <path> --require-proof <iteration.lane>
+   ```
+
+   A green `nen shu build` writes `.nen/proof/<lane>.json` and a red one removes it, and this check
+   compares the proof's `treeHash` against **this working copy's** tree — so it answers "was THIS tree
+   proved", not "did something pass once". Verified live at `v0.5.0`, exit `0`, *"verdict: OK -- this
+   working copy is the one the build proved green"*.
+
+   | Exit | What it means | What kokusen does |
+   |---|---|---|
+   | `0` | this tree is the proved one | stage and commit |
+   | `1` | no proof, another lane's proof, or **the tree has moved** (both hashes printed) — also what a red build since the last green one looks like | run [`/rasengan`](../rasengan/SKILL.md), then check again |
+   | `2` | a missing flag, a lane escaping the tree, or a proof present and unreadable | **stop** and report it; this is never folded into "absent" |
+
+   **It reports and blocks nothing** — no commit is refused and no file is written — so the refusal is
+   still this skill's. And on a lane whose `build` is a declared **seat**, there is never a proof to
+   read: hatsu's own `plugin` lane answers `nen shu build` at exit `4` and `commit check` at exit `1`
+   forever (both verified live). Say so, run [`/rasengan`](../rasengan/SKILL.md) for the lane's
+   real checks, and treat that run as the proof. **A red build is never committed over**, not even
+   "so the fix is saved."
 2. **This is not the trunk.** `nen wc classify --repo <path> --base <branch.base>` reporting
    `must-move` means the work is on the trunk and belongs on a branch first —
    [`/breath`](../breath/SKILL.md)'s job, not this one's. Kokusen commits on a branch or it does
@@ -97,8 +116,8 @@ One path can carry several reasons at once. **Present every flagged file togethe
   fix is to rotate or remove it. This is § 9's hard limit, and it is not softened by "it is only
   local, it is not pushed" — a commit is permanent the moment it exists, and the push that would
   publish it is one `/aka` away.
-- **A `secret-shape` inside an ignored dependency tree is reported and left alone.** Verified live at
-  `0.3.0`: a `.env` under an ignored `node_modules/` is flagged `[ignored, secret-shape,
+- **A `secret-shape` inside an ignored dependency tree is reported and left alone.** Verified live,
+  unchanged at the pinned `0.5.0`: a `.env` under an ignored `node_modules/` is flagged `[ignored, secret-shape,
   out-of-scope]` — the same row shape a real run found on `node_modules/bottleneck/.env`. Read
   literally, the categorical rule would have this skill rotate or delete a third-party package's
   fixture file, which is not this repository's secret, not this commit's business and not a thing a
@@ -148,12 +167,16 @@ changed and why is this skill's to write, never nen's.
 > their commit. It refuses to *add* one; deleting someone else's provenance metadata is a governance
 > decision nobody asked for.
 
-**Check the rendered message before it becomes a commit.** `nen commit format` at `0.3.0` does **not**
-enforce this rule — verified live: `--trailer "Akatsuki-Agent=kurapika,Co-Authored-By=Claude
-<noreply@anthropic.com>"` renders both trailers happily at exit `0`, and the verb has no `--repo`
-flag at all, so it cannot read a `workflow.json` even in principle (`docs/ab/kokusen.md` § 2.3). The
-guard is this skill's, applied by reading the rendered output against
-`commits.forbiddenTrailers` before § 6 writes anything (§ 7).
+**`nen commit format --repo <path>` ENFORCES this rule at the pinned `0.5.0`, and the `--repo` is what
+turns it on.** Verified live against this repository: `--trailer "Co-Authored-By=someone"` is refused
+at exit `2` — *"trailer key 'Co-Authored-By' is an attribution trailer this repository refuses.
+'…/nen/workflow.json' admits 'Akatsuki-Agent' under commits.allowedAttributionTrailers, and
+'Co-Authored-By' is not one of them. Drop the trailer, or add its key to that list"* — while
+`--trailer "Akatsuki-Agent=kurapika"` renders at exit `0` (`docs/ab/kokusen.md` § *Retired at nen
+0.5*). **Always pass `--repo`**: the policy is opened only when the invocation carries a `--trailer`,
+and without `--repo` there is no policy to open and nothing is refused. Reading the rendered output
+against `commits.forbiddenTrailers` before § 6 writes anything is still worth doing — it is the layer
+that survives a missing flag — but it is no longer the only one (§ 7).
 
 ## 6. The commit
 
@@ -175,39 +198,38 @@ git commit --file <message file>          # residue, § 7: no nen verb writes a 
 > | Exit | What it means | What kokusen does |
 > |---|---|---|
 > | `0` | the message is on stdout | **use it** — `git commit --file` |
-> | `2` | **refused.** At `v0.3.0` a shape violation (undeclared type, empty subject, header over 72 characters, trailing punctuation); from `v0.4.0`, with `--repo`, also an attribution trailer `nen/workflow.json` does not admit | **stop.** Quote the sentence from stderr, fix the input, re-run. Never commit the file — it is empty |
-> | `1` | the trailer policy could not be read — `nen/workflow.json` present and **malformed** (`v0.4.0`+, with `--repo`) | **stop.** Report it as a repository defect and point at `nen schema check`; a message shaped under a policy nobody could read is not shaped |
+> | `2` | **refused.** A shape violation (undeclared type, empty subject, header over 72 characters, trailing punctuation) or — with `--repo` — an attribution trailer `nen/workflow.json` does not admit | **stop.** Quote the sentence from stderr, fix the input, re-run. Never commit the file — it is empty |
+> | `1` | the trailer policy could not be read — `nen/workflow.json` present and **malformed** (with `--repo`) | **stop.** Report it as a repository defect and point at `nen schema check`; a message shaped under a policy nobody could read is not shaped |
 >
-> Verified live at both pins: at `v0.3.0` there is no `--repo` and no exit `1` from this verb; at
-> `0.4.0` a malformed `nen/workflow.json` answers `1` — *"nen will not shape a message under a policy
-> it could not read"* — and a `Co-Authored-By` trailer answers `2` naming the file that refuses it.
-> **An empty `<message file>` is the tell for either refusal**, and it is checked before `git commit`
-> whichever way the exit code was read.
+> Verified live at the pinned `v0.5.0`: a malformed `nen/workflow.json` answers `1` — *"nen will not
+> shape a message under a policy it could not read"* — and a `Co-Authored-By` trailer answers `2`
+> naming the file that refuses it. **An empty `<message file>` is the tell for either refusal**, and
+> it is checked before `git commit` whichever way the exit code was read.
 
 `--file`, never `-m` retyped from memory: the message that was validated is the message that lands.
 **Never `--no-verify`** — a commit hook that refuses is the repository speaking, and the answer is to
 fix what it named. Stage explicitly, path by path, from § 4's clean list plus every flagged path that
 got an explicit yes; `git add -A` is barred (§ 9).
 
-## 7. Residue — what has no verb at nen `0.3.0`
+## 7. Residue — what has no verb at the pinned nen `0.5.0`
 
-- **The forbidden-trailer refusal.** `nen commit format` renders any `--trailer` it is given and has
-  no `--repo` to find a `workflow.json` with (§ 5, verified live). Enforcement is **three-layered**:
-  (a) **this skill refusing to write the trailer** — read the rendered message, compare it against
-  `commits.forbiddenTrailers`, refuse to commit a message that carries one — which is the layer
-  Hatsu ships and the only one guaranteed present; (b) a **`commit-msg` hook** written by
-  `nen scaffold init` from `allowedAttributionTrailers`, at **nen `0.4.0`** (in flight; KroApple and
-  kro-pwa already carry one); (c) **`nen commit format --repo`** refusing it, also `0.4.0`. **At this
-  pin (b) and (c) are target-dependent** — hatsu's own checkout has neither, so here the refusal is
-  (a) alone, and it is reported that way rather than as a mechanical guard.
+- **RETIRED at nen `0.5`: the forbidden-trailer refusal.** `nen commit format --repo <path>` refuses
+  an unadmitted attribution trailer at exit `2`, naming the file (§ 5, verified live against this
+  repository). Enforcement is still **three-layered** — (a) this skill refusing to write the trailer,
+  (b) the `commit-msg` hook `nen scaffold init` generates from `allowedAttributionTrailers`, (c) the
+  verb itself — but the layer that used to be absent is now the pinned binary's. **(c) is installed
+  wherever `--repo` is passed**; (b) stays target-dependent, since it exists only in a repository
+  `nen scaffold init` has stood up. Say which layers the repository in front of you actually has,
+  rather than claiming a guard that is not installed.
 - **Writing the commit itself.** `nen commit format` formats; nothing in nen commits. `git commit
   --file` is a named raw call, as is the explicit `git add <path>` for each approved path. **The
   gate on the formatter's exit code and the two-stream discipline are part of that residue** (§ 6):
   a verb that refuses on stderr at exit `2` with an empty stdout is safe on its own and unsafe
   behind a redirect that ignores either fact.
 - **Local-config and size detection** in staging (§ 4) — no detector, by the verb's own account.
-- **Reading `nen/workflow.json`** — no loader and no `nen schema check` row at this pin
-  ([`/breath`](../breath/SKILL.md) § 2).
+- **RETIRED at nen `0.5`: validating `nen/workflow.json`** — `nen schema check` carries the row
+  ([`/breath`](../breath/SKILL.md) § 2). Reading the values is still this skill's, and a read is
+  not a residue.
 - **Whether two changes are one coherent commit** stays judgment; no verb splits an effort.
 
 ## 8. Authority
