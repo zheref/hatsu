@@ -39,11 +39,12 @@ with the quoted value this one prints, as an explicit input (§ 5's rule).
 # the handed slot is SINGLE-quoted: $, backticks, backslashes and spaces in a path reach the test as themselves; a ' in it is written '\''
 hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the path this invocation was handed, if any>' "${CLAUDE_PLUGIN_ROOT:-}"; do
   [ -n "$c" ] && [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
-  [ "$(sed -n 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$c/.claude-plugin/plugin.json" | head -n 1)" = hatsu ] &&
+  [ "$(sed -n 's/^  "name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$c/.claude-plugin/plugin.json")" = hatsu ] &&
   hatsu_root=$(cd "$c" && pwd -P) && break
 done
 [ -n "$hatsu_root" ] || { echo "hatsu-warmup: no Hatsu root — \$HATSU_PLUGIN_ROOT unset or not a Hatsu checkout, nothing usable handed, \$CLAUDE_PLUGIN_ROOT empty or another plugin" >&2; exit 1; }
-printf "hatsu_root: '%s'\n" "$(printf '%s' "$hatsu_root" | sed "s/'/'\\\\''/g")"   # printed QUOTED, any ' escaped: every later block pastes that quoted value verbatim
+echo "hatsu_root resolved. The NEXT LINE is the quoted value every later block pastes verbatim, quotes included:"
+printf "'%s'\n" "$(printf '%s' "$hatsu_root" | sed "s/'/'\\\\''/g")"   # the literal ALONE on its line: single-quoted, any ' in the path written '\''
 cat "$hatsu_root/nen/contract.json"
 ```
 
@@ -71,7 +72,7 @@ cat "$hatsu_root/nen/contract.json"
 This is the one machine read of the contract, and it is a validation, never a way of extracting values:
 
 ```bash
-hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): § 0 prints this value single-quoted with any ' escaped — paste it in place of '<…>', quotes included; a variable from another shell is not here
+hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): the line § 0 printed AFTER its label — the quoted literal alone — pasted in place of '<…>', quotes included; a variable from another shell is not here
 nen schema check --repo "$hatsu_root"
 ```
 
@@ -463,18 +464,21 @@ those two surfaces can answer either.
 ```sh
 # is_hatsu ROOT — true only for a checkout of THIS plugin. No jq: the file is read
 # as text, so the two things that make the read honest are written out.
-#   1. The MANIFEST'S OWN name, not any name in it. The value is extracted and
-#      compared WHOLE, and only the FIRST "name" line is read — a manifest's own
-#      name is the first one; a name nested in a dependency or in metadata is not.
-#      A bare `grep '"name": "hatsu"'` would accept any plugin carrying that string
-#      anywhere, which is the wrong-root failure this check exists to prevent.
+#   1. The MANIFEST'S OWN name, structurally: the "name" key at the TOP LEVEL of the
+#      pretty-printed, two-space-indented manifest Claude Code's tooling writes and
+#      this repository ships — matched at EXACTLY two leading spaces, so a name nested
+#      in metadata or a dependency (four or more) never matches, whatever order the
+#      keys come in. The value is compared WHOLE against the whole output, so two
+#      top-level matches fail it, and a minified manifest — no line at that depth —
+#      is refused rather than parsed: not the shape the tooling writes, and refusal
+#      is the safe direction. A bare `grep '"name": "hatsu"'` would accept any plugin
+#      carrying that string anywhere, which is the wrong-root failure this exists for.
 #   2. A second, independent fact about the same directory: `claude/skills/` is what
 #      this manifest's `skills` key points at, so a plugin.json that passes (1) while
 #      standing over somebody else's tree still fails here.
 is_hatsu() {
   [ -n "${1:-}" ] && [ -f "$1/.claude-plugin/plugin.json" ] && [ -d "$1/claude/skills" ] || return 1
-  ih_name=$(sed -n 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
-              "$1/.claude-plugin/plugin.json" | head -n 1)
+  ih_name=$(sed -n 's/^  "name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$1/.claude-plugin/plugin.json")
   [ "$ih_name" = "hatsu" ]
 }
 
@@ -496,7 +500,8 @@ done
        "invocation, and this surface has no plugin registry to ask." >&2
   exit 1        # § 4's line says NOT INSTALLED and names this. Never a partial install.
 }
-echo "hatsu_root: $hatsu_root"   # a later shell cannot inherit this variable; it hands THIS path in
+echo "hatsu_root resolved. The NEXT LINE is the quoted value every later block pastes verbatim, quotes included:"
+printf "'%s'\n" "$(printf '%s' "$hatsu_root" | sed "s/'/'\\\\''/g")"   # same form as § 0; a later shell cannot inherit the variable, it pastes this
 ```
 
 - **A rejected candidate is named BY PATH, in the report.** *"surface: cursor — NOT INSTALLED.
@@ -515,7 +520,7 @@ echo "hatsu_root: $hatsu_root"   # a later shell cannot inherit this variable; i
   argument nen would resolve against `--repo`. And it is a shell variable, not an export: a later
   tool-call shell, a subagent, or another skill's command does not inherit it — on any surface — and
   prose telling a consumer to *run the prelude first* executes nothing. So the block prints the root it
-  resolved (the `echo` above), and **the rule every block in this plugin follows is: a code block that
+  resolved (the printed line above), and **the rule every block in this plugin follows is: a code block that
   uses `$hatsu_root` SETS it in that block.** Two ways, and no third:
   - **§ 0's resolver, verbatim** — the same three candidates, the same `is_hatsu` test, the same
     `pwd -P`, six lines above the command. `pr-state` § 2, `futon` § 5 and `tensho` § 6 carry it, with
@@ -524,9 +529,10 @@ echo "hatsu_root: $hatsu_root"   # a later shell cannot inherit this variable; i
     blocks (§ 0's `schema check`, § 5a's copy loop, § 5c's `ours`), `hanten` § 3's `ls`, and the prose
     fallbacks in `backlog-state` and `getsuga` open with it.
 
-  **The path is never embedded raw in source text.** § 0 prints it as a single-quoted shell literal with
-  every `'` in it written `'\''` — `sed "s/'/'\\\\''/g"` — and a consumer pastes that quoted value verbatim,
-  quotes included, into the explicit-input line or into the resolver's single-quoted handed slot. Inside
+  **The path is never embedded raw in source text.** § 0 (and this prelude) prints a label line, then the
+  root ALONE on the next line as a single-quoted shell literal with every `'` in it written `'\''` —
+  `sed "s/'/'\\\\''/g"` — and a consumer pastes that one line verbatim, quotes included and nothing else,
+  into the explicit-input line or into the resolver's single-quoted handed slot. Inside
   single quotes nothing else is special: `$`, backticks, backslashes and spaces reach the shell as
   themselves (`docs/ab/surfaces.md` § 9.8 exercises a path carrying all five).
 
@@ -563,7 +569,7 @@ a second trap with it: through a symlink the mirror's own `../../../nen/workflow
 **plugin's** policy file rather than the target's (§ 5d, F10). The copy fixes both.
 
 ```sh
-hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): § 0 prints this value single-quoted with any ' escaped — paste it in place of '<…>', quotes included; a variable from another shell is not here
+hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): the line § 0 printed AFTER its label — the quoted literal alone — pasted in place of '<…>', quotes included; a variable from another shell is not here
 mkdir -p "$target/.agents/skills"
 for d in "$hatsu_root"/surfaces/codex/*/; do
   name=$(basename "$d"); dest="$target/.agents/skills/$name"
@@ -713,7 +719,7 @@ and thirty-nine of them are being claimed at once.
 | **anything else — and a TRACKED path is always anything else** | **leave it untouched**, install nothing under that name, and **name it in § 4's line** |
 
 ```sh
-hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): § 0 prints this value single-quoted with any ' escaped — paste it in place of '<…>', quotes included; a variable from another shell is not here
+hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): the line § 0 printed AFTER its label — the quoted literal alone — pasted in place of '<…>', quotes included; a variable from another shell is not here
 # ours DEST — true only for a destination this skill made. Tracked is never ours,
 # whatever it looks like: a repository's own history outranks a marker comment.
 ours() {

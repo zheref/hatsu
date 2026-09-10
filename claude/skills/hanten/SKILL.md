@@ -116,7 +116,7 @@ fails on its own:
 
 ```bash
 # 1. does the definition exist?  ($hatsu_root is the explicit input — hatsu-warmup § 5's rule, never assumed)
-hatsu_root='<the absolute path § 0 printed>'   # § 0 prints it single-quoted with any ' escaped: paste in place of '<…>', quotes included
+hatsu_root='<the absolute path § 0 printed>'   # the line § 0 printed AFTER its label — the quoted literal alone — pasted in place of '<…>', quotes included
 ls "$hatsu_root/claude/agents/<persona>.md"
 
 # 2. will THIS surface raise it? — the surface's own agent registry, never the filesystem

@@ -862,8 +862,9 @@ held in a shell variable that is not exported. **So a code block that uses `$hat
 block** — `hatsu-warmup` § 0's resolver verbatim (`pr-state`, `futon`, `tensho`), or the one-line explicit
 input `hatsu_root='<the absolute path § 0 printed>'` (the warm-up's own later blocks, `hanten` § 3, and the
 prose fallbacks in `backlog-state` and `getsuga`). **The path is never embedded raw in source text**: § 0
-prints it as a single-quoted shell literal with every `'` written `'\''`, and a consumer pastes that quoted
-value verbatim, quotes included — into the explicit-input line or the resolver's single-quoted handed slot —
+prints a label line, then the root alone on the next line as a single-quoted shell literal with every `'`
+written `'\''`, and a consumer pastes that one line verbatim, quotes included and nothing else — into the
+explicit-input line or the resolver's single-quoted handed slot —
 so `$`, backticks, backslashes and spaces reach the shell as themselves. Nothing is inherited from the
 warm-up's shell, and the value it prints is what every later block takes:
 

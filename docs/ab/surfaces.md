@@ -979,3 +979,38 @@ gates file, as in § 9.5.) Both mirrors regenerate clean after the change (`ok: 
 **Still not verified:** a Codex or Cursor session — same caveat as before. What is verified is the block
 each mirror carries, byte-identical to these, run from a shell with no Claude Code state in it.
 
+### 9.9 Copilot's sixth round — the literal alone, and a structural manifest check
+
+One thread and eight suppressed comments, three points.
+
+| finding | disposition |
+|---|---|
+| § 0 printed `hatsu_root: '…'` and consumers were told to paste "the value printed, quotes included" — pasting the whole line carries the label into the path | **Fixed**: § 0 prints a label line, then the quoted literal **alone** on the next line; every consumer says to paste that one line and nothing else |
+| § 5's prelude still printed the root raw (`echo "hatsu_root: $hatsu_root"`), a second handoff that differed from § 0's | **Fixed**: the prelude prints the same two lines as § 0, the literal escaped the same way |
+| the identity check matched the first `"name"` line anywhere (`… \| head -n 1`), so a manifest with a nested `name: hatsu` ahead of a top-level `name: other` passed | **Fixed in all five copies** (§ 0, § 5's `is_hatsu`, `pr-state`, `futon`, `tensho`): the key is matched at the **top level** of the pretty-printed, two-space-indented manifest Claude Code's tooling writes — exactly two leading spaces — and the output compared whole, so a nested name never matches, two top-level matches fail, and a minified manifest is refused rather than parsed. nen has no JSON read verb and the installed path has no `jq`; indentation is the structure the tooling guarantees, and refusal is the safe direction |
+
+The check, run as the skill carries it, against six crafted manifests:
+
+```
+  sed -n 's/^  "name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p'
+  minified-nested-first.json  {"metadata":{"name":"hatsu"},"name":"other"}          refuse   (old check: refuse)
+  minified-top-hatsu.json     {"name":"hatsu"}                                      refuse   (old check: refuse)
+  pretty-both-hatsu.json      top-level hatsu, nested hatsu                          ACCEPT   (old check: ACCEPT)
+  pretty-nested-first.json    nested hatsu FIRST, then top-level other               refuse   (old check: ACCEPT — the flaw)
+  pretty-top-hatsu.json       top-level hatsu, nested other                          ACCEPT   (old check: ACCEPT)
+  real.json                   this repository's .claude-plugin/plugin.json           ACCEPT   (old check: ACCEPT)
+```
+
+The hostile-path run of § 9.8 repeated on the new output — § 0's block extracted verbatim, run from `$HOME`
+with both variables empty, the **second** line pasted into `pr-state` § 2's block and run against this PR:
+
+```
+hatsu_root resolved. The NEXT LINE is the quoted value every later block pastes verbatim, quotes included:
+'<scratch>/O'\''Brien $HOME `id` back\slash dir/hatsu'
+…
+  policy bounded · delivery PR no · identities <scratch>/O'Brien $HOME `id` back\slash dir/hatsu/contracts/reference.gates.json
+```
+
+Both mirrors regenerate clean (`ok: 40`, `ok: 47`, script exit `0`), the fenced-block check reports zero, and
+the plugin validates. **Still not verified:** a Codex or Cursor session — as before.
+

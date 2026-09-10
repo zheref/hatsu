@@ -255,10 +255,11 @@ export GH_TOKEN=$(gh auth token)
 # $hatsu_root is THIS plugin's checkout, ABSOLUTE, resolved IN THIS SHELL: the block below is
 # hatsu-warmup § 5's prelude in its same-shell form. The variable is not exported, so a value
 # another shell set is not here. The second candidate is SINGLE-quoted: hatsu-warmup § 0 prints the root
-# already quoted with any ' escaped — paste that value in place of '<…>', quotes included.
+# already quoted with any ' escaped, ALONE on the line after its label — paste that line in place of '<…>',
+# quotes included, nothing else.
 hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the absolute path § 0 printed>' "${CLAUDE_PLUGIN_ROOT:-}"; do
   [ -n "$c" ] && [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
-  [ "$(sed -n 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$c/.claude-plugin/plugin.json" | head -n 1)" = hatsu ] &&
+  [ "$(sed -n 's/^  "name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$c/.claude-plugin/plugin.json")" = hatsu ] &&
   hatsu_root=$(cd "$c" && pwd -P) && break
 done
 [ -n "$hatsu_root" ] || { echo "no Hatsu root resolved — pass --reviewers by hand instead (sharingan § 4)" >&2; exit 1; }
