@@ -308,7 +308,7 @@ and the final report's path. Nothing after the merge is en's: the tag is
    `nen watch until --max-iterations` bounds one observation. The ledger of acting cycles, and the
    stop at `N`, are en's.
 3. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
-   an `ok  nen/workflow.json` row at the pinned `v0.6.0` (verified live, `docs/ab/en.md` § *Retired at
+   an `ok  nen/workflow.json` row at the pinned `v0.7.0` (verified live, `docs/ab/en.md` § *Retired at
    nen 0.5*), and a malformed `monitor` block is a FAIL by pointer. § 2's keys are still read here;
    reading a file is not residue.
 4. **A watch that survives the session has no mechanism at all** (§ 7) — not a missing verb: no
