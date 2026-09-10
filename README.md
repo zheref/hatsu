@@ -60,7 +60,7 @@ claude plugin install hatsu@hatsu
 Confirm what landed:
 
 ```sh
-claude plugin list                  # hatsu@hatsu — Version: 0.4.0
+claude plugin list                  # hatsu@hatsu — Version: 0.4.1
 claude plugin details hatsu@hatsu   # the full component inventory
 ```
 
