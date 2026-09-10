@@ -18,10 +18,10 @@ is adding a row there, not a branch here.**
 
 | | **Claude Code** | **Codex** | **Cursor** |
 |---|---|---|---|
-| how Hatsu arrives | **installed as a plugin** — `claude plugin install hatsu@hatsu` | **placed into the target repository** by the warm-up | **placed into the target repository** by the warm-up |
+| how Hatsu arrives | **installed as a plugin** — `claude plugin install hatsu@hatsu` | **copied into the target repository** by the warm-up, every session | **placed into the target repository** by the warm-up |
 | skills read from | `$CLAUDE_PLUGIN_ROOT/claude/skills/<name>/SKILL.md` (`plugin.json` → `skills`) | `<repo>/.agents/skills/<name>/SKILL.md` | `<repo>/.cursor/skills/<name>/SKILL.md` |
-| personas read from | `claude/agents/<persona>.md` (`plugin.json` → `agents`) | `<repo>/AGENTS.md`, **as prose** — no per-persona file exists on this surface | `<repo>/.cursor/agents/<persona>.md` — one markdown subagent file each |
-| invocation spelling | **`hatsu:<name>`** | **`$<name>`** | **`/<name>`** |
+| personas read from | `claude/agents/<persona>.md` (`plugin.json` → `agents`) | `<repo>/AGENTS.override.md`, **as prose** — an **untracked** file that *replaces* the target's own `AGENTS.md` in the envelope, so the target's `AGENTS.md` is copied into it verbatim first. No per-persona file exists on this surface | `<repo>/.cursor/agents/<persona>.md` — one markdown subagent file each |
+| invocation spelling | **`hatsu:<name>`** | **`$<name>`** — and see *What Codex advertises* below: the install mechanism decides whether the name it lists is bare or namespaced | **`/<name>`** |
 | frontmatter kept on a skill | everything Claude Code documents | `name`, `description` — the page documents no other key | `name`, `description`, `paths`, `globs`, `disable-model-invocation`, `icon`, `color`, `metadata` |
 | turn-end hook | **yes** — `Stop`, `hooks/hooks.json` | **no** | **no** |
 | in-session subagent | **yes** — the Agent tool | **no** — a reviewer is a second `codex exec` run | **yes** — `.cursor/agents/` |
@@ -31,6 +31,16 @@ The two consequences that are not cosmetic have their own homes:
 [`claude/skills/jutaisho/SKILL.md`](../claude/skills/jutaisho/SKILL.md) § 6 for the missing `Stop` hook, and
 [`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 9a for the missing subagent.
 
+> **A persona on Codex is prose, and prose does not win an identity argument with the host.** On Claude
+> Code a persona is a distinct agent object with its own file; on Codex it is one block inside an
+> instruction document that sits **beside — and below — the user's own instruction layer**, so a host whose
+> user-level instructions say *"introduce yourself as X"* keeps saying X. Observed live on this host: every
+> `codex exec` run opened *"Happy here…"* while doing the work as Kurapika, in Kurapika's discipline
+> (`docs/ab/surfaces.md` § 7, F11). **So the name in a Codex transcript is not evidence the persona
+> loaded, and it is not evidence it did not.** The record of who acted is the one Hatsu writes: `--who` on
+> `nen stop`, the `who` field of `.nen/last-stop.json`, and the `Akatsuki-Agent` trailer — all three carry
+> the persona regardless of what the surface calls itself.
+
 ### The invocation spelling is the mirror's, not yours to type into a source file
 
 Every `hatsu:<name>` mention in a skill body — including the one in its own `description` — is rewritten by
@@ -39,13 +49,63 @@ repository's namespace looks like. **`hatsu:` is caller data**, passed on the co
 no system's vocabulary. So `hatsu:rasengan` in the source reads `$rasengan` on Codex and `/rasengan` on
 Cursor, and a reader of either mirror is told to type something that actually works there.
 
+### What Codex advertises, and why the install mechanism decides it
+
+**Codex lists a skill under its frontmatter `name`, namespaced by the plugin manifest above the directory
+the path RESOLVES to.** Verified on this host with three controlled `codex debug prompt-input` renders in a
+throwaway repository — no model called (`docs/ab/surfaces.md` § 7, F1):
+
+| how `<repo>/.agents/skills/<name>` was made | Codex lists it as |
+|---|---|
+| `cp -R` of a mirror directory | **`ren`** — bare |
+| symlink to a directory under no plugin root | **`breath`** — bare |
+| symlink into this checkout, which carries `.claude-plugin/plugin.json` (`"name": "hatsu"`) | **`hatsu:aka`** |
+
+So a symlink install is namespaced by the *plugin* it points into, exactly the way an installed plugin's
+skills are (`bankai:build`), and the `$<name>` spelling the mirror bodies carry is then not what the
+surface shows. **That is why the Codex install is `cp -R` and not a symlink** — see
+[`claude/skills/hatsu-warmup/SKILL.md`](../claude/skills/hatsu-warmup/SKILL.md) § 5a, which re-copies every
+session so the copy is refreshed rather than left to rot.
+
+### Codex shortens the descriptions, and the budget is shared
+
+Codex prints, at session start:
+
+```text
+warning: Skill descriptions were shortened to fit the skills context budget. Codex can still see every
+skill, but some descriptions are shorter. Disable unused skills or plugins to leave more room.
+```
+
+**The cut length is not a constant — it is one budget divided across every skill the session can see**, so
+it moves with what else is installed. Measured on this host from the `prompt-input` renders
+(`docs/ab/surfaces.md` § 7, F7): with **51** skills visible the longest surviving description was **411**
+characters; with **87** visible (39 mirrored Hatsu skills plus this host's other plugins) every Hatsu
+description was cut to **186–190** characters, mid-clause — `hatsu:ren`'s ended at *"Use when "*.
+
+**Hatsu cannot fix this by shortening a description to fit, because there is no number to fit inside.** The
+rule is an authoring one, in [`docs/`](../README.md)'s own convention: **lead every `description` with what
+the skill does, then its trigger, then its never-clauses, inside the first ~180 characters** — everything
+after that is what this surface throws away, and the clause naming the invocation and the refusals is
+exactly the part a model-invocation decision is made from. A long tail is still worth writing for the two
+surfaces that keep it; it is not worth *relying* on here.
+
 ### One honest limitation of a verbatim mirror
 
 The bodies carry **relative links written for this repository's layout** — `../rikugan/SKILL.md`,
-`../../../docs/SURFACES.md`. Inside a target repository's `.agents/skills/` or `.cursor/skills/` those
-resolve to the plugin checkout the symlink points at, and inside a *copy* they resolve to nothing. That is
-the price of "the body verbatim", it is deliberate, and it is stated rather than papered over: the mirrors
-are for an agent reading a skill, not for a human browsing a link tree.
+`../../../docs/SURFACES.md`. Inside a target repository's `.agents/skills/` (a `cp -R`) a sibling link like
+`../rikugan/SKILL.md` still resolves — to the sibling copy — while `../../../docs/SURFACES.md` resolves to
+`<target>/docs/SURFACES.md` and dangles. That is the price of "the body verbatim", it is deliberate, and it
+is stated rather than papered over: the mirrors are for an agent reading a skill, not for a human browsing
+a link tree.
+
+> **A link that RESOLVES into the plugin is more dangerous than one that dangles, and this is the second
+> reason the Codex install is a copy.** Through a symlink, `../../../nen/workflow.json` resolved to
+> **`<plugin checkout>/nen/workflow.json`** — Hatsu's own policy file — so an agent told to read the model
+> matrix "from `nen/workflow.json` and never from memory" read the wrong repository's policy with no error
+> anywhere. Through the copy the same path resolves to `<target>/nen/workflow.json`, which is the file that
+> was meant. Both resolutions verified live (`docs/ab/surfaces.md` § 7, F10). A dangling link is an agent
+> that reports it could not read something; a link into the plugin is an agent that answers confidently
+> from the wrong file.
 
 ---
 
@@ -149,12 +209,48 @@ These are the commands, and both `--help`s were read on this host before they we
 ### Codex
 
 ```sh
-codex exec -C <repo> -s workspace-write -m gpt-6-sol "<prompt>"
+codex exec -C <repo> -s workspace-write \
+  --add-dir "$(git -C <repo> rev-parse --path-format=absolute --git-common-dir)" \
+  -m gpt-6-sol "<prompt>"
 ```
+
+> ### ⚠️ `--add-dir` is not an optimisation. Without it a LINKED WORKTREE cannot commit at all.
+>
+> `-s workspace-write` makes the **workspace** writable, and in a linked git worktree essentially all of
+> git's own state lives outside the workspace:
+>
+> | what | where it lives | inside `-C <worktree>`? |
+> |---|---|---|
+> | `HEAD`, `index`, `FETCH_HEAD`, `ORIG_HEAD` | `<main repo>/.git/worktrees/<name>/` | **no** |
+> | objects, `refs/`, `packed-refs`, `config` | `<main repo>/.git/` | **no** |
+> | `info/exclude` | `<main repo>/.git/info/` | **no** |
+>
+> So `git fetch`, the branch cut, `git commit`, `git push` and the local exclude are all refused.
+> **Reproduced on a constructed fixture on this host, both ways** (`docs/ab/surfaces.md` § 7, F3): the
+> command `printf 'y\n' >> a.txt && git add a.txt && git commit -m …`, run by Codex inside a linked
+> worktree under `-s workspace-write`, died at exit **`128`** —
+> *"fatal: Unable to create `…/.git/worktrees/wt/index.lock`: Operation not permitted"* — and the same
+> command with `--add-dir "$(git rev-parse --path-format=absolute --git-common-dir)"` added exited **`0`**
+> and produced the commit. Nothing else changed between the two runs.
+>
+> `--git-common-dir` is the right ref to pass and `--git-dir` is not: in a linked worktree `--git-dir`
+> answers `<main>/.git/worktrees/<name>`, which covers `HEAD` and the index and leaves objects, `refs/`
+> and `info/exclude` outside. `--path-format=absolute` is passed because the bare form answers relatively
+> in a primary checkout (`.git`), and `--add-dir` wants a real path.
+>
+> **The alternative, and it is a real one: give the Codex session a standalone clone.** A clone's `.git`
+> is *inside* the workspace, so `-s workspace-write` alone is enough and no extra root is opened. Prefer
+> the clone where the session is disposable; prefer `--add-dir` where the effort must land in the
+> maintainer's own repository — which is what [`hanten`](../claude/skills/hanten/SKILL.md) § 9a's reviewer
+> worktree is, and § 9a carries this same sentence.
+>
+> **Whichever is used, `--add-dir` widens the sandbox by exactly one directory and it is a git directory.**
+> It is not `--dangerously-bypass-approvals-and-sandbox`, and reaching for that instead — because a git
+> write failed — is trading a named, auditable hole for an unbounded one.
 
 - `-C, --cd <DIR>` — the working root. `-s, --sandbox` takes `read-only`, `workspace-write` or
   `danger-full-access`; **`workspace-write` is the one to use** — the session may write inside the
-  repository and nothing outside it.
+  repository and nothing outside it. `--add-dir <DIR>` adds one more writable root, per the block above.
 - `-m, --model` takes a **model id**, and the id is versioned even though the matrix's alias is not.
   `sol` is the tier alias in [`nen/workflow.json`](../nen/workflow.json) → `models.codex.deep`; the id is
   that alias with this surface's current version in front of it.
@@ -169,6 +265,27 @@ codex exec -C <repo> -s workspace-write -m gpt-6-sol "<prompt>"
 - Add `-o, --output-last-message <FILE>` when something downstream has to read the answer, and `--json` for
   JSONL events.
 - The skills must already be in `<repo>/.agents/skills/` — that is the warm-up's § 5a.
+
+#### Answering a G5 stop — `codex exec resume`, which takes almost none of the flags above
+
+A G5 stop is a designed part of every Hatsu run, so a headless validation pass **will** need to answer one.
+That is a second invocation, and it is a different command line:
+
+```sh
+cd <repo> && codex exec resume --last -m gpt-6-sol --skip-git-repo-check \
+  -c 'sandbox_workspace_write.writable_roots=["<extra root>", "<repo git common dir>"]' \
+  -o <file> "<the answer>"
+```
+
+**`resume` accepts neither `-C/--cd`, nor `-s/--sandbox`, nor `--add-dir`** — verified on this host, each
+refused with *"error: unexpected argument … found"* at exit `2` (`docs/ab/surfaces.md` § 7, F6). Its own
+options are `-c`, `--last`, `--all`, `--enable/--disable`, `-i`, `-m`, `--strict-config`,
+`--skip-git-repo-check`, `--ephemeral`, `--ignore-user-config`, `--ignore-rules`, `--output-schema`,
+`--json` and `-o`. So the two substitutions are fixed and there is no third: **the working root comes from
+the shell's own `cd`**, and **every extra writable root — the git common dir above included — comes from
+`-c 'sandbox_workspace_write.writable_roots=[…]'`**. A resume that forgets the second one hits F3's
+`Operation not permitted` on the turn *after* the stop was answered, which reads like a new failure and is
+the old one.
 
 ### Cursor
 
