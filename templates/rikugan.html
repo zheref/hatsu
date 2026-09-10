@@ -23,7 +23,9 @@
    * EVERY `{{token}}` IS HTML-ESCAPED BY THE RENDERER. `nen report render`
      escapes by default — `& < > " '` become entities — and that holds in text
      content and inside an attribute alike. There is no token on this page that
-     opts out.
+     opts out. At nen 0.3.0 that verb does not exist yet, so this paragraph is
+     BOTH the contract it must meet when it lands at 0.4.0 AND, today, the rule
+     the residue path below carries on its own.
    * `{{{ }}}` is the RAW form. No token below the comment uses it, and the one
      slot it would ever be admitted for is a pre-escaped data-URI `src`, which
      must first match

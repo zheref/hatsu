@@ -176,7 +176,11 @@ gets published as an Artifact.
 
 - **Every `{{token}}` is HTML-escaped by the renderer.** `nen report render` escapes by default —
   `&`, `<`, `>`, `"`, `'` become entities — in text content and inside an attribute alike. No token
-  on this page opts out.
+  on this page opts out. **That verb does not exist at `v0.3.0`** (§ 4's opening), so this rule is
+  two things at once: the **contract `nen report render` must meet** when it lands at `v0.4.0`, and
+  — today, on the only path there is — **the residue's own job**. Check it the day the verb lands,
+  alongside the nested-`{{#each}}` finding above; if the verb ships without escaping by default, the
+  fix is nen's, not a template full of pre-escaped values.
 - **`{{{ }}}` is the raw form, and `templates/rikugan.html` uses it nowhere.** The only slot it
   would ever be admitted for is a **pre-escaped data-URI `src`**, which must first match
   `^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$`. Even that slot is written `{{ }}`, because
