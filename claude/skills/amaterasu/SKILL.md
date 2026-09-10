@@ -127,6 +127,14 @@ Where the target declares a `device`, run its `resolve` probe **as declared** an
 listing three devices none of which is the declared one is an absent device, not "close enough."
 Pairing a device that has never been set up is `hatsu:jujutsu`'s work, not this skill's.
 
+**The match is byte for byte** — exact string equality, no case folding, no Unicode normalisation, no
+smoothing of punctuation — which is what `--target` implements from nen `0.4.0` and what the by-hand
+path here holds itself to today. The practical consequence is one character: a device named
+`Sergio’s iPhone` carries **U+2019**, not the ASCII `'`, and a declaration written with the typed
+apostrophe is a *different name* — so the probe's list will not contain it and this table's second
+row fires, reporting a device that is plugged in as absent. Copy the name out of the probe's output;
+[`hatsu:jujutsu`](../jujutsu/SKILL.md) § 5 is the authority and carries the byte-level evidence.
+
 ## 5. The dry run, and the command you paste
 
 **This section runs only when a target was resolved.** On § 1's no-launch case there is nothing to

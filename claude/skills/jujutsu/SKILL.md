@@ -160,6 +160,13 @@ to it before there is any declaration to refuse from.
 
 ## 5. The name is **bytes**, and it is copied, never retyped
 
+**`device.name` is matched byte for byte** — exact string equality against what the probe printed,
+with no normalisation, no case folding, no Unicode equivalence and no punctuation smoothing — so a
+device name carrying a typographic apostrophe (U+2019, as in `Sergio’s iPhone`) must be declared with
+that same character and not with the ASCII `'` a keyboard produces. That is the contract
+`nen shu dev --target` implements from `0.4.0`, and it is the rule the by-hand path holds itself to
+today (`--target` refuses at `0.3.0`, verified live: *"--target is not read by 'shu dev'"*).
+
 **Take `device.name` from the probe's own output.** Verified live (`docs/ab/jujutsu.md` § 2.2): the
 device this machine sees is
 
