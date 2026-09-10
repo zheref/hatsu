@@ -59,8 +59,8 @@ reviewer and then discovers the diff was mostly auth has spent a reviewer on the
 | Scope | Raised when the change set touches | Reviewer | What they cite |
 |---|---|---|---|
 | **ui** | a rendered surface — views, components, styles, design tokens, snapshot goldens, copy shown to a user | **[Hisoka](../../agents/hisoka.md)** | `UX-1`…`UX-12`, `UZF-26`, the Design Direction |
-| **security** | authentication, credentials and secrets, permissions, network calls, storage and persistence, input trust boundaries, the supply chain | **Feitan** | the security handbook's rules, by id |
-| **architecture** | module boundaries, dependency direction, public API shape, the handbooks' own conformance surface | **Chrollo** | the governing rule by its id, never from memory |
+| **security** | authentication, credentials and secrets, permissions, network calls, storage and persistence, input trust boundaries, the supply chain | **[Feitan](../../agents/feitan.md)** | the security handbook's rules, by id |
+| **architecture** | module boundaries, dependency direction, public API shape, the handbooks' own conformance surface | **[Chrollo](../../agents/chrollo.md)** | the governing rule by its id, never from memory |
 | **performance** | a hot path, a render loop, a query, a bundle entry point, anything with a recorded budget | **[Uvogin](../../agents/uvogin.md)** | `QA-11`'s P1–P7 with `QA-15` method blocks |
 | **release** | version manifests, tags, changelogs, packaging, deploy configuration, release workflows | **[Phinks](../../agents/phinks.md)** | `QA-1`'s proven-finding discipline, `QA-2`'s eight classes |
 
@@ -82,13 +82,23 @@ and the roster disagree, **the roster wins and this table is the bug.**
 
 ## 3. A scope with no reviewer is reported as a **gap**
 
-**Two of the five have no agent definition in this repository**, and that is a live fact rather than a
-hypothetical: `docs/ROSTER.md` § 4 activates **Feitan** and **Chrollo** and states plainly that
-*"their definitions land at `v0.5.0`"* and that **"until a definition exists in `claude/agents/`,
-neither may be acted as — an activation is a decision about standing, not a licence to improvise the
-agent."**
+**All five of § 2's reviewer personas are defined in this repository today.** Hisoka, Feitan, Chrollo,
+Uvogin and Phinks each have a file under `claude/agents/`: Feitan's and Chrollo's landed at `v0.5.0`
+on the ruling of 2026-09-09, which `docs/ROSTER.md` § 4 records — both are now ratified independents
+with their rows in § *The independents*. **So on this plugin, at this version, no scope in § 2's
+table is a gap.**
 
-So, before raising anyone, check that the definition exists:
+**The check stays, and it is not ceremony.** What `docs/ROSTER.md` § 4 actually rules is the rule that
+outlives the current roster: **"until a definition exists in `claude/agents/`, neither may be acted
+as — an activation is a decision about standing, not a licence to improvise the agent."** That binds
+any persona, at any time — a scope a repository routes somewhere this plugin has not provisioned, a
+persona activated by a ruling whose definition has not landed yet, a plugin installed at a version
+older than the one that added a file. The mechanism is what this section specifies; *which* personas
+happen to be missing is a fact about a version, and stating it as a permanent one is how a skill goes
+stale.
+
+So, before raising anyone, check that the definition exists — every run, for every persona, including
+the five that are there today:
 
 ```bash
 ls <plugin root>/claude/agents/<persona>.md
@@ -104,11 +114,14 @@ body, and in the findings record as a scope with `reviewed: false` — the same 
 `claude/agents/hisoka.md` states for his own `unread` marker: *"an undeclared skip is how a check
 quietly stops happening."*
 
-**And it is never improvised past.** Reading a security-bearing diff "as Feitan would" because Feitan
-has no file is exactly the improvisation the roster's ruling forbids, and it produces findings with
-no citable rule behind them. The honest output is *"the security scope was raised by these four paths
-and was not reviewed; Feitan's definition lands at `v0.5.0`"* — which tells the maintainer something
-true and actionable, where a manufactured review would not.
+**And it is never improvised past.** Reading a scope's diff "as `<persona>` would" because
+`<persona>` has no file is exactly the improvisation the roster's ruling forbids, and it produces
+findings with no citable rule behind them. The honest output is *"the `<scope>` scope was raised by
+these four paths and was not reviewed; `<persona>` has no definition at
+`claude/agents/<persona>.md`"* — which tells the maintainer something true and actionable, where a
+manufactured review would not. **This applies to a persona whose file exists but is not installed
+here too**: an older plugin version, a partial install, a persona the surface will not raise. The
+question is always *is the definition in front of me*, never *do I remember this persona*.
 
 ## 4. Raising a reviewer — the model, the title, the isolation
 
@@ -192,8 +205,9 @@ report's filename.
 { "contract": "hatsu.hanten.findings/v0.1",
   "branch": "<branch>", "base": "<branch.base>", "at": "<ISO-8601 UTC>",
   "scopes": [ { "scope": "ui", "persona": "hisoka", "model": "sonnet", "reviewed": true },
-              { "scope": "security", "persona": "feitan", "model": null, "reviewed": false,
-                "gap": "no definition at claude/agents/feitan.md; ROSTER.md § 4" } ],
+              { "scope": "security", "persona": "feitan", "model": "opus", "reviewed": true },
+              { "scope": "<scope>", "persona": "<an unprovisioned persona>", "model": null, "reviewed": false,
+                "gap": "no definition at claude/agents/<persona>.md; ROSTER.md § 4" } ],
   "findings": [ { "id": "F1", "scope": "ui", "persona": "hisoka",
                   "rule": "…", "severity": "…", "path": "…", "line": 88,
                   "evidence": "…", "proposedFix": "…",
@@ -202,6 +216,11 @@ report's filename.
 
 **The six fields are the reviewer's; `id`, `scope`, `persona` and `disposition` are hanten's**, added
 as it records. A reviewer never writes this file.
+
+**The third `scopes` row is the gap shape, written as a hypothetical on purpose.** At `v0.5.0` every
+persona § 2 routes to has a definition (§ 3), so a real record from this plugin carries no gap row at
+all — the row is here because the shape must be documented before the day something needs it, and
+filling it with a persona that *is* defined would teach the shape by way of a false example.
 
 ## 6. Settle every finding — fixed, or pushed back with a reason
 

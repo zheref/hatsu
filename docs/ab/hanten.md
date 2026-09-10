@@ -67,7 +67,25 @@ exit=2
 a scope needs: routing a security-bearing diff to a reviewer picked by string proximity is worse than
 refusing the line.
 
-### 2.2 — Two of the five reviewers have no definition, and the roster says so
+### 2.2 — Two of the five reviewers had no definition, and the roster said so
+
+> **Superseded 2026-09-10 — the transcript below is kept as run, and the fact it records has since
+> changed.** `claude/agents/feitan.md` and `claude/agents/chrollo.md` **now exist**: both definitions
+> landed at `v0.5.0` on the ruling of 2026-09-09, and `docs/ROSTER.md` has moved both rows up into
+> § *The independents*. **All five of `hanten` § 2's reviewer personas are defined today, and no scope
+> in that table is a gap.** The transcript stands as evidence of the state this A/B was run against;
+> it is not evidence about the plugin as it ships now.
+>
+> Three consequences, recorded here so the rest of this file is read correctly:
+>
+> - **`hanten` § 3 has been rewritten** to state the gap *mechanism* — a scope whose persona has no
+>   definition in `claude/agents/` is reported as a gap and never improvised past — without asserting
+>   which personas are missing, because that is a fact about a version.
+> - **§ 4.3 below has lapsed**, exactly as its own last line said it would.
+> - **§ 4.1's aside naming Feitan and Chrollo as "the personas with no definition to pin a model in"
+>   is superseded**: both pin `model: opus` in their own frontmatter. **The question § 4.1 asks is
+>   untouched and still open** — it was never about those two, and the reconciliation it records
+>   (a persona's own pin wins; the role-derived alias is for a persona that pins none) is unchanged.
 
 ```
 $ ls claude/agents/
@@ -89,8 +107,9 @@ the constraint verbatim: *"**Their definitions land at `v0.5.0`.** Until a defin
 `claude/agents/`, **neither may be acted as** — an activation is a decision about standing, not a licence
 to improvise the agent."*
 
-**So at the moment this skill ships, two of its five scopes have no reviewer**, and that is why § 3 of
-the skill exists rather than being a hypothetical branch. See § 4.3.
+**So at the moment this A/B was run, two of the skill's five scopes had no reviewer**, which is why
+§ 3 of the skill exists rather than being a hypothetical branch. See § 4.3 — and the note at the head
+of this section, which records that both definitions have since landed.
 
 The model pins on the three that do exist, read off their own frontmatter:
 
@@ -241,7 +260,7 @@ question: **which dialect**. Answer it once, for both keys.
 This is a `0.4.0`-or-later schema item, not a `0.3.0` residue, and it is smaller than it looks because
 nothing executes it — hanten reads it, exactly as it reads `models`.
 
-### 4.3 — Two of five scopes have no reviewer at the moment the skill ships, and that is the load-bearing case
+### 4.3 — Two of five scopes had no reviewer when this A/B ran, and that was the load-bearing case — **LAPSED**
 
 § 2.2. `ls claude/agents/` returns five files and neither `feitan.md` nor `chrollo.md` is among them,
 while `docs/ROSTER.md` § 4 routes **security** and **architecture** to exactly those two and forbids
@@ -264,6 +283,14 @@ Two consequences worth stating:
 
 **Re-check this record's § 2.2 when the pin on the roster moves.** The day both files exist, hanten's
 gap path becomes the rare branch it was designed to be, and this finding lapses.
+
+> **LAPSED 2026-09-10, on its own terms.** Both files exist —
+> [`claude/agents/feitan.md`](../../claude/agents/feitan.md) and
+> [`claude/agents/chrollo.md`](../../claude/agents/chrollo.md), landed at `v0.5.0` — so every scope in
+> `hanten` § 2 routes to a defined persona and the gap path is the rare branch it was designed to be.
+> The two consequences above are **not** lapsed and were folded into the skill: the gap still reads as
+> loudly as a finding, and improvising a review for a persona with no definition is still forbidden.
+> What lapsed is only the claim that a large fraction of real runs would take that path.
 
 ### 4.4 — Not a finding: raising a delegate is a boundary, and nen is right not to own it
 
