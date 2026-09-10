@@ -122,7 +122,12 @@ wrong is a force-push:**
 git -C <path> fetch origin <base>
 # 2. published? ASK THE REMOTE. This is the default form.
 git -C <path> ls-remote --heads origin refs/heads/<branch>   # empty output = not published
-# 3. the squash point, per the table above
+# 3. PUBLISHED ROW ONLY: ls-remote read the ref and transferred nothing. Make the object local,
+#    then prove it is behind HEAD, before it is allowed to be a reset point.
+git -C <path> cat-file -e <the SHA ls-remote printed>^{commit} \
+  || git -C <path> fetch origin <branch>
+git -C <path> merge-base --is-ancestor <the SHA ls-remote printed> HEAD
+# 4. the squash point, per the table above
 git -C <path> reset --soft <the SHA ls-remote printed | $(git merge-base origin/<base> HEAD)>
 ```
 
@@ -132,9 +137,20 @@ equivalent and the difference is not stylistic:
 - **`ls-remote` answers the question that was actually asked.** *Is this branch on origin, and at
   what SHA?* — asked of origin, answered by origin, in one line, touching no local ref. On a first
   publish it exits `0` with empty output, which is a clean answer rather than a failure to interpret.
-  And the SHA it prints **is** the squash point for the published row, used directly: no
+  And the SHA it prints **is** the squash point for the published row: no
   `refs/remotes/origin/<branch>` is consulted at all, so there is no stale tracking ref left in the
   decision to go wrong.
+
+  > **But `ls-remote` reads the ref advertisement and downloads no objects, so step 3 is not
+  > optional.** On a checkout that has never fetched `<branch>` — a `--single-branch` clone, a
+  > machine that did not make the push, a branch advanced from somewhere else — the SHA it printed
+  > is not in the local object database, and using it directly dies: *`fatal: Could not parse
+  > object '<sha>'`*, exit `128`, reproduced live against a `--single-branch` clone over `file://`.
+  > `git cat-file -e <sha>^{commit}` is the cheap test and `git fetch origin <branch>` is the cure;
+  > **neither consults the tracking ref for the decision**, so the property above survives intact.
+  > And a SHA that *is* present but is **not** an ancestor of `HEAD` is the worse case — `reset
+  > --soft` would take it and silently drop every commit in between — which is why
+  > `git merge-base --is-ancestor` runs before the reset and is § 4's third refusal below.
 - **`git fetch origin <base> <branch>` is the fallback**, for a remote or a host where `ls-remote`
   is not available or not permitted. It fetches the base — which step 1 needs anyway — and, when
   `<branch>` is not on the remote, **exits non-zero with `fatal: couldn't find remote ref <branch>`.
@@ -259,7 +275,10 @@ invent one.
 
 1. **`nen wc squash --onto <ref> --message-file <f>`** — absent at `v0.3.0` (`nen wc` has one verb,
    `classify`). § 4 runs `git reset --soft <computed point>` plus one `nen commit format`-shaped
-   commit, and enforces the verb's four refusals by hand first.
+   commit, and enforces the verb's four refusals by hand first. **Making the squash point usable is
+   part of that by-hand half**: `git cat-file -e <sha>^{commit}` (with `git fetch origin <branch>`
+   when the object is not local — `ls-remote` transfers none) and `git merge-base --is-ancestor
+   <sha> HEAD`. Both are named here because both are steps the verb will own when it lands.
 2. **The forbidden-trailer refusal in `nen commit format`** — verified live to be absent: a
    `Co-Authored-By` trailer renders at exit `0`. Until the P2 `--repo`-aware guard lands, the
    refusal is **this skill's rule** (always), plus a `commit-msg` hook **only in a repository that
