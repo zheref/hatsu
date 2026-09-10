@@ -178,14 +178,30 @@ version_bumped() {
 }
 
 # --- pr_body_has_opt_out PR_BODY_FILE ----------------------------------------
-# Returns 0 if PR_BODY_FILE carries the `no plugin bump: <reason>` opt-out (for
-# a change that provably does not affect the shipped plugin surface). A bare
-# `no plugin bump:` with nothing after it is NOT an opt-out — the reason is the
-# point.
+# Returns 0 if PR_BODY_FILE DECLARES the `no plugin bump: <reason>` opt-out (for
+# a change that provably does not affect the shipped plugin surface). Two things
+# make a declaration, and both are required:
+#
+#   1. A REASON. A bare `no plugin bump:` with nothing after it is not an
+#      opt-out — the reason is the point.
+#   2. THE LINE STARTS WITH IT. The opt-out is a statement the PR body makes,
+#      not a phrase it contains. The unanchored pattern this replaces matched
+#      PROSE that merely mentioned the phrase, so a body writing
+#      "claims no `no plugin bump:` opt-out" — or a review comment quoting the
+#      refusal message, which itself ends with the sentence
+#      "state `no plugin bump: <reason>` in the PR body" — SATISFIED the guard
+#      and skipped the version check. A guard defeated by describing it is not
+#      a guard. (Recorded with the refuse/pass transcripts in
+#      docs/ab/plugin-bump-guard.md § 8.)
+#
+# The prefix a real declaration may carry is bookkeeping only: leading
+# whitespace, blockquote `>` markers and `-` list bullets, in any order. Nothing
+# else — a backtick, a `*` bullet inside a sentence, or any other character
+# before the phrase means it is being talked about rather than declared.
 pr_body_has_opt_out() {
   local file="$1"
   [ -f "$file" ] || return 1
-  grep -qiE 'no plugin bump:[[:space:]]*[^[:space:]]' "$file"
+  grep -qiE '^[[:space:]]*([>-][[:space:]]*)*no plugin bump:[[:space:]]*[^[:space:]]' "$file"
 }
 
 if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
