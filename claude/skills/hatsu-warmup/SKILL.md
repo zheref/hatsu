@@ -32,17 +32,18 @@ is that shell: `$HATSU_PLUGIN_ROOT`, else the path this invocation was handed, e
 **each accepted only if it holds a `.claude-plugin/plugin.json` whose own `name` is `hatsu`**, the winner
 canonicalised to an absolute path, printed, and read from. § 5's prelude is the same loop written out with
 its reasoning and with the rejected-path report the install needs; every later block in this skill opens
-with the path this one prints, as an explicit input (§ 5's rule).
+with the quoted value this one prints, as an explicit input (§ 5's rule).
 
 ```bash
 # ONE shell: resolve, print, read. A block that uses $hatsu_root sets it in that block (§ 5).
-hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" "<the path this invocation was handed, if any>" "${CLAUDE_PLUGIN_ROOT:-}"; do
+# the handed slot is SINGLE-quoted: $, backticks, backslashes and spaces in a path reach the test as themselves; a ' in it is written '\''
+hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the path this invocation was handed, if any>' "${CLAUDE_PLUGIN_ROOT:-}"; do
   [ -n "$c" ] && [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
   [ "$(sed -n 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$c/.claude-plugin/plugin.json" | head -n 1)" = hatsu ] &&
   hatsu_root=$(cd "$c" && pwd -P) && break
 done
 [ -n "$hatsu_root" ] || { echo "hatsu-warmup: no Hatsu root — \$HATSU_PLUGIN_ROOT unset or not a Hatsu checkout, nothing usable handed, \$CLAUDE_PLUGIN_ROOT empty or another plugin" >&2; exit 1; }
-echo "hatsu_root: $hatsu_root"     # every later block takes THIS printed path as its explicit input
+printf "hatsu_root: '%s'\n" "$(printf '%s' "$hatsu_root" | sed "s/'/'\\\\''/g")"   # printed QUOTED, any ' escaped: every later block pastes that quoted value verbatim
 cat "$hatsu_root/nen/contract.json"
 ```
 
@@ -70,7 +71,7 @@ cat "$hatsu_root/nen/contract.json"
 This is the one machine read of the contract, and it is a validation, never a way of extracting values:
 
 ```bash
-hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule), QUOTED: a path with a space is still one word; a variable from another shell is not here
+hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): § 0 prints this value single-quoted with any ' escaped — paste it in place of '<…>', quotes included; a variable from another shell is not here
 nen schema check --repo "$hatsu_root"
 ```
 
@@ -519,9 +520,15 @@ echo "hatsu_root: $hatsu_root"   # a later shell cannot inherit this variable; i
   - **§ 0's resolver, verbatim** — the same three candidates, the same `is_hatsu` test, the same
     `pwd -P`, six lines above the command. `pr-state` § 2, `futon` § 5 and `tensho` § 6 carry it, with
     the printed root as the second candidate.
-  - **the one-line explicit input** `hatsu_root='<the absolute path § 0 printed>'`, quoted — this skill's own later
-    blocks (§ 0's `schema check`, § 5a's copy loop, § 5c's `ours`) open with it, and `backlog-state` and
-    `getsuga` spell the same input as `<hatsu root>` in prose, substituted literally.
+  - **the one-line explicit input** `hatsu_root='<the absolute path § 0 printed>'` — this skill's own later
+    blocks (§ 0's `schema check`, § 5a's copy loop, § 5c's `ours`), `hanten` § 3's `ls`, and the prose
+    fallbacks in `backlog-state` and `getsuga` open with it.
+
+  **The path is never embedded raw in source text.** § 0 prints it as a single-quoted shell literal with
+  every `'` in it written `'\''` — `sed "s/'/'\\\\''/g"` — and a consumer pastes that quoted value verbatim,
+  quotes included, into the explicit-input line or into the resolver's single-quoted handed slot. Inside
+  single quotes nothing else is special: `$`, backticks, backslashes and spaces reach the shell as
+  themselves (`docs/ab/surfaces.md` § 9.8 exercises a path carrying all five).
 
   Inlined rather than sourced from a helper file, because a helper file would have to be found by the
   very root it resolves; and never *"run the prelude first"* in prose, which executes nothing.
@@ -556,7 +563,7 @@ a second trap with it: through a symlink the mirror's own `../../../nen/workflow
 **plugin's** policy file rather than the target's (§ 5d, F10). The copy fixes both.
 
 ```sh
-hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule), QUOTED: a path with a space is still one word; a variable from another shell is not here
+hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): § 0 prints this value single-quoted with any ' escaped — paste it in place of '<…>', quotes included; a variable from another shell is not here
 mkdir -p "$target/.agents/skills"
 for d in "$hatsu_root"/surfaces/codex/*/; do
   name=$(basename "$d"); dest="$target/.agents/skills/$name"
@@ -706,7 +713,7 @@ and thirty-nine of them are being claimed at once.
 | **anything else — and a TRACKED path is always anything else** | **leave it untouched**, install nothing under that name, and **name it in § 4's line** |
 
 ```sh
-hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule), QUOTED: a path with a space is still one word; a variable from another shell is not here
+hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): § 0 prints this value single-quoted with any ' escaped — paste it in place of '<…>', quotes included; a variable from another shell is not here
 # ours DEST — true only for a destination this skill made. Tracked is never ours,
 # whatever it looks like: a repository's own history outranks a marker comment.
 ours() {

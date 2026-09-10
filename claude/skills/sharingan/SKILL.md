@@ -150,7 +150,8 @@ Re-run from the top on **every** state change; never act on a picture older than
    > takes, through the same resolver, so a checkout that ships no gates file can still be evaluated.
    > A RELATIVE path is resolved against `--repo`, NOT the current directory"* — so the invocation is
    > now `nen pr next-blocker --target <owner/name> --pr <n> --repo <path>` carrying **the same
-   > identity flag § 4's table selects** — `--gates <plugin root>/contracts/reference.gates.json`
+   > identity flag § 4's table selects** — `--gates "$hatsu_root/contracts/reference.gates.json"`, with
+   > `$hatsu_root` set in that same shell (§ 4's box),
    > for `<reference-repo>` alone, `--reviewers a,b` for a target that ships no gates file of its
    > own — and `--repo` is **required** at exit `2`
    > (`v0.2.0` #73). **The crash half is not re-verified:** with the gates file supplied at the port, the
@@ -188,7 +189,7 @@ nen pr ready <CODE>#<N> --repo <path> --explain            # the target ships ne
 | The target repository | The flag | What the verdict is about |
 |---|---|---|
 | ships its own `nen/gates.json` | **none** — the verb reads it | this repository's own configured reviewers. **Always prefer this** |
-| **is `<reference-repo>`**, which is FROZEN and ships no gates file | `--gates "<plugin root>/contracts/reference.gates.json"` | that repository's identities, carried here because it cannot grow a file of its own |
+| **is `<reference-repo>`**, which is FROZEN and ships no gates file | `--gates "$hatsu_root/contracts/reference.gates.json"` — `$hatsu_root` set in that same shell, by `pr-state` § 2's resolver or the explicit-input line `hatsu_root='<the absolute path § 0 printed>'` (the box below) | that repository's identities, carried here because it cannot grow a file of its own |
 | ships no gates file and is **not** `<reference-repo>` | `--reviewers <a,b,c> [--approvers <a,b>]`, **supplied by hand and named on the page** | the identities this repository actually configures |
 
 > **The reference gates file is the REFERENCE repository's, and pointing it at any other repository

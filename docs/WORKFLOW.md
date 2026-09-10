@@ -860,10 +860,12 @@ resolution [`hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md) § 5's prelu
 each candidate accepted only if it is a Hatsu checkout, the winner canonicalised to an absolute path and
 held in a shell variable that is not exported. **So a code block that uses `$hatsu_root` sets it in that
 block** — `hatsu-warmup` § 0's resolver verbatim (`pr-state`, `futon`, `tensho`), or the one-line explicit
-input `hatsu_root='<the absolute path § 0 printed>'`, quoted so a path with a space stays one word (the warm-up's
-own later blocks); a `<hatsu root>` in prose
-(`backlog-state`, `getsuga`) is that same explicit input, substituted literally. Nothing is inherited from the
-warm-up's shell, and the root it prints is what every later block takes:
+input `hatsu_root='<the absolute path § 0 printed>'` (the warm-up's own later blocks, `hanten` § 3, and the
+prose fallbacks in `backlog-state` and `getsuga`). **The path is never embedded raw in source text**: § 0
+prints it as a single-quoted shell literal with every `'` written `'\''`, and a consumer pastes that quoted
+value verbatim, quotes included — into the explicit-input line or the resolver's single-quoted handed slot —
+so `$`, backticks, backslashes and spaces reach the shell as themselves. Nothing is inherited from the
+warm-up's shell, and the value it prints is what every later block takes:
 
 | `$hatsu_root` comes from | when |
 |---|---|

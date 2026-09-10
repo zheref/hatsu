@@ -279,10 +279,11 @@ is [`sharingan`](../sharingan/SKILL.md) § 4's identity rule, cited here rather 
 BEFORE the call — never defaulted to `--gates`.** A row for a repository that ships its own
 `nen/gates.json` needs no identity flag, as shown above. `<reference-repo>` (frozen, no gates file of
 its own) is the one repository this table can report on where `--gates
-"<hatsu root>/contracts/reference.gates.json"` applies — `<hatsu root>` being an EXPLICIT INPUT, the
-absolute path [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 0 printed as `hatsu_root:`, substituted
-literally into this command (or what `pr-state` § 2's same-shell block resolves in the shell that runs
-it). It is never a variable carried from another shell — that variable is not exported — and never
+"$hatsu_root/contracts/reference.gates.json"` applies — with `$hatsu_root` SET IN THAT SAME SHELL, by the
+explicit-input line `hatsu_root='<the absolute path § 0 printed>'` (the value
+[`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 0 prints, already single-quoted with any `'` escaped, pasted
+quotes included) or by `pr-state` § 2's resolver. It is never a variable carried from another shell — that
+variable is not exported — never a raw path embedded in the command text, and never
 `$CLAUDE_PLUGIN_ROOT` alone, which is Claude Code's and is unset or wrong on the two mirrored surfaces. Since nen `v0.2.0` a relative `--gates` resolves against **`--repo`'s root, never the cwd** (verified
 live at `v0.3.0`, [`pr-state`](../pr-state/SKILL.md) § 2), and the file lives in this plugin's
 checkout, not the target's. For any OTHER repository that this table reports on and that ships no

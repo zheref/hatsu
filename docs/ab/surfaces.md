@@ -929,3 +929,53 @@ The quoted form, exercised: `hatsu_root='/tmp/hatsu space test'; printf '%s\n' "
 path as one word; the unquoted form of the same line is *"command not found: test"* after an assignment
 of `/tmp/hatsu`. Mirrors regenerated clean after the change, the fenced-block check reports zero, the plugin
 validates.
+
+### 9.8 Copilot's fifth round — the path is never embedded raw in source text
+
+Two threads and three suppressed comments, one theme with a sharper edge than round four: single quotes
+alone are not shell-safe for every valid path (`/work/O'Brien/hatsu` ends the literal), the resolver's
+double-quoted handed slot expands `$` and backticks, the prose-only consumers (`backlog-state`, `getsuga`)
+substituted a literal into a double-quoted argument, and two `<plugin root>` placeholders (`hanten` § 3's
+`ls`, `sharingan` § 4's table and its `next-blocker` note) were never defined as anything.
+
+**The mechanism, now.** § 0 prints the root as a **ready-to-paste single-quoted shell literal** —
+`printf "hatsu_root: '%s'\n" "$(printf '%s' "$hatsu_root" | sed "s/'/'\\\\''/g")"` — every `'` in the path
+written `'\''`. A consumer pastes that quoted value verbatim, quotes included, into the explicit-input line
+`hatsu_root='…'` or into the resolver's handed slot, which is single-quoted in all four copies now (§ 0,
+`pr-state`, `futon`, `tensho`). Inside single quotes nothing else is special, so `$`, backticks, backslashes
+and spaces reach the shell as themselves; the one character that could end the literal is the one § 0
+escapes. `hanten` § 3's block sets the variable; `sharingan`'s two examples use it and its box says where it
+is set; `backlog-state` and `getsuga` are back on the variable, set in that shell by the quoted explicit
+input. No `<plugin root>` or `<hatsu root>` is left in a command anywhere under `claude/`.
+
+**Exercised end to end, through the skill text itself.** A minimal Hatsu checkout copy (`plugin.json`,
+`claude/skills/`, `contracts/`, `nen/contract.json`) was placed at a path carrying all five hostile
+characters — a quote, `$HOME`, backticks around `id`, a backslash, spaces. § 0's block was extracted from
+`hatsu-warmup` by its first and last lines, the handed slot filled the way the rule says, and run from
+`$HOME` with both variables empty:
+
+```
+hatsu_root: '<scratch>/O'\''Brien $HOME `id` back\slash dir/hatsu'
+{
+  "$schema": "nen.contract/v0.1",
+```
+
+Then `pr-state` § 2's block was extracted the same way, the printed quoted value pasted in place of `'<…>'`
+verbatim, and run from `$HOME` against this very pull request:
+
+```
+hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<scratch>/O'\''Brien $HOME `id` back\slash dir/hatsu' "${CLAUDE_PLUGIN_ROOT:-}"; do
+…
+zheref/hatsu#38: not-ready: a configured reviewer's round is still owed at the current head (CON-32b): …
+  policy bounded · delivery PR no · identities <scratch>/O'Brien $HOME `id` back\slash dir/hatsu/contracts/reference.gates.json
+```
+
+`identities …/O'Brien $HOME `id` back\slash dir/hatsu/contracts/reference.gates.json` — the path nen
+resolved is the hostile path unchanged: `$HOME` was not expanded, `id` was not executed, the quote and the
+backslash survived. (The `not-ready` is the expected wrong-reviewers verdict for a repository that ships no
+gates file, as in § 9.5.) Both mirrors regenerate clean after the change (`ok: 40`, `ok: 47`, script exit
+`0`), the fenced-block check reports zero, no double-quoted handed slot remains, and the plugin validates.
+
+**Still not verified:** a Codex or Cursor session — same caveat as before. What is verified is the block
+each mirror carries, byte-identical to these, run from a shell with no Claude Code state in it.
+
