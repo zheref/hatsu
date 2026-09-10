@@ -165,7 +165,8 @@ changed and why is this skill's to write, never nen's.
   why they are the only two and **no other AI attribution trailer is ever recorded**.
 - **`Akatsuki-Run:` does not exist** for this plane — Hatsu has no CI run to name, and adding one
   would forge a machine-plane provenance the local plane does not have
-  (`claude/agents/kurapika.md` § How you work). It is the same rule as the bullet above it.
+  (`claude/agents/kurapika.md` § How you work). It is the second bullet's rule, applied to the other
+  half of the CI plane's provenance.
 
 > **A declared change from `claude/agents/kurapika.md` § *How you work*, recorded rather than
 > smuggled.** That clause reads the maintainer's harness as *mandating* `Co-Authored-By:` and
