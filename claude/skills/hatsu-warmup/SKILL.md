@@ -30,6 +30,12 @@ shell).
 cat "$CLAUDE_PLUGIN_ROOT/nen/contract.json"
 ```
 
+**On Codex and Cursor that variable is empty and the plugin root is `$hatsu_root`** — the same resolution
+§ 5's prelude carries (`$HATSU_PLUGIN_ROOT`, else the path this invocation was handed), for the same reason:
+`$CLAUDE_PLUGIN_ROOT` is exported by Claude Code's harness and by no other. Resolve it there first, and read
+`$hatsu_root/nen/contract.json`. **A root that will not resolve stops the warm-up** — § 5's `NOT INSTALLED`
+line — rather than reading an empty path and reporting a missing contract.
+
 **You are the JSON parser.** You have just opened the file; read `dependency.minimum`,
 `dependency.zero_major_caveat`, `dependency.pinned_ref`, `dependency.source`, `dependency.version_probe`
 (an argv array — run exactly those elements, with no shell between them), `dependency.bootstrap.url` and
@@ -276,11 +282,50 @@ this repository, made on a branch, checked in CI (§ *The check* in `docs/SURFAC
 > cannot add the flag to a session already running: **it reports the condition and stops**, naming the
 > flag, rather than writing half an install into a checkout that cannot commit it.
 
+### 5 · prelude — `$hatsu_root`, and why `$CLAUDE_PLUGIN_ROOT` cannot be it here
+
+**Every path below reads from `$hatsu_root`, and resolving it is the first thing this section does.**
+`$CLAUDE_PLUGIN_ROOT` is a **Claude Code** variable — that harness exports it inside a skill invocation
+and nowhere else ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *`$CLAUDE_PLUGIN_ROOT` is set inside a
+skill invocation, and nowhere else*). **This section only ever runs on Codex and Cursor**, where there is
+no plugin loader, so there is nothing to export it: it is empty in exactly the sessions these commands are
+written for. The fallback that section gives — `claude plugin list --json` → `installPath` — is the Claude
+Code CLI's own registry and is not a question those two surfaces can answer either.
+
+> **An unresolved root does not fail loudly on its own, which is why it is resolved rather than assumed.**
+> With the variable empty, `for d in "$CLAUDE_PLUGIN_ROOT"/surfaces/codex/*/` globs `/surfaces/codex/*/`,
+> matches nothing, and bash runs the body **once on the unexpanded pattern** — so `name` becomes `*`, the
+> `rm -rf` fires on a literal `*` path and the `cp -R` fails on a source that was never there. The session
+> then reports a copy error rather than *"no Hatsu source root"*, and the skills are simply absent
+> (Copilot review thread `PRRT_kwDOUKPjxM6hAjLJ`).
+
+| `$hatsu_root` comes from | when |
+|---|---|
+| **`$HATSU_PLUGIN_ROOT`** | the environment variable the session was started with — **the form that works on all three surfaces**, and the one to prefer |
+| the path the invocation was handed | `$hatsu-warmup <path>` on Codex, `/hatsu-warmup <path>` on Cursor |
+| **`$CLAUDE_PLUGIN_ROOT`** | Claude Code only, where § 5 does not run — kept in the order so one resolution serves every surface, never because it can fire here |
+
+```sh
+hatsu_root="${HATSU_PLUGIN_ROOT:-${1:-${CLAUDE_PLUGIN_ROOT:-}}}"
+[ -n "$hatsu_root" ] && [ -d "$hatsu_root/surfaces/$surface" ] || {
+  echo "surface: $surface — NOT INSTALLED. No Hatsu source root: \$HATSU_PLUGIN_ROOT is unset, no path" \
+       "was handed to this invocation, and this surface has no plugin registry to ask." >&2
+  exit 1        # § 4's line says NOT INSTALLED and names this. Never a partial install.
+}
+```
+
+**There is no bootstrap on these two surfaces, and that is stated rather than implied.** A plugin loader is
+what would fetch Hatsu; neither surface has one, so the **first** install is a human act — clone
+`zheref/hatsu` on the host and export `HATSU_PLUGIN_ROOT=<that checkout>`. What this section automates is
+the *refresh*, every session, from a root that already exists. **A warm-up that cannot find the root reports
+`NOT INSTALLED` and stops** — the § 4 discipline, unchanged: a warm-up that did not run is reported as not
+run, never rendered as clear.
+
 ### 5a · Codex
 
 | | |
 |---|---|
-| skills go to | `<target>/.agents/skills/<name>/` — **one `cp -R` per skill directory**, from `$CLAUDE_PLUGIN_ROOT/surfaces/codex/<name>`, refreshed **every session** |
+| skills go to | `<target>/.agents/skills/<name>/` — **one `cp -R` per skill directory**, from `$hatsu_root/surfaces/codex/<name>`, refreshed **every session** |
 | personas go to | `<target>/AGENTS.override.md` — an **untracked** file this skill writes whole (below). A tracked `AGENTS.md` is **never** edited |
 | invocation | `$<name>` — e.g. `$breath`, `$rasengan`. The mirror already carries that spelling; the `hatsu:` prefix does not exist on this surface |
 
@@ -295,7 +340,7 @@ a second trap with it: through a symlink the mirror's own `../../../nen/workflow
 
 ```sh
 mkdir -p "$target/.agents/skills"
-for d in "$CLAUDE_PLUGIN_ROOT"/surfaces/codex/*/; do
+for d in "$hatsu_root"/surfaces/codex/*/; do
   name=$(basename "$d")
   rm -rf "$target/.agents/skills/$name"
   cp -R "$d" "$target/.agents/skills/$name"
@@ -321,7 +366,7 @@ skill writes is the *whole* document:
 … the target's own AGENTS.md, verbatim, when it has one …
 
 <!-- BEGIN hatsu personas (generated — nen surface mirror, surface: codex) -->
-… the contents of $CLAUDE_PLUGIN_ROOT/surfaces/codex/AGENTS.md, verbatim …
+… the contents of $hatsu_root/surfaces/codex/AGENTS.md, verbatim …
 <!-- END hatsu personas (generated — nen surface mirror, surface: codex) -->
 ```
 
@@ -341,8 +386,8 @@ skill writes is the *whole* document:
 
 | | |
 |---|---|
-| skills go to | `<target>/.cursor/skills/<name>/` — one symlink per skill directory, pointing at `$CLAUDE_PLUGIN_ROOT/surfaces/cursor/<name>` |
-| personas go to | `<target>/.cursor/agents/<persona>.md` — one markdown subagent file each, symlinked from `$CLAUDE_PLUGIN_ROOT/surfaces/cursor/agents/` |
+| skills go to | `<target>/.cursor/skills/<name>/` — one symlink per skill directory, pointing at `$hatsu_root/surfaces/cursor/<name>` |
+| personas go to | `<target>/.cursor/agents/<persona>.md` — one markdown subagent file each, symlinked from `$hatsu_root/surfaces/cursor/agents/` |
 | invocation | `/<name>` — e.g. `/breath`, `/rasengan` |
 
 `.cursor/agents/` is the surface's documented subagent directory and it is **the row's own fact**, not this
@@ -466,6 +511,15 @@ a Claude, a GPT — is not a better choice made locally; it is a different budge
    'surface'"* at exit `2` (verified live, `docs/ab/surfaces.md` § 2.3). The mirrors are committed in this
    repository precisely so that a warm-up at the pin can still install them; only *regenerating* them needs
    a newer nen, and that happens here, not in a target repository.
+5. **Resolving `$hatsu_root` is by hand, and there is no registry behind it off Claude Code** (§ 5's
+   prelude). `$CLAUDE_PLUGIN_ROOT` is Claude Code's, `claude plugin list --json` is Claude Code's CLI, and
+   Codex and Cursor have neither — so the root is an environment variable the session was started with, or
+   a path handed to the invocation, and **nothing else**. nen owns no plugin registry and should not: it
+   reads repositories, and where Hatsu is checked out on a host is a property of the host. The failure is
+   handled rather than filed — an unresolved root reports `NOT INSTALLED` and stops.
+6. **The first install on Codex and Cursor is a human act.** There is no plugin loader to fetch anything,
+   so this skill refreshes an existing checkout and never obtains one. Named here so the absence is read as
+   a boundary rather than as a step somebody forgot to write.
 
 ---
 
