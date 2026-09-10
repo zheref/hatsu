@@ -1,0 +1,354 @@
+---
+name: hanten
+description: Have the change read adversarially before it is anybody else's problem — classify the change set by scope, raise one reviewer per scope on the model tier the matrix names, collect every finding in one fixed shape, and settle each one by fixing it or pushing back with a cited reason. Use when the maintainer invokes hatsu:hanten [for <scope>], asks for a review of what is on this branch, or whenever hatsu:mukai reaches its review step before the pull request is composed. A scope with no reviewer is reported as a gap and never quietly dropped; an unsettled finding is a G5 stop through the surface's own option picker. Reviewers never edit non-test source and never cast a review vote.
+---
+
+# Hanten — the change, read by someone looking for what is wrong with it
+
+**No fixed mode.** Hanten holds whichever nature the change under review was authored in —
+**Enhancer** for product code, **Conjurer** for canon, **Transmuter** for machinery — because every
+finding it settles is settled by editing *that* change. Name the mode in play, say when it switches
+and why, and never blend two under one header (`claude/agents/kurapika.md`).
+
+> **Have somebody whose job is to find what is wrong with this read it, and settle every single thing
+> they found — fixed, or refused with a reason I can check.**
+
+Hanten is [`hatsu:mukai`](../mukai/SKILL.md)'s second step: after
+[`hatsu:murasaki`](../murasaki/SKILL.md) has the branch current and before the suites run. It is also
+invocable alone. Its position is the whole of its value — **pre-PR is the last moment a finding costs
+an edit instead of a review round** (`claude/agents/hisoka.md` § *Where you sit*), and every rule in
+this file exists to keep that window from being wasted.
+
+**It is a review, not a gate.** Nothing here blocks, votes or merges. What it produces is a settled
+set of findings and a record of how each one was settled — and, where one could not be, a stop.
+
+---
+
+## 1. Invocation
+
+```
+hatsu:hanten [for <scope>]
+```
+
+```bash
+nen parse hanten \
+  --grammar "for [<scope:ui|security|architecture|performance|release|all>]" \
+  --line "<the invocation, minus the hatsu:hanten prefix>"
+```
+
+Verified live at `v0.3.0` (`docs/ab/hanten.md` § 2.1): `for security` → `scope: security`, exit `0`;
+`for styling` refuses at exit `2` — *"`<scope>` is one of ui | security | architecture | performance
+| release | all (case-insensitively), and 'styling' is none of them. It is resolved, never guessed
+at: the closest match is not the answer"* — with the corrected line printed. The clause is anchored
+behind a literal for the reason [`hatsu:rikugan`](../rikugan/SKILL.md) § 1 records.
+
+**With no clause the scope is `all`, and `all` does not mean five reviewers** — it means **every scope
+the change set actually raises** (§ 2). A `for <scope>` clause **narrows** to one; it never widens
+past what the diff supports, and asking for `performance` on a diff that touches no
+performance-sensitive path is answered with that fact, not with a review of nothing.
+
+## 2. Classify the change set, then raise one reviewer per scope
+
+```bash
+git -C <path> diff --name-only <branch.base>...HEAD
+```
+
+**Classify every path before raising anyone**, and print the classification. A run that raises the UI
+reviewer and then discovers the diff was mostly auth has spent a reviewer on the wrong question.
+
+| Scope | Raised when the change set touches | Reviewer | What they cite |
+|---|---|---|---|
+| **ui** | a rendered surface — views, components, styles, design tokens, snapshot goldens, copy shown to a user | **[Hisoka](../../agents/hisoka.md)** | `UX-1`…`UX-12`, `UZF-26`, the Design Direction |
+| **security** | authentication, credentials and secrets, permissions, network calls, storage and persistence, input trust boundaries, the supply chain | **[Feitan](../../agents/feitan.md)** | the security handbook's rules, by id |
+| **architecture** | module boundaries, dependency direction, public API shape, the handbooks' own conformance surface | **[Chrollo](../../agents/chrollo.md)** | the governing rule by its id, never from memory |
+| **performance** | a hot path, a render loop, a query, a bundle entry point, anything with a recorded budget | **[Uvogin](../../agents/uvogin.md)** | `QA-11`'s P1–P7 with `QA-15` method blocks |
+| **release** | version manifests, tags, changelogs, packaging, deploy configuration, release workflows | **[Phinks](../../agents/phinks.md)** | `QA-1`'s proven-finding discipline, `QA-2`'s eight classes |
+
+**A path may raise more than one scope, and then it is reviewed more than once.** An authenticated
+settings screen is `ui` **and** `security`, and the two reviewers are asking genuinely different
+questions about the same file. Do not pick the "primary" one.
+
+**The scope routing is `docs/ROSTER.md` § 4 and § 6's rulings, not this file's invention** — Feitan is
+activated for *"security, and security only"*, Chrollo for *"architecture and handbook conformance"*,
+and Phinks *"gains a pre-PR trigger at `v0.5.0`"* as a routing target of this skill. Where this table
+and the roster disagree, **the roster wins and this table is the bug.**
+
+> **The path→scope map itself is this skill's, and that is a gap worth naming.** `nen/workflow.json`
+> at `nen.workflow/v0.1` carries no `review` block, so there is nowhere for a repository to declare
+> *its* idea of which directories are security-bearing. The table above is a **default**, said out
+> loud as one every run, and a repository whose layout it reads wrongly gets the classification
+> corrected by hand and that correction stated. A `review.scopes` key is the shape that would fix it —
+> filed as a finding rather than invented here (`docs/ab/hanten.md` § 4.2).
+
+## 3. A scope with no reviewer is reported as a **gap**
+
+**All five of § 2's reviewer personas are defined in this repository today.** Hisoka, Feitan, Chrollo,
+Uvogin and Phinks each have a file under `claude/agents/`: Feitan's and Chrollo's landed at `v0.5.0`
+on the ruling of 2026-09-09, which `docs/ROSTER.md` § 4 records — both are now ratified independents
+with their rows in § *The independents*. **So on this plugin, at this version, no scope in § 2's
+table is a gap.**
+
+**The check stays, and it is not ceremony.** What `docs/ROSTER.md` § 4 actually rules is the rule that
+outlives the current roster: **"until a definition exists in `claude/agents/`, neither may be acted
+as — an activation is a decision about standing, not a licence to improvise the agent."** That binds
+any persona, at any time — a scope a repository routes somewhere this plugin has not provisioned, a
+persona activated by a ruling whose definition has not landed yet, a plugin installed at a version
+older than the one that added a file. The mechanism is what this section specifies; *which* personas
+happen to be missing is a fact about a version, and stating it as a permanent one is how a skill goes
+stale.
+
+So, before raising anyone, check that the definition exists — every run, for every persona, including
+the five that are there today:
+
+```bash
+ls <plugin root>/claude/agents/<persona>.md
+```
+
+| The definition is | What hanten does |
+|---|---|
+| **present** | raise the reviewer (§ 4) |
+| **absent** | **report the scope as a gap.** Name the scope, name the persona the roster activated for it, name the paths that raised it, and say that **this scope was not reviewed** |
+
+**A gap is never a pass, and never a silent omission.** It goes in the report, in the pull request
+body, and in the findings record as a scope with `reviewed: false` — the same discipline
+`claude/agents/hisoka.md` states for his own `unread` marker: *"an undeclared skip is how a check
+quietly stops happening."*
+
+**And it is never improvised past.** Reading a scope's diff "as `<persona>` would" because
+`<persona>` has no file is exactly the improvisation the roster's ruling forbids, and it produces
+findings with no citable rule behind them. The honest output is *"the `<scope>` scope was raised by
+these four paths and was not reviewed; `<persona>` has no definition at
+`claude/agents/<persona>.md`"* — which tells the maintainer something true and actionable, where a
+manufactured review would not. **This applies to a persona whose file exists but is not installed
+here too**: an older plugin version, a partial install, a persona the surface will not raise. The
+question is always *is the definition in front of me*, never *do I remember this persona*.
+
+## 4. Raising a reviewer — the model, the title, the isolation
+
+**On Claude Code the reviewer is a subagent, raised with the harness's own Agent tool**, one per
+scope, in parallel where more than one applies:
+
+| Parameter | Value |
+|---|---|
+| `subagent_type` | the persona — `hatsu:hisoka`, `hatsu:uvogin`, `hatsu:phinks`, … |
+| `description` | the title: **`hanten · <persona> · <model alias>`** |
+| `model` | § 4's resolution below — **never the frontier tier** |
+| `isolation` | **`worktree`** — the reviewer gets its own checkout |
+| `prompt` | the scope, the base, the paths that raised it, and § 5's required output shape |
+
+**The model alias comes from `nen/workflow.json` → `models`, and never from memory.**
+`models.roles.reviewer` names the **tier** — `deep` — and `models.claude.deep` names the alias for
+this surface. Two rules ride on it, and neither is optional (`docs/ROSTER.md` § 3):
+
+- **A subagent is never given the frontier tier** (`fable` on Claude, `astra` on Codex). That tier is
+  where the maintainer's own conversation lives, and a delegate that outranks its caller has inverted
+  the delegation.
+- **Every subagent is titled `<skill> · <persona> · <model alias>`** — what ran, as whom, on what.
+  `hanten · hisoka · sonnet`, `hanten · phinks · opus`.
+
+> **Where a persona's own definition pins a model, that pin is what runs, and hanten does not pass
+> `model` at all.** `docs/ROSTER.md` § 3 records the pins as frontmatter — **Phinks** `model: opus`,
+> **Hisoka** `model: sonnet` / `effort: high`, **Uvogin** `model: sonnet` / `effort: medium` — and the
+> harness's `model` parameter **takes precedence over the definition's frontmatter**. Passing the
+> role-derived `deep` alias for Hisoka would therefore silently overrule the maintainer's recorded
+> decision about Hisoka, which is the opposite of reading policy from the file. So: **pass `model`
+> only for a persona whose definition pins none**, and put whichever alias actually results into the
+> title. Both paths read the matrix's aliases and neither can reach the frontier tier. **This
+> reconciliation is disclosed, not slipped in** — it is a real tension between two true sentences in
+> `docs/ROSTER.md` § 3, and it is filed as such (`docs/ab/hanten.md` § 4.1) rather than resolved
+> quietly in prose.
+
+**`isolation: "worktree"` is not a convenience.** It gives the reviewer its own checkout of the
+branch, so *"a reviewer never edits non-test source"* stops being a rule the reviewer must remember
+and becomes a property of where it is standing: nothing it writes reaches the tree the maintainer is
+working in. **Never raise a reviewer into the working copy under review.**
+
+**Say what was raised, in one line, before the reviews come back**: the scopes, the personas, the
+aliases, and the gaps.
+
+## 5. One fixed finding shape
+
+**Every reviewer returns findings in one shape, and hanten refuses to record anything else:**
+
+```json
+{ "rule": "UX-3", "severity": "critical",
+  "path": "Sources/Views/SettingsRow.swift", "line": 88,
+  "evidence": "Tap target measures 32×32pt; HIG minimum is 44×44pt. Measured in the layout's own units at the default Dynamic Type size.",
+  "proposedFix": "Raise the row's minimum height to 44pt and give the icon an 8pt margin." }
+```
+
+| Field | What it must carry |
+|---|---|
+| `rule` | **a rule id** — `UX-3`, `SEC-…`, `QA-11`, a `WCAG` SC, an Apple HIG / Material reference. Never a bare preference |
+| `severity` | `critical` \| `high` \| `medium` \| `low` \| `nit` — [Hisoka's ladder](../../agents/hisoka.md) § *Severity*, used by every reviewer so the set is sortable |
+| `path`, `line` | where, exactly. A finding with no location is a note |
+| `evidence` | **what was observed or measured**, with the method where it is a number. Not a restatement of the rule |
+| `proposedFix` | what would settle it. A reviewer proposes; it does not apply (§ 8) |
+
+**A "finding" missing `rule` or `evidence` is a note, not a finding**, and is reported as one —
+`claude/agents/hisoka.md` states it for UX (*"an un-cited preference is not a finding; it is taste
+wearing a finding's clothes"*) and `claude/agents/phinks.md` for QA (*"files nothing he cannot
+prove"*). Hanten holds every scope to it, including the ones whose reviewer does not exist yet.
+
+**The record is one document, git-ignored:**
+
+```
+<reports.dir>/hanten/<branch-slug>.json      →  Reports/hanten/opus-kurapika-skills-turn-3.json
+```
+
+`reports.dir` is `nen/workflow.json` → `reports.dir`, default `Reports`, **and it is git-ignored** —
+the same reason a build output is (`docs/WORKFLOW.md` § 2). `<branch-slug>` is the branch with `/`
+replaced by `-`, the shape [`hatsu:rikugan`](../rikugan/SKILL.md) § 6 already uses for its final
+report's filename.
+
+```json
+{ "contract": "hatsu.hanten.findings/v0.1",
+  "branch": "<branch>", "base": "<branch.base>", "at": "<ISO-8601 UTC>",
+  "scopes": [ { "scope": "ui", "persona": "hisoka", "model": "sonnet", "reviewed": true },
+              { "scope": "security", "persona": "feitan", "model": "opus", "reviewed": true },
+              { "scope": "<scope>", "persona": "<an unprovisioned persona>", "model": null, "reviewed": false,
+                "gap": "no definition at claude/agents/<persona>.md; ROSTER.md § 4" } ],
+  "findings": [ { "id": "F1", "scope": "ui", "persona": "hisoka",
+                  "rule": "…", "severity": "…", "path": "…", "line": 88,
+                  "evidence": "…", "proposedFix": "…",
+                  "disposition": { "state": "fixed", "detail": "…" } } ] }
+```
+
+**The six fields are the reviewer's; `id`, `scope`, `persona` and `disposition` are hanten's**, added
+as it records. A reviewer never writes this file.
+
+**The third `scopes` row is the gap shape, written as a hypothetical on purpose.** At `v0.5.0` every
+persona § 2 routes to has a definition (§ 3), so a real record from this plugin carries no gap row at
+all — the row is here because the shape must be documented before the day something needs it, and
+filling it with a persona that *is* defined would teach the shape by way of a false example.
+
+## 6. Settle every finding — fixed, or pushed back with a reason
+
+**Kurapika disposes of each finding himself**, in the working copy, in severity order. There are
+exactly three dispositions and every finding gets one:
+
+| `state` | When | What `detail` must carry |
+|---|---|---|
+| **`fixed`** | the change was made | what was changed, and where |
+| **`pushed-back`** | the finding does not hold | **a cited reason** — the rule the reviewer misread, the constraint they could not see, the measurement that contradicts theirs. Never "disagree", never "out of scope" alone |
+| **`deferred`** | it holds, it outlives this branch | the **tracked item** it became — an issue, a `handbook-question`, a `UZF-23` IOU. An untracked deferral is not one, and is `unsettled` |
+
+**A push-back is an argument, not a veto.** The reviewer found something with a rule id and evidence
+behind it; refusing it needs the same standard. *"The measured contrast is 4.7:1 at the token's actual
+value; the reviewer measured against the disabled state's token"* is a push-back. *"I don't think
+that's a problem"* is an **unsettled** finding, and § 7 is what happens to it.
+
+**Every disposition is recorded, including the push-backs**, and the whole set goes into the pull
+request body through [`hatsu:shibari`](../shibari/SKILL.md). A review whose disagreements are not
+written down is a review that gets had again.
+
+**Fixes are proved before the run ends.** A `fixed` disposition that has not been through
+[`hatsu:rasengan`](../rasengan/SKILL.md) is a claim; [`hatsu:mukai`](../mukai/SKILL.md) runs the
+suites at its next step, and a fix that broke one is that step's finding.
+
+## 7. An unsettled finding is a **G5**
+
+**A finding that is neither fixed, nor pushed back with a cited reason, nor tracked, is a stop.** Not
+a line in the PR body, not "noted for follow-up", not a `low` re-graded down until it stops mattering.
+
+The stop is [`hatsu:jutaisho`](../jutaisho/SKILL.md)'s shape, in full — the `nen stop` banner and
+efforts table (`nen stop --who Kurapika --gate G5 <efforts.md>`; `nen stop --template` emits the blank
+table, verified live, `docs/ab/hanten.md` § 2.4), the [`hatsu:rikugan`](../rikugan/SKILL.md) report's
+link, lettered options with a ⭐ on the report, and **the question through the surface's own native
+option picker** (`AskUserQuestion` on Claude Code).
+
+**What hanten puts in it:** the finding verbatim — all six fields — the reviewer who raised it, what
+was already tried, and options that are the actual resolutions: *"A — take the proposed fix", "B —
+push back on this ground (…)", "C — file it and land without it"*. **Never an option that re-grades
+the severity**, and never one that removes the finding from the record.
+
+**The run ends there.** A G5 is not a thing to retry past; the answer resumes it.
+
+## 8. What a reviewer never does
+
+Each reviewer's own definition is the authority and this is a summary of what they already say
+(`claude/agents/hisoka.md` § *The refusals*, `claude/agents/phinks.md`, `claude/agents/uvogin.md`):
+
+- **Never edits non-test source.** Fixing your own finding is reviewing your own work by another
+  route. § 4's worktree isolation makes it structural.
+- **Never casts a review vote** — not `approve`, not `request_changes`. They run on the maintainer's
+  credentials, so GitHub would record the vote as **theirs**, and pre-PR there is usually no PR to
+  vote on anyway.
+- **Never merges, never pushes, never labels, never blocks.** Advisory, always.
+- **Never emits `Verdict:` or `Quality-Gate:` outside its own definition's rules** — those markers
+  belong to lanes that parse them.
+- **Never reports a scope as clean that it could not check.** An unread check is named, with the
+  missing capability.
+
+## 9. On a surface that is not Claude Code
+
+**§ 4's mechanism is Claude Code's. The contract is not.** An adapter on another surface must supply
+four things, and where it supplies fewer, hanten says which:
+
+1. **An isolated worker at a named model tier** — resolved from `nen/workflow.json → models` for that
+   surface (`codex`, `cursor`), on the tier `models.roles.reviewer` names, **never the frontier tier**.
+2. **An isolated copy of the tree** — a worktree, a fresh checkout, or a read-only mount. Without it,
+   *"never edits non-test source"* falls back to being a rule the reviewer must obey rather than a
+   place it cannot reach, and that is stated in the report.
+3. **One returned document in § 5's shape.** A surface that can only return prose gets that prose
+   read into the shape by hand, by hanten, with any finding missing `rule` or `evidence` recorded as a
+   **note** rather than promoted.
+4. **A title carrying `<skill> · <persona> · <model alias>`**, so a transcript read afterwards says
+   what ran, as whom, on what.
+
+**Where a surface offers no delegation at all**, hanten runs the review **in-session as a named pass**
+— one scope at a time, each announced, each producing § 5's shape — and **says that it did**. That is
+a weaker review and the report says so: the reader must be able to tell a finding raised by a separate
+reviewer from one Kurapika raised against his own diff. It is never presented as the former.
+
+## Residue
+
+**One boundary, one gap, and no missing verb.**
+
+1. **Raising a subagent has no nen verb and is not expected to get one.** nen owns operations, not
+   conversations — the identical boundary [`hatsu:rikugan`](../rikugan/SKILL.md) § Residue 7 names for
+   the Artifact publish and [`hatsu:ren`](../ren/SKILL.md) § 4 names for the turn loop, verified there
+   rather than assumed. § 4's mechanism is the surface's tool, § 9 is what an adapter must provide, and
+   neither is a gap to file against the binary.
+2. **No verb classifies a change set by scope.** `nen gate derive --policy-paths --process-paths
+   --files` is the nearest thing and answers a **different question** — which human *gate* a diff
+   derives, `G2` or `G4`. Verified live at this pin (`docs/ab/hanten.md` § 2.3): a two-file
+   documentation-and-skill diff derives `G4` *"the diff touches the process surface"*, which is true and
+   says nothing about whether the change is security-bearing. So § 2's classification is read off
+   `git diff --name-only` against the default map, in the open, and reported as by-hand.
+3. **`nen/workflow.json` carries no `review` block at `nen.workflow/v0.1`**, so § 2's path→scope map
+   cannot be declared per repository. Read as this skill's default, stated every run, corrected by hand
+   where a repository's layout defeats it — and filed (`docs/ab/hanten.md` § 4.2).
+4. **`nen/workflow.json` is unvalidated at `v0.3.0`** — no row in `nen schema check`
+   (`docs/ab/rikugan.md` § 2.4). `models` and `reports.dir` are read as data with the defaults stated.
+
+## Authority
+
+- **Permitted:** read the working copy and its git history; raise reviewer subagents under § 4's
+  constraints; **write the findings record** under `<reports.dir>/hanten/`; **edit the working copy**
+  to settle a finding, in the nature the change was authored in; render the stop.
+- **Not permitted:** push, commit, PR, label, merge, tag, deploy, or any review vote. Hanten is a step
+  inside [`hatsu:mukai`](../mukai/SKILL.md)'s run and holds none of that run's authority.
+- **A reviewer's delegation is one review wide and ends when that review returns.** It is not standing
+  authority to look at the branch again later, and it never includes anything in § 8.
+- **Carries no delegation of its own**, and being invoked inside `mukai` does not lend it one.
+
+## Hard limits
+
+- **Never reports a scope as reviewed when its reviewer has no definition** (§ 3) — it is a **gap**,
+  named, in the report and in the record.
+- **Never improvises an activated-but-undefined persona.** `docs/ROSTER.md` § 4's ruling is explicit,
+  and a manufactured review produces findings with no citable rule behind them.
+- **Never raises a subagent on the frontier tier**, and never omits the `<skill> · <persona> · <model
+  alias>` title (§ 4).
+- **Never overrides a persona's own model pin** by passing `model` for a persona whose definition
+  carries one (§ 4).
+- **Never raises a reviewer into the working copy under review** — isolation, or the report says the
+  isolation was missing (§ 4, § 9).
+- **Never records a finding missing `rule` or `evidence` as a finding** — it is a note (§ 5).
+- **Never leaves a finding without a disposition**, and never re-grades a severity to make one go away
+  (§ 6, § 7).
+- **Never accepts an uncited push-back** — an unsettled finding is a G5 (§ 7).
+- **Never lets a reviewer edit non-test source, vote, merge, push or block** (§ 8).
+- **Never presents an in-session pass as a raised reviewer** (§ 9).
+- **Never presents by-hand classification as a verb's output** — § Residue is named where it runs.

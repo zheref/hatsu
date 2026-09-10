@@ -118,31 +118,58 @@ wrong is a force-push:**
 | **Already on origin** | only the commits after `origin/<branch>` | anything at or below `origin/<branch>` is somebody else's history now |
 
 ```bash
-# refresh what origin actually has, FIRST — a missing remote branch is tolerated
-git -C <path> fetch origin <base> <branch>
-# published?
-git -C <path> rev-parse --verify --quiet refs/remotes/origin/<branch>
-# the squash point, per the table above
-git -C <path> reset --soft <origin/branch | $(git merge-base origin/<base> HEAD)>
+# 1. the base must be fresh — the merge base is computed against it
+git -C <path> fetch origin <base>
+# 2. published? ASK THE REMOTE. This is the default form.
+git -C <path> ls-remote --heads origin refs/heads/<branch>   # empty output = not published
+# 3. PUBLISHED ROW ONLY: ls-remote read the ref and transferred nothing. Make the object local,
+#    then prove it is behind HEAD, before it is allowed to be a reset point.
+git -C <path> cat-file -e <the SHA ls-remote printed>^{commit} \
+  || git -C <path> fetch origin <branch>
+git -C <path> merge-base --is-ancestor <the SHA ls-remote printed> HEAD
+# 4. the squash point, per the table above
+git -C <path> reset --soft <the SHA ls-remote printed | $(git merge-base origin/<base> HEAD)>
 ```
 
-**The refresh is not optional, and a stale tracking ref must never select the first-publish range.**
+**`ls-remote` is the stated default, and the fetch of `<branch>` is the fallback.** The two are not
+equivalent and the difference is not stylistic:
+
+- **`ls-remote` answers the question that was actually asked.** *Is this branch on origin, and at
+  what SHA?* — asked of origin, answered by origin, in one line, touching no local ref. On a first
+  publish it exits `0` with empty output, which is a clean answer rather than a failure to interpret.
+  And the SHA it prints **is** the squash point for the published row: no
+  `refs/remotes/origin/<branch>` is consulted at all, so there is no stale tracking ref left in the
+  decision to go wrong.
+
+  > **But `ls-remote` reads the ref advertisement and downloads no objects, so step 3 is not
+  > optional.** On a checkout that has never fetched `<branch>` — a `--single-branch` clone, a
+  > machine that did not make the push, a branch advanced from somewhere else — the SHA it printed
+  > is not in the local object database, and using it directly dies: *`fatal: Could not parse
+  > object '<sha>'`*, exit `128`, reproduced live against a `--single-branch` clone over `file://`.
+  > `git cat-file -e <sha>^{commit}` is the cheap test and `git fetch origin <branch>` is the cure;
+  > **neither consults the tracking ref for the decision**, so the property above survives intact.
+  > And a SHA that *is* present but is **not** an ancestor of `HEAD` is the worse case — `reset
+  > --soft` would take it and silently drop every commit in between — which is why
+  > `git merge-base --is-ancestor` runs before the reset and is § 4's third refusal below.
+- **`git fetch origin <base> <branch>` is the fallback**, for a remote or a host where `ls-remote`
+  is not available or not permitted. It fetches the base — which step 1 needs anyway — and, when
+  `<branch>` is not on the remote, **exits non-zero with `fatal: couldn't find remote ref <branch>`.
+  That failure is the answer, not an error**, and it is tolerated. But it is a noisy way to be told
+  *no*: the line looks alarming in a transcript, and a network failure and an absent branch reach
+  this run as the same non-zero. Where the fallback is what ran, the published test is
+  `git rev-parse --verify --quiet refs/remotes/origin/<branch>` **after** that fetch, never before
+  it.
+
+**Either way, a stale tracking ref must never select the first-publish range.**
 `refs/remotes/origin/<branch>` is what this checkout last heard, not what origin has: a branch
 pushed from another machine, a worktree cut before the first publish, a `--single-branch` clone all
 leave it missing or behind. Read it unrefreshed and an already-published branch takes the
 first-publish row — every commit since the merge base is squashed away, history that other people
 have already fetched is rewritten locally, and the push then fails non-fast-forward with the damage
-already done.
+already done. The default form sidesteps that hazard by never reading the ref; the fallback survives
+it only by refreshing first.
 
-`git fetch origin <base> <branch>` exits non-zero when `<branch>` is not on the remote; **that is
-the answer, not an error** — tolerate it, or ask the remote directly and never touch the local ref:
-
-```bash
-git -C <path> ls-remote --heads origin refs/heads/<branch>   # empty output = not published
-```
-
-Prefer `ls-remote` wherever the fetch's exit code cannot be told apart from a network failure. State
-which form was used and what it answered, in the same line that names the squash range.
+State which form was used and what it answered, in the same line that names the squash range.
 
 Then shape the one message with the verb that owns message shape:
 
@@ -234,6 +261,12 @@ by hand, named here.
 One line, then stop: the branch, whether it was a first publish, the one commit's subject, the base
 and how it got underneath (rebase or merge), the required tests that ran green, and the pushed SHA.
 
+**Re-render the turn report before stopping.** The last render was truthful when it was written and
+is stale one step later — it says nothing was pushed about a branch that is now on `origin`.
+[`hatsu:rikugan`](../rikugan/SKILL.md) § 5 owns this: the `turn` variant, re-rendered at the same
+address, with the push written into **01 Accomplished**. There is no fourth variant and aka does not
+invent one.
+
 **Then say what is available next, without asking for it**: `hatsu:mukai` opens the PR.
 [`hatsu:ren`](../ren/SKILL.md)'s loop is over for this effort — its own rule is that it ends only on
 `aka` or [`hatsu:tensho`](../tensho/SKILL.md), and this was `aka`.
@@ -242,16 +275,19 @@ and how it got underneath (rebase or merge), the required tests that ran green, 
 
 1. **`nen wc squash --onto <ref> --message-file <f>`** — absent at `v0.3.0` (`nen wc` has one verb,
    `classify`). § 4 runs `git reset --soft <computed point>` plus one `nen commit format`-shaped
-   commit, and enforces the verb's four refusals by hand first.
+   commit, and enforces the verb's four refusals by hand first. **Making the squash point usable is
+   part of that by-hand half**: `git cat-file -e <sha>^{commit}` (with `git fetch origin <branch>`
+   when the object is not local — `ls-remote` transfers none) and `git merge-base --is-ancestor
+   <sha> HEAD`. Both are named here because both are steps the verb will own when it lands.
 2. **The forbidden-trailer refusal in `nen commit format`** — verified live to be absent: a
    `Co-Authored-By` trailer renders at exit `0`. Until the P2 `--repo`-aware guard lands, the
    refusal is **this skill's rule** (always), plus a `commit-msg` hook **only in a repository that
    has been scaffolded with one** — which hatsu's own checkout has not.
-3. **The published/unpublished test** — `git fetch origin <base> <branch>` (a missing remote branch
-   tolerated) **then** `git rev-parse --verify --quiet refs/remotes/origin/<branch>`, or
-   `git ls-remote --heads origin refs/heads/<branch>` asked of the remote directly. `nen wc classify
-   --json` reports the branch and its distance from the base, never the remote, and nothing in nen
-   refreshes the branch's tracking ref for this decision.
+3. **The published/unpublished test** — `git ls-remote --heads origin refs/heads/<branch>`, asked of
+   the remote directly, which is the default form; `git fetch origin <base> <branch>` (a missing
+   remote branch tolerated) **then** `git rev-parse --verify --quiet refs/remotes/origin/<branch>` is
+   the fallback (§ 4). `nen wc classify --json` reports the branch and its distance from the base,
+   never the remote, and nothing in nen refreshes the branch's tracking ref for this decision.
 4. **The push itself** — `git push [-u] origin HEAD`. `nen pr cascade-main` pushes only as the tail
    of its own merge and is not a push verb.
 5. **`nen/workflow.json` is unvalidated at `v0.3.0`** — no row in `nen schema check` (verified live).
@@ -274,9 +310,9 @@ and how it got underneath (rebase or merge), the required tests that ran green, 
 - **Never pushes over a red required test** — G5, and the run ends (§ 3).
 - **Never force-pushes, and never rewrites a commit that is already on the remote** — a rejected
   fast-forward is reported, never flagged past (§ 4, § 6).
-- **Never decides the squash range from a stale tracking ref** — `origin/<branch>` is refreshed, or
-  the remote asked with `ls-remote`, before the range is chosen (§ 4). A ref this checkout last
-  heard about is not evidence about origin.
+- **Never decides the squash range from a stale tracking ref** — the remote is asked with
+  `ls-remote` (the default), or `origin/<branch>` is refreshed by the fallback's fetch, before the
+  range is chosen (§ 4). A ref this checkout last heard about is not evidence about origin.
 - **Never carries an AI attribution trailer** — `Akatsuki-Agent` alone, per § 2's `commits` block;
   never `Co-Authored-By`, `Claude-Session`, `Signed-off-by`, a "Generated with" line, or a model
   name in the message.

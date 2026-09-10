@@ -23,6 +23,33 @@ carries two concerns.
 
 ---
 
+## Composition — the phases this skill already is
+
+Read from the phase lattice rather than from this file's own numbering, tensho is:
+
+> [`kokusen`](../kokusen/SKILL.md) *(if the tree is dirty)* → [`aka`](../aka/SKILL.md) →
+> [`mukai`](../mukai/SKILL.md) → **starts** [`en`](../en/SKILL.md)
+
+**This is a restatement, and it changes no mechanics.** Every section below stands exactly as it is
+written: § 2's `nen wc classify` reading, § 3's staging triage, § 4's commit shaping, § 5's body
+checks and gate derivation, § 6's handover. What the line adds is *where each of them lives* once
+the lattice is the map — the triage-and-commit half is `kokusen`'s phase, the push half is `aka`'s,
+the review-tests-coverage-evidence-and-PR half is `mukai`'s, and the drive to Ready is `en`'s
+composing [`sharingan`](../sharingan/SKILL.md), which is what § 6 already hands to.
+
+**Two consequences follow, and neither is new:**
+
+- **The human calls stay human calls.** `aka` and `mukai` are the maintainer's
+  ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4), so **`hatsu:tensho` is itself a human call
+  that spends both of them at once** — which it always was, since it commits, pushes and opens a PR
+  in one run. It is not a way to reach `aka` or `mukai` without asking; it is the maintainer asking
+  for all of it in one word.
+- **A step that stops ends the run where it stopped**, and the stop belongs to the skill that owns
+  the phase — a flagged file in the triage, a red required test, a semantic conflict, coverage under
+  the minimum, an unsettled finding. Tensho adds no stop of its own.
+
+---
+
 ## 1. Invocation
 
 ```
@@ -226,8 +253,9 @@ nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/
   --files <the changed paths> [--asserted G2|G4]
 ```
 
-These are `<reference-repo>`'s own two-tier split, verbatim from `hatsu`'s own `drive.SKILL.md`
-prose: `CONSTITUTION.md`/`handbooks/`/`agents/` and the taxonomy directory — `nen/` since nen
+These are `<reference-repo>`'s own two-tier split, verbatim from `hatsu`'s own
+[`sharingan`](../sharingan/SKILL.md) prose (that skill was `drive` when this paragraph was written):
+`CONSTITUTION.md`/`handbooks/`/`agents/` and the taxonomy directory — `nen/` since nen
 `v0.3.0`, `schemas/` before it and as a fallback until `v0.4.0`; **both listed**, because
 `--policy-paths` is a literal nen's fallback never sees — derive G4 as classic policy/spec (`CON-7`);
 `.github/workflows/`/`claude/`/`scripts/`/`tests/`/`docs/` derive G4 too, for the different reason
@@ -257,14 +285,14 @@ mutating GitHub call; per this port's ground rules it is A/B'd by contract inspe
 
 ## 6. Then drive it to its gate
 
-**Tensho's drive phase is [`hatsu:drive`](../drive/SKILL.md)'s engine** — the whole of it, not a
-substitute. Once the PR is open, hand it over as `hatsu:drive <CODE>#<N> to <G2|G4>` against the
+**Tensho's drive phase is [`hatsu:sharingan`](../sharingan/SKILL.md)'s engine** — the whole of it, not a
+substitute. Once the PR is open, hand it over as `hatsu:sharingan <CODE>#<N> to <G2|G4>` against the
 gate § 5's `nen gate derive` named, and let that skill do what it owns: the first-blocking-condition
 diagnosis, thread stewardship, the wake channel fired alone, the adversarial confirmation pass, and
 the stop at the gate. Tensho does not restate or reimplement any of it, and it does not stop at a
 bare readiness reading when the PR can actually be driven.
 
-*Fallback only, when `drive` cannot run at all* (an unresolvable code, no network for the checks it
+*Fallback only, when `sharingan` cannot run at all* (an unresolvable code, no network for the checks it
 needs): the readiness **check** by itself is [`hatsu:pr-state`](../pr-state/SKILL.md)'s verb —
 
 ```bash
@@ -284,7 +312,7 @@ against G4."*
 ## 7. Authority
 
 - **Permitted:** branch, commit, push a **non-`main`** branch, open/update a PR, request reviewers,
-  and hand the PR to [`hatsu:drive`](../drive/SKILL.md) (or, in the § 6 fallback, read its
+  and hand the PR to [`hatsu:sharingan`](../sharingan/SKILL.md) (or, in the § 6 fallback, read its
   readiness via `hatsu:pr-state`'s own verb).
 - **Not permitted:** `bankai:agent/*`, `bankai:stage/*`, any G1 mode label, any merge, any review
   vote — `request_changes` above all, since Kurapika acts on the maintainer's own credentials and
@@ -300,5 +328,5 @@ against G4."*
 - **Never opens a PR without `# What this changes for you`, `## How to verify`, and the
   `changelog.d/` fragment where one is owed** — all three checked by verb, none by eye.
 - **Never claims readiness by eye** — the verdict § 6 reports is `nen pr ready`'s (whether it
-  arrives through `drive` or through the fallback check), quoted, or it is not made.
+  arrives through `sharingan` or through the fallback check), quoted, or it is not made.
 - **Never merges** — G2 and G4 are the maintainer's.

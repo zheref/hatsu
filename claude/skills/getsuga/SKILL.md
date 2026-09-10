@@ -136,6 +136,14 @@ never verified at all.
 
 ## 3. The release unit — fold everything that can fold into ONE PR
 
+> **In phase-lattice terms, and changing no mechanics below: the release unit is *built* through
+> [`hatsu:susanoo`](../susanoo/SKILL.md)** — the declared `archive`, run locally, uploading nothing —
+> **which arrives at Hatsu `v0.6.0`.** Until it does, § 6's off-main path builds through the
+> repository's own declared verbs exactly as it already says. **`kagutsuchi` (non-production upload)
+> and `mugetsu` (publication, **G3**) never run inside this skill**, from any path, under any `then`
+> clause: each is the maintainer's own per-target call, and § 7a already prints a deploy *plan* and
+> stops for that reason.
+
 `CON-33(b)` wants a release PR the maintainer merges before the tag cuts. **One PR carries all of
 it:**
 
@@ -291,13 +299,13 @@ The maintainer's ruling: an unreachable target is **driven to `main` first**, no
    needs one — check that branch out first, then hand it to
    [`hatsu:tensho`](../tensho/SKILL.md), which works on **the current checkout**, not on a branch
    named as an argument. Its § 2 (`nen wc classify`) then sees "on a branch, clean" and opens the PR.
-3. **Drive it to `CON-32` readiness.** Hand it to [`hatsu:drive`](../drive/SKILL.md) — its full
+3. **Drive it to `CON-32` readiness.** Hand it to [`hatsu:sharingan`](../sharingan/SKILL.md) — its full
    engine, not a substitute for one: the first-blocking-condition diagnosis, thread stewardship,
    the wake channel, the adversarial confirmation pass and the escalation ladder are all that
    skill's, and getsuga does not restate or reimplement any of them. Invoke it as
-   `hatsu:drive <CODE>#<N> to <G2|G4>` against the gate `nen gate derive` named, and take its
+   `hatsu:sharingan <CODE>#<N> to <G2|G4>` against the gate `nen gate derive` named, and take its
    stop-at-the-gate report as the readiness call.
-   *Fallback only if `drive` cannot run at all* (an unresolvable code, say): the readiness call by
+   *Fallback only if `sharingan` cannot run at all* (an unresolvable code, say): the readiness call by
    itself is [`hatsu:pr-state`](../pr-state/SKILL.md)'s verb — `nen pr ready <ref> --explain`, with
    `GH_TOKEN` exported and, where the target ships its own `nen/gates.json` (or a legacy
    `schemas/gates.json`), no `--gates` at all — or `--gates
@@ -368,7 +376,7 @@ through nen and this section does not apply. `<reference-repo>` is machinery and
   delegation), the release PR, the repin PRs, and printing a declared deploy's **plan** (§ 7a).
 - **No routing and no release delegation — none, including while driving.** Driving an off-`main`
   target runs entirely through [`hatsu:tensho`](../tensho/SKILL.md) and
-  [`hatsu:drive`](../drive/SKILL.md), and **neither of those releases anything** (`CON-25`, fourth
+  [`hatsu:sharingan`](../sharingan/SKILL.md), and **neither of those releases anything** (`CON-25`, fourth
   carve-out). If a target genuinely needs an issue routed or released to reach `main`, that is
   [`hatsu:build`](../build/SKILL.md)'s job and its own invocation — **say so and stop**, rather
   than borrowing its authority from inside this run.

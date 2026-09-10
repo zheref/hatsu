@@ -4,10 +4,11 @@ This directory is the plugin's skill surface (`plugin.json` → `"skills": "./cl
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together
 under *Skills* by `claude plugin details`, which is why they are described together here.
 
-**Twenty-seven skills at `v0.4.0`**: the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
-surface complete at `v0.1.0`, the **ten workflow skills** added at `v0.4.0`, and the **two roster-machinery
-residents** that arrived with the skeleton ([zheref/hatsu#1][1]) and are counted separately. Nothing here is
-reserved, and nothing here is a placeholder.
+**Thirty-five skills at `v0.5.0`**: the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
+surface complete at `v0.1.0` — one of them, `drive`, **renamed to [`sharingan`](sharingan/) at `v0.5.0`** —
+the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side, and
+the **two roster-machinery residents** that arrived with the skeleton ([zheref/hatsu#1][1]) and are counted
+separately. Nothing here is reserved, and nothing here is a placeholder.
 
 Each skill is a directory holding a `SKILL.md` with `name` and `description` frontmatter. Invoke one as
 `hatsu:<name>`.
@@ -48,7 +49,6 @@ mechanics, and a live transcript showing the same verdict from fewer improvised 
 | [`bankai-handbooks`](bankai-handbooks/) | Resolves which handbooks govern a repo and scenario, and which rule-ID prefix each one owns, so a citation is never improvised. |
 | [`bankai-quality`](bankai-quality/) | Resolves the adversarial-test tooling, performance-measurement tooling and `QA-{n}` rules for a repo's scenario — what Phinks and Uvogin read before they measure anything. |
 | [`build`](build/) | Takes one issue from wherever it sits to a delivery PR standing ready at its human gate. Never applies a mode label. |
-| [`drive`](drive/) | Drives one open PR to readiness at its gate and stops there — first blocking condition, thread stewardship, wakes. Never merges, never votes. |
 | [`file`](file/) | Files one well-formed, correctly-labelled, non-duplicate issue — reconciled against the open backlog first, on one explicit confirmation. |
 | [`futon`](futon/) | Takes one whole severity band from open issues to PRs with an actor behind them, then **gates** the terminal step you typed (`then tag`, `then tag+fanout`): it holds the cut until no PR this run authored is short of Ready, and hands the cut itself to [`getsuga`](getsuga/). It cuts no tag and runs no fan-out of its own. |
 | [`getsuga`](getsuga/) | **Cuts** a release tag locally, end to end — preconditions, one folded release PR the maintainer merges, the tag, the `CON-22` fan-out and the consumers' repin PRs. Prepares a release; never publishes one. |
@@ -57,13 +57,14 @@ mechanics, and a live transcript showing the same verdict from fewer improvised 
 | [`jujisho`](jujisho/) | Splits a mixed working copy into up to two stacked branches and PRs, by axis, proving the union of the splits equals the original diff. |
 | [`pr-state`](pr-state/) | Reports one PR's readiness as the deterministic gate's verdict, quoted verbatim, with the conjunct-by-conjunct reason. Read-only. |
 | [`senkei`](senkei/) | Inventories a consuming product repo's own backlog — epics, integration branches, open PRs — classifies every effort and states a Ready/not-Ready call for each PR. **Not read-only**: it re-runs a dead reviewer job (`nen run rerun-failed`) and fires `bankai:wake/iterate`, alone, on a stalled PR. It applies no routing or stage label without per-action confirmation, and never merges. |
-| [`tensho`](tensho/) | Turns a dirty working copy into one PR, reviewing every uncommitted file before staging it, then hands that PR to [`drive`](drive/)'s engine to reach its gate. |
+| [`sharingan`](sharingan/) | Drives one open PR to readiness at its gate and stops there — first blocking condition, thread stewardship, wakes. Never merges, never votes. **Renamed from `drive` at `v0.5.0`** — same behaviour, and `hatsu:drive` no longer resolves. |
+| [`tensho`](tensho/) | Turns a dirty working copy into one PR, reviewing every uncommitted file before staging it, then hands that PR to [`sharingan`](sharingan/)'s engine to reach its gate. |
 
 ---
 
 ## The way of working
 
-The seventeen above each answer a request. The ten below are the **loop that carries every request** —
+The seventeen above each answer a request. The eighteen below are the **loop that carries every request** —
 warm up, build, commit, launch, report, ring; pull, test, push — and the phases the maintainer calls by
 hand. [`../../docs/WORKFLOW.md`](../../docs/WORKFLOW.md) is the authority on all of it: the two configuration
 files ([`nen/contract.json`](../../nen/contract.json) → `project`, what nen **executes**;
@@ -77,9 +78,9 @@ required tests, coverage under the ladder's minimum, a semantic conflict, an uns
 `sharingan` escalation. A stop is `nen stop`'s banner plus the question asked through the surface's own
 native option picker.
 
-### The ten workflow skills — nine atomic, one composite
+### The eighteen workflow skills — fourteen atomic, four composite
 
-**Atomic** — one phase each:
+**Atomic** — one phase each. The first nine shipped at `v0.4.0`; the five after them at `v0.5.0`:
 
 | Skill | What it does |
 |---|---|
@@ -92,26 +93,31 @@ native option picker.
 | [`jutaisho`](jutaisho/) | **The bell.** Rings `workflow.json → notifications` and drops the marker that [`../../hooks/stop-bell.sh`](../../hooks/stop-bell.sh) reads; where no hook is installed it rings the notifier itself **and says that it did**. |
 | [`ao`](ao/) | **Pull from the base.** Fetch, then rebase if the branch is unpushed and merge if it is not; mechanical conflicts are resolved, a **semantic** one is a **G5** with both sides shown. It never pushes. |
 | [`aka`](aka/) | **Push — human-called.** `tsukuyomi` (G5 if red) → squash the unpushed commits → `ao` → push. No pull request, no AI attribution trailer, and **no agent ever prompts for it**. |
+| [`hanten`](hanten/) | **Adversarial review, pre-PR.** Classifies the change set by scope and spawns **one reviewer subagent per scope** — UI → Hisoka, security-bearing → **Feitan**, architecture/handbook → **Chrollo**, performance → Uvogin, release-adjacent → Phinks — each titled `hanten · <persona> · <model alias>` and never on the frontier tier. Findings come back in one fixed shape (**rule id · severity · evidence · proposed fix**); Kurapika fixes or pushes back with a reason, and an unsettled finding is a **G5**. Reviewers never edit non-test source, never vote, never block. |
+| [`gyo`](gyo/) | **The coverage bar.** Touched-file line coverage against the 80/85/90 ladder, reported band by band; it adds tests until every touched file clears the `minimum`, and raises a **G5** when one cannot honestly clear it. **It never lowers the bar.** |
+| [`kotoamatsukami`](kotoamatsukami/) | **End-to-end / UI tests.** Runs the declared `ui-test` where a repository declares one; the re-recorded snapshots are what feeds the evidence table. An unsupported seat (exit `4`) is a fact, quoted — never routed around. |
+| [`shibari`](shibari/) | **Composes and opens the PR** — why, how, what changes for the consumer, how to verify, a mermaid diagram where a flow changed, the evidence table, the checklist, `Closes #N`. **One** PR, opened from the last pushed commit; it writes the body back, requests the reviewers and hands the PR to [`en`](en/). It never labels a gate and never merges. |
+| [`jujutsu`](jujutsu/) | **Device pairing.** Walks the maintainer through pairing a physical device — iOS: trust, Developer Mode, `devicectl list devices`; Android: USB debugging, the RSA prompt, `adb devices` — and registers it as a launch target **through a repository PR**. It writes the declaration and nothing else. |
 
-**Composite** — an order, not a new capability:
+**Composite** — an order, not a new capability. `ren` shipped at `v0.4.0`; the three after it at `v0.5.0`:
 
 | Skill | Order inside |
 |---|---|
 | [`ren`](ren/) | **The per-request loop.** `breath`¹ (first turn only) → `rasengan`² → `kokusen`³ → `amaterasu`⁴ → `rikugan`⁵ → `jutaisho`⁶. It loops until the maintainer calls the next phase, and **it never pushes**. |
+| [`murasaki`](murasaki/) | **Pull + push.** [`ao`](ao/)¹ → [`rasengan`](rasengan/)² + [`tsukuyomi`](tsukuyomi/)² → push³, and **only if the branch is already published**. It never squashes and never force-pushes. |
+| [`mukai`](mukai/) | **The review-and-PR phase — human-called.** `murasaki`¹ → [`hanten`](hanten/)² → `tsukuyomi`³ + [`kotoamatsukami`](kotoamatsukami/)³ → [`gyo`](gyo/)⁴ → evidence⁵ → [`shibari`](shibari/)⁶, which opens the PR and **starts [`en`](en/)**. Four of the five G5 stops live inside it. |
+| [`en`](en/) | **The landing watch, `izanagi`-capped** by `nen/workflow.json` → `monitor`. [`rikugan`](rikugan/)¹ (landing) → [`sharingan`](sharingan/)² → `murasaki`³ when the branch is behind → `sharingan`⁴ → [`jutaisho`](jutaisho/)⁵ at Ready → watch⁶ until merged → `rikugan`⁷ final. **A watch with no cap does not run**; where one must outlive the session, step 6 is handed to **Illumi**, read-only, who wakes Kurapika and acts on nothing. |
 
-> **Arriving at `v0.5.0`/`v0.6.0`, and deliberately not here yet:** `mukai` (the human-called review and PR
-> phase), `murasaki` (pull + push), `en` (the capped landing watch), `hanten` (adversarial review),
-> `gyo` (the coverage bar), `shibari` (compose and open the PR), `jujutsu` (device pairing),
-> `kotoamatsukami` (end-to-end / UI tests), `susanoo` (archive and packaging), `kagutsuchi` (non-production
-> upload) and `mugetsu` (publication, **G3**) — plus the rename of [`drive`](drive/) to **`sharingan`**.
-> Until a phase has a skill, **name the phase and stop there anyway**: the boundary is the governance, and it
-> holds whether or not a file has been written for it.
+> **Arriving at `v0.6.0`, and deliberately not here yet:** `susanoo` (archive and packaging), `kagutsuchi`
+> (non-production upload, per target) and `mugetsu` (publication, per target, **G3**). Until a phase has a
+> skill, **name the phase and stop there anyway**: the boundary is the governance, and it holds whether or
+> not a file has been written for it.
 
 ---
 
 ## The two roster-machinery residents
 
-Neither is one of the twenty-seven. They landed with the skeleton because the plugin does not function
+Neither is one of the thirty-five. They landed with the skeleton because the plugin does not function
 without them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |
