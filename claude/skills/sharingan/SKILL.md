@@ -110,8 +110,10 @@ When `to <gate>` is omitted entirely, derive it silently.
 Re-run from the top on **every** state change; never act on a picture older than the last fetch.
 
 1. **Fetch the PR's state**, per-verb rather than one snapshot:
-   - Readiness and the conjunct table: `nen pr ready <CODE>#<N> --repo <path> --gates
-     "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain` (§ 4).
+   - Readiness and the conjunct table: `nen pr ready <CODE>#<N> --repo <path> --explain`, with the
+     identity flag § 4's table selects for **this** target — none, `--gates` for
+     `<reference-repo>` only, or `--reviewers` supplied by hand. **Never another repository's gates
+     file** (§ 4).
    - Body requirements: `nen pr body-check --body-from <path> --requirements-from <path>`.
    - Checks/comments/base ref not carried by the above: `gh pr checks`, `gh pr view --json
      body,comments,baseRefName`.
@@ -145,8 +147,10 @@ Re-run from the top on **every** state change; never act on a picture older than
    > verified at `v0.3.0` in `nen pr next-blocker --help`: *"`--gates <path>` … the same flag `ready`
    > takes, through the same resolver, so a checkout that ships no gates file can still be evaluated.
    > A RELATIVE path is resolved against `--repo`, NOT the current directory"* — so the invocation is
-   > now `nen pr next-blocker --target <owner/name> --pr <n> --repo <path> --gates
-   > "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"`, and `--repo` is **required** at exit `2`
+   > now `nen pr next-blocker --target <owner/name> --pr <n> --repo <path>` carrying **the same
+   > identity flag § 4's table selects** — `--gates <plugin root>/contracts/reference.gates.json`
+   > for `<reference-repo>` alone, `--reviewers a,b` for a target that ships no gates file of its
+   > own — and `--repo` is **required** at exit `2`
    > (`v0.2.0` #73). **The crash half is not re-verified:** with the gates file supplied at the port, the
    > verb hit `nen pr fetch`'s own crash underneath — `could not fetch ...#925 reviews: gh: Unprocessable
    > Entity (HTTP 422)`, on retry the identical 422 for `#940` too — and no later changelog entry says
@@ -174,15 +178,65 @@ satisfied.** Both are deterministic; neither is re-derived by eye. This is exact
 
 ```bash
 export GH_TOKEN=$(gh auth token)
-nen pr ready <CODE>#<N> --repo <path> \
-  --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
+nen pr ready <CODE>#<N> --repo <path> --explain            # the target ships nen/gates.json
 ```
 
-`--gates` anchored on `$CLAUDE_PLUGIN_ROOT`, never a bare relative path — since nen `v0.2.0` a relative
-`--gates` resolves against **`--repo`'s root, never the cwd** (verified live at `v0.3.0`, `pr-state`
-§ 2), and the file lives in this plugin's checkout, not the target's, so only an absolute path reaches
-it. A repo that ships its own `nen/gates.json` (or, until `v0.4.0`, `schemas/gates.json`) needs no
-`--gates` flag at all.
+**Where the identities come from, in this order, and there is no fourth row:**
+
+| The target repository | The flag | What the verdict is about |
+|---|---|---|
+| ships its own `nen/gates.json` (or, until `v0.4.0`, `schemas/gates.json`) | **none** — the verb reads it | this repository's own configured reviewers. **Always prefer this** |
+| **is `<reference-repo>`**, which is FROZEN and ships no gates file | `--gates "<plugin root>/contracts/reference.gates.json"` | that repository's identities, carried here because it cannot grow a file of its own |
+| ships no gates file and is **not** `<reference-repo>` | `--reviewers <a,b,c> [--approvers <a,b>]`, **supplied by hand and named on the page** | the identities this repository actually configures |
+
+> **The reference gates file is the REFERENCE repository's, and pointing it at any other repository
+> produces a confident verdict about the wrong people — finding F17, measured live.** It names
+> `sasuke`, `tenma`, `copilot`. Run against `zheref/nen`, which ships no gates file, the conjunct
+> table came back *"reviewers sasuke,tenma,copilot"* with row 4 **FAILED — `sasuke` (no round at
+> head); `tenma` (no round at head)`** — two identities that will never review that repository,
+> **permanently owed**, so the gate can never answer `ready` there at all. That is not a strict
+> gate; it is a gate asking about somebody else's repository. Read the previous wording — *"a repo
+> that ships its own `nen/gates.json` needs no `--gates` flag at all"* — as making the reference file
+> a safe default for a repo that does not, and it is not one.
+>
+> **The verb itself is right, and its refusal is the model to follow.** With no identities at all it
+> declines by name rather than guessing: *"no reviewer identities. This gate never falls back to a
+> built-in reviewer set: a binary that guessed the reviewers would judge this repository against
+> another one's and report success."* `--reviewers` is documented as *"the identity source of last
+> resort"* precisely for the third row.
+>
+> **Where the by-hand identities come from**, in this order, each read rather than remembered: the
+> target's `CODEOWNERS` (`.github/`, root, or `docs/`); the PR's own **requested reviewers** and the
+> logins that have actually reviewed it (`gh pr view <n> --repo <owner/name> --json
+> reviewRequests,reviews`); the maintainer, asked. **Name the login exactly as GitHub records it** —
+> a bot is its full login, `copilot-pull-request-reviewer`, not `copilot`, and the short form fails
+> loudly (§ 9's caveat, and `shibari` § 9).
+>
+> **A substituted identity set is stated on the page, never smuggled into the verdict.** The report
+> and the readiness section say which identities were passed and where they came from, in one line:
+> *"reviewers supplied by hand: `copilot-pull-request-reviewer`, from the PR's own review rows;
+> `zheref/nen` ships no `nen/gates.json`."*
+>
+> **And the approve row's vacuous pass is stated too.** With no `--approvers`, `nen pr ready` says so
+> itself — *"approvers (none — the approve row is vacuous)"* — and row 5, *"every approving
+> reviewer's latest round is an APPROVE at the current head"*, passes because there is no approving
+> reviewer to fail it. That is a true reading of an empty set and a **false impression** of a
+> reviewed PR, so the page carries the sentence in the reader's own words: **"nobody has approved
+> this pull request."** A `ready` verdict standing on a vacuous row is still `ready`; it is just not
+> the thing a reader assumes it is.
+
+**Never a bare relative `--gates` path.** Since nen `v0.2.0` a relative `--gates` resolves against
+**`--repo`'s root, never the cwd** (verified live at `v0.3.0`, `pr-state` § 2), and the reference file
+lives in this plugin's checkout rather than the target's, so only an absolute path reaches it.
+
+> **Where the plugin root comes from, when a run needs it.** `$CLAUDE_PLUGIN_ROOT` is exported by the
+> harness **only inside a skill invocation**; it is **empty in an ordinary tool-call shell and inside
+> a subagent** — verified live. So use it when it is non-empty, and otherwise resolve it rather than
+> guess: `claude plugin list --json` returns `[{ "id": "hatsu@hatsu", "installPath": "<the plugin
+> root>", … }]` (verified live — the `--json` flag exists and `installPath` is the root), or take the
+> path from whoever raised the run. **A `--gates` path that could not be resolved is not replaced by
+> a relative one**: fall to the third row of the table above and pass `--reviewers` instead, which is
+> the honest answer rather than a path that will resolve inside the target repository and `ENOENT`.
 
 **Never re-derive readiness by eye.** Two approvals that predate the last push look exactly like
 two that follow it on the page, and only one of those is Ready. `nen pr ready`'s verdict is the
@@ -410,6 +464,15 @@ Say when the run **starts** and when it **ends**.
 - **Never applies a routing, release or G1 mode label** (§ 7).
 - **Never reports readiness it did not get from `nen pr ready` + `nen pr body-check`**, and never
   promotes a `not-ready` verdict on inference.
+- **Never points `--gates` at another repository's gates file** — `contracts/reference.gates.json`
+  is `<reference-repo>`'s, and against any other target it judges the wrong reviewers and can never
+  answer `ready` (§ 4). A target with no gates file of its own gets `--reviewers`, supplied by hand
+  and named on the page.
+- **Never lets a vacuous approve row read as an approval.** Where no `--approvers` were passed, the
+  page says nobody has approved the pull request (§ 4).
+- **Never builds a path from `$CLAUDE_PLUGIN_ROOT` without checking it is set** — it is empty
+  outside a skill invocation, and a bare relative `--gates` resolves inside the target repository
+  (§ 4).
 - **Never counts an unverified wake** toward the escalation ladder, and never fabricates a
   `nen pr staleness --wakes-from` entry to manufacture a stale verdict.
 - **Never exceeds the 5-round cap** on one PR — the sixth round is an escalation.

@@ -120,7 +120,7 @@ not a G5 either: an empty required set is not a red suite. A test is never patch
 | `minimum` | `80` | **the stop.** A touched file under it is a **G5**: `gyo` adds tests until it clears, or the maintainer decides |
 | `recommended` | `85` | the band `gyo` aims for and reports against |
 | `ideal` | `90` | the band worth saying out loud when it is reached |
-| `scope` | `touched` | line coverage of the files in `git diff --name-only <base>...HEAD`, **not** the repository total |
+| `scope` | `touched` | line coverage of the files in `git diff --name-only origin/<base>...HEAD`, **not** the repository total |
 
 Three numbers rather than one, because a single threshold turns into either a gate that blocks honest work or
 a number nobody looks at. The ladder reports bands and stops only at the bottom rung. **The bar is never
@@ -449,10 +449,12 @@ maintainer's to call. Its order is fixed, and each step has exactly one job.
 |---|---|---|---|
 | **1** | [`murasaki`](../claude/skills/murasaki/) | pull + push: [`ao`](../claude/skills/ao/) → [`rasengan`](../claude/skills/rasengan/) + [`tsukuyomi`](../claude/skills/tsukuyomi/) → push, **only if the branch is already published**. Never squashes, never force-pushes | **G5** on a *semantic* conflict in `ao` — a mechanical one is resolved |
 | **2** | [`hanten`](../claude/skills/hanten/) | the adversarial review: classify the change set by scope, one reviewer subagent per scope | **G5** on an unsettled finding — after Kurapika has fixed it or pushed back with a reason |
-| **3** | `tsukuyomi` + [`kotoamatsukami`](../claude/skills/kotoamatsukami/) | `tests.required` (+ `extra`), and the declared `ui-test` where a repository declares one. Re-recorded snapshots feed step 5 | **G5** on red required tests. A seat (exit `4`) is quoted, never routed around |
+| **3** | `tsukuyomi` + [`kotoamatsukami`](../claude/skills/kotoamatsukami/) | `tests.required` (+ `extra`), and the declared `ui-test` where a repository declares one. Re-recorded snapshots feed step 6 | **G5** on red required tests. A seat (exit `4`) is quoted, never routed around |
 | **4** | [`gyo`](../claude/skills/gyo/) | the coverage bar, against the `coverage` ladder of § 2 | **G5** when a touched file is under `minimum` and cannot honestly clear it |
-| **5** | evidence | the changed visual artifacts, from `project.evidence` (§ 3), grouped **suite → scene** | not a gate event |
-| **6** | [`shibari`](../claude/skills/shibari/) | composes and opens **one** PR, requests the reviewers, writes the body back, and **starts [`en`](../claude/skills/en/)** | never labels a gate, never merges |
+| **5** | [`kokusen`](../claude/skills/kokusen/) then the push half of `murasaki` | **publishes what steps 2–4 changed.** The review's fixes and gyo's new tests are edits to the working copy, and neither of those skills may commit or push; step 7 refuses to open a PR while `HEAD` is ahead of `origin/<branch>` | **G5** on a semantic conflict where the base moved again |
+| **6** | evidence | the changed visual artifacts, from `project.evidence` (§ 3), grouped **suite → scene** | not a gate event |
+| **7** | [`shibari`](../claude/skills/shibari/) | composes and opens **one** PR, requests the reviewers and writes the body back | never labels a gate, never merges |
+| **8** | [`rikugan`](../claude/skills/rikugan/) `as landing` | the landing report, rendered **after** the PR exists because its two extra sections — the PR body and the readiness verdict — are step 7's outputs. Then **starts [`en`](../claude/skills/en/)** | not a gate event |
 
 **Four of the five G5 conditions of § 4 live inside this one phase.** That is not an accident of layout: a
 pull request is the moment work stops being private, so it is the moment the honest questions are cheapest to
@@ -496,7 +498,7 @@ when the finding **outlives the branch**.
 ### `gyo` — the ladder, spent
 
 `gyo` is where § 2's `coverage` ladder stops being a table and becomes a decision. It reads **touched-file
-line coverage** — the files in `git diff --name-only <base>...HEAD`, never the repository total — and reports
+line coverage** — the files in `git diff --name-only origin/<base>...HEAD`, never the repository total — and reports
 each file against the three rungs:
 
 | Band | What `gyo` does |
@@ -686,6 +688,25 @@ logged as an internal error, and marks that plugin's hook load *failed* — visi
 **not caught by `claude plugin validate --strict`**, which passes either way. The manifest key exists for
 *additional* hook files, and Hatsu ships none. `${CLAUDE_PLUGIN_ROOT}` in the two `command` fields resolves to
 the installed plugin directory, which changes on every update, so it is never written as a literal path.
+
+### `$CLAUDE_PLUGIN_ROOT` is set inside a skill invocation, and nowhere else
+
+Several skills build an absolute path from it — `pr-state`, `sharingan`, `backlog-state`, `futon`, `tensho`
+and `getsuga` for `nen pr ready --gates`, `hatsu-warmup` for `nen/contract.json`, `hanten` for a persona's
+definition under `claude/agents/`, `rikugan` for `templates/<name>.html`. **The harness exports it while a
+skill is running, and it is EMPTY in an ordinary tool-call shell and inside a subagent** — verified live. So a
+run that reads it has to check it:
+
+| The variable | What to do |
+|---|---|
+| **set** | use it — the installed plugin directory, which changes on every update and is never a literal |
+| **empty**, and the run was handed a plugin path | use the path it was handed |
+| **empty**, with nothing handed | resolve it: `claude plugin list --json` → the entry whose `id` is `hatsu@hatsu`, field **`installPath`**. Verified live: the `--json` flag exists and `installPath` is the plugin root |
+
+**Never substitute a bare relative path.** `--gates` in particular resolves a relative path against
+`--repo`'s root since nen `v0.2.0`, never the cwd, so `contracts/reference.gates.json` looks for a file
+inside the repository under judgement and `ENOENT`s — and a `--gates` that cannot be resolved is answered by
+passing `--reviewers` instead (`sharingan` § 4), not by guessing a path. This is wave-3 finding F18.
 
 ---
 
