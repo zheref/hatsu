@@ -13,6 +13,22 @@ the `<reference-repo>` checkout.
 
 *Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
+> **Dated note, 2026-09-10 — the `--gates` form below is `<reference-repo>`-specific, and `SKILL.md`
+> § 2 now says so rather than reading as the general fallback.** `contracts/reference.gates.json`
+> carries `<reference-repo>`'s own reviewer identities; pointing it at any other target's PR produces
+> a confident verdict built on an **unverified assumption**, not a reading of that target's own
+> configuration — `sasuke`/`tenma`/`copilot` are not reserved to `<reference-repo>` (`docs/ab/senkei.md`
+> § 4.1 records `<product-repo-A>` reusing the same `sasuke`/`tenma` workflow names in its own review-pair),
+> so a `ready` verdict this way can even land on the RIGHT people by coincidence and still be wrong in
+> method: the identities were never derived from the target being judged. `claude/skills/pr-state/SKILL.md`
+> § 2 now cites `claude/skills/sharingan/SKILL.md` §
+> 4's identity rule instead of restating it: a target's own `nen/gates.json` wins where one exists;
+> `--gates` with this reference file is for `<reference-repo>` alone; any other gates-file-less
+> target gets `--reviewers` supplied by hand — from its `CODEOWNERS` or the PR's own requested
+> reviewers, never this file — with the approve row's vacuous pass (no `--approvers` given) stated on
+> the page. The transcripts below still ran against real `<reference-repo>` PRs, so they stay as
+> recorded.
+
 ---
 
 ## 1. Command mapping table

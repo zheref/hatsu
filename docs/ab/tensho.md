@@ -19,6 +19,19 @@ request-reviews`, and — for the phase the old skill handed to `bankai:drive` �
 > runs establish about the verbs is unaffected: both keys sit on
 > `commits.allowedAttributionTrailers`, so the accept/refuse behaviour is identical either way.
 
+> **Dated note, 2026-09-10 — the `--gates` transcript below is `<reference-repo>`-specific, and
+> `SKILL.md` § 6 now says so.** The fallback shape read `--gates
+> "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"` as if it applied whenever a target ships no
+> `nen/gates.json` of its own. It does not: that file carries `<reference-repo>`'s own reviewer
+> identities, and pointing it at another repository's PR produces a confident verdict about the
+> wrong people. `claude/skills/tensho/SKILL.md` § 6 now cites `claude/skills/sharingan/SKILL.md` §
+> 4's identity rule instead of restating it: a target's own `nen/gates.json` wins where one exists;
+> `--gates` with this reference file is for `<reference-repo>` alone; every other gates-file-less
+> target gets `--reviewers` supplied by hand, from its `CODEOWNERS` or the PR's own requested
+> reviewers — never this file, because a repository is never judged by another repository's
+> reviewers — with the approve row's vacuous pass (no `--approvers` given) stated on the page. The
+> transcript below still ran against real `<reference-repo>` PRs, so it stays as recorded.
+
 Run: 2026-09-01 (local clock; `nen 0.1.0` at `<cache>\nen\v0.1.0\nen-windows-x64.exe`).
 `gh` authenticated as `zheref`. Local verbs exercised against a **constructed** scratch git repo
 (`<scratch>\scratch-tensho`, never pushed anywhere, seeded and

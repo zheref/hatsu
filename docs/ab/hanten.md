@@ -213,15 +213,23 @@ finding of hanten § 7 renders through it identically.
   **Uvogin** `model: sonnet` / `effort: medium`"* — the **`fast`** tier.
 
 For Phinks the two agree (`opus`, `deep`). **For Hisoka and Uvogin they do not**, and the disagreement is
-not academic: the harness's Agent-tool `model` parameter **takes precedence over the definition's
-frontmatter**, so a caller that dutifully resolves `roles.reviewer → deep → opus` and passes it would
-**silently overrule** the pin the maintainer recorded in Hisoka's own file — while believing it was
-reading policy from the file.
+not academic — **the open question is which one wins**: the harness's Agent-tool `model` parameter is
+documented to **take precedence over the definition's frontmatter**, so a caller that dutifully
+resolves `roles.reviewer → deep → opus` and passes it would **silently overrule** the pin the
+maintainer recorded in Hisoka's own file — while believing it was reading policy from the file. That
+precedence is read off the tool's own parameter description, not exercised live in this A/B against a
+persona whose pin genuinely diverges from the resolved role tier, so it is stated here as the open
+question it is, not as a re-verified fact.
 
 **The skill's reconciliation, disclosed in its § 4:** the persona's own pin wins where it exists, and
-hanten then passes **no** `model` at all; the role-derived alias is used only for a persona whose
-definition pins none — which today is exactly Feitan and Chrollo, who have no definition to pin one in.
-Either way the alias that actually ran goes in the title, and neither path can reach the frontier tier.
+hanten then passes **no** `model` at all; the role-derived alias would be used only for a persona whose
+definition pins none. **That branch is vacuous today, and was not always** — at port time (§ 2.2 as
+originally run) Feitan and Chrollo had no `claude/agents/` definition at all, so hanten's own § 3 gap
+mechanism, not this reconciliation, covered them. Both landed at `v0.5.0` (ruling of 2026-09-09) and
+both pin `model: opus` in their own frontmatter (§ 2.2's note records this) — so every reviewer hanten
+can route to today (Hisoka, Feitan, Chrollo, Uvogin, Phinks) pins a model of its own, and the
+"definition pins none" branch has no live example to exercise. Either way the alias that actually ran
+goes in the title, and neither path can reach the frontier tier.
 
 **This is a reading, not a ruling, and the ruling is the maintainer's.** Two shapes would settle it in the
 file rather than in prose: either `roles` becomes an explicit *default for a persona with no pin* (one

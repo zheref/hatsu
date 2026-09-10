@@ -20,6 +20,17 @@ opened.
 
 *Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
+> **Dated note, 2026-09-10 — § 5's `--gates` transcript below is `<reference-repo>`-specific, and
+> `SKILL.md` § 5 now says so.** `contracts/reference.gates.json` carries `<reference-repo>`'s own
+> reviewer identities; pointing it at another target's PR reports a confident verdict about the
+> wrong people. `claude/skills/backlog-state/SKILL.md` § 5 now cites
+> `claude/skills/sharingan/SKILL.md` § 4's identity rule instead of restating it: a target's own
+> `nen/gates.json` wins where one exists; `--gates` with this reference file is for `<reference-repo>`
+> alone; any other gates-file-less target gets `--reviewers` supplied by hand — from its
+> `CODEOWNERS` or the PR's own requested reviewers, never this file — with the approve row's vacuous
+> pass stated on the rendered board. The transcript below still ran against a real `<reference-repo>`
+> PR, so it stays as recorded.
+
 ---
 
 ## 0. Confirming there is no old-side script for §§2–4, 6, 7, 11

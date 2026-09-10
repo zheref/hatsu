@@ -348,11 +348,18 @@ The maintainer's ruling: an unreachable target is **driven to `main` first**, no
    stop-at-the-gate report as the readiness call.
    *Fallback only if `sharingan` cannot run at all* (an unresolvable code, say): the readiness call by
    itself is [`$pr-state`](../pr-state/SKILL.md)'s verb — `nen pr ready <ref> --explain`, with
-   `GH_TOKEN` exported and, where the target ships its own `nen/gates.json` (or a legacy
-   `schemas/gates.json`), no `--gates` at all — or `--gates
-   "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"` (absolute) where the target is frozen
-   `<reference-repo>` — quoted verbatim. That is a **check**, not a drive: it reports where the PR stands
-   and nothing moves it.
+   `GH_TOKEN` exported, quoted verbatim. **The identities come from [`sharingan`](../sharingan/SKILL.md)
+   § 4's rule, never from memory:** the target's own `nen/gates.json` first, with no `--gates` at all
+   — the `schemas/gates.json` location is not a fallback at the pinned nen `0.5.0`, REMOVED at
+   `v0.4.0`, so a gates file only there is refused exactly like one carrying none; `--gates
+   "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"` (absolute) ONLY where the target is frozen
+   `<reference-repo>` itself; every other target that ships no gates file gets `--reviewers` supplied
+   by hand, from its `CODEOWNERS` or the PR's own requested reviewers — a repository is never judged
+   by another repository's reviewers. **The approve row's vacuous pass belongs to that hand-supplied
+   `--reviewers` path alone**: run with no `--approvers`, its row is vacuous and is stated on the
+   page — but `contracts/reference.gates.json` carries its own `default_approvers` (`sasuke`,
+   `tenma`), so the `--gates` form is a real approver check even with no `--approvers` flag. That is
+   a **check**, not a drive: it reports where the PR stands and nothing moves it.
 4. **Stop at G2/G4.** The maintainer merges.
 5. **Re-resolve the target** — it is now a commit on `main`, and a *different* commit than the
    branch tip was (a merge commit). Tag that. Then § 2 from the top, because every precondition must

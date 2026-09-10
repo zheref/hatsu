@@ -271,16 +271,24 @@ with the discipline of quoting rather than paraphrasing, is
 
 ```bash
 export GH_TOKEN=$(gh auth token)
-nen pr ready <CODE>#<N> --repo <path> \
-  --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
+nen pr ready <CODE>#<N> --repo <path> --explain   # a repository ships its own nen/gates.json
 ```
 
-(or `<N> --gh-repo <owner/repo> --gates ...` for a bare number.) **Always the
-`$CLAUDE_PLUGIN_ROOT`-anchored gates path** — since nen `v0.2.0` a relative `--gates` resolves
-against **`--repo`'s root, never the cwd** (verified live at `v0.3.0`, [`pr-state`](../pr-state/SKILL.md)
-§ 2), and the file lives in this plugin's checkout, not the target's, so only an absolute path reaches
-it. A repo that ships its own `nen/gates.json` needs no
-`--gates` flag at all.
+(or `<N> --gh-repo <owner/repo>` for a bare number.) **Which identity flag actually goes on that call
+is [`sharingan`](../sharingan/SKILL.md) § 4's identity rule, cited here rather than copied, resolved
+BEFORE the call — never defaulted to `--gates`.** A row for a repository that ships its own
+`nen/gates.json` needs no identity flag, as shown above. `<reference-repo>` (frozen, no gates file of
+its own) is the one repository this table can report on where `--gates
+"$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"` applies — always `$CLAUDE_PLUGIN_ROOT`-anchored,
+since nen `v0.2.0` a relative `--gates` resolves against **`--repo`'s root, never the cwd** (verified
+live at `v0.3.0`, [`pr-state`](../pr-state/SKILL.md) § 2), and the file lives in this plugin's
+checkout, not the target's. For any OTHER repository that this table reports on and that ships no
+`nen/gates.json`, pass `--reviewers` by hand instead — from its `CODEOWNERS` or the PR's own requested
+reviewers, never the reference file, because a repository is never judged by another repository's
+reviewers. **The vacuous-approve caveat belongs to that hand-supplied path alone**: with no
+`--approvers` given, its approve row passes vacuously, named on the rendered board — but
+`contracts/reference.gates.json` carries its own `default_approvers` (`sasuke`, `tenma`), so the
+`--gates` row above is a real approver check even with no `--approvers` flag.
 
 Two things follow, unchanged from the old skill:
 

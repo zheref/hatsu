@@ -25,6 +25,17 @@ pinned binary before writing any of this (§ 0) — they match the shared refpac
 
 *Paths sanitized: this machine's local absolute paths appear as `<checkout>` (the parent directory of the repository checkouts), `<cache>` (the nen binary cache) and `<scratch>` (a throwaway scratch directory). Private repository names, and the product codes that identified them, are redacted to placeholders (see [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)); nothing else below is altered -- the transcripts are otherwise verbatim.*
 
+> **Dated note, 2026-09-10 — `SKILL.md` § 6's `--gates` fallback line is now `<reference-repo>`-specific,
+> named as such.** No transcript in this file exercised `nen pr ready`'s identity flags (§ 6's readiness
+> call is a stated fallback path, never run live here), so nothing below needed correcting — but the
+> skill text it documents did: `contracts/reference.gates.json` carries `<reference-repo>`'s own
+> reviewer identities, and § 6 previously read as though `--gates` with that file was the fallback for
+> ANY target shipping no gates file. `claude/skills/getsuga/SKILL.md` § 6 now cites
+> `claude/skills/sharingan/SKILL.md` § 4's identity rule instead: a target's own `nen/gates.json` wins
+> where one exists; `--gates` with the reference file is for `<reference-repo>` alone; any other
+> gates-file-less target gets `--reviewers` supplied by hand — from its `CODEOWNERS` or the PR's own
+> requested reviewers, never this file — with the approve row's vacuous pass stated on the page.
+
 ---
 
 ## 0. Live `--help` re-verification

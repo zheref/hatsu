@@ -310,6 +310,16 @@ export GH_TOKEN=$(gh auth token)
 nen pr ready <CODE>#<N> --repo <path> --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
 ```
 
+The `--gates` shown is [`sharingan`](../sharingan/SKILL.md) § 4's identity rule, cited rather than
+copied: it holds ONLY where the target is frozen `<reference-repo>` itself (no gates file of its own);
+a target that ships its own `nen/gates.json` needs no identity flag at all; any OTHER target with no
+`nen/gates.json` gets `--reviewers` supplied by hand — from its `CODEOWNERS` or the PR's own requested
+reviewers, never this file, because a repository is never judged by another repository's reviewers.
+**The vacuous-approve caveat belongs to that hand-supplied path alone**: with no `--approvers` given,
+its approve row passes vacuously, stated on the page rather than left to read as a reviewed PR — but
+`contracts/reference.gates.json` carries its own `default_approvers` (`sasuke`, `tenma`), so the
+`--gates` form shown above is a real approver check even with no `--approvers` flag.
+
 Quote the verdict verbatim, render the conjunct table `--explain` prints, and apply
 `hatsu:pr-state`'s own binding rule unchanged: a readiness claim is that verdict, quoted, or it is
 not made — never a paraphrase, never `ready` for a PR that came back `unevaluated`. Say plainly
