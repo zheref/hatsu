@@ -1,6 +1,6 @@
 ---
 name: hatsu-warmup
-description: Satisfy Hatsu's hard Nen dependency (D10) before any Nen-owned work — probe `nen --version` against the range declared in nen/contract.json, and when it is absent or out of range, install the pinned build through nen's own checksum-verified bootstrap. Fail-closed with auto-install. Use at the start of every Hatsu session, and again any time a `nen` invocation reports the binary is missing. It halts with the exact command ONLY if the bootstrap itself fails — and a Nen-owned operation is never improvised in prose. On Codex and Cursor it also places the generated skill and persona mirrors from `surfaces/` into the target repository (`.agents/skills/` copied afresh each session + an untracked `AGENTS.override.md`, or `.cursor/skills/` + `.cursor/agents/`), excluded through the repository's `info/exclude` (`git rev-parse --git-path info/exclude`) and never through `.gitignore`, and it never writes a tracked `AGENTS.md`; on Claude Code nothing in the target repository changes.
+description: Satisfy Hatsu's hard Nen dependency (D10) before any Nen-owned work — probe `nen --version` for presence, then read the range verdict off `nen shu tools`'s `nen` row rather than computing it here — nen ships the compatibility floor that decides it — and when nen is absent or the row is not satisfied, install the pinned build through nen's own checksum-verified bootstrap. Fail-closed with auto-install. Use at the start of every Hatsu session, and again any time a `nen` invocation reports the binary is missing. It halts with the exact command ONLY if the bootstrap itself fails — and a Nen-owned operation is never improvised in prose. On Codex and Cursor it also places the generated skill and persona mirrors from `surfaces/` into the target repository (`.agents/skills/` copied afresh each session + an untracked `AGENTS.override.md`, or `.cursor/skills/` + `.cursor/agents/`), excluded through the repository's `info/exclude` (`git rev-parse --git-path info/exclude`) and never through `.gitignore`, and it never writes a tracked `AGENTS.md`; on Claude Code nothing in the target repository changes.
 ---
 
 # Hatsu warm-up — the Nen dependency contract, executed
@@ -63,10 +63,12 @@ This is the one machine read of the contract, and it is a validation, never a wa
 nen schema check --repo "$hatsu_root"
 ```
 
-Verified live against the pinned `v0.7.0`: the `nen/contract.json` row prints
-`ok    nen/contract.json  dependency (nen >= 0.7, pinned v0.7.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)`
-— the floor and the pin nen parsed are the ones you just read, and a drift between them and this file's
-prose is a bug in the prose. **`schema check` reports SIX rows at this pin, and four of them are expected
+Verified live at nen `0.7.0` against this branch: the `nen/contract.json` row prints
+`ok    nen/contract.json  dependency (nen >= 0.7, pinned v0.8.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)`
+— the minimum and the pin nen parsed are the ones you just read, and they are **two independent values**:
+`>= 0.7` is the pin this repository declares, `v0.8.0` is the build its bootstrap installs, and § 1b's
+floor rule is why the second may move without the first. A drift between them and this file's prose is a
+bug in the prose. **`schema check` reports SIX rows at this pin, and four of them are expected
 non-`ok`**: three `FAIL` (`nen/labels.json`, `nen/repos.json`, `nen/colors.yml`), one `warn`
 (`nen/gates.json`), and the overall exit `1` — **none of which is a warm-up failure**. Hatsu ships no
 taxonomy of its own; `schema check` requires those three for a repository that does, and only warns on the
@@ -100,71 +102,165 @@ already drifted.
 
 ---
 
-## 1 · Probe
+## 1 · Probe, then let nen decide the range
+
+### 1a · Probe — present or absent, and nothing more
 
 ```bash
 nen --version
 ```
 
 (That is `dependency.version_probe` — `["nen", "--version"]` — spelled out; it prints a bare semver such
-as `0.5.0`.) Three outcomes, and exactly three:
+as `0.8.0`.) **It answers exactly one question — is there a nen here at all — and no other.** Whether what
+it printed satisfies the pin is § 1b's, and § 1b does not compute it either:
 
-| Outcome | Meaning | Next |
+| Probe | Meaning | Next |
 |---|---|---|
-| Exits `0`, prints a semver **inside** the range | Contract satisfied | **§4 — report and proceed** |
-| Exits `0`, prints a semver **outside** the range | Out of range, but nen works | **§2b — re-pin through the verb** |
-| Not found on `PATH` / non-zero exit / unparseable output | Absent | **§2a — the shell bootstrap** |
+| Exits `0`, prints a semver | A nen is on `PATH` | **§ 1b — ask nen for the verdict** |
+| Not found on `PATH` / non-zero exit / unparseable output | Absent | **§ 2a — the shell bootstrap** |
 
-### How the range is computed — and the 0.x trap
+**An unparseable version is an absent version.** Do not squint at it. Fall through to § 2a, which is safe:
+the bootstrap is idempotent and cached. (nen answers the same way from its own side — a probe that ran and
+printed something no `versionFrom` member could read is rendered `unknown` and **never** satisfied, because
+a comparison nobody made must not render as one that came back clean.)
 
-`minimum` is `MAJOR.MINOR`. **What it means depends on the major, and getting this backwards fails open.**
+### 1b · The verdict on the range is **nen's**, not this file's
 
-**While nen's line is `0.x` — which it is today — `minimum: "0.7"` means exactly `>=0.7.0 <0.8.0`.**
+```bash
+nen shu tools --repo "$hatsu_root"
+```
 
-**A different minor is out of range in BOTH directions.** `0.8.0` fails it exactly as `0.6.0` does.
+**Read the `nen` row. That row is the answer.** It reads the same `dependency` block § 0 just read, applies
+nen's own compatibility floor to it, and prints the exact range the verdict was taken against.
 
-> **And on this line the rule has teeth, twice over.** nen `v0.5.0` is the first release since `v0.1.0`
-> that **removes** something a consumer could rely on — the `schemas/` fallback — `v0.6.0` changed three
-> behaviours **in place**, and `v0.7.0` changes four more, none of them announced by a new flag:
-> `nen stage triage` gains the `local-config` and `large` detectors, so a tree that answered exit `0`
-> answers exit `1` on the same bytes; every relative own-path flag resolves against `--repo`'s root
-> instead of the process's directory; a missing or malformed `--target` exits `2` rather than `1` across
-> sixteen verbs, and so does an unreadable caller-named input on `split verify`, `changelog` and
-> `canon mirror check`; and `nen pr ready` **reads** `nen/gates.json`'s `dependabot_carve_out`, so an
-> unchanged file can turn a `not-ready` into a `ready`. A
-> minor here is a breaking change in the plainest sense, not just a feature bump.
+> **`--repo` names HATSU's checkout, not the repository the session is standing in.** The `dependency`
+> block being enforced is Hatsu's own — § 0 read it from `$hatsu_root` and `nen schema check` validated it
+> there. A target repository's `nen/contract.json` declares *its* build, and pointing this verb at it would
+> answer a question nobody asked. (`$hatsu_root` is § 5's prelude's resolution, run in § 0.)
 
-> **Why, so nobody "corrects" it back:** SemVer 2.0.0 clause 4 says that at major version zero the public
-> API is unstable and **anything MAY change at any time** — at `0.x` the **minor** is the breaking-change
-> vehicle, the role `major` plays later. So "backward-compatible within a major" is precisely the wrong rule
-> here: applied at `0.x` it would wave through `0.9.0` against a `0.5` minimum, in the one version range
-> where compatibility is *least* guaranteed. A higher `0.x` is **not** safer for being higher. Re-pin it.
+**The verb is present on every binary this pin can meet.** `nen shu tools` ships from **`v0.3.0`**
+(`zheref/nen#120`), four minors below `minimum`, so at any version the range admits it is there. If it is
+**not** — `nen: unknown command` — the binary is older than this plugin supports at all, and that is
+§ 2b, exactly as a version below the pin is.
 
-**From `1.0` onward** the familiar rule takes over: `X.Y` means `>=X.Y.0 <(X+1).0.0`, and a higher minor or
-patch satisfies it. The contract is bumped to say so when nen gets there; **until then the `0.x` rule above
-is the operative one**, and it is stated in `dependency.zero_major_caveat` rather than left to be inferred.
+A live run at nen `0.7.0` against this repository:
 
-**An unparseable version is an absent version.** Do not squint at it. Fall through to §2a, which is safe:
-the bootstrap is idempotent and cached.
+```text
+lane:          plugin  (claude-code-plugin)
+mode:          check
+  ok       nen     0.7.0    pinned >=0.7.0 <0.8.0
+  ok       claude  2.1.263  pinned >=2.0.0
+```
+
+(exit `0`)
+
+**From nen `0.8` a `compat floor:` line stands above the rows** — `compat floor:  0.7  (the lowest
+dependency.minimum nen 0.8.0 satisfies)` — printed on **every** run and carried in `--json` as the
+top-level `compatibleMinorFloor`, including in a report whose declaration has no `dependency` block at all,
+because *"do I owe a repin"* is a question about nen and not about the declaration that asked. A `0.7.0`
+binary prints neither: the floor is what `0.8.0` added. **Say so rather than inventing one** — § 4's line
+carries `floor: not reported (nen 0.7.0)` there.
+
+| The `nen` row | `--json` `state` | What it means | Next |
+|---|---|---|---|
+| `ok` | `present-and-matching` | satisfied, at the range the row printed | **§ 4 — report and proceed** |
+| `WRONG`, `remedy` naming a **repin** of `minimum` | `present-but-wrong-version` | the pin is **below** this build's floor: **no** build of that line satisfies it, whatever the host answers | **§ 2b**, with the ref the contract pins — **and the repin the row names is a change to [`nen/contract.json`](../../../nen/contract.json) in a pull request**, which no install performs |
+| `WRONG`, no floor complaint | `present-but-wrong-version` | the binary is **older** than the pin | **§ 2b — re-pin through the verb** |
+| `MISSING` | `missing` | the probe could not be started at all | **§ 2a — the shell bootstrap** |
+| the verb itself is absent | — | older than `v0.3.0`, below anything this plugin supports | **§ 2b** |
+
+Exit `5` is the code for every non-satisfied row, and it is **never** `1`: a missing or wrong tool is not a
+failed build, and a caller retrying a `1` would retry forever on a machine that is simply not set up.
+
+### 1c · How the range is decided — the floor rule
+
+`minimum` is `MAJOR.MINOR`. **What it admits is decided by the binary**, and the fact that decides it is one
+the binary *ships*: `COMPATIBLE_MINOR_FLOOR` in nen's `src/version.ts` — the lowest `minimum` pin that build
+satisfies (`zheref/nen#200`; `docs/USAGE.md` § *the compatibility floor*).
+
+**The maintainer's ruling of 2026-09-10: *exact minor is fine, unless there is a breaking change*.** A nen
+release whose CHANGELOG `### Breaking / consumer notes` section carries a real bullet sets the floor to its
+own minor; one that carries none leaves the floor where it stands, and thereby goes on accepting the pins
+already written. Before it, `0.6` meant `>=0.6.0 <0.7.0` *exactly* and **every** minor — breaking or not —
+owed a repin PR in every consuming repository, which is a repin nobody reads.
+
+A pin of `0.A`, read by a build `0.B.z` whose floor is `0.F`, is satisfied when **`A ≤ B`**, **`A ≥ F`**,
+and **`B` is at or below that build's own minor**. Written out, with this contract's pin of `0.7` and nen's
+floor of `0.7`:
+
+| pin | the build | floor | the range it applies | what the warm-up does |
+|---|---|---|---|---|
+| `0.7` | `0.7.0` | `0.7` | `>=0.7.0 <0.8.0` — **ok** | § 4 |
+| `0.7` | `0.8.0` | `0.7` | `>=0.7.0 <0.9.0` — **ok** | § 4. **No repin.** `v0.8.0` declared no breaking notes and kept the floor, so the pin already written still holds |
+| `0.6` | `0.7.0` | `0.7` | `>=0.6.0 <0.7.0` — **below the floor**, exit `5` | § 2b, and the row names the repin: `"0.6"` → `"0.7"` in the contract |
+| `0.9` | `0.8.0` | `0.7` | `>=0.9.0 <0.10.0` — the binary is **older than the pin**, exit `5` | § 2b: install `pinned_ref` |
+| `1.4` | any | — | `>=1.4.0 <2.0.0` | above major zero the floor is not consulted at all; nothing here applies |
+
+**Both directions stay fail-closed, and neither is negotiable:**
+
+- **A pin's own minor always satisfies it.** The floor only ever *widens* what is accepted. It is a floor
+  and never a ceiling.
+- **An older binary never certifies a newer line.** A `0.8.0` asked about a `0.9.0` on the host has no way
+  to know what `0.9.0` broke, so it refuses rather than guessing *compatible* — the fail-**open** read of
+  the one range where compatibility is least guaranteed.
+
+**A pre-release is read differently at each end**, each way round being the fail-closed one for that end:
+the floor keeps full semver precedence, so `0.7.0-rc.1` does **not** satisfy `0.7` — a release candidate is
+not the release; the ceiling compares version *numbers*, so `0.9.0-rc.1` does **not** slip under a `<0.9.0`
+bound, because it is a binary on the `0.9` line and the minor is what the whole rule turns on.
+
+> ### ⚠️ This section used to compute the range itself, and that is the defect this rewrite closes
+>
+> It said `minimum: "0.7"` meant `>=0.7.0 <0.8.0` and that **"`0.8.0` fails it exactly as `0.6.0` does"** —
+> true of every nen through `v0.7.0`, and false the moment `v0.8.0` shipped the floor. Left standing, every
+> warm-up on a host carrying nen `0.8.0` would have read *out of range*, gone to § 2b, and rebound
+> `~/.local/bin/nen` **down** to `v0.7.0` — undoing a widening the binary itself certified, and making the
+> floor inert for every Hatsu consumer. **A range this file computes is a range that goes stale in a
+> release this file cannot see.** The verb reads the declaration and ships the floor in the same binary;
+> nothing here can.
+
+> **Why the floor sits at `0.7`, so nobody moves it casually.** SemVer 2.0.0 clause 4: at major version
+> zero the public API is unstable and **anything MAY change at any time**, so at `0.x` the *minor* is the
+> breaking-change vehicle. nen's `v0.5.0` was the first release since `v0.1.0` to **remove** something a
+> consumer could rely on — the `schemas/` fallback; `v0.6.0` changed three behaviours **in place**; and
+> `v0.7.0` changed four more, none announced by a new flag: `nen stage triage` gained the `local-config`
+> and `large` detectors, so a tree that answered exit `0` answers exit `1` on the same bytes; every
+> relative own-path flag resolves against `--repo`'s root instead of the process's directory; a missing or
+> malformed `--target` exits `2` rather than `1` across sixteen verbs, and so does an unreadable
+> caller-named input on `split verify`, `changelog` and `canon mirror check`; and `nen pr ready` **reads**
+> `nen/gates.json`'s `dependabot_carve_out`, so an unchanged file can turn a `not-ready` into a `ready`.
+> **That is why the floor is `0.7` and why `minimum` is `0.7`** — and it is also the shape of what moves
+> either of them again. `minimum` moves **only** when nen's CHANGELOG carries a real bullet under
+> `### Breaking / consumer notes`; `pinned_ref` may move on its own to a newer release inside the range,
+> which is exactly what `v0.7.0` → `v0.8.0` is.
+
+**From `1.0` onward** the familiar rule takes over: `X.Y` means `>=X.Y.0 <(X+1).0.0`, a higher minor or
+patch satisfies it, and the floor is not consulted at all. nen already answers that way for a `1.x` pin;
+the contract is bumped to say so when nen's own line gets there, and it is stated in
+`dependency.zero_major_caveat` rather than left to be inferred.
 
 ---
 
 ## 2 · Auto-install — two cases, two paths
 
-Absent or out of range is **not** a halt. It is an install. **Which path applies is decided by the probe,
-never by preference.**
+Absent or unsatisfied is **not** a halt. It is an install. **Which path applies is decided by § 1's two
+answers — the probe and the `nen` row — never by preference.** One case the install cannot close is named
+where it arises: a `minimum` that has fallen **below** the build's compatibility floor is a stale line in
+[`nen/contract.json`](../../../nen/contract.json), and the row names the repin. § 2b still runs — it puts a
+build the contract *does* admit on `PATH`, so the session can proceed — and the repin is a pull request
+against this plugin, reported alongside.
 
 Both start with the same fetch, and **it is always two steps**:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.7.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
+curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.8.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
 ```
 
 > ### ⚠️ Fetch to a file. **Never pipe the script into bash.**
 >
 > ```bash
 > # WRONG — dies before it starts:
-> curl -fsSL <url> | bash -s -- --ref v0.7.0
+> curl -fsSL <url> | bash -s -- --ref v0.8.0
 > ```
 >
 > The script runs under `set -u` and reads `${BASH_SOURCE[0]}`. Piped into `bash -s --` there is no
@@ -176,7 +272,7 @@ curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.7.0/bootstrap/nen.sh 
 ### 2a · nen is **absent** → run the shell bootstrap directly
 
 ```bash
-bash /tmp/nen-bootstrap.sh --ref v0.7.0
+bash /tmp/nen-bootstrap.sh --ref v0.8.0
 ```
 
 **Why shell is permitted here, and only here.** Chicken-and-egg: `nen bootstrap` is a `nen` subcommand, so
@@ -185,10 +281,10 @@ written in the language its own output provides cannot run before that output ex
 carve-out and it does not generalize** — no other operation on any Hatsu path may reach for shell on the
 grounds that this one does.
 
-### 2b · nen is **present but out of range** → re-pin through nen's own verb
+### 2b · nen is **present and does not satisfy the pin** → re-pin through nen's own verb
 
 ```bash
-nen bootstrap --ref v0.7.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
+nen bootstrap --ref v0.8.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
 ```
 
 A working `nen` is on `PATH`, so the chicken-and-egg rationale does not apply and the shell path is **not**
@@ -219,7 +315,8 @@ verified — plus its own `7`.
 ### The path it prints is not reachable as `nen`, and putting its directory on `PATH` does not fix it
 
 **This section used to say "or put its directory on `PATH`", and that does not work.** The verified
-binary is named for its platform, not for the command:
+binary is named for its platform, not for the command — recorded against `v0.7.0`, which is what was
+pinned when the run was made, and true of every ref:
 
 ```sh
 $ nen bootstrap --ref v0.7.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
@@ -230,7 +327,7 @@ nen-darwin-arm64                       # ← there is nothing here called `nen`
 
 > **The cache slot is keyed on the SOURCE as well as the ref, from nen `0.7`** (`zheref/nen#6`):
 > `<cache-root>/<source>/<ref>/<artifact>`, each key flattened to one path segment — verified live at
-> this pin, where the `v0.7.0` build sits under `~/.cache/nen/zheref_nen/` and the older refs remain
+> nen `0.7.0`, where the `v0.7.0` build sits under `~/.cache/nen/zheref_nen/` and the older refs remain
 > at the flat `~/.cache/nen/<ref>/` layout they were written under. Keyed on the ref alone, two
 > `--source` values at one tag collided in one slot; the checksum gate meant the collision was
 > **detected rather than executed**, so it never cost correctness — it cost a fork or a mirror a
@@ -296,7 +393,7 @@ never halt on them as if they were bootstrap failures.
 > never be, and including `7` in the words this section already uses: *"the one code the script
 > itself can never return, which is precisely why it is 7 rather than 1: 'the bootstrap failed' and
 > 'the bootstrap never ran' are different facts, and only the first says anything about the release
-> you asked for."* Verified live at the pinned `0.7.0`, where `v0.6.0`'s `--help` named **no exit
+> you asked for."* Verified live at nen `0.7.0`, where `v0.6.0`'s `--help` named **no exit
 > code at all** (`docs/ab/hatsu-warmup.md` § *Retired at nen 0.7*). The table above stays — it is the
 > reaction table, and `nen/contract.json` is still the authority on the pin — but it is now a copy of
 > something the binary publishes rather than the only place the contract is written down. **Where
@@ -316,8 +413,8 @@ Print `halt.message_template` from the contract, with the code and its meaning f
 > yourself, then re-invoke:
 >
 > ```
-> curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.7.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
-> bash /tmp/nen-bootstrap.sh --ref v0.7.0
+> curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.8.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
+> bash /tmp/nen-bootstrap.sh --ref v0.8.0
 > ```
 >
 > Two steps, never a pipe: the script reads `${BASH_SOURCE[0]}` under `set -u`, so `curl … | bash` dies
@@ -342,12 +439,23 @@ computation, method-block validation, perf comparison, and the rest of `nen --he
 
 ## 4 · Report, in one line
 
-State the outcome before doing anything else, so the maintainer knows which of the four happened:
+State the outcome before doing anything else, so the maintainer knows which of the four happened. **The
+line carries the floor beside the version**, because the version alone no longer says whether a repin is
+owed — that is the whole of what the floor added, and a report that omits it hides the one fact the reader
+would act on:
 
-- `Nen 0.7.0 · in range (>=0.7.0 <0.8.0) · warm-up clear`
-- `Nen absent · bootstrapped to v0.7.0 (checksum verified) · warm-up clear`
-- `Nen 0.6.0 out of range (>=0.7.0 <0.8.0) · re-pinned to v0.7.0 via nen bootstrap (checksum verified) · warm-up clear`
+- `Nen 0.8.0 · floor 0.7 · satisfies >=0.7.0 <0.9.0 · warm-up clear`
+- `Nen 0.7.0 · floor not reported (nen 0.7.0) · satisfies >=0.7.0 <0.8.0 · warm-up clear`
+- `Nen absent · bootstrapped to v0.8.0 (checksum verified) · warm-up clear`
+- `Nen 0.6.0 · floor 0.7 · below the pin (>=0.7.0 <0.9.0) · re-pinned to v0.8.0 via nen bootstrap (checksum verified) · warm-up clear`
+- `Nen 0.9.0 · floor 0.9 · pin "0.7" is BELOW the floor · re-pinned to v0.8.0; nen/contract.json owes a repin to "0.9" · warm-up clear`
 - `Nen unavailable · bootstrap failed (exit 6, EXIT_MANIFEST) · HALTED — G5`
+
+**Every value on that line is quoted from `nen shu tools`, never assembled.** The version is the row's
+`found`, the range is the row's `pinned` — the *exact* range the verdict applied — and the floor is the
+run's `compat floor:` line, or `--json`'s `compatibleMinorFloor`. On a binary older than `0.8.0` there is
+no floor to quote and the line says `floor not reported (nen <version>)`; **it never carries a floor
+inferred from the pin**, which would be this file computing the range again by another name.
 
 **Silence is not one of the four.** A warm-up that did not run is reported as *not run*, never rendered as
 clear — the same discipline `nen warmup`'s own `--questions-from` omission follows, where a skipped sweep
