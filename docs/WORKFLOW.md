@@ -307,6 +307,21 @@ wording — so the two verbs cannot disagree about what is admitted. On top of t
 without one does not run, exactly as [`izanagi`](../claude/skills/izanagi/) refuses an invocation with no
 `up to <N>`. § 5 is where both keys are actually spent, and where the long watch hands over to Illumi.
 
+**From nen `0.7` the cap is ENFORCED by the binary rather than counted in a skill's prose.**
+`nen loop iterate --id <id> --line "<task> until <condition> up to <N>"` claims one acting iteration
+against the cap its own line states and **refuses the claim past it**, exit `1` — so `maxCycles` is a
+number a verb holds a caller to, not one a caller is trusted to remember. The ledger is
+`.nen/loop/<id>.json` under `--repo`, in the same dot-prefixed generated tree `nen stop --mark` writes to,
+never the committed `nen/`. Two consequences worth stating here rather than only in the skills:
+
+- **The cap cannot be raised by re-typing the invocation.** The `--line` is restated on every claim and a
+  claim whose line differs from the running one is refused at exit `2`, naming both. A cap a caller can
+  widen by editing its own sentence is a suggestion with extra steps.
+- **The cap outlives the session, because the ledger is a file.** `en` keys the id on the pull request, so
+  a re-invoked landing resumes the same count rather than restarting at cycle 1 — the watch is per
+  session, the cap is per landing. Ending a landing closes the ledger with `--release <why>`, which a cap
+  never blocks.
+
 ### `models`
 
 ```json
@@ -682,12 +697,13 @@ reacting to new reviews and new conflicts → `rikugan`⁷ final, **the only rep
 
 | Key | What it bounds |
 |---|---|
-| `maxCycles` | the `izanagi` cap on the watch. **Grammar, not a default** — a watch invoked without one does not run |
+| `maxCycles` | the `izanagi` cap on the watch. **Grammar, not a default** — a watch invoked without one does not run, and from nen `0.7` `nen loop iterate` refuses the claim that would exceed it (§ `monitor`) |
 | `pollSeconds` | the interval between observation cycles. Never shortened because something looks close, never lengthened to stretch the cap |
 
 **An exhausted cap is reported as exhausted.** It is never extended in place, never continued by a second
 watch started to finish the first, and never rendered as "still watching". Raising the cap is the
-maintainer's word, in a new invocation.
+maintainer's word, in a new invocation — and from nen `0.7` it is also the binary's answer: the claim past
+the cap is refused, and the refusal says so in nen's own words rather than in a skill's.
 
 **When the watch must outlive the session that started it, step 6 is handed to Illumi** —
 [`illumi.md`](../claude/agents/illumi.md), titled `en · illumi · <model alias>`, on the **fast** tier at

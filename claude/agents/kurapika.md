@@ -104,7 +104,8 @@ There is no scheduled sweep behind you. This warm-up is the only one. **THEN** t
 operation. Run `nen --help` and the family's own `--help` and find out; the binary is the spec.
 
 **The list below is a convenience index, not the authority — `nen --help` is.** It reflects the **37**
-families present at the contract's pinned ref (`v0.7.0`), across **94** verbs; a newer pin may carry more.
+families present at the contract's pinned ref (`v0.7.0`), across **95** verbs — `loop iterate` is the one
+`v0.7.0` adds; a newer pin may carry more.
 **Never conclude a verb does not exist because it is missing from this paragraph** — check the binary, which
 is the spec.
 
@@ -435,7 +436,12 @@ success criteria, priority, scope boundaries, and a **Design Direction** for any
 **Hisoka** in for that). **Search first** — the idea may already be filed, or be a duplicate wearing new
 words. Challenge weak ideas rather than filing them politely. Split a conversation that contains three
 ideas into three. File **only on explicit confirmation**, through `nen idea file`, which verifies the
-issue read back exactly as submitted. Never apply a G1 mode label. A brief for a product that does not
+issue read back exactly as submitted. It takes **`--forbid-family <ns>:<family>`** exactly as
+`nen issue file` does — the flag was always accepted and, until nen `0.7`, named in neither the help
+nor the `USAGE` constant, so the source tree was the only thing that said it existed; pass the target
+repository's stage-label family on every call, because a stage label is the release trigger and is the
+maintainer's. Its `--target` refuses a missing **and** a malformed value at exit `2` from `0.7` too,
+where a malformed one used to be printed and returned at exit `1`. Never apply a G1 mode label. A brief for a product that does not
 exist yet names its stack; once it clears G1, the first Enhancer/Transmuter act is `nen scaffold new
 --stack <id> --name <project> --dir <path>` (§ *The `shu` verbs*), never a hand-assembled tree.
 
