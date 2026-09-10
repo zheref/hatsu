@@ -37,11 +37,14 @@ with the quoted value this one prints, as an explicit input (§ 5's rule).
 
 ```bash
 # ONE shell: resolve, print, read. A block that uses $hatsu_root sets it in that block (§ 5).
-# the handed slot is SINGLE-quoted: $, backticks, backslashes and spaces in a path reach the test as themselves; a ' in it is written '\''
+# the handed slot is SINGLE-quoted: $, backticks, backslashes and spaces in a path reach the test as themselves; a ' in it is written '\''.
+# The capture runs cd with CDPATH cleared and its stdout dropped, proves the captured path IS the candidate's
+# directory (-ef, so a stripped trailing newline is caught), refuses a root containing a newline (the handoff
+# below is ONE line), and assigns $hatsu_root only once all of that passed.
 hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the path this invocation was handed, if any>' "${CLAUDE_PLUGIN_ROOT:-}"; do
   [ -n "$c" ] && [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
   [ "$(sed -n 's/^  "name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$c/.claude-plugin/plugin.json")" = hatsu ] &&
-  hatsu_root=$(cd "$c" && pwd -P) && break
+  r=$(CDPATH= cd "$c" >/dev/null 2>&1 && pwd -P) && [ "$r/." -ef "$c/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && hatsu_root=$r && break
 done
 [ -n "$hatsu_root" ] || { echo "hatsu-warmup: no Hatsu root — \$HATSU_PLUGIN_ROOT unset or not a Hatsu checkout, nothing usable handed, \$CLAUDE_PLUGIN_ROOT empty or another plugin" >&2; exit 1; }
 echo "hatsu_root resolved. The NEXT LINE is the quoted value every later block pastes verbatim, quotes included:"
@@ -611,12 +614,20 @@ is_hatsu() {
 
 # Three candidates and no fourth. The winner is CANONICALISED — absolute, symlinks
 # resolved — so a relative $HATSU_PLUGIN_ROOT or a handed '.' can never reach a
-# --gates argument that nen would resolve against --repo (pr-state § 2). And it is a
-# plain shell variable, not an export: it lives in THIS shell only (see below).
+# --gates argument that nen would resolve against --repo (pr-state § 2). Three guards
+# on the capture, and $hatsu_root is assigned only once all three pass: cd runs with
+# CDPATH cleared and its stdout dropped, so a relative candidate resolves where the
+# file tests looked and a CDPATH hit can neither redirect it nor leak into the path;
+# `-ef` proves the captured path is the SAME directory as the candidate, so a trailing
+# newline that command substitution stripped is caught rather than pointed elsewhere;
+# and a root containing a newline is refused outright, because the handoff below is
+# one line. And it is a plain shell variable, not an export: it lives in THIS shell
+# only (see below).
 hatsu_root=""; rejected=""
 for cand in "${HATSU_PLUGIN_ROOT:-}" "${1:-}" "${CLAUDE_PLUGIN_ROOT:-}"; do
   [ -n "$cand" ] || continue
-  if is_hatsu "$cand"; then hatsu_root=$(cd "$cand" && pwd -P); break; fi
+  if is_hatsu "$cand" && r=$(CDPATH= cd "$cand" >/dev/null 2>&1 && pwd -P) \
+     && [ "$r/." -ef "$cand/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ]; then hatsu_root=$r; break; fi
   rejected="$rejected $cand"
 done
 
@@ -661,7 +672,11 @@ printf "'%s'\n" "$(printf '%s' "$hatsu_root" | sed "s/'/'\\\\''/g")"   # same fo
   `sed "s/'/'\\\\''/g"` — and a consumer pastes that one line verbatim, quotes included and nothing else,
   into the explicit-input line or into the resolver's single-quoted handed slot. Inside
   single quotes nothing else is special: `$`, backticks, backslashes and spaces reach the shell as
-  themselves (`docs/ab/surfaces.md` § 9.8 exercises a path carrying all five).
+  themselves (`docs/ab/surfaces.md` § 9.8 exercises a path carrying all five). **A root containing a
+  newline is refused** — the handoff is one line, and command substitution would strip a trailing one —
+  `cd` runs with `CDPATH` cleared and its stdout dropped so a `CDPATH` hit can neither redirect a relative
+  candidate nor leak into the captured path, and the variable is assigned only once every guard passed
+  (`docs/ab/surfaces.md` § 9.10).
 
   Inlined rather than sourced from a helper file, because a helper file would have to be found by the
   very root it resolves; and never *"run the prelude first"* in prose, which executes nothing.

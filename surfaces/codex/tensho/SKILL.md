@@ -324,7 +324,7 @@ export GH_TOKEN=$(gh auth token)
 hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the absolute path § 0 printed>' "${CLAUDE_PLUGIN_ROOT:-}"; do
   [ -n "$c" ] && [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
   [ "$(sed -n 's/^  "name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$c/.claude-plugin/plugin.json")" = hatsu ] &&
-  hatsu_root=$(cd "$c" && pwd -P) && break
+  r=$(CDPATH= cd "$c" >/dev/null 2>&1 && pwd -P) && [ "$r/." -ef "$c/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && hatsu_root=$r && break
 done
 [ -n "$hatsu_root" ] || { echo "no Hatsu root resolved — pass --reviewers by hand instead (sharingan § 4)" >&2; exit 1; }
 nen pr ready <CODE>#<N> --repo <path> --gates "$hatsu_root/contracts/reference.gates.json" --explain

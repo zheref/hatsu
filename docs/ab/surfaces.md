@@ -750,7 +750,7 @@ written: AGENTS.md, backlog-state/SKILL.md, futon/SKILL.md, getsuga/SKILL.md, ha
 $ nen surface mirror generate --source claude/skills --agents claude/agents --surface cursor --out surfaces/cursor --invocation-prefix hatsu:
 written: agents/kurapika.md, backlog-state/SKILL.md, futon/SKILL.md, getsuga/SKILL.md, hanten/SKILL.md, pr-state/SKILL.md, sharingan/SKILL.md, tensho/SKILL.md   # + hatsu-warmup/SKILL.md after § 9.4
 
-$ bash scripts/surface_mirror_check.sh
+$ bash scripts/surface_mirror_check.sh          # recorded BEFORE #39 repinned to nen 0.7 — a historical run; every later round's check below ran on 0.7.0
 surface-mirror-check: nen 0.6.0 · source claude/skills · agents claude/agents
 --- codex (surfaces/codex)
 ok: 40   missing: (none)   extra: (none)   stale: (none)   hand-edited: (none)
@@ -1017,4 +1017,35 @@ hatsu_root resolved. The NEXT LINE is the quoted value every later block pastes 
 
 Both mirrors regenerate clean (`ok: 40`, `ok: 47`, script exit `0`), the fenced-block check reports zero, and
 the plugin validates. **Still not verified:** a Codex or Cursor session — as before.
+
+### 9.10 Copilot's seventh round — the capture itself
+
+One thread and two suppressed comments, run against the head before the third catch-up.
+
+| finding | disposition |
+|---|---|
+| command substitution strips a trailing newline, so a root whose canonical path ends in one is printed as a different path | **Fixed in all five copies**: the captured path must be the *same directory* as the candidate — `[ "$r/." -ef "$c/." ]` — so a stripped newline is caught rather than pointed elsewhere; and a root containing a newline anywhere is refused — `[ "$(printf '%s' "$r" \| wc -l)" -eq 0 ]` — because the handoff is one line. `$hatsu_root` is assigned only once every guard has passed; an early assignment that survived a failed guard was a defect the first test run caught, and it is gone |
+| `cd "$c"` on a relative candidate can echo a `CDPATH`-selected directory into the substitution | **Fixed**: `CDPATH= cd "$c" >/dev/null 2>&1` — cleared so a relative candidate resolves where the file tests looked, stdout dropped so nothing but `pwd -P` is captured |
+| § 9.3's transcript reads `nen 0.6.0` against a contract pinned at `0.7.0` | **Labelled** as the pre-#39 historical run it was; every later round's check ran on `0.7.0` |
+
+**Exercised, § 0's block extracted verbatim and run from `$HOME` with both variables empty, the handed slot
+filled each way** (`<scratch>` sanitised; each copy is a minimal Hatsu checkout — manifest, `claude/skills/`,
+`contracts/`, `nen/contract.json`):
+
+```
+A. a checkout named "hatsu\n"  (name ENDS in a newline)      → exit 1, nothing on stdout, refused by name
+B. a checkout named "hat\nsu"  (newline INSIDE the name)     → exit 1, nothing on stdout, refused by name
+C. handed the RELATIVE name 'hatsu' from a cwd that holds one, with CDPATH pointing at ANOTHER 'hatsu'
+                                                             → exit 0, line 2: '<scratch>/cdpath-cwd/hatsu'   (the cwd one; CDPATH neither redirected nor leaked)
+D. the hostile path of § 9.8                                 → exit 0, line 2: '<scratch>/O'\''Brien $HOME `id` back\slash dir/hatsu'
+E. handed '.' from inside this checkout                      → exit 0, line 2: '<wt>'
+```
+
+**And § 5's full form** (with `is_hatsu` and the rejected-path report), handed the hostile path as `$1` with
+`CLAUDE_PLUGIN_ROOT=/tmp` beside it: exit `0`, the hostile root resolved. Handed the newline-ending name:
+exit `1`, *`surface: codex — NOT INSTALLED. No Hatsu source root. Rejected (…): <scratch>/nl-test/hatsu`* —
+refused and named.
+
+Both mirrors regenerate clean after the change (`ok: 40`, `ok: 47`, script exit `0`), the fenced-block check
+reports zero, and the plugin validates. **Still not verified:** a Codex or Cursor session — as before.
 

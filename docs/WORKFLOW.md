@@ -879,8 +879,9 @@ prose fallbacks in `backlog-state` and `getsuga`). **The path is never embedded 
 prints a label line, then the root alone on the next line as a single-quoted shell literal with every `'`
 written `'\''`, and a consumer pastes that one line verbatim, quotes included and nothing else — into the
 explicit-input line or the resolver's single-quoted handed slot —
-so `$`, backticks, backslashes and spaces reach the shell as themselves. Nothing is inherited from the
-warm-up's shell, and the value it prints is what every later block takes:
+so `$`, backticks, backslashes and spaces reach the shell as themselves; a root containing a newline is
+refused, because the handoff is one line. Nothing is inherited from the warm-up's shell, and the value it
+prints is what every later block takes:
 
 | `$hatsu_root` comes from | when |
 |---|---|
