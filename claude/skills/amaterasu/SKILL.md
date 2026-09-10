@@ -144,11 +144,32 @@ came from. That is the whole contract of the paste: what the maintainer runs by 
 byte-identical to what this skill ran, and the dry run is the only rendering that guarantees it
 (*"the argv printed is the argv that would be spawned, from the same rendering"*).
 
-Then start it:
+Then start it — **and which of these two lines starts it depends on whether the target declares
+`args`, because nen cannot carry them at this pin:**
 
 ```bash
+# the target declares NO args — nen owns the run
 nen shu <verb> --repo <core working directory> [--lane <lane>]
+
+# the target DECLARES args — nen has no flag that appends argv to a shu verb
+# (`nen shu <verb>` takes only --repo, --lane, --dry-run, --json, verified live),
+# so the composed line is run directly, as NAMED RESIDUE
+<the --dry-run argv, verbatim> <project.launch.<target>.args…>
 ```
+
+> **`project.launch.<target>.args` has no supported invocation at nen `0.3.0`, and running the bare
+> verb instead is the one thing this skill must not do.** nen `0.3.0` does not read `project.launch`
+> at all (§ 2, verified live), so `nen shu dev` runs the lane's declared argv and *nothing else*: a
+> target such as `mac` with `args: ["-scheme", "Kro for Mac (All Flags)"]` would silently start a
+> different build, and the pasted `would run:` line would not be the line that ran. Neither is
+> acceptable — the paste's whole contract is that it is what ran.
+>
+> So: **compose, run the composed line by hand, and say all three things** — that nen did not run it,
+> what was appended and from which declaration, and that the composed line is the one pasted into the
+> report and into chat. **If the composed argv cannot be built faithfully** — a declaration this skill
+> cannot render, a quoting question it cannot answer — **refuse the target by name**, paste the
+> composed line for the maintainer to run, and record `launch not run` in the turn report. A launch
+> reported as run must be the launch that ran.
 
 `dev` and `run` are **long-running**: nen inherits the terminal and hands it to the child. So
 `--json` without `--dry-run` is refused at exit `2` — verified live, with the reason (*"a --json report
@@ -180,6 +201,13 @@ extra argument — print each one, and say plainly that these ran by hand rather
   different thing entirely (a G3 destination). So the whole of `project.launch` is executed by this
   skill: resolving the target, the device probe and its name match, appending `args`, and the `after`
   steps with their substitutions. Each one is stated in the report as run by hand.
+- **Appending `project.launch.<target>.args` has no invocation at all.** `nen shu <verb>` accepts
+  only `--repo`, `--lane`, `--dry-run` and `--json` — verified live against `nen shu dev --help` —
+  so there is no flag, and no `--` passthrough, that would put the declared `args` on the end of the
+  lane's argv. A target that declares `args` is therefore launched by running the composed line
+  directly (§ 5), reported as by-hand, or refused by name where it cannot be composed faithfully.
+  **Never the bare verb**: that runs a different command from the one declared, and pastes a
+  `would run:` line that did not run.
 - **`{device.id}` / `{artifact}` substitution** is this skill's string work, from the probe's output
   and the verb row's declared `artifacts` — nen substitutes placeholders only inside the rows it
   itself executes.
@@ -212,7 +240,11 @@ extra argument — print each one, and say plainly that these ran by hand rather
   turn report and straight on to rikugan — every turn, without a question (§ 1). `ren` is automatic,
   so a question here is a question per turn.
 - **Never substitutes a plausible command for a declared one**, and never re-types the pasted command
-  from memory — it is the `--dry-run` argv, verbatim, or it is not pasted.
+  from memory — it is the `--dry-run` argv, verbatim (plus the target's declared `args`, appended
+  visibly), or it is not pasted.
+- **Never runs the bare lane verb for a target that declares `args`.** nen cannot append them at this
+  pin (§ 7), so the bare verb starts a different build than the declaration names. Compose and run
+  the composed line as residue, or refuse the target by name — never quietly run the shorter one.
 - **Never falls back to an undeclared device**, and never silently: the disconnected device is named,
   and so is the fallback taken.
 - **Never runs a deploy**, with or without `--run`. That is G3 and it is not this phase.

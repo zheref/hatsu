@@ -144,6 +144,25 @@ osascript -e 'display notification "<body>" with title "<title>"'
 afplay /System/Library/Sounds/<notifications.sound>.aiff
 ```
 
+> **Every value substituted into those two lines is sanitised first, exactly the way
+> [`hooks/stop-bell.sh`](../../../hooks/stop-bell.sh) sanitises it — the fallback is the same bell,
+> so it carries the same rule.** A stop title and body come from the effort: a branch name, a test
+> name, a conflicted path, a finding quoted from a reviewer. They are repository-controlled, and
+> here they land in **two nested quoting contexts at once** — a single-quoted shell word and, inside
+> it, a double-quoted AppleScript literal — where a stray `'`, `"` or `\` does not merely garble
+> the notification but ends the argument and hands the rest of the string to the shell.
+>
+> - **`<title>` and `<body>`**: strip `"` and `\` and every newline, and pass the result as one
+>   argument — the hook's `sanitize()` is `tr -d '"\\' | tr -d '\n'`, and this is that function
+>   written out. Never interpolate a raw value into the `-e` string.
+> - **`<notifications.sound>`**: it becomes a **path**, so reduce it to `[A-Za-z0-9_-]` before it is
+>   used — the hook's own rule — and fall back to `Glass` when nothing survives or the file does not
+>   exist. A sound name is not a place to accept `../`.
+>
+> **A value that cannot be sanitised is not rung with**: fall back to the rung's generic line
+> (*"A decision is waiting."*) and say that the title was dropped. The bell exists to interrupt a
+> human, and a bell that executes what it was asked to announce is a worse failure than a silent one.
+
 > **Both lines are residue, and nen classifies them as such — verified live
 > (`docs/ab/jutaisho.md` § 2.3).** `nen parse izanami "osascript -e display until …"` and the same
 > for `afplay` both report **`[unknown]`** and refuse at exit `1`: *"at least one command does not
@@ -197,5 +216,9 @@ afplay /System/Library/Sounds/<notifications.sound>.aiff
 - **Never claims a rung fired that did not** — an absent `osascript`, a hook that is not installed,
   a rung the workflow does not list, are each reported by name.
 - **Never queues or replays a stale bell** — a marker older than ten minutes is removed, not fired.
+- **Never interpolates an unsanitised value into the § 5 fallback.** The title and body lose `"`,
+  `\` and every newline and are passed as one argument; the sound name is reduced to
+  `[A-Za-z0-9_-]` before it becomes a path. The in-session fallback is held to
+  `hooks/stop-bell.sh`'s rule, not to a looser one for being typed rather than installed.
 - **Never suppresses a real stop** because a turn bell already rang, and never fires a real stop's
   noise twice.
