@@ -110,7 +110,7 @@ GitHub reads that produce the raw facts:
 
 - **Critical issues**: `gh issue list --repo <owner/name> --label "bankai:severity/critical" --state
   open --json number`. **The label is the full `bankai:severity/critical`, never the bare
-  `critical`** — a bare `critical` label does not exist in `nen/labels.json` (legacy
+  `critical`** — a bare `critical` label does not exist in `nen/labels.json`,
   and the query silently returns zero matches rather than erroring, which would defeat this precondition without
   ever surfacing a mistake (regression caught in review; re-verified live with `--state all` that
   the corrected query returns the real historical criticals — `docs/ab/getsuga.md` § 2.2). Pass the

@@ -209,13 +209,20 @@ it is how the page stops being read.
    one, and `nen loop slots` counts concurrency across efforts. A mukai run is six skills, many
    programs, most of them mutating, and four of them able to stop and ask the maintainer something.
    **Mukai adds no residue of its own**, and every deterministic step inside the run is a verb or a
-   named residue *in the skill that owns it* — `nen pr cascade-main` and its missing `--no-push`
-   (steps 1 and 5, named in [`ao`](../ao/SKILL.md)), the Agent tool (step 2), `nen shu test` and the
-   missing `nen shu test-report` (step 3), `nen shu coverage` and the missing `--touched` (step 4),
-   `nen commit format` gated on its own exit code and `git commit --file` (step 5, named in
-   [`kokusen`](../kokusen/SKILL.md)), the missing `nen shu evidence` (step 6), `gh pr create` and the
-   missing `nen pr edit-body` (step 7, named in [`shibari`](../shibari/SKILL.md)), and the whole of
-   `nen report data`/`render` (step 8, named in [`rikugan`](../rikugan/SKILL.md)).
+   named residue *in the skill that owns it* — `nen pr cascade-main --no-push` and the `git push` that
+   is still residue (steps 1 and 5, named in [`ao`](../ao/SKILL.md)), the Agent tool (step 2),
+   `nen shu test` and `nen shu test-report` (step 3), `nen shu coverage --touched --base` (step 4),
+   `nen commit format --repo` gated on its own exit code and `git commit --file`, still residue
+   (step 5, named in [`kokusen`](../kokusen/SKILL.md)), `nen shu evidence` (step 6), `gh pr create`,
+   still residue, and `nen pr edit-body` (step 7, named in [`shibari`](../shibari/SKILL.md)), and
+   `nen report data` / `nen report render` (step 8, named in [`rikugan`](../rikugan/SKILL.md)).
+
+   > **RETIRED at nen `0.5`.** Six of the verbs this list used to call *missing* are in the pinned
+   > binary — `pr cascade-main --no-push`, `shu test-report`, `shu coverage --touched`,
+   > `shu evidence`, `pr edit-body`, and both `report` verbs — each verified live before the entry
+   > was rewritten, with the exit codes in the owning skill's `docs/ab/` file under *Retired at nen
+   > 0.5*. What is still residue in this run is `git push`, `git commit --file` and `gh pr create`,
+   > all three named where they are run.
 
 ## Authority
 

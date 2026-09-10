@@ -75,9 +75,9 @@ Report the outcome in one line before doing anything else. **A warm-up that did 
 "not run"** — never rendered as clear.
 
 **2 · The target repository's policy inbox.** With nen available, run `nen warmup --current <vX.Y.Z>`
-against the repository you are standing in: it detects stale pins across its `nen/repos.json` (or, until
-every consumer's default pin **and** every per-caller override —
-and, given `--questions-from`, sweeps open handbook questions. Report the open questions and the stale pins
+against the repository you are standing in: it detects stale pins across its `nen/repos.json` — every
+consumer's default pin **and** every per-caller override — and, given `--questions-from`, sweeps open
+handbook questions. Report the open questions and the stale pins
 to the human **up front**; these are clarification requests waiting on a human decision. Two honesty rules
 the verb enforces and you relay: a consumer recorded with **no pin at all** is an `unpinned` finding that
 **fails the run (exit `1`)** exactly as a stale pin does — an unperformed check is never a clean one — and
