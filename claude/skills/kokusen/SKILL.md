@@ -88,8 +88,8 @@ nen stage triage --repo <path> [--scope <in-scope prefixes>] [--mentions "<the m
 
 Detects, never decides, and **exits `1` whenever anything is FLAGGED — `flagged` alone decides the
 exit code at the pinned `0.7.0`**, so a tree whose only dirty rows are git-ignored is exit `0`. The
-detectors, verified live against a constructed working copy carrying one of each
-(`docs/ab/kokusen.md` § 2.1 and § *Retired at nen 0.6*):
+**six detectors and the one bucket**, verified live against a constructed working copy carrying one
+of each (`docs/ab/kokusen.md` § 2.1, § *Retired at nen 0.6* and § *Retired at nen 0.7*):
 
 | Bucket / flag | Trigger |
 |---|---|
