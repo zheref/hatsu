@@ -71,7 +71,11 @@ ratified the draft by itself.
 
 **These are the maintainer's, recorded here because this file is the authority on standing.** Each one closes
 something that was previously open or unstated; each names what it does **not** close. Everything not listed
-below is unchanged, including every word of the OPEN and BENCH sections that follows.
+below is unchanged — **with one exception, and it is ruling 4's**: the BENCH section is **no longer bench
+only**. Two of its seven profiles, **Chrollo** and **Feitan**, are activated by that ruling (definitions land
+at `v0.5.0`, and until they exist neither may be acted as); **five remain benched** — Machi, Shalnark,
+Kortopi, Pakunoda and Shizuku. `OPEN-3` is **partially** closed, not open and not settled. The BENCH section
+below is written to say that, and the OPEN section's `OPEN-3` row with it.
 
 ### 1 · The phases a human calls
 
@@ -184,9 +188,12 @@ open question with nobody deciding it.
 
 ## 🔶 BENCH — the Genei Ryodan
 
-> **Bench only. No activation here, and none implied.** Which professional profiles activate, and when, is
-> **OPEN-3** of the ratified migration plan. These are *extensible professional-profile agents, adopted as
-> needed* — a list of shapes the roster can grow into, not a roster.
+> **Two activated, five benched. `OPEN-3` is partially closed.** The ruling of 2026-09-09 (§ *Rulings*, 4)
+> activated **Chrollo** (architecture and handbook conformance) and **Feitan** (security, and security only),
+> both as `hanten` reviewers — **their definitions land at `v0.5.0`, and until those exist neither may be
+> acted as**. The other **five profiles are bench only, and no activation is implied for them**: which of
+> them activate, and when, remains the open half of `OPEN-3`. A benched row is one of the *extensible
+> professional-profile agents, adopted as needed* — a shape the roster can grow into, not a member of it.
 
 | Bench member | Professional profile | Standing |
 |---|---|---|

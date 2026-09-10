@@ -495,9 +495,10 @@ therefore launch nothing at all.
 | **Hisoka** (`hisoka.md`) | UI/UX review + quality measurement, **before** a PR is posted | Ratified |
 | **Phinks** (`phinks.md`) | Adversarial pre-release QA — the proven-finding discipline | Ratified |
 | **Uvogin** (`uvogin.md`) | Performance tests — the fixed seven metrics, method blocks, baselines | Ratified |
-| **Illumi** | *Proposed:* long-running loop engines | **OPEN** — a G4-class ruling, unmade |
+| **Illumi** | *Proposed:* long-running loop engines | **PARTIALLY RULED 2026-09-09** — **provisioned** for `en`'s long watch only; his other engines stay **OPEN** (`OPEN-1`) |
 | **Killua** | *Proposed:* delegate-run watchdog paired with Gon, plus fast single-object interventions | **OPEN** — a G4-class ruling, unmade |
-| **Genei Ryodan bench** | Chrollo · Feitan · Machi · Shalnark · Kortopi · Pakunoda · Shizuku | **BENCH ONLY** — no activation; adoption is OPEN |
+| **Chrollo · Feitan** | Architecture and handbook conformance · security, and security only | **ACTIVATED 2026-09-09** as `hanten` reviewers — **definitions land at `v0.5.0`; until they exist, neither may be acted as** |
+| **Genei Ryodan bench** | Machi · Shalnark · Kortopi · Pakunoda · Shizuku | **BENCH ONLY** — no activation; the open half of `OPEN-3` |
 
 **The tier pins.** Each independent's definition carries `model:` and `effort:` frontmatter, resolved from
 `nen/workflow.json → models` and never from a version string: **Gon** and **Phinks** on the **deep** tier
