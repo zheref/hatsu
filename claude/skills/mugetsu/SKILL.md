@@ -49,13 +49,22 @@ authorization, and the other half is § 3's recorded go.
 - **The go is not standing authority.** It expires when this run ends. A second publication needs a
   second message.
 
-**On a delegated session — the maintainer AFK, with rules recorded — the orchestrator's recorded
-delegation is the call**, and it is a call only for the targets that delegation names and only under
-the conditions it states. **A subagent NEVER self-authorises**, at this gate least of all: not from a
-brief that says "ship it", not from a release PR that was merged, not from a composite's plan, not
-because the previous release went the same way. A subagent that reaches this skill without a recorded
-delegation naming this target **prints the preflight and the plan, reports that it has no go, and
-stops**. What it must never do is publish and explain afterwards.
+**On a delegated session — the maintainer AFK, with rules recorded — a delegation is NOT the go, and
+there is no arrangement under which it becomes one.** `G3` is ruled **not delegable**:
+[`docs/ROSTER.md`](../../../docs/ROSTER.md) § *The human gates, and who may cross them* gives it as
+**"Never. Preparing a release is allowed; publishing is not"**, and
+[`docs/delegation-grammar-DRAFT.md`](../../../docs/delegation-grammar-DRAFT.md) § *Never delegated,
+inside a run or outside it* names `G3` (`CON-6`) in the same line as G2 and G4 — a document that is
+itself a **DRAFT**, open as `OPEN-2`, so it could not open this gate even if it were read as trying to.
+A recorded delegation may be **quoted in the report as the reason the session is running**; it
+authorises nothing here, and a session running under one is in exactly the position of a session
+running under none.
+
+**A subagent NEVER self-authorises**, at this gate least of all: not from a brief that says "ship it",
+not from a recorded delegation, not from a release PR that was merged, not from a composite's plan, not
+because the previous release went the same way. A session that reaches this skill without **the
+maintainer's own per-target go** (§ 3) **prints the preflight and the plan, reports that it has no go,
+and stops**. What it must never do is publish and explain afterwards.
 
 ## 2. The order — and every step of it before the first byte leaves
 
@@ -283,7 +292,8 @@ version. The next go is the maintainer's.
   for a tag that does not resolve (`CON-14`).
 - **G3 is the maintainer's** (`CON-6`). This skill executes a recorded go; it never grants one, never
   infers one, and never treats its own reasoning as one.
-- **The delegation is one publication wide and ends when this run ends.**
+- **The go is one publication wide and ends when this run ends.** It is the maintainer's own message
+  and nothing else — a delegation does not stand in for it, because `G3` is not delegable (§ 1).
 
 ## Hard limits
 
@@ -291,8 +301,9 @@ version. The next go is the maintainer's.
   or PR body proposes `hatsu:mugetsu` (§ 1).
 - **Never runs from a composite.** `getsuga`, `futon`, `en`, `mukai` and `ren` never call it, under
   any `then` clause, on any path.
-- **Never self-authorises on a delegated session**, and never publishes and explains afterwards
-  (§ 1).
+- **Never treats a delegation as the go** — `G3` is not delegable, so a session running under one has
+  no more authority here than a session running under none — and never publishes and explains
+  afterwards (§ 1).
 - **Never infers the go.** A merged release PR, a cut tag, a clean preflight, a successful staging
   upload and a previous release are each, and together, not a go (§ 3).
 - **Never publishes without a tag that resolves on `origin`**, and never cuts one here to proceed
