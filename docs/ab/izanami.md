@@ -263,7 +263,7 @@ one-line-per-iteration reporting, no banner, the 3-error stop, the exit-code con
   next action is without taking it — `nen` computes and enforces the mechanics; the skill keeps every
   one of these calls.
 - **Skill-level refusals `nen` cannot see, because they are not shell commands:** running
-  `drive`/`build`/`file`/`tensho`/`jujisho`/`getsuga`/`backlog-synthesis`/`backlog-loop` inside a watch,
+  `sharingan`/`build`/`file`/`tensho`/`jujisho`/`getsuga`/`backlog-synthesis`/`backlog-loop` inside a watch,
   posting a comment, applying a label, or publishing an Artifact. These stay a prose rule in the ported
   SKILL.md (§ 2) exactly as they were in the old one, since `nen watch until`'s `--command` only ever
   classifies a literal shell invocation.

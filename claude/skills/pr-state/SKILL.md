@@ -32,7 +32,7 @@ from `cli/src/ports/pr_ready_gate.ts`, and proven against the live shadow window
 
 > **Read-only, without exception.** This skill renders a verdict. It never applies a label, merges,
 > pushes, opens, closes or comments — not even when the verdict is `ready` and the merge is obvious.
-> Acting on a PR is [`drive`](../drive/SKILL.md)'s job — this skill's own scope stops at reporting
+> Acting on a PR is [`sharingan`](../sharingan/SKILL.md)'s job — this skill's own scope stops at reporting
 > `ready`.
 > `nen pr ready` itself has no notification mode to reach for by mistake — unlike the oracle it ports,
 > which posts a "ready for decision" comment outside `--verdict`, this verb only ever prints a report.

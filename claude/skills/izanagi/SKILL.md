@@ -147,8 +147,8 @@ one issue is not authority for the next"):
 
 - A looped [`hatsu:build`](../build/SKILL.md) holds `build`'s own delegation for that iteration
   only, lapsing when the iteration ends.
-- A looped [`hatsu:drive`](../drive/SKILL.md) holds no routing or release delegation at all — that
-  is `drive`'s own scope.
+- A looped [`hatsu:sharingan`](../sharingan/SKILL.md) holds no routing or release delegation at all — that
+  is `sharingan`'s own scope.
 - A looped [`hatsu:file`](../file/SKILL.md) or
   [`hatsu:backlog-synthesis`](../backlog-synthesis/SKILL.md) still **presents its plan and takes
   its own confirmation** — izanagi's single up-front confirmation does **not** stand in for it. A

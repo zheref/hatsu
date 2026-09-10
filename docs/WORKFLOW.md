@@ -73,6 +73,25 @@ Each entry of `checks` is the **name of a declared verb**, not a command line: `
 exit `4` and its seat is quoted, not worked around. Hatsu's own `checks` is `["lint"]`, because
 `claude plugin validate . --strict` is the only mechanical check a markdown-and-bash plugin has.
 
+> **The surface-mirror check is a step of the loop, and deliberately NOT a second entry here.** Hatsu ships
+> generated Codex and Cursor mirrors of every skill and persona under `surfaces/`
+> ([`docs/SURFACES.md`](SURFACES.md)), and [`scripts/surface_mirror_check.sh`](../scripts/surface_mirror_check.sh)
+> fails when the committed mirror is not what the source generates. It is **not** a `lint`: the `plugin`
+> lane's `lint` seat is `claude plugin validate . --strict` and stays exactly that — one seat, one meaning,
+> and a second thing wearing the same name is how a declaration stops describing the repository. Nor is it a
+> new declared verb, because nothing in `nen/contract.json` should name a script that only this repository
+> has.
+>
+> **Where it runs, then:**
+>
+> | When | What |
+> |---|---|
+> | **Immediately after a `claude/skills/**` or `claude/agents/**` edit** | regenerate both surfaces (`docs/SURFACES.md` § 3) and commit the result **in the same commit** as the source change |
+> | **Inside `mukai`, before `shibari` opens the PR** | `scripts/surface_mirror_check.sh` — exit `0` to proceed, exit `1` regenerate and amend, exit `2` say the pinned nen has no verb and record it |
+> | **On the PR** | [`.github/workflows/surface-mirror-check.yml`](../.github/workflows/surface-mirror-check.yml), advisory, and **skipping with a notice** while `dependency.pinned_ref` is `v0.3.0` — that nen has no `surface` verb |
+>
+> The script writes nothing and needs no credential, so running it more often costs nothing but the seconds.
+
 ### `tests`
 
 ```json
@@ -101,7 +120,7 @@ not a G5 either: an empty required set is not a red suite. A test is never patch
 | `minimum` | `80` | **the stop.** A touched file under it is a **G5**: `gyo` adds tests until it clears, or the maintainer decides |
 | `recommended` | `85` | the band `gyo` aims for and reports against |
 | `ideal` | `90` | the band worth saying out loud when it is reached |
-| `scope` | `touched` | line coverage of the files in `git diff --name-only <base>...HEAD`, **not** the repository total |
+| `scope` | `touched` | line coverage of the files in `git diff --name-only origin/<base>...HEAD`, **not** the repository total |
 
 Three numbers rather than one, because a single threshold turns into either a gate that blocks honest work or
 a number nobody looks at. The ladder reports bands and stops only at the bottom rung. **The bar is never
@@ -160,12 +179,21 @@ conflict waiting to be resolved by coin toss.
 ### `notifications`
 
 ```json
-"notifications": { "rungs": ["push", "os", "sound"], "sound": "Glass" }
+"notifications": { "rungs": ["push", "os", "sound"], "sound": "Glass", "turn": "rung1" }
 ```
 
 `jutaisho`'s ladder, innermost first: `push` is the surface's own turn-complete signal, `os` an OS
 notification, `sound` a system sound. **A rung absent from the list is not rung.** `sound` names
-`/System/Library/Sounds/<sound>.aiff` on macOS. See § 5 for who actually rings rungs 2 and 3.
+`/System/Library/Sounds/<sound>.aiff` on macOS. See § 6 for who actually rings rungs 2 and 3.
+
+`turn` decides **how loud an ordinary turn is** — the one with no gate: `"rung1"` (the default, and the
+value when the key is absent) rings the surface's own line and nothing else; `"all"` rings every rung
+`rungs` lists, every turn. A gate always rings everything `rungs` lists, whatever `turn` says, and `turn`
+can never conjure a rung `rungs` withheld. It exists because the two readings of "does a plain turn ring?"
+were both supportable in `jutaisho`'s text and disagreed about every turn of every effort; one declared
+value settles it. **`turn` is an addition to the `nen.workflow/v0.1` shape** and the schema must admit it
+when the loader lands at nen `0.4.0` — recorded in
+[`claude/skills/jutaisho/SKILL.md`](../claude/skills/jutaisho/SKILL.md) § Residue.
 
 ### `commits`
 
@@ -177,9 +205,25 @@ notification, `sound` a system sound. **A rung absent from the list is not rung.
 **The maintainer's ruling of 2026-09-09: no AI attribution trailer is ever recorded.** `Akatsuki-Agent:` is
 the single admitted trailer, and it is admitted precisely because it is not AI attribution — it names *the
 system's own* provenance, which agent of this roster did the work, rather than a model claiming authorship of
-it. A harness that mandates `Co-Authored-By:` is **configured off** (`includeCoAuthoredBy: false` in the
-Claude Code settings). This supersedes the earlier clause, in every agent definition, that treated the
-harness mandate as binding and left the question to the P3 constitution.
+it. This supersedes the earlier clause, in every agent definition, that treated the harness mandate as
+binding and left the question to the P3 constitution.
+
+**Turning the harness's own mandate off is a required setup step, not a configured fact — check it.**
+Claude Code can add `Co-Authored-By: Claude …` to commits it writes, and the setting that stops it is
+`includeCoAuthoredBy: false` in `~/.claude/settings.json` (or the project's `.claude/settings.json`).
+**It is not set on this machine**: verified 2026-09-10, `~/.claude/settings.json` carries no
+`includeCoAuthoredBy` key at all. So read this paragraph as an instruction with a check attached, not as a
+statement about how the machine is:
+
+```bash
+grep -n includeCoAuthoredBy ~/.claude/settings.json        # no output = not set
+```
+
+No output means the harness default applies and layer (a) below is the only thing standing between a
+harness-written trailer and a commit. Add `"includeCoAuthoredBy": false` to that file, on every machine
+that drives this workflow. **Saying it is configured off when nobody has configured it makes the
+three-layer table read one layer stronger than it is**, which is the failure mode the table exists to
+prevent.
 
 **Enforcement is three-layered, and only the first layer ships in this plugin.**
 
@@ -210,7 +254,7 @@ happens to carry.
 
 `en`'s `izanagi` cap and its poll interval. **The cap is grammar, not a default**: a watch loop invoked
 without one does not run, exactly as [`izanagi`](../claude/skills/izanagi/) refuses an invocation with no
-`up to <N>`.
+`up to <N>`. § 5 is where both keys are actually spent, and where the long watch hands over to Illumi.
 
 ### `models`
 
@@ -241,6 +285,55 @@ The persona pins that follow from `roles` are frontmatter in the agent definitio
 **Phinks** `model: opus` / `effort: high`; **Hisoka** `model: sonnet` / `effort: high`; **Uvogin**
 `model: sonnet` / `effort: medium`. **Kurapika carries neither** — he is the main session and inherits
 whatever the maintainer is running.
+
+#### The matrix, per surface — the reviewer tier, and how a delegate is raised
+
+Hatsu runs on three surfaces ([`docs/SURFACES.md`](SURFACES.md)). The matrix is one table with a column per
+surface for exactly this reason: **the tier is the policy and the alias is the surface's answer to it.**
+
+| | **Claude Code** | **Codex** | **Cursor** |
+|---|---|---|---|
+| `frontier` — the orchestrator, the maintainer's own session | `fable` | `astra` | `grok` |
+| `deep` — **`models.roles.reviewer`**, so this is the reviewer tier | **`opus`** | **`sol`** | **`grok`** |
+| `fast` — `worker`, `measurer` | `sonnet` | `terra` | `composer` |
+| `economy` | `haiku` | `luna` | `composer` |
+| **how a subagent is raised** | the harness's **Agent tool**, `isolation: "worktree"` | **`codex exec -m <id> -C <dir> -s workspace-write`** — a whole second process; **this surface has no in-session subagent**, verified against `codex exec --help` | a **subagent definition** at `.cursor/agents/<persona>.md`, mirrored there from `claude/agents/` |
+| **isolation** | the harness makes the worktree | **`git worktree add` first** — `-C` takes a directory and creates none | the surface's own; the skill states which it got |
+
+**A reviewer runs at the `deep` tier on every surface** — `opus`, `sol`, `grok` — because
+`models.roles.reviewer` is `deep` and a role maps to a tier rather than to a product.
+[`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 9a is the mechanism, per surface, with
+the exact invocation.
+
+**The frontier tier never runs a subagent, on any surface.** Not `fable`, not `astra`, not `grok`. The
+frontier tier is where the maintainer's own conversation lives; a delegate that outranks its caller has
+inverted the delegation, and the cost lands on the maintainer's session rather than on the delegate's.
+
+> **On Cursor the `frontier` and `deep` tiers name the same alias, and the rule survives that.** `grok` is
+> both, so on Cursor "never the frontier tier" cannot be checked by reading the alias — it is enforced on
+> the **role**: a reviewer is raised at `models.roles.reviewer`, never as an orchestrator, and a string
+> collision between two tiers is a fact about that line-up rather than permission to promote a delegate.
+> Say the tier *and* the alias — *"tier `deep` → `grok`"* — so a transcript read afterwards is unambiguous.
+
+**The Cursor row is Cursor-native only**, and the file says why in its own words:
+
+> `"note": "Cursor-native only; provider models there are reserved for Bugbot"`
+
+So a role on Cursor resolves to `grok` or `composer` and to nothing else — even though `cursor-agent
+--model` will happily accept a provider model, and its own `--help` gives provider models as the examples.
+Accepting one is out of policy, not a local optimisation.
+
+**An alias is a name, and the id you type may still carry a version.** `models.rule` is *"latest alias only,
+never a version"*, and that governs **the file**; a surface's command line may need the concrete id — on
+Codex the `sol` tier is spelled `gpt-<version>-sol`, so the id is **read from `codex debug models` at the
+moment of use** rather than remembered (`docs/SURFACES.md` § 5). Reading it is what keeps the versionless
+alias in the file honest.
+
+**A persona's `model:` pin does not translate between surfaces.** `nen surface mirror generate` carries
+`model` through to `.cursor/agents/<persona>.md` verbatim — correctly, since it mirrors rather than
+translates — so Hisoka's `sonnet` arrives on Cursor as a Claude alias in a Cursor-native-only matrix. The
+rule is `hanten`'s § 9a: **report the pin unresolvable, fall back to the role's tier, and state the
+substitution in the title.** Never silently honoured, never silently dropped.
 
 ---
 
@@ -314,11 +407,18 @@ It loops. **It never pushes and never opens a pull request.**
 
 | Phase | What it does | Why it is the human's |
 |---|---|---|
-| `aka` | tests → squash the unpushed commits → `ao` → push | publishing work is a decision, and a squash is destructive |
-| `mukai` | `murasaki` → `hanten` review → tests + UI tests → `gyo` → evidence → `shibari` opens the PR → starts `en` | a PR is a request for other people's attention |
+| [`aka`](../claude/skills/aka/) | tests → squash the unpushed commits → `ao` → push | publishing work is a decision, and a squash is destructive |
+| [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → tests + UI tests → `gyo` → evidence → `shibari` opens the PR → starts `en`. **§ 5 is the full shape** | a PR is a request for other people's attention |
 | **merge** | **G2** (`CON-5`) | never delegated, by any agent, anywhere |
-| `kagutsuchi` | a non-production upload, **per target** | the blast radius leaves this machine |
-| `mugetsu` | publication, **per target**, **G3** (`CON-6`) | the blast radius is other people's users |
+| [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always, and `--run` acts only on a call that **names the target** | the blast radius leaves this machine |
+| [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3** (`CON-6`): only on a recorded per-target go, with the preflight green and the tag already cut — one target per call | the blast radius is other people's users |
+
+**The per-target rule is the whole of the last two rows, and it is not a formality.** A go for one
+destination is a go for *that* destination: `--target` is required with no default even where exactly one
+is declared, and a second destination is a second call the maintainer makes. Neither phase is ever reached
+from a composite — not from [`futon`](../claude/skills/futon/)'s `then` clause, not from
+[`getsuga`](../claude/skills/getsuga/), not from [`en`](../claude/skills/en/) — and the release unit both
+of them send is built by [`susanoo`](../claude/skills/susanoo/), which uploads nothing itself.
 
 Asking *"shall I push now?"* at the end of a turn is how a human-called phase becomes an agent-called one by
 attrition. The loop simply stops and waits.
@@ -338,7 +438,164 @@ scroll past, and one they scroll past is one that did not happen.
 
 ---
 
-## 5 · The hooks
+## 5 · The PR side — `mukai`, and everything it runs
+
+`ren` (§ 4) never opens a pull request. **`mukai` is the phase that does**, and like the other four it is the
+maintainer's to call. Its order is fixed, and each step has exactly one job.
+
+### `mukai` — the steps, and the stops
+
+| | Step | What it does | Where it stops |
+|---|---|---|---|
+| **1** | [`murasaki`](../claude/skills/murasaki/) | pull + push: [`ao`](../claude/skills/ao/) → [`rasengan`](../claude/skills/rasengan/) + [`tsukuyomi`](../claude/skills/tsukuyomi/) → push, **only if the branch is already published**. Never squashes, never force-pushes | **G5** on a *semantic* conflict in `ao` — a mechanical one is resolved |
+| **2** | [`hanten`](../claude/skills/hanten/) | the adversarial review: classify the change set by scope, one reviewer subagent per scope | **G5** on an unsettled finding — after Kurapika has fixed it or pushed back with a reason |
+| **3** | `tsukuyomi` + [`kotoamatsukami`](../claude/skills/kotoamatsukami/) | `tests.required` (+ `extra`), and the declared `ui-test` where a repository declares one. Re-recorded snapshots feed step 6 | **G5** on red required tests. A seat (exit `4`) is quoted, never routed around |
+| **4** | [`gyo`](../claude/skills/gyo/) | the coverage bar, against the `coverage` ladder of § 2 | **G5** when a touched file is under `minimum` and cannot honestly clear it |
+| **5** | [`kokusen`](../claude/skills/kokusen/) then the push half of `murasaki` | **publishes what steps 2–4 changed.** The review's fixes and gyo's new tests are edits to the working copy, and neither of those skills may commit or push; step 7 refuses to open a PR while `HEAD` is ahead of `origin/<branch>` | **G5** on a semantic conflict where the base moved again |
+| **6** | evidence | the changed visual artifacts, from `project.evidence` (§ 3), grouped **suite → scene** | not a gate event |
+| **7** | [`shibari`](../claude/skills/shibari/) | composes and opens **one** PR, requests the reviewers and writes the body back | never labels a gate, never merges |
+| **8** | [`rikugan`](../claude/skills/rikugan/) `as landing` | the landing report, rendered **after** the PR exists because its two extra sections — the PR body and the readiness verdict — are step 7's outputs. Then **starts [`en`](../claude/skills/en/)** | not a gate event |
+
+**Four of the five G5 conditions of § 4 live inside this one phase.** That is not an accident of layout: a
+pull request is the moment work stops being private, so it is the moment the honest questions are cheapest to
+ask and most expensive to skip.
+
+### `hanten` — the routing, and the one finding shape
+
+`hanten` classifies the change set by **scope** and spawns **one reviewer subagent per scope**. The scope
+decides the reviewer; nobody picks by feel.
+
+| Scope of the change set | Reviewer | Tier · effort |
+|---|---|---|
+| a **UI** surface, or a measurable quality claim | **Hisoka** ([`hisoka.md`](../claude/agents/hisoka.md)) | fast · high |
+| **security-bearing** — auth flows, secrets and credential handling, network and storage boundaries, data minimisation, the supply chain | **Feitan** ([`feitan.md`](../claude/agents/feitan.md)) | deep · high |
+| **architecture / handbook conformance** — layering, state ownership, the resolved stack rules, the repository's own architecture notes | **Chrollo** ([`chrollo.md`](../claude/agents/chrollo.md)) | deep · high |
+| **performance** | **Uvogin** ([`uvogin.md`](../claude/agents/uvogin.md)) | fast · medium |
+| **release-adjacent** — release machinery, build and packaging, a deploy target, a guard that gates one | **Phinks** ([`phinks.md`](../claude/agents/phinks.md)) | deep · high |
+
+Each subagent is titled **`hanten · <persona> · <model alias>`** — the rule of § 2's `models` — and **never
+runs on the frontier tier**. A change set with no matching scope gets no reviewer, said out loud; a change
+set matching three gets three.
+
+**The finding shape is fixed, and it has four fields, in this order:**
+
+| Field | What it must be |
+|---|---|
+| **rule id** | the governing rule, cited by id — `UX-{n}`, `SEC-{n}`, `UZF-{n}`, the one resolved stack prefix, `QA-{n}` — or the repository's own note by path and heading. No un-cited opinions. Where genuinely nothing covers it: `no rule id — handbook-question`, **filed, never legislated** |
+| **severity** | `critical` / `high` / `medium` / `low`, on the shared scale |
+| **evidence** | file and line, the quoted snippet, and the concrete path from the code as written to the consequence |
+| **proposed fix** | one concrete change in the repository's own idiom. The reviewer **proposes**; it does not apply |
+
+**Reviewers advise; Kurapika acts.** They never edit non-test source (a test that demonstrates a finding is
+the exception), never cast a review vote, never block, never merge, never label. Kurapika **fixes the finding
+or pushes back with a reason** — both are legitimate. What is not legitimate is a finding that is neither
+fixed nor answered: that is the G5, and `hanten` raises it, never the reviewer.
+
+**Pre-PR, a finding's home is the working copy, not the tracker.** The whole value of the position is that a
+`critical` here is a fix in the next commit rather than an issue with a lifecycle. An issue is filed only
+when the finding **outlives the branch**.
+
+### `gyo` — the ladder, spent
+
+`gyo` is where § 2's `coverage` ladder stops being a table and becomes a decision. It reads **touched-file
+line coverage** — the files in `git diff --name-only origin/<base>...HEAD`, never the repository total — and reports
+each file against the three rungs:
+
+| Band | What `gyo` does |
+|---|---|
+| below `minimum` (80) | **adds tests** until the file clears it; when it cannot be cleared honestly, **G5** |
+| `minimum` … `recommended` (80–85) | reported, and aimed past |
+| `recommended` … `ideal` (85–90) | reported as the band it is |
+| at or above `ideal` (90) | said out loud, because it is worth saying |
+
+**The bar is never lowered to clear it.** That is the one move `gyo` will not make: a repository that cannot
+honestly reach `minimum` is a **G5**, not a smaller number. And `nen shu coverage` **reports** `met` and
+never changes its exit code — nen does not decide whether a number is good enough, which is exactly why this
+step is a skill and not a flag.
+
+### `shibari` — one PR, and the body it must carry
+
+`shibari` opens the pull request **from the last pushed commit**, against `branch.base`, and it opens
+**exactly one**. The body is not a template preference; it is what makes the PR reviewable by someone who was
+not in the session:
+
+| Section | What goes in it |
+|---|---|
+| **why** | the problem, in the reader's terms — effect first, cost stated |
+| **how** | the approach, and what was rejected |
+| **what changes for the consumer** | the observable delta for whoever depends on this |
+| **how to verify** | runnable steps. Where there is no backing issue, this section **is** the acceptance criteria |
+| **a mermaid diagram** | where a flow changed — and only then |
+| **the evidence table** | one table per top-level screen, states as **columns**, in the stack's own `project.evidence` mechanism (§ 3) |
+| **the checklist** | the repository's own |
+| **`Closes #N`** | GitHub's native autolink, kept beside the object notation |
+
+The verbs: `nen pr body-check` (the body's completeness), `nen changelog fragment-required` (whether this
+change owes a fragment), `nen gate derive` (which gate the PR stands at — **derived, never labelled by
+`shibari`**), `nen pr edit-body` to write the body back, and `nen pr request-reviews` to request the
+reviewers. **`nen pr edit-body` does not exist at the pinned `0.3.0`** — the residue is `gh pr edit
+--body-file`, named as residue in the skill rather than improvised (§ 7).
+
+**The evidence mechanism is assumed with confirmation, not guessed**: a stack with a registered
+public-assets mirror embeds the images; a stack without one names each scene and points at its committed
+snapshot path in **Files changed**. A Files-changed PR that names its scenes is **conformant**, not a
+shortfall — and a rule never mixes the two mechanisms.
+
+Then `shibari` hands the PR to `en` and stops. It never applies a gate label and it never merges.
+
+### `en` — the landing watch, its two keys, and the Illumi hand-off
+
+```json
+"monitor": { "maxCycles": 20, "pollSeconds": 300 }
+```
+
+`en`'s order: [`rikugan`](../claude/skills/rikugan/)¹ (landing — the PR body and the readiness verdict) →
+[`sharingan`](../claude/skills/sharingan/)² → [`murasaki`](../claude/skills/murasaki/)³ when the branch is
+behind → `sharingan`⁴ → [`jutaisho`](../claude/skills/jutaisho/)⁵ at Ready → **watch⁶ until merged**, still
+reacting to new reviews and new conflicts → `rikugan`⁷ final, **the only report written to `Reports/`**.
+
+| Key | What it bounds |
+|---|---|
+| `maxCycles` | the `izanagi` cap on the watch. **Grammar, not a default** — a watch invoked without one does not run |
+| `pollSeconds` | the interval between observation cycles. Never shortened because something looks close, never lengthened to stretch the cap |
+
+**An exhausted cap is reported as exhausted.** It is never extended in place, never continued by a second
+watch started to finish the first, and never rendered as "still watching". Raising the cap is the
+maintainer's word, in a new invocation.
+
+**When the watch must outlive the session that started it, step 6 is handed to Illumi** —
+[`illumi.md`](../claude/agents/illumi.md), titled `en · illumi · <model alias>`, on the **fast** tier at
+effort `medium`. He is **provisioned, not ratified** (`OPEN-1`, partially closed 2026-09-09) for this watch
+**and no other loop**: not `backlog-loop`, not `futon`, not `senkei`.
+
+He is **read-only by discipline, and the definition says which** — his frontmatter carries no `Edit`, `Write`
+or `MultiEdit`, but it does carry `Bash`, because every observation is a program and `Bash` can push, commit
+and merge as easily as it can read. What holds is the **command allowlist** in
+[`illumi.md`](../claude/agents/illumi.md) § *Your tools*; anything off it is a wake, not a command. He acts
+on nothing. Each cycle he records five facts (the readiness verdict *quoted*, the checks, review activity,
+base drift, terminal state), compares them against the previous cycle, and **wakes Kurapika** when one of
+seven conditions fires: Ready, a new review or thread, a check gone red, the branch behind or conflicted,
+merged, closed-or-drafted, or the cap exhausted. The hand-off names **what changed, since when, the PR's
+current state, and the act it needs** — *names* the act; never performs it. **A watch that acts is not a
+watch**, and the merge stays **G2**.
+
+### `drive` is now `sharingan`
+
+The skill that drives one open PR to readiness at its gate was `drive`; from **`v0.5.0` it is
+[`sharingan`](../claude/skills/sharingan/)**. **Nothing about its behaviour changed** — first blocking
+condition, thread stewardship, wakes, the deterministic readiness verdict quoted rather than eyeballed, no
+merge and no vote. What changed is the name, and it changed for one reason: `drive` was the only skill in the
+loop named after what it does rather than out of the shared naming, and a name that stands outside the scheme
+is a name that reads as a different kind of thing.
+
+Concretely: the directory is `claude/skills/sharingan/`, the invocation is **`hatsu:sharingan`**, the
+evidence record is `docs/ab/sharingan.md`, and every reference in the other skills and in this documentation
+moves with it. **`hatsu:drive` no longer resolves** — an installed copy that still answers it is a stale
+cache, which is what the version bump in `.claude-plugin/plugin.json` exists to prevent.
+
+---
+
+## 6 · The hooks
 
 [`../hooks/hooks.json`](../hooks/hooks.json) carries two Claude Code hooks. **Neither is a nen-owned step.**
 They are executed by the harness *around* a session rather than by a skill *inside* one, and they exist for
@@ -350,6 +607,13 @@ model has stopped talking, or has already typed the push, it is too late.
 | [`stop-bell.sh`](../hooks/stop-bell.sh) | `Stop` | rings `notifications` rungs **2 and 3** off the marker at `.nen/last-stop.json`, then consumes it |
 | [`guard-base-branch.sh`](../hooks/guard-base-branch.sh) | `PreToolUse`, matcher `Bash` | exits `2` — blocking the tool call — on a `git commit` or `git push` while the branch equals `branch.base` |
 
+**Both are Claude Code's, and only Claude Code's.** `hooks/hooks.json` is that host's manifest, discovered
+at the plugin's own `hooks/` path; **neither Codex nor Cursor reads it, and neither documents a turn-end
+hook of its own** ([`docs/SURFACES.md`](SURFACES.md) § 1). So on those two surfaces the bell has no hook to
+fire it and [`jutaisho`](../claude/skills/jutaisho/SKILL.md) § 6 runs rungs 2–3 in-session and says so, and
+the trunk guard has nothing behind it at all — the refusal to commit on `branch.base` is the skills' own
+rule there, not a reflex the harness enforces. **Say which of the two you are relying on.**
+
 **The guard parses the command; it does not match a substring.** A shell wrapper is unwrapped first — `sh -c
 '<script>'` *runs* `<script>`, so the payload is recovered and parsed as its own segment. Quoted spans are then
 masked to one token, the line is split into segments on `;` `|` `&` `(` `)` and the backtick, and a segment
@@ -358,16 +622,27 @@ counts only when its **first** token is `git` and the token after git's own glob
 and the `--key=value` form — is `commit` or `push`. So `echo 'git commit'` and `git commit-tree` are not
 writes, while `git --no-pager commit` is.
 
-The repository judged is whichever repository-selecting option the segment carries — `--work-tree`, then `-C`,
-then `--git-dir` — and the working directory when it carries none; a `cd` earlier in the same line moves that
-working directory, because judging `cwd` after a `cd` is judging the wrong repository.
+**The directory git targets is the directory judged — never the session's own.** Every `-C` the segment
+carries is applied *cumulatively*, in argv order, exactly as git applies it (`git -C a -C b` runs in `a/b`);
+`--git-dir` and `--work-tree` are then resolved against the directory that chain arrived at. Only a segment
+carrying none of them is judged in the working directory, and a `cd` earlier in the same line moves *that*,
+because judging `cwd` after a `cd` is judging the wrong repository. So a session standing on `main` may drive
+a worktree that stands on a feature branch — `git -C <worktree> push` is **allowed** — and a session standing
+on a feature branch may not drive a checkout that stands on `main`, which is **refused**. Reading the session's
+own branch answers both of those wrongly, and a worktree effort types the first shape all day.
 
-It **fails closed** on the four forms where the branch it can see is not the branch the write would land on: a
+It **fails closed** on the five forms where the branch it can see is not the branch the write would land on: a
 line that both changes branch (`switch`, `checkout`, `branch -f|-m|-M`) and writes; a repository-selecting path
-quoted in a form it cannot recover; a `git` segment carrying a `commit`/`push` token whose **subcommand the
-option walk could not establish** — an unrecognised global option must not hide the write behind it; and a
-shell wrapper whose payload cannot be read on a line that carries a write token. The script's own header
-carries the thirty-seven cases this was verified against.
+quoted in a form it cannot recover, *including two DIFFERENT quoted paths for one flag anywhere on the line*,
+whether both on one segment or one on each of two, because recovery is line-global and cannot tell whose span is
+whose; a `git` segment carrying a
+`commit`/`push` token alongside a **global option the guard does not know** — an unknown `-…` may or may not
+swallow the token after it, so it is named in the refusal rather than walked past; a `git` segment whose
+subcommand the option walk could not establish for any other reason; and a shell wrapper whose payload cannot
+be read on a line that carries a write token. The policy it compares against comes from the checkout the branch
+came from — for a bare `--git-dir` aimed at a linked worktree, that worktree's own `nen/workflow.json`, not the
+primary checkout's. The script's own header carries the fifty-seven cases this was
+verified against, and [`ab/guard-base-branch.md`](ab/guard-base-branch.md) carries the transcripts.
 
 **The stop marker** is `hatsu.stop-marker/v0.1`, written by `jutaisho` and read by the hook:
 
@@ -414,9 +689,28 @@ logged as an internal error, and marks that plugin's hook load *failed* — visi
 *additional* hook files, and Hatsu ships none. `${CLAUDE_PLUGIN_ROOT}` in the two `command` fields resolves to
 the installed plugin directory, which changes on every update, so it is never written as a literal path.
 
+### `$CLAUDE_PLUGIN_ROOT` is set inside a skill invocation, and nowhere else
+
+Several skills build an absolute path from it — `pr-state`, `sharingan`, `backlog-state`, `futon`, `tensho`
+and `getsuga` for `nen pr ready --gates`, `hatsu-warmup` for `nen/contract.json`, `hanten` for a persona's
+definition under `claude/agents/`, `rikugan` for `templates/<name>.html`. **The harness exports it while a
+skill is running, and it is EMPTY in an ordinary tool-call shell and inside a subagent** — verified live. So a
+run that reads it has to check it:
+
+| The variable | What to do |
+|---|---|
+| **set** | use it — the installed plugin directory, which changes on every update and is never a literal |
+| **empty**, and the run was handed a plugin path | use the path it was handed |
+| **empty**, with nothing handed | resolve it: `claude plugin list --json` → the entry whose `id` is `hatsu@hatsu`, field **`installPath`**. Verified live: the `--json` flag exists and `installPath` is the plugin root |
+
+**Never substitute a bare relative path.** `--gates` in particular resolves a relative path against
+`--repo`'s root since nen `v0.2.0`, never the cwd, so `contracts/reference.gates.json` looks for a file
+inside the repository under judgement and `ENOENT`s — and a `--gates` that cannot be resolved is answered by
+passing `--reviewers` instead (`sharingan` § 4), not by guessing a path. This is wave-3 finding F18.
+
 ---
 
-## 6 · What is not here yet
+## 7 · What is not here yet
 
 At nen **`0.3.0`**, several deterministic steps in the loop above have **no verb**, and each is named as
 **residue** in the skill that carries it rather than quietly improvised: build proof and the stall guard
@@ -427,7 +721,22 @@ forbidden-trailer refusal in `commit format` (`kokusen`). **A residue lapses whe
 arrives for it** — and a missing verb is a finding to file, never a gap to route around.
 
 Skill availability follows the same honesty: `breath`, `rasengan`, `kokusen`, `amaterasu`, `tsukuyomi`,
-`rikugan`, `jutaisho`, `ao`, `aka` and `ren` ship at Hatsu **`v0.4.0`**. `mukai`, `murasaki`, `en`, `hanten`,
-`gyo`, `shibari`, `jujutsu`, `kotoamatsukami`, `susanoo`, `kagutsuchi`, `mugetsu` and the `drive` →
-`sharingan` rename arrive at **`v0.5.0`/`v0.6.0`**. Until a phase exists, **name it and stop there anyway** —
-the phase boundary is the governance, and it holds whether or not a skill file has been written for it.
+`rikugan`, `jutaisho`, `ao`, `aka` and `ren` shipped at Hatsu **`v0.4.0`**. **`v0.5.0` adds the PR side of
+§ 5** — `mukai`, `murasaki`, `hanten`, `gyo`, `kotoamatsukami`, `shibari`, `en` and `jujutsu`, plus the
+`drive` → `sharingan` rename — and the three agent definitions it needs: Feitan, Chrollo and Illumi.
+**`v0.6.0` closes the release side**: `susanoo` (archive and packaging), `kagutsuchi` (non-production
+upload, per target) and `mugetsu` (publication, per target, **G3**) are skills now, so **four of § 4's
+five human-called phases have files** — `aka`, `mukai`, `kagutsuchi`, `mugetsu`. The fifth is **the
+merge**, and it stays a rule with no file: **G2** is an action no agent performs, so there is no
+procedure to write down. The rule that held while the other four had no file still holds and always did:
+**a phase boundary is the governance, not the file** — name the phase and stop there whether or not
+something has been written for it.
+
+**`v0.7.0` adds no skill and adds two surfaces.** The same thirty-eight skills and eight personas are now
+also generated into Codex and Cursor layouts under `surfaces/`, placed into a target repository by the
+warm-up, checked for drift by [`scripts/surface_mirror_check.sh`](../scripts/surface_mirror_check.sh), and
+documented in [`docs/SURFACES.md`](SURFACES.md). **Two things a surface does not have are named rather than
+assumed**: Codex and Cursor have no turn-end hook (§ 6), and Codex has no in-session subagent (§ 2 →
+`models`). And the mirror's own generator is **residue at the pin**: `nen surface mirror generate|check` does
+not exist at nen `v0.3.0`, which is why the mirrors are committed and why the CI job skips with a notice
+until `dependency.pinned_ref` moves.

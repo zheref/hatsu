@@ -526,6 +526,80 @@ historical determination byte-for-byte on the actual data it was computed from.
 
 ---
 
+### 2.7 — the `v0.6.0` lattice restatement, re-verified live against `nen 0.3.0`
+
+Run: **2026-09-10**, `nen 0.3.0` on `PATH` (`/Users/zheref/.local/bin/nen`), from a `hatsu` worktree
+(`opus/kurapika/machinery-wave-4`). `SKILL.md`'s *Composition* section restates the phase lattice and
+changes no mechanics, so the point of this pass is the opposite of a new capability: **every verb the
+skill already cites still answers, unchanged, at the pinned `0.3.0`.** No mutating verb was run — no
+tag, no push, no collate `--write`, no `--run`.
+
+**Every release-side verb's `--help`, exit `0`, contract text unchanged:**
+
+| Command | exit | Confirms |
+|---|---|---|
+| `nen release preflight --help` | `0` | usage line unchanged; body still cites *"getsuga SKILL.md §2"* |
+| `nen release resolve-target --help` | `0` | same `--token <main\|last-commit\|checkout\|hash\|branch>` surface |
+| `nen tag cut --help` | `0` | *"cut a tag pinned at a given SHA, getsuga §4"*; `--at` still **REQUIRED, and never defaulted to HEAD** |
+| `nen changelog collate --help` | `0` | `--write` still the only mutating path |
+| `nen fanout compute --help` | `0` | body still cites *"getsuga SKILL.md §7"* |
+| `nen shu archive --help` / `shu deploy --help` / `shu release --help` | `0` | the `shu` family page; `archive` = *"Produce the lane's distributable artifact"*, `release` = *"Publish it, where the lane declares a publication step"*, `deploy` = *"--target is required and has no default"* |
+
+**`nen release resolve-target`, live, read-only, against this worktree** — the same two verdicts
+`SKILL.md` § 1 documents, reproduced on real data rather than restated:
+
+```
+$ nen release resolve-target --repo . --token main
+main -> 511b882bca827cab5c023f28889ea912976e6331
+an ancestor of the trunk -- safe to cut
+exit=0
+
+$ nen release resolve-target --repo . --token checkout
+checkout -> 2e066ab6e4c59a71fa99f15d608fc76bd7d23e2b
+NOT an ancestor of the trunk -- it has to reach the trunk first before it can be tagged
+exit=1
+```
+
+The `checkout` row is § 6's own path on live data: a wave branch is not an ancestor of the trunk, so
+it is **driven to `main` first**, never tagged where it stands.
+
+**The three release-side `shu` seats, on `hatsu`'s own `plugin` lane** — the evidence behind the
+*Composition* section's second and third bullets. Each is exit `4` with the declaration's own reason,
+which is the whole report for such a repository:
+
+```
+$ nen shu archive --repo . --dry-run
+nen shu archive: 'archive' is unsupported on lane 'plugin' (claude-code-plugin). The declaration's
+own reason: A Claude Code plugin is distributed by git ref through a marketplace, never as a built
+package: `claude plugin marketplace add zheref/hatsu` reads the tree at a ref. There is no artifact
+to produce, so there is nothing for `archive` to name.
+exit=4
+
+$ nen shu deploy --repo . --dry-run
+nen shu deploy: 'deploy' is unsupported on lane 'plugin' (claude-code-plugin). The declaration's own
+reason: Hatsu sends nothing anywhere. Distribution is the marketplace reading this repository at a
+ref, so there is no destination for --target to name and no credential for a deploy to carry.
+`project.targets` is empty for the same reason, and empty deliberately rather than by omission.
+exit=4
+
+$ nen shu release --repo . --dry-run
+nen shu release: 'release' is unsupported on lane 'plugin' (claude-code-plugin). The declaration's
+own reason: Publication is a git tag plus the marketplace entry that already points at this
+repository — there is no publish step to run, and G3 (CON-6) holds the tag decision anyway. Emitter
+prepares a release here; nothing in this repository publishes one.
+exit=4
+```
+
+**Read what this proves and what it does not.** It proves the three phases past the release PR —
+`susanoo`'s `archive`, `kagutsuchi`'s `deploy`, `mugetsu`'s `release`/`deploy --target production` —
+are each a *declared* verb the target repository owns, and that a repository which declares none of
+them says so in its own words rather than getting a default. It does **not** exercise an affirmative
+archive, upload or publish anywhere: `hatsu` declares all three as seats, and no repository in bounds
+for this wave declares a real one. The affirmative paths stay unverified, stated here rather than
+implied.
+
+---
+
 ## 3. Residue
 
 Left fully to hand, no `nen` verb ports them (findings against the binary, not gaps routed around

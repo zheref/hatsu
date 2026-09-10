@@ -16,6 +16,35 @@ is not.
 
 ---
 
+## Composition — the phases this skill already is
+
+Read from the phase lattice rather than from this file's own numbering, jujisho is
+[`hatsu:tensho`](../tensho/SKILL.md)'s composition **run once per axis**:
+
+> per axis: [`kokusen`](../kokusen/SKILL.md) → [`aka`](../aka/SKILL.md) →
+> [`mukai`](../mukai/SKILL.md) → **starts** [`en`](../en/SKILL.md) — **A first**, B stacked on A
+
+**This is a restatement, and it changes no mechanics.** Every section below stands exactly as it is
+written. What the line adds is three things the per-axis reading makes explicit:
+
+- **`nen split verify` runs before any axis reaches `kokusen`'s phase**, not per axis afterwards.
+  § 2's proof is over the **whole original diff, once** — `OK` means every hunk lands in exactly one
+  branch, and nothing is opened until it reads `OK`. Splitting first and proving per branch would
+  prove each branch internally consistent while leaving the union short, which is precisely the
+  silent leftover this skill exists to prevent.
+- **The second PR is stacked, so B's `mukai` runs against A's branch as its base**, not `main` (§ 4).
+  B's own gate derivation, body and evidence are B's; what it inherits from the stack is the base and
+  the merge order, stated in both bodies as an instruction.
+- **`en` runs on A first** (§ 7). Driving B to Ready while A is unmerged produces a readiness verdict
+  against a base that is about to change; B's watch starts once A's merge retargets it.
+
+**The human calls stay human calls.** `aka` and `mukai` are the maintainer's
+([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4), and `hatsu:jujisho` is one call that spends
+both of them **per axis** — which is why § 3's cap of two, and its ask when there are more, is a
+question about how much the one call is being asked to cover.
+
+---
+
 ## 1. Invocation
 
 ```
@@ -184,13 +213,13 @@ Additionally, **each body carries the split itself**:
 ## 7. After
 
 Report both PRs with the stack drawn, then hand them to
-[`hatsu:drive`](../drive/SKILL.md) — **A first**. Driving B to readiness while A is unmerged produces a PR that is ready
+[`hatsu:sharingan`](../sharingan/SKILL.md) — **A first**. Driving B to readiness while A is unmerged produces a PR that is ready
 against a base that will change; take A to its gate, and start B once A's merge retargets it.
 
 ## 8. Authority
 
 - **Permitted:** branch, commit, push non-`main` branches, open PRs, request reviewers (`nen pr
-  request-reviews`), cascade A into B, retarget B once A merges, and everything `drive` is
+  request-reviews`), cascade A into B, retarget B once A merges, and everything `sharingan` is
   permitted.
 - **Not permitted:** `bankai:agent/*`, `bankai:stage/*`, G1 mode labels, any merge (including
   merging A to unblock B), any review vote (never `request_changes` — Manipulator's standing rule).

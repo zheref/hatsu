@@ -64,19 +64,99 @@ failure anything will catch for you. That row arrives with nen `0.4.0`.
 nen wc classify --repo <path> --base <branch.base>
 ```
 
-Exactly one of three cases, with the evidence printed (`claude/skills/tensho/SKILL.md` § 2 carries
+Exactly one of four cases, with the evidence printed (`claude/skills/tensho/SKILL.md` § 2 carries
 the same table for its own phase):
 
 | Case | What breath does |
 |---|---|
 | `on-branch-clean` **on the trunk** | The ordinary first turn. Go to § 4 |
 | `on-branch-clean` **on a branch** | An effort is already warm. Report the branch and return — do not cut a second one |
-| `must-move` — on the trunk, dirty | **The one thing breath asks about.** Show every uncommitted path and ask: carry the work onto the new branch (the ordinary answer — `git stash`, cut, `git stash pop`, each step named as residue in § 8), or stop so the maintainer can deal with it. **Never `--discard`** |
+| `must-move` — on the trunk, dirty | **The one thing breath asks about.** Show every uncommitted path and ask: carry the work onto the new branch (the ordinary answer — `git stash`, cut, `git stash pop`, each step named as residue in § 8), **exclude it locally** where the paths are not work at all (the third door, below), or stop so the maintainer can deal with it. **Never `--discard`** |
 | `on-branch-dirty` | Uncommitted work on an existing branch. Not breath's to judge whether it is this effort: report the commit subjects and paths the verb printed, and hand the turn to [`hatsu:kokusen`](../kokusen/SKILL.md) or the maintainer |
+| **the verb refuses — a detached `HEAD`** | **Not a case `wc classify` can answer, and not a stop either.** Go to § 5 and let `nen shu warmup` speak; see the box below |
 
-A `--base` that does not resolve, or a detached `HEAD`, is **not** folded into a case: `nen wc
-classify` reports it on stderr and exits non-zero, and breath stops there rather than warming
-something it could not read.
+### A detached `HEAD` is warmable, and `nen wc classify` is the wrong thing to ask
+
+`nen wc classify` **refuses a detached `HEAD` outright** — verified live on a fixture, exit **`1`**, and
+`--json` prints the same prose rather than a document:
+
+```text
+nen wc: could not determine the current branch ('git symbolic-ref --short HEAD' failed: fatal: ref HEAD is
+not a symbolic ref). This usually means a detached HEAD … and refuses rather than reading a branch name off
+of empty output.
+```
+
+**That refusal is about the classifier, not about the checkout**, and stopping on it would make breath
+unusable in the shape the Codex surface is native to: a `git worktree add --detach` is what
+[`hanten`](../hanten/SKILL.md) § 9a makes for every Codex reviewer, and it was the starting state of a whole
+headless run that stopped here for want of this row (`docs/ab/surfaces.md` § 7, F4).
+
+**§ 5's verb already knows better, and it is the one to ask.** `nen shu warmup` scopes its own refusal to a
+detached `HEAD` *carrying unreachable commits*; from a `HEAD` detached at the trunk's tip it reports and
+proceeds. Verified live on a fixture:
+
+```text
+ran: git branch --show-current -- exit 0
+     HEAD is DETACHED
+ran: git rev-list --count HEAD --not --branches --remotes -- exit 0
+     HEAD is DETACHED and reaches no commit of its own -- reported, not an error. Warmup cuts its branch
+     from the trunk's fresh tip, so where HEAD sits now decides only how the trunk itself is fast-forwarded
+```
+
+**So: a `wc classify` refusal naming a detached `HEAD` goes to § 5, and § 5's own exit code is the verdict**
+— `0` warms, `2` on unreachable commits is the genuine stop (the commits would be orphaned by the cut, and
+only the reflog would remember them: **G5**, listed by SHA, never `--discard`). Say in § 7's line that the
+checkout was detached and which of the two answers the verb gave. **A repository with no commits at all
+refuses the same way and is not this case** — there is no tip to cut from; report it and stop.
+
+**The third door — untracked paths that are not work.** Very often the tree that blocks a warm-up is
+dirty with nothing anybody wrote: `.idea/` from the IDE, `.claude/worktrees/` from a previous wave,
+**the mirror `hatsu-warmup` § 5 just installed on a surface that is not Claude Code** — the canonical
+example, and the one that stopped a whole headless run (`docs/ab/surfaces.md` § 7, F9) — or a stray editor
+or tool directory. Stashing those onto a feature branch is absurd, and stopping means no Hatsu run can ever
+start in that checkout — so the answer is neither of the first two doors: **append the paths to the
+repository's `info/exclude`**, then re-run `nen wc classify` and expect `on-branch-clean` with
+`uncommittedPaths: []` before going on.
+
+```bash
+exclude="$(git -C <path> rev-parse --git-path info/exclude)"     # NOT "$(rev-parse --git-dir)/info/exclude"
+```
+
+> **`--git-path info/exclude`, and it is per-REPOSITORY.** In a linked worktree `--git-dir` answers
+> `<main repo>/.git/worktrees/<name>`, and a `info/exclude` written there is a file **git never reads** —
+> verified live: `git status` still printed `?? .agents/` and `git check-ignore -v` exited `1`, while the
+> `--git-path` answer silenced the status and made `check-ignore` exit `0`
+> (`docs/ab/surfaces.md` § 7, F2). The file it resolves to is the **main** repository's, shared by every
+> worktree and by the primary checkout, so § 7's line names it by path: an exclude written here changes
+> what all of them ignore.
+>
+> **`info/exclude`, and never `.gitignore`.** The distinction is the whole point of the door.
+> `info/exclude` is untracked and invisible to `origin` — it changes what *this machine* ignores and
+> nothing else. `.gitignore` is a **repository change**: it lands in a commit, it
+> lands in a PR, and it applies to everyone who clones. Editing it inside a warm-up would smuggle a
+> policy change into a phase whose whole authority is "produces no object anyone else can see"
+> (§ 9). If the repository *should* ignore those paths — and it usually should — say so and propose
+> it as its own PR at **G4**; do not fold it into this effort.
+>
+> **On Codex the door can be barred, and that is a stop rather than a workaround.** Under
+> `-s workspace-write` in a **linked worktree**, `info/exclude` lives outside the sandbox and the append
+> is refused *"Operation not permitted"*. The session had to be launched with
+> `--add-dir "$(git -C <repo> rev-parse --path-format=absolute --git-common-dir)"`, or against a standalone
+> clone (`docs/SURFACES.md` § 5). Breath cannot fix a sandbox from inside it: report the refusal, name the
+> flag, and stop. **Do not reach for `.gitignore` because the exclude was refused** — the hard limit does
+> not soften when the permitted path is blocked.
+>
+> **The door is for paths that are ignorable, untracked, and none of the effort's business.** Three
+> conditions, all of them: a tracked file is never excluded (exclude does not apply to tracked
+> paths anyway), and an untracked path that might be somebody's unfinished work goes through door
+> one or door two. Show the exact lines before writing them, write them with a dated comment naming
+> the run that added them, and say in § 7's line that a local exclude was written and to which
+> paths — an exclude nobody was told about is a checkout that silently stopped reporting a file.
+
+A `--base` that does not resolve is **not** folded into a case: `nen wc classify` reports it on
+stderr and exits non-zero, and breath stops there rather than warming something it could not read.
+A detached `HEAD` exits non-zero too and is **not** that — it is the fourth row above, and it goes
+to § 5 rather than to a stop.
 
 ## 4. The host, before the first build on it
 
@@ -91,6 +171,23 @@ toolchain pin moves. Exit `5` is **not** a red build — it is a host that is no
 per-tool `remedy`/`installCommand` lines are relayed verbatim. A `verify-only` row is a human's to
 install; say which tool and which pin, and do not install it another way. A repository declaring no
 `project.toolchain` has nothing to check here and says so.
+
+> **An exit `2` here is the stale tree speaking, not an answer about the host.** § 4 runs *before*
+> § 5 fast-forwards the trunk, so every `shu` verb at this point reads the declaration as it stood at
+> the checkout's old tip. On a checkout whose `nen/contract.json` was added — or whose `project`
+> block was written — on the fetched tip, `nen shu tools` refuses at `2` with *"no such file:
+> `<repo>/nen/contract.json` … this repository declares nothing"* (verified live at `0.3.0`), and the
+> table above is unreachable: none of `0`, `3`, `4`, `5` is what the host actually is. **Do not treat
+> that `2` as a verdict and do not run `nen shu detect --write` to make it go away** — the
+> declaration is very probably already sitting on `origin/<branch.base>`. Record the `2` as
+> *deferred*, go to § 5, and **re-probe after the cut**: `nen shu tools --repo <path>` again, on the
+> new branch, where the declaration is the one this effort will actually build against. That second
+> answer is the one § 7 reports.
+>
+> § 5's own dry run has the same blind spot and is read the same way: on a stale checkout it will
+> print `lane: (none -- no declaration)` for a repository that plainly declares one on the tip it is
+> about to cut from. The dry run is proving the *git sequence*, and its lane line is stale until the
+> fetch has happened.
 
 ## 5. Cutting the branch — dry run, then bare
 
@@ -156,10 +253,12 @@ verification costs.
 
 ## 7. What the turn reports
 
-One line, and it is not a gate event: the case `wc classify` reported, the branch cut and the tip it
-was cut from, the toolchain verdict, the build's exit code, and — where it applies — the
-`no workflow.json` sentence from § 2. A warm-up that did not run is reported as **not run**, never
-rendered as clear.
+One line, and it is not a gate event: the case `wc classify` reported (**or its refusal, when the
+checkout was detached** — § 3), the branch cut and the tip it was cut from, the toolchain verdict, the
+build's exit code, **the path of any `info/exclude` written and the lines added to it** (§ 3's third door:
+that file is the whole repository's, so an exclude nobody was told about is a checkout that silently
+stopped reporting a file), and — where it applies — the `no workflow.json` sentence from § 2. A warm-up
+that did not run is reported as **not run**, never rendered as clear.
 
 ## 8. Residue — what has no verb at nen `0.3.0`
 
@@ -172,6 +271,16 @@ rendered as clear.
 - **Carrying a dirty trunk onto the new branch** (§ 3's `must-move` answer) is `git stash` → the
   warm-up → `git stash pop`, run by hand and named. `nen shu warmup` offers exactly two doors — refuse,
   or `--discard` — and neither of them preserves work.
+- **Excluding untracked non-work paths locally** (§ 3's third door) is
+  `printf '%s\n' <paths> >> "$(git -C <path> rev-parse --git-path info/exclude)"`, appended by hand under
+  a dated comment naming the run, then `nen wc classify` again to prove the tree came back clean — and
+  `git check-ignore -v <one path>` when it did not. No verb writes an exclude
+  file, and none should be asked to: `shu warmup`'s two doors are refuse or `--discard`, and this
+  door exists precisely because neither fits a checkout dirtied by `.idea/`, `.claude/worktrees/` or the
+  surface mirror the warm-up installed. **The residue is `info/exclude` only** — a `.gitignore` edit is
+  not residue, it is a repository change and goes through a PR (§ 3). **Resolving the path is part of the
+  residue**: `--git-path`, never `--git-dir`, because a linked worktree's `--git-dir` names a file git does
+  not read (§ 3, verified).
 - **Deciding whether an existing dirty branch is this effort** stays judgment. `nen wc classify`
   hands over the commit subjects and the paths and says outright the call is not the module's.
 
@@ -191,6 +300,14 @@ rendered as clear.
   account at all.
 - **Never commits, never pushes, never touches `origin` except to `fetch`** and to check whether a
   branch name is free.
+- **Never edits a tracked file to clear a dirty tree** — not `.gitignore`, not anything else. The
+  third door is the repository's `info/exclude`, which no commit can carry (§ 3), resolved with
+  `git rev-parse --git-path info/exclude` and never with `--git-dir`.
+- **Never treats a detached `HEAD` as a stop on `nen wc classify`'s word alone** (§ 3). The classifier
+  refuses one at exit `1`; `nen shu warmup` is the verb that decides, and only its exit `2` on
+  unreachable commits is the real stop.
+- **Never treats a `2` from `nen shu tools` taken before the fast-forward as the host's verdict**
+  (§ 4). It is deferred, and re-probed after the cut.
 - **Never cuts a branch from a stale trunk** — the cut is `origin/<base>`'s freshly fetched tip, which
   is `shu warmup`'s own sequence, not a `git checkout -b` typed by hand.
 - **Never cuts from a literal `origin/main`.** The trunk is `origin/<branch.base>`, passed as

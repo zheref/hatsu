@@ -46,8 +46,10 @@ fi
 #
 #   .claude-plugin/*  — the manifests themselves (plugin.json, marketplace.json).
 #   claude/*          — everything plugin.json points at: `agents` (kurapika,
-#                       gon, hisoka, phinks, uvogin), `commands` (/kurapika),
-#                       and `skills` (the 27 skills + hatsu-warmup), plus
+#                       gon, hisoka, phinks, uvogin, and — from Hatsu 0.5.0 —
+#                       feitan, chrollo, illumi), `commands` (/kurapika), and
+#                       `skills` (the 38 skills + hatsu-warmup — 35 until
+#                       Hatsu 0.6.0 added susanoo, kagutsuchi and mugetsu), plus
 #                       `templates/` where a skill renders from one.
 #   nen/*             — the D10 dependency contract, `nen/contract.json`. Read
 #                       at run time through `$CLAUDE_PLUGIN_ROOT/nen/contract.json`
@@ -89,6 +91,23 @@ fi
 #                       CRITERION AS docs/ROSTER.md: an installed copy reads it
 #                       at run time, so a stale template renders a stale report
 #                       on every machine that already has the plugin.
+#   surfaces/*        — the GENERATED Codex and Cursor mirrors (Hatsu 0.7.0).
+#                       SAME CRITERION AS templates/ AND docs/ROSTER.md, and it
+#                       is the run-time read that puts them here rather than
+#                       their being generated: on Codex and Cursor there is no
+#                       plugin loader, so `hatsu-warmup` § 5 reads
+#                       `$CLAUDE_PLUGIN_ROOT/surfaces/<surface>/` and links (or
+#                       copies) it into the repository the session is standing
+#                       in. An installed copy whose mirrors are stale therefore
+#                       serves stale skills to two of the three surfaces —
+#                       invisibly, because the SOURCE under claude/skills/ is
+#                       right and only the mirror is wrong, which is the harder
+#                       version of the failure this guard exists for. And
+#                       BECAUSE they are generated, they change on exactly the
+#                       PRs that change claude/**, which the glob above already
+#                       covers: this row is what makes a regeneration-only
+#                       commit (a mirror re-run with no source edit) bump the
+#                       version too.
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #
@@ -108,6 +127,7 @@ PLUGIN_SURFACE_GLOBS=(
   'docs/delegation-grammar-DRAFT.md'
   'hooks/*'
   'templates/*'
+  'surfaces/*'
   '.mcp.json'
 )
 
@@ -198,7 +218,8 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
   cat >&2 <<'EOF'
 This PR changes a plugin-shipped surface (.claude-plugin/**, claude/**,
 nen/**, contracts/**, docs/ROSTER.md,
-docs/delegation-grammar-DRAFT.md, hooks/**, templates/**, or .mcp.json)
+docs/delegation-grammar-DRAFT.md, hooks/**, templates/**, surfaces/**,
+or .mcp.json)
 but leaves
 .claude-plugin/plugin.json's `version` field unchanged.
 

@@ -49,14 +49,20 @@ say so on the first one, so nobody is surprised by the report and the bell at th
 | # | Step | The skill that owns it | Why it is here |
 |---|---|---|---|
 | 1 | **warm up** | [`hatsu:breath`](../breath/SKILL.md) | **first turn of an effort only** — clean tree, fetch, fast-forward, cut the branch from the base, prove the declared checks |
+| 1.5 | **the work** | *no skill — this is the request itself* | write the change the maintainer asked for: the edits, the tests beside them, the docs and changelog the repository's conventions owe. **Half-numbered on purpose** — the six whole numbers are skills, and this is the one step no verb and no skill can own, the only one whose shape comes from the request rather than from the workflow |
 | 2 | **build** | [`hatsu:rasengan`](../rasengan/SKILL.md) | every `iteration.checks` verb, green, **before** anything is committed |
 | 3 | **commit** | [`hatsu:kokusen`](../kokusen/SKILL.md) | triage, ask on what is flagged, one shaped commit — local only |
 | 4 | **launch** | [`hatsu:amaterasu`](../amaterasu/SKILL.md) | build the configured target and start it **from the core working directory** — or, where the repository declares no launch target (Hatsu's own case), record `no launch target declared; skipped` and continue **without asking** |
 | 5 | **report** | [`hatsu:rikugan`](../rikugan/SKILL.md) `as turn` | the page: accomplished, challenges, not delivered, architecture, screenshots, the exact launch command, decisions |
 | 6 | **bell** | [`hatsu:jutaisho`](../jutaisho/SKILL.md) | the rungs the workflow declares — and a stop only if one is genuinely due |
 
-**The order is load-bearing in three places, and those three are the only ones ren asserts:**
+**The order is load-bearing in four places, and those four are the only ones ren asserts:**
 
+- **1.5 before 2.** The change is written *before* the build runs. This is the ordering the table
+  exists to state: rasengan proves the tree that kokusen is about to commit, so a build run before
+  the edit proves code the commit will not contain — a green line about the wrong tree. Where a turn
+  iterates (edit, build, edit again), it is 1.5 and 2 that alternate, and the last thing to happen
+  before step 3 is always a green step 2 over the finished edit.
 - **2 before 3.** A red build is fixed, never committed over. Kokusen's own contract requires
   rasengan green before each commit; ren guarantees it by ordering, not by re-checking.
 - **4 before 5.** The report's *How to launch* section is the argv amaterasu actually ran, pasted
@@ -65,7 +71,7 @@ say so on the first one, so nobody is surprised by the report and the bell at th
   the maintainer to nothing.
 
 **Step 1 runs once per effort, not once per turn.** The second and every later turn of the same
-effort starts at step 2. Say which turn this is and whether breath ran.
+effort starts at step 1.5 — the next piece of work. Say which turn this is and whether breath ran.
 
 **A step that refuses ends the turn where it refused.** Kokusen asking about a flagged file,
 rasengan finding a red build, amaterasu finding the declared device disconnected — each is that

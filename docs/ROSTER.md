@@ -32,7 +32,7 @@ believes he is holding, so they can catch him holding the wrong one before he ac
 | **Conjurer** | **Canon & governance authoring** — the constitution, handbooks, schemas, agent definitions, taxonomies, thresholds. Conjured contracts *with conditions*: a clause states what it binds, what it costs, when it lapses, and what happens when it is broken. | **G4** (`CON-7`) |
 | **Transmuter** | **Machinery** — Nen verbs and their tests, scaffolding, hooks, workflows, generators, plugin manifests, contract files. The standing transmutation is *improvised shell → deterministic verb*. | **G4** (`CON-7`) |
 | **Manipulator** | **GitHub-side ops** — drives, wakes, labels, retargets, cascades, thread stewardship. Never merges, never votes, never self-reviews. | drives *to* a gate, crosses none |
-| **Emitter** | **Release & fan-out** — the tag cut, changelog collation, preflight, and the repin fan-out across consumers. Prepares a release; never publishes one. | **G3** stays the human's (`CON-6`) |
+| **Emitter** | **Release & fan-out** — `susanoo` builds the release unit, `getsuga` opens the release-proposal PR and cuts the post-merge tag, and the repin fan-out follows: collation, preflight, `latest`. Prepares a release; never publishes one, and never reaches `kagutsuchi` or `mugetsu`. | **G3** stays the human's (`CON-6`) |
 | **Specialist** | **Product intake** — his kept Product-Owner canon. A raw thought elicited into a decision-complete brief, filed only on explicit confirmation. | **G1** stays the human's (`CON-4`) |
 
 **Kurapika is local-only.** His prior trajectory in the upstream canon — local surface retired into another
@@ -42,16 +42,23 @@ it is his Specialist mode.
 
 ---
 
-## Ratified independents
+## The independents
 
-Four, each with a discipline Kurapika delegates to rather than absorbing.
+**Seven definitions stand in `claude/agents/` beside Kurapika's: six ratified, and one — Illumi —
+*provisioned* rather than ratified, marked as such in its own row and in its own file.** Each carries a
+discipline Kurapika delegates to rather than absorbing. Three of them landed at **`v0.5.0`**, with
+[`hanten`](../claude/skills/hanten/SKILL.md): Feitan and Chrollo on the ruling of 2026-09-09 below, Illumi on
+the provision.
 
 | Agent | Definition | Discipline | Status |
 |---|---|---|---|
 | **Gon** | `claude/agents/gon.md` | **Mission-scoped trusted delegate.** May cross named human gates *only* under an explicit per-run grant. He always asks: **what is the mission · which gates may I cross · under what conditions** — plus when the grant expires and where it is logged. | **Ratified as an agent.** His delegation grammar is **NOT** ratified — see below. |
 | **Hisoka** | `claude/agents/hisoka.md` | **UI/UX review + quality measurement, before a PR is posted.** Cites `UX-1`–`UX-12` by rule id; checks the `UZF-26` visual-evidence set and the Design Direction; measures the cheap objective things — contrast ratios, target sizes, type scale, reduced-motion, artifact delta — on the human's own machine. | **Ratified** |
-| **Phinks** | `claude/agents/phinks.md` | **Adversarial pre-release QA — the proven-finding discipline.** All eight `QA-2` hypothesis classes, a disposition recorded for every one (`QA-3`), and nothing filed that is not proven (`QA-1`): a committed test failing **3/3** against the candidate, or a measured number with its method block. Owns the advisory `Quality-Gate:` line (`QA-21`). | **Ratified** |
+| **Phinks** | `claude/agents/phinks.md` | **Adversarial pre-release QA — the proven-finding discipline.** From `v0.5.0` also a **`hanten` routing target**, pre-PR, on a release-adjacent change set (§ *Rulings*, 6). All eight `QA-2` hypothesis classes, a disposition recorded for every one (`QA-3`), and nothing filed that is not proven (`QA-1`): a committed test failing **3/3** against the candidate, or a measured number with its method block. Owns the advisory `Quality-Gate:` line (`QA-21`). | **Ratified** |
 | **Uvogin** | `claude/agents/uvogin.md` | **Performance tests — the fixed seven metrics, method blocks, baselines.** `QA-11`'s P1–P7 on every pre-release run, with `QA-12`'s pinned tooling, `QA-13`'s regression thresholds and absolute ceilings, `QA-14`'s in-repo baselines, and `QA-15`'s five-field method block. | **Ratified** |
+| **Feitan** | `claude/agents/feitan.md` | **Security, and security only.** The security-bearing scope of an adversarial review: auth flows, secrets and credential handling, network and storage boundaries, data minimisation, the supply chain. Cites the inherited `SEC-{n}` rules **by id, resolved and never remembered** (`SEC-8` and `SEC-14` are referenced in the product repositories), plus a repository's own security notes by path. | **Ratified** on the ruling of 2026-09-09 below; **definition landed at `v0.5.0`** |
+| **Chrollo** | `claude/agents/chrollo.md` | **Architecture and handbook conformance.** The `UZF-{n}` core, **exactly one** resolved stack handbook (`SW-`/`KT-`/`RC-`/`BC-`), and a repository's own architecture notes — KroApple's `.claude/Architecture/` is the live example — each cited by id or by path. He is the architecture reviewer the QA lane routes a coverage-floor breach or a missing unit test to (`UZF-19`). **He reviews the handbooks; he never authors them.** | **Ratified** on the ruling of 2026-09-09 below; **definition landed at `v0.5.0`** |
+| **Illumi** | `claude/agents/illumi.md` | **The long watch — `en`'s step 6, and no other loop.** Read-only observation through `nen watch until`, under `izanagi`'s mandatory cap and `workflow.json` → `monitor`. He wakes Kurapika and acts on nothing: never merges, votes, comments, labels, pushes, or fires a wake. His frontmatter carries no `Edit`, `Write` or `MultiEdit` — **but `Bash` is there, because every observation is a program, so read-only is a stated command allowlist in his own definition and not a property of the tool set.** Said that way rather than dressed up as a construction, per ruling 2's own standard. | **PROVISIONED, NOT RATIFIED** — `OPEN-1`, **partially** closed 2026-09-09. The definition landed at `v0.5.0` so the provision can be executed; **it widens nothing**. See below |
 
 ### ⚠️ Gon's delegation grammar is a DRAFT — **until it is ratified, Gon crosses no gate**
 
@@ -72,8 +79,8 @@ ratified the draft by itself.
 **These are the maintainer's, recorded here because this file is the authority on standing.** Each one closes
 something that was previously open or unstated; each names what it does **not** close. Everything not listed
 below is unchanged — **with one exception, and it is ruling 4's**: the BENCH section is **no longer bench
-only**. Two of its seven profiles, **Chrollo** and **Feitan**, are activated by that ruling (definitions land
-at `v0.5.0`, and until they exist neither may be acted as); **five remain benched** — Machi, Shalnark,
+only**. Two of its seven profiles, **Chrollo** and **Feitan**, are activated by that ruling — **their definitions
+landed at `v0.5.0` and both have moved up into § *The independents***; **five remain benched** — Machi, Shalnark,
 Kortopi, Pakunoda and Shizuku. `OPEN-3` is **partially** closed, not open and not settled. The BENCH section
 below is written to say that, and the OPEN section's `OPEN-3` row with it.
 
@@ -132,9 +139,13 @@ Model choice is by **tier**, from [`../nen/workflow.json`](../nen/workflow.json)
 | **Feitan** | **Security, and security only.** The security-bearing scope of an adversarial review: he is the reviewer `hanten` routes a change to when it touches authentication, credentials, permissions, input trust boundaries or the supply chain. | anything else. A performance question is Uvogin's, a UI question Hisoka's, and Feitan does not take either. |
 | **Chrollo** | **Architecture and handbook conformance.** The architecture scope of an adversarial review, and the citation of a governing rule by its id rather than by memory. | authoring the handbooks. That is Kurapika's Conjurer mode, at **G4**. |
 
-**Their definitions land at `v0.5.0`**, with `hanten`. Until a definition exists in `claude/agents/`, **neither
-may be acted as** — an activation is a decision about standing, not a licence to improvise the agent. Both
-inherit every default: they never merge, never vote, never edit non-test source, and they stop at the gate.
+**Their definitions landed at `v0.5.0`**, with `hanten`: [`claude/agents/feitan.md`](../claude/agents/feitan.md)
+and [`claude/agents/chrollo.md`](../claude/agents/chrollo.md), both on the **deep** tier at effort `high`, both
+listed in `plugin.json`. Until those existed neither could be acted as — an activation is a decision about
+standing, not a licence to improvise the agent — and now that they exist, each is bound by what its own file
+says and by nothing wider. Both inherit every default: they never merge, never vote, never edit non-test
+source, and they stop at the gate. Each hands findings back in `hanten`'s fixed shape — **rule id · severity ·
+evidence · proposed fix** — and an unsettled finding is a **G5**, raised by `hanten`, never by the reviewer.
 
 **What this does not close.** `OPEN-3` asked which of the seven Genei Ryodan profiles activate and when. Two
 are now answered. **Machi, Shalnark, Kortopi, Pakunoda and Shizuku remain bench only**, on the wording below,
@@ -145,8 +156,20 @@ and adopting one is still a deliberate act with its own decision.
 **Illumi is provisioned for `en`'s long watch, and only when one is needed.** `en` is the capped landing
 watch — `izanagi` under `monitor.maxCycles` — and a watch that runs for hours is exactly the shape the
 proposal named: needle control of many bodies at once. Provisioned means *he may be stood up for that work
-when the work exists*; it does not mean a definition exists, and it does not widen to the other loop engines
-(`backlog-loop`, `futon`, `senkei`) that the original proposal also listed.
+when the work exists*, and it does **not** widen to the other loop engines (`backlog-loop`, `futon`,
+`senkei`) that the original proposal also listed.
+
+**His definition landed at `v0.5.0`** — [`claude/agents/illumi.md`](../claude/agents/illumi.md), on the
+**fast** tier at effort `medium` — for one reason: a provision that cannot be executed is a provision in name
+only, and `en` shipped in the same wave. **The file is scoped to exactly the provision and widens nothing**:
+it opens with the unratified warning, it refuses `backlog-loop`, `futon` and `senkei` by name, it carries a
+**stated command allowlist** for the one write-capable tool it must keep, and it acts on no pull request at
+all — it observes and wakes Kurapika. **It is not read-only *by construction*, and the file says so**: `Bash`
+is in its frontmatter because every observation is a program, and an unconstrained `Bash` can push, commit,
+comment and merge whatever the tool list omits. Dropping `Edit`, `Write` and `MultiEdit` closes the shortest
+way round; **the guarantee is the allowlist, and it is a discipline** — named as one here for the same reason
+ruling 2 names which attribution layers actually ship. **Provisioned is still not ratified**, and the row above
+says so.
 
 **What this does not close.** **Killua's row is untouched and remains fully OPEN**, and it must not be
 collapsed into Gon's grammar — if ratification adopts the pairing, `watched` becomes a *mandatory* condition
@@ -155,25 +178,62 @@ Gon's delegation grammar — is untouched**, and until it is ratified Gon still 
 
 ### 6 · Phinks gains a pre-PR trigger at `v0.5.0`
 
-Today Phinks is invoked by hand before a release. From `v0.5.0` he is also a **routing target of `hanten`**:
-a release-adjacent change set gets an adversarial pass **before the PR is posted**, not after. Nothing else
+Phinks is invoked by hand before a release (`QA-20`). **From `v0.5.0` he is also a routing target of
+`hanten`**: a release-adjacent change set gets an adversarial pass **before the PR is posted**, not after —
+`claude/agents/phinks.md` § *The pre-PR trigger* carries it. Pre-PR the finding's home is the working copy
+rather than the tracker, and **the 3/3 floor (`QA-4`) applies to anything filed from it**, with no discount
+for the earlier moment. The trigger has **no inherited clause id**, and inventing one is refused: if canon is
+wanted for it, that is a handbook-question for the rewritten constitution. Nothing else
 about him changes — the proven-finding discipline (`QA-1`), the eight hypothesis classes with a recorded
 disposition each (`QA-2`, `QA-3`), the advisory `Quality-Gate:` line (`QA-21`), and the release gate staying
 the maintainer's. A trigger is a new way to be called, never a new authority.
 
 ---
 
-## 🔶 OPEN — Illumi and Killua
+## Rulings of 2026-09-10
+
+**The release side of the lattice lands at `v0.6.0`, and its spelling is settled.** Recorded here for the
+same reason the rulings above are: this file is the authority on standing.
+
+**`susanoo` (archive and packaging), `kagutsuchi` (non-production deploy or upload, **per target**) and
+`mugetsu` (publication, **per target**, **G3**, `CON-6`) are skills from `v0.6.0`** —
+[`claude/skills/susanoo/`](../claude/skills/susanoo/),
+[`claude/skills/kagutsuchi/`](../claude/skills/kagutsuchi/),
+[`claude/skills/mugetsu/`](../claude/skills/mugetsu/). With them, **four of the five phases of
+§ *Rulings of 2026-09-09*, 1 are files as well as rules** — `aka`, `mukai`, `kagutsuchi` and `mugetsu`.
+**The fifth, the merge, has no file and is owed none**: it is **G2** (`CON-5`), an action no agent in
+this roster performs, so there is no procedure for a skill to carry — only the rule that nobody here
+crosses it. The surface is **thirty-eight skills**.
+Nothing about the phases themselves changes: `kagutsuchi` and `mugetsu` remain the maintainer's own calls,
+one target per call, never reached from a composite — not from `getsuga`, not from `futon`'s `then` clause,
+not from `en` — and Emitter still prepares a release and never publishes one. **A skill is a written phase,
+not a new authority**, which is why the boundary held identically while these three were only names.
+
+**Spelling: `kagutsuchi` is the ruled form.** The maintainer's own writing has carried **"kagutsushi"**;
+the phase is named for 迦具土 / *Kagutsuchi*, and **`kagutsuchi` is what the skill directory, the
+invocation `hatsu:kagutsuchi`, and every document in this repository use**. Recorded rather than silently
+normalised, so that a reader meeting the other spelling in an older note knows it is the same phase and not
+a second one. **`kagutsushi` is not an alias and does not resolve** — there is no second directory, and
+inventing one would put two names on one phase, which is the failure this ruling exists to prevent.
+
+**What this does not close.** `OPEN-1`, `OPEN-2` (Gon's delegation grammar, still a DRAFT — he crosses no
+gate) and `OPEN-3` are untouched. No agent definition changes at `v0.6.0`, and no new independent is
+activated by it.
+
+---
+
+## 🔶 OPEN — Killua, and the rest of Illumi's row
 
 > **These rows are OPEN sub-decisions. The ruling is G4-class and it has not been made.** This is
-> **OPEN-1** of the ratified migration plan, decided when Hatsu's agent definitions are authored — which is
-> now, and it is the **maintainer's** call, not this repository's. What follows is recorded **verbatim as
-> proposals**. Neither agent has a definition in `claude/agents/`, and neither may be acted as.
+> **OPEN-1** of the ratified migration plan, decided when Hatsu's agent definitions are authored — and it is
+> the **maintainer's** call, not this repository's. What follows is recorded **verbatim as proposals**.
+> **Killua has no definition in `claude/agents/` and may not be acted as. Illumi has one, and it covers the
+> ruled half only** — the loop engines below are outside it and he may not be acted as on them.
 
 | Agent | **Proposed** role | Status |
 |---|---|---|
-| **Illumi** | *Proposed:* long-running loop engines (backlog-loop / futon / senkei — needle control of many bodies at once) | **PARTIALLY RULED, 2026-09-09** — provisioned for `en`'s long watch, when one is needed. The rest of the row (backlog-loop / futon / senkei) stays **OPEN**, and no definition exists |
-| **Killua** | *Proposed:* delegate-run watchdog paired with Gon — a Gon mission never runs unwatched — plus fast single-object interventions | **OPEN** |
+| **Illumi** — the unruled half | *Proposed:* the long-running loop **engines**: `backlog-loop`, `futon`, `senkei` (needle control of many bodies at once) | **STILL OPEN.** The ruling of 2026-09-09 provisioned him for `en`'s long watch **and nothing else**; his definition ([`../claude/agents/illumi.md`](../claude/agents/illumi.md)) refuses these three by name |
+| **Killua** | *Proposed:* delegate-run watchdog paired with Gon — a Gon mission never runs unwatched — plus fast single-object interventions | **OPEN** — no definition, and none implied by Illumi's |
 
 **Killua's row touches Gon's grammar and must not be collapsed into it.** If ratification adopts the
 pairing, `watched` becomes a **mandatory** condition on every Gon grant; if it does not, `watched` stays
@@ -188,28 +248,27 @@ open question with nobody deciding it.
 
 ## 🔶 BENCH — the Genei Ryodan
 
-> **Two activated, five benched. `OPEN-3` is partially closed.** The ruling of 2026-09-09 (§ *Rulings*, 4)
-> activated **Chrollo** (architecture and handbook conformance) and **Feitan** (security, and security only),
-> both as `hanten` reviewers — **their definitions land at `v0.5.0`, and until those exist neither may be
-> acted as**. The other **five profiles are bench only, and no activation is implied for them**: which of
-> them activate, and when, remains the open half of `OPEN-3`. A benched row is one of the *extensible
-> professional-profile agents, adopted as needed* — a shape the roster can grow into, not a member of it.
+> **Two activated and departed, five benched. `OPEN-3` is partially closed.** The ruling of 2026-09-09
+> (§ *Rulings*, 4) activated **Chrollo** (architecture and handbook conformance) and **Feitan** (security,
+> and security only), both as `hanten` reviewers; **their definitions landed at `v0.5.0`, so their rows now
+> live in § *The independents* above and are no longer listed here.** The remaining **five profiles are bench
+> only, and no activation is implied for them**: which of them activate, and when, remains the open half of
+> `OPEN-3`. A benched row is one of the *extensible professional-profile agents, adopted as needed* — a shape
+> the roster can grow into, not a member of it.
 
 | Bench member | Professional profile | Standing |
 |---|---|---|
-| **Chrollo** | Architecture | **ACTIVATED 2026-09-09** — architecture and handbook conformance, as a `hanten` reviewer. **Definition lands at `v0.5.0`; until it does, he may not be acted as** |
-| **Feitan** | Security | **ACTIVATED 2026-09-09** — security, and security only, as a `hanten` reviewer. **Definition lands at `v0.5.0`; until it does, he may not be acted as** |
 | **Machi** | Integration surgery | Bench |
 | **Shalnark** | Automation | Bench |
 | **Kortopi** | Scaffolding | Bench |
 | **Pakunoda** | Repo forensics | Bench |
 | **Shizuku** | Cleanup | Bench |
 
-**For the five rows still marked Bench**: none has a definition in `claude/agents/`, none is listed in
-`plugin.json`, and none may be acted as. Adopting one is a deliberate act with its own decision, not a
-consequence of it being written here. **Activation is a decision about standing, not a licence to improvise
-the agent** — which is why Chrollo and Feitan, activated above, still may not be acted as until their
-definitions exist.
+**For the five rows above**: none has a definition in `claude/agents/`, none is listed in `plugin.json`, and
+none may be acted as. Adopting one is a deliberate act with its own decision, not a consequence of it being
+written here. **Activation is a decision about standing, not a licence to improvise the agent** — which is
+why Chrollo and Feitan could not be acted as between the ruling on 2026-09-09 and their definitions landing at
+`v0.5.0`, a gap of one release.
 
 ---
 
@@ -269,9 +328,9 @@ delivered, and a **filed issue** for a substantive finding of the agent's own.
 
 | Item | What is open | Where it is decided |
 |---|---|---|
-| **OPEN-1** | Illumi's and Killua's final roles | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 5): Illumi is provisioned for `en`'s long watch. His other proposed engines, **and the whole of Killua's row, remain OPEN** — a G4-class ruling by the maintainer, **unmade**. |
+| **OPEN-1** | Illumi's and Killua's final roles | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 5): Illumi is **provisioned** for `en`'s long watch, and his definition landed at `v0.5.0` scoped to exactly that. His other proposed engines — `backlog-loop`, `futon`, `senkei` — **and the whole of Killua's row, remain OPEN**: a G4-class ruling by the maintainer, **unmade**. Provisioned is not ratified. |
 | **OPEN-2** | Gon's delegation-grammar clause | **Untouched.** Drafted here; ratified with the P3 constitution in the migration tracker (private). **Until then, Gon crosses no gate.** |
-| **OPEN-3** | Genei Ryodan bench adoption — which profiles activate, and when | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 4): **Feitan** (security only) and **Chrollo** (architecture and handbook conformance) are activated, definitions at `v0.5.0`. The other five profiles remain **bench doc only**, unscheduled. |
+| **OPEN-3** | Genei Ryodan bench adoption — which profiles activate, and when | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 4): **Feitan** (security only) and **Chrollo** (architecture and handbook conformance) are activated; **their definitions landed at `v0.5.0`** and both are now ratified independents. The other five profiles remain **bench doc only**, unscheduled. |
 | **Attribution** | Which trailers a commit may carry | **RULED 2026-09-09** (§ *Rulings*, 2): `Akatsuki-Agent` alone. **Closed.** |
 
 **Nothing above is resolved by reading this document confidently.** Where a row says PARTIALLY RULED, the

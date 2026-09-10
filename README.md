@@ -4,7 +4,7 @@
 credentials.**
 
 One lead persona — **Kurapika**, who names which of six declared work-modes he is holding before he acts —
-plus a small roster of focused independents, and **twenty-seven skills** that take a backlog, a pull request or
+plus a small roster of focused independents, and **thirty-eight skills** that take a backlog, a pull request or
 a release from where it is to the human gate where a person decides. **Every deterministic step that has a
 verb is a verb** from the [**Nen**](https://github.com/zheref/nen) CLI: Nen detects, computes, formats and
 verifies; the skill supplies only the judgment a binary cannot. Where no verb exists yet, the residue is
@@ -12,7 +12,7 @@ verifies; the skill supplies only the judgment a binary cannot. Where no verb ex
 
 No GitHub App. No bot identity. Nothing here merges `main`, publishes a release, or casts a review vote.
 
-> **`v0.4.0`.** Hatsu is the local plane of the Akatsuki system, and it succeeds the local plane of a
+> **`v0.6.0`.** Hatsu is the local plane of the Akatsuki system, and it succeeds the local plane of a
 > predecessor system — the frozen reference implementation — which it also **serves live today**: the
 > original seventeen skills were ported name-for-name and proven against that system's real backlog before
 > `v0.1.0` was cut. The evidence is in [`docs/ab/`](docs/ab/), one file per skill — dated records of the port
@@ -20,7 +20,15 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 > way of working**: ten skills that make the local loop itself explicit, two configuration files that hold
 > every parameter of it ([`nen/contract.json`](nen/contract.json) → `project` and
 > [`nen/workflow.json`](nen/workflow.json)), and two harness hooks — a stop bell and a refusal to commit on
-> the trunk. [`docs/WORKFLOW.md`](docs/WORKFLOW.md) is the authority on all three.
+> the trunk. **`v0.5.0` adds the PR side**: eight more skills — `mukai`, `murasaki`, `hanten`, `gyo`,
+> `kotoamatsukami`, `shibari`, `en` and `jujutsu` — the rename of `drive` to **`sharingan`**, and the three
+> agent definitions that side needs: **Feitan**, **Chrollo** and **Illumi**. **`v0.6.0` closes the release
+> side**: `susanoo` (archive and packaging), `kagutsuchi` (non-production upload, per target) and `mugetsu`
+> (publication, per target, **G3**) — so four of the five phases only you may call have a skill; the
+> fifth is **the merge**, which has none because no agent performs it.
+> **`v0.7.0` adds no skill and adds two surfaces**: the same thirty-eight skills and eight personas,
+> generated into Codex and Cursor layouts under [`surfaces/`](surfaces/) — see [*Surfaces*](#surfaces).
+> [`docs/WORKFLOW.md`](docs/WORKFLOW.md) is the authority on all of it.
 
 ---
 
@@ -60,7 +68,7 @@ claude plugin install hatsu@hatsu
 Confirm what landed:
 
 ```sh
-claude plugin list                  # hatsu@hatsu — Version: 0.4.1
+claude plugin list                  # hatsu@hatsu — Version: 0.7.1
 claude plugin details hatsu@hatsu   # the full component inventory
 ```
 
@@ -168,16 +176,21 @@ is holding, so you can catch him holding the wrong one *before* he acts on it.
 | **Emitter** | **Release & fan-out** — the tag cut, changelog collation, preflight, the repin fan-out. | prepares a release; **never publishes one** |
 | **Specialist** | **Product intake** — a raw thought elicited into a decision-complete brief, filed only on explicit confirmation. | epic approval — **yours** |
 
-### Ratified independents
+### The independents
 
-Four, each with a discipline Kurapika delegates to rather than absorbing.
+**Seven, beside Kurapika: six ratified, and one — Illumi — *provisioned* rather than ratified and marked as
+such.** Each has a discipline he delegates to rather than absorbing. The last three landed at `v0.5.0`, with
+the PR side that needs them.
 
 | Agent | Discipline | Status |
 |---|---|---|
 | **[Gon](claude/agents/gon.md)** | **Mission-scoped trusted delegate.** He always asks: what is the mission · which gates may I cross · under what conditions · when does the grant expire · where is it logged. | **Ratified as an agent. His delegation grammar is a DRAFT — so he crosses no gate.** See below. |
 | **[Hisoka](claude/agents/hisoka.md)** | **UI/UX review and quality measurement, before a PR is ever posted** — the visual-evidence set, and the cheap objective things measured on your own machine: contrast ratios, target sizes, type scale, reduced-motion, artifact delta. | **Ratified** |
-| **[Phinks](claude/agents/phinks.md)** | **Adversarial pre-release QA, under the proven-finding discipline** — every hypothesis class gets a recorded disposition, and nothing is filed that is not proven: a committed test failing 3/3 against the candidate, or a measured number with its method block. | **Ratified** |
+| **[Phinks](claude/agents/phinks.md)** | **Adversarial pre-release QA, under the proven-finding discipline** — every hypothesis class gets a recorded disposition, and nothing is filed that is not proven: a committed test failing 3/3 against the candidate, or a measured number with its method block. **From `v0.5.0` also a pre-PR trigger**, on a release-adjacent change set — a new way to be called, never a new authority, and the 3/3 floor still applies. | **Ratified** |
 | **[Uvogin](claude/agents/uvogin.md)** | **Performance testing** — the fixed seven metrics on every pre-release run, with pinned tooling, regression thresholds, in-repo baselines, and a five-field method block per number. | **Ratified** |
+| **[Feitan](claude/agents/feitan.md)** | **Security, and security only** — auth flows, secrets and credential handling, network and storage boundaries, data minimisation, the supply chain. He cites the inherited `SEC-{n}` rules **by id, resolved from the handbook set and never from memory**, and never runs an exploit against anything live. | **Ratified** 2026-09-09; definition at `v0.5.0` |
+| **[Chrollo](claude/agents/chrollo.md)** | **Architecture and handbook conformance** — the `UZF-{n}` core, **exactly one** resolved stack handbook, and the repository's own architecture notes, each cited by id or by path. He is where a coverage-floor breach or a missing unit test is routed. **He reviews the handbooks; he never authors them.** | **Ratified** 2026-09-09; definition at `v0.5.0` |
+| **[Illumi](claude/agents/illumi.md)** | **The long watch** — `en`'s step 6, when a landing watch must outlive the session that started it. Read-only through `nen watch until`, under the mandatory cap; he wakes Kurapika and acts on nothing. His frontmatter carries no `Edit`, `Write` or `MultiEdit`, and `Bash` — which every observation needs — is held to a **stated command allowlist** in his own definition rather than to a construction. | **PROVISIONED, not ratified** — `en`'s watch **only**; see below |
 
 > #### ⚠️ Gon's delegation grammar is a DRAFT — until it is ratified, Gon crosses no gate
 >
@@ -189,16 +202,16 @@ Four, each with a discipline Kurapika delegates to rather than absorbing.
 > no valid form for one to take.** Gon does the work, takes it to the gate, and stops there, exactly as
 > every agent does by default. A delegate that acts on a draft has ratified the draft by itself.
 
-### 🔶 OPEN — Illumi and Killua
+### 🔶 OPEN — Killua, and the rest of Illumi's row
 
 **These rows are open sub-decisions, and the ruling has been made only in part.** It is the maintainer's, not
-this repository's. What follows is recorded **verbatim as proposals**. Neither has a definition in
-`claude/agents/`, and **neither may be acted as**.
+this repository's. What follows is recorded **verbatim as proposals**. **Killua has no definition and may not
+be acted as; Illumi's definition covers the ruled half only**, and refuses the three engines below by name.
 
 | Agent | *Proposed* role | Status |
 |---|---|---|
-| **Illumi** | *Proposed:* long-running loop engines (backlog-loop / futon / senkei — needle control of many bodies at once) | **Partially ruled 2026-09-09** — provisioned for `en`'s long watch, when one is needed; no definition exists. The rest of the row stays **OPEN** |
-| **Killua** | *Proposed:* delegate-run watchdog paired with Gon — a Gon mission never runs unwatched — plus fast single-object interventions | **OPEN** |
+| **Illumi** — the unruled half | *Proposed:* the long-running loop **engines**: `backlog-loop`, `futon`, `senkei` | **Still OPEN.** The 2026-09-09 ruling provisioned him for `en`'s long watch **and nothing else** |
+| **Killua** | *Proposed:* delegate-run watchdog paired with Gon — a Gon mission never runs unwatched — plus fast single-object interventions | **OPEN** — no definition, and none implied by Illumi's |
 
 **Killua's row touches Gon's grammar and must not be collapsed into it.** If ratification adopts the pairing,
 `watched` becomes a *mandatory* condition on every Gon grant; if it does not, `watched` stays optional or is
@@ -211,28 +224,28 @@ nobody deciding it.
 ### 🔶 BENCH — the Genei Ryodan
 
 *Extensible professional-profile agents, adopted as needed* — a list of shapes the roster can grow into.
-**Two were activated on 2026-09-09** and the other five are bench only, with no activation implied.
+**Two were activated on 2026-09-09 — Chrollo and Feitan — and their definitions landed at `v0.5.0`, so their
+rows now live under *The independents* above.** The five below are bench only, with no activation implied.
 
 | Bench member | Profile | Standing |
 |---|---|---|
-| **Chrollo** | Architecture | **Activated** — architecture and handbook conformance, as an adversarial reviewer. Definition at `v0.5.0` |
-| **Feitan** | Security | **Activated** — security, and security only, as an adversarial reviewer. Definition at `v0.5.0` |
 | **Machi** | Integration surgery | Bench |
 | **Shalnark** | Automation | Bench |
 | **Kortopi** | Scaffolding | Bench |
 | **Pakunoda** | Repo forensics | Bench |
 | **Shizuku** | Cleanup | Bench |
 
-**None of the seven has a definition in `claude/agents/` yet, none is listed in `plugin.json`, and none may
-be acted as** — activation is a decision about standing, not a licence to improvise the agent. For the five
-still on the bench, adopting one remains a deliberate act with its own decision.
+**None of these five has a definition in `claude/agents/`, none is listed in `plugin.json`, and none may be
+acted as** — activation is a decision about standing, not a licence to improvise the agent, which is why
+Chrollo and Feitan could not be acted as between their activation and their definitions landing one release
+later. Adopting another remains a deliberate act with its own decision.
 [`docs/ROSTER.md`](docs/ROSTER.md) § *Rulings of 2026-09-09* is the authority.
 
 ---
 
 ## The skills
 
-Twenty-seven, invoked as `hatsu:<name>`. Longer descriptions in
+Thirty-eight, invoked as `hatsu:<name>`. Longer descriptions in
 [`claude/skills/README.md`](claude/skills/README.md).
 
 ### The seventeen that answer a request
@@ -246,16 +259,16 @@ Twenty-seven, invoked as `hatsu:<name>`. Longer descriptions in
 | `bankai-handbooks` | Resolves which handbooks govern a repo and scenario, and which rule-ID prefix each one owns, so a citation is never improvised. |
 | `bankai-quality` | Resolves the adversarial-test tooling, performance tooling and QA rules for a repo's scenario, before a release is cut. |
 | `build` | Takes one issue from wherever it sits to a delivery PR standing ready at its human gate. |
-| `drive` | Drives one open PR to readiness at its gate and stops there — first blocking condition, threads, wakes. |
 | `file` | Files one well-formed, correctly-labelled, non-duplicate issue — reconciled against the open backlog first. |
 | `futon` | Takes one whole severity band from open issues to PRs with an actor behind them, then **gates** the terminal step you typed — it clears its own gate and hands the cut to `getsuga`; it never cuts a tag itself. |
-| `getsuga` | **Cuts** a release tag locally, end to end — preconditions, one folded release PR, the tag, the fan-out and the consumers' repin PRs. Never publishes a release. |
+| `getsuga` | **Cuts** a release tag locally, end to end — preconditions, one folded **release-proposal** PR you merge, the **post-merge** tag, the fan-out and the consumers' repin PRs. The release unit is `susanoo`'s; publication is `mugetsu`'s. Never publishes a release. |
 | `izanagi` | Repeats a task that **acts** until a condition holds, under a **mandatory** iteration cap. No cap, no run. |
 | `izanami` | Repeats a **read-only** task until a condition holds. It looks, reports, and stops. |
 | `jujisho` | Splits a mixed working copy into up to two stacked branches and PRs, by axis, proving nothing was left behind. |
 | `pr-state` | Reports one PR's readiness as the deterministic gate's verdict, quoted, with the conjunct that failed. Read-only. |
 | `senkei` | Inventories a consuming product repo's own backlog and states a Ready/not-Ready call for every open PR. **It writes as well as reads**: it re-runs failed checks (`nen run rerun-failed`) and fires `bankai:wake/iterate` on a stalled PR. Never merges. |
-| `tensho` | Turns a dirty working copy into one PR, reviewing every file before staging it, then hands that PR to `drive`'s engine to reach its gate. |
+| `sharingan` | Drives one open PR to readiness at its gate and stops there — first blocking condition, threads, wakes. **Renamed from `drive` at `v0.5.0`**; the behaviour is unchanged and `hatsu:drive` no longer resolves. |
+| `tensho` | Turns a dirty working copy into one PR, reviewing every file before staging it, then hands that PR to `sharingan`'s engine to reach its gate. |
 
 ### The ten that *are* the way of working — new in `v0.4.0`
 
@@ -275,11 +288,35 @@ configuration files behind it, and the phases only you can call.
 | `aka` | **atomic** | **Push — yours to call.** Tests → squash the unpushed commits → `ao` → push. No PR, and no agent ever prompts for it. |
 | `ren` | **composite** | **The per-request loop**: `breath` → `rasengan` → `kokusen` → `amaterasu` → `rikugan` → `jutaisho`, looping until you call the next phase. **It never pushes.** |
 
-> **Arriving at `v0.5.0`/`v0.6.0`:** `mukai` (the review-and-PR phase), `murasaki` (pull + push), `en` (the
-> capped landing watch), `hanten` (adversarial review), `gyo` (the coverage bar), `shibari` (opens the PR),
-> `jujutsu` (device pairing), `kotoamatsukami` (end-to-end / UI tests), `susanoo` (archive and packaging),
-> `kagutsuchi` (non-production upload) and `mugetsu` (publication, **G3**) — plus the rename of `drive` to
-> **`sharingan`**. Until a phase has a skill, the boundary still holds: it is named, and the loop stops there.
+### The eight that are the PR side — new in `v0.5.0`
+
+Five atomic, three composite. `mukai` is yours to call; everything else here is something it runs.
+[`docs/WORKFLOW.md`](docs/WORKFLOW.md) § 5 is the authority.
+
+| Skill | | |
+|---|---|---|
+| `hanten` | **atomic** | **Adversarial review, pre-PR.** Classifies the change set by scope and spawns **one reviewer per scope** — UI → Hisoka, security-bearing → **Feitan**, architecture/handbook → **Chrollo**, performance → Uvogin, release-adjacent → Phinks — each titled `hanten · <persona> · <model alias>`, never on the frontier tier. One fixed finding shape: **rule id · severity · evidence · proposed fix**. Kurapika fixes or pushes back with a reason; an unsettled finding is a **G5**. |
+| `gyo` | **atomic** | **The coverage bar.** Touched-file line coverage against the 80/85/90 ladder, reported band by band; adds tests until every touched file clears the `minimum`, and raises a **G5** when one honestly cannot. **It never lowers the bar.** |
+| `kotoamatsukami` | **atomic** | **End-to-end / UI tests.** Runs the declared UI suite where a repository declares one; the re-recorded snapshots are what feeds the evidence table. An unsupported seat is quoted, never routed around. |
+| `shibari` | **atomic** | **Composes and opens the PR** — why, how, what changes for the consumer, how to verify, a diagram where a flow changed, the evidence table, the checklist, `Closes #N`. One PR, from the last pushed commit; requests reviewers and hands it to `en`. Never labels a gate, never merges. |
+| `jujutsu` | **atomic** | **Device pairing.** Walks you through trusting and registering a physical device — iOS: Developer Mode and `devicectl`; Android: USB debugging and `adb` — and lands it as a launch target **through a PR**. It writes the declaration and nothing else. |
+| `murasaki` | **composite** | **Pull + push.** `ao` → `rasengan` + `tsukuyomi` → push, **only if the branch is already published**. Never squashes, never force-pushes. |
+| `mukai` | **composite** | **The review-and-PR phase — yours to call.** `murasaki` → `hanten` → tests + UI tests → `gyo` → evidence → `shibari`, which opens the PR and starts `en`. **Four of the five G5 stops live inside it.** |
+| `en` | **composite** | **The landing watch, capped.** Landing report → `sharingan` → `murasaki` when behind → `sharingan` → `jutaisho` at Ready → watch until merged → the final report. **A watch with no cap does not run**; where one must outlive the session, the watch itself is handed to **Illumi**, read-only. |
+
+### The three that close the release side — new in `v0.6.0`
+
+All three atomic. Two of them are **yours to call, per target** — that is what makes them the last two rows
+of the five. [`docs/WORKFLOW.md`](docs/WORKFLOW.md) § 4 is the authority.
+
+| Skill | | |
+|---|---|---|
+| `susanoo` | **atomic** | **Archive and packaging.** Runs the lane's declared `archive` and produces the distributable **locally**. It uploads nothing and signs nothing — Nen never synthesises signing material — and an unsupported seat is quoted, never routed around. This is the release unit `getsuga` folds into the release PR and the two phases below send. |
+| `kagutsuchi` | **atomic** | **Non-production upload — yours to call, per target.** The plan is always printed (`nen shu deploy --target <name>`, no `--run`); `--run` acts only on your own call **naming the target**, and never from a composite. `--target` is required with no default, even where exactly one destination is declared. |
+| `mugetsu` | **atomic** | **Publication — yours to call, per target, G3.** Only on your recorded per-target go, with the preflight green and the tag already cut. **One target per call**, and never from `getsuga`, `futon` or `en`. This is the only phase that reaches other people's users. |
+
+> **The boundary was always the governance, not the file.** These three were named phases before they were
+> skills, and the loop stopped at them then exactly as it does now.
 
 Plus [`hatsu-warmup`](claude/skills/hatsu-warmup/) — the Nen contract, executing — and the `/kurapika`
 summon command.
@@ -297,6 +334,9 @@ apart is what keeps the second class of mistake visible.
 - **`ren` runs on every request** and never pushes. **Five phases are yours to call, and no agent ever
   prompts for them**: `aka` (push), `mukai` (review and PR), the **merge**, `kagutsuchi` (non-production
   upload) and `mugetsu` (publish, **G3**).
+- **`mukai` is the whole PR side, in a fixed order** — `murasaki`, then `hanten`'s scope-routed review, then
+  the tests and UI tests, then `gyo`'s coverage bar, then the evidence, then `shibari` opening one PR and
+  starting `en`'s capped landing watch. Reviewers advise and never vote; **the merge stays yours**.
 - **Only a genuine G5 interrupts you** — red required tests, touched-file coverage under the ladder's
   minimum, a *semantic* merge conflict, an unsettled adversarial finding, a stuck-PR escalation. Five, and
   nothing else. A stop is `nen stop`'s banner, the report link, and the question asked through your surface's
@@ -362,6 +402,37 @@ who already has access.
 
 ---
 
+## Surfaces
+
+**Hatsu is authored once and read on three agent surfaces.** On Claude Code it is a plugin and nothing else
+is needed. On **Codex** and **Cursor** there is no plugin loader, so the same skills and personas are
+*generated* into each surface's own layout and committed here, and the warm-up places them into the
+repository you are standing in.
+
+| | **Claude Code** | **Codex** | **Cursor** |
+|---|---|---|---|
+| you type | `hatsu:rasengan` | `$rasengan` | `/rasengan` |
+| skills read from | the installed plugin | `.agents/skills/<name>/` | `.cursor/skills/<name>/` |
+| personas read from | `claude/agents/` | `AGENTS.md`, as prose | `.cursor/agents/<persona>.md` |
+| turn-end hook | **yes** | no — the bell rings in-session and says so | no — the same |
+| in-session subagent | **yes** | no — a reviewer is a second `codex exec` run in its own worktree | yes |
+| reviewer tier `deep` | `opus` | `sol` | `grok` — **Cursor-native only** |
+
+Everything the warm-up puts in your repository is excluded through `.git/info/exclude` — **never your
+`.gitignore`**, which is a tracked file of yours and not this plugin's to edit.
+
+The mirrors under [`surfaces/codex/`](surfaces/codex/) and [`surfaces/cursor/`](surfaces/cursor/) are
+**generated, not authored** — `nen surface mirror generate`, one command per surface, every file carrying a
+`GENERATED by nen surface mirror` marker. Edit `claude/skills/<name>/SKILL.md`, regenerate, and commit both;
+[`scripts/surface_mirror_check.sh`](scripts/surface_mirror_check.sh) fails a mirror that has drifted, and
+says *skipped, not passed* on a `nen` too old to carry the verb.
+
+**[`docs/SURFACES.md`](docs/SURFACES.md) is the authority** — what each surface reads, what is generated
+versus authored, the regeneration command, the check, and the exact headless invocation for a validation
+run on each.
+
+---
+
 ## The gates
 
 Hatsu drives work **to** a gate and stops there. **One gate is partially delegated, and exactly
@@ -398,8 +469,9 @@ that already has the plugin installed** — no error, no warning, the fix ships 
 [`scripts/plugin_bump_check.sh`](scripts/plugin_bump_check.sh), wired as the
 [`plugin-bump-check`](.github/workflows/plugin-bump-check.yml) workflow, fails a PR that tries. The guarded
 surface is `.claude-plugin/**`, `claude/**`, `nen/**`, `contracts/**`, `docs/ROSTER.md`,
-`docs/delegation-grammar-DRAFT.md`, `hooks/**`, `templates/**` and `.mcp.json` — everything an installed copy
-reads. Bump
+`docs/delegation-grammar-DRAFT.md`, `hooks/**`, `templates/**`, `surfaces/**` and `.mcp.json` — everything an
+installed copy reads, the generated Codex and Cursor mirrors included, because the warm-up reads those out of
+`$CLAUDE_PLUGIN_ROOT` at run time. Bump
 `version` (patch for wording, minor for behaviour or a new skill, major for a breaking interface change —
 which the minor carries while Hatsu is on `0.x`, SemVer clause 4, the reading applied to nen's own line);
 or, if a change provably cannot affect the shipped surface, write `no plugin bump: <reason>` in the PR
@@ -415,7 +487,12 @@ a human gate, recommended rather than performed here: protect `.github/**` with 
 
 ```sh
 claude plugin validate . --strict
+scripts/surface_mirror_check.sh   # the Codex/Cursor mirrors match their source
 ```
+
+The second writes nothing and needs no credential. It exits `2` — saying so, rather than passing — when the
+`nen` on your `PATH` has no `surface` verb, which is the answer at the currently pinned `v0.3.0`; see
+[`docs/SURFACES.md`](docs/SURFACES.md) § 4.
 
 ---
 

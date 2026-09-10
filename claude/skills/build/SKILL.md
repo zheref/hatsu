@@ -14,10 +14,10 @@ The contract:
 > **Give me an issue; I give you back a PR that is `CON-32`-Ready at its human gate — or a G5
 > stop that says exactly why it could not get there.**
 
-`build` is the issue-shaped verb. Its PR-shaped half is [`drive`](../drive/SKILL.md) —
+`build` is the issue-shaped verb. Its PR-shaped half is [`sharingan`](../sharingan/SKILL.md) —
 **everything after the first PR appears is that skill's engine**: the readiness call
 (`nen pr ready` — see [`pr-state`](../pr-state/SKILL.md)), the unblocking channels and the
-escalation ladder are inherited from it, not restated here. Where the two disagree, `drive` wins
+escalation ladder are inherited from it, not restated here. Where the two disagree, `sharingan` wins
 on PR mechanics and this skill wins on what happens before a PR exists.
 
 > **Declared process change — read this before § 5.** The old skill released a routed issue to a
@@ -65,14 +65,14 @@ nen repo resolve <CODE> --repo <reference-repo checkout>
 case-insensitive (`bc` and `BC` both resolve to `<reference-repo>` — `docs/ab/build.md` § 2.2);
 **an unresolved code is an error and never a guess.**
 
-**If `#<N>` is a PR, hand straight to [`hatsu:drive <CODE>#<N>`](../drive/SKILL.md) and say so.** Since
+**If `#<N>` is a PR, hand straight to [`hatsu:sharingan <CODE>#<N>`](../sharingan/SKILL.md) and say so.** Since
 nen `v0.2.0` **the verb makes this check for you**: `nen issue chain-position` and `nen issue terminus`
 both **refuse (exit `1`)** when `--issue` names a pull request, with the pinned `--json` shape
 `{ issue, refused: true, reason }` (#71, closes zheref/nen#25; `nen issue --help` at `v0.3.0`: *"a
 delivery-chain position is defined only for issues — classifying a PR's labels answers something
 plausible and silently wrong. Ask the `nen pr` family about a pull request"*). So § 2's
 `chain-position` call **is** the issue-vs-PR check: a `refused: true` naming a pull request is the
-signal to hand over to `drive`, not a failure. The raw `gh api repos/<owner>/<repo>/issues/<N> --jq
+signal to hand over to `sharingan`, not a failure. The raw `gh api repos/<owner>/<repo>/issues/<N> --jq
 '.pull_request'` read this port used to perform first is **retired** — it existed only because
 `v0.1.0` answered `routable`/`own-pr` for a real PR (`docs/ab/build.md` § 2.3, a finding this port filed
 and nen closed). Contract-verified against `nen issue --help` and the `v0.2.0` changelog; not exercised
@@ -198,7 +198,7 @@ child:
    verb). Any epic this skill decomposes going forward (§ 2's Gon step) writes its children as
    checkbox lines carrying a resolvable reference, stated to Gon explicitly, or this verb never sees a
    child at all.
-4. **Each child's PR is driven** by [`drive`](../drive/SKILL.md)'s engine to `CON-32` readiness —
+4. **Each child's PR is driven** by [`sharingan`](../sharingan/SKILL.md)'s engine to `CON-32` readiness —
    reported, never eyeballed, via `nen pr ready` (see [`pr-state`](../pr-state/SKILL.md)).
 5. **The delivery PR is the terminus.** Compute it, never infer it:
    ```bash
@@ -343,7 +343,7 @@ classes only**.
 **No `Wake` row.** The retired skill's third row — `bankai:wake/iterate`, fired alone — existed to
 re-fire a *CI builder's* stalled loop. Hatsu has no CI builder for `build` to hold that authority
 over; a wake against some other automated participant on a PR (a stalled review round, say) is
-[`drive`](../drive/SKILL.md)'s authority, not this skill's. Dropping the row here is itself part of the
+[`sharingan`](../sharingan/SKILL.md)'s authority, not this skill's. Dropping the row here is itself part of the
 declared change (§ 1 callout) — say so rather than quietly carrying an authority forward that no
 longer has anything to act on.
 
@@ -359,7 +359,7 @@ longer has anything to act on.
 
 ## 7. When it will not move
 
-There is no CI-wake ladder for an effort Kurapika builds himself — that ladder (`drive` § 6 in the
+There is no CI-wake ladder for an effort Kurapika builds himself — that ladder (`sharingan` § 6 in the
 retired skill) exists to distinguish a builder that never woke from one still working, and Hatsu has
 no builder to distinguish. A stall in Kurapika's own work is reported plainly, in-session: what is
 blocking it, and whether it can be worked around now or needs the maintainer's decision. Where it

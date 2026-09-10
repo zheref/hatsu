@@ -232,3 +232,34 @@ the family's exit codes already distinguish *the tool failed* (`1`), *the declar
 installed* (`5`). Aka needs no additional verb for its first step: the policy — which of those five
 is a G5 and which is a fix — is the skill's, and the facts it decides on are all present. Noted as
 the counter-example to §§ 4.1–4.2: where nen owns a step, it owns it completely.
+
+### 4.5 — Against `git`, not the binary: `ls-remote` answers *published*, it does not deliver the object
+
+**Added 2026-09-10, from the review round on `zheref/hatsu#31`
+([thread](https://github.com/zheref/hatsu/pull/31#discussion_r3976460551)) — not part of the
+2026-09-09 run above, and marked so rather than folded into it.** § 4 of the skill made the SHA that
+`git ls-remote` prints the squash point *directly*, on the strength of it never touching a tracking
+ref. That property is real; the step it was carrying is not. `ls-remote` reads the remote's ref
+advertisement and **transfers no objects**, so a checkout that has never fetched `<branch>` cannot
+reset onto it. Reproduced on 2026-09-10 against a `--single-branch` clone taken over `file://` (a
+local-path clone shares its object store through alternates and hides the failure, which is why the
+transport matters):
+
+```
+$ git ls-remote --heads origin refs/heads/feature
+53e6991660f0ade488ababc8fcda1669a263b48e	refs/heads/feature
+
+$ git cat-file -e 53e6991660f0ade488ababc8fcda1669a263b48e^{commit}
+exit=1                     # the object is not local
+
+$ git reset --soft 53e6991660f0ade488ababc8fcda1669a263b48e
+fatal: Could not parse object '53e6991660f0ade488ababc8fcda1669a263b48e'.
+exit=128
+```
+
+**This is `git` behaving as documented, so nothing is filed against `nen`** — but it lands on `nen wc
+squash` when that verb arrives (brief § 4, P2): a squash verb handed a remote SHA owes the same two
+checks the skill now runs by hand, `cat-file -e` (fetch when absent) and `merge-base --is-ancestor`.
+Recorded here so the P2 verb inherits the requirement rather than rediscovering it. The `ao` and
+`murasaki` uses of `ls-remote` are unaffected — both ask it only *is this branch published*, and
+neither uses the SHA for anything.
