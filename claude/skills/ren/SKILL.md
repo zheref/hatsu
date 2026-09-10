@@ -49,7 +49,7 @@ say so on the first one, so nobody is surprised by the report and the bell at th
 | # | Step | The skill that owns it | Why it is here |
 |---|---|---|---|
 | 1 | **warm up** | [`hatsu:breath`](../breath/SKILL.md) | **first turn of an effort only** — clean tree, fetch, fast-forward, cut the branch from the base, prove the declared checks |
-| 1.5 | **the work** | *no skill — this is the request itself* | write the change the maintainer asked for: the edits, the tests beside them, the docs and changelog the repository's conventions owe. **Unnumbered on purpose** — it is the only step no verb and no skill can own, and the only one whose shape comes from the request rather than from the workflow |
+| 1.5 | **the work** | *no skill — this is the request itself* | write the change the maintainer asked for: the edits, the tests beside them, the docs and changelog the repository's conventions owe. **Half-numbered on purpose** — the six whole numbers are skills, and this is the one step no verb and no skill can own, the only one whose shape comes from the request rather than from the workflow |
 | 2 | **build** | [`hatsu:rasengan`](../rasengan/SKILL.md) | every `iteration.checks` verb, green, **before** anything is committed |
 | 3 | **commit** | [`hatsu:kokusen`](../kokusen/SKILL.md) | triage, ask on what is flagged, one shaped commit — local only |
 | 4 | **launch** | [`hatsu:amaterasu`](../amaterasu/SKILL.md) | build the configured target and start it **from the core working directory** — or, where the repository declares no launch target (Hatsu's own case), record `no launch target declared; skipped` and continue **without asking** |
