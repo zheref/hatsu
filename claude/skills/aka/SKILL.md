@@ -92,6 +92,15 @@ because the failure is unrelated". [`hatsu:jutaisho`](../jutaisho/SKILL.md) § 4
 `nen stop --who Kurapika --gate G5 <efforts.md>`, the report link, lettered options with a ⭐ on the
 report, the question through the surface's own picker.
 
+**An empty configured set is `not applicable`, and aka says so.** Where `tests.required` and
+`tests.extra` are both empty, tsukuyomi reports **`not applicable — no tests configured`** rather
+than green ([`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md) § 4), and **aka carries that word through
+unchanged**: the push report says *"tests: not applicable — no tests configured
+(`nen/workflow.json → tests.required` is empty); nothing was proven here."* It is **not** a G5 — an
+empty required set is not a red suite — and it is **not** a pass. There is nothing to prove, and the
+one thing aka must not do is let *nothing to prove* be read afterwards as *proved*. Hatsu's own
+checkout is this case.
+
 **A test is never patched to pass.** That rule is tsukuyomi's and it is repeated here only because
 this is the step where the temptation lands: the maintainer has already asked for the push.
 

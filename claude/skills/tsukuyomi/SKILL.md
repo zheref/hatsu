@@ -82,12 +82,34 @@ as it finished (`docs/ab/tsukuyomi.md` § 2.3).
 
 | Exit | Fact | Reaction |
 |---|---|---|
-| `0` | the suite ran and passed | next suite; when the list is exhausted, report green **for this run** |
+| `0` | the suite ran and passed | next suite; when a **non-empty** list is exhausted, report green **for this run** |
 | `1` | **red** — the suite ran and failed; the runner's own code is in `steps[].exitCode` | § 6: read what failed, fix the code, re-run. Inside `aka`, an unfixable red is that skill's **G5** |
 | `2` | usage: no declaration, no `project` block, unknown lane, unsatisfied precondition | fix the invocation or the declaration; § 5 for the no-declaration case. An unmet precondition is nen's to assert and never to perform — satisfy it and name it |
 | `3` | the declaration excludes this host | **G5** naming the host that can. Never a retry, and never "the rest passed so it is green" |
 | `4` | a **seat** — the lane declares no such suite | quote the reason verbatim; § 2's disagreement rule |
 | `5` | the runner is not on `PATH` | `nen shu tools --repo <path>`, relay the per-tool remedy |
+
+### An empty configured set is `not applicable`, and never green
+
+**`tests.required` empty and `tests.extra` empty is a legitimate declaration — and nothing ran, so
+nothing passed.** Report it in these words:
+
+> **`not applicable — no tests configured`**, naming `nen/workflow.json → tests.required` as the
+> empty list, and `tests.extra` with it.
+
+Never `green`, never `passed`, never a tick. **Green is a claim about a run; there was no run.** The
+distinction matters because of who reads it: [`hatsu:aka`](../aka/SKILL.md) takes tsukuyomi's word
+as its test proof before a push, and *"green"* would let a push claim a proof that does not exist.
+**`aka` treats `not applicable` as *nothing to prove* and says so in the report** — it does not
+convert it into a pass, and it does not stop for it either: an empty required set is not a red
+suite, and G5 belongs to red.
+
+Hatsu's own `nen/workflow.json` is exactly this case, and says so in its own `$comment`: *"An empty
+`required` is a statement, not an omission."* A repository that ships no automated suite is entitled
+to say so; what it is not entitled to is a green tick for saying it.
+
+This is **not** § 5's case. An empty `tests.required` is a repository that declared no suites; § 5
+is a repository that declared nothing at all, and answers exit `2`.
 
 ## 5. A repository that declares nothing
 
@@ -155,3 +177,6 @@ about the repository, and not tsukuyomi's to report as a test failure.
   and a missing runner is a host that is not set up.
 - **Never runs a test command from memory** in a repository that declares one.
 - **Never reports green from an earlier turn.** Green is a statement about the run that just happened.
+- **Never reports green for an empty configured set.** No required and no extra suites is
+  `not applicable — no tests configured`, naming the empty list (§ 4). Green is a claim about a run,
+  and there was none — a push must not inherit a proof nothing produced.

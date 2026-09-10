@@ -85,7 +85,10 @@ exit `4` and its seat is quoted, not worked around. Hatsu's own `checks` is `["l
 | `extra` | `[]` | `tsukuyomi`, run after `required` and reported separately |
 
 An **empty `required` is a statement, not an omission**: it says this repository has no automated suite, and
-`tsukuyomi` reports that rather than inventing a runner. A test is never patched to pass.
+`tsukuyomi` reports that rather than inventing a runner. **With `required` and `extra` both empty the verdict
+is `not applicable — no tests configured` — never green.** Nothing ran, so nothing passed, and `aka` reads
+that word as *nothing to prove* and says so in the push report rather than converting it into a pass. It is
+not a G5 either: an empty required set is not a red suite. A test is never patched to pass.
 
 ### `coverage` — the ladder
 
