@@ -556,11 +556,15 @@ own branch answers both of those wrongly, and a worktree effort types the first 
 
 It **fails closed** on the five forms where the branch it can see is not the branch the write would land on: a
 line that both changes branch (`switch`, `checkout`, `branch -f|-m|-M`) and writes; a repository-selecting path
-quoted in a form it cannot recover, *including a second quoted `-C` on one segment*; a `git` segment carrying a
+quoted in a form it cannot recover, *including two DIFFERENT quoted paths for one flag anywhere on the line*,
+whether both on one segment or one on each of two, because recovery is line-global and cannot tell whose span is
+whose; a `git` segment carrying a
 `commit`/`push` token alongside a **global option the guard does not know** — an unknown `-…` may or may not
 swallow the token after it, so it is named in the refusal rather than walked past; a `git` segment whose
 subcommand the option walk could not establish for any other reason; and a shell wrapper whose payload cannot
-be read on a line that carries a write token. The script's own header carries the fifty-one cases this was
+be read on a line that carries a write token. The policy it compares against comes from the checkout the branch
+came from — for a bare `--git-dir` aimed at a linked worktree, that worktree's own `nen/workflow.json`, not the
+primary checkout's. The script's own header carries the fifty-seven cases this was
 verified against, and [`ab/guard-base-branch.md`](ab/guard-base-branch.md) carries the transcripts.
 
 **The stop marker** is `hatsu.stop-marker/v0.1`, written by `jutaisho` and read by the hook:
