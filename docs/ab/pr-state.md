@@ -75,9 +75,12 @@ directly against real `<reference-repo>` PRs as part of this port, not a re-run 
 > **Transcript cwd note.** The `--gates contracts/reference.gates.json` in the transcripts below is
 > cwd-relative because every run in this document was executed from the hatsu checkout root, where that
 > path resolves — the commands are pasted as they actually ran, and rewriting them would falsify the
-> record. The **copy/paste-safe form** for any other cwd is the one the skill mandates:
-> `--gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"` — § 2.6 demonstrates the `ENOENT`
-> you get when the relative form leaves this directory.
+> record. The **copy/paste-safe form** for any other cwd is the one the skill mandates *today*:
+> `--gates "$hatsu_root/contracts/reference.gates.json"`, with `$hatsu_root` set in that same shell by the
+> resolver `pr-state` § 2 carries (the § 2.6 dated note below says how the anchor got there). It was
+> `$CLAUDE_PLUGIN_ROOT` when these transcripts were recorded, which is Claude Code's alone and is unset or
+> wrong on Codex and Cursor — historical, not guidance. § 2.6 demonstrates the `ENOENT` you get when the
+> relative form leaves this directory.
 
 ### 2.1 — `nen pr ready`, `--explain`, an open PR with a real failure
 
