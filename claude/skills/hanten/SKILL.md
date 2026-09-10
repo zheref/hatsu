@@ -166,6 +166,11 @@ working in. **Never raise a reviewer into the working copy under review.**
 **Say what was raised, in one line, before the reviews come back**: the scopes, the personas, the
 aliases, and the gaps.
 
+**On Codex and on Cursor the mechanism is different and the rules are the same — § 9a is the table**:
+`deep` resolves to `sol` on Codex and to `grok` on Cursor, a Codex reviewer is a whole second
+`codex exec` run in a worktree because that surface has no in-session subagent, a Cursor reviewer is a
+definition under `.cursor/agents/`, and the frontier tier runs no subagent on any of the three.
+
 ## 5. One fixed finding shape
 
 **Every reviewer returns findings in one shape, and hanten refuses to record anything else:**
@@ -301,6 +306,58 @@ four things, and where it supplies fewer, hanten says which:
 a weaker review and the report says so: the reader must be able to tell a finding raised by a separate
 reviewer from one Kurapika raised against his own diff. It is never presented as the former.
 
+### 9a · The two surfaces Hatsu ships a mirror for
+
+[`docs/SURFACES.md`](../../../docs/SURFACES.md) is the authority on how the personas get onto each
+surface; this is what hanten does with them once they are there.
+
+| | **Claude Code** | **Codex** (`$hanten`) | **Cursor** (`/hanten`) |
+|---|---|---|---|
+| reviewer **tier** (`models.roles.reviewer`) | `deep` | `deep` | `deep` |
+| the alias that tier resolves to | **`opus`** | **`sol`** | **`grok`** — Cursor-native only |
+| how the reviewer is raised | the harness's **Agent tool**, `isolation: "worktree"` | **`codex exec -m sol -C <dir>`** — a *separate process*, in its own directory | a **subagent definition** under `.cursor/agents/<persona>.md`, invoked as that surface documents |
+| where the persona definition lives on that surface | `claude/agents/<persona>.md` | a `## <persona>` section of the generated `AGENTS.md` | `.cursor/agents/<persona>.md` |
+| isolation | a worktree the harness makes | **the directory you pass to `-C`** — make it a `git worktree` first | whatever the surface gives a subagent; **state which** |
+
+**Codex has no in-session subagent, and that is the fact the row above is built on** — verified against
+the CLI on this host rather than remembered (`docs/ab/surfaces.md` § 3.4). `codex exec --help` documents
+`-m, --model`, `-C, --cd <DIR>`, `-s, --sandbox <read-only|workspace-write|danger-full-access>` and
+`-o, --output-last-message <FILE>`; there is no spawn-a-delegate flag anywhere in it. So on Codex a
+reviewer is **a second Codex run**, and the isolation § 4 gets from `isolation: "worktree"` has to be made
+by hand before the run:
+
+```sh
+git worktree add "$rev" HEAD                      # the isolated copy — hanten's own act
+codex exec -C "$rev" -s workspace-write -m sol \
+  -o "$rev/finding.json" "<the scope, the base, the paths, and § 5's required shape>"
+```
+
+`-s workspace-write` is deliberate and is the **narrow** choice: the reviewer may write inside its own
+worktree — a test, a note, the finding document — and reaches nothing outside it. Never
+`--dangerously-bypass-approvals-and-sandbox` for a review; a reviewer that needs to bypass a sandbox to
+read a diff is not reviewing a diff.
+
+**On Cursor the reviewer is a subagent definition, so the model is named where the definition is**, not on
+a command line — `model:` frontmatter in `.cursor/agents/<persona>.md`, mirrored there from
+`claude/agents/` by `nen surface mirror generate` (`model` is one of the five keys that row keeps). The
+per-persona pin § 4 protects survives the mirror: **Hisoka arrives on Cursor carrying `model: sonnet`,
+which is a Claude alias and is not Cursor-native.** That is a real collision, it is named rather than
+papered over, and the rule is § 4's own — a pin that cannot resolve on the surface it landed on is
+**reported as unresolvable and the role's tier is used instead** (`grok`), with the substitution stated in
+the title and in the report. It is never silently honoured and never silently dropped.
+
+**The frontier tier never runs a subagent, on any surface** — `fable`, `astra`, `grok`. On **Cursor the
+frontier and deep tiers name the same alias** (`grok`), so on that one surface the rule cannot be checked
+by reading the alias: it is enforced on the **role**. A reviewer is raised at `models.roles.reviewer`, which
+is `deep`, and is never raised as an orchestrator; that the resulting string happens to equal the frontier
+tier's is a property of Cursor's line-up, not permission to treat a reviewer as one. Say the tier and the
+alias both — *"tier `deep` → `grok` (Cursor-native; `frontier` names the same alias here)"* — so a reader
+of the transcript can tell the two apart.
+
+**The title rule does not change on any surface.** `hanten · <persona> · <model alias>` —
+`hanten · feitan · sol`, `hanten · hisoka · grok (pin sonnet unresolvable on cursor)`. On Codex, where the
+"title" is whatever the transcript records, it goes in the prompt's first line and in the report.
+
 ## Residue
 
 **One boundary, one gap, and no missing verb.**
@@ -321,6 +378,15 @@ reviewer from one Kurapika raised against his own diff. It is never presented as
    where a repository's layout defeats it — and filed (`docs/ab/hanten.md` § 4.2).
 4. **`nen/workflow.json` is unvalidated at `v0.3.0`** — no row in `nen schema check`
    (`docs/ab/rikugan.md` § 2.4). `models` and `reports.dir` are read as data with the defaults stated.
+5. **The worktree a Codex reviewer runs in is hanten's own `git worktree add`** (§ 9a). `codex exec -C`
+   takes a directory and makes none, and no nen verb makes one either — `nen` owns operations, not
+   checkouts. Named residue, on that surface only; on Claude Code `isolation: "worktree"` still does it.
+6. **A persona's `model:` pin does not survive a surface change, and nothing resolves it.**
+   `nen surface mirror generate` carries `model` through to `.cursor/agents/<persona>.md` verbatim —
+   correctly, since it mirrors and does not translate — so Hisoka's `sonnet` arrives on Cursor as a
+   Claude alias in a Cursor-native-only matrix. § 9a's rule (report it unresolvable, fall back to the
+   role's tier, state the substitution) is this skill's, by hand, and it is a **candidate for
+   `nen/workflow.json`** rather than a defect in the mirror.
 
 ## Authority
 
@@ -342,7 +408,11 @@ reviewer from one Kurapika raised against his own diff. It is never presented as
 - **Never raises a subagent on the frontier tier**, and never omits the `<skill> · <persona> · <model
   alias>` title (§ 4).
 - **Never overrides a persona's own model pin** by passing `model` for a persona whose definition
-  carries one (§ 4).
+  carries one (§ 4) — and never *silently honours* one that cannot resolve on the surface it landed on
+  (§ 9a): say it is unresolvable, use the role's tier, and put the substitution in the title.
+- **Never raises a Codex reviewer outside an isolated directory**, and never with
+  `--dangerously-bypass-approvals-and-sandbox`. `git worktree add` first, then `codex exec -C <that dir>
+  -s workspace-write` (§ 9a).
 - **Never raises a reviewer into the working copy under review** — isolation, or the report says the
   isolation was missing (§ 4, § 9).
 - **Never records a finding missing `rule` or `evidence` as a finding** — it is a note (§ 5).

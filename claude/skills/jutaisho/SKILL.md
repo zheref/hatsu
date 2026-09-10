@@ -233,6 +233,75 @@ afplay /System/Library/Sounds/<notifications.sound>.aiff
   in-session."* A maintainer who thinks the hook is working when it is not will eventually miss a
   gate.
 
+## 6. Surfaces — Codex and Cursor have no `Stop` hook, so this skill rings
+
+**§ 3 and § 5 assume a harness that fires a hook when a turn ends. Only Claude Code does.**
+[`hooks/hooks.json`](../../../hooks/hooks.json) is a *Claude Code* manifest — a `Stop` event and a
+`PreToolUse` matcher, discovered by that host at the plugin's own `hooks/` path. **Neither Codex nor Cursor
+reads it, and neither documents a turn-end hook of its own** ([`docs/SURFACES.md`](../../../docs/SURFACES.md)
+§ *What each surface reads*). So on those two surfaces § 5 is not a fallback for a hook that failed to
+install — **it is the only path there is**, and it is taken every time rungs 2–3 are owed.
+
+| Surface | Who fires rungs 2–3 | What this skill does |
+|---|---|---|
+| **Claude Code** | [`hooks/stop-bell.sh`](../../../hooks/stop-bell.sh), off the § 3 marker | writes the marker, and stops |
+| **Codex** (`$jutaisho`) | **this skill, in-session** | writes the marker, then runs `osascript` and `afplay` itself, and says so |
+| **Cursor** (`/jutaisho`) | **this skill, in-session** | the same |
+
+**The order is marker first, then the two rungs — and the marker is still written.** It is not bookkeeping
+for a hook that is not there: it is the record that this stop happened, at what instant, at which gate, and
+whether rung 1 had already fired, and the next thing to read the working copy (a resumed session, a
+`sharingan` pass, the maintainer) reads it. A bell rung with no marker is a bell with no evidence.
+
+```sh
+# 1 · the marker — one verb where the pin allows it
+nen stop --mark --who Kurapika --gate <G1|G1-M|G2|G3|G4|G5> --notified <efforts.md>
+
+# 2 · rung 2, in-session, values sanitised exactly as § 5 requires
+osascript -e 'display notification "<body>" with title "<title>"'
+
+# 3 · rung 3
+afplay /System/Library/Sounds/<notifications.sound>.aiff
+```
+
+> **`nen stop --mark` is real, and it is NOT available at the pinned `0.3.0` — verified live both ways
+> (`docs/ab/surfaces.md` § 4).** At `0.3.0` `nen stop --help` documents `--who`, `--gate`, `--notified`,
+> `efforts.md` and `--template`, and no `--mark`; a build from nen `main` documents it as *"Also write
+> `.nen/last-stop.json` under `--repo` … the ONLY form of this verb that writes."* **So at the pin, § 3's
+> by-hand write stands and this section changes nothing about it** — the residue lapses when the pin moves,
+> and not before.
+>
+> **And when it does move, the two marker shapes do not yet agree.** nen's writes
+> `{ contract: "nen.stop.mark/v0.1", who, gate, notified, at }`; § 3's is
+> `hatsu.stop-marker/v0.1` and carries `title`, `body`, `reportUrl`, `sound` and `rungs` besides.
+> `hooks/stop-bell.sh` reads only `gate` and `title` and falls back to *"A decision is waiting."* when
+> `title` is absent, so nen's marker would ring — **with the generic line, every time**. That is a
+> degradation, not a failure, and it is written down (§ Residue 6) rather than discovered later by a
+> maintainer wondering why every notification says the same thing.
+
+**Whether an ordinary turn escalates at all is still `notifications.turn`'s answer, on every surface**
+(§ 1, § 2). The default `"rung1"` means a Codex or Cursor turn rings the surface's own turn-end line and
+runs neither command below it; only a gate, or a repository declaring `"turn": "all"`, reaches this section
+at all. **A surface without a hook is not a reason to be louder.**
+
+> **`notifications.turn` is still not in nen's workflow schema, and the target has moved from `0.4.0` to
+> `0.5.0` — verified against the shipped loader rather than assumed.** § 2 said it must be admitted "when
+> the loader lands at nen `0.4.0`". The loader landed: `src/schema/workflow.ts` on nen `main` parses
+> `notifications` and states *"A notifications policy's two keys are"* — `rungs` and `sound` — so `0.4.0`
+> came and went **without** `turn`. It is therefore a **nen `0.5.0`** addition, and residue on the pinned
+> `0.3.0` exactly as before: read as data, default `"rung1"`, validated by nothing. Corrected here rather
+> than left standing (`docs/ab/surfaces.md` § 4.2).
+
+**The report says which surface rang, and how.** One line, every time rungs 2–3 fire off a surface with no
+hook: *"Codex: no Stop hook on this surface — rungs 2–3 fired in-session (osascript, afplay); marker written
+by hand at `.nen/last-stop.json` (nen 0.3.0 has no `stop --mark`)."* The maintainer must be able to tell a
+bell the harness rang from a bell the model rang, on every surface, without asking.
+
+**Rung 1 is the surface's own, and it is not this skill's to fake.** Codex and Cursor each end a turn with
+their own signal; that is rung 1, and `nen stop --notified` may be passed **only** if it actually went out
+(§ 2). A surface whose turn-end signal is a line in a terminal nobody is watching has rung rung 1 all the
+same — that is what rungs 2 and 3 are for.
+
 ## Residue
 
 1. **`.nen/last-stop.json` is written by this skill, not by nen** (§ 3). `nen stop` renders the
@@ -245,9 +314,21 @@ afplay /System/Library/Sounds/<notifications.sound>.aiff
    workflow row (verified live, `docs/ab/rikugan.md` § 2.4). § 2's keys are read as data with the
    defaults stated.
 5. **`notifications.turn` does not exist in the `nen.workflow/v0.1` shape the brief sketched** — it
-   is defined by this skill (§ 2) to settle F8, with `"rung1"` the default, and it must be admitted
-   by the workflow schema when the loader lands at nen `0.4.0`. Until then nothing validates it and
-   nothing rejects it, which is exactly why it is written down here rather than relied on silently.
+   is defined by this skill (§ 2) to settle F8, with `"rung1"` the default. **This entry said the
+   workflow schema must admit it "when the loader lands at nen `0.4.0`"; the loader landed at `0.4.0`
+   without it** (`src/schema/workflow.ts`: *"A notifications policy's two keys are"* `rungs` and
+   `sound`), so the target is now nen **`0.5.0`** and this is residue on the pinned `0.3.0` as before —
+   verified live rather than carried forward (`docs/ab/surfaces.md` § 4.2). Until then nothing
+   validates it and nothing rejects it, which is exactly why it is written down here.
+6. **`nen stop --mark` exists from nen `0.4.0` and not at the pin** (§ 6), and its marker is
+   `nen.stop.mark/v0.1` — `{ contract, who, gate, notified, at }` — which is **not** § 3's
+   `hatsu.stop-marker/v0.1`. `hooks/stop-bell.sh` reads `gate` and `title`, so nen's marker rings with
+   the generic *"A decision is waiting."* line. When the pin moves, either the hook learns nen's shape
+   or the skill keeps writing its own; **the choice is a decision, not a default**, and until it is made
+   § 3's by-hand write is what runs.
+7. **No surface but Claude Code has a turn-end hook** (§ 6). That is a fact about those products, not a
+   missing verb — nen shells out to git and gh and owns no notifier on any surface — so it is named here
+   and never filed.
 
 ## Authority
 
@@ -279,3 +360,7 @@ afplay /System/Library/Sounds/<notifications.sound>.aiff
   `hooks/stop-bell.sh`'s rule, not to a looser one for being typed rather than installed.
 - **Never suppresses a real stop** because a turn bell already rang, and never fires a real stop's
   noise twice.
+- **Never rings rungs 2–3 in-session without saying so** (§ 5, § 6). On Codex and Cursor that line is
+  owed on *every* stop, because on those surfaces there is no hook that could have rung them instead.
+- **Never escalates an ordinary turn just because a surface has no hook** (§ 6). `notifications.turn`
+  decides, on all three surfaces, and its default is `"rung1"`.
