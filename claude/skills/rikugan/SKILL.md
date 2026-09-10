@@ -92,9 +92,19 @@ nen report data --repo <path> --base origin/<branch.base> [--tiers <json>] --jso
 ```
 
 `nen report data` is the verb that owns this step and **it does not exist at `v0.3.0`** — verified
-live: `nen report data --repo <path>` exits `2` with *"unknown command 'report'"*
-(`docs/ab/rikugan.md` § 2.2). It is P1 (brief § 4.3), and until it lands the assembly is **named
-residue**, run by hand in this order and reported as by-hand:
+live, exit `2` (`docs/ab/rikugan.md` § 2.2). It is P1 (brief § 4.3), and until it lands the assembly is
+**named residue**, run by hand in this order and reported as by-hand:
+
+> **Quote the refusal the pin actually gives, and it depends on how much of the command you typed.** The
+> *full* invocation above is refused by the **global option parser**, before the command name is ever
+> weighed — *"nen: unknown option `--base`. Known options here: `--cache-dir <value>`, `--help`, `--json`,
+> `--ref <value>`, `--repo <value>`, `--script <value>`, `--source <value>`, `--version`."* — and only the
+> bare `nen report` answers *"nen: unknown command 'report'"*. **Both exit `2` and both mean the same
+> thing**, so the operational conclusion is unchanged; the quoted text is not, and a report that quotes a
+> sentence the binary did not print is a report nobody can check. § 4's `nen report render --template …`
+> is refused the same way, on `--template` (all verified live at this pin; `docs/ab/surfaces.md` § 7, F12).
+> This is the trap `docs/ab/surfaces.md` F5 already records for `--help`: **on an older nen, the option
+> parser speaks first.**
 
 | Field | Residue command | Becomes |
 |---|---|---|
@@ -117,6 +127,23 @@ residue**, run by hand in this order and reported as by-hand:
 > that its commits are `<base>..HEAD` while its files are `<base>...HEAD`, the merge-base diff a pull
 > request shows. A ref that does not resolve is refused by name at exit `2` rather than answered
 > emptily.
+>
+> **On a turn that stopped BEFORE [`hatsu:breath`](../breath/SKILL.md) warmed the checkout, this rule is
+> the only thing standing between the page and nonsense — and it is exactly the turn most likely to skip
+> it.** A stopped turn still owes a report ([`hatsu:ren`](../ren/SKILL.md) § 2: the turn ends where it
+> refused, and steps 5 and 6 still run), and at that moment the local trunk has *not* been fast-forwarded
+> — measured in one headless run at **72 commits** stale, so `main...HEAD` produced a delta with nothing to
+> do with the effort (`docs/ab/surfaces.md` § 7, F14). So:
+>
+> - **Use `origin/<branch.base>` whether or not the warm-up ran**, and where even the fetch was refused,
+>   use the newest `origin/<base>` this checkout already has.
+> - **Name the ref on the page**, with the SHA `git rev-parse --short origin/<base>` printed, so a reader
+>   can see what the delta was measured against. **04 Architecture delta** on a stopped turn is very
+>   often *empty*, and an empty delta named against a ref is a fact; a large delta against an unnamed
+>   stale trunk reads as this effort's work and is not.
+> - **Where no comparison ref resolves at all** — a fresh clone with no `origin/<base>`, a fetch the
+>   sandbox refused — say so on the page in those words and leave the section empty. An unmeasured delta is
+>   reported as unmeasured, never rendered from whatever ref happened to resolve.
 
 **Three companion verbs are missing with it, and each is its own residue** — verified live at
 `v0.3.0`, all exit `2` (`docs/ab/rikugan.md` § 2.2):
@@ -483,9 +510,10 @@ report never suppresses one.
 
 Everything here is named, and every entry is a verb this repository expects at `v0.4.0`:
 
-1. **`nen report data`** — the whole family is absent at `v0.3.0` (exit `2`, *"unknown command
-   'report'"*). § 3's table is the by-hand assembly, run as `git log` / `git diff --name-status` /
-   `git diff --name-only` and reported as by-hand.
+1. **`nen report data`** — the whole family is absent at `v0.3.0` (exit `2`; the *bare* `nen report` says
+   *"unknown command 'report'"*, the **full** documented invocation is refused earlier on
+   *"unknown option `--base`"* — § 3). § 3's table is the by-hand assembly, run as `git log` /
+   `git diff --name-status` / `git diff --name-only` and reported as by-hand.
 2. **`nen report render --template`** — absent with it. § 4 fills `templates/rikugan.html` by hand,
    same template, same tokens, same bytes for the same data — **and the escaping the verb would do
    by default is this skill's own job on that path**: escape `& < > " '` in every value written,
