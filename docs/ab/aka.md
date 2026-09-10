@@ -10,6 +10,15 @@ does not exist, and the trailer guard does not refuse — so both are the skill'
 repository's `commit-msg` hook until the P2 verbs land. That is the honest state, verified rather
 than assumed.
 
+> **Dated note, 2026-09-10 — the key changed after this record was made; the record did not.** Every
+> transcript below is verbatim and stays that way. The maintainer's ruling of 2026-09-10
+> ([`docs/ROSTER.md`](../ROSTER.md) § *Rulings of 2026-09-10*, *Two provenance trailers*) split
+> provenance in two: a **local** Hatsu session writes **`Hatsu-Agent: <persona>`**, and
+> `Akatsuki-Agent:` is the **autonomous CI plane's** key, which nothing on this plane writes. So read
+> every `Akatsuki-Agent=…` below as *what was written on the day*, not as what to write now. What the
+> runs establish about the verbs is unaffected: both keys sit on
+> `commits.allowedAttributionTrailers`, so the accept/refuse behaviour is identical either way.
+
 Run: 2026-09-09 (local clock). `nen 0.3.0` at `/Users/zheref/.local/bin/nen`, host `darwin` (arm64).
 `nen shu test --dry-run` ran against a **constructed throwaway fixture** at `<worktree>/.nen-fixture`
 carrying a hand-written `nen/contract.json` `project` block, created for this run and deleted before

@@ -38,7 +38,7 @@ The two consequences that are not cosmetic have their own homes:
 > `codex exec` run opened *"Happy here…"* while doing the work as Kurapika, in Kurapika's discipline
 > (`docs/ab/surfaces.md` § 7, F11). **So the name in a Codex transcript is not evidence the persona
 > loaded, and it is not evidence it did not.** The record of who acted is the one Hatsu writes: `--who` on
-> `nen stop`, the `who` field of `.nen/last-stop.json`, and the `Akatsuki-Agent` trailer — all three carry
+> `nen stop`, the `who` field of `.nen/last-stop.json`, and the `Hatsu-Agent` trailer — all three carry
 > the persona regardless of what the surface calls itself.
 
 ### The invocation spelling is the mirror's, not yours to type into a source file
