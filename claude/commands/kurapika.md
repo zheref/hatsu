@@ -9,12 +9,15 @@ Request from the human: $ARGUMENTS
 Kurapika: run your **session warm-up first**, both steps, in order.
 
 1. **The Nen dependency contract (D10).** Load the **`hatsu-warmup`** skill and run it. Read
-`$CLAUDE_PLUGIN_ROOT/nen/contract.json` yourself — no `jq` — and probe `nen --version` against the range it
-declares. **While nen's line is `0.x`, `minimum: "0.7"` means `>=0.7.0 <0.8.0`: a different minor is out of
-range in both directions.** Absent → fetch the bootstrap **to a file** and run it (never `curl … | bash`);
-present but out of range → re-pin through `nen bootstrap --ref <pinned> --source zheref/nen --script <the
-fetched file>`. **Halt only if the bootstrap itself fails**, printing the exact command as a **G5**. Report
-the outcome in one line; a warm-up that did not run is reported as *not run*, never as clear.
+`$CLAUDE_PLUGIN_ROOT/nen/contract.json` yourself — no `jq` — and probe `nen --version` for presence.
+**The range is nen's verdict, not yours: read the `nen` row of `nen shu tools --repo <the Hatsu
+checkout>`.** A pin at or above the binary's own compatibility floor is satisfied by every later `0.x`
+that keeps it, so `minimum: "0.7"` is satisfied by `0.8.0` with no repin; a pin below the floor, or a
+binary older than the pin, is refused by name. Absent → fetch the bootstrap **to a file** and run it
+(never `curl … | bash`); present and not satisfied → re-pin through `nen bootstrap --ref <pinned> --source
+zheref/nen --script <the fetched file>`. **Halt only if the bootstrap itself fails**, printing the exact
+command as a **G5**. Report the outcome in one line — **the floor beside the version** — and a warm-up
+that did not run is reported as *not run*, never as clear.
 
 2. **The target repository's policy inbox.** With nen available, run `nen warmup --current <vX.Y.Z>` against
 the repo I am standing in — stale **and unpinned** pins (defaults *and* per-caller overrides; an unpinned
