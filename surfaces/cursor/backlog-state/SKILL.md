@@ -215,7 +215,7 @@ surface ... in a repository whose product is its process, that is a policy chang
 *"the diff touches policy/spec (schemas/), which only the human merges."* Both match the tree above exactly, computed rather than eyeballed.
 
 **`--policy-paths` is a literal, and the taxonomy directory under it moved.** A target's four
-taxonomy files live canonically under `nen/`, and **at the pinned nen `0.6.0` the `schemas/` fallback
+taxonomy files live canonically under `nen/`, and **at the pinned nen `0.7.0` the `schemas/` fallback
 is REMOVED** — a repository carrying a file only under `schemas/` is refused exactly like one
 carrying it nowhere, with the refusal naming the migration (`nen scaffold init --accept-detected`).
 **That changes what nen resolves and changes nothing here**, because a prefix handed to `gate derive`

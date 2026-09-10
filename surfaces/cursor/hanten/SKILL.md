@@ -512,7 +512,7 @@ of the transcript can tell the two apart.
    cannot be declared per repository. Read as this skill's default, stated every run, corrected by hand
    where a repository's layout defeats it — and filed (`docs/ab/hanten.md` § 4.2).
 6. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
-   an `ok  nen/workflow.json` row at the pinned `v0.6.0` (`docs/ab/rikugan.md` § *Retired at nen 0.5*).
+   an `ok  nen/workflow.json` row at the pinned `v0.7.0` (`docs/ab/rikugan.md` § *Retired at nen 0.5*).
    `models` is an OPEN map nen preserves and validates nothing inside, so the matrix stays this skill's
    own read — which is a read, not a residue.
 5. **The worktree a Codex reviewer runs in is hanten's own `git worktree add`** (§ 9a). `codex exec -C`

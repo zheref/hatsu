@@ -57,7 +57,7 @@ clause means the same thing in both.
 | `tests.required` | the suites § 5 must see green | `["test"]` |
 | `tests.extra` | suites run alongside them, not gating | `[]` |
 
-`nen schema check --repo <path>` VALIDATES this file at the pinned `v0.6.0` — verified live, the row
+`nen schema check --repo <path>` VALIDATES this file at the pinned `v0.7.0` — verified live, the row
 reads `ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}'
 off 'main', checks: lint`. A malformed key is a FAIL **by pointer**, so this skill no longer checks
 the shape by eye; it reads the values, and states the defaults whenever they are what applied.
@@ -198,7 +198,7 @@ the caller continues from; invoked alone, it is the end of the run.
    parsed `{tests[], passed, failed, skipped}` document, and the counts are read off it rather than
    restated from memory.
 5. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
-   an `ok  nen/workflow.json` row at the pinned `v0.6.0`. § 2's keys are still read here; reading a file
+   an `ok  nen/workflow.json` row at the pinned `v0.7.0`. § 2's keys are still read here; reading a file
    is not residue.
 
 Each is run in the open and reported as by-hand, per the Nen-first rule's second half

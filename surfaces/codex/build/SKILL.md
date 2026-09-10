@@ -94,12 +94,40 @@ building=bankai:stage/building,in-review=bankai:stage/in-review,epic=bankai:epic
 `--chain-labels` is caller data — `<reference-repo>`'s own label names for each chain role, read from its
 `nen/labels.json`, never guessed. Its taxonomy carries **no `chore` label** at all (verified:
 `gh label list` names none) — omit the `chore=` entry; that is this repository's own fact, not a
-gap in the verb. **Supply every role your repo actually uses.** Verified live, an incomplete map is
-refused outright rather than half-answered: with no `--chain-labels` at all, a real `in-review`
-issue (`<reference-repo>#918`) comes back `undecidable: role(s) building, in-review, idea, epic
-were never mapped … a run that reads a building issue as routable releases it twice` (exit `1`) —
-and an unknown role name in the map (`bogus=foo`) is refused outright at exit `2` (`docs/ab/build.md`
-§ 2.7). Never guess past either refusal.
+gap in the verb. Verified live, an incomplete map is refused outright rather than half-answered:
+with no `--chain-labels` at all, a real `in-review` issue (`<reference-repo>#918`) comes back
+`undecidable: role(s) building, in-review, idea, epic were never mapped … a run that reads a
+building issue as routable releases it twice` (exit `1`) — and an unknown role name in the map
+(`bogus=foo`) is refused outright at exit `2` (`docs/ab/build.md` § 2.7). Never guess past either
+refusal.
+
+> ### RETIRED at nen `0.7`: supplying a placeholder for a role this repository does not have
+>
+> **Four of the eight roles can refuse a verdict, and four cannot — and `--help` says which**
+> (`zheref/nen#55`, verified live at the pinned `0.7.0`; `docs/ab/build.md`
+> § *Retired at nen 0.7*):
+>
+> ```text
+> FOUR OF THE EIGHT CAN REFUSE A VERDICT and the other four cannot:
+> building, in-review, idea and epic decide whether an issue that matched
+> nothing is really 'routable', so an unmapped one is 'undecidable' rather
+> than a guess. researched, approved-team, approved-direct and chore are
+> reported under unmappedRoles when absent and never block an answer …
+> ```
+>
+> Through the pinned `v0.6.0` the refusal named roles without saying which ones mattered, so a caller
+> reasonably concluded it had to supply the full eight-role map on every call — **including a
+> placeholder for a role its own taxonomy genuinely lacks**, which is the one thing a taxonomy check
+> exists to prevent. **So: map `building`, `in-review`, `idea` and `epic` — those four are the ones
+> whose absence turns a matched-nothing issue into `undecidable` — and omit any of the other four
+> this repository does not have.** An omitted one comes back under `unmappedRoles` and blocks
+> nothing, which is why `chore=` above is an omission rather than a gap.
+>
+> **What is NOT added is partial credit on the undecidable branch**, and that is deliberate: every
+> position a mapped role positively matches is decided and returned *before* the critical-role check
+> is consulted, so partial credit already applies wherever the labels answer the question. What
+> remains is the one branch where an issue matched nothing — and there a partial answer is exactly
+> the wrong answer, because reading a `building` issue as `routable` releases it twice.
 
 This one call replaces the old skill's "decide from labels, body and linked objects, never the
 title" prose. Its seven reported states map onto the same first moves, verified live against real
@@ -185,7 +213,10 @@ child:
    (stderr warning plus `unparsed[]` in `--json`), never counted as a phantom child. A child releases
    only when every declared blocker is a known, checked sibling; a duplicate child id, or a checklist
    with checkbox lines none of which resolves, refuses at exit `1` rather than guessing (verified live).
-   **`--body-file` and `--out` resolve against the process cwd, not `--repo`** — pass absolute paths.
+   **`--body-file` and `--out` resolve against `--repo`'s root from nen `0.7`**, not the process's cwd
+   (`zheref/nen#100`) — verified live against a decoy of the same relative name in the calling
+   directory, which `v0.6.0` read and `0.7.0` does not (`docs/ab/senkei.md` § *Retired at nen 0.7*).
+   An absolute path is still used as-is.
    **`--out` only rewrites the local file** — posting the redrawn body back to the real epic issue is a
    plain `gh issue edit <epic-N> --repo <owner/name> --body-file epic-body-out.md`, since no `nen` verb
    owns writing an issue body back to GitHub (residue, § 11).
