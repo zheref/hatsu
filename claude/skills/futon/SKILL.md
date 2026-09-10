@@ -257,7 +257,12 @@ nen pr ready <CODE>#<N> --repo <path> --gates "$CLAUDE_PLUGIN_ROOT/contracts/ref
 file of its own — no `nen/gates.json`; and since nen `v0.2.0`
 a relative `--gates` resolves against `--repo`'s root rather than the cwd, so only an absolute path
 reaches a file that lives in *this* plugin's checkout — [`hatsu:pr-state`](../pr-state/SKILL.md) § 2
-has the live transcript); a repo that ships its own `nen/gates.json` needs no `--gates` flag. **Verified live against both of `<reference-repo>`'s
+has the live transcript); a repo that ships its own `nen/gates.json` needs no `--gates` flag. **This is
+[`sharingan`](../sharingan/SKILL.md) § 4's identity rule, cited rather than restated**: `<reference-repo>`
+is the one target this reference file is for; any OTHER target with no `nen/gates.json` gets
+`--reviewers` supplied by hand from its `CODEOWNERS` or the PR's own requested reviewers — a
+repository is never judged by another repository's reviewers — and, with no `--approvers` given, the
+approve row's pass is **vacuous** and is said so on the page. **Verified live against both of `<reference-repo>`'s
 real open PRs**, contrasting a Ready maintainer-authored PR against a not-Ready pre-existing CI one
 (`docs/ab/futon.md` § 4):
 

@@ -125,6 +125,16 @@ line), so the report itself says which file decided.
   `nen/gates.json` needs no `--gates` flag at all**; this one
   is `<reference-repo>`-specific plumbing, not a general rule. `--gates` itself **never** falls back to
   either taxonomy location: a path you hand it is taken literally.
+- **This is one row of an identity rule that [`sharingan`](../sharingan/SKILL.md) § 4 states in full,
+  and that skill is authoritative — cited here, not re-copied.** The short form: a target's own
+  `nen/gates.json` wins where one exists; `<reference-repo>` (frozen, ships none) is the one target this
+  `contracts/reference.gates.json` file is for; every OTHER target that ships no gates file gets
+  `--reviewers <a,b,c>` supplied by hand — read off its `CODEOWNERS` or the PR's own requested
+  reviewers, never this file, because a repository must never be judged by another repository's
+  reviewers. Whichever identities were substituted are named on the page. And where no `--approvers`
+  is given, `nen pr ready`'s row 5 passes **vacuously** (no approving reviewer to fail it) — state that
+  in the reader's own words, *"nobody has approved this pull request,"* rather than let a `ready`
+  verdict standing on an empty approver set read as a reviewed one.
 - **`--explain`** renders the conjunct-by-conjunct table in evaluation order, short-circuit rows
   included, plus the fixed "what the gate does NOT decide" caveats — all computed and printed by the
   verb itself; see § 3. Add `--json` instead when a caller needs the same content structured
