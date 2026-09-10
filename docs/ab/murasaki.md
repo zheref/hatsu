@@ -6,6 +6,13 @@ to put the base underneath, [`rasengan`](../../claude/skills/rasengan/SKILL.md) 
 if the branch was already published**. Never squashes, never force-pushes, never first-publishes, never
 opens a PR.
 
+> **Dated 2026-09-10 — step 2's owner changed after this record was written.** The header line above
+> credits `rasengan` with proving the merged tree. The maintainer's ruling of 2026-09-10
+> ([`../ROSTER.md`](../ROSTER.md)) makes `rasengan` the **authoring** phase, so murasaki runs the
+> declared `iteration.checks` over the merged tree as its own step (`SKILL.md` § 5) and hands a red
+> one to `rasengan` to be authored. The verb exercised is the same `nen shu build [--lane]` recorded
+> below, at the same exit codes; only the phase that calls it changed.
+
 **A new skill, so there is no "old mechanics" column.** What this record establishes is that the one
 `nen` verb that would own murasaki's first and third steps — `nen pr cascade-main` — **fuses them**, and
 that the flag which would separate them does not exist at the pinned `0.3.0`. Step 2 has to run *between*

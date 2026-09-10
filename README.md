@@ -293,16 +293,16 @@ configuration files behind it, and the phases only you can call.
 
 | Skill | | |
 |---|---|---|
-| `breath` | **atomic** | **Warm-up, once per effort.** On the base branch and clean: fetch, fast-forward, cut `{model}/{persona}/{descriptor}` from the fresh trunk, prove the declared iteration checks. Asks only on a dirty tree; never discards a tree it has not inspected. |
-| `rasengan` | **atomic** | **Build, before every commit.** Runs every declared iteration check through the lane's own verb. A red build is fixed, never committed over; an unsupported seat is quoted, never routed around. |
-| `kokusen` | **atomic** | **The automatic local commit.** Build green, then staging triage with an **ask on every flagged file** and never a secret, then the formatted message. Commits, and only commits. |
+| `breath` | **atomic** | **Warm-up, once per effort.** On the base branch and clean: fetch, fast-forward, cut `{model}/{persona}/{descriptor}` from the fresh trunk, then prove the declared iteration checks **on that fresh tip** — a base that does not build stops the effort before any of it is written. Asks only on a dirty tree; never discards a tree it has not inspected. |
+| `rasengan` | **atomic** | **The change itself — the authoring phase.** Reads the request, resolves the stack from the declaration, plans and writes the change on the branch `breath` cut, running the declared iteration checks as its own feedback while it works. It commits nothing, stays inside the request's scope, and **never lowers a bar** to make a check pass. |
+| `kokusen` | **atomic** | **Verify, then commit — automatically, locally.** The declared iteration checks over the finished tree (**the compile-before-commit is here**), red refused with the failing check quoted; then staging triage with an **ask on every flagged file** and never a secret, then the formatted message. Commits, and only commits. |
 | `amaterasu` | **atomic** | **Launch, every turn.** Builds the configured target and starts it **from your working directory, never a worktree**. A disconnected device is reported by name. |
 | `tsukuyomi` | **atomic** | **Tests health.** Runs the required suites, parses the results, fixes and re-runs — or stops at **G5**. It never patches a test to make it pass. |
 | `rikugan` | **atomic** | **The rich report** — turn, landing, final — rendered from an HTML template, never markdown. Only the final one is written to the git-ignored `Reports/`. |
 | `jutaisho` | **atomic** | **The bell.** Rings the notification ladder you declared, and drops the marker the `Stop` hook reads. |
 | `ao` | **atomic** | **Pull from the base.** Rebase if unpushed, merge if not; mechanical conflicts resolved, a **semantic** one raised as a **G5** with both sides shown. Never pushes. |
 | `aka` | **atomic** | **Push — yours to call.** Tests → squash the unpushed commits → `ao` → push. No PR, and no agent ever prompts for it. |
-| `ren` | **composite** | **The per-request loop**: `breath` → `rasengan` → `kokusen` → `amaterasu` → `rikugan` → `jutaisho`, looping until you call the next phase. **It never pushes.** |
+| `ren` | **composite** | **The per-request loop**: `breath` (prove the base) → `rasengan` (author the change) → `kokusen` (verify, then commit) → `amaterasu` → `rikugan` → `jutaisho`, looping until you call the next phase. **It never pushes.** |
 
 ### The eight that are the PR side — new in `v0.5.0`
 
@@ -316,7 +316,7 @@ Five atomic, three composite. `mukai` is yours to call; everything else here is 
 | `kotoamatsukami` | **atomic** | **End-to-end / UI tests.** Runs the declared UI suite where a repository declares one; the re-recorded snapshots are what feeds the evidence table. An unsupported seat is quoted, never routed around. |
 | `shibari` | **atomic** | **Composes and opens the PR** — why, how, what changes for the consumer, how to verify, a diagram where a flow changed, the evidence table, the checklist, `Closes #N`. One PR, from the last pushed commit; requests reviewers and hands it to `en`. Never labels a gate, never merges. |
 | `jujutsu` | **atomic** | **Device pairing.** Walks you through trusting and registering a physical device — iOS: Developer Mode and `devicectl`; Android: USB debugging and `adb` — and lands it as a launch target **through a PR**. It writes the declaration and nothing else. |
-| `murasaki` | **composite** | **Pull + push.** `ao` → `rasengan` + `tsukuyomi` → push, **only if the branch is already published**. Never squashes, never force-pushes. |
+| `murasaki` | **composite** | **Pull + push.** `ao` → the declared iteration checks on the merged tree + `tsukuyomi` → push, **only if the branch is already published**. A red merged tree goes to `rasengan` to be authored. Never squashes, never force-pushes. |
 | `mukai` | **composite** | **The review-and-PR phase — yours to call.** `murasaki` → `hanten` → tests + UI tests → `gyo` → evidence → `shibari`, which opens the PR and starts `en`. **Four of the five G5 stops live inside it.** |
 | `en` | **composite** | **The landing watch, capped.** Landing report → `sharingan` → `murasaki` when behind → `sharingan` → `jutaisho` at Ready → watch until merged → the final report. **A watch with no cap does not run**; where one must outlive the session, the watch itself is handed to **Illumi**, read-only. |
 

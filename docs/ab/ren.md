@@ -4,6 +4,15 @@
 `breath`¹ (first turn) → `rasengan`² → `kokusen`³ → `amaterasu`⁴ → `rikugan`⁵ → `jutaisho`⁶ — one
 pass per request, never pushing, ending only on `hatsu:aka` or `hatsu:tensho`.
 
+> **Dated 2026-09-10 — the turn's order changed after this record was written.** The header line
+> above reads step 2 as `rasengan`-the-build, and the record's own § 2 table calls it *build*. The
+> maintainer's ruling of 2026-09-10 ([`../ROSTER.md`](../ROSTER.md) § *Rulings of 2026-09-10*) folds
+> that step into `rasengan`, which is the **authoring** phase, and seats the compile-before-commit in
+> `kokusen`. The order is now six whole steps: `breath`¹ (and it proves the base tip) → `rasengan`²
+> (author the change) → `kokusen`³ (verify the tree, then commit) → `amaterasu`⁴ → `rikugan`⁵ →
+> `jutaisho`⁶. The transcripts below are untouched and still stand — they are evidence about
+> `nen parse`, `nen watch until` and `nen loop slots`, none of which this ruling touches.
+
 **A new skill, and a composite one, so this record is shaped differently from the atomic four.**
 Ren restates no protocol: every deterministic step inside a turn belongs to a composed skill and is
 evidenced in *that* skill's A/B file. What this document has to establish is only what is genuinely

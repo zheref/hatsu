@@ -4,6 +4,13 @@
 check the host toolchain, fast-forward the trunk, cut this effort's branch from its fresh tip, prove
 the declared build on it.
 
+> **Dated 2026-09-10 — the base-tip proof is explicit now.** Row 6 of § 1 below hands anything in
+> `iteration.checks` beyond `build` to `hatsu:rasengan`. Under the maintainer's ruling of 2026-09-10
+> ([`../ROSTER.md`](../ROSTER.md)) `rasengan` is the **authoring** phase, so breath runs those
+> remaining entries itself, on the branch it just cut — and states what they are a verdict on: **the
+> base tip**, before a line of the change is written. A red one is a **G5** stop and is never repaired
+> inside the effort (`SKILL.md` § 6). Same verbs, same exit table, same transcripts below.
+
 **This is not a port.** There is no retired skill behind it and no "old mechanics" column to compare
 against: `breath` is phase one of the `ren` composite, and the shape it replaces is the thing every
 session used to do by hand at the top of a turn — `git status`, `git fetch`, `git checkout -b`, and a

@@ -335,9 +335,11 @@ that's a problem"* is an **unsettled** finding, and § 7 is what happens to it.
 request body through [`/shibari`](../shibari/SKILL.md). A review whose disagreements are not
 written down is a review that gets had again.
 
-**Fixes are proved before the run ends.** A `fixed` disposition that has not been through
-[`/rasengan`](../rasengan/SKILL.md) is a claim; [`/mukai`](../mukai/SKILL.md) runs the
-suites at its next step, and a fix that broke one is that step's finding.
+**Fixes are proved before the run ends.** A `fixed` disposition whose tree has not been back through
+the declared `iteration.checks` is a claim — the fix is authored by
+[`/rasengan`](../rasengan/SKILL.md) and proved by the checks, not by having been written;
+[`/mukai`](../mukai/SKILL.md) runs the suites at its next step, and a fix that broke one is that
+step's finding.
 
 ## 7. An unsettled finding is a **G5**
 

@@ -1,44 +1,90 @@
 ---
 name: rasengan
-description: Run this repository's declared iteration checks — the build, and whatever else `workflow.json` lists — through the verbs the repository states, and report each one's exit code as a fact rather than an impression. Runs automatically before every commit and inside `murasaki`; invoke `hatsu:rasengan` by name to re-verify a checkout on demand. A red build is fixed here and never committed over, and no check is ever run from a remembered command line.
+description: Author the change the request actually asks for, on the stack this repository declares — read the request, resolve the stack from `nen/contract.json`, plan the change, implement it, and keep the inner loop honest by running the declared iteration checks as your own feedback while you write. Runs as phase two of `ren`, on the branch `breath` cut and before `kokusen` verifies and commits; invoke `hatsu:rasengan` by name to resume authoring on an effort already warmed. It commits nothing, pushes nothing, never edits outside the request's scope and never lowers a bar to make a check pass.
 ---
 
-# Rasengan — the iteration checks, spun up from the declaration
+# Rasengan — the change itself, spun up on the repository's own stack
 
-**Nature: Transmuter** carries every run: rasengan executes declared machinery and reports what it
-did. It authors nothing and decides nothing about the code — a red build is a fact, and fixing it is
-the surrounding phase's work in that phase's own nature.
+**Nature: Enhancer** carries the ordinary run — rasengan writes the code that answers the request.
+The mode follows the *request*, exactly as [`hatsu:ren`](../ren/SKILL.md)'s does: **Conjurer** where the
+request is canon or governance, **Transmuter** where it is machinery. Name the mode in play, say when
+it switches and why, and never blend two under one header (`claude/agents/kurapika.md`).
 
-> **Run exactly what this repository says its iteration is, in the order it says, and tell me each
-> step's real exit code.**
+> **Read what I actually asked for, work out how this repository does that kind of thing, and write
+> it — keeping your own build honest as you go.**
 
-Rasengan is **automatic**: phase two of `ren`, run **before every commit** ([`hatsu:kokusen`](../kokusen/SKILL.md)
-will not commit without it) and again inside `murasaki` after a pull. It is never human-called and
-it never pushes.
+Rasengan is **automatic**: phase two of `ren`, taken on the branch [`hatsu:breath`](../breath/SKILL.md)
+cut and proved, and handed to [`hatsu:kokusen`](../kokusen/SKILL.md) when the tree is finished. It is
+human-called only to resume authoring on an effort that is already warm. **It never commits and it
+never pushes.**
+
+> ### The ruling of 2026-09-10 — rasengan AUTHORS; it is not "compile before commit"
+>
+> The maintainer's ruling, recorded in [`docs/ROSTER.md`](../../../docs/ROSTER.md)
+> § *Rulings of 2026-09-10*: **rasengan is the authoring phase** — Kurapika builds the code that
+> answers the request, on the repository's stack. *Build* in this skill's name always meant **build
+> the thing**, and this file used to read it as *run the build command*.
+>
+> The compile-before-commit did not disappear; it moved to the phase that stages the tree.
+> **[`hatsu:kokusen`](../kokusen/SKILL.md) § 3 runs the declared `iteration.checks` over the finished
+> tree and refuses to commit on red**, and **[`hatsu:breath`](../breath/SKILL.md) § 6 proves the base
+> tip before a line is written.** What stays here is the **inner loop** — the same checks, run as the
+> author's own feedback while the change is being written, which is a different thing done for a
+> different reason: one tells you whether what you just wrote works, the other decides whether the
+> repository's history is allowed to record it. **This file expands the earlier reading rather than
+> deleting its evidence**: §§ 5–10 are the same verbs, the same exit table and the same transcripts,
+> now seated in the loop they belong to.
 
 ---
 
-## 1. Invocation
+## 1. What rasengan is
+
+**The one step of a turn whose shape comes from the request rather than from the workflow.** Every
+other phase of `ren` does the same thing on every turn; this one does whatever was asked. It is
+therefore the only phase with no fixed procedure for *what* to write — and the procedure below is
+about how to arrive at it honestly, not about what the answer is.
+
+Four things make an authored change this repository's rather than a plausible one:
+
+1. **The request, read as asked.** Not the nearest familiar problem, not the larger refactor it
+   suggests. Where the request is genuinely ambiguous, ask — an assumption written into code is an
+   assumption nobody reviewed.
+2. **The stack, resolved rather than assumed.** `nen/contract.json` → `project.lanes.<lane>.stack`
+   says what this repository is; `project.verbs.<lane>` says what it runs. A change written in the
+   idiom of the last repository the session was in is a change the reviewers will spend their
+   attention on for the wrong reason.
+3. **The repository's own conventions, read off the tree.** Where the tests live, how the changelog
+   is kept, what the neighbouring file already does. These are not in either configuration file, and
+   no verb hands them out: reading them is this phase's work (§ 11).
+4. **An inner loop that is honest.** The declared checks are run *while* authoring, on the author's
+   own account, so a mistake is found in the minute it was made rather than at the commit gate.
+
+**The gate is somebody else's.** Rasengan's green is a working answer, not a verdict:
+[`hatsu:kokusen`](../kokusen/SKILL.md) re-runs the checks over the tree it is about to stage, and
+**that** run is what a commit rests on (§ 10).
+
+## 2. Invocation, and the inputs
 
 ```
 hatsu:rasengan [--lane <lane>]
 ```
 
-`--lane` overrides `workflow.json → iteration.lane` for one run — for a repository whose second lane
-is the one this effort touches. With neither, the lane is the declaration's own
-`project.defaultLane`, and a declaration whose `defaultLane` is `null` makes `--lane` required
-(nen's own rule, not this skill's).
+`--lane` overrides `nen/workflow.json` → `iteration.lane` for one run — for a repository whose second
+lane is the one this effort touches. With neither, the lane is the declaration's own
+`project.defaultLane`, and a declaration whose `defaultLane` is `null` makes `--lane` required (nen's
+own rule, not this skill's).
 
-## 2. The parameters, and where they come from
-
-| Value | File → key |
+| Input | Where it comes from |
 |---|---|
-| Which checks are the iteration | `nen/workflow.json` → `iteration.checks` |
-| Which lane they run in | `nen/workflow.json` → `iteration.lane` |
+| **The request** | the maintainer's own words, this turn. `hatsu:ren` § 1 captured them through `nen parse ren --grammar`; a turn with no request is refused there, never inferred here |
+| **The branch to write on** | the one [`hatsu:breath`](../breath/SKILL.md) cut for this effort, from `origin/<branch.base>`'s freshly fetched tip, with the declared checks already proved green on it (§ 6 there). Rasengan cuts nothing and switches nothing |
+| **The lane, and the stack it names** | `nen/workflow.json` → `iteration.lane`; `nen/contract.json` → `project.lanes.<lane>.stack`, `.cwd` |
+| Which checks are the inner loop | `nen/workflow.json` → `iteration.checks` |
 | What each check actually runs | `nen/contract.json` → `project.verbs.<lane>.<check>` (`{exe, argv}`, `{steps:[…]}` or `{unsupported:"why"}`) |
-| Where it runs, and with what | `nen/contract.json` → `project.lanes.<lane>.cwd`, the row's `env` (names only) and `artifacts` |
+| Where they run, and with what | `project.lanes.<lane>.cwd`, the row's `env` (names only) and `artifacts` |
 | Whether this host may | `nen/contract.json` → `project.hosts` |
 | What must be true first | `nen/contract.json` → `project.preconditions` (nen **asserts** these and never performs them) |
+| The repository's own conventions | **the tree itself** — no verb hands these out (§ 11) |
 
 **When `nen/workflow.json` is absent, say so in the turn's report, in these words —** *"no
 workflow.json: using the built-in defaults from `docs/WORKFLOW.md`"* — and use them:
@@ -46,19 +92,69 @@ workflow.json: using the built-in defaults from `docs/WORKFLOW.md`"* — and use
 `shu` verbs (`build`, `test`, `lint`, `ui-test`, `coverage`), never tool names: a repository that
 calls its type-check `build` has said so in its declaration, and rasengan runs the declaration.
 
-## 3. The dry run, once, on a repository you have not built
+## 3. The protocol — understand, plan, implement, self-check, hand over
+
+**1 · Understand.** Restate the request in one sentence before touching a file, and name what it does
+**not** cover. Read the code the change lands in — the neighbouring file, the test beside it, the
+declaration for the lane — before deciding the shape. A change designed from the request alone is
+designed against a repository nobody looked at.
+
+**2 · Plan.** Say, in the reply, which files this will touch and why, and what the change owes the
+repository besides the edit itself: the test beside it, the changelog fragment, the doc that would
+otherwise go stale. **Where the plan grows past the request, that growth is named and offered, never
+taken** (§ 4).
+
+**3 · Implement.** On the branch breath cut, in the repository's own idiom, with the tests written
+beside the code rather than after it. One coherent step at a time: a turn that does two separable
+things hands two commits to `kokusen`, and the boundary between them is decided here, while the work
+is in front of you.
+
+**4 · Self-check — the inner loop.** Run the declared `iteration.checks` for the lane, as your own
+feedback, as often as the work wants them:
 
 ```bash
-nen shu <check> --repo <path> [--lane <lane>] --dry-run
+nen shu <check> --repo <path> [--lane <lane>]     # one call per iteration.checks entry, in order
 ```
 
-It prints the exact argv, the cwd, the env **names** and the declared artifacts, and spawns nothing —
-*"the argv printed is the argv that would be spawned, from the same rendering: the thing you approve
-is the thing that runs."* Do this once per repository per session, on the first check of the run;
-after that, run them bare. It is also the only honest way to show a maintainer what a check is about
-to do without doing it.
+**`<check>` is whatever `iteration.checks` lists, and nothing else.** On this repository that is
+`["lint"]` alone, and the `plugin` lane **seats** `build`: an inner loop that reached for `build`
+because a build is what an author expects would be running a verb the policy did not ask for and the
+lane says it does not have. §§ 5–9 are the whole of how those runs are read. **Red is not a stop here — it is the loop working.**
+Fix what it named and run it again; that is what the inner loop is for. What is never done is
+softening the check so it stops saying so (§ 4).
 
-## 4. The run
+**5 · Hand over.** Rasengan ends by handing [`hatsu:kokusen`](../kokusen/SKILL.md) a tree that is
+finished and, so far as this loop can tell, green — and by saying what it changed and what it
+deliberately left alone. **Kokusen verifies it again before it stages anything** (§ 10), because the
+tree that is committed must be the tree that was proved, and only the phase holding the index can
+know that.
+
+**Iterating is the ordinary shape.** Movements 3 and 4 alternate for as long as the work takes; the
+last thing to happen before the hand-over is a green movement 4 over the finished edit.
+
+## 4. What rasengan never does
+
+- **Never commits and never pushes.** The commit is [`hatsu:kokusen`](../kokusen/SKILL.md)'s and the
+  push is [`hatsu:aka`](../aka/SKILL.md)'s, which is the maintainer's own call. Authoring produces a
+  working copy and nothing else.
+- **Never edits outside the request's scope.** The tidy-up two directories away, the rename that
+  would be nicer, the dependency bump the build hinted at — each is named in the reply and offered as
+  its own effort. A change that is bigger than the request is a change the maintainer did not agree
+  to review.
+- **Never lowers a bar to make a check pass.** Not by narrowing the check, not by deleting the
+  assertion, not by declaring a seat where a real row failed, not by dropping a coverage threshold or
+  patching a test to be green. A bar that moved because the code could not clear it is a bar that no
+  longer measures anything ([`hatsu:gyo`](../gyo/SKILL.md), [`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md)
+  hold the same rule for their own bars).
+- **Never edits a declaration on the fly.** `nen/contract.json` and `nen/workflow.json` are the
+  repository's policy: a wrong row is a **G4** PR of its own, not a local edit left in the checkout —
+  unless the declaration *is* what the request asked to change, and then it is the change and it is
+  reviewed as one.
+- **Never cuts or switches a branch.** That is breath's, once per effort.
+- **Never runs a build, test or lint from a remembered command line** in a repository that declares
+  one (§ 5).
+
+## 5. The inner loop's checks, and where they come from
 
 Every entry of `iteration.checks`, **in the order the file lists them**, stopping at the first
 non-zero that is not a seat:
@@ -73,44 +169,19 @@ Never the tool's own command line typed from memory — that is the standing tra
 (`claude/agents/kurapika.md` § Transmuter), and a remembered command line is how a build that passes
 here fails in CI.
 
-## 5. The exit table — one reaction per code
+**The dry run, once, on a repository you have not built:**
 
-`claude/agents/kurapika.md` § *The `shu` verbs* is the authority; this is what rasengan does with each.
+```bash
+nen shu <check> --repo <path> [--lane <lane>] --dry-run
+```
 
-| Exit | Fact | Reaction |
-|---|---|---|
-| `0` | the declared step ran and passed (or the dry run rendered) | next check; when the list is exhausted, report and hand back |
-| `1` | **the ordinary red build** — the tool ran and failed; its own code is in `steps[].exitCode`, nen's is always `1` | **Fix it here.** Relay the tool's own output, name the failing step (`step N of M`), fix the code or the declaration, re-run. Never commit over it (§ 9) |
-| `1` | *also*: `nen/contract.json` is present and **malformed** | a repository defect, not a red build. The refusal names the file and the pointer — fix the declaration, and land it as machinery at **G4** where it is not this effort's own file |
-| `2` | usage: no declaration, no `project` block, an unknown `--lane`, an unsubstituted placeholder, a path that **really** lands outside the repo (§ 4a), or an **unsatisfied precondition** | fix the invocation or the declaration. A precondition is nen's to assert and never to perform: satisfy it yourself and say which one it was. § 6 covers the no-declaration case |
-| `3` | **unsupported host** — the verb is real, this machine is not on `project.hosts` | **G5.** Name the host the declaration allows and stop; never retry, never route around it |
-| `4` | **a seat** — the lane declares no such verb, in the declaration's own words | Not a failure. **Quote the seat's reason verbatim**, run the repository's own documented command for that check, say that you did — and where the seat should be a real row, land the declaration change as its own PR at **G4** |
-| `5` | the declared program could not be started at all | run `nen shu tools --repo <path>` and relay its per-tool remedy; `--install` for what `corepack` can activate, a human for the rest. Never `sudo`, never a version the declaration did not pin |
+It prints the exact argv, the cwd, the env **names** and the declared artifacts, and spawns nothing —
+*"the argv printed is the argv that would be spawned, from the same rendering: the thing you approve
+is the thing that runs."* Do this once per repository per session, on the first check of the run;
+after that, run them bare. It is also the only honest way to show a maintainer what a check is about
+to do without doing it.
 
-## 6. A repository that declares nothing
-
-Exit `2` naming the file: *"no such file: `<path>/nen/contract.json`. 'nen shu' runs what a repository
-DECLARES … and this repository declares nothing"* (verified live against the `zheref/nen` checkout —
-`docs/ab/rasengan.md` § 2.4). Then: run the repository's own documented commands, **say plainly that
-no declaration exists yet**, and treat writing a `project` block as a **G4** change to propose.
-
-**Read the no-declaration fact off `build`/`test`/`lint`, never off `detect`.** `nen shu detect`
-answers a different question — whether a *marker on disk* proposes a lane — and the two do not track
-each other. Verified live in both directions (`docs/ab/rasengan.md` §§ 2.4–2.6): the `zheref/nen`
-checkout is `detect` exit `1` **and** `shu build` exit `2`, while a fixture carrying a complete,
-working `project` block is *also* `detect` exit `1` (*"no lane detected … declaration: … (present --
---write will refuse)"*) with `shu build` at exit `0`. A skill that read `detect` would have called a
-fully declared repository undeclared.
-
-## 7. Preconditions, hosts and placeholders are the declaration's, not yours
-
-- A **precondition** nen cannot assert — an unknown kind, or an assertable kind handed a list — is
-  refused rather than skipped: *an unperformed check is never rendered as a clean one.* Relay that
-  refusal; do not "check it another way."
-- A **host** row excludes this machine at exit `3`. That is a G5, not a retry.
-- An **unsubstituted placeholder** is exit `2`. Fill it in the declaration, not on the command line.
-
-### 4a. Containment — the path the kernel would reach, not the one the file spells
+### 5a. Containment — the path the kernel would reach, not the one the file spells
 
 **From nen `0.6.0` every declared path a run reads or writes is contained against the repository's
 REAL root, symlinks resolved, at the moment of use** — `project.lanes.<lane>.cwd`, a `path`
@@ -135,7 +206,46 @@ where the path *lands*, never whether a link was involved.
 > use** (verified — the symlinked fixture above reports `ok nen/contract.json`). Never report a green
 > `schema check` as evidence that a declaration's paths are contained.
 
-## 8. Long-running checks, and the stall guard the declaration owns
+## 6. The exit table — one reaction per code
+
+`claude/agents/kurapika.md` § *The `shu` verbs* is the authority; this is what rasengan does with each
+inside its own loop. [`hatsu:kokusen`](../kokusen/SKILL.md) § 3 reads the same table at the gate, and
+differs in exactly one row — a `1` there ends the commit rather than the edit.
+
+| Exit | Fact | Reaction |
+|---|---|---|
+| `0` | the declared step ran and passed (or the dry run rendered) | next check; when the list is exhausted, keep authoring or hand over (§ 3) |
+| `1` | **the ordinary red build** — the tool ran and failed; its own code is in `steps[].exitCode`, nen's is always `1` | **This is the loop working.** Relay the tool's own output, name the failing step (`step N of M`), fix the code, run it again. Never soften the check (§ 4), and never hand a red tree to kokusen (§ 10) |
+| `1` | *also*: `nen/contract.json` is present and **malformed** | a repository defect, not a red build. The refusal names the file and the pointer — fix the declaration, and land it as machinery at **G4** where it is not this effort's own file |
+| `2` | usage: no declaration, no `project` block, an unknown `--lane`, an unsubstituted placeholder, a path that **really** lands outside the repo (§ 5a), or an **unsatisfied precondition** | fix the invocation or the declaration. A precondition is nen's to assert and never to perform: satisfy it yourself and say which one it was. § 7 covers the no-declaration case |
+| `3` | **unsupported host** — the verb is real, this machine is not on `project.hosts` | **G5.** Name the host the declaration allows and stop; never retry, never route around it. Authoring cannot proceed on a host that cannot check it |
+| `4` | **a seat** — the lane declares no such verb, in the declaration's own words | Not a failure and **not red**. **Quote the seat's reason verbatim**, run the repository's own documented command for that check, say that you did — and where the seat should be a real row, land the declaration change as its own PR at **G4** |
+| `5` | the declared program could not be started at all | run `nen shu tools --repo <path>` and relay its per-tool remedy; `--install` for what `corepack` can activate, a human for the rest. Never `sudo`, never a version the declaration did not pin |
+
+## 7. A repository that declares nothing
+
+Exit `2` naming the file: *"no such file: `<path>/nen/contract.json`. 'nen shu' runs what a repository
+DECLARES … and this repository declares nothing"* (verified live against the `zheref/nen` checkout —
+`docs/ab/rasengan.md` § 2.4). Then: run the repository's own documented commands, **say plainly that
+no declaration exists yet**, and treat writing a `project` block as a **G4** change to propose.
+
+**Read the no-declaration fact off `build`/`test`/`lint`, never off `detect`.** `nen shu detect`
+answers a different question — whether a *marker on disk* proposes a lane — and the two do not track
+each other. Verified live in both directions (`docs/ab/rasengan.md` §§ 2.4–2.6): the `zheref/nen`
+checkout is `detect` exit `1` **and** `shu build` exit `2`, while a fixture carrying a complete,
+working `project` block is *also* `detect` exit `1` (*"no lane detected … declaration: … (present --
+--write will refuse)"*) with `shu build` at exit `0`. A skill that read `detect` would have called a
+fully declared repository undeclared.
+
+## 8. Preconditions, hosts and placeholders are the declaration's, not yours
+
+- A **precondition** nen cannot assert — an unknown kind, or an assertable kind handed a list — is
+  refused rather than skipped: *an unperformed check is never rendered as a clean one.* Relay that
+  refusal; do not "check it another way."
+- A **host** row excludes this machine at exit `3`. That is a G5, not a retry.
+- An **unsubstituted placeholder** is exit `2`. Fill it in the declaration, not on the command line.
+
+## 9. Long-running checks, and the stall guard the declaration owns
 
 **A captured verb may declare a stall guard, and at the pinned nen `0.7.0` nen runs the repository's
 own remedy.** The shape is `"stall": { "elapsedMs", "quietMs", "onStall": { "exe", "argv" },
@@ -153,40 +263,54 @@ declarable only where nen READS the output — `build`, `test`, `ui-test`, `lint
 
 **Residue: whether a lane declares one is the repository's business, not this skill's.** Where a lane
 declares no `stall`, a check that hangs still hangs and nothing times it out — watch the step, run
-the declaration's prose remedy by hand, and **say that you ran it by hand** (§ 10). Never background
+the declaration's prose remedy by hand, and **say that you ran it by hand** (§ 11). Never background
 a check to escape a stall; a check nobody watched is a check nobody ran.
 
-## 9. What "green" means, and what it is worth
+## 10. What "green" means in the inner loop — and whose the commit gate is
 
-Rasengan's output is the turn's **build proof**, and at the pinned nen `0.7.0` that proof is a FILE
-as well as a transcript: a green `nen shu build` writes `.nen/proof/<lane>.json`
-(`nen.shu.proof/v0.1`: `contract`, `lane`, `verb`, `treeHash`, `at`, `exitCode`) and a red one
-**removes** an existing file, so a stale proof never outlives the tree it proved. Verified live at
-`v0.5.0`: the run's report carries `proof: .nen/proof/app.json  tree c5b72124… at
-2026-09-10T09:09:52.482Z`, exit `0`, and the file on disk holds exactly those fields.
+**The inner loop's green is the author's, and it is worth exactly what it says: the tree worked a
+moment ago.** At the pinned nen `0.7.0` that is a FILE as well as a transcript — a green
+`nen shu build` writes `.nen/proof/<lane>.json` (`nen.shu.proof/v0.1`: `contract`, `lane`, `verb`,
+`treeHash`, `at`, `exitCode`) and a red one **removes** an existing file, so a stale proof never
+outlives the tree it proved. Verified live at `v0.5.0`: the run's report carries
+`proof: .nen/proof/app.json  tree c5b72124… at 2026-09-10T09:09:52.482Z`, exit `0`, and the file on
+disk holds exactly those fields.
 
 **`treeHash` is git's tree object for the WORKING COPY, not the index** — computed through a scratch
 index under `.nen/`, so the repository's own index is never read or written and no ref moves. That is
-what makes `nen commit check --repo <path> --require-proof <lane>` cheap enough to run a moment
-before a commit with everything staged (verified live, exit `0`, *"verdict: OK -- this working copy
-is the one the build proved green"*). It reports and blocks nothing.
+what makes it cheap enough for the phase that stages to re-check a moment before committing.
 
-So say the checks were green *in this turn* and name the proof file; never "the build is green" as a
+**So the proof is the handshake between this phase and the next, and the GATE is the next one's.**
+Say the checks were green *in this turn* and name the proof file; never "the build is green" as a
 standing property, because the file's whole point is that it stops being true the moment the tree
-moves. [`hatsu:kokusen`](../kokusen/SKILL.md) § 2 now READS the proof rather than re-running this
-skill blind.
+moves — and between the inner loop's last run and the commit, the tree moves whenever the author
+writes one more line. **[`hatsu:kokusen`](../kokusen/SKILL.md) § 3 runs the declared checks again over
+the finished tree**, and reads `nen commit check --repo <path> --require-proof <lane>` back **only
+where `build` is one of those checks and came back green** — the proof is written by `nen shu build`
+and by nothing else. That run is what a commit rests on.
 
-**A red build is fixed, never committed over, and never worked around.** Not by narrowing the check,
-not by committing "so the fix is on the branch", not by declaring a seat where a real row failed. The
-one exception is a code `3` host fact and a code `4` seat, both of which are facts about the
-repository that rasengan quotes and hands upward.
+**A red tree is never handed over, never committed over, and never worked around.** Not by narrowing
+the check, not by handing it on "so the fix is on the branch", not by declaring a seat where a real
+row failed. The one exception is a code `3` host fact and a code `4` seat, both of which are facts
+about the repository that rasengan quotes and hands upward. **A red check the turn cannot honestly
+clear is a G5 stop** for the phase that called this one — which is the same escalation kokusen raises at the
+gate, from the same fact.
 
-## 10. Residue — what has no verb at the pinned nen `0.7.0`
+## 11. Residue — what has no verb at the pinned nen `0.7.0`
 
+- **The authoring itself.** No verb writes a change: reading the request, reading the tree's own
+  conventions, choosing the shape, and writing the code and the tests beside it are this phase's
+  work end to end, and **that is a boundary rather than a gap to file** — nen owns operations, the
+  same way [`hatsu:ren`](../ren/SKILL.md)'s Residue says it does not own conversations. Every
+  *deterministic* step inside the loop is still a verb: §§ 5–9 are `nen shu build`/`test`/`lint` and
+  `nen shu tools`, and § 10's proof is `nen shu build`'s own file.
+- **Reading the repository's conventions** — where tests live, how the changelog is kept, what the
+  neighbouring file already does. `nen/contract.json` says what runs, not how this repository writes;
+  no verb answers the second question and none is asked to.
 - **RETIRED at nen `0.5`: build proof.** `nen shu build` writes `.nen/proof/<lane>.json` on green and
-  removes it on red, and `nen commit check --require-proof <lane>` reads it back (§ 9, both verified
+  removes it on red, and `nen commit check --require-proof <lane>` reads it back (§ 10, both verified
   live, exit `0`). A repository that does not ignore `.nen/` will see the file in `git status`.
-- **RETIRED at nen `0.5`: the stall guard** (§ 8) — a declared `stall` block is nen's to run. What
+- **RETIRED at nen `0.5`: the stall guard** (§ 9) — a declared `stall` block is nen's to run. What
   stays this skill's is watching a lane that declares **none**, and running that declaration's prose
   remedy by hand, named.
 - **RETIRED at nen `0.5`: validating `nen/workflow.json`.** `nen schema check` carries the row.
@@ -196,26 +320,35 @@ repository that rasengan quotes and hands upward.
   this release (zheref/nen#91)"* — each step's output is relayed as it finishes, so the turn's report
   is the only record. Quote what matters; do not claim a log exists.
 - **Counting anything inside the output** — how many tests, how many warnings — is
-  [`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md)'s residue and its problem, not this skill's; rasengan
-  reports exit codes.
+  [`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md)'s residue and its problem, not this skill's; the inner
+  loop reports exit codes.
 
-## 11. Authority
+## 12. Authority
 
-- **Permitted:** run the declared `build`, `test`, `lint`, `ui-test` and `coverage` rows for the lane;
-  probe the host through `nen shu tools`; report every code.
-- **Not permitted:** commit, push, label, open or touch a PR, deploy, or edit a declaration on the fly.
-  A declaration that is wrong is a **G4** PR of its own, not a local edit left in the checkout.
+- **Permitted:** write, edit and delete files in the effort's own working copy, within the request's
+  scope; run the declared `build`, `test`, `lint`, `ui-test` and `coverage` rows for the lane; probe
+  the host through `nen shu tools`; report every code.
+- **Not permitted:** commit, push, label, open or touch a PR, deploy, cut or switch a branch, or edit
+  a declaration on the fly. A declaration that is wrong is a **G4** PR of its own, not a local edit
+  left in the checkout.
 - **Not a gate event**, with two exceptions it raises rather than owns: exit `3` (unsupported host)
-  and a red it cannot fix in-session are **G5** stops for the phase that called it.
+  and a red check it cannot honestly clear in-session are **G5** stops for the phase that called it.
 
-## 12. Hard limits
+## 13. Hard limits
 
+- **Never commits, never pushes** — the tree is the whole of what this phase produces (§ 4).
+- **Never edits outside the request's scope**, and never folds a second effort into this one.
+- **Never lowers a bar to make a check pass** — not the check, not the assertion, not the threshold,
+  not the test (§ 4).
 - **Never runs a build, test or lint from a remembered command line** in a repository that declares one.
-- **Never commits over a red build**, and never asks for one to be committed "so it is saved".
-- **Never reads the no-declaration fact off `nen shu detect`** (§ 6) — that is a different question,
+- **Never hands a red tree to [`hatsu:kokusen`](../kokusen/SKILL.md)**, and never asks for one to be
+  committed "so it is saved".
+- **Never reads the no-declaration fact off `nen shu detect`** (§ 7) — that is a different question,
   and it answers `1` for repositories that build perfectly well.
 - **Never treats exit `4` as a failure or exit `5` as a red build.** A seat is the repository speaking;
   a missing program is a host that is not set up.
 - **Never retries an exit `3`**, on any host, for any reason.
 - **Never claims a check ran that it dry-ran**, and never claims one passed whose exit code it did not
   read.
+- **Never claims its own green is the commit's** — the gate re-runs the checks over the tree it stages
+  (§ 10).

@@ -1,14 +1,14 @@
 ---
 name: breath
-description: Warm the local working copy once per effort — classify where the checkout sits, check the host toolchain, fast-forward the trunk and cut this effort's branch from its fresh tip, then prove the declared iteration checks still pass on it. Runs automatically as the first turn of an effort inside `ren`; invoke `hatsu:breath` by name only to re-warm a checkout that has drifted. It asks on exactly one thing — a dirty working copy — and never discards work it has not shown you, never commits, and never pushes.
+description: Warm the local working copy once per effort — classify where the checkout sits, check the host toolchain, fast-forward the trunk and cut this effort's branch from its fresh tip, then prove the declared iteration checks still pass on that fresh tip, because a base that does not build is a G5 stop taken before any of the change is authored. Runs automatically as the first turn of an effort inside `ren`, before `hatsu:rasengan` writes a line; invoke `hatsu:breath` by name only to re-warm a checkout that has drifted. It asks on exactly one thing — a dirty working copy — and never discards work it has not shown you, never commits, and never pushes.
 ---
 
 # Breath — the first breath of an effort, taken before any work
 
 **Nature: Transmuter** carries every run. A warm-up moves git state and probes a host toolchain; it
-authors nothing, so it borrows no authorship nature from what follows. Whatever `ren`'s next phase
-writes on the branch this skill cut is Enhancer, Conjurer or Transmuter work in its own right, and
-that phase names it.
+authors nothing, so it borrows no authorship nature from what follows. Whatever
+[`hatsu:rasengan`](../rasengan/SKILL.md) — `ren`'s next phase — writes on the branch this skill cut is
+Enhancer, Conjurer or Transmuter work in its own right, and that phase names it.
 
 > **Before I write a line, put this checkout in a state where the line can be trusted: a fresh
 > trunk, a branch of my own cut from it, a host that can build, and a green build to start from.**
@@ -39,7 +39,7 @@ Two files, read as data. Neither is guessed and neither is edited here.
 |---|---|---|
 | Branch template | `nen/workflow.json` → `branch.template` | rendering `--branch` (§ 5) |
 | Trunk / PR base | `nen/workflow.json` → `branch.base` | `--base` on `wc classify`, `--from` on `shu warmup` |
-| The checks to prove | `nen/workflow.json` → `iteration.checks` | § 6, handed to [`hatsu:rasengan`](../rasengan/SKILL.md) |
+| The checks to prove **on the fresh tip** | `nen/workflow.json` → `iteration.checks` | § 6 — the base-tip proof, taken before any authoring |
 | The lane they run in | `nen/workflow.json` → `iteration.lane` | `--lane` on every `shu` call |
 | The lanes that exist | `nen/contract.json` → `project.lanes`, `project.defaultLane` | resolving that lane |
 | The build itself | `nen/contract.json` → `project.verbs.<lane>.build` | what `shu warmup` runs after the cut |
@@ -262,10 +262,10 @@ the whole family):
 | Exit | What it means here | What breath does |
 |---|---|---|
 | `0` | warm — the branch is cut from the fetched tip and the declared build passed on it | proceed to § 6 |
-| `1` | a git step ran and failed, **or** the delegated build failed, **or** the executor refused the build with a `2` | nothing is rolled back and the trunk has already moved: report `steps[]` verbatim, then hand the red build to [`hatsu:rasengan`](../rasengan/SKILL.md) |
+| `1` | a git step ran and failed, **or** the delegated build failed, **or** the executor refused the build with a `2` | nothing is rolled back and the trunk has already moved: report `steps[]` verbatim. **A failed build here is a red BASE TIP — a G5 stop before any authoring** (§ 6), never handed forward as this effort's red |
 | `2` | a refusal *before* any mutation: a dirty tree (every path listed), a merge/rebase/cherry-pick in progress, a detached `HEAD` carrying unreachable commits, no `origin`, a diverged trunk, a `git worktree list` that cannot be read at all, a name git will not accept or that already exists locally or on `origin` | fix the named condition and re-run. **Never reach for `--discard`** |
 | `3` | the declaration excludes this host | **G5** — name the host the declaration allows; never retry |
-| `4` | the lane declares no `build` (a seat) | quote the declaration's own reason, run the repository's documented command, say that you did |
+| `4` | the lane declares no `build` (a seat) | quote the declaration's own reason — **and note that `shu warmup` has now proved nothing**, so § 6's own loop over `iteration.checks` is the whole of the base-tip proof (this repository's case) |
 | `5` | the declared program is not on `PATH` | back to § 4 |
 
 **`--discard` is never breath's flag.** It runs `git reset --hard` then `git clean -fd`, and the
@@ -279,13 +279,46 @@ which carries no `project` block: the git half prints in full and the run ends w
 half only, and treat writing a `project` block as a **G4** change to propose — not a blocker, and
 not something to paper over with a remembered command line.
 
-## 6. Proving the iteration checks
+## 6. Proving the base tip — the last thing breath does, before anything is authored
 
-`shu warmup` proves the lane's `build` (and, with `--tests`, its `test`) on the branch it just cut,
-re-reading the declaration **on that branch**. That covers `iteration.checks` when the list is the
-default `["build"]`. When `workflow.json` declares more than `build`, breath does not re-implement
-the loop: it hands the turn to [`hatsu:rasengan`](../rasengan/SKILL.md), which runs every declared
-check in order and owns the whole exit table for them.
+**The branch was cut from `origin/<branch.base>`'s freshly fetched tip and nothing has been written
+on it yet, so the checks run here are a verdict on THE BASE, not on this effort.** That is the whole
+point of taking them now: the first line of the change must land on a tree that is already known to
+build, so that the first red anybody sees is one this effort caused.
+
+`shu warmup` proves the lane's **`build`** (and, with `--tests`, its `test`) on the branch it just
+cut, re-reading the declaration **on that branch**. **`build` is the only check it runs, whatever
+`iteration.checks` says** — the sequence in § 5 ends at the lane's declared `build` row and knows
+nothing about the policy file. So the base-tip proof is not finished when `shu warmup` returns:
+**breath runs every entry of `iteration.checks` itself**, in the order the file lists them, for
+`iteration.lane`, skipping only an entry `shu warmup` has just proved on this same tree:
+
+```bash
+nen shu <check> --repo <path> --lane <iteration.lane>      # every entry of iteration.checks, in order
+```
+
+**Never infer the base-tip verdict from `shu warmup`'s exit code alone.** On this repository that
+inference is exactly wrong: `iteration.checks` is `["lint"]` and the `plugin` lane **seats** `build`,
+so `shu warmup` reports the seat and proves nothing the policy asked for, while
+`nen shu lint --repo . --lane plugin` — exit `0`, verified live at the pinned `0.7.0` — is the whole
+of the proof. A list of one entry that is not `build` is the case a warm-up most easily skips
+entirely, and a skipped proof reported as a warm base is the failure this section exists to prevent.
+
+The exit table is [`hatsu:rasengan`](../rasengan/SKILL.md) § 6's — the same seven rows, read the same
+way — with one row that means something different here, because of what has not happened yet:
+
+> **A red base tip is a G5 stop, taken BEFORE any authoring.** An exit `1` on a branch carrying no
+> work of its own is the trunk speaking: the tree the maintainer asked for a change on does not
+> build. Report `steps[]` verbatim, name the failing check, and **stop** — do not begin authoring, do
+> not "fix it while you are in there", and do not hand it forward as though it were this effort's
+> red. Repairing a broken trunk is its own effort, with its own branch and its own review, and
+> folding it into this one buries a trunk regression inside an unrelated change set. A `4` is a seat
+> and is quoted, a `3` is a host and is its own G5, and neither is a red base.
+
+**The order this fixes in place:** breath proves the base → [`hatsu:rasengan`](../rasengan/SKILL.md)
+authors on it → [`hatsu:kokusen`](../kokusen/SKILL.md) verifies the finished tree and commits it
+(`ren` § 2). Three verifications, three different questions: *was the base sound*, *does what I just
+wrote work*, *is the tree I am about to record green*.
 
 Pass `--tests` only when `iteration.checks` actually contains `test`. A test suite is the slow half
 and a warm-up is the fast one; running it by reflex makes every first turn cost what a full
@@ -334,8 +367,10 @@ that did not run is reported as **not run**, never rendered as clear.
   `build`/`test`.
 - **Not permitted:** any push, any commit, any PR or label, any `--discard`, any deploy. Breath is
   the phase before authorship, and it produces no object anyone else can see.
-- **Not a gate event.** The only stop breath raises is a **G5** for an unsupported host (exit `3`)
-  or a genuinely unreadable checkout; the dirty-tree question is an in-session ask, not a gate.
+- **Not a gate event**, with three exceptions it raises rather than owns: a **G5** for an unsupported
+  host (exit `3`), one for a genuinely unreadable checkout, and one for **a base tip that does not
+  build** (§ 6) — that last one taken before a line of the change is written. The dirty-tree question
+  is an in-session ask, not a gate.
 
 ## 10. Hard limits
 
@@ -357,6 +392,8 @@ that did not run is reported as **not run**, never rendered as clear.
   `--from <branch.base>` on every invocation, read from the file rather than assumed (§ 5). A
   repository on `develop` warmed up from `main` is an effort based on the wrong trunk from its first
   commit.
+- **Never lets authoring begin on a base tip that did not build** (§ 6). A red there is the trunk's,
+  it is a **G5** stop, and it is never repaired inside this effort.
 - **Never reports a warm-up it did not run as clear**, and never reports a repository with no
   declaration as verified.
 - **Never invents a `workflow.json` value.** Absent file → the stated defaults, said out loud; absent

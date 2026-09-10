@@ -168,8 +168,8 @@ first three.
 - an append-only region both sides appended to (an import block, a `.gitignore`, a changelog list) —
   keep both, in the order the file's own convention gives;
 - a generated or locked file the repository regenerates (a lockfile, a snapshot, a mirror) — take
-  the base's side and **regenerate**, then prove it with the declared build
-  ([`hatsu:rasengan`](../rasengan/SKILL.md));
+  the base's side and **regenerate**, then prove it with the declared build (`nen shu build`; the
+  exit table is [`hatsu:rasengan`](../rasengan/SKILL.md) § 6's);
 - a pure formatting or whitespace divergence with no behavioural difference;
 - an identical change made on both sides.
 
