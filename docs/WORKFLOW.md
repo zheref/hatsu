@@ -214,8 +214,9 @@ and each writes its own key:
 
 **Hatsu writes `Hatsu-Agent` and refuses to write `Akatsuki-Agent`.** A persona running on this machine is
 not the CI plane; putting that key on a local commit would forge a machine-plane provenance the local plane
-does not have — the same reason there is no `Akatsuki-Run:` trailer here. `kokusen` § 4/§ 6 and `aka` refuse
-it exactly as they refuse a `Co-Authored-By`-shaped trailer.
+does not have — the same reason there is no `Akatsuki-Run:` trailer here.
+[`kokusen`](../claude/skills/kokusen/SKILL.md) § 5 and § 9 and [`aka`](../claude/skills/aka/SKILL.md) § 4
+and § 9 refuse it exactly as they refuse a `Co-Authored-By`-shaped trailer.
 
 **Both keys are admitted in `allowedAttributionTrailers`, and admitting is not licence to write.** The list
 is what a repository's commit-msg hook and `nen commit format --repo` will *accept*, and both planes commit
