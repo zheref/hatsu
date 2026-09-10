@@ -95,12 +95,26 @@ target is *meaningful* for the lane it is used on. On a repository with two depl
 `--target staging` is accepted on either. The plan printed in § 3 is what makes that visible — read
 the `target:` line and the composed `would run:` before answering, every time.
 
-**Non-production is the declaration's word, not this skill's.** Nothing in nen marks a target as
-production or not; `project.targets.<name>.why` is where a repository says which is which. **Read it
-and quote it.** A target whose `why` says it reaches customers is [`hatsu:mugetsu`](../mugetsu/SKILL.md)'s
-at **G3** and this skill refuses it by name, whatever the maintainer typed — and a target with no
-`why` at all is refused too, because *"this destination is not production"* is a claim, and an
-unstated claim is not one anybody made.
+**Non-production is the declaration's word, not this skill's — and it is PROSE, not a typed field.**
+Nothing in nen `0.3.0` marks a target as production or not: `project.targets.<name>` carries `args`,
+`requiresEnv`, `why` and `unsupported`, and none of them says which side of **G3** a destination is on
+(§ *Residue* 1; `docs/ab/kagutsuchi.md` § 4.1 files it as the finding worth acting on). So the test is
+a **read of a sentence**, and it is written to fail closed in all three directions:
+
+- **A `why` that says or implies the destination reaches end users** — production, live, a store, a
+  public channel — is [`hatsu:mugetsu`](../mugetsu/SKILL.md)'s at **G3**, and this skill refuses it by
+  name whatever the maintainer typed.
+- **A target with no `why` at all** is refused, because *"this destination is not production"* is a
+  claim, and an unstated claim is not one anybody made.
+- **A `why` that does not clearly say the destination is non-production** is refused the same way —
+  *not* waved through for lacking the word *customers*. Ambiguity is the absent case wearing a
+  sentence. The refusal quotes the `why` and asks the maintainer to say which side it is on; the
+  durable fix is a word in the declaration, not a judgement call here.
+
+**What this cannot catch is a `why` that is untrue**, and no reading of prose can. A declaration that
+describes a production destination as an internal channel is a defect in the declaration — repaired
+there, in the repository's own file, through its own review — and until a target row can *state* its
+side of the gate, that residue is named rather than papered over.
 
 ## 3. The plan — printed always, before anything
 
@@ -243,8 +257,12 @@ I promote it". The next call is the maintainer's and they know they have it.
   and a recorded delegation is not one — the plan is printed and the run stops (§ 1).
 - **Never chooses a target**, never defaults one, never sends to a near-match of a mistyped one, and
   never adds a target to the declaration so that a line will run.
-- **Never sends to production or a store.** That is `hatsu:mugetsu` at **G3**, and a target with no
-  `why` saying otherwise is refused here rather than assumed (§ 2).
+- **Never sends to production or a store.** That is `hatsu:mugetsu` at **G3**. The test is a read of
+  the declaration's `why` prose, because nen `0.3.0` has no field for it, so it is written to refuse
+  three cases and not one: a `why` that reaches end users, a target with no `why`, and a `why` that
+  does not clearly say the destination is non-production (§ 2). A `why` that is simply **untrue** is
+  outside what any reading can catch, and is a defect in the declaration rather than a route through
+  this skill (§ *Residue* 1).
 - **Never sends what it did not show.** The plan is printed first, and what runs is that plan
   (§ 3, § 4).
 - **Never reads, prints, exports or asks for a credential** — nen asserts a variable is set and never
