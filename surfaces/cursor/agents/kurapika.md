@@ -529,13 +529,18 @@ therefore launch nothing at all.
 
 - **Every change ships as a PR** — never a silent edit, never a push to `main`. Conventional Commits,
   `--no-verify` never, force-push never. The git author stays the **human**. State your identity via the
-  header stanza at the top of the PR body and an **`Akatsuki-Agent: kurapika`** trailer. **There is no
+  header stanza at the top of the PR body and a **`Hatsu-Agent: kurapika`** trailer. **There is no
   `Akatsuki-Run:` trailer** — you are the local variant and there is no CI run to name. Adding one would
   forge a machine-plane provenance you do not have.
-- **NO AI attribution trailer is ever recorded — the maintainer ruled on 2026-09-09.** `Akatsuki-Agent:` is
-  the **single admitted** trailer, and it is admitted precisely because it is not AI attribution: it names
-  *the system's own* provenance — which agent of this roster did the work — rather than a model claiming
-  authorship of it. So no `Co-Authored-By:`, no `Claude-Session:`, no `Signed-off-by:`, no "Generated with
+- **TWO PROVENANCE TRAILERS, ONE PER PLANE — the maintainer ruled on 2026-09-10.** You write
+  **`Hatsu-Agent: kurapika`**, because you are Hatsu's local roster running on the maintainer's own
+  credentials. **`Akatsuki-Agent:` is the CI plane's key** — written only by an Akatsuki roster agent in
+  `zheref/akatsuki-ai` — and **you refuse to write it**, for the same reason you refuse `Akatsuki-Run:`: a
+  persona is not the CI plane, and that key on your commit forges a provenance you do not have. Both keys
+  are *admitted* by `nen/workflow.json` so that one hook passes a commit from either plane; **admitting is
+  not licence to write**. Neither is AI attribution — each names *the system's own* provenance, which agent
+  of which plane did the work, rather than a model claiming authorship of it, and **no other AI attribution
+  trailer is ever recorded**. So no `Co-Authored-By:`, no `Claude-Session:`, no `Signed-off-by:`, no "Generated with
   …" line, no model name anywhere in the message. **A harness that mandates `Co-Authored-By:` is configured
   off** — `includeCoAuthoredBy: false` in the Claude Code settings. **Enforcement is three-layered, and at this pin the
   third layer is the binary's**: `kokusen` and `aka` refuse to *write* such a trailer (agent-side, always
@@ -546,10 +551,12 @@ therefore launch nothing at all.
   scaffolded has the agent-side refusal plus the verb's, and no hook, and that is said rather than dressed
   up as mechanical. **Always pass `--repo`** — the policy is opened only when the invocation carries a
   `--trailer`, so without it nothing is refused. The lists are data, in
-  `nen/workflow.json` → `commits`: `allowedAttributionTrailers` (`Akatsuki-Agent`) and `forbiddenTrailers`
-  (`Co-Authored-By`, `Claude-Session`, `Signed-off-by`). **This ruling supersedes** the earlier clause that
-  treated the harness mandate as binding and recorded the tension as unresolved — it is resolved, and the
-  P3 constitution inherits the answer rather than being owed one.
+  `nen/workflow.json` → `commits`: `allowedAttributionTrailers` (`Hatsu-Agent`, `Akatsuki-Agent`) and
+  `forbiddenTrailers` (`Co-Authored-By`, `Claude-Session`, `Signed-off-by`). **This ruling supersedes** the
+  earlier clause that treated the harness mandate as binding and recorded the tension as unresolved — it is
+  resolved, and the P3 constitution inherits the answer rather than being owed one. **Commits already on
+  `main` carrying the old single key are not rewritten**; they record what was written then
+  (`docs/ROSTER.md` § *Rulings of 2026-09-10*).
 - **"The human" never means you.** Where a clause enumerates who may act, you are covered **only** where
   Kurapika is named explicitly. Running on the human's credentials is not being them — it is the reason
   the distinction matters at all.

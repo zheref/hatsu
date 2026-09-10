@@ -69,7 +69,7 @@ points at [`/jujisho`](../jujisho/SKILL.md), which is the split-shaped verb, and
 | Key | File | Used for | Default when the key (or the file) is absent |
 |---|---|---|---|
 | `branch.base` | `nen/workflow.json` | the PR's base, and the `origin/<base>...HEAD` range every section is computed over — **the remote ref, after a fetch, never the local branch** (below) | `main` |
-| `commits.allowedAttributionTrailers` | `nen/workflow.json` | read only to **state** what the commits carry; shibari writes no commit | `["Akatsuki-Agent"]` |
+| `commits.allowedAttributionTrailers` | `nen/workflow.json` | read only to **state** what the commits carry — a local commit carries `Hatsu-Agent`, the CI plane's carries `Akatsuki-Agent`; shibari writes no commit | `["Hatsu-Agent", "Akatsuki-Agent"]` |
 | `coverage.minimum` / `.recommended` / `.ideal` | `nen/workflow.json` | the band the checklist's coverage line reports against — [`/gyo`](../gyo/SKILL.md) measured it, this body quotes it | `80` / `85` / `90` |
 | `project.evidence.globs` | `nen/contract.json` | which changed artifacts are visual evidence | none — **no globs is the no-evidence case**, stated in the body |
 | `project.evidence.scene` | `nen/contract.json` | the template that turns a path into a suite-and-scene pair | `{suite}-{scene}` |

@@ -51,7 +51,7 @@ has none, and inventing an optional clause so that a parse can be echoed would b
 | `tests.required` | which declared verbs § 3 must run green | `["test"]` |
 | `tests.extra` | further verbs to run, not gating | `[]` |
 | `branch.base` | the base § 4's squash and § 5's catch-up work against | `main` |
-| `commits.allowedAttributionTrailers` | the only trailers § 4's commit may carry | `["Akatsuki-Agent"]` |
+| `commits.allowedAttributionTrailers` | the only trailers § 4's commit may carry — **`Hatsu-Agent` is the one it WRITES** (§ 4) | `["Hatsu-Agent", "Akatsuki-Agent"]` |
 | `commits.forbiddenTrailers` | trailers that refuse the commit outright | `["Co-Authored-By", "Claude-Session", "Signed-off-by"]` |
 
 `nen schema check --repo <path>` VALIDATES this file at the pinned `v0.5.0` — verified live, the row
@@ -64,7 +64,8 @@ the shape by eye; it reads the values, and states the defaults whenever they are
 > harness mandates — today `Co-Authored-By:` and `Claude-Session:` … you neither add attribution of
 > your own nor strip theirs"*, and records that the final rule is a constitutional question left
 > open. **`nen/workflow.json` is where the maintainer answers it for a given repository**, and this
-> workflow answers it: `Akatsuki-Agent` is the one admitted trailer and the other two are forbidden.
+> workflow answers it: `Hatsu-Agent` and `Akatsuki-Agent` are admitted, one per plane, and the other
+> two are forbidden.
 > Where the two disagree, **the repository's own `commits` block wins for that repository**, because
 > it is the maintainer's recorded decision rather than an unresolved tension. A repository that
 > ships no `commits` block gets the defaults above, and they say the same thing. This is a declared
@@ -179,7 +180,7 @@ Then shape the one message with the verb that owns message shape:
 ```bash
 nen commit format --type <feat|fix|chore|docs|refactor|test|perf|build|ci> \
   --scope <scope> --subject "<short imperative subject>" \
-  --body "<what changed and why>" --trailer "Akatsuki-Agent=kurapika"
+  --body "<what changed and why>" --trailer "Hatsu-Agent=kurapika"
 ```
 
 Verified live at `v0.3.0` (`docs/ab/aka.md` § 2.2): the multi-line form renders subject, body and
@@ -267,10 +268,19 @@ checkout has not; (c) **`nen commit format --repo` and `nen wc squash`** refusin
 at the pinned `0.5.0`, verified live. Say which of (b) and (c) the repository in front of you
 actually has; never describe a hook as installed where none is.
 
-**One commit, the maintainer as git author, `Akatsuki-Agent: kurapika` and nothing else.** No
+**One commit, the maintainer as git author, `Hatsu-Agent: kurapika` and nothing else.** No
 `Co-Authored-By`, no `Claude-Session`, no `Signed-off-by`, no "Generated with" line, no model name
 anywhere in the message. **Never `--no-verify`** — where the repository does carry a `commit-msg`
 hook it is layer (b), and skipping it is skipping the rule.
+
+**And refuse `Akatsuki-Agent:` here exactly as you refuse a `Co-Authored-By`-shaped trailer.** Two
+provenance trailers exist, one per plane (the maintainer's ruling of 2026-09-10, `docs/ROSTER.md`
+§ *Rulings of 2026-09-10*): `Hatsu-Agent` is Hatsu's local roster on the maintainer's own
+credentials, `Akatsuki-Agent` is an Akatsuki roster agent on the autonomous CI plane. **Both are on
+`allowedAttributionTrailers`, so layers (b) and (c) admit both and neither will stop you** — one
+list, so that a CI-made commit passes the very same hook a local one does. **The refusal to WRITE
+the CI key is layer (a)'s alone, which is to say this skill's.** A persona is not the CI plane, and
+that key on a squashed local commit forges a machine-plane provenance this plane does not have.
 
 ## 5. Then [`/ao`](../ao/SKILL.md) — the base underneath it
 
@@ -371,9 +381,11 @@ invent one.
 - **Never decides the squash range from a stale tracking ref** — the remote is asked with
   `ls-remote` (the default), or `origin/<branch>` is refreshed by the fallback's fetch, before the
   range is chosen (§ 4). A ref this checkout last heard about is not evidence about origin.
-- **Never carries an AI attribution trailer** — `Akatsuki-Agent` alone, per § 2's `commits` block;
+- **Never carries an AI attribution trailer** — `Hatsu-Agent` alone, per § 2's `commits` block;
   never `Co-Authored-By`, `Claude-Session`, `Signed-off-by`, a "Generated with" line, or a model
   name in the message.
+- **Never writes `Akatsuki-Agent`** — the CI plane's provenance key, admitted by policy so a CI-made
+  commit passes the same guard, never written from a local session (§ 4).
 - **Never runs `git commit --file` on a message file `nen commit format` did not exit `0` for**,
   and never merges the verb's two streams into that file (§ 4). On top of a `reset --soft`, a
   refusal committed as the message is the whole effort's message.
