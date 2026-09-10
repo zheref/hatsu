@@ -16,7 +16,7 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 > predecessor system — the frozen reference implementation — which it also **serves live today**: the
 > original seventeen skills were ported name-for-name and proven against that system's real backlog before
 > `v0.1.0` was cut. The evidence is in [`docs/ab/`](docs/ab/), one file per skill — dated records of the port
-> against nen `0.1.0`. `v0.3.0` reconciled every skill and persona with nen **`v0.3.0`**. **`v0.4.0` adds the
+> against nen `0.1.0`. `v0.3.0` reconciled every skill and persona with nen **`v0.3.0`**, and `v0.7.1` repins to nen **`v0.5.0`**. **`v0.4.0` adds the
 > way of working**: ten skills that make the local loop itself explicit, two configuration files that hold
 > every parameter of it ([`nen/contract.json`](nen/contract.json) → `project` and
 > [`nen/workflow.json`](nen/workflow.json)), and two harness hooks — a stop bell and a refusal to commit on
@@ -37,7 +37,7 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 | | |
 |---|---|
 | [Claude Code](https://claude.com/claude-code) | the host. The `claude plugin` subcommands below are its own. |
-| [`nen`](https://github.com/zheref/nen) **`>= 0.3`** | a **hard** dependency — see [The Nen contract](#the-nen-contract-d10). You do **not** need to install it yourself; the warm-up does it, checksum-verified. |
+| [`nen`](https://github.com/zheref/nen) **`>= 0.5`** | a **hard** dependency — see [The Nen contract](#the-nen-contract-d10). You do **not** need to install it yourself; the warm-up does it, checksum-verified. |
 | `git` + [`gh`](https://cli.github.com), authenticated | the skills read and write GitHub as **you**. |
 
 **On the installed plugin path**, nothing here needs `jq`, `yq` or Python: one binary, plus `git` and `gh`.
@@ -91,13 +91,17 @@ nen's own shape (`dependency.version_probe` as an argv array, `dependency.bootst
 
 ```sh
 nen schema check --repo <this checkout>
-#   ok    nen/contract.json  dependency (nen >= 0.3, pinned v0.3.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)
+#   ok    nen/contract.json  dependency (nen >= 0.5, pinned v0.5.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)
+#   ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off 'main', checks: lint
 ```
 
-(Four taxonomy rows print above that line — three `FAIL` (`nen/labels.json`, `nen/repos.json`,
+(Four taxonomy rows print above those two — three `FAIL` (`nen/labels.json`, `nen/repos.json`,
 `nen/colors.yml`) and one `warn` (`nen/gates.json`) — and the command exits `1`: Hatsu ships no taxonomy of
 its own, `schema check` requires the three of a repository that carries one, and only warns on the fourth,
-which `pr ready` can take by `--gates` instead. The contract row is the one this repository owns.) Every
+which `pr ready` can take by `--gates` instead. The two `ok` rows are the ones this repository owns. **There
+is no `schemas/` fallback at this pin** — it was removed in nen `v0.5.0`, so `nen/` is the only directory any
+taxonomy-reading verb reads from, and a repository carrying a file only under `schemas/` is refused with the
+migration named.) Every
 Hatsu-authored key beside nen's own — the zero-major caveat, the two install paths, the halt template, the
 no-`jq` rule — is preserved verbatim by nen's loader and read by nothing in nen. There is deliberately no
 second copy: it was `nen.contract.json` at the root through `v0.2.0`.
@@ -107,17 +111,19 @@ Since `v0.4.0` the same file also carries a **`project`** block — Hatsu's own 
 `claude plugin validate . --strict`; every other verb of the family is an explicit `unsupported` **seat**
 stating in this repository's words why it does not exist, because a seat is exit `4`, a stated fact, while an
 omission is exit `2`, a broken declaration. Its policy half, [`nen/workflow.json`](nen/workflow.json), is
-**not** validated by nen at `0.3.0` — it grows a `schema check` row at nen `0.4.0` — and
-[`docs/WORKFLOW.md`](docs/WORKFLOW.md) documents both.
+**validated by nen at the pinned `0.5.0`** — the second `ok` row above, with a malformed key reported as a
+FAIL by pointer — and [`docs/WORKFLOW.md`](docs/WORKFLOW.md) documents both.
 
 ### The range
 
-*Current pin, echoed for convenience:* **`nen >= 0.3`**.
+*Current pin, echoed for convenience:* **`nen >= 0.5`**.
 
-**While nen's line is `0.x`, that means `>=0.3.0 <0.4.0` — exactly.** A different minor is out of range in
-**both** directions: `0.4.0` fails it as surely as `0.2.0` does. At major version zero, SemVer 2.0.0 clause 4
-makes the *minor* the breaking-change vehicle, so reading `>= 0.3` as "anything backward-compatible within
-major 0" would fail **open** in precisely the range where compatibility is least guaranteed. The familiar
+**While nen's line is `0.x`, that means `>=0.5.0 <0.6.0` — exactly.** A different minor is out of range in
+**both** directions: `0.6.0` fails it as surely as `0.4.0` does. At major version zero, SemVer 2.0.0 clause 4
+makes the *minor* the breaking-change vehicle, so reading `>= 0.5` as "anything backward-compatible within
+major 0" would fail **open** in precisely the range where compatibility is least guaranteed — and nen
+`v0.5.0` is the proof, being the first release since `v0.1.0` that **removes** something a consumer could
+rely on. The familiar
 "compatible within a major" reading applies from **`1.0` onward**, and the contract is bumped to say so when
 nen gets there.
 
@@ -353,16 +359,16 @@ apart is what keeps the second class of mistake visible.
   `sh`, use no `jq`, and otherwise no-op rather than block on anything they cannot read.
 - **No AI attribution trailer is ever recorded.** `Akatsuki-Agent:` is the single admitted trailer — the
   system's own provenance, not a model claiming authorship. **Set `includeCoAuthoredBy: false`** in your
-  Claude Code settings so the harness stops adding `Co-Authored-By:`. Enforcement is **three-layered, and
-  only the first layer ships in this plugin**: (a) `kokusen` and `aka` refuse to **write** such a trailer —
-  agent-side, and it is what Hatsu itself carries; (b) the **target repository's `commit-msg` hook**, which
-  `nen scaffold init` generates from `commits.allowedAttributionTrailers` at **nen `0.4.0`** (in flight this
-  week in `zheref/nen`; KroApple and kro-pwa already carry one); (c) **`nen commit format`** refusing the
-  trailer, also at `0.4.0`. **At the pinned nen `0.3.0`, layers (b) and (c) are target-dependent** — a
-  repository that has not been scaffolded with the hook has the agent-side refusal and nothing under it, and
-  that is said plainly rather than promised as mechanical.
+  Claude Code settings so the harness stops adding `Co-Authored-By:`. Enforcement is **three-layered, and at the
+  pinned nen `0.5.0` the third layer is the binary's**: (a) `kokusen` and `aka` refuse to **write** such a
+  trailer — agent-side, and it is what Hatsu itself carries; (b) the **target repository's `commit-msg`
+  hook**, which `nen scaffold init` generates from `commits.allowedAttributionTrailers` (KroApple and
+  kro-pwa carry one); (c) **`nen commit format --repo`** and **`nen wc squash`** refusing the trailer
+  outright at exit `2`, naming the file and the one key it admits. **Layer (b) stays target-dependent** — a
+  repository that has not been scaffolded with the hook has (a) and (c) and no hook, and that is said
+  plainly rather than promised as mechanical.
 
-### What nen `v0.3.0` adds to the roster's own procedures
+### What nen's `shu` family adds to the roster's own procedures
 
 nen's **`shu`** family runs whatever a target repository *declares* in its `nen/contract.json` `project`
 block — and nothing else — so `build`, `futon`, Gon, Hisoka, Phinks and Uvogin now start a piece of work with
@@ -490,8 +496,9 @@ claude plugin validate . --strict
 scripts/surface_mirror_check.sh   # the Codex/Cursor mirrors match their source
 ```
 
-The second writes nothing and needs no credential. It exits `2` — saying so, rather than passing — when the
-`nen` on your `PATH` has no `surface` verb, which is the answer at the currently pinned `v0.3.0`; see
+The second writes nothing and needs no credential. **At the pinned `v0.5.0` it runs the real check** —
+`codex ok: 40`, `cursor ok: 47`, exit `0`. It exits `2` — saying so, rather than passing — when the `nen` on
+your `PATH` has no `surface` verb, which at this pin means the binary is not the pinned one; see
 [`docs/SURFACES.md`](docs/SURFACES.md) § 4.
 
 ---

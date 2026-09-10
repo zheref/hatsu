@@ -19,29 +19,31 @@
 #   2. No git credential survives into the job: both checkouts set
 #      `persist-credentials: false`. Nothing here pushes or authenticates.
 #
-# WHY THIS JOB CAN SKIP, AND WHY THAT IS NOT A HOLE
+# THIS IS A REAL CHECK NOW, AND IT USED TO BE A SKIP
 # It bootstraps nen at the ref `nen/contract.json` pins — the single source of
 # truth for this repository's nen dependency (D10), read here rather than
-# hard-coded, so the job follows the pin instead of drifting from it. That pin
-# is currently `v0.3.0`, a nen that PREDATES the `surface` verb: `nen surface`
-# answers "unknown command 'surface'" at exit 2. So the job would fail every
-# pull request, on a condition no pull request can fix, until an unrelated repin
-# lands. A check that fails for a reason the author cannot act on is a check
-# that gets turned off within a week.
+# hard-coded, so the job follows the pin instead of drifting from it. Through
+# `v0.4.0` that pin named a nen that PREDATED the `surface` verb, so the job
+# SKIPPED with a loud `::notice::` rather than failing every pull request on a
+# condition no author could act on. The skip was decided by the SCRIPT's own
+# exit 2, precisely so that it would disappear by itself the moment the pinned
+# nen carried the verb — no edit to this file, no remembering.
 #
-# So it SKIPS — loudly, with a `::notice::` naming the pin, the verb and what
-# will change — and passes. The skip is decided by the SCRIPT's own exit 2,
-# which means the skip disappears by itself the moment the pinned nen carries
-# the verb: no edit to this file, no remembering. What it must never do is
-# report success as though the mirrors had been checked, and it does not: the
-# notice says, in those words, that they were not.
+# The pin is `v0.5.0` and that nen carries `nen surface mirror generate|check`.
+# Verified locally against this branch: `bash scripts/surface_mirror_check.sh`
+# exits 0, `codex ok: 40` and `cursor ok: 47`, no missing/extra/stale/hand-edited
+# rows. So the skip branch is unreachable at this pin, and it is kept as an
+# ERROR rather than deleted: a pinned nen without the verb now means the pin or
+# the bootstrap is wrong, which is a failure to report and not a condition to
+# pass through. A check that reported success as though the mirrors had been
+# checked would be worse than no check at all.
 #
-# ENFORCEMENT POSTURE (2026-09-10, Hatsu 0.7.0): ADVISORY. This check is not yet
-# listed in a repository ruleset, and requiring a job that currently skips would
-# require a skip. Require it — the context is the job id below, `surface-mirror-check`,
-# so renaming that job silently un-requires it — in the same change that moves
-# `dependency.pinned_ref` past v0.3.0. That is a repo-settings act and a
-# maintainer's, not something this file can do.
+# ENFORCEMENT POSTURE (2026-09-10, Hatsu 0.7.1): ADVISORY, and READY TO BE
+# REQUIRED. The blocker was that requiring a job which skipped would require a
+# skip; the pin moved and the job runs the real check. Require it — the context
+# is the job id below, `surface-mirror-check`, so renaming that job silently
+# un-requires it. That is a repo-settings act and a maintainer's, not something
+# this file can do; it is named in this PR's Deferred section for that reason.
 name: surface-mirror-check
 
 on:
@@ -126,7 +128,7 @@ jobs:
           echo "bin=$bin" >> "$GITHUB_OUTPUT"
           echo "nen: $("$bin" --version) at $bin"
 
-      - name: Surface-mirror drift check (skips while the pinned nen has no `surface` verb)
+      - name: Surface-mirror drift check
         env:
           NEN_BIN: ${{ steps.nen.outputs.bin }}
           PINNED_REF: ${{ steps.pin.outputs.ref }}
@@ -155,8 +157,13 @@ jobs:
               echo "surfaces/ matches a fresh generation."
               ;;
             2)
-              echo "::notice title=surface-mirror-check skipped::The pinned nen (${PINNED_REF}) has no 'surface mirror' verb, so surfaces/codex and surfaces/cursor were NOT checked on this PR. This is a SKIP, not a pass. It disappears on its own — with no edit to this workflow — when nen/contract.json's dependency.pinned_ref moves to a nen that carries the verb. See docs/SURFACES.md § 4."
-              exit 0
+              # Unreachable at a pin that carries the verb, and kept as a FAILURE
+              # rather than deleted. Through v0.4.0 this branch was a loud skip,
+              # because the pinned nen predated `nen surface`. At v0.5.0 the verb
+              # is in the pinned binary, so this exit means the pin or the
+              # bootstrap is wrong — a thing to report, never to pass through.
+              echo "::error title=surface-mirror-check could not run::The bootstrapped nen (${PINNED_REF}) has no 'surface mirror' verb, so surfaces/codex and surfaces/cursor were NOT checked. At this pin that is a defect in the pin or the bootstrap, not a condition to skip past: nen/contract.json's dependency.pinned_ref is expected to name a nen carrying the verb. See docs/SURFACES.md § 4."
+              exit 1
               ;;
             3)
               echo "::error::no nen binary reached the check step — the bootstrap above should have made this impossible."

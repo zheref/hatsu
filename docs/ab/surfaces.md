@@ -404,3 +404,55 @@ on this host by the session that made these edits**, on constructed fixtures, no
 the pin (*"nen wc: unknown option `--onto`"*, exit `2` — verified again here, and `aka` § 4's named git
 residue already covers it); and every row of § 5 of the wave-5 validation record, which the fixes above
 were written not to disturb.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| `nen surface` absent — the mirrors regenerable only from a `main` build | `nen surface mirror generate --source claude/skills --agents claude/agents --surface codex\|cursor --out surfaces/<s> --invocation-prefix "hatsu:"` | `0`, both |
+| the CI job skipping with a `::notice::` | `bash scripts/surface_mirror_check.sh` | `0` |
+| `nen stop --mark` absent (§ 4) | `nen stop --mark --repo <fixture> --who kurapika --gate G5` | `0` — see `docs/ab/jutaisho.md` for why it is not adopted |
+| `notifications.turn` in no schema (§ 4.2) | `nen schema check` against a fixture declaring it | `FAIL` by pointer on a bad value, `ok` on `"all"` |
+
+```
+$ bash scripts/surface_mirror_check.sh
+surface-mirror-check: nen 0.5.0 · source claude/skills · agents claude/agents
+--- codex (surfaces/codex)
+surface: codex
+ok: 40
+missing: (none)
+extra: (none)
+stale: (none)
+hand-edited: (none)
+--- cursor (surfaces/cursor)
+surface: cursor
+ok: 47
+missing: (none)
+extra: (none)
+stale: (none)
+hand-edited: (none)
+surface-mirror-check: both mirrors match a fresh generation.
+exit=0
+```
+
+Through `v0.4.0` `nen surface` answered *"nen: unknown command 'surface'"* at exit `2` (§ 2.3), the script
+exited `2` on that, and `.github/workflows/surface-mirror-check.yml` turned that `2` into a skip-with-notice
+so a PR was never failed on a condition its author could not fix. **The skip was designed to disappear by
+itself when the pin moved, and it did.** That workflow's exit-`2` branch is now an **error**: at a pin that
+carries the verb, exit `2` means the pin or the bootstrap is wrong.
+
+The generator prints two per-surface notes, both of them boundaries rather than gaps: Codex *also*
+documents standalone per-agent TOML files under `.codex/agents/`, which this verb does not write (it
+mirrors markdown to markdown, and a persona lands in `AGENTS.md` as prose); and Cursor documents that a
+skill's `name` must match its folder name, which nen mirrors and does not enforce.
+
+**Still residue:** placing a mirror into a target repository. `--out` is a path, not a deployment, and
+`mirror check` diffs `surfaces/` against a fresh generation rather than checking an installed copy.

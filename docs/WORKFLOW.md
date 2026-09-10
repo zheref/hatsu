@@ -19,9 +19,9 @@ There are exactly two configuration files, and the split is not stylistic. It is
 |---|---|---|
 | **Answers** | *How is this repository built, tested, linted, launched and shipped?* | *How do we work in it?* |
 | **Content** | lanes, per-verb argv, preconditions, hosts, deploy targets, launch targets, evidence globs, host toolchain | branch shape, which declared verbs run per iteration, the coverage ladder, reports, notifications, commit trailers, monitor caps, the model matrix |
-| **Executed by** | `nen shu <verb>` — nen spawns exactly what is declared and nothing else | nobody. It is **read**, and the reader decides |
+| **Executed by** | `nen shu <verb>` — nen spawns exactly what is declared and nothing else | mostly the reader. Two verbs take a slice: `nen commit format --repo` reads `commits.allowedAttributionTrailers`, `nen shu coverage --touched` reads the `coverage` ladder |
 | **Changing it changes** | what runs on this machine | what the roster is willing to do |
-| **Validated by** | `nen schema check` (the `nen/contract.json` row), today | `nen schema check` (a new row), **from nen `0.4.0`** |
+| **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — **both at the pinned nen `0.5.0`** |
 
 The reason to keep them apart is that they fail differently. A wrong `project` block produces a wrong
 command — loud, immediate, exit `1` or `5`. A wrong `workflow.json` produces a *correct command run at the
@@ -87,8 +87,8 @@ exit `4` and its seat is quoted, not worked around. Hatsu's own `checks` is `["l
 > | When | What |
 > |---|---|
 > | **Immediately after a `claude/skills/**` or `claude/agents/**` edit** | regenerate both surfaces (`docs/SURFACES.md` § 3) and commit the result **in the same commit** as the source change |
-> | **Inside `mukai`, before `shibari` opens the PR** | `scripts/surface_mirror_check.sh` — exit `0` to proceed, exit `1` regenerate and amend, exit `2` say the pinned nen has no verb and record it |
-> | **On the PR** | [`.github/workflows/surface-mirror-check.yml`](../.github/workflows/surface-mirror-check.yml), advisory, and **skipping with a notice** while `dependency.pinned_ref` is `v0.3.0` — that nen has no `surface` verb |
+> | **Inside `mukai`, before `shibari` opens the PR** | `scripts/surface_mirror_check.sh` — exit `0` to proceed, exit `1` regenerate and amend, exit `2` **stop**: the nen on PATH is not the pinned one, since `v0.5.0` carries the verb |
+> | **On the PR** | [`.github/workflows/surface-mirror-check.yml`](../.github/workflows/surface-mirror-check.yml) — **a real check at the pinned `v0.5.0`**, advisory only until the maintainer requires the context. It skipped with a notice while `dependency.pinned_ref` named a nen with no `surface` verb; that branch is now an error. |
 >
 > The script writes nothing and needs no credential, so running it more often costs nothing but the seconds.
 
@@ -128,8 +128,9 @@ lowered to clear it** — that is the one move `gyo` will not make, and a reposi
 `minimum` is a G5, not a smaller number.
 
 `nen shu coverage --threshold <n>` **reports** `met: true|false` and never changes its exit code; nen does not
-decide whether a number is good enough. From nen `0.4.0`, `--touched --base <ref>` filters the rows and the
-ladder here supplies the default threshold.
+decide whether a number is good enough. At the pinned nen `0.5.0`, `--touched --base <ref>` filters the rows
+to the files the diff names and — with no `--threshold` — reads the ladder here itself, printing a `ladder:`
+line and a `band` per row (`under-minimum` / `minimum` / `recommended` / `ideal`). It still never gates.
 
 ### `launch`
 
@@ -191,8 +192,9 @@ value when the key is absent) rings the surface's own line and nothing else; `"a
 `rungs` lists, every turn. A gate always rings everything `rungs` lists, whatever `turn` says, and `turn`
 can never conjure a rung `rungs` withheld. It exists because the two readings of "does a plain turn ring?"
 were both supportable in `jutaisho`'s text and disagreed about every turn of every effort; one declared
-value settles it. **`turn` is an addition to the `nen.workflow/v0.1` shape** and the schema must admit it
-when the loader lands at nen `0.4.0` — recorded in
+value settles it. **`turn` is IN the `nen.workflow/v0.1` shape at the pinned nen `0.5.0`** — a closed set of
+`"rung1"` and `"all"`, refused by pointer on anything else, and written into every policy file
+`nen scaffold init` generates. It began as a Hatsu addition; the retirement is recorded in
 [`claude/skills/jutaisho/SKILL.md`](../claude/skills/jutaisho/SKILL.md) § Residue.
 
 ### `commits`
@@ -225,26 +227,31 @@ that drives this workflow. **Saying it is configured off when nobody has configu
 three-layer table read one layer stronger than it is**, which is the failure mode the table exists to
 prevent.
 
-**Enforcement is three-layered, and only the first layer ships in this plugin.**
+**Enforcement is three-layered, and at the pinned nen `0.5.0` two of the three are mechanical.**
 
-| Layer | What refuses | Where it lives | Live at nen `0.3.0`? |
+| Layer | What refuses | Where it lives | Live at the pinned nen `0.5.0`? |
 |---|---|---|---|
 | **(a)** the **skills'** own refusal — `kokusen` reads the rendered message before it commits, `aka` before it squashes | agent-side | this repository | **yes**, and it is the layer Hatsu ships |
-| **(b)** the target repository's **`commit-msg` hook**, generated from `allowedAttributionTrailers` by `nen scaffold init` | the target repository's `.git/hooks/` | **nen `0.4.0`** — in flight this week in `zheref/nen`; KroApple and kro-pwa already carry one | **target-dependent** |
-| **(c)** **`nen commit format --repo`** refusing a trailer not on the allow-list | nen | **nen `0.4.0`** | **no** — `0.3.0` renders any `--trailer` it is given, verified live (`docs/ab/aka.md` § 2.2) |
+| **(b)** the target repository's **`commit-msg` hook**, generated from `allowedAttributionTrailers` by `nen scaffold init` | the target repository's `.git/hooks/` | **target-dependent** — it exists only in a repository `nen scaffold init` has stood up; this week in `zheref/nen`; KroApple and kro-pwa already carry one | **target-dependent** |
+| **(c)** **`nen commit format --repo`** and **`nen wc squash`** refusing a trailer not on the allow-list | nen | **YES** — exit `2` naming the file and the one admitted key, verified live against this checkout (`docs/ab/aka.md` § *Retired at nen 0.5*.2) |
 
-So **at the pinned `0.3.0` layers (b) and (c) are target-dependent**: a repository scaffolded by a nen that
-writes the hook has a mechanical refusal, and one that has not — this repository included — has the
-agent-side refusal and nothing under it. A raw `git commit --file` carrying `Co-Authored-By` on a feature
-branch is caught by (a) only. Say which layers a given repository actually has; a rule described as
-mechanical where it is not is worse than one described honestly.
+So **at the pinned `0.5.0` layer (c) is installed everywhere the invocation carries `--repo`, and only
+layer (b) stays target-dependent**: a repository scaffolded with the hook has a refusal that fires on
+*every* commit however it was made, and one that has not — this repository included — has (a) and (c).
+**A raw `git commit --file` carrying `Co-Authored-By` on a feature branch is still caught by (a) only**,
+because neither (b) nor (c) is in that path. Say which layers a given repository actually has; a rule
+described as mechanical where it is not is worse than one described honestly.
+
+**`--repo` is what turns (c) on.** The policy is opened only when the invocation carries a `--trailer`, and
+without `--repo` there is no policy file to open and nothing is refused. Every skill here passes it.
 
 There is **no `Akatsuki-Run:` trailer** anywhere on this plane: Hatsu is local, and there is no CI run to
 name. Adding one would forge a machine-plane provenance the local plane does not have.
 
-From nen `0.4.0`, `nen commit format --repo <path>` reads these two lists and refuses a trailer not on the
-allow-list; at `0.3.0` the refusal is the skill's, plus whatever `commit-msg` hook the target repository
-happens to carry.
+`nen commit format --repo <path>` reads these two lists and refuses a trailer not on the allow-list, and
+`nen wc squash` holds a squash message to the same rule through the shared `attributionRefusalMessages`
+wording — so the two verbs cannot disagree about what is admitted. On top of that sits whatever
+`commit-msg` hook the target repository happens to carry.
 
 ### `monitor`
 
@@ -339,10 +346,25 @@ substitution in the title.** Never silently honoured, never silently dropped.
 
 ## 3 · `project.launch` and `project.evidence`
 
-Two extensions to nen's `project` block. **At nen `0.3.0` both are preserved verbatim by the loader and read
-by nothing in nen** — the same treatment every Hatsu-authored key in `nen/contract.json` already gets — so
-declaring them today is safe and `nen schema check` stays `ok`. **From nen `0.4.0` they are executed**:
-`launch` by `nen shu dev|run --target <name>`, `evidence` by `nen shu evidence --base <ref>`.
+Two blocks of nen's `project` shape that began as Hatsu extensions. **At the pinned nen `0.5.0` both are
+PARSED and EXECUTED**: `launch` by `nen shu dev|run --target <name>`, `evidence` by
+`nen shu evidence --base <ref>`. They are no longer preserved-and-unread, and that changes what a typo
+costs.
+
+**Each block key is guarded against a near-miss, by pointer.** `launches`/`Launch`/`launc` and
+`evidences`/`Evidence`/`evidenc` are refused naming the key they meant and which kind of misspelling it is
+— one letter out, the same word in a different case, or that key with an English plural on it. Preserved,
+such a key would be read by nobody while the verb that needs it refused about a file that plainly declares
+the block. The older optional blocks (`targets`, `hosts`, `toolchain`, `profiles`) are still deliberately
+unswept at the *block* level, because a declaration written against `0.3.0` may already park a near-miss
+key there.
+
+**`project.launch.<name>` also admits `lane` and `artifact` at this pin** — which lane the target's verb,
+`args` and after-steps are read from, and the repo-relative path `{artifact}` is substituted with instead of
+the verb's first `artifacts` entry. Both are optional and absent means exactly what it meant before. One
+thing that was accepted through `v0.4.0` and is not now: `{device.id}` or `{artifact}` written into
+`project.launch.<name>.args` is exit `2` naming the token, because substitution reaches the target's `after`
+steps and nowhere else.
 
 ### `project.launch`
 
@@ -533,8 +555,9 @@ not in the session:
 The verbs: `nen pr body-check` (the body's completeness), `nen changelog fragment-required` (whether this
 change owes a fragment), `nen gate derive` (which gate the PR stands at — **derived, never labelled by
 `shibari`**), `nen pr edit-body` to write the body back, and `nen pr request-reviews` to request the
-reviewers. **`nen pr edit-body` does not exist at the pinned `0.3.0`** — the residue is `gh pr edit
---body-file`, named as residue in the skill rather than improvised (§ 7).
+reviewers. **`nen pr edit-body --target <owner/name> --pr <n> --body-file <path>` exists at the pinned
+`0.5.0`** and replaces the body outright from the file's bytes, certifying the number before any write and
+refusing an issue number at exit `2`. `gh pr edit --body-file` is retired with it (§ 7).
 
 **The evidence mechanism is assumed with confirmation, not guessed**: a stack with a registered
 public-assets mirror embeds the images; a stack without one names each scene and points at its committed
@@ -712,13 +735,37 @@ passing `--reviewers` instead (`sharingan` § 4), not by guessing a path. This i
 
 ## 7 · What is not here yet
 
-At nen **`0.3.0`**, several deterministic steps in the loop above have **no verb**, and each is named as
-**residue** in the skill that carries it rather than quietly improvised: build proof and the stall guard
-(`rasengan`), `--target` on `shu dev` (`amaterasu`), all three report verbs (`rikugan`), `--no-push` and
-`conflicts[]` on `pr cascade-main` (`ao`), `wc squash` (`aka`), `shu test-report` (`tsukuyomi`),
-`shu evidence` (`kotoamatsukami`), `shu coverage --touched` (`gyo`), `pr edit-body` (`shibari`), and the
-forbidden-trailer refusal in `commit format` (`kokusen`). **A residue lapses when the pin moves and a verb
-arrives for it** — and a missing verb is a finding to file, never a gap to route around.
+**Every residue this section used to list was retired when the pin moved to nen `0.5.0`.** Build proof and
+the stall guard (`rasengan`), `--target` on `shu dev` with `lane`/`artifact` (`amaterasu`, `jujutsu`), both
+report verbs (`rikugan`), `--no-push` and `conflicts[]` on `pr cascade-main` (`ao`, `murasaki`),
+`wc squash` (`aka`), `shu test-report` (`tsukuyomi`), `shu evidence` (`kotoamatsukami`, `shibari`),
+`shu coverage --touched` with the ladder (`gyo`), `pr edit-body` (`shibari`), the forbidden-trailer refusal
+in `commit format` (`kokusen`), `nen/workflow.json` validation and `notifications.turn` (`breath`,
+`jutaisho`), `stop --mark`, `surface mirror generate|check`, step `stdoutTo`, precondition `port` and
+`repo resolve`'s exit-`2` no-registry refusal — all of them are verbs in the pinned binary, each verified
+live and recorded in the matching `docs/ab/<skill>.md` under *Retired at nen 0.5*.
+
+**What is still residue, and why:**
+
+| Residue | Where | Why it is still residue |
+|---|---|---|
+| the push itself — `git push [-u] origin HEAD` | `aka`, `murasaki` | `pr cascade-main` pushes only what it merged itself; there is no push verb |
+| `git rebase origin/<base>` | `ao` | the cascade verb *"merges (never rebases)"* by its own `--help` |
+| the merge/rebase commit — `git commit --file`, `git rebase --continue` | `ao`, `kokusen` | `commit format` formats; nothing in nen commits |
+| `gh pr create` | `shibari` | `nen pr` carries nine subcommands and `create` is not one |
+| showing both sides of a conflict — `git show :1:|:2:|:3:` | `ao` | `conflicts[]` names the commits, not the content |
+| the marker's SHAPE — `hatsu.stop-marker/v0.1` | `jutaisho` | `nen stop --mark` writes a poorer document with no `title`, `sound` or `rungs`, and **replaces** the file; adopting it would ring the generic line on every gate. Kept deliberately |
+| removing the marker on a hookless surface | `jutaisho` | `--mark` writes and never removes |
+| a coverage tool's own exclusions | `gyo` | `--touched` narrows the rows nen parsed; it cannot know what was never instrumented |
+| embedding a capture as a `data:` URI | `rikugan` | no verb turns a PNG into one |
+| the Artifact publish | `rikugan` | the surface's tool, not a deterministic step nen owns |
+| a `.xcresult` with no declared extraction step, and a Playwright HTML report | `tsukuyomi`, `kotoamatsukami` | `test-report` reads a **declared** summary; nen opens no result bundle itself |
+| placing a surface mirror into a target repository, and `info/exclude` | `hatsu-warmup` | `--out` is a path, not a deployment; an exclude file is one working copy's property |
+| an artifact's size, freshness and checksum | `susanoo` | nen reports a declared artifact's existence and nothing more |
+| `git push`/`git commit` guards on the trunk | `hooks/` | harness hooks, not nen-owned steps |
+
+**A residue lapses when the pin moves and a verb arrives for it** — and a missing verb is a finding to
+file, never a gap to route around.
 
 Skill availability follows the same honesty: `breath`, `rasengan`, `kokusen`, `amaterasu`, `tsukuyomi`,
 `rikugan`, `jutaisho`, `ao`, `aka` and `ren` shipped at Hatsu **`v0.4.0`**. **`v0.5.0` adds the PR side of
@@ -737,6 +784,8 @@ also generated into Codex and Cursor layouts under `surfaces/`, placed into a ta
 warm-up, checked for drift by [`scripts/surface_mirror_check.sh`](../scripts/surface_mirror_check.sh), and
 documented in [`docs/SURFACES.md`](SURFACES.md). **Two things a surface does not have are named rather than
 assumed**: Codex and Cursor have no turn-end hook (§ 6), and Codex has no in-session subagent (§ 2 →
-`models`). And the mirror's own generator is **residue at the pin**: `nen surface mirror generate|check` does
-not exist at nen `v0.3.0`, which is why the mirrors are committed and why the CI job skips with a notice
-until `dependency.pinned_ref` moves.
+`models`). **RETIRED at nen `0.5`: the mirror's own generator is in the pinned binary.**
+`nen surface mirror generate|check` runs at `v0.5.0` — `scripts/surface_mirror_check.sh` exits `0` with
+`codex ok: 40` and `cursor ok: 47` — so the CI job runs a real check instead of skipping with a notice. The
+mirrors stay committed, for the original reason: the warm-up installs what is on disk rather than
+regenerating anything in a target repository.
