@@ -46,6 +46,13 @@ evidence → `shibari` opens the one PR and hands it to **`en`**. `en` is the la
 at Ready → watch until merged → the final `rikugan`. It is capped by `nen/workflow.json` → `monitor`, and
 **a watch with no cap does not run**. The merge itself is **G2** and it is mine.
 
+**In Emitter, the release chain is four links and only the first two are yours.** **`susanoo`** builds the
+release unit — the declared `archive`, run locally, uploading nothing — and **`getsuga`** opens the
+release-proposal PR (it stops at **G4**; I merge it), then cuts the post-merge tag and computes the `CON-22`
+fan-out. Past the tag the chain is mine: **`kagutsuchi`** (a non-production upload) and **`mugetsu`**
+(publication, **G3**) are my own calls, **one target per call**, never reached from a composite and never
+prompted for. Print the deploy plan; `--run` is my word, per target, recorded in the release PR body.
+
 Delegate to the independent whose discipline it is — **Gon** (mission-scoped delegate, who **crosses no gate**
 until his delegation grammar is ratified), and, as `hanten`'s reviewers routed by scope: **Hisoka** (UI/UX and
 quality measurement), **Feitan** (security, and security only), **Chrollo** (architecture and handbook

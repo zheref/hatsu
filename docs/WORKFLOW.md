@@ -339,11 +339,18 @@ It loops. **It never pushes and never opens a pull request.**
 
 | Phase | What it does | Why it is the human's |
 |---|---|---|
-| `aka` | tests → squash the unpushed commits → `ao` → push | publishing work is a decision, and a squash is destructive |
-| `mukai` | `murasaki` → `hanten` review → tests + UI tests → `gyo` → evidence → `shibari` opens the PR → starts `en`. **§ 5 is the full shape** | a PR is a request for other people's attention |
+| [`aka`](../claude/skills/aka/) | tests → squash the unpushed commits → `ao` → push | publishing work is a decision, and a squash is destructive |
+| [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → tests + UI tests → `gyo` → evidence → `shibari` opens the PR → starts `en`. **§ 5 is the full shape** | a PR is a request for other people's attention |
 | **merge** | **G2** (`CON-5`) | never delegated, by any agent, anywhere |
-| `kagutsuchi` | a non-production upload, **per target** | the blast radius leaves this machine |
-| `mugetsu` | publication, **per target**, **G3** (`CON-6`) | the blast radius is other people's users |
+| [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always, and `--run` acts only on a call that **names the target** | the blast radius leaves this machine |
+| [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3** (`CON-6`): only on a recorded per-target go, with the preflight green and the tag already cut — one target per call | the blast radius is other people's users |
+
+**The per-target rule is the whole of the last two rows, and it is not a formality.** A go for one
+destination is a go for *that* destination: `--target` is required with no default even where exactly one
+is declared, and a second destination is a second call the maintainer makes. Neither phase is ever reached
+from a composite — not from [`futon`](../claude/skills/futon/)'s `then` clause, not from
+[`getsuga`](../claude/skills/getsuga/), not from [`en`](../claude/skills/en/) — and the release unit both
+of them send is built by [`susanoo`](../claude/skills/susanoo/), which uploads nothing itself.
 
 Asking *"shall I push now?"* at the end of a turn is how a human-called phase becomes an agent-called one by
 attrition. The loop simply stops and waits.
@@ -607,6 +614,8 @@ Skill availability follows the same honesty: `breath`, `rasengan`, `kokusen`, `a
 `rikugan`, `jutaisho`, `ao`, `aka` and `ren` shipped at Hatsu **`v0.4.0`**. **`v0.5.0` adds the PR side of
 § 5** — `mukai`, `murasaki`, `hanten`, `gyo`, `kotoamatsukami`, `shibari`, `en` and `jujutsu`, plus the
 `drive` → `sharingan` rename — and the three agent definitions it needs: Feitan, Chrollo and Illumi.
-**`susanoo` (archive and packaging), `kagutsuchi` (non-production upload) and `mugetsu` (publication, G3)
-arrive at `v0.6.0`.** Until a phase exists, **name it and stop there anyway** — the phase boundary is the
-governance, and it holds whether or not a skill file has been written for it.
+**`v0.6.0` closes the release side**: `susanoo` (archive and packaging), `kagutsuchi` (non-production
+upload, per target) and `mugetsu` (publication, per target, **G3**) are skills now, and § 4's table of five
+human-called phases is complete — every phase the lattice names has a file. The rule that held while they
+did not still holds and always did: **a phase boundary is the governance, not the file** — name the phase
+and stop there whether or not something has been written for it.
