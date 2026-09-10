@@ -50,9 +50,10 @@ they are the evidence's internal cross-references.
   `bankai:epic` could not do its job.
 - **Clause and rule ids** — `CON-25`, `QA-15`, `UZF-26`, `SW-{n}` and the rest. They are the upstream
   constitution's and handbooks' own vocabulary, cited by id the way a statute is.
-- **"Akatsuki"** — the trailer `Akatsuki-Agent:`, the plugin keyword, and every prose mention. It is
-  the name of the *system* Hatsu is the local plane of, not the name of a repository; redacting it
-  would make the roster and the agent trailers unreadable without hiding anything a reader could open.
+- **"Akatsuki"** — the CI plane's trailer `Akatsuki-Agent:`, the plugin keyword, and every prose
+  mention. It is the name of the *system* Hatsu is the local plane of, not the name of a repository;
+  redacting it would make the roster and the two provenance trailers unreadable without hiding anything a
+  reader could open. Hatsu's own trailer, `Hatsu-Agent:`, is named for the same reason.
 - **Stack handbook names** (`swiftui-tca-uzf-v2`, `compose-uzf-v2`, `react-uzf-v1`) and their rule
   prefixes. They are canon names carried in the tooling's own fixtures, not repository names.
 - **The plugin name "bankai"** where it means the predecessor plugin a reader may already have installed

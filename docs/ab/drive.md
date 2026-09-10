@@ -247,6 +247,13 @@ ok  How to verify
 MISSING  Akatsuki-Agent trailer
 ```
 
+> **Dated note, 2026-09-10.** The requirement list above is **this probe's own input**, typed to
+> exercise the verb against a real body, and it is left verbatim. Hatsu's provenance key is
+> `Hatsu-Agent:` from the ruling of 2026-09-10 ([`docs/ROSTER.md`](../ROSTER.md) § *Rulings of
+> 2026-09-10*); `Akatsuki-Agent:` is the CI plane's. A requirements file written today would name the
+> plane's own key. Nothing about what the run establishes changes — the verb matches whatever pattern
+> it is handed.
+
 Confirmed: purely local text matching, no `schemas/gates.json` dependency, no GitHub call beyond
 the body read the caller already needed. Never stops at the first miss (both requirements
 evaluated and reported, matching `--help`'s own description).

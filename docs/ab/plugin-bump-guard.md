@@ -500,3 +500,152 @@ Two things this run says that § 4 could not:
   bump; the `nen/*` glob becomes the judging copy once #28 merges. The script is not itself a guarded
   surface (`scripts/**`), so changing it carries no bump requirement of its own — the bump this PR carries
   is owed to the twenty-nine surfaces above.
+
+---
+
+## 8. The opt-out anchor — a guard that was defeated by describing it (Hatsu `0.8.0`)
+
+**Run:** 2026-09-10 (local clock), branch `opus/kurapika/two-trailers`, GNU bash 3.2.57
+(`arm64-apple-darwin25`), `jq` 1.8.2, `shellcheck` clean. Constructed fixtures — a one-line
+changed-files list naming `claude/skills/aka/SKILL.md`, two manifests (`0.7.1` on both sides, and
+`0.7.1 → 0.8.0`), and seven PR bodies.
+
+### 8.1 The defect
+
+`pr_body_has_opt_out` matched the phrase **anywhere in the body**:
+
+```bash
+grep -qiE 'no plugin bump:[[:space:]]*[^[:space:]]' "$file"
+```
+
+So the opt-out fired on any body that *mentioned* it. This is not hypothetical prose — the guard's
+own refusal message ends with *"state `no plugin bump: <reason>` in the PR body"*, so **a PR body
+that quotes the refusal it is answering disarms the check**, and so does a body claiming the
+opposite. Against `main`'s copy of the script, with a plugin surface changed and **no bump**:
+
+```
+$ bash <main's plugin_bump_check.sh> <tmp>/changed_surface.txt <tmp>/base.json <tmp>/head_unbumped.json <tmp>/body_prose.md
+plugin-bump opt-out present in PR body — skipping version check
+[exit 0]
+```
+
+`body_prose.md` is an ordinary PR body whose last line reads *"This PR bumps the plugin version and
+so claims no `no plugin bump: <reason>` opt-out."* — a sentence that **denies** the opt-out and was
+read as declaring it. The failure mode is the guard's own: a silent `exit 0` where the answer should
+have been `exit 1`.
+
+### 8.2 The fix
+
+The opt-out is a **statement the body makes**, not a phrase it contains, so the pattern is anchored
+to the start of a line, past the bookkeeping a real declaration may carry — leading whitespace,
+blockquote `>` markers, `-` list bullets, in any order:
+
+```bash
+grep -qiE '^[[:space:]]*(>[[:space:]]*|-[[:space:]]+)*no plugin bump:[[:space:]]*[^[:space:]]' "$file"
+```
+
+**The two markers are spelled differently, and the asymmetry is the finding.** The first attempt at
+this fix wrote both as one class, `([>-][[:space:]]*)*` — a `-` with **no** following whitespace
+accepted. That re-opened the same hole one character narrower, and **Copilot caught it on
+zheref/hatsu#34** before the PR merged. Against that intermediate version, all three of these were
+read as declarations:
+
+```
+$ bash -c 'source scripts/plugin_bump_check.sh; pr_body_has_opt_out "$1" && echo MATCHED' _ <tmp>/body_dashdash_start.md
+MATCHED            # "--no plugin bump: a CLI flag at line start, not a declaration."
+$ bash -c 'source scripts/plugin_bump_check.sh; pr_body_has_opt_out "$1" && echo MATCHED' _ <tmp>/body_dashnospace.md
+MATCHED            # "-no plugin bump: not a bullet, just a hyphenated word."
+$ bash -c 'source scripts/plugin_bump_check.sh; pr_body_has_opt_out "$1" && echo MATCHED' _ <tmp>/body_arrow.md
+MATCHED            # "-> no plugin bump: an arrow, not a bullet."
+```
+
+So the markers are not interchangeable: **`>` needs no following whitespace** — `>no plugin bump: …`
+is a valid blockquote and `>` starts no English word — while **`-` requires it**, because a list
+bullet has whitespace after it and a hyphen does not. All three lines above are refused by the
+pattern as shipped, and `>no plugin bump: <reason>` still passes.
+
+The reason requirement (§ 3.4) is unchanged, and so is the shape the file documents: everything above
+the `BASH_SOURCE` guard stays pure, needs no git, `gh` or network, and sourcing it still does not
+mutate the caller's shell options — verified: `bash -c 'set +u +e; source …; echo $-'` → `hBc`.
+
+### 8.3 Transcripts — refuse, then pass
+
+All eleven against the same changed-surface list. Every row but 7 carries **no** bump.
+
+| # | PR body | Expected | Result |
+|---|---|---|---|
+| 1 | prose *mentioning* the opt-out while denying it | refuse | **exit `1`** |
+| 2 | the guard's own refusal message, quoted back | refuse | **exit `1`** |
+| 3 | `no plugin bump: comment-only edit, …` at line start | pass | **exit `0`** |
+| 4 | `- no plugin bump: CI workflow only.` | pass | **exit `0`** |
+| 5 | `> no plugin bump: README typo.` | pass | **exit `0`** |
+| 6 | bare `no plugin bump:` — no reason | refuse | **exit `1`** |
+| 7 | body 1's prose **with** the `0.7.1 → 0.8.0` bump | pass **on the bump** | **exit `0`** |
+| 8 | `--no plugin bump: …` at line start (a CLI flag) | refuse | **exit `1`** |
+| 9 | `-no plugin bump: …` (a hyphenated phrase, not a bullet) | refuse | **exit `1`** |
+| 10 | `-> no plugin bump: …` (an arrow, not a bullet) | refuse | **exit `1`** |
+| 11 | `>no plugin bump: …` (blockquote, no space — valid markdown) | pass | **exit `0`** |
+
+The two that changed behaviour, in full:
+
+```
+$ bash scripts/plugin_bump_check.sh <tmp>/changed_surface.txt <tmp>/base.json <tmp>/head_unbumped.json <tmp>/body_prose.md
+This PR changes a plugin-shipped surface (.claude-plugin/**, claude/**,
+nen/**, contracts/**, docs/ROSTER.md,
+docs/delegation-grammar-DRAFT.md, hooks/**, templates/**, surfaces/**,
+or .mcp.json)
+but leaves
+.claude-plugin/plugin.json's `version` field unchanged.
+[…]
+Or, if this change provably does not affect the shipped plugin surface (e.g. a
+comment-only edit), state `no plugin bump: <reason>` in the PR body.
+[exit 1]
+
+$ bash scripts/plugin_bump_check.sh <tmp>/changed_surface.txt <tmp>/base.json <tmp>/head_unbumped.json <tmp>/body_quoted_refusal.md
+[…identical refusal…]
+[exit 1]
+```
+
+And the three that must still pass, unchanged in behaviour:
+
+```
+$ bash scripts/plugin_bump_check.sh <tmp>/changed_surface.txt <tmp>/base.json <tmp>/head_unbumped.json <tmp>/body_declared.md
+plugin-bump opt-out present in PR body — skipping version check
+[exit 0]
+
+$ bash scripts/plugin_bump_check.sh <tmp>/changed_surface.txt <tmp>/base.json <tmp>/head_unbumped.json <tmp>/body_declared_bullet.md
+plugin-bump opt-out present in PR body — skipping version check
+[exit 0]
+
+$ bash scripts/plugin_bump_check.sh <tmp>/changed_surface.txt <tmp>/base.json <tmp>/head_unbumped.json <tmp>/body_declared_quote.md
+plugin-bump opt-out present in PR body — skipping version check
+[exit 0]
+```
+
+**`\r\n` bodies still match.** A body read from the GitHub API carries CRLF, and `\r` is in POSIX
+`[[:space:]]`, so a real declaration is found and a bare one is still rejected:
+
+```
+$ bash -c 'source scripts/plugin_bump_check.sh; pr_body_has_opt_out "$1" && echo "opt-out declared [0]"' _ <tmp>/body_crlf.md
+opt-out declared [0]
+```
+
+### 8.4 Findings against the binary
+
+None. This is Hatsu's own script; `nen` owns no part of it, and no verb was involved in any run
+above.
+
+**One finding against the fix itself, recorded because it is the more useful one.** The first pass at
+§ 8.2 folded `>` and `-` into a single character class and accepted either with no following
+whitespace, which left three false accepts standing (rows 8–10). It was caught in review on
+zheref/hatsu#34, not by any of the seven transcripts § 8.3 originally carried — **a guard fix
+verified only against the cases that motivated it is verified against the wrong set.** Rows 8–11
+exist so the next reader inherits the counter-examples rather than the confidence.
+
+### 8.5 What this does not fix
+
+The **direction** weakness of § 2 stands untouched — a downgrade or a non-semver string still
+satisfies `version_bumped`, for the reasons recorded there. And an author who *wants* to disarm the
+guard can still write the opt-out line honestly with a bad reason: the anchor makes the opt-out a
+**deliberate declaration** rather than an accident of wording, which is all an opt-out can be. The
+reason is still read by a human at review.

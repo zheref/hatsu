@@ -152,7 +152,7 @@ escalation § 1 just withheld.
   edited, because the freshness the hook reads is the mtime and not the `at` field.
 - **`who` is the persona, and it stays the persona whatever the surface calls itself.** On a host whose
   own instructions give the session another name, the transcript may open as that name while the work is
-  done as Kurapika (`docs/SURFACES.md` § 1). `who` here, `--who` on `nen stop`, and the `Akatsuki-Agent`
+  done as Kurapika (`docs/SURFACES.md` § 1). `who` here, `--who` on `nen stop`, and the `Hatsu-Agent`
   trailer are Hatsu's record of who acted; **none of them is ever set from what the surface introduced
   itself as.**
 - **One marker, overwritten.** A second turn's marker replaces the first; there is no queue, because

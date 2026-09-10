@@ -196,7 +196,7 @@ re-proving the declared build"* — so it is written out here rather than left t
 nen commit format --type chore --scope merge \
   --subject "bring origin/<base> into <descriptor>" \
   --body "<one line per conflicted path: kind, and why the resolution was determined>" \
-  --trailer "Akatsuki-Agent=kurapika" > <msg-file>          # exit 0 REQUIRED before the next line
+  --trailer "Hatsu-Agent=kurapika" > <msg-file>             # exit 0 REQUIRED before the next line
 git -C <path> commit --file <msg-file>
 ```
 
@@ -216,7 +216,7 @@ because `origin` had not seen the commit (`docs/ab/mukai.md`). The reading is
 
 **RETIRED at nen `0.5`: pass `--repo <path>` and the binary enforces the house rule.** Verified live
 at the pin against this repository: `--trailer "Co-Authored-By=someone"` is refused at exit `2` naming
-the file and the admitted key, while `--trailer "Akatsuki-Agent=kurapika"` renders at exit `0`. The
+the file and the keys it admits, while `--trailer "Hatsu-Agent=kurapika"` renders at exit `0`. The
 policy is opened only when the invocation carries a `--trailer`, so **`--repo` is not optional here**:
 without it there is no policy to open and nothing is refused. The caller's own restraint is still the
 layer that survives a forgotten flag.
@@ -225,7 +225,9 @@ layer that survives a forgotten flag.
 into <branch>"*, which is not Conventional Commits, and a repository whose own history uses
 `chore(merge): …` for a hand-made merge (nen's does) gets a stranger's commit in the middle of it
 otherwise. The trailer rule is `nen/workflow.json` → `commits`, exactly as anywhere else: one
-`Akatsuki-Agent`, no AI attribution trailer.
+`Hatsu-Agent`, no AI attribution trailer. **`Akatsuki-Agent` is the CI plane's key and ao never
+writes it** — policy admits both so one hook passes a commit from either plane, which is not
+permission ([`kokusen`](../kokusen/SKILL.md) § 5).
 
 **A rebase has no merge commit**, and ao makes none: a rebase whose conflicts were resolved continues
 with `git -C <path> rebase --continue`, which reuses the replayed commit's own message. The build is

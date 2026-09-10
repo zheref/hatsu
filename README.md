@@ -12,7 +12,7 @@ verifies; the skill supplies only the judgment a binary cannot. Where no verb ex
 
 No GitHub App. No bot identity. Nothing here merges `main`, publishes a release, or casts a review vote.
 
-> **`v0.6.0`.** Hatsu is the local plane of the Akatsuki system, and it succeeds the local plane of a
+> **`v0.8.0`.** Hatsu is the local plane of the Akatsuki system, and it succeeds the local plane of a
 > predecessor system — the frozen reference implementation — which it also **serves live today**: the
 > original seventeen skills were ported name-for-name and proven against that system's real backlog before
 > `v0.1.0` was cut. The evidence is in [`docs/ab/`](docs/ab/), one file per skill — dated records of the port
@@ -28,7 +28,9 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 > fifth is **the merge**, which has none because no agent performs it.
 > **`v0.7.0` adds no skill and adds two surfaces**: the same thirty-eight skills and eight personas,
 > generated into Codex and Cursor layouts under [`surfaces/`](surfaces/) — see [*Surfaces*](#surfaces).
-> [`docs/WORKFLOW.md`](docs/WORKFLOW.md) is the authority on all of it.
+> **`v0.8.0` adds no skill either, and splits provenance in two**: `Hatsu-Agent:` is what a local session
+> writes, `Akatsuki-Agent:` is the autonomous CI plane's key and nothing here writes it — the maintainer's
+> ruling of 2026-09-10. [`docs/WORKFLOW.md`](docs/WORKFLOW.md) is the authority on all of it.
 
 ---
 
@@ -68,7 +70,7 @@ claude plugin install hatsu@hatsu
 Confirm what landed:
 
 ```sh
-claude plugin list                  # hatsu@hatsu — Version: 0.7.1
+claude plugin list                  # hatsu@hatsu — Version: 0.8.0
 claude plugin details hatsu@hatsu   # the full component inventory
 ```
 
@@ -161,8 +163,9 @@ memory. Reporting that is the correct outcome; substituting a hand-rolled equiva
 
 [`docs/ROSTER.md`](docs/ROSTER.md) is the authority on who exists and what standing they have; the agent
 definitions in [`claude/agents/`](claude/agents/) are the authority on what each one does. Every agent
-carries an `Akatsuki-Agent: <name>` trailer and no run trailer — there is no CI run to name. **The git author
-is always the human.**
+that writes a commit signs it `Hatsu-Agent: <name>`, with no run trailer — there is no CI run to name
+(Illumi writes none: he is read-only). `Akatsuki-Agent: <name>` is the **other plane's** key, written by an
+Akatsuki roster agent in CI and never by anyone here. **The git author is always the human.**
 
 ### Kurapika — the lead persona
 
@@ -357,14 +360,18 @@ apart is what keeps the second class of mistake visible.
   walked past — so `echo 'git commit'` is not a write and `git -C <dir> commit` is judged in `<dir>`; it
   fails *closed* only where the branch it can see is not the branch the write would land on. Both are POSIX
   `sh`, use no `jq`, and otherwise no-op rather than block on anything they cannot read.
-- **No AI attribution trailer is ever recorded.** `Akatsuki-Agent:` is the single admitted trailer — the
-  system's own provenance, not a model claiming authorship. **Set `includeCoAuthoredBy: false`** in your
+- **Two provenance trailers, one per plane — and no AI attribution trailer is ever recorded.**
+  `Hatsu-Agent: <persona>` is what a local Hatsu session writes; `Akatsuki-Agent: <persona>` belongs to an
+  Akatsuki roster agent on the autonomous CI plane, and **nothing here writes it**. Both are admitted by
+  `nen/workflow.json` so that one `commit-msg` hook passes a commit from either plane — admitting a key is
+  not licence to write it. Each names the system's own provenance, not a model claiming authorship, which
+  is why there is no third. **Set `includeCoAuthoredBy: false`** in your
   Claude Code settings so the harness stops adding `Co-Authored-By:`. Enforcement is **three-layered, and at the
   pinned nen `0.5.0` the third layer is the binary's**: (a) `kokusen` and `aka` refuse to **write** such a
   trailer — agent-side, and it is what Hatsu itself carries; (b) the **target repository's `commit-msg`
   hook**, which `nen scaffold init` generates from `commits.allowedAttributionTrailers` (KroApple and
   kro-pwa carry one); (c) **`nen commit format --repo`** and **`nen wc squash`** refusing the trailer
-  outright at exit `2`, naming the file and the one key it admits. **Layer (b) stays target-dependent** — a
+  outright at exit `2`, naming the file and the keys it admits. **Layer (b) stays target-dependent** — a
   repository that has not been scaffolded with the hook has (a) and (c) and no hook, and that is said
   plainly rather than promised as mechanical.
 

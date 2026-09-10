@@ -200,15 +200,40 @@ value settles it. **`turn` is IN the `nen.workflow/v0.1` shape at the pinned nen
 ### `commits`
 
 ```json
-"commits": { "allowedAttributionTrailers": ["Akatsuki-Agent"],
+"commits": { "allowedAttributionTrailers": ["Hatsu-Agent", "Akatsuki-Agent"],
              "forbiddenTrailers": ["Co-Authored-By", "Claude-Session", "Signed-off-by"] }
 ```
 
-**The maintainer's ruling of 2026-09-09: no AI attribution trailer is ever recorded.** `Akatsuki-Agent:` is
-the single admitted trailer, and it is admitted precisely because it is not AI attribution — it names *the
-system's own* provenance, which agent of this roster did the work, rather than a model claiming authorship of
-it. This supersedes the earlier clause, in every agent definition, that treated the harness mandate as
-binding and left the question to the P3 constitution.
+**The maintainer's ruling of 2026-09-10: two provenance trailers, one per plane.** The system has two planes
+and each writes its own key:
+
+| Trailer | Written by | Never written by |
+|---|---|---|
+| **`Hatsu-Agent: <persona>`** | a **local** Hatsu session — Kurapika and the independents, on the maintainer's own credentials | the CI plane |
+| **`Akatsuki-Agent: <persona>`** | an **Akatsuki roster agent** on the autonomous CI plane (`zheref/akatsuki-ai`) | any local session |
+
+**Hatsu writes `Hatsu-Agent` and refuses to write `Akatsuki-Agent`.** A persona running on this machine is
+not the CI plane; putting that key on a local commit would forge a machine-plane provenance the local plane
+does not have — the same reason there is no `Akatsuki-Run:` trailer here.
+[`kokusen`](../claude/skills/kokusen/SKILL.md) § 5 and § 9 and [`aka`](../claude/skills/aka/SKILL.md) § 4
+and § 9 refuse it exactly as they refuse a `Co-Authored-By`-shaped trailer.
+
+**Both keys are admitted in `allowedAttributionTrailers`, and admitting is not licence to write.** The list
+is what a repository's commit-msg hook and `nen commit format --repo` will *accept*, and both planes commit
+into the same repositories — so one list, holding both keys, lets a CI-made commit pass the very same guard
+that a locally-made one passes. Which key a given session may *write* is the instruction above, carried by
+the skills and the agent definitions, not by this list.
+
+**Neither key is AI attribution, which is why no third one exists.** Each names *the system's own*
+provenance — which agent of which plane did the work — rather than a model claiming authorship of it. No
+`Co-Authored-By:`, no `Claude-Session:`, no `Signed-off-by:`, no "Generated with …" line, no model name
+anywhere in the message. **No other AI attribution trailer is ever recorded.**
+
+This refines the ruling of 2026-09-09, which admitted `Akatsuki-Agent` alone and, before the CI plane
+landed, had the local plane writing it. **Commits already on `main` that carry the old key are not
+rewritten** — they record what was written when they were written. This still supersedes the earlier clause,
+in every agent definition, that treated the harness mandate as binding and left the question to the P3
+constitution.
 
 **Turning the harness's own mandate off is a required setup step, not a configured fact — check it.**
 Claude Code can add `Co-Authored-By: Claude …` to commits it writes, and the setting that stops it is
@@ -233,7 +258,7 @@ prevent.
 |---|---|---|---|
 | **(a)** the **skills'** own refusal — `kokusen` reads the rendered message before it commits, `aka` before it squashes | agent-side | this repository | **yes**, and it is the layer Hatsu ships |
 | **(b)** the target repository's **`commit-msg` hook**, generated from `allowedAttributionTrailers` by `nen scaffold init` | the target repository's `.git/hooks/` | **target-dependent** — it exists only in a repository `nen scaffold init` has stood up; this week in `zheref/nen`; KroApple and kro-pwa already carry one | **target-dependent** |
-| **(c)** **`nen commit format --repo`** and **`nen wc squash`** refusing a trailer not on the allow-list | nen | **YES** — exit `2` naming the file and the one admitted key, verified live against this checkout (`docs/ab/aka.md` § *Retired at nen 0.5*.2) |
+| **(c)** **`nen commit format --repo`** and **`nen wc squash`** refusing a trailer not on the allow-list | nen | **YES** — exit `2` naming the file and the keys it admits, verified live against this checkout (`docs/ab/aka.md` § *Retired at nen 0.5*.2) |
 
 So **at the pinned `0.5.0` layer (c) is installed everywhere the invocation carries `--repo`, and only
 layer (b) stays target-dependent**: a repository scaffolded with the hook has a refusal that fires on

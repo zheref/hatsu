@@ -10,6 +10,15 @@ fragment-required`, `nen gate derive`, `nen ref format|parse`, `nen repo resolve
 request-reviews`, and — for the phase the old skill handed to `bankai:drive` — `nen pr ready` via
 `hatsu:pr-state`.
 
+> **Dated note, 2026-09-10 — the key changed after this record was made; the record did not.** Every
+> transcript below is verbatim and stays that way. The maintainer's ruling of 2026-09-10
+> ([`docs/ROSTER.md`](../ROSTER.md) § *Rulings of 2026-09-10*, *Two provenance trailers*) split
+> provenance in two: a **local** Hatsu session writes **`Hatsu-Agent: <persona>`**, and
+> `Akatsuki-Agent:` is the **autonomous CI plane's** key, which nothing on this plane writes. So read
+> every `Akatsuki-Agent=…` below as *what was written on the day*, not as what to write now. What the
+> runs establish about the verbs is unaffected: both keys sit on
+> `commits.allowedAttributionTrailers`, so the accept/refuse behaviour is identical either way.
+
 Run: 2026-09-01 (local clock; `nen 0.1.0` at `<cache>\nen\v0.1.0\nen-windows-x64.exe`).
 `gh` authenticated as `zheref`. Local verbs exercised against a **constructed** scratch git repo
 (`<scratch>\scratch-tensho`, never pushed anywhere, seeded and
