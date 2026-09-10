@@ -94,6 +94,8 @@ detectors, verified live against a constructed working copy carrying one of each
 | Bucket / flag | Trigger |
 |---|---|
 | `secret-shape` | `.env`, `*.pem`, `*.key`, `credentials*`, or a token/key shape in the diff |
+| **`local-config`** | the `.local` filename infix a dozen tools agree means "this machine's copy" — `settings.local.json`, `.env.local`, `config.local.yml`, a bare `notes.local`. **New at the pinned `0.7.0`**, and a FILENAME check like the secret shape beside it, deliberately **not** a directory rule: `.claude/` and `.vscode/` hold committed project configuration as often as personal settings |
+| **`large`** | the file is at or over `--large-bytes`, default **1 MiB**. **New at the pinned `0.7.0`.** A path the verb could not MEASURE — a deletion, a broken symlink — is never flagged `large`, because "not measured" must not render as "measured and small"; an ignored path is not measured either |
 | `binary` | the file's content is binary |
 | `out-of-scope` | the path falls outside every `--scope` prefix — **omitted entirely** when `--scope` is not passed |
 | `unmentioned-deletion` | a tracked path was deleted and its basename does not appear in `--mentions` |
@@ -139,11 +141,40 @@ One path can carry several reasons at once. **Present every flagged file togethe
   path is ignored, it will never be staged, so it is named once in the report — path, reasons, and
   the sentence that it is ignored and untouched — and the run continues. If it is *not* ignored, the
   categorical rule applies with no softening at all.
-- **Two shapes have no detector and stay this skill's by eye** (the same residue
-  [`hatsu:tensho`](../tensho/SKILL.md) § 3 names): a **local-config** file that is neither ignored nor
-  out of scope (`.claude/settings.local.json`, editor state, OS cruft) reports **clean**, and so does
-  an **unusually large** plain-text file. Ask about a local-config path by name regardless of what the
-  verb reported, and weigh repo weight by eye.
+> ### RETIRED at nen `0.7`: asking about local-config and size by eye
+>
+> **Both shapes are detectors now**, and they were carried as residue because two skills — this one
+> and [`hatsu:tensho`](../tensho/SKILL.md) § 3 — were independently compensating for the same gap,
+> which is the shape of a missing feature rather than a preference. Verified live at the pinned
+> `0.7.0` against a constructed working copy carrying one of each (`docs/ab/kokusen.md`
+> § *Retired at nen 0.7*): the same tree that answered exit `0`-with-three-clean-rows at `v0.6.0`
+> now answers
+>
+> ```text
+> flagged: 3 file(s) -- never staged without an explicit yes
+>   .env.local  [secret-shape, local-config]
+>   big.txt  [large]
+>   settings.local.json  [local-config]                                                    # exit 1
+> ```
+>
+> where at `v0.6.0` `big.txt` (2.6 MB) and `settings.local.json` reported **clean** and `.env.local`
+> carried `[secret-shape]` alone. **This is one of the four silent changes `zero_major_caveat.why`
+> in `nen/contract.json` names**: the same bytes, the opposite exit code.
+>
+> **`local-config` travels alongside every other reason a path matched** — `.env.local` comes back
+> `[secret-shape, local-config]` — and § 9's hard limit is untouched by the second tag: a
+> `secret-shape` on a path this commit could contain is still never askable, whatever else it also
+> is. **A `local-config` path IS askable**, and the answer is usually no.
+>
+> **`--large-bytes <n>` is the threshold and it has a default**, unlike `nen loop slots --local-cap`,
+> which refuses to have one — that flag is a concurrency GUARD whose forgotten default silently
+> widens what is allowed, while this is a DETECTION threshold on a verb that decides nothing and
+> whose default errs toward flagging. A zero or negative value is refused at exit `2`, verified
+> live. **Pass `--large-bytes` only when this repository has a real reason to differ**, and say the
+> reason; 1 MiB is not a number to re-litigate per run.
+>
+> **So stop weighing repo weight by eye and stop scanning for `.local` by name.** Read the flags the
+> verb printed and take one answer per flagged path, exactly as for every other reason.
 - **Deliberately untracked leftovers stay untracked.** Offer the `.gitignore` line; do not commit
   something to be tidy.
 
@@ -271,7 +302,10 @@ got an explicit yes; `git add -A` is barred (§ 9).
   reports them in its own `ignored` bucket with its own `ignored: <n> file(s), not listed` count, and
   the exit code follows `flagged` alone (§ 4, verified live at exit `0` on a tree of only ignored
   rows). **Relay the verb's count; never compute one.**
-- **Local-config and size detection** in staging (§ 4) — no detector, by the verb's own account.
+- **RETIRED at nen `0.7`: local-config and size detection** in staging (§ 4). `nen stage triage`
+  carries `local-config` (the `.local` filename infix) and `large` (at or over `--large-bytes`,
+  default 1 MiB) as detectors of its own, verified live at exit `1` on a tree the pinned `v0.6.0`
+  reported clean. **Read the flags; do not scan by eye and do not weigh repo size by eye.**
 - **RETIRED at nen `0.5`: validating `nen/workflow.json`** — `nen schema check` carries the row
   ([`hatsu:breath`](../breath/SKILL.md) § 2). Reading the values is still this skill's, and a read is
   not a residue.

@@ -19,10 +19,12 @@ forgotten.**
 The old `<reference-repo>` skill enforced the cap and the parse by an agent reading its own prose grammar
 by eye, every invocation. This port replaces the parse and the per-iteration condition check with
 `nen`: `nen parse izanagi` splits the line and refuses outright when the cap is missing or
-malformed, and `nen watch until` — the same read-only observation engine `izanami`'s port uses —
-evaluates the condition, run single-shot per iteration. **What `nen` does not own, verified live
-below, is the loop's mutating half**: the act itself, and counting acting-iterations 1..N against
-the cap. Both stay exactly where the old skill's prose kept them — with the skill.
+malformed, `nen watch until` — the same read-only observation engine `izanami`'s port uses —
+evaluates the condition, run single-shot per iteration, and from nen `0.7` **`nen loop iterate`
+holds the count of acting iterations across the whole loop**, refusing the claim at the cap instead
+of trusting a caller to stop (§ 3). **What `nen` still does not own, verified live below, is the act
+itself** — it stays exactly where the old skill's prose kept it, with the skill, under the looped
+task's own authority.
 
 ---
 
@@ -168,6 +170,10 @@ for a single label call; it is the skill's own bookkeeping across the whole run.
 
 Each iteration, in order:
 
+0. **Claim it** — `nen loop iterate --id <id> --line "<the invocation>" --repo <path>`. Exit `0`
+   carries `iteration <n>/<cap>` and how many remain; exit `1` **is the cap**, and the run stops
+   there and goes to § 4's cap-out row. Claim BEFORE acting, never after: a claim that follows the
+   write it was meant to bound is a count, not a cap. (Retired residue — see the box below.)
 1. **Re-read live state and evaluate the condition FIRST**, before acting. Never act on the
    previous iteration's picture; that is how a loop repeats an action that already succeeded. If
    the condition already holds before any act has run, stop and report it as **iteration 0** — a
@@ -237,19 +243,62 @@ act is exactly the part that only the looped task's own machinery (a skill invoc
 mutation under its own review) can be trusted to run under its own authority (§ 2). **The skill runs
 the act directly, between condition checks — never through `watch until`.**
 
-**Finding: no `nen` verb enforces izanagi's mandatory N-iteration cap over the acting loop.**
-`nen parse izanagi` extracts and refuses on `N` exactly once, at parse time, before iteration 1 — it
-does not run a loop and cannot enforce anything across iterations it never sees. `nen watch until
---max-iterations` is a **different, unrelated bound**: `--help` states it plainly — "a SAFETY bound,
-not izanagi's mandatory cap" — and it belongs to the read-only watch verb's own internal polling.
-Reused single-shot per iteration above, it bounds *one condition check*, not the count of *acting*
-iterations. **Counting 1..N mutating iterations and stopping at the cap is the skill's own
-responsibility**, exactly as it was in the old skill's prose loop — `nen` gives it a parsed,
-refusal-enforced `N` to count against, and a mechanical per-check truth reading, but the counting
-itself is not delegated to any verb. **The count starts at iteration 1's act, not at iteration 0's
-pre-check** (§ 3's opening step): iteration 0 is a reporting label for a condition already true
-before anything ran, spends none of the cap, and when the condition is *not* already true the loop
-still has the full N acting iterations ahead of it.
+> ### RETIRED at nen `0.7`: counting the acting iterations by hand
+>
+> **`nen loop iterate` is the backstop, and the cap is enforced by a claim being REFUSED rather than
+> by anyone remembering.** Through the pinned `v0.6.0` the count of how many times the *mutating*
+> task had actually run lived entirely in this skill's own prose — `nen parse izanagi` extracts and
+> refuses on `N` exactly once, before iteration 1, and then never sees iteration 2 (at `v0.6.0`
+> `nen loop iterate --id …` was `unknown option '--id'`, exit `2`; the `loop` family carried
+> `slots` alone). **Claim each iteration BEFORE performing it:**
+>
+> ```bash
+> nen loop iterate --id <this loop's own label> --line "<the whole invocation line>" --repo <path>
+> ```
+>
+> Verified live at the pinned `0.7.0` (`docs/ab/izanagi.md` § *Retired at nen 0.7*), a cap of 3:
+>
+> ```
+> $ nen loop iterate --id demo --line "append a line to watched.txt until watched.txt contains DONE up to 3" --repo <fx>
+> iteration 1/3 -- append a line to watched.txt until watched.txt contains DONE
+>   2 remaining after this one; ledger <fx>/.nen/loop/demo.json                            # exit 0
+> …
+> $ # the fourth claim
+> nen: loop 'demo' has claimed all 3 iteration(s) its invocation allowed, so this claim is REFUSED.
+> nen:   append a line to watched.txt until watched.txt contains DONE up to 3
+> nen: This is the cap doing its job, not a failure: izanagi's cap is grammar rather than a default
+> precisely so that reaching it is a decision to bring back to a human, never a bound to raise and
+> re-run. End the loop with --release <why>, and take what it reached to the gate.                 # exit 1
+> ```
+>
+> **Exit `1` at the cap is an ANSWER, not a failure** — the verb's own words, and § 4's rule stated
+> by the binary rather than only here. **The ledger is `.nen/loop/<id>.json` under `--repo`** — the
+> dot-prefixed generated tree `nen stop --mark` already writes to, never the committed `nen/`.
+>
+> **Three properties this buys that prose could not.** (a) **The line is restated on every claim,
+> and a claim whose line differs from the running one is refused, naming both** — verified live,
+> re-typing the same task with `up to 20` against a loop running `up to 3` is exit `2`,
+> *"A cap a caller can raise by re-typing the line with a bigger N is not a cap"*; the same rule
+> catches the honest version, a second loop reusing an id that belongs to a different task.
+> (b) **An `--id` that is not one path segment is REFUSED rather than sanitised** (`--id a/b` →
+> exit `2`), because two ids mangled to one segment would silently share a cap between two loops.
+> (c) **`--release <why>` ends the loop and is never blocked by the cap** — a loop at its cap can
+> always still be released (exit `0`), and a claim after a release is exit `2`.
+>
+> **What is NOT delegated, and is not a gap: the act.** `nen loop iterate` owns the COUNT and
+> nothing else — it runs no loop body, spawns nothing, and knows nothing about what the task does.
+> The act still runs directly, between condition checks, under the looped task's own authority (§ 2),
+> for the reason the box below this one states: the verb that polls the condition is read-only by
+> design, and nen supplies no verb that acts on a caller's behalf.
+
+**Where the count starts is unchanged, and it is the skill's to get right when it claims.** The
+claim belongs to **iteration 1's act, not to iteration 0's pre-check** (§ 3's opening step):
+iteration 0 is a reporting label for a condition already true before anything ran, so **it is not
+claimed at all** and spends none of the cap. When the condition is not already true, the loop still
+has the full N acting iterations ahead of it — and `nen loop iterate`'s `remaining` says how many,
+per claim, rather than this skill's arithmetic. `nen watch until --max-iterations` remains a
+**different, unrelated bound**: its own `--help` still says so — "a SAFETY bound, not izanagi's
+mandatory cap" — and it bounds *one condition check*, never the count of acting iterations.
 
 **Verified live — the full composed loop, converging before the cap** (`cap: 5`, condition becomes
 true on the act itself, at iteration 3):
@@ -296,7 +345,7 @@ cap (3) reached without the condition becoming true -- stop.
 | Stop | Rule | What's mechanical vs. judgment |
 |---|---|---|
 | **Condition true** | The success case. Report what became true and the evidence | The evidence is `nen watch until`'s own matching stdout / exit code (§ 3) |
-| **Cap reached** | Stop at `N`. Report **what is still not true and what the next iteration would have done** — a cap-out that only says "gave up" wastes everything the run learned | The count-to-`N` is the skill's own bookkeeping (§ 3's finding); `nen` supplies the parsed, refused-if-missing `N` to count against |
+| **Cap reached** | Stop at `N`. Report **what is still not true and what the next iteration would have done** — a cap-out that only says "gave up" wastes everything the run learned. Then `nen loop iterate --release "<why>"`, so the ledger records that this loop ended and why | **Mechanical from nen `0.7`**: the claim is REFUSED at the cap, exit `1`, with the invocation named — quote that refusal rather than announcing a number this skill counted (§ 3) |
 | **No progress** | **3 consecutive iterations that change nothing** end the run, even below the cap. A loop repeating a no-op is not converging; it is burning the cap to reach the same place | Pure judgment — no `nen` verb detects "no-op"; the skill compares each iteration's before/after state itself |
 | **A human gate** | **G1–G5 ends the loop.** It is never retried past, never worked around, and never "tried once more in case". A gate is a stop for the maintainer; looping through one would manufacture consent by repetition | Pure judgment — `kurapika.md`'s gate discipline, unchanged by looping |
 | **Impossible condition** | Named, not waited on — a closed PR will not go green. Stop and say why | Pure judgment, same discipline `izanami`'s port keeps (its own § 4) |
@@ -318,9 +367,14 @@ remains and the recommended next step.
 
 ## 6. Hard limits
 
-- **Never runs without an explicit `up to <N>`** — `nen parse izanagi` refuses it (§ 1); relay the
-  refusal, never route around it.
-- **Never raises its own cap mid-run**, and never restarts itself to get more iterations.
+- **Never runs without an explicit `up to <N>`** — `nen parse izanagi` refuses it (§ 1), and
+  `nen loop iterate --line` refuses the same shape again on every claim; relay either refusal, never
+  route around it.
+- **Never raises its own cap mid-run**, and never restarts itself to get more iterations. **Refused
+  mechanically from nen `0.7`**: a claim whose `--line` differs from the running one is exit `2`
+  naming both lines, so re-typing the invocation with a bigger `N` is not a way past this (§ 3).
+- **Never claims an iteration it did not then perform, and never performs one it did not claim** —
+  the claim is the cap, and a write outside it is a write the cap never saw.
 - **Never retries past a human gate.**
 - **Never substitutes its confirmation for a looped skill's own** plan confirmation (§ 2).
 - **Never accumulates authority across iterations** — each resolves fresh and lapses (§ 2).

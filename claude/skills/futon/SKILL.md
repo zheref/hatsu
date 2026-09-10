@@ -316,7 +316,8 @@ belt-and-braces. **nen `v0.2.0` removed the local-plane default of `7`** (#69, c
 concurrency guard must be chosen, never inherited) — verified live at `v0.3.0`, `nen loop slots
 --efforts <path>` without `--local-cap` refuses at exit `2` naming the flag — so the invocation above,
 which always passed the flag, is unchanged and now mandatory; `--ci-cap` defaults to `2` as before.
-`--efforts` resolves against the process cwd, not `--repo` — pass an absolute path.
+**`--efforts` resolves against `--repo`'s root from nen `0.7`**, not the process's cwd
+(`zheref/nen#100`); an absolute path is still used as-is, and is still what to pass from a worktree.
 
 Two exercised transcripts, built from a mix of the two real open PRs above plus clearly-labelled
 illustrative fill (`docs/ab/futon.md` § 5): `BC#925` modelled truly (`prOpen: true, ready: false`)

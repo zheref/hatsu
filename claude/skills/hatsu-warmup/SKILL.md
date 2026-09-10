@@ -223,10 +223,24 @@ binary is named for its platform, not for the command:
 
 ```sh
 $ nen bootstrap --ref v0.7.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
-nen bootstrap: verified nen-darwin-arm64 for zheref/nen@v0.7.0 (sha256 2674dc58…).      # exit 0
-$ ls ~/.cache/nen/v0.7.0
+nen bootstrap: verified nen-darwin-arm64 for zheref/nen@v0.7.0 (sha256 a0545d02…).      # exit 0
+$ ls ~/.cache/nen/zheref_nen/v0.7.0
 nen-darwin-arm64                       # ← there is nothing here called `nen`
 ```
+
+> **The cache slot is keyed on the SOURCE as well as the ref, from nen `0.7`** (`zheref/nen#6`):
+> `<cache-root>/<source>/<ref>/<artifact>`, each key flattened to one path segment — verified live at
+> this pin, where the `v0.7.0` build sits under `~/.cache/nen/zheref_nen/` and the older refs remain
+> at the flat `~/.cache/nen/<ref>/` layout they were written under. Keyed on the ref alone, two
+> `--source` values at one tag collided in one slot; the checksum gate meant the collision was
+> **detected rather than executed**, so it never cost correctness — it cost a fork or a mirror a
+> permanent cache miss and a confusing refusal about bytes that were fine. **Quote the path the
+> bootstrap actually printed**, never one assembled from the ref.
+>
+> Alongside it, **`--source` is shape-checked at the flag**: `--source a/..` is exit `2` — *"neither
+> half may be empty, '.' or '..'. It is NOT a filesystem path — 'nen --repo <path>' is the flag that
+> takes one"* — verified live, where it used to pass the shape check and be neutralised downstream
+> by the cache sanitiser instead.
 
 So `PATH` gains a directory holding `nen-darwin-arm64`, the name `nen` still resolves to whatever it
 resolved to before, and **the probe in § 1 answers with the version you were re-pinning away from** —
@@ -275,6 +289,18 @@ absent, stripped or malformed does not become present by being asked again. `3` 
 at all. `2` and `7` are invocation errors — re-running the **same** command is pointless, but the **fixed**
 command (correct usage; for `7`, `--script <fetched file>` supplied) is expected to succeed: fix and re-run,
 never halt on them as if they were bootstrap failures.
+
+> **RETIRED at nen `0.7`: discovering `7` empirically.** `nen bootstrap --help` prints the whole
+> table itself now — *"Exit codes are a PUBLISHED CONTRACT — this command relays the script's own,
+> and adds exactly one of its own on top"* — including which one is retryable and which two must
+> never be, and including `7` in the words this section already uses: *"the one code the script
+> itself can never return, which is precisely why it is 7 rather than 1: 'the bootstrap failed' and
+> 'the bootstrap never ran' are different facts, and only the first says anything about the release
+> you asked for."* Verified live at the pinned `0.7.0`, where `v0.6.0`'s `--help` named **no exit
+> code at all** (`docs/ab/hatsu-warmup.md` § *Retired at nen 0.7*). The table above stays — it is the
+> reaction table, and `nen/contract.json` is still the authority on the pin — but it is now a copy of
+> something the binary publishes rather than the only place the contract is written down. **Where
+> the two disagree, re-read `nen bootstrap --help` and fix the copy.**
 
 ---
 

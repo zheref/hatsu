@@ -300,3 +300,65 @@ one-line-per-iteration reporting, no banner, the 3-error stop, the exit-code con
    paste alongside the `nen` transcripts above; the A/B here is against the old skill's stated rules
    (the mapping table in § 1), confirmed by running the new mechanics live rather than by diffing two
    scripts' outputs.
+
+---
+
+## Retired at nen 0.7 — 2026-09-10
+
+Run against the released `zheref/nen` `v0.7.0` binary (`nen-darwin-arm64`, sha256
+`a0545d02…e7b6c323`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.7.0`, on `PATH` as
+`nen`; `nen --version` → `0.7.0`), against the same lines run through `v0.6.0` first.
+
+| Residue retired | Line classified | Exit |
+|---|---|---|
+| a `gh api` read carrying a single-quoted `--jq` refused as `[unknown]` | `gh api repos/zheref/nen/pulls/1 --jq '.state'` | **`0`** (was `1`) |
+| — and the narrowing that is NOT retired | the same line with `".state"` | `1`, still `[unknown]` |
+
+### The commonest spelling of that read was refused
+
+```text
+v0.6.0  $ nen parse izanami "gh api repos/zheref/nen/pulls/1 --jq '.state' until it is open"
+        until: it is open
+          [unknown] gh api repos/zheref/nen/pulls/1 --jq '.state'
+        nen: at least one command does not classify as read-only -- the WHOLE run is refused. Use
+        'nen parse izanagi <task> until <condition> up to <N>' for a loop that must act.      # exit 1
+
+0.7.0   $ nen parse izanami "gh api repos/zheref/nen/pulls/1 --jq '.state' until it is open"
+        until: it is open
+          [read-only] gh api repos/zheref/nen/pulls/1 --jq '.state'                           # exit 0
+```
+
+The bare read (`gh api repos/zheref/nen/pulls/1`) classified `[read-only]` at both pins, so the
+`--jq` value was the whole of the difference. A `'…'` span with **no inner quote and no newline** is
+exactly ONE word to every shell, and its content is literal — no expansion, no substitution, no word
+splitting — so the `gh api` row folds such a `--jq` value into one inert placeholder before scanning.
+
+**That is not a weaker gate.** The fold changes neither the argument vector's length nor any other
+word in it, so the absences the read-only verdict rests on — no non-GET method, no
+`-f`/`-F`/`--field`/`--raw-field`/`--input`, not `graphql` — are still scanned over a line the shell
+would agree with. The line is made *provable*, not less proven.
+
+### The narrowing, verified from the other side
+
+```text
+0.7.0   $ nen parse izanami 'gh api repos/zheref/nen/pulls/1 --jq ".state" until it is open'
+        until: it is open
+          [unknown] gh api repos/zheref/nen/pulls/1 --jq ".state"
+        nen: at least one command does not classify as read-only -- the WHOLE run is refused …  # exit 1
+```
+
+**Only SINGLE quotes fold**, and the double-quoted spelling still refuses — a double-quoted span
+expands `$x`, a backtick and `\`, so it is one word but not an inert one, and inertness is the whole
+claim. The other two narrowings are read from the pinned binary's own documentation rather than
+re-derived here: **only `--jq`/`-q`**, not every quoted span (a general fold would also swallow
+`-X 'DELETE'`), and **only a whole token** (`--jq'.name'` is the single word `--jq.name` to a shell,
+an unknown long flag). A `--jq` carrying a metacharacter (`'.a | .b'`) is still refused by the
+whole-line seam that runs before any row vouches for anything.
+
+### What this changes for the table in § 3
+
+One row moves, and only one: `gh api` (a plain GET) now covers the `--jq '<expr>'` spelling as well
+as the bare one. Every other row was re-checked unchanged at this pin. The section's standing rule is
+unaffected and is what to keep doing — **a command not listed there is checked with
+`nen parse izanami` before it is handed to `nen watch until`**, never assumed from the table by
+analogy.

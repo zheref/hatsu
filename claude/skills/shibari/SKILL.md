@@ -347,6 +347,15 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <path> [--dry-run] [
 fences and newlines; passing it as a shell argument is one quoting mistake away from a mangled PR or
 an executed substitution. The file is written first, checked, then handed over by path.
 
+> **From nen `0.7` a relative `--body-file` resolves against `--repo`'s root, not the process's own
+> directory** (`zheref/nen#100`), and the **resolved** path is what travels onward to `gh`, so nen
+> and `gh` cannot disagree about which file it is. That matters here more than almost anywhere else:
+> shibari runs from a worktree by construction, and through `v0.6.0` `--repo <the worktree>
+> --body-file body.md` would have read `body.md` beside the *process*, which on a machine carrying
+> the same file in both trees is a wrong PR body posted at exit `0`. **An absolute path is still used
+> as-is**, so the existing habit of writing the body to an absolute path and handing that over stays
+> correct — and is still the thing to do.
+
 ## 9. Reviewers
 
 ```bash

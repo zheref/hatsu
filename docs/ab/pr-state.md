@@ -304,3 +304,95 @@ SKILL.md` § 0 already establishes for exactly this — which the last command a
    registry. Known codes: $comment, BC, BS, KC, RA, RB, RC.` — `$comment` is `schemas/repos.json`'s own
    documentation key, not a `product_codes` entry, and should not be enumerated alongside the real ones
    in a message whose whole purpose is to name the valid choices.
+
+---
+
+## Retired at nen 0.7 — 2026-09-10
+
+Run against the released `zheref/nen` `v0.7.0` binary (`nen-darwin-arm64`, sha256
+`a0545d02…e7b6c323`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.7.0`, on `PATH` as
+`nen`; `nen --version` → `0.7.0`), with `GH_TOKEN=$(gh auth token)`.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| a verdict that could not say which binary decided it | `nen pr ready … --explain` | `1`, with a `decided by nen …` header line |
+| — the machine form | `… --json` | `1`, `meta.generator.executable` |
+| CON-30's carve-out declared as data and read by nothing | `nen pr ready … --gates <file declaring it>` | `1`, `meta.dependabotCarveOut: false` |
+| — a carve-out that would fire on no evidence | `… --gates <file with an empty satisfied_by_context>` | **`2`**, refused at load |
+
+### The provenance line
+
+```text
+v0.6.0  $ nen pr ready 41 --gh-repo zheref/hatsu --reviewers copilot --token-env NEN_UNSET --explain
+        zheref/hatsu#41: unevaluated: no usable token, so GitHub could not be read
+
+          head (unread) · reviewers copilot · approvers copilot
+          policy bounded · delivery PR unknown · identities from --reviewers (reduced: …)
+                                                        # ← two header lines, and no third
+
+0.7.0   $ nen pr ready 38 --gh-repo zheref/hatsu --gates <abs>/contracts/reference.gates.json --explain
+        zheref/hatsu#38: not-ready: a configured reviewer's round is still owed at the current head
+        (CON-32b): sasuke (no round at head);tenma (no round at head)
+
+          head 86af98af2996f72a589d794f32b42fe6c963c748 · reviewers sasuke,tenma,copilot · approvers sasuke,tenma
+          policy bounded · delivery PR no · identities <abs>/contracts/reference.gates.json
+          decided by nen 0.7.0 (/Users/<you>/.cache/nen/zheref_nen/v0.7.0/nen-darwin-arm64) at 2026-09-10T21:07:18Z
+```
+
+`--json`'s `meta.generator` gains `executable` beside the `program` and `version` it has carried
+since `v0.1`:
+
+```json
+"generator": { "program": "nen", "version": "0.7.0",
+               "executable": "/Users/<you>/.cache/nen/zheref_nen/v0.7.0/nen-darwin-arm64" }
+```
+
+**It is the version and the PATH, not a checkout SHA.** `nen --version` says which nen a caller
+*believes* it has; `executable` says which file actually answered — a checksum-verified binary under
+the bootstrap cache, a locally built one, or `bun src/index.ts` out of a working tree, all three able
+to carry the same version string and different behaviour. A compiled binary has no checkout at
+evaluation time, and its bytes are verifiable against the release's published `SHA256SUMS` instead.
+The line is deliberately **not** printed on stderr on every invocation the way the shell oracle
+printed it: nen has a structured report and `pr ready` is not privileged among thirty-odd verbs.
+
+The field is **additive**, so `nen.pr.ready/v0.1` does not bump — that contract's own stated rule.
+`conjuncts[]` rows now read `{ id, clause, title, order, status, reason, note }`, `note` being the
+new one.
+
+### CON-30's dependency-author carve-out, read rather than ignored
+
+`nen/gates.json` may declare it; `contracts/reference.gates.json` **does not**, so every verdict this
+skill produces for the frozen reference repository carries `dependabotCarveOut: false`. Verified
+three ways at this pin:
+
+```text
+unevaluated report (no token)          meta.dependabotCarveOut = null
+ordinary evaluation, no block declared meta.dependabotCarveOut = false
+block declared, author is not a match  meta.dependabotCarveOut = false
+```
+
+**`null` on an unevaluated report is the load-bearing one**: the gate never ran far enough to ask,
+and `false` there would read as "asked, and no" — a claim about evidence nobody looked at.
+
+A carve-out that could fire on nothing is refused at LOAD rather than at evaluation:
+
+```text
+$ nen pr ready 38 --gh-repo zheref/hatsu --gates <fx>/gates-carve-empty.json                # exit 2
+nen: <fx>/gates-carve-empty.json: at dependabot_carve_out.satisfied_by_context, is empty. A carve-out
+satisfied by no context is satisfied by nothing, so it would clear the review rounds for every pull
+request that author opens on no evidence at all. Name the check contexts the review shim reports, or
+delete the block.
+```
+
+Same shape and reasoning as the empty-approver-set refusal beside it. **Not exercised live: a
+carve-out actually FIRING.** No repository in bounds carries a `dependabot`-authored pull request
+with the named shim contexts green at head, so the `true` case is read from `docs/USAGE.md` and the
+`v0.7.0` CHANGELOG rather than observed — the three readings above are what this pin proves.
+
+### What did not change
+
+The six conjuncts, their order, the short-circuit, and the three "what the gate does NOT decide"
+caveats are byte-identical to `v0.6.0`'s `--explain` output. The carve-out clears **three rows**
+(the stall bound, the owed round, the approve limb) and no others: CON-32(a) runs first, so a
+dependency PR is never exempted from having checks or from their being green, and CON-32(d) runs
+after, so an unresolved thread still fails.

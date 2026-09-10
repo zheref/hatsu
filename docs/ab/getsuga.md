@@ -702,3 +702,74 @@ the bytes agree no longer changes the verdict.
 
 **The write itself is still residue** — no `nen` verb bumps `latest` — and the instruction is simpler
 than it was: edit `nen/repos.json`, and delete the stale duplicate rather than reconciling it.
+
+---
+
+## Retired at nen 0.7 — 2026-09-10
+
+Run against the released `zheref/nen` `v0.7.0` binary (`nen-darwin-arm64`, sha256
+`a0545d02…e7b6c323`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.7.0`, on `PATH` as
+`nen`; `nen --version` → `0.7.0`), against a copy of the same fixture run through `v0.6.0` first.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| the printed manifest disagreeing with the written section | `nen changelog collate … --write` | `0`, manifest newest-first |
+| — the machine form | `nen changelog collate … --json` | `0`, `fragments[]` newest-first |
+
+### The fixture
+
+A `CHANGELOG.md` carrying `### Unreleased` and one prior section, and a `changelog.d/` holding three
+numerically-named fragments — `10-a.md` (`- FRAG-10 alpha`), `20-b.md` (`- FRAG-20 beta`),
+`30-c.md` (`- FRAG-30 gamma`).
+
+### The same run, one minor apart
+
+```text
+        $ nen changelog collate --version v0.2.0 --theme "test" \
+            --changelog <fx>/CHANGELOG.md --fragment-dir <fx>/changelog.d --write
+
+v0.6.0  collated 3 fragment(s) into <fx>/CHANGELOG.md ### v0.2.0 — test          # exit 0
+          10-a.md
+          20-b.md
+          30-c.md
+
+0.7.0   collated 3 fragment(s) into <fx>/CHANGELOG.md ### v0.2.0 — test          # exit 0
+          30-c.md
+          20-b.md
+          10-a.md
+```
+
+**Both wrote the identical section**, and it was right in both:
+
+```markdown
+### v0.2.0 — test
+- FRAG-30 gamma
+- FRAG-20 beta
+- FRAG-10 alpha
+```
+
+So the manifest is the half that moved, which is what § 3's finding said all along: the manifest was
+printed from `readdirSync` order while the section was rendered from the fragment sort — newest-first
+by the leading `<n>-` prefix, `CON-33(b)`'s own convention — and the two therefore disagreed **by
+construction, at any fragment count**. The sort now happens once and both readings come off the
+sorted list.
+
+`--json` moves with it, and that is the half that mattered most:
+
+```text
+v0.6.0  fragments: ['10-a.md', '20-b.md', '30-c.md']
+0.7.0   fragments: ['30-c.md', '20-b.md', '10-a.md']
+```
+
+Leaving the machine form in readdir order would have kept the defect for the consumer least able to
+notice it.
+
+### What this changes for getsuga, and what it does not
+
+**Changed**: the manifest is now the record a caller cross-checks the section against — which is
+exactly how this skill uses it, relaying it to the maintainer as the answer to *"did my fragment land
+where I expected"*. It is no longer a mismatch to note as a nen defect.
+
+**Unchanged**: § Hard limits' rule against re-ordering the written section by eye. The written order
+was always correct, and hand-reordering it would corrupt a real changelog into oldest-first. Nothing
+was ever dropped, duplicated or misattributed, and the written content was always right.

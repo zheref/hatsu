@@ -518,3 +518,82 @@ exit=2
 **So § 2's presence check is now one directory, not two**, and a caller branching on exit `1` for *not
 found* must add exit `2` for *no registry*. A registry that is present but **malformed** is unaffected and
 stays exit `1`.
+
+---
+
+## Retired at nen 0.7 — 2026-09-10
+
+Run against the released `zheref/nen` `v0.7.0` binary (`nen-darwin-arm64`, sha256
+`a0545d02…e7b6c323`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.7.0`, on `PATH` as
+`nen`; `nen --version` → `0.7.0`), against fixtures run through `v0.6.0` first.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| `--input` resolving against the PROCESS's directory | `nen effort classify --repo <A> --input efforts.json`, run from `<B>` | `0`, and it reads `<A>`'s copy |
+| `undecidable` absent from the verb's own help | `nen effort classify --help` | `0`, all seven values named |
+
+### `--input` had a second base, and a decoy proves which one wins
+
+Two directories, each holding an `efforts.json` of its own, distinguishable by the class each one
+classifies to: `<A>/efforts.json` is a **queued** child (mode label picked, no stage label);
+`<B>/efforts.json` is an **idle** epic (closed, integration branch alive). The command is run from
+`<B>` and names `<A>` with `--repo`:
+
+```text
+        $ cd <B>
+        $ nen effort classify --repo <A> --input efforts.json
+
+v0.6.0  idle
+          the epic is closed but its integration branch is still alive -- flag for cleanup
+                                              # ← read <B>/efforts.json, the DECOY
+
+0.7.0   queued
+          G1-approved (a mode label was picked) but not yet released with a stage label
+                                              # ← read <A>/efforts.json, as --repo says
+```
+
+**Nothing was inconsistent within a single invocation, which is exactly why it survived**: run from
+the repository root the two bases are the same path and the split is invisible. It appears the moment
+a caller runs from somewhere else — a worktree, a wrapper script, a step with its own working
+directory — and then `--repo <A> --input efforts.json` read `<B>`'s file while every other flag on
+the same line read `<A>`'s. An `ENOENT` is the lucky version of that; a same-named file that exists in
+both is the unlucky one, and it is the one this fixture reproduces.
+
+**The root wins**, which is the decision `--gates` already made at `v0.2.0`, generalised to the whole
+closed set of own-path flags — `--body-file`, `--out`, `--input`, `--efforts`, `--original`/
+`--branches`, `--table`, and `canon mirror`'s five. An **absolute** value is still used as-is, and
+`--repo` still defaults to the process's own directory, so a caller standing in the repository sees
+no change at all. Where a path also travels onward — `issue comment` and `issue edit-body` hand
+`--body-file` to `gh` — the RESOLVED path is what travels, so nen and `gh` cannot disagree about
+which file it is.
+
+### The seventh value the help never named
+
+```text
+v0.6.0  $ nen effort classify --help
+        nen effort classify -- senkei §3's five-class taxonomy, mechanical half.
+        …
+        Classifies each entry as delivering, building, stalled, queued, idle, or
+        state-machine-violation (two stage labels at once -- flagged, never resolved
+        …                                              # ← six names, seven return values
+
+0.7.0   $ nen effort classify --help
+        …
+          delivering, building, stalled, queued, idle.
+        The other 2 are answers ABOUT the taxonomy rather than members of it,
+        and a caller switching on the class must handle every one:
+
+          state-machine-violation  two stage labels at once -- flagged, never resolved
+                                   by guessing which is authoritative.
+          undecidable              no stage label, no mode label, no PR and no live
+                                   integration branch: nothing here places the object
+                                   anywhere in the taxonomy. Reported, never guessed.
+```
+
+**The taxonomy is still five, and that is the point rather than a hedge.** `delivering, building,
+stalled, queued, idle` are senkei § 3's classes; `state-machine-violation` and `undecidable` are
+answers *about* the taxonomy — the first says two stage labels contradict each other, the second that
+nothing here places the object anywhere. This port's SKILL.md called `undecidable` "the verb's own
+sixth class", which is the reading `zheref/nen#53` closes: it is not a sixth class, and the count in
+the help is now derived from the two lists rather than written, so a hard-coded number cannot go
+stale beside them.

@@ -98,9 +98,9 @@ exit code.
 ## 2. Read-only, enforced before the first iteration — `nen`'s classifier IS the table
 
 The old skill's allow/refuse table was **hand-applied prose**. Verified against the real binary at the pin
-that then stood (`v0.3.0`; the contract now pins `v0.5.0`, whose CHANGELOG records no change to this
-classifier beyond the new `stop --mark` and `commit check` rows), `nen parse izanami` /
-`nen watch until` implement a fixed classifier that
+that then stood (`v0.3.0`; the contract now pins `v0.7.0` — `v0.5.0` added the `stop --mark` and
+`commit check` rows, and `v0.7.0` moves exactly one row, the `gh api` `--jq` fold in the box below),
+`nen parse izanami` / `nen watch until` implement a fixed classifier that
 reproduces the same shape mechanically — every row below is a live-verified `[read-only]`, `[mutating]` or
 `[unknown]` tag, not a transcription from memory. nen `v0.2.0` **widened** the allowlist (plain file reads
 and nen's own verbs, #74) and `v0.2.0`/`v0.3.0` **tightened** the metacharacter seam (#76, #104), so every
@@ -139,6 +139,39 @@ handed to `nen watch until`, never assumed from this table by analogy. Note in p
 `[read-only]`, a specific mutating subcommand of the same command is `[mutating]` — the classifier
 looks at the full shape, not just the leading verb. nen's own verbs split the same way, on the flag that
 acts (`--run`, `--write`, `--install`) or on the dry run that renders (`--dry-run`), per verb.
+
+> ### RETIRED at nen `0.7`: a `gh api` read carrying a single-quoted `--jq`
+>
+> **`gh api … --jq '<expr>'` classifies `[read-only]`, and it is the commonest spelling of that read
+> there is.** Through the pinned `v0.6.0` it came back `[unknown]` and the whole run was refused —
+> verified live at both pins, the same line through both binaries (`docs/ab/izanami.md`
+> § *Retired at nen 0.7*):
+>
+> ```text
+> v0.6.0  [unknown]   gh api repos/zheref/nen/pulls/1 --jq '.state'        # exit 1, whole run refused
+> 0.7.0   [read-only] gh api repos/zheref/nen/pulls/1 --jq '.state'        # exit 0
+> ```
+>
+> A `'…'` span with **no inner quote and no newline** is exactly ONE word to every shell, and its
+> content is literal — no expansion, no substitution, no word splitting — so the `gh api` row folds
+> such a `--jq` value into one inert placeholder before scanning. **That is not a weaker gate**: the
+> fold changes neither the argument vector's length nor any other word in it, so the absences the
+> read-only verdict rests on (no non-GET method, no `-f`/`-F`/`--field`/`--raw-field`/`--input`, not
+> `graphql`) are still scanned over a line the shell would agree with.
+>
+> **Narrow three times over, and each narrowing is a line this skill must not cross.** **Only SINGLE
+> quotes** — a double-quoted span expands `$x`, a backtick and `\\`, so it is one word but not an
+> inert one, and it **still refuses**: verified live at the pinned `0.7.0`,
+> `gh api … --jq ".state"` is `[unknown]` at exit `1`, and the refusal names both workarounds
+> (respell it with single quotes, or watch the bare read and apply `jq` downstream). **Only
+> `--jq`/`-q`**, not every quoted span — a general fold would also swallow `-X 'DELETE'`. **Only a
+> whole token** — `--jq'.name'` is the single word `--jq.name` to a shell and refuses as before. And
+> a `--jq` carrying a metacharacter (`'.a | .b'`) is still refused by the whole-line seam that runs
+> before any row vouches for anything.
+>
+> **So the rule for composing a watch is now spellable**: write the `--jq` value in single quotes,
+> keep it free of pipes and other metacharacters, and check the line with `nen parse izanami` before
+> handing it to `nen watch until` — which is the rule this section already gives for every line.
 
 **Where `nen` is stricter than the old skill's prose table — a behavior change, not a bug:** the old
 allow table admitted "reading a file, running a checker script" by category. Since `v0.2.0` the classifier

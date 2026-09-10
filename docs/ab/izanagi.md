@@ -380,3 +380,128 @@ human gate, impossible condition, the mutation log) the old skill also left to t
    `git show HEAD:claude/skills/izanami/SKILL.md` resolves, so the port's `../izanami/SKILL.md`
    links (SKILL.md § 1's "read-only half" line and its "point at `hatsu:izanami`" line) are real,
    working relative links, not a forward reference held on trust.
+
+---
+
+## Retired at nen 0.7 — 2026-09-10
+
+Run against the released `zheref/nen` `v0.7.0` binary (`nen-darwin-arm64`, sha256
+`a0545d02…e7b6c323`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.7.0`, symlinked as
+`nen` first on `PATH` in a scratch directory; `nen --version` → `0.7.0`). The `v0.6.0` column is the
+released `v0.6.0` binary, run against the same fixtures immediately before the repin.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| counting acting iterations 1..N by hand | `nen loop iterate --id <id> --line "<invocation>" --repo <fx>` | **`0`** per claim, **`1`** at the cap |
+| — the same loop, released | `… --release "<why>"` | `0`, and a later claim is `2` |
+| — a cap raised by re-typing the line | `… --line "<same task> up to 20"` against a loop running `up to 3` | **`2`**, naming both lines |
+| — an `--id` that is not one path segment | `nen loop iterate --id a/b …` | **`2`**, refused rather than sanitised |
+| — the machine form | `… --json` | `0`, `nen.loop.iterate/v0.1` |
+
+### The verb did not exist one minor ago
+
+```text
+v0.6.0  $ nen loop iterate --id x --line "a until b up to 2"                                # exit 2
+        nen loop: unknown option '--id'. Known options here: --ci-cap <value>, --efforts <value>,
+        --help, --json, --local-cap <value>, --repo <value>.
+```
+
+The `loop` family carried `slots` alone. Counting mutating iterations against the cap was, in the
+port's own words, *"the skill's own responsibility"* — a sentence in prose with nothing behind it.
+
+### Claiming to the cap, and past it
+
+A throwaway git repository as `--repo`, the cap taken from the invocation itself:
+
+```text
+$ nen loop iterate --id demo --line "append a line to watched.txt until watched.txt contains DONE up to 3" --repo <fx>
+iteration 1/3 -- append a line to watched.txt until watched.txt contains DONE
+  2 remaining after this one; ledger <fx>/.nen/loop/demo.json                               # exit 0
+$ …                                                       # iteration 2/3, then iteration 3/3, both exit 0
+$ # the fourth claim
+nen: loop 'demo' has claimed all 3 iteration(s) its invocation allowed, so this claim is REFUSED.
+nen:   append a line to watched.txt until watched.txt contains DONE up to 3
+nen: This is the cap doing its job, not a failure: izanagi's cap is grammar rather than a default
+precisely so that reaching it is a decision to bring back to a human, never a bound to raise and
+re-run. End the loop with --release <why>, and take what it reached to the gate.                # exit 1
+```
+
+**Exit `1` is an ANSWER, not a failure** — the binary says so in the refusal, which is `izanagi`
+§ 4's own rule arriving as behaviour. The ledger sits at `.nen/loop/<id>.json` under `--repo`, the
+same dot-prefixed generated tree `nen stop --mark` already writes to, never the committed `nen/`.
+
+### The way out is never blocked, and the way around is closed
+
+```text
+$ nen loop iterate --id demo --line "<the same line>" --repo <fx> --release "cap reached; taking it to the maintainer"
+released demo after 3/3 iteration(s): cap reached; taking it to the maintainer                  # exit 0
+
+$ nen loop iterate --id demo --line "<the same line>" --repo <fx>
+nen loop: loop 'demo' was released at 2026-09-10T21:06:25.968Z (cap reached; taking it to the
+maintainer) and cannot claim another iteration. A released loop is finished; begin a new one under
+its own --id.                                                                                   # exit 2
+```
+
+**A loop at its cap can always still be released** — that is the whole point of releasing being a
+separate operation from claiming — and a claim after a release is refused.
+
+**The line is the cap, and re-typing it does not widen it.** A loop claimed once as `up to 3`, then
+claimed again with the identical task and a bigger `N` — exactly the shape `en` would take if it
+re-read a raised `monitor.maxCycles` mid-landing:
+
+```text
+$ nen loop iterate --id en-HA-41 --line "take HA-PR-#41 to Ready and keep it there until it is merged up to 20" --repo <fx>
+nen loop: loop 'en-HA-41' is running a DIFFERENT invocation from the one claimed here, so this claim
+is refused rather than counted against it.
+  running:  take HA-PR-#41 to Ready and keep it there until it is merged up to 3
+  claimed:  take HA-PR-#41 to Ready and keep it there until it is merged up to 20
+A cap a caller can raise by re-typing the line with a bigger N is not a cap. If this is genuinely a
+new loop, give it its own --id; if the running one is finished, end it with --release <why> first.  # exit 2
+```
+
+The same rule catches the honest version of the mistake — a second loop reusing an id that already
+belongs to a different task.
+
+### Two refusals that keep the ledger meaning one thing
+
+```text
+$ nen loop iterate --id "a/b" --line "x until y up to 2" --repo <fx>                            # exit 2
+nen loop: --id 'a/b' is not usable as a ledger name. It must be 1-100 characters of [A-Za-z0-9._-],
+start with a letter or digit, and contain no '..'. It is REFUSED rather than sanitised: two ids
+mangled to one segment would silently share a cap between two loops, which is the failure this verb
+exists to prevent.
+
+$ nen loop iterate --id z --line "x until y" --repo <fx>                                        # exit 2
+nen loop: --line is not an izanagi invocation: no 'up to <N>'. Izanagi is the MUTATING half of the
+loop pair and the cap is required grammar, never defaulted or inferred -- an invocation without it is
+refused rather than run once 'to see'. Try: 'x until y up to <N>'
+```
+
+The second is `nen parse izanagi`'s own refusal, arriving again on **every claim** rather than once
+before iteration 1 — which is what makes the cap grammar all the way through the loop.
+
+### The machine form matches the published contract
+
+```json
+{ "contract": "nen.loop.iterate/v0.1", "id": "j1", "claimed": true, "capReached": false,
+  "task": "x", "condition": "y", "cap": 2, "iterations": 1, "remaining": 1,
+  "released": false, "releaseReason": null,
+  "startedAt": "2026-09-10T21:06:34.704Z", "lastAt": "2026-09-10T21:06:34.704Z",
+  "path": "<fx>/.nen/loop/j1.json" }
+```
+
+Every key `docs/USAGE.md` names, in the order it names them, and `nen.loop.iterate/v0.1` is one of
+the twenty-two shapes nen's `0.7` ruling says a `contract` field is EARNED by — a shape a consumer
+must be able to refuse on, because acting on a half-understood cap is worse than not reading it.
+
+### What is NOT retired
+
+**The act.** `nen loop iterate` owns the count and nothing else: it runs no loop body, spawns
+nothing, and knows nothing about what the task does. `nen watch until` still refuses to run the act
+(re-verified unchanged at this pin), so the composition boundary SKILL.md § 3 records is exactly
+where it was — the skill runs the act directly, between condition checks, under the looped task's own
+authority.
+
+**Deciding which iterations to claim.** A pre-check that finds the condition already true
+(*iteration 0*) is not claimed and spends nothing; an observation that changed nothing is not an
+acting cycle. That judgment is the skill's, and no verb can make it.

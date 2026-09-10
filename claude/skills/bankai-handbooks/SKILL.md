@@ -85,22 +85,25 @@ its separate `maintained_tools` ownership entry).
     a consumer** — under `maintained_tools`, `pending_onboarding`, or only as a `product_codes` value —
     and *"only a consumers[] entry carries a 'scenario' field"*. Relay the sentence; it is the
     diagnosis.
-  - **An invocation mistake — a missing `--target`, or a `--target` that is not an `owner/name`
-    slug — also exits `1`, not `2`** (USAGE `v0.3.0` records this as the family's own inconsistency,
-    zheref/nen#93). Do not read exit `1` alone as "not a consumer"; tell the two apart **by the refusal
-    text**: a missing `--target` says `--target owner/name is required`; a malformed one says `--target
-    takes an owner/name repository slug and '<value>' is not one`.
-- **Exit `2`** → an omitted `--repo`, or a `--repo` path that does not exist on disk — both verified
-  live at `v0.3.0`. A missing or malformed `--target` does **not** produce it. Fix the command; never
-  read exit `2` as "no scenario."
+  - **RETIRED at nen `0.7`: an invocation mistake now exits `2`, not `1`** (`zheref/nen#93`). A
+    missing `--target`, and a `--target` that is not an `owner/name` slug, both refuse at exit **`2`**
+    across the sixteen verbs of the `repo`, `labels`, `pr` and `issue` families — verified live at
+    the pinned `0.7.0`, where `v0.6.0` answered `1` to both (`docs/ab/bankai-handbooks.md`
+    § *Retired at nen 0.7*). The refusals also gained the sentence that says which flag is which:
+    *"It is the GitHub side of the pair; `--repo` names a checkout on disk and is never used to
+    address the API."*
+- **Exit `2`** → an **invocation** mistake: an omitted or malformed `--target`, an omitted `--repo`,
+  or a `--repo` path that does not exist on disk. Fix the command; **never read exit `2` as "no
+  scenario."**
 
-> **Finding this port filed against `v0.1.0`, half-closed by nen `v0.2.0` (#73, closes zheref/nen#28):**
-> `nen repo scenario` conflated every failure under exit `1`, and read the registry from the cwd when
-> `--repo` was forgotten. Now `--repo` is required (exit `2`), and the scenario refusals are split by
-> cause in their text — but a missing or code-shaped `--target` still exits `1`, which USAGE `v0.3.0`
-> records as an open, family-wide inconsistency (zheref/nen#93). So this skill's report step (§ 3) still
-> reads the refusal text, never just the code. Recorded in full, with the live transcript at the port,
-> in `docs/ab/bankai-handbooks.md` §§ 2.2–2.3 and finding 5 of § 4.
+> **The exit code is now load-bearing, and reading it is the point of the change.** *"You typed it
+> wrong"* and *"the thing you asked for did not work"* want different reactions, and a retry wrapper
+> honouring that distinction retries a `1` and gives up on a `2` — so the wrong code turned a
+> forgotten flag into a loop. **So: exit `1` is a finding about the registry** — one of the three
+> causes above, each with its own sentence — **and exit `2` is a finding about the command.** The
+> refusal text is still what you relay, because it is the diagnosis; the code is now what you branch
+> on. Recorded in full, with both transcripts, in `docs/ab/bankai-handbooks.md`
+> §§ 2.2–2.3, finding 5 of § 4, and § *Retired at nen 0.7*.
 
 ## 2. Resolve the handbook set
 
