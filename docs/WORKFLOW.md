@@ -819,7 +819,8 @@ the installed plugin directory, which changes on every update, so it is never wr
 
 Several skills build an absolute path from the plugin root — `pr-state`, `sharingan`, `backlog-state`,
 `futon`, `tensho` and `getsuga` for `nen pr ready --gates`, `hatsu-warmup` for `nen/contract.json`, `hanten`
-for a persona's definition under `claude/agents/`, `rikugan` for `templates/<name>.html`. **The name they
+for a persona's definition under `claude/agents/`. (`rikugan` is not on this list: its template is the target
+repository's own `templates/<name>.html`, named by that repository's `nen/workflow.json`.) **The name they
 spell it with is `$hatsu_root`, never `$CLAUDE_PLUGIN_ROOT` on its own**, because a skill body is mirrored
 verbatim onto Codex and Cursor ([`docs/SURFACES.md`](SURFACES.md)) and `$CLAUDE_PLUGIN_ROOT` is Claude
 Code's alone: **the harness exports it while a skill is running, and it is EMPTY in an ordinary tool-call
@@ -827,8 +828,9 @@ shell and inside a subagent** — verified live — and on the two other surface
 from a shell profile, names a different plugin (`docs/ab/surfaces.md` § 8, F3). `$hatsu_root` is the
 resolution [`hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md) § 5's prelude runs on every surface,
 each candidate accepted only if it is a Hatsu checkout, the winner canonicalised to an absolute path and
-held in a shell variable that is not exported — so a consumer runs the prelude in the shell that runs its
-own command, never inheriting the warm-up's:
+held in a shell variable that is not exported — so a consumer's code block carries the prelude's same-shell
+form (`hatsu-warmup` § 5) and runs it before its own command: nothing is inherited from the warm-up's shell,
+and the root the warm-up prints is what that block hands in:
 
 | `$hatsu_root` comes from | when |
 |---|---|

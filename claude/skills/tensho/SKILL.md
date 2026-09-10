@@ -307,16 +307,23 @@ needs): the readiness **check** by itself is [`hatsu:pr-state`](../pr-state/SKIL
 
 ```bash
 export GH_TOKEN=$(gh auth token)
-# $hatsu_root is THIS plugin's checkout — ABSOLUTE, and resolved IN THIS SHELL by running hatsu-warmup
-# § 5's prelude first: it is a shell variable, not an export, so a value another shell set is not here
+# $hatsu_root is THIS plugin's checkout, ABSOLUTE, resolved IN THIS SHELL: the block below is
+# hatsu-warmup § 5's prelude in its same-shell form. The variable is not exported, so a value
+# another shell set is not here; the second candidate is the root the warm-up printed.
+hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" "<the root the warm-up printed>" "${CLAUDE_PLUGIN_ROOT:-}"; do
+  [ -n "$c" ] && [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
+  [ "$(sed -n 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$c/.claude-plugin/plugin.json" | head -n 1)" = hatsu ] &&
+  hatsu_root=$(cd "$c" && pwd -P) && break
+done
+[ -n "$hatsu_root" ] || { echo "no Hatsu root resolved — pass --reviewers by hand instead (sharingan § 4)" >&2; exit 1; }
 nen pr ready <CODE>#<N> --repo <path> --gates "$hatsu_root/contracts/reference.gates.json" --explain
 ```
 
 The `--gates` shown is [`sharingan`](../sharingan/SKILL.md) § 4's identity rule, cited rather than
 copied, its `$hatsu_root` anchor included — the Hatsu checkout as
-[`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it on every surface, absolute and in
-the calling shell, never `$CLAUDE_PLUGIN_ROOT` alone, which is Claude Code's: it holds ONLY where the
-target is frozen
+[`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it on every surface, absolute and
+resolved in the calling shell by the same-shell block above, never `$CLAUDE_PLUGIN_ROOT` alone, which is
+Claude Code's: it holds ONLY where the target is frozen
 `<reference-repo>` itself (no gates file of its own);
 a target that ships its own `nen/gates.json` needs no identity flag at all; any OTHER target with no
 `nen/gates.json` gets `--reviewers` supplied by hand — from its `CODEOWNERS` or the PR's own requested

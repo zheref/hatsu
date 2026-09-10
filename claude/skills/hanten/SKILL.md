@@ -140,9 +140,9 @@ Claude Code's: that harness exports it **only inside a skill invocation**, it is
 ordinary tool-call shell and inside a subagent** — verified live — and on Codex and Cursor it is
 usually unset or names a different plugin. The prelude reads those three candidates and no fourth,
 canonicalises the winner to an absolute path, and holds it in a shell variable that is not exported
-— so it runs in the shell that runs the `ls`, and a run with none of the three reports the root
-unresolved. On Claude Code alone, the caller can obtain the path it HANDS IN — the second candidate
-— from the surface's own plugin registry:
+— so its same-shell form (`hatsu-warmup` § 5) runs in the shell that runs the `ls`, and a run with none
+of the three reports the root unresolved. On Claude Code alone, the caller can obtain the path it
+HANDS IN — the second candidate — from the surface's own plugin registry:
 
 ```bash
 claude plugin list --json    # → [{ "id": "hatsu@hatsu", "installPath": "<the plugin root>", … }]

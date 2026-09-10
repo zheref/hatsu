@@ -97,8 +97,15 @@ the short form is three shapes, and there is no fourth:
 nen pr ready <CODE>#<N> --repo <path> --explain
 
 # the target IS <reference-repo> itself — frozen, ships no gates file of its own.
-# $hatsu_root is THIS plugin's checkout — ABSOLUTE, and resolved IN THIS SHELL by running hatsu-warmup
-# § 5's prelude first: it is a shell variable, not an export, so a value another shell set is not here
+# $hatsu_root is THIS plugin's checkout, ABSOLUTE, resolved IN THIS SHELL: the block below is
+# hatsu-warmup § 5's prelude in its same-shell form. The variable is not exported, so a value
+# another shell set is not here; the second candidate is the root the warm-up printed.
+hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" "<the root the warm-up printed>" "${CLAUDE_PLUGIN_ROOT:-}"; do
+  [ -n "$c" ] && [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
+  [ "$(sed -n 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$c/.claude-plugin/plugin.json" | head -n 1)" = hatsu ] &&
+  hatsu_root=$(cd "$c" && pwd -P) && break
+done
+[ -n "$hatsu_root" ] || { echo "no Hatsu root resolved — pass --reviewers by hand instead (sharingan § 4)" >&2; exit 1; }
 nen pr ready <CODE>#<N> --repo <path> \
   --gates "$hatsu_root/contracts/reference.gates.json" --explain
 
@@ -121,8 +128,9 @@ convention for exactly this** — the Hatsu checkout as [`hatsu-warmup`](../hats
 prelude resolves it, on every surface: `$HATSU_PLUGIN_ROOT`, else the path the invocation was handed, else
 `$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout, the winner canonicalised to an absolute
 path — so a relative `$HATSU_PLUGIN_ROOT` or a handed `.` cannot reach this flag. It is a shell variable and
-not an export: the prelude runs in the shell that runs this command, never inherited from the warm-up's own
-shell, which is gone. It is spelled that way and never as
+not an export, so the code block above carries the prelude's same-shell form and runs it before the call —
+nothing is inherited from the warm-up's shell, and the root the warm-up printed is what that block hands in.
+It is spelled that way and never as
 `$CLAUDE_PLUGIN_ROOT` alone because that variable is Claude Code's: exported by that harness inside a skill
 invocation and nowhere else, and on Codex and Cursor — where this body runs as a verbatim mirror
 ([`docs/SURFACES.md`](../../../docs/SURFACES.md)) — usually unset or, from a shell profile, naming a

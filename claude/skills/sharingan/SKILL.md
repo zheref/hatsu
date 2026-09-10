@@ -236,7 +236,8 @@ lives in this plugin's checkout rather than the target's, so only an absolute pa
 > than assumed on every surface: `$HATSU_PLUGIN_ROOT` first (the form that works on all three), else
 > the path whoever raised the run handed it, else `$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a
 > Hatsu checkout — the winner canonicalised to an absolute path, and held in a shell variable that is
-> not exported, so the prelude runs in the shell that runs the `nen pr ready` call: a tool-call shell
+> not exported, so its same-shell form — the block `pr-state` § 2 carries — runs in the shell that runs
+> the `nen pr ready` call, with the root the warm-up printed as the handed candidate: a tool-call shell
 > or a subagent inherits nothing from another. `$CLAUDE_PLUGIN_ROOT` on its own is Claude Code's variable: that harness exports it
 > **only inside a skill invocation**, it is **empty in an ordinary tool-call shell and inside a
 > subagent** — verified live — and on Codex and Cursor, where this body runs as a verbatim mirror, it

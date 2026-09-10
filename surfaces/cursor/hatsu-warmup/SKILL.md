@@ -456,6 +456,7 @@ done
        "invocation, and this surface has no plugin registry to ask." >&2
   exit 1        # § 4's line says NOT INSTALLED and names this. Never a partial install.
 }
+echo "hatsu_root: $hatsu_root"   # a later shell cannot inherit this variable; it hands THIS path in
 ```
 
 - **A rejected candidate is named BY PATH, in the report.** *"surface: cursor — NOT INSTALLED.
@@ -472,10 +473,24 @@ done
 - **`$hatsu_root` is ABSOLUTE, and LOCAL to the shell that ran this block.** `pwd -P` canonicalises the
   winning candidate, so a relative `$HATSU_PLUGIN_ROOT` or a handed `.` cannot reach a `--gates`
   argument nen would resolve against `--repo`. And it is a shell variable, not an export: a later
-  tool-call shell, a subagent, or another skill's command does not inherit it — on any surface. So
-  every consumer — `pr-state`, `sharingan`, `hanten`, `futon`, `backlog-state`, `getsuga`, `tensho`,
-  the Kurapika definition — runs this block again in the shell that runs its own command, and says so
-  beside the use. **The loop reads three candidates and no fourth**: a run with none is `NOT INSTALLED`
+  tool-call shell, a subagent, or another skill's command does not inherit it — on any surface — and
+  prose telling a consumer to *run the prelude first* executes nothing. So the block prints the root it
+  resolved (the `echo` above), and **every code block that consumes `$hatsu_root` carries this
+  same-shell form of the loop, verbatim, above its own command** — `pr-state` § 2, `futon` § 5,
+  `tensho`'s readiness fallback — with the printed root as the second candidate:
+
+```bash
+hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" "<the root the warm-up printed>" "${CLAUDE_PLUGIN_ROOT:-}"; do
+  [ -n "$c" ] && [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
+  [ "$(sed -n 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$c/.claude-plugin/plugin.json" | head -n 1)" = hatsu ] &&
+  hatsu_root=$(cd "$c" && pwd -P) && break
+done
+[ -n "$hatsu_root" ] || { echo "no Hatsu root resolved — pass --reviewers by hand instead (sharingan § 4)" >&2; exit 1; }
+```
+
+  It is the same three candidates, the same `is_hatsu` test and the same canonicalisation, inlined
+  rather than sourced from a helper file, because a helper file would have to be found by the very
+  root it resolves. **The loop reads three candidates and no fourth**: a run with none is `NOT INSTALLED`
   here and `--reviewers` by hand in `sharingan` § 4, never a guess. On Claude Code alone, a caller that
   has none of the three can obtain the path it *hands in* — the second candidate — from the surface's
   own registry, `claude plugin list --json` → `installPath` (verified live); that is a way to produce

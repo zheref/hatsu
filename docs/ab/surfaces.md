@@ -809,3 +809,40 @@ parses with its five reviewers.
 
 **Still not verified:** the same as § 9.3 — no Codex or Cursor session ran a `--gates` call from the
 regenerated mirror.
+
+### 9.5 Copilot's second round — the resolver has to EXECUTE in the consumer's shell
+
+One thread and one suppressed comment.
+
+| finding | disposition |
+|---|---|
+| *"prose saying to run the prelude first is not sufficient"* — the assignment lives in `hatsu-warmup`'s own code block, consumers only cite it, and the later tool-call shell expands `"$hatsu_root/contracts/…"` to `/contracts/…` | **Fixed by inlining.** Every code block that consumes the variable — `pr-state` § 2, `futon` § 5, `tensho` § 6 — now carries the prelude's *same-shell form* verbatim above its own command: the same three candidates, the same `is_hatsu` test, the same `pwd -P`. The warm-up's block now `echo`es the root it resolved, and that printed path is the block's second candidate (the handed one). A helper file, the reviewer's other suggestion, was not taken: it would have to be found by the very root it resolves |
+| `rikugan` listed in `docs/WORKFLOW.md` as a consumer of the plugin root — its template is the target repository's own `templates/<name>.html`, target-relative | **Fixed**: dropped from the list, with the reason stated in place |
+
+**The inlined block, exercised against a real PR.** The block as the three skills carry it, saved to a
+file with `"$1"` in the handed slot, then `nen pr ready` on this very pull request — a read-only call whose
+`--explain` header prints the identities path nen actually resolved. Run from `$HOME`, with
+`HATSU_PLUGIN_ROOT` and `CLAUDE_PLUGIN_ROOT` both empty, the printed root handed in:
+
+```
+$ cd ~ && HATSU_PLUGIN_ROOT= CLAUDE_PLUGIN_ROOT= bash same-shell.sh <wt>
+hatsu_root=<wt>
+zheref/hatsu#38: not-ready: a configured reviewer's round is still owed at the current head (CON-32b): sasuke (no round at head);tenma (no round at head)
+
+  head cb7d1ed4f0a587083074eed03a393d293e9992c6 · reviewers sasuke,tenma,copilot · approvers sasuke,tenma
+  policy bounded · delivery PR no · identities <wt>/contracts/reference.gates.json
+nen exit 1
+```
+
+`identities <wt>/contracts/reference.gates.json` — absolute, the file this plugin ships, read from a shell
+that inherited nothing. (The `not-ready` is correct and expected: this repository ships no `nen/gates.json`,
+so the reference file's `sasuke`/`tenma` are owed here — the exact wrong-reviewers case `sharingan` § 4
+names, used deliberately because it proves the path and nothing else.) The same block with
+`HATSU_PLUGIN_ROOT=..` from `docs/` and the placeholder left unsubstituted resolves the same absolute path;
+with nothing usable at all it prints *no Hatsu root resolved — pass --reviewers by hand instead* and exits
+`1` before `nen` runs. Mirrors regenerated clean after the change (`ok: 40`, `ok: 47`, script exit `0`);
+`claude plugin validate . --strict` passes.
+
+**Still not verified:** a Codex or Cursor session running the mirrored block. What is verified is that the
+block a mirror carries is byte-identical to the one above (the mirror is verbatim) and that this block
+resolves from a shell with no Claude Code state in it.

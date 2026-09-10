@@ -253,8 +253,15 @@ session structurally cannot do at all, **stop at G5 immediately** and name the g
 export GH_TOKEN=$(gh auth token)
 # BC#940 / BC#925 below are <reference-repo> PRs, so this run's own identity flag is --gates;
 # see the paragraph below for the other two shapes sharingan § 4 names.
-# $hatsu_root is THIS plugin's checkout — ABSOLUTE, and resolved IN THIS SHELL by running hatsu-warmup
-# § 5's prelude first: it is a shell variable, not an export, so a value another shell set is not here
+# $hatsu_root is THIS plugin's checkout, ABSOLUTE, resolved IN THIS SHELL: the block below is
+# hatsu-warmup § 5's prelude in its same-shell form. The variable is not exported, so a value
+# another shell set is not here; the second candidate is the root the warm-up printed.
+hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" "<the root the warm-up printed>" "${CLAUDE_PLUGIN_ROOT:-}"; do
+  [ -n "$c" ] && [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
+  [ "$(sed -n 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$c/.claude-plugin/plugin.json" | head -n 1)" = hatsu ] &&
+  hatsu_root=$(cd "$c" && pwd -P) && break
+done
+[ -n "$hatsu_root" ] || { echo "no Hatsu root resolved — pass --reviewers by hand instead (sharingan § 4)" >&2; exit 1; }
 nen pr ready <CODE>#<N> --repo <path> --gates "$hatsu_root/contracts/reference.gates.json" --explain
 ```
 
@@ -264,7 +271,8 @@ target that ships its own `nen/gates.json` needs no identity flag at all. `<refe
 (frozen, ships no gates file of its own — the case above) is the one target `--gates
 "$hatsu_root/contracts/reference.gates.json"` is for — always `$hatsu_root`-anchored: the Hatsu
 checkout as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it on every surface — absolute,
-and run in the shell that runs this call, since the variable is not exported — never
+and resolved in the shell that runs this call by the same-shell block above, since the variable is not
+exported — never
 `$CLAUDE_PLUGIN_ROOT` alone, which is Claude Code's and is unset or wrong on the two mirrored surfaces. Since nen `v0.2.0` a relative `--gates` resolves against `--repo`'s root rather than the cwd, so only
 an absolute path reaches a file that lives in *this* plugin's checkout
 ([`$pr-state`](../pr-state/SKILL.md) § 2 has the live transcript). Any OTHER target with no
