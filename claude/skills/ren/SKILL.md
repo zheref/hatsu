@@ -51,7 +51,7 @@ say so on the first one, so nobody is surprised by the report and the bell at th
 | 1 | **warm up** | [`hatsu:breath`](../breath/SKILL.md) | **first turn of an effort only** — clean tree, fetch, fast-forward, cut the branch from the base, prove the declared checks |
 | 2 | **build** | [`hatsu:rasengan`](../rasengan/SKILL.md) | every `iteration.checks` verb, green, **before** anything is committed |
 | 3 | **commit** | [`hatsu:kokusen`](../kokusen/SKILL.md) | triage, ask on what is flagged, one shaped commit — local only |
-| 4 | **launch** | [`hatsu:amaterasu`](../amaterasu/SKILL.md) | build the configured target and start it **from the core working directory** |
+| 4 | **launch** | [`hatsu:amaterasu`](../amaterasu/SKILL.md) | build the configured target and start it **from the core working directory** — or, where the repository declares no launch target (Hatsu's own case), record `no launch target declared; skipped` and continue **without asking** |
 | 5 | **report** | [`hatsu:rikugan`](../rikugan/SKILL.md) `as turn` | the page: accomplished, challenges, not delivered, architecture, screenshots, the exact launch command, decisions |
 | 6 | **bell** | [`hatsu:jutaisho`](../jutaisho/SKILL.md) | the rungs the workflow declares — and a stop only if one is genuinely due |
 

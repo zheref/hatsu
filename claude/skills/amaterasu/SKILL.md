@@ -28,8 +28,32 @@ hatsu:amaterasu [<target>]        # <target> names a key of nen/contract.json �
 With no argument the target is `nen/workflow.json → launch.default`. **There is no built-in default
 target and none is ever guessed** — the same rule nen states for its own `--target` (*"required and
 has no default, not even when exactly one exists"*), for the same reason: launching the wrong build
-onto the wrong device is not undone by launching it again. With no `launch.default` and no argument,
-amaterasu lists what `project.launch` declares and asks.
+onto the wrong device is not undone by launching it again.
+
+### The no-launch case — a repository that is not an application
+
+**`project.launch` absent, or `launch.default` `null`, is a declaration, not a gap.** Some
+repositories have nothing to start: Hatsu itself is a plugin read by Claude Code, and its
+`nen/workflow.json` says `"launch": { "default": null, "fallback": null }` for exactly that reason.
+`ren` still reaches this phase every turn, and **the phase does not ask the maintainer anything**:
+
+> Record **`no launch target declared; skipped`** in the turn's report — the phase, the fact, the
+> file that says so — and **continue to [`hatsu:rikugan`](../rikugan/SKILL.md) and
+> [`hatsu:jutaisho`](../jutaisho/SKILL.md)**. No question, no stop, no bell.
+
+Concretely, in order:
+
+| What the declaration says | What amaterasu does |
+|---|---|
+| `project.launch` **absent** (no launch block at all) | record `no launch target declared; skipped`, name `nen/contract.json` as the file that carries no `project.launch`, continue |
+| `project.launch` present but **empty** | the same — an empty map declares no targets |
+| `launch.default` **`null`** and no argument | record `no launch target declared; skipped`, name `nen/workflow.json → launch.default` as the null, continue |
+| `launch.default` **`null`** but `project.launch` **has targets**, and no argument | **this** is the case that asks: list what `project.launch` declares and ask which one. A repository with targets and no default has an unanswered question, not an answered one |
+| an argument naming a target that `project.launch` does not declare | refuse by name, list what is declared, continue — never launch a near-match |
+
+**Asking on the no-launch case is the defect.** A question every single turn, in a repository whose
+configuration already answered it, trains the maintainer to dismiss the one phase that would
+otherwise be worth reading — and `ren` is automatic, so the cost is per turn, not per effort.
 
 ## 2. The parameters, and where they come from
 
@@ -48,9 +72,10 @@ amaterasu lists what `project.launch` declares and asks.
 **When `nen/workflow.json` is absent, say so in the turn's report, in these words —** *"no
 workflow.json: using the built-in defaults from `docs/WORKFLOW.md`"* — and note what that costs
 here: the defaults carry **no** `launch.default` and **no** `launch.fallback`, because neither has a
-safe built-in value. With no workflow file, name the targets `project.launch` declares and ask which
-one; with no `project.launch` either, run § 5's dry run for the lane's plain `dev` row, paste the
-command, and say the repository declares no launch target.
+safe built-in value. With no workflow file but a `project.launch` that declares targets, name them
+and ask which one; **with no `project.launch` either, this is § 1's no-launch case** — record
+`no launch target declared; skipped` and continue, and where the lane does declare a plain `dev`
+row, run § 5's dry run and paste the command as the thing the maintainer could start by hand.
 
 **`project.launch` is Hatsu's key, not nen's, at this pin.** nen `0.3.0` preserves it and reads it by
 nothing — verified live: with a `launch` block present, `nen schema check` still reports
@@ -102,6 +127,9 @@ listing three devices none of which is the declared one is an absent device, not
 Pairing a device that has never been set up is `hatsu:jujutsu`'s work, not this skill's.
 
 ## 5. The dry run, and the command you paste
+
+**This section runs only when a target was resolved.** On § 1's no-launch case there is nothing to
+dry-run: record `no launch target declared; skipped` and go to rikugan.
 
 ```bash
 nen shu <verb> --repo <core working directory> [--lane <lane>] --dry-run          # the pre-flight, as text
@@ -176,8 +204,12 @@ extra argument — print each one, and say plainly that these ran by hand rather
 - **Never launches from anything but the core working directory** — never a worktree, never a
   subagent's copy, never a clone made for the occasion.
 - **Never launches from a parallel effort.** A subagent reports the command; it does not run it.
-- **Never invents a target.** No `launch.default`, no argument, no declaration → name what exists and
-  ask.
+- **Never invents a target.** No `launch.default` and no argument, but `project.launch` declares
+  targets → name what exists and ask.
+- **Never asks when the declaration already answered.** `project.launch` absent or empty, or
+  `launch.default` `null` with no targets declared, is `no launch target declared; skipped` in the
+  turn report and straight on to rikugan — every turn, without a question (§ 1). `ren` is automatic,
+  so a question here is a question per turn.
 - **Never substitutes a plausible command for a declared one**, and never re-types the pasted command
   from memory — it is the `--dry-run` argv, verbatim, or it is not pasted.
 - **Never falls back to an undeclared device**, and never silently: the disconnected device is named,

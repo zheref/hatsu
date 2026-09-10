@@ -117,7 +117,14 @@ ladder here supplies the default threshold.
 
 `default` and `fallback` name keys of `project.launch` (§ 3). `amaterasu` starts `default`; when its device
 is not connected it reports the device **by name** and falls back to `fallback`, or stops if that is `null`.
-Hatsu's own are both `null`: a plugin is loaded by Claude Code, not launched.
+
+**A `null` `default` with no `project.launch` is the no-launch case, and it is an answer.** Hatsu's own are
+both `null`, and it declares no `project.launch` at all: a plugin is loaded by Claude Code, not launched. In
+that repository `amaterasu` records **`no launch target declared; skipped`** in the turn report and continues
+to `rikugan` and `jutaisho` — **it does not ask**. `ren` reaches the phase every turn, so a question there
+would be a question per turn about something the configuration already settled. The case that *does* ask is a
+repository whose `project.launch` declares targets while `launch.default` is `null`: that is an unanswered
+question, not an answered one.
 
 ### `reports`
 
