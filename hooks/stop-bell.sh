@@ -22,9 +22,12 @@
 #
 # RUNGS
 # `notifications.rungs` in the repository's nen/workflow.json decides which of
-# the two this rings. A rung absent from the list is not rung. No workflow.json
-# means both, which is the useful default for a repository that has not opted in
-# to the ladder.
+# the two this rings. A rung absent from the list is not rung. NO DECLARATION —
+# no workflow.json, or no `rungs` key in it — means both, which is the useful
+# default for a repository that has not opted in to the ladder. An EMPTY
+# DECLARED list, `"rungs": []`, is the opposite policy and rings nothing: the
+# key's absence and the key's emptiness are tracked as the different facts they
+# are, so a repository that switched the bell off stays off.
 #
 # WHY IT NO-OPS SO EAGERLY
 # A Stop hook runs after EVERY turn. A bell that rings on a turn that was not a
@@ -57,6 +60,12 @@
 #                                                   MARKER STILL CONSUMED
 #   fresh marker, rungs ["os"] only              -> 0, notification only, marker
 #                                                   consumed
+#   fresh marker, rungs []                       -> 0, NOTHING rung (an empty
+#                                                   declared list is a policy),
+#                                                   marker consumed
+#   fresh marker, workflow.json with no `rungs`
+#     key                                        -> 0, both rungs (no
+#                                                   declaration is the default)
 #   fresh marker, no workflow.json               -> 0, both rungs (the default),
 #                                                   marker consumed
 
@@ -105,9 +114,16 @@ root=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null || printf '%s' "$cwd"
 workflow="$root/nen/workflow.json"
 
 rungs=""
+rungs_declared=0
 sound="Glass"
 if [ -f "$workflow" ]; then
-  rungs=$(sed -n 's/.*"rungs"[[:space:]]*:[[:space:]]*\[\([^]]*\)\].*/\1/p' "$workflow" | head -n 1)
+  # Whether the KEY is there is a separate fact from what is inside it.
+  # `"rungs": []` is a policy — ring nothing — and it must not read the same as
+  # a repository that never mentioned rungs at all.
+  if grep -q '"rungs"[[:space:]]*:[[:space:]]*\[' "$workflow" 2>/dev/null; then
+    rungs_declared=1
+    rungs=$(sed -n 's/.*"rungs"[[:space:]]*:[[:space:]]*\[\([^]]*\)\].*/\1/p' "$workflow" | head -n 1)
+  fi
   from_file=$(sed -n 's/.*"sound"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$workflow" | head -n 1)
   [ -n "$from_file" ] && sound=$from_file
 fi
@@ -120,8 +136,12 @@ sound_file="/System/Library/Sounds/$sound.aiff"
 [ -f "$sound_file" ] || sound_file="/System/Library/Sounds/Glass.aiff"
 
 rings() {
-  # $1 = rung name. No rungs declared (no workflow.json) rings everything.
-  [ -z "$rungs" ] && return 0
+  # $1 = rung name.
+  # NO DECLARATION (no workflow.json, or no `rungs` key) rings everything —
+  # the useful default for a repository that has not opted in to the ladder.
+  # A DECLARED list rings exactly what it names, and `"rungs": []` therefore
+  # rings NOTHING. The two are different facts and are not collapsed.
+  [ "$rungs_declared" -eq 1 ] || return 0
   case "$rungs" in
     *"\"$1\""*) return 0 ;;
     *) return 1 ;;

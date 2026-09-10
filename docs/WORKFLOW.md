@@ -350,16 +350,24 @@ model has stopped talking, or has already typed the push, it is too late.
 | [`stop-bell.sh`](../hooks/stop-bell.sh) | `Stop` | rings `notifications` rungs **2 and 3** off the marker at `.nen/last-stop.json`, then consumes it |
 | [`guard-base-branch.sh`](../hooks/guard-base-branch.sh) | `PreToolUse`, matcher `Bash` | exits `2` — blocking the tool call — on a `git commit` or `git push` while the branch equals `branch.base` |
 
-**The guard parses the command; it does not match a substring.** Quoted spans are masked to one token, the
-line is split into segments on `;` `|` `&` `(` `)` and the backtick, and a segment counts only when its
-**first** token is `git` and the token after git's own global options — `-C <dir>`, `-c <k=v>`, `--no-pager`,
-`--git-dir=…`, `--work-tree=…`, `--namespace` — is `commit` or `push`. So `echo 'git commit'` and
-`git commit-tree` are not writes, while `git --no-pager commit` is. The repository judged is the segment's own
-`-C <dir>` when it has one and the working directory otherwise, and a `cd` earlier in the same line moves that
-working directory — judging `cwd` after a `cd` is judging the wrong repository. It **fails closed** on the two
-forms where the branch it can see is not the branch the write would land on: a line that both changes branch
-(`switch`, `checkout`, `branch -f|-m|-M`) and writes, and a `-C` path quoted in a form it cannot recover. The
-script's own header carries the twenty-four cases this was verified against.
+**The guard parses the command; it does not match a substring.** A shell wrapper is unwrapped first — `sh -c
+'<script>'` *runs* `<script>`, so the payload is recovered and parsed as its own segment. Quoted spans are then
+masked to one token, the line is split into segments on `;` `|` `&` `(` `)` and the backtick, and a segment
+counts only when its **first** token is `git` and the token after git's own global options — `-C <dir>`,
+`-c <k=v>`, `--no-pager`, `--git-dir`, `--work-tree`, `--namespace` and the rest, in both the separate-argument
+and the `--key=value` form — is `commit` or `push`. So `echo 'git commit'` and `git commit-tree` are not
+writes, while `git --no-pager commit` is.
+
+The repository judged is whichever repository-selecting option the segment carries — `--work-tree`, then `-C`,
+then `--git-dir` — and the working directory when it carries none; a `cd` earlier in the same line moves that
+working directory, because judging `cwd` after a `cd` is judging the wrong repository.
+
+It **fails closed** on the four forms where the branch it can see is not the branch the write would land on: a
+line that both changes branch (`switch`, `checkout`, `branch -f|-m|-M`) and writes; a repository-selecting path
+quoted in a form it cannot recover; a `git` segment carrying a `commit`/`push` token whose **subcommand the
+option walk could not establish** — an unrecognised global option must not hide the write behind it; and a
+shell wrapper whose payload cannot be read on a line that carries a write token. The script's own header
+carries the thirty-seven cases this was verified against.
 
 **The stop marker** is `hatsu.stop-marker/v0.1`, written by `jutaisho` and read by the hook:
 
@@ -385,6 +393,12 @@ the hook: a host that is not macOS, or a macOS host without `osascript`, skips r
 if `afplay` is there; a host with neither rings nothing and **still removes the marker**, because a marker
 left behind would ring that same stop on a later turn, on a machine that by then can. Nothing in the hook
 exits before marker cleanup.
+
+**No declaration and an empty declaration are different facts.** No `workflow.json`, or a `workflow.json` with
+no `notifications.rungs` key, rings **both** rungs — the useful default for a repository that has not opted in
+to the ladder. **`"rungs": []` is the opposite policy and rings nothing**: it says this repository wants the
+bell off, and the hook tracks the key's absence separately from the list's emptiness so that a repository
+which switched the bell off stays off.
 
 Both scripts are POSIX `sh` and use **no `jq`, `yq` or Python** — Hatsu's installed path is one binary plus
 `git` and `gh` — so they read their JSON with `sed`. Both **fail open** on anything they cannot read; the
