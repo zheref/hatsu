@@ -147,12 +147,26 @@ the maintainer knows which guarantee they actually have.
 The verb is nen's read-only poller, and it is the whole mechanism:
 
 ```bash
-nen watch until <condition> --interval <pollSeconds> --max-cycles <maxCycles>   # read-only, by construction
+nen watch until --command "<one read-only observation>" [--true-pattern "<regex>"] \
+  --interval-ms <pollSeconds × 1000> --max-iterations <a safety bound>
 ```
 
-Run `nen watch --help` at the pinned ref and use what it actually offers; where a flag you need does not
-exist, **name it as a finding** and report the gap — never hand-roll the missing half and present the result
-as though the verb produced it.
+> **Those are the flags the pinned `nen 0.3.0` actually carries**, read live from its own
+> `nen watch until --help` and recorded in `docs/ab/en.md` § 2.6. There is no `--interval`, no
+> `--max-cycles` and no bare `<condition>`: the observation is `--command`, the pace is `--interval-ms`
+> (so `monitor.pollSeconds` is multiplied by 1000 before it is passed — `300` → `300000`), and the command
+> is spawned **directly, with no shell**, so `<bin>` must be a real executable on `PATH` and a pipeline is
+> not a command the verb can classify. Omitting `--true-pattern` makes exit `0` the truth test; giving one
+> makes a non-zero exit an **observation error** rather than a false reading.
+>
+> **`--max-iterations` is not the cap** — the verb's own help says so, *"a SAFETY bound, not izanagi's
+> mandatory cap"* — and it bounds **one** observation run. **Counting cycles 1..N against `maxCycles`, and
+> stopping at it, is yours**: the same by-hand bookkeeping [`en`](../skills/en/SKILL.md) § *Residue* 2
+> names, and it is **residue**, not a verb. Say so in the watch's first line, every watch.
+
+Re-read `nen watch until --help` at whatever ref is actually pinned — the flags above are `0.3.0`'s, and a
+later pin may differ. Where a flag you need does not exist, **name it as a finding** and report the gap —
+never hand-roll the missing half and present the result as though the verb produced it.
 
 Each cycle, read and record **five facts** about the PR under watch, and nothing else:
 
