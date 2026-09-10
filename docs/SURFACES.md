@@ -248,8 +248,8 @@ discipline; the check exists because "in the same commit" is a thing people forg
 
 > **RETIRED at nen `0.5`: `nen surface` IS in the pinned binary.** It answered *"nen: unknown command
 > 'surface'"* at exit `2` through `v0.4.0` (transcript: [`docs/ab/surfaces.md`](ab/surfaces.md) § 2.3); at the
-> pinned `v0.7.0` both `mirror generate` and `mirror check` run, and the mirrors committed here were
-> regenerated with that build. **Using them still needs nothing** — they are files in this repository — and
+> pinned build both `mirror generate` and `mirror check` run, and the mirrors committed here were last
+> regenerated with `v0.8.0`. **Using them still needs nothing** — they are files in this repository — and
 > regenerating them now needs only the pinned nen.
 
 ---
@@ -284,7 +284,7 @@ regeneration, in `mukai`, before `shibari` opens the PR.
 ### In CI
 
 [`.github/workflows/surface-mirror-check.yml`](../.github/workflows/surface-mirror-check.yml) bootstraps nen
-**at the ref `nen/contract.json` pins**, then runs the script. **At the pinned `v0.7.0` that is a real
+**at the ref `nen/contract.json` pins**, then runs the script. **At the pinned build that is a real
 check**: the pinned nen carries the verb, so the job regenerates in memory and fails on drift.
 
 Through `v0.4.0` it **skipped with a `::notice::` and passed**, naming the pin and what would change — a job

@@ -423,7 +423,7 @@ same — that is what rungs 2 and 3 are for.
 3. **The `Stop` hook and the `PreToolUse` trunk guard are `hooks/hooks.json`'s**, this repository's
    harness files. This skill reads whether one exists; it never writes one.
 4. **RETIRED at nen `0.5`: `nen/workflow.json` is validated** — `nen schema check --repo <path>`
-   carries an `ok  nen/workflow.json` row at the pinned `v0.7.0`, so a malformed policy file is a
+   carries an `ok  nen/workflow.json` row at the pinned build, so a malformed policy file is a
    FAIL by pointer. § 2's keys are still read here; a read is not a residue.
 4b. **RETIRED at nen `0.6`: the empty `--line` refusal** (§ 1). `nen parse jutaisho --grammar
    "at [<gate:…>]" --line ""` is exit `0` with `gate: (clause absent)`, identical to `--line "at"`

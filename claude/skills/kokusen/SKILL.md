@@ -340,7 +340,7 @@ only one (§ 7).
 > stale.** A headless Cursor run against nen `0.3.0` found `--repo` **accepted and silently ignored**,
 > so `--trailer "Hatsu-Agent=kurapika"` rendered at exit `0` where a refusal was expected
 > (`docs/ab/surfaces.md` § 8, F12) — *"a flag that is accepted and ignored is worse than one that is
-> rejected: it reads like the guard ran."* **That was `0.3.0`. Hatsu pins `v0.7.0`**, where the verb
+> rejected: it reads like the guard ran."* **That was `0.3.0`. At the pinned build**, the verb
 > has its own `--repo`, opens the policy and refuses by name. § 7's residue list says `RETIRED` for
 > exactly this reason.
 
@@ -377,7 +377,7 @@ git commit --file <message file>          # residue, § 7: no nen verb writes a 
 fix what it named. Stage explicitly, path by path, from § 4's clean list plus every flagged path that
 got an explicit yes; `git add -A` is barred (§ 9).
 
-## 7. Residue — what has no verb at the pinned nen `0.7.0`
+## 7. Residue — what has no verb at the pinned build
 
 - **RETIRED at nen `0.5`: the forbidden-trailer refusal.** `nen commit format --repo <path>` refuses
   an unadmitted attribution trailer at exit `2`, naming the file (§ 5, verified live against this

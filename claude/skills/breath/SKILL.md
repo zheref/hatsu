@@ -333,7 +333,7 @@ that file is the whole repository's, so an exclude nobody was told about is a ch
 stopped reporting a file), and — where it applies — the `no workflow.json` sentence from § 2. A warm-up
 that did not run is reported as **not run**, never rendered as clear.
 
-## 8. Residue — what has no verb at the pinned nen `0.7.0`
+## 8. Residue — what has no verb at the pinned build
 
 - **Rendering `branch.template`.** `nen shu warmup --branch` is required with no default; the
   substitution of `{model}`/`{persona}`/`{descriptor}` is this skill's, from `workflow.json`. No verb
