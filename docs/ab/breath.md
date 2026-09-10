@@ -388,3 +388,23 @@ top-level keys: contract, repo, trunk, remote, branch, discard, dryRun, steps, l
 
 **Read `dryRun`, never the exit codes**, when a report has to say which form produced it — that is
 the whole reason the key was added.
+
+### Re-verified at this pin, not carried forward: the `nen/workflow.json` row
+
+§ 2's six-row claim is a **statement about the current pin**, so it was re-run rather than inherited
+from the v0.5 section above. Against this repository's own checkout, with the `v0.6.0` binary:
+
+```text
+$ nen schema check --repo <this checkout>
+  FAIL  nen/labels.json   … no such file …
+  FAIL  nen/repos.json    … no such file …
+  FAIL  nen/colors.yml    … no such file …
+  warn  nen/gates.json    … no such file …
+  ok    nen/contract.json  dependency (nen >= 0.6, pinned v0.6.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)
+  ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off 'main', checks: lint
+                                                                                                  # exit 1
+```
+
+**Six rows, the two this skill reads both `ok`, and the exit `1` is Hatsu shipping no taxonomy** —
+identical in shape to the same call against `origin/main` before this repin (also exit `1`, also four
+non-`ok` rows), so nothing here regressed. `hatsu-warmup` § 1 is the authority on all six.

@@ -120,13 +120,16 @@ as `0.5.0`.) Three outcomes, and exactly three:
 
 `minimum` is `MAJOR.MINOR`. **What it means depends on the major, and getting this backwards fails open.**
 
-**While nen's line is `0.x` — which it is today — `minimum: "0.5"` means exactly `>=0.6.0 <0.7.0`.**
+**While nen's line is `0.x` — which it is today — `minimum: "0.6"` means exactly `>=0.6.0 <0.7.0`.**
 
-**A different minor is out of range in BOTH directions.** `0.6.0` fails it exactly as `0.4.0` does.
+**A different minor is out of range in BOTH directions.** `0.7.0` fails it exactly as `0.5.0` does.
 
-> **And on this line the rule has teeth it did not have before.** nen `v0.5.0` is the first release since
-> `v0.1.0` that **removes** something a consumer could rely on — the `schemas/` fallback — so a minor here
-> is a breaking change in the plainest sense, not just a feature bump.
+> **And on this line the rule has teeth, twice over.** nen `v0.5.0` is the first release since `v0.1.0`
+> that **removes** something a consumer could rely on — the `schemas/` fallback — and `v0.6.0` changes three
+> behaviours **in place**, with no new flag to notice them by: `nen stage triage`'s exit code follows the
+> `flagged` bucket alone, `nen wc classify`'s `state.branch` becomes `string | null`, and
+> `nen pr request-reviews` refuses at exit `2` a login it resolves to neither a bot nor a collaborator. A
+> minor here is a breaking change in the plainest sense, not just a feature bump.
 
 > **Why, so nobody "corrects" it back:** SemVer 2.0.0 clause 4 says that at major version zero the public
 > API is unstable and **anything MAY change at any time** — at `0.x` the **minor** is the breaking-change
@@ -217,8 +220,8 @@ binary is named for its platform, not for the command:
 
 ```sh
 $ nen bootstrap --ref v0.6.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
-nen bootstrap: cache hit for zheref/nen@v0.5.0 (nen-darwin-arm64), checksum verified.   # exit 0
-$ ls ~/.cache/nen/v0.5.0
+nen bootstrap: verified nen-darwin-arm64 for zheref/nen@v0.6.0 (sha256 2674dc58…).      # exit 0
+$ ls ~/.cache/nen/v0.6.0
 nen-darwin-arm64                       # ← there is nothing here called `nen`
 ```
 

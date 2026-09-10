@@ -52,12 +52,15 @@ workflow.json: using the built-in defaults from `docs/WORKFLOW.md`"* — and use
 default does not cover, and never write the file to make the message go away — authoring a
 `workflow.json` for a repository is a policy change that lands as its own PR at **G4**.
 
-**`nen` VALIDATES `nen/workflow.json` at the pinned ref.** Verified live at `v0.5.0`: `nen schema
-check --repo <path>` reports **six** rows — the four taxonomy files, `nen/contract.json` and
-`nen/workflow.json` — and the sixth reads `ok    nen/workflow.json  coverage 80/85/90 (touched),
-branch '{model}/{persona}/{descriptor}' off 'main', checks: lint` (`docs/ab/breath.md`
-§ *Retired at nen 0.5*). **So the warm-up runs the verb rather than reading the shape by eye**: a
-malformed key is a FAIL by pointer from `schema check`, not a finding this skill has to notice.
+**`nen` VALIDATES `nen/workflow.json` at the pinned ref.** Re-verified live at `v0.6.0` against this
+repository: `nen schema check --repo <path>` reports **six** rows — the four taxonomy files,
+`nen/contract.json` and `nen/workflow.json` — and the sixth reads
+`ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off
+'main', checks: lint` (`docs/ab/breath.md` §§ *Retired at nen 0.5* and *Retired at nen 0.6*). **So the
+warm-up runs the verb rather than reading the shape by eye**: a malformed key is a FAIL by pointer
+from `schema check`, not a finding this skill has to notice. On a repository that ships no taxonomy —
+Hatsu itself — the other four rows are three `FAIL` and one `warn` and the overall exit is `1`, which
+is not a warm-up failure and is what [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 1 documents.
 
 ## 3. Where the checkout sits — read it, never assume it
 

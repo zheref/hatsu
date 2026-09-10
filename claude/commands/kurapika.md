@@ -10,7 +10,7 @@ Kurapika: run your **session warm-up first**, both steps, in order.
 
 1. **The Nen dependency contract (D10).** Load the **`hatsu-warmup`** skill and run it. Read
 `$CLAUDE_PLUGIN_ROOT/nen/contract.json` yourself — no `jq` — and probe `nen --version` against the range it
-declares. **While nen's line is `0.x`, `minimum: "0.5"` means `>=0.6.0 <0.7.0`: a different minor is out of
+declares. **While nen's line is `0.x`, `minimum: "0.6"` means `>=0.6.0 <0.7.0`: a different minor is out of
 range in both directions.** Absent → fetch the bootstrap **to a file** and run it (never `curl … | bash`);
 present but out of range → re-pin through `nen bootstrap --ref <pinned> --source zheref/nen --script <the
 fetched file>`. **Halt only if the bootstrap itself fails**, printing the exact command as a **G5**. Report

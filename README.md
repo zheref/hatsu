@@ -39,7 +39,7 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 | | |
 |---|---|
 | [Claude Code](https://claude.com/claude-code) | the host. The `claude plugin` subcommands below are its own. |
-| [`nen`](https://github.com/zheref/nen) **`>= 0.5`** | a **hard** dependency — see [The Nen contract](#the-nen-contract-d10). You do **not** need to install it yourself; the warm-up does it, checksum-verified. |
+| [`nen`](https://github.com/zheref/nen) **`>= 0.6`** | a **hard** dependency — see [The Nen contract](#the-nen-contract-d10). You do **not** need to install it yourself; the warm-up does it, checksum-verified. |
 | `git` + [`gh`](https://cli.github.com), authenticated | the skills read and write GitHub as **you**. |
 
 **On the installed plugin path**, nothing here needs `jq`, `yq` or Python: one binary, plus `git` and `gh`.
@@ -118,14 +118,17 @@ FAIL by pointer — and [`docs/WORKFLOW.md`](docs/WORKFLOW.md) documents both.
 
 ### The range
 
-*Current pin, echoed for convenience:* **`nen >= 0.5`**.
+*Current pin, echoed for convenience:* **`nen >= 0.6`**.
 
 **While nen's line is `0.x`, that means `>=0.6.0 <0.7.0` — exactly.** A different minor is out of range in
-**both** directions: `0.6.0` fails it as surely as `0.4.0` does. At major version zero, SemVer 2.0.0 clause 4
-makes the *minor* the breaking-change vehicle, so reading `>= 0.5` as "anything backward-compatible within
-major 0" would fail **open** in precisely the range where compatibility is least guaranteed — and nen
-`v0.5.0` is the proof, being the first release since `v0.1.0` that **removes** something a consumer could
-rely on. The familiar
+**both** directions: `0.7.0` fails it as surely as `0.5.0` does. At major version zero, SemVer 2.0.0 clause 4
+makes the *minor* the breaking-change vehicle, so reading `>= 0.6` as "anything backward-compatible within
+major 0" would fail **open** in precisely the range where compatibility is least guaranteed — and the last
+two releases are both the proof. `v0.5.0` **removed** something a consumer could rely on (the `schemas/`
+fallback), the first release since `v0.1.0` to do so; `v0.6.0` changes three behaviours **in place**, with
+no new flag to notice — `nen stage triage`'s exit code follows the `flagged` bucket alone, `nen wc
+classify`'s `state.branch` becomes `string | null`, and `nen pr request-reviews` refuses at exit `2` a
+login it can resolve to neither a bot nor a collaborator. The familiar
 "compatible within a major" reading applies from **`1.0` onward**, and the contract is bumped to say so when
 nen gets there.
 
