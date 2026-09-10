@@ -185,8 +185,17 @@ jobs:
           echo "guard script: $guard"
 
           # The PR checkout is the ROOT the trusted guard judges.
-          bash "$guard" "$PWD"
-          code=$?
+          #
+          # `code=0; cmd || code=$?` and NOT a bare `cmd` followed by `code=$?`.
+          # `shell: bash` runs `bash --noprofile --norc -e -o pipefail`, so the
+          # `-e` is GitHub's and `set -uo pipefail` above does not clear it: the
+          # bare form KILLED THE STEP on the guard's exit 2 before `code` was ever
+          # read, and the documented skip-with-a-notice never happened — the job
+          # failed every pull request, which is the outcome the header says it
+          # exists to avoid. Same idiom, same reason, as the loop inside
+          # scripts/surface_mirror_check.sh.
+          code=0
+          bash "$guard" "$PWD" || code=$?
 
           case "$code" in
             0)
