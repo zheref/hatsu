@@ -32,7 +32,8 @@ onto the wrong device is not undone by launching it again.
 
 ### The no-launch case — a repository that is not an application
 
-**`project.launch` absent, or `launch.default` `null`, is a declaration, not a gap.** Some
+**`project.launch` absent, or `launch.default` `null` with no targets to choose from, is a
+declaration, not a gap.** Some
 repositories have nothing to start: Hatsu itself is a plugin read by Claude Code, and its
 `nen/workflow.json` says `"launch": { "default": null, "fallback": null }` for exactly that reason.
 `ren` still reaches this phase every turn, and **the phase does not ask the maintainer anything**:
@@ -47,7 +48,7 @@ Concretely, in order:
 |---|---|
 | `project.launch` **absent** (no launch block at all) | record `no launch target declared; skipped`, name `nen/contract.json` as the file that carries no `project.launch`, continue |
 | `project.launch` present but **empty** | the same — an empty map declares no targets |
-| `launch.default` **`null`** and no argument | record `no launch target declared; skipped`, name `nen/workflow.json → launch.default` as the null, continue |
+| `launch.default` **`null`**, no argument, and `project.launch` declares **no** targets | record `no launch target declared; skipped`, name `nen/workflow.json → launch.default` as the null, continue |
 | `launch.default` **`null`** but `project.launch` **has targets**, and no argument | **this** is the case that asks: list what `project.launch` declares and ask which one. A repository with targets and no default has an unanswered question, not an answered one |
 | an argument naming a target that `project.launch` does not declare | refuse by name, list what is declared, continue — never launch a near-match |
 
