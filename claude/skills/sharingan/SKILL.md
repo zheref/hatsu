@@ -1,9 +1,16 @@
 ---
-name: drive
-description: Drive one open PR to CON-32 readiness at its human gate, then stop there. Use when the maintainer invokes hatsu:drive <CODE>#<PR> to <G2|G4>, or asks to get a PR ready, unstick a PR, or take it to the merge gate. Kurapika (Manipulator) diagnoses the first blocking condition, addresses threads or wakes the CI author with `nen wake fire` fired alone, decides readiness with `nen pr ready` plus an adversarial confirmation pass, and stops at a gate board. Never merges, never self-reviews, never casts a review vote.
+name: sharingan
+description: Drive one open PR to CON-32 readiness at its human gate, then stop there. Use when the maintainer invokes hatsu:sharingan <CODE>#<PR> to <G2|G4>, or asks to get a PR ready, unstick a PR, or take it to the merge gate; hatsu:en composes it as its second and fourth steps. This skill was named `drive` until Hatsu v0.4.0 and the rename to `sharingan` changed the name and nothing else. Kurapika (Manipulator) diagnoses the first blocking condition, addresses threads or wakes the CI author with `nen wake fire` fired alone, decides readiness with `nen pr ready` plus an adversarial confirmation pass, and stops at a gate board. Never merges, never self-reviews, never casts a review vote.
 ---
 
-# Drive — one PR, to the doorstep of its gate
+# Sharingan — one PR, to the doorstep of its gate
+
+> **This skill was `drive` until Hatsu `v0.4.0`.** The rename to `sharingan` (wave 3, `v0.5.0`)
+> changed the **name only** — every procedure, verb, exit-code reaction, residue entry, authority
+> line and hard limit below is the one `drive` carried, unedited. The A/B evidence behind them stays
+> at [`docs/ab/drive.md`](../../../docs/ab/drive.md), under its original name, because that is the
+> document the transcripts were recorded in; [`docs/ab/sharingan.md`](../../../docs/ab/sharingan.md)
+> records the rename itself and nothing else.
 
 **Nature: Manipulator.** GitHub-side ops — drives, wakes, labels, retargets, cascades, thread
 stewardship. Kurapika says so when he runs it. Unlike the old skill's per-diff nature switch
@@ -17,7 +24,7 @@ This skill does one thing:
 > **Take this PR to genuine `CON-32` readiness at its human gate, and stop there.**
 
 It is the *verb* half of [`backlog-state`](../backlog-state/SKILL.md)'s noun. `backlog-state`
-renders where everything sits; `drive` moves **one named PR** from wherever it sits to the point
+renders where everything sits; `sharingan` moves **one named PR** from wherever it sits to the point
 where the only remaining actor is the maintainer. It never crosses the gate — G2 and G4 are theirs
 (`CON-5`/`CON-7`), and Kurapika never merges `main`.
 
@@ -37,7 +44,7 @@ reproduction.
 ## 1. Invocation
 
 ```
-hatsu:drive <product_code>#<pr_number> to <G2 | G4>
+hatsu:sharingan <product_code>#<pr_number> to <G2 | G4>
 ```
 
 | Part | Accepts | Notes |
@@ -163,7 +170,7 @@ Re-run from the top on **every** state change; never act on a picture older than
 
 A PR is ready **iff `nen pr ready` says `ready` AND `nen pr body-check` says every requirement is
 satisfied.** Both are deterministic; neither is re-derived by eye. This is exactly
-[`pr-state`](../pr-state/SKILL.md)'s own discipline — `drive` reuses it rather than reinventing it:
+[`pr-state`](../pr-state/SKILL.md)'s own discipline — `sharingan` reuses it rather than reinventing it:
 
 ```bash
 export GH_TOKEN=$(gh auth token)
@@ -314,7 +321,7 @@ diagnose that before spending a wake attempt on it:
    Verified live (`docs/ab/drive.md` § 2): with `--ready` given, a stale PR reports `merge
    PERMITTED (stale + Ready)`; without it, `stale, but NOT Ready -- no merge is permitted; a stale,
    not-ready PR is still owned by its author`. **`nen pr staleness`'s own `mergePermitted: true` is
-   NOT authority for this skill to merge anything.** `drive` carries no merge delegation under any
+   NOT authority for this skill to merge anything.** `sharingan` carries no merge delegation under any
    circumstance (§ 7, § 10) — the maintainer's own gate stands regardless of what the verb reports
    as permitted elsewhere in the system. Use the verb only for the `stale` boolean and its two
    printed conjuncts (verified-no-commit-wake count, idle minutes); never act on `mergePermitted`.
@@ -334,9 +341,9 @@ something CI structurally cannot do, and state in the PR body why authorship mov
 ⚠️ **A wake that was cancelled never attempted anything.** Do not count it toward the two in
 `nen pr staleness`'s `--wakes-from` log, and do not build a staleness finding on it.
 
-## 7. Authority — `drive` carries **no** routing or release delegation
+## 7. Authority — `sharingan` carries **no** routing or release delegation
 
-A human-invoked skill's delegation is bounded by what that skill needs, and `drive` needs almost
+A human-invoked skill's delegation is bounded by what that skill needs, and `sharingan` needs almost
 nothing: it acts on a PR that already exists, authored by an agent that has already been routed and
 released.
 
@@ -385,7 +392,7 @@ what silence has always meant.
 
 ## 9. Resuming
 
-The run is **resumable by re-invocation**, not by remembered state. `hatsu:drive <CODE>#<PR> to
+The run is **resumable by re-invocation**, not by remembered state. `hatsu:sharingan <CODE>#<PR> to
 <G2|G4>` run again re-fetches everything and re-decides from live evidence. Write what you learned
 — diagnoses, wake attempts with their run links, label applications — to `docs/Loop/<run-id>/` so a
 fresh session does not re-derive it, but **never trust that file over a fetch**: it is a

@@ -238,7 +238,7 @@ SKILL.md` § 0 already establishes for exactly this — which the last command a
 - **No missing verb.** `nen pr ready` covers every deterministic step `pr-state` needs; the one gap
   found (§ 2.5) is a parser defect in an existing flag's advertised behavior, not an absent verb.
 - **`nen pr next-blocker` had its own, separate false-green pagination defect (shadow-window-p1.md
-  "Update 5"), now fixed — but it is a DIFFERENT verb (`../pr/blocker.ts`, feeding the future `drive`
+  "Update 5"), now fixed — but it is a DIFFERENT verb (`../pr/blocker.ts`, feeding the future `drive` — `sharingan` since `v0.5.0`
   skill), reading review threads through its own `gh api graphql` transport, not `nen pr ready`'s path.
   It does not affect this skill; noted here only so a reader of the shadow-window doc does not conflate
   the two composers.**

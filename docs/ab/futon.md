@@ -441,7 +441,7 @@ locally-authored PR in the band short of Ready) is clear.
 
 - **`nen wake fire` / `nen wake verify`** — contract-inspected against `--help` only; never fired at
   `<reference-repo>` (mutating, forbidden by the shared brief). Not exercised by a real stalled review
-  round in this port session, since `futon`'s own PRs' escalation path is `hatsu:drive`'s (itself
+  round in this port session, since `futon`'s own PRs' escalation path is `hatsu:drive`'s — `hatsu:sharingan` since `v0.5.0` (itself
   A/B'd on its own branch).
 - **`nen release preflight` / `nen fanout compute`** — confirmed by `--help` text only (§ 6); never
   run, since both are `getsuga`'s own verbs and out of this skill's scope entirely.

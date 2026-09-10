@@ -24,7 +24,7 @@ A/B'd by flag mapping, never by a live call against `<reference-repo>`.
 
 | # | Old (prose / raw `gh`) | New (`nen`) |
 |---|---|---|
-| 1 | This skill's own `<CODE>#<N>` invocation, split by hand, "same resolution rules as `drive` § 1" | `nen parse build --grammar "<code>#<n>" --line "<invocation>"` — a working two-slot grammar (verified live, § 2.1) |
+| 1 | This skill's own `<CODE>#<N>` invocation, split by hand, "same resolution rules as `drive` § 1" (that skill is `sharingan` since `v0.5.0`; every `drive` below is the name it carried at this run) | `nen parse build --grammar "<code>#<n>" --line "<invocation>"` — a working two-slot grammar (verified live, § 2.1) |
 | 2 | "Codes from `schemas/repos.json` → `product_codes`, case-insensitive" — read by hand | `nen repo resolve <CODE> --repo <path>` (verified live, § 2.2) |
 | 3 | "If `#<N>` is a PR, hand straight to `drive`" — no mechanism given at all | Attempted via `nen issue chain-position`/`terminus` — **does not detect it** (verified live, § 2.3, filed as a finding); kept as a plain `gh api repos/<owner>/<repo>/issues/<N> --jq '.pull_request'` check, verified live against a real PR and a real issue (§ 2.3), disclosed, not mechanized |
 | 4 | § 2's whole "decide from labels, body and linked objects, never the title" — a multi-way judgment call made by eye every time | `nen issue chain-position --target ... --issue N --chain-labels ...` — one call, seven states (`closed \| building \| idea \| epic-awaiting-approval \| epic-approved \| routable \| undecidable`), verified live against real objects (§§ 2.4–2.7a) |

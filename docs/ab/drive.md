@@ -1,6 +1,16 @@
 # A/B evidence — `drive` (zheref/hatsu#2)
 
-Port of `claude/skills/drive/SKILL.md`: take one open PR to `CON-32` readiness at its human gate,
+> **The skill this document records is named `sharingan` since Hatsu `v0.5.0`, and it lives at
+> [`claude/skills/sharingan/SKILL.md`](../../claude/skills/sharingan/SKILL.md).** This file keeps its
+> own name because an evidence record is dated: every transcript below was run against a skill called
+> `drive`, and renaming the document would make the run look like it happened to something else.
+> **The rename changed the name and nothing else** — no procedure, no verb, no exit-code reaction, no
+> residue entry, no authority line — so every finding, every residue entry and every `Never …` below
+> still binds `sharingan` exactly as written. [`docs/ab/sharingan.md`](sharingan.md) is the record of
+> the rename itself, and it is the only thing that document contains.
+
+Port of `claude/skills/drive/SKILL.md` (`claude/skills/sharingan/SKILL.md` since `v0.5.0`): take one
+open PR to `CON-32` readiness at its human gate,
 then stop. Old mechanics: `scripts/pr_ready_gate.sh --verdict` (already A/B'd by `pr-state`) plus a
 large amount of hand-reconstructed prose — the first-blocking-condition order, wake-landed
 verification by eyeballing `gh pr checks`, a hand-maintained round count, a hand-reasoned gate

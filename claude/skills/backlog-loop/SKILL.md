@@ -1,6 +1,6 @@
 ---
 name: backlog-loop
-description: Drive a target repository's backlog to zero open actionable issues, in severity order, as gate-ready PRs. Use when the maintainer asks to work the backlog, clear open issues, run the loop, or keep a repo current. Kurapika triages, sequences `build` and `drive` across at most two efforts, cuts tags and runs the fan-out at severity-batch boundaries, and reports one status board per cycle. Never merges main; G2/G4/G3 stay the maintainer's.
+description: Drive a target repository's backlog to zero open actionable issues, in severity order, as gate-ready PRs. Use when the maintainer asks to work the backlog, clear open issues, run the loop, or keep a repo current. Kurapika triages, sequences `build` and `sharingan` across at most two efforts, cuts tags and runs the fan-out at severity-batch boundaries, and reports one status board per cycle. Never merges main; G2/G4/G3 stay the maintainer's.
 ---
 
 # Backlog loop — drive a backlog to zero, in severity order
@@ -40,18 +40,18 @@ not a restatement:
 - **Turning a routable issue into a PR** is [`build`](../build/SKILL.md)'s whole job. Kurapika
   builds it himself, in the mode its § 3 confirms, under the same `CON-25` fourth-carve-out release
   authority its § 6 already carries.
-- **Driving that PR to `CON-32` readiness** is [`drive`](../drive/SKILL.md)'s whole job —
+- **Driving that PR to `CON-32` readiness** is [`sharingan`](../sharingan/SKILL.md)'s whole job —
   diagnosing the first blocking condition, addressing threads, or firing the wake channel.
 
 **This skill's own job over both is the concurrency arbitration and the ordering** — which two
 efforts are in flight, and which issue gets the next free slot — plus the batch-boundary layer (§
-6) neither `build` nor `drive` owns. Nothing about turning an issue into a PR, or a PR into a Ready
+6) neither `build` nor `sharingan` owns. Nothing about turning an issue into a PR, or a PR into a Ready
 one, is re-described here.
 
 `nen backlog fetch|order`, `nen loop slots`, `nen pr staleness`, `nen wake fire|verify`, `nen tag
 cut`, `nen fanout compute|record`, `nen changelog collate|completeness|fragment-required`, `nen
 board build|render`, `nen stop` are this skill's own verbs, verified live in
-`docs/ab/backlog-loop.md`. `build`/`drive`'s own verbs (`nen issue chain-position`, `nen pr ready`,
+`docs/ab/backlog-loop.md`. `build`/`sharingan`'s own verbs (`nen issue chain-position`, `nen pr ready`,
 `nen gate derive`, …) are never re-invoked here — they are those skills' authority, not this one's.
 
 ## 1. Invocation
@@ -102,7 +102,7 @@ Ready), and whenever the monitor (§ 7) sees a PR state change.
 2. **Triage** anything with no `bankai:severity/*` label (§ 4).
 3. **Order** the queue — § 5 covers exactly what `nen backlog order` computes and what stays this
    skill's own judgment on top of it.
-4. **Advance** up to **two** efforts (§ 6 — almost entirely a pointer to `build`/`drive`).
+4. **Advance** up to **two** efforts (§ 6 — almost entirely a pointer to `build`/`sharingan`).
 5. **Check batch boundaries** — a severity batch fully merged fires a tag-cut + fan-out (§ 8).
 6. **Report** the status board (§ 9).
 
@@ -125,13 +125,13 @@ explicitly for this skill ("while a named `backlog-loop` run is active
 | **Vote** | No review, ever — and never `request_changes` |
 | **Publish a release** | Never. The official GitHub Release is **`G3`, the maintainer's alone** (`CON-6`) — § 8 prepares it with its developer-facing notes and stops there |
 | **Cut a tag outside a batch boundary** | The tag cut is **permitted, and only** at the severity-batch boundaries § 8's table declares (all `critical` merged, all `high` merged, all `medium` merged, `low` merged) — `nen tag cut`, after the changelog-collation release PR the maintainer merges, never past a refused tag capability, never on an `--at` that is not an ancestor of `origin/main`. Opening each affected consumer's repin PR (§ 8's fan-out) is likewise permitted at those boundaries and nowhere else. A cut because a band "looks finished" is not a boundary |
-| **Fire or verify a wake itself** | That authority lives entirely in `drive` (§ 6) |
+| **Fire or verify a wake itself** | That authority lives entirely in `sharingan` (§ 6) |
 
 > **`CON-46(c-i)`'s stale-chore-merge carve-out is retired here, not restated.** The old
 > (`<reference-repo>`) skill inherited the one merge a local persona may perform — a stale CI author's
 > Ready sub-PR onto an `integration/<chore>` branch, once that author demonstrably stops responding.
 > It does not apply to this port: Hatsu holds no CI plane at all (§ 0), so there is no CI-authored
-> chore sub-PR that can ever go stale in the sense `CON-46(c-i)` requires. [`drive`](../drive/SKILL.md)
+> chore sub-PR that can ever go stale in the sense `CON-46(c-i)` requires. [`sharingan`](../sharingan/SKILL.md)
 > states the identical rule for the same reason — never merges `main`, and not a chore branch either.
 
 **The delegation expires when the run ends. Say when it ends.**
@@ -241,17 +241,17 @@ ready nor prompted report `local: 2/2 occupied, 0 free` at exit `1`; flip one to
 critical-preemption/low-deferral layer) and hand it to [`build`](../build/SKILL.md)
 (`hatsu:build <CODE>#<N>`) — everything from "is this an idea, an epic, or a routable child" through
 "here is a `CON-32`-Ready PR or a G5 stop" is that skill's own engine, not restated here. Once a PR
-exists, [`drive`](../drive/SKILL.md) (`hatsu:drive <CODE>#<N> to <G2|G4>`) takes it the rest of the
+exists, [`sharingan`](../sharingan/SKILL.md) (`hatsu:sharingan <CODE>#<N> to <G2|G4>`) takes it the rest of the
 way — diagnosing the first blocking condition, addressing threads, computing staleness, deciding
 readiness.
 
-**`nen pr staleness`** — the escalation-ladder gate `drive` § 6 already owns — is reconfirmed here
-because a backlog-wide loop is exactly the caller that keeps the wake-attempt log `drive`'s own
+**`nen pr staleness`** — the escalation-ladder gate `sharingan` § 6 already owns — is reconfirmed here
+because a backlog-wide loop is exactly the caller that keeps the wake-attempt log `sharingan`'s own
 § 9 asks for, across many efforts at once rather than one. Verified live, both cases:
 `--wakes-from` with 2 no-commit wakes and 90 idle minutes reports `stale` / `merge not permitted`
-without `--ready`, and `merge PERMITTED (stale + Ready)` with it — byte-identical to `drive`'s own
+without `--ready`, and `merge PERMITTED (stale + Ready)` with it — byte-identical to `sharingan`'s own
 proof (`docs/ab/drive.md` § 2.7; re-run here, `docs/ab/backlog-loop.md` § 2.6). This skill reads the
-same two conjuncts `drive` reads and never the `mergePermitted` field, for the identical reason:
+same two conjuncts `sharingan` reads and never the `mergePermitted` field, for the identical reason:
 **this run carries no merge delegation, under any circumstance.**
 
 ### The residual wake case — declared, not dropped
@@ -259,17 +259,17 @@ same two conjuncts `drive` reads and never the `mergePermitted` field, for the i
 The old skill fired `bankai:wake/iterate` as the **default** unblock channel for every routed
 issue, because every routed issue's PR was, by construction, CI-authored. Since `build` (this
 port's issue-shaped engine) never routes to a CI agent — Hatsu holds none — the PRs this loop
-drives are, by default, **Kurapika-authored**, and [`drive`](../drive/SKILL.md) § 5 already
+drives are, by default, **Kurapika-authored**, and [`sharingan`](../sharingan/SKILL.md) § 5 already
 addresses those directly (reply on thread, push the fix, re-request review).
 
-**The wake channel is not dead — it is narrower, and it lives in `drive`, not here.**
+**The wake channel is not dead — it is narrower, and it lives in `sharingan`, not here.**
 `backlog-loop` is written to drive whichever repository's backlog it is pointed at (§ 1), not only
 `<reference-repo>`'s, and a PR authored by a genuinely external automated participant — a
 `<!-- bankai agent=… run=… -->` stamp, or an assigned GitHub-hosted coding-agent PR — is exactly the
-shape [`drive`](../drive/SKILL.md) § 5 already names and fires `nen wake fire`/`nen wake verify`
+shape [`sharingan`](../sharingan/SKILL.md) § 5 already names and fires `nen wake fire`/`nen wake verify`
 for. **This skill itself never calls either verb.** Its own job is only to recognise, from the PR
-shape `drive` reports back, that the effort in its queue is CI-authored rather than
-Kurapika-authored, and to keep counting it against the same two-slot cap while `drive` runs the
+shape `sharingan` reports back, that the effort in its queue is CI-authored rather than
+Kurapika-authored, and to keep counting it against the same two-slot cap while `sharingan` runs the
 wake ladder — not to re-fire a wake of its own alongside it. This is the declared, narrower shape
 the old skill's wake machinery takes here: relocated to where the authorship distinction is
 actually made, not silently dropped.
@@ -281,8 +281,8 @@ skill's own judgment, unchanged from the old skill.
 
 Between cycles, keep watching: PR check transitions, new reviews, new comments, merges, and new or
 relabelled issues. A merge or a state change is a fetch trigger — go back to § 2. There is no
-scheduled sweep behind this run — no App, no sweeper (same structural fact `build`/`drive` both
-state) — polling happens in-shell, in-session, exactly as `drive` § 3 already does per PR.
+scheduled sweep behind this run — no App, no sweeper (same structural fact `build`/`sharingan` both
+state) — polling happens in-shell, in-session, exactly as `sharingan` § 3 already does per PR.
 
 ## 8. Tag-cut, fan-out and release
 
@@ -394,7 +394,7 @@ nen board build --repo-slug <owner/name> --rows-from <path>   # rows: {id,title,
 nen board render --board-from <path>
 ```
 
-Same machinery [`backlog-state`](../backlog-state/SKILL.md) and [`drive`](../drive/SKILL.md) both
+Same machinery [`backlog-state`](../backlog-state/SKILL.md) and [`sharingan`](../sharingan/SKILL.md) both
 already use — this port adds no new columns and reuses `nen gate derive`/`nen color status` the
 same way those ports document. Verified live end to end, including a finding worth stating plainly:
 
@@ -421,9 +421,9 @@ other efforts. Only a genuinely empty actionable queue ends a cycle (§ 11).
 
 ## 10. Conflict discipline & documentation
 
-- **One worktree per effort**, per `build`/`drive`'s own conventions.
+- **One worktree per effort**, per `build`/`sharingan`'s own conventions.
 - **Cascade `main` whenever it moves** — `nen pr cascade-main --repo <path> [--trunk main]`, the
-  same verb `drive` § 5 already owns; this skill never calls it directly, it delegates to `drive`.
+  same verb `sharingan` § 5 already owns; this skill never calls it directly, it delegates to `sharingan`.
 - **Never two efforts touching the same file** (§ 6).
 - **Write run state to `docs/Loop/<run-id>/`** — the board, decisions, and every logged label
   application — so a fresh session resumes without re-deriving it, and **never trusts it over a
@@ -448,7 +448,7 @@ briefed and awaiting a maintainer decision. **Say the run has ended**, so the `C
    default of `7` this skill and [`build`](../build/SKILL.md) both filed against is gone (§ 6,
    verified live).
 4. **(Not re-exercised, cited)** `nen pr fetch`/`nen pr next-blocker` were broken against every real
-   `<reference-repo>` PR tried at `v0.1.0` — filed against [`drive`](../drive/SKILL.md)
+   `<reference-repo>` PR tried at `v0.1.0` — filed against [`sharingan`](../sharingan/SKILL.md)
    (`docs/ab/drive.md` § 4), whose engine this skill delegates all PR-shaped work to, and whose § 3
    records the provenance at the current pin (the `--gates` half fixed, the crash not re-verified).
    `backlog-loop` never calls either verb itself.
@@ -457,7 +457,7 @@ briefed and awaiting a maintainer decision. **Say the run has ended**, so the `C
 
 - **Judgment kept, per the shared brief's boundary list**: critical-preemption/low-deferral/
   seize-the-wait (§ 5), the severity-proposal reasoning (§ 4), the G5 diagnosis on a stuck
-  `build`/`drive` escalation (delegated but reported here), and the closing "what shape collapses"
+  `build`/`sharingan` escalation (delegated but reported here), and the closing "what shape collapses"
   narration on the board.
 - **The live-chore detection** (§ 8) — "the chore's issue is open AND its `integration/<chore>`
   branch exists" — is a plain `gh`/`git` composite check; no `nen` verb owns this fact.
@@ -469,11 +469,11 @@ briefed and awaiting a maintainer decision. **Say the run has ended**, so the `C
   residue, inherited unchanged — `nen label apply` applies and logs exactly the one label it is
   given.
 - **`nen wake fire`/`nen wake verify`'s full escalation ladder** lives entirely in
-  [`drive`](../drive/SKILL.md) § 5–6, cited rather than restated (§ 6's "residual wake case").
+  [`sharingan`](../sharingan/SKILL.md) § 5–6, cited rather than restated (§ 6's "residual wake case").
 - Verdict parity between `nen pr ready` and `scripts/pr_ready_gate.sh` was already proven across
   the live estate by `nen`'s shadow window (`docs/evidence/shadow-window-p1.md` in `zheref/nen`),
   and re-confirmed for this repository by [`pr-state`](../pr-state/SKILL.md)'s own A/B
-  (`docs/ab/pr-state.md`) — this skill never calls `nen pr ready` itself (that is `build`/`drive`'s
+  (`docs/ab/pr-state.md`) — this skill never calls `nen pr ready` itself (that is `build`/`sharingan`'s
   job) and does not re-prove it a third time.
 
 ## 14. Hard limits
@@ -482,10 +482,10 @@ briefed and awaiting a maintainer decision. **Say the run has ended**, so the `C
 - **Never merges its own PR**, anywhere.
 - **Never self-reviews, never impersonates a reviewer, never casts a `request_changes` review** —
   binding even when the finding is real and even when it looks like the only way to move a PR.
-  `drive`'s wake channel exists precisely so no vote is ever needed.
+  `sharingan`'s wake channel exists precisely so no vote is ever needed.
 - **Never applies a G1 mode label** — human-only, inside a run or outside it.
 - **Never fires or verifies a wake itself** — that authority and its escalation ladder live
-  entirely in `drive` (§ 6).
+  entirely in `sharingan` (§ 6).
 - **Never cuts a tag or publishes a release against the real target repository during this port's
   own verification** — `nen tag cut` and `--write` on `nen changelog collate` are contract-inspected
   only against `<reference-repo>` (§ 8); in a live run against a repository this skill is actually

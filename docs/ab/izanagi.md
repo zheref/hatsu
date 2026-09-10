@@ -367,7 +367,7 @@ human gate, impossible condition, the mutation log) the old skill also left to t
    discipline `izanami`'s port already carries), and the per-run mutation log (no `nen` ledger exists
    for izanagi the way `nen label apply --ledger` exists for one label call).
 
-7. **Sibling skills named in § 2's authority section — `build`, `drive`, `file`,
+7. **Sibling skills named in § 2's authority section — `build`, `drive` (now `sharingan`), `file`,
    `backlog-synthesis`, `tensho`, `jujisho`, and (in this doc's own commentary) `getsuga`,
    `backlog-loop` — are not on `origin/main` at this commit.** Of these, only `build`, `drive`,
    `file` and `backlog-synthesis` come from the old skill's own § 2 (it never named `tensho`,

@@ -267,7 +267,7 @@ ahead of the mutating call.
   validate — `nen parse` checks a skill's *own* flag grammar (or one of the three built-in ones,
   `futon`/`izanagi`/`izanami`), and there is nothing here to parse. Checked live (`nen parse
   --help`) before concluding this, per the shared brief's "check what applies" instruction.
-- **`nen stop` does not apply here either.** jujisho reports and hands off to `hatsu:drive` (§ 7);
+- **`nen stop` does not apply here either.** jujisho reports and hands off to `hatsu:drive` — `hatsu:sharingan` since `v0.5.0` (§ 7);
   it does not itself sit at a human gate awaiting confirmation the way a `G`-gate stop does. The old
   skill never called the equivalent gate-stop script either.
 - **No missing verb beyond finding 1.** Every other deterministic step jujisho needs — the working-

@@ -193,7 +193,10 @@ real manifest (`version` `0.0.1`, confirmed by `git show main:.claude-plugin/plu
 `.version`, so the two are the same input to it. `head_bumped.json` is
 the same file with `version` set to `0.1.0`; `head_unbumped.json` is a byte-identical copy of the base.
 `changed_surface.txt` contains one line, `claude/skills/drive/SKILL.md`; `changed_nonsurface.txt` contains
-`README.md`, `docs/ab/drive.md`, `scripts/plugin_bump_check.sh`.
+`README.md`, `docs/ab/drive.md`, `scripts/plugin_bump_check.sh`. **That skill directory is
+`claude/skills/sharingan/` since Hatsu `v0.5.0`**; the fixture lines and transcripts below record the
+path as it was when the guard ran, and are not rewritten — what the guard proved is a rule about
+`claude/**`, which the rename does not touch.
 
 ### 3.1 REFUSE — a plugin-surface change with no bump
 
