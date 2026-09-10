@@ -1,7 +1,8 @@
 # Hatsu
 
-**A Claude Code plugin for repository-centric agentic delivery, run from your own terminal on your own
-credentials.**
+**A plugin for repository-centric agentic delivery, run from your own terminal on your own credentials —
+authored for [Claude Code](#on-claude-code), and read on [Codex](#using-hatsu-on-codex) and
+[Cursor](#using-hatsu-on-cursor) from generated mirrors of the same files.**
 
 One lead persona — **Kurapika**, who names which of six declared work-modes he is holding before he acts —
 plus a small roster of focused independents, and **thirty-eight skills** that take a backlog, a pull request or
@@ -36,17 +37,55 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 
 ## Requirements
 
+**Three of these are the same on every surface**, and then each surface brings its own host program.
+
 | | |
 |---|---|
-| [Claude Code](https://claude.com/claude-code) | the host. The `claude plugin` subcommands below are its own. |
-| [`nen`](https://github.com/zheref/nen) **`>= 0.7`** | a **hard** dependency — see [The Nen contract](#the-nen-contract-d10). You do **not** need to install it yourself; the warm-up does it, checksum-verified. |
+| [`nen`](https://github.com/zheref/nen) **`>= 0.7`** | a **hard** dependency — see [The Nen contract](#the-nen-contract-d10). You do **not** need to install it yourself; the warm-up does it, checksum-verified. **One exception, on Codex** — the box below the surface table. |
 | `git` + [`gh`](https://cli.github.com), authenticated | the skills read and write GitHub as **you**. |
+| a [`nen/contract.json`](nen/contract.json) in the repository you point Hatsu at | **the only thing Hatsu asks of your project.** It declares what *your* build, test, lint, archive and deploy commands are, so nothing here is bound to a language, a framework, a build system or a product. A repository that declares none gets the git half of every skill and its own documented commands, said plainly rather than guessed at. |
 
 **On the installed plugin path**, nothing here needs `jq`, `yq` or Python: one binary, plus `git` and `gh`.
 (The repository's own CI is a separate matter — `scripts/plugin_bump_check.sh` uses `jq`, but nothing an
 installed copy runs does.)
 
+### Per surface
+
+| | **Claude Code** | **Codex** | **Cursor** |
+|---|---|---|---|
+| **the host** | [Claude Code](https://claude.com/claude-code). The `claude plugin` subcommands below are its own | the `codex` CLI. **No minimum is established**; the build every record here was made on is **`codex-cli 0.149.0`** (`codex --version`) | `cursor-agent` — **`2026.01.*` or newer, and this one is a real floor**. See the box below |
+| **signing in** | the harness's own | `codex login`. `codex login status` answers `Logged in using ChatGPT` | `cursor-agent login`. `cursor-agent status` answers `✓ Logged in as <you>` |
+| **where it reads the skills from** | the installed plugin, in place — nothing is written into your repository | `<repo>/.agents/skills/<name>/`, **placed there by the warm-up** | `<repo>/.cursor/skills/<name>/`, the same |
+| **and the personas** | `claude/agents/`, in place | `<repo>/AGENTS.override.md` — one **untracked** file, as prose | `<repo>/.cursor/agents/<persona>.md` — one subagent file each |
+| **how it got there** | `claude plugin install` | a checkout on the host, plus `$HATSU_PLUGIN_ROOT` — [*On Codex*](#on-codex) | the same — [*On Cursor*](#on-cursor) |
+| **the caveat that bites first** | none | `AGENTS.override.md` **replaces** your `AGENTS.md` in the instruction envelope rather than joining it, so the warm-up copies yours into it verbatim first and never writes the tracked file | the skill name space is **flat and global** — shared with Cursor's own built-ins and with every other plugin on the host |
+
+> ### ⚠️ Below `2026.01`, `cursor-agent` sees **none** of the skills — and answers anyway
+>
+> A `cursor-agent` that predates skills support takes your prompt, runs your commands and exits `0` with
+> not one of the thirty-nine loaded. With the mirror installed exactly as the warm-up mandates,
+> `2025.09.18-39624ef` answered a discovery probe with the whole reply **`NO SKILLS VISIBLE`**, seventeen
+> bytes — and the control that settles it is that the same build cannot see a plain `cp -R` **copy**
+> either: it has no skills mechanism at all, and reached its answer by grepping the working tree.
+>
+> **The floor is a month, not a build id.** [Cursor's CLI changelog](https://cursor.com/docs/cli/changelog)
+> dates *"Skills, rules, and commands in the CLI"* to its **January 2026** entry and groups by month, while
+> `cursor-agent -v` prints `YYYY.MM.DD-<sha>` — so there is no exact version string to pin and the
+> comparison is the date part. The build every Cursor fact in this README was measured on is
+> **`2026.09.08-6caf4ff`**. **The warm-up prints `cursor-agent -v` beside the install count and refuses to
+> claim the surface below the minimum**, because an install that succeeded onto a build that cannot read it
+> is the exact shape of an unperformed step reported as a passing one.
+
+> **`nen` auto-installs itself on Claude Code and on Cursor. Put it on the host yourself before a sandboxed
+> Codex run.** The bootstrap resolves and verifies the binary into `${XDG_CACHE_HOME:-$HOME/.cache}/nen`
+> ([`nen/contract.json`](nen/contract.json) → `dependency.bootstrap.flags`), which is **outside** the
+> directory `codex exec -s workspace-write` makes writable — so a session under that sandbox has nowhere to
+> install to. A Cursor session did run the bootstrap itself, checksum-verified, and put the result on its
+> own session `PATH`.
+
 ## Install
+
+### On Claude Code
 
 ```sh
 claude plugin marketplace add zheref/hatsu
@@ -73,6 +112,142 @@ Confirm what landed:
 claude plugin list                  # hatsu@hatsu — Version: 0.8.0
 claude plugin details hatsu@hatsu   # the full component inventory
 ```
+
+### Obtaining Hatsu on Codex and Cursor — a checkout, once, by hand
+
+**Neither surface has a plugin loader, so the first install is a human act and it is a `git clone`.** There
+is nothing on either surface that would *fetch* Hatsu; what the warm-up automates is the **refresh**, every
+session, of a root that already exists. That is a boundary rather than a step somebody forgot to write, and
+a warm-up that cannot find the root reports `NOT INSTALLED` and stops.
+
+**One of these two**, not both — the second refuses on a destination that already exists:
+
+```sh
+# the tip
+git clone https://github.com/zheref/hatsu.git ~/.hatsu
+
+# — OR — pinned to a release (the tags are at https://github.com/zheref/hatsu/tags)
+git clone --branch <tag> --depth 1 https://github.com/zheref/hatsu.git ~/.hatsu
+```
+
+Then, once:
+
+```sh
+export HATSU_PLUGIN_ROOT="$HOME/.hatsu"          # put this in your shell profile
+```
+
+**`$HATSU_PLUGIN_ROOT` is the form that works on all three surfaces, and it is the one to prefer.** The
+warm-up resolves its root from that variable first, then from a path handed to the invocation
+(`$hatsu-warmup <path>`, `/hatsu-warmup <path>`), and only then from `$CLAUDE_PLUGIN_ROOT`.
+
+> **`$CLAUDE_PLUGIN_ROOT` is Claude Code's variable and it is *not* inert on the other two.** On the host
+> these records were made on it is exported from `~/.zshrc` and points at a **different plugin**, which
+> every Codex and Cursor session on that host inherits. So a candidate root is checked for what it **is** —
+> the first `"name"` in its own `.claude-plugin/plugin.json`, compared whole, reading `hatsu`, plus one
+> second, independent fact about the same directory: that `claude/skills/` is there. (Those two, and no
+> more — the check does not parse the manifest's `skills` value.) It is never merely checked for containing
+> a `surfaces/` directory. Shape is not identity: a wrong root that happened to have the right shape would install
+> somebody else's skills into your repository with no error anywhere. **Every rejected candidate is named
+> by path in the report**, even when a later one succeeded, because a stale variable in a shell profile is
+> a thing to fix and this is where it becomes visible.
+
+### On Codex
+
+From the repository you want to work in:
+
+```
+$hatsu-warmup
+```
+
+That is the whole install, and it runs first in every session anyway. What it places in **your**
+repository:
+
+| | |
+|---|---|
+| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **39**, the thirty-eight plus `hatsu-warmup` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
+| `<repo>/AGENTS.override.md` | **untracked**, written whole: your own `AGENTS.md` verbatim first, then the personas between a `BEGIN`/`END hatsu personas` marker pair |
+
+**Copies, not symlinks, and the reason is what Codex advertises.** Codex lists a skill under its
+frontmatter `name`, namespaced by the plugin manifest above the directory the path *resolves to* — so a
+symlink into this checkout is listed as `hatsu:aka`, while a `cp -R` of the same directory is listed as the
+bare `ren`, which is what the mirrors' own `$<name>` spelling needs. A symlink drags a second trap with it:
+the mirrored bodies carry relative links, and through a symlink `../../../nen/workflow.json` resolves into
+**this plugin's** policy file rather than your repository's. **A link that resolves into the plugin is more
+dangerous than one that dangles** — a dangling link is an agent reporting it could not read something; a
+resolving one is an agent answering confidently from the wrong file.
+
+**What the warm-up refuses**, and these are hard limits rather than preferences:
+
+- **A destination it did not create is left untouched, and named in the report.** A previous Hatsu install
+  is replaced; a **tracked** path is always somebody else's, whatever it looks like. Thirty-nine ordinary
+  words are being claimed at once — `build`, `file`, `en`, `ao`, `ren` — so a collision is not a rare case,
+  and the warm-up would rather install thirty-seven and say so than overwrite one file it did not write.
+- **It never writes your `.gitignore`.** Everything it places is excluded through the repository's own
+  `info/exclude`, found with `git rev-parse --git-path info/exclude` — which in a **linked worktree**
+  resolves to the *main* repository's file, shared by every checkout of it, and is stated in the report by
+  path for exactly that reason. `.gitignore` is a tracked file in somebody else's repository: writing it
+  lands in their diff, their review and their history, and imposes this plugin's layout on every other
+  contributor.
+- **It never writes a tracked `AGENTS.md`** — not appended to, not touched. The personas go to the override
+  file, which is the warm-up's own; a human who wants them in their history commits them themselves.
+
+**First-run check**, from the Hatsu checkout — it writes nothing and needs no credential:
+
+```sh
+scripts/surface_mirror_check.sh
+```
+
+**To update**, pull the checkout (or check out a newer tag) and run `$hatsu-warmup` again: the unconditional
+re-copy is what refreshes the target. A copy is not self-healing, and the one failure mode it has is a
+session that never warmed up serving last month's wording with no error anywhere. If you *changed* a skill,
+regenerate the mirrors in the same commit — [*Surfaces*](#surfaces) has the two commands and the check.
+
+Then read [*Using Hatsu on Codex*](#using-hatsu-on-codex).
+
+### On Cursor
+
+Check the version **first** — below `2026.01` the install succeeds and the surface sees nothing:
+
+```sh
+cursor-agent -v          # 2026.09.08-6caf4ff on the host these records were made on
+```
+
+Then, from the repository you want to work in:
+
+```
+/hatsu-warmup
+```
+
+| | |
+|---|---|
+| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **39** — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
+| `<repo>/.cursor/agents/<persona>.md` | one markdown subagent file each — **8** — symlinked from `$HATSU_PLUGIN_ROOT/surfaces/cursor/agents/` |
+
+**Symlinks are honest here, and that is measured rather than assumed.** Four controlled probes on
+`2026.09.08-6caf4ff` found a skill through a symlink **inside** the workspace and through one pointing
+**outside** it, and listed a symlink into this plugin checkout under its **bare** name — so Codex's
+namespacing behaviour does **not** reproduce on Cursor and the mirrors' `/<name>` spelling works as
+printed.
+
+**The first two refusals apply here too** — a destination the warm-up did not make is left alone and named,
+and your `.gitignore` is never written (`info/exclude`, again). There is no third, because there is no
+`AGENTS.md` on this surface; what takes its place is that **`.cursor/agents/` is a directory a Cursor user
+is *expected* to keep their own subagents in**, which makes it the likeliest collision of all. Before it
+installs anything the warm-up **lists every name already standing under `.cursor/skills/`** and reports
+what it found by name — and says plainly what that listing cannot see: **a same-named skill from another
+plugin elsewhere on the host may shadow the mirror, and is invisible from inside your repository.**
+
+**First-run check**, from the Hatsu checkout:
+
+```sh
+scripts/surface_mirror_check.sh
+```
+
+**To update**, pull the checkout and run `/hatsu-warmup` again. The links point into the checkout, so
+pulling it is most of the update; re-running the warm-up is what repairs a link the target lost and what
+re-prints the version and the collision list.
+
+Then read [*Using Hatsu on Cursor*](#using-hatsu-on-cursor).
 
 ---
 
@@ -439,19 +614,351 @@ repository you are standing in.
 | turn-end hook | **yes** | no — the bell rings in-session and says so | no — the same |
 | in-session subagent | **yes** | no — a reviewer is a second `codex exec` run in its own worktree | yes |
 | reviewer tier `deep` | `opus` | `sol` | `grok` — **Cursor-native only** |
+| installing it | [*On Claude Code*](#on-claude-code) | [*On Codex*](#on-codex) | [*On Cursor*](#on-cursor) |
+| using it | the rest of this README | [*Using Hatsu on Codex*](#using-hatsu-on-codex) | [*Using Hatsu on Cursor*](#using-hatsu-on-cursor) |
 
 Everything the warm-up puts in your repository is excluded through `.git/info/exclude` — **never your
 `.gitignore`**, which is a tracked file of yours and not this plugin's to edit.
 
 The mirrors under [`surfaces/codex/`](surfaces/codex/) and [`surfaces/cursor/`](surfaces/cursor/) are
-**generated, not authored** — `nen surface mirror generate`, one command per surface, every file carrying a
-`GENERATED by nen surface mirror` marker. Edit `claude/skills/<name>/SKILL.md`, regenerate, and commit both;
+**generated, not authored** — one command per surface, run from the repository root, every file carrying a
+`GENERATED by nen surface mirror` marker:
+
+```sh
+nen surface mirror generate --source claude/skills --agents claude/agents \
+  --surface codex  --out surfaces/codex  --invocation-prefix "hatsu:"
+
+nen surface mirror generate --source claude/skills --agents claude/agents \
+  --surface cursor --out surfaces/cursor --invocation-prefix "hatsu:"
+```
+
+`--invocation-prefix` is what rewrites every `hatsu:<name>` in a body — its own `description` included —
+into that surface's spelling, so a reader of either mirror is told to type something that actually works
+there. **`hatsu:` is caller data**; nen hard-codes no system's vocabulary. Edit
+`claude/skills/<name>/SKILL.md`, regenerate, and commit both;
 [`scripts/surface_mirror_check.sh`](scripts/surface_mirror_check.sh) fails a mirror that has drifted, and
 says *skipped, not passed* on a `nen` too old to carry the verb.
 
 **[`docs/SURFACES.md`](docs/SURFACES.md) is the authority** — what each surface reads, what is generated
 versus authored, the regeneration command, the check, and the exact headless invocation for a validation
 run on each.
+
+---
+
+## Using Hatsu on Codex
+
+**Everything above about the loop, the gates and the roster is true here.** What changes is the spelling,
+where a delegate comes from, who rings the bell, and which aliases the model matrix answers with. Nothing
+in this section is product- or stack-specific: it is the same thirty-eight skills reading your repository's
+own [`nen/contract.json`](nen/contract.json).
+
+### Invoking a skill
+
+**You type `$<name>`** — `$ren`, `$aka`, `$mukai`, `$hatsu-warmup`. That is the spelling the mirrored bodies
+carry, and it is honest **because the warm-up installs by `cp -R`**: Codex lists a skill under its
+frontmatter `name`, namespaced by the plugin manifest above the directory the path resolves to, so a copy
+is advertised bare (`ren`) while a symlink into this checkout would be advertised as `hatsu:ren`.
+
+### The loop, and the phases only you call
+
+Unchanged, name for name. **`$ren` runs on every request** — `$breath` on the first turn, then `$rasengan`,
+`$kokusen`, `$amaterasu`, `$rikugan`, `$jutaisho` — and it never pushes. **Five phases are yours to call,
+and no agent ever prompts for them**: `$aka` (push), `$mukai` (review and PR), the **merge**, `$kagutsuchi`
+(non-production upload) and `$mugetsu` (publish, **G3**). A genuine **G5** stop is still the banner, the
+report link, the lettered options with a star on the report, and the question **asked through this
+surface's own option picker** — `AskUserQuestion` is Claude Code's name for that, and what the rule binds
+is the *shape*: a stop rendered as a paragraph ending in a question mark is a stop you have to compose an
+answer to. **The picker is not the turn-end hook**; the hook is what escalates a *bell* (below), and its
+absence here says nothing about how a question is put.
+
+### Personas, and how a reviewer is raised
+
+**A persona on this surface is prose, in `AGENTS.override.md`, and there is no per-persona file.**
+`$hanten`'s reviewers are `## <persona>` sections of one generated document.
+
+> **Prose does not win an identity argument with the host.** On a host whose *user-level* instructions say
+> "introduce yourself as X", every `codex exec` run opened as X while doing the work as Kurapika, in
+> Kurapika's discipline. **So the name in a Codex transcript is neither evidence the persona loaded nor
+> evidence it did not.** The record of who acted is the one Hatsu writes: `--who` on `nen stop`, the `who`
+> field of `.nen/last-stop.json`, and the `Hatsu-Agent` trailer — all three carry the persona whatever the
+> surface calls itself.
+
+**Codex has no in-session subagent**, verified against `codex exec --help` rather than remembered: there is
+no spawn-a-delegate flag anywhere in it. So `$hanten` raises a reviewer as **a second `codex exec` process
+in its own worktree**, and the isolation the Agent tool gives for free has to be made by hand first:
+
+```sh
+rev="$(git rev-parse --show-toplevel)/.claude/worktrees/hanten-<scope>"   # the reviewer's own checkout
+git worktree add "$rev" HEAD                # the isolated copy — hanten's own act
+
+# `sol` is the TIER ALIAS; -m wants the host's ID for it. Resolve, never remember.
+sol="$(codex debug models | grep -o '"slug":"[^"]*sol"' | cut -d'"' -f4)"
+[ -n "$sol" ] || { echo "codex debug models lists no 'sol' slug — G5, the reviewer cannot be raised" >&2; exit 1; }
+
+codex exec -C "$rev" -s workspace-write \
+  --add-dir "$(git -C "$rev" rev-parse --path-format=absolute --git-common-dir)" \
+  -m "$sol" -o "$rev/finding.json" "<the scope, the base, the paths, and the required finding shape>"
+```
+
+> **A fresh worktree carries none of the warm-up's placed files, and that is fine only because the prompt
+> carries the review.** `.agents/skills/` and `AGENTS.override.md` are excluded, not tracked, so
+> `git worktree add` does not reproduce them: a reviewer told to *invoke* a mirrored skill in `$rev` would
+> find none. The invocation above hands it the scope, the base, the paths and the required finding shape
+> **in the prompt**, which is what makes it work; a review that genuinely needs the mirror needs the
+> warm-up run in `$rev` first.
+
+`-s workspace-write` is the **narrow** choice and is deliberate: the reviewer writes its test, its note and
+its finding document inside its own worktree, and it is not `danger-full-access`. **It is not a claim that
+nothing outside the worktree is writable** — measured on this host with `codex sandbox -c
+sandbox_mode='"workspace-write"'`, a write to `/tmp` succeeded and a write to `$HOME` was refused with
+*"Operation not permitted"*. A reviewer that needs to bypass a sandbox to read a diff is not reviewing a
+diff.
+
+### The bell
+
+**There is no turn-end hook on this surface**, so [`hooks/hooks.json`](hooks/hooks.json) is read by nobody
+here and `$jutaisho`'s in-session path is not a fallback — it is the only path there is. The skill writes
+the marker itself, runs whatever escalation rungs **your repository's** `nen/workflow.json` →
+`notifications.rungs` declares, **says which of them actually rang**, and removes its own marker once the
+stop has been answered, which on Claude Code the hook would have done. In the default list — `push`, `os`,
+`sound` — rung 1 is the surface's own turn-end signal and rungs 2 and 3 are the ones below; a repository
+that declares a shorter list has fewer, and the report names what it ran either way.
+
+> **On a headless run the OS and sound rungs are `not applicable — no seat`, and one of them lies about
+> it.** A `codex exec` run has no Notification Center session and no audio device. Measured inside one on
+> this host: `osascript -e 'display notification …'` exited **`0`** and delivered **nothing** (stderr:
+> *"NSNotificationCenter connection invalid"*), and `afplay` exited `1` with *"AudioQueueStart failed"*.
+> **Rung 2's exit code is not evidence it fired** — read stderr, report the rung as having no seat, and
+> never substitute another noise-maker. The stop itself still stands: the banner, the link, the options and
+> the question were always the real bell.
+
+### The model matrix
+
+Read from **your repository's** `nen/workflow.json` → `models`, never from memory, and the file carries
+**aliases only** — *"latest alias only, never a version"*.
+
+| tier | role | Codex alias |
+|---|---|---|
+| `frontier` | `orchestrator` — your own session, and **never a subagent** | `astra` |
+| `deep` | `reviewer` | **`sol`** |
+| `fast` | `worker`, `measurer` | `terra` |
+| `economy` | | `luna` |
+
+**An alias is a name; the id you type carries a version.** There is no bare `sol` — `codex debug models` on
+this host lists `gpt-reserve`, **`gpt-5.6-sol`**, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`,
+`gpt-5.3-codex-spark`, `codex-auto-review`. So the id is resolved at the moment of use, in a command
+substitution, and a failed resolution is a **G5** rather than a guess: raising a reviewer on some other
+model is not a smaller version of raising the right one.
+
+### Headless, for automation
+
+```sh
+# the deep tier's id AS THE HOST SPELLS IT TODAY — resolved, never remembered
+sol="$(codex debug models | grep -o '"slug":"[^"]*sol"' | cut -d'"' -f4)"     # → gpt-5.6-sol here, today
+[ -n "$sol" ] || { echo "codex debug models lists no 'sol' slug" >&2; exit 1; }
+
+codex exec -C <repo> -s workspace-write \
+  --add-dir "$(git -C <repo> rev-parse --path-format=absolute --git-common-dir)" \
+  -m "$sol" "<prompt>"
+```
+
+`-C, --cd <DIR>` is the working root; `-s, --sandbox` takes `read-only`, `workspace-write` or
+`danger-full-access`, and **`workspace-write` is the one to use**. Add `-o, --output-last-message <FILE>`
+when something downstream must read the answer, and `--json` for JSONL events. The skills must already be
+in `<repo>/.agents/skills/` — that is the warm-up, [above](#on-codex).
+
+> ### ⚠️ `--add-dir` is not an optimisation. Without it a **linked worktree** cannot commit at all.
+>
+> `-s workspace-write` makes the **workspace** writable, and in a linked git worktree essentially all of
+> git's own state lives outside it — `HEAD`, the index, `FETCH_HEAD` under `<main>/.git/worktrees/<name>/`,
+> and the objects, `refs/`, `config` **and `info/exclude`** under `<main>/.git/`. So `git fetch`, the branch
+> cut, `git commit`, `git push` and the local exclude are all refused. Reproduced on a fixture, both ways:
+> the same `git add && git commit` died at exit **`128`** — *"Unable to create … `index.lock`: Operation
+> not permitted"* — and exited **`0`** with `--add-dir` added and nothing else changed.
+>
+> **`--git-common-dir`, not `--git-dir`**: the latter answers `<main>/.git/worktrees/<name>`, which covers
+> `HEAD` and the index and leaves the objects, `refs/` and `info/exclude` outside.
+> `--path-format=absolute` is passed because the bare form answers relatively in a primary checkout.
+>
+> **The alternative is a standalone clone**, whose `.git` is *inside* the workspace, so `-s
+> workspace-write` alone suffices. Prefer the clone where the session is disposable; prefer `--add-dir`
+> where the effort must land in your own repository. **Either way `--add-dir` widens the sandbox by exactly
+> one directory and it is a git directory** — it is not `--dangerously-bypass-approvals-and-sandbox`, and
+> reaching for that *because a git write failed* trades a named hole for an unbounded one.
+
+**Answering a G5 stop is a second invocation, and it takes almost none of the flags above.** A stop is a
+designed part of every run, so a headless pass will need one:
+
+```sh
+sol="$(codex debug models | grep -o '"slug":"[^"]*sol"' | cut -d'"' -f4)"     # resolved here too
+
+cd <repo> && codex exec resume --last -m "$sol" --skip-git-repo-check \
+  -c 'sandbox_workspace_write.writable_roots=["<repo git common dir>"]' \
+  -o <file> "<the answer>"
+```
+
+`codex exec resume --help` lists neither `-C/--cd`, nor `-s/--sandbox`, nor `--add-dir`. So the two
+substitutions are fixed and there is no third: **the working root comes from the shell's own `cd`**, and
+**every extra writable root comes from `-c 'sandbox_workspace_write.writable_roots=[…]'`**. A resume that
+forgets the second hits the `Operation not permitted` above on the turn *after* the stop was answered,
+which reads like a new failure and is the old one. `-m` is resolved on the resume for the same reason it
+is on the first call — a remembered id fails at the worse moment.
+
+### What is different from Claude Code — the honest list
+
+1. **Descriptions are truncated, and there is no length that fits.** Codex prints *"Skill descriptions were
+   shortened to fit the skills context budget"* at session start, and **the cut is one budget divided
+   across every skill the session can see** — it moves with what else is installed. Measured here: with
+   **51** skills visible the longest surviving description was **411** characters; with **87** visible every
+   Hatsu description was cut to **186–190**, mid-clause, `ren`'s ending at *"Use when "*. The clause naming
+   the invocation and the never-clauses is exactly what is lost, and exactly what a model-invocation
+   decision is made from.
+2. **No in-session subagent.** A reviewer is a second process and its isolation is `git worktree add`,
+   run by the skill before the reviewer starts.
+3. **No turn-end hook**, and on a headless run no seat for the escalation rungs.
+4. **`$CLAUDE_PLUGIN_ROOT` is not this surface's variable** — and it is not inert either: it may be
+   exported from your shell profile pointing at some other plugin. Use `$HATSU_PLUGIN_ROOT`.
+5. **`nen` must already be on `PATH`** under `-s workspace-write`, because the bootstrap installs outside
+   the workspace.
+6. **A persona is prose sitting below your own instruction layer**, so the identity in a transcript proves
+   nothing either way.
+7. **A mirrored body's relative links resolve against your repository**, so a sibling link works and a
+   `../../../docs/…` one dangles. That is the price of "the body verbatim", it is deliberate, and it is the
+   safe direction: the mirrors are for an agent reading a skill, not for a human browsing a link tree.
+
+---
+
+## Using Hatsu on Cursor
+
+**Same loop, same gates, same roster.** What changes is the spelling, how much of a description survives,
+whose `build` you get when two plugins claim the name, who rings the bell, and which aliases the matrix
+answers with.
+
+### Invoking a skill
+
+**You type `/<name>`** — `/ren`, `/aka`, `/mukai`, `/hatsu-warmup`. **Cursor lists a mirrored skill under
+its bare frontmatter `name`, with no plugin namespace** — even through a symlink into this checkout, which
+carries a plugin manifest. Codex's namespacing behaviour does not reproduce here, so the `/name` spelling
+the mirrors print is the one that works.
+
+### The loop, and the phases only you call
+
+Unchanged: **`/ren` on every request** — `/breath`, `/rasengan`, `/kokusen`, `/amaterasu`, `/rikugan`,
+`/jutaisho` — never pushing. Yours to call: `/aka`, `/mukai`, the **merge**, `/kagutsuchi` and `/mugetsu`
+(**G3**). A **G5** stop is the banner, the report link, the lettered options with a star on the report, and
+the question asked through this surface's own option picker — the same four parts, and all four or it is
+not a stop. As on Codex, **the picker is not the turn-end hook**: the missing hook is a fact about the
+*bell*, below.
+
+### Personas and reviewers
+
+**Cursor has subagents, so a persona is a file again** — `.cursor/agents/<persona>.md`, one per persona,
+placed by the warm-up. `/hanten` classifies the change set by scope and invokes the matching persona as
+that surface documents; the reviewer runs at `models.roles.reviewer` = tier `deep`.
+
+> **A persona's `model:` pin does not translate between surfaces, and one of them collides.**
+> `nen surface mirror generate` carries `model` through verbatim — correctly, since it mirrors rather than
+> translates — so **Hisoka arrives on Cursor carrying `model: sonnet`, a Claude alias in a Cursor-native
+> matrix.** The rule is `hanten`'s: **report the pin unresolvable, fall back to the role's tier (`grok`),
+> and state the substitution in the title.** Never silently honoured, never silently dropped.
+
+### The bell
+
+**No turn-end hook here either**, so `/jutaisho` writes the marker, rings the rungs **your repository's**
+`notifications.rungs` declares in-session, says which of them actually rang, and removes its own marker
+once the stop is answered. On an ordinary turn only rung 1 is owed — the surface's own turn-end signal —
+and **a surface without a hook is not a reason to be louder.** A headless `cursor-agent -p` run has the
+same missing seats as a headless `codex exec` one.
+
+### The model matrix
+
+| tier | role | Cursor alias |
+|---|---|---|
+| `frontier` | `orchestrator` — never a subagent | `grok` |
+| `deep` | `reviewer` | **`grok`** |
+| `fast` | `worker`, `measurer` | `composer` |
+| `economy` | | `composer` |
+
+**The Cursor column is Cursor-native only**, and the file says why in its own words:
+`"Cursor-native only; provider models there are reserved for Bugbot"`. `cursor-agent models` lists provider
+ids too — `claude-opus-5-*`, `gpt-5.6-sol-*`, `gemini-3.7-*` — and `--help`'s own examples *are* provider
+models: **the CLI accepts them and this policy does not.** Naming one here is out of policy, not a local
+optimisation.
+
+> **`frontier` and `deep` name the same alias on this surface, and the rule survives that.** "Never the
+> frontier tier for a subagent" cannot be checked by reading the alias here, so it is enforced on the
+> **role**: a reviewer is raised at `models.roles.reviewer`, never as an orchestrator. Say the tier *and*
+> the alias — *"tier `deep` → `grok`"* — so a transcript read afterwards is unambiguous.
+
+### Headless, for automation
+
+```sh
+# the deep/frontier tier's id AS THE HOST SPELLS IT TODAY — resolved, never remembered
+grok="$(cursor-agent models | sed -n 's/^\(cursor-grok-[0-9.]*-high\) - .*$/\1/p' | sort -Vr | head -n 1)"
+[ -n "$grok" ] || { echo "cursor-agent models lists no cursor-grok id" >&2; exit 1; }
+
+cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
+```
+
+> **`--model grok` does not exist and nothing runs.** `grok` is the *alias* the policy file carries; the
+> command line needs the id the host is serving. `cursor-agent models` prints `<id> - <label>`, one per
+> line, and the Cursor-native rows today are `cursor-grok-4.6-{low,medium,high,xhigh}[-fast]`,
+> `cursor-grok-4.5-high[-fast]` and `composer-2.5[-fast]`. The id is a **two-axis** choice — version and
+> reasoning tier — so the rule is written down rather than left to each caller: **newest version, plain
+> `-high`, never `-fast`.** The `sed` / `sort -Vr` above is that rule, executable; it resolves to
+> `cursor-grok-4.6-high` on this host today, and `composer` resolves the same way to `composer-2.5`.
+
+- `-p, --print` is the non-interactive form; `--output-format` takes `text`, `json` or `stream-json` and
+  **only works with `--print`**.
+- **`sort -V` is what picks the newest version, and macOS's own `/usr/bin/sort` has it** — verified on
+  macOS `26.4.1`, where `-Vr` orders `cursor-grok-4.6-high` above `cursor-grok-4.5-high`. On a host whose
+  `sort` lacks it the substitution comes back empty and the `[ -n "$grok" ]` guard exits `1` rather than
+  running on a wrong id: the fail-closed direction, and the reason the guard is written out.
+- **`-f` is `--force`, and it is NOT a file flag.** It *"force allow[s] commands unless explicitly
+  denied"*; the line above parses only because `-f` takes no value and the prompt is a **positional**
+  argument. The Codex block uses no such adjacency, so a reader copying one line is being invited to
+  misread it.
+- **The working root is the shell's own `cd`**, and that form works on every build. This build's `--help`
+  also lists `--workspace <path-or-name>`, `--add-dir <path>` and `-w, --worktree [name]`.
+- **There is no sandbox to widen, and that is a difference rather than an absence.** Codex's whole
+  `--add-dir` box exists because `-s workspace-write` cannot perform a single git write in a linked
+  worktree. Cursor has no counterpart to that failure: a headless run fetched, cut a branch, rebased and
+  first-published **inside a linked worktree** with no permission failure of any kind.
+- **Answering a G5 stop is `--resume`, a flag on the same command line** — unlike `codex exec resume`, so a
+  stop is answered with the same line plus the id. Fix the id up front with `cursor-agent create-chat`,
+  which prints one, rather than relying on `--resume`'s "latest". **The path is unexercised**: no G5 fired
+  in the recorded run, so `--resume` has never been used in anger.
+- **Give a `-p` run a timeout.** Observed once, on the pre-skills build: the process printed its complete
+  answer and then stayed alive at 0% CPU twelve minutes later. There is no `-o/--output-last-message`
+  equivalent to read a result from, so a caller waiting on process exit rather than on output hangs. Not
+  reproduced on `2026.09.08-6caf4ff`, where every run exited `0`.
+
+### What is different from Claude Code — the honest list
+
+1. **Roughly thirty characters of a description survive, and that is not a shorter Codex.** Asked for the
+   length of one, a session answered *"The description text is 30 characters long"* — the description dies
+   inside its own first clause, taking the trigger, the invocation spelling and every never-clause with it.
+   **Do not shorten a description to fit this**: there is no length that survives, the other two surfaces
+   keep the tail, and a thirty-character description would be worse everywhere and no better here. What
+   follows instead is that **on Cursor the skill `name` does almost all of the routing work.**
+2. **The name space is flat, global and shared.** It is not only your repository's `.cursor/skills/`: on
+   this host one listing carried the thirty-nine mirrored skills **plus** Cursor's own built-ins **plus**
+   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims thirty-nine ordinary
+   words at once — `build`, `file`, `en`, `ao`, `ren`, `breath`. **The shadowing itself is inferred, not
+   proven, and is written here as such**: two probes tried to confirm it and could not, because the
+   descriptions this surface keeps are far too short to tell two rival `build` entries apart. It is a
+   documented hazard, not a documented mechanism — and the warm-up's collision listing cannot see it,
+   because it lives outside your repository entirely.
+3. **No turn-end hook.**
+4. **`$CLAUDE_PLUGIN_ROOT` is not this surface's variable**, and may point at another plugin. Use
+   `$HATSU_PLUGIN_ROOT`.
+5. **`--model` is Cursor-native only.** The CLI will accept a provider model; the policy will not.
+6. **A mirrored persona keeps its `model:` pin verbatim**, which may name a model this surface cannot
+   resolve — reported and substituted, never silently either way.
+7. **One half is still unverified**: which repository a mirror's relative `../../../nen/workflow.json`
+   lands in **through a symlink** was not re-tested here. The rule that carries it is the one the warm-up
+   states — **read the file in the repository the session is standing in**, and where it has none, say so
+   and use the defaults rather than falling back to this plugin's copy.
 
 ---
 

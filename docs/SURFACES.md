@@ -26,7 +26,8 @@ is adding a row there, not a branch here.**
 | turn-end hook | **yes** — `Stop`, `hooks/hooks.json` | **no** | **no** |
 | in-session subagent | **yes** — the Agent tool | **no** — a reviewer is a second `codex exec` run | **yes** — `.cursor/agents/` |
 | reviewer tier → alias (`models.roles.reviewer` = `deep`) | `opus` | `sol` | `grok` — **Cursor-native only** |
-| minimum CLI build | n/a — the plugin loader is the harness | not established | **`2026.01.*`** — below it the surface sees NO skills (below) |
+| minimum CLI build | n/a — the plugin loader is the harness | **not established** — no skills-support floor is known for this surface. The build every record here was made on is **`codex-cli 0.149.0`** (`codex --version`, read live on 2026-09-10), and it is a *validated* build rather than a minimum | **`2026.01.*`** — below it the surface sees NO skills (below) |
+| signing in | the harness's own | `codex login`; `codex login status` answers `Logged in using ChatGPT` (read live on 2026-09-10) | `cursor-agent login`; `cursor-agent status` answers `✓ Logged in as <account>` |
 
 The two consequences that are not cosmetic have their own homes:
 [`claude/skills/jutaisho/SKILL.md`](../claude/skills/jutaisho/SKILL.md) § 6 for the missing `Stop` hook, and
