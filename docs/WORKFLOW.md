@@ -21,7 +21,7 @@ There are exactly two configuration files, and the split is not stylistic. It is
 | **Content** | lanes, per-verb argv, preconditions, hosts, deploy targets, launch targets, evidence globs, host toolchain | branch shape, which declared verbs run per iteration, the coverage ladder, reports, notifications, commit trailers, monitor caps, the model matrix |
 | **Executed by** | `nen shu <verb>` — nen spawns exactly what is declared and nothing else | mostly the reader. Two verbs take a slice: `nen commit format --repo` reads `commits.allowedAttributionTrailers`, `nen shu coverage --touched` reads the `coverage` ladder |
 | **Changing it changes** | what runs on this machine | what the roster is willing to do |
-| **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — **both at the pinned nen `0.5.0`** |
+| **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — **both at the pinned nen `0.6.0`** |
 
 The reason to keep them apart is that they fail differently. A wrong `project` block produces a wrong
 command — loud, immediate, exit `1` or `5`. A wrong `workflow.json` produces a *correct command run at the
@@ -88,7 +88,7 @@ exit `4` and its seat is quoted, not worked around. Hatsu's own `checks` is `["l
 > |---|---|
 > | **Immediately after a `claude/skills/**` or `claude/agents/**` edit** | regenerate both surfaces (`docs/SURFACES.md` § 3) and commit the result **in the same commit** as the source change |
 > | **Inside `mukai`, before `shibari` opens the PR** | `scripts/surface_mirror_check.sh` — exit `0` to proceed, exit `1` regenerate and amend, exit `2` **stop**: the nen on PATH is not the pinned one, since `v0.5.0` carries the verb |
-> | **On the PR** | [`.github/workflows/surface-mirror-check.yml`](../.github/workflows/surface-mirror-check.yml) — **a real check at the pinned `v0.5.0`**, advisory only until the maintainer requires the context. It skipped with a notice while `dependency.pinned_ref` named a nen with no `surface` verb; that branch is now an error. |
+> | **On the PR** | [`.github/workflows/surface-mirror-check.yml`](../.github/workflows/surface-mirror-check.yml) — **a real check at the pinned `v0.6.0`**, advisory only until the maintainer requires the context. It skipped with a notice while `dependency.pinned_ref` named a nen with no `surface` verb; that branch is now an error. |
 >
 > The script writes nothing and needs no credential, so running it more often costs nothing but the seconds.
 
@@ -128,7 +128,7 @@ lowered to clear it** — that is the one move `gyo` will not make, and a reposi
 `minimum` is a G5, not a smaller number.
 
 `nen shu coverage --threshold <n>` **reports** `met: true|false` and never changes its exit code; nen does not
-decide whether a number is good enough. At the pinned nen `0.5.0`, `--touched --base <ref>` filters the rows
+decide whether a number is good enough. At the pinned nen `0.6.0`, `--touched --base <ref>` filters the rows
 to the files the diff names and — with no `--threshold` — reads the ladder here itself, printing a `ladder:`
 line and a `band` per row (`under-minimum` / `minimum` / `recommended` / `ideal`). It still never gates.
 
@@ -192,7 +192,7 @@ value when the key is absent) rings the surface's own line and nothing else; `"a
 `rungs` lists, every turn. A gate always rings everything `rungs` lists, whatever `turn` says, and `turn`
 can never conjure a rung `rungs` withheld. It exists because the two readings of "does a plain turn ring?"
 were both supportable in `jutaisho`'s text and disagreed about every turn of every effort; one declared
-value settles it. **`turn` is IN the `nen.workflow/v0.1` shape at the pinned nen `0.5.0`** — a closed set of
+value settles it. **`turn` is IN the `nen.workflow/v0.1` shape at the pinned nen `0.6.0`** — a closed set of
 `"rung1"` and `"all"`, refused by pointer on anything else, and written into every policy file
 `nen scaffold init` generates. It began as a Hatsu addition; the retirement is recorded in
 [`claude/skills/jutaisho/SKILL.md`](../claude/skills/jutaisho/SKILL.md) § Residue.
@@ -252,15 +252,34 @@ that drives this workflow. **Saying it is configured off when nobody has configu
 three-layer table read one layer stronger than it is**, which is the failure mode the table exists to
 prevent.
 
-**Enforcement is three-layered, and at the pinned nen `0.5.0` two of the three are mechanical.**
+**Enforcement is three-layered, and at the pinned nen `0.6.0` two of the three are mechanical.**
 
-| Layer | What refuses | Where it lives | Live at the pinned nen `0.5.0`? |
+| Layer | What refuses | Where it lives | Live at the pinned nen `0.6.0`? |
 |---|---|---|---|
 | **(a)** the **skills'** own refusal — `kokusen` reads the rendered message before it commits, `aka` before it squashes | agent-side | this repository | **yes**, and it is the layer Hatsu ships |
 | **(b)** the target repository's **`commit-msg` hook**, generated from `allowedAttributionTrailers` by `nen scaffold init` | the target repository's `.git/hooks/` | **target-dependent** — it exists only in a repository `nen scaffold init` has stood up; this week in `zheref/nen`; KroApple and kro-pwa already carry one | **target-dependent** |
+
+> **From nen `v0.6.0` that hook's automated half is DERIVED from the repository's own policy, not a fixed
+> pair baked into the generator.** It requires exactly the ONE attribution trailer `--agent-trailer`
+> resolved to — optional now, defaulting to `Akatsuki-Agent`, the family's CI-plane key, carried as **data**
+> in nen's `templates/workflow.json` rather than as a literal in shipped code — plus, only when the policy
+> states one, the key under the new and separate `commits.runTrailer`. A run identifier is never itself an
+> attribution claim, so it is not folded into `allowedAttributionTrailers`; absent (`null`) by default, it
+> makes the second requirement optional where `--run-trailer` used to be mandatory. **`--marker-env` is the
+> only flag `nen scaffold init` still requires unconditionally**, and its missing-flag refusal names it and
+> says what the other two default to — verified live at the pinned `0.6.0`, exit `2`
+> (`docs/ab/kokusen.md` § *Retired at nen 0.6*).
+>
+> **A policy whose `allowedAttributionTrailers` does not admit the resolved key generates a hook whose
+> automated half refuses every automated commit outright, naming the missing policy** — because there is no
+> message such a repository could ever write that would satisfy a check for a trailer it does not admit, and
+> a hook that pretended to check for one would be a guard that cannot fire. Regenerating a hook from an
+> unchanged policy is byte-stable. **Hatsu's own policy admits both keys**, so a hook generated here would
+> require whichever one `--agent-trailer` named; this repository carries no such hook, and layers (a) and
+> (c) are what it actually has.
 | **(c)** **`nen commit format --repo`** and **`nen wc squash`** refusing a trailer not on the allow-list | nen | **YES** — exit `2` naming the file and the keys it admits, verified live against this checkout (`docs/ab/aka.md` § *Retired at nen 0.5*.2) |
 
-So **at the pinned `0.5.0` layer (c) is installed everywhere the invocation carries `--repo`, and only
+So **at the pinned `0.6.0` layer (c) is installed everywhere the invocation carries `--repo`, and only
 layer (b) stays target-dependent**: a repository scaffolded with the hook has a refusal that fires on
 *every* commit however it was made, and one that has not — this repository included — has (a) and (c).
 **A raw `git commit --file` carrying `Co-Authored-By` on a feature branch is still caught by (a) only**,
@@ -371,7 +390,7 @@ substitution in the title.** Never silently honoured, never silently dropped.
 
 ## 3 · `project.launch` and `project.evidence`
 
-Two blocks of nen's `project` shape that began as Hatsu extensions. **At the pinned nen `0.5.0` both are
+Two blocks of nen's `project` shape that began as Hatsu extensions. **At the pinned nen `0.6.0` both are
 PARSED and EXECUTED**: `launch` by `nen shu dev|run --target <name>`, `evidence` by
 `nen shu evidence --base <ref>`. They are no longer preserved-and-unread, and that changes what a typo
 costs.
@@ -390,6 +409,31 @@ the verb's first `artifacts` entry. Both are optional and absent means exactly w
 thing that was accepted through `v0.4.0` and is not now: `{device.id}` or `{artifact}` written into
 `project.launch.<name>.args` is exit `2` naming the token, because substitution reaches the target's `after`
 steps and nowhere else.
+
+**And `project.launch.<name>.device` admits `readyWhen` from nen `v0.6.0`. A device that is PRESENT is not a
+device that is READY**, and until this key existed nen read the first and reported it as the second: the row
+carrying the device's name also carries its *state* — attached is not paired, paired is not unlocked,
+present is not finished booting — so a launch matched the name, resolved an id off an unusable row, printed
+the probe green, and every command after it failed one at a time. The rule is
+`{ "field": <n>, "in": [ … ] }` against a probe that prints **lines** — `field` counts whitespace-separated
+tokens on the device's own row with the row's **first** token as field 1 — or `{ "path": "<dotted key>",
+"in": [ … ] }` against one that prints **JSON**, read off the object whose `name` matched or an enclosing
+object up to two levels out. Validated **at load, by pointer**: exactly one of `field`/`path`, `in`
+non-empty, `field` a whole number ≥ 1, and refused outright on a device with no `resolve` probe. A row
+present but not ready is **exit `5` naming the device, the state seen and the states accepted**, listing
+what the probe offered, answered *before* the missing-id refusal. `--dry-run` prints it as a `readiness:`
+line with nothing connected. **Absent, behaviour is unchanged in every particular** — which is why
+[`jujutsu`](../claude/skills/jujutsu/SKILL.md) § 6 writes one on every device it registers rather than
+treating it as optional polish.
+
+**`{artifact}` is substituted as the AFTER-STEP'S own directory sees it, also from `v0.6.0`.** Two roots
+exist and they are not the same: `artifacts` and `project.launch.<name>.artifact` are stated against the
+repository root, like every declared path, while an after-step is spawned with its cwd set to
+`project.lanes.<lane>.cwd`. On a lane whose cwd is not `.` the installer used to be handed a path resolved
+against the wrong root. The `substitutes:` line now says both strings when they differ, while `artifacts:`
+keeps reporting the repository-relative one — the two answer different questions, and collapsing them would
+hide the rebasing rather than show it; `--json`'s `target` gains `artifactAs`. **A lane at the repository
+root gets back the identical string**, which is every lane in this repository.
 
 ### `project.launch`
 
@@ -421,7 +465,26 @@ Three properties are the point of declaring it rather than typing it:
   file, and never in nen's execution modules — nen's `purity.test.ts` enforces exactly that.
 - **`--target` is required, with no default, ever.** A launch with no named target does not happen.
 - **A device is refused by name.** When the `resolve` probe does not see `device.name`, the refusal *lists
-  what the probe did see*, which is the difference between a useful error and a shrug.
+  what the probe did see*, which is the difference between a useful error and a shrug. **And it is refused
+  by STATE where `readyWhen` says which states count** (above), with the same discipline: the refusal names
+  the state it saw, the states it accepts, and everything the probe offered.
+
+### Containment — every declared path is resolved against the repository's REAL root
+
+**Every path a declaration states is repo-root-relative, and nen refuses one that leaves the tree `--repo`
+points at** — at exit `2`, before anything is spawned, read or written, naming the pointer that stated it.
+From nen `v0.6.0` the test is against the path **the kernel would actually reach**, `realpath`-resolved,
+rather than against its spelling: `build/payload` reads as plainly inside the repository and is refused
+just the same when `build/` is a symlink to somewhere else, and the refusal names the link and where it
+points. A symlink that stays inside the tree is ordinary and allowed — the question is where the path
+*lands*, never whether a link was involved. It holds for `project.lanes.<lane>.cwd`, a `path` precondition,
+every `artifacts[i]`, a `project.launch.<name>.artifact`, a step's `stdoutTo`, and the coverage and
+test reports `shu coverage` and `shu test-report` read back.
+
+**`nen schema check` does NOT answer it, deliberately**: the loader has no filesystem, so a `cwd` of
+`../../../../etc` reads as a well-formed declaration and is refused at the moment of use instead.
+**Pointers are checked at load; paths at use** — so a clean `schema check` is not a containment verdict,
+and a skill must never report it as one.
 
 `amaterasu` runs `--dry-run` first, pastes that argv into the report and the chat, then runs it bare — **from
 the core working directory, never from a worktree**. A worktree exists to produce a diff; an app started from
