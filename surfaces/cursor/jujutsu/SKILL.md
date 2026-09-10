@@ -163,19 +163,25 @@ column**, and it is the column that decides:
 
 **Two states of the world are easy to name and a third is the one that actually bites:** the device
 is there and usable; the device is not there; and **the device is there and cannot be talked to**.
-The third is the one this skill exists to report properly, and — until [`zheref/nen#165`](https://github.com/zheref/nen/issues/165)
-lands — it is the one **nen cannot see at all**.
+The third is the one this skill exists to report properly, and at the pinned nen `0.6.0` it is the
+one the declaration this skill writes now **says out loud** (§ 6's `readyWhen`).
 
-> **nen matches `device.name` against the probe's output and reads no state column.** Observed live
-> on 2026-09-10 against `zheref/KroAndroid`: with two phones attached, `nen shu dev --target galaxy`
-> matched the declared name in a row reading `R52X603Q9BA unauthorized usb:33-3.2`, printed
+> **A device that is PRESENT is not a device that is READY, and at `0.6.0` nen holds that rule
+> itself — where the declaration states it.** Observed live on 2026-09-10 against
+> `zheref/KroAndroid`, at the then-pinned `0.5.0`: with two phones attached, `nen shu dev --target
+> galaxy` matched the declared name in a row reading `R52X603Q9BA unauthorized usb:33-3.2`, printed
 > `device: R52X603Q9BA  id usb:33-3.2` as *resolved*, and every `adb -s usb:33-3.2 …` after it
-> answered `adb: device unauthorized` at exit `1`. The probe contract is `{exe, argv}` plus a name to
-> match; there is nowhere in it to say which states count. **`zheref/nen#165` is the fix** — a
-> `readyWhen` on `device.resolve`, so nen refuses by name on a row that is present and not ready.
+> answered `adb: device unauthorized` at exit `1`. That row's state is now declarable:
+> `project.launch.<name>.device.readyWhen` names which of the probe's own states count, and a row
+> that is present and not one of them is **exit `5` naming the device, the state seen and the states
+> accepted**, listing what the probe offered — answered *before* the missing-id refusal, because a
+> device whose state is the reason it is unusable routinely prints a row with no id on it.
+> **`readyWhen` is absent-means-unchanged**, so it protects nobody until it is written, and writing
+> it is § 6's job.
 
-**Until it lands, reading the state is THIS SKILL'S job, and the refusal is this skill's to make.**
-On a device whose row is present and not usable:
+**At pairing time there is no declaration yet, so reading the state is THIS SKILL'S — and that is
+the chicken-and-egg of § 4 rather than a gap in nen.** `readyWhen` is what jujutsu is about to write;
+it cannot refuse for a target that does not exist. On a device whose row is present and not usable:
 
 - **Refuse to register it**, in those words — *"`<name>` is attached and `unauthorized`; the probe
   saw: `<the whole list>`"* — naming the state and quoting the probe's full output.
@@ -207,7 +213,7 @@ itself to it before there is any declaration to refuse from.
 with no normalisation, no case folding, no Unicode equivalence and no punctuation smoothing — so a
 device name carrying a typographic apostrophe (U+2019, as in `Sergio’s iPhone`) must be declared with
 that same character and not with the ASCII `'` a keyboard produces. That is the contract
-`nen shu dev --target` implements at the pinned `0.5.0`, and nen's own `docs/USAGE.md` states it in
+`nen shu dev --target` implements at the pinned `0.6.0`, and nen's own `docs/USAGE.md` states it in
 that release's `nen shu dev` section: the comparison has no Unicode normalisation, so the declared
 string must carry the same bytes the probe printed.
 
@@ -236,7 +242,8 @@ so the next reader does not "fix" it.
     "verb": "dev",
     "device": { "name": "<the probe's exact bytes>",
                 "resolve": { "exe": "xcrun",
-                             "argv": ["devicectl", "list", "devices", "--json-output", "-"] } },
+                             "argv": ["devicectl", "list", "devices", "--json-output", "-"] },
+                "readyWhen": { "path": "connectionProperties.tunnelState", "in": ["connected"] } },
     "after": [
       { "exe": "xcrun", "argv": ["devicectl","device","install","app","--device","{device.id}","{artifact}"] },
       { "exe": "xcrun", "argv": ["devicectl","device","process","launch","--device","{device.id}","<bundle id>"] }
@@ -244,6 +251,40 @@ so the next reader does not "fix" it.
   }
 }
 ```
+
+### `readyWhen` — write the state column into the declaration, every time
+
+> **The state § 4 read by eye is a state the file can carry, and a state the file carries is one nen
+> refuses on. Declare it.** A target registered without it resolves an `unauthorized` row at exit `0`
+> and fails one `adb -s` at a time afterwards — which is the run § 4's box records, and it is
+> avoidable in one key.
+
+Two shapes, and which one a probe takes is decided by what the probe **prints**, not by the platform:
+
+| The probe prints | The shape | Written for the probes above |
+|---|---|---|
+| **lines** (`adb devices -l`) | `{ "field": <n>, "in": [ … ] }` — `field` counts whitespace-separated tokens **on the device's own row, the row's first token being field 1**, the way a reader counts columns on their screen | `"readyWhen": { "field": 2, "in": ["device"] }` — the serial is field 1, the state is field 2, and `device` is the only state § 4's table registers from |
+| **JSON** (`xcrun devicectl list devices --json-output -`) | `{ "path": "<dotted key>", "in": [ … ] }` — read off the object whose `name` matched, or off an enclosing object up to **two** levels out, which is the same walk the id already makes | `"readyWhen": { "path": "connectionProperties.tunnelState", "in": ["connected"] }` |
+
+- **Exactly one of `field` / `path`, never both and never neither**, `in` non-empty with every entry
+  a non-empty string, and `field` a whole number **≥ 1** — all four checked **at load, by pointer**,
+  so a zero-indexed rule is refused at `nen schema check` rather than reading one column to the left
+  on every launch for a year.
+- **A rule on a device with no `resolve` probe is refused too** — nothing is spawned there, so the
+  rule could never be read. That is the same discipline `project.launch.<name>.artifact` gets when no
+  after-step names `{artifact}`.
+- **States are compared as whole strings, verbatim** — `device.name`'s rule, applied to the state
+  column. A JSON `true` or `3` at the named path compares as `"true"` and `"3"`, so a boolean
+  readiness flag needs no second shape.
+- **A state is read only where the rows carrying the name agree about it.** One device described
+  twice is one device; two rows naming two states is two answers, and nen reports neither — exactly
+  as it picks neither of two competing ids.
+- **`--dry-run` prints it as a `readiness:` line under the device**, with nothing connected, because
+  it is the declaration's rule rather than a reading. `--json`'s `target.device` gains `readyWhen`,
+  `null` on every device that declares none.
+- **Absent means unchanged, in every particular** — which is why a jujutsu run that omits it has
+  quietly shipped the `0.5.0` behaviour into a `0.6.0` declaration. Say in the PR body which states
+  the rule admits and which the probe offered.
 
 ### The rule that decides where each step goes, and it is one sentence
 
@@ -277,7 +318,7 @@ weld is where the device name gets lost. Split them: the lane's row builds, the 
 > the obvious thing to reach for and `args` is the obvious place to put it — **and `xcodebuild`
 > refuses a second `-scheme`**, which AnteikuTV proved: a row already carrying `-scheme X` plus
 > `args: ["-scheme","Y"]` is two `-scheme` flags on one command line, and the tool errors rather than
-> letting the later one win. At the pinned nen `0.5.0` the answer is the per-target keys:
+> letting the later one win. At the pinned nen `0.6.0` the answer is the per-target keys:
 > `project.launch.<name>.lane` names the declared row this target's verb, `args` and after-steps are
 > read from — a device build is routinely a different declared row from the iteration one — and
 > `project.launch.<name>.artifact` names the thing the device installs, which is rarely the verb's
@@ -307,7 +348,7 @@ nen schema check --repo <path>
 ```
 
 Verified live (`docs/ab/jujutsu.md` § *Retired at nen 0.5*): a declaration carrying `project.launch`
-reports `ok nen/contract.json project (…)`. **At the pinned `v0.5.0` nen PARSES the block rather than
+reports `ok nen/contract.json project (…)`. **At the pinned `v0.6.0` nen PARSES the block rather than
 preserving it** (`docs/WORKFLOW.md` § 3), so the row being `ok` now says more than it used to: a key
 one spelling out — `arg`, `devices`, `resolver`, `verbs`, or the block key itself as `launches` or
 `Launch` — is refused **by pointer** naming which misspelling it is, instead of being kept and read by
@@ -372,14 +413,18 @@ with the probe's full output, not a summary of it, and the on-device step that c
    live (§ 3). Jujutsu asks and waits.
 4. **The first probe is run from the platform's documented command**, before any declaration exists to
    read it from (§ 4). Named every run; from the second run onward it is read from the file.
-4b. **Reading the device's STATE has no verb, and nen does not read one either.** `device.resolve`
-   carries an argv and a name to match, and nothing that says which states count — so nen resolves an
-   `unauthorized` row and reports it as resolved (§ 4, observed live). Filed as
-   [`zheref/nen#165`](https://github.com/zheref/nen/issues/165); until it lands, **this skill reads the
-   state column itself** and refuses on a row that is present and not usable. Named here so the
-   refusal is read as a skill's rule rather than as a verb's.
+4b. **RETIRED at nen `0.6`: reading the device's STATE at LAUNCH time.**
+   `project.launch.<name>.device.readyWhen` — `{field, in}` for a probe that prints lines,
+   `{path, in}` for one that prints JSON — says which of the probe's own states count, and a row that
+   is present and not one of them is exit `5` naming the device, the state seen and the states
+   accepted (`docs/ab/jujutsu.md` § *Retired at nen 0.6*). **What this skill now does is WRITE that
+   rule** (§ 6), not read the column on somebody else's behalf. Two things stay this skill's and
+   neither is the retired one: the rule is **absent-means-unchanged**, so a declaration without it is
+   a target with no readiness check at all — jujutsu writes one every time; and at **pairing** time
+   the target does not exist yet, so § 4's first read of the state column is still by eye. That is
+   the chicken-and-egg of § 4, the same shape as entry 4, and it is a read rather than a residue.
 5. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
-   an `ok  nen/workflow.json` row at the pinned `v0.5.0`, so a `launch.default` naming nothing is caught
+   an `ok  nen/workflow.json` row at the pinned `v0.6.0`, so a `launch.default` naming nothing is caught
    by a verb. The two keys are still read here; reading a file is not residue.
 
 ## Authority
@@ -401,9 +446,12 @@ with the probe's full output, not a summary of it, and the on-device step that c
 - **Never registers a device it has not seen the probe resolve** (§ 4). A block written from a name the
   maintainer typed is a target that will refuse the first time it is used.
 - **Never registers a device whose probe row is present but not in a usable state** — `unauthorized`,
-  `offline`, `no permissions`, `available (paired)`, `unavailable` (§ 4). nen reads no state column
-  until [`zheref/nen#165`](https://github.com/zheref/nen/issues/165), so it would resolve the row and
-  report it resolved; the state is read here, and the refusal names it.
+  `offline`, `no permissions`, `available (paired)`, `unavailable` (§ 4). At pairing time there is no
+  target for nen to refuse on, so the state is read here and the refusal names it.
+- **Never registers a device without a `readyWhen` rule** (§ 6). Absent, the key changes nothing at
+  all: nen takes the row that carries the name and reports the device resolved, which is precisely
+  the failure § 4's box records. A target with no readiness rule is a target this skill has not
+  finished writing.
 - **Never reports a present-but-unusable device as absent** (§ 4) — the two have different remedies,
   and "no device found" sends the maintainer to the cable while the phone waits for a tap.
 - **Never writes an install or a launch into the target's verb** (§ 6). `{device.id}` reaches an

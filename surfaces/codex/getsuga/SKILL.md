@@ -242,7 +242,7 @@ it:**
    can no longer disagree about where fragments live — and an **empty** value, or a path that is not a
    directory, is refused; a directory that does not exist contributes no fragments. Omit the flag or
    pass a real directory; never `""`.
-4. **Bump `latest`** in the registry — `nen/repos.json`, which at the pinned nen `0.5.0` is the ONLY
+4. **Bump `latest`** in the registry — `nen/repos.json`, which at the pinned nen `0.6.0` is the ONLY
    file nen reads it from. No `nen` verb owns this write — residue, a direct edit — **so make
    sure it lands in the file nen reads**: `nen schema check --repo <path>` prints the row
    (`ok nen/repos.json …`, or a FAIL naming the migration where a copy sits only under `schemas/`).
@@ -350,7 +350,7 @@ The maintainer's ruling: an unreachable target is **driven to `main` first**, no
    itself is [`$pr-state`](../pr-state/SKILL.md)'s verb — `nen pr ready <ref> --explain`, with
    `GH_TOKEN` exported, quoted verbatim. **The identities come from [`sharingan`](../sharingan/SKILL.md)
    § 4's rule, never from memory:** the target's own `nen/gates.json` first, with no `--gates` at all
-   — the `schemas/gates.json` location is not a fallback at the pinned nen `0.5.0`, REMOVED at
+   — the `schemas/gates.json` location is not a fallback at the pinned nen `0.6.0`, REMOVED at
    `v0.4.0`, so a gates file only there is refused exactly like one carrying none; `--gates
    "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"` (absolute) ONLY where the target is frozen
    `<reference-repo>` itself; every other target that ships no gates file gets `--reviewers` supplied

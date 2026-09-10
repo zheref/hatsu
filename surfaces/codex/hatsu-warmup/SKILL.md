@@ -64,8 +64,8 @@ This is the one machine read of the contract, and it is a validation, never a wa
 nen schema check --repo "$hatsu_root"
 ```
 
-Verified live against the pinned `v0.5.0`: the `nen/contract.json` row prints
-`ok    nen/contract.json  dependency (nen >= 0.5, pinned v0.5.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)`
+Verified live against the pinned `v0.6.0`: the `nen/contract.json` row prints
+`ok    nen/contract.json  dependency (nen >= 0.6, pinned v0.6.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)`
 — the floor and the pin nen parsed are the ones you just read, and a drift between them and this file's
 prose is a bug in the prose. **`schema check` reports SIX rows at this pin, and four of them are expected
 non-`ok`**: three `FAIL` (`nen/labels.json`, `nen/repos.json`, `nen/colors.yml`), one `warn`
@@ -120,7 +120,7 @@ as `0.5.0`.) Three outcomes, and exactly three:
 
 `minimum` is `MAJOR.MINOR`. **What it means depends on the major, and getting this backwards fails open.**
 
-**While nen's line is `0.x` — which it is today — `minimum: "0.5"` means exactly `>=0.5.0 <0.6.0`.**
+**While nen's line is `0.x` — which it is today — `minimum: "0.5"` means exactly `>=0.6.0 <0.7.0`.**
 
 **A different minor is out of range in BOTH directions.** `0.6.0` fails it exactly as `0.4.0` does.
 
@@ -151,14 +151,14 @@ never by preference.**
 Both start with the same fetch, and **it is always two steps**:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.5.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
+curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.6.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
 ```
 
 > ### ⚠️ Fetch to a file. **Never pipe the script into bash.**
 >
 > ```bash
 > # WRONG — dies before it starts:
-> curl -fsSL <url> | bash -s -- --ref v0.5.0
+> curl -fsSL <url> | bash -s -- --ref v0.6.0
 > ```
 >
 > The script runs under `set -u` and reads `${BASH_SOURCE[0]}`. Piped into `bash -s --` there is no
@@ -170,7 +170,7 @@ curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.5.0/bootstrap/nen.sh 
 ### 2a · nen is **absent** → run the shell bootstrap directly
 
 ```bash
-bash /tmp/nen-bootstrap.sh --ref v0.5.0
+bash /tmp/nen-bootstrap.sh --ref v0.6.0
 ```
 
 **Why shell is permitted here, and only here.** Chicken-and-egg: `nen bootstrap` is a `nen` subcommand, so
@@ -182,7 +182,7 @@ grounds that this one does.
 ### 2b · nen is **present but out of range** → re-pin through nen's own verb
 
 ```bash
-nen bootstrap --ref v0.5.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
+nen bootstrap --ref v0.6.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
 ```
 
 A working `nen` is on `PATH`, so the chicken-and-egg rationale does not apply and the shell path is **not**
@@ -216,7 +216,7 @@ verified — plus its own `7`.
 binary is named for its platform, not for the command:
 
 ```sh
-$ nen bootstrap --ref v0.5.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
+$ nen bootstrap --ref v0.6.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
 nen bootstrap: cache hit for zheref/nen@v0.5.0 (nen-darwin-arm64), checksum verified.   # exit 0
 $ ls ~/.cache/nen/v0.5.0
 nen-darwin-arm64                       # ← there is nothing here called `nen`
@@ -284,8 +284,8 @@ Print `halt.message_template` from the contract, with the code and its meaning f
 > yourself, then re-invoke:
 >
 > ```
-> curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.5.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
-> bash /tmp/nen-bootstrap.sh --ref v0.5.0
+> curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.6.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
+> bash /tmp/nen-bootstrap.sh --ref v0.6.0
 > ```
 >
 > Two steps, never a pipe: the script reads `${BASH_SOURCE[0]}` under `set -u`, so `curl … | bash` dies
@@ -312,9 +312,9 @@ computation, method-block validation, perf comparison, and the rest of `nen --he
 
 State the outcome before doing anything else, so the maintainer knows which of the four happened:
 
-- `Nen 0.5.0 · in range (>=0.5.0 <0.6.0) · warm-up clear`
-- `Nen absent · bootstrapped to v0.5.0 (checksum verified) · warm-up clear`
-- `Nen 0.4.0 out of range (>=0.5.0 <0.6.0) · re-pinned to v0.5.0 via nen bootstrap (checksum verified) · warm-up clear`
+- `Nen 0.6.0 · in range (>=0.6.0 <0.7.0) · warm-up clear`
+- `Nen absent · bootstrapped to v0.6.0 (checksum verified) · warm-up clear`
+- `Nen 0.5.0 out of range (>=0.6.0 <0.7.0) · re-pinned to v0.6.0 via nen bootstrap (checksum verified) · warm-up clear`
 - `Nen unavailable · bootstrap failed (exit 6, EXIT_MANIFEST) · HALTED — G5`
 
 **Silence is not one of the four.** A warm-up that did not run is reported as *not run*, never rendered as
