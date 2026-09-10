@@ -51,8 +51,21 @@ performance-sensitive path is answered with that fact, not with a review of noth
 ## 2. Classify the change set, then raise one reviewer per scope
 
 ```bash
-git -C <path> diff --name-only <branch.base>...HEAD
+git -C <path> fetch origin <branch.base>
+git -C <path> diff --name-only origin/<branch.base>...HEAD
 ```
+
+> **The range is `origin/<branch.base>...HEAD`, after that fetch — never the bare branch name.**
+> `branch.base` in `nen/workflow.json` is a **branch name** (`main`), and nothing in the local plane
+> fast-forwards *local* `main` once [`$breath`](../breath/SKILL.md) has cut the branch from it:
+> the local ref sits wherever it was on the day the effort started and falls further behind every
+> hour. Measured live, in one run: local `main` was **13**, then **36**, then **50** commits behind
+> `origin/main`, and `main...HEAD` named **43** changed files where the branch's own change was
+> **8** (`docs/ab/mukai.md`). Read literally, hanten would classify a week of somebody else's work
+> and raise reviewers on it — real tokens, real attention, on a diff this branch did not write.
+> `git merge-base origin/<branch.base> HEAD` is the same set expressed as a SHA, and it is the form
+> to use when the report has to quote one. **The fetch is part of the rule**, not an optimisation:
+> `origin/<branch.base>` is only as fresh as the last thing that fetched it.
 
 **Classify every path before raising anyone**, and print the classification. A run that raises the UI
 reviewer and then discovers the diff was mostly auth has spent a reviewer on the wrong question.
@@ -98,17 +111,53 @@ older than the one that added a file. The mechanism is what this section specifi
 happen to be missing is a fact about a version, and stating it as a permanent one is how a skill goes
 stale.
 
-So, before raising anyone, check that the definition exists — every run, for every persona, including
-the five that are there today:
+So, before raising anyone, check — every run, for every persona, including the five that are there
+today. **The check is two questions, not one**, because § 2's routing needs both to be true and each
+fails on its own:
 
 ```bash
+# 1. does the definition exist?  (<plugin root> resolved as below — never assumed)
 ls <plugin root>/claude/agents/<persona>.md
+
+# 2. will THIS surface raise it? — the surface's own agent registry, never the filesystem
+#    Claude Code: the subagent types offered to this session (the Agent tool's `subagent_type`
+#    roster, the same list `/agents` shows). Look for the literal id `hatsu:<persona>`.
 ```
 
-| The definition is | What hanten does |
-|---|---|
-| **present** | raise the reviewer (§ 4) |
-| **absent** | **report the scope as a gap.** Name the scope, name the persona the roster activated for it, name the paths that raised it, and say that **this scope was not reviewed** |
+> **`ls` cannot answer question 2, and question 2 is the case § 3's own prose names.** *"A persona
+> whose file exists but is not installed here"* — *"a persona the surface will not raise"* — answers
+> **PRESENT** to `ls` and is still unraisable. Measured live: `feitan.md` and `chrollo.md` both
+> existed in the checkout being read, and **no `$feitan` or `$chrollo` subagent type was
+> offered to that session**, because the *installed* plugin was an older version than the files being
+> read (`docs/ab/mukai.md`). A check that answers `PRESENT` for the exact failure it was written to
+> catch is not a check. **The registry is the authority for question 2, and it is a live property of
+> the session, not of a directory.**
+
+**Where the plugin root comes from** (question 1's path): `$CLAUDE_PLUGIN_ROOT` is exported by the
+harness **only inside a skill invocation**, and it is **empty in an ordinary tool-call shell and
+inside a subagent** — verified live. So a run that reads it must have been given it: use
+`$CLAUDE_PLUGIN_ROOT` when it is non-empty; otherwise resolve it from the surface's own plugin
+registry —
+
+```bash
+claude plugin list --json    # → [{ "id": "hatsu@hatsu", "installPath": "<the plugin root>", … }]
+```
+
+— verified live (the `--json` flag exists and `installPath` is the root), or take the path from
+whoever raised this run. **Never guess it, and never fall back to a bare relative path**: a relative
+`claude/agents/<persona>.md` resolves against whatever cwd the caller happened to have, which on a
+review run is the repository *under review* rather than the plugin.
+
+| Question 1 — the definition | Question 2 — the surface | What hanten does |
+|---|---|---|
+| **present** | **raises it** | raise the reviewer (§ 4) |
+| **present** | **will not raise it** | **§ 9's adapter contract, disclosed as weaker.** The definition is read into a generic worker at the same tier, the four things § 9 lists are supplied by hand, and the report says the reviewer was *adapted*, not raised. It is **not** recorded as a raised persona reviewer |
+| **absent** | either | **report the scope as a gap.** Name the scope, name the persona the roster activated for it, name the paths that raised it, and say that **this scope was not reviewed** |
+
+**The middle row is not a gap and not a pass.** It is a third state, and collapsing it into either
+neighbour loses something true: calling it a gap hides a review that did happen, and calling it a
+raised reviewer overstates it. `scopes[].reviewed` stays `true` and the row carries
+`"adapted": "no hatsu:<persona> subagent type on this surface; § 9 adapter"` beside it.
 
 **A gap is never a pass, and never a silent omission.** It goes in the report, in the pull request
 body, and in the findings record as a scope with `reviewed: false` — the same discipline
@@ -120,9 +169,15 @@ quietly stops happening."*
 findings with no citable rule behind them. The honest output is *"the `<scope>` scope was raised by
 these four paths and was not reviewed; `<persona>` has no definition at
 `claude/agents/<persona>.md`"* — which tells the maintainer something true and actionable, where a
-manufactured review would not. **This applies to a persona whose file exists but is not installed
-here too**: an older plugin version, a partial install, a persona the surface will not raise. The
-question is always *is the definition in front of me*, never *do I remember this persona*.
+manufactured review would not. The question is always *is the definition in front of me*, never *do I
+remember this persona*.
+
+**Which is exactly why the middle row is not improvisation.** There the definition **is** in front of
+us — the file is on disk and is read into the adapted worker verbatim — and what is missing is only
+the surface's mechanism for raising it under that name. The roster's ruling bars acting *as* a
+persona whose standing has no definition; it does not bar reading a definition that exists into a
+worker the surface can actually start. The line between the two is the file, and § 9's contract is
+what keeps the weaker path honest about being weaker.
 
 ## 4. Raising a reviewer — the model, the title, the isolation
 
@@ -131,11 +186,11 @@ scope, in parallel where more than one applies:
 
 | Parameter | Value |
 |---|---|
-| `subagent_type` | the persona — `$hisoka`, `$uvogin`, `$phinks`, … |
+| `subagent_type` | the persona — `$hisoka`, `$uvogin`, `$phinks`, … (§ 3, question 2) |
 | `description` | the title: **`hanten · <persona> · <model alias>`** |
 | `model` | § 4's resolution below — **never the frontier tier** |
-| `isolation` | **`worktree`** — the reviewer gets its own checkout |
-| `prompt` | the scope, the base, the paths that raised it, and § 5's required output shape |
+| `isolation` | **omitted** — see below; the isolated checkout is cut by hand, of the repository under review |
+| `prompt` | the **absolute path of the isolated checkout**, the scope, the base as `origin/<branch.base>`, the paths that raised it, § 5's required output shape, and *"do not request a worktree"* |
 
 **The model alias comes from `nen/workflow.json` → `models`, and never from memory.**
 `models.roles.reviewer` names the **tier** — `deep` — and `models.claude.deep` names the alias for
@@ -159,13 +214,41 @@ this surface. Two rules ride on it, and neither is optional (`docs/ROSTER.md` §
 > `docs/ROSTER.md` § 3, and it is filed as such (`docs/ab/hanten.md` § 4.1) rather than resolved
 > quietly in prose.
 
-**`isolation: "worktree"` is not a convenience.** It gives the reviewer its own checkout of the
-branch, so *"a reviewer never edits non-test source"* stops being a rule the reviewer must remember
-and becomes a property of where it is standing: nothing it writes reaches the tree the maintainer is
-working in. **Never raise a reviewer into the working copy under review.**
+**An isolated checkout is not a convenience.** It is what turns *"a reviewer never edits non-test
+source"* from a rule the reviewer must remember into a property of where it is standing: nothing it
+writes reaches the tree the maintainer is working in. **Never raise a reviewer into the working copy
+under review.**
+
+> **`isolation: "worktree"` isolates the *plugin's* repository, not the one under review — so hanten
+> does not pass it.** The harness's worktree isolation cuts a branch in **the session's own
+> repository**, which when hanten runs from a skill is the checkout the skill was loaded from. A
+> review of `zheref/nen` driven from a hatsu checkout would therefore have branched *hatsu* and
+> handed the reviewer an isolated copy of the wrong repository — and the reviewer, having no copy of
+> what it was asked to read, would read the maintainer's live tree instead. Confirmed live
+> (`docs/ab/mukai.md`): three detached worktrees of the target had to be cut by hand.
+
+**So the isolated checkout is cut here, of the target, before the reviewer is raised** — one per
+reviewer, so two reviewers cannot collide on one tree:
+
+```bash
+git -C <target repo> worktree add --detach <target repo>/.claude/worktrees/hanten-<persona> HEAD
+```
+
+`.claude/` is git-ignored in the repositories this plane runs in, so the checkout never reaches the
+tree under review. **Its absolute path goes in the prompt**, and the prompt says the reviewer is to
+work there and **must not request a worktree of its own** — a reviewer that asks for one gets the
+plugin's repository, which is the failure this paragraph exists to prevent. Remove the worktree when
+the review returns (`git -C <target repo> worktree remove --force <path>`).
+
+**This is § 9's adapter contract applied to Claude Code, not an exception to it.** § 9 item 2 asks an
+adapter for *"an isolated copy of the tree"* and does not say which tree, because there is only one
+right answer: **the repository under review**. Where hanten runs against the same repository the
+session is in, `isolation: "worktree"` would happen to name the right one — and the by-hand form is
+still what runs, because a rule that is correct only when two paths coincide is a rule that breaks
+silently the first time they do not.
 
 **Say what was raised, in one line, before the reviews come back**: the scopes, the personas, the
-aliases, and the gaps.
+aliases, the isolated checkout each was given, and the gaps.
 
 **On Codex and on Cursor the mechanism is different and the rules are the same — § 9a is the table**:
 `deep` resolves to `sol` on Codex and to `grok` on Cursor, a Codex reviewer is a whole second
@@ -212,6 +295,8 @@ report's filename.
   "branch": "<branch>", "base": "<branch.base>", "at": "<ISO-8601 UTC>",
   "scopes": [ { "scope": "ui", "persona": "hisoka", "model": "sonnet", "reviewed": true },
               { "scope": "security", "persona": "feitan", "model": "opus", "reviewed": true },
+              { "scope": "architecture", "persona": "chrollo", "model": "opus", "reviewed": true,
+                "adapted": "no $chrollo subagent type on this surface; § 9 adapter" },
               { "scope": "<scope>", "persona": "<an unprovisioned persona>", "model": null, "reviewed": false,
                 "gap": "no definition at claude/agents/<persona>.md; ROSTER.md § 4" } ],
   "findings": [ { "id": "F1", "scope": "ui", "persona": "hisoka",
@@ -223,7 +308,9 @@ report's filename.
 **The six fields are the reviewer's; `id`, `scope`, `persona` and `disposition` are hanten's**, added
 as it records. A reviewer never writes this file.
 
-**The third `scopes` row is the gap shape, written as a hypothetical on purpose.** At `v0.5.0` every
+**The third row is § 3's middle state — reviewed, but adapted rather than raised — and it is a real
+shape, not a hypothetical: it is what a run against an older installed plugin produces.** The fourth
+row is the gap shape, written as a hypothetical on purpose. At `v0.5.0` every
 persona § 2 routes to has a definition (§ 3), so a real record from this plugin carries no gap row at
 all — the row is here because the shape must be documented before the day something needs it, and
 filling it with a persona that *is* defined would teach the shape by way of a false example.
@@ -276,7 +363,7 @@ Each reviewer's own definition is the authority and this is a summary of what th
 (`claude/agents/hisoka.md` § *The refusals*, `claude/agents/phinks.md`, `claude/agents/uvogin.md`):
 
 - **Never edits non-test source.** Fixing your own finding is reviewing your own work by another
-  route. § 4's worktree isolation makes it structural.
+  route. § 4's isolated checkout **of the repository under review** makes it structural.
 - **Never casts a review vote** — not `approve`, not `request_changes`. They run on the maintainer's
   credentials, so GitHub would record the vote as **theirs**, and pre-PR there is usually no PR to
   vote on anyway.
@@ -293,9 +380,12 @@ four things, and where it supplies fewer, hanten says which:
 
 1. **An isolated worker at a named model tier** — resolved from `nen/workflow.json → models` for that
    surface (`codex`, `cursor`), on the tier `models.roles.reviewer` names, **never the frontier tier**.
-2. **An isolated copy of the tree** — a worktree, a fresh checkout, or a read-only mount. Without it,
-   *"never edits non-test source"* falls back to being a rule the reviewer must obey rather than a
-   place it cannot reach, and that is stated in the report.
+2. **An isolated copy of the tree — of the repository under review.** A worktree, a fresh checkout,
+   or a read-only mount, cut from the target and named to the reviewer by absolute path. *Which*
+   repository is the load-bearing half: an isolation mechanism that branches the session's own
+   repository isolates the wrong thing and leaves the reviewer reading the live tree (§ 4). Without
+   it, *"never edits non-test source"* falls back to being a rule the reviewer must obey rather than
+   a place it cannot reach, and that is stated in the report.
 3. **One returned document in § 5's shape.** A surface that can only return prose gets that prose
    read into the shape by hand, by hanten, with any finding missing `rule` or `evidence` recorded as a
    **note** rather than promoted.
@@ -329,14 +419,35 @@ by hand before the run:
 
 ```sh
 git worktree add "$rev" HEAD                      # the isolated copy — hanten's own act
-codex exec -C "$rev" -s workspace-write -m sol \
-  -o "$rev/finding.json" "<the scope, the base, the paths, and § 5's required shape>"
+codex exec -C "$rev" -s workspace-write \
+  --add-dir "$(git -C "$rev" rev-parse --path-format=absolute --git-common-dir)" \
+  -m sol -o "$rev/finding.json" "<the scope, the base, the paths, and § 5's required shape>"
 ```
 
+> **`--add-dir` is not optional here, and this is the one place in the repository where the omission
+> bites.** `git worktree add` makes a **linked** worktree, whose `.git` is a *file* pointing at
+> `<main repo>/.git/worktrees/<name>/` — so `HEAD`, the index, `FETCH_HEAD`, the objects, `refs/` and
+> `info/exclude` all sit **outside** the directory `-C` makes writable, and `-s workspace-write` refuses
+> every git write in it: no `git add`, no `git commit`, no `git fetch`, no local exclude. Reproduced on a
+> fixture on this host — the same `git add && git commit` died at exit **`128`**, *"fatal: Unable to
+> create `…/.git/worktrees/wt/index.lock`: Operation not permitted"*, and exited **`0`** with
+> `--add-dir "$(git rev-parse --path-format=absolute --git-common-dir)"` added and nothing else changed
+> (`docs/ab/surfaces.md` § 7, F3; the full account is `docs/SURFACES.md` § 5).
+> **`--git-common-dir`, not `--git-dir`:** the latter answers `<main>/.git/worktrees/<name>` and leaves
+> the objects and `refs/` outside. A reviewer that only reads a diff never notices; one that writes a test
+> to prove a finding — which § 5's evidence rule asks for — notices immediately, and reads the refusal as
+> the repository being broken.
+>
+> **The alternative is a standalone clone** (`git clone <repo> "$rev"`), whose `.git` is inside the
+> workspace and needs no extra root. Take it where the review needs no shared object store; take the
+> worktree plus `--add-dir` where it must see the branch as the maintainer's repository has it.
+
 `-s workspace-write` is deliberate and is the **narrow** choice: the reviewer may write inside its own
-worktree — a test, a note, the finding document — and reaches nothing outside it. Never
+worktree — a test, a note, the finding document — and reaches nothing outside it. **`--add-dir` widens
+that by exactly one directory, and it is a git directory.** Never
 `--dangerously-bypass-approvals-and-sandbox` for a review; a reviewer that needs to bypass a sandbox to
-read a diff is not reviewing a diff.
+read a diff is not reviewing a diff, and reaching for it *because a git write was refused* trades a named
+hole for an unbounded one.
 
 **On Cursor the reviewer is a subagent definition, so the model is named where the definition is**, not on
 a command line — `model:` frontmatter in `.cursor/agents/<persona>.md`, mirrored there from
@@ -361,27 +472,40 @@ of the transcript can tell the two apart.
 
 ## Residue
 
-**One boundary, one gap, and no missing verb.**
+**Boundaries and gaps, and no missing verb.**
 
 1. **Raising a subagent has no nen verb and is not expected to get one.** nen owns operations, not
    conversations — the identical boundary [`$rikugan`](../rikugan/SKILL.md) § Residue 7 names for
    the Artifact publish and [`$ren`](../ren/SKILL.md) § 4 names for the turn loop, verified there
    rather than assumed. § 4's mechanism is the surface's tool, § 9 is what an adapter must provide, and
    neither is a gap to file against the binary.
-2. **No verb classifies a change set by scope.** `nen gate derive --policy-paths --process-paths
+2. **The reviewers' isolated checkouts** (§ 4) — `git worktree add --detach` against the repository
+   under review, one per reviewer, removed when the review returns. The harness's own
+   `isolation: "worktree"` isolates the session's repository and cannot be used here (verified live,
+   `docs/ab/mukai.md`), and nen owns no worktree verb.
+3. **§ 3's two-part check** — `ls` for the definition, and the surface's own agent-type roster for
+   whether it can be raised. Neither is a nen question: one is a file on disk and the other is a
+   live property of the session. The plugin root behind the first comes from `$CLAUDE_PLUGIN_ROOT`
+   when it is set, else `claude plugin list --json` → `installPath` (verified live), else from
+   whoever raised the run.
+4. **No verb classifies a change set by scope.** `nen gate derive --policy-paths --process-paths
    --files` is the nearest thing and answers a **different question** — which human *gate* a diff
    derives, `G2` or `G4`. Verified live at this pin (`docs/ab/hanten.md` § 2.3): a two-file
    documentation-and-skill diff derives `G4` *"the diff touches the process surface"*, which is true and
    says nothing about whether the change is security-bearing. So § 2's classification is read off
    `git diff --name-only` against the default map, in the open, and reported as by-hand.
-3. **`nen/workflow.json` carries no `review` block at `nen.workflow/v0.1`**, so § 2's path→scope map
+5. **`nen/workflow.json` carries no `review` block at `nen.workflow/v0.1`**, so § 2's path→scope map
    cannot be declared per repository. Read as this skill's default, stated every run, corrected by hand
    where a repository's layout defeats it — and filed (`docs/ab/hanten.md` § 4.2).
-4. **`nen/workflow.json` is unvalidated at `v0.3.0`** — no row in `nen schema check`
+6. **`nen/workflow.json` is unvalidated at `v0.3.0`** — no row in `nen schema check`
    (`docs/ab/rikugan.md` § 2.4). `models` and `reports.dir` are read as data with the defaults stated.
 5. **The worktree a Codex reviewer runs in is hanten's own `git worktree add`** (§ 9a). `codex exec -C`
    takes a directory and makes none, and no nen verb makes one either — `nen` owns operations, not
    checkouts. Named residue, on that surface only; on Claude Code `isolation: "worktree"` still does it.
+   **Computing the extra writable root is residue with it** — `git rev-parse --path-format=absolute
+   --git-common-dir`, read by hand and passed to `--add-dir`. No verb answers "which directories must a
+   sandbox open for this checkout to be writable", and that is a property of one surface's sandbox rather
+   than of the repository, so none should.
 6. **A persona's `model:` pin does not survive a surface change, and nothing resolves it.**
    `nen surface mirror generate` carries `model` through to `.cursor/agents/<persona>.md` verbatim —
    correctly, since it mirrors and does not translate — so Hisoka's `sonnet` arrives on Cursor as a
@@ -414,8 +538,14 @@ of the transcript can tell the two apart.
 - **Never raises a Codex reviewer outside an isolated directory**, and never with
   `--dangerously-bypass-approvals-and-sandbox`. `git worktree add` first, then `codex exec -C <that dir>
   -s workspace-write` (§ 9a).
-- **Never raises a reviewer into the working copy under review** — isolation, or the report says the
-  isolation was missing (§ 4, § 9).
+- **Never raises a reviewer into the working copy under review** — an isolated checkout **of the
+  target**, or the report says the isolation was missing (§ 4, § 9).
+- **Never passes `isolation: "worktree"`** from a skill invocation: it isolates the plugin's own
+  repository, not the one under review (§ 4).
+- **Never answers § 3's question 2 with `ls`**, and never reports a persona as raised when the
+  surface's agent registry does not carry `hatsu:<persona>` (§ 3).
+- **Never reads `$CLAUDE_PLUGIN_ROOT` without checking it is set** — it is empty outside a skill
+  invocation, and a bare relative path resolves against the repository under review (§ 3).
 - **Never records a finding missing `rule` or `evidence` as a finding** — it is a note (§ 5).
 - **Never leaves a finding without a disposition**, and never re-grades a severity to make one go away
   (§ 6, § 7).

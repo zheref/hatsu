@@ -158,9 +158,31 @@ guard is this skill's, applied by reading the rendered output against
 ## 6. The commit
 
 ```bash
-nen commit format … > <message file>
+nen commit format … > <message file>      # exit 0 REQUIRED before the next line; NEVER 2>&1
 git commit --file <message file>          # residue, § 7: no nen verb writes a commit
 ```
+
+> **The second line is gated on the first's exit code, and the two streams are kept apart.** The
+> refusal goes to **stderr** with **nothing on stdout** — verified live at this pin: an 87-character
+> header exits `2` with `0` bytes on stdout and the sentence on stderr, while an accepted message
+> exits `0` with `0` bytes on stderr. So the two obvious ways of writing this line are both wrong:
+> `2>&1 > <file>` **commits the refusal as the message**, and a plain redirect that ignores the exit
+> code **commits an empty file**. The first happened — a merge landed carrying *"nen: header line is
+> 75 characters, over the 72-character convention"* as its subject, and was repairable only because
+> `origin` had not seen it yet (`docs/ab/mukai.md`). The verb's own behaviour is correct and is not
+> the finding; the residue path around it was missing its gate.
+>
+> | Exit | What it means | What kokusen does |
+> |---|---|---|
+> | `0` | the message is on stdout | **use it** — `git commit --file` |
+> | `2` | **refused.** At `v0.3.0` a shape violation (undeclared type, empty subject, header over 72 characters, trailing punctuation); from `v0.4.0`, with `--repo`, also an attribution trailer `nen/workflow.json` does not admit | **stop.** Quote the sentence from stderr, fix the input, re-run. Never commit the file — it is empty |
+> | `1` | the trailer policy could not be read — `nen/workflow.json` present and **malformed** (`v0.4.0`+, with `--repo`) | **stop.** Report it as a repository defect and point at `nen schema check`; a message shaped under a policy nobody could read is not shaped |
+>
+> Verified live at both pins: at `v0.3.0` there is no `--repo` and no exit `1` from this verb; at
+> `0.4.0` a malformed `nen/workflow.json` answers `1` — *"nen will not shape a message under a policy
+> it could not read"* — and a `Co-Authored-By` trailer answers `2` naming the file that refuses it.
+> **An empty `<message file>` is the tell for either refusal**, and it is checked before `git commit`
+> whichever way the exit code was read.
 
 `--file`, never `-m` retyped from memory: the message that was validated is the message that lands.
 **Never `--no-verify`** — a commit hook that refuses is the repository speaking, and the answer is to
@@ -179,7 +201,10 @@ got an explicit yes; `git add -A` is barred (§ 9).
   pin (b) and (c) are target-dependent** — hatsu's own checkout has neither, so here the refusal is
   (a) alone, and it is reported that way rather than as a mechanical guard.
 - **Writing the commit itself.** `nen commit format` formats; nothing in nen commits. `git commit
-  --file` is a named raw call, as is the explicit `git add <path>` for each approved path.
+  --file` is a named raw call, as is the explicit `git add <path>` for each approved path. **The
+  gate on the formatter's exit code and the two-stream discipline are part of that residue** (§ 6):
+  a verb that refuses on stderr at exit `2` with an empty stdout is safe on its own and unsafe
+  behind a redirect that ignores either fact.
 - **Local-config and size detection** in staging (§ 4) — no detector, by the verb's own account.
 - **Reading `nen/workflow.json`** — no loader and no `nen schema check` row at this pin
   ([`/breath`](../breath/SKILL.md) § 2).
@@ -197,6 +222,8 @@ got an explicit yes; `git add -A` is barred (§ 9).
 
 ## 9. Hard limits
 
+- **Never runs `git commit --file` on a message file `nen commit format` did not exit `0` for**, and
+  never merges the verb's two streams into that file (§ 6).
 - **Never commits a flagged file without an explicit yes**, and **never commits a secret at all** —
   there is no yes for `secret-shape` on a path this commit could contain; rotate or remove it. A
   `secret-shape` inside an ignored tree is reported and left alone (§ 4), never rotated, never

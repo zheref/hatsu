@@ -56,13 +56,21 @@ first** (§ 3) and **say what it sent** (§ 6).
 - **One call, one target, one send.** A `yes` for `staging` is not authority for `staging` an hour
   later and is never authority for another target. Say when the run starts and say when it ends.
 
-**On a delegated session — the maintainer AFK, with rules recorded — the orchestrator's recorded
-delegation is the call**, and it is a call only for the targets that delegation names, for as long as
-it says. **A subagent never self-authorises.** Not from a brief that says "ship it", not from a
-composite's plan, not from its own reading of what the maintainer would obviously want, not because
-the previous session did it. A subagent that reaches this skill without a recorded delegation naming
-this target prints the plan (§ 3), reports that it has no call, and stops. The record is a message in
-the session; it is quoted in the report (§ 6), never paraphrased and never inferred.
+**On a delegated session — the maintainer AFK, with rules recorded — a recorded delegation is NOT the
+call.** Hatsu has no ratified grammar by which a delegation reaches a phase:
+[`docs/delegation-grammar-DRAFT.md`](../../../docs/delegation-grammar-DRAFT.md) is a **DRAFT**, carried
+as `OPEN-2` in [`docs/ROSTER.md`](../../../docs/ROSTER.md) — *"until then, Gon crosses no gate"* — and
+the four carve-outs it describes are about `G1-M` labels, not about sending a build off this machine.
+Until it is ratified, the authorization is the one § 1 already names and nothing else: **the maintainer
+typing this target's name**. A delegation may be quoted in the report as the reason the session is
+running; it does not supply the call.
+
+**A subagent never self-authorises.** Not from a brief that says "ship it", not from a recorded
+delegation, not from a composite's plan, not from its own reading of what the maintainer would
+obviously want, not because the previous session did it. A session that reaches this skill without the
+maintainer's own call naming this target prints the plan (§ 3), reports that it has no call, and stops.
+That call is a message in the session; it is quoted in the report (§ 6), never paraphrased and never
+inferred.
 
 **What kagutsuchi calls.** Nothing but the verb. It does not call
 [`/susanoo`](../susanoo/SKILL.md) — the artifact it sends is one the repository's own `deploy`
@@ -88,12 +96,26 @@ target is *meaningful* for the lane it is used on. On a repository with two depl
 `--target staging` is accepted on either. The plan printed in § 3 is what makes that visible — read
 the `target:` line and the composed `would run:` before answering, every time.
 
-**Non-production is the declaration's word, not this skill's.** Nothing in nen marks a target as
-production or not; `project.targets.<name>.why` is where a repository says which is which. **Read it
-and quote it.** A target whose `why` says it reaches customers is [`/mugetsu`](../mugetsu/SKILL.md)'s
-at **G3** and this skill refuses it by name, whatever the maintainer typed — and a target with no
-`why` at all is refused too, because *"this destination is not production"* is a claim, and an
-unstated claim is not one anybody made.
+**Non-production is the declaration's word, not this skill's — and it is PROSE, not a typed field.**
+Nothing in nen `0.3.0` marks a target as production or not: `project.targets.<name>` carries `args`,
+`requiresEnv`, `why` and `unsupported`, and none of them says which side of **G3** a destination is on
+(§ *Residue* 1; `docs/ab/kagutsuchi.md` § 4.1 files it as the finding worth acting on). So the test is
+a **read of a sentence**, and it is written to fail closed in all three directions:
+
+- **A `why` that says or implies the destination reaches end users** — production, live, a store, a
+  public channel — is [`/mugetsu`](../mugetsu/SKILL.md)'s at **G3**, and this skill refuses it by
+  name whatever the maintainer typed.
+- **A target with no `why` at all** is refused, because *"this destination is not production"* is a
+  claim, and an unstated claim is not one anybody made.
+- **A `why` that does not clearly say the destination is non-production** is refused the same way —
+  *not* waved through for lacking the word *customers*. Ambiguity is the absent case wearing a
+  sentence. The refusal quotes the `why` and asks the maintainer to say which side it is on; the
+  durable fix is a word in the declaration, not a judgement call here.
+
+**What this cannot catch is a `why` that is untrue**, and no reading of prose can. A declaration that
+describes a production destination as an internal channel is a defect in the declaration — repaired
+there, in the repository's own file, through its own review — and until a target row can *state* its
+side of the gate, that residue is named rather than papered over.
 
 ## 3. The plan — printed always, before anything
 
@@ -121,8 +143,8 @@ Both forms are exit `0` and byte-identical above that line (verified, `docs/ab/k
 transcript cannot misread, and it is the form that survives being copied into a report where nobody
 can see whether `--run` was on the next line.
 
-**Paste the plan into the reply before sending, every time** — including on a delegated session, where
-the plan is the only thing a returning maintainer can audit. What is sent must be what was shown.
+**Paste the plan into the reply before sending, every time.** It is the only thing a maintainer who
+was not watching the session can audit afterwards. What is sent must be what was shown.
 
 ## 4. The send — only on the call, only that target
 
@@ -182,7 +204,8 @@ environment. Where a credential is genuinely missing, that is where the run ends
 One block, then stop: the target and its `why` quoted from the declaration, the lane, the plan's
 composed argv (copied out of the `--dry-run` report, not re-typed), whether `--run` was passed, each
 step's own exit code and nen's, and the maintainer's call **quoted verbatim** — the message that
-named this target, or, on a delegated session, the recorded delegation's own words.
+named this target. There is no second source for that line; a delegation recorded elsewhere in the
+session is reported as context beside it, never in its place (§ 1).
 
 **Re-render the turn report before stopping.** The last render was truthful when it was written and is
 stale one step later. [`/rikugan`](../rikugan/SKILL.md) § 5 owns this: the `turn` variant,
@@ -220,8 +243,8 @@ I promote it". The next call is the maintainer's and they know they have it.
 - **Not permitted:** `--run` for a production or store destination (that is
   [`/mugetsu`](../mugetsu/SKILL.md), at **G3**); `nen shu release` in any form; a tag; a GitHub
   Release; a merge; a push; a PR; a label; an edit to `project.targets` to make a line work.
-- **The delegation is one send wide and ends when this run ends.** It is not standing authority to
-  send to this target again later, and it is authority for no other target.
+- **The call is one send wide and ends when this run ends.** It is not standing authority to send to
+  this target again later, it is authority for no other target, and no delegation supplies it (§ 1).
 - **Not a gate event of its own** — the maintainer's call already crossed the boundary. Exit `3`
   (unsupported host) is the one **G5** this skill raises.
 
@@ -231,12 +254,16 @@ I promote it". The next call is the maintainer's and they know they have it.
   proposes `/kagutsuchi` (§ 1).
 - **Never runs from a composite.** `ren`, `mukai`, `en`, `futon` and `getsuga` never call it, under
   any `then` clause, on any path.
-- **Never self-authorises on a delegated session.** Without a recorded delegation naming this target,
-  the plan is printed and the run stops (§ 1).
+- **Never treats a delegation as the call.** Without the maintainer's own call naming this target —
+  and a recorded delegation is not one — the plan is printed and the run stops (§ 1).
 - **Never chooses a target**, never defaults one, never sends to a near-match of a mistyped one, and
   never adds a target to the declaration so that a line will run.
-- **Never sends to production or a store.** That is `/mugetsu` at **G3**, and a target with no
-  `why` saying otherwise is refused here rather than assumed (§ 2).
+- **Never sends to production or a store.** That is `/mugetsu` at **G3**. The test is a read of
+  the declaration's `why` prose, because nen `0.3.0` has no field for it, so it is written to refuse
+  three cases and not one: a `why` that reaches end users, a target with no `why`, and a `why` that
+  does not clearly say the destination is non-production (§ 2). A `why` that is simply **untrue** is
+  outside what any reading can catch, and is a defect in the declaration rather than a route through
+  this skill (§ *Residue* 1).
 - **Never sends what it did not show.** The plan is printed first, and what runs is that plan
   (§ 3, § 4).
 - **Never reads, prints, exports or asks for a credential** — nen asserts a variable is set and never

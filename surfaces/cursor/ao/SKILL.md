@@ -188,6 +188,47 @@ merge algorithm holds the belief. So is a `UU` where both sides changed the same
 determined.** Then re-run the declared build before the merge is committed — a green merge that was
 never built is a claim, not a result.
 
+**Then ao commits it.** This is the one commit ao makes and it has always been implied — § 5 says
+*"before the merge is committed"* and the hard limits say *"never commits a resolved merge without
+re-proving the declared build"* — so it is written out here rather than left to be inferred:
+
+```bash
+nen commit format --type chore --scope merge \
+  --subject "bring origin/<base> into <descriptor>" \
+  --body "<one line per conflicted path: kind, and why the resolution was determined>" \
+  --trailer "Akatsuki-Agent=kurapika" > <msg-file>          # exit 0 REQUIRED before the next line
+git -C <path> commit --file <msg-file>
+```
+
+**Gate the second line on the first's exit code, and keep the two streams apart.** The refusal goes
+to **stderr** with **nothing on stdout** — verified live at the pin: a 87-character header exits `2`
+with `0` bytes on stdout and the sentence on stderr, while the accepted message exits `0` with `0`
+bytes on stderr. So `2>&1` into the message file commits the refusal *as the message*, and a plain
+redirect commits an empty one. Both happened; the second was repaired by an amend that was only safe
+because `origin` had not seen the commit (`docs/ab/mukai.md`). The reading is
+[`kokusen`](../kokusen/SKILL.md) § 6's and holds identically here:
+
+| Exit | What it means | What ao does |
+|---|---|---|
+| `0` | the message is on stdout | use it — `git commit --file` |
+| `2` | **refused.** At `v0.3.0` a shape violation (undeclared type, empty subject, header over 72, trailing punctuation); from `v0.4.0` also an attribution trailer `nen/workflow.json` does not admit | **stop.** Quote the sentence from stderr, fix the input, re-run. Never commit the file |
+| `1` | the trailer policy could not be read — `nen/workflow.json` present and malformed (`v0.4.0`+, with `--repo`) | **stop.** The message is unshaped because the policy is unreadable; that is a repository defect to report, not to commit past |
+
+At the pinned `v0.3.0` there is **no `--repo` flag and no trailer policy** — verified live: the
+forbidden-trailer refusal is `v0.4.0`'s, and at the pin `--trailer "Co-Authored-By=…"` is formatted
+without complaint. **The house rule is not enforced by the binary here, so it is enforced by the
+caller**: one `Akatsuki-Agent`, no AI attribution trailer, whatever the verb accepts.
+
+**Why ao shapes the message at all:** git's default is *"Merge remote-tracking branch 'origin/main'
+into <branch>"*, which is not Conventional Commits, and a repository whose own history uses
+`chore(merge): …` for a hand-made merge (nen's does) gets a stranger's commit in the middle of it
+otherwise. The trailer rule is `nen/workflow.json` → `commits`, exactly as anywhere else: one
+`Akatsuki-Agent`, no AI attribution trailer.
+
+**A rebase has no merge commit**, and ao makes none: a rebase whose conflicts were resolved continues
+with `git -C <path> rebase --continue`, which reuses the replayed commit's own message. The build is
+re-proved the same way before the rebase is allowed to finish.
+
 ## 6. A semantic conflict is a stop, at G5
 
 **Never pick a side.** Not "ours is newer", not "theirs is bigger", not `-X ours`, not `-X theirs`,
@@ -217,7 +258,11 @@ remote has moved.** Push is [`/aka`](../aka/SKILL.md)'s, on the maintainer's cal
 them still does not push**: the caller pushes, after ao returns, having seen what ao did.
 
 Report, in one line: the base and its resolved SHA, rebase-or-merge and why, the conflicts by kind,
-which were mechanical and how each was resolved, and that the build was re-proved.
+which were mechanical and how each was resolved, that the build was re-proved, **and — where the
+operation was a merge — the merge commit ao made: its SHA and its two parents** (§ 5). *"…build
+re-proved `bun run typecheck` exit `0`; merged as `2d4d5ed`, parents `84b0444 cda6b03`. Nothing
+pushed by ao."* The commit is the whole of what ao left behind that the caller has to publish, so a
+report that omits it leaves the caller guessing what its own push is about to move.
 
 **Where the operation was a rebase, report `HEAD` before and after — even when nothing was replayed
 onto anything.** § 3's note is why: the SHA moves whether or not the content did, so the line reads
@@ -243,6 +288,11 @@ and the pair of SHAs is the cheapest possible way to say so.
 5. **Showing both sides** (§ 6) — `git show :1:|:2:|:3:<path>`. No verb renders a merge stage.
 6. **The in-progress-merge check** (§ 2) — `.git/MERGE_HEAD` / `.git/rebase-merge` on disk;
    `nen wc classify` folds an unresolved merge into `on-branch-dirty` (verified live).
+7. **The merge commit itself** (§ 5) — `nen commit format` shapes the message and **`git commit
+   --file` makes the commit**, gated on the format verb's exit code and with the two streams kept
+   apart. `nen commit format` is a formatter: verified live it writes a message to stdout and
+   commits nothing, and nothing in nen at `v0.3.0` commits. `git rebase --continue` is the same
+   entry for the rebase half.
 
 Every one of these is run in the open and reported as by-hand, per the Nen-first rule's second half
 (`claude/agents/kurapika.md`): a missing verb is a finding, not a gap to route around silently.
@@ -250,7 +300,8 @@ Every one of these is run in the open and reported as by-hand, per the Nen-first
 ## Authority
 
 - **Permitted:** fetch; rebase an **unpublished** branch; merge the base into a published one;
-  resolve a **mechanical** conflict; re-run the declared build; write the working copy and the local
+  resolve a **mechanical** conflict; re-run the declared build; **commit the resolved merge** (§ 5,
+  one commit, `chore(merge)`, after the build is green); write the working copy and the local
   branch ref.
 - **Not permitted:** push of any kind, force-push above all; rewriting any commit that exists on the
   remote; resolving a semantic conflict; `--no-verify`; touching `main`.
