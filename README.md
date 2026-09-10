@@ -120,10 +120,19 @@ is nothing on either surface that would *fetch* Hatsu; what the warm-up automate
 session, of a root that already exists. That is a boundary rather than a step somebody forgot to write, and
 a warm-up that cannot find the root reports `NOT INSTALLED` and stops.
 
-```sh
-git clone https://github.com/zheref/hatsu.git ~/.hatsu                     # the tip
-git clone --branch v0.11.0 --depth 1 https://github.com/zheref/hatsu.git ~/.hatsu   # or a release, pinned
+**One of these two**, not both — the second refuses on a destination that already exists:
 
+```sh
+# the tip
+git clone https://github.com/zheref/hatsu.git ~/.hatsu
+
+# — OR — pinned to a release (the tags are at https://github.com/zheref/hatsu/tags)
+git clone --branch <tag> --depth 1 https://github.com/zheref/hatsu.git ~/.hatsu
+```
+
+Then, once:
+
+```sh
 export HATSU_PLUGIN_ROOT="$HOME/.hatsu"          # put this in your shell profile
 ```
 
@@ -134,9 +143,10 @@ warm-up resolves its root from that variable first, then from a path handed to t
 > **`$CLAUDE_PLUGIN_ROOT` is Claude Code's variable and it is *not* inert on the other two.** On the host
 > these records were made on it is exported from `~/.zshrc` and points at a **different plugin**, which
 > every Codex and Cursor session on that host inherits. So a candidate root is checked for what it **is** —
-> the first `"name"` in its own `.claude-plugin/plugin.json`, compared whole, reading `hatsu`, plus the
-> `claude/skills/` directory that manifest points at — and never merely for containing a `surfaces/`
-> directory. Shape is not identity: a wrong root that happened to have the right shape would install
+> the first `"name"` in its own `.claude-plugin/plugin.json`, compared whole, reading `hatsu`, plus one
+> second, independent fact about the same directory: that `claude/skills/` is there. (Those two, and no
+> more — the check does not parse the manifest's `skills` value.) It is never merely checked for containing
+> a `surfaces/` directory. Shape is not identity: a wrong root that happened to have the right shape would install
 > somebody else's skills into your repository with no error anywhere. **Every rejected candidate is named
 > by path in the report**, even when a later one succeeded, because a stale variable in a shell profile is
 > a thing to fix and this is where it becomes visible.
@@ -658,7 +668,8 @@ and no agent ever prompts for them**: `$aka` (push), `$mukai` (review and PR), t
 report link, the lettered options with a star on the report, and the question **asked through this
 surface's own option picker** — `AskUserQuestion` is Claude Code's name for that, and what the rule binds
 is the *shape*: a stop rendered as a paragraph ending in a question mark is a stop you have to compose an
-answer to.
+answer to. **The picker is not the turn-end hook**; the hook is what escalates a *bell* (below), and its
+absence here says nothing about how a question is put.
 
 ### Personas, and how a reviewer is raised
 
@@ -677,6 +688,7 @@ no spawn-a-delegate flag anywhere in it. So `$hanten` raises a reviewer as **a s
 in its own worktree**, and the isolation the Agent tool gives for free has to be made by hand first:
 
 ```sh
+rev="$(git rev-parse --show-toplevel)/.claude/worktrees/hanten-<scope>"   # the reviewer's own checkout
 git worktree add "$rev" HEAD                # the isolated copy — hanten's own act
 
 # `sol` is the TIER ALIAS; -m wants the host's ID for it. Resolve, never remember.
@@ -688,18 +700,31 @@ codex exec -C "$rev" -s workspace-write \
   -m "$sol" -o "$rev/finding.json" "<the scope, the base, the paths, and the required finding shape>"
 ```
 
-`-s workspace-write` is the **narrow** choice and is deliberate: the reviewer may write inside its own
-worktree — a test, a note, the finding document — and reaches nothing outside it. A reviewer that needs to
-bypass a sandbox to read a diff is not reviewing a diff.
+> **A fresh worktree carries none of the warm-up's placed files, and that is fine only because the prompt
+> carries the review.** `.agents/skills/` and `AGENTS.override.md` are excluded, not tracked, so
+> `git worktree add` does not reproduce them: a reviewer told to *invoke* a mirrored skill in `$rev` would
+> find none. The invocation above hands it the scope, the base, the paths and the required finding shape
+> **in the prompt**, which is what makes it work; a review that genuinely needs the mirror needs the
+> warm-up run in `$rev` first.
+
+`-s workspace-write` is the **narrow** choice and is deliberate: the reviewer writes its test, its note and
+its finding document inside its own worktree, and it is not `danger-full-access`. **It is not a claim that
+nothing outside the worktree is writable** — measured on this host with `codex sandbox -c
+sandbox_mode='"workspace-write"'`, a write to `/tmp` succeeded and a write to `$HOME` was refused with
+*"Operation not permitted"*. A reviewer that needs to bypass a sandbox to read a diff is not reviewing a
+diff.
 
 ### The bell
 
 **There is no turn-end hook on this surface**, so [`hooks/hooks.json`](hooks/hooks.json) is read by nobody
 here and `$jutaisho`'s in-session path is not a fallback — it is the only path there is. The skill writes
-the marker itself, runs the two escalation rungs itself, **says so**, and removes its own marker once the
-stop has been answered, which on Claude Code the hook would have done.
+the marker itself, runs whatever escalation rungs **your repository's** `nen/workflow.json` →
+`notifications.rungs` declares, **says which of them actually rang**, and removes its own marker once the
+stop has been answered, which on Claude Code the hook would have done. In the default list — `push`, `os`,
+`sound` — rung 1 is the surface's own turn-end signal and rungs 2 and 3 are the ones below; a repository
+that declares a shorter list has fewer, and the report names what it ran either way.
 
-> **On a headless run both escalation rungs are `not applicable — no seat`, and one of them lies about
+> **On a headless run the OS and sound rungs are `not applicable — no seat`, and one of them lies about
 > it.** A `codex exec` run has no Notification Center session and no audio device. Measured inside one on
 > this host: `osascript -e 'display notification …'` exited **`0`** and delivered **nothing** (stderr:
 > *"NSNotificationCenter connection invalid"*), and `afplay` exited `1` with *"AudioQueueStart failed"*.
@@ -822,7 +847,8 @@ Unchanged: **`/ren` on every request** — `/breath`, `/rasengan`, `/kokusen`, `
 `/jutaisho` — never pushing. Yours to call: `/aka`, `/mukai`, the **merge**, `/kagutsuchi` and `/mugetsu`
 (**G3**). A **G5** stop is the banner, the report link, the lettered options with a star on the report, and
 the question asked through this surface's own option picker — the same four parts, and all four or it is
-not a stop.
+not a stop. As on Codex, **the picker is not the turn-end hook**: the missing hook is a fact about the
+*bell*, below.
 
 ### Personas and reviewers
 
@@ -838,9 +864,11 @@ that surface documents; the reviewer runs at `models.roles.reviewer` = tier `dee
 
 ### The bell
 
-**No turn-end hook here either**, so `/jutaisho` writes the marker, rings the rungs in-session, says which
-it actually rang, and removes its own marker once the stop is answered. On an ordinary turn only rung 1 is
-owed — the surface's own turn-end signal — and **a surface without a hook is not a reason to be louder.**
+**No turn-end hook here either**, so `/jutaisho` writes the marker, rings the rungs **your repository's**
+`notifications.rungs` declares in-session, says which of them actually rang, and removes its own marker
+once the stop is answered. On an ordinary turn only rung 1 is owed — the surface's own turn-end signal —
+and **a surface without a hook is not a reason to be louder.** A headless `cursor-agent -p` run has the
+same missing seats as a headless `codex exec` one.
 
 ### The model matrix
 
@@ -882,6 +910,10 @@ cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
 
 - `-p, --print` is the non-interactive form; `--output-format` takes `text`, `json` or `stream-json` and
   **only works with `--print`**.
+- **`sort -V` is what picks the newest version, and macOS's own `/usr/bin/sort` has it** — verified on
+  macOS `26.4.1`, where `-Vr` orders `cursor-grok-4.6-high` above `cursor-grok-4.5-high`. On a host whose
+  `sort` lacks it the substitution comes back empty and the `[ -n "$grok" ]` guard exits `1` rather than
+  running on a wrong id: the fail-closed direction, and the reason the guard is written out.
 - **`-f` is `--force`, and it is NOT a file flag.** It *"force allow[s] commands unless explicitly
   denied"*; the line above parses only because `-f` takes no value and the prompt is a **positional**
   argument. The Codex block uses no such adjacency, so a reader copying one line is being invited to
