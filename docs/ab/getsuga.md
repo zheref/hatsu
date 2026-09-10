@@ -668,3 +668,26 @@ no release yet to fan out from):
   not a routed-around one: no `nen tag cut` flag corresponds to it, and no `getsuga` path, this port
   included, has ever exercised it live (no real cut in this history used `--mode marker`). Recorded
   in `SKILL.md` § 2 so its absence is stated, not silently dropped.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| the *shadowed leftover* FAIL when `latest` is edited in the wrong file | there is no shadowed-leftover verdict any more — `nen/` is the only file read | — |
+
+**Step 4's warning changes shape.** Through `v0.4.0`, a `repos.json` present under both `nen/` and
+`schemas/` with differing bytes was a `FAIL`, because `nen/` won the read and an edit to the other file
+was silently ignored. At `v0.5.0` the fallback is removed, so there is no read to protect: a `schemas/`
+copy beside a loaded `nen/` one is a `warn` **leftover** naming the `git rm` that clears it, and whether
+the bytes agree no longer changes the verdict.
+
+**The write itself is still residue** — no `nen` verb bumps `latest` — and the instruction is simpler
+than it was: edit `nen/repos.json`, and delete the stale duplicate rather than reconciling it.

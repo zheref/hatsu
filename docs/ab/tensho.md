@@ -451,3 +451,27 @@ exist in this repo yet, matching the precedent `hatsu:pr-state` set for the same
 > only as an explicitly-labelled fallback for when `drive` cannot run at all. Row 13 of § 1's table
 > and the last bullet of § 4.6 describe the interim state this run measured; they stand verbatim as
 > the record of that run, and this note is what corrects them.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| `--spec-paths` / `--policy-paths` straddling a live `schemas/` fallback | the fallback is **removed**; the literal prefix lists stay as they are, for a different reason | — |
+| `nen repo resolve` failing at exit `1` for a target with no registry | `nen repo resolve BC --repo <fixture>` | `2` |
+
+**Both path lists still name `schemas/`, and that is now a deliberate choice rather than an inherited
+one.** The fallback removal is about what *nen resolves*; a prefix handed to `nen changelog
+fragment-required` or `nen gate derive` is taken literally and nen's resolution never sees it. An
+**un-migrated** target still edits a real `schemas/*.json`, and that edit is still a spec change owing a
+fragment and a G4. Dropping the prefix would under-derive a gate; keeping it costs nothing, since a
+prefix matching no file is harmless.
+
+The `repo resolve` transcript is in `docs/ab/file.md` § *Retired at nen 0.5*.

@@ -347,3 +347,30 @@ dry-run report instead of refusing.
    ported skill's § 1 rule wants (a candidate list to hand the maintainer) — recorded as a
    documented nuance rather than a defect, since nothing here contradicts `nen`'s own stated
    contract.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| exit `1` as the only refusal from `nen repo resolve` | `nen repo resolve BC --repo <fixture with no registry>` | `2`, naming the file |
+| the `schemas/` fallback in every taxonomy read | removed at `v0.5.0` — `nen/` only | — |
+
+```
+$ nen repo resolve BC --repo <fixture>
+nen repo: <fixture>/nen/repos.json: no such file. Nen reads this repository's taxonomy from
+'nen/repos.json' in the TARGET repo and has no built-in copy to fall back on …
+exit=2
+```
+
+**§ 1's two-way branch becomes three-way.** `0` — the token resolved. `1` — the registry opened fine and
+the token is not in it, which is still *"the token is part of the problem text"*. `2` — **there is no
+registry to read**, which is a precondition and not a data problem, and is emphatically not a reason to
+treat the token as prose. A registry present but malformed stays `1`.

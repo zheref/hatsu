@@ -35,8 +35,8 @@ resolves**:
 nen repo resolve <token>
 ```
 
-against the current checkout's `nen/repos.json` (or, until `v0.4.0`, its legacy `schemas/repos.json`
-— nen reads `nen/` first and falls back; `--repo <path>` names another checkout's registry) — a
+against the current checkout's `nen/repos.json`
+— the only location nen reads it from at this pin; `--repo <path>` names another checkout's registry) — a
 `product_code`, an owner/name slug, or a repository's short name, matched exactly and
 case-insensitively, never as a prefix, and since nen `v0.2.0` resolved from **everything** the registry
 records — consumers, `product_codes` keys *and* values, `maintained_tools`, `pending_onboarding`
@@ -45,6 +45,16 @@ records — consumers, `product_codes` keys *and* values, `maintained_tools`, `p
 code and repository — that refusal text **is** the candidate list, never re-derived by hand). **Exit `0`** → the token is the repo;
 everything before it is the problem. **Exit `1`** → the token is **part of the problem text**,
 not a typo'd repo — never silently repoint a filing at a repo the maintainer did not name.
+
+> **RETIRED at nen `0.5`: exit `2` is a THIRD answer, and it means something else entirely.** A target
+> carrying **no registry at all** — neither `nen/repos.json` nor the removed legacy `schemas/repos.json` —
+> now refuses at exit `2` **naming the file**, where through `v0.4.0` it fell through to a generic exit `1`
+> indistinguishable from an unresolved token. Verified live at the pin, exit `2`: *"`<path>/nen/repos.json`:
+> no such file. Nen reads this repository's taxonomy from 'nen/repos.json' in the TARGET repo and has no
+> built-in copy to fall back on."* **So the branch above must be read three ways, not two**: `0` the token
+> resolved, `1` the registry opened fine and the token is not in it, `2` there is no registry to read — a
+> precondition, not a data problem. A registry that is present but **malformed** is unaffected and stays
+> `1`.
 
 **The repo, when omitted:** run `nen repo resolve` with **no token** — it resolves the current
 working directory's `origin` remote against the same registry. If the cwd is not a registry
@@ -128,8 +138,8 @@ nen label apply <CODE>-IS-#<n> --label <severity-label> --repo-slug <owner/name>
   --reason "<what changed the assessment>" --run
 ```
 
-`--repo` is not optional: `nen label` reads the taxonomy from `nen/labels.json` (or, until `v0.4.0`,
-the legacy `schemas/labels.json`) **in the checkout `--repo` points at**, not in whatever directory the
+`--repo` is not optional: `nen label` reads the taxonomy from `nen/labels.json` **in the checkout
+`--repo` points at**, not in whatever directory the
 skill happens to be invoked from, and has no built-in copy to fall back on — omit it and the call
 refuses with `nen/labels.json: no such file` naming **both** locations the moment it is run from a
 checkout that doesn't carry that file itself (e.g. this skill's own `hatsu` checkout; verified live
@@ -222,7 +232,7 @@ nen issue file --target <owner/name> --repo <path to a checkout carrying nen/lab
 
 (`--body-file` is handed to `gh` verbatim, so it resolves against the cwd, never `--repo` — pass an
 absolute path.) `nen issue file` checks every label against the target repository's `nen/labels.json`
-(or, until `v0.4.0`, its legacy `schemas/labels.json`) **before** attempting anything (verified live: an unknown label refuses with `is not in this
+**before** attempting anything (verified live: an unknown label refuses with `is not in this
 repository's taxonomy … GitHub would CREATE it rather than refuse, so a typo becomes a permanent
 undocumented label` — GitHub itself never catches this, only the taxonomy check does) and enforces
 `--forbid-family` as a hard, machine-checked guard (verified live: a label in a forbidden family
@@ -234,7 +244,7 @@ this skill's prose has to remember into one `nen issue file` refuses to violate.
 
 | Class | What to apply | Basis |
 |---|---|---|
-| **Lane / agent** | Whichever labels route this problem to its owning discipline in the target repo's own taxonomy — several when it spans lanes | Read from `nen/labels.json` (legacy `schemas/labels.json` until `v0.4.0`) at run time, never from memory; a label this port hasn't seen before is still a real one if the taxonomy carries it |
+| **Lane / agent** | Whichever labels route this problem to its owning discipline in the target repo's own taxonomy — several when it spans lanes | Read from `nen/labels.json` at run time, never from memory; a label this port hasn't seen before is still a real one if the taxonomy carries it |
 | **Severity** | Exactly one severity label from the target repo's own severity vocabulary | Propose with one line of reasoning; the plan carries it |
 | **Kind** | Bug / handbook-question / epic / QA / observation-fix, as the target repo's taxonomy names them | What the issue *is* |
 | **Stage** | **None** | Zero stage labels before release; the stage-that-is-the-release-trigger is the human's, and `--forbid-family` (above) makes that a call refusal, not a rule to remember |

@@ -49,7 +49,7 @@ hatsu:sharingan <product_code>#<pr_number> to <G2 | G4>
 
 | Part | Accepts | Notes |
 |---|---|---|
-| `product_code` | a code from the target repository's `nen/repos.json` → `product_codes` (legacy `schemas/repos.json` until `v0.4.0`) | A short name (`<reference-repo>`) or `owner/repo` is also accepted |
+| `product_code` | a code from the target repository's `nen/repos.json` → `product_codes` | A short name (`<reference-repo>`) or `owner/repo` is also accepted |
 | `pr_number` | an **open PR** on that repo | An issue number is an error — see below |
 | gate | `G2` or `G4` | `to <gate>` may be omitted; the gate is then derived (§ 2) |
 
@@ -85,13 +85,15 @@ nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/
 `--files`/`--files-from` are caller data — `nen gate derive` fetches nothing itself, so the changed
 path set still comes from `gh pr diff <n> --repo <owner/name> --name-only` (residue: no `nen` verb
 fetches a remote diff, per `backlog-state`'s own A/B). **`--policy-paths` is a literal, and the
-taxonomy directory moved under it.** Since nen `v0.3.0` a target's `labels.json`/`repos.json`/
-`colors.yml`/`gates.json` live canonically under `nen/`, with `schemas/` read as a fallback until
-`v0.4.0` — but nen's fallback answers only for paths *nen* resolves; a prefix you hand `gate derive` is
-taken literally (USAGE: *"`schema check` will not warn about them, because it never sees them"*). So
-list **both** `nen/` and `schemas/` for the whole `v0.3` line: a taxonomy change derives G4 whether the
-target has migrated or not, and a prefix that matches no file is harmless. Drop `schemas/` for a target
-once `nen schema check --repo <path> --json` reports `deprecations: []`, and by `v0.4.0` at the latest.
+taxonomy directory moved under it.** A target's `labels.json`/`repos.json`/`colors.yml`/`gates.json`
+live canonically under `nen/`, and **at the pinned nen `0.5.0` the `schemas/` fallback is REMOVED**:
+a repository carrying a file only there is refused exactly like one carrying it nowhere. **That is
+about what nen resolves and changes nothing here** — a prefix you hand `gate derive` is taken
+literally, and nen's resolution never sees it (USAGE: *"`schema check` will not warn about them,
+because it never sees them"*). So keep **both** `nen/` and `schemas/` listed: an un-migrated target
+still edits a real `schemas/*.json` and that edit is still policy, a migrated one has at most a stale
+duplicate, and a prefix matching no file is harmless. **Dropping `schemas/` would under-derive a
+gate.**
 
 If the derived gate differs from the one typed, **say so in one line, drive to the derived gate,
 and carry the correction into the stop** — `nen gate derive --asserted <G2|G4>` reports the
@@ -185,7 +187,7 @@ nen pr ready <CODE>#<N> --repo <path> --explain            # the target ships ne
 
 | The target repository | The flag | What the verdict is about |
 |---|---|---|
-| ships its own `nen/gates.json` (or, until `v0.4.0`, `schemas/gates.json`) | **none** — the verb reads it | this repository's own configured reviewers. **Always prefer this** |
+| ships its own `nen/gates.json` | **none** — the verb reads it | this repository's own configured reviewers. **Always prefer this** |
 | **is `<reference-repo>`**, which is FROZEN and ships no gates file | `--gates "<plugin root>/contracts/reference.gates.json"` | that repository's identities, carried here because it cannot grow a file of its own |
 | ships no gates file and is **not** `<reference-repo>` | `--reviewers <a,b,c> [--approvers <a,b>]`, **supplied by hand and named on the page** | the identities this repository actually configures |
 
@@ -288,7 +290,8 @@ nen wake fire --repo-slug <owner/name> --ref <CODE>-PR-#<N> --label bankai:wake/
 ```
 
 (`bankai:wake/iterate` is the real label name, read off `<reference-repo>`'s own `nen/labels.json` —
-legacy `schemas/labels.json` at the port: *"CON-26/CON-38 non-vote wake: re-fires a builder's own
+`schemas/labels.json` was where it sat at the port, before that directory stopped being read:
+*"CON-26/CON-38 non-vote wake: re-fires a builder's own
 ITERATE on its open PR; edge-triggered."*) `--run` is required — without it `nen wake fire` writes
 nothing (CON-38's dry-run-first convention), which this port never exercises against `<reference-repo>`
 itself (mutating; contract inspected only, per the shared brief's boundary — see `docs/ab/drive.md` § 3).

@@ -47,13 +47,13 @@ hatsu:pr-state <repo_code>#<PR_NUMBER>        e.g.  hatsu:pr-state BC#603
 
 | Part | Accepts | Rule |
 |---|---|---|
-| `<repo_code>` | a product code from the target repository's `nen/repos.json` → `product_codes` (or, until `v0.4.0`, its legacy `schemas/repos.json`) | **case-insensitive**; an unknown code is an **error** that names the valid ones, never a guess |
+| `<repo_code>` | a product code from the target repository's `nen/repos.json` → `product_codes` | **case-insensitive**; an unknown code is an **error** that names the valid ones, never a guess |
 | `<PR_NUMBER>` | a positive integer | a number that names an **issue**, not a PR, is **not** caught as one before the call — verified against `v0.1.0`, it comes back `unevaluated: GitHub could not be read (… Could not resolve to a PullRequest with the number of <N>.)`, carrying `nen`'s generic token-grants remedy even though the token is fine — see the callout below and § 4. No `v0.2.0`/`v0.3.0` changelog entry touches this path; it is not re-verified at `v0.3.0` (a live GitHub read) |
 
 The codes are read from the registry **at run time, never from memory** — they change. `nen pr ready`
 does this itself: pass the ref straight through and let the verb resolve it against
 `--repo <path>`'s `nen/repos.json` (nen reads `nen/` first and, for the whole `v0.3` line, falls back to
-the legacy `schemas/repos.json`; a refusal names both). Do not pre-resolve the code by hand or guess one
+a refusal names it). Do not pre-resolve the code by hand or guess one
 from the working directory.
 
 > **Write the `#`.** This port filed a finding against `v0.1.0` (`docs/ab/pr-state.md` § 4): the no-`#`
@@ -112,17 +112,17 @@ house convention for exactly this (`claude/skills/hatsu-warmup/SKILL.md` § 0). 
 line), so the report itself says which file decided.
 
 - **`--repo <path>`** is the TARGET repository's working-tree root — a path, never an `owner/name`
-  slug — used to resolve `<CODE>` against its `nen/repos.json` (legacy `schemas/repos.json` until
-  `v0.4.0`). **`--gh-repo <owner/name>`** is the slug the API read runs against, needed whenever the ref
+  slug — used to resolve `<CODE>` against its `nen/repos.json`.
+  **`--gh-repo <owner/name>`** is the slug the API read runs against, needed whenever the ref
   is a bare number — `--repo <path>` is itself a path argument, not the cwd, so it already works from
   anywhere without `--gh-repo` alongside it.
 - **`--gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"`** — `<reference-repo>` is FROZEN and ships
-  no gates file of its own (neither `nen/gates.json` nor the legacy `schemas/gates.json`); without
+  no gates file of its own (no `nen/gates.json`); without
   `--gates` (or a `--reviewers` override) `nen pr ready` refuses outright with `no reviewer identities`
   rather than guessing a reviewer set — verified live at `v0.3.0`, and the refusal now names **both**
   locations it looked in. This repository's `contracts/reference.gates.json` carries the same reviewer
   identities the oracle script hard-codes — see that file's own header. **A repo that ships its own
-  `nen/gates.json` (or, until `v0.4.0`, `schemas/gates.json`) needs no `--gates` flag at all**; this one
+  `nen/gates.json` needs no `--gates` flag at all**; this one
   is `<reference-repo>`-specific plumbing, not a general rule. `--gates` itself **never** falls back to
   either taxonomy location: a path you hand it is taken literally.
 - **`--explain`** renders the conjunct-by-conjunct table in evaluation order, short-circuit rows

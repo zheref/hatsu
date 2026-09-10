@@ -32,7 +32,7 @@ nen repo scenario --repo <path to a checkout carrying nen/repos.json — or sche
 
 `--repo` is a **path**, not a slug — today that path is the frozen `<reference-repo>` checkout, since that is
 where the consumer registry Naruto kept lives (its `schemas/repos.json`, which nen reads through the
-legacy fallback until `v0.4.0`; a migrated checkout carries it at `nen/repos.json`); `--target` is the
+a checkout carries it at `nen/repos.json` and nen reads it from there only); `--target` is the
 product repo's `owner/name`. **`--repo` is required** — omitted, exit `2` by name (nen `v0.2.0`, #73;
 verified live at `v0.3.0`), never a silent cwd default. The verb reads the scenario **live**, off the
 same `CON-14`-factual registry `pr-state`'s `--repo` flag and `warmup`'s stale-pin sweep already read —
