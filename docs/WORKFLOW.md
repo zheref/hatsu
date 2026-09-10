@@ -450,9 +450,24 @@ root gets back the identical string**, which is every lane in this repository.
     ]
   },
   "mac": { "verb": "dev", "args": ["-scheme","<scheme>"], "after": [ { "exe": "open", "argv": ["{artifact}"] } ] },
-  "sim": { "verb": "dev", "device": { "name": "iPhone 17 Pro", "kind": "simulator" } }
+  "sim": { "verb": "dev", "device": { "name": "iPhone 17 Pro", "kind": "simulator" } },
+  "pixel": {
+    "verb": "dev",
+    "device": { "name": "<the serial adb printed>",
+                "resolve": { "exe": "adb", "argv": ["devices", "-l"] },
+                "readyWhen": { "field": 2, "in": ["device"] } },
+    "after": [
+      { "exe": "adb", "argv": ["-s","{device.id}","install","-r","{artifact}"] },
+      { "exe": "adb", "argv": ["-s","{device.id}","shell","am","start","-n","<pkg>/<activity>"] }
+    ]
+  }
 }
 ```
+
+The `pixel` row is the readiness rule in its commonest shape: `adb devices -l` prints the serial as the
+row's **first** token and the state as its second, so `field: 2` with `in: ["device"]` is the whole of it —
+`unauthorized`, `offline`, `no permissions` and every other state the daemon reports are then a refusal at
+exit `5` rather than an id nothing can use.
 
 Each key is a **named target**. `verb` is the lane verb to run; `args` are appended to its argv; `device`
 declares how to find the device and how it is named; `after` is the steps that install and start what the

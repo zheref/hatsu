@@ -159,6 +159,17 @@ column**, and it is the column that decides:
 | `no permissions` | attached; this host's udev/usb rules will not let `adb` open it | no — **present, not usable** |
 | `recovery` / `sideload` / `bootloader` | attached, in a mode that runs no app | no — **present, not usable** |
 
+> **That second column is exactly what the declaration writes**, and it is one line — the row's first
+> token is field 1, so the state is field 2:
+>
+> ```json
+> "readyWhen": { "field": 2, "in": ["device"] }
+> ```
+>
+> `device` is the only state this table registers from, so it is the only entry in `in`. § 6 carries
+> the JSON counterpart for `xcrun devicectl list devices --json-output -` and the four rules nen
+> validates at load. **Write it on every registration** — absent, the key changes nothing at all.
+
 ### Present, but not in a usable state — the third outcome, and it is not "absent"
 
 **Two states of the world are easy to name and a third is the one that actually bites:** the device
