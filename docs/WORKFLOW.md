@@ -21,7 +21,21 @@ There are exactly two configuration files, and the split is not stylistic. It is
 | **Content** | lanes, per-verb argv, preconditions, hosts, deploy targets, launch targets, evidence globs, host toolchain | branch shape, which declared verbs run per iteration, the coverage ladder, reports, notifications, commit trailers, monitor caps, the model matrix |
 | **Executed by** | `nen shu <verb>` — nen spawns exactly what is declared and nothing else | mostly the reader. Two verbs take a slice: `nen commit format --repo` reads `commits.allowedAttributionTrailers`, `nen shu coverage --touched` reads the `coverage` ladder |
 | **Changing it changes** | what runs on this machine | what the roster is willing to do |
-| **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — **both at the pinned nen `0.7.0`** |
+| **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — **both at nen `0.7.0`, the build every fact in this document was verified against** |
+
+> **The nen DEPENDENCY is the third block of the first file, and its two version values move
+> independently.** `dependency.minimum` is `0.7` and `dependency.pinned_ref` is `v0.8.0`: the first is the
+> pin this repository declares, the second is the build its bootstrap installs. **The range `minimum`
+> stands for is nen's answer, not a document's** — the binary ships `COMPATIBLE_MINOR_FLOOR`, the lowest
+> `minimum` pin it satisfies, and `nen shu tools` applies it, prints it as `compat floor:` and carries it
+> in `--json`. Per the maintainer's ruling of 2026-09-10 — *exact minor is fine, unless there is a
+> breaking change* — `minimum` moves **only** when nen's CHANGELOG carries a real bullet under
+> `### Breaking / consumer notes`, while `pinned_ref` may move on its own to a newer release inside the
+> range. Wherever this document says *"at the pinned nen `0.7.0`"* it names the build the fact was
+> verified against; [`../nen/contract.json`](../nen/contract.json) is the only place either value is
+> written down, and the warm-up
+> ([`hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md) § 1b) reads the verdict rather than computing
+> it.
 
 The reason to keep them apart is that they fail differently. A wrong `project` block produces a wrong
 command — loud, immediate, exit `1` or `5`. A wrong `workflow.json` produces a *correct command run at the

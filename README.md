@@ -13,11 +13,16 @@ verifies; the skill supplies only the judgment a binary cannot. Where no verb ex
 
 No GitHub App. No bot identity. Nothing here merges `main`, publishes a release, or casts a review vote.
 
-> **`v0.8.0`.** Hatsu is the local plane of the Akatsuki system, and it succeeds the local plane of a
+> **The current release is whatever [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json)'s `version`
+> says, and this line names no number on purpose** — a version repeated in prose is a version that drifts,
+> and this one sat four bumps behind before anybody read it. The releases named below are history, and each
+> stays true of the release it names. Hatsu is the local plane of the Akatsuki system, and it succeeds the local plane of a
 > predecessor system — the frozen reference implementation — which it also **serves live today**: the
 > original seventeen skills were ported name-for-name and proven against that system's real backlog before
 > `v0.1.0` was cut. The evidence is in [`docs/ab/`](docs/ab/), one file per skill — dated records of the port
-> against nen `0.1.0`. `v0.3.0` reconciled every skill and persona with nen **`v0.3.0`**, and `v0.7.1` repins to nen **`v0.5.0`**. **`v0.4.0` adds the
+> against nen `0.1.0`. `v0.3.0` reconciled every skill and persona with nen **`v0.3.0`**, and every repin
+> since lives in [`nen/contract.json`](nen/contract.json), which is the only place the pinned nen is
+> written down. **`v0.4.0` adds the
 > way of working**: ten skills that make the local loop itself explicit, two configuration files that hold
 > every parameter of it ([`nen/contract.json`](nen/contract.json) → `project` and
 > [`nen/workflow.json`](nen/workflow.json)), and two harness hooks — a stop bell and a refusal to commit on
@@ -41,7 +46,7 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 
 | | |
 |---|---|
-| [`nen`](https://github.com/zheref/nen) **`>= 0.7`** | a **hard** dependency — see [The Nen contract](#the-nen-contract-d10). You do **not** need to install it yourself; the warm-up does it, checksum-verified. **One exception, on Codex** — the box below the surface table. |
+| [`nen`](https://github.com/zheref/nen) **`>= 0.7`** | a **hard** dependency — see [The Nen contract](#the-nen-contract-d10). **A later `0.x` satisfies it unless that release declared a breaking change**, which nen decides and says: the binary ships a compatibility floor and `nen shu tools` prints it. You do **not** need to install it yourself; the warm-up does it, checksum-verified. **One exception, on Codex** — the box below the surface table. |
 | `git` + [`gh`](https://cli.github.com), authenticated | the skills read and write GitHub as **you**. |
 | a [`nen/contract.json`](nen/contract.json) in the repository you point Hatsu at | **the only thing Hatsu asks of your project.** It declares what *your* build, test, lint, archive and deploy commands are, so nothing here is bound to a language, a framework, a build system or a product. A repository that declares none gets the git half of every skill and its own documented commands, said plainly rather than guessed at. |
 
@@ -268,7 +273,7 @@ nen's own shape (`dependency.version_probe` as an argv array, `dependency.bootst
 
 ```sh
 nen schema check --repo <this checkout>
-#   ok    nen/contract.json  dependency (nen >= 0.7, pinned v0.7.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)
+#   ok    nen/contract.json  dependency (nen >= 0.7, pinned v0.8.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)
 #   ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off 'main', checks: lint
 ```
 
@@ -293,23 +298,47 @@ FAIL by pointer — and [`docs/WORKFLOW.md`](docs/WORKFLOW.md) documents both.
 
 ### The range
 
-*Current pin, echoed for convenience:* **`nen >= 0.7`**.
+*Current pin, echoed for convenience:* **`nen >= 0.7`**, with the bootstrap installing **`v0.8.0`**. Those
+are two values and they move independently.
 
-**While nen's line is `0.x`, that means `>=0.7.0 <0.8.0` — exactly.** A different minor is out of range in
-**both** directions: `0.8.0` fails it as surely as `0.6.0` does. At major version zero, SemVer 2.0.0 clause 4
-makes the *minor* the breaking-change vehicle, so reading `>= 0.7` as "anything backward-compatible within
-major 0" would fail **open** in precisely the range where compatibility is least guaranteed — and the last
-three releases are all the proof. `v0.5.0` **removed** something a consumer could rely on (the `schemas/`
-fallback), the first release since `v0.1.0` to do so; `v0.6.0` changed three behaviours **in place**, and
-`v0.7.0` changes four more, none of them announced by a new flag — `nen stage triage` gains the
-`local-config` and `large` detectors, so a tree that answered exit `0` answers exit `1` on the same bytes;
-every relative own-path flag (`--body-file`, `--out`, `--input`, `--efforts`, `--original`, `--table`, and
-`canon mirror`'s five) resolves against `--repo`'s root instead of the process's directory; a missing or
-malformed `--target` exits `2` rather than `1` across sixteen verbs, and so does an unreadable
-caller-named input on `split verify`, `changelog` and `canon mirror check`; and `nen pr ready` **reads**
-`nen/gates.json`'s `dependabot_carve_out`, so an unchanged file can turn a `not-ready` into a `ready`. The familiar
-"compatible within a major" reading applies from **`1.0` onward**, and the contract is bumped to say so when
-nen gets there.
+**The range is nen's answer, not this README's arithmetic — and not the warm-up's either.** The binary
+ships `COMPATIBLE_MINOR_FLOOR` (`src/version.ts`), the lowest `minimum` pin that build satisfies, and
+`nen shu tools` applies it, prints it as `compat floor:` on every run, and carries it in `--json` as
+`compatibleMinorFloor`. Hatsu reads that verdict off the `nen` row and never recomputes it.
+
+**The rule, in the maintainer's words on 2026-09-10: *exact minor is fine, unless there is a breaking
+change*.** A nen release whose CHANGELOG `### Breaking / consumer notes` section carries a real bullet
+sets the floor to its own minor; one that carries none leaves it where it stands and goes on accepting the
+pins already written. So a pin of `0.A` is satisfied by a build `0.B.z` with floor `0.F` when `A ≤ B`,
+`A ≥ F`, and `B` is at or below that build's own minor:
+
+| the pin | the build | floor | verdict |
+|---|---|---|---|
+| `0.7` | `0.7.0` | `0.7` | **ok** — `>=0.7.0 <0.8.0`; a pin's own minor always satisfies it |
+| `0.7` | `0.8.0` | `0.7` | **ok** — `>=0.7.0 <0.9.0`. `v0.8.0` declared no breaking notes, so **no repin** |
+| `0.6` | `0.7.0` | `0.7` | **below the floor** — no build of the `0.7` line satisfies it; repin `0.6` → `0.7` |
+| `0.9` | `0.8.0` | `0.7` | the binary is **older than the pin** — install the pinned ref |
+| `1.4` | any | — | `>=1.4.0 <2.0.0`; above major zero the floor is not consulted at all |
+
+**It is fail-closed at both ends.** An older binary never certifies a newer line it cannot know about, and
+a pin below the floor is refused by name however new the host's binary is. The widening only ever *adds*
+versions, which is why nen's own notes record that shipping it was not itself a breaking change.
+
+**Why the floor is `0.7`, and what would move it again.** At major version zero SemVer 2.0.0 clause 4 makes
+the *minor* the breaking-change vehicle, and nen's last three minors are the proof: `v0.5.0` **removed**
+something a consumer could rely on (the `schemas/` fallback), the first release since `v0.1.0` to do so;
+`v0.6.0` changed three behaviours **in place**; and `v0.7.0` changed four more, none of them announced by a
+new flag — `nen stage triage` gained the `local-config` and `large` detectors, so a tree that answered
+exit `0` answers exit `1` on the same bytes; every relative own-path flag (`--body-file`, `--out`,
+`--input`, `--efforts`, `--original`, `--table`, and `canon mirror`'s five) resolves against `--repo`'s root
+instead of the process's directory; a missing or malformed `--target` exits `2` rather than `1` across
+sixteen verbs, and so does an unreadable caller-named input on `split verify`, `changelog` and
+`canon mirror check`; and `nen pr ready` **reads** `nen/gates.json`'s `dependabot_carve_out`, so an
+unchanged file can turn a `not-ready` into a `ready`. That is why `minimum` sits at `0.7` — and `minimum`
+moves again **only** when nen's CHANGELOG carries a real breaking bullet, while `pinned_ref` may move on
+its own to a newer release inside the range, which is exactly what `v0.7.0` → `v0.8.0` was. The familiar
+"compatible within a major" reading applies from **`1.0` onward**, and the contract is bumped to say so
+when nen gets there.
 
 ### What happens when the range is not satisfied
 

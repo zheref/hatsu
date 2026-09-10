@@ -12,12 +12,15 @@ Kurapika: run your **session warm-up first**, both steps, in order.
 ONE shell: it resolves the Hatsu root — `$HATSU_PLUGIN_ROOT`, else the path you were handed, else
 `$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout, canonicalised to an absolute path —
 prints it, and reads `nen/contract.json` from it in that same shell; a variable from an earlier shell is never
-what it reads. Read that file yourself — no `jq` — and probe `nen --version` against the range it
-declares. **While nen's line is `0.x`, `minimum: "0.7"` means `>=0.7.0 <0.8.0`: a different minor is out of
-range in both directions.** Absent → fetch the bootstrap **to a file** and run it (never `curl … | bash`);
-present but out of range → re-pin through `nen bootstrap --ref <pinned> --source zheref/nen --script <the
-fetched file>`. **Halt only if the bootstrap itself fails**, printing the exact command as a **G5**. Report
-the outcome in one line; a warm-up that did not run is reported as *not run*, never as clear.
+what it reads. Read that file yourself — no `jq` — and probe `nen --version` for presence.
+**The range is nen's verdict, not yours: read the `nen` row of `nen shu tools --repo "$hatsu_root"`, with
+`$hatsu_root` set in that shell the way the warm-up's § 5 rule says.** A pin at or above the binary's own
+compatibility floor is satisfied by every later `0.x` that keeps it, so `minimum: "0.7"` is satisfied by
+`0.8.0` with no repin; a pin below the floor, or a binary older than the pin, is refused by name. Absent →
+fetch the bootstrap **to a file** and run it (never `curl … | bash`); present and not satisfied → re-pin
+through `nen bootstrap --ref <pinned> --source zheref/nen --script <the fetched file>`. **Halt only if the
+bootstrap itself fails**, printing the exact command as a **G5**. Report the outcome in one line — **the
+floor beside the version** — and a warm-up that did not run is reported as *not run*, never as clear.
 
 2. **The target repository's policy inbox.** With nen available, run `nen warmup --current <vX.Y.Z>` against
 the repo I am standing in — stale **and unpinned** pins (defaults *and* per-caller overrides; an unpinned

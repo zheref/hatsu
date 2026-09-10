@@ -1300,10 +1300,20 @@ command from the contract's `halt.message_template`, raise it as a **G5**, and s
 
 Four things the skill owns that you must not paraphrase loosely when you report them:
 
-- **The `0.x` range.** While nen's line is `0.x`, `minimum: "0.7"` means **`>=0.7.0 <0.8.0`** — a different
-  minor is out of range **in both directions**, so `0.8.0` fails it exactly as `0.6.0` does. At major zero
-  the *minor* is the breaking-change vehicle (SemVer clause 4), and each of the last three releases proves it:
-  `v0.5.0` **removed** something a consumer could rely on (the `schemas/` fallback), `v0.6.0` changed three
+- **The `0.x` range — and it is NEN'S verdict, never your arithmetic.** Probe for presence, then read the
+  `nen` row of `nen shu tools --repo <the Hatsu checkout>`. The rule is the maintainer's ruling of
+  2026-09-10, *exact minor is fine unless there is a breaking change*, and the binary carries the fact that
+  decides it: `COMPATIBLE_MINOR_FLOOR`, the lowest `minimum` pin that build satisfies, printed as
+  `compat floor:` on every run and carried in `--json` as `compatibleMinorFloor`. A pin at or above the
+  floor is satisfied by every later `0.x` that keeps it — so **`minimum: "0.7"` is satisfied by `0.8.0`
+  with no repin** — while a pin *below* the floor is refused by name with the repin stated, and a binary
+  *older* than the pin is refused too: fail-closed at both ends, because an older binary cannot certify a
+  newer line. **Report the floor beside the version**, and say `floor not reported` on a binary older than
+  `0.8.0` rather than inferring one. `minimum` and `pinned_ref` are two values that move independently:
+  `minimum` moves only on a real `### Breaking / consumer notes` bullet in nen's CHANGELOG; `pinned_ref`
+  may move on its own to a newer release inside the range. At major zero the *minor* is the
+  breaking-change vehicle (SemVer clause 4), and that is why the floor sits at `0.7`: `v0.5.0` **removed**
+  something a consumer could rely on (the `schemas/` fallback), `v0.6.0` changed three
   behaviours in place, and `v0.7.0` changes four more, none of them announced by a new flag:
   `nen stage triage` gains the `local-config` and `large` detectors, so a tree that answered exit `0`
   answers exit `1` on the same bytes; every relative own-path flag resolves against `--repo`'s root rather
