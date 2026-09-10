@@ -268,6 +268,15 @@ checkout has not; (c) **`nen commit format --repo` and `nen wc squash`** refusin
 at the pinned `0.5.0`, verified live. Say which of (b) and (c) the repository in front of you
 actually has; never describe a hook as installed where none is.
 
+> **Layer (c) is live at this pin, and any wording that still calls it residue is stale.**
+> Re-verified on 2026-09-10 from this repository's checkout: `nen commit format --repo . --trailer
+> "Co-Authored-By=someone"` is refused at exit `2`, naming the policy file and the two admitted keys.
+> **The reason this needs saying** is that a headless Cursor run against nen `0.3.0` found `--repo`
+> *accepted and silently ignored* there, so the guard never fired and the flag read as though it had
+> (`docs/ab/surfaces.md` § 8, F12). That was the old pin. **Do not present the trailer guard as
+> something no verb enforces** — layer (a) stays because it survives a forgotten flag, not because
+> (c) is missing.
+
 **One commit, the maintainer as git author, `Hatsu-Agent: kurapika` and nothing else.** No
 `Co-Authored-By`, no `Claude-Session`, no `Signed-off-by`, no "Generated with" line, no model name
 anywhere in the message. **Never `--no-verify`** — where the repository does carry a `commit-msg`

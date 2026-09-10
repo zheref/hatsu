@@ -186,10 +186,24 @@ commits.allowedAttributionTrailers, and 'Co-Authored-By' is not one of them. Dro
 its key to that list"* — while `--trailer "Hatsu-Agent=kurapika"` renders at exit `0`
 (`docs/ab/kokusen.md` § *Retired at nen 0.5*). **The verb cannot make the plane distinction for
 you**: it admits both keys, so `--trailer "Akatsuki-Agent=kurapika"` also renders at exit `0`. That
-refusal is this skill's, per the rule above — layer (a), and the only layer that holds it. **Always pass `--repo`**: the policy is opened only when the invocation carries a `--trailer`,
-and without `--repo` there is no policy to open and nothing is refused. Reading the rendered output
-against `commits.forbiddenTrailers` before § 6 writes anything is still worth doing — it is the layer
-that survives a missing flag — but it is no longer the only one (§ 7).
+refusal is this skill's, per the rule above — layer (a), and the only layer that holds it.
+
+**Always pass `--repo`, and do not rely on being rescued when you forget.** Re-verified live on
+2026-09-10 at the pinned `0.5.0`, from this repository's own checkout: the refusal above fires **with
+`--repo`**, and it also fired **without** it — the verb found `nen/workflow.json` from the working
+directory. **That is a courtesy of where the command happened to be run, not a contract**: name the
+repository and the policy that is read is the one you meant. Reading the rendered output against
+`commits.forbiddenTrailers` before § 6 writes anything is still worth doing — it is the layer that
+survives a missing flag and a checkout the verb cannot locate a policy from — but it is no longer the
+only one (§ 7).
+
+> **The guard IS enforced at this pin, and any reading of this skill that treats it as residue is
+> stale.** A headless Cursor run against nen `0.3.0` found `--repo` **accepted and silently ignored**,
+> so `--trailer "Hatsu-Agent=kurapika"` rendered at exit `0` where a refusal was expected
+> (`docs/ab/surfaces.md` § 8, F12) — *"a flag that is accepted and ignored is worse than one that is
+> rejected: it reads like the guard ran."* **That was `0.3.0`. Hatsu pins `v0.5.0`**, where the verb
+> has its own `--repo`, opens the policy and refuses by name. § 7's residue list says `RETIRED` for
+> exactly this reason.
 
 ## 6. The commit
 
