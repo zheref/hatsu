@@ -155,8 +155,10 @@ afplay /System/Library/Sounds/<notifications.sound>.aiff
 > shell, named here, with the reason. By contrast `nen stop` itself classifies **`[read-only]`**
 > (verified live, exit `0`) — the banner is nen's, the noise is not.
 
-- **macOS only.** On a host without `osascript`/`afplay`, rungs 2 and 3 are reported **not fired**,
-  by name, with the host as the reason. **An unfired rung is never rendered as fired.**
+- **macOS only, and rung by rung.** Each rung is reported **not fired**, by name, with the missing
+  tool as the reason: no `osascript` (or a host that is not macOS) unfires rung 2 **and leaves rung 3
+  to fire on its own** if `afplay` is there. One absent tool never unfires the other rung, and
+  `hooks/stop-bell.sh` consumes the marker either way. **An unfired rung is never rendered as fired.**
 - **The fallback is announced, every time.** *"No Stop hook is installed; rungs 2–3 were fired
   in-session."* A maintainer who thinks the hook is working when it is not will eventually miss a
   gate.

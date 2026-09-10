@@ -28,24 +28,43 @@
 #
 # WHY IT NO-OPS SO EAGERLY
 # A Stop hook runs after EVERY turn. A bell that rings on a turn that was not a
-# gate stop is a bell nobody hears any more, so absence of the marker, staleness
-# of the marker, a non-macOS host and a missing `osascript` are each a silent
-# exit 0. This hook never blocks a stop and never writes to stdout: exit 2 on a
-# Stop hook would prevent the model from stopping, which is the opposite of what
-# a bell is for.
+# gate stop is a bell nobody hears any more, so absence of the marker and
+# staleness of the marker are each a silent exit 0. This hook never blocks a
+# stop and never writes to stdout: exit 2 on a Stop hook would prevent the model
+# from stopping, which is the opposite of what a bell is for.
+#
+# EVERY RUNG FAILS OPEN ON ITS OWN, AND THE MARKER IS ALWAYS CONSUMED
+# A missing tool disables ONE rung, never the hook: a host without `osascript`
+# (or a host that is not macOS) skips rung 2 and still plays rung 3 if `afplay`
+# is there, and a host with neither still consumes the marker. Nothing exits
+# before marker cleanup — a fresh marker that rang nothing is still a marker
+# that has been dealt with, and leaving it would ring the same stop on the next
+# turn as soon as the machine could ring at all. A stale marker is removed on
+# every path.
 #
 # NO jq. Hatsu's installed path is one binary plus git and gh (README,
 # 'On the installed plugin path'), so the JSON here is read with sed.
+#
+# TEST CASES — payload on stdin, {"cwd": "<dir>"}; run live in the commit that
+# made the rungs independent.
+#   no marker at all                             -> 0, nothing rung
+#   fresh marker, rungs ["push","sound"]         -> 0, rung 2 skipped (not
+#                                                   listed), sound rung, marker
+#                                                   consumed
+#   marker older than ten minutes                -> 0, removed without ringing
+#   fresh marker, PATH carrying neither osascript
+#     nor afplay                                 -> 0, both rungs skipped,
+#                                                   MARKER STILL CONSUMED
+#   fresh marker, rungs ["os"] only              -> 0, notification only, marker
+#                                                   consumed
+#   fresh marker, no workflow.json               -> 0, both rungs (the default),
+#                                                   marker consumed
 
 set -u
 
 # The harness delivers the Stop payload on stdin; drain it whether or not we use
 # it, so the writer never sees a closed pipe.
 payload=$(cat 2>/dev/null || :)
-
-# --- rung 0: is this even a machine that can ring? --------------------------
-[ "$(uname -s 2>/dev/null || echo unknown)" = "Darwin" ] || exit 0
-command -v osascript >/dev/null 2>&1 || exit 0
 
 # --- first string value of a JSON key, scalar strings only -------------------
 # Stops at the first `"`, so a value carrying an escaped quote is read up to it.
@@ -110,16 +129,20 @@ rings() {
 }
 
 # --- rung 2: the OS notification --------------------------------------------
-if rings os; then
+# `osascript` is macOS-only, so both conditions are this rung's own and neither
+# is the hook's: a host without it skips rung 2 and goes on to rung 3.
+if rings os \
+  && [ "$(uname -s 2>/dev/null || echo unknown)" = "Darwin" ] \
+  && command -v osascript >/dev/null 2>&1; then
   osascript -e "display notification \"$title\" with title \"Hatsu — $gate\" subtitle \"$(sanitize "$(basename "$root")")\"" >/dev/null 2>&1 || :
 fi
 
 # --- rung 3: the sound -------------------------------------------------------
-if rings sound && command -v afplay >/dev/null 2>&1; then
+if rings sound && command -v afplay >/dev/null 2>&1 && [ -f "$sound_file" ]; then
   afplay "$sound_file" >/dev/null 2>&1 || :
 fi
 
-# The bell has rung, so the marker has been consumed. Leaving it would ring the
-# same stop again on the next turn.
+# The marker is consumed whatever rang — including when nothing could. Leaving
+# it would ring this same stop on a later turn, on a machine that by then can.
 rm -f "$marker"
 exit 0
