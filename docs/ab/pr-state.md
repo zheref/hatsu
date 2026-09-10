@@ -249,8 +249,9 @@ SKILL.md` § 0 already establishes for exactly this — which the last command a
 > prefix, caller data), and neither Codex nor Cursor documents a plugin-root variable, because neither
 > has a plugin loader. So every skill now anchors on `$hatsu_root` — the Hatsu checkout as
 > `hatsu-warmup` § 5's prelude resolves it, `$HATSU_PLUGIN_ROOT`, else the handed path, else
-> `$CLAUDE_PLUGIN_ROOT`, each identity-checked — which is the same absolute path on Claude Code and a
-> real one on the other two. The reason recorded in § 2.6 is unchanged, and the three commands above
+> `$CLAUDE_PLUGIN_ROOT`, each identity-checked, the winner canonicalised with `pwd -P`, and resolved in
+> the shell that runs the call because the variable is not exported — which is the same absolute path on
+> Claude Code and a real one on the other two. The reason recorded in § 2.6 is unchanged, and the three commands above
 > ran as shown.
 
 ---

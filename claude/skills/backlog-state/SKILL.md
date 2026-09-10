@@ -280,9 +280,9 @@ BEFORE the call — never defaulted to `--gates`.** A row for a repository that 
 `nen/gates.json` needs no identity flag, as shown above. `<reference-repo>` (frozen, no gates file of
 its own) is the one repository this table can report on where `--gates
 "$hatsu_root/contracts/reference.gates.json"` applies — always `$hatsu_root`-anchored: the Hatsu
-checkout as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it on every surface,
-never `$CLAUDE_PLUGIN_ROOT` alone, which is Claude Code's and is unset or wrong on the two mirrored
-surfaces. Since nen `v0.2.0` a relative `--gates` resolves against **`--repo`'s root, never the cwd** (verified
+checkout as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it on every surface — absolute,
+and run in the shell that runs this call, since the variable is not exported — never
+`$CLAUDE_PLUGIN_ROOT` alone, which is Claude Code's and is unset or wrong on the two mirrored surfaces. Since nen `v0.2.0` a relative `--gates` resolves against **`--repo`'s root, never the cwd** (verified
 live at `v0.3.0`, [`pr-state`](../pr-state/SKILL.md) § 2), and the file lives in this plugin's
 checkout, not the target's. For any OTHER repository that this table reports on and that ships no
 `nen/gates.json`, pass `--reviewers` by hand instead — from its `CODEOWNERS` or the PR's own requested

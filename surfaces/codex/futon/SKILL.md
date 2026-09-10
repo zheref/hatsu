@@ -253,7 +253,8 @@ session structurally cannot do at all, **stop at G5 immediately** and name the g
 export GH_TOKEN=$(gh auth token)
 # BC#940 / BC#925 below are <reference-repo> PRs, so this run's own identity flag is --gates;
 # see the paragraph below for the other two shapes sharingan § 4 names.
-# $hatsu_root is THIS plugin's checkout, resolved as hatsu-warmup § 5's prelude does — never assumed
+# $hatsu_root is THIS plugin's checkout — ABSOLUTE, and resolved IN THIS SHELL by running hatsu-warmup
+# § 5's prelude first: it is a shell variable, not an export, so a value another shell set is not here
 nen pr ready <CODE>#<N> --repo <path> --gates "$hatsu_root/contracts/reference.gates.json" --explain
 ```
 
@@ -262,9 +263,9 @@ cited rather than restated, and it is resolved BEFORE the call, never defaulted 
 target that ships its own `nen/gates.json` needs no identity flag at all. `<reference-repo>`
 (frozen, ships no gates file of its own — the case above) is the one target `--gates
 "$hatsu_root/contracts/reference.gates.json"` is for — always `$hatsu_root`-anchored: the Hatsu
-checkout as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it on every surface,
-never `$CLAUDE_PLUGIN_ROOT` alone, which is Claude Code's and is unset or wrong on the two mirrored
-surfaces. Since nen `v0.2.0` a relative `--gates` resolves against `--repo`'s root rather than the cwd, so only
+checkout as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it on every surface — absolute,
+and run in the shell that runs this call, since the variable is not exported — never
+`$CLAUDE_PLUGIN_ROOT` alone, which is Claude Code's and is unset or wrong on the two mirrored surfaces. Since nen `v0.2.0` a relative `--gates` resolves against `--repo`'s root rather than the cwd, so only
 an absolute path reaches a file that lives in *this* plugin's checkout
 ([`$pr-state`](../pr-state/SKILL.md) § 2 has the live transcript). Any OTHER target with no
 `nen/gates.json` gets `--reviewers` supplied by hand from its `CODEOWNERS` or the PR's own requested

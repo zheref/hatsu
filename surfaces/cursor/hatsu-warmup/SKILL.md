@@ -30,8 +30,9 @@ shell).
 **The very first thing this skill does, on every surface, is resolve `$hatsu_root`.** § 5's prelude
 carries the block and the reasoning, and it is written down there once rather than twice. In one line:
 `$HATSU_PLUGIN_ROOT`, else the path this invocation was handed, else `$CLAUDE_PLUGIN_ROOT`, **each
-accepted only if it holds a `.claude-plugin/plugin.json` whose own `name` is `hatsu`**. Every path
-below reads from the result.
+accepted only if it holds a `.claude-plugin/plugin.json` whose own `name` is `hatsu`**, the winner
+canonicalised to an absolute path. Every path below reads from the result — in the same shell, because
+`$hatsu_root` is a shell variable and not an export.
 
 ```bash
 cat "$hatsu_root/nen/contract.json"
@@ -437,10 +438,14 @@ is_hatsu() {
   [ "$ih_name" = "hatsu" ]
 }
 
+# Three candidates and no fourth. The winner is CANONICALISED — absolute, symlinks
+# resolved — so a relative $HATSU_PLUGIN_ROOT or a handed '.' can never reach a
+# --gates argument that nen would resolve against --repo (pr-state § 2). And it is a
+# plain shell variable, not an export: it lives in THIS shell only (see below).
 hatsu_root=""; rejected=""
 for cand in "${HATSU_PLUGIN_ROOT:-}" "${1:-}" "${CLAUDE_PLUGIN_ROOT:-}"; do
   [ -n "$cand" ] || continue
-  if is_hatsu "$cand"; then hatsu_root=$cand; break; fi
+  if is_hatsu "$cand"; then hatsu_root=$(cd "$cand" && pwd -P); break; fi
   rejected="$rejected $cand"
 done
 
@@ -464,6 +469,17 @@ done
   `$CLAUDE_PLUGIN_ROOT` *is* the Hatsu checkout, so it passes on the first comparison. § 0's read of
   `nen/contract.json` uses this same resolution, and a root that will not resolve stops the warm-up
   there as well.
+- **`$hatsu_root` is ABSOLUTE, and LOCAL to the shell that ran this block.** `pwd -P` canonicalises the
+  winning candidate, so a relative `$HATSU_PLUGIN_ROOT` or a handed `.` cannot reach a `--gates`
+  argument nen would resolve against `--repo`. And it is a shell variable, not an export: a later
+  tool-call shell, a subagent, or another skill's command does not inherit it — on any surface. So
+  every consumer — `pr-state`, `sharingan`, `hanten`, `futon`, `backlog-state`, `getsuga`, `tensho`,
+  the Kurapika definition — runs this block again in the shell that runs its own command, and says so
+  beside the use. **The loop reads three candidates and no fourth**: a run with none is `NOT INSTALLED`
+  here and `--reviewers` by hand in `sharingan` § 4, never a guess. On Claude Code alone, a caller that
+  has none of the three can obtain the path it *hands in* — the second candidate — from the surface's
+  own registry, `claude plugin list --json` → `installPath` (verified live); that is a way to produce
+  the handed path, not a step this loop takes, and neither other surface has a registry to ask.
 
 **There is no bootstrap on these two surfaces, and that is stated rather than implied.** A plugin loader is
 what would fetch Hatsu; neither surface has one, so the **first** install is a human act — clone

@@ -685,12 +685,22 @@ Kurapika definition, every one carried verbatim into both mirrors.
 ### 9.1 Where it was, and why `check` never flagged it
 
 ```
-$ grep -rln 'CLAUDE_PLUGIN_ROOT' claude/skills --include=SKILL.md claude/agents claude/commands
-claude/agents/kurapika.md            claude/skills/getsuga/SKILL.md       claude/skills/pr-state/SKILL.md
-claude/commands/kurapika.md          claude/skills/hanten/SKILL.md        claude/skills/sharingan/SKILL.md
-claude/skills/backlog-state/SKILL.md claude/skills/hatsu-warmup/SKILL.md  claude/skills/tensho/SKILL.md
-claude/skills/futon/SKILL.md
+$ git grep -l 'CLAUDE_PLUGIN_ROOT' main -- 'claude/*.md'
+main:claude/agents/kurapika.md
+main:claude/commands/kurapika.md
+main:claude/skills/backlog-state/SKILL.md
+main:claude/skills/futon/SKILL.md
+main:claude/skills/getsuga/SKILL.md
+main:claude/skills/hanten/SKILL.md
+main:claude/skills/hatsu-warmup/SKILL.md
+main:claude/skills/pr-state/SKILL.md
+main:claude/skills/sharingan/SKILL.md
+main:claude/skills/tensho/SKILL.md
 ```
+
+(`main` at `7587f9d`, the base of this change. An earlier draft of this record wrote the command with
+`--include=SKILL.md`, which excludes the two files outside `claude/skills/` it then listed — Copilot's
+review of #38 caught it, § 9.4.)
 
 `nen surface mirror check` reported both surfaces clean before the change and after it, because a mirror
 that faithfully carries a non-portable line is not drift. The verb's own `--help` says what it rewrites:
@@ -718,8 +728,9 @@ is shaped the way it is:
   other skill now cites.
 
 So every path built from the plugin root is spelled **`$hatsu_root`** — `$HATSU_PLUGIN_ROOT`, else the path
-the run was handed, else `$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout — with one
-sentence beside it saying so and pointing at the prelude. `$CLAUDE_PLUGIN_ROOT` is still named where a
+the run was handed, else `$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout, the winner
+canonicalised to an absolute path — with one sentence beside it saying so, pointing at the prelude, and
+saying that the prelude runs in the shell that runs the command, because the variable is not exported. `$CLAUDE_PLUGIN_ROOT` is still named where a
 sentence is *about* it (why it is not enough on its own; the Claude-Code-only `claude plugin list --json`
 fallback), which is a mention, and true on every surface. `sharingan` § 4's identity box and `hanten` § 3's
 root paragraph — the two the others cite — now lead with the resolution and keep the verified-live facts
@@ -733,9 +744,9 @@ $ grep -rn 'CLAUDE_PLUGIN_ROOT/' claude/skills claude/agents claude/commands --i
 (no output — no path is built from the bare variable outside the skill that defines the resolution)
 
 $ nen surface mirror generate --source claude/skills --agents claude/agents --surface codex  --out surfaces/codex  --invocation-prefix hatsu:
-written: AGENTS.md, backlog-state/SKILL.md, futon/SKILL.md, getsuga/SKILL.md, hanten/SKILL.md, pr-state/SKILL.md, sharingan/SKILL.md, tensho/SKILL.md
+written: AGENTS.md, backlog-state/SKILL.md, futon/SKILL.md, getsuga/SKILL.md, hanten/SKILL.md, pr-state/SKILL.md, sharingan/SKILL.md, tensho/SKILL.md   # + hatsu-warmup/SKILL.md after § 9.4
 $ nen surface mirror generate --source claude/skills --agents claude/agents --surface cursor --out surfaces/cursor --invocation-prefix hatsu:
-written: agents/kurapika.md, backlog-state/SKILL.md, futon/SKILL.md, getsuga/SKILL.md, hanten/SKILL.md, pr-state/SKILL.md, sharingan/SKILL.md, tensho/SKILL.md
+written: agents/kurapika.md, backlog-state/SKILL.md, futon/SKILL.md, getsuga/SKILL.md, hanten/SKILL.md, pr-state/SKILL.md, sharingan/SKILL.md, tensho/SKILL.md   # + hatsu-warmup/SKILL.md after § 9.4
 
 $ bash scripts/surface_mirror_check.sh
 surface-mirror-check: nen 0.6.0 · source claude/skills · agents claude/agents
@@ -754,3 +765,47 @@ $ claude plugin validate . --strict
 **What this did not verify.** No Codex or Cursor session was run against the regenerated mirrors; the
 claim is that the spelling now matches the resolution `hatsu-warmup` § 5 already performs on those surfaces
 (§ 8.8 records that resolution working), not that a `--gates` call was exercised there.
+
+### 9.4 Copilot's review of #38, and what changed
+
+Two inline threads and six suppressed comments, five distinct points; every one landed somewhere.
+
+| finding | disposition |
+|---|---|
+| `$hatsu_root` is a shell-local variable in the prelude, never exported, so a later shell running `nen pr ready` cannot see it | **Fixed in the prose, not by an export.** A tool-call shell inherits nothing from another on any surface, so an export would promise what no harness delivers. The prelude now says it is local; every consumer's code comment says *resolve it in this shell first*, and `sharingan` § 4, `hanten` § 3 and `docs/WORKFLOW.md` say why |
+| the absolute-path guarantee fails for a relative `$HATSU_PLUGIN_ROOT` or a handed `.` — the prelude stored the winning candidate verbatim | **Fixed in the prelude**: `hatsu_root=$(cd "$cand" && pwd -P)`, so the winner is absolute and symlink-free before any consumer sees it. Transcript below |
+| the `claude plugin list --json` fallback stated in `sharingan`, `hanten` and `docs/WORKFLOW.md` is not a step the prelude takes — after three candidates it reports `NOT INSTALLED` | **Reframed, not implemented.** The registry is how a Claude Code caller PRODUCES the path it hands in (the second candidate); it was never a fourth candidate, and the loop stays at three: the two other surfaces have no registry, and a JSON registry read without `jq` is not a step the warm-up should own. All three passages and the prelude's own bullet now say exactly that |
+| `contracts/reference.gates.json`'s own `$comment` still said `$CLAUDE_PLUGIN_ROOT/…`, and `pr-state` sends readers to that header | **Fixed**: the comment anchors on `$hatsu_root`, names the prelude, and says the variable is resolved in the calling shell |
+| § 9.1's recorded grep (`--include=SKILL.md`) could not have listed the agent and command files it showed | **Fixed**: the command is the `git grep` that was actually run against `main`, with its output |
+
+**The canonicalisation, exercised.** The prelude's loop, verbatim after the change, run four ways from
+this checkout — a relative `$HATSU_PLUGIN_ROOT`, a relative handed path with a wrong `$CLAUDE_PLUGIN_ROOT`
+beside it, the Claude Code skill-invocation shape, and nothing usable (local absolute paths sanitised as
+`<wt>`, this effort's worktree):
+
+```
+$ HATSU_PLUGIN_ROOT=. CLAUDE_PLUGIN_ROOT= bash prelude-test.sh
+candidate: . | handed: <none> | rejected:<none>
+hatsu_root: <wt>
+
+$ cd docs && HATSU_PLUGIN_ROOT= CLAUDE_PLUGIN_ROOT=/tmp bash prelude-test.sh ..
+candidate: <unset> | handed: .. | rejected:<none>
+hatsu_root: <wt>
+
+$ HATSU_PLUGIN_ROOT= CLAUDE_PLUGIN_ROOT=<wt> bash prelude-test.sh
+candidate: <unset> | handed: <none> | rejected:<none>
+hatsu_root: <wt>
+
+$ HATSU_PLUGIN_ROOT= CLAUDE_PLUGIN_ROOT=/tmp bash prelude-test.sh
+candidate: <unset> | handed: <none> | rejected: /tmp
+hatsu_root: <unresolved>
+```
+
+`.` and `..` both come out as the same absolute path; `/tmp` is rejected by name and nothing is resolved
+in its place. (The second case does not exercise the loop's `rejected` list for `/tmp` because the handed
+path wins first — the fourth case does.) After the change both mirrors regenerate clean (`ok: 40`,
+`ok: 47`, script exit `0`), `claude plugin validate . --strict` passes, and the edited gates file still
+parses with its five reviewers.
+
+**Still not verified:** the same as § 9.3 — no Codex or Cursor session ran a `--gates` call from the
+regenerated mirror.

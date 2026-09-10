@@ -138,16 +138,19 @@ as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it, on eve
 `$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout. `$CLAUDE_PLUGIN_ROOT` alone is
 Claude Code's: that harness exports it **only inside a skill invocation**, it is **empty in an
 ordinary tool-call shell and inside a subagent** — verified live — and on Codex and Cursor it is
-usually unset or names a different plugin. So a run that reads it must have been given it, and on
-Claude Code alone a root none of the three yields can still be resolved from the surface's own
-plugin registry —
+usually unset or names a different plugin. The prelude reads those three candidates and no fourth,
+canonicalises the winner to an absolute path, and holds it in a shell variable that is not exported
+— so it runs in the shell that runs the `ls`, and a run with none of the three reports the root
+unresolved. On Claude Code alone, the caller can obtain the path it HANDS IN — the second candidate
+— from the surface's own plugin registry:
 
 ```bash
 claude plugin list --json    # → [{ "id": "hatsu@hatsu", "installPath": "<the plugin root>", … }]
 ```
 
-— verified live (the `--json` flag exists and `installPath` is the root); neither other surface has
-a registry to ask. **Never guess it, and never fall back to a bare relative path**: a relative
+— verified live (the `--json` flag exists and `installPath` is the root). That is a way to produce
+the handed path, not a step the prelude takes, and neither other surface has a registry to ask.
+**Never guess it, and never fall back to a bare relative path**: a relative
 `claude/agents/<persona>.md` resolves against whatever cwd the caller happened to have, which on a
 review run is the repository *under review* rather than the plugin.
 
@@ -504,8 +507,9 @@ of the transcript can tell the two apart.
    whether it can be raised. Neither is a nen question: one is a file on disk and the other is a
    live property of the session. The plugin root behind the first is `$hatsu_root`, resolved as
    `hatsu-warmup` § 5's prelude does — `$HATSU_PLUGIN_ROOT`, else the handed path, else
-   `$CLAUDE_PLUGIN_ROOT`, each identity-checked — with `claude plugin list --json` → `installPath`
-   (verified live) as Claude Code's own last resort.
+   `$CLAUDE_PLUGIN_ROOT`, each identity-checked, the winner canonicalised, the variable local to the
+   shell that ran the prelude — with `claude plugin list --json` → `installPath` (verified live) as
+   the way a Claude Code caller produces the handed path when it has none.
 4. **No verb classifies a change set by scope.** `nen gate derive --policy-paths --process-paths
    --files` is the nearest thing and answers a **different question** — which human *gate* a diff
    derives, `G2` or `G4`. Verified live at this pin (`docs/ab/hanten.md` § 2.3): a two-file

@@ -352,8 +352,9 @@ The maintainer's ruling: an unreachable target is **driven to `main` first**, no
    — the `schemas/gates.json` location is not a fallback at the pinned nen `0.6.0`, REMOVED at
    `v0.4.0`, so a gates file only there is refused exactly like one carrying none; `--gates
    "$hatsu_root/contracts/reference.gates.json"` (absolute — `$hatsu_root` being the Hatsu checkout as
-   [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it on every surface, never
-   `$CLAUDE_PLUGIN_ROOT` alone, which is Claude Code's) ONLY where the target is frozen
+   [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it on every surface, absolute and
+   in the calling shell, never `$CLAUDE_PLUGIN_ROOT` alone, which is Claude Code's) ONLY where the
+   target is frozen
    `<reference-repo>` itself; every other target that ships no gates file gets `--reviewers` supplied
    by hand, from its `CODEOWNERS` or the PR's own requested reviewers — a repository is never judged
    by another repository's reviewers. **The approve row's vacuous pass belongs to that hand-supplied

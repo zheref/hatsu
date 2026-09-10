@@ -235,14 +235,18 @@ lives in this plugin's checkout rather than the target's, so only an absolute pa
 > as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it, and it is resolved rather
 > than assumed on every surface: `$HATSU_PLUGIN_ROOT` first (the form that works on all three), else
 > the path whoever raised the run handed it, else `$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a
-> Hatsu checkout. `$CLAUDE_PLUGIN_ROOT` on its own is Claude Code's variable: that harness exports it
+> Hatsu checkout — the winner canonicalised to an absolute path, and held in a shell variable that is
+> not exported, so the prelude runs in the shell that runs the `nen pr ready` call: a tool-call shell
+> or a subagent inherits nothing from another. `$CLAUDE_PLUGIN_ROOT` on its own is Claude Code's variable: that harness exports it
 > **only inside a skill invocation**, it is **empty in an ordinary tool-call shell and inside a
 > subagent** — verified live — and on Codex and Cursor, where this body runs as a verbatim mirror, it
-> is usually unset or, from a shell profile, names a different plugin. On Claude Code alone, a root
-> none of the three yields can still be read from the surface's own plugin registry:
-> `claude plugin list --json` returns `[{ "id": "hatsu@hatsu", "installPath": "<the plugin
-> root>", … }]` (verified live — the `--json` flag exists and `installPath` is the root); neither
-> other surface has a registry to ask. **A `--gates` path that could not be resolved is not replaced by
+> is usually unset or, from a shell profile, names a different plugin. The prelude reads those three
+> candidates and no fourth: a run with none reports the root unresolved. On Claude Code alone, a
+> caller that has none of the three can obtain the path it HANDS IN — the second candidate — from the
+> surface's own plugin registry: `claude plugin list --json` returns `[{ "id": "hatsu@hatsu",
+> "installPath": "<the plugin root>", … }]` (verified live — the `--json` flag exists and
+> `installPath` is the root). That is a way to produce the handed path, not a step the prelude takes,
+> and neither other surface has a registry to ask. **A `--gates` path that could not be resolved is not replaced by
 > a relative one**: fall to the third row of the table above and pass `--reviewers` instead, which is
 > the honest answer rather than a path that will resolve inside the target repository and `ENOENT`.
 
