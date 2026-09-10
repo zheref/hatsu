@@ -372,3 +372,63 @@ nen report: … '{{#if}}' names 'notAKey', which the data document has not got. 
 
 The first is why § 4's command writes to `<reports.dir>` and not to a scratchpad. The second is why
 § 4 requires **every extension key on every render**, `""` or `[]` where there is nothing.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| the by-hand assembly (`git log` / `git diff --name-status`) | `nen report data --repo . --base origin/main --json` | `0` |
+| the scratch renderer — ~60 lines of substitution, escaping and validation | `nen report render --template templates/rikugan.html --data <merged> --out Reports/current.html` | `0` |
+| the same, checked first | the same with `--dry-run` | `0`, 40 tokens listed |
+| `nen shu evidence`, `nen shu test-report`, `nen shu coverage --touched` | see those skills' own sections | `0` / `1`(named) / `0` |
+| `nen/workflow.json` unvalidated | `nen schema check --repo .` | that row `ok` |
+
+```
+$ nen report data --repo . --base origin/main
+repo: repin-0.4 on 'opus/kurapika/repin-nen-0.4', base 'origin/main'
+generated: 2026-09-10T09:08:30.150Z
+commits: 33
+  2c692ed5 chore(nen): repin the contract to nen 0.5 (v0.5.0)
+  …
+coverage: lane 'plugin' declares no artifact nen recognises as a coverage report, so there is none to
+read. 'nen shu coverage --repo <path> --lane plugin' names the repair.
+exit=0
+```
+
+**Every absence is `null` with the reason on stderr**, and the reason is quoted onto the page rather than
+invented. `--json` publishes `nen.report.data/v0.1` with `repo` as the checkout's **directory name**,
+never its absolute path.
+
+Then the merge and the render, on the real template:
+
+```
+$ nen report render --repo . --template templates/rikugan.html --data <merged> \
+    --out Reports/current.html --dry-run
+tokens: 40
+exit=0
+
+$ nen report render --repo . --template templates/rikugan.html --data <merged> --out Reports/current.html
+wrote Reports/current.html
+exit=0
+
+$ wc -c < Reports/current.html            # 38283
+$ grep -c '{{' Reports/current.html       # 0
+$ grep -o '&lt;v0.5.0&gt;' Reports/current.html | head -1   # &lt;v0.5.0&gt;
+```
+
+**The escaping is the engine's and is proved, not assumed**: an accomplished row whose text carried
+`<v0.5.0>` arrived on the page with both brackets as entities. And the merge is not optional — the same
+render against the **unmerged** `report data` document refuses at exit `2` naming `title`, which is the
+extension doing its job.
+
+**Still residue:** embedding a capture as a `data:` URI and validating `{{src}}`/`{{percent}}` before
+they are written (the engine escapes and does not validate), and the Artifact publish itself, which is
+the surface's tool rather than a step nen owns.

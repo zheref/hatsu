@@ -189,3 +189,33 @@ over.
    difference is the difference between "this repository chose not to" and "nobody wrote it down".
 4. **No missing verb otherwise.** Running the declared suites, the host check and the stop banner are
    all verbs, exercised live above with their exit codes.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| no parsed results document | `nen shu test-report --repo <fixture> --lane app` | `1` — the run went, the report was absent, and the refusal NAMES it |
+
+```
+$ nen shu test-report --repo <fixture> --lane app
+ran:           sh -c 'echo tested'  -- exit 0 in 3ms
+report:        Reports/junit.xml  (junit)
+totals:        (nothing parsed -- the report could not be read -- see below)
+no test report at Reports/junit.xml. The declaration names it under the lane's 'test' verb 'artifacts'
+and it is not there: either the runner writes its report somewhere else -- correct the path -- or no run
+has produced one.
+exit=1
+```
+
+That is the shape of the verb's refusals: a damaged or absent report is **named**, never folded into a
+number. Through `v0.4.0` the same invocation answered *"unknown 'shu' subcommand 'test-report'"* at exit
+`2` (§ 2.4). **What stays residue** is the extraction step for a result bundle: nen opens no `.xcresult`
+itself, because the only supported way to read one is a program no declaration named.

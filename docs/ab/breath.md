@@ -259,3 +259,40 @@ it at this pin.
    unchecked-input risk, and each one says so in its own § 2.
 4. **No other gap.** Every deterministic step of this warm-up that is not in § 3 is a verb, exercised
    live above with its exit code.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| `nen/workflow.json` read by eye, validated by nothing | `nen schema check --repo .` | `1` overall, six rows, the workflow row `ok` |
+
+```
+$ nen schema check --repo .
+  FAIL  nen/labels.json   … no such file …
+  FAIL  nen/repos.json    … no such file …
+  FAIL  nen/colors.yml    … no such file …
+  warn  nen/gates.json    … no such file …
+  ok    nen/contract.json  dependency (nen >= 0.5, pinned v0.5.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)
+  ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off 'main', checks: lint
+exit=1
+```
+
+**Six rows, not five** (§ 2.6 recorded five). The overall exit `1` and the four taxonomy rows are
+unchanged and are still not a warm-up failure: Hatsu ships no taxonomy. What is new is that a malformed
+policy key is a **FAIL by pointer** from a verb rather than something this skill notices — proved on a
+fixture whose `notifications.turn` read `"loud"`:
+
+```
+FAIL  nen/workflow.json  …: at notifications.turn, 'loud' is not one nen implements.
+                            It is one of a CLOSED set: rung1, all
+```
+
+**Reading the values is still this skill's**, and that is a read rather than a residue.

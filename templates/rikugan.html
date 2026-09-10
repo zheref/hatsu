@@ -7,10 +7,12 @@
 <style>
 /* ============================================================================
    rikugan — the turn / landing / final report.
-   Rendered from this file by `nen report render --template templates/rikugan.html`
-   from nen 0.4.0, and at the pinned 0.3.0 by hatsu:rikugan filling the same
-   slots by hand (named residue). Every variant difference below is carried by
-   CSS off data-variant rather than by a branch in the page.
+   Rendered from this file by `nen report render --template templates/rikugan.html`,
+   which is in the pinned nen 0.5.0 — verified against this template at that pin:
+   --dry-run lists 40 tokens at exit 0 and the real render writes a 38,283-byte
+   page with zero substitution tags left in it. There is no by-hand fill any
+   more. Every variant difference below is carried by CSS off data-variant
+   rather than by a branch in the page.
 
    NOTHING IN THIS COMMENT SPELLS A SUBSTITUTION TAG, AND THAT IS DELIBERATE.
    `nen report render` parses the whole file, comments included — it is a text
@@ -46,9 +48,9 @@
 
    * EVERY SUBSTITUTED VALUE IS HTML-ESCAPED BY THE RENDERER. `nen report render`
      escapes by default — `& < > " '` become entities — in text content and
-     inside an attribute alike. No slot on this page opts out. At nen 0.3.0 that
-     verb does not exist, so this paragraph is BOTH the contract it meets from
-     0.4.0 AND, at the pin, the rule the residue path carries on its own.
+     inside an attribute alike. No slot on this page opts out. Verified at the
+     pinned 0.5.0 rather than assumed: a value carrying an angle-bracketed
+     string arrived on the page with both brackets as entities.
    * THE RAW TRIPLE-BRACE FORM APPEARS NOWHERE BELOW. The one slot it would ever
      be admitted for is a pre-escaped data-URI capture source, which must first
      match
@@ -67,11 +69,11 @@
          declaration.
      A value that fails its check is not rendered: the row is dropped and the
      gap is named in section 03, exactly as a missing capture is.
-   * THE RESIDUE PATH IS HELD TO THE SAME RULE. At nen 0.3.0 hatsu:rikugan fills
-     these slots by hand — and hand-filling must escape `& < > " '` in every
-     value it writes and run the same two validations. A hand-filled render and
-     a verb-rendered one are the same bytes for the same data, or the verb's
-     arrival is a redesign.
+   * THE TWO VALIDATIONS STAY THE CALLER'S, because the engine escapes and does
+     not validate. They run before the value is written into the data document
+     hatsu:rikugan hands to `nen report render`, never after. There is no second
+     renderer to hold to the same rule: writing one would put a page on the
+     record that nothing can check against the verb's own output.
    ========================================================================= */
 
 /* ---- palette -------------------------------------------------------------

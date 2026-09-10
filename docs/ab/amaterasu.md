@@ -213,3 +213,46 @@ removing the fixture's only declared tool; said, rather than claimed.
 4. **No JSON document for a launch that ran** (§ 2.2). Correct and well-argued in the refusal itself;
    noted because a caller wanting structured evidence of a launch has only the dry run, which is
    evidence of a plan.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| `--target` on a launch verb | `nen shu dev --repo <fixture> --target sim --dry-run` | `0` |
+| appending `project.launch.<t>.args` by hand | the same call | `0` |
+| `{device.id}` / `{artifact}` substitution by hand | the same call's `substitutes:` line | `0` |
+
+```
+$ nen shu dev --repo <fixture> --target sim --dry-run
+lane:          app  (generic)
+verb:          dev
+target:        sim  (appends no argument)  -- on lane 'app', which this target declares
+device:        iPhone 17 Pro (simulator)  -- id not resolved (nothing was probed)
+preconditions:
+  ok    port 59321 (expect free)
+would run:     sh -c 'echo dev'
+would run:     sh -c 'echo install {artifact} on {device.id}'
+substitutes:   {device.id} <- 'iPhone 17 Pro' itself -- a simulated device is addressed by its name, so
+               nothing is probed; {artifact} <- Reports/app.bin  (project.launch.sim.artifact, not the
+               verb's own)
+exit=0
+```
+
+Three things this transcript settles at once. **The after-step is nen's**, so § 6 no longer reports one
+as by-hand. **`project.launch.sim.lane` is read before anything is rendered** — the `target:` line says
+whose decision the lane was. And **`project.launch.sim.artifact` overrides the verb's first `artifacts`
+entry**, which the `substitutes:` line states explicitly rather than leaving to be inferred; the
+`artifacts:` line keeps reporting what the *verb* declares, because the two answer different questions.
+
+Through `v0.4.0` the same invocation answered *"--target is not read by 'shu dev'"* at exit `2` (§ 2.4).
+Note also the `port` precondition row above: a new precondition kind at this release, asserted by
+connecting to `127.0.0.1:<port>` and destroying the socket, with `expect` **required** out of a closed
+two-member set.

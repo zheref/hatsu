@@ -205,3 +205,32 @@ is the only proof there is.
    enforce what today only prose does.
 4. **No missing verb otherwise.** Triage and message shape are both verbs, exercised live; the commit
    itself is git's, which is not a gap nen has ever claimed.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| no build proof to trust before a commit | `nen commit check --repo <fixture> --require-proof app` | `0` |
+| the forbidden-trailer refusal | `nen commit format --repo . --trailer "Co-Authored-By=someone"` | `2` |
+| `nen/workflow.json` unvalidated | `nen schema check --repo .` → `ok nen/workflow.json` | that row `ok` |
+
+The proof transcripts are in `docs/ab/rasengan.md` § *Retired at nen 0.5*; the trailer transcripts in
+`docs/ab/aka.md` § *Retired at nen 0.5*. Two readings this skill depends on:
+
+- **`commit check` reports and blocks nothing.** No commit is refused and no file is written, so the
+  refusal stays kokusen's. What the verb removes is the *guessing*: exit `1` distinguishes no proof, a
+  different lane, and a tree that has moved (printing both hashes).
+- **`--repo` is what turns the trailer refusal on.** The policy is opened only when the invocation
+  carries a `--trailer`; without `--repo` there is no policy to open and nothing is refused, which is
+  why layer (a) — reading the rendered message before committing — is still worth doing.
+
+**Against a lane whose `build` is a declared seat** — hatsu's own `plugin` lane — `commit check` is exit
+`1` forever, because no proof is ever written. That is a fact to state, not a failure to fix.

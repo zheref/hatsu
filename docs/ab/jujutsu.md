@@ -314,3 +314,32 @@ system worse.
 What the skill owes in exchange is precision about the boundary — which prompt, on which screen, in which
 menu, and what the next probe will print when it has worked — so that the human's half is three minutes
 rather than a search. § 3 of the skill is that list.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| a registered target cannot be launched by nen | `nen shu dev --repo <fixture> --target sim --dry-run` | `0` |
+| `nen/workflow.json` unvalidated | `nen schema check --repo <fixture>` → `ok nen/workflow.json` | that row `ok` |
+
+The full launch transcript is in `docs/ab/amaterasu.md` § *Retired at nen 0.5*. What matters here is what
+a jujutsu PR may now promise: **a target it registers is launched by nen**, and the declaration may carry
+two more keys — `lane` (a device build is routinely a different declared row from the iteration one) and
+`artifact` (the thing the device installs, which is rarely the verb's first artifact).
+
+**One thing that was accepted through `v0.4.0` and is now refused**, worth stating in a jujutsu PR body:
+`{device.id}` or `{artifact}` written into `project.launch.<name>.args` is exit `2` naming the token.
+Substitution reaches the target's `after` steps and nowhere else, so a token in `args` was never
+unfillable — it reached the child process as itself.
+
+The exact-bytes rule for `device.name` (§ 5) is now nen's own documented behaviour: `docs/USAGE.md`'s
+`nen shu dev` section states from this release that the match is a string comparison with **no Unicode
+normalisation**, so a name macOS writes with U+2019 must be declared with that character.
