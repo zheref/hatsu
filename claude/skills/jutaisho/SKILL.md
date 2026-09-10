@@ -1,6 +1,6 @@
 ---
 name: jutaisho
-description: Ring the bell at the end of a turn — the three escalation rungs from nen/workflow.json (a push notification through the surface, an OS notification, an audible cue), the .nen/last-stop.json marker the Stop hook reads, and the fallback that runs the notifier in-session and says so when no hook is installed. Use when hatsu:ren reaches its sixth step, when hatsu:en reaches Ready, or when the maintainer invokes hatsu:jutaisho [at <gate>]. A turn that needs nothing rings nothing; a genuine gate gets the nen stop banner, the report link, lettered options with a star on the report, and the question through the surface's own option picker. Never prompts for hatsu:aka.
+description: Ring the bell at the end of a turn — the three escalation rungs from nen/workflow.json (a push notification through the surface, an OS notification, an audible cue), the .nen/last-stop.json marker the Stop hook reads, and the fallback that runs the notifier in-session and says so when no hook is installed. Use when hatsu:ren reaches its sixth step, when hatsu:en reaches Ready, or when the maintainer invokes hatsu:jutaisho [at <gate>]. An ordinary turn rings rung 1 only — rungs 2 and 3 escalate at a gate, or when nen/workflow.json notifications.turn says a turn rings — and a turn that did nothing rings nothing; a genuine gate gets the nen stop banner, the report link, lettered options with a star on the report, and the question through the surface's own option picker. Never prompts for hatsu:aka.
 ---
 
 # Jutaisho — the bell
@@ -33,19 +33,61 @@ with the clause absent, exit `0`. The clause is anchored behind a literal for th
 template, so every optional clause in this wave gets an introducing word.
 
 **The clause is a gate, and its absence is meaningful, not a default.** With no `at <gate>` the run
-is a **turn bell**: rungs fire per § 2, nothing is asked, and no `nen stop` banner is rendered. With
-a gate, this is a **stop**, and § 4's whole shape is owed.
+is a **turn bell**: nothing is asked and no `nen stop` banner is rendered. With a gate, this is a
+**stop**, and § 4's whole shape is owed.
+
+**How loud a turn bell is, exactly, and it is one rung:**
+
+| The run | Rungs that fire | Decided by |
+|---|---|---|
+| **An ordinary turn** — no `at <gate>` | **rung 1 only** — the surface's own turn-end line | the default, § 2's `notifications.turn` |
+| **A turn in a repository that asks for more** | every rung in `notifications.rungs` | `notifications.turn: "all"` (§ 2) |
+| **A gate** — `at <gate>` present | every rung in `notifications.rungs`, plus § 4's banner | the clause |
+
+> **This settles a contradiction this file used to carry, and it is recorded rather than quietly
+> corrected (finding F8).** § 1 read *"rungs fire per § 2"* for every turn; the hard limits read
+> *"never rings for a turn that needs nothing"* — and nothing here defined what a turn "needing
+> something" was short of a gate, so both readings were supportable and they disagreed about every
+> ordinary turn of every effort. The resolution is the table above, and it is deliberately not a
+> judgement call: **rung 1 is a line in a transcript the maintainer is already looking at, and rungs
+> 2–3 take over the machine.** A line costs nothing and is worth having every turn. An OS
+> notification and a sound every turn is precisely the bell nobody hears — the failure this skill
+> opens by naming. **So the escalation is gated on the gate**, and the only way an ordinary turn
+> rings rungs 2–3 is a repository saying so in its own policy file, by name.
+
+**"A turn that needs nothing" is now defined, and it is narrow:** a turn with **no `at <gate>`** and
+**nothing to say** — no commit, no report rendered, no step refused. That turn rings *nothing at
+all*, not even rung 1, because rung 1 announces a turn's end and there was no turn. Every other
+ordinary turn rings rung 1.
 
 ## 2. The three rungs — `nen/workflow.json` → `notifications`
 
 | Key | Meaning | Default when the key (or the file) is absent |
 |---|---|---|
-| `notifications.rungs` | which rungs fire, in order | `["push", "os", "sound"]` |
+| `notifications.rungs` | which rungs **may** fire, in order | `["push", "os", "sound"]` |
 | `notifications.sound` | the macOS system sound name for rung 3 | `Glass` |
+| `notifications.turn` | **how loud an ordinary turn is**: `"rung1"` — rung 1 only — or `"all"` — every rung `rungs` lists | `"rung1"` |
 
 **A rung the workflow does not list does not fire.** A repository that declares
 `"rungs": ["push"]` gets the surface notification and silence; that is a configuration, not a
 degradation, and it is reported as configured rather than as missing.
+
+> **`notifications.turn` is the key that decides whether an ordinary turn escalates, and it is the
+> only one.** Not a heuristic about how long the turn was, not a guess about whether the change
+> looked important, not the presence of a report — one declared value, two admitted strings, read
+> off the repository's own policy file. `"rung1"` is the default and the answer for every repository
+> that says nothing; `"all"` is a maintainer choosing to be interrupted every turn, in writing, in a
+> file they can change back. **`rungs` and `turn` are different questions** and both are asked:
+> `rungs` says which rungs exist for this repository at all, `turn` says how many of them an
+> *ungated* run may use. A repository with `"rungs": ["push"]` and `"turn": "all"` still rings only
+> rung 1, because `turn` cannot conjure a rung `rungs` withheld.
+>
+> **`notifications.turn` is an addition to `nen/workflow.json`'s shape, defined here** — it is not
+> in the schema the brief sketched, so nen's `nen.workflow/v0.1` must grow it when the loader lands
+> at `0.4.0`, alongside the `nen schema check` row for the file itself. **Recorded as residue**
+> (§ Residue 5) rather than assumed: a key a schema does not admit is a key that becomes a
+> validation error the day validation arrives. A repository whose file omits it is not malformed —
+> the default applies and is stated.
 
 | Rung | What it is | Who fires it |
 |---|---|---|
@@ -72,6 +114,11 @@ degradation, and it is reported as configured rather than as missing.
 
 Rungs 2 and 3 are fired by the harness `Stop` hook, and the hook needs to be told. **The skill
 writes the marker; the hook reads it, fires, and removes it.**
+
+**The marker is written only when rungs 2–3 are actually owed** — a gate, or `notifications.turn:
+"all"` (§ 1). An ordinary turn under the default rings rung 1 and writes **no marker at all**: a
+marker on disk is a request to interrupt, and writing one for every turn would hand the hook the
+escalation § 1 just withheld.
 
 ```
 .nen/last-stop.json
@@ -136,6 +183,10 @@ gates G1/G2/G3/G4 when one is genuinely due. Everything else is a turn bell.
 
 ## 5. No hook installed — the fallback, said out loud
 
+**This section applies only when rungs 2 and 3 are owed at all** — a gate, or `notifications.turn:
+"all"` (§ 1). An ordinary turn under the default has nothing here to fall back to, because it never
+asked for rungs 2–3 in the first place.
+
 If `hooks/hooks.json` is not installed on this machine, rungs 2 and 3 have nobody to fire them.
 **Then this skill runs the notifier itself, in-session, and says which rungs it fired that way:**
 
@@ -193,6 +244,10 @@ afplay /System/Library/Sounds/<notifications.sound>.aiff
 4. **`nen/workflow.json` is unvalidated at `v0.3.0`** — `nen schema check` reports five rows and no
    workflow row (verified live, `docs/ab/rikugan.md` § 2.4). § 2's keys are read as data with the
    defaults stated.
+5. **`notifications.turn` does not exist in the `nen.workflow/v0.1` shape the brief sketched** — it
+   is defined by this skill (§ 2) to settle F8, with `"rung1"` the default, and it must be admitted
+   by the workflow schema when the loader lands at nen `0.4.0`. Until then nothing validates it and
+   nothing rejects it, which is exactly why it is written down here rather than relied on silently.
 
 ## Authority
 
@@ -209,7 +264,9 @@ afplay /System/Library/Sounds/<notifications.sound>.aiff
   it as an option, hinting at it, or ending a turn with *"shall I push?"* converts a human call into
   an agent's suggestion, which is exactly the inversion the local plane forbids. If the branch is
   ready to go out, the report says the branch is ready to go out — and stops there.
-- **Never rings for a turn that needs nothing.** No gate, no banner, no `nen stop`, no interruption.
+- **Never escalates an ordinary turn past rung 1.** No gate and no `notifications.turn: "all"` means
+  the surface's own line and nothing else: no OS notification, no sound, no marker, no banner, no
+  `nen stop` (§ 1, § 3). And **a turn that did nothing rings nothing at all** — § 1's narrow case.
 - **Never renders a stop with fewer than § 4's four parts** — banner, report link, lettered options
   with ⭐ on the report, and the question through the surface's own picker.
 - **Never passes `--notified` for a push notification that did not go out.**
