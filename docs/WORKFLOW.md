@@ -491,7 +491,10 @@ maintainer's word, in a new invocation.
 effort `medium`. He is **provisioned, not ratified** (`OPEN-1`, partially closed 2026-09-09) for this watch
 **and no other loop**: not `backlog-loop`, not `futon`, not `senkei`.
 
-He is **read-only by construction** — his frontmatter carries no `Edit`, `Write` or `MultiEdit` — and he acts
+He is **read-only by discipline, and the definition says which** — his frontmatter carries no `Edit`, `Write`
+or `MultiEdit`, but it does carry `Bash`, because every observation is a program and `Bash` can push, commit
+and merge as easily as it can read. What holds is the **command allowlist** in
+[`illumi.md`](../claude/agents/illumi.md) § *Your tools*; anything off it is a wake, not a command. He acts
 on nothing. Each cycle he records five facts (the readiness verdict *quoted*, the checks, review activity,
 base drift, terminal state), compares them against the previous cycle, and **wakes Kurapika** when one of
 seven conditions fires: Ready, a new review or thread, a check gone red, the branch behind or conflicted,

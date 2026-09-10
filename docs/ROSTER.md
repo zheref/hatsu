@@ -58,7 +58,7 @@ the provision.
 | **Uvogin** | `claude/agents/uvogin.md` | **Performance tests — the fixed seven metrics, method blocks, baselines.** `QA-11`'s P1–P7 on every pre-release run, with `QA-12`'s pinned tooling, `QA-13`'s regression thresholds and absolute ceilings, `QA-14`'s in-repo baselines, and `QA-15`'s five-field method block. | **Ratified** |
 | **Feitan** | `claude/agents/feitan.md` | **Security, and security only.** The security-bearing scope of an adversarial review: auth flows, secrets and credential handling, network and storage boundaries, data minimisation, the supply chain. Cites the inherited `SEC-{n}` rules **by id, resolved and never remembered** (`SEC-8` and `SEC-14` are referenced in the product repositories), plus a repository's own security notes by path. | **Ratified** on the ruling of 2026-09-09 below; **definition landed at `v0.5.0`** |
 | **Chrollo** | `claude/agents/chrollo.md` | **Architecture and handbook conformance.** The `UZF-{n}` core, **exactly one** resolved stack handbook (`SW-`/`KT-`/`RC-`/`BC-`), and a repository's own architecture notes — KroApple's `.claude/Architecture/` is the live example — each cited by id or by path. He is the architecture reviewer the QA lane routes a coverage-floor breach or a missing unit test to (`UZF-19`). **He reviews the handbooks; he never authors them.** | **Ratified** on the ruling of 2026-09-09 below; **definition landed at `v0.5.0`** |
-| **Illumi** | `claude/agents/illumi.md` | **The long watch — `en`'s step 6, and no other loop.** Read-only observation through `nen watch until`, under `izanagi`'s mandatory cap and `workflow.json` → `monitor`. He wakes Kurapika and acts on nothing: never merges, votes, comments, labels, pushes, or fires a wake. His frontmatter carries no write tools. | **PROVISIONED, NOT RATIFIED** — `OPEN-1`, **partially** closed 2026-09-09. The definition landed at `v0.5.0` so the provision can be executed; **it widens nothing**. See below |
+| **Illumi** | `claude/agents/illumi.md` | **The long watch — `en`'s step 6, and no other loop.** Read-only observation through `nen watch until`, under `izanagi`'s mandatory cap and `workflow.json` → `monitor`. He wakes Kurapika and acts on nothing: never merges, votes, comments, labels, pushes, or fires a wake. His frontmatter carries no `Edit`, `Write` or `MultiEdit` — **but `Bash` is there, because every observation is a program, so read-only is a stated command allowlist in his own definition and not a property of the tool set.** Said that way rather than dressed up as a construction, per ruling 2's own standard. | **PROVISIONED, NOT RATIFIED** — `OPEN-1`, **partially** closed 2026-09-09. The definition landed at `v0.5.0` so the provision can be executed; **it widens nothing**. See below |
 
 ### ⚠️ Gon's delegation grammar is a DRAFT — **until it is ratified, Gon crosses no gate**
 
@@ -162,9 +162,13 @@ when the work exists*, and it does **not** widen to the other loop engines (`bac
 **His definition landed at `v0.5.0`** — [`claude/agents/illumi.md`](../claude/agents/illumi.md), on the
 **fast** tier at effort `medium` — for one reason: a provision that cannot be executed is a provision in name
 only, and `en` shipped in the same wave. **The file is scoped to exactly the provision and widens nothing**:
-it opens with the unratified warning, it refuses `backlog-loop`, `futon` and `senkei` by name, it is
-read-only by construction (no `Edit`, `Write` or `MultiEdit` in its frontmatter), and it acts on no pull
-request at all — it observes and wakes Kurapika. **Provisioned is still not ratified**, and the row above
+it opens with the unratified warning, it refuses `backlog-loop`, `futon` and `senkei` by name, it carries a
+**stated command allowlist** for the one write-capable tool it must keep, and it acts on no pull request at
+all — it observes and wakes Kurapika. **It is not read-only *by construction*, and the file says so**: `Bash`
+is in its frontmatter because every observation is a program, and an unconstrained `Bash` can push, commit,
+comment and merge whatever the tool list omits. Dropping `Edit`, `Write` and `MultiEdit` closes the shortest
+way round; **the guarantee is the allowlist, and it is a discipline** — named as one here for the same reason
+ruling 2 names which attribution layers actually ship. **Provisioned is still not ratified**, and the row above
 says so.
 
 **What this does not close.** **Killua's row is untouched and remains fully OPEN**, and it must not be
