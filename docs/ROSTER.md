@@ -32,7 +32,7 @@ believes he is holding, so they can catch him holding the wrong one before he ac
 | **Conjurer** | **Canon & governance authoring** — the constitution, handbooks, schemas, agent definitions, taxonomies, thresholds. Conjured contracts *with conditions*: a clause states what it binds, what it costs, when it lapses, and what happens when it is broken. | **G4** (`CON-7`) |
 | **Transmuter** | **Machinery** — Nen verbs and their tests, scaffolding, hooks, workflows, generators, plugin manifests, contract files. The standing transmutation is *improvised shell → deterministic verb*. | **G4** (`CON-7`) |
 | **Manipulator** | **GitHub-side ops** — drives, wakes, labels, retargets, cascades, thread stewardship. Never merges, never votes, never self-reviews. | drives *to* a gate, crosses none |
-| **Emitter** | **Release & fan-out** — the tag cut, changelog collation, preflight, and the repin fan-out across consumers. Prepares a release; never publishes one. | **G3** stays the human's (`CON-6`) |
+| **Emitter** | **Release & fan-out** — `susanoo` builds the release unit, `getsuga` opens the release-proposal PR and cuts the post-merge tag, and the repin fan-out follows: collation, preflight, `latest`. Prepares a release; never publishes one, and never reaches `kagutsuchi` or `mugetsu`. | **G3** stays the human's (`CON-6`) |
 | **Specialist** | **Product intake** — his kept Product-Owner canon. A raw thought elicited into a decision-complete brief, filed only on explicit confirmation. | **G1** stays the human's (`CON-4`) |
 
 **Kurapika is local-only.** His prior trajectory in the upstream canon — local surface retired into another
@@ -183,6 +183,35 @@ wanted for it, that is a handbook-question for the rewritten constitution. Nothi
 about him changes — the proven-finding discipline (`QA-1`), the eight hypothesis classes with a recorded
 disposition each (`QA-2`, `QA-3`), the advisory `Quality-Gate:` line (`QA-21`), and the release gate staying
 the maintainer's. A trigger is a new way to be called, never a new authority.
+
+---
+
+## Rulings of 2026-09-10
+
+**The release side of the lattice lands at `v0.6.0`, and its spelling is settled.** Recorded here for the
+same reason the rulings above are: this file is the authority on standing.
+
+**`susanoo` (archive and packaging), `kagutsuchi` (non-production deploy or upload, **per target**) and
+`mugetsu` (publication, **per target**, **G3**, `CON-6`) are skills from `v0.6.0`** —
+[`claude/skills/susanoo/`](../claude/skills/susanoo/),
+[`claude/skills/kagutsuchi/`](../claude/skills/kagutsuchi/),
+[`claude/skills/mugetsu/`](../claude/skills/mugetsu/). With them, **the five phases of § *Rulings of
+2026-09-09*, 1 are complete as files as well as as rules**, and the surface is **thirty-eight skills**.
+Nothing about the phases themselves changes: `kagutsuchi` and `mugetsu` remain the maintainer's own calls,
+one target per call, never reached from a composite — not from `getsuga`, not from `futon`'s `then` clause,
+not from `en` — and Emitter still prepares a release and never publishes one. **A skill is a written phase,
+not a new authority**, which is why the boundary held identically while these three were only names.
+
+**Spelling: `kagutsuchi` is the ruled form.** The maintainer's own writing has carried **"kagutsushi"**;
+the phase is named for 迦具土 / *Kagutsuchi*, and **`kagutsuchi` is what the skill directory, the
+invocation `hatsu:kagutsuchi`, and every document in this repository use**. Recorded rather than silently
+normalised, so that a reader meeting the other spelling in an older note knows it is the same phase and not
+a second one. **`kagutsushi` is not an alias and does not resolve** — there is no second directory, and
+inventing one would put two names on one phase, which is the failure this ruling exists to prevent.
+
+**What this does not close.** `OPEN-1`, `OPEN-2` (Gon's delegation grammar, still a DRAFT — he crosses no
+gate) and `OPEN-3` are untouched. No agent definition changes at `v0.6.0`, and no new independent is
+activated by it.
 
 ---
 

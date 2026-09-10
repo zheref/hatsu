@@ -4,7 +4,7 @@
 credentials.**
 
 One lead persona — **Kurapika**, who names which of six declared work-modes he is holding before he acts —
-plus a small roster of focused independents, and **thirty-five skills** that take a backlog, a pull request or
+plus a small roster of focused independents, and **thirty-eight skills** that take a backlog, a pull request or
 a release from where it is to the human gate where a person decides. **Every deterministic step that has a
 verb is a verb** from the [**Nen**](https://github.com/zheref/nen) CLI: Nen detects, computes, formats and
 verifies; the skill supplies only the judgment a binary cannot. Where no verb exists yet, the residue is
@@ -12,7 +12,7 @@ verifies; the skill supplies only the judgment a binary cannot. Where no verb ex
 
 No GitHub App. No bot identity. Nothing here merges `main`, publishes a release, or casts a review vote.
 
-> **`v0.5.0`.** Hatsu is the local plane of the Akatsuki system, and it succeeds the local plane of a
+> **`v0.6.0`.** Hatsu is the local plane of the Akatsuki system, and it succeeds the local plane of a
 > predecessor system — the frozen reference implementation — which it also **serves live today**: the
 > original seventeen skills were ported name-for-name and proven against that system's real backlog before
 > `v0.1.0` was cut. The evidence is in [`docs/ab/`](docs/ab/), one file per skill — dated records of the port
@@ -22,7 +22,9 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 > [`nen/workflow.json`](nen/workflow.json)), and two harness hooks — a stop bell and a refusal to commit on
 > the trunk. **`v0.5.0` adds the PR side**: eight more skills — `mukai`, `murasaki`, `hanten`, `gyo`,
 > `kotoamatsukami`, `shibari`, `en` and `jujutsu` — the rename of `drive` to **`sharingan`**, and the three
-> agent definitions that side needs: **Feitan**, **Chrollo** and **Illumi**.
+> agent definitions that side needs: **Feitan**, **Chrollo** and **Illumi**. **`v0.6.0` closes the release
+> side**: `susanoo` (archive and packaging), `kagutsuchi` (non-production upload, per target) and `mugetsu`
+> (publication, per target, **G3**) — so every one of the five phases only you may call now has a skill.
 > [`docs/WORKFLOW.md`](docs/WORKFLOW.md) is the authority on all of it.
 
 ---
@@ -240,7 +242,7 @@ later. Adopting another remains a deliberate act with its own decision.
 
 ## The skills
 
-Thirty-five, invoked as `hatsu:<name>`. Longer descriptions in
+Thirty-eight, invoked as `hatsu:<name>`. Longer descriptions in
 [`claude/skills/README.md`](claude/skills/README.md).
 
 ### The seventeen that answer a request
@@ -256,7 +258,7 @@ Thirty-five, invoked as `hatsu:<name>`. Longer descriptions in
 | `build` | Takes one issue from wherever it sits to a delivery PR standing ready at its human gate. |
 | `file` | Files one well-formed, correctly-labelled, non-duplicate issue — reconciled against the open backlog first. |
 | `futon` | Takes one whole severity band from open issues to PRs with an actor behind them, then **gates** the terminal step you typed — it clears its own gate and hands the cut to `getsuga`; it never cuts a tag itself. |
-| `getsuga` | **Cuts** a release tag locally, end to end — preconditions, one folded release PR, the tag, the fan-out and the consumers' repin PRs. Never publishes a release. |
+| `getsuga` | **Cuts** a release tag locally, end to end — preconditions, one folded **release-proposal** PR you merge, the **post-merge** tag, the fan-out and the consumers' repin PRs. The release unit is `susanoo`'s; publication is `mugetsu`'s. Never publishes a release. |
 | `izanagi` | Repeats a task that **acts** until a condition holds, under a **mandatory** iteration cap. No cap, no run. |
 | `izanami` | Repeats a **read-only** task until a condition holds. It looks, reports, and stops. |
 | `jujisho` | Splits a mixed working copy into up to two stacked branches and PRs, by axis, proving nothing was left behind. |
@@ -299,9 +301,19 @@ Five atomic, three composite. `mukai` is yours to call; everything else here is 
 | `mukai` | **composite** | **The review-and-PR phase — yours to call.** `murasaki` → `hanten` → tests + UI tests → `gyo` → evidence → `shibari`, which opens the PR and starts `en`. **Four of the five G5 stops live inside it.** |
 | `en` | **composite** | **The landing watch, capped.** Landing report → `sharingan` → `murasaki` when behind → `sharingan` → `jutaisho` at Ready → watch until merged → the final report. **A watch with no cap does not run**; where one must outlive the session, the watch itself is handed to **Illumi**, read-only. |
 
-> **Arriving at `v0.6.0`:** `susanoo` (archive and packaging), `kagutsuchi` (non-production upload, per
-> target) and `mugetsu` (publication, per target, **G3**). Until a phase has a skill, the boundary still
-> holds: it is named, and the loop stops there.
+### The three that close the release side — new in `v0.6.0`
+
+All three atomic. Two of them are **yours to call, per target** — that is what makes them the last two rows
+of the five. [`docs/WORKFLOW.md`](docs/WORKFLOW.md) § 4 is the authority.
+
+| Skill | | |
+|---|---|---|
+| `susanoo` | **atomic** | **Archive and packaging.** Runs the lane's declared `archive` and produces the distributable **locally**. It uploads nothing and signs nothing — Nen never synthesises signing material — and an unsupported seat is quoted, never routed around. This is the release unit `getsuga` folds into the release PR and the two phases below send. |
+| `kagutsuchi` | **atomic** | **Non-production upload — yours to call, per target.** The plan is always printed (`nen shu deploy --target <name>`, no `--run`); `--run` acts only on your own call **naming the target**, and never from a composite. `--target` is required with no default, even where exactly one destination is declared. |
+| `mugetsu` | **atomic** | **Publication — yours to call, per target, G3.** Only on your recorded per-target go, with the preflight green and the tag already cut. **One target per call**, and never from `getsuga`, `futon` or `en`. This is the only phase that reaches other people's users. |
+
+> **The boundary was always the governance, not the file.** These three were named phases before they were
+> skills, and the loop stopped at them then exactly as it does now.
 
 Plus [`hatsu-warmup`](claude/skills/hatsu-warmup/) — the Nen contract, executing — and the `/kurapika`
 summon command.
