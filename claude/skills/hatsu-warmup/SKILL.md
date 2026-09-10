@@ -455,7 +455,7 @@ computation, method-block validation, perf comparison, and the rest of `nen --he
 
 ## 4 · Report, in one line
 
-State the outcome before doing anything else, so the maintainer knows which of the four happened. **The
+State the outcome before doing anything else, so the maintainer knows which of the six happened. **The
 line carries the floor beside the version**, because the version alone no longer says whether a repin is
 owed — that is the whole of what the floor added, and a report that omits it hides the one fact the reader
 would act on:
@@ -473,7 +473,7 @@ run's `compat floor:` line, or `--json`'s `compatibleMinorFloor`. On a binary ol
 no floor to quote and the line says `floor not reported (nen <version>)`; **it never carries a floor
 inferred from the pin**, which would be this file computing the range again by another name.
 
-**Silence is not one of the four.** A warm-up that did not run is reported as *not run*, never rendered as
+**Silence is not one of the six.** A warm-up that did not run is reported as *not run*, never rendered as
 clear — the same discipline `nen warmup`'s own `--questions-from` omission follows, where a skipped sweep
 reports `{"checked": false}` rather than an empty finding set.
 
