@@ -541,8 +541,28 @@ to the start of a line, past the bookkeeping a real declaration may carry — le
 blockquote `>` markers, `-` list bullets, in any order:
 
 ```bash
-grep -qiE '^[[:space:]]*([>-][[:space:]]*)*no plugin bump:[[:space:]]*[^[:space:]]' "$file"
+grep -qiE '^[[:space:]]*(>[[:space:]]*|-[[:space:]]+)*no plugin bump:[[:space:]]*[^[:space:]]' "$file"
 ```
+
+**The two markers are spelled differently, and the asymmetry is the finding.** The first attempt at
+this fix wrote both as one class, `([>-][[:space:]]*)*` — a `-` with **no** following whitespace
+accepted. That re-opened the same hole one character narrower, and **Copilot caught it on
+zheref/hatsu#34** before the PR merged. Against that intermediate version, all three of these were
+read as declarations:
+
+```
+$ bash -c 'source scripts/plugin_bump_check.sh; pr_body_has_opt_out "$1" && echo MATCHED' _ <tmp>/body_dashdash_start.md
+MATCHED            # "--no plugin bump: a CLI flag at line start, not a declaration."
+$ bash -c 'source scripts/plugin_bump_check.sh; pr_body_has_opt_out "$1" && echo MATCHED' _ <tmp>/body_dashnospace.md
+MATCHED            # "-no plugin bump: not a bullet, just a hyphenated word."
+$ bash -c 'source scripts/plugin_bump_check.sh; pr_body_has_opt_out "$1" && echo MATCHED' _ <tmp>/body_arrow.md
+MATCHED            # "-> no plugin bump: an arrow, not a bullet."
+```
+
+So the markers are not interchangeable: **`>` needs no following whitespace** — `>no plugin bump: …`
+is a valid blockquote and `>` starts no English word — while **`-` requires it**, because a list
+bullet has whitespace after it and a hyphen does not. All three lines above are refused by the
+pattern as shipped, and `>no plugin bump: <reason>` still passes.
 
 The reason requirement (§ 3.4) is unchanged, and so is the shape the file documents: everything above
 the `BASH_SOURCE` guard stays pure, needs no git, `gh` or network, and sourcing it still does not
@@ -550,7 +570,7 @@ mutate the caller's shell options — verified: `bash -c 'set +u +e; source …;
 
 ### 8.3 Transcripts — refuse, then pass
 
-All seven against the same changed-surface list. Rows 1–3 and 6 carry **no** bump.
+All eleven against the same changed-surface list. Every row but 7 carries **no** bump.
 
 | # | PR body | Expected | Result |
 |---|---|---|---|
@@ -561,6 +581,10 @@ All seven against the same changed-surface list. Rows 1–3 and 6 carry **no** b
 | 5 | `> no plugin bump: README typo.` | pass | **exit `0`** |
 | 6 | bare `no plugin bump:` — no reason | refuse | **exit `1`** |
 | 7 | body 1's prose **with** the `0.7.1 → 0.8.0` bump | pass **on the bump** | **exit `0`** |
+| 8 | `--no plugin bump: …` at line start (a CLI flag) | refuse | **exit `1`** |
+| 9 | `-no plugin bump: …` (a hyphenated phrase, not a bullet) | refuse | **exit `1`** |
+| 10 | `-> no plugin bump: …` (an arrow, not a bullet) | refuse | **exit `1`** |
+| 11 | `>no plugin bump: …` (blockquote, no space — valid markdown) | pass | **exit `0`** |
 
 The two that changed behaviour, in full:
 
@@ -610,6 +634,13 @@ opt-out declared [0]
 
 None. This is Hatsu's own script; `nen` owns no part of it, and no verb was involved in any run
 above.
+
+**One finding against the fix itself, recorded because it is the more useful one.** The first pass at
+§ 8.2 folded `>` and `-` into a single character class and accepted either with no following
+whitespace, which left three false accepts standing (rows 8–10). It was caught in review on
+zheref/hatsu#34, not by any of the seven transcripts § 8.3 originally carried — **a guard fix
+verified only against the cases that motivated it is verified against the wrong set.** Rows 8–11
+exist so the next reader inherits the counter-examples rather than the confidence.
 
 ### 8.5 What this does not fix
 

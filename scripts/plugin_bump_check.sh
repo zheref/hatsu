@@ -198,10 +198,22 @@ version_bumped() {
 # whitespace, blockquote `>` markers and `-` list bullets, in any order. Nothing
 # else — a backtick, a `*` bullet inside a sentence, or any other character
 # before the phrase means it is being talked about rather than declared.
+#
+# The two markers are NOT spelled the same way, and the asymmetry is the point:
+#
+#   `>`  needs no following whitespace. `>no plugin bump: …` is a valid
+#        blockquote, and `>` is not a character that starts an English word.
+#   `-`  REQUIRES whitespace after it, because a list bullet has some and a
+#        hyphen does not. Accepting a bare `-` re-opened the same hole one
+#        character narrower: `-no plugin bump: …` (a hyphenated phrase),
+#        `--no plugin bump: …` (a CLI flag) and `-> no plugin bump: …` (an
+#        arrow) all matched, and none of them declares anything. Found by
+#        Copilot on zheref/hatsu#34; transcripts in
+#        docs/ab/plugin-bump-guard.md § 8.
 pr_body_has_opt_out() {
   local file="$1"
   [ -f "$file" ] || return 1
-  grep -qiE '^[[:space:]]*([>-][[:space:]]*)*no plugin bump:[[:space:]]*[^[:space:]]' "$file"
+  grep -qiE '^[[:space:]]*(>[[:space:]]*|-[[:space:]]+)*no plugin bump:[[:space:]]*[^[:space:]]' "$file"
 }
 
 if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
