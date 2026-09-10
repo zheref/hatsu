@@ -669,3 +669,88 @@ it to make. § 2 now says how to bind the name.
   discipline `claude/agents/kurapika.md` requires, and a visible contrast with the Codex half's F11.
   **This is not evidence about Cursor's agent-loading mechanism**, though: the prompt told it to read
   `.cursor/agents/kurapika.md`, so what is shown is that the file governs once read.
+
+---
+
+## 9. The mirrored `$CLAUDE_PLUGIN_ROOT` — 2026-09-10
+
+**Found by Copilot's review of PR #36** (review `5168133411`), on `surfaces/codex/pr-state/SKILL.md` and
+`surfaces/cursor/pr-state/SKILL.md` line 101: the mirrored `--gates
+"$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"` cannot reliably load the gates file on either
+surface, where that variable is normally unset — or, exported from a shell profile, names a different
+plugin (§ 8.4, F3). The review added that *the same issue affects the other touched mirrored skills*, and it
+is wider than that PR: the anchor predates it, and a grep of the SOURCE found it in seven skills plus the
+Kurapika definition, every one carried verbatim into both mirrors.
+
+### 9.1 Where it was, and why `check` never flagged it
+
+```
+$ grep -rln 'CLAUDE_PLUGIN_ROOT' claude/skills --include=SKILL.md claude/agents claude/commands
+claude/agents/kurapika.md            claude/skills/getsuga/SKILL.md       claude/skills/pr-state/SKILL.md
+claude/commands/kurapika.md          claude/skills/hanten/SKILL.md        claude/skills/sharingan/SKILL.md
+claude/skills/backlog-state/SKILL.md claude/skills/hatsu-warmup/SKILL.md  claude/skills/tensho/SKILL.md
+claude/skills/futon/SKILL.md
+```
+
+`nen surface mirror check` reported both surfaces clean before the change and after it, because a mirror
+that faithfully carries a non-portable line is not drift. The verb's own `--help` says what it rewrites:
+*"the body verbatim, the frontmatter reduced to the keys the surface documents, and — where the surface
+documents an explicit invocation spelling — every `<prefix><name>` mention rewritten into it."* Nothing
+else — a shell variable in a body is a body.
+
+### 9.2 Source, not generator — and why
+
+Two fixes were on the table: teach `nen surface mirror generate` to rewrite `$CLAUDE_PLUGIN_ROOT` per
+surface, or make the source surface-neutral. **The source won**, for the same reasons the invocation rewrite
+is shaped the way it is:
+
+- **The invocation rewrite has a documented target.** Each row of nen's `src/surface/rules.ts` carries the
+  page it read the surface's spelling from, and `--invocation-prefix` is caller data. Neither Codex nor
+  Cursor documents a plugin-root variable — neither has a plugin loader — so there is nothing
+  surface-documented to rewrite the variable *into*. The right target is not a variable at all but a
+  resolution, `hatsu-warmup` § 5's prelude, and a generator cannot emit a resolution in place of a word.
+- **nen hard-codes no system's vocabulary** (`docs/SURFACES.md` § 1). `$HATSU_PLUGIN_ROOT` and
+  `$hatsu_root` are Hatsu's words; a generator that knew them would be carrying one consumer's convention,
+  or growing a flag to be told it.
+- **A text rewrite cannot tell a USE from a MENTION.** `hatsu-warmup` names `$CLAUDE_PLUGIN_ROOT` seventeen
+  times on purpose — it is the section that explains why the variable is not trusted, and its resolution
+  loop reads it as the last candidate. Rewriting those would corrupt the definition of the convention every
+  other skill now cites.
+
+So every path built from the plugin root is spelled **`$hatsu_root`** — `$HATSU_PLUGIN_ROOT`, else the path
+the run was handed, else `$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout — with one
+sentence beside it saying so and pointing at the prelude. `$CLAUDE_PLUGIN_ROOT` is still named where a
+sentence is *about* it (why it is not enough on its own; the Claude-Code-only `claude plugin list --json`
+fallback), which is a mention, and true on every surface. `sharingan` § 4's identity box and `hanten` § 3's
+root paragraph — the two the others cite — now lead with the resolution and keep the verified-live facts
+about the variable beneath it. `docs/WORKFLOW.md`'s section keeps its heading (the warm-up links to it by
+name) and its table now has `$hatsu_root`'s four rows.
+
+### 9.3 Verification
+
+```
+$ grep -rn 'CLAUDE_PLUGIN_ROOT/' claude/skills claude/agents claude/commands --include='*.md' | grep -v hatsu-warmup
+(no output — no path is built from the bare variable outside the skill that defines the resolution)
+
+$ nen surface mirror generate --source claude/skills --agents claude/agents --surface codex  --out surfaces/codex  --invocation-prefix hatsu:
+written: AGENTS.md, backlog-state/SKILL.md, futon/SKILL.md, getsuga/SKILL.md, hanten/SKILL.md, pr-state/SKILL.md, sharingan/SKILL.md, tensho/SKILL.md
+$ nen surface mirror generate --source claude/skills --agents claude/agents --surface cursor --out surfaces/cursor --invocation-prefix hatsu:
+written: agents/kurapika.md, backlog-state/SKILL.md, futon/SKILL.md, getsuga/SKILL.md, hanten/SKILL.md, pr-state/SKILL.md, sharingan/SKILL.md, tensho/SKILL.md
+
+$ bash scripts/surface_mirror_check.sh
+surface-mirror-check: nen 0.6.0 · source claude/skills · agents claude/agents
+--- codex (surfaces/codex)
+ok: 40   missing: (none)   extra: (none)   stale: (none)   hand-edited: (none)
+--- cursor (surfaces/cursor)
+ok: 47   missing: (none)   extra: (none)   stale: (none)   hand-edited: (none)
+surface-mirror-check: both mirrors match a fresh generation.
+$ echo $?
+0
+
+$ claude plugin validate . --strict
+✔ Validation passed
+```
+
+**What this did not verify.** No Codex or Cursor session was run against the regenerated mirrors; the
+claim is that the spelling now matches the resolution `hatsu-warmup` § 5 already performs on those surfaces
+(§ 8.8 records that resolution working), not that a `--gates` call was exercised there.

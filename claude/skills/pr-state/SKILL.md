@@ -95,9 +95,10 @@ the short form is three shapes, and there is no fourth:
 # the target ships its own nen/gates.json — no identity flag at all (the schemas/ fallback is REMOVED at the pinned nen 0.6.0; a gates file only there is refused, same as none at all)
 nen pr ready <CODE>#<N> --repo <path> --explain
 
-# the target IS <reference-repo> itself — frozen, ships no gates file of its own
+# the target IS <reference-repo> itself — frozen, ships no gates file of its own.
+# $hatsu_root is THIS plugin's checkout, resolved as hatsu-warmup § 5's prelude does — never assumed
 nen pr ready <CODE>#<N> --repo <path> \
-  --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
+  --gates "$hatsu_root/contracts/reference.gates.json" --explain
 
 # any OTHER target that ships no gates file — identities supplied BY HAND, from its own CODEOWNERS
 # or the PR's own requested reviewers, never the reference file above
@@ -107,14 +108,20 @@ nen pr ready <CODE>#<N> --repo <path> --reviewers <a,b,c> [--approvers <a,b>] --
 or, with a bare number against a repo slug directly, the same three shapes with `<N> --gh-repo
 <owner/repo>` in place of `<CODE>#<N> --repo <path>`.
 
-**Always the `$CLAUDE_PLUGIN_ROOT`-anchored form when `--gates` is the one in play, never a bare `contracts/reference.gates.json`.** The
+**Always the `$hatsu_root`-anchored form when `--gates` is the one in play, never a bare `contracts/reference.gates.json`.** The
 reason moved with nen `v0.2.0` (#86) and the practice did not: a **relative** `--gates` now resolves
 against **`--repo`'s root, never the cwd** — verified live at `v0.3.0`, from `/tmp` with `--repo` pointed
 at a checkout that lacks the file: `nen: <repo>/contracts/reference.gates.json: no such file. --gates was
 given 'contracts/reference.gates.json', which is RELATIVE, so it was resolved against the target
 repository root … not the current directory` (exit `2`). The file lives in *this* plugin's checkout, not in
-the target's, so only an **absolute** path reaches it from any `--repo`; `$CLAUDE_PLUGIN_ROOT` is the
-house convention for exactly this (`claude/skills/hatsu-warmup/SKILL.md` § 0). `--explain` and `--json`'s
+the target's, so only an **absolute** path reaches it from any `--repo`. **`$hatsu_root` is the house
+convention for exactly this** — the Hatsu checkout as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's
+prelude resolves it, on every surface: `$HATSU_PLUGIN_ROOT`, else the path the invocation was handed, else
+`$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout. It is spelled that way and never as
+`$CLAUDE_PLUGIN_ROOT` alone because that variable is Claude Code's: exported by that harness inside a skill
+invocation and nowhere else, and on Codex and Cursor — where this body runs as a verbatim mirror
+([`docs/SURFACES.md`](../../../docs/SURFACES.md)) — usually unset or, from a shell profile, naming a
+different plugin. `--explain` and `--json`'s
 `meta.identities.path` print the resolved absolute path (`identities <abs path>` on the `--explain` header
 line), so the report itself says which file decided.
 
@@ -123,7 +130,7 @@ line), so the report itself says which file decided.
   **`--gh-repo <owner/name>`** is the slug the API read runs against, needed whenever the ref
   is a bare number — `--repo <path>` is itself a path argument, not the cwd, so it already works from
   anywhere without `--gh-repo` alongside it.
-- **`--gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"`** — `<reference-repo>` is FROZEN and ships
+- **`--gates "$hatsu_root/contracts/reference.gates.json"`** — `<reference-repo>` is FROZEN and ships
   no gates file of its own (no `nen/gates.json`); without
   `--gates` (or a `--reviewers` override) `nen pr ready` refuses outright with `no reviewer identities`
   rather than guessing a reviewer set — verified live at `v0.3.0`, and the refusal now names **both**

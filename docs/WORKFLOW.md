@@ -817,17 +817,23 @@ the installed plugin directory, which changes on every update, so it is never wr
 
 ### `$CLAUDE_PLUGIN_ROOT` is set inside a skill invocation, and nowhere else
 
-Several skills build an absolute path from it — `pr-state`, `sharingan`, `backlog-state`, `futon`, `tensho`
-and `getsuga` for `nen pr ready --gates`, `hatsu-warmup` for `nen/contract.json`, `hanten` for a persona's
-definition under `claude/agents/`, `rikugan` for `templates/<name>.html`. **The harness exports it while a
-skill is running, and it is EMPTY in an ordinary tool-call shell and inside a subagent** — verified live. So a
-run that reads it has to check it:
+Several skills build an absolute path from the plugin root — `pr-state`, `sharingan`, `backlog-state`,
+`futon`, `tensho` and `getsuga` for `nen pr ready --gates`, `hatsu-warmup` for `nen/contract.json`, `hanten`
+for a persona's definition under `claude/agents/`, `rikugan` for `templates/<name>.html`. **The name they
+spell it with is `$hatsu_root`, never `$CLAUDE_PLUGIN_ROOT` on its own**, because a skill body is mirrored
+verbatim onto Codex and Cursor ([`docs/SURFACES.md`](SURFACES.md)) and `$CLAUDE_PLUGIN_ROOT` is Claude
+Code's alone: **the harness exports it while a skill is running, and it is EMPTY in an ordinary tool-call
+shell and inside a subagent** — verified live — and on the two other surfaces it is usually unset or, exported
+from a shell profile, names a different plugin (`docs/ab/surfaces.md` § 8, F3). `$hatsu_root` is the
+resolution [`hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md) § 5's prelude runs on every surface,
+each candidate accepted only if it is a Hatsu checkout:
 
-| The variable | What to do |
+| `$hatsu_root` comes from | when |
 |---|---|
-| **set** | use it — the installed plugin directory, which changes on every update and is never a literal |
-| **empty**, and the run was handed a plugin path | use the path it was handed |
-| **empty**, with nothing handed | resolve it: `claude plugin list --json` → the entry whose `id` is `hatsu@hatsu`, field **`installPath`**. Verified live: the `--json` flag exists and `installPath` is the plugin root |
+| **`$HATSU_PLUGIN_ROOT`** | the environment the session was started with — the form that works on all three surfaces, and the one to prefer |
+| the path the run was handed | `hatsu-warmup <path>`, or whoever raised the run |
+| **`$CLAUDE_PLUGIN_ROOT`**, when set | Claude Code's own — the installed plugin directory, which changes on every update and is never a literal. Inside a Hatsu skill invocation on Claude Code it passes the identity check on the first comparison |
+| **none of the three**, on Claude Code alone | resolve it from the surface's own registry: `claude plugin list --json` → the entry whose `id` is `hatsu@hatsu`, field **`installPath`**. Verified live: the `--json` flag exists and `installPath` is the plugin root. Neither other surface has a registry to ask — there an unresolved root is reported, never guessed |
 
 **Never substitute a bare relative path.** `--gates` in particular resolves a relative path against
 `--repo`'s root since nen `v0.2.0`, never the cwd, so `contracts/reference.gates.json` looks for a file

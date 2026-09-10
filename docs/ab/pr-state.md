@@ -238,6 +238,21 @@ relative path, which only resolves when the caller's cwd happens to be this chec
 this port by anchoring on `$CLAUDE_PLUGIN_ROOT` — the house convention `claude/skills/hatsu-warmup/
 SKILL.md` § 0 already establishes for exactly this — which the last command above stands in for.
 
+> **Dated note, 2026-09-10 — the anchor is now `$hatsu_root`, and the transcript above stands.** Copilot's
+> review of PR #36 (`surfaces/codex/pr-state/SKILL.md` and `surfaces/cursor/pr-state/SKILL.md`, line 101)
+> pointed out that the mirrored body carried `$CLAUDE_PLUGIN_ROOT` onto two surfaces where that variable
+> is normally unset — or, exported from a shell profile, names a different plugin (`docs/ab/surfaces.md`
+> § 8, F3). The finding is older than PR #36: the line existed before that PR touched it, and the same
+> anchor sat in `futon`, `backlog-state`, `getsuga`, `tensho`, `sharingan`, `hanten` and the Kurapika
+> definition. The fix is in the SOURCE, not in nen's generator: `nen surface mirror generate` copies a
+> body verbatim and rewrites only what a surface documents an explicit spelling for (the invocation
+> prefix, caller data), and neither Codex nor Cursor documents a plugin-root variable, because neither
+> has a plugin loader. So every skill now anchors on `$hatsu_root` — the Hatsu checkout as
+> `hatsu-warmup` § 5's prelude resolves it, `$HATSU_PLUGIN_ROOT`, else the handed path, else
+> `$CLAUDE_PLUGIN_ROOT`, each identity-checked — which is the same absolute path on Claude Code and a
+> real one on the other two. The reason recorded in § 2.6 is unchanged, and the three commands above
+> ran as shown.
+
 ---
 
 ## 3. Residue

@@ -132,18 +132,22 @@ ls <plugin root>/claude/agents/<persona>.md
 > catch is not a check. **The registry is the authority for question 2, and it is a live property of
 > the session, not of a directory.**
 
-**Where the plugin root comes from** (question 1's path): `$CLAUDE_PLUGIN_ROOT` is exported by the
-harness **only inside a skill invocation**, and it is **empty in an ordinary tool-call shell and
-inside a subagent** — verified live. So a run that reads it must have been given it: use
-`$CLAUDE_PLUGIN_ROOT` when it is non-empty; otherwise resolve it from the surface's own plugin
-registry —
+**Where the plugin root comes from** (question 1's path): it is `$hatsu_root` — the Hatsu checkout
+as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it, on every surface:
+`$HATSU_PLUGIN_ROOT` first, else the path whoever raised this run handed it, else
+`$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout. `$CLAUDE_PLUGIN_ROOT` alone is
+Claude Code's: that harness exports it **only inside a skill invocation**, it is **empty in an
+ordinary tool-call shell and inside a subagent** — verified live — and on Codex and Cursor it is
+usually unset or names a different plugin. So a run that reads it must have been given it, and on
+Claude Code alone a root none of the three yields can still be resolved from the surface's own
+plugin registry —
 
 ```bash
 claude plugin list --json    # → [{ "id": "hatsu@hatsu", "installPath": "<the plugin root>", … }]
 ```
 
-— verified live (the `--json` flag exists and `installPath` is the root), or take the path from
-whoever raised this run. **Never guess it, and never fall back to a bare relative path**: a relative
+— verified live (the `--json` flag exists and `installPath` is the root); neither other surface has
+a registry to ask. **Never guess it, and never fall back to a bare relative path**: a relative
 `claude/agents/<persona>.md` resolves against whatever cwd the caller happened to have, which on a
 review run is the repository *under review* rather than the plugin.
 
@@ -498,9 +502,10 @@ of the transcript can tell the two apart.
    `docs/ab/mukai.md`), and nen owns no worktree verb.
 3. **§ 3's two-part check** — `ls` for the definition, and the surface's own agent-type roster for
    whether it can be raised. Neither is a nen question: one is a file on disk and the other is a
-   live property of the session. The plugin root behind the first comes from `$CLAUDE_PLUGIN_ROOT`
-   when it is set, else `claude plugin list --json` → `installPath` (verified live), else from
-   whoever raised the run.
+   live property of the session. The plugin root behind the first is `$hatsu_root`, resolved as
+   `hatsu-warmup` § 5's prelude does — `$HATSU_PLUGIN_ROOT`, else the handed path, else
+   `$CLAUDE_PLUGIN_ROOT`, each identity-checked — with `claude plugin list --json` → `installPath`
+   (verified live) as Claude Code's own last resort.
 4. **No verb classifies a change set by scope.** `nen gate derive --policy-paths --process-paths
    --files` is the nearest thing and answers a **different question** — which human *gate* a diff
    derives, `G2` or `G4`. Verified live at this pin (`docs/ab/hanten.md` § 2.3): a two-file
@@ -565,8 +570,9 @@ of the transcript can tell the two apart.
   repository, not the one under review (§ 4).
 - **Never answers § 3's question 2 with `ls`**, and never reports a persona as raised when the
   surface's agent registry does not carry `hatsu:<persona>` (§ 3).
-- **Never reads `$CLAUDE_PLUGIN_ROOT` without checking it is set** — it is empty outside a skill
-  invocation, and a bare relative path resolves against the repository under review (§ 3).
+- **Never reads `$CLAUDE_PLUGIN_ROOT` without resolving `$hatsu_root` first** — it is empty outside a
+  skill invocation, it is not Hatsu's on the two mirrored surfaces, and a bare relative path resolves
+  against the repository under review (§ 3).
 - **Never records a finding missing `rule` or `evidence` as a finding** — it is a note (§ 5).
 - **Never leaves a finding without a disposition**, and never re-grades a severity to make one go away
   (§ 6, § 7).

@@ -231,12 +231,18 @@ nen pr ready <CODE>#<N> --repo <path> --explain            # the target ships ne
 **`--repo`'s root, never the cwd** (verified live at `v0.3.0`, `pr-state` § 2), and the reference file
 lives in this plugin's checkout rather than the target's, so only an absolute path reaches it.
 
-> **Where the plugin root comes from, when a run needs it.** `$CLAUDE_PLUGIN_ROOT` is exported by the
-> harness **only inside a skill invocation**; it is **empty in an ordinary tool-call shell and inside
-> a subagent** — verified live. So use it when it is non-empty, and otherwise resolve it rather than
-> guess: `claude plugin list --json` returns `[{ "id": "hatsu@hatsu", "installPath": "<the plugin
-> root>", … }]` (verified live — the `--json` flag exists and `installPath` is the root), or take the
-> path from whoever raised the run. **A `--gates` path that could not be resolved is not replaced by
+> **Where the plugin root comes from, when a run needs it.** It is `$hatsu_root` — the Hatsu checkout
+> as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it, and it is resolved rather
+> than assumed on every surface: `$HATSU_PLUGIN_ROOT` first (the form that works on all three), else
+> the path whoever raised the run handed it, else `$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a
+> Hatsu checkout. `$CLAUDE_PLUGIN_ROOT` on its own is Claude Code's variable: that harness exports it
+> **only inside a skill invocation**, it is **empty in an ordinary tool-call shell and inside a
+> subagent** — verified live — and on Codex and Cursor, where this body runs as a verbatim mirror, it
+> is usually unset or, from a shell profile, names a different plugin. On Claude Code alone, a root
+> none of the three yields can still be read from the surface's own plugin registry:
+> `claude plugin list --json` returns `[{ "id": "hatsu@hatsu", "installPath": "<the plugin
+> root>", … }]` (verified live — the `--json` flag exists and `installPath` is the root); neither
+> other surface has a registry to ask. **A `--gates` path that could not be resolved is not replaced by
 > a relative one**: fall to the third row of the table above and pass `--reviewers` instead, which is
 > the honest answer rather than a path that will resolve inside the target repository and `ENOENT`.
 
@@ -473,9 +479,9 @@ Say when the run **starts** and when it **ends**.
   and named on the page.
 - **Never lets a vacuous approve row read as an approval.** Where no `--approvers` were passed, the
   page says nobody has approved the pull request (§ 4).
-- **Never builds a path from `$CLAUDE_PLUGIN_ROOT` without checking it is set** — it is empty
-  outside a skill invocation, and a bare relative `--gates` resolves inside the target repository
-  (§ 4).
+- **Never builds a path from `$CLAUDE_PLUGIN_ROOT` without resolving `$hatsu_root` first** — it is
+  empty outside a skill invocation, it is not Hatsu's on the two mirrored surfaces, and a bare
+  relative `--gates` resolves inside the target repository (§ 4).
 - **Never counts an unverified wake** toward the escalation ladder, and never fabricates a
   `nen pr staleness --wakes-from` entry to manufacture a stale verdict.
 - **Never exceeds the 5-round cap** on one PR — the sixth round is an escalation.
