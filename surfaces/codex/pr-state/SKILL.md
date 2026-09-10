@@ -88,20 +88,27 @@ Export a token first — `nen` never picks one up ambiently, unlike `gh`:
 export GH_TOKEN=$(gh auth token)
 ```
 
-Then:
+**Which identity flag goes on the call is decided BEFORE it is typed — never the `--gates` form by
+default.** [`sharingan`](../sharingan/SKILL.md) § 4 states the rule in full and is authoritative;
+the short form is three shapes, and there is no fourth:
 
 ```bash
-nen pr ready <CODE>#<N> --repo <path to a checkout carrying nen/repos.json — or schemas/repos.json under the fallback nen keeps until v0.4.0> \
+# the target ships its own nen/gates.json — no identity flag at all (the schemas/ fallback is REMOVED at the pinned nen 0.5.0; a gates file only there is refused, same as none at all)
+nen pr ready <CODE>#<N> --repo <path> --explain
+
+# the target IS <reference-repo> itself — frozen, ships no gates file of its own
+nen pr ready <CODE>#<N> --repo <path> \
   --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
+
+# any OTHER target that ships no gates file — identities supplied BY HAND, from its own CODEOWNERS
+# or the PR's own requested reviewers, never the reference file above
+nen pr ready <CODE>#<N> --repo <path> --reviewers <a,b,c> [--approvers <a,b>] --explain
 ```
 
-or, with a bare number against a repo slug directly:
+or, with a bare number against a repo slug directly, the same three shapes with `<N> --gh-repo
+<owner/repo>` in place of `<CODE>#<N> --repo <path>`.
 
-```bash
-nen pr ready <N> --gh-repo <owner/repo> --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
-```
-
-**Always the `$CLAUDE_PLUGIN_ROOT`-anchored form, never a bare `contracts/reference.gates.json`.** The
+**Always the `$CLAUDE_PLUGIN_ROOT`-anchored form when `--gates` is the one in play, never a bare `contracts/reference.gates.json`.** The
 reason moved with nen `v0.2.0` (#86) and the practice did not: a **relative** `--gates` now resolves
 against **`--repo`'s root, never the cwd** — verified live at `v0.3.0`, from `/tmp` with `--repo` pointed
 at a checkout that lacks the file: `nen: <repo>/contracts/reference.gates.json: no such file. --gates was
@@ -126,16 +133,18 @@ line), so the report itself says which file decided.
   `nen/gates.json` needs no `--gates` flag at all**; this one
   is `<reference-repo>`-specific plumbing, not a general rule. `--gates` itself **never** falls back to
   either taxonomy location: a path you hand it is taken literally.
-- **This is one row of an identity rule that [`sharingan`](../sharingan/SKILL.md) § 4 states in full,
-  and that skill is authoritative — cited here, not re-copied.** The short form: a target's own
-  `nen/gates.json` wins where one exists; `<reference-repo>` (frozen, ships none) is the one target this
-  `contracts/reference.gates.json` file is for; every OTHER target that ships no gates file gets
-  `--reviewers <a,b,c>` supplied by hand — read off its `CODEOWNERS` or the PR's own requested
-  reviewers, never this file, because a repository must never be judged by another repository's
-  reviewers. Whichever identities were substituted are named on the page. And where no `--approvers`
-  is given, `nen pr ready`'s row 5 passes **vacuously** (no approving reviewer to fail it) — state that
-  in the reader's own words, *"nobody has approved this pull request,"* rather than let a `ready`
-  verdict standing on an empty approver set read as a reviewed one.
+- **The three shapes above are [`sharingan`](../sharingan/SKILL.md) § 4's identity rule, cited here
+  rather than re-copied — it is the authority, this is the citation.** The third shape exists because
+  a repository must never be judged by another repository's reviewers — the reference file is
+  `<reference-repo>`'s own, and pointing it at any other target reports a confident verdict about the
+  wrong people. Whichever identities were substituted (the third shape) are named on the page. **The
+  vacuous-approve caveat belongs to the third shape alone, never the second.** `contracts/reference.gates.json` declares its own
+  `default_approvers` (`sasuke`, `tenma`) — reachable with no `--approvers` flag at all — so the
+  `--gates` shape's row 5 is a real approver check, not an empty one. It is the hand-supplied
+  `--reviewers` shape, run with no `--approvers` alongside it, where `nen pr ready`'s row 5 passes
+  **vacuously** (no approving reviewer to fail it) — state that in the reader's own words, *"nobody
+  has approved this pull request,"* rather than let a `ready` verdict standing on an empty approver
+  set read as a reviewed one.
 - **`--explain`** renders the conjunct-by-conjunct table in evaluation order, short-circuit rows
   included, plus the fixed "what the gate does NOT decide" caveats — all computed and printed by the
   verb itself; see § 3. Add `--json` instead when a caller needs the same content structured
