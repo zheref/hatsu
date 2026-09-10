@@ -67,7 +67,7 @@ at the bottom rung.
 | **under the floor** | `percent < minimum` | **`under minimum` — § 7** |
 | **not measured** | the report has no row for this file | § 4's rules 2, 2b and 3 — three different reasons, and never a band |
 
-`nen schema check --repo <path>` VALIDATES this file at the pinned `v0.6.0` — verified live, the row
+`nen schema check --repo <path>` VALIDATES this file at the pinned `v0.7.0` — verified live, the row
 reads `ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}'
 off 'main', checks: lint`. A malformed key is a FAIL **by pointer**, so this skill no longer checks
 the shape by eye; it reads the values, and states the defaults whenever they are what applied.

@@ -174,10 +174,10 @@ column**, and it is the column that decides:
 
 **Two states of the world are easy to name and a third is the one that actually bites:** the device
 is there and usable; the device is not there; and **the device is there and cannot be talked to**.
-The third is the one this skill exists to report properly, and at the pinned nen `0.6.0` it is the
+The third is the one this skill exists to report properly, and at the pinned nen `0.7.0` it is the
 one the declaration this skill writes now **says out loud** (§ 6's `readyWhen`).
 
-> **A device that is PRESENT is not a device that is READY, and at `0.6.0` nen holds that rule
+> **A device that is PRESENT is not a device that is READY, and at `0.7.0` nen holds that rule
 > itself — where the declaration states it.** Observed live on 2026-09-10 against
 > `zheref/KroAndroid`, at the then-pinned `0.5.0`: with two phones attached, `nen shu dev --target
 > galaxy` matched the declared name in a row reading `R52X603Q9BA unauthorized usb:33-3.2`, printed
@@ -224,7 +224,7 @@ itself to it before there is any declaration to refuse from.
 with no normalisation, no case folding, no Unicode equivalence and no punctuation smoothing — so a
 device name carrying a typographic apostrophe (U+2019, as in `Sergio’s iPhone`) must be declared with
 that same character and not with the ASCII `'` a keyboard produces. That is the contract
-`nen shu dev --target` implements at the pinned `0.6.0`, and nen's own `docs/USAGE.md` states it in
+`nen shu dev --target` implements at the pinned `0.7.0`, and nen's own `docs/USAGE.md` states it in
 that release's `nen shu dev` section: the comparison has no Unicode normalisation, so the declared
 string must carry the same bytes the probe printed.
 
@@ -335,7 +335,7 @@ weld is where the device name gets lost. Split them: the lane's row builds, the 
 > the obvious thing to reach for and `args` is the obvious place to put it — **and `xcodebuild`
 > refuses a second `-scheme`**, which AnteikuTV proved: a row already carrying `-scheme X` plus
 > `args: ["-scheme","Y"]` is two `-scheme` flags on one command line, and the tool errors rather than
-> letting the later one win. At the pinned nen `0.6.0` the answer is the per-target keys:
+> letting the later one win. At the pinned nen `0.7.0` the answer is the per-target keys:
 > `project.launch.<name>.lane` names the declared row this target's verb, `args` and after-steps are
 > read from — a device build is routinely a different declared row from the iteration one — and
 > `project.launch.<name>.artifact` names the thing the device installs, which is rarely the verb's
@@ -365,7 +365,7 @@ nen schema check --repo <path>
 ```
 
 Verified live (`docs/ab/jujutsu.md` § *Retired at nen 0.5*): a declaration carrying `project.launch`
-reports `ok nen/contract.json project (…)`. **At the pinned `v0.6.0` nen PARSES the block rather than
+reports `ok nen/contract.json project (…)`. **At the pinned `v0.7.0` nen PARSES the block rather than
 preserving it** (`docs/WORKFLOW.md` § 3), so the row being `ok` now says more than it used to: a key
 one spelling out — `arg`, `devices`, `resolver`, `verbs`, or the block key itself as `launches` or
 `Launch` — is refused **by pointer** naming which misspelling it is, instead of being kept and read by
@@ -441,7 +441,7 @@ with the probe's full output, not a summary of it, and the on-device step that c
    the target does not exist yet, so § 4's first read of the state column is still by eye. That is
    the chicken-and-egg of § 4, the same shape as entry 4, and it is a read rather than a residue.
 5. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
-   an `ok  nen/workflow.json` row at the pinned `v0.6.0`, so a `launch.default` naming nothing is caught
+   an `ok  nen/workflow.json` row at the pinned `v0.7.0`, so a `launch.default` naming nothing is caught
    by a verb. The two keys are still read here; reading a file is not residue.
 
 ## Authority

@@ -21,7 +21,7 @@ There are exactly two configuration files, and the split is not stylistic. It is
 | **Content** | lanes, per-verb argv, preconditions, hosts, deploy targets, launch targets, evidence globs, host toolchain | branch shape, which declared verbs run per iteration, the coverage ladder, reports, notifications, commit trailers, monitor caps, the model matrix |
 | **Executed by** | `nen shu <verb>` — nen spawns exactly what is declared and nothing else | mostly the reader. Two verbs take a slice: `nen commit format --repo` reads `commits.allowedAttributionTrailers`, `nen shu coverage --touched` reads the `coverage` ladder |
 | **Changing it changes** | what runs on this machine | what the roster is willing to do |
-| **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — **both at the pinned nen `0.6.0`** |
+| **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — **both at the pinned nen `0.7.0`** |
 
 The reason to keep them apart is that they fail differently. A wrong `project` block produces a wrong
 command — loud, immediate, exit `1` or `5`. A wrong `workflow.json` produces a *correct command run at the
@@ -88,7 +88,7 @@ exit `4` and its seat is quoted, not worked around. Hatsu's own `checks` is `["l
 > |---|---|
 > | **Immediately after a `claude/skills/**` or `claude/agents/**` edit** | regenerate both surfaces (`docs/SURFACES.md` § 3) and commit the result **in the same commit** as the source change |
 > | **Inside `mukai`, before `shibari` opens the PR** | `scripts/surface_mirror_check.sh` — exit `0` to proceed, exit `1` regenerate and amend, exit `2` **stop**: the nen on PATH is not the pinned one, since `v0.5.0` carries the verb |
-> | **On the PR** | [`.github/workflows/surface-mirror-check.yml`](../.github/workflows/surface-mirror-check.yml) — **a real check at the pinned `v0.6.0`**, advisory only until the maintainer requires the context. It skipped with a notice while `dependency.pinned_ref` named a nen with no `surface` verb; that branch is now an error. |
+> | **On the PR** | [`.github/workflows/surface-mirror-check.yml`](../.github/workflows/surface-mirror-check.yml) — **a real check at the pinned `v0.7.0`**, advisory only until the maintainer requires the context. It skipped with a notice while `dependency.pinned_ref` named a nen with no `surface` verb; that branch is now an error. |
 >
 > The script writes nothing and needs no credential, so running it more often costs nothing but the seconds.
 
@@ -128,7 +128,7 @@ lowered to clear it** — that is the one move `gyo` will not make, and a reposi
 `minimum` is a G5, not a smaller number.
 
 `nen shu coverage --threshold <n>` **reports** `met: true|false` and never changes its exit code; nen does not
-decide whether a number is good enough. At the pinned nen `0.6.0`, `--touched --base <ref>` filters the rows
+decide whether a number is good enough. At the pinned nen `0.7.0`, `--touched --base <ref>` filters the rows
 to the files the diff names and — with no `--threshold` — reads the ladder here itself, printing a `ladder:`
 line and a `band` per row (`under-minimum` / `minimum` / `recommended` / `ideal`). It still never gates.
 
@@ -192,7 +192,7 @@ value when the key is absent) rings the surface's own line and nothing else; `"a
 `rungs` lists, every turn. A gate always rings everything `rungs` lists, whatever `turn` says, and `turn`
 can never conjure a rung `rungs` withheld. It exists because the two readings of "does a plain turn ring?"
 were both supportable in `jutaisho`'s text and disagreed about every turn of every effort; one declared
-value settles it. **`turn` is IN the `nen.workflow/v0.1` shape at the pinned nen `0.6.0`** — a closed set of
+value settles it. **`turn` is IN the `nen.workflow/v0.1` shape at the pinned nen `0.7.0`** — a closed set of
 `"rung1"` and `"all"`, refused by pointer on anything else, and written into every policy file
 `nen scaffold init` generates. It began as a Hatsu addition; the retirement is recorded in
 [`claude/skills/jutaisho/SKILL.md`](../claude/skills/jutaisho/SKILL.md) § Residue.
@@ -252,9 +252,9 @@ that drives this workflow. **Saying it is configured off when nobody has configu
 three-layer table read one layer stronger than it is**, which is the failure mode the table exists to
 prevent.
 
-**Enforcement is three-layered, and at the pinned nen `0.6.0` two of the three are mechanical.**
+**Enforcement is three-layered, and at the pinned nen `0.7.0` two of the three are mechanical.**
 
-| Layer | What refuses | Where it lives | Live at the pinned nen `0.6.0`? |
+| Layer | What refuses | Where it lives | Live at the pinned nen `0.7.0`? |
 |---|---|---|---|
 | **(a)** the **skills'** own refusal — `kokusen` reads the rendered message before it commits, `aka` before it squashes | agent-side | this repository | **yes**, and it is the layer Hatsu ships |
 | **(b)** the target repository's **`commit-msg` hook**, generated from `allowedAttributionTrailers` by `nen scaffold init` | the target repository's `.git/hooks/` | **target-dependent** — it exists only in a repository `nen scaffold init` has stood up; this week in `zheref/nen`; KroApple and kro-pwa already carry one | **target-dependent** |
@@ -267,7 +267,7 @@ prevent.
 > attribution claim, so it is not folded into `allowedAttributionTrailers`; absent (`null`) by default, it
 > makes the second requirement optional where `--run-trailer` used to be mandatory. **`--marker-env` is the
 > only flag `nen scaffold init` still requires unconditionally**, and its missing-flag refusal names it and
-> says what the other two default to — verified live at the pinned `0.6.0`, exit `2`
+> says what the other two default to — verified live at the pinned `0.7.0`, exit `2`
 > (`docs/ab/kokusen.md` § *Retired at nen 0.6*).
 >
 > **A policy whose `allowedAttributionTrailers` does not admit the resolved key generates a hook whose
@@ -279,7 +279,7 @@ prevent.
 > (c) are what it actually has.
 | **(c)** **`nen commit format --repo`** and **`nen wc squash`** refusing a trailer not on the allow-list | nen | **YES** — exit `2` naming the file and the keys it admits, verified live against this checkout (`docs/ab/aka.md` § *Retired at nen 0.5*.2) |
 
-So **at the pinned `0.6.0` layer (c) is installed everywhere the invocation carries `--repo`, and only
+So **at the pinned `0.7.0` layer (c) is installed everywhere the invocation carries `--repo`, and only
 layer (b) stays target-dependent**: a repository scaffolded with the hook has a refusal that fires on
 *every* commit however it was made, and one that has not — this repository included — has (a) and (c).
 **A raw `git commit --file` carrying `Co-Authored-By` on a feature branch is still caught by (a) only**,
@@ -306,6 +306,21 @@ wording — so the two verbs cannot disagree about what is admitted. On top of t
 `en`'s `izanagi` cap and its poll interval. **The cap is grammar, not a default**: a watch loop invoked
 without one does not run, exactly as [`izanagi`](../claude/skills/izanagi/) refuses an invocation with no
 `up to <N>`. § 5 is where both keys are actually spent, and where the long watch hands over to Illumi.
+
+**From nen `0.7` the cap is ENFORCED by the binary rather than counted in a skill's prose.**
+`nen loop iterate --id <id> --line "<task> until <condition> up to <N>"` claims one acting iteration
+against the cap its own line states and **refuses the claim past it**, exit `1` — so `maxCycles` is a
+number a verb holds a caller to, not one a caller is trusted to remember. The ledger is
+`.nen/loop/<id>.json` under `--repo`, in the same dot-prefixed generated tree `nen stop --mark` writes to,
+never the committed `nen/`. Two consequences worth stating here rather than only in the skills:
+
+- **The cap cannot be raised by re-typing the invocation.** The `--line` is restated on every claim and a
+  claim whose line differs from the running one is refused at exit `2`, naming both. A cap a caller can
+  widen by editing its own sentence is a suggestion with extra steps.
+- **The cap outlives the session, because the ledger is a file.** `en` keys the id on the pull request, so
+  a re-invoked landing resumes the same count rather than restarting at cycle 1 — the watch is per
+  session, the cap is per landing. Ending a landing closes the ledger with `--release <why>`, which a cap
+  never blocks.
 
 ### `models`
 
@@ -390,7 +405,7 @@ substitution in the title.** Never silently honoured, never silently dropped.
 
 ## 3 · `project.launch` and `project.evidence`
 
-Two blocks of nen's `project` shape that began as Hatsu extensions. **At the pinned nen `0.6.0` both are
+Two blocks of nen's `project` shape that began as Hatsu extensions. **At the pinned nen `0.7.0` both are
 PARSED and EXECUTED**: `launch` by `nen shu dev|run --target <name>`, `evidence` by
 `nen shu evidence --base <ref>`. They are no longer preserved-and-unread, and that changes what a typo
 costs.
@@ -682,12 +697,13 @@ reacting to new reviews and new conflicts → `rikugan`⁷ final, **the only rep
 
 | Key | What it bounds |
 |---|---|
-| `maxCycles` | the `izanagi` cap on the watch. **Grammar, not a default** — a watch invoked without one does not run |
+| `maxCycles` | the `izanagi` cap on the watch. **Grammar, not a default** — a watch invoked without one does not run, and from nen `0.7` `nen loop iterate` refuses the claim that would exceed it (§ `monitor`) |
 | `pollSeconds` | the interval between observation cycles. Never shortened because something looks close, never lengthened to stretch the cap |
 
 **An exhausted cap is reported as exhausted.** It is never extended in place, never continued by a second
 watch started to finish the first, and never rendered as "still watching". Raising the cap is the
-maintainer's word, in a new invocation.
+maintainer's word, in a new invocation — and from nen `0.7` it is also the binary's answer: the claim past
+the cap is refused, and the refusal says so in nen's own words rather than in a skill's.
 
 **When the watch must outlive the session that started it, step 6 is handed to Illumi** —
 [`illumi.md`](../claude/agents/illumi.md), titled `en · illumi · <model alias>`, on the **fast** tier at

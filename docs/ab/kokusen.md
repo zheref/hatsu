@@ -331,3 +331,100 @@ policy — there is no message such a repository could write that would satisfy 
 it does not admit, and a hook that pretended to check for one would be a guard that cannot fire.
 **Hatsu still carries no such hook**: layers (a) and (c) are what this repository actually has, and
 § 7 says so.
+
+---
+
+## Retired at nen 0.7 — 2026-09-10
+
+Run against the released `zheref/nen` `v0.7.0` binary (`nen-darwin-arm64`, sha256
+`a0545d02…e7b6c323`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.7.0`, on `PATH` as
+`nen`; `nen --version` → `0.7.0`), against the same fixture run through `v0.6.0` first.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| asking about a **local-config** path by eye | `nen stage triage --repo <fx>` | **`1`**, `[local-config]` |
+| weighing an **unusually large** file by eye | the same run | **`1`**, `[large]` |
+| — the machine form | `nen stage triage --repo <fx> --json` | `1`, both reasons in `flagged[].reasons` |
+| — the threshold refusing a meaningless value | `nen stage triage --repo <fx> --large-bytes 0` | **`2`** |
+
+### The fixture
+
+A throwaway repository with one committed, edited `src/a.ts`, a `.gitignore` naming `node_modules/`,
+and three untracked files: `.env.local`, `settings.local.json`, and `big.txt` — 2,600,000 bytes of
+plain text, the "pasted dump" shape.
+
+### The same tree, one minor apart
+
+```text
+v0.6.0  $ nen stage triage --repo <fx>                                                      # exit 1
+        clean: 3 file(s)
+          src/a.ts
+          big.txt
+          settings.local.json
+        ignored: 0 file(s), not listed
+        flagged: 1 file(s) -- never staged without an explicit yes
+          .env.local  [secret-shape]
+
+0.7.0   $ nen stage triage --repo <fx>                                                      # exit 1
+        clean: 1 file(s)
+          src/a.ts
+        ignored: 0 file(s), not listed
+        flagged: 3 file(s) -- never staged without an explicit yes
+          .env.local  [secret-shape, local-config]
+          big.txt  [large]
+          settings.local.json  [local-config]
+```
+
+**A 2.6 MB file and a `settings.local.json` reported CLEAN at `v0.6.0`** — which is exactly the gap
+SKILL.md § 4 and [`tensho`](../../claude/skills/tensho/SKILL.md) § 3 were each covering by eye, in
+their own prose, independently. Two skills compensating the same way is the shape of a missing
+detector rather than a preference, which is the reasoning `zheref/nen#57` was filed on.
+
+**This is one of the four silent changes** `zero_major_caveat.why` in `nen/contract.json` names at
+this minor: the same bytes, and — on a tree whose only untracked rows were a `.local` file and a
+large one — the opposite exit code. Here both runs happen to exit `1`, because the fixture also
+carries a `.env.local`; a tree carrying only `settings.local.json` answered `0` at `v0.6.0` and
+answers `1` now.
+
+### Every reason at once, and `secret-shape` unchanged
+
+```json
+{ "clean": ["src/a.ts"],
+  "flagged": [ { "path": ".env.local",            "reasons": ["secret-shape", "local-config"] },
+               { "path": "big.txt",               "reasons": ["large"] },
+               { "path": "settings.local.json",   "reasons": ["local-config"] } ],
+  "ignored": [] }
+```
+
+`.env.local` comes back carrying **both** reasons, per this module's own "present all flags at once"
+rule — so SKILL.md § 9's hard limit is untouched by the second tag: a `secret-shape` on a path this
+commit could contain is still never askable, whatever else it also is. A `local-config` path **is**
+askable, and the answer is usually no.
+
+### The threshold, and why it has a default where `--local-cap` refuses one
+
+`--large-bytes` defaults to **1048576** (1 MiB): no ordinary source file trips it and a
+multi-megabyte accident does. A meaningless value is refused:
+
+```text
+$ nen stage triage --repo <fx> --large-bytes 0                                              # exit 2
+nen stage: --large-bytes takes a positive whole number of bytes -- got '0'. It is the size at or
+above which a file is flagged for a human to look at, so a zero or negative one would flag every file
+and say nothing.
+```
+
+**The contrast with `nen loop slots --local-cap`, which refuses to have a default at all, is
+deliberate**: that flag is a concurrency GUARD whose forgotten default silently *widens* what is
+allowed, while this is a DETECTION threshold on a verb that decides nothing, and whose default errs
+toward flagging.
+
+### Two limits of the detectors, stated so this skill does not over-read them
+
+- **`local-config` is a FILENAME check**, like the secret shape beside it — the `.local` infix, not a
+  directory rule. `.claude/` and `.vscode/` hold committed project configuration as often as personal
+  settings, and flagging everything under them would bury the rows that need a decision under the
+  ones that do not, which is the defect the `ignored` bucket exists to undo.
+- **`large` is never claimed about a path the verb could not measure** — a deletion, a broken
+  symlink — because "not measured" rendering as "measured and small" is the one reading this must not
+  produce. An IGNORED path is not measured either: it can never reach `flagged`, so statting a
+  `node_modules/` tree would buy one unread field for thousands of synchronous stats per invocation.

@@ -53,7 +53,7 @@ has none, and inventing an optional clause so that a parse can be echoed would b
 | `commits.allowedAttributionTrailers` | the only trailers § 4's commit may carry — **`Hatsu-Agent` is the one it WRITES** (§ 4) | `["Hatsu-Agent", "Akatsuki-Agent"]` |
 | `commits.forbiddenTrailers` | trailers that refuse the commit outright | `["Co-Authored-By", "Claude-Session", "Signed-off-by"]` |
 
-`nen schema check --repo <path>` VALIDATES this file at the pinned `v0.6.0` — verified live, the row
+`nen schema check --repo <path>` VALIDATES this file at the pinned `v0.7.0` — verified live, the row
 reads `ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}'
 off 'main', checks: lint`. A malformed key is a FAIL **by pointer**, so this skill no longer checks
 the shape by eye; it reads the values, and states the defaults whenever they are what applied.
@@ -264,7 +264,7 @@ everywhere and survives a forgotten flag; (b) the **target repository's `commit-
 `nen scaffold init` generates from `commits.allowedAttributionTrailers`, and which stays
 **target-dependent** — it exists only in a repository that has been scaffolded, and hatsu's own
 checkout has not; (c) **`nen commit format --repo` and `nen wc squash`** refusing it outright, both
-at the pinned `0.6.0`, verified live. Say which of (b) and (c) the repository in front of you
+at the pinned `0.7.0`, verified live. Say which of (b) and (c) the repository in front of you
 actually has; never describe a hook as installed where none is.
 
 > **Layer (c) is live at this pin, and any wording that still calls it residue is stale.**
@@ -313,7 +313,7 @@ git -C <path> push origin HEAD                # already published
 git -C <path> push -u origin HEAD             # first publish: also sets upstream
 ```
 
-**Residue, and still residue at the pinned `0.6.0`: there is no push verb.** `nen pr cascade-main`
+**Residue, and still residue at the pinned `0.7.0`: there is no push verb.** `nen pr cascade-main`
 pushes, but only as the tail of a merge it performed itself, and only to the branch it just merged
 into — it is a cascade, not a push (its own `--help`: *"Merges (never rebases) the trunk into the
 current branch and pushes on a clean merge"*), and its new `--no-push` moves in the other direction
@@ -361,9 +361,9 @@ invent one.
    the fallback (§ 4). `nen wc classify --json` reports the branch and its distance from the base,
    never the remote, and nothing in nen refreshes the branch's tracking ref for this decision.
 4. **The push itself** — `git push [-u] origin HEAD`. `nen pr cascade-main` pushes only as the tail
-   of its own merge and is not a push verb. **Genuinely still residue at the pinned `0.6.0`.**
+   of its own merge and is not a push verb. **Genuinely still residue at the pinned `0.7.0`.**
 5. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
-   an `ok  nen/workflow.json` row at the pinned `v0.6.0` (verified live, exit `1` on Hatsu's own
+   an `ok  nen/workflow.json` row at the pinned `v0.7.0` (verified live, exit `1` on Hatsu's own
    taxonomy-less checkout with that row `ok`), and a malformed policy file is a FAIL **by pointer**
    rather than something this skill notices by eye. § 2's keys are still read here — reading a file is
    not residue; nothing in nen hands the policy out except `shu coverage`'s ladder and

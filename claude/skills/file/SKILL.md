@@ -128,8 +128,9 @@ nen issue comment --target <owner/name> --issue <n> --body-file <path>          
 an empty or whitespace-only body refused at exit `2`, `--issue` held to digits only (`1e3` is refused,
 not read as 1000), and `--dry-run` fully offline — it prints `would run: gh issue comment …` and the
 body fenced between `--- body as it would be posted ---` markers, stating whether it ends in a newline
-(verified live at `v0.3.0`). `--body-file` resolves against **the process's cwd**, not `--repo` — pass an
-absolute path. Post the comment only once the plan is confirmed (§ 4), and **raise its severity** where
+(verified live at `v0.3.0`). **`--body-file` resolves against `--repo`'s root from nen `0.7`**, where through `v0.6.0` it
+resolved against the process's cwd (`zheref/nen#100`); the RESOLVED path is what travels onward to
+`gh`, so nen and `gh` cannot disagree about which file it is. An absolute path is still used as-is. Post the comment only once the plan is confirmed (§ 4), and **raise its severity** where
 the new evidence justifies it, via:
 
 ```bash
@@ -230,8 +231,9 @@ nen issue file --target <owner/name> --repo <path to a checkout carrying nen/lab
   --forbid-family <the target repo's stage-label family>
 ```
 
-(`--body-file` is handed to `gh` verbatim, so it resolves against the cwd, never `--repo` — pass an
-absolute path.) `nen issue file` checks every label against the target repository's `nen/labels.json`
+(**`--body-file` resolves against `--repo`'s root from nen `0.7`** — `zheref/nen#100`; through
+`v0.6.0` it was handed to `gh` unresolved and resolved against the process's cwd instead. An absolute
+path is still used as-is.) `nen issue file` checks every label against the target repository's `nen/labels.json`
 **before** attempting anything (verified live: an unknown label refuses with `is not in this
 repository's taxonomy … GitHub would CREATE it rather than refuse, so a typo becomes a permanent
 undocumented label` — GitHub itself never catches this, only the taxonomy check does) and enforces

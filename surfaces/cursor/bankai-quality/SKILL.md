@@ -76,6 +76,14 @@ nen quality tooling --table <path.json> --scenario <name>
 remembered here. Exits 1 when the scenario has no entry: a finding about the manifest, never a licence to
 pick a tool by improvisation.
 
+> **RETIRED at nen `0.7`: `--table`'s and `--input`'s second base.** A relative `--table` (here) or
+> `--input` (§ 5's `nen quality method-check`) resolves against **`--repo`'s root**, not the
+> process's own directory (`zheref/nen#100`) — so the manifest this verdict is about is the one in
+> the repository `--repo` names, which is the only reading that was ever intended. An absolute path
+> is still used as-is. Through `v0.6.0` the two bases diverged the moment a run happened from a
+> worktree or a wrapper script, and an `ENOENT` was the lucky outcome; a same-named manifest in both
+> trees was the unlucky one.
+
 **No repo in the reachable estate ships this JSON file today** — verified: the frozen `<reference-repo>`
 checkout carries the tooling matrix only as markdown (`handbooks/quality-baseline.md` § B), and Hatsu
 carries no such file at all. This is genuine residue (`docs/ab/bankai-quality.md` § 3), not a defect in

@@ -138,7 +138,7 @@ where the path *lands*, never whether a link was involved.
 
 ## 8. Long-running checks, and the stall guard the declaration owns
 
-**A captured verb may declare a stall guard, and at the pinned nen `0.6.0` nen runs the repository's
+**A captured verb may declare a stall guard, and at the pinned nen `0.7.0` nen runs the repository's
 own remedy.** The shape is `"stall": { "elapsedMs", "quietMs", "onStall": { "exe", "argv" },
 "maxStrikes" }`, on an invocation or on one `steps[]` entry; it fires only once **both** budgets are
 past — total elapsed **and** a quiet window with no output — because a guard acting on silence alone
@@ -159,7 +159,7 @@ a check to escape a stall; a check nobody watched is a check nobody ran.
 
 ## 9. What "green" means, and what it is worth
 
-Rasengan's output is the turn's **build proof**, and at the pinned nen `0.6.0` that proof is a FILE
+Rasengan's output is the turn's **build proof**, and at the pinned nen `0.7.0` that proof is a FILE
 as well as a transcript: a green `nen shu build` writes `.nen/proof/<lane>.json`
 (`nen.shu.proof/v0.1`: `contract`, `lane`, `verb`, `treeHash`, `at`, `exitCode`) and a red one
 **removes** an existing file, so a stale proof never outlives the tree it proved. Verified live at
@@ -182,7 +182,7 @@ not by committing "so the fix is on the branch", not by declaring a seat where a
 one exception is a code `3` host fact and a code `4` seat, both of which are facts about the
 repository that rasengan quotes and hands upward.
 
-## 10. Residue — what has no verb at the pinned nen `0.6.0`
+## 10. Residue — what has no verb at the pinned nen `0.7.0`
 
 - **RETIRED at nen `0.5`: build proof.** `nen shu build` writes `.nen/proof/<lane>.json` on green and
   removes it on red, and `nen commit check --require-proof <lane>` reads it back (§ 9, both verified

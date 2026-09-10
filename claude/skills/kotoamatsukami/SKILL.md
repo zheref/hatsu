@@ -54,7 +54,7 @@ to parse — and the resolved lane is named out loud either way.
 | How a path becomes a suite and a scene | `project.evidence.scene` | `{suite}-{scene}` |
 | How the images reach a PR body | `project.evidence.mechanism` | — |
 
-**`project.evidence` is NEN's block at the pinned `v0.6.0`, and `nen shu evidence` reads it.** The
+**`project.evidence` is NEN's block at the pinned `v0.7.0`, and `nen shu evidence` reads it.** The
 loader parses it rather than preserving it, and from this release **the block key itself is guarded
 against a near-miss**: `evidences`, `Evidence` or `evidenc` would have been preserved, read by
 nobody, and `nen shu evidence` would then have refused at exit `2` saying the repository declares no
@@ -282,7 +282,7 @@ exists and where; parsing it is residue (§ Residue), not a claim to make from i
    can show one, and where the surface cannot, **say that the goldens were not looked at** rather
    than reporting the suite as clean.
 5. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
-   an `ok  nen/workflow.json` row at the pinned `v0.6.0`. `iteration.lane` and `tests.extra` are still
+   an `ok  nen/workflow.json` row at the pinned `v0.7.0`. `iteration.lane` and `tests.extra` are still
    read here; reading a file is not residue.
 
 Every one is run in the open and reported as by-hand, per the Nen-first rule's second half

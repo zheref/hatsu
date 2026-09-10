@@ -338,3 +338,58 @@ itself never ran.
    against `nen` separately, both for the missing `--help` text and for whether an empty
    `--severity-family` should instead refuse the call outright rather than silently computing a
    wrong union.
+
+---
+
+## Retired at nen 0.7 — 2026-09-10
+
+Read from the released `zheref/nen` `v0.7.0` binary's own published help (`nen-darwin-arm64`, sha256
+`a0545d02…e7b6c323`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.7.0`, on `PATH` as
+`nen`; `nen --version` → `0.7.0`).
+
+| Residue retired | Where | Exit |
+|---|---|---|
+| the sub-issues fallback detected, and then not shown | `nen issue attach-sub --help` | `0` |
+| the fallback write spelled as a raw `gh issue edit` | the same block names `nen issue edit-body` | — |
+
+### The fallback is printed, and the write is named
+
+```text
+$ nen issue attach-sub --help
+…
+WHERE THE SUB-ISSUES ENDPOINT IS ABSENT (404/410), the documented fallback
+is a task list in the parent's body. This verb DETECTS that and hands the
+lines back -- printed here, and 'fallbackTaskList' under --json -- but it
+does NOT perform the write: it posts only to issues/{parent}/sub_issues,
+and replacing a body is a different write, on the one path in this verb
+that is reachable only where the endpoint is missing. Apply it yourself
+with 'nen issue edit-body --target <owner/name> --issue <parent>
+--body-file <f>' -- written whole, --target included, because a block
+whose whole job is to say what to run has to be copy/pastable …
+```
+
+At `v0.6.0` the verb detected the condition and its own log line claimed *"the lines are in this
+report"* — true of `--json`, false of what a caller in text mode was looking at, which printed the log
+and not the lines. **A fallback that is detected and then not shown is a fallback nobody can
+perform.** This port's § 4 compensated by instructing the skill to perform the write itself with a
+raw `gh issue edit --body "<existing body + lines>"`.
+
+**Two things change for this skill.** The lines are now rendered in text mode, so there is nothing to
+reconstruct from `--json`. And the write is a **nen verb** — `nen issue edit-body --target <slug>
+--issue <parent> --body-file <f>` — which replaces the raw `gh` call the port named. `edit-body`
+REPLACES a body, so the file must carry the parent's **current body plus** the returned lines; handing
+it only the lines loses the body. Re-verification after the write is unchanged and still this skill's.
+
+**Detecting and not performing stays a decision rather than a gap**, and nen now says so in `--help`,
+in `docs/USAGE.md` and on the field's own doc comment: this verb makes exactly one kind of write, and
+performing a read-modify-write of the parent's body silently as a consequence of a 404 would let an
+`attach-sub` run clobber a body somebody edited between that read and this write — on the
+least-exercised path in the verb.
+
+### Not observed live
+
+**The 404/410 condition has still never fired here.** Every repository in bounds supports the
+sub-issues API natively, so what this pin verifies is the verb's published contract — the help text
+above, read from the pinned binary — and not a run in which the fallback triggered. The port's own
+"not verified live" caveat therefore stands, narrowed: the *shape* and the *named write* are now read
+from the shipped binary rather than from source, and the *firing* remains unobserved.

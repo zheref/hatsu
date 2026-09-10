@@ -334,27 +334,49 @@ maintainer's approved plan explicitly said to close one of these anyway (their c
 PR in front of them), that member moves to step 3's `closeSet` instead, with `--allow-open-pr` passed to
 `consolidate-close` for that call only — never applied blanket to a set the plan did not name it for.
 
-> **`nen issue attach-sub`'s JSON result carries a `fallbackTaskList` field — but the verb only
-> DETECTS the fallback condition, it never performs the fallback write.** Proven from source at the port
-> (`nen` `v0.1.0` `src/issue/subissue.ts:19-24`, the module's own header comment: "FALLBACK IS
-> DETECTED, NOT PERFORMED... this module reports that condition and hands back the exact task-list
-> lines; it does not rewrite a body on its own"); no `v0.2.0`/`v0.3.0` changelog entry touches the
-> fallback, and `nen issue --help` at `v0.3.0` still describes the 404/410 task-list fallback as
-> reported, not performed. **This means relaying the field alone is not
-> enough — if `fallbackTaskList` comes back non-null, this skill must itself perform the write the
-> field describes**: take the returned task-list lines and fold them into the consolidated parent's
-> body with `gh issue edit <parent#> --repo <owner/name> --body "<parent's existing body, with the
-> returned task-list block appended>"`, then **re-verify** by re-reading the parent's body (`gh
-> issue view <parent#> --json body`) and confirming the task-list lines are actually present before
-> reporting the attach as done. Relaying the JSON field without performing this write leaves a
-> **claimed graph that does not exist** — exactly the failure mode the old skill's own prose warned
-> about, now with a concrete mechanism to avoid it rather than a restated warning. **Not verified
-> live**: every repo this port's A/B pass tested (`<reference-repo>`, and a refused
-> nonexistent-repo probe) supports the sub-issues API natively or fails before the fallback path is
-> reached, so the fallback condition never actually fired in practice —
-> `docs/ab/backlog-synthesis.md` § 3 records the field's *shape* as read from source and JSON
-> schema, not observed live; the write-it-yourself instruction above follows directly from the
-> source comment regardless of whether the condition has yet been observed to fire.
+> ### RETIRED at nen `0.7`: a fallback that was detected and then not shown
+>
+> **`nen issue attach-sub` PRINTS the fallback task list, and names the verb that performs it.**
+> Where the sub-issues endpoint answers 404/410 the verb has always DETECTED that and returned the
+> lines — and through the pinned `v0.6.0` its own log line said *"the lines are in this report"*,
+> true of `--json` and false of the thing a caller in text mode was looking at, which printed the log
+> and not the lines. **A fallback that is detected and then not shown is a fallback nobody can
+> perform.**
+>
+> At the pinned `0.7.0` the lines are rendered, and the rendering says **who performs the write and
+> how** — `--help`'s own words (verified live, `docs/ab/backlog-synthesis.md`
+> § *Retired at nen 0.7*):
+>
+> ```text
+> WHERE THE SUB-ISSUES ENDPOINT IS ABSENT (404/410), the documented fallback
+> is a task list in the parent's body. This verb DETECTS that and hands the
+> lines back -- printed here, and 'fallbackTaskList' under --json -- but it
+> does NOT perform the write: it posts only to issues/{parent}/sub_issues,
+> and replacing a body is a different write, on the one path in this verb
+> that is reachable only where the endpoint is missing. Apply it yourself
+> with 'nen issue edit-body --target <owner/name> --issue <parent>
+> --body-file <f>'
+> ```
+>
+> **So the write this skill performs is a nen verb, not a raw `gh`.** Take the returned lines, fold
+> them into **the parent's CURRENT body plus these lines** — `nen issue edit-body` REPLACES a body,
+> so handing it only the lines loses the body — write that to a file, and run
+> `nen issue edit-body --target <owner/name> --issue <parent#> --body-file <path>`. Then **re-verify**
+> by re-reading the parent (`gh issue view <parent#> --json body`) and confirming the lines are
+> actually present before reporting the attach as done: relaying a field without performing the write
+> leaves a **claimed graph that does not exist**.
+>
+> **Detecting and not performing stays a decision rather than a gap**, and nen now states it in
+> `--help`, in `docs/USAGE.md` and on the field's own doc comment: this verb makes exactly one kind
+> of write, and performing a read-modify-write of the parent's body silently as a consequence of a
+> 404 would let an `attach-sub` run clobber a body somebody edited between that read and this write —
+> on the least-exercised path in the verb. **Say which form was used**, always: a task list is not a
+> sub-issue graph, and a later sweep reading one as the other is wrong about the whole chain.
+>
+> **Still not observed live**: every repository in bounds supports the sub-issues API natively, so
+> the 404/410 condition has never actually fired here. What is verified at this pin is the verb's own
+> published contract — the `--help` text above, read from the pinned binary — not a run in which the
+> fallback triggered.
 
 **5 — Report**: the consolidated issues filed, the members closed (each with the section its close
 comment named) and the members link-only-attached (each in object notation via `nen ref format`), the

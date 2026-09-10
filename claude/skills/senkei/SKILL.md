@@ -151,7 +151,21 @@ opened for, left alive because nothing swept it.
 | **stalled** | Released with no branch/PR ever opened, or a reviewer job that never posted a `Verdict:` line. |
 | **queued** | G1-approved (a mode label picked) but not yet released with `bankai:stage/building`. |
 | **idle** | An `integration/*` branch is still alive but its epic is closed — flag for cleanup. |
-| **undecidable** | *(new in this port — the verb's own sixth class.)* No stage label, no mode label, no PR, no live branch: a genuinely untriaged issue, never silently folded into `queued`. |
+
+**The taxonomy is those five. The verb returns SEVEN values, and the other two are answers *about*
+the taxonomy rather than members of it** — nen `0.7` settles this in `--help` itself, where through
+`v0.6.0` the text called itself "senkei §3's five-class taxonomy", listed six names and returned
+seven, so `undecidable` appeared in neither the count nor the list (`zheref/nen#53`; verified live,
+`docs/ab/senkei.md` § *Retired at nen 0.7*):
+
+| Not a class | Meaning |
+| --- | --- |
+| **state-machine-violation** | Two stage labels on one object contradict each other. Flagged, **never resolved by guessing** which is authoritative. |
+| **undecidable** | No stage label, no mode label, no PR and no live branch: nothing here places the object anywhere in the taxonomy. A genuinely untriaged issue, reported rather than silently folded into `queued`. |
+
+**A caller switching on the class must handle both**, which is `--help`'s own instruction now — and
+this skill's report says `undecidable` in those words rather than translating it into a class the
+issue does not have.
 
 ```
 nen effort classify --input <path.json>
@@ -162,6 +176,20 @@ hasPr, prOpen, prIsDelivery, integrationBranchAlive, reviewerVerdictMissing}` pe
 `nen repo inventory`'s rows into this shape before calling it (the verb classifies; it does not
 fetch). `state-machine-violation` (two stage labels on one object) is flagged, never resolved by
 guessing which is authoritative.
+
+> ### RETIRED at nen `0.7`: `--input`'s second base
+>
+> **A relative `--input` resolves against `--repo`'s root, never the process's own directory**
+> (`zheref/nen#100`). Nothing was inconsistent within a single invocation, which is exactly why it
+> survived — run from the repository root the two bases are the same path — and it appeared the
+> moment a caller ran from somewhere else: a worktree, a wrapper script, a step with its own working
+> directory. **Verified live with a decoy of the same relative name in the calling directory**
+> (`docs/ab/senkei.md` § *Retired at nen 0.7*): `v0.6.0` read the decoy and classified it, `0.7.0`
+> reads `--repo`'s copy. An absolute path is still used as-is, and `--repo` still defaults to the
+> process's own directory, so a caller standing in the repository sees no change at all.
+>
+> **Pass `--repo` on this call**, therefore, and pass it deliberately: it is what decides which
+> `efforts` file the verdict is about.
 
 > **The `stageLabels` / `modeLabelPresent` split is load-bearing, and getting it wrong
 > misclassifies real data.** `modeLabelPresent` is whether a **G1 mode label**

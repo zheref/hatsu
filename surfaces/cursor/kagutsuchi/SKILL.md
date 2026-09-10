@@ -97,7 +97,7 @@ target is *meaningful* for the lane it is used on. On a repository with two depl
 the `target:` line and the composed `would run:` before answering, every time.
 
 **Non-production is the declaration's word, not this skill's — and it is PROSE, not a typed field.**
-**Nothing in nen marks a target as production or not, at the pinned `0.6.0` either — genuinely still
+**Nothing in nen marks a target as production or not, at the pinned `0.7.0` either — genuinely still
 residue:** `project.targets.<name>` carries `args`,
 `requiresEnv`, `why` and `unsupported`, and none of them says which side of **G3** a destination is on
 (§ *Residue* 1; `docs/ab/kagutsuchi.md` § 4.1 files it as the finding worth acting on). So the test is

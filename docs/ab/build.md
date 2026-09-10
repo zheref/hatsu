@@ -545,3 +545,66 @@ itself be the exact write this port must never make.
   estate by `nen`'s shadow window (`docs/evidence/shadow-window-p1.md` in `zheref/nen`); this port's
   own use of readiness (`SKILL.md` § 4, step 4) is a pointer to that landed result
   (`docs/ab/pr-state.md`), not re-proven here.
+
+---
+
+## Retired at nen 0.7 — 2026-09-10
+
+Read from the released `zheref/nen` `v0.7.0` binary's own published help (`nen-darwin-arm64`, sha256
+`a0545d02…e7b6c323`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.7.0`, on `PATH` as
+`nen`; `nen --version` → `0.7.0`), against the same help read from `v0.6.0` first.
+
+| Residue retired | Where | Exit |
+|---|---|---|
+| supplying a placeholder for a role this repository lacks | `nen issue chain-position --help` | `0`, the four critical roles named |
+| `--body-file` / `--out` resolving against the process's directory | `nen epic next-wave` — transcript in [`senkei`](senkei.md) § *Retired at nen 0.7* | `0`, `--repo`'s root wins |
+
+### Which four roles can refuse a verdict
+
+```text
+v0.6.0  $ nen issue chain-position --help
+        …
+              terminus that ends the run. --chain-labels roles: idea, researched,
+              approved-team, approved-direct, building, in-review, epic, chore. An
+              unparseable --chain-labels entry (no '=', an unknown role, an empty
+              …
+                                   # ← eight roles named, and nothing about which ones matter
+
+0.7.0   $ nen issue chain-position --help
+        …
+              FOUR OF THE EIGHT CAN REFUSE A VERDICT and the other four cannot:
+              building, in-review, idea and epic decide whether an issue that matched
+              nothing is really 'routable', so an unmapped one is 'undecidable' rather
+              than a guess. researched, approved-team, approved-direct and chore are
+              reported under unmappedRoles when absent and never block an answer, so a
+              target repository whose taxonomy genuinely lacks one needs no placeholder …
+```
+
+**The refusal named roles without saying which ones mattered**, so a caller reasonably concluded it
+had to supply the full eight-role map on every call — including a placeholder for a role its own
+taxonomy genuinely lacks, which is the one thing a taxonomy check exists to prevent. The distinction
+is real and it is why only four are critical: *"carries no `building` label"* and *"`building` was
+never mapped, so this issue's `building` label (if any) was never checked"* read identically, and
+only one of them is `routable`.
+
+**What this changes in SKILL.md § 2**: the instruction is now *map `building`, `in-review`, `idea`
+and `epic`, and omit any of the other four this repository does not have* — which is what the
+existing `chore=` omission already was, now stated as a rule rather than as a special case. The
+`undecidable` refusal transcript in § 2.7 is unchanged and still reads
+`role(s) building, in-review, idea, epic were never mapped` — the four critical ones, which is what
+the help now says out loud.
+
+**What is NOT added is partial credit on that branch**, deliberately. Every position a mapped role
+positively matches is decided and returned *before* the critical-role check is consulted, so partial
+credit already applies wherever the labels answer the question. What remains is the one branch where
+an issue matched nothing — and there a partial answer is exactly the wrong answer, because reading a
+`building` issue as `routable` releases it twice.
+
+### Both own-path flags on § 5's epic step
+
+`nen epic next-wave --body-file <f> … --out <f>` had `--body-file` and `--out` in the closed set of
+own-path flags that resolved against the PROCESS's directory rather than `--repo`'s root. Both move
+at this pin (`zheref/nen#100`). The decisive transcript — a decoy of the same relative name in the
+calling directory, read by `v0.6.0` and not by `0.7.0` — is recorded once, under
+[`senkei`](senkei.md) § *Retired at nen 0.7*, since the rule is one rule across the whole set. An
+absolute path is still used as-is, which is what SKILL.md § 5 already tells this skill to pass.

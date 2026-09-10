@@ -50,7 +50,7 @@ nothing about attribution gets the workflow's rule, not the harness's habit.
 
 ## 3. Before anything is staged
 
-1. **The checks are green FOR THIS TREE.** At the pinned nen `0.6.0` that is a verb, not a memory:
+1. **The checks are green FOR THIS TREE.** At the pinned nen `0.7.0` that is a verb, not a memory:
 
    ```bash
    nen commit check --repo <path> --require-proof <iteration.lane>
@@ -87,17 +87,19 @@ nen stage triage --repo <path> [--scope <in-scope prefixes>] [--mentions "<the m
 ```
 
 Detects, never decides, and **exits `1` whenever anything is FLAGGED — `flagged` alone decides the
-exit code at the pinned `0.6.0`**, so a tree whose only dirty rows are git-ignored is exit `0`. The
-detectors, verified live against a constructed working copy carrying one of each
-(`docs/ab/kokusen.md` § 2.1 and § *Retired at nen 0.6*):
+exit code at the pinned `0.7.0`**, so a tree whose only dirty rows are git-ignored is exit `0`. The
+**six detectors and the one bucket**, verified live against a constructed working copy carrying one
+of each (`docs/ab/kokusen.md` § 2.1, § *Retired at nen 0.6* and § *Retired at nen 0.7*):
 
 | Bucket / flag | Trigger |
 |---|---|
 | `secret-shape` | `.env`, `*.pem`, `*.key`, `credentials*`, or a token/key shape in the diff |
+| **`local-config`** | the `.local` filename infix a dozen tools agree means "this machine's copy" — `settings.local.json`, `.env.local`, `config.local.yml`, a bare `notes.local`. **New at the pinned `0.7.0`**, and a FILENAME check like the secret shape beside it, deliberately **not** a directory rule: `.claude/` and `.vscode/` hold committed project configuration as often as personal settings |
+| **`large`** | the file is at or over `--large-bytes`, default **1 MiB**. **New at the pinned `0.7.0`.** A path the verb could not MEASURE — a deletion, a broken symlink — is never flagged `large`, because "not measured" must not render as "measured and small"; an ignored path is not measured either |
 | `binary` | the file's content is binary |
 | `out-of-scope` | the path falls outside every `--scope` prefix — **omitted entirely** when `--scope` is not passed |
 | `unmentioned-deletion` | a tracked path was deleted and its basename does not appear in `--mentions` |
-| **`ignored`** | the path is git-ignored. **Its own bucket at the pinned `0.6.0`, not a flag on `flagged`** — a fact, not a question, because a plain `git add` cannot stage it at all |
+| **`ignored`** | the path is git-ignored. **Its own bucket at the pinned `0.7.0`, not a flag on `flagged`** — a fact, not a question, because a plain `git add` cannot stage it at all |
 
 One path can carry several reasons at once. **Present every flagged file together, with the reasons
 `nen` printed, and take one answer per file** — and at this pin `flagged` holds only paths a plain
@@ -130,7 +132,7 @@ One path can carry several reasons at once. **Present every flagged file togethe
   local, it is not pushed" — a commit is permanent the moment it exists, and the push that would
   publish it is one `hatsu:aka` away.
 - **A `secret-shape` inside an ignored dependency tree is reported and left alone.** Verified live
-  at the pinned `0.6.0`: a `.env` under an ignored `node_modules/` lands in **`ignored[]`** carrying
+  at the pinned `0.7.0`: a `.env` under an ignored `node_modules/` lands in **`ignored[]`** carrying
   `["ignored", "secret-shape"]` and never in `flagged` — the same row shape a real run found on
   `node_modules/bottleneck/.env`, in the bucket that now says what it is. Read
   literally, the categorical rule would have this skill rotate or delete a third-party package's
@@ -139,11 +141,40 @@ One path can carry several reasons at once. **Present every flagged file togethe
   path is ignored, it will never be staged, so it is named once in the report — path, reasons, and
   the sentence that it is ignored and untouched — and the run continues. If it is *not* ignored, the
   categorical rule applies with no softening at all.
-- **Two shapes have no detector and stay this skill's by eye** (the same residue
-  [`hatsu:tensho`](../tensho/SKILL.md) § 3 names): a **local-config** file that is neither ignored nor
-  out of scope (`.claude/settings.local.json`, editor state, OS cruft) reports **clean**, and so does
-  an **unusually large** plain-text file. Ask about a local-config path by name regardless of what the
-  verb reported, and weigh repo weight by eye.
+> ### RETIRED at nen `0.7`: asking about local-config and size by eye
+>
+> **Both shapes are detectors now**, and they were carried as residue because two skills — this one
+> and [`hatsu:tensho`](../tensho/SKILL.md) § 3 — were independently compensating for the same gap,
+> which is the shape of a missing feature rather than a preference. Verified live at the pinned
+> `0.7.0` against a constructed working copy carrying one of each (`docs/ab/kokusen.md`
+> § *Retired at nen 0.7*): the same tree that answered exit `0`-with-three-clean-rows at `v0.6.0`
+> now answers
+>
+> ```text
+> flagged: 3 file(s) -- never staged without an explicit yes
+>   .env.local  [secret-shape, local-config]
+>   big.txt  [large]
+>   settings.local.json  [local-config]                                                    # exit 1
+> ```
+>
+> where at `v0.6.0` `big.txt` (2.6 MB) and `settings.local.json` reported **clean** and `.env.local`
+> carried `[secret-shape]` alone. **This is one of the four silent changes `zero_major_caveat.why`
+> in `nen/contract.json` names**: the same bytes, the opposite exit code.
+>
+> **`local-config` travels alongside every other reason a path matched** — `.env.local` comes back
+> `[secret-shape, local-config]` — and § 9's hard limit is untouched by the second tag: a
+> `secret-shape` on a path this commit could contain is still never askable, whatever else it also
+> is. **A `local-config` path IS askable**, and the answer is usually no.
+>
+> **`--large-bytes <n>` is the threshold and it has a default**, unlike `nen loop slots --local-cap`,
+> which refuses to have one — that flag is a concurrency GUARD whose forgotten default silently
+> widens what is allowed, while this is a DETECTION threshold on a verb that decides nothing and
+> whose default errs toward flagging. A zero or negative value is refused at exit `2`, verified
+> live. **Pass `--large-bytes` only when this repository has a real reason to differ**, and say the
+> reason; 1 MiB is not a number to re-litigate per run.
+>
+> **So stop weighing repo weight by eye and stop scanning for `.local` by name.** Read the flags the
+> verb printed and take one answer per flagged path, exactly as for every other reason.
 - **Deliberately untracked leftovers stay untracked.** Offer the `.gitignore` line; do not commit
   something to be tidy.
 
@@ -192,7 +223,7 @@ changed and why is this skill's to write, never nen's.
 > their commit. It refuses to *add* one; deleting someone else's provenance metadata is a governance
 > decision nobody asked for.
 
-**`nen commit format --repo <path>` ENFORCES this rule at the pinned `0.6.0`, and the `--repo` is what
+**`nen commit format --repo <path>` ENFORCES this rule at the pinned `0.7.0`, and the `--repo` is what
 turns it on.** Verified live against this repository: `--trailer "Co-Authored-By=someone"` is refused
 at exit `2` — *"trailer key 'Co-Authored-By' is an attribution trailer this repository refuses.
 '…/nen/workflow.json' admits 'Hatsu-Agent', 'Akatsuki-Agent' under
@@ -203,7 +234,7 @@ you**: it admits both keys, so `--trailer "Akatsuki-Agent=kurapika"` also render
 refusal is this skill's, per the rule above — layer (a), and the only layer that holds it.
 
 **Always pass `--repo`, and do not rely on being rescued when you forget.** Re-verified live on
-2026-09-10 at the pinned `0.6.0`, from this repository's own checkout: the refusal above fires **with
+2026-09-10 at the pinned `0.7.0`, from this repository's own checkout: the refusal above fires **with
 `--repo`**, and it also fired **without** it — the verb found `nen/workflow.json` from the working
 directory. **That is a courtesy of where the command happened to be run, not a contract**: name the
 repository and the policy that is read is the one you meant. Reading the rendered output against
@@ -215,7 +246,7 @@ only one (§ 7).
 > stale.** A headless Cursor run against nen `0.3.0` found `--repo` **accepted and silently ignored**,
 > so `--trailer "Hatsu-Agent=kurapika"` rendered at exit `0` where a refusal was expected
 > (`docs/ab/surfaces.md` § 8, F12) — *"a flag that is accepted and ignored is worse than one that is
-> rejected: it reads like the guard ran."* **That was `0.3.0`. Hatsu pins `v0.6.0`**, where the verb
+> rejected: it reads like the guard ran."* **That was `0.3.0`. Hatsu pins `v0.7.0`**, where the verb
 > has its own `--repo`, opens the policy and refuses by name. § 7's residue list says `RETIRED` for
 > exactly this reason.
 
@@ -242,7 +273,7 @@ git commit --file <message file>          # residue, § 7: no nen verb writes a 
 > | `2` | **refused.** A shape violation (undeclared type, empty subject, header over 72 characters, trailing punctuation) or — with `--repo` — an attribution trailer `nen/workflow.json` does not admit | **stop.** Quote the sentence from stderr, fix the input, re-run. Never commit the file — it is empty |
 > | `1` | the trailer policy could not be read — `nen/workflow.json` present and **malformed** (with `--repo`) | **stop.** Report it as a repository defect and point at `nen schema check`; a message shaped under a policy nobody could read is not shaped |
 >
-> Verified live at the pinned `v0.6.0`: a malformed `nen/workflow.json` answers `1` — *"nen will not
+> Verified live at the pinned `v0.7.0`: a malformed `nen/workflow.json` answers `1` — *"nen will not
 > shape a message under a policy it could not read"* — and a `Co-Authored-By` trailer answers `2`
 > naming the file that refuses it. **An empty `<message file>` is the tell for either refusal**, and
 > it is checked before `git commit` whichever way the exit code was read.
@@ -252,7 +283,7 @@ git commit --file <message file>          # residue, § 7: no nen verb writes a 
 fix what it named. Stage explicitly, path by path, from § 4's clean list plus every flagged path that
 got an explicit yes; `git add -A` is barred (§ 9).
 
-## 7. Residue — what has no verb at the pinned nen `0.6.0`
+## 7. Residue — what has no verb at the pinned nen `0.7.0`
 
 - **RETIRED at nen `0.5`: the forbidden-trailer refusal.** `nen commit format --repo <path>` refuses
   an unadmitted attribution trailer at exit `2`, naming the file (§ 5, verified live against this
@@ -271,7 +302,10 @@ got an explicit yes; `git add -A` is barred (§ 9).
   reports them in its own `ignored` bucket with its own `ignored: <n> file(s), not listed` count, and
   the exit code follows `flagged` alone (§ 4, verified live at exit `0` on a tree of only ignored
   rows). **Relay the verb's count; never compute one.**
-- **Local-config and size detection** in staging (§ 4) — no detector, by the verb's own account.
+- **RETIRED at nen `0.7`: local-config and size detection** in staging (§ 4). `nen stage triage`
+  carries `local-config` (the `.local` filename infix) and `large` (at or over `--large-bytes`,
+  default 1 MiB) as detectors of its own, verified live at exit `1` on a tree the pinned `v0.6.0`
+  reported clean. **Read the flags; do not scan by eye and do not weigh repo size by eye.**
 - **RETIRED at nen `0.5`: validating `nen/workflow.json`** — `nen schema check` carries the row
   ([`hatsu:breath`](../breath/SKILL.md) § 2). Reading the values is still this skill's, and a read is
   not a residue.

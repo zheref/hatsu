@@ -29,7 +29,7 @@
 # exit 2, precisely so that it would disappear by itself the moment the pinned
 # nen carried the verb — no edit to this file, no remembering.
 #
-# The pin is `v0.6.0` and that nen carries `nen surface mirror generate|check`.
+# The pin is `v0.7.0` and that nen carries `nen surface mirror generate|check`.
 # Verified locally against this branch: `bash scripts/surface_mirror_check.sh`
 # exits 0, `codex ok: 40` and `cursor ok: 47`, no missing/extra/stale/hand-edited
 # rows. So the skip branch is unreachable at this pin, and it is kept as an
