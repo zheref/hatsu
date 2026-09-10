@@ -1,0 +1,32 @@
+{
+  "description": "Hatsu's two harness hooks. `Stop` rings the bell — an OS notification and a sound — when a gate stop is waiting, reading the marker the jutaisho skill drops at .nen/last-stop.json; `PreToolUse` on Bash refuses a `git commit` or a `git push` while the working copy sits on the workflow base branch. NEITHER IS A NEN-OWNED STEP. They are Claude Code hooks, executed by the harness around a session rather than by a skill inside one, and they exist because a notification and a reflex refusal are the two things a skill cannot do: a skill only runs when the model calls it, and by the time the model has stopped talking or has already typed the push, it is too late. Every deterministic step the skills themselves take stays a nen verb. Both scripts are POSIX sh, use no jq, yq or python (README, 'On the installed plugin path'), and fail open — a hook that cannot read what it needs stays out of the way rather than blocking a session on its own uncertainty. The one deliberate exception is the guard, which fails CLOSED on the branch comparison it can actually make.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop-bell.sh",
+            "args": [],
+            "timeout": 15,
+            "statusMessage": "Ringing the stop bell"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/guard-base-branch.sh",
+            "args": [],
+            "timeout": 10,
+            "statusMessage": "Checking the branch"
+          }
+        ]
+      }
+    ]
+  }
+}
