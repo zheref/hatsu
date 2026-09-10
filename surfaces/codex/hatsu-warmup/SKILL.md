@@ -25,24 +25,31 @@ shell).
 
 ---
 
-## 0 · Read the contract yourself — no jq, no subprocess
+## 0 · Resolve the root, THEN read the contract yourself — no jq, no subprocess
+
+**The very first thing this skill does, on every surface, is resolve `$hatsu_root`.** § 5's prelude
+carries the block and the reasoning, and it is written down there once rather than twice. In one line:
+`$HATSU_PLUGIN_ROOT`, else the path this invocation was handed, else `$CLAUDE_PLUGIN_ROOT`, **each
+accepted only if it holds a `.claude-plugin/plugin.json` whose own `name` is `hatsu`**. Every path
+below reads from the result.
 
 ```bash
-cat "$CLAUDE_PLUGIN_ROOT/nen/contract.json"
+cat "$hatsu_root/nen/contract.json"
 ```
 
-**On Codex and Cursor that variable is usually empty and the plugin root is `$hatsu_root`** — the same
-resolution § 5's prelude carries, **identity check included**: `$HATSU_PLUGIN_ROOT`, else the path this
-invocation was handed, else `$CLAUDE_PLUGIN_ROOT`, and **each accepted only if it holds a
-`.claude-plugin/plugin.json` naming `hatsu`**. Resolve it there first, and read
-`$hatsu_root/nen/contract.json`. **A root that will not resolve stops the warm-up** — § 5's `NOT INSTALLED`
-line, naming every path it rejected — rather than reading an empty path and reporting a missing contract.
-
-> **"Usually empty" rather than "empty", and the difference bit.** `$CLAUDE_PLUGIN_ROOT` is exported by
-> Claude Code's harness — and on this host it is *also* exported from the user's shell profile, pointing
-> at **a different plugin**, so every Codex and Cursor session inherits it (`docs/ab/surfaces.md` § 8,
-> F3). A resolution that trusts the variable's presence reads another plugin's contract. § 5's prelude
-> carries the check and the reasoning.
+> ### ⚠️ `$CLAUDE_PLUGIN_ROOT` is not safe to read from directly, and that is why the order is this way
+>
+> This section used to open with `cat "$CLAUDE_PLUGIN_ROOT/nen/contract.json"`, before any resolution
+> had happened. **On Codex and Cursor that variable is usually empty** — Claude Code's harness exports
+> it inside a skill invocation and no other harness does — so the read was of `/nen/contract.json` and
+> the warm-up reported a missing contract instead of a missing root. **And on this host it is not even
+> empty:** it is *also* exported from the user's shell profile, pointing at **a different plugin**, so
+> every Codex and Cursor session inherits it and the read would have been of *another plugin's*
+> dependency contract, silently (`docs/ab/surfaces.md` § 8, F3). Resolving first costs nothing on
+> Claude Code, where the variable *is* the Hatsu checkout and passes the check on the first comparison.
+>
+> **A root that will not resolve stops the warm-up here** — § 5's `NOT INSTALLED` line, naming every
+> path it rejected — rather than reading an empty path and reporting a missing contract.
 
 **You are the JSON parser.** You have just opened the file; read `dependency.minimum`,
 `dependency.zero_major_caveat`, `dependency.pinned_ref`, `dependency.source`, `dependency.version_probe`
@@ -54,7 +61,7 @@ line, naming every path it rejected — rather than reading an empty path and re
 This is the one machine read of the contract, and it is a validation, never a way of extracting values:
 
 ```bash
-nen schema check --repo "$CLAUDE_PLUGIN_ROOT"
+nen schema check --repo "$hatsu_root"
 ```
 
 Verified live against the pinned `v0.5.0`: the `nen/contract.json` row prints
@@ -360,15 +367,20 @@ this repository, made on a branch, checked in CI (§ *The check* in `docs/SURFAC
 > cannot add the flag to a session already running: **it reports the condition and stops**, naming the
 > flag, rather than writing half an install into a checkout that cannot commit it.
 
-### 5 · prelude — `$hatsu_root`, and why `$CLAUDE_PLUGIN_ROOT` cannot be it here
+### 5 · prelude — `$hatsu_root`, and why `$CLAUDE_PLUGIN_ROOT` is not simply trusted
 
-**Every path below reads from `$hatsu_root`, and resolving it is the first thing this section does.**
-`$CLAUDE_PLUGIN_ROOT` is a **Claude Code** variable — that harness exports it inside a skill invocation
+**This block is the resolution the WHOLE skill uses, and § 0 runs it before it reads anything.** It
+lives here because § 5's install is what needs it most, not because it starts here: every path in this
+file — § 0's `cat`, § 0's `nen schema check --repo`, and every copy and link below — reads from
+`$hatsu_root`.
+
+`$CLAUDE_PLUGIN_ROOT` is a **Claude Code** variable: that harness exports it inside a skill invocation
 and nowhere else ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *`$CLAUDE_PLUGIN_ROOT` is set inside a
-skill invocation, and nowhere else*). **This section only ever runs on Codex and Cursor**, where there is
-no plugin loader, so there is nothing to export it: it is empty in exactly the sessions these commands are
-written for. The fallback that section gives — `claude plugin list --json` → `installPath` — is the Claude
-Code CLI's own registry and is not a question those two surfaces can answer either.
+skill invocation, and nowhere else*). **§ 5's install only ever runs on Codex and Cursor**, where there is
+no plugin loader, so there is ordinarily nothing to export it — it is empty in exactly the sessions these
+commands are written for, and the box below says what that costs. The fallback that section gives —
+`claude plugin list --json` → `installPath` — is the Claude Code CLI's own registry and is not a question
+those two surfaces can answer either.
 
 > **An unresolved root does not fail loudly on its own, which is why it is resolved rather than assumed.**
 > With the variable empty, `for d in "$CLAUDE_PLUGIN_ROOT"/surfaces/codex/*/` globs `/surfaces/codex/*/`,
@@ -405,10 +417,21 @@ Code CLI's own registry and is not a question those two surfaces can answer eith
 **Every candidate is verified before it is used**, in order, and the first one that passes wins:
 
 ```sh
-# is_hatsu ROOT — true only for a checkout of THIS plugin. No jq: the file is read as text.
+# is_hatsu ROOT — true only for a checkout of THIS plugin. No jq: the file is read
+# as text, so the two things that make the read honest are written out.
+#   1. The MANIFEST'S OWN name, not any name in it. The value is extracted and
+#      compared WHOLE, and only the FIRST "name" line is read — a manifest's own
+#      name is the first one; a name nested in a dependency or in metadata is not.
+#      A bare `grep '"name": "hatsu"'` would accept any plugin carrying that string
+#      anywhere, which is the wrong-root failure this check exists to prevent.
+#   2. A second, independent fact about the same directory: `claude/skills/` is what
+#      this manifest's `skills` key points at, so a plugin.json that passes (1) while
+#      standing over somebody else's tree still fails here.
 is_hatsu() {
-  [ -n "${1:-}" ] && [ -f "$1/.claude-plugin/plugin.json" ] &&
-    grep -qE '"name"[[:space:]]*:[[:space:]]*"hatsu"' "$1/.claude-plugin/plugin.json"
+  [ -n "${1:-}" ] && [ -f "$1/.claude-plugin/plugin.json" ] && [ -d "$1/claude/skills" ] || return 1
+  ih_name=$(sed -n 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+              "$1/.claude-plugin/plugin.json" | head -n 1)
+  [ "$ih_name" = "hatsu" ]
 }
 
 hatsu_root=""; rejected=""
