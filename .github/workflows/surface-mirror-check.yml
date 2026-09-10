@@ -100,12 +100,39 @@ jobs:
         # the INSTALLED PLUGIN path — an agent that has already opened the file
         # spawning a parser to hand values back to itself — and a CI runner is
         # not that reader.
+        #
+        # AND IT IS PULL-REQUEST DATA, SO IT IS VALIDATED HERE, ONCE, BEFORE ANY
+        # LATER STEP CAN SEE IT. `nen/contract.json` comes from the PR's own
+        # checkout, which means `dependency.pinned_ref` is a string an author
+        # chooses. Everything downstream — a shell assignment, a URL, a
+        # `::notice::` — treats it as trusted after this gate, so the gate is the
+        # only place it has to hold: a git ref shape and nothing else. A value
+        # carrying a quote could otherwise close a shell assignment, and one
+        # carrying a newline could forge a `::error::` workflow command out of an
+        # echoed notice. Neither survives this pattern.
         id: pin
         shell: bash
         run: |
           set -euo pipefail
           ref="$(jq -r '.dependency.pinned_ref // empty' nen/contract.json)"
           [ -n "$ref" ] || { echo "::error::nen/contract.json carries no dependency.pinned_ref."; exit 1; }
+          # A tag or branch name: alphanumeric start, then alphanumerics and the
+          # four punctuation characters git refs actually use. No quote, no
+          # newline, no space, no shell metacharacter, no leading '-' to be read
+          # as an option, and the `..`/`//` forms git itself refuses.
+          case "$ref" in
+            *..*|*//*) echo "::error::dependency.pinned_ref '$ref' is not a valid git ref (contains '..' or '//')."; exit 1 ;;
+          esac
+          # bash's own `=~` and NOT `grep -E`: grep matches LINE BY LINE, so a
+          # two-line value whose first line is `v0.3.0` passes an anchored grep
+          # and carries `::error::…` on the second — the forged-workflow-command
+          # case this gate is here to stop, and a multi-line value would break
+          # $GITHUB_OUTPUT's own key=value framing besides. `[[ =~ ]]` anchors to
+          # the whole string.
+          if [[ ! "$ref" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$ ]]; then
+            echo "::error::dependency.pinned_ref is not a plain git ref ([A-Za-z0-9][A-Za-z0-9._/-]{0,99}); refusing to use it in a URL or a shell."
+            exit 1
+          fi
           echo "ref=$ref" >> "$GITHUB_OUTPUT"
           echo "pinned nen ref: $ref"
 
@@ -116,11 +143,22 @@ jobs:
         # arguments when piped (nen/contract.json §
         # dependency.bootstrap.fetch_must_be_two_step). On success it prints the
         # verified binary path on stdout and nothing else.
+        #
+        # THE REF ARRIVES THROUGH `env`, NEVER THROUGH `${{ }}` INSIDE THE SCRIPT.
+        # An expression written into a `run:` block is substituted into the shell
+        # SOURCE before bash parses it, so a value with a quote in it is code
+        # rather than data — the classic Actions script injection, and it would
+        # run here BEFORE the trusted guard below ever does. `env` hands bash a
+        # variable instead, which no quoting can escape. The `pin` step above has
+        # already refused anything that is not a plain git ref, so this is the
+        # second of the two independent reasons the value is safe.
         id: nen
+        env:
+          PINNED_REF: ${{ steps.pin.outputs.ref }}
         shell: bash
         run: |
           set -euo pipefail
-          ref='${{ steps.pin.outputs.ref }}'
+          ref="$PINNED_REF"
           url="https://raw.githubusercontent.com/zheref/nen/${ref}/bootstrap/nen.sh"
           curl -fsSL "$url" -o "${RUNNER_TEMP}/nen-bootstrap.sh"
           bin="$(bash "${RUNNER_TEMP}/nen-bootstrap.sh" --ref "$ref")"
@@ -149,8 +187,17 @@ jobs:
           echo "guard script: $guard"
 
           # The PR checkout is the ROOT the trusted guard judges.
-          bash "$guard" "$PWD"
-          code=$?
+          #
+          # `code=0; cmd || code=$?` and NOT a bare `cmd` followed by `code=$?`.
+          # `shell: bash` runs `bash --noprofile --norc -e -o pipefail`, so the
+          # `-e` is GitHub's and `set -uo pipefail` above does not clear it: the
+          # bare form KILLED THE STEP on the guard's exit 2 before `code` was ever
+          # read, and the documented skip-with-a-notice never happened — the job
+          # failed every pull request, which is the outcome the header says it
+          # exists to avoid. Same idiom, same reason, as the loop inside
+          # scripts/surface_mirror_check.sh.
+          code=0
+          bash "$guard" "$PWD" || code=$?
 
           case "$code" in
             0)

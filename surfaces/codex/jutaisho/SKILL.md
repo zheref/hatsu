@@ -275,8 +275,13 @@ whether rung 1 had already fired, and the next thing to read the working copy (a
 `sharingan` pass, the maintainer) reads it. A bell rung with no marker is a bell with no evidence.
 
 ```sh
-# 1 · the marker — one verb where the pin allows it. Written FRESH: see "the marker is a live fact"
-nen stop --mark --who Kurapika --gate <G1|G1-M|G2|G3|G4|G5> --notified <efforts.md>
+# 1 · the marker — § 3's BY-HAND WRITE of .nen/last-stop.json, whole and fresh.
+#     NOT `nen stop --mark`. At the pinned 0.5.0 that option DOES exist and writes
+#     (exit 0, verified live) — and it is still not the one used here, because its
+#     nen.stop.mark/v0.1 document carries no `title`, so every bell it rings says
+#     "A decision is waiting." and drops the report link. That is a kept residue
+#     taken on purpose (§ Residue 1), not a pin that has yet to move: the box below
+#     is the reason, and the shape is the condition that has not been met.
 
 # 2 · rung 2, in-session, values sanitised exactly as § 5 requires. READ STDERR, NOT THE EXIT CODE
 osascript -e 'display notification "<body>" with title "<title>"' 2>&1
@@ -346,7 +351,8 @@ rm -f .nen/last-stop.json
 > reads `gate` and `title` and falls back to *"A decision is waiting."* when `title` is absent, so
 > adopting nen's marker would ring the generic line **every time**, on every gate, and would drop the
 > report link out of the notification entirely. That is a downgrade, not a retirement, so § 3's
-> `hatsu.stop-marker/v0.1` stays and § Residue 1 says why.
+> `hatsu.stop-marker/v0.1` stays and § Residue 1 says why — and the § 6 block above therefore spells
+> the by-hand write rather than the verb (Copilot review thread `PRRT_kwDOUKPjxM6hAjMh`).
 >
 > **What DOES change at the pin, and is worth knowing:** `--mark` is the only form of this verb that
 > writes, so `nen parse izanami` classifies `stop` **write-flag-gated** on it rather than plain

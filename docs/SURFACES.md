@@ -215,9 +215,13 @@ These are the commands, and both `--help`s were read on this host before they we
 ### Codex
 
 ```sh
+# the deep tier's id AS THE HOST SPELLS IT TODAY — resolved, never remembered (see below)
+sol="$(codex debug models | grep -o '"slug":"[^"]*sol"' | cut -d'"' -f4)"
+[ -n "$sol" ] || { echo "codex debug models lists no 'sol' slug" >&2; exit 1; }
+
 codex exec -C <repo> -s workspace-write \
   --add-dir "$(git -C <repo> rev-parse --path-format=absolute --git-common-dir)" \
-  -m gpt-6-sol "<prompt>"
+  -m "$sol" "<prompt>"
 ```
 
 > ### ⚠️ `--add-dir` is not an optimisation. Without it a LINKED WORKTREE cannot commit at all.
@@ -261,13 +265,18 @@ codex exec -C <repo> -s workspace-write \
   `sol` is the tier alias in [`nen/workflow.json`](../nen/workflow.json) → `models.codex.deep`; the id is
   that alias with this surface's current version in front of it.
 
-> **Read the id, never remember it — and this line is the reason.** `codex debug models` on this host
-> prints the catalogue as JSON, and its deep-tier slug today is **`gpt-5.6-sol`**, not the `gpt-6-sol`
-> written above (`docs/ab/surfaces.md` § 3.5). Both are the same *alias*, `sol`, at two different
-> versions, which is precisely what `models.rule` — *"latest alias only, never a version"* — exists to
-> keep out of a configuration file. **Resolve the id at the moment of use:**
-> `codex debug models | grep -o '"slug":"[^"]*sol"'`, then pass what it printed. A command line carrying
-> a remembered id fails on the day the version moves, and it will.
+> **Read the id, never remember it — and the block above resolves it rather than saying so and then
+> printing one.** `codex debug models` prints the catalogue as JSON; on this host, today, the whole slug
+> list is `gpt-reserve`, **`gpt-5.6-sol`**, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`,
+> `gpt-5.3-codex-spark`, `codex-auto-review` (`docs/ab/surfaces.md` § 3.5). **There is no bare `sol` and
+> no `gpt-6-sol`** — this section used to carry `-m gpt-6-sol` as the runnable command and the correction
+> only in this paragraph, so a reader who copied the block got a failure and a reader who read on got a
+> contradiction (Copilot review thread `PRRT_kwDOUKPjxM6hAjNK`). `sol` is the tier alias in
+> [`nen/workflow.json`](../nen/workflow.json) → `models.codex.deep`, and the *alias* is all a
+> configuration file may carry: `models.rule` is *"latest alias only, never a version"*. The **id** is
+> that alias at whatever version the host is serving, which is a live fact and belongs in a command
+> substitution — `codex debug models | grep -o '"slug":"[^"]*sol"' | cut -d'"' -f4`, exactly as the block
+> does. A command line carrying a remembered id fails on the day the version moves, and it will.
 - Add `-o, --output-last-message <FILE>` when something downstream has to read the answer, and `--json` for
   JSONL events.
 - The skills must already be in `<repo>/.agents/skills/` — that is the warm-up's § 5a.
@@ -278,10 +287,17 @@ A G5 stop is a designed part of every Hatsu run, so a headless validation pass *
 That is a second invocation, and it is a different command line:
 
 ```sh
-cd <repo> && codex exec resume --last -m gpt-6-sol --skip-git-repo-check \
+sol="$(codex debug models | grep -o '"slug":"[^"]*sol"' | cut -d'"' -f4)"   # resolved here too
+
+cd <repo> && codex exec resume --last -m "$sol" --skip-git-repo-check \
   -c 'sandbox_workspace_write.writable_roots=["<extra root>", "<repo git common dir>"]' \
   -o <file> "<the answer>"
 ```
+
+**`-m` is resolved on the resume exactly as it is on the first invocation.** `resume` is a *new process*
+and takes the model on its own command line, so a remembered id fails here for the same reason and at the
+worse moment — the run has already stopped at a G5 and the answer is what will not start
+(Copilot review thread `PRRT_kwDOUKPjxM6hAjNv`).
 
 **`resume` accepts neither `-C/--cd`, nor `-s/--sandbox`, nor `--add-dir`** — verified on this host, each
 refused with *"error: unexpected argument … found"* at exit `2` (`docs/ab/surfaces.md` § 7, F6). Its own

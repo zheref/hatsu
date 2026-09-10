@@ -406,7 +406,7 @@ surface; this is what hanten does with them once they are there.
 |---|---|---|---|
 | reviewer **tier** (`models.roles.reviewer`) | `deep` | `deep` | `deep` |
 | the alias that tier resolves to | **`opus`** | **`sol`** | **`grok`** — Cursor-native only |
-| how the reviewer is raised | the harness's **Agent tool**, `isolation: "worktree"` | **`codex exec -m sol -C <dir>`** — a *separate process*, in its own directory | a **subagent definition** under `.cursor/agents/<persona>.md`, invoked as that surface documents |
+| how the reviewer is raised | the harness's **Agent tool**, `isolation: "worktree"` | **`codex exec -m "$sol" -C <dir>`** — a *separate process*, in its own directory; `$sol` is the alias **resolved to the host's id** below, never the alias itself | a **subagent definition** under `.cursor/agents/<persona>.md`, invoked as that surface documents |
 | where the persona definition lives on that surface | `claude/agents/<persona>.md` | a `## <persona>` section of the generated `AGENTS.md` | `.cursor/agents/<persona>.md` |
 | isolation | a worktree the harness makes | **the directory you pass to `-C`** — make it a `git worktree` first | whatever the surface gives a subagent; **state which** |
 
@@ -419,10 +419,24 @@ by hand before the run:
 
 ```sh
 git worktree add "$rev" HEAD                      # the isolated copy — hanten's own act
+
+# `sol` is the TIER ALIAS; -m wants the host's ID for it. Resolve, never remember.
+sol="$(codex debug models | grep -o '"slug":"[^"]*sol"' | cut -d'"' -f4)"
+[ -n "$sol" ] || { echo "codex debug models lists no 'sol' slug — G5, the reviewer cannot be raised" >&2; exit 1; }
+
 codex exec -C "$rev" -s workspace-write \
   --add-dir "$(git -C "$rev" rev-parse --path-format=absolute --git-common-dir)" \
-  -m sol -o "$rev/finding.json" "<the scope, the base, the paths, and § 5's required shape>"
+  -m "$sol" -o "$rev/finding.json" "<the scope, the base, the paths, and § 5's required shape>"
 ```
+
+> **`-m sol` does not start a reviewer, and this line used to say it did.** `codex debug models` on this
+> host lists `gpt-reserve`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`,
+> `gpt-5.3-codex-spark`, `codex-auto-review` — **there is no bare `sol`** (`docs/ab/surfaces.md` § 3.5,
+> F1; Copilot review thread `PRRT_kwDOUKPjxM6hAjL9`). `sol` is the *alias*
+> `nen/workflow.json` → `models.codex.deep` carries, and `models.rule` — *"latest alias only, never a
+> version"* — is exactly why the file carries the alias and not the id. The id is a live property of the
+> host, so it is resolved at the moment of use and a failed resolution is a **G5**, not a guess: raising
+> a reviewer on some other model is not a smaller version of raising the right one.
 
 > **`--add-dir` is not optional here, and this is the one place in the repository where the omission
 > bites.** `git worktree add` makes a **linked** worktree, whose `.git` is a *file* pointing at
@@ -514,6 +528,12 @@ of the transcript can tell the two apart.
    Claude alias in a Cursor-native-only matrix. § 9a's rule (report it unresolvable, fall back to the
    role's tier, state the substitution) is this skill's, by hand, and it is a **candidate for
    `nen/workflow.json`** rather than a defect in the mirror.
+7. **Resolving a tier alias to the surface's model id has no verb** (§ 9a). `nen/workflow.json` carries
+   the alias and nothing else — `models.rule` forbids a version in the file — while `codex exec -m` and
+   `cursor-agent --model` want an id the host is serving today. The bridge is
+   `codex debug models | grep -o '"slug":"[^"]*sol"' | cut -d'"' -f4`, run by hand, and a resolution that
+   comes back empty is a **G5** rather than a substituted model. `nen model resolve --surface <s> --tier
+   <t>`, running the surface's own catalogue probe, would close it; filed as `docs/ab/surfaces.md` § 7 F1.
 
 ## Authority
 

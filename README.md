@@ -419,7 +419,7 @@ repository you are standing in.
 |---|---|---|---|
 | you type | `hatsu:rasengan` | `$rasengan` | `/rasengan` |
 | skills read from | the installed plugin | `.agents/skills/<name>/` | `.cursor/skills/<name>/` |
-| personas read from | `claude/agents/` | `AGENTS.md`, as prose | `.cursor/agents/<persona>.md` |
+| personas read from | `claude/agents/` | `AGENTS.override.md`, as prose — an **untracked** file that *replaces* your `AGENTS.md` in the envelope, so the warm-up copies yours into it verbatim first and never writes the tracked one | `.cursor/agents/<persona>.md` |
 | turn-end hook | **yes** | no — the bell rings in-session and says so | no — the same |
 | in-session subagent | **yes** | no — a reviewer is a second `codex exec` run in its own worktree | yes |
 | reviewer tier `deep` | `opus` | `sol` | `grok` — **Cursor-native only** |
