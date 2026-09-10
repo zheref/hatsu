@@ -43,7 +43,7 @@
   "commits": {
     "allowedAttributionTrailers": ["Akatsuki-Agent"],
     "forbiddenTrailers": ["Co-Authored-By", "Claude-Session", "Signed-off-by"],
-    "$comment": "The maintainer's ruling of 2026-09-09: `Akatsuki-Agent` is the single admitted attribution trailer, because it is the system's OWN provenance rather than a model claiming authorship. No AI attribution trailer is ever recorded. A harness that would mandate `Co-Authored-By:` is configured off (settings `includeCoAuthoredBy: false`) and the commit-msg guard refuses the trailer regardless of what any harness mandates."
+    "$comment": "The maintainer's ruling of 2026-09-09: `Akatsuki-Agent` is the single admitted attribution trailer, because it is the system's OWN provenance rather than a model claiming authorship. No AI attribution trailer is ever recorded. A harness that would mandate `Co-Authored-By:` is configured off (settings `includeCoAuthoredBy: false`). ENFORCEMENT IS THREE-LAYERED AND ONLY THE FIRST LAYER SHIPS IN THIS PLUGIN: (a) the skills refuse to WRITE a forbidden trailer -- kokusen before it commits, aka before it squashes -- which is agent-side; (b) the target repository's commit-msg hook, which `nen scaffold init` generates from `allowedAttributionTrailers` at nen 0.4.0 (in flight; KroApple and kro-pwa already carry one); (c) `nen commit format` refusing the trailer, also at 0.4.0. AT THE PINNED NEN 0.3.0 LAYERS (b) AND (c) ARE TARGET-DEPENDENT: this repository is not scaffolded with the hook, so here the lists below are policy data enforced by the agent, and a raw `git commit --file` carrying `Co-Authored-By` is not mechanically refused. Say that rather than claiming a guard that is not installed."
   },
   "monitor": {
     "maxCycles": 20,

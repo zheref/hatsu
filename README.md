@@ -313,8 +313,14 @@ apart is what keeps the second class of mistake visible.
   `sh`, use no `jq`, and otherwise no-op rather than block on anything they cannot read.
 - **No AI attribution trailer is ever recorded.** `Akatsuki-Agent:` is the single admitted trailer — the
   system's own provenance, not a model claiming authorship. **Set `includeCoAuthoredBy: false`** in your
-  Claude Code settings so the harness stops adding `Co-Authored-By:`; the commit-msg guard refuses it either
-  way, because a rule that only holds while a setting is right is not a rule.
+  Claude Code settings so the harness stops adding `Co-Authored-By:`. Enforcement is **three-layered, and
+  only the first layer ships in this plugin**: (a) `kokusen` and `aka` refuse to **write** such a trailer —
+  agent-side, and it is what Hatsu itself carries; (b) the **target repository's `commit-msg` hook**, which
+  `nen scaffold init` generates from `commits.allowedAttributionTrailers` at **nen `0.4.0`** (in flight this
+  week in `zheref/nen`; KroApple and kro-pwa already carry one); (c) **`nen commit format`** refusing the
+  trailer, also at `0.4.0`. **At the pinned nen `0.3.0`, layers (b) and (c) are target-dependent** — a
+  repository that has not been scaffolded with the hook has the agent-side refusal and nothing under it, and
+  that is said plainly rather than promised as mechanical.
 
 ### What nen `v0.3.0` adds to the roster's own procedures
 

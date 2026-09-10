@@ -148,11 +148,14 @@ got an explicit yes; `git add -A` is barred (§ 9).
 ## 7. Residue — what has no verb at nen `0.3.0`
 
 - **The forbidden-trailer refusal.** `nen commit format` renders any `--trailer` it is given and has
-  no `--repo` to find a `workflow.json` with (§ 5, verified live). Both halves of the eventual
-  mechanism — the verb reading the policy, and a `commit-msg` hook written by `nen scaffold init`
-  that refuses a trailer outside `allowedAttributionTrailers` — are later waves. Until then the guard
-  is: read the rendered message, compare it against `commits.forbiddenTrailers`, and refuse to commit
-  a message that carries one.
+  no `--repo` to find a `workflow.json` with (§ 5, verified live). Enforcement is **three-layered**:
+  (a) **this skill refusing to write the trailer** — read the rendered message, compare it against
+  `commits.forbiddenTrailers`, refuse to commit a message that carries one — which is the layer
+  Hatsu ships and the only one guaranteed present; (b) a **`commit-msg` hook** written by
+  `nen scaffold init` from `allowedAttributionTrailers`, at **nen `0.4.0`** (in flight; KroApple and
+  kro-pwa already carry one); (c) **`nen commit format --repo`** refusing it, also `0.4.0`. **At this
+  pin (b) and (c) are target-dependent** — hatsu's own checkout has neither, so here the refusal is
+  (a) alone, and it is reported that way rather than as a mechanical guard.
 - **Writing the commit itself.** `nen commit format` formats; nothing in nen commits. `git commit
   --file` is a named raw call, as is the explicit `git add <path>` for each approved path.
 - **Local-config and size detection** in staging (§ 4) — no detector, by the verb's own account.

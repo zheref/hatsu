@@ -161,16 +161,29 @@ notification, `sound` a system sound. **A rung absent from the list is not rung.
 the single admitted trailer, and it is admitted precisely because it is not AI attribution — it names *the
 system's own* provenance, which agent of this roster did the work, rather than a model claiming authorship of
 it. A harness that mandates `Co-Authored-By:` is **configured off** (`includeCoAuthoredBy: false` in the
-Claude Code settings) **and the commit-msg guard refuses the trailer regardless of what any harness
-mandates**. The setting is the convenience; the guard is the rule, and a rule that only holds while a setting
-is right is not a rule. This supersedes the earlier clause, in every agent definition, that treated the
+Claude Code settings). This supersedes the earlier clause, in every agent definition, that treated the
 harness mandate as binding and left the question to the P3 constitution.
+
+**Enforcement is three-layered, and only the first layer ships in this plugin.**
+
+| Layer | What refuses | Where it lives | Live at nen `0.3.0`? |
+|---|---|---|---|
+| **(a)** the **skills'** own refusal — `kokusen` reads the rendered message before it commits, `aka` before it squashes | agent-side | this repository | **yes**, and it is the layer Hatsu ships |
+| **(b)** the target repository's **`commit-msg` hook**, generated from `allowedAttributionTrailers` by `nen scaffold init` | the target repository's `.git/hooks/` | **nen `0.4.0`** — in flight this week in `zheref/nen`; KroApple and kro-pwa already carry one | **target-dependent** |
+| **(c)** **`nen commit format --repo`** refusing a trailer not on the allow-list | nen | **nen `0.4.0`** | **no** — `0.3.0` renders any `--trailer` it is given, verified live (`docs/ab/aka.md` § 2.2) |
+
+So **at the pinned `0.3.0` layers (b) and (c) are target-dependent**: a repository scaffolded by a nen that
+writes the hook has a mechanical refusal, and one that has not — this repository included — has the
+agent-side refusal and nothing under it. A raw `git commit --file` carrying `Co-Authored-By` on a feature
+branch is caught by (a) only. Say which layers a given repository actually has; a rule described as
+mechanical where it is not is worse than one described honestly.
 
 There is **no `Akatsuki-Run:` trailer** anywhere on this plane: Hatsu is local, and there is no CI run to
 name. Adding one would forge a machine-plane provenance the local plane does not have.
 
 From nen `0.4.0`, `nen commit format --repo <path>` reads these two lists and refuses a trailer not on the
-allow-list; at `0.3.0` the refusal is the skill's and the guard's.
+allow-list; at `0.3.0` the refusal is the skill's, plus whatever `commit-msg` hook the target repository
+happens to carry.
 
 ### `monitor`
 

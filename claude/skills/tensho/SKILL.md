@@ -164,8 +164,11 @@ here exactly one pair rides: `Akatsuki-Agent=kurapika`.
 is the single admitted trailer, being the system's own provenance rather than a model claiming
 authorship. No `Co-Authored-By:`, no `Claude-Session:`, no `Signed-off-by:`, no "Generated with …"
 line; the allow-list and the forbidden list are data, in `nen/workflow.json` → `commits`, and a
-harness that would mandate `Co-Authored-By:` is configured off (`includeCoAuthoredBy: false`) while
-the commit-msg guard refuses it regardless. Git author stays the **maintainer**. Never `--no-verify`.
+harness that would mandate `Co-Authored-By:` is configured off (`includeCoAuthoredBy: false`).
+Enforcement is three-layered and only the first ships here — the skill refusing to write it, then a
+target repository's `commit-msg` hook and `nen commit format --repo`, both **nen `0.4.0`** and both
+**target-dependent at this pin** ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § `commits`). Git
+author stays the **maintainer**. Never `--no-verify`.
 Never force-push. Never push `main`.
 
 ## 5. The PR

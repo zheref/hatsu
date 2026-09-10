@@ -145,15 +145,22 @@ trailing period) each refuse at exit `2` with a named reason — the transcripts
 > **`nen commit format` renders a forbidden trailer without complaint**: verified live,
 > `--trailer "Co-Authored-By=Claude <noreply@anthropic.com>"` prints
 > `Co-Authored-By: Claude <noreply@anthropic.com>` and exits **`0`** (`docs/ab/aka.md` § 2.2). The
-> `--repo`-aware refusal is P2 (brief § 4). Until it lands the refusal is **this skill's rule plus
-> the repository's `commit-msg` hook** — the one `nen scaffold init` writes from
-> `commits.allowedAttributionTrailers` — and a repository with neither is told so plainly rather
-> than being trusted to the agent's memory.
+> `--repo`-aware refusal is P2 (brief § 4).
+
+**Enforcement is three-layered, and only the first layer is this skill's.** (a) **This skill refuses
+to write the trailer** — the rendered message is read and compared against
+`commits.forbiddenTrailers` before the commit, agent-side, and it is the layer that is live
+everywhere; (b) the **target repository's `commit-msg` hook**, which `nen scaffold init` generates
+from `commits.allowedAttributionTrailers` at **nen `0.4.0`** (in flight; KroApple and kro-pwa
+already carry one); (c) **`nen commit format --repo`** refusing it, also at `0.4.0`. **At the pinned
+`0.3.0`, (b) and (c) are target-dependent**: say which of them the repository in front of you
+actually has, and where it has neither, say that the refusal is the agent's alone — never describe
+it as mechanical where no hook is installed.
 
 **One commit, the maintainer as git author, `Akatsuki-Agent: kurapika` and nothing else.** No
 `Co-Authored-By`, no `Claude-Session`, no `Signed-off-by`, no "Generated with" line, no model name
-anywhere in the message. **Never `--no-verify`** — the commit-msg hook is the enforcement, and
-skipping it is skipping the rule.
+anywhere in the message. **Never `--no-verify`** — where the repository does carry a `commit-msg`
+hook it is layer (b), and skipping it is skipping the rule.
 
 ## 5. Then [`hatsu:ao`](../ao/SKILL.md) — the base underneath it
 
@@ -208,8 +215,9 @@ and how it got underneath (rebase or merge), the required tests that ran green, 
    `classify`). § 4 runs `git reset --soft <computed point>` plus one `nen commit format`-shaped
    commit, and enforces the verb's four refusals by hand first.
 2. **The forbidden-trailer refusal in `nen commit format`** — verified live to be absent: a
-   `Co-Authored-By` trailer renders at exit `0`. Enforced by this skill's rule plus the repository's
-   `commit-msg` hook until the P2 `--repo`-aware guard lands.
+   `Co-Authored-By` trailer renders at exit `0`. Until the P2 `--repo`-aware guard lands, the
+   refusal is **this skill's rule** (always), plus a `commit-msg` hook **only in a repository that
+   has been scaffolded with one** — which hatsu's own checkout has not.
 3. **The published/unpublished test** — `git rev-parse --verify --quiet
    refs/remotes/origin/<branch>`; `nen wc classify --json` reports the branch and its distance from
    the base, never the remote.
