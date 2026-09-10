@@ -343,3 +343,64 @@ unfillable — it reached the child process as itself.
 The exact-bytes rule for `device.name` (§ 5) is now nen's own documented behaviour: `docs/USAGE.md`'s
 `nen shu dev` section states from this release that the match is a string comparison with **no Unicode
 normalisation**, so a name macOS writes with U+2019 must be declared with that character.
+
+## The Galaxy pairing run — 2026-09-10, `zheref/KroAndroid`
+
+A real pairing-and-launch validation against the maintainer's own Galaxy, with `nen 0.5.0` on `PATH`.
+The full record is the launch-validation transcript; what belongs here is the **state** half, because
+it is § 4's whole subject and this run is the case the section was written for.
+
+```
+$ adb devices -l                                                                        # exit 0
+List of devices attached
+R52X603Q9BA            unauthorized usb:33-3.2 transport_id:1
+R5CY213GAST            device usb:32-3.1 product:pa3qxxx model:SM_S938B device:pa3q transport_id:3
+```
+
+**Two phones, and the declared one is not the authorised one.** `project.launch.galaxy.device.name`
+named `R52X603Q9BA`, whose second column reads `unauthorized` — attached, RSA prompt never accepted:
+
+```
+$ adb -s R5CY213GAST shell getprop ro.product.model → SM-S938B    ; ro.serialno → R5CY213GAST   # 0
+$ adb -s R52X603Q9BA shell getprop ro.product.model
+adb: device unauthorized. This adb server's $ADB_VENDOR_KEYS is not set                          # 1
+```
+
+Re-read on 2026-09-10 from this session, read-only, with both phones still attached: byte-identical
+output, both states unchanged. **Nothing was installed and nothing was uninstalled** — § Authority's
+*"Not permitted: … installing anything"*, and the run's own blocker (a signature mismatch whose only
+remedy deletes the maintainer's app data) was reported rather than cleared.
+
+**What nen did with that row, and it is finding F1.** `nen shu dev --repo . --target galaxy` matched
+the declared name and printed
+
+```
+device:        R52X603Q9BA  id usb:33-3.2                       # ← an UNAUTHORIZED device, "resolved"
+```
+
+`device.resolve` is `{exe, argv}` plus a name to match, with nowhere to say which states count, so
+there was nothing for nen to refuse on. Filed as `zheref/nen#165`. Until it lands, **§ 4's state
+table is read by this skill** and a row that is present and not usable is a refusal, not a fallback.
+
+**And finding F4, which is § 6's rule stated backwards.** The target's verb was `./gradlew
+installDebug` — an install inside the verb. nen substitutes `{device.id}` in `after` steps only and
+says so at exit `2` on a fixture:
+
+```
+nen shu: launch target 't' names {device.id} in project.launch.t.args, and nen substitutes
+{device.id} and {artifact} in the target's 'after' steps only. An argument written here reaches
+'dev' on lane 'l' as the literal token. Move the step that needs the value into 'after', or write
+the argument this build needs literally.                                                          # exit 2
+```
+
+So with two phones attached, nen resolved `usb:33-3.2` and Gradle installed to `R5CY213GAST` — the
+other one — and nothing in the transcript flagged it. The declaration was not restructured in that
+run, because with the install blocked the `build` → `adb -s {device.id} install -r {artifact}` →
+`am start` shape could not be proven end to end, and unverified machinery is worse than a reported
+defect. **§ 6 now carries the rule and both platforms' shapes**, so the next declaration is written
+the right way round rather than diagnosed afterwards.
+
+**A third fact, from a scratch fixture, that settles the closed set:** `project.launch.t.verb` of
+`build` is exit `1` — *"'build' is not one nen implements. It is one of a CLOSED set: dev, run"* —
+and `shu run --target t` against a target declared `dev` is exit `2` naming the fix. Both refusals
+are good; `hatsu:amaterasu` § 5 carries them, because typing the subcommand is its step.

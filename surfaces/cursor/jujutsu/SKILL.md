@@ -59,6 +59,7 @@ nen/contract.json → project.launch   # read the keys and each one's device.nam
 |---|---|
 | the device is already a `project.launch` key **and** the probe resolves it | **Say so and stop.** Nothing to pair. Name the target key so the maintainer can use it |
 | it is a key and the probe does **not** resolve it | **Not a pairing problem — a connection problem.** Report what the probe *did* see (§ 4) and stop. Re-registering an existing target would paper over a cable |
+| it is a key and the probe sees it **present but not usable** (`unauthorized`, `offline`) | **Not a pairing problem either — an on-device step.** § 4's third outcome: name the state, quote the probe, say which of § 3's steps closes it, stop |
 | it is not a key | § 3 |
 
 **Pairing a device twice is not idempotent in a useful way**: it produces a second `project.launch`
@@ -122,11 +123,12 @@ xcrun devicectl list devices --json-output <path>     # the machine-readable for
 Verified live (`docs/ab/jujutsu.md` § 2.2). The table's **State** column is the answer, and its values
 are not interchangeable:
 
-| State | Meaning |
-|---|---|
-| `connected` | paired, trusted, reachable **now**. This is the state to register from |
-| `available (paired)` | this Mac has paired with it before; it is not attached right now |
-| `unavailable` | known, and not usable — an unpaired watch, a device that has been reset |
+| State | Meaning | Register from it? |
+|---|---|---|
+| `connected` | paired, trusted, reachable **now** | **yes.** This is the only state to register from |
+| `available (paired)` | this Mac has paired with it before; it is not attached right now | no — **present, not usable** (below) |
+| `unavailable` | known, and not usable — an unpaired watch, a device that has been reset | no — **present, not usable** (below) |
+| the name is not in the table at all | absent | no — report the whole list (below) |
 
 The **Reality** column separates `physical` from `simulated`, and both appear in the same table.
 
@@ -146,12 +148,52 @@ R52X603Q9BA	unauthorized
 **`unauthorized` is not "no device".** It means the phone is attached and has **not** accepted the RSA
 prompt — § 3 step 3 has not been done, or was done for a different host key. The fix is on the phone,
 not on this machine, and saying *"no device found"* here would send the maintainer to look at the
-cable. The state to register from is `device`.
+cable. The state to register from is `device`. `adb devices -l` prints the state in the **second
+column**, and it is the column that decides:
 
-**When the probe does not see it, report what the probe *did* see** — the whole list. That is nen's
-own refusal discipline for a declared device (`docs/WORKFLOW.md` § 3: *"the refusal lists what the
-probe did see, which is the difference between a useful error and a shrug"*), and jujutsu holds itself
-to it before there is any declaration to refuse from.
+| Second column | Meaning | Register from it? |
+|---|---|---|
+| `device` | attached, authorised, answering | **yes.** The only one |
+| `unauthorized` | attached; the RSA prompt was never accepted, or was accepted for a different host key | no — **present, not usable** |
+| `offline` | attached; the daemon has it in a state where it takes no commands (mid-reboot, a stale transport) | no — **present, not usable** |
+| `no permissions` | attached; this host's udev/usb rules will not let `adb` open it | no — **present, not usable** |
+| `recovery` / `sideload` / `bootloader` | attached, in a mode that runs no app | no — **present, not usable** |
+
+### Present, but not in a usable state — the third outcome, and it is not "absent"
+
+**Two states of the world are easy to name and a third is the one that actually bites:** the device
+is there and usable; the device is not there; and **the device is there and cannot be talked to**.
+The third is the one this skill exists to report properly, and — until [`zheref/nen#165`](https://github.com/zheref/nen/issues/165)
+lands — it is the one **nen cannot see at all**.
+
+> **nen matches `device.name` against the probe's output and reads no state column.** Observed live
+> on 2026-09-10 against `zheref/KroAndroid`: with two phones attached, `nen shu dev --target galaxy`
+> matched the declared name in a row reading `R52X603Q9BA unauthorized usb:33-3.2`, printed
+> `device: R52X603Q9BA  id usb:33-3.2` as *resolved*, and every `adb -s usb:33-3.2 …` after it
+> answered `adb: device unauthorized` at exit `1`. The probe contract is `{exe, argv}` plus a name to
+> match; there is nowhere in it to say which states count. **`zheref/nen#165` is the fix** — a
+> `readyWhen` on `device.resolve`, so nen refuses by name on a row that is present and not ready.
+
+**Until it lands, reading the state is THIS SKILL'S job, and the refusal is this skill's to make.**
+On a device whose row is present and not usable:
+
+- **Refuse to register it**, in those words — *"`<name>` is attached and `unauthorized`; the probe
+  saw: `<the whole list>`"* — naming the state and quoting the probe's full output.
+- **Say which of § 3's steps closes it**, because every one of these states has a remedy on the
+  device or on this host and none of them has one in the declaration: `unauthorized` → § 3 step 3,
+  the RSA prompt; `offline` → replug, or `adb kill-server` on this host; `no permissions` → this
+  host's USB rules.
+- **Never register the name anyway "so the declaration is ready".** A target written from a row that
+  cannot be talked to is a target that resolves at run time, reports itself resolved, and then fails
+  in an `after` step — which is exactly the shape the run above produced, and it cost a whole build
+  cycle to read.
+- **Never fall through to the "absent" branch.** *"No device found"* sends the maintainer to look at
+  the cable; the cable is fine and the phone is waiting for a tap.
+
+**When the probe does not see it at all, report what the probe *did* see** — the whole list. That is
+nen's own refusal discipline for a declared device (`docs/WORKFLOW.md` § 3: *"the refusal lists what
+the probe did see, which is the difference between a useful error and a shrug"*), and jujutsu holds
+itself to it before there is any declaration to refuse from.
 
 > **The first probe is run from the platform's documented command, and that is named as such.** The
 > chicken-and-egg is the point of this skill: `project.launch.<target>.device.resolve` is *what
@@ -202,6 +244,45 @@ so the next reader does not "fix" it.
   }
 }
 ```
+
+### The rule that decides where each step goes, and it is one sentence
+
+> **An `after` step is the ONLY place `{device.id}` reaches, so whatever must land on the named
+> device belongs there — never in the verb.**
+
+**The verb BUILDS. The `after` steps INSTALL and LAUNCH.** That is not an iOS idiom that Android
+happens to copy; it is the thing that makes `--target` mean anything at all. nen substitutes
+`{device.id}` and `{artifact}` in the target's `after` steps and nowhere else, and it says so by
+name: a `{device.id}` written into `args` is exit `2` — *"nen substitutes `{device.id}` and
+`{artifact}` in the target's 'after' steps only … Move the step that needs the value into 'after'"*.
+
+**What a declaration that ignores it does, observed live on 2026-09-10 against `zheref/KroAndroid`:**
+the target's verb was `./gradlew installDebug` — an install, inside the verb, with no way to name a
+device. With two phones attached, nen resolved and reported one (`usb:33-3.2`) and Gradle installed
+to the **other** (`R5CY213GAST`). Nothing in the transcript flagged the divergence, because from
+nen's side nothing went wrong: it resolved the name it was given and ran the row it was given. The
+device the declaration named and the device that got the app were simply two different phones.
+
+| platform | `verb` (builds) | `after[]` (reaches the named device) |
+|---|---|---|
+| **Android** | `./gradlew assembleDebug`, with `artifacts` naming the APK | `adb -s {device.id} install -r {artifact}` → `adb -s {device.id} shell am start -n <pkg>/<activity>` |
+| **iOS** | `xcodebuild … build`, with `artifacts` naming the `.app` | `xcrun devicectl device install app --device {device.id} {artifact}` → `xcrun devicectl device process launch --device {device.id} <bundle id>` |
+
+**`installDebug`, `run`, `flutter run -d`, `xcodebuild … test` and every other verb that reaches a
+device itself belong in neither column** — they are a build and an install welded together, and the
+weld is where the device name gets lost. Split them: the lane's row builds, the `after` steps carry
+`{device.id}`.
+
+> **The Apple caveat, and it is a `lane`/`artifact` override rather than `args`.** A second scheme is
+> the obvious thing to reach for and `args` is the obvious place to put it — **and `xcodebuild`
+> refuses a second `-scheme`**, which AnteikuTV proved: a row already carrying `-scheme X` plus
+> `args: ["-scheme","Y"]` is two `-scheme` flags on one command line, and the tool errors rather than
+> letting the later one win. At the pinned nen `0.5.0` the answer is the per-target keys:
+> `project.launch.<name>.lane` names the declared row this target's verb, `args` and after-steps are
+> read from — a device build is routinely a different declared row from the iteration one — and
+> `project.launch.<name>.artifact` names the thing the device installs, which is rarely the verb's
+> first artifact. **Declare a second row and point the target at it; never append a second `-scheme`
+> through `args`.**
 
 `docs/WORKFLOW.md` § 3 is the authority on the block's shape. What jujutsu adds is the discipline for
 filling it:
@@ -269,9 +350,10 @@ how a declaration acquires an entry nobody reviewed.**
 
 ## 8. Report
 
-One line, then the block. The device as the probe named it, its state, the target key, the `resolve`
-argv, whether `launch.default` moved, and the gate the PR stands at. Where the run stopped at § 2 or
-§ 4, that instead — with the probe's full output, not a summary of it.
+One line, then the block. The device as the probe named it, **its state, quoted from the probe's own
+column**, the target key, the `resolve` argv, whether `launch.default` moved, and the gate the PR
+stands at. Where the run stopped at § 2 or § 4 — absent, or present and not usable — that instead,
+with the probe's full output, not a summary of it, and the on-device step that closes it.
 
 ## Residue
 
@@ -290,6 +372,12 @@ argv, whether `launch.default` moved, and the gate the PR stands at. Where the r
    live (§ 3). Jujutsu asks and waits.
 4. **The first probe is run from the platform's documented command**, before any declaration exists to
    read it from (§ 4). Named every run; from the second run onward it is read from the file.
+4b. **Reading the device's STATE has no verb, and nen does not read one either.** `device.resolve`
+   carries an argv and a name to match, and nothing that says which states count — so nen resolves an
+   `unauthorized` row and reports it as resolved (§ 4, observed live). Filed as
+   [`zheref/nen#165`](https://github.com/zheref/nen/issues/165); until it lands, **this skill reads the
+   state column itself** and refuses on a row that is present and not usable. Named here so the
+   refusal is read as a skill's rule rather than as a verb's.
 5. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
    an `ok  nen/workflow.json` row at the pinned `v0.5.0`, so a `launch.default` naming nothing is caught
    by a verb. The two keys are still read here; reading a file is not residue.
@@ -312,6 +400,17 @@ argv, whether `launch.default` moved, and the gate the PR stands at. Where the r
 - **Never enters a passcode, PIN, password or any credential**, anywhere, for any reason.
 - **Never registers a device it has not seen the probe resolve** (§ 4). A block written from a name the
   maintainer typed is a target that will refuse the first time it is used.
+- **Never registers a device whose probe row is present but not in a usable state** — `unauthorized`,
+  `offline`, `no permissions`, `available (paired)`, `unavailable` (§ 4). nen reads no state column
+  until [`zheref/nen#165`](https://github.com/zheref/nen/issues/165), so it would resolve the row and
+  report it resolved; the state is read here, and the refusal names it.
+- **Never reports a present-but-unusable device as absent** (§ 4) — the two have different remedies,
+  and "no device found" sends the maintainer to the cable while the phone waits for a tap.
+- **Never writes an install or a launch into the target's verb** (§ 6). `{device.id}` reaches an
+  `after` step and nothing else, so a verb that installs installs wherever it likes — observed live,
+  onto a different phone than the one nen resolved.
+- **Never appends a second `-scheme` through `args`** (§ 6) — `xcodebuild` refuses two, and the
+  declared answer is a `lane` (or `artifact`) override on the target.
 - **Never retypes a device name** — the bytes are copied from the probe (§ 5).
 - **Never writes a UDID, serial or hardware identifier into the declaration** — `{device.id}` resolves
   at run time (§ 6).
