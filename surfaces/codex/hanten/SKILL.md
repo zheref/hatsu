@@ -431,6 +431,15 @@ codex exec -C "$rev" -s workspace-write \
   -m "$sol" -o "$rev/finding.json" "<the scope, the base, the paths, and § 5's required shape>"
 ```
 
+**A fresh worktree carries none of the warm-up's own files, so the reviewer's session places them again.**
+`.agents/skills/`, `AGENTS.override.md`, `.cursor/skills/` and `.cursor/agents/` are untracked and excluded
+through the repository's `info/exclude`, so `git worktree add` — which checks out tracked content only —
+starts `$rev` without any of them, and the reviewer runs
+[`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5 against `$rev` before it can read a skill by name. That is
+the same `info/exclude` this section's `--add-dir` box is about, which is why the two travel together: a
+reviewer that cannot write git cannot write the exclude either, and then the mirror it just placed shows up
+as untracked noise in the diff it was raised to read.
+
 > **`-m sol` does not start a reviewer, and this line used to say it did.** `codex debug models` on this
 > host lists `gpt-reserve`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`,
 > `gpt-5.3-codex-spark`, `codex-auto-review` — **there is no bare `sol`** (`docs/ab/surfaces.md` § 3.5,
