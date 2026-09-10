@@ -101,7 +101,7 @@ not a G5 either: an empty required set is not a red suite. A test is never patch
 | `minimum` | `80` | **the stop.** A touched file under it is a **G5**: `gyo` adds tests until it clears, or the maintainer decides |
 | `recommended` | `85` | the band `gyo` aims for and reports against |
 | `ideal` | `90` | the band worth saying out loud when it is reached |
-| `scope` | `touched` | line coverage of the files in `git diff --name-only <base>...HEAD`, **not** the repository total |
+| `scope` | `touched` | line coverage of the files in `git diff --name-only origin/<base>...HEAD`, **not** the repository total |
 
 Three numbers rather than one, because a single threshold turns into either a gate that blocks honest work or
 a number nobody looks at. The ladder reports bands and stops only at the bottom rung. **The bar is never
@@ -430,7 +430,7 @@ when the finding **outlives the branch**.
 ### `gyo` — the ladder, spent
 
 `gyo` is where § 2's `coverage` ladder stops being a table and becomes a decision. It reads **touched-file
-line coverage** — the files in `git diff --name-only <base>...HEAD`, never the repository total — and reports
+line coverage** — the files in `git diff --name-only origin/<base>...HEAD`, never the repository total — and reports
 each file against the three rungs:
 
 | Band | What `gyo` does |
