@@ -303,7 +303,7 @@ whether rung 1 had already fired, and the next thing to read the working copy (a
 
 ```sh
 # 1 · the marker — § 3's BY-HAND WRITE of .nen/last-stop.json, whole and fresh.
-#     NOT `nen stop --mark`. At the pinned 0.7.0 that option DOES exist and writes
+#     NOT `nen stop --mark`. At the pinned build that option DOES exist and writes
 #     (exit 0, verified live) — and it is still not the one used here, because its
 #     nen.stop.mark/v0.1 document carries no `title`, so every bell it rings says
 #     "A decision is waiting." and drops the report link. That is a kept residue
@@ -363,7 +363,7 @@ rm -f .nen/last-stop.json
 >   On Claude Code it does **not**: the hook consumes the marker, and removing it first is removing the
 >   bell.
 
-> **`nen stop --mark` exists at the pinned `0.7.0`, and § 3's by-hand write is KEPT anyway — the
+> **`nen stop --mark` exists at the pinned build, and § 3's by-hand write is KEPT anyway — the
 > decision this section said was due is taken here, with its reason.** Verified live at the pin, exit
 > `0`: `nen stop --mark --repo <path> --who kurapika --gate G5` prints `marked: <path>/.nen/last-stop.json
 > -- a host hook may ring rungs 2-3 off it` and writes
@@ -412,7 +412,7 @@ same — that is what rungs 2 and 3 are for.
 ## Residue
 
 1. **KEPT residue, deliberately: `.nen/last-stop.json` is written by this skill, in Hatsu's own
-   shape** (§ 3). `nen stop --mark` exists at the pinned `0.7.0` and writes
+   shape** (§ 3). `nen stop --mark` exists at the pinned build and writes
    `nen.stop.mark/v0.1` — `{ contract, who, gate, notified, at }`, verified live at exit `0` — but
    that document carries no `title`, `body`, `reportUrl`, `sound` or `rungs`, and it **replaces** an
    existing marker. `hooks/stop-bell.sh` would then ring *"A decision is waiting."* on every gate,
@@ -441,7 +441,7 @@ same — that is what rungs 2 and 3 are for.
    missing verb — nen shells out to git and gh and owns no notifier on any surface — so it is named here
    and never filed.
 8. **Removing the marker on a hookless surface is this skill's own `rm -f`** (§ 6), and **genuinely
-   still residue at the pinned `0.7.0`**: `nen stop --mark` writes and never removes — its own help
+   still residue at the pinned build**: `nen stop --mark` writes and never removes — its own help
    calls it *"the ONLY form of this verb that writes"* — and
    `hooks/stop-bell.sh`, which does remove, is a Claude Code manifest nothing else reads. So on Codex and
    Cursor the cleanup is by hand, named here, and it is the reason a stop answered three passes ago does

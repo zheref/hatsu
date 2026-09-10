@@ -182,7 +182,7 @@ nen stage triage --repo <path> [--scope <in-scope prefixes>] [--mentions "<the m
 ```
 
 Detects, never decides, and **exits `1` whenever anything is FLAGGED — `flagged` alone decides the
-exit code at the pinned `0.7.0`**, so a tree whose only dirty rows are git-ignored is exit `0`. The
+exit code at the pinned build**, so a tree whose only dirty rows are git-ignored is exit `0`. The
 **six detectors and the one bucket**, verified live against a constructed working copy carrying one
 of each (`docs/ab/kokusen.md` § 2.1, § *Retired at nen 0.6* and § *Retired at nen 0.7*):
 
@@ -194,7 +194,7 @@ of each (`docs/ab/kokusen.md` § 2.1, § *Retired at nen 0.6* and § *Retired at
 | `binary` | the file's content is binary |
 | `out-of-scope` | the path falls outside every `--scope` prefix — **omitted entirely** when `--scope` is not passed |
 | `unmentioned-deletion` | a tracked path was deleted and its basename does not appear in `--mentions` |
-| **`ignored`** | the path is git-ignored. **Its own bucket at the pinned `0.7.0`, not a flag on `flagged`** — a fact, not a question, because a plain `git add` cannot stage it at all |
+| **`ignored`** | the path is git-ignored. **Its own bucket at the pinned build, not a flag on `flagged`** — a fact, not a question, because a plain `git add` cannot stage it at all |
 
 One path can carry several reasons at once. **Present every flagged file together, with the reasons
 `nen` printed, and take one answer per file** — and at this pin `flagged` holds only paths a plain
@@ -318,7 +318,7 @@ changed and why is this skill's to write, never nen's.
 > their commit. It refuses to *add* one; deleting someone else's provenance metadata is a governance
 > decision nobody asked for.
 
-**`nen commit format --repo <path>` ENFORCES this rule at the pinned `0.7.0`, and the `--repo` is what
+**`nen commit format --repo <path>` ENFORCES this rule at the pinned build, and the `--repo` is what
 turns it on.** Verified live against this repository: `--trailer "Co-Authored-By=someone"` is refused
 at exit `2` — *"trailer key 'Co-Authored-By' is an attribution trailer this repository refuses.
 '…/nen/workflow.json' admits 'Hatsu-Agent', 'Akatsuki-Agent' under

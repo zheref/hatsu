@@ -265,7 +265,7 @@ everywhere and survives a forgotten flag; (b) the **target repository's `commit-
 `nen scaffold init` generates from `commits.allowedAttributionTrailers`, and which stays
 **target-dependent** — it exists only in a repository that has been scaffolded, and hatsu's own
 checkout has not; (c) **`nen commit format --repo` and `nen wc squash`** refusing it outright, both
-at the pinned `0.7.0`, verified live. Say which of (b) and (c) the repository in front of you
+at the pinned build, verified live. Say which of (b) and (c) the repository in front of you
 actually has; never describe a hook as installed where none is.
 
 > **Layer (c) is live at this pin, and any wording that still calls it residue is stale.**
@@ -314,7 +314,7 @@ git -C <path> push origin HEAD                # already published
 git -C <path> push -u origin HEAD             # first publish: also sets upstream
 ```
 
-**Residue, and still residue at the pinned `0.7.0`: there is no push verb.** `nen pr cascade-main`
+**Residue, and still residue at the pinned build: there is no push verb.** `nen pr cascade-main`
 pushes, but only as the tail of a merge it performed itself, and only to the branch it just merged
 into — it is a cascade, not a push (its own `--help`: *"Merges (never rebases) the trunk into the
 current branch and pushes on a clean merge"*), and its new `--no-push` moves in the other direction

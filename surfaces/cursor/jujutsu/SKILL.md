@@ -224,8 +224,8 @@ itself to it before there is any declaration to refuse from.
 with no normalisation, no case folding, no Unicode equivalence and no punctuation smoothing — so a
 device name carrying a typographic apostrophe (U+2019, as in `Sergio’s iPhone`) must be declared with
 that same character and not with the ASCII `'` a keyboard produces. That is the contract
-`nen shu dev --target` implements at the pinned `0.7.0`, and nen's own `docs/USAGE.md` states it in
-that release's `nen shu dev` section: the comparison has no Unicode normalisation, so the declared
+`nen shu dev --target` implements at the pinned build, and nen's own `docs/USAGE.md` states it in
+its `nen shu dev` section: the comparison has no Unicode normalisation, so the declared
 string must carry the same bytes the probe printed.
 
 **Take `device.name` from the probe's own output.** Verified live (`docs/ab/jujutsu.md` § 2.2): the
