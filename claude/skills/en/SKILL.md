@@ -34,7 +34,7 @@ anything.
 hatsu:en [on <CODE>#<N>]
 ```
 
-Started by [`hatsu:mukai`](../mukai/SKILL.md) with no clause — the PR is the one step 6 just opened
+Started by [`hatsu:mukai`](../mukai/SKILL.md) with no clause — the PR is the one step 7 just opened
 — or by the maintainer, naming a PR that is already open:
 
 ```bash
