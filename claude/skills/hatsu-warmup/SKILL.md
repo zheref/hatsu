@@ -155,12 +155,27 @@ mode:          check
 
 (exit `0`)
 
-**From nen `0.8` a `compat floor:` line stands above the rows** — `compat floor:  0.7  (the lowest
-dependency.minimum nen 0.8.0 satisfies)` — printed on **every** run and carried in `--json` as the
-top-level `compatibleMinorFloor`, including in a report whose declaration has no `dependency` block at all,
-because *"do I owe a repin"* is a question about nen and not about the declaration that asked. A `0.7.0`
-binary prints neither: the floor is what `0.8.0` added. **Say so rather than inventing one** — § 4's line
-carries `floor not reported (nen 0.7.0)` there.
+**From nen `0.8` a `compat floor:` line stands above the rows**, printed on **every** run and carried in
+`--json` as the top-level `compatibleMinorFloor` — including in a report whose declaration has no
+`dependency` block at all, because *"do I owe a repin"* is a question about nen and not about the
+declaration that asked. The same repository, read by a `v0.8.0` binary bootstrapped into a scratch cache:
+
+```text
+lane:          plugin  (claude-code-plugin)
+mode:          check
+compat floor:  0.7  (the lowest dependency.minimum nen 0.8.0 satisfies)
+  ok       nen     0.8.0    pinned >=0.7.0 <0.9.0
+  ok       claude  2.1.263  pinned >=2.0.0
+```
+
+(exit `0`; `--json` carries `compatibleMinorFloor: "0.7"` and the row's `pinned` as `>=0.7.0 <0.9.0`.)
+
+**The two runs are the whole point of this section.** The ceiling moved from `<0.8.0` to `<0.9.0` because
+the binary reading the pin changed, not because anything in this repository did — and the prose that used
+to sit here would have called the second one out of range.
+
+A `0.7.0` binary prints no floor line at all: the floor is what `0.8.0` added. **Say so rather than
+inventing one** — § 4's line carries `floor not reported (nen 0.7.0)` there.
 
 | The `nen` row | `--json` `state` | What it means | Next |
 |---|---|---|---|
