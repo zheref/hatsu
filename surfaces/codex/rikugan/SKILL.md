@@ -106,7 +106,7 @@ What the verb answers, and how to read each answer:
 |---|---|---|
 | `commits[]` | `<base>..HEAD`, split on a unit separator so a subject carrying a tab stays one field | an empty list is a branch with nothing on it |
 | `files[]` | `<base>...HEAD`, the merge-base set a pull request shows; a rename reported at its **destination** with git's own status token | — |
-| `tier` per file | `--tiers <file>`' answer, whose **key order is the precedence**; a pattern with no `*`/`?` matches as a path prefix on segment boundaries | `null` where no table was passed |
+| `tier` per file | `--tiers <file>`'s answer, whose **key order is the precedence**; a pattern with no `*`/`?` matches as a path prefix on segment boundaries | `null` where no table was passed |
 | `evidence[]` | the `nen shu evidence` rows | `[]` — see the note below |
 | `coverage` | the lane's coverage report **if one is already on disk**, parsed by `nen shu coverage`'s own reader | `null` with the reason on stderr |
 | `proof`, `lastStop` | `.nen/proof/<lane>.json` and `.nen/last-stop.json`, verbatim | `null` |
