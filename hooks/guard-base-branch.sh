@@ -53,8 +53,14 @@
 #      same line, because a write after a `cd` lands in the repository it moved
 #      to. `--git-dir` is queried as `git --git-dir=… branch --show-current`,
 #      which reads the branch of a linked worktree's `.git` FILE as happily as
-#      of a real directory; `nen/workflow.json` is then read from the work tree
-#      when one was given, and otherwise beside the common git dir.
+#      of a real directory; `nen/workflow.json` is then read from THE CHECKOUT
+#      THAT BRANCH CAME FROM — the work tree when one was given, otherwise the
+#      linked worktree git resolved the git dir to (`<common>/worktrees/<name>`
+#      holds a `gitdir` file naming that worktree's own `.git`, whose directory
+#      is the checkout), and only failing both, the common git dir's parent.
+#      Reading the primary checkout's copy for a `--git-dir` aimed at a worktree
+#      compares the worktree's branch against a base a different working tree
+#      declared, which is the wrong base whenever the two differ.
 #      A session standing on `main` that drives a worktree standing on a feature
 #      branch — `git -C <worktree> push` — is therefore ALLOWED, and the mirror
 #      case, a feature-branch session driving a checkout that stands on `main`,
@@ -66,9 +72,12 @@
 #   - a line that both changes branch (`switch`, `checkout`, `branch -f|-m|-M`)
 #     and writes (`commit`, `push`) — `git switch main && git commit -m x`;
 #   - a repository-selecting path (`-C`, `--git-dir`, `--work-tree`) quoted in a
-#     form this guard cannot recover — including a second quoted `-C` on the
-#     same segment, since recovery reads one quoted span per flag and a
-#     cumulative path assembled from the wrong half is worse than no answer;
+#     form this guard cannot recover — including TWO DIFFERENT quoted paths for
+#     the same flag ANYWHERE ON THE LINE, whether both on one segment or one on
+#     each of two, because recovery is line-global and cannot tell whose span is
+#     whose: `git -C '<main>' commit -m x && git -C '<feat>' status` would
+#     otherwise judge the commit against `<feat>`. Two IDENTICAL quoted paths
+#     are not ambiguous and are read normally;
 #   - a `git` segment carrying a `commit` or `push` token alongside a GLOBAL
 #     OPTION THIS GUARD DOES NOT KNOW — an unknown `-…` may or may not swallow
 #     the token after it, which is precisely what decides where the subcommand
@@ -87,10 +96,11 @@
 # blocks on uncertainty blocks the session.
 #
 # TEST CASES — payload on stdin, {"cwd": "<dir>", "tool_input": {"command": "…"}}
-# All fifty-one run live against a constructed fixture of three repositories and
-# five checkouts — a trunk on `main`, a LINKED WORKTREE of it on `feat/x`, a
-# checkout on `main` under a path with spaces, a repository whose workflow.json
-# declares `develop`, and a linked worktree of that one standing on `develop` —
+# All fifty-seven run live against a constructed fixture of three repositories
+# and six checkouts — a trunk on `main`, a LINKED WORKTREE of it on `feat/x`, a
+# second linked worktree of it on `b2` whose own checked-out workflow.json
+# declares `b2`, a checkout on `main` under a path with spaces, a repository
+# whose workflow.json declares `develop`, and a linked worktree of that one —
 # with the command JSON-escaped as a real payload carries it. The transcripts
 # are in docs/ab/guard-base-branch.md.
 #   Standing on the base branch (`main`):
@@ -152,6 +162,20 @@
 #     git --git-dir=<a worktree on `develop`>/.git commit -m x -> 2
 #     git -C '<spaced path>' -C '<trunk>' commit -m x -> 2  two quoted -C paths
 #     git --nonsense-flag status               -> 0   no write to hide
+#   QUOTED SELECTORS ACROSS TWO SEGMENTS — recovery is line-global, so two
+#   different quoted paths for one flag are refused wherever they sit, and two
+#   identical ones are read. From a session standing on `feat/x`:
+#     git -C '<trunk, on main>' commit -m x && git -C '<worktree>' status -> 2
+#     git -C '<worktree>' commit -m x && git -C '<trunk>' status          -> 2
+#     git -C '<worktree>' commit -m x && git -C '<worktree>' push         -> 0
+#     git -C '<trunk>' commit -m x && git -C '<trunk>' push               -> 2
+#   THE POLICY COMES FROM THE CHECKOUT THE BRANCH CAME FROM — a bare
+#   `--git-dir` aimed at a linked worktree reads THAT worktree's
+#   nen/workflow.json, not the primary checkout's. From a session on `main`,
+#   against a worktree of the trunk standing on `b2` whose own checked-out
+#   workflow.json declares `branch.base: b2`:
+#     git --git-dir=<that worktree>/.git commit -m x -> 2   its own base is read
+#     git --git-dir=<a worktree on feat/x>/.git commit -m x -> 0
 #
 # NO jq. Hatsu's installed path is one binary plus git and gh (README,
 # 'On the installed plugin path'), so the JSON here is read with sed.
@@ -162,6 +186,7 @@ set -uf
 
 nl='
 '
+tab=$(printf '\t')
 
 payload=$(cat 2>/dev/null || :)
 
@@ -184,10 +209,73 @@ recover_quoted() {
   # The value written after $2, for the case where masking replaced a quoted
   # span with `@`. $1 = the raw command line, $2 = the flag or word it follows;
   # the separator may be whitespace or `=`, so `-C '…'` and `--git-dir='…'` are
-  # both read.
+  # both read. The sed match is greedy, so this answers with the LAST such span
+  # on the line — fine for `cd`, whose reading is unchanged, and NOT fine for a
+  # repository-selecting flag, which goes through `recover_selector` below.
   found=$(printf '%s\n' "$1" | sed -n "s/.*$2[[:space:]=][[:space:]=]*'\([^']*\)'.*/\1/p" | head -n 1)
   [ -n "$found" ] || found=$(printf '%s\n' "$1" | sed -n "s/.*$2[[:space:]=][[:space:]=]*\"\([^\"]*\)\".*/\1/p" | head -n 1)
   printf '%s' "$found"
+}
+
+quoted_values() {
+  # EVERY quoted value written after $2 on the raw line $1, one per line, in
+  # argv order. `${rest#*"$2"}` strips the SHORTEST prefix, so this walks the
+  # occurrences forwards; a single greedy `sed` match only ever finds the last
+  # one, which belongs to a different segment as often as not.
+  qv_rest=$1
+  while :; do
+    case "$qv_rest" in
+      *"$2"*) qv_rest=${qv_rest#*"$2"} ;;
+      *) return 0 ;;
+    esac
+    while :; do
+      case "$qv_rest" in
+        ' '*|'='*|"$tab"*) qv_rest=${qv_rest#?} ;;
+        *) break ;;
+      esac
+    done
+    case "$qv_rest" in
+      "'"*)
+        qv_body=${qv_rest#\'}
+        case "$qv_body" in
+          *"'"*) printf '%s\n' "${qv_body%%\'*}"; qv_rest=${qv_body#*\'} ;;
+        esac ;;
+      '"'*)
+        qv_body=${qv_rest#\"}
+        case "$qv_body" in
+          *'"'*) printf '%s\n' "${qv_body%%\"*}"; qv_rest=${qv_body#*\"} ;;
+        esac ;;
+    esac
+  done
+}
+
+selector_conflicts() {
+  # True when the repository-selecting flag $1 is written with two DIFFERENT
+  # quoted paths anywhere on the line. Recovery is line-GLOBAL: it cannot tell
+  # the span this segment wrote from the span the next segment wrote, so
+  # `git -C '<main>' commit -m x && git -C '<feat>' status` would otherwise
+  # judge the commit against `<feat>` and allow a commit on the base. Two
+  # different paths are exactly the case where an answer assembled from the
+  # wrong half is worse than no answer; two identical ones are not ambiguous at
+  # all and are read normally.
+  #
+  # It runs in THIS shell rather than inside a command substitution, because an
+  # `exit` in a substitution leaves only the subshell — the refusal has to be
+  # able to end the script.
+  sc_first=""
+  sc_seen=0
+  while IFS= read -r sc_one; do
+    [ -n "$sc_one" ] || continue
+    if [ "$sc_seen" -eq 0 ]; then
+      sc_first=$sc_one
+      sc_seen=1
+    elif [ "$sc_one" != "$sc_first" ]; then
+      return 0
+    fi
+  done <<EOF
+$(quoted_values "$command_line" "$1")
+EOF
+  return 1
 }
 
 resolve() {
@@ -400,15 +488,14 @@ while IFS= read -r seg; do
   # the checkout whose branch decides the refusal; the session's own cwd is only
   # the starting point a `-C` moves away from.
   cbase=$here
-  quoted_cdirs=0
   while IFS= read -r one; do
     [ -n "$one" ] || continue
     if [ "$one" = "@" ]; then
-      # A quoted path, masked in step 1. Recovery reads one quoted span per
-      # flag, so a second quoted `-C` on the same segment cannot be told apart
-      # from the first and fails closed rather than assembling a wrong path.
-      quoted_cdirs=$((quoted_cdirs + 1))
-      [ "$quoted_cdirs" -eq 1 ] || refuse_unreadable "it carries more than one quoted \`-C\` path, which this guard cannot tell apart"
+      # A quoted path, masked in step 1. It is read only when every quoted `-C`
+      # on the LINE agrees — a second, different one, whether on this segment or
+      # on another, fails closed rather than being assembled into a path that
+      # belongs to neither.
+      selector_conflicts -C && refuse_unreadable "it writes more than one different quoted \`-C\` path, and this guard cannot tell which segment each of them belongs to"
       one=$(recover_quoted "$command_line" -C)
       [ -n "$one" ] || refuse_unreadable "its \`-C\` path is quoted in a form this guard cannot read"
     fi
@@ -419,10 +506,12 @@ EOF
 
   # A repository-selecting path masked to `@` was quoted; recover it or refuse.
   if [ "$gitdir" = "@" ]; then
+    selector_conflicts --git-dir && refuse_unreadable "it writes more than one different quoted \`--git-dir\` path, and this guard cannot tell which segment each of them belongs to"
     gitdir=$(recover_quoted "$command_line" --git-dir)
     [ -n "$gitdir" ] || refuse_unreadable "its \`--git-dir\` path is quoted in a form this guard cannot read"
   fi
   if [ "$worktree" = "@" ]; then
+    selector_conflicts --work-tree && refuse_unreadable "it writes more than one different quoted \`--work-tree\` path, and this guard cannot tell which segment each of them belongs to"
     worktree=$(recover_quoted "$command_line" --work-tree)
     [ -n "$worktree" ] || refuse_unreadable "its \`--work-tree\` path is quoted in a form this guard cannot read"
   fi
@@ -443,15 +532,30 @@ EOF
       root=$wt
     else
       branch=$(git --git-dir="$gd" branch --show-current 2>/dev/null || :)
-      # With no work tree given, `rev-parse --show-toplevel` answers about the
-      # CWD, not about `--git-dir`, so it cannot be used here. The common git
-      # dir's parent is the primary checkout, and that is where the repository's
-      # nen/workflow.json is read from.
-      common=$(git --git-dir="$gd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || :)
-      case "$common" in
-        /*) root=$(dirname "$common") ;;
-        *)  root=$(dirname "$gd") ;;
+      # THE POLICY COMES FROM THE CHECKOUT THE BRANCH CAME FROM. With no work
+      # tree given, `rev-parse --show-toplevel` answers about the CWD rather
+      # than about `--git-dir`, so it cannot be used here — but git will still
+      # say which git dir it resolved: for a LINKED WORKTREE that is
+      # `<common>/worktrees/<name>`, and the `gitdir` file sitting there holds
+      # the path of that worktree's own `.git` FILE, whose directory is the
+      # checkout. Falling back to the common dir's parent instead would read the
+      # PRIMARY checkout's nen/workflow.json — a different working tree, which
+      # may have a different `branch.base` checked out, and then the branch just
+      # read from the worktree is compared against a base nobody declared for it.
+      resolved=$(git --git-dir="$gd" rev-parse --path-format=absolute --git-dir 2>/dev/null || :)
+      case "$resolved" in
+        */worktrees/*)
+          link=$(cat "$resolved/gitdir" 2>/dev/null || :)
+          if [ -n "$link" ]; then root=$(dirname "$link"); fi
+          ;;
       esac
+      if [ -z "$root" ]; then
+        common=$(git --git-dir="$gd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || :)
+        case "$common" in
+          /*) root=$(dirname "$common") ;;
+          *)  root=$(dirname "$gd") ;;
+        esac
+      fi
     fi
   else
     target=$cbase
