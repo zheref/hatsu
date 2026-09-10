@@ -92,6 +92,15 @@ checkout last heard.
 - **Resolves** → the branch exists on the remote → **merge**: `git merge --no-edit origin/<base>`.
 - **Does not resolve** → nothing published → **rebase**: `git rebase origin/<base>`.
 
+> **A rebase with nothing to rebase onto still rewrites the SHA, and that is expected.** Verified
+> live: a branch already sitting directly on `origin/<base>`'s tip answered *"Successfully rebased
+> and updated"* and moved `HEAD` from `c8826c7` to `84b0444` — same tree, same message, new commit
+> object, because the rebase replays the commit rather than noticing it need not. It is harmless
+> here and only here: § 3 rebases **only** an unpublished branch, so the rewritten commit is one
+> nobody has fetched. **It is not harmless to report as "nothing to do"** — § 7 asks for the base
+> and its resolved SHA, and a run that says *no change* while `HEAD` moved leaves every later
+> reference to the old SHA silently wrong.
+
 Say which one and why, in one line, before running it, **and name the refresh**: *"`origin` fetched
 for `main` and `opus/kurapika/knobs`; the branch is on origin, so this is a merge, not a rebase."*
 
@@ -114,9 +123,11 @@ for `main` and `opus/kurapika/knobs`; the branch is on origin, so this is a merg
 > `nen pr cascade-main --repo <path> --trunk <base> --no-push` and this paragraph is deleted, not
 > kept as a shim.**
 >
-> `nen pr cascade-main --help` is not a way to read this: verified live, a subcommand-level
-> `--help` on the `pr` family exits `2` and prints the whole family's usage. The family help is the
-> spec here.
+> `nen pr cascade-main --help` is not a subcommand help: verified live today at `0.3.0`, it exits
+> **`0`** and prints the whole `pr` family's usage — every verb's synopsis and then the per-verb
+> option blocks — rather than `cascade-main`'s own page. **The family help is the spec here**, and
+> reading it means reading down to the `cascade-main` block inside it, not taking the first screen as
+> the verb's contract.
 
 ## 4. Classify every conflicted path before resolving one
 
@@ -206,6 +217,13 @@ them still does not push**: the caller pushes, after ao returns, having seen wha
 
 Report, in one line: the base and its resolved SHA, rebase-or-merge and why, the conflicts by kind,
 which were mechanical and how each was resolved, and that the build was re-proved.
+
+**Where the operation was a rebase, report `HEAD` before and after — even when nothing was replayed
+onto anything.** § 3's note is why: the SHA moves whether or not the content did, so the line reads
+*"rebased onto `origin/main` at `675cbda`; no commits to replay and no conflicts; `HEAD` `c8826c7` →
+`84b0444`"* rather than *"already up to date"*. Anything holding the old SHA — a report already
+rendered, a message the maintainer is reading, a range somebody typed — is stale from that moment,
+and the pair of SHAs is the cheapest possible way to say so.
 
 ## Residue
 
