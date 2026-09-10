@@ -199,8 +199,11 @@ same reason the rulings above are: this file is the authority on standing.
 `mugetsu` (publication, **per target**, **G3**, `CON-6`) are skills from `v0.6.0`** —
 [`claude/skills/susanoo/`](../claude/skills/susanoo/),
 [`claude/skills/kagutsuchi/`](../claude/skills/kagutsuchi/),
-[`claude/skills/mugetsu/`](../claude/skills/mugetsu/). With them, **the five phases of § *Rulings of
-2026-09-09*, 1 are complete as files as well as as rules**, and the surface is **thirty-eight skills**.
+[`claude/skills/mugetsu/`](../claude/skills/mugetsu/). With them, **four of the five phases of
+§ *Rulings of 2026-09-09*, 1 are files as well as rules** — `aka`, `mukai`, `kagutsuchi` and `mugetsu`.
+**The fifth, the merge, has no file and is owed none**: it is **G2** (`CON-5`), an action no agent in
+this roster performs, so there is no procedure for a skill to carry — only the rule that nobody here
+crosses it. The surface is **thirty-eight skills**.
 Nothing about the phases themselves changes: `kagutsuchi` and `mugetsu` remain the maintainer's own calls,
 one target per call, never reached from a composite — not from `getsuga`, not from `futon`'s `then` clause,
 not from `en` — and Emitter still prepares a release and never publishes one. **A skill is a written phase,

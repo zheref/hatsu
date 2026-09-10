@@ -625,7 +625,9 @@ Skill availability follows the same honesty: `breath`, `rasengan`, `kokusen`, `a
 § 5** — `mukai`, `murasaki`, `hanten`, `gyo`, `kotoamatsukami`, `shibari`, `en` and `jujutsu`, plus the
 `drive` → `sharingan` rename — and the three agent definitions it needs: Feitan, Chrollo and Illumi.
 **`v0.6.0` closes the release side**: `susanoo` (archive and packaging), `kagutsuchi` (non-production
-upload, per target) and `mugetsu` (publication, per target, **G3**) are skills now, and § 4's table of five
-human-called phases is complete — every phase the lattice names has a file. The rule that held while they
-did not still holds and always did: **a phase boundary is the governance, not the file** — name the phase
-and stop there whether or not something has been written for it.
+upload, per target) and `mugetsu` (publication, per target, **G3**) are skills now, so **four of § 4's
+five human-called phases have files** — `aka`, `mukai`, `kagutsuchi`, `mugetsu`. The fifth is **the
+merge**, and it stays a rule with no file: **G2** is an action no agent performs, so there is no
+procedure to write down. The rule that held while the other four had no file still holds and always did:
+**a phase boundary is the governance, not the file** — name the phase and stop there whether or not
+something has been written for it.

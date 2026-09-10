@@ -114,11 +114,12 @@ three at `v0.6.0`:
 | [`en`](en/) | **The landing watch, `izanagi`-capped** by `nen/workflow.json` → `monitor`. [`rikugan`](rikugan/)¹ (landing) → [`sharingan`](sharingan/)² → `murasaki`³ when the branch is behind → `sharingan`⁴ → [`jutaisho`](jutaisho/)⁵ at Ready → watch⁶ until merged → `rikugan`⁷ final. **A watch with no cap does not run**; where one must outlive the session, step 6 is handed to **Illumi**, read-only, who wakes Kurapika and acts on nothing. |
 
 > **The release side closed at `v0.6.0`.** [`susanoo`](susanoo/), [`kagutsuchi`](kagutsuchi/) and
-> [`mugetsu`](mugetsu/) are the last three rows of the atomic table above, so **every phase the lattice
-> names now has a file** — and with `kagutsuchi` and `mugetsu` written down, the five phases the maintainer
-> calls (`aka`, `mukai`, the merge, `kagutsuchi`, `mugetsu`) are complete as skills as well as as rules.
-> The rule that carried them while they were only names is unchanged and was never contingent on the file:
-> **name the phase and stop there anyway** — the boundary is the governance.
+> [`mugetsu`](mugetsu/) are the last three rows of the atomic table above, so **every phase a skill can
+> carry now has one** — and of the five the maintainer calls (`aka`, `mukai`, **the merge**,
+> `kagutsuchi`, `mugetsu`), **four are skill-backed**. The fifth is the merge, and it has no file because
+> there is nothing for one to describe: **G2** (`CON-5`) is an action no agent in this plane performs.
+> The rule that carried the other four while they were only names is unchanged and was never contingent
+> on the file: **name the phase and stop there anyway** — the boundary is the governance.
 
 ---
 

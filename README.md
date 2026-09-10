@@ -24,7 +24,8 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 > `kotoamatsukami`, `shibari`, `en` and `jujutsu` — the rename of `drive` to **`sharingan`**, and the three
 > agent definitions that side needs: **Feitan**, **Chrollo** and **Illumi**. **`v0.6.0` closes the release
 > side**: `susanoo` (archive and packaging), `kagutsuchi` (non-production upload, per target) and `mugetsu`
-> (publication, per target, **G3**) — so every one of the five phases only you may call now has a skill.
+> (publication, per target, **G3**) — so four of the five phases only you may call have a skill; the
+> fifth is **the merge**, which has none because no agent performs it.
 > [`docs/WORKFLOW.md`](docs/WORKFLOW.md) is the authority on all of it.
 
 ---
