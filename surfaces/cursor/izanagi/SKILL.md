@@ -171,17 +171,18 @@ for a single label call; it is the skill's own bookkeeping across the whole run.
 
 Each iteration, in order:
 
-0. **Claim it** — `nen loop iterate --id <id> --line "<the invocation>" --repo <path>`. Exit `0`
-   carries `iteration <n>/<cap>` and how many remain; exit `1` **is the cap**, and the run stops
-   there and goes to § 4's cap-out row. Claim BEFORE acting, never after: a claim that follows the
-   write it was meant to bound is a count, not a cap. (Retired residue — see the box below.)
 1. **Re-read live state and evaluate the condition FIRST**, before acting. Never act on the
    previous iteration's picture; that is how a loop repeats an action that already succeeded. If
    the condition already holds before any act has run, stop and report it as **iteration 0** — a
    reporting label for "true before the loop ever acted," never one of the N acting iterations.
    **Iteration 0 does not spend the cap**: it costs nothing against `N`, so if the pre-check instead
    finds the condition not yet true, the loop still has all N acting iterations available to it.
-2. **Run the task**, under § 2.
+2. **Claim the iteration, then run the task** under § 2 — in that order.
+   `nen loop iterate --id <id> --line "<the invocation>" --repo <path>` comes FIRST: exit `0` prints
+   `iteration <n>/<cap>` and how many remain, and **exit `1` is the cap**, which ends the run at
+   § 4's cap-out row without the act happening at all. A claim that follows the write it was meant to
+   bound is a count, not a cap. Nothing is claimed for step 1's pre-check — that is *iteration 0*,
+   and it spends none of the cap. (Retired residue; the box after this list has the transcripts.)
 3. **Re-evaluate**, and report **one line**: iteration number, what was done, what changed, and the
    condition's current value.
 

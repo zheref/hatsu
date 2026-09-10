@@ -120,8 +120,9 @@ inherited-and-forgotten default is dangerous in.
 >   --repo <path>
 > ```
 >
-> Exit `0` prints `cycle <n>/<cap>` and how many remain; **exit `1` IS the cap** and ends the run at
-> § 6's cap-out row, with the invocation named in nen's own refusal. The `--line` is the same string
+> Exit `0` prints `iteration <n>/<cap>` and how many remain — the verb's own word is *iteration*, and
+> en's cycle is what it is claiming; **exit `1` IS the cap** and ends the run at § 6's cap-out row,
+> with the invocation named in nen's own refusal. The `--line` is the same string
 > `nen parse izanagi` echoed above, restated on every claim, so **`monitor.maxCycles` cannot be
 > quietly raised mid-run**: a claim carrying a different `N` is exit `2` naming both lines (verified
 > live against exactly this shape — `up to 3` running, `up to 20` claimed —
