@@ -203,7 +203,8 @@ are two rows, two artifact lists and two exit codes, and susanoo never reports o
 3. **Build proof.** `.nen/proof/<lane>.json` and `nen commit check --require-proof <lane>` are not in
    this release — they arrive at nen `≥ 0.5`. There is therefore no mechanical tie between the
    package and the tree that gets tagged; the transcript in the phase's report is the tie, and the
-   caller carries it. Same residue `hatsu:rasengan` § 10 names for the build.
+   caller carries it. Same residue `hatsu:rasengan` § 11 names for its inner loop (§ 10 before the
+   skill was re-scoped on 2026-09-10 — see `rasengan.md` § *Re-scoped 2026-09-10*).
 4. **A checksum or manifest of what was produced.** Nothing in nen hashes an artifact. The fixture
    declares `dist/app.tgz.sha256` to make the point that this belongs in the repository's own
    `archive` row, not in a hash computed here and reported as the declaration's output.

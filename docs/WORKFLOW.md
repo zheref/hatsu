@@ -65,11 +65,16 @@ did the work and *on what*, which is the one thing a branch name is uniquely pla
 
 | Key | Default | Read by |
 |---|---|---|
-| `checks` | `["build"]` | `rasengan`, before **every** commit |
-| `lane` | `project.defaultLane` | `rasengan`, passed through as `--lane` |
+| `checks` | `["build"]` | **three phases, three questions** — `breath` on the fresh tip (*was the base sound*), `rasengan` as the author's inner loop (*does what I just wrote work*), `kokusen` over the finished tree before **every** commit (*is the tree I am about to record green*) |
+| `lane` | `project.defaultLane` | all three, passed through as `--lane` |
 
-Each entry of `checks` is the **name of a declared verb**, not a command line: `rasengan` runs
-`nen shu <check> --lane <lane>` for each, in order. A verb named here that the lane seats as unsupported is
+Each entry of `checks` is the **name of a declared verb**, not a command line: each of those phases runs
+`nen shu <check> --lane <lane>` for each entry, in order.
+
+> **The compile-before-commit is `kokusen`'s, and `rasengan` is the AUTHORING phase** — the maintainer's
+> ruling of 2026-09-10 ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-10*). The same pair of keys is read
+> three times on purpose: a tree moves with every line written after the last check, so the only run a
+> commit can rest on is the one taken by the phase holding the index. A verb named here that the lane seats as unsupported is
 exit `4` and its seat is quoted, not worked around. Hatsu's own `checks` is `["lint"]`, because
 `claude plugin validate . --strict` is the only mechanical check a markdown-and-bash plugin has.
 
@@ -538,8 +543,9 @@ Pre-PR, PNGs are embedded as **data URIs** so a report is one self-contained fil
 
 **Per request, the loop is `ren`**, and it runs without being asked:
 
-`breath` (first turn of an effort) → `rasengan` (build) → `kokusen` (commit) → `amaterasu` (launch) →
-`rikugan` (the turn's report) → `jutaisho` (the bell).
+`breath` (first turn of an effort — and it proves the base tip builds) → `rasengan` (**author the change**)
+→ `kokusen` (**verify the finished tree, then commit**) → `amaterasu` (launch) → `rikugan` (the turn's
+report) → `jutaisho` (the bell).
 
 It loops. **It never pushes and never opens a pull request.**
 
@@ -571,6 +577,14 @@ attrition. The loop simply stops and waits.
 4. **an unsettled adversarial finding** — in `hanten`, after Kurapika has fixed it or pushed back with a reason
 5. **a `sharingan` escalation** — a PR that will not reach Ready
 
+**A red *iteration* check is not a sixth condition, and the ruling of 2026-09-10 did not make it one.** It is
+fixed where it is found: inside `rasengan`'s inner loop while the change is being written, or by handing the
+tree back to `rasengan` when `kokusen`'s gate refuses to commit it. Only a red the turn cannot honestly clear
+escalates, which is the escalation `rasengan` has always carried. **The one stop that is genuinely new in
+shape rather than in kind is `breath`'s**: a base tip that does not build stops the effort at step 1, *before*
+a line is authored, because a broken trunk is its own effort and folding it into this one buries a trunk
+regression inside an unrelated change set. It interrupts nothing that had started.
+
 Nothing else stops the loop. **A stop is `nen stop`'s banner, the report link, the options with ⭐ on the
 recommendation, and the question asked through the surface's own native option picker** —
 `AskUserQuestion` on Claude Code. A stop typed as prose in the middle of a reply is a stop the maintainer can
@@ -587,7 +601,7 @@ maintainer's to call. Its order is fixed, and each step has exactly one job.
 
 | | Step | What it does | Where it stops |
 |---|---|---|---|
-| **1** | [`murasaki`](../claude/skills/murasaki/) | pull + push: [`ao`](../claude/skills/ao/) → [`rasengan`](../claude/skills/rasengan/) + [`tsukuyomi`](../claude/skills/tsukuyomi/) → push, **only if the branch is already published**. Never squashes, never force-pushes | **G5** on a *semantic* conflict in `ao` — a mechanical one is resolved |
+| **1** | [`murasaki`](../claude/skills/murasaki/) | pull + push: [`ao`](../claude/skills/ao/) → the declared `iteration.checks` on the merged tree + [`tsukuyomi`](../claude/skills/tsukuyomi/) → push, **only if the branch is already published**. A red merged tree goes to [`rasengan`](../claude/skills/rasengan/) to be authored. Never squashes, never force-pushes | **G5** on a *semantic* conflict in `ao` — a mechanical one is resolved |
 | **2** | [`hanten`](../claude/skills/hanten/) | the adversarial review: classify the change set by scope, one reviewer subagent per scope | **G5** on an unsettled finding — after Kurapika has fixed it or pushed back with a reason |
 | **3** | `tsukuyomi` + [`kotoamatsukami`](../claude/skills/kotoamatsukami/) | `tests.required` (+ `extra`), and the declared `ui-test` where a repository declares one. Re-recorded snapshots feed step 6 | **G5** on red required tests. A seat (exit `4`) is quoted, never routed around |
 | **4** | [`gyo`](../claude/skills/gyo/) | the coverage bar, against the `coverage` ladder of § 2 | **G5** when a touched file is under `minimum` and cannot honestly clear it |

@@ -91,7 +91,9 @@ below is written to say that, and the OPEN section's `OPEN-3` row with it.
 ### 1 · The phases a human calls
 
 The local loop is [`ren`](../claude/skills/ren/) and it runs on every request without being asked:
-`breath` → `rasengan` → `kokusen` → `amaterasu` → `rikugan` → `jutaisho`. **It never pushes and never opens a
+`breath` → `rasengan` → `kokusen` → `amaterasu` → `rikugan` → `jutaisho` — where `rasengan` **authors the
+change** and `kokusen` **verifies the tree and commits it** (§ *Rulings of 2026-09-10*, *`rasengan` is the
+AUTHORING phase*). **It never pushes and never opens a
 pull request.** Five phases are the maintainer's to call, and **no agent ever prompts for any of them**:
 `aka` (push), `mukai` (review, coverage, evidence, the PR), the **merge** itself (**G2**, `CON-5`),
 `kagutsuchi` (a non-production upload, per target) and `mugetsu` (publication, per target, **G3**, `CON-6`).
@@ -263,6 +265,48 @@ What that means here, in order of how often it bites:
 
 `nen` documents both keys — `zheref/nen#164`, `docs/USAGE.md` § *Two provenance trailers* — and nen's own
 policy file admits both. The layer table is [`WORKFLOW.md`](WORKFLOW.md) § `commits`.
+
+### `rasengan` is the AUTHORING phase — and the compile-before-commit is `kokusen`'s
+
+**Ruled 2026-09-10, on reading the local loop back.** The maintainer's intent in one sentence:
+
+> **`rasengan` builds the thing** — Kurapika, in the mode the request calls for, writes the code that
+> answers what was actually asked, on the stack this repository declares. It was never "run the build
+> command before committing"; the verification belongs to the phases that own the tree, and `ren` must
+> never warm up and then "build" without making the change.
+
+What that settles, in the order it bites:
+
+1. **[`rasengan`](../claude/skills/rasengan/) is step 2 of [`ren`](../claude/skills/ren/), and it is the
+   change itself** — understand the request, resolve the stack from `nen/contract.json`, plan, implement,
+   self-check, hand over. Its **inner loop** still runs the declared `iteration.checks`, as the author's own
+   feedback while the work is in front of them, which is a different act done for a different reason from a
+   gate. It commits nothing, pushes nothing, edits nothing outside the request's scope, and **never lowers a
+   bar** to make a check pass.
+2. **[`kokusen`](../claude/skills/kokusen/) carries the compile-before-commit.** It runs every
+   `iteration.checks` entry over the **finished** tree, reads `nen commit check --require-proof <lane>`
+   against it, and **refuses to commit on red**, quoting the failing check. The two runs are not a
+   duplication: a tree moves with every line written after the author's last check, so the only run a commit
+   can rest on is the one taken by the phase holding the index.
+3. **[`breath`](../claude/skills/breath/) proves the BASE tip.** It already ran the checks on the branch it
+   cut; the ruling makes the reason explicit — that run is a verdict on the trunk, taken before a line is
+   authored, and **a red base tip is a G5 stop**, never repaired inside this effort.
+4. **`ren`'s order is six whole steps and the interim `1.5` is gone.**
+   `breath`¹ → `rasengan`² → `kokusen`³ → `amaterasu`⁴ → `rikugan`⁵ → `jutaisho`⁶. The half-numbered *"the
+   work"* a wave-1 fix added is folded into `rasengan`, where it always belonged, and the load-bearing order
+   is stated as five relations: no authoring on an unverified base; nothing committed that was not authored
+   in this turn and verified in it; the launch shows the committed tree; the report quotes the launch that
+   ran; the bell carries the report.
+5. **`murasaki` § 5 stops calling `rasengan` the prover.** Proving the merged tree is that composite's own
+   step — the declared checks, read off `rasengan` § 6's exit table — and a red merged tree is handed to
+   `rasengan` to be **authored**.
+
+**What this does not change.** The five G5 conditions that interrupt a running loop
+(§ *Rulings of 2026-09-09*, 1) are the same five: a red iteration check is fixed where it is found, and only
+a red the turn cannot honestly clear escalates — the escalation `rasengan` already carried. `breath`'s red
+base tip is a stop at step 1, before anything has started to be interrupted. No agent definition changes, no
+authority widens, and no phase moves across a human gate: `aka`, `mukai`, the merge, `kagutsuchi` and
+`mugetsu` are still the maintainer's alone. The skill surface stays **thirty-eight skills**.
 
 
 ---

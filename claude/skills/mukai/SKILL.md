@@ -165,7 +165,7 @@ maintainer tuning the file knows where the effect lands:
 | Key | File | The step it configures |
 |---|---|---|
 | `branch.base` | `nen/workflow.json` | steps 1 and 5 — [`hatsu:murasaki`](../murasaki/SKILL.md), and step 7's PR base |
-| `iteration.checks`, `iteration.lane` | `nen/workflow.json` | step 1's build, through [`hatsu:rasengan`](../rasengan/SKILL.md) |
+| `iteration.checks`, `iteration.lane` | `nen/workflow.json` | step 1's proof of the merged tree, through [`hatsu:murasaki`](../murasaki/SKILL.md) § 5 |
 | `tests.required`, `tests.extra` | `nen/workflow.json` | step 3 — [`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md) |
 | `coverage.minimum` / `.recommended` / `.ideal` / `.scope` | `nen/workflow.json` | step 4 — [`hatsu:gyo`](../gyo/SKILL.md) |
 | `models.*`, `models.roles.reviewer` | `nen/workflow.json` | step 2's reviewer tier — [`hatsu:hanten`](../hanten/SKILL.md) |
