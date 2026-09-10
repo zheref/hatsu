@@ -266,8 +266,13 @@ whether rung 1 had already fired, and the next thing to read the working copy (a
 `sharingan` pass, the maintainer) reads it. A bell rung with no marker is a bell with no evidence.
 
 ```sh
-# 1 · the marker — one verb where the pin allows it. Written FRESH: see "the marker is a live fact"
-nen stop --mark --who Kurapika --gate <G1|G1-M|G2|G3|G4|G5> --notified <efforts.md>
+# 1 · the marker — § 3's BY-HAND WRITE of .nen/last-stop.json, whole and fresh.
+#     NOT `nen stop --mark`, for two reasons, both in the box below: at the pinned
+#     0.3.0 that option does not exist ("unknown option '--mark'", exit 2, verified
+#     live), and where it does exist its marker carries no `title`, so every bell it
+#     rings says "A decision is waiting." Probe before reaching for it, never a
+#     remembered version — and the shape is the second condition, not just the pin:
+#         nen stop --help 2>&1 | grep -q -- '--mark'
 
 # 2 · rung 2, in-session, values sanitised exactly as § 5 requires. READ STDERR, NOT THE EXIT CODE
 osascript -e 'display notification "<body>" with title "<title>"' 2>&1
@@ -326,10 +331,13 @@ rm -f .nen/last-stop.json
 > (`docs/ab/surfaces.md` § 4).** At `0.3.0` `nen stop --help` documents `--who`, `--gate`, `--notified`,
 > `efforts.md` and `--template`, and no `--mark`; a build from nen `main` documents it as *"Also write
 > `.nen/last-stop.json` under `--repo` … the ONLY form of this verb that writes."* **So at the pin, § 3's
-> by-hand write stands and this section changes nothing about it** — the residue lapses when the pin moves,
-> and not before.
+> by-hand write stands and this section changes nothing about it**, and the block above therefore spells
+> the by-hand write rather than a command that exits `2` on every session this section is for
+> (Copilot review thread `PRRT_kwDOUKPjxM6hAjMh`).
 >
-> **And when it does move, the two marker shapes do not yet agree.** nen's writes
+> **Two conditions have to hold before the verb replaces it, not one.** The pin has to move — probed as
+> `nen stop --help 2>&1 | grep -q -- '--mark'`, never inferred from a remembered version number — **and**
+> the marker shapes have to agree — and they do not. nen's `--mark` writes
 > `{ contract: "nen.stop.mark/v0.1", who, gate, notified, at }`; § 3's is
 > `hatsu.stop-marker/v0.1` and carries `title`, `body`, `reportUrl`, `sound` and `rungs` besides.
 > `hooks/stop-bell.sh` reads only `gate` and `title` and falls back to *"A decision is waiting."* when
