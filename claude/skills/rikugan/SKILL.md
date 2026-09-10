@@ -160,6 +160,32 @@ The tokens the template publishes, and what each is:
 variant's extra sections are always emitted and hidden by CSS off `data-variant` (§ 5). Do not add
 a `{{#if}}` the renderer will not have.
 
+### Escaping — the contract, and it binds the residue path too
+
+**Every value on this page is repository-controlled**: a commit subject, a PR body, a file path, a
+scene name. A subject carrying `<script>` or a `"` is not exotic — it is a Tuesday — and this page
+gets published as an Artifact.
+
+- **Every `{{token}}` is HTML-escaped by the renderer.** `nen report render` escapes by default —
+  `&`, `<`, `>`, `"`, `'` become entities — in text content and inside an attribute alike. No token
+  on this page opts out.
+- **`{{{ }}}` is the raw form, and `templates/rikugan.html` uses it nowhere.** The only slot it
+  would ever be admitted for is a **pre-escaped data-URI `src`**, which must first match
+  `^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$`. Even that slot is written `{{ }}`, because
+  HTML-escaping a base64 data URI changes none of its bytes. **Anything that is not a data URI is
+  `{{ }}`.**
+- **Two values are validated as well as escaped**, because escaping alone answers the wrong
+  question for them: `{{src}}` against the regex above (escaping stops the attribute closing; it
+  does not stop the URL being a scheme nobody asked for), and `{{percent}}` in
+  `style="--pct:{{percent}}"` against `^(100|[0-9]{1,2})(\.[0-9]+)?$` (escaping stops the attribute
+  closing; it does not stop `1;background:url(…)` adding a declaration). **A value that fails its
+  check is not rendered** — drop the row and name the gap in **03 Not delivered**, the same way § 7
+  handles a capture that will not embed.
+- **Hand-filling is held to the identical rule.** Until `nen report render` lands this skill writes
+  the tokens itself, and it **escapes `& < > " '` in every value it writes and runs the same two
+  validations** before it writes them. The residue path is the one that has no engine underneath it,
+  which makes it the path where this is the skill's own job rather than a default it inherits.
+
 ## 5. The three variants
 
 | Variant | Called by | Sections | Written to disk? |
@@ -237,7 +263,10 @@ Everything here is named, and every entry is a verb this repository expects at `
    'report'"*). § 3's table is the by-hand assembly, run as `git log` / `git diff --name-status` /
    `git diff --name-only` and reported as by-hand.
 2. **`nen report render --template`** — absent with it. § 4 fills `templates/rikugan.html` by hand,
-   same template, same tokens, same bytes for the same data.
+   same template, same tokens, same bytes for the same data — **and the escaping the verb would do
+   by default is this skill's own job on that path**: escape `& < > " '` in every value written,
+   validate `{{src}}` against the data-URI regex and `{{percent}}` as a bare `0`–`100`
+   (§ 4, *Escaping*).
 3. **`nen shu evidence --base <ref>`** — not a `shu` subcommand at `v0.3.0`. Screenshot rows come
    from `git diff --name-only` filtered by `project.evidence.globs`.
 4. **`nen shu test-report`** — not a `shu` subcommand. The final variant's test rows are read off
@@ -278,3 +307,6 @@ carries it — so that the day the verbs land, the retirement is visible.
   page they produce.
 - **Never links a screenshot that a reader outside this machine cannot resolve** — embedded as a
   data URI, or named as missing.
+- **Never writes an unescaped value into the page, by verb or by hand**, and never a `{{{ }}}` for
+  anything but a data URI that has already matched its regex (§ 4, *Escaping*). A repository-
+  controlled string reaching an Artifact unescaped is the report attacking its own reader.

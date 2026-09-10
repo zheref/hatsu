@@ -15,6 +15,36 @@
 
    Self-contained: no font file, no script from anywhere, no image but the ones
    the report itself embeds. Theme-aware through prefers-color-scheme only.
+
+   ESCAPING — the contract, and it binds BOTH paths
+   Every value on this page is repository-controlled: a commit subject, a PR
+   body, a file path, a screenshot's scene name. So:
+
+   * EVERY `{{token}}` IS HTML-ESCAPED BY THE RENDERER. `nen report render`
+     escapes by default — `& < > " '` become entities — and that holds in text
+     content and inside an attribute alike. There is no token on this page that
+     opts out.
+   * `{{{ }}}` is the RAW form. No token below the comment uses it, and the one
+     slot it would ever be admitted for is a pre-escaped data-URI `src`, which
+     must first match
+         ^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$
+     Even that slot is written `{{ }}` here, because HTML-escaping a base64
+     data URI changes none of its bytes and the escape is free. Anything that
+     is not a data URI is `{{ }}`, always.
+   * ESCAPING IS NOT ENOUGH ON ITS OWN, TWICE OVER, so two values are also
+     VALIDATED before substitution:
+       - `{{src}}` — the regex above. Escaping stops the attribute being
+         closed; it does not stop the URL being a scheme nobody asked for.
+       - `{{percent}}` in `style="--pct:{{percent}}"` — a bare number `0`–`100`
+         (`^(100|[0-9]{1,2})(\.[0-9]+)?$`). Escaping stops the attribute being
+         closed; it does not stop `1;background:url(…)` adding a declaration.
+     A value that fails its check is not rendered: the row is dropped and the
+     gap is named in section 03, exactly as a missing capture is.
+   * THE RESIDUE PATH IS HELD TO THE SAME RULE. Until `nen report render`
+     exists, hatsu:rikugan fills these tokens by hand — and hand-filling must
+     escape `& < > " '` in every value it writes and run the same two
+     validations. A hand-filled render and a verb-rendered one are the same
+     bytes for the same data, or the verb's arrival is a redesign.
    ========================================================================= */
 
 /* ---- palette -------------------------------------------------------------
