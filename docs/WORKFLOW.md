@@ -610,6 +610,25 @@ logged as an internal error, and marks that plugin's hook load *failed* — visi
 *additional* hook files, and Hatsu ships none. `${CLAUDE_PLUGIN_ROOT}` in the two `command` fields resolves to
 the installed plugin directory, which changes on every update, so it is never written as a literal path.
 
+### `$CLAUDE_PLUGIN_ROOT` is set inside a skill invocation, and nowhere else
+
+Several skills build an absolute path from it — `pr-state`, `sharingan`, `backlog-state`, `futon`, `tensho`
+and `getsuga` for `nen pr ready --gates`, `hatsu-warmup` for `nen/contract.json`, `hanten` for a persona's
+definition under `claude/agents/`, `rikugan` for `templates/<name>.html`. **The harness exports it while a
+skill is running, and it is EMPTY in an ordinary tool-call shell and inside a subagent** — verified live. So a
+run that reads it has to check it:
+
+| The variable | What to do |
+|---|---|
+| **set** | use it — the installed plugin directory, which changes on every update and is never a literal |
+| **empty**, and the run was handed a plugin path | use the path it was handed |
+| **empty**, with nothing handed | resolve it: `claude plugin list --json` → the entry whose `id` is `hatsu@hatsu`, field **`installPath`**. Verified live: the `--json` flag exists and `installPath` is the plugin root |
+
+**Never substitute a bare relative path.** `--gates` in particular resolves a relative path against
+`--repo`'s root since nen `v0.2.0`, never the cwd, so `contracts/reference.gates.json` looks for a file
+inside the repository under judgement and `ENOENT`s — and a `--gates` that cannot be resolved is answered by
+passing `--reviewers` instead (`sharingan` § 4), not by guessing a path. This is wave-3 finding F18.
+
 ---
 
 ## 7 · What is not here yet
