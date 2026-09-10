@@ -16,8 +16,12 @@ the `<reference-repo>` checkout.
 > **Dated note, 2026-09-10 — the `--gates` form below is `<reference-repo>`-specific, and `SKILL.md`
 > § 2 now says so rather than reading as the general fallback.** `contracts/reference.gates.json`
 > carries `<reference-repo>`'s own reviewer identities; pointing it at any other target's PR produces
-> a confident verdict about the wrong people (that target's reviewers are never `sasuke`, `tenma`,
-> `copilot`). `claude/skills/pr-state/SKILL.md` § 2 now cites `claude/skills/sharingan/SKILL.md` §
+> a confident verdict built on an **unverified assumption**, not a reading of that target's own
+> configuration — `sasuke`/`tenma`/`copilot` are not reserved to `<reference-repo>` (`docs/ab/senkei.md`
+> § 4.1 records `<product-repo-A>` reusing the same `sasuke`/`tenma` workflow names in its own review-pair),
+> so a `ready` verdict this way can even land on the RIGHT people by coincidence and still be wrong in
+> method: the identities were never derived from the target being judged. `claude/skills/pr-state/SKILL.md`
+> § 2 now cites `claude/skills/sharingan/SKILL.md` §
 > 4's identity rule instead of restating it: a target's own `nen/gates.json` wins where one exists;
 > `--gates` with this reference file is for `<reference-repo>` alone; any other gates-file-less
 > target gets `--reviewers` supplied by hand — from its `CODEOWNERS` or the PR's own requested
