@@ -109,11 +109,31 @@ wrong is a force-push:**
 | **Already on origin** | only the commits after `origin/<branch>` | anything at or below `origin/<branch>` is somebody else's history now |
 
 ```bash
+# refresh what origin actually has, FIRST — a missing remote branch is tolerated
+git -C <path> fetch origin <base> <branch>
 # published?
 git -C <path> rev-parse --verify --quiet refs/remotes/origin/<branch>
 # the squash point, per the table above
 git -C <path> reset --soft <origin/branch | $(git merge-base origin/<base> HEAD)>
 ```
+
+**The refresh is not optional, and a stale tracking ref must never select the first-publish range.**
+`refs/remotes/origin/<branch>` is what this checkout last heard, not what origin has: a branch
+pushed from another machine, a worktree cut before the first publish, a `--single-branch` clone all
+leave it missing or behind. Read it unrefreshed and an already-published branch takes the
+first-publish row — every commit since the merge base is squashed away, history that other people
+have already fetched is rewritten locally, and the push then fails non-fast-forward with the damage
+already done.
+
+`git fetch origin <base> <branch>` exits non-zero when `<branch>` is not on the remote; **that is
+the answer, not an error** — tolerate it, or ask the remote directly and never touch the local ref:
+
+```bash
+git -C <path> ls-remote --heads origin refs/heads/<branch>   # empty output = not published
+```
+
+Prefer `ls-remote` wherever the fetch's exit code cannot be told apart from a network failure. State
+which form was used and what it answered, in the same line that names the squash range.
 
 Then shape the one message with the verb that owns message shape:
 
@@ -218,9 +238,11 @@ and how it got underneath (rebase or merge), the required tests that ran green, 
    `Co-Authored-By` trailer renders at exit `0`. Until the P2 `--repo`-aware guard lands, the
    refusal is **this skill's rule** (always), plus a `commit-msg` hook **only in a repository that
    has been scaffolded with one** — which hatsu's own checkout has not.
-3. **The published/unpublished test** — `git rev-parse --verify --quiet
-   refs/remotes/origin/<branch>`; `nen wc classify --json` reports the branch and its distance from
-   the base, never the remote.
+3. **The published/unpublished test** — `git fetch origin <base> <branch>` (a missing remote branch
+   tolerated) **then** `git rev-parse --verify --quiet refs/remotes/origin/<branch>`, or
+   `git ls-remote --heads origin refs/heads/<branch>` asked of the remote directly. `nen wc classify
+   --json` reports the branch and its distance from the base, never the remote, and nothing in nen
+   refreshes the branch's tracking ref for this decision.
 4. **The push itself** — `git push [-u] origin HEAD`. `nen pr cascade-main` pushes only as the tail
    of its own merge and is not a push verb.
 5. **`nen/workflow.json` is unvalidated at `v0.3.0`** — no row in `nen schema check` (verified live).
@@ -243,6 +265,9 @@ and how it got underneath (rebase or merge), the required tests that ran green, 
 - **Never pushes over a red required test** — G5, and the run ends (§ 3).
 - **Never force-pushes, and never rewrites a commit that is already on the remote** — a rejected
   fast-forward is reported, never flagged past (§ 4, § 6).
+- **Never decides the squash range from a stale tracking ref** — `origin/<branch>` is refreshed, or
+  the remote asked with `ls-remote`, before the range is chosen (§ 4). A ref this checkout last
+  heard about is not evidence about origin.
 - **Never carries an AI attribution trailer** — `Akatsuki-Agent` alone, per § 2's `commits` block;
   never `Co-Authored-By`, `Claude-Session`, `Signed-off-by`, a "Generated with" line, or a model
   name in the message.

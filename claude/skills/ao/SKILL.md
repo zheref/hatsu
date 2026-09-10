@@ -65,15 +65,35 @@ commit somebody else may already have fetched is the one git operation that cost
 work, and the local plane never does it.
 
 ```bash
-git -C <path> fetch origin <base>
+git -C <path> fetch origin <base> <branch>          # <branch> too, and a miss is tolerated
 git -C <path> rev-parse --verify --quiet refs/remotes/origin/<branch>   # published?
 ```
+
+**The branch's own remote ref is refreshed first, and this is not optional.** `fetch origin <base>`
+updates `refs/remotes/origin/<base>` and nothing else, so a checkout whose `origin/<branch>` is
+stale or was never created — a branch pushed from another machine, a worktree cut before the first
+publish, a `--single-branch` clone — answers *"nothing published"* to a question it has not asked
+the remote. **A stale tracking ref must never be what selects the rebase path**: the cost is
+rewriting commits somebody has already fetched, which is precisely the thing § 3 exists to prevent.
+
+`git fetch origin <base> <branch>` fails when `<branch>` does not exist on the remote, and that
+failure is a legitimate answer, not an error to report: **tolerate it** (run the fetch, ignore a
+non-zero exit that names only the missing branch) or ask the remote directly and skip the local ref
+altogether —
+
+```bash
+git -C <path> ls-remote --heads origin refs/heads/<branch>   # empty output = not published
+```
+
+— which is the form to prefer when the fetch's exit code cannot be told apart from a network
+failure. Either way the decision is made against **what origin says now**, never against what this
+checkout last heard.
 
 - **Resolves** → the branch exists on the remote → **merge**: `git merge --no-edit origin/<base>`.
 - **Does not resolve** → nothing published → **rebase**: `git rebase origin/<base>`.
 
-Say which one and why, in one line, before running it: *"`opus/kurapika/knobs` is on origin, so this
-is a merge, not a rebase."*
+Say which one and why, in one line, before running it, **and name the refresh**: *"`origin` fetched
+for `main` and `opus/kurapika/knobs`; the branch is on origin, so this is a merge, not a rebase."*
 
 > **Both commands are residue, and the reason is a verified property of the verb that owns this
 > step.** `nen pr cascade-main --repo <path> [--trunk main]` is the cascade verb, and at `v0.3.0` it
@@ -193,9 +213,11 @@ which were mechanical and how each was resolved, and that the build was re-prove
    but pushes on success and has no `--no-push` at `v0.3.0` (verified live, exit `2`).
 2. **`git rebase origin/<base>`** (§ 3) — the cascade verb *"merges (never rebases)"* by its own
    `--help`, so the unpublished half has no verb at any flag.
-3. **The published/unpublished test** (§ 3) — `git rev-parse --verify --quiet
-   refs/remotes/origin/<branch>`. `nen wc classify --json` reports the branch, its dirt and its
-   distance from the base, and nothing about the remote.
+3. **The published/unpublished test** (§ 3) — `git fetch origin <base> <branch>` (a missing remote
+   branch tolerated) **then** `git rev-parse --verify --quiet refs/remotes/origin/<branch>`, or
+   `git ls-remote --heads origin refs/heads/<branch>` asked of the remote directly. `nen wc classify
+   --json` reports the branch, its dirt and its distance from the base, and nothing about the
+   remote — and nothing in nen refreshes the branch's tracking ref for this decision.
 4. **The conflict enumeration and its kinds** (§ 4) — `git status --porcelain`,
    `git diff --diff-filter=U`, `git ls-files -u`. `nen pr cascade-main --json` carries no
    `conflicts[]` at `v0.3.0` (verified live).
@@ -223,6 +245,10 @@ Every one of these is run in the open and reported as by-hand, per the Nen-first
   negotiable for the convenience of using it.
 - **Never rewrites a published commit** — the published/unpublished test (§ 3) runs before either
   operation, every time, and its answer is stated.
+- **Never answers that test from a stale tracking ref.** `origin/<branch>` is refreshed — fetched
+  with the base, or bypassed with `ls-remote` — before the answer is read. A ref this checkout last
+  heard about is not evidence about the remote, and letting it select the rebase path is how a
+  published branch gets rewritten.
 - **Never picks a side on a semantic conflict**, and never `-X ours` / `-X theirs` on any merge.
 - **Never resolves anything before every conflicted path is classified and the table printed** (§ 4).
 - **Never starts a second operation on top of a merge or rebase somebody already left in progress.**
