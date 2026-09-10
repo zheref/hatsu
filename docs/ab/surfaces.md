@@ -901,11 +901,13 @@ $CLAUDE_PLUGIN_ROOT empty or another plugin`*. The explicit-input form of the ne
 `hatsu_root=<wt>; nen schema check --repo "$hatsu_root"` — prints the
 `ok  nen/contract.json  dependency (nen >= 0.7, pinned v0.7.0) …` row.
 
-**Main moved underneath.** PR #39 (the nen `0.7` repin) landed while this PR was under review and took
-plugin `0.11.0`; main was merged into the branch (never rebased — it is published), two conflicts resolved on
-main's side of the text, and the bump moved to **`0.12.0`**. The merge commit regenerates to the same mirror
-bytes, so it passes the drift check on its own; after this round both mirrors regenerate clean again
-(`ok: 40`, `ok: 47`, script exit `0`) and the plugin validates.
+**Main moved underneath, twice.** PR #39 (the nen `0.7` repin) landed while this PR was under review and
+took plugin `0.11.0`; main was merged into the branch (never rebased — it is published), two conflicts
+resolved on main's side of the text, and the bump moved to `0.12.0`. Then #40 and #41 landed while this
+round was being addressed and took `0.12.0`; a second merge, one conflict (the manifest again), and the bump
+is **`0.13.0`**. Each merge commit regenerates to the same mirror bytes, so each passes the drift check on
+its own; after this round both mirrors regenerate clean (`ok: 40`, `ok: 47`, script exit `0`), the
+fenced-block check still reports zero, and the plugin validates.
 
 **Still not verified:** a Codex or Cursor session running the mirrored blocks — same caveat as § 9.3 and
 § 9.5. Verified: the blocks a mirror carries are byte-identical to these, and these run.
