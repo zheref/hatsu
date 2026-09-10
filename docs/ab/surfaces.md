@@ -846,3 +846,66 @@ with nothing usable at all it prints *no Hatsu root resolved — pass --reviewer
 **Still not verified:** a Codex or Cursor session running the mirrored block. What is verified is that the
 block a mirror carries is byte-identical to the one above (the mirror is verbatim) and that this block
 resolves from a shell with no Claude Code state in it.
+
+### 9.6 Copilot's third round — every block sets the variable it uses, and main moved underneath
+
+One thread and four suppressed comments, one theme: a consumer that *cites* the resolver still expands
+`$hatsu_root` empty in its own shell. `claude/commands/kurapika.md` and `claude/agents/kurapika.md` told
+Kurapika to read `$hatsu_root/nen/contract.json` after the warm-up; `backlog-state` and `getsuga` embedded
+the variable in a fallback and pointed at `pr-state`'s block; and inside `hatsu-warmup` itself § 0's `cat`
+and § 5's install blocks were separate fenced blocks from the § 5 resolver — *"stating that they are in the
+same shell does not make it so."*
+
+**The rule that now holds mechanically: a fenced block that uses `$hatsu_root` sets it in that block.** Two
+ways and no third — § 0's resolver verbatim, or the one-line explicit input
+`hatsu_root=<the absolute path § 0 printed>`; a `<hatsu root>` in prose is that same explicit input,
+substituted literally.
+
+| where | before | after |
+|---|---|---|
+| `hatsu-warmup` § 0 | prose said *resolve first*, then a lone `cat "$hatsu_root/nen/contract.json"` | ONE block: the six-line resolver, `echo "hatsu_root: …"`, then the `cat` — the read cannot run without the resolution |
+| `hatsu-warmup` § 0 `schema check`, § 5a copy loop, § 5c `ours` | used the variable, set nowhere in the block | each opens with the explicit-input line |
+| `claude/agents/kurapika.md`, `claude/commands/kurapika.md` | *read `$hatsu_root/nen/contract.json`* after the warm-up | *its § 0 block is one shell: resolves, prints, reads* — no variable named across a shell boundary |
+| `backlog-state`, `getsuga` | `"$hatsu_root/contracts/…"` citing `pr-state`'s block | `"<hatsu root>/contracts/…"` — an explicit input, the path § 0 printed, substituted literally |
+| `pr-state` § 2, `futon` § 5, `tensho` § 6 | already carried the resolver (§ 9.5) | unchanged but for the handed slot's name: `<the absolute path § 0 printed>` |
+| `docs/WORKFLOW.md` | *a consumer runs the prelude* | the rule, with which files take which of the two ways |
+
+The check that says the rule holds, over every fenced block under `claude/` (the one `text` illustration
+that named the path now uses the `<hatsu root>` placeholder, so the count is zero with no exception):
+
+```
+$ python3 - <<'PY'
+import pathlib, re
+bad = sum(1 for p in pathlib.Path('claude').rglob('*.md')
+          for m in re.finditer(r'```[a-z]*\n(.*?)```', p.read_text(), re.S)
+          if '$hatsu_root' in m.group(1) and not re.search(r'(^|\n)\s*hatsu_root=', m.group(1)))
+print("fenced blocks that use $hatsu_root without setting it:", bad)
+PY
+fenced blocks that use $hatsu_root without setting it: 0
+```
+
+**§ 0's block, run verbatim.** Extracted from the skill by its first and last lines, the handed slot
+filled with this checkout (the one substitution an agent makes), run from `$HOME` with both variables
+empty:
+
+```
+$ cd ~ && HATSU_PLUGIN_ROOT= CLAUDE_PLUGIN_ROOT= bash sec0.sh | head -3
+hatsu_root: <wt>
+{
+  "$schema": "nen.contract/v0.1",
+```
+
+With the slot left unsubstituted and nothing else set it exits `1` before the `cat`:
+*`hatsu-warmup: no Hatsu root — $HATSU_PLUGIN_ROOT unset or not a Hatsu checkout, nothing usable handed,
+$CLAUDE_PLUGIN_ROOT empty or another plugin`*. The explicit-input form of the next block —
+`hatsu_root=<wt>; nen schema check --repo "$hatsu_root"` — prints the
+`ok  nen/contract.json  dependency (nen >= 0.7, pinned v0.7.0) …` row.
+
+**Main moved underneath.** PR #39 (the nen `0.7` repin) landed while this PR was under review and took
+plugin `0.11.0`; main was merged into the branch (never rebased — it is published), two conflicts resolved on
+main's side of the text, and the bump moved to **`0.12.0`**. The merge commit regenerates to the same mirror
+bytes, so it passes the drift check on its own; after this round both mirrors regenerate clean again
+(`ok: 40`, `ok: 47`, script exit `0`) and the plugin validates.
+
+**Still not verified:** a Codex or Cursor session running the mirrored blocks — same caveat as § 9.3 and
+§ 9.5. Verified: the blocks a mirror carries are byte-identical to these, and these run.

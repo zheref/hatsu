@@ -255,8 +255,8 @@ export GH_TOKEN=$(gh auth token)
 # see the paragraph below for the other two shapes sharingan § 4 names.
 # $hatsu_root is THIS plugin's checkout, ABSOLUTE, resolved IN THIS SHELL: the block below is
 # hatsu-warmup § 5's prelude in its same-shell form. The variable is not exported, so a value
-# another shell set is not here; the second candidate is the root the warm-up printed.
-hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" "<the root the warm-up printed>" "${CLAUDE_PLUGIN_ROOT:-}"; do
+# another shell set is not here; the second candidate is the absolute path hatsu-warmup § 0 printed.
+hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" "<the absolute path § 0 printed>" "${CLAUDE_PLUGIN_ROOT:-}"; do
   [ -n "$c" ] && [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
   [ "$(sed -n 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$c/.claude-plugin/plugin.json" | head -n 1)" = hatsu ] &&
   hatsu_root=$(cd "$c" && pwd -P) && break

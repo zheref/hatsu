@@ -26,14 +26,23 @@ shell).
 
 ## 0 · Resolve the root, THEN read the contract yourself — no jq, no subprocess
 
-**The very first thing this skill does, on every surface, is resolve `$hatsu_root`.** § 5's prelude
-carries the block and the reasoning, and it is written down there once rather than twice. In one line:
-`$HATSU_PLUGIN_ROOT`, else the path this invocation was handed, else `$CLAUDE_PLUGIN_ROOT`, **each
-accepted only if it holds a `.claude-plugin/plugin.json` whose own `name` is `hatsu`**, the winner
-canonicalised to an absolute path. Every path below reads from the result — in the same shell, because
-`$hatsu_root` is a shell variable and not an export.
+**The very first thing this skill does, on every surface, is resolve `$hatsu_root` — and it reads the
+contract in the SAME shell, because `$hatsu_root` is a shell variable and not an export.** The block below
+is that shell: `$HATSU_PLUGIN_ROOT`, else the path this invocation was handed, else `$CLAUDE_PLUGIN_ROOT`,
+**each accepted only if it holds a `.claude-plugin/plugin.json` whose own `name` is `hatsu`**, the winner
+canonicalised to an absolute path, printed, and read from. § 5's prelude is the same loop written out with
+its reasoning and with the rejected-path report the install needs; every later block in this skill opens
+with the path this one prints, as an explicit input (§ 5's rule).
 
 ```bash
+# ONE shell: resolve, print, read. A block that uses $hatsu_root sets it in that block (§ 5).
+hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" "<the path this invocation was handed, if any>" "${CLAUDE_PLUGIN_ROOT:-}"; do
+  [ -n "$c" ] && [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
+  [ "$(sed -n 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$c/.claude-plugin/plugin.json" | head -n 1)" = hatsu ] &&
+  hatsu_root=$(cd "$c" && pwd -P) && break
+done
+[ -n "$hatsu_root" ] || { echo "hatsu-warmup: no Hatsu root — \$HATSU_PLUGIN_ROOT unset or not a Hatsu checkout, nothing usable handed, \$CLAUDE_PLUGIN_ROOT empty or another plugin" >&2; exit 1; }
+echo "hatsu_root: $hatsu_root"     # every later block takes THIS printed path as its explicit input
 cat "$hatsu_root/nen/contract.json"
 ```
 
@@ -61,6 +70,7 @@ cat "$hatsu_root/nen/contract.json"
 This is the one machine read of the contract, and it is a validation, never a way of extracting values:
 
 ```bash
+hatsu_root=<the absolute path § 0 printed>   # explicit input (§ 5's rule); a variable from another shell is not here
 nen schema check --repo "$hatsu_root"
 ```
 
@@ -504,22 +514,18 @@ echo "hatsu_root: $hatsu_root"   # a later shell cannot inherit this variable; i
   argument nen would resolve against `--repo`. And it is a shell variable, not an export: a later
   tool-call shell, a subagent, or another skill's command does not inherit it — on any surface — and
   prose telling a consumer to *run the prelude first* executes nothing. So the block prints the root it
-  resolved (the `echo` above), and **every code block that consumes `$hatsu_root` carries this
-  same-shell form of the loop, verbatim, above its own command** — `pr-state` § 2, `futon` § 5,
-  `tensho`'s readiness fallback — with the printed root as the second candidate:
+  resolved (the `echo` above), and **the rule every block in this plugin follows is: a code block that
+  uses `$hatsu_root` SETS it in that block.** Two ways, and no third:
+  - **§ 0's resolver, verbatim** — the same three candidates, the same `is_hatsu` test, the same
+    `pwd -P`, six lines above the command. `pr-state` § 2, `futon` § 5 and `tensho` § 6 carry it, with
+    the printed root as the second candidate.
+  - **the one-line explicit input** `hatsu_root=<the absolute path § 0 printed>` — this skill's own later
+    blocks (§ 0's `schema check`, § 5a's copy loop, § 5c's `ours`) open with it, and `backlog-state` and
+    `getsuga` spell the same input as `<hatsu root>` in prose, substituted literally.
 
-```bash
-hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" "<the root the warm-up printed>" "${CLAUDE_PLUGIN_ROOT:-}"; do
-  [ -n "$c" ] && [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
-  [ "$(sed -n 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$c/.claude-plugin/plugin.json" | head -n 1)" = hatsu ] &&
-  hatsu_root=$(cd "$c" && pwd -P) && break
-done
-[ -n "$hatsu_root" ] || { echo "no Hatsu root resolved — pass --reviewers by hand instead (sharingan § 4)" >&2; exit 1; }
-```
-
-  It is the same three candidates, the same `is_hatsu` test and the same canonicalisation, inlined
-  rather than sourced from a helper file, because a helper file would have to be found by the very
-  root it resolves. **The loop reads three candidates and no fourth**: a run with none is `NOT INSTALLED`
+  Inlined rather than sourced from a helper file, because a helper file would have to be found by the
+  very root it resolves; and never *"run the prelude first"* in prose, which executes nothing.
+  **The loop reads three candidates and no fourth**: a run with none is `NOT INSTALLED`
   here and `--reviewers` by hand in `sharingan` § 4, never a guess. On Claude Code alone, a caller that
   has none of the three can obtain the path it *hands in* — the second candidate — from the surface's
   own registry, `claude plugin list --json` → `installPath` (verified live); that is a way to produce
@@ -550,6 +556,7 @@ a second trap with it: through a symlink the mirror's own `../../../nen/workflow
 **plugin's** policy file rather than the target's (§ 5d, F10). The copy fixes both.
 
 ```sh
+hatsu_root=<the absolute path § 0 printed>   # explicit input (§ 5's rule); a variable from another shell is not here
 mkdir -p "$target/.agents/skills"
 for d in "$hatsu_root"/surfaces/codex/*/; do
   name=$(basename "$d"); dest="$target/.agents/skills/$name"
@@ -581,7 +588,7 @@ skill writes is the *whole* document:
 … the target's own AGENTS.md, verbatim, when it has one …
 
 <!-- BEGIN hatsu personas (generated — nen surface mirror, surface: codex) -->
-… the contents of $hatsu_root/surfaces/codex/AGENTS.md, verbatim …
+… the contents of <hatsu root>/surfaces/codex/AGENTS.md, verbatim …
 <!-- END hatsu personas (generated — nen surface mirror, surface: codex) -->
 ```
 
@@ -699,6 +706,7 @@ and thirty-nine of them are being claimed at once.
 | **anything else — and a TRACKED path is always anything else** | **leave it untouched**, install nothing under that name, and **name it in § 4's line** |
 
 ```sh
+hatsu_root=<the absolute path § 0 printed>   # explicit input (§ 5's rule); a variable from another shell is not here
 # ours DEST — true only for a destination this skill made. Tracked is never ours,
 # whatever it looks like: a repository's own history outranks a marker comment.
 ours() {

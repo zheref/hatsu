@@ -844,9 +844,11 @@ shell and inside a subagent** — verified live — and on the two other surface
 from a shell profile, names a different plugin (`docs/ab/surfaces.md` § 8, F3). `$hatsu_root` is the
 resolution [`hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md) § 5's prelude runs on every surface,
 each candidate accepted only if it is a Hatsu checkout, the winner canonicalised to an absolute path and
-held in a shell variable that is not exported — so a consumer's code block carries the prelude's same-shell
-form (`hatsu-warmup` § 5) and runs it before its own command: nothing is inherited from the warm-up's shell,
-and the root the warm-up prints is what that block hands in:
+held in a shell variable that is not exported. **So a code block that uses `$hatsu_root` sets it in that
+block** — `hatsu-warmup` § 0's resolver verbatim (`pr-state`, `futon`, `tensho`), or the one-line explicit
+input `hatsu_root=<the absolute path § 0 printed>` (the warm-up's own later blocks); a `<hatsu root>` in prose
+(`backlog-state`, `getsuga`) is that same explicit input, substituted literally. Nothing is inherited from the
+warm-up's shell, and the root it prints is what every later block takes:
 
 | `$hatsu_root` comes from | when |
 |---|---|
