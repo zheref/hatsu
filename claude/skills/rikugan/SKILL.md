@@ -1,0 +1,336 @@
+---
+name: rikugan
+description: Render one turn of work as a rich HTML report — accomplished, challenges, not delivered, architecture delta, screenshots, the exact launch command, decisions — from the one fixed template, never as a markdown summary. Use when the maintainer invokes hatsu:rikugan [as turn|landing|final], asks to see the report, the turn report or the final report, or whenever hatsu:ren, hatsu:mukai or hatsu:en reaches its reporting step. The landing variant adds the PR body and the readiness verdict; the final variant adds the tests run and the touched-file coverage, and is the only one kept as a dated file under Reports/. Not a gate event — it publishes a page and rings nothing.
+---
+
+# Rikugan — the turn, seen
+
+**Nature: Manipulator.** Reporting is the board-facing half of the work, the same half
+[`hatsu:backlog-board`](../backlog-board/SKILL.md) claims for the gate register. **The nature of the
+work being reported is stated inside the report, never adopted by this skill** — a turn that authored
+canon is reported by a Manipulator saying "this turn was Conjurer's", and rikugan does not inherit
+that mode by rendering it.
+
+> **Show me the turn: what landed, what fought back, what is missing, and the exact line that starts it.**
+
+Rikugan is [`hatsu:ren`](../ren/SKILL.md)'s fifth step, [`hatsu:mukai`](../mukai/SKILL.md)'s
+handover artifact and [`hatsu:en`](../en/SKILL.md)'s first and last. It is one skill with **three
+variants of one page**, not three reports: the seven sections below are always the seven sections,
+in that order, and a variant only ever **adds**.
+
+**It is never markdown.** A turn summarised into chat scrolls away; a page has an address the
+maintainer can come back to, and the screenshot table is the whole point of having one. If the
+render cannot happen, say so (§ 7) — do not substitute a prose recap and call it the report.
+
+---
+
+## 1. Invocation
+
+```
+hatsu:rikugan [as <turn | landing | final>]
+```
+
+The clause is optional and defaults to **`turn`**. It is anchored behind the literal `as`
+deliberately, because that is the shape `nen parse` can actually express:
+
+```bash
+nen parse rikugan --grammar "as [<variant:turn|landing|final>]" --line "<the invocation, minus the hatsu:rikugan prefix>"
+```
+
+> **The bare-bracket form is refused at the template, by design — verified live at `v0.3.0`
+> (`docs/ab/rikugan.md` § 2.1).** `--grammar "[<variant:turn|landing|final>]"` exits `2` with
+> *"its leading slot `<variant>` is bracketed but nothing introduces it, so an omitted value cannot
+> be told apart from a mistyped one. Anchor it behind a literal … or drop the brackets"* — the same
+> engine behaviour [`hatsu:tensho`](../tensho/SKILL.md) § 1 records for its own grammar. Tensho's
+> answer was to keep its default in prose, because its optional word has no introducing literal to
+> anchor to. **Rikugan's answer is the opposite one: give the clause a literal and let the verb own
+> the parse.** Verified live: `as landing` → `variant: landing`; a bare `as` parses with the clause
+> absent (exit `0`, the default applies); `as interim` is refused at exit `2` naming the three
+> values and printing the corrected line. A grammar that can be parsed by a verb is not left to
+> prose.
+
+**Which variant a composite asks for is that composite's to say, not this skill's to infer** —
+`ren` asks for `turn` every turn, `mukai`/`en` ask for `landing` once the PR body exists, and `en`
+asks for `final` after the merge. Invoked bare by the maintainer, it is `turn`.
+
+## 2. The parameters — `nen/workflow.json`, with the defaults stated
+
+Every number and path on this page comes from the target repository's `nen/workflow.json`. Read the
+keys; never carry a remembered value.
+
+| Key | Used for | Default when the key (or the file) is absent |
+|---|---|---|
+| `reports.dir` | where the **final** variant is written | `Reports` |
+| `reports.template` | which template renders | `rikugan` → `templates/rikugan.html` |
+| `reports.retain` | **which renders are KEPT** — `final-only` means only the final variant gets a dated file of its own | `final-only` |
+| `reports.captures` | where screenshot PNGs are read from | `<reports.dir>/captures` |
+| `coverage.minimum` / `.recommended` / `.ideal` | the band on each coverage row | `80` / `85` / `90` |
+| `branch.base` | the report's `base` field, and the diff's left-hand side | `main` |
+
+> **`retain` governs what is KEPT, not whether a working file exists** (maintainer's ruling,
+> 2026-09-09, § 13 of the fold-in report). `final-only` means **only the final variant gets a dated
+> file of its own** under `<reports.dir>`. It does **not** forbid the **transient**
+> `<reports.dir>/current.html` § 6 writes on a surface that cannot publish an Artifact: that file is
+> overwritten by every render, is never dated, is git-ignored, and is a way of *opening* a page
+> rather than a copy retained of it. One file that is always the latest render is not a retained
+> report — a retained report is one you can still find after the next turn.
+
+> **`nen schema check` does not validate this file at `v0.3.0` — verified live
+> (`docs/ab/rikugan.md` § 2.4).** Run against `hatsu`'s own checkout it reports exactly five rows —
+> `nen/labels.json`, `nen/repos.json`, `nen/colors.yml`, `nen/gates.json`, `nen/contract.json` — and
+> **no `nen/workflow.json` row**. The workflow schema and its loader are P1 (brief § 4.1) and land
+> at `v0.4.0`. Until then this skill reads the file as data itself, exactly the way
+> `claude/agents/kurapika.md` § *Session warm-up* has it read `nen/contract.json`: open it, take the
+> literal values, substitute them. **No `jq`** — a subprocess to parse JSON for the entity that just
+> read it buys a dependency for nothing. A malformed `nen/workflow.json` is reported and the
+> defaults above are used, said out loud; it is never silently repaired.
+
+## 3. Assemble the data
+
+```bash
+nen report data --repo <path> --base <branch.base> [--tiers <json>] --json
+```
+
+`nen report data` is the verb that owns this step and **it does not exist at `v0.3.0`** — verified
+live: `nen report data --repo <path>` exits `2` with *"unknown command 'report'"*
+(`docs/ab/rikugan.md` § 2.2). It is P1 (brief § 4.3), and until it lands the assembly is **named
+residue**, run by hand in this order and reported as by-hand:
+
+| Field | Residue command | Becomes |
+|---|---|---|
+| `commits[]` | `git -C <path> log --format='%h %s' <base>...HEAD` | the accomplished list's evidence |
+| `files[]` | `git -C <path> diff --name-status <base>...HEAD` | the architecture delta's rows (`path`, `status`) |
+| `tier` per file | the caller's own path→tier map | the architecture delta's grouping |
+| `evidence[]` | `git -C <path> diff --name-only <base>...HEAD` filtered by `project.evidence.globs` | the screenshot table |
+| `coverage` | the last coverage artifact on disk, if the lane declares one | the final variant's coverage rows |
+| `proof`, `lastStop` | `.nen/proof/<lane>.json`, `.nen/last-stop.json` where they exist | the footer's provenance |
+
+**Three companion verbs are missing with it, and each is its own residue** — verified live at
+`v0.3.0`, all exit `2` (`docs/ab/rikugan.md` § 2.2):
+
+- **`nen shu evidence --base <ref>`** — not a `shu` subcommand (`--base` is not even a known option
+  on the family). The screenshot rows come from `git diff --name-only <base>...HEAD` filtered by
+  `nen/contract.json` → `project.evidence.globs`, grouped by `project.evidence.scene`'s
+  `{suite}-{scene}` template read by eye.
+- **`nen shu test-report`** — not a `shu` subcommand. The **final** variant's test rows come from
+  the runner's own summary output, read as the runner printed it and quoted, never re-tabulated
+  from memory.
+- **`nen shu coverage --touched --base <ref>`** — `--touched` is not a known option. The **final**
+  variant's coverage rows come from `nen shu coverage`'s ordinary per-target table, filtered by hand
+  to `git diff --name-only <base>...HEAD`, with the band assigned against § 2's ladder.
+
+**Screenshots are embedded, never linked, before the PR exists.** A capture under
+`reports.captures` becomes a `data:image/png;base64,…` URI in `states[].src`. A relative path into a
+working copy is dead the moment the page is published, and a link to a branch blob is dead the
+moment the branch is deleted.
+
+## 4. Fill the template
+
+```bash
+nen report render --template templates/rikugan.html --data <the § 3 document> --out <file>
+```
+
+`nen report render` is the verb that owns this step and **it does not exist at `v0.3.0`** — verified
+live, exit `2` (`docs/ab/rikugan.md` § 2.2). It is P1 (brief § 4.3): `{{token}}` substitution with
+`{{#each list}}…{{/each}}` blocks and no logic beyond that. **Until it lands, this skill fills the
+identical template by hand — named residue — and the template is `templates/rikugan.html` either
+way.** Never author a second page shape "just for this turn": a hand-filled render and a
+verb-rendered one must be the same bytes for the same data, or the verb's arrival is a redesign
+instead of a retirement.
+
+The tokens the template publishes, and what each is:
+
+| Token | Value |
+|---|---|
+| `{{variant}}` | `turn` \| `landing` \| `final` — written onto the root element; **§ 5's gating reads it** |
+| `{{title}}` | the object notation and the branch, e.g. `HA-PR-#31 · opus/kurapika/skills-turn-2` (`nen ref format`, § 6) |
+| `{{branch}}`, `{{base}}`, `{{generated}}` | the branch, `branch.base`, and an absolute ISO-8601 UTC timestamp — never a relative string |
+| `{{#each accomplished}}` · `challenges` · `notDelivered` · `decisions` | `{text, why}` per row |
+| `{{#each architecture}}` | `{tier, files:[{path, status}]}` |
+| `{{#each screenshots}}` | `{screen, states:[{name, src}]}` — one table per screen, **states as columns** |
+| `{{launch}}` | the exact command, verbatim, in the `<pre>` |
+| `{{#each prBody}}` | `{markdown}`, zero or one row — landing and final |
+| `{{#each readiness}}` | `{verdict, reason, gate}`, zero or one row — landing and final |
+| `{{#each tests}}` | `{name, suite, status}` — final |
+| `{{#each coverage}}` | `{file, percent, band}` — final |
+
+> **One finding against the P1 spec, filed before the verb exists rather than after
+> (`docs/ab/rikugan.md` § 4.1).** The screenshot block is the one place the template needs a
+> **nested** `{{#each}}` — `{{#each screenshots}}` containing two `{{#each states}}` blocks, one for
+> the header row and one for the image row — because "one table per screen with states as columns"
+> is a two-level shape and there is no third way to write it. Brief § 4.3 promises `{{token}}`
+> substitution and `{{#each list}}…{{/each}}` blocks; it does not say whether an `each` block may
+> contain another. **Check this the day `nen report render` lands.** If it cannot nest, the fix is
+> nen's, not a flattened template — flattening it would lose the per-screen grouping the maintainer
+> reads the table for.
+
+**There is no conditional in the engine, and the template does not pretend otherwise.** The
+variant's extra sections are always emitted and hidden by CSS off `data-variant` (§ 5). Do not add
+a `{{#if}}` the renderer will not have.
+
+### Escaping — the contract, and it binds the residue path too
+
+**Every value on this page is repository-controlled**: a commit subject, a PR body, a file path, a
+scene name. A subject carrying `<script>` or a `"` is not exotic — it is a Tuesday — and this page
+gets published as an Artifact.
+
+- **Every `{{token}}` is HTML-escaped by the renderer.** `nen report render` escapes by default —
+  `&`, `<`, `>`, `"`, `'` become entities — in text content and inside an attribute alike. No token
+  on this page opts out. **That verb does not exist at `v0.3.0`** (§ 4's opening), so this rule is
+  two things at once: the **contract `nen report render` must meet** when it lands at `v0.4.0`, and
+  — today, on the only path there is — **the residue's own job**. Check it the day the verb lands,
+  alongside the nested-`{{#each}}` finding above; if the verb ships without escaping by default, the
+  fix is nen's, not a template full of pre-escaped values.
+- **`{{{ }}}` is the raw form, and `templates/rikugan.html` uses it nowhere.** The only slot it
+  would ever be admitted for is a **pre-escaped data-URI `src`**, which must first match
+  `^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$`. Even that slot is written `{{ }}`, because
+  HTML-escaping a base64 data URI changes none of its bytes. **Anything that is not a data URI is
+  `{{ }}`.**
+- **Two values are validated as well as escaped**, because escaping alone answers the wrong
+  question for them: `{{src}}` against the regex above (escaping stops the attribute closing; it
+  does not stop the URL being a scheme nobody asked for), and `{{percent}}` in
+  `style="--pct:{{percent}}"` against `^(100|[0-9]{1,2})(\.[0-9]+)?$` (escaping stops the attribute
+  closing; it does not stop `1;background:url(…)` adding a declaration). **A value that fails its
+  check is not rendered** — drop the row and name the gap in **03 Not delivered**, the same way § 7
+  handles a capture that will not embed.
+- **Hand-filling is held to the identical rule.** Until `nen report render` lands this skill writes
+  the tokens itself, and it **escapes `& < > " '` in every value it writes and runs the same two
+  validations** before it writes them. The residue path is the one that has no engine underneath it,
+  which makes it the path where this is the skill's own job rather than a default it inherits.
+
+## 5. The three variants
+
+| Variant | Called by | Sections | **Kept** on disk? |
+|---|---|---|---|
+| **`turn`** | [`hatsu:ren`](../ren/SKILL.md) § step 5, every turn | 01–07 | **No** — an Artifact, or the transient `current.html` (§ 6) |
+| **`landing`** | [`hatsu:mukai`](../mukai/SKILL.md), and [`hatsu:en`](../en/SKILL.md)'s first step | 01–07 **+ 08 PR body + 09 Readiness** | **No** — the same two |
+| **`final`** | [`hatsu:en`](../en/SKILL.md)'s last step, after the merge | 01–09 **+ 10 Tests run + 11 Touched coverage** | **Yes** — the only one with a file of its own |
+
+**"Kept" is the column, and it is not "touched the filesystem."** `retain: final-only` decides which
+render survives the next one: only `final` gets its own dated file. A `turn` or `landing` render on a
+surface with no Artifact still has to be *opened* from somewhere, and § 6's `current.html` — one
+path, overwritten every render, git-ignored — is that somewhere.
+
+The seven fixed sections, in this order, always: **01 Accomplished · 02 Challenges · 03 Not
+delivered · 04 Architecture delta · 05 Screenshots · 06 How to launch · 07 Decisions.**
+
+- **03 Not delivered is never omitted for being empty.** A turn that delivered everything says so on
+  the page; a turn that did not names each gap and why. Silence there reads as completeness.
+- **06 How to launch is the *exact* command** [`hatsu:amaterasu`](../amaterasu/SKILL.md) ran — the
+  `--dry-run` argv pasted verbatim, target name and all, not a reconstruction and not a tidied-up
+  version. It goes in chat too; the page is the copy that survives.
+- **09 Readiness is `nen pr ready`'s verdict, quoted** — [`hatsu:pr-state`](../pr-state/SKILL.md)'s
+  binding rule holds here unchanged. A readiness claim is that verdict or it is not made, and
+  `unevaluated` is never rendered as `ready`.
+
+## 6. Publish it
+
+**On Claude Code, the report is an Artifact, republished to ONE URL per branch.** This is
+[`hatsu:backlog-board`](../backlog-board/SKILL.md) § 5's rule applied to a different page, and it is
+inherited rather than restated: find the branch's existing report artifact and update it in place,
+so every turn of an effort lands at the same durable address; publish a new URL only for a branch
+that has none yet. **Read before you overwrite** — a republish notice, or a listing showing a
+version this session did not publish, means the page moved and is re-read first.
+
+The title is the object notation and the branch (§ 4's `{{title}}`), stable for the life of the
+branch. Resolve the code with `nen repo resolve` and render the ref with `nen ref format` — object
+notation is never typed from memory (`claude/agents/kurapika.md` § *How you work*).
+
+**On any other surface, the page is opened from `<reports.dir>/current.html`** — one path, written
+fresh by every render, overwritten by the next, git-ignored. It is **transient**, not retained: it
+is how a surface with no Artifact opens the page at all, and it is admitted under `final-only` by
+the maintainer's ruling of 2026-09-09 (§ 2). Say which of the two happened; never let a reader guess
+whether they are looking at a link or a file.
+
+**Only the `final` variant gets a file of its own**, at
+`<reports.dir>/<YYYY-MM-DD>-<branch-slug>-final.html`, and **that is what `retain: final-only`
+governs** — what survives the next render. Turn and landing renders live at their address, and on a
+non-Artifact surface at `current.html` until the following turn replaces them; a directory of forty
+dated turn reports is the thing the retention rule exists to prevent, and one always-latest working
+file is not that. `Reports/` and `.nen/` are git-ignored; **rikugan writes under `<reports.dir>` and
+nowhere else in the tree.**
+
+**Say one line in chat and stop**: the variant, the branch, the link or the path. Not a prose
+summary of the page underneath it — that is the thing the page exists to replace.
+
+## 7. When the render cannot happen
+
+Relay it in one line and say what is missing — a `reports.captures` directory that does not exist, a
+capture too large to embed, a template that will not resolve. **Then render the page without that
+section's rows**, with the section's own empty-state line showing, and name the gap in **03 Not
+delivered**. A report that quietly drops its screenshot table is worse than one that says the
+captures were not found.
+
+**What is never the fallback: a markdown recap presented as the report.** If no page can be produced
+at all, say that no report was produced. The one thing this skill must not do is let a chat message
+stand in for the artifact, because nobody downstream can tell the two apart afterwards.
+
+## 8. This is NOT a gate event — no banner
+
+A report rendered because a turn ended, or because the maintainer asked for one, carries **no
+`nen stop` banner, no efforts table and no push notification** — the identical carve-out
+[`hatsu:backlog-board`](../backlog-board/SKILL.md) § 6 states, for the identical reason: he is
+already looking at it. **The bell is [`hatsu:jutaisho`](../jutaisho/SKILL.md)'s**, it runs *after*
+this skill in [`hatsu:ren`](../ren/SKILL.md)'s order, and it rings only when something is genuinely
+his. Rikugan hands jutaisho the report's link and rings nothing itself.
+
+**A real stop that comes due while the report renders fires normally, with its banner.** Rendering a
+report never suppresses one.
+
+## Residue
+
+Everything here is named, and every entry is a verb this repository expects at `v0.4.0`:
+
+1. **`nen report data`** — the whole family is absent at `v0.3.0` (exit `2`, *"unknown command
+   'report'"*). § 3's table is the by-hand assembly, run as `git log` / `git diff --name-status` /
+   `git diff --name-only` and reported as by-hand.
+2. **`nen report render --template`** — absent with it. § 4 fills `templates/rikugan.html` by hand,
+   same template, same tokens, same bytes for the same data — **and the escaping the verb would do
+   by default is this skill's own job on that path**: escape `& < > " '` in every value written,
+   validate `{{src}}` against the data-URI regex and `{{percent}}` as a bare `0`–`100`
+   (§ 4, *Escaping*).
+3. **`nen shu evidence --base <ref>`** — not a `shu` subcommand at `v0.3.0`. Screenshot rows come
+   from `git diff --name-only` filtered by `project.evidence.globs`.
+4. **`nen shu test-report`** — not a `shu` subcommand. The final variant's test rows are read off
+   the runner's own summary and quoted.
+5. **`nen shu coverage --touched --base <ref>`** — `--touched` is not a known option. Coverage rows
+   are `nen shu coverage`'s per-target table filtered by `git diff --name-only`, banded against
+   § 2's ladder.
+6. **`nen/workflow.json` is unvalidated** — no row in `nen schema check` at `v0.3.0`. This skill
+   reads it as data and states the defaults it fell back to.
+7. **The Artifact publish itself has no verb and never will** — it is the surface's tool, not a
+   deterministic step nen owns. Named here so that the absence is a boundary rather than a silence.
+
+**None of these is routed around.** Each is run by hand, in the open, with the sentence *"this was
+assembled by hand; `nen report data` does not exist at the pinned ref"* attached to the report that
+carries it — so that the day the verbs land, the retirement is visible.
+
+## Authority
+
+- **Permitted:** read the working copy and its git history; read `nen/workflow.json` and
+  `nen/contract.json`; publish or republish **this branch's** report Artifact; write under
+  `<reports.dir>`.
+- **Not permitted:** anything else on disk, any GitHub write, any label, any merge, any push. Rikugan
+  is a rendering step inside somebody else's run and holds none of that run's authority.
+- **Carries no `CON-25`-equivalent delegation**, and being invoked from inside
+  [`hatsu:ren`](../ren/SKILL.md), `mukai` or `en` does not lend it one.
+
+## Hard limits
+
+- **Never renders the report as markdown**, or lets a chat summary stand in for the page (§ 7).
+- **Never writes outside `<reports.dir>`**, and never gives a `turn` or `landing` render a **kept**
+  file — no dated name, no second path. The one transient `current.html` is the whole of what those
+  variants may touch, and only on a surface that cannot publish an Artifact (§ 6).
+- **Never publishes a second URL for a branch that already has a report** — republish, having read
+  first (§ 6).
+- **Never claims readiness by eye** — § 5's row 09 is `nen pr ready`'s verdict, quoted, or absent.
+- **Never omits 03 Not delivered**, and never leaves a gap out of it to make a turn read better.
+- **Never fires the `nen stop` banner, the efforts table or a push notification** (§ 8) — the bell is
+  [`hatsu:jutaisho`](../jutaisho/SKILL.md)'s, and it rings after this, not inside it.
+- **Never presents by-hand assembly as a verb's output** — § 3 and § 4 are residue and say so on the
+  page they produce.
+- **Never links a screenshot that a reader outside this machine cannot resolve** — embedded as a
+  data URI, or named as missing.
+- **Never writes an unescaped value into the page, by verb or by hand**, and never a `{{{ }}}` for
+  anything but a data URI that has already matched its regex (§ 4, *Escaping*). A repository-
+  controlled string reaching an Artifact unescaped is the report attacking its own reader.

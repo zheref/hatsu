@@ -4,7 +4,7 @@
 credentials.**
 
 One lead persona — **Kurapika**, who names which of six declared work-modes he is holding before he acts —
-plus a small roster of focused independents, and **seventeen skills** that take a backlog, a pull request or
+plus a small roster of focused independents, and **twenty-seven skills** that take a backlog, a pull request or
 a release from where it is to the human gate where a person decides. **Every deterministic step that has a
 verb is a verb** from the [**Nen**](https://github.com/zheref/nen) CLI: Nen detects, computes, formats and
 verifies; the skill supplies only the judgment a binary cannot. Where no verb exists yet, the residue is
@@ -12,13 +12,15 @@ verifies; the skill supplies only the judgment a binary cannot. Where no verb ex
 
 No GitHub App. No bot identity. Nothing here merges `main`, publishes a release, or casts a review vote.
 
-> **`v0.3.0`.** Hatsu is the local plane of the Akatsuki system, and it succeeds the local plane of a
+> **`v0.4.0`.** Hatsu is the local plane of the Akatsuki system, and it succeeds the local plane of a
 > predecessor system — the frozen reference implementation — which it also **serves live today**: the
-> seventeen skills were ported name-for-name and proven against that system's real backlog before `v0.1.0`
-> was cut. The evidence is in [`docs/ab/`](docs/ab/), one file per skill — dated records of the port against
-> nen `0.1.0`. `v0.3.0` reconciles every skill and persona with nen **`v0.3.0`**: the findings those records
-> filed that nen has since fixed are corrected in the skills, the `schemas/`→`nen/` taxonomy move is
-> carried, and nen's new `shu` family and `issue comment` verb are folded into the roster's own procedures.
+> original seventeen skills were ported name-for-name and proven against that system's real backlog before
+> `v0.1.0` was cut. The evidence is in [`docs/ab/`](docs/ab/), one file per skill — dated records of the port
+> against nen `0.1.0`. `v0.3.0` reconciled every skill and persona with nen **`v0.3.0`**. **`v0.4.0` adds the
+> way of working**: ten skills that make the local loop itself explicit, two configuration files that hold
+> every parameter of it ([`nen/contract.json`](nen/contract.json) → `project` and
+> [`nen/workflow.json`](nen/workflow.json)), and two harness hooks — a stop bell and a refusal to commit on
+> the trunk. [`docs/WORKFLOW.md`](docs/WORKFLOW.md) is the authority on all three.
 
 ---
 
@@ -58,7 +60,7 @@ claude plugin install hatsu@hatsu
 Confirm what landed:
 
 ```sh
-claude plugin list                  # hatsu@hatsu — Version: 0.3.0
+claude plugin list                  # hatsu@hatsu — Version: 0.4.0
 claude plugin details hatsu@hatsu   # the full component inventory
 ```
 
@@ -81,7 +83,7 @@ nen's own shape (`dependency.version_probe` as an argv array, `dependency.bootst
 
 ```sh
 nen schema check --repo <this checkout>
-#   ok    nen/contract.json  dependency (nen >= 0.3, pinned v0.3.0)
+#   ok    nen/contract.json  dependency (nen >= 0.3, pinned v0.3.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)
 ```
 
 (Four taxonomy rows print above that line — three `FAIL` (`nen/labels.json`, `nen/repos.json`,
@@ -91,6 +93,14 @@ which `pr ready` can take by `--gates` instead. The contract row is the one this
 Hatsu-authored key beside nen's own — the zero-major caveat, the two install paths, the halt template, the
 no-`jq` rule — is preserved verbatim by nen's loader and read by nothing in nen. There is deliberately no
 second copy: it was `nen.contract.json` at the root through `v0.2.0`.
+
+Since `v0.4.0` the same file also carries a **`project`** block — Hatsu's own lane, written by hand because
+`nen shu detect --repo .` answers *no lane detected* for a bash-and-markdown repository. `lint` is
+`claude plugin validate . --strict`; every other verb of the family is an explicit `unsupported` **seat**
+stating in this repository's words why it does not exist, because a seat is exit `4`, a stated fact, while an
+omission is exit `2`, a broken declaration. Its policy half, [`nen/workflow.json`](nen/workflow.json), is
+**not** validated by nen at `0.3.0` — it grows a `schema check` row at nen `0.4.0` — and
+[`docs/WORKFLOW.md`](docs/WORKFLOW.md) documents both.
 
 ### The range
 
@@ -181,13 +191,13 @@ Four, each with a discipline Kurapika delegates to rather than absorbing.
 
 ### 🔶 OPEN — Illumi and Killua
 
-**These rows are open sub-decisions, and the ruling has not been made.** It is the maintainer's, not this
-repository's. What follows is recorded **verbatim as proposals**. Neither has a definition in
+**These rows are open sub-decisions, and the ruling has been made only in part.** It is the maintainer's, not
+this repository's. What follows is recorded **verbatim as proposals**. Neither has a definition in
 `claude/agents/`, and **neither may be acted as**.
 
 | Agent | *Proposed* role | Status |
 |---|---|---|
-| **Illumi** | *Proposed:* long-running loop engines (backlog-loop / futon / senkei — needle control of many bodies at once) | **OPEN** |
+| **Illumi** | *Proposed:* long-running loop engines (backlog-loop / futon / senkei — needle control of many bodies at once) | **Partially ruled 2026-09-09** — provisioned for `en`'s long watch, when one is needed; no definition exists. The rest of the row stays **OPEN** |
 | **Killua** | *Proposed:* delegate-run watchdog paired with Gon — a Gon mission never runs unwatched — plus fast single-object interventions | **OPEN** |
 
 **Killua's row touches Gon's grammar and must not be collapsed into it.** If ratification adopts the pairing,
@@ -200,26 +210,32 @@ nobody deciding it.
 
 ### 🔶 BENCH — the Genei Ryodan
 
-**Bench only. No activation here, and none implied.** These are *extensible professional-profile agents,
-adopted as needed* — a list of shapes the roster can grow into, not a roster. Which profiles activate, and
-when, is open.
+*Extensible professional-profile agents, adopted as needed* — a list of shapes the roster can grow into.
+**Two were activated on 2026-09-09** and the other five are bench only, with no activation implied.
 
-| Bench member | Profile | Bench member | Profile |
-|---|---|---|---|
-| **Chrollo** | Architecture | **Shalnark** | Automation |
-| **Feitan** | Security | **Kortopi** | Scaffolding |
-| **Machi** | Integration surgery | **Pakunoda** | Repo forensics |
-| **Shizuku** | Cleanup | | |
+| Bench member | Profile | Standing |
+|---|---|---|
+| **Chrollo** | Architecture | **Activated** — architecture and handbook conformance, as an adversarial reviewer. Definition at `v0.5.0` |
+| **Feitan** | Security | **Activated** — security, and security only, as an adversarial reviewer. Definition at `v0.5.0` |
+| **Machi** | Integration surgery | Bench |
+| **Shalnark** | Automation | Bench |
+| **Kortopi** | Scaffolding | Bench |
+| **Pakunoda** | Repo forensics | Bench |
+| **Shizuku** | Cleanup | Bench |
 
-None has a definition in `claude/agents/`, none is listed in `plugin.json`, and **none may be acted as**.
-Adopting one is a deliberate act with its own decision, not a consequence of it being written here.
+**None of the seven has a definition in `claude/agents/` yet, none is listed in `plugin.json`, and none may
+be acted as** — activation is a decision about standing, not a licence to improvise the agent. For the five
+still on the bench, adopting one remains a deliberate act with its own decision.
+[`docs/ROSTER.md`](docs/ROSTER.md) § *Rulings of 2026-09-09* is the authority.
 
 ---
 
 ## The skills
 
-Seventeen, invoked as `hatsu:<name>`. Longer descriptions in
+Twenty-seven, invoked as `hatsu:<name>`. Longer descriptions in
 [`claude/skills/README.md`](claude/skills/README.md).
+
+### The seventeen that answer a request
 
 | Skill | |
 |---|---|
@@ -241,8 +257,70 @@ Seventeen, invoked as `hatsu:<name>`. Longer descriptions in
 | `senkei` | Inventories a consuming product repo's own backlog and states a Ready/not-Ready call for every open PR. **It writes as well as reads**: it re-runs failed checks (`nen run rerun-failed`) and fires `bankai:wake/iterate` on a stalled PR. Never merges. |
 | `tensho` | Turns a dirty working copy into one PR, reviewing every file before staging it, then hands that PR to `drive`'s engine to reach its gate. |
 
+### The ten that *are* the way of working — new in `v0.4.0`
+
+Nine atomic, one composite. [`docs/WORKFLOW.md`](docs/WORKFLOW.md) is the authority on the loop, the two
+configuration files behind it, and the phases only you can call.
+
+| Skill | | |
+|---|---|---|
+| `breath` | **atomic** | **Warm-up, once per effort.** On the base branch and clean: fetch, fast-forward, cut `{model}/{persona}/{descriptor}` from the fresh trunk, prove the declared iteration checks. Asks only on a dirty tree; never discards a tree it has not inspected. |
+| `rasengan` | **atomic** | **Build, before every commit.** Runs every declared iteration check through the lane's own verb. A red build is fixed, never committed over; an unsupported seat is quoted, never routed around. |
+| `kokusen` | **atomic** | **The automatic local commit.** Build green, then staging triage with an **ask on every flagged file** and never a secret, then the formatted message. Commits, and only commits. |
+| `amaterasu` | **atomic** | **Launch, every turn.** Builds the configured target and starts it **from your working directory, never a worktree**. A disconnected device is reported by name. |
+| `tsukuyomi` | **atomic** | **Tests health.** Runs the required suites, parses the results, fixes and re-runs — or stops at **G5**. It never patches a test to make it pass. |
+| `rikugan` | **atomic** | **The rich report** — turn, landing, final — rendered from an HTML template, never markdown. Only the final one is written to the git-ignored `Reports/`. |
+| `jutaisho` | **atomic** | **The bell.** Rings the notification ladder you declared, and drops the marker the `Stop` hook reads. |
+| `ao` | **atomic** | **Pull from the base.** Rebase if unpushed, merge if not; mechanical conflicts resolved, a **semantic** one raised as a **G5** with both sides shown. Never pushes. |
+| `aka` | **atomic** | **Push — yours to call.** Tests → squash the unpushed commits → `ao` → push. No PR, and no agent ever prompts for it. |
+| `ren` | **composite** | **The per-request loop**: `breath` → `rasengan` → `kokusen` → `amaterasu` → `rikugan` → `jutaisho`, looping until you call the next phase. **It never pushes.** |
+
+> **Arriving at `v0.5.0`/`v0.6.0`:** `mukai` (the review-and-PR phase), `murasaki` (pull + push), `en` (the
+> capped landing watch), `hanten` (adversarial review), `gyo` (the coverage bar), `shibari` (opens the PR),
+> `jujutsu` (device pairing), `kotoamatsukami` (end-to-end / UI tests), `susanoo` (archive and packaging),
+> `kagutsuchi` (non-production upload) and `mugetsu` (publication, **G3**) — plus the rename of `drive` to
+> **`sharingan`**. Until a phase has a skill, the boundary still holds: it is named, and the loop stops there.
+
 Plus [`hatsu-warmup`](claude/skills/hatsu-warmup/) — the Nen contract, executing — and the `/kurapika`
 summon command.
+
+### The way of working
+
+`v0.4.0` writes the loop down. Two files hold every parameter of it, and the split matters:
+[`nen/contract.json`](nen/contract.json) → `project` says what **nen executes** (lanes, per-verb argv,
+preconditions, hosts, deploy targets, launch targets), and [`nen/workflow.json`](nen/workflow.json) says what
+the **workflow decides** (branch shape, which declared verbs run per iteration, the coverage ladder, reports,
+notifications, the commit-trailer allow-list, the model matrix). A wrong `project` block runs the wrong
+command, loudly. A wrong `workflow.json` runs the right command at the wrong moment, silently. Keeping them
+apart is what keeps the second class of mistake visible.
+
+- **`ren` runs on every request** and never pushes. **Five phases are yours to call, and no agent ever
+  prompts for them**: `aka` (push), `mukai` (review and PR), the **merge**, `kagutsuchi` (non-production
+  upload) and `mugetsu` (publish, **G3**).
+- **Only a genuine G5 interrupts you** — red required tests, touched-file coverage under the ladder's
+  minimum, a *semantic* merge conflict, an unsettled adversarial finding, a stuck-PR escalation. Five, and
+  nothing else. A stop is `nen stop`'s banner, the report link, and the question asked through your surface's
+  own native option picker.
+- **Branches read `{model}/{persona}/{descriptor}`**, and every subagent is titled
+  `<skill> · <persona> · <model alias>` — what ran, as whom, on what. A subagent is **never** given the
+  frontier model tier; that tier is where your own conversation lives.
+- **[`hooks/hooks.json`](hooks/hooks.json)** ships two harness hooks, and they are discovered automatically at
+  that path: a `Stop` bell that notifies and plays a sound when a gate stop is waiting, and a `PreToolUse`
+  guard on `Bash` that refuses a `git commit` or `git push` while you are standing on the base branch. The
+  guard **parses** the command — quoted spans masked, the line split into segments, git's global options
+  walked past — so `echo 'git commit'` is not a write and `git -C <dir> commit` is judged in `<dir>`; it
+  fails *closed* only where the branch it can see is not the branch the write would land on. Both are POSIX
+  `sh`, use no `jq`, and otherwise no-op rather than block on anything they cannot read.
+- **No AI attribution trailer is ever recorded.** `Akatsuki-Agent:` is the single admitted trailer — the
+  system's own provenance, not a model claiming authorship. **Set `includeCoAuthoredBy: false`** in your
+  Claude Code settings so the harness stops adding `Co-Authored-By:`. Enforcement is **three-layered, and
+  only the first layer ships in this plugin**: (a) `kokusen` and `aka` refuse to **write** such a trailer —
+  agent-side, and it is what Hatsu itself carries; (b) the **target repository's `commit-msg` hook**, which
+  `nen scaffold init` generates from `commits.allowedAttributionTrailers` at **nen `0.4.0`** (in flight this
+  week in `zheref/nen`; KroApple and kro-pwa already carry one); (c) **`nen commit format`** refusing the
+  trailer, also at `0.4.0`. **At the pinned nen `0.3.0`, layers (b) and (c) are target-dependent** — a
+  repository that has not been scaffolded with the hook has the agent-side refusal and nothing under it, and
+  that is said plainly rather than promised as mechanical.
 
 ### What nen `v0.3.0` adds to the roster's own procedures
 
@@ -261,10 +339,13 @@ warm-up and its own documented commands, said plainly — the full rules are in
 
 ### Evidence
 
-Every one of the seventeen ships with its own A/B record in **[`docs/ab/`](docs/ab/)**: the mechanics before
-the port, the mechanics after, and a live transcript against a real backlog showing the same verdict reached
-with fewer improvised commands — `nen` invocations where the old transcript had raw `gh`. The surface was
-proven before this version was cut; it is not an aspiration.
+Every skill ships with its own record in **[`docs/ab/`](docs/ab/)**. For each of the original seventeen that
+is an A/B: the mechanics before the port, the mechanics after, and a live transcript against a real backlog
+showing the same verdict reached with fewer improvised commands — `nen` invocations where the old transcript
+had raw `gh`. For each of the ten added at `v0.4.0` it is the same evidence in the same shape, minus the
+"before": the verbs exercised live with their exit codes, the residue that has no verb at the pinned nen, and
+the findings the exercise filed against the binary. The surface was proven before this version was cut; it is
+not an aspiration.
 
 Those transcripts were recorded against repositories that are **not public**, so every private repository
 name in this repository is replaced by a stable placeholder. The legend, and what is deliberately left
@@ -317,7 +398,8 @@ that already has the plugin installed** — no error, no warning, the fix ships 
 [`scripts/plugin_bump_check.sh`](scripts/plugin_bump_check.sh), wired as the
 [`plugin-bump-check`](.github/workflows/plugin-bump-check.yml) workflow, fails a PR that tries. The guarded
 surface is `.claude-plugin/**`, `claude/**`, `nen/**`, `contracts/**`, `docs/ROSTER.md`,
-`docs/delegation-grammar-DRAFT.md`, `hooks/**` and `.mcp.json` — everything an installed copy reads. Bump
+`docs/delegation-grammar-DRAFT.md`, `hooks/**`, `templates/**` and `.mcp.json` — everything an installed copy
+reads. Bump
 `version` (patch for wording, minor for behaviour or a new skill, major for a breaking interface change —
 which the minor carries while Hatsu is on `0.x`, SemVer clause 4, the reading applied to nen's own line);
 or, if a change provably cannot affect the shipped surface, write `no plugin bump: <reason>` in the PR

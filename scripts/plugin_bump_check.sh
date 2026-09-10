@@ -47,7 +47,8 @@ fi
 #   .claude-plugin/*  — the manifests themselves (plugin.json, marketplace.json).
 #   claude/*          — everything plugin.json points at: `agents` (kurapika,
 #                       gon, hisoka, phinks, uvogin), `commands` (/kurapika),
-#                       and `skills` (the 17 ported skills + hatsu-warmup).
+#                       and `skills` (the 27 skills + hatsu-warmup), plus
+#                       `templates/` where a skill renders from one.
 #   nen/*             — the D10 dependency contract, `nen/contract.json`. Read
 #                       at run time through `$CLAUDE_PLUGIN_ROOT/nen/contract.json`
 #                       by the warm-up skill and by the agent definitions, and it
@@ -75,10 +76,19 @@ fi
 #                       copy reads it AT RUN TIME. Being a draft is a statement
 #                       about its authority, not about whether it ships — a
 #                       stale draft is exactly as invisible as a stale roster.
-#   hooks/*           — forward-proofing. Nothing lives here today; the day a
-#                       hook is added it is plugin-shipped and executed on every
-#                       session, and a guard that had to be remembered at that
-#                       moment is a guard that is not there.
+#   hooks/*           — the harness hooks, discovered by Claude Code at the
+#                       plugin's default `hooks/hooks.json` and executed on
+#                       EVERY session: a Stop bell and a PreToolUse refusal to
+#                       commit on the trunk (Hatsu 0.4.0). The glob predated
+#                       them by a version, deliberately — a guard that had to be
+#                       remembered on the day the first hook landed is a guard
+#                       that is not there.
+#   templates/*       — the report templates a skill renders from through
+#                       `$CLAUDE_PLUGIN_ROOT/templates/<name>.html`
+#                       (`nen/workflow.json` → `reports.template`). SAME
+#                       CRITERION AS docs/ROSTER.md: an installed copy reads it
+#                       at run time, so a stale template renders a stale report
+#                       on every machine that already has the plugin.
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #
@@ -97,6 +107,7 @@ PLUGIN_SURFACE_GLOBS=(
   'docs/ROSTER.md'
   'docs/delegation-grammar-DRAFT.md'
   'hooks/*'
+  'templates/*'
   '.mcp.json'
 )
 
@@ -187,7 +198,8 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
   cat >&2 <<'EOF'
 This PR changes a plugin-shipped surface (.claude-plugin/**, claude/**,
 nen/**, contracts/**, docs/ROSTER.md,
-docs/delegation-grammar-DRAFT.md, hooks/**, or .mcp.json) but leaves
+docs/delegation-grammar-DRAFT.md, hooks/**, templates/**, or .mcp.json)
+but leaves
 .claude-plugin/plugin.json's `version` field unchanged.
 
 Claude Code keys its plugin cache on that field. An already-installed Hatsu

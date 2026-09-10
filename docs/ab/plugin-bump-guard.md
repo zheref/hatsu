@@ -112,6 +112,14 @@ Deliberately **not** covered, because nothing installed reads them at run time: 
 (these evidence records — read by humans on GitHub, never by an installed copy), `scripts/**` (CI-only — no
 agent or skill invokes anything there), `.github/**`.
 
+> **Addendum, 2026-09-09 (Hatsu `0.4.0`).** Two rows above have moved, and this record is left as written
+> rather than rewritten, because it is a dated record. **`hooks/*` is no longer forward-proofing**: Hatsu
+> `0.4.0` ships `hooks/hooks.json` plus two POSIX scripts, discovered at the plugin's default hook location
+> and executed on every session — which is exactly the moment the forward-proofed glob was written for, and it
+> was already there. And **`templates/*` was added** on the same criterion as `docs/ROSTER.md`: a skill renders
+> its report from `$CLAUDE_PLUGIN_ROOT/templates/<name>.html`, named by `nen/workflow.json` → `reports.template`,
+> so a stale template renders a stale report on every installed copy. The sweep below predates both.
+
 Verified by classification sweep, re-run 2026-09-08 against the `0.3.0` script (the `v0.1.0` sweep differed
 only in its `nen.contract.json` row, then `COVERED`):
 

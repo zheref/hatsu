@@ -1,0 +1,187 @@
+---
+name: ren
+description: Run one request end to end as a turn — warm up on the first turn, build, commit locally, launch the app, publish the report, ring the bell — and then wait for the next request. Use when the maintainer invokes hatsu:ren <request>, or simply asks for work in a repository where the turn loop is how work is done. Ren composes the six atomic skills by name and restates none of their protocol; it never pushes, never opens a pull request, and ends only when the maintainer calls hatsu:aka or hatsu:tensho.
+---
+
+# Ren — one request, one turn, every time
+
+**No fixed mode.** Ren is a composed run: the mode is whichever the *request* is —
+**Enhancer** for product code, **Conjurer** for canon, **Transmuter** for machinery — held for the
+turn and named in the reply, with **Manipulator** named alongside it while the turn's reporting steps
+run. Name the mode in play, say when it switches and why, and never blend two under one header
+(`claude/agents/kurapika.md`).
+
+> **Take the request. Warm up if this is the first one, build it, commit it, launch it, show me the
+> report, ring once. Then wait.**
+
+Ren is the **shape of ordinary work** in the local plane. It is not a batch runner and not a
+watcher: **one invocation is one request, and one request is one turn.** The loop is that the next
+request starts the next turn, with the warm-up step already spent.
+
+**This file composes. It does not re-specify.** Every step below is another skill's, named and
+linked, and its procedure, its exit-code reactions, its refusals and its residue live there. If you
+find a rule here that is really that skill's, it is in the wrong file — go read it where it is
+authored, because a rule restated in two places drifts in one of them.
+
+---
+
+## 1. Invocation
+
+```
+hatsu:ren <request>
+```
+
+```bash
+nen parse ren --grammar "<request>" --line "<the request, minus the hatsu:ren prefix>"
+```
+
+Verified live at `v0.3.0` (`docs/ab/ren.md` § 2.1): a request line parses to
+`request: <the whole line>` at exit `0`, and an empty line refuses at exit `2` — *"<request> is
+required and the line does not supply it"* — with the corrected line printed. **A turn with no
+request is refused, never inferred from what the session was last doing.**
+
+**Ren is also the default shape, not only an explicit call.** In a repository whose
+`nen/workflow.json` describes this loop, an ordinary request from the maintainer *is* a ren turn;
+say so on the first one, so nobody is surprised by the report and the bell at the end of it.
+
+## 2. The turn, in order
+
+| # | Step | The skill that owns it | Why it is here |
+|---|---|---|---|
+| 1 | **warm up** | [`hatsu:breath`](../breath/SKILL.md) | **first turn of an effort only** — clean tree, fetch, fast-forward, cut the branch from the base, prove the declared checks |
+| 2 | **build** | [`hatsu:rasengan`](../rasengan/SKILL.md) | every `iteration.checks` verb, green, **before** anything is committed |
+| 3 | **commit** | [`hatsu:kokusen`](../kokusen/SKILL.md) | triage, ask on what is flagged, one shaped commit — local only |
+| 4 | **launch** | [`hatsu:amaterasu`](../amaterasu/SKILL.md) | build the configured target and start it **from the core working directory** — or, where the repository declares no launch target (Hatsu's own case), record `no launch target declared; skipped` and continue **without asking** |
+| 5 | **report** | [`hatsu:rikugan`](../rikugan/SKILL.md) `as turn` | the page: accomplished, challenges, not delivered, architecture, screenshots, the exact launch command, decisions |
+| 6 | **bell** | [`hatsu:jutaisho`](../jutaisho/SKILL.md) | the rungs the workflow declares — and a stop only if one is genuinely due |
+
+**The order is load-bearing in three places, and those three are the only ones ren asserts:**
+
+- **2 before 3.** A red build is fixed, never committed over. Kokusen's own contract requires
+  rasengan green before each commit; ren guarantees it by ordering, not by re-checking.
+- **4 before 5.** The report's *How to launch* section is the argv amaterasu actually ran, pasted
+  verbatim. Rendering the report first would make that section a prediction.
+- **5 before 6.** The bell carries the report's link. A bell that rings before the page exists sends
+  the maintainer to nothing.
+
+**Step 1 runs once per effort, not once per turn.** The second and every later turn of the same
+effort starts at step 2. Say which turn this is and whether breath ran.
+
+**A step that refuses ends the turn where it refused.** Kokusen asking about a flagged file,
+rasengan finding a red build, amaterasu finding the declared device disconnected — each is that
+skill's own handling, and ren neither retries past it nor smooths it over. What ren adds is that
+**steps 5 and 6 still run**: a turn that stopped at step 3 is still a turn, and the report names the
+stop in *Not delivered*.
+
+## 3. What each turn produces, and what it never produces
+
+**Produces:** local commits on the effort's branch, a running app where the repository declares a
+launch target, one report at the branch's report address, and at most one bell.
+
+**Never produces:** a push, a pull request, a tag, a label, a comment, a release, a deploy. **Ren is
+the phase that cannot leave the machine**, and that is what makes it safe to run on every request
+without asking. The moment work needs to leave, a human says so.
+
+**Parallel efforts never launch.** That is [`hatsu:amaterasu`](../amaterasu/SKILL.md)'s own rule, for
+its own reason — two builds fighting over one simulator is worse than no build — and ren does not
+override it: a turn running as one of several parallel subagent efforts skips step 4 and the report
+says step 4 was skipped and why.
+
+## 4. The loop, and what ends it
+
+**One request, one pass through § 2. Then wait.** There is no timer, no poll, no background pass,
+and no self-continuation: the next request is the next turn.
+
+**Ren ends only on [`hatsu:aka`](../aka/SKILL.md) or [`hatsu:tensho`](../tensho/SKILL.md)** — the two
+places the effort leaves the machine. Nothing else closes it:
+
+- a turn that stopped at a step is a turn that stopped, not the end of the loop;
+- a G5 stop inside a step ends **that turn**, and the answer resumes the loop;
+- the maintainer moving to a different effort starts a new loop, with its own step 1;
+- the session ending ends the loop the way it ends everything else. **A ren loop is
+  session-scoped**, never a standing arrangement, and never promises persistence it does not have.
+
+**Ren never proposes its own ending.** In particular it never suggests `hatsu:aka` — that skill's
+§ 1 forbids being prompted for, and a composite that ends every turn with *"ready to push?"* is the
+exact inversion the local plane's push discipline exists to prevent. The report says the branch is
+ready; the maintainer says the rest.
+
+> **No nen verb can drive this loop, and that is verified rather than assumed
+> (`docs/ab/ren.md` § 2.2).** nen ships two loop primitives and neither fits. **`nen watch until`**
+> spawns **one** program, **directly, with no shell**, and classifies it against izanami's read-only
+> table before the first run: `nen watch until --command "nen shu build" --max-iterations 1` is
+> refused at exit `2` — *"'nen shu build' classifies as mutating … izanami watches only"* — and
+> `nen parse izanami "nen shu build until it is green"` reports `[mutating]` at exit `1`. A turn is
+> six skills and many programs, most of them mutating, so it has no single `--command` and would be
+> refused if it had one. **`nen loop slots`** is a *concurrency budget across efforts*
+> (`--efforts <path.json> --local-cap <n>`), which is a different question entirely — how many
+> efforts may be in flight, not how one effort takes its next turn. **So the loop lives in the
+> session**, under [`hatsu:izanami`](../izanami/SKILL.md)'s borrowed discipline: one line per turn,
+> no line when nothing happened, no background timer, no deferral primitive, and a visible way to
+> end it. **This is a boundary, not a missing verb to file** — a turn loop is a conversation's
+> shape, and nen deliberately owns operations rather than conversations.
+
+## 5. The parameters — read by the steps, named here
+
+Ren reads **no** `nen/workflow.json` key for itself. It names which step owns which, so a maintainer
+tuning the file knows where the effect lands:
+
+| Key | The step it configures |
+|---|---|
+| `branch.template`, `branch.base` | step 1 — [`hatsu:breath`](../breath/SKILL.md) |
+| `iteration.checks`, `iteration.lane` | step 2 — [`hatsu:rasengan`](../rasengan/SKILL.md) |
+| `commits.allowedAttributionTrailers`, `commits.forbiddenTrailers` | step 3 — [`hatsu:kokusen`](../kokusen/SKILL.md) |
+| `launch.default`, `launch.fallback` | step 4 — [`hatsu:amaterasu`](../amaterasu/SKILL.md) |
+| `reports.dir`, `.template`, `.retain`, `.captures`, `coverage.*` | step 5 — [`hatsu:rikugan`](../rikugan/SKILL.md) |
+| `notifications.rungs`, `notifications.sound` | step 6 — [`hatsu:jutaisho`](../jutaisho/SKILL.md) |
+
+**Each step states its own default when a key is absent.** Ren neither supplies a default nor
+overrides one — a composite that quietly substituted a value would make the file a lie for the step
+that owns it.
+
+## 6. Reporting the turn in chat
+
+One line, then the report link. The turn number, whether step 1 ran, which steps ran and which
+refused, and where the page is. **Not a prose recap of the page** — that is exactly what step 5
+exists to replace, and duplicating it is how the page stops being read.
+
+## Residue
+
+**One entry, and it is a boundary rather than a gap:**
+
+1. **The composition itself has no verb, and is not expected to get one.** nen owns operations, not
+   conversations (§ 4, verified live). Ren's ordering is prose because it is a *sequence of other
+   skills*, each of which is verb-backed where a verb exists. **Every deterministic step inside a
+   turn is a verb or a named residue in the skill that owns it** — `nen shu build` and
+   `nen shu tools` (step 2), `nen stage triage` and `nen commit format` (step 3), `nen shu dev`
+   (step 4), the missing `nen report data` / `nen report render` (step 5, named there),
+   `nen stop` and the `osascript`/`afplay` fallback (step 6, named there). **Ren adds no residue of
+   its own**, and if a step in this file ever grows a bare shell command, it belongs in that step's
+   own skill as named residue instead.
+
+## Authority
+
+- **Permitted:** everything the six composed skills are each permitted, under their own authority,
+  one at a time, in § 2's order.
+- **Not permitted:** anything none of them may do — and specifically **no push, no PR, no tag, no
+  label, no comment, no deploy**, whatever the request says. A request to "push this when it builds"
+  is answered by doing the turn and saying that [`hatsu:aka`](../aka/SKILL.md) is the maintainer's
+  call.
+- **Ren grants no delegation of its own.** Composing a skill does not widen what that skill may do;
+  each step runs under exactly the authority its own file gives it, and a run-scoped delegation
+  granted inside a step **expires with that step**, not with the loop.
+
+## Hard limits
+
+- **Never pushes, never opens a pull request** — no matter how many turns have passed or how ready
+  the branch looks.
+- **Never proposes [`hatsu:aka`](../aka/SKILL.md)** or any other human call as a next step it is
+  waiting on (§ 4).
+- **Never restates another skill's protocol.** If ren and a composed skill disagree, the composed
+  skill is right and this file is the bug.
+- **Never skips step 5 or step 6 because a turn ended early** — a stopped turn still reports and
+  still rings, and *Not delivered* names the stop.
+- **Never re-runs step 1 on a later turn of the same effort**, and never skips it on the first.
+- **Never runs unattended** — no timer, no background pass, no self-continuation (§ 4).
+- **Never carries a loop past the session it started in**, or promises persistence it was not given.
+- **Never overrides a `nen/workflow.json` value on a step's behalf** (§ 5).

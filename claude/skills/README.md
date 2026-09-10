@@ -4,9 +4,10 @@ This directory is the plugin's skill surface (`plugin.json` → `"skills": "./cl
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together
 under *Skills* by `claude plugin details`, which is why they are described together here.
 
-**As of `v0.1.0` the surface is complete**: the **seventeen ported skills** ([zheref/hatsu#2][2]) plus the
-**two roster-machinery residents** that arrived with the skeleton ([zheref/hatsu#1][1]). Nothing here is
-reserved any more, and nothing here is a placeholder.
+**Twenty-seven skills at `v0.4.0`**: the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
+surface complete at `v0.1.0`, the **ten workflow skills** added at `v0.4.0`, and the **two roster-machinery
+residents** that arrived with the skeleton ([zheref/hatsu#1][1]) and are counted separately. Nothing here is
+reserved, and nothing here is a placeholder.
 
 Each skill is a directory holding a `SKILL.md` with `name` and `description` frontmatter. Invoke one as
 `hatsu:<name>`.
@@ -60,10 +61,58 @@ mechanics, and a live transcript showing the same verdict from fewer improvised 
 
 ---
 
+## The way of working
+
+The seventeen above each answer a request. The ten below are the **loop that carries every request** —
+warm up, build, commit, launch, report, ring; pull, test, push — and the phases the maintainer calls by
+hand. [`../../docs/WORKFLOW.md`](../../docs/WORKFLOW.md) is the authority on all of it: the two configuration
+files ([`nen/contract.json`](../../nen/contract.json) → `project`, what nen **executes**;
+[`nen/workflow.json`](../../nen/workflow.json), what the workflow **decides**), every key of the second one,
+the coverage ladder, the human-called phases, the five G5 stops, and the two harness hooks in
+[`../../hooks/`](../../hooks/).
+
+Two rules govern every one of them. **Five phases are the maintainer's to call and no agent ever prompts for
+them** — `aka`, `mukai`, the merge, `kagutsuchi`, `mugetsu`. And **only a genuine G5 stops the loop**: red
+required tests, coverage under the ladder's minimum, a semantic conflict, an unsettled adversarial finding, a
+`sharingan` escalation. A stop is `nen stop`'s banner plus the question asked through the surface's own
+native option picker.
+
+### The ten workflow skills — nine atomic, one composite
+
+**Atomic** — one phase each:
+
+| Skill | What it does |
+|---|---|
+| [`breath`](breath/) | **Warm-up, once per effort.** On the base branch and clean: fetch, fast-forward, cut `{model}/{persona}/{descriptor}` from the fresh trunk, prove the declared iteration checks. Asks only on a dirty tree, and never discards a tree it has not inspected. |
+| [`rasengan`](rasengan/) | **Build, before every commit.** Runs every `workflow.json → iteration.checks` entry through the lane's declared verb, dry-run first on a repository it has not built. A red build is fixed, never committed over; a seat (exit `4`) is quoted, never routed around. |
+| [`kokusen`](kokusen/) | **The automatic local commit.** `rasengan` green first, then `nen stage triage` with an **ask on every flagged file** and never a secret, then `nen commit format`. Commits, and only commits — it never pushes. |
+| [`amaterasu`](amaterasu/) | **Launch, every turn.** Builds the configured target and starts it **from the core working directory, never a worktree**; the dry-run argv goes into the report and the chat. A disconnected device is reported by name. Parallel subagent efforts launch nothing. |
+| [`tsukuyomi`](tsukuyomi/) | **Tests health.** Runs `workflow.json → tests.required`, parses the results, fixes and re-runs — or stops at **G5**. It never patches a test to make it pass. |
+| [`rikugan`](rikugan/) | **The rich report** — turn, landing and final — rendered from `templates/rikugan.html`, **never markdown**: accomplished, challenges, not delivered, architecture delta, screenshots, how to launch, decisions. Only the final one is written to `Reports/`. |
+| [`jutaisho`](jutaisho/) | **The bell.** Rings `workflow.json → notifications` and drops the marker that [`../../hooks/stop-bell.sh`](../../hooks/stop-bell.sh) reads; where no hook is installed it rings the notifier itself **and says that it did**. |
+| [`ao`](ao/) | **Pull from the base.** Fetch, then rebase if the branch is unpushed and merge if it is not; mechanical conflicts are resolved, a **semantic** one is a **G5** with both sides shown. It never pushes. |
+| [`aka`](aka/) | **Push — human-called.** `tsukuyomi` (G5 if red) → squash the unpushed commits → `ao` → push. No pull request, no AI attribution trailer, and **no agent ever prompts for it**. |
+
+**Composite** — an order, not a new capability:
+
+| Skill | Order inside |
+|---|---|
+| [`ren`](ren/) | **The per-request loop.** `breath`¹ (first turn only) → `rasengan`² → `kokusen`³ → `amaterasu`⁴ → `rikugan`⁵ → `jutaisho`⁶. It loops until the maintainer calls the next phase, and **it never pushes**. |
+
+> **Arriving at `v0.5.0`/`v0.6.0`, and deliberately not here yet:** `mukai` (the human-called review and PR
+> phase), `murasaki` (pull + push), `en` (the capped landing watch), `hanten` (adversarial review),
+> `gyo` (the coverage bar), `shibari` (compose and open the PR), `jujutsu` (device pairing),
+> `kotoamatsukami` (end-to-end / UI tests), `susanoo` (archive and packaging), `kagutsuchi` (non-production
+> upload) and `mugetsu` (publication, **G3**) — plus the rename of [`drive`](drive/) to **`sharingan`**.
+> Until a phase has a skill, **name the phase and stop there anyway**: the boundary is the governance, and it
+> holds whether or not a file has been written for it.
+
+---
+
 ## The two roster-machinery residents
 
-Neither is one of the seventeen. They landed with the skeleton because the plugin does not function without
-them, and they are recorded here rather than folded silently into the count.
+Neither is one of the twenty-seven. They landed with the skeleton because the plugin does not function
+without them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |
 |---|---|

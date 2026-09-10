@@ -60,6 +60,81 @@
       "manifest_asset": "SHA256SUMS"
     }
   },
+  "project": {
+    "$comment": "What nen EXECUTES for this repository — the other half of the two-file model documented in docs/WORKFLOW.md, whose policy half is nen/workflow.json. `nen shu detect --repo .` answers exit 1, 'no lane detected': Hatsu is bash-and-markdown and matches none of nen's seven reference stacks, so this block is written BY HAND, as kurapika.md § 'The shu verbs' requires. Every verb of the family is present: the one Hatsu really has is declared with its argv, and every other is an explicit `unsupported` SEAT stating in this repository's own words why it does not exist. A seat is exit 4 — a fact, not a failure — and an omitted verb would be exit 2, which reads as a broken declaration rather than as a deliberate absence.",
+    "lanes": {
+      "plugin": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "One lane, and it is the repository: a Claude Code plugin whose shipped surface is .claude-plugin/, claude/, nen/, contracts/, docs/ROSTER.md, docs/delegation-grammar-DRAFT.md and hooks/. The stack id is Hatsu's own name for it, not one of nen's seven — nen carries no build system and validates the id against nothing."
+      }
+    },
+    "defaultLane": "plugin",
+    "verbs": {
+      "plugin": {
+        "lint": {
+          "exe": "claude",
+          "argv": ["plugin", "validate", ".", "--strict"],
+          "$comment": "The host's own validator, run strictly, is the whole of Hatsu's mechanical verification: it parses both manifests, resolves every path plugin.json points at (agents, commands, skills, hooks), and fails on a surface the manifest claims but the tree does not carry. It is what workflow.json declares as the single `iteration.checks` entry, so rasengan runs exactly this before every commit."
+        },
+        "build": {
+          "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and one bash guard script, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
+        },
+        "test": {
+          "unsupported": "No automated test suite exists. The one testable unit, scripts/plugin_bump_check.sh, is pure-function-above-the-BASH_SOURCE-guard by construction and is exercised by the recorded refuse/pass transcripts in docs/ab/plugin-bump-guard.md; every other surface is prose read by an agent. Declaring a runner that does not exist would make an unperformed check read as a clean one."
+        },
+        "ui-test": {
+          "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/rikugan.html, which is a report template, not an application."
+        },
+        "coverage": {
+          "unsupported": "Nothing here executes, so nothing here is covered. gyo reports Hatsu's touched files as `not measurable` against the ladder in nen/workflow.json rather than against a number, and the ladder still governs every repository Hatsu drives that declares none of its own."
+        },
+        "archive": {
+          "unsupported": "A Claude Code plugin is distributed by git ref through a marketplace, never as a built package: `claude plugin marketplace add zheref/hatsu` reads the tree at a ref. There is no artifact to produce, so there is nothing for `archive` to name."
+        },
+        "release": {
+          "unsupported": "Publication is a git tag plus the marketplace entry that already points at this repository — there is no publish step to run, and G3 (CON-6) holds the tag decision anyway. Emitter prepares a release here; nothing in this repository publishes one."
+        },
+        "dev": {
+          "unsupported": "There is no debug build to start. The development loop is `claude plugin marketplace add ./hatsu` against a local checkout followed by `claude plugin install hatsu@hatsu`, which is a host operation on the developer's own session, not a process this repository spawns."
+        },
+        "run": {
+          "unsupported": "Same as `dev`: nothing here runs as a process. An installed Hatsu is loaded by Claude Code, and the way to exercise it is to invoke /kurapika in a session, which is a human act at a terminal nen does not own."
+        },
+        "deploy": {
+          "unsupported": "Hatsu sends nothing anywhere. Distribution is the marketplace reading this repository at a ref, so there is no destination for --target to name and no credential for a deploy to carry. `project.targets` is empty for the same reason, and empty deliberately rather than by omission."
+        }
+      }
+    },
+    "preconditions": {
+      "plugin": [
+        {
+          "kind": "path",
+          "value": ".claude-plugin/plugin.json",
+          "why": "The plugin manifest is what `claude plugin validate --strict` validates; without it the verb has nothing to read and would fail on a missing file rather than on a real defect."
+        },
+        {
+          "kind": "path",
+          "value": ".claude-plugin/marketplace.json",
+          "why": "The marketplace manifest is the second half of the shipped surface and carries its own description; --strict reads both, and a check that silently skipped one would be an unperformed check reported as a clean one."
+        }
+      ]
+    },
+    "hosts": {
+      "*": ["darwin", "linux", "win32"],
+      "$comment": "Nothing here is platform-bound: `claude` runs on all three. The Stop bell in hooks/ IS macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
+    },
+    "targets": {},
+    "toolchain": {
+      "claude": {
+        "version": ">=2.0.0",
+        "probe": ["claude", "--version"],
+        "versionFrom": "first-semver-on-stdout",
+        "installer": "verify-only",
+        "why": "Claude Code is both the host that loads this plugin and the program the `lint` verb spawns. It is verify-only on purpose: nen never installs the harness it is running inside, and the install path is the user's own (claude.com/claude-code)."
+      }
+    }
+  },
   "install_paths": {
     "note": "TWO cases, TWO paths. Which one applies is decided by the probe, never by preference.",
     "nen_absent": {
