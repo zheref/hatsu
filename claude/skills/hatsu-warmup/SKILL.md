@@ -1,6 +1,6 @@
 ---
 name: hatsu-warmup
-description: Satisfy Hatsu's hard Nen dependency (D10) before any Nen-owned work — probe `nen --version` against the range declared in nen/contract.json, and when it is absent or out of range, install the pinned build through nen's own checksum-verified bootstrap. Fail-closed with auto-install. Use at the start of every Hatsu session, and again any time a `nen` invocation reports the binary is missing. It halts with the exact command ONLY if the bootstrap itself fails — and a Nen-owned operation is never improvised in prose.
+description: Satisfy Hatsu's hard Nen dependency (D10) before any Nen-owned work — probe `nen --version` against the range declared in nen/contract.json, and when it is absent or out of range, install the pinned build through nen's own checksum-verified bootstrap. Fail-closed with auto-install. Use at the start of every Hatsu session, and again any time a `nen` invocation reports the binary is missing. It halts with the exact command ONLY if the bootstrap itself fails — and a Nen-owned operation is never improvised in prose. On Codex and Cursor it also places the generated skill and persona mirrors from `surfaces/` into the target repository (`.agents/skills/` + `AGENTS.md`, or `.cursor/skills/` + `.cursor/agents/`), excluded through `.git/info/exclude` and never through `.gitignore`; on Claude Code nothing in the target repository changes.
 ---
 
 # Hatsu warm-up — the Nen dependency contract, executed
@@ -240,6 +240,151 @@ State the outcome before doing anything else, so the maintainer knows which of t
 **Silence is not one of the four.** A warm-up that did not run is reported as *not run*, never rendered as
 clear — the same discipline `nen warmup`'s own `--questions-from` omission follows, where a skipped sweep
 reports `{"checked": false}` rather than an empty finding set.
+
+**On a surface that is not Claude Code, the report carries § 5's line too** — which surface, what was
+installed into the target repository, and by which mechanism. A surface warm-up that silently did nothing
+is the same failure as a dependency warm-up that silently did nothing.
+
+---
+
+## 5 · Surfaces — what a target repository gets on Codex and Cursor
+
+**On Claude Code, nothing here runs and nothing in the target repository changes.** Claude Code loads the
+plugin's own `claude/skills/` and `claude/agents/` directly from `$CLAUDE_PLUGIN_ROOT`; there is nothing to
+install into somebody else's checkout, and installing anything would be a write with no reason behind it.
+Say *"surface: claude-code — nothing installed, the plugin is read in place"* and move on.
+
+**On Codex and on Cursor there is no plugin loader for this plugin**, so the skills and the personas have to
+be *placed* in the repository the session is standing in. [`docs/SURFACES.md`](../../../docs/SURFACES.md) is
+the authority on the whole mechanism; this section is the part the warm-up performs.
+
+The mirrors are **generated and committed** in this plugin at
+[`surfaces/codex/`](../../../surfaces/codex/) and [`surfaces/cursor/`](../../../surfaces/cursor/) — the
+output of `nen surface mirror generate`, one `SKILL.md` per skill plus the surface's own persona shape.
+**The warm-up never generates them.** It links or copies what is already there; regeneration is a change to
+this repository, made on a branch, checked in CI (§ *The check* in `docs/SURFACES.md`).
+
+### 5a · Codex
+
+| | |
+|---|---|
+| skills go to | `<target>/.agents/skills/<name>/` — **one symlink per skill directory**, pointing at `$CLAUDE_PLUGIN_ROOT/surfaces/codex/<name>` |
+| personas go to | `<target>/AGENTS.md`, appended inside a marker block (below) |
+| invocation | `$<name>` — e.g. `$breath`, `$rasengan`. The mirror already carries that spelling; the `hatsu:` prefix does not exist on this surface |
+
+**Symlinks, not copies, and that is a verified fact rather than a preference.** Codex resolves a symlinked
+skill directory under `.agents/skills/` and lists the skill with the repository as its skill root — verified
+live on this host with `codex debug prompt-input`, which renders the model-visible prompt without calling a
+model (`docs/ab/surfaces.md` § 3.1). A symlink is what makes the mirror **self-healing**: the moment the
+plugin updates, every target repository already points at the new bytes.
+
+```sh
+mkdir -p "$target/.agents/skills"
+for d in "$CLAUDE_PLUGIN_ROOT"/surfaces/codex/*/; do
+  name=$(basename "$d")
+  ln -sfn "$d" "$target/.agents/skills/$name"
+done
+```
+
+**Copy only where the link cannot be followed, and say so when you do.** A filesystem that does not carry
+symlinks (a Windows checkout without developer mode, a synced folder, a container mount that flattens them)
+gets `cp -R` instead, and the report says **`mechanism: copy — symlinks unavailable here`**. A copy is not
+self-healing: it goes stale the next time this plugin changes, and the maintainer needs to know that it will.
+
+**`AGENTS.md` is appended to, never replaced.** A target repository's `AGENTS.md` is that repository's own
+document, and Codex reads it as prose alongside anything already in it — verified live in the same
+`prompt-input` render (`docs/ab/surfaces.md` § 3.2). So the generated appendix goes in between two markers,
+and a re-run replaces **only** what is between them:
+
+```text
+<!-- BEGIN hatsu personas (generated — nen surface mirror, surface: codex) -->
+… the contents of $CLAUDE_PLUGIN_ROOT/surfaces/codex/AGENTS.md, verbatim …
+<!-- END hatsu personas (generated — nen surface mirror, surface: codex) -->
+```
+
+The generated file's own `GENERATED by nen surface mirror` line rides along inside the block; that is
+deliberate, and it is what tells a reader of the target repository where the prose came from. **Nothing
+outside the two markers is ever touched**, and a target with no `AGENTS.md` gets one containing the block
+and nothing else.
+
+### 5b · Cursor
+
+| | |
+|---|---|
+| skills go to | `<target>/.cursor/skills/<name>/` — one symlink per skill directory, pointing at `$CLAUDE_PLUGIN_ROOT/surfaces/cursor/<name>` |
+| personas go to | `<target>/.cursor/agents/<persona>.md` — one markdown subagent file each, symlinked from `$CLAUDE_PLUGIN_ROOT/surfaces/cursor/agents/` |
+| invocation | `/<name>` — e.g. `/breath`, `/rasengan` |
+
+`.cursor/agents/` is the surface's documented subagent directory and it is **the row's own fact**, not this
+skill's guess: `nen`'s `src/surface/rules.ts` carries `agents.dir: "agents"` under `--out` for the `cursor`
+row, cited to `https://cursor.com/docs/agent/subagents`, and that is why the generated mirror already has an
+`agents/` directory beside the skills.
+
+**Cursor's link-following is NOT verified on this host** — `cursor-agent status` reports *Not logged in*, so
+no discovery run could be made (`docs/ab/surfaces.md` § 3.3). The symlink form is used because it is the
+same filesystem mechanism Codex was verified with, and **the report says it is unverified on Cursor**. If a
+skill does not appear in a Cursor session, fall back to `cp -R` and say so.
+
+### 5c · Both — the target's history, and the file that is never touched
+
+**Every path this section writes into the target repository is excluded through
+`<target>/.git/info/exclude`, and never through `.gitignore`.**
+
+```sh
+exclude="$(git -C "$target" rev-parse --git-dir)/info/exclude"
+for line in '.agents/skills/' '.cursor/skills/' '.cursor/agents/'; do
+  grep -qxF "$line" "$exclude" 2>/dev/null || printf '%s\n' "$line" >> "$exclude"
+done
+```
+
+**`.gitignore` is a tracked file in somebody else's repository.** Writing to it is a change that lands in
+their diff, their review and their history, made by a warm-up they invoked to install a tool — and it
+imposes this plugin's layout on every other contributor to that repository. `.git/info/exclude` is
+**local, untracked and per-checkout**: it is the correct place for a thing one developer's tooling put in
+one developer's working copy. **This is a hard limit, not a preference: never write a target repository's
+`.gitignore`.**
+
+`AGENTS.md` is the exception and is **not** excluded: it is a real document of the target repository that a
+human may well want to commit. The block is marked so that a reader can see what generated it.
+
+### 5d · The model matrix, per surface
+
+The warm-up states the matrix for the surface it just warmed, read from
+[`nen/workflow.json`](../../../nen/workflow.json) → `models` and never from memory:
+
+| tier | `claude` | `codex` | `cursor` |
+|---|---|---|---|
+| `frontier` | `fable` | `astra` | `grok` |
+| `deep` | `opus` | `sol` | `grok` |
+| `fast` | `sonnet` | `terra` | `composer` |
+| `economy` | `haiku` | `luna` | `composer` |
+
+`models.roles` maps a role to a tier — `reviewer: deep`, `worker: fast`, `measurer: fast`,
+`orchestrator: frontier` — and `models.rule` is *"latest alias only, never a version; subagents never on the
+frontier tier"*.
+
+**The Cursor-native rule, verbatim from the file:**
+
+> `"note": "Cursor-native only; provider models there are reserved for Bugbot"`
+
+So on Cursor a role resolves to `grok` or `composer` and to nothing else. Naming a provider model there —
+a Claude, a GPT — is not a better choice made locally; it is a different budget, reserved elsewhere.
+
+### 5e · Residue in this section
+
+1. **Placing the mirror has no verb.** `nen surface mirror generate` writes a mirror into a directory it is
+   given; **it does not install one into a target repository**, and it is not expected to — `--out` is a
+   path, not a deployment. The `ln -sfn` / `cp -R` loops above are named residue, done by hand, in the open.
+2. **Splicing the `AGENTS.md` block has no verb either.** The generator writes a *whole* `AGENTS.md`; the
+   marker block that lets it live beside somebody else's prose is this skill's own construction, and a
+   re-run's "replace between the markers" is a by-hand edit.
+3. **`.git/info/exclude` is plain `git rev-parse` plus an append.** No nen verb owns a checkout's local
+   exclude file, and none should — it is a property of one working copy, which is the opposite of what a
+   repository-driven CLI reads.
+4. **`nen surface` does not exist at the pinned nen `0.3.0`** — `nen surface` answers *"nen: unknown command
+   'surface'"* at exit `2` (verified live, `docs/ab/surfaces.md` § 2.3). The mirrors are committed in this
+   repository precisely so that a warm-up at the pin can still install them; only *regenerating* them needs
+   a newer nen, and that happens here, not in a target repository.
 
 ---
 
