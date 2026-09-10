@@ -104,26 +104,27 @@ checkout last heard.
 Say which one and why, in one line, before running it, **and name the refresh**: *"`origin` fetched
 for `main` and `opus/kurapika/knobs`; the branch is on origin, so this is a merge, not a rebase."*
 
-> **Both commands are residue, and the reason is a verified property of the verb that owns this
-> step.** `nen pr cascade-main --repo <path> [--trunk main]` is the cascade verb, and at `v0.3.0` it
-> does two things ao must not do:
+> **RETIRED at nen `0.5`: the MERGE half is a verb.** `nen pr cascade-main --repo <path> [--trunk
+> <base>] --no-push` fetches and merges exactly as it always has, then **stops** — verified live at
+> `v0.5.0` against this repository, exit `0`, the log reading `fetched origin/main` / `merged
+> origin/main cleanly` / `not pushed (--no-push)`, and `--json` carrying `"pushed": false,
+> "noPush": true` (`docs/ab/ao.md` § *Retired at nen 0.5*). So the merge half of § 3 runs through the
+> verb, and the hard limit holds: with `--no-push` there is no push to forbid.
 >
-> 1. **It pushes.** Verified live against a constructed fixture with a real origin
->    (`docs/ab/ao.md` § 2.3): a clean merge returns `{"conflicted": false, "pushed": true, "log":
->    ["fetched origin/main", "merged origin/main cleanly", "pushed"]}`, exit `0`, and the branch's
->    remote ref moved. **`--no-push` does not exist** — verified live, exit `2`, *"unknown option
->    '--no-push'"*, listing every option the family does have. It is P1 (brief § 4.7); until it
->    lands, a verb that pushes cannot run inside a skill whose hard limit is that it never pushes.
-> 2. **It merges, never rebases** — its own `--help` says so verbatim: *"Merges (never rebases) the
->    trunk into the current branch and pushes on a clean merge."* So the unpublished half of § 3 has
->    no verb at all, at any flag.
+> ```bash
+> nen pr cascade-main --repo <path> --trunk <base> --no-push [--json]
+> ```
 >
-> Both halves are therefore run as named residue — `git fetch` + `git merge --no-edit` /
-> `git rebase` — and reported as by-hand. **The day `--no-push` lands, the merge half becomes
-> `nen pr cascade-main --repo <path> --trunk <base> --no-push` and this paragraph is deleted, not
-> kept as a shim.**
+> **`--no-push` still MERGES** — a working-tree and index mutation — so izanami's automation-policy
+> table keeps `cascade-main` `mutating` in every spelling, `--no-push` included. And the verb's two
+> standing rules are unchanged: it never runs `git merge --abort`, never picks a side, and never
+> pushes over a conflict.
 >
-> `nen pr cascade-main --help` is not a subcommand help: verified live today at `0.3.0`, it exits
+> **The REBASE half still has no verb, at any flag.** The cascade verb *"merges (never rebases) the
+> trunk into the current branch"* by its own `--help`, so § 3's unpublished branch is
+> `git rebase origin/<base>`, run as named residue and reported as by-hand.
+>
+> `nen pr cascade-main --help` is not a subcommand help: verified live, unchanged at `0.5.0`, it exits
 > **`0`** and prints the whole `pr` family's usage — every verb's synopsis and then the per-verb
 > option blocks — rather than `cascade-main`'s own page. **The family help is the spec here**, and
 > reading it means reading down to the `cascade-main` block inside it, not taking the first screen as
@@ -210,13 +211,15 @@ because `origin` had not seen the commit (`docs/ab/mukai.md`). The reading is
 | Exit | What it means | What ao does |
 |---|---|---|
 | `0` | the message is on stdout | use it — `git commit --file` |
-| `2` | **refused.** At `v0.3.0` a shape violation (undeclared type, empty subject, header over 72, trailing punctuation); from `v0.4.0` also an attribution trailer `nen/workflow.json` does not admit | **stop.** Quote the sentence from stderr, fix the input, re-run. Never commit the file |
-| `1` | the trailer policy could not be read — `nen/workflow.json` present and malformed (`v0.4.0`+, with `--repo`) | **stop.** The message is unshaped because the policy is unreadable; that is a repository defect to report, not to commit past |
+| `2` | **refused.** A shape violation (undeclared type, empty subject, header over 72, trailing punctuation) or — with `--repo` — an attribution trailer `nen/workflow.json` does not admit | **stop.** Quote the sentence from stderr, fix the input, re-run. Never commit the file |
+| `1` | the trailer policy could not be read — `nen/workflow.json` present and malformed (with `--repo`) | **stop.** The message is unshaped because the policy is unreadable; that is a repository defect to report, not to commit past |
 
-At the pinned `v0.3.0` there is **no `--repo` flag and no trailer policy** — verified live: the
-forbidden-trailer refusal is `v0.4.0`'s, and at the pin `--trailer "Co-Authored-By=…"` is formatted
-without complaint. **The house rule is not enforced by the binary here, so it is enforced by the
-caller**: one `Akatsuki-Agent`, no AI attribution trailer, whatever the verb accepts.
+**RETIRED at nen `0.5`: pass `--repo <path>` and the binary enforces the house rule.** Verified live
+at the pin against this repository: `--trailer "Co-Authored-By=someone"` is refused at exit `2` naming
+the file and the admitted key, while `--trailer "Akatsuki-Agent=kurapika"` renders at exit `0`. The
+policy is opened only when the invocation carries a `--trailer`, so **`--repo` is not optional here**:
+without it there is no policy to open and nothing is refused. The caller's own restraint is still the
+layer that survives a forgotten flag.
 
 **Why ao shapes the message at all:** git's default is *"Merge remote-tracking branch 'origin/main'
 into <branch>"*, which is not Conventional Commits, and a repository whose own history uses
@@ -272,26 +275,31 @@ and the pair of SHAs is the cheapest possible way to say so.
 
 ## Residue
 
-1. **`git fetch` + `git merge --no-edit origin/<base>`** (§ 3) — `nen pr cascade-main` owns the merge
-   but pushes on success and has no `--no-push` at `v0.3.0` (verified live, exit `2`).
+1. **RETIRED at nen `0.5`: the merge half** (§ 3) is `nen pr cascade-main --repo <path> --trunk
+   <base> --no-push` — verified live, exit `0`, `not pushed (--no-push)` and `--json`'s `noPush: true`.
 2. **`git rebase origin/<base>`** (§ 3) — the cascade verb *"merges (never rebases)"* by its own
-   `--help`, so the unpublished half has no verb at any flag.
+   `--help`, so the unpublished half still has no verb at any flag. **Genuinely still residue.**
 3. **The published/unpublished test** (§ 3) — `git fetch origin <base> <branch>` (a missing remote
    branch tolerated) **then** `git rev-parse --verify --quiet refs/remotes/origin/<branch>`, or
    `git ls-remote --heads origin refs/heads/<branch>` asked of the remote directly. `nen wc classify
    --json` reports the branch, its dirt and its distance from the base, and nothing about the
    remote — and nothing in nen refreshes the branch's tracking ref for this decision.
-4. **The conflict enumeration and its kinds** (§ 4) — `git status --porcelain`,
-   `git diff --diff-filter=U`, `git ls-files -u`. `nen pr cascade-main --json` carries no
-   `conflicts[]` at `v0.3.0` (verified live).
+4. **RETIRED at nen `0.5`: the conflict enumeration and its kinds** (§ 4). A conflicted
+   `nen pr cascade-main --json` carries `conflicts[]`, one entry per unmerged path: `kind`
+   (`both-modified`, `add-add`, `modify-delete`, `delete-modify`) read off `git ls-files -u`'s stage
+   table, and `ours[]`/`theirs[]` — the commits each side contributed to that path since the merge
+   base. The text output lists the same, one block per file. Verified live at `v0.5.0`: the key is
+   present on every call, `[]` on a clean merge, never omitted. **What is still residue is § 6's
+   both-sides render** — `git show :1:|:2:|:3:<path>` — because `conflicts[]` names the commits and
+   not the content.
 5. **Showing both sides** (§ 6) — `git show :1:|:2:|:3:<path>`. No verb renders a merge stage.
 6. **The in-progress-merge check** (§ 2) — `.git/MERGE_HEAD` / `.git/rebase-merge` on disk;
    `nen wc classify` folds an unresolved merge into `on-branch-dirty` (verified live).
-7. **The merge commit itself** (§ 5) — `nen commit format` shapes the message and **`git commit
-   --file` makes the commit**, gated on the format verb's exit code and with the two streams kept
-   apart. `nen commit format` is a formatter: verified live it writes a message to stdout and
-   commits nothing, and nothing in nen at `v0.3.0` commits. `git rebase --continue` is the same
-   entry for the rebase half.
+7. **The merge commit itself** (§ 5) — `nen commit format --repo <path>` shapes the message and
+   **`git commit --file` makes the commit**, gated on the format verb's exit code and with the two
+   streams kept apart. `nen commit format` is a formatter: verified live it writes a message to
+   stdout and commits nothing, and nothing in nen commits at the pinned `0.5.0` either.
+   **Genuinely still residue.** `git rebase --continue` is the same entry for the rebase half.
 
 Every one of these is run in the open and reported as by-hand, per the Nen-first rule's second half
 (`claude/agents/kurapika.md`): a missing verb is a finding, not a gap to route around silently.

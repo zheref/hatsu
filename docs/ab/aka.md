@@ -263,3 +263,56 @@ checks the skill now runs by hand, `cat-file -e` (fetch when absent) and `merge-
 Recorded here so the P2 verb inherits the requirement rather than rediscovering it. The `ao` and
 `murasaki` uses of `ls-remote` are unaffected — both ask it only *is this branch published*, and
 neither uses the SHA for anything.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| `git reset --soft` + a hand-gated `commit format` | `nen wc squash --onto <ref> --message-file <f> --dry-run` | `2`, twice, each refusal the verb's own |
+| the forbidden-trailer refusal | `nen commit format --repo . --trailer "Co-Authored-By=someone"` | `2` |
+
+```
+$ nen wc squash --repo <dirty fixture> --onto main --message-file <f> --dry-run
+nen wc: the working tree is dirty -- 5 uncommitted or untracked path(s): nen/contract.json,
+nen/workflow.json, .nen/last-stop.json, .nen/proof/app.json, Reports/lint.txt. Commit or stash them
+first; a squash never folds work that was never committed.
+exit=2
+
+$ nen wc squash --repo . --onto origin/main --message-file <f> --dry-run
+nen wc: commit 3c80607700844193e74668bb3a815c9bdde6a116 ('chore(nen): repin the contract to nen 0.4
+(v0.4.0)') is already on the upstream 'origin/opus/kurapika/repin-nen-0.4' -- already published;
+squashing would rewrite pushed history. Rebase or cut a fresh branch instead of folding a commit that is
+already there.
+exit=2
+```
+
+**Both refusals are the verb enforcing what § 4 used to enforce by hand**, and both run before a single
+write. `nen wc` carried exactly one verb, `classify`, through `v0.4.0` (§ 2.2's reading).
+
+```
+$ nen commit format --repo . --type chore --subject "probe" --trailer "Co-Authored-By=someone"
+nen: trailer key 'Co-Authored-By' is an attribution trailer this repository refuses.
+'…/nen/workflow.json' admits 'Akatsuki-Agent' under commits.allowedAttributionTrailers, and
+'Co-Authored-By' is not one of them. Drop the trailer, or add its key to that list
+exit=2
+
+$ nen commit format --repo . --type chore --subject "probe" --trailer "Akatsuki-Agent=kurapika"
+chore: probe
+
+Akatsuki-Agent: kurapika
+exit=0
+```
+
+At § 2.2 the same forbidden trailer rendered happily at exit `0`. **`--repo` is what turns the refusal
+on** — the policy is opened only when the invocation carries a `--trailer`.
+
+**Still residue:** the push itself. `nen pr cascade-main` pushes only what it merged, and there is no
+push verb at this pin either.

@@ -350,3 +350,44 @@ checks for `.git/MERGE_HEAD` itself, and says so.
 already the vocabulary every reviewer of a conflict uses. A nen verb over them would add a name
 without adding a fact. **The verb ao actually wants is `conflicts[]` on the cascade** (§ 4.1) —
 classification, not a re-spelling of `git show`.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| `git fetch` + `git merge --no-edit` by hand | `nen pr cascade-main --repo . --no-push` | `0` |
+| no `conflicts[]` in `--json` | the same call with `--json` | `0` |
+
+```
+$ nen pr cascade-main --repo . --no-push
+fetched origin/main
+merged origin/main cleanly
+not pushed (--no-push)
+exit=0
+
+$ nen pr cascade-main --repo . --no-push --json
+{ "conflicted": false, "pushed": false, "noPush": true,
+  "log": ["fetched origin/main", "merged origin/main cleanly", "not pushed (--no-push)"],
+  "error": null, "conflicts": [] }
+exit=0
+```
+
+`conflicts[]` is present on every call and `[]` on a clean merge, never omitted — that half is **verified
+live** above. The conflicted shape is **read from nen's `v0.4.0` CHANGELOG and not exercised here** (this
+run had nothing to conflict): one entry per unmerged path from `git diff --name-only --diff-filter=U`, with
+`kind` (`both-modified`, `add-add`, `modify-delete`, `delete-modify`) read off `git ls-files -u`'s stage
+table and `ours[]`/`theirs[]` the commits each side contributed since the merge base. **Check it against
+the binary the first time a real conflict arrives**, and file a finding if it differs. Through `v0.4.0`
+`--no-push` answered *"unknown option '--no-push'"* at exit `2` (§ 2.3, where the verb pushed on a clean
+merge).
+
+**Still residue:** the rebase half — the verb *"merges (never rebases)"* by its own `--help` — the merge
+commit itself, and § 6's both-sides render, since `conflicts[]` names the commits and not the content.

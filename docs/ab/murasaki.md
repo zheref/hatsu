@@ -247,3 +247,32 @@ and a one-line report is under pressure to be short. Hatsu's own checkout is exa
 
 Noted as a conformance point for whoever writes `mukai` and `en`: the phrase is carried, not
 re-summarised, at every level of the composition.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| step 1's merge half, run as `git fetch` + `git merge` | `nen pr cascade-main --repo . --no-push` | `0` |
+| `nen shu test-report` absent | see `docs/ab/tsukuyomi.md` § *Retired at nen 0.5* | `1`, the report absent and named |
+
+```
+$ nen pr cascade-main --repo . --no-push
+fetched origin/main
+merged origin/main cleanly
+not pushed (--no-push)
+exit=0
+```
+
+That is precisely the shape murasaki needs: the merge lands, **nothing is published**, and step 2's
+build and tests run between the merge and the push. Through `v0.4.0` the flag did not exist and the verb
+pushed on a clean merge, which is why step 1 and step 3 could not be run by the same call (§ 2.2).
+
+**Still residue:** step 3's `git push origin HEAD`.

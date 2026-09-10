@@ -294,3 +294,48 @@ So § 5 of the skill is judgment, stated loudly, and it is the reason the G5 at 
 that has to be cleared today, and giving that pressure an honest exit is the only structural defence
 available. Recorded as a boundary, not a gap — the same class as `kotoamatsukami`'s "look at the golden"
 (`docs/ab/kotoamatsukami.md` § 4.3).
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| the touched-file filter, done by hand | `nen shu coverage --repo <fixture> --lane app --touched --base main` | `0` |
+| the per-file band, computed by this skill | the same call, ladder read from `nen/workflow.json` | `0` |
+| `nen/workflow.json` unvalidated | `nen schema check --repo .` → `ok  nen/workflow.json` | `1` overall, that row `ok` |
+
+```
+$ nen shu coverage --repo <fixture> --lane app --touched --base main
+report:        coverage/lcov.info  (lcov)
+total:         lines 71.43% (5/7)
+ladder:        nen/workflow.json -- minimum 80% / recommended 85% / ideal 90%. REPORTED per row as
+               'band', and never enforced: nen exits 0 here, whatever the bands say.
+touched:       base main: 1 file (0 matched, 1 unmatched)
+  unmatched: src/__Snapshots__/test_snapshot_Settings.png
+exit=0
+```
+
+**`--touched` requires `--base`, and either without the other is exit `2`** — verified both ways:
+
+```
+$ nen shu coverage --repo <fixture> --lane app --touched
+nen shu: --touched requires --base <ref>: nen filters the per-target rows to the files 'git diff
+--name-only <base>...HEAD' reports, and there is no base to diff against without one.
+exit=2
+
+$ nen shu coverage --repo <fixture> --lane app --base main
+nen shu: --base is read only with --touched -- it names the ref '--touched' diffs against, and does
+nothing on its own. Add --touched, or drop --base.
+exit=2
+```
+
+The `unmatched` line is the
+input to the skill's rules 2 and 2b — nen reports the list, and naming *why* each entry is unmatched
+stays the skill's, which is why that entry is **kept** in § Residue rather than retired.

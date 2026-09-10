@@ -314,3 +314,46 @@ ready has no gate*). **This is why `shibari` states the gate as a forecast**, an
 the skill can say that without a rule of its own to enforce: the verb says it out loud every time.
 Recorded as a design property worth preserving in the verbs that are still to be written — a verb
 that prints what it does **not** decide is a verb that cannot be over-read.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| `gh pr edit --body-file` for the write-back | `nen pr edit-body --target zheref/hatsu --pr 30 --body-file <f> --dry-run` | `0` |
+| the same verb refusing the other family's object | `nen issue edit-body --target zheref/hatsu --issue 30 --body-file <f> --dry-run` | `2` |
+| `nen shu evidence` absent | see `docs/ab/kotoamatsukami.md` § *Retired at nen 0.5* | `0` |
+| `nen/workflow.json` unvalidated | `nen schema check --repo .` | that row `ok` |
+
+```
+$ GH_TOKEN=$(gh auth token) nen pr edit-body --target zheref/hatsu --pr 30 \
+    --body-file <f> --dry-run
+would run: gh pr edit 30 --repo zheref/hatsu --body-file <f>
+target: zheref/hatsu
+number: 30
+bytes: 48
+first line: chore(x): probe
+last line: Akatsuki-Agent: kurapika
+exit=0
+
+$ GH_TOKEN=$(gh auth token) nen issue edit-body --target zheref/hatsu --issue 30 \
+    --body-file <f> --dry-run
+nen issue: #30 names a pull request in zheref/hatsu, not an issue -- 'nen issue edit-body' replaces an
+ISSUE's body only, and it is certified before any write, so nothing was changed. Ask 'nen pr edit-body'
+for the pull request's body instead.
+exit=2
+```
+
+**`--dry-run` still performs the certifying read** — this pair is not network-free — and the refusal
+above is that read doing its job: the number is checked *before* any write, so a mistake costs a refusal
+rather than an overwritten body. Through `v0.4.0` both spellings answered *"unknown 'pr' subcommand
+'edit-body'"* / *"unknown option '--body-file'"* at exit `2` (§ 2.4).
+
+**Still residue:** `gh pr create`. `nen pr` carries nine subcommands at this pin and `create` is not one.

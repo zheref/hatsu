@@ -56,8 +56,10 @@ clause means the same thing in both.
 | `tests.required` | the suites § 5 must see green | `["test"]` |
 | `tests.extra` | suites run alongside them, not gating | `[]` |
 
-`nen schema check` does not validate this file at `v0.3.0` (verified live, `docs/ab/rikugan.md`
-§ 2.4); it is read as data, and the defaults above are stated whenever they are what applied.
+`nen schema check --repo <path>` VALIDATES this file at the pinned `v0.5.0` — verified live, the row
+reads `ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}'
+off 'main', checks: lint`. A malformed key is a FAIL **by pointer**, so this skill no longer checks
+the shape by eye; it reads the values, and states the defaults whenever they are what applied.
 
 ## 3. The three steps, in order
 
@@ -146,17 +148,16 @@ unnecessary. **Squashing is [`hatsu:aka`](../aka/SKILL.md) § 4's, once, before 
 **Never pushes `branch.base`.** The `PreToolUse` guard in `hooks/hooks.json` refuses a `git push` on
 the trunk at the harness level; this skill refuses it at the rule level.
 
-> **Residue: there is no push verb at `v0.3.0`, and the merge half of § 4 has no usable one either.**
-> `nen pr cascade-main --repo <path> [--trunk main]` merges the trunk in **and pushes on a clean
-> merge** — its own `--help`, verified live at this pin (`docs/ab/murasaki.md` § 2.2): *"Merges
-> (never rebases) the trunk into the current branch and pushes on a clean merge. Reports a conflict
-> rather than resolving it."* `--no-push` does not exist — verified live, exit `2`, *"unknown option
-> '--no-push'"*, listing every option the family does have. So the one verb that would own steps 1
-> and 3 together fuses them, and murasaki needs them apart: step 2 runs **between** the merge and
-> the push, and a cascade that pushes on a clean merge has already published a tree nothing proved.
-> **The day `--no-push` lands (brief § 4.7), step 1's merge half becomes
-> `nen pr cascade-main --repo <path> --trunk <base> --no-push` inside ao and this paragraph is
-> deleted — but step 3 stays `git push`, because the cascade pushes only what it merged itself.**
+> **RETIRED at nen `0.5`: step 1's merge half runs through the verb, with the push held back.**
+> `nen pr cascade-main --repo <path> --trunk <base> --no-push` fetches and merges and then stops —
+> verified live at `v0.5.0`, exit `0`, the log reading `fetched origin/main` / `merged origin/main
+> cleanly` / `not pushed (--no-push)` (`docs/ab/murasaki.md` § *Retired at nen 0.5*). That is exactly
+> the shape murasaki needs: step 2 runs **between** the merge and the push, and nothing publishes a
+> tree nothing proved. [`hatsu:ao`](../ao/SKILL.md) § 3 owns the invocation; murasaki calls ao.
+>
+> **Step 3 is still `git push`, and there is still no push verb.** The cascade pushes only what it
+> merged itself, so the ordinary fast-forward publish of an already-published branch stays git's, by
+> hand, named here.
 
 ## 7. What murasaki never does
 
@@ -180,21 +181,24 @@ the caller continues from; invoked alone, it is the end of the run.
 
 ## Residue
 
-1. **The push itself** — `git push origin HEAD` (§ 6). `nen pr cascade-main` pushes only as the tail
-   of a merge it performed itself and is not a push verb (verified live at this pin,
+1. **The push itself** — `git push origin HEAD` (§ 6). **Genuinely still residue at the pinned
+   `0.5.0`**: `nen pr cascade-main` pushes only as the tail of a merge it performed itself and is not
+   a push verb (verified live,
    `docs/ab/murasaki.md` § 2.2; the same reading `docs/ab/aka.md` § 2.4 records).
-2. **`nen pr cascade-main --no-push`** — absent at `v0.3.0`, verified live, exit `2` (§ 6). Step 1's
-   merge half therefore runs as ao's named `git fetch` + `git merge --no-edit`, and its rebase half
-   has no verb at any flag.
+2. **RETIRED at nen `0.5`: `nen pr cascade-main --no-push`** (§ 6, verified live, exit `0`). Step 1's
+   merge half runs through the verb inside ao; **its rebase half still has no verb at any flag**, and
+   is ao's named `git rebase origin/<base>`.
 3. **The published/unpublished test** — ao § 3's, re-used here rather than re-run: `git fetch origin
    <base> <branch>` (a missing remote branch tolerated) then `git rev-parse --verify --quiet
    refs/remotes/origin/<branch>`, or `git ls-remote --heads origin refs/heads/<branch>` asked of the
    remote directly. `nen wc classify --json` reports the branch, its dirt and its distance from the
    base, and nothing about the remote (verified live, `docs/ab/murasaki.md` § 2.3).
-4. **`nen shu test-report`** — absent at `v0.3.0` (tsukuyomi § 7). The suite's verdict is the
-   runner's own summary, quoted, never a count restated from memory.
-5. **`nen/workflow.json` is unvalidated at `v0.3.0`** — no row in `nen schema check`. § 2's keys are
-   read as data with the defaults stated.
+4. **RETIRED at nen `0.5`: `nen shu test-report`** (tsukuyomi § 6). The suite's verdict is the
+   parsed `{tests[], passed, failed, skipped}` document, and the counts are read off it rather than
+   restated from memory.
+5. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
+   an `ok  nen/workflow.json` row at the pinned `v0.5.0`. § 2's keys are still read here; reading a file
+   is not residue.
 
 Each is run in the open and reported as by-hand, per the Nen-first rule's second half
 (`claude/agents/kurapika.md`): a missing verb is a finding, not a gap to route around silently.
