@@ -219,12 +219,13 @@ Then, from the repository you want to work in:
 namespacing behaviour does **not** reproduce on Cursor and the mirrors' `/<name>` spelling works as
 printed.
 
-**The same three refusals apply** — a destination the warm-up did not make is left alone and named, your
-`.gitignore` is never written (`info/exclude`, again), and `.cursor/agents/` is a directory a Cursor user is
-*expected* to keep their own subagents in, which makes it the likeliest collision of all. Before it
+**The first two refusals apply here too** — a destination the warm-up did not make is left alone and named,
+and your `.gitignore` is never written (`info/exclude`, again). There is no third, because there is no
+`AGENTS.md` on this surface; what takes its place is that **`.cursor/agents/` is a directory a Cursor user
+is *expected* to keep their own subagents in**, which makes it the likeliest collision of all. Before it
 installs anything the warm-up **lists every name already standing under `.cursor/skills/`** and reports
 what it found by name — and says plainly what that listing cannot see: **a same-named skill from another
-plugin elsewhere on the host would shadow the mirror, and is invisible from inside your repository.**
+plugin elsewhere on the host may shadow the mirror, and is invisible from inside your repository.**
 
 **First-run check**, from the Hatsu checkout:
 
@@ -654,8 +655,10 @@ Unchanged, name for name. **`$ren` runs on every request** — `$breath` on the 
 `$kokusen`, `$amaterasu`, `$rikugan`, `$jutaisho` — and it never pushes. **Five phases are yours to call,
 and no agent ever prompts for them**: `$aka` (push), `$mukai` (review and PR), the **merge**, `$kagutsuchi`
 (non-production upload) and `$mugetsu` (publish, **G3**). A genuine **G5** stop is still the banner, the
-report link, the lettered options with a star on the report, and the question — asked through this
-surface's own turn-end, because there is no native option picker here.
+report link, the lettered options with a star on the report, and the question **asked through this
+surface's own option picker** — `AskUserQuestion` is Claude Code's name for that, and what the rule binds
+is the *shape*: a stop rendered as a paragraph ending in a question mark is a stop you have to compose an
+answer to.
 
 ### Personas, and how a reviewer is raised
 
@@ -817,8 +820,9 @@ the mirrors print is the one that works.
 
 Unchanged: **`/ren` on every request** — `/breath`, `/rasengan`, `/kokusen`, `/amaterasu`, `/rikugan`,
 `/jutaisho` — never pushing. Yours to call: `/aka`, `/mukai`, the **merge**, `/kagutsuchi` and `/mugetsu`
-(**G3**). A **G5** stop is the banner, the report link, the lettered options and the question, asked
-through this surface's own turn-end.
+(**G3**). A **G5** stop is the banner, the report link, the lettered options with a star on the report, and
+the question asked through this surface's own option picker — the same four parts, and all four or it is
+not a stop.
 
 ### Personas and reviewers
 
