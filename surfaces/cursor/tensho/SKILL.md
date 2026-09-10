@@ -311,6 +311,13 @@ export GH_TOKEN=$(gh auth token)
 nen pr ready <CODE>#<N> --repo <path> --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
 ```
 
+The `--gates` shown is [`sharingan`](../sharingan/SKILL.md) § 4's identity rule, cited rather than
+copied: it holds ONLY where the target is frozen `<reference-repo>` itself (no gates file of its own);
+any other target with no `nen/gates.json` gets `--reviewers` supplied by hand — from its `CODEOWNERS`
+or the PR's own requested reviewers, never this file, because a repository is never judged by another
+repository's reviewers — and the approve row's vacuous pass (no `--approvers` given) is stated on the
+page rather than left to read as a reviewed PR.
+
 Quote the verdict verbatim, render the conjunct table `--explain` prints, and apply
 `/pr-state`'s own binding rule unchanged: a readiness claim is that verdict, quoted, or it is
 not made — never a paraphrase, never `ready` for a PR that came back `unevaluated`. Say plainly

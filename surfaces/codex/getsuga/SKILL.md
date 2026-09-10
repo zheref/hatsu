@@ -348,11 +348,14 @@ The maintainer's ruling: an unreachable target is **driven to `main` first**, no
    stop-at-the-gate report as the readiness call.
    *Fallback only if `sharingan` cannot run at all* (an unresolvable code, say): the readiness call by
    itself is [`$pr-state`](../pr-state/SKILL.md)'s verb — `nen pr ready <ref> --explain`, with
-   `GH_TOKEN` exported and, where the target ships its own `nen/gates.json` (or a legacy
-   `schemas/gates.json`), no `--gates` at all — or `--gates
-   "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"` (absolute) where the target is frozen
-   `<reference-repo>` — quoted verbatim. That is a **check**, not a drive: it reports where the PR stands
-   and nothing moves it.
+   `GH_TOKEN` exported, quoted verbatim. **The identities come from [`sharingan`](../sharingan/SKILL.md)
+   § 4's rule, never from memory:** the target's own `nen/gates.json` (or a legacy `schemas/gates.json`)
+   first, with no `--gates` at all; `--gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"`
+   (absolute) ONLY where the target is frozen `<reference-repo>` itself; every other target that ships
+   no gates file gets `--reviewers` supplied by hand, from its `CODEOWNERS` or the PR's own requested
+   reviewers — a repository is never judged by another repository's reviewers — and the approve row's
+   vacuous pass, where no `--approvers` was given, is stated on the page. That is a **check**, not a
+   drive: it reports where the PR stands and nothing moves it.
 4. **Stop at G2/G4.** The maintainer merges.
 5. **Re-resolve the target** — it is now a commit on `main`, and a *different* commit than the
    branch tip was (a merge commit). Tag that. Then § 2 from the top, because every precondition must

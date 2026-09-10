@@ -281,7 +281,13 @@ nen pr ready <CODE>#<N> --repo <path> \
 against **`--repo`'s root, never the cwd** (verified live at `v0.3.0`, [`pr-state`](../pr-state/SKILL.md)
 § 2), and the file lives in this plugin's checkout, not the target's, so only an absolute path reaches
 it. A repo that ships its own `nen/gates.json` needs no
-`--gates` flag at all.
+`--gates` flag at all. **The row this command shows is [`sharingan`](../sharingan/SKILL.md) § 4's
+identity rule for `<reference-repo>` specifically — frozen, no gates file of its own — and that skill
+states the rule in full; it is cited here, not copied.** For any OTHER repository this table reports
+on that ships no `nen/gates.json`, pass `--reviewers` by hand instead — from its `CODEOWNERS` or the
+PR's own requested reviewers, never this file, because a repository is never judged by another
+repository's reviewers — and name the substitution and the approve row's vacuous pass (no
+`--approvers` given) on the rendered board.
 
 Two things follow, unchanged from the old skill:
 
