@@ -535,16 +535,23 @@ counts only when its **first** token is `git` and the token after git's own glob
 and the `--key=value` form — is `commit` or `push`. So `echo 'git commit'` and `git commit-tree` are not
 writes, while `git --no-pager commit` is.
 
-The repository judged is whichever repository-selecting option the segment carries — `--work-tree`, then `-C`,
-then `--git-dir` — and the working directory when it carries none; a `cd` earlier in the same line moves that
-working directory, because judging `cwd` after a `cd` is judging the wrong repository.
+**The directory git targets is the directory judged — never the session's own.** Every `-C` the segment
+carries is applied *cumulatively*, in argv order, exactly as git applies it (`git -C a -C b` runs in `a/b`);
+`--git-dir` and `--work-tree` are then resolved against the directory that chain arrived at. Only a segment
+carrying none of them is judged in the working directory, and a `cd` earlier in the same line moves *that*,
+because judging `cwd` after a `cd` is judging the wrong repository. So a session standing on `main` may drive
+a worktree that stands on a feature branch — `git -C <worktree> push` is **allowed** — and a session standing
+on a feature branch may not drive a checkout that stands on `main`, which is **refused**. Reading the session's
+own branch answers both of those wrongly, and a worktree effort types the first shape all day.
 
-It **fails closed** on the four forms where the branch it can see is not the branch the write would land on: a
+It **fails closed** on the five forms where the branch it can see is not the branch the write would land on: a
 line that both changes branch (`switch`, `checkout`, `branch -f|-m|-M`) and writes; a repository-selecting path
-quoted in a form it cannot recover; a `git` segment carrying a `commit`/`push` token whose **subcommand the
-option walk could not establish** — an unrecognised global option must not hide the write behind it; and a
-shell wrapper whose payload cannot be read on a line that carries a write token. The script's own header
-carries the thirty-seven cases this was verified against.
+quoted in a form it cannot recover, *including a second quoted `-C` on one segment*; a `git` segment carrying a
+`commit`/`push` token alongside a **global option the guard does not know** — an unknown `-…` may or may not
+swallow the token after it, so it is named in the refusal rather than walked past; a `git` segment whose
+subcommand the option walk could not establish for any other reason; and a shell wrapper whose payload cannot
+be read on a line that carries a write token. The script's own header carries the fifty-one cases this was
+verified against, and [`ab/guard-base-branch.md`](ab/guard-base-branch.md) carries the transcripts.
 
 **The stop marker** is `hatsu.stop-marker/v0.1`, written by `jutaisho` and read by the hook:
 
