@@ -79,11 +79,32 @@ against a constructed working copy carrying one of each (`docs/ab/kokusen.md` §
 | `unmentioned-deletion` | a tracked path was deleted and its basename does not appear in `--mentions` |
 
 One path can carry several reasons at once. **Present every flagged file together, with the reasons
-`nen` printed, and take one answer per file.**
+`nen` printed, and take one answer per file** — for the paths this commit could actually contain.
 
-- **`secret-shape` is never askable.** There is no yes; the fix is to rotate or remove it. This is
-  § 9's hard limit, and it is not softened by "it is only local, it is not pushed" — a commit is
-  permanent the moment it exists, and the push that would publish it is one `hatsu:aka` away.
+> **`ignored` is a count, not a question.** `nen stage triage` walks git-ignored directories, so in
+> any repository with dependencies on disk the flagged list is not a list a human can answer: a full
+> `ren` run against the `zheref/nen` checkout flagged **5905** paths on one turn and 5907 on the
+> next, of which all but one were `[ignored, out-of-scope]`. A per-file ask at that width is not a
+> procedure anybody executes — it is a procedure everybody skips, and a skipped triage is worse than
+> a narrow one. **A flagged path that is git-ignored needs no per-file answer.** It is unstageable
+> without `-f`, § 6 never passes `-f`, and § 9 bars it — so report the ignored rows as *a count with
+> their reasons*, name any directory prefix that dominates them, and take answers only on the paths
+> that are not ignored. Where an ignored path genuinely belongs in the commit, that is a deliberate
+> `-f` the maintainer asks for by name, and then it is one path with one answer.
+
+- **`secret-shape` is never askable, in the tree this commit could contain.** There is no yes; the
+  fix is to rotate or remove it. This is § 9's hard limit, and it is not softened by "it is only
+  local, it is not pushed" — a commit is permanent the moment it exists, and the push that would
+  publish it is one `hatsu:aka` away.
+- **A `secret-shape` inside an ignored dependency tree is reported and left alone.** Verified live at
+  `0.3.0`: a `.env` under an ignored `node_modules/` is flagged `[ignored, secret-shape,
+  out-of-scope]` — the same row shape a real run found on `node_modules/bottleneck/.env`. Read
+  literally, the categorical rule would have this skill rotate or delete a third-party package's
+  fixture file, which is not this repository's secret, not this commit's business and not a thing a
+  commit phase has any authority to touch. **Scope the rule to what the commit could carry:** the
+  path is ignored, it will never be staged, so it is named once in the report — path, reasons, and
+  the sentence that it is ignored and untouched — and the run continues. If it is *not* ignored, the
+  categorical rule applies with no softening at all.
 - **Two shapes have no detector and stay this skill's by eye** (the same residue
   [`hatsu:tensho`](../tensho/SKILL.md) § 3 names): a **local-config** file that is neither ignored nor
   out of scope (`.claude/settings.local.json`, editor state, OS cruft) reports **clean**, and so does
@@ -176,8 +197,11 @@ got an explicit yes; `git add -A` is barred (§ 9).
 ## 9. Hard limits
 
 - **Never commits a flagged file without an explicit yes**, and **never commits a secret at all** —
-  there is no yes for `secret-shape`; rotate or remove it.
-- **Never `git add -A`**, and never stages a path it did not name.
+  there is no yes for `secret-shape` on a path this commit could contain; rotate or remove it. A
+  `secret-shape` inside an ignored tree is reported and left alone (§ 4), never rotated, never
+  deleted.
+- **Never `git add -A`**, and never `git add -f`, and never stages a path it did not name. `-f` is
+  the maintainer's explicit call on one named path, never this skill's way past an `ignored` flag.
 - **Never adds an AI attribution trailer** — not `Co-Authored-By:`, not `Claude-Session:`, not a
   "Generated with …" line, not a model name in the subject or body. `Akatsuki-Agent: kurapika` is the
   whole of it.

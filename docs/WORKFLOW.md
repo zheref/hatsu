@@ -160,12 +160,21 @@ conflict waiting to be resolved by coin toss.
 ### `notifications`
 
 ```json
-"notifications": { "rungs": ["push", "os", "sound"], "sound": "Glass" }
+"notifications": { "rungs": ["push", "os", "sound"], "sound": "Glass", "turn": "rung1" }
 ```
 
 `jutaisho`'s ladder, innermost first: `push` is the surface's own turn-complete signal, `os` an OS
 notification, `sound` a system sound. **A rung absent from the list is not rung.** `sound` names
 `/System/Library/Sounds/<sound>.aiff` on macOS. See § 6 for who actually rings rungs 2 and 3.
+
+`turn` decides **how loud an ordinary turn is** — the one with no gate: `"rung1"` (the default, and the
+value when the key is absent) rings the surface's own line and nothing else; `"all"` rings every rung
+`rungs` lists, every turn. A gate always rings everything `rungs` lists, whatever `turn` says, and `turn`
+can never conjure a rung `rungs` withheld. It exists because the two readings of "does a plain turn ring?"
+were both supportable in `jutaisho`'s text and disagreed about every turn of every effort; one declared
+value settles it. **`turn` is an addition to the `nen.workflow/v0.1` shape** and the schema must admit it
+when the loader lands at nen `0.4.0` — recorded in
+[`claude/skills/jutaisho/SKILL.md`](../claude/skills/jutaisho/SKILL.md) § Residue.
 
 ### `commits`
 
@@ -177,9 +186,25 @@ notification, `sound` a system sound. **A rung absent from the list is not rung.
 **The maintainer's ruling of 2026-09-09: no AI attribution trailer is ever recorded.** `Akatsuki-Agent:` is
 the single admitted trailer, and it is admitted precisely because it is not AI attribution — it names *the
 system's own* provenance, which agent of this roster did the work, rather than a model claiming authorship of
-it. A harness that mandates `Co-Authored-By:` is **configured off** (`includeCoAuthoredBy: false` in the
-Claude Code settings). This supersedes the earlier clause, in every agent definition, that treated the
-harness mandate as binding and left the question to the P3 constitution.
+it. This supersedes the earlier clause, in every agent definition, that treated the harness mandate as
+binding and left the question to the P3 constitution.
+
+**Turning the harness's own mandate off is a required setup step, not a configured fact — check it.**
+Claude Code can add `Co-Authored-By: Claude …` to commits it writes, and the setting that stops it is
+`includeCoAuthoredBy: false` in `~/.claude/settings.json` (or the project's `.claude/settings.json`).
+**It is not set on this machine**: verified 2026-09-10, `~/.claude/settings.json` carries no
+`includeCoAuthoredBy` key at all. So read this paragraph as an instruction with a check attached, not as a
+statement about how the machine is:
+
+```bash
+grep -n includeCoAuthoredBy ~/.claude/settings.json        # no output = not set
+```
+
+No output means the harness default applies and layer (a) below is the only thing standing between a
+harness-written trailer and a commit. Add `"includeCoAuthoredBy": false` to that file, on every machine
+that drives this workflow. **Saying it is configured off when nobody has configured it makes the
+three-layer table read one layer stronger than it is**, which is the failure mode the table exists to
+prevent.
 
 **Enforcement is three-layered, and only the first layer ships in this plugin.**
 

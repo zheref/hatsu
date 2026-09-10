@@ -190,15 +190,17 @@ And the family's own help states the rebase half is not on offer at any flag:
 ```
 $ nen pr cascade-main --help
 <the whole 'pr' family usage, on both stdout and stderr>
-exit=2
+exit=0
 ...
 cascade-main:
   Merges (never rebases) the trunk into the current branch and pushes on a
   clean merge. Reports a conflict rather than resolving it.
 ```
 
-*(A subcommand-level `--help` on the `pr` family is itself a usage error at `v0.3.0` — exit `2`,
-printing the whole family's usage. The family help is the spec.)*
+*(A subcommand-level `--help` on the `pr` family is not a per-verb help page at `v0.3.0`: it exits
+**`0`** and prints the whole family's usage — 82 lines, on stdout and on stderr alike. Re-verified
+2026-09-10 against `0.3.0` on `PATH`, correcting an earlier reading of this transcript that recorded
+exit `2`. The family help is the spec, and the `cascade-main` block above is inside it.)*
 
 ### 2.4 — Classifying conflicts by hand: three kinds, and the three merge stages
 
@@ -323,13 +325,16 @@ whose entire design principle is that **agents never push** (brief § 1), a merg
 a verb no local skill can call. This is the single highest-value P1 item for this wave's skills —
 it converts three of ao's residue entries into one verb call.
 
-### 4.3 — `nen pr <subcommand> --help` is a usage error, not a help page
+### 4.3 — `nen pr <subcommand> --help` is the family's page, not the verb's
 
-§ 2.3: `nen pr cascade-main --help` exits `2` and prints the *family's* usage on both streams. Every
-other family this port has touched behaves the same way (`nen wc squash --onto …` in
-`docs/ab/aka.md` § 2.2 likewise refuses at the option level). Not a defect — the family help is
-complete and does document `cascade-main` — but a caller reaching for per-verb help gets a non-zero
-exit and may read it as "the verb does not exist". Worth one line in nen's own usage text.
+§ 2.3: `nen pr cascade-main --help` exits **`0`** and prints the *family's* usage — all 82 lines, on
+stdout and on stderr alike. **Corrected 2026-09-10:** this section previously recorded exit `2` and
+called the subcommand help a usage error; re-run against `0.3.0` on `PATH`, the exit is `0`. The
+remaining observation stands and is milder than it was: a caller asking for one verb's help gets the
+whole family's, duplicated across both streams, and has to read down to the `cascade-main` block to
+find the contract. Not a defect — the family help is complete and does document `cascade-main` — but
+the double-stream printing makes `--help 2>&1` read as two help pages, and one line in nen's own
+usage text would settle it.
 
 ### 4.4 — `nen wc classify` is blind to an operation in progress, deliberately
 
