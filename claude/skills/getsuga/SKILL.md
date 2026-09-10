@@ -136,6 +136,14 @@ never verified at all.
 
 ## 3. The release unit — fold everything that can fold into ONE PR
 
+> **In phase-lattice terms, and changing no mechanics below: the release unit is *built* through
+> [`hatsu:susanoo`](../susanoo/SKILL.md)** — the declared `archive`, run locally, uploading nothing —
+> **which arrives at Hatsu `v0.6.0`.** Until it does, § 6's off-main path builds through the
+> repository's own declared verbs exactly as it already says. **`kagutsuchi` (non-production upload)
+> and `mugetsu` (publication, **G3**) never run inside this skill**, from any path, under any `then`
+> clause: each is the maintainer's own per-target call, and § 7a already prints a deploy *plan* and
+> stops for that reason.
+
 `CON-33(b)` wants a release PR the maintainer merges before the tag cuts. **One PR carries all of
 it:**
 

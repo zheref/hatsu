@@ -18,6 +18,11 @@ The contract:
 > `CON-32` Ready and prompted for your merge. Then, if you typed a terminal, the cut that follows.
 > Nothing else, and never past G3.**
 
+**In phase-lattice terms, and changing no mechanics below:** per issue, `futon` is
+[`hatsu:build`](../build/SKILL.md) → [`hatsu:tensho`](../tensho/SKILL.md) →
+[`hatsu:en`](../en/SKILL.md), and the terminal a `then` clause typed is handed to
+[`hatsu:getsuga`](../getsuga/SKILL.md) rather than performed here.
+
 `futon` is a **scoped, terminated [`hatsu:backlog-loop`](../backlog-loop/SKILL.md)** — not a second
 implementation of it. The engine — fetching the backlog, ordering it, advancing an issue, the
 monitor, conflict discipline, the hard limits — is that skill's, invoked the way

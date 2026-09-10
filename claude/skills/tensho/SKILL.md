@@ -23,6 +23,33 @@ carries two concerns.
 
 ---
 
+## Composition — the phases this skill already is
+
+Read from the phase lattice rather than from this file's own numbering, tensho is:
+
+> [`kokusen`](../kokusen/SKILL.md) *(if the tree is dirty)* → [`aka`](../aka/SKILL.md) →
+> [`mukai`](../mukai/SKILL.md) → **starts** [`en`](../en/SKILL.md)
+
+**This is a restatement, and it changes no mechanics.** Every section below stands exactly as it is
+written: § 2's `nen wc classify` reading, § 3's staging triage, § 4's commit shaping, § 5's body
+checks and gate derivation, § 6's handover. What the line adds is *where each of them lives* once
+the lattice is the map — the triage-and-commit half is `kokusen`'s phase, the push half is `aka`'s,
+the review-tests-coverage-evidence-and-PR half is `mukai`'s, and the drive to Ready is `en`'s
+composing [`sharingan`](../sharingan/SKILL.md), which is what § 6 already hands to.
+
+**Two consequences follow, and neither is new:**
+
+- **The human calls stay human calls.** `aka` and `mukai` are the maintainer's
+  ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4), so **`hatsu:tensho` is itself a human call
+  that spends both of them at once** — which it always was, since it commits, pushes and opens a PR
+  in one run. It is not a way to reach `aka` or `mukai` without asking; it is the maintainer asking
+  for all of it in one word.
+- **A step that stops ends the run where it stopped**, and the stop belongs to the skill that owns
+  the phase — a flagged file in the triage, a red required test, a semantic conflict, coverage under
+  the minimum, an unsettled finding. Tensho adds no stop of its own.
+
+---
+
 ## 1. Invocation
 
 ```

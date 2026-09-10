@@ -16,6 +16,35 @@ is not.
 
 ---
 
+## Composition — the phases this skill already is
+
+Read from the phase lattice rather than from this file's own numbering, jujisho is
+[`hatsu:tensho`](../tensho/SKILL.md)'s composition **run once per axis**:
+
+> per axis: [`kokusen`](../kokusen/SKILL.md) → [`aka`](../aka/SKILL.md) →
+> [`mukai`](../mukai/SKILL.md) → **starts** [`en`](../en/SKILL.md) — **A first**, B stacked on A
+
+**This is a restatement, and it changes no mechanics.** Every section below stands exactly as it is
+written. What the line adds is three things the per-axis reading makes explicit:
+
+- **`nen split verify` runs before any axis reaches `kokusen`'s phase**, not per axis afterwards.
+  § 2's proof is over the **whole original diff, once** — `OK` means every hunk lands in exactly one
+  branch, and nothing is opened until it reads `OK`. Splitting first and proving per branch would
+  prove each branch internally consistent while leaving the union short, which is precisely the
+  silent leftover this skill exists to prevent.
+- **The second PR is stacked, so B's `mukai` runs against A's branch as its base**, not `main` (§ 4).
+  B's own gate derivation, body and evidence are B's; what it inherits from the stack is the base and
+  the merge order, stated in both bodies as an instruction.
+- **`en` runs on A first** (§ 7). Driving B to Ready while A is unmerged produces a readiness verdict
+  against a base that is about to change; B's watch starts once A's merge retargets it.
+
+**The human calls stay human calls.** `aka` and `mukai` are the maintainer's
+([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4), and `hatsu:jujisho` is one call that spends
+both of them **per axis** — which is why § 3's cap of two, and its ask when there are more, is a
+question about how much the one call is being asked to cover.
+
+---
+
 ## 1. Invocation
 
 ```
