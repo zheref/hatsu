@@ -235,7 +235,7 @@ a loop repeating a no-op is burning the cap to reach the same place; **a human g
 never retried past; and an **impossible condition**, named rather than waited on — a closed PR will
 not merge.
 
-## 7. The session boundary — and the Illumi gap, named rather than crossed
+## 7. The session boundary — and the Illumi hand-off
 
 **A watch lives in the session that started it.** `nen watch until` is a foreground process, the
 cycles are this conversation's, and there is no timer, no background pass, no deferral primitive and
@@ -248,16 +248,30 @@ re-invocation** — `hatsu:en on <CODE>#<N>` re-fetches everything and re-decide
 (`sharingan` § 9's rule). Notes worth keeping go in the run's transcript, never trusted over a
 fetch.
 
-> **A watch that genuinely must outlive a session is [`Illumi`](../../../docs/ROSTER.md)'s, and he
-> does not exist yet.** The roster's ruling of 2026-09-09 **partially closes `OPEN-1`**: *"Illumi is
-> provisioned for `en`'s long watch, and only when one is needed … Provisioned means he may be
-> stood up for that work when the work exists; it does not mean a definition exists."* **There is no
-> `claude/agents/illumi.md`.** So the honest move when a landing plainly needs hours nobody is
-> sitting through is to **name the gap** — *"this wants `en`'s long watch, which is Illumi's, and
-> Illumi is provisioned but undefined (`OPEN-1`, `docs/ROSTER.md`)"* — and hand the PR back at the
-> cap with its state. **What must never happen is en running unattended to fill the gap**: an
-> unbounded, unwatched acting loop is precisely the shape the cap exists to make impossible, and
-> improvising it would close a maintainer's OPEN question by attrition rather than by ruling.
+> **A watch measured in hours is [`Illumi`](../../agents/illumi.md)'s, and from `v0.5.0` he has a
+> definition to be raised as.** The roster's ruling of 2026-09-09 **partially closes `OPEN-1`** —
+> *"Illumi is provisioned for `en`'s long watch, and only when one is needed"* — and
+> [`claude/agents/illumi.md`](../../agents/illumi.md) **landed in this same wave**, because a
+> provision that cannot be executed is a provision in name only (`docs/ROSTER.md` § *Rulings*, 5).
+> So step 6 is **handed over**, not abandoned: a subagent titled **`en · illumi · <model alias>`**,
+> on the **fast** tier at effort `medium`, holding the same `monitor` bounds this file reads. He
+> records the five facts per cycle, compares them, and **wakes Kurapika** — naming what changed and
+> the act it needs. **He performs none of it**, and the merge stays **G2**.
+>
+> **What the hand-off buys is attention, not persistence, and the difference is stated rather than
+> blurred.** A delegate is still raised *from* a session: the paragraph above still holds — no
+> timer, no background pass, no deferral primitive, no self-continuation. What Illumi gives is a
+> watcher whose entire job is the watch, at a tier that can afford to hold it for the hours an
+> overnight CI queue or a reviewer in another timezone takes. **A landing that needs to survive the
+> maintainer closing the session still has no mechanism anywhere in this plane** — that is named,
+> reported, and handed back at the cap, never simulated.
+>
+> **And the hand-off widens nothing.** Illumi is provisioned for *this* watch and no other loop —
+> not `backlog-loop`, not `futon`, not `senkei`; that half of `OPEN-1`, and the whole of Killua's
+> row, stay **OPEN** and stay the maintainer's G4-class ruling to make. **What must never happen is
+> en running unattended to fill a gap**: an unbounded, unwatched acting loop is precisely the shape
+> the cap exists to make impossible, and improvising one would close a maintainer's OPEN question by
+> attrition rather than by ruling.
 
 ## 8. The final report
 
@@ -295,8 +309,12 @@ and the final report's path. Nothing after the merge is en's: the tag is
    stop at `N`, are en's.
 3. **`nen/workflow.json` is unvalidated at `v0.3.0`** — no row in `nen schema check` (verified live,
    `docs/ab/en.md` § 2.5). § 2's keys are read as data with the defaults stated.
-4. **A session-outliving watch has no mechanism at all** (§ 7) — not a missing verb but a missing
-   *role*, `OPEN-1` in `docs/ROSTER.md`, provisioned and undefined. Named, never improvised around.
+4. **A watch that survives the session has no mechanism at all** (§ 7) — not a missing verb: no
+   timer, no background pass, no deferral primitive anywhere in this plane. **The long watch itself
+   is no longer a gap** — [`illumi.md`](../../agents/illumi.md) landed at `v0.5.0` and step 6 hands
+   to `en · illumi`, which buys attention for hours; **persistence past the session is what remains
+   unavailable**, and it is named rather than improvised around. The rest of Illumi's row
+   (`backlog-loop`, `futon`, `senkei`) stays `OPEN-1` and unreachable from here.
 
 ## Authority
 
@@ -323,8 +341,9 @@ and the final report's path. Nothing after the merge is en's: the tag is
 - **Never casts a review vote, never self-reviews, never impersonates an automated reviewer** (§ 4).
 - **Never runs without a cap** — the value from `monitor.maxCycles`, the requirement from the
   grammar (§ 2). Never raises its own cap mid-run and never restarts itself to get more cycles.
-- **Never runs unattended, and never promises persistence it was not given** (§ 7). A watch that
-  must outlive the session names the Illumi gap and hands back.
+- **Never runs unattended, and never promises persistence it was not given** (§ 7). A watch measured
+  in hours is handed to `en · illumi`; a watch that would have to survive the session says so and
+  hands back at the cap.
 - **Never counts an observation that found nothing as a cycle**, and never fabricates one to
   manufacture a cap-out (§ 6).
 - **Never rings outside Ready** (§ 5), and never rings twice for the same transition.

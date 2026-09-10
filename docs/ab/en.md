@@ -221,8 +221,9 @@ program."*
    parsed, refusal-enforced `N` and a mechanical per-check truth reading; the ledger and the stop at
    `N` are en's.
 3. **`nen/workflow.json` is unvalidated at `v0.3.0`** (§ 2.5) — `monitor` included.
-4. **A session-outliving watch has no mechanism at all** — and this one is not a missing *verb* but
-   a missing **role**. See § 4.2.
+4. **A watch that survives the session has no mechanism at all** — and this one is not a missing
+   *verb*. At the time of the run it was also a missing **role**; `claude/agents/illumi.md` landed
+   later in this same wave and closed that half. See § 4.2 and its § *Update*.
 
 ---
 
@@ -243,19 +244,37 @@ any composite invoking one of those skills programmatically will meet it.
 
 ### 4.2 — `en`'s long watch is a missing ROLE, not a missing verb, and it is a maintainer's OPEN question
 
+**Read as of the run above — 2026-09-10, at the point in this wave where `en` was written and before
+`claude/agents/illumi.md` had been added to the branch.** The § *Update* below says what changed and
+when; the reading is left standing rather than rewritten, because a record that describes a tree it
+never saw is not evidence.
+
 `docs/ROSTER.md` § *Rulings* 5 partially closes `OPEN-1`: *"Illumi is provisioned for `en`'s long
 watch, and only when one is needed … Provisioned means he may be stood up for that work when the work
-exists; it does not mean a definition exists."* **There is no `claude/agents/illumi.md`**, and no
-primitive anywhere in this plane defers work past a session — `docs/ab/ren.md` § 2.2 establishes that
-neither of nen's two loop primitives can, and a harness `Stop` hook fires after a turn rather than
-scheduling one.
+exists; it does not mean a definition exists."* **There was no `claude/agents/illumi.md` when this was
+observed**, and no primitive anywhere in this plane defers work past a session — `docs/ab/ren.md`
+§ 2.2 establishes that neither of nen's two loop primitives can, and a harness `Stop` hook fires after
+a turn rather than scheduling one.
 
-**So the honest behaviour is to name the gap and hand back at the cap**, which `SKILL.md` § 7 states
-and § *Hard limits* enforces. **Filing this as a nen defect would be the wrong move**: nen supplying
+**So the honest behaviour is to name the gap and hand back at the cap**, which `SKILL.md` § 7 stated
+and § *Hard limits* enforced. **Filing this as a nen defect would be the wrong move**: nen supplying
 an unattended long-running watch would close a maintainer's OPEN roster question by shipping a
 capability, which is exactly the attrition `claude/agents/kurapika.md` § *An OPEN item stays OPEN*
 forbids. Recorded here so the absence reads as a ruling waiting to be made rather than a tool waiting
 to be built.
+
+> **Update — later in this same wave, `v0.5.0`.** `claude/agents/illumi.md` **landed on this branch**,
+> on the reasoning `docs/ROSTER.md` § *Rulings* 5 gives: a provision that cannot be executed is a
+> provision in name only, and `en` shipped in the same wave. **So the half of this finding about the
+> missing role is closed**, and `SKILL.md` § 7 now describes the hand-off — step 6 to a subagent
+> titled `en · illumi · <model alias>`, read-only, waking Kurapika and acting on nothing.
+> **The other half stands unchanged, and it is the half that was ever about a mechanism**: a delegate
+> is still raised *from* a session, so nothing in this plane makes a watch survive one. And the rest
+> of Illumi's row — `backlog-loop`, `futon`, `senkei` — plus the whole of Killua's, remain **OPEN**.
+> Nothing is filed against the binary here either way. Raised by the Copilot review round on
+> `zheref/hatsu#31`
+> ([thread](https://github.com/zheref/hatsu/pull/31#discussion_r3976460616)), which caught the record
+> reading as though it described the shipped tree.
 
 ### 4.3 — The classifier makes en's first hard limit mechanical, which is unusual and worth preserving
 
