@@ -100,16 +100,24 @@ request, never from the date. **Rendering is this skill's** — `nen shu warmup 
 and has no default, because nen never invents a branch name (§ 8).
 
 ```bash
-nen shu warmup --repo <path> --branch <rendered name> --dry-run     # every git command, in order, none run
-nen shu warmup --repo <path> --branch <rendered name> [--from <branch.base>] [--tests]
+nen shu warmup --repo <path> --branch <rendered name> --from <branch.base> --dry-run   # every git command, in order, none run
+nen shu warmup --repo <path> --branch <rendered name> --from <branch.base> [--tests]
 ```
 
 The dry run prints the whole sequence with each step's own refusal condition attached, and the bare
 run performs it: `branch --show-current` → the in-progress check → the working-copy check → `remote`
 → the trunk exists → `check-ref-format` → the name is free locally → `fetch origin` → the divergence
-test → the fast-forward → the name is free on `origin` → `switch -c <branch> origin/main` → the
-lane's declared `build`. `--from` is only needed when `branch.base` is not `main`; it defaults to
-`main` **when that local branch exists** and refuses at `2` naming itself when it does not.
+test → the fast-forward → the name is free on `origin` → **`switch -c <branch> origin/<branch.base>`**
+→ the lane's declared `build`.
+
+> **`--from` is passed every time, with the value read from `nen/workflow.json` → `branch.base`, and
+> `origin/main` is never written as a literal.** The flag *defaults* to `main` when that local branch
+> exists, and that default is exactly the trap: a repository whose `branch.base` is `develop` would
+> warm up silently from the wrong trunk, and every later step — `ao`'s pull, `aka`'s squash range,
+> `shibari`'s PR base — would then disagree with the branch it was cut from. **A parameter this skill
+> already read is a parameter this skill passes**; leaving it to a default is leaving it to a value
+> nobody in the run has looked at. Where `branch.base` names a trunk with no local branch, `--from`
+> refuses at `2` naming itself — fetch or create the base and re-run, never fall back to `main`.
 
 **Reactions, by exit code** (`claude/agents/kurapika.md` § *The `shu` verbs* is the authority for
 the whole family):
@@ -185,6 +193,10 @@ rendered as clear.
   branch name is free.
 - **Never cuts a branch from a stale trunk** — the cut is `origin/<base>`'s freshly fetched tip, which
   is `shu warmup`'s own sequence, not a `git checkout -b` typed by hand.
+- **Never cuts from a literal `origin/main`.** The trunk is `origin/<branch.base>`, passed as
+  `--from <branch.base>` on every invocation, read from the file rather than assumed (§ 5). A
+  repository on `develop` warmed up from `main` is an effort based on the wrong trunk from its first
+  commit.
 - **Never reports a warm-up it did not run as clear**, and never reports a repository with no
   declaration as verified.
 - **Never invents a `workflow.json` value.** Absent file → the stated defaults, said out loud; absent
