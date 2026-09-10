@@ -157,12 +157,16 @@ Conventional Commits, one commit per coherent step where the work has steps. Val
 only (a declared type, a non-empty subject under 72 characters, no trailing punctuation) — what
 changed and why stays this skill's to write, never `nen`'s. Verified live: a bad type, an empty
 subject, a >72-char header and a trailing-punctuation subject all refuse with a named reason at
-exit `2` (`docs/ab/tensho.md` § 2.3); `--trailer` accepts comma-separated `key=value` pairs, so
-`Akatsuki-Agent=kurapika` and a harness trailer can both ride in one call.
+exit `2` (`docs/ab/tensho.md` § 2.3); `--trailer` accepts comma-separated `key=value` pairs, and
+here exactly one pair rides: `Akatsuki-Agent=kurapika`.
 
-**No AI attribution beyond the trailers the maintainer's own harness mandates** (today
-`Co-Authored-By:` and `Claude-Session:`) **plus `Akatsuki-Agent: kurapika`** — git author stays the
-**maintainer**. Never `--no-verify`. Never force-push. Never push `main`.
+**NO AI attribution trailer is ever recorded** (maintainer's ruling, 2026-09-09) — `Akatsuki-Agent:`
+is the single admitted trailer, being the system's own provenance rather than a model claiming
+authorship. No `Co-Authored-By:`, no `Claude-Session:`, no `Signed-off-by:`, no "Generated with …"
+line; the allow-list and the forbidden list are data, in `nen/workflow.json` → `commits`, and a
+harness that would mandate `Co-Authored-By:` is configured off (`includeCoAuthoredBy: false`) while
+the commit-msg guard refuses it regardless. Git author stays the **maintainer**. Never `--no-verify`.
+Never force-push. Never push `main`.
 
 ## 5. The PR
 
