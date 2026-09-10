@@ -8,45 +8,70 @@
 /* ============================================================================
    rikugan — the turn / landing / final report.
    Rendered from this file by `nen report render --template templates/rikugan.html`
-   once that verb exists, and until then by hatsu:rikugan filling the same tokens
-   by hand (named residue). Substitution is {{token}} plus {{#each list}}…{{/each}}
-   and nothing else: every variant difference below is carried by CSS off
-   data-variant, never by a conditional the engine does not have.
+   from nen 0.4.0, and at the pinned 0.3.0 by hatsu:rikugan filling the same
+   slots by hand (named residue). Every variant difference below is carried by
+   CSS off data-variant rather than by a branch in the page.
+
+   NOTHING IN THIS COMMENT SPELLS A SUBSTITUTION TAG, AND THAT IS DELIBERATE.
+   `nen report render` parses the whole file, comments included — it is a text
+   substituter, not an HTML parser — so a documentation comment that quoted a
+   double-brace tag would be read as markup and the render would be refused. It
+   was: three separate refusals, one per example this comment used to spell,
+   every one of them prose (hatsu finding F12). So the syntax is described in
+   words here and written out where it belongs, in claude/skills/rikugan/SKILL.md
+   § 4. In words: double-brace tags substitute a value, HTML-escaped; a
+   triple-brace form is the raw opt-out; there is a repeat block over a list and
+   a presence block that renders its body only when a key is non-empty. Four
+   constructs, no expressions, no helpers, no partials.
+
+   THE TOKEN VOCABULARY IS `nen report data`'s (`nen.report.data/v0.1`), plus a
+   named extension. Every slot whose value that document carries is spelled the
+   way the document spells it — repo, branch, base, generatedAt, files, evidence,
+   coverage — so the two verbs compose without a translation layer. The slots the
+   document does NOT carry are the ones no git read can produce: the four
+   narrative lists, the launch line, the PR body, the readiness verdict, the
+   parsed test rows, the banded touched-coverage rows, the title, the variant,
+   and the two provenance notes. Those are the EXTENSION, and hatsu:rikugan
+   supplies them by writing a data file that merges the document with them.
+   SKILL.md § 4 carries the merge shape and the rule that every extension key is
+   always present, empty where there is nothing: a key the data has not got is
+   refused at exit 2, by design, because a blank cell reads as a fact.
 
    Self-contained: no font file, no script from anywhere, no image but the ones
    the report itself embeds. Theme-aware through prefers-color-scheme only.
 
    ESCAPING — the contract, and it binds BOTH paths
    Every value on this page is repository-controlled: a commit subject, a PR
-   body, a file path, a screenshot's scene name. So:
+   body, a file path, an evidence scene's name. So:
 
-   * EVERY `{{token}}` IS HTML-ESCAPED BY THE RENDERER. `nen report render`
-     escapes by default — `& < > " '` become entities — and that holds in text
-     content and inside an attribute alike. There is no token on this page that
-     opts out. At nen 0.3.0 that verb does not exist yet, so this paragraph is
-     BOTH the contract it must meet when it lands at 0.4.0 AND, today, the rule
-     the residue path below carries on its own.
-   * `{{{ }}}` is the RAW form. No token below the comment uses it, and the one
-     slot it would ever be admitted for is a pre-escaped data-URI `src`, which
-     must first match
+   * EVERY SUBSTITUTED VALUE IS HTML-ESCAPED BY THE RENDERER. `nen report render`
+     escapes by default — `& < > " '` become entities — in text content and
+     inside an attribute alike. No slot on this page opts out. At nen 0.3.0 that
+     verb does not exist, so this paragraph is BOTH the contract it meets from
+     0.4.0 AND, at the pin, the rule the residue path carries on its own.
+   * THE RAW TRIPLE-BRACE FORM APPEARS NOWHERE BELOW. The one slot it would ever
+     be admitted for is a pre-escaped data-URI capture source, which must first
+     match
          ^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$
-     Even that slot is written `{{ }}` here, because HTML-escaping a base64
-     data URI changes none of its bytes and the escape is free. Anything that
-     is not a data URI is `{{ }}`, always.
+     Even that slot uses the escaping form, because HTML-escaping a base64 data
+     URI changes none of its bytes and the escape is free. Anything that is not
+     a data URI is escaped, always.
    * ESCAPING IS NOT ENOUGH ON ITS OWN, TWICE OVER, so two values are also
      VALIDATED before substitution:
-       - `{{src}}` — the regex above. Escaping stops the attribute being
-         closed; it does not stop the URL being a scheme nobody asked for.
-       - `{{percent}}` in `style="--pct:{{percent}}"` — a bare number `0`–`100`
-         (`^(100|[0-9]{1,2})(\.[0-9]+)?$`). Escaping stops the attribute being
-         closed; it does not stop `1;background:url(…)` adding a declaration.
+       - the capture source in section 05's `img` — the regex above. Escaping
+         stops the attribute being closed; it does not stop the URL being a
+         scheme nobody asked for.
+       - the percentage in section 11's `style="--pct:…"` — a bare number
+         0–100 (`^(100|[0-9]{1,2})(\.[0-9]+)?$`). Escaping stops the attribute
+         being closed; it does not stop `1;background:url(…)` adding a
+         declaration.
      A value that fails its check is not rendered: the row is dropped and the
      gap is named in section 03, exactly as a missing capture is.
-   * THE RESIDUE PATH IS HELD TO THE SAME RULE. Until `nen report render`
-     exists, hatsu:rikugan fills these tokens by hand — and hand-filling must
-     escape `& < > " '` in every value it writes and run the same two
-     validations. A hand-filled render and a verb-rendered one are the same
-     bytes for the same data, or the verb's arrival is a redesign.
+   * THE RESIDUE PATH IS HELD TO THE SAME RULE. At nen 0.3.0 hatsu:rikugan fills
+     these slots by hand — and hand-filling must escape `& < > " '` in every
+     value it writes and run the same two validations. A hand-filled render and
+     a verb-rendered one are the same bytes for the same data, or the verb's
+     arrival is a redesign.
    ========================================================================= */
 
 /* ---- palette -------------------------------------------------------------
@@ -243,13 +268,12 @@ tr:last-child td { border-bottom: 0; }
 td code { font-size: var(--t-fine); overflow-wrap: anywhere; }
 
 /* An empty section says so, instead of rendering a bare header or a bare
-   table head. The engine has no conditional, so emptiness is read off the
-   DOM the {{#each}} block produced. */
+   table head. Emptiness is read off the DOM a repeat block produced rather
+   than decided in the page, so one rule covers both render paths. */
 .note-empty { margin: .25rem 0 0; color: var(--ink-3); font-size: var(--t-fine); font-style: italic; }
 section:has(tbody tr) .note-empty,
 section:has(.notes li) .note-empty,
-section:has(.tier) .note-empty,
-section:has(.shots) .note-empty,
+section:has(.files li) .note-empty,
 section:has(.verdict) .note-empty,
 section:has(pre) .note-empty { display: none; }
 
@@ -267,10 +291,11 @@ section:has(pre) .note-empty { display: none; }
 .chip[data-band="recommended"]                                { color: var(--info); background: var(--info-bg); }
 .chip-tier { color: var(--accent-ink); background: var(--accent-bg); }
 
-/* ---- architecture delta ----------------------------------------------- */
-.tier { margin: 0 0 1.125rem; }
-.tier:last-child { margin-bottom: 0; }
-.tier > h3 { margin: 0 0 .5rem; font: var(--w-semi) var(--t-fine)/1.4 var(--sans); }
+/* ---- architecture delta -----------------------------------------------
+   One row per changed file, tier first. The data document is a FLAT list of
+   files each carrying its own tier, and the substituter has no group-by, so
+   the tier is a chip on the row rather than a heading over a block. A file
+   whose tier is null renders an empty chip, which the rule below hides.   */
 .files { list-style: none; margin: 0; padding: 0; display: grid; gap: .1rem; }
 .files li {
   display: flex; align-items: baseline; gap: .625rem;
@@ -278,18 +303,14 @@ section:has(pre) .note-empty { display: none; }
   font: var(--w-normal) var(--t-fine)/1.5 var(--mono);
 }
 .files li .path { overflow-wrap: anywhere; }
+.files li .chip-tier { flex: none; min-width: 5.5rem; text-align: center; }
+.files li .chip-tier:empty { display: none; }
 .files li .st { margin-left: auto; color: var(--ink-3); font-size: var(--t-micro); text-transform: uppercase; letter-spacing: .08em; }
 
 /* ---- screenshots ------------------------------------------------------ */
-.shots { margin: 0 0 1.5rem; }
-.shots:last-child { margin-bottom: 0; }
-.shots figcaption {
-  margin: 0 0 .5rem;
-  font: var(--w-semi) var(--t-fine)/1.4 var(--sans);
-}
-.shots table { table-layout: fixed; }
-.shots th { padding-bottom: .5rem; }
-.shots td { padding: .5rem .5rem .5rem 0; width: 15rem; min-width: 11rem; }
+.shots td { padding: .5rem .75rem .5rem 0; }
+.shots td:last-child { width: 16rem; min-width: 11rem; }
+.shots .st-path { display: block; margin-top: .25rem; color: var(--ink-3); font-size: var(--t-micro); overflow-wrap: anywhere; }
 .shots img {
   border: 1px solid var(--rule); border-radius: 8px; background: var(--card-sunk);
 }
@@ -343,12 +364,21 @@ section:has(pre) .note-empty { display: none; }
 .ladder { display: flex; gap: 1rem; margin: .75rem 0 0; color: var(--ink-3); font-size: var(--t-micro); font-family: var(--mono); letter-spacing: .06em; text-transform: uppercase; }
 
 /* ---- variant gating ----------------------------------------------------
-   The one place a variant changes the page. `nen report render` has no
-   conditional, so the engine always emits every section and CSS decides
-   which of them this variant owns.                                       */
+   The one place a variant changes the page. Every section is always emitted
+   and CSS decides which of them this variant owns — one page shape, three
+   readings of it, and no branch in the template to keep in step.         */
 [data-variant="turn"] .landing-only,
 [data-variant="turn"] .final-only,
 [data-variant="landing"] .final-only { display: none; }
+
+/* ---- provenance notes --------------------------------------------------
+   Two slots the page owes its reader and used to have nowhere to put: the
+   sentence saying a render was assembled by hand, and the sentence naming a
+   resolution that failed (a title that fell back, most often). Both are
+   ordinary escaped values; both hide themselves when empty, so a page with
+   nothing to disclose carries no empty furniture.                        */
+.provenance { color: var(--ink-3); font-style: italic; }
+.provenance:empty, .footer-note:empty { display: none; }
 
 /* ---- footer ----------------------------------------------------------- */
 footer {
@@ -358,6 +388,7 @@ footer {
   letter-spacing: .04em;
 }
 footer b { font-weight: var(--w-semi); color: var(--ink-2); }
+footer .footer-note { flex-basis: 100%; color: var(--ink-2); letter-spacing: 0; font-style: italic; }
 
 @media print {
   body { background: #fff; padding: 0; }
@@ -373,9 +404,10 @@ footer b { font-weight: var(--w-semi); color: var(--ink-2); }
     <p class="eyebrow">Rikugan · {{variant}} report</p>
     <h1>{{title}}</h1>
     <dl class="meta">
+      <div><dt>Repository</dt><dd>{{repo}}</dd></div>
       <div><dt>Branch</dt><dd>{{branch}}</dd></div>
       <div><dt>Base</dt><dd>{{base}}</dd></div>
-      <div><dt>Generated</dt><dd>{{generated}}</dd></div>
+      <div><dt>Generated</dt><dd>{{generatedAt}}</dd></div>
     </dl>
   </header>
 
@@ -402,7 +434,7 @@ footer b { font-weight: var(--w-semi); color: var(--ink-2); }
 
   <section data-tone="gap">
     <h2><span class="ord">03</span> Not delivered</h2>
-    <p class="lead">Asked for and not in this turn — named, never omitted.</p>
+    <p class="lead">Asked for and not in this turn — named, never omitted. <span class="provenance">{{residue}}</span></p>
     <ul class="notes">
       {{#each notDelivered}}
       <li>{{text}}<span class="why">{{why}}</span></li>
@@ -413,38 +445,33 @@ footer b { font-weight: var(--w-semi); color: var(--ink-2); }
 
   <section>
     <h2><span class="ord">04</span> Architecture delta</h2>
-    <p class="lead">Every changed file, grouped by the tier it belongs to.</p>
-    {{#each architecture}}
-    <div class="tier">
-      <h3><span class="chip chip-tier">{{tier}}</span></h3>
-      <ul class="files">
-        {{#each files}}
-        <li><span class="path">{{path}}</span><span class="st">{{status}}</span></li>
-        {{/each}}
-      </ul>
-    </div>
-    {{/each}}
+    <p class="lead">Every changed file against the base, with the tier it belongs to.</p>
+    <ul class="files">
+      {{#each files}}
+      <li><span class="chip chip-tier">{{tier}}</span><span class="path">{{path}}</span><span class="st">{{status}}</span></li>
+      {{/each}}
+    </ul>
     <p class="note-empty">No file changed in this turn.</p>
   </section>
 
   <section>
     <h2><span class="ord">05</span> Screenshots</h2>
-    <p class="lead">One table per screen; each state is a column.</p>
-    {{#each screenshots}}
-    <figure class="shots">
-      <figcaption>{{screen}}</figcaption>
-      <div class="scroll">
-        <table>
-          <thead>
-            <tr>{{#each states}}<th>{{name}}</th>{{/each}}</tr>
-          </thead>
-          <tbody>
-            <tr>{{#each states}}<td><img src="{{src}}" alt="{{name}}" loading="lazy"></td>{{/each}}</tr>
-          </tbody>
-        </table>
-      </div>
-    </figure>
-    {{/each}}
+    <p class="lead">One row per scene this change re-recorded, grouped by suite in the suite column.</p>
+    <div class="scroll">
+      <table class="shots">
+        <thead><tr><th>Suite</th><th>Scene</th><th>Status</th><th>Capture</th></tr></thead>
+        <tbody>
+          {{#each evidence}}
+          <tr>
+            <td>{{suite}}</td>
+            <td>{{scene}}</td>
+            <td><span class="chip">{{status}}</span><span class="st-path"><code>{{path}}</code></span></td>
+            <td><img src="{{src}}" alt="{{scene}}" loading="lazy"></td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
     <p class="note-empty">This turn changed nothing with a screen behind it.</p>
   </section>
 
@@ -504,11 +531,12 @@ footer b { font-weight: var(--w-semi); color: var(--ink-2); }
 
   <section class="final-only">
     <h2><span class="ord">11</span> Touched coverage</h2>
+    {{#if coverage}}<p class="lead">Read from <code>{{coverage.path}}</code> ({{coverage.format}}, lane {{coverage.lane}}); the repository total is {{coverage.total.lines.percent}}% and is not the verdict.</p>{{/if}}
     <div class="scroll">
       <table>
         <thead><tr><th>File</th><th>Line coverage</th><th>%</th><th>Band</th></tr></thead>
         <tbody>
-          {{#each coverage}}
+          {{#each touchedCoverage}}
           <tr>
             <td><code>{{file}}</code></td>
             <td><span class="bar" data-band="{{band}}" style="--pct:{{percent}}"></span></td>
@@ -524,10 +552,12 @@ footer b { font-weight: var(--w-semi); color: var(--ink-2); }
   </section>
 
   <footer>
+    <span><b>repo</b> {{repo}}</span>
     <span><b>branch</b> {{branch}}</span>
     <span><b>base</b> {{base}}</span>
-    <span><b>generated</b> {{generated}}</span>
+    <span><b>generated</b> {{generatedAt}}</span>
     <span><b>template</b> templates/rikugan.html</span>
+    <span class="footer-note">{{footerNote}}</span>
   </footer>
 
 </article>
