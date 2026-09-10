@@ -60,7 +60,7 @@ Four things the skill owns that you must not paraphrase loosely when you report 
 
 - **The `0.x` range.** While nen's line is `0.x`, `minimum: "0.7"` means **`>=0.7.0 <0.8.0`** — a different
   minor is out of range **in both directions**, so `0.8.0` fails it exactly as `0.6.0` does. At major zero
-  the *minor* is the breaking-change vehicle (SemVer clause 4), and both of the last two releases prove it:
+  the *minor* is the breaking-change vehicle (SemVer clause 4), and each of the last three releases proves it:
   `v0.5.0` **removed** something a consumer could rely on (the `schemas/` fallback), `v0.6.0` changed three
   behaviours in place, and `v0.7.0` changes four more, none of them announced by a new flag:
   `nen stage triage` gains the `local-config` and `large` detectors, so a tree that answered exit `0`

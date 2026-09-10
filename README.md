@@ -124,7 +124,7 @@ FAIL by pointer — and [`docs/WORKFLOW.md`](docs/WORKFLOW.md) documents both.
 **both** directions: `0.8.0` fails it as surely as `0.6.0` does. At major version zero, SemVer 2.0.0 clause 4
 makes the *minor* the breaking-change vehicle, so reading `>= 0.7` as "anything backward-compatible within
 major 0" would fail **open** in precisely the range where compatibility is least guaranteed — and the last
-two releases are both the proof. `v0.5.0` **removed** something a consumer could rely on (the `schemas/`
+three releases are all the proof. `v0.5.0` **removed** something a consumer could rely on (the `schemas/`
 fallback), the first release since `v0.1.0` to do so; `v0.6.0` changed three behaviours **in place**, and
 `v0.7.0` changes four more, none of them announced by a new flag — `nen stage triage` gains the
 `local-config` and `large` detectors, so a tree that answered exit `0` answers exit `1` on the same bytes;
