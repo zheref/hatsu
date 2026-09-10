@@ -293,7 +293,7 @@ Since `v0.4.0` the same file also carries a **`project`** block — Hatsu's own 
 `claude plugin validate . --strict`; every other verb of the family is an explicit `unsupported` **seat**
 stating in this repository's words why it does not exist, because a seat is exit `4`, a stated fact, while an
 omission is exit `2`, a broken declaration. Its policy half, [`nen/workflow.json`](nen/workflow.json), is
-**validated by nen at the pinned `0.7.0`** — the second `ok` row above, with a malformed key reported as a
+**validated by nen at the pinned build** — the second `ok` row above, with a malformed key reported as a
 FAIL by pointer — and [`docs/WORKFLOW.md`](docs/WORKFLOW.md) documents both.
 
 ### The range

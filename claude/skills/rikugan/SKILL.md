@@ -315,7 +315,7 @@ place this verb will write.
 > emitted and hidden by CSS off `data-variant` (§ 5)**, because a page whose shape changes with its
 > variant is three pages. `{{#if}}` guards a **null**; it does not choose a layout.
 >
-> **There is no residue path to owe them to.** At the pinned `0.7.0` the engine is the verb's, and a
+> **There is no residue path to owe them to.** At the pinned build the engine is the verb's, and a
 > hand-written renderer would be a second one nobody reviews.
 
 ### Escaping — the contract, and it binds the residue path too
