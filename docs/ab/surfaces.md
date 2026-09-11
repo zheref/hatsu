@@ -1204,3 +1204,35 @@ resolved; `/tmp` named as passed over on success in both forms; `pr-state` § 2 
 the hostile path); this checkout's own manifest reads `hatsu`. Both mirrors regenerate clean, the
 fenced-block check reports zero, the plugin validates. **Still not verified:** a Codex or Cursor session.
 
+### 9.15 Copilot's fourteenth round — strict tokens
+
+Four threads (one per copy) and eight suppressed comments on the mirrors, one point: the scalar grammar was
+permissive — `01` passed as a number and `\\.` accepted any escape, `\q` included — so a manifest that JSON
+would refuse could still print `hatsu`.
+
+**Tokens now follow JSON**, in the named reader and the four one-line copies alike: a number is
+`-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?` — no leading zero, no bare dot, no `+`; a string admits only
+`\" \\ \/ \b \f \n \r \t` and `\uXXXX` as escapes and no raw control character; and the same string grammar
+applies to keys, so a key with a bad escape refuses the manifest too.
+
+**Thirty-five shapes**, the twenty-seven of § 9.14 plus eight token cases, both forms agreeing on every one
+under bash 3.2, and this checkout's own manifest reading `hatsu`:
+
+```
+  number-leading-zero.json     "x": 01                                  refuse   NEW — the round's case
+  bad-escape.json              "x": "\q"                                refuse   NEW — the round's case
+  bad-escape-in-key.json       "na\qme": "hatsu"                        refuse   NEW
+  number-trailing-dot.json     "x": 1.                                  refuse   NEW
+  number-leading-dot.json      "x": .5                                  refuse   NEW
+  number-plus.json             "x": +1                                  refuse   NEW
+  raw-tab-in-string.json       a literal tab inside a string            refuse   NEW
+  valid-tokens.json            é \n \" \\ \/ \b\f\r\t, -0, 1e5,
+                               -12.5E-3                                 ACCEPT   NEW
+  … the twenty-seven of § 9.14, unchanged (seven accepted, twenty refused)
+```
+
+Every capture case reruns unchanged (the newline-ending checkout refused; the hostile path and a handed `.`
+resolved; `/tmp` named as passed over on success in both forms; `pr-state` § 2 reporting `identities` under
+the hostile path). Both mirrors regenerate clean, the fenced-block check reports zero, the plugin validates.
+**Still not verified:** a Codex or Cursor session.
+
