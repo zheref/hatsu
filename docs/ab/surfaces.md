@@ -1128,3 +1128,33 @@ under `CDPATH`, D and E resolve, the newline-ending checkout reported *Unusable*
 § 5, `pr-state` § 2 reporting `identities` under the hostile path). Both mirrors regenerate clean, the
 fenced-block check reports zero, the plugin validates. **Still not verified:** a Codex or Cursor session.
 
+### 9.13 Copilot's twelfth round — every line validated, and the manifests describe this release
+
+One thread and one suppressed comment.
+
+| finding | disposition |
+|---|---|
+| the reader ignored an unrecognised two-space line, so `{`, `  "name": "hatsu"`, `  junk`, `}` read `hatsu` although it is not JSON | **Fixed in all five copies.** Every inner line is now validated against the pretty-printed grammar: a member (a quoted key, then `{`, `[`, `{}`, `[]` or a scalar — a string with escapes, a number, `true`, `false`, `null`), a closer, or an array element at four spaces or deeper; anything else refuses the manifest. Eighteen shapes below |
+| `.claude-plugin/marketplace.json` still said *Pinned to nen v0.7.0* in its metadata description and both manifests' narratives stopped before this release | **Fixed**: the marketplace's pin reads the contract's values (`v0.8.0`, minimum `0.7`), and `plugin.json` plus both marketplace descriptions carry a v0.14.0 sentence naming the same-shell root, the structural reader and the capture guards |
+
+**The reader, as `pr-state` carries it, against eighteen manifests** — the thirteen of § 9.12 plus five new
+shapes — under bash 3.2, every result the expected one:
+
+```
+  junk-line-at-2.json      {  "name": "hatsu"  junk  }                         refuse   NEW — the round's case
+  junk-line-at-4.json      a junk line inside a nested object                  refuse   NEW
+  key-without-value.json   a bare "x" where a member should be                 refuse   NEW
+  unquoted-key.json        x: 1                                                refuse   NEW
+  valid-tricky.json        numbers, booleans, null, {}, [], escaped quotes and
+                           backslashes in strings, arrays of arrays, objects
+                           inside arrays — all canonical                       ACCEPT   NEW
+  … the thirteen of § 9.12, unchanged (six accepted, seven refused)
+```
+
+The one-line form and the named function agree on all eighteen; this checkout's own manifest, with the
+new sentence in its description, still reads `hatsu`. Every capture case reruns unchanged (the newline-ending
+checkout refused; the hostile path and a handed `.` resolved; `/tmp` named as passed over on success in both
+forms; `pr-state` § 2 reporting `identities` under the hostile path). Both mirrors regenerate clean, the
+fenced-block check reports zero, the plugin validates with the new descriptions. **Still not verified:** a
+Codex or Cursor session — as before.
+

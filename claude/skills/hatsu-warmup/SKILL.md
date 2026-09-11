@@ -44,7 +44,7 @@ with the quoted value this one prints, as an explicit input (§ 5's rule).
 hatsu_root=""; passed=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the path this invocation was handed, if any>' "${CLAUDE_PLUGIN_ROOT:-}"; do
   [ -n "$c" ] || continue; passed="$passed $c"
   [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
-  mn=$(awk 'NR==1{if($0!="{")b=1;next} /^}$/{if(d)b=1;d=1;next} d||!/^  /{b=1} /^  [^ ]/{if(!p&&$0~/^  "name"[[:space:]]*:[[:space:]]*"/){s=$0;sub(/^  "name"[[:space:]]*:[[:space:]]*"/,"",s);sub(/".*$/,"",s);n++;v=s} if($0~/[{[][[:space:]]*,?[[:space:]]*$/)p++; if($0~/^  [}\]]/)p--} END{if(!b&&d&&n==1&&!p)print v}' "$c/.claude-plugin/plugin.json") && [ "$mn" = hatsu ] &&   # captured first: bash 3.2 mis-parses quotes inside "$( )"
+  mn=$(awk 'function scalar(v){return v~/^("([^"\\]|\\.)*"|-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?|true|false|null)$/} NR==1{if($0!="{")b=1;next} /^}$/{if(d)b=1;d=1;next} d||!/^  /{b=1;next} /^  +[}\]],?$/{if($0~/^  [}\]]/)p--;next} /^  +"([^"\\]|\\.)*"[[:space:]]*:[[:space:]]*/{v=$0;sub(/^  +"([^"\\]|\\.)*"[[:space:]]*:[[:space:]]*/,"",v);sub(/,$/,"",v);if(v!="{"&&v!="["&&v!="{}"&&v!="[]"&&!scalar(v))b=1;if($0~/^  [^ ]/){if(!p&&$0~/^  "name"[[:space:]]*:[[:space:]]*"/){s=$0;sub(/^  "name"[[:space:]]*:[[:space:]]*"/,"",s);sub(/".*$/,"",s);n++;name=s}if(v=="{"||v=="[")p++}next} /^    +/{v=$0;sub(/^ +/,"",v);sub(/,$/,"",v);if(v!="{"&&v!="["&&v!="{}"&&v!="[]"&&!scalar(v))b=1;next} {b=1} END{if(!b&&d&&n==1&&!p)print name}' "$c/.claude-plugin/plugin.json") && [ "$mn" = hatsu ] &&   # captured first: bash 3.2 mis-parses quotes inside "$( )"
   r=$(CDPATH= cd "$c" >/dev/null 2>&1 && pwd -P) && [ "$r/." -ef "$c/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && hatsu_root=$r && break
 done
 [ -n "$hatsu_root" ] || { echo "hatsu-warmup: no Hatsu root — \$HATSU_PLUGIN_ROOT unset or not a Hatsu checkout, nothing usable handed, \$CLAUDE_PLUGIN_ROOT empty or another plugin. Tried:$passed" >&2; exit 1; }
@@ -596,25 +596,34 @@ those two surfaces can answer either.
 ```sh
 # manifest_name FILE — prints the TOP-LEVEL "name" of a plugin manifest, or nothing.
 # No jq, and no line-by-line guess either: it reads the ONE shape Claude Code's
-# tooling writes and this repository ships — JSON.stringify(x, null, 2): line one is
-# `{`, every inner line is indented at least two spaces, the last line is `}`, and a
-# key at exactly two spaces is top-level unless a two-space line opened a nested
-# object or array above it. Anything else — minified, tab- or four-space-indented,
-# keys at column zero, a nested block laid out at two spaces — is refused rather
-# than parsed: refusal is the safe direction, and the tooling never writes another
-# shape. Exactly one top-level name, or nothing.
+# tooling writes and this repository ships — JSON.stringify(x, null, 2) — and
+# validates EVERY line against that grammar: line one is `{`, the last line is `}`,
+# and every inner line, indented at least two spaces, is one of a member (a quoted
+# key, then `{`, `[`, `{}`, `[]` or a scalar), a closer, or an array element at four
+# spaces or deeper. A key at exactly two spaces is top-level unless a two-space
+# line opened a nested block above it. Anything else — minified, tab- or four-space
+# indented, keys at column zero, a nested block laid out at two spaces, a stray
+# second `}`, a junk line between valid members — is refused rather than parsed:
+# refusal is the safe direction, and the tooling never writes another shape.
+# Exactly one top-level name, or nothing.
 manifest_name() {
   awk '
+    function scalar(v) { return v ~ /^("([^"\\]|\\.)*"|-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?|true|false|null)$/ }
     NR == 1        { if ($0 != "{") bad = 1; next }
     /^}$/          { if (done) bad = 1; done = 1; next }
-    done || !/^  / { bad = 1 }
-    /^  [^ ]/ {
-      if (!depth && $0 ~ /^  "name"[[:space:]]*:[[:space:]]*"/) {
-        s = $0; sub(/^  "name"[[:space:]]*:[[:space:]]*"/, "", s); sub(/".*$/, "", s); n++; name = s
+    done || !/^  / { bad = 1; next }
+    /^  +[}\]],?$/ { if ($0 ~ /^  [}\]]/) depth--; next }                      # a closer
+    /^  +"([^"\\]|\\.)*"[[:space:]]*:[[:space:]]*/ {                             # a member: key, then value
+      v = $0; sub(/^  +"([^"\\]|\\.)*"[[:space:]]*:[[:space:]]*/, "", v); sub(/,$/, "", v)
+      if (v != "{" && v != "[" && v != "{}" && v != "[]" && !scalar(v)) bad = 1
+      if ($0 ~ /^  [^ ]/) {                                                     # at two spaces: top level unless a block is open
+        if (!depth && $0 ~ /^  "name"[[:space:]]*:[[:space:]]*"/) { s = $0; sub(/^  "name"[[:space:]]*:[[:space:]]*"/, "", s); sub(/".*$/, "", s); n++; name = s }
+        if (v == "{" || v == "[") depth++
       }
-      if ($0 ~ /[{[][[:space:]]*,?[[:space:]]*$/) depth++
-      if ($0 ~ /^  [}\]]/) depth--
+      next
     }
+    /^    +/ { v = $0; sub(/^ +/, "", v); sub(/,$/, "", v); if (v != "{" && v != "[" && v != "{}" && v != "[]" && !scalar(v)) bad = 1; next }   # an array element
+    { bad = 1 }                                                                  # anything else is not the shape
     END { if (!bad && done && n == 1 && !depth) print name }
   ' "$1"
 }
