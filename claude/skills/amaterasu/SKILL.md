@@ -78,7 +78,7 @@ and ask which one; **with no `project.launch` either, this is § 1's no-launch c
 `no launch target declared; skipped` and continue, and where the lane does declare a plain `dev`
 row, run § 5's dry run and paste the command as the thing the maintainer could start by hand.
 
-**`project.launch` is NEN's key at the pinned `0.7.0`, and `nen shu dev|run --target <name>` executes
+**`project.launch` is NEN's key at the pinned build, and `nen shu dev|run --target <name>` executes
 it.** The loader parses the block rather than preserving it — a key one spelling out (`arg`,
 `devices`, `resolver`, `verbs`, or the block key itself as `launches`/`Launch`) is refused **by
 pointer** naming which misspelling it is, because preserved it would be read by nobody and two thirds
@@ -177,7 +177,7 @@ Where the target declares a `device`, run its `resolve` probe **as declared** an
 | Absent, and `launch.fallback` is `null` | say so and stop. Not a gate: a device nobody plugged in is a fact, and picking a different one is a guess |
 | The target declares no `device` at all | nothing to resolve — a desktop or web lane, § 5 straight through |
 
-> **Present-but-unusable is a THIRD outcome, and at the pinned nen `0.7.0` the DECLARATION decides
+> **Present-but-unusable is a THIRD outcome, and at the pinned build the DECLARATION decides
 > whether nen can see it.** `project.launch.<name>.device.readyWhen` names which of the probe's own
 > states count — `{field, in}` for a probe that prints lines, `{path, in}` for one that prints JSON —
 > and a row that is present and not one of them is **exit `5` naming the device, the state seen and
@@ -202,7 +202,7 @@ listing three devices none of which is the declared one is an absent device, not
 Pairing a device that has never been set up is `hatsu:jujutsu`'s work, not this skill's.
 
 **The match is byte for byte** — exact string equality, no case folding, no Unicode normalisation, no
-smoothing of punctuation — which is what `--target` implements at the pinned nen `0.7.0`, and nen's
+smoothing of punctuation — which is what `--target` implements at the pinned build, and nen's
 own `docs/USAGE.md` says so in as many words from that release. The practical consequence is one
 character: a device named
 `Sergio’s iPhone` carries **U+2019**, not the ASCII `'`, and a declaration written with the typed
@@ -287,7 +287,7 @@ the terminal back; say the app is running and what is holding the terminal.
 **Reactions, by exit code** (`claude/agents/kurapika.md` § *The `shu` verbs*): `1` is a failed build —
 hand it to [`hatsu:rasengan`](../rasengan/SKILL.md), do not relaunch; `2` is usage or an unsatisfied
 precondition, named; `3` is a host the declaration excludes — **G5**, never a retry; `4` is a seat
-(the lane declares no verb by that name) and, with `--target` named, at the pinned `0.7.0` it is a
+(the lane declares no verb by that name) and, with `--target` named, at the pinned build it is a
 **real** seat rather than a mis-typed subcommand — the target's own verb is checked first (§ 5) — so
 quote the declaration's own words and run the repository's documented command, saying that you
 did; `5` is the program not on `PATH` — `nen shu tools --repo <path>` and relay the per-tool remedy.
@@ -296,7 +296,7 @@ did; `5` is the program not on `PATH` — `nen shu tools --repo <path>` and rela
 
 A declared `after[]` — install the artifact onto the device, launch the bundle id, open the `.app` —
 runs **after** the verb, in order, with `{device.id}` from § 4 and `{artifact}` substituted. **At the
-pinned nen `0.7.0` nen runs these**, as part of the same `--target` invocation (§ 5), so there is
+pinned build nen runs these**, as part of the same `--target` invocation (§ 5), so there is
 nothing to run by hand and nothing to report as by-hand.
 
 **Which path `{artifact}` reads is a fact the dry run states**, and it is worth quoting into the
@@ -323,7 +323,7 @@ refused outside the tree, refused as an empty string, and refused when **no afte
 > Nothing here is a step this skill takes; it is a line to read correctly in a report, and quoting
 > `artifacts:` where `substitutes:` was meant is how the two roots get confused again.
 
-## 7. Residue — what has no verb at the pinned nen `0.7.0`
+## 7. Residue — what has no verb at the pinned build
 
 - **RETIRED at nen `0.5`: `--target` on a launch verb.** `nen shu dev --repo <path> --target sim
   --dry-run` renders the target, the device, the appended `args`, the after-steps and both
@@ -383,7 +383,7 @@ refused outside the tree, refused as an empty string, and refused when **no afte
 - **Never falls back to a simulator for a device that is present but unusable** (§ 4) — the fallback
   answers "nobody plugged it in", and refusing is the honest answer to "nobody accepted the prompt".
 - **Never types a `shu` subcommand the target did not declare** (§ 5). It is
-  `project.launch.<target>.verb`, and at the pinned `0.7.0` naming the other one is nen's exit `2`
+  `project.launch.<target>.verb`, and at the pinned build naming the other one is nen's exit `2`
   telling you which to run — never worked around by dropping `--target`.
 - **Never invents a target.** No `launch.default` and no argument, but `project.launch` declares
   targets → name what exists and ask.
@@ -394,7 +394,7 @@ refused outside the tree, refused as an empty string, and refused when **no afte
 - **Never substitutes a plausible command for a declared one**, and never re-types the pasted command
   from memory — it is the `--dry-run` argv, verbatim (plus the target's declared `args`, appended
   visibly), or it is not pasted.
-- **Never runs the bare lane verb for a target that declares `args`.** At the pinned `0.7.0` nen
+- **Never runs the bare lane verb for a target that declares `args`.** At the pinned build nen
   appends them itself (§ 5), so the one line with `--target` is the whole of it; a bare
   `nen shu dev` starts a different build than the declaration names. Name the target, or refuse it by
   name — never quietly run the shorter line.

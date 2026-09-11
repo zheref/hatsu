@@ -293,7 +293,7 @@ Since `v0.4.0` the same file also carries a **`project`** block — Hatsu's own 
 `claude plugin validate . --strict`; every other verb of the family is an explicit `unsupported` **seat**
 stating in this repository's words why it does not exist, because a seat is exit `4`, a stated fact, while an
 omission is exit `2`, a broken declaration. Its policy half, [`nen/workflow.json`](nen/workflow.json), is
-**validated by nen at the pinned `0.7.0`** — the second `ok` row above, with a malformed key reported as a
+**validated by nen at the pinned build** — the second `ok` row above, with a malformed key reported as a
 FAIL by pointer — and [`docs/WORKFLOW.md`](docs/WORKFLOW.md) documents both.
 
 ### The range
@@ -578,7 +578,7 @@ apart is what keeps the second class of mistake visible.
   not licence to write it. Each names the system's own provenance, not a model claiming authorship, which
   is why there is no third. **Set `includeCoAuthoredBy: false`** in your
   Claude Code settings so the harness stops adding `Co-Authored-By:`. Enforcement is **three-layered, and at the
-  pinned nen `0.7.0` the third layer is the binary's**: (a) `kokusen` and `aka` refuse to **write** such a
+  pinned build the third layer is the binary's**: (a) `kokusen` and `aka` refuse to **write** such a
   trailer — agent-side, and it is what Hatsu itself carries; (b) the **target repository's `commit-msg`
   hook**, which `nen scaffold init` generates from `commits.allowedAttributionTrailers` (KroApple and
   kro-pwa carry one) — and from nen `v0.6.0` that hook's automated half is **derived from the repository's
@@ -1048,7 +1048,7 @@ claude plugin validate . --strict
 scripts/surface_mirror_check.sh   # the Codex/Cursor mirrors match their source
 ```
 
-The second writes nothing and needs no credential. **At the pinned `v0.7.0` it runs the real check** —
+The second writes nothing and needs no credential. **At the pinned build it runs the real check** —
 `codex ok: 40`, `cursor ok: 47`, exit `0`. It exits `2` — saying so, rather than passing — when the `nen` on
 your `PATH` has no `surface` verb, which at this pin means the binary is not the pinned one; see
 [`docs/SURFACES.md`](docs/SURFACES.md) § 4.

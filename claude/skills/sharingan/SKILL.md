@@ -86,7 +86,7 @@ nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/
 path set still comes from `gh pr diff <n> --repo <owner/name> --name-only` (residue: no `nen` verb
 fetches a remote diff, per `backlog-state`'s own A/B). **`--policy-paths` is a literal, and the
 taxonomy directory moved under it.** A target's `labels.json`/`repos.json`/`colors.yml`/`gates.json`
-live canonically under `nen/`, and **at the pinned nen `0.7.0` the `schemas/` fallback is REMOVED**:
+live canonically under `nen/`, and **at the pinned build the `schemas/` fallback is REMOVED**:
 a repository carrying a file only there is refused exactly like one carrying it nowhere. **That is
 about what nen resolves and changes nothing here** — a prefix you hand `gate derive` is taken
 literally, and nen's resolution never sees it (USAGE: *"`schema check` will not warn about them,

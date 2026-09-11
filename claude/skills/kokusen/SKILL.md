@@ -181,7 +181,7 @@ nen stage triage --repo <path> [--scope <in-scope prefixes>] [--mentions "<the m
 ```
 
 Detects, never decides, and **exits `1` whenever anything is FLAGGED — `flagged` alone decides the
-exit code at the pinned `0.7.0`**, so a tree whose only dirty rows are git-ignored is exit `0`. The
+exit code at the pinned build**, so a tree whose only dirty rows are git-ignored is exit `0`. The
 **six detectors and the one bucket**, verified live against a constructed working copy carrying one
 of each (`docs/ab/kokusen.md` § 2.1, § *Retired at nen 0.6* and § *Retired at nen 0.7*):
 
@@ -193,7 +193,7 @@ of each (`docs/ab/kokusen.md` § 2.1, § *Retired at nen 0.6* and § *Retired at
 | `binary` | the file's content is binary |
 | `out-of-scope` | the path falls outside every `--scope` prefix — **omitted entirely** when `--scope` is not passed |
 | `unmentioned-deletion` | a tracked path was deleted and its basename does not appear in `--mentions` |
-| **`ignored`** | the path is git-ignored. **Its own bucket at the pinned `0.7.0`, not a flag on `flagged`** — a fact, not a question, because a plain `git add` cannot stage it at all |
+| **`ignored`** | the path is git-ignored. **Its own bucket at the pinned build, not a flag on `flagged`** — a fact, not a question, because a plain `git add` cannot stage it at all |
 
 One path can carry several reasons at once. **Present every flagged file together, with the reasons
 `nen` printed, and take one answer per file** — and at this pin `flagged` holds only paths a plain
@@ -317,7 +317,7 @@ changed and why is this skill's to write, never nen's.
 > their commit. It refuses to *add* one; deleting someone else's provenance metadata is a governance
 > decision nobody asked for.
 
-**`nen commit format --repo <path>` ENFORCES this rule at the pinned `0.7.0`, and the `--repo` is what
+**`nen commit format --repo <path>` ENFORCES this rule at the pinned build, and the `--repo` is what
 turns it on.** Verified live against this repository: `--trailer "Co-Authored-By=someone"` is refused
 at exit `2` — *"trailer key 'Co-Authored-By' is an attribution trailer this repository refuses.
 '…/nen/workflow.json' admits 'Hatsu-Agent', 'Akatsuki-Agent' under
@@ -340,7 +340,7 @@ only one (§ 7).
 > stale.** A headless Cursor run against nen `0.3.0` found `--repo` **accepted and silently ignored**,
 > so `--trailer "Hatsu-Agent=kurapika"` rendered at exit `0` where a refusal was expected
 > (`docs/ab/surfaces.md` § 8, F12) — *"a flag that is accepted and ignored is worse than one that is
-> rejected: it reads like the guard ran."* **That was `0.3.0`. Hatsu pins `v0.7.0`**, where the verb
+> rejected: it reads like the guard ran."* **That was `0.3.0`. At the pinned build**, the verb
 > has its own `--repo`, opens the policy and refuses by name. § 7's residue list says `RETIRED` for
 > exactly this reason.
 
@@ -377,7 +377,7 @@ git commit --file <message file>          # residue, § 7: no nen verb writes a 
 fix what it named. Stage explicitly, path by path, from § 4's clean list plus every flagged path that
 got an explicit yes; `git add -A` is barred (§ 9).
 
-## 7. Residue — what has no verb at the pinned nen `0.7.0`
+## 7. Residue — what has no verb at the pinned build
 
 - **RETIRED at nen `0.5`: the forbidden-trailer refusal.** `nen commit format --repo <path>` refuses
   an unadmitted attribution trailer at exit `2`, naming the file (§ 5, verified live against this

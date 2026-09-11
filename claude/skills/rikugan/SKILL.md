@@ -75,7 +75,7 @@ keys; never carry a remembered value.
 > rather than a copy retained of it. One file that is always the latest render is not a retained
 > report — a retained report is one you can still find after the next turn.
 
-> **`nen schema check` VALIDATES this file at the pinned `v0.7.0` — verified live
+> **`nen schema check` VALIDATES this file at the pinned build — verified live
 > (`docs/ab/rikugan.md` § *Retired at nen 0.5*).** Run against `hatsu`'s own checkout it reports
 > **six** rows, and the sixth is `ok    nen/workflow.json  coverage 80/85/90 (touched), branch
 > '{model}/{persona}/{descriptor}' off 'main', checks: lint`. So the SHAPE is nen's to judge: a
@@ -154,7 +154,7 @@ never answered as a branch with nothing on it.
 >   sandbox refused — say so on the page in those words and leave the section empty. An unmeasured delta is
 >   reported as unmeasured, never rendered from whatever ref happened to resolve.
 
-**Three companion verbs fill the extension lists, and all three exist at the pinned `v0.7.0`** —
+**Three companion verbs fill the extension lists, and all three exist at the pinned build** —
 each verified live (`docs/ab/rikugan.md` § *Retired at nen 0.5*):
 
 - **`nen shu evidence --repo <path> --base <ref>`** — **RETIRED at nen `0.5`**, exit `0`, rows grouped
@@ -315,7 +315,7 @@ place this verb will write.
 > emitted and hidden by CSS off `data-variant` (§ 5)**, because a page whose shape changes with its
 > variant is three pages. `{{#if}}` guards a **null**; it does not choose a layout.
 >
-> **There is no residue path to owe them to.** At the pinned `0.7.0` the engine is the verb's, and a
+> **There is no residue path to owe them to.** At the pinned build the engine is the verb's, and a
 > hand-written renderer would be a second one nobody reviews.
 
 ### Escaping — the contract, and it binds the residue path too

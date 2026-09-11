@@ -99,8 +99,9 @@ exit code.
 ## 2. Read-only, enforced before the first iteration — `nen`'s classifier IS the table
 
 The old skill's allow/refuse table was **hand-applied prose**. Verified against the real binary at the pin
-that then stood (`v0.3.0`; the contract now pins `v0.7.0` — `v0.5.0` added the `stop --mark` and
-`commit check` rows, and `v0.7.0` moves exactly one row, the `gh api` `--jq` fold in the box below),
+that then stood (`v0.3.0`; the contract's `pinned_ref` has since moved forward — `v0.5.0` added the
+`stop --mark` and `commit check` rows, and `v0.7.0` moves exactly one row, the `gh api` `--jq` fold in
+the box below),
 `nen parse izanami` / `nen watch until` implement a fixed classifier that
 reproduces the same shape mechanically — every row below is a live-verified `[read-only]`, `[mutating]` or
 `[unknown]` tag, not a transcription from memory. nen `v0.2.0` **widened** the allowlist (plain file reads

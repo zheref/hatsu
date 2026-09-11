@@ -151,7 +151,7 @@ nen watch until --command "<one read-only observation>" [--true-pattern "<regex>
   --interval-ms <pollSeconds × 1000> --max-iterations <a safety bound>
 ```
 
-> **Those are the flags the pinned `nen 0.7.0` actually carries**, re-read live from its own
+> **Those are the flags the pinned build actually carries**, re-read live from its own
 > `nen watch until --help` at the pin (`docs/ab/en.md` § 2.6, § *Retired at nen 0.5*). Two more are there
 > and are worth knowing: `--cwd <path>`, and `--error-exit-threshold <n>` — **only meaningful when
 > `--true-pattern` is NOT given**, where it says which exit code stops being "not yet" and starts being an
