@@ -314,7 +314,7 @@ and the full, verified form is under [Using Hatsu on Codex → Headless](#headle
 ### On Cursor
 
 ```
-/hatsu-warmup                            # once per checkout: links .cursor/skills and .cursor/agents, verifies nen and cursor-agent's version
+/hatsu-warmup                            # once per session: links .cursor/skills and .cursor/agents (the links persist), verifies nen and cursor-agent's version
 /ren Add a "Clear all" action to the notifications list, with a confirmation sheet
 /aka
 /mukai
