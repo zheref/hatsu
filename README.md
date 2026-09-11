@@ -114,7 +114,7 @@ claude plugin install hatsu@hatsu
 Confirm what landed:
 
 ```sh
-claude plugin list                  # hatsu@hatsu — Version: 0.8.0
+claude plugin list                  # hatsu@hatsu — Version: <the version you just installed>
 claude plugin details hatsu@hatsu   # the full component inventory
 ```
 
@@ -263,6 +263,66 @@ re-prints the version and the collision list.
 Then read [*Using Hatsu on Cursor*](#using-hatsu-on-cursor).
 
 ---
+
+## Start here — one request, end to end
+
+The loop is the same on every surface: **open the session once, hand it the request, let `ren` run the
+turn, then call the two phases that are yours.** The request goes **on the invocation line** — `ren` refuses
+a turn with no request and never infers one from what the session was last doing — and every later request
+is simply the next message in the same thread: in a repository whose `nen/workflow.json` describes this loop,
+an ordinary request *is* a `ren` turn.
+
+What the first turn does before any of your change is authored: `breath` fetches, fast-forwards the trunk,
+cuts `{model}/{persona}/{descriptor}` from its fresh tip and proves the declared checks on it. Then
+`rasengan` authors the change, `kokusen` verifies and commits it locally, `amaterasu` launches the declared
+target, `rikugan` publishes the turn report and `jutaisho` rings the bell. Nothing is pushed until you say so.
+
+### On Claude Code
+
+```
+/kurapika Add a "Clear all" action to the notifications list, with a confirmation sheet
+```
+
+`/kurapika` is the session opener: it runs the Nen dependency warm-up (the contract, the binary, the floor)
+and then takes the request as the first `ren` turn, with Kurapika as the persona for the whole thread. From
+there:
+
+```
+<the next request, as a plain message>   # another ren turn on the same branch
+/hatsu:aka                               # tests, squash, rebase, push — when YOU decide the branch goes up
+/hatsu:mukai                             # catch-up, scope-routed review, tests, coverage bar, evidence, one PR, then en's landing watch
+```
+
+`/hatsu:ren <request>` invokes the loop directly and is the right call in a session that is already warmed
+up; on a cold session prefer `/kurapika`, which runs the warm-up first. The merge is yours, in GitHub; `en`
+reports when the PR is Ready and keeps watching until it lands.
+
+### On Codex
+
+```
+$hatsu-warmup                            # once per session: refreshes the mirrors, verifies nen
+$ren Add a "Clear all" action to the notifications list, with a confirmation sheet
+$aka
+$mukai
+```
+
+Kurapika is the persona here through the untracked `AGENTS.override.md` the warm-up writes; there is no
+separate summon. The very first time on a checkout, the mirrors are placed as [On Codex](#on-codex)
+describes. Headless, the request is the prompt — `codex exec -C <repo> -s workspace-write --add-dir … -m "$sol" '$ren <request>'` —
+and the full, verified form is under [Using Hatsu on Codex → Headless](#headless-for-automation).
+
+### On Cursor
+
+```
+/hatsu-warmup                            # once per checkout: links .cursor/skills and .cursor/agents, verifies nen and cursor-agent's version
+/ren Add a "Clear all" action to the notifications list, with a confirmation sheet
+/aka
+/mukai
+```
+
+Personas are `.cursor/agents/<persona>.md`, and `/ren` runs as Kurapika. Headless:
+`cursor-agent -p --output-format text --model "$grok" -f '/ren <request>'` — the full form, with the model
+id resolved rather than remembered, is under [Using Hatsu on Cursor → Headless](#headless-for-automation-1).
 
 ## The Nen contract (D10)
 
