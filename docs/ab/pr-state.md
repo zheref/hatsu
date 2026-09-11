@@ -38,7 +38,7 @@ Every deterministic or hand-reconstructed step the old `SKILL.md` carried, and w
 | # | Old (prose / shell) | New (`nen`) |
 |---|---|---|
 | 1 | Resolve `<repo_code>` against `schemas/repos.json` → `product_codes` — described in prose as "read from the registry at run time," with no command given; left to the agent to `cat`/grep the file by hand | `nen pr ready <CODE>#<N> --repo <path>` resolves the code itself, against the same file, and refuses an unknown one by name (verified live, § 2.3) |
-| 2 | `REPO=<owner>/<repo> scripts/pr_ready_gate.sh --verdict <N>` | `nen pr ready <CODE>#<N> --repo <path> --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"` (or `<N> --gh-repo <owner/repo> --gates …`) — the `$CLAUDE_PLUGIN_ROOT` anchor is load-bearing, not stylistic: a bare `contracts/reference.gates.json` only resolves from this checkout's own root as cwd and `ENOENT`s from any other (verified live, § 2.6) |
+| 2 | `REPO=<owner>/<repo> scripts/pr_ready_gate.sh --verdict <N>` | `nen pr ready <CODE>#<N> --repo <path> --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"` (or `<N> --gh-repo <owner/repo> --gates …`) — the anchor is load-bearing, not stylistic (`$CLAUDE_PLUGIN_ROOT` was the anchor at this port and is historical; the skill mandates the same-shell `$hatsu_root` form today — § 2.6's dated note): a bare `contracts/reference.gates.json` only resolves from this checkout's own root as cwd and `ENOENT`s from any other (verified live, § 2.6) |
 | 3 | The 6-row conjunct table in SKILL.md § 3 was **static documentation**, not computed — the agent read a single terse verdict string (e.g. `not-ready: 3 unresolved review thread(s) (CON-32d)`) and matched it BY EYE against a lookup table baked into the skill file, marking every row after the match `—` by hand | `nen pr ready … --explain` (or `--json`'s `conjuncts[]`) renders the same six rows, in the same evaluation order, with `ready`/`FAILED`/`unevaluated` status already assigned per row and the short-circuit already applied — nothing to reconstruct (verified live, § 2.1–2.2) |
 | 4 | The "what the gate does NOT decide" caveats (`CON-32c` approximation, the empty-rollup-fails note, `CON-32e` channel-less findings) were static prose the skill instructed the agent to append **from memory** every time | `nen pr ready … --explain`/`--json` prints the identical three caveats automatically, every invocation — no longer something the agent can forget or paraphrase (verified live, § 2.1) |
 | 5 | `unevaluated` classification ("exit anything other than 0/1, or no output, is `unevaluated`") was a rule the agent applied by inspecting the shell's exit code and stderr | `nen` emits `unevaluated: <reason>` **as the verdict string itself** — no exit-code table to hold in the agent's head (verified live, § 2.4) |
@@ -238,8 +238,9 @@ The first draft of the ported `SKILL.md` wrote `--gates contracts/reference.gate
 relative path, which only resolves when the caller's cwd happens to be this checkout's own root — it
 `ENOENT`s from anywhere else, verified live above. This is a **skill-authoring bug, not a `nen` defect**
 (the flag is a plain path argument; `nen` does not owe it any particular resolution base), fixed in
-this port by anchoring on `$CLAUDE_PLUGIN_ROOT` — the house convention `claude/skills/hatsu-warmup/
-SKILL.md` § 0 already establishes for exactly this — which the last command above stands in for.
+this port by anchoring on `$CLAUDE_PLUGIN_ROOT` — the house convention of the time, and historical now:
+the skill mandates the same-shell `$hatsu_root` form, the dated note below says how — which the last
+command above stands in for.
 
 > **Dated note, 2026-09-10 — the anchor is now `$hatsu_root`, and the transcript above stands.** Copilot's
 > review of PR #36 (`surfaces/codex/pr-state/SKILL.md` and `surfaces/cursor/pr-state/SKILL.md`, line 101)

@@ -256,10 +256,11 @@ export GH_TOKEN=$(gh auth token)
 # hatsu-warmup § 5's prelude in its same-shell form. The variable is not exported, so a value
 # another shell set is not here. The second candidate is SINGLE-quoted: hatsu-warmup § 0 prints the root
 # already quoted with any ' escaped, ALONE on the line after its label — paste that line in place of '<…>',
-# quotes included, nothing else.
+# quotes included, nothing else. The awk line is hatsu-warmup § 5's manifest_name on one line: the TOP-LEVEL
+# name of the canonical pretty-print, or nothing — any other manifest shape is refused, not parsed.
 hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the absolute path § 0 printed>' "${CLAUDE_PLUGIN_ROOT:-}"; do
   [ -n "$c" ] && [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
-  [ "$(sed -n 's/^  "name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$c/.claude-plugin/plugin.json")" = hatsu ] &&
+  mn=$(awk 'NR==1{if($0!="{")b=1;next} /^}$/{d=1;next} d||!/^  /{b=1} /^  [^ ]/{if(!p&&$0~/^  "name"[[:space:]]*:[[:space:]]*"/){s=$0;sub(/^  "name"[[:space:]]*:[[:space:]]*"/,"",s);sub(/".*$/,"",s);n++;v=s} if($0~/[{[][[:space:]]*,?[[:space:]]*$/)p++; if($0~/^  [}\]]/)p--} END{if(!b&&d&&n==1&&!p)print v}' "$c/.claude-plugin/plugin.json") && [ "$mn" = hatsu ] &&   # captured first: bash 3.2 mis-parses quotes inside "$( )"
   r=$(CDPATH= cd "$c" >/dev/null 2>&1 && pwd -P) && [ "$r/." -ef "$c/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && hatsu_root=$r && break
 done
 [ -n "$hatsu_root" ] || { echo "no Hatsu root resolved — pass --reviewers by hand instead (sharingan § 4)" >&2; exit 1; }

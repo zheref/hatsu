@@ -151,10 +151,12 @@ warm-up resolves its root from that variable first, then from a path handed to t
 > the **top-level** `"name"` of its own `.claude-plugin/plugin.json`, compared whole, reading `hatsu`, plus one
 > second, independent fact about the same directory: that `claude/skills/` is there. (Those two, and no
 > more — the check does not parse the manifest's `skills` value.) *Top-level* is structural, not "the first
-> one": the key is matched at exactly two leading spaces, the depth the pretty-printed manifest Claude
-> Code's tooling writes puts it at, so a `name` nested in `metadata` or in a dependency never matches
-> whatever order the keys come in, two top-level matches fail, and a **minified manifest is refused** rather
-> than parsed — not the shape the tooling writes, and refusal is the safe direction. The captured path must
+> one": the manifest is read as the one shape Claude Code's tooling writes — `JSON.stringify(x, null, 2)`:
+> line one `{`, every inner line indented at least two spaces, the last line `}` — and a key at two spaces
+> is top-level unless a two-space line opened a nested block above it. So a `name` nested anywhere never
+> matches whatever the key order, two top-level matches fail, and **any other shape is refused** rather than
+> parsed — minified, tab- or four-space-indented, keys at column zero, a nested block laid out at two spaces:
+> not what the tooling writes, and refusal is the safe direction. The captured path must
 > also be the same directory as the candidate, must contain no newline (the root is handed to later shells
 > as one quoted line), and `cd` runs with `CDPATH` cleared so nothing but the path is captured. It is never
 > merely checked for containing a `surfaces/` directory. Shape is not identity: a wrong root that happened

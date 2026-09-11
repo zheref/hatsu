@@ -39,10 +39,11 @@ with the quoted value this one prints, as an explicit input (§ 5's rule).
 # the handed slot is SINGLE-quoted: $, backticks, backslashes and spaces in a path reach the test as themselves; a ' in it is written '\''.
 # The capture runs cd with CDPATH cleared and its stdout dropped, proves the captured path IS the candidate's
 # directory (-ef, so a stripped trailing newline is caught), refuses a root containing a newline (the handoff
-# below is ONE line), and assigns $hatsu_root only once all of that passed.
+# below is ONE line), and assigns $hatsu_root only once all of that passed. The awk line is § 5's manifest_name
+# on one line: the TOP-LEVEL name of the canonical pretty-print, or nothing — any other shape is refused.
 hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the path this invocation was handed, if any>' "${CLAUDE_PLUGIN_ROOT:-}"; do
   [ -n "$c" ] && [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
-  [ "$(sed -n 's/^  "name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$c/.claude-plugin/plugin.json")" = hatsu ] &&
+  mn=$(awk 'NR==1{if($0!="{")b=1;next} /^}$/{d=1;next} d||!/^  /{b=1} /^  [^ ]/{if(!p&&$0~/^  "name"[[:space:]]*:[[:space:]]*"/){s=$0;sub(/^  "name"[[:space:]]*:[[:space:]]*"/,"",s);sub(/".*$/,"",s);n++;v=s} if($0~/[{[][[:space:]]*,?[[:space:]]*$/)p++; if($0~/^  [}\]]/)p--} END{if(!b&&d&&n==1&&!p)print v}' "$c/.claude-plugin/plugin.json") && [ "$mn" = hatsu ] &&   # captured first: bash 3.2 mis-parses quotes inside "$( )"
   r=$(CDPATH= cd "$c" >/dev/null 2>&1 && pwd -P) && [ "$r/." -ef "$c/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && hatsu_root=$r && break
 done
 [ -n "$hatsu_root" ] || { echo "hatsu-warmup: no Hatsu root — \$HATSU_PLUGIN_ROOT unset or not a Hatsu checkout, nothing usable handed, \$CLAUDE_PLUGIN_ROOT empty or another plugin" >&2; exit 1; }
@@ -591,24 +592,40 @@ those two surfaces can answer either.
 **Every candidate is verified before it is used**, in order, and the first one that passes wins:
 
 ```sh
-# is_hatsu ROOT — true only for a checkout of THIS plugin. No jq: the file is read
-# as text, so the two things that make the read honest are written out.
-#   1. The MANIFEST'S OWN name, structurally: the "name" key at the TOP LEVEL of the
-#      pretty-printed, two-space-indented manifest Claude Code's tooling writes and
-#      this repository ships — matched at EXACTLY two leading spaces, so a name nested
-#      in metadata or a dependency (four or more) never matches, whatever order the
-#      keys come in. The value is compared WHOLE against the whole output, so two
-#      top-level matches fail it, and a minified manifest — no line at that depth —
-#      is refused rather than parsed: not the shape the tooling writes, and refusal
-#      is the safe direction. A bare `grep '"name": "hatsu"'` would accept any plugin
-#      carrying that string anywhere, which is the wrong-root failure this exists for.
+# manifest_name FILE — prints the TOP-LEVEL "name" of a plugin manifest, or nothing.
+# No jq, and no line-by-line guess either: it reads the ONE shape Claude Code's
+# tooling writes and this repository ships — JSON.stringify(x, null, 2): line one is
+# `{`, every inner line is indented at least two spaces, the last line is `}`, and a
+# key at exactly two spaces is top-level unless a two-space line opened a nested
+# object or array above it. Anything else — minified, tab- or four-space-indented,
+# keys at column zero, a nested block laid out at two spaces — is refused rather
+# than parsed: refusal is the safe direction, and the tooling never writes another
+# shape. Exactly one top-level name, or nothing.
+manifest_name() {
+  awk '
+    NR == 1        { if ($0 != "{") bad = 1; next }
+    /^}$/          { done = 1; next }
+    done || !/^  / { bad = 1 }
+    /^  [^ ]/ {
+      if (!depth && $0 ~ /^  "name"[[:space:]]*:[[:space:]]*"/) {
+        s = $0; sub(/^  "name"[[:space:]]*:[[:space:]]*"/, "", s); sub(/".*$/, "", s); n++; name = s
+      }
+      if ($0 ~ /[{[][[:space:]]*,?[[:space:]]*$/) depth++
+      if ($0 ~ /^  [}\]]/) depth--
+    }
+    END { if (!bad && done && n == 1 && !depth) print name }
+  ' "$1"
+}
+# is_hatsu ROOT — true only for a checkout of THIS plugin. Two facts, written out:
+#   1. The MANIFEST'S OWN name, read structurally by manifest_name and compared WHOLE,
+#      reads `hatsu`. A bare `grep '"name": "hatsu"'` would accept any plugin carrying
+#      that string anywhere, which is the wrong-root failure this check exists for.
 #   2. A second, independent fact about the same directory: `claude/skills/` is what
 #      this manifest's `skills` key points at, so a plugin.json that passes (1) while
 #      standing over somebody else's tree still fails here.
 is_hatsu() {
   [ -n "${1:-}" ] && [ -f "$1/.claude-plugin/plugin.json" ] && [ -d "$1/claude/skills" ] || return 1
-  ih_name=$(sed -n 's/^  "name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$1/.claude-plugin/plugin.json")
-  [ "$ih_name" = "hatsu" ]
+  [ "$(manifest_name "$1/.claude-plugin/plugin.json")" = "hatsu" ]
 }
 
 # Three candidates and no fourth. The winner is CANONICALISED — absolute, symlinks
@@ -622,17 +639,19 @@ is_hatsu() {
 # and a root containing a newline is refused outright, because the handoff below is
 # one line. And it is a plain shell variable, not an export: it lives in THIS shell
 # only (see below).
-hatsu_root=""; rejected=""
+hatsu_root=""; rejected=""; unusable=""
 for cand in "${HATSU_PLUGIN_ROOT:-}" "${1:-}" "${CLAUDE_PLUGIN_ROOT:-}"; do
   [ -n "$cand" ] || continue
-  if is_hatsu "$cand" && r=$(CDPATH= cd "$cand" >/dev/null 2>&1 && pwd -P) \
+  if ! is_hatsu "$cand"; then rejected="$rejected $cand"; continue; fi     # not this plugin: one reason
+  if r=$(CDPATH= cd "$cand" >/dev/null 2>&1 && pwd -P) \
      && [ "$r/." -ef "$cand/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ]; then hatsu_root=$r; break; fi
-  rejected="$rejected $cand"
+  unusable="$unusable $cand"                                              # a Hatsu checkout, but its path cannot be handed on: the other reason
 done
 
 [ -n "$hatsu_root" ] && [ -d "$hatsu_root/surfaces/$surface" ] || {
   echo "surface: $surface — NOT INSTALLED. No Hatsu source root." \
-       "${rejected:+Rejected (no .claude-plugin/plugin.json naming hatsu):$rejected.}" \
+       "${rejected:+Rejected (no .claude-plugin/plugin.json naming hatsu at its top level):$rejected.}" \
+       "${unusable:+Unusable (a Hatsu checkout whose path cannot be handed on as one line — a newline in it, or cd could not reach it):$unusable.}" \
        "\$HATSU_PLUGIN_ROOT is unset or is not a Hatsu checkout, no usable path was handed to this" \
        "invocation, and this surface has no plugin registry to ask." >&2
   exit 1        # § 4's line says NOT INSTALLED and names this. Never a partial install.

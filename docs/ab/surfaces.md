@@ -1049,3 +1049,46 @@ refused and named.
 Both mirrors regenerate clean after the change (`ok: 40`, `ok: 47`, script exit `0`), the fenced-block check
 reports zero, and the plugin validates. **Still not verified:** a Codex or Cursor session — as before.
 
+### 9.11 Copilot's tenth round — a structural read of the manifest, and a bash 3.2 finding on the way
+
+No thread; five suppressed comments, three points.
+
+| finding | disposition |
+|---|---|
+| the two-space match was still a line heuristic: a manifest with top-level keys at column zero and a nested `metadata.name: "hatsu"` at two spaces would pass | **Fixed with a structural reader.** `manifest_name` (an awk program, named in § 5 and carried on one line in the four compact copies) reads the one shape Claude Code's tooling writes — `JSON.stringify(x, null, 2)`: line one `{`, every inner line indented at least two spaces, the last `}` — and takes a key at two spaces as top-level only when no two-space line opened a nested block above it. Any other shape is refused rather than parsed. Eleven manifests tested, below |
+| § 5's prelude appended a candidate to `rejected` on a capture-guard failure too, so a valid checkout with a newline in its path was reported as *no plugin.json naming hatsu* | **Fixed**: `rejected` (not this plugin) and `unusable` (a Hatsu checkout whose path cannot be handed on as one line) are kept apart and each named in the `NOT INSTALLED` line |
+| `docs/ab/pr-state.md` § 1's mapping row and § 2.6's paragraph still called `$CLAUDE_PLUGIN_ROOT` the load-bearing anchor | **Marked historical**, pointing at the same-shell `$hatsu_root` form; the transcript commands stay as they ran |
+
+**The reader, as `pr-state` carries it, against eleven manifest shapes:**
+
+```
+  four-space-top.json                    refuse   (reads nothing)
+  minified-nested-first.json             refuse   (reads nothing)     {"metadata":{"name":"hatsu"},"name":"other"}
+  minified-top-hatsu.json                refuse   (reads nothing)     {"name":"hatsu"} — not the shape the tooling writes
+  nested-at-2-no-top.json                refuse   (reads nothing)     a nested block laid out at two spaces, no top-level name
+  nested-at-2-top-other.json             refuse   (reads: other)      a nested block laid out at two spaces, then a top-level name
+  pretty-both-hatsu.json                 ACCEPT   (reads: hatsu)
+  pretty-nested-first.json               refuse   (reads: other)      the round-six case
+  pretty-top-hatsu.json                  ACCEPT   (reads: hatsu)
+  real-shape-with-braces-in-strings.json ACCEPT   (reads: hatsu)      "{" and "[" inside string values do not open a block
+  real.json                              ACCEPT   (reads: hatsu)      this repository's manifest
+  zero-indent-nested-at-2.json           refuse   (reads nothing)     the round-ten case: keys at column zero, nested name at two spaces
+```
+
+**A finding on the way, against the shell rather than the skill.** The first cut wrote the reader inline
+as `[ "$(awk '…' file)" = hatsu ]`. That line passes under zsh and fails under **bash 3.2** — the `/bin/bash`
+macOS ships — with awk reporting a program that had lost a chunk: bash 3.2 does not honour single quotes
+when it scans for the `)` that closes a `$( … )` inside double quotes, so the program's own `)` ended the
+substitution early. `mn=$(awk '…' file) && [ "$mn" = hatsu ]` — the capture as a bare assignment, then the
+test — passes under bash 3.2, `sh` and zsh alike, and that is the form the four compact copies carry, with
+the reason beside it. § 5's `manifest_name` is a function call inside `"$( )"` with no quotes in it and was
+never affected.
+
+**The capture cases of § 9.10 rerun on the final text, § 0's block verbatim, under bash 3.2** (and the
+hostile path also under `sh` and zsh): A and B refused, C resolves the cwd checkout with `CDPATH` pointing
+elsewhere, D and E resolve; § 5's full form resolves the hostile handed path beside a wrong
+`CLAUDE_PLUGIN_ROOT`, reports the newline-ending checkout as *Unusable* and names it, and reports `/tmp`
+as *Rejected*; `pr-state` § 2 with the printed line pasted reports `identities` under the hostile path.
+Both mirrors regenerate clean (`ok: 40`, `ok: 47`, script exit `0`), the fenced-block check reports zero,
+and the plugin validates. **Still not verified:** a Codex or Cursor session — as before.
+
