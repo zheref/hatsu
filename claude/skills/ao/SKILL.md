@@ -300,7 +300,7 @@ and the pair of SHAs is the cheapest possible way to say so.
 7. **The merge commit itself** (§ 5) — `nen commit format --repo <path>` shapes the message and
    **`git commit --file` makes the commit**, gated on the format verb's exit code and with the two
    streams kept apart. `nen commit format` is a formatter: verified live it writes a message to
-   stdout and commits nothing, and nothing in nen commits at the pinned `0.7.0` either.
+   stdout and commits nothing, and nothing in nen commits at the pinned build either.
    **Genuinely still residue.** `git rebase --continue` is the same entry for the rebase half.
 
 Every one of these is run in the open and reported as by-hand, per the Nen-first rule's second half

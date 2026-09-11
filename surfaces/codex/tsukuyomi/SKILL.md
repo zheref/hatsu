@@ -122,7 +122,7 @@ perfectly well ([`$rasengan`](../rasengan/SKILL.md) § 7, verified live in both 
 
 ## 6. Reading the results, and what may be changed
 
-**`nen shu test-report` is the verb that reads the results, and it exists at the pinned nen `0.7.0`:**
+**`nen shu test-report` is the verb that reads the results, and it exists at the pinned build:**
 
 ```bash
 nen shu test-report --repo <path> [--lane <lane>] [--from-artifacts] [--json]
@@ -169,7 +169,7 @@ it is a decision for the maintainer, not for this run.
 is its verb and reports `met`, never gating. A lane declaring no `coverage` answers exit `4` — a fact
 about the repository, and not tsukuyomi's to report as a test failure.
 
-## 7. Residue — what has no verb at the pinned nen `0.7.0`
+## 7. Residue — what has no verb at the pinned build
 
 - **RETIRED at nen `0.5`: `nen shu test-report`** (§ 6) — the parsed `{tests[], passed, failed,
   skipped}` document is a verb, exit `0` on a report that parsed and a named refusal on one that did

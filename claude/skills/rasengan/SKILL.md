@@ -247,7 +247,7 @@ fully declared repository undeclared.
 
 ## 9. Long-running checks, and the stall guard the declaration owns
 
-**A captured verb may declare a stall guard, and at the pinned nen `0.7.0` nen runs the repository's
+**A captured verb may declare a stall guard, and at the pinned build nen runs the repository's
 own remedy.** The shape is `"stall": { "elapsedMs", "quietMs", "onStall": { "exe", "argv" },
 "maxStrikes" }`, on an invocation or on one `steps[]` entry; it fires only once **both** budgets are
 past — total elapsed **and** a quiet window with no output — because a guard acting on silence alone
@@ -269,7 +269,7 @@ a check to escape a stall; a check nobody watched is a check nobody ran.
 ## 10. What "green" means in the inner loop — and whose the commit gate is
 
 **The inner loop's green is the author's, and it is worth exactly what it says: the tree worked a
-moment ago.** At the pinned nen `0.7.0` that is a FILE as well as a transcript — a green
+moment ago.** At the pinned build that is a FILE as well as a transcript — a green
 `nen shu build` writes `.nen/proof/<lane>.json` (`nen.shu.proof/v0.1`: `contract`, `lane`, `verb`,
 `treeHash`, `at`, `exitCode`) and a red one **removes** an existing file, so a stale proof never
 outlives the tree it proved. Verified live at `v0.5.0`: the run's report carries
@@ -296,7 +296,7 @@ about the repository that rasengan quotes and hands upward. **A red check the tu
 clear is a G5 stop** for the phase that called this one — which is the same escalation kokusen raises at the
 gate, from the same fact.
 
-## 11. Residue — what has no verb at the pinned nen `0.7.0`
+## 11. Residue — what has no verb at the pinned build
 
 - **The authoring itself.** No verb writes a change: reading the request, reading the tree's own
   conventions, choosing the shape, and writing the code and the tests beside it are this phase's
