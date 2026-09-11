@@ -41,12 +41,14 @@ with the quoted value this one prints, as an explicit input (§ 5's rule).
 # directory (-ef, so a stripped trailing newline is caught), refuses a root containing a newline (the handoff
 # below is ONE line), and assigns $hatsu_root only once all of that passed. The awk line is § 5's manifest_name
 # on one line: the TOP-LEVEL name of the canonical pretty-print, or nothing — any other shape is refused.
-hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the path this invocation was handed, if any>' "${CLAUDE_PLUGIN_ROOT:-}"; do
-  [ -n "$c" ] && [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
-  mn=$(awk 'NR==1{if($0!="{")b=1;next} /^}$/{d=1;next} d||!/^  /{b=1} /^  [^ ]/{if(!p&&$0~/^  "name"[[:space:]]*:[[:space:]]*"/){s=$0;sub(/^  "name"[[:space:]]*:[[:space:]]*"/,"",s);sub(/".*$/,"",s);n++;v=s} if($0~/[{[][[:space:]]*,?[[:space:]]*$/)p++; if($0~/^  [}\]]/)p--} END{if(!b&&d&&n==1&&!p)print v}' "$c/.claude-plugin/plugin.json") && [ "$mn" = hatsu ] &&   # captured first: bash 3.2 mis-parses quotes inside "$( )"
+hatsu_root=""; passed=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the path this invocation was handed, if any>' "${CLAUDE_PLUGIN_ROOT:-}"; do
+  [ -n "$c" ] || continue; passed="$passed $c"
+  [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
+  mn=$(awk 'NR==1{if($0!="{")b=1;next} /^}$/{if(d)b=1;d=1;next} d||!/^  /{b=1} /^  [^ ]/{if(!p&&$0~/^  "name"[[:space:]]*:[[:space:]]*"/){s=$0;sub(/^  "name"[[:space:]]*:[[:space:]]*"/,"",s);sub(/".*$/,"",s);n++;v=s} if($0~/[{[][[:space:]]*,?[[:space:]]*$/)p++; if($0~/^  [}\]]/)p--} END{if(!b&&d&&n==1&&!p)print v}' "$c/.claude-plugin/plugin.json") && [ "$mn" = hatsu ] &&   # captured first: bash 3.2 mis-parses quotes inside "$( )"
   r=$(CDPATH= cd "$c" >/dev/null 2>&1 && pwd -P) && [ "$r/." -ef "$c/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && hatsu_root=$r && break
 done
-[ -n "$hatsu_root" ] || { echo "hatsu-warmup: no Hatsu root — \$HATSU_PLUGIN_ROOT unset or not a Hatsu checkout, nothing usable handed, \$CLAUDE_PLUGIN_ROOT empty or another plugin" >&2; exit 1; }
+[ -n "$hatsu_root" ] || { echo "hatsu-warmup: no Hatsu root — \$HATSU_PLUGIN_ROOT unset or not a Hatsu checkout, nothing usable handed, \$CLAUDE_PLUGIN_ROOT empty or another plugin. Tried:$passed" >&2; exit 1; }
+passed=${passed% "$c"}; [ -z "$passed" ] || echo "hatsu-warmup: passed over (not a Hatsu checkout, or a path that cannot be handed on):$passed" >&2   # named on success too
 echo "hatsu_root resolved. The NEXT LINE is the quoted value every later block pastes verbatim, quotes included:"
 printf "'%s'\n" "$(printf '%s' "$hatsu_root" | sed "s/'/'\\\\''/g")"   # the literal ALONE on its line: single-quoted, any ' in the path written '\''
 cat "$hatsu_root/nen/contract.json"
@@ -604,7 +606,7 @@ those two surfaces can answer either.
 manifest_name() {
   awk '
     NR == 1        { if ($0 != "{") bad = 1; next }
-    /^}$/          { done = 1; next }
+    /^}$/          { if (done) bad = 1; done = 1; next }
     done || !/^  / { bad = 1 }
     /^  [^ ]/ {
       if (!depth && $0 ~ /^  "name"[[:space:]]*:[[:space:]]*"/) {
@@ -647,6 +649,9 @@ for cand in "${HATSU_PLUGIN_ROOT:-}" "${1:-}" "${CLAUDE_PLUGIN_ROOT:-}"; do
      && [ "$r/." -ef "$cand/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ]; then hatsu_root=$r; break; fi
   unusable="$unusable $cand"                                              # a Hatsu checkout, but its path cannot be handed on: the other reason
 done
+# Passed-over candidates are named on SUCCESS too — a stale $CLAUDE_PLUGIN_ROOT in a shell
+# profile is a thing to fix, and this is where it becomes visible (README, § On Codex).
+[ -z "$rejected$unusable" ] || echo "hatsu-warmup: passed over —${rejected:+ rejected (not a Hatsu checkout):$rejected.}${unusable:+ unusable (path cannot be handed on as one line):$unusable.}" >&2
 
 [ -n "$hatsu_root" ] && [ -d "$hatsu_root/surfaces/$surface" ] || {
   echo "surface: $surface — NOT INSTALLED. No Hatsu source root." \
@@ -1018,9 +1023,11 @@ a Claude, a GPT — is not a better choice made locally; it is a different budge
    knows what a surface binary is, and none should — nen reads repositories. The minimum itself is
    read out of Cursor's own changelog, which groups by month, so **the comparison is a date part and
    not a semver**, and that is stated in the report rather than dressed up as a range check.
-8. **Verifying a candidate `$hatsu_root`** is `grep` against `.claude-plugin/plugin.json` (§ 5's
-   prelude) — no jq, on the one path that has to work before anything is installed. `nen schema check`
-   validates a contract *inside* a root; it does not answer "is this root the right plugin's".
+8. **Verifying a candidate `$hatsu_root`** is § 5's `manifest_name` — an awk reader of the one manifest
+   shape Claude Code's tooling writes, taking the top-level `name` and refusing any other shape — plus the
+   `claude/skills/` check, on the one path that has to work before anything is installed; no jq, and no
+   grep either since the tenth review round of #38. `nen schema check` validates a contract *inside* a
+   root; it does not answer "is this root the right plugin's", and nen carries no manifest or JSON verb.
 9. **Listing what already stands under the surface's skill directory** is `ls -1A` (§ 5b · ii), and
    **the host-global half of that question has no answer at all from inside a repository** — a
    same-named skill from another plugin is outside every path this skill can read. Named as a
