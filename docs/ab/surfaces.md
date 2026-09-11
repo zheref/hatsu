@@ -1236,3 +1236,34 @@ resolved; `/tmp` named as passed over on success in both forms; `pr-state` § 2 
 the hostile path). Both mirrors regenerate clean, the fenced-block check reports zero, the plugin validates.
 **Still not verified:** a Codex or Cursor session.
 
+### 9.16 Copilot's fifteenth and sixteenth rounds — four edges, and a watcher that could not count past thirty
+
+No thread in either; eleven suppressed comments, four points. (Both rounds landed while my own watch
+reported *no fifteenth review*: the reviews endpoint pages at thirty, the pull request had exactly thirty
+reviews on page one — Copilot's fourteen and sixteen of my thread replies — and the watch never paginated.
+The timeline showed the two rounds; the watch now pages.)
+
+| finding | disposition |
+|---|---|
+| a relative candidate that starts with `-` — `HATSU_PLUGIN_ROOT=-P`, or `-P` handed in — is read by `cd` as an option and refused | **Fixed in all five resolvers**: `case $c in -*) c=./$c;; esac` before anything touches the candidate, so it is a path to `cd`, `test` and `awk` alike. A checkout at `<parent>/-P` resolves from its parent by hand-off, by `HATSU_PLUGIN_ROOT`, and through `pr-state` § 2's copy |
+| `sharingan`'s two `--gates` mentions said `$hatsu_root` was *set in § 4's box*, a block that only exports `GH_TOKEN` | **Repointed** to `pr-state` § 2's resolver or the explicit-input line, with the note that nothing in § 4 sets it |
+| the `is_hatsu` comment said `claude/skills/` was *what the manifest's `skills` key points at*, a link the check never reads | **Reworded** to what it checks: the directory exists; the `skills` member is not parsed |
+| § 5's loop read `"${1:-}"` for the handed path, a slot never populated when the block runs as a shell block | **Fixed**: the handed path is the same single-quoted substituted slot § 0 carries, with the reason beside it |
+
+**Exercised, under bash 3.2:**
+
+```
+J. § 0, '-P' handed from its parent                 → exit 0, resolved '<scratch>/dash-test/-P'
+K. § 0, HATSU_PLUGIN_ROOT=-P from its parent        → exit 0, resolved '<scratch>/dash-test/-P'
+L. § 5's prelude, '-P' handed                       → exit 0, resolved (the install-dir guard satisfied)
+   pr-state § 2's copy, '-P' pasted                 → exit 0, $hatsu_root = <scratch>/dash-test/-P
+F. § 5's prelude, hostile handed beside /tmp first  → exit 0, "passed over — rejected (not a Hatsu checkout): /tmp."
+G. § 5's prelude, newline-ending handed             → exit 1, reported Unusable
+A, D, E, I, D' of § 9.10                            → unchanged
+```
+
+The reader still agrees with itself on the thirty-five manifests of § 9.15 and reads this checkout's
+manifest as `hatsu`; `pr-state` § 2 with the printed line pasted still reports `identities` under the
+hostile path. Both mirrors regenerate clean, the fenced-block check reports zero, the plugin validates.
+**Still not verified:** a Codex or Cursor session.
+

@@ -43,7 +43,7 @@ with the quoted value this one prints, as an explicit input (§ 5's rule).
 # below is ONE line), and assigns $hatsu_root only once all of that passed. The awk line is § 5's manifest_name
 # on one line: the TOP-LEVEL name of the canonical pretty-print, or nothing — any other shape is refused.
 hatsu_root=""; passed=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the path this invocation was handed, if any>' "${CLAUDE_PLUGIN_ROOT:-}"; do
-  [ -n "$c" ] || continue; passed="$passed $c"
+  [ -n "$c" ] || continue; case $c in -*) c=./$c;; esac; passed="$passed $c"   # an option-looking relative candidate is a path, not a flag
   [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
   mn=$(awk 'function scalar(v){return v~/^("([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*"|-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?|true|false|null)$/} function value_ok(v){return v=="{"||v=="["||v=="{}"||v=="[]"||scalar(v)} NR==1{if($0!="{")b=1;sp=1;top[1]="{";ind[1]=0;first=1;comma=0;next} {if(b||d){b=1;next};ni=match($0,/[^ ]/)-1;if(ni<0){b=1;next};body=substr($0,ni+1);if(body~/^[}\]],?$/){c=substr(body,1,1);tr=(body~/,$/);if(sp==0||ni!=ind[sp]||(top[sp]=="{"&&c!="}")||(top[sp]=="["&&c!="]")||comma){b=1;next};sp--;if(sp==0){if(tr)b=1;d=1;next};comma=tr;first=0;next};if(sp==0||ni!=ind[sp]+2||(!first&&!comma)){b=1;next};tr=(body~/,$/);if(tr)body=substr(body,1,length(body)-1);if(top[sp]=="{"){if(body!~/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /){b=1;next};v=body;sub(/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /,"",v);if(sp==1&&body~/^"name": "/){s=v;sub(/^"/,"",s);sub(/"$/,"",s);n++;name=s}}else v=body;if(!value_ok(v)){b=1;next};if(v=="{"||v=="["){if(tr){b=1;next};sp++;top[sp]=v;ind[sp]=ni;first=1;comma=0;next};comma=tr;first=0} END{if(!b&&d&&sp==0&&n==1)print name}' "$c/.claude-plugin/plugin.json") && [ "$mn" = hatsu ] &&   # captured first: bash 3.2 mis-parses quotes inside "$( )"
   r=$(CDPATH= cd "$c" >/dev/null 2>&1 && pwd -P) && [ "$r/." -ef "$c/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && hatsu_root=$r && break
@@ -644,9 +644,10 @@ manifest_name() {
 #   1. The MANIFEST'S OWN name, read structurally by manifest_name and compared WHOLE,
 #      reads `hatsu`. A bare `grep '"name": "hatsu"'` would accept any plugin carrying
 #      that string anywhere, which is the wrong-root failure this check exists for.
-#   2. A second, independent fact about the same directory: `claude/skills/` is what
-#      this manifest's `skills` key points at, so a plugin.json that passes (1) while
-#      standing over somebody else's tree still fails here.
+#   2. A second, independent fact about the same directory: a `claude/skills/`
+#      directory exists — checked as a directory, not read from the manifest's
+#      `skills` member, which this check never parses — so a plugin.json that
+#      passes (1) while standing over somebody else's tree still fails here.
 is_hatsu() {
   [ -n "${1:-}" ] && [ -f "$1/.claude-plugin/plugin.json" ] && [ -d "$1/claude/skills" ] || return 1
   [ "$(manifest_name "$1/.claude-plugin/plugin.json")" = "hatsu" ]
@@ -664,8 +665,10 @@ is_hatsu() {
 # one line. And it is a plain shell variable, not an export: it lives in THIS shell
 # only (see below).
 hatsu_root=""; rejected=""; unusable=""
-for cand in "${HATSU_PLUGIN_ROOT:-}" "${1:-}" "${CLAUDE_PLUGIN_ROOT:-}"; do
-  [ -n "$cand" ] || continue
+# The handed slot is SINGLE-quoted and substituted, exactly as in § 0: this block runs as a
+# shell block, never as a script, so there is no $1 for it to read.
+for cand in "${HATSU_PLUGIN_ROOT:-}" '<the path this invocation was handed, if any>' "${CLAUDE_PLUGIN_ROOT:-}"; do
+  [ -n "$cand" ] || continue; case $cand in -*) cand=./$cand;; esac   # an option-looking relative candidate is a path, not a flag
   if ! is_hatsu "$cand"; then rejected="$rejected $cand"; continue; fi     # not this plugin: one reason
   if r=$(CDPATH= cd "$cand" >/dev/null 2>&1 && pwd -P) \
      && [ "$r/." -ef "$cand/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ]; then hatsu_root=$r; break; fi
