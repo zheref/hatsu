@@ -8,16 +8,21 @@ Request from the human: $ARGUMENTS
 
 Kurapika: run your **session warm-up first**, both steps, in order.
 
-1. **The Nen dependency contract (D10).** Load the **`hatsu-warmup`** skill and run it. Read
-`$CLAUDE_PLUGIN_ROOT/nen/contract.json` yourself — no `jq` — and probe `nen --version` for presence.
-**The range is nen's verdict, not yours: read the `nen` row of `nen shu tools --repo <the Hatsu
-checkout>`.** A pin at or above the binary's own compatibility floor is satisfied by every later `0.x`
-that keeps it, so `minimum: "0.7"` is satisfied by `0.8.0` with no repin; a pin below the floor, or a
-binary older than the pin, is refused by name. Absent → fetch the bootstrap **to a file** and run it
-(never `curl … | bash`); present and not satisfied → re-pin through `nen bootstrap --ref <pinned> --source
-zheref/nen --script <the fetched file>`. **Halt only if the bootstrap itself fails**, printing the exact
-command as a **G5**. Report the outcome in one line — **the floor beside the version** — and a warm-up
-that did not run is reported as *not run*, never as clear.
+1. **The Nen dependency contract (D10).** Load the **`hatsu-warmup`** skill and run it. Its § 0 block is
+ONE shell: it resolves the Hatsu root — `$HATSU_PLUGIN_ROOT`, else the path you were handed, else
+`$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout, canonicalised to an absolute path —
+prints it, and reads `nen/contract.json` from it in that same shell; a variable from an earlier shell is never
+what it reads. Read that file yourself — no `jq` — and probe `nen --version` for presence.
+**The range is nen's verdict, not yours: run the warm-up's § 1b block — it sets `$hatsu_root` from the
+quoted value § 0 printed and then runs `nen shu tools --repo "$hatsu_root"` in that same shell — and read
+the `nen` row it prints.** Never type the `shu tools` line on its own: the variable lives only in the shell
+that set it. A pin at or above the binary's own
+compatibility floor is satisfied by every later `0.x` that keeps it, so `minimum: "0.7"` is satisfied by
+`0.8.0` with no repin; a pin below the floor, or a binary older than the pin, is refused by name. Absent →
+fetch the bootstrap **to a file** and run it (never `curl … | bash`); present and not satisfied → re-pin
+through `nen bootstrap --ref <pinned> --source zheref/nen --script <the fetched file>`. **Halt only if the
+bootstrap itself fails**, printing the exact command as a **G5**. Report the outcome in one line — **the
+floor beside the version** — and a warm-up that did not run is reported as *not run*, never as clear.
 
 2. **The target repository's policy inbox.** With nen available, run `nen warmup --current <vX.Y.Z>` against
 the repo I am standing in — stale **and unpinned** pins (defaults *and* per-caller overrides; an unpinned

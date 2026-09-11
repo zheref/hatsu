@@ -148,13 +148,21 @@ warm-up resolves its root from that variable first, then from a path handed to t
 > **`$CLAUDE_PLUGIN_ROOT` is Claude Code's variable and it is *not* inert on the other two.** On the host
 > these records were made on it is exported from `~/.zshrc` and points at a **different plugin**, which
 > every Codex and Cursor session on that host inherits. So a candidate root is checked for what it **is** —
-> the first `"name"` in its own `.claude-plugin/plugin.json`, compared whole, reading `hatsu`, plus one
+> the **top-level** `"name"` of its own `.claude-plugin/plugin.json`, compared whole, reading `hatsu`, plus one
 > second, independent fact about the same directory: that `claude/skills/` is there. (Those two, and no
-> more — the check does not parse the manifest's `skills` value.) It is never merely checked for containing
-> a `surfaces/` directory. Shape is not identity: a wrong root that happened to have the right shape would install
-> somebody else's skills into your repository with no error anywhere. **Every rejected candidate is named
-> by path in the report**, even when a later one succeeded, because a stale variable in a shell profile is
-> a thing to fix and this is where it becomes visible.
+> more — the check does not parse the manifest's `skills` value.) *Top-level* is structural, not "the first
+> one": the manifest is read as the one shape Claude Code's tooling writes — `JSON.stringify(x, null, 2)`:
+> line one `{`, every inner line indented at least two spaces, the last line `}` — and a key at two spaces
+> is top-level unless a two-space line opened a nested block above it. So a `name` nested anywhere never
+> matches whatever the key order, two top-level matches fail, and **any other shape is refused** rather than
+> parsed — minified, tab- or four-space-indented, keys at column zero, a nested block laid out at two spaces:
+> not what the tooling writes, and refusal is the safe direction. The captured path must
+> also be the same directory as the candidate, must contain no newline (the root is handed to later shells
+> as one quoted line), and `cd` runs with `CDPATH` cleared so nothing but the path is captured. It is never
+> merely checked for containing a `surfaces/` directory. Shape is not identity: a wrong root that happened
+> to have the right shape would install somebody else's skills into your repository with no error anywhere.
+> **Every rejected candidate is named by path in the report**, even when a later one succeeded, because a
+> stale variable in a shell profile is a thing to fix and this is where it becomes visible.
 
 ### On Codex
 

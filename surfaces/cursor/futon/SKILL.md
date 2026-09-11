@@ -252,16 +252,32 @@ session structurally cannot do at all, **stop at G5 immediately** and name the g
 ```bash
 export GH_TOKEN=$(gh auth token)
 # BC#940 / BC#925 below are <reference-repo> PRs, so this run's own identity flag is --gates;
-# see the paragraph below for the other two shapes sharingan § 4 names
-nen pr ready <CODE>#<N> --repo <path> --gates "$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json" --explain
+# see the paragraph below for the other two shapes sharingan § 4 names.
+# $hatsu_root is THIS plugin's checkout, ABSOLUTE, resolved IN THIS SHELL: the block below is
+# hatsu-warmup § 5's prelude in its same-shell form. The variable is not exported, so a value
+# another shell set is not here. The second candidate is SINGLE-quoted: hatsu-warmup § 0 prints the root
+# already quoted with any ' escaped, ALONE on the line after its label — paste that line in place of '<…>',
+# quotes included, nothing else. The awk line is hatsu-warmup § 5's manifest_name on one line: the TOP-LEVEL
+# name of the canonical pretty-print, or nothing — any other manifest shape is refused, not parsed.
+hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the absolute path § 0 printed>' "${CLAUDE_PLUGIN_ROOT:-}"; do
+  [ -n "$c" ] || continue; case $c in -*) c=./$c;; esac              # an option-looking relative candidate is a path, not a flag
+  [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
+  mn=$(awk 'function scalar(v){return v~/^("([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*"|-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?|true|false|null)$/} function value_ok(v){return v=="{"||v=="["||v=="{}"||v=="[]"||scalar(v)} NR==1{if($0!="{")b=1;sp=1;top[1]="{";ind[1]=0;first=1;comma=0;next} {if(b||d){b=1;next};ni=match($0,/[^ ]/)-1;if(ni<0){b=1;next};body=substr($0,ni+1);if(body~/^[}\]],?$/){c=substr(body,1,1);tr=(body~/,$/);if(sp==0||ni!=ind[sp]||(top[sp]=="{"&&c!="}")||(top[sp]=="["&&c!="]")||comma){b=1;next};sp--;if(sp==0){if(tr)b=1;d=1;next};comma=tr;first=0;next};if(sp==0||ni!=ind[sp]+2||(!first&&!comma)){b=1;next};tr=(body~/,$/);if(tr)body=substr(body,1,length(body)-1);if(top[sp]=="{"){if(body!~/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /){b=1;next};v=body;sub(/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /,"",v);if(sp==1&&body~/^"name": "/){s=v;sub(/^"/,"",s);sub(/"$/,"",s);n++;name=s}}else v=body;if(!value_ok(v)){b=1;next};if(v=="{"||v=="["){if(tr){b=1;next};sp++;top[sp]=v;ind[sp]=ni;first=1;comma=0;next};comma=tr;first=0} END{if(!b&&d&&sp==0&&n==1)print name}' "$c/.claude-plugin/plugin.json") && [ "$mn" = hatsu ] &&   # captured first: bash 3.2 mis-parses quotes inside "$( )"
+  r=$(CDPATH= cd "$c" >/dev/null 2>&1 && pwd -P) && [ "$r/." -ef "$c/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && hatsu_root=$r && break
+done
+[ -n "$hatsu_root" ] || { echo "no Hatsu root resolved — pass --reviewers by hand instead (sharingan § 4)" >&2; exit 1; }
+nen pr ready <CODE>#<N> --repo <path> --gates "$hatsu_root/contracts/reference.gates.json" --explain
 ```
 
 **Which identity flag goes on that call is [`sharingan`](../sharingan/SKILL.md) § 4's identity rule,
 cited rather than restated, and it is resolved BEFORE the call, never defaulted to `--gates`.** A
 target that ships its own `nen/gates.json` needs no identity flag at all. `<reference-repo>`
 (frozen, ships no gates file of its own — the case above) is the one target `--gates
-"$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"` is for — always `$CLAUDE_PLUGIN_ROOT`-anchored,
-since nen `v0.2.0` a relative `--gates` resolves against `--repo`'s root rather than the cwd, so only
+"$hatsu_root/contracts/reference.gates.json"` is for — always `$hatsu_root`-anchored: the Hatsu
+checkout as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it on every surface — absolute,
+and resolved in the shell that runs this call by the same-shell block above, since the variable is not
+exported — never
+`$CLAUDE_PLUGIN_ROOT` alone, which is Claude Code's and is unset or wrong on the two mirrored surfaces. Since nen `v0.2.0` a relative `--gates` resolves against `--repo`'s root rather than the cwd, so only
 an absolute path reaches a file that lives in *this* plugin's checkout
 ([`/pr-state`](../pr-state/SKILL.md) § 2 has the live transcript). Any OTHER target with no
 `nen/gates.json` gets `--reviewers` supplied by hand from its `CODEOWNERS` or the PR's own requested

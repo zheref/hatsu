@@ -48,8 +48,12 @@ you must never do is act in one mode's authority under another mode's header.
 
 Two steps, in this order. They are not interchangeable and the second cannot substitute for the first.
 
-**1 · The Nen dependency contract (D10).** Load and run the **`hatsu-warmup`** skill. It reads
-`$CLAUDE_PLUGIN_ROOT/nen/contract.json` — **which is the single source of truth for every value on this
+**1 · The Nen dependency contract (D10).** Load and run the **`hatsu-warmup`** skill. Its § 0 block is ONE
+shell: it resolves the Hatsu root — `$HATSU_PLUGIN_ROOT`, else the path it was handed, else
+`$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout, canonicalised to an absolute path (the
+last is Claude Code's alone, and on Codex and Cursor it is unset or names another plugin) — prints it, and
+reads `nen/contract.json` from it in that same shell; nothing there depends on a variable from an earlier
+shell. That file is **the single source of truth for every value on this
 path**, kept at nen's own location and in nen's own shape so that `nen schema check` validates it — and
 probes `nen --version` against the range it declares. Absent or out of range is **not** a halt;
 it is an auto-install. The **only** halt is the bootstrap itself failing, and then you print the exact

@@ -26,13 +26,31 @@ shell).
 
 ## 0 · Resolve the root, THEN read the contract yourself — no jq, no subprocess
 
-**The very first thing this skill does, on every surface, is resolve `$hatsu_root`.** § 5's prelude
-carries the block and the reasoning, and it is written down there once rather than twice. In one line:
-`$HATSU_PLUGIN_ROOT`, else the path this invocation was handed, else `$CLAUDE_PLUGIN_ROOT`, **each
-accepted only if it holds a `.claude-plugin/plugin.json` whose own `name` is `hatsu`**. Every path
-below reads from the result.
+**The very first thing this skill does, on every surface, is resolve `$hatsu_root` — and it reads the
+contract in the SAME shell, because `$hatsu_root` is a shell variable and not an export.** The block below
+is that shell: `$HATSU_PLUGIN_ROOT`, else the path this invocation was handed, else `$CLAUDE_PLUGIN_ROOT`,
+**each accepted only if it holds a `.claude-plugin/plugin.json` whose own `name` is `hatsu`**, the winner
+canonicalised to an absolute path, printed, and read from. § 5's prelude is the same loop written out with
+its reasoning and with the rejected-path report the install needs; every later block in this skill opens
+with the quoted value this one prints, as an explicit input (§ 5's rule).
 
 ```bash
+# ONE shell: resolve, print, read. A block that uses $hatsu_root sets it in that block (§ 5).
+# the handed slot is SINGLE-quoted: $, backticks, backslashes and spaces in a path reach the test as themselves; a ' in it is written '\''.
+# The capture runs cd with CDPATH cleared and its stdout dropped, proves the captured path IS the candidate's
+# directory (-ef, so a stripped trailing newline is caught), refuses a root containing a newline (the handoff
+# below is ONE line), and assigns $hatsu_root only once all of that passed. The awk line is § 5's manifest_name
+# on one line: the TOP-LEVEL name of the canonical pretty-print, or nothing — any other shape is refused.
+hatsu_root=""; passed=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the path this invocation was handed, if any>' "${CLAUDE_PLUGIN_ROOT:-}"; do
+  [ -n "$c" ] || continue; case $c in -*) c=./$c;; esac; passed="$passed $c"   # an option-looking relative candidate is a path, not a flag
+  [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
+  mn=$(awk 'function scalar(v){return v~/^("([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*"|-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?|true|false|null)$/} function value_ok(v){return v=="{"||v=="["||v=="{}"||v=="[]"||scalar(v)} NR==1{if($0!="{")b=1;sp=1;top[1]="{";ind[1]=0;first=1;comma=0;next} {if(b||d){b=1;next};ni=match($0,/[^ ]/)-1;if(ni<0){b=1;next};body=substr($0,ni+1);if(body~/^[}\]],?$/){c=substr(body,1,1);tr=(body~/,$/);if(sp==0||ni!=ind[sp]||(top[sp]=="{"&&c!="}")||(top[sp]=="["&&c!="]")||comma){b=1;next};sp--;if(sp==0){if(tr)b=1;d=1;next};comma=tr;first=0;next};if(sp==0||ni!=ind[sp]+2||(!first&&!comma)){b=1;next};tr=(body~/,$/);if(tr)body=substr(body,1,length(body)-1);if(top[sp]=="{"){if(body!~/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /){b=1;next};v=body;sub(/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /,"",v);if(sp==1&&body~/^"name": "/){s=v;sub(/^"/,"",s);sub(/"$/,"",s);n++;name=s}}else v=body;if(!value_ok(v)){b=1;next};if(v=="{"||v=="["){if(tr){b=1;next};sp++;top[sp]=v;ind[sp]=ni;first=1;comma=0;next};comma=tr;first=0} END{if(!b&&d&&sp==0&&n==1)print name}' "$c/.claude-plugin/plugin.json") && [ "$mn" = hatsu ] &&   # captured first: bash 3.2 mis-parses quotes inside "$( )"
+  r=$(CDPATH= cd "$c" >/dev/null 2>&1 && pwd -P) && [ "$r/." -ef "$c/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && hatsu_root=$r && break
+done
+[ -n "$hatsu_root" ] || { echo "hatsu-warmup: no Hatsu root — \$HATSU_PLUGIN_ROOT unset or not a Hatsu checkout, nothing usable handed, \$CLAUDE_PLUGIN_ROOT empty or another plugin. Tried:$passed" >&2; exit 1; }
+passed=${passed% "$c"}; [ -z "$passed" ] || echo "hatsu-warmup: passed over (not a Hatsu checkout, or a path that cannot be handed on):$passed" >&2   # named on success too
+echo "hatsu_root resolved. The NEXT LINE is the quoted value every later block pastes verbatim, quotes included:"
+printf "'%s'\n" "$(printf '%s' "$hatsu_root" | sed "s/'/'\\\\''/g")"   # the literal ALONE on its line: single-quoted, any ' in the path written '\''
 cat "$hatsu_root/nen/contract.json"
 ```
 
@@ -60,6 +78,7 @@ cat "$hatsu_root/nen/contract.json"
 This is the one machine read of the contract, and it is a validation, never a way of extracting values:
 
 ```bash
+hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): the line § 0 printed AFTER its label — the quoted literal alone — pasted in place of '<…>', quotes included; a variable from another shell is not here
 nen schema check --repo "$hatsu_root"
 ```
 
@@ -127,6 +146,7 @@ a comparison nobody made must not render as one that came back clean.)
 ### 1b · The verdict on the range is **nen's**, not this file's
 
 ```bash
+hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): the line § 0 printed AFTER its label — the quoted literal alone — pasted in place of '<…>', quotes included; a variable from another shell is not here
 nen shu tools --repo "$hatsu_root"
 ```
 
@@ -136,7 +156,8 @@ nen's own compatibility floor to it, and prints the exact range the verdict was 
 > **`--repo` names HATSU's checkout, not the repository the session is standing in.** The `dependency`
 > block being enforced is Hatsu's own — § 0 read it from `$hatsu_root` and `nen schema check` validated it
 > there. A target repository's `nen/contract.json` declares *its* build, and pointing this verb at it would
-> answer a question nobody asked. (`$hatsu_root` is § 5's prelude's resolution, run in § 0.)
+> answer a question nobody asked. (`$hatsu_root` is set in this block by the explicit-input line — § 5's
+> rule — from the quoted value § 0 printed; it is never carried over from § 0's shell.)
 
 **The verb is present on every binary this pin can meet.** `nen shu tools` ships from **`v0.3.0`**
 (`zheref/nen#120`), and so does the `dependency`-derived `nen` row it is read for — four minors below
@@ -573,37 +594,99 @@ those two surfaces can answer either.
 **Every candidate is verified before it is used**, in order, and the first one that passes wins:
 
 ```sh
-# is_hatsu ROOT — true only for a checkout of THIS plugin. No jq: the file is read
-# as text, so the two things that make the read honest are written out.
-#   1. The MANIFEST'S OWN name, not any name in it. The value is extracted and
-#      compared WHOLE, and only the FIRST "name" line is read — a manifest's own
-#      name is the first one; a name nested in a dependency or in metadata is not.
-#      A bare `grep '"name": "hatsu"'` would accept any plugin carrying that string
-#      anywhere, which is the wrong-root failure this check exists to prevent.
-#   2. A second, independent fact about the same directory: `claude/skills/` is what
-#      this manifest's `skills` key points at, so a plugin.json that passes (1) while
-#      standing over somebody else's tree still fails here.
+# manifest_name FILE — prints the TOP-LEVEL "name" of a plugin manifest, or nothing.
+# No jq, and no line-by-line guess either: a small stack machine over the ONE shape
+# Claude Code's tooling writes and this repository ships — JSON.stringify(x, null, 2).
+# Line one is `{`; every item sits at its container's indentation plus two; a member
+# is a quoted key then `{`, `[`, `{}`, `[]` or a scalar, an element is one of those
+# without a key; members appear only inside `{` and elements only inside `[`; a
+# comma stands exactly between siblings and never after the last; every closer
+# matches the opener at its own indentation; the last line is the top-level `}` and
+# nothing follows it. Anything else — minified, tab- or odd-indented, a nested block
+# laid out flat, a stray second `}`, a junk line, a trailing comma, a missing comma,
+# a `]` closing a `{`, two top-level names — is refused rather than parsed, and so
+# is a token JSON would refuse: a number with a leading zero, a bare dot or a `+`,
+# a string with an escape outside \" \\ \/ \b \f \n \r \t \uXXXX or with a raw
+# control character in it, on a value or on a key alike. Refusal is the safe
+# direction, and the tooling never writes another shape. Exactly one top-level
+# name, or nothing.
+manifest_name() {
+  awk '
+    function scalar(v) { return v ~ /^("([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*"|-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?|true|false|null)$/ }
+    function value_ok(v) { return v == "{" || v == "[" || v == "{}" || v == "[]" || scalar(v) }
+    NR == 1 { if ($0 != "{") bad = 1; sp = 1; top[1] = "{"; ind[1] = 0; first = 1; comma = 0; next }
+    {
+      if (bad || done) { bad = 1; next }
+      ni = match($0, /[^ ]/) - 1; if (ni < 0) { bad = 1; next }
+      body = substr($0, ni + 1)
+      if (body ~ /^[}\]],?$/) {
+        c = substr(body, 1, 1); tr = (body ~ /,$/)
+        if (sp == 0 || ni != ind[sp] || (top[sp] == "{" && c != "}") || (top[sp] == "[" && c != "]") || comma) { bad = 1; next }
+        sp--; if (sp == 0) { if (tr) bad = 1; done = 1; next }
+        comma = tr; first = 0; next
+      }
+      if (sp == 0 || ni != ind[sp] + 2 || (!first && !comma)) { bad = 1; next }
+      tr = (body ~ /,$/); if (tr) body = substr(body, 1, length(body) - 1)
+      if (top[sp] == "{") {
+        if (body !~ /^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /) { bad = 1; next }
+        v = body; sub(/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /, "", v)
+        if (sp == 1 && body ~ /^"name": "/) { s = v; sub(/^"/, "", s); sub(/"$/, "", s); n++; name = s }
+      } else v = body
+      if (!value_ok(v)) { bad = 1; next }
+      if (v == "{" || v == "[") { if (tr) { bad = 1; next }; sp++; top[sp] = v; ind[sp] = ni; first = 1; comma = 0; next }
+      comma = tr; first = 0
+    }
+    END { if (!bad && done && sp == 0 && n == 1) print name }
+  ' "$1"
+}
+# is_hatsu ROOT — true only for a checkout of THIS plugin. Two facts, written out:
+#   1. The MANIFEST'S OWN name, read structurally by manifest_name and compared WHOLE,
+#      reads `hatsu`. A bare `grep '"name": "hatsu"'` would accept any plugin carrying
+#      that string anywhere, which is the wrong-root failure this check exists for.
+#   2. A second, independent fact about the same directory: a `claude/skills/`
+#      directory exists — checked as a directory, not read from the manifest's
+#      `skills` member, which this check never parses — so a plugin.json that
+#      passes (1) while standing over somebody else's tree still fails here.
 is_hatsu() {
   [ -n "${1:-}" ] && [ -f "$1/.claude-plugin/plugin.json" ] && [ -d "$1/claude/skills" ] || return 1
-  ih_name=$(sed -n 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
-              "$1/.claude-plugin/plugin.json" | head -n 1)
-  [ "$ih_name" = "hatsu" ]
+  [ "$(manifest_name "$1/.claude-plugin/plugin.json")" = "hatsu" ]
 }
 
-hatsu_root=""; rejected=""
-for cand in "${HATSU_PLUGIN_ROOT:-}" "${1:-}" "${CLAUDE_PLUGIN_ROOT:-}"; do
-  [ -n "$cand" ] || continue
-  if is_hatsu "$cand"; then hatsu_root=$cand; break; fi
-  rejected="$rejected $cand"
+# Three candidates and no fourth. The winner is CANONICALISED — absolute, symlinks
+# resolved — so a relative $HATSU_PLUGIN_ROOT or a handed '.' can never reach a
+# --gates argument that nen would resolve against --repo (pr-state § 2). Three guards
+# on the capture, and $hatsu_root is assigned only once all three pass: cd runs with
+# CDPATH cleared and its stdout dropped, so a relative candidate resolves where the
+# file tests looked and a CDPATH hit can neither redirect it nor leak into the path;
+# `-ef` proves the captured path is the SAME directory as the candidate, so a trailing
+# newline that command substitution stripped is caught rather than pointed elsewhere;
+# and a root containing a newline is refused outright, because the handoff below is
+# one line. And it is a plain shell variable, not an export: it lives in THIS shell
+# only (see below).
+hatsu_root=""; rejected=""; unusable=""
+# The handed slot is SINGLE-quoted and substituted, exactly as in § 0: this block runs as a
+# shell block, never as a script, so there is no $1 for it to read.
+for cand in "${HATSU_PLUGIN_ROOT:-}" '<the path this invocation was handed, if any>' "${CLAUDE_PLUGIN_ROOT:-}"; do
+  [ -n "$cand" ] || continue; case $cand in -*) cand=./$cand;; esac   # an option-looking relative candidate is a path, not a flag
+  if ! is_hatsu "$cand"; then rejected="$rejected $cand"; continue; fi     # not this plugin: one reason
+  if r=$(CDPATH= cd "$cand" >/dev/null 2>&1 && pwd -P) \
+     && [ "$r/." -ef "$cand/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ]; then hatsu_root=$r; break; fi
+  unusable="$unusable $cand"                                              # a Hatsu checkout, but its path cannot be handed on: the other reason
 done
+# Passed-over candidates are named on SUCCESS too — a stale $CLAUDE_PLUGIN_ROOT in a shell
+# profile is a thing to fix, and this is where it becomes visible (README, § On Codex).
+[ -z "$rejected$unusable" ] || echo "hatsu-warmup: passed over —${rejected:+ rejected (not a Hatsu checkout):$rejected.}${unusable:+ unusable (path cannot be handed on as one line):$unusable.}" >&2
 
 [ -n "$hatsu_root" ] && [ -d "$hatsu_root/surfaces/$surface" ] || {
   echo "surface: $surface — NOT INSTALLED. No Hatsu source root." \
-       "${rejected:+Rejected (no .claude-plugin/plugin.json naming hatsu):$rejected.}" \
+       "${rejected:+Rejected (no .claude-plugin/plugin.json naming hatsu at its top level):$rejected.}" \
+       "${unusable:+Unusable (a Hatsu checkout whose path cannot be handed on as one line — a newline in it, or cd could not reach it):$unusable.}" \
        "\$HATSU_PLUGIN_ROOT is unset or is not a Hatsu checkout, no usable path was handed to this" \
        "invocation, and this surface has no plugin registry to ask." >&2
   exit 1        # § 4's line says NOT INSTALLED and names this. Never a partial install.
 }
+echo "hatsu_root resolved. The NEXT LINE is the quoted value every later block pastes verbatim, quotes included:"
+printf "'%s'\n" "$(printf '%s' "$hatsu_root" | sed "s/'/'\\\\''/g")"   # same form as § 0; a later shell cannot inherit the variable, it pastes this
 ```
 
 - **A rejected candidate is named BY PATH, in the report.** *"surface: cursor — NOT INSTALLED.
@@ -617,6 +700,38 @@ done
   `$CLAUDE_PLUGIN_ROOT` *is* the Hatsu checkout, so it passes on the first comparison. § 0's read of
   `nen/contract.json` uses this same resolution, and a root that will not resolve stops the warm-up
   there as well.
+- **`$hatsu_root` is ABSOLUTE, and LOCAL to the shell that ran this block.** `pwd -P` canonicalises the
+  winning candidate, so a relative `$HATSU_PLUGIN_ROOT` or a handed `.` cannot reach a `--gates`
+  argument nen would resolve against `--repo`. And it is a shell variable, not an export: a later
+  tool-call shell, a subagent, or another skill's command does not inherit it — on any surface — and
+  prose telling a consumer to *run the prelude first* executes nothing. So the block prints the root it
+  resolved (the printed line above), and **the rule every block in this plugin follows is: a code block that
+  uses `$hatsu_root` SETS it in that block.** Two ways, and no third:
+  - **§ 0's resolver, verbatim** — the same three candidates, the same `is_hatsu` test, the same
+    `pwd -P`, six lines above the command. `pr-state` § 2, `futon` § 5 and `tensho` § 6 carry it, with
+    the printed root as the second candidate.
+  - **the one-line explicit input** `hatsu_root='<the absolute path § 0 printed>'` — this skill's own later
+    blocks (§ 0's `schema check`, § 1b's `shu tools`, § 5a's copy loop, § 5c's `ours`), `hanten` § 3's `ls`, and the prose
+    fallbacks in `backlog-state` and `getsuga` open with it.
+
+  **The path is never embedded raw in source text.** § 0 (and this prelude) prints a label line, then the
+  root ALONE on the next line as a single-quoted shell literal with every `'` in it written `'\''` —
+  `sed "s/'/'\\\\''/g"` — and a consumer pastes that one line verbatim, quotes included and nothing else,
+  into the explicit-input line or into the resolver's single-quoted handed slot. Inside
+  single quotes nothing else is special: `$`, backticks, backslashes and spaces reach the shell as
+  themselves (`docs/ab/surfaces.md` § 9.8 exercises a path carrying all five). **A root containing a
+  newline is refused** — the handoff is one line, and command substitution would strip a trailing one —
+  `cd` runs with `CDPATH` cleared and its stdout dropped so a `CDPATH` hit can neither redirect a relative
+  candidate nor leak into the captured path, and the variable is assigned only once every guard passed
+  (`docs/ab/surfaces.md` § 9.10).
+
+  Inlined rather than sourced from a helper file, because a helper file would have to be found by the
+  very root it resolves; and never *"run the prelude first"* in prose, which executes nothing.
+  **The loop reads three candidates and no fourth**: a run with none is `NOT INSTALLED`
+  here and `--reviewers` by hand in `sharingan` § 4, never a guess. On Claude Code alone, a caller that
+  has none of the three can obtain the path it *hands in* — the second candidate — from the surface's
+  own registry, `claude plugin list --json` → `installPath` (verified live); that is a way to produce
+  the handed path, not a step this loop takes, and neither other surface has a registry to ask.
 
 **There is no bootstrap on these two surfaces, and that is stated rather than implied.** A plugin loader is
 what would fetch Hatsu; neither surface has one, so the **first** install is a human act — clone
@@ -643,6 +758,7 @@ a second trap with it: through a symlink the mirror's own `../../../nen/workflow
 **plugin's** policy file rather than the target's (§ 5d, F10). The copy fixes both.
 
 ```sh
+hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): the line § 0 printed AFTER its label — the quoted literal alone — pasted in place of '<…>', quotes included; a variable from another shell is not here
 mkdir -p "$target/.agents/skills"
 for d in "$hatsu_root"/surfaces/codex/*/; do
   name=$(basename "$d"); dest="$target/.agents/skills/$name"
@@ -674,7 +790,7 @@ skill writes is the *whole* document:
 … the target's own AGENTS.md, verbatim, when it has one …
 
 <!-- BEGIN hatsu personas (generated — nen surface mirror, surface: codex) -->
-… the contents of $hatsu_root/surfaces/codex/AGENTS.md, verbatim …
+… the contents of <hatsu root>/surfaces/codex/AGENTS.md, verbatim …
 <!-- END hatsu personas (generated — nen surface mirror, surface: codex) -->
 ```
 
@@ -792,6 +908,7 @@ and thirty-nine of them are being claimed at once.
 | **anything else — and a TRACKED path is always anything else** | **leave it untouched**, install nothing under that name, and **name it in § 4's line** |
 
 ```sh
+hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): the line § 0 printed AFTER its label — the quoted literal alone — pasted in place of '<…>', quotes included; a variable from another shell is not here
 # ours DEST — true only for a destination this skill made. Tracked is never ours,
 # whatever it looks like: a repository's own history outranks a marker comment.
 ours() {
@@ -930,9 +1047,11 @@ a Claude, a GPT — is not a better choice made locally; it is a different budge
    knows what a surface binary is, and none should — nen reads repositories. The minimum itself is
    read out of Cursor's own changelog, which groups by month, so **the comparison is a date part and
    not a semver**, and that is stated in the report rather than dressed up as a range check.
-8. **Verifying a candidate `$hatsu_root`** is `grep` against `.claude-plugin/plugin.json` (§ 5's
-   prelude) — no jq, on the one path that has to work before anything is installed. `nen schema check`
-   validates a contract *inside* a root; it does not answer "is this root the right plugin's".
+8. **Verifying a candidate `$hatsu_root`** is § 5's `manifest_name` — an awk reader of the one manifest
+   shape Claude Code's tooling writes, taking the top-level `name` and refusing any other shape — plus the
+   `claude/skills/` check, on the one path that has to work before anything is installed; no jq, and no
+   grep either since the tenth review round of #38. `nen schema check` validates a contract *inside* a
+   root; it does not answer "is this root the right plugin's", and nen carries no manifest or JSON verb.
 9. **Listing what already stands under the surface's skill directory** is `ls -1A` (§ 5b · ii), and
    **the host-global half of that question has no answer at all from inside a repository** — a
    same-named skill from another plugin is outside every path this skill can read. Named as a

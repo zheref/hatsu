@@ -151,7 +151,10 @@ Re-run from the top on **every** state change; never act on a picture older than
    > takes, through the same resolver, so a checkout that ships no gates file can still be evaluated.
    > A RELATIVE path is resolved against `--repo`, NOT the current directory"* — so the invocation is
    > now `nen pr next-blocker --target <owner/name> --pr <n> --repo <path>` carrying **the same
-   > identity flag § 4's table selects** — `--gates <plugin root>/contracts/reference.gates.json`
+   > identity flag § 4's table selects** — `--gates "$hatsu_root/contracts/reference.gates.json"`, with
+   > `$hatsu_root` set in that same shell by `pr-state` § 2's resolver or the explicit-input line
+   > `hatsu_root='<the absolute path § 0 printed>'` (§ 4's identity table; a block that only exports
+   > `GH_TOKEN` does not set it),
    > for `<reference-repo>` alone, `--reviewers a,b` for a target that ships no gates file of its
    > own — and `--repo` is **required** at exit `2`
    > (`v0.2.0` #73). **The crash half is not re-verified:** with the gates file supplied at the port, the
@@ -189,7 +192,7 @@ nen pr ready <CODE>#<N> --repo <path> --explain            # the target ships ne
 | The target repository | The flag | What the verdict is about |
 |---|---|---|
 | ships its own `nen/gates.json` | **none** — the verb reads it | this repository's own configured reviewers. **Always prefer this** |
-| **is `<reference-repo>`**, which is FROZEN and ships no gates file | `--gates "<plugin root>/contracts/reference.gates.json"` | that repository's identities, carried here because it cannot grow a file of its own |
+| **is `<reference-repo>`**, which is FROZEN and ships no gates file | `--gates "$hatsu_root/contracts/reference.gates.json"` — `$hatsu_root` set in that same shell, by `pr-state` § 2's resolver or the explicit-input line `hatsu_root='<the absolute path § 0 printed>'` (the box below says where it comes from; nothing in § 4 sets it for you) | that repository's identities, carried here because it cannot grow a file of its own |
 | ships no gates file and is **not** `<reference-repo>` | `--reviewers <a,b,c> [--approvers <a,b>]`, **supplied by hand and named on the page** | the identities this repository actually configures |
 
 > **The reference gates file is the REFERENCE repository's, and pointing it at any other repository
@@ -258,12 +261,23 @@ lives in this plugin's checkout rather than the target's, so only an absolute pa
 nothing for `--gates`, which has resolved that way since `v0.2.0`; it changes § 5's
 `nen issue comment --body-file`, which now has ONE base rather than two.
 
-> **Where the plugin root comes from, when a run needs it.** `$CLAUDE_PLUGIN_ROOT` is exported by the
-> harness **only inside a skill invocation**; it is **empty in an ordinary tool-call shell and inside
-> a subagent** — verified live. So use it when it is non-empty, and otherwise resolve it rather than
-> guess: `claude plugin list --json` returns `[{ "id": "hatsu@hatsu", "installPath": "<the plugin
-> root>", … }]` (verified live — the `--json` flag exists and `installPath` is the root), or take the
-> path from whoever raised the run. **A `--gates` path that could not be resolved is not replaced by
+> **Where the plugin root comes from, when a run needs it.** It is `$hatsu_root` — the Hatsu checkout
+> as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it, and it is resolved rather
+> than assumed on every surface: `$HATSU_PLUGIN_ROOT` first (the form that works on all three), else
+> the path whoever raised the run handed it, else `$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a
+> Hatsu checkout — the winner canonicalised to an absolute path, and held in a shell variable that is
+> not exported, so its same-shell form — the block `pr-state` § 2 carries — runs in the shell that runs
+> the `nen pr ready` call, with the root the warm-up printed as the handed candidate: a tool-call shell
+> or a subagent inherits nothing from another. `$CLAUDE_PLUGIN_ROOT` on its own is Claude Code's variable: that harness exports it
+> **only inside a skill invocation**, it is **empty in an ordinary tool-call shell and inside a
+> subagent** — verified live — and on Codex and Cursor, where this body runs as a verbatim mirror, it
+> is usually unset or, from a shell profile, names a different plugin. The prelude reads those three
+> candidates and no fourth: a run with none reports the root unresolved. On Claude Code alone, a
+> caller that has none of the three can obtain the path it HANDS IN — the second candidate — from the
+> surface's own plugin registry: `claude plugin list --json` returns `[{ "id": "hatsu@hatsu",
+> "installPath": "<the plugin root>", … }]` (verified live — the `--json` flag exists and
+> `installPath` is the root). That is a way to produce the handed path, not a step the prelude takes,
+> and neither other surface has a registry to ask. **A `--gates` path that could not be resolved is not replaced by
 > a relative one**: fall to the third row of the table above and pass `--reviewers` instead, which is
 > the honest answer rather than a path that will resolve inside the target repository and `ENOENT`.
 
@@ -500,9 +514,9 @@ Say when the run **starts** and when it **ends**.
   and named on the page.
 - **Never lets a vacuous approve row read as an approval.** Where no `--approvers` were passed, the
   page says nobody has approved the pull request (§ 4).
-- **Never builds a path from `$CLAUDE_PLUGIN_ROOT` without checking it is set** — it is empty
-  outside a skill invocation, and a bare relative `--gates` resolves inside the target repository
-  (§ 4).
+- **Never builds a path from `$CLAUDE_PLUGIN_ROOT` without resolving `$hatsu_root` first** — it is
+  empty outside a skill invocation, it is not Hatsu's on the two mirrored surfaces, and a bare
+  relative `--gates` resolves inside the target repository (§ 4).
 - **Never counts an unverified wake** toward the escalation ladder, and never fabricates a
   `nen pr staleness --wakes-from` entry to manufacture a stale verdict.
 - **Never exceeds the 5-round cap** on one PR — the sixth round is an escalation.
