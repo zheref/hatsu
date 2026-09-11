@@ -1158,3 +1158,49 @@ forms; `pr-state` § 2 reporting `identities` under the hostile path). Both mirr
 fenced-block check reports zero, the plugin validates with the new descriptions. **Still not verified:** a
 Codex or Cursor session — as before.
 
+### 9.14 Copilot's thirteenth round — separators and delimiters: the reader is a validator of the shape
+
+One thread, and it was right: the line grammar of § 9.13 stripped a trailing comma from every member and
+never checked commas between siblings or that a closer matched its opener, so `{`, `  "name": "hatsu",`, `}`
+still read `hatsu`.
+
+**The reader is now a small stack machine over the canonical pretty-print**, in the named `manifest_name`
+and, byte-for-byte the same logic, on one line in the four compact copies:
+
+- line one is `{`; every item sits at its container's indentation plus two; the last line is the top-level
+  `}` and nothing follows it;
+- a member is a quoted key then `{`, `[`, `{}`, `[]` or a scalar; an element is one of those without a
+  key; members appear only inside `{` and elements only inside `[`;
+- a comma stands exactly between siblings and never after the last; every closer matches the opener at its
+  own indentation;
+- a duplicate top-level `name` refuses, as does anything else — minified, tab- or odd-indented, a nested
+  block laid out flat, a stray second `}`, a junk line, a trailing comma, a missing comma, a `]` closing a `{`.
+
+**Twenty-seven manifest shapes**, the eighteen of § 9.13 plus nine new, the named function and the one-line
+form agreeing on every one under bash 3.2:
+
+```
+  trailing-comma-last-member.json     {  "name": "hatsu",  }                refuse   NEW — the round's case
+  missing-comma-between-members.json  two members, no comma                 refuse   NEW
+  mismatched-closer.json              an array closed by `},`               refuse   NEW
+  three-space-indent.json                                                   refuse   NEW
+  closer-at-wrong-indent.json         `    },` closing a two-space opener   refuse   NEW
+  element-inside-object.json          a bare `"z"` where a member should be refuse   NEW
+  member-inside-array.json            `"k": 1` inside `[`                   refuse   NEW
+  duplicate-top-name.json             two top-level names                   refuse   NEW
+  valid-deep.json                     arrays in objects in arrays, `[]` and
+                                      `{}` as elements and values           ACCEPT   NEW
+  … the eighteen of § 9.13, unchanged (six accepted, twelve refused)
+```
+
+**A sweep of the real manifests on this host.** Every cached Hatsu manifest (`0.3.0` through `0.13.1`) reads
+`hatsu`; `bankai` reads `bankai`, `warp` reads `warp`; one manifest — a third-party plugin from the official
+marketplace — is refused, because it is indented at **four** spaces, not the shape Claude Code's own tooling
+writes. That is the documented policy doing what it says, in the safe direction: the reader answers "is this
+root Hatsu's", and a manifest it will not read is a root it will not accept.
+
+Every capture case reruns unchanged (the newline-ending checkout refused; the hostile path and a handed `.`
+resolved; `/tmp` named as passed over on success in both forms; `pr-state` § 2 reporting `identities` under
+the hostile path); this checkout's own manifest reads `hatsu`. Both mirrors regenerate clean, the
+fenced-block check reports zero, the plugin validates. **Still not verified:** a Codex or Cursor session.
+

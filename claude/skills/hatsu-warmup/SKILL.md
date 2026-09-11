@@ -44,7 +44,7 @@ with the quoted value this one prints, as an explicit input (§ 5's rule).
 hatsu_root=""; passed=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the path this invocation was handed, if any>' "${CLAUDE_PLUGIN_ROOT:-}"; do
   [ -n "$c" ] || continue; passed="$passed $c"
   [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
-  mn=$(awk 'function scalar(v){return v~/^("([^"\\]|\\.)*"|-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?|true|false|null)$/} NR==1{if($0!="{")b=1;next} /^}$/{if(d)b=1;d=1;next} d||!/^  /{b=1;next} /^  +[}\]],?$/{if($0~/^  [}\]]/)p--;next} /^  +"([^"\\]|\\.)*"[[:space:]]*:[[:space:]]*/{v=$0;sub(/^  +"([^"\\]|\\.)*"[[:space:]]*:[[:space:]]*/,"",v);sub(/,$/,"",v);if(v!="{"&&v!="["&&v!="{}"&&v!="[]"&&!scalar(v))b=1;if($0~/^  [^ ]/){if(!p&&$0~/^  "name"[[:space:]]*:[[:space:]]*"/){s=$0;sub(/^  "name"[[:space:]]*:[[:space:]]*"/,"",s);sub(/".*$/,"",s);n++;name=s}if(v=="{"||v=="[")p++}next} /^    +/{v=$0;sub(/^ +/,"",v);sub(/,$/,"",v);if(v!="{"&&v!="["&&v!="{}"&&v!="[]"&&!scalar(v))b=1;next} {b=1} END{if(!b&&d&&n==1&&!p)print name}' "$c/.claude-plugin/plugin.json") && [ "$mn" = hatsu ] &&   # captured first: bash 3.2 mis-parses quotes inside "$( )"
+  mn=$(awk 'function scalar(v){return v~/^("([^"\\]|\\.)*"|-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?|true|false|null)$/} function value_ok(v){return v=="{"||v=="["||v=="{}"||v=="[]"||scalar(v)} NR==1{if($0!="{")b=1;sp=1;top[1]="{";ind[1]=0;first=1;comma=0;next} {if(b||d){b=1;next};ni=match($0,/[^ ]/)-1;if(ni<0){b=1;next};body=substr($0,ni+1);if(body~/^[}\]],?$/){c=substr(body,1,1);tr=(body~/,$/);if(sp==0||ni!=ind[sp]||(top[sp]=="{"&&c!="}")||(top[sp]=="["&&c!="]")||comma){b=1;next};sp--;if(sp==0){if(tr)b=1;d=1;next};comma=tr;first=0;next};if(sp==0||ni!=ind[sp]+2||(!first&&!comma)){b=1;next};tr=(body~/,$/);if(tr)body=substr(body,1,length(body)-1);if(top[sp]=="{"){if(body!~/^"([^"\\]|\\.)*"[[:space:]]*:[[:space:]]*/){b=1;next};v=body;sub(/^"([^"\\]|\\.)*"[[:space:]]*:[[:space:]]*/,"",v);if(sp==1&&body~/^"name"[[:space:]]*:[[:space:]]*"/){s=v;sub(/^"/,"",s);sub(/"$/,"",s);n++;name=s}}else v=body;if(!value_ok(v)){b=1;next};if(v=="{"||v=="["){if(tr){b=1;next};sp++;top[sp]=v;ind[sp]=ni;first=1;comma=0;next};comma=tr;first=0} END{if(!b&&d&&sp==0&&n==1)print name}' "$c/.claude-plugin/plugin.json") && [ "$mn" = hatsu ] &&   # captured first: bash 3.2 mis-parses quotes inside "$( )"
   r=$(CDPATH= cd "$c" >/dev/null 2>&1 && pwd -P) && [ "$r/." -ef "$c/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && hatsu_root=$r && break
 done
 [ -n "$hatsu_root" ] || { echo "hatsu-warmup: no Hatsu root — \$HATSU_PLUGIN_ROOT unset or not a Hatsu checkout, nothing usable handed, \$CLAUDE_PLUGIN_ROOT empty or another plugin. Tried:$passed" >&2; exit 1; }
@@ -595,36 +595,45 @@ those two surfaces can answer either.
 
 ```sh
 # manifest_name FILE — prints the TOP-LEVEL "name" of a plugin manifest, or nothing.
-# No jq, and no line-by-line guess either: it reads the ONE shape Claude Code's
-# tooling writes and this repository ships — JSON.stringify(x, null, 2) — and
-# validates EVERY line against that grammar: line one is `{`, the last line is `}`,
-# and every inner line, indented at least two spaces, is one of a member (a quoted
-# key, then `{`, `[`, `{}`, `[]` or a scalar), a closer, or an array element at four
-# spaces or deeper. A key at exactly two spaces is top-level unless a two-space
-# line opened a nested block above it. Anything else — minified, tab- or four-space
-# indented, keys at column zero, a nested block laid out at two spaces, a stray
-# second `}`, a junk line between valid members — is refused rather than parsed:
-# refusal is the safe direction, and the tooling never writes another shape.
-# Exactly one top-level name, or nothing.
+# No jq, and no line-by-line guess either: a small stack machine over the ONE shape
+# Claude Code's tooling writes and this repository ships — JSON.stringify(x, null, 2).
+# Line one is `{`; every item sits at its container's indentation plus two; a member
+# is a quoted key then `{`, `[`, `{}`, `[]` or a scalar, an element is one of those
+# without a key; members appear only inside `{` and elements only inside `[`; a
+# comma stands exactly between siblings and never after the last; every closer
+# matches the opener at its own indentation; the last line is the top-level `}` and
+# nothing follows it. Anything else — minified, tab- or odd-indented, a nested block
+# laid out flat, a stray second `}`, a junk line, a trailing comma, a missing comma,
+# a `]` closing a `{`, two top-level names — is refused rather than parsed: refusal
+# is the safe direction, and the tooling never writes another shape. Exactly one
+# top-level name, or nothing.
 manifest_name() {
   awk '
     function scalar(v) { return v ~ /^("([^"\\]|\\.)*"|-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?|true|false|null)$/ }
-    NR == 1        { if ($0 != "{") bad = 1; next }
-    /^}$/          { if (done) bad = 1; done = 1; next }
-    done || !/^  / { bad = 1; next }
-    /^  +[}\]],?$/ { if ($0 ~ /^  [}\]]/) depth--; next }                      # a closer
-    /^  +"([^"\\]|\\.)*"[[:space:]]*:[[:space:]]*/ {                             # a member: key, then value
-      v = $0; sub(/^  +"([^"\\]|\\.)*"[[:space:]]*:[[:space:]]*/, "", v); sub(/,$/, "", v)
-      if (v != "{" && v != "[" && v != "{}" && v != "[]" && !scalar(v)) bad = 1
-      if ($0 ~ /^  [^ ]/) {                                                     # at two spaces: top level unless a block is open
-        if (!depth && $0 ~ /^  "name"[[:space:]]*:[[:space:]]*"/) { s = $0; sub(/^  "name"[[:space:]]*:[[:space:]]*"/, "", s); sub(/".*$/, "", s); n++; name = s }
-        if (v == "{" || v == "[") depth++
+    function value_ok(v) { return v == "{" || v == "[" || v == "{}" || v == "[]" || scalar(v) }
+    NR == 1 { if ($0 != "{") bad = 1; sp = 1; top[1] = "{"; ind[1] = 0; first = 1; comma = 0; next }
+    {
+      if (bad || done) { bad = 1; next }
+      ni = match($0, /[^ ]/) - 1; if (ni < 0) { bad = 1; next }
+      body = substr($0, ni + 1)
+      if (body ~ /^[}\]],?$/) {
+        c = substr(body, 1, 1); tr = (body ~ /,$/)
+        if (sp == 0 || ni != ind[sp] || (top[sp] == "{" && c != "}") || (top[sp] == "[" && c != "]") || comma) { bad = 1; next }
+        sp--; if (sp == 0) { if (tr) bad = 1; done = 1; next }
+        comma = tr; first = 0; next
       }
-      next
+      if (sp == 0 || ni != ind[sp] + 2 || (!first && !comma)) { bad = 1; next }
+      tr = (body ~ /,$/); if (tr) body = substr(body, 1, length(body) - 1)
+      if (top[sp] == "{") {
+        if (body !~ /^"([^"\\]|\\.)*"[[:space:]]*:[[:space:]]*/) { bad = 1; next }
+        v = body; sub(/^"([^"\\]|\\.)*"[[:space:]]*:[[:space:]]*/, "", v)
+        if (sp == 1 && body ~ /^"name"[[:space:]]*:[[:space:]]*"/) { s = v; sub(/^"/, "", s); sub(/"$/, "", s); n++; name = s }
+      } else v = body
+      if (!value_ok(v)) { bad = 1; next }
+      if (v == "{" || v == "[") { if (tr) { bad = 1; next }; sp++; top[sp] = v; ind[sp] = ni; first = 1; comma = 0; next }
+      comma = tr; first = 0
     }
-    /^    +/ { v = $0; sub(/^ +/, "", v); sub(/,$/, "", v); if (v != "{" && v != "[" && v != "{}" && v != "[]" && !scalar(v)) bad = 1; next }   # an array element
-    { bad = 1 }                                                                  # anything else is not the shape
-    END { if (!bad && done && n == 1 && !depth) print name }
+    END { if (!bad && done && sp == 0 && n == 1) print name }
   ' "$1"
 }
 # is_hatsu ROOT — true only for a checkout of THIS plugin. Two facts, written out:
