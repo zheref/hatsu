@@ -70,10 +70,10 @@ There are two execution/policy configuration files, and the split is not stylist
 | **Content** | lanes, per-verb argv, preconditions, hosts, deploy targets, launch targets, evidence globs, host toolchain | branch shape, which declared verbs run per iteration, the coverage ladder, reports, notifications, commit trailers, monitor caps, the model matrix |
 | **Executed by** | `nen shu <verb>` — nen spawns exactly what is declared and nothing else | mostly the reader. Two verbs take a slice: `nen commit format --repo` reads `commits.allowedAttributionTrailers`, `nen shu coverage --touched` reads the `coverage` ladder |
 | **Changing it changes** | what runs on this machine | what the roster is willing to do |
-| **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — **both at nen `0.7.0`, the build every fact in this document was verified against** |
+| **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — both at the build `nen/contract.json` pins; dated evidence retains the version it actually exercised |
 
 > **The nen DEPENDENCY is the third block of the first file, and its two version values move
-> independently.** `dependency.minimum` is `0.7` and `dependency.pinned_ref` is `v0.8.0`: the first is the
+> independently.** `dependency.minimum` is `0.10` and `dependency.pinned_ref` is `v0.10.0`: the first is the
 > pin this repository declares, the second is the build its bootstrap installs. **The range `minimum`
 > stands for is nen's answer, not a document's** — the binary ships `COMPATIBLE_MINOR_FLOOR`, the lowest
 > `minimum` pin it satisfies, and `nen shu tools` applies it, prints it as `compat floor:` and carries it
@@ -156,7 +156,7 @@ exit `4` and its seat is quoted, not worked around. Hatsu's own `checks` is `["l
 > |---|---|
 > | **Immediately after a `claude/skills/**` or `claude/agents/**` edit** | regenerate both surfaces (`docs/SURFACES.md` § 3) and commit the result **in the same commit** as the source change |
 > | **Inside `mukai`, before `shibari` opens the PR** | `scripts/surface_mirror_check.sh` — exit `0` to proceed, exit `1` regenerate and amend, exit `2` **stop**: the nen on PATH is not the pinned one, since `v0.5.0` carries the verb |
-> | **On the PR** | [`.github/workflows/surface-mirror-check.yml`](../.github/workflows/surface-mirror-check.yml) — **a real check at the pinned `v0.7.0`**, advisory only until the maintainer requires the context. It skipped with a notice while `dependency.pinned_ref` named a nen with no `surface` verb; that branch is now an error. |
+> | **On the PR** | [`.github/workflows/surface-mirror-check.yml`](../.github/workflows/surface-mirror-check.yml) — **a real check at `nen/contract.json`'s pinned build**, advisory only until the maintainer requires the context. It skipped with a notice while `dependency.pinned_ref` named a nen with no `surface` verb; that branch is now an error. |
 >
 > The script writes nothing and needs no credential, so running it more often costs nothing but the seconds.
 
@@ -996,12 +996,11 @@ cover Swift behavior, and its all-KroTests apple row cannot substitute for scope
 Do not proliferate permanent lanes per ad hoc selection or copied consumer scripts. The shared
 capability and its consumer adoption remain explicitly pending.
 
-The maintainer named Copilot and `zheref` as the only expected reviewers for Hatsu and Nen on
-2026-09-12. Their `nen/gates.json` files record those identities and reserve approval for `zheref`.
-No third-party reference gate applies. A maintainer-authored PR cannot be given a synthetic
-self-approval by an agent: if GitHub cannot supply the required human review, report that predicate
-unmet and leave the merge decision with the maintainer. Local subagent review is evidence, not a
-GitHub vote.
+The maintainer named Copilot as the sole automated reviewer for Hatsu and Nen on 2026-09-12.
+Their `nen/gates.json` files require Copilot's completed round and explicitly select
+`approval_policy: review-round-only` with no separate approving-review requirement. The maintainer's
+human merge decision remains a separate gate outside Nen's automated readiness verdict. Local
+subagent review is evidence, not a GitHub vote.
 
 
 ### Review-round completion — maintainer ruling, 2026-09-12
