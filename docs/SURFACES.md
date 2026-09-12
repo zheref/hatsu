@@ -40,8 +40,8 @@ Codex and Cursor need one explicit command before their first `$hatsu-warmup` or
 
 ```sh
 # Run from the target Git repository after cloning Hatsu and exporting HATSU_PLUGIN_ROOT.
-"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface codex  --target . --bootstrap
-"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface cursor --target . --bootstrap
+surface='<codex or cursor — the host you are opening>'
+"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface "$surface" --target . --bootstrap
 ```
 
 The command seeds **only** `hatsu-warmup` in the host's discovery directory: Codex receives a copy at

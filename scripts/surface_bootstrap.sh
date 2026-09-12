@@ -55,8 +55,31 @@ case "$surface" in codex|cursor) ;; *) echo "--surface must be codex or cursor" 
 [ -n "$target_input" ] || { echo "--target is required" >&2; exit 2; }
 [ -n "$mode" ] || { echo "choose --bootstrap or --install-all" >&2; exit 2; }
 
-script_dir="$(CDPATH='' cd -- "$(dirname -- "$0")" >/dev/null 2>&1 && pwd -P)"
-hatsu_root="$(CDPATH='' cd -- "$script_dir/.." >/dev/null 2>&1 && pwd -P)"
+# Canonicalise without letting command substitution erase a trailing newline.
+# The final dot keeps pwd's record separator visible until it is checked.
+canonical_directory() {
+  local candidate="${1:-}" rendered resolved
+  [ -n "$candidate" ] || return 1
+  rendered="$(CDPATH='' cd -- "$candidate" >/dev/null 2>&1 && { pwd -P; printf .; })" || return 1
+  case "$rendered" in *$'\n.') ;; *) return 1 ;; esac
+  resolved="${rendered%$'\n.'}"
+  [ "$(printf '%s' "$resolved" | wc -l)" -eq 0 ] || return 1
+  [ "$resolved/." -ef "$candidate/." ] || return 1
+  printf '%s' "$resolved"
+}
+
+case "$0" in
+  */*) script_base="${0%/*}" ;;
+  *) script_base='.' ;;
+esac
+script_dir="$(canonical_directory "$script_base")" || {
+  echo "Hatsu bootstrap cannot canonicalize its script directory" >&2
+  exit 2
+}
+hatsu_root="$(canonical_directory "$script_dir/..")" || {
+  echo "Hatsu bootstrap cannot canonicalize its checkout" >&2
+  exit 2
+}
 
 # Same structural manifest reader as hatsu-warmup: accept only the canonical
 # pretty-printed plugin manifest shape, with exactly one top-level name.
@@ -104,11 +127,16 @@ fi
   exit 2
 }
 
-target="$(git -C "$target_input" rev-parse --show-toplevel 2>/dev/null)" || {
+target_rendered="$(git -C "$target_input" rev-parse --show-toplevel 2>/dev/null && printf .)" || {
   echo "--target must name a Git working tree" >&2
   exit 2
 }
-target="$(CDPATH='' cd -- "$target" >/dev/null 2>&1 && pwd -P)"
+case "$target_rendered" in *$'\n.') ;; *) echo "--target must name a Git working tree" >&2; exit 2 ;; esac
+target_candidate="${target_rendered%$'\n.'}"
+target="$(canonical_directory "$target_candidate")" || {
+  echo "--target must resolve to a newline-free Git working tree" >&2
+  exit 2
+}
 
 declare -a skill_names=()
 for source in "$hatsu_root/surfaces/$surface"/*; do
@@ -126,6 +154,29 @@ for name in "${skill_names[@]}"; do
     exit 2
   }
 done
+
+declare -a persona_sources=()
+if [ "$mode" = "--install-all" ]; then
+  if [ "$surface" = "codex" ]; then
+    [ -f "$hatsu_root/surfaces/codex/AGENTS.md" ] || {
+      echo "generated codex mirror is missing AGENTS.md" >&2
+      exit 2
+    }
+  else
+    [ -d "$hatsu_root/surfaces/cursor/agents" ] || {
+      echo "generated cursor mirror is missing agents/" >&2
+      exit 2
+    }
+    for source in "$hatsu_root/surfaces/cursor/agents"/*.md; do
+      [ -f "$source" ] || continue
+      persona_sources+=("$source")
+    done
+    [ "${#persona_sources[@]}" -gt 0 ] || {
+      echo "generated cursor mirror has no persona sources" >&2
+      exit 2
+    }
+  fi
+fi
 
 # A tracked path is never ours, even if it happens to contain Hatsu's marker.
 is_tracked() {
@@ -226,12 +277,13 @@ esac
 exclude_backup=""
 exclude_existed=0
 temporary=""
+writes_succeeded=0
 
 cleanup() {
   local status=$?
   trap - EXIT
   [ -z "$temporary" ] || rm -f -- "$temporary"
-  if [ "$status" -ne 0 ] && [ -n "$exclude_backup" ]; then
+  if [ "$status" -ne 0 ] && [ "$writes_succeeded" -eq 0 ] && [ -n "$exclude_backup" ]; then
     if [ "$exclude_existed" -eq 1 ]; then
       cp "$exclude_backup" "$exclude"
     else
@@ -261,7 +313,7 @@ add_exclude_lines() {
   done
 }
 
-declare -a installed=() kept=()
+declare -a installed=() removed=() kept=()
 
 remove_stale_skills() {
   local skills_root="$1" relative destination name
@@ -272,7 +324,8 @@ remove_stale_skills() {
     relative="${skills_root#"$target/"}/$name"
     is_ours "$relative" || continue
     rm -rf -- "$destination"
-    installed+=("removed stale $name")
+    writes_succeeded=1
+    removed+=("$name")
   done
 }
 
@@ -285,7 +338,8 @@ remove_stale_agents() {
     relative="${agents_root#"$target/"}/$name"
     is_ours "$relative" || continue
     rm -rf -- "$destination"
-    installed+=("removed stale agents/$name")
+    writes_succeeded=1
+    removed+=("agents/$name")
   done
 }
 
@@ -326,7 +380,9 @@ if [ "$surface" = "codex" ]; then
       continue
     fi
     rm -rf -- "$destination"
+    writes_succeeded=1
     cp -R "$source" "$destination"
+    writes_succeeded=1
     git -C "$target" check-ignore -q -- "$relative" || {
       echo "refusing: $relative was not excluded through info/exclude" >&2
       exit 1
@@ -354,6 +410,7 @@ if [ "$surface" = "codex" ]; then
       } > "$temporary"
       mv "$temporary" "$destination"
       temporary=""
+      writes_succeeded=1
       git -C "$target" check-ignore -q -- "$relative" || {
         echo "refusing: $relative was not excluded through info/exclude" >&2
         exit 1
@@ -380,7 +437,9 @@ else
       continue
     fi
     rm -rf -- "$destination"
+    writes_succeeded=1
     ln -s "$source" "$destination"
+    writes_succeeded=1
     git -C "$target" check-ignore -q -- "$relative" || {
       echo "refusing: $relative was not excluded through info/exclude" >&2
       exit 1
@@ -390,8 +449,7 @@ else
 
   if [ "$mode" = "--install-all" ]; then
     remove_stale_agents "$target/.cursor/agents"
-    for source in "$hatsu_root/surfaces/cursor/agents"/*.md; do
-      [ -f "$source" ] || continue
+    for source in "${persona_sources[@]}"; do
       name="$(basename "$source")"
       relative=".cursor/agents/$name"
       destination="$target/$relative"
@@ -404,7 +462,9 @@ else
         continue
       fi
       rm -rf -- "$destination"
+      writes_succeeded=1
       ln -s "$source" "$destination"
+      writes_succeeded=1
       git -C "$target" check-ignore -q -- "$relative" || {
         echo "refusing: $relative was not excluded through info/exclude" >&2
         exit 1
@@ -415,6 +475,9 @@ else
 fi
 
 printf 'surface bootstrap: %s %s — installed %s' "$surface" "${mode#--}" "${#installed[@]}"
+if [ "${#removed[@]}" -gt 0 ]; then
+  printf '; removed stale %s' "$(IFS=', '; echo "${removed[*]}")"
+fi
 if [ "${#kept[@]}" -gt 0 ]; then
   printf '; kept existing %s' "$(IFS=', '; echo "${kept[*]}")"
 fi
