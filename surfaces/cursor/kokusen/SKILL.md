@@ -309,7 +309,8 @@ changed and why is this skill's to write, never nen's.
 
 **Attribution rule:** pass no attribution trailer. `Hatsu-Agent`, `Akatsuki-Agent`,
 `Co-Authored-By`, `Claude-Session`, `Signed-off-by`, agent aliases, and model names are all
-forbidden in prospective commit messages. The git author stays the maintainer. Record actual
+forbidden in prospective commit messages. Author and committer metadata preserve the actor's
+configured identity. Record actual
 participants only in the final `## Agent attribution` section of the PR body, following
 [`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md). Existing history is not rewritten.
 

@@ -272,7 +272,7 @@ actually has; never describe a hook as installed where none is.
 > something no verb enforces** — layer (a) stays because it survives a forgotten flag, not because
 > (c) is missing.
 
-**One commit, the maintainer as git author, and no attribution trailer.** No `Hatsu-Agent`,
+**One commit with configured author/committer metadata and no attribution trailer.** No `Hatsu-Agent`,
 `Akatsuki-Agent`, `Co-Authored-By`, `Claude-Session`, `Signed-off-by`, "Generated with" line,
 agent alias, or model name belongs in the message. The final PR body's `## Agent attribution`
 section is the sole participant ledger. **Never `--no-verify`** — where the repository does carry

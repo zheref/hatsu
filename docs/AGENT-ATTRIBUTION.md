@@ -2,8 +2,9 @@
 
 **Prospective Hatsu commit messages contain no agent, plane, runtime-name, or model attribution.**
 `Hatsu-Agent`, `Akatsuki-Agent`, `Co-Authored-By`, `Claude-Session`, `Signed-off-by`, and
-"Generated with" lines are all forbidden. The git author remains the human. Earlier commits and
-dated evidence records are historical and are not rewritten.
+"Generated with" lines are all forbidden. This policy changes message/body attribution only;
+author and committer metadata preserve the actor's configured identity. Earlier commits and dated
+evidence records are historical and are not rewritten.
 
 Attribution belongs in the pull request body, as its final section:
 
@@ -12,7 +13,7 @@ Attribution belongs in the pull request body, as its final section:
 
 | Canonical Hatsu persona | Role and contribution | Evidence | Runtime alias / model |
 |---|---|---|---|
-| kurapika | Coordinated scope and verified the final change | PR commits and checks | Happy / gpt-5.6-terra |
+| kurapika | Coordinated scope and verified the final change | PR commits and checks | `<optional runtime alias / model>` |
 ```
 
 The table lists **only agents that actually participated**. `Canonical Hatsu persona` is the
