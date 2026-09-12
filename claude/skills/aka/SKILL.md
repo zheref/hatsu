@@ -175,7 +175,8 @@ Then shape the one message with the verb that owns message shape:
 ```bash
 nen commit format --type <feat|fix|chore|docs|refactor|test|perf|build|ci> \
   --scope <scope> --subject "<short imperative subject>" \
-  --body "<what changed and why>"
+  --body "<what changed and why>" --repo <path> \
+  --trailer "Hatsu-Agent=<responsible-persona>"
 ```
 
 Verified live at `v0.3.0` (`docs/ab/aka.md` § 2.2): the multi-line form renders subject, body and

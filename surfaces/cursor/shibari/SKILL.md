@@ -98,7 +98,7 @@ points at [`/jujisho`](../jujisho/SKILL.md), which is the split-shaped verb, and
 > `evidence[]` from the same set at step 8. Two derivations of one set is how a report and a PR body
 > come to disagree.
 
-## 3. The body — eight parts, in this order
+## 3. The body — nine parts, in this order
 
 The target repository's own PR template governs the section *names* where it has one (Hatsu's is in
 [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md); a consumer's is wherever that repository keeps it,
@@ -116,6 +116,7 @@ template states:
 | 6 | **Evidence** | the `UZF-26` table (§ 5) | `kotoamatsukami`'s re-recorded artifacts, laid out by `rikugan` |
 | 7 | **Completion checklist** | one box per condition this PR claims to have met, each with its evidence beside it | § 6 |
 | 8 | **Every associated issue** | Full body list and verified Development links for every issue addressed; closing disposition only for completed scope, partial status explicit | Live issue/PR scope and the linkage contract below |
+| 9 | **Agent attribution** | final participant ledger: actual agents, canonical persona/plane where assigned, contribution, and evidence | `<Hatsu plugin root>/docs/AGENT-ATTRIBUTION.md` |
 
 ### Associated issues — body AND Development
 
@@ -137,7 +138,7 @@ Nen link verb or assume `Part of #N` creates a Development link. Where the curre
 perform or inspect the link, use the supported UI and record the observed result; unavailable
 permissions or platform limits remain an explicit handover blocker.
 
-### Agent attribution — final PR-body section
+### Agent attribution — required final PR-body section
 
 The PR body ends with `## Agent attribution`, following `<Hatsu plugin root>/docs/AGENT-ATTRIBUTION.md`
 (in this checkout, [`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md)). It is a participant ledger, not
@@ -267,6 +268,7 @@ worse than none, because it looks like a check that happened.
 - [x] Touched-file coverage ≥ 80 (minimum) — lowest touched file <n>% (gyo)
 - [x] Adversarial review settled — <reviewer> · <persona> · <model>, <n> findings, all disposed (hanten)
 - [x] `# What this changes for you` and `## How to verify` present — `nen pr body-check`, 3/3
+- [x] Final `## Agent attribution` present — `nen pr body-check`, 4/4
 - [x] changelog fragment — `nen changelog fragment-required`: <verdict>
 - [ ] <a condition that is NOT met, with what is missing>
 ```
@@ -278,7 +280,8 @@ than ticking it.
 
 ## 7. Check the body — by verb, never by eye
 
-**Three checks, all mechanical, and the body is not written back until all three have run.**
+**Three checks, all mechanical, and the body is not written back until all three have run.** Include
+`## Agent attribution` in the requirements file, with a pattern that requires it as the final heading.
 
 **(a) The required sections.** `--requirements-from` is a JSON array of `{name, pattern}` — the
 target repository's own template convention, never a literal nen ships:
