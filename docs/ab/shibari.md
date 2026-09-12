@@ -445,3 +445,14 @@ that does not have it configured.
 `nen pr` at `v0.6.0` carries `ready`, `staleness`, `body-check`, `fetch`, `next-blocker`,
 `cascade-main`, `retarget`, `request-reviews` and `edit-body`. `create` is not among them
 (`nen pr --help`, read live at this pin). § 4's `gh pr create` is **genuinely still residue**.
+
+
+## Complete associated-issue set — 2026-09-12
+
+Hatsu #50 referenced #48 as `Part of` and #49 as `Closes`; a live GraphQL read showed only #49
+in closingIssuesReferences. A body mention did not satisfy Development linkage. The updated
+contract requires every addressed issue in both places, and a scope/completion row per issue.
+Scenarios include multiple completed issues (one closing clause each), scope added after creation
+(reconcile both sets), dependency-only reference (do not claim implementation), and partial work
+(auto-close conflict surfaced before merge, never a false completion claim). UI/permission/limit
+failures are explicit blockers. Evidence is a live association read, not a string search in a body.

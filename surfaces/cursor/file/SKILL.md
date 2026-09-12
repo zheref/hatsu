@@ -267,7 +267,7 @@ Applied **in the create call**, never as a follow-up edit:
 ```bash
 nen issue file --target <owner/name> --repo <path to a checkout carrying nen/labels.json — or schemas/labels.json under the fallback nen keeps until v0.4.0> \
   --title "<title>" --body-file <path> --label <a,b,...> --assignee <user> \
-  --forbid-family <the target repo's stage-label family>
+  [--forbid-family <a real, declared target stage-label family>]
 ```
 
 (**`--body-file` resolves against `--repo`'s root from nen `0.7`** — `zheref/nen#100`; through
@@ -276,19 +276,20 @@ path is still used as-is.) `nen issue file` checks every label against the targe
 **before** attempting anything (verified live: an unknown label refuses with `is not in this
 repository's taxonomy … GitHub would CREATE it rather than refuse, so a typo becomes a permanent
 undocumented label` — GitHub itself never catches this, only the taxonomy check does) and enforces
-`--forbid-family` as a hard, machine-checked guard (verified live: a label in a forbidden family
+`--forbid-family` as a hard, machine-checked guard **when the target taxonomy declares that
+family** (verified live: a label in a forbidden family
 refuses with `is in the '<family>' family, which this invocation declared off-limits with
 --forbid-family` — **before** any GitHub call is made). **Pass the target repo's stage-label
-family to `--forbid-family` on every call this skill makes** — a stage label is the release
-trigger and is the human's, never this skill's, and the flag turns that rule from a discipline
-this skill's prose has to remember into one `nen issue file` refuses to violate.
+family only when it is actually declared.** Hatsu's current flat `nen/labels.json` declares none,
+so do not invent a family name or add the flag here. A stage label remains excluded from this
+skill's create labels; where a real family exists, the flag makes that exclusion a call refusal.
 
 | Class | What to apply | Basis |
 |---|---|---|
 | **Lane / agent** | Whichever labels route this problem to its owning discipline in the target repo's own taxonomy — several when it spans lanes | Read from `nen/labels.json` at run time, never from memory; a label this port hasn't seen before is still a real one if the taxonomy carries it |
 | **Severity** | Exactly one severity label from the target repo's own severity vocabulary | Propose with one line of reasoning; the plan carries it |
 | **Kind** | Bug / handbook-question / epic / QA / observation-fix, as the target repo's taxonomy names them | What the issue *is* |
-| **Stage** | **None** | Zero stage labels before release; the stage-that-is-the-release-trigger is the human's, and `--forbid-family` (above) makes that a call refusal, not a rule to remember |
+| **Stage** | **None** | Zero stage labels before release; the stage-that-is-the-release-trigger is the human's. Use `--forbid-family` only when the target's declared taxonomy supplies that family. |
 
 **Assign the human maintainer** — a specific user, never an org login — so the issue reaches
 them by notification rather than at the next local session.
@@ -321,7 +322,8 @@ named; for an in-flight discovery, only the §0/`DISCOVERY.md` reconciliation ou
 - **Permitted:** the lane/agent labels on the issue it files and on the neighbours the plan
   names; the severity and kind labels; the comments (`nen issue comment`) and closes the plan states;
   `nen label apply --run` for a severity bump the plan named, logged in its ledger.
-- **Not permitted:** any stage label (`--forbid-family` makes this a refusal, not just a rule), any
+- **Not permitted:** any stage label (and, where the target declares its family, `--forbid-family`
+  makes this a refusal), any
   G1 mode label, any merge, any review vote, any close the plan did not name.
 - **Log every application** — object, label, time — in the report. `nen label apply` writes its
   own ledger entry (`outcome: "applied"` or `"failed"`, written after the call resolves) whether
@@ -337,8 +339,8 @@ named; for an in-flight discovery, only the §0/`DISCOVERY.md` reconciliation ou
 - **Never files a duplicate.** If `nen issue search` could not run a pass (exit `1`), record
   `pending` with the failed pass and recovery check; do not create or update an issue while the
   reconciliation result is incomplete.
-- **Never applies a stage label** (`--forbid-family` enforces this mechanically on every `nen
-  issue file` call — see § 5), and never releases work into build.
+- **Never applies a stage label** (use `--forbid-family` only when the target declares the relevant
+  family — see § 5), and never releases work into build.
 - **Never merges several distinct problems into one issue** to save a round-trip.
 - **Never fabricates evidence, a repro, a number, or an acceptance criterion.**
 - **Never files into a repo it resolved by guess** — `nen repo resolve`'s exit code is the only

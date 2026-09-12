@@ -235,9 +235,11 @@ distinct same-name records as ambiguous; never choose the first match or hardcod
 The same mechanism handles Apple JSON and Android text/JSON. Expo selects the corresponding native
 platform lane and uses that platform's declaration; it does not introduce another resolver.
 
-Register a target-specific lane that actually builds for the physical platform, a matching
-artifact path, and both install and launch after-steps. Prove the complete target through
-`nen shu dev --repo <core-checkout> --target <declared-target>` before reporting successful delivery.
+Register a target-specific lane that actually builds for the selected target's declared platform
+(physical-device compatibility for a physical target; simulator or desktop compatibility otherwise),
+a matching artifact path, and the install/launch steps that target requires. Prove the complete
+target through its declared `dev` or `run` verb with `--repo <core-checkout> --target <declared-target>`
+before reporting successful delivery.
 Pairing, probe success, dry-run success and build success are intermediate outcomes. Preserve the
 readiness and trust boundaries above. If validation cannot finish because the device is absent,
 report registration as unverified for delivery, not a successful launch.

@@ -307,6 +307,8 @@ structurally cannot:
   on-thread disposition *and* the resolution.
 - Does `nen pr body-check` pass (`## How to verify`, `CON-17`; the `changelog.d/` fragment where
   `CON-33(a)` requires one)?
+- Does every issue implemented by this PR appear in both its body and Development, with its
+  completion/partial disposition accurate under shibari's linkage contract?
 - Does the diff still match the gate derived in § 2, and does it deliver what the issue it claims
   to close actually asked for?
 

@@ -608,3 +608,14 @@ at this pin (`zheref/nen#100`). The decisive transcript — a decoy of the same 
 calling directory, read by `v0.6.0` and not by `0.7.0` — is recorded once, under
 [`senkei`](senkei.md) § *Retired at nen 0.7*, since the rule is one rule across the whole set. An
 absolute path is still used as-is, which is what SKILL.md § 5 already tells this skill to pass.
+
+
+## Coordinator completion evidence — 2026-09-12
+
+Nen #206 demonstrated the distinction: fixes were pushed but two first-round threads remained
+unanswered/unresolved. Build now requires a live coordinator audit of pushed fixes, on-thread
+and summary dispositions, resolutions and readiness. A delegate's “fixed” result is insufficient.
+For a combined issue PR, the audit also compares the complete body issue set with Development.
+Scenarios: fixed code/open thread remains incomplete; resolved thread/no reply remains incomplete;
+all findings handled but gate refused is reported not-ready; body lists two issues/sidebar one
+requires link repair before handover. These are prose protocol checks, not new Nen enforcement.

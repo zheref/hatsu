@@ -46,3 +46,19 @@ is still required and no review is cast by this run.
 reusable focused selection, and material details were added to Hatsu #48. The current static-lane
 mechanism is not a shipped dynamic selector. The related KroApple task was informed directly;
 its Python probe lane is not evidence for focused Swift behavior.
+
+
+## Review and release follow-up
+
+Nen PR #206 was merged at `46c12bcd1a224edd1ed38b803c75a8c6dc326cec`. Its first-round inline
+threads received pushed-fix dispositions and resolutions after the coordinator corrected an early
+repeat review request. Build now explicitly owns that live verification, even for delegated work.
+
+Hatsu PR #50's body and Development associations now include both #48 and #49 (verified through
+GitHub's closingIssuesReferences). Its first review also exposed real phase-invalidation, UI-run,
+focused-mode, target-platform, metadata-flag and guard-test-lane gaps; those are repaired within
+this existing scope, not filed as duplicate issues. Summary-only findings receive dispositions too.
+
+Nen's v0.9.0 release proposal is [PR #208](https://github.com/zheref/nen/pull/208). Hatsu's adoption
+will require minimum 0.9 and pinned_ref v0.9.0 only after a compatible release is published and
+verified. The proposal is not a release, and the current consumer workaround remains in place.

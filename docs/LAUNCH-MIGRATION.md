@@ -7,8 +7,9 @@ changes, not three copies of the same implementation.
 
 ## Availability and release boundary
 
-Nen 0.8.0 does not support the new `device.extract` declaration. The implementation is staged in
-Nen #204; **the minimum published release containing it is pending**, and no release number or
+Nen 0.8.0 does not support the new `device.extract` declaration. The implementation for requirement
+[Nen #204](https://github.com/zheref/nen/issues/204) was merged through
+[Nen PR #206](https://github.com/zheref/nen/pull/206); **the minimum published release containing it is pending**, and no release number or
 bootstrap pin is asserted here. Before migration, identify the first published compatible release
 containing that PR, record that version in the consumer change, and verify the actual installed
 binary accepts the declaration. A local source build is development evidence, not a released

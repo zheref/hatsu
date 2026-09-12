@@ -8,7 +8,7 @@ identify changed obligations. Nen #204 is delivered separately in Nen PR #206; n
 | breath | Declared iteration checks; build composite could request tests during warmup | Iteration checks prove the base; **full regression is reserved for publication** |
 | rasengan | Authoring feedback from iteration checks | Same feedback, with **declared focused tests where applicable** |
 | kokusen | Run `iteration.checks`, then commit; no independent focused-test obligation | **Finished-tree focused tests before commit**, alongside iteration checks; refuse red |
-| aka | Required tests → squash → catch up → push | **Lint → squash → catch up → full regression with capture → push**; recheck lint if catch-up changes source/tests |
+| aka | Required tests → squash → catch up → push | **Lint → squash → catch up → full regression with capture → push**; reuse lint only when catch-up is a complete no-op |
 | tsukuyomi / UI tests | Suite execution could recur in composites | **One publication owner**; reports parse the captured runner artifacts |
 | mukai / gyo | Coverage could invoke a suite again; intermediate push could precede final coverage proof | **Extract and gate matching captured coverage without rerunning tests**; a changed catch-up returns to verification before any push |
 | amaterasu | Declared target launch and after-steps, readiness/fallback protections | **Explicit compatible build → install → launch on the ready physical target each applicable turn**; shared record extraction replaces consumer parsing only after release and device proof |
@@ -33,7 +33,7 @@ flowchart TD
   G --> H{Publication route}
   H -->|aka| I[Push]
   H -->|mukai| J[Extract captured coverage: gyo]
-  J --> K{Final catch-up changed source/tests?}
+  J --> K{Final catch-up changed any tree path?}
   K -->|yes: push nothing| B
   K -->|no| I
   I --> L[PR and artifact-based report]

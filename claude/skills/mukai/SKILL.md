@@ -1,6 +1,6 @@
 ---
 name: mukai
-description: Take a pushed branch to an open PR — catch up, review, measure coverage only from aka-captured instrumented results, remediate if needed, then route every source/test change through kokusen and aka's prepublication-verification before pushing. Mukai owns coverage gating, never independently runs full regression, and gains no squash or first-publish authority from nested phases.
+description: Take a pushed branch to an open PR — catch up, review, measure coverage only from aka-captured instrumented results, remediate if needed, then route every tree change through kokusen and aka's prepublication-verification before pushing. Mukai owns coverage gating, never independently runs full regression, and gains no squash or first-publish authority from nested phases.
 ---
 
 # Mukai — the branch becomes a pull request
@@ -60,11 +60,11 @@ when the run starts and say when it ends.
 
 | # | Step | The skill that owns it | Why it is here |
 |---|---|---|---|
-| 1 | **catch up** | [`hatsu:murasaki`](../murasaki/SKILL.md) | the base underneath the branch; changed source/tests trigger aka's regression helper before an update push |
+| 1 | **catch up** | [`hatsu:murasaki`](../murasaki/SKILL.md) | the base underneath the branch; any changed tree invalidates evidence and triggers aka's regression helper before an update push |
 | 2 | **adversarial review** | [`hatsu:hanten`](../hanten/SKILL.md) | one reviewer subagent per scope, findings in the fixed shape; Kurapika fixes or pushes back with a reason |
 | 3 | **prove review mutations** | [`hatsu:kokusen`](../kokusen/SKILL.md), [`hatsu:ao`](../ao/SKILL.md), then [`hatsu:aka`](../aka/SKILL.md) § 6 | checkpoint review/snapshot changes, catch up without pushing, then run aka's regression helper on that caught-up tree |
 | 4 | **the coverage bar** | [`hatsu:gyo`](../gyo/SKILL.md) | parse aka-captured instrumented results for the matching tree; if gyo adds tests, repeat steps 3–4 |
-| 5 | **publish the proved tree** | [`hatsu:murasaki`](../murasaki/SKILL.md) | final catch-up check; if it changes source/tests, invalidate regression and coverage and return to steps 3–4; only an unchanged, fully proved tree is pushed |
+| 5 | **publish the proved tree** | [`hatsu:murasaki`](../murasaki/SKILL.md) | final catch-up check; if it changes any tree path, invalidate regression and coverage and return to steps 3–4; only an unchanged, fully proved tree is pushed |
 | 6 | **collect the evidence** | [`hatsu:kotoamatsukami`](../kotoamatsukami/SKILL.md)'s existing artifacts | build the `UZF-26` table without rerunning UI regression |
 | 7 | **compose and open** | [`hatsu:shibari`](../shibari/SKILL.md) | the body, checks, evidence, reviewers, and PR from the last pushed commit |
 | 8 | **the landing report** | [`hatsu:rikugan`](../rikugan/SKILL.md) `as landing` | rendered after step 7 because the PR body and readiness result are its inputs |
@@ -78,7 +78,7 @@ when the run starts and say when it ends.
 - **2 before 3.** Review fixes invalidate aka's regression and instrumented result. Step 3 catches
   up and refreshes them before gyo's claim; if gyo adds tests, steps 3–4 repeat.
 - **4 before 5.** Coverage must match the tree being pushed. Step 5 checks the base once more. If
-  catch-up changes source/tests, it pushes nothing and returns to steps 3–4; regression alone cannot
+  catch-up changes the tree, it pushes nothing and returns to steps 3–4; regression alone cannot
   bless a tree whose coverage was measured before the merge.
 - **5 before 6.** Evidence is selected from artifacts for the pushed tree.
 - **6 before 7.** The PR body's evidence table needs its rows.

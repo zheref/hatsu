@@ -66,7 +66,7 @@ the shape by eye; it reads the values, and states the defaults whenever they are
 | # | Step | The skill that owns it | Why it is here |
 |---|---|---|---|
 | 1 | **pull** | [`hatsu:ao`](../ao/SKILL.md) | fetch the base, rebase what is unpublished / merge what is published, classify every conflict, resolve the mechanical ones |
-| 2 | **checkpoint and invalidate** | this file, § 5 | run the shared `iteration.checks`; if catch-up changed source/tests, earlier regression evidence is stale and aka § 6 `prepublication-verification` must run before push |
+| 2 | **checkpoint and invalidate** | this file, § 5 | run the shared `iteration.checks`; if catch-up changed any tree path, earlier regression evidence is stale and aka § 6 `prepublication-verification` must run before push |
 | 3 | **publish the update** | this file, § 6 | `git push origin HEAD` — **only if the branch was already on the remote** |
 
 **The order is load-bearing in three places:**
@@ -107,17 +107,17 @@ of 2026-09-10, [`docs/ROSTER.md`](../../../docs/ROSTER.md)); what step 2 wants i
 nobody has authored on — the merge ao just made. So murasaki runs the declared checks itself, reads
 them off [`hatsu:rasengan`](../rasengan/SKILL.md) § 6's exit table, and **hands a red one to rasengan
 to author the fix**, after which step 2 runs again over the repaired tree.
-Compare the caught-up tree with the pre-catch-up tree. If source or tests changed, all earlier full
+Compare the caught-up tree with the pre-catch-up tree. If any path changed, all earlier full
 regression and coverage evidence is invalid. Reuse [`hatsu:aka`](../aka/SKILL.md) § 6
 `prepublication-verification` before § 6 pushes this tree. This reuse grants lint, regression, UI
 regression, and instrumented-result capture only; it grants no squash and no first-publish authority.
-If source/tests did not change, report that fact and do not rerun the full suite here. The exit-code
-tables — `1` red, `2` declaration, `3` host, `4` a
+Only a complete no-op catch-up may reuse earlier evidence; report that fact and do not rerun the
+full suite here. The exit-code tables — `1` red, `2` declaration, `3` host, `4` a
 **seat** quoted verbatim, `5` `nen shu tools` — are `claude/agents/kurapika.md` § *The `shu` verbs*'
 and are handled there, not here.
 
 **When mukai calls murasaki after its coverage step, coverage is part of the publication proof.** If
-ao changes source or tests, murasaki stops before § 6's push and returns the caught-up tree to mukai
+ao changes any tree path, murasaki stops before § 6's push and returns the caught-up tree to mukai
 steps 3–4. Aka's helper refreshes regression there and gyo refreshes coverage; only the next
 murasaki pass, whose catch-up is a no-op, may push. This is a caller-owned evidence dependency, not
 new regression or coverage authority for murasaki.

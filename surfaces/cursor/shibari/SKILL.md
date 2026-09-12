@@ -115,7 +115,36 @@ template states:
 | 5 | **The flow, where one changed** | a mermaid diagram — **only when a flow, a state machine or a sequence actually changed**; GitHub renders ```mermaid fences natively | the architecture delta, § 04 of the landing report |
 | 6 | **Evidence** | the `UZF-26` table (§ 5) | `kotoamatsukami`'s re-recorded artifacts, laid out by `rikugan` |
 | 7 | **Completion checklist** | one box per condition this PR claims to have met, each with its evidence beside it | § 6 |
-| 8 | **`Closes #N`** | **only where the PR completes an issue**; `Part of #N` otherwise; neither where there is no issue | `nen ref format`, never typed from memory |
+| 8 | **Every associated issue** | Full body list and verified Development links for every issue addressed; closing disposition only for completed scope, partial status explicit | Live issue/PR scope and the linkage contract below |
+
+### Associated issues — body AND Development
+
+**Maintainer ruling, 2026-09-12: every PR author MUST identify every issue addressed by the PR
+in both its body and GitHub's Development association.** This applies to single-issue and combined
+PRs, initial creation, scope amendments, and every final handover. Build and sharingan verify it;
+the author remains accountable when the body or linking is delegated.
+
+Maintain a body table containing each canonical issue URL, the scope this PR implements, and
+whether merging completes that issue or delivers only part. List prerequisites and incidental
+references separately; mentioning an upstream dependency is not a claim to implement its issue.
+A PR with no associated issue states that explicitly rather than inventing one.
+
+After opening or editing the PR, compare the expected complete issue set with live Development
+associations; a body mention alone is not proof. For an issue completed by a default-branch PR,
+a separate supported closing clause for **each** issue creates the association. Otherwise use
+GitHub's supported Development linking interface and verify the resulting links. Do not invent a
+Nen link verb or assume `Part of #N` creates a Development link. Where the current API cannot
+perform or inspect the link, use the supported UI and record the observed result; unavailable
+permissions or platform limits remain an explicit handover blocker.
+
+**Linking and completion are different claims, but GitHub can couple their effects.** Development
+links normally auto-close issues when the PR merges into the default branch. Do not mislabel partial
+work as complete to make the sidebar look right, or silently change repository-wide auto-close
+settings. For a partial issue, preserve the remaining scope and report any association/auto-close
+conflict for the maintainer's disposition before merge. A missing link is never reported as present.
+Non-default-base PRs, cross-repository links and the UI's link-count limit also need live verification.
+See [GitHub's linking contract](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue)
+and [auto-close setting](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/managing-auto-closing-issues).
 
 **Part 3 is the one that is routinely written wrong**, and the failure mode is always the same: it
 describes the *change* rather than its *effect*, and it omits what the change costs. A reviewer who
@@ -166,8 +195,8 @@ gh pr create --repo <owner/name> --base <branch.base> --head <branch> \
 > **Residue, and genuinely still residue at the pinned build: no `nen` verb opens a pull request.**
 > `nen pr --help` lists nine subcommands at this pin — `ready`, `staleness`, `body-check`, `fetch`,
 > `next-blocker`, `cascade-main`, `retarget`, `request-reviews` and the new `edit-body` — and `create`
-> is still not among them. `gh pr create` is git-forge tooling, named here, and it is the **only**
-> GitHub write this skill makes besides § 7's reviewer request. **§ 8's body edit is no longer one of
+> is still not among them. `gh pr create` is git-forge tooling, named here, and it is a named raw
+> GitHub write alongside Development linking where no Nen verb exists and § 7's reviewer request. **§ 8's body edit is no longer one of
 > them: that is a verb now.**
 
 **Draft or ready-for-review is the repository's convention, not this skill's invention.** State which

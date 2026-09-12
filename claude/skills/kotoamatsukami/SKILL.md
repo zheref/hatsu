@@ -198,7 +198,7 @@ before it is committed.
 UI suite its most common disguise is the re-record. Loosening a comparison tolerance, widening a
 mask, adding a retry loop and skipping a flaky scene are the same move in different clothes.
 
-An accepted image changes source/test state, so prior regression, coverage, and evidence claims are
+An accepted image changes the tree, so prior regression, coverage, and evidence claims are
 stale. Kokusen checkpoints the assertion change and aka § 6 reruns the full regression before mukai
 reads the replacement artifacts.
 

@@ -28,10 +28,13 @@ The single `iteration.checks` list still serves `breath`, `rasengan`, and `kokus
 checkpoint-only routing key. A scoped test runs through an explicitly declared test lane whose
 command names the scope; do not invent a test filter or substitute the full suite. If executable
 changes lack a supported scoped path, capture the dependency and stop that checkpoint honestly.
-Hatsu's own prose changes declare no test suite and retain the lint-only iteration list.
+Hatsu's prose-only changes retain the lint-only iteration list. Its executable version guard has
+the declared `plugin-bump-guard` focused test lane; that lane is due for guard changes and is not
+a general regression suite.
 
-Any changed source, tests, snapshots or execution configuration invalidates prior regression and
-coverage evidence. Catch-up and review/coverage remediation return to the aka-owned regression
+Any tracked tree change invalidates prior regression and coverage evidence because the capture
+binds the exact tree hash, including sources, tests, snapshots and execution configuration.
+Only a complete no-op catch-up may reuse the pre-catch-up lint result. Catch-up and review/coverage remediation return to the aka-owned regression
 phase before publishing. Composites reuse that phase under their existing publication authority;
 they do not recursively squash published history or acquire first-publish permission. Coverage
 instrumentation belongs in that regression run; extraction and threshold decisions belong in
@@ -1028,3 +1031,17 @@ request while one is pending; requests count across resumed sessions; a third re
 decision. A current-head readiness refusal is reported honestly rather than triggering review churn.
 The authoritative procedure is sharingan § 5; en/build inherit it. This changes review orchestration,
 not Nen's deterministic approval rules or the human merge gate.
+
+
+### Build accountability and issue associations — 2026-09-12
+
+Build's coordinator verifies delegated output against the pushed code and live GitHub state.
+Implementation, passing checks, completed review handling and formal readiness are distinct
+claims. Every inline and summary finding needs a disposition before a review round is complete;
+thread replies/resolutions are verified directly, not inferred from a worker's report.
+
+Every PR author lists every addressed issue in the body and verifies each Development association,
+including all issues in a combined PR. Scope changes trigger reconciliation of that full set.
+Dependencies are listed separately. Closing clauses reflect completed issue scope; partial work
+must not be silently closed merely to obtain a sidebar link. Shibari owns the procedure and the
+GitHub auto-close caveat; build and sharingan enforce it at handover.

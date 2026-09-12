@@ -443,6 +443,31 @@ it — a `🔵 on hold` effort naming what it waits on, not an abandoned one.
 
 ## 8. Reporting and the stop
 
+### The coordinator owns verified delivery, including delegated work
+
+**“Implemented,” “review findings fixed,” “review round completed,” and “Ready” are separate
+claims.** A delegate may establish the first two with a pushed SHA and appropriate checks. Build
+must personally verify the latter two against the live PR before reporting completion. Delegation
+transfers a bounded task, not responsibility for the final claim.
+
+Before a handover, read the current head, checks, every review body (including suppressed findings),
+and every thread. Verify the fix at the pushed SHA; post each on-thread disposition and resolve it
+only when addressed. Confirm a fresh snapshot has no unresolved prior-round threads. A green test
+run, a pushed commit, or a delegate's “done” message cannot substitute for that evidence. Follow
+sharingan § 5's one-round norm/two-round cap before any further review request; never repeat a
+request while one is pending or merely to refresh a head SHA.
+
+Also verify the complete associated-issue set under shibari's linkage contract: **every issue this
+PR addresses appears in its body and in Development**, with completion/partial status stated.
+An entry issue is not a proxy for additional issues included as scope expands. Reconcile the list
+again after scope changes and before handover; dependencies and incidental references are named
+separately so the PR does not claim their implementation.
+
+The final report distinguishes code/checks complete, review handling complete, formal readiness,
+and the human merge/release decision. If any required evidence is absent, identify it as remaining
+work or the precise gate blocker. Do not end a build as delivered solely because a PR was opened.
+
+
 **Progress turns carry no banner.** Report a compact status line — the issue, the mode, the PR, its
 checks and rounds, what is next — and keep going.
 

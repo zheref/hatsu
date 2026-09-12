@@ -62,12 +62,17 @@
     }
   },
   "project": {
-    "$comment": "What nen EXECUTES for this repository — the other half of the two-file model documented in docs/WORKFLOW.md, whose policy half is nen/workflow.json. `nen shu detect --repo .` answers exit 1, 'no lane detected': Hatsu is bash-and-markdown and matches none of nen's seven reference stacks, so this block is written BY HAND, as kurapika.md § 'The shu verbs' requires. Every verb of the family is present: the one Hatsu really has is declared with its argv, and every other is an explicit `unsupported` SEAT stating in this repository's own words why it does not exist. A seat is exit 4 — a fact, not a failure — and an omitted verb would be exit 2, which reads as a broken declaration rather than as a deliberate absence.",
+    "$comment": "What nen EXECUTES for this repository — the other half of the two-file model documented in docs/WORKFLOW.md, whose policy half is nen/workflow.json. `nen shu detect --repo .` answers exit 1, 'no lane detected': Hatsu is bash-and-markdown and matches none of nen's seven reference stacks, so this block is written BY HAND, as kurapika.md § 'The shu verbs' requires. The repository lane declares its real lint argv and seats its absent verbs; the separate guard lane declares the one focused fixture. A seat is exit 4 — a fact, not a failure — and an omitted verb would be exit 2, which reads as a broken declaration rather than as a deliberate absence.",
     "lanes": {
       "plugin": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "One lane, and it is the repository: a Claude Code plugin whose shipped surface is .claude-plugin/, claude/, nen/, contracts/, docs/ROSTER.md, docs/delegation-grammar-DRAFT.md and hooks/. The stack id is Hatsu's own name for it, not one of nen's seven — nen carries no build system and validates the id against nothing."
+        "$comment": "The repository lane: a Claude Code plugin whose shipped surface is .claude-plugin/, claude/, nen/, contracts/, docs/ROSTER.md, docs/delegation-grammar-DRAFT.md, docs/WORKFLOW.md, docs/DISCOVERY.md, docs/LAUNCH-MIGRATION.md and hooks/. The stack id is Hatsu's own name for it, not one of nen's seven — nen carries no build system and validates the id against nothing."
+      },
+      "plugin-bump-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The one static focused lane for the executable plugin-version guard. Its declared fixture exercises only scripts/plugin_bump_check.sh's runtime-document classification and version result; it is not Hatsu's general regression suite or a substitute for an unavailable dynamic test selector."
       }
     },
     "defaultLane": "plugin",
@@ -82,7 +87,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and one bash guard script, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No automated test suite exists. The one testable unit, scripts/plugin_bump_check.sh, is pure-function-above-the-BASH_SOURCE-guard by construction and is exercised by the recorded refuse/pass transcripts in docs/ab/plugin-bump-guard.md; every other surface is prose read by an agent. Declaring a runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. The executable guard has its own focused plugin-bump-guard lane; every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/rikugan.html, which is a report template, not an application."
@@ -105,6 +110,13 @@
         "deploy": {
           "unsupported": "Hatsu sends nothing anywhere. Distribution is the marketplace reading this repository at a ref, so there is no destination for --target to name and no credential for a deploy to carry. `project.targets` is empty for the same reason, and empty deliberately rather than by omission."
         }
+      },
+      "plugin-bump-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": ["scripts/plugin_bump_check_fixture.sh"],
+          "$comment": "A permanent, deterministic fixture for the guard's executable behavior. It creates synthetic changed-file lists and manifests in a temporary directory, invokes the checked-in guard, and removes that directory. Run it only as `nen shu test --lane plugin-bump-guard --repo <hatsu>` when the guard changes."
+        }
       }
     },
     "preconditions": {
@@ -123,7 +135,8 @@
     },
     "hosts": {
       "*": ["darwin", "linux", "win32"],
-      "$comment": "Nothing here is platform-bound: `claude` runs on all three. The Stop bell in hooks/ IS macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
+      "test": ["darwin", "linux"],
+      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: scripts/plugin_bump_check_fixture.sh uses Bash and mktemp and is verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to the guard fixture currently declared. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
     },
     "targets": {},
     "toolchain": {

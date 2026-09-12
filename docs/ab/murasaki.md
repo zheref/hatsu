@@ -1,12 +1,12 @@
 # A/B evidence — `murasaki` (new skill, wave 3)
 
 `claude/skills/murasaki/SKILL.md`: the maintenance composite — [`ao`](../../claude/skills/ao/SKILL.md)
-puts the base underneath, murasaki runs the shared iteration checks, and a source/test-changing
+puts the base underneath, murasaki runs the shared iteration checks, and any tree-changing
 catch-up reuses aka's prepublication verification before a plain push **only if the branch was already
 published**. Never squashes, never force-pushes, never first-publishes, never opens a PR.
 
 **Phase ruling, 2026-09-12.** Murasaki runs the shared iteration checks after catch-up. When catch-up
-changes source/tests it invalidates earlier evidence and reuses aka's `prepublication-verification`
+changes any tree path it invalidates earlier evidence and reuses aka's `prepublication-verification`
 before its permitted update push. It no longer invokes tsukuyomi as an independently owned phase and
 never receives aka's squash or first-publish authority.
 When called by mukai after coverage, a changing catch-up stops before push and returns to mukai's

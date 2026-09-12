@@ -525,3 +525,12 @@ and docs/LAUNCH-MIGRATION.md; historical command transcripts above retain their 
 | Turn/final report sees stale test or coverage artifact | Mark stale; do not execute tests/coverage merely to render the page |
 | Repeated discovery already captured | Unchanged result and no GitHub write; retain canonical link |
 | Filing unavailable | Durable sanitized pending record; original work continues where possible |
+
+
+### Target-platform compatibility correction — 2026-09-12
+
+Registration checks the selected target's declared platform: an iPhone requires an iOS device
+artifact; a simulator requires a simulator artifact; Mac desktop uses its desktop declaration.
+Only the physical-device case requires physical-device compatibility. The declared `dev` or `run`
+verb and applicable install/launch steps remain authoritative; no universal physical-only or
+`dev`-only rule is imposed on all targets.

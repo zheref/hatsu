@@ -4,10 +4,10 @@
 to put the base underneath, then `prepublication-verification` runs full regression and captures
 instrumented results on the final tree before push.
 
-**Phase ruling, 2026-09-12.** The load-bearing order is lint → squash → ao → lint again if catch-up
-changed source/tests → full regression/instrumented capture → push. The named verification phase is
-reusable by composites without squash or first-publish authority. Any later source/test/catch-up
-change invalidates it.
+**Phase ruling, 2026-09-12.** The load-bearing order is lint → squash → ao → reuse lint only for a
+no-op catch-up, otherwise lint the caught-up tree → full regression/instrumented capture → push. The
+named verification phase is reusable by composites without squash or first-publish authority. Any
+later tree change invalidates it.
 The observed handoff fields are saved transiently at `.nen/regression/<lane>.json` under
 `hatsu.regression-capture/v0.1`; the skill identifies this as Hatsu residue rather than Nen proof.
 

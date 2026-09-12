@@ -27,9 +27,9 @@ about to publish decides what that costs.
 $tsukuyomi [--lane <lane>] [--extra <verb[,verb]>] [--mode <focused|full-regression|diagnostic>]
 ```
 
-`--extra` adds suites for one run, on top of `workflow.json → tests.required`; it never subtracts.
-There is no flag that narrows the required set — a suite this repository calls required is run or the
-run is reported as incomplete (§ 9).
+In `full-regression` mode, `--extra` adds suites for one run on top of
+`workflow.json → tests.required`; it never subtracts. Focused mode refuses `--extra` and follows the
+separate scoped-lane route in § 4.
 
 ## 2. The parameters, and where they come from
 
@@ -76,9 +76,17 @@ The caller supplies the mode and authority:
 | `diagnostic` | direct human call | the named lane only; no gate evidence |
 
 `--mode` describes this skill's protocol, not a Nen flag. Every execution remains a real declared
-`nen shu test --lane ...` invocation. Never replace a missing focused lane with the full suite.
+Nen invocation. Never replace a missing focused lane with the full suite.
 
-Every entry of `tests.required`, then `tests.extra` (plus `--extra`), each through its own verb:
+In `focused` mode, run exactly one explicitly selected scoped lane and do not read or iterate
+`tests.required` or `tests.extra`. Refuse `--extra` in this mode rather than silently ignoring it:
+
+```bash
+nen shu test --repo <path> --lane <explicit-scoped-lane>
+```
+
+Its declared `test` argv must itself select the changed behavior. In `full-regression` mode only,
+run every entry of `tests.required`, then `tests.extra` (plus `--extra`), each through its own verb:
 
 ```bash
 nen shu test    --repo <path> [--lane <lane>]
@@ -201,8 +209,8 @@ new aka § 6 run before publication.
   release (zheref/nen#91)"*; each step's output is relayed as it finishes, so the turn's report is the
   only record.
 - **RETIRED at nen `0.5`: validating `nen/workflow.json`** — `nen schema check` carries the row
-  ([`$breath`](../breath/SKILL.md) § 2). `tests.required` and `tests.extra` are still read here;
-  a read is not a residue.
+  ([`$breath`](../breath/SKILL.md) § 2). Full-regression mode still reads `tests.required` and
+  `tests.extra`; a read is not a residue.
 - **Deciding whether a failing test is wrong** stays judgment, and a loud one (§ 6).
 
 ## 8. Authority
@@ -219,8 +227,8 @@ new aka § 6 run before publication.
 
 - **Never patches a test to pass** — no skip, no `.only`, no loosened assertion, no retry loop, no
   deletion.
-- **Never narrows the required set.** A suite `tests.required` names is run, or the run is reported as
-  **incomplete**; an unperformed check is never rendered as a clean one.
+- **Never narrows the required set in full-regression mode.** A suite `tests.required` names is run,
+  or the run is reported as **incomplete**; an unperformed check is never rendered as a clean one.
 - **Never states a pass/fail count nen did not print and the runner did not say** (§ 6).
 - **Never reads the no-declaration fact off `nen shu detect`** (§ 5).
 - **Never acts as an independent full-regression phase inside murasaki or mukai.** Those callers
