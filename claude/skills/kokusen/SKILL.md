@@ -314,15 +314,10 @@ committer metadata preserve the actor's configured identity. Record actual parti
 `## Agent attribution` section of the PR body, following `<Hatsu plugin root>/docs/AGENT-ATTRIBUTION.md`
 (in this checkout, [`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md)). Existing history is not rewritten.
 
-> **A declared change from `claude/agents/kurapika.md` § *How you work*, recorded rather than
-> smuggled.** That clause reads the maintainer's harness as *mandating* `Co-Authored-By:` and
-> `Claude-Session:`, neither adding attribution of its own nor stripping theirs, and says explicitly
-> that the final rule is a later constitution's to make. `nen/workflow.json`'s
-> `commits.forbiddenTrailers` **is** that ruling, recorded by the maintainer in the repository's own
-> policy file: in a repository carrying one, kokusen adds neither trailer. The clause's other half is
-> untouched — kokusen **never strips** a trailer a hook or the maintainer's own tooling wrote onto
-> their commit. It refuses to *add* one; deleting someone else's provenance metadata is a governance
-> decision nobody asked for.
+> **Prospective tooling is not an exception.** Before committing, disable or reconfigure any authorized
+> injection that adds a forbidden model, surface, runtime, session, or generated-credit attribution. If
+> tooling still adds one, stop and report the required correction; never certify the resulting commit as
+> compliant. Existing published history remains unchanged: this does not authorize an automatic rewrite.
 
 **`nen commit format --repo <path>` validates this policy when a trailer is present.** Supply the
 truthful canonical `Hatsu-Agent` or `Akatsuki-Agent` key only; it must identify the responsible persona
@@ -432,7 +427,9 @@ got an explicit yes; `git add -A` is barred (§ 9).
 - **Never adds untruthful or runtime attribution** — use the truthful canonical `Hatsu-Agent` or
   `Akatsuki-Agent` trailer only; never add `Co-Authored-By`, `Claude-Session`, a model, surface,
   runtime, session, or generated-credit attribution.
-- **Never strips a trailer the maintainer's own tooling wrote** (§ 5's callout).
+- **Never certifies a prospective commit with forbidden attribution from any source.** Disable or
+  reconfigure authorized injection before committing; otherwise stop and report the correction needed.
+  Existing published history is not automatically rewritten.
 - **Never pushes, never force-pushes, never `--no-verify`, never commits on the trunk.**
 - **Never stages anything before § 3's gate has run over THIS tree.** Not an earlier turn's green,
   not the warm-up's, not the author's inner loop — the checks are run here, now, by the phase holding
