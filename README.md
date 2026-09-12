@@ -62,7 +62,7 @@ installed copy runs does.)
 | **signing in** | the harness's own | `codex login`. `codex login status` answers `Logged in using ChatGPT` | `cursor-agent login`. `cursor-agent status` answers `✓ Logged in as <you>` |
 | **where it reads the skills from** | the installed plugin, in place — nothing is written into your repository | `<repo>/.agents/skills/<name>/`, **placed there by the warm-up** | `<repo>/.cursor/skills/<name>/`, the same |
 | **and the personas** | `claude/agents/`, in place | `<repo>/AGENTS.override.md` — one **untracked** file, as prose | `<repo>/.cursor/agents/<persona>.md` — one subagent file each |
-| **how it got there** | `claude plugin install` | a checkout on the host, plus `$HATSU_PLUGIN_ROOT` — [*On Codex*](#on-codex) | the same — [*On Cursor*](#on-cursor) |
+| **how it got there** | `claude plugin install` | a checkout on the host, a one-time bootstrap, then the warm-up — [*On Codex*](#on-codex) | the same — [*On Cursor*](#on-cursor) |
 | **the caveat that bites first** | none | `AGENTS.override.md` **replaces** your `AGENTS.md` in the instruction envelope rather than joining it, so the warm-up copies yours into it verbatim first and never writes the tracked file | the skill name space is **flat and global** — shared with Cursor's own built-ins and with every other plugin on the host |
 
 > ### ⚠️ Below `2026.01`, `cursor-agent` sees **none** of the skills — and answers anyway
@@ -118,6 +118,11 @@ claude plugin list                  # hatsu@hatsu — Version: <the version you 
 claude plugin details hatsu@hatsu   # the full component inventory
 ```
 
+Open a new Claude Code session and run `/hatsu:hatsu-warmup`; it is already registered by the plugin loader.
+`/kurapika` is the normal first request and runs that same warm-up before beginning the loop. This is the
+fresh-install path Claude Code has that Codex and Cursor do not: discovery happens before the first
+invocation, without writing into the target repository.
+
 ### Obtaining Hatsu on Codex and Cursor — a checkout, once, by hand
 
 **Neither surface has a plugin loader, so the first install is a human act and it is a `git clone`.** There
@@ -141,8 +146,10 @@ Then, once:
 export HATSU_PLUGIN_ROOT="$HOME/.hatsu"          # put this in your shell profile
 ```
 
-**`$HATSU_PLUGIN_ROOT` is the form that works on all three surfaces, and it is the one to prefer.** The
-warm-up resolves its root from that variable first, then from a path handed to the invocation
+**`$HATSU_PLUGIN_ROOT` is the form that works on all three surfaces, and it is the one to prefer.** It
+locates the checkout for Hatsu; it does **not** register a skill with Codex or Cursor. On those two
+surfaces, run the one-time, non-skill bootstrap below before you try to invoke `hatsu-warmup`. The
+warm-up then resolves its root from that variable first, then from a path handed to the invocation
 (`$hatsu-warmup <path>`, `/hatsu-warmup <path>`), and only then from `$CLAUDE_PLUGIN_ROOT`.
 
 > **`$CLAUDE_PLUGIN_ROOT` is Claude Code's variable and it is *not* inert on the other two.** On the host
@@ -166,14 +173,22 @@ warm-up resolves its root from that variable first, then from a path handed to t
 
 ### On Codex
 
-From the repository you want to work in:
+From the repository you want to work in, seed the one skill Codex must discover first:
+
+```sh
+"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface codex --target . --bootstrap
+```
+
+This is intentionally a **non-skill** command: it copies only
+`.agents/skills/hatsu-warmup/`, verifies that an existing destination is Hatsu-owned before replacing it,
+and records the local installation through Git's `info/exclude`. It never touches `.gitignore` or a tracked
+destination. Now restart or open Codex in that repository and invoke the discovered skill:
 
 ```
 $hatsu-warmup
 ```
 
-That is the whole install, and it runs first in every session anyway. What it places in **your**
-repository:
+That warm-up refreshes the complete surface every session. What it places in **your** repository:
 
 | | |
 |---|---|
@@ -225,11 +240,20 @@ Check the version **first** — below `2026.01` the install succeeds and the sur
 cursor-agent -v          # 2026.09.08-6caf4ff on the host these records were made on
 ```
 
-Then, from the repository you want to work in:
+Then, from the repository you want to work in, seed the one skill Cursor must discover first:
+
+```sh
+"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface cursor --target . --bootstrap
+```
+
+It links only `.cursor/skills/hatsu-warmup/`, preserving the same collision, tracked-file and
+`info/exclude` safeguards as the full warm-up. Restart or open Cursor in that repository, then invoke:
 
 ```
 /hatsu-warmup
 ```
+
+The warm-up refreshes the complete Cursor surface every session:
 
 | | |
 |---|---|
@@ -1095,9 +1119,11 @@ that already has the plugin installed** — no error, no warning, the fix ships 
 [`scripts/plugin_bump_check.sh`](scripts/plugin_bump_check.sh), wired as the
 [`plugin-bump-check`](.github/workflows/plugin-bump-check.yml) workflow, fails a PR that tries. The guarded
 surface is `.claude-plugin/**`, `claude/**`, `nen/**`, `contracts/**`, `docs/ROSTER.md`,
-`docs/delegation-grammar-DRAFT.md`, `hooks/**`, `templates/**`, `surfaces/**` and `.mcp.json` — everything an
-installed copy reads, the generated Codex and Cursor mirrors included, because the warm-up reads those out of
-`$CLAUDE_PLUGIN_ROOT` at run time. Bump
+`docs/delegation-grammar-DRAFT.md`, `hooks/**`, `templates/**`, `surfaces/**`,
+`scripts/surface_bootstrap.sh` and `.mcp.json` — everything an
+installed runtime reads, the generated Codex and Cursor mirrors included: the warm-up reads plugin resources
+from `$CLAUDE_PLUGIN_ROOT`, while first-run bootstrap reads its script and generated surface from the
+canonical `$HATSU_PLUGIN_ROOT` checkout. Bump
 `version` (patch for wording, minor for behaviour or a new skill, major for a breaking interface change —
 which the minor carries while Hatsu is on `0.x`, SemVer clause 4, the reading applied to nen's own line);
 or, if a change provably cannot affect the shipped surface, write `no plugin bump: <reason>` in the PR
