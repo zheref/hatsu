@@ -40,6 +40,13 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 
 ---
 
+The [phase ownership ruling](docs/WORKFLOW.md#phase-ownership--ruling-of-2026-09-12)
+separates focused checkpoint tests, aka regression and mukai coverage. All phases use the
+[discovery protocol](docs/DISCOVERY.md) to reconcile and capture concrete gaps under standing
+filing authority, without duplicate issues or unrelated implementation. Device-record migration
+is tracked in [LAUNCH-MIGRATION.md](docs/LAUNCH-MIGRATION.md); Hatsu #49 must be addressed before
+any new release tag is considered.
+
 ## Requirements
 
 **Three of these are the same on every surface**, and then each surface brings its own host program.
@@ -298,7 +305,7 @@ an ordinary request *is* a `ren` turn.
 
 What the first turn does before any of your change is authored: `breath` fetches, fast-forwards the trunk,
 cuts `{model}/{persona}/{descriptor}` from its fresh tip and proves the declared checks on it. Then
-`rasengan` authors the change, `kokusen` verifies and commits it locally, `amaterasu` launches the declared
+`rasengan` authors the change and focused tests, `kokusen` runs focused tests plus iteration checks and commits locally, `amaterasu` builds, installs and launches the declared
 target, `rikugan` publishes the turn report and `jutaisho` rings the bell. Nothing is pushed until you say so.
 
 ### On Claude Code
@@ -313,8 +320,8 @@ there:
 
 ```
 <the next request, as a plain message>   # another ren turn on the same branch
-/hatsu:aka                               # tests, squash, rebase, push — when YOU decide the branch goes up
-/hatsu:mukai                             # catch-up, scope-routed review, tests, coverage bar, evidence, one PR, then en's landing watch
+/hatsu:aka                               # lint, squash, catch up, final-tree regression, push — when YOU decide the branch goes up
+/hatsu:mukai                             # catch-up, review, matching aka regression evidence, coverage bar, evidence, one PR, then en's landing watch
 ```
 
 `/hatsu:ren <request>` invokes the loop directly and is the right call in a session that is already warmed
@@ -365,7 +372,7 @@ nen's own shape (`dependency.version_probe` as an argv array, `dependency.bootst
 
 ```sh
 nen schema check --repo <this checkout>
-#   ok    nen/contract.json  dependency (nen >= 0.7, pinned v0.8.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)
+#   ok    nen/contract.json  dependency (nen >= 0.9, pinned v0.9.0), project (2 lanes: plugin, plugin-bump-guard; 11 verbs; 1 toolchain entry)
 #   ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off 'main', checks: lint
 ```
 
@@ -390,8 +397,9 @@ FAIL by pointer — and [`docs/WORKFLOW.md`](docs/WORKFLOW.md) documents both.
 
 ### The range
 
-*Current pin, echoed for convenience:* **`nen >= 0.7`**, with the bootstrap installing **`v0.8.0`**. Those
-are two values and they move independently.
+*Current pin, echoed for convenience:* **`nen >= 0.9`**, with the bootstrap installing **`v0.9.0`**. Those
+are two values and they move independently. Hatsu adopts `device.extract`, introduced in v0.9.0;
+this feature requirement raises its minimum even though Nen's compatibility floor remains 0.7.
 
 **The range is nen's answer, not this README's arithmetic — and not the warm-up's either.** The binary
 ships `COMPATIBLE_MINOR_FLOOR` (`src/version.ts`), the lowest `minimum` pin that build satisfies, and
@@ -426,8 +434,9 @@ exit `0` answers exit `1` on the same bytes; every relative own-path flag (`--bo
 instead of the process's directory; a missing or malformed `--target` exits `2` rather than `1` across
 sixteen verbs, and so does an unreadable caller-named input on `split verify`, `changelog` and
 `canon mirror check`; and `nen pr ready` **reads** `nen/gates.json`'s `dependabot_carve_out`, so an
-unchanged file can turn a `not-ready` into a `ready`. That is why `minimum` sits at `0.7` — and `minimum`
-moves again **only** when nen's CHANGELOG carries a real breaking bullet, while `pinned_ref` may move on
+unchanged file can turn a `not-ready` into a `ready`. That explains the original `0.7` minimum. A minimum also moves when Hatsu adopts a new capability:
+`device.extract` now requires `0.9`. Breaking changes remain the other reason to raise it.
+`pinned_ref` may move on
 its own to a newer release inside the range, which is exactly what `v0.7.0` → `v0.8.0` was. The familiar
 "compatible within a major" reading applies from **`1.0` onward**, and the contract is bumped to say so
 when nen gets there.
@@ -591,13 +600,13 @@ configuration files behind it, and the phases only you can call.
 |---|---|---|
 | `breath` | **atomic** | **Warm-up, once per effort.** On the base branch and clean: fetch, fast-forward, cut `{model}/{persona}/{descriptor}` from the fresh trunk, then prove the declared iteration checks **on that fresh tip** — a base that does not build stops the effort before any of it is written. Asks only on a dirty tree; never discards a tree it has not inspected. |
 | `rasengan` | **atomic** | **The change itself — the authoring phase.** Reads the request, resolves the stack from the declaration, plans and writes the change on the branch `breath` cut, running the declared iteration checks as its own feedback while it works. It commits nothing, stays inside the request's scope, and **never lowers a bar** to make a check pass. |
-| `kokusen` | **atomic** | **Verify, then commit — automatically, locally.** The declared iteration checks over the finished tree (**the compile-before-commit is here**), red refused with the failing check quoted; then staging triage with an **ask on every flagged file** and never a secret, then the formatted message. Commits, and only commits. |
+| `kokusen` | **atomic** | **Verify, then commit — automatically, locally.** The declared iteration checks and applicable focused tests over the finished tree (**the checkpoint gate is here**), red refused with the failing check quoted; then staging triage with an **ask on every flagged file** and never a secret, then the formatted message. Commits, and only commits. |
 | `amaterasu` | **atomic** | **Launch, every turn.** Builds the configured target and starts it **from your working directory, never a worktree**. A disconnected device is reported by name. |
 | `tsukuyomi` | **atomic** | **Tests health.** Runs the required suites, parses the results, fixes and re-runs — or stops at **G5**. It never patches a test to make it pass. |
 | `rikugan` | **atomic** | **The rich report** — turn, landing, final — rendered from an HTML template, never markdown. Only the final one is written to the git-ignored `Reports/`. |
 | `jutaisho` | **atomic** | **The bell.** Rings the notification ladder you declared, and drops the marker the `Stop` hook reads. |
 | `ao` | **atomic** | **Pull from the base.** Rebase if unpushed, merge if not; mechanical conflicts resolved, a **semantic** one raised as a **G5** with both sides shown. Never pushes. |
-| `aka` | **atomic** | **Push — yours to call.** Tests → squash the unpushed commits → `ao` → push. No PR, and no agent ever prompts for it. |
+| `aka` | **atomic** | **Push — yours to call.** Lint → squash the unpushed commits → `ao` → final-tree regression → push. No PR, and no agent ever prompts for it. |
 | `ren` | **composite** | **The per-request loop**: `breath` (prove the base) → `rasengan` (author the change) → `kokusen` (verify, then commit) → `amaterasu` → `rikugan` → `jutaisho`, looping until you call the next phase. **It never pushes.** |
 
 ### The eight that are the PR side — new in `v0.5.0`
@@ -612,8 +621,8 @@ Five atomic, three composite. `mukai` is yours to call; everything else here is 
 | `kotoamatsukami` | **atomic** | **End-to-end / UI tests.** Runs the declared UI suite where a repository declares one; the re-recorded snapshots are what feeds the evidence table. An unsupported seat is quoted, never routed around. |
 | `shibari` | **atomic** | **Composes and opens the PR** — why, how, what changes for the consumer, how to verify, a diagram where a flow changed, the evidence table, the checklist, `Closes #N`. One PR, from the last pushed commit; requests reviewers and hands it to `en`. Never labels a gate, never merges. |
 | `jujutsu` | **atomic** | **Device pairing.** Walks you through trusting and registering a physical device — iOS: Developer Mode and `devicectl`; Android: USB debugging and `adb` — and lands it as a launch target **through a PR**. It writes the declaration and nothing else. |
-| `murasaki` | **composite** | **Pull + push.** `ao` → the declared iteration checks on the merged tree + `tsukuyomi` → push, **only if the branch is already published**. A red merged tree goes to `rasengan` to be authored. Never squashes, never force-pushes. |
-| `mukai` | **composite** | **The review-and-PR phase — yours to call.** `murasaki` → `hanten` → tests + UI tests → `gyo` → evidence → `shibari`, which opens the PR and starts `en`. **Four of the five G5 stops live inside it.** |
+| `murasaki` | **composite** | **Pull + push.** `ao` → the declared checkpoint checks on the merged tree → aka-owned lint/regression → push, **only if the branch is already published**. A red merged tree goes to `rasengan` to be authored. Never squashes, never force-pushes. |
+| `mukai` | **composite** | **The review-and-PR phase — yours to call.** `murasaki` → `hanten` → matching aka regression evidence → `gyo` → publish proved updates → evidence → `shibari`, which opens the PR and starts `en`. **Four of the five G5 stops live inside it.** |
 | `en` | **composite** | **The landing watch, capped.** Landing report → `sharingan` → `murasaki` when behind → `sharingan` → `jutaisho` at Ready → watch until merged → the final report. **A watch with no cap does not run**; where one must outlive the session, the watch itself is handed to **Illumi**, read-only. |
 
 ### The three that close the release side — new in `v0.6.0`
@@ -647,7 +656,7 @@ apart is what keeps the second class of mistake visible.
   prompts for them**: `aka` (push), `mukai` (review and PR), the **merge**, `kagutsuchi` (non-production
   upload) and `mugetsu` (publish, **G3**).
 - **`mukai` is the whole PR side, in a fixed order** — `murasaki`, then `hanten`'s scope-routed review, then
-  the tests and UI tests, then `gyo`'s coverage bar, then the evidence, then `shibari` opening one PR and
+  matching aka-owned regression evidence, then `gyo`'s extraction-only coverage bar, then the evidence, then `shibari` opening one PR and
   starting `en`'s capped landing watch. Reviewers advise and never vote; **the merge stays yours**.
 - **Only a genuine G5 interrupts you** — red required tests, touched-file coverage under the ladder's
   minimum, a *semantic* merge conflict, an unsettled adversarial finding, a stuck-PR escalation. Five, and

@@ -4,6 +4,11 @@
 flagged path, a shape-checked Conventional Commits message, `Akatsuki-Agent: kurapika` and no other
 trailer, and no push.
 
+**Phase ruling, 2026-09-12.** In addition to the shared `iteration.checks`, kokusen must run the
+explicit declared scoped-test lane for changed executable behavior. A missing route is a named G5
+capability gap; a prose-only change is `not applicable`, as Hatsu's deliberate test seat demonstrates.
+The checkpoint never expands into full regression or coverage.
+
 > **Dated 2026-09-10 — the phase boundary moved after this record was written.** Row 2 of § 1 below
 > credits `hatsu:rasengan` with the checks that must be green. The maintainer's ruling of 2026-09-10
 > ([`../ROSTER.md`](../ROSTER.md)) makes `rasengan` the **authoring** phase and seats the

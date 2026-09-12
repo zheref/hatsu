@@ -1,8 +1,15 @@
 # A/B evidence — `aka` (new skill, wave 2)
 
-`claude/skills/aka/SKILL.md`: the human-called push — tests, squash the unpushed commits into one,
-`hatsu:ao` to put the base underneath, then push. No pull request, no AI attribution trailer, G5 on
-a red required test, and never a force-push.
+`claude/skills/aka/SKILL.md`: the human-called push — lint, squash the unpushed commits, `hatsu:ao`
+to put the base underneath, then `prepublication-verification` runs full regression and captures
+instrumented results on the final tree before push.
+
+**Phase ruling, 2026-09-12.** The load-bearing order is lint → squash → ao → reuse lint only for a
+no-op catch-up, otherwise lint the caught-up tree → full regression/instrumented capture → push. The
+named verification phase is reusable by composites without squash or first-publish authority. Any
+later tree change invalidates it.
+The observed handoff fields are saved transiently at `.nen/regression/<lane>.json` under
+`hatsu.regression-capture/v0.1`; the skill identifies this as Hatsu residue rather than Nen proof.
 
 **A new skill, so there is no "old mechanics" column.** What this record establishes is that
 **two of aka's four safety properties have no enforcement in `nen` at `v0.3.0`** — the squash verb

@@ -3,6 +3,12 @@
 `claude/skills/tsukuyomi/SKILL.md`: tests health — run every suite `nen/workflow.json` calls required,
 read the runner's own results, report the exit codes as facts.
 
+**Phase ruling, 2026-09-12.** Full-regression mode belongs to aka's final
+`prepublication-verification`; murasaki and mukai do not own independent suite runs. Focused mode is
+exactly one explicit scoped lane at kokusen and never iterates `tests.required` or `tests.extra`;
+a direct invocation is diagnostic. Instrumented artifacts
+are captured here for aka but measured later by gyo.
+
 **Not a port.** What it replaces is a test command typed from memory and a pass/fail read by eye. § 2
 records the live behaviour at nen `0.3.0` — including the verb this skill was designed around, which
 does not exist yet.
@@ -21,16 +27,22 @@ repositories are public — and the transcripts are otherwise verbatim.*
 
 | Step | Mechanism | Owner |
 |---|---|---|
-| 1 | Read `tests.required`, `tests.extra`, `iteration.lane` from `nen/workflow.json` | the skill, as data (§ 3) |
+| 1 | Route by mode; full regression reads `tests.required` / `tests.extra`, focused uses its explicit lane | the skill, as data (§ 3) |
 | 2 | Show the suite before running it — `nen shu test --dry-run` | verb |
-| 3 | Run each required suite — `nen shu test`, `nen shu ui-test [--lane]` | verb |
+| 3a | Focused mode: run exactly one explicit scoped lane, independent of required/extra | verb |
+| 3b | Full-regression mode: run each required/extra suite — `nen shu test`, `nen shu ui-test [--lane]` | verb |
 | 4 | React to `0`/`1`/`2`/`3`/`4`/`5` | the skill's table, from `claude/agents/kurapika.md` § *The `shu` verbs* |
 | 5 | Read the results | residue — `nen shu test-report` does not exist (§ 2.4) |
 | 6 | A required suite the declaration seats | quoted as a two-file disagreement (§ 2.5) |
 | 7 | Fix the code, re-run; never patch a test | the skill |
 
-**Count.** Seven steps; **three are verbs**, one is a stated reaction table, and the results-parsing
+**Count.** Eight rows; **four are verb uses**, one is a stated reaction table, and the results-parsing
 step is residue at this pin.
+
+The focused/full split is a routing scenario, not a new Nen flag: focused mode invokes only
+`nen shu test --lane <explicit-scoped-lane>` and refuses `--extra`; full-regression mode alone reads
+and iterates `tests.required` and `tests.extra`. A focused run therefore cannot fall through into
+the default lane's full suite.
 
 ## 2. Verbs exercised live
 

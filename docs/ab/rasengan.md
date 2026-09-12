@@ -4,6 +4,11 @@
 `iteration.checks`, run through the target repository's own declaration, with one stated reaction per
 exit code.
 
+**Phase ruling, 2026-09-12.** Rasengan may run a declared scoped `test` lane for author feedback;
+kokusen repeats it as the mandatory checkpoint. The supported route is `nen shu test --lane
+<explicit-scoped-lane>`, where the lane's declared argv proves its scope. There is no selector flag
+or second iteration-check key. Rasengan runs neither full regression nor coverage.
+
 > **Dated 2026-09-10 — the skill was RE-SCOPED after this record was written.** `rasengan` is the
 > **authoring** phase; the verbs and transcripts below are unchanged and still exercised by it, but
 > they are now its **inner loop**, and the compile-before-commit belongs to `kokusen`. Read

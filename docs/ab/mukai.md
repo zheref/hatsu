@@ -1,9 +1,16 @@
 # A/B evidence — `mukai` (new skill, wave 3)
 
 `claude/skills/mukai/SKILL.md`: the composite that turns a pushed branch into an open pull request —
-`murasaki`¹ → `hanten`² → `tsukuyomi`³ + `kotoamatsukami`³ where declared → `gyo`⁴ → evidence⁵ →
-`shibari`⁶ → starts `en`. Human-called, and the call is the authorization for the PR *and* for the
+`murasaki`¹ → `hanten`² → checkpoint/catch-up/aka verification³ → `gyo` over aka results⁴ → final
+unchanged catch-up and update push⁵ → evidence⁶ → `shibari`⁷ → landing report and `en`⁸. Human-called,
+and the call is the authorization for the PR *and* for the
 evidence mechanism's public step.
+
+**Phase ruling, 2026-09-12.** Mukai owns coverage measurement/gating, never regression execution.
+Every review, coverage-test, snapshot, execution-configuration, metadata, or catch-up tree change
+invalidates evidence and returns through kokusen plus aka's narrow verification helper before the
+already-published update is pushed. A final catch-up that changes the tree pushes nothing and loops
+through regression and coverage.
 
 **A new skill, and a composite one, so this record is shaped the way `docs/ab/ren.md` is.** Mukai
 restates no protocol: every deterministic step inside the run belongs to a composed skill and is
@@ -32,7 +39,7 @@ order, plus the run's boundaries.
 | Run the composition | **nothing — a boundary, not a gap** | `docs/ab/ren.md` § 2.2, cited not re-proven |
 | 1 · catch up | `hatsu:murasaki` | that skill's A/B file |
 | 2 · adversarial review | `hatsu:hanten` | that skill's A/B file |
-| 3 · tests, and UI tests where declared | `hatsu:tsukuyomi`, `hatsu:kotoamatsukami` | those skills' A/B files |
+| 3 · one full regression, with UI-specific handling where declared | `hatsu:tsukuyomi`, with `hatsu:kotoamatsukami` handling that same UI invocation | those skills' A/B files |
 | 4 · the coverage bar | `hatsu:gyo` | that skill's A/B file |
 | 5 · the evidence rows | `hatsu:rikugan` `as landing` | `docs/ab/rikugan.md` |
 | 6 · compose and open | `hatsu:shibari` | `docs/ab/shibari.md` |

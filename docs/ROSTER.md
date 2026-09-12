@@ -374,13 +374,14 @@ there, and where a copy disagrees the contract wins.
 
 1. **Probe** `nen --version` for presence, then **read the range verdict off `nen shu tools`'s `nen`
    row** — the range is nen's answer, never a skill's arithmetic. *Current pin, echoed for convenience:*
-   `minimum: "0.7"`, `pinned_ref: "v0.8.0"`; **two values that move independently.** The rule is the
+   `minimum: "0.9"`, `pinned_ref: "v0.9.0"`; **two values that move independently.** The minimum is now
+   the capability floor for `device.extract`, while Nen's compatibility floor remains `0.7`. The rule is the
    maintainer's ruling of 2026-09-10 — *exact minor is fine, unless there is a breaking change* — and the
    binary is what decides it: nen ships `COMPATIBLE_MINOR_FLOOR`, the lowest `minimum` pin that build
    satisfies, prints it as `compat floor:` on every `shu tools` run and carries it in `--json`. A release
    whose CHANGELOG `### Breaking / consumer notes` carries a real bullet moves the floor to its own minor;
-   one that carries none leaves it, and goes on accepting the pins already written. So a `0.7` pin is
-   satisfied by `0.8.0` with **no repin**, a `0.6` pin under a `0.7` floor is refused by name with the
+   one that carries none leaves it, and goes on accepting the pins already written. So the current `0.9`
+   capability minimum is satisfied by `0.9.0`, while an older `0.8.0` binary cannot execute `device.extract`; a `0.6` pin under a `0.7` floor is refused by name with the
    repin stated, and a binary older than the pin is refused too — **fail-closed at both ends**, because an
    older binary cannot certify a newer line. From **`1.0` onward** the familiar within-a-major rule takes
    over and the floor is not consulted at all.
@@ -444,3 +445,23 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   and rule id: `CONSTITUTION.md`, `handbooks/quality-baseline.md` (`QA-{n}`), `handbooks/ux-baseline.md`
   (`UX-{n}`), `handbooks/uzf-core.md` (`UZF-26`). That repository is **frozen**; read it at its snapshot tag,
   never at `main`, and never write to it.
+
+
+## Rulings of 2026-09-12 — phase ownership, launch and discovery
+
+The maintainer's #48 ruling and follow-up place mandatory focused tests at `kokusen` before the
+local commit, with authoring feedback still available in `rasengan`. Inexpensive iteration checks
+remain repository-declared. Aka gains lint before squashing unpublished commits, retains squash
+before catch-up, and owns full regression on the final caught-up tree. Mukai owns extraction and
+gating of coverage collected during that regression. Any changed code, tests or configuration
+invalidates previous evidence. Reports do not trigger later verification phases.
+
+Amaterasu owes a platform-compatible artifact, installation and actual launch on each applicable
+turn from the core checkout. Shared record normalization belongs to Nen #204; consumer Python
+workarounds remain temporary until a compatible release is available and migration is verified.
+
+Hatsu #49 grants standing discovery filing/folding authority across phases and resumed work,
+with reconciliation, material-change-only writes, sanitized pending records and no expansion to
+unrelated implementation, labels, closures, merges or releases. Reviewers relay findings to the
+coordinating writer. [DISCOVERY.md](DISCOVERY.md) owns the protocol. These changes are delivered
+before a new tag is considered; this ruling does not itself authorize a tag or release.

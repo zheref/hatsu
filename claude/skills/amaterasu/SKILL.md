@@ -3,6 +3,14 @@ name: amaterasu
 description: Build and start the app for the declared launch target from the maintainer's core working directory — never from a worktree — and hand back the exact command that did it, copied verbatim out of the dry run. Runs as phase four of `ren` on every turn that produced a change worth looking at; invoke `hatsu:amaterasu [<target>]` by name to relaunch or to switch targets. A disconnected device is reported by its declared name and falls back only to the declared simulator; a session working in a worktree reports the command instead of running it.
 ---
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
+`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
+repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+those files (re-resolve through that skill if unavailable). Relative links below identify source
+locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
+filing. Never copy or invent a second policy in the target repository.
+
+
 # Amaterasu — the flame that lands where it was aimed: the app, running, on your machine
 
 **Nature: Transmuter** carries every run: amaterasu executes declared machinery — a lane's `dev` row,
@@ -102,6 +110,35 @@ the probe's own states count as READY, and a row that is present and not one of 
 rather than a resolution nothing can use (§ 4). It is validated at load by pointer — exactly one of
 `field`/`path`, `in` non-empty, `field` ≥ 1, and refused outright on a device with no `resolve` probe
 — **and absent it changes nothing at all**, which is why § 4 has two paths rather than one.
+
+### Physical-device completion and shared discovery ownership
+
+On every applicable `ren` iteration, the selected lane must build for the target's actual
+platform. Before execution, inspect the dry-run's selected lane, build destination, artifact
+substitution, and ordered install/launch after-steps. An iPhone target wired to an iOS Simulator
+build is an incomplete declaration: a simulator `.app` cannot become a device artifact by naming
+it in `after[]`. Repair the owning consumer declaration within authorized scope; otherwise record
+its blocker through [the common discovery protocol](../../../docs/DISCOVERY.md).
+
+Read `project.launch.<declared-target>.verb`, then execute
+`nen shu <declared-dev-or-run-verb> --repo <core-checkout> --target <declared-target>` from the core
+checkout. The substituted verb is exactly the target's declared `dev` or `run`; never replace it
+with a preferred verb.
+Success requires the device-compatible build, installation of that artifact, and application
+launch to complete. Report each outcome. A dry run or build-only result is `launch incomplete`,
+not successful device delivery. Missing install/launch steps are a declaration gap even if the
+command returned zero. An absent device uses only the declared fallback; a present-but-unusable
+one retains § 4's refusal and never becomes a simulator fallback.
+
+Reusable record discovery and normalization belong to **Nen's shared launch resolver**, not a
+Python helper copied into each consumer. Consumers declare probe/build/install/launch commands
+and the extraction mappings the installed Nen supports. [Nen #204](https://github.com/zheref/nen/issues/204)
+owns repeated nested names and canonical identifiers; [the migration guide](../../../docs/LAUNCH-MIGRATION.md)
+connects Apple, Android and Expo declarations to that implementation. Existing exact-name selection,
+true ambiguity refusal and readiness checks remain mandatory. Until a compatible published Nen
+release is available and the replacement path is verified, keep and link a working temporary
+normalizer with its owner and removal condition. Never add unsupported extraction keys to an older
+binary or describe a local source build as an available release.
 
 ## 3. The core working directory, never a worktree
 
@@ -284,8 +321,7 @@ would be one object followed by however much the child then writes"*) — and `-
 machine-readable pre-flight (`docs/ab/amaterasu.md` §§ 2.2–2.3). Do not background the launch to get
 the terminal back; say the app is running and what is holding the terminal.
 
-**Reactions, by exit code** (`claude/agents/kurapika.md` § *The `shu` verbs*): `1` is a failed build —
-hand it to [`hatsu:rasengan`](../rasengan/SKILL.md), do not relaunch; `2` is usage or an unsatisfied
+**Reactions, by exit code** (`claude/agents/kurapika.md` § *The `shu` verbs*): `1` means a declared step failed — identify whether it was build, install, or launch from the step output. Hand an authored-code failure to [`hatsu:rasengan`](../rasengan/SKILL.md); a failed install or launch remains incomplete delivery; `2` is usage or an unsatisfied
 precondition, named; `3` is a host the declaration excludes — **G5**, never a retry; `4` is a seat
 (the lane declares no verb by that name) and, with `--target` named, at the pinned build it is a
 **real** seat rather than a mis-typed subcommand — the target's own verb is checked first (§ 5) — so

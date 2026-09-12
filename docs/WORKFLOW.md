@@ -10,9 +10,58 @@ disagree, **the file wins and this document is the bug** — the same rule
 
 ---
 
+## Phase ownership — ruling of 2026-09-12
+
+A local checkpoint, branch publication and PR completion are separate outcomes. No use of
+“session complete” or “done” advances a later phase automatically.
+
+| Phase | Required work | Evidence boundary |
+|---|---|---|
+| `rasengan` | Author behavior and focused tests; use them and inexpensive iteration checks for feedback | Feedback is not the checkpoint verdict |
+| `kokusen` | Run declared iteration checks and applicable declared focused tests on the finished tree; commit locally | Full regression and coverage are not checkpoint gates |
+| `amaterasu` | Build the selected platform artifact, install it and launch it from the core checkout on each applicable turn | Report build/install/launch separately; absent and unusable devices remain distinct |
+| `aka` | Lint before squash; squash only unpublished history; catch up; recheck changed-tree lint; full required regression | Instrumented raw results are collected here and bound to tree, configuration and command |
+| `mukai` / `gyo` | Review and measure/gate touched-file coverage from matching regression artifacts | Extraction must not rerun tests; edits return through focused checkpoint and aka regression before publication |
+| `rikugan` | Render the owning phases' evidence and discovery statuses | Reports run no tests/coverage; absent, stale and not-due evidence remain explicit |
+
+The single `iteration.checks` list still serves `breath`, `rasengan`, and `kokusen`. There is no
+checkpoint-only routing key. A scoped test runs through an explicitly declared test lane whose
+command names the scope; do not invent a test filter or substitute the full suite. If executable
+changes lack a supported scoped path, capture the dependency and stop that checkpoint honestly.
+Hatsu's prose-only changes retain the lint-only iteration list. Its executable version guard has
+the declared `plugin-bump-guard` focused test lane; that lane is due for guard changes and is not
+a general regression suite.
+
+Any tracked tree change invalidates prior regression and coverage evidence because the capture
+binds the exact tree hash, including sources, tests, snapshots and execution configuration.
+Only a complete no-op catch-up may reuse the pre-catch-up lint result. Catch-up and review/coverage remediation return to the aka-owned regression
+phase before publishing. Composites reuse that phase under their existing publication authority;
+they do not recursively squash published history or acquire first-publish permission. Coverage
+instrumentation belongs in that regression run; extraction and threshold decisions belong in
+mukai. Existing thresholds and required suites are preserved.
+
+## Discoveries during authorized work
+
+[DISCOVERY.md](DISCOVERY.md) is the common capture/reconciliation protocol for every phase,
+composite, reviewer and resumed run. It grants standing authority to file or fold concrete gaps
+without another filing prompt, after Nen reconciliation and inspection of candidate issues and
+open PRs. Unchanged evidence produces no write. New ownership is linked, not silently implemented.
+Reports distinguish created, updated, folded, unchanged and pending; a real blocker is still a
+blocker, but a discovery does not replace the original task.
+
+The tool repositories now carry `nen/repos.json` for verified repository identity and
+`nen/labels.json` for their existing GitHub labels. These are issue-routing/filing metadata, in
+addition to the two execution/policy configuration files below. They do not assert consumer pins
+or invent a stage taxonomy. `nen issue file` validates the target's labels; optional unrelated
+color/gate schema failures are not reported as failed issue creation. Consumer metadata remains
+owned and validated in its own checkout. See [LAUNCH-MIGRATION.md](LAUNCH-MIGRATION.md) for the
+Nen #204 dependency, temporary workaround removal and the release hold covering Hatsu #49.
+
+---
+
 ## 1 · Two files, and the line between them
 
-There are exactly two configuration files, and the split is not stylistic. It is the difference between a
+There are two execution/policy configuration files, and the split is not stylistic. It is the difference between a
 **fact about the machine** and a **decision about the work**.
 
 | | [`nen/contract.json`](../nen/contract.json) → `project` | [`nen/workflow.json`](../nen/workflow.json) |
@@ -567,8 +616,8 @@ It loops. **It never pushes and never opens a pull request.**
 
 | Phase | What it does | Why it is the human's |
 |---|---|---|
-| [`aka`](../claude/skills/aka/) | tests → squash the unpushed commits → `ao` → push | publishing work is a decision, and a squash is destructive |
-| [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → tests + UI tests → `gyo` → evidence → `shibari` opens the PR → starts `en`. **§ 5 is the full shape** | a PR is a request for other people's attention |
+| [`aka`](../claude/skills/aka/) | lint → squash the unpushed commits → `ao` → final-tree regression → push | publishing work is a decision, and a squash is destructive |
+| [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → matching aka regression evidence → `gyo` → publish proven updates → evidence → `shibari` opens the PR → starts `en`. **§ 5 is the full shape** | a PR is a request for other people's attention |
 | **merge** | **G2** (`CON-5`) | never delegated, by any agent, anywhere |
 | [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always, and `--run` acts only on a call that **names the target** | the blast radius leaves this machine |
 | [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3** (`CON-6`): only on a recorded per-target go, with the preflight green and the tag already cut — one target per call | the blast radius is other people's users |
@@ -615,11 +664,11 @@ maintainer's to call. Its order is fixed, and each step has exactly one job.
 
 | | Step | What it does | Where it stops |
 |---|---|---|---|
-| **1** | [`murasaki`](../claude/skills/murasaki/) | pull + push: [`ao`](../claude/skills/ao/) → the declared `iteration.checks` on the merged tree + [`tsukuyomi`](../claude/skills/tsukuyomi/) → push, **only if the branch is already published**. A red merged tree goes to [`rasengan`](../claude/skills/rasengan/) to be authored. Never squashes, never force-pushes | **G5** on a *semantic* conflict in `ao` — a mechanical one is resolved |
+| **1** | [`murasaki`](../claude/skills/murasaki/) | catch up through [`ao`](../claude/skills/ao/), verify the changed tree, and enter the aka-owned lint/regression phase before any push, **only if the branch is already published**. A red merged tree goes to [`rasengan`](../claude/skills/rasengan/) to be authored. Never squashes, never force-pushes | **G5** on a *semantic* conflict in `ao` — a mechanical one is resolved |
 | **2** | [`hanten`](../claude/skills/hanten/) | the adversarial review: classify the change set by scope, one reviewer subagent per scope | **G5** on an unsettled finding — after Kurapika has fixed it or pushed back with a reason |
-| **3** | `tsukuyomi` + [`kotoamatsukami`](../claude/skills/kotoamatsukami/) | `tests.required` (+ `extra`), and the declared `ui-test` where a repository declares one. Re-recorded snapshots feed step 6 | **G5** on red required tests. A seat (exit `4`) is quoted, never routed around |
-| **4** | [`gyo`](../claude/skills/gyo/) | the coverage bar, against the `coverage` ladder of § 2 | **G5** when a touched file is under `minimum` and cannot honestly clear it |
-| **5** | [`kokusen`](../claude/skills/kokusen/) then the push half of `murasaki` | **publishes what steps 2–4 changed.** The review's fixes and gyo's new tests are edits to the working copy, and neither of those skills may commit or push; step 7 refuses to open a PR while `HEAD` is ahead of `origin/<branch>` | **G5** on a semantic conflict where the base moved again |
+| **3** | aka-owned regression phase | Reuse matching evidence, or checkpoint review fixes and execute full required tests and applicable UI suites through aka. Record instrumented artifacts and tree/configuration provenance for steps 4 and 6 | **G5** on red required tests. A seat (exit `4`) is quoted, never routed around |
+| **4** | [`gyo`](../claude/skills/gyo/) | extract existing matching regression artifacts and apply the `coverage` ladder of § 2, without rerunning tests | **G5** when a touched file is under `minimum` and cannot honestly clear it |
+| **5** | [`kokusen`](../claude/skills/kokusen/) then the push half of `murasaki` | **publishes the final proved tree.** Changes from steps 2–4 repeat the focused checkpoint, aka-owned lint/regression and coverage steps first; The review's fixes and gyo's new tests are edits to the working copy, and neither of those skills may commit or push; step 7 refuses to open a PR while `HEAD` is ahead of `origin/<branch>` | **G5** on a semantic conflict where the base moved again |
 | **6** | evidence | the changed visual artifacts, from `project.evidence` (§ 3), grouped **suite → scene** | not a gate event |
 | **7** | [`shibari`](../claude/skills/shibari/) | composes and opens **one** PR, requests the reviewers and writes the body back | never labels a gate, never merges |
 | **8** | [`rikugan`](../claude/skills/rikugan/) `as landing` | the landing report, rendered **after** the PR exists because its two extra sections — the PR body and the readiness verdict — are step 7's outputs. Then **starts [`en`](../claude/skills/en/)** | not a gate event |
@@ -953,3 +1002,46 @@ assumed**: Codex and Cursor have no turn-end hook (§ 6), and Codex has no in-se
 `codex ok: 40` and `cursor ok: 47` — so the CI job runs a real check instead of skipping with a notice. The
 mirrors stay committed, for the original reason: the warm-up installs what is on disk rather than
 regenerating anything in a target repository.
+
+
+## Focused selection adoption and reviewer identities
+
+[Nen #207](https://github.com/zheref/nen/issues/207) tracks a reusable declared test-selection
+mapping. Nen 0.8.0 has no selector passthrough. A static focused lane with real runner identifiers
+and separate artifacts is the current supported path; KroApple's apple-device Python tests do not
+cover Swift behavior, and its all-KroTests apple row cannot substitute for scoped execution.
+Do not proliferate permanent lanes per ad hoc selection or copied consumer scripts. The shared
+capability and its consumer adoption remain explicitly pending.
+
+The maintainer named Copilot and `zheref` as the only expected reviewers for Hatsu and Nen on
+2026-09-12. Their `nen/gates.json` files record those identities and reserve approval for `zheref`.
+No third-party reference gate applies. A maintainer-authored PR cannot be given a synthetic
+self-approval by an agent: if GitHub cannot supply the required human review, report that predicate
+unmet and leave the merge decision with the maintainer. Local subagent review is evidence, not a
+GitHub vote.
+
+
+### Review-round completion — maintainer ruling, 2026-09-12
+
+One completed review round normally suffices; a second is for substantive reassessment, not a
+routine fresh-head request. The coordinating agent verifies pushed fixes, appropriate checks,
+on-thread dispositions and resolutions, plus review-body/suppressed findings, against live GitHub
+state before requesting another round. A delegate's “fixed” report is insufficient. No duplicate
+request while one is pending; requests count across resumed sessions; a third requires a human
+decision. A current-head readiness refusal is reported honestly rather than triggering review churn.
+The authoritative procedure is sharingan § 5; en/build inherit it. This changes review orchestration,
+not Nen's deterministic approval rules or the human merge gate.
+
+
+### Build accountability and issue associations — 2026-09-12
+
+Build's coordinator verifies delegated output against the pushed code and live GitHub state.
+Implementation, passing checks, completed review handling and formal readiness are distinct
+claims. Every inline and summary finding needs a disposition before a review round is complete;
+thread replies/resolutions are verified directly, not inferred from a worker's report.
+
+Every PR author lists every addressed issue in the body and verifies each Development association,
+including all issues in a combined PR. Scope changes trigger reconciliation of that full set.
+Dependencies are listed separately. Closing clauses reflect completed issue scope; partial work
+must not be silently closed merely to obtain a sidebar link. Shibari owns the procedure and the
+GitHub auto-close caveat; build and sharingan enforce it at handover.

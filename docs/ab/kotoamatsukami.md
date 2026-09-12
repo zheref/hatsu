@@ -5,6 +5,10 @@
 re-recorded to the evidence table [`rikugan`](../../claude/skills/rikugan/SKILL.md) and
 [`shibari`](../../claude/skills/shibari/SKILL.md) build from.
 
+**Phase ruling, 2026-09-12.** Aka owns UI/E2E execution as part of final regression. Mukai reads the
+matching artifacts for evidence and does not rerun the suite. An accepted snapshot changes an
+assertion, invalidates regression and coverage, and returns through kokusen and aka before use.
+
 **A new skill, so there is no "old mechanics" column.** What this record establishes is that the *run*
 half is a complete verb at the pinned `0.3.0` — dry run, exit-code table, seat, red-run relay, all
 verified live — and the *evidence* half has none: `nen shu evidence` is not a `shu` subcommand here, and

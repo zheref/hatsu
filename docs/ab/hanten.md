@@ -353,3 +353,19 @@ actually returned.
 other block is deliberately not applied there — so the matrix stays this skill's own read. That is a read,
 not a residue: what the row buys is that a malformed `reports` or `coverage` block is caught by a verb
 before a reviewer is raised against it.
+
+---
+
+## Discovery-routing addendum — constructed, 2026-09-12
+
+This is a constructed coordination scenario, not a GitHub write. Two Hanten reviewers return the same
+sanitized durable finding. They return it only in the fixed findings record; neither searches, comments,
+edits, labels, files, implements, nor votes. Kurapika, the one writer for the review, de-duplicates the
+returned evidence and applies [`docs/DISCOVERY.md`](../DISCOVERY.md): four passes, candidate issue bodies
+and comments, then associated open PRs. An incomplete pass yields a durable `pending` record and no write.
+
+For a whole-body fold, the writer re-reads the issue immediately before `nen issue edit-body` and rebases
+the prepared addition. Nen provides no compare-and-swap body edit, so a concurrent body change remains a
+reported `pending` race rather than an overwrite. Separate sessions can still create equivalent issues
+between their final search and create; the single-writer-per-known-effort rule narrows that risk, and a
+later duplicate discovery selects a canonical item without closing either issue through this protocol.

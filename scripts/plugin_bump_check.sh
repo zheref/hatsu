@@ -78,6 +78,16 @@ fi
 #                       copy reads it AT RUN TIME. Being a draft is a statement
 #                       about its authority, not about whether it ships — a
 #                       stale draft is exactly as invisible as a stale roster.
+#   docs/WORKFLOW.md  — the two-file configuration model and workflow authority
+#                       read by phase skills. A stale installed copy can apply
+#                       an obsolete workflow rule.
+#   docs/DISCOVERY.md — the shared discovery and filing protocol linked by the
+#                       filing, review, and orchestration surfaces. A stale copy
+#                       can repeat an unreconciled external write.
+#   docs/LAUNCH-MIGRATION.md
+#                     — the launch/extraction transition and current release
+#                       boundary linked by launch skills. A stale copy can
+#                       suggest an unsupported migration or release state.
 #   hooks/*           — the harness hooks, discovered by Claude Code at the
 #                       plugin's default `hooks/hooks.json` and executed on
 #                       EVERY session: a Stop bell and a PreToolUse refusal to
@@ -134,6 +144,9 @@ PLUGIN_SURFACE_GLOBS=(
   'contracts/*'
   'docs/ROSTER.md'
   'docs/delegation-grammar-DRAFT.md'
+  'docs/WORKFLOW.md'
+  'docs/DISCOVERY.md'
+  'docs/LAUNCH-MIGRATION.md'
   'hooks/*'
   'templates/*'
   'surfaces/*'
@@ -256,7 +269,8 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
   cat >&2 <<'EOF'
 This PR changes a plugin-shipped surface (.claude-plugin/**, claude/**,
 nen/**, contracts/**, docs/ROSTER.md,
-docs/delegation-grammar-DRAFT.md, hooks/**, templates/**, surfaces/**,
+docs/delegation-grammar-DRAFT.md, docs/WORKFLOW.md, docs/DISCOVERY.md,
+docs/LAUNCH-MIGRATION.md, hooks/**, templates/**, surfaces/**,
 scripts/surface_bootstrap.sh, or .mcp.json)
 but leaves
 .claude-plugin/plugin.json's `version` field unchanged.

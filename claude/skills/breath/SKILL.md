@@ -3,6 +3,14 @@ name: breath
 description: Warm the local working copy once per effort — classify where the checkout sits, check the host toolchain, fast-forward the trunk and cut this effort's branch from its fresh tip, then prove the declared iteration checks still pass on that fresh tip, because a base that does not build is a G5 stop taken before any of the change is authored. Runs automatically as the first turn of an effort inside `ren`, before `hatsu:rasengan` writes a line; invoke `hatsu:breath` by name only to re-warm a checkout that has drifted. It asks on exactly one thing — a dirty working copy — and never discards work it has not shown you, never commits, and never pushes.
 ---
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
+`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
+repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+those files (re-resolve through that skill if unavailable). Relative links below identify source
+locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
+filing. Never copy or invent a second policy in the target repository.
+
+
 # Breath — the first breath of an effort, taken before any work
 
 **Nature: Transmuter** carries every run. A warm-up moves git state and probes a host toolchain; it
@@ -211,7 +219,7 @@ and has no default, because nen never invents a branch name (§ 8).
 
 ```bash
 nen shu warmup --repo <path> --branch <rendered name> --from <branch.base> --dry-run   # every git command, in order, none run
-nen shu warmup --repo <path> --branch <rendered name> --from <branch.base> [--tests]
+nen shu warmup --repo <path> --branch <rendered name> --from <branch.base>
 ```
 
 The dry run prints the whole sequence with each step's own refusal condition attached, and the bare
@@ -286,7 +294,7 @@ on it yet, so the checks run here are a verdict on THE BASE, not on this effort.
 point of taking them now: the first line of the change must land on a tree that is already known to
 build, so that the first red anybody sees is one this effort caused.
 
-`shu warmup` proves the lane's **`build`** (and, with `--tests`, its `test`) on the branch it just
+`shu warmup` proves the lane's **`build`** on the branch it just
 cut, re-reading the declaration **on that branch**. **`build` is the only check it runs, whatever
 `iteration.checks` says** — the sequence in § 5 ends at the lane's declared `build` row and knows
 nothing about the policy file. So the base-tip proof is not finished when `shu warmup` returns:
@@ -400,3 +408,12 @@ that did not run is reported as **not run**, never rendered as clear.
   key → the default for that key; neither → stop and ask.
 - **Never runs twice on one effort.** A second cut is a second branch, and an effort with two branches
   is two efforts nobody scoped.
+
+
+### Phase boundary for the base check
+
+The shared iteration list must remain inexpensive. Do not add `--tests` to the initial warm-up
+or run coverage there: aka owns full regression and mukai owns coverage. Focused authored behavior
+is tested during rasengan/kokusen, once there is authored behavior to test. A declaration that
+hides a full suite in an iteration verb is an owned configuration gap routed through
+[DISCOVERY.md](../../../docs/DISCOVERY.md), not permission to run the later phase early.

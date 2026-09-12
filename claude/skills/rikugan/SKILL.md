@@ -3,6 +3,14 @@ name: rikugan
 description: Render one turn of work as a rich HTML report — accomplished, challenges, not delivered, architecture delta, screenshots, the exact launch command, decisions — from the one fixed template, never as a markdown summary. Use when the maintainer invokes hatsu:rikugan [as turn|landing|final], asks to see the report, the turn report or the final report, or whenever hatsu:ren, hatsu:mukai or hatsu:en reaches its reporting step. The landing variant adds the PR body and the readiness verdict; the final variant adds the tests run and the touched-file coverage, and is the only one kept as a dated file under Reports/. Not a gate event — it publishes a page and rings nothing.
 ---
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
+`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
+repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+those files (re-resolve through that skill if unavailable). Relative links below identify source
+locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
+filing. Never copy or invent a second policy in the target repository.
+
+
 # Rikugan — the turn, seen
 
 **Nature: Manipulator.** Reporting is the board-facing half of the work, the same half
@@ -86,6 +94,21 @@ keys; never carry a remembered value.
 > `schema check` FAILs is reported with its pointer and the defaults above are used, said out loud;
 > it is never silently repaired.
 
+### Reporting does not schedule verification
+
+Use the evidence already produced by the owning phase. Ordinary turn reports say `full regression:
+not due until aka` and `coverage: not due until mukai` when those phases have not run. Include the
+focused tests and checkpoint checks that actually ran, and distinguish build, install and launch
+outcomes. Reading `coverage.*` configures presentation; it is never permission to execute coverage.
+
+An existing report file alone cannot prove the current tree. Check the owning phase's recorded
+source-tree and declaration identity before presenting test or coverage results as current; mark
+mismatches stale. Preserve raw `report data` facts, but explain stale provenance in the narrative and
+do not populate final verdict rows with it. Full regression, instrumented collection, and coverage
+measurement retain their phase owners even for final or post-merge reports. Report missing evidence
+instead of quietly recreating it. Discovery statuses and canonical issue links come from
+[the common protocol](../../../docs/DISCOVERY.md); rendering a report does not file duplicates.
+
 ## 3. Assemble the data
 
 ```bash
@@ -160,10 +183,10 @@ each verified live (`docs/ab/rikugan.md` § *Retired at nen 0.5*):
 - **`nen shu evidence --repo <path> --base <ref>`** — **RETIRED at nen `0.5`**, exit `0`, rows grouped
   suite → scene with a git status each. Those rows are merged into `evidence[]`, and each gains
   `src`, the capture as a `data:` URI, because no verb turns a PNG into one.
-- **`nen shu test-report --repo <path> [--lane <lane>]`** — **RETIRED at nen `0.5`**. The **final**
+- **`nen shu test-report --repo <path> [--lane <lane>] --from-artifacts`** — **RETIRED at nen `0.5`**. The **final**
   variant's `tests[]` rows are that document's `{name, suite, status}`, read off the parse rather
   than re-tabulated from the runner's prose.
-- **`nen shu coverage --repo <path> --touched --base <ref>`** — **RETIRED at nen `0.5`**, exit `0`,
+- **The saved result of `nen shu coverage --repo <path> --touched --base <ref>` from mukai/gyo** — **RETIRED at nen `0.5`**, exit `0`,
   with a `touched:` line and a `band` on every narrowed row. The **final** variant's
   `touchedCoverage[]` rows are `{file, percent, band}` read straight off it. **The band is nen's
   now**, taken from `nen/workflow.json`'s ladder when no `--threshold` is given — what stays this
@@ -272,8 +295,8 @@ merged in here.
 ```bash
 nen report data --repo <path> --base origin/<branch.base> [--tiers <file>] --json > <base data>
 nen shu evidence --repo <path> --base origin/<branch.base> --json          > <evidence>   # rows
-nen shu test-report --repo <path> --json                                   > <tests>      # final only
-nen shu coverage --repo <path> --touched --base origin/<branch.base> --json > <coverage>  # final only
+nen shu test-report --repo <path> --from-artifacts --json                  > <tests>      # final only, matching aka artifacts
+# <coverage>: reuse the recorded matching mukai/gyo JSON; do not execute coverage to render a report
 # merge: <base data> ∪ { variant, title, residue, footerNote, launch, accomplished[], challenges[],
 #                        notDelivered[], decisions[], prBody[], readiness[],
 #                        tests[] (from <tests>), touchedCoverage[] (from <coverage>),

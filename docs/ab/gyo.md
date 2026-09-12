@@ -4,6 +4,13 @@
 against `nen/workflow.json → coverage` (80 minimum, 85 recommended, 90 ideal), add tests until the lowest
 clears the floor, and stop at **G5** when it cannot be met honestly. The bar is never lowered.
 
+**Phase ruling, 2026-09-12.** Gyo consumes instrumented results captured by aka for the same tree.
+Its declared `coverage` row must be extraction-only; a row that reruns tests violates ownership and
+stops. The pinned Nen has no `coverage --from-artifacts` flag or complete provenance envelope, so the
+lane must preserve tree/lane/argv/artifact/time provenance and any missing link is reported honestly.
+Gyo reads that saved `.nen/regression/<lane>.json` Hatsu record and refuses an absent, malformed, or
+tree-mismatched record before invoking the extraction-only coverage row.
+
 **A new skill, so there is no "old mechanics" column.** What this record establishes is that
 `nen shu coverage` is a real, working parser at the pinned `0.3.0` — it ran, parsed an lcov report and
 produced a per-target table live — and that **two things gyo needs from it are not there yet**: the

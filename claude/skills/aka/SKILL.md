@@ -1,6 +1,6 @@
 ---
 name: aka
-description: Send the branch out — run the required tests, squash the unpushed commits into one, bring the base underneath it, and push. Use ONLY when the maintainer invokes hatsu:aka or asks in their own words to push this, send it up, or publish the branch. It opens no pull request, carries no AI attribution trailer, stops at G5 on a red required test, and never force-pushes or rewrites a commit that is already on the remote. Agents never propose it: the call is the maintainer's, always.
+description: Send the branch out — lint before rewriting history, squash only unpushed commits, bring the base underneath them, then own the full regression and instrumented-result capture on the final caught-up tree before pushing. The whole skill runs only on the maintainer's publish call; named composites may reuse only prepublication-verification, without squash or first-publish authority.
 ---
 
 # Aka — the branch goes out
@@ -8,7 +8,8 @@ description: Send the branch out — run the required tests, squash the unpushed
 **Nature: Manipulator.** Pushing is git-side operation on shared state by definition, whichever
 nature authored the diff.
 
-> **Prove it, fold it into one commit, put the base underneath it, and put it on the remote. No PR.**
+> **Lint it, fold only unpublished history, put the base underneath it, prove the final tree with the
+> full regression, and put that exact tree on the remote. No PR.**
 
 Aka is the **first human call** in the local plane. Everything before it —
 [`hatsu:ren`](../ren/SKILL.md)'s turns, [`hatsu:kokusen`](../kokusen/SKILL.md)'s commits — happens
@@ -47,7 +48,7 @@ has none, and inventing an optional clause so that a parse can be echoed would b
 
 | Key | Used for | Default when the key (or the file) is absent |
 |---|---|---|
-| `tests.required` | which declared verbs § 3 must run green | `["test"]` |
+| `tests.required` | which declared verbs § 6 must run green | `["test"]` |
 | `tests.extra` | further verbs to run, not gating | `[]` |
 | `branch.base` | the base § 4's squash and § 5's catch-up work against | `main` |
 | `commits.allowedAttributionTrailers` | the only trailers § 4's commit may carry — **`Hatsu-Agent` is the one it WRITES** (§ 4) | `["Hatsu-Agent", "Akatsuki-Agent"]` |
@@ -71,26 +72,21 @@ the shape by eye; it reads the values, and states the defaults whenever they are
 > process change, disclosed here the way [`hatsu:futon`](../futon/SKILL.md) § *Declared process
 > change* discloses its own.
 
-## 3. Tests first — [`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md), and G5 if red
+## 3. Pre-squash lint gate
 
-**Aka's first step is tsukuyomi's whole engine**, not a substitute for it: run every verb in
-`tests.required` (plus `tests.extra`) through the repository's own declaration, parse the results,
-fix and re-run, or stop. This skill restates none of that protocol — read it there.
+Before `nen wc squash` can rewrite even unpublished commits, run the declared lint row for
+`iteration.lane`:
 
 ```bash
-nen shu test --repo <path> [--lane <lane>] --dry-run     # once, on a repo you have not tested here
-nen shu test --repo <path> [--lane <lane>]
+nen shu lint --repo <path> --lane <iteration.lane> --dry-run
+nen shu lint --repo <path> --lane <iteration.lane>
 ```
 
-The `--dry-run` form prints the exact argv, cwd, env names and declared artifacts and spawns
-nothing — verified live at `v0.3.0` against a constructed declaration (`docs/ab/aka.md` § 2.1),
-exit `0`, `--json` carrying `{contract: "nen.shu.test/v0.1", steps[], artifacts[], log.mode:
-"dry-run"}`. Exit codes are `claude/agents/kurapika.md` § *The `shu` verbs*': `1` is the ordinary red
-run, `2` a usage or declaration fault, `3` an unsupported host (say which hosts the declaration
-allows, and stop), `4` a **seat** whose reason is quoted verbatim, `5` sends you to
-`nen shu tools`.
+Dry-run once on an unfamiliar repository. A red lint ends the run before history changes. A seat is
+quoted. This gate is deliberately before the squash; it is cheap and prevents aka from replacing
+several useful checkpoints with one red commit. It is not the regression phase.
 
-**A red required test is a G5 stop, and the run ends there.** Not "pushed with a note", not "pushed
+**A red required test in § 6 is a G5 stop, and the run ends there.** Not "pushed with a note", not "pushed
 because the failure is unrelated". [`hatsu:jutaisho`](../jutaisho/SKILL.md) § 4 renders it:
 `nen stop --who Kurapika --gate G5 <efforts.md>`, the report link, lettered options with a ⭐ on the
 report, the question through the surface's own picker.
@@ -208,7 +204,7 @@ trailing period) each refuse at exit `2` with a named reason — the transcripts
 >
 > **This matters more in `aka` than anywhere else**, because § 4's commit lands on top of a
 > `git reset --soft`: a refusal committed here becomes the *only* message for every squashed commit,
-> and the branch is about to be published. It is cheap to catch before § 6's push and expensive
+> and the branch is about to be published. It is cheap to catch before § 7's push and expensive
 > after.
 
 **Four refusals run before the reset, every time** — these are `nen wc squash`'s own refusals
@@ -306,7 +302,39 @@ Two things aka relies on and does not re-derive:
 **Order matters: squash, then catch up.** Squashing after a merge would fold the base's merge commit
 into the effort's commit and lose the ancestry that makes the merge legible.
 
-## 6. Push — or first-publish
+## 6. `prepublication-verification` — full regression on the final tree
+
+This named phase is the stable phase-ownership anchor for composites. A composite may reuse it after
+a review fix, coverage remediation, or catch-up without re-entering aka's human-call boundary and
+without acquiring aka's squash or first-publish authority.
+
+1. Reuse § 3's lint only when catch-up was a complete no-op. Any changed tree path — source, test,
+   snapshot, execution configuration, metadata, or otherwise — reruns the declared lint row on the
+   caught-up tree.
+2. Run [`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md) in **full-regression mode** over every
+   `tests.required` row and configured extra.
+3. Where the full regression produces coverage instrumentation, preserve that result and record its
+   provenance: final tree hash, lane, verb, exact argv, artifact path, and run time. Aka collects
+   instrumented execution data; it does not measure or gate coverage.
+4. When the full-regression list includes `ui-test`, tsukuyomi invokes that declared suite exactly
+   once and [`hatsu:kotoamatsukami`](../kotoamatsukami/SKILL.md) supplies its UI-specific result and
+   snapshot handling. Do not invoke the suite a second time. A re-recorded snapshot changes the tree
+   and therefore invalidates this run.
+
+The regression must follow the final catch-up. Any later tree change — including a review fix,
+snapshot acceptance, test added by gyo, execution-configuration edit, conflict resolution, metadata
+edit, or another catch-up — invalidates the lint/regression evidence and returns here before
+publication. A red required suite is G5. An empty configured set remains
+`not applicable — no tests configured`, neither green nor a stop.
+
+Nen can run declared suites and parse their artifacts, but the pinned interface does not emit one
+durable regression-plus-coverage provenance envelope. Save those observed fields as transient JSON
+at `.nen/regression/<lane>.json`, with contract `hatsu.regression-capture/v0.1`; this is Hatsu residue,
+not Nen output, and must never claim fields the invocation and git tree did not prove. A consumer
+whose `coverage` row reruns tests must split collection from extraction before
+mukai can honor the boundary; mukai may not hide a second full-suite run inside coverage.
+
+## 7. Push — or first-publish
 
 ```bash
 git -C <path> push origin HEAD                # already published
@@ -328,7 +356,7 @@ entirely. So the push is git's, by hand, named here.
   are the answer to the same question.
 - **Never opens, edits or comments on a PR.** Not even to say the branch moved.
 
-## 7. Report, and stop
+## 8. Report, and stop
 
 One line, then stop: the branch, whether it was a first publish, the one commit's subject, the base
 and how it got underneath (rebase or merge), the required tests that ran green, and the pushed SHA.
@@ -371,9 +399,12 @@ invent one.
 
 ## Authority
 
-- **Permitted, and only on the maintainer's own call:** run the declared tests; reset and re-commit
+- **Permitted on the maintainer's own aka call:** run the declared tests; reset and re-commit
   **unpushed** commits; invoke [`hatsu:ao`](../ao/SKILL.md); push a **non-base** branch, including a
   first publish that sets upstream.
+- **Permitted when a named composite calls § 6:** only the lint/regression/UI execution and capture
+  in `prepublication-verification`. This helper authority includes no squash, rewrite, push, first
+  publish, PR action, or other aka step.
 - **Not permitted:** opening or touching a PR; any label; any merge of the base; any force-push;
   any rewrite of a commit that exists on the remote; `--no-verify`; pushing `branch.base`.
 - **The delegation is one run wide and ends when this run ends.** It is not standing authority to
@@ -381,9 +412,10 @@ invent one.
 
 ## Hard limits
 
-- **Never runs unasked**, and **never prompts for itself** — no agent, skill, report or stop option
-  proposes `hatsu:aka` (§ 1).
-- **Never pushes over a red required test** — G5, and the run ends (§ 3).
+- **The whole aka run never runs unasked**, and **never prompts for itself** — no agent, skill,
+  report or stop option proposes `hatsu:aka` (§ 1). A named composite may invoke only § 6 under the
+  helper authority stated above; that is not an aka publish run.
+- **Never pushes over a red required test** — G5, and the run ends (§ 6).
 - **Never force-pushes, and never rewrites a commit that is already on the remote** — a rejected
   fast-forward is reported, never flagged past (§ 4, § 6).
 - **Never decides the squash range from a stale tracking ref** — the remote is asked with
