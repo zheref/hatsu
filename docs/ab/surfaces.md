@@ -35,9 +35,10 @@ refresh calls the script's `--install-all` mode.
 
 The executable fixture check creates empty Git repositories for both hosts, runs the documented bootstrap,
 checks the one discovery-path `SKILL.md`, performs the complete refresh twice, removes stale Hatsu-owned
-entries, and verifies collisions, tracked deletions, malformed exclude endings, and symlinked or tracked
-submodule parents stay protected. It also rejects a manifest that the warm-up's structural root check would
-reject, newline-containing source or target paths, and a full refresh missing either generated persona source:
+entries, and verifies collisions remain visible, tracked deletions and malformed or negated exclude rules
+stay protected, and neither symlinked `AGENTS.md` nor symlinked or tracked parents are followed. It also
+rejects a manifest that the warm-up's structural root check would reject, newline-containing source or target
+paths, and a partial generated surface before it can remove an existing warm-up or start a refresh:
 
 ```text
 $ scripts/surface_bootstrap_fixture_check.sh

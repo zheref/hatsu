@@ -1121,8 +1121,9 @@ that already has the plugin installed** — no error, no warning, the fix ships 
 surface is `.claude-plugin/**`, `claude/**`, `nen/**`, `contracts/**`, `docs/ROSTER.md`,
 `docs/delegation-grammar-DRAFT.md`, `hooks/**`, `templates/**`, `surfaces/**`,
 `scripts/surface_bootstrap.sh` and `.mcp.json` — everything an
-installed copy reads, the generated Codex and Cursor mirrors included, because the warm-up reads those out of
-`$CLAUDE_PLUGIN_ROOT` at run time. Bump
+installed runtime reads, the generated Codex and Cursor mirrors included: the warm-up reads plugin resources
+from `$CLAUDE_PLUGIN_ROOT`, while first-run bootstrap reads its script and generated surface from the
+canonical `$HATSU_PLUGIN_ROOT` checkout. Bump
 `version` (patch for wording, minor for behaviour or a new skill, major for a breaking interface change —
 which the minor carries while Hatsu is on `0.x`, SemVer clause 4, the reading applied to nen's own line);
 or, if a change provably cannot affect the shipped surface, write `no plugin bump: <reason>` in the PR

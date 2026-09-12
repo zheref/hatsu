@@ -139,13 +139,19 @@ target="$(canonical_directory "$target_candidate")" || {
 }
 
 declare -a skill_names=()
-for source in "$hatsu_root/surfaces/$surface"/*; do
-  [ -d "$source" ] && [ -f "$source/SKILL.md" ] || continue
-  skill_names+=("$(basename "$source")")
-done
-
 if [ "$mode" = "--bootstrap" ]; then
   skill_names=("hatsu-warmup")
+else
+  # The canonical Claude source names the complete expected surface. Do not
+  # infer it from a possibly partial generated mirror before removing stales.
+  for source in "$hatsu_root/claude/skills"/*; do
+    [ -d "$source" ] && [ -f "$source/SKILL.md" ] || continue
+    skill_names+=("$(basename "$source")")
+  done
+  [ "${#skill_names[@]}" -gt 0 ] || {
+    echo "Hatsu checkout has no canonical skill sources" >&2
+    exit 2
+  }
 fi
 
 for name in "${skill_names[@]}"; do
@@ -162,13 +168,27 @@ if [ "$mode" = "--install-all" ]; then
       echo "generated codex mirror is missing AGENTS.md" >&2
       exit 2
     }
+    if [ -L "$target/AGENTS.md" ]; then
+      echo "refusing: target AGENTS.md is a symlink" >&2
+      exit 1
+    fi
+    if [ -e "$target/AGENTS.md" ] && [ ! -f "$target/AGENTS.md" ]; then
+      echo "refusing: target AGENTS.md is not a regular file" >&2
+      exit 1
+    fi
   else
-    [ -d "$hatsu_root/surfaces/cursor/agents" ] || {
-      echo "generated cursor mirror is missing agents/" >&2
+    [ -d "$hatsu_root/claude/agents" ] || {
+      echo "Hatsu checkout has no canonical persona sources" >&2
       exit 2
     }
-    for source in "$hatsu_root/surfaces/cursor/agents"/*.md; do
+    for source in "$hatsu_root/claude/agents"/*.md; do
       [ -f "$source" ] || continue
+      name="$(basename "$source")"
+      source="$hatsu_root/surfaces/cursor/agents/$name"
+      [ -f "$source" ] || {
+        echo "generated cursor mirror is missing agents/$name" >&2
+        exit 2
+      }
       persona_sources+=("$source")
     done
     [ "${#persona_sources[@]}" -gt 0 ] || {
@@ -261,6 +281,35 @@ preflight_bootstrap_destination() {
   fi
 }
 
+preflight_destination() {
+  local relative="$1" ownership="$2" destination="$target/$1"
+  if is_tracked "$relative"; then
+    fail_bootstrap_blocker "$relative"
+  elif { [ -e "$destination" ] || [ -L "$destination" ]; } &&
+    { [ "$ownership" = "override" ] && ! is_ours_override || [ "$ownership" = "skill" ] && ! is_ours "$relative"; }; then
+    fail_bootstrap_blocker "$relative"
+  fi
+}
+
+preflight_install_destinations() {
+  local name source
+  if [ "$surface" = "codex" ]; then
+    for name in "${skill_names[@]}"; do
+      preflight_destination ".agents/skills/$name" skill
+    done
+    [ "$mode" != "--install-all" ] || preflight_destination 'AGENTS.override.md' override
+  else
+    for name in "${skill_names[@]}"; do
+      preflight_destination ".cursor/skills/$name" skill
+    done
+    if [ "$mode" = "--install-all" ]; then
+      for source in "${persona_sources[@]}"; do
+        preflight_destination ".cursor/agents/$(basename "$source")" skill
+      done
+    fi
+  fi
+}
+
 will_replace() {
   local relative="$1" destination="$target/$1"
   is_tracked "$relative" && return 1
@@ -285,26 +334,43 @@ esac
 
 exclude_backup=""
 exclude_existed=0
-temporary=""
-writes_succeeded=0
+staging=""
+backup=""
+declare -a replaced_paths=() backed_up_paths=()
 
 cleanup() {
-  local status=$?
+  local status=$? relative backup_path
   trap - EXIT
-  [ -z "$temporary" ] || rm -f -- "$temporary"
-  if [ "$status" -ne 0 ] && [ "$writes_succeeded" -eq 0 ] && [ -n "$exclude_backup" ]; then
-    if [ "$exclude_existed" -eq 1 ]; then
-      cp "$exclude_backup" "$exclude"
-    else
-      rm -f -- "$exclude"
+  if [ "$status" -ne 0 ]; then
+    if [ "${#replaced_paths[@]}" -gt 0 ]; then
+      for relative in "${replaced_paths[@]}"; do
+        rm -rf -- "${target:?}/${relative:?}" || :
+      done
+    fi
+    if [ "${#backed_up_paths[@]}" -gt 0 ]; then
+      for relative in "${backed_up_paths[@]}"; do
+        backup_path="$backup/$relative"
+        { [ -e "$backup_path" ] || [ -L "$backup_path" ]; } || continue
+        mkdir -p "$(dirname "$target/$relative")" || :
+        mv "$backup_path" "$target/$relative" || :
+      done
     fi
   fi
+  if [ "$status" -ne 0 ] && [ -n "$exclude_backup" ]; then
+    if [ "$exclude_existed" -eq 1 ]; then
+      cp "$exclude_backup" "$exclude" || :
+    else
+      rm -f -- "$exclude" || :
+    fi
+  fi
+  [ -z "$staging" ] || rm -rf -- "$staging"
+  [ -z "$backup" ] || rm -rf -- "$backup"
   [ -z "$exclude_backup" ] || rm -f -- "$exclude_backup"
   exit "$status"
 }
 
 add_exclude_lines() {
-  local line exclude_directory
+  local line exclude_directory probe
   exclude_directory="$(dirname "$exclude")"
   mkdir -p "$exclude_directory"
   exclude_backup="$(mktemp "$exclude_directory/.hatsu-exclude.XXXXXX")"
@@ -312,9 +378,9 @@ add_exclude_lines() {
     cp "$exclude" "$exclude_backup"
     exclude_existed=1
   fi
-  trap cleanup EXIT
   for line in "${exclude_lines[@]}"; do
-    grep -qxF "$line" "$exclude" 2>/dev/null && continue
+    probe="$(exclude_probe "$line")"
+    git -C "$target" check-ignore -q -- "$probe" && continue
     if [ -s "$exclude" ] && [ "$(tail -c 1 "$exclude"; printf x)" != $'\nx' ]; then
       printf '\n' >> "$exclude"
     fi
@@ -322,18 +388,114 @@ add_exclude_lines() {
   done
 }
 
+prepare_staged_surface() {
+  local name relative source stage_path
+  staging="$(mktemp -d "$target/.hatsu-surface.XXXXXX")"
+  backup="$(mktemp -d "$target/.hatsu-backup.XXXXXX")"
+
+  if [ "$surface" = "codex" ]; then
+    for name in "${skill_names[@]}"; do
+      relative=".agents/skills/$name"
+      will_replace "$relative" || continue
+      stage_path="$staging/$relative"
+      mkdir -p "$(dirname "$stage_path")"
+      cp -R "$hatsu_root/surfaces/codex/$name" "$stage_path"
+    done
+    if [ "$mode" = "--install-all" ] && will_replace_override; then
+      stage_path="$staging/AGENTS.override.md"
+      {
+        if [ -f "$target/AGENTS.md" ]; then
+          cat "$target/AGENTS.md"
+          printf '\n\n'
+        fi
+        printf '%s\n' '<!-- BEGIN hatsu personas (generated — nen surface mirror, surface: codex) -->'
+        cat "$hatsu_root/surfaces/codex/AGENTS.md"
+        printf '%s\n' '<!-- END hatsu personas (generated — nen surface mirror, surface: codex) -->'
+      } > "$stage_path"
+    fi
+  else
+    for name in "${skill_names[@]}"; do
+      relative=".cursor/skills/$name"
+      will_replace "$relative" || continue
+      stage_path="$staging/$relative"
+      mkdir -p "$(dirname "$stage_path")"
+      ln -s "$hatsu_root/surfaces/cursor/$name" "$stage_path"
+    done
+    if [ "$mode" = "--install-all" ]; then
+      for source in "${persona_sources[@]}"; do
+        relative=".cursor/agents/$(basename "$source")"
+        will_replace "$relative" || continue
+        stage_path="$staging/$relative"
+        mkdir -p "$(dirname "$stage_path")"
+        ln -s "$source" "$stage_path"
+      done
+    fi
+  fi
+}
+
+transaction_replace() {
+  local relative="$1" destination="$target/$1" staged="$staging/$1"
+  { [ -e "$destination" ] || [ -L "$destination" ]; } && {
+    mkdir -p "$(dirname "$backup/$relative")"
+    backed_up_paths+=("$relative")
+    mv "$destination" "$backup/$relative"
+  }
+  replaced_paths+=("$relative")
+  mv "$staged" "$destination"
+}
+
+transaction_remove() {
+  local relative="$1" destination="$target/$1"
+  mkdir -p "$(dirname "$backup/$relative")"
+  backed_up_paths+=("$relative")
+  mv "$destination" "$backup/$relative"
+}
+
+exclude_probe() {
+  case "$1" in
+    .agents/skills/*) printf '%s/SKILL.md' "$1" ;;
+    *) printf '%s' "$1" ;;
+  esac
+}
+
+preflight_exclude_lines() {
+  local line probe
+  for line in "${exclude_lines[@]}"; do
+    probe="$(exclude_probe "$line")"
+    git -C "$target" check-ignore -q -- "$probe" || {
+      echo "refusing: $line was not excluded through info/exclude" >&2
+      exit 1
+    }
+  done
+}
+
 declare -a installed=() removed=() kept=()
+
+is_expected_skill() {
+  local expected="$1" name
+  for name in "${skill_names[@]}"; do
+    [ "$name" = "$expected" ] && return 0
+  done
+  return 1
+}
+
+is_expected_persona() {
+  local expected="$1" source
+  for source in "${persona_sources[@]}"; do
+    [ "$(basename "$source")" = "$expected" ] && return 0
+  done
+  return 1
+}
 
 remove_stale_skills() {
   local skills_root="$1" relative destination name
   for destination in "$skills_root"/*; do
     [ -e "$destination" ] || [ -L "$destination" ] || continue
     name="$(basename "$destination")"
-    [ -f "$hatsu_root/surfaces/$surface/$name/SKILL.md" ] && continue
+    is_expected_skill "$name" && continue
     relative="${skills_root#"$target/"}/$name"
     is_ours "$relative" || continue
-    rm -rf -- "$destination"
-    writes_succeeded=1
+    transaction_remove "$relative"
     removed+=("$name")
   done
 }
@@ -343,11 +505,10 @@ remove_stale_agents() {
   for destination in "$agents_root"/*; do
     [ -e "$destination" ] || [ -L "$destination" ] || continue
     name="$(basename "$destination")"
-    [ -f "$hatsu_root/surfaces/cursor/agents/$name" ] && continue
+    is_expected_persona "$name" && continue
     relative="${agents_root#"$target/"}/$name"
     is_ours "$relative" || continue
-    rm -rf -- "$destination"
-    writes_succeeded=1
+    transaction_remove "$relative"
     removed+=("agents/$name")
   done
 }
@@ -396,8 +557,12 @@ else
     preflight_bootstrap_destination '.cursor/skills/hatsu-warmup'
   fi
 fi
+preflight_install_destinations
 collect_exclude_lines
+trap cleanup EXIT
+prepare_staged_surface
 add_exclude_lines
+preflight_exclude_lines
 
 if [ "$surface" = "codex" ]; then
   if [ "$mode" = "--install-all" ]; then
@@ -417,14 +582,7 @@ if [ "$surface" = "codex" ]; then
       kept+=("$name")
       continue
     fi
-    rm -rf -- "$destination"
-    writes_succeeded=1
-    cp -R "$source" "$destination"
-    writes_succeeded=1
-    git -C "$target" check-ignore -q -- "$relative/SKILL.md" || {
-      echo "refusing: $relative was not excluded through info/exclude" >&2
-      exit 1
-    }
+    transaction_replace "$relative"
     installed+=("$name")
   done
 
@@ -436,23 +594,7 @@ if [ "$surface" = "codex" ]; then
     elif { [ -e "$destination" ] || [ -L "$destination" ]; } && ! is_ours_override; then
       kept+=("$relative")
     else
-      temporary="$(mktemp "$target/.hatsu-override.XXXXXX")"
-      {
-        if [ -f "$target/AGENTS.md" ]; then
-          cat "$target/AGENTS.md"
-          printf '\n\n'
-        fi
-        printf '%s\n' '<!-- BEGIN hatsu personas (generated — nen surface mirror, surface: codex) -->'
-        cat "$hatsu_root/surfaces/codex/AGENTS.md"
-        printf '%s\n' '<!-- END hatsu personas (generated — nen surface mirror, surface: codex) -->'
-      } > "$temporary"
-      mv "$temporary" "$destination"
-      temporary=""
-      writes_succeeded=1
-      git -C "$target" check-ignore -q -- "$relative" || {
-        echo "refusing: $relative was not excluded through info/exclude" >&2
-        exit 1
-      }
+      transaction_replace "$relative"
       installed+=("$relative")
     fi
   fi
@@ -474,14 +616,7 @@ else
       kept+=("$name")
       continue
     fi
-    rm -rf -- "$destination"
-    writes_succeeded=1
-    ln -s "$source" "$destination"
-    writes_succeeded=1
-    git -C "$target" check-ignore -q -- "$relative" || {
-      echo "refusing: $relative was not excluded through info/exclude" >&2
-      exit 1
-    }
+    transaction_replace "$relative"
     installed+=("$name")
   done
 
@@ -499,14 +634,7 @@ else
         kept+=("agents/$name")
         continue
       fi
-      rm -rf -- "$destination"
-      writes_succeeded=1
-      ln -s "$source" "$destination"
-      writes_succeeded=1
-      git -C "$target" check-ignore -q -- "$relative" || {
-        echo "refusing: $relative was not excluded through info/exclude" >&2
-        exit 1
-      }
+      transaction_replace "$relative"
       installed+=("agents/$name")
     done
   fi
