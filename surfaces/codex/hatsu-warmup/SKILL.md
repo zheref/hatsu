@@ -734,12 +734,37 @@ printf "'%s'\n" "$(printf '%s' "$hatsu_root" | sed "s/'/'\\\\''/g")"   # same fo
   own registry, `claude plugin list --json` → `installPath` (verified live); that is a way to produce
   the handed path, not a step this loop takes, and neither other surface has a registry to ask.
 
-**There is no bootstrap on these two surfaces, and that is stated rather than implied.** A plugin loader is
-what would fetch Hatsu; neither surface has one, so the **first** install is a human act — clone
-`zheref/hatsu` on the host and export `HATSU_PLUGIN_ROOT=<that checkout>`. What this section automates is
-the *refresh*, every session, from a root that already exists. **A warm-up that cannot find the root reports
-`NOT INSTALLED` and stops** — the § 4 discipline, unchanged: a warm-up that did not run is reported as not
-run, never rendered as clear.
+**The checkout is obtained on these two surfaces, and discovery is bootstrapped once.** A plugin loader is
+what would fetch and register Hatsu; neither surface has one, so the **first** install is a human act — clone
+`zheref/hatsu` on the host and export `HATSU_PLUGIN_ROOT=<that checkout>`. That variable locates the
+checkout; it cannot make this skill visible. Before the first `$hatsu-warmup` or `/hatsu-warmup`, the user
+runs the non-skill bootstrap from the target repository:
+
+```sh
+"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface <codex|cursor> --target . --bootstrap
+```
+
+It places **only** the generated `hatsu-warmup` directory in the host's documented discovery path, through
+the same ownership, collision, tracked-file and `info/exclude` safeguards as the complete refresh below.
+Once the host has reopened the target and discovered the skill, this section refreshes the whole surface.
+**A bootstrap or warm-up that cannot find its source reports `NOT INSTALLED` and stops** — the § 4
+discipline, unchanged: a step that did not run is never rendered as clear.
+
+### 5 · refresh — one checked installer for both surfaces
+
+The discovered warm-up does not replay a fragile prose loop. It runs the installer from the root resolved
+above; `--install-all` makes the complete generated surface current while retaining the § 5a–5c rules:
+
+```sh
+hatsu_root='<the absolute path § 0 printed>'
+target="$(git rev-parse --show-toplevel)"
+surface='<codex or cursor — the host running this warm-up>'
+"$hatsu_root/scripts/surface_bootstrap.sh" --surface "$surface" --target "$target" --install-all
+```
+
+The bootstrap itself is the sole pre-skill shell carve-out. After discovery this script is the deterministic
+implementation of the existing mirror placement policy, not a replacement for the Nen-owned parts of this
+warm-up.
 
 ### 5a · Codex
 
@@ -758,19 +783,8 @@ symlink install therefore tells the reader to type one thing and shows the surfa
 a second trap with it: through a symlink the mirror's own `../../../nen/workflow.json` resolves into the
 **plugin's** policy file rather than the target's (§ 5d, F10). The copy fixes both.
 
-```sh
-hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): the line § 0 printed AFTER its label — the quoted literal alone — pasted in place of '<…>', quotes included; a variable from another shell is not here
-mkdir -p "$target/.agents/skills"
-for d in "$hatsu_root"/surfaces/codex/*/; do
-  name=$(basename "$d"); dest="$target/.agents/skills/$name"
-  # § 5c's rule: a destination this skill did not make is left alone and named.
-  if { [ -e "$dest" ] || [ -L "$dest" ]; } && ! ours "$dest"; then
-    kept="$kept $name"; continue
-  fi
-  rm -rf "$dest"
-  cp -R "$d" "$dest"
-done
-```
+The refresh command above uses `cp -R` for every generated Codex skill directory; it does not use
+symlinks.
 
 > **A copy is not self-healing, so the re-copy is what heals it — and that is why the loop is
 > unconditional.** `rm -rf` then `cp -R`, every session, for every mirrored directory: this skill already
@@ -1012,13 +1026,14 @@ a Claude, a GPT — is not a better choice made locally; it is a different budge
 
 ### 5e · Residue in this section
 
-1. **Placing the mirror has no verb.** `nen surface mirror generate` writes a mirror into a directory it is
-   given; **it does not install one into a target repository**, and it is not expected to — `--out` is a
-   path, not a deployment. The `rm -rf` / `cp -R` loop above (and Cursor's `ln -sfn`) is named residue,
-   done by hand, in the open. **`nen surface mirror check` does not check an installed copy either** — it
-   diffs this repository's `surfaces/` against a fresh generation of `claude/skills/`, which is a different
-   question from "is the copy in that target current". The re-copy every session is the answer to the
-   second question, and it is a discipline rather than a check
+1. **Placing the mirror has no Nen verb.** `nen surface mirror generate` writes a mirror into a directory it
+   is given; **it does not install one into a target repository**, and it is not expected to — `--out` is a
+   path, not a deployment. `scripts/surface_bootstrap.sh` is the checked, narrow implementation of that
+   remaining placement policy: it is the only first-run shell carve-out and the warm-up calls it for the
+   complete refresh. **`nen surface mirror check` does not check an installed copy either** — it diffs this
+   repository's `surfaces/` against a fresh generation of `claude/skills/`, which is a different question
+   from "is the copy in that target current". The re-copy every session is the answer to the second
+   question, and it is a discipline rather than a check
    ([`scripts/surface_mirror_check.sh`](../../../scripts/surface_mirror_check.sh) is the first).
 2. **Composing `AGENTS.override.md` has no verb either.** The generator writes a *whole* `AGENTS.md` for
    the surface; concatenating the target's own document with it under the marker block is this skill's own

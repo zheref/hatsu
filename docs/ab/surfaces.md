@@ -26,6 +26,46 @@ Hatsu is authored once, under `claude/skills/` and `claude/agents/`, and *genera
 surfaces. This file is the evidence that the generation, the drift check and the claims about each surface
 were performed rather than described: the exact commands, their exact output, and their exit codes.
 
+### 1.1 First-run bootstrap — issue #46
+
+The old install wording made an environment variable do two incompatible jobs: identify Hatsu's checkout
+and make a skill discoverable. The first is real; the second is not. `scripts/surface_bootstrap.sh` is the
+one non-skill step between them. It seeds only `hatsu-warmup`; after that skill is discovered, its ordinary
+refresh calls the script's `--install-all` mode.
+
+The executable fixture check creates empty Git repositories for both hosts, runs the documented bootstrap,
+checks the one discovery-path `SKILL.md`, performs the complete refresh twice, and verifies a collision and
+a tracked path remain untouched:
+
+```text
+$ scripts/surface_bootstrap_fixture_check.sh
+surface bootstrap: codex bootstrap — installed 1
+surface bootstrap: codex install-all — installed 40
+surface bootstrap: cursor bootstrap — installed 1
+surface bootstrap: cursor install-all — installed 47
+surface bootstrap: codex bootstrap — installed 0; kept existing hatsu-warmup
+surface bootstrap: cursor bootstrap — installed 0; kept existing hatsu-warmup
+surface-bootstrap-fixture: Codex and Cursor first-run bootstrap checks passed
+```
+
+**exit `0`.** The fixture uses the documented discovery paths rather than pretending it can invoke an LLM:
+Codex receives `.agents/skills/hatsu-warmup/SKILL.md` as a copy; Cursor receives
+`.cursor/skills/hatsu-warmup` as a link. The former was additionally rendered by Codex's no-model discovery
+probe on this host:
+
+```text
+$ cd <fresh-codex-fixture> && codex debug prompt-input "inspect first-run Hatsu discovery"
+### Skill roots
+- r9 = <fresh-codex-fixture>/.agents/skills
+### Available skills
+- hatsu-warmup: Satisfy Hatsu's hard Nen dependency … (file: r9/hatsu-warmup/SKILL.md)
+```
+
+That is the host's own inventory, not a model self-report. Cursor has no equivalent no-model inventory, so
+the fixture makes the stronger check available there: its exact documented link exists, resolves to the
+generated Cursor mirror, and retains the frontmatter name `hatsu-warmup`; Cursor's version floor and live
+discovery evidence remain in § 8.
+
 ---
 
 ## 2. The verb, exercised live
@@ -1266,4 +1306,3 @@ The reader still agrees with itself on the thirty-five manifests of § 9.15 and 
 manifest as `hatsu`; `pr-state` § 2 with the printed line pasted still reports `identities` under the
 hostile path. Both mirrors regenerate clean, the fenced-block check reports zero, the plugin validates.
 **Still not verified:** a Codex or Cursor session.
-

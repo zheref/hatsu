@@ -108,6 +108,14 @@ fi
 #                       covers: this row is what makes a regeneration-only
 #                       commit (a mirror re-run with no source edit) bump the
 #                       version too.
+#   scripts/surface_bootstrap.sh
+#                     — the one non-skill first-run installer for Codex and
+#                       Cursor. It is invoked from an installed checkout before
+#                       hatsu-warmup can be discovered, then by that warm-up for
+#                       each complete surface refresh. A stale installed copy
+#                       recreates the first-run failure this guard exists to
+#                       prevent, so this one runtime script is covered; the
+#                       fixture check beside it is test-only and is not.
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #
@@ -128,6 +136,7 @@ PLUGIN_SURFACE_GLOBS=(
   'hooks/*'
   'templates/*'
   'surfaces/*'
+  'scripts/surface_bootstrap.sh'
   '.mcp.json'
 )
 
@@ -247,7 +256,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 This PR changes a plugin-shipped surface (.claude-plugin/**, claude/**,
 nen/**, contracts/**, docs/ROSTER.md,
 docs/delegation-grammar-DRAFT.md, hooks/**, templates/**, surfaces/**,
-or .mcp.json)
+scripts/surface_bootstrap.sh, or .mcp.json)
 but leaves
 .claude-plugin/plugin.json's `version` field unchanged.
 

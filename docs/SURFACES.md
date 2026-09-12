@@ -18,7 +18,7 @@ is adding a row there, not a branch here.**
 
 | | **Claude Code** | **Codex** | **Cursor** |
 |---|---|---|---|
-| how Hatsu arrives | **installed as a plugin** — `claude plugin install hatsu@hatsu` | **copied into the target repository** by the warm-up, every session | **placed into the target repository** by the warm-up |
+| how Hatsu arrives | **installed as a plugin** — `claude plugin install hatsu@hatsu` | the bootstrap first copies `hatsu-warmup`; the discovered warm-up refreshes the target every session | the bootstrap first links `hatsu-warmup`; the discovered warm-up refreshes the target every session |
 | skills read from | `$CLAUDE_PLUGIN_ROOT/claude/skills/<name>/SKILL.md` (`plugin.json` → `skills`) | `<repo>/.agents/skills/<name>/SKILL.md` | `<repo>/.cursor/skills/<name>/SKILL.md` |
 | personas read from | `claude/agents/<persona>.md` (`plugin.json` → `agents`) | `<repo>/AGENTS.override.md`, **as prose** — an **untracked** file that *replaces* the target's own `AGENTS.md` in the envelope, so the target's `AGENTS.md` is copied into it verbatim first. No per-persona file exists on this surface | `<repo>/.cursor/agents/<persona>.md` — one markdown subagent file each |
 | invocation spelling | **`hatsu:<name>`** | **`$<name>`** — and see *What Codex advertises* below: the install mechanism decides whether the name it lists is bare or namespaced | **`/<name>`** |
@@ -32,6 +32,31 @@ is adding a row there, not a branch here.**
 The two consequences that are not cosmetic have their own homes:
 [`claude/skills/jutaisho/SKILL.md`](../claude/skills/jutaisho/SKILL.md) § 6 for the missing `Stop` hook, and
 [`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 9a for the missing subagent.
+
+### First-run discovery is a bootstrap, not an environment variable
+
+`HATSU_PLUGIN_ROOT` names an already-obtained checkout. It cannot make an undiscovered skill callable, so
+Codex and Cursor need one explicit command before their first `$hatsu-warmup` or `/hatsu-warmup`:
+
+```sh
+# Run from the target Git repository after cloning Hatsu and exporting HATSU_PLUGIN_ROOT.
+"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface codex  --target . --bootstrap
+"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface cursor --target . --bootstrap
+```
+
+The command seeds **only** `hatsu-warmup` in the host's discovery directory: Codex receives a copy at
+`.agents/skills/hatsu-warmup/`; Cursor receives a symlink at `.cursor/skills/hatsu-warmup/`. Restart or
+open the host in the target repository, then invoke that now-discoverable skill. Its every-session refresh
+calls the same bootstrap with `--install-all` to place the complete generated surface.
+
+Both modes preserve the warm-up's existing rules: a tracked destination or one not made by Hatsu is left
+untouched; paths Hatsu creates are recorded only in Git's `info/exclude`; `.gitignore` is never edited.
+The executable fixture check starts two empty Git repositories, proves the seed is at each discovery path,
+then performs the full refresh, idempotence pass, collision check and tracked-file check:
+
+```sh
+scripts/surface_bootstrap_fixture_check.sh
+```
 
 > **A persona on Codex is prose, and prose does not win an identity argument with the host.** On Claude
 > Code a persona is a distinct agent object with its own file; on Codex it is one block inside an
