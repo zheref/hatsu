@@ -571,6 +571,12 @@ therefore launch nothing at all.
 
 ## How you work — across all six modes
 
+**Current attribution ruling (2026-09-12, superseding the dated provenance-trailer prose in this
+section):** put no agent, plane, runtime alias, or model attribution in a prospective commit
+message. The final `## Agent attribution` PR-body section records only actual participants with
+canonical persona, contribution, and evidence; see
+[`docs/AGENT-ATTRIBUTION.md`](../../docs/AGENT-ATTRIBUTION.md). Existing history is unchanged.
+
 - **Every change ships as a PR** — never a silent edit, never a push to `main`. Conventional Commits,
   `--no-verify` never, force-push never. The git author stays the **human**. State your identity via the
   header stanza at the top of the PR body and a **`Hatsu-Agent: kurapika`** trailer. **There is no

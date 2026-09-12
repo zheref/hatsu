@@ -5,12 +5,10 @@ credentials, **no GitHub App, no CI workflow, no bot identity**. It succeeds the
 (`CON-2`) — where that was one persona holding four natures, this is a lead persona holding six declared
 work-modes, plus a small set of independents with disciplines of their own.
 
-**A commit made by anyone here carries a `Hatsu-Agent: <name>` trailer and no `Akatsuki-Run:` trailer** —
-the local variant, because there is no CI run to name. `Akatsuki-Agent: <name>` is the **other plane's**
-key, written by an Akatsuki roster agent in CI and never by anyone here (§ *Rulings of 2026-09-10*, *Two
-provenance trailers*). Stated of the commit rather than of the agent, because **Illumi writes none** — he
-is read-only, and a rule phrased as *every agent carries* would contradict his own definition. The git
-author is always the human.
+**Maintainer ruling, 2026-09-12: prospective commits carry no agent, plane, runtime-name, or model
+attribution.** The git author is always the human. Every PR instead ends with the actual-participant
+ledger defined in [`AGENT-ATTRIBUTION.md`](AGENT-ATTRIBUTION.md). This supersedes the dated
+provenance-trailer wording below; historical commits and dated transcripts remain unchanged.
 
 **This file is the authority on who exists and what standing they have.** The agent definitions in
 `claude/agents/` are the authority on what each one does.
@@ -231,9 +229,9 @@ inventing one would put two names on one phase, which is the failure this ruling
 gate) and `OPEN-3` are untouched. No agent definition changes at `v0.6.0`, and no new independent is
 activated by it.
 
-### Two provenance trailers, one per plane — the attribution ruling, refined
+### Historical: two provenance trailers, one per plane — superseded
 
-**Ruled 2026-09-10, after the CI plane landed.** The ruling of 2026-09-09 (§ *Rulings of 2026-09-09*, 2)
+**Ruled 2026-09-10, superseded for prospective commits on 2026-09-12.** The ruling of 2026-09-09 (§ *Rulings of 2026-09-09*, 2)
 admitted exactly one key, at a moment when only one plane existed to write it. Two do now, and the
 maintainer's words are the rule:
 

@@ -69,7 +69,7 @@ points at [`/jujisho`](../jujisho/SKILL.md), which is the split-shaped verb, and
 | Key | File | Used for | Default when the key (or the file) is absent |
 |---|---|---|---|
 | `branch.base` | `nen/workflow.json` | the PR's base, and the `origin/<base>...HEAD` range every section is computed over — **the remote ref, after a fetch, never the local branch** (below) | `main` |
-| `commits.allowedAttributionTrailers` | `nen/workflow.json` | read only to **state** what the commits carry — a local commit carries `Hatsu-Agent`, the CI plane's carries `Akatsuki-Agent`; shibari writes no commit | `["Hatsu-Agent", "Akatsuki-Agent"]` |
+| `commits.allowedAttributionTrailers` | `nen/workflow.json` | confirms prospective commits carry no attribution trailer; shibari records actual participants in the PR body's final section | `[]` |
 | `coverage.minimum` / `.recommended` / `.ideal` | `nen/workflow.json` | the band the checklist's coverage line reports against — [`/gyo`](../gyo/SKILL.md) measured it, this body quotes it | `80` / `85` / `90` |
 | `project.evidence.globs` | `nen/contract.json` | which changed artifacts are visual evidence | none — **no globs is the no-evidence case**, stated in the body |
 | `project.evidence.scene` | `nen/contract.json` | the template that turns a path into a suite-and-scene pair | `{suite}-{scene}` |
@@ -136,6 +136,16 @@ GitHub's supported Development linking interface and verify the resulting links.
 Nen link verb or assume `Part of #N` creates a Development link. Where the current API cannot
 perform or inspect the link, use the supported UI and record the observed result; unavailable
 permissions or platform limits remain an explicit handover blocker.
+
+### Agent attribution — final PR-body section
+
+The PR body ends with `## Agent attribution`, following
+[`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md). It is a participant ledger, not
+a commit trailer: list every and only agents who actually participated, with canonical Hatsu
+persona, role/contribution, and reviewable evidence. Add runtime alias/display name and model only
+as optional context; neither replaces the canonical persona. Never infer a contributor from the
+branch, a default coordinator persona, a reviewer request, or a model label. Do not emit
+`Co-Authored-By` or any agent/model attribution in a commit message.
 
 **Linking and completion are different claims, but GitHub can couple their effects.** Development
 links normally auto-close issues when the PR merges into the default branch. Do not mislabel partial

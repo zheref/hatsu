@@ -34,9 +34,10 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 > fifth is **the merge**, which has none because no agent performs it.
 > **`v0.7.0` adds no skill and adds two surfaces**: the same thirty-eight skills and eight personas,
 > generated into Codex and Cursor layouts under [`surfaces/`](surfaces/) — see [*Surfaces*](#surfaces).
-> **`v0.8.0` adds no skill either, and splits provenance in two**: `Hatsu-Agent:` is what a local session
-> writes, `Akatsuki-Agent:` is the autonomous CI plane's key and nothing here writes it — the maintainer's
-> ruling of 2026-09-10. [`docs/WORKFLOW.md`](docs/WORKFLOW.md) is the authority on all of it.
+> **Attribution ruling, 2026-09-12:** prospective commit messages carry no agent, plane, runtime-name, or
+> model attribution. The final `## Agent attribution` PR-body section records actual participants with
+> canonical persona, contribution, and evidence; [`docs/AGENT-ATTRIBUTION.md`](docs/AGENT-ATTRIBUTION.md)
+> is the shape. [`docs/WORKFLOW.md`](docs/WORKFLOW.md) is the authority.
 
 ---
 
@@ -472,10 +473,10 @@ memory. Reporting that is the correct outcome; substituting a hand-rolled equiva
 ## The roster
 
 [`docs/ROSTER.md`](docs/ROSTER.md) is the authority on who exists and what standing they have; the agent
-definitions in [`claude/agents/`](claude/agents/) are the authority on what each one does. Every agent
-that writes a commit signs it `Hatsu-Agent: <name>`, with no run trailer — there is no CI run to name
-(Illumi writes none: he is read-only). `Akatsuki-Agent: <name>` is the **other plane's** key, written by an
-Akatsuki roster agent in CI and never by anyone here. **The git author is always the human.**
+definitions in [`claude/agents/`](claude/agents/) are the authority on what each one does. Commit messages
+carry no agent or model attribution. The final [`## Agent attribution`](docs/AGENT-ATTRIBUTION.md) PR-body
+section names each actual participant's canonical persona, contribution, and evidence. **The git author is
+always the human.**
 
 ### Kurapika — the lead persona
 

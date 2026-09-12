@@ -88,6 +88,9 @@ fi
 #                     — the launch/extraction transition and current release
 #                       boundary linked by launch skills. A stale copy can
 #                       suggest an unsupported migration or release state.
+#   docs/AGENT-ATTRIBUTION.md
+#                     — the PR-body participant ledger canon linked by commit
+#                       and PR skills. A stale copy can misstate who acted.
 #   hooks/*           — the harness hooks, discovered by Claude Code at the
 #                       plugin's default `hooks/hooks.json` and executed on
 #                       EVERY session: a Stop bell and a PreToolUse refusal to
@@ -147,6 +150,7 @@ PLUGIN_SURFACE_GLOBS=(
   'docs/WORKFLOW.md'
   'docs/DISCOVERY.md'
   'docs/LAUNCH-MIGRATION.md'
+  'docs/AGENT-ATTRIBUTION.md'
   'hooks/*'
   'templates/*'
   'surfaces/*'
@@ -270,7 +274,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 This PR changes a plugin-shipped surface (.claude-plugin/**, claude/**,
 nen/**, contracts/**, docs/ROSTER.md,
 docs/delegation-grammar-DRAFT.md, docs/WORKFLOW.md, docs/DISCOVERY.md,
-docs/LAUNCH-MIGRATION.md, hooks/**, templates/**, surfaces/**,
+docs/LAUNCH-MIGRATION.md, docs/AGENT-ATTRIBUTION.md, hooks/**, templates/**, surfaces/**,
 scripts/surface_bootstrap.sh, or .mcp.json)
 but leaves
 .claude-plugin/plugin.json's `version` field unchanged.
