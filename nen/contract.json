@@ -166,13 +166,6 @@
         "versionFrom": "first-semver-on-stdout",
         "installer": "verify-only",
         "why": "Claude Code is both the host that loads this plugin and the program the `lint` verb spawns. It is verify-only on purpose: nen never installs the harness it is running inside, and the install path is the user's own (claude.com/claude-code)."
-      },
-      "jq": {
-        "version": ">=1.6.0",
-        "probe": ["jq", "--version"],
-        "versionFrom": "first-semver-on-stdout",
-        "installer": "verify-only",
-        "why": "scripts/plugin_bump_check.sh uses jq to read the two manifest versions, and the focused plugin-bump-guard lane runs that script. The fixture therefore requires jq on its declared Darwin/Linux hosts; Hatsu does not install host tools."
       }
     }
   },
