@@ -12,7 +12,7 @@
 # exercised offline; the recorded transcripts are in `docs/ab/surfaces.md`.
 #
 # The two hardening choices are `plugin-bump-check.yml`'s, deliberately identical:
-#   1. The guard script is checked out from trusted `main` and never run from the
+#   1. The guard script is checked out from the trusted event base and never run from the
 #      PR — a PR that can rewrite the guard judging it makes the guard worth
 #      nothing. It is handed the PR's checkout as its ROOT ARGUMENT, so trusted
 #      code judges untrusted data rather than the other way round.
@@ -47,7 +47,7 @@
 name: surface-mirror-check
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
 
 concurrency:
@@ -55,23 +55,37 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  checks: write
   contents: read
 
 jobs:
   surface-mirror-check:
-    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: [self-hosted, macOS, ARM64]
     timeout-minutes: 10
     steps:
+      - name: Start check on the exact PR head
+        id: head_check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          id="$(gh api --method POST "repos/${REPO}/check-runs" -f name=surface-mirror-check -f head_sha="$HEAD_SHA" -f status=in_progress --jq .id)"
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
       - name: Checkout PR head (data only — nothing from here is executed)
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
-      - name: Checkout the guard script from trusted main (never from the PR)
+      - name: Checkout the guard script from trusted base (never from the PR)
         uses: actions/checkout@v7
         with:
-          ref: main
+          ref: ${{ github.event.pull_request.base.sha }}
           path: .trusted
           persist-credentials: false
 
@@ -173,17 +187,10 @@ jobs:
         shell: bash
         run: |
           set -uo pipefail
-          # BOOTSTRAP: scripts/surface_mirror_check.sh does not exist on `main`
-          # until this change itself merges, so until then there is no trusted
-          # copy to run. Fall back loudly, exactly as plugin-bump-check.yml does
-          # for its own first landing; `-f` (present and readable) because the
-          # invocation is `bash "$guard"`.
-          if [ -f .trusted/scripts/surface_mirror_check.sh ]; then
-            guard=.trusted/scripts/surface_mirror_check.sh
-          else
-            echo "::warning::scripts/surface_mirror_check.sh not found on trusted main — running the PR's own copy (bootstrap only). This path disappears once this change merges."
-            guard=scripts/surface_mirror_check.sh
-          fi
+          # Missing trusted code is a configuration failure. Never fall back to
+          # a PR-controlled guard in this privileged event context.
+          guard=.trusted/scripts/surface_mirror_check.sh
+          [ -f "$guard" ] || { echo "::error::trusted base has no scripts/surface_mirror_check.sh"; exit 1; }
           echo "guard script: $guard"
 
           # The PR checkout is the ROOT the trusted guard judges.
@@ -221,3 +228,20 @@ jobs:
               exit "$code"
               ;;
           esac
+
+      - name: Finish check on the exact PR head
+        if: ${{ always() && steps.head_check.outputs.id != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          CHECK_ID: ${{ steps.head_check.outputs.id }}
+          JOB_STATUS: ${{ job.status }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$JOB_STATUS" in
+            success) conclusion=success ;;
+            cancelled) conclusion=cancelled ;;
+            *) conclusion=failure ;;
+          esac
+          gh api --method PATCH "repos/${REPO}/check-runs/${CHECK_ID}" -f status=completed -f conclusion="$conclusion" >/dev/null
