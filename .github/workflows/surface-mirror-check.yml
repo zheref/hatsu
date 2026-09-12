@@ -89,6 +89,12 @@ jobs:
           path: .trusted
           persist-credentials: false
 
+      - name: Enforce workflow runner policy from trusted workflow revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          ruby .trusted/scripts/workflow_runner_policy_check.rb --self-test "$PWD"
+
       - name: Assert the guard script keeps its exec bit in-tree
         # Same assertion, same reason, as plugin-bump-check.yml's: Hatsu has no
         # bats harness, and a committed-100644 guard is the failure that made
@@ -107,7 +113,9 @@ jobs:
           fi
           echo "scripts/surface_mirror_check.sh: $mode (exec bit present)"
 
-      - name: Read the pinned nen ref from nen/contract.json
+      - name: Read the pinned nen ref from trusted nen/contract.json
+        # The trusted workflow revision's contract is the source for executable
+        # tooling in this privileged job. The PR copy remains input data only.
         # nen/contract.json is the SINGLE SOURCE OF TRUTH for the nen dependency
         # (its own `authority` clause). It is read here, never echoed from
         # memory. `jq` is fine on this path: the contract's `no_jq` rule is about
@@ -115,20 +123,14 @@ jobs:
         # spawning a parser to hand values back to itself — and a CI runner is
         # not that reader.
         #
-        # AND IT IS PULL-REQUEST DATA, SO IT IS VALIDATED HERE, ONCE, BEFORE ANY
-        # LATER STEP CAN SEE IT. `nen/contract.json` comes from the PR's own
-        # checkout, which means `dependency.pinned_ref` is a string an author
-        # chooses. Everything downstream — a shell assignment, a URL, a
-        # `::notice::` — treats it as trusted after this gate, so the gate is the
-        # only place it has to hold: a git ref shape and nothing else. A value
-        # carrying a quote could otherwise close a shell assignment, and one
-        # carrying a newline could forge a `::error::` workflow command out of an
-        # echoed notice. Neither survives this pattern.
+        # It is trusted workflow data, but still shape-checked before it reaches
+        # a URL or shell output. That keeps this boundary explicit and catches a
+        # malformed canonical contract without executing anything from the PR.
         id: pin
         shell: bash
         run: |
           set -euo pipefail
-          ref="$(jq -r '.dependency.pinned_ref // empty' nen/contract.json)"
+          ref="$(jq -r '.dependency.pinned_ref // empty' .trusted/nen/contract.json)"
           [ -n "$ref" ] || { echo "::error::nen/contract.json carries no dependency.pinned_ref."; exit 1; }
           # A tag or branch name: alphanumeric start, then alphanumerics and the
           # four punctuation characters git refs actually use. No quote, no
@@ -150,7 +152,7 @@ jobs:
           echo "ref=$ref" >> "$GITHUB_OUTPUT"
           echo "pinned nen ref: $ref"
 
-      - name: Bootstrap nen at the pinned ref (checksum-verified, two steps, never a pipe)
+      - name: Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)
         # The contract's own install path: fetch bootstrap/nen.sh at the pinned
         # ref TO A FILE, then run that file. Never `curl | bash` — the script
         # reads ${BASH_SOURCE[0]} under `set -u` and dies before parsing its own
