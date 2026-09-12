@@ -34,9 +34,11 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 > fifth is **the merge**, which has none because no agent performs it.
 > **`v0.7.0` adds no skill and adds two surfaces**: the same thirty-eight skills and eight personas,
 > generated into Codex and Cursor layouts under [`surfaces/`](surfaces/) — see [*Surfaces*](#surfaces).
-> **`v0.8.0` adds no skill either, and splits provenance in two**: `Hatsu-Agent:` is what a local session
-> writes, `Akatsuki-Agent:` is the autonomous CI plane's key and nothing here writes it — the maintainer's
-> ruling of 2026-09-10. [`docs/WORKFLOW.md`](docs/WORKFLOW.md) is the authority on all of it.
+> **Attribution ruling, 2026-09-12:** prospective commits carry the truthful canonical
+> `Hatsu-Agent` or `Akatsuki-Agent` persona/plane trailer. They never carry model, surface, runtime, or
+> session attribution. The final `## Agent attribution` PR-body section records actual participants with
+> canonical persona, contribution, and evidence; [`docs/AGENT-ATTRIBUTION.md`](docs/AGENT-ATTRIBUTION.md)
+> is the shape. [`docs/WORKFLOW.md`](docs/WORKFLOW.md) is the authority.
 
 ---
 
@@ -372,7 +374,7 @@ nen's own shape (`dependency.version_probe` as an argv array, `dependency.bootst
 
 ```sh
 nen schema check --repo <this checkout>
-#   ok    nen/contract.json  dependency (nen >= 0.9, pinned v0.9.0), project (2 lanes: plugin, plugin-bump-guard; 11 verbs; 1 toolchain entry)
+#   ok    nen/contract.json  dependency (nen >= 0.10, pinned v0.10.0), project (2 lanes: plugin, plugin-bump-guard; 11 verbs; 1 toolchain entry)
 #   ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off 'main', checks: lint
 ```
 
@@ -397,9 +399,10 @@ FAIL by pointer — and [`docs/WORKFLOW.md`](docs/WORKFLOW.md) documents both.
 
 ### The range
 
-*Current pin, echoed for convenience:* **`nen >= 0.9`**, with the bootstrap installing **`v0.9.0`**. Those
-are two values and they move independently. Hatsu adopts `device.extract`, introduced in v0.9.0;
-this feature requirement raises its minimum even though Nen's compatibility floor remains 0.7.
+*Current pin, echoed for convenience:* **`nen >= 0.10`**, with the bootstrap installing **`v0.10.0`**.
+Those are two values and they move independently. Hatsu adopts `approval_policy: review-round-only`,
+introduced in v0.10.0; this feature requirement raises its minimum even though Nen's compatibility
+floor remains 0.7.
 
 **The range is nen's answer, not this README's arithmetic — and not the warm-up's either.** The binary
 ships `COMPATIBLE_MINOR_FLOOR` (`src/version.ts`), the lowest `minimum` pin that build satisfies, and
@@ -435,7 +438,8 @@ instead of the process's directory; a missing or malformed `--target` exits `2` 
 sixteen verbs, and so does an unreadable caller-named input on `split verify`, `changelog` and
 `canon mirror check`; and `nen pr ready` **reads** `nen/gates.json`'s `dependabot_carve_out`, so an
 unchanged file can turn a `not-ready` into a `ready`. That explains the original `0.7` minimum. A minimum also moves when Hatsu adopts a new capability:
-`device.extract` now requires `0.9`. Breaking changes remain the other reason to raise it.
+`device.extract` requires `0.9`; the explicit `review-round-only` approval policy raises the current
+minimum to `0.10`. Breaking changes remain the other reason to raise it.
 `pinned_ref` may move on
 its own to a newer release inside the range, which is exactly what `v0.7.0` → `v0.8.0` was. The familiar
 "compatible within a major" reading applies from **`1.0` onward**, and the contract is bumped to say so
@@ -474,10 +478,11 @@ memory. Reporting that is the correct outcome; substituting a hand-rolled equiva
 ## The roster
 
 [`docs/ROSTER.md`](docs/ROSTER.md) is the authority on who exists and what standing they have; the agent
-definitions in [`claude/agents/`](claude/agents/) are the authority on what each one does. Every agent
-that writes a commit signs it `Hatsu-Agent: <name>`, with no run trailer — there is no CI run to name
-(Illumi writes none: he is read-only). `Akatsuki-Agent: <name>` is the **other plane's** key, written by an
-Akatsuki roster agent in CI and never by anyone here. **The git author is always the human.**
+definitions in [`claude/agents/`](claude/agents/) are the authority on what each one does. Commit messages
+carry the truthful canonical `Hatsu-Agent` or `Akatsuki-Agent` trailer, never model, surface, runtime, or
+session attribution. The final [`## Agent attribution`](docs/AGENT-ATTRIBUTION.md) PR-body section names
+each actual participant's canonical persona, contribution, and evidence. Author and committer metadata
+remain the configured identity of the actor.
 
 ### Kurapika — the lead persona
 

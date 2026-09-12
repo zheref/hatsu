@@ -82,10 +82,10 @@ hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): 
 nen schema check --repo "$hatsu_root"
 ```
 
-Verified live at nen `0.9.0` against this branch: the `nen/contract.json` row prints
-`ok    nen/contract.json  dependency (nen >= 0.9, pinned v0.9.0), project (2 lanes: plugin, plugin-bump-guard; 11 verbs; 1 toolchain entry)`
+Verified live at nen `0.10.0` against this branch: the `nen/contract.json` row prints
+`ok    nen/contract.json  dependency (nen >= 0.10, pinned v0.10.0), project (2 lanes: plugin, plugin-bump-guard; 11 verbs; 1 toolchain entry)`
 — the minimum and the pin nen parsed are the ones you just read, and they are **two independent values**:
-`>= 0.9` is the capability minimum this repository declares, `v0.9.0` is the build its bootstrap installs, and § 1b's
+`>= 0.10` is the capability minimum this repository declares, `v0.10.0` is the build its bootstrap installs, and § 1b's
 floor rule is why the second may move without the first. A drift between them and this file's prose is a
 bug in the prose. On this checkout, five schema rows pass and `nen/colors.yml` is absent, so the
 aggregate command exits `1`. Labels, repositories and reviewer identities are declared; the missing
@@ -229,15 +229,15 @@ floor of `0.7`:
 | `0.7` | `0.7.0` | `0.7` | `>=0.7.0 <0.8.0` — **ok** | § 4 |
 | `0.7` | `0.8.0` | `0.7` | `>=0.7.0 <0.9.0` — **ok** | § 4. **No repin.** `v0.8.0` declared no breaking notes and kept the floor, so the pin already written still holds |
 | `0.6` | `0.7.0` | `0.7` | `>=0.6.0 <0.7.0` — **below the floor**, exit `5` | § 2b, and the row names the repin: `"0.6"` → `"0.7"` in the contract |
-| `0.9` | `0.8.0` | `0.7` | `>=0.9.0 <0.10.0` — the binary is **older than the pin**, exit `5` | § 2b: install `pinned_ref` |
+| `0.10` | `0.8.0` | `0.7` | `>=0.10.0 <0.11.0` — the binary is **older than the pin**, exit `5` | § 2b: install `pinned_ref` |
 | `1.4` | any | — | `>=1.4.0 <2.0.0` | above major zero the floor is not consulted at all; nothing here applies |
 
 **Both directions stay fail-closed, and neither is negotiable:**
 
 - **A pin's own minor always satisfies it.** The floor only ever *widens* what is accepted. It is a floor
   and never a ceiling.
-- **An older binary never certifies a newer line.** A `0.8.0` asked about a `0.9.0` on the host has no way
-  to know what `0.9.0` broke, so it refuses rather than guessing *compatible* — the fail-**open** read of
+- **An older binary never certifies a newer line.** A `0.8.0` asked about a `0.10.0` on the host has no way
+  to know what `0.10.0` broke, so it refuses rather than guessing *compatible* — the fail-**open** read of
   the one range where compatibility is least guaranteed.
 
 **A pre-release is read differently at each end**, each way round being the fail-closed one for that end:
@@ -289,14 +289,14 @@ against this plugin, reported alongside.
 Both start with the same fetch, and **it is always two steps**:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.9.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
+curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.10.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
 ```
 
 > ### ⚠️ Fetch to a file. **Never pipe the script into bash.**
 >
 > ```bash
 > # WRONG — dies before it starts:
-> curl -fsSL <url> | bash -s -- --ref v0.9.0
+> curl -fsSL <url> | bash -s -- --ref v0.10.0
 > ```
 >
 > The script runs under `set -u` and reads `${BASH_SOURCE[0]}`. Piped into `bash -s --` there is no
@@ -308,7 +308,7 @@ curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.9.0/bootstrap/nen.sh 
 ### 2a · nen is **absent** → run the shell bootstrap directly
 
 ```bash
-bash /tmp/nen-bootstrap.sh --ref v0.9.0
+bash /tmp/nen-bootstrap.sh --ref v0.10.0
 ```
 
 **Why shell is permitted here, and only here.** Chicken-and-egg: `nen bootstrap` is a `nen` subcommand, so
@@ -320,7 +320,7 @@ grounds that this one does.
 ### 2b · nen is **present and does not satisfy the pin** → re-pin through nen's own verb
 
 ```bash
-nen bootstrap --ref v0.9.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
+nen bootstrap --ref v0.10.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
 ```
 
 A working `nen` is on `PATH`, so the chicken-and-egg rationale does not apply and the shell path is **not**
@@ -449,8 +449,8 @@ Print `halt.message_template` from the contract, with the code and its meaning f
 > yourself, then re-invoke:
 >
 > ```
-> curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.9.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
-> bash /tmp/nen-bootstrap.sh --ref v0.9.0
+> curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.10.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
+> bash /tmp/nen-bootstrap.sh --ref v0.10.0
 > ```
 >
 > Two steps, never a pipe: the script reads `${BASH_SOURCE[0]}` under `set -u`, so `curl … | bash` dies
@@ -480,11 +480,11 @@ line carries the floor beside the version**, because the version alone no longer
 owed — that is the whole of what the floor added, and a report that omits it hides the one fact the reader
 would act on:
 
-- `Nen 0.9.0 · floor 0.7 · satisfies >=0.9.0 <0.10.0 · warm-up clear`
-- `Nen 0.8.0 · floor 0.7 · older than the required >=0.9.0 <0.10.0 capability line · re-pinned to v0.9.0 via nen bootstrap (checksum verified) · warm-up clear`
-- `Nen absent · bootstrapped to v0.9.0 (checksum verified) · warm-up clear`
-- `Nen 0.6.0 · floor 0.7 · below the pin (>=0.9.0 <0.10.0) · re-pinned to v0.9.0 via nen bootstrap (checksum verified) · warm-up clear`
-- `Nen 1.0.0 · floor 1.0 · pin "0.9" is BELOW the floor · re-pinned to v0.9.0; nen/contract.json owes a repin to "1.0" · warm-up clear`
+- `Nen 0.10.0 · floor 0.7 · satisfies >=0.10.0 <0.11.0 · warm-up clear`
+- `Nen 0.8.0 · floor 0.7 · older than the required >=0.10.0 <0.11.0 capability line · re-pinned to v0.10.0 via nen bootstrap (checksum verified) · warm-up clear`
+- `Nen absent · bootstrapped to v0.10.0 (checksum verified) · warm-up clear`
+- `Nen 0.6.0 · floor 0.7 · below the pin (>=0.10.0 <0.11.0) · re-pinned to v0.10.0 via nen bootstrap (checksum verified) · warm-up clear`
+- `Nen 1.0.0 · floor 1.0 · pin "0.10" is BELOW the floor · re-pinned to v0.10.0; nen/contract.json owes a repin to "1.0" · warm-up clear`
 - `Nen unavailable · bootstrap failed (exit 6, EXIT_MANIFEST) · HALTED — G5`
 
 **Every value on that line is quoted from `nen shu tools`, never assembled.** The version is the row's

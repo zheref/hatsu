@@ -197,9 +197,9 @@ committed, say so and offer the `.gitignore` line; do not commit it to be tidy.
 ## 4. The commits
 
 ```bash
-nen commit format --type <feat|fix|chore|docs|refactor|test|perf|build|ci> \
+nen commit format --repo <path> --type <feat|fix|chore|docs|refactor|test|perf|build|ci> \
   --subject "<short imperative subject>" [--scope <scope>] [--breaking] \
-  [--body "<paragraph>"] [--trailer "Hatsu-Agent=kurapika"]
+  [--body "<paragraph>"] [--trailer "Hatsu-Agent=<responsible-persona>"]
 ```
 
 Conventional Commits, one commit per coherent step where the work has steps. Validates **shape**
@@ -207,7 +207,7 @@ only (a declared type, a non-empty subject under 72 characters, no trailing punc
 changed and why stays this skill's to write, never `nen`'s. Verified live: a bad type, an empty
 subject, a >72-char header and a trailing-punctuation subject all refuse with a named reason at
 exit `2` (`docs/ab/tensho.md` § 2.3); `--trailer` accepts comma-separated `key=value` pairs, and
-here exactly one pair rides: `Hatsu-Agent=kurapika`.
+here exactly one truthful canonical pair rides: `Hatsu-Agent=<responsible-persona>`.
 
 **TWO PROVENANCE TRAILERS, ONE PER PLANE** (maintainer's ruling, 2026-09-10) — `Hatsu-Agent:` is
 what this plane writes, `Akatsuki-Agent:` belongs to an Akatsuki roster agent on the autonomous CI

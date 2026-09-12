@@ -70,10 +70,10 @@ There are two execution/policy configuration files, and the split is not stylist
 | **Content** | lanes, per-verb argv, preconditions, hosts, deploy targets, launch targets, evidence globs, host toolchain | branch shape, which declared verbs run per iteration, the coverage ladder, reports, notifications, commit trailers, monitor caps, the model matrix |
 | **Executed by** | `nen shu <verb>` — nen spawns exactly what is declared and nothing else | mostly the reader. Two verbs take a slice: `nen commit format --repo` reads `commits.allowedAttributionTrailers`, `nen shu coverage --touched` reads the `coverage` ladder |
 | **Changing it changes** | what runs on this machine | what the roster is willing to do |
-| **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — **both at nen `0.7.0`, the build every fact in this document was verified against** |
+| **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — both at the build `nen/contract.json` pins; dated evidence retains the version it actually exercised |
 
 > **The nen DEPENDENCY is the third block of the first file, and its two version values move
-> independently.** `dependency.minimum` is `0.7` and `dependency.pinned_ref` is `v0.8.0`: the first is the
+> independently.** `dependency.minimum` is `0.10` and `dependency.pinned_ref` is `v0.10.0`: the first is the
 > pin this repository declares, the second is the build its bootstrap installs. **The range `minimum`
 > stands for is nen's answer, not a document's** — the binary ships `COMPATIBLE_MINOR_FLOOR`, the lowest
 > `minimum` pin it satisfies, and `nen shu tools` applies it, prints it as `compat floor:` and carries it
@@ -156,7 +156,7 @@ exit `4` and its seat is quoted, not worked around. Hatsu's own `checks` is `["l
 > |---|---|
 > | **Immediately after a `claude/skills/**` or `claude/agents/**` edit** | regenerate both surfaces (`docs/SURFACES.md` § 3) and commit the result **in the same commit** as the source change |
 > | **Inside `mukai`, before `shibari` opens the PR** | `scripts/surface_mirror_check.sh` — exit `0` to proceed, exit `1` regenerate and amend, exit `2` **stop**: the nen on PATH is not the pinned one, since `v0.5.0` carries the verb |
-> | **On the PR** | [`.github/workflows/surface-mirror-check.yml`](../.github/workflows/surface-mirror-check.yml) — **a real check at the pinned `v0.7.0`**, advisory only until the maintainer requires the context. It skipped with a notice while `dependency.pinned_ref` named a nen with no `surface` verb; that branch is now an error. |
+> | **On the PR** | [`.github/workflows/surface-mirror-check.yml`](../.github/workflows/surface-mirror-check.yml) — **a real check at `nen/contract.json`'s pinned build**, advisory only until the maintainer requires the context. It skipped with a notice while `dependency.pinned_ref` named a nen with no `surface` verb; that branch is now an error. |
 >
 > The script writes nothing and needs no credential, so running it more often costs nothing but the seconds.
 
@@ -269,39 +269,22 @@ value settles it. **`turn` is IN the `nen.workflow/v0.1` shape at the pinned nen
 
 ```json
 "commits": { "allowedAttributionTrailers": ["Hatsu-Agent", "Akatsuki-Agent"],
-             "forbiddenTrailers": ["Co-Authored-By", "Claude-Session", "Signed-off-by"] }
+             "forbiddenTrailers": ["Co-Authored-By", "Claude-Session", "Signed-off-by", "Generated-by", "Generated-with", "Reviewed-by"] }
 ```
 
-**The maintainer's ruling of 2026-09-10: two provenance trailers, one per plane.** The system has two planes
-and each writes its own key:
+**Maintainer ruling, 2026-09-12: canonical persona attribution stays on commits.** A prospective commit
+carries the truthful `Hatsu-Agent` or `Akatsuki-Agent` trailer for its responsible persona or autonomous
+plane. Model, surface, runtime, session, and generated-credit attribution are forbidden. Do not infer a
+persona from a runtime alias or stamp a default persona blindly. Existing commits and dated transcripts
+are historical and are not rewritten.
 
-| Trailer | Written by | Never written by |
-|---|---|---|
-| **`Hatsu-Agent: <persona>`** | a **local** Hatsu session — Kurapika and the independents, on the maintainer's own credentials | the CI plane |
-| **`Akatsuki-Agent: <persona>`** | an **Akatsuki roster agent** on the autonomous CI plane (`zheref/akatsuki-ai`) | any local session |
+The final section of every PR body is also [`## Agent attribution`](AGENT-ATTRIBUTION.md): a ledger
+of each actual participant's canonical Hatsu persona, role/contribution, and evidence. Runtime
+alias/display name and model are not recorded and never replace the canonical persona. Commit
+messages may still carry ordinary non-attribution trailers such as `Closes` where appropriate.
 
-**Hatsu writes `Hatsu-Agent` and refuses to write `Akatsuki-Agent`.** A persona running on this machine is
-not the CI plane; putting that key on a local commit would forge a machine-plane provenance the local plane
-does not have — the same reason there is no `Akatsuki-Run:` trailer here.
-[`kokusen`](../claude/skills/kokusen/SKILL.md) § 5 and § 9 and [`aka`](../claude/skills/aka/SKILL.md) § 4
-and § 9 refuse it exactly as they refuse a `Co-Authored-By`-shaped trailer.
-
-**Both keys are admitted in `allowedAttributionTrailers`, and admitting is not licence to write.** The list
-is what a repository's commit-msg hook and `nen commit format --repo` will *accept*, and both planes commit
-into the same repositories — so one list, holding both keys, lets a CI-made commit pass the very same guard
-that a locally-made one passes. Which key a given session may *write* is the instruction above, carried by
-the skills and the agent definitions, not by this list.
-
-**Neither key is AI attribution, which is why no third one exists.** Each names *the system's own*
-provenance — which agent of which plane did the work — rather than a model claiming authorship of it. No
-`Co-Authored-By:`, no `Claude-Session:`, no `Signed-off-by:`, no "Generated with …" line, no model name
-anywhere in the message. **No other AI attribution trailer is ever recorded.**
-
-This refines the ruling of 2026-09-09, which admitted `Akatsuki-Agent` alone and, before the CI plane
-landed, had the local plane writing it. **Commits already on `main` that carry the old key are not
-rewritten** — they record what was written when they were written. This still supersedes the earlier clause,
-in every agent definition, that treated the harness mandate as binding and left the question to the P3
-constitution.
+[`hatsu:shibari`](../claude/skills/shibari/SKILL.md) owns the PR-body ledger. [`hatsu:kokusen`](../claude/skills/kokusen/SKILL.md)
+and [`hatsu:aka`](../claude/skills/aka/SKILL.md) enforce canonical-only commit attribution.
 
 **Turning the harness's own mandate off is a required setup step, not a configured fact — check it.**
 Claude Code can add `Co-Authored-By: Claude …` to commits it writes, and the setting that stops it is
@@ -1013,12 +996,11 @@ cover Swift behavior, and its all-KroTests apple row cannot substitute for scope
 Do not proliferate permanent lanes per ad hoc selection or copied consumer scripts. The shared
 capability and its consumer adoption remain explicitly pending.
 
-The maintainer named Copilot and `zheref` as the only expected reviewers for Hatsu and Nen on
-2026-09-12. Their `nen/gates.json` files record those identities and reserve approval for `zheref`.
-No third-party reference gate applies. A maintainer-authored PR cannot be given a synthetic
-self-approval by an agent: if GitHub cannot supply the required human review, report that predicate
-unmet and leave the merge decision with the maintainer. Local subagent review is evidence, not a
-GitHub vote.
+The maintainer named Copilot as the sole automated reviewer for Hatsu and Nen on 2026-09-12.
+Their `nen/gates.json` files require Copilot's completed round and explicitly select
+`approval_policy: review-round-only` with no separate approving-review requirement. The maintainer's
+human merge decision remains a separate gate outside Nen's automated readiness verdict. Local
+subagent review is evidence, not a GitHub vote.
 
 
 ### Review-round completion — maintainer ruling, 2026-09-12

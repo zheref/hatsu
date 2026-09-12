@@ -21,6 +21,7 @@ printf '%s\n' 'No opt-out is declared by this focused fixture.' > "$fixture_root
 printf '%s\n' 'docs/DISCOVERY.md' > "$fixture_root/changed-discovery.txt"
 printf '%s\n' 'docs/LAUNCH-MIGRATION.md' > "$fixture_root/changed-launch-migration.txt"
 printf '%s\n' 'docs/WORKFLOW.md' > "$fixture_root/changed-workflow.txt"
+printf '%s\n' 'docs/AGENT-ATTRIBUTION.md' > "$fixture_root/changed-agent-attribution.txt"
 printf '%s\n' 'docs/ab/plugin-bump-guard.md' > "$fixture_root/changed-unrelated.txt"
 
 run_case() {
@@ -47,5 +48,6 @@ run_case() {
 run_case 'DISCOVERY unchanged version' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/head-unchanged.json" 'docs/DISCOVERY.md'
 run_case 'LAUNCH-MIGRATION unchanged version' 1 "$fixture_root/changed-launch-migration.txt" "$fixture_root/head-unchanged.json" 'docs/LAUNCH-MIGRATION.md'
 run_case 'WORKFLOW unchanged version' 1 "$fixture_root/changed-workflow.txt" "$fixture_root/head-unchanged.json" 'docs/WORKFLOW.md'
+run_case 'AGENT-ATTRIBUTION unchanged version' 1 "$fixture_root/changed-agent-attribution.txt" "$fixture_root/head-unchanged.json" 'docs/AGENT-ATTRIBUTION.md'
 run_case 'DISCOVERY bumped version' 0 "$fixture_root/changed-discovery.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
 run_case 'unrelated docs unchanged version' 0 "$fixture_root/changed-unrelated.txt" "$fixture_root/head-unchanged.json" 'no plugin-shipped surface changed'

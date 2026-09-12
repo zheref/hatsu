@@ -194,10 +194,10 @@ never built is a claim, not a result.
 re-proving the declared build"* — so it is written out here rather than left to be inferred:
 
 ```bash
-nen commit format --type chore --scope merge \
+nen commit format --repo <path> --type chore --scope merge \
   --subject "bring origin/<base> into <descriptor>" \
   --body "<one line per conflicted path: kind, and why the resolution was determined>" \
-  --trailer "Hatsu-Agent=kurapika" > <msg-file>             # exit 0 REQUIRED before the next line
+  --trailer "Hatsu-Agent=<responsible-persona>" > <msg-file> # exit 0 REQUIRED before the next line
 git -C <path> commit --file <msg-file>
 ```
 
@@ -217,7 +217,7 @@ because `origin` had not seen the commit (`docs/ab/mukai.md`). The reading is
 
 **RETIRED at nen `0.5`: pass `--repo <path>` and the binary enforces the house rule.** Verified live
 at the pin against this repository: `--trailer "Co-Authored-By=someone"` is refused at exit `2` naming
-the file and the keys it admits, while `--trailer "Hatsu-Agent=kurapika"` renders at exit `0`. The
+the file and the keys it admits, while a truthful `--trailer "Hatsu-Agent=<responsible-persona>"` renders at exit `0`. The
 policy is opened only when the invocation carries a `--trailer`, so **`--repo` is not optional here**:
 without it there is no policy to open and nothing is refused. The caller's own restraint is still the
 layer that survives a forgotten flag.
