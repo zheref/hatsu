@@ -86,12 +86,18 @@ nen shu test --repo <path> --lane <explicit-scoped-lane>
 ```
 
 Its declared `test` argv must itself select the changed behavior. In `full-regression` mode only,
-run every entry of `tests.required`, then `tests.extra` (plus `--extra`), each through its own verb:
+construct one ordered unique suite list: every entry of `tests.required` first, followed by entries
+from `tests.extra` and `--extra` that are not already named. Run every suite in that list exactly
+once, each through its own verb:
 
 ```bash
 nen shu test    --repo <path> [--lane <lane>]
 nen shu ui-test --repo <path> [--lane <lane>]
 ```
+
+When that list contains `ui-test`, tsukuyomi is its sole executor for the publication run. Hand the
+result and declared artifacts to kotoamatsukami for UI-specific evidence handling; do not spawn a
+second UI run.
 
 Never the runner's own command line typed from memory. Under `--json` the report is one document —
 `{contract, lane, stack, verb, steps, …, exitCode}` — where **`steps[].exitCode` is the runner's own

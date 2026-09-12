@@ -374,13 +374,14 @@ there, and where a copy disagrees the contract wins.
 
 1. **Probe** `nen --version` for presence, then **read the range verdict off `nen shu tools`'s `nen`
    row** — the range is nen's answer, never a skill's arithmetic. *Current pin, echoed for convenience:*
-   `minimum: "0.7"`, `pinned_ref: "v0.8.0"`; **two values that move independently.** The rule is the
+   `minimum: "0.9"`, `pinned_ref: "v0.9.0"`; **two values that move independently.** The minimum is now
+   the capability floor for `device.extract`, while Nen's compatibility floor remains `0.7`. The rule is the
    maintainer's ruling of 2026-09-10 — *exact minor is fine, unless there is a breaking change* — and the
    binary is what decides it: nen ships `COMPATIBLE_MINOR_FLOOR`, the lowest `minimum` pin that build
    satisfies, prints it as `compat floor:` on every `shu tools` run and carries it in `--json`. A release
    whose CHANGELOG `### Breaking / consumer notes` carries a real bullet moves the floor to its own minor;
-   one that carries none leaves it, and goes on accepting the pins already written. So a `0.7` pin is
-   satisfied by `0.8.0` with **no repin**, a `0.6` pin under a `0.7` floor is refused by name with the
+   one that carries none leaves it, and goes on accepting the pins already written. So the current `0.9`
+   capability minimum is satisfied by `0.9.0`, while an older `0.8.0` binary cannot execute `device.extract`; a `0.6` pin under a `0.7` floor is refused by name with the
    repin stated, and a binary older than the pin is refused too — **fail-closed at both ends**, because an
    older binary cannot certify a newer line. From **`1.0` onward** the familiar within-a-major rule takes
    over and the floor is not consulted at all.

@@ -48,11 +48,17 @@ Those actions retain their dedicated guards and human authority.
 ## Authority and convergence
 
 Standing filing authority permits the capture, reconciliation, and one narrow `created`,
-`updated`, or `folded` write above without asking again. The record must state the owner, four-pass
+`updated`, or `folded` protocol result above without asking again. The record must state the owner, four-pass
 result, inspected issue/comment/PR candidates, selected result, canonical URL if known, and whether
 the original work continued or is blocked. It does not carry a severity change, stage or release
 label, merge/review vote, implementation of the new work, canon change, publishing, or closure of
 an active effort; each remains separately authorized.
+
+A `folded` result authorizes both the prepared whole-body replacement and its explanatory comment.
+Reconcile immediately before each write. Report `folded` only after both writes are confirmed. If
+either response is uncertain, report `pending`, record which write is confirmed and which is uncertain,
+and inspect the live body and comments before retrying only the missing operation; never repeat a
+confirmed replacement or comment merely because the other step failed.
 
 There is no claimed atomic idempotency primitive. An orchestrator designates **one writer for each
 known effort**; reviewers and parallel workers return evidence only. Before each write, that writer

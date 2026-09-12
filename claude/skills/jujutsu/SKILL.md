@@ -284,7 +284,14 @@ so the next reader does not "fix" it.
     "device": { "name": "<the probe's exact bytes>",
                 "resolve": { "exe": "xcrun",
                              "argv": ["devicectl", "list", "devices", "--json-output", "-"] },
-                "readyWhen": { "path": "connectionProperties.tunnelState", "in": ["connected"] } },
+                "extract": {
+                  "format": "json",
+                  "records": "result.devices",
+                  "name": ["properties.state.name", "deviceProperties.name"],
+                  "identifier": ["identifier", "hardwareProperties.udid"],
+                  "readiness": ["properties.connection.state", "connectionProperties.tunnelState"]
+                },
+                "readyWhen": { "in": ["connected"] } },
     "after": [
       { "exe": "xcrun", "argv": ["devicectl","device","install","app","--device","{device.id}","{artifact}"] },
       { "exe": "xcrun", "argv": ["devicectl","device","process","launch","--device","{device.id}","<bundle id>"] }
@@ -300,14 +307,21 @@ so the next reader does not "fix" it.
 > and fails one `adb -s` at a time afterwards — which is the run § 4's box records, and it is
 > avoidable in one key.
 
-Two shapes, and which one a probe takes is decided by what the probe **prints**, not by the platform:
+For legacy declarations without `device.extract`, two shapes exist, and which one a probe takes is
+decided by what the probe **prints**, not by the platform:
 
 | The probe prints | The shape | Written for the probes above |
 |---|---|---|
 | **lines** (`adb devices -l`) | `{ "field": <n>, "in": [ … ] }` — `field` counts whitespace-separated tokens **on the device's own row, the row's first token being field 1**, the way a reader counts columns on their screen | `"readyWhen": { "field": 2, "in": ["device"] }` — the serial is field 1, the state is field 2, and `device` is the only state § 4's table registers from |
 | **JSON** (`xcrun devicectl list devices --json-output -`) | `{ "path": "<dotted key>", "in": [ … ] }` — read off the object whose `name` matched, or off an enclosing object up to **two** levels out, which is the same walk the id already makes | `"readyWhen": { "path": "connectionProperties.tunnelState", "in": ["connected"] }` |
 
-- **Exactly one of `field` / `path`, never both and never neither**, `in` non-empty with every entry
+With Nen 0.9 extraction, `device.extract.readiness` owns the ordered readiness paths and
+`device.readyWhen` owns only the accepted values in `in`, as the iOS template above shows. Never add
+a legacy `readyWhen.path` or `readyWhen.field` beside `extract`; the schema refuses that mixed
+ownership.
+
+- **For those legacy shapes, exactly one of `field` / `path`, never both and never neither**;
+  `in` is non-empty with every entry
   a non-empty string, and `field` a whole number **≥ 1** — all four checked **at load, by pointer**,
   so a zero-indexed rule is refused at `nen schema check` rather than reading one column to the left
   on every launch for a year.

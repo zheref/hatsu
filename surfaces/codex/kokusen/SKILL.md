@@ -106,7 +106,10 @@ the author's inner loop, not inherited from the warm-up, not skipped because the
    *does* declare.
 
 2. **Run the focused tests for changed executable behavior.** This is mandatory at the checkpoint
-   even when rasengan already ran them for feedback:
+   even when rasengan already ran them for feedback. Map every changed executable behavior to its
+   declared scoped lane and run **every applicable lane**, once each; one lane is sufficient only
+   when its declared argv covers all changed behavior. Record the behavior-to-lane mapping and
+   each result. Repeat this invocation for each distinct applicable lane:
 
    ```bash
    nen shu test --repo <path> --lane <explicit-scoped-lane>

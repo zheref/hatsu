@@ -121,7 +121,10 @@ build is an incomplete declaration: a simulator `.app` cannot become a device ar
 it in `after[]`. Repair the owning consumer declaration within authorized scope; otherwise record
 its blocker through [the common discovery protocol](../../../docs/DISCOVERY.md).
 
-Execute `nen shu dev --repo <core-checkout> --target <declared-target>` from the core checkout.
+Read `project.launch.<declared-target>.verb`, then execute
+`nen shu <declared-dev-or-run-verb> --repo <core-checkout> --target <declared-target>` from the core
+checkout. The substituted verb is exactly the target's declared `dev` or `run`; never replace it
+with a preferred verb.
 Success requires the device-compatible build, installation of that artifact, and application
 launch to complete. Report each outcome. A dry run or build-only result is `launch incomplete`,
 not successful device delivery. Missing install/launch steps are a declaration gap even if the
