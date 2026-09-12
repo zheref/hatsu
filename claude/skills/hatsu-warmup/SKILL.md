@@ -82,16 +82,15 @@ hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): 
 nen schema check --repo "$hatsu_root"
 ```
 
-Verified live at nen `0.7.0` against this branch: the `nen/contract.json` row prints
-`ok    nen/contract.json  dependency (nen >= 0.7, pinned v0.8.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)`
+Verified live at nen `0.9.0` against this branch: the `nen/contract.json` row prints
+`ok    nen/contract.json  dependency (nen >= 0.9, pinned v0.9.0), project (2 lanes: plugin, plugin-bump-guard; 11 verbs; 2 toolchain entries)`
 — the minimum and the pin nen parsed are the ones you just read, and they are **two independent values**:
-`>= 0.7` is the pin this repository declares, `v0.8.0` is the build its bootstrap installs, and § 1b's
+`>= 0.9` is the capability minimum this repository declares, `v0.9.0` is the build its bootstrap installs, and § 1b's
 floor rule is why the second may move without the first. A drift between them and this file's prose is a
-bug in the prose. **`schema check` reports SIX rows at this pin, and four of them are expected
-non-`ok`**: three `FAIL` (`nen/labels.json`, `nen/repos.json`, `nen/colors.yml`), one `warn`
-(`nen/gates.json`), and the overall exit `1` — **none of which is a warm-up failure**. Hatsu ships no
-taxonomy of its own; `schema check` requires those three for a repository that does, and only warns on the
-fourth, which `pr ready` can take by `--gates` instead.
+bug in the prose. On this checkout, five schema rows pass and `nen/colors.yml` is absent, so the
+aggregate command exits `1`. Labels, repositories and reviewer identities are declared; the missing
+color taxonomy is reported separately, never called a successful aggregate check. Warm-up reads the
+contract and workflow rows for this dependency/policy gate; a failure of either row stops the gate.
 
 **The sixth row is `nen/workflow.json`, and reading it is part of the warm-up now.** It reads
 `ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off 'main',
@@ -290,14 +289,14 @@ against this plugin, reported alongside.
 Both start with the same fetch, and **it is always two steps**:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.8.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
+curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.9.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
 ```
 
 > ### ⚠️ Fetch to a file. **Never pipe the script into bash.**
 >
 > ```bash
 > # WRONG — dies before it starts:
-> curl -fsSL <url> | bash -s -- --ref v0.8.0
+> curl -fsSL <url> | bash -s -- --ref v0.9.0
 > ```
 >
 > The script runs under `set -u` and reads `${BASH_SOURCE[0]}`. Piped into `bash -s --` there is no
@@ -309,7 +308,7 @@ curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.8.0/bootstrap/nen.sh 
 ### 2a · nen is **absent** → run the shell bootstrap directly
 
 ```bash
-bash /tmp/nen-bootstrap.sh --ref v0.8.0
+bash /tmp/nen-bootstrap.sh --ref v0.9.0
 ```
 
 **Why shell is permitted here, and only here.** Chicken-and-egg: `nen bootstrap` is a `nen` subcommand, so
@@ -321,7 +320,7 @@ grounds that this one does.
 ### 2b · nen is **present and does not satisfy the pin** → re-pin through nen's own verb
 
 ```bash
-nen bootstrap --ref v0.8.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
+nen bootstrap --ref v0.9.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
 ```
 
 A working `nen` is on `PATH`, so the chicken-and-egg rationale does not apply and the shell path is **not**
@@ -450,8 +449,8 @@ Print `halt.message_template` from the contract, with the code and its meaning f
 > yourself, then re-invoke:
 >
 > ```
-> curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.8.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
-> bash /tmp/nen-bootstrap.sh --ref v0.8.0
+> curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.9.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
+> bash /tmp/nen-bootstrap.sh --ref v0.9.0
 > ```
 >
 > Two steps, never a pipe: the script reads `${BASH_SOURCE[0]}` under `set -u`, so `curl … | bash` dies
@@ -481,11 +480,11 @@ line carries the floor beside the version**, because the version alone no longer
 owed — that is the whole of what the floor added, and a report that omits it hides the one fact the reader
 would act on:
 
-- `Nen 0.8.0 · floor 0.7 · satisfies >=0.7.0 <0.9.0 · warm-up clear`
-- `Nen 0.7.0 · floor not reported (nen 0.7.0) · satisfies >=0.7.0 <0.8.0 · warm-up clear`
-- `Nen absent · bootstrapped to v0.8.0 (checksum verified) · warm-up clear`
-- `Nen 0.6.0 · floor 0.7 · below the pin (>=0.7.0 <0.9.0) · re-pinned to v0.8.0 via nen bootstrap (checksum verified) · warm-up clear`
-- `Nen 0.9.0 · floor 0.9 · pin "0.7" is BELOW the floor · re-pinned to v0.8.0; nen/contract.json owes a repin to "0.9" · warm-up clear`
+- `Nen 0.9.0 · floor 0.7 · satisfies >=0.9.0 <0.10.0 · warm-up clear`
+- `Nen 0.8.0 · floor 0.7 · older than the required >=0.9.0 <0.10.0 capability line · re-pinned to v0.9.0 via nen bootstrap (checksum verified) · warm-up clear`
+- `Nen absent · bootstrapped to v0.9.0 (checksum verified) · warm-up clear`
+- `Nen 0.6.0 · floor 0.7 · below the pin (>=0.9.0 <0.10.0) · re-pinned to v0.9.0 via nen bootstrap (checksum verified) · warm-up clear`
+- `Nen 1.0.0 · floor 1.0 · pin "0.9" is BELOW the floor · re-pinned to v0.9.0; nen/contract.json owes a repin to "1.0" · warm-up clear`
 - `Nen unavailable · bootstrap failed (exit 6, EXIT_MANIFEST) · HALTED — G5`
 
 **Every value on that line is quoted from `nen shu tools`, never assembled.** The version is the row's

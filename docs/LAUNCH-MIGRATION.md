@@ -52,7 +52,8 @@ completed build/install/launch; that issue evidence is not a device run by this 
 4. Through Nen, prove synthetic record tests and the applicable checkpoint checks. Run the full
    regression in aka and extraction-only coverage in mukai; do not turn migration into a hidden
    early full-suite or coverage run.
-5. From the maintainer's core checkout, run `nen shu dev --repo <core-checkout> --target iphone`.
+5. From the maintainer's core checkout, read the target's declared `verb` and run
+   `nen shu <declared-dev-or-run-verb> --repo <core-checkout> --target iphone`.
    Record build, installation and launch results separately. A dry run is not delivery. Preserve
    the temporary fallback until the replacement is verified; remove the two Python files and the
    probe-only test row as part of the verified consumer migration. If device proof is unavailable,

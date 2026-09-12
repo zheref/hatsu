@@ -59,6 +59,12 @@ GitHub's closingIssuesReferences). Its first review also exposed real phase-inva
 focused-mode, target-platform, metadata-flag and guard-test-lane gaps; those are repaired within
 this existing scope, not filed as duplicate issues. Summary-only findings receive dispositions too.
 
-Nen's v0.9.0 release proposal is [PR #208](https://github.com/zheref/nen/pull/208). Hatsu's adoption
-will require minimum 0.9 and pinned_ref v0.9.0 only after a compatible release is published and
-verified. The proposal is not a release, and the current consumer workaround remains in place.
+Nen release [PR #208](https://github.com/zheref/nen/pull/208) merged at `1bb45b1`.
+[v0.9.0](https://github.com/zheref/nen/releases/tag/v0.9.0) is published; all three binary digests
+match SHA256SUMS. Hatsu adoption is complete at `21d5acc`, with minimum `0.9`, pinned_ref
+`v0.9.0`, and a passing installed toolchain check. Only downstream consumer declaration migration
+and real device build/install/launch proof remain pending; the consumer workaround stays until then.
+
+The later reviewer ruling selects Copilot only; the human merge decision is separate from GitHub
+approval. Nen #209 / PR #210 adds the explicit review-only policy. Hatsu retains its supported
+configuration until that capability is released and repinned; no current-head approval is fabricated.
