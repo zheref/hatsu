@@ -451,3 +451,24 @@ what `drive` is for driving.
   This is a genuine simplification over the old skill (one artifact instead of a log plus a
   separately-reasoned tally), not a `nen` verb in its own right — no verb populates this log from
   GitHub automatically; the caller still appends to it as each wake attempt happens.
+
+
+## Completed review rounds — 2026-09-12 correction
+
+Observed on Nen #206: commit `899abc7` fixed the findings, but the coordinator requested another
+review with two unanswered, unresolved first-round threads. “Fixed in code” was incorrectly used
+as “round completed.” The coordinator subsequently verified the pushed fixes, replied on both
+threads with the SHA/evidence, resolved them, and posted dispositions for suppressed body findings.
+No further review was requested as part of the correction.
+
+| Scenario | Required result under sharingan § 5 |
+|---|---|
+| Delegate reports fixed; live thread still unanswered | Coordinator verifies code/checks, replies and resolves; no new request yet |
+| Inline threads clear; review body still has an accepted finding | Address and document the body finding before another request |
+| One clean completed round, no substantive change | No second request |
+| Substantive fixes after first round, all dispositions verified | At most one second request if none is pending |
+| Second request already pending, session resumes | Read live history; wait, do not duplicate |
+| Two rounds completed; current-head gate still refuses | Quote refusal and stop at G5; no automatic third round and no invented approval |
+
+These are protocol scenarios and the observed correction, not executable tests of a Nen request
+precondition. Nen does not mechanically enforce this orchestration policy.

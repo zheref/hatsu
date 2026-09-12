@@ -1016,3 +1016,15 @@ No third-party reference gate applies. A maintainer-authored PR cannot be given 
 self-approval by an agent: if GitHub cannot supply the required human review, report that predicate
 unmet and leave the merge decision with the maintainer. Local subagent review is evidence, not a
 GitHub vote.
+
+
+### Review-round completion — maintainer ruling, 2026-09-12
+
+One completed review round normally suffices; a second is for substantive reassessment, not a
+routine fresh-head request. The coordinating agent verifies pushed fixes, appropriate checks,
+on-thread dispositions and resolutions, plus review-body/suppressed findings, against live GitHub
+state before requesting another round. A delegate's “fixed” report is insufficient. No duplicate
+request while one is pending; requests count across resumed sessions; a third requires a human
+decision. A current-head readiness refusal is reported honestly rather than triggering review churn.
+The authoritative procedure is sharingan § 5; en/build inherit it. This changes review orchestration,
+not Nen's deterministic approval rules or the human merge gate.

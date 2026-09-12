@@ -180,9 +180,11 @@ Re-run from the top on **every** state change; never act on a picture older than
 4. **Act through the right channel** — § 5.
 5. **Poll in-shell** (`gh pr checks`, `gh pr view --comments`). Never a background primitive, never
    a scheduled wake-up: Kurapika has no App and no sweeper.
-6. **Count the round**, mechanically — § 6. Five rounds on one PR is the cap
-   (`<reference-repo>`'s own `agents/_conventions.md`: *"max 5 build↔review rounds per PR, then escalate
-   to the human"*); the sixth is an escalation, not a retry.
+6. **Count requested reviewer rounds across resumed sessions**, using the live review/request
+   history and the effort ledger. One completed round normally suffices; a second is allowed only
+   for substantive reassessment after the first is fully addressed (§ 5). Two is the cap under the
+   maintainer ruling of 2026-09-12; a third needs a human decision, not an automatic retry. A
+   request still in flight already counts and is never duplicated.
 
 ## 4. Readiness — the verb decides; the confirmation pass may only **veto**
 
@@ -369,15 +371,39 @@ that is `cancelled` with no `build` job" — a **failed** wake, not an attempt, 
 rather than counted. `--run` additionally auto-redrives what can safely be redriven and posts a flag
 comment otherwise — mutating; never fired at `<reference-repo>` by this port (contract inspected only).
 
-**Kurapika authored it** (local, on the maintainer's creds): address it yourself. Reply on each
-thread with the disposition — the fix SHA, or a cited pushback — **and** resolve it. (An inline
-review-thread reply and a thread resolution are review-API acts no `nen` verb owns — residue; a
-**PR-level** comment, where one is wanted, is `nen issue comment --target <owner/name> --issue <N>`.)
-Push the fix — and before you do, prove it through the verbs the repository declares: `nen shu build`,
-`nen shu test`, `nen shu lint` (`claude/agents/kurapika.md` § *The `shu` verbs*; a repository with no
-declaration runs its own documented commands, said so).
-Re-request review where a round is owed, on the maintainer's own user token (a bot token silently
-no-ops here):
+**Kurapika authored it** (local, on the maintainer's creds): address it yourself. Verify through
+the declared phase owners, then push the fix. Only after verifying the pushed fix, reply on each
+thread with its disposition — the fix SHA/evidence, or a cited pushback — **and** resolve it.
+An inline review-thread reply and a thread resolution are review-API acts no `nen` verb owns
+(residue); a PR-level disposition uses `nen issue comment --target <owner/name> --issue <N>`.
+Iteration/focused checks belong to kokusen, full regression to aka's verification phase, and
+coverage extraction to mukai; a review fix does not bypass or duplicate those owners.
+### Complete the round before requesting another
+
+**Maintainer ruling, 2026-09-12:** one completed review round normally suffices; use a second
+only when substantive fixes need reassessment. This replaces the inherited five-round retry cap.
+A completed round means every finding has a disposition, not simply that a fix commit exists.
+
+Before any further review request, the coordinating agent must personally read a fresh live
+snapshot, including the review body and suppressed comments, and verify all of the following:
+
+- Every accepted finding is fixed in a pushed commit with appropriate verification; any pushback
+  has a specific rationale. Summary-only findings receive a PR-level disposition too.
+- Every inline thread has an on-thread disposition citing the fix SHA/evidence or justified
+  pushback, followed by resolution. Never resolve an unfixed accepted finding just to clear a counter.
+- A fresh fetch confirms zero unresolved threads from the completed round, and no earlier request
+  is still pending. A subagent saying “fixed” is not evidence of replies or resolutions.
+
+Only then may a substantive change justify the second request below. Never request a new round
+merely to refresh a head SHA, repeat a clean assessment, or make a readiness counter green.
+If the deterministic current-head gate still refuses after an otherwise sufficient round, report
+that exact policy mismatch at G5; do not weaken the gate, manufacture approval, or spend another
+round to hide it. After the second round, address its findings and stop at the human gate; any
+further reviewer round requires the maintainer's explicit decision. This cap does not allow
+unresolved findings to be ignored and does not itself make a PR Ready.
+
+Re-request on the maintainer's own user token only when these preconditions hold (a bot token
+can silently no-op here):
 
 ```bash
 nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <a,b>
@@ -528,7 +554,7 @@ Say when the run **starts** and when it **ends**.
   relative `--gates` resolves inside the target repository (§ 4).
 - **Never counts an unverified wake** toward the escalation ladder, and never fabricates a
   `nen pr staleness --wakes-from` entry to manufacture a stale verdict.
-- **Never exceeds the 5-round cap** on one PR — the sixth round is an escalation.
+- **Never exceeds two reviewer rounds** on one PR without an explicit maintainer decision; never requests a new round before completing the first.
 - **Never calls `nen pr fetch` or `nen pr next-blocker` for a verdict** — both were reproduced broken
   against real `<reference-repo>` PRs at `v0.1.0` (§ 3), the crash is not re-verified at the pinned
   `v0.3.0`, and the recorded evidence stands until an A/B pass says otherwise; filed as defects, not

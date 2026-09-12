@@ -172,7 +172,7 @@ published branch it would push a commit that changes no content.
 
 Steps 2 and 4 are [`/sharingan`](../sharingan/SKILL.md)'s whole engine, not a substitute for
 it, and **this file restates none of its protocol** — the first-blocking-condition order, the
-channel decided by who authored the PR, the escalation ladder, the five-round cap, the
+channel decided by who authored the PR, the escalation ladder, the two-round cap and completed-round prerequisite, the
 one-directional confirmation pass that may only veto. Read it there.
 
 Two things en relies on and does not re-derive:
