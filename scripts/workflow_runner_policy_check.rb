@@ -101,17 +101,17 @@ def validate_workflow(path)
       fail_policy("#{path} job #{job_name} must always publish its final exact-head conclusion")
     end
     head_checkout = false
-    base_checkout = false
+    trusted_checkout = false
     step_maps.each_with_index do |step, index|
       next unless scalar(step["uses"])&.start_with?("actions/checkout@")
       with = mapping(step["with"], "#{path} checkout step #{index + 1} with")
       fail_policy("#{path} checkout step #{index + 1} must set persist-credentials: false") unless scalar(with["persist-credentials"]) == "false"
       ref = scalar(with["ref"])
       head_checkout ||= ref == "${{ github.event.pull_request.head.sha }}"
-      base_checkout ||= ref == "${{ github.event.pull_request.base.sha }}"
+      trusted_checkout ||= ref == "${{ github.sha }}"
     end
     fail_policy("#{path} job #{job_name} must checkout the exact event head SHA") unless head_checkout
-    fail_policy("#{path} job #{job_name} must checkout the trusted event base SHA") unless base_checkout
+    fail_policy("#{path} job #{job_name} must checkout the trusted workflow SHA") unless trusted_checkout
   end
 end
 

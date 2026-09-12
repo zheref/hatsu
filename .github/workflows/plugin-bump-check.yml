@@ -13,7 +13,7 @@
 #
 # Two hardening choices carried over from the reference implementation's original,
 # both load-bearing:
-#   1. The guard script is checked out from the trusted event base, never run from the
+#   1. The guard script is checked out from the trusted workflow revision, never run from the
 #      PR. A PR that could rewrite the guard judging it makes the guard worth
 #      nothing.
 #   2. No git credential survives into the job. The diff and the base manifest
@@ -36,7 +36,7 @@
 # un-requires it — and a failing run blocks the merge. This supersedes the
 # "ADVISORY until the maintainer requires it" posture recorded here at v0.1.0
 # (docs/ab/plugin-bump-guard.md § 6 carries the dated record). The workflow now
-# runs from the trusted base through `pull_request_target`. The job-level
+# runs from the trusted workflow revision through `pull_request_target`. The job-level
 # same-repository condition is evaluated before a runner is allocated. A fork
 # therefore cannot spend a hosted or self-hosted minute, and cannot edit this
 # trusted workflow to remove the condition.
@@ -84,14 +84,14 @@ jobs:
           # shallow: the API step below supplies the diff, so no history is read.
           persist-credentials: false
 
-      - name: Checkout the guard script from trusted base (never from the PR)
+      - name: Checkout guard code from the trusted workflow revision
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ github.sha }}
           path: .trusted
           persist-credentials: false
 
-      - name: Enforce workflow runner policy from trusted base
+      - name: Enforce workflow runner policy from trusted workflow revision
         shell: bash
         run: |
           set -euo pipefail
@@ -158,7 +158,7 @@ jobs:
           # Missing trusted code is a configuration failure. Never fall back to
           # a PR-controlled guard in this privileged event context.
           guard=.trusted/scripts/plugin_bump_check.sh
-          [ -f "$guard" ] || { echo "::error::trusted base has no scripts/plugin_bump_check.sh"; exit 1; }
+          [ -f "$guard" ] || { echo "::error::trusted workflow revision has no scripts/plugin_bump_check.sh"; exit 1; }
           echo "guard script: $guard"
           bash "$guard" \
             "${RUNNER_TEMP:-/tmp}/changed_files.txt" \

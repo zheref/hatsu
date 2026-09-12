@@ -12,7 +12,7 @@
 # exercised offline; the recorded transcripts are in `docs/ab/surfaces.md`.
 #
 # The two hardening choices are `plugin-bump-check.yml`'s, deliberately identical:
-#   1. The guard script is checked out from the trusted event base and never run from the
+#   1. The guard script is checked out from the trusted workflow revision and never run from the
 #      PR — a PR that can rewrite the guard judging it makes the guard worth
 #      nothing. It is handed the PR's checkout as its ROOT ARGUMENT, so trusted
 #      code judges untrusted data rather than the other way round.
@@ -82,10 +82,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
-      - name: Checkout the guard script from trusted base (never from the PR)
+      - name: Checkout guard code from the trusted workflow revision
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ github.sha }}
           path: .trusted
           persist-credentials: false
 
@@ -190,7 +190,7 @@ jobs:
           # Missing trusted code is a configuration failure. Never fall back to
           # a PR-controlled guard in this privileged event context.
           guard=.trusted/scripts/surface_mirror_check.sh
-          [ -f "$guard" ] || { echo "::error::trusted base has no scripts/surface_mirror_check.sh"; exit 1; }
+          [ -f "$guard" ] || { echo "::error::trusted workflow revision has no scripts/surface_mirror_check.sh"; exit 1; }
           echo "guard script: $guard"
 
           # The PR checkout is the ROOT the trusted guard judges.
