@@ -1139,10 +1139,12 @@ or, if a change provably cannot affect the shipped surface, write `no plugin bum
 body. Recorded refuse/pass transcripts: [`docs/ab/plugin-bump-guard.md`](docs/ab/plugin-bump-guard.md).
 
 **The check is required on `main`** by the repository ruleset *main: plugin-bump guard required*
-(`enforcement: active`), so a failing `plugin-bump-check` blocks the merge. What that ruleset does not do
-is protect `.github/**`: GitHub runs a same-repo PR against that PR's *own* workflow definition, so a PR may
-still edit the workflow and be judged by the edited version. Closing that is a further repo-settings act —
-a human gate, recommended rather than performed here: protect `.github/**` with a ruleset or `CODEOWNERS`.
+(`enforcement: active`), so a failing `plugin-bump-check` blocks the merge. It runs through
+`pull_request_target`: GitHub selects the workflow at the trusted workflow SHA, and the job-level
+same-repository guard skips fork PRs before assigning a runner. The PR head is checked out as data with no
+persisted credential; executable guards, the workflow policy, and dependency pins come from the trusted
+workflow checkout. The offline policy validator pins this workflow's trigger, job id, steps, permissions,
+and runner so an edit cannot silently remove the required context or execute a PR-controlled guard.
 
 ### Validate locally
 
