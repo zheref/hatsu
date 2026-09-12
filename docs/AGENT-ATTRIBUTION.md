@@ -3,9 +3,10 @@
 **Prospective commits carry the canonical agent attribution that truthfully identifies the responsible
 persona or autonomous plane.** Use `Hatsu-Agent: <persona>` for Hatsu work and
 `Akatsuki-Agent: <persona>` only for autonomous Akatsuki work. Never infer a persona from a runtime alias
-or stamp a default persona when it was not responsible. `Co-Authored-By`, `Claude-Session`, model,
-surface/runtime/session, `Signed-off-by`, and "Generated with" attribution are forbidden in commit messages
-and bodies. Author and committer metadata preserve the actor's configured identity. Earlier commits and
+or stamp a default persona when it was not responsible. `Co-Authored-By`, `Claude-Session`,
+`Signed-off-by`, `Generated-by`, `Generated-with`, `Reviewed-by`, model, surface/runtime/session, and
+"Generated with" attribution are forbidden in commit messages and bodies. Author and committer metadata
+preserve the actor's configured identity. Earlier commits and
 dated evidence records are historical and are not rewritten.
 
 The pull request body also ends with this final section:
