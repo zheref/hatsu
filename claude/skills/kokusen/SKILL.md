@@ -429,8 +429,9 @@ got an explicit yes; `git add -A` is barred (§ 9).
   deleted.
 - **Never `git add -A`**, and never `git add -f`, and never stages a path it did not name. `-f` is
   the maintainer's explicit call on one named path, never this skill's way past an `ignored` row.
-- **Never adds attribution** — no `Hatsu-Agent`, `Akatsuki-Agent`, `Co-Authored-By`,
-  `Claude-Session`, "Generated with …" line, agent alias, or model name in the message.
+- **Never adds untruthful or runtime attribution** — use the truthful canonical `Hatsu-Agent` or
+  `Akatsuki-Agent` trailer only; never add `Co-Authored-By`, `Claude-Session`, a model, surface,
+  runtime, session, or generated-credit attribution.
 - **Never strips a trailer the maintainer's own tooling wrote** (§ 5's callout).
 - **Never pushes, never force-pushes, never `--no-verify`, never commits on the trunk.**
 - **Never stages anything before § 3's gate has run over THIS tree.** Not an earlier turn's green,

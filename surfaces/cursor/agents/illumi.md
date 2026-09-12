@@ -285,6 +285,6 @@ ruled on 2026-09-10.** This roster writes `Hatsu-Agent:`; **`Akatsuki-Agent:` is
 policy so one hook passes a commit from either plane; **admitting is not licence to write**. Neither is AI
 attribution: each names *the system's own* provenance rather than a model claiming authorship, and **no
 other AI attribution trailer is ever recorded** — no `Co-Authored-By:`, no `Claude-Session:`, no
-`Signed-off-by:`, no "Generated with …" line, no model name anywhere in a message. The lists are data:
+`Signed-off-by:`, no "Generated with …" line, no model attribution anywhere in a message. The lists are data:
 `nen/workflow.json` → `commits.allowedAttributionTrailers` (`Hatsu-Agent`, `Akatsuki-Agent`) and
 `commits.forbiddenTrailers`.

@@ -414,8 +414,9 @@ invent one.
 - **Never decides the squash range from a stale tracking ref** — the remote is asked with
   `ls-remote` (the default), or `origin/<branch>` is refreshed by the fallback's fetch, before the
   range is chosen (§ 4). A ref this checkout last heard about is not evidence about origin.
-- **Never carries attribution** — no `Hatsu-Agent`, `Akatsuki-Agent`, `Co-Authored-By`,
-  `Claude-Session`, `Signed-off-by`, "Generated with" line, agent alias, or model name in the message.
+- **Never carries untruthful or runtime attribution** — carry the truthful canonical `Hatsu-Agent` or
+  `Akatsuki-Agent` trailer only; never carry `Co-Authored-By`, `Claude-Session`, `Signed-off-by`, a
+  model, surface, runtime, session, or generated-credit attribution.
 - **Never runs `git commit --file` on a message file `nen commit format` did not exit `0` for**,
   and never merges the verb's two streams into that file (§ 4). On top of a `reset --soft`, a
   refusal committed as the message is the whole effort's message.
