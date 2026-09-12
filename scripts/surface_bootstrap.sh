@@ -58,12 +58,44 @@ case "$surface" in codex|cursor) ;; *) echo "--surface must be codex or cursor" 
 script_dir="$(CDPATH='' cd -- "$(dirname -- "$0")" >/dev/null 2>&1 && pwd -P)"
 hatsu_root="$(CDPATH='' cd -- "$script_dir/.." >/dev/null 2>&1 && pwd -P)"
 
-[ -f "$hatsu_root/.claude-plugin/plugin.json" ] || {
-  echo "Hatsu bootstrap must run from a Hatsu checkout" >&2
-  exit 2
+# Same structural manifest reader as hatsu-warmup: accept only the canonical
+# pretty-printed plugin manifest shape, with exactly one top-level name.
+manifest_name() {
+  awk '
+    function scalar(v) { return v ~ /^("([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*"|-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?|true|false|null)$/ }
+    function value_ok(v) { return v == "{" || v == "[" || v == "{}" || v == "[]" || scalar(v) }
+    NR == 1 { if ($0 != "{") bad = 1; sp = 1; top[1] = "{"; ind[1] = 0; first = 1; comma = 0; next }
+    {
+      if (bad || done) { bad = 1; next }
+      ni = match($0, /[^ ]/) - 1; if (ni < 0) { bad = 1; next }
+      body = substr($0, ni + 1)
+      if (body ~ /^[}\]],?$/) {
+        c = substr(body, 1, 1); tr = (body ~ /,$/)
+        if (sp == 0 || ni != ind[sp] || (top[sp] == "{" && c != "}") || (top[sp] == "[" && c != "]") || comma) { bad = 1; next }
+        sp--; if (sp == 0) { if (tr) bad = 1; done = 1; next }
+        comma = tr; first = 0; next
+      }
+      if (sp == 0 || ni != ind[sp] + 2 || (!first && !comma)) { bad = 1; next }
+      tr = (body ~ /,$/); if (tr) body = substr(body, 1, length(body) - 1)
+      if (top[sp] == "{") {
+        if (body !~ /^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /) { bad = 1; next }
+        v = body; sub(/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /, "", v)
+        if (sp == 1 && body ~ /^"name": "/) { s = v; sub(/^"/, "", s); sub(/"$/, "", s); n++; name = s }
+      } else v = body
+      if (!value_ok(v)) { bad = 1; next }
+      if (v == "{" || v == "[") { if (tr) { bad = 1; next }; sp++; top[sp] = v; ind[sp] = ni; first = 1; comma = 0; next }
+      comma = tr; first = 0
+    }
+    END { if (!bad && done && sp == 0 && n == 1) print name }
+  ' "$1"
 }
-if ! [ -d "$hatsu_root/claude/skills" ] ||
-  ! grep -Eq '"name"[[:space:]]*:[[:space:]]*"hatsu"[[:space:]]*(,|})' "$hatsu_root/.claude-plugin/plugin.json"; then
+
+is_hatsu() {
+  [ -n "${1:-}" ] && [ -f "$1/.claude-plugin/plugin.json" ] && [ -d "$1/claude/skills" ] || return 1
+  [ "$(manifest_name "$1/.claude-plugin/plugin.json")" = "hatsu" ]
+}
+
+if ! is_hatsu "$hatsu_root"; then
   echo "Hatsu bootstrap must run from the canonical Hatsu checkout" >&2
   exit 2
 fi
@@ -127,12 +159,22 @@ is_ours_override() {
 
 # Create only real directories below the target. A symlinked parent could send
 # an otherwise-safe relative destination outside the repository.
+is_gitlink() {
+  git -C "$target" ls-files --stage -- "$1" |
+    awk -v path="$1" '$1 == "160000" && $4 == path { found = 1 } END { exit !found }'
+}
+
 ensure_local_directory() {
-  local relative="$1" current="$target" component
+  local relative="$1" current="$target" component current_relative=""
   local -a components=()
   IFS='/' read -r -a components <<< "$relative"
   for component in "${components[@]}"; do
     current="$current/$component"
+    current_relative="${current_relative:+$current_relative/}$component"
+    if is_gitlink "$current_relative"; then
+      echo "refusing: $relative has a tracked submodule parent ($current_relative)" >&2
+      exit 1
+    fi
     if [ -L "$current" ]; then
       echo "refusing: $relative has a symlinked parent ($current)" >&2
       exit 1
@@ -158,6 +200,15 @@ fail_bootstrap_blocker() {
   fi
 }
 
+preflight_bootstrap_destination() {
+  local relative="$1" destination="$target/$1"
+  if is_tracked "$relative"; then
+    fail_bootstrap_blocker "$relative"
+  elif { [ -e "$destination" ] || [ -L "$destination" ]; } && ! is_ours "$relative"; then
+    fail_bootstrap_blocker "$relative"
+  fi
+}
+
 declare -a exclude_lines=()
 case "$surface:$mode" in
   codex:--bootstrap) exclude_lines=( '.agents/skills/' ) ;;
@@ -171,10 +222,44 @@ case "$exclude" in
   /*) ;;
   *) exclude="$target/$exclude" ;;
 esac
-mkdir -p "$(dirname "$exclude")"
-for line in "${exclude_lines[@]}"; do
-  grep -qxF "$line" "$exclude" 2>/dev/null || printf '%s\n' "$line" >> "$exclude"
-done
+
+exclude_backup=""
+exclude_existed=0
+temporary=""
+
+cleanup() {
+  local status=$?
+  trap - EXIT
+  [ -z "$temporary" ] || rm -f -- "$temporary"
+  if [ "$status" -ne 0 ] && [ -n "$exclude_backup" ]; then
+    if [ "$exclude_existed" -eq 1 ]; then
+      cp "$exclude_backup" "$exclude"
+    else
+      rm -f -- "$exclude"
+    fi
+  fi
+  [ -z "$exclude_backup" ] || rm -f -- "$exclude_backup"
+  exit "$status"
+}
+
+add_exclude_lines() {
+  local line exclude_directory
+  exclude_directory="$(dirname "$exclude")"
+  mkdir -p "$exclude_directory"
+  exclude_backup="$(mktemp "$exclude_directory/.hatsu-exclude.XXXXXX")"
+  if [ -f "$exclude" ]; then
+    cp "$exclude" "$exclude_backup"
+    exclude_existed=1
+  fi
+  trap cleanup EXIT
+  for line in "${exclude_lines[@]}"; do
+    grep -qxF "$line" "$exclude" 2>/dev/null && continue
+    if [ -s "$exclude" ] && [ "$(tail -c 1 "$exclude"; printf x)" != $'\nx' ]; then
+      printf '\n' >> "$exclude"
+    fi
+    printf '%s\n' "$line" >> "$exclude"
+  done
+}
 
 declare -a installed=() kept=()
 
@@ -204,8 +289,25 @@ remove_stale_agents() {
   done
 }
 
+# Validate every destination root, and the sole required bootstrap destination,
+# before changing the shared ignore file or replacing a surface entry.
 if [ "$surface" = "codex" ]; then
   ensure_local_directory '.agents/skills'
+  if [ "$mode" = "--bootstrap" ]; then
+    preflight_bootstrap_destination '.agents/skills/hatsu-warmup'
+  fi
+else
+  ensure_local_directory '.cursor/skills'
+  if [ "$mode" = "--install-all" ]; then
+    ensure_local_directory '.cursor/agents'
+  fi
+  if [ "$mode" = "--bootstrap" ]; then
+    preflight_bootstrap_destination '.cursor/skills/hatsu-warmup'
+  fi
+fi
+add_exclude_lines
+
+if [ "$surface" = "codex" ]; then
   if [ "$mode" = "--install-all" ]; then
     remove_stale_skills "$target/.agents/skills"
   fi
@@ -241,7 +343,6 @@ if [ "$surface" = "codex" ]; then
       kept+=("$relative")
     else
       temporary="$(mktemp "$target/.hatsu-override.XXXXXX")"
-      trap 'rm -f "$temporary"' EXIT
       {
         if [ -f "$target/AGENTS.md" ]; then
           cat "$target/AGENTS.md"
@@ -252,7 +353,7 @@ if [ "$surface" = "codex" ]; then
         printf '%s\n' '<!-- END hatsu personas (generated — nen surface mirror, surface: codex) -->'
       } > "$temporary"
       mv "$temporary" "$destination"
-      trap - EXIT
+      temporary=""
       git -C "$target" check-ignore -q -- "$relative" || {
         echo "refusing: $relative was not excluded through info/exclude" >&2
         exit 1
@@ -261,7 +362,6 @@ if [ "$surface" = "codex" ]; then
     fi
   fi
 else
-  ensure_local_directory '.cursor/skills'
   if [ "$mode" = "--install-all" ]; then
     remove_stale_skills "$target/.cursor/skills"
   fi
@@ -289,7 +389,6 @@ else
   done
 
   if [ "$mode" = "--install-all" ]; then
-    ensure_local_directory '.cursor/agents'
     remove_stale_agents "$target/.cursor/agents"
     for source in "$hatsu_root/surfaces/cursor/agents"/*.md; do
       [ -f "$source" ] || continue

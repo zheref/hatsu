@@ -42,6 +42,8 @@ assert_fails() {
 new_fixture() {
   local directory="$1"
   git init -q "$directory"
+  git -C "$directory" config user.email 'fixture@example.invalid'
+  git -C "$directory" config user.name 'Hatsu fixture'
 }
 
 codex_fixture="$fixture_root/codex"
@@ -91,8 +93,10 @@ collision_fixture="$fixture_root/collision"
 new_fixture "$collision_fixture"
 mkdir -p "$collision_fixture/.agents/skills/hatsu-warmup"
 printf 'third-party Codex skill\n' > "$collision_fixture/.agents/skills/hatsu-warmup/SKILL.md"
+cp "$collision_fixture/.git/info/exclude" "$fixture_root/collision-exclude-before"
 assert_fails "Codex collision reported a successful bootstrap" "$bootstrap" --surface codex --target "$collision_fixture" --bootstrap
 grep -qx 'third-party Codex skill' "$collision_fixture/.agents/skills/hatsu-warmup/SKILL.md" || fail "Codex collision was overwritten"
+cmp -s "$fixture_root/collision-exclude-before" "$collision_fixture/.git/info/exclude" || fail "Codex collision changed info/exclude"
 
 tracked_fixture="$fixture_root/tracked"
 new_fixture "$tracked_fixture"
@@ -142,5 +146,38 @@ mkdir -p "$outside_fixture"
 ln -s "$outside_fixture" "$parent_link_fixture/.agents"
 assert_fails "symlinked Codex parent was accepted" "$bootstrap" --surface codex --target "$parent_link_fixture" --bootstrap
 [ ! -e "$outside_fixture/skills/hatsu-warmup" ] || fail "bootstrap wrote outside the target through a symlink"
+
+cursor_parent_link_fixture="$fixture_root/cursor-parent-link"
+new_fixture "$cursor_parent_link_fixture"
+mkdir -p "$cursor_parent_link_fixture/.cursor"
+ln -s "$outside_fixture" "$cursor_parent_link_fixture/.cursor/agents"
+assert_fails "symlinked Cursor agents parent was accepted" "$bootstrap" --surface cursor --target "$cursor_parent_link_fixture" --install-all
+[ ! -e "$cursor_parent_link_fixture/.cursor/skills/hatsu-warmup" ] || fail "Cursor refresh wrote skills before preflighting agents"
+
+submodule_source="$fixture_root/submodule-source"
+new_fixture "$submodule_source"
+printf 'submodule fixture\n' > "$submodule_source/README.md"
+git -C "$submodule_source" add README.md
+git -C "$submodule_source" commit -qm 'fixture source'
+submodule_fixture="$fixture_root/submodule-parent"
+new_fixture "$submodule_fixture"
+git -C "$submodule_fixture" -c protocol.file.allow=always submodule add -q "$submodule_source" .agents/skills
+assert_fails "tracked submodule parent was accepted" "$bootstrap" --surface codex --target "$submodule_fixture" --bootstrap
+[ ! -e "$submodule_fixture/.agents/skills/hatsu-warmup" ] || fail "bootstrap wrote inside a tracked submodule"
+
+no_newline_fixture="$fixture_root/no-newline-exclude"
+new_fixture "$no_newline_fixture"
+printf 'user-rule' > "$no_newline_fixture/.git/info/exclude"
+"$bootstrap" --surface codex --target "$no_newline_fixture" --bootstrap >/dev/null
+grep -qxF 'user-rule' "$no_newline_fixture/.git/info/exclude" || fail "info/exclude final rule was concatenated"
+grep -qxF '.agents/skills/' "$no_newline_fixture/.git/info/exclude" || fail "Codex exclusion was not appended on its own line"
+
+malformed_root="$fixture_root/malformed-root"
+mkdir -p "$malformed_root/.claude-plugin" "$malformed_root/scripts" "$malformed_root/claude/skills" "$malformed_root/surfaces/codex/hatsu-warmup"
+cp "$bootstrap" "$malformed_root/scripts/surface_bootstrap.sh"
+printf '{"name":"hatsu"}\n' > "$malformed_root/.claude-plugin/plugin.json"
+malformed_target="$fixture_root/malformed-target"
+new_fixture "$malformed_target"
+assert_fails "malformed Hatsu manifest was accepted" "$malformed_root/scripts/surface_bootstrap.sh" --surface codex --target "$malformed_target" --bootstrap
 
 echo "surface-bootstrap-fixture: Codex and Cursor first-run bootstrap checks passed"
