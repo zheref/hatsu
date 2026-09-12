@@ -343,13 +343,14 @@ criterion, met against real content rather than a fixture.
 
 ## 5. The CI wiring, and what it deliberately does not do
 
-`.github/workflows/plugin-bump-check.yml` fires on `pull_request` (`opened`, `synchronize`, `reopened`,
-`edited`) and does five things before calling the script:
+`.github/workflows/plugin-bump-check.yml` fires on trusted-base `pull_request_target` (`opened`,
+`synchronize`, `reopened`, `edited`) and does five things before calling the script. Its exact
+same-repository job guard is evaluated before runner assignment, so fork PRs allocate no runner:
 
 1. checks out the **PR head** as data only, `persist-credentials: false`;
 2. asserts the guard script's **exec bit in-tree** on that head (§ 5.1);
-3. checks out `main` into `.trusted/` and runs **that** copy of the guard — a PR must not be able to rewrite
-   the guard that judges it;
+3. checks out the trusted workflow SHA into `.trusted/`, runs that copy of the workflow-policy validator,
+   and later runs **that** copy of the guard — a PR must not be able to rewrite either guard judging it;
 4. reads the changed-files list and the base `.claude-plugin/plugin.json` **over the API** with the
    workflow's own `contents: read` / `pull-requests: read` token, so no git credential is needed and neither
    checkout carries one;
@@ -378,10 +379,9 @@ document asserted the opposite.
   `bash "$guard"`, which needs the file to exist and be readable, not to be executable. Gating on a property
   the invocation does not require is how a silent fallback gets built.
 
-With `-f`, the bootstrap sentence becomes true as written: `scripts/plugin_bump_check.sh` does not exist on
-`main` until this PR merges, so until then step 3 finds nothing and the workflow falls back to the PR's own
-copy — **loudly**, via `::warning::`. Once the file exists on `main`, the branch is genuinely never taken
-again.
+The privileged workflow now has no PR-copy fallback. A missing guard in the trusted workflow checkout is a
+hard configuration failure. The PR checkout remains data only, and every executable policy or guard comes
+from the trusted workflow SHA selected by `pull_request_target`.
 
 **The exec-bit assertion, and a named gap.** `<reference-repo>` catches this whole class with
 `tests/workflow_script_exec_bit.bats`. **Hatsu has no bats harness, and adding one is out of this PR's

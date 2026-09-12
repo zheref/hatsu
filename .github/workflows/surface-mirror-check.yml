@@ -12,7 +12,7 @@
 # exercised offline; the recorded transcripts are in `docs/ab/surfaces.md`.
 #
 # The two hardening choices are `plugin-bump-check.yml`'s, deliberately identical:
-#   1. The guard script is checked out from trusted `main` and never run from the
+#   1. The guard script is checked out from the trusted workflow revision and never run from the
 #      PR — a PR that can rewrite the guard judging it makes the guard worth
 #      nothing. It is handed the PR's checkout as its ROOT ARGUMENT, so trusted
 #      code judges untrusted data rather than the other way round.
@@ -47,7 +47,7 @@
 name: surface-mirror-check
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
 
 concurrency:
@@ -55,25 +55,45 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  checks: write
   contents: read
 
 jobs:
   surface-mirror-check:
-    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: [self-hosted, macOS, ARM64]
     timeout-minutes: 10
     steps:
+      - name: Start check on the exact PR head
+        id: head_check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          id="$(gh api --method POST "repos/${REPO}/check-runs" -f name=surface-mirror-check -f head_sha="$HEAD_SHA" -f status=in_progress --jq .id)"
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
       - name: Checkout PR head (data only — nothing from here is executed)
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
-      - name: Checkout the guard script from trusted main (never from the PR)
+      - name: Checkout guard code from the trusted workflow revision
         uses: actions/checkout@v7
         with:
-          ref: main
+          ref: ${{ github.sha }}
           path: .trusted
           persist-credentials: false
+
+      - name: Enforce workflow runner policy from trusted workflow revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          ruby .trusted/scripts/workflow_runner_policy_check.rb --self-test "$PWD"
 
       - name: Assert the guard script keeps its exec bit in-tree
         # Same assertion, same reason, as plugin-bump-check.yml's: Hatsu has no
@@ -93,7 +113,9 @@ jobs:
           fi
           echo "scripts/surface_mirror_check.sh: $mode (exec bit present)"
 
-      - name: Read the pinned nen ref from nen/contract.json
+      - name: Read the pinned nen ref from trusted nen/contract.json
+        # The trusted workflow revision's contract is the source for executable
+        # tooling in this privileged job. The PR copy remains input data only.
         # nen/contract.json is the SINGLE SOURCE OF TRUTH for the nen dependency
         # (its own `authority` clause). It is read here, never echoed from
         # memory. `jq` is fine on this path: the contract's `no_jq` rule is about
@@ -101,20 +123,14 @@ jobs:
         # spawning a parser to hand values back to itself — and a CI runner is
         # not that reader.
         #
-        # AND IT IS PULL-REQUEST DATA, SO IT IS VALIDATED HERE, ONCE, BEFORE ANY
-        # LATER STEP CAN SEE IT. `nen/contract.json` comes from the PR's own
-        # checkout, which means `dependency.pinned_ref` is a string an author
-        # chooses. Everything downstream — a shell assignment, a URL, a
-        # `::notice::` — treats it as trusted after this gate, so the gate is the
-        # only place it has to hold: a git ref shape and nothing else. A value
-        # carrying a quote could otherwise close a shell assignment, and one
-        # carrying a newline could forge a `::error::` workflow command out of an
-        # echoed notice. Neither survives this pattern.
+        # It is trusted workflow data, but still shape-checked before it reaches
+        # a URL or shell output. That keeps this boundary explicit and catches a
+        # malformed canonical contract without executing anything from the PR.
         id: pin
         shell: bash
         run: |
           set -euo pipefail
-          ref="$(jq -r '.dependency.pinned_ref // empty' nen/contract.json)"
+          ref="$(jq -r '.dependency.pinned_ref // empty' .trusted/nen/contract.json)"
           [ -n "$ref" ] || { echo "::error::nen/contract.json carries no dependency.pinned_ref."; exit 1; }
           # A tag or branch name: alphanumeric start, then alphanumerics and the
           # four punctuation characters git refs actually use. No quote, no
@@ -136,7 +152,7 @@ jobs:
           echo "ref=$ref" >> "$GITHUB_OUTPUT"
           echo "pinned nen ref: $ref"
 
-      - name: Bootstrap nen at the pinned ref (checksum-verified, two steps, never a pipe)
+      - name: Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)
         # The contract's own install path: fetch bootstrap/nen.sh at the pinned
         # ref TO A FILE, then run that file. Never `curl | bash` — the script
         # reads ${BASH_SOURCE[0]} under `set -u` and dies before parsing its own
@@ -173,17 +189,10 @@ jobs:
         shell: bash
         run: |
           set -uo pipefail
-          # BOOTSTRAP: scripts/surface_mirror_check.sh does not exist on `main`
-          # until this change itself merges, so until then there is no trusted
-          # copy to run. Fall back loudly, exactly as plugin-bump-check.yml does
-          # for its own first landing; `-f` (present and readable) because the
-          # invocation is `bash "$guard"`.
-          if [ -f .trusted/scripts/surface_mirror_check.sh ]; then
-            guard=.trusted/scripts/surface_mirror_check.sh
-          else
-            echo "::warning::scripts/surface_mirror_check.sh not found on trusted main — running the PR's own copy (bootstrap only). This path disappears once this change merges."
-            guard=scripts/surface_mirror_check.sh
-          fi
+          # Missing trusted code is a configuration failure. Never fall back to
+          # a PR-controlled guard in this privileged event context.
+          guard=.trusted/scripts/surface_mirror_check.sh
+          [ -f "$guard" ] || { echo "::error::trusted workflow revision has no scripts/surface_mirror_check.sh"; exit 1; }
           echo "guard script: $guard"
 
           # The PR checkout is the ROOT the trusted guard judges.
@@ -221,3 +230,20 @@ jobs:
               exit "$code"
               ;;
           esac
+
+      - name: Finish check on the exact PR head
+        if: ${{ always() && steps.head_check.outputs.id != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          CHECK_ID: ${{ steps.head_check.outputs.id }}
+          JOB_STATUS: ${{ job.status }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$JOB_STATUS" in
+            success) conclusion=success ;;
+            cancelled) conclusion=cancelled ;;
+            *) conclusion=failure ;;
+          esac
+          gh api --method PATCH "repos/${REPO}/check-runs/${CHECK_ID}" -f status=completed -f conclusion="$conclusion" >/dev/null
