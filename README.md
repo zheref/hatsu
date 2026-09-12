@@ -373,7 +373,7 @@ nen's own shape (`dependency.version_probe` as an argv array, `dependency.bootst
 
 ```sh
 nen schema check --repo <this checkout>
-#   ok    nen/contract.json  dependency (nen >= 0.7, pinned v0.8.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)
+#   ok    nen/contract.json  dependency (nen >= 0.9, pinned v0.9.0), project (2 lanes: plugin, plugin-bump-guard; 11 verbs; 1 toolchain entry)
 #   ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off 'main', checks: lint
 ```
 
@@ -398,8 +398,9 @@ FAIL by pointer — and [`docs/WORKFLOW.md`](docs/WORKFLOW.md) documents both.
 
 ### The range
 
-*Current pin, echoed for convenience:* **`nen >= 0.7`**, with the bootstrap installing **`v0.8.0`**. Those
-are two values and they move independently.
+*Current pin, echoed for convenience:* **`nen >= 0.9`**, with the bootstrap installing **`v0.9.0`**. Those
+are two values and they move independently. Hatsu adopts `device.extract`, introduced in v0.9.0;
+this feature requirement raises its minimum even though Nen's compatibility floor remains 0.7.
 
 **The range is nen's answer, not this README's arithmetic — and not the warm-up's either.** The binary
 ships `COMPATIBLE_MINOR_FLOOR` (`src/version.ts`), the lowest `minimum` pin that build satisfies, and
@@ -434,8 +435,9 @@ exit `0` answers exit `1` on the same bytes; every relative own-path flag (`--bo
 instead of the process's directory; a missing or malformed `--target` exits `2` rather than `1` across
 sixteen verbs, and so does an unreadable caller-named input on `split verify`, `changelog` and
 `canon mirror check`; and `nen pr ready` **reads** `nen/gates.json`'s `dependabot_carve_out`, so an
-unchanged file can turn a `not-ready` into a `ready`. That is why `minimum` sits at `0.7` — and `minimum`
-moves again **only** when nen's CHANGELOG carries a real breaking bullet, while `pinned_ref` may move on
+unchanged file can turn a `not-ready` into a `ready`. That explains the original `0.7` minimum. A minimum also moves when Hatsu adopts a new capability:
+`device.extract` now requires `0.9`. Breaking changes remain the other reason to raise it.
+`pinned_ref` may move on
 its own to a newer release inside the range, which is exactly what `v0.7.0` → `v0.8.0` was. The familiar
 "compatible within a major" reading applies from **`1.0` onward**, and the contract is bumped to say so
 when nen gets there.

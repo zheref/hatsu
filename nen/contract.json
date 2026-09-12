@@ -1,6 +1,6 @@
 {
   "$schema": "nen.contract/v0.1",
-  "$comment": "This file lives at nen/contract.json, in the shape nen's own loader reads (zheref/nen, USAGE 'Taxonomy as data'): a top-level `dependency` block whose `version_probe` is an argv ARRAY and whose `bootstrap` block nests INSIDE it. `nen schema check --repo <this checkout>` validates that block and prints `ok    nen/contract.json  dependency (nen >= 0.7, pinned v0.8.0), project (1 lane: plugin; 10 verbs; 1 toolchain entry)` (verified live at nen 0.7.0 on this branch); every other key here is Hatsu's own D10 prose, which nen preserves verbatim and reads by nothing. Until Hatsu v0.3.0 this file was `nen.contract.json` at the repository root, in a shape nen never read.",
+  "$comment": "Authoritative Hatsu/Nen dependency and execution declaration. Current feature minimum is 0.9 and published bootstrap ref v0.9.0; device.extract is required by the shared launch workflow. Nen 0.9.0 preserves compatibility floor 0.7 for consumers that keep legacy declarations. Read the installed binary verdict through nen shu tools; do not recompute compatibility in skill prose.",
   "contract": "hatsu-nen-dependency",
   "contract_version": 2,
   "decision": "D10",
@@ -10,49 +10,52 @@
     "name": "nen",
     "source": "zheref/nen",
     "repository": "https://github.com/zheref/nen",
-    "minimum": "0.7",
-    "minimum_semantics": "MAJOR.MINOR — and THE RANGE IT STANDS FOR IS NEN'S ANSWER, NEVER THIS FILE'S ARITHMETIC. From v0.8.0 the binary ships `COMPATIBLE_MINOR_FLOOR` (`src/version.ts`), the lowest `minimum` pin that build satisfies, and `nen shu tools --repo <this checkout>` is what applies it: the `nen` row carries the EXACT range the verdict was taken against, the run prints `compat floor:  <F>  (the lowest dependency.minimum nen <version> satisfies)` on every invocation, and `--json` carries the same value as the top-level `compatibleMinorFloor`. See zero_major_caveat for the rule that row applies. nen refuses a floor that is not exactly two components — `0.3.5` is exit 2 naming the pointer, because a comparison nen quietly weakened is a comparison nobody made — and a leading `v` is accepted and normalised away. Read the verdict off the row; never recompute the range in prose, and never carry a remembered range into a reply.",
+    "minimum": "0.9",
+    "minimum_semantics": "MAJOR.MINOR capability minimum, checked by nen shu tools against the installed binary and its compatibility floor. Raise this for either a breaking compatibility floor or a newly adopted feature unavailable in earlier releases. Hatsu adopts device.extract from v0.9.0, so its minimum is 0.9 even though Nen keeps floor 0.7. Never treat an older binary that accepts unknown JSON keys as proof it executes the new capability.",
     "zero_major_caveat": {
       "applies_while": "the installed and pinned majors are both 0",
-      "rule": "A pin of '0.A' is satisfied by a build '0.B.z' whose compatibility floor is '0.F' when A <= B AND A >= F AND B is at or below that build's OWN minor. As a table, with this contract's pin of '0.7' and nen's floor of '0.7': pin 0.7 / build 0.7.0 -> ok (a pin's own minor always satisfies it); pin 0.7 / build 0.8.0 -> ok, NO REPIN — v0.8.0 declared no breaking consumer notes and kept the floor at 0.7, so the pin already written still holds; pin 0.6 / build 0.7.0 -> below the floor, exit 5, and the row names the repin ('0.6' -> '0.7'); pin 0.9 / build 0.8.0 -> the binary is simply OLDER than the pin, so install pinned_ref; a 1.x pin -> '>=X.Y.0 <(X+1).0.0' and the floor is not consulted at all. IT IS FAIL-CLOSED AT BOTH ENDS: an older binary NEVER certifies a newer line it cannot know about, and a pin below the floor is refused by name however new the host's binary is. A pre-release is read differently at each end, each way round being the fail-closed one there — the floor keeps full semver precedence, so '0.7.0-rc.1' does not satisfy '0.7'; the ceiling compares version NUMBERS, so '0.9.0-rc.1' does not slip under a '<0.9.0' bound. AN UNPARSEABLE VERSION IS AN ABSENT VERSION — rendered 'unknown', never satisfied, at exit 5: a comparison nobody made must not render as one that came back clean.",
-      "why": "SemVer 2.0.0 clause 4: at major version zero the public API is unstable and anything MAY change at any time, so at 0.x the MINOR is the breaking-change vehicle. Read at its strictest that made '0.7' mean '>=0.7.0 <0.8.0' EXACTLY, and every minor — breaking or not — owed a repin PR in every consuming repository; a repin owed unconditionally is a repin nobody reads. The maintainer's ruling of 2026-09-10 narrows it to 'exact minor is fine, unless there is a breaking change', and the fact that makes the distinction decidable is one the binary SHIPS rather than one a consumer infers: nen's release step sets COMPATIBLE_MINOR_FLOOR to a release's own minor when that release's CHANGELOG '### Breaking / consumer notes' section carries a real bullet, and leaves it where it stands when it carries none (zheref/nen#200; docs/USAGE.md 'the compatibility floor' and 'the release-time floor step', guarded by src/version.test.ts, which reads the topmost released section and fails the build when the two disagree). So the floor is what says which releases broke something, carried as data into a checkout that no longer exists rather than derived from prose at run time. It is a floor and never a ceiling, and it only ever WIDENS what is accepted — which is why nen's own notes for it record that it is not itself a breaking change. The floor is seeded at 0.7 because v0.7.0's notes ARE breaking, and those four changes are the reason this contract's `minimum` sits at 0.7 at all: `nen stage triage` gained the `local-config` and `large` detectors, so a working copy that answered exit 0 answers exit 1 on the same bytes; every relative own-path flag resolves against `--repo`'s root instead of the PROCESS's directory, so one unchanged command line run from a worktree reads a different file; a missing or malformed `--target` exits 2 rather than 1 across sixteen verbs, and so does an unreadable caller-named input on `split verify`, `changelog` and `canon mirror check`; and `nen pr ready` READS `nen/gates.json`'s `dependabot_carve_out`, so a pull request that answered `not-ready` can answer `ready` against an unchanged file. Each is a silent change of meaning rather than a new flag, which is exactly what a floor exists to record.",
-      "on_a_higher_minor": "A higher 0.x that KEPT the floor satisfies this pin and there is nothing to do: `nen shu tools` answers the `nen` row `present-and-matching`, printing the range it applied, and the warm-up proceeds to its report. Do NOT re-pin a host down onto pinned_ref because the minor differs — that undoes a widening the binary itself certified, and it is the defect this clause used to cause: every warm-up would have judged a 0.8.0 host out of range and rebound `nen` to v0.7.0. A higher minor that MOVED the floor above this `minimum` is the other case: the row says so in words and names the repin, and that repin is a change to THIS file made in a pull request. Nothing else moves `minimum`.",
-      "from_1_0_onward": "Once nen reaches 1.0, minimum 'X.Y' means >=X.Y.0 <(X+1).0.0 — backward-compatible WITHIN the major, so a higher minor or patch satisfies it and the compatibility floor is not consulted at all. nen already answers that way for a 1.x pin today; this contract is bumped to say so when nen's own line gets there."
+      "rule": "For a pin 0.A and installed build 0.B.z with compatibility floor 0.F, Nen accepts A <= B and A >= F, bounded by that build's own minor. Current Hatsu minimum 0.9 with Nen 0.9.0/floor 0.7 is accepted; Nen 0.8.0 is older than the required feature minimum. Legacy minimum 0.7 remains compatible with 0.9.0, but that does not prove an older binary supports device.extract. Read the exact range from nen shu tools. An unparseable version is unknown and unsatisfied, not a pass.",
+      "why": "SemVer 2.0.0 clause 4: at major version zero the public API is unstable and anything MAY change at any time, so at 0.x the MINOR is the breaking-change vehicle. Read at its strictest that made '0.7' mean '>=0.7.0 <0.8.0' EXACTLY, and every minor \u2014 breaking or not \u2014 owed a repin PR in every consuming repository; a repin owed unconditionally is a repin nobody reads. The maintainer's ruling of 2026-09-10 narrows it to 'exact minor is fine, unless there is a breaking change', and the fact that makes the distinction decidable is one the binary SHIPS rather than one a consumer infers: nen's release step sets COMPATIBLE_MINOR_FLOOR to a release's own minor when that release's CHANGELOG '### Breaking / consumer notes' section carries a real bullet, and leaves it where it stands when it carries none (zheref/nen#200; docs/USAGE.md 'the compatibility floor' and 'the release-time floor step', guarded by src/version.test.ts, which reads the topmost released section and fails the build when the two disagree). So the floor is what says which releases broke something, carried as data into a checkout that no longer exists rather than derived from prose at run time. It is a floor and never a ceiling, and it only ever WIDENS what is accepted \u2014 which is why nen's own notes for it record that it is not itself a breaking change. The floor is seeded at 0.7 because v0.7.0's notes ARE breaking, and those four changes are the reason this contract originally adopted minimum 0.7 (now raised to 0.9 for device.extract) at all: `nen stage triage` gained the `local-config` and `large` detectors, so a working copy that answered exit 0 answers exit 1 on the same bytes; every relative own-path flag resolves against `--repo`'s root instead of the PROCESS's directory, so one unchanged command line run from a worktree reads a different file; a missing or malformed `--target` exits 2 rather than 1 across sixteen verbs, and so does an unreadable caller-named input on `split verify`, `changelog` and `canon mirror check`; and `nen pr ready` READS `nen/gates.json`'s `dependabot_carve_out`, so a pull request that answered `not-ready` can answer `ready` against an unchanged file. Each is a silent change of meaning rather than a new flag, which is exactly what a floor exists to record.",
+      "on_a_higher_minor": "A newer release that keeps a compatibility floor admitting this feature minimum may satisfy the pin without a change. A raised floor above minimum requires an explicit compatibility repin. An installed binary older than minimum needs the published pinned_ref. Read the Nen verdict rather than downgrade a matching newer binary.",
+      "from_1_0_onward": "Once nen reaches 1.0, minimum 'X.Y' means >=X.Y.0 <(X+1).0.0 \u2014 backward-compatible WITHIN the major, so a higher minor or patch satisfies it and the compatibility floor is not consulted at all. nen already answers that way for a 1.x pin today; this contract is bumped to say so when nen's own line gets there."
     },
-    "pinned_ref": "v0.8.0",
-    "pinned_ref_semantics": "The ref the bootstrap installs when the contract is unsatisfied — the NEWEST release that satisfies `minimum`, because a fresh install should get the newest build the pin admits rather than the oldest. Never 'latest': an unpinned fetch converts a source-pinned supply chain into an unpinned one. THE TWO VALUES MOVE INDEPENDENTLY NOW, and that is the change of 2026-09-10. `minimum` moves ONLY when nen's CHANGELOG carries a real bullet under '### Breaking / consumer notes' for the release in question — that is the same bullet nen's own release step reads when it moves COMPATIBLE_MINOR_FLOOR, so 'the floor moved' and 'this repository owes a repin' are one fact with one source. `pinned_ref` may move ON ITS OWN to any newer release INSIDE the range `minimum` already admits, which is what it does here: v0.7.0 -> v0.8.0 with `minimum` held at '0.7'. Through v0.7.0 the two moved together on every minor, because the range was read as an exact minor and nothing else was possible; that is over. What v0.8.0 adds over v0.7.0 is the floor itself and the reading of it: `COMPATIBLE_MINOR_FLOOR` in `src/version.ts`; `nen shu tools` printing `compat floor:` beside the binary's own version on every run and carrying `compatibleMinorFloor` in `--json` even for a declaration with no `dependency` block, because 'do I owe a repin' is a question about nen and not about the declaration that asked; a `nen` row whose pin is below the floor saying so in words and NAMING the repin, where it used to say only `WRONG` beside the version you had just installed; the rendered `pinned` range being the exact range the verdict applies, swept by a test so the table cannot contradict its own `ok`; and one standing hole closed on the way — the range's CEILING now compares version numbers, so a '0.9.0-rc.1' no longer slips under a '<0.9.0' bound. v0.8.0 declares no breaking consumer notes and keeps the floor at '0.7', so every verdict it gives on this contract is the one v0.7.0 gave.",
-    "pinned_ref_bootstrap_caveat": "A TAG IS NOT A RELEASE, and this is the durable rule for EVERY value `pinned_ref` ever takes, not a note about one of them. `bootstrap/nen.sh` resolves the binary and its SHA256SUMS from the GitHub RELEASE at --ref; the tag's own tree carries the script but no assets. So a `pinned_ref` whose release is not published exits 6 (EXIT_MANIFEST — SHA256SUMS unfetchable) on both install_paths, and the warm-up halts per `halt`. That is the fail-closed guard working rather than a defect in this file, and exit 6 is one of the two codes that is NEVER retried. THE RULE THIS IMPLIES: never move `pinned_ref` to a ref whose release is unpublished without knowing that the halt is the cost. CI DOES SEE IT, and that sentence used to say the opposite: `.github/workflows/surface-mirror-check.yml` reads `dependency.pinned_ref` out of this file and bootstraps it, so a pull request that moves the pin ahead of the release goes RED at that step — `curl` 404s on the raw script, or the script exits 6 on an unfetchable SHA256SUMS — on every pull request, not only the one that moved it. That is the guard working where it can be seen rather than only on a developer's machine, and it is a reason to sequence the repin behind the release rather than a reason to weaken either. Publishing the release is the nen maintainer's act and the only thing that clears it.",
-    "version_probe": ["nen", "--version"],
+    "pinned_ref": "v0.9.0",
+    "pinned_ref_semantics": "Published bootstrap release adopted after verifying its binaries and SHA256SUMS. v0.9.0 implements device.extract (Nen #204, PR #206; release PR #208) and keeps compatibility floor 0.7. Hatsu raises minimum to 0.9 for that feature. minimum and pinned_ref still move independently when no new feature or breaking floor requires a minimum change; never use latest or an unpublished ref.",
+    "pinned_ref_bootstrap_caveat": "A TAG IS NOT A RELEASE, and this is the durable rule for EVERY value `pinned_ref` ever takes, not a note about one of them. `bootstrap/nen.sh` resolves the binary and its SHA256SUMS from the GitHub RELEASE at --ref; the tag's own tree carries the script but no assets. So a `pinned_ref` whose release is not published exits 6 (EXIT_MANIFEST \u2014 SHA256SUMS unfetchable) on both install_paths, and the warm-up halts per `halt`. That is the fail-closed guard working rather than a defect in this file, and exit 6 is one of the two codes that is NEVER retried. THE RULE THIS IMPLIES: never move `pinned_ref` to a ref whose release is unpublished without knowing that the halt is the cost. CI DOES SEE IT, and that sentence used to say the opposite: `.github/workflows/surface-mirror-check.yml` reads `dependency.pinned_ref` out of this file and bootstraps it, so a pull request that moves the pin ahead of the release goes RED at that step \u2014 `curl` 404s on the raw script, or the script exits 6 on an unfetchable SHA256SUMS \u2014 on every pull request, not only the one that moved it. That is the guard working where it can be seen rather than only on a developer's machine, and it is a reason to sequence the repin behind the release rather than a reason to weaken either. Publishing the release is the nen maintainer's act and the only thing that clears it.",
+    "version_probe": [
+      "nen",
+      "--version"
+    ],
     "version_probe_semantics": "An argv ARRAY, never a string: nen's loader refuses the string form (verified: `at dependency.version_probe, expected an argv ARRAY, got the string \"nen --version\"`), because a string is one 'sh -c' away from a shell. The warm-up runs exactly these elements, with no shell in between.",
-    "version_probe_output": "A bare semver on stdout, e.g. '0.8.0' — no 'v' prefix, no other text. The probe answers WHAT IS INSTALLED; whether that satisfies `minimum` is `nen shu tools`'s verdict and not this string's.",
+    "version_probe_output": "A bare semver on stdout, e.g. '0.9.0' \u2014 no 'v' prefix, no other text. The probe answers WHAT IS INSTALLED; whether that satisfies `minimum` is `nen shu tools`'s verdict and not this string's.",
     "bootstrap": {
       "vendored": false,
       "vendoring_forbidden": "Hatsu never carries a copy of this script. A vendored copy is a second, unreviewed supply chain that drifts from the manifest it verifies against. Hatsu fetches nen's own published script at the pinned ref, every time.",
       "script_path_in_source": "bootstrap/nen.sh",
-      "url": "https://raw.githubusercontent.com/zheref/nen/v0.8.0/bootstrap/nen.sh",
-      "fetch": "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.8.0/bootstrap/nen.sh -o <local-file>",
+      "url": "https://raw.githubusercontent.com/zheref/nen/v0.9.0/bootstrap/nen.sh",
+      "fetch": "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.9.0/bootstrap/nen.sh -o <local-file>",
       "fetch_must_be_two_step": {
         "rule": "ALWAYS fetch to a file, then run that file. NEVER pipe the script into bash.",
-        "why": "The script runs under `set -u` and reads ${BASH_SOURCE[0]}. Piped into `bash -s --` there is no BASH_SOURCE, so it dies with `BASH_SOURCE[0]: unbound variable` and exits 1 — a code that appears in NO table here, from a script that never reached its own argument parsing. It looks like an ordinary failure and is not one; it means the invocation form was wrong. Reproduced against this contract's pinned ref.",
-        "wrong": "curl -fsSL <url> | bash -s -- --ref v0.8.0",
-        "right": "curl -fsSL <url> -o /tmp/nen-bootstrap.sh && bash /tmp/nen-bootstrap.sh --ref v0.8.0"
+        "why": "The script runs under `set -u` and reads ${BASH_SOURCE[0]}. Piped into `bash -s --` there is no BASH_SOURCE, so it dies with `BASH_SOURCE[0]: unbound variable` and exits 1 \u2014 a code that appears in NO table here, from a script that never reached its own argument parsing. It looks like an ordinary failure and is not one; it means the invocation form was wrong. Reproduced against this contract's pinned ref.",
+        "wrong": "curl -fsSL <url> | bash -s -- --ref v0.9.0",
+        "right": "curl -fsSL <url> -o /tmp/nen-bootstrap.sh && bash /tmp/nen-bootstrap.sh --ref v0.9.0"
       },
       "flags": {
         "--ref": "Required, no default. The tag to pin to.",
         "--source": "owner/name to fetch release assets from. Defaults to zheref/nen.",
         "--cache-dir": "Cache root. Defaults to ${XDG_CACHE_HOME:-$HOME/.cache}/nen."
       },
-      "stdout": "On success, the resolved and checksum-verified binary path — and nothing else. Execute exactly that path.",
+      "stdout": "On success, the resolved and checksum-verified binary path \u2014 and nothing else. Execute exactly that path.",
       "exit_codes": {
-        "0": "verified — the path on stdout is safe to execute",
-        "2": "EXIT_USAGE — the invocation is wrong; nothing was attempted",
-        "3": "EXIT_UNSUPPORTED_HOST — this platform/arch ships no nen binary",
-        "4": "EXIT_DOWNLOAD — the binary asset could not be retrieved (the retryable one)",
-        "5": "EXIT_CHECKSUM — SECURITY: bytes did not verify, or could not be verified",
-        "6": "EXIT_MANIFEST — SHA256SUMS unfetchable, missing, malformed, or silent about the artifact",
-        "7": "raised by `nen bootstrap` only, never by the script: no bootstrap/nen.sh found on disk. Not a supply-chain failure — a wiring failure. Supply --script."
+        "0": "verified \u2014 the path on stdout is safe to execute",
+        "2": "EXIT_USAGE \u2014 the invocation is wrong; nothing was attempted",
+        "3": "EXIT_UNSUPPORTED_HOST \u2014 this platform/arch ships no nen binary",
+        "4": "EXIT_DOWNLOAD \u2014 the binary asset could not be retrieved (the retryable one)",
+        "5": "EXIT_CHECKSUM \u2014 SECURITY: bytes did not verify, or could not be verified",
+        "6": "EXIT_MANIFEST \u2014 SHA256SUMS unfetchable, missing, malformed, or silent about the artifact",
+        "7": "raised by `nen bootstrap` only, never by the script: no bootstrap/nen.sh found on disk. Not a supply-chain failure \u2014 a wiring failure. Supply --script."
       },
-      "retry_policy": "Exit 4 may be retried once. Exits 5 and 6 are NEVER retried — retrying a checksum failure is how a fail-closed guard becomes a fail-open one by attrition. Exit 3 will not change on this host. Exits 2 and 7 are invocation errors: never retry the same command, but the FIXED invocation (correct usage; for 7, supply --script) is expected to succeed — fix and re-run rather than halting on them.",
+      "retry_policy": "Exit 4 may be retried once. Exits 5 and 6 are NEVER retried \u2014 retrying a checksum failure is how a fail-closed guard becomes a fail-open one by attrition. Exit 3 will not change on this host. Exits 2 and 7 are invocation errors: never retry the same command, but the FIXED invocation (correct usage; for 7, supply --script) is expected to succeed \u2014 fix and re-run rather than halting on them.",
       "published_binaries": [
         "nen-linux-x64",
         "nen-darwin-arm64",
@@ -62,12 +65,12 @@
     }
   },
   "project": {
-    "$comment": "What nen EXECUTES for this repository — the other half of the two-file model documented in docs/WORKFLOW.md, whose policy half is nen/workflow.json. `nen shu detect --repo .` answers exit 1, 'no lane detected': Hatsu is bash-and-markdown and matches none of nen's seven reference stacks, so this block is written BY HAND, as kurapika.md § 'The shu verbs' requires. The repository lane declares its real lint argv and seats its absent verbs; the separate guard lane declares the one focused fixture. A seat is exit 4 — a fact, not a failure — and an omitted verb would be exit 2, which reads as a broken declaration rather than as a deliberate absence.",
+    "$comment": "What nen EXECUTES for this repository \u2014 the other half of the two-file model documented in docs/WORKFLOW.md, whose policy half is nen/workflow.json. `nen shu detect --repo .` answers exit 1, 'no lane detected': Hatsu is bash-and-markdown and matches none of nen's seven reference stacks, so this block is written BY HAND, as kurapika.md \u00a7 'The shu verbs' requires. The repository lane declares its real lint argv and seats its absent verbs; the separate guard lane declares the one focused fixture. A seat is exit 4 \u2014 a fact, not a failure \u2014 and an omitted verb would be exit 2, which reads as a broken declaration rather than as a deliberate absence.",
     "lanes": {
       "plugin": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The repository lane: a Claude Code plugin whose shipped surface is .claude-plugin/, claude/, nen/, contracts/, docs/ROSTER.md, docs/delegation-grammar-DRAFT.md, docs/WORKFLOW.md, docs/DISCOVERY.md, docs/LAUNCH-MIGRATION.md and hooks/. The stack id is Hatsu's own name for it, not one of nen's seven — nen carries no build system and validates the id against nothing."
+        "$comment": "The repository lane: a Claude Code plugin whose shipped surface is .claude-plugin/, claude/, nen/, contracts/, docs/ROSTER.md, docs/delegation-grammar-DRAFT.md, docs/WORKFLOW.md, docs/DISCOVERY.md, docs/LAUNCH-MIGRATION.md and hooks/. The stack id is Hatsu's own name for it, not one of nen's seven \u2014 nen carries no build system and validates the id against nothing."
       },
       "plugin-bump-guard": {
         "stack": "claude-code-plugin",
@@ -80,7 +83,12 @@
       "plugin": {
         "lint": {
           "exe": "claude",
-          "argv": ["plugin", "validate", ".", "--strict"],
+          "argv": [
+            "plugin",
+            "validate",
+            ".",
+            "--strict"
+          ],
           "$comment": "The host's own validator, run strictly, is the whole of Hatsu's mechanical verification: it parses both manifests, resolves every path plugin.json points at (agents, commands, skills, hooks), and fails on a surface the manifest claims but the tree does not carry. It is what workflow.json declares as the single `iteration.checks` entry, so this is exactly what breath proves on the fresh tip, what rasengan re-runs as its inner loop while authoring, and what kokusen runs over the finished tree before every commit."
         },
         "build": {
@@ -99,7 +107,7 @@
           "unsupported": "A Claude Code plugin is distributed by git ref through a marketplace, never as a built package: `claude plugin marketplace add zheref/hatsu` reads the tree at a ref. There is no artifact to produce, so there is nothing for `archive` to name."
         },
         "release": {
-          "unsupported": "Publication is a git tag plus the marketplace entry that already points at this repository — there is no publish step to run, and G3 (CON-6) holds the tag decision anyway. Emitter prepares a release here; nothing in this repository publishes one."
+          "unsupported": "Publication is a git tag plus the marketplace entry that already points at this repository \u2014 there is no publish step to run, and G3 (CON-6) holds the tag decision anyway. Emitter prepares a release here; nothing in this repository publishes one."
         },
         "dev": {
           "unsupported": "There is no debug build to start. The development loop is `claude plugin marketplace add ./hatsu` against a local checkout followed by `claude plugin install hatsu@hatsu`, which is a host operation on the developer's own session, not a process this repository spawns."
@@ -114,7 +122,9 @@
       "plugin-bump-guard": {
         "test": {
           "exe": "bash",
-          "argv": ["scripts/plugin_bump_check_fixture.sh"],
+          "argv": [
+            "scripts/plugin_bump_check_fixture.sh"
+          ],
           "$comment": "A permanent, deterministic fixture for the guard's executable behavior. It creates synthetic changed-file lists and manifests in a temporary directory, invokes the checked-in guard, and removes that directory. Run it only as `nen shu test --lane plugin-bump-guard --repo <hatsu>` when the guard changes."
         }
       }
@@ -134,15 +144,25 @@
       ]
     },
     "hosts": {
-      "*": ["darwin", "linux", "win32"],
-      "test": ["darwin", "linux"],
-      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: scripts/plugin_bump_check_fixture.sh uses Bash and mktemp and is verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to the guard fixture currently declared. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
+      "*": [
+        "darwin",
+        "linux",
+        "win32"
+      ],
+      "test": [
+        "darwin",
+        "linux"
+      ],
+      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: scripts/plugin_bump_check_fixture.sh uses Bash and mktemp and is verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to the guard fixture currently declared. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane \u2014 it no-ops off Darwin rather than refusing."
     },
     "targets": {},
     "toolchain": {
       "claude": {
         "version": ">=2.0.0",
-        "probe": ["claude", "--version"],
+        "probe": [
+          "claude",
+          "--version"
+        ],
         "versionFrom": "first-semver-on-stdout",
         "installer": "verify-only",
         "why": "Claude Code is both the host that loads this plugin and the program the `lint` verb spawns. It is verify-only on purpose: nen never installs the harness it is running inside, and the install path is the user's own (claude.com/claude-code)."
@@ -159,38 +179,38 @@
   "install_paths": {
     "note": "TWO cases, TWO paths. Which one applies is decided by the probe, never by preference.",
     "nen_absent": {
-      "when": "`nen --version` is not found on PATH, exits non-zero, or prints something unparseable — and equally when the binary on PATH is so old it has no `nen bootstrap` at all (exit 2, `unknown command`), since the re-pin path below presupposes that verb.",
+      "when": "`nen --version` is not found on PATH, exits non-zero, or prints something unparseable \u2014 and equally when the binary on PATH is so old it has no `nen bootstrap` at all (exit 2, `unknown command`), since the re-pin path below presupposes that verb.",
       "path": "The shell bootstrap, directly.",
       "commands": [
-        "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.8.0/bootstrap/nen.sh -o <local-file>",
-        "bash <local-file> --ref v0.8.0"
+        "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.9.0/bootstrap/nen.sh -o <local-file>",
+        "bash <local-file> --ref v0.9.0"
       ],
       "why_shell_here": "Chicken-and-egg, and it is the ONLY reason shell is permitted anywhere on this path. `nen bootstrap` is a nen subcommand, so invoking it presupposes the binary that is precisely what is missing. The script exists because a bootstrap written in the language its own output provides cannot run before that output exists. This is the sole carve-out; it does not generalize to any other operation."
     },
     "nen_present_out_of_range": {
-      "when": "`nen shu tools --repo <this checkout>` answers the `nen` row `present-but-wrong-version` — the binary parses and does not satisfy `minimum` under dependency.zero_major_caveat's floor rule. The row is the verdict; the range is never recomputed here. TWO SHAPES, ONE PATH: a pin BELOW the build's compatibility floor (the row names the repin, and no build of that line will ever satisfy it — the fix is a pull request against this file, not an install), and a binary OLDER than the pin (the install below is the whole fix).",
+      "when": "`nen shu tools --repo <this checkout>` answers the `nen` row `present-but-wrong-version` \u2014 the binary parses and does not satisfy `minimum` under dependency.zero_major_caveat's floor rule. The row is the verdict; the range is never recomputed here. TWO SHAPES, ONE PATH: a pin BELOW the build's compatibility floor (the row names the repin, and no build of that line will ever satisfy it \u2014 the fix is a pull request against this file, not an install), and a binary OLDER than the pin (the install below is the whole fix).",
       "path": "Re-pin THROUGH NEN'S OWN VERB. A working nen is on PATH, so the chicken-and-egg rationale does not apply and the shell path is not the one to reach for.",
       "commands": [
-        "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.8.0/bootstrap/nen.sh -o <local-file>",
-        "nen bootstrap --ref v0.8.0 --source zheref/nen --script <local-file>"
+        "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.9.0/bootstrap/nen.sh -o <local-file>",
+        "nen bootstrap --ref v0.9.0 --source zheref/nen --script <local-file>"
       ],
-      "why_script_flag_is_required": "VERIFIED, and it contradicts what the verb's name suggests: `nen bootstrap` does not fetch the script. It runs the checksum bootstrap rather than reimplementing it, so it needs bootstrap/nen.sh ON DISK — from a checkout carrying it (--repo) or named with --script / $NEN_BOOTSTRAP_SH. A Hatsu user has no nen checkout, so --script with the freshly fetched file is the form that works; without it the verb exits 7. Deliberate on nen's part: a compiled binary has no sibling bootstrap/ directory, and guessing one is how a nonexistent path becomes a silent failure.",
-      "exit_codes": "The verb propagates the script's codes unchanged — a forced failure through the verb returns 6, verified — plus its own 7 above."
+      "why_script_flag_is_required": "VERIFIED, and it contradicts what the verb's name suggests: `nen bootstrap` does not fetch the script. It runs the checksum bootstrap rather than reimplementing it, so it needs bootstrap/nen.sh ON DISK \u2014 from a checkout carrying it (--repo) or named with --script / $NEN_BOOTSTRAP_SH. A Hatsu user has no nen checkout, so --script with the freshly fetched file is the form that works; without it the verb exits 7. Deliberate on nen's part: a compiled binary has no sibling bootstrap/ directory, and guessing one is how a nonexistent path becomes a silent failure.",
+      "exit_codes": "The verb propagates the script's codes unchanged \u2014 a forced failure through the verb returns 6, verified \u2014 plus its own 7 above."
     }
   },
   "halt": {
-    "when": "ONLY when the bootstrap itself fails (any non-zero exit above). An absent or out-of-range nen is not a halt — it is an auto-install.",
-    "message_template": "Nen is unavailable and the checksum-verified bootstrap failed (exit ${EXIT_CODE} — ${EXIT_MEANING}). This operation is Nen-owned and will not be improvised. Run this yourself, then re-invoke:\n\n    curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.8.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh\n    bash /tmp/nen-bootstrap.sh --ref v0.8.0\n\nTwo steps, never a pipe: the script reads ${BASH_SOURCE[0]} under `set -u`, so `curl … | bash` dies before it starts.\n",
-    "after_halt": "Stop. Do not perform the Nen-owned operation by another route — not with raw gh, not with a shell equivalent, not from memory. The operation does not happen."
+    "when": "ONLY when the bootstrap itself fails (any non-zero exit above). An absent or out-of-range nen is not a halt \u2014 it is an auto-install.",
+    "message_template": "Nen is unavailable and the checksum-verified bootstrap failed (exit ${EXIT_CODE} \u2014 ${EXIT_MEANING}). This operation is Nen-owned and will not be improvised. Run this yourself, then re-invoke:\n\n    curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.9.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh\n    bash /tmp/nen-bootstrap.sh --ref v0.9.0\n\nTwo steps, never a pipe: the script reads ${BASH_SOURCE[0]} under `set -u`, so `curl \u2026 | bash` dies before it starts.\n",
+    "after_halt": "Stop. Do not perform the Nen-owned operation by another route \u2014 not with raw gh, not with a shell equivalent, not from memory. The operation does not happen."
   },
   "no_improvised_fallback": {
     "rule": "There is no LLM-improvised fallback for a Nen-owned operation, ever.",
-    "scope": "A Nen-owned operation is any operation for which a nen verb exists — readiness determination, backlog fetch and ordering, board assembly and render, gate derivation, label application, an issue or pull-request comment (`nen issue comment`), changelog collation, fan-out computation, method-block validation, perf comparison, a target repository's declared build/test/lint/coverage/deploy (`nen shu`), and the rest of `nen --help`.",
+    "scope": "A Nen-owned operation is any operation for which a nen verb exists \u2014 readiness determination, backlog fetch and ordering, board assembly and render, gate derivation, label application, an issue or pull-request comment (`nen issue comment`), changelog collation, fan-out computation, method-block validation, perf comparison, a target repository's declared build/test/lint/coverage/deploy (`nen shu`), and the rest of `nen --help`.",
     "consequence": "If nen is unavailable and the bootstrap failed, the operation does not happen. Reporting that is the correct outcome; substituting a hand-rolled equivalent is not."
   },
   "no_jq": {
     "rule": "Nothing on this path shells out to jq, yq or python to read this file.",
-    "why": "The ratified plan retires jq/yq as a DX friction — a machine needs one binary plus git and gh. And the reader here is an LLM agent that has already opened this file: parsing JSON by subprocess to hand values back to the entity that just read them buys a dependency for nothing.",
-    "how_instead": "Read this file, take the literal values, and issue plain curl / bash / nen commands with those literals substituted in. The one machine that also reads it is nen itself — `nen schema check --repo <this checkout>` — and that is a validation of the file, never a way of reading values out of it."
+    "why": "The ratified plan retires jq/yq as a DX friction \u2014 a machine needs one binary plus git and gh. And the reader here is an LLM agent that has already opened this file: parsing JSON by subprocess to hand values back to the entity that just read them buys a dependency for nothing.",
+    "how_instead": "Read this file, take the literal values, and issue plain curl / bash / nen commands with those literals substituted in. The one machine that also reads it is nen itself \u2014 `nen schema check --repo <this checkout>` \u2014 and that is a validation of the file, never a way of reading values out of it."
   }
 }
