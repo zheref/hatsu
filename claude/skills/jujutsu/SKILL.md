@@ -3,6 +3,14 @@ name: jujutsu
 description: Pair a new device with this machine and register it as a named launch target, once, for good — walk the maintainer through the on-device steps, verify with the platform's own probe, then write the target into nen/contract.json and open the declaration PR at G4. Use when the maintainer invokes hatsu:jujutsu pair <device>, asks to set up a new phone, tablet, simulator or desktop target, or when hatsu:amaterasu reports a launch target this machine cannot resolve. It never taps a trust prompt, never changes a security setting and never merges the declaration PR; simulators and the Mac desktop register through the same path.
 ---
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
+`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
+repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+those files (re-resolve through that skill if unavailable). Relative links below identify source
+locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
+filing. Never copy or invent a second policy in the target repository.
+
+
 # Jujutsu — the device, bound to the declaration
 
 **Nature: Transmuter.** The output is a `project.launch` block in `nen/contract.json` — machinery —
@@ -216,6 +224,27 @@ itself to it before there is any declaration to refuse from.
 > jujutsu is about to write*, so it cannot be read before it exists. **The argv typed here is the
 > argv that goes into the declaration** — that is what makes it verifiable afterwards. From the
 > second run onward the probe is read from the file, never retyped.
+
+### Register the record boundary and the complete delivery path
+
+When probe JSON repeats a device name in nested descriptive objects, that is not evidence of two
+phones. Use the shared Nen extraction mechanism described in [the launch migration guide](../../../docs/LAUNCH-MIGRATION.md)
+when the installed release supports it. The declared record boundary must preserve two genuinely
+distinct same-name records as ambiguous; never choose the first match or hardcode the physical ID.
+The same mechanism handles Apple JSON and Android text/JSON. Expo selects the corresponding native
+platform lane and uses that platform's declaration; it does not introduce another resolver.
+
+Register a target-specific lane that actually builds for the physical platform, a matching
+artifact path, and both install and launch after-steps. Prove the complete target through
+`nen shu dev --repo <core-checkout> --target <declared-target>` before reporting successful delivery.
+Pairing, probe success, dry-run success and build success are intermediate outcomes. Preserve the
+readiness and trust boundaries above. If validation cannot finish because the device is absent,
+report registration as unverified for delivery, not a successful launch.
+
+A reusable missing capability is reconciled through [the common discovery protocol](../../../docs/DISCOVERY.md)
+and assigned upstream. KroApple's temporary Python normalizer is linked to Nen #204 and retained
+until a compatible published replacement is verified. Consumer-specific build or install mistakes
+remain consumer-owned; do not file a second Hatsu issue for the same shared resolver defect.
 
 ## 5. The name is **bytes**, and it is copied, never retyped
 

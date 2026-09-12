@@ -3,6 +3,11 @@
 `claude/skills/tsukuyomi/SKILL.md`: tests health — run every suite `nen/workflow.json` calls required,
 read the runner's own results, report the exit codes as facts.
 
+**Phase ruling, 2026-09-12.** Full-regression mode belongs to aka's final
+`prepublication-verification`; murasaki and mukai do not own independent suite runs. Focused mode is
+an explicit scoped lane at kokusen, and a direct invocation is diagnostic. Instrumented artifacts
+are captured here for aka but measured later by gyo.
+
 **Not a port.** What it replaces is a test command typed from memory and a pass/fail read by eye. § 2
 records the live behaviour at nen `0.3.0` — including the verb this skill was designed around, which
 does not exist yet.

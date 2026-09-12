@@ -37,7 +37,7 @@ Every deterministic or hand-reconstructed step the old `SKILL.md` carried, and w
 | 6 | "`bankai:stage/*` … applying it here would fire the builder" — a rule the agent had to remember never to violate, with nothing stopping a mistaken `--label bankai:stage/building` from reaching `gh issue create` | `--forbid-family` on `nen issue file` refuses the call outright before any GitHub call is made (verified live, § 2.6) — the rule is now a call refusal, not a discipline |
 | 7 | Severity bump on a duplicate: `gh issue edit <n> --add-label bankai:severity/high` typed by hand, with no ledger | `nen label apply <ref> --label <sev> --repo-slug <o/n> --repo <path> --reason "<text>" --run` — logged (object, label, time, outcome) to a ledger file; `--repo` fix reverified live (§ 2.7), the severity-bump call shape against the real backlog is contract inspection only, per the shared brief (§ 3) |
 | 8 | Umbrella check (3+ fold/supersede candidates): the old skill deferred to `bankai:backlog-synthesis` by name, with no verb backing the attach/close choreography it would need | `nen issue attach-sub` / `nen issue consolidate-close` exist and are named in the ported skill as what that consolidation would use, but `file` itself still defers rather than invoking them — contract inspection only (§ 3) |
-| 9 | Posting the actual comment for amend/fold/supersede | **No `nen` verb owns this** — genuine residue, see § 4. Still `gh issue comment`/`gh issue close --comment`, unchanged |
+| 9 | Posting the actual comment for amend/fold/supersede | `nen issue comment --target <o/n> --issue <n> --body-file <p>`; whole-body fold updates use `nen issue edit-body --target <o/n> --issue <n> --body-file <p>` |
 | 10 | The `G5` stop banner: `scripts/gate_stop.sh --gate G5` | `nen stop --who Kurapika --gate G5 efforts.md` — same renderer family `pr-state`'s sibling ports already adopt; not separately re-verified here beyond `nen stop --help` (§ 2 note) |
 
 **Count.** Before: **5** steps the agent had to perform manually, in prose, per invocation, with
@@ -288,12 +288,10 @@ dry-run report instead of refusing.
 
 ## 3. Residue
 
-- **Posting the amend/fold/supersede comment has no `nen` verb.** Searched `nen issue --help`,
-  `nen wake --help` (posts a comment only as part of its own redrive choreography, not a general
-  primitive) and the full family list in `nen --help` — no verb owns "post a comment on issue N."
-  The ported skill still uses `gh issue comment`/`gh issue close --comment` for this one act
-  (§ 3(a)/(b)/(c) of `claude/skills/file/SKILL.md`). **Filed as a finding**, not routed around
-  silently.
+- **Retired at the current pin: comment and body-edit residue.** `nen issue comment` owns an
+  additive comment, and `nen issue edit-body` owns a whole issue-body replacement. The latter
+  certifies that the number is an issue and replaces the body byte-for-byte, so a fold must prepare
+  the current body plus its addition. The skill no longer directs either write through raw `gh`.
 - **`nen issue attach-sub`/`consolidate-close` exist and are named, but `file` itself does not
   invoke them.** They are the umbrella (3+) choreography's verbs, correctly scoped to whatever
   skill owns consolidation — contract-inspected only (§ 2's usage text), never run, per the
@@ -330,15 +328,9 @@ dry-run report instead of refusing.
 
 ## 4. Findings (report separately, do not route around)
 
-1. **No `nen` verb posts a plain issue comment or closes a single issue with free-text comment.**
-   `nen issue --help`'s only comment-adjacent behaviour is `wake fire --comment`, scoped to its
-   own redrive choreography, and `consolidate-close`'s close is bundled with a mandatory
-   attach-sub and computed label/severity summary, not a caller-supplied comment. A skill whose
-   entire § 3(a)–(c) is "comment with new evidence" / "close with a comment naming this issue"
-   has no primitive narrower than raw `gh` for that one act. Worth filing against `nen` as a gap:
-   a `nen issue comment <ref> --body-file <path>` (and a bare `nen issue close <ref> --comment
-   <text>` distinct from `consolidate-close`) would retire the one hand-run `gh` call this port
-   could not replace.
+1. **A narrow single-issue close remains outside the issue family.** `nen issue comment` and
+   `nen issue edit-body` now cover the former additive/body-edit gaps. `consolidate-close` is
+   intentionally a multi-child choreography; do not simulate it for a one-off close.
 2. **`nen repo resolve`'s no-token/origin path checks a narrower list (`consumers[]`) than its
    own `product_codes` map**, so a repo that owns the registry (like `<reference-repo>` owning its own
    `schemas/repos.json`) cannot resolve itself via bare `nen repo resolve` from its own checkout —

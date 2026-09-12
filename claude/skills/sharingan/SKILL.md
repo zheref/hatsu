@@ -3,6 +3,14 @@ name: sharingan
 description: Drive one open PR to CON-32 readiness at its human gate, then stop there. Use when the maintainer invokes hatsu:sharingan <CODE>#<PR> to <G2|G4>, or asks to get a PR ready, unstick a PR, or take it to the merge gate; hatsu:en composes it as its second and fourth steps. This skill was named `drive` until Hatsu v0.4.0 and the rename to `sharingan` changed the name and nothing else. Kurapika (Manipulator) diagnoses the first blocking condition, addresses threads or wakes the CI author with `nen wake fire` fired alone, decides readiness with `nen pr ready` plus an adversarial confirmation pass, and stops at a gate board. Never merges, never self-reviews, never casts a review vote.
 ---
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
+`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
+repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+those files (re-resolve through that skill if unavailable). Relative links below identify source
+locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
+filing. Never copy or invent a second policy in the target repository.
+
+
 # Sharingan — one PR, to the doorstep of its gate
 
 > **This skill was `drive` until Hatsu `v0.4.0`.** The rename to `sharingan` (wave 3, `v0.5.0`)
@@ -427,9 +435,10 @@ diagnose that before spending a wake attempt on it:
    swallowed wake (`nen wake verify` found a run concluding `action_required` with 0 jobs), a
    `dirty` PR (zero `build` runs at all — the label was never consumable), a reply-only builder
    mode, a red check the builder cannot fix, a required check that never reports.
-5. **File the defect** with [`hatsu:file`](../file/SKILL.md) — routed by scope, with the run links
-   and both wake attempts as evidence.
-6. **Stop at G5** with the board: what is stuck, what was tried, the filed issue, and the options
+5. **Reconcile and capture the defect** through [the common discovery protocol](../../../docs/DISCOVERY.md),
+   with sanitized run links and wake evidence. Report the canonical issue or durable pending record;
+   unchanged evidence produces no write and standing filing needs no new prompt.
+6. **Stop at G5** with the board: what is stuck, what was tried, the canonical issue or pending filing record, and the options
    with a recommendation.
 
 **Local authorship is the exception, not step 4.5.** Take authorship only where the work is

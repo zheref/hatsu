@@ -1,6 +1,6 @@
 ---
 name: murasaki
-description: Bring the branch up to date with its base, re-prove the merged tree with the declared iteration checks and the declared tests, and push the result — but only if the branch was already published. Use when the maintainer invokes hatsu:murasaki [from <base>], asks to catch this branch up and send the update, or whenever hatsu:mukai starts or hatsu:en finds the PR behind. Murasaki composes hatsu:ao and hatsu:tsukuyomi by name, restates none of their protocol, and hands a red merged tree to hatsu:rasengan to author the fix. It never squashes, never force-pushes, never first-publishes a branch, and never opens a pull request.
+description: Bring an already-published branch up to date with its base, rerun the shared iteration checks, and before pushing any source/test change reuse aka's prepublication-verification phase. Murasaki composes ao and the named aka helper; it never independently owns regression, squashes, force-pushes, first-publishes, or opens a PR.
 ---
 
 # Murasaki — the branch, current and still true
@@ -66,14 +66,14 @@ the shape by eye; it reads the values, and states the defaults whenever they are
 | # | Step | The skill that owns it | Why it is here |
 |---|---|---|---|
 | 1 | **pull** | [`hatsu:ao`](../ao/SKILL.md) | fetch the base, rebase what is unpublished / merge what is published, classify every conflict, resolve the mechanical ones |
-| 2 | **prove** | this file, § 5 — the declared `iteration.checks` — **then** [`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md) | the checks, then the declared `tests.required` — on the merged tree, not on the tree before it. A red one is handed to [`hatsu:rasengan`](../rasengan/SKILL.md) to author the fix; **proving is not authoring**, and this step does neither on the other's behalf |
+| 2 | **checkpoint and invalidate** | this file, § 5 | run the shared `iteration.checks`; if catch-up changed source/tests, earlier regression evidence is stale and aka § 6 `prepublication-verification` must run before push |
 | 3 | **publish the update** | this file, § 6 | `git push origin HEAD` — **only if the branch was already on the remote** |
 
 **The order is load-bearing in three places:**
 
 - **1 before 2.** The point of the build and the suite here is to prove *the merge*, not the branch.
   Running them first would prove the tree nobody is about to push.
-- **the checks before tsukuyomi inside step 2.** A red build makes a test result meaningless: the
+- **the checks before aka's regression helper inside step 2.** A red build makes a test result meaningless: the
   suite either did not compile or ran against yesterday's artifact. Build first, always.
 - **2 before 3.** Nothing goes to the remote that has not just been proven on the tree that is
   going. A push that re-runs the checks afterwards is a push that already happened.
@@ -95,7 +95,7 @@ stops; this run ends there, having pushed nothing, and says so in one line. The 
 **Ao never pushes** — its own hard limit — and being called from inside murasaki does not lend it
 one. § 6's push is murasaki's, made after ao has returned and said what it did.
 
-## 5. Step 2 — the checks, then tests, on the merged tree
+## 5. Step 2 — checks, invalidation, and the aka-owned regression phase
 
 ```bash
 nen shu <check> --repo <path> --lane <iteration.lane>     # every iteration.checks entry, in order
@@ -107,15 +107,25 @@ of 2026-09-10, [`docs/ROSTER.md`](../../../docs/ROSTER.md)); what step 2 wants i
 nobody has authored on — the merge ao just made. So murasaki runs the declared checks itself, reads
 them off [`hatsu:rasengan`](../rasengan/SKILL.md) § 6's exit table, and **hands a red one to rasengan
 to author the fix**, after which step 2 runs again over the repaired tree.
-[`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md) then runs every `tests.required` verb (and `tests.extra`)
-through the same declaration. The exit-code tables — `1` red, `2` declaration, `3` host, `4` a
+Compare the caught-up tree with the pre-catch-up tree. If source or tests changed, all earlier full
+regression and coverage evidence is invalid. Reuse [`hatsu:aka`](../aka/SKILL.md) § 6
+`prepublication-verification` before § 6 pushes this tree. This reuse grants lint, regression, UI
+regression, and instrumented-result capture only; it grants no squash and no first-publish authority.
+If source/tests did not change, report that fact and do not rerun the full suite here. The exit-code
+tables — `1` red, `2` declaration, `3` host, `4` a
 **seat** quoted verbatim, `5` `nen shu tools` — are `claude/agents/kurapika.md` § *The `shu` verbs*'
 and are handled there, not here.
+
+**When mukai calls murasaki after its coverage step, coverage is part of the publication proof.** If
+ao changes source or tests, murasaki stops before § 6's push and returns the caught-up tree to mukai
+steps 3–4. Aka's helper refreshes regression there and gyo refreshes coverage; only the next
+murasaki pass, whose catch-up is a no-op, may push. This is a caller-owned evidence dependency, not
+new regression or coverage authority for murasaki.
 
 Two things murasaki asserts on top of them, and only two:
 
 - **`not applicable — no tests configured` is carried through unchanged.** Where `tests.required`
-  and `tests.extra` are both empty, tsukuyomi reports that phrase rather than green
+  and `tests.extra` are both empty, aka's helper reports that phrase rather than green
   ([`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md) § 4), and murasaki repeats the phrase in the push
   report: *"tests: not applicable — no tests configured; nothing was proven here."* It is **not** a
   reason to stop — an empty required set is not a red suite — and it is **not** a pass. Hatsu's own
@@ -216,7 +226,7 @@ Each is run in the open and reported as by-hand, per the Nen-first rule's second
 ## Authority
 
 - **Permitted:** everything [`hatsu:ao`](../ao/SKILL.md) and
-  [`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md) are each permitted, under their own authority, one at a
+  [`hatsu:aka`](../aka/SKILL.md) § 6 is permitted under its narrow helper authority, one at a
   time, in § 3's order; running the lane's declared `iteration.checks` over the merged tree (§ 5);
   and **one** operation of murasaki's own: a plain, non-force push of a **non-base** branch that is
   **already on the remote**. Authoring a fix for a red merged tree is

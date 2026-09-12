@@ -3,6 +3,14 @@ name: ren
 description: Run one request end to end as a turn — warm up on the first turn, author the change the request asks for, verify and commit it locally, launch the app, publish the report, ring the bell — and then wait for the next request. Use when the maintainer invokes hatsu:ren <request>, or simply asks for work in a repository where the turn loop is how work is done. Ren composes the six atomic skills by name and restates none of their protocol; it never pushes, never opens a pull request, and ends only when the maintainer calls hatsu:aka or hatsu:tensho.
 ---
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
+`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
+repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+those files (re-resolve through that skill if unavailable). Relative links below identify source
+locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
+filing. Never copy or invent a second policy in the target repository.
+
+
 # Ren — one request, one turn, every time
 
 **No fixed mode.** Ren is a composed run: the mode is whichever the *request* is —
@@ -50,8 +58,8 @@ say so on the first one, so nobody is surprised by the report and the bell at th
 |---|---|---|---|
 | 1 | **warm up** | [`hatsu:breath`](../breath/SKILL.md) | **first turn of an effort only** — clean tree, fetch, fast-forward, cut the branch from the base, and prove the declared checks **on that fresh tip**: a base that does not build is a **G5** stop taken before any of the change is authored |
 | 2 | **author the change** | [`hatsu:rasengan`](../rasengan/SKILL.md) | write what the maintainer asked for, on the stack this repository declares: the edits, the tests beside them, the docs and changelog its conventions owe — with the declared `iteration.checks` run as the author's own feedback while the work is in front of them |
-| 3 | **verify and commit** | [`hatsu:kokusen`](../kokusen/SKILL.md) | every `iteration.checks` verb over the **finished** tree, red refused; then triage, an ask on what is flagged, one shaped commit — local only |
-| 4 | **launch** | [`hatsu:amaterasu`](../amaterasu/SKILL.md) | build the configured target and start it **from the core working directory** — or, where the repository declares no launch target (Hatsu's own case), record `no launch target declared; skipped` and continue **without asking** |
+| 3 | **verify and commit** | [`hatsu:kokusen`](../kokusen/SKILL.md) | every inexpensive `iteration.checks` verb and the declared focused tests over the **finished** tree, red refused; then triage, an ask on what is flagged, one shaped commit — local only |
+| 4 | **launch** | [`hatsu:amaterasu`](../amaterasu/SKILL.md) | build a target-compatible artifact, install it and launch the configured device **from the core working directory** — or, where the repository declares no launch target (Hatsu's own case), record `no launch target declared; skipped` and continue **without asking** |
 | 5 | **report** | [`hatsu:rikugan`](../rikugan/SKILL.md) `as turn` | the page: accomplished, challenges, not delivered, architecture, screenshots, the exact launch command, decisions |
 | 6 | **bell** | [`hatsu:jutaisho`](../jutaisho/SKILL.md) | the rungs the workflow declares — and a stop only if one is genuinely due |
 
@@ -139,6 +147,23 @@ ready; the maintainer says the rest.
 > no line when nothing happened, no background timer, no deferral primitive, and a visible way to
 > end it. **This is a boundary, not a missing verb to file** — a turn loop is a conversation's
 > shape, and nen deliberately owns operations rather than conversations.
+
+### Turn completion and discoveries
+
+A completed turn means authored work, focused tests and inexpensive iteration checks verified by
+`kokusen`, a local checkpoint, and the actual launch/report outcome. `rasengan` may run focused tests
+for feedback; `kokusen` owns their mandatory finished-tree execution. A repository with no applicable
+executable tests says so explicitly. The shared `iteration.checks` list remains shared with `breath`;
+a focused lane is an explicit supported declaration, not a new checkpoint-only policy key.
+
+Full required regression is due in `aka`, after catch-up; coverage measurement/gating is due in
+`mukai`/`gyo`. Neither is triggered by the words “turn complete,” by a local commit, or by collecting
+a report. No nested skill or declared coverage command may hide a full-suite run outside its owner.
+
+Every phase, subagent, composite and resumed run follows [the common discovery protocol](../../../docs/DISCOVERY.md).
+Concrete out-of-scope gaps are reconciled and captured under standing filing authority; unchanged
+findings produce no write. Report created/updated/unchanged/pending and continue this request where
+possible. Capture never authorizes an unrelated build, a stage label, closure, merge or release.
 
 ## 5. The parameters — read by the steps, named here
 

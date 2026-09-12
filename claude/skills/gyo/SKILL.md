@@ -1,6 +1,6 @@
 ---
 name: gyo
-description: Measure line coverage of the files this branch touched, band each one against the repository's ladder — 80 the minimum, 85 recommended, 90 ideal — and add tests until the lowest one clears the floor. Use when the maintainer invokes hatsu:gyo [against <base>], asks what the coverage is on this branch, or whenever hatsu:mukai reaches its coverage step before the pull request is composed. A touched file under the minimum is a G5 stop with the options laid out; the bar is never lowered to clear it and a test is never patched to raise a number.
+description: Measure touched-file coverage during mukai from instrumented results captured by aka's full regression for the same tree. The declared coverage row may extract or parse those results but must not rerun tests. Each test remediation invalidates evidence and returns through kokusen and aka before remeasurement.
 ---
 
 # Gyo — the lines that are actually exercised
@@ -71,21 +71,34 @@ reads `ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{pe
 off 'main', checks: lint`. A malformed key is a FAIL **by pointer**, so this skill no longer checks
 the shape by eye; it reads the values, and states the defaults whenever they are what applied.
 
-## 3. Measure — `nen shu coverage`, which reports and never gates
+## 3. Measure aka's captured result — never execute a second suite
 
 ```bash
 nen shu coverage --repo <path> [--lane <lane>] --touched --base origin/<base> --dry-run   # once per repo per session
 nen shu coverage --repo <path> [--lane <lane>] --touched --base origin/<base>
 ```
 
+Inspect the dry-run argv before execution. The declared `coverage` row must only extract or parse the
+instrumented result produced by aka § 6; it must not invoke a test runner, delete the captured result,
+or create a new one. Match the result's recorded tree hash, lane, regression verb/argv, artifact path,
+and run time from `.nen/regression/<lane>.json` to the current tree. Require contract
+`hatsu.regression-capture/v0.1`; this is aka's saved Hatsu provenance record, not Nen output. A mismatch is stale evidence and returns to aka's
+`prepublication-verification` phase.
+
+The pinned Nen has no `coverage --from-artifacts` switch and no single provenance envelope. The
+supported route is a declared extraction-only `coverage` row whose artifact points at aka's captured
+result. If the row runs a suite or provenance cannot be tied to this tree, report the exact missing
+declaration/capability and stop at G5. Never run duplicate regression and call it coverage.
+
 **`--touched` requires `--base`, and either flag given without the other is exit `2`.** With
 `--threshold` absent — which is how gyo runs it — nen loads `nen/workflow.json`'s
 `coverage.{minimum,recommended,ideal}` through the same loader `nen schema check` validates, and
 bands every row itself.
 
-The verb runs the lane's declared coverage command and then **parses the report it produced** into
-one shape: a total, a row per target, and — with `--threshold` — whether the number cleared the bar.
-The report is the first path under the verb's `artifacts` whose format nen reads.
+The verb runs the lane's declared extraction-only coverage command and then parses the report it
+names into one shape: a total, a row per target, and — with `--threshold` — whether the number
+cleared the bar. For this phase contract, “produced” means extracted from aka's preserved
+instrumented result, never produced by executing tests here.
 
 > **`--threshold` REPORTS `met` and never changes the exit code, in either direction.** Verified live
 > at this pin (`docs/ab/gyo.md` § 2.2): a real parse totalling **79.50%** against `--threshold 80`
@@ -200,7 +213,7 @@ small poorly-covered one.
 
 ## 5. Add tests until every touched file clears the minimum
 
-**Write the tests. Re-measure with the verb. Repeat.** Two rules on the loop:
+**Write the tests. Checkpoint, rerun aka's regression, then re-measure. Repeat.** Two rules on the loop:
 
 - **Every number is `nen shu coverage`'s, every time.** Never an estimate, never "that should be
   about 85 now", never a number from an earlier run in the same session — the last measurement is
@@ -211,7 +224,8 @@ small poorly-covered one.
   reason to write a fake one.
 
 **What gyo may change: test files.** Not the code under test, not a configuration to exclude a path,
-not a coverage threshold anywhere.
+not a coverage threshold anywhere. Every test edit invalidates regression and coverage evidence;
+kokusen commits it, aka § 6 captures a new instrumented result, and only then may gyo parse again.
 
 ## 6. Report the bands
 
@@ -323,7 +337,7 @@ Each is run in the open and reported as by-hand, per the Nen-first rule's second
 
 ## Authority
 
-- **Permitted:** run the lane's declared `coverage` row; read the working copy and its git history;
+- **Permitted:** run an extraction-only declared `coverage` row over aka-captured results; read the working copy and its git history;
   **write test files**; re-run the measurement; render the stop.
 - **Not permitted:** editing the code under test to make it easier to cover; editing any coverage
   configuration, exclusion list or threshold; push, commit, PR, label, merge, deploy. Gyo is a step
@@ -352,4 +366,6 @@ Each is run in the open and reported as by-hand, per the Nen-first rule's second
 - **Never reads `nen shu coverage`'s exit `0` as a pass** — the verb reports `met` and never gates
   (§ 3).
 - **Never treats a seat (exit `4`) as `0%` or as green** — it is `not measurable here`, quoted (§ 8).
+- **Never executes tests or accepts a coverage row that executes them.** Full instrumented execution
+  belongs to aka; gyo consumes the matching artifact or stops.
 - **Never presents by-hand filtering as a verb's output** — § Residue is named where it runs.

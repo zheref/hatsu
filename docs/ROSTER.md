@@ -444,3 +444,23 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   and rule id: `CONSTITUTION.md`, `handbooks/quality-baseline.md` (`QA-{n}`), `handbooks/ux-baseline.md`
   (`UX-{n}`), `handbooks/uzf-core.md` (`UZF-26`). That repository is **frozen**; read it at its snapshot tag,
   never at `main`, and never write to it.
+
+
+## Rulings of 2026-09-12 — phase ownership, launch and discovery
+
+The maintainer's #48 ruling and follow-up place mandatory focused tests at `kokusen` before the
+local commit, with authoring feedback still available in `rasengan`. Inexpensive iteration checks
+remain repository-declared. Aka gains lint before squashing unpublished commits, retains squash
+before catch-up, and owns full regression on the final caught-up tree. Mukai owns extraction and
+gating of coverage collected during that regression. Any changed code, tests or configuration
+invalidates previous evidence. Reports do not trigger later verification phases.
+
+Amaterasu owes a platform-compatible artifact, installation and actual launch on each applicable
+turn from the core checkout. Shared record normalization belongs to Nen #204; consumer Python
+workarounds remain temporary until a compatible release is available and migration is verified.
+
+Hatsu #49 grants standing discovery filing/folding authority across phases and resumed work,
+with reconciliation, material-change-only writes, sanitized pending records and no expansion to
+unrelated implementation, labels, closures, merges or releases. Reviewers relay findings to the
+coordinating writer. [DISCOVERY.md](DISCOVERY.md) owns the protocol. These changes are delivered
+before a new tag is considered; this ruling does not itself authorize a tag or release.

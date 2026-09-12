@@ -1,6 +1,6 @@
 ---
 name: kotoamatsukami
-description: Run this repository's declared end-to-end and UI suite, read the runner's own result, and hand the scenes it re-recorded to the evidence table the report and the pull request are built from. Use when the maintainer invokes hatsu:kotoamatsukami [on <lane>], asks to run the UI tests, the E2E suite or the snapshot tests, or whenever hatsu:mukai reaches its UI-test step. A lane that declares no ui-test answers exit 4 and its seat is quoted verbatim, never worked around; a re-recorded snapshot is a change to an assertion and is reviewed before it is committed, never accepted because it made the suite green.
+description: Execute a declared end-to-end/UI suite as part of aka's final full regression, or parse its existing artifacts for mukai evidence. A direct named run is diagnostic only. Mukai never reruns UI regression while collecting evidence; any accepted snapshot invalidates regression before publication.
 ---
 
 # Kotoamatsukami — the UI suite, and the scenes it leaves behind
@@ -13,11 +13,14 @@ fix at all.
 > **Run the UI suite this repository declares, tell me exactly what it said, and show me every scene
 > it re-recorded.**
 
-Kotoamatsukami is [`hatsu:mukai`](../mukai/SKILL.md)'s third step, alongside
-[`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md) — the unit half and the end-to-end half run together, and
-neither substitutes for the other. It is also invocable alone.
+Kotoamatsukami executes inside [`hatsu:aka`](../aka/SKILL.md) § 6 alongside
+[`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md), so the unit and end-to-end halves prove the same final
+tree. [`hatsu:mukai`](../mukai/SKILL.md) step 6 consumes those existing artifacts for evidence and
+does not execute either suite. It is also invocable alone as a diagnostic.
 
-It is **tsukuyomi's sibling, not tsukuyomi's superset.** Where the two overlap — the dry run, the
+It is **tsukuyomi's sibling, not tsukuyomi's superset.** Aka § 6 owns execution of both on the final
+caught-up tree. Mukai calls only the artifact/evidence half after verifying the artifact belongs to
+that same tree. Where the two overlap — the dry run, the
 exit-code table, *fix the code and never the test*, *never state a count nobody printed* — the rule
 is authored in [`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md) and read there. What is authored **here**
 is the half tsukuyomi does not have: a UI suite produces **images**, those images are the pull
@@ -106,6 +109,11 @@ costs seconds and reading it wrong costs the run.
 nen shu ui-test --repo <path> [--lane <lane>]
 ```
 
+This command runs only in aka § 6 `prepublication-verification`, or as a direct human-requested
+diagnostic that carries no publication proof. Mukai evidence collection does not execute it; it uses
+aka's matching declared result artifacts. If no matching artifact exists, return to aka rather than
+quietly running the suite inside mukai.
+
 Never the runner's own command line typed from memory. Under `--json` the report is one document,
 where **`steps[].exitCode` is the runner's own code** and the top-level `exitCode` is nen's.
 
@@ -189,6 +197,10 @@ before it is committed.
 **A test is never patched to pass** — [`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md) § 6's rule, and in a
 UI suite its most common disguise is the re-record. Loosening a comparison tolerance, widening a
 mask, adding a retry loop and skipping a flaky scene are the same move in different clothes.
+
+An accepted image changes source/test state, so prior regression, coverage, and evidence claims are
+stale. Kokusen checkpoints the assertion change and aka § 6 reruns the full regression before mukai
+reads the replacement artifacts.
 
 ## 7. The scenes become the evidence table
 

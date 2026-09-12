@@ -1,10 +1,16 @@
 # A/B evidence — `murasaki` (new skill, wave 3)
 
 `claude/skills/murasaki/SKILL.md`: the maintenance composite — [`ao`](../../claude/skills/ao/SKILL.md)
-to put the base underneath, [`rasengan`](../../claude/skills/rasengan/SKILL.md) +
-[`tsukuyomi`](../../claude/skills/tsukuyomi/SKILL.md) to prove the merged tree, then a plain push **only
-if the branch was already published**. Never squashes, never force-pushes, never first-publishes, never
-opens a PR.
+puts the base underneath, murasaki runs the shared iteration checks, and a source/test-changing
+catch-up reuses aka's prepublication verification before a plain push **only if the branch was already
+published**. Never squashes, never force-pushes, never first-publishes, never opens a PR.
+
+**Phase ruling, 2026-09-12.** Murasaki runs the shared iteration checks after catch-up. When catch-up
+changes source/tests it invalidates earlier evidence and reuses aka's `prepublication-verification`
+before its permitted update push. It no longer invokes tsukuyomi as an independently owned phase and
+never receives aka's squash or first-publish authority.
+When called by mukai after coverage, a changing catch-up stops before push and returns to mukai's
+regression/coverage loop; only a no-op final catch-up may publish the measured tree.
 
 > **Dated 2026-09-10 — step 2's owner changed after this record was written.** The header line above
 > credits `rasengan` with proving the merged tree. The maintainer's ruling of 2026-09-10

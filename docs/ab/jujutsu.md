@@ -505,3 +505,23 @@ protects nobody until it is written, which is why § 6 writes one on every regis
 limits* refuses a target without one. And at **pairing** time the target does not exist yet — § 4's
 first read of the state column is still by eye, which is the same chicken-and-egg the first probe
 already had (§ Residue 4).
+
+
+## Issue #48/#49 integration scenarios — 2026-09-12
+
+The following are constructed protocol acceptance scenarios, not transcripts of a physical-device
+run or a full regression. The current source contract is in docs/WORKFLOW.md, docs/DISCOVERY.md
+and docs/LAUNCH-MIGRATION.md; historical command transcripts above retain their original dates.
+
+| Scenario | Expected outcome |
+|---|---|
+| Ordinary turn with authored executable changes | Focused tests and inexpensive checks pass at kokusen; no regression or coverage run is scheduled by the turn/report |
+| Hatsu's prose-only change | Declared plugin lint; tests not applicable; no launch target declared |
+| Missing scoped test path | Capture an owned pending/linked dependency; no raw runner or substitute full suite |
+| Physical target chooses simulator artifact | Report a consumer declaration defect and incomplete launch |
+| Compatible build, successful install and launch | Report each actual outcome from Nen's core-checkout invocation |
+| Absent versus present-but-unusable device | Only absence may take a declared fallback; unusable remains a readiness refusal |
+| Nested repeated device names | Route to Nen #204; retain the consumer normalizer until a compatible release and verification |
+| Turn/final report sees stale test or coverage artifact | Mark stale; do not execute tests/coverage merely to render the page |
+| Repeated discovery already captured | Unchanged result and no GitHub write; retain canonical link |
+| Filing unavailable | Durable sanitized pending record; original work continues where possible |

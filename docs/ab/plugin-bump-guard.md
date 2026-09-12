@@ -649,3 +649,41 @@ satisfies `version_bumped`, for the reasons recorded there. And an author who *w
 guard can still write the opt-out line honestly with a bad reason: the anchor makes the opt-out a
 **deliberate declaration** rather than an accident of wording, which is all an opt-out can be. The
 reason is still read by a human at review.
+
+## 9. Runtime policy documents — constructed Nen fixture (2026-09-12)
+
+`docs/WORKFLOW.md`, `docs/DISCOVERY.md`, and `docs/LAUNCH-MIGRATION.md` are exact guarded paths.
+They are installed runtime policy documents: phase skills read the workflow authority, filing/review
+and orchestration surfaces link the discovery protocol, and launch skills link the migration and
+release boundary. A change to any of those paths therefore requires the same cache-refresh version
+bump as the other installed surfaces.
+
+This was verified as a **constructed local fixture**, not live GitHub CI. The temporary fixture at
+`/private/tmp/hatsu-guard-fixture.2noAiB` declared a single `fixture` lane and its `test` verb in
+`nen/contract.json`; that verb ran `bash guard-cases.sh`. The runner itself invoked the pure guard
+against synthetic changed-file lists and synthetic base/head manifests. The exact invocation was:
+
+```
+$ nen shu test --repo /private/tmp/hatsu-guard-fixture.2noAiB
+DISCOVERY unchanged version: exit 1
+LAUNCH-MIGRATION unchanged version: exit 1
+WORKFLOW unchanged version: exit 1
+DISCOVERY bumped version: exit 0
+unrelated docs unchanged version: exit 0
+lane:          fixture  (fixture)
+verb:          test
+host:          darwin -- supported (the declaration constrains no platform)
+preconditions: (none declared)
+ran:           bash guard-cases.sh  -- exit 0 in 192ms
+cwd:           /private/tmp/hatsu-guard-fixture.2noAiB
+env:           (none added)
+artifacts:     (none declared)
+stdout to:     (none declared)
+log:           not captured to a file -- each step's own stdout and stderr were relayed as it finished. A .nen/logs/ transcript is not in this release (zheref/nen#91).
+```
+
+The three unchanged-version cases each assert the guard's expanded refusal text, so coverage proves
+the paths are recognized rather than merely listed. The bumped `docs/DISCOVERY.md` case uses
+`0.16.0 → 0.16.1` and passes. `docs/ab/plugin-bump-guard.md` remains intentionally outside the
+runtime surface and still passes with an unchanged version. This fixture is temporary verification,
+not a permanent Hatsu test suite or a GitHub workflow result.

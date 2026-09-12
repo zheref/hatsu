@@ -3,6 +3,14 @@ name: tensho
 description: Turn a dirty working copy into one PR standing ready at its gate. Use when the maintainer invokes hatsu:tensho <target-branch|main>, or asks to branch this off, commit and PR what I have, or open a PR for these changes. Kurapika moves the work off main if needed, reviews every uncommitted file before staging it, commits, opens the PR with the body the template requires, then checks it against its gate. Never merges, never commits a file it flagged without an answer.
 ---
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
+`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
+repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+those files (re-resolve through that skill if unavailable). Relative links below identify source
+locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
+filing. Never copy or invent a second policy in the target repository.
+
+
 # Tensho — a dirty working copy becomes a PR at your gate
 
 **Nature: Manipulator** carries every run — branching, staging, committing, opening and requesting
@@ -125,7 +133,8 @@ nen repo resolve <CODE> --repo <path>               # matches an explicit code i
 > token form is verified live (`nen repo resolve BC --repo <path>` → `bankai-core (BC) via code`); the
 > origin form needs a checkout whose `origin` the registry records and was not re-run here. Either form
 > works from inside the registry-owning repo now; if the origin form ever refuses a repository its own
-> code list names, pass the code explicitly and file it as a new finding.
+> code list names, pass the code explicitly and reconcile the finding through [DISCOVERY.md](../../../docs/DISCOVERY.md);
+> unavailable prerequisites remain a pending record, not a claimed new issue.
 >
 > **RETIRED at nen `0.5`: a target with NO registry refuses at exit `2`, naming the file** — where through
 > `v0.4.0` it failed at exit `1`, indistinguishable from an unresolved token. Read `1` as *the registry
