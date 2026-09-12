@@ -4,6 +4,11 @@
 # Invoked only through `nen shu test --lane plugin-bump-guard --repo <hatsu>`.
 set -euo pipefail
 
+if ! command -v jq >/dev/null 2>&1; then
+  printf '%s\n' 'plugin-bump-guard fixture: jq is required for this focused lane; install jq 1.6 or newer and rerun nen shu test --lane plugin-bump-guard --repo <hatsu>' >&2
+  exit 2
+fi
+
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 guard="$repo_root/scripts/plugin_bump_check.sh"
 fixture_root="$(mktemp -d "${TMPDIR:-/tmp}/hatsu-plugin-bump-guard.XXXXXX")"

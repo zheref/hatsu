@@ -84,7 +84,7 @@ nen schema check --repo "$hatsu_root"
 ```
 
 Verified live at nen `0.9.0` against this branch: the `nen/contract.json` row prints
-`ok    nen/contract.json  dependency (nen >= 0.9, pinned v0.9.0), project (2 lanes: plugin, plugin-bump-guard; 11 verbs; 2 toolchain entries)`
+`ok    nen/contract.json  dependency (nen >= 0.9, pinned v0.9.0), project (2 lanes: plugin, plugin-bump-guard; 11 verbs; 1 toolchain entry)`
 — the minimum and the pin nen parsed are the ones you just read, and they are **two independent values**:
 `>= 0.9` is the capability minimum this repository declares, `v0.9.0` is the build its bootstrap installs, and § 1b's
 floor rule is why the second may move without the first. A drift between them and this file's prose is a
