@@ -194,7 +194,7 @@ never built is a claim, not a result.
 re-proving the declared build"* — so it is written out here rather than left to be inferred:
 
 ```bash
-nen commit format --type chore --scope merge \
+nen commit format --repo <path> --type chore --scope merge \
   --subject "bring origin/<base> into <descriptor>" \
   --body "<one line per conflicted path: kind, and why the resolution was determined>" \
   --trailer "Hatsu-Agent=<responsible-persona>" > <msg-file> # exit 0 REQUIRED before the next line

@@ -198,7 +198,7 @@ committed, say so and offer the `.gitignore` line; do not commit it to be tidy.
 ## 4. The commits
 
 ```bash
-nen commit format --type <feat|fix|chore|docs|refactor|test|perf|build|ci> \
+nen commit format --repo <path> --type <feat|fix|chore|docs|refactor|test|perf|build|ci> \
   --subject "<short imperative subject>" [--scope <scope>] [--breaking] \
   [--body "<paragraph>"] [--trailer "Hatsu-Agent=<responsible-persona>"]
 ```

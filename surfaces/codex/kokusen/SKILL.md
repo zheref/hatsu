@@ -85,8 +85,8 @@ the author's inner loop, not inherited from the warm-up, not skipped because the
    tree. **A red check the turn cannot honestly clear is a G5 stop, with that check quoted** — never
    a commit "so the fix is saved", and never a narrowed check (`rasengan` § 4).
 
-   **A seat (exit `4`) is not red.** Verified live against this repository on 2026-09-10 at the
-   pinned `0.7.0`, where the `plugin` lane seats `build` and declares `lint`:
+   **A seat (exit `4`) is not red.** Historically verified against this repository on 2026-09-10
+   with Nen `0.7.0`, where the `plugin` lane seats `build` and declares `lint`:
 
    ```text
    $ nen shu build --repo .
@@ -172,8 +172,7 @@ the author's inner loop, not inherited from the warm-up, not skipped because the
 
    **What the skipped cases would have answered, recorded so the condition is not taken on trust.**
    This repository is the first row of the table above — `iteration.checks` is `["lint"]` — *and* the
-   second: the `plugin` lane seats `build`. Run against it anyway on 2026-09-10 at the pinned
-   `0.7.0`, the verb answers exactly what the condition predicts, forever:
+   second: the `plugin` lane seats `build`. A historical run against Nen `0.7.0` on 2026-09-10 answered exactly what the condition predicts:
 
    ```text
    $ nen commit check --repo . --require-proof plugin
@@ -212,8 +211,8 @@ of each (`docs/ab/kokusen.md` § 2.1, § *Retired at nen 0.6* and § *Retired at
 | Bucket / flag | Trigger |
 |---|---|
 | `secret-shape` | `.env`, `*.pem`, `*.key`, `credentials*`, or a token/key shape in the diff |
-| **`local-config`** | the `.local` filename infix a dozen tools agree means "this machine's copy" — `settings.local.json`, `.env.local`, `config.local.yml`, a bare `notes.local`. **New at the pinned `0.7.0`**, and a FILENAME check like the secret shape beside it, deliberately **not** a directory rule: `.claude/` and `.vscode/` hold committed project configuration as often as personal settings |
-| **`large`** | the file is at or over `--large-bytes`, default **1 MiB**. **New at the pinned `0.7.0`.** A path the verb could not MEASURE — a deletion, a broken symlink — is never flagged `large`, because "not measured" must not render as "measured and small"; an ignored path is not measured either |
+| **`local-config`** | the `.local` filename infix a dozen tools agree means "this machine's copy" — `settings.local.json`, `.env.local`, `config.local.yml`, a bare `notes.local`. **Introduced in Nen `0.7.0`**, and a FILENAME check like the secret shape beside it, deliberately **not** a directory rule: `.claude/` and `.vscode/` hold committed project configuration as often as personal settings |
+| **`large`** | the file is at or over `--large-bytes`, default **1 MiB**. **Introduced in Nen `0.7.0`.** A path the verb could not MEASURE — a deletion, a broken symlink — is never flagged `large`, because "not measured" must not render as "measured and small"; an ignored path is not measured either |
 | `binary` | the file's content is binary |
 | `out-of-scope` | the path falls outside every `--scope` prefix — **omitted entirely** when `--scope` is not passed |
 | `unmentioned-deletion` | a tracked path was deleted and its basename does not appear in `--mentions` |
@@ -249,8 +248,8 @@ One path can carry several reasons at once. **Present every flagged file togethe
   fix is to rotate or remove it. This is § 9's hard limit, and it is not softened by "it is only
   local, it is not pushed" — a commit is permanent the moment it exists, and the push that would
   publish it is one `$aka` away.
-- **A `secret-shape` inside an ignored dependency tree is reported and left alone.** Verified live
-  at the pinned `0.7.0`: a `.env` under an ignored `node_modules/` lands in **`ignored[]`** carrying
+- **A `secret-shape` inside an ignored dependency tree is reported and left alone.** Historically verified
+  against Nen `0.7.0`: a `.env` under an ignored `node_modules/` lands in **`ignored[]`** carrying
   `["ignored", "secret-shape"]` and never in `flagged` — the same row shape a real run found on
   `node_modules/bottleneck/.env`, in the bucket that now says what it is. Read
   literally, the categorical rule would have this skill rotate or delete a third-party package's
@@ -263,8 +262,8 @@ One path can carry several reasons at once. **Present every flagged file togethe
 >
 > **Both shapes are detectors now**, and they were carried as residue because two skills — this one
 > and [`$tensho`](../tensho/SKILL.md) § 3 — were independently compensating for the same gap,
-> which is the shape of a missing feature rather than a preference. Verified live at the pinned
-> `0.7.0` against a constructed working copy carrying one of each (`docs/ab/kokusen.md`
+> which is the shape of a missing feature rather than a preference. Historically verified with
+> Nen `0.7.0` against a constructed working copy carrying one of each (`docs/ab/kokusen.md`
 > § *Retired at nen 0.7*): the same tree that answered exit `0`-with-three-clean-rows at `v0.6.0`
 > now answers
 >
@@ -302,7 +301,7 @@ meaningful — verified live: the same deleted path is flagged without it and cl
 ## 5. The message
 
 ```bash
-nen commit format --type <type> --subject "<short imperative subject>" [--scope <scope>] [--breaking] \
+nen commit format --repo <path> --type <type> --subject "<short imperative subject>" [--scope <scope>] [--breaking] \
   [--body "<one paragraph>"] --trailer "Hatsu-Agent=<responsible-persona>"
 ```
 
@@ -327,8 +326,8 @@ committer metadata preserve the actor's configured identity. Record actual parti
 truthful canonical `Hatsu-Agent` or `Akatsuki-Agent` key only; it must identify the responsible persona
 or autonomous plane, never a model, surface, runtime, or session.
 
-**Always pass `--repo`, and do not rely on being rescued when you forget.** Re-verified live on
-2026-09-10 at the pinned `0.7.0`, from this repository's own checkout: the refusal above fires **with
+**Always pass `--repo`, and do not rely on being rescued when you forget.** Historically verified on
+2026-09-10 against Nen `0.7.0`, from this repository's own checkout: the refusal above fires **with
 `--repo`**, and it also fired **without** it — the verb found `nen/workflow.json` from the working
 directory. **That is a courtesy of where the command happened to be run, not a contract**: name the
 repository and the policy that is read is the one you meant. Reading the rendered output against
@@ -367,7 +366,7 @@ git commit --file <message file>          # residue, § 7: no nen verb writes a 
 > | `2` | **refused.** A shape violation (undeclared type, empty subject, header over 72 characters, trailing punctuation) or — with `--repo` — an attribution trailer `nen/workflow.json` does not admit | **stop.** Quote the sentence from stderr, fix the input, re-run. Never commit the file — it is empty |
 > | `1` | the trailer policy could not be read — `nen/workflow.json` present and **malformed** (with `--repo`) | **stop.** Report it as a repository defect and point at `nen schema check`; a message shaped under a policy nobody could read is not shaped |
 >
-> Verified live at the pinned `v0.7.0`: a malformed `nen/workflow.json` answers `1` — *"nen will not
+> Historically verified against Nen `v0.7.0`: a malformed `nen/workflow.json` answers `1` — *"nen will not
 > shape a message under a policy it could not read"* — and a `Co-Authored-By` trailer answers `2`
 > naming the file that refuses it. **An empty `<message file>` is the tell for either refusal**, and
 > it is checked before `git commit` whichever way the exit code was read.

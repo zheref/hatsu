@@ -266,7 +266,7 @@ worse than none, because it looks like a check that happened.
 ```markdown
 - [x] Required tests green — `nen shu test`, <N> passed / 0 failed (tsukuyomi)
 - [x] Touched-file coverage ≥ 80 (minimum) — lowest touched file <n>% (gyo)
-- [x] Adversarial review settled — <reviewer> · <persona> · <model>, <n> findings, all disposed (hanten)
+- [x] Adversarial review settled — <reviewer> · <persona>, <n> findings, all disposed (hanten)
 - [x] `# What this changes for you` and `## How to verify` present — `nen pr body-check`, 3/3
 - [x] Final `## Agent attribution` present — `nen pr body-check`, 4/4
 - [x] changelog fragment — `nen changelog fragment-required`: <verdict>
