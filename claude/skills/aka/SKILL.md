@@ -52,7 +52,7 @@ has none, and inventing an optional clause so that a parse can be echoed would b
 | `tests.extra` | further verbs to run, not gating | `[]` |
 | `branch.base` | the base § 4's squash and § 5's catch-up work against | `main` |
 | `commits.allowedAttributionTrailers` | canonical persona/plane trailers the commit may carry | `Hatsu-Agent`, `Akatsuki-Agent` |
-| `commits.forbiddenTrailers` | attribution trailers that refuse the commit outright | includes `Co-Authored-By`, `Claude-Session`, `Signed-off-by` |
+| `commits.forbiddenTrailers` | attribution trailers that refuse the commit outright | includes `Co-Authored-By`, `Claude-Session`, `Signed-off-by`, `Generated-by`, `Generated-with`, `Reviewed-by` |
 
 `nen schema check --repo <path>` VALIDATES this file at the pinned build — verified live, the row
 reads `ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}'

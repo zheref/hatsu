@@ -576,7 +576,7 @@ section):** prospective commits carry the truthful canonical `Hatsu-Agent` or `A
 for the responsible persona/plane. They never carry runtime alias, surface, session, or model
 attribution. The final `## Agent attribution` PR-body section records only actual participants with
 canonical persona, contribution, and evidence; see
-[`docs/AGENT-ATTRIBUTION.md`](../../docs/AGENT-ATTRIBUTION.md). Existing history is unchanged.
+`<Hatsu plugin root>/docs/AGENT-ATTRIBUTION.md`. Existing history is unchanged.
 
 - **Every change ships as a PR** — never a silent edit, never a push to `main`. Conventional Commits,
   `--no-verify` never, force-push never. Author and committer metadata preserve the configured identity.
@@ -604,7 +604,8 @@ canonical persona, contribution, and evidence; see
   up as mechanical. **Always pass `--repo`** — the policy is opened only when the invocation carries a
   `--trailer`, so without it nothing is refused. The lists are data, in
   `nen/workflow.json` → `commits`: `allowedAttributionTrailers` (`Hatsu-Agent`, `Akatsuki-Agent`) and
-  `forbiddenTrailers` (`Co-Authored-By`, `Claude-Session`, `Signed-off-by`). **This ruling supersedes** the
+  `forbiddenTrailers` (`Co-Authored-By`, `Claude-Session`, `Signed-off-by`, `Generated-by`,
+  `Generated-with`, `Reviewed-by`). **This ruling supersedes** the
   earlier clause that treated the harness mandate as binding and recorded the tension as unresolved — it is
   resolved, and the P3 constitution inherits the answer rather than being owed one. **Commits already on
   `main` carrying the old single key are not rewritten**; they record what was written then

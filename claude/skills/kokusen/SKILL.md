@@ -55,7 +55,7 @@ calls, not one message with a bulleted body.
 **When `nen/workflow.json` is absent, say so in the turn's report, in these words —** *"no
 workflow.json: using the built-in defaults from `docs/WORKFLOW.md`"* — and use them:
 `allowedAttributionTrailers` = `["Hatsu-Agent", "Akatsuki-Agent"]`, `forbiddenTrailers` includes
-`Co-Authored-By`, `Claude-Session`, and `Signed-off-by`, `iteration.checks` = `["build"]`,
+`Co-Authored-By`, `Claude-Session`, `Signed-off-by`, `Generated-by`, `Generated-with`, and `Reviewed-by`, `iteration.checks` = `["build"]`,
 `branch.base` = `main`. The defaults are the strict reading, deliberately: a repository that has said
 nothing about attribution gets the workflow's rule, not the harness's habit.
 
