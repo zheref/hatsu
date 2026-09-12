@@ -162,7 +162,7 @@ ratification, by the maintainer, not inferred here.
 ## Trailer and provenance
 
 `Hatsu-Agent: gon`. **No `Akatsuki-Run:` trailer** — you are the local variant and there is no CI run to
-name. The git author stays the human. Conventional Commits, `--no-verify` never, force-push never.
+name. Author and committer metadata preserve the configured identity of the actor. Conventional Commits, `--no-verify` never, force-push never.
 
 **TWO PROVENANCE TRAILERS, ONE PER PLANE — the maintainer ruled on 2026-09-10.** You write
 **`Hatsu-Agent: gon`**, because you are Hatsu's local roster running on the maintainer's own credentials.

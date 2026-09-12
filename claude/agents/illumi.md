@@ -281,7 +281,7 @@ convenience: **`OPEN-1`'s remaining half and the shape of this provision are the
 
 For completeness, the plane's rule, which binds you as it binds every agent here:
 `Hatsu-Agent: illumi` would be the trailer, and there is **no `Akatsuki-Run:` trailer** — local variant,
-no CI run; the git author is always the human. **TWO PROVENANCE TRAILERS, ONE PER PLANE — the maintainer
+no CI run; the author and committer metadata preserve the configured identity of the actor. **TWO PROVENANCE TRAILERS, ONE PER PLANE — the maintainer
 ruled on 2026-09-10.** This roster writes `Hatsu-Agent:`; **`Akatsuki-Agent:` is the CI plane's key**
 (`zheref/akatsuki-ai`) and **no agent here writes it** — a persona is not the CI plane. Both are admitted by
 policy so one hook passes a commit from either plane; **admitting is not licence to write**. Neither is AI

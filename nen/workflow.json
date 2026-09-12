@@ -42,9 +42,9 @@
     "$comment": "jutaisho's ladder, innermost first: `push` is the surface's own turn-complete signal, `os` an osascript notification, `sound` /System/Library/Sounds/<sound>.aiff through afplay. hooks/stop-bell.sh rings rungs 2 and 3 off .nen/last-stop.json; a rung absent from this list is not rung. `turn` decides how loud an ORDINARY turn is -- one with no gate: `rung1` (the default, and what an absent key reads as) rings only the first rung `rungs` lists, `all` rings every rung it lists. A GATE always rings everything `rungs` lists regardless of `turn`, and `turn` can only WITHHOLD an escalation `rungs` already grants -- it can never conjure a rung `rungs` does not list. nen reads and validates this key from v0.5.0 -- a closed set of `rung1` and `all`, refused by pointer on anything else -- and fires none of the three rungs itself; hooks/stop-bell.sh is what rings them."
   },
   "commits": {
-    "allowedAttributionTrailers": [],
-    "forbiddenTrailers": ["Hatsu-Agent", "Akatsuki-Agent", "Co-Authored-By", "Claude-Session", "Signed-off-by", "Generated-by", "Generated-with", "Reviewed-by"],
-    "$comment": "Prospective Hatsu commit messages carry no agent, plane, runtime-name, or model attribution. The empty allow-list and explicit forbidden list refuse the former Hatsu-Agent/Akatsuki-Agent keys with other attribution-shaped trailers. Attribution is recorded only in the final `## Agent attribution` section of the PR body, per docs/AGENT-ATTRIBUTION.md. Existing commits and dated evidence are historical and are not rewritten."
+    "allowedAttributionTrailers": ["Hatsu-Agent", "Akatsuki-Agent"],
+    "forbiddenTrailers": ["Co-Authored-By", "Claude-Session", "Signed-off-by", "Generated-by", "Generated-with", "Reviewed-by"],
+    "$comment": "Prospective commits carry exactly the canonical persona/plane key that truthfully identifies the responsible actor: Hatsu-Agent for Hatsu work, Akatsuki-Agent for autonomous Akatsuki work. Do not infer a persona from a runtime alias or default one blindly. Model, surface, runtime, session, and generated-credit attribution remain forbidden in commit messages and bodies. The final PR ledger records actual participants and contributions. Existing commits and dated evidence are historical and are not rewritten."
   },
   "monitor": {
     "maxCycles": 20,

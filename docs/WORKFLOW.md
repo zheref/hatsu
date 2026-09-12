@@ -268,22 +268,23 @@ value settles it. **`turn` is IN the `nen.workflow/v0.1` shape at the pinned nen
 ### `commits`
 
 ```json
-"commits": { "allowedAttributionTrailers": [],
-             "forbiddenTrailers": ["Hatsu-Agent", "Akatsuki-Agent", "Co-Authored-By", "Claude-Session", "Signed-off-by", "Generated-by", "Generated-with", "Reviewed-by"] }
+"commits": { "allowedAttributionTrailers": ["Hatsu-Agent", "Akatsuki-Agent"],
+             "forbiddenTrailers": ["Co-Authored-By", "Claude-Session", "Signed-off-by", "Generated-by", "Generated-with", "Reviewed-by"] }
 ```
 
-**Maintainer ruling, 2026-09-12: attribution is PR-body-only.** Prospective commit messages carry no
-agent, plane, runtime-name, or model attribution. The empty allow-list and forbidden keys above refuse
-both former provenance keys as well as other attribution-shaped trailers. Existing commits and dated
-transcripts are historical and are not rewritten.
+**Maintainer ruling, 2026-09-12: canonical persona attribution stays on commits.** A prospective commit
+carries the truthful `Hatsu-Agent` or `Akatsuki-Agent` trailer for its responsible persona or autonomous
+plane. Model, surface, runtime, session, and generated-credit attribution are forbidden. Do not infer a
+persona from a runtime alias or stamp a default persona blindly. Existing commits and dated transcripts
+are historical and are not rewritten.
 
-The final section of every PR body is instead [`## Agent attribution`](AGENT-ATTRIBUTION.md): a ledger
+The final section of every PR body is also [`## Agent attribution`](AGENT-ATTRIBUTION.md): a ledger
 of each actual participant's canonical Hatsu persona, role/contribution, and evidence. Runtime
-alias/display name and model are optional context and never replace the canonical persona. Commit
+alias/display name and model are not recorded and never replace the canonical persona. Commit
 messages may still carry ordinary non-attribution trailers such as `Closes` where appropriate.
 
 [`hatsu:shibari`](../claude/skills/shibari/SKILL.md) owns the PR-body ledger. [`hatsu:kokusen`](../claude/skills/kokusen/SKILL.md)
-and [`hatsu:aka`](../claude/skills/aka/SKILL.md) refuse attribution in local commit messages.
+and [`hatsu:aka`](../claude/skills/aka/SKILL.md) enforce canonical-only commit attribution.
 
 **Turning the harness's own mandate off is a required setup step, not a configured fact — check it.**
 Claude Code can add `Co-Authored-By: Claude …` to commits it writes, and the setting that stops it is

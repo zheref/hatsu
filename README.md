@@ -34,8 +34,9 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 > fifth is **the merge**, which has none because no agent performs it.
 > **`v0.7.0` adds no skill and adds two surfaces**: the same thirty-eight skills and eight personas,
 > generated into Codex and Cursor layouts under [`surfaces/`](surfaces/) — see [*Surfaces*](#surfaces).
-> **Attribution ruling, 2026-09-12:** prospective commit messages carry no agent, plane, runtime-name, or
-> model attribution. The final `## Agent attribution` PR-body section records actual participants with
+> **Attribution ruling, 2026-09-12:** prospective commits carry the truthful canonical
+> `Hatsu-Agent` or `Akatsuki-Agent` persona/plane trailer. They never carry model, surface, runtime, or
+> session attribution. The final `## Agent attribution` PR-body section records actual participants with
 > canonical persona, contribution, and evidence; [`docs/AGENT-ATTRIBUTION.md`](docs/AGENT-ATTRIBUTION.md)
 > is the shape. [`docs/WORKFLOW.md`](docs/WORKFLOW.md) is the authority.
 
@@ -476,9 +477,10 @@ memory. Reporting that is the correct outcome; substituting a hand-rolled equiva
 
 [`docs/ROSTER.md`](docs/ROSTER.md) is the authority on who exists and what standing they have; the agent
 definitions in [`claude/agents/`](claude/agents/) are the authority on what each one does. Commit messages
-carry no agent or model attribution. The final [`## Agent attribution`](docs/AGENT-ATTRIBUTION.md) PR-body
-section names each actual participant's canonical persona, contribution, and evidence. **The git author is
-always the human.**
+carry the truthful canonical `Hatsu-Agent` or `Akatsuki-Agent` trailer, never model, surface, runtime, or
+session attribution. The final [`## Agent attribution`](docs/AGENT-ATTRIBUTION.md) PR-body section names
+each actual participant's canonical persona, contribution, and evidence. Author and committer metadata
+remain the configured identity of the actor.
 
 ### Kurapika — the lead persona
 

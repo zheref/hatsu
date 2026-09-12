@@ -5,10 +5,11 @@ credentials, **no GitHub App, no CI workflow, no bot identity**. It succeeds the
 (`CON-2`) — where that was one persona holding four natures, this is a lead persona holding six declared
 work-modes, plus a small set of independents with disciplines of their own.
 
-**Maintainer ruling, 2026-09-12: prospective commits carry no agent, plane, runtime-name, or model
-attribution.** Author and committer metadata preserve each actor's configured identity. Every PR instead
-ends with the actual-participant ledger defined in [`AGENT-ATTRIBUTION.md`](AGENT-ATTRIBUTION.md). This supersedes the dated
-provenance-trailer wording below; historical commits and dated transcripts remain unchanged.
+**Maintainer ruling, 2026-09-12: prospective commits carry the truthful canonical `Hatsu-Agent` or
+`Akatsuki-Agent` persona/plane trailer, never model, surface, runtime, or session attribution.** Author
+and committer metadata preserve each actor's configured identity. Every PR also ends with the
+actual-participant ledger defined in [`AGENT-ATTRIBUTION.md`](AGENT-ATTRIBUTION.md). Historical commits
+and dated transcripts remain unchanged.
 
 **This file is the authority on who exists and what standing they have.** The agent definitions in
 `claude/agents/` are the authority on what each one does.

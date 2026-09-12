@@ -52,8 +52,8 @@ has none, and inventing an optional clause so that a parse can be echoed would b
 | `tests.required` | which declared verbs § 6 must run green | `["test"]` |
 | `tests.extra` | further verbs to run, not gating | `[]` |
 | `branch.base` | the base § 4's squash and § 5's catch-up work against | `main` |
-| `commits.allowedAttributionTrailers` | attribution trailers the commit may carry | `[]` |
-| `commits.forbiddenTrailers` | attribution trailers that refuse the commit outright | includes `Hatsu-Agent`, `Akatsuki-Agent`, `Co-Authored-By`, `Claude-Session`, `Signed-off-by` |
+| `commits.allowedAttributionTrailers` | canonical persona/plane trailers the commit may carry | `Hatsu-Agent`, `Akatsuki-Agent` |
+| `commits.forbiddenTrailers` | attribution trailers that refuse the commit outright | includes `Co-Authored-By`, `Claude-Session`, `Signed-off-by` |
 
 `nen schema check --repo <path>` VALIDATES this file at the pinned build — verified live, the row
 reads `ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}'
@@ -273,10 +273,11 @@ actually has; never describe a hook as installed where none is.
 > something no verb enforces** — layer (a) stays because it survives a forgotten flag, not because
 > (c) is missing.
 
-**One commit with configured author/committer metadata and no attribution trailer.** No `Hatsu-Agent`,
-`Akatsuki-Agent`, `Co-Authored-By`, `Claude-Session`, `Signed-off-by`, "Generated with" line,
-agent alias, or model name belongs in the message. The final PR body's `## Agent attribution`
-section is the sole participant ledger. **Never `--no-verify`** — where the repository does carry
+**One commit with configured author/committer metadata and the truthful canonical persona/plane trailer.**
+Use `Hatsu-Agent` for Hatsu work and `Akatsuki-Agent` only for autonomous Akatsuki work; never infer or
+default the persona. No `Co-Authored-By`, `Claude-Session`, `Signed-off-by`, "Generated with" line,
+model, runtime, surface, or session name belongs in the message. The final PR body's `## Agent attribution`
+section lists actual participants and contributions. **Never `--no-verify`** — where the repository does carry
 a `commit-msg` hook it is layer (b), and skipping it is skipping the rule.
 
 ## 5. Then [`/ao`](../ao/SKILL.md) — the base underneath it
