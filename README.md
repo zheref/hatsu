@@ -1119,7 +1119,8 @@ that already has the plugin installed** — no error, no warning, the fix ships 
 [`scripts/plugin_bump_check.sh`](scripts/plugin_bump_check.sh), wired as the
 [`plugin-bump-check`](.github/workflows/plugin-bump-check.yml) workflow, fails a PR that tries. The guarded
 surface is `.claude-plugin/**`, `claude/**`, `nen/**`, `contracts/**`, `docs/ROSTER.md`,
-`docs/delegation-grammar-DRAFT.md`, `hooks/**`, `templates/**`, `surfaces/**` and `.mcp.json` — everything an
+`docs/delegation-grammar-DRAFT.md`, `hooks/**`, `templates/**`, `surfaces/**`,
+`scripts/surface_bootstrap.sh` and `.mcp.json` — everything an
 installed copy reads, the generated Codex and Cursor mirrors included, because the warm-up reads those out of
 `$CLAUDE_PLUGIN_ROOT` at run time. Bump
 `version` (patch for wording, minor for behaviour or a new skill, major for a breaking interface change —

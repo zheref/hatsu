@@ -62,6 +62,11 @@ hatsu_root="$(CDPATH='' cd -- "$script_dir/.." >/dev/null 2>&1 && pwd -P)"
   echo "Hatsu bootstrap must run from a Hatsu checkout" >&2
   exit 2
 }
+if ! [ -d "$hatsu_root/claude/skills" ] ||
+  ! grep -Eq '"name"[[:space:]]*:[[:space:]]*"hatsu"[[:space:]]*(,|})' "$hatsu_root/.claude-plugin/plugin.json"; then
+  echo "Hatsu bootstrap must run from the canonical Hatsu checkout" >&2
+  exit 2
+fi
 [ -d "$hatsu_root/surfaces/$surface" ] || {
   echo "Hatsu checkout has no generated $surface surface" >&2
   exit 2
@@ -93,7 +98,7 @@ done
 # A tracked path is never ours, even if it happens to contain Hatsu's marker.
 is_tracked() {
   local relative="$1"
-  git -C "$target" ls-files -- "$relative" | grep -q .
+  git -C "$target" ls-files --error-unmatch -- "$relative" >/dev/null 2>&1
 }
 
 # True only for an untracked destination this bootstrap previously made.
@@ -120,6 +125,39 @@ is_ours_override() {
     grep -q '^<!-- END hatsu personas (generated — nen surface mirror, surface: codex) -->$' "$destination" 2>/dev/null
 }
 
+# Create only real directories below the target. A symlinked parent could send
+# an otherwise-safe relative destination outside the repository.
+ensure_local_directory() {
+  local relative="$1" current="$target" component
+  local -a components=()
+  IFS='/' read -r -a components <<< "$relative"
+  for component in "${components[@]}"; do
+    current="$current/$component"
+    if [ -L "$current" ]; then
+      echo "refusing: $relative has a symlinked parent ($current)" >&2
+      exit 1
+    fi
+    if [ -e "$current" ]; then
+      [ -d "$current" ] || {
+        echo "refusing: $relative has a non-directory parent ($current)" >&2
+        exit 1
+      }
+    else
+      mkdir "$current"
+    fi
+  done
+}
+
+fail_bootstrap_blocker() {
+  local relative="$1"
+  if [ "$mode" = "--bootstrap" ] && {
+    [ "$relative" = '.agents/skills/hatsu-warmup' ] || [ "$relative" = '.cursor/skills/hatsu-warmup' ]
+  }; then
+    echo "refusing bootstrap: $relative blocks required hatsu-warmup discovery" >&2
+    exit 1
+  fi
+}
+
 declare -a exclude_lines=()
 case "$surface:$mode" in
   codex:--bootstrap) exclude_lines=( '.agents/skills/' ) ;;
@@ -128,7 +166,11 @@ case "$surface:$mode" in
   cursor:--install-all) exclude_lines=( '.cursor/skills/' '.cursor/agents/' ) ;;
 esac
 
-exclude="$(git -C "$target" rev-parse --path-format=absolute --git-path info/exclude)"
+exclude="$(git -C "$target" rev-parse --git-path info/exclude)"
+case "$exclude" in
+  /*) ;;
+  *) exclude="$target/$exclude" ;;
+esac
 mkdir -p "$(dirname "$exclude")"
 for line in "${exclude_lines[@]}"; do
   grep -qxF "$line" "$exclude" 2>/dev/null || printf '%s\n' "$line" >> "$exclude"
@@ -136,13 +178,48 @@ done
 
 declare -a installed=() kept=()
 
+remove_stale_skills() {
+  local skills_root="$1" relative destination name
+  for destination in "$skills_root"/*; do
+    [ -e "$destination" ] || [ -L "$destination" ] || continue
+    name="$(basename "$destination")"
+    [ -f "$hatsu_root/surfaces/$surface/$name/SKILL.md" ] && continue
+    relative="${skills_root#"$target/"}/$name"
+    is_ours "$relative" || continue
+    rm -rf -- "$destination"
+    installed+=("removed stale $name")
+  done
+}
+
+remove_stale_agents() {
+  local agents_root="$1" relative destination name
+  for destination in "$agents_root"/*; do
+    [ -e "$destination" ] || [ -L "$destination" ] || continue
+    name="$(basename "$destination")"
+    [ -f "$hatsu_root/surfaces/cursor/agents/$name" ] && continue
+    relative="${agents_root#"$target/"}/$name"
+    is_ours "$relative" || continue
+    rm -rf -- "$destination"
+    installed+=("removed stale agents/$name")
+  done
+}
+
 if [ "$surface" = "codex" ]; then
-  mkdir -p "$target/.agents/skills"
+  ensure_local_directory '.agents/skills'
+  if [ "$mode" = "--install-all" ]; then
+    remove_stale_skills "$target/.agents/skills"
+  fi
   for name in "${skill_names[@]}"; do
     relative=".agents/skills/$name"
     destination="$target/$relative"
     source="$hatsu_root/surfaces/codex/$name"
+    if is_tracked "$relative"; then
+      fail_bootstrap_blocker "$relative"
+      kept+=("$name")
+      continue
+    fi
     if { [ -e "$destination" ] || [ -L "$destination" ]; } && ! is_ours "$relative"; then
+      fail_bootstrap_blocker "$relative"
       kept+=("$name")
       continue
     fi
@@ -158,7 +235,9 @@ if [ "$surface" = "codex" ]; then
   if [ "$mode" = "--install-all" ]; then
     relative="AGENTS.override.md"
     destination="$target/$relative"
-    if { [ -e "$destination" ] || [ -L "$destination" ]; } && ! is_ours_override; then
+    if is_tracked "$relative"; then
+      kept+=("$relative")
+    elif { [ -e "$destination" ] || [ -L "$destination" ]; } && ! is_ours_override; then
       kept+=("$relative")
     else
       temporary="$(mktemp "$target/.hatsu-override.XXXXXX")"
@@ -182,12 +261,21 @@ if [ "$surface" = "codex" ]; then
     fi
   fi
 else
-  mkdir -p "$target/.cursor/skills"
+  ensure_local_directory '.cursor/skills'
+  if [ "$mode" = "--install-all" ]; then
+    remove_stale_skills "$target/.cursor/skills"
+  fi
   for name in "${skill_names[@]}"; do
     relative=".cursor/skills/$name"
     destination="$target/$relative"
     source="$hatsu_root/surfaces/cursor/$name"
+    if is_tracked "$relative"; then
+      fail_bootstrap_blocker "$relative"
+      kept+=("$name")
+      continue
+    fi
     if { [ -e "$destination" ] || [ -L "$destination" ]; } && ! is_ours "$relative"; then
+      fail_bootstrap_blocker "$relative"
       kept+=("$name")
       continue
     fi
@@ -201,12 +289,17 @@ else
   done
 
   if [ "$mode" = "--install-all" ]; then
-    mkdir -p "$target/.cursor/agents"
+    ensure_local_directory '.cursor/agents'
+    remove_stale_agents "$target/.cursor/agents"
     for source in "$hatsu_root/surfaces/cursor/agents"/*.md; do
       [ -f "$source" ] || continue
       name="$(basename "$source")"
       relative=".cursor/agents/$name"
       destination="$target/$relative"
+      if is_tracked "$relative"; then
+        kept+=("agents/$name")
+        continue
+      fi
       if { [ -e "$destination" ] || [ -L "$destination" ]; } && ! is_ours "$relative"; then
         kept+=("agents/$name")
         continue

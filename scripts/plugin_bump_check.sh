@@ -121,8 +121,9 @@ fi
 #
 # Deliberately NOT covered — nothing installed reads them at run time:
 #   README.md, docs/ab/** (the evidence records; read by humans on GitHub, never
-#   by an installed copy), scripts/** (CI-only; no agent or skill invokes
-#   anything here), .github/**.
+#   by an installed copy), scripts/surface_bootstrap_fixture_check.sh and other
+#   scripts/** (CI-only; the runtime bootstrap is the explicit exception above),
+#   .github/**.
 #
 # Bash `[[ == glob ]]` matches `*` across `/` — it is pattern matching, not
 # filename globbing — so `claude/*` and `.claude-plugin/*` cover any depth.

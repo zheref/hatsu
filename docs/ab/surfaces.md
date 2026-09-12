@@ -34,17 +34,19 @@ one non-skill step between them. It seeds only `hatsu-warmup`; after that skill 
 refresh calls the script's `--install-all` mode.
 
 The executable fixture check creates empty Git repositories for both hosts, runs the documented bootstrap,
-checks the one discovery-path `SKILL.md`, performs the complete refresh twice, and verifies a collision and
-a tracked path remain untouched:
+checks the one discovery-path `SKILL.md`, performs the complete refresh twice, removes stale Hatsu-owned
+entries, and verifies collisions, tracked deletions, and a symlinked parent stay protected:
 
 ```text
 $ scripts/surface_bootstrap_fixture_check.sh
 surface bootstrap: codex bootstrap — installed 1
+surface bootstrap: codex bootstrap — installed 1
+surface bootstrap: codex install-all — installed 40
 surface bootstrap: codex install-all — installed 40
 surface bootstrap: cursor bootstrap — installed 1
+surface bootstrap: cursor bootstrap — installed 1
 surface bootstrap: cursor install-all — installed 47
-surface bootstrap: codex bootstrap — installed 0; kept existing hatsu-warmup
-surface bootstrap: cursor bootstrap — installed 0; kept existing hatsu-warmup
+surface bootstrap: cursor install-all — installed 47
 surface-bootstrap-fixture: Codex and Cursor first-run bootstrap checks passed
 ```
 
