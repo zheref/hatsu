@@ -746,8 +746,10 @@ runs the non-skill bootstrap from the target repository:
 It places **only** the generated `hatsu-warmup` directory in the host's documented discovery path, through
 the same ownership, collision, tracked-file and `info/exclude` safeguards as the complete refresh below.
 Once the host has reopened the target and discovered the skill, this section refreshes the whole surface.
-**A bootstrap or warm-up that cannot find its source reports `NOT INSTALLED` and stops** — the § 4
-discipline, unchanged: a step that did not run is never rendered as clear.
+**A warm-up that cannot find its source reports `NOT INSTALLED` and stops** — the § 4 discipline,
+unchanged: a step that did not run is never rendered as clear. The pre-skill bootstrap has no warm-up status
+line yet: it exits non-zero with its specific checkout-validation error instead, and never seeds a partial
+discovery path.
 
 ### 5 · refresh — one checked installer for both surfaces
 

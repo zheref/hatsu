@@ -100,6 +100,16 @@ assert_fails "Codex collision reported a successful bootstrap" "$bootstrap" --su
 grep -qx 'third-party Codex skill' "$collision_fixture/.agents/skills/hatsu-warmup/SKILL.md" || fail "Codex collision was overwritten"
 cmp -s "$fixture_root/collision-exclude-before" "$collision_fixture/.git/info/exclude" || fail "Codex collision changed info/exclude"
 
+full_collision_fixture="$fixture_root/full-collision"
+new_fixture "$full_collision_fixture"
+mkdir -p "$full_collision_fixture/.agents/skills/aka"
+printf 'third-party full-refresh skill\n' > "$full_collision_fixture/.agents/skills/aka/SKILL.md"
+"$bootstrap" --surface codex --target "$full_collision_fixture" --install-all >/dev/null
+grep -qx 'third-party full-refresh skill' "$full_collision_fixture/.agents/skills/aka/SKILL.md" || fail "Codex full-refresh collision was overwritten"
+if git -C "$full_collision_fixture" check-ignore -q -- .agents/skills/aka/SKILL.md; then
+  fail "Codex full-refresh collision was hidden by info/exclude"
+fi
+
 tracked_fixture="$fixture_root/tracked"
 new_fixture "$tracked_fixture"
 mkdir -p "$tracked_fixture/.cursor/skills/hatsu-warmup"
@@ -167,12 +177,21 @@ git -C "$submodule_fixture" -c protocol.file.allow=always submodule add -q "$sub
 assert_fails "tracked submodule parent was accepted" "$bootstrap" --surface codex --target "$submodule_fixture" --bootstrap
 [ ! -e "$submodule_fixture/.agents/skills/hatsu-warmup" ] || fail "bootstrap wrote inside a tracked submodule"
 
+deleted_parent_fixture="$fixture_root/deleted-tracked-parent"
+new_fixture "$deleted_parent_fixture"
+mkdir -p "$deleted_parent_fixture/.cursor"
+printf 'tracked then deleted parent\n' > "$deleted_parent_fixture/.cursor/skills"
+git -C "$deleted_parent_fixture" add .cursor/skills
+rm -f "$deleted_parent_fixture/.cursor/skills"
+assert_fails "deleted tracked parent was recreated" "$bootstrap" --surface cursor --target "$deleted_parent_fixture" --bootstrap
+[ ! -e "$deleted_parent_fixture/.cursor/skills" ] || fail "deleted tracked parent was recreated"
+
 no_newline_fixture="$fixture_root/no-newline-exclude"
 new_fixture "$no_newline_fixture"
 printf 'user-rule' > "$no_newline_fixture/.git/info/exclude"
 "$bootstrap" --surface codex --target "$no_newline_fixture" --bootstrap >/dev/null
 grep -qxF 'user-rule' "$no_newline_fixture/.git/info/exclude" || fail "info/exclude final rule was concatenated"
-grep -qxF '.agents/skills/' "$no_newline_fixture/.git/info/exclude" || fail "Codex exclusion was not appended on its own line"
+grep -qxF '.agents/skills/hatsu-warmup' "$no_newline_fixture/.git/info/exclude" || fail "Codex exclusion was not appended on its own line"
 
 malformed_root="$fixture_root/malformed-root"
 mkdir -p "$malformed_root/.claude-plugin" "$malformed_root/scripts" "$malformed_root/claude/skills" "$malformed_root/surfaces/codex/hatsu-warmup"

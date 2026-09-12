@@ -208,11 +208,12 @@ is_ours_override() {
     grep -q '^<!-- END hatsu personas (generated — nen surface mirror, surface: codex) -->$' "$destination" 2>/dev/null
 }
 
-# Create only real directories below the target. A symlinked parent could send
-# an otherwise-safe relative destination outside the repository.
-is_gitlink() {
+# Create only real, untracked directories below the target. A symlinked parent
+# could send an otherwise-safe destination outside the repository, and a
+# deleted-but-tracked parent must never be recreated as Hatsu's directory.
+is_tracked_parent() {
   git -C "$target" ls-files --stage -- "$1" |
-    awk -v path="$1" '$1 == "160000" && $4 == path { found = 1 } END { exit !found }'
+    awk -v path="$1" '$4 == path { found = 1 } END { exit !found }'
 }
 
 ensure_local_directory() {
@@ -222,8 +223,8 @@ ensure_local_directory() {
   for component in "${components[@]}"; do
     current="$current/$component"
     current_relative="${current_relative:+$current_relative/}$component"
-    if is_gitlink "$current_relative"; then
-      echo "refusing: $relative has a tracked submodule parent ($current_relative)" >&2
+    if is_tracked_parent "$current_relative"; then
+      echo "refusing: $relative has a tracked parent ($current_relative)" >&2
       exit 1
     fi
     if [ -L "$current" ]; then
@@ -260,13 +261,21 @@ preflight_bootstrap_destination() {
   fi
 }
 
+will_replace() {
+  local relative="$1" destination="$target/$1"
+  is_tracked "$relative" && return 1
+  { [ -e "$destination" ] || [ -L "$destination" ]; } && ! is_ours "$relative" && return 1
+  return 0
+}
+
+will_replace_override() {
+  local relative='AGENTS.override.md' destination="$target/AGENTS.override.md"
+  is_tracked "$relative" && return 1
+  { [ -e "$destination" ] || [ -L "$destination" ]; } && ! is_ours_override && return 1
+  return 0
+}
+
 declare -a exclude_lines=()
-case "$surface:$mode" in
-  codex:--bootstrap) exclude_lines=( '.agents/skills/' ) ;;
-  codex:--install-all) exclude_lines=( '.agents/skills/' 'AGENTS.override.md' ) ;;
-  cursor:--bootstrap) exclude_lines=( '.cursor/skills/' ) ;;
-  cursor:--install-all) exclude_lines=( '.cursor/skills/' '.cursor/agents/' ) ;;
-esac
 
 exclude="$(git -C "$target" rev-parse --git-path info/exclude)"
 case "$exclude" in
@@ -343,6 +352,34 @@ remove_stale_agents() {
   done
 }
 
+# Ignore only the exact Hatsu entries this invocation will own. Broad surface
+# roots would hide an untracked user collision that the installer deliberately
+# leaves alone.
+collect_exclude_lines() {
+  local name relative source
+  exclude_lines=()
+  if [ "$surface" = "codex" ]; then
+    for name in "${skill_names[@]}"; do
+      relative=".agents/skills/$name"
+      will_replace "$relative" && exclude_lines+=("$relative")
+    done
+    if [ "$mode" = "--install-all" ] && will_replace_override; then
+      exclude_lines+=('AGENTS.override.md')
+    fi
+  else
+    for name in "${skill_names[@]}"; do
+      relative=".cursor/skills/$name"
+      will_replace "$relative" && exclude_lines+=("$relative")
+    done
+    if [ "$mode" = "--install-all" ]; then
+      for source in "${persona_sources[@]}"; do
+        relative=".cursor/agents/$(basename "$source")"
+        will_replace "$relative" && exclude_lines+=("$relative")
+      done
+    fi
+  fi
+}
+
 # Validate every destination root, and the sole required bootstrap destination,
 # before changing the shared ignore file or replacing a surface entry.
 if [ "$surface" = "codex" ]; then
@@ -359,6 +396,7 @@ else
     preflight_bootstrap_destination '.cursor/skills/hatsu-warmup'
   fi
 fi
+collect_exclude_lines
 add_exclude_lines
 
 if [ "$surface" = "codex" ]; then
@@ -383,7 +421,7 @@ if [ "$surface" = "codex" ]; then
     writes_succeeded=1
     cp -R "$source" "$destination"
     writes_succeeded=1
-    git -C "$target" check-ignore -q -- "$relative" || {
+    git -C "$target" check-ignore -q -- "$relative/SKILL.md" || {
       echo "refusing: $relative was not excluded through info/exclude" >&2
       exit 1
     }
