@@ -7,13 +7,15 @@ changes, not three copies of the same implementation.
 
 ## Availability and release boundary
 
-Nen 0.8.0 does not support the new `device.extract` declaration. The implementation for requirement
-[Nen #204](https://github.com/zheref/nen/issues/204) was merged through
-[Nen PR #206](https://github.com/zheref/nen/pull/206); **the minimum published release containing it is pending**, and no release number or
-bootstrap pin is asserted here. Before migration, identify the first published compatible release
-containing that PR, record that version in the consumer change, and verify the actual installed
-binary accepts the declaration. A local source build is development evidence, not a released
-replacement. Keep Hatsu's current dependency pin until a published release can be bootstrapped.
+[Nen v0.9.0](https://github.com/zheref/nen/releases/tag/v0.9.0) publishes the implementation of
+[Nen #204](https://github.com/zheref/nen/issues/204) from [PR #206](https://github.com/zheref/nen/pull/206),
+released at the merge of [PR #208](https://github.com/zheref/nen/pull/208). Its three binaries and
+SHA256SUMS are published. Hatsu's adoption sets `minimum: "0.9"` and `pinned_ref: "v0.9.0"`;
+Nen 0.8.0 does not execute `device.extract`. The new release keeps compatibility floor 0.7 for
+consumers that retain older declarations, which is separate from the feature minimum.
+Verify the installed binary accepts the extraction declaration before changing a consumer.
+Retain KroApple's normalizer until its declaration migration and successful physical build,
+install and launch; publishing the shared replacement is not consumer-device proof.
 Hatsu #49 must be addressed and validated before considering a new Hatsu tag. No tag or release
 is authorized by this migration guide.
 
