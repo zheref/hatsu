@@ -54,8 +54,8 @@ calls, not one message with a bulleted body.
 
 **When `nen/workflow.json` is absent, say so in the turn's report, in these words —** *"no
 workflow.json: using the built-in defaults from `docs/WORKFLOW.md`"* — and use them:
-`allowedAttributionTrailers` = `["Hatsu-Agent", "Akatsuki-Agent"]`, `forbiddenTrailers` =
-`["Co-Authored-By", "Claude-Session", "Signed-off-by"]`, `iteration.checks` = `["build"]`,
+`allowedAttributionTrailers` = `["Hatsu-Agent", "Akatsuki-Agent"]`, `forbiddenTrailers` includes
+`Co-Authored-By`, `Claude-Session`, `Signed-off-by`, `Generated-by`, `Generated-with`, and `Reviewed-by`, `iteration.checks` = `["build"]`,
 `branch.base` = `main`. The defaults are the strict reading, deliberately: a repository that has said
 nothing about attribution gets the workflow's rule, not the harness's habit.
 
@@ -302,53 +302,29 @@ meaningful — verified live: the same deleted path is flagged without it and cl
 
 ```bash
 nen commit format --type <type> --subject "<short imperative subject>" [--scope <scope>] [--breaking] \
-  [--body "<one paragraph>"] --trailer "Hatsu-Agent=kurapika"
+  [--body "<one paragraph>"] --trailer "Hatsu-Agent=<responsible-persona>"
 ```
 
 Validates **shape** only — a declared type, a non-empty subject under 72 characters, no trailing
 punctuation — and exits `2` on a violation naming it (verified live, `docs/ab/kokusen.md` § 2.2). What
 changed and why is this skill's to write, never nen's.
 
-**The trailer rule, which is the whole point of this phase:**
+**Attribution rule:** pass exactly the truthful canonical trailer: `Hatsu-Agent=<responsible-persona>`
+for Hatsu work, or `Akatsuki-Agent=<responsible-persona>` only for autonomous Akatsuki work. Never infer
+or default the persona. `Co-Authored-By`, `Claude-Session`, `Signed-off-by`, model names, and
+surface/runtime/session names are forbidden in prospective commit messages and bodies. Author and
+committer metadata preserve the actor's configured identity. Record actual participants only in the final
+`## Agent attribution` section of the PR body, following `<Hatsu plugin root>/docs/AGENT-ATTRIBUTION.md`
+(in this checkout, [`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md)). Existing history is not rewritten.
 
-- **`Hatsu-Agent: kurapika` is the trailer you write.** Two provenance trailers exist, one per
-  plane (the maintainer's ruling of 2026-09-10, `docs/ROSTER.md` § *Rulings of 2026-09-10*):
-  `Hatsu-Agent` for Hatsu's local roster on the maintainer's own credentials, `Akatsuki-Agent` for an
-  Akatsuki roster agent on the autonomous CI plane. You are the local one.
-- **REFUSE to write `Akatsuki-Agent:` from this session, exactly as you refuse a
-  `Co-Authored-By:`-shaped trailer.** `commits.allowedAttributionTrailers` lists **both** keys so
-  that one `commit-msg` hook passes a commit from either plane — **admitting a key is not licence to
-  write it**. A persona is not the CI plane, and that key on a local commit forges a machine-plane
-  provenance this plane does not have. If a caller asks for it by name, say this and write
-  `Hatsu-Agent` instead; the ask is not a gate, it is a mistake with an answer.
-- **No AI attribution trailer, ever: no `Co-Authored-By:`, no `Claude-Session:`, no "Generated with
-  …" line, and no model name anywhere in the message.** The git author stays the maintainer. Neither
-  provenance key is AI attribution — each names which agent of which plane did the work — which is
-  why they are the only two and **no other AI attribution trailer is ever recorded**.
-- **`Akatsuki-Run:` does not exist** for this plane — Hatsu has no CI run to name, and adding one
-  would forge a machine-plane provenance the local plane does not have
-  (`claude/agents/kurapika.md` § How you work). It is the second bullet's rule, applied to the other
-  half of the CI plane's provenance.
+> **Prospective tooling is not an exception.** Before committing, disable or reconfigure any authorized
+> injection that adds a forbidden model, surface, runtime, session, or generated-credit attribution. If
+> tooling still adds one, stop and report the required correction; never certify the resulting commit as
+> compliant. Existing published history remains unchanged: this does not authorize an automatic rewrite.
 
-> **A declared change from `claude/agents/kurapika.md` § *How you work*, recorded rather than
-> smuggled.** That clause reads the maintainer's harness as *mandating* `Co-Authored-By:` and
-> `Claude-Session:`, neither adding attribution of its own nor stripping theirs, and says explicitly
-> that the final rule is a later constitution's to make. `nen/workflow.json`'s
-> `commits.forbiddenTrailers` **is** that ruling, recorded by the maintainer in the repository's own
-> policy file: in a repository carrying one, kokusen adds neither trailer. The clause's other half is
-> untouched — kokusen **never strips** a trailer a hook or the maintainer's own tooling wrote onto
-> their commit. It refuses to *add* one; deleting someone else's provenance metadata is a governance
-> decision nobody asked for.
-
-**`nen commit format --repo <path>` ENFORCES this rule at the pinned build, and the `--repo` is what
-turns it on.** Verified live against this repository: `--trailer "Co-Authored-By=someone"` is refused
-at exit `2` — *"trailer key 'Co-Authored-By' is an attribution trailer this repository refuses.
-'…/nen/workflow.json' admits 'Hatsu-Agent', 'Akatsuki-Agent' under
-commits.allowedAttributionTrailers, and 'Co-Authored-By' is not one of them. Drop the trailer, or add
-its key to that list"* — while `--trailer "Hatsu-Agent=kurapika"` renders at exit `0`
-(`docs/ab/kokusen.md` § *Retired at nen 0.5*). **The verb cannot make the plane distinction for
-you**: it admits both keys, so `--trailer "Akatsuki-Agent=kurapika"` also renders at exit `0`. That
-refusal is this skill's, per the rule above — layer (a), and the only layer that holds it.
+**`nen commit format --repo <path>` validates this policy when a trailer is present.** Supply the
+truthful canonical `Hatsu-Agent` or `Akatsuki-Agent` key only; it must identify the responsible persona
+or autonomous plane, never a model, surface, runtime, or session.
 
 **Always pass `--repo`, and do not rely on being rescued when you forget.** Re-verified live on
 2026-09-10 at the pinned `0.7.0`, from this repository's own checkout: the refusal above fires **with
@@ -451,12 +427,12 @@ got an explicit yes; `git add -A` is barred (§ 9).
   deleted.
 - **Never `git add -A`**, and never `git add -f`, and never stages a path it did not name. `-f` is
   the maintainer's explicit call on one named path, never this skill's way past an `ignored` row.
-- **Never adds an AI attribution trailer** — not `Co-Authored-By:`, not `Claude-Session:`, not a
-  "Generated with …" line, not a model name in the subject or body. `Hatsu-Agent: kurapika` is the
-  whole of it.
-- **Never writes `Akatsuki-Agent:`.** That is the CI plane's provenance key; this session is not the
-  CI plane. Policy admits it so a CI-made commit passes the same hook — it is not permission (§ 5).
-- **Never strips a trailer the maintainer's own tooling wrote** (§ 5's callout).
+- **Never adds untruthful or runtime attribution** — use the truthful canonical `Hatsu-Agent` or
+  `Akatsuki-Agent` trailer only; never add `Co-Authored-By`, `Claude-Session`, a model, surface,
+  runtime, session, or generated-credit attribution.
+- **Never certifies a prospective commit with forbidden attribution from any source.** Disable or
+  reconfigure authorized injection before committing; otherwise stop and report the correction needed.
+  Existing published history is not automatically rewritten.
 - **Never pushes, never force-pushes, never `--no-verify`, never commits on the trunk.**
 - **Never stages anything before § 3's gate has run over THIS tree.** Not an earlier turn's green,
   not the warm-up's, not the author's inner loop — the checks are run here, now, by the phase holding

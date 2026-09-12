@@ -209,7 +209,7 @@ the verb's.
 > on whichever axis actually carries it, so run the triage per axis rather than once for the whole
 > working copy.
 
-Format each commit with `nen commit format --type <t> --subject "<...>" [--scope <s>] [--body "..."] [--trailer Hatsu-Agent=kurapika]` —
+Format each commit with `nen commit format --type <t> --subject "<...>" [--scope <s>] [--body "..."] [--trailer Hatsu-Agent=<responsible-persona>]` —
 it validates shape (declared type, non-empty subject under 72 characters, no trailing punctuation),
 never content; what changed and why stays yours to write.
 

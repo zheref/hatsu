@@ -269,39 +269,22 @@ value settles it. **`turn` is IN the `nen.workflow/v0.1` shape at the pinned nen
 
 ```json
 "commits": { "allowedAttributionTrailers": ["Hatsu-Agent", "Akatsuki-Agent"],
-             "forbiddenTrailers": ["Co-Authored-By", "Claude-Session", "Signed-off-by"] }
+             "forbiddenTrailers": ["Co-Authored-By", "Claude-Session", "Signed-off-by", "Generated-by", "Generated-with", "Reviewed-by"] }
 ```
 
-**The maintainer's ruling of 2026-09-10: two provenance trailers, one per plane.** The system has two planes
-and each writes its own key:
+**Maintainer ruling, 2026-09-12: canonical persona attribution stays on commits.** A prospective commit
+carries the truthful `Hatsu-Agent` or `Akatsuki-Agent` trailer for its responsible persona or autonomous
+plane. Model, surface, runtime, session, and generated-credit attribution are forbidden. Do not infer a
+persona from a runtime alias or stamp a default persona blindly. Existing commits and dated transcripts
+are historical and are not rewritten.
 
-| Trailer | Written by | Never written by |
-|---|---|---|
-| **`Hatsu-Agent: <persona>`** | a **local** Hatsu session — Kurapika and the independents, on the maintainer's own credentials | the CI plane |
-| **`Akatsuki-Agent: <persona>`** | an **Akatsuki roster agent** on the autonomous CI plane (`zheref/akatsuki-ai`) | any local session |
+The final section of every PR body is also [`## Agent attribution`](AGENT-ATTRIBUTION.md): a ledger
+of each actual participant's canonical Hatsu persona, role/contribution, and evidence. Runtime
+alias/display name and model are not recorded and never replace the canonical persona. Commit
+messages may still carry ordinary non-attribution trailers such as `Closes` where appropriate.
 
-**Hatsu writes `Hatsu-Agent` and refuses to write `Akatsuki-Agent`.** A persona running on this machine is
-not the CI plane; putting that key on a local commit would forge a machine-plane provenance the local plane
-does not have — the same reason there is no `Akatsuki-Run:` trailer here.
-[`kokusen`](../claude/skills/kokusen/SKILL.md) § 5 and § 9 and [`aka`](../claude/skills/aka/SKILL.md) § 4
-and § 9 refuse it exactly as they refuse a `Co-Authored-By`-shaped trailer.
-
-**Both keys are admitted in `allowedAttributionTrailers`, and admitting is not licence to write.** The list
-is what a repository's commit-msg hook and `nen commit format --repo` will *accept*, and both planes commit
-into the same repositories — so one list, holding both keys, lets a CI-made commit pass the very same guard
-that a locally-made one passes. Which key a given session may *write* is the instruction above, carried by
-the skills and the agent definitions, not by this list.
-
-**Neither key is AI attribution, which is why no third one exists.** Each names *the system's own*
-provenance — which agent of which plane did the work — rather than a model claiming authorship of it. No
-`Co-Authored-By:`, no `Claude-Session:`, no `Signed-off-by:`, no "Generated with …" line, no model name
-anywhere in the message. **No other AI attribution trailer is ever recorded.**
-
-This refines the ruling of 2026-09-09, which admitted `Akatsuki-Agent` alone and, before the CI plane
-landed, had the local plane writing it. **Commits already on `main` that carry the old key are not
-rewritten** — they record what was written when they were written. This still supersedes the earlier clause,
-in every agent definition, that treated the harness mandate as binding and left the question to the P3
-constitution.
+[`hatsu:shibari`](../claude/skills/shibari/SKILL.md) owns the PR-body ledger. [`hatsu:kokusen`](../claude/skills/kokusen/SKILL.md)
+and [`hatsu:aka`](../claude/skills/aka/SKILL.md) enforce canonical-only commit attribution.
 
 **Turning the harness's own mandate off is a required setup step, not a configured fact — check it.**
 Claude Code can add `Co-Authored-By: Claude …` to commits it writes, and the setting that stops it is

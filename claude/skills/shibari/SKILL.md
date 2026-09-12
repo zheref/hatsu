@@ -68,7 +68,7 @@ points at [`hatsu:jujisho`](../jujisho/SKILL.md), which is the split-shaped verb
 | Key | File | Used for | Default when the key (or the file) is absent |
 |---|---|---|---|
 | `branch.base` | `nen/workflow.json` | the PR's base, and the `origin/<base>...HEAD` range every section is computed over — **the remote ref, after a fetch, never the local branch** (below) | `main` |
-| `commits.allowedAttributionTrailers` | `nen/workflow.json` | read only to **state** what the commits carry — a local commit carries `Hatsu-Agent`, the CI plane's carries `Akatsuki-Agent`; shibari writes no commit | `["Hatsu-Agent", "Akatsuki-Agent"]` |
+| `commits.allowedAttributionTrailers` | `nen/workflow.json` | confirms the truthful canonical persona/plane trailer; shibari records actual participants in the PR body's final section | `Hatsu-Agent`, `Akatsuki-Agent` |
 | `coverage.minimum` / `.recommended` / `.ideal` | `nen/workflow.json` | the band the checklist's coverage line reports against — [`hatsu:gyo`](../gyo/SKILL.md) measured it, this body quotes it | `80` / `85` / `90` |
 | `project.evidence.globs` | `nen/contract.json` | which changed artifacts are visual evidence | none — **no globs is the no-evidence case**, stated in the body |
 | `project.evidence.scene` | `nen/contract.json` | the template that turns a path into a suite-and-scene pair | `{suite}-{scene}` |
@@ -97,7 +97,7 @@ points at [`hatsu:jujisho`](../jujisho/SKILL.md), which is the split-shaped verb
 > `evidence[]` from the same set at step 8. Two derivations of one set is how a report and a PR body
 > come to disagree.
 
-## 3. The body — eight parts, in this order
+## 3. The body — nine parts, in this order
 
 The target repository's own PR template governs the section *names* where it has one (Hatsu's is in
 [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md); a consumer's is wherever that repository keeps it,
@@ -115,6 +115,7 @@ template states:
 | 6 | **Evidence** | the `UZF-26` table (§ 5) | `kotoamatsukami`'s re-recorded artifacts, laid out by `rikugan` |
 | 7 | **Completion checklist** | one box per condition this PR claims to have met, each with its evidence beside it | § 6 |
 | 8 | **Every associated issue** | Full body list and verified Development links for every issue addressed; closing disposition only for completed scope, partial status explicit | Live issue/PR scope and the linkage contract below |
+| 9 | **Agent attribution** | final participant ledger: actual agents, canonical persona/plane where assigned, contribution, and evidence | `<Hatsu plugin root>/docs/AGENT-ATTRIBUTION.md` |
 
 ### Associated issues — body AND Development
 
@@ -135,6 +136,16 @@ GitHub's supported Development linking interface and verify the resulting links.
 Nen link verb or assume `Part of #N` creates a Development link. Where the current API cannot
 perform or inspect the link, use the supported UI and record the observed result; unavailable
 permissions or platform limits remain an explicit handover blocker.
+
+### Agent attribution — required final PR-body section
+
+The PR body ends with `## Agent attribution`, following `<Hatsu plugin root>/docs/AGENT-ATTRIBUTION.md`
+(in this checkout, [`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md)). It is a participant ledger, not
+a commit trailer: list every and only agents who actually participated, with canonical Hatsu
+persona, role/contribution, and reviewable evidence. Do not add model, runtime, surface, or session
+metadata. Never infer a contributor from the branch, a default coordinator persona, a reviewer request,
+or a model label. Commit messages carry only the truthful canonical `Hatsu-Agent` or `Akatsuki-Agent`
+trailer; do not emit `Co-Authored-By` or any model/surface/runtime/session attribution.
 
 **Linking and completion are different claims, but GitHub can couple their effects.** Development
 links normally auto-close issues when the PR merges into the default branch. Do not mislabel partial
@@ -256,6 +267,7 @@ worse than none, because it looks like a check that happened.
 - [x] Touched-file coverage ≥ 80 (minimum) — lowest touched file <n>% (gyo)
 - [x] Adversarial review settled — <reviewer> · <persona> · <model>, <n> findings, all disposed (hanten)
 - [x] `# What this changes for you` and `## How to verify` present — `nen pr body-check`, 3/3
+- [x] Final `## Agent attribution` present — `nen pr body-check`, 4/4
 - [x] changelog fragment — `nen changelog fragment-required`: <verdict>
 - [ ] <a condition that is NOT met, with what is missing>
 ```
@@ -267,7 +279,8 @@ than ticking it.
 
 ## 7. Check the body — by verb, never by eye
 
-**Three checks, all mechanical, and the body is not written back until all three have run.**
+**Three checks, all mechanical, and the body is not written back until all three have run.** Include
+`## Agent attribution` in the requirements file, with a pattern that requires it as the final heading.
 
 **(a) The required sections.** `--requirements-from` is a JSON array of `{name, pattern}` — the
 target repository's own template convention, never a literal nen ships:
