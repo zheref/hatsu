@@ -1130,7 +1130,7 @@ The verb is nen's read-only poller, and it is the whole mechanism:
 
 ```bash
 nen watch until --command "<one read-only observation>" [--true-pattern "<regex>"] \
-  --interval-ms <pollSeconds × 1000> --max-iterations 1
+  --interval-ms <pollSeconds × 1000> --max-iterations 2
 ```
 
 > **Those are the flags the pinned build actually carries**, re-read live from its own
@@ -1145,7 +1145,10 @@ nen watch until --command "<one read-only observation>" [--true-pattern "<regex>
 > makes a non-zero exit an **observation error** rather than a false reading.
 >
 > **`--max-iterations` is not the cap** — the verb's own help says so, *"a SAFETY bound, not izanagi's
-> mandatory cap"* — and here it bounds **one** observation run. Acting-cycle accounting belongs to
+> mandatory cap"* — and here it bounds a **two-observation paced window**: the first observation is
+> followed by the verb-owned `pollSeconds` wait before the second. A long foreground hold may omit the
+> bound. Never loop one-iteration invocations; their interval has no opportunity to pace the next call.
+> Acting-cycle accounting belongs to
 > `nen loop iterate` and en, not to Illumi. A quiet observation records no claim and cannot consume
 > `maxCycles`. Say the current en ledger count and this distinction in the watch's first line.
 

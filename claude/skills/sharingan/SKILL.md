@@ -120,7 +120,8 @@ When `to <gate>` is omitted entirely, derive it silently.
 Re-run from the top on **every** state change and after **every push**; never act on a picture older
 than the last fetch, and never compare review or check state from one head SHA with another.
 
-1. **Fetch the PR's state**, per-verb rather than one snapshot. Record the head SHA first, and discard
+1. **Fetch the PR's state**, per-verb rather than one snapshot. Read `headRefOid` with `gh pr view`
+   **before** `nen pr ready`, read it again after every other snapshot component, and discard
    the observation if a later read shows that it moved while the snapshot was being assembled:
    - Readiness and the conjunct table: `nen pr ready <CODE>#<N> --repo <path> --explain`, with the
      identity flag § 4's table selects for **this** target — none, `--gates` for
@@ -184,8 +185,9 @@ than the last fetch, and never compare review or check state from one head SHA w
 4. **Act through the right channel** — § 5.
 5. **Observe while the first blocker is pending.** A pending required check or reviewer request is not
    a stop and not an outcome. Classify the exact read with `nen parse izanami`, then use `nen watch until`
-   single-shot at `monitor.pollSeconds`; after each observation, rebuild step 1's fresh current-head
-   snapshot. A quiet observation spends no acting cycle. New review activity is handled immediately;
+   in a paced window of at least two observations at `monitor.pollSeconds`, or as an unbounded foreground
+   hold. The verb—not repeated one-shot invocations—owns the wait. After the window, rebuild step 1's
+   fresh current-head snapshot. A quiet observation spends no acting cycle. New review activity is handled immediately;
    it is never left behind while the check list is still pending. Never a hand-rolled sleep loop, a
    background primitive, or a scheduled wake-up.
 6. **Count requested reviewer rounds across resumed sessions**, using the live review/request
@@ -391,7 +393,7 @@ comment otherwise — mutating; never fired at `<reference-repo>` by this port (
 
 **Kurapika authored it** (local, on the maintainer's creds): address it yourself. Verify through
 the declared phase owners, then push the fix. Treat that push as a new observation epoch: record its
-head SHA, wait for every required CI context and every Copilot round `nen pr ready --explain` says is
+head SHA, wait for every required CI context and every configured reviewer round `nen pr ready --explain` says is
 owed at that head, and keep reading fresh review activity while either is pending. Only after verifying
 the pushed fix, reply on each thread with its disposition — the fix SHA/evidence, or a cited pushback —
 **and** resolve it.
@@ -579,8 +581,10 @@ Say when the run **starts** and when it **ends**.
 - **Never counts an unverified wake** toward the escalation ladder, and never fabricates a
   `nen pr staleness --wakes-from` entry to manufacture a stale verdict.
 - **Never exceeds two reviewer rounds** on one PR without an explicit maintainer decision; never requests a new round before completing the first.
-- **Never concludes while a required CI context or current-head reviewer round is pending.** Wait and
-  observe; quiet polls and elapsed time are not evidence of readiness, failure, or cap use.
+- **Never concludes while an open, non-draft PR has a required CI context or current-head reviewer round
+  pending.** Wait and observe; quiet polls and elapsed time are not evidence of readiness, failure, or
+  cap use. A PR that becomes closed or draft uses § 3's explicit terminal path instead; pending checks
+  left behind by that transition cannot make the impossible condition reachable again.
 - **Never calls `nen pr fetch` or `nen pr next-blocker` for a verdict** — both were reproduced broken
   against real `<reference-repo>` PRs at `v0.1.0` (§ 3), the crash is not re-verified at the pinned
   `v0.3.0`, and the recorded evidence stands until an A/B pass says otherwise; filed as defects, not

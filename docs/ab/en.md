@@ -194,8 +194,10 @@ exit=0
 ```
 
 **The verb says it itself, which is why `SKILL.md` § 6 can state it without a rule of its own.**
-`--max-iterations` bounds **one observation** — en passes `1`, making each poll single-shot, exactly
-as `izanagi` § 3 composes it. **Counting acting cycles 1..N against `monitor.maxCycles` is the
+**Superseded at v0.19.0:** En no longer passes `1`; that form cannot pace the next separately invoked
+observation. A discrete En window passes `2`, so the verb owns one real `monitor.pollSeconds` interval,
+and a foreground hold may omit the bound. `--max-iterations` still counts observations, never acts.
+**Counting acting cycles 1..N against `monitor.maxCycles` is the
 skill's own bookkeeping**, and no verb does it: `nen parse izanagi` extracts and refuses on `N` once,
 at parse time, before cycle 1, and never sees a cycle. That is `izanagi` § 3's finding, inherited
 here unchanged, and it is en's residue entry 2.
@@ -267,7 +269,7 @@ to be built.
 > **Update — later in this same wave, `v0.5.0`.** `claude/agents/illumi.md` **landed on this branch**,
 > on the reasoning `docs/ROSTER.md` § *Rulings* 5 gives: a provision that cannot be executed is a
 > provision in name only, and `en` shipped in the same wave. **So the half of this finding about the
-> missing role is closed**, and `SKILL.md` § 7 now describes the hand-off — step 6 to a subagent
+> missing role is closed**, and `SKILL.md` § 7 now describes the hand-off — step 5 to a subagent
 > titled `en · illumi · <model alias>`, read-only, waking Kurapika and acting on nothing.
 > **The other half stands unchanged, and it is the half that was ever about a mechanism**: a delegate
 > is still raised *from* a session, so nothing in this plane makes a watch survive one. And the rest
@@ -327,7 +329,7 @@ NOT given**, where it decides which exit code stops being "not yet" and becomes 
 (default `2`).
 
 **Still residue:** counting cycles 1..N against `monitor.maxCycles`. `--max-iterations` is the verb's own
-safety bound and bounds one observation run, which its help says in as many words.
+safety bound over watch observations; it never counts En's acting cycles.
 
 ---
 
@@ -341,8 +343,12 @@ that correction:
 |---|---|
 | PR exists and screenshots are complete; required CI or the owed reviewer round is pending | Remain active in observation; never report success |
 | Three or more quiet observations | No acting-cycle claim and no cap exhaustion |
-| A comment, review body finding, or inline thread arrives while pending | Wake/return to Sharingan; address every finding, reply in its channel, resolve eligible threads |
+| A benign approval or informational comment arrives | Rebuild the snapshot without claiming a cycle |
+| A review-body finding or inline thread requiring remediation arrives while pending | Claim one acting cycle, return to Sharingan, address every finding, reply in its channel, and resolve eligible threads |
 | A fix is pushed | Discard the old-head snapshot; wait for all required CI and the reviewer round owed at the new head |
+| Target ships `nen/gates.json` | Invoke `nen pr ready` without `--gates`; never borrow another repository's identities |
+| One discrete observation refresh is needed | Run a two-observation `nen watch until` window so the verb owns the configured interval; never repeat one-shot calls as a pacing mechanism |
+| Codex surface reaches the long hold | Keep En foreground with paced Nen windows; do not claim an in-session Illumi subagent the surface lacks |
 | `nen pr ready` and `nen pr body-check` both pass on the same current head, and Sharingan's confirmation pass is clear | Ring once, render the readiness report, and stop at G2/G4 |
 | The host or maintainer actually interrupts the session | Report interrupted/resumable live state; never rename it success, failure, or cap exhaustion |
 

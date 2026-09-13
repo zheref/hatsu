@@ -218,14 +218,22 @@ nothing — a bell that rings every poll of a four-hour wait is a bell nobody he
 ## 6. The observation hold — `nen watch until` on `nen pr ready`, and what a cycle is
 
 The condition is polled by the same read-only observation engine
-[`hatsu:izanami`](../izanami/SKILL.md) uses, run **single-shot per observation**, exactly as
-[`hatsu:izanagi`](../izanagi/SKILL.md) § 3 composes it:
+[`hatsu:izanami`](../izanami/SKILL.md) uses. **The verb owns the wait between observations**; a caller
+does not repeatedly invoke a one-iteration command and pretend `--interval-ms` paced those invocations.
+For a discrete refresh window, two observations are the minimum: the first establishes the window and
+the verb waits `monitor.pollSeconds` before the second. A foreground hold may omit the safety bound:
 
 ```bash
 export GH_TOKEN=$(gh auth token)
-nen watch until --command "nen pr ready <CODE>#<N> --repo <path> --gates <abs path>" \
-  --max-iterations 1 --interval-ms <monitor.pollSeconds × 1000>
+nen watch until --command "nen pr ready <CODE>#<N> --repo <path> <identity flags>" \
+  --max-iterations 2 --interval-ms <monitor.pollSeconds × 1000> # one paced refresh window
+# or omit --max-iterations for a foreground hold that runs until Ready/error
 ```
+
+`<identity flags>` is selected by [`sharingan`](../sharingan/SKILL.md) § 4 for the target: omit it
+when the target ships `nen/gates.json`; use `--gates "$hatsu_root/contracts/reference.gates.json"`
+only for `<reference-repo>`; otherwise pass the target's hand-supplied `--reviewers` and explicit
+`--approvers`. **Never point one repository's gates file at another repository.**
 
 **`nen pr ready` classifies `[read-only]`** — verified live at `v0.3.0` (`docs/ab/en.md` § 2.3):
 `nen parse izanami "nen pr ready HA#41 --repo /path --gates /abs/gates.json until it is ready"` →
@@ -237,7 +245,7 @@ structurally cannot be the verb that ends it**, which is a property worth having
 limitation to route around.
 
 > **`--max-iterations` is still not the cap.** Its own `--help` says so — *"a SAFETY bound, not
-> izanagi's mandatory cap"* — and it bounds **one observation**, not the count of acting cycles.
+> izanagi's mandatory cap"* — and it bounds **watch observations**, not the count of acting cycles.
 > **The cap is `nen loop iterate`'s from nen `0.7`** (§ 2): a cycle is claimed against
 > `monitor.maxCycles` before it acts, and the claim is refused at the cap. Two different verbs, two
 > different bounds, and neither substitutes for the other.
@@ -254,19 +262,19 @@ en acts, and the `<n>/<cap>` the verb prints is the number the report carries.
 
 | Observed | What en does |
 |---|---|
-| **a new review, comment or thread** | claim an acting cycle, then back to step 2 — [`hatsu:sharingan`](../sharingan/SKILL.md) addresses every inline and summary finding through its own channel |
+| **a new review, comment or thread** | inspect and classify it first. If it requires remediation or a reviewer re-request, claim an acting cycle, then return to step 2; an approval or informational event that needs only a read spends no cycle. [`hatsu:sharingan`](../sharingan/SKILL.md) addresses every inline and summary finding through its own channel |
 | **the branch fell behind, or the PR went `dirty`** | claim an acting cycle, then step 3 and step 4 — catch up, then re-decide. A conflicted PR gets *no checks at all*, which reads as "clean" rather than "broken" (`sharingan` § 5) |
 | the PR becomes Ready | step 6 — bell and stop at the human gate |
 | the PR merged before the gate handoff | end as a terminal external state, naming that readiness was not the run's observed terminus |
 | the PR closed unmerged | the run ends, saying so — there is nothing to land, and reopening is the maintainer's call |
 | nothing changed | **one line, or no line.** Not a status screenful; `nen watch until` already prints one line per observation |
 
-**Five stops** — [`izanagi`](../izanagi/SKILL.md) § 4's table, inherited unchanged: the condition
-true (verified Ready); the **cap reached**, reported with what is still
-not true; **three consecutive cycles that change nothing**, which ends the run below the cap because
-a loop repeating a no-op is burning the cap to reach the same place; **a human gate**, which is
-never retried past; and an **impossible condition**, named rather than waited on — a closed PR will
-not become Ready.
+**Four stops apply here**: the condition true (verified Ready); the **cap reached**, reported with what
+is still not true; **a human gate**, which is never retried past; and an **impossible condition**, named
+rather than waited on — a closed PR will not become Ready. `izanagi`'s generic three-no-op stop does
+not apply to En: quiet observations claim no cycle, and three unchanged pending reads cannot terminate
+the current-head readiness promise. Three consecutive **observation errors** still stop `nen watch until`
+as an unread capability failure, exactly as the verb documents; that is not a pending-state success.
 
 ## 7. The session boundary — and the Illumi hand-off
 
@@ -293,8 +301,9 @@ maintainer sees a budget being continued rather than one silently restarting.
 > *"Illumi is provisioned for `en`'s long watch, and only when one is needed"* — and
 > [`claude/agents/illumi.md`](../../agents/illumi.md) **landed in this same wave**, because a
 > provision that cannot be executed is a provision in name only (`docs/ROSTER.md` § *Rulings*, 5).
-> So step 5 is **handed over**, not abandoned: a subagent titled **`en · illumi · <model alias>`**,
-> on the **fast** tier at effort `medium`, holding the same `monitor` policy this file reads. He never
+> On a surface with in-session subagents, step 5 is **handed over**, not abandoned: a subagent titled
+> **`en · illumi · <model alias>`**, on the **fast** tier at effort `medium`, holding the same
+> `monitor` policy this file reads. He never
 > claims or spends En's acting-cycle cap: each quiet poll is an observation, not an Izanagi iteration.
 > He records the five facts per observation, compares them, and **wakes Kurapika** — naming what changed and
 > the act it needs. **He performs none of it**, and the readiness hand-off stays **G2/G4**.
@@ -306,6 +315,12 @@ maintainer sees a budget being continued rather than one silently restarting.
 > overnight CI queue or a reviewer in another timezone takes. **An observation hold that needs to survive the
 > maintainer closing the session still has no mechanism anywhere in this plane** — that is named,
 > reported as an interruption, and never simulated.
+>
+> **Codex has no in-session subagent** (`docs/SURFACES.md` § 1), so it does not claim this hand-off.
+> En remains in the foreground there and uses the same Nen-owned paced observation windows; if the
+> Codex task is interrupted, the resumable ledger is reported exactly as above. The second-process
+> mechanism reserved for Hanten's isolated reviewers is not a background persistence mechanism and
+> is not repurposed into one.
 >
 > **And the hand-off widens nothing.** Illumi is provisioned for *this* watch and no other loop —
 > not `backlog-loop`, not `futon`, not `senkei`; that half of `OPEN-1`, and the whole of Killua's
