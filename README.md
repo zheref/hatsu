@@ -323,12 +323,12 @@ there:
 ```
 <the next request, as a plain message>   # another ren turn on the same branch
 /hatsu:aka                               # lint, squash, catch up, final-tree regression, push — when YOU decide the branch goes up
-/hatsu:mukai                             # catch-up, review, matching aka regression evidence, coverage bar, evidence, one PR, then en's landing watch
+/hatsu:mukai                             # catch-up, review, matching aka regression evidence, coverage bar, evidence, one PR, then en's readiness watch
 ```
 
 `/hatsu:ren <request>` invokes the loop directly and is the right call in a session that is already warmed
-up; on a cold session prefer `/kurapika`, which runs the warm-up first. The merge is yours, in GitHub; `en`
-reports when the PR is Ready and keeps watching until it lands.
+up; on a cold session prefer `/kurapika`, which runs the warm-up first. `en` watches until the PR is
+verified Ready, reports that human gate, and stops; the merge remains yours, later, in GitHub.
 
 ### On Codex
 

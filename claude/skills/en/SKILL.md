@@ -80,7 +80,7 @@ inherited, or forgotten.*
 | `monitor.pollSeconds` | `nen/workflow.json` | the interval between observations, as `--interval-ms` | `300` (→ `--interval-ms 300000`) |
 | `branch.base` | `nen/workflow.json` | what step 3 catches up from, and what "behind" means | `main` |
 | `reports.dir` / `.template` / `.retain` | `nen/workflow.json` | step 7's file — [`hatsu:rikugan`](../rikugan/SKILL.md)'s keys | `Reports` / `rikugan` / `final-only` |
-| `notifications.rungs` / `.sound` | `nen/workflow.json` | step 5's rungs — [`hatsu:jutaisho`](../jutaisho/SKILL.md)'s keys | `["push","os","sound"]` / `Glass` |
+| `notifications.rungs` / `.sound` | `nen/workflow.json` | step 6's rungs — [`hatsu:jutaisho`](../jutaisho/SKILL.md)'s keys | `["push","os","sound"]` / `Glass` |
 
 **Before cycle 1, the cap is spelled out through the verb that refuses a missing one:**
 
@@ -151,7 +151,8 @@ what is still not true, and what the next cycle would have done. `izanagi` § 4'
 | 3 | **catch up** | [`hatsu:murasaki`](../murasaki/SKILL.md) | **only when the branch is behind `branch.base`** |
 | 4 | **drive again** | [`hatsu:sharingan`](../sharingan/SKILL.md) | after step 3 moved the tree underneath it |
 | 5 | **observe** | this file, § 6 | while CI or a reviewer round is pending; rebuild the current-head snapshot on every change, returning to steps 2–4 when action is needed |
-| 6 | **the bell and gate handoff** | [`hatsu:jutaisho`](../jutaisho/SKILL.md) | **after verified Ready**, and only then; this is En's successful terminus |
+| 6 | **the bell and gate handoff** | [`hatsu:jutaisho`](../jutaisho/SKILL.md) | **after verified Ready**, and only then |
+| 7 | **retained readiness report** | [`hatsu:rikugan`](../rikugan/SKILL.md) `as final` | after the bell; this is En's successful terminus |
 
 **Three orderings are en's own assertions:**
 
@@ -161,6 +162,8 @@ what is still not true, and what the next cycle would have done. `izanagi` § 4'
   reading the catch-up already invalidated.
 - **5 before 6.** Pending is not Ready. Required CI and every reviewer round owed at the current head
   must settle, and every incoming finding must be disposed, before the bell or handoff exists.
+- **6 before 7.** The retained report records the gate event the bell announced; rendering it first
+  would preserve a readiness handoff that had not happened yet.
 
 **Step 3 is conditional and stays conditional.** A branch level with its base does not get a
 catch-up "to be safe": `murasaki` would run the build and the suites again for nothing, and on a
