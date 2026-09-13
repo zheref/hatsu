@@ -472,3 +472,17 @@ No further review was requested as part of the correction.
 
 These are protocol scenarios and the observed correction, not executable tests of a Nen request
 precondition. Nen does not mechanically enforce this orchestration policy.
+
+## Current-head pending-state regression — 2026-09-13 correction
+
+| Scenario | Required result under Sharingan § 3–5 |
+|---|---|
+| PR is open but required CI or a requested/current-head review round is pending | Observe in the foreground; no Ready claim and no voluntary end-state |
+| An inline or summary finding arrives during that wait | Rebuild the full live snapshot, disposition it, reply/resolve through its native channel, then re-evaluate |
+| A fix push changes `headRefOid` | Treat all prior head evidence as stale; wait for required CI and the review round Nen says is owed at the new head |
+| Gates-file-less target with reviewer `copilot-pull-request-reviewer` returning `COMMENTED` | Supply the exact reviewer login and the target's explicit approver policy; do not infer approval from `COMMENTED` |
+| `--approvers` omitted with hand-supplied `--reviewers` on Nen 0.10.0 | Approvers default to reviewers; omission is conservative, not vacuous |
+| Target authoritatively declares `review-round-only` | Pass explicit `--approvers ""`; completed current-head review may satisfy the automated gate while human merge/vote remains separate |
+
+The last two rows follow Nen 0.10.0's `pr ready` contract: omitted and explicitly empty approvers are
+different inputs. Observed GitHub review state never chooses the repository's approval policy.

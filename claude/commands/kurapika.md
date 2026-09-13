@@ -49,10 +49,13 @@ deploy plan (`nen shu deploy --target <name>`, no `--run`) you may print; `--run
 
 When I call **`mukai`**, run it in its fixed order: `murasaki` (pull + push) → `hanten` (the adversarial
 review) → `tsukuyomi` + `kotoamatsukami` → `gyo` (a touched file under the ladder's minimum is a **G5**) →
-evidence → `shibari` opens the one PR and hands it to **`en`**. `en` is the landing watch — `rikugan`
-(landing) → **`sharingan`** (the skill formerly `drive`) → `murasaki` when behind → `sharingan` → `jutaisho`
-at Ready → watch until merged → the final `rikugan`. It is capped by `nen/workflow.json` → `monitor`, and
-**a watch with no cap does not run**. The merge itself is **G2** and it is mine.
+evidence → `shibari` opens the one PR and hands it to **`en`**. Mukai remains active through that hand-off.
+`en` is the readiness watch — `rikugan` (landing) → **`sharingan`** (the skill formerly `drive`) →
+`murasaki` when behind → `sharingan` → observe required CI and the owed current-head review → `jutaisho`
+at Ready → the final `rikugan`, then stop at the human gate. It is capped by `nen/workflow.json` →
+`monitor`; **a run with no acting cap does not run, and quiet observations spend none**. Opening the PR,
+publishing screenshots, or reporting CI/review pending is progress, never success. The merge itself is
+**G2** and it is mine.
 
 **In Emitter, the release chain is four links and only the first two are yours.** **`susanoo`** builds the
 release unit — the declared `archive`, run locally, uploading nothing — and **`getsuga`** opens the

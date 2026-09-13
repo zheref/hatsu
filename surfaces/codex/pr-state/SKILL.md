@@ -109,13 +109,13 @@ hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the absolute path § 0 printe
   mn=$(awk 'function scalar(v){return v~/^("([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*"|-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?|true|false|null)$/} function value_ok(v){return v=="{"||v=="["||v=="{}"||v=="[]"||scalar(v)} NR==1{if($0!="{")b=1;sp=1;top[1]="{";ind[1]=0;first=1;comma=0;next} {if(b||d){b=1;next};ni=match($0,/[^ ]/)-1;if(ni<0){b=1;next};body=substr($0,ni+1);if(body~/^[}\]],?$/){c=substr(body,1,1);tr=(body~/,$/);if(sp==0||ni!=ind[sp]||(top[sp]=="{"&&c!="}")||(top[sp]=="["&&c!="]")||comma){b=1;next};sp--;if(sp==0){if(tr)b=1;d=1;next};comma=tr;first=0;next};if(sp==0||ni!=ind[sp]+2||(!first&&!comma)){b=1;next};tr=(body~/,$/);if(tr)body=substr(body,1,length(body)-1);if(top[sp]=="{"){if(body!~/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /){b=1;next};v=body;sub(/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /,"",v);if(sp==1&&body~/^"name": "/){s=v;sub(/^"/,"",s);sub(/"$/,"",s);n++;name=s}}else v=body;if(!value_ok(v)){b=1;next};if(v=="{"||v=="["){if(tr){b=1;next};sp++;top[sp]=v;ind[sp]=ni;first=1;comma=0;next};comma=tr;first=0} END{if(!b&&d&&sp==0&&n==1)print name}' "$c/.claude-plugin/plugin.json") && [ "$mn" = hatsu ] &&   # captured first: bash 3.2 mis-parses quotes inside "$( )"
   r=$(CDPATH= cd "$c" >/dev/null 2>&1 && pwd -P) && [ "$r/." -ef "$c/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && hatsu_root=$r && break
 done
-[ -n "$hatsu_root" ] || { echo "no Hatsu root resolved — pass --reviewers by hand instead (sharingan § 4)" >&2; exit 1; }
+[ -n "$hatsu_root" ] || { echo "no Hatsu root resolved — pass --reviewers and explicit --approvers by hand instead (sharingan § 4)" >&2; exit 1; }
 nen pr ready <CODE>#<N> --repo <path> \
   --gates "$hatsu_root/contracts/reference.gates.json" --explain
 
-# any OTHER target that ships no gates file — identities supplied BY HAND, from its own CODEOWNERS
-# or the PR's own requested reviewers, never the reference file above
-nen pr ready <CODE>#<N> --repo <path> --reviewers <a,b,c> [--approvers <a,b>] --explain
+# any OTHER target that ships no gates file — reviewer identities AND approval policy supplied BY HAND;
+# use --approvers "" only for an authoritative review-round-only target policy, never by inference
+nen pr ready <CODE>#<N> --repo <path> --reviewers <a,b,c> --approvers <a,b> --explain
 ```
 
 or, with a bare number against a repo slug directly, the same three shapes with `<N> --gh-repo
@@ -160,14 +160,14 @@ line), so the report itself says which file decided.
   rather than re-copied — it is the authority, this is the citation.** The third shape exists because
   a repository must never be judged by another repository's reviewers — the reference file is
   `<reference-repo>`'s own, and pointing it at any other target reports a confident verdict about the
-  wrong people. Whichever identities were substituted (the third shape) are named on the page. **The
-  vacuous-approve caveat belongs to the third shape alone, never the second.** `contracts/reference.gates.json` declares its own
+  wrong people. Whichever identities and approval policy were substituted (the third shape) are named
+  on the page. **Omitted `--approvers` is not vacuous at Nen 0.10.0: it defaults to the supplied
+  reviewer set.** `contracts/reference.gates.json` declares its own
   `default_approvers` (`sasuke`, `tenma`) — reachable with no `--approvers` flag at all — so the
-  `--gates` shape's row 5 is a real approver check, not an empty one. It is the hand-supplied
-  `--reviewers` shape, run with no `--approvers` alongside it, where `nen pr ready`'s row 5 passes
-  **vacuously** (no approving reviewer to fail it) — state that in the reader's own words, *"nobody
-  has approved this pull request,"* rather than let a `ready` verdict standing on an empty approver
-  set read as a reviewed one.
+  `--gates` shape's row 5 is a real approver check. On the hand-supplied path, pass the target's
+  declared approvers explicitly, or `--approvers ""` only for a declared `review-round-only` policy;
+  state that choice and its source. A reviewer's observed `COMMENTED` state never authorizes inventing
+  the empty policy. [`sharingan`](../sharingan/SKILL.md) § 4 is authoritative.
 - **`--explain`** renders the conjunct-by-conjunct table in evaluation order, short-circuit rows
   included, plus the fixed "what the gate does NOT decide" caveats — all computed and printed by the
   verb itself; see § 3. Add `--json` instead when a caller needs the same content structured

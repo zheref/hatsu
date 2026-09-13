@@ -516,7 +516,7 @@ the PR side that needs them.
 | **[Uvogin](claude/agents/uvogin.md)** | **Performance testing** — the fixed seven metrics on every pre-release run, with pinned tooling, regression thresholds, in-repo baselines, and a five-field method block per number. | **Ratified** |
 | **[Feitan](claude/agents/feitan.md)** | **Security, and security only** — auth flows, secrets and credential handling, network and storage boundaries, data minimisation, the supply chain. He cites the inherited `SEC-{n}` rules **by id, resolved from the handbook set and never from memory**, and never runs an exploit against anything live. | **Ratified** 2026-09-09; definition at `v0.5.0` |
 | **[Chrollo](claude/agents/chrollo.md)** | **Architecture and handbook conformance** — the `UZF-{n}` core, **exactly one** resolved stack handbook, and the repository's own architecture notes, each cited by id or by path. He is where a coverage-floor breach or a missing unit test is routed. **He reviews the handbooks; he never authors them.** | **Ratified** 2026-09-09; definition at `v0.5.0` |
-| **[Illumi](claude/agents/illumi.md)** | **The long watch** — `en`'s step 6, when a landing watch must outlive the session that started it. Read-only through `nen watch until`, under the mandatory cap; he wakes Kurapika and acts on nothing. His frontmatter carries no `Edit`, `Write` or `MultiEdit`, and `Bash` — which every observation needs — is held to a **stated command allowlist** in his own definition rather than to a construction. | **PROVISIONED, not ratified** — `en`'s watch **only**; see below |
+| **[Illumi](claude/agents/illumi.md)** | **The long watch** — `en`'s step 5, during a long pre-Ready observation hold. Read-only through `nen watch until`; quiet observations never spend en's mandatory acting-cycle cap. He wakes Kurapika and acts on nothing. His frontmatter carries no `Edit`, `Write` or `MultiEdit`, and `Bash` — which every observation needs — is held to a **stated command allowlist** in his own definition rather than to a construction. | **PROVISIONED, not ratified** — `en`'s watch **only**; see below |
 
 > #### ⚠️ Gon's delegation grammar is a DRAFT — until it is ratified, Gon crosses no gate
 >
@@ -627,8 +627,8 @@ Five atomic, three composite. `mukai` is yours to call; everything else here is 
 | `shibari` | **atomic** | **Composes and opens the PR** — why, how, what changes for the consumer, how to verify, a diagram where a flow changed, the evidence table, the checklist, `Closes #N`. One PR, from the last pushed commit; requests reviewers and hands it to `en`. Never labels a gate, never merges. |
 | `jujutsu` | **atomic** | **Device pairing.** Walks you through trusting and registering a physical device — iOS: Developer Mode and `devicectl`; Android: USB debugging and `adb` — and lands it as a launch target **through a PR**. It writes the declaration and nothing else. |
 | `murasaki` | **composite** | **Pull + push.** `ao` → the declared checkpoint checks on the merged tree → aka-owned lint/regression → push, **only if the branch is already published**. A red merged tree goes to `rasengan` to be authored. Never squashes, never force-pushes. |
-| `mukai` | **composite** | **The review-and-PR phase — yours to call.** `murasaki` → `hanten` → matching aka regression evidence → `gyo` → publish proved updates → evidence → `shibari`, which opens the PR and starts `en`. **Four of the five G5 stops live inside it.** |
-| `en` | **composite** | **The landing watch, capped.** Landing report → `sharingan` → `murasaki` when behind → `sharingan` → `jutaisho` at Ready → watch until merged → the final report. **A watch with no cap does not run**; where one must outlive the session, the watch itself is handed to **Illumi**, read-only. |
+| `mukai` | **composite** | **The review-and-readiness phase — yours to call.** `murasaki` → `hanten` → matching aka regression evidence → `gyo` → publish proved updates → evidence → `shibari`, then `en` through current-head readiness. An open PR or pending CI/review is progress, not the terminus. **Four of the five G5 stops live inside it.** |
+| `en` | **composite** | **The readiness watch, capped.** Landing report → `sharingan` → `murasaki` when behind → `sharingan` → observe required CI/current-head review → `jutaisho` at Ready → the final readiness report, then stop at the human gate. **A run with no acting cap does not run; quiet polls spend none**. A long observation hold may be handed to **Illumi**, read-only. |
 
 ### The three that close the release side — new in `v0.6.0`
 
@@ -662,7 +662,9 @@ apart is what keeps the second class of mistake visible.
   upload) and `mugetsu` (publish, **G3**).
 - **`mukai` is the whole PR side, in a fixed order** — `murasaki`, then `hanten`'s scope-routed review, then
   matching aka-owned regression evidence, then `gyo`'s extraction-only coverage bar, then the evidence, then `shibari` opening one PR and
-  starting `en`'s capped landing watch. Reviewers advise and never vote; **the merge stays yours**.
+  continuing through `en`'s capped readiness watch. Required CI and the owed current-head reviewer round
+  are observed after every push; opening the PR or reporting either as pending is not success. Reviewers
+  advise and never vote; **the merge stays yours**.
 - **Only a genuine G5 interrupts you** — red required tests, touched-file coverage under the ladder's
   minimum, a *semantic* merge conflict, an unsettled adversarial finding, a stuck-PR escalation. Five, and
   nothing else. A stop is `nen stop`'s banner, the report link, and the question asked through your surface's

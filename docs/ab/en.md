@@ -1,8 +1,9 @@
 # A/B evidence — `en` (new skill, wave 3)
 
-`claude/skills/en/SKILL.md`: the capped landing watch — `rikugan`¹ landing → `sharingan`² →
-`murasaki`³ when behind base → `sharingan`⁴ → `jutaisho`⁵ at Ready → watch⁶ until merged, reacting
-to new reviews and new conflicts by going back to step 2 → `rikugan`⁷ final, written to
+`claude/skills/en/SKILL.md`: the capped readiness watch — `rikugan`¹ landing → `sharingan`² →
+`murasaki`³ when behind base → `sharingan`⁴ → observe⁵ while current-head CI/review is pending,
+reacting to new findings and conflicts by going back to step 2 → `jutaisho`⁶ at Ready → `rikugan`
+final, written to
 `Reports/<date>-<branch>-final.html`.
 
 **A composite, so most of it is a reference — but three things are genuinely en's own and all three
@@ -31,11 +32,11 @@ Nothing below is redacted; both repositories are public.
 | **The watch's classification** | `nen parse izanami` / `nen watch until` | **§ 2.3, here** |
 | The bell's table shape | `nen stop --template` | **§ 2.4, here** |
 | The parameter table's pin caveat | `nen schema check` | **§ 2.5, here** |
-| Counting cycles 1..N | **nothing — the skill's own bookkeeping** | **§ 2.6, here** |
-| 1, 7 · landing and final reports | `hatsu:rikugan` | `docs/ab/rikugan.md` |
+| Counting cycles 1..N | `nen loop iterate` (retired from residue at Nen 0.7) | **§ 2.6 plus retired section, here** |
+| 1, final · landing and readiness reports | `hatsu:rikugan` | `docs/ab/rikugan.md` |
 | 2, 4 · drive | `hatsu:sharingan` | `docs/ab/drive.md` (that skill's record, under its original name) |
 | 3 · catch up | `hatsu:murasaki` | that skill's A/B file |
-| 5 · the bell | `hatsu:jutaisho` | `docs/ab/jutaisho.md` |
+| 6 · the bell | `hatsu:jutaisho` | `docs/ab/jutaisho.md` |
 
 ---
 
@@ -327,3 +328,24 @@ NOT given**, where it decides which exit code stops being "not yet" and becomes 
 
 **Still residue:** counting cycles 1..N against `monitor.maxCycles`. `--max-iterations` is the verb's own
 safety bound and bounds one observation run, which its help says in as many words.
+
+---
+
+## Readiness-terminus regression — 2026-09-13 correction
+
+The earlier evidence above records the historical merge-terminus wording. The authoritative skill now
+stops at verified current-head readiness, before the human merge/vote gate. These protocol cases preserve
+that correction:
+
+| Live state | Required En/Mukai result |
+|---|---|
+| PR exists and screenshots are complete; required CI or the owed reviewer round is pending | Remain active in observation; never report success |
+| Three or more quiet observations | No acting-cycle claim and no cap exhaustion |
+| A comment, review body finding, or inline thread arrives while pending | Wake/return to Sharingan; address every finding, reply in its channel, resolve eligible threads |
+| A fix is pushed | Discard the old-head snapshot; wait for all required CI and the reviewer round owed at the new head |
+| `nen pr ready` and `nen pr body-check` both pass on the same current head, and Sharingan's confirmation pass is clear | Ring once, render the readiness report, and stop at G2/G4 |
+| The host or maintainer actually interrupts the session | Report interrupted/resumable live state; never rename it success, failure, or cap exhaustion |
+
+These are prose-contract regressions. The deterministic readiness result remains Nen's; the distinction
+between an observation and an acting-cycle claim is already enforced by using `nen watch until` and
+`nen loop iterate` as separate verbs.

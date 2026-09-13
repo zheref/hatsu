@@ -265,7 +265,7 @@ hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the absolute path § 0 printe
   mn=$(awk 'function scalar(v){return v~/^("([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*"|-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?|true|false|null)$/} function value_ok(v){return v=="{"||v=="["||v=="{}"||v=="[]"||scalar(v)} NR==1{if($0!="{")b=1;sp=1;top[1]="{";ind[1]=0;first=1;comma=0;next} {if(b||d){b=1;next};ni=match($0,/[^ ]/)-1;if(ni<0){b=1;next};body=substr($0,ni+1);if(body~/^[}\]],?$/){c=substr(body,1,1);tr=(body~/,$/);if(sp==0||ni!=ind[sp]||(top[sp]=="{"&&c!="}")||(top[sp]=="["&&c!="]")||comma){b=1;next};sp--;if(sp==0){if(tr)b=1;d=1;next};comma=tr;first=0;next};if(sp==0||ni!=ind[sp]+2||(!first&&!comma)){b=1;next};tr=(body~/,$/);if(tr)body=substr(body,1,length(body)-1);if(top[sp]=="{"){if(body!~/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /){b=1;next};v=body;sub(/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /,"",v);if(sp==1&&body~/^"name": "/){s=v;sub(/^"/,"",s);sub(/"$/,"",s);n++;name=s}}else v=body;if(!value_ok(v)){b=1;next};if(v=="{"||v=="["){if(tr){b=1;next};sp++;top[sp]=v;ind[sp]=ni;first=1;comma=0;next};comma=tr;first=0} END{if(!b&&d&&sp==0&&n==1)print name}' "$c/.claude-plugin/plugin.json") && [ "$mn" = hatsu ] &&   # captured first: bash 3.2 mis-parses quotes inside "$( )"
   r=$(CDPATH= cd "$c" >/dev/null 2>&1 && pwd -P) && [ "$r/." -ef "$c/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && hatsu_root=$r && break
 done
-[ -n "$hatsu_root" ] || { echo "no Hatsu root resolved — pass --reviewers by hand instead (sharingan § 4)" >&2; exit 1; }
+[ -n "$hatsu_root" ] || { echo "no Hatsu root resolved — pass --reviewers and explicit --approvers by hand instead (sharingan § 4)" >&2; exit 1; }
 nen pr ready <CODE>#<N> --repo <path> --gates "$hatsu_root/contracts/reference.gates.json" --explain
 ```
 
@@ -280,10 +280,12 @@ exported — never
 `$CLAUDE_PLUGIN_ROOT` alone, which is Claude Code's and is unset or wrong on the two mirrored surfaces. Since nen `v0.2.0` a relative `--gates` resolves against `--repo`'s root rather than the cwd, so only
 an absolute path reaches a file that lives in *this* plugin's checkout
 ([`$pr-state`](../pr-state/SKILL.md) § 2 has the live transcript). Any OTHER target with no
-`nen/gates.json` gets `--reviewers` supplied by hand from its `CODEOWNERS` or the PR's own requested
-reviewers — a repository is never judged by another repository's reviewers. **The vacuous-approve
-caveat belongs to that hand-supplied `--reviewers` path alone**: run with no `--approvers` alongside
-it, the approve row's pass is vacuous and is said so on the page — but `contracts/reference.gates.json`
+`nen/gates.json` gets `--reviewers` plus explicit `--approvers` supplied by hand — reviewer identities
+from its `CODEOWNERS` or the PR's own requested reviewers, approval policy from an authoritative target
+declaration or maintainer ruling. A repository is never judged by another repository's reviewers. On that hand-supplied
+path, **Nen 0.10.0 defaults omitted `--approvers` to the reviewer set**. Pass the target's declared
+approvers explicitly, or `--approvers ""` only for a declared `review-round-only` policy, and name
+the policy source on the page — while `contracts/reference.gates.json`
 declares its own `default_approvers` (`sasuke`, `tenma`), so the `--gates` form above is a real
 approver check even with no `--approvers` flag. **Verified live against both of `<reference-repo>`'s
 real open PRs**, contrasting a Ready maintainer-authored PR against a not-Ready pre-existing CI one

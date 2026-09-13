@@ -232,7 +232,7 @@ question, not an answered one.
 | `captures` | `Reports/captures` | where screenshots land before they are inlined as data URIs |
 
 **The retention rule — and what it does *not* say.** `rikugan` runs at three moments — every turn, at
-landing, and once after the merge — and `retain: final-only` means **only the last one is KEPT**: only the
+landing, and once current-head readiness is verified — and `retain: final-only` means **only the last one is KEPT**: only the
 final report gets a dated file of its own, `<dir>/<YYYY-MM-DD>-<branch-slug>-final.html`. A directory holding
 one report per turn is a directory nobody opens; the final report is the one with tests run, scenarios,
 touched coverage and the architecture delta, and it is the one worth finding six months later.
@@ -600,7 +600,7 @@ It loops. **It never pushes and never opens a pull request.**
 | Phase | What it does | Why it is the human's |
 |---|---|---|
 | [`aka`](../claude/skills/aka/) | lint → squash the unpushed commits → `ao` → final-tree regression → push | publishing work is a decision, and a squash is destructive |
-| [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → matching aka regression evidence → `gyo` → publish proven updates → evidence → `shibari` opens the PR → starts `en`. **§ 5 is the full shape** | a PR is a request for other people's attention |
+| [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → matching aka regression evidence → `gyo` → publish proven updates → evidence → `shibari` opens the PR → continue through `en` until current-head Ready. **§ 5 is the full shape** | a PR is a request for other people's attention; pending is not success |
 | **merge** | **G2** (`CON-5`) | never delegated, by any agent, anywhere |
 | [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always, and `--run` acts only on a call that **names the target** | the blast radius leaves this machine |
 | [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3** (`CON-6`): only on a recorded per-target go, with the preflight green and the tag already cut — one target per call | the blast radius is other people's users |
@@ -654,7 +654,7 @@ maintainer's to call. Its order is fixed, and each step has exactly one job.
 | **5** | [`kokusen`](../claude/skills/kokusen/) then the push half of `murasaki` | **publishes the final proved tree.** Changes from steps 2–4 repeat the focused checkpoint, aka-owned lint/regression and coverage steps first; The review's fixes and gyo's new tests are edits to the working copy, and neither of those skills may commit or push; step 7 refuses to open a PR while `HEAD` is ahead of `origin/<branch>` | **G5** on a semantic conflict where the base moved again |
 | **6** | evidence | the changed visual artifacts, from `project.evidence` (§ 3), grouped **suite → scene** | not a gate event |
 | **7** | [`shibari`](../claude/skills/shibari/) | composes and opens **one** PR, requests the reviewers and writes the body back | never labels a gate, never merges |
-| **8** | [`rikugan`](../claude/skills/rikugan/) `as landing` | the landing report, rendered **after** the PR exists because its two extra sections — the PR body and the readiness verdict — are step 7's outputs. Then **starts [`en`](../claude/skills/en/)** | not a gate event |
+| **8** | [`rikugan`](../claude/skills/rikugan/) `as landing` | the landing report, rendered **after** the PR exists because its two extra sections — the PR body and the readiness verdict — are step 7's outputs. Then **continues through [`en`](../claude/skills/en/)** until current-head readiness is proved | not a gate event; an open PR, screenshots, or pending CI/review is progress, never Mukai's terminus |
 
 **Four of the five G5 conditions of § 4 live inside this one phase.** That is not an accident of layout: a
 pull request is the moment work stops being private, so it is the moment the honest questions are cheapest to
@@ -744,7 +744,7 @@ shortfall — and a rule never mixes the two mechanisms.
 
 Then `shibari` hands the PR to `en` and stops. It never applies a gate label and it never merges.
 
-### `en` — the landing watch, its two keys, and the Illumi hand-off
+### `en` — the readiness watch, its two keys, and the Illumi hand-off
 
 ```json
 "monitor": { "maxCycles": 20, "pollSeconds": 300 }
@@ -752,20 +752,21 @@ Then `shibari` hands the PR to `en` and stops. It never applies a gate label and
 
 `en`'s order: [`rikugan`](../claude/skills/rikugan/)¹ (landing — the PR body and the readiness verdict) →
 [`sharingan`](../claude/skills/sharingan/)² → [`murasaki`](../claude/skills/murasaki/)³ when the branch is
-behind → `sharingan`⁴ → [`jutaisho`](../claude/skills/jutaisho/)⁵ at Ready → **watch⁶ until merged**, still
-reacting to new reviews and new conflicts → `rikugan`⁷ final, **the only report written to `Reports/`**.
+behind → `sharingan`⁴ → **observe⁵ while required CI or the current-head reviewer round is pending**, still
+reacting to new comments, threads, reviews and conflicts → [`jutaisho`](../claude/skills/jutaisho/)⁶ once
+at Ready → `rikugan` final, **the only report written to `Reports/`**, then stop at the human gate.
 
 | Key | What it bounds |
 |---|---|
-| `maxCycles` | the `izanagi` cap on the watch. **Grammar, not a default** — a watch invoked without one does not run, and from nen `0.7` `nen loop iterate` refuses the claim that would exceed it (§ `monitor`) |
-| `pollSeconds` | the interval between observation cycles. Never shortened because something looks close, never lengthened to stretch the cap |
+| `maxCycles` | the `izanagi` cap on **acting reactions**. **Grammar, not a default** — an en run invoked without one does not run, and `nen loop iterate` refuses the claim that would exceed it. Quiet observations claim nothing |
+| `pollSeconds` | the interval between observations. Never shortened because something looks close |
 
 **An exhausted cap is reported as exhausted.** It is never extended in place, never continued by a second
 watch started to finish the first, and never rendered as "still watching". Raising the cap is the
 maintainer's word, in a new invocation — and from nen `0.7` it is also the binary's answer: the claim past
 the cap is refused, and the refusal says so in nen's own words rather than in a skill's.
 
-**When the watch must outlive the session that started it, step 6 is handed to Illumi** —
+**When the pre-Ready observation hold is expected to be long, step 5 is handed to Illumi** —
 [`illumi.md`](../claude/agents/illumi.md), titled `en · illumi · <model alias>`, on the **fast** tier at
 effort `medium`. He is **provisioned, not ratified** (`OPEN-1`, partially closed 2026-09-09) for this watch
 **and no other loop**: not `backlog-loop`, not `futon`, not `senkei`.
@@ -774,12 +775,12 @@ He is **read-only by discipline, and the definition says which** — his frontma
 or `MultiEdit`, but it does carry `Bash`, because every observation is a program and `Bash` can push, commit
 and merge as easily as it can read. What holds is the **command allowlist** in
 [`illumi.md`](../claude/agents/illumi.md) § *Your tools*; anything off it is a wake, not a command. He acts
-on nothing. Each cycle he records five facts (the readiness verdict *quoted*, the checks, review activity,
-base drift, terminal state), compares them against the previous cycle, and **wakes Kurapika** when one of
+on nothing. Each observation he records five facts (the readiness verdict *quoted*, the checks, review activity,
+base drift, terminal state), compares them against the previous observation, and **wakes Kurapika** when one of
 seven conditions fires: Ready, a new review or thread, a check gone red, the branch behind or conflicted,
-merged, closed-or-drafted, or the cap exhausted. The hand-off names **what changed, since when, the PR's
+merged, closed-or-drafted, or an act is refused at the cap. Quiet observations never consume that cap. The hand-off names **what changed, since when, the PR's
 current state, and the act it needs** — *names* the act; never performs it. **A watch that acts is not a
-watch**, and the merge stays **G2**.
+watch**, and the merge/vote stays human-gated.
 
 ### `drive` is now `sharingan`
 
@@ -1001,6 +1002,12 @@ Their `nen/gates.json` files require Copilot's completed round and explicitly se
 `approval_policy: review-round-only` with no separate approving-review requirement. The maintainer's
 human merge decision remains a separate gate outside Nen's automated readiness verdict. Local
 subagent review is evidence, not a GitHub vote.
+
+For a target with no `nen/gates.json`, the caller supplies both halves of that repository's policy.
+At Nen 0.10.0, omitted `--approvers` defaults to the supplied `--reviewers`; omission is not a
+vacuous approve row. Pass explicit approver identities when the target declares them, or explicit
+`--approvers ""` only when an authoritative target policy says completed review rounds require no
+approving vote. A bot's observed `COMMENTED` state does not itself establish that policy.
 
 
 ### Review-round completion — maintainer ruling, 2026-09-12

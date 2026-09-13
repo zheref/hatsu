@@ -241,7 +241,7 @@ For each open PR, state a **Ready / not-Ready** determination **with the reason*
 
 ```
 export GH_TOKEN=$(gh auth token)
-nen pr ready <ref> --gh-repo <owner/name> [--gates <path> | --reviewers a,b,c [--approvers a,b]] --explain
+nen pr ready <ref> --gh-repo <owner/name> [--gates <path> | --reviewers a,b,c --approvers a,b] --explain
 ```
 
 **Most product repos ship no gates file of their own — verified against `<product-repo-A>`, not
@@ -256,15 +256,16 @@ against another's vocabulary. For a product repo with no `--gates` file of its o
 
 - If the repo ships `nen/gates.json`, no flag is needed at
   all.
-- Otherwise, pass `--reviewers`/`--approvers` naming **that repo's own** configured reviewer
-  bots — derived from **its own** `.github/workflows/*.yml`, read directly, not assumed and not
+- Otherwise, pass `--reviewers` naming **that repo's own** configured reviewer bots and explicit
+  `--approvers` from its authoritative approval policy (`--approvers ""` only for a declared
+  `review-round-only` policy) — derived from **its own** configuration, read directly, not assumed and not
   copied from `<reference-repo>`'s registry. **Verified live, read-only, against `<product-repo-A>`'s own
   workflow files**: `bankai-review-gates.yml` calls `sasuke-review.yml`, `tenma-review.yml` and
   `bisky-review.yml` as reusable workflows — a genuine review **trio**, not a pair, and `<reference-repo>`'s
   own registry's `consumes` list for this repo corroborates the same three (plus `copilot`
   nowhere in it as a review identity — `copilot-sweeper.yml` is a different, non-review workflow).
   **Never guess a reviewer set and never substitute `<reference-repo>`'s own `contracts/reference.gates.json`.**
-- **A disclosed limitation, not routed around:** the reduced `--reviewers a,b,c [--approvers a,b]`
+- **A disclosed limitation, not routed around:** the reduced `--reviewers a,b,c --approvers a,b`
   CLI path is a flat, static list — it cannot model `bisky`'s **conditional** approver behaviour,
   which only joins the approval set for a PR it has actually posted a review on **at the current
   head** (`approves_when_posted_at_head`). This is exactly the dynamic-enrolment shape

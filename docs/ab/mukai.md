@@ -1,6 +1,7 @@
 # A/B evidence — `mukai` (new skill, wave 3)
 
-`claude/skills/mukai/SKILL.md`: the composite that turns a pushed branch into an open pull request —
+`claude/skills/mukai/SKILL.md`: the composite that turns a pushed branch into an open pull request
+and stays with its En/Sharingan hand-off until current-head readiness —
 `murasaki`¹ → `hanten`² → checkpoint/catch-up/aka verification³ → `gyo` over aka results⁴ → final
 unchanged catch-up and update push⁵ → evidence⁶ → `shibari`⁷ → landing report and `en`⁸. Human-called,
 and the call is the authorization for the PR *and* for the
@@ -195,3 +196,23 @@ The verbs the composed skills gained at this pin are recorded in their own A/B f
 
 **Step 7's mirror check is a real check now** rather than a skip: `bash scripts/surface_mirror_check.sh`
 exits `0` at this pin, `codex ok: 40`, `cursor ok: 47`.
+
+---
+
+## Explicit-invocation terminus regression — 2026-09-13 correction
+
+The concrete failure was an explicitly invoked Mukai run that opened a PR and published screenshots,
+then ended with “CI tests and Copilot review remain pending.” The PR later accumulated unattended review
+comments. The authoritative outcome table is now:
+
+| State | Mukai outcome |
+|---|---|
+| PR opened / evidence published / En started | In progress |
+| Required CI or owed current-head reviewer round pending | In progress; keep observing and handling incoming findings |
+| Assistant response would otherwise end | Not an outcome; continue the explicit run |
+| Same-head `nen pr ready` + `nen pr body-check` pass and Sharingan confirmation is clear | Success at G2/G4; human merge/vote remains |
+| Genuine G5, acting-cap refusal, impossible terminal state, cancellation, or actual host/user interruption | Non-success terminus, named exactly |
+
+This is a prose-contract regression: composition still has no single Nen verb. The deterministic pieces
+remain `nen pr ready`, `nen pr body-check`, `nen watch until`, and `nen loop iterate`; the workflow must not
+replace any of those with a conversational success claim.
