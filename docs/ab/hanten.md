@@ -369,3 +369,22 @@ the prepared addition. Nen provides no compare-and-swap body edit, so a concurre
 reported `pending` race rather than an overwrite. Separate sessions can still create equivalent issues
 between their final search and create; the single-writer-per-known-effort rule narrows that risk, and a
 later duplicate discovery selects a canonical item without closing either issue through this protocol.
+
+---
+
+## Finding-to-gate regression — constructed, 2026-09-13
+
+These are prose-contract scenarios because Hanten's reviewer conversation has no executable agent-flow
+runner. Each starts after reviewers have returned valid fixed-shape findings; severity and count alone are
+never inputs to the G5 decision.
+
+| Scenario | Required result |
+|---|---|
+| Routine UI and architecture findings with fixes inside the requested scope | Kurapika applies the fixes in severity order, verifies them through the declared checks, and records `fixed`; no human gate occurs merely because findings exist. |
+| A historical-data migration whose records have no owner, where including or excluding them changes product visibility and no requirement chooses either rule | Kurapika records the exact visibility decision, the missing governing rule, the investigation, and the alternatives/consequences, then raises one narrow G5 question before changing history. |
+| Mixed findings: routine fixes plus the historical-data decision | Every independent routine finding is fixed or rebutted first. Only the migration-dependent path pauses at G5; the unresolved finding stays visible with no downgrade or untracked deferral. |
+
+The regression boundary is therefore mechanical enough to audit even though the review itself remains a
+conversation: `new finding → investigate → fixed | pushed-back | tracked`; only a proven need for changed
+scope, a new business rule, unresolved conflicting requirements, or authority the run does not carry may
+take the remaining path to G5.

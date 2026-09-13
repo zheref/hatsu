@@ -364,10 +364,25 @@ the declared `iteration.checks` is a claim — the fix is authored by
 [`$mukai`](../mukai/SKILL.md) runs the suites at its next step, and a fix that broke one is that
 step's finding.
 
-## 7. An unsettled finding is a **G5**
+**A newly returned finding is work, not a gate.** Kurapika investigates it and attempts the three
+dispositions above in severity order under the authority the current task already carries. Finding
+count, severity and ordinary implementation work remaining never create a maintainer decision by
+themselves. Where a mixed review contains one ambiguous finding, every independent finding is still
+fixed, rebutted or durably tracked; only work whose outcome depends on that ambiguity pauses.
 
-**A finding that is neither fixed, nor pushed back with a cited reason, nor tracked, is a stop.** Not
-a line in the PR body, not "noted for follow-up", not a `low` re-graded down until it stops mattering.
+## 7. A genuinely unsettled decision is a **G5**
+
+**A finding becomes unsettled only after investigation proves that none of § 6's dispositions can be
+chosen without a maintainer decision.** The concrete boundary is a scope change, a new business rule,
+conflicting requirements that canon does not adjudicate, or an action beyond the run's granted authority.
+A finding that merely has not been fixed yet is still active work. It is not a line in the PR body,
+not "noted for follow-up", and not a `low` re-graded down until it stops mattering.
+
+Before raising G5, record all four facts in the Hanten document: the exact decision; why the existing
+requirements cannot settle it; what was investigated or tried; and the concrete alternatives with their
+consequences. If any one is absent, the finding is not ready for escalation and Kurapika keeps working.
+An untracked deferral remains unsettled, but the missing tracking is first resolved through the standing
+discovery protocol when that protocol applies; it is not a shortcut to human attention.
 
 The stop is [`$jutaisho`](../jutaisho/SKILL.md)'s shape, in full — the `nen stop` banner and
 efforts table (`nen stop --who Kurapika --gate G5 <efforts.md>`; `nen stop --template` emits the blank
@@ -375,14 +390,16 @@ table, verified live, `docs/ab/hanten.md` § 2.4), the [`$rikugan`](../rikugan/S
 link, lettered options with a ⭐ on the report, and **the question through the surface's own native
 option picker** (`AskUserQuestion` on Claude Code).
 
-**What hanten puts in it:** the finding verbatim — all six fields — the reviewer who raised it, what
-was already tried, and options that are the actual resolutions: *"A — take the proposed fix", "B —
-push back on this ground (…)", "C — preserve the durable pending record and stop"*. The standing
-discovery route does not need a permission question; it runs before this stop when reconciliation
-is complete. **Never an option that re-grades
+**What hanten puts in it:** the finding verbatim — all six fields — the reviewer who raised it, the
+four escalation facts above, and options that are the actual resolutions: *"A — extend scope and take
+the proposed fix (consequence …)", "B — adopt business rule … (consequence …)", "C — preserve the
+durable pending record and stop"*. The standing discovery route does not need a permission question;
+it runs before this stop when reconciliation is complete. **Never an option that re-grades
 the severity**, and never one that removes the finding from the record.
 
-**The run ends there.** A G5 is not a thing to retry past; the answer resumes it.
+**The dependent path ends there.** A G5 is not a thing to retry past; the answer resumes it. Independent
+authorized work has already been settled before the stop, so one real decision never strands unrelated
+routine findings behind it.
 
 ## 8. What a reviewer never does
 
