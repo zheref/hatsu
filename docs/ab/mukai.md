@@ -210,7 +210,7 @@ comments. The authoritative outcome table is now:
 | PR opened / evidence published / En started | In progress |
 | Required CI or owed current-head reviewer round pending | In progress; keep observing and handling incoming findings |
 | Assistant response would otherwise end | Not an outcome; continue the explicit run |
-| Same-head `nen pr ready` + `nen pr body-check` pass and Sharingan confirmation is clear | Success at G2/G4; human merge/vote remains |
+| Same-head `nen pr ready` + `nen pr body-check` pass, every base-required context appears in the current-head rollup, and Sharingan confirmation is otherwise clear | Success at G2/G4; human merge/vote remains |
 | Genuine G5, acting-cap refusal, impossible terminal state, cancellation, or actual host/user interruption | Non-success terminus, named exactly |
 
 This is a prose-contract regression: composition still has no single Nen verb. The deterministic pieces

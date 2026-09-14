@@ -442,6 +442,11 @@ what `drive` is for driving.
 - **No PR-base-ref-fetch verb exists** either, for the identical reason (`nen pr fetch` would supply
   it and does not work) — `gh pr view --json baseRefName` remains a necessary raw call, same
   stopgap `backlog-state`'s own § 4 already discloses.
+- **`nen pr ready` evaluates every context that reported, but does not prove the base branch's required
+  context set is present.** Sharingan's one-directional confirmation pass therefore compares the
+  applicable branch rules from `repos/<owner>/<repo>/rules/branches/<base>` with the current-head
+  rollup. A required context absent from the rollup vetoes Ready even when every reported context is
+  green; the confirmation pass still cannot promote a failing deterministic verdict.
 - **The concurrency-group hazard between a comment and a label fire** (RR-IS-#554) and the
   conflicted-PR edge-trigger behavior (RR-IS-#798) are `copilot-sweeper.yml`-level GitHub Actions
   behavior, outside anything `nen` owns or could own — kept as prose/judgment in `SKILL.md` § 5,
