@@ -61,7 +61,7 @@ permissions:
 jobs:
   surface-mirror-check:
     if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository }}
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Start check on the exact PR head
