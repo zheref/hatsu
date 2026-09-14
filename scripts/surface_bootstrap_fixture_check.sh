@@ -107,8 +107,12 @@ grep -q '# Hatsu Personas for Antigravity' "$antigravity_fixture/.agents/rules/A
 [ -f "$antigravity_fixture/.agents/hooks.json" ] || fail "Antigravity hooks were not installed"
 grep -q '"hatsu-trunk-guard"' "$antigravity_fixture/.agents/hooks.json" || fail "Antigravity trunk guard hook missing"
 grep -q '"hatsu-stop-bell"' "$antigravity_fixture/.agents/hooks.json" || fail "Antigravity stop bell hook missing"
+[ -x "$antigravity_fixture/.agents/hooks/guard-base-branch.sh" ] || fail "Antigravity guard hook script missing"
+[ -x "$antigravity_fixture/.agents/hooks/stop-bell.sh" ] || fail "Antigravity stop bell hook script missing"
 assert_ignored "$antigravity_fixture" '.agents/rules/AGENTS.md'
 assert_ignored "$antigravity_fixture" '.agents/hooks.json'
+assert_ignored "$antigravity_fixture" '.agents/hooks/guard-base-branch.sh'
+assert_ignored "$antigravity_fixture" '.agents/hooks/stop-bell.sh'
 assert_empty_untracked "$antigravity_fixture"
 "$bootstrap" --surface antigravity --target "$antigravity_fixture" --install-all
 
@@ -116,7 +120,7 @@ mkdir -p "$antigravity_fixture/.agents/skills/stale-hatsu-skill"
 printf '%s\n' '<!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->' > "$antigravity_fixture/.agents/skills/stale-hatsu-skill/SKILL.md"
 stale_output="$("$bootstrap" --surface antigravity --target "$antigravity_fixture" --install-all)"
 [ ! -e "$antigravity_fixture/.agents/skills/stale-hatsu-skill" ] || fail "Antigravity full refresh kept a stale Hatsu skill"
-case "$stale_output" in *'installed 41; removed stale stale-hatsu-skill') ;; *) fail "Antigravity refresh did not report its stale removal separately: $stale_output" ;; esac
+case "$stale_output" in *'installed 43; removed stale stale-hatsu-skill') ;; *) fail "Antigravity refresh did not report its stale removal separately: $stale_output" ;; esac
 
 antigravity_collision_fixture="$fixture_root/antigravity-collision"
 new_fixture "$antigravity_collision_fixture"

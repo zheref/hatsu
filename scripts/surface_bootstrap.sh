@@ -241,7 +241,15 @@ is_ours_hooks() {
   local relative=".agents/hooks.json" destination="$target/.agents/hooks.json"
   is_tracked "$relative" && return 1
   [ -f "$destination" ] || return 1
-  grep -q '"hatsu-trunk-guard"' "$destination" 2>/dev/null && grep -q '"hatsu-stop-bell"' "$destination" 2>/dev/null
+  cmp -s "$destination" "$hatsu_root/surfaces/antigravity/hooks.json"
+}
+
+is_ours_hook_script() {
+  local relative="$1" destination="$target/$1" name
+  name="$(basename "$relative")"
+  is_tracked "$relative" && return 1
+  [ -f "$destination" ] || return 1
+  cmp -s "$destination" "$hatsu_root/surfaces/antigravity/hooks/$name"
 }
 
 # Create only real, untracked directories below the target. A symlinked parent
@@ -302,7 +310,7 @@ preflight_destination() {
   if is_tracked "$relative"; then
     fail_bootstrap_blocker "$relative"
   elif { [ -e "$destination" ] || [ -L "$destination" ]; } &&
-    { [ "$ownership" = "override" ] && ! is_ours_override || [ "$ownership" = "hooks" ] && ! is_ours_hooks || [ "$ownership" = "skill" ] && ! is_ours "$relative"; }; then
+    { [ "$ownership" = "override" ] && ! is_ours_override || [ "$ownership" = "hooks" ] && ! is_ours_hooks || [ "$ownership" = "hook_script" ] && ! is_ours_hook_script "$relative" || [ "$ownership" = "skill" ] && ! is_ours "$relative"; }; then
     fail_bootstrap_blocker "$relative"
   fi
 }
@@ -321,6 +329,8 @@ preflight_install_destinations() {
     if [ "$mode" = "--install-all" ]; then
       preflight_destination '.agents/rules/AGENTS.md' skill
       preflight_destination '.agents/hooks.json' hooks
+      preflight_destination '.agents/hooks/guard-base-branch.sh' hook_script
+      preflight_destination '.agents/hooks/stop-bell.sh' hook_script
     fi
   else
     for name in "${skill_names[@]}"; do
@@ -352,6 +362,13 @@ will_replace_hooks() {
   local relative='.agents/hooks.json' destination="$target/.agents/hooks.json"
   is_tracked "$relative" && return 1
   { [ -e "$destination" ] || [ -L "$destination" ]; } && ! is_ours_hooks && return 1
+  return 0
+}
+
+will_replace_hook_script() {
+  local relative="$1" destination="$target/$1"
+  is_tracked "$relative" && return 1
+  { [ -e "$destination" ] || [ -L "$destination" ]; } && ! is_ours_hook_script "$relative" && return 1
   return 0
 }
 
@@ -463,6 +480,18 @@ prepare_staged_surface() {
         mkdir -p "$(dirname "$stage_path")"
         cp "$hatsu_root/surfaces/antigravity/hooks.json" "$stage_path"
       fi
+      if will_replace_hook_script '.agents/hooks/guard-base-branch.sh'; then
+        stage_path="$staging/.agents/hooks/guard-base-branch.sh"
+        mkdir -p "$(dirname "$stage_path")"
+        cp "$hatsu_root/surfaces/antigravity/hooks/guard-base-branch.sh" "$stage_path"
+        chmod 755 "$stage_path"
+      fi
+      if will_replace_hook_script '.agents/hooks/stop-bell.sh'; then
+        stage_path="$staging/.agents/hooks/stop-bell.sh"
+        mkdir -p "$(dirname "$stage_path")"
+        cp "$hatsu_root/surfaces/antigravity/hooks/stop-bell.sh" "$stage_path"
+        chmod 755 "$stage_path"
+      fi
     fi
   else
     for name in "${skill_names[@]}"; do
@@ -492,6 +521,7 @@ transaction_replace() {
     mv "$destination" "$backup/$relative"
   }
   replaced_paths+=("$relative")
+  mkdir -p "$(dirname "$destination")"
   mv "$staged" "$destination"
 }
 
@@ -589,6 +619,12 @@ collect_exclude_lines() {
       fi
       if will_replace_hooks; then
         exclude_lines+=('.agents/hooks.json')
+      fi
+      if will_replace_hook_script '.agents/hooks/guard-base-branch.sh'; then
+        exclude_lines+=('.agents/hooks/guard-base-branch.sh')
+      fi
+      if will_replace_hook_script '.agents/hooks/stop-bell.sh'; then
+        exclude_lines+=('.agents/hooks/stop-bell.sh')
       fi
     fi
   else
@@ -693,27 +729,25 @@ elif [ "$surface" = "antigravity" ]; then
   done
 
   if [ "$mode" = "--install-all" ]; then
-    relative=".agents/rules/AGENTS.md"
-    destination="$target/$relative"
-    if is_tracked "$relative"; then
-      kept+=("$relative")
-    elif { [ -e "$destination" ] || [ -L "$destination" ]; } && ! is_ours "$relative"; then
-      kept+=("$relative")
-    else
-      transaction_replace "$relative"
-      installed+=("$relative")
-    fi
-
-    relative=".agents/hooks.json"
-    destination="$target/$relative"
-    if is_tracked "$relative"; then
-      kept+=("$relative")
-    elif { [ -e "$destination" ] || [ -L "$destination" ]; } && ! is_ours_hooks; then
-      kept+=("$relative")
-    else
-      transaction_replace "$relative"
-      installed+=("$relative")
-    fi
+    for relative in ".agents/rules/AGENTS.md" ".agents/hooks.json" ".agents/hooks/guard-base-branch.sh" ".agents/hooks/stop-bell.sh"; do
+      destination="$target/$relative"
+      ownership="skill"
+      case "$relative" in
+        *.json) ownership="hooks" ;;
+        *.sh) ownership="hook_script" ;;
+      esac
+      if is_tracked "$relative"; then
+        fail_bootstrap_blocker "$relative"
+        kept+=("$relative")
+      elif { [ -e "$destination" ] || [ -L "$destination" ]; } &&
+        { [ "$ownership" = "hooks" ] && ! is_ours_hooks || [ "$ownership" = "hook_script" ] && ! is_ours_hook_script "$relative" || [ "$ownership" = "skill" ] && ! is_ours "$relative"; }; then
+        fail_bootstrap_blocker "$relative"
+        kept+=("$relative")
+      else
+        transaction_replace "$relative"
+        installed+=("$relative")
+      fi
+    done
   fi
 else
   if [ "$mode" = "--install-all" ]; then

@@ -58,8 +58,18 @@ cat > "$tmp_dir/plugin.json" <<'EOF'
 }
 EOF
 
-# 2. Generate hooks.json for Antigravity lifecycle
-cat > "$tmp_dir/hooks.json" <<'EOF'
+# 2. Derive timeouts from canonical hooks/hooks.json and generate hooks.json
+stop_timeout=$(awk '/"Stop":/,/"timeout":/ { if ($1 ~ /"timeout":/) { gsub(/[^0-9]/, "", $2); print $2 } }' "$hatsu_root/hooks/hooks.json" | head -n 1)
+guard_timeout=$(awk '/"PreToolUse":/,/"timeout":/ { if ($1 ~ /"timeout":/) { gsub(/[^0-9]/, "", $2); print $2 } }' "$hatsu_root/hooks/hooks.json" | head -n 1)
+[ -n "$stop_timeout" ] || stop_timeout=15
+[ -n "$guard_timeout" ] || guard_timeout=10
+
+mkdir -p "$tmp_dir/hooks"
+cp "$hatsu_root/hooks/guard-base-branch.sh" "$tmp_dir/hooks/guard-base-branch.sh"
+cp "$hatsu_root/hooks/stop-bell.sh" "$tmp_dir/hooks/stop-bell.sh"
+chmod 755 "$tmp_dir/hooks/guard-base-branch.sh" "$tmp_dir/hooks/stop-bell.sh"
+
+cat > "$tmp_dir/hooks.json" <<EOF
 {
   "hatsu-trunk-guard": {
     "PreToolUse": [
@@ -68,8 +78,8 @@ cat > "$tmp_dir/hooks.json" <<'EOF'
         "hooks": [
           {
             "type": "command",
-            "command": "./hooks/guard-base-branch.sh",
-            "timeout": 10
+            "command": "sh -c 'if [ -x ./.agents/hooks/guard-base-branch.sh ]; then exec ./.agents/hooks/guard-base-branch.sh \"\\\$@\"; elif [ -x ./hooks/guard-base-branch.sh ]; then exec ./hooks/guard-base-branch.sh \"\\\$@\"; fi' --",
+            "timeout": $guard_timeout
           }
         ]
       }
@@ -79,8 +89,8 @@ cat > "$tmp_dir/hooks.json" <<'EOF'
     "Stop": [
       {
         "type": "command",
-        "command": "./hooks/stop-bell.sh",
-        "timeout": 15
+        "command": "sh -c 'if [ -x ./.agents/hooks/stop-bell.sh ]; then exec ./.agents/hooks/stop-bell.sh \"\\\$@\"; elif [ -x ./hooks/stop-bell.sh ]; then exec ./hooks/stop-bell.sh \"\\\$@\"; fi' --",
+        "timeout": $stop_timeout
       }
     ]
   }

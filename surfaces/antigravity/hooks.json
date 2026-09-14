@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./hooks/guard-base-branch.sh",
+            "command": "sh -c 'if [ -x ./.agents/hooks/guard-base-branch.sh ]; then exec ./.agents/hooks/guard-base-branch.sh \"\$@\"; elif [ -x ./hooks/guard-base-branch.sh ]; then exec ./hooks/guard-base-branch.sh \"\$@\"; fi' --",
             "timeout": 10
           }
         ]
@@ -17,7 +17,7 @@
     "Stop": [
       {
         "type": "command",
-        "command": "./hooks/stop-bell.sh",
+        "command": "sh -c 'if [ -x ./.agents/hooks/stop-bell.sh ]; then exec ./.agents/hooks/stop-bell.sh \"\$@\"; elif [ -x ./hooks/stop-bell.sh ]; then exec ./hooks/stop-bell.sh \"\$@\"; fi' --",
         "timeout": 15
       }
     ]
