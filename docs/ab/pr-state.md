@@ -25,8 +25,10 @@ the `<reference-repo>` checkout.
 > 4's identity rule instead of restating it: a target's own `nen/gates.json` wins where one exists;
 > `--gates` with this reference file is for `<reference-repo>` alone; any other gates-file-less
 > target gets `--reviewers` supplied by hand — from its `CODEOWNERS` or the PR's own requested
-> reviewers, never this file — with the approve row's vacuous pass (no `--approvers` given) stated on
-> the page. The transcripts below still ran against real `<reference-repo>` PRs, so they stay as
+> reviewers, never this file — with the target's approvers passed explicitly. **Historical note:** the
+> vacuous approve-row behavior described by the original 2026-09-10 record was pre-0.10.0. At Nen 0.10,
+> omitted `--approvers` defaults to the reviewer set; pass `--approvers ""` only for a declared
+> `review-round-only` policy. The transcripts below still ran against real `<reference-repo>` PRs, so they stay as
 > recorded.
 
 ---

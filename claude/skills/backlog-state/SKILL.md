@@ -287,10 +287,12 @@ variable is not exported — never a raw path embedded in the command text, and 
 `$CLAUDE_PLUGIN_ROOT` alone, which is Claude Code's and is unset or wrong on the two mirrored surfaces. Since nen `v0.2.0` a relative `--gates` resolves against **`--repo`'s root, never the cwd** (verified
 live at `v0.3.0`, [`pr-state`](../pr-state/SKILL.md) § 2), and the file lives in this plugin's
 checkout, not the target's. For any OTHER repository that this table reports on and that ships no
-`nen/gates.json`, pass `--reviewers` by hand instead — from its `CODEOWNERS` or the PR's own requested
-reviewers, never the reference file, because a repository is never judged by another repository's
-reviewers. **The vacuous-approve caveat belongs to that hand-supplied path alone**: with no
-`--approvers` given, its approve row passes vacuously, named on the rendered board — but
+`nen/gates.json`, pass `--reviewers` plus explicit `--approvers` by hand instead — reviewer identities
+from its `CODEOWNERS` or the PR's own requested reviewers, approval policy from an authoritative target
+declaration or maintainer ruling, never the reference file. A repository is never judged by another
+repository's reviewers. On that hand-supplied path, **Nen 0.10.0 defaults omitted `--approvers` to the reviewer
+set**. Pass the target's declared approvers explicitly, or `--approvers ""` only for a declared
+`review-round-only` policy, and name the policy source on the rendered board — while
 `contracts/reference.gates.json` carries its own `default_approvers` (`sasuke`, `tenma`), so the
 `--gates` row above is a real approver check even with no `--approvers` flag.
 

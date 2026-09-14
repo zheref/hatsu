@@ -60,7 +60,7 @@ nen parse rikugan --grammar "as [<variant:turn|landing|final>]" --line "<the inv
 
 **Which variant a composite asks for is that composite's to say, not this skill's to infer** —
 `ren` asks for `turn` every turn, `mukai`/`en` ask for `landing` once the PR body exists, and `en`
-asks for `final` after the merge. Invoked bare by the maintainer, it is `turn`.
+asks for `final` after current-head readiness is verified. Invoked bare by the maintainer, it is `turn`.
 
 ## 2. The parameters — `nen/workflow.json`, with the defaults stated
 
@@ -376,7 +376,7 @@ gets published as an Artifact.
 |---|---|---|---|
 | **`turn`** | [`$ren`](../ren/SKILL.md) § step 5, every turn | 01–07 | **No** — an Artifact, or the transient `current.html` (§ 6) |
 | **`landing`** | [`$mukai`](../mukai/SKILL.md) § 2 **step 8**, and [`$en`](../en/SKILL.md)'s first step | 01–07 **+ 08 PR body + 09 Readiness** | **No** — the same two |
-| **`final`** | [`$en`](../en/SKILL.md)'s last step, after the merge | 01–09 **+ 10 Tests run + 11 Touched coverage** | **Yes** — the only one with a file of its own |
+| **`final`** | [`$en`](../en/SKILL.md)'s last step, after verified current-head readiness and before the human merge/vote | 01–09 **+ 10 Tests run + 11 Touched coverage** | **Yes** — the only one with a file of its own |
 
 > **`landing` is rendered AFTER the PR is opened, and that is the whole of when it may be rendered —
 > finding F6.** Its two extra sections are **08 PR body** and **09 Readiness**, and both are
@@ -405,7 +405,7 @@ path, overwritten every render, git-ignored — is that somewhere.
 > no PR"* about a branch that is on `origin`. **`landing` is not the answer**: it adds **08 PR body**
 > and **09 Readiness**, and at this point there is no PR body to carry and no `nen pr ready` verdict
 > to quote, and § 5's own rule is that a readiness claim is that verdict or it is not made. `final`
-> is post-merge. **So the state is carried by the `turn` variant, re-rendered**, with the push
+> is the verified-readiness record. **So the state is carried by the `turn` variant, re-rendered**, with the push
 > written into **01 Accomplished** as the plain fact it is — the branch, the pushed SHA, and that no
 > PR was opened because opening one is [`$mukai`](../mukai/SKILL.md)'s and the maintainer's.
 > This is deliberate rather than a gap: a fourth variant would exist to describe a *pause*, and a
@@ -601,6 +601,8 @@ no template change is needed to stop it.
   carries is spelled the document's way, and `--dry-run` is what proves it before a render (§ 4).
 - **Never renders `landing` before the PR exists** — its two extra sections are shibari's outputs,
   and an empty **09** reads as a verdict (§ 5).
+- **Never renders `final` while required CI or the owed current-head review round is pending** — En's
+  retained report records verified readiness, not a convenient response boundary (§ 5).
 - **Never links a screenshot that a reader outside this machine cannot resolve** — embedded as a
   data URI, or named as missing.
 - **Never writes an unescaped value into the page, by verb or by hand**, and never a `{{{ }}}` for

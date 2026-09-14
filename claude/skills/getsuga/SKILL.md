@@ -367,11 +367,13 @@ The maintainer's ruling: an unreachable target is **driven to `main` first**, no
    quotes included, or by `pr-state` § 2's resolver; never a variable carried from another shell, never a
    raw path embedded in the command text, never `$CLAUDE_PLUGIN_ROOT` alone, which is Claude Code's) ONLY
    where the target is frozen
-   `<reference-repo>` itself; every other target that ships no gates file gets `--reviewers` supplied
-   by hand, from its `CODEOWNERS` or the PR's own requested reviewers — a repository is never judged
-   by another repository's reviewers. **The approve row's vacuous pass belongs to that hand-supplied
-   `--reviewers` path alone**: run with no `--approvers`, its row is vacuous and is stated on the
-   page — but `contracts/reference.gates.json` carries its own `default_approvers` (`sasuke`,
+   `<reference-repo>` itself; every other target that ships no gates file gets `--reviewers` plus explicit
+   `--approvers` supplied by hand — reviewer identities from its `CODEOWNERS` or the PR's own requested
+   reviewers, approval policy from an authoritative target declaration or maintainer ruling. A repository is never judged
+   by another repository's reviewers. On that hand-supplied path, **Nen 0.10.0 defaults omitted
+   `--approvers` to the reviewer set**. Pass the target's declared approvers explicitly, or
+   `--approvers ""` only for a declared `review-round-only` policy, and state the policy source on the
+   page — while `contracts/reference.gates.json` carries its own `default_approvers` (`sasuke`,
    `tenma`), so the `--gates` form is a real approver check even with no `--approvers` flag. That is
    a **check**, not a drive: it reports where the PR stands and nothing moves it.
 4. **Stop at G2/G4.** The maintainer merges.

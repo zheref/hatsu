@@ -1,8 +1,9 @@
 # A/B evidence — `en` (new skill, wave 3)
 
-`claude/skills/en/SKILL.md`: the capped landing watch — `rikugan`¹ landing → `sharingan`² →
-`murasaki`³ when behind base → `sharingan`⁴ → `jutaisho`⁵ at Ready → watch⁶ until merged, reacting
-to new reviews and new conflicts by going back to step 2 → `rikugan`⁷ final, written to
+`claude/skills/en/SKILL.md`: the capped readiness watch — `rikugan`¹ landing → `sharingan`² →
+`murasaki`³ when behind base → `sharingan`⁴ → observe⁵ while current-head CI/review is pending,
+reacting to new findings and conflicts by going back to step 2 → `jutaisho`⁶ at Ready → `rikugan`
+final, written to
 `Reports/<date>-<branch>-final.html`.
 
 **A composite, so most of it is a reference — but three things are genuinely en's own and all three
@@ -31,11 +32,11 @@ Nothing below is redacted; both repositories are public.
 | **The watch's classification** | `nen parse izanami` / `nen watch until` | **§ 2.3, here** |
 | The bell's table shape | `nen stop --template` | **§ 2.4, here** |
 | The parameter table's pin caveat | `nen schema check` | **§ 2.5, here** |
-| Counting cycles 1..N | **nothing — the skill's own bookkeeping** | **§ 2.6, here** |
-| 1, 7 · landing and final reports | `hatsu:rikugan` | `docs/ab/rikugan.md` |
+| Counting cycles 1..N | `nen loop iterate` (retired from residue at Nen 0.7) | **§ 2.6 plus retired section, here** |
+| 1, final · landing and readiness reports | `hatsu:rikugan` | `docs/ab/rikugan.md` |
 | 2, 4 · drive | `hatsu:sharingan` | `docs/ab/drive.md` (that skill's record, under its original name) |
 | 3 · catch up | `hatsu:murasaki` | that skill's A/B file |
-| 5 · the bell | `hatsu:jutaisho` | `docs/ab/jutaisho.md` |
+| 6 · the bell | `hatsu:jutaisho` | `docs/ab/jutaisho.md` |
 
 ---
 
@@ -193,8 +194,10 @@ exit=0
 ```
 
 **The verb says it itself, which is why `SKILL.md` § 6 can state it without a rule of its own.**
-`--max-iterations` bounds **one observation** — en passes `1`, making each poll single-shot, exactly
-as `izanagi` § 3 composes it. **Counting acting cycles 1..N against `monitor.maxCycles` is the
+**Superseded at v0.19.0:** En no longer passes `1`; that form cannot pace the next separately invoked
+observation. A discrete En window passes `2`, so the verb owns one real `monitor.pollSeconds` interval,
+and a foreground hold may omit the bound. `--max-iterations` still counts observations, never acts.
+**Counting acting cycles 1..N against `monitor.maxCycles` is the
 skill's own bookkeeping**, and no verb does it: `nen parse izanagi` extracts and refuses on `N` once,
 at parse time, before cycle 1, and never sees a cycle. That is `izanagi` § 3's finding, inherited
 here unchanged, and it is en's residue entry 2.
@@ -266,7 +269,7 @@ to be built.
 > **Update — later in this same wave, `v0.5.0`.** `claude/agents/illumi.md` **landed on this branch**,
 > on the reasoning `docs/ROSTER.md` § *Rulings* 5 gives: a provision that cannot be executed is a
 > provision in name only, and `en` shipped in the same wave. **So the half of this finding about the
-> missing role is closed**, and `SKILL.md` § 7 now describes the hand-off — step 6 to a subagent
+> missing role is closed**, and `SKILL.md` § 7 now describes the hand-off — step 5 to a subagent
 > titled `en · illumi · <model alias>`, read-only, waking Kurapika and acting on nothing.
 > **The other half stands unchanged, and it is the half that was ever about a mechanism**: a delegate
 > is still raised *from* a session, so nothing in this plane makes a watch survive one. And the rest
@@ -326,4 +329,30 @@ NOT given**, where it decides which exit code stops being "not yet" and becomes 
 (default `2`).
 
 **Still residue:** counting cycles 1..N against `monitor.maxCycles`. `--max-iterations` is the verb's own
-safety bound and bounds one observation run, which its help says in as many words.
+safety bound over watch observations; it never counts En's acting cycles.
+
+---
+
+## Readiness-terminus regression — 2026-09-13 correction
+
+The earlier evidence above records the historical merge-terminus wording. The authoritative skill now
+stops at verified current-head readiness, before the human merge/vote gate. These protocol cases preserve
+that correction:
+
+| Live state | Required En/Mukai result |
+|---|---|
+| PR exists and screenshots are complete; required CI or the owed reviewer round is pending | Remain active in observation; never report success |
+| Three or more quiet observations | No acting-cycle claim and no cap exhaustion |
+| A benign approval or informational comment arrives | Rebuild the snapshot without claiming a cycle |
+| A review-body finding or inline thread requiring remediation arrives while pending | Claim one acting cycle, return to Sharingan, address every finding, reply in its channel, and resolve eligible threads |
+| A fix is pushed | Discard the old-head snapshot; wait for all required CI and the reviewer round owed at the new head |
+| Target ships `nen/gates.json` | Invoke `nen pr ready` without `--gates`; never borrow another repository's identities |
+| One discrete observation refresh is needed | Run a two-observation `nen watch until` window so the verb owns the configured interval; never repeat one-shot calls as a pacing mechanism |
+| Codex surface reaches the long hold | Keep En foreground with paced Nen windows; do not claim an in-session Illumi subagent the surface lacks |
+| Three consecutive `nen watch until` observation errors | Stop as an unread capability failure, naming the broken read; do not call it Ready, pending success, acting-cap exhaustion, or a host/user interruption |
+| `nen pr ready` and `nen pr body-check` both pass on the same current head, every base-required context appears in the current-head rollup, and Sharingan's confirmation pass is clear | Ring once, render the readiness report, and stop at G2/G4 |
+| The host or maintainer actually interrupts the session | Report interrupted/resumable live state; never rename it success, failure, or cap exhaustion |
+
+These are prose-contract regressions. The deterministic readiness result remains Nen's; the distinction
+between an observation and an acting-cycle claim is already enforced by using `nen watch until` and
+`nen loop iterate` as separate verbs.

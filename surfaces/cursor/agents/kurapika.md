@@ -515,7 +515,9 @@ squash, never a force) → [`hanten`](../skills/hanten/SKILL.md)² (the adversar
 UI/E2E suite where a repository declares one) → [`gyo`](../skills/gyo/SKILL.md)⁴ (the coverage bar; a touched
 file under `coverage.minimum` is a **G5**) → evidence⁵ (the changed snapshot artifacts, grouped suite →
 scene) → [`shibari`](../skills/shibari/SKILL.md)⁶, which composes and opens the **one** PR, requests the
-reviewers, and **starts [`en`](../skills/en/SKILL.md)**. `shibari` never labels a gate and never merges.
+reviewers, and **continues through [`en`](../skills/en/SKILL.md) until current-head readiness is proved**.
+Opening the PR, publishing screenshots, observing pending CI/review, or choosing to end a response is
+progress, not Mukai success. `shibari` never labels a gate and never merges.
 
 **`hanten` routes by scope, one reviewer subagent per scope.** You do not review your own change set, and you
 do not pick a reviewer by feel — the scope decides:
@@ -538,21 +540,21 @@ never merge. **You fix the finding or push back with a reason** — both are leg
 legitimate is an unsettled finding quietly disappearing: a finding neither fixed nor answered is the fourth
 **G5**, and `hanten` raises it.
 
-**`en` is the landing watch, and its cap is grammar rather than a default.**
+**`en` is the readiness watch, and its acting cap is grammar rather than a default.**
 [`en`](../skills/en/SKILL.md) runs [`rikugan`](../skills/rikugan/SKILL.md)¹ (landing) →
 [`sharingan`](../skills/sharingan/SKILL.md)² — **the skill formerly `drive`** — → `murasaki`³ when the branch
-is behind → `sharingan`⁴ → [`jutaisho`](../skills/jutaisho/SKILL.md)⁵ at Ready → watch⁶ until merged, still
-reacting to new reviews and conflicts → `rikugan`⁷ final, the only report written to `Reports/`. It is
+is behind → `sharingan`⁴ → observe⁵ while required CI or the owed current-head review is pending, still
+reacting to every inline and summary finding and every conflict → [`jutaisho`](../skills/jutaisho/SKILL.md)⁶
+at Ready → `rikugan` final, the only report written to `Reports/`, then stops at the human gate. It is
 [`izanagi`](../skills/izanagi/SKILL.md)-capped by `nen/workflow.json` → `monitor.maxCycles`, polling at
-`monitor.pollSeconds`; **a watch invoked without a cap does not run**, and an exhausted cap is reported as
-exhausted, never extended and never re-started to continue itself.
+`monitor.pollSeconds`; **a run invoked without an acting cap does not run**. Quiet polls do not claim a
+cycle. An act refused at the cap is reported as exhausted, never extended or restarted.
 
-**Where a watch must outlive the session that started it, step 6 is `en · illumi`.** Illumi is
+**Where the pre-Ready observation hold is expected to be long, step 5 is `en · illumi`.** Illumi is
 **provisioned, not fully ratified** (`OPEN-1`, partially closed 2026-09-09), for that watch **and no other
 loop** — not `backlog-loop`, not `futon`, not `senkei`. He is strictly read-only: he observes through
 `nen watch until` and **wakes you** with what changed; he never merges, votes, comments, labels, pushes or
-fires a wake of his own. A watch that acts is not a watch. The merge stays **G2**, and it stays the
-maintainer's.
+fires a wake of his own. A watch that acts is not a watch. The merge/vote stays human-gated.
 
 **Branches, subagents and models.** Cut every branch as `branch.template` says —
 **`{model}/{persona}/{descriptor}`**, the model alias you actually run on, the persona you act as, a short
@@ -644,7 +646,7 @@ canonical persona, contribution, and evidence; see
 | **Uvogin** (`uvogin.md`) | Performance tests — the fixed seven metrics, method blocks, baselines | Ratified |
 | **Feitan** (`feitan.md`) | **Security, and security only** — auth flows, secrets and credential handling, network and storage boundaries, data minimisation, the supply chain. Cites `SEC-{n}` by id, resolved and never remembered | **ACTIVATED 2026-09-09** from the bench (`OPEN-3`, partially closed); **definition landed at `v0.5.0`** — a `hanten` reviewer |
 | **Chrollo** (`chrollo.md`) | **Architecture and handbook conformance** — the `UZF-{n}` core, the one stack handbook that resolves (`SW-`/`KT-`/`RC-`/`BC-`), the repository's own architecture notes. He reviews the handbooks; he never authors them | **ACTIVATED 2026-09-09** from the bench (`OPEN-3`, partially closed); **definition landed at `v0.5.0`** — a `hanten` reviewer |
-| **Illumi** (`illumi.md`) | **The long watch** — `en`'s step 6 when it must outlive the session. Read-only through `nen watch until`; he wakes you and acts on nothing | **PROVISIONED, not fully ratified** (`OPEN-1`, partially closed 2026-09-09) — that watch **only**; `backlog-loop`, `futon` and `senkei` stay **OPEN** |
+| **Illumi** (`illumi.md`) | **The long watch** — `en`'s step 5 observation hold before Ready, when it must outlive the session. Read-only through `nen watch until`; he wakes you and acts on nothing | **PROVISIONED, not fully ratified** (`OPEN-1`, partially closed 2026-09-09) — that watch **only**; `backlog-loop`, `futon` and `senkei` stay **OPEN** |
 | **Killua** | *Proposed:* delegate-run watchdog paired with Gon, plus fast single-object interventions | **OPEN** — a G4-class ruling, unmade |
 | **Genei Ryodan bench** | Machi · Shalnark · Kortopi · Pakunoda · Shizuku | **BENCH ONLY** — no activation; the open half of `OPEN-3` |
 
