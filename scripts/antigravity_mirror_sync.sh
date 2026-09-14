@@ -14,11 +14,17 @@ set -euo pipefail
 LC_ALL=C
 
 mode="generate"
-if [ "${1:-}" = "--check" ]; then
+if [ $# -eq 0 ] || [ "${1:-}" = "--generate" ]; then
+  mode="generate"
+elif [ "${1:-}" = "--check" ]; then
   mode="check"
 elif [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
   echo "usage: scripts/antigravity_mirror_sync.sh [--check|--generate]"
   exit 0
+else
+  echo "antigravity-mirror-sync: unknown option '${1:-}'" >&2
+  echo "usage: scripts/antigravity_mirror_sync.sh [--check|--generate]" >&2
+  exit 2
 fi
 
 script_dir="$(CDPATH='' cd -- "$(dirname -- "$0")" >/dev/null 2>&1 && pwd -P)"
@@ -68,12 +74,17 @@ guard_timeout=$(awk '/"PreToolUse":/,/"timeout":/ { if ($1 ~ /"timeout":/) { gsu
 [ -n "$guard_timeout" ] || guard_timeout=10
 
 mkdir -p "$tmp_dir/hooks"
-cp "$hatsu_root/hooks/guard-base-branch.sh" "$tmp_dir/hooks/guard-base-branch.sh"
-cp "$hatsu_root/hooks/stop-bell.sh" "$tmp_dir/hooks/stop-bell.sh"
-chmod 755 "$tmp_dir/hooks/guard-base-branch.sh" "$tmp_dir/hooks/stop-bell.sh"
+for hook_script in guard-base-branch.sh stop-bell.sh; do
+  {
+    printf '#!/bin/sh\n# %s\n' "$MARKER"
+    tail -n +2 "$hatsu_root/hooks/$hook_script"
+  } > "$tmp_dir/hooks/$hook_script"
+  chmod 755 "$tmp_dir/hooks/$hook_script"
+done
 
 cat > "$tmp_dir/hooks.json" <<EOF
 {
+  "description": "$MARKER",
   "hatsu-trunk-guard": {
     "PreToolUse": [
       {
@@ -81,7 +92,7 @@ cat > "$tmp_dir/hooks.json" <<EOF
         "hooks": [
           {
             "type": "command",
-            "command": "sh -c 'if [ -x ./.agents/hooks/guard-base-branch.sh ]; then exec ./.agents/hooks/guard-base-branch.sh \"\\\$@\"; elif [ -x ./hooks/guard-base-branch.sh ]; then exec ./hooks/guard-base-branch.sh \"\\\$@\"; elif [ -n \"\${HATSU_PLUGIN_ROOT:-}\" ] && [ -x \"\$HATSU_PLUGIN_ROOT/hooks/guard-base-branch.sh\" ]; then exec \"\$HATSU_PLUGIN_ROOT/hooks/guard-base-branch.sh\" \"\\\$@\"; elif [ -x \"\${GEMINI_CONFIG_DIR:-\$HOME/.gemini}/config/plugins/hatsu/hooks/guard-base-branch.sh\" ]; then exec \"\${GEMINI_CONFIG_DIR:-\$HOME/.gemini}/config/plugins/hatsu/hooks/guard-base-branch.sh\" \"\\\$@\"; fi' --",
+            "command": "sh -c 'if [ -x ./.agents/hooks/guard-base-branch.sh ]; then exec ./.agents/hooks/guard-base-branch.sh \"\$@\"; elif [ -x \"\${GEMINI_CONFIG_DIR:-\$HOME/.gemini}/config/plugins/hatsu/hooks/guard-base-branch.sh\" ]; then exec \"\${GEMINI_CONFIG_DIR:-\$HOME/.gemini}/config/plugins/hatsu/hooks/guard-base-branch.sh\" \"\$@\"; elif [ -n \"\${HATSU_PLUGIN_ROOT:-}\" ] && [ -x \"\$HATSU_PLUGIN_ROOT/hooks/guard-base-branch.sh\" ]; then exec \"\$HATSU_PLUGIN_ROOT/hooks/guard-base-branch.sh\" \"\$@\"; elif [ -f ./.claude-plugin/plugin.json ] && [ -x ./hooks/guard-base-branch.sh ]; then exec ./hooks/guard-base-branch.sh \"\$@\"; fi' --",
             "timeout": $guard_timeout
           }
         ]
@@ -92,13 +103,16 @@ cat > "$tmp_dir/hooks.json" <<EOF
     "Stop": [
       {
         "type": "command",
-        "command": "sh -c 'if [ -x ./.agents/hooks/stop-bell.sh ]; then exec ./.agents/hooks/stop-bell.sh \"\\\$@\"; elif [ -x ./hooks/stop-bell.sh ]; then exec ./hooks/stop-bell.sh \"\\\$@\"; elif [ -n \"\${HATSU_PLUGIN_ROOT:-}\" ] && [ -x \"\$HATSU_PLUGIN_ROOT/hooks/stop-bell.sh\" ]; then exec \"\$HATSU_PLUGIN_ROOT/hooks/stop-bell.sh\" \"\\\$@\"; elif [ -x \"\${GEMINI_CONFIG_DIR:-\$HOME/.gemini}/config/plugins/hatsu/hooks/stop-bell.sh\" ]; then exec \"\${GEMINI_CONFIG_DIR:-\$HOME/.gemini}/config/plugins/hatsu/hooks/stop-bell.sh\" \"\\\$@\"; fi' --",
+        "command": "sh -c 'if [ -x ./.agents/hooks/stop-bell.sh ]; then exec ./.agents/hooks/stop-bell.sh \"\$@\"; elif [ -x \"\${GEMINI_CONFIG_DIR:-\$HOME/.gemini}/config/plugins/hatsu/hooks/stop-bell.sh\" ]; then exec \"\${GEMINI_CONFIG_DIR:-\$HOME/.gemini}/config/plugins/hatsu/hooks/stop-bell.sh\" \"\$@\"; elif [ -n \"\${HATSU_PLUGIN_ROOT:-}\" ] && [ -x \"\$HATSU_PLUGIN_ROOT/hooks/stop-bell.sh\" ]; then exec \"\$HATSU_PLUGIN_ROOT/hooks/stop-bell.sh\" \"\$@\"; elif [ -f ./.claude-plugin/plugin.json ] && [ -x ./hooks/stop-bell.sh ]; then exec ./hooks/stop-bell.sh \"\$@\"; fi' --",
         "timeout": $stop_timeout
       }
     ]
   }
 }
 EOF
+
+python3 -c 'import json, sys; json.load(open(sys.argv[1]))' "$tmp_dir/plugin.json" || { echo "malformed plugin.json" >&2; exit 2; }
+python3 -c 'import json, sys; json.load(open(sys.argv[1]))' "$tmp_dir/hooks.json" || { echo "malformed hooks.json" >&2; exit 2; }
 
 # 3. Generate individual skills
 for skill_dir in "$source_skills"/*; do
@@ -219,8 +233,20 @@ if [ "$mode" = "check" ]; then
 else
   # Generate
   mkdir -p "$out_dir"
-  # Clean existing generated files in out_dir safely
-  rm -rf "$out_dir"/*
+  if [ -d "$out_dir" ]; then
+    # Refuse unowned files in out_dir
+    while IFS= read -r -d '' existing_file; do
+      [ -f "$existing_file" ] || continue
+      case "$(basename "$existing_file")" in
+        plugin.json|hooks.json|guard-base-branch.sh|stop-bell.sh|AGENTS.md|SKILL.md|*.md)
+          ;;
+        *)
+          echo "antigravity-mirror-sync: unrecognized unowned file in $out_dir: $existing_file" >&2
+          exit 2
+          ;;
+      esac
+    done < <(find "$out_dir" -type f -print0)
+  fi
   cp -R "$tmp_dir"/* "$out_dir"/
   echo "antigravity-mirror-sync: generated complete surfaces/antigravity successfully."
 fi

@@ -65,14 +65,14 @@ installed copy runs does.)
 
 ### Per surface
 
-| | **Claude Code** | **Codex** | **Cursor** |
-|---|---|---|---|
-| **the host** | [Claude Code](https://claude.com/claude-code). The `claude plugin` subcommands below are its own | the `codex` CLI. **No minimum is established**; the build every record here was made on is **`codex-cli 0.149.0`** (`codex --version`) | `cursor-agent` — **`2026.01.*` or newer, and this one is a real floor**. See the box below |
-| **signing in** | the harness's own | `codex login`. `codex login status` answers `Logged in using ChatGPT` | `cursor-agent login`. `cursor-agent status` answers `✓ Logged in as <you>` |
-| **where it reads the skills from** | the installed plugin, in place — nothing is written into your repository | `<repo>/.agents/skills/<name>/`, **placed there by the warm-up** | `<repo>/.cursor/skills/<name>/`, the same |
-| **and the personas** | `claude/agents/`, in place | `<repo>/AGENTS.override.md` — one **untracked** file, as prose | `<repo>/.cursor/agents/<persona>.md` — one subagent file each |
-| **how it got there** | `claude plugin install` | a checkout on the host, a one-time bootstrap, then the warm-up — [*On Codex*](#on-codex) | the same — [*On Cursor*](#on-cursor) |
-| **the caveat that bites first** | none | `AGENTS.override.md` **replaces** your `AGENTS.md` in the instruction envelope rather than joining it, so the warm-up copies yours into it verbatim first and never writes the tracked file | the skill name space is **flat and global** — shared with Cursor's own built-ins and with every other plugin on the host |
+| | **Claude Code** | **Codex** | **Cursor** | **Antigravity** |
+|---|---|---|---|---|
+| **the host** | [Claude Code](https://claude.com/claude-code). The `claude plugin` subcommands below are its own | the `codex` CLI. **No minimum is established**; the build every record here was made on is **`codex-cli 0.149.0`** (`codex --version`) | `cursor-agent` — **`2026.01.*` or newer, and this one is a real floor**. See the box below | Antigravity IDE / `agy` CLI |
+| **signing in** | the harness's own | `codex login`. `codex login status` answers `Logged in using ChatGPT` | `cursor-agent login`. `cursor-agent status` answers `✓ Logged in as <you>` | Google Account / Antigravity harness |
+| **where it reads the skills from** | the installed plugin, in place — nothing is written into your repository | `<repo>/.agents/skills/<name>/`, **placed there by the warm-up** | `<repo>/.cursor/skills/<name>/`, the same | Global plugin (`~/.gemini/config/plugins/hatsu`) or `<repo>/.agents/skills/<name>/` |
+| **and the personas** | `claude/agents/`, in place | `<repo>/AGENTS.override.md` — one **untracked** file, as prose | `<repo>/.cursor/agents/<persona>.md` — one subagent file each | Global plugin agents or `<repo>/.agents/rules/AGENTS.md` |
+| **how it got there** | `claude plugin install` | a checkout on the host, a one-time bootstrap, then the warm-up — [*On Codex*](#on-codex) | the same — [*On Cursor*](#on-cursor) | Global plugin symlink or bootstrap — [*On Antigravity*](#on-antigravity) |
+| **the caveat that bites first** | none | `AGENTS.override.md` **replaces** your `AGENTS.md` in the instruction envelope rather than joining it, so the warm-up copies yours into it verbatim first and never writes the tracked file | the skill name space is **flat and global** — shared with Cursor's own built-ins and with every other plugin on the host | Workspace mode requires native hooks in `.agents/hooks/` and `.agents/hooks.json` excluded via `.git/info/exclude` |
 
 > ### ⚠️ Below `2026.01`, `cursor-agent` sees **none** of the skills — and answers anyway
 >
@@ -332,6 +332,7 @@ Open Antigravity in that repository and run `/hatsu-warmup`. The warm-up perform
 | `<repo>/.agents/skills/<name>/` | 39 mirrored skill directories copied from `surfaces/antigravity/<name>/` |
 | `<repo>/.agents/rules/AGENTS.md` | Persona instructions for all 8 Hatsu personas |
 | `<repo>/.agents/hooks.json` | Native `PreToolUse` (trunk guard) and `Stop` (bell) hooks |
+| `<repo>/.agents/hooks/` | Self-contained hook scripts (`guard-base-branch.sh` and `stop-bell.sh`) |
 
 Everything is cleanly excluded through `.git/info/exclude`; `.gitignore` is never modified.
 

@@ -1,4 +1,5 @@
 #!/bin/sh
+# <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 # guard-base-branch.sh — refuse a commit or a push while standing on the trunk.
 #
 # WHAT THIS IS
@@ -755,7 +756,10 @@ done <<EOF
 $segments
 EOF
 
-[ "$writes" -gt 0 ] || exit 0
+if [ "$writes" -eq 0 ]; then
+  [ "$is_antigravity" -eq 1 ] && printf '{"decision":"allow"}\n'
+  exit 0
+fi
 
 # --- fail closed: branch change and write on the same line -------------------
 if [ "$changes_branch" -eq 1 ]; then

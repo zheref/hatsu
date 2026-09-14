@@ -1,4 +1,5 @@
 #!/bin/sh
+# <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 # stop-bell.sh — jutaisho's rungs 2 and 3, rung by the harness rather than by a skill.
 #
 # WHAT THIS IS
