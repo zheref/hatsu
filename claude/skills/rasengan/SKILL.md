@@ -126,7 +126,7 @@ Fix what it named and run it again; that is what the inner loop is for. What is 
 softening the check so it stops saying so (§ 4).
 
 For changed executable behavior, also identify the smallest repository-declared lane whose `test`
-row exercises that behavior. A lane is scoped by its declared argv; Nen supports the route as:
+row exercises that behavior and run it through [`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md). A lane is scoped by its declared argv; Nen supports the route as:
 
 ```bash
 nen shu test --repo <path> --lane <explicit-scoped-lane> [--dry-run]
@@ -160,7 +160,8 @@ last thing to happen before the hand-over is a green movement 4 over the finishe
 - **Never lowers a bar to make a check pass.** Not by narrowing the check, not by deleting the
   assertion, not by declaring a seat where a real row failed, not by dropping a coverage threshold or
   patching a test to be green. A bar that moved because the code could not clear it is a bar that no
-  longer measures anything ([`hatsu:gyo`](../gyo/SKILL.md), [`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md)
+  longer measures anything ([`hatsu:byakugan`](../byakugan/SKILL.md) for the coverage
+  ladder, [`hatsu:gyo`](../gyo/SKILL.md) for lint, and [`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md)
   hold the same rule for their own bars).
 - **Never edits a declaration on the fly.** `nen/contract.json` and `nen/workflow.json` are the
   repository's policy: a wrong row is a **G4** PR of its own, not a local edit left in the checkout —
@@ -169,9 +170,12 @@ last thing to happen before the hand-over is a green movement 4 over the finishe
 - **Never cuts or switches a branch.** That is breath's, once per effort.
 - **Never runs a build, test or lint from a remembered command line** in a repository that declares
   one (§ 5).
-- **Never runs the full regression suite or coverage.** Full regression, including the instrumented
-  capture coverage will later consume, belongs to [`hatsu:aka`](../aka/SKILL.md); measurement and
-  gating belong to [`hatsu:mukai`](../mukai/SKILL.md) through [`hatsu:gyo`](../gyo/SKILL.md).
+- **Never runs the full regression suite or coverage.** Impacted unit, UI and integration tests
+  belong to [`hatsu:kotoamatsukami`](../kotoamatsukami/SKILL.md) at
+  [`hatsu:mukai`](../mukai/SKILL.md). Capture, measurement and gating belong to
+  [`hatsu:byakugan`](../byakugan/SKILL.md), also at mukai. Linting is [`hatsu:gyo`](../gyo/SKILL.md),
+  on every Ren turn — when `lint` is in `iteration.checks`, that entry is gyo. Focused tests belong
+  to [`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md).
 
 ## 5. The inner loop's checks, and where they come from
 

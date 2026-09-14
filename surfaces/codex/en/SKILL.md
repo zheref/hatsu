@@ -148,7 +148,7 @@ what is still not true, and what the next cycle would have done. `izanagi` § 4'
 
 | # | Step | The skill that owns it | When |
 |---|---|---|---|
-| 1 | **landing report** | [`$rikugan`](../rikugan/SKILL.md) `as landing` | once, at the start — 01–07 plus **08 PR body** and **09 Readiness** |
+| 1 | **landing report** | [`$rikugan`](../rikugan/SKILL.md) `as landing` | once, at the start — 00–07 plus **08 PR body** and **09 Readiness**. If this En was started by mukai in the same sitting with no newer human request, **00** still answers that mukai request |
 | 2 | **drive** | [`$sharingan`](../sharingan/SKILL.md) | first blocking condition, threads, checks, the confirmation pass |
 | 3 | **catch up** | [`$murasaki`](../murasaki/SKILL.md) | **only when the branch is behind `branch.base`** |
 | 4 | **drive again** | [`$sharingan`](../sharingan/SKILL.md) | after step 3 moved the tree underneath it |

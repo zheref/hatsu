@@ -1,103 +1,97 @@
 ---
 name: tsukuyomi
-description: Execute and report a declared test lane. Full-regression mode runs only inside aka's prepublication-verification phase (which composites may reuse without aka's publish authority); focused mode is kokusen's explicit scoped lane. A direct diagnostic run proves only its observed tree. It never measures coverage, and a test is never patched to pass.
+description: Execute the repository's declared focused tests for the behavior this turn actually changed. Rasengan may use it for feedback; kokusen must use it at every local checkpoint. It never runs project-wide regression, never measures coverage, and a test is never patched to pass.
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
-# Tsukuyomi — the tests, seen for what they are
+# Tsukuyomi — the focused tests, seen for what they are
 
 **Nature: Transmuter** carries every run: tsukuyomi executes declared machinery and reports what it
 did. Fixing what the suite found is the surrounding phase's work in that phase's own nature — and
 where the fix would be to the *test*, it is a change that has to justify itself out loud (§ 6).
 
-> **Run every suite this repository calls required, and tell me exactly which of them passed, from
-> the runner's own words.**
+> **Run the scoped tests that cover the behavior I just changed, and tell me exactly which of them
+> passed, from the runner's own words.**
 
-Tsukuyomi is **automatic only as aka's regression executor** after aka has caught up with the base.
-Murasaki does not call it, and mukai reaches it only by reusing aka § 6
-`prepublication-verification`. A direct named invocation is diagnostic and creates no publication
-proof. It never pushes. **The G5 stop on a red required suite belongs to `aka`** — tsukuyomi reports red; the phase that was
-about to publish decides what that costs.
+Tsukuyomi is **automatic on every [`/ren`](../ren/SKILL.md) turn that changes executable
+behavior**: [`/rasengan`](../rasengan/SKILL.md) may call it for feedback while authoring, and
+[`/kokusen`](../kokusen/SKILL.md) must call it at the local checkpoint before it commits.
+**It is not the project-wide regression.** That run belongs to
+[`/kotoamatsukami`](../kotoamatsukami/SKILL.md) at [`/mukai`](../mukai/SKILL.md). Coverage
+capture and measurement belong to [`/byakugan`](../byakugan/SKILL.md), also at mukai. Linting is
+[`/gyo`](../gyo/SKILL.md), on every Ren turn.
+A direct named invocation is diagnostic and
+creates no publication proof. It never pushes.
 
 ---
 
 ## 1. Invocation
 
 ```
-/tsukuyomi [--lane <lane>] [--extra <verb[,verb]>] [--mode <focused|full-regression|diagnostic>]
+/tsukuyomi [--lane <explicit-scoped-lane>]
 ```
 
-In `full-regression` mode, `--extra` adds suites for one run on top of
-`workflow.json → tests.required`; it never subtracts. Focused mode refuses `--extra` and follows the
-separate scoped-lane route in § 4.
+`--lane` is required for a real run. It names one declared scoped lane whose `test` argv selects
+the changed behavior. There is no `--mode`, no `--extra`, and no walk of
+`nen/workflow.json → tests.required`. Those keys belong to kotoamatsukami.
+
+A bare invocation without `--lane` is diagnostic only when the caller already named the lane in
+prose and tsukuyomi repeats it; otherwise refuse rather than defaulting to `iteration.lane`, which
+is the repository lane and usually the full suite.
 
 ## 2. The parameters, and where they come from
 
 | Value | File → key |
 |---|---|
-| The suites that must pass | `nen/workflow.json` → `tests.required` |
-| Suites run alongside them | `nen/workflow.json` → `tests.extra` |
-| Which lane they run in | `nen/workflow.json` → `iteration.lane` |
-| What each suite actually runs | `nen/contract.json` → `project.verbs.<lane>.<verb>` (`test`, `ui-test`, …) |
-| Where it runs, with what, producing what | `project.lanes.<lane>.cwd`, the row's `env` (names only) and `artifacts` |
+| Which scoped lane to run | the caller's `--lane`, mapped by kokusen / rasengan from the changed behavior |
+| What that lane actually runs | `nen/contract.json` → `project.verbs.<scoped-lane>.test` |
+| Where it runs, with what, producing what | `project.lanes.<scoped-lane>.cwd`, the row's `env` (names only) and `artifacts` |
 | Whether this host may | `nen/contract.json` → `project.hosts` |
 | What must be true first | `nen/contract.json` → `project.preconditions` |
 
-**When `nen/workflow.json` is absent, say so in the turn's report, in these words —** *"no
-workflow.json: using the built-in defaults from `docs/WORKFLOW.md`"* — and use them:
-`tests.required` = `["test"]`, `tests.extra` = `[]`, `iteration.lane` = the declaration's own
-`project.defaultLane`.
+**Tsukuyomi does not read `tests.required` or `tests.extra`.** Those lists are kotoamatsukami's
+candidate set for impacted regression. Reading them here would smuggle the slow suite into every
+ren turn, which is the cost this split exists to stop.
 
-**A required suite the declaration seats is a disagreement, not a pass.** Where `tests.required`
-names `test` and `project.verbs.<lane>.test` is `{"unsupported": "…"}`, `nen shu test` answers exit
-`4` with the declaration's own reason — quote it, run the repository's documented test command, say
-that you did, and report the disagreement between the two files as a finding for the maintainer. Two
-files disagreeing about whether this repository has tests is worth one sentence in the report every
-time it happens.
+**When `nen/workflow.json` is absent, say so in the turn's report, in these words —** *"no
+workflow.json: using the built-in defaults from `docs/WORKFLOW.md`"* — and still require an
+explicit scoped lane. An absent policy file is not a licence to run the default lane's whole
+suite.
+
+**A focused lane the declaration seats is a disagreement, not a pass.** Where the caller named a
+lane whose `test` row is `{"unsupported": "…"}`, `nen shu test` answers exit `4` with the
+declaration's own reason — quote it. If executable behavior changed and every candidate lane is a
+seat, kokusen records the missing route and stops at G5 before staging; tsukuyomi reports the seat
+and does not invent a runner.
 
 ## 3. The dry run, once
 
 ```bash
-nen shu test --repo <path> [--lane <lane>] --dry-run
+nen shu test --repo <path> --lane <explicit-scoped-lane> --dry-run
 ```
 
 The exact argv, cwd, env names and declared artifacts, spawning nothing. Once per repository per
-session, before the first real run — a test command is the one you least want to discover was not
-what you thought.
+session, before the first real focused run — a test command is the one you least want to discover
+was not what you thought. Confirm the printed argv is scoped to the changed behavior. If it is
+the whole default-lane suite, stop and treat that as a missing focused route, never as a focused
+run.
 
 ## 4. The run
 
-The caller supplies the mode and authority:
-
-| Mode | Owner | Scope |
-|---|---|---|
-| `focused` | kokusen; rasengan may use it for feedback | one explicit lane whose declared test argv selects the changed behavior |
-| `full-regression` | aka § 6 `prepublication-verification` | every `tests.required` entry, then extras; final caught-up tree only |
-| `diagnostic` | direct human call | the named lane only; no gate evidence |
-
-`--mode` describes this skill's protocol, not a Nen flag. Every execution remains a real declared
-Nen invocation. Never replace a missing focused lane with the full suite.
-
-In `focused` mode, run exactly one explicitly selected scoped lane and do not read or iterate
-`tests.required` or `tests.extra`. Refuse `--extra` in this mode rather than silently ignoring it:
+Kokusen (and rasengan, for feedback) supplies the lane. Run exactly that lane:
 
 ```bash
 nen shu test --repo <path> --lane <explicit-scoped-lane>
 ```
 
-Its declared `test` argv must itself select the changed behavior. In `full-regression` mode only,
-construct one ordered unique suite list: every entry of `tests.required` first, followed by entries
-from `tests.extra` and `--extra` that are not already named. Run every suite in that list exactly
-once, each through its own verb:
+Its declared `test` argv must itself select the changed behavior. `--lane` is Nen's supported
+routing mechanism. There is no `--scope` flag. Never infer scope from the lane name alone. Never
+replace a missing focused lane with `tests.required`, with `iteration.lane`, or with the full
+suite.
 
-```bash
-nen shu test    --repo <path> [--lane <lane>]
-nen shu ui-test --repo <path> [--lane <lane>]
-```
-
-When that list contains `ui-test`, tsukuyomi is its sole executor for the publication run. Hand the
-result and declared artifacts to kotoamatsukami for UI-specific evidence handling; do not spawn a
-second UI run.
+When kokusen maps several changed behaviors onto several scoped lanes, invoke this skill once per
+distinct applicable lane. One lane is sufficient only when its declared argv covers all changed
+behavior.
 
 Never the runner's own command line typed from memory. Under `--json` the report is one document —
 `{contract, lane, stack, verb, steps, …, exitCode}` — where **`steps[].exitCode` is the runner's own
@@ -109,34 +103,22 @@ as it finished (`docs/ab/tsukuyomi.md` § 2.3).
 
 | Exit | Fact | Reaction |
 |---|---|---|
-| `0` | the suite ran and passed | next suite; when a **non-empty** list is exhausted, report green **for this run** |
-| `1` | **red** — the suite ran and failed; the runner's own code is in `steps[].exitCode` | § 6: read what failed, fix the code, re-run. Inside `aka`, an unfixable red is that skill's **G5** |
+| `0` | the focused suite ran and passed | report green **for this lane, this run** |
+| `1` | **red** — the suite ran and failed; the runner's own code is in `steps[].exitCode` | § 6: read what failed, fix the code, re-run. Inside kokusen, an unfixable red ends the commit |
 | `2` | usage: no declaration, no `project` block, unknown lane, unsatisfied precondition | fix the invocation or the declaration; § 5 for the no-declaration case. An unmet precondition is nen's to assert and never to perform — satisfy it and name it |
 | `3` | the declaration excludes this host | **G5** naming the host that can. Never a retry, and never "the rest passed so it is green" |
 | `4` | a **seat** — the lane declares no such suite | quote the reason verbatim; § 2's disagreement rule |
 | `5` | the runner is not on `PATH` | `nen shu tools --repo <path>`, relay the per-tool remedy |
 
-### An empty configured set is `not applicable`, and never green
+### Focused tests that do not apply are `not applicable`, and never green
 
-**`tests.required` empty and `tests.extra` empty is a legitimate declaration — and nothing ran, so
-nothing passed.** Report it in these words:
+**Prose-only, data-only, or other non-executable changes with no relevant runnable behavior report
+`focused tests: not applicable — <reason>`.** Hatsu's own Markdown-only changes are this case.
+Never `green`, never `passed`, never a tick. **Green is a claim about a run; there was no run.**
+Kokusen carries that word through unchanged and continues to the commit.
 
-> **`not applicable — no tests configured`**, naming `nen/workflow.json → tests.required` as the
-> empty list, and `tests.extra` with it.
-
-Never `green`, never `passed`, never a tick. **Green is a claim about a run; there was no run.** The
-distinction matters because of who reads it: [`/aka`](../aka/SKILL.md) takes tsukuyomi's word
-as its test proof before a push, and *"green"* would let a push claim a proof that does not exist.
-**`aka` treats `not applicable` as *nothing to prove* and says so in the report** — it does not
-convert it into a pass, and it does not stop for it either: an empty required set is not a red
-suite, and G5 belongs to red.
-
-Hatsu's own `nen/workflow.json` is exactly this case, and says so in its own `$comment`: *"An empty
-`required` is a statement, not an omission."* A repository that ships no automated suite is entitled
-to say so; what it is not entitled to is a green tick for saying it.
-
-This is **not** § 5's case. An empty `tests.required` is a repository that declared no suites; § 5
-is a repository that declared nothing at all, and answers exit `2`.
+This is **not** § 5's case. A change with no focused lane is a repository that declared no scoped
+route for this behavior; § 5 is a repository that declared nothing at all, and answers exit `2`.
 
 ## 5. A repository that declares nothing
 
@@ -191,14 +173,11 @@ test that is genuinely wrong is changed **deliberately, in its own commit, with 
 the message and in the turn's report** — and where the test encodes a rule somebody decided, changing
 it is a decision for the maintainer, not for this run.
 
-**Coverage is not tests' health.** The touched-file ladder belongs to `/gyo`; `nen shu coverage`
-is its verb and reports `met`, never gating. A lane declaring no `coverage` answers exit `4` — a fact
-about the repository, and not tsukuyomi's to report as a test failure.
-
-In full-regression mode, retain any declared instrumented result artifact for aka and report its
-tree hash, lane, exact argv, artifact path, and run time. That is data collection, not coverage
-measurement. Any subsequent source/test change or catch-up invalidates the result and requires a
-new aka § 6 run before publication.
+**Coverage is not tests' health.** The touched-file ladder belongs to
+`/byakugan`; `nen shu coverage` is its extract verb and reports `met`, never gating.
+A lane declaring no `coverage` answers exit `4` — a fact about the repository, and not
+tsukuyomi's to report as a test failure. Instrumented capture for that ladder is the same
+skill's, at mukai. Gyo is linting.
 
 ## 7. Residue — what has no verb at the pinned build
 
@@ -214,35 +193,35 @@ new aka § 6 run before publication.
 - **No log file.** `log:` reports *"not captured to a file … A `.nen/logs/` transcript is not in this
   release (zheref/nen#91)"*; each step's output is relayed as it finishes, so the turn's report is the
   only record.
-- **RETIRED at nen `0.5`: validating `nen/workflow.json`** — `nen schema check` carries the row
-  ([`/breath`](../breath/SKILL.md) § 2). Full-regression mode still reads `tests.required` and
-  `tests.extra`; a read is not a residue.
+- **RETIRED at nen `0.5`: validating `nen/workflow.json`.** `nen schema check` carries the row
+  ([`/breath`](../breath/SKILL.md) § 2). Tsukuyomi no longer reads `tests.required`; a read it
+  does not do is not a residue.
 - **Deciding whether a failing test is wrong** stays judgment, and a loud one (§ 6).
 
 ## 8. Authority
 
-- **Permitted:** run the declared `test` and `ui-test` rows for the lane, probe the host through
+- **Permitted:** run one declared scoped `test` row at a time, probe the host through
   `nen shu tools`, report every code and quote the runner.
 - **Not permitted:** push, commit, PR, label, merge, deploy, or edit a declaration on the fly. Also
-  not permitted: **weakening a suite to make it pass** (§ 9).
-- **Not a gate event of its own.** Red is reported; the **G5** on a red required suite is `aka`'s,
-  raised at the moment a push was about to happen. An unsupported host (exit `3`) is a G5 wherever it
-  blocks delivery.
+  not permitted: **weakening a suite to make it pass** (§ 9), **running `tests.required`**, or
+  **capturing instrumented results for coverage**.
+- **Not a gate event of its own.** Red is reported; the **G5** on a red focused run at the
+  checkpoint is `kokusen`'s, raised at the moment a commit was about to happen. An unsupported host
+  (exit `3`) is a G5 wherever it blocks delivery.
 
 ## 9. Hard limits
 
 - **Never patches a test to pass** — no skip, no `.only`, no loosened assertion, no retry loop, no
   deletion.
-- **Never narrows the required set in full-regression mode.** A suite `tests.required` names is run,
-  or the run is reported as **incomplete**; an unperformed check is never rendered as a clean one.
+- **Never runs `tests.required`, `tests.extra`, or the default lane's whole suite** as a focused
+  run. A missing scoped route is reported as missing, never substituted.
 - **Never states a pass/fail count nen did not print and the runner did not say** (§ 6).
 - **Never reads the no-declaration fact off `nen shu detect`** (§ 5).
-- **Never acts as an independent full-regression phase inside murasaki or mukai.** Those callers
-  reuse aka's named prepublication phase when regression is due.
+- **Never acts as the project-wide regression inside aka, murasaki, or mukai.** That run is
+  [`/kotoamatsukami`](../kotoamatsukami/SKILL.md)'s.
 - **Never treats exit `4` as red or exit `5` as a failing suite** — a seat is the repository speaking,
   and a missing runner is a host that is not set up.
 - **Never runs a test command from memory** in a repository that declares one.
 - **Never reports green from an earlier turn.** Green is a statement about the run that just happened.
-- **Never reports green for an empty configured set.** No required and no extra suites is
-  `not applicable — no tests configured`, naming the empty list (§ 4). Green is a claim about a run,
-  and there was none — a push must not inherit a proof nothing produced.
+- **Never reports green for a change that had no focused run.** `focused tests: not applicable —
+  <reason>` is the whole answer (§ 4).

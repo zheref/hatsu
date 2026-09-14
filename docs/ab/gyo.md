@@ -1,8 +1,18 @@
 # A/B evidence — `gyo` (new skill, wave 3)
 
-`claude/skills/gyo/SKILL.md`: the coverage bar — measure the files this branch touched, band each one
-against `nen/workflow.json → coverage` (80 minimum, 85 recommended, 90 ideal), add tests until the lowest
-clears the floor, and stop at **G5** when it cannot be met honestly. The bar is never lowered.
+`claude/skills/gyo/SKILL.md`: linting — the named Hatsu process for the declared `lint` verb, on
+every Ren turn. Breath, rasengan, kokusen and aka already ran that verb; this file is its name.
+
+**Phase ruling, 2026-09-14 (later).** Coverage measurement and capture belong to
+byakugan. Gyo is linting. The grammar is `on [<lane>]`. Historical transcripts below still record
+gyo-as-coverage (`against [<base>]`, `nen shu coverage`) and stay dated.
+
+**Phase ruling, 2026-09-14.** Gyo is linting. Coverage measurement and capture belong to
+kotoamatsukami. Superseded later the same day: that ownership is byakugan's.
+
+**Phase ruling, 2026-09-13.** Gyo consumes instrumented results captured by kotoamatsukami for the
+same tree. Aka no longer writes the capture. The transcripts below still record the 2026-09-12
+aka-capture shape and stay dated.
 
 **Phase ruling, 2026-09-12.** Gyo consumes instrumented results captured by aka for the same tree.
 Its declared `coverage` row must be extraction-only; a row that reruns tests violates ownership and

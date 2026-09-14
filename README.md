@@ -5,7 +5,7 @@ authored for [Claude Code](#on-claude-code), and read on [Codex](#using-hatsu-on
 [Cursor](#using-hatsu-on-cursor) from generated mirrors of the same files.**
 
 One lead persona — **Kurapika**, who names which of six declared work-modes he is holding before he acts —
-plus a small roster of focused independents, and **thirty-eight skills** that take a backlog, a pull request or
+plus a small roster of focused independents, and **thirty-nine skills** that take a backlog, a pull request or
 a release from where it is to the human gate where a person decides. **Every deterministic step that has a
 verb is a verb** from the [**Nen**](https://github.com/zheref/nen) CLI: Nen detects, computes, formats and
 verifies; the skill supplies only the judgment a binary cannot. Where no verb exists yet, the residue is
@@ -34,6 +34,7 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 > fifth is **the merge**, which has none because no agent performs it.
 > **`v0.7.0` adds no skill and adds two surfaces**: the same thirty-eight skills and eight personas,
 > generated into Codex and Cursor layouts under [`surfaces/`](surfaces/) — see [*Surfaces*](#surfaces).
+> **`v0.24.0` adds `byakugan`**: coverage capture and measurement, independent of tests; kotoamatsukami is unit, UI and integration suites only; gyo remains lint. The live skill surface is **thirty-nine**.
 > **Attribution ruling, 2026-09-12:** prospective commits carry the truthful canonical
 > `Hatsu-Agent` or `Akatsuki-Agent` persona/plane trailer. They never carry model, surface, runtime, or
 > session attribution. The final `## Agent attribution` PR-body section records actual participants with
@@ -201,7 +202,7 @@ That warm-up refreshes the complete surface every session. What it places in **y
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **39**, the thirty-eight plus `hatsu-warmup` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
+| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **40**, the thirty-nine plus `hatsu-warmup` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
 | `<repo>/AGENTS.override.md` | **untracked**, written whole: your own `AGENTS.md` verbatim first, then the personas between a `BEGIN`/`END hatsu personas` marker pair |
 
 **Copies, not symlinks, and the reason is what Codex advertises.** Codex lists a skill under its
@@ -310,7 +311,7 @@ ln -s "$HATSU_PLUGIN_ROOT/surfaces/antigravity" ~/.gemini/config/plugins/hatsu
 
 Antigravity automatically discovers:
 - `plugin.json` — Antigravity plugin manifest
-- 39 skills — discoverable via slash commands (`/<name>`)
+- 40 skills — discoverable via slash commands (`/<name>`)
 - `rules/AGENTS.md` — unified persona instructions
 - `agents/<persona>.md` — 8 modular subagent definitions
 - `hooks.json` — native `PreToolUse` (trunk guard) and `Stop` (bell) lifecycle hooks
@@ -655,27 +656,28 @@ configuration files behind it, and the phases only you can call.
 | `rasengan` | **atomic** | **The change itself — the authoring phase.** Reads the request, resolves the stack from the declaration, plans and writes the change on the branch `breath` cut, running the declared iteration checks as its own feedback while it works. It commits nothing, stays inside the request's scope, and **never lowers a bar** to make a check pass. |
 | `kokusen` | **atomic** | **Verify, then commit — automatically, locally.** The declared iteration checks and applicable focused tests over the finished tree (**the checkpoint gate is here**), red refused with the failing check quoted; then staging triage with an **ask on every flagged file** and never a secret, then the formatted message. Commits, and only commits. |
 | `amaterasu` | **atomic** | **Launch, every turn.** Builds the configured target and starts it **from your working directory, never a worktree**. A disconnected device is reported by name. |
-| `tsukuyomi` | **atomic** | **Tests health.** Runs the required suites, parses the results, fixes and re-runs — or stops at **G5**. It never patches a test to make it pass. |
-| `rikugan` | **atomic** | **The rich report** — turn, landing, final — rendered from an HTML template, never markdown. Only the final one is written to the git-ignored `Reports/`. |
+| `tsukuyomi` | **atomic** | **Focused tests.** The scoped lane for the behavior this turn changed — rasengan may run it for feedback, kokusen must run it at every local checkpoint. It never walks `tests.required` and never patches a test to make it pass. |
+| `rikugan` | **atomic** | **The rich report** — turn, landing, final — rendered from an HTML template, never markdown. **00** is last-turn only; **01–07** cover the whole session; architecture delta is a structural diagram. Only the final one is written to the git-ignored `Reports/`. |
 | `jutaisho` | **atomic** | **The bell.** Rings the notification ladder you declared, and drops the marker the `Stop` hook reads. |
 | `ao` | **atomic** | **Pull from the base.** Rebase if unpushed, merge if not; mechanical conflicts resolved, a **semantic** one raised as a **G5** with both sides shown. Never pushes. |
-| `aka` | **atomic** | **Push — yours to call.** Lint → squash the unpushed commits → `ao` → final-tree regression → push. No PR, and no agent ever prompts for it. |
+| `aka` | **atomic** | **Push — yours to call.** Gyo (lint) → squash the unpushed commits → `ao` → gyo again if catch-up moved the tree → push. No project-wide tests, no PR, and no agent ever prompts for it. |
 | `ren` | **composite** | **The per-request loop**: `breath` (prove the base) → `rasengan` (author the change) → `kokusen` (verify, then commit) → `amaterasu` → `rikugan` → `jutaisho`, looping until you call the next phase. **It never pushes.** |
 
-### The eight that are the PR side — new in `v0.5.0`
+### The nine that are the PR side — eight new in `v0.5.0`, `byakugan` at `v0.24.0`
 
-Five atomic, three composite. `mukai` is yours to call; everything else here is something it runs.
+Six atomic, three composite. `mukai` is yours to call; everything else here is something it runs.
 [`docs/WORKFLOW.md`](docs/WORKFLOW.md) § 5 is the authority.
 
 | Skill | | |
 |---|---|---|
 | `hanten` | **atomic** | **Adversarial review, pre-PR.** Classifies the change set by scope and spawns **one reviewer per scope** — UI → Hisoka, security-bearing → **Feitan**, architecture/handbook → **Chrollo**, performance → Uvogin, release-adjacent → Phinks — each titled `hanten · <persona> · <model alias>`, never on the frontier tier. One fixed finding shape: **rule id · severity · evidence · proposed fix**. Kurapika fixes or pushes back with a reason; an unsettled finding is a **G5**. |
-| `gyo` | **atomic** | **The coverage bar.** Touched-file line coverage against the 80/85/90 ladder, reported band by band; adds tests until every touched file clears the `minimum`, and raises a **G5** when one honestly cannot. **It never lowers the bar.** |
-| `kotoamatsukami` | **atomic** | **End-to-end / UI tests.** Runs the declared UI suite where a repository declares one; the re-recorded snapshots are what feeds the evidence table. An unsupported seat is quoted, never routed around. |
+| `gyo` | **atomic** | **Linting, every Ren turn.** The named process for the declared `lint` verb — rasengan may, kokusen must, aka before squash and after catch-up. It never measures coverage and never runs tests. |
+| `kotoamatsukami` | **atomic** | **Impacted project-wide unit, UI and integration tests at mukai.** Selects and runs only the declared suites the change can affect, and handles UI evidence. Never captures or gates coverage — that is `byakugan`'s. A skip needs a named proof. An unsupported seat is quoted, never routed around. |
+| `byakugan` | **atomic** | **Coverage capture and measurement at mukai.** Independently of those suites: writes the capture file, extracts, bands touched files, and raises the G5 under `coverage.minimum`. Never runs `test` or `ui-test`. |
 | `shibari` | **atomic** | **Composes and opens the PR** — why, how, what changes for the consumer, how to verify, a diagram where a flow changed, the evidence table, the checklist, `Closes #N`. One PR, from the last pushed commit; requests reviewers and hands it to `en`. Never labels a gate, never merges. |
 | `jujutsu` | **atomic** | **Device pairing.** Walks you through trusting and registering a physical device — iOS: Developer Mode and `devicectl`; Android: USB debugging and `adb` — and lands it as a launch target **through a PR**. It writes the declaration and nothing else. |
-| `murasaki` | **composite** | **Pull + push.** `ao` → the declared checkpoint checks on the merged tree → aka-owned lint/regression → push, **only if the branch is already published**. A red merged tree goes to `rasengan` to be authored. Never squashes, never force-pushes. |
-| `mukai` | **composite** | **The review-and-publication phase — yours to call.** `murasaki` → `hanten` → matching aka regression evidence → `gyo` → publish proved updates → evidence → `shibari` → landing report → start `en`, then Mukai ends. The user turn continues under En through current-head readiness. **Four pre-PR G5 stops live inside Mukai; readiness stops belong to En.** |
+| `murasaki` | **composite** | **Pull + push.** `ao` → the declared checkpoint checks on the merged tree → if catch-up changed the tree, return so kotoamatsukami can refresh tests and byakugan can recapture coverage → push, **only if the branch is already published**. Never squashes, never force-pushes, never runs tests or coverage itself. |
+| `mukai` | **composite** | **The review-and-publication phase — yours to call.** `murasaki` → `hanten` → kokusen checkpoint → `kotoamatsukami` impacted tests → `byakugan` coverage bar → publish proved updates → evidence → `shibari` → landing report → start `en`, then Mukai ends. The user turn continues under En through current-head readiness. **Four pre-PR G5 stops live inside Mukai; readiness stops belong to En.** |
 | `en` | **composite** | **The readiness watch, capped.** Landing report → `sharingan` → `murasaki` when behind → `sharingan` → observe required CI/current-head review → `jutaisho` at Ready → the final readiness report, then stop at the human gate. **A run with no acting cap does not run; quiet polls spend none**. A long observation hold may be handed to **Illumi**, read-only. |
 
 ### The three that close the release side — new in `v0.6.0`
@@ -709,7 +711,7 @@ apart is what keeps the second class of mistake visible.
   prompts for them**: `aka` (push), `mukai` (review and PR), the **merge**, `kagutsuchi` (non-production
   upload) and `mugetsu` (publish, **G3**).
 - **`mukai` is the whole PR side, in a fixed order** — `murasaki`, then `hanten`'s scope-routed review, then
-  matching aka-owned regression evidence, then `gyo`'s extraction-only coverage bar, then the evidence, then `shibari` opening one PR and
+  kotoamatsukami's impacted tests and byakugan's coverage bar, then the evidence, then `shibari` opening one PR and
   continuing through `en`'s capped readiness watch. Required CI and the owed current-head reviewer round
   are observed after every push; opening the PR or reporting either as pending is not success. Reviewers
   advise and never vote; **the merge stays yours**.
@@ -834,7 +836,7 @@ run on each.
 
 **Everything above about the loop, the gates and the roster is true here.** What changes is the spelling,
 where a delegate comes from, who rings the bell, and which aliases the model matrix answers with. Nothing
-in this section is product- or stack-specific: it is the same thirty-eight skills reading your repository's
+in this section is product- or stack-specific: it is the same thirty-nine skills reading your repository's
 own [`nen/contract.json`](nen/contract.json).
 
 ### Invoking a skill

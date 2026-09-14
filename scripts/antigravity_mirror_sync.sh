@@ -2,7 +2,7 @@
 # antigravity_mirror_sync.sh — generate and check the Antigravity surface mirror.
 #
 # Generates surfaces/antigravity/ from authored claude/skills and claude/agents:
-#   - 39 skill directories under surfaces/antigravity/<name>/SKILL.md
+#   - 40 skill directories under surfaces/antigravity/<name>/SKILL.md
 #   - Rewrites 'hatsu:<name>' invocations to '/<name>'
 #   - Prepends the Antigravity generation marker after the frontmatter fence
 #   - Generates surfaces/antigravity/rules/AGENTS.md (consolidated personas)

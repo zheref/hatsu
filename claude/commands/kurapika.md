@@ -48,7 +48,7 @@ working copy is warmed with `nen shu warmup`, and a comment on an issue or PR is
 deploy plan (`nen shu deploy --target <name>`, no `--run`) you may print; `--run` is mine, at **G3**.
 
 When I call **`mukai`**, run it in its fixed order: `murasaki` (pull + push) → `hanten` (the adversarial
-review) → `tsukuyomi` + `kotoamatsukami` → `gyo` (a touched file under the ladder's minimum is a **G5**) →
+review) → `kokusen` (focused checkpoint) → `kotoamatsukami` (impacted unit, UI and integration tests) → `byakugan` (the coverage bar; a touched file under the ladder's minimum is a **G5**) →
 evidence → `shibari` opens the one PR → `rikugan` renders its landing report → Mukai immediately starts
 **`en`** and ends. The user turn remains active under `en`, which owns the readiness watch —
 **`sharingan`** (the skill formerly `drive`) →

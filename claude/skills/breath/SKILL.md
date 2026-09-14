@@ -413,7 +413,9 @@ that did not run is reported as **not run**, never rendered as clear.
 ### Phase boundary for the base check
 
 The shared iteration list must remain inexpensive. Do not add `--tests` to the initial warm-up
-or run coverage there: aka owns full regression and mukai owns coverage. Focused authored behavior
+or run coverage there: kotoamatsukami owns impacted tests at mukai and byakugan owns coverage
+capture and measurement. Gyo is
+linting, on every Ren turn, and is the `lint` entry of `iteration.checks`. Focused authored behavior
 is tested during rasengan/kokusen, once there is authored behavior to test. A declaration that
 hides a full suite in an iteration verb is an owned configuration gap routed through
 [DISCOVERY.md](../../../docs/DISCOVERY.md), not permission to run the later phase early.

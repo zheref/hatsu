@@ -74,7 +74,8 @@ the author's inner loop, not inherited from the warm-up, not skipped because the
    **`<check>` is whatever the file lists and nothing else** — never a `build` added because a gate
    ought to have one. On this repository the list is `["lint"]`, so the gate is one
    `nen shu lint --repo . --lane plugin`, and running `build` beside it would be running a verb the
-   policy did not ask for on a lane that seats it.
+   policy did not ask for on a lane that seats it. When that entry is `lint`, the check is
+   [`hatsu:gyo`](../gyo/SKILL.md).
 
    The exit table is [`hatsu:rasengan`](../rasengan/SKILL.md) § 6's — the same seven rows, read the
    same way — and it differs in exactly one place: **here, a `1` ends the commit.** Quote the failing
@@ -104,7 +105,8 @@ the author's inner loop, not inherited from the warm-up, not skipped because the
    never converted into "the build failed", and never used as a reason to skip the checks the lane
    *does* declare.
 
-2. **Run the focused tests for changed executable behavior.** This is mandatory at the checkpoint
+2. **Run the focused tests for changed executable behavior through
+   [`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md).** This is mandatory at the checkpoint
    even when rasengan already ran them for feedback. Map every changed executable behavior to its
    declared scoped lane and run **every applicable lane**, once each; one lane is sufficient only
    when its declared argv covers all changed behavior. Record the behavior-to-lane mapping and

@@ -800,7 +800,7 @@ symlinks.
 > **A copy is not self-healing, so the re-copy is what heals it — and that is why the loop is
 > unconditional.** `rm -rf` then `cp -R`, every session, for every mirrored directory: this skill already
 > runs **first, every session** (§ 0), so a target repository is at most one warm-up behind the plugin.
-> **Say the mechanism and the freshness in § 4's line** — *"surface: codex — 39 skill directories re-copied
+> **Say the mechanism and the freshness in § 4's line** — *"surface: codex — 40 skill directories re-copied
 > from `surfaces/codex/` (plugin v<X.Y.Z>)"* — because the one failure mode a copy has is a session that
 > never warmed up serving last month's wording with no error anywhere. **Never diff-and-skip**: a
 > hand-edited copy inside the target is not a change to preserve, it is drift to overwrite, and the
@@ -873,11 +873,11 @@ cad=${cav%%-*}                                           # the date part: 2026.0
 |---|---|
 | **the minimum** | **`2026.01.*`** — [Cursor's CLI changelog](https://cursor.com/docs/cli/changelog) dates *"Skills, rules, and commands in the CLI"* to its **January 2026** entry |
 | **how exact it is** | the changelog groups by **month**, not by build id, so the floor is a month and **there is no exact version string to pin**. Compare the date part, and say that is what you compared |
-| **verified to see the mirror** | `2026.09.08-6caf4ff` — all 39 listed |
+| **verified to see the mirror** | `2026.09.08-6caf4ff` — all 40 listed |
 | **verified to see NOTHING** | `2025.09.18-39624ef` — pre-skills |
 
 **Below the minimum the install is reported and the surface is NOT claimed:** *"surface: cursor —
-39 skills linked, but `cursor-agent` is `2025.09.18-39624ef`, below the `2026.01` skills minimum:
+40 skills linked, but `cursor-agent` is `2025.09.18-39624ef`, below the `2026.01` skills minimum:
 **this session will not see any of them**. Update with `cursor-agent update`."* That is a `NOT
 INSTALLED`-class report even though every symlink was made, and § 4's discipline is the one that
 applies: **a warm-up whose work the surface cannot read is reported as not done, never rendered as

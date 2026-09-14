@@ -3,6 +3,16 @@
 `claude/skills/tsukuyomi/SKILL.md`: tests health — run every suite `nen/workflow.json` calls required,
 read the runner's own results, report the exit codes as facts.
 
+**Phase ruling, 2026-09-14 (later).** The touched-file ladder belongs to byakugan. Gyo is linting.
+Kotoamatsukami runs tests, not coverage.
+
+**Phase ruling, 2026-09-14.** The touched-file ladder belongs to kotoamatsukami. Gyo is linting.
+Superseded later the same day. The sentence below that names `hatsu:gyo` is the old reading.
+
+**Phase ruling, 2026-09-13.** Tsukuyomi is focused tests only — rasengan may, kokusen must, on every
+ren turn. It no longer walks `tests.required`. Project-wide regression moved to kotoamatsukami at
+mukai. The transcripts below still record the 2026-09-12 full-regression routing and stay dated.
+
 **Phase ruling, 2026-09-12.** Full-regression mode belongs to aka's final
 `prepublication-verification`; murasaki and mukai do not own independent suite runs. Focused mode is
 exactly one explicit scoped lane at kokusen and never iterates `tests.required` or `tests.extra`;

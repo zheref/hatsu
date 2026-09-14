@@ -423,8 +423,8 @@ the pushed fix, reply on each thread with its disposition — the fix SHA/eviden
 **and** resolve it.
 An inline review-thread reply and a thread resolution are review-API acts no `nen` verb owns
 (residue); a PR-level disposition uses `nen issue comment --target <owner/name> --issue <N>`.
-Iteration/focused checks belong to kokusen, full regression to aka's verification phase, and
-coverage extraction to mukai; a review fix does not bypass or duplicate those owners.
+Iteration/focused checks belong to kokusen, impacted tests to kotoamatsukami at mukai, and
+coverage capture and measurement to byakugan; a review fix does not bypass or duplicate those owners.
 ### Complete the round before requesting another
 
 **Maintainer ruling, 2026-09-12:** one completed review round normally suffices; use a second

@@ -17,8 +17,8 @@ named inside the body**, in *Why*, and is never adopted by this skill — the sa
 Shibari is **step 7 of [`$mukai`](../mukai/SKILL.md)'s run** — the last step that writes
 anything, and the only one that writes to GitHub. Everything above it in that run —
 [`murasaki`](../murasaki/SKILL.md)'s catch-up, [`hanten`](../hanten/SKILL.md)'s review,
-[`tsukuyomi`](../tsukuyomi/SKILL.md) and [`kotoamatsukami`](../kotoamatsukami/SKILL.md)'s suites,
-[`gyo`](../gyo/SKILL.md)'s coverage bar, step 5's commit-and-push and step 6's evidence pass — exists
+[`tsukuyomi`](../tsukuyomi/SKILL.md) and [`kotoamatsukami`](../kotoamatsukami/SKILL.md)'s suites
+and [`byakugan`](../byakugan/SKILL.md)'s coverage bar, step 5's commit-and-push and step 6's evidence pass — exists
 to produce the facts this body states. **Shibari proves nothing of its own.** If a section has no
 fact behind it, the section says so; it does not get written from what the change was supposed to do.
 
@@ -70,7 +70,7 @@ points at [`$jujisho`](../jujisho/SKILL.md), which is the split-shaped verb, and
 |---|---|---|---|
 | `branch.base` | `nen/workflow.json` | the PR's base, and the `origin/<base>...HEAD` range every section is computed over — **the remote ref, after a fetch, never the local branch** (below) | `main` |
 | `commits.allowedAttributionTrailers` | `nen/workflow.json` | confirms the truthful canonical persona/plane trailer; shibari records actual participants in the PR body's final section | `Hatsu-Agent`, `Akatsuki-Agent` |
-| `coverage.minimum` / `.recommended` / `.ideal` | `nen/workflow.json` | the band the checklist's coverage line reports against — [`$gyo`](../gyo/SKILL.md) measured it, this body quotes it | `80` / `85` / `90` |
+| `coverage.minimum` / `.recommended` / `.ideal` | `nen/workflow.json` | the band the checklist's coverage line reports against — [`$byakugan`](../byakugan/SKILL.md) measured it, this body quotes it | `80` / `85` / `90` |
 | `project.evidence.globs` | `nen/contract.json` | which changed artifacts are visual evidence | none — **no globs is the no-evidence case**, stated in the body |
 | `project.evidence.scene` | `nen/contract.json` | the template that turns a path into a suite-and-scene pair | `{suite}-{scene}` |
 | `project.evidence.mechanism` | `nen/contract.json` | `public-mirror` or the committed-path mechanism — **which of `UZF-26`'s two the stack is on** (§ 5) | none — **undeclared is the committed-path mechanism**, never the mirror |
@@ -264,8 +264,8 @@ same line**. Not a template of aspirations: a checklist whose boxes are all tick
 worse than none, because it looks like a check that happened.
 
 ```markdown
-- [x] Required tests green — `nen shu test`, <N> passed / 0 failed (tsukuyomi)
-- [x] Touched-file coverage ≥ 80 (minimum) — lowest touched file <n>% (gyo)
+- [x] Required tests green — `nen shu test`, <N> passed / 0 failed (kotoamatsukami)
+- [x] Touched-file coverage ≥ 80 (minimum) — lowest touched file <n>% (byakugan)
 - [x] Adversarial review settled — <reviewer> · <persona>, <n> findings, all disposed (hanten)
 - [x] `# What this changes for you` and `## How to verify` present — `nen pr body-check`, 3/3
 - [x] Final `## Agent attribution` present — `nen pr body-check`, 4/4

@@ -21,11 +21,19 @@ Nothing below is redacted; both repositories are public.
 
 ## 1. The skill
 
-Rikugan renders one turn of work as a self-contained HTML page — **01 Accomplished · 02 Challenges ·
-03 Not delivered · 04 Architecture delta · 05 Screenshots · 06 How to launch · 07 Decisions** — with
-two variant additions (**08 PR body + 09 Readiness** for `landing`; **10 Tests run + 11 Touched
-coverage** for `final`). It is `hatsu:ren`'s fifth step, `hatsu:mukai`'s handover artifact and
-`hatsu:en`'s first and last.
+Rikugan renders one **session** of work as a self-contained HTML page — **00 This last turn · 01
+Accomplished · 02 Challenges · 03 Not delivered · 04 Architecture delta · 05 Screenshots · 06 How
+to launch · 07 Decisions** — with two variant additions (**08 PR body + 09 Readiness** for
+`landing`; **10 Tests run + 11 Touched coverage** for `final`). It is `hatsu:ren`'s fifth step,
+`hatsu:mukai`'s handover artifact and `hatsu:en`'s first and last.
+
+**2026-09-14.** **00** is always the last human request's highlights (`done` / `not-done` /
+`partial`); a mukai-triggered last turn also carries corrections, local-check fallout, and
+half-run stops. **01–07 are the session** against the base, on every process or product effort —
+not a rewrite of only the latest request. **04** is a change-highlighted node/edge board of
+conceptual machinery for that session — `files[]` is a path-inventory disclosure, not the glance
+target. Historical transcripts below that treat 04 as a file list, or that treat 01–07 as
+last-turn-only, are the old reading.
 
 | Step | Owned by | State at `v0.3.0` |
 |---|---|---|

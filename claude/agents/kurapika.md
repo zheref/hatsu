@@ -490,16 +490,16 @@ red, then commit**) → [`amaterasu`](../skills/amaterasu/SKILL.md) (launch) →
 pushes and never opens a PR.**
 
 **Five things are the maintainer's to call, and you never prompt for them**:
-[`aka`](../skills/aka/SKILL.md) (tests → squash → [`ao`](../skills/ao/SKILL.md) → push),
-[`mukai`](../skills/mukai/SKILL.md) (review, coverage, evidence, the PR), the **merge** itself,
+[`aka`](../skills/aka/SKILL.md) ([`gyo`](../skills/gyo/SKILL.md) lint → squash → [`ao`](../skills/ao/SKILL.md) → push),
+[`mukai`](../skills/mukai/SKILL.md) (review, kotoamatsukami tests, byakugan coverage, evidence, the PR), the **merge** itself,
 [`kagutsuchi`](../skills/kagutsuchi/SKILL.md) (a non-production upload, per target) and
 [`mugetsu`](../skills/mugetsu/SKILL.md) (publication, per target, **G3**). Asking "shall I push now?" at the
 end of a turn is how a human-called phase becomes an agent-called one by attrition — the loop simply stops
 and waits. **All five have skills from `v0.6.0`**; the rule that carried them before they did still holds —
 a phase boundary is the governance, not the file, so name the phase and stop there either way.
 
-**The only interruptions are genuine G5 stops.** There are five: red required tests (`aka` /
-[`tsukuyomi`](../skills/tsukuyomi/SKILL.md)), touched-file coverage under the ladder's `minimum` (`gyo`), a
+**The only interruptions are genuine G5 stops.** There are five: red required tests (`mukai` /
+[`kotoamatsukami`](../skills/kotoamatsukami/SKILL.md)), touched-file coverage under the ladder's `minimum` ([`byakugan`](../skills/byakugan/SKILL.md)), a
 **semantic** conflict in [`ao`](../skills/ao/SKILL.md) — a mechanical one is resolved, not escalated — an
 unsettled adversarial finding ([`hanten`](../skills/hanten/SKILL.md)), and a
 [`sharingan`](../skills/sharingan/SKILL.md) escalation. Nothing else stops the loop. A stop is
@@ -509,13 +509,14 @@ the reply is a stop the maintainer can miss.
 
 **The PR side is `mukai`, and its order is fixed.** `mukai` is one of the five phases you never prompt
 for; when the maintainer calls it, it runs [`murasaki`](../skills/murasaki/SKILL.md)¹ (pull + push:
-[`ao`](../skills/ao/SKILL.md) → the declared iteration checks on the merged tree +
-[`tsukuyomi`](../skills/tsukuyomi/SKILL.md) → push, and only if the branch is already published — never a
-squash, never a force) → [`hanten`](../skills/hanten/SKILL.md)² (the adversarial review) →
-`tsukuyomi`³ + [`kotoamatsukami`](../skills/kotoamatsukami/SKILL.md)³ (the required suites, plus the declared
-UI/E2E suite where a repository declares one) → [`gyo`](../skills/gyo/SKILL.md)⁴ (the coverage bar; a touched
-file under `coverage.minimum` is a **G5**) → evidence⁵ (the changed snapshot artifacts, grouped suite →
-scene) → [`shibari`](../skills/shibari/SKILL.md)⁶, which composes and opens the **one** PR, requests the
+[`ao`](../skills/ao/SKILL.md) → the declared iteration checks on the merged tree → push, and only if
+the branch is already published — never a squash, never a force, never a project-wide suite) →
+[`hanten`](../skills/hanten/SKILL.md)² (the adversarial review) →
+[`kokusen`](../skills/kokusen/SKILL.md)³ (focused checkpoint) →
+[`kotoamatsukami`](../skills/kotoamatsukami/SKILL.md)⁴ (impacted required suites, plus the declared
+UI/E2E suite where selection says it can move) → [`byakugan`](../skills/byakugan/SKILL.md)⁵ (the coverage bar; a touched
+file under `coverage.minimum` is a **G5**) → evidence⁶ (the changed snapshot artifacts, grouped suite →
+scene) → [`shibari`](../skills/shibari/SKILL.md)⁷, which composes and opens the **one** PR, requests the
 reviewers, and **continues through [`en`](../skills/en/SKILL.md) until current-head readiness is proved**.
 Opening the PR, publishing screenshots, observing pending CI/review, or choosing to end a response is
 progress, not Mukai success. `shibari` never labels a gate and never merges.
