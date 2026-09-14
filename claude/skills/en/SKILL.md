@@ -36,7 +36,7 @@ anything.
 hatsu:en [on <CODE>#<N>]
 ```
 
-Started by [`hatsu:mukai`](../mukai/SKILL.md) with no clause — the PR is the one step 7 just opened
+Started by [`hatsu:mukai`](../mukai/SKILL.md) with no clause — the PR is the one step 8 just opened
 — or by the maintainer, naming a PR that is already open:
 
 ```bash
@@ -170,13 +170,16 @@ what is still not true, and what the next cycle would have done. `izanagi` § 4'
 catch-up "to be safe": `murasaki` would re-run the declared iteration checks for nothing, and on a
 published branch it would push a commit that changes no content.
 
-**En's equivalent of mukai steps 3–5 lives here, and only when step 3's catch-up changed a tree
-path.** [`hatsu:murasaki`](../murasaki/SKILL.md) then returns without pushing. Claim an acting
-cycle, then run [`hatsu:kokusen`](../kokusen/SKILL.md) on the caught-up tree, [`hatsu:kotoamatsukami`](../kotoamatsukami/SKILL.md)
-for impacted tests, [`hatsu:byakugan`](../byakugan/SKILL.md) for coverage capture and measurement,
-and call murasaki again — it may push only when that later catch-up is a no-op. That is the same
-owner map [`hatsu:sharingan`](../sharingan/SKILL.md) § 5 already names when Kurapika authored the
-PR; En does not invent a fourth suite or skip coverage because the catch-up was a merge.
+**En's equivalent of mukai steps 3–5 runs whenever the tree this watch is about to treat as
+current has changed**, not only when step 3's catch-up moved a path. That includes a review fix
+authored in steps 2/4 while the branch is still level with `branch.base` (step 3 then stays
+skipped), a catch-up that returns without pushing, and a later murasaki that was meant to
+publish but itself changed a path. Claim an acting cycle, then run
+[`hatsu:kokusen`](../kokusen/SKILL.md), [`hatsu:kotoamatsukami`](../kotoamatsukami/SKILL.md)
+and [`hatsu:byakugan`](../byakugan/SKILL.md), then call murasaki again. It may push only when
+that catch-up is a no-op; if it changed any path, this paragraph repeats rather than handing a
+stale tree to readiness. That is the same owner map [`hatsu:sharingan`](../sharingan/SKILL.md)
+§ 5 already names when Kurapika authored the PR; En does not invent a fourth suite.
 
 ## 4. Readiness is never en's claim
 

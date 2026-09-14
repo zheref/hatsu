@@ -264,8 +264,8 @@ same line**. Not a template of aspirations: a checklist whose boxes are all tick
 worse than none, because it looks like a check that happened.
 
 ```markdown
-- [x] Required tests green — `nen shu test`, <N> passed / 0 failed (kotoamatsukami)
-- [x] Touched-file coverage ≥ 80 (minimum) — lowest touched file <n>% (byakugan)
+- [x] Required tests — kotoamatsukami: `<N> passed / 0 failed` / `not applicable — no tests configured` / `not applicable — no impacted suites` / seat quoted; never tick “green” when nothing ran
+- [x] Touched-file coverage — byakugan against `coverage.minimum` (not a hardcoded 80): lowest touched file `<n>%` / `not measurable here` / `n/a` with the reason; never tick a threshold the seat did not measure
 - [x] Adversarial review settled — <reviewer> · <persona>, <n> findings, all disposed (hanten)
 - [x] `# What this changes for you` and `## How to verify` present — `nen pr body-check`, 3/3
 - [x] Final `## Agent attribution` present — `nen pr body-check`, 4/4

@@ -103,8 +103,10 @@ recorded tree hash, lane, regression verb/argv, artifact path, and run time from
 
 The pinned Nen has no `coverage --from-artifacts` switch. The supported route is an
 extraction-only `coverage` row whose artifact points at this capture. If the row runs a suite or
-provenance cannot be tied to this tree, report the exact missing declaration/capability and stop
-at G5. Never run duplicate regression and call it coverage.
+provenance cannot be tied to this tree, report the exact missing declaration/capability as a
+**G4** to propose — that is a declaration defect, not a coverage number under `minimum`. The
+only coverage G5 this skill owns is a touched file under the ladder (§ 8). Never run duplicate
+regression and call it coverage.
 
 **`--touched` requires `--base`.** With `--threshold` absent — which is how this skill runs it —
 nen loads the workflow ladder and bands every row itself. **`--threshold` REPORTS `met` and never
