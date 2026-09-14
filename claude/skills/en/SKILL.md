@@ -220,14 +220,14 @@ nothing — a bell that rings every poll of a four-hour wait is a bell nobody he
 The condition is polled by the same read-only observation engine
 [`hatsu:izanami`](../izanami/SKILL.md) uses. **The verb owns the wait between observations**; a caller
 does not repeatedly invoke a one-iteration command and pretend `--interval-ms` paced those invocations.
-For a discrete refresh window, two observations are the minimum: the first establishes the window and
-the verb waits `monitor.pollSeconds` before the second. A foreground hold may omit the safety bound:
+Each refresh window has exactly two observations: the first establishes the window and the verb waits
+`monitor.pollSeconds` before the second. The window then returns to Sharingan's full snapshot, because
+`nen pr ready` alone cannot expose new review activity that leaves its verdict unchanged:
 
 ```bash
 export GH_TOKEN=$(gh auth token)
 nen watch until --command "nen pr ready <CODE>#<N> --repo <path> <identity flags>" \
   --max-iterations 2 --interval-ms <monitor.pollSeconds × 1000> # one paced refresh window
-# or omit --max-iterations for a foreground hold that runs until Ready/error
 ```
 
 `<identity flags>` is selected by [`sharingan`](../sharingan/SKILL.md) § 4 for the target: omit it

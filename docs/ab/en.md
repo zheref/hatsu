@@ -349,6 +349,7 @@ that correction:
 | Target ships `nen/gates.json` | Invoke `nen pr ready` without `--gates`; never borrow another repository's identities |
 | One discrete observation refresh is needed | Run a two-observation `nen watch until` window so the verb owns the configured interval; never repeat one-shot calls as a pacing mechanism |
 | Codex surface reaches the long hold | Keep En foreground with paced Nen windows; do not claim an in-session Illumi subagent the surface lacks |
+| Three consecutive `nen watch until` observation errors | Stop as an unread capability failure, naming the broken read; do not call it Ready, pending success, acting-cap exhaustion, or a host/user interruption |
 | `nen pr ready` and `nen pr body-check` both pass on the same current head, and Sharingan's confirmation pass is clear | Ring once, render the readiness report, and stop at G2/G4 |
 | The host or maintainer actually interrupts the session | Report interrupted/resumable live state; never rename it success, failure, or cap exhaustion |
 
