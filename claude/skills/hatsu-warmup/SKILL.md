@@ -898,14 +898,14 @@ clear.**
 bare `name` with no plugin namespace, and the space a session sees is not only the repository's
 `.cursor/skills/`: on this host it also carried Cursor's own built-ins and **this host's Claude Code
 plugin skills**, `build` and `drive` among them (`docs/SURFACES.md` § 1, `docs/ab/surfaces.md` § 8,
-F4). Thirty-nine ordinary words are being claimed at once — `build`, `file`, `en`, `ao`, `ren`.
+F4). Forty ordinary words are being claimed at once — `build`, `file`, `en`, `ao`, `ren`.
 
 ```sh
 # every name already standing under .cursor/skills/, whoever made it, BEFORE anything is installed
 ls -1A "$target/.cursor/skills" 2>/dev/null
 ```
 
-- **Report what that listed, by name**, beside the install count — *"surface: cursor — 37 of 39
+- **Report what that listed, by name**, beside the install count — *"surface: cursor — 38 of 40
   linked; `.cursor/skills/` already held `build` and `reviewer`, left alone (§ 5c)"*. § 5c decides
   what happens to each one; **this step is what makes the collision visible before the decision**,
   rather than as a count that does not add up.
@@ -940,7 +940,7 @@ or a `.agents/skills/build/` of its own, keeps it tracked, and the § 5b `ln -sf
 `cp -R` over it **destroys a file that is in somebody's history** — the same act § 5d already refuses one
 directory over for `.gitignore`, and refused there for the same reason (Copilot review thread
 `PRRT_kwDOUKPjxM6hAjLf`). A name collision is not rare, either: `build`, `file` and `en` are ordinary words
-and thirty-nine of them are being claimed at once.
+and forty of them are being claimed at once.
 
 | what stands at the destination | what the warm-up does |
 |---|---|
@@ -963,11 +963,11 @@ if { [ -e "$dest" ] || [ -L "$dest" ]; } && ! ours "$dest"; then
 fi
 ```
 
-**A skipped name is reported, never swallowed** — *"surface: cursor — 37 of 39 linked; `build` and
+**A skipped name is reported, never swallowed** — *"surface: cursor — 38 of 40 linked; `build` and
 `reviewer` left alone, the target tracks its own"*. Silence here would be the worst of both: the maintainer
 believes Hatsu is installed, `/build` runs the target's own file, and nothing anywhere says why. **This is a
-hard limit and it takes precedence over the refresh**: the warm-up would rather install thirty-seven skills
-and say so than overwrite one file it did not write.
+hard limit and it takes precedence over the refresh**: the warm-up would rather install thirty-eight of forty
+skills and say so than overwrite one file it did not write.
 
 **Every path this section writes into the target repository is excluded through the repository's
 `info/exclude`, and never through `.gitignore`.**

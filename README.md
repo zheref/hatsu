@@ -44,7 +44,8 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 ---
 
 The [phase ownership ruling](docs/WORKFLOW.md#phase-ownership--ruling-of-2026-09-12)
-separates focused checkpoint tests, aka regression and mukai coverage. All phases use the
+separates focused checkpoint tests, kotoamatsukami's impacted tests at mukai, and byakugan's
+coverage capture. Aka is lint, squash, catch-up and push. All phases use the
 [discovery protocol](docs/DISCOVERY.md) to reconcile and capture concrete gaps under standing
 filing authority, without duplicate issues or unrelated implementation. Device-record migration
 is tracked in [LAUNCH-MIGRATION.md](docs/LAUNCH-MIGRATION.md); Hatsu #49 must be addressed before
@@ -267,7 +268,7 @@ The warm-up refreshes the complete Cursor surface every session:
 
 | | |
 |---|---|
-| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **39** — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
+| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **40**, the thirty-nine plus `hatsu-warmup` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
 | `<repo>/.cursor/agents/<persona>.md` | one markdown subagent file each — **8** — symlinked from `$HATSU_PLUGIN_ROOT/surfaces/cursor/agents/` |
 
 **Symlinks are honest here, and that is measured rather than assumed.** Four controlled probes on
@@ -330,7 +331,7 @@ Open Antigravity in that repository and run `/hatsu-warmup`. The warm-up perform
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | 39 mirrored skill directories copied from `surfaces/antigravity/<name>/` |
+| `<repo>/.agents/skills/<name>/` | **40** mirrored skill directories — the thirty-nine plus `hatsu-warmup` itself — copied from `surfaces/antigravity/<name>/` |
 | `<repo>/.agents/rules/AGENTS.md` | Persona instructions for all 8 Hatsu personas |
 | `<repo>/.agents/hooks.json` | Native `PreToolUse` (trunk guard) and `Stop` (bell) hooks |
 | `<repo>/.agents/hooks/` | Self-contained hook scripts (`guard-base-branch.sh` and `stop-bell.sh`) |
@@ -371,8 +372,8 @@ there:
 
 ```
 <the next request, as a plain message>   # another ren turn on the same branch
-/hatsu:aka                               # lint, squash, catch up, final-tree regression, push — when YOU decide the branch goes up
-/hatsu:mukai                             # catch-up, review, matching aka regression evidence, coverage bar, evidence, one PR, then en's readiness watch
+/hatsu:aka                               # lint, squash, catch up, push — when YOU decide the branch goes up
+/hatsu:mukai                             # catch-up, review, impacted tests, coverage bar, evidence, one PR, then en's readiness watch
 ```
 
 `/hatsu:ren <request>` invokes the loop directly and is the right call in a session that is already warmed

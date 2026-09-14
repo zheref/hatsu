@@ -72,8 +72,11 @@ the shape by eye; it reads the values, and states the defaults whenever they are
 
 - **1 before 2.** The point of the declared iteration checks here is to prove *the merge*, not the
   branch. Running them first would prove the tree nobody is about to push.
-- **the checks before any caller-owned regression refresh inside step 2.** A red build makes a test result meaningless: the
-  suite either did not compile or ran against yesterday's artifact. Build first, always.
+- **the checks before any caller-owned regression refresh inside step 2.** A red iteration check
+  makes a later test result meaningless: the merge is not proven, so the suite would run against a
+  tree nobody is about to publish. On this repository the declared check is lint
+  ([`$gyo`](../gyo/SKILL.md)); a red lint is not a failed compile. Prove the declared checks
+  first, always.
 - **2 before 3.** Nothing goes to the remote that has not just been proven on the tree that is
   going. A push that re-runs the checks afterwards is a push that already happened.
 
@@ -108,9 +111,11 @@ them off [`$rasengan`](../rasengan/SKILL.md) § 6's exit table, and **hands a re
 to author the fix**, after which step 2 runs again over the repaired tree.
 Compare the caught-up tree with the pre-catch-up tree. If any path changed, all earlier impacted
 test and coverage evidence is invalid. **Do not run kotoamatsukami or byakugan here.** Return
-to the caller — mukai steps 3–5, or En's equivalent — so
-[`$kotoamatsukami`](../kotoamatsukami/SKILL.md) refreshes impacted tests and
-[`$byakugan`](../byakugan/SKILL.md) recaptures coverage before § 6 pushes this tree. Murasaki
+to the caller — mukai steps 3–5, or En's equivalent named in
+[`$en`](../en/SKILL.md) § 3: [`$kokusen`](../kokusen/SKILL.md) checkpoints the caught-up
+tree, [`$kotoamatsukami`](../kotoamatsukami/SKILL.md) refreshes impacted tests and
+[`$byakugan`](../byakugan/SKILL.md) recaptures coverage, then this skill is called again and
+may push only when that later catch-up is a no-op. Murasaki
 grants itself no test and no capture authority. Only a complete no-op catch-up may reuse earlier
 evidence; report that fact and do not rerun the suite here. The exit-code tables — `1` red, `2` declaration, `3` host, `4` a
 **seat** quoted verbatim, `5` `nen shu tools` — are `claude/agents/kurapika.md` § *The `shu` verbs*'

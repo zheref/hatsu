@@ -168,8 +168,16 @@ what is still not true, and what the next cycle would have done. `izanagi` § 4'
   would preserve a readiness handoff that had not happened yet.
 
 **Step 3 is conditional and stays conditional.** A branch level with its base does not get a
-catch-up "to be safe": `murasaki` would run the build and the suites again for nothing, and on a
+catch-up "to be safe": `murasaki` would re-run the declared iteration checks for nothing, and on a
 published branch it would push a commit that changes no content.
+
+**En's equivalent of mukai steps 3–5 lives here, and only when step 3's catch-up changed a tree
+path.** [`/murasaki`](../murasaki/SKILL.md) then returns without pushing. Claim an acting
+cycle, then run [`/kokusen`](../kokusen/SKILL.md) on the caught-up tree, [`/kotoamatsukami`](../kotoamatsukami/SKILL.md)
+for impacted tests, [`/byakugan`](../byakugan/SKILL.md) for coverage capture and measurement,
+and call murasaki again — it may push only when that later catch-up is a no-op. That is the same
+owner map [`/sharingan`](../sharingan/SKILL.md) § 5 already names when Kurapika authored the
+PR; En does not invent a fourth suite or skip coverage because the catch-up was a merge.
 
 ## 4. Readiness is never en's claim
 
