@@ -632,7 +632,7 @@ attrition. The loop simply stops and waits.
 **The only interruptions are genuine G5 stops. There are five:**
 
 1. **red required tests** — in `mukai`, via `kotoamatsukami`
-2. **touched-file coverage under `coverage.minimum`** — in `gyo`
+2. **touched-file coverage under `coverage.minimum`** — in `byakugan`
 3. **a semantic conflict** — in `ao`. A *mechanical* conflict is resolved, not escalated
 4. **an unsettled adversarial finding** — in `hanten`, after Kurapika has fixed it or pushed back with a reason
 5. **a `sharingan` escalation** — a PR that will not reach Ready
@@ -666,7 +666,7 @@ maintainer's to call. Its order is fixed, and each step has exactly one job.
 | **3** | [`kokusen`](../claude/skills/kokusen/) | checkpoint review/snapshot edits with focused tests | **G5** on a red focused run or a missing scoped route |
 | **4** | [`kotoamatsukami`](../claude/skills/kotoamatsukami/) | the sole project-wide test run: only declared unit, UI and integration suites this change can affect. No coverage capture. Aka did not run this | **G5** on red required tests. A seat (exit `4`) is quoted, never routed around |
 | **5** | [`byakugan`](../claude/skills/byakugan/) | capture and measure independently of those suites; apply the `coverage` ladder of § 2, without rerunning tests | **G5** when a touched file is under `minimum` and cannot honestly clear it |
-| **6** | [`kokusen`](../claude/skills/kokusen/) then the push half of `murasaki` | **publishes the final proved tree.** Changes from steps 2–5 repeat the focused checkpoint, impacted tests and coverage first; The review's fixes and byakugan's new tests are edits to the working copy, and neither of those skills may commit or push; step 8 refuses to open a PR while `HEAD` is ahead of `origin/<branch>` | **G5** on a semantic conflict where the base moved again |
+| **6** | the push half of [`murasaki`](../claude/skills/murasaki/) | **publishes the final proved tree**, and only when this catch-up is a no-op. If it changes any tree path, return to steps 3–5 (kokusen, kotoamatsukami, byakugan) before pushing. Review fixes and byakugan's new tests are working-copy edits; neither of those skills may commit or push; step 8 refuses to open a PR while `HEAD` is ahead of `origin/<branch>` | **G5** on a semantic conflict where the base moved again |
 | **7** | evidence | the changed visual artifacts, from `project.evidence` (§ 3), grouped **suite → scene**, from kotoamatsukami's existing artifacts | not a gate event |
 | **8** | [`shibari`](../claude/skills/shibari/) | composes and opens **one** PR, requests the reviewers and writes the body back | never labels a gate, never merges |
 | **9** | [`rikugan`](../claude/skills/rikugan/) `as landing` | the landing report, rendered **after** the PR exists because its two extra sections — the PR body and the readiness verdict — are step 8's outputs. Mukai then starts [`en`](../claude/skills/en/) and ends | not a gate event; En owns current-head readiness from the immediate handoff, and the user turn remains active under En while CI/review is pending |
@@ -959,7 +959,7 @@ passing `--reviewers` instead (`sharingan` § 4), not by guessing a path. This i
 the stall guard (`rasengan`), `--target` on `shu dev` with `lane`/`artifact` (`amaterasu`, `jujutsu`), both
 report verbs (`rikugan`), `--no-push` and `conflicts[]` on `pr cascade-main` (`ao`, `murasaki`),
 `wc squash` (`aka`), `shu test-report` (`tsukuyomi`), `shu evidence` (`kotoamatsukami`, `shibari`),
-`shu coverage --touched` with the ladder (`gyo`), `pr edit-body` (`shibari`), the forbidden-trailer refusal
+`shu coverage --touched` with the ladder (`byakugan`), `pr edit-body` (`shibari`), the forbidden-trailer refusal
 in `commit format` (`kokusen`), `nen/workflow.json` validation and `notifications.turn` (`breath`,
 `jutaisho`), `stop --mark`, `surface mirror generate|check`, step `stdoutTo`, precondition `port` and
 `repo resolve`'s exit-`2` no-registry refusal — all of them are verbs in the pinned binary, each verified
@@ -976,7 +976,7 @@ live and recorded in the matching `docs/ab/<skill>.md` under *Retired at nen 0.5
 | showing both sides of a conflict — `git show :1:|:2:|:3:` | `ao` | `conflicts[]` names the commits, not the content |
 | the marker's SHAPE — `hatsu.stop-marker/v0.1` | `jutaisho` | `nen stop --mark` writes a poorer document with no `title`, `sound` or `rungs`, and **replaces** the file; adopting it would ring the generic line on every gate. Kept deliberately |
 | removing the marker on a hookless surface | `jutaisho` | `--mark` writes and never removes |
-| a coverage tool's own exclusions | `gyo` | `--touched` narrows the rows nen parsed; it cannot know what was never instrumented |
+| a coverage tool's own exclusions | `byakugan` | `--touched` narrows the rows nen parsed; it cannot know what was never instrumented |
 | embedding a capture as a `data:` URI | `rikugan` | no verb turns a PNG into one |
 | the Artifact publish | `rikugan` | the surface's tool, not a deterministic step nen owns |
 | a `.xcresult` with no declared extraction step, and a Playwright HTML report | `tsukuyomi`, `kotoamatsukami` | `test-report` reads a **declared** summary; nen opens no result bundle itself |

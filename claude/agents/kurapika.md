@@ -515,9 +515,9 @@ the branch is already published — never a squash, never a force, never a proje
 [`kokusen`](../skills/kokusen/SKILL.md)³ (focused checkpoint) →
 [`kotoamatsukami`](../skills/kotoamatsukami/SKILL.md)⁴ (impacted required suites, plus the declared
 UI/E2E suite where selection says it can move) → [`byakugan`](../skills/byakugan/SKILL.md)⁵ (the coverage bar; a touched
-file under `coverage.minimum` is a **G5**) → evidence⁶ (the changed snapshot artifacts, grouped suite →
-scene) → [`shibari`](../skills/shibari/SKILL.md)⁷, which composes and opens the **one** PR, requests the
-reviewers, and **continues through [`en`](../skills/en/SKILL.md) until current-head readiness is proved**.
+file under `coverage.minimum` is a **G5**) → [`murasaki`](../skills/murasaki/SKILL.md)⁶ (publish the proved tree; if catch-up dirties it, return to 3–5 first) → evidence⁷ (the changed snapshot artifacts, grouped suite →
+scene) → [`shibari`](../skills/shibari/SKILL.md)⁸, which composes and opens the **one** PR and requests the
+reviewers → [`rikugan`](../skills/rikugan/SKILL.md)⁹ `as landing` → Mukai starts [`en`](../skills/en/SKILL.md) and ends.
 Opening the PR, publishing screenshots, observing pending CI/review, or choosing to end a response is
 progress, not Mukai success. `shibari` never labels a gate and never merges.
 

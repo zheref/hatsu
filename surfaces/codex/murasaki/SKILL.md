@@ -10,8 +10,8 @@ description: Bring an already-published branch up to date with its base, rerun t
 GitHub-side operation whichever nature authored the diff — the same reading
 [`$aka`](../aka/SKILL.md) and [`$ao`](../ao/SKILL.md) make of themselves.
 
-> **Put the base underneath me, prove it still builds and still passes, and — only if this branch is
-> already out there — put the update on the remote.**
+> **Put the base underneath me, prove the declared iteration checks still pass, and — only if this
+> branch is already out there — put the update on the remote.**
 
 Murasaki is [`$mukai`](../mukai/SKILL.md)'s first step and the step
 [`$en`](../en/SKILL.md) runs when a PR falls behind its base. It is also invocable alone. It is
@@ -70,8 +70,8 @@ the shape by eye; it reads the values, and states the defaults whenever they are
 
 **The order is load-bearing in three places:**
 
-- **1 before 2.** The point of the build and the suite here is to prove *the merge*, not the branch.
-  Running them first would prove the tree nobody is about to push.
+- **1 before 2.** The point of the declared iteration checks here is to prove *the merge*, not the
+  branch. Running them first would prove the tree nobody is about to push.
 - **the checks before any caller-owned regression refresh inside step 2.** A red build makes a test result meaningless: the
   suite either did not compile or ran against yesterday's artifact. Build first, always.
 - **2 before 3.** Nothing goes to the remote that has not just been proven on the tree that is
@@ -224,12 +224,12 @@ Each is run in the open and reported as by-hand, per the Nen-first rule's second
 
 ## Authority
 
-- **Permitted:** everything [`$ao`](../ao/SKILL.md) and
-  [`$aka`](../aka/SKILL.md) § 6 is permitted under its narrow helper authority, one at a
-  time, in § 3's order; running the lane's declared `iteration.checks` over the merged tree (§ 5);
-  and **one** operation of murasaki's own: a plain, non-force push of a **non-base** branch that is
-  **already on the remote**. Authoring a fix for a red merged tree is
-  [`$rasengan`](../rasengan/SKILL.md)'s, under rasengan's own authority.
+- **Permitted:** everything [`$ao`](../ao/SKILL.md) is permitted, one at a time, in § 3's
+  order; running the lane's declared `iteration.checks` over the merged tree (§ 5) — `lint` is
+  [`$gyo`](../gyo/SKILL.md), the same gate [`$aka`](../aka/SKILL.md) § 6 re-runs after
+  catch-up, not aka's former full suite; and **one** operation of murasaki's own: a plain, non-force
+  push of a **non-base** branch that is **already on the remote**. Authoring a fix for a red merged
+  tree is [`$rasengan`](../rasengan/SKILL.md)'s, under rasengan's own authority.
 - **Not permitted:** a first publish; any squash or rewrite of any commit; any force-push; opening,
   editing or commenting on a pull request; any label, merge, tag or deploy; `--no-verify`; pushing
   `branch.base`.

@@ -192,7 +192,7 @@ each verified live (`docs/ab/rikugan.md` § *Retired at nen 0.5*):
 - **`nen shu test-report --repo <path> [--lane <lane>] --from-artifacts`** — **RETIRED at nen `0.5`**. The **final**
   variant's `tests[]` rows are that document's `{name, suite, status}`, read off the parse rather
   than re-tabulated from the runner's prose.
-- **The saved result of `nen shu coverage --repo <path> --touched --base <ref>` from mukai/gyo** — **RETIRED at nen `0.5`**, exit `0`,
+- **The saved result of `nen shu coverage --repo <path> --touched --base <ref>` from mukai/byakugan** — **RETIRED at nen `0.5`**, exit `0`,
   with a `touched:` line and a `band` on every narrowed row. The **final** variant's
   `touchedCoverage[]` rows are `{file, percent, band}` read straight off it. **The band is nen's
   now**, taken from `nen/workflow.json`'s ladder when no `--threshold` is given — what stays this
@@ -310,7 +310,7 @@ merged in here.
 ```bash
 nen report data --repo <path> --base origin/<branch.base> [--tiers <file>] --json > <base data>
 nen shu evidence --repo <path> --base origin/<branch.base> --json          > <evidence>   # rows
-nen shu test-report --repo <path> --from-artifacts --json                  > <tests>      # final only, matching aka artifacts
+nen shu test-report --repo <path> --from-artifacts --json                  > <tests>      # final only, matching kotoamatsukami artifacts
 # <coverage>: reuse the recorded matching mukai/byakugan JSON; do not execute coverage to render a report
 # merge: <base data> ∪ { variant, title, residue, footerNote, launch, accomplished[], challenges[],
 #                        notDelivered[], decisions[], prBody[], readiness[],

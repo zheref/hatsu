@@ -299,6 +299,11 @@ section:has(pre) .note-empty,
 .chip[data-status="failed"],  .chip[data-band="under"], .chip[data-outcome="not-done"]   { color: var(--bad);  background: var(--bad-bg); }
 .chip[data-status="skipped"], .chip[data-band="minimum"], .chip[data-outcome="partial"]  { color: var(--warn); background: var(--warn-bg); }
 .chip[data-band="recommended"]                                { color: var(--info); background: var(--info-bg); }
+.chip[data-change="added"]       { color: var(--ok);   background: var(--ok-bg); }
+.chip[data-change="removed"]     { color: var(--bad);  background: var(--bad-bg); }
+.chip[data-change="changed"]     { color: var(--warn); background: var(--warn-bg); }
+.chip[data-change="unchanged"],
+.chip[data-change="surrounding"] { color: var(--ink-2); background: var(--card-sunk); }
 .chip-tier { color: var(--accent-ink); background: var(--accent-bg); }
 
 /* ---- this last turn --------------------------------------------------- */
@@ -336,7 +341,7 @@ section:has(pre) .note-empty,
    A change-highlighted board of conceptual elements and the relations
    between them. files[] from the data document is a PATH INVENTORY under
    a disclosure, never the glance target. A node whose change is
-   unchanged or surrounding is dimmed so the eye lands on what moved.   */
+   unchanged or surrounding is marked with a dashed bar, not faded type. */
 .arch-legend {
   display: flex; flex-wrap: wrap; gap: .4rem .75rem;
   margin: 0 0 1rem;
@@ -373,17 +378,17 @@ section:has(pre) .note-empty,
 }
 .arch-node .arch-layer {
   font: var(--w-semi) var(--t-micro)/1.3 var(--mono);
-  letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3);
+  letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2);
 }
 .arch-node strong { font-size: var(--t-lead); letter-spacing: -.01em; }
 .arch-node .what { margin: 0; font-size: var(--t-fine); color: var(--ink-2); }
 .arch-node .what:empty { display: none; }
 .arch-node[data-change="added"]     { border-left-color: var(--ok); }
-.arch-node[data-change="removed"]   { border-left-color: var(--bad); opacity: .78; }
+.arch-node[data-change="removed"]   { border-left-color: var(--bad); }
 .arch-node[data-change="removed"] strong { text-decoration: line-through; }
 .arch-node[data-change="changed"]   { border-left-color: var(--warn); box-shadow: 0 0 0 1px var(--warn); }
 .arch-node[data-change="unchanged"],
-.arch-node[data-change="surrounding"] { border-left-color: var(--rule); opacity: .55; }
+.arch-node[data-change="surrounding"] { border-left-color: var(--rule); border-left-style: dashed; }
 .arch-edges { list-style: none; margin: 0 0 1.25rem; padding: 0; display: grid; gap: .4rem; }
 .arch-edges li {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem .55rem;
@@ -395,14 +400,16 @@ section:has(pre) .note-empty,
 .arch-edges .from, .arch-edges .to { font-weight: var(--w-semi); }
 .arch-edges .rel {
   font: var(--w-semi) var(--t-micro)/1.4 var(--mono);
-  letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3);
+  letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2);
 }
 .arch-edges .rel::before { content: "→ "; color: var(--accent-ink); }
 .arch-edges li[data-change="added"]     { box-shadow: inset 3px 0 0 var(--ok); }
-.arch-edges li[data-change="removed"]   { box-shadow: inset 3px 0 0 var(--bad); opacity: .72; }
+.arch-edges li[data-change="removed"]   { box-shadow: inset 3px 0 0 var(--bad); }
+.arch-edges li[data-change="removed"] .from,
+.arch-edges li[data-change="removed"] .to { text-decoration: line-through; }
 .arch-edges li[data-change="changed"]   { box-shadow: inset 3px 0 0 var(--warn); }
 .arch-edges li[data-change="unchanged"],
-.arch-edges li[data-change="surrounding"] { opacity: .55; }
+.arch-edges li[data-change="surrounding"] { box-shadow: inset 3px 0 0 var(--rule); }
 .path-inventory {
   margin: 1rem 0 0;
   padding: .5rem .75rem;
@@ -412,6 +419,11 @@ section:has(pre) .note-empty,
 }
 .path-inventory summary {
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: .5rem 0;
   font: var(--w-semi) var(--t-micro)/1.6 var(--mono);
   letter-spacing: .06em; text-transform: uppercase;
 }
@@ -637,7 +649,7 @@ footer .footer-note { flex-basis: 100%; color: var(--ink-2); letter-spacing: 0; 
     </div>
     <ul class="arch-edges">
       {{#each architectureEdges}}
-      <li data-change="{{change}}"><span class="from">{{from}}</span><span class="rel">{{rel}}</span><span class="to">{{to}}</span><span class="what">{{whatChanged}}</span></li>
+      <li data-change="{{change}}"><span class="chip" data-change="{{change}}">{{change}}</span><span class="from">{{from}}</span><span class="rel">{{rel}}</span><span class="to">{{to}}</span><span class="what">{{whatChanged}}</span></li>
       {{/each}}
     </ul>
     <p class="note-empty arch-empty">No structural diagram for this session — it did not move machinery, behaviour, or interaction, or the diagram was not authored.</p>

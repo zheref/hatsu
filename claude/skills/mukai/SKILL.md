@@ -7,7 +7,7 @@ description: Take a pushed branch through catch-up, review, impacted tests, cove
 
 **No fixed mode.** Mukai is a composed run: the mode is whichever the *change* is — **Enhancer** for
 product code, **Conjurer** for canon, **Transmuter** for machinery — held for the run and named in
-the reply, with **Manipulator** named alongside it from step 5 on — the first step that touches
+the reply, with **Manipulator** named alongside it from step 6 on — the first step that touches
 the remote. Name the mode in play, say when it switches and why, and never blend two under one header
 (`claude/agents/kurapika.md`).
 
@@ -191,14 +191,14 @@ maintainer tuning the file knows where the effect lands:
 
 | Key | File | The step it configures |
 |---|---|---|
-| `branch.base` | `nen/workflow.json` | steps 1, 3, and 5 catch-up; step 7's PR base |
+| `branch.base` | `nen/workflow.json` | steps 1 and 6 catch-up; step 8's PR base |
 | `iteration.checks`, `iteration.lane` | `nen/workflow.json` | step 1's proof of the merged tree, through [`hatsu:murasaki`](../murasaki/SKILL.md) § 5 |
 | `tests.required`, `tests.extra` | `nen/workflow.json` | step 4 — [`hatsu:kotoamatsukami`](../kotoamatsukami/SKILL.md) |
 | `coverage.minimum` / `.recommended` / `.ideal` / `.scope` | `nen/workflow.json` | step 5 — [`hatsu:byakugan`](../byakugan/SKILL.md) |
 | `models.*`, `models.roles.reviewer` | `nen/workflow.json` | step 2's reviewer tier — [`hatsu:hanten`](../hanten/SKILL.md) |
 | `commits.allowedAttributionTrailers` / `.forbiddenTrailers` | `nen/workflow.json` | step 3's message — [`hatsu:kokusen`](../kokusen/SKILL.md) |
-| `reports.dir`, `.template`, `.captures`, `.retain` | `nen/workflow.json` | step 8 — [`hatsu:rikugan`](../rikugan/SKILL.md) `as landing` |
-| `project.evidence.globs` / `.scene` / `.mechanism` | `nen/contract.json` | steps 6 and 7 — the table's rows and how they reach the body |
+| `reports.dir`, `.template`, `.captures`, `.retain` | `nen/workflow.json` | step 9 — [`hatsu:rikugan`](../rikugan/SKILL.md) `as landing` |
+| `project.evidence.globs` / `.scene` / `.mechanism` | `nen/contract.json` | steps 7 and 8 — the table's rows and how they reach the body |
 | `project.verbs` (`test`, `ui-test`, `coverage`, `build`) | `nen/contract.json` | whatever the step's own verb spawns |
 
 **Each step states its own default when a key is absent.** Mukai neither supplies a default nor
@@ -214,7 +214,7 @@ that owns it.
 
 **One line per step as it completes, then the handover.** Which step, what it found, and — for step
 2 — the reviewer subagents by their full title (`hanten · <persona> · <model alias>`) with the
-finding count and how each was disposed. **Step 5's line names the commits it pushed and the ref it
+finding count and how each was disposed. **Step 6's line names the commits it pushed and the ref it
 pushed** (`<old>..<new>`), or says the tree was already clean and level, so a reader can tell a run
 that published a review's fixes from one that had nothing to publish.
 
