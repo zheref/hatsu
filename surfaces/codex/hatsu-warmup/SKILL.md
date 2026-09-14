@@ -522,11 +522,17 @@ plugin's own `claude/skills/` and `claude/agents/` directly from `$CLAUDE_PLUGIN
 install into somebody else's checkout, and installing anything would be a write with no reason behind it.
 Say *"surface: claude-code — nothing installed, the plugin is read in place"* and move on.
 
-**On Antigravity, Hatsu supports dual installation modalities.** It can be loaded as a global plugin
-(`~/.gemini/config/plugins/hatsu` with `plugin.json`), in which case the target repository is untouched,
-or placed into the target repository via workspace bootstrap (`.agents/skills/`, `.agents/rules/AGENTS.md`,
-and `.agents/hooks.json`). On Codex and on Cursor there is no plugin loader for this plugin, so the skills
-and personas are always placed in the repository the session is standing in.
+**On Antigravity in global-plugin mode, nothing here runs and nothing in the target repository changes.**
+Antigravity loads the plugin directly from `${GEMINI_CONFIG_DIR:-~/.gemini}/config/plugins/hatsu` with
+`plugin.json`, `hooks.json`, and its root skills and agents. The target repository is untouched, so
+repository refresh is skipped entirely.
+Say *"surface: antigravity (global plugin) — nothing installed, the plugin is read in place"* and move on.
+
+**In workspace-bootstrap mode (Codex, Cursor, or Antigravity workspace mode), the skills and rules are
+placed in the repository the session is standing in.** On Codex and on Cursor there is no plugin loader
+for this plugin, so the skills and personas are always placed in the target repository. On Antigravity,
+workspace bootstrap is selected when the workspace uses local `.agents/skills/`, `.agents/rules/AGENTS.md`,
+`.agents/hooks.json`, and `.agents/hooks/`.
 [`docs/SURFACES.md`](../../../docs/SURFACES.md) is the authority on the whole mechanism; this section is
 the part the warm-up performs.
 
@@ -738,14 +744,14 @@ printf "'%s'\n" "$(printf '%s' "$hatsu_root" | sed "s/'/'\\\\''/g")"   # same fo
   own registry, `claude plugin list --json` → `installPath` (verified live); that is a way to produce
   the handed path, not a step this loop takes, and neither other surface has a registry to ask.
 
-**The checkout is obtained on these two surfaces, and discovery is bootstrapped once.** A plugin loader is
-what would fetch and register Hatsu; neither surface has one, so the **first** install is a human act — clone
-`zheref/hatsu` on the host and export `HATSU_PLUGIN_ROOT=<that checkout>`. That variable locates the
-checkout; it cannot make this skill visible. Before the first `$hatsu-warmup` or `/hatsu-warmup`, the user
-runs the non-skill bootstrap from the target repository:
+**The checkout is obtained on these surfaces, and discovery is bootstrapped once.** A plugin loader is
+what would fetch and register Hatsu; where a surface has none (or when workspace bootstrap is used on
+Antigravity), the **first** install is a human act — clone `zheref/hatsu` on the host and export
+`HATSU_PLUGIN_ROOT=<that checkout>`. That variable locates the checkout; it cannot make this skill visible.
+Before the first `$hatsu-warmup` or `/hatsu-warmup`, the user runs the non-skill bootstrap from the target repository:
 
 ```sh
-"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface <codex|cursor> --target . --bootstrap
+"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface <codex|cursor|antigravity> --target . --bootstrap
 ```
 
 It places **only** the generated `hatsu-warmup` directory in the host's documented discovery path, through
@@ -756,15 +762,15 @@ unchanged: a step that did not run is never rendered as clear. The pre-skill boo
 line yet: it exits non-zero with its specific checkout-validation error instead, and never seeds a partial
 discovery path.
 
-### 5 · refresh — one checked installer for both surfaces
+### 5 · refresh — one checked installer for all surfaces
 
 The discovered warm-up does not replay a fragile prose loop. It runs the installer from the root resolved
-above; `--install-all` makes the complete generated surface current while retaining the § 5a–5c rules:
+above; `--install-all` makes the complete generated surface current while retaining the § 5a–5d rules:
 
 ```sh
 hatsu_root='<the absolute path § 0 printed>'
 target="$(git rev-parse --show-toplevel)"
-surface='<codex or cursor — the host running this warm-up>'
+surface='<codex, cursor, or antigravity — the host running this warm-up>'
 "$hatsu_root/scripts/surface_bootstrap.sh" --surface "$surface" --target "$target" --install-all
 ```
 
@@ -912,12 +918,28 @@ ls -1A "$target/.cursor/skills" 2>/dev/null
 - **Never install under a name this listing showed and § 5c did not clear.** That is § 5c's hard
   limit and this step feeds it.
 
-### 5c · Both — the target's history, and the file that is never touched
+### 5c · Antigravity (workspace bootstrap mode)
+
+| | |
+|---|---|
+| skills go to | `<target>/.agents/skills/<name>/` — copied per skill directory from `$hatsu_root/surfaces/antigravity/<name>` |
+| personas go to | `<target>/.agents/rules/AGENTS.md` (consolidated) and `<target>/.agents/agents/<persona>.md` (individual subagents) |
+| hooks go to | `<target>/.agents/hooks.json` and self-contained hook scripts under `<target>/.agents/hooks/` |
+| invocation | `/<name>` — e.g. `/breath`, `/rasengan` |
+
+**On Antigravity, workspace mode is selected when running outside the global plugin context.**
+The refresh command installs `.agents/skills/`, the consolidated `.agents/rules/AGENTS.md`,
+individual `.agents/agents/<persona>.md` files, `.agents/hooks.json`, and the two self-contained hook
+scripts (`guard-base-branch.sh` and `stop-bell.sh`) under `.agents/hooks/`.
+All destinations are excluded through `.git/info/exclude` and protected by the same `ours` collision
+safeguards.
+
+### 5d · All surfaces — the target's history, and the file that is never touched
 
 **A destination this skill did not create is never replaced, and `info/exclude` does not make it safe to
 try.** An exclude file governs **untracked** paths only: a target that tracks a `.cursor/agents/reviewer.md`,
 or a `.agents/skills/build/` of its own, keeps it tracked, and the § 5b `ln -sfn` or the § 5a `rm -rf` +
-`cp -R` over it **destroys a file that is in somebody's history** — the same act § 5c already refuses one
+`cp -R` over it **destroys a file that is in somebody's history** — the same act § 5d already refuses one
 directory over for `.gitignore`, and refused there for the same reason (Copilot review thread
 `PRRT_kwDOUKPjxM6hAjLf`). A name collision is not rare, either: `build`, `file` and `en` are ordinary words
 and thirty-nine of them are being claimed at once.
@@ -925,7 +947,7 @@ and thirty-nine of them are being claimed at once.
 | what stands at the destination | what the warm-up does |
 |---|---|
 | **nothing** | create it |
-| **a previous Hatsu install** — a symlink into `$hatsu_root/surfaces/`, or a directory whose `SKILL.md` carries the generator's `GENERATED by nen surface mirror` line | **replace it.** § 5a's *never diff-and-skip* is about exactly this case and is unchanged |
+| **a previous Hatsu install** — a symlink into `$hatsu_root/surfaces/`, or a directory whose `SKILL.md` carries the generator's `GENERATED` line | **replace it.** § 5a's *never diff-and-skip* is about exactly this case and is unchanged |
 | **anything else — and a TRACKED path is always anything else** | **leave it untouched**, install nothing under that name, and **name it in § 4's line** |
 
 ```sh
@@ -935,7 +957,7 @@ hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): 
 ours() {
   git -C "$target" ls-files --error-unmatch -- "$1" >/dev/null 2>&1 && return 1
   [ -L "$1" ] && case "$(readlink "$1")" in "$hatsu_root"/surfaces/*) return 0 ;; esac
-  grep -qs 'GENERATED by nen surface mirror' "$1/SKILL.md" "$1" 2>/dev/null
+  grep -qsE 'GENERATED (by nen surface mirror|for surface: antigravity)' "$1/SKILL.md" "$1" 2>/dev/null
 }
 # … and at each destination, before the rm -rf / ln -sfn:
 if { [ -e "$dest" ] || [ -L "$dest" ]; } && ! ours "$dest"; then

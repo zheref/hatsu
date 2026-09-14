@@ -241,7 +241,8 @@ is_ours_hooks() {
   local relative=".agents/hooks.json" destination="$target/.agents/hooks.json"
   is_tracked "$relative" && return 1
   [ -f "$destination" ] || return 1
-  cmp -s "$destination" "$hatsu_root/surfaces/antigravity/hooks.json"
+  cmp -s "$destination" "$hatsu_root/surfaces/antigravity/hooks.json" && return 0
+  grep -qs '"hatsu-trunk-guard"' "$destination" && grep -qs '"hatsu-stop-bell"' "$destination"
 }
 
 is_ours_hook_script() {
@@ -249,7 +250,18 @@ is_ours_hook_script() {
   name="$(basename "$relative")"
   is_tracked "$relative" && return 1
   [ -f "$destination" ] || return 1
-  cmp -s "$destination" "$hatsu_root/surfaces/antigravity/hooks/$name"
+  cmp -s "$destination" "$hatsu_root/surfaces/antigravity/hooks/$name" && return 0
+  case "$name" in
+    guard-base-branch.sh)
+      grep -qs 'guard-base-branch\.sh' "$destination"
+      ;;
+    stop-bell.sh)
+      grep -qs 'stop-bell\.sh' "$destination"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
 }
 
 # Create only real, untracked directories below the target. A symlinked parent

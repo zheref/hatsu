@@ -145,19 +145,21 @@ EOF
     esac
   done
 
-  if [ -x "$root/scripts/antigravity_mirror_sync.sh" ]; then
-    echo "--- antigravity (surfaces/antigravity)"
-    code=0
-    "$root/scripts/antigravity_mirror_sync.sh" --check || code=$?
-    case "$code" in
-      0) ;;
-      1) drift=1 ;;
-      *)
-        echo "surface-mirror-check: 'antigravity_mirror_sync.sh --check' refused at exit $code — an invocation defect, not drift." >&2
-        exit "$code"
-        ;;
-    esac
+  echo "--- antigravity (surfaces/antigravity)"
+  if [ ! -x "$root/scripts/antigravity_mirror_sync.sh" ]; then
+    echo "surface-mirror-check: '$root/scripts/antigravity_mirror_sync.sh' is missing or not executable." >&2
+    exit 2
   fi
+  code=0
+  "$root/scripts/antigravity_mirror_sync.sh" --check || code=$?
+  case "$code" in
+    0) ;;
+    1) drift=1 ;;
+    *)
+      echo "surface-mirror-check: 'antigravity_mirror_sync.sh --check' refused at exit $code — an invocation defect, not drift." >&2
+      exit "$code"
+      ;;
+  esac
 
   if [ "$drift" -ne 0 ]; then
     cat >&2 <<EOF

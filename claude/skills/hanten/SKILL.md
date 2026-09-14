@@ -423,7 +423,7 @@ Each reviewer's own definition is the authority and this is a summary of what th
 four things, and where it supplies fewer, hanten says which:
 
 1. **An isolated worker at a named model tier** — resolved from `nen/workflow.json → models` for that
-   surface (`codex`, `cursor`), on the tier `models.roles.reviewer` names, **never the frontier tier**.
+   surface (`codex`, `cursor`, `antigravity`), on the tier `models.roles.reviewer` names, **never the frontier tier**.
 2. **An isolated copy of the tree — of the repository under review.** A worktree, a fresh checkout,
    or a read-only mount, cut from the target and named to the reviewer by absolute path. *Which*
    repository is the load-bearing half: an isolation mechanism that branches the session's own

@@ -39,10 +39,13 @@ trap 'rm -rf "$tmp_dir"' EXIT
 mkdir -p "$tmp_dir/rules" "$tmp_dir/agents" "$tmp_dir/skills"
 
 # 1. Generate plugin.json
-cat > "$tmp_dir/plugin.json" <<'EOF'
+plugin_version=$(awk '/"version":/ { gsub(/[^0-9.]/, "", $2); print $2; exit }' "$hatsu_root/.claude-plugin/plugin.json")
+[ -n "$plugin_version" ] || plugin_version="0.19.0"
+
+cat > "$tmp_dir/plugin.json" <<EOF
 {
   "name": "hatsu",
-  "version": "0.18.0",
+  "version": "$plugin_version",
   "description": "The local plane of the Akatsuki agent system on Antigravity",
   "author": {
     "name": "zheref"
@@ -78,7 +81,7 @@ cat > "$tmp_dir/hooks.json" <<EOF
         "hooks": [
           {
             "type": "command",
-            "command": "sh -c 'if [ -x ./.agents/hooks/guard-base-branch.sh ]; then exec ./.agents/hooks/guard-base-branch.sh \"\\\$@\"; elif [ -x ./hooks/guard-base-branch.sh ]; then exec ./hooks/guard-base-branch.sh \"\\\$@\"; fi' --",
+            "command": "sh -c 'if [ -x ./.agents/hooks/guard-base-branch.sh ]; then exec ./.agents/hooks/guard-base-branch.sh \"\\\$@\"; elif [ -x ./hooks/guard-base-branch.sh ]; then exec ./hooks/guard-base-branch.sh \"\\\$@\"; elif [ -n \"\${HATSU_PLUGIN_ROOT:-}\" ] && [ -x \"\$HATSU_PLUGIN_ROOT/hooks/guard-base-branch.sh\" ]; then exec \"\$HATSU_PLUGIN_ROOT/hooks/guard-base-branch.sh\" \"\\\$@\"; elif [ -x \"\${GEMINI_CONFIG_DIR:-\$HOME/.gemini}/config/plugins/hatsu/hooks/guard-base-branch.sh\" ]; then exec \"\${GEMINI_CONFIG_DIR:-\$HOME/.gemini}/config/plugins/hatsu/hooks/guard-base-branch.sh\" \"\\\$@\"; fi' --",
             "timeout": $guard_timeout
           }
         ]
@@ -89,7 +92,7 @@ cat > "$tmp_dir/hooks.json" <<EOF
     "Stop": [
       {
         "type": "command",
-        "command": "sh -c 'if [ -x ./.agents/hooks/stop-bell.sh ]; then exec ./.agents/hooks/stop-bell.sh \"\\\$@\"; elif [ -x ./hooks/stop-bell.sh ]; then exec ./hooks/stop-bell.sh \"\\\$@\"; fi' --",
+        "command": "sh -c 'if [ -x ./.agents/hooks/stop-bell.sh ]; then exec ./.agents/hooks/stop-bell.sh \"\\\$@\"; elif [ -x ./hooks/stop-bell.sh ]; then exec ./hooks/stop-bell.sh \"\\\$@\"; elif [ -n \"\${HATSU_PLUGIN_ROOT:-}\" ] && [ -x \"\$HATSU_PLUGIN_ROOT/hooks/stop-bell.sh\" ]; then exec \"\$HATSU_PLUGIN_ROOT/hooks/stop-bell.sh\" \"\\\$@\"; elif [ -x \"\${GEMINI_CONFIG_DIR:-\$HOME/.gemini}/config/plugins/hatsu/hooks/stop-bell.sh\" ]; then exec \"\${GEMINI_CONFIG_DIR:-\$HOME/.gemini}/config/plugins/hatsu/hooks/stop-bell.sh\" \"\\\$@\"; fi' --",
         "timeout": $stop_timeout
       }
     ]
@@ -136,6 +139,12 @@ for agent_file in "$source_agents"/*.md; do
   awk -v marker="$MARKER" '
     BEGIN { in_fm = 0; fm_done = 0 }
     NR == 1 && /^---$/ { in_fm = 1; print; next }
+    in_fm && /^model:/ {
+      sub(/: *opus$/, ": pro")
+      sub(/: *sonnet$/, ": flash")
+      sub(/: *haiku$/, ": flash_lite")
+      sub(/: *fable$/, ": ultra")
+    }
     in_fm && /^---$/ {
       in_fm = 0; fm_done = 1;
       print;
