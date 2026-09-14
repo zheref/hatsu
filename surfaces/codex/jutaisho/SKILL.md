@@ -281,18 +281,21 @@ afplay /System/Library/Sounds/<notifications.sound>.aiff
   in-session."* A maintainer who thinks the hook is working when it is not will eventually miss a
   gate.
 
-## 6. Surfaces — Codex and Cursor have no `Stop` hook, so this skill rings
+## 6. Surfaces — Codex and Cursor have no `Stop` hook; Antigravity has native hooks
 
-**§ 3 and § 5 assume a harness that fires a hook when a turn ends. Only Claude Code does.**
+**§ 3 and § 5 assume a harness that fires a hook when a turn ends. Claude Code and Antigravity do.**
 [`hooks/hooks.json`](../../../hooks/hooks.json) is a *Claude Code* manifest — a `Stop` event and a
-`PreToolUse` matcher, discovered by that host at the plugin's own `hooks/` path. **Neither Codex nor Cursor
-reads it, and neither documents a turn-end hook of its own** ([`docs/SURFACES.md`](../../../docs/SURFACES.md)
+`PreToolUse` matcher. Antigravity carries its own native lifecycle hook manifest (`hooks.json` in the plugin,
+or `.agents/hooks.json` in the target repository) with matching `Stop` and `PreToolUse` hooks calling
+[`hooks/stop-bell.sh`](../../../hooks/stop-bell.sh) and [`hooks/guard-base-branch.sh`](../../../hooks/guard-base-branch.sh).
+**Neither Codex nor Cursor reads hooks, and neither documents a turn-end hook of its own** ([`docs/SURFACES.md`](../../../docs/SURFACES.md)
 § *What each surface reads*). So on those two surfaces § 5 is not a fallback for a hook that failed to
 install — **it is the only path there is**, and it is taken every time rungs 2–3 are owed.
 
 | Surface | Who fires rungs 2–3 | What this skill does |
 |---|---|---|
 | **Claude Code** | [`hooks/stop-bell.sh`](../../../hooks/stop-bell.sh), off the § 3 marker | writes the marker, and stops |
+| **Antigravity** (`/jutaisho`) | [`hooks/stop-bell.sh`](../../../hooks/stop-bell.sh), off the § 3 marker via native `Stop` hook | writes the marker, and stops |
 | **Codex** (`$jutaisho`) | **this skill, in-session** | writes the marker, then runs `osascript` and `afplay` itself, and says so |
 | **Cursor** (`/jutaisho`) | **this skill, in-session** | the same |
 

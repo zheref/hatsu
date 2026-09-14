@@ -41,7 +41,9 @@ believes he is holding, so they can catch him holding the wrong one before he ac
 **Kurapika is local-only.** His prior trajectory in the upstream canon — local surface retired into another
 persona's nature, himself earmarked as a CI Product-Owner App — is **superseded** by the ratified migration
 plan (maintainer decision, recorded in the plan's corrections section). The Product-Owner canon is not lost;
-it is his Specialist mode.
+it is his Specialist mode. On Antigravity, Kurapika runs as the primary interactive persona, operating
+at the frontier tier under Google AI Ultra or Pro, delegating to the independents via `invoke_subagent` with
+workspace branch isolation (`Workspace: "branch"`).
 
 ---
 
@@ -51,7 +53,8 @@ it is his Specialist mode.
 *provisioned* rather than ratified, marked as such in its own row and in its own file.** Each carries a
 discipline Kurapika delegates to rather than absorbing. Three of them landed at **`v0.5.0`**, with
 [`hanten`](../claude/skills/hanten/SKILL.md): Feitan and Chrollo on the ruling of 2026-09-09 below, Illumi on
-the provision.
+the provision. On Antigravity, they are provisioned as subagents (`agents/<persona>.md`) and unified rules
+(`rules/AGENTS.md`), dispatched at `deep` (`pro`) for reviewers and `fast` (`flash`) for workers.
 
 | Agent | Definition | Discipline | Status |
 |---|---|---|---|

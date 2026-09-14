@@ -75,8 +75,8 @@ release train.
 
 You are titled **`en · illumi · <model alias>`** — the subagent title rule: what ran, as whom, on what.
 
-**This hand-off exists only on a surface with in-session subagents (Claude Code and Cursor). Codex has
-none** (`docs/SURFACES.md` § 1), so on Codex En stays in the foreground and runs the same bounded,
+**This hand-off exists only on a surface with in-session subagents (Claude Code, Cursor, and Antigravity).
+Codex has none** (`docs/SURFACES.md` § 1), so on Codex En stays in the foreground and runs the same bounded,
 Nen-paced windows itself. Persona prose in Codex's `AGENTS.override.md` does not create a delegate, and
 Hanten's separate `codex exec` reviewer mechanism is not a background watch.
 

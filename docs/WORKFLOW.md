@@ -405,26 +405,35 @@ whatever the maintainer is running.
 
 #### The matrix, per surface — the reviewer tier, and how a delegate is raised
 
-Hatsu runs on three surfaces ([`docs/SURFACES.md`](SURFACES.md)). The matrix is one table with a column per
+Hatsu runs on four surfaces ([`docs/SURFACES.md`](SURFACES.md)). The matrix is one table with a column per
 surface for exactly this reason: **the tier is the policy and the alias is the surface's answer to it.**
 
-| | **Claude Code** | **Codex** | **Cursor** |
-|---|---|---|---|
-| `frontier` — the orchestrator, the maintainer's own session | `fable` | `astra` | `grok` |
-| `deep` — **`models.roles.reviewer`**, so this is the reviewer tier | **`opus`** | **`sol`** | **`grok`** |
-| `fast` — `worker`, `measurer` | `sonnet` | `terra` | `composer` |
-| `economy` | `haiku` | `luna` | `composer` |
-| **how a subagent is raised** | the harness's **Agent tool**, `isolation: "worktree"` | **`codex exec -m <id> -C <dir> -s workspace-write`** — a whole second process; **this surface has no in-session subagent**, verified against `codex exec --help` | a **subagent definition** at `.cursor/agents/<persona>.md`, mirrored there from `claude/agents/` |
-| **isolation** | the harness makes the worktree | **`git worktree add` first** — `-C` takes a directory and creates none | the surface's own; the skill states which it got |
+| | **Claude Code** | **Codex** | **Cursor** | **Antigravity** |
+|---|---|---|---|---|
+| `frontier` — the orchestrator, the maintainer's own session | `fable` | `astra` | `grok` | `ultra` |
+| `deep` — **`models.roles.reviewer`**, so this is the reviewer tier | **`opus`** | **`sol`** | **`grok`** | **`pro`** |
+| `fast` — `worker`, `measurer` | `sonnet` | `terra` | `composer` | `flash` |
+| `economy` | `haiku` | `luna` | `composer` | `flash_lite` |
+| **how a subagent is raised** | the harness's **Agent tool**, `isolation: "worktree"` | **`codex exec -m <id> -C <dir> -s workspace-write`** — a whole second process; **this surface has no in-session subagent**, verified against `codex exec --help` | a **subagent definition** at `.cursor/agents/<persona>.md`, mirrored there from `claude/agents/` | the harness's **`invoke_subagent` tool**, `Workspace: "branch"`, `Model: "pro"` |
+| **isolation** | the harness makes the worktree | **`git worktree add` first** — `-C` takes a directory and creates none | the surface's own; the skill states which it got | **`Workspace: "branch"`** — isolated branch workspace managed by the harness |
 
-**A reviewer runs at the `deep` tier on every surface** — `opus`, `sol`, `grok` — because
+**A reviewer runs at the `deep` tier on every surface** — `opus`, `sol`, `grok`, `pro` — because
 `models.roles.reviewer` is `deep` and a role maps to a tier rather than to a product.
 [`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 9a is the mechanism, per surface, with
 the exact invocation.
 
-**The frontier tier never runs a subagent, on any surface.** Not `fable`, not `astra`, not `grok`. The
+**The frontier tier never runs a subagent, on any surface.** Not `fable`, not `astra`, not `grok`, not `ultra`. The
 frontier tier is where the maintainer's own conversation lives; a delegate that outranks its caller has
 inverted the delegation, and the cost lands on the maintainer's session rather than on the delegate's.
+
+> **Antigravity Performance vs. Cost & Subscription Tiers (Google AI Pro & Ultra)**:
+> In market benchmarks (such as DeepSWE and SWE-bench Verified), Gemini 2.5 Pro demonstrates reasoning
+> on par with or exceeding Opus and o1 on difficult architectural, refactoring, and code review tasks,
+> making it the designated `deep` reviewer tier. For `worker` and `measurer` tasks, Gemini 2.5 Flash
+> provides exceptional cost efficiency (10-20x cheaper per token while retaining >80% resolution accuracy).
+> Under Google AI Pro and Ultra subscriptions, maintainers operate the lead Kurapika session interactively
+> on the frontier tier (`ultra` on Ultra, `pro` on Pro), while all spawned subagents stay strictly at
+> `pro` (`deep`) and `flash` (`fast`), ensuring rate limit stability and billing efficiency.
 
 > **On Cursor the `frontier` and `deep` tiers name the same alias, and the rule survives that.** `grok` is
 > both, so on Cursor "never the frontier tier" cannot be checked by reading the alias — it is enforced on

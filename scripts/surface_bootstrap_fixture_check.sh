@@ -91,6 +91,47 @@ assert_ignored "$cursor_fixture" '.cursor/agents/kurapika.md'
 assert_empty_untracked "$cursor_fixture"
 "$bootstrap" --surface cursor --target "$cursor_fixture" --install-all
 
+antigravity_fixture="$fixture_root/antigravity"
+new_fixture "$antigravity_fixture"
+"$bootstrap" --surface antigravity --target "$antigravity_fixture" --bootstrap
+[ -f "$antigravity_fixture/.agents/skills/hatsu-warmup/SKILL.md" ] || fail "Antigravity warm-up was not seeded"
+[ ! -e "$antigravity_fixture/.agents/skills/breath" ] || fail "Antigravity bootstrap installed more than hatsu-warmup"
+grep -qx 'name: hatsu-warmup' "$antigravity_fixture/.agents/skills/hatsu-warmup/SKILL.md" || fail "Antigravity seed is not discoverable as hatsu-warmup"
+assert_ignored "$antigravity_fixture" '.agents/skills/hatsu-warmup/SKILL.md'
+assert_empty_untracked "$antigravity_fixture"
+"$bootstrap" --surface antigravity --target "$antigravity_fixture" --bootstrap
+"$bootstrap" --surface antigravity --target "$antigravity_fixture" --install-all
+[ "$(count_skills "$antigravity_fixture/.agents/skills")" = "$(count_skills "$hatsu_root/surfaces/antigravity")" ] || fail "Antigravity full refresh does not match its mirror"
+[ -f "$antigravity_fixture/.agents/rules/AGENTS.md" ] || fail "Antigravity personas were not installed"
+grep -q '# Hatsu Personas for Antigravity' "$antigravity_fixture/.agents/rules/AGENTS.md" || fail "Antigravity personas content missing"
+[ -f "$antigravity_fixture/.agents/hooks.json" ] || fail "Antigravity hooks were not installed"
+grep -q '"hatsu-trunk-guard"' "$antigravity_fixture/.agents/hooks.json" || fail "Antigravity trunk guard hook missing"
+grep -q '"hatsu-stop-bell"' "$antigravity_fixture/.agents/hooks.json" || fail "Antigravity stop bell hook missing"
+[ -x "$antigravity_fixture/.agents/hooks/guard-base-branch.sh" ] || fail "Antigravity guard hook script missing"
+[ -x "$antigravity_fixture/.agents/hooks/stop-bell.sh" ] || fail "Antigravity stop bell hook script missing"
+assert_ignored "$antigravity_fixture" '.agents/rules/AGENTS.md'
+assert_ignored "$antigravity_fixture" '.agents/hooks.json'
+assert_ignored "$antigravity_fixture" '.agents/hooks/guard-base-branch.sh'
+assert_ignored "$antigravity_fixture" '.agents/hooks/stop-bell.sh'
+assert_empty_untracked "$antigravity_fixture"
+"$bootstrap" --surface antigravity --target "$antigravity_fixture" --install-all
+
+mkdir -p "$antigravity_fixture/.agents/skills/stale-hatsu-skill"
+printf '%s\n' '<!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->' > "$antigravity_fixture/.agents/skills/stale-hatsu-skill/SKILL.md"
+stale_output="$("$bootstrap" --surface antigravity --target "$antigravity_fixture" --install-all)"
+[ ! -e "$antigravity_fixture/.agents/skills/stale-hatsu-skill" ] || fail "Antigravity full refresh kept a stale Hatsu skill"
+case "$stale_output" in *'installed 43; removed stale stale-hatsu-skill') ;; *) fail "Antigravity refresh did not report its stale removal separately: $stale_output" ;; esac
+
+antigravity_collision_fixture="$fixture_root/antigravity-collision"
+new_fixture "$antigravity_collision_fixture"
+mkdir -p "$antigravity_collision_fixture/.agents"
+printf '{"user":"hooks"}\n' > "$antigravity_collision_fixture/.agents/hooks.json"
+"$bootstrap" --surface antigravity --target "$antigravity_collision_fixture" --install-all >/dev/null
+grep -qx '{"user":"hooks"}' "$antigravity_collision_fixture/.agents/hooks.json" || fail "Antigravity hooks collision was overwritten"
+if git -C "$antigravity_collision_fixture" check-ignore -q -- .agents/hooks.json; then
+  fail "Antigravity hooks collision was hidden by info/exclude"
+fi
+
 collision_fixture="$fixture_root/collision"
 new_fixture "$collision_fixture"
 mkdir -p "$collision_fixture/.agents/skills/hatsu-warmup"
@@ -272,4 +313,4 @@ newline_root_target="$fixture_root/newline-root-target"
 new_fixture "$newline_root_target"
 assert_fails "newline Hatsu checkout path was accepted" "$newline_root/scripts/surface_bootstrap.sh" --surface codex --target "$newline_root_target" --bootstrap
 
-echo "surface-bootstrap-fixture: Codex and Cursor first-run bootstrap checks passed"
+echo "surface-bootstrap-fixture: Codex, Cursor, and Antigravity first-run bootstrap checks passed"

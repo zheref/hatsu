@@ -62,6 +62,13 @@
       "economy": "composer",
       "note": "Cursor-native only; provider models there are reserved for Bugbot"
     },
+    "antigravity": {
+      "frontier": "ultra",
+      "deep": "pro",
+      "fast": "flash",
+      "economy": "flash_lite",
+      "note": "Google AI / Gemini tiers; subagents use pro, flash, flash_lite"
+    },
     "roles": {
       "reviewer": "deep",
       "worker": "fast",

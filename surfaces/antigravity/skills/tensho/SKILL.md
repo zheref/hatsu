@@ -1,0 +1,389 @@
+---
+name: tensho
+description: Turn a dirty working copy into one PR standing ready at its gate. Use when the maintainer invokes /tensho <target-branch|main>, or asks to branch this off, commit and PR what I have, or open a PR for these changes. Kurapika moves the work off main if needed, reviews every uncommitted file before staging it, commits, opens the PR with the body the template requires, then checks it against its gate. Never merges, never commits a file it flagged without an answer.
+---
+<!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
+
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
+`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
+repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+those files (re-resolve through that skill if unavailable). Relative links below identify source
+locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
+filing. Never copy or invent a second policy in the target repository.
+
+
+# Tensho — a dirty working copy becomes a PR at your gate
+
+**Nature: Manipulator** carries every run — branching, staging, committing, opening and requesting
+review on a PR is GitHub-side operation by definition, whichever nature authored the diff.
+**Which authorship nature the diff itself is: Enhancer** (product code), **Conjurer** (governance/
+canon — `CONSTITUTION.md`, `handbooks/`, `nen/` (the taxonomy), `agents/`), or
+**Transmuter** (machinery — workflows, scripts, hooks, scaffolding, a `nen/contract.json` `project`
+block). `nen gate derive` (§ 5) narrows this to G2-or-G4 and names
+*which* path set hit; Conjurer-vs-Transmuter inside a G4 hit is judgment this skill states, never
+Nen's to decide. Say the pair when a diff genuinely spans both, and which one leads.
+
+> **Take what I have here and turn it into one PR, ready for me.**
+
+Where [`/jujisho`](../jujisho/SKILL.md) splits a working copy into *several* efforts, tensho
+treats it as **one**. If the
+changes are plainly two unrelated efforts, say so and offer jujisho rather than filing one PR that
+carries two concerns.
+
+---
+
+## Composition — the phases this skill already is
+
+Read from the phase lattice rather than from this file's own numbering, tensho is:
+
+> [`kokusen`](../kokusen/SKILL.md) *(if the tree is dirty)* → [`aka`](../aka/SKILL.md) →
+> [`mukai`](../mukai/SKILL.md) → **starts** [`en`](../en/SKILL.md)
+
+**This is a restatement, and it changes no mechanics.** Every section below stands exactly as it is
+written: § 2's `nen wc classify` reading, § 3's staging triage, § 4's commit shaping, § 5's body
+checks and gate derivation, § 6's handover. What the line adds is *where each of them lives* once
+the lattice is the map — the triage-and-commit half is `kokusen`'s phase, the push half is `aka`'s,
+the review-tests-coverage-evidence-and-PR half is `mukai`'s, and the drive to Ready is `en`'s
+composing [`sharingan`](../sharingan/SKILL.md), which is what § 6 already hands to.
+
+**Two consequences follow, and neither is new:**
+
+- **The human calls stay human calls.** `aka` and `mukai` are the maintainer's
+  ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4), so **`/tensho` is itself a human call
+  that spends both of them at once** — which it always was, since it commits, pushes and opens a PR
+  in one run. It is not a way to reach `aka` or `mukai` without asking; it is the maintainer asking
+  for all of it in one word.
+- **A step that stops ends the run where it stopped**, and the stop belongs to the skill that owns
+  the phase — a flagged file in the triage, a red required test, a semantic conflict, coverage under
+  the minimum, an unsettled finding. Tensho adds no stop of its own.
+
+---
+
+## 1. Invocation
+
+```
+/tensho <target-branch>          # default: main
+```
+
+The argument is the PR's **base**, not the source. `main` is the default and the overwhelming
+case; an `integration/<chore>` or `integration/epic-<n>` base is the other real one, and it means
+the work is a leg of a chore or epic rather than a standalone change — say so, because it changes
+what "done" looks like: the delivery PR is the integration branch's, not this one's.
+
+**The base is also where the branch is cut from.** A branch cut from `main` and opened against
+`integration/<chore>` carries every commit on `main` that the chore branch lacks, so the PR's diff
+is the whole divergence rather than the change. Cut from the base you are targeting, always, and
+re-fetch it first.
+
+> **`nen parse` was considered for this grammar and declined — and nen `v0.2.0` (#67) made the
+> refusal explicit rather than silent.** At the port `nen parse tensho --grammar "[<target-branch>]"
+> --line ""` refused with `<target-branch> is required`, and `--grammar "onto [<target-branch>]"
+> --line "onto"` misread the literal as the value. Verified live at `v0.3.0`: the bare-bracket template
+> is now refused **at the template**, by design — *"template '[<target-branch>]' is refused: its
+> leading slot <target-branch> is bracketed but nothing introduces it, so an omitted value cannot be
+> told apart from a mistyped one. Anchor it behind a literal ('word [<target-branch>]') or drop the
+> brackets"* (exit `2`) — and the anchored form `onto [<target-branch>]` parses `onto` with the clause
+> absent. Tensho's own grammar is one optional word with a fixed default and **no** introducing
+> literal, which this engine deliberately will not express — so the default-to-`main` handling below
+> stays this skill's own rule, in prose, not a `nen parse` invocation. Not a finding any more; a
+> documented boundary.
+
+## 2. Where the work goes
+
+Read the current checkout before moving anything:
+
+```bash
+nen wc classify --repo <path to the checkout> --base <target-branch>
+```
+
+Reports exactly one of three cases — never a guard, never a guess:
+
+| `nen wc classify` case | What tensho does |
+|---|---|
+| `must-move` — on the trunk, dirty | **Must move.** Cut `kurapika/<slug>` **from the target base**, not reflexively from `main`, and take the changes with it. Kurapika never pushes `main` |
+| `on-branch-dirty` — on a branch, uncommitted work present | The verb reports the branch's existing commit subjects and the uncommitted paths as **evidence**, and says outright it is not the verb's to decide whether they are the **same effort**. Commit on top and reuse the branch when they are; **say so and cut a fresh branch from the target base** for a genuinely different effort — smuggling a second concern into an open PR is how a reviewer ends up approving something nobody described |
+| `on-branch-clean` — nothing uncommitted | Nothing to commit. Open or report the PR and go to § 6 |
+
+**"Same effort" is a judgement, so show the evidence rather than asserting it**: the branch's
+existing commit subjects and the uncommitted paths the verb prints, plus one line on why they are
+or are not one thing. If it is genuinely ambiguous, ask — one round-trip is cheaper than a
+mis-scoped PR.
+
+A git command that genuinely fails — a detached `HEAD`, a `--base` that does not resolve — is
+never folded into one of the three cases as an empty reading; `nen wc classify` reports it as an
+error on stderr and exits non-zero instead (verified live, `docs/ab/tensho.md` § 2.1).
+
+Branch naming is `kurapika/<slug>`, `<slug>` from the change, not from the date — the local plane's
+own convention, not a `CON-{n}` rule.
+
+**Resolving the product code** — needed for object notation (§ 5) and, where GitHub calls are
+involved, for `--repo`/`--gh-repo` — is `nen repo resolve`'s job:
+
+```bash
+nen repo resolve --repo <path> --from <path>       # matches the checkout's own 'origin'
+nen repo resolve <CODE> --repo <path>               # matches an explicit code instead
+```
+
+> **Finding this port filed against `v0.1.0`, closed by nen `v0.2.0` (#66, closes zheref/nen#27).** At
+> the port `nen repo resolve --repo <path> --from <path>` (no token), standing inside a
+> `<reference-repo>` checkout, matched the working copy's `origin` only against the registry's
+> `consumers[]` entries and refused the registry's own repo with `that is not in this registry`, even
+> though `BC` was a listed code. Since `v0.2.0` every token — the origin included — resolves from
+> **everything** the registry records (consumers, `product_codes` keys and values, `maintained_tools`,
+> `pending_onboarding`; `nen repo --help`, and `src/repo/resolve.ts` rule 5 names this exact case). The
+> token form is verified live (`nen repo resolve BC --repo <path>` → `bankai-core (BC) via code`); the
+> origin form needs a checkout whose `origin` the registry records and was not re-run here. Either form
+> works from inside the registry-owning repo now; if the origin form ever refuses a repository its own
+> code list names, pass the code explicitly and reconcile the finding through [DISCOVERY.md](../../../docs/DISCOVERY.md);
+> unavailable prerequisites remain a pending record, not a claimed new issue.
+>
+> **RETIRED at nen `0.5`: a target with NO registry refuses at exit `2`, naming the file** — where through
+> `v0.4.0` it failed at exit `1`, indistinguishable from an unresolved token. Read `1` as *the registry
+> opened and the token is not in it* and `2` as *there is no registry here*; a registry present but
+> malformed stays `1`.
+
+## 3. Staging — every file is looked at, and some are asked about
+
+**Never `git add -A` blind.**
+
+```bash
+nen stage triage --repo <path> [--scope <in-scope prefixes>] [--mentions "<commit/PR draft text>"]
+```
+
+Detects, never decides, and exits `1` whenever anything is flagged — verified live against a
+constructed working copy carrying one of each (`docs/ab/tensho.md` § 2.2):
+
+| Flag `nen stage triage` reports | Trigger, verified live |
+|---|---|
+| `secret-shape` | `.env`, `*.pem`, `*.key`, `credentials*`, or a token/key shape in the diff |
+| `ignored` | The path is git-ignored and would need `-f` to stage |
+| `binary` | The file's content is binary |
+| `out-of-scope` | The path falls outside every `--scope` prefix given — **omitted entirely** when `--scope` is not passed at all (no scope declared, nothing to compare against) |
+| `unmentioned-deletion` | A tracked path was deleted in the working copy and its basename does not appear in `--mentions`'s text |
+
+One path can carry more than one reason at once (verified: a deleted, out-of-scope file reports
+both `out-of-scope` **and** `unmentioned-deletion` in the same row).
+
+**Present every flagged file at once, with the reason(s) `nen` printed, and take one answer per
+file. A flagged file is never committed without an explicit yes** — not "it was probably fine,"
+not "it was in the diff already." That yes is never the verb's to give (its own `--help` says so
+verbatim), and it stays this skill's. **`secret-shape` is the one flag category that is never
+askable** — the per-file ask above applies to the other flag categories only. There is no yes for
+`secret-shape`; the answer is always no, and the fix is to rotate or remove the secret, never to
+stage it. § 8's hard limit is authoritative here: a secret is never committed, full stop.
+
+> ### RETIRED at nen `0.7`: the two flag categories with no detector
+>
+> **Both are detectors now** — this skill and [`/kokusen`](../kokusen/SKILL.md) § 4 were each
+> compensating for the same gap by eye, which is what made it a gap rather than a preference:
+>
+> - **`local-config`** matches the `.local` filename infix (`settings.local.json`, `.env.local`,
+>   `config.local.yml`, a bare `notes.local`). It is a FILENAME check like the secret shape, not a
+>   directory rule — `.claude/` and `.vscode/` hold committed project configuration as often as
+>   personal settings, and flagging every file under them would bury the rows that need a decision.
+>   So `.claude/settings.local.json` is caught **by its name**, and a `.claude/settings.json` that
+>   belongs to the project is not.
+> - **`large`** flags a file at or over `--large-bytes`, default **1 MiB**. The same 2.6 MB
+>   constructed fixture that reported **clean** at `v0.6.0` comes back `big.txt [large]` at the
+>   pinned `0.7.0` (verified live, `docs/ab/kokusen.md` § *Retired at nen 0.7*). A path the verb
+>   could not measure — a deletion, a broken symlink — is never flagged `large`.
+>
+> **Ask about them the same way as every other flag**, one answer per path, from the reasons the
+> verb printed. The by-eye pass is retired; do not run it in parallel and do not report a category
+> the verb did not name.
+
+**Deliberately untracked leftovers stay untracked.** If something should be ignored rather than
+committed, say so and offer the `.gitignore` line; do not commit it to be tidy.
+
+## 4. The commits
+
+```bash
+nen commit format --repo <path> --type <feat|fix|chore|docs|refactor|test|perf|build|ci> \
+  --subject "<short imperative subject>" [--scope <scope>] [--breaking] \
+  [--body "<paragraph>"] [--trailer "Hatsu-Agent=<responsible-persona>"]
+```
+
+Conventional Commits, one commit per coherent step where the work has steps. Validates **shape**
+only (a declared type, a non-empty subject under 72 characters, no trailing punctuation) — what
+changed and why stays this skill's to write, never `nen`'s. Verified live: a bad type, an empty
+subject, a >72-char header and a trailing-punctuation subject all refuse with a named reason at
+exit `2` (`docs/ab/tensho.md` § 2.3); `--trailer` accepts comma-separated `key=value` pairs, and
+here exactly one truthful canonical pair rides: `Hatsu-Agent=<responsible-persona>`.
+
+**TWO PROVENANCE TRAILERS, ONE PER PLANE** (maintainer's ruling, 2026-09-10) — `Hatsu-Agent:` is
+what this plane writes, `Akatsuki-Agent:` belongs to an Akatsuki roster agent on the autonomous CI
+plane, and **tensho never writes that one**: both are admitted by policy so a commit from either
+plane passes one hook, which is not licence to write it. Each names the system's own provenance
+rather than a model claiming authorship, which is why **no other AI attribution trailer is ever
+recorded**. No `Co-Authored-By:`, no `Claude-Session:`, no `Signed-off-by:`, no "Generated with …"
+line; the allow-list and the forbidden list are data, in `nen/workflow.json` → `commits`, and a
+harness that would mandate `Co-Authored-By:` is configured off (`includeCoAuthoredBy: false`).
+Enforcement is three-layered and only the first ships here — the skill refusing to write it, then a
+target repository's `commit-msg` hook and `nen commit format --repo`, both **nen `0.4.0`** and both
+**target-dependent at this pin** ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § `commits`). Git
+author stays the **maintainer**. Never `--no-verify`.
+Never force-push. Never push `main`.
+
+## 5. The PR
+
+Body follows the target repository's own PR template (e.g. `schemas/templates/pr.md` — a template is
+not one of the four taxonomy files nen's `schemas/`→`nen/` migration moved, so it stays wherever the
+target keeps it), and two parts are checked, never eyeballed:
+
+```bash
+nen pr body-check --body-from <path to the drafted body> --requirements-from <path>
+```
+
+`--requirements-from` is a JSON array of `{name, pattern}` — this repository's own template
+convention, never a literal `nen` ships:
+
+```json
+[
+  {"name": "What this changes for you", "pattern": "^# What this changes for you"},
+  {"name": "How to verify", "pattern": "^## How to verify"}
+]
+```
+
+Verified live: every requirement is checked and reported, never stopped at the first miss
+(`docs/ab/tensho.md` § 2.4) — `# What this changes for you` (effect before mechanism, for a
+reviewer who has not followed the work; **state what it costs**, not only what it gives) and
+`## How to verify` (per-scenario steps someone can actually run — with no backing issue, this *is*
+the acceptance criteria).
+
+**The `changelog.d/` fragment** is a separate, diff-shaped check — `nen pr body-check` never looks
+at changed paths:
+
+```bash
+nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,nen/,schemas/,agents/,.github/workflows/" \
+  --fragment-dir changelog.d --files <the changed paths> --head-changelog <path to CHANGELOG.md> \
+  [--body-from <path to the drafted PR body>]
+```
+
+(`--spec-paths` is a literal prefix list, outside nen's taxonomy resolution entirely — it names
+**both** directories so a taxonomy edit owes a fragment whether the target has migrated or not. **At
+the pinned build the `schemas/`→`nen/` fallback is removed**, which changes what nen *reads*
+and changes nothing about a literal prefix: an un-migrated target still edits a real `schemas/*.json`
+and still owes a fragment for it, so both stay listed.)
+
+Verified live (`docs/ab/tensho.md` § 2.5): reports `not-applicable` when the diff touches none of
+`--spec-paths`; `required` when it does and no fragment is among the **changed files** (a fragment
+sitting in the directory from an earlier PR does not satisfy it — it must be part of *this* diff);
+`fragment-present` once the fragment path is included in `--files`; `opt-out` when `--body-from`
+carries a `no CHANGELOG entry: <reason>` line. A direct `### Unreleased` edit still fails the guard
+this verb reports against — it was never a satisfying diff shape.
+
+**The target gate is derived, never asserted:**
+
+```bash
+nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/" \
+  --process-paths ".github/workflows/,claude/,scripts/,tests/,docs/" \
+  --files <the changed paths> [--asserted G2|G4]
+```
+
+These are `<reference-repo>`'s own two-tier split, verbatim from `hatsu`'s own
+[`sharingan`](../sharingan/SKILL.md) prose (that skill was `drive` when this paragraph was written):
+`CONSTITUTION.md`/`handbooks/`/`agents/` and the taxonomy directory — canonically `nen/`, with
+`schemas/` the pre-`v0.3` location whose fallback was **removed at nen `0.5.0`**; **both still
+listed**, because `--policy-paths` is a literal nen's resolution never sees and an un-migrated target
+still edits the old path — derive G4 as classic policy/spec (`CON-7`);
+`.github/workflows/`/`claude/`/`scripts/`/`tests/`/`docs/` derive G4 too, for the different reason
+that in a repository whose product is its process, a process change *is* a policy change. A **different repository's own path sets are its own canon** — these are `nen`'s own
+words, verified live: "There are no built-in path sets." Verified live against constructed file
+lists: a diff touching neither set reports `G2`; one touching `handbooks/` reports `G4` with the
+reason named; passing `--asserted G2` against a diff that actually hits `handbooks/` reports the
+disagreement and **the derived gate stands** (`docs/ab/tensho.md` § 2.6).
+
+`Closes #N` only if the PR completes an issue; `Part of #N` otherwise (`nen ref format`/`nen ref
+parse` render and read the `<CODE>-<IS|PR>-#<N>` notation itself — verified live, `docs/ab/tensho.md`
+§ 2.7). **Before the PR opens, prove the work through the verbs the repository declares** — `nen shu
+build`, `nen shu test`, `nen shu lint` (`--dry-run` once on a repository you have not built; exit `4` is
+a seat to quote, exit `5` sends you to `nen shu tools`, a repository with no declaration runs its own
+documented commands, said so — `claude/agents/kurapika.md` § *The `shu` verbs*). Request Copilot on
+open:
+
+```bash
+export GH_TOKEN=$(gh auth token)
+nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers copilot
+```
+
+On the maintainer's **user** token it registers, where a bot token silently no-ops — `nen`'s own
+`--help` states this and that it cannot enforce which credential ran it, only warn. This is a
+mutating GitHub call; per this port's ground rules it is A/B'd by contract inspection only
+(`docs/ab/tensho.md` § 3), never exercised live against `<reference-repo>`.
+
+## 6. Then drive it to its gate
+
+**Tensho's drive phase is [`/sharingan`](../sharingan/SKILL.md)'s engine** — the whole of it, not a
+substitute. Once the PR is open, hand it over as `/sharingan <CODE>#<N> to <G2|G4>` against the
+gate § 5's `nen gate derive` named, and let that skill do what it owns: the first-blocking-condition
+diagnosis, thread stewardship, the wake channel fired alone, the adversarial confirmation pass, and
+the stop at the gate. Tensho does not restate or reimplement any of it, and it does not stop at a
+bare readiness reading when the PR can actually be driven.
+
+*Fallback only, when `sharingan` cannot run at all* (an unresolvable code, no network for the checks it
+needs): the readiness **check** by itself is [`/pr-state`](../pr-state/SKILL.md)'s verb —
+
+```bash
+export GH_TOKEN=$(gh auth token)
+# $hatsu_root is THIS plugin's checkout, ABSOLUTE, resolved IN THIS SHELL: the block below is
+# hatsu-warmup § 5's prelude in its same-shell form. The variable is not exported, so a value
+# another shell set is not here. The second candidate is SINGLE-quoted: hatsu-warmup § 0 prints the root
+# already quoted with any ' escaped, ALONE on the line after its label — paste that line in place of '<…>',
+# quotes included, nothing else. The awk line is hatsu-warmup § 5's manifest_name on one line: the TOP-LEVEL
+# name of the canonical pretty-print, or nothing — any other manifest shape is refused, not parsed.
+hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the absolute path § 0 printed>' "${CLAUDE_PLUGIN_ROOT:-}"; do
+  [ -n "$c" ] || continue; case $c in -*) c=./$c;; esac              # an option-looking relative candidate is a path, not a flag
+  [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
+  mn=$(awk 'function scalar(v){return v~/^("([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*"|-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?|true|false|null)$/} function value_ok(v){return v=="{"||v=="["||v=="{}"||v=="[]"||scalar(v)} NR==1{if($0!="{")b=1;sp=1;top[1]="{";ind[1]=0;first=1;comma=0;next} {if(b||d){b=1;next};ni=match($0,/[^ ]/)-1;if(ni<0){b=1;next};body=substr($0,ni+1);if(body~/^[}\]],?$/){c=substr(body,1,1);tr=(body~/,$/);if(sp==0||ni!=ind[sp]||(top[sp]=="{"&&c!="}")||(top[sp]=="["&&c!="]")||comma){b=1;next};sp--;if(sp==0){if(tr)b=1;d=1;next};comma=tr;first=0;next};if(sp==0||ni!=ind[sp]+2||(!first&&!comma)){b=1;next};tr=(body~/,$/);if(tr)body=substr(body,1,length(body)-1);if(top[sp]=="{"){if(body!~/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /){b=1;next};v=body;sub(/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /,"",v);if(sp==1&&body~/^"name": "/){s=v;sub(/^"/,"",s);sub(/"$/,"",s);n++;name=s}}else v=body;if(!value_ok(v)){b=1;next};if(v=="{"||v=="["){if(tr){b=1;next};sp++;top[sp]=v;ind[sp]=ni;first=1;comma=0;next};comma=tr;first=0} END{if(!b&&d&&sp==0&&n==1)print name}' "$c/.claude-plugin/plugin.json") && [ "$mn" = hatsu ] &&   # captured first: bash 3.2 mis-parses quotes inside "$( )"
+  r=$(CDPATH= cd "$c" >/dev/null 2>&1 && pwd -P) && [ "$r/." -ef "$c/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && hatsu_root=$r && break
+done
+[ -n "$hatsu_root" ] || { echo "no Hatsu root resolved — pass --reviewers and explicit --approvers by hand instead (sharingan § 4)" >&2; exit 1; }
+nen pr ready <CODE>#<N> --repo <path> --gates "$hatsu_root/contracts/reference.gates.json" --explain
+```
+
+The `--gates` shown is [`sharingan`](../sharingan/SKILL.md) § 4's identity rule, cited rather than
+copied, its `$hatsu_root` anchor included — the Hatsu checkout as
+[`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's prelude resolves it on every surface, absolute and
+resolved in the calling shell by the same-shell block above, never `$CLAUDE_PLUGIN_ROOT` alone, which is
+Claude Code's: it holds ONLY where the target is frozen
+`<reference-repo>` itself (no gates file of its own);
+a target that ships its own `nen/gates.json` needs no identity flag at all; any OTHER target with no
+`nen/gates.json` gets `--reviewers` plus explicit `--approvers` supplied by hand — reviewer identities
+from its `CODEOWNERS` or the PR's own requested reviewers, approval policy from an authoritative target
+declaration or maintainer ruling, never this file. A repository is never judged by another repository's reviewers.
+On that hand-supplied path, **Nen 0.10.0 defaults omitted `--approvers` to the reviewer set**. Pass
+the target's declared approvers explicitly, or `--approvers ""` only for a declared
+`review-round-only` policy, and state the policy source on the page — while
+`contracts/reference.gates.json` carries its own `default_approvers` (`sasuke`, `tenma`), so the
+`--gates` form shown above is a real approver check even with no `--approvers` flag.
+
+Quote the verdict verbatim, render the conjunct table `--explain` prints, and apply
+`/pr-state`'s own binding rule unchanged: a readiness claim is that verdict, quoted, or it is
+not made — never a paraphrase, never `ready` for a PR that came back `unevaluated`. Say plainly
+that this was a check and not a drive: it reports where the PR stands and moves nothing.
+
+Render the stop with `nen stop --who kurapika --gate <G2|G4> <efforts.md>` (verified live,
+`docs/ab/tensho.md` § 2.8) and say the handover out loud: *"PR open at RR-PR-#N; `<verdict>`
+against G4."*
+
+## 7. Authority
+
+- **Permitted:** branch, commit, push a **non-`main`** branch, open/update a PR, request reviewers,
+  and hand the PR to [`/sharingan`](../sharingan/SKILL.md) (or, in the § 6 fallback, read its
+  readiness via `/pr-state`'s own verb).
+- **Not permitted:** `bankai:agent/*`, `bankai:stage/*`, any G1 mode label, any merge, any review
+  vote — `request_changes` above all, since Kurapika acts on the maintainer's own credentials and
+  the vote would be recorded as theirs. tensho creates work and hands it off; it does not route or
+  release it.
+
+## 8. Hard limits
+
+- **Never commits a flagged file without an explicit yes**, and never a secret at all —
+  `secret-shape` is not one of the categories that ask is for; rotate or remove it instead.
+- **Never pushes `main`, never force-pushes, never `--no-verify`.**
+- **Never puts two unrelated efforts in one PR** — that is jujisho's job, offered not assumed.
+- **Never opens a PR without `# What this changes for you`, `## How to verify`, and the
+  `changelog.d/` fragment where one is owed** — all three checked by verb, none by eye.
+- **Never claims readiness by eye** — the verdict § 6 reports is `nen pr ready`'s (whether it
+  arrives through `sharingan` or through the fallback check), quoted, or it is not made.
+- **Never merges** — G2 and G4 are the maintainer's.

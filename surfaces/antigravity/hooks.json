@@ -1,0 +1,26 @@
+{
+  "description": "<!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->",
+  "hatsu-trunk-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'if [ -x ./.agents/hooks/guard-base-branch.sh ]; then exec ./.agents/hooks/guard-base-branch.sh \"$@\"; elif [ -x \"${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu/hooks/guard-base-branch.sh\" ]; then exec \"${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu/hooks/guard-base-branch.sh\" \"$@\"; elif [ -n \"${HATSU_PLUGIN_ROOT:-}\" ] && [ -x \"$HATSU_PLUGIN_ROOT/hooks/guard-base-branch.sh\" ]; then exec \"$HATSU_PLUGIN_ROOT/hooks/guard-base-branch.sh\" \"$@\"; elif [ -f ./.claude-plugin/plugin.json ] && [ -x ./hooks/guard-base-branch.sh ]; then exec ./hooks/guard-base-branch.sh \"$@\"; fi' --",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "hatsu-stop-bell": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "sh -c 'if [ -x ./.agents/hooks/stop-bell.sh ]; then exec ./.agents/hooks/stop-bell.sh \"$@\"; elif [ -x \"${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu/hooks/stop-bell.sh\" ]; then exec \"${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu/hooks/stop-bell.sh\" \"$@\"; elif [ -n \"${HATSU_PLUGIN_ROOT:-}\" ] && [ -x \"$HATSU_PLUGIN_ROOT/hooks/stop-bell.sh\" ]; then exec \"$HATSU_PLUGIN_ROOT/hooks/stop-bell.sh\" \"$@\"; elif [ -f ./.claude-plugin/plugin.json ] && [ -x ./hooks/stop-bell.sh ]; then exec ./hooks/stop-bell.sh \"$@\"; fi' --",
+        "timeout": 15
+      }
+    ]
+  }
+}

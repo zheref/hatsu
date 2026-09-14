@@ -1,33 +1,31 @@
 # Surfaces
 
-**Hatsu is authored once, for Claude Code, and mirrored onto two other agent surfaces.** This file is the
+**Hatsu is authored once, for Claude Code, and mirrored onto three other agent surfaces: Codex, Cursor, and Antigravity.** This file is the
 authority on what that means: which surface reads what, how a skill is spelled on each, which files in this
-repository are *written* and which are *generated*, the one command that regenerates them, the check that
+repository are *written* and which are *generated*, the commands that regenerate them, the check that
 fails a pull request when they drift, and the exact headless invocation that runs Hatsu on each surface for
 a validation pass.
 
 Nothing here is a port. The mirrors are the same skill bodies, byte for byte, with the frontmatter reduced
 to the keys each surface documents and the invocation respelled — produced by
-[`nen surface mirror generate`](https://github.com/zheref/nen), whose per-surface rules live in one table in
-nen (`src/surface/rules.ts`), each row carrying the URL every fact in it was read from. **Adding a surface
-is adding a row there, not a branch here.**
+[`nen surface mirror generate`](https://github.com/zheref/nen) and `scripts/antigravity_mirror_sync.sh`.
 
 ---
 
-## 1 · The three surfaces
+## 1 · The four surfaces
 
-| | **Claude Code** | **Codex** | **Cursor** |
-|---|---|---|---|
-| how Hatsu arrives | **installed as a plugin** — `claude plugin install hatsu@hatsu` | the bootstrap first copies `hatsu-warmup`; the discovered warm-up refreshes the target every session | the bootstrap first links `hatsu-warmup`; the discovered warm-up refreshes the target every session |
-| skills read from | `$CLAUDE_PLUGIN_ROOT/claude/skills/<name>/SKILL.md` (`plugin.json` → `skills`) | `<repo>/.agents/skills/<name>/SKILL.md` | `<repo>/.cursor/skills/<name>/SKILL.md` |
-| personas read from | `claude/agents/<persona>.md` (`plugin.json` → `agents`) | `<repo>/AGENTS.override.md`, **as prose** — an **untracked** file that *replaces* the target's own `AGENTS.md` in the envelope, so the target's `AGENTS.md` is copied into it verbatim first. No per-persona file exists on this surface | `<repo>/.cursor/agents/<persona>.md` — one markdown subagent file each |
-| invocation spelling | **`hatsu:<name>`** | **`$<name>`** — and see *What Codex advertises* below: the install mechanism decides whether the name it lists is bare or namespaced | **`/<name>`** |
-| frontmatter kept on a skill | everything Claude Code documents | `name`, `description` — the page documents no other key | `name`, `description`, `paths`, `globs`, `disable-model-invocation`, `icon`, `color`, `metadata` |
-| turn-end hook | **yes** — `Stop`, `hooks/hooks.json` | **no** | **no** |
-| in-session subagent | **yes** — the Agent tool | **no** — a reviewer is a second `codex exec` run | **yes** — `.cursor/agents/` |
-| reviewer tier → alias (`models.roles.reviewer` = `deep`) | `opus` | `sol` | `grok` — **Cursor-native only** |
-| minimum CLI build | n/a — the plugin loader is the harness | **not established** — no skills-support floor is known for this surface. The build every record here was made on is **`codex-cli 0.149.0`** (`codex --version`, read live on 2026-09-10), and it is a *validated* build rather than a minimum | **`2026.01.*`** — below it the surface sees NO skills (below) |
-| signing in | the harness's own | `codex login`; `codex login status` answers `Logged in using ChatGPT` (read live on 2026-09-10) | `cursor-agent login`; `cursor-agent status` answers `✓ Logged in as <account>` |
+| | **Claude Code** | **Codex** | **Cursor** | **Antigravity** |
+|---|---|---|---|---|
+| how Hatsu arrives | **installed as a plugin** — `claude plugin install hatsu@hatsu` | the bootstrap first copies `hatsu-warmup`; the discovered warm-up refreshes the target every session | the bootstrap first links `hatsu-warmup`; the discovered warm-up refreshes the target every session | **dual modality** — installed as a plugin (`~/.gemini/config/plugins/hatsu`), or bootstrapped into `.agents/` |
+| skills read from | `$CLAUDE_PLUGIN_ROOT/claude/skills/<name>/SKILL.md` (`plugin.json` → `skills`) | `<repo>/.agents/skills/<name>/SKILL.md` | `<repo>/.cursor/skills/<name>/SKILL.md` | `~/.gemini/config/plugins/hatsu/<name>/SKILL.md` or `<repo>/.agents/skills/<name>/SKILL.md` |
+| personas read from | `claude/agents/<persona>.md` (`plugin.json` → `agents`) | `<repo>/AGENTS.override.md`, **as prose** — an **untracked** file that *replaces* the target's own `AGENTS.md` in the envelope, so the target's `AGENTS.md` is copied into it verbatim first. No per-persona file exists on this surface | `<repo>/.cursor/agents/<persona>.md` — one markdown subagent file each | `~/.gemini/config/plugins/hatsu/rules/AGENTS.md` & `agents/` (plugin) or `<repo>/.agents/rules/AGENTS.md` (bootstrap) |
+| invocation spelling | **`hatsu:<name>`** | **`$<name>`** — and see *What Codex advertises* below: the install mechanism decides whether the name it lists is bare or namespaced | **`/<name>`** | **`/<name>`** (slash commands) |
+| frontmatter kept on a skill | everything Claude Code documents | `name`, `description` — the page documents no other key | `name`, `description`, `paths`, `globs`, `disable-model-invocation`, `icon`, `color`, `metadata` | `name`, `description` |
+| turn-end hook | **yes** — `Stop`, `hooks/hooks.json` | **no** | **no** | **yes** — `Stop`, `hooks.json` or `.agents/hooks.json` calling `./hooks/stop-bell.sh` |
+| in-session subagent | **yes** — the Agent tool | **no** — a reviewer is a second `codex exec` run | **yes** — `.cursor/agents/` | **yes** — `invoke_subagent` with `Workspace: "branch"` |
+| reviewer tier → alias (`models.roles.reviewer` = `deep`) | `opus` | `sol` | `grok` — **Cursor-native only** | **`pro`** (Gemini Pro) |
+| minimum CLI build | n/a — the plugin loader is the harness | **not established** — no skills-support floor is known for this surface. The build every record here was made on is **`codex-cli 0.149.0`** (`codex --version`, read live on 2026-09-10), and it is a *validated* build rather than a minimum | **`2026.01.*`** — below it the surface sees NO skills (below) | Antigravity IDE / 2.0 / `agy` CLI |
+| signing in | the harness's own | `codex login`; `codex login status` answers `Logged in using ChatGPT` (read live on 2026-09-10) | `cursor-agent login`; `cursor-agent status` answers `✓ Logged in as <account>` | Google AI login (`agy login` / Google Cloud ADC; Pro or Ultra subscription) |
 
 The two consequences that are not cosmetic have their own homes:
 [`claude/skills/jutaisho/SKILL.md`](../claude/skills/jutaisho/SKILL.md) § 6 for the missing `Stop` hook, and
@@ -235,15 +233,21 @@ a link tree.
 | `surfaces/codex/AGENTS.md` | **generated** — every persona as a `## <name>` section, 1 file |
 | `surfaces/cursor/<name>/SKILL.md` | **generated** — 39 files |
 | `surfaces/cursor/agents/<persona>.md` | **generated** — 8 files |
+| `surfaces/antigravity/<name>/SKILL.md` | **generated** — 39 files |
+| `surfaces/antigravity/rules/AGENTS.md` | **generated** — all personas in unified rules document |
+| `surfaces/antigravity/agents/<persona>.md` | **generated** — 8 subagent definitions |
+| `surfaces/antigravity/plugin.json` | **generated** — Antigravity plugin manifest |
+| `surfaces/antigravity/hooks.json` | **generated** — lifecycle hooks (`PreToolUse` and `Stop`) |
 
 **Every generated file carries a marker, and it is the first *markdown* line rather than the first line of
 the file:**
 
 ```text
 <!-- GENERATED by nen surface mirror (surface: codex) -- do not edit; edit the source and regenerate -->
+<!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 ```
 
-It sits immediately after the closing frontmatter fence, because all three surfaces identify a skill by
+It sits immediately after the closing frontmatter fence, because all surfaces identify a skill by
 YAML frontmatter **at the start of the file** — a banner above the fence would buy a "do not edit" notice at
 the price of the document loading at all. In `AGENTS.md`, which has no frontmatter, it is line 1.
 
@@ -254,7 +258,7 @@ run; it is *reported* by the check below, by name, as `hand-edited`.
 
 ## 3 · Regenerating
 
-Two commands, one per surface, run from the repository root:
+Commands run from the repository root:
 
 ```sh
 nen surface mirror generate --source claude/skills --agents claude/agents \
@@ -262,11 +266,13 @@ nen surface mirror generate --source claude/skills --agents claude/agents \
 
 nen surface mirror generate --source claude/skills --agents claude/agents \
   --surface cursor --out surfaces/cursor --invocation-prefix "hatsu:"
+
+bash scripts/antigravity_mirror_sync.sh
 ```
 
 Each writes only the files whose bytes actually changed, deletes an orphan whose source is gone, and
 **refuses at exit 2 to overwrite any file that does not already carry the marker** — which is what keeps a
-hand-written `AGENTS.md` safe from an `--out` pointed one directory too high.
+hand-written file safe from an `--out` pointed one directory too high.
 
 **Run this whenever a `SKILL.md` or an agent definition changes**, in the same commit. That is the whole
 discipline; the check exists because "in the same commit" is a thing people forget.
@@ -512,13 +518,29 @@ cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
 > **What that run verified, corrected and left open** is § 8 of the evidence file; the three facts
 > that changed this page are F1 above, § 1's minimum version, and § 1's flat name space.
 
+### Antigravity
+
+Antigravity executes both interactively and headlessly via the `agy` CLI or inside the Antigravity IDE:
+
+```sh
+# A headless validation run at the deep tier
+agy --model pro "<prompt>"
+```
+
+- When running against a repository, Antigravity loads either from the global plugin (`~/.gemini/config/plugins/hatsu`)
+  or from `.agents/` inside the repository.
+- Lifecycle hooks (`PreToolUse` on `run_command` via `hooks/guard-base-branch.sh`, `Stop` via `hooks/stop-bell.sh`)
+  are active natively in both interactive and headless CLI runs.
+- Subagents raised via `invoke_subagent` inherit workspace branch isolation (`Workspace: "branch"`)
+  and run concurrently in the background without polling.
+
 ---
 
 ## 6 · Where the pieces live
 
 | | |
 |---|---|
-| the mirrors | [`surfaces/codex/`](../surfaces/codex/), [`surfaces/cursor/`](../surfaces/cursor/) |
+| the mirrors | [`surfaces/codex/`](../surfaces/codex/), [`surfaces/cursor/`](../surfaces/cursor/), [`surfaces/antigravity/`](../surfaces/antigravity/) |
 | placing them into a target repository | [`claude/skills/hatsu-warmup/SKILL.md`](../claude/skills/hatsu-warmup/SKILL.md) § 5 |
 | the bell, where there is no hook | [`claude/skills/jutaisho/SKILL.md`](../claude/skills/jutaisho/SKILL.md) § 6 |
 | raising a reviewer per surface | [`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 9a |
