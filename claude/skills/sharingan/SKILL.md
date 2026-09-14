@@ -342,10 +342,13 @@ structurally cannot:
 - Does `nen pr body-check` pass (`## How to verify`, `CON-17`; the `changelog.d/` fragment where
   `CON-33(a)` requires one)?
 - Does every status-check context required for the PR's base branch appear in the current-head check
-  rollup? Read the applicable branch rules (`gh api repos/<owner>/<repo>/rules/branches/<base>`) and
-  compare every `required_status_checks[].context` with the rollup's reported names. A missing required
-  context vetoes Ready even when every context that did report is green: `nen pr ready` explicitly
-  evaluates reported checks and cannot prove that the repository's required set is present.
+  rollup? Read **both** GitHub policy sources: applicable repository rulesets (`gh api
+  repos/<owner>/<repo>/rules/branches/<base>`) and classic branch protection (`gh api
+  repos/<owner>/<repo>/branches/<base>/protection/required_status_checks`; a 404 means that source is
+  absent). Union their required context names, then compare that set with the rollup's reported names.
+  A missing required context vetoes Ready even when every context that did report is green: `nen pr
+  ready` explicitly evaluates reported checks and cannot prove that the repository's required set is
+  present.
 - Does every issue implemented by this PR appear in both its body and Development, with its
   completion/partial disposition accurate under shibari's linkage contract?
 - Does the diff still match the gate derived in § 2, and does it deliver what the issue it claims
