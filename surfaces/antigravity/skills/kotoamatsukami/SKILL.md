@@ -1,0 +1,338 @@
+---
+name: kotoamatsukami
+description: Handle the declared end-to-end/UI suite that tsukuyomi executes once in aka's final full regression, or parse its existing artifacts for mukai evidence. Only a direct named diagnostic executes the suite here. Mukai never reruns UI regression while collecting evidence; any accepted snapshot invalidates regression before publication.
+---
+<!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
+
+# Kotoamatsukami — the UI suite, and the scenes it leaves behind
+
+**Nature: Transmuter** carries every run: kotoamatsukami executes declared machinery and reports what
+it did. Fixing what the suite found is the surrounding phase's work in that phase's own nature — and
+where the "fix" would be to **re-record a golden**, § 6 is the rule that decides whether that is a
+fix at all.
+
+> **Run the UI suite this repository declares, tell me exactly what it said, and show me every scene
+> it re-recorded.**
+
+Inside [`/aka`](../aka/SKILL.md) § 6, [`/tsukuyomi`](../tsukuyomi/SKILL.md) executes each
+configured suite exactly once. Kotoamatsukami handles that same `ui-test` invocation's result and
+artifacts, so the unit and end-to-end halves prove the same final tree without a duplicate run.
+[`/mukai`](../mukai/SKILL.md) step 6 consumes those existing artifacts for evidence and does
+not execute either suite. Kotoamatsukami is also invocable alone as a diagnostic, where it runs the
+declared UI suite.
+
+It is the UI-specific result and evidence handler, not a second publication executor. Aka § 6 owns
+the one full-regression execution on the final caught-up tree. Mukai calls only the
+artifact/evidence half after verifying the artifact belongs to that same tree. Where the two
+overlap — the dry run, the
+exit-code table, *fix the code and never the test*, *never state a count nobody printed* — the rule
+is authored in [`/tsukuyomi`](../tsukuyomi/SKILL.md) and read there. What is authored **here**
+is the half tsukuyomi does not have: a UI suite produces **images**, those images are the pull
+request's evidence, and re-recording one changes what the suite asserts.
+
+---
+
+## 1. Invocation
+
+```
+/kotoamatsukami [on <lane>]
+```
+
+```bash
+nen parse kotoamatsukami --grammar "on [<lane>]" --line "<the invocation, minus the /kotoamatsukami prefix>"
+```
+
+Verified live at `v0.3.0` (`docs/ab/kotoamatsukami.md` § 2.1): `on shell` → `lane: shell`, exit `0`.
+The clause is anchored behind a literal for the reason [`/rikugan`](../rikugan/SKILL.md) § 1
+records; with no clause the lane is `nen/workflow.json` → `iteration.lane`, defaulting to the
+declaration's own `project.defaultLane`. **A bare invocation is not parsed** — there is nothing in it
+to parse — and the resolved lane is named out loud either way.
+
+## 2. The parameters, and where they come from
+
+| Value | File → key | Default when absent |
+|---|---|---|
+| Which lane the suite runs in | `nen/workflow.json` → `iteration.lane` | `project.defaultLane` |
+| What the suite actually runs | `nen/contract.json` → `project.verbs.<lane>.ui-test` | none — an absent row is exit `2`, a **seat** is exit `4` |
+| Where it runs, with what, producing what | `project.lanes.<lane>.cwd`, the row's `env` (names only) and `artifacts` | — |
+| Whether this host may | `project.hosts` | a declaration with no `hosts` block constrains nothing |
+| What must be true first | `project.preconditions.<lane>` | `[]` |
+| Which files count as visual evidence | `project.evidence.globs` | **none** — § 7's table is then empty and says so |
+| How a path becomes a suite and a scene | `project.evidence.scene` | `{suite}-{scene}` |
+| How the images reach a PR body | `project.evidence.mechanism` | — |
+
+**`project.evidence` is NEN's block at the pinned build, and `nen shu evidence` reads it.** The
+loader parses it rather than preserving it, and from this release **the block key itself is guarded
+against a near-miss**: `evidences`, `Evidence` or `evidenc` would have been preserved, read by
+nobody, and `nen shu evidence` would then have refused at exit `2` saying the repository declares no
+evidence block — about a file that plainly declares one. Now it is refused by pointer. Verified live
+(`docs/ab/kotoamatsukami.md` § *Retired at nen 0.5*): a declaration carrying `evidence` and `launch`
+reports `ok nen/contract.json project (…)` under `nen schema check`, and `nen shu evidence --base
+main` groups the changed artifacts suite → scene at exit `0`.
+
+**Extra suites are added by name, never by narrowing.** `nen/workflow.json → tests.extra` may name
+`ui-test`; tsukuyomi constructs one ordered unique list from required and extra suites, so a name
+present in both still runs once. That is a policy decision recorded in the file, and this skill
+neither adds nor removes an entry from it.
+
+## 3. The dry run, once
+
+```bash
+nen shu ui-test --repo <path> [--lane <lane>] --dry-run
+```
+
+**Where the lane declares a `ui-test` row**, this prints the exact argv, cwd, env **names** and
+declared artifacts, spawning nothing: exit `0`, `--json` carrying
+`{contract: "nen.shu.ui-test/v0.1", lane, stack, verb, steps[], …, artifacts[], log.mode: "dry-run"}`.
+Verified live against a lane declaring `npx playwright test` — exit `0`, the argv table, `log: dry
+run -- nothing was executed`.
+
+Once per repository per session, before the first real run. A UI suite is the slow one and the one
+most likely to be wired to a simulator, a device or a browser you did not expect — reading the argv
+costs seconds and reading it wrong costs the run.
+
+> **The dry run is `0` only when there is something to dry-run, and § 4's table applies to it in
+> full.** It is not a probe that always succeeds — it resolves the declaration first, and a
+> declaration that has nothing to resolve refuses at the same code the real run would:
+>
+> | The repository | `--dry-run` | Same as the real run? |
+> |---|---|---|
+> | the lane declares `ui-test` | **`0`** — the argv table above | no: the real run spawns it |
+> | the lane declares a **seat** for `ui-test` | **`4`** — the seat's own sentence, on stderr | **yes, byte for byte** |
+> | no `nen/contract.json`, or no `project` block | **`2`** — *"'nen shu' runs what a repository DECLARES … this repository declares nothing"* | yes |
+>
+> All three verified live at this pin: `zheref/nen`'s `nen` lane and Hatsu's own `plugin` lane each
+> answer `4` to the dry run and `4` to the run, with the identical sentence; a repository with no
+> declaration answers `2` and points at `nen shu detect`. **So a `4` here is § 5's answer arriving
+> one step earlier than expected, not a broken dry run** — quote it and stop; there is no real run
+> left to make. A run that reads exit `0` as *"the dry run worked"* and exit `4` as *"the dry run
+> failed"* has the verb backwards on both counts.
+
+## 4. The run, and the exit codes
+
+```bash
+nen shu ui-test --repo <path> [--lane <lane>]
+```
+
+In aka § 6 `prepublication-verification`, tsukuyomi runs this command once and kotoamatsukami handles
+its result and artifacts. Kotoamatsukami executes the command itself only as a direct
+human-requested diagnostic that carries no publication proof. Mukai evidence collection does not
+execute it; it uses aka's matching declared result artifacts. If no matching artifact exists,
+return to aka rather than quietly running the suite inside mukai.
+
+Never the runner's own command line typed from memory. Under `--json` the report is one document,
+where **`steps[].exitCode` is the runner's own code** and the top-level `exitCode` is nen's.
+
+**Reactions, by exit code** (`claude/agents/kurapika.md` § *The `shu` verbs* is the authority):
+
+| Exit | Fact | Reaction |
+|---|---|---|
+| `0` | the suite ran and passed | § 7: report the scenes it re-recorded, if any |
+| `1` | **red** — it ran and failed; the runner's own code is in `steps[].exitCode` | § 5: read what failed, decide whether it is the code or the golden, fix the code, re-run |
+| `2` | usage: no declaration, no `project` block, unknown lane, unsatisfied precondition | fix the invocation or the declaration. An unmet precondition is nen's to **assert** and never to perform — satisfy it and name it |
+| `3` | the declaration excludes this host | **G5** naming the host that can, where it blocks delivery. Never a retry, and never "the unit tests passed so it is green" |
+| `4` | a **seat** — this lane declares no UI suite | **quote the reason verbatim and stop there.** § 5 |
+| `5` | the runner is not on `PATH` | `nen shu tools --repo <path>`, relay the per-tool remedy |
+
+Verified live at this pin (`docs/ab/kotoamatsukami.md` § 2.3, § 2.2): a red run relays the runner's
+own stdout, prints `ran: … -- exit 1`, and puts `1` in both `steps[0].exitCode` and nen's
+`exitCode`; a seat prints its sentence on **stderr** and, under `--json`, **no document at all** —
+so a `--json` reader never has to tell a report from an error object on one stream.
+
+## 5. A seat is a fact, and it is quoted — never worked around
+
+**Exit `4` is the repository speaking**, in its own words, about a suite it does not have. It is not
+a failure, not a red suite, and not a gap to fill by typing the runner's command line from memory.
+
+```
+$ nen shu ui-test --repo <path> --lane shell
+nen shu ui-test: 'ui-test' is unsupported on lane 'shell' (xcode-ios). The declaration's own reason:
+The UI-test targets are not wired into a runnable scheme yet; the seat is here so the absence is
+stated rather than omitted.
+exit=4
+```
+
+Verified live (`docs/ab/kotoamatsukami.md` § 2.2). **Quote that sentence into the report and into the
+pull request body, and stop.** Then, and only as a separate act: replacing a seat with a real row is a
+change to the declaration, which is machinery, which is a **G4** PR of its own — never an edit made in
+passing inside a test run.
+
+**What the three consumer repositories declare today** — recorded from the fold-in report's survey of
+2026-09-09, and **not** authority. The lane's own `ui-test` row is the authority, read at run time:
+
+| Repository | What its `ui-test` row says today |
+|---|---|
+| **KroApple** | a **seat**, until its UI-test targets actually run. Exit `4`, the sentence quoted, the unit suite unaffected |
+| **kro-pwa** | a real row — the Playwright pair its lane declares. Read the row; it is two steps and both are the suite |
+| **KroAndroid** | a real row — the Paparazzi verify task its lane declares, which is the snapshot suite and the source of § 7's images |
+
+**No toolchain name in that table lives in nen.** Playwright and Paparazzi appear in those
+repositories' own `nen/contract.json` files and nowhere else — nen carries no test runner and knows
+the name of none, and its `purity.test.ts` enforces exactly that. This table is a convenience copy of
+values that live in three other files, and where a copy disagrees with the file, **the file wins and
+this table is the bug** — the identical rule `nen/contract.json` states for itself.
+
+## 6. A re-recorded snapshot is a change to an assertion
+
+This is the rule this skill exists to hold, and it has no equivalent in
+[`/tsukuyomi`](../tsukuyomi/SKILL.md) because a unit test has no golden to overwrite.
+
+**A snapshot suite has two ways to go green, and only one of them is a fix:**
+
+1. the code was wrong, the code changed, the rendering now matches the recorded image — **a fix**;
+2. the recorded image was overwritten with what the code renders now — **an accepted change to what
+   the suite asserts**, which is green for exactly the same reason a deleted test is green.
+
+**So a re-record is never the reaction to a red run.** The reaction to red is § 4's: read what
+failed, decide what is wrong, change the code. A re-record happens because the change **intended** to
+alter that surface — and then it is expected, it is enumerated, and each altered scene is looked at
+before it is committed.
+
+- **Look at every re-recorded image.** Not the count, not the filenames — the pixels. A golden nobody
+  opened is an assertion nobody made.
+- **Say which scenes changed and why the change was intended**, in the turn report and in the PR
+  body. `UZF-26`'s evidence table is the place that lands (§ 7).
+- **A scene that changed and was not meant to is a finding**, reported as one, even when the suite is
+  green — especially then.
+- **Never `--update-snapshots`, `-u`, `RECORD=all` or the equivalent as a way past a red run**, and
+  never a mass re-record that sweeps up scenes the change had no business touching. Where the
+  declared row itself is the re-recording form, run it deliberately, name it, and enumerate what it
+  wrote.
+- **Never hand-edit a golden.** An image edited by a person asserts a rendering no code produces.
+
+**A test is never patched to pass** — [`/tsukuyomi`](../tsukuyomi/SKILL.md) § 6's rule, and in a
+UI suite its most common disguise is the re-record. Loosening a comparison tolerance, widening a
+mask, adding a retry loop and skipping a flaky scene are the same move in different clothes.
+
+An accepted image changes the tree, so prior regression, coverage, and evidence claims are
+stale. Kokusen checkpoints the assertion change and aka § 6 reruns the full regression before mukai
+reads the replacement artifacts.
+
+## 7. The scenes become the evidence table
+
+The images the suite re-recorded **are** the evidence: `UZF-26`'s rule is that the recorded test
+images are the screenshots, never separately-staged captures, so the evidence cannot drift from what
+the tests assert (`claude/agents/hisoka.md` § *The evidence set*). Kotoamatsukami's last act is to
+hand that set on:
+
+- to [`/rikugan`](../rikugan/SKILL.md) § 4's `{{#each screenshots}}` — one table per screen, the
+  states as **columns**, PNGs embedded as data URIs before a PR exists;
+- to [`/shibari`](../shibari/SKILL.md), which puts the same table in the PR body through the
+  mechanism `project.evidence.mechanism` names.
+
+**RETIRED at nen `0.5`: enumerating the changed artifacts is a verb.**
+
+```bash
+git -C <path> fetch origin <base>
+nen shu evidence --repo <path> --base origin/<base> [--json]
+```
+
+It matches `git diff --name-status <base>...HEAD` — through the seam, spawning no invocation the
+repository declared, only `git diff` itself — against `project.evidence`, derives each surviving
+file's **suite** and **scene**, and reports them grouped suite → scene. Verified live at `v0.5.0`,
+exit `0`:
+
+```
+evidence: 1 changed file across 1 suite (public-mirror), against main...HEAD
+
+suite: __Snapshots__
+  added    Settings                 src/__Snapshots__/test_snapshot_Settings.png
+```
+
+`--json` publishes `nen.shu.evidence/v0.1`. **A repository with no `project.evidence` block is exit
+`2` naming it** — the one usage refusal this verb has — and **no changed file matching a glob is exit
+`0` with an empty row set**, never an error. Read those two apart: the first is a declaration to
+write, the second is a truthful "this change re-recorded nothing".
+
+> **`origin/<base>`, after that fetch — never the bare branch name.** `branch.base` is a branch
+> name, and local `main` is never fast-forwarded after [`/breath`](../breath/SKILL.md) cut the
+> branch from it: measured live at 13, then 36, then 50 commits behind in one run
+> (`docs/ab/mukai.md`). Against a stale local ref the enumeration carries every golden anybody
+> re-recorded on the trunk this week as though this branch had. `nen shu evidence --base` takes a
+> **ref**, so pass `origin/<base>` and the whole class goes away.
+
+> **What the verb's arrival retires is a real trap, and it is worth knowing why.** A
+> `project.evidence.globs` entry is written in **shell-glob** terms, where `**` crosses directory
+> separators; a git **pathspec** is not that. Passed bare to `git diff`,
+> `'**/__Snapshots__/**/*.png'` matched **zero** of three changed snapshots against a tree that
+> plainly contains them, exit `0`, no warning (verified live, `docs/ab/kotoamatsukami.md` § 2.4).
+> **An empty evidence table read as "this change re-recorded nothing" is the worst failure mode this
+> skill has** — indistinguishable from the truthful case, and it silently drops the pull request's
+> evidence. `nen shu evidence` carries its own dependency-free matcher, in which `**` correctly
+> matches zero directories on either side, so the class is gone rather than worked around. **Never
+> pass a declared glob to git as a bare pathspec** in whatever is left of the by-hand path.
+
+Nen groups the rows by suite and derives the scene: the nearest ancestor directory whose name ends
+with `suiteSuffix` names the suite (suffix stripped), falling back to the immediate parent; the scene
+is the basename with its extension, a trailing `.<n>` and the `test_snapshot_`/`test_` prefixes
+stripped, in that order. Each row carries its git status: `A` a scene this change **adds**, `M` a
+scene it **re-records**, `D` a scene it **removes**. All three belong in the report; a removed scene
+is a state the product no longer has, which is exactly the kind of thing a reviewer wants to be told.
+
+**Where the declaration carries no `project.evidence` block**, say so — *"no evidence globs declared;
+no scene table"* — and do not invent a glob. A repository that records no images is entitled to say
+so, and `UZF-26`'s two sanctioned incompletenesses (a tracked `UZF-23` deferral, a tracked
+capture-tooling gap) are checked by [`hisoka`](../../agents/hisoka.md), not manufactured here.
+
+## 8. Report
+
+One line, then the table: the lane, the verb's exit code and what it meant, the runner's own summary
+**quoted**, and the scene rows by suite with their statuses. Where the suite was a seat, the seat's
+sentence instead of all of it.
+
+**Never a pass/fail count nen did not print and the runner did not say.** Where the declaration names
+`artifacts` for the suite — a JUnit XML, an `.xcresult`, a Playwright report directory — say the file
+exists and where; parsing it is residue (§ Residue), not a claim to make from its filename.
+
+## Residue
+
+1. **RETIRED at nen `0.5`: `nen shu evidence --base <ref>`** (§ 7, verified live, exit `0`). The
+   enumeration, the glob matching, the suite/scene derivation and the grouping are all the verb's.
+2. **RETIRED at nen `0.5`: `nen shu test-report`** (`tsukuyomi` § 6) — the parsed `{tests[], passed,
+   failed, skipped}` document is a verb, so the counts are read off it.
+3. **Parsing a declared UI-test artifact.** `nen shu test-report` reads JUnit XML, a JavaScript
+   runner's JSON and a **declared** result-bundle summary. **Genuinely still residue at the pinned
+   `0.5.0`**: a Playwright HTML report, and an `.xcresult` for which the repository declares no
+   extraction step, are read by nothing — say which file holds the numbers rather than claiming
+   them.
+4. **Looking at an image** has no verb and will not get one. Named here so the absence is a boundary
+   rather than a silence: § 6's "look at every re-recorded image" is a person's act on a surface that
+   can show one, and where the surface cannot, **say that the goldens were not looked at** rather
+   than reporting the suite as clean.
+5. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
+   an `ok  nen/workflow.json` row at the pinned build. `iteration.lane` and `tests.extra` are still
+   read here; reading a file is not residue.
+
+Every one is run in the open and reported as by-hand, per the Nen-first rule's second half
+(`claude/agents/kurapika.md`).
+
+## Authority
+
+- **Permitted:** run the lane's declared `ui-test` row; probe the host through `nen shu tools`; read
+  the working copy and its git history; report every code and quote the runner.
+- **Not permitted:** push, commit, PR, label, merge, deploy, or edit a declaration on the fly — a
+  seat is replaced by a **G4** PR, never in passing (§ 5). Also not permitted: **weakening the suite
+  to make it pass**, in any of § 6's disguises.
+- **Not a gate event of its own.** Red is reported; the **G5** on a red required suite is
+  [`/aka`](../aka/SKILL.md)'s, raised at the moment a push was about to happen. An unsupported
+  host (exit `3`) is a G5 wherever it blocks delivery.
+
+## Hard limits
+
+- **Never re-records a golden to get past a red run** (§ 6). Red means read it, decide, and change
+  the code.
+- **Never commits a re-recorded image nobody looked at**, and never hand-edits one.
+- **Never mass re-records** beyond the scenes the change intended to alter, and reports any scene
+  that changed unexpectedly as a finding even on a green run.
+- **Never patches, skips, `.only`-narrows, retry-loops, masks or loosens a comparison** to reach
+  green — [`/tsukuyomi`](../tsukuyomi/SKILL.md) § 9's rule, in this suite's own vocabulary.
+- **Never treats exit `4` as red, or works around a seat** — the sentence is quoted and the run stops
+  (§ 5). Replacing the seat is a G4 PR.
+- **Never treats exit `5` as a failing suite** — a missing runner is a host that is not set up.
+- **Never runs a UI-test command from memory** in a repository that declares one, and never lets the
+  toolchain names in § 5's survey stand in for the declaration.
+- **Never states a pass/fail count nen did not print and the runner did not say** (§ 8).
+- **Never passes a declared glob to git as a bare pathspec** (§ 7) — `:(glob)`, or filter in the
+  reader. A silently empty evidence table is worse than no table.
+- **Never reports green from an earlier run.** Green is a statement about the run that just happened.
+- **Never presents by-hand enumeration as a verb's output** — § Residue is named where it runs.

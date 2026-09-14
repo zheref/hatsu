@@ -515,22 +515,27 @@ line, and each of them is a real failure this warm-up has already had:**
 
 ---
 
-## 5 · Surfaces — what a target repository gets on Codex and Cursor
+## 5 · Surfaces — what a target repository gets on Codex, Cursor, and Antigravity
 
 **On Claude Code, nothing here runs and nothing in the target repository changes.** Claude Code loads the
 plugin's own `claude/skills/` and `claude/agents/` directly from `$CLAUDE_PLUGIN_ROOT`; there is nothing to
 install into somebody else's checkout, and installing anything would be a write with no reason behind it.
 Say *"surface: claude-code — nothing installed, the plugin is read in place"* and move on.
 
-**On Codex and on Cursor there is no plugin loader for this plugin**, so the skills and the personas have to
-be *placed* in the repository the session is standing in. [`docs/SURFACES.md`](../../../docs/SURFACES.md) is
-the authority on the whole mechanism; this section is the part the warm-up performs.
+**On Antigravity, Hatsu supports dual installation modalities.** It can be loaded as a global plugin
+(`~/.gemini/config/plugins/hatsu` with `plugin.json`), in which case the target repository is untouched,
+or placed into the target repository via workspace bootstrap (`.agents/skills/`, `.agents/rules/AGENTS.md`,
+and `.agents/hooks.json`). On Codex and on Cursor there is no plugin loader for this plugin, so the skills
+and personas are always placed in the repository the session is standing in.
+[`docs/SURFACES.md`](../../../docs/SURFACES.md) is the authority on the whole mechanism; this section is
+the part the warm-up performs.
 
 The mirrors are **generated and committed** in this plugin at
-[`surfaces/codex/`](../../../surfaces/codex/) and [`surfaces/cursor/`](../../../surfaces/cursor/) — the
-output of `nen surface mirror generate`, one `SKILL.md` per skill plus the surface's own persona shape.
-**The warm-up never generates them.** It copies or links what is already there; regeneration is a change to
-this repository, made on a branch, checked in CI (§ *The check* in `docs/SURFACES.md`).
+[`surfaces/codex/`](../../../surfaces/codex/), [`surfaces/cursor/`](../../../surfaces/cursor/), and
+[`surfaces/antigravity/`](../../../surfaces/antigravity/) — the output of surface mirror generation,
+one `SKILL.md` per skill plus the surface's own persona shape. **The warm-up never generates them.** It
+copies or links what is already there; regeneration is a change to this repository, made on a branch,
+checked in CI (§ *The check* in `docs/SURFACES.md`).
 
 > **On Codex, check the sandbox can write git BEFORE reporting the warm-up clear — a linked worktree
 > usually cannot.** `codex exec -s workspace-write` makes the *workspace* writable, and a linked worktree
@@ -1007,12 +1012,12 @@ The warm-up states the matrix for the surface it just warmed, read from **the ta
 > [`breath`](../breath/SKILL.md) § 2 does — never fall back to this plugin's copy, whose `models` block is
 > Hatsu's policy and not theirs.
 
-| tier | `claude` | `codex` | `cursor` |
-|---|---|---|---|
-| `frontier` | `fable` | `astra` | `grok` |
-| `deep` | `opus` | `sol` | `grok` |
-| `fast` | `sonnet` | `terra` | `composer` |
-| `economy` | `haiku` | `luna` | `composer` |
+| tier | `claude` | `codex` | `cursor` | `antigravity` |
+|---|---|---|---|---|
+| `frontier` | `fable` | `astra` | `grok` | `ultra` |
+| `deep` | `opus` | `sol` | `grok` | `pro` |
+| `fast` | `sonnet` | `terra` | `composer` | `flash` |
+| `economy` | `haiku` | `luna` | `composer` | `flash_lite` |
 
 `models.roles` maps a role to a tier — `reviewer: deep`, `worker: fast`, `measurer: fast`,
 `orchestrator: frontier` — and `models.rule` is *"latest alias only, never a version; subagents never on the

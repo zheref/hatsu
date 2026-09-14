@@ -1,0 +1,25 @@
+{
+  "hatsu-trunk-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/guard-base-branch.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "hatsu-stop-bell": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "./hooks/stop-bell.sh",
+        "timeout": 15
+      }
+    ]
+  }
+}

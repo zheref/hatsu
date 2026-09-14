@@ -295,6 +295,53 @@ re-prints the version and the collision list.
 
 Then read [*Using Hatsu on Cursor*](#using-hatsu-on-cursor).
 
+### On Antigravity
+
+Antigravity supports two usage modalities:
+
+#### 1. Global Plugin Mode (Recommended)
+
+Link or copy Hatsu's Antigravity surface into your global plugins directory:
+
+```sh
+mkdir -p ~/.gemini/config/plugins
+ln -s "$HATSU_PLUGIN_ROOT/surfaces/antigravity" ~/.gemini/config/plugins/hatsu
+```
+
+Antigravity automatically discovers:
+- `plugin.json` — Antigravity plugin manifest
+- 39 skills — discoverable via slash commands (`/<name>`)
+- `rules/AGENTS.md` — unified persona instructions
+- `agents/<persona>.md` — 8 modular subagent definitions
+- `hooks.json` — native `PreToolUse` (trunk guard) and `Stop` (bell) lifecycle hooks
+
+In this mode, no files are written into your target repositories. Open any workspace in Antigravity or use the CLI (`agy`), and run `/kurapika` or `/hatsu-warmup`.
+
+#### 2. Workspace Bootstrap Mode
+
+To use Hatsu in a single repository without a global plugin:
+
+```sh
+"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface antigravity --target . --bootstrap
+```
+
+Open Antigravity in that repository and run `/hatsu-warmup`. The warm-up performs `--install-all`, placing:
+
+| | |
+|---|---|
+| `<repo>/.agents/skills/<name>/` | 39 mirrored skill directories copied from `surfaces/antigravity/<name>/` |
+| `<repo>/.agents/rules/AGENTS.md` | Persona instructions for all 8 Hatsu personas |
+| `<repo>/.agents/hooks.json` | Native `PreToolUse` (trunk guard) and `Stop` (bell) hooks |
+
+Everything is cleanly excluded through `.git/info/exclude`; `.gitignore` is never modified.
+
+**Native Lifecycle Hooks:**
+- **Trunk Protection (`PreToolUse`)**: `hooks/guard-base-branch.sh` intercepts shell commands before execution. It prevents accidental commits, rebases, or edits directly on `main` or other protected trunk branches without an isolated feature branch.
+- **Completion Bell (`Stop`)**: `hooks/stop-bell.sh` fires at turn completion to ring the local audio and notification bell when human review or decision is needed.
+
+**In-Session Subagents:**
+Reviewers (Feitan, Chrollo, Hisoka, Phinks) run as isolated subagents via `invoke_subagent` with `Workspace: "branch"` and `Model: "pro"`. Workers and measurers run on `fast` (`flash`), maximizing throughput and SWE-bench efficiency under Google AI Pro or Ultra subscriptions.
+
 ---
 
 ## Start here — one request, end to end

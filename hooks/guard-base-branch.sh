@@ -547,26 +547,53 @@ resolve() {
   esac
 }
 
+is_antigravity=0
+case "$payload" in
+  *'"toolCall"'*|*'"CommandLine"'*|*'"workspacePaths"'*) is_antigravity=1 ;;
+esac
+
+deny_refusal() {
+  # $1 = reason string
+  printf '%s\n' "$1" >&2
+  if [ "$is_antigravity" -eq 1 ]; then
+    reason_escaped=$(printf '%s' "$1" | tr '\n' ' ' | sed 's/"/\\"/g')
+    printf '{"decision":"deny","reason":"%s"}\n' "$reason_escaped"
+  fi
+  exit 2
+}
+
 refuse_unreadable() {
   # $1 = what could not be read.
-  printf 'hatsu: refusing this command — %s, so the branch the write would land on cannot be established; run the git command directly, from inside the repository it targets.\n' \
-    "$1" >&2
-  exit 2
+  deny_refusal "hatsu: refusing this command — $1, so the branch the write would land on cannot be established; run the git command directly, from inside the repository it targets."
 }
 
 refuse_option() {
   # $1 = the global option the argv walk cannot follow.
-  printf 'hatsu: refusing this command — it carries the git global option `%s`, which this guard does not know; an unknown option may or may not take the token after it, so neither the subcommand nor the directory git would run in can be established. Run the git command directly, from inside the repository it targets.\n' \
-    "$1" >&2
-  exit 2
+  deny_refusal "hatsu: refusing this command — it carries the git global option \`$1\`, which this guard does not know; an unknown option may or may not take the token after it, so neither the subcommand nor the directory git would run in can be established. Run the git command directly, from inside the repository it targets."
 }
 
 command_line=$(json_str "$payload" command)
-[ -n "$command_line" ] || exit 0
+[ -n "$command_line" ] || command_line=$(json_str "$payload" CommandLine)
+if [ -n "$command_line" ]; then
+  : # found
+elif [ "$is_antigravity" -eq 1 ]; then
+  printf '{"decision":"allow"}\n'
+  exit 0
+else
+  exit 0
+fi
 
 cwd=$(json_str "$payload" cwd)
+[ -n "$cwd" ] || cwd=$(json_str "$payload" Cwd)
+if [ -z "$cwd" ] || [ ! -d "$cwd" ]; then
+  ws=$(printf '%s\n' "$payload" | sed -n 's/.*"workspacePaths"[[:space:]]*:[[:space:]]*\[[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)
+  [ -n "$ws" ] && cwd=$ws
+fi
 [ -n "$cwd" ] || cwd=$PWD
-[ -d "$cwd" ] || exit 0
+[ -d "$cwd" ] || {
+  [ "$is_antigravity" -eq 1 ] && printf '{"decision":"allow"}\n'
+  exit 0
+}
 
 # --- step 0: unwrap a shell wrapper -----------------------------------------
 # `sh -c '<script>'` RUNS <script>. Left alone, masking would collapse the
@@ -732,9 +759,7 @@ EOF
 
 # --- fail closed: branch change and write on the same line -------------------
 if [ "$changes_branch" -eq 1 ]; then
-  printf 'hatsu: refusing a compound command that changes branch and writes; run them separately. The branch this guard can see is the one you are on now, not the one %s would land on, so the base-branch check would be answered by the wrong repository state.\n' \
-    "$act" >&2
-  exit 2
+  deny_refusal "hatsu: refusing a compound command that changes branch and writes; run them separately. The branch this guard can see is the one you are on now, not the one $act would land on, so the base-branch check would be answered by the wrong repository state."
 fi
 
 # --- pass 2: the branch comparison, once per write --------------------------
@@ -850,11 +875,10 @@ EOF
 
   [ "$branch" = "$base" ] || continue
 
-  printf 'hatsu: refusing %s on %s — %s is the workflow base (nen/workflow.json branch.base) and is only ever reached through a merged PR; cut {model}/{persona}/{descriptor} with the breath skill (nen shu warmup --repo <path> --branch <name>) and commit there.\n' \
-    "git $sub" "$base" "$base" >&2
-  exit 2
+  deny_refusal "hatsu: refusing git $sub on $base — $base is the workflow base (nen/workflow.json branch.base) and is only ever reached through a merged PR; cut {model}/{persona}/{descriptor} with the breath skill (nen shu warmup --repo <path> --branch <name>) and commit there."
 done <<EOF
 $segments
 EOF
 
+[ "$is_antigravity" -eq 1 ] && printf '{"decision":"allow"}\n'
 exit 0

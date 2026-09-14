@@ -265,10 +265,11 @@ silently the first time they do not.
 **Say what was raised, in one line, before the reviews come back**: the scopes, the personas, the
 aliases, the isolated checkout each was given, and the gaps.
 
-**On Codex and on Cursor the mechanism is different and the rules are the same — § 9a is the table**:
-`deep` resolves to `sol` on Codex and to `grok` on Cursor, a Codex reviewer is a whole second
+**On Codex, Cursor, and Antigravity the mechanism is different and the rules are the same — § 9a is the table**:
+`deep` resolves to `sol` on Codex, to `grok` on Cursor, and to `pro` on Antigravity; a Codex reviewer is a whole second
 `codex exec` run in a worktree because that surface has no in-session subagent, a Cursor reviewer is a
-definition under `.cursor/agents/`, and the frontier tier runs no subagent on any of the three.
+definition under `.cursor/agents/`, an Antigravity reviewer is an in-session subagent invoked via
+`invoke_subagent` with `Workspace: "branch"`, and the frontier tier runs no subagent on any of the surfaces.
 
 ## 5. One fixed finding shape
 
@@ -440,18 +441,18 @@ four things, and where it supplies fewer, hanten says which:
 a weaker review and the report says so: the reader must be able to tell a finding raised by a separate
 reviewer from one Kurapika raised against his own diff. It is never presented as the former.
 
-### 9a · The two surfaces Hatsu ships a mirror for
+### 9a · The three surfaces Hatsu ships a mirror for
 
 [`docs/SURFACES.md`](../../../docs/SURFACES.md) is the authority on how the personas get onto each
 surface; this is what hanten does with them once they are there.
 
-| | **Claude Code** | **Codex** (`$hanten`) | **Cursor** (`/hanten`) |
-|---|---|---|---|
-| reviewer **tier** (`models.roles.reviewer`) | `deep` | `deep` | `deep` |
-| the alias that tier resolves to | **`opus`** | **`sol`** | **`grok`** — Cursor-native only |
-| how the reviewer is raised | the harness's **Agent tool**, `isolation: "worktree"` | **`codex exec -m "$sol" -C <dir>`** — a *separate process*, in its own directory; `$sol` is the alias **resolved to the host's id** below, never the alias itself | a **subagent definition** under `.cursor/agents/<persona>.md`, invoked as that surface documents |
-| where the persona definition lives on that surface | `claude/agents/<persona>.md` | a `## <persona>` section of the generated `AGENTS.md` | `.cursor/agents/<persona>.md` |
-| isolation | a worktree the harness makes | **the directory you pass to `-C`** — make it a `git worktree` first | whatever the surface gives a subagent; **state which** |
+| | **Claude Code** | **Codex** (`$hanten`) | **Cursor** (`/hanten`) | **Antigravity** (`/hanten`) |
+|---|---|---|---|---|
+| reviewer **tier** (`models.roles.reviewer`) | `deep` | `deep` | `deep` | `deep` |
+| the alias that tier resolves to | **`opus`** | **`sol`** | **`grok`** — Cursor-native only | **`pro`** (Gemini Pro) |
+| how the reviewer is raised | the harness's **Agent tool**, `isolation: "worktree"` | **`codex exec -m "$sol" -C <dir>`** — a *separate process*, in its own directory; `$sol` is the alias **resolved to the host's id** below, never the alias itself | a **subagent definition** under `.cursor/agents/<persona>.md`, invoked as that surface documents | the harness's **`invoke_subagent` tool**, `Workspace: "branch"`, `Model: "pro"` |
+| where the persona definition lives on that surface | `claude/agents/<persona>.md` | a `## <persona>` section of the generated `AGENTS.md` | `.cursor/agents/<persona>.md` | `surfaces/antigravity/agents/<persona>.md` or `.agents/rules/AGENTS.md` |
+| isolation | a worktree the harness makes | **the directory you pass to `-C`** — make it a `git worktree` first | whatever the surface gives a subagent; **state which** | **`Workspace: "branch"`** — an isolated branch workspace managed by Antigravity |
 
 **Codex has no in-session subagent, and that is the fact the row above is built on** — verified against
 the CLI on this host rather than remembered (`docs/ab/surfaces.md` § 3.4). `codex exec --help` documents
@@ -524,7 +525,12 @@ papered over, and the rule is § 4's own — a pin that cannot resolve on the su
 **reported as unresolvable and the role's tier is used instead** (`grok`), with the substitution stated in
 the title and in the report. It is never silently honoured and never silently dropped.
 
-**The frontier tier never runs a subagent, on any surface** — `fable`, `astra`, `grok`. On **Cursor the
+**On Antigravity, subagents are native and isolation is built-in.** Kurapika invokes the reviewer using
+`invoke_subagent` with `Workspace: "branch"` (which creates an isolated git worktree/branch for the subagent)
+and `Model: "pro"` (matching the `deep` reviewer tier in `models.antigravity.deep`). When the review
+finishes, findings are returned directly into the parent context.
+
+**The frontier tier never runs a subagent, on any surface** — `fable`, `astra`, `grok`, `ultra`. On **Cursor the
 frontier and deep tiers name the same alias** (`grok`), so on that one surface the rule cannot be checked
 by reading the alias: it is enforced on the **role**. A reviewer is raised at `models.roles.reviewer`, which
 is `deep`, and is never raised as an orchestrator; that the resulting string happens to equal the frontier
@@ -533,8 +539,8 @@ alias both — *"tier `deep` → `grok` (Cursor-native; `frontier` names the sam
 of the transcript can tell the two apart.
 
 **The title rule does not change on any surface.** `hanten · <persona> · <model alias>` —
-`hanten · feitan · sol`, `hanten · hisoka · grok (pin sonnet unresolvable on cursor)`. On Codex, where the
-"title" is whatever the transcript records, it goes in the prompt's first line and in the report.
+`hanten · feitan · sol`, `hanten · hisoka · grok (pin sonnet unresolvable on cursor)`, `hanten · feitan · pro`.
+On Codex, where the "title" is whatever the transcript records, it goes in the prompt's first line and in the report.
 
 ## Residue
 

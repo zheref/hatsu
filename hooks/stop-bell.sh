@@ -90,6 +90,11 @@ json_str() {
 sanitize() { printf '%s' "$1" | tr -d '"\\' | tr -d '\n'; }
 
 cwd=$(json_str "$payload" cwd)
+[ -n "$cwd" ] || cwd=$(json_str "$payload" Cwd)
+if [ -z "$cwd" ] || [ ! -d "$cwd" ]; then
+  ws=$(printf '%s\n' "$payload" | sed -n 's/.*"workspacePaths"[[:space:]]*:[[:space:]]*\[[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)
+  [ -n "$ws" ] && cwd=$ws
+fi
 [ -n "$cwd" ] || cwd=$PWD
 [ -d "$cwd" ] || exit 0
 
