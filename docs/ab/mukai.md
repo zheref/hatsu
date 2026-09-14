@@ -201,18 +201,19 @@ exits `0` at this pin, `codex ok: 40`, `cursor ok: 47`.
 
 ## Explicit-invocation terminus regression — 2026-09-13 correction
 
-The concrete failure was an explicitly invoked Mukai run that opened a PR and published screenshots,
-then ended with “CI tests and Copilot review remain pending.” The PR later accumulated unattended review
-comments. The authoritative outcome table is now:
+The concrete failure was a user turn initiated by Mukai that opened a PR and published screenshots,
+then stopped after Mukai's handoff with “CI tests and Copilot review remain pending.” The PR later
+accumulated unattended review comments. Mukai itself is supposed to end at that handoff; the defect was
+failing to start and continue En immediately in the same user turn. The authoritative ownership table is:
 
-| State | Mukai outcome |
+| State | Owner and outcome |
 |---|---|
-| PR opened / evidence published / En started | In progress |
-| Required CI or owed current-head reviewer round pending | In progress; keep observing and handling incoming findings |
-| Assistant response would otherwise end | Not an outcome; continue the explicit run |
-| Same-head `nen pr ready` + `nen pr body-check` pass, every base-required context appears in the current-head rollup, and Sharingan confirmation is otherwise clear | Success at G2/G4; human merge/vote remains |
-| Genuine G5, acting-cap refusal, impossible terminal state, cancellation, or actual host/user interruption | Non-success terminus, named exactly |
+| PR opened / evidence published / landing report rendered / En started | Mukai ends successfully at the handoff; the user turn continues under En |
+| Required CI or owed current-head reviewer round pending | En is in progress; it keeps observing and handling incoming findings |
+| Assistant response would otherwise end while En is pending | Not an En outcome; continue the user turn |
+| Same-head `nen pr ready` + `nen pr body-check` pass, every base-required context appears in the current-head rollup, and Sharingan confirmation is otherwise clear | En succeeds at G2/G4; human merge/vote remains |
+| Genuine G5, acting-cap refusal, impossible terminal state, cancellation, or actual host/user interruption | The owning skill's non-success terminus, named exactly |
 
 This is a prose-contract regression: composition still has no single Nen verb. The deterministic pieces
-remain `nen pr ready`, `nen pr body-check`, `nen watch until`, and `nen loop iterate`; the workflow must not
-replace any of those with a conversational success claim.
+remain `nen pr ready`, `nen pr body-check`, `nen watch until`, and `nen loop iterate`; the workflow must
+not conflate Mukai's successful En handoff with En's later readiness result.

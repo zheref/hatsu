@@ -15,9 +15,10 @@ Transmuter), named out loud for that cycle and handed back afterwards.
 > Ready, ring once at its human gate — and stop after at most N acting cycles.**
 
 En is the last composite of the local plane and the only one that may need to **hold attention past
-the moment the PR was opened**. [`$mukai`](../mukai/SKILL.md) continues through this handover;
-from there the PR belongs to en until Sharingan proves it Ready, or a concrete blocker/cap/terminal
-state/cancellation ends the run. The merge itself is the maintainer's later act and is outside En.
+the moment the PR was opened**. [`$mukai`](../mukai/SKILL.md) ends by starting this handoff; from
+there the PR and the still-active user turn belong to En until Sharingan proves it Ready, or a concrete
+blocker/cap/terminal state/cancellation ends En's run. The merge itself is the maintainer's later act
+and is outside En.
 
 **This file composes. It does not re-specify.** Every step below is another skill's, named and
 linked, and its procedure, its exit-code reactions, its refusals and its residue live there. If you

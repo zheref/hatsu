@@ -600,7 +600,7 @@ It loops. **It never pushes and never opens a pull request.**
 | Phase | What it does | Why it is the human's |
 |---|---|---|
 | [`aka`](../claude/skills/aka/) | lint → squash the unpushed commits → `ao` → final-tree regression → push | publishing work is a decision, and a squash is destructive |
-| [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → matching aka regression evidence → `gyo` → publish proven updates → evidence → `shibari` opens the PR → continue through `en` until current-head Ready. **§ 5 is the full shape** | a PR is a request for other people's attention; pending is not success |
+| [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → matching aka regression evidence → `gyo` → publish proven updates → evidence → `shibari` opens the PR → landing report → start `en` and end Mukai. **§ 5 is the full shape** | Mukai hands ownership to En; the same user turn continues, and pending is En's in-progress state |
 | **merge** | **G2** (`CON-5`) | never delegated, by any agent, anywhere |
 | [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always, and `--run` acts only on a call that **names the target** | the blast radius leaves this machine |
 | [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3** (`CON-6`): only on a recorded per-target go, with the preflight green and the tag already cut — one target per call | the blast radius is other people's users |
@@ -654,7 +654,7 @@ maintainer's to call. Its order is fixed, and each step has exactly one job.
 | **5** | [`kokusen`](../claude/skills/kokusen/) then the push half of `murasaki` | **publishes the final proved tree.** Changes from steps 2–4 repeat the focused checkpoint, aka-owned lint/regression and coverage steps first; The review's fixes and gyo's new tests are edits to the working copy, and neither of those skills may commit or push; step 7 refuses to open a PR while `HEAD` is ahead of `origin/<branch>` | **G5** on a semantic conflict where the base moved again |
 | **6** | evidence | the changed visual artifacts, from `project.evidence` (§ 3), grouped **suite → scene** | not a gate event |
 | **7** | [`shibari`](../claude/skills/shibari/) | composes and opens **one** PR, requests the reviewers and writes the body back | never labels a gate, never merges |
-| **8** | [`rikugan`](../claude/skills/rikugan/) `as landing` | the landing report, rendered **after** the PR exists because its two extra sections — the PR body and the readiness verdict — are step 7's outputs. Then **continues through [`en`](../claude/skills/en/)** until current-head readiness is proved | not a gate event; an open PR, screenshots, or pending CI/review is progress, never Mukai's terminus |
+| **8** | [`rikugan`](../claude/skills/rikugan/) `as landing` | the landing report, rendered **after** the PR exists because its two extra sections — the PR body and the readiness verdict — are step 7's outputs. Mukai then starts [`en`](../claude/skills/en/) and ends | not a gate event; En owns current-head readiness from the immediate handoff, and the user turn remains active under En while CI/review is pending |
 
 **Four of the five G5 conditions of § 4 live inside this one phase.** That is not an accident of layout: a
 pull request is the moment work stops being private, so it is the moment the honest questions are cheapest to
