@@ -286,6 +286,7 @@ section:has(.verdict) .note-empty,
 section:has(pre) .note-empty,
 .last-turn:has(.last-turn-list li) > .note-empty,
 .mukai-block:has(dl) > .note-empty { display: none; }
+.g5-blocker:has(.blocker-finding) .note-empty { display: none; }
 
 /* ---- chips ------------------------------------------------------------ */
 .chip {
@@ -328,14 +329,38 @@ section:has(pre) .note-empty,
   font: var(--w-semi) var(--t-lead)/1.3 var(--sans);
 }
 .mukai-block h3:first-child { margin-top: 0; }
-.correction dt, .check-issue dt, .half-stop dt {
+.correction dt, .check-issue dt, .half-stop dt, .blocker-meta dt, .blocker-finding dt {
   font: var(--w-semi) var(--t-micro)/1.4 var(--mono);
   letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3);
 }
-.correction dd, .check-issue dd, .half-stop dd {
+.correction dd, .check-issue dd, .half-stop dd, .blocker-finding dd {
   margin: 0 0 .55rem;
   font-size: var(--t-fine);
 }
+.g5-blocker {
+  border-color: color-mix(in srgb, var(--bad) 35%, var(--rule));
+}
+.g5-blocker h2 { color: var(--bad); }
+.blocker-meta { margin: 0 0 1rem; }
+.blocker-finding {
+  margin: 1rem 0 0;
+  padding: .75rem 0 0;
+  border-top: 1px solid var(--rule-soft);
+}
+.blocker-finding:first-of-type { border-top: 0; padding-top: 0; }
+.blocker-shots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: .75rem;
+  margin: .5rem 0 0;
+}
+.blocker-shots figure { margin: 0; }
+.blocker-shots figcaption {
+  font: var(--w-semi) var(--t-micro)/1.4 var(--mono);
+  letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3);
+  margin-top: .35rem;
+}
+.blocker-shots img { width: 100%; height: auto; border: 1px solid var(--rule-soft); }
 
 /* ---- architecture delta -----------------------------------------------
    A change-highlighted board of conceptual elements and the relations
@@ -594,6 +619,39 @@ footer .footer-note { flex-basis: 100%; color: var(--ink-2); letter-spacing: 0; 
     </div>
     {{/if}}
   </section>
+
+  {{#if blocker}}
+  <section data-tone="risk" class="g5-blocker" id="g5-blocker">
+    <h2><span class="ord">G5</span> Why this run stopped</h2>
+    <p class="lead">The blocker that fired the gate — expected versus actual, with the evidence from this run. Not a later variant, not an older screenshot.</p>
+    <dl class="blocker-meta">
+      <dt>Step that stopped</dt><dd>{{blocker.step}}</dd>
+      <dt>Why</dt><dd>{{blocker.why}}</dd>
+      <dt>Rule or threshold</dt><dd>{{blocker.rule}}</dd>
+      <dt>What ran after, and what did not</dt><dd>{{blocker.executedAfter}}</dd>
+      <dt>Next action</dt><dd>{{blocker.nextAction}}</dd>
+    </dl>
+    {{#each blocker.findings}}
+    <dl class="blocker-finding" data-kind="{{kind}}">
+      <dt>Finding</dt><dd>{{name}} <span class="chip">{{kind}}</span></dd>
+      <dt>Expected</dt><dd>{{expected}}</dd>
+      <dt>Actual</dt><dd>{{actual}}</dd>
+      <dt>Why it matters</dt><dd>{{significance}}</dd>
+      <dt>Source / assertion / excerpt</dt><dd>{{refs}}</dd>
+      {{#if evidenceUnavailable}}<dt>Evidence unavailable</dt><dd>{{evidenceUnavailable}}</dd>{{/if}}
+    </dl>
+    <div class="blocker-shots">
+      {{#each captures}}
+      <figure>
+        <img src="{{src}}" alt="{{alt}}" loading="lazy">
+        <figcaption>{{role}}</figcaption>
+      </figure>
+      {{/each}}
+    </div>
+    {{/each}}
+    <p class="note-empty">A G5 fired and no finding row was recorded — that is itself a gap.</p>
+  </section>
+  {{/if}}
 
   <section data-tone="win">
     <h2><span class="ord">01</span> Accomplished</h2>

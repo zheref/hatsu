@@ -554,9 +554,9 @@ is holding, so you can catch him holding the wrong one *before* he acts on it.
 
 ### The independents
 
-**Seven, beside Kurapika: six ratified, and one — Illumi — *provisioned* rather than ratified and marked as
-such.** Each has a discipline he delegates to rather than absorbing. The last three landed at `v0.5.0`, with
-the PR side that needs them.
+**Eight, beside Kurapika: seven ratified, and one — Illumi — *provisioned* rather than ratified and marked as
+such.** Each has a discipline he delegates to rather than absorbing. Three landed at `v0.5.0`, with
+the PR side that needs them. **Netero landed at `v0.25.0`.**
 
 | Agent | Discipline | Status |
 |---|---|---|
@@ -567,6 +567,7 @@ the PR side that needs them.
 | **[Feitan](claude/agents/feitan.md)** | **Security, and security only** — auth flows, secrets and credential handling, network and storage boundaries, data minimisation, the supply chain. He cites the inherited `SEC-{n}` rules **by id, resolved from the handbook set and never from memory**, and never runs an exploit against anything live. | **Ratified** 2026-09-09; definition at `v0.5.0` |
 | **[Chrollo](claude/agents/chrollo.md)** | **Architecture and handbook conformance** — the `UZF-{n}` core, **exactly one** resolved stack handbook, and the repository's own architecture notes, each cited by id or by path. He is where a coverage-floor breach or a missing unit test is routed. **He reviews the handbooks; he never authors them.** | **Ratified** 2026-09-09; definition at `v0.5.0` |
 | **[Illumi](claude/agents/illumi.md)** | **The long watch** — `en`'s step 5, during a long pre-Ready observation hold. Read-only through `nen watch until`; quiet observations never spend en's mandatory acting-cycle cap. He wakes Kurapika and acts on nothing. His frontmatter carries no `Edit`, `Write` or `MultiEdit`, and `Bash` — which every observation needs — is held to a **stated command allowlist** in his own definition rather than to a construction. | **PROVISIONED, not ratified** — `en`'s watch **only**; see below |
+| **[Netero](claude/agents/netero.md)** | **Process chairman** — observes Hunters in execution and files complete, labelled issues when constitution, canon prose, or machinery need enhancement. Routes each finding to Nen or Hatsu with acceptance criteria and cross-references for deployment, fan-out and provisioning. He files; he never implements the filed work. | **Ratified** 2026-09-14; definition at `v0.25.0` |
 
 > #### ⚠️ Gon's delegation grammar is a DRAFT — until it is ratified, Gon crosses no gate
 >

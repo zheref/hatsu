@@ -415,3 +415,27 @@ $ nen schema check --repo <this checkout>
 **Six rows, the two this skill reads both `ok`, and the exit `1` is Hatsu shipping no taxonomy** —
 identical in shape to the same call against `origin/main` before this repin (also exit `1`, also four
 non-`ok` rows), so nothing here regressed. `hatsu-warmup` § 1 is the authority on all six.
+
+---
+
+## 2026-09-14 — a new effort from a clean unrelated feature branch ([#60](https://github.com/zheref/hatsu/issues/60))
+
+**Live, this repository, this session.** Checkout was `on-branch-clean` on
+`grok/kurapika/mukai-impacted-regression` (previous effort, already merged). The request was a new
+effort (Netero + #60 + #56), not an explicit continuation.
+
+| Step | Result |
+|---|---|
+| `nen wc classify --repo <hatsu> --base main` | `on-branch-clean` on `grok/kurapika/mukai-impacted-regression` |
+| Old § 3 reading | would have reported "already warm" and returned |
+| New § 3a reading | **new effort** — silence about continuation |
+| `nen shu warmup --branch grok/kurapika/netero-breath-g5 --from main` | cut from freshly fetched `origin/main` `27f6ebf`; previous feature branch left in place |
+| `nen shu lint --lane plugin` | exit `0` — base-tip proof (plugin lane seats `build`, exit `4` from warmup is the seat) |
+
+Constructed remaining cases, not re-run as a second git mutation:
+
+| Case | Expected |
+|---|---|
+| Clean trunk, new effort | ordinary § 4–6 cut |
+| Explicit "continue" / turn 2+ of this session's effort | report current branch, do not cut |
+| Dirty unrelated feature branch, new effort | ask, showing paths; never `--discard` |

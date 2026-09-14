@@ -460,3 +460,25 @@ and docs/LAUNCH-MIGRATION.md; historical command transcripts above retain their 
 | Turn/final report sees stale test or coverage artifact | Mark stale; do not execute tests/coverage merely to render the page |
 | Repeated discovery already captured | Unchanged result and no GitHub write; retain canonical link |
 | Filing unavailable | Durable sanitized pending record; original work continues where possible |
+
+---
+
+## 2026-09-14 — G5 blocker on the turn page ([#56](https://github.com/zheref/hatsu/issues/56))
+
+`tests[]` remains `final`-only. The stop handoff is `blocker`, visible on `turn`.
+
+**Constructed — red assertion.** A required suite fails `expected 2, actual 3`. `blocker.step` is
+`kotoamatsukami` (or `aka` when aka owns the stop), `findings[].kind` is `assertion`, `expected` /
+`actual` filled from the runner, `captures[]` empty, `refs` holds the assertion excerpt.
+`nextAction` is investigate the clock read, not skip the suite.
+
+**Constructed — visual mismatch.** Snapshot match 97.95% against a 99% floor. `kind` is `visual`.
+`captures[]` has three rows, `role` `actual` / `reference` / `diff`, `src` from **this run's**
+artifacts. An older session screenshot in **05** is not this failure's evidence.
+
+**Constructed — missing evidence.** The runner did not write a diff image. `captures[]` is empty
+and `evidenceUnavailable` names why. The page still states expected versus actual.
+
+**Jutaisho.** A G5 stop whose rendered HTML lacks `#g5-blocker` (or lacks expected/actual) is not
+handed off. Re-render with `blocker` filled, then link.
+

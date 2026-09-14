@@ -82,11 +82,34 @@ the same table for its own phase):
 
 | Case | What breath does |
 |---|---|
-| `on-branch-clean` **on the trunk** | The ordinary first turn. Go to § 4 |
-| `on-branch-clean` **on a branch** | An effort is already warm. Report the branch and return — do not cut a second one |
+| `on-branch-clean` **on the trunk** | The ordinary first turn of a **new** effort. Go to § 4 |
+| `on-branch-clean` **on a branch** | **Not proof that this request is that effort.** Classify new-vs-continuation first (§ 3a). A **new** effort goes to § 4 and cuts a freshly rendered branch from the fetched base, leaving the current feature branch untouched. An **explicit continuation** reports the current branch and returns — do not cut a second one |
 | `must-move` — on the trunk, dirty | **The one thing breath asks about.** Show every uncommitted path and ask: carry the work onto the new branch (the ordinary answer — `git stash`, cut, `git stash pop`, each step named as residue in § 8), **exclude it locally** where the paths are not work at all (the third door, below), or stop so the maintainer can deal with it. **Never `--discard`** |
-| `on-branch-dirty` | Uncommitted work on an existing branch. Not breath's to judge whether it is this effort: report the commit subjects and paths the verb printed, and hand the turn to [`/kokusen`](../kokusen/SKILL.md) or the maintainer |
+| `on-branch-dirty` | Uncommitted work on an existing branch. Classify new-vs-continuation first (§ 3a). An **explicit continuation** of *this* branch's effort: report the commit subjects and paths the verb printed, and hand the turn to [`/kokusen`](../kokusen/SKILL.md) or the maintainer. A **new** effort: show those paths and **ask** — never discard, never treat another effort's dirty tree as this request's, never cut a second branch over it |
 | **a detached `HEAD`** | **Classified like any other working copy at the pinned build**, into one of the three rows above with `branch: null` — never `must-move`, because a commit made there lands on no branch. Read `detachedAt`, say it in § 7's line, go on; see the box below |
+
+### 3a · New effort vs explicit continuation — decided before any cut
+
+**Default: this request is a new effort.** Reusing the current feature branch is valid **only**
+when the caller explicitly identifies the work as a continuation of that effort. A clean
+non-trunk checkout is not that identification. Treating it as "already warm" is how an
+unrelated Endeavor lands on last week's prize-recollection branch
+([zheref/hatsu#60](https://github.com/zheref/hatsu/issues/60)).
+
+| Signal | Reading | What breath does |
+|---|---|---|
+| First turn of a `ren` loop, a new human request, a different issue or object, or silence about continuation | **New effort** | Fetch, fast-forward the configured `branch.base`, cut a **new** name from `branch.template`, prove the tip. The branch the checkout happened to sit on is left where it is |
+| The maintainer said "continue", "same effort", "on this branch"; or this is turn 2+ of a `ren` loop whose step 1 already cut *this* branch in this session | **Explicit continuation** | Report the branch and return. Do not cut a second one |
+| Dirty tree on a feature branch, and the request is new | **New effort, blocked by someone else's (or last effort's) work** | Ask, showing every uncommitted path. Never `--discard`. Never stash onto the new effort unasked |
+
+[`/ren`](../ren/SKILL.md) uses the same table: step 1 runs on the first turn of **this**
+effort, and a new request that is not an explicit continuation **is** a new effort, even when
+`nen wc classify` reads `on-branch-clean` off last effort's branch.
+
+**A new effort always receives a newly rendered branch name**, even when the checkout currently
+sits on a clean feature branch. `nen shu warmup --branch <new name> --from <branch.base>` is
+what cuts it: the git sequence does not require the checkout to already be on the trunk. The
+old feature branch remains, unpublished or not; breath never deletes it.
 
 ### RETIRED at nen `0.6`: a detached `HEAD` is CLASSIFIED, not refused
 
@@ -336,7 +359,7 @@ verification costs.
 ## 7. What the turn reports
 
 One line, and it is not a gate event: the case `wc classify` reported (**or its refusal, when the
-checkout was detached** — § 3), the branch cut and the tip it was cut from, the toolchain verdict, the
+checkout was detached** — § 3), **new effort or explicit continuation** (§ 3a), the branch cut and the tip it was cut from (or the branch reused, named as a continuation), the toolchain verdict, the
 build's exit code, **the path of any `info/exclude` written and the lines added to it** (§ 3's third door:
 that file is the whole repository's, so an exclude nobody was told about is a checkout that silently
 stopped reporting a file), and — where it applies — the `no workflow.json` sentence from § 2. A warm-up
@@ -368,6 +391,8 @@ that did not run is reported as **not run**, never rendered as clear.
   not read (§ 3, verified).
 - **Deciding whether an existing dirty branch is this effort** stays judgment. `nen wc classify`
   hands over the commit subjects and the paths and says outright the call is not the module's.
+  **New-versus-continuation on a clean feature branch is not that judgment** — § 3a is a closed
+  table, and silence is a new effort ([zheref/hatsu#60](https://github.com/zheref/hatsu/issues/60)).
 
 ## 9. Authority
 
@@ -395,6 +420,9 @@ that did not run is reported as **not run**, never rendered as clear.
   unreachable commits is the real stop.
 - **Never treats a `2` from `nen shu tools` taken before the fast-forward as the host's verdict**
   (§ 4). It is deferred, and re-probed after the cut.
+- **Never reuses a feature branch for a new effort.** A clean non-trunk checkout is not a
+  continuation. Continuation requires an explicit identification from the caller or a later turn
+  of the effort this session already cut (§ 3a, [zheref/hatsu#60](https://github.com/zheref/hatsu/issues/60)).
 - **Never cuts a branch from a stale trunk** — the cut is `origin/<base>`'s freshly fetched tip, which
   is `shu warmup`'s own sequence, not a `git checkout -b` typed by hand.
 - **Never cuts from a literal `origin/main`.** The trunk is `origin/<branch.base>`, passed as

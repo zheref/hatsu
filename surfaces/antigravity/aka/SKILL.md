@@ -340,6 +340,13 @@ address, with the push written into **00 This last turn** and **01 Accomplished*
 fourth variant and aka does not invent one. **00** answers the aka request: lint, squash, ao,
 push — and that tests were not due.
 
+**A G5 on this run fills `blocker` on that same `turn` page** ([zheref/hatsu#56](https://github.com/zheref/hatsu/issues/56);
+rikugan § 5a). Red lint, a semantic conflict from [`/ao`](../ao/SKILL.md), or any other stop
+aka owns: the payload names the step, the rule, expected versus actual, and the next action.
+Visual failures embed this run's actual / reference / diff. Do not wait for `final` or for a PR.
+[`/jutaisho`](../jutaisho/SKILL.md) will refuse to hand off a report that does not contain
+that content.
+
 **Then say what is available next, without asking for it**: `/mukai` opens the PR.
 [`/ren`](../ren/SKILL.md)'s loop is over for this effort — its own rule is that it ends only on
 `aka` or [`/tensho`](../tensho/SKILL.md), and this was `aka`.

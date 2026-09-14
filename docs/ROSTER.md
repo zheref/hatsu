@@ -49,12 +49,12 @@ workspace branch isolation (`Workspace: "branch"`).
 
 ## The independents
 
-**Seven definitions stand in `claude/agents/` beside Kurapika's: six ratified, and one — Illumi —
+**Eight definitions stand in `claude/agents/` beside Kurapika's: seven ratified, and one — Illumi —
 *provisioned* rather than ratified, marked as such in its own row and in its own file.** Each carries a
 discipline Kurapika delegates to rather than absorbing. Three of them landed at **`v0.5.0`**, with
 [`hanten`](../claude/skills/hanten/SKILL.md): Feitan and Chrollo on the ruling of 2026-09-09 below, Illumi on
-the provision. On Antigravity, they are provisioned as subagents (`agents/<persona>.md`) and unified rules
-(`rules/AGENTS.md`), dispatched at `deep` (`pro`) for reviewers and `fast` (`flash`) for workers.
+the provision. **Netero landed at `v0.25.0`** on the ruling of 2026-09-14. On Antigravity, they are provisioned as subagents (`agents/<persona>.md`) and unified rules
+(`rules/AGENTS.md`), dispatched at `deep` (`pro`) for reviewers and the chairman, `fast` (`flash`) for workers.
 
 | Agent | Definition | Discipline | Status |
 |---|---|---|---|
@@ -65,6 +65,7 @@ the provision. On Antigravity, they are provisioned as subagents (`agents/<perso
 | **Feitan** | `claude/agents/feitan.md` | **Security, and security only.** The security-bearing scope of an adversarial review: auth flows, secrets and credential handling, network and storage boundaries, data minimisation, the supply chain. Cites the inherited `SEC-{n}` rules **by id, resolved and never remembered** (`SEC-8` and `SEC-14` are referenced in the product repositories), plus a repository's own security notes by path. | **Ratified** on the ruling of 2026-09-09 below; **definition landed at `v0.5.0`** |
 | **Chrollo** | `claude/agents/chrollo.md` | **Architecture and handbook conformance.** The `UZF-{n}` core, **exactly one** resolved stack handbook (`SW-`/`KT-`/`RC-`/`BC-`), and a repository's own architecture notes — KroApple's `.claude/Architecture/` is the live example — each cited by id or by path. He is the architecture reviewer the QA lane routes a coverage-floor breach or a missing unit test to (`UZF-19`). **He reviews the handbooks; he never authors them.** | **Ratified** on the ruling of 2026-09-09 below; **definition landed at `v0.5.0`** |
 | **Illumi** | `claude/agents/illumi.md` | **The long watch — `en`'s step 5, and no other loop.** Read-only observation through `nen watch until`, under `izanagi`'s mandatory cap and `workflow.json` → `monitor`. He wakes Kurapika and acts on nothing: never merges, votes, comments, labels, pushes, or fires a wake. His frontmatter carries no `Edit`, `Write` or `MultiEdit` — **but `Bash` is there, because every observation is a program, so read-only is a stated command allowlist in his own definition and not a property of the tool set.** Said that way rather than dressed up as a construction, per ruling 2's own standard. | **PROVISIONED, NOT RATIFIED** — `OPEN-1`, **partially** closed 2026-09-09. The definition landed at `v0.5.0` so the provision can be executed; **it widens nothing**. See below |
+| **Netero** | `claude/agents/netero.md` | **Process chairman.** Observes Hunters in execution and files complete, labelled issues when constitution, canon prose, or machinery need enhancement — duration, redundancy, autonomy gaps, repetitive jobs that should be Nen verbs, missing toolchain. Routes each finding to Nen or Hatsu with observable acceptance criteria and cross-references for deployment, fan-out and provisioning. He files; he never implements the filed work. | **Ratified** 2026-09-14; definition landed at `v0.25.0` |
 
 ### ⚠️ Gon's delegation grammar is a DRAFT — **until it is ratified, Gon crosses no gate**
 
@@ -248,7 +249,7 @@ maintainer's words are the rule:
 What that means here, in order of how often it bites:
 
 1. **Every agent in this roster that writes a commit writes `Hatsu-Agent: <their name>`** — Kurapika,
-   Gon, Hisoka, Phinks, Uvogin, Feitan and Chrollo, each in their own definition's words. **Illumi is
+   Gon, Hisoka, Phinks, Uvogin, Feitan, Chrollo and Netero, each in their own definition's words. **Illumi is
    the exception, and not by omission**: he is read-only and produces no commits, so his file states
    the plane's rule hypothetically — *"`Hatsu-Agent: illumi` would be the trailer"* — and changing that
    would need a ruling, not a rewording.
@@ -311,6 +312,40 @@ base tip is a stop at step 1, before anything has started to be interrupted. No 
 authority widens, and no phase moves across a human gate: `aka`, `mukai`, the merge, `kagutsuchi` and
 `mugetsu` are still the maintainer's alone. The skill surface stays **thirty-eight skills**.
 
+
+---
+
+## Rulings of 2026-09-14
+
+### Netero is the process chairman — and Breath no longer reuses a branch by accident
+
+**Ruled 2026-09-14, on two execution failures and one standing gap.** The maintainer asked for a
+chairman who sees Hunters at work and files complete issues when constitution, canon, or machinery
+need enhancement; and for two defects that session had already paid for
+([zheref/hatsu#60](https://github.com/zheref/hatsu/issues/60),
+[zheref/hatsu#56](https://github.com/zheref/hatsu/issues/56)).
+
+1. **[`Netero`](../claude/agents/netero.md) is ratified as an independent**, definition landed at
+   `v0.25.0`, on the **deep** tier at effort `high`. He is **not** a Genei Ryodan bench activation
+   and **not** a provision. He observes Hunter execution and files complete, labelled issues —
+   duration, redundancy, autonomy gaps, repetitive jobs that should be Nen verbs, missing
+   toolchain — onto Nen or Hatsu with observable acceptance criteria and cross-references for
+   deployment, fan-out and provisioning. He files; he never implements the filed work, never
+   authors canon, never merges, never votes. [`docs/DISCOVERY.md`](DISCOVERY.md) names him the
+   writer for that class; Kurapika remains the writer for every other durable gap of the known
+   effort. **OPEN-1, OPEN-2 and OPEN-3 are untouched.**
+2. **Breath and Ren distinguish a new effort from an explicit continuation before any branch is
+   reused.** A new effort always fetches the configured base and cuts a newly rendered branch,
+   even from a clean unrelated feature branch. Continuation requires the caller to say so, or a
+   later turn of the effort this session already cut. Dirty-tree preservation, no implicit
+   discard, no push, no PR — unchanged.
+3. **A G5 stop report explains the blocker on the `turn` page.** Rikugan's `blocker` payload is
+   visible without `final`, without a PR, and without asking the maintainer to reconstruct the
+   failure from chat. Jutaisho verifies that content before the stop handoff links the page.
+   Aka, kotoamatsukami/mukai, and every other G5 owner fill the same object.
+
+**What this does not close.** Killua, Illumi's unruled engines, Gon's delegation grammar, and the
+five remaining bench profiles stay exactly as they were.
 
 ---
 

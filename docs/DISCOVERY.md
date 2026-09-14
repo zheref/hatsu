@@ -18,6 +18,17 @@ deterministic machinery; canon and consumer defects belong to their actual owner
 workaround exposes an upstream gap, record both the workaround and its upstream removal condition.
 Independent Hatsu prose and Nen machinery work remain separate, cross-linked issues.
 
+**Netero is the one writer for process-chairman findings** — constitution, canon prose, and
+machinery enhancement observed while Hunters execute (duration, redundancy, autonomy gaps,
+deterministic jobs still done by hand, missing toolchain, other roster friction).
+[`claude/agents/netero.md`](../claude/agents/netero.md) is the authority on that class: complete
+issues, every declared label that classifies them, observable acceptance criteria, and
+cross-references for deployment, fan-out and provisioning. Reviewers and executing Hunters still
+return sanitized evidence only. Kurapika remains the writer for every other durable gap of the
+known effort. When the main session is Kurapika and standing Netero up would add a boundary that
+buys nothing for a single filing, Kurapika applies Netero's completeness in Manipulator mode and
+names the switch.
+
 ## Reconcile before every write
 
 Run `nen issue search --target <owner/name> --subject <text>` with every available `--files`,

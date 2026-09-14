@@ -57,7 +57,7 @@ say so on the first one, so nobody is surprised by the report and the bell at th
 
 | # | Step | The skill that owns it | Why it is here |
 |---|---|---|---|
-| 1 | **warm up** | [`$breath`](../breath/SKILL.md) | **first turn of an effort only** — clean tree, fetch, fast-forward, cut the branch from the base, and prove the declared checks **on that fresh tip**: a base that does not build is a **G5** stop taken before any of the change is authored |
+| 1 | **warm up** | [`$breath`](../breath/SKILL.md) | **first turn of an effort only** — distinguish a new effort from an explicit continuation, then (for a new effort) fetch, fast-forward, cut a **fresh** branch from the base even if the checkout currently sits on a clean feature branch, and prove the declared checks **on that fresh tip**: a base that does not build is a **G5** stop taken before any of the change is authored. An existing feature branch is never reused implicitly |
 | 2 | **author the change** | [`$rasengan`](../rasengan/SKILL.md) | write what the maintainer asked for, on the stack this repository declares: the edits, the tests beside them, the docs and changelog its conventions owe — with the declared `iteration.checks` run as the author's own feedback while the work is in front of them |
 | 3 | **verify and commit** | [`$kokusen`](../kokusen/SKILL.md) | every inexpensive `iteration.checks` verb and the declared focused tests over the **finished** tree, red refused; then triage, an ask on what is flagged, one shaped commit — local only |
 | 4 | **launch** | [`$amaterasu`](../amaterasu/SKILL.md) | build a target-compatible artifact, install it and launch the configured device **from the core working directory** — or, where the repository declares no launch target (Hatsu's own case), record `no launch target declared; skipped` and continue **without asking** |
@@ -94,6 +94,13 @@ say so on the first one, so nobody is surprised by the report and the bell at th
 
 **Step 1 runs once per effort, not once per turn.** The second and every later turn of the same
 effort starts at step 2 — the next piece of work. Say which turn this is and whether breath ran.
+
+**A new request is a new effort unless the caller explicitly continues the current one.** Sitting
+on a clean feature branch from a previous effort is not a continuation
+([zheref/hatsu#60](https://github.com/zheref/hatsu/issues/60); [`$breath`](../breath/SKILL.md)
+§ 3a). Breath still runs, still fetches the configured base, and still cuts a newly rendered
+branch. Reuse is only for an explicit "continue" / "same effort" / "on this branch", or for
+turn 2+ of a loop whose step 1 already cut *this* branch in this session.
 
 **A step that refuses ends the turn where it refused.** Kokusen asking about a flagged file or
 refusing a red tree, amaterasu finding the declared device disconnected — each is that skill's own

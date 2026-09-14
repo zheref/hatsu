@@ -207,9 +207,16 @@ fill (`Effort | Open issues & PRs | Status (gate) | Thought flow | Session / lan
 exit `0`. Pass `--notified` **only if rung 1 actually fired** (§ 2). Both forms verified live,
 `docs/ab/jutaisho.md` § 2.2.
 
-**2 · The report link.** [`/rikugan`](../rikugan/SKILL.md) has already rendered and published
-the turn's page (`ren` step 5 runs before this one). The link goes in the stop; the stop never
-restates the page's contents.
+**2 · The report link — and the page must actually explain this stop.** [`/rikugan`](../rikugan/SKILL.md) has already rendered and published
+the turn's page (`ren` step 5 runs before this one). **Before the link goes in the stop, verify
+the rendered HTML contains readable G5 blocker content** ([zheref/hatsu#56](https://github.com/zheref/hatsu/issues/56);
+rikugan § 5a): section `#g5-blocker` (or the `g5-blocker` class), the step that stopped, why, the
+rule or threshold, each finding's expected versus actual, labelled actual/reference/diff images
+for a visual failure (or an explicit `evidenceUnavailable` reason), and a next action that is not
+a bypass. Decorative or unrelated screenshots in **05** do not count. If the page lacks that
+content, re-render through rikugan with `blocker` filled and verify again; **do not hand off a
+link whose page does not explain the stop.** The stop never restates the page's contents once
+that check has passed.
 
 **3 · Lettered options, with a ⭐ on the report.** The recommendation is always *read the report
 first* — the maintainer deciding without having opened the page is the failure this whole ordering
@@ -473,6 +480,9 @@ same — that is what rungs 2 and 3 are for.
   `nen stop` (§ 1, § 3). And **a turn that did nothing rings nothing at all** — § 1's narrow case.
 - **Never renders a stop with fewer than § 4's four parts** — banner, report link, lettered options
   with ⭐ on the report, and the question through the surface's own picker.
+- **Never hands off a G5 report link whose page lacks § 4's blocker verification** — step, why,
+  rule, expected versus actual, this-run evidence or an explicit unavailable reason
+  ([zheref/hatsu#56](https://github.com/zheref/hatsu/issues/56)).
 - **Never passes `--notified` for a push notification that did not go out.**
 - **Never claims a rung fired that did not** — an absent `osascript`, a hook that is not installed,
   a rung the workflow does not list, are each reported by name. **And never reads `osascript`'s exit `0`
