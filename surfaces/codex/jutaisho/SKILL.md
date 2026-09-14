@@ -220,8 +220,8 @@ exists to prevent. Options are concrete acts, not moods: *"⭐ A — open the re
 **AskUserQuestion**, not a paragraph ending in a question mark. A stop rendered as prose is a stop
 the maintainer has to compose an answer to, and it is not this skill's shape.
 
-**Only a genuine G5-class stop interrupts.** Red required tests inside [`$aka`](../aka/SKILL.md),
-coverage under the minimum inside `$gyo`, a semantic conflict inside [`$ao`](../ao/SKILL.md),
+**Only a genuine G5-class stop interrupts.** Red required tests inside [`$kotoamatsukami`](../kotoamatsukami/SKILL.md),
+coverage under the minimum inside [`$byakugan`](../byakugan/SKILL.md), a semantic conflict inside [`$ao`](../ao/SKILL.md),
 an unsettled finding inside `$hanten`, a `$sharingan` escalation — plus the named human
 gates G1/G2/G3/G4 when one is genuinely due. Everything else is a turn bell.
 

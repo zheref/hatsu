@@ -352,8 +352,8 @@ repository declares**, in this order (nen `v0.3.0`'s `shu` family; `claude/agent
    nen shu test --repo <the target checkout> --lane <declared-focused-lane>
    ```
    The focused row must actually scope the authored behavior; no runner or filter is invented.
-   Full regression belongs to the aka-owned phase after catch-up, before publication. Coverage
-   belongs to mukai/gyo and extracts matching artifacts without running the suite again. A build
+   Full regression belongs to kotoamatsukami at mukai, after catch-up, before publication. Coverage
+   belongs to byakugan and extracts matching artifacts without running the suite again. A build
    composite confers no exception to those boundaries; no `--tests` on its initial warm-up.
    Exit `1` is the ordinary red build — the tool's own code is in `steps[].exitCode`. Exit **`4`** means
    the lane declares no such verb (a seat, with the declaration's own reason quoted at the refusal) —

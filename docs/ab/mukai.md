@@ -7,6 +7,17 @@ unchanged catch-up and update push⁵ → evidence⁶ → `shibari`⁷ → landi
 and the call is the authorization for the PR *and* for the
 evidence mechanism's public step.
 
+**Phase ruling, 2026-09-14 (later).** Mukai owns impacted tests through kotoamatsukami (step 4)
+and coverage through byakugan (step 5). Gyo is linting on the Ren loop.
+
+**Phase ruling, 2026-09-14.** Mukai owns impacted regression and coverage through kotoamatsukami
+(steps 4 then 5). Gyo is linting on the Ren loop. Superseded later the same day for the coverage
+owner. The transcripts below still record gyo-as-coverage.
+
+**Phase ruling, 2026-09-13.** Mukai owns impacted regression through kotoamatsukami (step 4) and
+coverage through gyo (step 5). Aka is not called for tests. The transcripts below still record the
+2026-09-12 aka-helper shape and stay dated.
+
 **Phase ruling, 2026-09-12.** Mukai owns coverage measurement/gating, never regression execution.
 Every review, coverage-test, snapshot, execution-configuration, metadata, or catch-up tree change
 invalidates evidence and returns through kokusen plus aka's narrow verification helper before the

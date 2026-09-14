@@ -4,6 +4,14 @@
 to put the base underneath, then `prepublication-verification` runs full regression and captures
 instrumented results on the final tree before push.
 
+**Phase ruling, 2026-09-14 (later).** Tests wait for kotoamatsukami; coverage waits for byakugan.
+Gyo is linting.
+
+**Phase ruling, 2026-09-13.** Aka no longer runs project-wide regression. The load-bearing order is
+lint → squash → ao → re-lint if catch-up moved the tree → push. Tests wait for kotoamatsukami at
+mukai. The transcripts below still record the 2026-09-12 `prepublication-verification` helper and
+stay dated.
+
 **Phase ruling, 2026-09-12.** The load-bearing order is lint → squash → ao → reuse lint only for a
 no-op catch-up, otherwise lint the caught-up tree → full regression/instrumented capture → push. The
 named verification phase is reusable by composites without squash or first-publish authority. Any

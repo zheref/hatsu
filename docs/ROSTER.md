@@ -449,14 +449,68 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   never at `main`, and never write to it.
 
 
+## Rulings of 2026-09-14 — byakugan owns coverage; kotoamatsukami owns tests
+
+**Byakugan is coverage capture and measurement.** The grammar is `against [<base>]`. Capture file,
+extract-only `nen shu coverage`, touched-file bands, adding tests to reach the bar, and the G5 under
+`coverage.minimum` all live there, at mukai step 5, after kotoamatsukami has run the suites. Byakugan
+never runs `test` or `ui-test`. If it writes tests, kokusen commits them, kotoamatsukami re-runs the
+suites, and byakugan recaptures and remeasures.
+
+**Kotoamatsukami is unit, UI and integration tests only**, plus UI evidence. Mukai step 4. It never
+captures or gates coverage.
+
+**Gyo remains linting.** The earlier same-day ruling that folded coverage onto kotoamatsukami is
+superseded for that ownership; the linting rename stands.
+
+The earlier 2026-09-14 rikugan ruling below is unchanged.
+
+## Rulings of 2026-09-14 — gyo is linting; kotoamatsukami owns coverage
+
+**Gyo is the linting process.** The Nen verb is still `lint`. Breath proves it on the fresh tip,
+rasengan may run it as authoring feedback, kokusen must run it over the finished tree before it
+commits, and aka runs it before squash and again after catch-up if the tree moved. That cadence
+is every Ren turn; the rename does not add a seventh step.
+
+**Superseded later the same day for coverage ownership:** kotoamatsukami no longer captures,
+extracts or gates coverage. That is byakugan's. Kotoamatsukami remains the impacted-test owner.
+
+The earlier 2026-09-14 rikugan ruling below is unchanged.
+
+## Rulings of 2026-09-14 — rikugan last-turn board and architecture as diagram
+
+Every Rikugan page opens with **This last turn**, answering the last human maintainer request —
+what was done, what was not, and (when that request was mukai) what was corrected, which agent
+asked and why, how it was handled or pushed back, which local checks brought work back, and
+why a half-run stopped plus how later iterations can go further unattended. **00 is last-turn
+only. 01–07 are the session** — the effort from `origin/<base>` through HEAD — on every process
+or product repository this plugin reports. A later turn that fills 01–07 from only the latest
+request hides earlier work and is the defect. **Architecture delta is a change-highlighted
+diagram of conceptual machinery, behaviour, and interaction**, not a file-line inventory, and
+it is the session's structural delta against the base. Surrounding unchanged elements stay on
+the board, dimmed.
+
+## Rulings of 2026-09-13 — focused tests at ren, impacted regression at mukai
+
+Aka iterations do not re-prove the whole suite. Tsukuyomi is the focused lane on every ren
+turn (rasengan may, kokusen must). Kotoamatsukami is the sole owner of project-wide regression,
+taken at mukai immediately before it extracts coverage, and it runs only the declared suites
+the change can affect — skip requires a named proof that assertions and coverage are both
+untouched; an ambiguous mapping runs. **Superseded 2026-09-14 for the gyo name:** gyo is
+linting. **Superseded later the same day for coverage ownership:** byakugan extracts; kotoamatsukami
+runs tests only. Aka is gyo (lint), squash, ao, re-lint if catch-up moved the
+tree, and push.
+
 ## Rulings of 2026-09-12 — phase ownership, launch and discovery
 
 The maintainer's #48 ruling and follow-up place mandatory focused tests at `kokusen` before the
 local commit, with authoring feedback still available in `rasengan`. Inexpensive iteration checks
-remain repository-declared. Aka gains lint before squashing unpublished commits, retains squash
-before catch-up, and owns full regression on the final caught-up tree. Mukai owns extraction and
-gating of coverage collected during that regression. Any changed code, tests or configuration
-invalidates previous evidence. Reports do not trigger later verification phases.
+remain repository-declared. Aka gained lint before squashing unpublished commits and retained
+squash before catch-up. **Superseded 2026-09-13 for regression ownership:** aka no longer runs
+the full required suite on the final caught-up tree; that run moved to kotoamatsukami at mukai,
+impact-selected, immediately before it extracts coverage. **Superseded 2026-09-14 for the gyo
+name:** gyo is linting. **Superseded later the same day:** byakugan extracts; kotoamatsukami
+runs tests only.
 
 Amaterasu owes a platform-compatible artifact, installation and actual launch on each applicable
 turn from the core checkout. Shared record normalization belongs to Nen #204; consumer Python

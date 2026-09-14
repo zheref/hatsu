@@ -1,5 +1,32 @@
 # Changelog
 
+## v0.24.0 — byakugan owns coverage; kotoamatsukami owns tests
+
+- Added **byakugan** for coverage capture and measurement at mukai, independent of unit, UI and integration testing. Grammar `against [<base>]`. Never runs `test` or `ui-test`.
+- Restored **kotoamatsukami** to tests only (plus UI evidence). Mukai still runs tests then coverage, as two skills.
+- Left **gyo** as linting on every Ren turn.
+
+## v0.23.0 — gyo is linting; kotoamatsukami owns coverage
+
+- Renamed **gyo** to the linting process (`nen shu lint`) on every Ren turn: breath on the tip, rasengan may, kokusen must, aka before squash and after catch-up.
+- Folded coverage capture, extraction, banding and the under-minimum G5 onto **kotoamatsukami**, still at mukai, still after the impacted suites. Behaviors did not move; the names did.
+
+## v0.22.0 — rikugan session archive vs last-turn board
+
+- Kept **00 This last turn** as the last human request only.
+- Required **01–07** (accomplished, challenges, not delivered, architecture, screenshots, launch, decisions) to cover the whole session against the base, on every process or product effort. A later turn that rewrites those lists from only the latest request is a defective page.
+
+## v0.21.0 — rikugan last-turn highlights and structural architecture delta
+
+- Opened every Rikugan page with **00 This last turn**: highlights against the last human request (`done` / `not-done` / `partial`). A mukai-triggered page also names what was corrected (who asked, why, handled or pushed back), local checks that brought work back, and any half-run stop with the policy and how later iterations can go further unattended.
+- Made **04 Architecture delta** a change-highlighted board of conceptual nodes and relations. `files[]` remains a supporting path inventory, not the glance target.
+
+## v0.20.0 — focused tests at ren, impacted regression at mukai
+
+- Moved project-wide regression off aka. Aka now lints, squashes unpublished history, catches up, re-lints if that moved the tree, and pushes.
+- Made tsukuyomi the focused-test executor on every ren turn; kokusen still owns the checkpoint.
+- Made kotoamatsukami the sole owner of pre-mukai project-wide tests, selecting only declared suites the change can affect, immediately before gyo extracts coverage.
+
 ## v0.18.0 — complete local workflow and explicit review policy
 
 - Documented the one-request entry path across Claude Code, Codex, and Cursor ([#45](https://github.com/zheref/hatsu/pull/45)).

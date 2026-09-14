@@ -31,13 +31,18 @@
    way the document spells it — repo, branch, base, generatedAt, files, evidence,
    coverage — so the two verbs compose without a translation layer. The slots the
    document does NOT carry are the ones no git read can produce: the four
-   narrative lists, the launch line, the PR body, the readiness verdict, the
-   parsed test rows, the banded touched-coverage rows, the title, the variant,
-   and the two provenance notes. Those are the EXTENSION, and hatsu:rikugan
-   supplies them by writing a data file that merges the document with them.
-   SKILL.md § 4 carries the merge shape and the rule that every extension key is
-   always present, empty where there is nothing: a key the data has not got is
-   refused at exit 2, by design, because a blank cell reads as a fact.
+   narrative lists, the last-turn highlights and mukai blocks, the architecture
+   board (nodes and edges, not the path inventory), the launch line, the PR body,
+   the readiness verdict, the parsed test rows, the banded touched-coverage rows,
+   the title, the variant, and the two provenance notes. Those are the EXTENSION,
+   and hatsu:rikugan supplies them by writing a data file that merges the document
+   with them. SKILL.md § 4 carries the merge shape and the rule that every
+   extension key is always present, empty where there is nothing: a key the data
+   has not got is refused at exit 2, by design, because a blank cell reads as a
+   fact. Section 00 is This last turn only. Sections 01-07 are the whole session
+   against the base, on every process or product effort. Section 04 is the
+   session structural diagram; the path inventory is a disclosure, not the
+   glance target.
 
    Self-contained: no font file, no script from anywhere, no image but the ones
    the report itself embeds. Theme-aware through prefers-color-scheme only.
@@ -274,10 +279,13 @@ td code { font-size: var(--t-fine); overflow-wrap: anywhere; }
    than decided in the page, so one rule covers both render paths. */
 .note-empty { margin: .25rem 0 0; color: var(--ink-3); font-size: var(--t-fine); font-style: italic; }
 section:has(tbody tr) .note-empty,
-section:has(.notes li) .note-empty,
+section:has(.notes li):not(.last-turn) .note-empty,
 section:has(.files li) .note-empty,
+section:has(.arch-board .arch-node) .note-empty.arch-empty,
 section:has(.verdict) .note-empty,
-section:has(pre) .note-empty { display: none; }
+section:has(pre) .note-empty,
+.last-turn:has(.last-turn-list li) > .note-empty,
+.mukai-block:has(dl) > .note-empty { display: none; }
 
 /* ---- chips ------------------------------------------------------------ */
 .chip {
@@ -287,18 +295,139 @@ section:has(pre) .note-empty { display: none; }
   letter-spacing: .04em; text-transform: uppercase;
   color: var(--ink-2); background: var(--card-sunk);
 }
-.chip[data-status="passed"],  .chip[data-band="ideal"]       { color: var(--ok);   background: var(--ok-bg); }
-.chip[data-status="failed"],  .chip[data-band="under"]       { color: var(--bad);  background: var(--bad-bg); }
-.chip[data-status="skipped"], .chip[data-band="minimum"]     { color: var(--warn); background: var(--warn-bg); }
+.chip[data-status="passed"],  .chip[data-band="ideal"], .chip[data-outcome="done"]       { color: var(--ok);   background: var(--ok-bg); }
+.chip[data-status="failed"],  .chip[data-band="under"], .chip[data-outcome="not-done"]   { color: var(--bad);  background: var(--bad-bg); }
+.chip[data-status="skipped"], .chip[data-band="minimum"], .chip[data-outcome="partial"]  { color: var(--warn); background: var(--warn-bg); }
 .chip[data-band="recommended"]                                { color: var(--info); background: var(--info-bg); }
+.chip[data-change="added"]       { color: var(--ok);   background: var(--ok-bg); }
+.chip[data-change="removed"]     { color: var(--bad);  background: var(--bad-bg); }
+.chip[data-change="changed"]     { color: var(--warn); background: var(--warn-bg); }
+.chip[data-change="unchanged"],
+.chip[data-change="surrounding"] { color: var(--ink-2); background: var(--card-sunk); }
 .chip-tier { color: var(--accent-ink); background: var(--accent-bg); }
 
+/* ---- this last turn --------------------------------------------------- */
+.last-turn-request {
+  margin: 0 0 1rem;
+  padding: .75rem 1rem;
+  border-left: 3px solid var(--accent);
+  background: var(--card-sunk);
+  color: var(--ink-2);
+  font-size: var(--t-fine);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.last-turn-request:empty { display: none; }
+.last-turn-list li { display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem .6rem; }
+.last-turn-list .chip { flex: none; }
+.mukai-turn { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--rule-soft); }
+.mukai-block { margin-top: 1rem; }
+.mukai-block:first-child { margin-top: 0; }
+.mukai-block h3 {
+  margin: 1rem 0 .5rem;
+  font: var(--w-semi) var(--t-lead)/1.3 var(--sans);
+}
+.mukai-block h3:first-child { margin-top: 0; }
+.correction dt, .check-issue dt, .half-stop dt {
+  font: var(--w-semi) var(--t-micro)/1.4 var(--mono);
+  letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3);
+}
+.correction dd, .check-issue dd, .half-stop dd {
+  margin: 0 0 .55rem;
+  font-size: var(--t-fine);
+}
+
 /* ---- architecture delta -----------------------------------------------
-   One row per changed file, tier first. The data document is a FLAT list of
-   files each carrying its own tier, and the substituter has no group-by, so
-   the tier is a chip on the row rather than a heading over a block. A file
-   whose tier is null renders an empty chip, which the rule below hides.   */
-.files { list-style: none; margin: 0; padding: 0; display: grid; gap: .1rem; }
+   A change-highlighted board of conceptual elements and the relations
+   between them. files[] from the data document is a PATH INVENTORY under
+   a disclosure, never the glance target. A node whose change is
+   unchanged or surrounding is marked with a dashed bar, not faded type. */
+.arch-legend {
+  display: flex; flex-wrap: wrap; gap: .4rem .75rem;
+  margin: 0 0 1rem;
+  font: var(--w-semi) var(--t-micro)/1.5 var(--mono);
+  letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3);
+}
+.arch-legend span { display: inline-flex; align-items: center; gap: .35rem; }
+.arch-legend i {
+  display: inline-block; width: .7rem; height: .7rem; border-radius: 3px;
+  border: 2px solid currentColor;
+}
+.arch-legend .lg-added { color: var(--ok); }
+.arch-legend .lg-removed { color: var(--bad); }
+.arch-legend .lg-changed { color: var(--warn); }
+.arch-legend .lg-unchanged { color: var(--ink-3); }
+.arch-caption {
+  margin: 0 0 1rem;
+  font-size: var(--t-lead); color: var(--ink);
+}
+.arch-caption:empty { display: none; }
+.arch-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
+  gap: .75rem;
+  margin: 0 0 1.25rem;
+}
+.arch-node {
+  display: flex; flex-direction: column; gap: .35rem;
+  padding: .75rem .85rem;
+  border-radius: 10px;
+  background: var(--card-sunk);
+  border: 1px solid var(--rule);
+  border-left-width: 5px;
+}
+.arch-node .arch-layer {
+  font: var(--w-semi) var(--t-micro)/1.3 var(--mono);
+  letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2);
+}
+.arch-node strong { font-size: var(--t-lead); letter-spacing: -.01em; }
+.arch-node .what { margin: 0; font-size: var(--t-fine); color: var(--ink-2); }
+.arch-node .what:empty { display: none; }
+.arch-node[data-change="added"]     { border-left-color: var(--ok); }
+.arch-node[data-change="removed"]   { border-left-color: var(--bad); }
+.arch-node[data-change="removed"] strong { text-decoration: line-through; }
+.arch-node[data-change="changed"]   { border-left-color: var(--warn); box-shadow: 0 0 0 1px var(--warn); }
+.arch-node[data-change="unchanged"],
+.arch-node[data-change="surrounding"] { border-left-color: var(--rule); border-left-style: dashed; }
+.arch-edges { list-style: none; margin: 0 0 1.25rem; padding: 0; display: grid; gap: .4rem; }
+.arch-edges li {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem .55rem;
+  padding: .45rem .7rem;
+  border-radius: 8px;
+  background: var(--card-sunk);
+  font-size: var(--t-fine);
+}
+.arch-edges .from, .arch-edges .to { font-weight: var(--w-semi); }
+.arch-edges .rel {
+  font: var(--w-semi) var(--t-micro)/1.4 var(--mono);
+  letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2);
+}
+.arch-edges .rel::before { content: "→ "; color: var(--accent-ink); }
+.arch-edges li[data-change="added"]     { box-shadow: inset 3px 0 0 var(--ok); }
+.arch-edges li[data-change="removed"]   { box-shadow: inset 3px 0 0 var(--bad); }
+.arch-edges li[data-change="removed"] .from,
+.arch-edges li[data-change="removed"] .to { text-decoration: line-through; }
+.arch-edges li[data-change="changed"]   { box-shadow: inset 3px 0 0 var(--warn); }
+.arch-edges li[data-change="unchanged"],
+.arch-edges li[data-change="surrounding"] { box-shadow: inset 3px 0 0 var(--rule); }
+.path-inventory {
+  margin: 1rem 0 0;
+  padding: .5rem .75rem;
+  border: 1px dashed var(--rule);
+  border-radius: 8px;
+  color: var(--ink-3);
+}
+.path-inventory summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: .5rem 0;
+  font: var(--w-semi) var(--t-micro)/1.6 var(--mono);
+  letter-spacing: .06em; text-transform: uppercase;
+}
+.files { list-style: none; margin: .6rem 0 0; padding: 0; display: grid; gap: .1rem; }
 .files li {
   display: flex; align-items: baseline; gap: .625rem;
   padding: .25rem .5rem; border-radius: 6px; background: var(--card-sunk);
@@ -308,6 +437,10 @@ section:has(pre) .note-empty { display: none; }
 .files li .chip-tier { flex: none; min-width: 5.5rem; text-align: center; }
 .files li .chip-tier:empty { display: none; }
 .files li .st { margin-left: auto; color: var(--ink-3); font-size: var(--t-micro); text-transform: uppercase; letter-spacing: .08em; }
+
+.arch-edges:not(:has(li)),
+.arch-board:not(:has(.arch-node)),
+.path-inventory:not(:has(.files li)) { display: none; }
 
 /* ---- screenshots ------------------------------------------------------ */
 .shots td { padding: .5rem .75rem .5rem 0; }
@@ -413,52 +546,126 @@ footer .footer-note { flex-basis: 100%; color: var(--ink-2); letter-spacing: 0; 
     </dl>
   </header>
 
+  <section data-tone="win" class="last-turn">
+    <h2><span class="ord">00</span> This last turn</h2>
+    <p class="lead">Highlights of what the last human request did — and did not — get. Not the rest of the session.</p>
+    <p class="last-turn-request">{{lastTurnRequest}}</p>
+    <ul class="notes last-turn-list">
+      {{#each lastTurnHighlights}}
+      <li><span class="chip" data-outcome="{{outcome}}">{{outcome}}</span>{{text}}<span class="why">{{why}}</span></li>
+      {{/each}}
+    </ul>
+    <p class="note-empty">No highlight was recorded against the last human request.</p>
+    {{#if mukaiLastTurn}}
+    <div class="mukai-turn">
+      <div class="mukai-block">
+        <h3>What was corrected</h3>
+        {{#each lastTurnCorrections}}
+        <dl class="correction">
+          <dt>Corrected</dt><dd>{{what}}</dd>
+          <dt>Who asked, and why</dt><dd>{{who}} — {{whyAsked}}</dd>
+          <dt>How it was handled</dt><dd>{{howHandled}}</dd>
+        </dl>
+        {{/each}}
+        <p class="note-empty">Nothing was corrected on this mukai.</p>
+      </div>
+      <div class="mukai-block">
+        <h3>Local checks that brought work back</h3>
+        {{#each lastTurnCheckIssues}}
+        <dl class="check-issue">
+          <dt>Check</dt><dd>{{check}}</dd>
+          <dt>What it raised</dt><dd>{{issue}}</dd>
+          <dt>How it was handled</dt><dd>{{howHandled}}</dd>
+        </dl>
+        {{/each}}
+        <p class="note-empty">Local checks raised nothing that needed handling.</p>
+      </div>
+      <div class="mukai-block">
+        <h3>Stopped half way</h3>
+        {{#each lastTurnStops}}
+        <dl class="half-stop">
+          <dt>Why it stopped</dt><dd>{{why}}</dd>
+          <dt>Rule or policy</dt><dd>{{policy}}</dd>
+          <dt>How later turns can go further unattended</dt><dd>{{autonomy}}</dd>
+        </dl>
+        {{/each}}
+        <p class="note-empty">This mukai ran through to its landing; it did not stop half way.</p>
+      </div>
+    </div>
+    {{/if}}
+  </section>
+
   <section data-tone="win">
     <h2><span class="ord">01</span> Accomplished</h2>
+    <p class="lead">What this session landed, every turn, against the base — not only the last request.</p>
     <ul class="notes">
       {{#each accomplished}}
       <li>{{text}}<span class="why">{{why}}</span></li>
       {{/each}}
     </ul>
-    <p class="note-empty">Nothing recorded for this turn.</p>
+    <p class="note-empty">Nothing recorded for this session.</p>
   </section>
 
   <section data-tone="challenge">
     <h2><span class="ord">02</span> Challenges</h2>
-    <p class="lead">What fought back, and how it was settled.</p>
+    <p class="lead">What fought back across this session, and how it was settled.</p>
     <ul class="notes">
       {{#each challenges}}
       <li>{{text}}<span class="why">{{why}}</span></li>
       {{/each}}
     </ul>
-    <p class="note-empty">Nothing fought back this turn.</p>
+    <p class="note-empty">Nothing fought back this session.</p>
   </section>
 
   <section data-tone="gap">
     <h2><span class="ord">03</span> Not delivered</h2>
-    <p class="lead">Asked for and not in this turn — named, never omitted. <span class="provenance">{{residue}}</span></p>
+    <p class="lead">Asked for in this session and not yet in it — named, never omitted. <span class="provenance">{{residue}}</span></p>
     <ul class="notes">
       {{#each notDelivered}}
       <li>{{text}}<span class="why">{{why}}</span></li>
       {{/each}}
     </ul>
-    <p class="note-empty">Everything asked for this turn is in it.</p>
+    <p class="note-empty">Everything asked for this session is in it.</p>
   </section>
 
   <section>
     <h2><span class="ord">04</span> Architecture delta</h2>
-    <p class="lead">Every changed file against the base, with the tier it belongs to.</p>
-    <ul class="files">
-      {{#each files}}
-      <li><span class="chip chip-tier">{{tier}}</span><span class="path">{{path}}</span><span class="st">{{status}}</span></li>
+    <p class="lead">How this session moved the changed scope's inner and surrounding machinery, behaviour, and interactions — glance the highlighted elements, not the path list.</p>
+    <p class="arch-legend" aria-label="Change legend">
+      <span class="lg-added"><i></i> added</span>
+      <span class="lg-removed"><i></i> removed</span>
+      <span class="lg-changed"><i></i> changed</span>
+      <span class="lg-unchanged"><i></i> surrounding, unchanged</span>
+    </p>
+    <p class="arch-caption">{{architectureCaption}}</p>
+    <div class="arch-board">
+      {{#each architectureNodes}}
+      <article class="arch-node" data-change="{{change}}">
+        <span class="arch-layer">{{layer}}</span>
+        <strong>{{label}}</strong>
+        <p class="what">{{whatChanged}}</p>
+      </article>
+      {{/each}}
+    </div>
+    <ul class="arch-edges">
+      {{#each architectureEdges}}
+      <li data-change="{{change}}"><span class="chip" data-change="{{change}}">{{change}}</span><span class="from">{{from}}</span><span class="rel">{{rel}}</span><span class="to">{{to}}</span><span class="what">{{whatChanged}}</span></li>
       {{/each}}
     </ul>
-    <p class="note-empty">No file changed in this turn.</p>
+    <p class="note-empty arch-empty">No structural diagram for this session — it did not move machinery, behaviour, or interaction, or the diagram was not authored.</p>
+    <details class="path-inventory">
+      <summary>Path inventory against the base — supporting, not the delta</summary>
+      <ul class="files">
+        {{#each files}}
+        <li><span class="chip chip-tier">{{tier}}</span><span class="path">{{path}}</span><span class="st">{{status}}</span></li>
+        {{/each}}
+      </ul>
+    </details>
   </section>
 
   <section>
     <h2><span class="ord">05</span> Screenshots</h2>
-    <p class="lead">One row per scene this change re-recorded, grouped by suite in the suite column.</p>
+    <p class="lead">One row per scene this session re-recorded, grouped by suite in the suite column.</p>
     <div class="scroll">
       <table class="shots">
         <thead><tr><th>Suite</th><th>Scene</th><th>Status</th><th>Capture</th></tr></thead>
@@ -474,25 +681,25 @@ footer .footer-note { flex-basis: 100%; color: var(--ink-2); letter-spacing: 0; 
         </tbody>
       </table>
     </div>
-    <p class="note-empty">This turn changed nothing with a screen behind it.</p>
+    <p class="note-empty">This session changed nothing with a screen behind it.</p>
   </section>
 
   <section class="launch">
     <h2><span class="ord">06</span> How to launch</h2>
-    <p class="lead">The exact command this turn ran, from the core working directory.</p>
+    <p class="lead">The exact command that starts the tree this session holds, from the core working directory.</p>
     <button class="copy" type="button" data-copy>Copy</button>
     <pre id="launch-cmd">{{launch}}</pre>
   </section>
 
   <section>
     <h2><span class="ord">07</span> Decisions</h2>
-    <p class="lead">Calls made inside this turn that a reader would otherwise have to reverse-engineer.</p>
+    <p class="lead">Calls made in this session that a reader would otherwise have to reverse-engineer.</p>
     <ul class="notes">
       {{#each decisions}}
       <li>{{text}}<span class="why">{{why}}</span></li>
       {{/each}}
     </ul>
-    <p class="note-empty">No call was made this turn that the diff does not already say.</p>
+    <p class="note-empty">No call was made this session that the diff does not already say.</p>
   </section>
 
   <section class="landing-only prbody">

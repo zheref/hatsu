@@ -5,6 +5,19 @@
 re-recorded to the evidence table [`rikugan`](../../claude/skills/rikugan/SKILL.md) and
 [`shibari`](../../claude/skills/shibari/SKILL.md) build from.
 
+**Phase ruling, 2026-09-14 (later).** Kotoamatsukami owns impacted unit, UI and integration tests
+only, plus UI evidence. Coverage capture, extract, band and G5 under minimum are
+[`byakugan`](../../claude/skills/byakugan/SKILL.md)'s. Gyo is linting. The transcripts below still
+record the split where this skill also extracted.
+
+**Phase ruling, 2026-09-14.** Kotoamatsukami owns impacted regression **and** coverage (capture,
+extract, band, G5 under minimum) at mukai. Gyo is linting. Superseded later the same day.
+
+**Phase ruling, 2026-09-13.** Kotoamatsukami owns impacted project-wide regression at mukai,
+immediately before gyo, and selects only declared suites the change can affect. Aka no longer
+executes the suite. The transcripts below still record the 2026-09-12 UI-handler-inside-aka shape
+and stay dated.
+
 **Phase ruling, 2026-09-12.** Aka owns UI/E2E execution as part of final regression. Mukai reads the
 matching artifacts for evidence and does not rerun the suite. An accepted snapshot changes an
 assertion, invalidates regression and coverage, and returns through kokusen and aka before use.

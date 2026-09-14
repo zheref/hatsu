@@ -4,9 +4,10 @@ This directory is the plugin's skill surface (`plugin.json` → `"skills": "./cl
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together
 under *Skills* by `claude plugin details`, which is why they are described together here.
 
-**Thirty-eight skills at `v0.6.0`**: the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
+**Thirty-nine skills at `v0.24.0`**: the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
 surface complete at `v0.1.0` — one of them, `drive`, **renamed to [`sharingan`](sharingan/) at `v0.5.0`** —
-the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side, the
+the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side,
+**[`byakugan`](byakugan/) at `v0.24.0`**, the
 **three added at `v0.6.0`** that close the release side, and the **two roster-machinery residents** that
 arrived with the skeleton ([zheref/hatsu#1][1]) and are counted separately. Nothing here is reserved, and
 nothing here is a placeholder.
@@ -92,14 +93,15 @@ three at `v0.6.0`:
 | [`rasengan`](rasengan/) | **The change itself — the authoring phase.** Writes the change and focused tests, runs the shared inexpensive `iteration.checks`, and may execute an explicit declared scoped-test lane for feedback. It runs no full regression or coverage and commits nothing. |
 | [`kokusen`](kokusen/) | **Verify, focused-test, then commit — locally, automatically.** Runs the shared `iteration.checks` and, for changed executable behavior, a declared scoped `test` lane. A missing scoped route stops before checkpoint; a prose-only change reports not applicable. It never runs full regression, coverage, or push. |
 | [`amaterasu`](amaterasu/) | **Launch, every turn.** Builds the configured target and starts it **from the core working directory, never a worktree**; the dry-run argv goes into the report and the chat. A disconnected device is reported by name. Parallel subagent efforts launch nothing. |
-| [`tsukuyomi`](tsukuyomi/) | **Declared test execution.** Focused mode serves kokusen's explicit lane; full-regression mode runs only inside aka's final `prepublication-verification`; direct runs are diagnostic. It captures instrumented results but never measures coverage. |
-| [`rikugan`](rikugan/) | **The rich report** — turn, landing and final — rendered from `templates/rikugan.html`, **never markdown**: accomplished, challenges, not delivered, architecture delta, screenshots, how to launch, decisions. Only the final one is written to `Reports/`. |
+| [`tsukuyomi`](tsukuyomi/) | **Focused tests.** The scoped lane for the behavior this turn changed — rasengan may run it for feedback, kokusen must run it at every local checkpoint. It never walks `tests.required` and never measures coverage. |
+| [`rikugan`](rikugan/) | **The rich report** — turn, landing and final — rendered from `templates/rikugan.html`, **never markdown**: this last turn, then session-wide accomplished, challenges, not delivered, a structural architecture diagram, screenshots, how to launch, decisions. Only the final one is written to `Reports/`. |
 | [`jutaisho`](jutaisho/) | **The bell.** Rings `workflow.json → notifications` and drops the marker that [`../../hooks/stop-bell.sh`](../../hooks/stop-bell.sh) reads; where no hook is installed it rings the notifier itself **and says that it did**. |
 | [`ao`](ao/) | **Pull from the base.** Fetch, then rebase if the branch is unpushed and merge if it is not; mechanical conflicts are resolved, a **semantic** one is a **G5** with both sides shown. It never pushes. |
-| [`aka`](aka/) | **Push — human-called.** Lint → squash only unpushed commits → `ao` → reuse lint only for a no-op catch-up, otherwise lint the caught-up tree → `prepublication-verification` full regression/instrumented capture → push. Composites may reuse only the named verification helper, never squash or first-publish authority. |
+| [`aka`](aka/) | **Push — human-called.** Lint → squash only unpushed commits → `ao` → re-lint if catch-up changed the tree → push. No project-wide tests. Regression and coverage wait for mukai. |
 | [`hanten`](hanten/) | **Adversarial review, pre-PR.** Classifies the change set by scope and spawns **one reviewer subagent per scope** — UI → Hisoka, security-bearing → **Feitan**, architecture/handbook → **Chrollo**, performance → Uvogin, release-adjacent → Phinks — each titled `hanten · <persona> · <model alias>` and never on the frontier tier. Findings come back in one fixed shape (**rule id · severity · evidence · proposed fix**); Kurapika fixes or pushes back with a reason, and an unsettled finding is a **G5**. Reviewers never edit non-test source, never vote, never block. |
-| [`gyo`](gyo/) | **The coverage bar.** During mukai, parses an extraction-only coverage row over aka-captured instrumented results for the same tree. A test remediation returns through kokusen and aka before remeasurement. It never runs tests or lowers the bar. |
-| [`kotoamatsukami`](kotoamatsukami/) | **End-to-end / UI tests and evidence.** Aka owns suite execution on the final tree; mukai consumes the matching artifacts. An accepted snapshot invalidates regression and coverage before publication. |
+| [`gyo`](gyo/) | **Linting, every Ren turn.** The named process for the declared `lint` verb. Breath proves it on the tip, rasengan may, kokusen must, aka before squash and after catch-up. It never measures coverage. |
+| [`kotoamatsukami`](kotoamatsukami/) | **Impacted project-wide unit, UI and integration tests at mukai.** Selects and runs only the declared suites the change can affect, and handles UI evidence. Aka never calls it. Coverage is byakugan's. A skip needs a named proof. |
+| [`byakugan`](byakugan/) | **Coverage capture and measurement at mukai.** Independently of those suites: writes the capture file, extracts, bands touched files, and raises the G5 under `coverage.minimum`. Never runs `test` or `ui-test`. |
 | [`shibari`](shibari/) | **Composes and opens the PR** — why, how, what changes for the consumer, how to verify, a mermaid diagram where a flow changed, the evidence table, the checklist, `Closes #N`. **One** PR, opened from the last pushed commit; it writes the body back, requests the reviewers and hands the PR to [`en`](en/). It never labels a gate and never merges. |
 | [`jujutsu`](jujutsu/) | **Device pairing.** Walks the maintainer through pairing a physical device — iOS: trust, Developer Mode, `devicectl list devices`; Android: USB debugging, the RSA prompt, `adb devices` — and registers it as a launch target **through a repository PR**. It writes the declaration and nothing else. |
 | [`susanoo`](susanoo/) | **Archive and packaging.** Runs the lane's declared `archive` through `nen shu archive` and produces the distributable **locally**: it uploads nothing, and nen never synthesises signing material. A seat (exit `4`) is quoted with the declaration's own reason, never routed around. This is the release unit [`getsuga`](getsuga/) folds into the release PR and the two phases below send. |
@@ -111,8 +113,8 @@ three at `v0.6.0`:
 | Skill | Order inside |
 |---|---|
 | [`ren`](ren/) | **The per-request loop.** `breath`¹ (first turn only, and it proves the base) → `rasengan`² (author the change) → `kokusen`³ (verify the tree, then commit) → `amaterasu`⁴ → `rikugan`⁵ → `jutaisho`⁶. It loops until the maintainer calls the next phase, and **it never pushes**. |
-| [`murasaki`](murasaki/) | **Pull + update push.** `ao` → shared iteration checks → aka's regression helper whenever catch-up changed the tree → push only an already-published branch. During mukai after coverage, a changing catch-up returns without push so regression and coverage can both refresh. Never squashes or first-publishes. |
-| [`mukai`](mukai/) | **The review-and-publication phase — human-called.** `murasaki`¹ → `hanten`² → checkpoint/catch-up/aka verification³ → `gyo` coverage⁴ → final unchanged catch-up and update push⁵ → existing UI evidence⁶ → `shibari` PR⁷ → landing report⁸ → start `en` and end Mukai. The same user turn continues under En through current-head readiness. |
+| [`murasaki`](murasaki/) | **Pull + update push.** `ao` → shared iteration checks → if catch-up changed the tree, return to the caller so kotoamatsukami can refresh tests and byakugan can recapture coverage → push only an already-published branch. Never squashes, first-publishes, or runs tests or coverage itself. |
+| [`mukai`](mukai/) | **The review-and-publication phase — human-called.** `murasaki`¹ → `hanten`² → kokusen checkpoint³ → `kotoamatsukami` impacted tests⁴ → `byakugan` coverage⁵ → final unchanged catch-up and update push⁶ → existing UI evidence⁷ → `shibari` PR⁸ → landing report⁹ → start `en` and end Mukai. The same user turn continues under En through current-head readiness. |
 | [`en`](en/) | **The readiness watch, `izanagi`-capped** by `nen/workflow.json` → `monitor`. [`rikugan`](rikugan/)¹ (landing) → [`sharingan`](sharingan/)² → `murasaki`³ when the branch is behind → `sharingan`⁴ → observe⁵ required CI/current-head review → [`jutaisho`](jutaisho/)⁶ at Ready → `rikugan` final and stop at the human gate. **A run with no acting cap does not run; quiet observations spend none**. A long hold may be handed to **Illumi**, read-only. |
 
 > **The release side closed at `v0.6.0`.** [`susanoo`](susanoo/), [`kagutsuchi`](kagutsuchi/) and
@@ -127,7 +129,7 @@ three at `v0.6.0`:
 
 ## The two roster-machinery residents
 
-Neither is one of the thirty-eight. They landed with the skeleton because the plugin does not function
+Neither is one of the thirty-nine. They landed with the skeleton because the plugin does not function
 without them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |
@@ -139,7 +141,7 @@ without them, and they are recorded here rather than folded silently into the co
 
 ## Surfaces — this directory is the one authored copy
 
-**The count above does not change on any surface.** At `v0.7.0` the same thirty-eight skills (and the two
+**The count above does not change on any surface.** At `v0.7.0` the same skills (and the two
 residents) are also *generated* into Codex and Cursor layouts under [`../../surfaces/`](../../surfaces/) —
 `surfaces/codex/<name>/SKILL.md` and `surfaces/cursor/<name>/SKILL.md`, one apiece, plus each surface's own
 persona shape. **Nothing is added, renamed or withheld per surface**; only the frontmatter is reduced to the

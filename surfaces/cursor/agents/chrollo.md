@@ -172,7 +172,7 @@ as a PR at **G4**. The full table is
 
 **Coverage is read, never gated.** `nen shu coverage` reports `met: true|false` and nen does not decide
 whether a number is good enough. The **stop** at the ladder's `minimum` belongs to
-[`gyo`](../skills/gyo/SKILL.md) — you report the breach as a `UZF-19` finding; `gyo` is what raises the G5.
+[`byakugan`](../skills/byakugan/SKILL.md) — you report the breach as a `UZF-19` finding; byakugan is what raises the G5. [`gyo`](../skills/gyo/SKILL.md) is linting.
 
 ---
 
@@ -217,7 +217,7 @@ the orchestrator for discovery; it is never filed by this reviewer.
 - **You review the handbooks; you never author them.** No rule you write, no threshold you set, no clause you
   "clarify" into existence. Canon changes at **G4**, and that is the maintainer's.
 - **Advisory, always.** You never block, never hold a merge, never withhold anything, never apply a label,
-  and you never gate on a coverage number — `gyo` owns that stop.
+  and you never gate on a coverage number — `byakugan` owns that stop.
 - **You never merge, and you never cast a review vote — not `request_changes`, not `approve`.** You run on
   the human's credentials, so GitHub records the vote as **theirs**. And you are pre-PR: there is usually no
   PR to vote on, which is the point.

@@ -9,19 +9,19 @@
   "iteration": {
     "checks": ["lint"],
     "lane": "plugin",
-    "$comment": "The declared verbs the loop runs, three times over, for three different questions -- breath proves them on the branch's fresh tip (was the base sound), rasengan runs them as the author's own inner-loop feedback while it writes the change (does what I just wrote work), and kokusen runs them over the finished tree before every commit and refuses a red one (is the tree I am about to record green). THE COMPILE-BEFORE-COMMIT IS KOKUSEN'S AND RASENGAN IS THE AUTHORING PHASE -- the maintainer's ruling of 2026-09-10, docs/ROSTER.md. Hatsu is bash-and-markdown: its general mechanical check is `claude plugin validate . --strict`, declared as the `plugin` lane's `lint`. There is no general test suite; the separate `plugin-bump-guard` lane is a focused fixture used only when scripts/plugin_bump_check.sh changes. It is not an iteration check, full regression, or evidence for unrelated behavior."
+    "$comment": "The declared verbs the loop runs, three times over, for three different questions -- breath proves them on the branch's fresh tip (was the base sound), rasengan runs them as the author's own inner-loop feedback while it writes the change (does what I just wrote work), and kokusen runs them over the finished tree before every commit and refuses a red one (is the tree I am about to record green). THE COMPILE-BEFORE-COMMIT IS KOKUSEN'S AND RASENGAN IS THE AUTHORING PHASE -- the maintainer's ruling of 2026-09-10, docs/ROSTER.md. When the entry is `lint`, that check is hatsu:gyo — the linting process, on every Ren turn. Hatsu is bash-and-markdown: its general mechanical check is `claude plugin validate . --strict`, declared as the `plugin` lane's `lint`. There is no general test suite; the separate `plugin-bump-guard` lane is a focused fixture used only when scripts/plugin_bump_check.sh changes. It is not an iteration check, full regression, or evidence for unrelated behavior. Project-wide tests are kotoamatsukami's at mukai and coverage is byakugan's, not aka's."
   },
   "tests": {
     "required": [],
     "extra": [],
-    "$comment": "Hatsu ships no general automated test suite, so tsukuyomi has nothing to run here and says so rather than inventing a runner. scripts/plugin_bump_check.sh has a separate focused plugin-bump-guard lane, run only when that executable changes; it does not make this empty required set a passing general regression. An empty `required` is a statement, not an omission."
+    "$comment": "Hatsu ships no general automated test suite, so kotoamatsukami has nothing to run here and says so rather than inventing a runner. tsukuyomi does not read this block: it runs one explicit scoped lane (plugin-bump-guard when that executable changes) on every ren turn. An empty `required` is a statement, not an omission."
   },
   "coverage": {
     "minimum": 80,
     "recommended": 85,
     "ideal": 90,
     "scope": "touched",
-    "$comment": "The ladder gyo reports against, in percent line coverage of TOUCHED files. Under `minimum` is a G5 stop, never a lowered bar. Hatsu declares no coverage verb, so gyo reports `not measurable here` against this ladder rather than a number — the ladder still ships because it is the policy every repository Hatsu drives inherits when it declares none of its own."
+    "$comment": "The ladder byakugan reports against at mukai, in percent line coverage of TOUCHED files. Under `minimum` is a G5 stop, never a lowered bar. Hatsu declares no coverage verb, so byakugan reports `not measurable here` against this ladder rather than a number — the ladder still ships because it is the policy every repository Hatsu drives inherits when it declares none of its own. Gyo is linting, not this ladder. Kotoamatsukami runs tests, not this ladder."
   },
   "launch": {
     "default": null,

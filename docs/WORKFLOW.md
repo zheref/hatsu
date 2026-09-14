@@ -20,9 +20,11 @@ A local checkpoint, branch publication and PR completion are separate outcomes. 
 | `rasengan` | Author behavior and focused tests; use them and inexpensive iteration checks for feedback | Feedback is not the checkpoint verdict |
 | `kokusen` | Run declared iteration checks and applicable declared focused tests on the finished tree; commit locally | Full regression and coverage are not checkpoint gates |
 | `amaterasu` | Build the selected platform artifact, install it and launch it from the core checkout on each applicable turn | Report build/install/launch separately; absent and unusable devices remain distinct |
-| `aka` | Lint before squash; squash only unpublished history; catch up; recheck changed-tree lint; full required regression | Instrumented raw results are collected here and bound to tree, configuration and command |
-| `mukai` / `gyo` | Review and measure/gate touched-file coverage from matching regression artifacts | Extraction must not rerun tests; edits return through focused checkpoint and aka regression before publication |
-| `rikugan` | Render the owning phases' evidence and discovery statuses | Reports run no tests/coverage; absent, stale and not-due evidence remain explicit |
+| `aka` | Lint (`gyo`) before squash; squash only unpublished history; catch up; recheck changed-tree lint; push | No project-wide tests. Regression and coverage wait for mukai |
+| `mukai` / `kotoamatsukami` | Review, then run only the declared unit, UI and integration suites the change can affect | Selection is fail-closed; edits return through focused checkpoint and kotoamatsukami before publication |
+| `byakugan` | Capture and measure touched-file coverage independently of those suites | Extraction must not rerun tests; the G5 under `coverage.minimum` is this skill's |
+| `gyo` | Declared `lint` verb on every Ren turn (breath tip, rasengan may, kokusen must) and at aka | Not coverage. A seat is quoted; red at kokusen refuses the commit |
+| `rikugan` | Render the owning phases' evidence and discovery statuses; **00** is last-turn only; **01–07** are the session; **04** is a structural diagram | Reports run no tests/coverage; absent, stale and not-due evidence remain explicit; file lists are inventory, not architecture |
 
 The single `iteration.checks` list still serves `breath`, `rasengan`, and `kokusen`. There is no
 checkpoint-only routing key. A scoped test runs through an explicitly declared test lane whose
@@ -34,11 +36,12 @@ a general regression suite.
 
 Any tracked tree change invalidates prior regression and coverage evidence because the capture
 binds the exact tree hash, including sources, tests, snapshots and execution configuration.
-Only a complete no-op catch-up may reuse the pre-catch-up lint result. Catch-up and review/coverage remediation return to the aka-owned regression
-phase before publishing. Composites reuse that phase under their existing publication authority;
-they do not recursively squash published history or acquire first-publish permission. Coverage
-instrumentation belongs in that regression run; extraction and threshold decisions belong in
-mukai. Existing thresholds and required suites are preserved.
+Only a complete no-op catch-up may reuse the pre-catch-up lint result. Catch-up and review/coverage remediation return to
+kotoamatsukami's impacted-test phase and byakugan's coverage phase before publishing. Aka does not run those phases.
+Coverage instrumentation capture, extraction and threshold decisions belong in
+byakugan's mukai run. Gyo is linting. Existing thresholds and required suites are preserved. A declared suite is skipped only with
+a named proof that the change cannot affect its assertions and cannot cover any touched measurable
+file; an ambiguous mapping runs.
 
 ## Discoveries during authorized work
 
@@ -168,14 +171,16 @@ exit `4` and its seat is quoted, not worked around. Hatsu's own `checks` is `["l
 
 | Key | Default | Read by |
 |---|---|---|
-| `required` | `["test"]` | `tsukuyomi`; red is a **G5** stop inside `aka` |
-| `extra` | `[]` | `tsukuyomi`, run after `required` and reported separately |
+| `required` | `["test"]` | `kotoamatsukami` at mukai; red is a **G5** stop inside `mukai` |
+| `extra` | `[]` | `kotoamatsukami`, considered after `required` and reported separately |
 
 An **empty `required` is a statement, not an omission**: it says this repository has no automated suite, and
-`tsukuyomi` reports that rather than inventing a runner. **With `required` and `extra` both empty the verdict
-is `not applicable — no tests configured` — never green.** Nothing ran, so nothing passed, and `aka` reads
-that word as *nothing to prove* and says so in the push report rather than converting it into a pass. It is
+`kotoamatsukami` reports that rather than inventing a runner. **With `required` and `extra` both empty the verdict
+is `not applicable — no tests configured` — never green.** Nothing ran, so nothing passed, and `mukai` reads
+that word as *nothing to prove* and says so rather than converting it into a pass. It is
 not a G5 either: an empty required set is not a red suite. A test is never patched to pass.
+`tsukuyomi` does not read these keys; it runs one explicit scoped lane on every ren turn that
+changed executable behavior.
 
 ### `coverage` — the ladder
 
@@ -185,14 +190,14 @@ not a G5 either: an empty required set is not a red suite. A test is never patch
 
 | Key | Default | Meaning |
 |---|---|---|
-| `minimum` | `80` | **the stop.** A touched file under it is a **G5**: `gyo` adds tests until it clears, or the maintainer decides |
-| `recommended` | `85` | the band `gyo` aims for and reports against |
+| `minimum` | `80` | **the stop.** A touched file under it is a **G5**: `byakugan` adds tests until it clears, or the maintainer decides |
+| `recommended` | `85` | the band `byakugan` aims for and reports against |
 | `ideal` | `90` | the band worth saying out loud when it is reached |
 | `scope` | `touched` | line coverage of the files in `git diff --name-only origin/<base>...HEAD`, **not** the repository total |
 
 Three numbers rather than one, because a single threshold turns into either a gate that blocks honest work or
 a number nobody looks at. The ladder reports bands and stops only at the bottom rung. **The bar is never
-lowered to clear it** — that is the one move `gyo` will not make, and a repository that cannot honestly reach
+lowered to clear it** — that is the one move `byakugan` will not make, and a repository that cannot honestly reach
 `minimum` is a G5, not a smaller number.
 
 `nen shu coverage --threshold <n>` **reports** `met: true|false` and never changes its exit code; nen does not
@@ -608,8 +613,8 @@ It loops. **It never pushes and never opens a pull request.**
 
 | Phase | What it does | Why it is the human's |
 |---|---|---|
-| [`aka`](../claude/skills/aka/) | lint → squash the unpushed commits → `ao` → final-tree regression → push | publishing work is a decision, and a squash is destructive |
-| [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → matching aka regression evidence → `gyo` → publish proven updates → evidence → `shibari` opens the PR → landing report → start `en` and end Mukai. **§ 5 is the full shape** | Mukai hands ownership to En; the same user turn continues, and pending is En's in-progress state |
+| [`aka`](../claude/skills/aka/) | lint → squash the unpushed commits → `ao` → re-lint if catch-up moved the tree → push | publishing work is a decision, and a squash is destructive |
+| [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → kokusen checkpoint → `kotoamatsukami` impacted tests → `byakugan` coverage → publish proven updates → evidence → `shibari` opens the PR → landing report → start `en` and end Mukai. **§ 5 is the full shape** | Mukai hands ownership to En; the same user turn continues, and pending is En's in-progress state |
 | **merge** | **G2** (`CON-5`) | never delegated, by any agent, anywhere |
 | [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always, and `--run` acts only on a call that **names the target** | the blast radius leaves this machine |
 | [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3** (`CON-6`): only on a recorded per-target go, with the preflight green and the tag already cut — one target per call | the blast radius is other people's users |
@@ -626,8 +631,8 @@ attrition. The loop simply stops and waits.
 
 **The only interruptions are genuine G5 stops. There are five:**
 
-1. **red required tests** — in `aka`, via `tsukuyomi`
-2. **touched-file coverage under `coverage.minimum`** — in `gyo`
+1. **red required tests** — in `mukai`, via `kotoamatsukami`
+2. **touched-file coverage under `coverage.minimum`** — in `byakugan`
 3. **a semantic conflict** — in `ao`. A *mechanical* conflict is resolved, not escalated
 4. **an unsettled adversarial finding** — in `hanten`, after Kurapika has fixed it or pushed back with a reason
 5. **a `sharingan` escalation** — a PR that will not reach Ready
@@ -656,14 +661,15 @@ maintainer's to call. Its order is fixed, and each step has exactly one job.
 
 | | Step | What it does | Where it stops |
 |---|---|---|---|
-| **1** | [`murasaki`](../claude/skills/murasaki/) | catch up through [`ao`](../claude/skills/ao/), verify the changed tree, and enter the aka-owned lint/regression phase before any push, **only if the branch is already published**. A red merged tree goes to [`rasengan`](../claude/skills/rasengan/) to be authored. Never squashes, never force-pushes | **G5** on a *semantic* conflict in `ao` — a mechanical one is resolved |
+| **1** | [`murasaki`](../claude/skills/murasaki/) | catch up through [`ao`](../claude/skills/ao/), verify the changed tree with `iteration.checks`, **only if the branch is already published**. A red merged tree goes to [`rasengan`](../claude/skills/rasengan/) to be authored. Never squashes, never force-pushes, never runs project-wide tests | **G5** on a *semantic* conflict in `ao` — a mechanical one is resolved |
 | **2** | [`hanten`](../claude/skills/hanten/) | the adversarial review: classify the change set by scope, one reviewer subagent per scope | **G5** on an unsettled finding — after Kurapika has fixed it or pushed back with a reason |
-| **3** | aka-owned regression phase | Reuse matching evidence, or checkpoint review fixes and execute full required tests and applicable UI suites through aka. Record instrumented artifacts and tree/configuration provenance for steps 4 and 6 | **G5** on red required tests. A seat (exit `4`) is quoted, never routed around |
-| **4** | [`gyo`](../claude/skills/gyo/) | extract existing matching regression artifacts and apply the `coverage` ladder of § 2, without rerunning tests | **G5** when a touched file is under `minimum` and cannot honestly clear it |
-| **5** | [`kokusen`](../claude/skills/kokusen/) then the push half of `murasaki` | **publishes the final proved tree.** Changes from steps 2–4 repeat the focused checkpoint, aka-owned lint/regression and coverage steps first; The review's fixes and gyo's new tests are edits to the working copy, and neither of those skills may commit or push; step 7 refuses to open a PR while `HEAD` is ahead of `origin/<branch>` | **G5** on a semantic conflict where the base moved again |
-| **6** | evidence | the changed visual artifacts, from `project.evidence` (§ 3), grouped **suite → scene** | not a gate event |
-| **7** | [`shibari`](../claude/skills/shibari/) | composes and opens **one** PR, requests the reviewers and writes the body back | never labels a gate, never merges |
-| **8** | [`rikugan`](../claude/skills/rikugan/) `as landing` | the landing report, rendered **after** the PR exists because its two extra sections — the PR body and the readiness verdict — are step 7's outputs. Mukai then starts [`en`](../claude/skills/en/) and ends | not a gate event; En owns current-head readiness from the immediate handoff, and the user turn remains active under En while CI/review is pending |
+| **3** | [`kokusen`](../claude/skills/kokusen/) | checkpoint review/snapshot edits with focused tests | **G5** on a red focused run or a missing scoped route |
+| **4** | [`kotoamatsukami`](../claude/skills/kotoamatsukami/) | the sole project-wide test run: only declared unit, UI and integration suites this change can affect. No coverage capture. Aka did not run this | **G5** on red required tests. A seat (exit `4`) is quoted, never routed around |
+| **5** | [`byakugan`](../claude/skills/byakugan/) | capture and measure independently of those suites; apply the `coverage` ladder of § 2, without rerunning tests | **G5** when a touched file is under `minimum` and cannot honestly clear it |
+| **6** | the push half of [`murasaki`](../claude/skills/murasaki/) | **publishes the final proved tree**, and only when this catch-up is a no-op. If it changes any tree path, return to steps 3–5 (kokusen, kotoamatsukami, byakugan) before pushing. Review fixes and byakugan's new tests are working-copy edits; neither of those skills may commit or push; step 8 refuses to open a PR while `HEAD` is ahead of `origin/<branch>` | **G5** on a semantic conflict where the base moved again |
+| **7** | evidence | the changed visual artifacts, from `project.evidence` (§ 3), grouped **suite → scene**, from kotoamatsukami's existing artifacts | not a gate event |
+| **8** | [`shibari`](../claude/skills/shibari/) | composes and opens **one** PR, requests the reviewers and writes the body back | never labels a gate, never merges |
+| **9** | [`rikugan`](../claude/skills/rikugan/) `as landing` | the landing report, rendered **after** the PR exists because its two extra sections — the PR body and the readiness verdict — are step 8's outputs. Mukai then starts [`en`](../claude/skills/en/) and ends | not a gate event; En owns current-head readiness from the immediate handoff, and the user turn remains active under En while CI/review is pending |
 
 **Four of the five G5 conditions of § 4 live inside this one phase.** That is not an accident of layout: a
 pull request is the moment work stops being private, so it is the moment the honest questions are cheapest to
@@ -704,23 +710,31 @@ fixed nor answered: that is the G5, and `hanten` raises it, never the reviewer.
 `critical` here is a fix in the next commit rather than an issue with a lifecycle. An issue is filed only
 when the finding **outlives the branch**.
 
-### `gyo` — the ladder, spent
+### `byakugan` — the ladder, spent
 
-`gyo` is where § 2's `coverage` ladder stops being a table and becomes a decision. It reads **touched-file
+Byakugan is where § 2's `coverage` ladder stops being a table and becomes a decision, after
+kotoamatsukami has already run the impacted suites. It captures the instrumented result independently
+of those suites, then reads **touched-file
 line coverage** — the files in `git diff --name-only origin/<base>...HEAD`, never the repository total — and reports
 each file against the three rungs:
 
-| Band | What `gyo` does |
+| Band | What byakugan does |
 |---|---|
-| below `minimum` (80) | **adds tests** until the file clears it; when it cannot be cleared honestly, **G5** |
+| below `minimum` (80) | **adds tests** (then kotoamatsukami re-runs the suites) until the file clears it; when it cannot be cleared honestly, **G5** |
 | `minimum` … `recommended` (80–85) | reported, and aimed past |
 | `recommended` … `ideal` (85–90) | reported as the band it is |
 | at or above `ideal` (90) | said out loud, because it is worth saying |
 
-**The bar is never lowered to clear it.** That is the one move `gyo` will not make: a repository that cannot
+**The bar is never lowered to clear it.** That is the one move byakugan will not make: a repository that cannot
 honestly reach `minimum` is a **G5**, not a smaller number. And `nen shu coverage` **reports** `met` and
 never changes its exit code — nen does not decide whether a number is good enough, which is exactly why this
 step is a skill and not a flag.
+
+### `gyo` — linting, every Ren turn
+
+Gyo is the named process for the declared `lint` verb. It is not the coverage bar. Breath proves
+it on the fresh tip, rasengan may run it as authoring feedback, kokusen must run it before every
+local commit, and aka runs it before squash and after catch-up if the tree moved.
 
 ### `shibari` — one PR, and the body it must carry
 
@@ -945,7 +959,7 @@ passing `--reviewers` instead (`sharingan` § 4), not by guessing a path. This i
 the stall guard (`rasengan`), `--target` on `shu dev` with `lane`/`artifact` (`amaterasu`, `jujutsu`), both
 report verbs (`rikugan`), `--no-push` and `conflicts[]` on `pr cascade-main` (`ao`, `murasaki`),
 `wc squash` (`aka`), `shu test-report` (`tsukuyomi`), `shu evidence` (`kotoamatsukami`, `shibari`),
-`shu coverage --touched` with the ladder (`gyo`), `pr edit-body` (`shibari`), the forbidden-trailer refusal
+`shu coverage --touched` with the ladder (`byakugan`), `pr edit-body` (`shibari`), the forbidden-trailer refusal
 in `commit format` (`kokusen`), `nen/workflow.json` validation and `notifications.turn` (`breath`,
 `jutaisho`), `stop --mark`, `surface mirror generate|check`, step `stdoutTo`, precondition `port` and
 `repo resolve`'s exit-`2` no-registry refusal — all of them are verbs in the pinned binary, each verified
@@ -962,7 +976,7 @@ live and recorded in the matching `docs/ab/<skill>.md` under *Retired at nen 0.5
 | showing both sides of a conflict — `git show :1:|:2:|:3:` | `ao` | `conflicts[]` names the commits, not the content |
 | the marker's SHAPE — `hatsu.stop-marker/v0.1` | `jutaisho` | `nen stop --mark` writes a poorer document with no `title`, `sound` or `rungs`, and **replaces** the file; adopting it would ring the generic line on every gate. Kept deliberately |
 | removing the marker on a hookless surface | `jutaisho` | `--mark` writes and never removes |
-| a coverage tool's own exclusions | `gyo` | `--touched` narrows the rows nen parsed; it cannot know what was never instrumented |
+| a coverage tool's own exclusions | `byakugan` | `--touched` narrows the rows nen parsed; it cannot know what was never instrumented |
 | embedding a capture as a `data:` URI | `rikugan` | no verb turns a PNG into one |
 | the Artifact publish | `rikugan` | the surface's tool, not a deterministic step nen owns |
 | a `.xcresult` with no declared extraction step, and a Playwright HTML report | `tsukuyomi`, `kotoamatsukami` | `test-report` reads a **declared** summary; nen opens no result bundle itself |
@@ -977,6 +991,7 @@ Skill availability follows the same honesty: `breath`, `rasengan`, `kokusen`, `a
 `rikugan`, `jutaisho`, `ao`, `aka` and `ren` shipped at Hatsu **`v0.4.0`**. **`v0.5.0` adds the PR side of
 § 5** — `mukai`, `murasaki`, `hanten`, `gyo`, `kotoamatsukami`, `shibari`, `en` and `jujutsu`, plus the
 `drive` → `sharingan` rename — and the three agent definitions it needs: Feitan, Chrollo and Illumi.
+**`v0.24.0` adds `byakugan`** (coverage capture and measurement, independent of kotoamatsukami's tests).
 **`v0.6.0` closes the release side**: `susanoo` (archive and packaging), `kagutsuchi` (non-production
 upload, per target) and `mugetsu` (publication, per target, **G3**) are skills now, so **four of § 4's
 five human-called phases have files** — `aka`, `mukai`, `kagutsuchi`, `mugetsu`. The fifth is **the

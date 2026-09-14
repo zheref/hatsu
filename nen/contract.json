@@ -101,7 +101,7 @@
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/rikugan.html, which is a report template, not an application."
         },
         "coverage": {
-          "unsupported": "Nothing here executes, so nothing here is covered. gyo reports Hatsu's touched files as `not measurable` against the ladder in nen/workflow.json rather than against a number, and the ladder still governs every repository Hatsu drives that declares none of its own."
+          "unsupported": "Nothing here executes, so nothing here is covered. byakugan reports Hatsu's touched files as `not measurable here` against the ladder in nen/workflow.json rather than against a number, and the ladder still governs every repository Hatsu drives that declares none of its own. Gyo is linting."
         },
         "archive": {
           "unsupported": "A Claude Code plugin is distributed by git ref through a marketplace, never as a built package: `claude plugin marketplace add zheref/hatsu` reads the tree at a ref. There is no artifact to produce, so there is nothing for `archive` to name."

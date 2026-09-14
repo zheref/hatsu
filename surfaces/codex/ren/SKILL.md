@@ -157,8 +157,12 @@ for feedback; `kokusen` owns their mandatory finished-tree execution. A reposito
 executable tests says so explicitly. The shared `iteration.checks` list remains shared with `breath`;
 a focused lane is an explicit supported declaration, not a new checkpoint-only policy key.
 
-Full required regression is due in `aka`, after catch-up; coverage measurement/gating is due in
-`mukai`/`gyo`. Neither is triggered by the words “turn complete,” by a local commit, or by collecting
+Impacted project-wide tests and coverage measurement/gating are due in
+`mukai` / [`$kotoamatsukami`](../kotoamatsukami/SKILL.md) (the declared unit, UI and
+integration suites the change can affect) and
+[`$byakugan`](../byakugan/SKILL.md) (coverage). Linting is
+[`$gyo`](../gyo/SKILL.md), on every Ren turn. Neither those tests nor coverage is triggered
+by the words “turn complete,” by a local commit, or by collecting
 a report. No nested skill or declared coverage command may hide a full-suite run outside its owner.
 
 Every phase, subagent, composite and resumed run follows [the common discovery protocol](../../../docs/DISCOVERY.md).
