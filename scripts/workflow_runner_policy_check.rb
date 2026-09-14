@@ -8,7 +8,7 @@ SAME_REPO_GUARD = "${{ github.repository == 'zheref/hatsu' && github.event.pull_
 MAC_RUNNER = %w[self-hosted macOS ARM64].freeze
 WINDOWS_RUNNER = %w[self-hosted Windows X64].freeze
 HOSTED_RUNNER = "ubuntu-latest"
-PORTABLE_MAC_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml].freeze
+PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml].freeze
 EXPECTED_JOBS = {
   "plugin-bump-check.yml" => "check",
   "surface-mirror-check.yml" => "surface-mirror-check"
@@ -131,8 +131,8 @@ def validate_workflow(path)
     runner = runner_node.is_a?(Psych::Nodes::Sequence) ? sequence(runner_node, "runs-on") : scalar(runner_node)
     allowed = runner == MAC_RUNNER || runner == WINDOWS_RUNNER || runner == HOSTED_RUNNER
     fail_policy("#{path} job #{job_name} uses an unapproved runner #{runner.inspect}") unless allowed
-    if PORTABLE_MAC_WORKFLOWS.include?(File.basename(path)) && runner != MAC_RUNNER
-      fail_policy("#{path} is portable and must use the repository-scoped Mac ARM64 pool")
+    if PORTABLE_HOSTED_WORKFLOWS.include?(File.basename(path)) && runner != HOSTED_RUNNER
+      fail_policy("#{path} is portable and must use GitHub-hosted ubuntu-latest")
     end
 
     fail_policy("#{path} job #{job_name} must inherit workflow permissions") if job.key?("permissions")
@@ -190,7 +190,7 @@ def validate_repo(root)
   paths = Dir.glob(File.join(root, ".github/workflows/*.{yml,yaml}")).sort
   fail_policy("#{root} has no workflows") if paths.empty?
   basenames = paths.map { |path| File.basename(path) }
-  missing = PORTABLE_MAC_WORKFLOWS - basenames
+  missing = PORTABLE_HOSTED_WORKFLOWS - basenames
   fail_policy("#{root} is missing required workflows: #{missing.join(', ')}") unless missing.empty?
   paths.each { |path| validate_workflow(path) }
   puts "workflow-runner-policy: #{paths.length} workflows structurally valid"
@@ -238,6 +238,9 @@ def self_test(root)
 
     File.write(plugin, original.sub("  check:\n    if:", "  check:\n    permissions:\n      contents: read\n    if:"))
     expect_rejected("job permission override") { validate_repo(tmp) }
+
+    File.write(plugin, original.sub("runs-on: ubuntu-latest", "runs-on: [self-hosted, macOS, ARM64]"))
+    expect_rejected("portable workflow on a self-hosted Mac runner") { validate_repo(tmp) }
 
     File.write(plugin, original.sub("-f name=check ", "-f name=check-other "))
     expect_rejected("wrong exact-head check name") { validate_repo(tmp) }

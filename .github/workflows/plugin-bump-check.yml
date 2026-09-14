@@ -62,7 +62,7 @@ permissions:
 jobs:
   check:
     if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository }}
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Start required check on the exact PR head
