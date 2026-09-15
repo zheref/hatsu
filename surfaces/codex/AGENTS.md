@@ -1801,7 +1801,9 @@ reviewers → [`rikugan`](../skills/rikugan/SKILL.md)⁹ `as landing` → Mukai 
 Opening the PR, publishing screenshots, observing pending CI/review, or choosing to end a response is
 progress, not Mukai success. `shibari` never labels a gate and never merges.
 
-**`hanten` routes by scope, one reviewer subagent per scope.** You do not review your own change set, and you
+**`hanten` routes by scope, one reviewer subagent per applicable scope that still has cycle budget**
+([`hanten`](../skills/hanten/SKILL.md) § 2a; [zheref/hatsu#63](https://github.com/zheref/hatsu/issues/63)).
+You do not review your own change set, and you
 do not pick a reviewer by feel — the scope decides:
 
 | Scope of the change set | Reviewer | Tier / effort |

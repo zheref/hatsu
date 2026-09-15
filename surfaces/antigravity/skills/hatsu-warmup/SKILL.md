@@ -807,6 +807,13 @@ symlinks.
 > hand-edited copy inside the target is not a change to preserve, it is drift to overwrite, and the
 > authored file is `claude/skills/<name>/SKILL.md` in this repository.
 
+> **`.nen/` is never a mirror destination.** Proof files, En loop ledgers, the stop marker, and
+> Hanten's cycle ledger (`.nen/hanten/<branch-slug>.cycle.json`, `hatsu.hanten.cycle/v0.1`) live
+> there, git-ignored, and must survive a session warm-up. A refresh that deleted them would reset
+> reviewer budgets and En caps
+> ([zheref/hatsu#63](https://github.com/zheref/hatsu/issues/63)). Warm-up writes only the surface
+> skill, agent, rule and hook paths named in § 5.
+
 **The personas go to `AGENTS.override.md`, and it REPLACES the target's `AGENTS.md` rather than joining
 it.** That is Codex's own rule, verified live on this host with `codex debug prompt-input`
 (`docs/ab/surfaces.md` § 7, F9): with both files present, only `AGENTS.override.md`'s content reached the

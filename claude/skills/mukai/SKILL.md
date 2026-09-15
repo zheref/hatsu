@@ -63,7 +63,7 @@ handoff, and do not end the user turn while En still owns an ordinary pending st
 | # | Step | The skill that owns it | Why it is here |
 |---|---|---|---|
 | 1 | **catch up** | [`hatsu:murasaki`](../murasaki/SKILL.md) | the base underneath the branch; iteration checks only. A changed tree invalidates later evidence; this step does not run regression |
-| 2 | **adversarial review** | [`hatsu:hanten`](../hanten/SKILL.md) | one reviewer subagent per scope, findings in the fixed shape; Kurapika fixes or pushes back with a reason |
+| 2 | **adversarial review** | [`hatsu:hanten`](../hanten/SKILL.md) | one reviewer subagent per applicable scope that still has cycle budget; Kurapika fixes or pushes back with a reason. The effort's `.nen/hanten/<branch-slug>.cycle.json` is reused; settling findings does not reset it |
 | 3 | **checkpoint review mutations** | [`hatsu:kokusen`](../kokusen/SKILL.md), then [`hatsu:ao`](../ao/SKILL.md) if the tree still needs catch-up | focused tests and a local commit for review/snapshot edits; no project-wide suite |
 | 4 | **impacted tests** | [`hatsu:kotoamatsukami`](../kotoamatsukami/SKILL.md) | the sole project-wide test run: unit, UI and integration suites this change can affect. No coverage capture |
 | 5 | **the coverage bar** | [`hatsu:byakugan`](../byakugan/SKILL.md) | capture and measure independently of those suites; if byakugan adds tests, repeat steps 3–5 |
@@ -79,7 +79,10 @@ handoff, and do not end the user turn while En still owns an ordinary pending st
   merge. Reviewers cost real tokens and real attention; spending them on a stale tree is spending
   them twice.
 - **2 before 3.** Review fixes need a focused checkpoint before anybody spends the slow suite on
-  them.
+  them. **Step 2 does not re-raise a reviewer to confirm the fix.** Hanten § 2a's cycle ledger is
+  the effort's, not this Mukai run's; a later `hatsu:hanten` on this branch continues `used`/`max`.
+  Chrollo does not run twice because findings were settled
+  ([zheref/hatsu#63](https://github.com/zheref/hatsu/issues/63)).
 - **3 before 4.** Kotoamatsukami runs tests on the checkpointed tree. Aka did not run those
   suites, so step 4 is the first project-wide test run of the effort even when review changed
   nothing.
@@ -214,7 +217,8 @@ that owns it.
 
 **One line per step as it completes, then the handover.** Which step, what it found, and — for step
 2 — the reviewer subagents by their full title (`hanten · <persona> · <model alias>`) with the
-finding count and how each was disposed. **Step 6's line names the commits it pushed and the ref it
+finding count and how each was disposed, **and** each applicable reviewer's `used`/`max` and
+whether they ran or were skipped-exhausted. **Step 6's line names the commits it pushed and the ref it
 pushed** (`<old>..<new>`), or says the tree was already clean and level, so a reader can tell a run
 that published a review's fixes from one that had nothing to publish.
 
@@ -279,6 +283,8 @@ it is how the page stops being read.
 - **Never skips step 2 because the change looks small.** The review is where a small change that is
   not small gets found; skipping it on a size judgment is the judgment being made by the thing
   being judged.
+- **Never treats step 2 as an unbounded review-until-clean loop.** Hanten's cycle ledger is the
+  effort's; Mukai re-enters it, it does not reset it.
 - **Never converts step 7's absent `ui-test` declaration into hand-staged captures** — the
   logic-only exemption is stated, not filled in.
 - **Never claims readiness itself or by eye.** Mukai ends after it starts [`hatsu:en`](../en/SKILL.md)
