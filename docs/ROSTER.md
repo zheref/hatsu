@@ -65,7 +65,7 @@ the provision. **Netero landed at `v0.25.0`** on the ruling of 2026-09-14. On An
 | **Feitan** | `claude/agents/feitan.md` | **Security, and security only.** The security-bearing scope of an adversarial review: auth flows, secrets and credential handling, network and storage boundaries, data minimisation, the supply chain. Cites the inherited `SEC-{n}` rules **by id, resolved and never remembered** (`SEC-8` and `SEC-14` are referenced in the product repositories), plus a repository's own security notes by path. | **Ratified** on the ruling of 2026-09-09 below; **definition landed at `v0.5.0`** |
 | **Chrollo** | `claude/agents/chrollo.md` | **Architecture and handbook conformance.** The `UZF-{n}` core, **exactly one** resolved stack handbook (`SW-`/`KT-`/`RC-`/`BC-`), and a repository's own architecture notes — KroApple's `.claude/Architecture/` is the live example — each cited by id or by path. He is the architecture reviewer the QA lane routes a coverage-floor breach or a missing unit test to (`UZF-19`). **He reviews the handbooks; he never authors them.** | **Ratified** on the ruling of 2026-09-09 below; **definition landed at `v0.5.0`** |
 | **Illumi** | `claude/agents/illumi.md` | **The long watch — `en`'s step 5, and no other loop.** Read-only observation through `nen watch until`, under `izanagi`'s mandatory cap and `workflow.json` → `monitor`. He wakes Kurapika and acts on nothing: never merges, votes, comments, labels, pushes, or fires a wake. His frontmatter carries no `Edit`, `Write` or `MultiEdit` — **but `Bash` is there, because every observation is a program, so read-only is a stated command allowlist in his own definition and not a property of the tool set.** Said that way rather than dressed up as a construction, per ruling 2's own standard. | **PROVISIONED, NOT RATIFIED** — `OPEN-1`, **partially** closed 2026-09-09. The definition landed at `v0.5.0` so the provision can be executed; **it widens nothing**. See below |
-| **Netero** | `claude/agents/netero.md` | **Process chairman.** Observes Hunters in execution and files complete, labelled issues when constitution, canon prose, or machinery need enhancement — duration, redundancy, autonomy gaps, repetitive jobs that should be Nen verbs, missing toolchain. Routes each finding to Nen or Hatsu with observable acceptance criteria and cross-references for deployment, fan-out and provisioning. He files; he never implements the filed work. | **Ratified** 2026-09-14; definition landed at `v0.25.0` |
+| **Netero** | `claude/agents/netero.md` | **Process chairman.** Observes Hunters in execution and files complete, labelled issues when constitution, canon prose, or machinery need enhancement — duration, redundancy, autonomy gaps, repetitive jobs that should be Nen verbs, missing toolchain. The named wrap-up is [`hatsu:third-hand`](../claude/skills/third-hand/SKILL.md): after En's retained report he proposes 0–3 folded issues, the maintainer picks, he files those. He files; he never implements the filed work. | **Ratified** 2026-09-14; definition landed at `v0.25.0`; Third-Hand at `v0.27.0` |
 
 ### ⚠️ Gon's delegation grammar is a DRAFT — **until it is ratified, Gon crosses no gate**
 
@@ -343,6 +343,31 @@ need enhancement; and for two defects that session had already paid for
    visible without `final`, without a PR, and without asking the maintainer to reconstruct the
    failure from chat. Jutaisho verifies that content before the stop handoff links the page.
    Aka, kotoamatsukami/mukai, and every other G5 owner fill the same object.
+
+**What this does not close.** Killua, Illumi's unruled engines, Gon's delegation grammar, and the
+five remaining bench profiles stay exactly as they were.
+
+---
+
+## Rulings of 2026-09-15
+
+### Third-Hand is Netero's wrap-up harvest — the merge is still not a skill
+
+**Ruled 2026-09-15.** The chairman needed a named entry at the end of the regular Kurapika
+pipeline (`ren` → `aka` → `mukai` → `en`), not only opportunistic in-execution filing.
+
+1. **[`hatsu:third-hand`](../claude/skills/third-hand/SKILL.md) is En's last step** after the
+   retained final report, started in parallel with presenting that page. Netero is raised as
+   `third-hand · netero · <model alias>`, never on the frontier tier, and is not isolated from
+   this sitting's evidence. He proposes **0–3** folded process issues (duration, redundancy,
+   autonomy gaps, missing Nen verbs, toolchain, other roster friction). The maintainer picks
+   which to file through the surface's native option picker. Netero files only those, never
+   implements them, and **the sitting is then over**.
+2. **The merge remains G2 with no skill.** Third-Hand does not describe, propose, wait for, or
+   perform the merge. Four of the five human-called phases still have files (`aka`, `mukai`,
+   `kagutsuchi`, `mugetsu`); the fifth is still the merge.
+3. **Codex has no in-session subagent**, so the harvest runs in the foreground under Netero's
+   protocol, named, never as a thinner filing.
 
 **What this does not close.** Killua, Illumi's unruled engines, Gon's delegation grammar, and the
 five remaining bench profiles stay exactly as they were.

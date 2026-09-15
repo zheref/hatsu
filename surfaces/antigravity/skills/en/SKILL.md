@@ -1,6 +1,6 @@
 ---
 name: en
-description: Take one open pull request from the moment it opens to verified readiness at its human G2/G4 gate, under a mandatory acting-cycle cap — the landing report, fresh current-head observation, Sharingan remediation, catch-up when behind, and the bell only at Ready. Use when /mukai hands over its PR, or when the maintainer invokes /en on <CODE>#<N> for a PR that is already open. Pending CI or review keeps the run active; quiet polls spend no cycle. En never merges and never casts a review vote.
+description: Take one open pull request from the moment it opens to verified readiness at its human G2/G4 gate, under a mandatory acting-cycle cap — the landing report, fresh current-head observation, Sharingan remediation, catch-up when behind, the bell only at Ready, and Third-Hand's session-closing harvest after the retained report. Use when /mukai hands over its PR, or when the maintainer invokes /en on <CODE>#<N> for a PR that is already open. Pending CI or review keeps the run active; quiet polls spend no cycle. En never merges and never casts a review vote.
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
@@ -18,7 +18,8 @@ En is the last composite of the local plane and the only one that may need to **
 the moment the PR was opened**. [`/mukai`](../mukai/SKILL.md) ends by starting this handoff; from
 there the PR and the still-active user turn belong to En until Sharingan proves it Ready, or a concrete
 blocker/cap/terminal state/cancellation ends En's run. The merge itself is the maintainer's later act
-and is outside En.
+and is outside En. The sitting closes with [`/third-hand`](../third-hand/SKILL.md) after the
+retained report — Netero harvests process friction in parallel; En still never merges.
 
 **This file composes. It does not re-specify.** Every step below is another skill's, named and
 linked, and its procedure, its exit-code reactions, its refusals and its residue live there. If you
@@ -27,7 +28,8 @@ authored, because a rule restated in two places drifts in one of them.
 
 **What is genuinely en's own is the cap, the watch's shape, and the boundary at the end of the
 session.** Those three are § 2, § 6 and § 7, and they are the only places this file asserts
-anything.
+anything. Starting [`/third-hand`](../third-hand/SKILL.md) at a terminus is part of that
+boundary, not a restatement of Netero's protocol.
 
 ---
 
@@ -154,9 +156,10 @@ what is still not true, and what the next cycle would have done. `izanagi` § 4'
 | 4 | **drive again** | [`/sharingan`](../sharingan/SKILL.md) | after step 3 moved the tree underneath it |
 | 5 | **observe** | this file, § 6 | while CI or a reviewer round is pending; rebuild the current-head snapshot on every change, returning to steps 2–4 when action is needed |
 | 6 | **the bell and gate handoff** | [`/jutaisho`](../jutaisho/SKILL.md) | **after verified Ready**, and only then |
-| 7 | **retained readiness report** | [`/rikugan`](../rikugan/SKILL.md) `as final` | after the bell; this is En's successful terminus |
+| 7 | **retained readiness report** | [`/rikugan`](../rikugan/SKILL.md) `as final` | after the bell |
+| 8 | **session harvest** | [`/third-hand`](../third-hand/SKILL.md) | after the retained report, **in parallel** with presenting it; Netero proposes 0–3 folded process issues, the maintainer picks, those are filed, then the sitting is over. Not an acting cycle. The merge stays outside |
 
-**Three orderings are en's own assertions:**
+**Five orderings are en's own assertions:**
 
 - **3 before 4.** Driving a branch that is behind its base produces a readiness verdict against a
   tree that is about to change. Catch up first, then re-decide.
@@ -166,6 +169,9 @@ what is still not true, and what the next cycle would have done. `izanagi` § 4'
   must settle, and every incoming finding must be disposed, before the bell or handoff exists.
 - **6 before 7.** The retained report records the gate event the bell announced; rendering it first
   would preserve a readiness handoff that had not happened yet.
+- **7 before 8.** Third-Hand reads the sitting, including the retained page. Harvesting before
+  that page exists would ask Netero to reconstruct challenges from chat. Step 8 does not wait
+  for the merge and does not ring again.
 
 **Step 3 is conditional and stays conditional.** A branch level with its base does not get a
 catch-up "to be safe": `murasaki` would re-run the declared iteration checks for nothing, and on a
@@ -277,14 +283,15 @@ en acts, and the `<n>/<cap>` the verb prints is the number the report carries.
 |---|---|
 | **a new review, comment or thread** | inspect and classify it first. If it requires remediation or a reviewer re-request, claim an acting cycle, then return to step 2; an approval or informational event that needs only a read spends no cycle. [`/sharingan`](../sharingan/SKILL.md) addresses every inline and summary finding through its own channel |
 | **the branch fell behind, or the PR went `dirty`** | claim an acting cycle, then step 3 and step 4 — catch up, then re-decide. A conflicted PR gets *no checks at all*, which reads as "clean" rather than "broken" (`sharingan` § 5) |
-| the PR becomes Ready | step 6 — bell and stop at the human gate |
-| the PR merged before the gate handoff | end as a terminal external state, naming that readiness was not the run's observed terminus |
-| the PR closed unmerged | the run ends, saying so — there is nothing to land, and reopening is the maintainer's call |
+| the PR becomes Ready | step 6 — bell, then 7, then 8 |
+| the PR merged before the gate handoff | end as a terminal external state, naming that readiness was not the run's observed terminus, then step 8 — the sitting still harvests |
+| the PR closed unmerged | the run ends, saying so — there is nothing to land, and reopening is the maintainer's call; then step 8 |
 | nothing changed | **one line, or no line.** Not a status screenful; `nen watch until` already prints one line per observation |
 
 **Four stops apply here**: the condition true (verified Ready); the **cap reached**, reported with what
 is still not true; **a human gate**, which is never retried past; and an **impossible condition**, named
-rather than waited on — a closed PR will not become Ready. `izanagi`'s generic three-no-op stop does
+rather than waited on — a closed PR will not become Ready. Each of those that **ends the sitting**
+still starts step 8 — a cap-out is exactly the sitting Netero should harvest. `izanagi`'s generic three-no-op stop does
 not apply to En: quiet observations claim no cycle, and three unchanged pending reads cannot terminate
 the current-head readiness promise. Three consecutive **observation errors** still stop `nen watch until`
 as an unread capability failure, exactly as the verb documents; that is not a pending-state success.
@@ -357,10 +364,13 @@ readiness renders live at their Artifact address (or the transient `current.html
 none), and only this one gets a dated file. **`<reports.dir>` is git-ignored**, and rikugan writes
 nowhere else in the tree.
 
-**Then the run ends at the gate.** Say the object notation, current head SHA, quoted readiness verdict,
-acting-cycle count spent out of the cap, and final report path. The human merge or vote remains outside
-the run. If the PR merged externally before this hand-off, report that terminal state without rewriting it
-as an observed Ready success.
+**Then start [`/third-hand`](../third-hand/SKILL.md) in parallel with presenting that page** —
+step 8. Say the object notation, current head SHA, quoted readiness verdict, acting-cycle count
+spent out of the cap, and final report path, and do not wait for the harvest to *start* presenting
+them. The human merge or vote remains outside the run. Third-Hand does not merge, does not ring,
+and is not an acting cycle. If the PR merged externally before this hand-off, report that terminal
+state without rewriting it as an observed Ready success, then still start step 8. **The sitting is
+over when Third-Hand returns**, not when this page is written.
 
 ## Residue
 
@@ -372,7 +382,8 @@ as an observed Ready success.
    the two verbs `sharingan` refuses to call for a verdict (steps 2 and 4), `nen pr cascade-main`
    and its missing `--no-push` (step 3, named in [`ao`](../ao/SKILL.md)), `nen stop` plus the
    `osascript`/`afplay` fallback and the `.nen/last-stop.json` marker (step 6, named in
-   [`jutaisho`](../jutaisho/SKILL.md)).
+   [`jutaisho`](../jutaisho/SKILL.md)), and the harvest marker plus Netero's raise (step 8, named
+   in [`third-hand`](../third-hand/SKILL.md)).
 2. **RETIRED at nen `0.7`: counting cycles against the cap.** `nen loop iterate --id en-<CODE>-<N>
    --line "<the invocation>"` claims each acting cycle and REFUSES the claim at
    `monitor.maxCycles`, exit `1` (§ 2, § 6; `izanagi` § 3's retirement, verified live in
@@ -394,10 +405,10 @@ as an observed Ready success.
 
 ## Authority
 
-- **Permitted:** everything the five composed skills are each permitted, under their own authority,
+- **Permitted:** everything the composed skills are each permitted, under their own authority,
   one at a time, in § 3's order — and **per cycle, resolved fresh**. `izanagi` § 2's rule:
   authority never accumulates across iterations, and a run-scoped delegation granted inside a step
-  expires with that step.
+  expires with that step. Step 8 is not a cycle.
 - **Not permitted:** **any merge**; any gate label; any review vote — `request_changes` above all;
   any force-push; any `--no-verify`; any tag, release or deploy. A landing that would need one of
   those is reported and the run stops.
@@ -427,6 +438,8 @@ as an observed Ready success.
   claimed (§ 4).
 - **Never renders the final report while required CI or the owed current-head review round is pending**,
   and never gives a turn render a kept file (§ 8).
+- **Never skips step 8** at a terminus that ends the sitting, and never treats Third-Hand as an
+  acting cycle or as a merge.
 - **Never retries past a human gate**, and never spends the rest of the cap re-driving past a
   `sharingan` escalation (§ 4).
 - **Never restates another skill's protocol.** If en and a composed skill disagree, the composed

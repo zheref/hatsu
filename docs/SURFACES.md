@@ -117,7 +117,7 @@ surfaces that keep it; it is not worth *relying* on here.
 ### Cursor has a MINIMUM `cursor-agent` version, and below it every Hatsu skill is silently absent
 
 **A `cursor-agent` that predates skills support answers your prompt, runs your commands, exits `0` —
-and has not loaded one of the thirty-nine.** With the mirror installed exactly as
+and has not loaded one of the forty.** With the mirror installed exactly as
 [`hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md) § 5b mandates, `2025.09.18-39624ef` answered
 a discovery probe with the whole reply **`NO SKILLS VISIBLE`**, seventeen bytes. The controlled
 fixture that followed is what settles it: the same build cannot see a **`cp -R` copy** either, and it
@@ -160,7 +160,7 @@ was renamed to `sharingan` at v0.5.0 and `surfaces/cursor/drive` does not exist.
 **On Claude Code this cannot happen** — `hatsu:build` and `bankai:build` are distinct names, which the
 Codex-half record called *"luck rather than design"*. **On Cursor the luck runs out.** The names Hatsu
 claims that are ordinary enough to collide with somebody: **`build`, `file`, `en`, `ao`, `ren`,
-`breath`**, and thirty-nine are claimed at once.
+`breath`**, and forty are claimed at once.
 
 > **The shadowing itself is INFERRED, not proven, and it is written here as such.** The evidence is
 > one listing's grouping and one alphabetical gap — `build` appeared once, outside the Hatsu block's

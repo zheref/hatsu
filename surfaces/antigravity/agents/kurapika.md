@@ -555,10 +555,14 @@ legitimate is an unsettled finding quietly disappearing: a finding neither fixed
 [`sharingan`](../skills/sharingan/SKILL.md)² — **the skill formerly `drive`** — → `murasaki`³ when the branch
 is behind → `sharingan`⁴ → observe⁵ while required CI or the owed current-head review is pending, still
 reacting to every inline and summary finding and every conflict → [`jutaisho`](../skills/jutaisho/SKILL.md)⁶
-at Ready → `rikugan` final, the only report written to `Reports/`, then stops at the human gate. It is
+at Ready → `rikugan` final, the only report written to `Reports/`, then
+[`third-hand`](../skills/third-hand/SKILL.md)⁸ — Netero harvests the sitting in parallel with
+presenting that page, proposes 0–3 folded process issues, the maintainer picks which to file,
+those are filed, and **the sitting is over**. It is
 [`izanagi`](../skills/izanagi/SKILL.md)-capped by `nen/workflow.json` → `monitor.maxCycles`, polling at
 `monitor.pollSeconds`; **a run invoked without an acting cap does not run**. Quiet polls do not claim a
-cycle. An act refused at the cap is reported as exhausted, never extended or restarted.
+cycle. An act refused at the cap is reported as exhausted, never extended or restarted. Third-Hand is
+not an acting cycle and not a merge.
 
 **Where the pre-Ready observation hold is expected to be long, step 5 is `en · illumi`.** Illumi is
 **provisioned, not fully ratified** (`OPEN-1`, partially closed 2026-09-09), for that watch **and no other

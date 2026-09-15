@@ -999,6 +999,9 @@ merge**, and it stays a rule with no file: **G2** is an action no agent performs
 procedure to write down. The rule that held while the other four had no file still holds and always did:
 **a phase boundary is the governance, not the file** — name the phase and stop there whether or not
 something has been written for it.
+**`v0.27.0` adds `third-hand`**: En's session-closing harvest after the retained final report.
+Netero proposes 0–3 folded process issues in parallel with that page; the maintainer picks which
+to file; the sitting is then over. **It is not the merge.** G2 still has no file.
 
 **`v0.7.0` adds no skill and adds two surfaces.** The same thirty-eight skills and eight personas are now
 also generated into Codex and Cursor layouts under `surfaces/`, placed into a target repository by the

@@ -5,7 +5,7 @@ authored for [Claude Code](#on-claude-code), and read on [Codex](#using-hatsu-on
 [Cursor](#using-hatsu-on-cursor) from generated mirrors of the same files.**
 
 One lead persona — **Kurapika**, who names which of six declared work-modes he is holding before he acts —
-plus a small roster of focused independents, and **thirty-nine skills** that take a backlog, a pull request or
+plus a small roster of focused independents, and **forty skills** that take a backlog, a pull request or
 a release from where it is to the human gate where a person decides. **Every deterministic step that has a
 verb is a verb** from the [**Nen**](https://github.com/zheref/nen) CLI: Nen detects, computes, formats and
 verifies; the skill supplies only the judgment a binary cannot. Where no verb exists yet, the residue is
@@ -35,6 +35,7 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 > **`v0.7.0` adds no skill and adds two surfaces**: the same thirty-eight skills and eight personas,
 > generated into Codex and Cursor layouts under [`surfaces/`](surfaces/) — see [*Surfaces*](#surfaces).
 > **`v0.24.0` adds `byakugan`**: coverage capture and measurement, independent of tests; kotoamatsukami is unit, UI and integration suites only; gyo remains lint. The live skill surface is **thirty-nine**.
+> **`v0.27.0` adds `third-hand`**: En's session-closing harvest. Netero proposes 0–3 folded process issues in parallel with the retained final report; the maintainer picks which to file; the sitting is then over. The merge remains G2 with no skill. The live skill surface is **forty**.
 > **Attribution ruling, 2026-09-12:** prospective commits carry the truthful canonical
 > `Hatsu-Agent` or `Akatsuki-Agent` persona/plane trailer. They never carry model, surface, runtime, or
 > session attribution. The final `## Agent attribution` PR-body section records actual participants with
@@ -203,7 +204,7 @@ That warm-up refreshes the complete surface every session. What it places in **y
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **40**, the thirty-nine plus `hatsu-warmup` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
+| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **41**, the forty plus `hatsu-warmup` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
 | `<repo>/AGENTS.override.md` | **untracked**, written whole: your own `AGENTS.md` verbatim first, then the personas between a `BEGIN`/`END hatsu personas` marker pair |
 
 **Copies, not symlinks, and the reason is what Codex advertises.** Codex lists a skill under its
@@ -218,7 +219,7 @@ resolving one is an agent answering confidently from the wrong file.
 **What the warm-up refuses**, and these are hard limits rather than preferences:
 
 - **A destination it did not create is left untouched, and named in the report.** A previous Hatsu install
-  is replaced; a **tracked** path is always somebody else's, whatever it looks like. Thirty-nine ordinary
+  is replaced; a **tracked** path is always somebody else's, whatever it looks like. Forty ordinary
   words are being claimed at once — `build`, `file`, `en`, `ao`, `ren` — so a collision is not a rare case,
   and the warm-up would rather install thirty-seven and say so than overwrite one file it did not write.
 - **It never writes your `.gitignore`.** Everything it places is excluded through the repository's own
@@ -268,7 +269,7 @@ The warm-up refreshes the complete Cursor surface every session:
 
 | | |
 |---|---|
-| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **40**, the thirty-nine plus `hatsu-warmup` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
+| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **41**, the forty plus `hatsu-warmup` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
 | `<repo>/.cursor/agents/<persona>.md` | one markdown subagent file each — **8** — symlinked from `$HATSU_PLUGIN_ROOT/surfaces/cursor/agents/` |
 
 **Symlinks are honest here, and that is measured rather than assumed.** Four controlled probes on
@@ -331,7 +332,7 @@ Open Antigravity in that repository and run `/hatsu-warmup`. The warm-up perform
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | **40** mirrored skill directories — the thirty-nine plus `hatsu-warmup` itself — copied from `surfaces/antigravity/<name>/` |
+| `<repo>/.agents/skills/<name>/` | **41** mirrored skill directories — the forty plus `hatsu-warmup` itself — copied from `surfaces/antigravity/<name>/` |
 | `<repo>/.agents/rules/AGENTS.md` | Persona instructions for all 8 Hatsu personas |
 | `<repo>/.agents/hooks.json` | Native `PreToolUse` (trunk guard) and `Stop` (bell) hooks |
 | `<repo>/.agents/hooks/` | Self-contained hook scripts (`guard-base-branch.sh` and `stop-bell.sh`) |
@@ -838,7 +839,7 @@ run on each.
 
 **Everything above about the loop, the gates and the roster is true here.** What changes is the spelling,
 where a delegate comes from, who rings the bell, and which aliases the model matrix answers with. Nothing
-in this section is product- or stack-specific: it is the same thirty-nine skills reading your repository's
+in this section is product- or stack-specific: it is the same forty skills reading your repository's
 own [`nen/contract.json`](nen/contract.json).
 
 ### Invoking a skill
@@ -1131,8 +1132,8 @@ cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
    keep the tail, and a thirty-character description would be worse everywhere and no better here. What
    follows instead is that **on Cursor the skill `name` does almost all of the routing work.**
 2. **The name space is flat, global and shared.** It is not only your repository's `.cursor/skills/`: on
-   this host one listing carried the thirty-nine mirrored skills **plus** Cursor's own built-ins **plus**
-   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims thirty-nine ordinary
+   this host one listing carried the forty mirrored skills **plus** Cursor's own built-ins **plus**
+   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims forty ordinary
    words at once — `build`, `file`, `en`, `ao`, `ren`, `breath`. **The shadowing itself is inferred, not
    proven, and is written here as such**: two probes tried to confirm it and could not, because the
    descriptions this surface keeps are far too short to tell two rival `build` entries apart. It is a

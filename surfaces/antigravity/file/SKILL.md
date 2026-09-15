@@ -258,7 +258,8 @@ maintainer with the options lettered — typically *file as planned* / *file, bu
 not a comment, not a label, not a close. Under §0's standing discovery authority, the completed
 four-pass record and the selected narrow action replace this per-finding confirmation; the
 report must say `created`, `updated`, `folded`, `unchanged`, or `pending`, never merely
-"filed".
+"filed". **A [`/third-hand`](../third-hand/SKILL.md) harvest pick replaces this banner for
+those drafts** — do not render a second G5 DECIDE, and do not file unselected proposals.
 
 ## 5. Labels — so the loop can triage without reading it
 
@@ -320,6 +321,8 @@ line:
 
 **Offer it; never start it.** Releasing work into an agent's autonomous build is a separate
 go-signal, given by a separate invocation. An offer that starts itself is not an offer.
+**A filing from [`/third-hand`](../third-hand/SKILL.md) does not offer it** — that sitting is
+over, and starting a build would open the next one.
 
 ## 7. Authority
 

@@ -48,9 +48,10 @@ fi
 #   claude/*          — everything plugin.json points at: `agents` (kurapika,
 #                       gon, hisoka, phinks, uvogin, and — from Hatsu 0.5.0 —
 #                       feitan, chrollo, illumi; from Hatsu 0.25.0, netero), `commands` (/kurapika), and
-#                       `skills` (the 39 skills + hatsu-warmup — 35 until
+#                       `skills` (the 40 skills + hatsu-warmup — 35 until
 #                       Hatsu 0.6.0 added susanoo, kagutsuchi and mugetsu, 38
-#                       until 0.24.0 added byakugan), plus
+#                       until 0.24.0 added byakugan, 39 until 0.27.0 added
+#                       third-hand), plus
 #                       `templates/` where a skill renders from one.
 #   nen/*             — the D10 dependency contract, `nen/contract.json`. Read
 #                       at run time through `$CLAUDE_PLUGIN_ROOT/nen/contract.json`

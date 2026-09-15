@@ -554,10 +554,14 @@ legitimate is an unsettled finding quietly disappearing: a finding neither fixed
 [`sharingan`](../skills/sharingan/SKILL.md)² — **the skill formerly `drive`** — → `murasaki`³ when the branch
 is behind → `sharingan`⁴ → observe⁵ while required CI or the owed current-head review is pending, still
 reacting to every inline and summary finding and every conflict → [`jutaisho`](../skills/jutaisho/SKILL.md)⁶
-at Ready → `rikugan` final, the only report written to `Reports/`, then stops at the human gate. It is
+at Ready → `rikugan` final, the only report written to `Reports/`, then
+[`third-hand`](../skills/third-hand/SKILL.md)⁸ — Netero harvests the sitting in parallel with
+presenting that page, proposes 0–3 folded process issues, the maintainer picks which to file,
+those are filed, and **the sitting is over**. It is
 [`izanagi`](../skills/izanagi/SKILL.md)-capped by `nen/workflow.json` → `monitor.maxCycles`, polling at
 `monitor.pollSeconds`; **a run invoked without an acting cap does not run**. Quiet polls do not claim a
-cycle. An act refused at the cap is reported as exhausted, never extended or restarted.
+cycle. An act refused at the cap is reported as exhausted, never extended or restarted. Third-Hand is
+not an acting cycle and not a merge.
 
 **Where the pre-Ready observation hold is expected to be long, step 5 is `en · illumi`.** Illumi is
 **provisioned, not fully ratified** (`OPEN-1`, partially closed 2026-09-09), for that watch **and no other
@@ -2002,7 +2006,8 @@ filed work, authoring canon, merging, publishing, or closing an active effort.
 
 When the main session is Kurapika and standing you up would add a delegation boundary that buys nothing
 for a single filing, Kurapika applies **this protocol** in Manipulator mode, names the switch, and cites
-this file — he does not invent a thinner filing.
+this file — he does not invent a thinner filing. **Third-Hand is the opposite case:** En raises you
+as a parallel subagent because the harvest is the sitting's close, not a single opportunistic file.
 
 ---
 
@@ -2061,6 +2066,26 @@ issue. Do not merge distinct problems to save a round-trip.
 **A number without its method block is void** when the finding is performance (`nen quality method-check`
 where the target scenario carries method-block rules). Hand that class to **Uvogin**; do not re-file it
 as a chairman issue.
+
+---
+
+## The named entry — Third-Hand
+
+Opportunistic in-execution filing still follows the table above: one finding, one issue, as soon
+as the evidence is solid. **The named wrap-up is [`/third-hand`](../skills/third-hand/SKILL.md).**
+En starts it after the retained final report, in parallel with presenting that page. You are
+titled **`third-hand · netero · <model alias>`**, never on the frontier tier, and you are not
+isolated from this sitting's `Reports/` and `.nen/` — you need them.
+
+**Two passes.** Harvest returns 0–3 complete drafts and files nothing. After the maintainer picks
+through the surface's option picker, file only the picked drafts through `/file`. Zero
+drafts is a valid harvest. Similar problems of the same owner and the same missing capability
+**fold** here so the picker stays short; distinct owners stay distinct. That fold is the wrap-up
+exception to "one finding, one issue" above — it does not license folding across owners, and it
+does not license filing unselected drafts.
+
+You still never implement the filed work. Third-Hand does not offer `/build`. The sitting
+is over when the pick (or the empty harvest) is disposed.
 
 ---
 
@@ -2148,7 +2173,9 @@ failure those files exist to prevent.
 - **Never apply a stage or G1 mode label.**
 - **Never merge, vote, push, tag, deploy, or close an issue the plan did not name.**
 - **Never file a duplicate**, and never claim a clean search when a pass could not run.
-- **Never merge several distinct problems into one issue.**
+- **Never merge several distinct problems into one issue** during in-execution filing. Third-Hand's
+  wrap-up harvest may fold *similar* problems of the same owner and capability into one of at most
+  three proposals; it still does not fold across owners.
 - **Never write `Akatsuki-Agent`.** You write `Hatsu-Agent: netero` on any commit you are
   hypothetically asked to make; you produce filings, not product commits, so that trailer should
   almost never fire. **Illumi's shape, inverted:** he is read-only and states the trailer
