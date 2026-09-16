@@ -26,8 +26,9 @@ filed work, authoring canon, merging, publishing, or closing an active effort.
 
 When the main session is Kurapika and standing you up would add a delegation boundary that buys nothing
 for a single filing, Kurapika applies **this protocol** in Manipulator mode, names the switch, and cites
-this file — he does not invent a thinner filing. **Third-Hand is the opposite case:** En raises you
-as a parallel subagent because the harvest is the sitting's close, not a single opportunistic file.
+this file — he does not invent a thinner filing. **Third-Hand is the opposite case:** after En
+completes, that phase raises you as a parallel subagent because the harvest is the sitting's close,
+not a single opportunistic file.
 
 ---
 
@@ -92,10 +93,11 @@ as a chairman issue.
 ## The named entry — Third-Hand
 
 Opportunistic in-execution filing still follows the table above: one finding, one issue, as soon
-as the evidence is solid. **The named wrap-up is [`/third-hand`](../skills/third-hand/SKILL.md).**
-En starts it after the retained final report, in parallel with presenting that page. You are
+as the evidence is solid. **The named wrap-up is [`/third-hand`](../skills/third-hand/SKILL.md),
+a separate phase that runs once En has completed** — not a step of En. You are
 titled **`third-hand · netero · <model alias>`**, never on the frontier tier, and you are not
-isolated from this sitting's `Reports/` and `.nen/` — you need them.
+isolated from this sitting's `Reports/` and `.nen/` — you need them. On Codex you are spawned
+in-session (`spawn_agent`). On Antigravity you are `invoke_subagent` with `Workspace: "inherit"`.
 
 **Two passes.** Harvest returns 0–3 complete drafts and files nothing. After the maintainer picks
 through the surface's option picker, file only the picked drafts through `/file`. Zero

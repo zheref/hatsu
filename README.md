@@ -35,7 +35,7 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 > **`v0.7.0` adds no skill and adds two surfaces**: the same thirty-eight skills and eight personas,
 > generated into Codex and Cursor layouts under [`surfaces/`](surfaces/) — see [*Surfaces*](#surfaces).
 > **`v0.24.0` adds `byakugan`**: coverage capture and measurement, independent of tests; kotoamatsukami is unit, UI and integration suites only; gyo remains lint. The live skill surface is **thirty-nine**.
-> **`v0.27.0` adds `third-hand`**: En's session-closing harvest. Netero proposes 0–3 folded process issues in parallel with the retained final report; the maintainer picks which to file; the sitting is then over. The merge remains G2 with no skill. The live skill surface is **forty**.
+> **`v0.27.0` adds `third-hand`**: wrap-up harvest after En. **`v0.28.0`**: it is a separate phase that starts once En has completed, not En step 8. Codex uses `request_user_input` and in-session spawn; Antigravity uses `ask_question` and `invoke_subagent` with `Workspace: inherit`. The merge remains G2 with no skill. The live skill surface is **forty**.
 > **Attribution ruling, 2026-09-12:** prospective commits carry the truthful canonical
 > `Hatsu-Agent` or `Akatsuki-Agent` persona/plane trailer. They never carry model, surface, runtime, or
 > session attribution. The final `## Agent attribution` PR-body section records actual participants with
@@ -873,9 +873,10 @@ absence here says nothing about how a question is put.
 > field of `.nen/last-stop.json`, and the `Hatsu-Agent` trailer — all three carry the persona whatever the
 > surface calls itself.
 
-**Codex has no in-session subagent**, verified against `codex exec --help` rather than remembered: there is
-no spawn-a-delegate flag anywhere in it. So `$hanten` raises a reviewer as **a second `codex exec` process
-in its own worktree**, and the isolation the Agent tool gives for free has to be made by hand first:
+**Codex has in-session subagents** (`spawn_agent`, skill-requested delegation). `$hanten` still raises
+an isolated reviewer as **a second `codex exec` process in its own worktree**, because that reviewer
+must not share the author's tree. Third-Hand's Netero uses in-session spawn instead. Isolation the
+Agent tool gives for free on Claude Code has to be made by hand here for Hanten:
 
 ```sh
 rev="$(git rev-parse --show-toplevel)/.claude/worktrees/hanten-<scope>"   # the reviewer's own checkout

@@ -29,8 +29,8 @@ known effort. When the main session is Kurapika and standing Netero up would add
 buys nothing for a single filing, Kurapika applies Netero's completeness in Manipulator mode and
 names the switch.
 
-**The wrap-up harvest is [`hatsu:third-hand`](../claude/skills/third-hand/SKILL.md).** En starts it
-after the retained final report. Netero proposes 0–3 folded issues of this class; the maintainer
+**The wrap-up harvest is [`hatsu:third-hand`](../claude/skills/third-hand/SKILL.md), after En
+completes.** Netero proposes 0–3 folded issues of this class; the maintainer
 picks which to file through the surface picker; only those writes run. That pick is the
 confirmation for those drafts. Unselected proposals are not filed. In-execution opportunistic
 filing of a single chairman finding is unchanged and still one finding, one issue.

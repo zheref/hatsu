@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.28.0 — Third-Hand is a phase after En; Codex and Antigravity pickers
+
+- **Third-Hand** is a separate phase that starts once En has completed. En ends at the gate and does not harvest.
+- Codex asks through `request_user_input` (never lettered options) and raises Netero in-session (`spawn_agent`). Antigravity asks through `ask_question` (`is_multi_select: true`) and raises Netero with `invoke_subagent` `Workspace: "inherit"`.
+
 ## v0.27.0 — Third-Hand closes the sitting with Netero's harvest
 
 - Added **third-hand**: after En's retained final report, Netero runs in parallel, folds this sitting's process friction into 0–3 issues, the maintainer picks which to file through the surface picker, those are filed, then the session is over. He never implements the filed work. The merge stays a human G2 act with no skill.

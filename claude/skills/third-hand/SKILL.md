@@ -1,6 +1,6 @@
 ---
 name: third-hand
-description: Harvest one sitting's process friction as Netero — propose 0–3 folded issues, file only what the maintainer picks, then end the session. Use when En wraps the regular Kurapika pipeline after the retained final report, or when the maintainer invokes hatsu:third-hand while wrapping. Never merges, never implements the filed work.
+description: Harvest one sitting's process friction as Netero — propose 0–3 folded issues, file only what the maintainer picks, then end the session. Use after En has completed on the regular Kurapika pipeline, or when the maintainer invokes hatsu:third-hand while wrapping. Never merges, never implements the filed work. Not a step of En.
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
@@ -21,12 +21,12 @@ header (`claude/agents/kurapika.md`).
 > **Before this sitting closes, have Netero look at what actually slowed us — fold the same
 > problems together, show me at most three issues, file only the ones I pick, then stop.**
 
-Third-Hand is [`hatsu:en`](../en/SKILL.md)'s session-closing step on the regular Kurapika pipeline
-(`ren` → `aka` → `mukai` → `en`). En has already rung at Ready and rendered the retained final
-report. The human merge remains **G2** and has **no skill** — this file does not describe a merge
-and does not wait for one. What it describes is the wrap-up harvest that runs **in parallel** with
-presenting that report, so the page may already be in the maintainer's hands while Netero reads
-the sitting.
+Third-Hand is **its own phase** on the regular Kurapika pipeline
+(`ren` → `aka` → `mukai` → `en` → `third-hand`). It runs **once En has completed** — Ready and the
+retained final report already exist, or En ended at a sitting-ending terminus. **It is not a step
+of En.** En's protocol ends at the human gate; this phase begins after that run has returned. The
+report may already be in the maintainer's hands while Netero reads the sitting. The human merge
+remains **G2** and has **no skill** — this file does not describe a merge and does not wait for one.
 
 **Netero files. He never implements the filed work.** Landing a solution is a later Kurapika or
 Nen effort, never this skill.
@@ -52,30 +52,31 @@ Verified live at nen `0.10.0` (`docs/ab/third-hand.md` § 2.1): `on HA#62` → `
 `0`; a bare `on` and an empty line both parse with the clause absent, also exit `0`. **No clause
 means this sitting** — the PR En is holding, or the branch this session cut, named out loud.
 
-**En starts this skill with no parse.** Echoing a parse of a line nobody typed is theatre, the
-same reason [`hatsu:en`](../en/SKILL.md) § 1 does not parse Mukai's handoff. The parse runs when,
-and only when, the maintainer typed a clause.
+**En does not start this skill.** Echoing a parse of a line nobody typed is theatre, the same
+reason [`hatsu:en`](../en/SKILL.md) § 1 does not parse Mukai's handoff. The caller starts
+Third-Hand after En has returned; the parse runs when, and only when, the maintainer typed a
+clause.
 
 ---
 
 ## 2. When it runs — wrap-up, not merge
 
-**Started by En** after the retained final report (§ 8 of that file), in parallel with presenting
-it, when the regular pipeline is wrapping — the maintainer has decided to merge and close the
-sitting, or En has reached a terminus that ends the sitting (verified Ready at the human gate,
-merged-before-handoff, closed unmerged, cap-out, or an interruption the maintainer treats as
-wrap-up).
+**Started after En completes.** Kurapika, holding the regular pipeline, starts this phase when
+[`hatsu:en`](../en/SKILL.md)'s run has returned. En does not compose it and does not start it from
+inside En's step table. The retained report may already have been presented; Netero still runs as
+a parallel subagent of *this* phase.
 
 **Also invocable by the maintainer** when wrapping a sitting whose En already ended (they merged
 on GitHub and came back; they re-opened the conversation after Ready).
 
 **Never a sixth human-called phase, and never a prompt for the merge.** The five phases only the
 maintainer calls stay `aka`, `mukai`, **the merge**, `kagutsuchi`, `mugetsu`. Asking "shall I run
-third-hand?" is how a composed close becomes an agent-prompted one by attrition — En starts it;
-a direct call is wrap-up, not a suggestion at the end of a Ren turn.
+third-hand?" at the end of En is how a composed close becomes an agent-prompted one by attrition —
+when En has completed, start this phase; a direct call is wrap-up, not a suggestion at the end of
+a Ren turn.
 
-**Never auto-starts from a Ren turn or from Aka.** Those sittings are not over. A G5 that the
-pipeline still owns is not wrap-up.
+**Never auto-starts from a Ren turn or from Aka, and never from inside En.** Those sittings are
+not over, or they are still En's. A G5 that the pipeline still owns is not wrap-up.
 
 **Once per sitting.** If `.nen/third-hand/<slug>.json` already carries a completed harvest for
 this PR (or this branch, when no PR was named), skip, say `already-harvested`, and still end the
@@ -96,8 +97,8 @@ frontier tier.**
 |---|---|---|
 | **Claude Code** | the harness Agent tool, `subagent_type` the Netero persona (`hatsu:netero`) | **omitted** — he needs this sitting's report, last-stop, cycle ledger and transcript, not an isolated checkout of the plugin |
 | **Cursor** | the netero definition under `.cursor/agents/netero.md`, invoked as that surface documents; if the harness only offers a generic worker, load the definition into it and keep the title | omitted, same reason |
-| **Antigravity** | `invoke_subagent`, `Workspace` that does **not** hide this sitting's `.nen/` and `Reports/` | do not send him to a blank branch workspace that cannot see the harvest inputs |
-| **Codex** | **no in-session subagent** (`docs/SURFACES.md` § 1) — Kurapika applies Netero's protocol in the foreground after the report is presented, names the switch, cites the definition. Sequential, not parallel, and said out loud | n/a |
+| **Antigravity** | `invoke_subagent`: `TypeName` `netero` (the registered agent), `Role` the title, `Prompt` pass 1's harvest brief, `Workspace: "inherit"` | **`inherit`**, never `"branch"`. `branch` cuts an isolated worktree that hides this sitting's `.nen/` and `Reports/`. `"share"` is acceptable only when it is the same checkout. Model **`pro`**, never `ultra` |
+| **Codex** (ChatGPT app, CLI, IDE) | spawn **one** in-session subagent — current Codex releases enable this by default; a skill instruction is a documented trigger. Invoke `spawn_agent` (or the session's equivalent spawn tool) titled `third-hand · netero · <model alias>`. Load Netero's definition from `AGENTS.override.md` / the mirrored persona. Never a second `codex exec` process for this harvest | Codex V2 agents **share the parent's working directory** — that is what this harvest needs. Never `astra` |
 
 **Two passes, one persona.**
 
@@ -113,7 +114,7 @@ skill's § 4 inputs and § 5 output shape, and *"file nothing until the maintain
 
 **A second-process `codex exec` is not this harvest.** Hanten's isolated reviewer run exists because
 reviewers must not share the author's tree. Netero must share the sitting. Do not repurpose that
-mechanism.
+mechanism. Codex in-session spawn is the raise for this phase.
 
 ---
 
@@ -176,13 +177,15 @@ Return them in that shape. Do not file them on pass 1.
 re-render [`hatsu:file`](../file/SKILL.md) § 4's DECIDE banner. The pick **is** the confirmation
 for those drafts.
 
-Present **one** question through the surface's own native option picker:
+Present **one** harvest through the surface's own native option picker. **Never lettered options
+in the reply** when that picker exists.
 
-| Surface | Picker |
+| Surface | Picker — invoke this, not prose |
 |---|---|
 | **Claude Code** | `AskUserQuestion`, multiple selection |
 | **Cursor** | `AskQuestion`, `allow_multiple: true` |
-| **Codex** | no native picker — lettered options in the reply, wait for the typed pick (`docs/SURFACES.md`) |
+| **Antigravity** | `ask_question` with `is_multi_select: true` on one harvest question. Options are the proposals plus File none. At least two options. |
+| **Codex** (ChatGPT app, CLI, IDE) | `request_user_input` — that is the native tool. `questions` 1–3, `isBlocking: true`. Do not include an Other option; the client adds it. **ChatGPT app:** one harvest question whose options are the proposals plus File none, collecting every ticked answer. **CLI TUI:** the overlay is one selected option per question; emit **one question per proposal** (`file` / `skip`), at most three, which is the tool's documented cap. Headless or a stripped tool set: do not file, say the picker could not run. |
 
 Prompt: Netero folded this sitting's process findings into N proposal(s). Pick which to file.
 Unselected are not filed. File none ends the session with no new issue.
@@ -241,8 +244,8 @@ Do not start the next Ren turn. Do not prompt for `aka`, `mukai`, merge, `kaguts
 2. **The harvest marker is Hatsu-owned JSON** at `.nen/third-hand/<slug>.json`, contract
    `hatsu.third-hand.harvest/v0.1`. No verb writes it. A missing file means "not yet harvested",
    never "no findings".
-3. **The picker is the surface's**, never nen's (`docs/ab/jutaisho.md`). Codex's lettered-options
-   fallback is named rather than dressed up as a native control.
+3. **The picker is the surface's**, never nen's (`docs/ab/jutaisho.md`). Codex's tool is
+   `request_user_input`; Antigravity's is `ask_question`. A lettered paragraph is not a pick.
 4. **The composition itself has no verb.** Filing inside pass 2 is `hatsu:file`'s verbs; owner
    resolve is `nen repo resolve`; ref formatting is `nen ref format`.
 
@@ -268,7 +271,7 @@ Do not start the next Ren turn. Do not prompt for `aka`, `mukai`, merge, `kaguts
   `.nen/`.
 - **Never skips the four-pass reconciliation** because the draft was already written on pass 1.
 - **Never offers `hatsu:build`**, and never starts one.
-- **Never auto-starts from Ren or Aka**, and never asks "shall I run third-hand?" to smuggle a
-  composed close into a human-called phase.
+- **Never auto-starts from Ren, Aka, or from inside En**, and never asks "shall I run third-hand?"
+  to smuggle a composed close into a human-called phase. Start it when En has completed.
 - **Never restates `file` or Netero's completeness.** If this file and those disagree, those
   are right and this file is the bug.

@@ -347,7 +347,8 @@ named in that line; it is never silent.
 
 **On Codex, Cursor, and Antigravity the mechanism is different and the rules are the same — § 9a is the table**:
 `deep` resolves to `sol` on Codex, to `grok` on Cursor, and to `pro` on Antigravity; a Codex reviewer is a whole second
-`codex exec` run in a worktree because that surface has no in-session subagent, a Cursor reviewer is a
+`codex exec` run in a worktree because that reviewer must not share the author's tree (Codex does spawn
+in-session subagents; that is Third-Hand's raise, not Hanten's), a Cursor reviewer is a
 definition under `.cursor/agents/`, an Antigravity reviewer is an in-session subagent invoked via
 `invoke_subagent` with `Workspace: "branch"`, and the frontier tier runs no subagent on any of the surfaces.
 
@@ -544,12 +545,15 @@ surface; this is what hanten does with them once they are there.
 | where the persona definition lives on that surface | `claude/agents/<persona>.md` | a `## <persona>` section of the generated `AGENTS.md` | `.cursor/agents/<persona>.md` | `surfaces/antigravity/agents/<persona>.md` or `.agents/rules/AGENTS.md` |
 | isolation | a worktree the harness makes | **the directory you pass to `-C`** — make it a `git worktree` first | whatever the surface gives a subagent; **state which** | **`Workspace: "branch"`** — an isolated branch workspace managed by Antigravity |
 
-**Codex has no in-session subagent, and that is the fact the row above is built on** — verified against
-the CLI on this host rather than remembered (`docs/ab/surfaces.md` § 3.4). `codex exec --help` documents
+**Codex has in-session subagents** (`spawn_agent`, skill-requested delegation; ChatGPT app, CLI, IDE).
+That is not this row. **Hanten still raises the reviewer as a second `codex exec` in a worktree**
+because the reviewer must not share the author's tree — the same isolation § 4 cannot take from
+`isolation: "worktree"` on this surface. `codex exec --help` documents
 `-m, --model`, `-C, --cd <DIR>`, `-s, --sandbox <read-only|workspace-write|danger-full-access>` and
-`-o, --output-last-message <FILE>`; there is no spawn-a-delegate flag anywhere in it. So on Codex a
-reviewer is **a second Codex run**, and the isolation § 4 gets from `isolation: "worktree"` has to be made
-by hand before the run:
+`-o, --output-last-message <FILE>`. Third-Hand's harvest uses in-session spawn instead, because
+Netero must see this sitting. The 2026-09-10 record that Codex had *no* in-session subagent
+(`docs/ab/surfaces.md` § 3.4, CLI `0.149.0`) is superseded. Isolation for a Hanten reviewer is
+still made by hand before the run:
 
 ```sh
 git worktree add "$rev" HEAD                      # the isolated copy — hanten's own act

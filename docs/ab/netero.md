@@ -40,7 +40,7 @@ owner routing would be the failure this definition exists to prevent. The requir
 
 Owner is decided before the write: Hatsu for workflow and skill prose, Nen for shared
 deterministic machinery. Separate, cross-linked issues; never folded across owners.
-**Third-Hand** (`v0.27.0`) is the wrap-up harvest: 0–3 folded proposals of similar same-owner
+**Third-Hand** (`v0.27.0`, phase split `v0.28.0`) is the wrap-up harvest after En completes: 0–3 folded proposals of similar same-owner
 problems, filed only after the maintainer picks.
 
 ## 3. Observation classes

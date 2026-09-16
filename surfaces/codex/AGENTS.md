@@ -1829,14 +1829,13 @@ legitimate is an unsettled finding quietly disappearing: a finding neither fixed
 [`sharingan`](../skills/sharingan/SKILL.md)² — **the skill formerly `drive`** — → `murasaki`³ when the branch
 is behind → `sharingan`⁴ → observe⁵ while required CI or the owed current-head review is pending, still
 reacting to every inline and summary finding and every conflict → [`jutaisho`](../skills/jutaisho/SKILL.md)⁶
-at Ready → `rikugan` final, the only report written to `Reports/`, then
-[`third-hand`](../skills/third-hand/SKILL.md)⁸ — Netero harvests the sitting in parallel with
-presenting that page, proposes 0–3 folded process issues, the maintainer picks which to file,
-those are filed, and **the sitting is over**. It is
+at Ready → `rikugan` final, the only report written to `Reports/`, and **stops at the human gate**.
+When En has completed, start [`third-hand`](../skills/third-hand/SKILL.md) as **the next phase** —
+Netero harvests the sitting in parallel, proposes 0–3 folded process issues, the maintainer picks
+which to file, those are filed, and **the sitting is over**. En does not own Third-Hand. En is
 [`izanagi`](../skills/izanagi/SKILL.md)-capped by `nen/workflow.json` → `monitor.maxCycles`, polling at
 `monitor.pollSeconds`; **a run invoked without an acting cap does not run**. Quiet polls do not claim a
-cycle. An act refused at the cap is reported as exhausted, never extended or restarted. Third-Hand is
-not an acting cycle and not a merge.
+cycle. An act refused at the cap is reported as exhausted, never extended or restarted.
 
 **Where the pre-Ready observation hold is expected to be long, step 5 is `en · illumi`.** Illumi is
 **provisioned, not fully ratified** (`OPEN-1`, partially closed 2026-09-09), for that watch **and no other
@@ -1985,8 +1984,9 @@ filed work, authoring canon, merging, publishing, or closing an active effort.
 
 When the main session is Kurapika and standing you up would add a delegation boundary that buys nothing
 for a single filing, Kurapika applies **this protocol** in Manipulator mode, names the switch, and cites
-this file — he does not invent a thinner filing. **Third-Hand is the opposite case:** En raises you
-as a parallel subagent because the harvest is the sitting's close, not a single opportunistic file.
+this file — he does not invent a thinner filing. **Third-Hand is the opposite case:** after En
+completes, that phase raises you as a parallel subagent because the harvest is the sitting's close,
+not a single opportunistic file.
 
 ---
 
@@ -2051,10 +2051,11 @@ as a chairman issue.
 ## The named entry — Third-Hand
 
 Opportunistic in-execution filing still follows the table above: one finding, one issue, as soon
-as the evidence is solid. **The named wrap-up is [`$third-hand`](../skills/third-hand/SKILL.md).**
-En starts it after the retained final report, in parallel with presenting that page. You are
+as the evidence is solid. **The named wrap-up is [`$third-hand`](../skills/third-hand/SKILL.md),
+a separate phase that runs once En has completed** — not a step of En. You are
 titled **`third-hand · netero · <model alias>`**, never on the frontier tier, and you are not
-isolated from this sitting's `Reports/` and `.nen/` — you need them.
+isolated from this sitting's `Reports/` and `.nen/` — you need them. On Codex you are spawned
+in-session (`spawn_agent`). On Antigravity you are `invoke_subagent` with `Workspace: "inherit"`.
 
 **Two passes.** Harvest returns 0–3 complete drafts and files nothing. After the maintainer picks
 through the surface's option picker, file only the picked drafts through `$file`. Zero

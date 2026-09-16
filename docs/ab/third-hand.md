@@ -1,19 +1,18 @@
-# Evidence — `third-hand` (new skill, Hatsu 0.27.0)
+# Evidence — `third-hand` (new skill, Hatsu 0.27.0; phase split 0.28.0)
 
-`claude/skills/third-hand/SKILL.md`: En's session-closing harvest. Netero reads the sitting in
-parallel with the retained final report, proposes 0–3 folded process issues, the maintainer picks
-which to file through the surface picker, Netero files only those, then the sitting is over.
+`claude/skills/third-hand/SKILL.md`: a **separate phase after En completes**. Netero reads the
+sitting, proposes 0–3 folded process issues, the maintainer picks which to file through the
+surface picker, Netero files only those, then the sitting is over.
 
 **This is not a port.** There is no retired skill behind it. Filing still composes
 [`hatsu:file`](../../claude/skills/file/SKILL.md) and [`docs/DISCOVERY.md`](../DISCOVERY.md);
 what is new is the wrap-up trigger, the parallel summon, the 0–3 cap, and session-over.
 
 **The merge is still not a skill.** G2 remains an action no agent performs. Third-Hand wraps the
-sitting; it does not describe, propose, or wait for the merge.
+sitting; it does not describe, propose, or wait for the merge. **It is not a step of En.**
 
-**Run:** 2026-09-15, `nen 0.10.0`, host Darwin. No issue was filed as the harvest of *this*
-authoring sitting — the skill lands so En can start it. Parse verified live below. Live harvest
-is the first real En terminus under this protocol.
+**Run:** 2026-09-15, `nen 0.10.0`, host Darwin. Parse verified live below. Live harvest is the
+first real sitting that starts this phase after En has returned.
 
 ---
 
@@ -21,10 +20,11 @@ is the first real En terminus under this protocol.
 
 | Fact | Where |
 |---|---|
-| Workflow skill, atomic, session-close of `ren → aka → mukai → en` | `claude/skills/README.md` |
-| Started by En after the retained final report; also directly invocable | `claude/skills/en/SKILL.md` § 3 step 8 |
+| Workflow skill, atomic, after `ren → aka → mukai → en` | `claude/skills/README.md` |
+| Starts once En has completed; also directly invocable | `claude/skills/third-hand/SKILL.md` § 2; En does not compose it |
 | Netero raised as `third-hand · netero · <model alias>`, never frontier | `claude/agents/netero.md`; hanten § 4's model-pin rule reused |
-| Codex has no in-session subagent — protocol in the foreground | `docs/SURFACES.md` § 1 |
+| Codex in-session spawn (`spawn_agent`); picker `request_user_input` | `docs/SURFACES.md` § 1; OpenAI Codex subagent docs |
+| Antigravity `invoke_subagent` `Workspace: inherit`; picker `ask_question` `is_multi_select` | same |
 | Files; never implements; never merges | skill hard limits; Netero's |
 
 ## 2. Verbs exercised live
@@ -45,8 +45,8 @@ ref: (clause absent)
 exit=0
 ```
 
-Recorded 2026-09-15 against nen `0.10.0`. **No clause means this sitting.** En starts the skill
-without parsing, for the same reason it does not parse Mukai's handoff.
+Recorded 2026-09-15 against nen `0.10.0`. **No clause means this sitting.** The caller starts the
+skill after En has returned, without parsing a line nobody typed.
 
 ### 2.2 — owner resolve still refuses a guess
 

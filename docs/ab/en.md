@@ -4,7 +4,7 @@
 `murasaki`³ when behind base → `sharingan`⁴ → observe⁵ while current-head CI/review is pending,
 reacting to new findings and conflicts by going back to step 2 → `jutaisho`⁶ at Ready → `rikugan`⁷
 final, written to
-`Reports/<date>-<branch>-final.html` → `third-hand`⁸ session harvest.
+`Reports/<date>-<branch>-final.html`. Third-Hand is a later phase, not this run.
 
 **A composite, so most of it is a reference — but three things are genuinely en's own and all three
 are verified live below:** the invocation's anchored-optional grammar, **the cap** (the value from
@@ -37,7 +37,6 @@ Nothing below is redacted; both repositories are public.
 | 2, 4 · drive | `hatsu:sharingan` | `docs/ab/drive.md` (that skill's record, under its original name) |
 | 3 · catch up | `hatsu:murasaki` | that skill's A/B file |
 | 6 · the bell | `hatsu:jutaisho` | `docs/ab/jutaisho.md` |
-| 8 · session harvest | `hatsu:third-hand` | `docs/ab/third-hand.md` |
 
 ---
 
