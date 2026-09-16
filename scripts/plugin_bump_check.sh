@@ -47,10 +47,11 @@ fi
 #   .claude-plugin/*  — the manifests themselves (plugin.json, marketplace.json).
 #   claude/*          — everything plugin.json points at: `agents` (kurapika,
 #                       gon, hisoka, phinks, uvogin, and — from Hatsu 0.5.0 —
-#                       feitan, chrollo, illumi), `commands` (/kurapika), and
-#                       `skills` (the 39 skills + hatsu-warmup — 35 until
+#                       feitan, chrollo, illumi; from Hatsu 0.25.0, netero), `commands` (/kurapika), and
+#                       `skills` (the 40 skills + hatsu-warmup — 35 until
 #                       Hatsu 0.6.0 added susanoo, kagutsuchi and mugetsu, 38
-#                       until 0.24.0 added byakugan), plus
+#                       until 0.24.0 added byakugan, 39 until 0.27.0 added
+#                       third-hand), plus
 #                       `templates/` where a skill renders from one.
 #   nen/*             — the D10 dependency contract, `nen/contract.json`. Read
 #                       at run time through `$CLAUDE_PLUGIN_ROOT/nen/contract.json`
@@ -130,13 +131,20 @@ fi
 #                       recreates the first-run failure this guard exists to
 #                       prevent, so this one runtime script is covered; the
 #                       fixture check beside it is test-only and is not.
+#   scripts/hanten_cycle_ledger.sh
+#                     — Hanten's per-effort reviewer-budget writer (Hatsu 0.26.0,
+#                       zheref/hatsu#63). An installed copy runs it from
+#                       `$hatsu_root/scripts/` on every hanten invocation; a
+#                       stale copy would reset or ignore cycle counts and
+#                       re-raise Chrollo after remediation.
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #
 # Deliberately NOT covered — nothing installed reads them at run time:
 #   README.md, docs/ab/** (the evidence records; read by humans on GitHub, never
 #   by an installed copy), scripts/surface_bootstrap_fixture_check.sh and other
-#   scripts/** (CI-only; the runtime bootstrap is the explicit exception above),
+#   scripts/** (CI-only; the runtime bootstrap and hanten cycle ledger are the
+#   explicit exceptions above),
 #   .github/**.
 #
 # Bash `[[ == glob ]]` matches `*` across `/` — it is pattern matching, not
@@ -156,6 +164,7 @@ PLUGIN_SURFACE_GLOBS=(
   'templates/*'
   'surfaces/*'
   'scripts/surface_bootstrap.sh'
+  'scripts/hanten_cycle_ledger.sh'
   '.mcp.json'
 )
 
@@ -276,7 +285,7 @@ This PR changes a plugin-shipped surface (.claude-plugin/**, claude/**,
 nen/**, contracts/**, docs/ROSTER.md,
 docs/delegation-grammar-DRAFT.md, docs/WORKFLOW.md, docs/DISCOVERY.md,
 docs/LAUNCH-MIGRATION.md, docs/AGENT-ATTRIBUTION.md, hooks/**, templates/**, surfaces/**,
-scripts/surface_bootstrap.sh, or .mcp.json)
+scripts/surface_bootstrap.sh, scripts/hanten_cycle_ledger.sh, or .mcp.json)
 but leaves
 .claude-plugin/plugin.json's `version` field unchanged.
 

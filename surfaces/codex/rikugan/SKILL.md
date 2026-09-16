@@ -283,6 +283,7 @@ fact"*) and it makes the vocabularies one question, not two.
 | `{{#each lastTurnCorrections}}` | extension | `{what, who, whyAsked, howHandled}` — empty `[]` when `mukaiLastTurn` is `null` |
 | `{{#each lastTurnCheckIssues}}` | extension | `{check, issue, howHandled}` — a local check that brought work back, and what happened to it |
 | `{{#each lastTurnStops}}` | extension | `{why, policy, autonomy}` — zero or one row when the run stopped half way; `autonomy` is how later iterations can go further unattended |
+| `{{#if blocker}}` | extension | **G5 stop payload, every variant including `turn`.** `null` on a run that did not stop. A non-null object is the shared contract in § 5a — never only on `final`, never only as `tests[]` |
 | `{{architectureCaption}}` | extension | one sentence of what structurally moved. `""` when nothing did |
 | `{{#each architectureNodes}}` | extension | `{layer, label, change, whatChanged}` — conceptual elements in and around the changed scope. `change` is exactly `added`, `removed`, `changed`, `unchanged`, or `surrounding` |
 | `{{#each architectureEdges}}` | extension | `{from, rel, to, change, whatChanged}` — interactions among those elements, same `change` closed set. `from` and `to` are node **labels** |
@@ -316,6 +317,7 @@ nen shu test-report --repo <path> --from-artifacts --json                  > <te
 #                        notDelivered[], decisions[], prBody[], readiness[],
 #                        lastTurnRequest, lastTurnHighlights[], mukaiLastTurn,
 #                        lastTurnCorrections[], lastTurnCheckIssues[], lastTurnStops[],
+#                        blocker (null or the § 5a object),
 #                        architectureCaption, architectureNodes[], architectureEdges[],
 #                        tests[] (from <tests>), touchedCoverage[] (from <coverage>),
 #                        evidence[] (from <evidence>, each row + src) }   → <data file>
@@ -330,10 +332,10 @@ proof, not a remembered 40. The same run against the **unmerged** document refus
 `2` naming `title` — which is the extension doing its job, not a defect.
 
 **Every extension key is written on every render, empty where there is nothing** — `""` for a
-scalar, `[]` for a list, `null` for `mukaiLastTurn` when the last human request was not mukai.
-An omitted key is exit `2`, so "there was no readiness verdict" is
-`readiness: []` and never a missing `readiness`. That is the same discipline **03 Not delivered**
-states in prose: absence is written down, not left out.
+scalar, `[]` for a list, `null` for `mukaiLastTurn` when the last human request was not mukai
+and `null` for `blocker` when the run did not stop. An omitted key is exit `2`, so "there was
+no readiness verdict" is `readiness: []` and never a missing `readiness`. That is the same
+discipline **03 Not delivered** states in prose: absence is written down, not left out.
 
 ### Session vs last turn — the split that holds on every effort
 
@@ -479,7 +481,7 @@ gets published as an Artifact.
 
 | Variant | Called by | Sections | **Kept** on disk? |
 |---|---|---|---|
-| **`turn`** | [`$ren`](../ren/SKILL.md) § step 5, every turn | 00–07 | **No** — an Artifact, or the transient `current.html` (§ 6) |
+| **`turn`** | [`$ren`](../ren/SKILL.md) § step 5, every turn | 00–07 **+ G5 blocker when a stop fired** | **No** — an Artifact, or the transient `current.html` (§ 6) |
 | **`landing`** | [`$mukai`](../mukai/SKILL.md) § 2 **step 9**, and [`$en`](../en/SKILL.md)'s first step | 00–07 **+ 08 PR body + 09 Readiness** | **No** — the same two |
 | **`final`** | [`$en`](../en/SKILL.md)'s last step, after verified current-head readiness and before the human merge/vote | 00–09 **+ 10 Tests run + 11 Touched coverage** | **Yes** — the only one with a file of its own |
 
@@ -517,9 +519,53 @@ path, overwritten every render, git-ignored — is that somewhere.
 > variant per pause is how three sections become nine. **Re-render `turn` at the same address**
 > (§ 6's republish rule holds), so the page a maintainer left open stops being stale about the push.
 
+### 5a · G5 blocker — on the turn page, or it is not a stop report
+
+**A G5 that the maintainer cannot understand from the linked page is a defective stop**
+([zheref/hatsu#56](https://github.com/zheref/hatsu/issues/56)). `tests[]` stays `final`-only: that
+section is the verified-readiness inventory, not the stop handoff. **The blocker lives in
+`blocker`, visible on `turn`, `landing`, and `final`**, because aka, kokusen, breath, gyo, and
+kotoamatsukami all stop before a PR exists.
+
+`blocker` is `null` on a run that did not stop. On a G5 it is this object, every field present
+(`""` or `[]` when a slot does not apply — never omitted):
+
+| Field | What it is |
+|---|---|
+| `step` | Which skill or step stopped (e.g. `aka`, `kotoamatsukami`, `gyo`, `ao`, `breath`) |
+| `why` | Why, in one sentence |
+| `rule` | The exact rule, threshold, or hard limit that prevented continuation |
+| `executedAfter` | What ran after the failure, and what did **not** |
+| `findings[]` | One row per blocking finding |
+| `nextAction` | The concrete investigation or decision needed to clear it. **Never** a bypass of a required check |
+
+Each `findings[]` row:
+
+| Field | What it is |
+|---|---|
+| `kind` | `assertion` \| `visual` \| `coverage` \| `conflict` \| `other` |
+| `name` | Test, check, path, or finding name |
+| `expected` | Expected outcome |
+| `actual` | Actual outcome |
+| `significance` | Plain-language why this finding matters |
+| `refs` | Source, assertion, runner excerpt. Observed fact, not an unconfirmed cause |
+| `captures[]` | `{role, src, alt}` — `role` is `actual`, `reference`, or `diff`. Named so it cannot collide with the document's `evidence[]`. Visual failures **embed** the failing run's images, labelled, never an older capture presented as this failure. `src` is a `data:image/(png\|jpeg\|webp);base64,…` URI, the same regex as `evidence[].src` (`^data:image/(png\|jpeg\|webp);base64,[A-Za-z0-9+/=]+$`). A file path, empty `src`, or any other scheme is dropped from the payload and `evidenceUnavailable` names why |
+| `evidenceUnavailable` | Why required evidence is missing, when it is. Empty string when evidence is present |
+
+**Visual failures** fill `captures[]` from that run's actual / reference / diff. Decorative or
+unrelated screenshots stay in **05**; they are not substitute blocker evidence. **Nonvisual
+failures** put logs, assertions, conflict excerpts, or coverage rows in `refs` and leave
+`captures[]` empty rather than padding it with unrelated captures.
+
+The owner of the G5 (aka, mukai/kotoamatsukami, gyo, ao, breath, hanten, kokusen) **fills this payload
+before the turn page is rendered**. [`$jutaisho`](../jutaisho/SKILL.md) § 4 verifies the
+rendered HTML actually contains readable blocker content before the stop handoff links it. A G5
+that reaches jutaisho without this payload is a defective stop, not a stop with `blocker: null`.
+
 The eight fixed sections, in this order, always: **00 This last turn · 01 Accomplished · 02
 Challenges · 03 Not delivered · 04 Architecture delta · 05 Screenshots · 06 How to launch · 07
-Decisions.**
+Decisions.** **G5 blocker sits between 00 and 01 when `blocker` is non-null**, and is omitted
+from the page when it is `null` — a heading with no stop is not a stop report.
 
 - **00 This last turn is never omitted, and it is never the session.** It is the last human
   request, the highlight outcomes, and — on a mukai-triggered last turn — the three mukai
@@ -713,8 +759,12 @@ no template change is needed to stop it.
   [`$jutaisho`](../jutaisho/SKILL.md)'s, and it rings after this, not inside it.
 - **Never presents by-hand assembly as a verb's output** — § 3 and § 4 are residue and say so on the
   page they produce, through `{{residue}}` rather than in prose somebody has to notice.
-- **Never omits an extension key from the data file** — `""` or `[]`, never absent; a missing key is
-  exit `2` and no page at all (§ 4).
+- **Never omits `blocker` from the data file** — `null` or the § 5a object, never absent. A G5
+  render whose `blocker` is `null` is a defective stop report
+  ([zheref/hatsu#56](https://github.com/zheref/hatsu/issues/56)).
+- **Never hides blocker evidence behind the `final` variant or `tests[]`.** The turn page is the
+  stop handoff.
+- **Never presents an older capture as the current failure's actual, reference, or diff.**
 - **Never spells a substitution tag inside a template's own comments** — the renderer parses them
   (§ 4, F12). Describe the syntax in words there and write it out here.
 - **Never lets the template and `nen report data` drift apart** — a slot whose value the document

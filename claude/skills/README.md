@@ -4,11 +4,12 @@ This directory is the plugin's skill surface (`plugin.json` → `"skills": "./cl
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together
 under *Skills* by `claude plugin details`, which is why they are described together here.
 
-**Thirty-nine skills at `v0.24.0`**: the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
+**Forty skills at `v0.30.0`**: the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
 surface complete at `v0.1.0` — one of them, `drive`, **renamed to [`sharingan`](sharingan/) at `v0.5.0`** —
 the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side,
 **[`byakugan`](byakugan/) at `v0.24.0`**, the
-**three added at `v0.6.0`** that close the release side, and the **two roster-machinery residents** that
+**three added at `v0.6.0`** that close the release side,
+**[`third-hand`](third-hand/) at `v0.27.0`** (a separate phase after En from `v0.28.0`), and the **two roster-machinery residents** that
 arrived with the skeleton ([zheref/hatsu#1][1]) and are counted separately. Nothing here is reserved, and
 nothing here is a placeholder.
 
@@ -68,7 +69,7 @@ mechanics, and a live transcript showing the same verdict from fewer improvised 
 
 ## The way of working
 
-The seventeen above each answer a request. The twenty-one below are the **loop that carries every request** —
+The seventeen above each answer a request. The twenty-two below are the **loop that carries every request** —
 warm up, build, commit, launch, report, ring; pull, test, push — and the phases the maintainer calls by
 hand. [`../../docs/WORKFLOW.md`](../../docs/WORKFLOW.md) is the authority on all of it: the two configuration
 files ([`nen/contract.json`](../../nen/contract.json) → `project`, what nen **executes**;
@@ -82,14 +83,14 @@ required tests, coverage under the ladder's minimum, a semantic conflict, an uns
 `sharingan` escalation. A stop is `nen stop`'s banner plus the question asked through the surface's own
 native option picker.
 
-### The twenty-one workflow skills — seventeen atomic, four composite
+### The twenty-three workflow skills — nineteen atomic, four composite
 
 **Atomic** — one phase each. The first nine shipped at `v0.4.0`; the five after them at `v0.5.0`; the last
-three at `v0.6.0`:
+three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase split `v0.28.0`):
 
 | Skill | What it does |
 |---|---|
-| [`breath`](breath/) | **Warm-up, once per effort.** On the base branch and clean: fetch, fast-forward, cut `{model}/{persona}/{descriptor}` from the fresh trunk, then prove the declared iteration checks **on that fresh tip** — a base that does not build is a **G5** stop taken before any of the change is authored. Asks only on a dirty tree, and never discards a tree it has not inspected. |
+| [`breath`](breath/) | **Warm-up, once per effort.** A new effort always fetches, fast-forwards, and cuts `{model}/{persona}/{descriptor}` from the fresh trunk — even from a clean unrelated feature branch. An existing branch is reused only for an explicit continuation. Then prove the declared iteration checks **on that fresh tip** — a base that does not build is a **G5** stop taken before any of the change is authored. Asks on a dirty tree, and never discards a tree it has not inspected. |
 | [`rasengan`](rasengan/) | **The change itself — the authoring phase.** Writes the change and focused tests, runs the shared inexpensive `iteration.checks`, and may execute an explicit declared scoped-test lane for feedback. It runs no full regression or coverage and commits nothing. |
 | [`kokusen`](kokusen/) | **Verify, focused-test, then commit — locally, automatically.** Runs the shared `iteration.checks` and, for changed executable behavior, a declared scoped `test` lane. A missing scoped route stops before checkpoint; a prose-only change reports not applicable. It never runs full regression, coverage, or push. |
 | [`amaterasu`](amaterasu/) | **Launch, every turn.** Builds the configured target and starts it **from the core working directory, never a worktree**; the dry-run argv goes into the report and the chat. A disconnected device is reported by name. Parallel subagent efforts launch nothing. |
@@ -98,7 +99,7 @@ three at `v0.6.0`:
 | [`jutaisho`](jutaisho/) | **The bell.** Rings `workflow.json → notifications` and drops the marker that [`../../hooks/stop-bell.sh`](../../hooks/stop-bell.sh) reads; where no hook is installed it rings the notifier itself **and says that it did**. |
 | [`ao`](ao/) | **Pull from the base.** Fetch, then rebase if the branch is unpushed and merge if it is not; mechanical conflicts are resolved, a **semantic** one is a **G5** with both sides shown. It never pushes. |
 | [`aka`](aka/) | **Push — human-called.** Lint → squash only unpushed commits → `ao` → re-lint if catch-up changed the tree → push. No project-wide tests. Regression and coverage wait for mukai. |
-| [`hanten`](hanten/) | **Adversarial review, pre-PR.** Classifies the change set by scope and spawns **one reviewer subagent per scope** — UI → Hisoka, security-bearing → **Feitan**, architecture/handbook → **Chrollo**, performance → Uvogin, release-adjacent → Phinks — each titled `hanten · <persona> · <model alias>` and never on the frontier tier. Findings come back in one fixed shape (**rule id · severity · evidence · proposed fix**); Kurapika fixes or pushes back with a reason, and an unsettled finding is a **G5**. Reviewers never edit non-test source, never vote, never block. |
+| [`hanten`](hanten/) | **Adversarial review, pre-PR.** Classifies the change set by scope and spawns **one reviewer subagent per applicable scope that still has cycle budget** — UI → Hisoka (max 2), security-bearing → **Feitan** (max 1), architecture/handbook → **Chrollo** (max 1), performance → Uvogin (max 3), release-adjacent → Phinks (max 1) — each titled `hanten · <persona> · <model alias>` and never on the frontier tier. Used counts live in `.nen/hanten/<branch-slug>.cycle.json` for the whole effort; remediation does not reset them. Findings come back in one fixed shape (**rule id · severity · evidence · proposed fix**); Kurapika fixes or pushes back with a reason, and an unsettled finding is a **G5**. Reviewers never edit non-test source, never vote, never block. |
 | [`gyo`](gyo/) | **Linting, every Ren turn.** The named process for the declared `lint` verb. Breath proves it on the tip, rasengan may, kokusen must, aka before squash and after catch-up. It never measures coverage. |
 | [`kotoamatsukami`](kotoamatsukami/) | **Impacted project-wide unit, UI and integration tests at mukai.** Selects and runs only the declared suites the change can affect, and handles UI evidence. Aka never calls it. Coverage is byakugan's. A skip needs a named proof. |
 | [`byakugan`](byakugan/) | **Coverage capture and measurement at mukai.** Independently of those suites: writes the capture file, extracts, bands touched files, and raises the G5 under `coverage.minimum`. Never runs `test` or `ui-test`. |
@@ -107,6 +108,7 @@ three at `v0.6.0`:
 | [`susanoo`](susanoo/) | **Archive and packaging.** Runs the lane's declared `archive` through `nen shu archive` and produces the distributable **locally**: it uploads nothing, and nen never synthesises signing material. A seat (exit `4`) is quoted with the declaration's own reason, never routed around. This is the release unit [`getsuga`](getsuga/) folds into the release PR and the two phases below send. |
 | [`kagutsuchi`](kagutsuchi/) | **Non-production deploy or upload — human-called, per target.** The plan is printed always (`nen shu deploy --target <name>`, no `--run`), every precondition and `requiresEnv` variable asserted rather than read; `--run` acts **only** on the maintainer's own call naming the target, and **never from a composite**. `--target` is required with no default, even where exactly one destination is declared. The call is the stop. |
 | [`mugetsu`](mugetsu/) | **Publication — human-called, per target, G3.** Only on the maintainer's recorded per-target go, with `nen release preflight` green and the tag already cut: `nen shu release`, or `nen shu deploy --target production --run`. **One target per call**, and never reached from [`getsuga`](getsuga/), [`futon`](futon/) or [`en`](en/). It is the one phase that reaches other people's users. |
+| [`third-hand`](third-hand/) | **Session harvest — Netero's last look, after En.** A separate phase that starts once En has completed. Raise Netero in parallel, fold this sitting's process friction into **0–3** issues, file only what the maintainer picks through the surface picker, then the sitting is over. Never merges, never implements. Not a step of En. |
 
 **Composite** — an order, not a new capability. `ren` shipped at `v0.4.0`; the three after it at `v0.5.0`:
 
@@ -115,7 +117,7 @@ three at `v0.6.0`:
 | [`ren`](ren/) | **The per-request loop.** `breath`¹ (first turn only, and it proves the base) → `rasengan`² (author the change) → `kokusen`³ (verify the tree, then commit) → `amaterasu`⁴ → `rikugan`⁵ → `jutaisho`⁶. It loops until the maintainer calls the next phase, and **it never pushes**. |
 | [`murasaki`](murasaki/) | **Pull + update push.** `ao` → shared iteration checks → if catch-up changed the tree, return to the caller so kotoamatsukami can refresh tests and byakugan can recapture coverage → push only an already-published branch. Never squashes, first-publishes, or runs tests or coverage itself. |
 | [`mukai`](mukai/) | **The review-and-publication phase — human-called.** `murasaki`¹ → `hanten`² → kokusen checkpoint³ → `kotoamatsukami` impacted tests⁴ → `byakugan` coverage⁵ → final unchanged catch-up and update push⁶ → existing UI evidence⁷ → `shibari` PR⁸ → landing report⁹ → start `en` and end Mukai. The same user turn continues under En through current-head readiness. |
-| [`en`](en/) | **The readiness watch, `izanagi`-capped** by `nen/workflow.json` → `monitor`. [`rikugan`](rikugan/)¹ (landing) → [`sharingan`](sharingan/)² → `murasaki`³ when the branch is behind → `sharingan`⁴ → observe⁵ required CI/current-head review → [`jutaisho`](jutaisho/)⁶ at Ready → `rikugan` final and stop at the human gate. **A run with no acting cap does not run; quiet observations spend none**. A long hold may be handed to **Illumi**, read-only. |
+| [`en`](en/) | **The readiness watch, `izanagi`-capped** by `nen/workflow.json` → `monitor`. [`rikugan`](rikugan/)¹ (landing) → [`sharingan`](sharingan/)² → `murasaki`³ when the branch is behind → `sharingan`⁴ → observe⁵ required CI/current-head review → [`jutaisho`](jutaisho/)⁶ at Ready → `rikugan` final and stop at the human gate. **A run with no acting cap does not run; quiet observations spend none**. A long hold may be handed to **Illumi**, read-only. When En has completed, the next phase is [`third-hand`](third-hand/). |
 
 > **The release side closed at `v0.6.0`.** [`susanoo`](susanoo/), [`kagutsuchi`](kagutsuchi/) and
 > [`mugetsu`](mugetsu/) are the last three rows of the atomic table above, so **every phase a skill can
@@ -129,7 +131,7 @@ three at `v0.6.0`:
 
 ## The two roster-machinery residents
 
-Neither is one of the thirty-nine. They landed with the skeleton because the plugin does not function
+Neither is one of the forty. They landed with the skeleton because the plugin does not function
 without them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |

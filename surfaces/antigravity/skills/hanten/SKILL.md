@@ -1,6 +1,6 @@
 ---
 name: hanten
-description: Have the change read adversarially before it is anybody else's problem — classify the change set by scope, raise one reviewer per scope on the model tier the matrix names, collect every finding in one fixed shape, and settle each one by fixing it or pushing back with a cited reason. Use when the maintainer invokes /hanten [for <scope>], asks for a review of what is on this branch, or whenever /mukai reaches its review step before the pull request is composed. A scope with no reviewer is reported as a gap and never quietly dropped; an unsettled finding is a G5 stop through the surface's own option picker. Reviewers never edit non-test source and never cast a review vote.
+description: Have the change read adversarially before it is anybody else's problem — classify the change set by scope, raise one reviewer per applicable scope that still has cycle budget (Feitan 1, Chrollo 1, Phinks 1, Hisoka 2, Uvogin 3), collect every finding in one fixed shape, and settle each one by fixing it or pushing back with a cited reason. Use when the maintainer invokes /hanten [for <scope>], asks for a review of what is on this branch, or whenever /mukai reaches its review step before the pull request is composed. Remediation does not reset the effort's cycle ledger. A scope with no reviewer is reported as a gap and never quietly dropped; an unsettled finding is a G5 stop through the surface's own option picker. Reviewers never edit non-test source and never cast a review vote.
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
@@ -101,6 +101,95 @@ and the roster disagree, **the roster wins and this table is the bug.**
 > loud as one every run, and a repository whose layout it reads wrongly gets the classification
 > corrected by hand and that correction stated. A `review.scopes` key is the shape that would fix it —
 > filed as a finding rather than invented here (`docs/ab/hanten.md` § 4.2).
+
+## 2a · Per-cycle reviewer budgets — one effort, one ledger
+
+**A Hanten invocation is not a new review budget.** Remediation, a resumed session, a later
+[`/ren`](../ren/SKILL.md) turn on the same branch, and [`/mukai`](../mukai/SKILL.md)
+step 2 re-entering this skill all continue the **same cycle**. The cycle is the effort
+[`/breath`](../breath/SKILL.md) cut the branch for. A genuinely new effort — Breath cutting
+a **new** branch — is the only reset
+([zheref/hatsu#63](https://github.com/zheref/hatsu/issues/63)).
+
+GitHub pull-request review-provider rounds and CI review checks are **out of scope**. This section
+governs local Hatsu reviewer **invocations** inside one cycle.
+
+**Maxima, closed and named:**
+
+| Reviewer | Maximum raises per cycle | Zero is valid when |
+|---|---|---|
+| **Feitan** | 1 | security never applied |
+| **Chrollo** | 1 — and when architecture applies, that one raise is the whole budget | architecture never applied |
+| **Phinks** | 1 | release never applied |
+| **Hisoka** | 2 | ui never applied |
+| **Uvogin** | 3 | performance never applied |
+
+**Applicability and remaining budget are two questions, answered in that order.** Classify first
+(§ 2). Then, for every persona the classification actually raises:
+
+```bash
+"$hatsu_root/scripts/hanten_cycle_ledger.sh" decide \
+  --repo <path> --branch <the effort's branch> \
+  --applicable <csv of personas this classification raised>
+```
+
+Exit `0` prints one `hatsu.hanten.cycle/v0.1` decision document. Read `raise[]` and
+`skippedExhausted[]`; do not re-derive them. **Raise only the personas in `raise[]`.** An
+applicable reviewer whose `used >= max` is **skipped, not invoked** — say so, with used/max, and
+do not start a subagent, an adapter, or an in-session pass for them. An inapplicable reviewer is
+not made mandatory to satisfy a minimum; `not-applicable` is not a skip-exhausted and does not
+increment `used`.
+
+After a reviewer **returns** (raised or adapted — both consume the slot):
+
+```bash
+"$hatsu_root/scripts/hanten_cycle_ledger.sh" record \
+  --repo <path> --branch <the effort's branch> \
+  --persona <id> --outcome ran
+```
+
+After a skip because the budget was already exhausted, record `--outcome skipped-exhausted`
+(used does not increment). **`--outcome ran` against an exhausted persona exits `2`** — that is
+the script refusing a second Chrollo, not a hint to reset the file. **`--outcome skipped-exhausted`
+while `used < max` also exits `2`** — that outcome is only for a reviewer who is already at the cap.
+
+**The ledger is durable machine state of the target repository:**
+
+```
+<repo>/.nen/hanten/<branch-slug>.cycle.json
+```
+
+`<branch-slug>` is the branch with `/` replaced by `-`. `.nen/` is git-ignored. The file outlives
+the session the same way [`.nen/loop/en-<CODE>-<N>.json`](../en/SKILL.md) outlives En. Warm-up
+never deletes it ([`hatsu-warmup`](../hatsu-warmup/SKILL.md)).
+
+**`init` is [`/breath`](../breath/SKILL.md)'s**, after the branch is cut:
+
+```bash
+"$hatsu_root/scripts/hanten_cycle_ledger.sh" init \
+  --repo <path> --branch <the effort's branch>
+```
+
+Exit `0` opens the cycle. Exit `2` `already exists` is a re-warm of a name that already had one —
+do not reset. **`decide`, `record`, and `show` refuse a missing file** (exit `2`) rather than
+creating one. A missing file on a **new** effort whose Breath `init` was skipped (a branch cut
+before v0.30.0, and this sitting has recorded nothing) may `init` once, named as a new cycle, then
+`decide`. A missing file on a branch that already spent reviews is a **lost ledger** — report that
+fact and **do not invent a fresh budget as if the earlier raises had not happened**.
+
+**This run's result names, for every applicable reviewer:** `used`, `max`, and whether they
+`ran` or were `skipped-exhausted`. Those fields belong on `scopes[]` in § 5's document. Prior
+findings already settled stay settled; this run's `findings[]` are only from reviewers who
+**ran** this invocation.
+
+**Inside one invocation, each applicable reviewer is considered once.** Settling findings
+(§ 6) does not re-open the budget and does not re-raise the same persona. A composite that
+wants another pass calls this skill again, and the ledger answers.
+
+The maxima are **not** in `nen/workflow.json`. There is still no `review` block at
+`nen.workflow/v0.1` (§ Residue 5). The table above and `scripts/hanten_cycle_ledger.sh` must
+agree; the script is the writer, this section is the policy, and a disagreement is a bug in
+the script. **Do not add a Nen verb for this** unless a later issue names that dependency.
 
 ## 3. A scope with no reviewer is reported as a **gap**
 
@@ -264,11 +353,14 @@ still what runs, because a rule that is correct only when two paths coincide is 
 silently the first time they do not.
 
 **Say what was raised, in one line, before the reviews come back**: the scopes, the personas, the
-aliases, the isolated checkout each was given, and the gaps.
+aliases, the isolated checkout each was given, the gaps, and — for every applicable reviewer —
+`used`/`max` and whether this invocation **raised** them or **skipped-exhausted** (§ 2a). A skip is
+named in that line; it is never silent.
 
 **On Codex, Cursor, and Antigravity the mechanism is different and the rules are the same — § 9a is the table**:
 `deep` resolves to `sol` on Codex, to `grok` on Cursor, and to `pro` on Antigravity; a Codex reviewer is a whole second
-`codex exec` run in a worktree because that surface has no in-session subagent, a Cursor reviewer is a
+`codex exec` run in a worktree because that reviewer must not share the author's tree (Codex does spawn
+in-session subagents; that is Third-Hand's raise, not Hanten's), a Cursor reviewer is a
 definition under `.cursor/agents/`, an Antigravity reviewer is an in-session subagent invoked via
 `invoke_subagent` with `Workspace: "branch"`, and the frontier tier runs no subagent on any of the surfaces.
 
@@ -310,10 +402,13 @@ report's filename.
 ```json
 { "contract": "hatsu.hanten.findings/v0.1",
   "branch": "<branch>", "base": "<branch.base>", "at": "<ISO-8601 UTC>",
-  "scopes": [ { "scope": "ui", "persona": "hisoka", "model": "sonnet", "reviewed": true },
-              { "scope": "security", "persona": "feitan", "model": "opus", "reviewed": true },
-              { "scope": "architecture", "persona": "chrollo", "model": "opus", "reviewed": true,
-                "adapted": "no /chrollo subagent type on this surface; § 9 adapter" },
+  "cycle": { "path": "<repo>/.nen/hanten/<branch-slug>.cycle.json", "contract": "hatsu.hanten.cycle/v0.1" },
+  "scopes": [ { "scope": "ui", "persona": "hisoka", "model": "sonnet", "reviewed": true,
+                "used": 1, "max": 2, "invocation": "ran" },
+              { "scope": "security", "persona": "feitan", "model": "opus", "reviewed": true,
+                "used": 1, "max": 1, "invocation": "ran" },
+              { "scope": "architecture", "persona": "chrollo", "model": "opus", "reviewed": false,
+                "used": 1, "max": 1, "invocation": "skipped-exhausted" },
               { "scope": "<scope>", "persona": "<an unprovisioned persona>", "model": null, "reviewed": false,
                 "gap": "no definition at claude/agents/<persona>.md; ROSTER.md § 4" } ],
   "findings": [ { "id": "F1", "scope": "ui", "persona": "hisoka",
@@ -321,6 +416,11 @@ report's filename.
                   "evidence": "…", "proposedFix": "…",
                   "disposition": { "state": "fixed", "detail": "…" } } ] }
 ```
+
+**`used`, `max` and `invocation` are § 2a's, on every applicable `scopes[]` row.** `invocation` is
+`ran` or `skipped-exhausted`. An adapted raise still `ran` and still consumes the slot; put
+`"adapted": "…"` beside `invocation: "ran"`. A `skipped-exhausted` row is `reviewed: false` **this
+run** even when an earlier invocation in the cycle already reviewed that scope.
 
 **The six fields are the reviewer's; `id`, `scope`, `persona` and `disposition` are hanten's**, added
 as it records. A reviewer never writes this file.
@@ -332,12 +432,14 @@ filing confirmation. After collating duplicate findings, Kurapika alone applies
 open PRs, complete the four passes, and record `created`, `updated`, `folded`, `unchanged`, or
 `pending`. This keeps parallel reviewers from writing duplicate evidence or racing a create.
 
-**The third row is § 3's middle state — reviewed, but adapted rather than raised — and it is a real
-shape, not a hypothetical: it is what a run against an older installed plugin produces.** The fourth
+**The third row is a cycle-budget skip — applicable, not invoked, used already at max.** It is not a
+gap and not a pass. The fourth
 row is the gap shape, written as a hypothetical on purpose. At `v0.5.0` every
 persona § 2 routes to has a definition (§ 3), so a real record from this plugin carries no gap row at
 all — the row is here because the shape must be documented before the day something needs it, and
 filling it with a persona that *is* defined would teach the shape by way of a false example.
+An adapted raise (definition present, surface will not raise the named type) stays § 3's middle
+state: `reviewed: true`, `invocation: "ran"`, plus the `adapted` string. It consumes the § 2a slot.
 
 ## 6. Settle every finding — fixed, or pushed back with a reason
 
@@ -455,12 +557,15 @@ surface; this is what hanten does with them once they are there.
 | where the persona definition lives on that surface | `claude/agents/<persona>.md` | a `## <persona>` section of the generated `AGENTS.md` | `.cursor/agents/<persona>.md` | `surfaces/antigravity/agents/<persona>.md` or `.agents/rules/AGENTS.md` |
 | isolation | a worktree the harness makes | **the directory you pass to `-C`** — make it a `git worktree` first | whatever the surface gives a subagent; **state which** | **`Workspace: "branch"`** — an isolated branch workspace managed by Antigravity |
 
-**Codex has no in-session subagent, and that is the fact the row above is built on** — verified against
-the CLI on this host rather than remembered (`docs/ab/surfaces.md` § 3.4). `codex exec --help` documents
+**Codex has in-session subagents** (`spawn_agent`, skill-requested delegation; ChatGPT app, CLI, IDE).
+That is not this row. **Hanten still raises the reviewer as a second `codex exec` in a worktree**
+because the reviewer must not share the author's tree — the same isolation § 4 cannot take from
+`isolation: "worktree"` on this surface. `codex exec --help` documents
 `-m, --model`, `-C, --cd <DIR>`, `-s, --sandbox <read-only|workspace-write|danger-full-access>` and
-`-o, --output-last-message <FILE>`; there is no spawn-a-delegate flag anywhere in it. So on Codex a
-reviewer is **a second Codex run**, and the isolation § 4 gets from `isolation: "worktree"` has to be made
-by hand before the run:
+`-o, --output-last-message <FILE>`. Third-Hand's harvest uses in-session spawn instead, because
+Netero must see this sitting. The 2026-09-10 record that Codex had *no* in-session subagent
+(`docs/ab/surfaces.md` § 3.4, CLI `0.149.0`) is superseded. Isolation for a Hanten reviewer is
+still made by hand before the run:
 
 ```sh
 git worktree add "$rev" HEAD                      # the isolated copy — hanten's own act
@@ -595,11 +700,18 @@ On Codex, where the "title" is whatever the transcript records, it goes in the p
    `codex debug models | grep -o '"slug":"[^"]*sol"' | cut -d'"' -f4`, run by hand, and a resolution that
    comes back empty is a **G5** rather than a substituted model. `nen model resolve --surface <s> --tier
    <t>`, running the surface's own catalogue probe, would close it; filed as `docs/ab/surfaces.md` § 7 F1.
+8. **The cycle ledger is this skill's file, written by `scripts/hanten_cycle_ledger.sh`.** There is no
+   Nen verb for per-reviewer Hatsu invocation budgets on purpose ([zheref/hatsu#63](https://github.com/zheref/hatsu/issues/63)
+   scope: do not implement the reviewer policy in Nen unless a later issue names that dependency).
+   The writer is Hatsu machinery, the same class as [`.nen/last-stop.json`](../jutaisho/SKILL.md).
+   Counting in prose is how Chrollo gets raised twice; the script is what makes used/max survive
+   remediation and a resumed session.
 
 ## Authority
 
 - **Permitted:** read the working copy and its git history; raise reviewer subagents under § 4's
-  constraints; **write the findings record** under `<reports.dir>/hanten/`; **edit the working copy**
+  constraints; **write the findings record** under `<reports.dir>/hanten/`; **write the cycle ledger**
+  under `<repo>/.nen/hanten/` through `scripts/hanten_cycle_ledger.sh` (§ 2a); **edit the working copy**
   to settle a finding, in the nature the change was authored in; render the stop.
 - **Not permitted:** push, commit, PR, label, merge, tag, deploy, or any review vote. Hanten is a step
   inside [`/mukai`](../mukai/SKILL.md)'s run and holds none of that run's authority.
@@ -642,3 +754,14 @@ On Codex, where the "title" is whatever the transcript records, it goes in the p
 - **Never lets a reviewer edit non-test source, vote, merge, push or block** (§ 8).
 - **Never presents an in-session pass as a raised reviewer** (§ 9).
 - **Never presents by-hand classification as a verb's output** — § Residue is named where it runs.
+- **Never raises a reviewer whose cycle budget is exhausted** (§ 2a). Skipped-exhausted is reported
+  with used/max; it is not invoked as a subagent, adapter, or in-session pass.
+- **Never resets used counts because findings were settled, because the session resumed, or because
+  a composite re-entered this skill on the same branch.** Only a new effort (a new branch) opens a
+  new ledger.
+- **Never invents a fresh budget** when `.nen/hanten/<branch-slug>.cycle.json` is missing on a
+  branch that already spent reviews — report the lost ledger. **Never calls `init` to recover a
+  spent cycle.** `init` is Breath's after a new cut, or a one-time recovery when this sitting has
+  recorded nothing.
+- **Never lowers a still-in-budget review's quality bar** to save a later raise, and never raises an
+  inapplicable reviewer to satisfy a minimum count.

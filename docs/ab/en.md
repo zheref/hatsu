@@ -2,9 +2,9 @@
 
 `claude/skills/en/SKILL.md`: the capped readiness watch — `rikugan`¹ landing → `sharingan`² →
 `murasaki`³ when behind base → `sharingan`⁴ → observe⁵ while current-head CI/review is pending,
-reacting to new findings and conflicts by going back to step 2 → `jutaisho`⁶ at Ready → `rikugan`
+reacting to new findings and conflicts by going back to step 2 → `jutaisho`⁶ at Ready → `rikugan`⁷
 final, written to
-`Reports/<date>-<branch>-final.html`.
+`Reports/<date>-<branch>-final.html`. Third-Hand is a later phase, not this run.
 
 **A composite, so most of it is a reference — but three things are genuinely en's own and all three
 are verified live below:** the invocation's anchored-optional grammar, **the cap** (the value from

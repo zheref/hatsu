@@ -419,8 +419,8 @@ surface for exactly this reason: **the tier is the policy and the alias is the s
 | `deep` — **`models.roles.reviewer`**, so this is the reviewer tier | **`opus`** | **`sol`** | **`grok`** | **`pro`** |
 | `fast` — `worker`, `measurer` | `sonnet` | `terra` | `composer` | `flash` |
 | `economy` | `haiku` | `luna` | `composer` | `flash_lite` |
-| **how a subagent is raised** | the harness's **Agent tool**, `isolation: "worktree"` | **`codex exec -m <id> -C <dir> -s workspace-write`** — a whole second process; **this surface has no in-session subagent**, verified against `codex exec --help` | a **subagent definition** at `.cursor/agents/<persona>.md`, mirrored there from `claude/agents/` | the harness's **`invoke_subagent` tool**, `Workspace: "branch"`, `Model: "pro"` |
-| **isolation** | the harness makes the worktree | **`git worktree add` first** — `-C` takes a directory and creates none | the surface's own; the skill states which it got | **`Workspace: "branch"`** — isolated branch workspace managed by the harness |
+| **how a subagent is raised** | the harness's **Agent tool**, `isolation: "worktree"` | **in-session `spawn_agent`** (ChatGPT app, CLI, IDE). Hanten's isolated reviewer is still a second **`codex exec -m <id> -C <dir> -s workspace-write`** because that reviewer must not share the author's tree | a **subagent definition** at `.cursor/agents/<persona>.md`, mirrored there from `claude/agents/` | the harness's **`invoke_subagent` tool**, `Workspace: "branch"` (reviewers) or `"inherit"` (Third-Hand's Netero), `Model: "pro"` |
+| **isolation** | the harness makes the worktree | in-session spawn **shares the parent**; Hanten's reviewer is still **`git worktree add` first** — `-C` takes a directory and creates none | the surface's own; the skill states which it got | **`Workspace: "branch"`** for Hanten reviewers; **`"inherit"`** for Third-Hand's Netero (`share` only when it is the same checkout) |
 
 **A reviewer runs at the `deep` tier on every surface** — `opus`, `sol`, `grok`, `pro` — because
 `models.roles.reviewer` is `deep` and a role maps to a tier rather than to a product.
@@ -999,13 +999,19 @@ merge**, and it stays a rule with no file: **G2** is an action no agent performs
 procedure to write down. The rule that held while the other four had no file still holds and always did:
 **a phase boundary is the governance, not the file** — name the phase and stop there whether or not
 something has been written for it.
+**`v0.27.0` adds `third-hand`**: a wrap-up harvest after En. **`v0.28.0` states it is a separate
+phase that starts once En has completed**, not En step 8. Netero proposes 0–3 folded process
+issues; the maintainer picks which to file; the sitting is then over. **It is not the merge.** G2
+still has no file. Codex asks through `request_user_input` and raises Netero in-session;
+Antigravity uses `ask_question` (`is_multi_select`) and `invoke_subagent` with `Workspace: "inherit"`.
 
 **`v0.7.0` adds no skill and adds two surfaces.** The same thirty-eight skills and eight personas are now
 also generated into Codex and Cursor layouts under `surfaces/`, placed into a target repository by the
 warm-up, checked for drift by [`scripts/surface_mirror_check.sh`](../scripts/surface_mirror_check.sh), and
-documented in [`docs/SURFACES.md`](SURFACES.md). **Two things a surface does not have are named rather than
-assumed**: Codex and Cursor have no turn-end hook (§ 6), and Codex has no in-session subagent (§ 2 →
-`models`). **RETIRED at nen `0.5`: the mirror's own generator is in the pinned binary.**
+documented in [`docs/SURFACES.md`](SURFACES.md). **Two things a surface does not have were named rather than
+assumed at `v0.7.0`**: Codex and Cursor have no turn-end hook (§ 6), and the 2026-09-10 CLI record said Codex
+had no in-session subagent. **From `v0.28.0` Codex does spawn in-session subagents**; Hanten's isolated
+reviewer remains a second `codex exec` because that reviewer must not share the author's tree. **RETIRED at nen `0.5`: the mirror's own generator is in the pinned binary.**
 `nen surface mirror generate|check` runs at `v0.5.0` — `scripts/surface_mirror_check.sh` exits `0` with
 `codex ok: 40` and `cursor ok: 47` — so the CI job runs a real check instead of skipping with a notice. The
 mirrors stay committed, for the original reason: the warm-up installs what is on disk rather than

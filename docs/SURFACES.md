@@ -22,14 +22,15 @@ to the keys each surface documents and the invocation respelled — produced by
 | invocation spelling | **`hatsu:<name>`** | **`$<name>`** — and see *What Codex advertises* below: the install mechanism decides whether the name it lists is bare or namespaced | **`/<name>`** | **`/<name>`** (slash commands) |
 | frontmatter kept on a skill | everything Claude Code documents | `name`, `description` — the page documents no other key | `name`, `description`, `paths`, `globs`, `disable-model-invocation`, `icon`, `color`, `metadata` | `name`, `description` |
 | turn-end hook | **yes** — `Stop`, `hooks/hooks.json` | **no** | **no** | **yes** — `Stop`, `hooks.json` or `.agents/hooks.json` calling `./hooks/stop-bell.sh` |
-| in-session subagent | **yes** — the Agent tool | **no** — a reviewer is a second `codex exec` run | **yes** — `.cursor/agents/` | **yes** — `invoke_subagent` with `Workspace: "branch"` |
+| in-session subagent | **yes** — the Agent tool | **yes** — `spawn_agent` / skill-requested delegation (ChatGPT app, CLI, IDE). Hanten's isolated reviewer still uses a second `codex exec` in a worktree because that reviewer must not share the author's tree | **yes** — `.cursor/agents/` | **yes** — `invoke_subagent`; `Workspace` is `inherit`, `branch`, or `share` |
+| native option picker | **`AskUserQuestion`** | **`request_user_input`** — ChatGPT app can collect multiple answers on one question; CLI TUI is exclusive per question | **`AskQuestion`**, `allow_multiple` | **`ask_question`**, `is_multi_select` |
 | reviewer tier → alias (`models.roles.reviewer` = `deep`) | `opus` | `sol` | `grok` — **Cursor-native only** | **`pro`** (Gemini Pro) |
 | minimum CLI build | n/a — the plugin loader is the harness | **not established** — no skills-support floor is known for this surface. The build every record here was made on is **`codex-cli 0.149.0`** (`codex --version`, read live on 2026-09-10), and it is a *validated* build rather than a minimum | **`2026.01.*`** — below it the surface sees NO skills (below) | Antigravity IDE / 2.0 / `agy` CLI |
 | signing in | the harness's own | `codex login`; `codex login status` answers `Logged in using ChatGPT` (read live on 2026-09-10) | `cursor-agent login`; `cursor-agent status` answers `✓ Logged in as <account>` | Google AI login (`agy login` / Google Cloud ADC; Pro or Ultra subscription) |
 
 The two consequences that are not cosmetic have their own homes:
-[`claude/skills/jutaisho/SKILL.md`](../claude/skills/jutaisho/SKILL.md) § 6 for the missing `Stop` hook, and
-[`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 9a for the missing subagent.
+[`claude/skills/jutaisho/SKILL.md`](../claude/skills/jutaisho/SKILL.md) § 6 for the missing `Stop` hook on Codex and Cursor, and
+[`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 9a for how a reviewer is isolated on each surface. Codex **does** spawn in-session subagents (`spawn_agent`); Hanten still uses a second `codex exec` when the reviewer must not share the author's tree.
 
 ### First-run discovery is a bootstrap, not an environment variable
 
@@ -117,7 +118,7 @@ surfaces that keep it; it is not worth *relying* on here.
 ### Cursor has a MINIMUM `cursor-agent` version, and below it every Hatsu skill is silently absent
 
 **A `cursor-agent` that predates skills support answers your prompt, runs your commands, exits `0` —
-and has not loaded one of the thirty-nine.** With the mirror installed exactly as
+and has not loaded one of the forty.** With the mirror installed exactly as
 [`hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md) § 5b mandates, `2025.09.18-39624ef` answered
 a discovery probe with the whole reply **`NO SKILLS VISIBLE`**, seventeen bytes. The controlled
 fixture that followed is what settles it: the same build cannot see a **`cp -R` copy** either, and it
@@ -160,7 +161,7 @@ was renamed to `sharingan` at v0.5.0 and `surfaces/cursor/drive` does not exist.
 **On Claude Code this cannot happen** — `hatsu:build` and `bankai:build` are distinct names, which the
 Codex-half record called *"luck rather than design"*. **On Cursor the luck runs out.** The names Hatsu
 claims that are ordinary enough to collide with somebody: **`build`, `file`, `en`, `ao`, `ren`,
-`breath`**, and thirty-nine are claimed at once.
+`breath`**, and forty are claimed at once.
 
 > **The shadowing itself is INFERRED, not proven, and it is written here as such.** The evidence is
 > one listing's grouping and one alphabetical gap — `build` appeared once, outside the Hatsu block's
@@ -229,13 +230,13 @@ a link tree.
 |---|---|
 | `claude/skills/<name>/SKILL.md` | **authored.** The one source. |
 | `claude/agents/<persona>.md` | **authored.** The one source. |
-| `surfaces/codex/<name>/SKILL.md` | **generated** — 39 files |
+| `surfaces/codex/<name>/SKILL.md` | **generated** — 41 files (the counted forty plus `hatsu-warmup`) |
 | `surfaces/codex/AGENTS.md` | **generated** — every persona as a `## <name>` section, 1 file |
-| `surfaces/cursor/<name>/SKILL.md` | **generated** — 39 files |
-| `surfaces/cursor/agents/<persona>.md` | **generated** — 8 files |
-| `surfaces/antigravity/<name>/SKILL.md` | **generated** — 39 files |
+| `surfaces/cursor/<name>/SKILL.md` | **generated** — 41 files (the counted forty plus `hatsu-warmup`) |
+| `surfaces/cursor/agents/<persona>.md` | **generated** — 9 files |
+| `surfaces/antigravity/<name>/SKILL.md` | **generated** — 41 files (the counted forty plus `hatsu-warmup`) |
 | `surfaces/antigravity/rules/AGENTS.md` | **generated** — all personas in unified rules document |
-| `surfaces/antigravity/agents/<persona>.md` | **generated** — 8 subagent definitions |
+| `surfaces/antigravity/agents/<persona>.md` | **generated** — 9 subagent definitions |
 | `surfaces/antigravity/plugin.json` | **generated** — Antigravity plugin manifest |
 | `surfaces/antigravity/hooks.json` | **generated** — lifecycle hooks (`PreToolUse` and `Stop`) |
 
@@ -345,6 +346,12 @@ codex exec -C <repo> -s workspace-write \
   --add-dir "$(git -C <repo> rev-parse --path-format=absolute --git-common-dir)" \
   -m "$sol" "<prompt>"
 ```
+
+Codex native picker is **`request_user_input`** (`questions` 1–3, `isBlocking`). The ChatGPT app
+collects multiple ticked answers on one question; the CLI TUI selects one option per question.
+In-session delegates are **`spawn_agent`** (skill-requested delegation is a documented trigger).
+Hanten still uses the `codex exec` form above, in a worktree, when the reviewer must not share the
+author's tree.
 
 > ### ⚠️ `--add-dir` is not an optimisation. Without it a LINKED WORKTREE cannot commit at all.
 >
@@ -531,8 +538,9 @@ agy --model pro "<prompt>"
   or from `.agents/` inside the repository.
 - Lifecycle hooks (`PreToolUse` on `run_command` via `hooks/guard-base-branch.sh`, `Stop` via `hooks/stop-bell.sh`)
   are active natively in both interactive and headless CLI runs.
-- Subagents raised via `invoke_subagent` inherit workspace branch isolation (`Workspace: "branch"`)
-  and run concurrently in the background without polling.
+- Subagents raised via `invoke_subagent` choose a workspace: **`inherit`** (same checkout as the parent — Third-Hand's Netero), **`branch`** (isolated git worktree — Hanten reviewers), or **`share`**.
+- They run concurrently in the background without polling.
+- Native picker is **`ask_question`**, with `is_multi_select: true` when several options may all be true.
 
 ---
 

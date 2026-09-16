@@ -388,3 +388,58 @@ The regression boundary is therefore mechanical enough to audit even though the 
 conversation: `new finding → investigate → fixed | pushed-back | tracked`; only a proven need for changed
 scope, a new business rule, unresolved conflicting requirements, or authority the run does not carry may
 take the remaining path to G5.
+
+---
+
+## Cycle-budget regression — live, 2026-09-15
+
+Hanten's reviewer conversation still has no executable agent-flow runner. The **invocation budget** does:
+[`scripts/hanten_cycle_ledger.sh`](../../scripts/hanten_cycle_ledger.sh) is the writer § 2a names, and
+`--self-test` is the recorded proof that remediation cannot reset counts and that Chrollo cannot run twice.
+
+**Run:** 2026-09-15, `nen 0.10.0`, host Darwin, Hatsu checkout `grok/kurapika/netero-breath-g5`.
+Re-run after the fail-closed writer (v0.30.0): 2026-09-16, same host, same checkout.
+
+```
+$ scripts/hanten_cycle_ledger.sh --self-test
+ok    refuse-missing-as-new-cycle
+ok    refuse-second-init
+ok    entry-1-raise-all-five
+ok    remediation-keeps-used
+ok    refuse-skipped-exhausted-under-budget
+ok    entry-2-chrollo-exhausted
+ok    entry-2-hisoka-uvogin-raise
+ok    unique-tmp-cleaned
+ok    entry-3-hisoka-exhausted
+ok    entry-3-uvogin-raise
+ok    entry-3-chrollo-still-one
+ok    entry-4-no-raises
+ok    entry-4-uvogin-exhausted
+ok    maxima
+ok    refuse-second-chrollo-raise
+ok    inapplicable-chrollo-not-raised
+ok    later-applicable-chrollo-still-raises
+ok    new-branch-resets-budget
+ok    resume-same-file
+ok    concurrent-rmw-both-records-land
+self-test: 20 passed, 0 failed
+exit=0
+```
+
+| Scenario | Required result | What the script asserted |
+|---|---|---|
+| First Hanten of an effort, all five scopes applicable | raise Feitan, Chrollo, Phinks, Hisoka, Uvogin | `entry-1-raise-all-five` |
+| Remediation, then resume the same ledger | used counts unchanged | `remediation-keeps-used`, `resume-same-file` |
+| Second pass, all five still applicable | Chrollo/Feitan/Phinks skipped-exhausted; Hisoka and Uvogin still raise | `entry-2-chrollo-exhausted`, `entry-2-hisoka-uvogin-raise` |
+| Third pass | Hisoka exhausted at 2; Uvogin still raises (2/3) | `entry-3-hisoka-exhausted`, `entry-3-uvogin-raise` |
+| Fourth pass | Uvogin exhausted at 3; nobody raises | `entry-4-no-raises`, `entry-4-uvogin-exhausted`, `maxima` |
+| Record `ran` against exhausted Chrollo | refused | `refuse-second-chrollo-raise` |
+| Architecture never applied, then becomes applicable | Chrollo is not mandatory on the UI-only pass; he still has budget later | `inapplicable-chrollo-not-raised`, `later-applicable-chrollo-still-raises` |
+| Record `skipped-exhausted` while `used < max` | refused | `refuse-skipped-exhausted-under-budget` |
+| Two concurrent records on one ledger | both used increments persist | `concurrent-rmw-both-records-land` |
+| `decide`/`record`/`show` on a missing file | refused (not a new cycle) | `refuse-missing-as-new-cycle` |
+| Second `init` on the same branch | refused | `refuse-second-init` |
+| Breath cuts a new branch | new ledger via `init`, Chrollo may raise again | `new-branch-resets-budget` |
+
+GitHub pull-request review-provider rounds are not in this table. This is local Hatsu reviewer
+invocations inside one cycle.

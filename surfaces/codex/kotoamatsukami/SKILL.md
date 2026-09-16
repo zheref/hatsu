@@ -99,7 +99,10 @@ push.
 
 A red required suite that was selected to run is mukai's **G5**, raised at the moment a pull
 request was about to open. Kotoamatsukami reports red; the phase that was about to publish decides
-what that costs.
+what that costs. **The turn (or landing) page carries rikugan's `blocker` payload** — step,
+rule, expected versus actual, this-run visual evidence or an explicit unavailable reason —
+before [`$jutaisho`](../jutaisho/SKILL.md) links it
+([zheref/hatsu#56](https://github.com/zheref/hatsu/issues/56); [`$rikugan`](../rikugan/SKILL.md) § 5a).
 
 ## 4. Impact selection — run only what this change can move
 

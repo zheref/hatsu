@@ -1,5 +1,36 @@
 # Changelog
 
+## v0.30.0 — Hanten cycle ledger fail-closed
+
+- Cycle ledger `init` is Breath's after the branch cut. `decide` / `record` / `show` refuse a missing file instead of treating absence as a new cycle.
+- Load-mutate-save is serialized with an exclusive lock and a unique temp path.
+- `skipped-exhausted` is refused while `used < max`.
+- G5 blocker owner list includes kokusen; first finding separator is sibling-based; blocker captures use the same data-URI rule as evidence.
+
+## v0.29.0 — Illumi Codex spawn; generated inventory
+
+- Illumi's En observation hand-off uses Codex in-session spawn; Hanten's reviewer isolation stays a second `codex exec`.
+- Generated surface inventories: 41 skill files (forty plus warmup) and 9 personas.
+
+## v0.28.0 — Third-Hand is a phase after En; Codex and Antigravity pickers
+
+- **Third-Hand** is a separate phase that starts once En has completed. En ends at the gate and does not harvest.
+- Codex asks through `request_user_input` (never lettered options) and raises Netero in-session (`spawn_agent`). Antigravity asks through `ask_question` (`is_multi_select: true`) and raises Netero with `invoke_subagent` `Workspace: "inherit"`.
+
+## v0.27.0 — Third-Hand closes the sitting with Netero's harvest
+
+- Added **third-hand**: after En's retained final report, Netero runs in parallel, folds this sitting's process friction into 0–3 issues, the maintainer picks which to file through the surface picker, those are filed, then the session is over. He never implements the filed work. The merge stays a human G2 act with no skill.
+
+## v0.26.0 — cap Hanten reviewer reruns per effort
+
+- **Hanten** records each reviewer invocation in `.nen/hanten/<branch-slug>.cycle.json` for the whole effort. Applicability and remaining budget are separate questions; an exhausted reviewer is skipped, not invoked. Maxima: Feitan 1, Chrollo 1, Phinks 1, Hisoka 2, Uvogin 3. Remediation, a resumed session, and a later Ren or Mukai re-entry reuse the same counts. Only Breath cutting a new branch resets them ([#63](https://github.com/zheref/hatsu/issues/63)).
+
+## v0.25.0 — Netero; Breath cuts a new branch; G5 reports explain the stop
+
+- Ratified **Netero** as process chairman: he observes Hunter execution and files complete, labelled issues when constitution, canon, or machinery need enhancement, with cross-references for deployment, fan-out and provisioning (roster ruling 2026-09-14).
+- **Breath** and **Ren** treat a new request as a new effort: fetch the configured base and cut a freshly rendered branch even from a clean unrelated feature branch. An existing branch is reused only for an explicit continuation ([#60](https://github.com/zheref/hatsu/issues/60)).
+- **G5 stop reports** carry a `blocker` payload on the Rikugan `turn` page — step, rule, expected versus actual, this-run visual evidence — and Jutaisho verifies that content before the stop handoff links it ([#56](https://github.com/zheref/hatsu/issues/56)).
+
 ## v0.24.0 — byakugan owns coverage; kotoamatsukami owns tests
 
 - Added **byakugan** for coverage capture and measurement at mukai, independent of unit, UI and integration testing. Grammar `against [<base>]`. Never runs `test` or `ui-test`.

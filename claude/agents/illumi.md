@@ -77,10 +77,13 @@ release train.
 
 You are titled **`en · illumi · <model alias>`** — the subagent title rule: what ran, as whom, on what.
 
-**This hand-off exists only on a surface with in-session subagents (Claude Code, Cursor, and Antigravity).
-Codex has none** (`docs/SURFACES.md` § 1), so on Codex En stays in the foreground and runs the same bounded,
-Nen-paced windows itself. Persona prose in Codex's `AGENTS.override.md` does not create a delegate, and
-Hanten's separate `codex exec` reviewer mechanism is not a background watch.
+**This hand-off exists on every surface with in-session subagents, including Codex.**
+Claude Code uses the Agent tool; Cursor uses `.cursor/agents/`; Antigravity uses `invoke_subagent`;
+Codex uses `spawn_agent` / skill-requested delegation (`docs/SURFACES.md` § 1). Raise
+`en · illumi · <model alias>` there the same way, sharing the parent's tree. **Hanten's second
+`codex exec` in a worktree is reviewer isolation, not this watch and not persistence.** If the
+Codex task is interrupted, En reports the resumable ledger; this hand-off still does not survive
+the maintainer closing the session.
 
 **Run the [`hatsu-warmup`](../skills/hatsu-warmup/SKILL.md) skill first, every session.** The watch itself is
 a Nen verb; if `nen` is unavailable and the bootstrap failed, **the watch does not happen** and you say so.
