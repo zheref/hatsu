@@ -293,11 +293,11 @@ the whole family):
 
 | Exit | What it means here | What breath does |
 |---|---|---|
-| `0` | warm — the branch is cut from the fetched tip and the declared build passed on it | proceed to § 6 |
+| `0` | warm — the branch is cut from the fetched tip and the declared build passed on it | open the Hanten cycle ledger (§ 5a), then proceed to § 6 |
 | `1` | a git step ran and failed, **or** the delegated build failed, **or** the executor refused the build with a `2` | nothing is rolled back and the trunk has already moved: report `steps[]` verbatim. **A failed build here is a red BASE TIP — a G5 stop before any authoring** (§ 6), never handed forward as this effort's red |
 | `2` | a refusal *before* any mutation: a dirty tree (every path listed), a merge/rebase/cherry-pick in progress, a detached `HEAD` carrying unreachable commits, no `origin`, a diverged trunk, a `git worktree list` that cannot be read at all, a name git will not accept or that already exists locally or on `origin` | fix the named condition and re-run. **Never reach for `--discard`** |
 | `3` | the declaration excludes this host | **G5** — name the host the declaration allows; never retry |
-| `4` | the lane declares no `build` (a seat) | quote the declaration's own reason — **and note that `shu warmup` has now proved nothing**, so § 6's own loop over `iteration.checks` is the whole of the base-tip proof (this repository's case) |
+| `4` | the lane declares no `build` (a seat) | quote the declaration's own reason — **and note that `shu warmup` has now proved nothing**, so § 6's own loop over `iteration.checks` is the whole of the base-tip proof (this repository's case). The branch still exists: open the Hanten cycle ledger (§ 5a) before that loop |
 | `5` | the declared program is not on `PATH` | back to § 4 |
 
 **`--discard` is never breath's flag.** It runs `git reset --hard` then `git clean -fd`, and the
@@ -310,6 +310,21 @@ which carries no `project` block: the git half prints in full and the run ends w
 (`docs/ab/breath.md` § 2.3). Say plainly that no declaration exists, that the warm-up was the git
 half only, and treat writing a `project` block as a **G4** change to propose — not a blocker, and
 not something to paper over with a remembered command line.
+
+## 5a. Opening the Hanten cycle ledger
+
+**After the branch exists** — warmup exit `0` or `4`, or a no-declaration git-half that still cut
+`--branch` — Breath opens this effort's reviewer budget. Hanten never creates the file.
+
+```bash
+"$hatsu_root/scripts/hanten_cycle_ledger.sh" init \
+  --repo <path> --branch <rendered name>
+```
+
+Exit `0` is a new cycle. Exit `2` `already exists` is a re-warm of a name that already had one —
+report it, do not reset, go on. **A later missing file on this branch is a lost ledger for
+[`$hanten`](../hanten/SKILL.md), not a second `init`.** Continuation of an existing branch
+does not cut and does not `init`.
 
 ## 6. Proving the base tip — the last thing breath does, before anything is authored
 
@@ -389,6 +404,11 @@ that did not run is reported as **not run**, never rendered as clear.
   not residue, it is a repository change and goes through a PR (§ 3). **Resolving the path is part of the
   residue**: `--git-path`, never `--git-dir`, because a linked worktree's `--git-dir` names a file git does
   not read (§ 3, verified).
+- **Opening the Hanten cycle ledger** after the cut is `scripts/hanten_cycle_ledger.sh init`
+  (§ 5a). There is no Nen verb for per-effort Hatsu reviewer budgets
+  ([zheref/hatsu#63](https://github.com/zheref/hatsu/issues/63)). Exit `2` `already exists` is
+  reported, not retried as a reset.
+
 - **Deciding whether an existing dirty branch is this effort** stays judgment. `nen wc classify`
   hands over the commit subjects and the paths and says outright the call is not the module's.
   **New-versus-continuation on a clean feature branch is not that judgment** — § 3a is a closed
@@ -398,7 +418,8 @@ that did not run is reported as **not run**, never rendered as clear.
 
 - **Permitted:** classify the working copy, probe and (through `corepack` only) install a declared
   host tool, fetch, fast-forward the trunk, cut a **non-trunk** branch, run the lane's declared
-  `build`/`test`.
+  `build`/`test`, and **open** `.nen/hanten/<branch-slug>.cycle.json` through
+  `scripts/hanten_cycle_ledger.sh init` (§ 5a).
 - **Not permitted:** any push, any commit, any PR or label, any `--discard`, any deploy. Breath is
   the phase before authorship, and it produces no object anyone else can see.
 - **Not a gate event**, with three exceptions it raises rather than owns: a **G5** for an unsupported
@@ -437,6 +458,8 @@ that did not run is reported as **not run**, never rendered as clear.
   key → the default for that key; neither → stop and ask.
 - **Never runs twice on one effort.** A second cut is a second branch, and an effort with two branches
   is two efforts nobody scoped.
+- **Never resets a Hanten cycle ledger.** `init` after a new cut; `already exists` is reported, not
+  overwritten (§ 5a).
 
 
 ### Phase boundary for the base check

@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.30.0 — Hanten cycle ledger fail-closed
+
+- Cycle ledger `init` is Breath's after the branch cut. `decide` / `record` / `show` refuse a missing file instead of treating absence as a new cycle.
+- Load-mutate-save is serialized with an exclusive lock and a unique temp path.
+- `skipped-exhausted` is refused while `used < max`.
+- G5 blocker owner list includes kokusen; first finding separator is sibling-based; blocker captures use the same data-URI rule as evidence.
+
 ## v0.29.0 — Illumi Codex spawn; generated inventory
 
 - Illumi's En observation hand-off uses Codex in-session spawn; Hanten's reviewer isolation stays a second `codex exec`.

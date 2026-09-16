@@ -150,7 +150,8 @@ After a reviewer **returns** (raised or adapted — both consume the slot):
 
 After a skip because the budget was already exhausted, record `--outcome skipped-exhausted`
 (used does not increment). **`--outcome ran` against an exhausted persona exits `2`** — that is
-the script refusing a second Chrollo, not a hint to reset the file.
+the script refusing a second Chrollo, not a hint to reset the file. **`--outcome skipped-exhausted`
+while `used < max` also exits `2`** — that outcome is only for a reviewer who is already at the cap.
 
 **The ledger is durable machine state of the target repository:**
 
@@ -160,10 +161,21 @@ the script refusing a second Chrollo, not a hint to reset the file.
 
 `<branch-slug>` is the branch with `/` replaced by `-`. `.nen/` is git-ignored. The file outlives
 the session the same way [`.nen/loop/en-<CODE>-<N>.json`](../en/SKILL.md) outlives En. Warm-up
-never deletes it ([`hatsu-warmup`](../hatsu-warmup/SKILL.md)). A missing file on a new effort is
-a new cycle; a missing file on an **existing** branch that already spent reviews is a lost
-ledger — report that fact and **do not invent a fresh budget as if the earlier raises had not
-happened**. Recreate only when the effort itself is new.
+never deletes it ([`hatsu-warmup`](../hatsu-warmup/SKILL.md)).
+
+**`init` is [`/breath`](../breath/SKILL.md)'s**, after the branch is cut:
+
+```bash
+"$hatsu_root/scripts/hanten_cycle_ledger.sh" init \
+  --repo <path> --branch <the effort's branch>
+```
+
+Exit `0` opens the cycle. Exit `2` `already exists` is a re-warm of a name that already had one —
+do not reset. **`decide`, `record`, and `show` refuse a missing file** (exit `2`) rather than
+creating one. A missing file on a **new** effort whose Breath `init` was skipped (a branch cut
+before v0.30.0, and this sitting has recorded nothing) may `init` once, named as a new cycle, then
+`decide`. A missing file on a branch that already spent reviews is a **lost ledger** — report that
+fact and **do not invent a fresh budget as if the earlier raises had not happened**.
 
 **This run's result names, for every applicable reviewer:** `used`, `max`, and whether they
 `ran` or were `skipped-exhausted`. Those fields belong on `scopes[]` in § 5's document. Prior
@@ -748,6 +760,8 @@ On Codex, where the "title" is whatever the transcript records, it goes in the p
   a composite re-entered this skill on the same branch.** Only a new effort (a new branch) opens a
   new ledger.
 - **Never invents a fresh budget** when `.nen/hanten/<branch-slug>.cycle.json` is missing on a
-  branch that already spent reviews — report the lost ledger.
+  branch that already spent reviews — report the lost ledger. **Never calls `init` to recover a
+  spent cycle.** `init` is Breath's after a new cut, or a one-time recovery when this sitting has
+  recorded nothing.
 - **Never lowers a still-in-budget review's quality bar** to save a later raise, and never raises an
   inapplicable reviewer to satisfy a minimum count.

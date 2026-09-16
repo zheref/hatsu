@@ -549,7 +549,7 @@ Each `findings[]` row:
 | `actual` | Actual outcome |
 | `significance` | Plain-language why this finding matters |
 | `refs` | Source, assertion, runner excerpt. Observed fact, not an unconfirmed cause |
-| `captures[]` | `{role, src, alt}` — `role` is `actual`, `reference`, or `diff`. Named so it cannot collide with the document's `evidence[]`. Visual failures **embed** the failing run's images, labelled, never an older capture presented as this failure |
+| `captures[]` | `{role, src, alt}` — `role` is `actual`, `reference`, or `diff`. Named so it cannot collide with the document's `evidence[]`. Visual failures **embed** the failing run's images, labelled, never an older capture presented as this failure. `src` is a `data:image/(png\|jpeg\|webp);base64,…` URI, the same regex as `evidence[].src` (`^data:image/(png\|jpeg\|webp);base64,[A-Za-z0-9+/=]+$`). A file path, empty `src`, or any other scheme is dropped from the payload and `evidenceUnavailable` names why |
 | `evidenceUnavailable` | Why required evidence is missing, when it is. Empty string when evidence is present |
 
 **Visual failures** fill `captures[]` from that run's actual / reference / diff. Decorative or
@@ -557,9 +557,10 @@ unrelated screenshots stay in **05**; they are not substitute blocker evidence. 
 failures** put logs, assertions, conflict excerpts, or coverage rows in `refs` and leave
 `captures[]` empty rather than padding it with unrelated captures.
 
-The owner of the G5 (aka, mukai/kotoamatsukami, gyo, ao, breath, hanten) **fills this payload
+The owner of the G5 (aka, mukai/kotoamatsukami, gyo, ao, breath, hanten, kokusen) **fills this payload
 before the turn page is rendered**. [`$jutaisho`](../jutaisho/SKILL.md) § 4 verifies the
-rendered HTML actually contains readable blocker content before the stop handoff links it.
+rendered HTML actually contains readable blocker content before the stop handoff links it. A G5
+that reaches jutaisho without this payload is a defective stop, not a stop with `blocker: null`.
 
 The eight fixed sections, in this order, always: **00 This last turn · 01 Accomplished · 02
 Challenges · 03 Not delivered · 04 Architecture delta · 05 Screenshots · 06 How to launch · 07
