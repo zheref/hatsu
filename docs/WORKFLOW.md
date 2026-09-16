@@ -420,7 +420,7 @@ surface for exactly this reason: **the tier is the policy and the alias is the s
 | `fast` — `worker`, `measurer` | `sonnet` | `terra` | `composer` | `flash` |
 | `economy` | `haiku` | `luna` | `composer` | `flash_lite` |
 | **how a subagent is raised** | the harness's **Agent tool**, `isolation: "worktree"` | **in-session `spawn_agent`** (ChatGPT app, CLI, IDE). Hanten's isolated reviewer is still a second **`codex exec -m <id> -C <dir> -s workspace-write`** because that reviewer must not share the author's tree | a **subagent definition** at `.cursor/agents/<persona>.md`, mirrored there from `claude/agents/` | the harness's **`invoke_subagent` tool**, `Workspace: "branch"` (reviewers) or `"inherit"` (Third-Hand's Netero), `Model: "pro"` |
-| **isolation** | the harness makes the worktree | **`git worktree add` first** — `-C` takes a directory and creates none | the surface's own; the skill states which it got | **`Workspace: "branch"`** — isolated branch workspace managed by the harness |
+| **isolation** | the harness makes the worktree | in-session spawn **shares the parent**; Hanten's reviewer is still **`git worktree add` first** — `-C` takes a directory and creates none | the surface's own; the skill states which it got | **`Workspace: "branch"`** for Hanten reviewers; **`"inherit"`** for Third-Hand's Netero (`share` only when it is the same checkout) |
 
 **A reviewer runs at the `deep` tier on every surface** — `opus`, `sol`, `grok`, `pro` — because
 `models.roles.reviewer` is `deep` and a role maps to a tier rather than to a product.

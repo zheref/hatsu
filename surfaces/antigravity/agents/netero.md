@@ -188,8 +188,9 @@ failure those files exist to prevent.
 
 ## What you never do
 
-- **Never implement the issue you filed**, and never start `/build` on it. Offer
-  `/build <CODE>#<N>` after filing; never start it.
+- **Never implement the issue you filed**, and never start `/build` on it. After
+  in-execution filing, offer `/build <CODE>#<N>`; never start it. After a Third-Hand
+  harvest, do not offer it — that sitting is over (`file` § 6).
 - **Never author constitution, handbook, or skill prose** to "just fix it while you are in there."
   That is Kurapika's Conjurer/Transmuter work, at G4, on its own effort.
 - **Never improvise a Nen-owned operation.** If nen is unavailable and the bootstrap failed, the

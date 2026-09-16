@@ -230,13 +230,13 @@ a link tree.
 |---|---|
 | `claude/skills/<name>/SKILL.md` | **authored.** The one source. |
 | `claude/agents/<persona>.md` | **authored.** The one source. |
-| `surfaces/codex/<name>/SKILL.md` | **generated** — 39 files |
+| `surfaces/codex/<name>/SKILL.md` | **generated** — 41 files (the counted forty plus `hatsu-warmup`) |
 | `surfaces/codex/AGENTS.md` | **generated** — every persona as a `## <name>` section, 1 file |
-| `surfaces/cursor/<name>/SKILL.md` | **generated** — 39 files |
-| `surfaces/cursor/agents/<persona>.md` | **generated** — 8 files |
-| `surfaces/antigravity/<name>/SKILL.md` | **generated** — 39 files |
+| `surfaces/cursor/<name>/SKILL.md` | **generated** — 41 files (the counted forty plus `hatsu-warmup`) |
+| `surfaces/cursor/agents/<persona>.md` | **generated** — 9 files |
+| `surfaces/antigravity/<name>/SKILL.md` | **generated** — 41 files (the counted forty plus `hatsu-warmup`) |
 | `surfaces/antigravity/rules/AGENTS.md` | **generated** — all personas in unified rules document |
-| `surfaces/antigravity/agents/<persona>.md` | **generated** — 8 subagent definitions |
+| `surfaces/antigravity/agents/<persona>.md` | **generated** — 9 subagent definitions |
 | `surfaces/antigravity/plugin.json` | **generated** — Antigravity plugin manifest |
 | `surfaces/antigravity/hooks.json` | **generated** — lifecycle hooks (`PreToolUse` and `Stop`) |
 

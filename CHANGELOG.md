@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.29.0 — Illumi Codex spawn; generated inventory
+
+- Illumi's En observation hand-off uses Codex in-session spawn; Hanten's reviewer isolation stays a second `codex exec`.
+- Generated surface inventories: 41 skill files (forty plus warmup) and 9 personas.
+
 ## v0.28.0 — Third-Hand is a phase after En; Codex and Antigravity pickers
 
 - **Third-Hand** is a separate phase that starts once En has completed. En ends at the gate and does not harvest.
