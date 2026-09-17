@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.32.0 — plugin updater isolation, focused lane, and refuse paths
+
+- `scripts/hatsu_plugin_update.sh` unsets `GIT_DIR` / `GIT_WORK_TREE` (and related git redirectors) after the filesystem identity check, so `git -C --root` cannot mutate a different checkout.
+- `--channel release` with no stable `vX.Y.Z` tags refuses instead of silent exit 1; a missing origin and unreadable `.git` are named skip/refuse paths.
+- Focused `plugin-update` lane declares the updater fixture; `plugin-bump-guard` asserts the updater glob.
+
 ## v0.31.0 — plugin source auto-update across surfaces
 
 - Warm-up keeps a consumer plugin checkout current before it refreshes a target: `scripts/hatsu_plugin_update.sh --auto` fast-forwards trunk or the newest `vX.Y.Z` tag, skips dirty and authoring trees, and never discards.

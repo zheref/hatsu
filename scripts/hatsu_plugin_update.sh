@@ -203,6 +203,10 @@ if ! is_hatsu "$root"; then
   exit 3
 fi
 
+# is_hatsu is a filesystem identity check. git -C does not win over an already-set
+# GIT_DIR / GIT_WORK_TREE, so clear the redirectors before any git mutation.
+unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_OBJECT_DIRECTORY GIT_INDEX_FILE GIT_PREFIX
+
 plugin_ver="$(plugin_version "$root")"
 [ -n "$plugin_ver" ] || plugin_ver='unknown'
 
@@ -260,7 +264,11 @@ is_git_worktree() {
   git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1
 }
 
-if ! is_git_worktree; then
+if [ -e "$root/.git" ]; then
+  if ! is_git_worktree; then
+    skip_or_refuse "git metadata unreadable"
+  fi
+elif ! is_git_worktree; then
   if [ "$claude_update" -eq 1 ]; then
     claude_refresh
   fi
@@ -360,7 +368,7 @@ elif [ "$detected" = "release" ]; then
       skip_or_refuse "git fetch origin --tags failed"
     fi
   fi
-  tag="$(latest_release_tag "$root")"
+  tag="$(latest_release_tag "$root" || true)"
   if [ -z "$tag" ]; then
     skip_or_refuse "no vX.Y.Z release tags on this checkout"
   fi

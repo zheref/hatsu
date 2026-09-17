@@ -76,6 +76,11 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The one static focused lane for the executable plugin-version guard. Its declared fixture exercises only scripts/plugin_bump_check.sh's runtime-document classification and version result; it is not Hatsu's general regression suite or a substitute for an unavailable dynamic test selector."
+      },
+      "plugin-update": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/hatsu_plugin_update.sh. Its declared fixture builds throwaway origin/consumer clones and asserts trunk ff, release catch-up, dirty/authoring/cache/no-origin skips, GIT_DIR isolation, and the no-stable-tag refuse. It is not a general suite."
       }
     },
     "defaultLane": "plugin",
@@ -95,7 +100,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and one bash guard script, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. The executable guard has its own focused plugin-bump-guard lane; every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/rikugan.html, which is a report template, not an application."
@@ -127,6 +132,15 @@
           ],
           "$comment": "A permanent, deterministic fixture for the guard's executable behavior. It creates synthetic changed-file lists and manifests in a temporary directory, invokes the checked-in guard, and removes that directory. Run it only as `nen shu test --lane plugin-bump-guard --repo <hatsu>` when the guard changes."
         }
+      },
+      "plugin-update": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/hatsu_plugin_update_fixture_check.sh"
+          ],
+          "$comment": "A permanent, deterministic fixture for the plugin-source updater. Run it only as `nen shu test --lane plugin-update --repo <hatsu>` when scripts/hatsu_plugin_update.sh or its fixture changes."
+        }
       }
     },
     "preconditions": {
@@ -153,7 +167,7 @@
         "darwin",
         "linux"
       ],
-      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: scripts/plugin_bump_check_fixture.sh uses Bash and mktemp and is verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to the guard fixture currently declared. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane \u2014 it no-ops off Darwin rather than refusing."
+      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: scripts/plugin_bump_check_fixture.sh and scripts/hatsu_plugin_update_fixture_check.sh use Bash and mktemp and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane \u2014 it no-ops off Darwin rather than refusing."
     },
     "targets": {},
     "toolchain": {

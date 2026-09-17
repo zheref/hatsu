@@ -1,6 +1,6 @@
 # Evidence — plugin source update (`hatsu_plugin_update.sh`)
 
-Hatsu `0.31.0`. The checked command behind [`hatsu-warmup`](../../claude/skills/hatsu-warmup/SKILL.md)
+Hatsu `0.32.0`. The checked command behind [`hatsu-warmup`](../../claude/skills/hatsu-warmup/SKILL.md)
 § 4b: keep a consumer plugin checkout on trunk or the newest release tag, and name (or run) Claude
 Code's `claude plugin update` for a versioned cache that is not a git checkout.
 
@@ -37,7 +37,9 @@ version; `--auto` on a current trunk; dirty tree refused without `--auto` and sk
 authoring branch skipped with `--auto` and refused for explicit `--channel trunk`; diverged trunk
 refused; release channel dry-run left `v0.1.0` and the live run moved to `v0.2.0`; release
 already-current; cache without `--auto` exited 4 naming `claude plugin update`; `--auto` on a cache
-skipped; bad `--channel` refused.
+skipped; bad `--channel` refused; `GIT_DIR`/`GIT_WORK_TREE` left a decoy clone unmoved while `--root`
+fast-forwarded; missing origin refused/`--auto` skipped; `--channel release` with only a pre-release
+tag refused (exit 2) instead of silent exit 1.
 
 ## Hard limits recorded rather than implied
 

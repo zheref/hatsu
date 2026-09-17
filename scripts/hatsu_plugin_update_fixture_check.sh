@@ -160,4 +160,49 @@ assert_contains "$cache_auto" 'claude plugin update hatsu@hatsu' '--auto cache n
 # usage
 assert_fails "bad channel was accepted" "$updater" --root "$consumer" --channel sideways
 
+# GIT_DIR/GIT_WORK_TREE must not redirect mutations away from --root
+write_plugin_json "$seed" '0.3.0'
+printf 'third\n' > "$seed/README.md"
+commit_tree "$seed" 'v0.3.0'
+git -C "$seed" push -q origin HEAD:main
+git -C "$consumer" checkout -q main
+decoy="$fixture_root/decoy"
+git clone -q "$origin" "$decoy"
+git -C "$decoy" config user.email 'fixture@example.invalid'
+git -C "$decoy" config user.name 'Hatsu fixture'
+# decoy is already at origin/main; rewind it so a redirected update would move it
+git -C "$decoy" reset -q --hard HEAD~1
+decoy_before="$(git -C "$decoy" rev-parse HEAD)"
+GIT_DIR="$decoy/.git" GIT_WORK_TREE="$decoy" \
+  "$updater" --root "$consumer" --channel trunk >/dev/null
+[ "$(git -C "$decoy" rev-parse HEAD)" = "$decoy_before" ] || fail "GIT_DIR decoy moved"
+[ "$(git -C "$consumer" rev-parse HEAD)" = "$(git -C "$seed" rev-parse HEAD)" ] || fail "GIT_DIR redirected --root away from the consumer"
+
+# missing origin: refuse / --auto skip
+no_origin="$fixture_root/no-origin"
+git clone -q "$origin" "$no_origin"
+git -C "$no_origin" remote remove origin
+assert_fails "missing origin was updated" "$updater" --root "$no_origin" --channel trunk
+no_origin_auto="$("$updater" --root "$no_origin" --auto)"
+assert_contains "$no_origin_auto" 'skipped · no origin remote' '--auto missing origin skip'
+
+# --channel release with only a pre-release tag must refuse, not silent-exit.
+# Own origin so fetch --tags cannot restore the shared clone's stable tags.
+rc_only="$fixture_root/rc-only"
+git clone -q "$origin" "$rc_only"
+git -C "$rc_only" tag -d v0.1.0 v0.2.0 >/dev/null 2>&1 || true
+git -C "$rc_only" tag v0.1.0-rc.1
+rc_origin="$fixture_root/rc-origin.git"
+git init -q --bare "$rc_origin"
+git -C "$rc_only" remote remove origin
+git -C "$rc_only" remote add origin "$rc_origin"
+git -C "$rc_only" push -q origin HEAD:main
+git -C "$rc_only" push -q origin v0.1.0-rc.1
+set +e
+rc_err="$("$updater" --root "$rc_only" --channel release 2>&1)"
+rc_code=$?
+set -e
+[ "$rc_code" -eq 2 ] || fail "release with no stable tags exited $rc_code, expected 2"
+assert_contains "$rc_err" 'no vX.Y.Z release tags' 'release channel names missing stable tags'
+
 echo 'hatsu-plugin-update-fixture: ok'
