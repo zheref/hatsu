@@ -128,6 +128,7 @@ git -C "$consumer" checkout -q main
 # diverged trunk refuses
 git -C "$consumer" commit --allow-empty -qm 'local-only'
 assert_fails "diverged trunk was fast-forwarded" "$updater" --root "$consumer" --channel trunk
+assert_fails "diverged trunk dry-run planned a fast-forward" "$updater" --root "$consumer" --channel trunk --dry-run
 git -C "$consumer" reset -q --hard origin/main
 
 # release channel: pin to v0.1.0, catch up to v0.2.0

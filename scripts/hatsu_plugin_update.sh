@@ -235,8 +235,7 @@ claude_refresh() {
   local after_git="${1:-}"
   if ! command -v claude >/dev/null 2>&1; then
     if [ -n "$after_git" ]; then
-      report "$after_git · Claude Code refresh skipped (claude not on PATH). Run: claude plugin update hatsu@hatsu -y"
-      exit 0
+      skip_or_refuse "$after_git · Claude Code refresh skipped (claude not on PATH). Run: claude plugin update hatsu@hatsu -y"
     fi
     skip_or_refuse "Claude Code plugin cache (v$plugin_ver); claude is not on PATH. Run: claude plugin marketplace update && claude plugin update hatsu@hatsu -y"
   fi
@@ -255,8 +254,7 @@ claude_refresh() {
     exit 0
   fi
   if [ -n "$after_git" ]; then
-    report "$after_git · claude plugin update hatsu@hatsu failed; run it yourself, then restart Claude Code"
-    exit 0
+    skip_or_refuse "$after_git · claude plugin update hatsu@hatsu failed; run it yourself, then restart Claude Code"
   fi
   skip_or_refuse "claude plugin update hatsu@hatsu failed. Run it yourself, then restart Claude Code"
 }
@@ -344,13 +342,11 @@ if [ "$detected" = "trunk" ]; then
       skip_or_refuse "git fetch origin failed"
     fi
   fi
-  if [ "$dry_run" -eq 0 ]; then
-    if ! git -C "$root" show-ref --verify --quiet "refs/remotes/origin/$trunk"; then
-      skip_or_refuse "origin/$trunk does not exist"
-    fi
-    if ! git -C "$root" merge-base --is-ancestor HEAD "origin/$trunk"; then
-      skip_or_refuse "local trunk diverged from origin/$trunk · refusing a non-ff update"
-    fi
+  if ! git -C "$root" show-ref --verify --quiet "refs/remotes/origin/$trunk"; then
+    skip_or_refuse "origin/$trunk does not exist${dry_run:+ · dry-run cannot plan a fast-forward without that ref}"
+  fi
+  if ! git -C "$root" merge-base --is-ancestor HEAD "origin/$trunk"; then
+    skip_or_refuse "local trunk diverged from origin/$trunk · refusing a non-ff update"
   fi
   before="$(git -C "$root" rev-parse --short HEAD)"
   would "git merge --ff-only origin/$trunk"
@@ -372,8 +368,22 @@ elif [ "$detected" = "release" ]; then
     if ! git -C "$root" fetch origin --tags; then
       skip_or_refuse "git fetch origin --tags failed"
     fi
+    tag="$(latest_release_tag "$root" || true)"
+  else
+    tag=""
+    while IFS= read -r candidate; do
+      [ -n "$candidate" ] || continue
+      if is_stable_release_tag "$candidate"; then
+        tag="$candidate"
+        break
+      fi
+    done <<EOF
+$(git -C "$root" ls-remote --tags --refs origin 'v[0-9]*' 2>/dev/null | awk '{ print $2 }' | sed 's#^refs/tags/##' | sort -V -r)
+EOF
+    if [ -z "$tag" ]; then
+      tag="$(latest_release_tag "$root" || true)"
+    fi
   fi
-  tag="$(latest_release_tag "$root" || true)"
   if [ -z "$tag" ]; then
     skip_or_refuse "no vX.Y.Z release tags on this checkout"
   fi

@@ -552,13 +552,13 @@ source is a different question**, and from v0.31.0 it has a checked command rath
 
 ```sh
 # consumer clone on the trunk (origin/<branch.base>, ff-only)
-scripts/hatsu_plugin_update.sh --root "$HATSU_PLUGIN_ROOT" --channel trunk
+"$HATSU_PLUGIN_ROOT/scripts/hatsu_plugin_update.sh" --root "$HATSU_PLUGIN_ROOT" --channel trunk
 
 # consumer clone pinned to a release tag — move to the newest vX.Y.Z
-scripts/hatsu_plugin_update.sh --root "$HATSU_PLUGIN_ROOT" --channel release
+"$HATSU_PLUGIN_ROOT/scripts/hatsu_plugin_update.sh" --root "$HATSU_PLUGIN_ROOT" --channel release
 
 # warm-up form: skip (exit 0) when the tree is dirty, on a feature branch, or cannot fetch
-scripts/hatsu_plugin_update.sh --root "$HATSU_PLUGIN_ROOT" --auto
+"$HATSU_PLUGIN_ROOT/scripts/hatsu_plugin_update.sh" --root "$HATSU_PLUGIN_ROOT" --auto
 
 # Claude Code versioned cache (not a git checkout)
 claude plugin marketplace update
