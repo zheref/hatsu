@@ -106,7 +106,9 @@ Four things the skill owns that you must not paraphrase loosely when you report 
   this path must work on a machine where nothing is installed yet.
 
 Report the outcome in one line before doing anything else. **A warm-up that did not run is reported as
-"not run"** — never rendered as clear.
+"not run"** — never rendered as clear. From v0.31.0 that line also carries the plugin-source refresh
+(`scripts/hatsu_plugin_update.sh --auto`): updated, already current, or skipped — never discarded, and
+never an authoring branch. On Claude Code it is `--auto --claude`.
 
 **2 · The target repository's policy inbox.** With nen available, run `nen warmup --current <vX.Y.Z>`
 against the repository you are standing in: it detects stale pins across its `nen/repos.json` — every

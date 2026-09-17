@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.31.0 — plugin source auto-update across surfaces
+
+- Warm-up keeps a consumer plugin checkout current before it refreshes a target: `scripts/hatsu_plugin_update.sh --auto` fast-forwards trunk or the newest `vX.Y.Z` tag, skips dirty and authoring trees, and never discards.
+- Claude Code's versioned cache is not a git checkout; the same script names `claude plugin update hatsu@hatsu`, and warm-up passes `--claude` there.
+- Documented per-surface update recipes and how to point each surface at a local checkout so Cursor does not bind a stale Claude plugin cache while authoring this tree.
+
 ## v0.30.0 — Hanten cycle ledger fail-closed
 
 - Cycle ledger `init` is Breath's after the branch cut. `decide` / `record` / `show` refuse a missing file instead of treating absence as a new cycle.

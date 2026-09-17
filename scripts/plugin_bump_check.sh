@@ -137,14 +137,20 @@ fi
 #                       `$hatsu_root/scripts/` on every hanten invocation; a
 #                       stale copy would reset or ignore cycle counts and
 #                       re-raise Chrollo after remediation.
+#   scripts/hatsu_plugin_update.sh
+#                     — the plugin-source updater (Hatsu 0.31.0). Warm-up § 4b
+#                       runs it with --auto from `$hatsu_root/scripts/` on every
+#                       session; a stale copy would skip the refresh or apply the
+#                       wrong channel, so this runtime script is covered; the
+#                       fixture check beside it is test-only and is not.
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #
 # Deliberately NOT covered — nothing installed reads them at run time:
 #   README.md, docs/ab/** (the evidence records; read by humans on GitHub, never
 #   by an installed copy), scripts/surface_bootstrap_fixture_check.sh and other
-#   scripts/** (CI-only; the runtime bootstrap and hanten cycle ledger are the
-#   explicit exceptions above),
+#   scripts/** (CI-only; the runtime bootstrap, hanten cycle ledger and plugin
+#   updater are the explicit exceptions above),
 #   .github/**.
 #
 # Bash `[[ == glob ]]` matches `*` across `/` — it is pattern matching, not
@@ -165,6 +171,7 @@ PLUGIN_SURFACE_GLOBS=(
   'surfaces/*'
   'scripts/surface_bootstrap.sh'
   'scripts/hanten_cycle_ledger.sh'
+  'scripts/hatsu_plugin_update.sh'
   '.mcp.json'
 )
 
@@ -285,7 +292,7 @@ This PR changes a plugin-shipped surface (.claude-plugin/**, claude/**,
 nen/**, contracts/**, docs/ROSTER.md,
 docs/delegation-grammar-DRAFT.md, docs/WORKFLOW.md, docs/DISCOVERY.md,
 docs/LAUNCH-MIGRATION.md, docs/AGENT-ATTRIBUTION.md, hooks/**, templates/**, surfaces/**,
-scripts/surface_bootstrap.sh, scripts/hanten_cycle_ledger.sh, or .mcp.json)
+scripts/surface_bootstrap.sh, scripts/hanten_cycle_ledger.sh, scripts/hatsu_plugin_update.sh, or .mcp.json)
 but leaves
 .claude-plugin/plugin.json's `version` field unchanged.
 
