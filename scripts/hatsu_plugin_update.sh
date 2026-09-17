@@ -163,18 +163,19 @@ trunk_from_workflow() {
   ' "$1/nen/workflow.json"
 }
 
+is_stable_release_tag() {
+  printf '%s\n' "$1" | awk '/^v[0-9]+\.[0-9]+\.[0-9]+$/ { found=1 } END { exit found ? 0 : 1 }'
+}
+
 latest_release_tag() {
   local tag
   while IFS= read -r tag; do
-    case "$tag" in
-      *-*) continue ;;
-      v[0-9]*.[0-9]*.[0-9]*)
-        printf '%s\n' "$tag"
-        return 0
-        ;;
-    esac
+    if is_stable_release_tag "$tag"; then
+      printf '%s\n' "$tag"
+      return 0
+    fi
   done <<EOF
-$(git -C "$1" tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname)
+$(git -C "$1" tag --list 'v[0-9]*' --sort=-v:refname)
 EOF
   return 1
 }
@@ -261,7 +262,11 @@ claude_refresh() {
 }
 
 is_git_worktree() {
-  git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1
+  local top
+  git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 1
+  top="$(git -C "$root" rev-parse --show-toplevel 2>/dev/null)" || return 1
+  top="$(canonical_directory "$top")" || return 1
+  [ "$top" = "$root" ]
 }
 
 if [ -e "$root/.git" ]; then
@@ -307,11 +312,11 @@ if [ "$channel" = "auto" ]; then
       detected=""
     fi
   elif [ -n "$exact_tag" ]; then
-    case "$exact_tag" in
-      *-*) detected="" ;;
-      v[0-9]*.[0-9]*.[0-9]*) detected="release" ;;
-      *) detected="" ;;
-    esac
+    if is_stable_release_tag "$exact_tag"; then
+      detected="release"
+    else
+      detected=""
+    fi
   else
     detected=""
   fi

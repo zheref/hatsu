@@ -3,6 +3,10 @@
 ## v0.32.0 — plugin updater isolation, focused lane, and refuse paths
 
 - `scripts/hatsu_plugin_update.sh` unsets `GIT_DIR` / `GIT_WORK_TREE` (and related git redirectors) after the filesystem identity check, so `git -C --root` cannot mutate a different checkout.
+- A nested Hatsu tree without its own `.git` is not treated as the enclosing repository: `rev-parse --show-toplevel` must match `--root`.
+- Stable tags are strict `vX.Y.Z` (digits and dots only); `--auto` will not treat `v1.2.3.4` as a release consumer.
+- `--channel release` with no stable `vX.Y.Z` tags refuses instead of silent exit 1; a missing origin and unreadable `.git` are named skip/refuse paths.
+- Warm-up cites `$hatsu_root` for updater fixture and SURFACES paths so nested Antigravity mirrors do not get a broken `../../../` link.
 - `--channel release` with no stable `vX.Y.Z` tags refuses instead of silent exit 1; a missing origin and unreadable `.git` are named skip/refuse paths.
 - Focused `plugin-update` lane declares the updater fixture; `plugin-bump-guard` asserts the updater glob.
 

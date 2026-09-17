@@ -205,4 +205,30 @@ set -e
 [ "$rc_code" -eq 2 ] || fail "release with no stable tags exited $rc_code, expected 2"
 assert_contains "$rc_err" 'no vX.Y.Z release tags' 'release channel names missing stable tags'
 
+# nested Hatsu tree without its own .git must not mutate the enclosing repo
+host_repo="$fixture_root/host-repo"
+init_repo "$host_repo"
+printf 'outer\n' > "$host_repo/README.md"
+commit_tree "$host_repo" 'outer'
+host_before="$(git -C "$host_repo" rev-parse HEAD)"
+nested="$host_repo/vendor/hatsu"
+write_plugin_json "$nested" '0.1.0'
+nested_auto="$("$updater" --root "$nested" --auto)"
+assert_contains "$nested_auto" 'skipped · Claude versioned plugin cache' '--auto nested non-git skip'
+[ "$(git -C "$host_repo" rev-parse HEAD)" = "$host_before" ] || fail "nested updater moved enclosing repo"
+
+# malformed extra-segment tag is not a stable release
+malformed="$fixture_root/malformed-tag"
+git clone -q "$origin" "$malformed"
+git -C "$malformed" tag v1.2.3.4
+git -C "$malformed" checkout -q --detach v1.2.3.4
+malformed_auto="$("$updater" --root "$malformed" --auto)"
+assert_contains "$malformed_auto" 'skipped · authoring checkout' '--auto malformed tag is authoring'
+# --channel release must still pick a real vX.Y.Z, never v1.2.3.4
+malformed_rel="$("$updater" --root "$malformed" --channel release)"
+assert_contains "$malformed_rel" 'updated release' 'release channel moves off malformed tag'
+case "$(git -C "$malformed" describe --tags --exact-match 2>/dev/null || true)" in
+  v[0-9]*.[0-9]*.[0-9]*.*) fail "release channel landed on extra-segment tag" ;;
+esac
+
 echo 'hatsu-plugin-update-fixture: ok'

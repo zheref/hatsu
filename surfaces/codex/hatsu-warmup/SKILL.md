@@ -567,7 +567,7 @@ Carry that line into § 4's report, verbatim. **A skip is reported as skipped, n
 
 The first checkout is still a human act (§ 5). This step keeps one that already exists current. Pointing
 a surface at a local tree — including so Cursor does not bind a stale Claude cache while you author this
-repository — is [`docs/SURFACES.md`](../../../docs/SURFACES.md) § *Targeting a local checkout*.
+repository — is `$hatsu_root/docs/SURFACES.md` § *Targeting a local checkout*.
 
 ---
 
@@ -1165,7 +1165,7 @@ a Claude, a GPT — is not a better choice made locally; it is a different budge
 10. **Updating the plugin source is `scripts/hatsu_plugin_update.sh`.** There is no Nen verb for
     "fast-forward this plugin checkout" or for `claude plugin update`. § 4b shells out to the script
     with `--auto` (and `--claude` on Claude Code). The fixture is
-    [`scripts/hatsu_plugin_update_fixture_check.sh`](../../../scripts/hatsu_plugin_update_fixture_check.sh).
+    `$hatsu_root/scripts/hatsu_plugin_update_fixture_check.sh`.
     A skip under `--auto` is the correct outcome for an authoring tree, a dirty tree, or a sandboxed
     fetch — never a halt, and never rendered as updated.
 
