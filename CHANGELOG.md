@@ -8,6 +8,16 @@
 - `--channel release` with no stable `vX.Y.Z` tags refuses instead of silent exit 1; a missing origin and unreadable `.git` are named skip/refuse paths.
 - Warm-up cites `$hatsu_root` for updater fixture and SURFACES paths so nested Antigravity mirrors do not get a broken `../../../` link.
 - Focused `plugin-update` lane declares the updater fixture; `plugin-bump-guard` asserts the updater glob.
+- Landed as ([#68](https://github.com/zheref/hatsu/pull/68)).
+
+CON-33(c) PRs merged since `v0.14.0` that were not yet numbered in this file, numeric order:
+
+- ([#58](https://github.com/zheref/hatsu/pull/58)) keep Mukai active through PR readiness
+- ([#59](https://github.com/zheref/hatsu/pull/59)) run portable checks on hosted Linux
+- ([#61](https://github.com/zheref/hatsu/pull/61)) Antigravity surface support, hooks, and model policy
+- ([#62](https://github.com/zheref/hatsu/pull/62)) split tests, coverage and lint across mukai and ren
+- ([#64](https://github.com/zheref/hatsu/pull/64)) Netero, Hanten cycle caps, and Third-Hand after En
+- ([#68](https://github.com/zheref/hatsu/pull/68)) consumer plugin checkouts current across surfaces
 
 ## v0.31.0 — plugin source auto-update across surfaces
 
