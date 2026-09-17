@@ -18,6 +18,7 @@ CON-33(c) PRs merged since `v0.14.0` that were not yet numbered in this file, nu
 - ([#62](https://github.com/zheref/hatsu/pull/62)) split tests, coverage and lint across mukai and ren
 - ([#64](https://github.com/zheref/hatsu/pull/64)) Netero, Hanten cycle caps, and Third-Hand after En
 - ([#68](https://github.com/zheref/hatsu/pull/68)) consumer plugin checkouts current across surfaces
+- ([#70](https://github.com/zheref/hatsu/pull/70)) this release PR (CON-33(c) numbering for the v0.32.0 tag)
 
 ## v0.31.0 — plugin source auto-update across surfaces
 
