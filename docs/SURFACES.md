@@ -544,12 +544,71 @@ agy --model pro "<prompt>"
 
 ---
 
-## 6 · Where the pieces live
+## 6 · Updating the plugin source
+
+§ 5 installs whatever `$HATSU_PLUGIN_ROOT` (or Claude's versioned cache) already holds. **Updating that
+source is a different question**, and from v0.31.0 it has a checked command rather than a remembered
+`git pull`.
+
+```sh
+# consumer clone on the trunk (origin/<branch.base>, ff-only)
+"$HATSU_PLUGIN_ROOT/scripts/hatsu_plugin_update.sh" --root "$HATSU_PLUGIN_ROOT" --channel trunk
+
+# consumer clone pinned to a release tag — move to the newest vX.Y.Z
+"$HATSU_PLUGIN_ROOT/scripts/hatsu_plugin_update.sh" --root "$HATSU_PLUGIN_ROOT" --channel release
+
+# warm-up form: skip (exit 0) when the tree is dirty, on a feature branch, or cannot fetch
+"$HATSU_PLUGIN_ROOT/scripts/hatsu_plugin_update.sh" --root "$HATSU_PLUGIN_ROOT" --auto
+
+# Claude Code versioned cache (not a git checkout)
+claude plugin marketplace update
+claude plugin update hatsu@hatsu -y   # restart required
+```
+
+[`hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md) § 4b runs `--auto` on every surface, and
+`--auto --claude` on Claude Code, **before** § 5 copies or links. `--auto` never discards, never
+force-updates a diverged history, and never touches an authoring branch.
+
+The fixture (two throwaway clones, tags, a fake cache, no credential):
+
+```sh
+scripts/hatsu_plugin_update_fixture_check.sh
+```
+
+README § *Updating Hatsu on each surface* is the per-surface table a human follows after a release.
+
+---
+
+## 7 · Targeting a local checkout
+
+`$HATSU_PLUGIN_ROOT` is the form that works on all four surfaces. Claude Code adds a second hop: it
+**copies** that tree into `~/.claude/plugins/cache/hatsu/hatsu/<plugin.json version>/`, so a local
+marketplace still needs `claude plugin update hatsu@hatsu` after a version bump. Codex and Cursor do
+not copy: they read `$HATSU_PLUGIN_ROOT/surfaces/<surface>/` through the warm-up's copies or
+symlinks.
+
+| Goal | Command |
+|---|---|
+| Claude Code, this clone | `claude plugin marketplace add "$HATSU_PLUGIN_ROOT"` then `claude plugin install hatsu@hatsu`. Confirm `claude plugin list` shows **this tree's** `version`. |
+| Codex / Cursor / Antigravity workspace, any product repo | `surface_bootstrap.sh --surface <surface> --target <repo> --bootstrap`, then the surface's warm-up |
+| Authoring Hatsu **on Cursor** | `surface_bootstrap.sh --surface cursor --target "$HATSU_PLUGIN_ROOT" --install-all` so `.cursor/skills/` links into **this** `surfaces/cursor/`. Without it, Cursor discovers Claude's versioned cache and serves last-tag prose while you edit current canon. |
+| Antigravity global | `ln -sfn "$HATSU_PLUGIN_ROOT/surfaces/antigravity" ~/.gemini/config/plugins/hatsu` |
+
+**The resolver still reads three candidates and no fourth** (`$HATSU_PLUGIN_ROOT`, a handed path,
+`$CLAUDE_PLUGIN_ROOT`). Targeting a local tree means putting that tree in `$HATSU_PLUGIN_ROOT` (or
+handing it to `/hatsu-warmup <path>`), not adding a fourth probe. A stale `CLAUDE_PLUGIN_ROOT` in a
+shell profile is still named when it is rejected.
+
+---
+
+## 8 · Where the pieces live
 
 | | |
 |---|---|
 | the mirrors | [`surfaces/codex/`](../surfaces/codex/), [`surfaces/cursor/`](../surfaces/cursor/), [`surfaces/antigravity/`](../surfaces/antigravity/) |
 | placing them into a target repository | [`claude/skills/hatsu-warmup/SKILL.md`](../claude/skills/hatsu-warmup/SKILL.md) § 5 |
+| keeping `$HATSU_PLUGIN_ROOT` / the Claude cache current | [`scripts/hatsu_plugin_update.sh`](../scripts/hatsu_plugin_update.sh); warm-up § 4b |
+| pointing a surface at a local checkout | this file, § *Targeting a local checkout* |
 | the bell, where there is no hook | [`claude/skills/jutaisho/SKILL.md`](../claude/skills/jutaisho/SKILL.md) § 6 |
 | raising a reviewer per surface | [`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 9a |
 | the model matrix | [`nen/workflow.json`](../nen/workflow.json) → `models`; [`docs/WORKFLOW.md`](WORKFLOW.md) § 2 → `models` |

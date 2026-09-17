@@ -135,12 +135,25 @@ Open a new Claude Code session and run `/hatsu:hatsu-warmup`; it is already regi
 fresh-install path Claude Code has that Codex and Cursor do not: discovery happens before the first
 invocation, without writing into the target repository.
 
+**To update** an already-installed plugin (Claude keys its cache on `plugin.json`'s `version`, so a
+release you have not picked up is simply invisible):
+
+```sh
+claude plugin marketplace update
+claude plugin update hatsu@hatsu -y
+```
+
+Restart Claude Code. `/hatsu:hatsu-warmup` then runs the same command with `--auto --claude`. A local
+marketplace (`claude plugin marketplace add ./hatsu`) still needs the checkout fast-forwarded first —
+[`scripts/hatsu_plugin_update.sh`](scripts/hatsu_plugin_update.sh) `--channel trunk` against that clone —
+because the cache copies whatever the marketplace currently points at.
+
 ### Obtaining Hatsu on Codex and Cursor — a checkout, once, by hand
 
 **Neither surface has a plugin loader, so the first install is a human act and it is a `git clone`.** There
-is nothing on either surface that would *fetch* Hatsu; what the warm-up automates is the **refresh**, every
-session, of a root that already exists. That is a boundary rather than a step somebody forgot to write, and
-a warm-up that cannot find the root reports `NOT INSTALLED` and stops.
+is nothing on either surface that would *fetch* Hatsu the first time. After that clone exists, the warm-up
+fast-forwards it (§ 4b) and refreshes the target (§ 5). A warm-up that cannot find the root reports
+`NOT INSTALLED` and stops.
 
 **One of these two**, not both — the second refuses on a destination that already exists:
 
@@ -237,10 +250,23 @@ resolving one is an agent answering confidently from the wrong file.
 scripts/surface_mirror_check.sh
 ```
 
-**To update**, pull the checkout (or check out a newer tag) and run `$hatsu-warmup` again: the unconditional
-re-copy is what refreshes the target. A copy is not self-healing, and the one failure mode it has is a
-session that never warmed up serving last month's wording with no error anywhere. If you *changed* a skill,
-regenerate the mirrors in the same commit — [*Surfaces*](#surfaces) has the two commands and the check.
+**To update**, the warm-up does it: `$hatsu-warmup` / `/hatsu-warmup` runs
+[`scripts/hatsu_plugin_update.sh`](scripts/hatsu_plugin_update.sh) `--auto` against `$HATSU_PLUGIN_ROOT`
+before it refreshes the target. A checkout on `main` fast-forwards; a checkout detached at a `vX.Y.Z` tag
+moves to the newest release tag; an authoring branch and a dirty tree are skipped, never discarded.
+To do the same by hand:
+
+```sh
+"$HATSU_PLUGIN_ROOT/scripts/hatsu_plugin_update.sh" --channel trunk     # origin/main, ff-only
+"$HATSU_PLUGIN_ROOT/scripts/hatsu_plugin_update.sh" --channel release   # newest vX.Y.Z tag
+```
+
+Then run `$hatsu-warmup` again: the unconditional re-copy is what refreshes the target. A copy is not
+self-healing, and the one failure mode it has is a session that never warmed up serving last month's wording
+with no error anywhere. If you *changed* a skill, regenerate the mirrors in the same commit —
+[*Surfaces*](#surfaces) has the two commands and the check. The full per-surface recipe, including how to
+point Cursor at this checkout so it does not bind a stale Claude plugin cache, is
+[*Updating Hatsu on each surface*](#updating-hatsu-on-each-surface).
 
 Then read [*Using Hatsu on Codex*](#using-hatsu-on-codex).
 
@@ -292,9 +318,20 @@ plugin elsewhere on the host may shadow the mirror, and is invisible from inside
 scripts/surface_mirror_check.sh
 ```
 
-**To update**, pull the checkout and run `/hatsu-warmup` again. The links point into the checkout, so
-pulling it is most of the update; re-running the warm-up is what repairs a link the target lost and what
-re-prints the version and the collision list.
+**To update**, `/hatsu-warmup` runs [`scripts/hatsu_plugin_update.sh`](scripts/hatsu_plugin_update.sh)
+`--auto` against `$HATSU_PLUGIN_ROOT` first. The links already point into the checkout, so a trunk
+fast-forward or a newer tag *is* most of the update; re-running the warm-up is what repairs a link the
+target lost, re-prints the version and the collision list, and is what catches a skip (dirty tree,
+authoring branch) rather than pretending the source moved. Same hand form as Codex:
+
+```sh
+"$HATSU_PLUGIN_ROOT/scripts/hatsu_plugin_update.sh" --channel trunk
+"$HATSU_PLUGIN_ROOT/scripts/hatsu_plugin_update.sh" --channel release
+```
+
+[*Updating Hatsu on each surface*](#updating-hatsu-on-each-surface) is the per-surface table, including
+how to make this repository's own Cursor session read `surfaces/cursor/` instead of a stale
+`~/.claude/plugins/cache/hatsu/hatsu/<old>/` copy.
 
 Then read [*Using Hatsu on Cursor*](#using-hatsu-on-cursor).
 
@@ -345,6 +382,82 @@ Everything is cleanly excluded through `.git/info/exclude`; `.gitignore` is neve
 
 **In-Session Subagents:**
 Reviewers (Feitan, Chrollo, Hisoka, Phinks) run as isolated subagents via `invoke_subagent` with `Workspace: "branch"` and `Model: "pro"`. Workers and measurers run on `fast` (`flash`), maximizing throughput and SWE-bench efficiency under Google AI Pro or Ultra subscriptions.
+
+---
+
+## Updating Hatsu on each surface
+
+**The plugin source and the target-repo install are two different copies.** Warm-up refreshes the second
+from the first. If the first is stale, every surface is stale, with no error. From v0.31.0 the warm-up
+updates the first as well, when it is a consumer checkout.
+
+| Surface | What "the source" is | How it updates | Then |
+|---|---|---|---|
+| **Claude Code** (GitHub marketplace) | `~/.claude/plugins/cache/hatsu/hatsu/<version>/` — **not a git checkout**; keyed on `plugin.json` `version` | `claude plugin marketplace update` then `claude plugin update hatsu@hatsu -y`. Warm-up runs this with `--auto --claude`. **Restart required.** | Open a new session; `/hatsu:hatsu-warmup` |
+| **Claude Code** (local marketplace `./hatsu`) | the clone you `marketplace add`-ed, **plus** the versioned cache copied from it | `"$HATSU_PLUGIN_ROOT/scripts/hatsu_plugin_update.sh" --channel trunk` (or `--channel release`) on the clone, **then** `claude plugin update hatsu@hatsu -y`. A pull that does not bump `version` leaves the cache on the old slot — that is what [`scripts/plugin_bump_check.sh`](scripts/plugin_bump_check.sh) exists to prevent. | Restart Claude Code |
+| **Codex** | `$HATSU_PLUGIN_ROOT` (a git clone) | Warm-up `--auto`: trunk fast-forwards `origin/<branch.base>`; a detached `vX.Y.Z` checkout moves to the newest release tag. Hand form: `scripts/hatsu_plugin_update.sh --channel trunk\|release` | `$hatsu-warmup` re-copies `.agents/skills/` |
+| **Cursor** | `$HATSU_PLUGIN_ROOT` (a git clone); workspace `.cursor/skills/<name>` are **symlinks** into `$HATSU_PLUGIN_ROOT/surfaces/cursor/` | Same `--auto` as Codex. A trunk/tag update is most of the update because the links already follow the checkout. | `/hatsu-warmup` repairs lost links and reprints collisions |
+| **Antigravity** (global plugin) | the directory `~/.gemini/config/plugins/hatsu` points at (`ln -s $HATSU_PLUGIN_ROOT/surfaces/antigravity …`) | Update `$HATSU_PLUGIN_ROOT` the same way; the symlink follows. Retarget the symlink only if you changed where the checkout lives. | Restart Antigravity / `agy` |
+| **Antigravity** (workspace bootstrap) | `$HATSU_PLUGIN_ROOT` plus copies under `<repo>/.agents/` | Same `--auto` as Codex, then `/hatsu-warmup` re-copies | — |
+
+**`--auto` never discards and never updates an authoring branch.** A session standing in this repository
+on `grok/kurapika/…` is writing Hatsu; the skip is the correct outcome. Explicit `--channel trunk` or
+`--channel release` without `--auto` refuses those cases instead of skipping.
+
+Prove the updater against throwaway clones (no credential, no this checkout):
+
+```sh
+scripts/hatsu_plugin_update_fixture_check.sh
+```
+
+### Targeting a local checkout
+
+Use a local tree when you want the unreleased tip, a branch, or to author Hatsu itself. **One
+`$HATSU_PLUGIN_ROOT` per host is the form that works on every surface**; Claude Code's plugin cache is
+the extra hop that surface adds on top.
+
+**Claude Code**
+
+```sh
+git clone https://github.com/zheref/hatsu.git ~/Code/Agents/hatsu   # or your existing clone
+export HATSU_PLUGIN_ROOT="$HOME/Code/Agents/hatsu"                 # shell profile
+claude plugin marketplace add "$HATSU_PLUGIN_ROOT"
+claude plugin install hatsu@hatsu
+```
+
+`claude plugin list` must show the `version` of *that tree's* `plugin.json`, not an older cache slot.
+After the tree moves and `version` bumps: `claude plugin update hatsu@hatsu -y` and restart.
+
+**Codex / Cursor / Antigravity workspace**
+
+```sh
+export HATSU_PLUGIN_ROOT="$HOME/Code/Agents/hatsu"
+"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface cursor --target /path/to/product-repo --bootstrap
+# then open that product repo and run /hatsu-warmup (or $hatsu-warmup / --surface codex|antigravity)
+```
+
+**Authoring this repository on Cursor** — so the session does not bind Claude's versioned cache (on this
+host that cache has sat at `0.14.0` while `plugin.json` on the tree already read `0.30.0`):
+
+```sh
+export HATSU_PLUGIN_ROOT="$HOME/Code/Agents/hatsu"   # this checkout
+"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface cursor --target "$HATSU_PLUGIN_ROOT" --install-all
+```
+
+That writes `.cursor/skills/<name>` → `surfaces/cursor/<name>` of **this tree**, excluded through
+`info/exclude`, and that workspace path is what Cursor lists ahead of `~/.claude/plugins/cache/hatsu/…`.
+`$HATSU_PLUGIN_ROOT` already belongs in the shell profile; without the bootstrap, Cursor still discovers
+the Claude cache and serves last-tag prose while you edit current canon. `--auto` will skip this tree
+while you are on a feature branch — correctly — and § 5 still installs the branch's own mirrors.
+
+**Antigravity global**
+
+```sh
+mkdir -p ~/.gemini/config/plugins
+ln -sfn "$HATSU_PLUGIN_ROOT/surfaces/antigravity" ~/.gemini/config/plugins/hatsu
+```
+
+Authority for the rest of the mechanism: [`docs/SURFACES.md`](docs/SURFACES.md).
 
 ---
 
@@ -1190,10 +1303,11 @@ that already has the plugin installed** — no error, no warning, the fix ships 
 [`plugin-bump-check`](.github/workflows/plugin-bump-check.yml) workflow, fails a PR that tries. The guarded
 surface is `.claude-plugin/**`, `claude/**`, `nen/**`, `contracts/**`, `docs/ROSTER.md`,
 `docs/delegation-grammar-DRAFT.md`, `hooks/**`, `templates/**`, `surfaces/**`,
-`scripts/surface_bootstrap.sh` and `.mcp.json` — everything an
+`scripts/surface_bootstrap.sh`, `scripts/hanten_cycle_ledger.sh`,
+`scripts/hatsu_plugin_update.sh` and `.mcp.json` — everything an
 installed runtime reads, the generated Codex and Cursor mirrors included: the warm-up reads plugin resources
-from `$CLAUDE_PLUGIN_ROOT`, while first-run bootstrap reads its script and generated surface from the
-canonical `$HATSU_PLUGIN_ROOT` checkout. Bump
+from `$CLAUDE_PLUGIN_ROOT`, while first-run bootstrap and the plugin-source updater read their scripts
+from the canonical `$HATSU_PLUGIN_ROOT` checkout. Bump
 `version` (patch for wording, minor for behaviour or a new skill, major for a breaking interface change —
 which the minor carries while Hatsu is on `0.x`, SemVer clause 4, the reading applied to nen's own line);
 or, if a change provably cannot affect the shipped surface, write `no plugin bump: <reason>` in the PR
