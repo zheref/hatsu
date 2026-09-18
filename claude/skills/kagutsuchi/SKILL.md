@@ -138,6 +138,7 @@ successful upload here is not a step toward publication: production is that skil
 | Which lane's row | `project.defaultLane`, or `--lane` |
 | Whether this host may | `project.hosts` |
 | What must be true first | `project.preconditions.<lane>` — asserted, never performed |
+| Whether to tag what was sent, and with what name | `nen/workflow.json` → `tags.deploy.<target>` — **the one thing kagutsuchi reads from the workflow file** (§ 4a). Absent, it tags nothing |
 
 **Targets are project-level; `deploy` rows are per-lane**, and nen checks nothing about whether a
 target is *meaningful* for the lane it is used on. On a repository with two deployable lanes,
@@ -209,6 +210,50 @@ radius is other people's users"* (verified, § 2.3).
 
 Run it **once**. If it fails, read § 5, fix the named fact, and re-run — a re-run is the same
 authorization only while it is the same target under the same call; anything else is a new call.
+
+### 4a. The distribution tag — OPT-IN, and only after the send succeeded
+
+**A repository may ask for what was just sent to be marked with a tag** (maintainer's ruling of
+2026-09-18). It records *distribution*, which is a different fact from
+[`hatsu:susanoo`](../susanoo/SKILL.md) § 5a's build tag recording *construction*: one says this
+binary exists, the other says this binary went to that destination. A repository may declare either,
+both, or — the default — **neither**, and one with no `tags.deploy` block behaves exactly as it did
+before this section existed.
+
+The declaration is `nen/workflow.json` → `tags.deploy`, per target:
+
+```json
+"tags": {
+  "deploy": { "testflight": { "nameFrom": ".nen/export/testflight-tag", "push": true } }
+}
+```
+
+**Keyed by target name, because a send to `staging` and a send to `beta` are not the same event** and
+must not collide on one tag name. A target with no entry is not tagged, even where another target has
+one.
+
+The order is the same as susanoo's and is not negotiable:
+
+1. **`--run` was passed and the deploy came back exit `0`.** A plan-only run tags nothing — nothing
+   was sent, so there is nothing to record. A failed or partial send tags nothing either.
+2. **Then** the tag is cut, through the verb and never around it:
+
+```bash
+nen tag cut --repo <path> --name "$(head -n1 <nameFrom>)" --at <HEAD sha> [--push]
+```
+
+**The name is the repository's**, read from `nameFrom`'s first line — kagutsuchi composes none, and a
+file that is missing, empty or holds a name `git check-ref-format` rejects is reported, never
+replaced with one invented so that there is something to cut.
+
+**`--at` must be an ancestor of `origin/<trunk>`**, so a send from a feature branch cannot be tagged.
+That refusal is reported with nen's own reason and is **never routed around** — and it never
+retroactively unsends anything. **The send already happened**: § 7's block reports it as sent, and the
+tag is reported as its own separate line with its own verdict. A run that uploaded cleanly and could
+not tag says both, in that order, and neither reads as the other.
+
+A cut tag here is **not** a promotion and **not** authorization for anything further:
+[`hatsu:mugetsu`](../mugetsu/SKILL.md) is still **G3** and still needs its own recorded per-target go.
 
 ## 5. The refusals, in the order nen makes them
 
@@ -289,9 +334,16 @@ I promote it". The next call is the maintainer's and they know they have it.
 - **Permitted, and only on the maintainer's own call naming the target:** print the plan for any
   declared target; run `nen shu deploy --target <that target> --run` **once**, for a destination the
   declaration's own `why` says is not production.
+- **Also permitted, and only where the consuming repository declares `tags.deploy.<target>`:** cut
+  that one tag through `nen tag cut` after a green `--run`, pushing it when the declaration says
+  `push` (§ 4a).
 - **Not permitted:** `--run` for a production or store destination (that is
-  [`hatsu:mugetsu`](../mugetsu/SKILL.md), at **G3**); `nen shu release` in any form; a tag; a GitHub
-  Release; a merge; a push; a PR; a label; an edit to `project.targets` to make a line work.
+  [`hatsu:mugetsu`](../mugetsu/SKILL.md), at **G3**); `nen shu release` in any form; a GitHub
+  Release; a merge; a PR; a label; an edit to `project.targets` to make a line work. **Any push or
+  tag other than the single declared one of § 4a** — that block is the whole of the permission, it is
+  opt-in and per-target, and a repository that does not declare it gets exactly the old behaviour.
+  Adding a `tags.deploy` block so that a tag will be cut is itself a **G4** declaration change, never
+  something done here to make a run tag.
 - **The call is one send wide and ends when this run ends.** It is not standing authority to send to
   this target again later, it is authority for no other target, and no delegation supplies it (§ 1).
 - **Not a gate event of its own** — the maintainer's call already crossed the boundary. Exit `3`
@@ -320,3 +372,12 @@ I promote it". The next call is the maintainer's and they know they have it.
 - **Never retries an exit `3`**, and never treats an exit `4` seat as a failure to route around.
 - **Never sends twice on one call**, and never treats one target's go as another's.
 - **Never claims a send succeeded** on the strength of a plan, or on an exit code it did not read.
+- **Never tags a target the repository did not declare under `tags.deploy`**, never composes a tag
+  name of its own, and never tags after a plan-only run or a failed send (§ 4a).
+- **Never re-tags, and never routes around a tag refusal** — not by tagging another commit, not by
+  pushing a branch to make `--at` an ancestor, not by dropping `--push` so a local tag stands in for
+  one that resolves on `origin`.
+- **Never lets a tag refusal read as a failed send, or a green send read as a cut tag.** The send
+  already happened; two verdicts, reported separately, every time (§ 4a).
+- **Never treats a cut tag as a promotion.** It records where a build went; it authorises nothing,
+  and **G3** still needs its own recorded go.

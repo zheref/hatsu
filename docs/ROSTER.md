@@ -376,6 +376,44 @@ five remaining bench profiles stay exactly as they were.
 
 ---
 
+## Rulings of 2026-09-18
+
+### Susanoo and Kagutsuchi may cut one declared tag — opt-in, and nothing else changes
+
+**Ruled 2026-09-18.** A release unit nobody can point at afterwards is a release unit nobody can
+rebuild, and a TestFlight build with no ref is a binary whose provenance lives only in App Store
+Connect. The maintainer asked for a tag per archive and a tag per send. Before this ruling neither
+skill could: `susanoo` pushed nothing at all, `kagutsuchi`'s Authority named a tag among what it may
+not do, and tag-cutting belonged to [`hatsu:getsuga`](../claude/skills/getsuga/SKILL.md) alone.
+
+1. **[`hatsu:susanoo`](../claude/skills/susanoo/SKILL.md) § 5a may cut a BUILD tag** after an
+   archive that came back exit `0` with every declared artifact present, and
+   **[`hatsu:kagutsuchi`](../claude/skills/kagutsuchi/SKILL.md) § 4a may cut a DISTRIBUTION tag**
+   after a `--run` send that came back exit `0`. One records that a binary exists; the other records
+   where it went. They are different facts, and a repository may want either, both or neither.
+2. **It is OPT-IN, per repository, and off by default.** The consuming repository declares
+   `nen/workflow.json` → `tags.archive` / `tags.deploy.<target>`. **A repository that declares
+   neither behaves exactly as it did before this ruling** — which is what makes this safe to land as
+   canon for every consumer rather than as a KroApple-local change.
+3. **The NAME is the repository's, never the skill's.** Each block names a `nameFrom` path whose
+   first line is the tag; the repository writes it while it is building or sending, the only moment
+   anything knows both the version and the build number. Neither skill composes, templates or
+   derives a tag name — a skill forbidden to know a stack's name cannot know what its version means.
+4. **`nen tag cut` is the verb, and its refusals stand.** Annotated, never re-tagged, and `--at`
+   refused unless it is an ancestor of `origin/<trunk>` — so **a build or send from a feature branch
+   cannot be tagged**. That refusal is reported with nen's own reason and never routed around.
+5. **A tag refusal never retroactively fails the thing that already happened.** The archive is on
+   disk; the upload is sent. Two verdicts, reported separately, in that order, every time.
+6. **Nothing else moves.** A cut tag authorises nothing: `kagutsuchi` is still the maintainer's own
+   per-target call, **`mugetsu` is still G3 and still cuts no tag of its own**, and `getsuga` still
+   owns the *release* tag with its CHANGELOG section and fan-out. This ruling adds a
+   build/distribution tag species beside that one; it does not redefine it.
+
+**What this does not close.** Everything the ruling of 2026-09-15 left open stays open, and no gate
+moved: the five human-called phases are still five, and G2/G3/G4 are still the maintainer's.
+
+---
+
 ## 🔶 OPEN — Killua, and the rest of Illumi's row
 
 > **These rows are OPEN sub-decisions. The ruling is G4-class and it has not been made.** This is
