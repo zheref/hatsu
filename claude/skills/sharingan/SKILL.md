@@ -543,17 +543,26 @@ teams only**, so a pending bot request shows as `[]` — a caller who checks the
 and "confirms" the request never landed. Verify with the verb that decides instead:
 
 ```bash
-nen pr ready <ref> --gh-repo <owner/name>      # "review requested, not yet posted" vs "no round at head"
+nen pr ready <ref> --gh-repo <owner/name> <the identity flag § 4's table selects>
 ```
 
-or GraphQL `reviewRequests`, where the Bot does appear. **`nen pr ready`'s two phrasings are the
+**carrying the identity source § 4 selects for this target** — nothing extra where the repository
+ships its own `nen/gates.json`, `--gates` for `<reference-repo>`, and `--reviewers` plus explicit
+`--approvers` for a target that ships neither. Bare, against a repository with no gates file, this
+verification exits *"no reviewer identities"* and answers nothing — so the fallback would fail in
+exactly the case it is reached for. Read the two phrasings out of the verdict — *review requested,
+not yet posted* versus *no round at head* — or ask GraphQL `reviewRequests`, where the Bot appears. **`nen pr ready`'s two phrasings are the
 signal worth reading:** *no round at head* means nothing is pending and a request is owed; *review
 requested, not yet posted* means one is already in flight and the answer is to wait, not to request
 again.
 
-**Requesting an owed round is not an escalation.** When `nen pr ready` says a round is owed at the
-current head, request it and keep watching. Taking that to the maintainer is § 6's ladder spent on a
-step the run can perform itself.
+**Requesting an owed round is not an escalation — inside § 6's cap.** When `nen pr ready` says a
+round is owed at the current head **and this PR is still within the two-round cap above**, request it
+and keep watching; taking that to the maintainer is § 6's ladder spent on a step the run can perform
+itself. **A third owed round is the other case and the cap still governs it**: it is the concrete
+blocker § 6 says to bring to the maintainer, and the fact that requesting it is mechanically easy is
+not a reason to spend it. Knowing how to perform a step is not authority to perform it again past the
+point the cap stops.
 
 **It is conflicted:**
 

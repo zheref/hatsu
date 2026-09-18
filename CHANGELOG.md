@@ -2,7 +2,7 @@
 
 ## v0.35.0 — a bot reviewer is a different route
 
-> **`v0.34.0` is the tag ruling**, on `opus/kurapika/tag-authority`, still open. This change is independent of it and takes the next version deliberately so the two bumps do not collide; whichever lands second inherits a contiguous history.
+> **`v0.34.0` is the tag ruling**, on `opus/kurapika/tag-authority`, still open. This change is independent of it and takes the next version deliberately so the two bumps do not collide. **The order is not free, and an earlier draft of this line said it was.** `scripts/plugin_bump_check.sh`'s `version_bumped` asks only whether HEAD's `version` DIFFERS from base's, never whether it is HIGHER, so it would pass `v0.34.0` landing on a `main` already at `v0.35.0` — shipping a manifest downgrade with a green check. **So: `#75` merges first, or it is re-bumped to `v0.36.0` before it does.** A guard that rejects a non-increasing bump is worth its own issue; until it exists this is coordinated by hand.
 
 - **`sharingan` records how to re-request a Bot reviewer**, and why the obvious attempts fail. Copilot is a `Bot`, not a `User`: `gh pr edit --add-reviewer` silently never resolves one (`zheref/nen#160`), REST `requested_reviewers` answers `422 may only be requested from collaborators` for a login missing its exact `[bot]` suffix, and GraphQL `requestReviews` resolves `userIds` as Users only.
 - **`nen pr request-reviews` already routes correctly** — a bare login the PR knows as a Bot goes to the bot mutation, and `--add-bots <node id>` covers one it has never seen. The gap was that nothing said so.
