@@ -4,9 +4,9 @@ description: File one well-formed, correctly-labelled, non-duplicate issue — r
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
-**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
-`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
-repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
 those files (re-resolve through that skill if unavailable). Relative links below identify source
 locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
 filing. Never copy or invent a second policy in the target repository.
@@ -32,7 +32,7 @@ empty. So filing is the *last* of five steps, and four of them are about what is
 ## 0. In-flight discovery — standing authority
 
 All Hatsu phases, composites, reviewers, and resumed sessions use the common protocol in
-[`docs/DISCOVERY.md`](../../../docs/DISCOVERY.md) when authorized work exposes a concrete,
+[`docs/DISCOVERY.md`](../../../../docs/DISCOVERY.md) when authorized work exposes a concrete,
 reproducible defect, missing capability, or ambiguous durable rule. `file` is the execution
 route for that protocol; it is not permission to start an unrelated build.
 

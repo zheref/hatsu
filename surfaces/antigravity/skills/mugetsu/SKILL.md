@@ -4,6 +4,15 @@ description: Publish one release to one production destination — a store, the 
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by
+`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
+trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+
+
+
 # Mugetsu — the last cut: one release, one destination, on one recorded word
 
 **Nature: Emitter.** Publication is the far end of the release line, and it is the one act in the
@@ -17,6 +26,42 @@ Mugetsu is a **human call, per target, at G3**. It is not a phase of any loop. N
 finishing successfully brings the session here — not a green [`/susanoo`](../susanoo/SKILL.md),
 not a merged release PR, not a cut tag, not a successful
 [`/kagutsuchi`](../kagutsuchi/SKILL.md) upload to a staging channel.
+
+---
+
+## 0. Standalone entry — this skill was ALWAYS standalone, and `G3` is why
+
+**Mugetsu has no wired entry, by construction.** § 1 already forbids every one: *no composite ever
+calls it* — not `getsuga`, not `futon`, not `en`, not `mukai`, not `ren` — *no agent proposes it, a go
+with no tag is refused, and one go publishes one target once*. The contract in
+[`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) is explicit that it **moves no gate**
+(§ 5), and this section is written to be read as **subtracting** rather than adding.
+
+**Nothing in this section is an authorisation.** Not the warm-up, not the orientation block, not the
+plan. The only thing that authorises a publication is § 3's **recorded per-target go, in the
+maintainer's own words, quoted verbatim** — and a session that reaches this skill without one prints
+the preflight and the plan, reports that it has no go, and stops. That is unchanged, and a cold entry
+is the case it was written for.
+
+**P1 · Warm up.** [`/hatsu-warmup`](../hatsu-warmup/SKILL.md), unconditionally — `nen release
+preflight` and `nen shu release` are `nen` calls.
+
+**P2 · Orient, and put it above the preflight.** State the branch, clean-or-dirty with paths, the
+head's relation to the fetched `origin/<branch.base>`, **the tag** (§ 3's *a go with no tag is
+refused*), and whether that tag is reachable from `origin/<branch.base>`. A publication is the one
+operation in this system with no undo, so the state it runs from is stated before the preflight rather
+than inferred from it.
+
+**P4 · Nothing is asked, and this is the strongest form of that rule in the plugin.** Mugetsu does not
+prompt for the go, does not offer to publish, does not present publication as an option in any picker,
+and does not read a cold invocation as intent. **The invocation is not the go**: `/mugetsu <target>`
+typed alone is half the authorisation, and § 3's recorded message is the other half.
+
+**What a standalone entry explicitly does NOT become.** Not a delegation (§ 1: a delegation is never
+the go, and `G3` is ruled not delegable). Not standing authority — it expires when the run ends, so a
+second publication needs a second go. Not a subagent's self-authorisation, at this gate least of all.
+
+**Hand-back.** *Terminal. Nothing follows a publication in any wired run, because none reaches here.*
 
 ---
 
@@ -52,9 +97,9 @@ authorization, and the other half is § 3's recorded go.
 
 **On a delegated session — the maintainer AFK, with rules recorded — a delegation is NOT the go, and
 there is no arrangement under which it becomes one.** `G3` is ruled **not delegable**:
-[`docs/ROSTER.md`](../../../docs/ROSTER.md) § *The human gates, and who may cross them* gives it as
+[`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *The human gates, and who may cross them* gives it as
 **"Never. Preparing a release is allowed; publishing is not"**, and
-[`docs/delegation-grammar-DRAFT.md`](../../../docs/delegation-grammar-DRAFT.md) § *Never delegated,
+[`docs/delegation-grammar-DRAFT.md`](../../../../docs/delegation-grammar-DRAFT.md) § *Never delegated,
 inside a run or outside it* names `G3` (`CON-6`) in the same line as G2 and G4 — a document that is
 itself a **DRAFT**, open as `OPEN-2`, so it could not open this gate even if it were read as trying to.
 A recorded delegation may be **quoted in the report as the reason the session is running**; it

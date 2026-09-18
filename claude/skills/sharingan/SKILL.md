@@ -3,9 +3,9 @@ name: sharingan
 description: Drive one open PR to CON-32 readiness at its human gate, then stop there. Use when the maintainer invokes hatsu:sharingan <CODE>#<PR> to <G2|G4>, or asks to get a PR ready, unstick a PR, or take it to the merge gate; hatsu:en composes it as its second and fourth steps. This skill was named `drive` until Hatsu v0.4.0 and the rename to `sharingan` changed the name and nothing else. Kurapika (Manipulator) diagnoses the first blocking condition, addresses threads or wakes the CI author with `nen wake fire` fired alone, decides readiness with `nen pr ready` plus an adversarial confirmation pass, and stops at a gate board. Never merges, never self-reviews, never casts a review vote.
 ---
 
-**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
-`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
-repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
 those files (re-resolve through that skill if unavailable). Relative links below identify source
 locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
 filing. Never copy or invent a second policy in the target repository.
@@ -46,6 +46,70 @@ zheref/hatsu#2. **One verb this port needed did not work against real `<referenc
 `v0.1.0`** (`nen pr next-blocker`, sharing `nen pr fetch`'s reviews-endpoint crash) — see § 3 for the
 disclosed stopgap, its provenance at the contract's current pin, and `docs/ab/drive.md` for the
 reproduction.
+
+---
+
+## 0. Standalone entry — when no composite is holding the run
+
+**Sharingan's grammar is already total**: `<CODE>#<PR> to <G2|G4>` resolves the repository through
+`nen repo resolve`, the PR through the API and the gate through § 2, so nothing in it reads a caller.
+The contract is [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md), and this section adds
+the preamble and **one** derivation § 1 did not have. **Reached from ANY composite, skip this section entirely** — the composite supplied the argument, and
+re-deriving it is how a composite and a `## 0.` derive the same PR two ways.
+[`hatsu:en`](../en/SKILL.md) composes it as its second and fourth steps;
+[`hatsu:build`](../build/SKILL.md), [`hatsu:futon`](../futon/SKILL.md),
+[`hatsu:getsuga`](../getsuga/SKILL.md), [`hatsu:backlog-loop`](../backlog-loop/SKILL.md),
+[`hatsu:jujisho`](../jujisho/SKILL.md), [`hatsu:tensho`](../tensho/SKILL.md) and
+[`hatsu:senkei`](../senkei/SKILL.md) all reach it too. Say which one is holding the run.
+
+**P1 · Warm up.** [`hatsu:hatsu-warmup`](../hatsu-warmup/SKILL.md), unconditionally. Every step of this
+skill is a `nen` or `gh` call.
+
+**P2 · Orient — and this is where the new derivation comes from.** Read the checkout before assuming
+the argument is complete: the branch, whether it is published, and whether an open PR points at it.
+
+**S2 · `#<PR>` may be omitted when the checkout answers it.** A maintainer standing on the branch
+whose PR they want driven should not have to go and look the number up. **The accepted cold forms are
+exactly these three**, and anything else is refused with the full grammar printed:
+
+| Typed | Read as |
+|---|---|
+| `hatsu:sharingan` | this checkout's branch, gate derived (§ 2) |
+| `hatsu:sharingan to <G2\|G4>` | this checkout's branch, gate as typed |
+| `hatsu:sharingan <CODE>` | that repository, this checkout's branch — **only** when the checkout *is* that repository |
+
+**Resolve the repository ONCE, through the registry, exactly as § 1 requires** — *"never re-derive it
+a second way"*. The derivation below is not an exception to that rule, so it does not read `origin`
+off the ambient checkout: it resolves the slug first and passes it explicitly.
+
+```bash
+nen repo resolve <CODE> --repo <path to this checkout>   # or the code this checkout's registry gives it
+git rev-parse --abbrev-ref HEAD
+gh pr list --repo <owner/name> --head "<branch>" --state open --json number,title,baseRefName
+```
+
+| What that found | What sharingan does |
+|---|---|
+| **Exactly one** open PR for this branch | Use it. **Name the number, the title and the base** before the first action, so a wrong branch is caught before anything is driven |
+| **None** | Stop. Say the branch has no open PR, and name [`hatsu:shibari`](../shibari/SKILL.md) (compose and open one) or [`hatsu:tensho`](../tensho/SKILL.md) (from a dirty copy). **Never open one** — sharingan drives PRs, it does not create them |
+| **More than one** | Ask which, through the surface's own picker, listing number, title and base. Never a prefix match, never the newest |
+| The checkout is on the **trunk**, is detached, or is not a repository with a remote | Refuse and ask for `<CODE>#<PR>` explicitly. There is nothing here to derive from — a detached `HEAD` resolves to the literal `HEAD`, matches no PR, and lands on the **None** row above |
+| `nen repo resolve` cannot resolve the checkout to a registered repository | Refuse by name, listing the registry's real codes. **Never** fall back to reading `origin` directly |
+
+**An explicit `<CODE>#<PR>` always wins over the derivation**, and the two are never blended: a typed
+number that disagrees with the checkout's own PR is the typed number, said out loud.
+
+**P4 · The gate.** § 2's derivation is unchanged — cold, it is derived and **named**, never assumed,
+and a derivation that cannot decide asks rather than picking `G2` because it is the commoner one.
+
+**What does not change.** Everything § 1 already forbids: an issue number is still an error pointing
+at [`hatsu:build`](../build/SKILL.md); a closed or merged PR still ends the run; readiness is still
+`nen pr ready`'s verdict plus the adversarial confirmation pass and **never a claim made by eye**;
+and it still **never merges, never self-reviews, never casts a review vote**. Being typed by hand is
+not an authority.
+
+**Hand-back.** *Next in the wired run: the gate itself — `G2` or `G4` — which is yours. Sharingan
+stopped at the board, as it always does.*
 
 ---
 

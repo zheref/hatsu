@@ -4,9 +4,9 @@ description: Warm the local working copy once per effort — classify where the 
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
-**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
-`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
-repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
 those files (re-resolve through that skill if unavailable). Relative links below identify source
 locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
 filing. Never copy or invent a second policy in the target repository.
@@ -26,6 +26,170 @@ Breath is **automatic**, not human-called: it is phase one of `ren`, taken on th
 effort** and once per effort. Re-invoking it on a branch it already cut is not an error — it reports
 what it finds and returns, because the branch check refuses a name that already exists rather than
 reusing it.
+
+---
+
+## 0. Standalone entry — when no composite is holding the run
+
+**Breath is normally `ren`'s step 1, and this section is what it does when it is not.** The contract
+is [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md); this is breath's half of it.
+**Reached from ANY composite, skip this section entirely** — `ren` is the one that reaches it, and
+ren established every fact in it; § 3a's table already reads the loop's own signals.
+
+### 0a · The outcome this section guarantees
+
+**Maintainer's ruling, 2026-09-18.** However the checkout looked when breath was called, a standalone
+run ends in exactly one shape:
+
+> **A branch off a `main` that was PROVEN green — carrying the maintainer's own commits on top of
+> that proven tip, with their uncommitted changes still present and still uncommitted.**
+
+Three promises, and the middle one is the whole point:
+
+| Promise | What it rules out |
+|---|---|
+| The base was **proven green in isolation**, with none of this effort's work on it | A red that nobody can attribute. `main` is proven *before* the work returns, so a red afterwards is **this effort's**, and it is no longer a judgement call |
+| The maintainer's **commits sit on that proven tip** | Authoring onto a base that was merely assumed — `ren` § 2's first load-bearing relation, finally true for a branch cut by hand |
+| The maintainer's **uncommitted work is still there**, still uncommitted | The one thing breath must never cost anybody. Nothing is discarded, and nothing is committed on their behalf |
+
+**This is why it is worth the extra steps.** § 0's earlier shape verified the base *underneath* work
+already written, so a red check arrived late and ambiguous — the cost the previous ruling explicitly
+accepted. Proving the tip on a tree that holds none of the effort's work removes the ambiguity
+instead of documenting it.
+
+### 0b · Once per session — never skipped when needed, never repeated when done
+
+**The warm-up runs at most ONCE per session, and is never skipped when it is genuinely owed.** Both
+halves bind:
+
+- **Already run in this session** — by `ren` step 1 or an earlier `/breath` — then **report what
+  it did and return**. No second stash, no second proof, no second placement, no second `init`.
+- **Not yet run in this session** — then it runs, whatever the checkout looks like, and § 0c does the
+  work. A session that skipped it is a session authoring on an unproven base.
+
+**The guard is the session's own record, not a file.** The ruling is per session, so a later session
+enters this section again and reaches § 0c, which finds the branch already sitting on a proven tip
+and says so. **`.nen/hanten/<branch-slug>.cycle.json` is not that marker** — it records reviewer
+budget, it is fail-closed, and reading it as *breath ran* is the conflation § 0d exists to keep apart.
+
+### 0c · Preserve → prove → place → restore
+
+Run the preamble's **P1** (warm up) and **P2** (orient) first. Then **record the starting state
+before touching anything**, because every later step is measured against it and the report must be
+able to reconstruct it:
+
+```bash
+git rev-parse --abbrev-ref HEAD                      # branch, or 'HEAD' when detached
+git status --porcelain                               # staged, unstaged, untracked
+git log --oneline origin/<branch.base>..HEAD         # the maintainer's own commits
+git rev-parse --verify --quiet refs/remotes/origin/<branch>   # published?
+```
+
+**State the plan out loud before step 1, and confirm it when it will rewrite a commit.** Stashing and
+restoring are reversible and end at the same tree, so they need no permission. **Rebasing commits the
+maintainer wrote is history rewriting**, and it is confirmed through the surface's own picker, with
+the counts in the question:
+
+> `<branch>` has `<n>` commits and `<m>` uncommitted paths. I will stash the uncommitted work, prove
+> `origin/<branch.base>` green on a tree with none of this effort on it, replay those `<n>` commits
+> onto the proven tip, and restore the uncommitted work on top.
+> ⭐ **Go ahead** · **Prove the base only** (no rebase, no stash) · **Stop**
+
+**No commits to replay — the checkout is on the trunk, clean or dirty — is not a question.** There is
+nothing to rewrite, so the plan is stated and run.
+
+---
+
+**Step 1 · Preserve.** If the working copy is dirty:
+
+```bash
+git stash push --include-untracked -m "/breath <ISO timestamp>"
+git rev-parse stash@{0}                              # CAPTURE THIS SHA
+```
+
+**Capture the stash's commit SHA and print it immediately**, then carry it through every later step
+and into every failure path. A stash is addressed by **SHA, never by `stash@{0}`** — that index moves
+the moment anything else stashes, and an index that has shifted under a recovery instruction is how
+work is lost. **`--include-untracked` is mandatory**: a new file the maintainer has not added yet is
+exactly the file a checkout would overwrite. **Never `--discard`, never `git checkout -- .`, never a
+`reset --hard`** — not at any step, not on any path.
+
+**Step 2 · Prove the base, on a tree holding none of this effort.** Fetch, fast-forward the trunk,
+and run **every declared `iteration.checks` entry** against `origin/<branch.base>` itself:
+
+```bash
+git fetch origin
+git merge --ff-only origin/<branch.base>             # advance the local trunk
+git worktree add --detach <tmp> origin/<branch.base> # the isolated tree
+nen shu <check> --repo <tmp> --lane <iteration.lane> # one per entry, in order
+git worktree remove <tmp>
+```
+
+**An isolated worktree is preferred and the reason is the guarantee**: the checks must see the base
+and nothing else, and a worktree cannot be contaminated by the effort's branch. **Fall back to
+proving it in the core working directory** where a declared lane cannot run outside it —
+[`/amaterasu`](../amaterasu/SKILL.md) § 3's rule, for the same reason — and **say which of the
+two happened**. The worktree is removed on every path, including every failure.
+
+> **A red base here is a `G5`, taken before a single line of the effort returns** — and it is now
+> unambiguous, because nothing of the effort was on the tree that failed. **Restore the stash first
+> (step 4), then stop**, quoting the failing check. Never leave the maintainer stashed at a stop, and
+> never repair the base inside this effort (§ 6). A seat (exit `4`) is not red: quote its own reason
+> and move on to the next check.
+
+**Step 3 · Place the work on the proven tip.**
+
+| Starting state | What breath does |
+|---|---|
+| On the **trunk** | Cut a fresh branch from the proven tip — § 5, unchanged. `--from` is that tip, not a remembered ref |
+| On a **feature branch**, commits **unpublished** | **Replay them onto the proven tip**, through [`/ao`](../ao/SKILL.md). The branch keeps its name |
+| On a **feature branch**, commits **already published** | **[`/ao`](../ao/SKILL.md) merges instead, and this is not negotiable.** Its § 3 decides rebase-vs-merge by whether anything was published, and rewriting a commit somebody may already have fetched is the one operation the local plane never performs. The outcome is the same — the work sits on a proven tip — reached the only way that is safe. **Say which operation ran** |
+| **Detached `HEAD`** | Classified, not refused. Report the commits it holds and ask where they should land before anything is replayed |
+
+**The conflict discipline is ao's and breath restates none of it**: every conflicted path is
+classified before one is touched, mechanical conflicts are resolved, and **a semantic conflict is a
+`G5` with both sides shown**. Breath adds one clause — **restore the stash before that stop, too**,
+and print its SHA with the conflict.
+
+**Step 4 · Restore.** If step 1 stashed anything:
+
+```bash
+git stash pop                                        # or: git stash apply <the captured SHA>
+```
+
+A conflict here is classified exactly as step 3's. **On any failure, the stash is NOT dropped** —
+`apply` rather than `pop` so the entry survives — and the report prints the SHA plus the one command
+that recovers it. **Breath is finished when the uncommitted changes are back and still uncommitted.**
+It never commits them, never adds them, never stages them on the maintainer's behalf.
+
+**Then § 5a's `init`**, once, for a branch that now has a proven base — which is what makes
+[`/hanten`](../hanten/SKILL.md) reachable.
+
+### 0d · What the run reports, and the one thing it must never claim
+
+Report, in order: the starting state as recorded; the stash SHA and path count, or *clean*; **the
+base sha that was proven and each check's result**; whether the proof ran in a worktree or in place;
+which placement operation ran, rebase or merge, and why; the conflicts classified; the restore; the
+ledger.
+
+**The claim that must be earned, not assumed:** *the base was green*. Say it only for checks that
+actually ran to completion on the base tree. A fetch that failed, a worktree that could not be
+created, a check that was skipped because a lane seats it — each is reported as itself.
+**`iteration.checks` that could not run at all means the base is UNPROVEN**, and an unproven base is
+stated as unproven and stops, because an unproven base is precisely what this section exists to stop
+anybody authoring onto.
+
+**A red AFTER step 4 is this effort's, and breath says so rather than gating on it.** That is the
+sentence the whole section buys: the base was green with none of this work on it, so what fails now
+came back with the work. Breath does not fix it and does not stop on it —
+[`/kokusen`](../kokusen/SKILL.md) holds the commit gate, and
+[`/rasengan`](../rasengan/SKILL.md) authors the repair.
+
+**What does not change when breath is typed alone:** it still never commits, never pushes, never
+force-pushes, never rewrites a published commit, and never discards work it has not shown you.
+
+**Hand-back.** *Next in the wired run: `/rasengan` — author the change on this branch. This run
+did not, and starting it is your call.*
 
 ---
 
@@ -323,8 +487,16 @@ not something to paper over with a remembered command line.
 
 Exit `0` is a new cycle. Exit `2` `already exists` is a re-warm of a name that already had one —
 report it, do not reset, go on. **A later missing file on this branch is a lost ledger for
-[`/hanten`](../hanten/SKILL.md), not a second `init`.** Continuation of an existing branch
-does not cut and does not `init`.
+[`/hanten`](../hanten/SKILL.md), not a second `init`.**
+
+> **Amended by the maintainer's rulings of 2026-09-18.** This clause used to end *"Continuation of an
+> existing branch does not cut and does not `init`"*, full stop — which left a branch the maintainer
+> cut by hand permanently unable to reach [`/hanten`](../hanten/SKILL.md), because hanten's
+> ledger is fail-closed and only Breath writes it. **Continuation still never cuts a second branch**,
+> and that half is unchanged. What changed is that § 0c no longer leaves such a branch where it found
+> it: it replays the work onto a **proven** tip, so the `init` that follows records a budget for a
+> branch whose base is a fact rather than an assumption. **One `init` per branch, never a second, and
+> never silent.**
 
 ## 6. Proving the base tip — the last thing breath does, before anything is authored
 
@@ -332,6 +504,13 @@ does not cut and does not `init`.
 on it yet, so the checks run here are a verdict on THE BASE, not on this effort.** That is the whole
 point of taking them now: the first line of the change must land on a tree that is already known to
 build, so that the first red anybody sees is one this effort caused.
+
+> **On a standalone run, § 0c has already taken this verdict — and taken it on a stricter tree.**
+> There the proof runs against `origin/<branch.base>` in an isolated worktree, **before** the
+> maintainer's own commits are replayed onto it, so the tree that was checked held none of the effort
+> at all. This section's reasoning is that run's reasoning; what § 0c adds is that the separation is
+> mechanical rather than argued. **Do not take the verdict twice** — § 0b's once-per-session rule
+> covers this section too, and a second full proof of the same tip is the repeat it forbids.
 
 `shu warmup` proves the lane's **`build`** on the branch it just
 cut, re-reading the declaration **on that branch**. **`build` is the only check it runs, whatever
@@ -470,4 +649,4 @@ capture and measurement. Gyo is
 linting, on every Ren turn, and is the `lint` entry of `iteration.checks`. Focused authored behavior
 is tested during rasengan/kokusen, once there is authored behavior to test. A declaration that
 hides a full suite in an iteration verb is an owned configuration gap routed through
-[DISCOVERY.md](../../../docs/DISCOVERY.md), not permission to run the later phase early.
+[DISCOVERY.md](../../../../docs/DISCOVERY.md), not permission to run the later phase early.

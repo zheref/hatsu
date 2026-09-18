@@ -3,6 +3,15 @@ name: mukai
 description: Take a pushed branch through catch-up, review, impacted tests, coverage and evidence to one open PR, render its landing report, then end by immediately handing the PR to En. En owns the capped current-head readiness loop through required CI and review; the invoking turn remains active across that composition. Mukai owns kotoamatsukami's unit/UI/integration tests and byakugan's coverage capture and gating. Gyo is linting on the Ren loop. Mukai gains no squash, first-publish, merge, or review-vote authority from nested phases.
 ---
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by
+`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
+trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+
+
+
 # Mukai — the branch reaches its pull-request gate
 
 **No fixed mode.** Mukai is a composed run: the mode is whichever the *change* is — **Enhancer** for
@@ -57,6 +66,12 @@ that a parse could be echoed would be ceremony, not a grammar.
 **One call, one Mukai run, one PR, then one immediate En run in the same user turn.** A `yes` for this
 pull request is not authority for the next one. Say when Mukai starts, say when it ends at the En
 handoff, and do not end the user turn while En still owns an ordinary pending state.
+
+**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
+contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
+from this run — the warm-up, the orientation, the change set and every derived argument — and
+re-deriving them would produce a second answer to a question this composite already settled. Each phase
+says which composite is holding it instead.
 
 ## 2. The run, in order
 

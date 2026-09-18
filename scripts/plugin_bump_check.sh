@@ -166,6 +166,7 @@ PLUGIN_SURFACE_GLOBS=(
   'docs/DISCOVERY.md'
   'docs/LAUNCH-MIGRATION.md'
   'docs/AGENT-ATTRIBUTION.md'
+  'docs/STANDALONE-ENTRY.md'
   'hooks/*'
   'templates/*'
   'surfaces/*'
@@ -291,7 +292,8 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 This PR changes a plugin-shipped surface (.claude-plugin/**, claude/**,
 nen/**, contracts/**, docs/ROSTER.md,
 docs/delegation-grammar-DRAFT.md, docs/WORKFLOW.md, docs/DISCOVERY.md,
-docs/LAUNCH-MIGRATION.md, docs/AGENT-ATTRIBUTION.md, hooks/**, templates/**, surfaces/**,
+docs/LAUNCH-MIGRATION.md, docs/AGENT-ATTRIBUTION.md, docs/STANDALONE-ENTRY.md,
+hooks/**, templates/**, surfaces/**,
 scripts/surface_bootstrap.sh, scripts/hanten_cycle_ledger.sh, scripts/hatsu_plugin_update.sh, or .mcp.json)
 but leaves
 .claude-plugin/plugin.json's `version` field unchanged.

@@ -4,9 +4,9 @@ description: Turn a dirty working copy into one PR standing ready at its gate. U
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
-**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
-`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
-repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
 those files (re-resolve through that skill if unavailable). Relative links below identify source
 locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
 filing. Never copy or invent a second policy in the target repository.
@@ -49,7 +49,7 @@ composing [`sharingan`](../sharingan/SKILL.md), which is what § 6 already hands
 **Two consequences follow, and neither is new:**
 
 - **The human calls stay human calls.** `aka` and `mukai` are the maintainer's
-  ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4), so **`/tensho` is itself a human call
+  ([`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4), so **`/tensho` is itself a human call
   that spends both of them at once** — which it always was, since it commits, pushes and opens a PR
   in one run. It is not a way to reach `aka` or `mukai` without asking; it is the maintainer asking
   for all of it in one word.
@@ -87,6 +87,12 @@ re-fetch it first.
 > literal, which this engine deliberately will not express — so the default-to-`main` handling below
 > stays this skill's own rule, in prose, not a `nen parse` invocation. Not a finding any more; a
 > documented boundary.
+
+**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) is the
+contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
+from this run — the warm-up, the orientation, the change set and every derived argument — and
+re-deriving them would produce a second answer to a question this composite already settled. Each phase
+says which composite is holding it instead.
 
 ## 2. Where the work goes
 
@@ -134,7 +140,7 @@ nen repo resolve <CODE> --repo <path>               # matches an explicit code i
 > token form is verified live (`nen repo resolve BC --repo <path>` → `bankai-core (BC) via code`); the
 > origin form needs a checkout whose `origin` the registry records and was not re-run here. Either form
 > works from inside the registry-owning repo now; if the origin form ever refuses a repository its own
-> code list names, pass the code explicitly and reconcile the finding through [DISCOVERY.md](../../../docs/DISCOVERY.md);
+> code list names, pass the code explicitly and reconcile the finding through [DISCOVERY.md](../../../../docs/DISCOVERY.md);
 > unavailable prerequisites remain a pending record, not a claimed new issue.
 >
 > **RETIRED at nen `0.5`: a target with NO registry refuses at exit `2`, naming the file** — where through
@@ -220,7 +226,7 @@ line; the allow-list and the forbidden list are data, in `nen/workflow.json` →
 harness that would mandate `Co-Authored-By:` is configured off (`includeCoAuthoredBy: false`).
 Enforcement is three-layered and only the first ships here — the skill refusing to write it, then a
 target repository's `commit-msg` hook and `nen commit format --repo`, both **nen `0.4.0`** and both
-**target-dependent at this pin** ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § `commits`). Git
+**target-dependent at this pin** ([`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § `commits`). Git
 author stays the **maintainer**. Never `--no-verify`.
 Never force-push. Never push `main`.
 

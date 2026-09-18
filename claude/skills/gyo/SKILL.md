@@ -3,6 +3,15 @@ name: gyo
 description: Lint the tree on every Ren turn — the named Hatsu process for the declared `lint` verb. Breath proves it on the fresh tip, rasengan may run it as authoring feedback, kokusen must run it over the finished tree before it commits, and aka runs it before squash and again after catch-up if the tree moved. It never measures coverage and never runs tests.
 ---
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by
+`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
+trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+
+
+
 # Gyo — the lint, every turn
 
 **Nature: Transmuter.** Gyo runs the declared lint machinery and reports what it said. Fixing what
@@ -25,6 +34,25 @@ run it over the finished tree and refuses to commit on red. That is the same cad
 iteration check already had; this file is the name of that cadence.
 
 It is also invocable alone as a diagnostic.
+
+---
+
+## 0. Standalone entry — already total
+
+**Gyo needs nothing from a caller.** The lane comes from its own `on <lane>` clause or from
+`nen/workflow.json → iteration.lane`, and linting reads the tree in front of it rather than a delta,
+so there is no turn boundary to inherit. [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4 lists it as already total, and the whole of that
+contract that applies here is **P1**: run [`hatsu:hatsu-warmup`](../hatsu-warmup/SKILL.md) first when
+no composite did, because `nen shu lint` is a `nen` call.
+
+**Being typed by hand changes nothing else.** Gyo still never measures coverage and never runs tests —
+[`hatsu:byakugan`](../byakugan/SKILL.md) and [`hatsu:kotoamatsukami`](../kotoamatsukami/SKILL.md) own
+those — and a green lint is never reported as anything more than a green lint.
+
+
+**Hand-back.** *Next in the wired run: whatever asked for the lint — `hatsu:kokusen`'s commit gate,
+`hatsu:aka`'s pre-squash gate, or the author's own loop. A green lint is not a test result and not a
+coverage number.*
 
 ---
 

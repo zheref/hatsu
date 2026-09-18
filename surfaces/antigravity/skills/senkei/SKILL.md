@@ -4,6 +4,15 @@ description: Inventory a consuming product repo's own backlog — open epics, li
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by
+`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
+trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+
+
+
 # Senkei — inventory and drive a product repo's own backlog to G2-readiness
 
 **Nature: Manipulator.** GitHub-side ops/reporting over a product repo's own backlog. Kurapika
@@ -38,7 +47,7 @@ determination through [`sharingan`](../sharingan/SKILL.md)'s own engine — **in
 PR**, its first-blocking-condition ordering, its unblock channel and its escalation ladder, exactly
 as § 4 already describes them rather than a second implementation of them. It **calls none of the
 five human-called phases** — `aka`, `mukai`, the **merge**, `kagutsuchi` and `mugetsu` are the
-maintainer's ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4) — and it never prompts for one:
+maintainer's ([`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4) — and it never prompts for one:
 it opens no PR, pushes nothing, merges nothing, uploads nothing and publishes nothing. What it
 produces is a table and a Ready/not-Ready call per PR; every gate in that table stays exactly where
 it was.
@@ -108,6 +117,12 @@ tree** — every row names a simulator only the machine knows — and says what 
 the status pass; a product repo with no `nen/contract.json` is a finding for **that repo's maintainer**,
 and writing the declaration is a PR into that repo at its own gate, never a `--write` this skill runs.
 Driving that repo's PRs to readiness (§ 4) does not depend on it.
+
+**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) is the
+contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
+from this run — the warm-up, the orientation, the change set and every derived argument — and
+re-deriving them would produce a second answer to a question this composite already settled. Each phase
+says which composite is holding it instead.
 
 ## 2. Enumerate the target repo's backlog — `nen repo inventory`
 

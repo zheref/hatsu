@@ -3,6 +3,15 @@ name: futon
 description: Take one whole severity band of a repo's backlog from open issues to PRs that have an actor driving them, then run the terminal step the maintainer typed. Use when the maintainer invokes hatsu:futon <repo>@<severity>[+] [then tag | then tag+fanout], or asks to build all the mediums, work the highs and cut a tag, or clear a severity band. Kurapika scopes backlog-loop's engine to one band; every PR this run produces is his own, because Hatsu carries no CI plane — done means CON-32 Ready and a per-PR merge prompt. Cuts only when a then clause asked for one, and the cut itself is getsuga's. Never merges main, never publishes a release.
 ---
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by
+`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
+trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+
+
+
 # Futon — one severity band, from open issues to PRs with an actor behind them
 
 **No fixed mode.** Futon is a composed run, not a single-nature one: **Conjurer/Transmuter**
@@ -159,6 +168,12 @@ registry-owning repo would get the identical protection with no code change.
 **An unparseable invocation is refused with the corrected line ready to paste** — the same
 discipline [`hatsu:izanagi`](../izanagi/SKILL.md) applies to its own grammar. Never run the closest
 valid reading "to see"; this run applies labels and opens PRs.
+
+**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
+contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
+from this run — the warm-up, the orientation, the change set and every derived argument — and
+re-deriving them would produce a second answer to a question this composite already settled. Each phase
+says which composite is holding it instead.
 
 ## 2. The queue is the band — and only the band
 

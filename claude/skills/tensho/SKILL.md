@@ -3,9 +3,9 @@ name: tensho
 description: Turn a dirty working copy into one PR standing ready at its gate. Use when the maintainer invokes hatsu:tensho <target-branch|main>, or asks to branch this off, commit and PR what I have, or open a PR for these changes. Kurapika moves the work off main if needed, reviews every uncommitted file before staging it, commits, opens the PR with the body the template requires, then checks it against its gate. Never merges, never commits a file it flagged without an answer.
 ---
 
-**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
-`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
-repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
 those files (re-resolve through that skill if unavailable). Relative links below identify source
 locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
 filing. Never copy or invent a second policy in the target repository.
@@ -86,6 +86,12 @@ re-fetch it first.
 > literal, which this engine deliberately will not express — so the default-to-`main` handling below
 > stays this skill's own rule, in prose, not a `nen parse` invocation. Not a finding any more; a
 > documented boundary.
+
+**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
+contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
+from this run — the warm-up, the orientation, the change set and every derived argument — and
+re-deriving them would produce a second answer to a question this composite already settled. Each phase
+says which composite is holding it instead.
 
 ## 2. Where the work goes
 

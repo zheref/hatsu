@@ -3,6 +3,15 @@ name: backlog-loop
 description: Drive a target repository's backlog to zero open actionable issues, in severity order, as gate-ready PRs. Use when the maintainer asks to work the backlog, clear open issues, run the loop, or keep a repo current. Kurapika triages, sequences `build` and `sharingan` across at most two efforts, cuts tags and runs the fan-out at severity-batch boundaries, and reports one status board per cycle. Never merges main; G2/G4/G3 stay the maintainer's.
 ---
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by
+`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
+trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+
+
+
 # Backlog loop — drive a backlog to zero, in severity order
 
 **Nature: spans modes, named at each step.** Concurrency arbitration, severity triage, and
@@ -84,6 +93,12 @@ case-insensitive, an unresolved code is an error listing the registry's real cod
 
 **Say the run has started.** A named skill run holds a bounded `CON-25` delegation (§ 3), and a
 delegation nobody announced is a delegation nobody can end.
+
+**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
+contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
+from this run — the warm-up, the orientation, the change set and every derived argument — and
+re-deriving them would produce a second answer to a question this composite already settled. Each phase
+says which composite is holding it instead.
 
 ## 2. The cycle
 

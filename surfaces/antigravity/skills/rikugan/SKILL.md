@@ -4,9 +4,9 @@ description: Render one session of work as a rich HTML report — this last turn
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
-**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
-`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
-repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
 those files (re-resolve through that skill if unavailable). Relative links below identify source
 locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
 filing. Never copy or invent a second policy in the target repository.
@@ -38,18 +38,88 @@ render cannot happen, say so (§ 7) — do not substitute a prose recap and call
 
 ---
 
+## 0. Standalone entry — when no composite is holding the run
+
+**Rikugan is normally reached from `ren` step 5, `mukai`'s reporting step or `en`'s, and this section
+is what it does when the maintainer asks for a report over a session nothing scripted.** The contract
+is [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md). **Reached from a composite, skip
+this section** — the caller names the variant and *this last turn* is the turn it just ran.
+
+**Rikugan inherits `S1` and `S3` together: it needs a change set AND a notion of turns.** Both are
+recoverable, and the rule is that **each of the page's sections is sourced from evidence or marked as
+unavailable — never reconstructed from an impression of what probably happened.**
+
+**P3 · The session-wide delta, against the fetched remote trunk.** Sections 01–07 cover *the whole
+session against the base*:
+
+```bash
+git fetch origin
+git log --oneline origin/<branch.base>..HEAD        # the session's commits, in order
+git diff --stat origin/<branch.base>...HEAD         # committed
+git status --porcelain                              # uncommitted, and it counts
+```
+
+**`against <base>` overrides the base** (§ 1, beside `as <variant>` in one grammar); with no clause
+it is the latest `branch.base`, fetched. **Uncommitted work appears in the page as uncommitted**, never folded into the committed delta, because a report that presents a working tree
+as a landed change is the one failure a report cannot survive.
+
+**P3b · *This last turn*, cold.** § 1 binds `00` to *the last human request*. Reading the turns:
+
+| Source, in order of preference | What it yields |
+|---|---|
+| **This session's own transcript** — the maintainer's last request and what was done for it | The real answer. Use it whenever the session has one |
+| **The commits since the base**, read as steps, with the newest coherent group as the last turn | The recoverable answer. Say that turns were **derived from commit history**, and name the grouping |
+| Neither — a checkout with a delta and no session and no commits | `this last turn: not recoverable — reporting session-wide only`. Stated in the page, in that section, rather than filled with the session-wide summary wearing a turn's heading |
+
+**Never invent a turn boundary to have one.** Sections 01–07 are honest with no turn; `00` wearing a
+guess is not.
+
+**P4 · The variant.** Derive it, then ask only if the derivation is genuinely open:
+
+| What P2 read | Variant |
+|---|---|
+| No PR, local work in progress | `as turn` |
+| A PR that this session's branch just opened | `as landing` — and it needs the PR body and the readiness verdict, so say so if they are not available |
+| A PR at its gate, or the maintainer said *final* | `as final` — **the only variant kept as a dated file under `Reports/`**, per `reports.retain: final-only` |
+
+An explicit `as turn|landing|final` always wins. Where the checkout could be read two ways, ask —
+one question, the derived reading starred.
+
+**What does not change.** The one fixed template (`templates/<reports.template>.html`), never a
+markdown summary. *Architecture delta* is a change-highlighted **structural** diagram, never a
+file-line inventory. Screenshots and the launch command are quoted from what actually ran, and where
+[`/amaterasu`](../amaterasu/SKILL.md) did not run in this session the section says **`no launch in
+this session`** rather than reproducing an argv from the declaration — a predicted command is not a
+record of one. **Rikugan is not a gate event: it publishes a page and rings nothing.**
+
+**Hand-back.** *Next in the wired run: `/jutaisho` — the bell, which carries this page's link.
+This run rang nothing.*
+
+---
+
 ## 1. Invocation
 
 ```
-/rikugan [as <turn | landing | final>]
+/rikugan [as <turn | landing | final>] [against <base>]
 ```
 
 The clause is optional and defaults to **`turn`**. It is anchored behind the literal `as`
 deliberately, because that is the shape `nen parse` can actually express:
 
 ```bash
-nen parse rikugan --grammar "as [<variant:turn|landing|final>]" --line "<the invocation, minus the /rikugan prefix>"
+nen parse rikugan --grammar "as [<variant:turn|landing|final>] against [<base>]" --line "<the invocation, minus the /rikugan prefix>"
 ```
+
+An enum clause and a base clause coexist, verified live at nen `0.10.0`: `as turn against
+origin/main` → `variant: turn`, `base: origin/main`, exit `0`.
+
+**`against <base>` names the base every delta in this skill is read from.** With no clause the base
+is **the latest state of `nen/workflow.json` → `branch.base`** — `git fetch origin` first, then
+`origin/<branch.base>`; the local ref is used only where that fetch proves it already equal, and a
+fetch that cannot run is a stop rather than a silent fall-back
+([`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 3 · P3). The resolved base is
+named out loud either way.
+
 
 > **The bare-bracket form is refused at the template, by design — verified live at `v0.3.0`
 > (`docs/ab/rikugan.md` § 2.1).** `--grammar "[<variant:turn|landing|final>]"` exits `2` with
@@ -113,7 +183,7 @@ mismatches stale. Preserve raw `report data` facts, but explain stale provenance
 do not populate final verdict rows with it. Full regression, instrumented collection, and coverage
 measurement retain their phase owners even for final or post-merge reports. Report missing evidence
 instead of quietly recreating it. Discovery statuses and canonical issue links come from
-[the common protocol](../../../docs/DISCOVERY.md); rendering a report does not file duplicates.
+[the common protocol](../../../../docs/DISCOVERY.md); rendering a report does not file duplicates.
 
 ## 3. Assemble the data
 

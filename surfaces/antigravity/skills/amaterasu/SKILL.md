@@ -4,9 +4,9 @@ description: Build and start the app for the declared launch target from the mai
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
-**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
-`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
-repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
 those files (re-resolve through that skill if unavailable). Relative links below identify source
 locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
 filing. Never copy or invent a second policy in the target repository.
@@ -25,6 +25,41 @@ and lives behind **G3**, and amaterasu is not that (§ 8).
 Amaterasu is **automatic**: phase four of `ren`, after [`/kokusen`](../kokusen/SKILL.md) and
 before the turn's report. It is not human-called, though the maintainer may name a target when they
 invoke it directly. It never pushes and never opens anything.
+
+---
+
+## 0. Standalone entry — when no composite is holding the run
+
+**Amaterasu is normally `ren`'s step 4, and it is already the most cold-ready phase in the loop**:
+§ 1's target resolution, the no-launch declaration and the unknown-target refusal all read the
+declaration rather than the caller. The contract is
+[`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md), and amaterasu needs only three of its
+clauses. **Reached from ANY composite, skip this section entirely** — the composite established P1–P4, and re-deriving them is how two answers to one question appear. Say which composite is holding the run. (`ren` is the one that reaches it.)
+
+**P1 · Warm up.** [`/hatsu-warmup`](../hatsu-warmup/SKILL.md), unconditionally — every step below
+is a `nen` call, and a phase reached directly has nobody to have satisfied `D10` for it.
+
+**P2 · Orient, and read § 3 with it.** State the branch, clean-or-dirty, and **whether this is a
+worktree** — § 3's core-working-directory rule is the one that most often decides a cold run, and it
+decides it the same way it always does: a session standing in a worktree **reports the command rather
+than running it**. Say which of the two happened before anything is built.
+
+**The launch shows the tree on disk, not a commit.** Inside `ren` step 4 follows step 3, so what
+starts is what was just committed. Typed by hand over a dirty checkout it is the **working tree**,
+committed and uncommitted together. Name that, with the uncommitted paths, so nobody reads a running
+app as a demonstration of a recorded change.
+
+**P4 · The target is derived, never guessed** — § 1's table already covers every case and this section
+adds no new one. The only question amaterasu ever asks is the one that table already asks: `launch.default`
+is `null` **and** `project.launch` declares targets. Cold or wired, a repository that declares no
+launch target records `no launch target declared; skipped` and **asks nothing**.
+
+**What does not change.** Parallel efforts still never launch. A disconnected device is still reported
+by its declared name and still falls back only to the declared simulator. Nothing here is a second
+path to a device.
+
+**Hand-back.** *Next in the wired run: `/rikugan` — the report, whose* How to launch *section is
+the argv this run actually printed. Paste it from here rather than re-deriving it.*
 
 ---
 
@@ -119,7 +154,7 @@ platform. Before execution, inspect the dry-run's selected lane, build destinati
 substitution, and ordered install/launch after-steps. An iPhone target wired to an iOS Simulator
 build is an incomplete declaration: a simulator `.app` cannot become a device artifact by naming
 it in `after[]`. Repair the owning consumer declaration within authorized scope; otherwise record
-its blocker through [the common discovery protocol](../../../docs/DISCOVERY.md).
+its blocker through [the common discovery protocol](../../../../docs/DISCOVERY.md).
 
 Read `project.launch.<declared-target>.verb`, then execute
 `nen shu <declared-dev-or-run-verb> --repo <core-checkout> --target <declared-target>` from the core
@@ -134,7 +169,7 @@ one retains § 4's refusal and never becomes a simulator fallback.
 Reusable record discovery and normalization belong to **Nen's shared launch resolver**, not a
 Python helper copied into each consumer. Consumers declare probe/build/install/launch commands
 and the extraction mappings the installed Nen supports. [Nen #204](https://github.com/zheref/nen/issues/204)
-owns repeated nested names and canonical identifiers; [the migration guide](../../../docs/LAUNCH-MIGRATION.md)
+owns repeated nested names and canonical identifiers; [the migration guide](../../../../docs/LAUNCH-MIGRATION.md)
 connects Apple, Android and Expo declarations to that implementation. Existing exact-name selection,
 true ambiguity refusal and readiness checks remain mandatory. Until a compatible published Nen
 release is available and the replacement path is verified, keep and link a working temporary

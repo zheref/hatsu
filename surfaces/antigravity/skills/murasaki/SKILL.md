@@ -4,6 +4,15 @@ description: Bring an already-published branch up to date with its base, rerun t
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by
+`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
+trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+
+
+
 # Murasaki — the branch, current and still true
 
 **Nature: Manipulator.** The last step touches the remote, and an operation that moves shared state is
@@ -23,6 +32,80 @@ already gone out honest afterwards.
 linked, and its procedure, its exit-code reactions, its refusals and its residue live there. A rule
 in this file that is really ao's, kotoamatsukami's or byakugan's is in the wrong file — go read it where it is
 authored, because a rule restated in two places drifts in one of them.
+
+---
+
+## 0. Standalone entry — catch this branch up with the remote base
+
+**Typed alone, murasaki has one job and it finishes it: bring this branch up to date with the base,
+resolving what can be resolved.** That is the *catch-up* half of § 3, and it is complete work in its
+own right — the maintainer standing on a branch that has fallen behind `main` wants it current, not a
+referral. The contract is [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md).
+**Reached from any composite, skip this section** — [`/mukai`](../mukai/SKILL.md) and
+[`/en`](../en/SKILL.md) are the two that reach it; `/aka` composes
+[`/ao`](../ao/SKILL.md) directly, not this skill — — § 3's three steps run in full, and § 5's
+return-to-caller governs instead of anything here.
+
+**The base is `origin/<branch.base>` — remote `main` by default, fetched first.**
+
+```bash
+git fetch origin
+```
+
+`from <base>` overrides it (§ 1), and the resolved base is named out loud either way. The **remote**
+ref is the default for the reason it is the default everywhere in this contract: catching up onto a
+stale local `main` produces a branch that is current with nothing, and the next catch-up does the work
+again over a wider delta.
+
+**P2 · Orient, and refuse the one state that cannot be caught up.** State the branch, clean-or-dirty
+with every path, commits ahead, and **whether the branch is published**:
+
+| What P2 read | What murasaki does |
+|---|---|
+| A feature branch, **behind** the fetched base | **Run.** This is the case the section exists for |
+| A feature branch **already current** with the base | Say so with the sha, run nothing, and stop. A merge commit that merges nothing is noise in the history |
+| **Dirty** working copy | **Ask before touching git state**, showing every uncommitted path — a catch-up over uncommitted work is how it gets lost in a conflict resolution. Never stash unasked, never discard |
+| On the **trunk** | Stop. There is no branch here to catch up |
+
+**The run — § 3 step 1, in full, and it is [`/ao`](../ao/SKILL.md)'s.**
+Murasaki composes ao and restates none of its protocol: ao reads the checkout, decides **rebase or
+merge** by whether anything has been published, classifies **every** conflicted path before touching
+one, and resolves the mechanical ones. *Graceful* means exactly that classification — **a mechanical
+conflict is resolved, a semantic one is never guessed at.**
+
+**A semantic conflict is a `G5` stop with both sides shown** (ao § 6), unchanged and non-negotiable.
+Picking the side that lets the run finish is the failure the classification exists to prevent, and a
+cold entry — where no caller is waiting on the result — is where the temptation is strongest.
+
+**Then the shared iteration checks over the caught-up tree** (§ 3 step 2), so the maintainer learns
+here, not three phases later, that the base brought something red with it. A red check is reported
+with the failing check quoted; it is not repaired inside a catch-up.
+
+**Where it stops: § 5's invalidation point — and a standalone run does not push at all.**
+The predicate is § 5's own and it is **any tracked path**, not just source and tests:
+[`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *Phase ownership* binds a capture to the exact tree
+hash, *"including sources, tests, snapshots and execution configuration"*, and § 5 says *"if **any
+path** changed, all earlier impacted test and coverage evidence is invalid."* Report which paths the
+catch-up moved and name [`/kotoamatsukami`](../kotoamatsukami/SKILL.md) and
+[`/byakugan`](../byakugan/SKILL.md) as what owes a refresh.
+
+**Then stop, whether or not the catch-up was a no-op.** § 6's push sits after the caller's steps 3–5
+in the wired run — `WORKFLOW.md` § 5 step 6 admits it *"only when this catch-up is a no-op"*, and even
+then on a tree those steps proved. A standalone run has no steps 3–5 behind it: the commits it would
+publish were never through `kokusen` → `kotoamatsukami` → `byakugan` in this run at all. Pushing them
+would be [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 2 Rule 2's *absorbing a
+later phase*, and the phase it absorbs is the one that leaves the machine.
+
+**This is not murasaki absorbing a phase** ([`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md)
+§ 2, Rule 2): the catch-up was always its own step 1. What a standalone run declines to do is
+everything that was never its — **it still owns no tests, no coverage, no squash, no force-push, no
+first-publish, and opens no PR.**
+
+**Hand-back, and § 7 makes it a short one.** *Next in the wired run: `/kotoamatsukami` and
+`/byakugan` where evidence was invalidated; otherwise the branch is current and nothing was
+pushed.* **It names no phase beyond those two** — § 7 forbids proposing `/aka` or `/mukai`
+as a next step this run is waiting on, and [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md)
+§ 6 defers to that stricter rule rather than overriding it.
 
 ---
 
@@ -105,7 +188,7 @@ nen shu <check> --repo <path> --lane <iteration.lane>     # every iteration.chec
 
 **This half is murasaki's own step, and deliberately not a call to
 [`/rasengan`](../rasengan/SKILL.md).** Rasengan is the AUTHORING phase (the maintainer's ruling
-of 2026-09-10, [`docs/ROSTER.md`](../../../docs/ROSTER.md)); what step 2 wants is a verdict on a tree
+of 2026-09-10, [`docs/ROSTER.md`](../../../../docs/ROSTER.md)); what step 2 wants is a verdict on a tree
 nobody has authored on — the merge ao just made. So murasaki runs the declared checks itself, reads
 them off [`/rasengan`](../rasengan/SKILL.md) § 6's exit table, and **hands a red one to rasengan
 to author the fix**, after which step 2 runs again over the repaired tree.

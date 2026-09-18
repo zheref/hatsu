@@ -3,6 +3,15 @@ name: ao
 description: Bring the branch up to date with its base — rebase when nothing has been published, merge when it has, resolve the mechanical conflicts, and stop at G5 with both sides shown for a semantic one. Use when the maintainer invokes hatsu:ao [from <base>], asks to pull main in, catch the branch up, or rebase onto main, or whenever hatsu:aka, hatsu:murasaki or hatsu:en needs the branch current. Kurapika classifies every conflicted path before touching one and never picks a side on a conflict of meaning. Never pushes, never force-pushes, never rewrites a commit that is already on the remote.
 ---
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by
+`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
+trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+
+
+
 # Ao — the branch, caught up
 
 **Nature: Manipulator.** Reconciling a branch against its base is git-side operation on a body of
@@ -14,6 +23,25 @@ Ao is [`hatsu:murasaki`](../murasaki/SKILL.md)'s first step, [`hatsu:aka`](../ak
 and the step [`hatsu:en`](../en/SKILL.md) runs when a PR falls behind. It is also invocable alone.
 The whole of its discipline is one distinction — **text versus meaning** — and one refusal: it never
 pushes what it produced.
+
+---
+
+## 0. Standalone entry — already total
+
+**Ao already reads the checkout rather than a caller.** § 2 reads the state before anything, § 3 decides
+rebase-vs-merge from whether anything has been published, and `from <base>` carries the base with
+`nen/workflow.json → branch.base` underneath it. [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4 lists it as already total; the clauses that
+apply are **P1** — [`hatsu:hatsu-warmup`](../hatsu-warmup/SKILL.md) when no composite ran it — and the
+base resolving against the **fetched `origin/`** ref, which § 3 already requires.
+
+**Nothing about a standalone call relaxes § 6**: a *semantic* conflict is a **G5** stop with both sides
+shown, and it is never resolved by picking the side that makes the run continue. Ao still never pushes,
+never force-pushes, and never rewrites a commit already on the remote.
+
+
+**Hand-back.** *Next in the wired run: the caller that needed the branch current —
+`hatsu:murasaki`, `hatsu:aka` or `hatsu:en`. Nothing was pushed, and evidence taken before this
+catch-up is stale if any tracked path moved.*
 
 ---
 

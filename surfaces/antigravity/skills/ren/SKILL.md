@@ -4,9 +4,9 @@ description: Run one request end to end as a turn — warm up on the first turn,
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
-**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
-`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
-repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
 those files (re-resolve through that skill if unavailable). Relative links below identify source
 locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
 filing. Never copy or invent a second policy in the target repository.
@@ -67,7 +67,7 @@ say so on the first one, so nobody is surprised by the report and the bell at th
 > **Step 2 is the change itself, and it stopped being half-numbered on 2026-09-10.** This table used
 > to carry a step `1.5` — *"the work"*, owned by no skill — beside a step 2 called *build*, which read
 > `rasengan` as *run the build command* rather than *build the thing*. The maintainer's ruling
-> ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-10*) settles it: **`rasengan` IS
+> ([`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-10*) settles it: **`rasengan` IS
 > the authoring phase**, so the work has a skill, the six whole numbers are six skills again, and the
 > compile-before-commit sits with the phase that stages the tree.
 
@@ -91,6 +91,12 @@ say so on the first one, so nobody is surprised by the report and the bell at th
   verbatim. Rendering the report first would make that section a prediction.
 - **5 before 6.** The bell carries the report's link. A bell that rings before the page exists sends
   the maintainer to nothing.
+
+**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) is the
+contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
+from this run — the warm-up, the orientation, the change set and every derived argument — and
+re-deriving them would produce a second answer to a question this composite already settled. Each phase
+says which composite is holding it instead.
 
 **Step 1 runs once per effort, not once per turn.** The second and every later turn of the same
 effort starts at step 2 — the next piece of work. Say which turn this is and whether breath ran.
@@ -178,7 +184,7 @@ integration suites the change can affect) and
 by the words “turn complete,” by a local commit, or by collecting
 a report. No nested skill or declared coverage command may hide a full-suite run outside its owner.
 
-Every phase, subagent, composite and resumed run follows [the common discovery protocol](../../../docs/DISCOVERY.md).
+Every phase, subagent, composite and resumed run follows [the common discovery protocol](../../../../docs/DISCOVERY.md).
 Concrete out-of-scope gaps are reconciled and captured under standing filing authority; unchanged
 findings produce no write. Report created/updated/unchanged/pending and continue this request where
 possible. Capture never authorizes an unrelated build, a stage label, closure, merge or release.

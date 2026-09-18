@@ -4,9 +4,9 @@ description: Have the change read adversarially before it is anybody else's prob
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
-**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
-`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
-repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
 those files (re-resolve through that skill if unavailable). Relative links below identify source
 locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
 filing. Never copy or invent a second policy in the target repository.
@@ -33,17 +33,108 @@ set of findings and a record of how each one was settled — and, where one coul
 
 ---
 
+## 0. Standalone entry — when no composite is holding the run
+
+**Hanten is normally reached from [`/mukai`](../mukai/SKILL.md)'s review step, and this section is
+what it does when the maintainer types it over a change nothing else has touched.** The contract is
+[`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md). **Running inside `mukai`, or re-entered
+by a later turn of an effort `breath` already opened — or reached from ANY composite — skip this section** — the ledger exists and the
+change set is established, and § 2a's reuse rule governs instead.
+
+**Hanten inherits two state classes at once, `S4` and `S1`, and the first one is fail-closed.**
+
+### 0a · `S4` — the cycle ledger, and who opens it
+
+§ 2a's per-effort reviewer budgets live in `.nen/hanten/<branch-slug>.cycle.json`, **opened by
+[`/breath`](../breath/SKILL.md) § 5a and by nothing else**, and since `v0.30.0` the ledger is
+fail-closed: `decide`, `record` and `show` **refuse a missing file** (exit `2`). A hanten typed over a
+checkout breath never warmed has no budget to spend, and an absent ledger is not an empty one.
+
+**Under the maintainer's rulings of 2026-09-18, breath can now answer this, and hanten routes to it
+rather than carrying its own question.** Breath § 0c states its plan — stash the uncommitted work,
+prove `origin/<branch.base>` green on a tree holding none of this effort, replay the maintainer's
+commits onto that proven tip, restore the working copy — confirms it where a commit would be
+rewritten, and `init`s the ledger once the branch is standing on a proven base. Hanten does not
+duplicate that question; two skills asking the same thing in one run is how the maintainer learns to
+click past both.
+
+**The ledger hanten then reads means more than it used to.** A budget recorded by § 0c is a budget for
+a branch whose base was *proven*, not assumed — so a finding raised against it is a finding about this
+effort, which is the distinction § 0b's classification depends on.
+
+| What the checkout shows | What hanten does |
+|---|---|
+| Ledger **present** for this branch | Proceed. § 2a's budgets apply as written, and remediation does not reset them |
+| Ledger **absent**, on a feature branch with work on it | **Run [`/breath`](../breath/SKILL.md)** and let its § 0a/§ 0c decide: already run this session → it reports and returns; not yet → it asks, and `init`s on yes. Then re-read. **Ledger now present** → proceed. **Still absent** (the maintainer answered no, or breath had already run and found none) → this is a **lost ledger**: report it, raise nobody, and do not invent a fresh budget |
+| Ledger **absent**, on the **trunk** | Stop. A review of the trunk reviews nothing this session did. Name the delta that would need a branch |
+| Headless, or no picker available | **Stop** where breath's question cannot be asked. A review with an un-counted budget is not a review; say which invocation would answer it |
+| `scripts/hanten_cycle_ledger.sh` or the `nen` verb **refuses** | **Stop and say so.** Never review with the budget un-counted, and **never fabricate a ledger file** to get past a refusal |
+
+> **Running breath here is a precondition, not an absorbed phase**
+> ([`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 2, Rule 2). Breath is the only
+> writer of the artifact § 2a requires, the way a fetched base is a precondition of a diff. It runs at
+> most once per session (breath § 0a), it never cuts on a branch carrying work, hanten still authors
+> nothing, and **a second run of breath is never the answer to a ledger that is still missing** — that
+> is a lost ledger, reported as one.
+
+### 0b · `S1` — the change set, and the scope classification that rides on it
+
+§ 2 classifies the change set by scope to decide which reviewers to raise. Cold, the change set is
+the preamble's **P3**:
+
+```bash
+git fetch origin
+git diff --name-only origin/<branch.base>...HEAD   # committed since the base
+git status --porcelain                             # staged, unstaged, untracked
+```
+
+**Both halves are reviewed** — a review that skips the working tree reviews a version of the change
+that does not exist on disk — and **`against <base>` overrides the base** (§ 1, beside `for <scope>`
+in one grammar); with no clause it is the latest `branch.base`, fetched. Name the resolved base, both counts, and **the classification with the
+paths that produced it**, before a single reviewer is raised.
+
+**Always ask first when the classification is not clear.** § 2 raises one reviewer per applicable
+scope; cold, where the delta does not classify cleanly — a mixed change set, a path no scope claims, a
+change that could be read as architecture or as security — hanten **asks through the surface's own
+picker**, one question, options being the candidate scopes with the derived reading starred and the
+paths as the evidence. **It never raises the full bench to be safe**: five reviewers on a two-file
+documentation change spends an effort's whole budget on nothing and teaches the maintainer to ignore
+the finding block.
+
+A scope with **no** reviewer is still reported as a **gap** (§ 3) and never quietly dropped.
+
+**What does not change.** § 4's isolation, § 5's one fixed finding shape, § 6's settle-or-push-back,
+§ 7's unsettled finding as a **G5**, § 8's *a reviewer never edits non-test source and never casts a
+review vote*, and § 9's per-surface adapter requirements. **A cold hanten is not a weaker hanten** —
+it is the same review with its preconditions made explicit.
+
+**Hand-back.** *Next in the wired run: `/kotoamatsukami` (impacted tests), `/byakugan`
+(coverage), then `/shibari` (the PR). None of them ran here, and this review is not a test result.*
+
+---
+
 ## 1. Invocation
 
 ```
-/hanten [for <scope>]
+/hanten [for <scope>] [against <base>]
 ```
 
 ```bash
 nen parse hanten \
-  --grammar "for [<scope:ui|security|architecture|performance|release|all>]" \
+  --grammar "for [<scope:ui|security|architecture|performance|release|all>] against [<base>]" \
   --line "<the invocation, minus the /hanten prefix>"
 ```
+
+The enum clause and the base clause coexist, verified live at nen `0.10.0`: `for security against
+origin/main` → `scope: security`, `base: origin/main`; an empty line → both absent. Both exit `0`,
+and the enum still refuses an unknown scope exactly as below.
+
+**`against <base>` names the base the reviewed change set is read from.** With no clause the base is
+**the latest state of `nen/workflow.json` → `branch.base`** — `git fetch origin` first, then
+`origin/<branch.base>`; the local ref is used only where that fetch proves it already equal, and a
+fetch that cannot run is a stop rather than a silent fall-back
+([`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 3 · P3). The resolved base is
+named out loud either way.
 
 Verified live at `v0.3.0` (`docs/ab/hanten.md` § 2.1): `for security` → `scope: security`, exit `0`;
 `for styling` refuses at exit `2` — *"`<scope>` is one of ui | security | architecture | performance
@@ -428,7 +519,7 @@ as it records. A reviewer never writes this file.
 **Hanten is the single discovery writer for this review.** Every reviewer and adapted worker returns
 sanitized evidence in this record only; it does not search, comment, edit an issue, or ask for a
 filing confirmation. After collating duplicate findings, Kurapika alone applies
-[`docs/DISCOVERY.md`](../../../docs/DISCOVERY.md): inspect candidate issue bodies and comments plus
+[`docs/DISCOVERY.md`](../../../../docs/DISCOVERY.md): inspect candidate issue bodies and comments plus
 open PRs, complete the four passes, and record `created`, `updated`, `folded`, `unchanged`, or
 `pending`. This keeps parallel reviewers from writing duplicate evidence or racing a create.
 
@@ -546,7 +637,7 @@ reviewer from one Kurapika raised against his own diff. It is never presented as
 
 ### 9a · The three surfaces Hatsu ships a mirror for
 
-[`docs/SURFACES.md`](../../../docs/SURFACES.md) is the authority on how the personas get onto each
+[`docs/SURFACES.md`](../../../../docs/SURFACES.md) is the authority on how the personas get onto each
 surface; this is what hanten does with them once they are there.
 
 | | **Claude Code** | **Codex** (`$hanten`) | **Cursor** (`/hanten`) | **Antigravity** (`/hanten`) |

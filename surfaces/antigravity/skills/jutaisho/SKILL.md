@@ -4,6 +4,15 @@ description: Ring the bell at the end of a turn — the three escalation rungs f
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by
+`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
+trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+
+
+
 # Jutaisho — the bell
 
 **Nature: Manipulator.** Signalling is board-facing work: it decides whether the maintainer's
@@ -15,6 +24,29 @@ Jutaisho is the **last** step of [`/ren`](../ren/SKILL.md)'s turn and the step
 [`/en`](../en/SKILL.md) fires at Ready. It is the only place in the local plane that is allowed
 to make a noise, and the discipline that makes it worth having is the one it enforces on itself:
 **a bell that rings every turn is a bell nobody hears.**
+
+---
+
+## 0. Standalone entry — already total
+
+**Jutaisho reads `nen/workflow.json` and the checkout, not a caller.** The rungs, the sound, the
+`turn` policy and the `.nen/last-stop.json` marker are all declared; `at <gate>` carries the only
+argument it takes. [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 4 lists it as already total, and **P1** —
+[`/hatsu-warmup`](../hatsu-warmup/SKILL.md) — is the clause that applies.
+
+**One thing a standalone call must say out loud: whether anything happened.** § 1's rule is that *a turn
+that did nothing rings nothing*, and typed by hand there is no turn to have done something. Ring for a
+**genuine** gate that a run actually reached; where the maintainer typed the name over a quiet checkout,
+say the bell has nothing to announce rather than ringing to prove the skill works.
+
+**A gate still gets all four parts** — the `nen stop` banner, the report link, lettered options with ⭐ on
+the recommendation, and the question through the surface's own picker. Three of four is not a stop.
+**It never prompts for [`/aka`](../aka/SKILL.md).**
+
+
+**Hand-back — and this phase is terminal.** The bell is the last step of a turn; nothing follows it in
+the wired run. Where a genuine gate rang, the successor is **the maintainer's decision at that gate**,
+which is named in the stop's own options and never prompted for again here.
 
 ---
 
@@ -247,7 +279,7 @@ afplay /System/Library/Sounds/<notifications.sound>.aiff
 ```
 
 > **Every value substituted into those two lines is sanitised first, exactly the way
-> [`hooks/stop-bell.sh`](../../../hooks/stop-bell.sh) sanitises it — the fallback is the same bell,
+> [`hooks/stop-bell.sh`](../../../../hooks/stop-bell.sh) sanitises it — the fallback is the same bell,
 > so it carries the same rule.** A stop title and body come from the effort: a branch name, a test
 > name, a conflicted path, a finding quoted from a reviewer. They are repository-controlled, and
 > here they land in **two nested quoting contexts at once** — a single-quoted shell word and, inside
@@ -291,18 +323,18 @@ afplay /System/Library/Sounds/<notifications.sound>.aiff
 ## 6. Surfaces — Codex and Cursor have no `Stop` hook; Antigravity has native hooks
 
 **§ 3 and § 5 assume a harness that fires a hook when a turn ends. Claude Code and Antigravity do.**
-[`hooks/hooks.json`](../../../hooks/hooks.json) is a *Claude Code* manifest — a `Stop` event and a
+[`hooks/hooks.json`](../../../../hooks/hooks.json) is a *Claude Code* manifest — a `Stop` event and a
 `PreToolUse` matcher. Antigravity carries its own native lifecycle hook manifest (`hooks.json` in the plugin,
 or `.agents/hooks.json` in the target repository) with matching `Stop` and `PreToolUse` hooks calling
-[`hooks/stop-bell.sh`](../../../hooks/stop-bell.sh) and [`hooks/guard-base-branch.sh`](../../../hooks/guard-base-branch.sh).
-**Neither Codex nor Cursor reads hooks, and neither documents a turn-end hook of its own** ([`docs/SURFACES.md`](../../../docs/SURFACES.md)
+[`hooks/stop-bell.sh`](../../../../hooks/stop-bell.sh) and [`hooks/guard-base-branch.sh`](../../../../hooks/guard-base-branch.sh).
+**Neither Codex nor Cursor reads hooks, and neither documents a turn-end hook of its own** ([`docs/SURFACES.md`](../../../../docs/SURFACES.md)
 § *What each surface reads*). So on those two surfaces § 5 is not a fallback for a hook that failed to
 install — **it is the only path there is**, and it is taken every time rungs 2–3 are owed.
 
 | Surface | Who fires rungs 2–3 | What this skill does |
 |---|---|---|
-| **Claude Code** | [`hooks/stop-bell.sh`](../../../hooks/stop-bell.sh), off the § 3 marker | writes the marker, and stops |
-| **Antigravity** (`/jutaisho`) | [`hooks/stop-bell.sh`](../../../hooks/stop-bell.sh), off the § 3 marker via native `Stop` hook | writes the marker, and stops |
+| **Claude Code** | [`hooks/stop-bell.sh`](../../../../hooks/stop-bell.sh), off the § 3 marker | writes the marker, and stops |
+| **Antigravity** (`/jutaisho`) | [`hooks/stop-bell.sh`](../../../../hooks/stop-bell.sh), off the § 3 marker via native `Stop` hook | writes the marker, and stops |
 | **Codex** (`$jutaisho`) | **this skill, in-session** | writes the marker, then runs `osascript` and `afplay` itself, and says so |
 | **Cursor** (`/jutaisho`) | **this skill, in-session** | the same |
 

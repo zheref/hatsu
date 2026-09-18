@@ -3,9 +3,9 @@ name: build
 description: Take one issue from wherever it sits to a delivery PR standing ready at its human gate. Use when the maintainer invokes hatsu:build <CODE>#<issue>, or asks to build, start, release or deliver an issue. Kurapika confirms the mode, builds the issue himself — Hatsu holds no CI plane to route it to — and drives the resulting PR to CON-32 readiness, escalating a stuck effort to G5. Never merges, never applies a G1 mode label.
 ---
 
-**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
-`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
-repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
 those files (re-resolve through that skill if unavailable). Relative links below identify source
 locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
 filing. Never copy or invent a second policy in the target repository.
@@ -103,6 +103,12 @@ real blocker. This exception does not create G1 or label authority.
 
 Every encountered gap uses [the discovery protocol](../../../docs/DISCOVERY.md); a missing
 metadata declaration is repaired only when authorized or recorded pending, never guessed.
+
+**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
+contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
+from this run — the warm-up, the orientation, the change set and every derived argument — and
+re-deriving them would produce a second answer to a question this composite already settled. Each phase
+says which composite is holding it instead.
 
 ## 2. Read the issue before touching it — where is it on the chain?
 
