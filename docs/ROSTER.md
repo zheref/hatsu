@@ -400,8 +400,20 @@ not do, and tag-cutting belonged to [`hatsu:getsuga`](../claude/skills/getsuga/S
    anything knows both the version and the build number. Neither skill composes, templates or
    derives a tag name — a skill forbidden to know a stack's name cannot know what its version means.
 4. **`nen tag cut` is the verb, and its refusals stand.** Annotated, never re-tagged, and `--at`
-   refused unless it is an ancestor of `origin/<trunk>` — so **a build or send from a feature branch
-   cannot be tagged**. That refusal is reported with nen's own reason and never routed around.
+   refused unless that COMMIT is an ancestor of `origin/<trunk>`. **That is a rule about the commit,
+   not the branch** — a feature branch sitting at the trunk's tip tags fine — so the honest statement
+   is *a commit not yet on `origin/<trunk>` cannot be tagged*. What keeps a tag from attesting the
+   wrong bytes is a separate condition: **the working tree must be clean at `--at`**, because a tag
+   over a dirty tree names a commit whose bytes were never what was archived. `--trunk` is passed
+   from `branch.base`, never defaulted.
+4a. **The declared name carries a species prefix** — `build/`, `dist/<target>/` — and one that does
+   not is a reported refusal. The three species share one namespace on `origin`, and `mugetsu` proves
+   a release tag by its name resolving there; an unprefixed build tag can take a version name
+   permanently, since nothing may delete or move a tag to recover.
+4b. **`--push` is not atomic.** A rejected push leaves the name taken locally and absent on `origin`,
+   which the verb then refuses forever. One sanctioned remedy: a local tag of that name, at that SHA,
+   verified absent from `origin`, may be deleted and re-cut — the completion of an unfinished cut,
+   not a re-tag.
 5. **A tag refusal never retroactively fails the thing that already happened.** The archive is on
    disk; the upload is sent. Two verdicts, reported separately, in that order, every time.
 6. **Nothing else moves.** A cut tag authorises nothing: `kagutsuchi` is still the maintainer's own

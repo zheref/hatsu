@@ -237,17 +237,57 @@ The order is the same as susanoo's and is not negotiable:
 
 1. **`--run` was passed and the deploy came back exit `0`.** A plan-only run tags nothing — nothing
    was sent, so there is nothing to record. A failed or partial send tags nothing either.
+1a. **The working tree is clean at `--at`.** § 0's P2 already computes it and already warns that a
+   dirty tree ships *"something that exists in no commit"*. A tag makes that mismatch permanent and
+   public, so here the orientation becomes a condition: a dirty tree is a reported tag refusal, and
+   the send still stands.
 2. **Then** the tag is cut, through the verb and never around it:
 
 ```bash
-nen tag cut --repo <path> --name "$(head -n1 <nameFrom>)" --at <HEAD sha> [--push]
+# nameFrom is DATA, never a command fragment. Resolve it against --repo's root,
+# refuse it if it escapes that root, read the name with the path QUOTED and
+# `--` terminating options, and validate the name BEFORE anything is spawned
+# with it. A declaration is a policy file from another repository; it is
+# untrusted input, and `--name "$(head -n1 $nameFrom)"` would be one metacharacter
+# away from running that repository's shell command on this machine.
+root="$(git -C <path> rev-parse --show-toplevel)"
+file="$root/<nameFrom>"                       # relative to the REPO, not the process
+case "$(cd "$(dirname -- "$file")" && pwd -P)/" in
+  "$root"/*) : ;;
+  *) echo "nameFrom resolves outside the repository -- refused"; exit 2 ;;
+esac
+name="$(head -n1 -- "$file" | tr -d '\r')"
+[ -n "$name" ] || { echo "nameFrom's first line is empty -- refused"; exit 2; }
+git -C <path> check-ref-format "refs/tags/$name" \
+  || { echo "the declared tag name is not a legal git ref -- refused"; exit 2; }
+nen tag cut --repo <path> --name "$name" --at <HEAD sha> --trunk <branch.base> [--push]
 ```
 
 **The name is the repository's**, read from `nameFrom`'s first line — kagutsuchi composes none, and a
 file that is missing, empty or holds a name `git check-ref-format` rejects is reported, never
 replaced with one invented so that there is something to cut.
 
-**`--at` must be an ancestor of `origin/<trunk>`**, so a send from a feature branch cannot be tagged.
+**The ancestor rule is about the COMMIT, not the branch.** `--at` is refused unless that commit is an
+ancestor of `origin/<trunk>`: a feature branch sitting at the trunk's tip tags fine, one carrying its
+own unpushed work does not. The honest sentence is *a commit not yet on `origin/<trunk>` cannot be
+tagged* — and stating it as a branch rule is wrong in the reassuring direction, because it implies
+the branch is itself the protection. **What protects the tag from attesting the wrong bytes is a
+clean working tree at `--at`, which is a condition of the order above.** `--trunk` is passed from
+`nen/workflow.json` → `branch.base` rather than defaulted, or a repository whose trunk is `master`
+fails against a non-existent `origin/main`.
+
+**The name must carry its species prefix** — `dist/<target>/` here, `build/` in
+[`$susanoo`](../susanoo/SKILL.md) § 5a — and a first line that does not is a reported refusal.
+A distribution tag sharing `getsuga`'s release namespace can take a version name permanently:
+`mugetsu` proves a release tag by its name resolving on `origin`, and forbids deleting one to
+recover.
+
+**`--push` is not atomic** — the tag is created locally, then pushed — so a rejected push leaves the
+name taken locally and absent on `origin`, which the verb then refuses forever. The single sanctioned
+remedy: a local tag of that name, at that SHA, **verified absent from `origin`**, may be deleted and
+re-cut, because nothing was ever published. That is the completion of an unfinished cut, not a
+re-tag.
+
 That refusal is reported with nen's own reason and is **never routed around** — and it never
 retroactively unsends anything. **The send already happened**: § 7's block reports it as sent, and the
 tag is reported as its own separate line with its own verdict. A run that uploaded cleanly and could
@@ -301,6 +341,11 @@ composed argv (copied out of the `--dry-run` report, not re-typed), whether `--r
 step's own exit code and nen's, and the maintainer's call **quoted verbatim** — the message that
 named this target. There is no second source for that line; a delegation recorded elsewhere in the
 session is reported as context beside it, never in its place (§ 1).
+
+**One line for the tag** (§ 4a): *cut and pushed*, *cut locally*, *refused with nen's reason*, or
+*not declared for this target* — and a declaration present but malformed is reported as read-and-
+rejected, never as absent. nen validates nothing in that block, so "off" and "broken" are otherwise
+the same silence.
 
 **Re-render the turn report before stopping.** The last render was truthful when it was written and is
 stale one step later. [`$rikugan`](../rikugan/SKILL.md) § 5 owns this: the `turn` variant,

@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.34.0 — susanoo and kagutsuchi may cut one declared tag
+
+- **`susanoo` § 5a cuts a BUILD tag** after an archive that returned exit `0` with every declared artifact present; **`kagutsuchi` § 4a cuts a DISTRIBUTION tag** after a `--run` send that returned exit `0`. One records that a binary exists, the other where it went. Before this, tag-cutting was `getsuga`'s alone and neither skill pushed anything.
+- **Opt-in per consuming repository**, through `nen/workflow.json` → `tags.archive` / `tags.deploy.<target>`. A repository declaring neither behaves exactly as before, which is what makes this canon for every consumer rather than one repository's fork.
+- **The tag NAME is the repository's**, read from a declared `nameFrom` file's first line — the repository writes it while building or sending, the only moment anything knows both the version and the build number. The name is treated as **data, never a command fragment**: resolved against the repo root, refused if it escapes it, read with the path quoted, and validated with `git check-ref-format` before anything is spawned with it.
+- **Species prefixes are mandatory** (`build/`, `dist/<target>/`). The three tag species share one namespace on `origin`, and `mugetsu` proves a release tag by its name resolving there — an unprefixed build tag could take a version name permanently, since nothing may delete or move a tag to recover. `mugetsu` § 3 now says in rule what the ruling said in prose: only `getsuga`'s release tag satisfies its precondition.
+- **The ancestor rule is stated correctly**: `--at` is refused unless that COMMIT is an ancestor of `origin/<trunk>`. It is not a rule about branches — a feature branch at the trunk's tip tags fine — and the earlier "a build from a feature branch cannot be tagged" was false in the reassuring direction. What keeps a tag from attesting the wrong bytes is the new **clean-tree condition**, not the branch name.
+- **`--trunk` is passed from `branch.base`**, never defaulted, or a consuming repository on `master` fails against a non-existent `origin/main`.
+- **The non-atomic push has one sanctioned remedy.** A rejected push leaves the name taken locally and absent on `origin`, which the verb then refuses forever; a local tag of that name, at that SHA, verified absent from `origin`, may be deleted and re-cut — the completion of an unfinished cut, not a re-tag.
+- Recorded as **Rulings of 2026-09-18** in `docs/ROSTER.md`.
+
 ## v0.33.0 — standalone entry: every skill reachable from a cold checkout
 
 - New authority `docs/STANDALONE-ENTRY.md`: the cold-start preamble (P1 warm up, P2 orient, P3 establish the delta, P4 elicit, P5 declare), the four inherited-state classes S1–S4, the per-surface option-picker matrix, and the two rules — every skill is reachable alone, and **no skill is ever indefinitely independent**.

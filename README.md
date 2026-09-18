@@ -36,6 +36,8 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 > generated into Codex and Cursor layouts under [`surfaces/`](surfaces/) — see [*Surfaces*](#surfaces).
 > **`v0.24.0` adds `byakugan`**: coverage capture and measurement, independent of tests; kotoamatsukami is unit, UI and integration suites only; gyo remains lint. The live skill surface is **thirty-nine**.
 > **`v0.27.0` adds `third-hand`**: wrap-up harvest after En. **`v0.28.0`**: it is a separate phase that starts once En has completed, not En step 8. Codex uses `request_user_input` and in-session spawn; Antigravity uses `ask_question` and `invoke_subagent` with `Workspace: inherit`. **`v0.29.0`**: Illumi's En watch uses Codex spawn; generated inventories are 41 skill files and 9 personas. **`v0.30.0`**: Hanten's cycle ledger is fail-closed — Breath `init`s it after the cut; `decide`/`record` refuse a missing file; load-mutate-save is locked. The merge remains G2 with no skill. The live skill surface is **forty**.
+> **`v0.34.0` — one declared tag.** `susanoo` and `kagutsuchi` may each cut a build or distribution tag after a green run, opt-in per repository, with the name the repository writes and a mandatory species prefix.
+>
 > **`v0.33.0` — standalone entry.** Every skill is reachable from a cold checkout, in any state.
 > [`docs/STANDALONE-ENTRY.md`](docs/STANDALONE-ENTRY.md) is the authority: a five-step preamble (warm
 > up, orient, establish the delta, elicit, declare), the four state classes a phase used to inherit
@@ -814,7 +816,7 @@ of the five. [`docs/WORKFLOW.md`](docs/WORKFLOW.md) § 4 is the authority.
 
 | Skill | | |
 |---|---|---|
-| `susanoo` | **atomic** | **Archive and packaging.** Runs the lane's declared `archive` and produces the distributable **locally**. It uploads nothing and signs nothing — Nen never synthesises signing material — and an unsupported seat is quoted, never routed around. This is the release unit `getsuga` folds into the release PR and the two phases below send. |
+| `susanoo` | **atomic** | **Archive and packaging.** Runs the lane's declared `archive` and produces the distributable **locally**. It uploads nothing and signs nothing — Nen never synthesises signing material — and an unsupported seat is quoted, never routed around. Where the repository declares `tags.archive`, it also cuts one build tag — the only thing it sends anywhere. This is the release unit `getsuga` folds into the release PR and the two phases below send. |
 | `kagutsuchi` | **atomic** | **Non-production upload — yours to call, per target.** The plan is always printed (`nen shu deploy --target <name>`, no `--run`); `--run` acts only on your own call **naming the target**, and never from a composite. `--target` is required with no default, even where exactly one destination is declared. |
 | `mugetsu` | **atomic** | **Publication — yours to call, per target, G3.** Only on your recorded per-target go, with the preflight green and the tag already cut. **One target per call**, and never from `getsuga`, `futon` or `en`. This is the only phase that reaches other people's users. |
 

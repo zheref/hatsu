@@ -196,6 +196,11 @@ which is why it lives there and not in `nen/contract.json`:
 |---|---|
 | `nameFrom` | A repo-relative path whose **first line is the tag name**. The repository's own `archive` row writes it. |
 | `push` | `true` pushes the tag to `origin`; `false` (or absent) cuts it locally only. |
+**Report which of the three the declaration was**, in § 8's block: **absent** (no `tags.archive` —
+the default, nothing owed), **present and well-formed**, or **present and malformed**. nen validates
+nothing here — an unknown key is preserved, so a typo like `tags.archiv` or a `nameFrom` of the
+wrong type produces *no tag and no error*, which is indistinguishable from "off" to a repository that
+meant to opt in. Saying which of the three was read is what makes off and broken tell apart.
 
 **The name is the REPOSITORY'S, never this skill's.** Susanoo does not compose a tag name, does not
 template one, and does not derive one from a version it read out of an artifact — it cannot know what
@@ -211,28 +216,126 @@ invented so that there is something to cut.
    nothing, ever.
 2. **Every declared artifact is present** (§ 5). A tag pointing at a commit whose release unit was
    never produced is worse than no tag: it is a claim.
-3. **Then, and only then**, the tag is cut:
+3. **The working tree is CLEAN at `--at`.** § 0's P2 already computes this and § 0 already names the
+   hazard — *"an archive built from a dirty checkout is a distributable that matches no commit"*. A
+   tag is the thing that makes that mismatch permanent and public: `--at HEAD` on a dirty tree
+   attests a commit whose bytes are not the bytes that were archived. Read the classification; a
+   dirty tree is a reported tag refusal, and the archive still stands.
+4. **Then, and only then**, the tag is cut:
 
 ```bash
-nen tag cut --repo <path> --name "$(head -n1 <nameFrom>)" --at <HEAD sha> [--push]
+# nameFrom is DATA, never a command fragment. Resolve it against --repo's root,
+# refuse it if it escapes that root, read the name with the path QUOTED and
+# `--` terminating options, and validate the name BEFORE anything is spawned
+# with it. A declaration is a policy file from another repository; it is
+# untrusted input, and `--name "$(head -n1 $nameFrom)"` would be one metacharacter
+# away from running that repository's shell command on this machine.
+root="$(git -C <path> rev-parse --show-toplevel)"
+file="$root/<nameFrom>"                       # relative to the REPO, not the process
+case "$(cd "$(dirname -- "$file")" && pwd -P)/" in
+  "$root"/*) : ;;
+  *) echo "nameFrom resolves outside the repository -- refused"; exit 2 ;;
+esac
+name="$(head -n1 -- "$file" | tr -d '\r')"
+[ -n "$name" ] || { echo "nameFrom's first line is empty -- refused"; exit 2; }
+git -C <path> check-ref-format "refs/tags/$name" \
+  || { echo "the declared tag name is not a legal git ref -- refused"; exit 2; }
+nen tag cut --repo <path> --name "$name" --at <HEAD sha> --trunk <branch.base> [--push]
 ```
+
+**`--trunk` is passed, never defaulted.** `nen tag cut` defaults it to `main`, and a consuming
+repository whose trunk is `master` would otherwise fail with *"Not a valid object name
+origin/main"* — the feature inoperable for a reason that names the wrong thing. The value is
+`nen/workflow.json` → `branch.base`, one key from the `tags` block already being read.
 
 `nen tag cut` is the verb and it is never improvised around: the tag is annotated, the name is
 refused if it already exists locally or on `origin` (**re-tagging is never the fix**), and `--at` is
 refused unless it is an ancestor of `origin/<trunk>`.
 
-### The refusal that will happen most, and what it means
+### The ancestor rule — what it actually says, which is NOT "not on a feature branch"
 
-**`--at` must be an ancestor of `origin/<trunk>`, so an archive built on a feature branch cannot be
-tagged.** That is nen's rule and susanoo does not route around it — not by tagging a different
-commit, not by pushing the branch first, not by dropping `--push` so that a local tag stands in for
-one nobody else can resolve.
+**It is a rule about the COMMIT, not about the branch, and stating it as a branch rule is wrong.**
+`--at` is refused unless that commit is an ancestor of `origin/<trunk>`. A feature branch cut at the
+trunk's tip and carrying no commits of its own has a `HEAD` that **is** such an ancestor, so it tags
+successfully; a branch carrying its own unpushed work does not. The honest sentence is: **a commit
+that is not yet on `origin/<trunk>` cannot be tagged.**
+
+This correction matters because the wrong version is reassuring in the wrong direction — it reads as
+though being on a branch were itself the protection, and it is not. What protects the tag from
+attesting the wrong bytes is the clean-tree condition in the order above, not the branch name.
+
+susanoo does not route around the refusal either way — not by tagging a different commit, not by
+pushing the branch first, not by dropping `--push` so that a local tag stands in for one nobody else
+can resolve.
 
 **A tag refusal never retroactively fails the archive.** The archive already succeeded; the release
 unit is on disk and § 8's block still reports it. The tag is reported as its **own line with its own
 verdict** — cut and pushed, cut locally, or refused with nen's reason quoted — and a run that
 archived cleanly and could not tag says both things, in that order. What is never done is letting the
 tag's failure read as the archive's, or the archive's success read as though the tag happened.
+
+### The name must not be able to impersonate a release tag
+
+**A build or distribution tag and [`/getsuga`](../getsuga/SKILL.md)'s release tag share one
+namespace on `origin`, and that is a hazard the declaration has to close.** `mugetsu` proves a
+release tag exists by its NAME resolving on `origin` — sound while only `getsuga` could put a name
+there, and a coincidence once anything else can. Worse, the collision is permanent: a build tag that
+takes `v1.2.0` makes the real `v1.2.0` uncuttable forever, and `mugetsu` forbids deleting or moving
+a tag to recover.
+
+So the declared name **must carry a species prefix** — `build/` for § 5a, `dist/<target>/` for
+[`/kagutsuchi`](../kagutsuchi/SKILL.md) § 4a — and a `nameFrom` first line that does not is a
+**reported refusal**, not a tag. A name matching a release-tag shape (`v<semver>`) is refused for the
+same reason even if the prefix is absent by accident rather than design.
+
+```bash
+case "$name" in
+  build/*) : ;;
+  *) echo "the declared tag name does not carry the 'build/' species prefix -- refused"; exit 2 ;;
+esac
+```
+
+### When the push fails after the tag was cut
+
+`nen tag cut --push` is **not atomic**: it creates the tag locally and then pushes, so a rejected
+push (a protected-tag rule, a lost credential, a process killed between the two) leaves the name
+taken locally and absent on `origin`. The verb then refuses that name forever — *"already exists
+locally -- never re-tagged"* — and every escape this section otherwise names is closed.
+
+**That one state has a sanctioned remedy, and it is the only one:** a local tag of the same name, at
+the same SHA, that is **not** on `origin` may be deleted and re-cut, because nothing was ever
+published and there is no history for anyone to have fetched. Verify both facts before touching it —
+`git tag --points-at` for the SHA and `git ls-remote --tags origin <name>` for the absence — and say
+that it was done. This is not a re-tag; it is the completion of one that never finished.
+
+### Inside `getsuga`, the tag step does not run
+
+[`/getsuga`](../getsuga/SKILL.md) § 3 builds the release unit **through susanoo**, before its
+release PR is merged — and getsuga's own § *Composition* states the invariant that makes that safe:
+*"A tag cut without a merged release PR would be a tag on a commit nobody approved."* A § 5a cut
+inside that run would be exactly such a tag, and it would also be a **push from inside a composite**,
+which no composite in this plane performs.
+
+**So when susanoo runs as getsuga's step 3, § 5a is skipped**, and the report says so in one line.
+The build tag is for a susanoo invoked on its own; the release tag is getsuga's, after the merge.
+
+### Why the declaration is enough, and no separate per-run word is asked
+
+`nen tag cut` makes `--push` an explicit per-invocation flag on purpose — *"a tag that exists only
+locally can be inspected and discarded; one already pushed to a shared remote cannot be un-cut"* —
+and `tags.archive.push` turns that per-invocation decision into a standing key. That is a real
+widening, and it is worth naming rather than glossing.
+
+**What makes it acceptable is that the carve-out above removes the only non-human path.** Susanoo
+reaches § 5a from exactly two places: inside [`/getsuga`](../getsuga/SKILL.md), where the tag
+step is now skipped, and from the maintainer invoking `/susanoo` directly — which is a human
+call naming this repository, at this moment, on this checkout. So every remaining path to a pushed
+tag has a person at the start of it, and a second confirmation inside the run would be the theatre
+[`/kagutsuchi`](../kagutsuchi/SKILL.md) § 1 refuses for the same reason.
+
+**If that ever stops being true** — a composite reaching susanoo without the carve-out, or a
+delegated session — the standing key is not enough on its own and this section is where the extra
+gate belongs.
 
 ### What this does NOT become
 
@@ -285,6 +388,11 @@ report, not re-typed), each step's own exit code and nen's, every declared artif
 size** with the by-hand read named, and — where any is `(absent)` — that fact first. On a run inside
 [`/getsuga`](../getsuga/SKILL.md) this block is the release unit's evidence and goes into the
 release PR body.
+
+**One line for the tag, always** (§ 5a): which of *cut and pushed* / *cut locally* / *refused, with
+nen's reason* / *not declared* / *skipped inside getsuga* happened, and — where the declaration was
+present but malformed — that it was read and rejected rather than silently ignored. A block that
+omits the tag line cannot be told apart from a run that never tried.
 
 **Say `built locally; nothing was uploaded`, every time.** Not as ceremony: an archive and an upload
 are one flag apart in most people's heads and the whole point of splitting the phases is that they
