@@ -3,6 +3,15 @@ name: en
 description: Take one open pull request from the moment it opens to verified readiness at its human G2/G4 gate, under a mandatory acting-cycle cap — the landing report, fresh current-head observation, Sharingan remediation, catch-up when behind, and the bell only at Ready. Use when hatsu:mukai hands over its PR, or when the maintainer invokes hatsu:en on <CODE>#<N> for a PR that is already open. Pending CI or review keeps the run active; quiet polls spend no cycle. En never merges and never casts a review vote. After this run completes, the regular pipeline's next phase is hatsu:third-hand — En does not own it.
 ---
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by
+`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
+trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+
+
+
 # En — the circle held around one PR until it is Ready
 
 **Nature: Manipulator.** Everything en does is board-facing — driving, reporting, ringing, watching.
@@ -68,6 +77,12 @@ nen ref format --code <CODE> --kind PR --number <N>
 
 **A closed or merged PR ends the run immediately** with what happened to it. There is nothing to
 land.
+
+**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
+contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
+from this run — the warm-up, the orientation, the change set and every derived argument — and
+re-deriving them would produce a second answer to a question this composite already settled. Each phase
+says which composite is holding it instead.
 
 ## 2. The cap — grammar, not a default
 

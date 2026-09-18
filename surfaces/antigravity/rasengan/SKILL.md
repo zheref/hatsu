@@ -4,6 +4,15 @@ description: Author the requested change and its focused tests on the declared s
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by
+`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
+trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+
+
+
 # Rasengan — the change itself, spun up on the repository's own stack
 
 **Nature: Enhancer** carries the ordinary run — rasengan writes the code that answers the request.
@@ -35,6 +44,32 @@ never pushes.**
 > repository's history is allowed to record it. **This file expands the earlier reading rather than
 > deleting its evidence**: §§ 5–10 are the same verbs, the same exit table and the same transcripts,
 > now seated in the loop they belong to.
+
+---
+
+## 0. Standalone entry — rasengan is deliberately caller-bound
+
+**Rasengan is the one phase [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4 names as bound to a caller by contract rather than by
+oversight**, and the reason is in § 1: rasengan authors *the change the request asks for*. The request is
+the input. There is no version of this skill that derives what to build from a checkout, and a phase that
+invented one would be guessing at the only thing in the turn that cannot be guessed.
+
+**So typed alone, it is not refused — it is completed.** `/rasengan <what to author>` carries its own
+request and runs exactly as `ren` step 2 does. A **bare** `/rasengan` has nothing to author: ask for
+the request through the surface's own picker or in one line, and **never infer it** from the last thing
+the session was doing (`ren` § 1's rule, for the same reason).
+
+**Two clauses of the contract apply.** **P1** — [`/hatsu-warmup`](../hatsu-warmup/SKILL.md) — and,
+where no [`/breath`](../breath/SKILL.md) ran, **say so**: authoring onto an unverified base is the
+one ordering relation `ren` § 2 names first, and a red base discovered later reads as this change's fault.
+Offer breath; it will read work-in-progress as a continuation and cut nothing.
+
+**It still commits nothing and pushes nothing** — [`/kokusen`](../kokusen/SKILL.md) holds the index —
+and its inner-loop checks are still the author's own feedback, never the commit gate.
+
+
+**Hand-back.** *Next in the wired run: `/kokusen` — verify the finished tree and commit it.
+Nothing here is staged, and the inner-loop checks are not the commit gate.*
 
 ---
 

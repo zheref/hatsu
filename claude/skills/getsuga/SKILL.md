@@ -3,6 +3,15 @@ name: getsuga
 description: Cut a release tag locally, end to end — preconditions, one folded release-proposal PR the maintainer merges, the post-merge tag, then the CON-22 fan-out. Use when the maintainer invokes hatsu:getsuga <hash | branch-name | main | last-commit | checkout>, or asks to cut a tag, cut a release, or ship a version. An off-main target is driven to main first, and susanoo builds the release unit. Never merges main, never publishes a release — publication is mugetsu's, per target, at G3 — and never tags a commit unreachable from origin/main.
 ---
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by
+`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
+trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+
+
+
 # Getsuga — one command from "cut it" to a tag on `main`
 
 **Nature: Emitter.** The release-tag cut is Kurapika's own duty (`CON-33(b)`/`CON-41`); the merges
@@ -89,6 +98,12 @@ before it can be tagged` — exit `1`, never a refusal to run.
 
 **A dirty `checkout` is never the cut point.** Hand it to
 [`hatsu:tensho`](../tensho/SKILL.md), which is the verb for that, and resume once its PR lands.
+
+**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
+contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
+from this run — the warm-up, the orientation, the change set and every derived argument — and
+re-deriving them would produce a second answer to a question this composite already settled. Each phase
+says which composite is holding it instead.
 
 ## 2. Preconditions — all of them, before a single write
 

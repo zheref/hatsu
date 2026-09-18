@@ -3,9 +3,9 @@ name: file
 description: File one well-formed, correctly-labelled, non-duplicate issue — reconciling it against the open backlog first. Use when the maintainer invokes hatsu:file <problem> <repo> or a bare hatsu:file (which files what the session has just been discussing), or asks to file, open, log or raise an issue. **Also execute the shared discovery protocol when authorized work exposes a durable workflow, machinery, or owner gap.** Process-chairman findings — constitution, canon prose, machinery enhancement, duration, redundancy, autonomy gaps, deterministic jobs still done by hand, missing toolchain — are **Netero's** completeness contract (`claude/agents/netero.md`; Codex: the Netero section of `AGENTS.md`): every declared classifying label, observable acceptance criteria, and cross-references for deployment, fan-out and provisioning. Kurapika searches for duplicates to amend, near-neighbours to fold into, and issues this supersedes before writing.
 ---
 
-**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
-`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
-repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
 those files (re-resolve through that skill if unavailable). Relative links below identify source
 locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
 filing. Never copy or invent a second policy in the target repository.

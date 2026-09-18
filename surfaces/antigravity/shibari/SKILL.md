@@ -4,6 +4,15 @@ description: Compose the pull request body and open the PR — why, how, what ch
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by
+`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
+trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+
+
+
 # Shibari — the work becomes a request for attention
 
 **Nature: Manipulator.** Opening a pull request is GitHub-side operation on shared state, whichever
@@ -36,6 +45,30 @@ fact behind it, the section says so; it does not get written from what the chang
 **It is the last writing step, not the finish.** The PR it opens is not ready;
 [`/en`](../en/SKILL.md) takes it from open to Ready, and this skill hands over rather than
 lingering.
+
+---
+
+## 0. Standalone entry — already total, with one derivation
+
+**Shibari is explicitly both**: § 1 says it runs as [`/mukai`](../mukai/SKILL.md)'s eighth step
+**and** that the maintainer may invoke it directly. [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4 lists it among the skills whose grammar is
+already total. **P1** applies — [`/hatsu-warmup`](../hatsu-warmup/SKILL.md).
+
+**P2 carries the one precondition a cold call can fail: the branch must already be pushed.** Shibari
+opens the PR *from the last pushed commit*, so read and state, before composing anything: the branch,
+whether it is published, and how many commits are **unpushed**. A branch with unpushed commits would open
+a PR that omits them — **stop and name [`/aka`](../aka/SKILL.md)**, which is the maintainer's call,
+rather than pushing on their behalf.
+
+**Where the evidence the body owes does not exist** — no `UZF-26` visual evidence, no test results, no
+coverage, because [`/hanten`](../hanten/SKILL.md), [`/kotoamatsukami`](../kotoamatsukami/SKILL.md)
+and [`/byakugan`](../byakugan/SKILL.md) did not run — **the body says that section is unavailable and
+why.** It is never filled with a plausible-looking table. Shibari still opens exactly one PR, derives the
+gate but never labels one, and never merges.
+
+
+**Hand-back.** *Next in the wired run: `/en` — the capped readiness loop on the PR this run
+opened. The merge itself is **G2** and has no skill.*
 
 ---
 

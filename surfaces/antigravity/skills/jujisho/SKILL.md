@@ -4,6 +4,15 @@ description: Split a mixed working copy into up to two stacked branches and PRs,
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by
+`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
+trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+
+
+
 # Jujisho — one working copy, two stacked PRs, nothing left behind
 
 **Nature: Enhancer** for product code, **Conjurer** for spec/governance, **Transmuter** for
@@ -66,6 +75,12 @@ trunk, dirty — cut every axis branch from the target base, never reflexively f
 `on-branch-dirty` (uncommitted work sits on an existing branch — read the evidence it hands back
 before assuming any of it is one of the axes), or `on-branch-clean`. It is a report, not a guard;
 the judgment of which axis the existing branch's commits belong to stays yours.
+
+**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
+contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
+from this run — the warm-up, the orientation, the change set and every derived argument — and
+re-deriving them would produce a second answer to a question this composite already settled. Each phase
+says which composite is holding it instead.
 
 ## 2. Find the axes — then say what you found before touching anything
 

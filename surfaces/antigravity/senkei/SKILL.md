@@ -4,6 +4,15 @@ description: Inventory a consuming product repo's own backlog — open epics, li
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by
+`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
+trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+
+
+
 # Senkei — inventory and drive a product repo's own backlog to G2-readiness
 
 **Nature: Manipulator.** GitHub-side ops/reporting over a product repo's own backlog. Kurapika
@@ -108,6 +117,12 @@ tree** — every row names a simulator only the machine knows — and says what 
 the status pass; a product repo with no `nen/contract.json` is a finding for **that repo's maintainer**,
 and writing the declaration is a PR into that repo at its own gate, never a `--write` this skill runs.
 Driving that repo's PRs to readiness (§ 4) does not depend on it.
+
+**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
+contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
+from this run — the warm-up, the orientation, the change set and every derived argument — and
+re-deriving them would produce a second answer to a question this composite already settled. Each phase
+says which composite is holding it instead.
 
 ## 2. Enumerate the target repo's backlog — `nen repo inventory`
 

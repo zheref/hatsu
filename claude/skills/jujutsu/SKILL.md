@@ -3,9 +3,9 @@ name: jujutsu
 description: Pair a new device with this machine and register it as a named launch target, once, for good — walk the maintainer through the on-device steps, verify with the platform's own probe, then write the target into nen/contract.json and open the declaration PR at G4. Use when the maintainer invokes hatsu:jujutsu pair <device>, asks to set up a new phone, tablet, simulator or desktop target, or when hatsu:amaterasu reports a launch target this machine cannot resolve. It never taps a trust prompt, never changes a security setting and never merges the declaration PR; simulators and the Mac desktop register through the same path.
 ---
 
-**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md` and
-`docs/LAUNCH-MIGRATION.md` belong to the resolved **Hatsu plugin root**, not the consuming
-repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
+`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
 those files (re-resolve through that skill if unavailable). Relative links below identify source
 locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
 filing. Never copy or invent a second policy in the target repository.

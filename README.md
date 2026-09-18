@@ -36,6 +36,17 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 > generated into Codex and Cursor layouts under [`surfaces/`](surfaces/) — see [*Surfaces*](#surfaces).
 > **`v0.24.0` adds `byakugan`**: coverage capture and measurement, independent of tests; kotoamatsukami is unit, UI and integration suites only; gyo remains lint. The live skill surface is **thirty-nine**.
 > **`v0.27.0` adds `third-hand`**: wrap-up harvest after En. **`v0.28.0`**: it is a separate phase that starts once En has completed, not En step 8. Codex uses `request_user_input` and in-session spawn; Antigravity uses `ask_question` and `invoke_subagent` with `Workspace: inherit`. **`v0.29.0`**: Illumi's En watch uses Codex spawn; generated inventories are 41 skill files and 9 personas. **`v0.30.0`**: Hanten's cycle ledger is fail-closed — Breath `init`s it after the cut; `decide`/`record` refuse a missing file; load-mutate-save is locked. The merge remains G2 with no skill. The live skill surface is **forty**.
+> **`v0.33.0` — standalone entry.** Every skill is reachable from a cold checkout, in any state.
+> [`docs/STANDALONE-ENTRY.md`](docs/STANDALONE-ENTRY.md) is the authority: a five-step preamble (warm
+> up, orient, establish the delta, elicit, declare), the four state classes a phase used to inherit
+> from its caller, and the per-surface option-picker matrix. Twenty skills carry a `## 0. Standalone
+> entry` section — thirteen that derive state cold, seven that add the warm-up and expectations only.
+> The delta default everywhere is the **fetched `origin/<branch.base>`**, committed and uncommitted
+> together; the base is stated always and overridable only where the skill's grammar declares a
+> clause, and a fetch that cannot run is a stop rather than a silent fall-back to the local ref. **No skill is ever indefinitely
+> independent**: a standalone run absorbs no later phase, creates no standing authority, crosses no
+> gate the wired run would not cross, and ends by naming its successor. `G3` is unmoved.
+
 > **Attribution ruling, 2026-09-12:** prospective commits carry the truthful canonical
 > `Hatsu-Agent` or `Akatsuki-Agent` persona/plane trailer. They never carry model, surface, runtime, or
 > session attribution. The final `## Agent attribution` PR-body section records actual participants with
