@@ -46,19 +46,35 @@ not start it**. The contract is [`docs/STANDALONE-ENTRY.md`](../../../docs/STAND
 this section covers the one fact § 1 leaves to context. **Started by the maintainer right after En has
 returned, that context exists and this section is a formality; say so and move on.**
 
+**P1 · Warm up, unconditionally.** [`/hatsu-warmup`](../hatsu-warmup/SKILL.md) — the contract's
+first step, and it is not waived by this phase being terminal. Everything below reaches for the Nen
+parser and the surface's picker, so a direct call on an unwarmed host fails *before* the harvest
+starts, with `D10` unsatisfied and nothing to show for it. **Skipped when a composite is holding the
+run**, which has already warmed.
+
 **The state class Third-Hand inherits is `S3` — "this sitting".** § 1 resolves a clause-less
 invocation to *the PR En is holding, or the branch this session cut*. Typed by hand into a checkout
 that never ran En, neither exists until they are read off the checkout.
 
-**P2 · Resolve the sitting, in this order, and name what it resolved to:**
+**P2 · Resolve the sitting, in this order, and name what it resolved to.** The table is **total** —
+every checkout lands on exactly one row, and none falls through to the harvest with its sitting
+unnamed. **`git fetch origin` runs before any row that compares against the base**, and the resolved
+ref is named; a fetch that cannot run is a stop, per
+[`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 3 · P3, because a sitting selected
+off a stale tracking ref is a sitting selected off somebody else's tree.
 
 | Signal | The sitting |
 |---|---|
 | An `on <CODE>#<N>` clause | That reference. It always wins |
 | A PR En held in **this session** | That PR |
 | **Exactly one open PR** for the current branch (`gh pr list --head <branch> --state open`) | That PR |
-| A feature branch with commits since the fetched `origin/<branch.base>` and no PR | **That branch**, named with its commit count. A harvest does not require a PR |
+| **Two or more open PRs** for the current branch | **Ambiguity stop.** Ask through the surface's own picker which one, listing number, title and base — or for `on <CODE>#<N>`. **Never the newest, never a fall-through**: a harvest attributed to the wrong PR is worse than no harvest |
+| A feature branch with commits since the **fetched** `origin/<branch.base>` and no PR | **That branch**, named with its commit count and the base it was compared against. A harvest does not require a PR |
+| A feature branch with **no commits** since that base, **dirty** | **The uncommitted work is the sitting.** Name every path. Friction observed while writing them is still friction observed |
+| A feature branch with no commits since that base, **clean** | Stop — nothing was executed here to observe |
+| The **trunk**, **dirty** | **The uncommitted work is the sitting**, named by path — and say that it is on the trunk, because that is itself worth harvesting |
 | The **trunk**, clean, no session history | Stop. There is no sitting to harvest. Say so — **do not** harvest the repository in general, which is [`/file`](../file/SKILL.md)'s and [`/backlog-synthesis`](../backlog-synthesis/SKILL.md)'s work, not this skill's |
+| **Detached `HEAD`** | Classified, not refused. Report the commits it holds and **ask** what the sitting is — a detached checkout names no branch, so nothing below can be derived from one |
 
 **The friction being harvested is this sitting's, and a cold entry narrows rather than widens it.**
 Netero observes *Hunters in execution*; where the session did not execute anything, there is nothing
