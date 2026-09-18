@@ -376,53 +376,55 @@ five remaining bench profiles stay exactly as they were.
 
 ---
 
-## Rulings of 2026-09-18
+## Rulings of 2026-09-18, corrected 2026-09-19
 
-### Susanoo and Kagutsuchi may cut one declared tag — opt-in, and nothing else changes
+### A tag records a build that LANDED — so kagutsuchi cuts it, and susanoo only names it
 
-**Ruled 2026-09-18.** A release unit nobody can point at afterwards is a release unit nobody can
-rebuild, and a TestFlight build with no ref is a binary whose provenance lives only in App Store
-Connect. The maintainer asked for a tag per archive and a tag per send. Before this ruling neither
-skill could: `susanoo` pushed nothing at all, `kagutsuchi`'s Authority named a tag among what it may
-not do, and tag-cutting belonged to [`hatsu:getsuga`](../claude/skills/getsuga/SKILL.md) alone.
+**Ruled 2026-09-18; corrected 2026-09-19 after the maintainer read the first shape.** The original
+ruling had **two** tag species: a build tag from [`hatsu:susanoo`](../claude/skills/susanoo/SKILL.md)
+after a green archive, and a distribution tag from
+[`hatsu:kagutsuchi`](../claude/skills/kagutsuchi/SKILL.md) after a send. That was wrong, and the
+maintainer said so plainly: *susanoo should tell us she wants a tag, not cut one* — the cut belongs to
+the moment a build actually lands.
 
-1. **[`hatsu:susanoo`](../claude/skills/susanoo/SKILL.md) § 5a may cut a BUILD tag** after an
-   archive that came back exit `0` with every declared artifact present, and
-   **[`hatsu:kagutsuchi`](../claude/skills/kagutsuchi/SKILL.md) § 4a may cut a DISTRIBUTION tag**
-   after a `--run` send that came back exit `0`. One records that a binary exists; the other records
-   where it went. They are different facts, and a repository may want either, both or neither.
-2. **It is OPT-IN, per repository, and off by default.** The consuming repository declares
-   `nen/workflow.json` → `tags.archive` / `tags.deploy.<target>`. **A repository that declares
-   neither behaves exactly as it did before this ruling** — which is what makes this safe to land as
-   canon for every consumer rather than as a KroApple-local change.
-3. **The NAME is the repository's, never the skill's.** Each block names a `nameFrom` path whose
-   first line is the tag; the repository writes it while it is building or sending, the only moment
-   anything knows both the version and the build number. Neither skill composes, templates or
-   derives a tag name — a skill forbidden to know a stack's name cannot know what its version means.
-4. **`nen tag cut` is the verb, and its refusals stand.** Annotated, never re-tagged, and `--at`
-   refused unless that COMMIT is an ancestor of `origin/<trunk>`. **That is a rule about the commit,
-   not the branch** — a feature branch sitting at the trunk's tip tags fine — so the honest statement
-   is *a commit not yet on `origin/<trunk>` cannot be tagged*. What keeps a tag from attesting the
-   wrong bytes is a separate condition: **the working tree must be clean at `--at`**, because a tag
-   over a dirty tree names a commit whose bytes were never what was archived. `--trunk` is passed
-   from `branch.base`, never defaulted.
-4a. **The declared name carries a species prefix** — `build/`, `dist/<target>/` — and one that does
-   not is a reported refusal. The three species share one namespace on `origin`, and `mugetsu` proves
-   a release tag by its name resolving there; an unprefixed build tag can take a version name
-   permanently, since nothing may delete or move a tag to recover.
-4b. **`--push` is not atomic.** A rejected push leaves the name taken locally and absent on `origin`,
-   which the verb then refuses forever. One sanctioned remedy: a local tag of that name, at that SHA,
-   verified absent from `origin`, may be deleted and re-cut — the completion of an unfinished cut,
-   not a re-tag.
-5. **A tag refusal never retroactively fails the thing that already happened.** The archive is on
-   disk; the upload is sent. Two verdicts, reported separately, in that order, every time.
-6. **Nothing else moves.** A cut tag authorises nothing: `kagutsuchi` is still the maintainer's own
-   per-target call, **`mugetsu` is still G3 and still cuts no tag of its own**, and `getsuga` still
-   owns the *release* tag with its CHANGELOG section and fan-out. This ruling adds a
-   build/distribution tag species beside that one; it does not redefine it.
+**The symmetry the corrected ruling states:**
+
+| Event | Artifact |
+|---|---|
+| a TestFlight (or other non-production) upload succeeds | **a tag**, cut by `kagutsuchi` § 4a |
+| Apple approves a release | **a GitHub release**, created by the consuming repository's own automation |
+
+1. **`susanoo` cuts nothing and pushes nothing.** § 5a reads `nen/workflow.json` → `tags.announce`
+   and **names** the tag that is coming, in one line of its report. Its long-standing property is
+   intact and literal again: *nothing leaves this machine.*
+2. **`kagutsuchi` § 4a cuts the one tag**, after a `--run` send that returned exit `0`, from
+   `tags.deploy.<target>`. One artifact that reached a destination is one tag. A build that was never
+   sent has nothing to point at, and a permanent public ref for it was the defect.
+3. **Opt-in per repository and off by default**, both blocks. A repository declaring neither behaves
+   exactly as it did before, which is what makes this canon for every consumer.
+4. **The name is the repository's**, read from a declared `nameFrom` as **data** — never templated
+   into shell source, symlinks refused, out-of-tree paths refused, validated with
+   `git check-ref-format` before anything is spawned.
+5. **`nen tag cut`'s refusals stand.** `--at` must be an ancestor of `origin/<trunk>` — a rule about
+   the COMMIT, not the branch, so a feature branch at the trunk's tip tags fine. What keeps a tag
+   from attesting the wrong bytes is a separate **clean-tree** condition. `--trunk` comes from
+   `branch.base`, never defaulted.
+6. **The name carries a species prefix** (`dist/<target>/`). It shares one namespace on `origin` with
+   `getsuga`'s release tag, and `mugetsu` proves a release tag by its name resolving there — an
+   unprefixed tag could permanently take a version nothing may delete. `mugetsu` § 3 says so in rule.
+7. **`--push` is not atomic.** A rejected push leaves the name taken locally and absent on `origin`,
+   which the verb then refuses forever; the one sanctioned remedy is deleting and re-cutting a local
+   tag of that name, at that SHA, **verified absent from `origin`** — the completion of an unfinished
+   cut, not a re-tag.
+8. **Nothing else moves.** A cut tag authorises nothing, `mugetsu` is still G3 and still cuts no tag,
+   and `getsuga` still owns the release tag with its CHANGELOG section and fan-out.
+
+**What the correction removed.** The `build/` species, `tags.archive`, susanoo's push permission, and
+the `getsuga` carve-out that existed only because susanoo could cut mid-composite. With susanoo
+cutting nothing, none of them has anything to govern.
 
 **What this does not close.** Everything the ruling of 2026-09-15 left open stays open, and no gate
-moved: the five human-called phases are still five, and G2/G3/G4 are still the maintainer's.
+moved.
 
 ---
 

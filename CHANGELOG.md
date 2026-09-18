@@ -1,15 +1,16 @@
 # Changelog
 
-## v0.34.0 — susanoo and kagutsuchi may cut one declared tag
+## v0.34.0 — a tag records a build that landed
 
-- **`susanoo` § 5a cuts a BUILD tag** after an archive that returned exit `0` with every declared artifact present; **`kagutsuchi` § 4a cuts a DISTRIBUTION tag** after a `--run` send that returned exit `0`. One records that a binary exists, the other where it went. Before this, tag-cutting was `getsuga`'s alone and neither skill pushed anything.
-- **Opt-in per consuming repository**, through `nen/workflow.json` → `tags.archive` / `tags.deploy.<target>`. A repository declaring neither behaves exactly as before, which is what makes this canon for every consumer rather than one repository's fork.
-- **The tag NAME is the repository's**, read from a declared `nameFrom` file's first line — the repository writes it while building or sending, the only moment anything knows both the version and the build number. The name is treated as **data, never a command fragment**: resolved against the repo root, refused if it escapes it, read with the path quoted, and validated with `git check-ref-format` before anything is spawned with it.
-- **Species prefixes are mandatory** (`build/`, `dist/<target>/`). The three tag species share one namespace on `origin`, and `mugetsu` proves a release tag by its name resolving there — an unprefixed build tag could take a version name permanently, since nothing may delete or move a tag to recover. `mugetsu` § 3 now says in rule what the ruling said in prose: only `getsuga`'s release tag satisfies its precondition.
-- **The ancestor rule is stated correctly**: `--at` is refused unless that COMMIT is an ancestor of `origin/<trunk>`. It is not a rule about branches — a feature branch at the trunk's tip tags fine — and the earlier "a build from a feature branch cannot be tagged" was false in the reassuring direction. What keeps a tag from attesting the wrong bytes is the new **clean-tree condition**, not the branch name.
-- **`--trunk` is passed from `branch.base`**, never defaulted, or a consuming repository on `master` fails against a non-existent `origin/main`.
+- **`kagutsuchi` § 4a cuts the tag**, after a `--run` send that returned exit `0`, from `nen/workflow.json` → `tags.deploy.<target>`. One artifact that reached a destination is one tag.
+- **`susanoo` § 5a cuts nothing.** It reads `tags.announce` and *names* the tag that is coming, in one line of its report. Its standing property — *nothing leaves this machine* — is literal again.
+- The symmetry, in the maintainer's own terms: **an upload that succeeds becomes a tag, and a release Apple approves becomes a GitHub release.** A build that was never sent has nothing to point at, and a permanent public ref for one was the defect in the first shape of this ruling.
+- **Opt-in per consuming repository**, both blocks, off by default. A repository declaring neither behaves exactly as before.
+- **The name is the repository's**, read from a declared `nameFrom` as **data**: never templated into shell source (`$(…)` inside double quotes is command substitution), symlinks refused rather than followed, out-of-tree paths refused, empty first line refused, and validated with `git check-ref-format` before anything is spawned.
+- **A species prefix is mandatory** (`dist/<target>/`). The tag shares one namespace on `origin` with `getsuga`'s release tag, and `mugetsu` proves a release tag by its name resolving there — an unprefixed tag could permanently take a version nothing may delete. `mugetsu` § 3 now says in rule that only `getsuga`'s release tag satisfies its precondition.
+- **The ancestor rule is stated correctly**: `--at` is refused unless that COMMIT is an ancestor of `origin/<trunk>` — not a rule about branches, since a feature branch at the trunk's tip tags fine. What keeps a tag from attesting the wrong bytes is the **clean-tree** condition. `--trunk` comes from `branch.base`, never defaulted.
 - **The non-atomic push has one sanctioned remedy.** A rejected push leaves the name taken locally and absent on `origin`, which the verb then refuses forever; a local tag of that name, at that SHA, verified absent from `origin`, may be deleted and re-cut — the completion of an unfinished cut, not a re-tag.
-- Recorded as **Rulings of 2026-09-18** in `docs/ROSTER.md`.
+- Recorded as **Rulings of 2026-09-18, corrected 2026-09-19** in `docs/ROSTER.md`.
 
 ## v0.33.0 — standalone entry: every skill reachable from a cold checkout
 

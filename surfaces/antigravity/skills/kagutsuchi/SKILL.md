@@ -215,11 +215,14 @@ authorization only while it is the same target under the same call; anything els
 ### 4a. The distribution tag — OPT-IN, and only after the send succeeded
 
 **A repository may ask for what was just sent to be marked with a tag** (maintainer's ruling of
-2026-09-18). It records *distribution*, which is a different fact from
-[`/susanoo`](../susanoo/SKILL.md) § 5a's build tag recording *construction*: one says this
-binary exists, the other says this binary went to that destination. A repository may declare either,
-both, or — the default — **neither**, and one with no `tags.deploy` block behaves exactly as it did
-before this section existed.
+2026-09-18, corrected 2026-09-19). **This is the one tag**, and it is cut here because here is where a
+build actually lands: an upload that succeeded is a thing that can be pointed at, and an archive that
+never left the machine is not. [`/susanoo`](../susanoo/SKILL.md) § 5a only NAMES the tag that is
+coming; it cuts nothing.
+
+The symmetry the ruling states: **an upload that succeeds becomes a tag, and a release Apple approves
+becomes a GitHub release.** A repository may declare this block or not — the default is not — and one
+that does not behaves exactly as it did before.
 
 The declaration is `nen/workflow.json` → `tags.deploy`, per target:
 
@@ -290,8 +293,8 @@ clean working tree at `--at`, which is a condition of the order above.** `--trun
 `nen/workflow.json` → `branch.base` rather than defaulted, or a repository whose trunk is `master`
 fails against a non-existent `origin/main`.
 
-**The name must carry its species prefix** — `dist/<target>/` here, `build/` in
-[`/susanoo`](../susanoo/SKILL.md) § 5a — and a first line that does not is a reported refusal.
+**The name must carry its species prefix** — `dist/<target>/` — and a first line that does not is a
+reported refusal.
 A distribution tag sharing `getsuga`'s release namespace can take a version name permanently:
 `mugetsu` proves a release tag by its name resolving on `origin`, and forbids deleting one to
 recover.

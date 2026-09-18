@@ -624,8 +624,8 @@ destination is a go for *that* destination: `--target` is required with no defau
 is declared, and a second destination is a second call the maintainer makes. Neither phase is ever reached
 from a composite — not from [`futon`](../claude/skills/futon/)'s `then` clause, not from
 [`getsuga`](../claude/skills/getsuga/), not from [`en`](../claude/skills/en/) — and the release unit both
-of them send is built by [`susanoo`](../claude/skills/susanoo/), which uploads nothing itself — and,
-where the repository declares `tags.archive`, cuts one build tag, the only thing it sends anywhere.
+of them send is built by [`susanoo`](../claude/skills/susanoo/), which uploads nothing itself and
+cuts no tag — where the repository declares `tags.announce` it names the tag `kagutsuchi` will cut.
 
 Asking *"shall I push now?"* at the end of a turn is how a human-called phase becomes an agent-called one by
 attrition. The loop simply stops and waits.
