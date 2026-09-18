@@ -18,7 +18,7 @@ as an **Artifact**, so the maintainer reads it in the panel he is already in. Fo
 > source of truth and no per-surface variant of the data.
 
 > **Read-only, without exception.** Inherited verbatim from `backlog-state`. This skill renders
-> state. It never applies a label, merges, pushes, opens, closes or comments. If reading the board
+> state. It never applies a label itself, merges, pushes, opens, closes or comments. If reading the board
 > makes the next action obvious, **say what the action is on the board** — do not take it.
 
 ---

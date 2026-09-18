@@ -164,7 +164,7 @@ that starts `en`/`sharingan`. **That handoff is Mukai's successful terminus.** E
 only when the pull request is verified Ready at its derived human gate or reaches one of En's governed
 non-success termini.
 
-**Never produces:** a merge, a gate label, a review vote, a tag, a release, a deploy. Opening the PR is
+**Never produces:** a merge, a gate label *of its own*, a review vote, a tag, a release, a deploy. Opening the PR is
 followed by the landing report and immediate En handoff; **that completed handoff ends Mukai**. It does
 not end the invoking user turn or make the PR Ready. `en` and
 [`hatsu:sharingan`](../sharingan/SKILL.md) take ownership from there, and En's successful terminus is
@@ -277,7 +277,7 @@ it is how the page stops being read.
   permitted, under their own authority, one at a time, in § 2's order — including step 6's update
   push, step 8's single `gh pr create` and, where the stack declares `public-mirror`, its own
   evidence-publish step (§ 1).
-- **Not permitted:** anything none of them may do — and specifically **no merge, no gate label, no
+- **Not permitted:** anything none of them may do — and specifically **no merge, no gate label of its own, no
   review vote, no tag, no release, no deploy, no force-push**, whatever the run turns up. A finding
   that would need one of those is reported and the run stops.
 - **Mukai grants no delegation of its own.** Composing a skill does not widen what that skill may
@@ -290,7 +290,7 @@ it is how the page stops being read.
 
 - **Never runs unasked**, and **never prompts for itself** — no agent, skill, report or stop option
   proposes `hatsu:mukai` (§ 1).
-- **Never merges**, never applies a gate label, never casts a review vote (§ 3).
+- **Never merges**, never applies a gate label itself, never casts a review vote (§ 3).
 - **Never opens more than one pull request**, and never one carrying two unrelated efforts (§ 3).
 - **Never opens a PR from a run that stopped** at any of § 4's four G5s.
 - **Never lowers the coverage bar to clear step 5**, and never re-reads a stale coverage artifact as

@@ -31,7 +31,7 @@ indefensible. `nen pr ready` is the Nen-native port of that same authority — b
 from `cli/src/ports/pr_ready_gate.ts`, and proven against the live shadow window (`docs/ab/pr-state.md`
 § 2) rather than merely asserted — so the rule below binds identically to it.
 
-> **Read-only, without exception.** This skill renders a verdict. It never applies a label, merges,
+> **Read-only, without exception.** This skill renders a verdict. It never applies a label itself, merges,
 > pushes, opens, closes or comments — not even when the verdict is `ready` and the merge is obvious.
 > Acting on a PR is [`sharingan`](../sharingan/SKILL.md)'s job — this skill's own scope stops at reporting
 > `ready`.

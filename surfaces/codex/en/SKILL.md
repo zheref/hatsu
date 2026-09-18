@@ -410,7 +410,14 @@ returned. Harvesting is that phase's, not En's.
    timer, no background pass, no deferral primitive anywhere in this plane. **The long watch itself
    is no longer a gap** — [`illumi.md`](../../agents/illumi.md) landed at `v0.5.0` and step 5 hands
    to `en · illumi`, which buys attention for hours; **persistence past the session is what remains
-   unavailable**, and it is named rather than improvised around. The rest of Illumi's row
+   unavailable *in this plane*, and it is named rather than improvised around. Since `v0.38.0` it is
+   supplied from OUTSIDE the plane instead**: `.github/workflows/pr-readiness.yml` is a
+   `pull_request_target` job that re-runs `nen pr ready` on every event that can change the answer
+   and publishes the verdict as the `readiness` check run. It is not a watch and grants En nothing —
+   it never merges, votes, comments or wakes, and En still claims and caps its own cycles exactly as
+   above. What it removes is the failure this section could not previously prevent: **a PR that
+   became Ready after the session ended used to tell nobody, and now the PR itself carries the
+   verdict.** The rest of Illumi's row
    (`backlog-loop`, `futon`, `senkei`) stays `OPEN-1` and unreachable from here.
 
 ## Authority
@@ -419,7 +426,7 @@ returned. Harvesting is that phase's, not En's.
   one at a time, in § 3's order — and **per cycle, resolved fresh**. `izanagi` § 2's rule:
   authority never accumulates across iterations, and a run-scoped delegation granted inside a step
   expires with that step.
-- **Not permitted:** **any merge**; any gate label; any review vote — `request_changes` above all;
+- **Not permitted:** **any merge**; any gate label *applied by this skill*; any review vote — `request_changes` above all;
   any force-push; any `--no-verify`; any tag, release or deploy. A landing that would need one of
   those is reported and the run stops.
 - **En grants no delegation of its own**, and its own long run does not become standing authority

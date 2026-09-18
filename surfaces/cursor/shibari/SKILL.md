@@ -387,6 +387,17 @@ gate.
 and readiness is [`/sharingan`](../sharingan/SKILL.md)'s verdict inside
 [`/en`](../en/SKILL.md), decided by `nen pr ready` after this run has ended.
 
+> **The refusal is about WHO ASSERTS, not about whether readiness may be written down.** What this
+> paragraph forbids is an *agent* claiming readiness — at a moment when, by construction, readiness
+> has not been decided yet. It does not forbid the decided verdict being published. Since
+> `v0.38.0` the `readiness` check run (`.github/workflows/pr-readiness.yml`) carries exactly that:
+> a deterministic `pull_request_target` job that runs `nen pr ready --explain` on every event that
+> can change the answer and writes the verb's own output onto the PR, with no agent in the loop and
+> no judgement of its own. That is this paragraph's reasoning carried out rather than an exception
+> to it — the claim still comes from `nen pr ready`, and now it also *persists*, which is the half
+> a session could never supply. **Nothing changes for this skill: shibari still never labels, and
+> never writes that check.**
+
 ## 8. Write the body back
 
 The body is drafted, checked (§ 7), and only then attached. Where the PR is opened with

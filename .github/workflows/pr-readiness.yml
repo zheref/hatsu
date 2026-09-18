@@ -1,0 +1,205 @@
+# pr-readiness — publish `nen pr ready`'s own verdict onto the pull request.
+#
+# THE PROBLEM THIS EXISTS FOR. The readiness computation has always been right
+# and has never been anywhere. `nen pr ready` evaluates CON-42/1 mergeability,
+# CON-32(a) checks, CON-32(b) reviewer rounds, CON-32(b)/CON-16 approvals and
+# CON-32(d) unresolved threads — exactly the five things the maintainer asks to
+# be told about. But the verdict only ever existed inside a session's terminal
+# or a rikugan report, so the only way to learn a PR had reached its gate was to
+# ask a session to go and look. A PR that became ready overnight told nobody.
+# This job runs the same verb on the repository's own machinery, on every event
+# that can change the answer, and writes the result where GitHub already shows
+# it.
+#
+# WHY A CHECK RUN AND NOT A LABEL OR A TITLE.
+#   * A LABEL needs `pull-requests: write`. `scripts/workflow_runner_policy_check.rb`
+#     refuses any workflow permission other than `checks: write` — deliberately,
+#     because a `pull_request_target` job holds a credential the PR's own head
+#     must never reach. Relaxing that to hang a label is a real widening of this
+#     repository's CI trust boundary, and that is the maintainer's call (G4), not
+#     a side effect of wanting a nicer signal.
+#   * A TITLE PREFIX was what the maintainer originally asked for, and it is the
+#     one option this job deliberately does not take. The title is authored
+#     content: `hatsu:shibari` composes it as a Conventional-Commits subject and
+#     it becomes the squash-merge commit subject that `nen commit format` then
+#     validates. A machine rewriting it on every event corrupts the commit
+#     history the repository derives from it. It would also churn hard — every
+#     push changes the head, which re-owes every reviewer round, which flips the
+#     verdict — so the title would rewrite itself on essentially every event.
+#   * A CHECK RUN persists, survives every session, appears in the merge box and
+#     in the PR list, costs no new permission, and is already how both existing
+#     workflows report. It is the signal this repository can actually carry.
+#
+# WHY THE CONCLUSION IS ALWAYS `success`, AND WHY THAT IS NOT A FUDGE. CON-32(a)
+# requires every reported check to be green. A readiness check that concluded
+# `failure` while a PR was not yet ready would itself be a red check on that PR
+# — so CON-32(a) could never pass, so the PR could never become ready, so the
+# check could never go green. The signal would make the thing it measures
+# unreachable. The verdict therefore rides in the check's TITLE and SUMMARY,
+# which is where a human reads it anyway, and the conclusion stays `success` so
+# the gate it reports on is not the gate it breaks. `--exclude-run` drops this
+# run's own checks from the evaluation for the same self-reference reason, which
+# is what nen documents that flag for.
+#
+# DETERMINISTIC AND AGENT-FREE, and that is the whole point. The nine skills that
+# refuse to apply a gate label refuse it for a stated reason — `shibari` § 7:
+# "Applying a gate label is a claim about readiness, and readiness is … decided
+# by `nen pr ready`." The objection is to an AGENT asserting readiness, not to
+# readiness being written down. This job asserts nothing: it runs the verb and
+# publishes the bytes the verb produced. It is the refusals' own reasoning
+# carried out, not an exception to them.
+#
+# Hardening is inherited from `plugin-bump-check.yml` unchanged: the guard code
+# and the nen pin come from the trusted workflow revision, never from the PR;
+# both checkouts set `persist-credentials: false`; the job is same-repository
+# only; and the pinned ref reaches the shell through `env`, never through a
+# `${{ }}` expansion inside a `run:` block.
+#
+# ENFORCEMENT POSTURE (2026-09-19): ADVISORY. This check is not listed in any
+# ruleset and must not be made required — it is `success` on every PR by
+# construction, so requiring it would assert nothing. It is a notification, and
+# the merge decision stays exactly where it was.
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: pr-readiness-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  checks: write
+  contents: read
+  pull-requests: read
+
+jobs:
+  readiness:
+    if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Start check on the exact PR head
+        id: head_check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          id="$(gh api --method POST "repos/${REPO}/check-runs" -f name=readiness -f head_sha="$HEAD_SHA" -f status=in_progress --jq .id)"
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout PR head (data only — nothing from here is executed)
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Checkout guard code from the trusted workflow revision
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          path: .trusted
+          persist-credentials: false
+
+      - name: Enforce workflow runner policy from trusted workflow revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          ruby .trusted/scripts/workflow_runner_policy_check.rb --self-test "$PWD"
+
+      - name: Read the pinned nen ref from trusted nen/contract.json
+        # Identical in intent and in shape to surface-mirror-check.yml's own pin
+        # step: the trusted contract is the single source of truth for the nen
+        # dependency, and the value is shape-checked before it reaches a URL.
+        id: pin
+        shell: bash
+        run: |
+          set -euo pipefail
+          ref="$(jq -r '.dependency.pinned_ref // empty' .trusted/nen/contract.json)"
+          [ -n "$ref" ] || { echo "::error::nen/contract.json carries no dependency.pinned_ref."; exit 1; }
+          case "$ref" in
+            *..*|*//*) echo "::error::dependency.pinned_ref '$ref' is not a valid git ref (contains '..' or '//')."; exit 1 ;;
+          esac
+          if [[ ! "$ref" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$ ]]; then
+            echo "::error::dependency.pinned_ref is not a plain git ref ([A-Za-z0-9][A-Za-z0-9._/-]{0,99}); refusing to use it in a URL or a shell."
+            exit 1
+          fi
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "pinned nen ref: $ref"
+
+      - name: Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)
+        id: nen
+        env:
+          PINNED_REF: ${{ steps.pin.outputs.ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ref="$PINNED_REF"
+          url="https://raw.githubusercontent.com/zheref/nen/${ref}/bootstrap/nen.sh"
+          curl -fsSL "$url" -o "${RUNNER_TEMP}/nen-bootstrap.sh"
+          bin="$(bash "${RUNNER_TEMP}/nen-bootstrap.sh" --ref "$ref")"
+          [ -x "$bin" ] || { echo "::error::bootstrap printed '$bin', which is not executable."; exit 1; }
+          echo "bin=$bin" >> "$GITHUB_OUTPUT"
+          echo "nen: $("$bin" --version) at $bin"
+
+      - name: Readiness verdict
+        # The reviewer identities come from the TRUSTED gates file, never the
+        # PR's copy — a PR that could edit the gate judging it is worth nothing,
+        # the same reason the guard code is trusted-only. `--gates` takes an
+        # absolute path so it is not resolved against --repo's root.
+        id: verdict
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEN: ${{ steps.nen.outputs.bin }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          set +e
+          explain="$("$NEN" pr ready "$PR" --gh-repo "$REPO" --explain \
+            --gates "$PWD/.trusted/nen/gates.json" \
+            --exclude-run "$RUN_ID" 2>&1)"
+          rc=$?
+          set -e
+          printf '%s\n' "$explain"
+          case "$rc" in
+            0) title="ready — this PR has reached its gate" ;;
+            1) title="$("$NEN" pr ready "$PR" --gh-repo "$REPO" \
+                 --gates "$PWD/.trusted/nen/gates.json" \
+                 --exclude-run "$RUN_ID" 2>&1 | head -1)" ;;
+            *) title="readiness undetermined — nen exited $rc" ;;
+          esac
+          # The title is nen's own line, trimmed of the leading "<repo>#<n>: ".
+          title="${title#*: }"
+          {
+            echo 'title<<EOF'; printf '%s\n' "$title" | head -c 240; echo; echo 'EOF'
+            echo 'summary<<EOF'; printf '%s\n' "$explain"; echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Finish check on the exact PR head
+        if: ${{ always() && steps.head_check.outputs.id != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          CHECK_ID: ${{ steps.head_check.outputs.id }}
+          TITLE: ${{ steps.verdict.outputs.title }}
+          SUMMARY: ${{ steps.verdict.outputs.summary }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="${TITLE:-readiness undetermined — the verdict step did not report}"
+          summary="${SUMMARY:-The readiness step did not complete. Nothing is asserted about this PR.}"
+          # Always `success`: see the header. The verdict is the title, never the
+          # conclusion, so this check can never be the red check that makes
+          # CON-32(a) unsatisfiable.
+          gh api --method PATCH "repos/${REPO}/check-runs/${CHECK_ID}" \
+            -f status=completed \
+            -f conclusion=success \
+            -f "output[title]=${title}" \
+            -f "output[summary]=${summary}" >/dev/null
+          echo "readiness: ${title}"

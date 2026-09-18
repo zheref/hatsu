@@ -8,14 +8,18 @@ SAME_REPO_GUARD = "${{ github.repository == 'zheref/hatsu' && github.event.pull_
 MAC_RUNNER = %w[self-hosted macOS ARM64].freeze
 WINDOWS_RUNNER = %w[self-hosted Windows X64].freeze
 HOSTED_RUNNER = "ubuntu-latest"
-PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml].freeze
+PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml pr-readiness.yml].freeze
 EXPECTED_JOBS = {
   "plugin-bump-check.yml" => "check",
-  "surface-mirror-check.yml" => "surface-mirror-check"
+  "surface-mirror-check.yml" => "surface-mirror-check",
+  "pr-readiness.yml" => "readiness"
 }.freeze
 EXPECTED_TYPES = {
   "plugin-bump-check.yml" => %w[opened synchronize reopened edited],
-  "surface-mirror-check.yml" => %w[opened synchronize reopened]
+  "surface-mirror-check.yml" => %w[opened synchronize reopened],
+  # No `edited`: the readiness verdict reads the PR's checks, rounds and
+  # threads, and none of those changes when the body or title is edited.
+  "pr-readiness.yml" => %w[opened synchronize reopened]
 }.freeze
 EXPECTED_STEPS = {
   "plugin-bump-check.yml" => [
@@ -38,6 +42,19 @@ EXPECTED_STEPS = {
     "Read the pinned nen ref from trusted nen/contract.json",
     "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)",
     "Surface-mirror drift check",
+    "Finish check on the exact PR head"
+  ],
+  # No "Assert the guard script keeps its exec bit in-tree": this workflow runs
+  # no in-repo guard script. Its executable is the checksum-verified nen binary,
+  # pinned from the TRUSTED contract, so the exec-bit assertion has no subject.
+  "pr-readiness.yml" => [
+    "Start check on the exact PR head",
+    "Checkout PR head (data only — nothing from here is executed)",
+    "Checkout guard code from the trusted workflow revision",
+    "Enforce workflow runner policy from trusted workflow revision",
+    "Read the pinned nen ref from trusted nen/contract.json",
+    "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)",
+    "Readiness verdict",
     "Finish check on the exact PR head"
   ]
 }.freeze
