@@ -177,8 +177,10 @@ naming the read as by-hand. Residue, not a verb.
 **A repository may ask for the release unit it just built to be marked with a tag.** This is the one
 thing susanoo does that leaves the machine, it exists because a build nobody can point at afterwards
 is a build nobody can rebuild, and it is **off unless the consuming repository turns it on**
-(maintainer's ruling of 2026-09-18). A repository with no `tags.archive` block behaves exactly as it
-did before this section existed: no tag, no push, no mention.
+(maintainer's ruling of 2026-09-18). A repository with no `tags.archive` block gets exactly the old
+SIDE EFFECTS — no tag and no push — and § 8's report says `not declared` in its one tag line. Those
+are not in tension: what is preserved is that nothing happens, not that nothing is said, and a run
+that stayed silent could not be told from one that tried and failed.
 
 ### The declaration
 
@@ -213,8 +215,13 @@ invented so that there is something to cut.
 
 1. **The archive came back exit `0`.** A red, seated, host-refused or precondition-refused run tags
    nothing, ever.
-2. **Every declared artifact is present** (§ 5). A tag pointing at a commit whose release unit was
-   never produced is worse than no tag: it is a claim.
+2. **Every declared artifact is present AND THIS RUN PRODUCED IT** (§ 5). Presence alone is not
+   enough, and § 5 says why in its own words: *"Existence is not freshness … nen reports whether the
+   path is there now, not whether THIS run wrote it"* — a leftover from the previous green run reads
+   identically. So the freshness read § 5 already asks for (mtime and size **before** and after)
+   becomes a condition here: an artifact this run did not write means no tag. A tag pointing at a
+   commit whose release unit was never produced is worse than no tag — it is a claim — and an
+   artifact produced by a *different* commit's run is that same claim wearing a timestamp.
 3. **The working tree is CLEAN at `--at`.** § 0's P2 already computes this and § 0 already names the
    hazard — *"an archive built from a dirty checkout is a distributable that matches no commit"*. A
    tag is the thing that makes that mismatch permanent and public: `--at HEAD` on a dirty tree
@@ -223,22 +230,36 @@ invented so that there is something to cut.
 4. **Then, and only then**, the tag is cut:
 
 ```bash
-# nameFrom is DATA, never a command fragment. Resolve it against --repo's root,
-# refuse it if it escapes that root, read the name with the path QUOTED and
-# `--` terminating options, and validate the name BEFORE anything is spawned
-# with it. A declaration is a policy file from another repository; it is
-# untrusted input, and `--name "$(head -n1 $nameFrom)"` would be one metacharacter
-# away from running that repository's shell command on this machine.
+# nameFrom is DATA, never a command fragment -- AND NEITHER IS ITS PATH.
+# Read the value out of the JSON into a shell VARIABLE; never template it into
+# shell source. Inside double quotes `$(...)` is still command substitution, so
+# a declared path of `$(touch /tmp/pwned)` executes even though it "looks
+# quoted" -- the name being validated later does not help, because the damage is
+# done while the path is being built.
+wf="$(git -C <path> rev-parse --show-toplevel)/nen/workflow.json"
+nameFrom="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))['tags']['archive']['nameFrom'])' "$wf")"
+
 root="$(git -C <path> rev-parse --show-toplevel)"
-file="$root/<nameFrom>"                       # relative to the REPO, not the process
-case "$(cd "$(dirname -- "$file")" && pwd -P)/" in
+file="$root/$nameFrom"
+
+# A SYMLINK IS REFUSED, not followed. Canonicalising the parent directory is not
+# enough: an in-tree symlink AT the file can point anywhere, and `head` would
+# read an external file and publish its first line as a tag.
+[ -L "$file" ] && { echo "nameFrom is a symlink -- refused"; exit 2; }
+[ -f "$file" ] || { echo "nameFrom is not a regular file -- refused"; exit 2; }
+case "$(cd -P -- "$(dirname -- "$file")" && pwd -P)/" in
   "$root"/*) : ;;
   *) echo "nameFrom resolves outside the repository -- refused"; exit 2 ;;
 esac
+
 name="$(head -n1 -- "$file" | tr -d '\r')"
 [ -n "$name" ] || { echo "nameFrom's first line is empty -- refused"; exit 2; }
 git -C <path> check-ref-format "refs/tags/$name" \
   || { echo "the declared tag name is not a legal git ref -- refused"; exit 2; }
+case "$name" in
+  build/*) : ;;
+  *) echo "the declared tag name does not carry its species prefix -- refused"; exit 2 ;;
+esac
 nen tag cut --repo <path> --name "$name" --at <HEAD sha> --trunk <branch.base> [--push]
 ```
 

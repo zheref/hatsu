@@ -244,22 +244,36 @@ The order is the same as susanoo's and is not negotiable:
 2. **Then** the tag is cut, through the verb and never around it:
 
 ```bash
-# nameFrom is DATA, never a command fragment. Resolve it against --repo's root,
-# refuse it if it escapes that root, read the name with the path QUOTED and
-# `--` terminating options, and validate the name BEFORE anything is spawned
-# with it. A declaration is a policy file from another repository; it is
-# untrusted input, and `--name "$(head -n1 $nameFrom)"` would be one metacharacter
-# away from running that repository's shell command on this machine.
+# nameFrom is DATA, never a command fragment -- AND NEITHER IS ITS PATH.
+# Read the value out of the JSON into a shell VARIABLE; never template it into
+# shell source. Inside double quotes `$(...)` is still command substitution, so
+# a declared path of `$(touch /tmp/pwned)` executes even though it "looks
+# quoted" -- the name being validated later does not help, because the damage is
+# done while the path is being built.
+wf="$(git -C <path> rev-parse --show-toplevel)/nen/workflow.json"
+nameFrom="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))['tags']['deploy']['<target>']['nameFrom'])' "$wf")"
+
 root="$(git -C <path> rev-parse --show-toplevel)"
-file="$root/<nameFrom>"                       # relative to the REPO, not the process
-case "$(cd "$(dirname -- "$file")" && pwd -P)/" in
+file="$root/$nameFrom"
+
+# A SYMLINK IS REFUSED, not followed. Canonicalising the parent directory is not
+# enough: an in-tree symlink AT the file can point anywhere, and `head` would
+# read an external file and publish its first line as a tag.
+[ -L "$file" ] && { echo "nameFrom is a symlink -- refused"; exit 2; }
+[ -f "$file" ] || { echo "nameFrom is not a regular file -- refused"; exit 2; }
+case "$(cd -P -- "$(dirname -- "$file")" && pwd -P)/" in
   "$root"/*) : ;;
   *) echo "nameFrom resolves outside the repository -- refused"; exit 2 ;;
 esac
+
 name="$(head -n1 -- "$file" | tr -d '\r')"
 [ -n "$name" ] || { echo "nameFrom's first line is empty -- refused"; exit 2; }
 git -C <path> check-ref-format "refs/tags/$name" \
   || { echo "the declared tag name is not a legal git ref -- refused"; exit 2; }
+case "$name" in
+  dist/*/*) : ;;
+  *) echo "the declared tag name does not carry its species prefix -- refused"; exit 2 ;;
+esac
 nen tag cut --repo <path> --name "$name" --at <HEAD sha> --trunk <branch.base> [--push]
 ```
 
