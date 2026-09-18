@@ -257,14 +257,37 @@ target="<the target this run was called with>"
 
 # READ THE OPT-IN FOR THIS TARGET FIRST. `tags.deploy.<target>` is the switch:
 # absent means this target is not tagged, even where a sibling target is, and
-# even where tags.identity is declared. Exit 3 here is "not declared", reported
-# without cutting -- NOT an error.
+# even where tags.identity is declared.
+#
+# THREE OUTCOMES, NOT TWO, and collapsing them is how "broken" gets reported as
+# "off". Exit 3 is "not declared" and is reported without cutting; ANY OTHER
+# nonzero means the file could not be read as declared -- unparseable JSON exits
+# 1 -- and that is a refusal, because § 7 promises a malformed declaration is
+# reported as read-and-rejected and never as absent. A bare `||` caught both and
+# broke that promise.
+#
+# `isinstance(d, dict)` is load-bearing: `in` against a STRING is a substring
+# test, so a `deploy` of "testflight-someday" would opt `testflight` IN -- the
+# fail-open direction, on a switch whose whole job is to keep tags off.
 python3 -c 'import json,sys
 d=json.load(open(sys.argv[1])).get("tags",{}).get("deploy",{})
-sys.exit(0 if sys.argv[2] in d else 3)' "$wf" "$target" || {
-  echo "no tags.deploy entry for '$target' -- not declared for this target, nothing cut"; exit 0; }
+if not isinstance(d, dict): sys.exit("tags.deploy is %s, not an object" % type(d).__name__)
+sys.exit(0 if sys.argv[2] in d else 3)' "$wf" "$target"
+case $? in
+  0) : ;;
+  3) echo "no tags.deploy entry for '$target' -- not declared for this target, nothing cut"; exit 0 ;;
+  *) echo "$wf could not be read for tags.deploy -- present but unreadable is not absent; refused"; exit 2 ;;
+esac
 
-nameFrom="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tags"]["identity"]["nameFrom"])' "$wf")"
+# THE SAME THREE-WAY READ FOR THE NAME. In a command substitution a failure here
+# is silent: nameFrom comes back EMPTY, "$root/" is a directory, and the refusals
+# below would report a misleading reason for a file that was never named.
+nameFrom="$(python3 -c 'import json,sys
+d=json.load(open(sys.argv[1])).get("tags",{}).get("identity",{})
+if not isinstance(d, dict) or not isinstance(d.get("nameFrom"), str) or not d["nameFrom"]:
+    sys.exit("tags.identity.nameFrom is missing or is not a non-empty string")
+print(d["nameFrom"])' "$wf")" \
+  || { echo "tags.identity.nameFrom could not be read from $wf -- refused"; exit 2; }
 
 root="$(git -C <path> rev-parse --show-toplevel)"
 file="$root/$nameFrom"

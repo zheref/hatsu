@@ -229,9 +229,18 @@ actually called with.
 
 ### What susanoo does with it
 
-**Reads it, and says it.** One line in § 8's block: *this unit will be tagged `<identity>` at `<built_at>` when it
-reaches a distribution target*, `no tag declared` where the block is absent, or the declaration error
-where it is malformed. Nothing else — susanoo cuts nothing.
+**Reads it, and says it — as an ELIGIBILITY, not a promise.** One line in § 8's block: *this unit is
+eligible to be tagged `<identity>` at `<built_at>`, by whichever distribution target declares
+`tags.deploy.<target>`*, `no tag declared` where the block is absent, or the declaration error where
+it is malformed. Nothing else — susanoo cuts nothing.
+
+**Susanoo cannot promise the tag, and saying it would be a lie it is in no position to detect.**
+Tagging is opt-in **per target** on kagutsuchi's side (`tags.deploy.<target>`), and an archive does
+not know its target — it may be sent to several, or to none. So a repository that declares
+`tags.identity` and no `tags.deploy` entry at all is explicitly allowed to produce no tag ever, and a
+report that said *will be tagged* would have promised an event the send phase is required to skip.
+**Susanoo deliberately does not read `tags.deploy` to sharpen this line.** It would have to guess the
+target to do so, and a guessed target is how a report starts being confidently wrong.
 
 **The name is read as DATA, because reading is where the danger is.** A path out of another
 repository's policy file reaches a shell here, and `$(...)` inside double quotes is command
@@ -312,8 +321,10 @@ size** with the by-hand read named, and — where any is `(absent)` — that fac
 [`$getsuga`](../getsuga/SKILL.md) this block is the release unit's evidence and goes into the
 release PR body.
 
-**One line for the tag, always** (§ 5a): *this unit is tagged `<name>` when it reaches a
-distribution target*, or `no tag declared`, or the declaration error where the block is malformed.
+**One line for the tag, always** (§ 5a): *this unit is eligible to be tagged `<name>` at a
+distribution target that declares `tags.deploy.<target>`*, or `no tag declared`, or the declaration
+error where the block is malformed. **Eligible, never `will be`** — the opt-in is per target and
+belongs to the send, which has not happened yet.
 Susanoo cuts nothing, so the line is a statement of intent — never a verdict on a cut.
 
 **Say `built locally; nothing was uploaded`, every time.** Not as ceremony: an archive and an upload
