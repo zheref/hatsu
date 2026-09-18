@@ -38,7 +38,7 @@ creates no publication proof. It never pushes.
 
 **Tsukuyomi is normally called by [`/rasengan`](../rasengan/SKILL.md) for feedback or by
 [`/kokusen`](../kokusen/SKILL.md) at the commit checkpoint, and this section is what it does when
-neither did.** The contract is [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md).
+neither did.** The contract is [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md).
 **Reached from ANY composite, skip this section entirely** — the composite established P1–P4, and re-deriving them is how two answers to one question appear. Say which composite is holding the run. Called by `rasengan` or `kokusen` — or by any composite above them — the caller named the lane, which is the whole argument.
 
 **The state class tsukuyomi inherits is `S2` — a mandatory argument.** § 1 refuses a bare invocation
@@ -113,7 +113,7 @@ parses with the clause absent, also exit `0`. The parse runs only when the maint
 is **the latest state of `nen/workflow.json` → `branch.base`** — `git fetch origin` first, then
 `origin/<branch.base>`; the local ref is used only where that fetch proves it already equal, and a
 fetch that cannot run is a stop rather than a silent fall-back
-([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 3 · P3). The resolved base is
+([`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 3 · P3). The resolved base is
 named out loud either way.
 
 `--lane` is required for a real run. It names one declared scoped lane whose `test` argv selects

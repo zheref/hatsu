@@ -102,10 +102,10 @@ this stage-free path, not a computed chain verdict. If the object is a PR, use s
 report its delivery and end. An epic/integration relationship that cannot be resolved remains a
 real blocker. This exception does not create G1 or label authority.
 
-Every encountered gap uses [the discovery protocol](../../../docs/DISCOVERY.md); a missing
+Every encountered gap uses [the discovery protocol](../../../../docs/DISCOVERY.md); a missing
 metadata declaration is repaired only when authorized or recorded pending, never guessed.
 
-**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
+**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) is the
 contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
 from this run — the warm-up, the orientation, the change set and every derived argument — and
 re-deriving them would produce a second answer to a question this composite already settled. Each phase

@@ -42,7 +42,7 @@ render cannot happen, say so (§ 7) — do not substitute a prose recap and call
 
 **Rikugan is normally reached from `ren` step 5, `mukai`'s reporting step or `en`'s, and this section
 is what it does when the maintainer asks for a report over a session nothing scripted.** The contract
-is [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md). **Reached from a composite, skip
+is [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md). **Reached from a composite, skip
 this section** — the caller names the variant and *this last turn* is the turn it just ran.
 
 **Rikugan inherits `S1` and `S3` together: it needs a change set AND a notion of turns.** Both are
@@ -117,7 +117,7 @@ origin/main` → `variant: turn`, `base: origin/main`, exit `0`.
 is **the latest state of `nen/workflow.json` → `branch.base`** — `git fetch origin` first, then
 `origin/<branch.base>`; the local ref is used only where that fetch proves it already equal, and a
 fetch that cannot run is a stop rather than a silent fall-back
-([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 3 · P3). The resolved base is
+([`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 3 · P3). The resolved base is
 named out loud either way.
 
 
@@ -183,7 +183,7 @@ mismatches stale. Preserve raw `report data` facts, but explain stale provenance
 do not populate final verdict rows with it. Full regression, instrumented collection, and coverage
 measurement retain their phase owners even for final or post-merge reports. Report missing evidence
 instead of quietly recreating it. Discovery statuses and canonical issue links come from
-[the common protocol](../../../docs/DISCOVERY.md); rendering a report does not file duplicates.
+[the common protocol](../../../../docs/DISCOVERY.md); rendering a report does not file duplicates.
 
 ## 3. Assemble the data
 

@@ -38,7 +38,7 @@ step, and it never runs because something upstream finished successfully.
 **Kagutsuchi has no wired entry to add one to.** § 1 already says it: *no composite ever calls it, no
 agent ever proposes it, and one call sends to one target once*. It is reached exactly one way — the
 maintainer typing it, naming the target — so the contract in
-[`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) applies to it in the narrowest possible
+[`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) applies to it in the narrowest possible
 form, and **this section grants nothing**.
 
 **What it adds is two clauses of the preamble, and nothing else.**
@@ -107,8 +107,8 @@ first** (§ 3) and **say what it sent** (§ 6).
 
 **On a delegated session — the maintainer AFK, with rules recorded — a recorded delegation is NOT the
 call.** Hatsu has no ratified grammar by which a delegation reaches a phase:
-[`docs/delegation-grammar-DRAFT.md`](../../../docs/delegation-grammar-DRAFT.md) is a **DRAFT**, carried
-as `OPEN-2` in [`docs/ROSTER.md`](../../../docs/ROSTER.md) — *"until then, Gon crosses no gate"* — and
+[`docs/delegation-grammar-DRAFT.md`](../../../../docs/delegation-grammar-DRAFT.md) is a **DRAFT**, carried
+as `OPEN-2` in [`docs/ROSTER.md`](../../../../docs/ROSTER.md) — *"until then, Gon crosses no gate"* — and
 the four carve-outs it describes are about `G1-M` labels, not about sending a build off this machine.
 Until it is ratified, the authorization is the one § 1 already names and nothing else: **the maintainer
 typing this target's name**. A delegation may be quoted in the report as the reason the session is

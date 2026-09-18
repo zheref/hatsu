@@ -37,7 +37,7 @@ set of findings and a record of how each one was settled — and, where one coul
 
 **Hanten is normally reached from [`/mukai`](../mukai/SKILL.md)'s review step, and this section is
 what it does when the maintainer types it over a change nothing else has touched.** The contract is
-[`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md). **Running inside `mukai`, or re-entered
+[`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md). **Running inside `mukai`, or re-entered
 by a later turn of an effort `breath` already opened — or reached from ANY composite — skip this section** — the ledger exists and the
 change set is established, and § 2a's reuse rule governs instead.
 
@@ -71,7 +71,7 @@ effort, which is the distinction § 0b's classification depends on.
 | `scripts/hanten_cycle_ledger.sh` or the `nen` verb **refuses** | **Stop and say so.** Never review with the budget un-counted, and **never fabricate a ledger file** to get past a refusal |
 
 > **Running breath here is a precondition, not an absorbed phase**
-> ([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 2, Rule 2). Breath is the only
+> ([`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 2, Rule 2). Breath is the only
 > writer of the artifact § 2a requires, the way a fetched base is a precondition of a diff. It runs at
 > most once per session (breath § 0a), it never cuts on a branch carrying work, hanten still authors
 > nothing, and **a second run of breath is never the answer to a ledger that is still missing** — that
@@ -133,7 +133,7 @@ and the enum still refuses an unknown scope exactly as below.
 **the latest state of `nen/workflow.json` → `branch.base`** — `git fetch origin` first, then
 `origin/<branch.base>`; the local ref is used only where that fetch proves it already equal, and a
 fetch that cannot run is a stop rather than a silent fall-back
-([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 3 · P3). The resolved base is
+([`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 3 · P3). The resolved base is
 named out loud either way.
 
 Verified live at `v0.3.0` (`docs/ab/hanten.md` § 2.1): `for security` → `scope: security`, exit `0`;
@@ -519,7 +519,7 @@ as it records. A reviewer never writes this file.
 **Hanten is the single discovery writer for this review.** Every reviewer and adapted worker returns
 sanitized evidence in this record only; it does not search, comment, edit an issue, or ask for a
 filing confirmation. After collating duplicate findings, Kurapika alone applies
-[`docs/DISCOVERY.md`](../../../docs/DISCOVERY.md): inspect candidate issue bodies and comments plus
+[`docs/DISCOVERY.md`](../../../../docs/DISCOVERY.md): inspect candidate issue bodies and comments plus
 open PRs, complete the four passes, and record `created`, `updated`, `folded`, `unchanged`, or
 `pending`. This keeps parallel reviewers from writing duplicate evidence or racing a create.
 
@@ -637,7 +637,7 @@ reviewer from one Kurapika raised against his own diff. It is never presented as
 
 ### 9a · The three surfaces Hatsu ships a mirror for
 
-[`docs/SURFACES.md`](../../../docs/SURFACES.md) is the authority on how the personas get onto each
+[`docs/SURFACES.md`](../../../../docs/SURFACES.md) is the authority on how the personas get onto each
 surface; this is what hanten does with them once they are there.
 
 | | **Claude Code** | **Codex** (`$hanten`) | **Cursor** (`/hanten`) | **Antigravity** (`/hanten`) |

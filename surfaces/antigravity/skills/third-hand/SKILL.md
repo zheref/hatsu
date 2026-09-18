@@ -33,7 +33,7 @@ remains **G2** and has **no skill** — this file does not describe a merge and 
 Nen effort, never this skill.
 
 **This file composes. It does not re-specify.** Filing, labels, four-pass reconciliation, and
-completeness live in [`/file`](../file/SKILL.md), [`docs/DISCOVERY.md`](../../../docs/DISCOVERY.md)
+completeness live in [`/file`](../file/SKILL.md), [`docs/DISCOVERY.md`](../../../../docs/DISCOVERY.md)
 and Netero's definition. What is genuinely this skill's own is the wrap-up trigger, the parallel
 summon, the 0–3 fold-and-priority cap, the picker, and the session-over rule.
 
@@ -42,7 +42,7 @@ summon, the 0–3 fold-and-priority cap, the picker, and the session-over rule.
 ## 0. Standalone entry — when no composite is holding the run
 
 **Third-Hand is already a separate phase rather than a step of anything** — § 1 says so, and **En does
-not start it**. The contract is [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md), and
+not start it**. The contract is [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md), and
 this section covers the one fact § 1 leaves to context. **Started by the maintainer right after En has
 returned, that context exists and this section is a formality; say so and move on.**
 

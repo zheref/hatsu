@@ -31,7 +31,7 @@ human-called, it opens nothing, and **it never pushes** — publishing a branch 
 
 > ### The ruling of 2026-09-10 — the compile-before-commit is THIS skill's
 >
-> The maintainer's ruling ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-10*)
+> The maintainer's ruling ([`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-10*)
 > seats the three verifications where they belong: [`/breath`](../breath/SKILL.md) proves the
 > **base tip** before a line is written, [`/rasengan`](../rasengan/SKILL.md) **authors** the
 > change and runs the declared checks as its own inner-loop feedback, and **kokusen verifies the
@@ -44,7 +44,7 @@ human-called, it opens nothing, and **it never pushes** — publishing a branch 
 ## 0. Standalone entry — when no composite is holding the run
 
 **Kokusen is normally `ren`'s step 3, and this section is what it does when it is not.** The contract
-is [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md). **Running inside `ren`, skip this
+is [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md). **Running inside `ren`, skip this
 section entirely** — rasengan authored the change in the same turn, so the delta and the lanes are
 already established and re-deriving them would produce a second answer to a settled question.
 
@@ -110,7 +110,7 @@ typed one** — there is nothing in a bare invocation to parse.
 is **the latest state of `nen/workflow.json` → `branch.base`** — `git fetch origin` first, then
 `origin/<branch.base>`; the local ref is used only where that fetch proves it already equal, and a
 fetch that cannot run is a stop rather than a silent fall-back
-([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 3 · P3). The resolved base is
+([`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 3 · P3). The resolved base is
 named out loud either way.
 
 Both flags are hints for § 4's message; with neither, the type and scope are read off the diff and
@@ -392,7 +392,7 @@ or default the persona. `Co-Authored-By`, `Claude-Session`, `Signed-off-by`, mod
 surface/runtime/session names are forbidden in prospective commit messages and bodies. Author and
 committer metadata preserve the actor's configured identity. Record actual participants only in the final
 `## Agent attribution` section of the PR body, following `<Hatsu plugin root>/docs/AGENT-ATTRIBUTION.md`
-(in this checkout, [`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md)). Existing history is not rewritten.
+(in this checkout, [`docs/AGENT-ATTRIBUTION.md`](../../../../docs/AGENT-ATTRIBUTION.md)). Existing history is not rewritten.
 
 > **Prospective tooling is not an exception.** Before committing, disable or reconfigure any authorized
 > injection that adds a forbidden model, surface, runtime, session, or generated-credit attribution. If

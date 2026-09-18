@@ -17,8 +17,8 @@ filing. Never copy or invent a second policy in the target repository.
 > **This skill was `drive` until Hatsu `v0.4.0`.** The rename to `sharingan` (wave 3, `v0.5.0`)
 > changed the **name only** — every procedure, verb, exit-code reaction, residue entry, authority
 > line and hard limit below is the one `drive` carried, unedited. The A/B evidence behind them stays
-> at [`docs/ab/drive.md`](../../../docs/ab/drive.md), under its original name, because that is the
-> document the transcripts were recorded in; [`docs/ab/sharingan.md`](../../../docs/ab/sharingan.md)
+> at [`docs/ab/drive.md`](../../../../docs/ab/drive.md), under its original name, because that is the
+> document the transcripts were recorded in; [`docs/ab/sharingan.md`](../../../../docs/ab/sharingan.md)
 > records the rename itself and nothing else.
 
 **Nature: Manipulator.** GitHub-side ops — drives, wakes, labels, retargets, cascades, thread
@@ -54,7 +54,7 @@ reproduction.
 
 **Sharingan's grammar is already total**: `<CODE>#<PR> to <G2|G4>` resolves the repository through
 `nen repo resolve`, the PR through the API and the gate through § 2, so nothing in it reads a caller.
-The contract is [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md), and this section adds
+The contract is [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md), and this section adds
 the preamble and **one** derivation § 1 did not have. **Reached from ANY composite, skip this section entirely** — the composite supplied the argument, and
 re-deriving it is how a composite and a `## 0.` derive the same PR two ways.
 [`/en`](../en/SKILL.md) composes it as its second and fourth steps;
@@ -575,7 +575,7 @@ diagnose that before spending a wake attempt on it:
    swallowed wake (`nen wake verify` found a run concluding `action_required` with 0 jobs), a
    `dirty` PR (zero `build` runs at all — the label was never consumable), a reply-only builder
    mode, a red check the builder cannot fix, a required check that never reports.
-5. **Reconcile and capture the defect** through [the common discovery protocol](../../../docs/DISCOVERY.md),
+5. **Reconcile and capture the defect** through [the common discovery protocol](../../../../docs/DISCOVERY.md),
    with sanitized run links and wake evidence. Report the canonical issue or durable pending record;
    unchanged evidence produces no write and standing filing needs no new prompt.
 6. **Stop at G5** with the board: what is stuck, what was tried, the canonical issue or pending filing record, and the options

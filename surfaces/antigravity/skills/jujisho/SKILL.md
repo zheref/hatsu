@@ -49,7 +49,7 @@ written. What the line adds is three things the per-axis reading makes explicit:
   against a base that is about to change; B's watch starts once A's merge retargets it.
 
 **The human calls stay human calls.** `aka` and `mukai` are the maintainer's
-([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4), and `/jujisho` is one call that spends
+([`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4), and `/jujisho` is one call that spends
 both of them **per axis** — which is why § 3's cap of two, and its ask when there are more, is a
 question about how much the one call is being asked to cover.
 
@@ -76,7 +76,7 @@ trunk, dirty — cut every axis branch from the target base, never reflexively f
 before assuming any of it is one of the axes), or `on-branch-clean`. It is a report, not a guard;
 the judgment of which axis the existing branch's commits belong to stays yours.
 
-**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
+**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) is the
 contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
 from this run — the warm-up, the orientation, the change set and every derived argument — and
 re-deriving them would produce a second answer to a question this composite already settled. Each phase

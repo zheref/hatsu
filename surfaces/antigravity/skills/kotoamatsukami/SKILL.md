@@ -47,7 +47,7 @@ tsukuyomi does not have: choosing which declared suites the change can affect, a
 ## 0. Standalone entry — when no composite is holding the run
 
 **Kotoamatsukami is normally `mukai`'s impacted-test step, and this section is what it does when it is
-typed alone.** The contract is [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md).
+typed alone.** The contract is [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md).
 **Reached from ANY composite, skip this section entirely** — the composite established P1–P4, and re-deriving them is how two answers to one question appear. Say which composite is holding the run. `mukai` and `en` both reach it, and each established the branch, the base and the change
 set before it reached this step.
 
@@ -104,7 +104,7 @@ the base set; an empty line → both absent. Every one exit `0`.
 is **the latest state of `nen/workflow.json` → `branch.base`** — `git fetch origin` first, then
 `origin/<branch.base>`; the local ref is used only where that fetch proves it already equal, and a
 fetch that cannot run is a stop rather than a silent fall-back
-([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 3 · P3). The resolved base is
+([`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 3 · P3). The resolved base is
 named out loud either way.
 
 

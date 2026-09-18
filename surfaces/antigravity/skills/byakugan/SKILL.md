@@ -41,7 +41,7 @@ tree and asks a different question — *how much of what I changed did they actu
 ## 0. Standalone entry — when no composite is holding the run
 
 **Byakugan already takes its base as an argument** — `against <base>`, § 1 — so it is close to total
-already. The contract is [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md), and this
+already. The contract is [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md), and this
 section states the two things § 1 left to the caller. **Reached from ANY composite, skip this section entirely** — the composite established P1–P4, and re-deriving them is how two answers to one question appear. Say which composite is holding the run. `mukai` and `en` both reach it.
 
 **P1 · Warm up.** [`/hatsu-warmup`](../hatsu-warmup/SKILL.md), unconditionally.
@@ -60,10 +60,10 @@ reported is not the number the change earned. **Name the resolved base and the f
 
 **The touched set is the COMMITTED diff, and a cold entry does not widen it.** § 5's narrowing is
 `nen`'s — `git diff --name-only <base>...HEAD`, driven by `--touched --base <ref>` — and
-[`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 2 defines `coverage.scope: touched` as exactly that
+[`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 2 defines `coverage.scope: touched` as exactly that
 set. There is no input through which `git status --porcelain` reaches the verb, and inventing one here
 would widen the population of a **G5** (§ 8) from inside a `## 0.` section, which
-[`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 2 Rule 2 and § 5 both forbid.
+[`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 2 Rule 2 and § 5 both forbid.
 **Report uncommitted paths as uncommitted** — they are not measured, and saying so is the honest
 answer; changing what `touched` means is a **G4** question plus a `nen` capability, never a clause
 written in passing.

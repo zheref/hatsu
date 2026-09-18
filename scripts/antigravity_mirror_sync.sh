@@ -141,9 +141,23 @@ for skill_dir in "$source_skills"/*; do
     }
   ' "$skill_dir/SKILL.md" > "$target_skill_dir/SKILL.md"
 
-  # Also link or copy into skills/ for plugin structure
+  # Also copy into skills/ for plugin structure.
+  #
+  # THE DEPTH ADJUSTMENT, AND WHY IT IS NOT COSMETIC
+  # This copy sits one directory DEEPER than the flat one:
+  #   surfaces/antigravity/<name>/SKILL.md          -> ../../../docs = repo root docs   (correct)
+  #   surfaces/antigravity/skills/<name>/SKILL.md   -> ../../../docs = surfaces/docs    (dangles)
+  # Copied verbatim, every repo-root-relative link in the nested mirror pointed at a
+  # directory that does not exist -- silently, because a dangling markdown link raises
+  # nothing. Sibling links (`../<other-skill>/SKILL.md`) are NOT adjusted and must not be:
+  # the siblings are in skills/ too, so `../` is already right for them.
+  #
+  # The leading (^|[^./]) guard is what keeps an existing four-run intact: in
+  # `../../../../etc` the only candidate match is preceded by '.' or '/', so it is skipped
+  # rather than grown to five. Anchoring on the repo-root directory names does the rest.
   mkdir -p "$tmp_dir/skills/$skill_name"
-  cp "$target_skill_dir/SKILL.md" "$tmp_dir/skills/$skill_name/SKILL.md"
+  sed -E 's#(^|[^./])\.\./\.\./\.\./(docs|hooks|nen|scripts|surfaces|claude|templates|contracts)/#\1../../../../\2/#g' \
+    "$target_skill_dir/SKILL.md" > "$tmp_dir/skills/$skill_name/SKILL.md"
 done
 
 # 4. Generate individual persona subagents

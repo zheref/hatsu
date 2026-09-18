@@ -31,7 +31,7 @@ pushes what it produced.
 
 **Ao already reads the checkout rather than a caller.** § 2 reads the state before anything, § 3 decides
 rebase-vs-merge from whether anything has been published, and `from <base>` carries the base with
-`nen/workflow.json → branch.base` underneath it. [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4 lists it as already total; the clauses that
+`nen/workflow.json → branch.base` underneath it. [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 4 lists it as already total; the clauses that
 apply are **P1** — [`/hatsu-warmup`](../hatsu-warmup/SKILL.md) when no composite ran it — and the
 base resolving against the **fetched `origin/`** ref, which § 3 already requires.
 

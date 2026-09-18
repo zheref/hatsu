@@ -229,7 +229,7 @@ itself to it before there is any declaration to refuse from.
 ### Register the record boundary and the complete delivery path
 
 When probe JSON repeats a device name in nested descriptive objects, that is not evidence of two
-phones. Use the shared Nen extraction mechanism described in [the launch migration guide](../../../docs/LAUNCH-MIGRATION.md)
+phones. Use the shared Nen extraction mechanism described in [the launch migration guide](../../../../docs/LAUNCH-MIGRATION.md)
 when the installed release supports it. The declared record boundary must preserve two genuinely
 distinct same-name records as ambiguous; never choose the first match or hardcode the physical ID.
 The same mechanism handles Apple JSON and Android text/JSON. Expo selects the corresponding native
@@ -244,7 +244,7 @@ Pairing, probe success, dry-run success and build success are intermediate outco
 readiness and trust boundaries above. If validation cannot finish because the device is absent,
 report registration as unverified for delivery, not a successful launch.
 
-A reusable missing capability is reconciled through [the common discovery protocol](../../../docs/DISCOVERY.md)
+A reusable missing capability is reconciled through [the common discovery protocol](../../../../docs/DISCOVERY.md)
 and assigned upstream. KroApple's temporary Python normalizer is linked to Nen #204 and retained
 until a compatible published replacement is verified. Consumer-specific build or install mistakes
 remain consumer-owned; do not file a second Hatsu issue for the same shared resolver defect.

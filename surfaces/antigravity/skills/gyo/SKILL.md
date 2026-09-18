@@ -42,7 +42,7 @@ It is also invocable alone as a diagnostic.
 
 **Gyo needs nothing from a caller.** The lane comes from its own `on <lane>` clause or from
 `nen/workflow.json → iteration.lane`, and linting reads the tree in front of it rather than a delta,
-so there is no turn boundary to inherit. [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4 lists it as already total, and the whole of that
+so there is no turn boundary to inherit. [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 4 lists it as already total, and the whole of that
 contract that applies here is **P1**: run [`/hatsu-warmup`](../hatsu-warmup/SKILL.md) first when
 no composite did, because `nen shu lint` is a `nen` call.
 

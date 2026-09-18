@@ -32,7 +32,7 @@ reusing it.
 ## 0. Standalone entry — when no composite is holding the run
 
 **Breath is normally `ren`'s step 1, and this section is what it does when it is not.** The contract
-is [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md); this is breath's half of it.
+is [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md); this is breath's half of it.
 **Reached from ANY composite, skip this section entirely** — `ren` is the one that reaches it, and
 ren established every fact in it; § 3a's table already reads the loop's own signals.
 
@@ -649,4 +649,4 @@ capture and measurement. Gyo is
 linting, on every Ren turn, and is the `lint` entry of `iteration.checks`. Focused authored behavior
 is tested during rasengan/kokusen, once there is authored behavior to test. A declaration that
 hides a full suite in an iteration verb is an owned configuration gap routed through
-[DISCOVERY.md](../../../docs/DISCOVERY.md), not permission to run the later phase early.
+[DISCOVERY.md](../../../../docs/DISCOVERY.md), not permission to run the later phase early.

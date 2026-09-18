@@ -30,7 +30,7 @@ never pushes.**
 
 > ### The ruling of 2026-09-10 — rasengan AUTHORS; it is not "compile before commit"
 >
-> The maintainer's ruling, recorded in [`docs/ROSTER.md`](../../../docs/ROSTER.md)
+> The maintainer's ruling, recorded in [`docs/ROSTER.md`](../../../../docs/ROSTER.md)
 > § *Rulings of 2026-09-10*: **rasengan is the authoring phase** — Kurapika builds the code that
 > answers the request, on the repository's stack. *Build* in this skill's name always meant **build
 > the thing**, and this file used to read it as *run the build command*.
@@ -49,7 +49,7 @@ never pushes.**
 
 ## 0. Standalone entry — rasengan is deliberately caller-bound
 
-**Rasengan is the one phase [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4 names as bound to a caller by contract rather than by
+**Rasengan is the one phase [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 4 names as bound to a caller by contract rather than by
 oversight**, and the reason is in § 1: rasengan authors *the change the request asks for*. The request is
 the input. There is no version of this skill that derives what to build from a checkout, and a phase that
 invented one would be guessing at the only thing in the turn that cannot be guessed.

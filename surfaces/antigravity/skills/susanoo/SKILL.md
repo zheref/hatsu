@@ -34,7 +34,7 @@ to see what a checkout packages to. It never pushes, never opens anything, and n
 
 **Susanoo is explicitly both**: it runs inside [`/getsuga`](../getsuga/SKILL.md) to build the
 release unit, **and** it is invoked by name to package a checkout on demand. That is exactly the
-wireability [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 2 Rule 2 asks of every skill, and susanoo had it first.
+wireability [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 2 Rule 2 asks of every skill, and susanoo had it first.
 
 The only clause to add is **P1** — [`/hatsu-warmup`](../hatsu-warmup/SKILL.md) when no composite
 ran it — plus one line of **P2** in the report: **which commit and whether the tree was clean**, because

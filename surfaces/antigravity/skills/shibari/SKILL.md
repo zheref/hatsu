@@ -51,7 +51,7 @@ lingering.
 ## 0. Standalone entry — already total, with one derivation
 
 **Shibari is explicitly both**: § 1 says it runs as [`/mukai`](../mukai/SKILL.md)'s eighth step
-**and** that the maintainer may invoke it directly. [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4 lists it among the skills whose grammar is
+**and** that the maintainer may invoke it directly. [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 4 lists it among the skills whose grammar is
 already total. **P1** applies — [`/hatsu-warmup`](../hatsu-warmup/SKILL.md).
 
 **P2 carries the one precondition a cold call can fail: the branch must already be pushed.** Shibari
@@ -87,7 +87,7 @@ optional clause so that a parse could be echoed would be ceremony, not a grammar
 can come from besides a direct `/shibari` typed by the maintainer themselves. That matters
 twice over:
 
-- **Opening a PR is a human call**, per [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 — *"a PR
+- **Opening a PR is a human call**, per [`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 — *"a PR
   is a request for other people's attention"*. No agent proposes it, and no composite reaches this
   step without having been asked for by name.
 - **The evidence mechanism's public step is covered by that same call** (§ 5). A maintainer who
@@ -124,7 +124,7 @@ points at [`/jujisho`](../jujisho/SKILL.md), which is the split-shaped verb, and
 > week, a changelog fragment demanded for a spec path this branch never opened.
 
 > **RETIRED at nen `0.5`: `project.evidence` is PARSED by nen, and `nen shu evidence --repo <path>
-> --base <ref>` reads it** ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 3) — verified live at the
+> --base <ref>` reads it** ([`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 3) — verified live at the
 > pin, exit `0`, rows grouped suite → scene. The rows come from **[`mukai`](../mukai/SKILL.md)
 > § 2's step 7 evidence pass**, which has already done exactly that filter over
 > [`kotoamatsukami`](../kotoamatsukami/SKILL.md)'s re-recorded artifacts; **shibari re-uses those
@@ -135,7 +135,7 @@ points at [`/jujisho`](../jujisho/SKILL.md), which is the split-shaped verb, and
 ## 3. The body — nine parts, in this order
 
 The target repository's own PR template governs the section *names* where it has one (Hatsu's is in
-[`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md); a consumer's is wherever that repository keeps it,
+[`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md); a consumer's is wherever that repository keeps it,
 e.g. `schemas/templates/pr.md` — a template is not one of the four taxonomy files nen's
 `schemas/`→`nen/` migration moved). What follows is what each part must **contain**, which no
 template states:
@@ -175,7 +175,7 @@ permissions or platform limits remain an explicit handover blocker.
 ### Agent attribution — required final PR-body section
 
 The PR body ends with `## Agent attribution`, following `<Hatsu plugin root>/docs/AGENT-ATTRIBUTION.md`
-(in this checkout, [`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md)). It is a participant ledger, not
+(in this checkout, [`docs/AGENT-ATTRIBUTION.md`](../../../../docs/AGENT-ATTRIBUTION.md)). It is a participant ledger, not
 a commit trailer: list every and only agents who actually participated, with canonical Hatsu
 persona, role/contribution, and reviewable evidence. Do not add model, runtime, surface, or session
 metadata. Never infer a contributor from the branch, a default coordinator persona, a reviewer request,

@@ -79,7 +79,7 @@ nen ref format --code <CODE> --kind PR --number <N>
 **A closed or merged PR ends the run immediately** with what happened to it. There is nothing to
 land.
 
-**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
+**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) is the
 contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
 from this run — the warm-up, the orientation, the change set and every derived argument — and
 re-deriving them would produce a second answer to a question this composite already settled. Each phase
@@ -214,7 +214,7 @@ Two things en relies on and does not re-derive:
   or it is not made.**
 - **`sharingan`'s escalation is a G5 and it ends this run's cycle**, not just its step. A PR that
   will not reach Ready is one of the plane's five genuine stops
-  ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4), and en does not spend the rest of its cap
+  ([`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4), and en does not spend the rest of its cap
   re-driving past it.
 
 **En never casts a review vote.** Kurapika runs on the maintainer's credentials, so GitHub would

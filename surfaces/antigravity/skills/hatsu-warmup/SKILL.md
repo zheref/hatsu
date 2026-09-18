@@ -201,7 +201,7 @@ inventing one** — § 4's line carries `floor not reported (nen 0.7.0)` there.
 | The `nen` row | `--json` `state` | What it means | Next |
 |---|---|---|---|
 | `ok` | `present-and-matching` | satisfied, at the range the row printed | **§ 4 — report and proceed** |
-| `WRONG`, `remedy` naming a **repin** of `minimum` | `present-but-wrong-version` | the pin is **below** this build's floor: **no** build of that line satisfies it, whatever the host answers | **§ 2b**, with the ref the contract pins — **and the repin the row names is a change to [`nen/contract.json`](../../../nen/contract.json) in a pull request**, which no install performs |
+| `WRONG`, `remedy` naming a **repin** of `minimum` | `present-but-wrong-version` | the pin is **below** this build's floor: **no** build of that line satisfies it, whatever the host answers | **§ 2b**, with the ref the contract pins — **and the repin the row names is a change to [`nen/contract.json`](../../../../nen/contract.json) in a pull request**, which no install performs |
 | `WRONG`, no floor complaint | `present-but-wrong-version` | the binary is **older** than the pin | **§ 2b — re-pin through the verb** |
 | `MISSING` | `missing` | the probe could not be started at all | **§ 2a — the shell bootstrap** |
 | the verb itself is absent | — | older than `v0.3.0`, below anything this plugin supports | **§ 2b** |
@@ -283,7 +283,7 @@ the contract is bumped to say so when nen's own line gets there, and it is state
 Absent or unsatisfied is **not** a halt. It is an install. **Which path applies is decided by § 1's two
 answers — the probe and the `nen` row — never by preference.** One case the install cannot close is named
 where it arises: a `minimum` that has fallen **below** the build's compatibility floor is a stale line in
-[`nen/contract.json`](../../../nen/contract.json), and the row names the repin. § 2b still runs — it puts a
+[`nen/contract.json`](../../../../nen/contract.json), and the row names the repin. § 2b still runs — it puts a
 build the contract *does* admit on `PATH`, so the session can proceed — and the repin is a pull request
 against this plugin, reported alongside.
 
@@ -589,12 +589,12 @@ placed in the repository the session is standing in.** On Codex and on Cursor th
 for this plugin, so the skills and personas are always placed in the target repository. On Antigravity,
 workspace bootstrap is selected when the workspace uses local `.agents/skills/`, `.agents/rules/AGENTS.md`,
 `.agents/hooks.json`, and `.agents/hooks/`.
-[`docs/SURFACES.md`](../../../docs/SURFACES.md) is the authority on the whole mechanism; this section is
+[`docs/SURFACES.md`](../../../../docs/SURFACES.md) is the authority on the whole mechanism; this section is
 the part the warm-up performs.
 
 The mirrors are **generated and committed** in this plugin at
-[`surfaces/codex/`](../../../surfaces/codex/), [`surfaces/cursor/`](../../../surfaces/cursor/), and
-[`surfaces/antigravity/`](../../../surfaces/antigravity/) — the output of surface mirror generation,
+[`surfaces/codex/`](../../../../surfaces/codex/), [`surfaces/cursor/`](../../../../surfaces/cursor/), and
+[`surfaces/antigravity/`](../../../../surfaces/antigravity/) — the output of surface mirror generation,
 one `SKILL.md` per skill plus the surface's own persona shape. **The warm-up never generates them.** It
 copies or links what is already there; regeneration is a change to this repository, made on a branch,
 checked in CI (§ *The check* in `docs/SURFACES.md`).
@@ -619,7 +619,7 @@ file — § 0's `cat`, § 0's `nen schema check --repo`, and every copy and link
 `$hatsu_root`.
 
 `$CLAUDE_PLUGIN_ROOT` is a **Claude Code** variable: that harness exports it inside a skill invocation
-and nowhere else ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *`$CLAUDE_PLUGIN_ROOT` is set inside a
+and nowhere else ([`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *`$CLAUDE_PLUGIN_ROOT` is set inside a
 skill invocation, and nowhere else*). **§ 5's install only ever runs on Codex and Cursor**, where there is
 no plugin loader, so there is ordinarily nothing to export it — it is empty in exactly the sessions these
 commands are written for, and the box below says what that costs. The fallback that section gives —
@@ -848,7 +848,7 @@ symlink into this checkout, which carries `.claude-plugin/plugin.json` (`"name":
 `/aka`, while a `cp -R` of the same directory is listed as the bare `ren`. Three controlled
 `codex debug prompt-input` renders on this host, no model called (`docs/ab/surfaces.md` § 7, F1). A
 symlink install therefore tells the reader to type one thing and shows the surface another — and it drags
-a second trap with it: through a symlink the mirror's own `../../../nen/workflow.json` resolves into the
+a second trap with it: through a symlink the mirror's own `../../../../nen/workflow.json` resolves into the
 **plugin's** policy file rather than the target's (§ 5d, F10). The copy fixes both.
 
 The refresh command above uses `cp -R` for every generated Codex skill directory; it does not use
@@ -920,7 +920,7 @@ probes on `2026.09.08-6caf4ff` found a skill through a symlink **inside** the wo
 pointing **outside** it, and listed a symlink into this plugin checkout under its **bare** name — so
 **Codex's F1 does not reproduce here** and the mirrors' `/<name>` spelling is honest (`docs/ab/surfaces.md`
 § 8, § 1.4 P3/P4). The symlink row stands as written. **The other half of that old box is still open:**
-which repository a mirror's relative `../../../nen/workflow.json` lands in through a symlink was not
+which repository a mirror's relative `../../../../nen/workflow.json` lands in through a symlink was not
 re-tested, so § 5d's *read the file in the repository the session is standing in* is the rule that carries
 it, and the report says the link-resolution half is unverified on Cursor.
 
@@ -1088,7 +1088,7 @@ The warm-up states the matrix for the surface it just warmed, read from **the ta
 `nen/workflow.json`** → `models`, and never from memory:
 
 > **Named by path, deliberately not as a link.** A relative link here reads differently on every surface:
-> in this repository `../../../nen/workflow.json` is Hatsu's own policy file, and inside a mirror installed
+> in this repository `../../../../nen/workflow.json` is Hatsu's own policy file, and inside a mirror installed
 > in a target it is `<target>/nen/workflow.json` — which is the one that was meant. Through a **symlinked**
 > mirror it resolved to the *plugin's* file instead, silently and with no error, which is why § 5a copies
 > and why this line is a path (`docs/ab/surfaces.md` § 7, F10). **Read the file in the repository the
@@ -1124,7 +1124,7 @@ a Claude, a GPT — is not a better choice made locally; it is a different budge
    repository's `surfaces/` against a fresh generation of `claude/skills/`, which is a different question
    from "is the copy in that target current". The re-copy every session is the answer to the second
    question, and it is a discipline rather than a check
-   ([`scripts/surface_mirror_check.sh`](../../../scripts/surface_mirror_check.sh) is the first).
+   ([`scripts/surface_mirror_check.sh`](../../../../scripts/surface_mirror_check.sh) is the first).
 2. **Composing `AGENTS.override.md` has no verb either.** The generator writes a *whole* `AGENTS.md` for
    the surface; concatenating the target's own document with it under the marker block is this skill's own
    construction, and the re-run's rebuild is a by-hand write.

@@ -33,7 +33,7 @@ invoke it directly. It never pushes and never opens anything.
 **Amaterasu is normally `ren`'s step 4, and it is already the most cold-ready phase in the loop**:
 § 1's target resolution, the no-launch declaration and the unknown-target refusal all read the
 declaration rather than the caller. The contract is
-[`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md), and amaterasu needs only three of its
+[`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md), and amaterasu needs only three of its
 clauses. **Reached from ANY composite, skip this section entirely** — the composite established P1–P4, and re-deriving them is how two answers to one question appear. Say which composite is holding the run. (`ren` is the one that reaches it.)
 
 **P1 · Warm up.** [`/hatsu-warmup`](../hatsu-warmup/SKILL.md), unconditionally — every step below
@@ -154,7 +154,7 @@ platform. Before execution, inspect the dry-run's selected lane, build destinati
 substitution, and ordered install/launch after-steps. An iPhone target wired to an iOS Simulator
 build is an incomplete declaration: a simulator `.app` cannot become a device artifact by naming
 it in `after[]`. Repair the owning consumer declaration within authorized scope; otherwise record
-its blocker through [the common discovery protocol](../../../docs/DISCOVERY.md).
+its blocker through [the common discovery protocol](../../../../docs/DISCOVERY.md).
 
 Read `project.launch.<declared-target>.verb`, then execute
 `nen shu <declared-dev-or-run-verb> --repo <core-checkout> --target <declared-target>` from the core
@@ -169,7 +169,7 @@ one retains § 4's refusal and never becomes a simulator fallback.
 Reusable record discovery and normalization belong to **Nen's shared launch resolver**, not a
 Python helper copied into each consumer. Consumers declare probe/build/install/launch commands
 and the extraction mappings the installed Nen supports. [Nen #204](https://github.com/zheref/nen/issues/204)
-owns repeated nested names and canonical identifiers; [the migration guide](../../../docs/LAUNCH-MIGRATION.md)
+owns repeated nested names and canonical identifiers; [the migration guide](../../../../docs/LAUNCH-MIGRATION.md)
 connects Apple, Android and Expo declarations to that implementation. Existing exact-name selection,
 true ambiguity refusal and readiness checks remain mandatory. Until a compatible published Nen
 release is available and the replacement path is verified, keep and link a working temporary

@@ -34,7 +34,7 @@ not a merged release PR, not a cut tag, not a successful
 **Mugetsu has no wired entry, by construction.** § 1 already forbids every one: *no composite ever
 calls it* — not `getsuga`, not `futon`, not `en`, not `mukai`, not `ren` — *no agent proposes it, a go
 with no tag is refused, and one go publishes one target once*. The contract in
-[`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is explicit that it **moves no gate**
+[`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) is explicit that it **moves no gate**
 (§ 5), and this section is written to be read as **subtracting** rather than adding.
 
 **Nothing in this section is an authorisation.** Not the warm-up, not the orientation block, not the
@@ -97,9 +97,9 @@ authorization, and the other half is § 3's recorded go.
 
 **On a delegated session — the maintainer AFK, with rules recorded — a delegation is NOT the go, and
 there is no arrangement under which it becomes one.** `G3` is ruled **not delegable**:
-[`docs/ROSTER.md`](../../../docs/ROSTER.md) § *The human gates, and who may cross them* gives it as
+[`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *The human gates, and who may cross them* gives it as
 **"Never. Preparing a release is allowed; publishing is not"**, and
-[`docs/delegation-grammar-DRAFT.md`](../../../docs/delegation-grammar-DRAFT.md) § *Never delegated,
+[`docs/delegation-grammar-DRAFT.md`](../../../../docs/delegation-grammar-DRAFT.md) § *Never delegated,
 inside a run or outside it* names `G3` (`CON-6`) in the same line as G2 and G4 — a document that is
 itself a **DRAFT**, open as `OPEN-2`, so it could not open this gate even if it were read as trying to.
 A recorded delegation may be **quoted in the report as the reason the session is running**; it

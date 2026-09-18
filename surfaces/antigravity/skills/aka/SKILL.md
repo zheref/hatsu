@@ -36,7 +36,7 @@ unaskable.
 ## 0. Standalone entry — this skill was ALWAYS the maintainer's call
 
 **Aka has no wired entry.** § 1 already says it: the whole skill runs only on the maintainer's publish
-call, and **agents never propose it**. [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 6 names it among the phases a report, a bell,
+call, and **agents never propose it**. [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 6 names it among the phases a report, a bell,
 a stop's options and a composite must never offer — and a standalone run is precisely where such an offer
 would read as the pipeline knowing best.
 

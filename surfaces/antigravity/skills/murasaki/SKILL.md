@@ -40,7 +40,7 @@ authored, because a rule restated in two places drifts in one of them.
 **Typed alone, murasaki has one job and it finishes it: bring this branch up to date with the base,
 resolving what can be resolved.** That is the *catch-up* half of § 3, and it is complete work in its
 own right — the maintainer standing on a branch that has fallen behind `main` wants it current, not a
-referral. The contract is [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md).
+referral. The contract is [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md).
 **Reached from any composite, skip this section** — [`/mukai`](../mukai/SKILL.md) and
 [`/en`](../en/SKILL.md) are the two that reach it; `/aka` composes
 [`/ao`](../ao/SKILL.md) directly, not this skill — — § 3's three steps run in full, and § 5's
@@ -83,7 +83,7 @@ with the failing check quoted; it is not repaired inside a catch-up.
 
 **Where it stops: § 5's invalidation point — and a standalone run does not push at all.**
 The predicate is § 5's own and it is **any tracked path**, not just source and tests:
-[`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Phase ownership* binds a capture to the exact tree
+[`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *Phase ownership* binds a capture to the exact tree
 hash, *"including sources, tests, snapshots and execution configuration"*, and § 5 says *"if **any
 path** changed, all earlier impacted test and coverage evidence is invalid."* Report which paths the
 catch-up moved and name [`/kotoamatsukami`](../kotoamatsukami/SKILL.md) and
@@ -93,10 +93,10 @@ catch-up moved and name [`/kotoamatsukami`](../kotoamatsukami/SKILL.md) and
 in the wired run — `WORKFLOW.md` § 5 step 6 admits it *"only when this catch-up is a no-op"*, and even
 then on a tree those steps proved. A standalone run has no steps 3–5 behind it: the commits it would
 publish were never through `kokusen` → `kotoamatsukami` → `byakugan` in this run at all. Pushing them
-would be [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 2 Rule 2's *absorbing a
+would be [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 2 Rule 2's *absorbing a
 later phase*, and the phase it absorbs is the one that leaves the machine.
 
-**This is not murasaki absorbing a phase** ([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md)
+**This is not murasaki absorbing a phase** ([`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md)
 § 2, Rule 2): the catch-up was always its own step 1. What a standalone run declines to do is
 everything that was never its — **it still owns no tests, no coverage, no squash, no force-push, no
 first-publish, and opens no PR.**
@@ -104,7 +104,7 @@ first-publish, and opens no PR.**
 **Hand-back, and § 7 makes it a short one.** *Next in the wired run: `/kotoamatsukami` and
 `/byakugan` where evidence was invalidated; otherwise the branch is current and nothing was
 pushed.* **It names no phase beyond those two** — § 7 forbids proposing `/aka` or `/mukai`
-as a next step this run is waiting on, and [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md)
+as a next step this run is waiting on, and [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md)
 § 6 defers to that stricter rule rather than overriding it.
 
 ---
@@ -188,7 +188,7 @@ nen shu <check> --repo <path> --lane <iteration.lane>     # every iteration.chec
 
 **This half is murasaki's own step, and deliberately not a call to
 [`/rasengan`](../rasengan/SKILL.md).** Rasengan is the AUTHORING phase (the maintainer's ruling
-of 2026-09-10, [`docs/ROSTER.md`](../../../docs/ROSTER.md)); what step 2 wants is a verdict on a tree
+of 2026-09-10, [`docs/ROSTER.md`](../../../../docs/ROSTER.md)); what step 2 wants is a verdict on a tree
 nobody has authored on — the merge ao just made. So murasaki runs the declared checks itself, reads
 them off [`/rasengan`](../rasengan/SKILL.md) § 6's exit table, and **hands a red one to rasengan
 to author the fix**, after which step 2 runs again over the repaired tree.

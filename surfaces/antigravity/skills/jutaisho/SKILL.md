@@ -31,7 +31,7 @@ to make a noise, and the discipline that makes it worth having is the one it enf
 
 **Jutaisho reads `nen/workflow.json` and the checkout, not a caller.** The rungs, the sound, the
 `turn` policy and the `.nen/last-stop.json` marker are all declared; `at <gate>` carries the only
-argument it takes. [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4 lists it as already total, and **P1** —
+argument it takes. [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 4 lists it as already total, and **P1** —
 [`/hatsu-warmup`](../hatsu-warmup/SKILL.md) — is the clause that applies.
 
 **One thing a standalone call must say out loud: whether anything happened.** § 1's rule is that *a turn
@@ -279,7 +279,7 @@ afplay /System/Library/Sounds/<notifications.sound>.aiff
 ```
 
 > **Every value substituted into those two lines is sanitised first, exactly the way
-> [`hooks/stop-bell.sh`](../../../hooks/stop-bell.sh) sanitises it — the fallback is the same bell,
+> [`hooks/stop-bell.sh`](../../../../hooks/stop-bell.sh) sanitises it — the fallback is the same bell,
 > so it carries the same rule.** A stop title and body come from the effort: a branch name, a test
 > name, a conflicted path, a finding quoted from a reviewer. They are repository-controlled, and
 > here they land in **two nested quoting contexts at once** — a single-quoted shell word and, inside
@@ -323,18 +323,18 @@ afplay /System/Library/Sounds/<notifications.sound>.aiff
 ## 6. Surfaces — Codex and Cursor have no `Stop` hook; Antigravity has native hooks
 
 **§ 3 and § 5 assume a harness that fires a hook when a turn ends. Claude Code and Antigravity do.**
-[`hooks/hooks.json`](../../../hooks/hooks.json) is a *Claude Code* manifest — a `Stop` event and a
+[`hooks/hooks.json`](../../../../hooks/hooks.json) is a *Claude Code* manifest — a `Stop` event and a
 `PreToolUse` matcher. Antigravity carries its own native lifecycle hook manifest (`hooks.json` in the plugin,
 or `.agents/hooks.json` in the target repository) with matching `Stop` and `PreToolUse` hooks calling
-[`hooks/stop-bell.sh`](../../../hooks/stop-bell.sh) and [`hooks/guard-base-branch.sh`](../../../hooks/guard-base-branch.sh).
-**Neither Codex nor Cursor reads hooks, and neither documents a turn-end hook of its own** ([`docs/SURFACES.md`](../../../docs/SURFACES.md)
+[`hooks/stop-bell.sh`](../../../../hooks/stop-bell.sh) and [`hooks/guard-base-branch.sh`](../../../../hooks/guard-base-branch.sh).
+**Neither Codex nor Cursor reads hooks, and neither documents a turn-end hook of its own** ([`docs/SURFACES.md`](../../../../docs/SURFACES.md)
 § *What each surface reads*). So on those two surfaces § 5 is not a fallback for a hook that failed to
 install — **it is the only path there is**, and it is taken every time rungs 2–3 are owed.
 
 | Surface | Who fires rungs 2–3 | What this skill does |
 |---|---|---|
-| **Claude Code** | [`hooks/stop-bell.sh`](../../../hooks/stop-bell.sh), off the § 3 marker | writes the marker, and stops |
-| **Antigravity** (`/jutaisho`) | [`hooks/stop-bell.sh`](../../../hooks/stop-bell.sh), off the § 3 marker via native `Stop` hook | writes the marker, and stops |
+| **Claude Code** | [`hooks/stop-bell.sh`](../../../../hooks/stop-bell.sh), off the § 3 marker | writes the marker, and stops |
+| **Antigravity** (`/jutaisho`) | [`hooks/stop-bell.sh`](../../../../hooks/stop-bell.sh), off the § 3 marker via native `Stop` hook | writes the marker, and stops |
 | **Codex** (`$jutaisho`) | **this skill, in-session** | writes the marker, then runs `osascript` and `afplay` itself, and says so |
 | **Cursor** (`/jutaisho`) | **this skill, in-session** | the same |
 
