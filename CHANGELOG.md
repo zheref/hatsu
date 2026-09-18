@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.35.0 — a bot reviewer is a different route
+
+> **`v0.34.0` is the tag ruling**, on `opus/kurapika/tag-authority`, still open. This change is independent of it and takes the next version deliberately so the two bumps do not collide; whichever lands second inherits a contiguous history.
+
+- **`sharingan` records how to re-request a Bot reviewer**, and why the obvious attempts fail. Copilot is a `Bot`, not a `User`: `gh pr edit --add-reviewer` silently never resolves one (`zheref/nen#160`), REST `requested_reviewers` answers `422 may only be requested from collaborators` for a login missing its exact `[bot]` suffix, and GraphQL `requestReviews` resolves `userIds` as Users only.
+- **`nen pr request-reviews` already routes correctly** — a bare login the PR knows as a Bot goes to the bot mutation, and `--add-bots <node id>` covers one it has never seen. The gap was that nothing said so.
+- **Verification is the other half.** REST's `requested_reviewers` lists users and teams only, so a *pending* bot request reads as `[]` — a caller checking there confirms the opposite of the truth. `nen pr ready`'s phrasings are the signal: *no round at head* (a request is owed) versus *review requested, not yet posted* (one is in flight; wait).
+- **Requesting an owed round is not an escalation.** Taking it to the maintainer spends § 6's ladder on a step the run can perform itself — which is what prompted this: a session concluded the re-request was impossible on the maintainer's own credentials and handed it back as a gate.
+
 ## v0.33.0 — standalone entry: every skill reachable from a cold checkout
 
 - New authority `docs/STANDALONE-ENTRY.md`: the cold-start preamble (P1 warm up, P2 orient, P3 establish the delta, P4 elicit, P5 declare), the four inherited-state classes S1–S4, the per-surface option-picker matrix, and the two rules — every skill is reachable alone, and **no skill is ever indefinitely independent**.
