@@ -223,65 +223,50 @@ The symmetry the ruling states: **an upload that succeeds becomes a tag, and a r
 becomes a GitHub release.** A repository may declare this block or not — the default is not — and one
 that does not behaves exactly as it did before.
 
-The declaration is `nen/workflow.json` → `tags.deploy`, per target:
+The declaration is `nen/workflow.json`, and **the NAME comes from the same file susanoo announced
+from** — there is exactly one source, so what was announced and what is cut cannot differ:
 
 ```json
 "tags": {
-  "deploy": { "testflight": { "nameFrom": ".nen/export/testflight-tag", "push": true } }
+  "identity": { "nameFrom": ".nen/archive/tag-name" },
+  "deploy":   { "testflight": { "push": true } }
 }
 ```
 
-**Keyed by target name, because a send to `staging` and a send to `beta` are not the same event** and
-must not collide on one tag name. A target with no entry is not tagged, even where another target has
-one.
+| Key | Meaning |
+|---|---|
+| `tags.identity.nameFrom` | first line is the tag's **identity** — `v1.0.0+1217`. Shared with [`hatsu:susanoo`](../susanoo/SKILL.md) § 5a |
+| `tags.deploy.<target>` | **that this target is tagged at all**, and whether the tag is pushed. Keyed by target: a target with no entry is not tagged, even where a sibling has one |
 
-The order is the same as susanoo's and is not negotiable:
-
-1. **`--run` was passed and the deploy came back exit `0`.** A plan-only run tags nothing — nothing
-   was sent, so there is nothing to record. A failed or partial send tags nothing either.
-1a. **The working tree is clean at `--at`.** § 0's P2 already computes it and already warns that a
-   dirty tree ships *"something that exists in no commit"*. A tag makes that mismatch permanent and
-   public, so here the orientation becomes a condition: a dirty tree is a reported tag refusal, and
-   the send still stands.
-2. **Then** the tag is cut, through the verb and never around it:
+**The species prefix is the SKILL's, and it is composed from the target actually being sent to** —
+`dist/<target>/<identity>`. That is deliberate: only the cut knows its target, an archive does not,
+and a repository writing the whole name itself could write `dist/staging/…` on a `testflight` send.
+The prefix is not checked against a pattern, it is **built**, so it cannot disagree with the target.
 
 ```bash
-# nameFrom is DATA, never a command fragment -- AND NEITHER IS ITS PATH.
-# Read the value out of the JSON into a shell VARIABLE; never template it into
-# shell source. Inside double quotes `$(...)` is still command substitution, so
-# a declared path of `$(touch /tmp/pwned)` executes even though it "looks
-# quoted" -- the name being validated later does not help, because the damage is
-# done while the path is being built.
+# The JSON subscripts are DOUBLE-quoted inside the single-quoted -c argument.
+# Single quotes there terminate it, the shell strips them, and python dies
+# before reading anything — which would silently stop every declared tag.
 wf="$(git -C <path> rev-parse --show-toplevel)/nen/workflow.json"
-nameFrom="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))['tags']['deploy']['<target>']['nameFrom'])' "$wf")"
+nameFrom="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tags"]["identity"]["nameFrom"])' "$wf")"
 
 root="$(git -C <path> rev-parse --show-toplevel)"
 file="$root/$nameFrom"
-
-# A SYMLINK IS REFUSED, not followed. Canonicalising the parent directory is not
-# enough: an in-tree symlink AT the file can point anywhere, and `head` would
-# read an external file and publish its first line as a tag.
 [ -L "$file" ] && { echo "nameFrom is a symlink -- refused"; exit 2; }
 [ -f "$file" ] || { echo "nameFrom is not a regular file -- refused"; exit 2; }
 case "$(cd -P -- "$(dirname -- "$file")" && pwd -P)/" in
   "$root"/*) : ;;
   *) echo "nameFrom resolves outside the repository -- refused"; exit 2 ;;
 esac
+identity="$(head -n1 -- "$file" | tr -d '\r')"
+[ -n "$identity" ] || { echo "nameFrom's first line is empty -- refused"; exit 2; }
 
-name="$(head -n1 -- "$file" | tr -d '\r')"
-[ -n "$name" ] || { echo "nameFrom's first line is empty -- refused"; exit 2; }
+# BUILT from the target this run was called with, never read from the file.
+name="dist/<target>/$identity"
 git -C <path> check-ref-format "refs/tags/$name" \
-  || { echo "the declared tag name is not a legal git ref -- refused"; exit 2; }
-case "$name" in
-  dist/*/*) : ;;
-  *) echo "the declared tag name does not carry its species prefix -- refused"; exit 2 ;;
-esac
+  || { echo "the composed tag name is not a legal git ref -- refused"; exit 2; }
 nen tag cut --repo <path> --name "$name" --at <HEAD sha> --trunk <branch.base> [--push]
 ```
-
-**The name is the repository's**, read from `nameFrom`'s first line — kagutsuchi composes none, and a
-file that is missing, empty or holds a name `git check-ref-format` rejects is reported, never
-replaced with one invented so that there is something to cut.
 
 **The ancestor rule is about the COMMIT, not the branch.** `--at` is refused unless that commit is an
 ancestor of `origin/<trunk>`: a feature branch sitting at the trunk's tip tags fine, one carrying its

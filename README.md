@@ -816,7 +816,7 @@ of the five. [`docs/WORKFLOW.md`](docs/WORKFLOW.md) § 4 is the authority.
 
 | Skill | | |
 |---|---|---|
-| `susanoo` | **atomic** | **Archive and packaging.** Runs the lane's declared `archive` and produces the distributable **locally**. It uploads nothing and signs nothing — Nen never synthesises signing material — and an unsupported seat is quoted, never routed around. Where the repository declares `tags.announce`, it also NAMES the tag `kagutsuchi` will cut on a successful upload — it cuts none itself. This is the release unit `getsuga` folds into the release PR and the two phases below send. |
+| `susanoo` | **atomic** | **Archive and packaging.** Runs the lane's declared `archive` and produces the distributable **locally**. It uploads nothing and signs nothing — Nen never synthesises signing material — and an unsupported seat is quoted, never routed around. Where the repository declares `tags.identity`, it also NAMES the identity the tag `kagutsuchi` cuts on a successful upload will carry — it cuts none itself. This is the release unit `getsuga` folds into the release PR and the two phases below send. |
 | `kagutsuchi` | **atomic** | **Non-production upload — yours to call, per target.** The plan is always printed (`nen shu deploy --target <name>`, no `--run`); `--run` acts only on your own call **naming the target**, and never from a composite. `--target` is required with no default, even where exactly one destination is declared. |
 | `mugetsu` | **atomic** | **Publication — yours to call, per target, G3.** Only on your recorded per-target go, with the preflight green and the tag already cut. **One target per call**, and never from `getsuga`, `futon` or `en`. This is the only phase that reaches other people's users. |
 

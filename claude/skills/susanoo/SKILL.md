@@ -1,6 +1,6 @@
 ---
 name: susanoo
-description: Produce the distributable this repository declares — run the lane's own `archive` through `nen shu archive`, locally, and report every artifact it named by path and size. Runs inside `hatsu:getsuga` to build the release unit, and invoke `hatsu:susanoo [--lane <lane>]` by name to package a checkout on demand. It uploads nothing, publishes nothing and pushes nothing — where the consuming repository declares `tags.announce` it NAMES the tag kagutsuchi will cut on a successful upload, and cuts none itself; a lane that declares `archive` unsupported has its own reason quoted verbatim, and a missing signing identity is the declared precondition refusing, never a gap to fill — nen synthesises no signing material and neither does this skill.
+description: Produce the distributable this repository declares — run the lane's own `archive` through `nen shu archive`, locally, and report every artifact it named by path and size. Runs inside `hatsu:getsuga` to build the release unit, and invoke `hatsu:susanoo [--lane <lane>]` by name to package a checkout on demand. It uploads nothing, publishes nothing and pushes nothing — where the consuming repository declares `tags.identity` it NAMES the tag kagutsuchi will cut on a successful upload, and cuts none itself; a lane that declares `archive` unsupported has its own reason quoted verbatim, and a missing signing identity is the declared precondition refusing, never a gap to fill — nen synthesises no signing material and neither does this skill.
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
@@ -78,7 +78,7 @@ about a successful archive is authorization for either: a package on disk is a p
 | What it is supposed to produce | the row's `artifacts` — the list § 5 reports |
 | Whether this host may | `project.hosts` |
 | What must be true first | `project.preconditions.<lane>` — nen **asserts** these and never performs them (§ 4) |
-| The name of the tag it ANNOUNCES, and never cuts | `nen/workflow.json` → `tags.announce` — **the one thing susanoo reads from the workflow file** (§ 5a). Absent, it says nothing about tags |
+| The identity of the tag it ANNOUNCES, and never cuts | `nen/workflow.json` → `tags.identity` — **the one thing susanoo reads from the workflow file** (§ 5a), and the SAME file kagutsuchi cuts from. Absent, § 8's tag line reads `no tag declared` — the line is always written, never omitted |
 
 Everything else susanoo reads is `nen/contract.json`'s: packaging is what a repository *does*, not
 what the workflow *decides*, and the one workflow key above is read because *what the coming
@@ -187,38 +187,48 @@ always described. An archive is a package on disk; it stays one.
 > symmetry the maintainer stated: **an upload that succeeds becomes a tag, and a release Apple
 > approves becomes a GitHub release.**
 
-### The declaration
+### The declaration — ONE name source, shared with the cut
 
-`nen/workflow.json` → `tags.announce`, in the **consuming** repository, and it is opt-in like
-everything else here:
+`nen/workflow.json` → `tags.identity`, in the **consuming** repository, opt-in like everything else:
 
 ```json
 "tags": {
-  "announce": { "nameFrom": ".nen/archive/tag-name" }
+  "identity": { "nameFrom": ".nen/archive/tag-name" }
 }
 ```
 
 | Key | Meaning |
 |---|---|
-| `nameFrom` | A repo-relative path whose **first line is the tag name the repository intends**. Written by the repository's own `archive` row, at the one moment both the version and the build number are known. |
+| `nameFrom` | A repo-relative path whose first line is the tag's **IDENTITY** — `v1.0.0+1217` — written by the repository's own `archive` row, at the one moment both the version and the build number are known. |
 
-**There is no `push` key and there is no cut**, because nothing is cut. A block that carries one is
-reported as a declaration error rather than obeyed.
+**It is an identity, not a full tag name, and that is the whole point.**
+[`hatsu:kagutsuchi`](../kagutsuchi/SKILL.md) § 4a reads **this same file** and cuts
+`dist/<target>/<identity>`, applying the species prefix for the target it was actually called with.
+So susanoo announces exactly what will be cut, and the two cannot drift: there is one source.
+
+> **An earlier shape gave each skill its own `nameFrom`.** Susanoo announced out of one file and
+> kagutsuchi cut out of another, so a repository could report tag A and push tag B — and in the
+> reference consumer it actually did: the announced name carried a `build/` prefix that nothing ever
+> cut. One file is the fix, and the prefix is the skill's precisely because **only the cut knows its
+> target**. An archive does not: it may be sent to several targets, or to none.
 
 ### What susanoo does with it
 
-**Reads it, and says it.** One line in § 8's block: *the unit is tagged `<name>` when it reaches a
-distribution target*, or `no tag declared` where the block is absent, or the declaration error where
-it is malformed. Nothing else.
+**Reads it, and says it.** One line in § 8's block: *this unit will be tagged `<identity>` when it
+reaches a distribution target*, `no tag declared` where the block is absent, or the declaration error
+where it is malformed. Nothing else — susanoo cuts nothing.
 
-**The name is still read as DATA, because reading is where the danger was.** A path out of another
+**The name is read as DATA, because reading is where the danger is.** A path out of another
 repository's policy file reaches a shell here, and `$(...)` inside double quotes is command
 substitution whether or not anything is cut afterwards:
 
 ```bash
-# Read the VALUE out of the JSON; never template it into shell source.
+# Read the VALUE out of the JSON; never template it into shell source. The JSON
+# subscripts are DOUBLE-quoted inside the single-quoted -c argument -- single
+# quotes there would terminate it, and the command would die before reading
+# anything.
 wf="$(git -C <path> rev-parse --show-toplevel)/nen/workflow.json"
-nameFrom="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tags"]["announce"]["nameFrom"])' "$wf")"
+nameFrom="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tags"]["identity"]["nameFrom"])' "$wf")"
 
 root="$(git -C <path> rev-parse --show-toplevel)"
 file="$root/$nameFrom"
@@ -228,11 +238,11 @@ case "$(cd -P -- "$(dirname -- "$file")" && pwd -P)/" in
   "$root"/*) : ;;
   *) echo "nameFrom resolves outside the repository -- refused"; exit 2 ;;
 esac
-name="$(head -n1 -- "$file" | tr -d '\r')"
+identity="$(head -n1 -- "$file" | tr -d '\r')"
 ```
 
-A missing, empty, symlinked or out-of-tree `nameFrom` is **reported and the line says so** — it is
-never worked around, and it never fails the archive, which has already succeeded.
+A missing, empty, symlinked or out-of-tree `nameFrom` is **reported and the line says so** — never
+worked around, and it never fails the archive, which has already succeeded.
 
 ### What this does NOT become
 
@@ -325,7 +335,7 @@ are not one flag apart here.
 ## Authority
 
 - **Permitted:** run the lane's declared `archive` row, locally; probe the host through
-  `nen shu tools`; read the declared artifacts' paths and sizes; **read `tags.announce` and NAME the
+  `nen shu tools`; read the declared artifacts' paths and sizes; **read `tags.identity` and NAME the
   tag that is coming** (§ 5a); report every code.
 - **Not permitted:** `nen shu deploy` in any form, with or without `--run`; `nen shu release` in any
   form; any upload, any publication, any push, any commit, any PR, any label, **and any tag** — the
@@ -358,7 +368,7 @@ are not one flag apart here.
 - **Never cuts a tag, and never pushes one** (§ 5a). It names the tag that is coming; the cut is
   `kagutsuchi`'s, on an upload that succeeded.
 - **Never composes or templates a tag name of its own.** The name is the repository's, read from
-  `tags.announce.nameFrom` as data — symlink refused, out-of-tree refused, never templated into
+  `tags.identity.nameFrom` as data — symlink refused, out-of-tree refused, never templated into
   shell source.
-- **Never lets a missing or malformed `tags.announce` read as a failed archive.** The archive
+- **Never lets a missing or malformed `tags.identity` read as a failed archive.** The archive
   succeeded; the tag line says what it found.

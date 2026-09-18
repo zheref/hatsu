@@ -625,7 +625,7 @@ is declared, and a second destination is a second call the maintainer makes. Nei
 from a composite — not from [`futon`](../claude/skills/futon/)'s `then` clause, not from
 [`getsuga`](../claude/skills/getsuga/), not from [`en`](../claude/skills/en/) — and the release unit both
 of them send is built by [`susanoo`](../claude/skills/susanoo/), which uploads nothing itself and
-cuts no tag — where the repository declares `tags.announce` it names the tag `kagutsuchi` will cut.
+cuts no tag — where the repository declares `tags.identity` it names the identity `kagutsuchi`'s tag will carry.
 
 Asking *"shall I push now?"* at the end of a turn is how a human-called phase becomes an agent-called one by
 attrition. The loop simply stops and waits.

@@ -394,11 +394,12 @@ the moment a build actually lands.
 | a TestFlight (or other non-production) upload succeeds | **a tag**, cut by `kagutsuchi` § 4a |
 | Apple approves a release | **a GitHub release**, created by the consuming repository's own automation |
 
-1. **`susanoo` cuts nothing and pushes nothing.** § 5a reads `nen/workflow.json` → `tags.announce`
-   and **names** the tag that is coming, in one line of its report. Its long-standing property is
+1. **`susanoo` cuts nothing and pushes nothing.** § 5a reads `nen/workflow.json` → `tags.identity`
+   and **names the identity** the coming tag will carry — the SAME file kagutsuchi cuts from, so the two
+   cannot drift. Its long-standing property is
    intact and literal again: *nothing leaves this machine.*
-2. **`kagutsuchi` § 4a cuts the one tag**, after a `--run` send that returned exit `0`, from
-   `tags.deploy.<target>`. One artifact that reached a destination is one tag. A build that was never
+2. **`kagutsuchi` § 4a cuts the one tag**, after a `--run` send that returned exit `0`, from that same identity, composing `dist/<target>/` from the target it was called with;
+   `tags.deploy.<target>` says only whether that target is tagged and pushed. One artifact that reached a destination is one tag. A build that was never
    sent has nothing to point at, and a permanent public ref for it was the defect.
 3. **Opt-in per repository and off by default**, both blocks. A repository declaring neither behaves
    exactly as it did before, which is what makes this canon for every consumer.
