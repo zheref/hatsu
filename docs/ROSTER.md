@@ -405,7 +405,17 @@ the moment a build actually lands.
    exactly as it did before, which is what makes this canon for every consumer.
 4. **The name is the repository's**, read from a declared `nameFrom` as **data** — never templated
    into shell source, symlinks refused, out-of-tree paths refused, validated with
-   `git check-ref-format` before anything is spawned.
+   `git check-ref-format` before anything is spawned. **The target is data too**, quoted into a
+   variable and passed as an argument, and the species prefix is **composed** from it rather than
+   pattern-checked, so it cannot disagree with the target being sent to.
+4c. **`tags.deploy.<target>` is read BEFORE anything is cut.** A target with no entry is reported
+   `not declared for this target` and nothing is cut — a repository declaring only `tags.identity`
+   gets no tags at all, which is what per-target opt-in means.
+4d. **The file carries the BUILD COMMIT on line 2, and the cut uses it** rather than `HEAD`. susanoo
+   and kagutsuchi are separate invocations with a human decision between them, so `HEAD` can move; a
+   tag at `HEAD` would name a commit the archive never saw. Sharing one file also does **not** make
+   drift impossible — the archive can be re-run between the two — so the claim is the honest one:
+   there is no second *name* to disagree with, and the cut tags the recorded commit.
 5. **`nen tag cut`'s refusals stand.** `--at` must be an ancestor of `origin/<trunk>` — a rule about
    the COMMIT, not the branch, so a feature branch at the trunk's tip tags fine. What keeps a tag
    from attesting the wrong bytes is a separate **clean-tree** condition. `--trunk` comes from

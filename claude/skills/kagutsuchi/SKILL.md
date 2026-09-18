@@ -236,7 +236,7 @@ from** — there is exactly one source, so what was announced and what is cut ca
 | Key | Meaning |
 |---|---|
 | `tags.identity.nameFrom` | first line is the tag's **identity** — `v1.0.0+1217`. Shared with [`hatsu:susanoo`](../susanoo/SKILL.md) § 5a |
-| `tags.deploy.<target>` | **that this target is tagged at all**, and whether the tag is pushed. Keyed by target: a target with no entry is not tagged, even where a sibling has one |
+| `tags.deploy.<target>` | **that this target is tagged at all**, and whether the tag is pushed. Keyed by target: a target with no entry is not tagged, even where a sibling has one — and the procedure **reads it before anything else**, reporting `not declared for this target` and cutting nothing when it is absent |
 
 **The species prefix is the SKILL's, and it is composed from the target actually being sent to** —
 `dist/<target>/<identity>`. That is deliberate: only the cut knows its target, an archive does not,
@@ -248,6 +248,21 @@ The prefix is not checked against a pattern, it is **built**, so it cannot disag
 # Single quotes there terminate it, the shell strips them, and python dies
 # before reading anything — which would silently stop every declared tag.
 wf="$(git -C <path> rev-parse --show-toplevel)/nen/workflow.json"
+
+# THE TARGET IS REPOSITORY-CONTROLLED TOO. It goes into a quoted variable and is
+# passed to python as an ARGUMENT -- never interpolated into shell source, where
+# a target key of `x; touch /tmp/pwned; #` would execute before any check runs.
+target="<the target this run was called with>"
+
+# READ THE OPT-IN FOR THIS TARGET FIRST. `tags.deploy.<target>` is the switch:
+# absent means this target is not tagged, even where a sibling target is, and
+# even where tags.identity is declared. Exit 3 here is "not declared", reported
+# without cutting -- NOT an error.
+python3 -c 'import json,sys
+d=json.load(open(sys.argv[1])).get("tags",{}).get("deploy",{})
+sys.exit(0 if sys.argv[2] in d else 3)' "$wf" "$target" || {
+  echo "no tags.deploy entry for '$target' -- not declared for this target, nothing cut"; exit 0; }
+
 nameFrom="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tags"]["identity"]["nameFrom"])' "$wf")"
 
 root="$(git -C <path> rev-parse --show-toplevel)"
@@ -258,14 +273,23 @@ case "$(cd -P -- "$(dirname -- "$file")" && pwd -P)/" in
   "$root"/*) : ;;
   *) echo "nameFrom resolves outside the repository -- refused"; exit 2 ;;
 esac
-identity="$(head -n1 -- "$file" | tr -d '\r')"
+identity="$(sed -n '1p' -- "$file" | tr -d '\r')"
+built_at="$(sed -n '2p' -- "$file" | tr -d '\r')"
 [ -n "$identity" ] || { echo "nameFrom's first line is empty -- refused"; exit 2; }
 
-# BUILT from the target this run was called with, never read from the file.
-name="dist/<target>/$identity"
+# THE SHA THE ARCHIVE WAS BUILT FROM, NOT HEAD. susanoo and this phase are
+# separate invocations with a human decision between them, so HEAD can have
+# moved -- and a tag at HEAD would then name a commit the archive never saw.
+[ -n "$built_at" ] || { echo "nameFrom carries no build SHA -- refused rather than tagging HEAD"; exit 2; }
+git -C <path> cat-file -e "${built_at}^{commit}" 2>/dev/null \
+  || { echo "the recorded build SHA is not a commit in this repository -- refused"; exit 2; }
+
+# BUILT from variables, never templated: the prefix cannot disagree with the
+# target, and an illegal target name is rejected by check-ref-format below.
+name="dist/$target/$identity"
 git -C <path> check-ref-format "refs/tags/$name" \
   || { echo "the composed tag name is not a legal git ref -- refused"; exit 2; }
-nen tag cut --repo <path> --name "$name" --at <HEAD sha> --trunk <branch.base> [--push]
+nen tag cut --repo <path> --name "$name" --at "$built_at" --trunk <branch.base> [--push]
 ```
 
 **The ancestor rule is about the COMMIT, not the branch.** `--at` is refused unless that commit is an

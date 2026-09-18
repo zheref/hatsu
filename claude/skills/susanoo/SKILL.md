@@ -199,12 +199,26 @@ always described. An archive is a package on disk; it stays one.
 
 | Key | Meaning |
 |---|---|
-| `nameFrom` | A repo-relative path whose first line is the tag's **IDENTITY** — `v1.0.0+1217` — written by the repository's own `archive` row, at the one moment both the version and the build number are known. |
+| `nameFrom` | A repo-relative path written by the repository's own `archive` row. **Line 1 is the tag's IDENTITY** — `v1.0.0+1217`, no prefix — at the one moment both the version and the build number are known. **Line 2 is the COMMIT SHA the archive was built from.** |
+
+**Two lines, and the second one is load-bearing.** susanoo and
+[`hatsu:kagutsuchi`](../kagutsuchi/SKILL.md) are separate invocations with a human decision between
+them, so `HEAD` can move, and a tag cut at send time against `HEAD` would name a commit the archive
+never saw. The archive knows the commit it built; it records it, and the cut uses **that** SHA.
 
 **It is an identity, not a full tag name, and that is the whole point.**
 [`hatsu:kagutsuchi`](../kagutsuchi/SKILL.md) § 4a reads **this same file** and cuts
-`dist/<target>/<identity>`, applying the species prefix for the target it was actually called with.
-So susanoo announces exactly what will be cut, and the two cannot drift: there is one source.
+`dist/<target>/<identity>` at the recorded SHA, applying the species prefix for the target it was
+actually called with.
+
+> **One path is not one value, and the earlier wording over-claimed.** Sharing a file does not make
+> drift impossible: the archive can be re-run between the announcement and the send, rewriting both
+> lines. What the shared file buys is that there is **no second name to disagree with** — and what
+> closes the rest is the cut's own verification (§ 4a): it tags the **recorded SHA** rather than
+> `HEAD`, and a repository whose `deploy` row can check the identity against the artifact it is
+> sending should do so. Announcing is a statement about the archive that existed when susanoo ran;
+> if that archive is replaced, the announcement is stale and the cut follows the file, not the
+> memory.
 
 > **An earlier shape gave each skill its own `nameFrom`.** Susanoo announced out of one file and
 > kagutsuchi cut out of another, so a repository could report tag A and push tag B — and in the
@@ -214,7 +228,7 @@ So susanoo announces exactly what will be cut, and the two cannot drift: there i
 
 ### What susanoo does with it
 
-**Reads it, and says it.** One line in § 8's block: *this unit will be tagged `<identity>` when it
+**Reads it, and says it.** One line in § 8's block: *this unit will be tagged `<identity>` at `<built_at>` when it
 reaches a distribution target*, `no tag declared` where the block is absent, or the declaration error
 where it is malformed. Nothing else — susanoo cuts nothing.
 
@@ -238,7 +252,8 @@ case "$(cd -P -- "$(dirname -- "$file")" && pwd -P)/" in
   "$root"/*) : ;;
   *) echo "nameFrom resolves outside the repository -- refused"; exit 2 ;;
 esac
-identity="$(head -n1 -- "$file" | tr -d '\r')"
+identity="$(sed -n '1p' -- "$file" | tr -d '\r')"
+built_at="$(sed -n '2p' -- "$file" | tr -d '\r')"   # the commit the archive was built from
 ```
 
 A missing, empty, symlinked or out-of-tree `nameFrom` is **reported and the line says so** — never
