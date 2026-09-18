@@ -14,8 +14,17 @@ filing. Never copy or invent a second policy in the target repository.
 
 # Jujutsu — the device, bound to the declaration
 
-**Nature: Transmuter.** The output is a `project.launch` block in `nen/contract.json` — machinery —
-and machinery lands at **G4** (`claude/agents/kurapika.md` § *The six work-modes*).
+**Nature: Transmuter.** The output is a `project.launch` block in `nen/contract.json` — machinery.
+
+> **Which gate the declaration PR stands at is the REPOSITORY's, not the file's** — maintainer's ruling,
+> 2026-09-18 ([`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-18*). **`G4` (`CON-7`) in a
+> canon repository** — `zheref/hatsu`, `zheref/nen`, `zheref/bankai`, whose product *is* the process.
+> **`G2` (`CON-5`) in a consumer repository**, which is where this skill usually runs: a launch target is
+> how *that* repository is set up on this machine, it governs nothing but itself, and `nen/contract.json`
+> being the filename does not make it canon. **Resolve the target repository first and say which gate you
+> are standing at.** Either way the merge is the maintainer's and this skill never performs it — the
+> ruling moves the gate, never the prohibition. Read "G4" below as "the declaration gate" and apply this
+> rule to it.
 
 > **Get this device paired, prove it with the probe, and write it into the declaration through a pull
 > request — once, so nobody has to do it again.**
@@ -276,7 +285,7 @@ codepoint. **Neither the rendered form nor the typed form is the name.** Copy th
 probe's JSON output, and where a name carries anything non-ASCII, **say so in the pull request body**
 so the next reader does not "fix" it.
 
-## 6. Register it — one `project.launch` key, then a PR at **G4**
+## 6. Register it — one `project.launch` key, then the declaration PR (**G4** in a canon repository, **G2** in a consumer one — § *Nature*)
 
 ```json
 "launch": {
@@ -528,8 +537,9 @@ with the probe's full output, not a summary of it, and the on-device step that c
   block is preserved and read by nothing.
 - **Never registers a second target for a device that already has one** (§ 2).
 - **Never changes `launch.default` without saying so**, and never silently.
-- **Never merges the declaration PR** — it is machinery, it stands at **G4**, and G4 is the
-  maintainer's (`CON-7`).
+- **Never merges the declaration PR** — it stands at **G4** in a canon repository and **G2** in a
+  consumer one (§ *Nature*), and **both are the maintainer's** (`CON-7` / `CON-5`). The gate moves with
+  the repository; the prohibition does not move at all.
 - **Never polls for the device on a timer** (§ 3) — nen declined to authorise the loop, and this skill
   does not route around it.
 - **Never presents a by-hand probe as a verb's output** — § Residue is named where it runs.

@@ -173,9 +173,12 @@ Has an open PR?
 │        │        PR carries `bankai:observation-fix` (CON-34), which IS a maintainer integration
 │        │        merge and must be worded as one, never as "G2"
 │        └─ NO  → is it CON-32-Ready?  (nen pr ready — § 5)
-│                 ├─ YES → does the diff touch CONSTITUTION.md, handbooks/, agents/, nen/ (or the
-│        │                 legacy schemas/), or the process surface (.github/workflows/, claude/,
-│        │                 scripts/, tests/, docs/)?  →  nen gate derive (below)
+│                 ├─ YES → is the TARGET a canon repo (zheref/hatsu, zheref/nen, zheref/bankai)?
+│        │                 ├─ NO → G2 (CON-5). A consumer's own nen/*.json or CI workflow is
+│        │                 │       configuration, not policy; nen gate derive is NOT run
+│        │                 └─ YES → does the diff touch CONSTITUTION.md, handbooks/, agents/, nen/
+│        │                 (or the legacy schemas/), or the process surface (.github/workflows/,
+│        │                 claude/, scripts/, tests/, docs/)?  →  nen gate derive (below)
 │        │                 │        ├─ YES → G4   (CON-7 — policy/spec, or process-as-product)
 │        │                 │        └─ NO  → G2   (CON-5 — product code)
 │        │                 └─ NO  → NO GATE. In progress, owned by its author. See § 6.
@@ -201,6 +204,40 @@ finding under § 5. Until one exists, resolve the base branch by reading it dire
 whose base could not be determined is reported `unresolved`, never defaulted to `main`.
 
 **Deriving the diff half, mechanically:**
+
+> **FIRST decide the repository's ROLE. The path sets below are `zheref/hatsu`'s OWN canon, not a
+> universal set** — maintainer's ruling, 2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md)
+> § *Rulings of 2026-09-18*).
+>
+> **G4 is authoring or maintaining a CANON repository** — `zheref/hatsu`, `zheref/nen`,
+> `zheref/bankai` — whose product *is* the process, so a merge there decides how every other
+> repository behaves. **Everything else is G2**, including a consumer repository declaring its own
+> `nen/contract.json`, `nen/workflow.json`, `nen/gates.json`, adding a CI workflow or a `scripts/`
+> entry: that is *configuration of how the system is set up there*, and it governs nothing but that
+> repository. **The one question: would merging this change what a DIFFERENT repository does?**
+>
+> - **Target is a canon repository** → derive with that repository's own sets, below.
+> - **Target is a consumer repository** → **the gate is `G2` by role, and `nen gate derive` is not
+>   run.** Its two sets cannot both be empty — `--policy-paths "" --process-paths ""` is **refused at
+>   exit 1**: *"no path sets were given, so every diff would derive G2 — including a policy change …
+>   state them explicitly"* (verified live, nen `0.10.0`). That refusal is the answer rather than an
+>   obstacle: the verb splits a canon repository's own surface, and a consumer has none to split. Run
+>   it there only where that repository declares a policy surface **of its own** — its product's spec
+>   — and then with *its* paths, never these.
+>
+> **The incident this corrects.** In `zheref/zheref.io`, a consumer repository, a résumé PR touching
+> `nen/contract.json`, `nen/gates.json`, `.github/workflows/pr.yml`, `scripts/` and `docs/` derived
+> **`G4`** from the sets below and was reported as `G4` in the PR body, a landing report and two
+> `nen stop` banners. **It is `G2`.** Dropping `nen/` from the policy set does not fix it — the
+> process set still catches `.github/workflows/`, `docs/` and `scripts/`. The path set was never the
+> dial; the repository's role is.
+>
+> **Nothing is owed by `zheref/nen`.** The verb already says so itself: *"There are no built-in path
+> sets. They are the target repository's canon, and a binary carrying one repository's sets would
+> derive that repository's gates everywhere it was pointed"*, and `--process-paths` is documented as
+> G4 *"in a repository whose product is its process"*. A `--repo-role` flag would be the built-in set
+> that help text refuses.
+
 
 ```
 nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/" \
@@ -241,8 +278,11 @@ side: *"the invocation asserted G4; the diff derives G2, and the derived gate st
 is a property of the diff, not of a prior belief.
 
 **In `<reference-repo>` almost every PR is G4** — it is a governance and machinery repo, so its process
-surface *is* its product. In a consumer repo (`<product-repo-A>`, `<product-repo-B>`) product code is the norm and
-G2 dominates. Do not carry one repo's ratio into the other; decide per diff.
+surface *is* its product. **In a consumer repo (`<product-repo-A>`, `<product-repo-B>`) it is not a ratio,
+it is a rule: the gate is `G2` by the repository's role**, and the path sets above are not run against it
+at all. A consumer's `nen/contract.json` and its `.github/workflows/` are its own setup, not anybody's
+canon — maintainer's ruling, 2026-09-18. What is decided per diff is which *canon* repository's surface a
+diff hit, never whether a consumer's configuration counts as policy; it does not.
 
 ### G5 is not the default bucket — this is the rule this skill exists to enforce
 

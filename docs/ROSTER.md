@@ -32,8 +32,8 @@ believes he is holding, so they can catch him holding the wrong one before he ac
 | Mode | Lane | Gate its PRs stand at |
 |---|---|---|
 | **Enhancer** | **Product code.** Edit product/feature code in the local checkout, build and test locally, open the PR. Branch `kurapika/<slug>`. | **G2** (`CON-5`) |
-| **Conjurer** | **Canon & governance authoring** — the constitution, handbooks, schemas, agent definitions, taxonomies, thresholds. Conjured contracts *with conditions*: a clause states what it binds, what it costs, when it lapses, and what happens when it is broken. | **G4** (`CON-7`) |
-| **Transmuter** | **Machinery** — Nen verbs and their tests, scaffolding, hooks, workflows, generators, plugin manifests, contract files. The standing transmutation is *improvised shell → deterministic verb*. | **G4** (`CON-7`) |
+| **Conjurer** | **Canon & governance authoring** — the constitution, handbooks, schemas, agent definitions, taxonomies, thresholds. Conjured contracts *with conditions*: a clause states what it binds, what it costs, when it lapses, and what happens when it is broken. | **G4** (`CON-7`) **in a canon repository** (`zheref/hatsu`, `zheref/nen`, `zheref/bankai`); the same edit in a consumer repository is **G2** — § *Rulings of 2026-09-18* |
+| **Transmuter** | **Machinery** — Nen verbs and their tests, scaffolding, hooks, workflows, generators, plugin manifests, contract files. The standing transmutation is *improvised shell → deterministic verb*. | **G4** (`CON-7`) **for canon machinery** — machinery in `zheref/hatsu`, `zheref/nen` or `zheref/bankai`, which *is* the process. The same file kinds in a consumer repository are that repository's **configuration** and stand at **G2** — § *Rulings of 2026-09-18* |
 | **Manipulator** | **GitHub-side ops** — drives, wakes, labels, retargets, cascades, thread stewardship. Never merges, never votes, never self-reviews. | drives *to* a gate, crosses none |
 | **Emitter** | **Release & fan-out** — `susanoo` builds the release unit, `getsuga` opens the release-proposal PR and cuts the post-merge tag, and the repin fan-out follows: collation, preflight, `latest`. Prepares a release; never publishes one, and never reaches `kagutsuchi` or `mugetsu`. | **G3** stays the human's (`CON-6`) |
 | **Specialist** | **Product intake** — his kept Product-Owner canon. A raw thought elicited into a decision-complete brief, filed only on explicit confirmation. | **G1** stays the human's (`CON-4`) |
@@ -439,6 +439,92 @@ moved.
 
 ---
 
+## Rulings of 2026-09-18
+
+### G4 is the repository's ROLE, not the file's kind
+
+**Ruled 2026-09-18.** Recorded verbatim in substance, because the sentence is the whole of it:
+
+> G4 is not so much about whether we touch machinery or not, but on whether we are **authoring or
+> maintaining the code, the repositories that govern the canon of our very system**. That is
+> technically machinery because it is a mix of prose, scripts, and deterministic work jobs, and that
+> is what ultimately determines our process.
+>
+> Whereas, just updating how that system is **set up on a consumer repository** is not enough; it is
+> just configuration, not really a process update.
+
+**The rule.**
+
+- **G4 (`CON-7`) is authoring or maintaining a canon repository.** Three repositories are the canon:
+  **`zheref/hatsu`**, **`zheref/nen`**, **`zheref/bankai`**. Their product *is* the process — prose,
+  scripts and deterministic jobs together — and what they say governs how every other repository
+  behaves. A change there changes the process itself, so it is the maintainer's.
+- **G2 (`CON-5`) is everything else** — including a consumer repository declaring its own
+  `nen/contract.json`, `nen/workflow.json`, `nen/gates.json`, adding a CI workflow, or adding a
+  `scripts/` entry. That is **configuration of how the system is set up there**. It governs nothing
+  but that repository, so it is an ordinary merge.
+
+**The test, in one question: *would merging this change what a DIFFERENT repository does?*** Yes →
+G4. No → G2. A file's name never answers it; the repository it sits in does.
+
+#### Why the correction was needed — the incident
+
+In **`zheref/zheref.io`**, a **consumer** repository, `hatsu:mukai` ran on a résumé PR whose diff
+touched `nen/contract.json`, `nen/gates.json`, `.github/workflows/pr.yml`, `scripts/` and `docs/`.
+Every one of those paths is in the canon-shaped path set the skills hand `nen gate derive`, so the
+run derived **G4** and reported it in the PR body, a landing report and two `nen stop` banners. The
+maintainer corrected it to **G2**. Corrected in that repository at commit `a2bce25` (its
+`nen/gates.json` `$comment` now carries the distinction) and in the body of
+[zheref/zheref.io#22](https://github.com/zheref/zheref.io/pull/22).
+
+**The misreading was defensible, which is why the text moved and not only the verdict.** The gate
+table's G4 row said *"Policy / spec change"* and named no repository; the Transmuter row said
+*"Machinery — … workflows, generators, plugin manifests, contract files"* and named none either. Read
+literally, a consumer's own `nen/contract.json` is a contract file and its `pr.yml` is a workflow,
+and the G4 follows. Both rows now carry the repository-role qualifier, and this section is what they
+point at.
+
+#### What it means for `nen gate derive` — and what does NOT change
+
+`nen gate derive` was never wrong. It answers exactly the question it is asked, and its own `--help`
+already states this ruling in its own words — verified live at nen `0.10.0`:
+
+> `--process-paths <c,d>`  Process-surface paths. A hit derives G4 too, for a different reason: **in
+> a repository whose product is its process, a process change IS a policy change.**
+>
+> There are no built-in path sets. **They are the target repository's canon**, and a binary carrying
+> one repository's sets would derive that repository's gates everywhere it was pointed.
+
+**The defect was in the callers, which passed a canon path set to every repository as a literal.**
+Measured in `zheref.io`'s change set at nen `0.10.0`:
+
+| Invocation | Result |
+|---|---|
+| `--policy-paths "…,nen/,…" --process-paths ".github/workflows/,claude/,scripts/,tests/,docs/"` | `G4` — *"the diff touches policy/spec (`nen/`)"* |
+| same, with `nen/` dropped from the policy set | still `G4` — the process set catches `.github/workflows/`, `docs/`, `scripts/` |
+| `--policy-paths "" --process-paths ""` | **refused, exit 1** — *"no path sets were given, so every diff would derive G2 — including a policy change… state them explicitly"* |
+
+**That refusal is the answer, not an obstacle.** A consumer repository cannot express "nothing here
+governs anything" to this verb, because the verb exists to split a canon repository's own surface.
+So: **in a consumer repository the gate is not derived by path at all.** It is **G2** by repository
+role, and `nen gate derive` is not called. The verb is called only in a canon repository, or with a
+consumer's *own* declared policy surface — its product's spec — which is never Hatsu's path set
+copied across.
+
+**No change is owed by `zheref/nen`.** A `--repo-role canon|consumer` flag would be the binary
+carrying one repository's sets, which is the thing its help text refuses to do.
+
+**Five skills carried the unqualified path set** and now select it by repository role first:
+[`hanten`](../claude/skills/hanten/SKILL.md), [`sharingan`](../claude/skills/sharingan/SKILL.md),
+[`backlog-state`](../claude/skills/backlog-state/SKILL.md),
+[`tensho`](../claude/skills/tensho/SKILL.md), [`shibari`](../claude/skills/shibari/SKILL.md).
+
+**Conjurer and Transmuter keep their G4**, in a canon repository. Outside one, the same edit is
+Enhancer-or-Transmuter work standing at **G2** — the mode says what kind of work it is, the
+repository says which gate it stands at, and the two are independent.
+
+---
+
 ## 🔶 OPEN — Killua, and the rest of Illumi's row
 
 > **These rows are OPEN sub-decisions. The ruling is G4-class and it has not been made.** This is
@@ -538,7 +624,7 @@ Clause ids are the inherited constitution's; the rewritten constitution keeps th
 | **G1-M** | `CON-25` | Release into build — applying the building stage label | Only under `CON-25`'s four exhaustive carve-outs |
 | **G2** | `CON-5` | Merge to `main` | **Never** by these agents. No agent here merges `main`, or its own PR anywhere |
 | **G3** | `CON-6` | Release go/no-go | **Never.** Preparing a release is allowed; publishing is not |
-| **G4** | `CON-7` | Policy / spec change | **Never** |
+| **G4** | `CON-7` | Policy / spec change — **authoring or maintaining a canon repository** (`zheref/hatsu`, `zheref/nen`, `zheref/bankai`): the repositories whose product is the process, so a merge there changes what every other repository does. A consumer repository's own `nen/*.json`, CI workflow or `scripts/` entry is **configuration, and stands at G2** (§ *Rulings of 2026-09-18*) | **Never** |
 | **G5** | `CON-47` | Any other human-only decision or action | **Never** — its definition *is* "the decision is theirs" |
 
 **No agent in this roster casts a `request_changes` review — for any reason, on any PR.** They run on the

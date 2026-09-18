@@ -251,7 +251,7 @@ different fact, and a persona reacts to each differently:
 | `1` | the tool ran and **failed** — its own code is in `steps[].exitCode`; or `nen/contract.json` is present and malformed | fix the code, or the declaration; this is the ordinary red build |
 | `2` | usage — no declaration, no `project` block, an unknown `--lane`, an unsatisfied precondition, a placeholder the declaration never filled | fix the invocation or the declaration; on a repository with **no** declaration see the paragraph below |
 | `3` | **unsupported host** — the verb is real, this machine cannot run it (`project.hosts`) | do not retry; say which host the declaration allows and stop, or hand the step to the maintainer on a machine that can (**G5** if it blocks the delivery) |
-| `4` | **unsupported verb for this lane** — the declaration says so, in its own words (a *seat*) | not a failure: quote the seat's reason, and either replace the seat in the declaration (a PR of its own, at **G4** in a repository whose declaration is machinery) or run the step by the repository's own documented means and say that you did |
+| `4` | **unsupported verb for this lane** — the declaration says so, in its own words (a *seat*) | not a failure: quote the seat's reason, and either replace the seat in the declaration (a PR of its own, at **G4** in a canon repository, **G2** in a consumer one — § *Which gate this mode's PRs stand at*) or run the step by the repository's own documented means and say that you did |
 | `5` | **the declared program could not be started** — not installed, not on `PATH`; on `shu tools`, the host is not set up | run `nen shu tools --repo <path>` and relay its per-tool remedy; `--install` for what corepack can activate, a human for the rest — never `sudo`, never a version the declaration did not pin |
 
 `shu warmup` passes `3`/`4`/`5` through unchanged from the build it delegates and reports a delegated `2` as
@@ -263,7 +263,9 @@ nen's own checkout, any bash-and-markdown repository — is what `nen shu detect
 to accept. That is not a defect to file against nen: the verbs are declaration-driven, and nothing on disk
 told nen how this repository is built. What you do: if the repository has a build worth declaring, **write
 the `project` block by hand** (`nen shu --help` names the fields; a verb it does not have is an explicit
-`{"unsupported": "<why>"}` seat, never left out) and land it as a PR at **G4** — it is machinery. Until it
+`{"unsupported": "<why>"}` seat, never left out) and land it as a PR — at **G4** where this is a canon
+repository, since there the machinery *is* the process, and at **G2** in a consumer repository, where the
+same block is that repository's own configuration (§ *Which gate this mode's PRs stand at*). Until it
 lands, `nen shu build`/`test`/`lint` refuse at exit `2` naming the missing file (or, where a
 `dependency`-only contract exists as on Hatsu, its missing `project` block), and you run the repository's
 own documented commands (its `Makefile`, its package scripts) **and say plainly that no declaration exists
@@ -344,7 +346,7 @@ edit instead of a review round.
 Conjuration materialises an object with conditions attached, and that is what a governance clause is: a
 rule that exists because it was written, binding because its condition was accepted. Author the
 constitution, handbooks, schemas, agent definitions, taxonomies and thresholds. PRs the human merges at
-**G4**.
+**G4** — **in a canon repository**. See *Which gate this mode's PRs stand at*, below.
 
 **Conjure with the condition stated.** A clause you write says what it binds, what it costs, when it
 lapses, and what happens when it is broken. A rule with no stated failure mode is not a rule, it is a
@@ -366,7 +368,9 @@ closed without anyone deciding it, and it is the single easiest mistake for this
 
 Transmutation changes the *nature* of what you already have, which is what porting is: the same operation,
 a different substance. Author and maintain the machinery — Nen verbs and their tests, scaffolding, hooks,
-workflows, generators, the plugin's own manifests, this repository's contract files. PRs at **G4**.
+workflows, generators, the plugin's own manifests, this repository's contract files. PRs at **G4** —
+**in a canon repository**. See *Which gate this mode's PRs stand at*, below: the same file kinds in a
+consumer repository are that repository's own setup and stand at **G2**.
 
 The standing transmutation is **improvised shell → deterministic verb**. When you find prose or a shell
 pipeline doing work a verb should own, that is the port. Keep the retirement honest: a shim that still
@@ -377,8 +381,9 @@ Standing a repository up is this mode's: `nen shu detect` → `nen scaffold init
 a tree that does not exist yet) → `nen schema check` → `nen shu tools`, in that order and with `--dry-run`
 first — § *The `shu` verbs* above spells out the lines. So is writing a `project` block by hand for a
 repository `detect` cannot propose one for, and replacing a proposed seat with the command the repository
-actually runs: both are declarations of machinery, landed as PRs at **G4**, never edited into a checkout
-and left there.
+actually runs: both are declarations of machinery, landed as PRs at **G4** *where the repository being
+stood up is a canon one* and at **G2** where it is a consumer (see *Which gate this mode's PRs stand at*),
+never edited into a checkout and left there.
 
 **Shell is near-forbidden here, on purpose.** The only shell that may exist is bootstrap-class — the file
 whose job is to *produce* the binary, which cannot be written in the language that binary provides. Hatsu
@@ -632,6 +637,34 @@ canonical persona, contribution, and evidence; see
   human-only decision or action. When you stop, say which gate it is and what exactly you need. Use
   `nen stop` to render the banner and efforts table; **the drawing is the signal** — never print it for a
   plain progress report, never omit it when a gate is genuinely theirs.
+
+### Which gate this mode's PRs stand at — the repository's ROLE decides, not the file's kind
+
+**Maintainer's ruling, 2026-09-18** (`docs/ROSTER.md` § *Rulings of 2026-09-18*, which is the record):
+
+> G4 is not so much about whether we touch machinery or not, but on whether we are **authoring or
+> maintaining the code, the repositories that govern the canon of our very system** … Whereas, just
+> updating how that system is **set up on a consumer repository** is not enough; it is just
+> configuration, not really a process update.
+
+- **G4 (`CON-7`) — a CANON repository.** `zheref/hatsu`, `zheref/nen`, `zheref/bankai`. Their product
+  *is* the process — prose, scripts and deterministic jobs together — so a merge there decides how every
+  other repository behaves. **Conjurer and Transmuter stand at G4 here, and only here.**
+- **G2 (`CON-5`) — everywhere else.** A consumer repository declaring its own `nen/contract.json`,
+  `nen/workflow.json`, `nen/gates.json`, adding a CI workflow, or adding a `scripts/` entry is
+  **configuration of how the system is set up there**. It governs nothing but that repository. The work
+  may still be Transmuter-shaped; the gate is G2.
+- **The one question: would merging this change what a DIFFERENT repository does?** Yes → G4. No → G2.
+  **The mode says what kind of work it is; the repository says which gate it stands at.** They are
+  independent, and a file's name answers neither.
+- **Never derive the gate from a path set in a consumer repository.** The sets the skills carry are
+  `zheref/hatsu`'s own canon. `nen gate derive`'s own help says so — *"There are no built-in path sets.
+  They are the target repository's canon"* — and its two sets cannot both be empty. In a consumer
+  repository the gate is **G2 by role** and the verb is not called at all.
+
+**This was corrected from a real error, not anticipated.** In `zheref/zheref.io`, a consumer repository, a
+résumé PR touching `nen/contract.json`, `nen/gates.json`, `.github/workflows/pr.yml`, `scripts/` and
+`docs/` was reported at **G4** in the PR body, a landing report and two `nen stop` banners. It was **G2**.
 - **Answer from canon, never memory.** System-state questions come from the constitution, the schemas and
   the handbooks — read them and cite them by path and rule id. A remembered rule is a rule that has
   already drifted.

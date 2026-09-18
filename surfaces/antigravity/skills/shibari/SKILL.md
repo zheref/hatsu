@@ -363,6 +363,40 @@ under-derives nothing; dropping `schemas/` would.**
 
 **(c) The gate is derived, never asserted:**
 
+> **FIRST decide the repository's ROLE. The path sets below are `zheref/hatsu`'s OWN canon, not a
+> universal set** — maintainer's ruling, 2026-09-18 ([`docs/ROSTER.md`](../../../../docs/ROSTER.md)
+> § *Rulings of 2026-09-18*).
+>
+> **G4 is authoring or maintaining a CANON repository** — `zheref/hatsu`, `zheref/nen`,
+> `zheref/bankai` — whose product *is* the process, so a merge there decides how every other
+> repository behaves. **Everything else is G2**, including a consumer repository declaring its own
+> `nen/contract.json`, `nen/workflow.json`, `nen/gates.json`, adding a CI workflow or a `scripts/`
+> entry: that is *configuration of how the system is set up there*, and it governs nothing but that
+> repository. **The one question: would merging this change what a DIFFERENT repository does?**
+>
+> - **Target is a canon repository** → derive with that repository's own sets, below.
+> - **Target is a consumer repository** → **the gate is `G2` by role, and `nen gate derive` is not
+>   run.** Its two sets cannot both be empty — `--policy-paths "" --process-paths ""` is **refused at
+>   exit 1**: *"no path sets were given, so every diff would derive G2 — including a policy change …
+>   state them explicitly"* (verified live, nen `0.10.0`). That refusal is the answer rather than an
+>   obstacle: the verb splits a canon repository's own surface, and a consumer has none to split. Run
+>   it there only where that repository declares a policy surface **of its own** — its product's spec
+>   — and then with *its* paths, never these.
+>
+> **The incident this corrects.** In `zheref/zheref.io`, a consumer repository, a résumé PR touching
+> `nen/contract.json`, `nen/gates.json`, `.github/workflows/pr.yml`, `scripts/` and `docs/` derived
+> **`G4`** from the sets below and was reported as `G4` in the PR body, a landing report and two
+> `nen stop` banners. **It is `G2`.** Dropping `nen/` from the policy set does not fix it — the
+> process set still catches `.github/workflows/`, `docs/` and `scripts/`. The path set was never the
+> dial; the repository's role is.
+>
+> **Nothing is owed by `zheref/nen`.** The verb already says so itself: *"There are no built-in path
+> sets. They are the target repository's canon, and a binary carrying one repository's sets would
+> derive that repository's gates everywhere it was pointed"*, and `--process-paths` is documented as
+> G4 *"in a repository whose product is its process"*. A `--repo-role` flag would be the built-in set
+> that help text refuses.
+
+
 ```bash
 nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/" \
   --process-paths ".github/workflows/,claude/,scripts/,tests/,docs/" \

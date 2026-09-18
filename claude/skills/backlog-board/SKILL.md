@@ -142,6 +142,11 @@ Field by field, from a row `backlog-state` already produced:
   request that is not ready has NO GATE … so compose this with a readiness verdict before putting
   a row in anyone's queue."* `#925` is `not-ready` (`CON-32a`), so the composed gate is `null`
   (in progress), not the `G4` `gate derive` alone would suggest — do not stop at the diff half.
+  **And the diff half itself is only asked in a CANON repository** — `zheref/hatsu`, `zheref/nen`,
+  `zheref/bankai`, per `backlog-state`'s § 2 role step and the maintainer's ruling of 2026-09-18
+  ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18*). A consumer repository's row
+  is `G2` by role, with no `gate derive` call behind it: `BC#925`'s `G4` is the reference repo's own
+  canon answering about itself.
 - **`status`** ← `nen color status --present <values> --category status --json`'s `resolved.name`.
   Verified live for the same row: `--present in_progress` resolves `{"name": "in_progress", "emoji":
   "🟠", "label": "In progress", …}` from the target repo's own `nen/colors.yml` (legacy

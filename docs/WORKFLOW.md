@@ -62,6 +62,37 @@ Nen #204 dependency, temporary workaround removal and the release hold covering 
 
 ---
 
+## Which gate a change stands at — ruling of 2026-09-18
+
+**This document defines the *phases*; [`ROSTER.md`](ROSTER.md) defines the *gates*, and its table is
+the authority.** One distinction is restated here because every phase below forecasts a gate and none
+of them defines one.
+
+**G4 (`CON-7`) is the repository's ROLE, not the file's kind.** It is *authoring or maintaining a
+canon repository* — **`zheref/hatsu`**, **`zheref/nen`**, **`zheref/bankai`** — whose product is the
+process itself, a mix of prose, scripts and deterministic jobs, and whose merges decide how every
+other repository behaves. **Everything else is G2 (`CON-5`)**, including a consumer repository
+declaring its own `nen/contract.json`, `nen/workflow.json`, `nen/gates.json`, adding a CI workflow or
+a `scripts/` entry: that is *configuration of how the system is set up there*, and it governs nothing
+but that repository.
+
+**The one question: would merging this change what a *different* repository does?** Yes → G4, no → G2.
+
+**Consequence for the two files § 1 is about.** `nen/workflow.json` and `nen/contract.json` are
+**this** repository's canon, so editing them here is G4. The same two files in a consumer repository
+are that repository's setup, and editing them there is G2 — **the file name is not the gate.**
+
+**Consequence for `nen gate derive`.** Its path sets are *the target repository's own canon* and nen
+carries no built-in copy, by design. So the canon-shaped sets the skills use
+(`CONSTITUTION.md,handbooks/,agents/,nen/,schemas/` and
+`.github/workflows/,claude/,scripts/,tests/,docs/`) are **`zheref/hatsu`'s own**, and handing them to
+a consumer repository derives that repository's gate from this one's canon. In a consumer repository
+**the gate is not derived by path at all** — it is G2 by role. [`ROSTER.md`](ROSTER.md) § *Rulings of
+2026-09-18* carries the record, the incident in `zheref/zheref.io` that produced it, and the measured
+invocations.
+
+---
+
 ## 1 · Two files, and the line between them
 
 There are two execution/policy configuration files, and the split is not stylistic. It is the difference between a

@@ -366,7 +366,10 @@ repository declares**, in this order (nen `v0.3.0`'s `shu` family; `claude/agent
    `nen shu build: lane 'nextjs' (nextjs) declares no 'build'. It declares: archive, deploy, release,
    ui-test.` That is a fact about the repository, not a failure: quote it, run the repository's own
    documented command, say that you did, and where the seat should be a real row, land the declaration
-   change as its own PR at **G4**. Exit **`5`** is the declared program not on `PATH` — back to step 2.
+   change as its own PR — at **G4** in a canon repository (`zheref/hatsu`, `zheref/nen`, `zheref/bankai`),
+   at **G2** in a consumer one, where a declaration is that repository's own configuration
+   ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18*). Exit **`5`** is the declared
+   program not on `PATH` — back to step 2.
    Exit **`3`** is a host the declaration excludes — a **G5** stop naming the host that can, never a retry.
    **A repository with no `nen/contract.json` `project` block at all** refuses every `shu` verb but
    `warmup` at exit `2` naming the missing file (or, as on this plugin's own checkout, the file's
@@ -377,7 +380,8 @@ repository declares**, in this order (nen `v0.3.0`'s `shu` family; `claude/agent
    an Xcode tree with no declaration is `detect` exit `0` with a proposal and `shu build` exit `2`,
    verified live at `v0.3.0`. Either way: run its own documented commands (`make test`, its package
    scripts), **say plainly that no declaration exists yet, and which case it was**, and treat writing
-   one by hand as a G4 change to propose, not a blocker.
+   one by hand as a change to propose at the target repository's own declaration gate (**G4** in a canon
+   repository, **G2** in a consumer one — § *Rulings of 2026-09-18*), not a blocker.
 
 **Where the work is something a local session structurally cannot do at all** — it needs a
 credential only a retired CI identity held, or the decision is one only that now-nonexistent plane
@@ -534,7 +538,8 @@ fresh session does not re-derive it, and **never trust it over a fetch**.
 - **Keeping exactly one `bankai:stage/*` label on an object at a time** (§ 5, `CON-9`) is not
   enforced by `nen label apply` itself, which only ever applies and logs the one label it was given.
 - **Building a repository that declares no `project` block** (§ 5) runs that repository's own
-  documented commands, said so; writing the declaration is a G4 change, not this run's residue to
+  documented commands, said so; writing the declaration is its own change at the target repository's
+  declaration gate — **G4** in a canon repository, **G2** in a consumer one — not this run's residue to
   paper over.
 
 ## 12. Hard limits
