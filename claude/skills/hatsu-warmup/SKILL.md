@@ -83,13 +83,18 @@ nen schema check --repo "$hatsu_root"
 ```
 
 Verified live at nen `0.10.0` against this branch: the `nen/contract.json` row prints
-`ok    nen/contract.json  dependency (nen >= 0.10, pinned v0.10.0), project (2 lanes: plugin, plugin-bump-guard; 11 verbs; 1 toolchain entry)`
+`ok    nen/contract.json  dependency (nen >= 0.10, pinned v0.10.0), project (3 lanes: plugin, plugin-bump-guard, plugin-update; 12 verbs; 1 toolchain entry)`
 — the minimum and the pin nen parsed are the ones you just read, and they are **two independent values**:
 `>= 0.10` is the capability minimum this repository declares, `v0.10.0` is the build its bootstrap installs, and § 1b's
 floor rule is why the second may move without the first. A drift between them and this file's prose is a
-bug in the prose. On this checkout, five schema rows pass and `nen/colors.yml` is absent, so the
-aggregate command exits `1`. Labels, repositories and reviewer identities are declared; the missing
-color taxonomy is reported separately, never called a successful aggregate check. Warm-up reads the
+bug in the prose. **On this checkout all SIX schema rows pass and the aggregate exits `0`.** That
+sentence used to read the other way, and the difference is `zheref/hatsu#79`: `nen/colors.yml` had
+never existed on any branch while six runtime surfaces named it, so this one command — the one that
+answers *is this repository's taxonomy sound* — had answered **no** since the directory existed, and
+a reader learned to expect a red. **That is the durable cost of a permanently-red check: the next
+genuine taxonomy failure lands in a row nobody looks at.** The file is now declared and seeded for
+consumers through [`hatsu:tenkai`](../tenkai/SKILL.md) § 4. A `FAIL` on any of the six rows is now
+real, and is read as such. Warm-up reads the
 contract and workflow rows for this dependency/policy gate; a failure of either row stops the gate.
 
 **The sixth row is `nen/workflow.json`, and reading it is part of the warm-up now.** It reads
@@ -117,6 +122,47 @@ machine where nothing is installed yet.
 
 Never hardcode a version in a reply or a commit from memory. A version you remember is a version that has
 already drifted.
+
+---
+
+## 0a · Adoption is settled ONCE, by Tenkai. This skill VERIFIES — maintainer's ruling, 2026-09-19
+
+**The warm-up runs every session. Adoption does not.** Some of what this skill has historically done
+per session is genuinely one-time work — a repository has a `nen/colors.yml` or it does not, a
+`commit-msg` hook is installed or it is not, `Reports/` exists or it does not — and re-deriving a
+settled fact on every session is not thoroughness. It is the shape
+[`zheref/hatsu#81`](https://github.com/zheref/hatsu/issues/81) named: *the same shape shows up every
+session: `hatsu-warmup` re-does per-session work that should have been settled once, at adoption.*
+
+**The split is by QUESTION, not by file:**
+
+| Question | Whose | Cadence |
+|---|---|---|
+| *Is `nen` present, and does this host's build satisfy the pin?* | **this skill's** | **every session** — a host changes, a cache is evicted, a `PATH` moves |
+| *Is the plugin source current?* | **this skill's** (§ 4b) | every session |
+| *Does this repository CARRY what the skills read?* | **[`hatsu:tenkai`](../tenkai/SKILL.md)'s** | **once, at adoption — and again only when something drifted** |
+
+**So this skill VERIFIES adoption and never performs it.** Where a warm-up wants that answer, it asks
+for the verdict and does not re-derive it:
+
+```bash
+scripts/tenkai_adopt.sh diagnose --repo <path>     # read-only. 0 = current, 1 = work remains
+```
+
+**Read the exit code without a pipe** — `$?` after `cmd | tail` is `tail`'s status.
+
+**An outstanding item is REPORTED, never repaired here, and never a halt.** Say which items and name
+`hatsu:tenkai` as the one that settles them. Two reasons, and the second is the load-bearing one:
+
+- a warm-up that wrote files would be doing adoption's job on every session, which is the defect
+  rather than the fix; and
+- **a warm-up must not halt on an adoption gap.** § 3's halt is for a failed `nen` bootstrap and
+  nothing else. A repository missing `Reports/` can still be worked in, and a session that refused to
+  start over it would have converted a finding into an outage.
+
+> **This is not a new authority for either skill.** Tenkai gains nothing it did not already do; the
+> warm-up gives up work it should never have been carrying per session. The `D10` dependency gate —
+> §§ 1–3 — is untouched, still fail-closed, and still runs first.
 
 ---
 

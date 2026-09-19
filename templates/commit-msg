@@ -1,0 +1,163 @@
+#!/bin/sh
+# commit-msg — RENDERED BY hatsu:tenkai from templates/commit-msg. Do not hand-edit.
+#
+# THE GAP THIS CLOSES. Every Hatsu skill that commits is told to gate the message
+# on `nen commit format --repo .`'s exit code, and every one of them does. But a
+# commit typed by hand, made from an IDE, or written by a session that never
+# named a phase passes through none of them — so the repository's own trailer
+# policy was enforced by discipline rather than by machinery. `zheref/hatsu`'s
+# own checkout carried no `commit-msg` hook at all (zheref/hatsu#81 § 3). This is
+# that machinery: the same verb, on the same policy file, run by git rather than
+# by a skill remembering to.
+#
+# WHAT IT GATES, AND WHAT IT DELIBERATELY DOES NOT. It re-composes the message's
+# own shape through `nen commit format` and adopts that verb's exit code. So it
+# gates SHAPE — a declared type, a non-empty subject under 72 characters, no
+# trailing punctuation — and the repository's `commits.allowedAttributionTrailers`
+# / `commits.forbiddenTrailers` policy from `nen/workflow.json`. It judges no
+# CONTENT: what changed and why stays the author's to write, which is the verb's
+# own stated boundary and not a limitation this hook adds.
+#
+# POSIX sh, and no jq, yq or python — the constraint every Hatsu-shipped hook
+# carries (README, "On the installed plugin path"), because the hook has to run
+# on a host that has only just been handed a checkout.
+#
+# THE TWO FAILURE DIRECTIONS ARE DELIBERATE AND OPPOSITE.
+#   * A SHAPE OR TRAILER VIOLATION FAILS CLOSED — exit 1, the commit is refused,
+#     and the verb's own refusal is printed verbatim rather than summarised.
+#     That is the whole point of the hook.
+#   * AN INABILITY TO JUDGE FAILS OPEN — no `nen` on PATH, no `nen/workflow.json`,
+#     a message shape this hook cannot parse. It prints a notice and gets out of
+#     the way. This matches `hooks/hooks.json`'s stated rule for every Hatsu hook
+#     that is not the base-branch guard: a hook that cannot read what it needs
+#     stays out of the way rather than blocking a session on its own uncertainty.
+#     A hook that refused every commit on a host without nen would be uninstalled
+#     within the hour, and then it would gate nothing at all.
+set -u
+
+msg_file="$1"
+[ -n "${msg_file:-}" ] || exit 0
+[ -f "$msg_file" ] || exit 0
+
+notice() { printf 'commit-msg: %s\n' "$1" >&2; }
+
+# --- messages git itself generated, which are not the author's to shape -------
+# A merge, a squash, a fixup, an amend-of-a-revert: git composes these and their
+# shape is git's. Refusing them would make `git merge` and `git rebase -i`
+# unusable, which is not what a trailer policy is for.
+first_line=$(sed -n '1p' "$msg_file")
+case "$first_line" in
+  "Merge "*|"Revert "*|"fixup!"*|"squash!"*|"amend!"*) exit 0 ;;
+esac
+
+# An empty message (all comments) is git's own abort path; leave it alone.
+body_probe=$(grep -v '^#' "$msg_file" | tr -d ' \t\n' || true)
+[ -n "$body_probe" ] || exit 0
+
+# --- can we judge at all? ------------------------------------------------------
+if ! command -v nen >/dev/null 2>&1; then
+  notice "no 'nen' on PATH — shape and trailer policy NOT checked for this commit."
+  exit 0
+fi
+
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null || true)
+[ -n "$repo_root" ] || exit 0
+if [ ! -f "$repo_root/nen/workflow.json" ]; then
+  notice "no nen/workflow.json — no trailer policy is declared here; shape NOT checked."
+  exit 0
+fi
+
+# --- parse the subject line into the verb's own arguments ----------------------
+# Conventional Commits: type(scope)!: subject
+subject_line="$first_line"
+case "$subject_line" in
+  *:*) : ;;
+  *)
+    notice "subject has no 'type: ' prefix — not a Conventional Commits subject; NOT checked."
+    exit 0
+    ;;
+esac
+
+prefix=${subject_line%%:*}
+subject=${subject_line#*:}
+# Strip exactly one leading space, the way the format is written.
+subject=${subject# }
+
+breaking=""
+case "$prefix" in
+  *!) breaking="yes"; prefix=${prefix%!} ;;
+esac
+
+scope=""
+case "$prefix" in
+  *"("*")")
+    scope=${prefix#*\(}
+    scope=${scope%\)}
+    prefix=${prefix%%\(*}
+    ;;
+esac
+type="$prefix"
+
+# A type with whitespace in it is not a type; this hook cannot judge that line.
+case "$type" in
+  *[![:alnum:]]*|"")
+    notice "could not read a commit type from '$subject_line' — NOT checked."
+    exit 0
+    ;;
+esac
+
+# --- collect the trailer block, if any -----------------------------------------
+# `git interpret-trailers` is git's own parser, so the block this hook hands to
+# nen is the block git itself would recognise — not a second opinion about where
+# the trailers start.
+trailers=""
+tr_raw=$(git interpret-trailers --parse <"$msg_file" 2>/dev/null || true)
+if [ -n "$tr_raw" ]; then
+  # nen takes `--trailer key=value,key2=value2`. A value containing a comma
+  # cannot survive that encoding, so such a trailer is NOT forwarded and the
+  # hook says so rather than silently mangling it.
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    key=${line%%:*}
+    val=${line#*:}
+    val=${val# }
+    [ "$key" != "$line" ] || continue
+    case "$val" in
+      *,*)
+        notice "trailer '$key' holds a comma and cannot be forwarded to nen — NOT checked for that trailer."
+        continue
+        ;;
+    esac
+    if [ -z "$trailers" ]; then
+      trailers="$key=$val"
+    else
+      trailers="$trailers,$key=$val"
+    fi
+  done <<TRAILERS
+$tr_raw
+TRAILERS
+fi
+
+# --- run the verb and adopt its exit code --------------------------------------
+set -- format --type "$type" --subject "$subject" --repo "$repo_root"
+[ -n "$scope" ] && set -- "$@" --scope "$scope"
+[ -n "$breaking" ] && set -- "$@" --breaking
+[ -n "$trailers" ] && set -- "$@" --trailer "$trailers"
+
+# The output is discarded: this hook validates the message the AUTHOR wrote, it
+# does not rewrite it into the one nen would have composed. Only the exit code
+# and the refusal text are wanted.
+# `rc` is captured on its OWN line, immediately. Reading `$?` after an `if`
+# whose condition failed is not portable -- `fi` may have reset it -- and an
+# earlier draft of this hook reported every refusal as "exit 0" for exactly that
+# reason, which made the refusal text read as self-contradictory.
+out=$(nen commit "$@" 2>&1)
+rc=$?
+[ "$rc" -eq 0 ] && exit 0
+
+printf '\n' >&2
+notice "refused by 'nen commit format' (exit $rc):"
+printf '%s\n' "$out" >&2
+printf '\n' >&2
+notice "the message is kept at $msg_file — fix it and commit again, or pass --no-verify."
+exit 1
