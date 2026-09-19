@@ -284,6 +284,13 @@ def probe_gh(slug, field):
 # wrong slug and false of a hostile one, so the slug is validated before anything
 # consumes it -- the workflow render AND the `gh api repos/<slug>` path.
 SLUG_RE = re.compile(r"^[A-Za-z0-9._-]{1,39}/[A-Za-z0-9._-]{1,100}$")
+# THE SAME LESSON AS THE SLUG, ONE FIELD LATER. `--runner-labels` is substituted
+# straight into `runs-on:`, so an unvalidated value can carry YAML structure or a
+# `${{ }}` expression and change the workflow well beyond a runner label set --
+# and `diagnose` would then read its own rendering back as satisfied. Only a bare
+# label or a flow sequence of bare labels is admitted.
+LABELS_RE = re.compile(r"^(?:[A-Za-z0-9][A-Za-z0-9._-]{0,64}"
+                       r"|\[[A-Za-z0-9][A-Za-z0-9._-]{0,64}(?:, *[A-Za-z0-9][A-Za-z0-9._-]{0,64})*\])$")
 
 
 def slug_ok(slug):
@@ -336,6 +343,11 @@ class Ctx:
         self.self_hosted = self_hosted or 0
         self.runner = derive_runner(visibility, self.self_hosted)
         self.runner_labels = runner_labels
+        if runner_labels is not None and not LABELS_RE.match(runner_labels):
+            usage(f"refusing --runner-labels {runner_labels!r}: only a bare label or a flow "
+                  f"sequence of bare labels is admitted. The value is substituted into `runs-on:`, "
+                  f"so YAML structure or a ${{{{ }}}} expression there changes the workflow rather "
+                  f"than selecting a runner")
         if self.runner.get("labels_required") and runner_labels:
             self.runner["runs_on"] = runner_labels
             self.runner["labels_required"] = False
@@ -394,22 +406,46 @@ class ColorsFile(Item):
 
     def detect(self, ctx):
         p = ctx.repo / "nen" / "colors.yml"
+        # A SYMLINK IS NOT THIS REPOSITORY'S FILE. `is_file()` follows links and so
+        # does `write_text`, so a nen/colors.yml pointing outside the target let
+        # `repair` overwrite an arbitrary external path. Refused, never followed.
+        if p.is_symlink():
+            return self.row(BLOCKED,
+                            f"nen/colors.yml is a symlink to {os.readlink(p)!r} — Tenkai does not "
+                            f"follow a link out of the repository it was pointed at",
+                            "replace it with a regular file, or point --repo at the real checkout")
         if not p.is_file():
             return self.row(MISSING, "absent — `nen schema check` will exit 1 and `nen color status` "
                                      "cannot run against this repository at all",
                             "render templates/colors.yml")
-        text = p.read_text()
-        if "categories:" not in text:
-            return self.row(DRIFT, "present but declares no `categories:` block", "re-render from templates/colors.yml")
-        return self.row(SATISFIED, "present and declares a categories block")
+        # PARSE, DO NOT SUBSTRING. `"categories:" in text` was satisfied by the word
+        # appearing in a COMMENT, so a file containing only `# categories:` read as
+        # satisfied while `nen schema check` still failed and the consumer still did
+        # not work. The block must exist at column 0 with at least one child key.
+        live = [l for l in p.read_text().splitlines() if not l.lstrip().startswith("#")]
+        try:
+            i = next(n for n, l in enumerate(live) if l.rstrip() in ("categories:", '"categories":'))
+        except StopIteration:
+            return self.row(DRIFT, "present but declares no `categories:` block outside its comments",
+                            "re-render from templates/colors.yml")
+        kids = [l for l in live[i + 1:] if l.strip() and not l.startswith(" ")]
+        children = [l for l in live[i + 1:len(live) if not kids else live.index(kids[0], i + 1)]
+                    if l.strip()]
+        if not children:
+            return self.row(DRIFT, "`categories:` is declared but empty — nen will refuse the "
+                                   "taxonomy and `nen color status` still cannot resolve a row",
+                            "re-render from templates/colors.yml")
+        return self.row(SATISFIED, f"present, categories block declares {len(children)} line(s)")
 
     def repair(self, ctx):
         cur = self.detect(ctx)
-        if cur["state"] == SATISFIED:
+        if cur["state"] in (SATISFIED, BLOCKED):
             return cur
         p = ctx.repo / "nen" / "colors.yml"
+        if p.is_symlink():
+            return cur
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(ctx.template("colors.yml"))
+        _atomic_write(p, ctx.template("colors.yml"))
         return self.row(REPAIRED, "rendered from templates/colors.yml — tune the values, they are a seed")
 
 
@@ -648,6 +684,20 @@ class ReadinessWorkflow(Item):
         live = "\n".join(l for l in text.splitlines() if not l.lstrip().startswith("#"))
         # THE SILENT-SKIP FAILURE. A workflow gated to another repository's slug
         # is skipped on every event: green tick, no job, no signal, forever.
+        # THE FORK LIMB IS HALF THE GUARD, AND IT WAS NEVER CHECKED. Comparing only
+        # the slug meant a consumer could delete
+        # `&& github.event.pull_request.head.repo.full_name == github.repository`
+        # and keep the right slug -- and `diagnose` said ok, while the job became
+        # reachable from fork pull requests with a base-repository credential.
+        gate_line = ""
+        for l in live.splitlines():
+            if l.lstrip().startswith("if:") and "github.repository" in l:
+                gate_line = l
+                break
+        if gate_line and "head.repo.full_name == github.repository" not in gate_line:
+            drifts.append("the job guard has lost its FORK limb "
+                          "(`github.event.pull_request.head.repo.full_name == github.repository`) — "
+                          "the job would run on fork pull requests holding a base-repository credential")
         m = re.search(r"github\.repository == '([^']+)'", live)
         if m and m.group(1) != ctx.slug:
             drifts.append(f"gated to '{m.group(1)}', not '{ctx.slug}' — this job is SKIPPED on every "
@@ -678,7 +728,19 @@ class ReadinessWorkflow(Item):
         # repository's own Ruby guard documents why a substring is not enough --
         # `--gates nen/gates.json` satisfies a substring test and resolves against
         # the PR HEAD checkout, handing the pull request the gate that judges it.
-        if '--gates "$PWD/.trusted/nen/gates.json"' not in live:
+        # MATCH THE INVOCATION, NOT THE FILE. Searching the whole live text meant a
+        # decoy -- `echo '--gates "$PWD/.trusted/nen/gates.json"'` beside a real
+        # `nen pr ready` call WITHOUT the flag -- read as satisfied. The flag is
+        # required on the line that actually runs the verb, or its continuation.
+        verdict_call = ""
+        vlines = live.splitlines()
+        for n, l in enumerate(vlines):
+            if "pr ready" in l and "echo" not in l:
+                verdict_call = "\n".join(vlines[n:n + 6])
+                break
+        if not verdict_call:
+            drifts.append("no `nen pr ready` invocation was found in the verdict step")
+        elif '--gates "$PWD/.trusted/nen/gates.json"' not in verdict_call:
             drifts.append("the verdict step does not pass --gates with the TRUSTED absolute path, so "
                           "nen falls back to the PR head checkout's own gates file — the PR would "
                           "supply the gate that judges it")
@@ -693,10 +755,17 @@ class ReadinessWorkflow(Item):
             drifts.append("there is no `.trusted` checkout — the guard and the pin would come from "
                           "the pull request's own tree")
         else:
+            # ASSERT THE REF POSITIVELY. Rejecting only `pull_request.head` left
+            # `github.sha` passing -- and on `pull_request_review`, `github.sha` is
+            # PR-controlled, so the "trusted" checkout would be the PR's own tree.
+            # The only admitted value is the BASE sha.
             for blk in trusted:
-                if re.search(r"ref:.*pull_request\.head", blk):
-                    drifts.append("the .trusted checkout takes the PR HEAD ref — the trust boundary "
-                                  "is inverted and the guard judging the PR would be the PR's own copy")
+                ref = re.search(r"ref:\s*(.+)", blk)
+                got = ref.group(1).strip() if ref else "(none)"
+                if "pull_request.base.sha" not in got:
+                    drifts.append(f"the .trusted checkout's ref is {got!r}, not the base sha — "
+                                  f"anything else is PR-influenced on at least one admitted trigger, "
+                                  f"so the guard judging the PR could be the PR's own copy")
                     break
         # PER CHECKOUT STEP, not a global count. Counting occurrences meant
         # deleting one from a file that happened to carry three still read as
@@ -708,10 +777,30 @@ class ReadinessWorkflow(Item):
                 drifts.append(f"a checkout step is missing `persist-credentials: false` "
                               f"({name.group(1).strip() if name else 'unnamed'}), leaving a "
                               f"credential in the workspace of a pull_request_target job")
-        m_perm = re.search(r"^permissions:\n((?:  .*\n)+)", live, re.M)
+        # EVERY VALID YAML FORM, not one indentation of one shape. `write-all`, an
+        # inline mapping `permissions: { contents: write }` and a differently
+        # indented block all previously produced no drift at all.
+        # `[ \t]*`, never `\s*`: `\s` matches a NEWLINE, so the match began on an
+        # earlier line and every offset computed from it was wrong -- which flagged
+        # `checks: write`, the one permission that is allowed.
+        m_perm = re.search(r"^[ \t]*permissions:[ \t]*(.*)$", live, re.M)
         if m_perm:
-            bad = [l.strip() for l in m_perm.group(1).splitlines()
-                   if "write" in l and not l.strip().startswith("checks:")]
+            inline = m_perm.group(1).strip()
+            bad = []
+            if inline and not inline.startswith("#"):
+                if inline in ("write-all",) or "write" in inline and "{" not in inline:
+                    bad.append(inline)                       # permissions: write-all
+                elif inline.startswith("{"):
+                    bad += [seg.strip() for seg in inline.strip("{}").split(",")
+                            if "write" in seg and not seg.strip().startswith("checks:")]
+            else:
+                start = live[:m_perm.start()].count("\n") + 1
+                body = live.splitlines()[start:]
+                for l in body:
+                    if l.strip() and not l.startswith((" ", "\t")):
+                        break
+                    if "write" in l and not l.strip().startswith("checks:"):
+                        bad.append(l.strip())
             if bad:
                 drifts.append(f"the permissions block grants write beyond `checks`: {', '.join(bad)} — "
                               f"a pull_request_target job holds a base-repository credential")
@@ -1119,6 +1208,83 @@ def self_test() -> int:
     after = snapshot(d4)
     check("diagnose wrote nothing — by CONTENT, over the whole tree including .git/hooks",
           before == after, f"changed: {sorted(set(before) ^ set(after))}")
+
+    print("\nTHE AUTOMATED REVIEWER'S EIGHT — every one gets a fixture")
+    dr = fixture()
+    run("apply", ctx_for(dr, vis="public", sh=0, labels=None))
+    wr = dr / WORKFLOW_PATH
+    orig = wr.read_text()
+
+    def mutate(fn):
+        wr.write_text(fn(orig))
+        row = ReadinessWorkflow().detect(ctx_for(dr, vis="public", sh=0, labels=None))
+        wr.write_text(orig)
+        return row
+
+    # T3 -- the FORK LIMB, half the guard, previously unchecked
+    row = mutate(lambda t: t.replace(
+        " && github.event.pull_request.head.repo.full_name == github.repository", ""))
+    check("dropping the fork limb while keeping the slug is DRIFT",
+          row["state"] == DRIFT and "FORK limb" in row["detail"])
+
+    # T4 -- a decoy `--gates` in an echo, with the real call missing it
+    row = mutate(lambda t: t.replace(
+        '--gates "$PWD/.trusted/nen/gates.json"', "").replace(
+        "          set -uo pipefail",
+        "          set -uo pipefail\n          echo '--gates \"$PWD/.trusted/nen/gates.json\"'", 1))
+    check("a decoy --gates beside a real call without it is DRIFT",
+          row["state"] == DRIFT and "--gates" in row["detail"])
+
+    # T5 -- github.sha is PR-controlled on pull_request_review
+    row = mutate(lambda t: t.replace("ref: ${{ github.event.pull_request.base.sha }}",
+                                     "ref: ${{ github.sha }}"))
+    check("a .trusted ref that is not the BASE sha is DRIFT",
+          row["state"] == DRIFT and "base sha" in row["detail"])
+
+    # T6 -- three write-scope forms that previously produced no drift at all
+    for label, fn in (
+        ("write-all",      lambda t: t.replace("permissions:\n  checks: write", "permissions: write-all")),
+        ("inline mapping", lambda t: t.replace("permissions:\n  checks: write",
+                                               "permissions: { checks: write, contents: write }")),
+        ("deeper indent",  lambda t: t.replace("permissions:\n  checks: write",
+                                               "permissions:\n    checks: write\n    contents: write")),
+    ):
+        row = mutate(fn)
+        check(f"write scope via {label} is DRIFT", row["state"] == DRIFT and "write" in row["detail"])
+
+    # T1 -- runner labels are substituted into runs-on, so they are validated too
+    for bad in ("[self-hosted] # x\n    env: evil", "${{ github.event.pull_request.title }}",
+                "[self-hosted, Linux]: {x: y}"):
+        try:
+            Ctx(fixture(), root, "acme/widget", "private", 1, probe=False, runner_labels=bad)
+            check(f"hostile --runner-labels {bad[:24]!r} refused", False, "accepted")
+        except SystemExit as exc:
+            check(f"hostile --runner-labels {bad[:24]!r} refused", exc.code == 2)
+    check("an ordinary label set is still accepted",
+          LABELS_RE.match("[self-hosted, Linux, X64]") is not None)
+
+    # T2 -- a symlinked colors.yml must never be followed
+    dsym = fixture()
+    (dsym / "nen").mkdir(parents=True, exist_ok=True)
+    outside = Path(tempfile.mkdtemp(prefix="tenkai-outside-")); _FIXTURES.append(outside)
+    victim = outside / "victim.yml"
+    victim.write_text("do not touch me\n")
+    (dsym / "nen" / "colors.yml").symlink_to(victim)
+    row = ColorsFile().detect(ctx_for(dsym))
+    check("a symlinked colors.yml is BLOCKED, never followed", row["state"] == BLOCKED)
+    ColorsFile().repair(ctx_for(dsym))
+    check("and apply did not write through the link",
+          victim.read_text() == "do not touch me\n")
+
+    # T7 -- `# categories:` in a COMMENT must not satisfy the check
+    dcm = fixture()
+    (dcm / "nen").mkdir(parents=True, exist_ok=True)
+    (dcm / "nen" / "colors.yml").write_text("# categories:\nversion: 1\n")
+    check("a commented-out categories block is DRIFT, not satisfied",
+          ColorsFile().detect(ctx_for(dcm))["state"] == DRIFT)
+    (dcm / "nen" / "colors.yml").write_text("version: 1\ncategories:\n")
+    check("an EMPTY categories block is DRIFT too",
+          ColorsFile().detect(ctx_for(dcm))["state"] == DRIFT)
 
     print("\nCLAIMS THAT HAD NO FIXTURE — the combination that rots quietly")
     # A TUNED colors.yml MUST SURVIVE. § 4 and Hard limits both promise the engine
