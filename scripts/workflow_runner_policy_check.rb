@@ -8,11 +8,12 @@ SAME_REPO_GUARD = "${{ github.repository == 'zheref/hatsu' && github.event.pull_
 MAC_RUNNER = %w[self-hosted macOS ARM64].freeze
 WINDOWS_RUNNER = %w[self-hosted Windows X64].freeze
 HOSTED_RUNNER = "ubuntu-latest"
-PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml].freeze
-# NOTE: pr-readiness.yml is deliberately ABSENT from the list above and present in
-# every table below. This constant doubles as the REQUIRED-PRESENCE list
+# NOTE: pr-readiness.yml is deliberately ABSENT from the list below and present in
+# every table after it. This constant doubles as the REQUIRED-PRESENCE list
 # (validate_repo), so naming a file that does not exist yet would fail every PR.
 # The PR that adds the workflow adds it here, in the same commit as the file.
+PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml].freeze
+
 EXPECTED_JOBS = {
   "plugin-bump-check.yml" => "check",
   "surface-mirror-check.yml" => "surface-mirror-check",
@@ -46,19 +47,42 @@ EXPECTED_TYPES = {
   "pr-readiness.yml" => {
     # No `edited`: the verdict reads checks, rounds and threads, and none of
     # those changes when the body or title is edited.
-    "pull_request_target" => %w[opened synchronize reopened],
+    # `review_requested` / `review_request_removed` are CON-32(b) inputs in their
+    # own right: the gate distinguishes a round in flight from one that is owed.
+    "pull_request_target" => %w[opened synchronize reopened review_requested review_request_removed],
     # CON-32(b) / CON-16 -- a reviewer round landing, changing or being dismissed.
-    "pull_request_review" => %w[submitted edited dismissed],
-    # CON-32(d) -- the unresolved-threads conjunct. Thread resolution has its own
-    # event; it is not a review_comment.
-    "pull_request_review_thread" => %w[resolved unresolved]
+    "pull_request_review" => %w[submitted edited dismissed]
   }
 }.freeze
 
 # The only events a privileged job in this repository may be triggered by. All
 # run in the BASE repository context with a credential, so this list is the
 # trust boundary and widening it again is a maintainer ruling, not an edit.
-ALLOWED_TRIGGERS = %w[pull_request_target pull_request_review pull_request_review_thread].freeze
+# `pull_request_review_thread` was admitted here briefly and REMOVED: it is a
+# webhook event, not an Actions trigger, so a workflow naming it cannot register.
+# Confirmed against GitHub's event reference after the automated reviewer flagged
+# it on #78. CON-32(d) -- thread resolution -- therefore has NO trigger available
+# and its staleness is a named limitation rather than an oversight.
+ALLOWED_TRIGGERS = %w[pull_request_target pull_request_review].freeze
+# WHEN the exact-head check run is created. `:start` opens it `in_progress` and
+# PATCHes a conclusion at the end -- right for a guard whose job IS the verdict.
+# `:end` creates it once, already completed, AFTER the work.
+#
+# The readiness workflow must be `:end`, and the reason is a soundness bug rather
+# than a preference. Its check is created green, so under `:start` it is a
+# REPORTED GREEN CHECK while `nen pr ready` runs -- and CON-32(a) passes on a
+# non-empty all-green rollup while FAILING on an empty one. On a pull request
+# with no other checks, the gate would therefore read `ready` BECAUSE OF THIS
+# CHECK'S OWN EXISTENCE. `--exclude-run` does not save it: an API-created check
+# run is attached to an arbitrary check suite, which is why the check is created
+# green in the first place. Evaluating before the check exists is the only
+# ordering that is sound in both directions.
+CHECK_CREATION = {
+  "plugin-bump-check.yml" => :start,
+  "surface-mirror-check.yml" => :start,
+  "pr-readiness.yml" => :end
+}.freeze
+
 EXPECTED_STEPS = {
   "plugin-bump-check.yml" => [
     "Start required check on the exact PR head",
@@ -86,14 +110,17 @@ EXPECTED_STEPS = {
   # no in-repo guard script. Its executable is the checksum-verified nen binary,
   # pinned from the TRUSTED contract, so the exec-bit assertion has no subject.
   "pr-readiness.yml" => [
-    "Start check on the exact PR head",
     "Checkout PR head (data only — nothing from here is executed)",
     "Checkout guard code from the trusted workflow revision",
     "Enforce workflow runner policy from trusted workflow revision",
     "Read the pinned nen ref from trusted nen/contract.json",
     "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)",
     "Readiness verdict",
-    "Finish check on the exact PR head"
+    # The freshness confirmation is a DECLARED step rather than an implementation
+    # detail: it is what stops an in-flight older run publishing a verdict about a
+    # head that has since moved, so removing it must fail the guard.
+    "Confirm the verdict still describes the event head",
+    "Publish the check on the exact PR head"
   ]
 }.freeze
 
@@ -107,9 +134,13 @@ TRUSTED_PIN_STEP = "Read the pinned nen ref from trusted nen/contract.json"
 # back to <cwd>/nen/gates.json when --gates is absent, and the cwd in these jobs
 # is the PR HEAD checkout -- so a dropped flag hands the PR the gate that judges
 # it, and reads like a harmless simplification.
+# An argument is required ON THE INVOCATION, not merely present in the step. A
+# substring test is satisfied by `echo --gates "$PWD/.trusted/nen/gates.json"`
+# while the real call omits the flag and nen falls back to <cwd>/nen/gates.json --
+# the PR's own copy. So each entry names the command that must carry it.
 REQUIRED_STEP_ARGS = {
   "pr-readiness.yml" => {
-    "Readiness verdict" => '--gates "$PWD/.trusted/nen/gates.json"'
+    "Readiness verdict" => { invocation: "pr ready", argument: '--gates "$PWD/.trusted/nen/gates.json"' }
   }
 }.freeze
 
@@ -128,15 +159,32 @@ REQUIRED_STEP_ARGS = {
 # exempts `echo ok; cat nen/gates.json`, where the second command really does
 # read the PR-controlled file. So the line is split on shell command separators
 # and only the segment containing the occurrence is considered.
+# Every construct that can RUN a command. `$(...)` and backticks are command
+# substitution; `<(...)` and `>(...)` are process substitution, which runs its
+# body in a subshell and is easy to miss because it contains no `$`.
+EXECUTING_CONSTRUCTS = ["$(", "`", "<(", ">("].freeze
+
 def diagnostic_at?(line, index)
   start = 0
-  line.scan(/\|\||&&|[;|]/) do
+  # `&&` is listed before the single-character class so it wins at the same
+  # position; a BARE `&` is a separator in its own right -- `echo ok & cat
+  # nen/gates.json` runs `cat` -- and omitting it left the whole line reading as
+  # one `echo` segment.
+  line.scan(/\|\||&&|[;|&]/) do
     match = Regexp.last_match
     break if match.begin(0) > index
     start = match.end(0)
   end
   # Leading `{`, `(` and whitespace are grouping, not the command word.
   segment = line[start...index].to_s.sub(/\A[\s({]+/, "")
+  # NO FORM OF SHELL EXECUTION IS A DIAGNOSTIC, even inside `echo`. The command
+  # word alone is not enough: `echo "ref=$(jq -r .dependency.pinned_ref
+  # nen/contract.json)"` begins with `echo`, but the substitution performs a real
+  # read and emits its value -- and `echo > >(cat nen/gates.json)` does the same
+  # through a PROCESS substitution, which carries neither `$(` nor a backtick.
+  # Enumerated as one list rather than patched per form, because this has now
+  # been wrong twice and the next form would have been a third fix.
+  return false if EXECUTING_CONSTRUCTS.any? { |form| segment.include?(form) }
   !(segment =~ /\A(echo|printf)\b/).nil?
 end
 
@@ -150,6 +198,29 @@ end
 # pull_request_target job the cwd is the PR HEAD checkout, so an unprefixed read
 # is the PR's own copy -- a PR choosing the binary, or the gate, that judges it.
 TRUSTED_ONLY_DATA = %w[nen/contract.json nen/gates.json].freeze
+
+# Refs that denote a revision the pull request cannot control. `github.sha` is
+# trusted on `pull_request_target` (last commit on the default branch) but NOT on
+# `pull_request_review`, where it is the last MERGE COMMIT ON THE PR BRANCH -- so
+# a workflow subscribing to review events must use the base SHA, which is trusted
+# on every admitted event. Found by the automated reviewer on #78.
+BASE_SHA_REF = "${{ github.event.pull_request.base.sha }}".freeze
+GITHUB_SHA_REF = "${{ github.sha }}".freeze
+
+# `github.sha` is trusted ONLY when the workflow subscribes to nothing but
+# `pull_request_target`, where it is the last commit on the default branch. The
+# moment a review event is added it becomes the last MERGE COMMIT ON THE PR
+# BRANCH, and checking that out loads PR-controlled content into a job holding a
+# credential. So the admissible trusted refs depend on the trigger set, and this
+# is conditional rather than a list.
+def trusted_refs_for(events)
+  events == ["pull_request_target"] ? [BASE_SHA_REF, GITHUB_SHA_REF] : [BASE_SHA_REF]
+end
+
+# The ONLY spellings that denote the trusted checkout: `.trusted/` at the start of
+# the token, optionally rooted at $PWD, optionally opened by a quote. Anything
+# else -- a sibling `attacker.trusted/`, a traversal `../.trusted/` -- is refused.
+TRUSTED_PREFIX = %r{\A["']?(?:\$PWD/|\$\{PWD\}/)?\.trusted/\z}.freeze
 
 def fail_policy(message)
   warn "workflow-runner-policy: #{message}"
@@ -261,12 +332,35 @@ def validate_workflow(path)
     starter = step_maps.first
     finisher = step_maps.last
     expected_check_name = File.basename(path) == "plugin-bump-check.yml" ? "check" : job_name
-    start_env = mapping(starter["env"], "#{path} exact-head check env")
     exact_name = /(?:^|\s)-f name=#{Regexp.escape(expected_check_name)}(?:\s|$)/
-    unless scalar(starter["id"]) == "head_check" && scalar(start_env["HEAD_SHA"]) == "${{ github.event.pull_request.head.sha }}" && scalar(starter["run"])&.match?(exact_name)
-      fail_policy("#{path} job #{job_name} must create #{expected_check_name} on the exact event head before other work")
+    creation = CHECK_CREATION.fetch(File.basename(path)) { fail_policy("#{path} has no declared check-creation policy") }
+    if creation == :start
+      start_env = mapping(starter["env"], "#{path} exact-head check env")
+      unless scalar(starter["id"]) == "head_check" && scalar(start_env["HEAD_SHA"]) == "${{ github.event.pull_request.head.sha }}" && scalar(starter["run"])&.match?(exact_name)
+        fail_policy("#{path} job #{job_name} must create #{expected_check_name} on the exact event head before other work")
+      end
+    else
+      # :end -- nothing may create the check before the work, and the FINAL step
+      # must create it already completed against the exact event head.
+      # ANY check-run creation, not just this name. nen treats a non-empty
+      # all-green rollup as satisfying CON-32(a), so a check created early under
+      # ANOTHER name -- or through a variable -- certifies the workflow just as
+      # effectively as one named `readiness`.
+      if step_maps[0...-1].any? { |step| code_of(scalar(step["run"])).include?("check-runs") }
+        fail_policy("#{path} job #{job_name} declares :end check creation but touches check-runs before the final step")
+      end
+      finish_env = mapping(finisher["env"], "#{path} exact-head check env")
+      unless scalar(finish_env["HEAD_SHA"]) == "${{ github.event.pull_request.head.sha }}" && scalar(finisher["run"])&.match?(exact_name)
+        fail_policy("#{path} job #{job_name} must create #{expected_check_name} on the exact event head in its final step")
+      end
     end
-    policy_step = step_maps[3]
+    # BOUND TO THE FROZEN NAME. Searching every step for the command let the
+    # NAMED step be a no-op while the real invocation happened later, with
+    # PR-influenced work in between -- a regression introduced when this stopped
+    # being a positional index. EXPECTED_STEPS already freezes the name, so use it.
+    policy_step_name = "Enforce workflow runner policy from trusted workflow revision"
+    policy_step = step_maps.find { |step| scalar(step["name"]) == policy_step_name }
+    fail_policy("#{path} job #{job_name} has no #{policy_step_name.inspect} step") unless policy_step
     unless scalar(policy_step["run"])&.include?('ruby .trusted/scripts/workflow_runner_policy_check.rb --self-test "$PWD"')
       fail_policy("#{path} job #{job_name} must invoke the trusted workflow policy before project work")
     end
@@ -298,22 +392,85 @@ def validate_workflow(path)
             # `echo ok; cat nen/gates.json`.
             next if diagnostic_at?(line, index)
             token = prefix[/\S*\z/].to_s
-            next if token.end_with?(".trusted/")
+            # CANONICAL FORMS, NOT A SUFFIX. `token.end_with?(".trusted/")` also
+            # accepted `attacker.trusted/nen/contract.json` and
+            # `../.trusted/nen/contract.json` -- a PR-controlled sibling directory
+            # and a traversal, both of which yield a token ending in `.trusted/`
+            # and neither of which is the trusted checkout.
+            next if token =~ TRUSTED_PREFIX
             fail_policy("#{path} step #{scalar(step["name"]).inspect} reads #{token}#{data} " \
                         "outside the trusted checkout; a pull_request_target job's cwd is the PR head")
           end
         end
       end
     end
-    REQUIRED_STEP_ARGS.fetch(File.basename(path), {}).each do |step_name, required|
-      step = step_maps.find { |candidate| scalar(candidate["name"]) == step_name }
-      fail_policy("#{path} has no step named #{step_name.inspect}") unless step
-      unless code_of(scalar(step["run"])).include?(required)
-        fail_policy("#{path} step #{step_name.inspect} must pass #{required} on an executable line")
+    # A RELATIVE `.trusted/` ONLY MEANS SOMETHING IF THE CWD CANNOT MOVE. Without
+    # this, a step may `cd` into a PR-controlled directory -- or create its own
+    # `.trusted/` -- and every lexical check above still passes while reading
+    # PR-supplied data. None of these workflows needs to change directory, so the
+    # honest guard is to forbid it outright rather than to model it.
+    # CONSERVATIVE, NOT POSITIONAL. Enumerating the places a `cd` can appear has
+    # now been wrong twice -- `if cd evil; then` sits behind a keyword the
+    # position list did not have. These workflows have no legitimate use for any
+    # of these words, so ANY occurrence in executable code is refused. A blunt
+    # rule that cannot be sidestepped beats a precise one that can.
+    step_maps.each do |step|
+      next unless code_of(scalar(step["run"])) =~ /\b(cd|pushd|popd|chdir)\b/
+      fail_policy("#{path} step #{scalar(step["name"]).inspect} mentions a directory-changing " \
+                  "command; the trusted-path checks are relative and a moved cwd defeats them")
+    end
+    # `working-directory` does the same thing declaratively, at THREE levels, and
+    # was entirely unchecked.
+    if root.key?("defaults")
+      fail_policy("#{path} sets workflow defaults, which can carry working-directory")
+    end
+    jobs.each_value do |node|
+      job_map = mapping(node, "#{path} job")
+      fail_policy("#{path} job sets working-directory") if job_map.key?("defaults")
+      steps_node = job_map["steps"]
+      next unless steps_node.is_a?(Psych::Nodes::Sequence)
+      steps_node.children.each do |step_node|
+        step_map = mapping(step_node, "#{path} step")
+        fail_policy("#{path} step #{scalar(step_map["name"]).inspect} sets working-directory") if step_map.key?("working-directory")
       end
     end
-    unless scalar(finisher["if"]) == "${{ always() && steps.head_check.outputs.id != '' }}" && scalar(finisher["run"])&.include?("check-runs/${CHECK_ID}") && scalar(finisher["run"])&.include?("status=completed")
-      fail_policy("#{path} job #{job_name} must always publish its final exact-head conclusion")
+    REQUIRED_STEP_ARGS.fetch(File.basename(path), {}).each do |step_name, spec|
+      step = step_maps.find { |candidate| scalar(candidate["name"]) == step_name }
+      fail_policy("#{path} has no step named #{step_name.inspect}") unless step
+      # Logical commands: continuation lines joined, so a flag on its own
+      # continuation still belongs to the invocation it continues.
+      # SEGMENTS, NOT PHYSICAL LINES. `nen pr ready --gates "..."; nen pr ready`
+      # is two invocations on one line and only the first carries the flag, so a
+      # line-level test passes while the second call falls back to the PR's gates
+      # file. Continuations are joined first, then each line is split on the same
+      # command separators used elsewhere.
+      commands = code_of(scalar(step["run"])).gsub(/\\\n/, " ")
+                                             .lines
+                                             .flat_map { |line| line.split(/\|\||&&|[;|&]/) }
+      # The invocation is matched as a COMMAND, with a boundary, so `pr ready-fake`
+      # is not mistaken for `pr ready`.
+      invocation = /#{Regexp.escape(spec[:invocation])}(?:\s|\z)/
+      invoking = commands.select do |command|
+        command =~ invocation && !(command =~ /\A\s*(echo|printf)\b/)
+      end
+      if invoking.empty?
+        fail_policy("#{path} step #{step_name.inspect} does not invoke #{spec[:invocation].inspect}")
+      end
+      invoking.each do |command|
+        next if command.include?(spec[:argument])
+        fail_policy("#{path} step #{step_name.inspect} invokes #{spec[:invocation].inspect} " \
+                    "without #{spec[:argument]}; nen falls back to <cwd>/nen/gates.json, " \
+                    "which in this job is the PR head checkout")
+      end
+    end
+    if creation == :start
+      unless scalar(finisher["if"]) == "${{ always() && steps.head_check.outputs.id != '' }}" && scalar(finisher["run"])&.include?("check-runs/${CHECK_ID}") && scalar(finisher["run"])&.include?("status=completed")
+        fail_policy("#{path} job #{job_name} must always publish its final exact-head conclusion")
+      end
+    else
+      unless scalar(finisher["if"]) == "${{ always() }}" && scalar(finisher["run"])&.include?("status=completed")
+        fail_policy("#{path} job #{job_name} must always publish a completed exact-head check, even when an earlier step failed")
+      end
     end
     head_checkout = false
     trusted_checkout = false
@@ -323,10 +480,14 @@ def validate_workflow(path)
       fail_policy("#{path} checkout step #{index + 1} must set persist-credentials: false") unless scalar(with["persist-credentials"]) == "false"
       ref = scalar(with["ref"])
       head_checkout ||= ref == "${{ github.event.pull_request.head.sha }}"
-      trusted_checkout ||= ref == "${{ github.sha }}"
+      trusted_checkout ||= trusted_refs_for(triggers.keys.sort).include?(ref)
     end
     fail_policy("#{path} job #{job_name} must checkout the exact event head SHA") unless head_checkout
-    fail_policy("#{path} job #{job_name} must checkout the trusted workflow SHA") unless trusted_checkout
+    unless trusted_checkout
+      fail_policy("#{path} job #{job_name} must checkout a trusted revision " \
+                  "(#{trusted_refs_for(triggers.keys.sort).join(" or ")}); on a review event " \
+                  "github.sha is the PR branch's merge commit and is PR-controlled")
+    end
   end
 end
 
@@ -453,6 +614,73 @@ def self_test(root)
       %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
       %Q{          echo ok && jq . nen/contract.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
     expect_rejected("read hidden behind an earlier echo joined by &&") { validate_repo(tmp) }
+
+    # A COMMAND SUBSTITUTION INSIDE `echo` IS A READ. The reviewer's example: the
+    # segment begins with `echo`, so a command-word test exempts it, while the
+    # substitution really does read the PR's contract and emit its value as the
+    # pin.
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          echo "ref=$(jq -r .dependency.pinned_ref nen/contract.json)"\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("read inside a command substitution within a diagnostic") { validate_repo(tmp) }
+
+    # PROCESS SUBSTITUTION RUNS A COMMAND AND CARRIES NO `$`. `echo > >(cat
+    # nen/gates.json)` begins with `echo`, contains neither `$(` nor a backtick,
+    # and reads the PR-controlled gates file in a subshell.
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          echo > >(cat nen/gates.json)\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("read through an output process substitution in a diagnostic") { validate_repo(tmp) }
+
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          echo hi < <(cat nen/contract.json)\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("read through an input process substitution in a diagnostic") { validate_repo(tmp) }
+
+    # A BARE `&` IS A COMMAND SEPARATOR. `echo ok & cat nen/gates.json` runs
+    # `cat`; splitting only on `&&` left the whole line reading as one `echo`.
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          echo ok & cat nen/gates.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("read after a bare & separator in a diagnostic") { validate_repo(tmp) }
+
+    # A `cd` behind a keyword is still a `cd`. This is why the rule is now a word
+    # test rather than a position test.
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          if cd evil; then echo x; fi\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("cd behind an if keyword") { validate_repo(tmp) }
+
+    # `working-directory` moves the cwd DECLARATIVELY and was unchecked entirely.
+    File.write(surface, surface_original.sub(
+      "      - name: Surface-mirror drift check",
+      "      - name: Surface-mirror drift check\n        working-directory: evil"))
+    expect_rejected("step-level working-directory") { validate_repo(tmp) }
+
+    # A SIBLING DIRECTORY IS NOT THE TRUSTED CHECKOUT. `attacker.trusted/` ends
+    # with `.trusted/`, which a suffix test accepted.
+    File.write(surface, surface_original.sub(
+      ".trusted/nen/contract.json", "attacker.trusted/nen/contract.json"))
+    expect_rejected("pin read from a sibling directory ending in .trusted") { validate_repo(tmp) }
+
+    # Nor is a traversal out of it.
+    File.write(surface, surface_original.sub(
+      ".trusted/nen/contract.json", "../.trusted/nen/contract.json"))
+    expect_rejected("pin read through a traversal out of the trusted checkout") { validate_repo(tmp) }
+
+    # A STEP MAY NOT MOVE THE WORKING DIRECTORY. Every trusted-path check above is
+    # lexical and relative; a `cd` into a PR-controlled directory defeats all of
+    # them while still matching TRUSTED_PREFIX.
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          cd "$RUNNER_TEMP"\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("step that changes the working directory") { validate_repo(tmp) }
+
+    # `pull_request_review_thread` is a WEBHOOK event, not an Actions trigger. A
+    # workflow naming it cannot register, so the allowlist must refuse it.
+    File.write(surface, surface_original.sub(
+      "  pull_request_target:", "  pull_request_review_thread:\n    types: [resolved, unresolved]\n  pull_request_target:"))
+    expect_rejected("workflow naming the non-existent pull_request_review_thread trigger") { validate_repo(tmp) }
 
     # And the control: a DIAGNOSTIC naming the file is not a read. This workflow
     # already carries `echo "::error::nen/contract.json carries no ..."`, mid-line
