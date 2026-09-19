@@ -43,7 +43,7 @@ CON-33(c) PRs merged since `v0.32.0` that were not yet numbered in this file, nu
 - ([#76](https://github.com/zheref/hatsu/pull/76)) how to re-request a bot reviewer (`v0.35.0`)
 - ([#82](https://github.com/zheref/hatsu/pull/82)) correct the admitted trigger set and trusted refs — machinery only, no plugin surface, so it carried no version of its own
 - ([#83](https://github.com/zheref/hatsu/pull/83)) make a repository a Hatsu consumer, idempotently (`v0.39.0`)
-- ([#PLACEHOLDER](https://github.com/zheref/hatsu/pull/PLACEHOLDER)) this release PR (CON-33(c) numbering for the `v0.39.0` tag)
+- ([#84](https://github.com/zheref/hatsu/pull/84)) this release PR (CON-33(c) numbering for the `v0.39.0` tag)
 
 ## v0.38.0 — the readiness verdict is published where a human can see it
 
