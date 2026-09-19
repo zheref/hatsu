@@ -166,7 +166,11 @@ EXECUTING_CONSTRUCTS = ["$(", "`", "<(", ">("].freeze
 
 def diagnostic_at?(line, index)
   start = 0
-  line.scan(/\|\||&&|[;|]/) do
+  # `&&` is listed before the single-character class so it wins at the same
+  # position; a BARE `&` is a separator in its own right -- `echo ok & cat
+  # nen/gates.json` runs `cat` -- and omitting it left the whole line reading as
+  # one `echo` segment.
+  line.scan(/\|\||&&|[;|&]/) do
     match = Regexp.last_match
     break if match.begin(0) > index
     start = match.end(0)
@@ -396,11 +400,29 @@ def validate_workflow(path)
     # `.trusted/` -- and every lexical check above still passes while reading
     # PR-supplied data. None of these workflows needs to change directory, so the
     # honest guard is to forbid it outright rather than to model it.
+    # CONSERVATIVE, NOT POSITIONAL. Enumerating the places a `cd` can appear has
+    # now been wrong twice -- `if cd evil; then` sits behind a keyword the
+    # position list did not have. These workflows have no legitimate use for any
+    # of these words, so ANY occurrence in executable code is refused. A blunt
+    # rule that cannot be sidestepped beats a precise one that can.
     step_maps.each do |step|
-      code_of(scalar(step["run"])).lines.each do |line|
-        next unless line =~ /(?:\A|[;|&(]|\bthen\b|\bdo\b)\s*(cd|pushd|popd)\s/
-        fail_policy("#{path} step #{scalar(step["name"]).inspect} changes the working directory; " \
-                    "the trusted-path checks above are relative and a moved cwd defeats them")
+      next unless code_of(scalar(step["run"])) =~ /\b(cd|pushd|popd|chdir)\b/
+      fail_policy("#{path} step #{scalar(step["name"]).inspect} mentions a directory-changing " \
+                  "command; the trusted-path checks are relative and a moved cwd defeats them")
+    end
+    # `working-directory` does the same thing declaratively, at THREE levels, and
+    # was entirely unchecked.
+    if root.key?("defaults")
+      fail_policy("#{path} sets workflow defaults, which can carry working-directory")
+    end
+    jobs.each_value do |node|
+      job_map = mapping(node, "#{path} job")
+      fail_policy("#{path} job sets working-directory") if job_map.key?("defaults")
+      steps_node = job_map["steps"]
+      next unless steps_node.is_a?(Psych::Nodes::Sequence)
+      steps_node.children.each do |step_node|
+        step_map = mapping(step_node, "#{path} step")
+        fail_policy("#{path} step #{scalar(step_map["name"]).inspect} sets working-directory") if step_map.key?("working-directory")
       end
     end
     REQUIRED_STEP_ARGS.fetch(File.basename(path), {}).each do |step_name, spec|
@@ -595,6 +617,26 @@ def self_test(root)
       %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
       %Q{          echo hi < <(cat nen/contract.json)\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
     expect_rejected("read through an input process substitution in a diagnostic") { validate_repo(tmp) }
+
+    # A BARE `&` IS A COMMAND SEPARATOR. `echo ok & cat nen/gates.json` runs
+    # `cat`; splitting only on `&&` left the whole line reading as one `echo`.
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          echo ok & cat nen/gates.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("read after a bare & separator in a diagnostic") { validate_repo(tmp) }
+
+    # A `cd` behind a keyword is still a `cd`. This is why the rule is now a word
+    # test rather than a position test.
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          if cd evil; then echo x; fi\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("cd behind an if keyword") { validate_repo(tmp) }
+
+    # `working-directory` moves the cwd DECLARATIVELY and was unchecked entirely.
+    File.write(surface, surface_original.sub(
+      "      - name: Surface-mirror drift check",
+      "      - name: Surface-mirror drift check\n        working-directory: evil"))
+    expect_rejected("step-level working-directory") { validate_repo(tmp) }
 
     # A SIBLING DIRECTORY IS NOT THE TRUSTED CHECKOUT. `attacker.trusted/` ends
     # with `.trusted/`, which a suffix test accepted.
