@@ -21,9 +21,9 @@ trigger a duplicate filing. Never copy or invent a second policy in the target r
 > `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, whose product *is* the process — and **`G2`
 > (`CON-5`) in a consumer repository**, where a `nen/contract.json`, `nen/workflow.json` or
 > `nen/gates.json` is that repository's own configuration and governs nothing else. **This skill runs
-> against consumer checkouts by design**, so read every "**G4**" below as *the declaration gate* and
-> resolve it by the target's role. The merge is the maintainer's either way — the ruling moves the
-> gate, never the prohibition.
+> against consumer checkouts by design**, so every declaration-gate instruction below names both
+> halves explicitly rather than asking you to reinterpret a bare "G4". The merge is the maintainer's
+> either way — the ruling moves the gate, never the prohibition.
 
 **Nature: Transmuter.** Byakugan captures instrumented results and parses what they produced. Writing
 the tests that close a gap is the same nature that authored the code — named as it switches, never
@@ -75,7 +75,7 @@ set. There is no input through which `git status --porcelain` reaches the verb, 
 would widen the population of a **G5** (§ 8) from inside a `## 0.` section, which
 [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 2 Rule 2 and § 5 both forbid.
 **Report uncommitted paths as uncommitted** — they are not measured, and saying so is the honest
-answer; changing what `touched` means is a **G4** question plus a `nen` capability, never a clause
+answer; changing what `touched` means is a canon-repository **G4** question plus a `nen` capability, never a clause
 written in passing.
 
 **P4 · Nothing to ask.** The ladder is `nen/workflow.json → coverage`, the base has a default and an
@@ -169,7 +169,7 @@ recorded tree hash, lane, regression verb/argv, artifact path, and run time from
 The pinned Nen has no `coverage --from-artifacts` switch. The supported route is an
 extraction-only `coverage` row whose artifact points at this capture. If the row runs a suite or
 provenance cannot be tied to this tree, report the exact missing declaration/capability as a
-**G4** to propose — that is a declaration defect, not a coverage number under `minimum`. The
+a change to propose at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one) — that is a declaration defect, not a coverage number under `minimum`. The
 only coverage G5 this skill owns is a touched file under the ladder (§ 8). Never run duplicate
 regression and call it coverage.
 
@@ -231,11 +231,11 @@ The ladder is per file. The stop is [`$jutaisho`](../jutaisho/SKILL.md)'s shape,
 - **A — keep going.** The tests are writable. ⭐ where that is true.
 - **B — this is a spike branch.** The maintainer says so; the PR says it.
 - **C — the code is generated.** Exemption belongs in the repository's coverage configuration — a
-  **declaration change, at G4**.
+  **declaration change**, at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one).
 - **D — a canon-sanctioned exemption applies**, and **the PR must state it**.
 
 **Never an option that lowers `minimum`, `recommended` or `ideal`.** Changing the ladder is a
-separate G4 decision. The run ends at the stop.
+separate decision at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one). The run ends at the stop.
 
 ## 9. `not measurable here` — a lane that declares no coverage
 
@@ -244,7 +244,7 @@ not a G5. Hatsu's `plugin` lane seats `coverage`; the ladder still ships for eve
 Hatsu drives that declares none of its own.
 
 Exit `1` has two arms — the command ran and failed (repair the host and re-measure) versus no
-artifact nen reads (a declaration defect, G4 to propose). Neither arm is a coverage verdict.
+artifact nen reads (a declaration defect, to propose at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one)). Neither arm is a coverage verdict.
 
 ## Residue
 

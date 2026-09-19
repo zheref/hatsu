@@ -428,7 +428,7 @@ says the target works is § 4's probe resolving the name, run and shown — and,
 `main`, `nen shu dev --repo <path> --target <name> --dry-run`, which renders the whole plan without
 spawning a thing.
 
-**Then the pull request, at G4.** [`/aka`](../aka/SKILL.md) publishes the branch on the
+**Then the pull request, at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one).** [`/aka`](../aka/SKILL.md) publishes the branch on the
 maintainer's call and [`/mukai`](../mukai/SKILL.md) opens the PR; jujutsu writes the block, states
 the gate, and **never merges**. The body says: which device, which target key, what the probe printed,
 whether `launch.default` changed, and — where the name carries a non-ASCII byte — that it was copied
@@ -457,7 +457,7 @@ through `args` and an `after` step:
 "mac": { "verb": "dev", "args": ["-scheme", "<scheme>"], "after": [ { "exe": "open", "argv": ["{artifact}"] } ] }
 ```
 
-Both still get § 6's schema check and § 6's G4 PR. **Skipping the PR because "there was no pairing" is
+Both still get § 6's schema check and § 6's declaration PR at that same gate. **Skipping the PR because "there was no pairing" is
 how a declaration acquires an entry nobody reviewed.**
 
 ## 8. Report

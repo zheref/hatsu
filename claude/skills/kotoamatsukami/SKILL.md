@@ -20,9 +20,9 @@ trigger a duplicate filing. Never copy or invent a second policy in the target r
 > `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, whose product *is* the process — and **`G2`
 > (`CON-5`) in a consumer repository**, where a `nen/contract.json`, `nen/workflow.json` or
 > `nen/gates.json` is that repository's own configuration and governs nothing else. **This skill runs
-> against consumer checkouts by design**, so read every "**G4**" below as *the declaration gate* and
-> resolve it by the target's role. The merge is the maintainer's either way — the ruling moves the
-> gate, never the prohibition.
+> against consumer checkouts by design**, so every declaration-gate instruction below names both
+> halves explicitly rather than asking you to reinterpret a bare "G4". The merge is the maintainer's
+> either way — the ruling moves the gate, never the prohibition.
 
 **Nature: Transmuter** carries every run: kotoamatsukami executes declared machinery and reports
 what it did. Fixing what the suite found is the surrounding phase's work in that phase's own
@@ -266,7 +266,7 @@ expect — reading the argv costs seconds and reading it wrong costs the run.
 
 `nen shu test` / `nen shu ui-test` exits `2` naming the missing `nen/contract.json` (or its missing
 `project` block). Then: run the repository's own documented command, **say plainly that no
-declaration exists yet**, and treat writing one as a **G4** change to propose. Read that fact off
+declaration exists yet**, and treat writing one as a change to propose at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one). Read that fact off
 `test`/`build`/`lint` and **never off `nen shu detect`**.
 
 ## 7. The run, and the exit codes

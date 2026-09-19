@@ -20,9 +20,9 @@ trigger a duplicate filing. Never copy or invent a second policy in the target r
 > `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, whose product *is* the process — and **`G2`
 > (`CON-5`) in a consumer repository**, where a `nen/contract.json`, `nen/workflow.json` or
 > `nen/gates.json` is that repository's own configuration and governs nothing else. **This skill runs
-> against consumer checkouts by design**, so read every "**G4**" below as *the declaration gate* and
-> resolve it by the target's role. The merge is the maintainer's either way — the ruling moves the
-> gate, never the prohibition.
+> against consumer checkouts by design**, so every declaration-gate instruction below names both
+> halves explicitly rather than asking you to reinterpret a bare "G4". The merge is the maintainer's
+> either way — the ruling moves the gate, never the prohibition.
 
 **Nature: Emitter.** The moment a build leaves this machine it is a release act, whichever nature
 authored the diff. [`hatsu:amaterasu`](../amaterasu/SKILL.md) starts an app *here* and is Transmuter
@@ -515,7 +515,7 @@ I promote it". The next call is the maintainer's and they know they have it.
   Release; a merge; a PR; a label; an edit to `project.targets` to make a line work. **Any push or
   tag other than the single declared one of § 4a** — that block is the whole of the permission, it is
   opt-in and per-target, and a repository that does not declare it gets exactly the old behaviour.
-  Adding a `tags.deploy` block so that a tag will be cut is itself a **G4** declaration change, never
+  Adding a `tags.deploy` block so that a tag will be cut is itself a declaration change at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one), never
   something done here to make a run tag.
 - **The call is one send wide and ends when this run ends.** It is not standing authority to send to
   this target again later, it is authority for no other target, and no delegation supplies it (§ 1).

@@ -20,9 +20,9 @@ trigger a duplicate filing. Never copy or invent a second policy in the target r
 > `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, whose product *is* the process — and **`G2`
 > (`CON-5`) in a consumer repository**, where a `nen/contract.json`, `nen/workflow.json` or
 > `nen/gates.json` is that repository's own configuration and governs nothing else. **This skill runs
-> against consumer checkouts by design**, so read every "**G4**" below as *the declaration gate* and
-> resolve it by the target's role. The merge is the maintainer's either way — the ruling moves the
-> gate, never the prohibition.
+> against consumer checkouts by design**, so every declaration-gate instruction below names both
+> halves explicitly rather than asking you to reinterpret a bare "G4". The merge is the maintainer's
+> either way — the ruling moves the gate, never the prohibition.
 
 **Nature: Enhancer** carries the ordinary run — rasengan writes the code that answers the request.
 The mode follows the *request*, exactly as [`hatsu:ren`](../ren/SKILL.md)'s does: **Conjurer** where the
@@ -209,7 +209,7 @@ last thing to happen before the hand-over is a green movement 4 over the finishe
   ladder, [`hatsu:gyo`](../gyo/SKILL.md) for lint, and [`hatsu:tsukuyomi`](../tsukuyomi/SKILL.md)
   hold the same rule for their own bars).
 - **Never edits a declaration on the fly.** `nen/contract.json` and `nen/workflow.json` are the
-  repository's policy: a wrong row is a **G4** PR of its own, not a local edit left in the checkout —
+  repository's policy: a wrong row is a PR of its own at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one), not a local edit left in the checkout —
   unless the declaration *is* what the request asked to change, and then it is the change and it is
   reviewed as one.
 - **Never cuts or switches a branch.** That is breath's, once per effort.
@@ -284,10 +284,10 @@ differs in exactly one row — a `1` there ends the commit rather than the edit.
 |---|---|---|
 | `0` | the declared step ran and passed (or the dry run rendered) | next check; when the list is exhausted, keep authoring or hand over (§ 3) |
 | `1` | **the ordinary red build** — the tool ran and failed; its own code is in `steps[].exitCode`, nen's is always `1` | **This is the loop working.** Relay the tool's own output, name the failing step (`step N of M`), fix the code, run it again. Never soften the check (§ 4), and never hand a red tree to kokusen (§ 10) |
-| `1` | *also*: `nen/contract.json` is present and **malformed** | a repository defect, not a red build. The refusal names the file and the pointer — fix the declaration, and land it as machinery at **G4** where it is not this effort's own file |
+| `1` | *also*: `nen/contract.json` is present and **malformed** | a repository defect, not a red build. The refusal names the file and the pointer — fix the declaration, and land it as machinery at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one) where it is not this effort's own file |
 | `2` | usage: no declaration, no `project` block, an unknown `--lane`, an unsubstituted placeholder, a path that **really** lands outside the repo (§ 5a), or an **unsatisfied precondition** | fix the invocation or the declaration. A precondition is nen's to assert and never to perform: satisfy it yourself and say which one it was. § 7 covers the no-declaration case |
 | `3` | **unsupported host** — the verb is real, this machine is not on `project.hosts` | **G5.** Name the host the declaration allows and stop; never retry, never route around it. Authoring cannot proceed on a host that cannot check it |
-| `4` | **a seat** — the lane declares no such verb, in the declaration's own words | Not a failure and **not red**. **Quote the seat's reason verbatim**, run the repository's own documented command for that check, say that you did — and where the seat should be a real row, land the declaration change as its own PR at **G4** |
+| `4` | **a seat** — the lane declares no such verb, in the declaration's own words | Not a failure and **not red**. **Quote the seat's reason verbatim**, run the repository's own documented command for that check, say that you did — and where the seat should be a real row, land the declaration change as its own PR at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one) |
 | `5` | the declared program could not be started at all | run `nen shu tools --repo <path>` and relay its per-tool remedy; `--install` for what `corepack` can activate, a human for the rest. Never `sudo`, never a version the declaration did not pin |
 
 ## 7. A repository that declares nothing
@@ -295,7 +295,7 @@ differs in exactly one row — a `1` there ends the commit rather than the edit.
 Exit `2` naming the file: *"no such file: `<path>/nen/contract.json`. 'nen shu' runs what a repository
 DECLARES … and this repository declares nothing"* (verified live against the `zheref/nen` checkout —
 `docs/ab/rasengan.md` § 2.4). Then: run the repository's own documented commands, **say plainly that
-no declaration exists yet**, and treat writing a `project` block as a **G4** change to propose.
+no declaration exists yet**, and treat writing a `project` block as a change to propose at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one).
 
 **Read the no-declaration fact off `build`/`test`/`lint`, never off `detect`.** `nen shu detect`
 answers a different question — whether a *marker on disk* proposes a lane — and the two do not track
@@ -397,7 +397,7 @@ gate, from the same fact.
   scope; run declared inexpensive iteration checks and an explicitly scoped `test` lane for feedback; probe
   the host through `nen shu tools`; report every code.
 - **Not permitted:** commit, push, label, open or touch a PR, deploy, cut or switch a branch, or edit
-  a declaration on the fly. A declaration that is wrong is a **G4** PR of its own, not a local edit
+  a declaration on the fly. A declaration that is wrong is a PR of its own at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one), not a local edit
   left in the checkout.
 - **Not a gate event**, with two exceptions it raises rather than owns: exit `3` (unsupported host)
   and a red check it cannot honestly clear in-session are **G5** stops for the phase that called it.

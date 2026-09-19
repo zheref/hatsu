@@ -675,6 +675,12 @@ canonical persona, contribution, and evidence; see
 - **The one question: would merging this change what a DIFFERENT repository does?** Yes → G4. No → G2.
   **The mode says what kind of work it is; the repository says which gate it stands at.** They are
   independent, and a file's name answers neither.
+- **The question is a test for the three NAMED repositories, not a rule that admits a fourth.** A
+  repository that passes the test but is not on the list is **unruled**, and naming a fourth canon
+  repository is the maintainer's ruling rather than an inference from the test. `zheref/akatsuki-ai`
+  is exactly that case — the CI plane's workflows do run against other repositories, so the test
+  answers *yes* while the list answers *no*. **Treat it as G5**, not G4
+  (`docs/ROSTER.md` § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*).
 - **Never derive the gate from a path set in a consumer repository.** The sets the skills carry are
   `zheref/hatsu`'s own canon. `nen gate derive`'s own help says so — *"There are no built-in path sets.
   They are the target repository's canon"* — and its two sets cannot both be empty. In a consumer

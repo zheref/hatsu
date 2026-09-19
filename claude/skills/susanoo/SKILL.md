@@ -20,9 +20,9 @@ trigger a duplicate filing. Never copy or invent a second policy in the target r
 > `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, whose product *is* the process — and **`G2`
 > (`CON-5`) in a consumer repository**, where a `nen/contract.json`, `nen/workflow.json` or
 > `nen/gates.json` is that repository's own configuration and governs nothing else. **This skill runs
-> against consumer checkouts by design**, so read every "**G4**" below as *the declaration gate* and
-> resolve it by the target's role. The merge is the maintainer's either way — the ruling moves the
-> gate, never the prohibition.
+> against consumer checkouts by design**, so every declaration-gate instruction below names both
+> halves explicitly rather than asking you to reinterpret a bare "G4". The merge is the maintainer's
+> either way — the ruling moves the gate, never the prohibition.
 
 **Nature: Transmuter** carries every run: susanoo executes declared machinery — one lane's `archive`
 row — and reports what came out. It authors nothing, and it **moves nothing off this
@@ -116,7 +116,7 @@ authority; this is what susanoo does with each.
 |---|---|---|
 | `0` | the archive ran (or the dry run rendered) | report the artifacts, § 5 |
 | `1` | the packaging tool ran and **failed** — its own code is in `steps[].exitCode`, nen's is always `1` | relay the tool's output, name the failing step (`step N of M`), fix it here. A half-written package is never handed onward as a release unit |
-| `1` | *also*: `nen/contract.json` present and **malformed** | a repository defect, not a failed archive. Fix the declaration and land it at **G4** |
+| `1` | *also*: `nen/contract.json` present and **malformed** | a repository defect, not a failed archive. Fix the declaration and land it at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one) |
 | `2` | usage, or an **unsatisfied precondition** — § 4 | the plan still prints, the failing rows marked `FAIL`. Satisfy the precondition yourself and say which one it was; never route around it |
 | `3` | **unsupported host** — packaging is real, this machine is not on `project.hosts` | **G5.** Name the host the declaration allows and stop. Never retry, never re-target |
 | `4` | **a seat** — the lane declares no `archive`, in the declaration's own words | Not a failure. § 6 |
@@ -328,7 +328,7 @@ There is no artifact to produce"*, `nen/contract.json`) and KroApple's (*"No rep
 and have no command line here"*).
 
 Where the seat **should** be a real row, that is a declaration change to land as its own PR at
-**G4** — never an argv improvised here for one run. And where the repository has a documented
+the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one) — never an argv improvised here for one run. And where the repository has a documented
 packaging command outside its declaration, run *that*, say plainly that no `archive` row exists, and
 propose the row.
 
@@ -401,7 +401,7 @@ are not one flag apart here.
   form; any upload, any publication, any push, any commit, any PR, any label, **and any tag** — the
   cut is [`hatsu:kagutsuchi`](../kagutsuchi/SKILL.md) § 4a's, on an upload that actually succeeded,
   because a unit that landed nowhere has nothing to record. Also: no edit to a declaration on the
-  fly — a wrong `archive` row is a **G4** PR of its own.
+  fly — a wrong `archive` row is a PR of its own at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one).
 - **Never synthesises signing material**, of any kind, for any reason (§ 4).
 - **Not a gate event**, with two exceptions it raises rather than owns: exit `3` (unsupported host)
   and the signing refusals of § 4 (exit `2` or `5`) are **G5** stops for the phase that called it.
