@@ -15,6 +15,16 @@ trigger a duplicate filing. Never copy or invent a second policy in the target r
 
 # Tsukuyomi — the focused tests, seen for what they are
 
+> **The gate on a declaration change is the REPOSITORY's role, not the file's kind.** Maintainer's
+> ruling, 2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is
+> the repository's role, not the file's kind*): **`G4` (`CON-7`) in a canon repository** —
+> `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, whose product *is* the process — and **`G2`
+> (`CON-5`) in a consumer repository**, where a `nen/contract.json`, `nen/workflow.json` or
+> `nen/gates.json` is that repository's own configuration and governs nothing else. **This skill runs
+> against consumer checkouts by design**, so every declaration-gate instruction below names both
+> halves explicitly rather than asking you to reinterpret a bare "G4". The merge is the maintainer's
+> either way — the ruling moves the gate, never the prohibition.
+
 **Nature: Transmuter** carries every run: tsukuyomi executes declared machinery and reports what it
 did. Fixing what the suite found is the surrounding phase's work in that phase's own nature — and
 where the fix would be to the *test*, it is a change that has to justify itself out loud (§ 6).
@@ -209,7 +219,7 @@ route for this behavior; § 5 is a repository that declared nothing at all, and 
 
 `nen shu test` exits `2` naming the missing `nen/contract.json` (or its missing `project` block). Then:
 run the repository's own documented test command, **say plainly that no declaration exists yet**, and
-treat writing one as a **G4** change to propose. Read that fact off `test`/`build`/`lint` and **never
+treat writing one as a change to propose at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one). Read that fact off `test`/`build`/`lint` and **never
 off `nen shu detect`**, which answers a different question and reports `1` for repositories that test
 perfectly well ([`$rasengan`](../rasengan/SKILL.md) § 7, verified live in both directions).
 

@@ -46,7 +46,7 @@ of them lives* once the lattice is the map.
 **Three consequences follow, and none of them is new:**
 
 - **Getsuga runs after a merge; it does not replace one.** What § 3 opens is a *proposal*, and it
-  stops at **G4** — the maintainer merges it, and only then does § 4 tag that merge SHA. A tag cut
+  stops at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one) — the maintainer merges it, and only then does § 4 tag that merge SHA. A tag cut
   without a merged release PR would be a tag on a commit nobody approved, which is the whole reason
   `CON-33(b)` asks for the PR first.
 - **The release unit is [`susanoo`](../susanoo/SKILL.md)'s, not this skill's.** Where the repository

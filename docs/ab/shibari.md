@@ -158,7 +158,7 @@ will read it as the verb being broken (§ 4.1).
 > Every transcript here is verbatim and stays that way. The maintainer's ruling of 2026-09-18
 > ([`docs/ROSTER.md`](../ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*) settles what these runs never asked:
 > **G4 is authoring or maintaining a canon repository** — `zheref/hatsu`, `zheref/nen`,
-> `zheref/bankai-core` — and **everything else is G2**, including a consumer repository declaring its own
+> `zheref/bankai-core` — and **everything else on that axis is G2** — `G1`, `G1-M`, `G3` and `G5` are untouched — including a consumer repository declaring its own
 > `nen/*.json` or adding a CI workflow. So read the `G4`s below as *the reference repository
 > answering about itself*, which is what they are. In a consumer repository the gate is `G2` by role
 > and `nen gate derive` is not called at all. What these runs establish about the verb is unaffected

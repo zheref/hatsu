@@ -252,7 +252,7 @@ different fact, and a persona reacts to each differently:
 | `1` | the tool ran and **failed** — its own code is in `steps[].exitCode`; or `nen/contract.json` is present and malformed | fix the code, or the declaration; this is the ordinary red build |
 | `2` | usage — no declaration, no `project` block, an unknown `--lane`, an unsatisfied precondition, a placeholder the declaration never filled | fix the invocation or the declaration; on a repository with **no** declaration see the paragraph below |
 | `3` | **unsupported host** — the verb is real, this machine cannot run it (`project.hosts`) | do not retry; say which host the declaration allows and stop, or hand the step to the maintainer on a machine that can (**G5** if it blocks the delivery) |
-| `4` | **unsupported verb for this lane** — the declaration says so, in its own words (a *seat*) | not a failure: quote the seat's reason, and either replace the seat in the declaration (a PR of its own, at **G4** in a canon repository, **G2** in a consumer one — § *Which gate this mode's PRs stand at*) or run the step by the repository's own documented means and say that you did |
+| `4` | **unsupported verb for this lane** — the declaration says so, in its own words (a *seat*) | not a failure: quote the seat's reason, and either replace the seat in the declaration (a PR of its own, at **G4** in a canon repository, **G2** in a consumer one — § *Which gate a PR stands at*) or run the step by the repository's own documented means and say that you did |
 | `5` | **the declared program could not be started** — not installed, not on `PATH`; on `shu tools`, the host is not set up | run `nen shu tools --repo <path>` and relay its per-tool remedy; `--install` for what corepack can activate, a human for the rest — never `sudo`, never a version the declaration did not pin |
 
 `shu warmup` passes `3`/`4`/`5` through unchanged from the build it delegates and reports a delegated `2` as
@@ -266,7 +266,7 @@ told nen how this repository is built. What you do: if the repository has a buil
 the `project` block by hand** (`nen shu --help` names the fields; a verb it does not have is an explicit
 `{"unsupported": "<why>"}` seat, never left out) and land it as a PR — at **G4** where this is a canon
 repository, since there the machinery *is* the process, and at **G2** in a consumer repository, where the
-same block is that repository's own configuration (§ *Which gate this mode's PRs stand at*). Until it
+same block is that repository's own configuration (§ *Which gate a PR stands at*). Until it
 lands, `nen shu build`/`test`/`lint` refuse at exit `2` naming the missing file (or, where a
 `dependency`-only contract exists as on Hatsu, its missing `project` block), and you run the repository's
 own documented commands (its `Makefile`, its package scripts) **and say plainly that no declaration exists
@@ -347,7 +347,7 @@ edit instead of a review round.
 Conjuration materialises an object with conditions attached, and that is what a governance clause is: a
 rule that exists because it was written, binding because its condition was accepted. Author the
 constitution, handbooks, schemas, agent definitions, taxonomies and thresholds. PRs the human merges at
-**G4** — **in a canon repository**. See *Which gate this mode's PRs stand at*, below.
+**G4** — **in a canon repository**. See *Which gate a PR stands at*, below.
 
 **Conjure with the condition stated.** A clause you write says what it binds, what it costs, when it
 lapses, and what happens when it is broken. A rule with no stated failure mode is not a rule, it is a
@@ -370,7 +370,7 @@ closed without anyone deciding it, and it is the single easiest mistake for this
 Transmutation changes the *nature* of what you already have, which is what porting is: the same operation,
 a different substance. Author and maintain the machinery — Nen verbs and their tests, scaffolding, hooks,
 workflows, generators, the plugin's own manifests, this repository's contract files. PRs at **G4** —
-**in a canon repository**. See *Which gate this mode's PRs stand at*, below: the same file kinds in a
+**in a canon repository**. See *Which gate a PR stands at*, below: the same file kinds in a
 consumer repository are that repository's own setup and stand at **G2**.
 
 The standing transmutation is **improvised shell → deterministic verb**. When you find prose or a shell
@@ -383,7 +383,7 @@ a tree that does not exist yet) → `nen schema check` → `nen shu tools`, in t
 first — § *The `shu` verbs* above spells out the lines. So is writing a `project` block by hand for a
 repository `detect` cannot propose one for, and replacing a proposed seat with the command the repository
 actually runs: both are declarations of machinery, landed as PRs at **G4** *where the repository being
-stood up is a canon one* and at **G2** where it is a consumer (see *Which gate this mode's PRs stand at*),
+stood up is a canon one* and at **G2** where it is a consumer (see *Which gate a PR stands at*),
 never edited into a checkout and left there.
 
 **Shell is near-forbidden here, on purpose.** The only shell that may exist is bootstrap-class — the file
@@ -436,7 +436,7 @@ the moment the work leaves your machine and becomes something other repositories
 **The chain, and who calls each link.** [`susanoo`](../skills/susanoo/SKILL.md) builds the release unit —
 the declared `archive`, run locally, uploading nothing — and **you** call it, because building an artifact
 leaves nothing on anyone else's machine. [`getsuga`](../skills/getsuga/SKILL.md) is yours too: the
-release-proposal PR, which stops at **G4** for the maintainer to merge, and then the post-merge tag and the
+release-proposal PR, which stops at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one) for the maintainer to merge, and then the post-merge tag and the
 `CON-22` fan-out. Past the tag the chain stops being yours. **[`kagutsuchi`](../skills/kagutsuchi/SKILL.md)
 (a non-production upload) and [`mugetsu`](../skills/mugetsu/SKILL.md) (publication, **G3**, `CON-6`) are the
 maintainer's own calls, one target per call** — you print the plan, you never run it, and neither is ever

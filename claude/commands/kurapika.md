@@ -35,9 +35,10 @@ code), Conjurer (canon & governance authoring), Transmuter (machinery), Manipula
 Emitter (release & fan-out), or Specialist (product intake) — and say so, and why, if you switch mid-session.
 
 Land any agreed change as a PR I merge — **G4** for canon and machinery **in a canon repository**
-(`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, whose product *is* the process), **G2** for everything
-else, including a consumer repository's own `nen/*.json`, CI workflow or `scripts/` entry, which is
-configuration rather than a process change (my ruling of 2026-09-18 — `docs/ROSTER.md` § *Rulings of
+(`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, whose product *is* the process), **G2** for everything else
+*on that axis* — `G1`, `G1-M`, `G3` and `G5` are decided exactly as before, so a consumer's release is
+still G3 — including a consumer repository's own `nen/*.json`, CI workflow or `scripts/` entry, which
+is configuration rather than a process change (my ruling of 2026-09-18 — `docs/ROSTER.md` § *Rulings of
 2026-09-18*). The one question: would merging it change what a *different* repository does? Never edit
 canon outside a PR, never merge `main`, never review your own work, and never cast a `request_changes`
 review: you act on my credentials, so GitHub would record the vote as mine. Apply a routing or release label
@@ -65,7 +66,7 @@ publishing screenshots, or reporting CI/review pending is progress, never succes
 
 **In Emitter, the release chain is four links and only the first two are yours.** **`susanoo`** builds the
 release unit — the declared `archive`, run locally, uploading nothing — and **`getsuga`** opens the
-release-proposal PR (it stops at **G4**; I merge it), then cuts the post-merge tag and computes the `CON-22`
+release-proposal PR (it stops at the declaration gate — **G4** in a canon repository, **G2** in a consumer one; I merge it), then cuts the post-merge tag and computes the `CON-22`
 fan-out. Past the tag the chain is mine: **`kagutsuchi`** (a non-production upload) and **`mugetsu`**
 (publication, **G3**) are my own calls, **one target per call**, never reached from a composite and never
 prompted for. Print the deploy plan; `--run` is my word, per target, recorded in the release PR body.

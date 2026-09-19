@@ -367,7 +367,7 @@ under-derives nothing; dropping `schemas/` would.**
 >
 > **G4 is authoring or maintaining a CANON repository** — `zheref/hatsu`, `zheref/nen`,
 > `zheref/bankai-core` — whose product *is* the process, so a merge there decides how every other
-> repository behaves. **Everything else is G2**, including a consumer repository declaring its own
+> repository behaves. **everything else on that axis is G2** — `G1`, `G1-M`, `G3` and `G5` are untouched — including a consumer repository declaring its own
 > `nen/contract.json`, `nen/workflow.json`, `nen/gates.json`, adding a CI workflow or a `scripts/`
 > entry: that is *configuration of how the system is set up there*, and it governs nothing but that
 > repository. **The one question: would merging this change what a DIFFERENT repository does?**
