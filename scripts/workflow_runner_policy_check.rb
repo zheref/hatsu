@@ -9,14 +9,56 @@ MAC_RUNNER = %w[self-hosted macOS ARM64].freeze
 WINDOWS_RUNNER = %w[self-hosted Windows X64].freeze
 HOSTED_RUNNER = "ubuntu-latest"
 PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml].freeze
+# NOTE: pr-readiness.yml is deliberately ABSENT from the list above and present in
+# every table below. This constant doubles as the REQUIRED-PRESENCE list
+# (validate_repo), so naming a file that does not exist yet would fail every PR.
+# The PR that adds the workflow adds it here, in the same commit as the file.
 EXPECTED_JOBS = {
   "plugin-bump-check.yml" => "check",
-  "surface-mirror-check.yml" => "surface-mirror-check"
+  "surface-mirror-check.yml" => "surface-mirror-check",
+  "pr-readiness.yml" => "readiness"
 }.freeze
+# Each workflow declares its EXACT trigger set as a map of event => types. This
+# replaced a single hardcoded `pull_request_target` key on the maintainer's
+# ruling of 2026-09-19. The shape is still exactly enumerated and still frozen --
+# what changed is that a workflow may now name MORE THAN ONE event, not that any
+# event is accepted.
+#
+# WHY THE READINESS WORKFLOW NEEDS MORE THAN ONE. Three of the five conjuncts
+# `nen pr ready` evaluates change on events `pull_request_target` cannot see:
+# CON-32(a) when a check completes, CON-32(b)/CON-16 when a review lands, and
+# CON-32(d) when a thread resolves. With only `pull_request_target`, the verdict
+# is computed at push time -- while checks are still pending -- and never
+# recomputed, so the `ready` transition is essentially never published and the
+# signal reads not-ready almost always. Found by the automated reviewer on #80.
+#
+# EVERY EVENT HERE CARRIES `github.event.pull_request`, which is what lets all
+# three share one byte-compared SAME_REPO_GUARD. `check_suite` does NOT -- its
+# payload carries `check_suite.pull_requests[]` instead -- so admitting it would
+# need a second, weaker job guard, and it is deliberately NOT admitted here.
 EXPECTED_TYPES = {
-  "plugin-bump-check.yml" => %w[opened synchronize reopened edited],
-  "surface-mirror-check.yml" => %w[opened synchronize reopened]
+  "plugin-bump-check.yml" => {
+    "pull_request_target" => %w[opened synchronize reopened edited]
+  },
+  "surface-mirror-check.yml" => {
+    "pull_request_target" => %w[opened synchronize reopened]
+  },
+  "pr-readiness.yml" => {
+    # No `edited`: the verdict reads checks, rounds and threads, and none of
+    # those changes when the body or title is edited.
+    "pull_request_target" => %w[opened synchronize reopened],
+    # CON-32(b) / CON-16 -- a reviewer round landing, changing or being dismissed.
+    "pull_request_review" => %w[submitted edited dismissed],
+    # CON-32(d) -- the unresolved-threads conjunct. Thread resolution has its own
+    # event; it is not a review_comment.
+    "pull_request_review_thread" => %w[resolved unresolved]
+  }
 }.freeze
+
+# The only events a privileged job in this repository may be triggered by. All
+# run in the BASE repository context with a credential, so this list is the
+# trust boundary and widening it again is a maintainer ruling, not an edit.
+ALLOWED_TRIGGERS = %w[pull_request_target pull_request_review pull_request_review_thread].freeze
 EXPECTED_STEPS = {
   "plugin-bump-check.yml" => [
     "Start required check on the exact PR head",
@@ -39,8 +81,75 @@ EXPECTED_STEPS = {
     "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)",
     "Surface-mirror drift check",
     "Finish check on the exact PR head"
+  ],
+  # No "Assert the guard script keeps its exec bit in-tree": this workflow runs
+  # no in-repo guard script. Its executable is the checksum-verified nen binary,
+  # pinned from the TRUSTED contract, so the exec-bit assertion has no subject.
+  "pr-readiness.yml" => [
+    "Start check on the exact PR head",
+    "Checkout PR head (data only — nothing from here is executed)",
+    "Checkout guard code from the trusted workflow revision",
+    "Enforce workflow runner policy from trusted workflow revision",
+    "Read the pinned nen ref from trusted nen/contract.json",
+    "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)",
+    "Readiness verdict",
+    "Finish check on the exact PR head"
   ]
 }.freeze
+
+# Workflows that read a dependency pin and then fetch+execute a bootstrap from a
+# URL built out of it. The pin MUST come from the trusted workflow checkout: a PR
+# that can edit the pin can choose the binary that judges it. Keyed by the step's
+# declared NAME, not its index -- an index silently pointed at the wrong step when
+# pr-readiness.yml (no exec-bit step) shifted everything up by one.
+TRUSTED_PIN_STEP = "Read the pinned nen ref from trusted nen/contract.json"
+# Steps whose `run` must carry an exact argument. Same reason: nen 0.10.0 falls
+# back to <cwd>/nen/gates.json when --gates is absent, and the cwd in these jobs
+# is the PR HEAD checkout -- so a dropped flag hands the PR the gate that judges
+# it, and reads like a harmless simplification.
+REQUIRED_STEP_ARGS = {
+  "pr-readiness.yml" => {
+    "Readiness verdict" => '--gates "$PWD/.trusted/nen/gates.json"'
+  }
+}.freeze
+
+# A `run:` scalar with its COMMENT LINES REMOVED. Every assertion below matches
+# against this, never the raw scalar. `include?` on the raw text proves only that
+# a string appears SOMEWHERE -- a PR can satisfy it from a comment or an unrelated
+# `echo` while the executable line reads the PR's own copy, which is precisely the
+# bypass these guards exist to stop. This repository's own workflow headers quote
+# these paths in prose, so the bypass vector is present by construction, not
+# hypothetical.
+# Is the occurrence at `index` inside a DIAGNOSTIC command -- an `echo`/`printf`
+# that merely names the file -- rather than a command that opens it?
+#
+# SCOPED TO THE COMMAND SEGMENT, not to the whole line, and that distinction is
+# the finding this answers. Testing "does echo appear anywhere before the match"
+# exempts `echo ok; cat nen/gates.json`, where the second command really does
+# read the PR-controlled file. So the line is split on shell command separators
+# and only the segment containing the occurrence is considered.
+def diagnostic_at?(line, index)
+  start = 0
+  line.scan(/\|\||&&|[;|]/) do
+    match = Regexp.last_match
+    break if match.begin(0) > index
+    start = match.end(0)
+  end
+  # Leading `{`, `(` and whitespace are grouping, not the command word.
+  segment = line[start...index].to_s.sub(/\A[\s({]+/, "")
+  !(segment =~ /\A(echo|printf)\b/).nil?
+end
+
+def code_of(run)
+  return "" unless run
+  run.lines.reject { |line| line.strip.start_with?("#") }.join
+end
+
+# Taxonomy files that decide how a privileged job behaves: the dependency pin
+# selects the BINARY, and the gates file selects the REVIEWER IDENTITIES. In a
+# pull_request_target job the cwd is the PR HEAD checkout, so an unprefixed read
+# is the PR's own copy -- a PR choosing the binary, or the gate, that judges it.
+TRUSTED_ONLY_DATA = %w[nen/contract.json nen/gates.json].freeze
 
 def fail_policy(message)
   warn "workflow-runner-policy: #{message}"
@@ -107,11 +216,16 @@ def validate_workflow(path)
   reject_duplicate_keys(document.root, path)
   root = mapping(document.root, path)
   triggers = mapping(root.fetch("on") { fail_policy("#{path} has no on mapping") }, "#{path} on")
-  fail_policy("#{path} trigger set must be exactly pull_request_target") unless triggers.keys == ["pull_request_target"]
-  trigger = mapping(triggers["pull_request_target"], "#{path} pull_request_target")
-  trigger_types = sequence(trigger.fetch("types") { fail_policy("#{path} pull_request_target has no types") }, "#{path} pull_request_target types")
-  expected_types = EXPECTED_TYPES.fetch(File.basename(path)) { fail_policy("#{path} has no declared trigger policy") }
-  fail_policy("#{path} pull_request_target types changed") unless trigger.keys == ["types"] && trigger_types == expected_types
+  expected_triggers = EXPECTED_TYPES.fetch(File.basename(path)) { fail_policy("#{path} has no declared trigger policy") }
+  triggers.keys.each do |event|
+    fail_policy("#{path} uses trigger #{event.inspect}, which is not an admitted privileged trigger") unless ALLOWED_TRIGGERS.include?(event)
+  end
+  fail_policy("#{path} trigger set changed") unless triggers.keys.sort == expected_triggers.keys.sort
+  expected_triggers.each do |event, expected_types|
+    trigger = mapping(triggers[event], "#{path} #{event}")
+    trigger_types = sequence(trigger.fetch("types") { fail_policy("#{path} #{event} has no types") }, "#{path} #{event} types")
+    fail_policy("#{path} #{event} types changed") unless trigger.keys == ["types"] && trigger_types == expected_types
+  end
   targets_pr = true
   reject_write_permissions(root["permissions"], "#{path} permissions")
   if targets_pr && scalar(mapping(root["permissions"], "#{path} permissions")["checks"]) != "write"
@@ -162,10 +276,40 @@ def validate_workflow(path)
         fail_policy("#{path} job #{job_name} executes a PR-root script instead of trusted code")
       end
     end
-    if File.basename(path) == "surface-mirror-check.yml"
-      pin_step = step_maps[5]
-      unless scalar(pin_step["run"])&.include?(".trusted/nen/contract.json")
-        fail_policy("#{path} must source its executable dependency pin from trusted workflow data")
+    # Generalised from a single hardcoded basename + positional index: EVERY
+    # workflow that carries the pin step is held to sourcing it from trusted data.
+    pin_step = step_maps.find { |step| scalar(step["name"]) == TRUSTED_PIN_STEP }
+    if pin_step && !code_of(scalar(pin_step["run"])).include?(".trusted/nen/contract.json")
+      fail_policy("#{path} must source its executable dependency pin from trusted workflow data")
+    end
+    # EVERY executable reference to a decision-bearing taxonomy file must be
+    # .trusted/-prefixed, in EVERY step. This is what actually closes the bypass:
+    # it is not enough that the trusted path appears somewhere, it must be the
+    # case that no UNTRUSTED path appears anywhere executable.
+    step_maps.each do |step|
+      code_of(scalar(step["run"])).lines.each do |line|
+        TRUSTED_ONLY_DATA.each do |data|
+          offset = 0
+          while (index = line.index(data, offset))
+            offset = index + data.length
+            prefix = line[0...index]
+            # A DIAGNOSTIC IS NOT A READ -- but only within its OWN command. See
+            # `diagnostic_at?`: a whole-line test would exempt
+            # `echo ok; cat nen/gates.json`.
+            next if diagnostic_at?(line, index)
+            token = prefix[/\S*\z/].to_s
+            next if token.end_with?(".trusted/")
+            fail_policy("#{path} step #{scalar(step["name"]).inspect} reads #{token}#{data} " \
+                        "outside the trusted checkout; a pull_request_target job's cwd is the PR head")
+          end
+        end
+      end
+    end
+    REQUIRED_STEP_ARGS.fetch(File.basename(path), {}).each do |step_name, required|
+      step = step_maps.find { |candidate| scalar(candidate["name"]) == step_name }
+      fail_policy("#{path} has no step named #{step_name.inspect}") unless step
+      unless code_of(scalar(step["run"])).include?(required)
+        fail_policy("#{path} step #{step_name.inspect} must pass #{required} on an executable line")
       end
     end
     unless scalar(finisher["if"]) == "${{ always() && steps.head_check.outputs.id != '' }}" && scalar(finisher["run"])&.include?("check-runs/${CHECK_ID}") && scalar(finisher["run"])&.include?("status=completed")
@@ -263,6 +407,58 @@ def self_test(root)
     FileUtils.cp(File.join(root, ".github/workflows/surface-mirror-check.yml"), surface)
     File.write(extra, "name: first\nname: second\non:\n  pull_request_target:\njobs: {}\n")
     expect_rejected("duplicate YAML key") { validate_repo(tmp) }
+
+    # THE SUBSTRING BYPASS, covered by fixture because a text match is not a data
+    # -flow check. The trusted path still appears -- in a COMMENT -- while the
+    # executable line reads the PR's own copy. An `include?` guard passes this.
+    FileUtils.rm(extra)
+    surface_original = File.read(surface)
+    File.write(surface, surface_original.sub(
+      %Q{ref="$(jq -r '.dependency.pinned_ref // empty' .trusted/nen/contract.json)"},
+      %Q{# sourced from .trusted/nen/contract.json\n          ref="$(jq -r '.dependency.pinned_ref // empty' nen/contract.json)"}))
+    expect_rejected("pin read from the PR checkout with the trusted path in a comment") { validate_repo(tmp) }
+
+    # The same rule for the gates file, which selects REVIEWER IDENTITIES: an
+    # unprefixed read is the PR choosing the gate that judges it.
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          cat nen/gates.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("gates file read from the PR checkout") { validate_repo(tmp) }
+
+    # The widened trigger policy is still a CLOSED set, and this fixture is what
+    # makes that true rather than asserted. `check_suite` is the specific event
+    # that looks reasonable and is not admitted: its payload has no
+    # `github.event.pull_request`, so the byte-compared SAME_REPO_GUARD above
+    # would evaluate to null and the job would not be guarded as intended.
+    File.write(surface, surface_original.sub(
+      "  pull_request_target:", "  check_suite:\n    types: [completed]\n  pull_request_target:"))
+    expect_rejected("workflow triggered by a non-admitted privileged event") { validate_repo(tmp) }
+
+    # A workflow may not quietly GAIN an admitted trigger either -- the set is
+    # compared against its declared map, not merely against the allowlist.
+    File.write(surface, surface_original.sub(
+      "  pull_request_target:", "  pull_request_review:\n    types: [submitted]\n  pull_request_target:"))
+    expect_rejected("workflow gaining an undeclared admitted trigger") { validate_repo(tmp) }
+
+    # THE DIAGNOSTIC EXEMPTION MUST BE SCOPED TO ITS OWN COMMAND. The reviewer's
+    # own example: an earlier `echo` on the same shell line must not suppress
+    # validation of a LATER command that really does read the PR's file.
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          echo ok; cat nen/gates.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("read hidden behind an earlier echo on the same line") { validate_repo(tmp) }
+
+    # The same, separated by `&&` rather than `;`.
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          echo ok && jq . nen/contract.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("read hidden behind an earlier echo joined by &&") { validate_repo(tmp) }
+
+    # And the control: a DIAGNOSTIC naming the file is not a read. This workflow
+    # already carries `echo "::error::nen/contract.json carries no ..."`, mid-line
+    # inside a `|| { ... }` guard, and it must keep validating.
+    File.write(surface, surface_original)
+    validate_repo(tmp)
   end
   puts "workflow-runner-policy: negative fixtures passed"
 end
