@@ -367,7 +367,7 @@ repository declares**, in this order (nen `v0.3.0`'s `shu` family; `claude/agent
    `nen shu build: lane 'nextjs' (nextjs) declares no 'build'. It declares: archive, deploy, release,
    ui-test.` That is a fact about the repository, not a failure: quote it, run the repository's own
    documented command, say that you did, and where the seat should be a real row, land the declaration
-   change as its own PR — at **G4** in a canon repository (`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`),
+   change as its own PR — at **G4** in a canon repository (`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`),
    at **G2** in a consumer one, where a declaration is that repository's own configuration
    ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*). Exit **`5`** is the declared
    program not on `PATH` — back to step 2.

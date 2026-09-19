@@ -35,7 +35,7 @@ code), Conjurer (canon & governance authoring), Transmuter (machinery), Manipula
 Emitter (release & fan-out), or Specialist (product intake) — and say so, and why, if you switch mid-session.
 
 Land any agreed change as a PR I merge — **G4** for canon and machinery **in a canon repository**
-(`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, whose product *is* the process), **G2** for everything else
+(`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`, whose product *is* the process), **G2** for everything else
 *on that axis* — `G1`, `G1-M`, `G3` and `G5` are decided exactly as before, so a consumer's release is
 still G3 — including a consumer repository's own `nen/*.json`, CI workflow or `scripts/` entry, which
 is configuration rather than a process change (my ruling of 2026-09-18 — `docs/ROSTER.md` § *Rulings of

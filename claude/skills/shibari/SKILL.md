@@ -364,8 +364,8 @@ under-derives nothing; dropping `schemas/` would.**
 > universal set** — maintainer's ruling, 2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md)
 > § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*).
 >
-> **G4 is authoring or maintaining a CANON repository** — `zheref/hatsu`, `zheref/nen`,
-> `zheref/bankai-core` — whose product *is* the process, so a merge there decides how every other
+> **G4 is authoring or maintaining a CANON repository** — `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`,
+> `zheref/akatsuki-ai`, `zheref/bankai-scaffold` — whose product *is* the process, so a merge there decides how every other
 > repository behaves. **everything else on that axis is G2** — `G1`, `G1-M`, `G3` and `G5` are untouched — including a consumer repository declaring its own
 > `nen/contract.json`, `nen/workflow.json`, `nen/gates.json`, adding a CI workflow or a `scripts/`
 > entry: that is *configuration of how the system is set up there*, and it governs nothing but that

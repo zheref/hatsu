@@ -666,7 +666,7 @@ canonical persona, contribution, and evidence; see
 > updating how that system is **set up on a consumer repository** is not enough; it is just
 > configuration, not really a process update.
 
-- **G4 (`CON-7`) — a CANON repository.** `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`. Their product
+- **G4 (`CON-7`) — a CANON repository.** `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`. Their product
   *is* the process — prose, scripts and deterministic jobs together — so a merge there decides how every
   other repository behaves. **Conjurer and Transmuter stand at G4 here, and only here.**
 - **G2 (`CON-5`) — everywhere else.** A consumer repository declaring its own `nen/contract.json`,
@@ -676,12 +676,15 @@ canonical persona, contribution, and evidence; see
 - **The one question: would merging this change what a DIFFERENT repository does?** Yes → G4. No → G2.
   **The mode says what kind of work it is; the repository says which gate it stands at.** They are
   independent, and a file's name answers neither.
-- **The question is a test for the three NAMED repositories, not a rule that admits a fourth.** A
-  repository that passes the test but is not on the list is **unruled**, and naming a fourth canon
-  repository is the maintainer's ruling rather than an inference from the test. `zheref/akatsuki-ai`
-  is exactly that case — the CI plane's workflows do run against other repositories, so the test
-  answers *yes* while the list answers *no*. **Treat it as G5**, not G4
-  (`docs/ROSTER.md` § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*).
+- **The list is the maintainer's to extend, and a repository that passes the test but is not on it
+  is UNRULED — a G5, never a G4 you inferred.** `zheref/akatsuki-ai` was exactly that case until
+  **2026-09-19**, when the maintainer ruled the test right and the list short and added it together
+  with `zheref/bankai-scaffold`. Both are canon now. **Read the list from
+  `docs/ROSTER.md`, never from memory** — it has already changed once.
+- **Canon is not "carries a constitution".** `zheref/bankai-scaffold` carries none: it is a
+  TypeScript package, and it is canon because a scaffolder writes the setup into every repository it
+  touches. The test is about what merging the change *does elsewhere*, not what kind of files the
+  repository holds.
 - **Never derive the gate from a path set in a consumer repository.** The sets the skills carry are
   `zheref/hatsu`'s own canon. `nen gate derive`'s own help says so — *"There are no built-in path sets.
   They are the target repository's canon"* — and its two sets cannot both be empty. In a consumer

@@ -1,6 +1,6 @@
 ---
 name: jujutsu
-description: Pair a new device with this machine and register it as a named launch target, once, for good — walk the maintainer through the on-device steps, verify with the platform's own probe, then write the target into nen/contract.json and open the declaration PR at its repository's own gate — G4 in a canon repository (zheref/hatsu, zheref/nen, zheref/bankai-core), G2 in a consumer repository, where a launch target is that repository's own configuration. Use when the maintainer invokes /jujutsu pair <device>, asks to set up a new phone, tablet, simulator or desktop target, or when /amaterasu reports a launch target this machine cannot resolve. It never taps a trust prompt, never changes a security setting and never merges the declaration PR at either gate; simulators and the Mac desktop register through the same path.
+description: Pair a new device with this machine and register it as a named launch target, once, for good — walk the maintainer through the on-device steps, verify with the platform's own probe, then write the target into nen/contract.json and open the declaration PR at its repository's own gate — G4 in a canon repository (zheref/hatsu, zheref/nen, zheref/bankai-core, zheref/akatsuki-ai, zheref/bankai-scaffold), G2 in a consumer repository, where a launch target is that repository's own configuration. Use when the maintainer invokes /jujutsu pair <device>, asks to set up a new phone, tablet, simulator or desktop target, or when /amaterasu reports a launch target this machine cannot resolve. It never taps a trust prompt, never changes a security setting and never merges the declaration PR at either gate; simulators and the Mac desktop register through the same path.
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
@@ -18,7 +18,7 @@ filing. Never copy or invent a second policy in the target repository.
 
 > **Which gate the declaration PR stands at is the REPOSITORY's, not the file's** — maintainer's ruling,
 > 2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*). **`G4` (`CON-7`) in a
-> canon repository** — `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, whose product *is* the process.
+> canon repository** — `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`, whose product *is* the process.
 > **`G2` (`CON-5`) in a consumer repository**, which is where this skill usually runs: a launch target is
 > how *that* repository is set up on this machine, it governs nothing but itself, and `nen/contract.json`
 > being the filename does not make it canon. **Resolve the target repository first and say which gate you

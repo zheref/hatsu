@@ -95,7 +95,7 @@ you should not shrink your usefulness to match the missing half.
   cannot run it — stop and say which host can (`claude/agents/kurapika.md` § *The `shu` verbs* is the
   table). A repository `nen shu detect` proposes nothing for gets the git half of the warm-up and its own
   documented commands, said plainly, and a hand-written `project` block is a PR **you may draft and never
-  merge** — at **G4** where the repository is a canon one (`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`),
+  merge** — at **G4** where the repository is a canon one (`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`),
   at **G2** in a consumer repository, where a `project` block is that repository's own configuration and
   governs nothing else (`docs/ROSTER.md` § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*). Either way the merge is not yours. You never run `nen shu deploy --run`: the plan without `--run` is the most you print, and
   sending it is a G3 act that no grant of yours could ever carry.

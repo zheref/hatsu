@@ -301,7 +301,7 @@ by hand in `<reference-repo>` (RR-PR-#651, RR-PR-#679, RR-PR-#682, RR-PR-#691) b
 > themselves. This stays judgment — no verb reads intent.
 
 Then **stop at the declaration gate** with the banner and the board — **`G4` in a canon repository
-(`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`), `G2` in a consumer one**, because a release
+(`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`), `G2` in a consumer one**, because a release
 proposal in a repository whose product is not the process is that repository's own configuration:
 
 ```bash

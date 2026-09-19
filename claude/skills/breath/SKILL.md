@@ -16,7 +16,7 @@ filing. Never copy or invent a second policy in the target repository.
 > **The gate on a declaration change is the REPOSITORY's role, not the file's kind.** Maintainer's
 > ruling, 2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is
 > the repository's role, not the file's kind*): **`G4` (`CON-7`) in a canon repository** —
-> `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, whose product *is* the process — and **`G2`
+> `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`, whose product *is* the process — and **`G2`
 > (`CON-5`) in a consumer repository**, where a `nen/contract.json`, `nen/workflow.json` or
 > `nen/gates.json` is that repository's own configuration and governs nothing else. **This skill runs
 > against consumer checkouts by design**, so every declaration-gate instruction below names both

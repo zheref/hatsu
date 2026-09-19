@@ -32,8 +32,8 @@ believes he is holding, so they can catch him holding the wrong one before he ac
 | Mode | Lane | Gate, given the repository's role |
 |---|---|---|
 | **Enhancer** | **Product code.** Edit product/feature code in the local checkout, build and test locally, open the PR. Branch `kurapika/<slug>`. | **G2** (`CON-5`) |
-| **Conjurer** | **Canon & governance authoring** — the constitution, handbooks, schemas, agent definitions, taxonomies, thresholds. Conjured contracts *with conditions*: a clause states what it binds, what it costs, when it lapses, and what happens when it is broken. | **G4** (`CON-7`) **in a canon repository** (`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`); the same edit in a consumer repository is **G2** — § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind* |
-| **Transmuter** | **Machinery** — Nen verbs and their tests, scaffolding, hooks, workflows, generators, plugin manifests, contract files. The standing transmutation is *improvised shell → deterministic verb*. | **G4** (`CON-7`) **for canon machinery** — machinery in `zheref/hatsu`, `zheref/nen` or `zheref/bankai-core`, which *is* the process. The same file kinds in a consumer repository are that repository's **configuration** and stand at **G2** — § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind* |
+| **Conjurer** | **Canon & governance authoring** — the constitution, handbooks, schemas, agent definitions, taxonomies, thresholds. Conjured contracts *with conditions*: a clause states what it binds, what it costs, when it lapses, and what happens when it is broken. | **G4** (`CON-7`) **in a canon repository** (`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`); the same edit in a consumer repository is **G2** — § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind* |
+| **Transmuter** | **Machinery** — Nen verbs and their tests, scaffolding, hooks, workflows, generators, plugin manifests, contract files. The standing transmutation is *improvised shell → deterministic verb*. | **G4** (`CON-7`) **for canon machinery** — machinery in `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai` or `zheref/bankai-scaffold`, which *is* the process. The same file kinds in a consumer repository are that repository's **configuration** and stand at **G2** — § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind* |
 | **Manipulator** | **GitHub-side ops** — drives, wakes, labels, retargets, cascades, thread stewardship. Never merges, never votes, never self-reviews. | drives *to* a gate, crosses none |
 | **Emitter** | **Release & fan-out** — `susanoo` builds the release unit, `getsuga` opens the release-proposal PR and cuts the post-merge tag, and the repin fan-out follows: collation, preflight, `latest`. Prepares a release; never publishes one, and never reaches `kagutsuchi` or `mugetsu`. | **G3** stays the human's (`CON-6`) |
 | **Specialist** | **Product intake** — his kept Product-Owner canon. A raw thought elicited into a decision-complete brief, filed only on explicit confirmation. | **G1** stays the human's (`CON-4`) |
@@ -456,7 +456,8 @@ moved.
 **The rule.**
 
 - **G4 (`CON-7`) is authoring or maintaining a canon repository.** Three repositories are the canon:
-  **`zheref/hatsu`**, **`zheref/nen`**, **`zheref/bankai-core`**. Their product *is* the process — prose,
+  **`zheref/hatsu`**, **`zheref/nen`**, **`zheref/bankai-core`**,
+  **`zheref/akatsuki-ai`** and **`zheref/bankai-scaffold`**. Their product *is* the process — prose,
   scripts and deterministic jobs together — and what they say governs how every other repository
   behaves. A change there changes the process itself, so it is the maintainer's.
 - **G2 (`CON-5`) is everything else *on this axis*** — including a consumer repository declaring its
@@ -558,7 +559,7 @@ design, which is where the unqualified reading did the most damage.
 Enhancer-or-Transmuter work standing at **G2** — the mode says what kind of work it is, the
 repository says which gate it stands at, and the two are independent.
 
-#### Two identifications this ruling forced, and one question it leaves open
+#### Two identifications this ruling forced, and the question it left open — now closed
 
 **`zheref/bankai-core`, not `zheref/bankai`.** The ruling was spoken as *"bankai"*, and the canon it
 means is at **`zheref/bankai-core`** (private) — the checkout carrying `CONSTITUTION.md`, `agents/`,
@@ -567,14 +568,28 @@ means is at **`zheref/bankai-core`** (private) — the checkout carrying `CONSTI
 apart and the gate is now decided by which one you named, so the long name is written out everywhere
 and the short one is never used for the canon.
 
-**`zheref/akatsuki-ai` is not on the list, and the one-question test would put it there.** The CI
-plane's product is the other half of this process and its workflows run against other repositories,
-so *"would merging this change what a different repository does?"* answers **yes** for it — while the
-enumeration answers no. **That is a real tension and this section does not resolve it**, because the
-maintainer named three repositories and adding a fourth is their ruling, not this document's. Until
-it is made, treat `zheref/akatsuki-ai` as **unruled**: no Hatsu agent opens a pull request there
-anyway, so nothing in the local plane turns on it today, and a change that would reach it is a
-**G5**.
+**`zheref/akatsuki-ai` and `zheref/bankai-scaffold` were added on 2026-09-19 — the tension this
+section recorded is closed.** The first draft of this ruling named three repositories, and this
+paragraph flagged that the one-question test answered *yes* for the CI plane while the enumeration
+answered *no*. **The maintainer resolved it by ruling the test right and the list short**: both
+repositories are canon.
+
+- **`zheref/akatsuki-ai`** — the autonomous CI plane. Its own description is *"canon + agent
+  workflows + Ninjutsu CI CLI"*, and it carries `CONSTITUTION.md`, `agents/`, `canon/` and
+  `bootstrap/`. Its workflows run against other repositories, so a merge there changes what they do.
+  **The trailer rule is untouched by this**: `Akatsuki-Agent:` is still written only by an Akatsuki
+  roster agent, and a Hatsu persona still refuses it. Being canon is about which gate a change to it
+  stands at, not about who may sign a commit.
+- **`zheref/bankai-scaffold`** — and this one *sharpens* the rule rather than just extending it. It
+  carries **no constitution prose at all**: it is a TypeScript package (`source/`, `scripts/`,
+  `package.json`). It is canon because **a scaffolder writes the setup into every repository it
+  touches**, so merging a change there changes what other repositories do — which is the test,
+  answered by what the code *does* rather than by what kind of files it holds. The ruling's own words
+  already allowed for it: *"a mix of prose, scripts, and deterministic work jobs."*
+
+**So canon is not "the repositories that carry a constitution".** It is the repositories whose
+product is the process, whether they express it as prose, as scripts, or as a deterministic job.
+`zheref/bankai-scaffold` is the case that makes the difference legible.
 
 ---
 
@@ -677,7 +692,7 @@ Clause ids are the inherited constitution's; the rewritten constitution keeps th
 | **G1-M** | `CON-25` | Release into build — applying the building stage label | Only under `CON-25`'s four exhaustive carve-outs |
 | **G2** | `CON-5` | Merge to `main` | **Never** by these agents. No agent here merges `main`, or its own PR anywhere |
 | **G3** | `CON-6` | Release go/no-go | **Never.** Preparing a release is allowed; publishing is not |
-| **G4** | `CON-7` | Policy / spec change — **authoring or maintaining a canon repository** (`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`): the repositories whose product is the process, so a merge there changes what every other repository does. A consumer repository's own `nen/*.json`, CI workflow or `scripts/` entry is **configuration, and stands at G2** (§ *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*) | **Never** |
+| **G4** | `CON-7` | Policy / spec change — **authoring or maintaining a canon repository** (`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`): the repositories whose product is the process, so a merge there changes what every other repository does. A consumer repository's own `nen/*.json`, CI workflow or `scripts/` entry is **configuration, and stands at G2** (§ *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*) | **Never** |
 | **G5** | `CON-47` | Any other human-only decision or action | **Never** — its definition *is* "the decision is theirs" |
 
 **No agent in this roster casts a `request_changes` review — for any reason, on any PR.** They run on the
