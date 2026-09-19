@@ -1,0 +1,115 @@
+# nen/colors.yml — zheref/hatsu's own colour taxonomy (zheref/hatsu#79).
+#
+# WHY THIS FILE EXISTS. nen reads a repository's colour vocabulary from
+# `nen/colors.yml` in the TARGET repo and ships no built-in copy to fall back
+# on, deliberately: a binary that guessed the names would report a taxonomy the
+# repository does not have. This file had never existed on any branch of
+# `zheref/hatsu` — `git log --all -- nen/colors.yml` returned nothing — while
+# six plugin-shipped surfaces named it at run time. The measured consequences
+# were that `nen schema check --repo .` exited 1 on every run (five rows `ok`,
+# one `FAIL`), `nen color status --repo .` could not run at all, and
+# `backlog-state` § 6 and `backlog-board` could not resolve a status colour when
+# the target repository was this one.
+#
+# WHAT IS DECLARED HERE, AND WHAT IS DELIBERATELY NOT. #79 named three shapes
+# and reserved the choice. This is the SECOND: a minimal valid taxonomy covering
+# only what the shipped skills actually resolve, so the aggregate goes green
+# without claiming families this repository does not use. Nothing here is
+# invented — every value name, its precedence rank, its glyph and its meaning is
+# TRANSCRIBED from the skill prose that already resolves it, so this file is the
+# vocabulary those skills were written against rather than a second opinion
+# about it:
+#
+#   * `status`   — `claude/skills/backlog-state/SKILL.md` § 6, whose table and
+#                  precedence line (`on_hold > blocked > ready_g2_g4 >
+#                  ready_g1 > in_progress`) were live-verified against a
+#                  consumer's own file and carried in that skill ever since.
+#                  `claude/skills/backlog-board/SKILL.md` § 3 resolves
+#                  `resolved.name`, `resolved.emoji` and `resolved.label` from
+#                  the same category.
+#   * `severity` — the four band names the skill GRAMMARS already take:
+#                  `hatsu:backlog-synthesis <critical|high|medium|low|all>` and
+#                  `hatsu:futon <repo>@<severity>`. backlog-state § 6 records
+#                  that the reuse of the same circles for severity "is canon",
+#                  disambiguated only by the column header.
+#
+# NO LABEL FAMILY IS DECLARED. `nen/labels.json` is this repository's flat
+# GitHub default set with no stage, severity or status labels, and #79 is
+# explicit that authoring one would be a `G4` canon decision made inside a bug
+# report. A category this file does not declare is a USAGE error (exit 2) naming
+# the ones it does, which is a typo being caught rather than a gap.
+version: 1
+
+categories:
+  status:
+    scope: >-
+      One backlog row's state, as backlog-state § 6 and backlog-board § 3
+      resolve it. The precedence is what decides when several are true of the
+      same row at once: a row that is both blocked and ready_g2_g4 is reported
+      blocked, because the thing a human must act on outranks the thing that is
+      merely finished.
+    precedence:
+      - on_hold
+      - blocked
+      - ready_g2_g4
+      - ready_g1
+      - in_progress
+    values:
+      on_hold:
+        emoji: "🔵"
+        hex: "#1f6feb"
+        label: "On hold"
+        means: "Deliberately parked — name what it waits on."
+      blocked:
+        emoji: "🔴"
+        hex: "#d73a4a"
+        label: "Blocked"
+        means: "A G5 decision or action is required."
+      ready_g2_g4:
+        emoji: "🟢"
+        hex: "#2da44e"
+        label: "G2/G4-ready"
+        means: "nen pr ready says Ready and mergeable."
+      ready_g1:
+        emoji: "🟡"
+        hex: "#d4a72c"
+        label: "Ready to start"
+        means: "Ready to be started, or to have its spec iterated — G1 or G1-M."
+      in_progress:
+        emoji: "🟠"
+        hex: "#e36209"
+        label: "In progress"
+        means: "Work is moving; nobody is waiting on the human."
+
+  severity:
+    scope: >-
+      The band a backlog item sits in, as hatsu:futon and
+      hatsu:backlog-synthesis already take it on the command line. The same
+      circles as `status` by canon, disambiguated by the column header — always
+      head the column Status or Severity, never the two combined.
+    precedence:
+      - critical
+      - high
+      - medium
+      - low
+    values:
+      critical:
+        emoji: "🔴"
+        hex: "#d73a4a"
+        label: "Critical"
+        means: "Work stops until this is settled."
+      high:
+        emoji: "🟠"
+        hex: "#e36209"
+        label: "High"
+        means: "Taken before the next band is started."
+      medium:
+        emoji: "🟡"
+        hex: "#d4a72c"
+        label: "Medium"
+        means: "Scheduled into a band of its own."
+      low:
+        emoji: "🟢"
+        hex: "#2da44e"
+        label: "Low"
+        means: "Taken when the bands above it are clear."

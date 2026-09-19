@@ -1035,6 +1035,54 @@ mirrors stay committed, for the original reason: the warm-up installs what is on
 regenerating anything in a target repository.
 
 
+## Consumer adoption — how another repository becomes a Hatsu consumer
+
+**The authority is [`hatsu:tenkai`](../claude/skills/tenkai/SKILL.md), and the engine is
+`scripts/tenkai_adopt.sh`.** This section states only what the loop needs to know about it.
+
+Until `v0.39.0` there was no deterministic way to make a repository a working Hatsu consumer at all,
+and the gap was not a missing file. `nen scaffold init` ships *the stack's* CI workflow and knows
+nothing of the readiness workflow — correctly, because **nen stays agnostic to the process** and the
+readiness workflow is a Hatsu artifact. `templates/` held one file. There was a greenfield story and
+no path for an existing repository.
+
+```bash
+scripts/tenkai_adopt.sh diagnose --repo <path>    # read-only; 0 = current, 1 = work remains
+scripts/tenkai_adopt.sh apply    --repo <path>
+```
+
+**Three properties the loop can rely on:**
+
+- **It diagnoses before it writes**, on every run including `apply`, and reports every item — the
+  satisfied ones included, so a checked item is distinguishable from an unchecked one.
+- **It is idempotent.** A repository that adopted three versions ago and never re-ran it is the
+  normal case, not the exception. A second run writes nothing and says so.
+- **It repairs DRIFT, which is the state that matters.** *Present and quietly wrong* — a workflow
+  rendered for another repository's slug, a hook from an older template, a runner label that no
+  longer matches what the repository derives — looks installed. `missing` and `drift` are therefore
+  always reported as different things.
+
+**What it will not do.** It writes no `nen/*.json`: those are nen's and are routed to
+`nen scaffold init` with the command named. It does not copy this repository's `nen/gates.json` into
+yours — the reviewer identities in it are Hatsu's, and
+[`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) is the page for tuning your own. It does not merge,
+push, or open a pull request.
+
+**Two-PR ordering.** A repository carrying `scripts/workflow_runner_policy_check.rb` cannot register
+a workflow and add it in the same pull request: the guard that judges a pull request is the trusted
+copy from the base branch, so a PR adding both is judged by a guard that cannot know the file.
+Tenkai **detects which half has landed** and stages the workflow until the registration is in — so a
+consumer inherits the ordering as a sequenced plan rather than as a red check to diagnose.
+
+**Runner selection is derived per repository** — maintainer's ruling, 2026-09-19 — from visibility
+and registered self-hosted runners, always terminating on a runner that exists. `hatsu:tenkai` § 5b
+is the table; `scripts/tenkai_adopt.sh runner-policy` is the single encoding.
+
+**Warm-up verifies adoption; it never performs it.** `hatsu-warmup` § 0a is the split: the `nen`
+dependency gate is per-session, adoption is once. An outstanding adoption item is reported and is
+never a halt — § 3's halt is for a failed bootstrap and nothing else.
+
+
 ## Focused selection adoption and reviewer identities
 
 [Nen #207](https://github.com/zheref/nen/issues/207) tracks a reusable declared test-selection

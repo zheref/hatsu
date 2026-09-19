@@ -167,12 +167,14 @@ PLUGIN_SURFACE_GLOBS=(
   'docs/LAUNCH-MIGRATION.md'
   'docs/AGENT-ATTRIBUTION.md'
   'docs/STANDALONE-ENTRY.md'
+  'docs/GATE-CONFIGURATION.md'
   'hooks/*'
   'templates/*'
   'surfaces/*'
   'scripts/surface_bootstrap.sh'
   'scripts/hanten_cycle_ledger.sh'
   'scripts/hatsu_plugin_update.sh'
+  'scripts/tenkai_adopt.sh'
   '.mcp.json'
 )
 
