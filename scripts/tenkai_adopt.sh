@@ -478,7 +478,23 @@ class IgnoredDir(Item):
             return None
 
     def detect(self, ctx):
-        exists = (ctx.repo / self.rel).is_dir()
+        d = ctx.repo / self.rel
+        gi = ctx.repo / ".gitignore"
+        # A SYMLINKED MANAGED DIRECTORY IS NOT THIS REPOSITORY'S. `is_dir()` follows
+        # links, so a `Reports` or `.nen` pointing outside the target read as
+        # satisfied and every later Hatsu write through it escaped `--repo`. The
+        # same holds for `.gitignore`, which `repair` appends to.
+        if d.is_symlink():
+            return self.row(BLOCKED,
+                            f"{self.rel}/ is a symlink to {os.readlink(d)!r} — Tenkai does not "
+                            f"treat a link out of the repository as this repository's directory",
+                            "replace it with a real directory, or point --repo at the real checkout")
+        if gi.is_symlink():
+            return self.row(BLOCKED,
+                            f".gitignore is a symlink to {os.readlink(gi)!r} — appending through it "
+                            f"would write outside the repository Tenkai was pointed at",
+                            "replace it with a regular file")
+        exists = d.is_dir()
         ignored = self._ignored(ctx)
         if ignored is None:
             return self.row(BLOCKED,
@@ -509,10 +525,12 @@ class IgnoredDir(Item):
             did.append("created")
         if self._ignored(ctx) is False:
             gi = ctx.repo / ".gitignore"
+            if gi.is_symlink():
+                return self.detect(ctx)          # blocked; never append through a link
             prev = gi.read_text() if gi.is_file() else ""
             if prev and not prev.endswith("\n"):
                 prev += "\n"
-            gi.write_text(prev + f"{self.rel}/\n")
+            _atomic_write(gi, prev + f"{self.rel}/\n")
             did.append("added to .gitignore")
         return self.row(REPAIRED, f"{self.rel}/ " + " and ".join(did))
 
@@ -642,10 +660,17 @@ class ReadinessWorkflow(Item):
 
     MARKER = "RENDERED BY hatsu:tenkai"
 
-    def render(self, ctx):
+    def render(self, ctx, keep_runs_on=None):
         t = ctx.template("pr-readiness.yml")
+        # PRESERVE A RUNNER WE COULD NOT VERIFY. `detect` correctly declines to
+        # compare `runs-on` when the probe could not answer -- but `repair` still
+        # rendered `derive_runner(None, ...)`'s hosted default, so an UNRELATED
+        # drift (a dropped --gates, say) silently downgraded a valid private
+        # workflow off its self-hosted labelled runner. Declining to judge a fact
+        # and then overwriting it is worse than either alone.
+        runs_on = keep_runs_on or ctx.runner["runs_on"]
         return (t.replace("@@REPO_SLUG@@", ctx.slug)
-                 .replace("@@RUNS_ON@@", ctx.runner["runs_on"])
+                 .replace("@@RUNS_ON@@", runs_on)
                  .replace("@@RUNNER_REASON@@", ctx.runner["reason"]))
 
     def detect(self, ctx):
@@ -760,6 +785,14 @@ class ReadinessWorkflow(Item):
             # PR-controlled, so the "trusted" checkout would be the PR's own tree.
             # The only admitted value is the BASE sha.
             for blk in trusted:
+                # `path: .trusted` alone identified the block, so swapping
+                # `uses: actions/checkout@...` for an arbitrary action kept the
+                # marker and the base ref while running someone else's code.
+                if not re.search(r"uses:\s*actions/checkout@", blk):
+                    drifts.append("the `.trusted` block is not an `actions/checkout` step — "
+                                  "an arbitrary action there runs in the privileged job while "
+                                  "still looking like the trusted checkout")
+                    break
                 ref = re.search(r"ref:\s*(.+)", blk)
                 got = ref.group(1).strip() if ref else "(none)"
                 if "pull_request.base.sha" not in got:
@@ -783,8 +816,10 @@ class ReadinessWorkflow(Item):
         # `[ \t]*`, never `\s*`: `\s` matches a NEWLINE, so the match began on an
         # earlier line and every offset computed from it was wrong -- which flagged
         # `checks: write`, the one permission that is allowed.
-        m_perm = re.search(r"^[ \t]*permissions:[ \t]*(.*)$", live, re.M)
-        if m_perm:
+        # EVERY `permissions:` MAPPING, not the first. A job-level block under
+        # `jobs.readiness` OVERRIDES the workflow-level one, so a consumer could
+        # leave the top block pristine and widen the job. Each is judged.
+        for m_perm in re.finditer(r"^[ \t]*permissions:[ \t]*(.*)$", live, re.M):
             inline = m_perm.group(1).strip()
             bad = []
             if inline and not inline.startswith("#"):
@@ -802,9 +837,14 @@ class ReadinessWorkflow(Item):
                     if "write" in l and not l.strip().startswith("checks:"):
                         bad.append(l.strip())
             if bad:
-                drifts.append(f"the permissions block grants write beyond `checks`: {', '.join(bad)} — "
+                drifts.append(f"a permissions block grants write beyond `checks`: {', '.join(bad)} — "
                               f"a pull_request_target job holds a base-repository credential")
-        for blk in re.findall(r"run:\s*\|\n((?:[ \t]+.*\n)+)", live):
+        # EVERY SCALAR FORM. Only `run: |` was parsed, so `run: >` and an inline
+        # `run: echo "${{ ... }}"` interpolated PR-controlled text into the shell
+        # of the credentialed job without producing any drift.
+        run_blocks = re.findall(r"run:\s*[|>][-+]?\s*\n((?:[ \t]+.*\n)+)", live)
+        run_blocks += [m for m in re.findall(r"run:[ \t]+(?![|>])(.+)", live)]
+        for blk in run_blocks:
             if "${{" in blk:
                 drifts.append("a `run:` body interpolates `${{ }}` — PR-controlled text would reach "
                               "the runner's shell; pass it through `env:` instead")
@@ -862,9 +902,17 @@ class ReadinessWorkflow(Item):
                             "a pr-readiness.yml is installed that Tenkai did not render — "
                             "it will not be overwritten",
                             "review by hand, then delete it and re-run apply")
+        keep = None
+        if ctx.visibility is None and p.is_file():
+            m = re.search(r"runs-on:\s*(\[[^\]]*\]|\S+)",
+                          "\n".join(l for l in p.read_text().splitlines()
+                                    if not l.lstrip().startswith("#")))
+            keep = m.group(1) if m else None
         p.parent.mkdir(parents=True, exist_ok=True)
-        _atomic_write(p, self.render(ctx))
-        return self.row(REPAIRED, f"rendered for {ctx.slug}, runs-on {ctx.runner['runs_on']}")
+        _atomic_write(p, self.render(ctx, keep_runs_on=keep))
+        shown = keep or ctx.runner["runs_on"]
+        note = " (runner preserved — the probe could not answer)" if keep else ""
+        return self.row(REPAIRED, f"rendered for {ctx.slug}, runs-on {shown}{note}")
 
 
 class PrivilegedWorkflows(Item):
@@ -1285,6 +1333,61 @@ def self_test() -> int:
     (dcm / "nen" / "colors.yml").write_text("version: 1\ncategories:\n")
     check("an EMPTY categories block is DRIFT too",
           ColorsFile().detect(ctx_for(dcm))["state"] == DRIFT)
+
+    print("\nTHE SECOND REVIEWER ROUND — six more, each with its own fixture")
+    dr2 = fixture()
+    run("apply", ctx_for(dr2, vis="public", sh=0, labels=None))
+    w2 = dr2 / WORKFLOW_PATH
+    base2 = w2.read_text()
+
+    def mut2(fn):
+        w2.write_text(fn(base2))
+        row = ReadinessWorkflow().detect(ctx_for(dr2, vis="public", sh=0, labels=None))
+        w2.write_text(base2)
+        return row
+
+    # U3 -- an arbitrary action wearing the .trusted marker
+    row = mut2(lambda t: t.replace("uses: actions/checkout@v7\n        with:\n          ref: ${{ github.event.pull_request.base.sha }}\n          path: .trusted",
+                                   "uses: evil/action@v1\n        with:\n          ref: ${{ github.event.pull_request.base.sha }}\n          path: .trusted"))
+    check("a non-checkout action in the .trusted block is DRIFT",
+          row["state"] == DRIFT and "actions/checkout" in row["detail"])
+
+    # U4 -- a JOB-level permissions block overrides the workflow-level one
+    row = mut2(lambda t: t.replace("    runs-on:", "    permissions:\n      contents: write\n    runs-on:", 1))
+    check("a job-level write permission is DRIFT even with a clean top block",
+          row["state"] == DRIFT and "write" in row["detail"])
+
+    # U5 -- run: > and inline run:, neither of which was parsed
+    for label, frag in (("folded", 'run: >\n          echo "${{ github.event.pull_request.title }}"'),
+                        ("inline", 'run: echo "${{ github.event.pull_request.title }}"')):
+        row = mut2(lambda t, f=frag: t.replace("        shell: bash", "        " + f, 1))
+        check(f"a {label} run body interpolating an expression is DRIFT",
+              row["state"] == DRIFT and "run:" in row["detail"])
+
+    # U6 -- an unread probe must not silently downgrade the runner
+    du6 = fixture()
+    run("apply", ctx_for(du6))                                  # private + labels -> labelled set
+    wu6 = du6 / WORKFLOW_PATH
+    before_runs_on = re.search(r"runs-on:\s*(\[[^\]]*\])", wu6.read_text()).group(1)
+    wu6.write_text(wu6.read_text().replace('--gates "$PWD/.trusted/nen/gates.json"', ""))
+    ReadinessWorkflow().repair(Ctx(du6, root, "acme/widget", None, 0, probe=False))
+    after_runs_on = re.search(r"runs-on:\s*(\[[^\]]*\]|\S+)", "\n".join(
+        l for l in wu6.read_text().splitlines() if not l.lstrip().startswith("#"))).group(1)
+    check("repairing an unrelated drift with an unread probe PRESERVES the runner",
+          after_runs_on == before_runs_on, f"{before_runs_on} -> {after_runs_on}")
+
+    # U1 + U2 -- symlinked managed dir and .gitignore
+    dsl = fixture()
+    ext = Path(tempfile.mkdtemp(prefix="tenkai-outside-")); _FIXTURES.append(ext)
+    (dsl / "Reports").symlink_to(ext)
+    check("a symlinked managed directory is BLOCKED",
+          IgnoredDir("dirs/reports", "Reports", "x").detect(ctx_for(dsl))["state"] == BLOCKED)
+    dgi = fixture()
+    victim2 = ext / "their.gitignore"; victim2.write_text("theirs\n")
+    (dgi / ".gitignore").symlink_to(victim2)
+    row = IgnoredDir("dirs/nen-state", ".nen", "x").repair(ctx_for(dgi))
+    check("a symlinked .gitignore is BLOCKED", row["state"] == BLOCKED)
+    check("and apply did not append through the link", victim2.read_text() == "theirs\n")
 
     print("\nCLAIMS THAT HAD NO FIXTURE — the combination that rots quietly")
     # A TUNED colors.yml MUST SURVIVE. § 4 and Hard limits both promise the engine
