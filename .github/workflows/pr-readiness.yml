@@ -47,6 +47,26 @@
 # run's own checks from the evaluation for the same self-reference reason, which
 # is what nen documents that flag for.
 #
+# KNOWN LIMITATION -- A PRIOR RUN'S CHECK IS STILL A REPORTED CHECK. Creating
+# this check after the verdict removes THIS run's self-reference, but on every
+# LATER event the PREVIOUS `readiness` check is a completed/success entry in the
+# rollup, and `--exclude-run` drops only the current run. CON-32(a) passes on a
+# non-empty all-green rollup and FAILS on an empty one, so in a repository where
+# `readiness` is the ONLY check that ever reports, the second and later events
+# would read `ready` on the strength of the previous readiness check alone -- a
+# false READY.
+#
+# NOT REACHABLE IN zheref/hatsu: `check` and `surface-mirror-check` always report
+# here and are required, so the rollup is never empty but for this check, and
+# CON-32(a) still turns on their result. It IS reachable in a consumer repository
+# that has no other checks, which is exactly what the adoption work would ship.
+#
+# The fix is not available in this plane: `nen pr ready` offers `--exclude-run`
+# and no name-based exclusion, so the oracle cannot be told to ignore its own
+# prior verdicts. Filed as a nen dependency on zheref/hatsu#81. Until it exists,
+# this workflow must not be scaffolded into a repository whose only reporting
+# check would be this one.
+#
 # DETERMINISTIC AND AGENT-FREE, and that is the whole point. The nine skills that
 # refuse to apply a gate label refuse it for a stated reason — `shibari` § 7:
 # "Applying a gate label is a claim about readiness, and readiness is … decided
