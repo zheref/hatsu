@@ -144,6 +144,12 @@ def diagnostic_at?(line, index)
   end
   # Leading `{`, `(` and whitespace are grouping, not the command word.
   segment = line[start...index].to_s.sub(/\A[\s({]+/, "")
+  # A COMMAND SUBSTITUTION IS NOT A DIAGNOSTIC, even inside `echo`. The command
+  # word alone is not enough: `echo "ref=$(jq -r .dependency.pinned_ref
+  # nen/contract.json)"` begins with `echo`, but the substitution performs a real
+  # read and emits its value, which is exactly how a PR would supply the pin.
+  # Any expansion in the text preceding the path forfeits the exemption.
+  return false if segment.include?("$(") || segment.include?("`")
   !(segment =~ /\A(echo|printf)\b/).nil?
 end
 
@@ -157,6 +163,11 @@ end
 # pull_request_target job the cwd is the PR HEAD checkout, so an unprefixed read
 # is the PR's own copy -- a PR choosing the binary, or the gate, that judges it.
 TRUSTED_ONLY_DATA = %w[nen/contract.json nen/gates.json].freeze
+
+# The ONLY spellings that denote the trusted checkout: `.trusted/` at the start of
+# the token, optionally rooted at $PWD, optionally opened by a quote. Anything
+# else -- a sibling `attacker.trusted/`, a traversal `../.trusted/` -- is refused.
+TRUSTED_PREFIX = %r{\A["']?(?:\$PWD/|\$\{PWD\}/)?\.trusted/\z}.freeze
 
 def fail_policy(message)
   warn "workflow-runner-policy: #{message}"
@@ -305,7 +316,12 @@ def validate_workflow(path)
             # `echo ok; cat nen/gates.json`.
             next if diagnostic_at?(line, index)
             token = prefix[/\S*\z/].to_s
-            next if token.end_with?(".trusted/")
+            # CANONICAL FORMS, NOT A SUFFIX. `token.end_with?(".trusted/")` also
+            # accepted `attacker.trusted/nen/contract.json` and
+            # `../.trusted/nen/contract.json` -- a PR-controlled sibling directory
+            # and a traversal, both of which yield a token ending in `.trusted/`
+            # and neither of which is the trusted checkout.
+            next if token =~ TRUSTED_PREFIX
             fail_policy("#{path} step #{scalar(step["name"]).inspect} reads #{token}#{data} " \
                         "outside the trusted checkout; a pull_request_target job's cwd is the PR head")
           end
@@ -460,6 +476,26 @@ def self_test(root)
       %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
       %Q{          echo ok && jq . nen/contract.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
     expect_rejected("read hidden behind an earlier echo joined by &&") { validate_repo(tmp) }
+
+    # A COMMAND SUBSTITUTION INSIDE `echo` IS A READ. The reviewer's example: the
+    # segment begins with `echo`, so a command-word test exempts it, while the
+    # substitution really does read the PR's contract and emit its value as the
+    # pin.
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          echo "ref=$(jq -r .dependency.pinned_ref nen/contract.json)"\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("read inside a command substitution within a diagnostic") { validate_repo(tmp) }
+
+    # A SIBLING DIRECTORY IS NOT THE TRUSTED CHECKOUT. `attacker.trusted/` ends
+    # with `.trusted/`, which a suffix test accepted.
+    File.write(surface, surface_original.sub(
+      ".trusted/nen/contract.json", "attacker.trusted/nen/contract.json"))
+    expect_rejected("pin read from a sibling directory ending in .trusted") { validate_repo(tmp) }
+
+    # Nor is a traversal out of it.
+    File.write(surface, surface_original.sub(
+      ".trusted/nen/contract.json", "../.trusted/nen/contract.json"))
+    expect_rejected("pin read through a traversal out of the trusted checkout") { validate_repo(tmp) }
 
     # And the control: a DIAGNOSTIC naming the file is not a read. This workflow
     # already carries `echo "::error::nen/contract.json carries no ..."`, mid-line
