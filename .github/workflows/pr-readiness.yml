@@ -55,6 +55,16 @@
 # publishes the bytes the verb produced. It is the refusals' own reasoning
 # carried out, not an exception to them.
 #
+# ALL THREE ADMITTED EVENTS CARRY `github.event.pull_request`, which is why one
+# job condition and one `github.event.pull_request.number` work unchanged across
+# them. `check_suite` does NOT -- its payload carries `check_suite.pull_requests[]`
+# -- so it is not admitted, and the residual gap is stated rather than hidden: a
+# check COMPLETING still fires nothing here. In the normal flow (push, checks,
+# then the reviewer's round) the review event is the last input and re-evaluates
+# once the checks are green, so the common path is covered. A pull request whose
+# last changing input is a check -- a re-run with no review after it -- stays
+# stale until something else happens.
+#
 # Hardening is inherited from `plugin-bump-check.yml` unchanged: the guard code
 # and the nen pin come from the trusted workflow revision, never from the PR;
 # both checkouts set `persist-credentials: false`; the job is same-repository
@@ -67,8 +77,26 @@
 # the merge decision stays exactly where it was.
 
 on:
+  # THREE EVENTS, BECAUSE THE VERDICT DEPENDS ON THREE KINDS OF CHANGE. With
+  # `pull_request_target` alone the verdict is computed at push time -- while the
+  # checks are still pending -- and never recomputed, so the `ready` transition
+  # is essentially never published and this check reads not-ready almost always.
+  # That defeats the whole purpose, and it is what the automated reviewer caught
+  # on #80. Admitted by the maintainer's ruling of 2026-09-19; the closed set
+  # lives in `scripts/workflow_runner_policy_check.rb`'s ALLOWED_TRIGGERS and
+  # each workflow's exact set is frozen in EXPECTED_TYPES.
   pull_request_target:
+    # No `edited`: the verdict reads checks, rounds and threads, and none of
+    # those changes when the body or title is edited.
     types: [opened, synchronize, reopened]
+  # CON-32(b) / CON-16 -- a reviewer round landing, changing or being dismissed.
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+  # CON-32(d) -- the unresolved-threads conjunct. Thread resolution has its OWN
+  # event; `pull_request_review_comment` fires on comment CRUD and would never
+  # see a thread being resolved.
+  pull_request_review_thread:
+    types: [resolved, unresolved]
 
 concurrency:
   group: pr-readiness-${{ github.event.pull_request.number }}
