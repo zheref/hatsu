@@ -8,11 +8,18 @@ SAME_REPO_GUARD = "${{ github.repository == 'zheref/hatsu' && github.event.pull_
 MAC_RUNNER = %w[self-hosted macOS ARM64].freeze
 WINDOWS_RUNNER = %w[self-hosted Windows X64].freeze
 HOSTED_RUNNER = "ubuntu-latest"
-# NOTE: pr-readiness.yml is deliberately ABSENT from the list below and present in
-# every table after it. This constant doubles as the REQUIRED-PRESENCE list
-# (validate_repo), so naming a file that does not exist yet would fail every PR.
-# The PR that adds the workflow adds it here, in the same commit as the file.
-PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml].freeze
+# This constant does DOUBLE DUTY: it is the portable-workflow set (each member
+# must run on GitHub-hosted ubuntu-latest) AND the required-PRESENCE list that
+# validate_repo checks. pr-readiness.yml is listed because the workflow now
+# EXISTS -- it was withheld while the registration landed ahead of the file,
+# since naming an absent file fails every pull request from the other direction,
+# and that staging is finished.
+#
+# So: the CHECK this workflow publishes is advisory and sits in no ruleset, but
+# the FILE's presence and shape are enforced by a guard that a required check
+# runs. Removing it from this list does not "relax" anything -- it stops the
+# workflow's deletion being caught at all.
+PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml pr-readiness.yml].freeze
 
 EXPECTED_JOBS = {
   "plugin-bump-check.yml" => "check",
@@ -162,7 +169,14 @@ REQUIRED_STEP_ARGS = {
 # Every construct that can RUN a command. `$(...)` and backticks are command
 # substitution; `<(...)` and `>(...)` are process substitution, which runs its
 # body in a subshell and is easy to miss because it contains no `$`.
-EXECUTING_CONSTRUCTS = ["$(", "`", "<(", ">("].freeze
+# Every construct through which a "diagnostic" can actually touch a file.
+# `$(...)` and backticks are command substitution; `<(...)`/`>(...)` are process
+# substitution. PLAIN REDIRECTION belongs here too and was missed: `echo <
+# nen/gates.json` runs no sub-command and still makes the shell open the
+# PR-controlled file, and `<<<` is the same in here-string form. `>` is included
+# for the mirror case -- a "diagnostic" that writes to a taxonomy path is not a
+# diagnostic either.
+EXECUTING_CONSTRUCTS = ["$(", "`", "<(", ">(", "<", ">"].freeze
 
 def diagnostic_at?(line, index)
   start = 0
@@ -350,8 +364,17 @@ def validate_workflow(path)
         fail_policy("#{path} job #{job_name} declares :end check creation but touches check-runs before the final step")
       end
       finish_env = mapping(finisher["env"], "#{path} exact-head check env")
-      unless scalar(finish_env["HEAD_SHA"]) == "${{ github.event.pull_request.head.sha }}" && scalar(finisher["run"])&.match?(exact_name)
-        fail_policy("#{path} job #{job_name} must create #{expected_check_name} on the exact event head in its final step")
+      finish_run = code_of(scalar(finisher["run"]))
+      # The env var having the right VALUE proves nothing about the POST unless
+      # the POST actually passes it, and a check published non-green would make
+      # CON-32(a) unsatisfiable for everyone. Assert the payload, not just the
+      # environment around it.
+      unless scalar(finish_env["HEAD_SHA"]) == "${{ github.event.pull_request.head.sha }}" &&
+             finish_run.match?(exact_name) &&
+             finish_run.include?('head_sha="$HEAD_SHA"') &&
+             finish_run.include?("conclusion=success")
+        fail_policy("#{path} job #{job_name} must create #{expected_check_name} in its final step " \
+                    "with head_sha=\"$HEAD_SHA\" and conclusion=success")
       end
     end
     # BOUND TO THE FROZEN NAME. Searching every step for the command let the
@@ -656,6 +679,13 @@ def self_test(root)
       "      - name: Surface-mirror drift check",
       "      - name: Surface-mirror drift check\n        working-directory: evil"))
     expect_rejected("step-level working-directory") { validate_repo(tmp) }
+
+    # PLAIN REDIRECTION READS THE FILE without running any sub-command, so a
+    # construct list built only from substitutions missed it.
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          echo < nen/gates.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("read through plain input redirection in a diagnostic") { validate_repo(tmp) }
 
     # A SIBLING DIRECTORY IS NOT THE TRUSTED CHECKOUT. `attacker.trusted/` ends
     # with `.trusted/`, which a suffix test accepted.
