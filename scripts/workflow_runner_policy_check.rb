@@ -18,13 +18,47 @@ EXPECTED_JOBS = {
   "surface-mirror-check.yml" => "surface-mirror-check",
   "pr-readiness.yml" => "readiness"
 }.freeze
+# Each workflow declares its EXACT trigger set as a map of event => types. This
+# replaced a single hardcoded `pull_request_target` key on the maintainer's
+# ruling of 2026-09-19. The shape is still exactly enumerated and still frozen --
+# what changed is that a workflow may now name MORE THAN ONE event, not that any
+# event is accepted.
+#
+# WHY THE READINESS WORKFLOW NEEDS MORE THAN ONE. Three of the five conjuncts
+# `nen pr ready` evaluates change on events `pull_request_target` cannot see:
+# CON-32(a) when a check completes, CON-32(b)/CON-16 when a review lands, and
+# CON-32(d) when a thread resolves. With only `pull_request_target`, the verdict
+# is computed at push time -- while checks are still pending -- and never
+# recomputed, so the `ready` transition is essentially never published and the
+# signal reads not-ready almost always. Found by the automated reviewer on #80.
+#
+# EVERY EVENT HERE CARRIES `github.event.pull_request`, which is what lets all
+# three share one byte-compared SAME_REPO_GUARD. `check_suite` does NOT -- its
+# payload carries `check_suite.pull_requests[]` instead -- so admitting it would
+# need a second, weaker job guard, and it is deliberately NOT admitted here.
 EXPECTED_TYPES = {
-  "plugin-bump-check.yml" => %w[opened synchronize reopened edited],
-  "surface-mirror-check.yml" => %w[opened synchronize reopened],
-  # No `edited`: the readiness verdict reads the PR's checks, rounds and
-  # threads, and none of those changes when the body or title is edited.
-  "pr-readiness.yml" => %w[opened synchronize reopened]
+  "plugin-bump-check.yml" => {
+    "pull_request_target" => %w[opened synchronize reopened edited]
+  },
+  "surface-mirror-check.yml" => {
+    "pull_request_target" => %w[opened synchronize reopened]
+  },
+  "pr-readiness.yml" => {
+    # No `edited`: the verdict reads checks, rounds and threads, and none of
+    # those changes when the body or title is edited.
+    "pull_request_target" => %w[opened synchronize reopened],
+    # CON-32(b) / CON-16 -- a reviewer round landing, changing or being dismissed.
+    "pull_request_review" => %w[submitted edited dismissed],
+    # CON-32(d) -- the unresolved-threads conjunct. Thread resolution has its own
+    # event; it is not a review_comment.
+    "pull_request_review_thread" => %w[resolved unresolved]
+  }
 }.freeze
+
+# The only events a privileged job in this repository may be triggered by. All
+# run in the BASE repository context with a credential, so this list is the
+# trust boundary and widening it again is a maintainer ruling, not an edit.
+ALLOWED_TRIGGERS = %w[pull_request_target pull_request_review pull_request_review_thread].freeze
 EXPECTED_STEPS = {
   "plugin-bump-check.yml" => [
     "Start required check on the exact PR head",
@@ -162,11 +196,16 @@ def validate_workflow(path)
   reject_duplicate_keys(document.root, path)
   root = mapping(document.root, path)
   triggers = mapping(root.fetch("on") { fail_policy("#{path} has no on mapping") }, "#{path} on")
-  fail_policy("#{path} trigger set must be exactly pull_request_target") unless triggers.keys == ["pull_request_target"]
-  trigger = mapping(triggers["pull_request_target"], "#{path} pull_request_target")
-  trigger_types = sequence(trigger.fetch("types") { fail_policy("#{path} pull_request_target has no types") }, "#{path} pull_request_target types")
-  expected_types = EXPECTED_TYPES.fetch(File.basename(path)) { fail_policy("#{path} has no declared trigger policy") }
-  fail_policy("#{path} pull_request_target types changed") unless trigger.keys == ["types"] && trigger_types == expected_types
+  expected_triggers = EXPECTED_TYPES.fetch(File.basename(path)) { fail_policy("#{path} has no declared trigger policy") }
+  triggers.keys.each do |event|
+    fail_policy("#{path} uses trigger #{event.inspect}, which is not an admitted privileged trigger") unless ALLOWED_TRIGGERS.include?(event)
+  end
+  fail_policy("#{path} trigger set changed") unless triggers.keys.sort == expected_triggers.keys.sort
+  expected_triggers.each do |event, expected_types|
+    trigger = mapping(triggers[event], "#{path} #{event}")
+    trigger_types = sequence(trigger.fetch("types") { fail_policy("#{path} #{event} has no types") }, "#{path} #{event} types")
+    fail_policy("#{path} #{event} types changed") unless trigger.keys == ["types"] && trigger_types == expected_types
+  end
   targets_pr = true
   reject_write_permissions(root["permissions"], "#{path} permissions")
   if targets_pr && scalar(mapping(root["permissions"], "#{path} permissions")["checks"]) != "write"
@@ -368,6 +407,21 @@ def self_test(root)
       %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
       %Q{          cat nen/gates.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
     expect_rejected("gates file read from the PR checkout") { validate_repo(tmp) }
+
+    # The widened trigger policy is still a CLOSED set, and this fixture is what
+    # makes that true rather than asserted. `check_suite` is the specific event
+    # that looks reasonable and is not admitted: its payload has no
+    # `github.event.pull_request`, so the byte-compared SAME_REPO_GUARD above
+    # would evaluate to null and the job would not be guarded as intended.
+    File.write(surface, surface_original.sub(
+      "  pull_request_target:", "  check_suite:\n    types: [completed]\n  pull_request_target:"))
+    expect_rejected("workflow triggered by a non-admitted privileged event") { validate_repo(tmp) }
+
+    # A workflow may not quietly GAIN an admitted trigger either -- the set is
+    # compared against its declared map, not merely against the allowlist.
+    File.write(surface, surface_original.sub(
+      "  pull_request_target:", "  pull_request_review:\n    types: [submitted]\n  pull_request_target:"))
+    expect_rejected("workflow gaining an undeclared admitted trigger") { validate_repo(tmp) }
 
     # And the control: a DIAGNOSTIC naming the file is not a read. This workflow
     # already carries `echo "::error::nen/contract.json carries no ..."`, mid-line
