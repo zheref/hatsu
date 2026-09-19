@@ -36,6 +36,8 @@ No GitHub App. No bot identity. Nothing here merges `main`, publishes a release,
 > generated into Codex and Cursor layouts under [`surfaces/`](surfaces/) — see [*Surfaces*](#surfaces).
 > **`v0.24.0` adds `byakugan`**: coverage capture and measurement, independent of tests; kotoamatsukami is unit, UI and integration suites only; gyo remains lint. The live skill surface is **thirty-nine**.
 > **`v0.27.0` adds `third-hand`**: wrap-up harvest after En. **`v0.28.0`**: it is a separate phase that starts once En has completed, not En step 8. Codex uses `request_user_input` and in-session spawn; Antigravity uses `ask_question` and `invoke_subagent` with `Workspace: inherit`. **`v0.29.0`**: Illumi's En watch uses Codex spawn; generated inventories are 41 skill files and 9 personas. **`v0.30.0`**: Hanten's cycle ledger is fail-closed — Breath `init`s it after the cut; `decide`/`record` refuse a missing file; load-mutate-save is locked. The merge remains G2 with no skill. The live skill surface is **forty**.
+> **`v0.35.0` — a bot reviewer is a different route.** `sharingan` records how to re-request Copilot, why `gh pr edit` fails silently on a Bot while REST answers a misleading `422 may only be requested from collaborators`, and why REST's `requested_reviewers` is the wrong place to verify.
+>
 > **`v0.33.0` — standalone entry.** Every skill is reachable from a cold checkout, in any state.
 > [`docs/STANDALONE-ENTRY.md`](docs/STANDALONE-ENTRY.md) is the authority: a five-step preamble (warm
 > up, orient, establish the delta, elicit, declare), the four state classes a phase used to inherit
