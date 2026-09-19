@@ -64,6 +64,25 @@ EXPECTED_TYPES = {
 # it on #78. CON-32(d) -- thread resolution -- therefore has NO trigger available
 # and its staleness is a named limitation rather than an oversight.
 ALLOWED_TRIGGERS = %w[pull_request_target pull_request_review].freeze
+# WHEN the exact-head check run is created. `:start` opens it `in_progress` and
+# PATCHes a conclusion at the end -- right for a guard whose job IS the verdict.
+# `:end` creates it once, already completed, AFTER the work.
+#
+# The readiness workflow must be `:end`, and the reason is a soundness bug rather
+# than a preference. Its check is created green, so under `:start` it is a
+# REPORTED GREEN CHECK while `nen pr ready` runs -- and CON-32(a) passes on a
+# non-empty all-green rollup while FAILING on an empty one. On a pull request
+# with no other checks, the gate would therefore read `ready` BECAUSE OF THIS
+# CHECK'S OWN EXISTENCE. `--exclude-run` does not save it: an API-created check
+# run is attached to an arbitrary check suite, which is why the check is created
+# green in the first place. Evaluating before the check exists is the only
+# ordering that is sound in both directions.
+CHECK_CREATION = {
+  "plugin-bump-check.yml" => :start,
+  "surface-mirror-check.yml" => :start,
+  "pr-readiness.yml" => :end
+}.freeze
+
 EXPECTED_STEPS = {
   "plugin-bump-check.yml" => [
     "Start required check on the exact PR head",
@@ -91,7 +110,6 @@ EXPECTED_STEPS = {
   # no in-repo guard script. Its executable is the checksum-verified nen binary,
   # pinned from the TRUSTED contract, so the exec-bit assertion has no subject.
   "pr-readiness.yml" => [
-    "Start check on the exact PR head",
     "Checkout PR head (data only — nothing from here is executed)",
     "Checkout guard code from the trusted workflow revision",
     "Enforce workflow runner policy from trusted workflow revision",
@@ -102,7 +120,7 @@ EXPECTED_STEPS = {
     # detail: it is what stops an in-flight older run publishing a verdict about a
     # head that has since moved, so removing it must fail the guard.
     "Confirm the verdict still describes the event head",
-    "Finish check on the exact PR head"
+    "Publish the check on the exact PR head"
   ]
 }.freeze
 
@@ -116,9 +134,13 @@ TRUSTED_PIN_STEP = "Read the pinned nen ref from trusted nen/contract.json"
 # back to <cwd>/nen/gates.json when --gates is absent, and the cwd in these jobs
 # is the PR HEAD checkout -- so a dropped flag hands the PR the gate that judges
 # it, and reads like a harmless simplification.
+# An argument is required ON THE INVOCATION, not merely present in the step. A
+# substring test is satisfied by `echo --gates "$PWD/.trusted/nen/gates.json"`
+# while the real call omits the flag and nen falls back to <cwd>/nen/gates.json --
+# the PR's own copy. So each entry names the command that must carry it.
 REQUIRED_STEP_ARGS = {
   "pr-readiness.yml" => {
-    "Readiness verdict" => '--gates "$PWD/.trusted/nen/gates.json"'
+    "Readiness verdict" => { invocation: "pr ready", argument: '--gates "$PWD/.trusted/nen/gates.json"' }
   }
 }.freeze
 
@@ -306,12 +328,26 @@ def validate_workflow(path)
     starter = step_maps.first
     finisher = step_maps.last
     expected_check_name = File.basename(path) == "plugin-bump-check.yml" ? "check" : job_name
-    start_env = mapping(starter["env"], "#{path} exact-head check env")
     exact_name = /(?:^|\s)-f name=#{Regexp.escape(expected_check_name)}(?:\s|$)/
-    unless scalar(starter["id"]) == "head_check" && scalar(start_env["HEAD_SHA"]) == "${{ github.event.pull_request.head.sha }}" && scalar(starter["run"])&.match?(exact_name)
-      fail_policy("#{path} job #{job_name} must create #{expected_check_name} on the exact event head before other work")
+    creation = CHECK_CREATION.fetch(File.basename(path)) { fail_policy("#{path} has no declared check-creation policy") }
+    if creation == :start
+      start_env = mapping(starter["env"], "#{path} exact-head check env")
+      unless scalar(starter["id"]) == "head_check" && scalar(start_env["HEAD_SHA"]) == "${{ github.event.pull_request.head.sha }}" && scalar(starter["run"])&.match?(exact_name)
+        fail_policy("#{path} job #{job_name} must create #{expected_check_name} on the exact event head before other work")
+      end
+    else
+      # :end -- nothing may create the check before the work, and the FINAL step
+      # must create it already completed against the exact event head.
+      if step_maps[0...-1].any? { |step| scalar(step["run"])&.match?(exact_name) }
+        fail_policy("#{path} job #{job_name} declares :end check creation but creates #{expected_check_name} before the final step")
+      end
+      finish_env = mapping(finisher["env"], "#{path} exact-head check env")
+      unless scalar(finish_env["HEAD_SHA"]) == "${{ github.event.pull_request.head.sha }}" && scalar(finisher["run"])&.match?(exact_name)
+        fail_policy("#{path} job #{job_name} must create #{expected_check_name} on the exact event head in its final step")
+      end
     end
-    policy_step = step_maps[3]
+    policy_step = step_maps.find { |step| scalar(step["run"])&.include?("workflow_runner_policy_check.rb --self-test") }
+    policy_step ||= step_maps[3]
     unless scalar(policy_step["run"])&.include?('ruby .trusted/scripts/workflow_runner_policy_check.rb --self-test "$PWD"')
       fail_policy("#{path} job #{job_name} must invoke the trusted workflow policy before project work")
     end
@@ -367,15 +403,33 @@ def validate_workflow(path)
                     "the trusted-path checks above are relative and a moved cwd defeats them")
       end
     end
-    REQUIRED_STEP_ARGS.fetch(File.basename(path), {}).each do |step_name, required|
+    REQUIRED_STEP_ARGS.fetch(File.basename(path), {}).each do |step_name, spec|
       step = step_maps.find { |candidate| scalar(candidate["name"]) == step_name }
       fail_policy("#{path} has no step named #{step_name.inspect}") unless step
-      unless code_of(scalar(step["run"])).include?(required)
-        fail_policy("#{path} step #{step_name.inspect} must pass #{required} on an executable line")
+      # Logical commands: continuation lines joined, so a flag on its own
+      # continuation still belongs to the invocation it continues.
+      commands = code_of(scalar(step["run"])).gsub(/\\\n/, " ").lines
+      invoking = commands.select do |command|
+        command.include?(spec[:invocation]) && !(command =~ /\A\s*(echo|printf)\b/)
+      end
+      if invoking.empty?
+        fail_policy("#{path} step #{step_name.inspect} does not invoke #{spec[:invocation].inspect}")
+      end
+      invoking.each do |command|
+        next if command.include?(spec[:argument])
+        fail_policy("#{path} step #{step_name.inspect} invokes #{spec[:invocation].inspect} " \
+                    "without #{spec[:argument]}; nen falls back to <cwd>/nen/gates.json, " \
+                    "which in this job is the PR head checkout")
       end
     end
-    unless scalar(finisher["if"]) == "${{ always() && steps.head_check.outputs.id != '' }}" && scalar(finisher["run"])&.include?("check-runs/${CHECK_ID}") && scalar(finisher["run"])&.include?("status=completed")
-      fail_policy("#{path} job #{job_name} must always publish its final exact-head conclusion")
+    if creation == :start
+      unless scalar(finisher["if"]) == "${{ always() && steps.head_check.outputs.id != '' }}" && scalar(finisher["run"])&.include?("check-runs/${CHECK_ID}") && scalar(finisher["run"])&.include?("status=completed")
+        fail_policy("#{path} job #{job_name} must always publish its final exact-head conclusion")
+      end
+    else
+      unless scalar(finisher["if"]) == "${{ always() }}" && scalar(finisher["run"])&.include?("status=completed")
+        fail_policy("#{path} job #{job_name} must always publish a completed exact-head check, even when an earlier step failed")
+      end
     end
     head_checkout = false
     trusted_checkout = false
