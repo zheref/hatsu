@@ -138,6 +138,7 @@ successful upload here is not a step toward publication: production is that skil
 | Which lane's row | `project.defaultLane`, or `--lane` |
 | Whether this host may | `project.hosts` |
 | What must be true first | `project.preconditions.<lane>` — asserted, never performed |
+| Whether to tag what was sent, and with what name | `nen/workflow.json` → `tags.deploy.<target>` — **the one thing kagutsuchi reads from the workflow file** (§ 4a). Absent, it tags nothing |
 
 **Targets are project-level; `deploy` rows are per-lane**, and nen checks nothing about whether a
 target is *meaningful* for the lane it is used on. On a repository with two deployable lanes,
@@ -210,6 +211,208 @@ radius is other people's users"* (verified, § 2.3).
 Run it **once**. If it fails, read § 5, fix the named fact, and re-run — a re-run is the same
 authorization only while it is the same target under the same call; anything else is a new call.
 
+### 4a. The distribution tag — OPT-IN, and only after the send succeeded
+
+**A repository may ask for what was just sent to be marked with a tag** (maintainer's ruling of
+2026-09-18, corrected 2026-09-19). **This is the one tag**, and it is cut here because here is where a
+build actually lands: an upload that succeeded is a thing that can be pointed at, and an archive that
+never left the machine is not. [`hatsu:susanoo`](../susanoo/SKILL.md) § 5a only NAMES the tag that is
+coming; it cuts nothing.
+
+The symmetry the ruling states: **an upload that succeeds becomes a tag, and a release Apple approves
+becomes a GitHub release.** A repository may declare this block or not — the default is not — and one
+that does not behaves exactly as it did before.
+
+The declaration is `nen/workflow.json`, and **the NAME comes from the same file susanoo announced
+from** — there is exactly one source, so what was announced and what is cut cannot differ:
+
+```json
+"tags": {
+  "identity": { "nameFrom": ".nen/archive/tag-name" },
+  "deploy":   { "testflight": { "push": true } }
+}
+```
+
+| Key | Meaning |
+|---|---|
+| `tags.identity.nameFrom` | first line is the tag's **identity** — `v1.0.0+1217`. Shared with [`hatsu:susanoo`](../susanoo/SKILL.md) § 5a |
+| `tags.deploy.<target>` | **that this target is tagged at all**, and whether the tag is pushed. Keyed by target: a target with no entry is not tagged, even where a sibling has one — and the procedure **reads it before anything else**, reporting `not declared for this target` and cutting nothing when it is absent |
+
+**The species prefix is the SKILL's, and it is composed from the target actually being sent to** —
+`dist/<target>/<identity>`. That is deliberate: only the cut knows its target, an archive does not,
+and a repository writing the whole name itself could write `dist/staging/…` on a `testflight` send.
+The prefix is not checked against a pattern, it is **built**, so it cannot disagree with the target.
+
+```bash
+# The JSON subscripts are DOUBLE-quoted inside the single-quoted -c argument.
+# Single quotes there terminate it, the shell strips them, and python dies
+# before reading anything — which would silently stop every declared tag.
+wf="$(git -C <path> rev-parse --show-toplevel)/nen/workflow.json"
+
+# THE TARGET IS THE MAINTAINER'S WORD, AND IT IS DATA. The line above used to
+# claim it was "never interpolated into shell source" while doing exactly that
+# on the next line: `target="<the target this run was called with>"` is a
+# PLACEHOLDER a caller fills in, and a filled-in `$(touch /tmp/pwned)` runs
+# during the assignment -- before the python lookup, before check-ref-format,
+# before anything below can refuse it. Double quotes stop `;` and they do not
+# stop command substitution.
+#
+# A QUOTED HEREDOC IS NOT ENOUGH EITHER, and the reason is worth keeping: it
+# stops `$` and backticks, but the DELIMITER is still in-band. A target
+# containing a line equal to the delimiter closes the heredoc early and the
+# bytes after it are read as shell commands. Narrowing the payload is not the
+# same as closing the channel.
+#
+# SO THE TARGET NEVER ENTERS SHELL SOURCE AT ALL. Write it to a file with the
+# surface's OWN file-writing primitive -- Claude Code's Write tool, Codex's
+# apply_patch, whichever the surface has -- which takes the value as an
+# argument to the tool and never as text the shell parses. Then read the file.
+# There is no delimiter to collide with because there is no in-band framing.
+#
+#   <write the target, verbatim and alone, to "$target_file" using the
+#    surface's file-writing tool -- NOT with echo, printf, cat or a heredoc,
+#    all of which put the value back into shell source>
+target_file="$(mktemp)"; trap 'rm -f "$target_file"' EXIT
+target="$(tr -d '\r\n' <"$target_file")"
+[ -n "$target" ] || { echo "no target named -- refused"; exit 2; }
+
+# READ THE OPT-IN FOR THIS TARGET FIRST. `tags.deploy.<target>` is the switch:
+# absent means this target is not tagged, even where a sibling target is, and
+# even where tags.identity is declared.
+#
+# THREE OUTCOMES, NOT TWO, and collapsing them is how "broken" gets reported as
+# "off". Exit 3 is "not declared" and is reported without cutting; ANY OTHER
+# nonzero means the file could not be read as declared -- unparseable JSON exits
+# 1 -- and that is a refusal, because § 7 promises a malformed declaration is
+# reported as read-and-rejected and never as absent. A bare `||` caught both and
+# broke that promise.
+#
+# `isinstance(d, dict)` is load-bearing: `in` against a STRING is a substring
+# test, so a `deploy` of "testflight-someday" would opt `testflight` IN -- the
+# fail-open direction, on a switch whose whole job is to keep tags off.
+python3 -c 'import json,sys
+d=json.load(open(sys.argv[1])).get("tags",{}).get("deploy",{})
+if not isinstance(d, dict): sys.exit("tags.deploy is %s, not an object" % type(d).__name__)
+# ABSENT AND null ARE DIFFERENT ANSWERS. `.get()` returns None for both, so
+# `tags.deploy.<target>: null` -- a present, malformed declaration -- was
+# reported as "not declared" and exited 0, silently disabling the tag. § 7
+# requires a present-but-malformed declaration to be REJECTED. Key presence is
+# tested first, and only then is the value validated.
+if sys.argv[2] not in d: sys.exit(3)
+e=d[sys.argv[2]]
+if not isinstance(e, dict): sys.exit("tags.deploy.%s is %s, not an object" % (sys.argv[2], type(e).__name__ if e is not None else "null"))
+p=e.get("push", False)
+if not isinstance(p, bool): sys.exit("tags.deploy.%s.push is %r, not a boolean" % (sys.argv[2], p))
+sys.exit(0 if p else 4)' "$wf" "$target"
+# FOUR OUTCOMES, because `push` is a VALUE and not merely a key. An earlier
+# version tested only that the key existed, so `{"push": false}` and
+# `{"push": true}` took the same path and the trailing `[--push]` was chosen by
+# the caller rather than by the declaration -- which is the declaration not
+# controlling the one thing it is there to control.
+case $? in
+  0) push_flag="--push" ;;
+  4) push_flag="" ;;
+  3) echo "no tags.deploy entry for '$target' -- not declared for this target, nothing cut"; exit 0 ;;
+  *) echo "$wf could not be read for tags.deploy -- present but unreadable is not absent; refused"; exit 2 ;;
+esac
+
+# THE SAME THREE-WAY READ FOR THE NAME. In a command substitution a failure here
+# is silent: nameFrom comes back EMPTY, "$root/" is a directory, and the refusals
+# below would report a misleading reason for a file that was never named.
+nameFrom="$(python3 -c 'import json,sys
+d=json.load(open(sys.argv[1])).get("tags",{}).get("identity",{})
+if not isinstance(d, dict) or not isinstance(d.get("nameFrom"), str) or not d["nameFrom"]:
+    sys.exit("tags.identity.nameFrom is missing or is not a non-empty string")
+print(d["nameFrom"])' "$wf")" \
+  || { echo "tags.identity.nameFrom could not be read from $wf -- refused"; exit 2; }
+
+root="$(git -C <path> rev-parse --show-toplevel)"
+file="$root/$nameFrom"
+[ -L "$file" ] && { echo "nameFrom is a symlink -- refused"; exit 2; }
+[ -f "$file" ] || { echo "nameFrom is not a regular file -- refused"; exit 2; }
+case "$(cd -P -- "$(dirname -- "$file")" && pwd -P)/" in
+  "$root"/*) : ;;
+  *) echo "nameFrom resolves outside the repository -- refused"; exit 2 ;;
+esac
+identity="$(sed -n '1p' -- "$file" | tr -d '\r')"
+built_at="$(sed -n '2p' -- "$file" | tr -d '\r')"
+[ -n "$identity" ] || { echo "nameFrom's first line is empty -- refused"; exit 2; }
+
+# THE SHA THE ARCHIVE WAS BUILT FROM, NOT HEAD. susanoo and this phase are
+# separate invocations with a human decision between them, so HEAD can have
+# moved -- and a tag at HEAD would then name a commit the archive never saw.
+[ -n "$built_at" ] || { echo "nameFrom carries no build SHA -- refused rather than tagging HEAD"; exit 2; }
+
+# IT MUST BE A RAW SHA, AND `cat-file -e` DOES NOT ASK THAT. It resolves
+# SYMBOLIC revisions too -- `HEAD`, `origin/main`, `HEAD~1` all exit 0 -- so a
+# nameFrom whose second line said `HEAD` passed this check and `--at` then
+# resolved whatever HEAD was at send time. That is precisely the "never HEAD"
+# rule this block exists to enforce, defeated by the check meant to enforce it.
+case "$built_at" in
+  *[!0-9a-f]* | "") echo "the recorded build SHA is not a raw lowercase hex object name -- refused"; exit 2 ;;
+esac
+[ "${#built_at}" -eq 40 ] || { echo "the recorded build SHA is not a full 40-character object name -- refused"; exit 2; }
+git -C <path> cat-file -e "${built_at}^{commit}" 2>/dev/null \
+  || { echo "the recorded build SHA is not a commit in this repository -- refused"; exit 2; }
+
+# A CLEAN TREE IS ASSERTED BELOW, SO IT IS CHECKED HERE. The prose said a clean
+# working tree is what keeps the tag from attesting bytes that were never
+# archived, and nothing checked it -- an assertion in prose and nowhere else is
+# the defect this review already caught once on check-ref-format.
+[ -z "$(git -C <path> status --porcelain)" ] \
+  || { echo "the working tree is dirty -- refused rather than tagging bytes the commit does not describe"; exit 2; }
+
+# BUILT from variables, never templated: the prefix cannot disagree with the
+# target, and an illegal target name is rejected by check-ref-format below.
+name="dist/$target/$identity"
+git -C <path> check-ref-format "refs/tags/$name" \
+  || { echo "the composed tag name is not a legal git ref -- refused"; exit 2; }
+# `branch.base` IS REPOSITORY-CONTROLLED AS WELL, and it was the last
+# placeholder still being substituted into this command's text -- a value
+# carrying `$(...)` would execute during that substitution, and one carrying a
+# space would change argv, both before nen ever validates the trunk. It is read
+# out of the same declaration as data, exactly like nameFrom.
+trunk="$(python3 -c 'import json,sys
+b=json.load(open(sys.argv[1])).get("branch",{})
+if not isinstance(b, dict): sys.exit("branch is not an object")
+t=b.get("base","main")
+if not isinstance(t, str) or not t: sys.exit("branch.base is not a non-empty string")
+print(t)' "$wf")" || { echo "branch.base could not be read from $wf -- refused"; exit 2; }
+git -C <path> check-ref-format --allow-onelevel "$trunk" \
+  || { echo "branch.base is not a legal git ref name -- refused"; exit 2; }
+
+nen tag cut --repo <path> --name "$name" --at "$built_at" --trunk "$trunk" ${push_flag}
+```
+
+**The ancestor rule is about the COMMIT, not the branch.** `--at` is refused unless that commit is an
+ancestor of `origin/<trunk>`: a feature branch sitting at the trunk's tip tags fine, one carrying its
+own unpushed work does not. The honest sentence is *a commit not yet on `origin/<trunk>` cannot be
+tagged* — and stating it as a branch rule is wrong in the reassuring direction, because it implies
+the branch is itself the protection. **What protects the tag from attesting the wrong bytes is a
+clean working tree at `--at`, which is a condition of the order above.** `--trunk` is passed from
+`nen/workflow.json` → `branch.base` rather than defaulted, or a repository whose trunk is `master`
+fails against a non-existent `origin/main`.
+
+**The name must carry its species prefix** — `dist/<target>/` — and a first line that does not is a
+reported refusal.
+A distribution tag sharing `getsuga`'s release namespace can take a version name permanently:
+`mugetsu` proves a release tag by its name resolving on `origin`, and forbids deleting one to
+recover.
+
+**`--push` is not atomic** — the tag is created locally, then pushed — so a rejected push leaves the
+name taken locally and absent on `origin`, which the verb then refuses forever. The single sanctioned
+remedy: a local tag of that name, at that SHA, **verified absent from `origin`**, may be deleted and
+re-cut, because nothing was ever published. That is the completion of an unfinished cut, not a
+re-tag.
+
+That refusal is reported with nen's own reason and is **never routed around** — and it never
+retroactively unsends anything. **The send already happened**: § 7's block reports it as sent, and the
+tag is reported as its own separate line with its own verdict. A run that uploaded cleanly and could
+not tag says both, in that order, and neither reads as the other.
+
+A cut tag here is **not** a promotion and **not** authorization for anything further:
+[`hatsu:mugetsu`](../mugetsu/SKILL.md) is still **G3** and still needs its own recorded per-target go.
+
 ## 5. The refusals, in the order nen makes them
 
 `claude/agents/kurapika.md` § *The `shu` verbs* is the authority for the codes; this is what
@@ -256,6 +459,11 @@ step's own exit code and nen's, and the maintainer's call **quoted verbatim** �
 named this target. There is no second source for that line; a delegation recorded elsewhere in the
 session is reported as context beside it, never in its place (§ 1).
 
+**One line for the tag** (§ 4a): *cut and pushed*, *cut locally*, *refused with nen's reason*, or
+*not declared for this target* — and a declaration present but malformed is reported as read-and-
+rejected, never as absent. nen validates nothing in that block, so "off" and "broken" are otherwise
+the same silence.
+
 **Re-render the turn report before stopping.** The last render was truthful when it was written and is
 stale one step later. [`hatsu:rikugan`](../rikugan/SKILL.md) § 5 owns this: the `turn` variant,
 re-rendered at the same address, with the upload written into **01 Accomplished**. There is no fourth
@@ -289,9 +497,16 @@ I promote it". The next call is the maintainer's and they know they have it.
 - **Permitted, and only on the maintainer's own call naming the target:** print the plan for any
   declared target; run `nen shu deploy --target <that target> --run` **once**, for a destination the
   declaration's own `why` says is not production.
+- **Also permitted, and only where the consuming repository declares `tags.deploy.<target>`:** cut
+  that one tag through `nen tag cut` after a green `--run`, pushing it when the declaration says
+  `push` (§ 4a).
 - **Not permitted:** `--run` for a production or store destination (that is
-  [`hatsu:mugetsu`](../mugetsu/SKILL.md), at **G3**); `nen shu release` in any form; a tag; a GitHub
-  Release; a merge; a push; a PR; a label; an edit to `project.targets` to make a line work.
+  [`hatsu:mugetsu`](../mugetsu/SKILL.md), at **G3**); `nen shu release` in any form; a GitHub
+  Release; a merge; a PR; a label; an edit to `project.targets` to make a line work. **Any push or
+  tag other than the single declared one of § 4a** — that block is the whole of the permission, it is
+  opt-in and per-target, and a repository that does not declare it gets exactly the old behaviour.
+  Adding a `tags.deploy` block so that a tag will be cut is itself a **G4** declaration change, never
+  something done here to make a run tag.
 - **The call is one send wide and ends when this run ends.** It is not standing authority to send to
   this target again later, it is authority for no other target, and no delegation supplies it (§ 1).
 - **Not a gate event of its own** — the maintainer's call already crossed the boundary. Exit `3`
@@ -320,3 +535,12 @@ I promote it". The next call is the maintainer's and they know they have it.
 - **Never retries an exit `3`**, and never treats an exit `4` seat as a failure to route around.
 - **Never sends twice on one call**, and never treats one target's go as another's.
 - **Never claims a send succeeded** on the strength of a plan, or on an exit code it did not read.
+- **Never tags a target the repository did not declare under `tags.deploy`**, never composes a tag
+  name of its own, and never tags after a plan-only run or a failed send (§ 4a).
+- **Never re-tags, and never routes around a tag refusal** — not by tagging another commit, not by
+  pushing a branch to make `--at` an ancestor, not by dropping `--push` so a local tag stands in for
+  one that resolves on `origin`.
+- **Never lets a tag refusal read as a failed send, or a green send read as a cut tag.** The send
+  already happened; two verdicts, reported separately, every time (§ 4a).
+- **Never treats a cut tag as a promotion.** It records where a build went; it authorises nothing,
+  and **G3** still needs its own recorded go.

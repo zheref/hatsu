@@ -149,6 +149,20 @@ reconstructing what the maintainer meant, there is no go.
 Nothing in nen records this (§ Residue). `nen stop --notified` writes `.nen/last-stop.json` for the
 bell and is not a record of an authorization. The quote is the record.
 
+### The tag it means is getsuga's RELEASE tag, and no other species
+
+**From 2026-09-18, as corrected on 2026-09-19, TWO skills can put a tag on `origin`**, not one:
+[`$kagutsuchi`](../kagutsuchi/SKILL.md) § 4a cuts `dist/<target>/…` after an upload that
+succeeded, and [`$getsuga`](../getsuga/SKILL.md) cuts the release tag. (
+[`$susanoo`](../susanoo/SKILL.md) § 5a cuts nothing — it only names the identity the coming tag
+will carry.) **Only getsuga's satisfies anything here.** A distribution tag records where a binary
+went; it authorises nothing, it is not a release, and it never satisfies § 2's precondition 2 or
+§ 4's preflight row — which were both written when only `getsuga` could put a name on `origin`
+and read as name-existence checks for that reason.
+
+The go names the version, so the human is the discriminator in practice. This clause is what makes it
+so by rule as well.
+
 ### A go with no tag is refused
 
 **The tag is cut first, by [`$getsuga`](../getsuga/SKILL.md), and it resolves on `origin`.**
