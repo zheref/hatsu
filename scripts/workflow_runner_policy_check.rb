@@ -79,6 +79,24 @@ REQUIRED_STEP_ARGS = {
   }
 }.freeze
 
+# A `run:` scalar with its COMMENT LINES REMOVED. Every assertion below matches
+# against this, never the raw scalar. `include?` on the raw text proves only that
+# a string appears SOMEWHERE -- a PR can satisfy it from a comment or an unrelated
+# `echo` while the executable line reads the PR's own copy, which is precisely the
+# bypass these guards exist to stop. This repository's own workflow headers quote
+# these paths in prose, so the bypass vector is present by construction, not
+# hypothetical.
+def code_of(run)
+  return "" unless run
+  run.lines.reject { |line| line.strip.start_with?("#") }.join
+end
+
+# Taxonomy files that decide how a privileged job behaves: the dependency pin
+# selects the BINARY, and the gates file selects the REVIEWER IDENTITIES. In a
+# pull_request_target job the cwd is the PR HEAD checkout, so an unprefixed read
+# is the PR's own copy -- a PR choosing the binary, or the gate, that judges it.
+TRUSTED_ONLY_DATA = %w[nen/contract.json nen/gates.json].freeze
+
 def fail_policy(message)
   warn "workflow-runner-policy: #{message}"
   raise SystemExit, 1
@@ -202,14 +220,40 @@ def validate_workflow(path)
     # Generalised from a single hardcoded basename + positional index: EVERY
     # workflow that carries the pin step is held to sourcing it from trusted data.
     pin_step = step_maps.find { |step| scalar(step["name"]) == TRUSTED_PIN_STEP }
-    if pin_step && !scalar(pin_step["run"])&.include?(".trusted/nen/contract.json")
+    if pin_step && !code_of(scalar(pin_step["run"])).include?(".trusted/nen/contract.json")
       fail_policy("#{path} must source its executable dependency pin from trusted workflow data")
+    end
+    # EVERY executable reference to a decision-bearing taxonomy file must be
+    # .trusted/-prefixed, in EVERY step. This is what actually closes the bypass:
+    # it is not enough that the trusted path appears somewhere, it must be the
+    # case that no UNTRUSTED path appears anywhere executable.
+    step_maps.each do |step|
+      code_of(scalar(step["run"])).lines.each do |line|
+        TRUSTED_ONLY_DATA.each do |data|
+          offset = 0
+          while (index = line.index(data, offset))
+            offset = index + data.length
+            prefix = line[0...index]
+            # A DIAGNOSTIC IS NOT A READ. `echo "::error::nen/contract.json carries
+            # no pinned_ref"` names the file in a message and opens nothing -- and
+            # it appears mid-line, inside a `|| { ... }` guard, so this test is
+            # positional rather than line-anchored. Keeping the rule about DATA
+            # FLOW rather than about text is the whole point of the finding it
+            # answers; a text rule is the bypass.
+            next if prefix =~ /\b(echo|printf)\b/
+            token = prefix[/\S*\z/].to_s
+            next if token.end_with?(".trusted/")
+            fail_policy("#{path} step #{scalar(step["name"]).inspect} reads #{token}#{data} " \
+                        "outside the trusted checkout; a pull_request_target job's cwd is the PR head")
+          end
+        end
+      end
     end
     REQUIRED_STEP_ARGS.fetch(File.basename(path), {}).each do |step_name, required|
       step = step_maps.find { |candidate| scalar(candidate["name"]) == step_name }
       fail_policy("#{path} has no step named #{step_name.inspect}") unless step
-      unless scalar(step["run"])&.include?(required)
-        fail_policy("#{path} step #{step_name.inspect} must pass #{required}")
+      unless code_of(scalar(step["run"])).include?(required)
+        fail_policy("#{path} step #{step_name.inspect} must pass #{required} on an executable line")
       end
     end
     unless scalar(finisher["if"]) == "${{ always() && steps.head_check.outputs.id != '' }}" && scalar(finisher["run"])&.include?("check-runs/${CHECK_ID}") && scalar(finisher["run"])&.include?("status=completed")
@@ -307,6 +351,29 @@ def self_test(root)
     FileUtils.cp(File.join(root, ".github/workflows/surface-mirror-check.yml"), surface)
     File.write(extra, "name: first\nname: second\non:\n  pull_request_target:\njobs: {}\n")
     expect_rejected("duplicate YAML key") { validate_repo(tmp) }
+
+    # THE SUBSTRING BYPASS, covered by fixture because a text match is not a data
+    # -flow check. The trusted path still appears -- in a COMMENT -- while the
+    # executable line reads the PR's own copy. An `include?` guard passes this.
+    FileUtils.rm(extra)
+    surface_original = File.read(surface)
+    File.write(surface, surface_original.sub(
+      %Q{ref="$(jq -r '.dependency.pinned_ref // empty' .trusted/nen/contract.json)"},
+      %Q{# sourced from .trusted/nen/contract.json\n          ref="$(jq -r '.dependency.pinned_ref // empty' nen/contract.json)"}))
+    expect_rejected("pin read from the PR checkout with the trusted path in a comment") { validate_repo(tmp) }
+
+    # The same rule for the gates file, which selects REVIEWER IDENTITIES: an
+    # unprefixed read is the PR choosing the gate that judges it.
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          cat nen/gates.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("gates file read from the PR checkout") { validate_repo(tmp) }
+
+    # And the control: a DIAGNOSTIC naming the file is not a read. This workflow
+    # already carries `echo "::error::nen/contract.json carries no ..."`, mid-line
+    # inside a `|| { ... }` guard, and it must keep validating.
+    File.write(surface, surface_original)
+    validate_repo(tmp)
   end
   puts "workflow-runner-policy: negative fixtures passed"
 end
