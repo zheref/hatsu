@@ -281,10 +281,10 @@ this verb reports against — it was never a satisfying diff shape.
 
 > **FIRST decide the repository's ROLE. The path sets below are `zheref/hatsu`'s OWN canon, not a
 > universal set** — maintainer's ruling, 2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md)
-> § *Rulings of 2026-09-18*).
+> § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*).
 >
 > **G4 is authoring or maintaining a CANON repository** — `zheref/hatsu`, `zheref/nen`,
-> `zheref/bankai` — whose product *is* the process, so a merge there decides how every other
+> `zheref/bankai-core` — whose product *is* the process, so a merge there decides how every other
 > repository behaves. **Everything else is G2**, including a consumer repository declaring its own
 > `nen/contract.json`, `nen/workflow.json`, `nen/gates.json`, adding a CI workflow or a `scripts/`
 > entry: that is *configuration of how the system is set up there*, and it governs nothing but that
@@ -292,12 +292,17 @@ this verb reports against — it was never a satisfying diff shape.
 >
 > - **Target is a canon repository** → derive with that repository's own sets, below.
 > - **Target is a consumer repository** → **the gate is `G2` by role, and `nen gate derive` is not
->   run.** Its two sets cannot both be empty — `--policy-paths "" --process-paths ""` is **refused at
->   exit 1**: *"no path sets were given, so every diff would derive G2 — including a policy change …
->   state them explicitly"* (verified live, nen `0.10.0`). That refusal is the answer rather than an
->   obstacle: the verb splits a canon repository's own surface, and a consumer has none to split. Run
->   it there only where that repository declares a policy surface **of its own** — its product's spec
->   — and then with *its* paths, never these.
+>   run** — because the role already settled it, not because the verb refuses. Be exact about that:
+>   only the **both-empty** invocation is refused (`--policy-paths "" --process-paths ""` → exit 1,
+>   *"no path sets were given, so every diff would derive G2 — including a policy change … state them
+>   explicitly"*), while one empty set and one that matches nothing is **accepted and answers `G2`**
+>   at exit 0. Both verified live at nen `0.10.0`. So the verb *could* be asked; there is simply no
+>   question left for it, and running it would re-derive by path an answer the role already fixed.
+> - **A consumer repository that declares a policy surface of its own** — its *product's* spec, not
+>   its copy of this system's setup — **is NOT ruled on.** The maintainer named three canon
+>   repositories and called everything else configuration; that question was not reached. **Do not
+>   improvise a path set for it.** Until it is ruled, the gate is `G2`, and a repository that looks
+>   like a genuine exception is a **G5** for the maintainer.
 >
 > **The incident this corrects.** In `zheref/zheref.io`, a consumer repository, a résumé PR touching
 > `nen/contract.json`, `nen/gates.json`, `.github/workflows/pr.yml`, `scripts/` and `docs/` derived
@@ -311,7 +316,6 @@ this verb reports against — it was never a satisfying diff shape.
 > derive that repository's gates everywhere it was pointed"*, and `--process-paths` is documented as
 > G4 *"in a repository whose product is its process"*. A `--repo-role` flag would be the built-in set
 > that help text refuses.
-
 
 ```bash
 nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/" \

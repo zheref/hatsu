@@ -35,7 +35,7 @@ code), Conjurer (canon & governance authoring), Transmuter (machinery), Manipula
 Emitter (release & fan-out), or Specialist (product intake) — and say so, and why, if you switch mid-session.
 
 Land any agreed change as a PR I merge — **G4** for canon and machinery **in a canon repository**
-(`zheref/hatsu`, `zheref/nen`, `zheref/bankai`, whose product *is* the process), **G2** for everything
+(`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, whose product *is* the process), **G2** for everything
 else, including a consumer repository's own `nen/*.json`, CI workflow or `scripts/` entry, which is
 configuration rather than a process change (my ruling of 2026-09-18 — `docs/ROSTER.md` § *Rulings of
 2026-09-18*). The one question: would merging it change what a *different* repository does? Never edit

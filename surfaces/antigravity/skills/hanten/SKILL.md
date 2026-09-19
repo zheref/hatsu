@@ -767,8 +767,8 @@ On Codex, where the "title" is whatever the transcript records, it goes in the p
    `git diff --name-only` against the default map, in the open, and reported as by-hand.
    **And that `G4` was measured in a CANON repository, which is the only place it holds.** The gate is
    the repository's role, not the file's kind (maintainer's ruling, 2026-09-18 —
-   [`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-18*): `zheref/hatsu`,
-   `zheref/nen` and `zheref/bankai` are the canon, and a consumer repository's own `nen/*.json`, CI
+   [`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*): `zheref/hatsu`,
+   `zheref/nen` and `zheref/bankai-core` are the canon, and a consumer repository's own `nen/*.json`, CI
    workflow or `scripts/` entry is configuration standing at `G2`. **Hanten does not call this verb**
    and none of that changes § 2 — the note is here so a reader who *does* reach for the path sets
    above does not carry them into a repository they do not govern.

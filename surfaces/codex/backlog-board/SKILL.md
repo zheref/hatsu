@@ -144,8 +144,8 @@ Field by field, from a row `backlog-state` already produced:
   a row in anyone's queue."* `#925` is `not-ready` (`CON-32a`), so the composed gate is `null`
   (in progress), not the `G4` `gate derive` alone would suggest — do not stop at the diff half.
   **And the diff half itself is only asked in a CANON repository** — `zheref/hatsu`, `zheref/nen`,
-  `zheref/bankai`, per `backlog-state`'s § 2 role step and the maintainer's ruling of 2026-09-18
-  ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18*). A consumer repository's row
+  `zheref/bankai-core`, per `backlog-state`'s § 2 role step and the maintainer's ruling of 2026-09-18
+  ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*). A consumer repository's row
   is `G2` by role, with no `gate derive` call behind it: `BC#925`'s `G4` is the reference repo's own
   canon answering about itself.
 - **`status`** ← `nen color status --present <values> --category status --json`'s `resolved.name`.

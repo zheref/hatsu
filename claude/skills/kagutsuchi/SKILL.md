@@ -14,6 +14,16 @@ trigger a duplicate filing. Never copy or invent a second policy in the target r
 
 # Kagutsuchi — the flame given a shape: one build, one named destination, on your word
 
+> **The gate on a declaration change is the REPOSITORY's role, not the file's kind.** Maintainer's
+> ruling, 2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is
+> the repository's role, not the file's kind*): **`G4` (`CON-7`) in a canon repository** —
+> `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, whose product *is* the process — and **`G2`
+> (`CON-5`) in a consumer repository**, where a `nen/contract.json`, `nen/workflow.json` or
+> `nen/gates.json` is that repository's own configuration and governs nothing else. **This skill runs
+> against consumer checkouts by design**, so read every "**G4**" below as *the declaration gate* and
+> resolve it by the target's role. The merge is the maintainer's either way — the ruling moves the
+> gate, never the prohibition.
+
 **Nature: Emitter.** The moment a build leaves this machine it is a release act, whichever nature
 authored the diff. [`hatsu:amaterasu`](../amaterasu/SKILL.md) starts an app *here* and is Transmuter
 for that reason; this skill sends one *there*, and the difference is the whole reason they are two

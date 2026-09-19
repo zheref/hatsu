@@ -15,6 +15,16 @@ trigger a duplicate filing. Never copy or invent a second policy in the target r
 
 # Rasengan — the change itself, spun up on the repository's own stack
 
+> **The gate on a declaration change is the REPOSITORY's role, not the file's kind.** Maintainer's
+> ruling, 2026-09-18 ([`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is
+> the repository's role, not the file's kind*): **`G4` (`CON-7`) in a canon repository** —
+> `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, whose product *is* the process — and **`G2`
+> (`CON-5`) in a consumer repository**, where a `nen/contract.json`, `nen/workflow.json` or
+> `nen/gates.json` is that repository's own configuration and governs nothing else. **This skill runs
+> against consumer checkouts by design**, so read every "**G4**" below as *the declaration gate* and
+> resolve it by the target's role. The merge is the maintainer's either way — the ruling moves the
+> gate, never the prohibition.
+
 **Nature: Enhancer** carries the ordinary run — rasengan writes the code that answers the request.
 The mode follows the *request*, exactly as [`/ren`](../ren/SKILL.md)'s does: **Conjurer** where the
 request is canon or governance, **Transmuter** where it is machinery. Name the mode in play, say when

@@ -268,7 +268,7 @@ because a cold entry is where each is most likely to be quietly re-read:
   cold invocation prints the preflight and the plan and reports that it has no go, exactly as before.
 - **`G4` (`CON-7`) — canon and machinery, *in a canon repository*.** The gate is the repository's role,
   not the file's kind (maintainer's ruling, 2026-09-18 — [`ROSTER.md`](ROSTER.md) § *Rulings of
-  2026-09-18*): it is `zheref/hatsu`, `zheref/nen` and `zheref/bankai`, whose product is the process,
+  2026-09-18*): it is `zheref/hatsu`, `zheref/nen` and `zheref/bankai-core`, whose product is the process,
   and a consumer repository's own `nen/*.json` or CI workflow is configuration standing at `G2`. This is
   the gate this document itself sits at, and the one
   a `## 0.` section is most tempted to cross by accident. **Standalone entry authors no canon.** A rule

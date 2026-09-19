@@ -367,9 +367,9 @@ repository declares**, in this order (nen `v0.3.0`'s `shu` family; `claude/agent
    `nen shu build: lane 'nextjs' (nextjs) declares no 'build'. It declares: archive, deploy, release,
    ui-test.` That is a fact about the repository, not a failure: quote it, run the repository's own
    documented command, say that you did, and where the seat should be a real row, land the declaration
-   change as its own PR — at **G4** in a canon repository (`zheref/hatsu`, `zheref/nen`, `zheref/bankai`),
+   change as its own PR — at **G4** in a canon repository (`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`),
    at **G2** in a consumer one, where a declaration is that repository's own configuration
-   ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18*). Exit **`5`** is the declared
+   ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*). Exit **`5`** is the declared
    program not on `PATH` — back to step 2.
    Exit **`3`** is a host the declaration excludes — a **G5** stop naming the host that can, never a retry.
    **A repository with no `nen/contract.json` `project` block at all** refuses every `shu` verb but
@@ -382,7 +382,7 @@ repository declares**, in this order (nen `v0.3.0`'s `shu` family; `claude/agent
    verified live at `v0.3.0`. Either way: run its own documented commands (`make test`, its package
    scripts), **say plainly that no declaration exists yet, and which case it was**, and treat writing
    one by hand as a change to propose at the target repository's own declaration gate (**G4** in a canon
-   repository, **G2** in a consumer one — § *Rulings of 2026-09-18*), not a blocker.
+   repository, **G2** in a consumer one — § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*), not a blocker.
 
 **Where the work is something a local session structurally cannot do at all** — it needs a
 credential only a retired CI identity held, or the decision is one only that now-nonexistent plane

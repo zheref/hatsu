@@ -16,8 +16,8 @@ filing. Never copy or invent a second policy in the target repository.
 **Nature: Transmuter.** The output is a `project.launch` block in `nen/contract.json` — machinery.
 
 > **Which gate the declaration PR stands at is the REPOSITORY's, not the file's** — maintainer's ruling,
-> 2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18*). **`G4` (`CON-7`) in a
-> canon repository** — `zheref/hatsu`, `zheref/nen`, `zheref/bankai`, whose product *is* the process.
+> 2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*). **`G4` (`CON-7`) in a
+> canon repository** — `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, whose product *is* the process.
 > **`G2` (`CON-5`) in a consumer repository**, which is where this skill usually runs: a launch target is
 > how *that* repository is set up on this machine, it governs nothing but itself, and `nen/contract.json`
 > being the filename does not make it canon. **Resolve the target repository first and say which gate you
