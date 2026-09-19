@@ -1,6 +1,8 @@
 # Changelog
 
-## v0.34.0 — a tag records a build that landed
+## v0.36.0 — a tag records a build that landed
+
+> **This was `v0.34.0` until `v0.35.0` merged first.** The bump is `v0.36.0` because `main` is already at `v0.35.0`, and `scripts/plugin_bump_check.sh`'s `version_bumped` asks only whether HEAD's `version` DIFFERS from base's — never whether it is HIGHER — so landing `v0.34.0` on top would have shipped a manifest downgrade past a green check. Copilot caught the ordering hazard on `#76`; this is the re-bump that answer prescribed, carried out rather than assumed. **A guard rejecting a non-increasing bump is still owed** and wants its own issue.
 
 - **`kagutsuchi` § 4a cuts the tag**, after a `--run` send that returned exit `0`, from `nen/workflow.json` → `tags.deploy.<target>`. One artifact that reached a destination is one tag.
 - **`susanoo` § 5a cuts nothing.** It reads `tags.identity` and *names* the identity the coming tag will carry, in one line of its report. Its standing property — *nothing leaves this machine* — is literal again.
@@ -14,6 +16,15 @@
 - **The ancestor rule is stated correctly**: `--at` is refused unless that COMMIT is an ancestor of `origin/<trunk>` — not a rule about branches, since a feature branch at the trunk's tip tags fine. What keeps a tag from attesting the wrong bytes is the **clean-tree** condition. `--trunk` comes from `branch.base`, never defaulted.
 - **The non-atomic push has one sanctioned remedy.** A rejected push leaves the name taken locally and absent on `origin`, which the verb then refuses forever; a local tag of that name, at that SHA, verified absent from `origin`, may be deleted and re-cut — the completion of an unfinished cut, not a re-tag.
 - Recorded as **Rulings of 2026-09-18, corrected 2026-09-19** in `docs/ROSTER.md`.
+
+## v0.35.0 — a bot reviewer is a different route
+
+> **`v0.34.0` is the tag ruling**, on `opus/kurapika/tag-authority`, still open. This change is independent of it and takes the next version deliberately so the two bumps do not collide. **The order is not free, and an earlier draft of this line said it was.** `scripts/plugin_bump_check.sh`'s `version_bumped` asks only whether HEAD's `version` DIFFERS from base's, never whether it is HIGHER, so it would pass `v0.34.0` landing on a `main` already at `v0.35.0` — shipping a manifest downgrade with a green check. **So: `#75` merges first, or it is re-bumped to `v0.36.0` before it does.** A guard that rejects a non-increasing bump is worth its own issue; until it exists this is coordinated by hand.
+
+- **`sharingan` records how to re-request a Bot reviewer**, and why the obvious attempts fail. Copilot is a `Bot`, not a `User`: `gh pr edit --add-reviewer` silently never resolves one (`zheref/nen#160`), REST `requested_reviewers` answers `422 may only be requested from collaborators` for a login missing its exact `[bot]` suffix, and GraphQL `requestReviews` resolves `userIds` as Users only.
+- **`nen pr request-reviews` already routes correctly** — a bare login the PR knows as a Bot goes to the bot mutation, and `--add-bots <node id>` covers one it has never seen. The gap was that nothing said so.
+- **Verification is the other half.** REST's `requested_reviewers` lists users and teams only, so a *pending* bot request reads as `[]` — a caller checking there confirms the opposite of the truth. `nen pr ready`'s phrasings are the signal: *no round at head* (a request is owed) versus *review requested, not yet posted* (one is in flight; wait).
+- **Requesting an owed round is not an escalation.** Taking it to the maintainer spends § 6's ladder on a step the run can perform itself — which is what prompted this: a session concluded the re-request was impossible on the maintainer's own credentials and handed it back as a gate.
 
 ## v0.33.0 — standalone entry: every skill reachable from a cold checkout
 

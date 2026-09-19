@@ -523,6 +523,47 @@ nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <a,b>
 
 Mutating; contract inspected only (§ 3, `docs/ab/drive.md`).
 
+#### A bot reviewer is a different route, and getting it wrong reads as "impossible"
+
+**Copilot is a `Bot`, not a `User`**, and that one fact breaks three things a caller reaches for
+first. This is written down because a session burned several cycles on it, concluded the re-request
+"cannot be done on the maintainer's credentials", and handed a routine step back to the maintainer as
+though it were a gate — the exact shape § 6 exists to prevent.
+
+| What was tried | What happens |
+|---|---|
+| `nen pr request-reviews --add-reviewers copilot-pull-request-reviewer` | **Works.** A bare login this PR already knows as a Bot is routed to the bot mutation automatically; `--dry-run` prints `-> bot (id BOT_…) [add-reviewers]` |
+| `nen pr request-reviews --add-bots BOT_…` | **Works**, and is the only route for a bot this PR has never seen — nothing shorter than the node id resolves one |
+| `gh pr edit --add-reviewer <bot login>` | **Silently never resolves a Bot** — it goes through `requestReviewsByLogin` (`zheref/nen#160`), which is why the verb above exists |
+| `gh api …/requested_reviewers` with a bare login | **422 `Reviews may only be requested from collaborators`** — which reads like a permissions wall and is not one. The login needs its exact `[bot]` suffix |
+| GraphQL `requestReviews(userIds: [BOT_…])` | `NOT_FOUND` — `userIds` resolves Users only; bots go in `botIds` |
+
+**And do not verify through REST.** `GET …/pulls/<n>` → `requested_reviewers` lists **users and
+teams only**, so a pending bot request shows as `[]` — a caller who checks there sees an empty array
+and "confirms" the request never landed. Verify with the verb that decides instead:
+
+```bash
+nen pr ready <ref> --gh-repo <owner/name> <the identity flag § 4's table selects>
+```
+
+**carrying the identity source § 4 selects for this target** — nothing extra where the repository
+ships its own `nen/gates.json`, `--gates` for `<reference-repo>`, and `--reviewers` plus explicit
+`--approvers` for a target that ships neither. Bare, against a repository with no gates file, this
+verification exits *"no reviewer identities"* and answers nothing — so the fallback would fail in
+exactly the case it is reached for. Read the two phrasings out of the verdict — *review requested,
+not yet posted* versus *no round at head* — or ask GraphQL `reviewRequests`, where the Bot appears. **`nen pr ready`'s two phrasings are the
+signal worth reading:** *no round at head* means nothing is pending and a request is owed; *review
+requested, not yet posted* means one is already in flight and the answer is to wait, not to request
+again.
+
+**Requesting an owed round is not an escalation — inside § 6's cap.** When `nen pr ready` says a
+round is owed at the current head **and this PR is still within the two-round cap above**, request it
+and keep watching; taking that to the maintainer is § 6's ladder spent on a step the run can perform
+itself. **A third owed round is the other case and the cap still governs it**: it is the concrete
+blocker § 6 says to bring to the maintainer, and the fact that requesting it is mechanically easy is
+not a reason to spend it. Knowing how to perform a step is not authority to perform it again past the
+point the cap stops.
+
 **It is conflicted:**
 
 ```bash
