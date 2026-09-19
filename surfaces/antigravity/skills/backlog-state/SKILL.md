@@ -252,7 +252,10 @@ nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/
                 --files <comma-separated changed paths>
 ```
 
-Verified live against two real `<reference-repo>` PRs: `RR-PR-#925` (touches
+**Verified live against a CANON reference repository, which is the only place these results hold** —
+in a consumer repository the block above has already fixed the gate at `G2` and this verb is not run,
+so read both rows as the reference repository answering about itself. Two real `<reference-repo>` PRs:
+`RR-PR-#925` (touches
 `.github/workflows/*.yml`, `scripts/`, `tests/`) derived `G4` — *"the diff touches the process
 surface ... in a repository whose product is its process, that is a policy change"*; `RR-PR-#916`
 (touches `schemas/repos.json`, at a port where that was still the canonical location) derived `G4` —

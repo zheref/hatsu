@@ -405,11 +405,13 @@ nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/
   --files <the changed paths> [--asserted G2|G4]
 ```
 
-Verified live (`docs/ab/shibari.md` § 2.3): a diff touching `claude/`+`docs/` reports **`G4`** and
-names which set hit; a diff touching neither reports **`G2`**; `--asserted G2` against a diff that
-hits `nen/` prints *"the invocation asserted G2; the diff derives G4, and the derived gate stands"*
-— **and the derived gate stands.** Exit `0` in all three: `nen gate derive` reports, it does not
-gate.
+**Verified live against a CANON repository, which is the only place this transcript holds**
+(`docs/ab/shibari.md` § 2.3) — in a consumer repository the block above has already fixed the gate at
+`G2` and this verb is not run at all, so read every result below as *the reference repository
+answering about itself*: a diff touching `claude/`+`docs/` reports **`G4`** and names which set hit;
+a diff touching neither reports **`G2`**; `--asserted G2` against a diff that hits `nen/` prints
+*"the invocation asserted G2; the diff derives G4, and the derived gate stands"* — **and the derived
+gate stands.** Exit `0` in all three: `nen gate derive` reports, it does not gate.
 
 > **The verb prints its own limit, and the body must respect it:** *"This is the diff's half of the
 > derivation only. A pull request that is not ready has NO GATE — it is in progress and owned by its

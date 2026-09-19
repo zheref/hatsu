@@ -301,13 +301,20 @@ by hand in `<reference-repo>` (RR-PR-#651, RR-PR-#679, RR-PR-#682, RR-PR-#691) b
 > delete the superseded entry.** State the **net effect** so nobody has to reconcile two entries
 > themselves. This stays judgment — no verb reads intent.
 
-Then **stop at G4** with the banner and the board:
+Then **stop at the declaration gate** with the banner and the board — **`G4` in a canon repository
+(`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`), `G2` in a consumer one**, because a release
+proposal in a repository whose product is not the process is that repository's own configuration:
 
 ```bash
-nen stop --who kurapika --gate G4 <efforts.md>
+# resolve <gate> from the TARGET's role first — G4 in a canon repository, G2 in a consumer one
+nen stop --who kurapika --gate <G4|G2> <efforts.md>
 ```
 
-The maintainer merges; Kurapika never merges `main` (`CON-5`/`CON-7`).
+**`--gate` is not a constant here.** A hard-coded `G4` prints a canon-repository banner over a
+consumer's release proposal, which is the misclassification this ruling exists to remove
+([`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role,
+not the file's kind*). The maintainer merges either way; Kurapika never merges `main`
+(`CON-5`/`CON-7`) — the ruling moves the gate, never the prohibition.
 
 ## 4. The cut
 
