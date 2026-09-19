@@ -17,7 +17,7 @@ It exists because nothing else answered it. GitHub's issue list reports what is 
 says which gate an item sits at, which PR carries it, who is driving it, or what it needs — across
 repos, on demand, in one table.
 
-> **Read-only, without exception.** This skill renders state. It never applies a label itself, merges,
+> **Read-only, without exception.** This skill renders state. It never applies a label, merges,
 > pushes, opens, closes or comments. If reading the board makes the next action obvious, *say what
 > the action is* — do not take it.
 

@@ -26,9 +26,15 @@
 #     history the repository derives from it. It would also churn hard — every
 #     push changes the head, which re-owes every reviewer round, which flips the
 #     verdict — so the title would rewrite itself on essentially every event.
-#   * A CHECK RUN persists, survives every session, appears in the merge box and
-#     in the PR list, costs no new permission, and is already how both existing
+#   * A CHECK RUN persists, survives every session, is readable on the PR without
+#     a session, costs no new permission, and is already how both existing
 #     workflows report. It is the signal this repository can actually carry.
+#     BE PRECISE ABOUT WHAT THIS IS: the verdict PERSISTS; nobody is NOTIFIED.
+#     The conclusion is always `success`, and Actions notifications fire on
+#     failure, so nothing is pushed to the maintainer -- they still open the PR
+#     and read the check's title. Persistence was the half a session could not
+#     supply; being TOLD remains unsupplied, and is named here rather than
+#     claimed.
 #
 # WHY THE CONCLUSION IS ALWAYS `success`, AND WHY THAT IS NOT A FUDGE. CON-32(a)
 # requires every reported check to be green. A readiness check that concluded
@@ -80,6 +86,19 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Start check on the exact PR head
+        # CREATED `completed`/`success`, NOT `in_progress`, and that is the fix for
+        # a confirmed self-block. An `in_progress` check run has `conclusion: null`,
+        # which is outside nen's {SUCCESS, NEUTRAL, SKIPPED}, so if it reaches the
+        # rollup this job fails CON-32(a) BECAUSE OF ITSELF. `--exclude-run` drops by
+        # run id, and that is NOT sufficient: verified live on zheref/hatsu#75, an
+        # API-created check run is attached to an arbitrary `github-actions` check
+        # suite for the SHA -- the `surface-mirror-check` API check created by run
+        # 35450471186 is attributed to run 35450471173. So the exclusion can miss
+        # this job's own check, intermittently. Creating it already-green removes
+        # the window entirely: the conclusion never carried information anyway (see
+        # the header), so there is nothing to withhold until the verdict lands. The
+        # title says `evaluating` until the final step PATCHes the real verdict in.
+        # `--exclude-run` is kept below as defence in depth, not as the guarantee.
         id: head_check
         env:
           GH_TOKEN: ${{ github.token }}
@@ -88,7 +107,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          id="$(gh api --method POST "repos/${REPO}/check-runs" -f name=readiness -f head_sha="$HEAD_SHA" -f status=in_progress --jq .id)"
+          id="$(gh api --method POST "repos/${REPO}/check-runs" -f name=readiness -f head_sha="$HEAD_SHA" -f status=completed -f conclusion=success -f 'output[title]=readiness — evaluating' -f 'output[summary]=The verdict has not been computed yet. This check is always `success` by construction; read the title.' --jq .id)"
           echo "id=$id" >> "$GITHUB_OUTPUT"
 
       - name: Checkout PR head (data only — nothing from here is executed)
@@ -147,9 +166,25 @@ jobs:
 
       - name: Readiness verdict
         # The reviewer identities come from the TRUSTED gates file, never the
-        # PR's copy — a PR that could edit the gate judging it is worth nothing,
+        # PR's copy -- a PR that could edit the gate judging it is worth nothing,
         # the same reason the guard code is trusted-only. `--gates` takes an
-        # absolute path so it is not resolved against --repo's root.
+        # absolute path so it is not resolved against --repo's root. This matters
+        # more than it looks: with the flag dropped, nen 0.10.0 falls back to
+        # <cwd>/nen/gates.json, and the cwd here is the PR HEAD checkout. The
+        # policy guard asserts this argument so the flag cannot be quietly lost.
+        #
+        # ERREXIT IS NOT RE-ENABLED, DELIBERATELY. `nen pr ready` exits 1 for
+        # `not-ready`, which is the COMMON case and the one this workflow exists
+        # to report. An earlier draft restored `set -e` and then ran the verb in a
+        # pipeline: the pipeline returned 1, the assignment failed, and the step
+        # died BEFORE writing $GITHUB_OUTPUT -- so every not-ready PR published
+        # "readiness undetermined" and discarded the explain table. That is the
+        # exact regression `surface-mirror-check.yml` already documents. The `rc`
+        # dispatch below is the control flow; errexit would fight it.
+        #
+        # ONE EVALUATION, NOT TWO. The title is taken from the bytes already in
+        # hand, so the title and the summary can never describe different
+        # evaluations of a PR that changed between them.
         id: verdict
         env:
           GH_TOKEN: ${{ github.token }}
@@ -160,25 +195,42 @@ jobs:
         shell: bash
         run: |
           set -uo pipefail
-          set +e
           explain="$("$NEN" pr ready "$PR" --gh-repo "$REPO" --explain \
             --gates "$PWD/.trusted/nen/gates.json" \
-            --exclude-run "$RUN_ID" 2>&1)"
-          rc=$?
-          set -e
+            --exclude-run "$RUN_ID" 2>&1)" || rc=$?
+          rc="${rc:-0}"
+          # nen's output embeds PR-DERIVED STRINGS -- reported check names and
+          # reviewer logins are interpolated into its failure lines. Echoing it
+          # raw would put attacker-influenced text on the runner's WORKFLOW-COMMAND
+          # channel, where a line starting `::` is interpreted rather than printed
+          # (`::error::`, `::set-output`). `::stop-commands::` with a nonce is
+          # GitHub's own mechanism for exactly this.
+          nonce="stop_$(openssl rand -hex 16)"
+          echo "::stop-commands::${nonce}"
           printf '%s\n' "$explain"
-          case "$rc" in
-            0) title="ready — this PR has reached its gate" ;;
-            1) title="$("$NEN" pr ready "$PR" --gh-repo "$REPO" \
-                 --gates "$PWD/.trusted/nen/gates.json" \
-                 --exclude-run "$RUN_ID" 2>&1 | head -1)" ;;
-            *) title="readiness undetermined — nen exited $rc" ;;
-          esac
-          # The title is nen's own line, trimmed of the leading "<repo>#<n>: ".
+          echo "::${nonce}::"
+          # First line of the verb's own output, minus the "<repo>#<n>: " prefix.
+          title="$(printf '%s\n' "$explain" | head -1)"
           title="${title#*: }"
+          case "$rc" in
+            0) title="ready — ${title}" ;;
+            1) : ;;
+            *) title="readiness undetermined — nen exited ${rc}" ;;
+          esac
+          # Bash substring, NOT `| head -c`: head is a BYTE cut that can land
+          # mid-UTF-8 (these strings carry em dashes) and, under pipefail, a
+          # SIGPIPE'd printf returns 141 and kills the step at the truncation
+          # boundary. Parameter expansion is character-wise and spawns nothing.
+          title="${title:0:240}"
+          # THE DELIMITER IS RANDOM PER RUN. With a fixed `EOF`, a value
+          # containing a line that is exactly `EOF` closes the heredoc early and
+          # the runner parses the rest as further file commands -- forging the
+          # step output the next step publishes. GitHub's docs require a random
+          # delimiter for multiline values for this reason.
+          d="EOF_$(openssl rand -hex 16)"
           {
-            echo 'title<<EOF'; printf '%s\n' "$title" | head -c 240; echo; echo 'EOF'
-            echo 'summary<<EOF'; printf '%s\n' "$explain"; echo 'EOF'
+            printf 'title<<%s\n%s\n%s\n' "$d" "$title" "$d"
+            printf 'summary<<%s\n%s\n%s\n' "$d" "$explain" "$d"
           } >> "$GITHUB_OUTPUT"
 
       - name: Finish check on the exact PR head

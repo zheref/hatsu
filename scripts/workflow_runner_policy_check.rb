@@ -59,6 +59,22 @@ EXPECTED_STEPS = {
   ]
 }.freeze
 
+# Workflows that read a dependency pin and then fetch+execute a bootstrap from a
+# URL built out of it. The pin MUST come from the trusted workflow checkout: a PR
+# that can edit the pin can choose the binary that judges it. Keyed by the step's
+# declared NAME, not its index -- an index silently pointed at the wrong step when
+# pr-readiness.yml (no exec-bit step) shifted everything up by one.
+TRUSTED_PIN_STEP = "Read the pinned nen ref from trusted nen/contract.json"
+# Steps whose `run` must carry an exact argument. Same reason: nen 0.10.0 falls
+# back to <cwd>/nen/gates.json when --gates is absent, and the cwd in these jobs
+# is the PR HEAD checkout -- so a dropped flag hands the PR the gate that judges
+# it, and reads like a harmless simplification.
+REQUIRED_STEP_ARGS = {
+  "pr-readiness.yml" => {
+    "Readiness verdict" => '--gates "$PWD/.trusted/nen/gates.json"'
+  }
+}.freeze
+
 def fail_policy(message)
   warn "workflow-runner-policy: #{message}"
   raise SystemExit, 1
@@ -179,10 +195,17 @@ def validate_workflow(path)
         fail_policy("#{path} job #{job_name} executes a PR-root script instead of trusted code")
       end
     end
-    if File.basename(path) == "surface-mirror-check.yml"
-      pin_step = step_maps[5]
-      unless scalar(pin_step["run"])&.include?(".trusted/nen/contract.json")
-        fail_policy("#{path} must source its executable dependency pin from trusted workflow data")
+    # Generalised from a single hardcoded basename + positional index: EVERY
+    # workflow that carries the pin step is held to sourcing it from trusted data.
+    pin_step = step_maps.find { |step| scalar(step["name"]) == TRUSTED_PIN_STEP }
+    if pin_step && !scalar(pin_step["run"])&.include?(".trusted/nen/contract.json")
+      fail_policy("#{path} must source its executable dependency pin from trusted workflow data")
+    end
+    REQUIRED_STEP_ARGS.fetch(File.basename(path), {}).each do |step_name, required|
+      step = step_maps.find { |candidate| scalar(candidate["name"]) == step_name }
+      fail_policy("#{path} has no step named #{step_name.inspect}") unless step
+      unless scalar(step["run"])&.include?(required)
+        fail_policy("#{path} step #{step_name.inspect} must pass #{required}")
       end
     end
     unless scalar(finisher["if"]) == "${{ always() && steps.head_check.outputs.id != '' }}" && scalar(finisher["run"])&.include?("check-runs/${CHECK_ID}") && scalar(finisher["run"])&.include?("status=completed")
