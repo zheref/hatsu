@@ -258,13 +258,22 @@ wf="$(git -C <path> rev-parse --show-toplevel)/nen/workflow.json"
 # before anything below can refuse it. Double quotes stop `;` and they do not
 # stop command substitution.
 #
-# A QUOTED heredoc delimiter is the one form that expands NOTHING: no `$`, no
-# backtick, no `$(...)`. The target goes in as bytes and comes back as bytes,
-# and every later use passes it as an ARGUMENT rather than as text.
+# A QUOTED HEREDOC IS NOT ENOUGH EITHER, and the reason is worth keeping: it
+# stops `$` and backticks, but the DELIMITER is still in-band. A target
+# containing a line equal to the delimiter closes the heredoc early and the
+# bytes after it are read as shell commands. Narrowing the payload is not the
+# same as closing the channel.
+#
+# SO THE TARGET NEVER ENTERS SHELL SOURCE AT ALL. Write it to a file with the
+# surface's OWN file-writing primitive -- Claude Code's Write tool, Codex's
+# apply_patch, whichever the surface has -- which takes the value as an
+# argument to the tool and never as text the shell parses. Then read the file.
+# There is no delimiter to collide with because there is no in-band framing.
+#
+#   <write the target, verbatim and alone, to "$target_file" using the
+#    surface's file-writing tool -- NOT with echo, printf, cat or a heredoc,
+#    all of which put the value back into shell source>
 target_file="$(mktemp)"; trap 'rm -f "$target_file"' EXIT
-cat >"$target_file" <<'__TARGET__'
-<the target this run was called with>
-__TARGET__
 target="$(tr -d '\r\n' <"$target_file")"
 [ -n "$target" ] || { echo "no target named -- refused"; exit 2; }
 
@@ -285,9 +294,14 @@ target="$(tr -d '\r\n' <"$target_file")"
 python3 -c 'import json,sys
 d=json.load(open(sys.argv[1])).get("tags",{}).get("deploy",{})
 if not isinstance(d, dict): sys.exit("tags.deploy is %s, not an object" % type(d).__name__)
-e=d.get(sys.argv[2])
-if e is None: sys.exit(3)
-if not isinstance(e, dict): sys.exit("tags.deploy.%s is %s, not an object" % (sys.argv[2], type(e).__name__))
+# ABSENT AND null ARE DIFFERENT ANSWERS. `.get()` returns None for both, so
+# `tags.deploy.<target>: null` -- a present, malformed declaration -- was
+# reported as "not declared" and exited 0, silently disabling the tag. § 7
+# requires a present-but-malformed declaration to be REJECTED. Key presence is
+# tested first, and only then is the value validated.
+if sys.argv[2] not in d: sys.exit(3)
+e=d[sys.argv[2]]
+if not isinstance(e, dict): sys.exit("tags.deploy.%s is %s, not an object" % (sys.argv[2], type(e).__name__ if e is not None else "null"))
 p=e.get("push", False)
 if not isinstance(p, bool): sys.exit("tags.deploy.%s.push is %r, not a boolean" % (sys.argv[2], p))
 sys.exit(0 if p else 4)' "$wf" "$target"
@@ -354,7 +368,21 @@ git -C <path> cat-file -e "${built_at}^{commit}" 2>/dev/null \
 name="dist/$target/$identity"
 git -C <path> check-ref-format "refs/tags/$name" \
   || { echo "the composed tag name is not a legal git ref -- refused"; exit 2; }
-nen tag cut --repo <path> --name "$name" --at "$built_at" --trunk <branch.base> ${push_flag}
+# `branch.base` IS REPOSITORY-CONTROLLED AS WELL, and it was the last
+# placeholder still being substituted into this command's text -- a value
+# carrying `$(...)` would execute during that substitution, and one carrying a
+# space would change argv, both before nen ever validates the trunk. It is read
+# out of the same declaration as data, exactly like nameFrom.
+trunk="$(python3 -c 'import json,sys
+b=json.load(open(sys.argv[1])).get("branch",{})
+if not isinstance(b, dict): sys.exit("branch is not an object")
+t=b.get("base","main")
+if not isinstance(t, str) or not t: sys.exit("branch.base is not a non-empty string")
+print(t)' "$wf")" || { echo "branch.base could not be read from $wf -- refused"; exit 2; }
+git -C <path> check-ref-format --allow-onelevel "$trunk" \
+  || { echo "branch.base is not a legal git ref name -- refused"; exit 2; }
+
+nen tag cut --repo <path> --name "$name" --at "$built_at" --trunk "$trunk" ${push_flag}
 ```
 
 **The ancestor rule is about the COMMIT, not the branch.** `--at` is refused unless that commit is an
