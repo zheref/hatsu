@@ -120,6 +120,26 @@ REQUIRED_STEP_ARGS = {
 # bypass these guards exist to stop. This repository's own workflow headers quote
 # these paths in prose, so the bypass vector is present by construction, not
 # hypothetical.
+# Is the occurrence at `index` inside a DIAGNOSTIC command -- an `echo`/`printf`
+# that merely names the file -- rather than a command that opens it?
+#
+# SCOPED TO THE COMMAND SEGMENT, not to the whole line, and that distinction is
+# the finding this answers. Testing "does echo appear anywhere before the match"
+# exempts `echo ok; cat nen/gates.json`, where the second command really does
+# read the PR-controlled file. So the line is split on shell command separators
+# and only the segment containing the occurrence is considered.
+def diagnostic_at?(line, index)
+  start = 0
+  line.scan(/\|\||&&|[;|]/) do
+    match = Regexp.last_match
+    break if match.begin(0) > index
+    start = match.end(0)
+  end
+  # Leading `{`, `(` and whitespace are grouping, not the command word.
+  segment = line[start...index].to_s.sub(/\A[\s({]+/, "")
+  !(segment =~ /\A(echo|printf)\b/).nil?
+end
+
 def code_of(run)
   return "" unless run
   run.lines.reject { |line| line.strip.start_with?("#") }.join
@@ -273,13 +293,10 @@ def validate_workflow(path)
           while (index = line.index(data, offset))
             offset = index + data.length
             prefix = line[0...index]
-            # A DIAGNOSTIC IS NOT A READ. `echo "::error::nen/contract.json carries
-            # no pinned_ref"` names the file in a message and opens nothing -- and
-            # it appears mid-line, inside a `|| { ... }` guard, so this test is
-            # positional rather than line-anchored. Keeping the rule about DATA
-            # FLOW rather than about text is the whole point of the finding it
-            # answers; a text rule is the bypass.
-            next if prefix =~ /\b(echo|printf)\b/
+            # A DIAGNOSTIC IS NOT A READ -- but only within its OWN command. See
+            # `diagnostic_at?`: a whole-line test would exempt
+            # `echo ok; cat nen/gates.json`.
+            next if diagnostic_at?(line, index)
             token = prefix[/\S*\z/].to_s
             next if token.end_with?(".trusted/")
             fail_policy("#{path} step #{scalar(step["name"]).inspect} reads #{token}#{data} " \
@@ -422,6 +439,20 @@ def self_test(root)
     File.write(surface, surface_original.sub(
       "  pull_request_target:", "  pull_request_review:\n    types: [submitted]\n  pull_request_target:"))
     expect_rejected("workflow gaining an undeclared admitted trigger") { validate_repo(tmp) }
+
+    # THE DIAGNOSTIC EXEMPTION MUST BE SCOPED TO ITS OWN COMMAND. The reviewer's
+    # own example: an earlier `echo` on the same shell line must not suppress
+    # validation of a LATER command that really does read the PR's file.
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          echo ok; cat nen/gates.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("read hidden behind an earlier echo on the same line") { validate_repo(tmp) }
+
+    # The same, separated by `&&` rather than `;`.
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          echo ok && jq . nen/contract.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("read hidden behind an earlier echo joined by &&") { validate_repo(tmp) }
 
     # And the control: a DIAGNOSTIC naming the file is not a read. This workflow
     # already carries `echo "::error::nen/contract.json carries no ..."`, mid-line
