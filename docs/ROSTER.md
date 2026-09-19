@@ -455,7 +455,9 @@ moved.
 
 **The rule.**
 
-- **G4 (`CON-7`) is authoring or maintaining a canon repository.** Three repositories are the canon:
+- **G4 (`CON-7`) is authoring or maintaining a canon repository.** **Five** repositories are the canon
+  (three at the ruling of 2026-09-18; `zheref/akatsuki-ai` and `zheref/bankai-scaffold` added
+  2026-09-19 — see below, and read the list from here rather than from memory):
   **`zheref/hatsu`**, **`zheref/nen`**, **`zheref/bankai-core`**,
   **`zheref/akatsuki-ai`** and **`zheref/bankai-scaffold`**. Their product *is* the process — prose,
   scripts and deterministic jobs together — and what they say governs how every other repository
@@ -523,7 +525,7 @@ running it would only re-derive by path an answer the role already settled. Do n
 
 **What this ruling does NOT decide: a consumer repository that declares a policy surface of its
 own** — its *product's* spec, as opposed to its copy of this system's setup. The maintainer's ruling
-names three canon repositories and says everything else is configuration; it does not reach the
+names the canon repositories and says everything else is configuration; it does not reach the
 question of a consumer whose own product has a governed spec. **That question is open, and this
 section does not answer it.** Until it is ruled, a consumer repository's gate is `G2` and the verb
 is not called — and a repository that looks like a genuine exception is a **G5** for the maintainer,

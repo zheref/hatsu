@@ -1299,8 +1299,8 @@ rewrite; [`docs/ROSTER.md`](docs/ROSTER.md) carries the same table.
 | **G5 — Anything else human-only** | `CON-47` | **Never** — its definition *is* "the decision is yours" |
 
 > **G4 is the repository's role, not the file's kind (maintainer's ruling, 2026-09-18).** A change is
-> G4 when merging it changes what a *different* repository does — which is true only in the three
-> canon repositories above. A consumer repository declaring its own `nen/contract.json`,
+> G4 when merging it changes what a *different* repository does — which is true only in the canon
+> repositories listed above. A consumer repository declaring its own `nen/contract.json`,
 > `nen/workflow.json`, `nen/gates.json`, a CI workflow or a `scripts/` entry is **configuration of how
 > the system is set up there**; it governs nothing but itself and stands at **G2**.
 > [`docs/ROSTER.md`](docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind* is the full record, with the incident

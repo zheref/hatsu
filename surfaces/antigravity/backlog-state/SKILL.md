@@ -228,7 +228,7 @@ whose base could not be determined is reported `unresolved`, never defaulted to 
 >   at exit 0. Both verified live at nen `0.10.0`. So the verb *could* be asked; there is simply no
 >   question left for it, and running it would re-derive by path an answer the role already fixed.
 > - **A consumer repository that declares a policy surface of its own** — its *product's* spec, not
->   its copy of this system's setup — **is NOT ruled on.** The maintainer named three canon
+>   its copy of this system's setup — **is NOT ruled on.** The maintainer named the canon
 >   repositories and called everything else configuration; that question was not reached. **Do not
 >   improvise a path set for it.** Until it is ruled, the gate is `G2`, and a repository that looks
 >   like a genuine exception is a **G5** for the maintainer.
