@@ -53,19 +53,23 @@ EXPECTED_TYPES = {
   "pr-readiness.yml" => {
     # No `edited`: the verdict reads checks, rounds and threads, and none of
     # those changes when the body or title is edited.
-    "pull_request_target" => %w[opened synchronize reopened],
+    # `review_requested` / `review_request_removed` are CON-32(b) inputs in their
+    # own right: the gate distinguishes a round in flight from one that is owed.
+    "pull_request_target" => %w[opened synchronize reopened review_requested review_request_removed],
     # CON-32(b) / CON-16 -- a reviewer round landing, changing or being dismissed.
-    "pull_request_review" => %w[submitted edited dismissed],
-    # CON-32(d) -- the unresolved-threads conjunct. Thread resolution has its own
-    # event; it is not a review_comment.
-    "pull_request_review_thread" => %w[resolved unresolved]
+    "pull_request_review" => %w[submitted edited dismissed]
   }
 }.freeze
 
 # The only events a privileged job in this repository may be triggered by. All
 # run in the BASE repository context with a credential, so this list is the
 # trust boundary and widening it again is a maintainer ruling, not an edit.
-ALLOWED_TRIGGERS = %w[pull_request_target pull_request_review pull_request_review_thread].freeze
+# `pull_request_review_thread` was admitted here briefly and REMOVED: it is a
+# webhook event, not an Actions trigger, so a workflow naming it cannot register.
+# Confirmed against GitHub's event reference after the automated reviewer flagged
+# it on #78. CON-32(d) -- thread resolution -- therefore has NO trigger available
+# and its staleness is a named limitation rather than an oversight.
+ALLOWED_TRIGGERS = %w[pull_request_target pull_request_review].freeze
 EXPECTED_STEPS = {
   "plugin-bump-check.yml" => [
     "Start required check on the exact PR head",
@@ -100,6 +104,10 @@ EXPECTED_STEPS = {
     "Read the pinned nen ref from trusted nen/contract.json",
     "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)",
     "Readiness verdict",
+    # The freshness confirmation is a DECLARED step rather than an implementation
+    # detail: it is what stops an in-flight older run publishing a verdict about a
+    # head that has since moved, so removing it must fail the guard.
+    "Confirm the verdict still describes the event head",
     "Finish check on the exact PR head"
   ]
 }.freeze
@@ -163,6 +171,24 @@ end
 # pull_request_target job the cwd is the PR HEAD checkout, so an unprefixed read
 # is the PR's own copy -- a PR choosing the binary, or the gate, that judges it.
 TRUSTED_ONLY_DATA = %w[nen/contract.json nen/gates.json].freeze
+
+# Refs that denote a revision the pull request cannot control. `github.sha` is
+# trusted on `pull_request_target` (last commit on the default branch) but NOT on
+# `pull_request_review`, where it is the last MERGE COMMIT ON THE PR BRANCH -- so
+# a workflow subscribing to review events must use the base SHA, which is trusted
+# on every admitted event. Found by the automated reviewer on #78.
+BASE_SHA_REF = "${{ github.event.pull_request.base.sha }}".freeze
+GITHUB_SHA_REF = "${{ github.sha }}".freeze
+
+# `github.sha` is trusted ONLY when the workflow subscribes to nothing but
+# `pull_request_target`, where it is the last commit on the default branch. The
+# moment a review event is added it becomes the last MERGE COMMIT ON THE PR
+# BRANCH, and checking that out loads PR-controlled content into a job holding a
+# credential. So the admissible trusted refs depend on the trigger set, and this
+# is conditional rather than a list.
+def trusted_refs_for(events)
+  events == ["pull_request_target"] ? [BASE_SHA_REF, GITHUB_SHA_REF] : [BASE_SHA_REF]
+end
 
 # The ONLY spellings that denote the trusted checkout: `.trusted/` at the start of
 # the token, optionally rooted at $PWD, optionally opened by a quote. Anything
@@ -328,6 +354,18 @@ def validate_workflow(path)
         end
       end
     end
+    # A RELATIVE `.trusted/` ONLY MEANS SOMETHING IF THE CWD CANNOT MOVE. Without
+    # this, a step may `cd` into a PR-controlled directory -- or create its own
+    # `.trusted/` -- and every lexical check above still passes while reading
+    # PR-supplied data. None of these workflows needs to change directory, so the
+    # honest guard is to forbid it outright rather than to model it.
+    step_maps.each do |step|
+      code_of(scalar(step["run"])).lines.each do |line|
+        next unless line =~ /(?:\A|[;|&(]|\bthen\b|\bdo\b)\s*(cd|pushd|popd)\s/
+        fail_policy("#{path} step #{scalar(step["name"]).inspect} changes the working directory; " \
+                    "the trusted-path checks above are relative and a moved cwd defeats them")
+      end
+    end
     REQUIRED_STEP_ARGS.fetch(File.basename(path), {}).each do |step_name, required|
       step = step_maps.find { |candidate| scalar(candidate["name"]) == step_name }
       fail_policy("#{path} has no step named #{step_name.inspect}") unless step
@@ -346,10 +384,14 @@ def validate_workflow(path)
       fail_policy("#{path} checkout step #{index + 1} must set persist-credentials: false") unless scalar(with["persist-credentials"]) == "false"
       ref = scalar(with["ref"])
       head_checkout ||= ref == "${{ github.event.pull_request.head.sha }}"
-      trusted_checkout ||= ref == "${{ github.sha }}"
+      trusted_checkout ||= trusted_refs_for(triggers.keys.sort).include?(ref)
     end
     fail_policy("#{path} job #{job_name} must checkout the exact event head SHA") unless head_checkout
-    fail_policy("#{path} job #{job_name} must checkout the trusted workflow SHA") unless trusted_checkout
+    unless trusted_checkout
+      fail_policy("#{path} job #{job_name} must checkout a trusted revision " \
+                  "(#{trusted_refs_for(triggers.keys.sort).join(" or ")}); on a review event " \
+                  "github.sha is the PR branch's merge commit and is PR-controlled")
+    end
   end
 end
 
@@ -496,6 +538,20 @@ def self_test(root)
     File.write(surface, surface_original.sub(
       ".trusted/nen/contract.json", "../.trusted/nen/contract.json"))
     expect_rejected("pin read through a traversal out of the trusted checkout") { validate_repo(tmp) }
+
+    # A STEP MAY NOT MOVE THE WORKING DIRECTORY. Every trusted-path check above is
+    # lexical and relative; a `cd` into a PR-controlled directory defeats all of
+    # them while still matching TRUSTED_PREFIX.
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          cd "$RUNNER_TEMP"\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("step that changes the working directory") { validate_repo(tmp) }
+
+    # `pull_request_review_thread` is a WEBHOOK event, not an Actions trigger. A
+    # workflow naming it cannot register, so the allowlist must refuse it.
+    File.write(surface, surface_original.sub(
+      "  pull_request_target:", "  pull_request_review_thread:\n    types: [resolved, unresolved]\n  pull_request_target:"))
+    expect_rejected("workflow naming the non-existent pull_request_review_thread trigger") { validate_repo(tmp) }
 
     # And the control: a DIAGNOSTIC naming the file is not a read. This workflow
     # already carries `echo "::error::nen/contract.json carries no ..."`, mid-line
