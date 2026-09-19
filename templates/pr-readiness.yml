@@ -27,18 +27,22 @@
 # controls, and substituting the slug does not weaken it — a rendered slug that
 # is wrong fails CLOSED (the job is skipped), and the diagnosis is what turns
 # that closed failure into a visible one. ONE expression has to remain valid for
-# ALL THREE admitted events, which is why the guard is a single byte-compared
+# BOTH admitted events, which is why the guard is a single byte-compared
 # predicate rather than one condition per trigger.
 #
-# DO NOT REDUCE THIS TO A SINGLE TRIGGER, AND DO NOT ADD A FOURTH. The three
-# events below are load-bearing (see the `on:` block) and the admitted set is
-# CLOSED in one place — `scripts/workflow_runner_policy_check.rb`'s
-# ALLOWED_TRIGGERS. Widening it is a maintainer ruling, not a template
-# variation: `check_suite` in particular is deliberately refused, because its
+# THE TRIGGER SET IS TWO EVENTS, AND IT IS CLOSED. The admitted set lives in one
+# place — `scripts/workflow_runner_policy_check.rb`'s ALLOWED_TRIGGERS — and
+# widening it is a maintainer ruling, not a template variation. Do not reduce
+# this to `pull_request_target` alone: the verdict would then be computed at push
+# time while the checks are still pending and never recomputed, so the `ready`
+# transition would essentially never be published. And do not add a third:
+# `pull_request_review_thread` in particular WAS TRIED AND REMOVED, because it is
+# a webhook event and NOT a supported Actions trigger — a workflow naming it
+# cannot register at all. `check_suite` is refused for a different reason: its
 # payload carries no `github.event.pull_request` (only `check_suite.pull_requests[]`),
 # so it would need a second and weaker guard, and it fires for forks.
 # `tenkai_adopt.sh` reports a rendered workflow whose trigger set is not exactly
-# these three as DRIFT, in both directions.
+# these two as DRIFT, in both directions.
 #
 # ---- provenance: the rationale this template inherits, unchanged ----
 #
@@ -121,26 +125,20 @@
 # the merge decision stays exactly where it was.
 
 on:
-  # THREE EVENTS, BECAUSE THE VERDICT DEPENDS ON THREE KINDS OF CHANGE. With
-  # `pull_request_target` alone the verdict is computed at push time -- while the
-  # checks are still pending -- and never recomputed, so the `ready` transition
-  # is essentially never published and this check reads not-ready almost always.
-  # That defeats the whole purpose, and it is what the automated reviewer caught
-  # on #80. Admitted by the maintainer's ruling of 2026-09-19; the closed set
-  # lives in `scripts/workflow_runner_policy_check.rb`'s ALLOWED_TRIGGERS and
-  # each workflow's exact set is frozen in EXPECTED_TYPES.
+  # TWO EVENTS. `pull_request_review_thread` WAS TRIED AND REMOVED: it exists as a
+  # WEBHOOK event but is not a supported Actions trigger, so a workflow naming it
+  # cannot register. GitHub's own event reference lists `pull_request_review` and
+  # `pull_request_review_comment` and not that one. Caught by the automated
+  # reviewer on #78 and confirmed against the documentation.
   pull_request_target:
-    # No `edited`: the verdict reads checks, rounds and threads, and none of
-    # those changes when the body or title is edited.
-    types: [opened, synchronize, reopened]
+    # `review_requested` / `review_request_removed` are inputs to CON-32(b) in
+    # their own right: `nen pr ready` distinguishes a round that is IN FLIGHT
+    # from one that is OWED, so adding or removing a reviewer changes the answer.
+    # No `edited`: the verdict never reads the body or the title.
+    types: [opened, synchronize, reopened, review_requested, review_request_removed]
   # CON-32(b) / CON-16 -- a reviewer round landing, changing or being dismissed.
   pull_request_review:
     types: [submitted, edited, dismissed]
-  # CON-32(d) -- the unresolved-threads conjunct. Thread resolution has its OWN
-  # event; `pull_request_review_comment` fires on comment CRUD and would never
-  # see a thread being resolved.
-  pull_request_review_thread:
-    types: [resolved, unresolved]
 
 concurrency:
   group: pr-readiness-${{ github.event.pull_request.number }}
@@ -150,6 +148,12 @@ permissions:
   checks: write
   contents: read
   pull-requests: read
+  # REQUIRED, not defensive. `nen pr ready` follows the rollup's own
+  # `checkSuite.workflowRun` sub-field, and `checks:read` alone does not reach it
+  # -- claude/skills/pr-state/SKILL.md 3 documents the exact failure: the verb
+  # answers `unevaluated: the check rollup could not be read`, which this job
+  # would then publish as a green-but-undetermined check.
+  actions: read
 
 jobs:
   readiness:
@@ -157,31 +161,6 @@ jobs:
     runs-on: @@RUNS_ON@@
     timeout-minutes: 10
     steps:
-      - name: Start check on the exact PR head
-        # CREATED `completed`/`success`, NOT `in_progress`, and that is the fix for
-        # a confirmed self-block. An `in_progress` check run has `conclusion: null`,
-        # which is outside nen's {SUCCESS, NEUTRAL, SKIPPED}, so if it reaches the
-        # rollup this job fails CON-32(a) BECAUSE OF ITSELF. `--exclude-run` drops by
-        # run id, and that is NOT sufficient: verified live on zheref/hatsu#75, an
-        # API-created check run is attached to an arbitrary `github-actions` check
-        # suite for the SHA -- the `surface-mirror-check` API check created by run
-        # 35450471186 is attributed to run 35450471173. So the exclusion can miss
-        # this job's own check, intermittently. Creating it already-green removes
-        # the window entirely: the conclusion never carried information anyway (see
-        # the header), so there is nothing to withhold until the verdict lands. The
-        # title says `evaluating` until the final step PATCHes the real verdict in.
-        # `--exclude-run` is kept below as defence in depth, not as the guarantee.
-        id: head_check
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          id="$(gh api --method POST "repos/${REPO}/check-runs" -f name=readiness -f head_sha="$HEAD_SHA" -f status=completed -f conclusion=success -f 'output[title]=readiness — evaluating' -f 'output[summary]=The verdict has not been computed yet. This check is always `success` by construction; read the title.' --jq .id)"
-          echo "id=$id" >> "$GITHUB_OUTPUT"
-
       - name: Checkout PR head (data only — nothing from here is executed)
         uses: actions/checkout@v7
         with:
@@ -189,9 +168,17 @@ jobs:
           persist-credentials: false
 
       - name: Checkout guard code from the trusted workflow revision
+        # `github.event.pull_request.base.sha`, NOT `github.sha`. On
+        # `pull_request_target` those agree, but on `pull_request_review`
+        # `github.sha` is the LAST MERGE COMMIT ON THE PR BRANCH -- PR-controlled
+        # content. Checking that out here would load the policy guard, the
+        # dependency pin and the gates file from the pull request and then run
+        # them with GH_TOKEN, which is the whole trust boundary inverted. The
+        # base SHA is a commit on the base branch on every event this workflow
+        # subscribes to.
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.base.sha }}
           path: .trusted
           persist-credentials: false
 
@@ -305,23 +292,74 @@ jobs:
             printf 'summary<<%s\n%s\n%s\n' "$d" "$explain" "$d"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Finish check on the exact PR head
-        if: ${{ always() && steps.head_check.outputs.id != '' }}
+      - name: Confirm the verdict still describes the event head
+        # `nen pr ready` takes a PR NUMBER and reads that PR's LIVE head, but the
+        # check run was created against `github.event.pull_request.head.sha`.
+        # Cancellation is not atomic, so an in-flight older run can evaluate a
+        # NEWER head and PATCH that verdict onto the older SHA's check -- a
+        # verdict about a tree that check does not describe. Concurrency makes
+        # this rare, not impossible, which is exactly the kind of race that shows
+        # up once and is never reproduced.
+        id: fresh
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-          CHECK_ID: ${{ steps.head_check.outputs.id }}
+          PR: ${{ github.event.pull_request.number }}
+          EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          live="$(gh api "repos/${REPO}/pulls/${PR}" --jq .head.sha 2>/dev/null || true)"
+          if [ -z "$live" ]; then
+            echo "stale=unknown" >> "$GITHUB_OUTPUT"
+          elif [ "$live" = "$EVENT_HEAD" ]; then
+            echo "stale=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "stale=yes" >> "$GITHUB_OUTPUT"
+            echo "head moved ${EVENT_HEAD} -> ${live}; this run's verdict is not published"
+          fi
+
+      - name: Publish the check on the exact PR head
+        # CREATED HERE, AFTER THE VERDICT, AND THAT ORDERING IS LOAD-BEARING.
+        # This check is always `success` (see the header), so if it existed while
+        # `nen pr ready` ran it would be a REPORTED GREEN CHECK -- and CON-32(a)
+        # passes on a non-empty all-green rollup while FAILING on an empty one.
+        # On a pull request with no other checks the gate would then read `ready`
+        # because of this check's own existence: a false READY, which is the
+        # worst failure this signal has. Creating it only now means the rollup
+        # the verdict saw never contained it.
+        #
+        # `always()`, so a failure in any earlier step still publishes an honest
+        # `undetermined` rather than leaving the pull request with no check at
+        # all -- fail closed, visibly.
+        if: ${{ always() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           TITLE: ${{ steps.verdict.outputs.title }}
           SUMMARY: ${{ steps.verdict.outputs.summary }}
+          STALE: ${{ steps.fresh.outputs.stale }}
         shell: bash
         run: |
           set -euo pipefail
           title="${TITLE:-readiness undetermined — the verdict step did not report}"
           summary="${SUMMARY:-The readiness step did not complete. Nothing is asserted about this PR.}"
+          # A verdict computed against a head that has since moved describes a
+          # different tree than this check run. Say so rather than publishing it.
+          if [ "${STALE:-}" = "yes" ]; then
+            title="superseded — the head moved while this run was evaluating"
+            summary="A newer commit was pushed before this run finished, so its verdict would have described a different tree. The run for the new head publishes the verdict that counts. Nothing is asserted about this SHA."
+          elif [ "${STALE:-}" != "no" ]; then
+            title="readiness undetermined — could not confirm the head"
+            summary="The live head could not be read, so this run cannot confirm its verdict describes this SHA. Nothing is asserted."
+          fi
           # Always `success`: see the header. The verdict is the title, never the
           # conclusion, so this check can never be the red check that makes
           # CON-32(a) unsatisfiable.
-          gh api --method PATCH "repos/${REPO}/check-runs/${CHECK_ID}" \
+          gh api --method POST "repos/${REPO}/check-runs" \
+            -f name=readiness \
+            -f head_sha="$HEAD_SHA" \
             -f status=completed \
             -f conclusion=success \
             -f "output[title]=${title}" \

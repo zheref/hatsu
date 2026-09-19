@@ -195,43 +195,57 @@ provenance banner that quotes the defect it prevents, including the literal slug
   **PR head checkout**, so losing the flag hands the pull request the gate that judges it. It reads
   as a harmless simplification and is not one;
 - any surviving `@@TOKEN@@`, which means the file was copied rather than rendered;
-- a **trigger set that is not exactly the admitted three** — § 5c, and the direction that matters is
-  the missing one.
+- a **trigger set that is not exactly the admitted two** — § 5c; it matters in both directions,
+  because an extra one may be an event no workflow can even register with.
 
-### 5c · The three admitted triggers — required, and the set is closed
+### 5c · The two admitted triggers — required, and the set is closed
 
-**Maintainer's ruling, 2026-09-19.** The rendered workflow declares **three** events, and Tenkai
-reports a set that is not exactly those three as `drift` **in both directions**.
+**Maintainer's ruling, 2026-09-19, as corrected the same day.** The rendered workflow declares
+**two** events, and Tenkai reports a set that is not exactly those two as `drift` **in both
+directions**.
 
 | Event | Types | The conjunct it exists for |
 |---|---|---|
-| `pull_request_target` | `opened, synchronize, reopened` | the head moving. **No `edited`** — the verdict reads checks, rounds and threads, none of which change when a title or body does |
+| `pull_request_target` | `opened, synchronize, reopened, review_requested, review_request_removed` | the head moving, **and** `CON-32(b)` in its own right — `nen pr ready` distinguishes a round *in flight* from one that is *owed*, so adding or removing a reviewer changes the answer. **No `edited`**: the verdict never reads the body or the title |
 | `pull_request_review` | `submitted, edited, dismissed` | `CON-32(b)` / `CON-16` — a reviewer round landing, changing or being dismissed |
-| `pull_request_review_thread` | `resolved, unresolved` | `CON-32(d)` — thread resolution has its **own** event; `pull_request_review_comment` fires on comment CRUD and would never see a thread resolved |
 
 **A missing trigger is a bug, not a simplification.** With `pull_request_target` alone the verdict is
-computed at **push time — while the checks are still pending — and is never recomputed.** Three of
-the five conjuncts change on events that trigger cannot see, so the **`ready` transition, which is
-exactly the moment worth publishing, would essentially never be published** and the check would read
-not-ready almost always. **A consumer provisioned with the single-trigger form inherits precisely
-that**, which is why the engine treats an absent trigger as drift and names the consequence rather
-than the absence.
+computed at **push time — while the checks are still pending — and is never recomputed.** The
+`ready` transition, which is exactly the moment worth publishing, would essentially never be
+published and the check would read not-ready almost always. **A consumer provisioned with the
+single-trigger form inherits precisely that**, which is why the engine treats an absent trigger as
+drift and names the consequence rather than the absence.
+
+**`pull_request_review_thread` was admitted briefly and REMOVED, and the correction is worth stating
+plainly because this skill shipped the error.** It exists as a **webhook** event but is **not a
+supported Actions trigger**, so **a workflow naming it cannot register at all** — GitHub's event
+reference lists `pull_request_review` and `pull_request_review_comment` and not that one. An earlier
+version of `scripts/tenkai_adopt.sh` *required* it, which meant `apply` would have reported a correct
+workflow as drift and then rendered one that does not run: **the adoption tool actively breaking the
+repository it was adopting.** It is now refused as firmly as any other non-admitted event, with a
+fixture whose whole job is to stop it being re-adopted.
 
 **The set is CLOSED, and widening it is a ruling rather than a template variation.**
-`scripts/workflow_runner_policy_check.rb`'s `ALLOWED_TRIGGERS` holds it in one place. All three
-admitted events carry `github.event.pull_request`, which is *why* these three: one job condition and
-one `github.event.pull_request.number` work unchanged across them under a **single** byte-compared
+`scripts/workflow_runner_policy_check.rb`'s `ALLOWED_TRIGGERS` holds it in one place. Both admitted
+events carry `github.event.pull_request`, which is *why* these two: one job condition and one
+`github.event.pull_request.number` work unchanged across them under a **single** byte-compared
 same-repository guard — so the guard stays one expression even though Tenkai parameterises its slug.
-**`check_suite` is deliberately refused**: its payload carries only `check_suite.pull_requests[]`, so
-it would need a second and weaker guard, and it fires for forks. A consumer that appears to need it
-is a **`G5` to escalate**, never a variation Tenkai renders.
+**`check_suite` is refused for a different reason**: its payload carries only
+`check_suite.pull_requests[]`, so it would need a second and weaker guard, and it fires for forks. A
+consumer that appears to need either is a **`G5` to escalate**, never a variation Tenkai renders.
 
-> **One residual gap, named rather than papered over.** A check **completing** still fires nothing.
-> In the normal flow — push, then checks, then a reviewer round — the review event is the last input
-> and re-evaluates once the checks are green, so the common path is covered. **A pull request whose
-> last changing input is a check — a re-run with no review after it — stays stale until something
-> else happens.** Closing that needs an admitted `check_suite`-shaped trigger and the second guard it
-> would require, which is the ruling above.
+> **`CON-32(d)` has NO trigger available at all, and that is a named limitation rather than an
+> oversight.** Thread resolution has no supported Actions trigger, so a pull request whose last
+> changing input is a thread being resolved keeps a stale verdict. **A check *completing* fires
+> nothing either.** In the normal flow — push, then checks, then a reviewer round — the review event
+> is the last input and re-evaluates once the checks are green, so the common path is covered. A pull
+> request whose last changing input is a check re-run with no review after it stays stale until
+> something else happens.
+
+**The engine parses the `on:` block itself rather than matching a list of known event names.** An
+earlier draft intersected the keys it found against a hand-kept allowlist, so an **unrecognised**
+trigger was silently dropped instead of flagged — the one case worth refusing was the one case it
+could not see. There is no list to fall out of date now.
 
 ### 5a · The two-PR ordering — handled, never hit
 

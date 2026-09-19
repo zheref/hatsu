@@ -70,28 +70,34 @@ CONTRACT = "hatsu.tenkai.adoption/v0.1"
 HOSTED_RUNNER = "ubuntu-latest"
 WORKFLOW_PATH = ".github/workflows/pr-readiness.yml"
 
-# THE ADMITTED PRIVILEGED TRIGGERS — maintainer's ruling, 2026-09-19. The closed
-# set lives in `scripts/workflow_runner_policy_check.rb`'s ALLOWED_TRIGGERS and
-# is mirrored here so a CONSUMER's rendered workflow is held to it too.
+# THE ADMITTED PRIVILEGED TRIGGERS — maintainer's ruling, 2026-09-19, as
+# corrected the same day. The closed set lives in
+# `scripts/workflow_runner_policy_check.rb`'s ALLOWED_TRIGGERS and is mirrored
+# here so a CONSUMER's rendered workflow is held to it too.
 #
-# WHY ALL THREE ARE REQUIRED, NOT MERELY PERMITTED. With `pull_request_target`
-# alone the verdict is computed at PUSH time -- while the checks are still
-# pending -- and is never recomputed. Three of the five conjuncts change on
-# events that trigger cannot see: CON-32(a) when a check completes, CON-32(b)/
-# CON-16 when a review lands, CON-32(d) when a thread resolves. So the `ready`
-# transition, which normally happens when the reviewer approves or the last
-# check passes, would essentially never be published and the check would read
-# not-ready almost always. A consumer provisioned with the single-trigger form
-# inherits exactly that bug, which is why a MISSING trigger is drift and not a
-# stylistic difference.
+# WHY BOTH ARE REQUIRED, NOT MERELY PERMITTED. With `pull_request_target` alone
+# the verdict is computed at PUSH time -- while the checks are still pending --
+# and is never recomputed. The conjuncts change on events that trigger cannot
+# see: CON-32(b)/CON-16 when a review lands. So the `ready` transition, which
+# normally happens when the reviewer approves, would essentially never be
+# published and the check would read not-ready almost always. A consumer
+# provisioned with the single-trigger form inherits exactly that bug, which is
+# why a MISSING trigger is drift and not a stylistic difference.
 #
-# WHY NOT A FOURTH. All three carry `github.event.pull_request`, so ONE job
-# condition and one `github.event.pull_request.number` work unchanged across
-# them under a single byte-compared same-repository guard. `check_suite` is
-# deliberately refused: its payload has only `check_suite.pull_requests[]`, so it
-# would need a second and weaker guard, and it fires for forks. A consumer that
-# appears to need it is a ruling to escalate, never a template variation.
-REQUIRED_TRIGGERS = ("pull_request_target", "pull_request_review", "pull_request_review_thread")
+# WHY NOT A THIRD. `pull_request_review_thread` WAS ADMITTED BRIEFLY AND REMOVED,
+# and this is the correction that matters most here: it is a WEBHOOK event and
+# NOT a supported Actions trigger, so a workflow naming it CANNOT REGISTER AT
+# ALL. An earlier version of this file required it, which meant `apply` would
+# have reported a correct workflow as drift and then "repaired" it into one that
+# does not run -- the tool actively breaking the consumer it was adopting.
+# `check_suite` is refused for a different reason: its payload carries no
+# `github.event.pull_request` (only `check_suite.pull_requests[]`), so it would
+# need a second and weaker guard, and it fires for forks. Either way a consumer
+# that appears to need one is a ruling to escalate, never a template variation.
+#
+# CON-32(d) -- unresolved threads -- therefore has NO TRIGGER AVAILABLE. That is
+# a named limitation, not an oversight, and § 5c of the skill states it.
+REQUIRED_TRIGGERS = ("pull_request_target", "pull_request_review")
 GUARD_PATH = "scripts/workflow_runner_policy_check.rb"
 
 # States, most-satisfied first. `apply` turns missing/drift into repaired; it
@@ -175,6 +181,27 @@ def derive_runner(visibility, self_hosted, portable=True):
                   f"apply to a private repository. Falls back to {HOSTED_RUNNER} if the runner is gone",
         "derived_from": {"visibility": visibility, "self_hosted": self_hosted, "portable": portable},
     }
+
+
+def _on_block(live: str) -> str:
+    """The workflow's `on:` mapping, and nothing else.
+
+    Everything under `on:` is indented; the block ends at the next line that
+    starts in column 0. Taking the whole file instead would pick up `jobs:` and
+    every step key, and matching a list of known event names would silently drop
+    the unknown ones -- which are precisely the ones worth refusing.
+    """
+    lines = live.splitlines()
+    try:
+        start = next(i for i, l in enumerate(lines) if l.rstrip() == "on:")
+    except StopIteration:
+        return ""
+    out = []
+    for l in lines[start + 1:]:
+        if l.strip() and not l.startswith(" "):
+            break
+        out.append(l)
+    return "\n".join(out)
 
 
 # --------------------------------------------------------------------------
@@ -506,10 +533,14 @@ class ReadinessWorkflow(Item):
             drifts.append("still carries unsubstituted @@TOKEN@@ placeholders")
         # THE TRIGGER SET, IN BOTH DIRECTIONS. A missing trigger is the
         # single-trigger bug; an extra one is outside the admitted closed set.
-        declared = set(re.findall(r"^  ([a-z_]+):", live, re.M)) & (
-            set(REQUIRED_TRIGGERS) | {"push", "check_suite", "check_run", "pull_request",
-                                      "pull_request_review_comment", "issue_comment", "schedule",
-                                      "workflow_dispatch", "workflow_run", "status"})
+        # PARSE THE `on:` BLOCK, NEVER MATCH AGAINST A LIST OF KNOWN EVENTS. An
+        # earlier draft intersected the found keys with a hand-kept allowlist of
+        # event names, which meant any event NOT on that list was silently
+        # dropped instead of flagged -- so the one case that matters most, an
+        # unrecognised trigger, was the one case it could not see. The self-test
+        # caught it on `pull_request_review_thread`. Taking every key inside the
+        # block has no list to fall out of date.
+        declared = set(re.findall(r"^  ([a-z_]+):", _on_block(live), re.M))
         absent = [t for t in REQUIRED_TRIGGERS if t not in declared]
         if absent:
             drifts.append(f"does not declare {', '.join(absent)} — with pull_request_target alone the "
@@ -682,19 +713,34 @@ def self_test():
     check("--gates is restored", ReadinessWorkflow().detect(ctx_for(d))["state"] == SATISFIED)
 
     # THE SINGLE-TRIGGER BUG, which a consumer would otherwise inherit silently.
-    t = w.read_text()
-    for ev in ("pull_request_review", "pull_request_review_thread"):
-        t = re.sub(rf"^  {ev}:\n(?:    .*\n)*", "", t, flags=re.M)
+    t = re.sub(r"^  pull_request_review:\n(?:    .*\n)*", "", w.read_text(), flags=re.M)
     w.write_text(t)
     row = ReadinessWorkflow().detect(ctx_for(d))
     check("a single-trigger workflow is DRIFT", row["state"] == DRIFT)
     check("and the never-recomputed consequence is named, not just the absence",
           "NEVER recomputed" in row["detail"])
     ReadinessWorkflow().repair(ctx_for(d))
-    check("all three triggers are restored",
+    check("both admitted triggers are restored",
           ReadinessWorkflow().detect(ctx_for(d))["state"] == SATISFIED)
 
-    # A FOURTH TRIGGER, outside the admitted closed set.
+    # THE REGRESSION THAT WOULD HAVE BROKEN EVERY CONSUMER. An earlier version of
+    # this engine REQUIRED pull_request_review_thread. It is a webhook event and
+    # not an Actions trigger, so a workflow naming it cannot register -- `apply`
+    # would have reported a correct workflow as drift and then rendered one that
+    # does not run. It must now be refused as firmly as any other non-admitted
+    # event, so this fixture is the guard against re-adopting it.
+    t = w.read_text().replace(
+        "  pull_request_review:\n",
+        "  pull_request_review_thread:\n    types: [resolved, unresolved]\n  pull_request_review:\n", 1)
+    w.write_text(t)
+    row = ReadinessWorkflow().detect(ctx_for(d))
+    check("pull_request_review_thread is DRIFT — it cannot register at all",
+          row["state"] == DRIFT and "pull_request_review_thread" in row["detail"])
+    ReadinessWorkflow().repair(ctx_for(d))
+    check("it is removed again by repair",
+          ReadinessWorkflow().detect(ctx_for(d))["state"] == SATISFIED)
+
+    # ANOTHER NON-ADMITTED TRIGGER, refused for its own separate reason.
     t = w.read_text().replace("  pull_request_review:\n",
                               "  check_suite:\n    types: [completed]\n  pull_request_review:\n", 1)
     w.write_text(t)
@@ -706,9 +752,18 @@ def self_test():
     ReadinessWorkflow().repair(ctx_for(d))
     check("the admitted set is restored", ReadinessWorkflow().detect(ctx_for(d))["state"] == SATISFIED)
 
-    check("the shipped template itself declares exactly the admitted three",
-          all(f"\n  {ev}:" in (root / "templates" / "pr-readiness.yml").read_text()
-              for ev in REQUIRED_TRIGGERS))
+    # THE SHIPPED TEMPLATE ITSELF, checked on its LIVE yaml rather than its prose
+    # -- the banner legitimately discusses the event it refuses.
+    tmpl = (root / "templates" / "pr-readiness.yml").read_text()
+    tmpl_live = "\n".join(l for l in tmpl.splitlines() if not l.lstrip().startswith("#"))
+    check("the shipped template declares exactly the admitted two",
+          re.findall(r"^  (pull_request[a-z_]*):", tmpl_live, re.M) == list(REQUIRED_TRIGGERS))
+    check("the shipped template does NOT name the unregistrable event in live yaml",
+          "pull_request_review_thread:" not in tmpl_live)
+    check("the shipped template carries the widened CON-32(b) types",
+          "review_requested" in tmpl_live and "review_request_removed" in tmpl_live)
+    check("the engine mirrors the guard's own ALLOWED_TRIGGERS",
+          set(REQUIRED_TRIGGERS) == {"pull_request_target", "pull_request_review"})
 
     hook = ctx_for(d).git_dir / "hooks" / "commit-msg"
     hook.write_text("#!/bin/sh\n# somebody's own hook\nexit 0\n")
