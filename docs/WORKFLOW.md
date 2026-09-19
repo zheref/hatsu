@@ -62,6 +62,22 @@ Nen #204 dependency, temporary workaround removal and the release hold covering 
 
 ---
 
+## Which gate a change stands at — ruling of 2026-09-18
+
+**This document defines the *phases*; [`ROSTER.md`](ROSTER.md) defines the *gates*.**
+[`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*
+is the authority and carries the ruling, the incident behind it and the measured invocations. **This
+section states only the consequence for the two configuration files § 1 is about, and deliberately
+does not restate the rule or the path sets** — a second copy of either is the drift this document's
+own precedence note exists to prevent.
+
+**The consequence:** `nen/workflow.json` and `nen/contract.json` are **this** repository's canon, so
+editing them here is **G4**. **The same two files in a consumer repository are that repository's own
+setup, and editing them there is G2** — the file name is not the gate. The same goes for a consumer's
+`nen/gates.json`, its CI workflow and its `scripts/` entries.
+
+---
+
 ## 1 · Two files, and the line between them
 
 There are two execution/policy configuration files, and the split is not stylistic. It is the difference between a

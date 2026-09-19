@@ -1295,8 +1295,16 @@ rewrite; [`docs/ROSTER.md`](docs/ROSTER.md) carries the same table.
 | **G1-M — Release into build** — applying the building stage label | `CON-25` | **The one delegated crossing** — only under `CON-25`'s four exhaustive, named carve-outs |
 | **G2 — Merge to `main`** | `CON-5` | **Never** by these agents. No agent here merges `main`, or its own PR anywhere. |
 | **G3 — Release go/no-go** | `CON-6` | **Never.** Preparing a release is allowed; publishing is not. |
-| **G4 — Policy / spec change** | `CON-7` | **Never** |
+| **G4 — Policy / spec change**, meaning **authoring or maintaining a canon repository** — `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`, whose product *is* the process | `CON-7` | **Never** |
 | **G5 — Anything else human-only** | `CON-47` | **Never** — its definition *is* "the decision is yours" |
+
+> **G4 is the repository's role, not the file's kind (maintainer's ruling, 2026-09-18).** A change is
+> G4 when merging it changes what a *different* repository does — which is true only in the canon
+> repositories listed above. A consumer repository declaring its own `nen/contract.json`,
+> `nen/workflow.json`, `nen/gates.json`, a CI workflow or a `scripts/` entry is **configuration of how
+> the system is set up there**; it governs nothing but itself and stands at **G2**.
+> [`docs/ROSTER.md`](docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind* is the full record, with the incident
+> that produced it and what it changed in the skills.
 
 **No agent in this roster casts a `request_changes` review — for any reason, on any PR.** They run on your
 credentials, so GitHub records the vote as **yours**, and casting one manufactures your governance vote on a

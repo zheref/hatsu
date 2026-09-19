@@ -87,6 +87,12 @@ tests/report_cancelled_build.bats
 
 Gate, from the diff alone:
 
+> **Dated note, 2026-09-18 — and only because the target is a CANON repository.** The maintainer's
+> ruling of 2026-09-18 ([`docs/ROSTER.md`](../ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*): G4 is authoring
+> or maintaining a canon repository (`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`); everything else,
+> including a consumer repository's own `nen/*.json` or CI workflow, is G2 configuration. The run
+> below is the reference repository answering about itself and stands verbatim.
+
 ```
 $ nen gate derive --repo <reference-repo checkout> \
   --policy-paths "CONSTITUTION.md,handbooks/,agents/,schemas/" \
