@@ -60,6 +60,7 @@ python3 - "$@" <<'PY'
 import json
 import os
 import re
+import hashlib
 import shutil
 import subprocess
 import sys
@@ -67,6 +68,7 @@ import tempfile
 from pathlib import Path
 
 CONTRACT = "hatsu.tenkai.adoption/v0.1"
+_FIXTURES: list = []
 HOSTED_RUNNER = "ubuntu-latest"
 WORKFLOW_PATH = ".github/workflows/pr-readiness.yml"
 
@@ -118,6 +120,26 @@ NEN_DECLARATIONS = [
 ]
 
 
+def _atomic_write(path: Path, text: str):
+    """Write through a temp file in the same directory, then os.replace.
+
+    A direct `write_text` that dies mid-call leaves a TRUNCATED workflow or hook
+    behind rather than the previous one -- and these are files a repository's CI
+    depends on. `scripts/hanten_cycle_ledger.sh` already writes this way.
+    """
+    fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".tenkai-", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w") as fh:
+            fh.write(text)
+        os.replace(tmp, str(path))
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
 def usage(msg):
     print(f"tenkai_adopt: {msg}", file=sys.stderr)
     raise SystemExit(2)
@@ -150,6 +172,7 @@ def derive_runner(visibility, self_hosted, portable=True):
     if visibility is None:
         return {
             "runs_on": HOSTED_RUNNER,
+            "labels_required": False,
             "fallback": HOSTED_RUNNER,
             "reason": "repository visibility could not be read, so the hosted runner is used — "
                       "the derivation never guesses toward a runner that might not exist",
@@ -158,6 +181,7 @@ def derive_runner(visibility, self_hosted, portable=True):
     if visibility != "private":
         return {
             "runs_on": HOSTED_RUNNER,
+            "labels_required": False,
             "fallback": HOSTED_RUNNER,
             "reason": f"repository is {visibility}: hosted standard runners are free and unlimited, "
                       "so there is no bill to avoid, and GitHub advises against self-hosted runners "
@@ -167,14 +191,23 @@ def derive_runner(visibility, self_hosted, portable=True):
     if not self_hosted:
         return {
             "runs_on": HOSTED_RUNNER,
+            "labels_required": False,
             "fallback": HOSTED_RUNNER,
             "reason": "repository is private, but zero self-hosted runners are registered: a "
                       "preference would queue this job against a runner that never appears, and a "
                       "check that never completes is worse than a bill that is currently zero",
             "derived_from": {"visibility": visibility, "self_hosted": self_hosted, "portable": portable},
         }
+    # A BARE `self-hosted` IS THE BROADEST SELECTOR THERE IS -- any runner
+    # registered to the repository OR its organisation, including runners shared
+    # with other repositories, and non-ephemeral by default while this job checks
+    # PR-controlled content into its workspace. This repository's own guard admits
+    # only LABELLED SETS for that reason, and would reject the bare scalar
+    # outright. The label set is the consumer's own data, which Tenkai does not
+    # invent -- so the derivation names the requirement instead of guessing one.
     return {
         "runs_on": "self-hosted",
+        "labels_required": True,
         "fallback": HOSTED_RUNNER,
         "reason": f"repository is private with {self_hosted} self-hosted runner(s) registered: "
                   "hosted minutes are genuinely billed here and the fork-exposure argument does not "
@@ -186,14 +219,17 @@ def derive_runner(visibility, self_hosted, portable=True):
 def _on_block(live: str) -> str:
     """The workflow's `on:` mapping, and nothing else.
 
-    Everything under `on:` is indented; the block ends at the next line that
-    starts in column 0. Taking the whole file instead would pick up `jobs:` and
-    every step key, and matching a list of known event names would silently drop
-    the unknown ones -- which are precisely the ones worth refusing.
+    `"on":` and `'on':` are accepted deliberately: bare `on` is the YAML 1.1
+    boolean `true`, so many repositories quote it ON PURPOSE. An earlier draft
+    matched the bare form only and reported a correct workflow as missing every
+    trigger -- with the consequence sentence asserted confidently about a file
+    that did not have the defect. The child indent is derived from the first
+    child line rather than assumed to be two spaces, for the same reason.
     """
     lines = live.splitlines()
     try:
-        start = next(i for i, l in enumerate(lines) if l.rstrip() == "on:")
+        start = next(i for i, l in enumerate(lines)
+                     if l.rstrip() in ('on:', '"on":', "'on':"))
     except StopIteration:
         return ""
     out = []
@@ -202,6 +238,19 @@ def _on_block(live: str) -> str:
             break
         out.append(l)
     return "\n".join(out)
+
+
+def _on_keys(live: str):
+    """Top-level event keys of the `on:` block, at whatever indent it uses."""
+    block = _on_block(live)
+    child = None
+    for l in block.splitlines():
+        if l.strip() and not l.lstrip().startswith("#"):
+            child = len(l) - len(l.lstrip())
+            break
+    if child is None:
+        return None            # an `on:` we could not parse -- NOT "declares nothing"
+    return set(re.findall(rf"^ {{{child}}}([A-Za-z_][A-Za-z0-9_-]*):", block, re.M))
 
 
 # --------------------------------------------------------------------------
@@ -221,6 +270,24 @@ def probe_gh(slug, field):
         return None
     val = out.stdout.strip()
     return int(val) if field == "runners" and val.isdigit() else (val or None)
+
+
+# GitHub's own owner/repo grammar. THE SLUG IS SUBSTITUTED INTO A SINGLE-QUOTED
+# GITHUB EXPRESSION, so a value carrying a quote does not merely render wrongly --
+# it RESTRUCTURES the predicate. Measured: an `origin` of
+# `https://github.com/acme/widget' || true || '.git` rendered
+#   if: ${{ github.repository == 'acme/widget' || true || '' && <fork limb> }}
+# which is valid YAML and reduces to `A || true || ('' && B)` -- CONSTANT TRUE,
+# because `&&` binds tighter than `||`. Both limbs die at once, and a
+# `pull_request_target` job holding `checks: write` and a token would then run on
+# FORK pull requests. The template's "a wrong slug fails CLOSED" is true of a
+# wrong slug and false of a hostile one, so the slug is validated before anything
+# consumes it -- the workflow render AND the `gh api repos/<slug>` path.
+SLUG_RE = re.compile(r"^[A-Za-z0-9._-]{1,39}/[A-Za-z0-9._-]{1,100}$")
+
+
+def slug_ok(slug):
+    return bool(slug) and bool(SLUG_RE.match(slug))
 
 
 def git_slug(repo):
@@ -249,10 +316,16 @@ def git_dir(repo):
 
 
 class Ctx:
-    def __init__(self, repo, hatsu_root, slug, visibility, self_hosted, probe):
+    def __init__(self, repo, hatsu_root, slug, visibility, self_hosted, probe, runner_labels=None):
         self.repo = repo
         self.hatsu_root = hatsu_root
         self.slug = slug or git_slug(repo)
+        # ONE gate for both the derived and the --slug path.
+        if self.slug is not None and not slug_ok(self.slug):
+            usage(f"refusing slug {self.slug!r}: not <owner>/<name> in GitHub's grammar "
+                  f"([A-Za-z0-9._-]). A slug is substituted into a single-quoted GitHub "
+                  f"expression and into a `gh api repos/<slug>` path, so a value outside that "
+                  f"grammar can restructure the job's guard predicate rather than merely break it")
         self.git_dir = git_dir(repo)
         self.notes = []
         if visibility is None and probe and self.slug:
@@ -262,6 +335,10 @@ class Ctx:
         self.visibility = visibility
         self.self_hosted = self_hosted or 0
         self.runner = derive_runner(visibility, self.self_hosted)
+        self.runner_labels = runner_labels
+        if self.runner.get("labels_required") and runner_labels:
+            self.runner["runs_on"] = runner_labels
+            self.runner["labels_required"] = False
 
     def template(self, name):
         p = self.hatsu_root / "templates" / name
@@ -346,17 +423,31 @@ class IgnoredDir(Item):
         self.rel = rel
 
     def _ignored(self, ctx):
+        """True / False / None -- and None is the point.
+
+        `git check-ignore` cannot answer in a directory that is not a repository
+        yet. Reading that as "not ignored" made `repair` APPEND unconditionally,
+        so three `apply` runs against a non-git directory produced three copies of
+        `Reports/` and `.nen/` in .gitignore -- idempotence failing in the exact
+        "new repository" case the skill's own description claims.
+        """
+        if ctx.git_dir is None:
+            return None
         probe = f"{self.rel}/probe"
         try:
             out = subprocess.run(["git", "-C", str(ctx.repo), "check-ignore", "-q", probe],
                                  capture_output=True, text=True, timeout=15)
             return out.returncode == 0
         except Exception:
-            return False
+            return None
 
     def detect(self, ctx):
         exists = (ctx.repo / self.rel).is_dir()
         ignored = self._ignored(ctx)
+        if ignored is None:
+            return self.row(BLOCKED,
+                            f"not a git repository — there is nothing to ignore {self.rel}/ into yet",
+                            "run `git init` (or `nen scaffold init`) first, then re-run apply")
         if exists and ignored:
             return self.row(SATISFIED, f"{self.rel}/ exists and is ignored")
         missing = []
@@ -372,13 +463,15 @@ class IgnoredDir(Item):
         cur = self.detect(ctx)
         if cur["state"] == SATISFIED:
             return cur
+        if cur["state"] == BLOCKED:
+            return cur
         did = []
         d = ctx.repo / self.rel
         if not d.is_dir():
             d.mkdir(parents=True, exist_ok=True)
             (d / ".gitkeep").write_text("")
             did.append("created")
-        if not self._ignored(ctx):
+        if self._ignored(ctx) is False:
             gi = ctx.repo / ".gitignore"
             prev = gi.read_text() if gi.is_file() else ""
             if prev and not prev.endswith("\n"):
@@ -388,50 +481,63 @@ class IgnoredDir(Item):
         return self.row(REPAIRED, f"{self.rel}/ " + " and ".join(did))
 
 
-class CommitMsgHook(Item):
-    """The trailer gate. Every skill that commits gates on `nen commit format`;
-    a commit typed by hand passes through none of them."""
+class NenCommitMsgHook(Item):
+    """DIAGNOSED here, REPAIRED by nen -- and the correction matters.
+
+    An earlier revision of this file RENDERED a Hatsu-authored `commit-msg` hook
+    from `templates/commit-msg`. That was wrong by this repository's own canon:
+    `docs/ROSTER.md` § 2 assigns layer (b) of the three-layer attribution
+    enforcement to "a target repository's `commit-msg` hook, generated by
+    `nen scaffold init` from `allowedAttributionTrailers`", and
+    `nen scaffold init` installs exactly that, at exactly this path, from exactly
+    that policy file.
+
+    The duplication was DESTRUCTIVE IN BOTH ORDERINGS, measured on fixtures:
+    Tenkai first, and `nen scaffold init` refuses ("a different commit-msg hook
+    already exists ... refusing to overwrite it"); nen first, and Tenkai reported
+    the generated hook as foreign drift and advised DELETING it -- so the item
+    could never reach satisfied and `apply` could never exit 0.
+
+    So this item now does what every other nen-owned item does: it asserts
+    presence and routes. Tenkai writes no hook, which also removes three
+    ways the old one could go wrong -- a write outside `--repo` through the git
+    common dir, a followed symlink, and `core.hooksPath` being ignored so the
+    hook was reported "installed and current" where git would never run it.
+    """
 
     def __init__(self):
-        super().__init__("hooks/commit-msg", "the commit trailer gate, run by git rather than by a skill", "hatsu")
+        super().__init__("hooks/commit-msg", "the commit trailer gate, generated from nen/workflow.json", "nen")
 
-    def _paths(self, ctx):
+    @staticmethod
+    def _dest(ctx):
+        """Where git will ACTUALLY look, `core.hooksPath` included."""
         gd = ctx.git_dir
-        return None if gd is None else gd / "hooks" / "commit-msg"
+        if gd is None:
+            return None
+        try:
+            out = subprocess.run(["git", "-C", str(ctx.repo), "config", "--get", "core.hooksPath"],
+                                 capture_output=True, text=True, timeout=15)
+            if out.returncode == 0 and out.stdout.strip():
+                hp = Path(out.stdout.strip())
+                return (hp if hp.is_absolute() else ctx.repo / hp) / "commit-msg"
+        except Exception:
+            pass
+        return gd / "hooks" / "commit-msg"
 
     def detect(self, ctx):
-        dest = self._paths(ctx)
+        dest = self._dest(ctx)
         if dest is None:
-            return self.row(BLOCKED, "not a git repository — there is no hooks directory to install into")
-        want = ctx.template("commit-msg")
-        if not dest.is_file():
-            return self.row(MISSING, "no commit-msg hook — the trailer policy is enforced by discipline only",
-                            "install templates/commit-msg")
-        have = dest.read_text()
-        if have != want:
-            # A hand-written hook is NOT overwritten silently. Reporting drift and
-            # naming the difference is the whole contract; `apply` re-renders only
-            # a hook that carries this template's own marker line.
-            mine = "RENDERED BY hatsu:tenkai from templates/commit-msg" in have
-            return self.row(DRIFT,
-                            "a commit-msg hook is installed but differs from the current template"
-                            + ("" if mine else " AND was not rendered by Tenkai — it will not be overwritten"),
-                            "re-render" if mine else "review by hand, then delete it and re-run apply")
-        return self.row(SATISFIED, "installed and current")
+            return self.row(BLOCKED, "not a git repository — there is no hooks directory to look in")
+        if dest.is_file():
+            return self.row(SATISFIED, f"present at {dest}")
+        return self.row(ROUTED,
+                        f"no commit-msg hook at {dest} — the repository's trailer policy is enforced "
+                        f"by the agent-side refusal and by `nen commit format` / `nen wc squash`, but "
+                        f"not by git. nen owns this hook and Tenkai does not write one",
+                        f"nen scaffold init --repo {ctx.repo} --agent-trailer Hatsu-Agent")
 
     def repair(self, ctx):
-        cur = self.detect(ctx)
-        if cur["state"] == SATISFIED:
-            return cur
-        if cur["state"] == BLOCKED:
-            return cur
-        dest = self._paths(ctx)
-        if cur["state"] == DRIFT and "will not be overwritten" in cur["detail"]:
-            return cur
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(ctx.template("commit-msg"))
-        dest.chmod(0o755)
-        return self.row(REPAIRED, f"installed at {dest}")
+        return self.detect(ctx)   # never written here; routing IS the repair
 
 
 class GuardRegistration(Item):
@@ -451,12 +557,27 @@ class GuardRegistration(Item):
     def __init__(self):
         super().__init__("guard/registration", "pr-readiness.yml registered in the workflow policy guard", "hatsu")
 
+    # THE THREE CONSTANTS THAT CONSTITUTE REGISTRATION, and only those.
+    # A whole-file substring is COMMENT-STRENGTH, not grep-strength: this
+    # repository's own guard names `pr-readiness.yml` in a COMMENT on line 13,
+    # and a guard whose only mention is `# TODO: someday register pr-readiness.yml`
+    # scored as registered -- so `apply` would write the workflow into a
+    # repository whose guard cannot know it, which is the exact pull request that
+    # fails every required check for one cause. `PORTABLE_HOSTED_WORKFLOWS` is
+    # excluded on purpose: the routed action tells the maintainer NOT to add the
+    # file there, so mentioning it must not satisfy the gate either.
+    REGISTRATION_CONSTANTS = ("EXPECTED_JOBS", "EXPECTED_TYPES", "EXPECTED_STEPS")
+
     @staticmethod
     def state_of(ctx):
         g = ctx.repo / GUARD_PATH
         if not g.is_file():
             return "absent"          # no guard: no ordering constraint at all
-        return "registered" if "pr-readiness.yml" in g.read_text() else "unregistered"
+        src = "\n".join(l for l in g.read_text().splitlines()
+                        if not l.lstrip().startswith("#"))
+        named = [c for c in GuardRegistration.REGISTRATION_CONSTANTS
+                 if re.search(rf"{c}\s*=.*?pr-readiness\.yml", src, re.S)]
+        return "registered" if len(named) == len(GuardRegistration.REGISTRATION_CONSTANTS) else "unregistered"
 
     def detect(self, ctx):
         st = self.state_of(ctx)
@@ -483,13 +604,24 @@ class ReadinessWorkflow(Item):
     def __init__(self):
         super().__init__(WORKFLOW_PATH, "the readiness check run, rendered for this repository", "hatsu")
 
+    MARKER = "RENDERED BY hatsu:tenkai"
+
     def render(self, ctx):
         t = ctx.template("pr-readiness.yml")
-        return (t.replace("@@REPO_SLUG@@", ctx.slug or "UNKNOWN")
+        return (t.replace("@@REPO_SLUG@@", ctx.slug)
                  .replace("@@RUNS_ON@@", ctx.runner["runs_on"])
                  .replace("@@RUNNER_REASON@@", ctx.runner["reason"]))
 
     def detect(self, ctx):
+        # BEFORE the file check, so `repair`'s BLOCKED early-return stops the write
+        # on a fresh repository too -- not only where a file already exists.
+        if ctx.runner.get("labels_required"):
+            return self.row(BLOCKED,
+                            "this repository derives a self-hosted runner, but a BARE `self-hosted` "
+                            "selects any runner registered to the repository or its organisation — "
+                            "the policy guard admits only labelled sets, and the labels are this "
+                            "repository's own data, which Tenkai does not invent",
+                            "pass --runner-labels '[self-hosted, <OS>, <arch>]'")
         p = ctx.repo / WORKFLOW_PATH
         gate = GuardRegistration.state_of(ctx)
         if not p.is_file():
@@ -505,7 +637,7 @@ class ReadinessWorkflow(Item):
             return self.row(BLOCKED, "installed, but this repository's slug could not be read, so the "
                                      "gate predicate cannot be checked",
                             "pass --slug <owner/name>")
-        drifts = []
+        drifts, notes = [], []
         # ANALYSE THE LIVE YAML, NEVER THE COMMENTS. This template carries a long
         # provenance banner that QUOTES the defect it exists to prevent --
         # including the literal `github.repository == \'zheref/hatsu\'` and the word
@@ -522,13 +654,72 @@ class ReadinessWorkflow(Item):
                           f"event and publishes nothing, with no error anywhere")
         elif not m:
             drifts.append("carries no `github.repository ==` gate predicate")
-        m = re.search(r"runs-on:\s*(\S+)", live)
-        if m and m.group(1) != ctx.runner["runs_on"]:
+        # AN UNREADABLE FACT IS NOT A CHANGED FACT. The ruling "unreadable ->
+        # hosted" governs RENDERING A NEW FILE. Reused as the drift EXPECTATION it
+        # means an offline `apply` reports a correct `self-hosted` as drift and then
+        # silently reverts it -- resolving "could not read" toward a write. When the
+        # probe could not answer, this limb is reported unchecked and left alone.
+        m = re.search(r"runs-on:\s*(\[[^\]]*\]|\S+)", live)
+        if ctx.visibility is None:
+            notes.append("runner limb unread: `gh` could not answer for this repository, so "
+                         "`runs-on` was not compared and will not be rewritten")
+        elif m and m.group(1) != ctx.runner["runs_on"]:
             drifts.append(f"runs-on is '{m.group(1)}', but this repository derives "
                           f"'{ctx.runner['runs_on']}' ({ctx.runner['reason']})")
-        if "--gates" not in live:
-            drifts.append("the verdict step does not pass --gates, so nen falls back to the PR head "
-                          "checkout's own gates file — the PR would supply the gate that judges it")
+        # THE INVARIANTS THE TEMPLATE SAYS IT INHERITS. Checking the slug, the
+        # runner and the triggers left every security property of a PRIVILEGED,
+        # CREDENTIALED workflow unchecked: a rendered file was mutated with the
+        # trust boundary inverted, `persist-credentials` dropped, write scopes
+        # added, a PR-controlled `${{ }}` put inside a `run:` body, and `--gates`
+        # downgraded -- and `diagnose` still said `ok`. In a consumer with no
+        # policy guard of its own, THIS IS THE ONLY SAFETY NET the workflow has.
+        #
+        # `--gates` is matched as the WHOLE ARGUMENT, not as a flag name: the
+        # repository's own Ruby guard documents why a substring is not enough --
+        # `--gates nen/gates.json` satisfies a substring test and resolves against
+        # the PR HEAD checkout, handing the pull request the gate that judges it.
+        if '--gates "$PWD/.trusted/nen/gates.json"' not in live:
+            drifts.append("the verdict step does not pass --gates with the TRUSTED absolute path, so "
+                          "nen falls back to the PR head checkout's own gates file — the PR would "
+                          "supply the gate that judges it")
+        # SCOPE THE TRUSTED-REF CHECK TO ITS OWN STEP BLOCK. A fixed character
+        # window reached back into the PRECEDING PR-head checkout step and
+        # reported every correct file as inverted -- a false positive that, under
+        # `apply`, would have rewritten a good workflow. Steps are split on their
+        # own `- name:` boundary instead.
+        steps = re.split(r"\n(?=\s*- name:)", live)
+        trusted = [b for b in steps if re.search(r"path:\s*\.trusted", b)]
+        if not trusted:
+            drifts.append("there is no `.trusted` checkout — the guard and the pin would come from "
+                          "the pull request's own tree")
+        else:
+            for blk in trusted:
+                if re.search(r"ref:.*pull_request\.head", blk):
+                    drifts.append("the .trusted checkout takes the PR HEAD ref — the trust boundary "
+                                  "is inverted and the guard judging the PR would be the PR's own copy")
+                    break
+        # PER CHECKOUT STEP, not a global count. Counting occurrences meant
+        # deleting one from a file that happened to carry three still read as
+        # "enough", so the step that actually lost its credential guard was
+        # invisible. Every `actions/checkout` is asked individually.
+        for blk in steps:
+            if "actions/checkout" in blk and "persist-credentials: false" not in blk:
+                name = re.search(r"- name:\s*(.+)", blk)
+                drifts.append(f"a checkout step is missing `persist-credentials: false` "
+                              f"({name.group(1).strip() if name else 'unnamed'}), leaving a "
+                              f"credential in the workspace of a pull_request_target job")
+        m_perm = re.search(r"^permissions:\n((?:  .*\n)+)", live, re.M)
+        if m_perm:
+            bad = [l.strip() for l in m_perm.group(1).splitlines()
+                   if "write" in l and not l.strip().startswith("checks:")]
+            if bad:
+                drifts.append(f"the permissions block grants write beyond `checks`: {', '.join(bad)} — "
+                              f"a pull_request_target job holds a base-repository credential")
+        for blk in re.findall(r"run:\s*\|\n((?:[ \t]+.*\n)+)", live):
+            if "${{" in blk:
+                drifts.append("a `run:` body interpolates `${{ }}` — PR-controlled text would reach "
+                              "the runner's shell; pass it through `env:` instead")
+                break
         if "@@" in text:
             drifts.append("still carries unsubstituted @@TOKEN@@ placeholders")
         # THE TRIGGER SET, IN BOTH DIRECTIONS. A missing trigger is the
@@ -540,7 +731,10 @@ class ReadinessWorkflow(Item):
         # unrecognised trigger, was the one case it could not see. The self-test
         # caught it on `pull_request_review_thread`. Taking every key inside the
         # block has no list to fall out of date.
-        declared = set(re.findall(r"^  ([a-z_]+):", _on_block(live), re.M))
+        declared = _on_keys(live)
+        if declared is None:
+            drifts.append("the `on:` block could not be parsed, so the trigger set was NOT checked")
+            declared = set(REQUIRED_TRIGGERS)
         absent = [t for t in REQUIRED_TRIGGERS if t not in declared]
         if absent:
             drifts.append(f"does not declare {', '.join(absent)} — with pull_request_target alone the "
@@ -551,17 +745,86 @@ class ReadinessWorkflow(Item):
             drifts.append(f"declares {', '.join(extra)}, which is outside the admitted privileged "
                           f"trigger set — widening it is a maintainer ruling, not a template variation")
         if drifts:
-            return self.row(DRIFT, "; ".join(drifts), "re-render from templates/pr-readiness.yml")
-        return self.row(SATISFIED, f"installed, gated to {ctx.slug}, runs-on {ctx.runner['runs_on']}")
+            return self.row(DRIFT, "; ".join(drifts + notes), "re-render from templates/pr-readiness.yml")
+        detail = f"installed, gated to {ctx.slug}, runs-on {ctx.runner['runs_on']}"
+        return self.row(SATISFIED, "; ".join([detail] + notes))
 
     def repair(self, ctx):
         cur = self.detect(ctx)
         if cur["state"] in (SATISFIED, STAGED, BLOCKED):
             return cur
+        # NO PLACEHOLDER PREDICATE, EVER. An earlier revision rendered
+        # `github.repository == 'UNKNOWN'` when no slug resolved. That predicate is
+        # false on every event forever, so the job is skipped silently -- which is
+        # the precise failure mode § 5 of the skill exists to prevent, reintroduced
+        # by the tool meant to prevent it. The `@@` guard did not catch it, because
+        # the token WAS substituted; it was substituted with a guaranteed-false value.
+        if not ctx.slug:
+            return self.row(BLOCKED,
+                            "no slug resolves for this repository, and a workflow rendered with a "
+                            "placeholder predicate is SKIPPED on every event, forever",
+                            "pass --slug <owner/name>")
         p = ctx.repo / WORKFLOW_PATH
+        # SOMEBODY ELSE'S WORKFLOW IS SOMEBODY ELSE'S -- the same rule the hook item
+        # carried and this one did not. A hand-written pr-readiness.yml was silently
+        # replaced by 367 rendered lines, unrecoverable when untracked.
+        if p.is_file() and self.MARKER not in p.read_text():
+            return self.row(DRIFT,
+                            "a pr-readiness.yml is installed that Tenkai did not render — "
+                            "it will not be overwritten",
+                            "review by hand, then delete it and re-run apply")
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(self.render(ctx))
+        _atomic_write(p, self.render(ctx))
         return self.row(REPAIRED, f"rendered for {ctx.slug}, runs-on {ctx.runner['runs_on']}")
+
+
+class PrivilegedWorkflows(Item):
+    """Read-only. Names every OTHER privileged workflow, and the enforcement gap.
+
+    Tenkai installs a `pull_request_target` job — privileged, credentialed — and
+    installs NO policy guard. In a consumer with no
+    `scripts/workflow_runner_policy_check.rb`, `GuardRegistration` scores `absent`
+    as "no ordering constraint", which is true about the ORDERING and says nothing
+    about enforcement: the byte-compared same-repo guard, the write-permission
+    refusal and the trusted-data rules all live in that script. So the net effect
+    of an adoption run on a fresh repository was one new privileged workflow and
+    zero new enforcement around it.
+
+    This item does not close that gap — installing the guard is a separate,
+    maintainer-owned change. It refuses to let the gap be SILENT: the other
+    privileged workflows are named, and § 5 of the skill states what is not
+    inherited.
+    """
+
+    PRIVILEGED = ("pull_request_target", "workflow_run", "issue_comment", "workflow_call")
+
+    def __init__(self):
+        super().__init__("workflows/privileged", "other privileged workflows, and what enforces them", "hatsu")
+
+    def detect(self, ctx):
+        d = ctx.repo / ".github" / "workflows"
+        if not d.is_dir():
+            return self.row(SATISFIED, "no .github/workflows/ directory")
+        others = []
+        for f in sorted(d.glob("*.y*ml")):
+            if f.name == Path(WORKFLOW_PATH).name:
+                continue
+            live = "\n".join(l for l in f.read_text().splitlines() if not l.lstrip().startswith("#"))
+            keys = _on_keys(live) or set()
+            hit = sorted(k for k in keys if k in self.PRIVILEGED)
+            if hit:
+                others.append(f"{f.name} ({', '.join(hit)})")
+        guard = "present" if (ctx.repo / GUARD_PATH).is_file() else "ABSENT"
+        detail = (f"policy guard {guard}; "
+                  + (f"other privileged workflows: {'; '.join(others)}" if others
+                     else "no other privileged workflow"))
+        if guard == "ABSENT":
+            detail += ". Tenkai installs a privileged pull_request_target job and NO guard — "
+            detail += "this repository inherits no ongoing enforcement around it"
+        return self.row(SATISFIED, detail)
+
+    def repair(self, ctx):
+        return self.detect(ctx)   # observation only; it writes nothing, ever
 
 
 def items():
@@ -569,9 +832,10 @@ def items():
     out.append(ColorsFile())
     out.append(IgnoredDir("dirs/reports", "Reports", "where rikugan writes the retained final report"))
     out.append(IgnoredDir("dirs/nen-state", ".nen", "where the hanten cycle ledger and the stop marker live"))
-    out.append(CommitMsgHook())
+    out.append(NenCommitMsgHook())
     out.append(GuardRegistration())
     out.append(ReadinessWorkflow())
+    out.append(PrivilegedWorkflows())
     return out
 
 
@@ -614,11 +878,14 @@ def report(res, as_json):
 # --------------------------------------------------------------------------
 # Self-test — real fixtures, both directions, no network.
 # --------------------------------------------------------------------------
-def self_test():
+def self_test() -> int:
     root = Path(os.environ["TENKAI_DEFAULT_ROOT"])
     failures = []
+    checks_run = 0
 
     def check(name, cond, detail=""):
+        nonlocal checks_run
+        checks_run += 1
         print(f"  {'ok  ' if cond else 'FAIL'}  {name}" + (f" — {detail}" if detail and not cond else ""))
         if not cond:
             failures.append(name)
@@ -639,24 +906,29 @@ def self_test():
 
     def fixture(slug="acme/widget", with_guard=None, registered=False):
         d = Path(tempfile.mkdtemp(prefix="tenkai-fixture-"))
+        _FIXTURES.append(d)
         subprocess.run(["git", "-C", str(d), "init", "-q"], check=True)
         subprocess.run(["git", "-C", str(d), "remote", "add", "origin",
                         f"https://github.com/{slug}.git"], check=True)
         if with_guard:
             g = d / GUARD_PATH
             g.parent.mkdir(parents=True, exist_ok=True)
-            g.write_text("# guard\nEXPECTED_JOBS = {" +
-                         ("'pr-readiness.yml' => 'readiness'" if registered else "") + "}\n")
+            body = "# guard — a COMMENT naming pr-readiness.yml must NOT count\n"
+            for const in ("EXPECTED_JOBS", "EXPECTED_TYPES", "EXPECTED_STEPS"):
+                body += f"{const} = {{" + ("'pr-readiness.yml' => 1" if registered else "") + "}.freeze\n"
+            g.write_text(body)
         return d
 
-    def ctx_for(d, slug="acme/widget", vis="private", sh=2):
-        return Ctx(d, root, slug, vis, sh, probe=False)
+    def ctx_for(d, slug="acme/widget", vis="private", sh=2, labels="[self-hosted, Linux, X64]"):
+        return Ctx(d, root, slug, vis, sh, probe=False, runner_labels=labels)
 
     print("\ngreenfield — diagnose then apply then apply again")
     d = fixture()
     first = run("diagnose", ctx_for(d))
     check("a bare repository is not a consumer", first["outstanding"] > 0)
     by = {r["id"]: r for r in first["items"]}
+    check("the commit-msg hook routes to nen, never written",
+          by["hooks/commit-msg"]["state"] == ROUTED)
     check("all five nen declarations route to nen, never hand-written",
           all(by[p]["state"] == ROUTED and "nen scaffold init" in (by[p]["action"] or "")
               for p, _ in NEN_DECLARATIONS))
@@ -669,13 +941,28 @@ def self_test():
     check("colors.yml repaired", by["nen/colors.yml"]["state"] == REPAIRED)
     check("Reports/ repaired", by["dirs/reports"]["state"] == REPAIRED)
     check(".nen/ repaired", by["dirs/nen-state"]["state"] == REPAIRED)
-    check("commit-msg hook repaired", by["hooks/commit-msg"]["state"] == REPAIRED)
     check("workflow repaired", by[WORKFLOW_PATH]["state"] == REPAIRED)
     check("the rendered workflow carries the real slug",
           "github.repository == 'acme/widget'" in (d / WORKFLOW_PATH).read_text())
     check("no @@TOKEN@@ survives rendering", "@@" not in (d / WORKFLOW_PATH).read_text())
-    check("private+2 runners renders self-hosted",
-          re.search(r"runs-on:\s*self-hosted", (d / WORKFLOW_PATH).read_text()) is not None)
+    check("private+registered renders the LABELLED set, never a bare self-hosted",
+          re.search(r"runs-on:\s*\[self-hosted, Linux, X64\]", (d / WORKFLOW_PATH).read_text()) is not None
+          and re.search(r"runs-on:\s*self-hosted\s*$", (d / WORKFLOW_PATH).read_text(), re.M) is None)
+
+    print("\nRUNNER LABELS — a bare `self-hosted` is never rendered")
+    dnl = fixture()
+    row = run("apply", ctx_for(dnl, labels=None))
+    wf = [r for r in row["items"] if r["id"] == WORKFLOW_PATH][0]
+    check("private + registered runners with NO labels is BLOCKED", wf["state"] == BLOCKED)
+    check("and the refusal names the flag that answers it",
+          "--runner-labels" in (wf["action"] or ""))
+    check("nothing was written", not (dnl / WORKFLOW_PATH).is_file())
+    # Indexed BY ID, never by position: a fixture that says `items[-1]` breaks the
+    # moment an item is added, and reports it as a failure of the thing it names.
+    pub = {r["id"]: r for r in
+           run("apply", ctx_for(fixture(), vis="public", sh=0, labels=None))["items"]}
+    check("public still derives hosted and renders fine",
+          pub[WORKFLOW_PATH]["state"] == REPAIRED)
 
     print("\nIDEMPOTENCE — the second apply must write nothing")
     again = run("apply", ctx_for(d))
@@ -699,7 +986,7 @@ def self_test():
     ReadinessWorkflow().repair(ctx_for(d))
     check("the slug is repaired", ReadinessWorkflow().detect(ctx_for(d))["state"] == SATISFIED)
 
-    w.write_text(w.read_text().replace("runs-on: self-hosted", "runs-on: ubuntu-latest"))
+    w.write_text(w.read_text().replace("runs-on: [self-hosted, Linux, X64]", "runs-on: ubuntu-latest"))
     check("a runner that no longer matches the derivation is DRIFT",
           ReadinessWorkflow().detect(ctx_for(d))["state"] == DRIFT)
     ReadinessWorkflow().repair(ctx_for(d))
@@ -765,18 +1052,29 @@ def self_test():
     check("the engine mirrors the guard's own ALLOWED_TRIGGERS",
           set(REQUIRED_TRIGGERS) == {"pull_request_target", "pull_request_review"})
 
-    hook = ctx_for(d).git_dir / "hooks" / "commit-msg"
-    hook.write_text("#!/bin/sh\n# somebody's own hook\nexit 0\n")
-    row = CommitMsgHook().detect(ctx_for(d))
-    check("a foreign hook is DRIFT", row["state"] == DRIFT)
-    check("a foreign hook is NOT overwritten", "will not be overwritten" in row["detail"])
-    CommitMsgHook().repair(ctx_for(d))
-    check("apply left the foreign hook alone",
-          "somebody's own hook" in hook.read_text())
-    hook.unlink()
-    CommitMsgHook().repair(ctx_for(d))
-    check("a Tenkai-rendered hook IS re-rendered",
-          CommitMsgHook().detect(ctx_for(d))["state"] == SATISFIED)
+    print("\nOWNERSHIP — nen's items are routed, never written")
+    hook_row = NenCommitMsgHook().detect(ctx_for(d))
+    check("the commit-msg hook is a nen item, not a Hatsu one",
+          NenCommitMsgHook().owner == "nen")
+    check("an absent hook is ROUTED to nen scaffold init",
+          hook_row["state"] == ROUTED and "nen scaffold init" in (hook_row["action"] or ""))
+    hooks_dir = ctx_for(d).git_dir / "hooks"
+    before_hook = sorted(x.name for x in hooks_dir.iterdir()) if hooks_dir.is_dir() else []
+    NenCommitMsgHook().repair(ctx_for(d))
+    after_hook = sorted(x.name for x in hooks_dir.iterdir()) if hooks_dir.is_dir() else []
+    check("repair writes NO hook — routing is the repair", before_hook == after_hook)
+    # BEHAVIOURAL, not source-text: git looks in core.hooksPath when it is set,
+    # and an item that reported "installed and current" against the default path
+    # while git looked elsewhere is the silent-skip failure this tool exists to end.
+    dhp = fixture()
+    subprocess.run(["git", "-C", str(dhp), "config", "core.hooksPath", "myhooks"], check=True)
+    (dhp / "myhooks").mkdir()
+    dest = NenCommitMsgHook._dest(ctx_for(dhp))
+    check("core.hooksPath decides where git actually looks",
+          dest == dhp / "myhooks" / "commit-msg", f"got {dest}")
+    (dhp / "myhooks" / "commit-msg").write_text("#!/bin/sh\nexit 0\n")
+    check("a hook in core.hooksPath is seen as present",
+          NenCommitMsgHook().detect(ctx_for(dhp))["state"] == SATISFIED)
 
     print("\nTWO-PR ORDERING — handled, never hit")
     d2 = fixture(with_guard=True, registered=False)
@@ -797,11 +1095,110 @@ def self_test():
     check("and the file is really there", (d3 / WORKFLOW_PATH).is_file())
 
     print("\ndiagnose is READ-ONLY")
+
+    def snapshot(root: Path):
+        """{path: sha256} over everything, INCLUDING .git/hooks.
+
+        The old proof compared NAMES and filtered out `.git/`, which is the one
+        directory the hook item could write into -- so a regression that installed
+        a hook during `detect` would have passed it green. Content hashes also
+        catch an in-place rewrite of an existing path, which a name list cannot.
+        """
+        out = {}
+        for f in root.rglob("*"):
+            rel = str(f.relative_to(root))
+            if rel.startswith(".git/objects") or rel.startswith(".git/index"):
+                continue
+            if f.is_file():
+                out[rel] = hashlib.sha256(f.read_bytes()).hexdigest()
+        return out
+
     d4 = fixture()
-    before = sorted(str(p.relative_to(d4)) for p in d4.rglob("*") if ".git/" not in str(p.relative_to(d4)))
+    before = snapshot(d4)
     run("diagnose", ctx_for(d4))
-    after = sorted(str(p.relative_to(d4)) for p in d4.rglob("*") if ".git/" not in str(p.relative_to(d4)))
-    check("diagnose wrote nothing", before == after)
+    after = snapshot(d4)
+    check("diagnose wrote nothing — by CONTENT, over the whole tree including .git/hooks",
+          before == after, f"changed: {sorted(set(before) ^ set(after))}")
+
+    print("\nCLAIMS THAT HAD NO FIXTURE — the combination that rots quietly")
+    # A TUNED colors.yml MUST SURVIVE. § 4 and Hard limits both promise the engine
+    # never compares it byte-for-byte against the seed; nothing tested it.
+    dt = fixture()
+    (dt / "nen").mkdir(parents=True, exist_ok=True)
+    tuned = ("version: 1\ncategories:\n  my_own_family:\n    precedence: [a]\n"
+             "    values:\n      a:\n        label: Mine\n")
+    (dt / "nen" / "colors.yml").write_text(tuned)
+    check("a tuned colors.yml is satisfied, not compared to the seed",
+          ColorsFile().detect(ctx_for(dt))["state"] == SATISFIED)
+    ColorsFile().repair(ctx_for(dt))
+    check("and apply leaves its bytes untouched",
+          (dt / "nen" / "colors.yml").read_text() == tuned)
+
+    # THE GUARD-COMMENT CASE. This repository's own guard names the file in a
+    # comment, so a whole-file substring was comment-strength, not grep-strength.
+    dc = fixture()
+    (dc / GUARD_PATH).parent.mkdir(parents=True, exist_ok=True)
+    (dc / GUARD_PATH).write_text("# TODO: someday register pr-readiness.yml here\n"
+                                 "EXPECTED_JOBS = {}.freeze\n")
+    check("a guard naming the file only in a COMMENT is unregistered",
+          GuardRegistration.state_of(ctx_for(dc)) == "unregistered")
+    res = run("apply", ctx_for(dc))
+    check("so the workflow is staged, not written", not (dc / WORKFLOW_PATH).is_file())
+    # PORTABLE_HOSTED_WORKFLOWS must not satisfy it either -- the routed action
+    # explicitly tells the maintainer NOT to add the file there yet.
+    (dc / GUARD_PATH).write_text("PORTABLE_HOSTED_WORKFLOWS = %w[pr-readiness.yml].freeze\n")
+    check("naming it ONLY in PORTABLE_HOSTED_WORKFLOWS is still unregistered",
+          GuardRegistration.state_of(ctx_for(dc)) == "unregistered")
+
+    # THE "NEW REPOSITORY" HALF OF THE SKILL'S OWN DESCRIPTION.
+    dn = Path(tempfile.mkdtemp(prefix="tenkai-fixture-")); _FIXTURES.append(dn)
+    for _ in range(3):
+        run("apply", Ctx(dn, root, "acme/widget", "public", 0, probe=False))
+    gi = dn / ".gitignore"
+    check("three applies to a NON-GIT directory do not grow .gitignore",
+          not gi.is_file() or gi.read_text().count("Reports/") <= 1,
+          gi.read_text() if gi.is_file() else "(absent)")
+
+    ds = fixture()
+    subprocess.run(["git", "-C", str(ds), "remote", "remove", "origin"], check=True)
+    row = ReadinessWorkflow().repair(Ctx(ds, root, None, "public", 0, probe=False))
+    check("no slug resolvable -> BLOCKED, never a placeholder predicate",
+          row["state"] == BLOCKED)
+    check("and nothing is written", not (ds / WORKFLOW_PATH).is_file())
+
+    # A HOSTILE SLUG must be refused before it reaches a predicate or a URL.
+    dh = Path(tempfile.mkdtemp(prefix="tenkai-fixture-")); _FIXTURES.append(dh)
+    subprocess.run(["git", "-C", str(dh), "init", "-q"], check=True)
+    subprocess.run(["git", "-C", str(dh), "remote", "add", "origin",
+                    "https://github.com/acme/widget' || true || '.git"], check=True)
+    try:
+        Ctx(dh, root, None, "public", 0, probe=False)
+        check("a quote-bearing slug is refused before it is rendered", False, "it was accepted")
+    except SystemExit as exc:
+        check("a quote-bearing slug is refused before it is rendered", exc.code == 2)
+    check("slug grammar accepts the ordinary case", slug_ok("zheref/hatsu"))
+    check("slug grammar rejects a traversal", not slug_ok("x/../../user"))
+
+    # SOMEBODY ELSE'S WORKFLOW IS SOMEBODY ELSE'S.
+    dw = fixture()
+    (dw / WORKFLOW_PATH).parent.mkdir(parents=True, exist_ok=True)
+    (dw / WORKFLOW_PATH).write_text("name: mine\non: push\njobs: {}\n")
+    row = ReadinessWorkflow().repair(ctx_for(dw))
+    check("a hand-written pr-readiness.yml is NOT overwritten", row["state"] == DRIFT)
+    check("and its bytes survive", "name: mine" in (dw / WORKFLOW_PATH).read_text())
+
+    # AN UNREAD PROBE IS NOT A CHANGED FACT.
+    du = fixture()
+    run("apply", ctx_for(du))
+    row = ReadinessWorkflow().detect(Ctx(du, root, "acme/widget", None, 0, probe=False))
+    check("an unreadable visibility does not report runs-on drift", row["state"] == SATISFIED)
+    check("and says the limb went unchecked", "runner limb unread" in row["detail"])
+
+    # THE TEMPLATE AND THIS REPOSITORY'S OWN colors.yml ARE ONE VOCABULARY.
+    def body(pth):
+        return [l for l in pth.read_text().splitlines() if not l.lstrip().startswith("#")]
+    check("templates/colors.yml and nen/colors.yml carry the same vocabulary",
+          body(root / "templates" / "colors.yml") == body(root / "nen" / "colors.yml"))
 
     print("\nblocked states are reported, never repaired around")
     d5 = fixture()
@@ -810,24 +1207,36 @@ def self_test():
     row = NenDeclaration("nen/contract.json", "x").detect(ctx_for(d5))
     check("malformed JSON is BLOCKED, not silently rewritten", row["state"] == BLOCKED)
 
-    for tmp in (d, d2, d3, d4, d5):
-        shutil.rmtree(tmp, ignore_errors=True)
-
     print()
     if failures:
         print(f"tenkai_adopt --self-test: {len(failures)} FAILED: {', '.join(failures)}")
-        raise SystemExit(1)
-    print("tenkai_adopt --self-test: all green")
-    raise SystemExit(0)
+        return 1
+    print(f"tenkai_adopt --self-test: all green ({checks_run} assertions)")
+    return 0
 
 
 # --------------------------------------------------------------------------
+def _self_test_guarded() -> int:
+    """Every fixture is removed on EVERY path, including a failing assertion.
+
+    The old loop removed five named directories after the last check, so any
+    exception -- or a `return` from a failure -- leaked them into /tmp.
+    """
+    made: list = []
+    try:
+        return self_test()
+    finally:
+        for d in _FIXTURES:
+            shutil.rmtree(d, ignore_errors=True)
+        _FIXTURES.clear()
+
+
 def main(argv):
     if not argv:
         usage("a subcommand is required: diagnose | apply | runner-policy | --self-test")
     cmd, rest = argv[0], argv[1:]
     if cmd == "--self-test":
-        self_test()
+        raise SystemExit(_self_test_guarded())
 
     opts = {}
     i = 0
@@ -868,7 +1277,8 @@ def main(argv):
         usage(f"no such directory: {repo}")
     hatsu_root = Path(opts.get("hatsu-root", os.environ["TENKAI_DEFAULT_ROOT"])).resolve()
 
-    ctx = Ctx(repo, hatsu_root, opts.get("slug"), vis, sh, probe=True)
+    ctx = Ctx(repo, hatsu_root, opts.get("slug"), vis, sh, probe=True,
+              runner_labels=opts.get("runner-labels"))
     res = run(cmd, ctx)
     report(res, as_json)
     raise SystemExit(1 if res["outstanding"] else 0)

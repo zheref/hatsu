@@ -84,7 +84,7 @@ nen schema check --repo "$hatsu_root"
 ```
 
 Verified live at nen `0.10.0` against this branch: the `nen/contract.json` row prints
-`ok    nen/contract.json  dependency (nen >= 0.10, pinned v0.10.0), project (3 lanes: plugin, plugin-bump-guard, plugin-update; 12 verbs; 1 toolchain entry)`
+`ok    nen/contract.json  dependency (nen >= 0.10, pinned v0.10.0), project (4 lanes: plugin, plugin-bump-guard, plugin-update, tenkai-guard; 13 verbs; 1 toolchain entry)`
 — the minimum and the pin nen parsed are the ones you just read, and they are **two independent values**:
 `>= 0.10` is the capability minimum this repository declares, `v0.10.0` is the build its bootstrap installs, and § 1b's
 floor rule is why the second may move without the first. A drift between them and this file's prose is a
@@ -147,7 +147,9 @@ session: `hatsu-warmup` re-does per-session work that should have been settled o
 for the verdict and does not re-derive it:
 
 ```bash
-scripts/tenkai_adopt.sh diagnose --repo <path>     # read-only. 0 = current, 1 = work remains
+hatsu_root='<the absolute path § 0 printed>'   # explicit input — § 5's rule, never assumed
+"$hatsu_root/scripts/tenkai_adopt.sh" diagnose --repo <the target repository> --json
+# read-only. exit 0 = current, 1 = work remains, 2 = an invocation defect
 ```
 
 **Read the exit code without a pipe** — `$?` after `cmd | tail` is `tail`'s status.

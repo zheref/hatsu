@@ -103,7 +103,7 @@
 # publishes the bytes the verb produced. It is the refusals' own reasoning
 # carried out, not an exception to them.
 #
-# ALL THREE ADMITTED EVENTS CARRY `github.event.pull_request`, which is why one
+# BOTH ADMITTED EVENTS CARRY `github.event.pull_request`, which is why one
 # job condition and one `github.event.pull_request.number` work unchanged across
 # them. `check_suite` does NOT -- its payload carries `check_suite.pull_requests[]`
 # -- so it is not admitted, and the residual gap is stated rather than hidden: a

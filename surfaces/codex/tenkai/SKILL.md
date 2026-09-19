@@ -42,9 +42,13 @@ Conjurer work in its own right.
 **Tenkai is normally typed by the maintainer, and that IS its wired position** — no composite owns
 adoption, because adoption happens before the loop exists. The contract is
 [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md); this is Tenkai's half.
+**Reached from ANY composite, skip this section entirely** — the caller established every fact in it,
+and re-deriving them is how two answers to one question appear. The clause is stated in the generic
+form every other phase carries, rather than argued from the fact that no composite calls this one.
 
-**Run the preamble's `P1` (warm up) and `P2` (orient) and stop there.** `P1b`, `P3` and the delta
-machinery do **not** apply and are declined explicitly rather than half-performed:
+**Run the preamble's `P1` (warm up), `P2` (orient), `P4` (elicit) and `P5` (declare).** `P1b` and
+`P3` do **not** apply and are declined explicitly rather than half-performed — and the declining is
+itself declared, so a reader can tell a step that was considered from one that was forgotten:
 
 | Preamble step | What Tenkai does |
 |---|---|
@@ -52,7 +56,8 @@ machinery do **not** apply and are declined explicitly rather than half-performe
 | **`P1b` prove the base** | **Does not apply.** Tenkai authors no change onto a base; it reports on a checkout's configuration. There is no effort whose red would need attributing |
 | **`P2` orient** | Runs. The branch, dirty-or-clean, and the slug are all read out loud before anything is written, because `apply` writes to the working copy and the maintainer must see what state it was in |
 | **`P3` the delta** | **Does not apply, and this is the one that matters.** Tenkai does not read a change set. Its subject is the checkout's CURRENT configuration, not what this effort changed, so there is no base to fetch and no `against <base>` clause. **A repository is diagnosed as it stands** |
-| **`P4` elicit** | At most one question, and only ever `--slug` when no `origin` remote resolves one (§ 2). Everything else is derived |
+| **`P4` elicit** | **Two questions at most, and never more**: `--slug` when no `origin` resolves one (§ 2), and § 1's apply confirmation. Everything else is derived and named. `P4`'s own cap is one-to-three, so two is within it — an earlier draft of this row claimed *one*, which § 1 contradicted two paragraphs later |
+| **`P5` declare** | Runs. One line before any item is read: `standalone entry · no composite is holding this run · <repo> · slug <slug> · runner <label> (<reason>) · not running: nothing — adoption is not a phase of the loop`. **`(fetched <sha>)` is never asserted**, because Tenkai runs no fetch — there is no delta to establish (`P3`) |
 
 **`S4` — the artifact question — is answered by the engine, not by prose.** Tenkai's own state is
 whatever is on disk: `scripts/tenkai_adopt.sh diagnose` re-derives every item on every run and holds
@@ -67,7 +72,7 @@ run"*, and the question that matters is *"is this repository CURRENT"* — which
 ```
 $tenkai                 # the checkout the session is standing in
 $tenkai <path>          # another checkout on this machine
-$tenkai check           # diagnose only, write nothing, whatever else is true
+$tenkai diagnose        # diagnose only, write nothing, whatever else is true
 ```
 
 **`diagnose` is the default posture and `apply` is never implicit.** A bare invocation runs the
@@ -77,19 +82,26 @@ before it writes anything — with the count of items it would change in the que
 > `<repo>` has `<n>` outstanding item(s): `<ids>`. I will render `<k>` file(s) and install `<h>` hook(s).
 > ⭐ **Apply** · **Diagnose only** · **Stop**
 
-**`check` is the same diagnosis with the question suppressed**, for a caller that wants the verdict
-and not the offer — which is what [`$hatsu-warmup`](../hatsu-warmup/SKILL.md) § 0a uses.
+**`diagnose` is the same run with the question suppressed**, for a caller that wants the verdict
+and not the offer — which is what [`$hatsu-warmup`](../hatsu-warmup/SKILL.md) § 0a calls. **One name, not two** — an earlier draft called it `check` here and `diagnose` there.
 
 ---
 
 ## 2. The engine, and why it is a script
 
 ```bash
-scripts/tenkai_adopt.sh diagnose --repo <path> [--slug <owner/name>] [--json]
-scripts/tenkai_adopt.sh apply    --repo <path> [--slug <owner/name>] [--json]
-scripts/tenkai_adopt.sh runner-policy --visibility <public|private> --self-hosted <n>
-scripts/tenkai_adopt.sh --self-test
+hatsu_root='<the absolute path hatsu-warmup § 0 printed>'    # explicit input, never assumed
+"$hatsu_root/scripts/tenkai_adopt.sh" diagnose --repo <path> [--slug <owner/name>] [--json]
+"$hatsu_root/scripts/tenkai_adopt.sh" apply    --repo <path> [--slug <owner/name>] [--json]
+"$hatsu_root/scripts/tenkai_adopt.sh" runner-policy --visibility <public|private> --self-hosted <n>
+"$hatsu_root/scripts/tenkai_adopt.sh" --self-test
 ```
+
+**The engine is addressed through `$hatsu_root`, for the reason § 0's `P1` row already gives about
+`templates/`.** On an installed surface the working directory is the **consumer** repository, so a
+bare `scripts/tenkai_adopt.sh` resolves to nothing — or, worse, to a same-named script the target
+repository happens to carry. `--hatsu-root` defaults to the script's own parent, which is right once
+the script is the right script.
 
 **State is written by a script with fixtures, never counted in prose.** This is the same rule
 [`scripts/hanten_cycle_ledger.sh`](../../../scripts/hanten_cycle_ledger.sh) carries and for the same
@@ -124,9 +136,10 @@ is never improvised in prose and it is not improvised in a script either.
 | `nen/contract.json`, `nen/workflow.json`, `nen/gates.json`, `nen/labels.json`, `nen/repos.json` | **nen** | **Routed** to `nen scaffold init`. Tenkai asserts only *present and parseable*; `nen schema check` is the authority on validity and this skill never second-guesses it |
 | `nen/colors.yml` | **Hatsu** | Rendered from `templates/colors.yml` — see § 4, and the reason nen cannot do it |
 | `Reports/`, `.nen/` | **Hatsu** | Created **and** git-ignored. Both halves: an unignored `Reports/` puts a rendered HTML report into somebody's next commit |
-| the `commit-msg` trailer hook | **Hatsu** | Installed from `templates/commit-msg` — § 6 |
+| the `commit-msg` trailer hook | **nen** | **Routed** to `nen scaffold init` — § 6. Tenkai writes no hook |
 | the policy-guard registration | **Hatsu** | **Routed**, and it gates the item below — § 5a |
-| `.github/workflows/pr-readiness.yml` | **Hatsu** | Rendered with this repository's slug and derived runner — § 5 |
+| `.github/workflows/pr-readiness.yml` | **Hatsu** | Rendered with this repository's slug and derived runner — § 5. **A file Tenkai did not render is never overwritten** |
+| other privileged workflows | **Hatsu** | **Observation only.** Named, never written — § 5d |
 
 **Seven states, and `drift` is the one the whole skill is for:**
 
@@ -247,6 +260,25 @@ earlier draft intersected the keys it found against a hand-kept allowlist, so an
 trigger was silently dropped instead of flagged — the one case worth refusing was the one case it
 could not see. There is no list to fall out of date now.
 
+### 5d · What a consumer does **not** inherit, said out loud
+
+**Tenkai installs a privileged, credentialed `pull_request_target` job and installs no policy
+guard.** `GuardRegistration` scoring a missing guard as *"no ordering constraint at all"* is true
+about the **ordering** and says nothing about **enforcement**: the byte-compared same-repository
+guard, the write-permission refusal and the trusted-data rules all live in
+`scripts/workflow_runner_policy_check.rb`, which Tenkai does not install.
+
+Two things follow, and neither is left implicit:
+
+- **§ 5's drift checks are the whole safety net** in a consumer with no guard of its own. That is why
+  they assert the inherited hardening — the trusted checkout's ref, `persist-credentials` on **every**
+  checkout step, no write scope beyond `checks`, no `${{ }}` inside a `run:` body, and `--gates`
+  matched as a **whole argument** rather than a flag name.
+- **Every other privileged workflow in the repository is named** — `pull_request_target`,
+  `workflow_run`, `issue_comment`, `workflow_call` — as an **observation row that writes nothing**.
+  Installing the guard into a consumer is a separate, maintainer-owned change; this item exists so
+  the gap cannot be silent.
+
 ### 5a · The two-PR ordering — handled, never hit
 
 **A new workflow cannot be registered and added in one pull request**, and that is structural.
@@ -292,33 +324,40 @@ runner that is not there.
 
 ---
 
-## 6. The `commit-msg` hook — the gate git runs, not the one a skill remembers
+## 6. The `commit-msg` hook is **nen's**, and Tenkai routes it
 
-Every Hatsu skill that commits gates the message on `nen commit format --repo .`'s exit code. **A
+Every Hatsu skill that commits gates the message on `nen commit format --repo .`'s exit code. A
 commit typed by hand, made from an IDE, or written by a session that never named a phase passes
-through none of them**, so the repository's own trailer policy was enforced by discipline. This
-repository's own checkout carried no `commit-msg` hook at all.
+through none of them — which is a real gap, and **it is already assigned.**
+[`docs/ROSTER.md`](../../../docs/ROSTER.md) § 2 names layer (b) of the three-layer attribution
+enforcement as *"a target repository's `commit-msg` hook, **generated by `nen scaffold init`** from
+`allowedAttributionTrailers`"*, and `nen scaffold init` installs exactly that, at exactly that path,
+from exactly that policy file.
 
-The rendered hook re-composes the message's shape through the same verb and adopts its exit code, so
-it gates **shape** and the `commits.allowedAttributionTrailers` / `commits.forbiddenTrailers` policy
-from `nen/workflow.json`. **It judges no content** — what changed and why stays the author's, which
-is the verb's own boundary and not a limit this hook adds.
+**So this item is diagnosed here and repaired by nen**, like every other nen-owned item:
 
-**The two failure directions are deliberate and opposite:**
+```bash
+nen scaffold init --repo <path> --agent-trailer Hatsu-Agent
+```
 
-- a **shape or trailer violation fails CLOSED** — the commit is refused and the verb's own refusal is
-  printed **verbatim**, never summarised;
-- an **inability to judge fails OPEN** — no `nen` on `PATH`, no `nen/workflow.json`, a subject this
-  hook cannot parse. It prints a notice and gets out of the way, which is
-  [`hooks/hooks.json`](../../../hooks/hooks.json)'s stated rule for every Hatsu hook but the
-  base-branch guard. **A hook that refused every commit on a host without nen would be uninstalled
-  within the hour, and then it would gate nothing at all.**
+**An earlier revision of this skill rendered a Hatsu-authored hook instead, and it was wrong twice
+over.** It claimed a mechanism this repository's own canon had already assigned — while the skill's
+central rule is *never write a nen-owned file; route it* — and the two writers **collided
+destructively in both orderings**, measured on fixtures:
 
-**A hook Tenkai did not render is never overwritten.** A `commit-msg` that does not carry this
-template's own marker line is reported as `drift` with *"it will not be overwritten"* said in the
-row, and `apply` leaves it exactly where it is. Somebody else's hook is somebody else's.
+| Order | What happened |
+|---|---|
+| Tenkai first | `nen scaffold init` — **the very command Tenkai routes the five declarations to** — refuses: *"a different commit-msg hook already exists … refusing to overwrite it"* |
+| nen first | Tenkai reported nen's generated hook as foreign drift and advised **deleting** it, so the item could never reach `satisfied` and `apply` could never exit `0` |
 
----
+**Removing the template removed three defects with it**, rather than patching them: a write that
+escaped `--repo` through the git common dir, a followed symlink that created an arbitrary executable,
+and `core.hooksPath` being ignored so the hook was reported *"installed and current"* in a directory
+git would never read. **Detection still honours `core.hooksPath`**, because asserting presence in the
+wrong directory is the same silent-skip failure in a smaller costume.
+
+> **Whether a verb-delegating hook should ever supersede nen's data-baked one is a `G4` question**,
+> and it is the maintainer's. It is not a template this skill ships on its own authority.
 
 ## 7. Report — per item, and never a summary that hides a row
 
