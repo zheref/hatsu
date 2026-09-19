@@ -342,16 +342,25 @@ def validate_workflow(path)
     else
       # :end -- nothing may create the check before the work, and the FINAL step
       # must create it already completed against the exact event head.
-      if step_maps[0...-1].any? { |step| scalar(step["run"])&.match?(exact_name) }
-        fail_policy("#{path} job #{job_name} declares :end check creation but creates #{expected_check_name} before the final step")
+      # ANY check-run creation, not just this name. nen treats a non-empty
+      # all-green rollup as satisfying CON-32(a), so a check created early under
+      # ANOTHER name -- or through a variable -- certifies the workflow just as
+      # effectively as one named `readiness`.
+      if step_maps[0...-1].any? { |step| code_of(scalar(step["run"])).include?("check-runs") }
+        fail_policy("#{path} job #{job_name} declares :end check creation but touches check-runs before the final step")
       end
       finish_env = mapping(finisher["env"], "#{path} exact-head check env")
       unless scalar(finish_env["HEAD_SHA"]) == "${{ github.event.pull_request.head.sha }}" && scalar(finisher["run"])&.match?(exact_name)
         fail_policy("#{path} job #{job_name} must create #{expected_check_name} on the exact event head in its final step")
       end
     end
-    policy_step = step_maps.find { |step| scalar(step["run"])&.include?("workflow_runner_policy_check.rb --self-test") }
-    policy_step ||= step_maps[3]
+    # BOUND TO THE FROZEN NAME. Searching every step for the command let the
+    # NAMED step be a no-op while the real invocation happened later, with
+    # PR-influenced work in between -- a regression introduced when this stopped
+    # being a positional index. EXPECTED_STEPS already freezes the name, so use it.
+    policy_step_name = "Enforce workflow runner policy from trusted workflow revision"
+    policy_step = step_maps.find { |step| scalar(step["name"]) == policy_step_name }
+    fail_policy("#{path} job #{job_name} has no #{policy_step_name.inspect} step") unless policy_step
     unless scalar(policy_step["run"])&.include?('ruby .trusted/scripts/workflow_runner_policy_check.rb --self-test "$PWD"')
       fail_policy("#{path} job #{job_name} must invoke the trusted workflow policy before project work")
     end
@@ -430,9 +439,19 @@ def validate_workflow(path)
       fail_policy("#{path} has no step named #{step_name.inspect}") unless step
       # Logical commands: continuation lines joined, so a flag on its own
       # continuation still belongs to the invocation it continues.
-      commands = code_of(scalar(step["run"])).gsub(/\\\n/, " ").lines
+      # SEGMENTS, NOT PHYSICAL LINES. `nen pr ready --gates "..."; nen pr ready`
+      # is two invocations on one line and only the first carries the flag, so a
+      # line-level test passes while the second call falls back to the PR's gates
+      # file. Continuations are joined first, then each line is split on the same
+      # command separators used elsewhere.
+      commands = code_of(scalar(step["run"])).gsub(/\\\n/, " ")
+                                             .lines
+                                             .flat_map { |line| line.split(/\|\||&&|[;|&]/) }
+      # The invocation is matched as a COMMAND, with a boundary, so `pr ready-fake`
+      # is not mistaken for `pr ready`.
+      invocation = /#{Regexp.escape(spec[:invocation])}(?:\s|\z)/
       invoking = commands.select do |command|
-        command.include?(spec[:invocation]) && !(command =~ /\A\s*(echo|printf)\b/)
+        command =~ invocation && !(command =~ /\A\s*(echo|printf)\b/)
       end
       if invoking.empty?
         fail_policy("#{path} step #{step_name.inspect} does not invoke #{spec[:invocation].inspect}")
