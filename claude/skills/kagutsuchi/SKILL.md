@@ -249,10 +249,23 @@ The prefix is not checked against a pattern, it is **built**, so it cannot disag
 # before reading anything — which would silently stop every declared tag.
 wf="$(git -C <path> rev-parse --show-toplevel)/nen/workflow.json"
 
-# THE TARGET IS REPOSITORY-CONTROLLED TOO. It goes into a quoted variable and is
-# passed to python as an ARGUMENT -- never interpolated into shell source, where
-# a target key of `x; touch /tmp/pwned; #` would execute before any check runs.
-target="<the target this run was called with>"
+# THE TARGET IS THE MAINTAINER'S WORD, AND IT IS DATA. The line above used to
+# claim it was "never interpolated into shell source" while doing exactly that
+# on the next line: `target="<the target this run was called with>"` is a
+# PLACEHOLDER a caller fills in, and a filled-in `$(touch /tmp/pwned)` runs
+# during the assignment -- before the python lookup, before check-ref-format,
+# before anything below can refuse it. Double quotes stop `;` and they do not
+# stop command substitution.
+#
+# A QUOTED heredoc delimiter is the one form that expands NOTHING: no `$`, no
+# backtick, no `$(...)`. The target goes in as bytes and comes back as bytes,
+# and every later use passes it as an ARGUMENT rather than as text.
+target_file="$(mktemp)"; trap 'rm -f "$target_file"' EXIT
+cat >"$target_file" <<'__TARGET__'
+<the target this run was called with>
+__TARGET__
+target="$(tr -d '\r\n' <"$target_file")"
+[ -n "$target" ] || { echo "no target named -- refused"; exit 2; }
 
 # READ THE OPT-IN FOR THIS TARGET FIRST. `tags.deploy.<target>` is the switch:
 # absent means this target is not tagged, even where a sibling target is, and
@@ -271,9 +284,20 @@ target="<the target this run was called with>"
 python3 -c 'import json,sys
 d=json.load(open(sys.argv[1])).get("tags",{}).get("deploy",{})
 if not isinstance(d, dict): sys.exit("tags.deploy is %s, not an object" % type(d).__name__)
-sys.exit(0 if sys.argv[2] in d else 3)' "$wf" "$target"
+e=d.get(sys.argv[2])
+if e is None: sys.exit(3)
+if not isinstance(e, dict): sys.exit("tags.deploy.%s is %s, not an object" % (sys.argv[2], type(e).__name__))
+p=e.get("push", False)
+if not isinstance(p, bool): sys.exit("tags.deploy.%s.push is %r, not a boolean" % (sys.argv[2], p))
+sys.exit(0 if p else 4)' "$wf" "$target"
+# FOUR OUTCOMES, because `push` is a VALUE and not merely a key. An earlier
+# version tested only that the key existed, so `{"push": false}` and
+# `{"push": true}` took the same path and the trailing `[--push]` was chosen by
+# the caller rather than by the declaration -- which is the declaration not
+# controlling the one thing it is there to control.
 case $? in
-  0) : ;;
+  0) push_flag="--push" ;;
+  4) push_flag="" ;;
   3) echo "no tags.deploy entry for '$target' -- not declared for this target, nothing cut"; exit 0 ;;
   *) echo "$wf could not be read for tags.deploy -- present but unreadable is not absent; refused"; exit 2 ;;
 esac
@@ -304,15 +328,32 @@ built_at="$(sed -n '2p' -- "$file" | tr -d '\r')"
 # separate invocations with a human decision between them, so HEAD can have
 # moved -- and a tag at HEAD would then name a commit the archive never saw.
 [ -n "$built_at" ] || { echo "nameFrom carries no build SHA -- refused rather than tagging HEAD"; exit 2; }
+
+# IT MUST BE A RAW SHA, AND `cat-file -e` DOES NOT ASK THAT. It resolves
+# SYMBOLIC revisions too -- `HEAD`, `origin/main`, `HEAD~1` all exit 0 -- so a
+# nameFrom whose second line said `HEAD` passed this check and `--at` then
+# resolved whatever HEAD was at send time. That is precisely the "never HEAD"
+# rule this block exists to enforce, defeated by the check meant to enforce it.
+case "$built_at" in
+  *[!0-9a-f]* | "") echo "the recorded build SHA is not a raw lowercase hex object name -- refused"; exit 2 ;;
+esac
+[ "${#built_at}" -eq 40 ] || { echo "the recorded build SHA is not a full 40-character object name -- refused"; exit 2; }
 git -C <path> cat-file -e "${built_at}^{commit}" 2>/dev/null \
   || { echo "the recorded build SHA is not a commit in this repository -- refused"; exit 2; }
+
+# A CLEAN TREE IS ASSERTED BELOW, SO IT IS CHECKED HERE. The prose said a clean
+# working tree is what keeps the tag from attesting bytes that were never
+# archived, and nothing checked it -- an assertion in prose and nowhere else is
+# the defect this review already caught once on check-ref-format.
+[ -z "$(git -C <path> status --porcelain)" ] \
+  || { echo "the working tree is dirty -- refused rather than tagging bytes the commit does not describe"; exit 2; }
 
 # BUILT from variables, never templated: the prefix cannot disagree with the
 # target, and an illegal target name is rejected by check-ref-format below.
 name="dist/$target/$identity"
 git -C <path> check-ref-format "refs/tags/$name" \
   || { echo "the composed tag name is not a legal git ref -- refused"; exit 2; }
-nen tag cut --repo <path> --name "$name" --at "$built_at" --trunk <branch.base> [--push]
+nen tag cut --repo <path> --name "$name" --at "$built_at" --trunk <branch.base> ${push_flag}
 ```
 
 **The ancestor rule is about the COMMIT, not the branch.** `--at` is refused unless that commit is an

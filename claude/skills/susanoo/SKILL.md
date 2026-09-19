@@ -251,7 +251,31 @@ substitution whether or not anything is cut afterwards:
 # quotes there would terminate it, and the command would die before reading
 # anything.
 wf="$(git -C <path> rev-parse --show-toplevel)/nen/workflow.json"
-nameFrom="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tags"]["identity"]["nameFrom"])' "$wf")"
+# A THREE-WAY READ, because § 8 promises three DIFFERENT lines and a direct
+# index can only produce one. `["tags"]["identity"]["nameFrom"]` raises KeyError
+# on the default workflow that declares no tags block at all; inside a command
+# substitution that failure is silent, `nameFrom` comes back empty, and the
+# checks below then report `nameFrom is not a regular file` -- so the ORDINARY
+# case, a repository that simply declares no tag, was being reported as a
+# declaration fault, and a real declaration fault was indistinguishable from it.
+# Absent is a no-op report; malformed is a declaration error; neither one fails
+# the archive, which has already succeeded.
+nameFrom="$(python3 -c 'import json,sys
+t=json.load(open(sys.argv[1])).get("tags")
+if t is None: sys.exit(3)
+if not isinstance(t, dict): sys.exit("tags is %s, not an object" % type(t).__name__)
+i=t.get("identity")
+if i is None: sys.exit(3)
+if not isinstance(i, dict): sys.exit("tags.identity is %s, not an object" % type(i).__name__)
+n=i.get("nameFrom")
+if not isinstance(n, str) or not n: sys.exit("tags.identity.nameFrom is missing or is not a non-empty string")
+print(n)' "$wf")"; rc=$?
+case $rc in
+  0) : ;;
+  3) echo "no tag declared"; tag_line="no tag declared" ;;
+  *) echo "tag declaration error -- reported, archive stands"; tag_line="declaration error" ;;
+esac
+[ $rc -eq 0 ] || return 0 2>/dev/null || true
 
 root="$(git -C <path> rev-parse --show-toplevel)"
 file="$root/$nameFrom"
