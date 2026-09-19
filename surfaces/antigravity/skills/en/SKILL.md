@@ -410,7 +410,16 @@ returned. Harvesting is that phase's, not En's.
    timer, no background pass, no deferral primitive anywhere in this plane. **The long watch itself
    is no longer a gap** — [`illumi.md`](../../agents/illumi.md) landed at `v0.5.0` and step 5 hands
    to `en · illumi`, which buys attention for hours; **persistence past the session is what remains
-   unavailable**, and it is named rather than improvised around. The rest of Illumi's row
+   unavailable *in this plane*, and it is named rather than improvised around. **In `zheref/hatsu`
+   only**, one half of it is now supplied from OUTSIDE the plane:
+   `.github/workflows/pr-readiness.yml` re-runs `nen pr ready` on every event that can change the
+   answer and publishes the verdict as the `readiness` check run (that file's header is the
+   authority; no consumer repository carries it). It is **not** a watch and grants En nothing — it
+   never merges, votes, comments or wakes, and En still claims and caps its own cycles exactly as
+   above. **Be precise about which half it supplies:** the verdict now PERSISTS on the pull request
+   and can be read without a session. Nobody is NOTIFIED — the check is always `success`, so nothing
+   is pushed to the maintainer. **Persistence was the half a session could never supply; being told
+   is still unsupplied, and stays named here rather than claimed.** The rest of Illumi's row
    (`backlog-loop`, `futon`, `senkei`) stays `OPEN-1` and unreachable from here.
 
 ## Authority
