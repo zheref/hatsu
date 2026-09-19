@@ -765,6 +765,13 @@ On Codex, where the "title" is whatever the transcript records, it goes in the p
    documentation-and-skill diff derives `G4` *"the diff touches the process surface"*, which is true and
    says nothing about whether the change is security-bearing. So § 2's classification is read off
    `git diff --name-only` against the default map, in the open, and reported as by-hand.
+   **And that `G4` was measured in a CANON repository, which is the only place it holds.** The gate is
+   the repository's role, not the file's kind (maintainer's ruling, 2026-09-18 —
+   [`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*): `zheref/hatsu`,
+   `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai` and `zheref/bankai-scaffold` are the canon, and a consumer repository's own `nen/*.json`, CI
+   workflow or `scripts/` entry is configuration standing at `G2`. **Hanten does not call this verb**
+   and none of that changes § 2 — the note is here so a reader who *does* reach for the path sets
+   above does not carry them into a repository they do not govern.
 5. **`nen/workflow.json` carries no `review` block at `nen.workflow/v0.1`**, so § 2's path→scope map
    cannot be declared per repository. Read as this skill's default, stated every run, corrected by hand
    where a repository's layout defeats it — and filed (`docs/ab/hanten.md` § 4.2).

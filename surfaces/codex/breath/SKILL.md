@@ -14,6 +14,16 @@ filing. Never copy or invent a second policy in the target repository.
 
 # Breath — the first breath of an effort, taken before any work
 
+> **The gate on a declaration change is the REPOSITORY's role, not the file's kind.** Maintainer's
+> ruling, 2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is
+> the repository's role, not the file's kind*): **`G4` (`CON-7`) in a canon repository** —
+> `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`, whose product *is* the process — and **`G2`
+> (`CON-5`) in a consumer repository**, where a `nen/contract.json`, `nen/workflow.json` or
+> `nen/gates.json` is that repository's own configuration and governs nothing else. **This skill runs
+> against consumer checkouts by design**, so every declaration-gate instruction below names both
+> halves explicitly rather than asking you to reinterpret a bare "G4". The merge is the maintainer's
+> either way — the ruling moves the gate, never the prohibition.
+
 **Nature: Transmuter** carries every run. A warm-up moves git state and probes a host toolchain; it
 authors nothing, so it borrows no authorship nature from what follows. Whatever
 [`$rasengan`](../rasengan/SKILL.md) — `ren`'s next phase — writes on the branch this skill cut is
@@ -223,7 +233,7 @@ workflow.json: using the built-in defaults from `docs/WORKFLOW.md`"* — and use
 `branch.template` = `{model}/{persona}/{descriptor}`, `branch.base` = `main`, `iteration.checks` =
 `["build"]`, `iteration.lane` = the declaration's own `project.defaultLane`. Never invent a value a
 default does not cover, and never write the file to make the message go away — authoring a
-`workflow.json` for a repository is a policy change that lands as its own PR at **G4**.
+`workflow.json` for a repository lands as its own PR at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one).
 
 **`nen` VALIDATES `nen/workflow.json` at the pinned ref.** Re-verified live at `v0.7.0` against this
 repository: `nen schema check --repo <path>` reports **six** rows — the four taxonomy files,
@@ -344,7 +354,7 @@ exclude="$(git -C <path> rev-parse --git-path info/exclude)"     # NOT "$(rev-pa
 > lands in a PR, and it applies to everyone who clones. Editing it inside a warm-up would smuggle a
 > policy change into a phase whose whole authority is "produces no object anyone else can see"
 > (§ 9). If the repository *should* ignore those paths — and it usually should — say so and propose
-> it as its own PR at **G4**; do not fold it into this effort.
+> it as its own PR at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one); do not fold it into this effort.
 >
 > **On Codex the door can be barred, and that is a stop rather than a workaround.** Under
 > `-s workspace-write` in a **linked worktree**, `info/exclude` lives outside the sandbox and the append
@@ -472,7 +482,7 @@ maintainer says so, in this session, after reading the list the refusal printed.
 which carries no `project` block: the git half prints in full and the run ends with *"no declaration
 -- build/test verification skipped … That is not a failure … this exits 0"*, `lane: (none)`
 (`docs/ab/breath.md` § 2.3). Say plainly that no declaration exists, that the warm-up was the git
-half only, and treat writing a `project` block as a **G4** change to propose — not a blocker, and
+half only, and treat writing a `project` block as a change to propose at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one) — not a blocker, and
 not something to paper over with a remembered command line.
 
 ## 5a. Opening the Hanten cycle ledger

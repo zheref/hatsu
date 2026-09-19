@@ -15,6 +15,16 @@ trigger a duplicate filing. Never copy or invent a second policy in the target r
 
 # Mugetsu — the last cut: one release, one destination, on one recorded word
 
+> **The gate on a declaration change is the REPOSITORY's role, not the file's kind.** Maintainer's
+> ruling, 2026-09-18 ([`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is
+> the repository's role, not the file's kind*): **`G4` (`CON-7`) in a canon repository** —
+> `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`, whose product *is* the process — and **`G2`
+> (`CON-5`) in a consumer repository**, where a `nen/contract.json`, `nen/workflow.json` or
+> `nen/gates.json` is that repository's own configuration and governs nothing else. **This skill runs
+> against consumer checkouts by design**, so every declaration-gate instruction below names both
+> halves explicitly rather than asking you to reinterpret a bare "G4". The merge is the maintainer's
+> either way — the ruling moves the gate, never the prohibition.
+
 **Nature: Emitter.** Publication is the far end of the release line, and it is the one act in the
 whole local plane whose blast radius is **other people's users**. That is what **G3** (`CON-6`) holds,
 and G3 is the maintainer's — never delegated, never inferred, never carried over.
@@ -250,7 +260,7 @@ ignored"* refusal (`docs/ab/mugetsu.md` § 2.5). So the verb has **no per-destin
 all**: "one target per call" is this skill's discipline, and where a repository publishes to several
 destinations it declares them as separate lanes (each with its own `release` row) or as `deploy`
 targets — § 5b. A lane whose `release` row publishes to more than one destination in one run cannot
-be published *per target* through this verb, and that is a declaration to fix at **G4**, not a run to
+be published *per target* through this verb, and that is a declaration to fix at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one), not a run to
 improvise around.
 
 ### 5b. `nen shu deploy --target <production target> --run`
