@@ -113,31 +113,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Start check on the exact PR head
-        # CREATED `completed`/`success`, NOT `in_progress`, and that is the fix for
-        # a confirmed self-block. An `in_progress` check run has `conclusion: null`,
-        # which is outside nen's {SUCCESS, NEUTRAL, SKIPPED}, so if it reaches the
-        # rollup this job fails CON-32(a) BECAUSE OF ITSELF. `--exclude-run` drops by
-        # run id, and that is NOT sufficient: verified live on zheref/hatsu#75, an
-        # API-created check run is attached to an arbitrary `github-actions` check
-        # suite for the SHA -- the `surface-mirror-check` API check created by run
-        # 35450471186 is attributed to run 35450471173. So the exclusion can miss
-        # this job's own check, intermittently. Creating it already-green removes
-        # the window entirely: the conclusion never carried information anyway (see
-        # the header), so there is nothing to withhold until the verdict lands. The
-        # title says `evaluating` until the final step PATCHes the real verdict in.
-        # `--exclude-run` is kept below as defence in depth, not as the guarantee.
-        id: head_check
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          id="$(gh api --method POST "repos/${REPO}/check-runs" -f name=readiness -f head_sha="$HEAD_SHA" -f status=completed -f conclusion=success -f 'output[title]=readiness — evaluating' -f 'output[summary]=The verdict has not been computed yet. This check is always `success` by construction; read the title.' --jq .id)"
-          echo "id=$id" >> "$GITHUB_OUTPUT"
-
       - name: Checkout PR head (data only — nothing from here is executed)
         uses: actions/checkout@v7
         with:
@@ -296,12 +271,24 @@ jobs:
             echo "head moved ${EVENT_HEAD} -> ${live}; this run's verdict is not published"
           fi
 
-      - name: Finish check on the exact PR head
-        if: ${{ always() && steps.head_check.outputs.id != '' }}
+      - name: Publish the check on the exact PR head
+        # CREATED HERE, AFTER THE VERDICT, AND THAT ORDERING IS LOAD-BEARING.
+        # This check is always `success` (see the header), so if it existed while
+        # `nen pr ready` ran it would be a REPORTED GREEN CHECK -- and CON-32(a)
+        # passes on a non-empty all-green rollup while FAILING on an empty one.
+        # On a pull request with no other checks the gate would then read `ready`
+        # because of this check's own existence: a false READY, which is the
+        # worst failure this signal has. Creating it only now means the rollup
+        # the verdict saw never contained it.
+        #
+        # `always()`, so a failure in any earlier step still publishes an honest
+        # `undetermined` rather than leaving the pull request with no check at
+        # all -- fail closed, visibly.
+        if: ${{ always() }}
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-          CHECK_ID: ${{ steps.head_check.outputs.id }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           TITLE: ${{ steps.verdict.outputs.title }}
           SUMMARY: ${{ steps.verdict.outputs.summary }}
           STALE: ${{ steps.fresh.outputs.stale }}
@@ -312,17 +299,19 @@ jobs:
           summary="${SUMMARY:-The readiness step did not complete. Nothing is asserted about this PR.}"
           # A verdict computed against a head that has since moved describes a
           # different tree than this check run. Say so rather than publishing it.
-          if [ "${STALE}" = "yes" ]; then
+          if [ "${STALE:-}" = "yes" ]; then
             title="superseded — the head moved while this run was evaluating"
             summary="A newer commit was pushed before this run finished, so its verdict would have described a different tree. The run for the new head publishes the verdict that counts. Nothing is asserted about this SHA."
-          elif [ "${STALE}" = "unknown" ]; then
+          elif [ "${STALE:-}" != "no" ]; then
             title="readiness undetermined — could not confirm the head"
             summary="The live head could not be read, so this run cannot confirm its verdict describes this SHA. Nothing is asserted."
           fi
           # Always `success`: see the header. The verdict is the title, never the
           # conclusion, so this check can never be the red check that makes
           # CON-32(a) unsatisfiable.
-          gh api --method PATCH "repos/${REPO}/check-runs/${CHECK_ID}" \
+          gh api --method POST "repos/${REPO}/check-runs" \
+            -f name=readiness \
+            -f head_sha="$HEAD_SHA" \
             -f status=completed \
             -f conclusion=success \
             -f "output[title]=${title}" \
