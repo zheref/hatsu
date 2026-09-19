@@ -137,6 +137,11 @@ REQUIRED_STEP_ARGS = {
 # exempts `echo ok; cat nen/gates.json`, where the second command really does
 # read the PR-controlled file. So the line is split on shell command separators
 # and only the segment containing the occurrence is considered.
+# Every construct that can RUN a command. `$(...)` and backticks are command
+# substitution; `<(...)` and `>(...)` are process substitution, which runs its
+# body in a subshell and is easy to miss because it contains no `$`.
+EXECUTING_CONSTRUCTS = ["$(", "`", "<(", ">("].freeze
+
 def diagnostic_at?(line, index)
   start = 0
   line.scan(/\|\||&&|[;|]/) do
@@ -146,12 +151,14 @@ def diagnostic_at?(line, index)
   end
   # Leading `{`, `(` and whitespace are grouping, not the command word.
   segment = line[start...index].to_s.sub(/\A[\s({]+/, "")
-  # A COMMAND SUBSTITUTION IS NOT A DIAGNOSTIC, even inside `echo`. The command
+  # NO FORM OF SHELL EXECUTION IS A DIAGNOSTIC, even inside `echo`. The command
   # word alone is not enough: `echo "ref=$(jq -r .dependency.pinned_ref
   # nen/contract.json)"` begins with `echo`, but the substitution performs a real
-  # read and emits its value, which is exactly how a PR would supply the pin.
-  # Any expansion in the text preceding the path forfeits the exemption.
-  return false if segment.include?("$(") || segment.include?("`")
+  # read and emits its value -- and `echo > >(cat nen/gates.json)` does the same
+  # through a PROCESS substitution, which carries neither `$(` nor a backtick.
+  # Enumerated as one list rather than patched per form, because this has now
+  # been wrong twice and the next form would have been a third fix.
+  return false if EXECUTING_CONSTRUCTS.any? { |form| segment.include?(form) }
   !(segment =~ /\A(echo|printf)\b/).nil?
 end
 
@@ -521,6 +528,19 @@ def self_test(root)
       %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
       %Q{          echo "ref=$(jq -r .dependency.pinned_ref nen/contract.json)"\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
     expect_rejected("read inside a command substitution within a diagnostic") { validate_repo(tmp) }
+
+    # PROCESS SUBSTITUTION RUNS A COMMAND AND CARRIES NO `$`. `echo > >(cat
+    # nen/gates.json)` begins with `echo`, contains neither `$(` nor a backtick,
+    # and reads the PR-controlled gates file in a subshell.
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          echo > >(cat nen/gates.json)\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("read through an output process substitution in a diagnostic") { validate_repo(tmp) }
+
+    File.write(surface, surface_original.sub(
+      %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
+      %Q{          echo hi < <(cat nen/contract.json)\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
+    expect_rejected("read through an input process substitution in a diagnostic") { validate_repo(tmp) }
 
     # A SIBLING DIRECTORY IS NOT THE TRUSTED CHECKOUT. `attacker.trusted/` ends
     # with `.trusted/`, which a suffix test accepted.
