@@ -9,13 +9,21 @@ MAC_RUNNER = %w[self-hosted macOS ARM64].freeze
 WINDOWS_RUNNER = %w[self-hosted Windows X64].freeze
 HOSTED_RUNNER = "ubuntu-latest"
 PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml].freeze
+# NOTE: pr-readiness.yml is deliberately ABSENT from the list above and present in
+# every table below. This constant doubles as the REQUIRED-PRESENCE list
+# (validate_repo), so naming a file that does not exist yet would fail every PR.
+# The PR that adds the workflow adds it here, in the same commit as the file.
 EXPECTED_JOBS = {
   "plugin-bump-check.yml" => "check",
-  "surface-mirror-check.yml" => "surface-mirror-check"
+  "surface-mirror-check.yml" => "surface-mirror-check",
+  "pr-readiness.yml" => "readiness"
 }.freeze
 EXPECTED_TYPES = {
   "plugin-bump-check.yml" => %w[opened synchronize reopened edited],
-  "surface-mirror-check.yml" => %w[opened synchronize reopened]
+  "surface-mirror-check.yml" => %w[opened synchronize reopened],
+  # No `edited`: the readiness verdict reads the PR's checks, rounds and
+  # threads, and none of those changes when the body or title is edited.
+  "pr-readiness.yml" => %w[opened synchronize reopened]
 }.freeze
 EXPECTED_STEPS = {
   "plugin-bump-check.yml" => [
@@ -39,7 +47,36 @@ EXPECTED_STEPS = {
     "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)",
     "Surface-mirror drift check",
     "Finish check on the exact PR head"
+  ],
+  # No "Assert the guard script keeps its exec bit in-tree": this workflow runs
+  # no in-repo guard script. Its executable is the checksum-verified nen binary,
+  # pinned from the TRUSTED contract, so the exec-bit assertion has no subject.
+  "pr-readiness.yml" => [
+    "Start check on the exact PR head",
+    "Checkout PR head (data only — nothing from here is executed)",
+    "Checkout guard code from the trusted workflow revision",
+    "Enforce workflow runner policy from trusted workflow revision",
+    "Read the pinned nen ref from trusted nen/contract.json",
+    "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)",
+    "Readiness verdict",
+    "Finish check on the exact PR head"
   ]
+}.freeze
+
+# Workflows that read a dependency pin and then fetch+execute a bootstrap from a
+# URL built out of it. The pin MUST come from the trusted workflow checkout: a PR
+# that can edit the pin can choose the binary that judges it. Keyed by the step's
+# declared NAME, not its index -- an index silently pointed at the wrong step when
+# pr-readiness.yml (no exec-bit step) shifted everything up by one.
+TRUSTED_PIN_STEP = "Read the pinned nen ref from trusted nen/contract.json"
+# Steps whose `run` must carry an exact argument. Same reason: nen 0.10.0 falls
+# back to <cwd>/nen/gates.json when --gates is absent, and the cwd in these jobs
+# is the PR HEAD checkout -- so a dropped flag hands the PR the gate that judges
+# it, and reads like a harmless simplification.
+REQUIRED_STEP_ARGS = {
+  "pr-readiness.yml" => {
+    "Readiness verdict" => '--gates "$PWD/.trusted/nen/gates.json"'
+  }
 }.freeze
 
 def fail_policy(message)
@@ -162,10 +199,17 @@ def validate_workflow(path)
         fail_policy("#{path} job #{job_name} executes a PR-root script instead of trusted code")
       end
     end
-    if File.basename(path) == "surface-mirror-check.yml"
-      pin_step = step_maps[5]
-      unless scalar(pin_step["run"])&.include?(".trusted/nen/contract.json")
-        fail_policy("#{path} must source its executable dependency pin from trusted workflow data")
+    # Generalised from a single hardcoded basename + positional index: EVERY
+    # workflow that carries the pin step is held to sourcing it from trusted data.
+    pin_step = step_maps.find { |step| scalar(step["name"]) == TRUSTED_PIN_STEP }
+    if pin_step && !scalar(pin_step["run"])&.include?(".trusted/nen/contract.json")
+      fail_policy("#{path} must source its executable dependency pin from trusted workflow data")
+    end
+    REQUIRED_STEP_ARGS.fetch(File.basename(path), {}).each do |step_name, required|
+      step = step_maps.find { |candidate| scalar(candidate["name"]) == step_name }
+      fail_policy("#{path} has no step named #{step_name.inspect}") unless step
+      unless scalar(step["run"])&.include?(required)
+        fail_policy("#{path} step #{step_name.inspect} must pass #{required}")
       end
     end
     unless scalar(finisher["if"]) == "${{ always() && steps.head_check.outputs.id != '' }}" && scalar(finisher["run"])&.include?("check-runs/${CHECK_ID}") && scalar(finisher["run"])&.include?("status=completed")
