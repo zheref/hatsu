@@ -26,7 +26,7 @@ below.
 
 ---
 
-## The seventeen ported skills
+## The nineteen ported skills
 
 Ported from the frozen reference implementation **under their existing names** — only the mechanics changed: **every deterministic
 step that has a verb** is a [Nen](https://github.com/zheref/nen) verb, where it used to be improvised shell
@@ -52,8 +52,8 @@ mechanics, and a live transcript showing the same verdict from fewer improvised 
 | [`backlog-loop`](backlog-loop/) | Drives a repository's backlog to zero open actionable issues, in severity order, as gate-ready PRs. **At a declared severity-batch boundary it also cuts the release tag and opens each affected consumer's repin PR** (§ 8) — it never publishes a release, and never merges `main`. |
 | [`backlog-synthesis`](backlog-synthesis/) | Reconciles a long backlog into a short one — groups issues sharing a clause, machinery file or root cause, then files one consolidated issue, attaches the originals as sub-issues **and closes them with a reference**. Every write happens behind a plan the maintainer approves first. |
 | [`bankai-handbooks`](bankai-handbooks/) | Resolves which handbooks govern a repo and scenario, and which rule-ID prefix each one owns, so a citation is never improvised. |
-| [`black-voice`](black-voice/) | **Post-merge UI validation, on the maintainer's call only.** Resolves the merged PR, the issues it closed and their acceptance criteria, raises **Shalnark** once to drive every criterion through ephemeral automated UI tests in the repository's pinned tooling, and publishes pass / fail / not-testable per criterion as a Spiritual Message page. Never automatic, never called from a composite; it fixes nothing and files a failure only on the maintainer's pick. |
 | [`bankai-quality`](bankai-quality/) | Resolves the adversarial-test tooling, performance-measurement tooling and `QA-{n}` rules for a repo's scenario — what Phinks and Uvogin read before they measure anything. |
+| [`black-voice`](black-voice/) | **Post-merge UI validation, on the maintainer's call only.** Resolves the merged PR, the issues it closed and their acceptance criteria, raises **Shalnark** once to drive every criterion through ephemeral automated UI tests in the repository's pinned tooling, and publishes pass / fail / not-testable per criterion as a Spiritual Message page. Never automatic, never called from a composite; it fixes nothing and files a failure only on the maintainer's pick. |
 | [`build`](build/) | Takes one issue from wherever it sits to a delivery PR standing ready at its human gate. Never applies a mode label. |
 | [`file`](file/) | Files one well-formed, correctly-labelled, non-duplicate issue — reconciled against the open backlog first, on one explicit confirmation. |
 | [`futon`](futon/) | Takes one whole severity band from open issues to PRs with an actor behind them, then **gates** the terminal step you typed (`then tag`, `then tag+fanout`): it holds the cut until no PR this run authored is short of Ready, and hands the cut itself to [`getsuga`](getsuga/). It cuts no tag and runs no fan-out of its own. |
@@ -64,6 +64,7 @@ mechanics, and a live transcript showing the same verdict from fewer improvised 
 | [`pr-state`](pr-state/) | Reports one PR's readiness as the deterministic gate's verdict, quoted verbatim, with the conjunct-by-conjunct reason. Read-only. |
 | [`senkei`](senkei/) | Inventories a consuming product repo's own backlog — epics, integration branches, open PRs — classifies every effort and states a Ready/not-Ready call for each PR. **Not read-only**: it re-runs a dead reviewer job (`nen run rerun-failed`) and fires `bankai:wake/iterate`, alone, on a stalled PR. It applies no routing or stage label without per-action confirmation, and never merges. |
 | [`sharingan`](sharingan/) | Drives one open PR to readiness at its gate and stops there — first blocking condition, thread stewardship, wakes. Never merges, never votes. **Renamed from `drive` at `v0.5.0`** — same behaviour, and `hatsu:drive` no longer resolves. |
+| [`tenkai`](tenkai/) | **Consumer adoption.** Turns another repository into a Hatsu consumer through [`scripts/tenkai_adopt.sh`](../../scripts/tenkai_adopt.sh): the declarations it is missing, the `readiness` workflow, the permission pack and the surface mirrors, each staged as its own PR at that repository's own gate. Idempotent, and read-only until the maintainer says apply. |
 | [`tensho`](tensho/) | Turns a dirty working copy into one PR, reviewing every uncommitted file before staging it, then hands that PR to [`sharingan`](sharingan/)'s engine to reach its gate. |
 
 ---
@@ -96,7 +97,7 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 | [`kokusen`](kokusen/) | **Verify, focused-test, then commit — locally, automatically.** Runs the shared `iteration.checks` and, for changed executable behavior, a declared scoped `test` lane. A missing scoped route stops before checkpoint; a prose-only change reports not applicable. It never runs full regression, coverage, or push. |
 | [`amaterasu`](amaterasu/) | **Launch, every turn.** Builds the configured target and starts it **from the core working directory, never a worktree**; the dry-run argv goes into the report and the chat. A disconnected device is reported by name. Parallel subagent efforts launch nothing. |
 | [`tsukuyomi`](tsukuyomi/) | **Focused tests.** The scoped lane for the behavior this turn changed — rasengan may run it for feedback, kokusen must run it at every local checkpoint. It never walks `tests.required` and never measures coverage. |
-| [`rikugan`](rikugan/) | **The rich report** — turn, landing and final — rendered from `templates/rikugan.html`, **never markdown**: this last turn, then session-wide accomplished, challenges, not delivered, a structural architecture diagram, screenshots, how to launch, decisions. Only the final one is written to `Reports/`. |
+| [`rikugan`](rikugan/) | **The rich report** — `turn`, `turn-fast` and `landing` — rendered from `templates/rikugan.html`, **never markdown**: the desk, this last turn, then session-wide accomplished, challenges, not delivered, the architecture delta as a graph, screenshots, how to launch, decisions. **The dated `final` report is not this skill's**: it is a one-effort Spiritual Message rendered through [`backlog-board`](backlog-board/) § 3 to `<reports.dir>/<YYYY-MM-DD>-<effort>.html`, the only report written to `Reports/`. |
 | [`jutaisho`](jutaisho/) | **The bell.** Rings `workflow.json → notifications` and drops the marker that [`../../hooks/stop-bell.sh`](../../hooks/stop-bell.sh) reads; where no hook is installed it rings the notifier itself **and says that it did**. |
 | [`ao`](ao/) | **Pull from the base.** Fetch, then rebase if the branch is unpushed and merge if it is not; mechanical conflicts are resolved, a **semantic** one is a **G5** with both sides shown. It never pushes. |
 | [`aka`](aka/) | **Push — human-called.** Lint → squash only unpushed commits → `ao` → re-lint if catch-up changed the tree → push. No project-wide tests. Regression and coverage wait for mukai. |
@@ -132,7 +133,7 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 
 ## The two roster-machinery residents
 
-Neither is one of the forty. They landed with the skeleton because the plugin does not function
+Neither is one of the forty-two. They landed with the skeleton because the plugin does not function
 without them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |

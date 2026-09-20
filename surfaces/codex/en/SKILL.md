@@ -98,7 +98,7 @@ inherited, or forgotten.*
 | `monitor.maxCycles` | `nen/workflow.json` | **the cap** — the count of *acting* cycles (§ 6) | `20` |
 | `monitor.pollSeconds` | `nen/workflow.json` | the interval between observations, as `--interval-ms` | `300` (→ `--interval-ms 300000`) |
 | `branch.base` | `nen/workflow.json` | what step 3 catches up from, and what "behind" means | `main` |
-| `reports.dir` / `.template` / `.retain` | `nen/workflow.json` | step 7's file — [`$rikugan`](../rikugan/SKILL.md)'s keys | `Reports` / `rikugan` / `final-only` |
+| `reports.dir` / `.sections` / `.retain` | `nen/workflow.json` | step 7's file — [`backlog-board`](../backlog-board/SKILL.md) § 3's keys | `Reports` / five variants / `final-only` |
 | `notifications.rungs` / `.sound` | `nen/workflow.json` | step 6's rungs — [`$jutaisho`](../jutaisho/SKILL.md)'s keys | `["push","os","sound"]` / `Glass` |
 
 **Before cycle 1, the cap is spelled out through the verb that refuses a missing one:**
@@ -186,7 +186,7 @@ Past the maximum the run ends at not-ready with the board. Neither is a G5. `nen
 | 4 | **drive again** | [`$sharingan`](../sharingan/SKILL.md) | after step 3 moved the tree underneath it |
 | 5 | **observe** | this file, § 6 | while CI or a reviewer round is pending; rebuild the current-head snapshot on every change, returning to steps 2–4 when action is needed |
 | 6 | **the bell and gate handoff** | [`$jutaisho`](../jutaisho/SKILL.md) | **after verified Ready**, and only then |
-| 7 | **retained readiness report** | [`$rikugan`](../rikugan/SKILL.md) `as final` | after the bell; this is En's successful terminus |
+| 7 | **the dated final report** | [`$backlog-board`](../backlog-board/SKILL.md) § 3, `--variant final` | after the bell; this is En's successful terminus |
 
 **Four orderings are en's own assertions:**
 
@@ -196,7 +196,7 @@ Past the maximum the run ends at not-ready with the board. Neither is a G5. `nen
   reading the catch-up already invalidated.
 - **5 before 6.** Pending is not Ready. Required CI and every reviewer round owed at the current head
   must settle, and every incoming finding must be disposed, before the bell or handoff exists.
-- **6 before 7.** The retained report records the gate event the bell announced; rendering it first
+- **6 before 7.** The dated final report records the gate event the bell announced; rendering it first
   would preserve a readiness handoff that had not happened yet.
 
 **Step 3 is conditional and stays conditional.** A branch level with its base does not get a
@@ -375,20 +375,21 @@ maintainer sees a budget being continued rather than one silently restarting.
 > the cap exists to make impossible, and improvising one would close a maintainer's OPEN question by
 > attrition rather than by ruling.
 
-## 8. The readiness report
+## 8. The dated final report
 
-After the deterministic Ready verdict and step 6's bell, render [`$rikugan`](../rikugan/SKILL.md)
-`as final` — sections 01–09 plus **10 Tests run** and **11 Touched coverage** — as the retained record
-of the run that reached its human gate:
+After the deterministic Ready verdict and step 6's bell, render the **`final`** variant — a
+**one-effort Spiritual Message with a cleared desk**, this effort's register, spend and legend —
+through [`backlog-board`](../backlog-board/SKILL.md) § 3, which owns that render path (maintainer's
+ruling, 2026-09-19). **There is no `rikugan as final` any more**; hand over and say so.
 
 ```
-<reports.dir>/<YYYY-MM-DD>-<branch-slug>-final.html
+<reports.dir>/<YYYY-MM-DD>-<effort>.html
 ```
 
-That path is `rikugan` § 6's and `reports.retain: final-only`'s, not en's invention: turn and
-readiness renders live at their Artifact address (or the transient `current.html` on a surface with
-none), and only this one gets a dated file. **`<reports.dir>` is git-ignored**, and rikugan writes
-nowhere else in the tree.
+That path is `backlog-board` § 3's and `reports.retain: final-only`'s, not en's invention: turn and
+landing renders live at their Artifact address (or the transient `current.html` on a surface with
+none), and only this one gets a dated file. **`<reports.dir>` is git-ignored**, and neither skill
+writes anywhere else in the tree.
 
 **Then the run ends at the gate.** Say the object notation, current head SHA, quoted readiness verdict,
 acting-cycle count spent out of the cap, and final report path. The human merge or vote remains outside

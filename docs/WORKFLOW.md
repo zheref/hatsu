@@ -251,12 +251,32 @@ question, not an answered one.
 | `retain` | `final-only` | **the retention rule — what is KEPT**; see below |
 | `template` | `rikugan` | `templates/<name>.html` in this repository |
 | `captures` | `Reports/captures` | where screenshots land before they are inlined as data URIs |
+| `sections.<variant>.template` | — | which of `templates/*.html` this variant renders: `rikugan` for `turn`, `turn-fast` and `landing`, `spiritual-message` for `final` and `register` |
+| `sections.<variant>.blocks` | — | the block names this variant renders, injected as `sections.<block>` presence flags by `nen report render --variant`. A variant declaring none renders every block |
 
-**The retention rule — and what it does *not* say.** `rikugan` runs at three moments — every turn, at
-landing, and once current-head readiness is verified — and `retain: final-only` means **only the last one is KEPT**: only the
-final report gets a dated file of its own, `<dir>/<YYYY-MM-DD>-<branch-slug>-final.html`. A directory holding
-one report per turn is a directory nobody opens; the final report is the one with tests run, scenarios,
-touched coverage and the architecture delta, and it is the one worth finding six months later.
+**The template language `nen report render` fills these with.** `{{token}}` (escaped),
+`{{{token}}}` (raw), `{{#each list}}…{{/each}}` with `{{.}}` and `{{@index}}`, and
+`{{#if key}}…{{/if}}`. No helpers, no partials, no expressions. An unknown token is exit `2` naming
+it; `null` renders empty; an object at a value tag is refused. `--dry-run` reads the file exactly as
+the render does, so a template is proved against a document before it ships. **A template never
+spells a substitution tag in its own comments**: the renderer substitutes over the whole file,
+comments included.
+
+**Which blocks a report renders is configuration, and so is who renders it** (maintainer's ruling,
+2026-09-19). Five variants are declared: [`rikugan`](../claude/skills/rikugan/SKILL.md) renders
+**`turn`** every Ren turn, **`turn-fast`** at the same step under the fast profile (desk and last
+turn only) and **`landing`** at `mukai` step 9 and `en` step 1;
+[`backlog-board`](../claude/skills/backlog-board/SKILL.md) § 3 renders **`register`** for its own
+board and for `futon` and `backlog-loop`, and **`final`** — the dated report — through the same verb.
+Every value inside a block is the model's; only the presence flags come from this file.
+
+**The retention rule — and what it does *not* say.** A report is published at three moments — every
+turn, at landing, and once current-head readiness is verified — and `retain: final-only` means **only
+the last one is KEPT**: the **`final`** variant, a one-effort Spiritual Message with a cleared desk,
+rendered through [`backlog-board`](../claude/skills/backlog-board/SKILL.md) § 3 to
+`<reports.dir>/<YYYY-MM-DD>-<effort>.html`. A directory holding one report per turn is a directory
+nobody opens; the final one is the one with the register, the tests run and the touched coverage on
+it, and it is the one worth finding six months later.
 
 **It is a rule about what survives, not about whether a working file exists** (maintainer's ruling,
 2026-09-09). Turn and landing reports are published to the conversation as an Artifact; on a surface that
@@ -265,6 +285,34 @@ render, never dated, git-ignored. That file is **admitted** under `final-only`, 
 the latest render and can never be found again after the next turn is not a retained report. `dir` is
 git-ignored for the same reason a build output is: it is derived, and a derived file in git is a merge
 conflict waiting to be resolved by coin toss.
+
+### `review`
+
+```json
+"review": { "scopes": { "code": { "persona": "nobunaga", "tier": "deep", "budget": 2,
+                                  "paths": ["**"] }, … } }
+```
+
+**The path-to-reviewer map [`hanten`](../claude/skills/hanten/SKILL.md) classifies a change set
+with**, read by `nen review scopes --base <ref> --repo <path> --json` and never by a hand table.
+One row per scope:
+
+| Row key | What it carries |
+|---|---|
+| `persona` | the agent file raised for this scope — `claude/agents/<persona>.md`. A scope whose persona has no definition is a **gap**, never improvised past |
+| `tier` | `models.<surface>.<tier>` of the `models` block below, read at use, **never the frontier tier** |
+| `budget` | reviews of this scope per session and repository, counted in `.nen/hanten/<branch-slug>.cycle.json`. Remediation does not reset it |
+| `paths` | prefixes or globs in `nen report data`'s tier-table grammar. **One path may raise several scopes**, and a path no row claims is reported as `unclaimed` |
+
+**`code`'s `paths` is `**`, deliberately: it claims every path**, so Nobunaga is the default reviewer
+on every change set and no diff is reviewed by nobody. The other five are raised by their own paths —
+`security` (Feitan), `architecture` (Chrollo), `ui` (Hisoka), `performance` (Uvogin), `release`
+(Phinks).
+
+**One tier is swapped rather than read.** `nen repo classify` answers `kind`; a **`process`**
+repository takes the declared `review.scopes.code.tier` (`deep`), and a **`product`** one swaps
+Nobunaga to **`fast`**. Hanten says which ran. No other row's tier moves, and the declaration is
+never edited to get a different one for one run.
 
 ### `notifications`
 
@@ -643,6 +691,17 @@ from a composite — not from [`futon`](../claude/skills/futon/)'s `then` clause
 of them send is built by [`susanoo`](../claude/skills/susanoo/), which uploads nothing itself and
 cuts no tag — where the repository declares `tags.identity` it names the identity `kagutsuchi`'s tag will carry.
 
+**One more thing only the maintainer calls — and it is not one of the five.**
+
+| Phase | What it does | Why it is the human's |
+|---|---|---|
+| [`black-voice`](../claude/skills/black-voice/) | **post-merge UI validation.** Resolves the merged PR and the acceptance criteria of the issues it closed, raises **Shalnark** once to drive every criterion through ephemeral automated UI tests, and publishes pass / fail / not-testable per criterion | it runs *after* the gate, on work already merged, and guessing which PR was meant wastes the whole run |
+
+**It sits outside the five deliberately.** It crosses no gate, decides nothing and blocks nothing —
+it is an optional look back at a delivery, so nothing schedules it: not `ren`, `mukai`, `en`, `futon`
+or `backlog-loop`, and no agent proposes it. **Never automatic and never from a composite**, and the
+skill refuses mechanically rather than on manners — see its § 1.
+
 Asking *"shall I push now?"* at the end of a turn is how a human-called phase becomes an agent-called one by
 attrition. The loop simply stops and waits.
 
@@ -707,40 +766,25 @@ maintainer's to call. Its order is fixed, and each step has exactly one job.
 pull request is the moment work stops being private, so it is the moment the honest questions are cheapest to
 ask and most expensive to skip.
 
-### `hanten` — the routing, and the one finding shape
+### `hanten` — where the routing and the finding shape are written
 
-`hanten` classifies the change set by **scope** and spawns **one reviewer subagent per scope**. The scope
-decides the reviewer; nobody picks by feel.
+**Neither lives here.** The routing is data — `nen/workflow.json` → `review.scopes`, read by
+`nen review scopes` — and the protocol is
+[`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 5 with
+[`claude/agents/_review-preamble.md`](../claude/agents/_review-preamble.md) § 4. A table copied here
+is a second source that drifts the moment a scope is added, which is what happened: this section
+carried five reviewers and a four-field shape long after there were six of each.
 
-| Scope of the change set | Reviewer | Tier · effort |
-|---|---|---|
-| a **UI** surface, or a measurable quality claim | **Hisoka** ([`hisoka.md`](../claude/agents/hisoka.md)) | fast · high |
-| **security-bearing** — auth flows, secrets and credential handling, network and storage boundaries, data minimisation, the supply chain | **Feitan** ([`feitan.md`](../claude/agents/feitan.md)) | deep · high |
-| **architecture / handbook conformance** — layering, state ownership, the resolved stack rules, the repository's own architecture notes | **Chrollo** ([`chrollo.md`](../claude/agents/chrollo.md)) | deep · high |
-| **performance** | **Uvogin** ([`uvogin.md`](../claude/agents/uvogin.md)) | fast · medium |
-| **release-adjacent** — release machinery, build and packaging, a deploy target, a guard that gates one | **Phinks** ([`phinks.md`](../claude/agents/phinks.md)) | deep · high |
-
-Each subagent is titled **`hanten · <persona> · <model alias>`** — the rule of § 2's `models` — and **never
-runs on the frontier tier**. A change set with no matching scope gets no reviewer, said out loud; a change
-set matching three gets three.
-
-**The finding shape is fixed, and it has four fields, in this order:**
-
-| Field | What it must be |
-|---|---|
-| **rule id** | the governing rule, cited by id — `UX-{n}`, `SEC-{n}`, `UZF-{n}`, the one resolved stack prefix, `QA-{n}` — or the repository's own note by path and heading. No un-cited opinions. Where genuinely nothing covers it: `no rule id — handbook-question`, **filed, never legislated** |
-| **severity** | `critical` / `high` / `medium` / `low`, on the shared scale |
-| **evidence** | file and line, the quoted snippet, and the concrete path from the code as written to the consequence |
-| **proposed fix** | one concrete change in the repository's own idiom. The reviewer **proposes**; it does not apply |
-
-**Reviewers advise; Kurapika acts.** They never edit non-test source (a test that demonstrates a finding is
-the exception), never cast a review vote, never block, never merge, never label. Kurapika **fixes the finding
-or pushes back with a reason** — both are legitimate. What is not legitimate is a finding that is neither
-fixed nor answered: that is the G5, and `hanten` raises it, never the reviewer.
-
-**Pre-PR, a finding's home is the working copy, not the tracker.** The whole value of the position is that a
-`critical` here is a fix in the next commit rather than an issue with a lifecycle. An issue is filed only
-when the finding **outlives the branch**.
+**What is worth saying once, in prose: there are six scopes, and one of them claims every path.**
+`code` is **Nobunaga's** and its `paths` is `**`, so he is the default reviewer on every change set;
+`security` is **Feitan's**, `architecture` **Chrollo's**, `ui` **Hisoka's**, `performance`
+**Uvogin's** and `release` **Phinks'**, each raised only by the paths its own row declares. Every row
+carries its `persona`, its `tier` (`models.<surface>.<tier>` of § 2, never the frontier one) and its
+`budget` — the reviews that scope gets per session and repository, counted in
+`.nen/hanten/<branch-slug>.cycle.json` and never in prose. **Reviewers advise; Kurapika acts** — he
+fixes the finding or pushes back with a cited reason, and a finding that is neither is the **G5** of
+§ 4, raised by `hanten` and never by the reviewer. **Pre-PR, a finding's home is the working copy,
+not the tracker**: an issue is filed only when the finding outlives the branch.
 
 ### `byakugan` — the ladder, spent
 
@@ -809,7 +853,7 @@ Then `shibari` hands the PR to `en` and stops. It never applies a gate label and
 [`sharingan`](../claude/skills/sharingan/)² → [`murasaki`](../claude/skills/murasaki/)³ when the branch is
 behind → `sharingan`⁴ → **observe⁵ while required CI or the current-head reviewer round is pending**, still
 reacting to new comments, threads, reviews and conflicts → [`jutaisho`](../claude/skills/jutaisho/)⁶ once
-at Ready → the dated **final** report, a one-effort Spiritual Message rendered through `nen report render --variant final` (`backlog-board` § 4's path), **the only report written to `Reports/`**, then stop at the human gate.
+at Ready → the dated **final** report, a one-effort Spiritual Message rendered through `nen report render --variant final` (`backlog-board` § 3's path), **the only report written to `Reports/`**, then stop at the human gate.
 
 | Key | What it bounds |
 |---|---|
@@ -1045,7 +1089,7 @@ assumed at `v0.7.0`**: Codex and Cursor have no turn-end hook (§ 6), and the 20
 had no in-session subagent. **From `v0.28.0` Codex does spawn in-session subagents**; Hanten's isolated
 reviewer remains a second `codex exec` because that reviewer must not share the author's tree. **RETIRED at nen `0.5`: the mirror's own generator is in the pinned binary.**
 `nen surface mirror generate|check` runs at `v0.5.0` — `scripts/surface_mirror_check.sh` exits `0` with
-`codex ok: 40` and `cursor ok: 47` — so the CI job runs a real check instead of skipping with a notice. The
+the counts it prints, `codex ok: 44` and `cursor ok: 55` at `v0.42.0` — so the CI job runs a real check instead of skipping with a notice. The
 mirrors stay committed, for the original reason: the warm-up installs what is on disk rather than
 regenerating anything in a target repository.
 

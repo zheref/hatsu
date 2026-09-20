@@ -107,15 +107,17 @@ data document is § 2's `objects[]` ∪ `nen board build`'s rows ∪ the desk as
   gates[{ gate, label, cleared, asks[{ kind: DECIDE|DO|MERGE, rank, title, why, verdict,
           options[{letter,label,command,consequence,star,starredClass}], objects[{label,url}] }] }],
   objects[ <a § 2 row> ∪ { notation, marks, gate, gateClass, verdict, needs, session, lane, thought,
-                           labelsLine, checksLine, threadsLine, linkedLine, head } ],
+                           labelsLine, checksLine, threadsLine, linkedLine, head,
+                           notes: string[] } ],
   architectureCaption, graphJson, graphMermaid, graphNodes[], graphEdges[],
   spendEfforts[{name, usage, note, phases[{lane,percent,amount}]}], legendRows[{mark,meaning}] }
 ```
 
 Every key is always present, empty where there is nothing: a token the data has not got is exit `2`
 by design, because a blank cell in a published register reads as a fact. The four `…Line` strings are
-flattened for display, so an issue row and a PR row carry the same keys. `spendEfforts[].note` is
-`not reported` where no ledger was read. `notation` is `nen ref format`'s output — **never typed from
+flattened for display, so an issue row and a PR row carry the same keys; `notes` is the row's free
+lines and is `[]`, never absent, when there are none. `spendEfforts[].note` is `not reported` where
+no ledger was read. `notation` is `nen ref format`'s output — **never typed from
 memory**; on a repository with no `nen/repos.json` it falls back to `<owner>/<name>#<n>` and the
 failed resolution goes into `footerNote`.
 
@@ -123,6 +125,13 @@ failed resolution goes into `footerNote`.
 `DECIDE`, `DO` or `MERGE`, each carrying lettered options with **exactly one star** — the same list,
 same order, same letters the surface's own picker will show. **A gate with nothing owed is rendered
 cleared, not omitted.** The page briefs; the picker asks.
+
+**Three validations escaping cannot do stay this skill's**, run before the document is handed to the
+verb: a capture source against `^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$`, a bar
+percentage against `^(100|[0-9]{1,2})(\.[0-9]+)?$`, and **every `url` field** — `objects[].url`,
+`gates[].asks[].objects[].url` — against `^(https?://|mailto:|#|/)`. Escaping makes a `javascript:`
+href harmless as text and as nothing else. **A failing value is dropped and named in *Not
+delivered***, never rendered.
 
 **A drawing is optional.** Where the scope has a shape worth seeing — a chore's PR graph, an epic's
 child tree — author a `nen.report.graph/v0.1` document and pass `--graph`; the template draws it and

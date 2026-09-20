@@ -973,8 +973,8 @@ run on each.
 
 **Everything above about the loop, the gates and the roster is true here.** What changes is the spelling,
 where a delegate comes from, who rings the bell, and which aliases the model matrix answers with. Nothing
-in this section is product- or stack-specific: it is the same forty skills reading your repository's
-own [`nen/contract.json`](nen/contract.json).
+in this section is product- or stack-specific: it is the same forty-two skills reading your
+repository's own [`nen/contract.json`](nen/contract.json).
 
 ### Invoking a skill
 
@@ -1358,7 +1358,7 @@ scripts/surface_mirror_check.sh   # the Codex/Cursor mirrors match their source
 ```
 
 The second writes nothing and needs no credential. **At the pinned build it runs the real check** —
-`codex ok: 40`, `cursor ok: 47`, exit `0`. It exits `2` — saying so, rather than passing — when the `nen` on
+the counts the script prints, `codex ok: 44` and `cursor ok: 55` at `v0.42.0`, exit `0`. It exits `2` — saying so, rather than passing — when the `nen` on
 your `PATH` has no `surface` verb, which at this pin means the binary is not the pinned one; see
 [`docs/SURFACES.md`](docs/SURFACES.md) § 4.
 

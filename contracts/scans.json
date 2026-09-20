@@ -1,0 +1,52 @@
+{
+  "contract": "hatsu.scans/v0.1",
+  "$comment": "The ONE source of the deterministic security-scan rows hanten runs before Feitan reads (hanten section 2a; claude/agents/feitan.md). They are DATA here for the same reason the Nen pin is data in nen/contract.json: a version, URL or asset name written into skill prose is a value nobody bumps and nobody can check. 'The pinned release' is not a pin -- this file is. Where a copy of any value below disagrees with this file, this file wins and the copy is the bug. A row that cannot run is reported as NOT SCANNED, never as clean.",
+  "authority": "Hanten and Feitan read these values at run time. They never remember a version, never resolve 'latest', and never run a downloaded binary whose checksum has not verified against the published manifest named here.",
+  "secretScan": {
+    "tool": "gitleaks",
+    "repository": "https://github.com/gitleaks/gitleaks",
+    "version": "v8.30.1",
+    "versionSemantics": "An EXACT published tag, never 'latest'. The asset and checksum names below carry the same version without its leading v, which is how gitleaks names its release assets. Bumping this value means bumping all three.",
+    "checksumsUrl": "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_checksums.txt",
+    "assetUrlTemplate": "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/<asset>",
+    "assets": {
+      "darwin-arm64": "gitleaks_8.30.1_darwin_arm64.tar.gz",
+      "darwin-x64": "gitleaks_8.30.1_darwin_x64.tar.gz",
+      "linux-arm64": "gitleaks_8.30.1_linux_arm64.tar.gz",
+      "linux-x64": "gitleaks_8.30.1_linux_x64.tar.gz",
+      "win32-x64": "gitleaks_8.30.1_windows_x64.zip",
+      "win32-arm64": "gitleaks_8.30.1_windows_arm64.zip"
+    },
+    "verification": "Fetch checksumsUrl, fetch the host's asset, compute SHA256 over the downloaded archive, and compare it to that asset's line in the checksums file. A mismatch, an unfetchable manifest, or an asset the manifest is silent about is a REFUSAL: the row did not run, and it is reported as not scanned. Never execute unverified bytes, and never retry a checksum failure.",
+    "run": "gitleaks detect --no-banner --redact --exit-code 1",
+    "failure": "A non-zero exit FAILS LOUD and is handed to Feitan with the finding paths. It is never swallowed, never downgraded to a warning, and never skipped silently. --redact is not optional: a scan that prints the secret it found has published it a second time.",
+    "hostWithNoAsset": "A host this table names no asset for is reported as not scanned, naming the host. It is never substituted with another platform's build."
+  },
+  "dependencyAudit": {
+    "$comment": "One row per declared stack, resolved from nen repo classify's `stack`. A STACK WITH NO ROW IS REPORTED AS NOT SCANNED, and named -- an absent row is an absent answer, never a clean one.",
+    "node": {
+      "run": "npm audit --audit-level=high",
+      "failure": "Non-zero means at least one advisory at high or above; the output is handed to Feitan as evidence. A lockfile-less tree cannot be audited and is reported as not scanned."
+    },
+    "swift": {
+      "endpoint": "https://api.osv.dev/v1/querybatch",
+      "ecosystem": "SwiftURL",
+      "$comment": "SwiftPM ships no advisory command of its own, so the resolved package graph is queried against OSV directly. Take the pins from Package.resolved, POST them as a querybatch against the endpoint above with ecosystem SwiftURL, and treat every returned vulnerability as evidence. An unreachable endpoint is NOT SCANNED, never clean.",
+      "failure": "A returned vulnerability set is evidence for Feitan. A network failure, a non-2xx response or an unresolvable Package.resolved is reported as not scanned, with the reason."
+    },
+    "jvm": {
+      "run": "./gradlew dependencyCheckAnalyze",
+      "$comment": "The OWASP Dependency-Check Gradle task. A repository that does not apply the plugin has no row to run: that is reported as not scanned, naming the missing plugin, never waived.",
+      "failure": "Non-zero, or a report carrying findings at or above the project's declared CVSS threshold, is evidence for Feitan."
+    }
+  },
+  "secretShapes": {
+    "run": "nen stage triage",
+    "$comment": "Over the change set only. Each flagged path is listed with its shape. It is a Nen verb, so it is never improvised in prose (nen/contract.json, no_improvised_fallback)."
+  },
+  "builderTouchingWorkflow": {
+    "$comment": "Not a scan but a gate on the same list, because it decides whether Feitan reads at all.",
+    "rule": "In a CONSUMER repository (nen repo classify -> role is not canon), a diff touching .github/workflows/** raises the security scope and REQUIRES Feitan's read.",
+    "waivable": false
+  }
+}

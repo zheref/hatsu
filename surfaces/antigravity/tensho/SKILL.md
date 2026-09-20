@@ -280,64 +280,20 @@ this verb reports against — it was never a satisfying diff shape.
 
 **The target gate is derived, never asserted:**
 
-> **FIRST decide the repository's ROLE. The path sets below are `zheref/hatsu`'s OWN canon, not a
-> universal set** — maintainer's ruling, 2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md)
-> § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*).
->
-> **G4 is authoring or maintaining a CANON repository** — `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`,
-> `zheref/akatsuki-ai`, `zheref/bankai-scaffold` — whose product *is* the process, so a merge there decides how every other
-> repository behaves. **everything else on that axis is G2** — `G1`, `G1-M`, `G3` and `G5` are untouched — including a consumer repository declaring its own
-> `nen/contract.json`, `nen/workflow.json`, `nen/gates.json`, adding a CI workflow or a `scripts/`
-> entry: that is *configuration of how the system is set up there*, and it governs nothing but that
-> repository. **The one question: would merging this change what a DIFFERENT repository does?**
->
-> - **Target is a canon repository** → derive with that repository's own sets, below.
-> - **Target is a consumer repository** → **the gate is `G2` by role, and `nen gate derive` is not
->   run** — because the role already settled it, not because the verb refuses. Be exact about that:
->   only the **both-empty** invocation is refused (`--policy-paths "" --process-paths ""` → exit 1,
->   *"no path sets were given, so every diff would derive G2 — including a policy change … state them
->   explicitly"*), while one empty set and one that matches nothing is **accepted and answers `G2`**
->   at exit 0. Both verified live at nen `0.10.0`. So the verb *could* be asked; there is simply no
->   question left for it, and running it would re-derive by path an answer the role already fixed.
-> - **A consumer repository that declares a policy surface of its own** — its *product's* spec, not
->   its copy of this system's setup — **is NOT ruled on.** The maintainer named the canon
->   repositories and called everything else configuration; that question was not reached. **Do not
->   improvise a path set for it.** Until it is ruled, the gate is `G2`, and a repository that looks
->   like a genuine exception is a **G5** for the maintainer.
->
-> **The incident this corrects.** In `zheref/zheref.io`, a consumer repository, a résumé PR touching
-> `nen/contract.json`, `nen/gates.json`, `.github/workflows/pr.yml`, `scripts/` and `docs/` derived
-> **`G4`** from the sets below and was reported as `G4` in the PR body, a landing report and two
-> `nen stop` banners. **It is `G2`.** Dropping `nen/` from the policy set does not fix it — the
-> process set still catches `.github/workflows/`, `docs/` and `scripts/`. The path set was never the
-> dial; the repository's role is.
->
-> **Nothing is owed by `zheref/nen`.** The verb already says so itself: *"There are no built-in path
-> sets. They are the target repository's canon, and a binary carrying one repository's sets would
-> derive that repository's gates everywhere it was pointed"*, and `--process-paths` is documented as
-> G4 *"in a repository whose product is its process"*. A `--repo-role` flag would be the built-in set
-> that help text refuses.
+**The protocol is [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation***, the same
+one [`sharingan`](../sharingan/SKILL.md) § 2 reads: the role first, `nen gate derive` with both path
+sets for a canon target and no run for a consumer, `--files` from `gh pr diff <n> --name-only`
+(no `nen` verb fetches a remote PR's changed-file set), the derived gate standing over an asserted
+one, and the base read off the PR. It lived here as a copy for long enough to drift; one document
+owns it now.
 
-```bash
-nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/" \
-  --process-paths ".github/workflows/,claude/,scripts/,tests/,docs/" \
-  --files <the changed paths> [--asserted G2|G4]
-```
-
-These are `<reference-repo>`'s own two-tier split, verbatim from `hatsu`'s own
-[`sharingan`](../sharingan/SKILL.md) prose (that skill was `drive` when this paragraph was written):
-`CONSTITUTION.md`/`handbooks/`/`agents/` and the taxonomy directory — canonically `nen/`, with
-`schemas/` the pre-`v0.3` location whose fallback was **removed at nen `0.5.0`**; **both still
-listed**, because `--policy-paths` is a literal nen's resolution never sees and an un-migrated target
-still edits the old path — derive G4 as classic policy/spec (`CON-7`);
-`.github/workflows/`/`claude/`/`scripts/`/`tests/`/`docs/` derive G4 too, for the different reason
-that in a repository whose product is its process, a process change *is* a policy change. A **different repository's own path sets are its own canon** — these are `nen`'s own
-words, verified live: "There are no built-in path sets." **Which is why the block above runs first:
-a consumer repository has no canon for this verb to split, so its gate is `G2` by role and the verb is
-not called.** Verified live against constructed file
-lists: a diff touching neither set reports `G2`; one touching `handbooks/` reports `G4` with the
-reason named; passing `--asserted G2` against a diff that actually hits `handbooks/` reports the
-disagreement and **the derived gate stands** (`docs/ab/tensho.md` § 2.6).
+**This skill's own decision line: decide the repository's ROLE before anything is derived.** A
+**canon** repository — `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`,
+`zheref/bankai-scaffold`, whose product *is* the process — derives with its own path sets.
+**Everything else is `G2` by role and the verb is not run**: a consumer's `nen/*.json`, its CI
+workflow and its `scripts/` are its own configuration, not anybody's canon. Maintainer's ruling,
+2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18*). A consumer that
+looks like a genuine exception is a **G5**, never an improvised path set.
 
 `Closes #N` only if the PR completes an issue; `Part of #N` otherwise (`nen ref format`/`nen ref
 parse` render and read the `<CODE>-<IS|PR>-#<N>` notation itself — verified live, `docs/ab/tensho.md`
@@ -349,11 +305,13 @@ open:
 
 ```bash
 export GH_TOKEN=$(gh auth token)
-nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers copilot
+nen pr request-reviews --target <owner/name> --pr <n> --add-bots BOT_kgDOCnlnWA
 ```
 
-On the maintainer's **user** token it registers, where a bot token silently no-ops — `nen`'s own
-`--help` states this and that it cannot enforce which credential ran it, only warn. This is a
+Copilot is a **`Bot`**, so it goes through `--add-bots` with its node id, never `--add-reviewers
+copilot`, which cannot resolve it (zheref/nen#160 is about resolution by login). On the maintainer's
+**user** token it registers, where a bot token silently no-ops — `nen`'s own `--help` states this and
+that it cannot enforce which credential ran it, only warn. This is a
 mutating GitHub call; per this port's ground rules it is A/B'd by contract inspection only
 (`docs/ab/tensho.md` § 3), never exercised live against `<reference-repo>`.
 

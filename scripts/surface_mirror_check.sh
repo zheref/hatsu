@@ -37,7 +37,9 @@
 # § 2.3). So 2 is now UNEXPECTED: at this pin it means the nen on PATH is not the
 # pinned one, and .github/workflows/surface-mirror-check.yml turns it into an
 # ERROR rather than the skip-with-notice it used to be. Verified against the
-# pinned build: this script exits 0 with `codex ok: 40` and `cursor ok: 47`.
+# pinned build: this script exits 0 with `codex ok: 44` and `cursor ok: 55` -- the
+# counts the script itself prints, and the ones to re-read after a regeneration
+# rather than to remember.
 #
 # NOT A SECOND LINT. nen/contract.json's `plugin` lane keeps exactly one lint
 # seat — `claude plugin validate . --strict` — and nen/workflow.json's

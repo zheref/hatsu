@@ -106,6 +106,11 @@ pull request.** Five phases are the maintainer's to call, and **no agent ever pr
 `aka` (push), `mukai` (review, coverage, evidence, the PR), the **merge** itself (**G2**, `CON-5`),
 `kagutsuchi` (a non-production upload, per target) and `mugetsu` (publication, per target, **G3**, `CON-6`).
 
+**A sixth thing is the maintainer's to type, and it is not a phase**: [`black-voice`](../claude/skills/black-voice/)
+— post-merge UI validation, where Shalnark drives a merged delivery's acceptance criteria through
+ephemeral automated UI tests. It crosses no gate and is **never automatic and never called from a
+composite** (ruling of 2026-09-19); the skill refuses a composite invocation mechanically.
+
 **Only a genuine G5 (`CON-47`) interrupts the maintainer, and there are five**: red required tests, touched-
 file coverage under the ladder's `minimum`, a *semantic* merge conflict, an unsettled adversarial finding, and
 a stuck-PR escalation. A stop is `nen stop`'s banner, the report link, options with ⭐ on the recommendation,
@@ -163,6 +168,12 @@ standing, not a licence to improvise the agent — and now that they exist, each
 says and by nothing wider. Both inherit every default: they never merge, never vote, never edit non-test
 source, and they stop at the gate. Each hands findings back in `hanten`'s fixed shape — **rule id · severity ·
 evidence · proposed fix** — and an unsettled finding is a **G5**, raised by `hanten`, never by the reviewer.
+
+**Correction, 2026-09-19: the finding shape has grown, and this ruling's four fields are no longer all
+of it.** It is six — `rule`, `severity`, `path`, `line`, `evidence`, `proposedFix` — the location split
+out so a finding that names none is recorded as a note, and `severity` gained **`nit`** under `low`.
+The shape lives in [`claude/agents/_review-preamble.md`](../claude/agents/_review-preamble.md) § 4 and
+[`hanten`](../claude/skills/hanten/SKILL.md) § 5; nothing else about this ruling changed.
 
 **What this does not close.** `OPEN-3` asked which of the seven Genei Ryodan profiles activate and when. Two
 were answered here and **Shalnark** by the ruling of 2026-09-19; **Machi, Kortopi, Pakunoda and Shizuku
@@ -670,6 +681,34 @@ merge, never vote, never edit non-test source, and they stop at the gate.
 **What this does not close.** `OPEN-3` asked which of the seven Genei Ryodan profiles activate, and when.
 **Four remain bench only** — Machi, Kortopi, Pakunoda and Shizuku — and adopting one is still a deliberate
 act with its own decision. Killua's row (`OPEN-1`) and Gon's grammar (`OPEN-2`) are untouched.
+
+---
+
+## Rulings of 2026-09-19 — the report variants and the Spiritual Message
+
+**From the hardening audit of 2026-09-19 (section *Reports*), zheref/hatsu#89.** One template was
+being asked to be a turn report, a landing report, a retained record and a gate board at once, and
+the board half was hand-authored HTML — a second way of producing the same page, and the only one
+nothing could check. **Which blocks a report renders is now configuration, and there are two
+templates.**
+
+| Ruling | What it says |
+|---|---|
+| **Five variants, declared in `nen/workflow.json`** | `reports.sections.<variant>` carries a `template` and a `blocks` list, validated by `nen schema check` and injected as presence flags by `nen report render --variant`. Every value inside a block stays the model's |
+| **`turn`, `turn-fast` and `landing` are Rikugan** | [`templates/rikugan.html`](../templates/rikugan.html). `turn` every Ren turn; `turn-fast` the same step under the fast profile — **the desk and the last turn, nothing else**; `landing` at `mukai` step 9 and `en` step 1, adding the PR body and the readiness verdict quoted |
+| **`final` and `register` are the Spiritual Message** | [`templates/spiritual-message.html`](../templates/spiritual-message.html), Hatsu's counterpart of the Ichigo gate register: desk grouped by gate and ranked by unblocking power, one collapsible row per issue and pull request, spend, legend |
+| **The dated final report is a one-effort Spiritual Message with a cleared desk** | written to `<reports.dir>/<YYYY-MM-DD>-<effort>.html`, and it is **the only report kept on disk**. **`rikugan as final` is retired** — the render path is [`backlog-board`](../claude/skills/backlog-board/SKILL.md) § 3, the same one `futon` and `backlog-loop` use for `register` |
+| **No more hand-authored board HTML** | a board is `nen report render --variant register` over the fixed template. A hand-filled page and a rendered one are not the same bytes, and only one of them is checkable |
+| **The architecture delta is a graph document, drawn client-side** | the model authors `nen.report.graph/v0.1` — nodes and edges with a `change` on each — and the page lays it out with **dagre 0.8.5, pinned from cdnjs under an SRI hash**, one renderer shared by both templates, the node and edge list under `<details>` as the fallback when the script cannot load. **Never a hand-built SVG, never a file-line inventory**, and the same document yields the PR body's mermaid through `nen report mermaid` |
+
+**Their machinery lands at `v0.42.0`**, against nen `v0.12.0`: `nen report render --variant --graph`,
+`nen report mermaid` and `objects[]` in `nen report data`. A variant declaring no blocks renders every
+block, so an un-declared report is loud rather than empty.
+
+**What this does not close.** **Session 3's spend numbers** — what a phase bar and the usage line are
+actually measured from, and by which verb — are not ruled on here; until they are, `usage` reads
+*not reported* rather than a guessed figure. **The run profiles** are not ruled on either: `turn-fast`
+names the fast profile, but which profile a session runs under, and who chooses it, stays open.
 
 ---
 

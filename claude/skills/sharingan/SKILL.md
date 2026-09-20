@@ -90,8 +90,8 @@ the gate board (`nen board build` / `nen board render`) fed this row, and link i
 ask, and **no banner appears on a progress turn**. **Resuming** is by re-invocation,
 `docs/Loop/<run-id>/` being a transcript never trusted over a fetch.
 
-**Permitted:** `nen wake fire`, a non-vote wake; § 6's reviewer request inside `maxRounds`; thread
-replies and resolutions. **Not permitted:** any G1 mode label, merge, review vote, routing or release
+**Permitted:** `nen wake fire`, a non-vote wake; § 6's request inside `maxRounds`; thread replies
+and resolutions. **Not permitted:** any G1 mode label, merge, review vote, routing or release
 label — a drive needing one is [`build`](../build/SKILL.md)'s job. **Every label application is
 logged** (object, label, time) in the stop.
 
@@ -104,8 +104,8 @@ logged** (object, label, time) in the stop.
   `$CLAUDE_PLUGIN_ROOT` without resolving `$hatsu_root` first, counts an unverified wake, or
   fabricates a `--wakes-from` entry.
 - **Never exceeds `round_policy.maxRounds` requests**, requests a round before the previous one is
-  complete, or requests one after a push that changed nothing reviewable (§ 6); and **never resolves a
-  thread with no disposition**, nor an unfixed accepted finding.
+  complete, or requests one after a push that changed nothing reviewable (§ 6); and **never resolves
+  a thread with no disposition**, nor an unfixed finding.
 - **Never reports Ready while a required CI context or current-head round is pending**, holds
   `nen pr ready` unbounded, rolls its own sleep loop or schedules a wake-up (§ 3), or **posts a
   comment with a raw `gh pr comment`/`gh issue comment`.**
@@ -126,12 +126,12 @@ git diff --stat <reviewed-head>..HEAD
 Zero reviewable change means no request. **Copilot auto-reviews every push, so the cap governs
 requests, not arrivals; an arrival past the cap is still remediated and its threads settled.** Past
 the maximum the run ends at not-ready with the board, never with a question; neither is a G5, and
-`monitor.maxCycles` is en's acting-cycle cap, a different number.
+`monitor.maxCycles` is en's acting cap, a different number.
 
 A round is **complete** when every finding has a disposition, not when a fix commit exists: a fresh
 snapshot must show every accepted finding fixed in a pushed commit, every summary-only one given a
 PR-level disposition, every thread replied to and resolved, and no earlier request pending. **Never
-resolve an unfixed accepted finding to clear a counter.**
+resolve an unfixed finding to clear a counter.**
 
 **Thread hygiene is a verb** (nen `v0.12.0`, zheref/nen#215): every inline thread gets an on-thread
 **disposition** (reply) and is **resolved only when addressed**.
@@ -142,15 +142,18 @@ nen pr threads reply   --target <owner/name> --pr <n> --thread <id> --body-file 
 nen pr threads resolve --target <owner/name> --pr <n> --thread <id>
 ```
 
-**Copilot is a `Bot`, not a `User`**, so `gh pr edit --add-reviewer` and `gh api
-…/requested_reviewers` never resolve it and REST shows a pending bot request as `[]`; its login is
-**`copilot-pull-request-reviewer[bot]`**. The request is `nen pr request-reviews --target <owner/name>
---pr <n> --add-reviewers <a,b>` — but **residue: `--add-bots copilot` cannot resolve the bot id**
-(zheref/nen#160), so until it can, it is made directly:
+**Copilot is a `Bot`, not a `User`**: `gh pr edit --add-reviewer` and `gh api
+…/requested_reviewers` never resolve it, and REST shows a pending bot request as `[]`. Humans go
+through `--add-reviewers <a,b>`; **the bot goes through `--add-bots`** — the node id passes straight
+through, and it is **data**, read off the target's own reviewer set:
 
 ```bash
-gh api graphql -f query='mutation($pr:ID!){requestReviews(input:{pullRequestId:$pr,botIds:["BOT_kgDOCnlnWA"],union:true}){clientMutationId}}' -F pr=<node id>
+nen pr request-reviews --target <owner/name> --pr <n> --add-bots BOT_kgDOCnlnWA
 ```
+
+**No GraphQL residue here.** `zheref/nen#160` is resolution **by login**, a convenience; the id has
+always routed. Verified at nen `v0.12.0`: `--dry-run` exits `0` printing
+`BOT_kgDOCnlnWA -> bot [add-bots]`.
 
 Verify with `nen pr ready`, never REST: *no round at head* means one is owed, *review requested, not
 yet posted* means one is in flight — wait.
@@ -173,7 +176,7 @@ nen pr staleness --wakes-from <log> --last-activity <ISO> --now <ISO> --ready
   checks at all* — "clean", not "broken" — and a wake is a no-op on it.
 - **A CI agent authored it** (a `<!-- bankai agent=… -->` stamp, never a Hatsu PR): fire the wake
   **alone**, never with a comment — same concurrency group, and the second cancels the first's probe.
-  Without `--run` `wake verify` is read-only, and a cancelled wake never attempted anything.
+  Without `--run`, `wake verify` is read-only and a cancelled wake attempted nothing.
 - **The ladder, `mergeable_state` first**: one verified wake, a second if it produced no commit, each
   logged `{ "at": "<ISO>", "noCommit": <bool> }` under `docs/Loop/<run-id>/` and read back through
   `pr staleness` — **only `stale` and its two conjuncts**. **After 2 no-commit wakes and ≥60 minutes

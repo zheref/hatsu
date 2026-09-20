@@ -230,13 +230,14 @@ a link tree.
 |---|---|
 | `claude/skills/<name>/SKILL.md` | **authored.** The one source. |
 | `claude/agents/<persona>.md` | **authored.** The one source. |
+| `claude/agents/_review-preamble.md` | **authored, and NOT a persona** — the shared reviewer protocol. The generator has no concept of a shared file, so it mirrors this one **as if it were a persona** into every surface's agent set and counts it there. Harmless: nothing routes to it and its own frontmatter says so. `zheref/nen#223` is the fix that will let the generator skip a leading-underscore file, and until it lands the per-surface agent counts below include it. |
 | `surfaces/codex/<name>/SKILL.md` | **generated** — 43 files (the counted forty-two plus `hatsu-warmup`) |
 | `surfaces/codex/AGENTS.md` | **generated** — every persona as a `## <name>` section, 1 file |
 | `surfaces/cursor/<name>/SKILL.md` | **generated** — 43 files (the counted forty-two plus `hatsu-warmup`) |
-| `surfaces/cursor/agents/<persona>.md` | **generated** — 9 files |
+| `surfaces/cursor/agents/<persona>.md` | **generated** — 12 files (eleven personas plus `_review-preamble.md`) |
 | `surfaces/antigravity/<name>/SKILL.md` | **generated** — 43 files (the counted forty-two plus `hatsu-warmup`) |
 | `surfaces/antigravity/rules/AGENTS.md` | **generated** — all personas in unified rules document |
-| `surfaces/antigravity/agents/<persona>.md` | **generated** — 9 subagent definitions |
+| `surfaces/antigravity/agents/<persona>.md` | **generated** — 12 files (eleven personas plus `_review-preamble.md`) |
 | `surfaces/antigravity/plugin.json` | **generated** — Antigravity plugin manifest |
 | `surfaces/antigravity/hooks.json` | **generated** — lifecycle hooks (`PreToolUse` and `Stop`) |
 

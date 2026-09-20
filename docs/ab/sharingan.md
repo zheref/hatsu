@@ -214,12 +214,16 @@ stating a policy of their own.
 | A prose two-round cap (ruling 2026-09-12) restated in four skills | One number, `round_policy.maxRounds`, read from `nen/gates.json` | The audit measured PR 38 at sixteen Copilot rounds before that ruling and PR 75 at six after it — **because Copilot auto-reviews every push**, so a cap on *arrivals* was never the thing being counted |
 | Silence on whether a no-op push may be re-requested | An explicit pre-check: commits ahead **and** the diff since the last reviewed head | A re-request against an unchanged tree spends a round to be told the same thing |
 | Thread hygiene through paginated `reviewThreads` GraphQL plus by-hand reply and resolve mutations | `nen pr threads list\|reply\|resolve --target <owner/name> --pr <n>` (nen `v0.12.0`, closes `zheref/nen#215`) | § 5's residue text is replaced by a verb; the two acts a finding needs — an on-thread disposition, then a resolution only when addressed — are unchanged |
-| `--add-bots copilot` implied to work | Named as **residue** with the literal mutation to run until nen resolves the bot (`zheref/nen#160`) | The bot's REST login is `copilot-pull-request-reviewer[bot]`, and `nen pr request-reviews --add-bots copilot` cannot resolve the id today |
+| `--add-bots copilot` implied to work | The bot is requested **by node id** through the verb | The bot's REST login is `copilot-pull-request-reviewer[bot]`, and `--add-bots copilot` cannot resolve it — `zheref/nen#160` is that resolution-by-login, not the request |
 
-**The request, until nen resolves the bot:**
+**Corrected 2026-09-20.** This section first carried a raw `requestReviews(botIds:)` mutation as
+residue. It was never owed: the node id has always routed through the verb. Verified live at nen
+`v0.12.0` —
+`bun src/index.ts pr request-reviews --target zheref/nen --pr 221 --add-bots BOT_kgDOCnlnWA --dry-run`
+exits `0` printing `BOT_kgDOCnlnWA -> bot [add-bots]`.
 
 ```bash
-gh api graphql -f query='mutation($pr:ID!){requestReviews(input:{pullRequestId:$pr,botIds:["BOT_kgDOCnlnWA"],union:true}){clientMutationId}}' -F pr=<node id>
+nen pr request-reviews --target <owner/name> --pr <n> --add-bots BOT_kgDOCnlnWA
 ```
 
 **Not changed by this section:** a round is complete only when every finding has a disposition; the

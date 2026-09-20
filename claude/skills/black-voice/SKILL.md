@@ -38,6 +38,13 @@ surface's own option picker, seeded with the merged PRs the session can see, per
 **A PR that is not merged is refused, naming its state.** Black Voice runs after the merge, because until
 then the feature the criteria describe does not exist on the trunk.
 
+**And the never-from-a-composite rule is mechanical, not manners.** Before anything else, read the
+session's efforts record: **an efforts record open under `ren`, `mukai`, `en`, `futon` or
+`backlog-loop` means the invoking context is a composite run, and this skill refuses** — it says
+which composite is open, that Black Voice is the maintainer's own call, and stops. Nothing about a
+composite reaching its own end re-opens the door: the maintainer types it in a session of their own,
+or it does not happen.
+
 ## 2. Resolve the specification
 
 1. **The PR** — `nen pr fetch --target <owner/name> --pr <n>`: head, merge state, body, and the issues it

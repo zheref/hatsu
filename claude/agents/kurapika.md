@@ -561,7 +561,7 @@ legitimate is an unsettled finding quietly disappearing: a finding neither fixed
 [`sharingan`](../skills/sharingan/SKILL.md)² — **the skill formerly `drive`** — → `murasaki`³ when the branch
 is behind → `sharingan`⁴ → observe⁵ while required CI or the owed current-head review is pending, still
 reacting to every inline and summary finding and every conflict → [`jutaisho`](../skills/jutaisho/SKILL.md)⁶
-at Ready → `rikugan` final, the only report written to `Reports/`, and **stops at the human gate**.
+at Ready → the dated `final` report (`backlog-board` § 3), the only one written to `Reports/`, and **stops at the human gate**.
 When En has completed, start [`third-hand`](../skills/third-hand/SKILL.md) as **the next phase** —
 Netero harvests the sitting in parallel, proposes 0–3 folded process issues, the maintainer picks
 which to file, those are filed, and **the sitting is over**. En does not own Third-Hand. En is

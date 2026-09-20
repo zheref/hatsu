@@ -207,91 +207,31 @@ whose base could not be determined is reported `unresolved`, never defaulted to 
 
 **Deriving the diff half, mechanically:**
 
-> **FIRST decide the repository's ROLE. The path sets below are `zheref/hatsu`'s OWN canon, not a
-> universal set** — maintainer's ruling, 2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md)
-> § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*).
->
-> **G4 is authoring or maintaining a CANON repository** — `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`,
-> `zheref/akatsuki-ai`, `zheref/bankai-scaffold` — whose product *is* the process, so a merge there decides how every other
-> repository behaves. **everything else on that axis is G2** — `G1`, `G1-M`, `G3` and `G5` are untouched — including a consumer repository declaring its own
-> `nen/contract.json`, `nen/workflow.json`, `nen/gates.json`, adding a CI workflow or a `scripts/`
-> entry: that is *configuration of how the system is set up there*, and it governs nothing but that
-> repository. **The one question: would merging this change what a DIFFERENT repository does?**
->
-> - **Target is a canon repository** → derive with that repository's own sets, below.
-> - **Target is a consumer repository** → **the gate is `G2` by role, and `nen gate derive` is not
->   run** — because the role already settled it, not because the verb refuses. Be exact about that:
->   only the **both-empty** invocation is refused (`--policy-paths "" --process-paths ""` → exit 1,
->   *"no path sets were given, so every diff would derive G2 — including a policy change … state them
->   explicitly"*), while one empty set and one that matches nothing is **accepted and answers `G2`**
->   at exit 0. Both verified live at nen `0.10.0`. So the verb *could* be asked; there is simply no
->   question left for it, and running it would re-derive by path an answer the role already fixed.
-> - **A consumer repository that declares a policy surface of its own** — its *product's* spec, not
->   its copy of this system's setup — **is NOT ruled on.** The maintainer named the canon
->   repositories and called everything else configuration; that question was not reached. **Do not
->   improvise a path set for it.** Until it is ruled, the gate is `G2`, and a repository that looks
->   like a genuine exception is a **G5** for the maintainer (`nen/decisions.json` row `unruled-policy-surface`).
->
-> **The incident this corrects.** In `zheref/zheref.io`, a consumer repository, a résumé PR touching
-> `nen/contract.json`, `nen/gates.json`, `.github/workflows/pr.yml`, `scripts/` and `docs/` derived
-> **`G4`** from the sets below and was reported as `G4` in the PR body, a landing report and two
-> `nen stop` banners. **It is `G2`.** Dropping `nen/` from the policy set does not fix it — the
-> process set still catches `.github/workflows/`, `docs/` and `scripts/`. The path set was never the
-> dial; the repository's role is.
->
-> **Nothing is owed by `zheref/nen`.** The verb already says so itself: *"There are no built-in path
-> sets. They are the target repository's canon, and a binary carrying one repository's sets would
-> derive that repository's gates everywhere it was pointed"*, and `--process-paths` is documented as
-> G4 *"in a repository whose product is its process"*. A `--repo-role` flag would be the built-in set
-> that help text refuses.
+**The protocol is [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation***, the same
+one [`sharingan`](../sharingan/SKILL.md) § 2 reads: the role first, `nen gate derive` with both path
+sets for a canon target and no run for a consumer, `--files` from `gh pr diff <n> --name-only`
+(no `nen` verb fetches a remote PR's changed-file set), the derived gate standing over an asserted
+one, and the base read off the PR. It lived here as a copy for long enough to drift; one document
+owns it now.
 
-```
-nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/" \
-                --process-paths ".github/workflows/,claude/,scripts/,tests/,docs/" \
-                --files <comma-separated changed paths>
-```
-
-**Verified live against a CANON reference repository, which is the only place these results hold** —
-in a consumer repository the block above has already fixed the gate at `G2` and this verb is not run,
-so read both rows as the reference repository answering about itself. Two real `<reference-repo>` PRs:
-`RR-PR-#925` (touches
-`.github/workflows/*.yml`, `scripts/`, `tests/`) derived `G4` — *"the diff touches the process
-surface ... in a repository whose product is its process, that is a policy change"*; `RR-PR-#916`
-(touches `schemas/repos.json`, at a port where that was still the canonical location) derived `G4` —
-*"the diff touches policy/spec (schemas/), which only the human merges."* Both match the tree above exactly, computed rather than eyeballed.
-
-**`--policy-paths` is a literal, and the taxonomy directory under it moved.** A target's four
-taxonomy files live canonically under `nen/`, and **at the pinned build the `schemas/` fallback
-is REMOVED** — a repository carrying a file only under `schemas/` is refused exactly like one
-carrying it nowhere, with the refusal naming the migration (`nen scaffold init --accept-detected`).
-**That changes what nen resolves and changes nothing here**, because a prefix handed to `gate derive`
-is taken literally and nen's resolution never sees it (USAGE: *"Move those pins along with the files,
-in the same change; `schema check` will not warn about them, because it never sees them"*). So the
-set above still names **both** `nen/` and `schemas/`: an un-migrated target edits a real
-`schemas/*.json` and that edit is still policy, a migrated one has at most a stale duplicate there,
-and a prefix matching no file is harmless. **Dropping `schemas/` would under-derive a gate;
-keeping it costs nothing.** Which state a target is in is `nen schema check --repo <path> --json`'s
-answer, whose row now carries `legacy` — a boolean saying a `schemas/<file>` copy is on disk,
-detected, never read. (`RR-PR-#916`'s `G4`
-above was derived at the port against `schemas/repos.json`; the same diff on a migrated target touches
-`nen/repos.json` and derives the same `G4` through the `nen/` prefix.)
-
-**No `nen` verb fetches a remote PR's changed-file set** — `--files`/`--files-from` are caller
-data, and `--range` shells `git diff` against a **local** checkout, which a PR you have not
-branch-fetched locally does not give you. `gh pr diff <n> --repo <owner/name> --name-only` remains
-a necessary raw call feeding `--files` (residue, not an improvised replacement for anything `nen`
-owns — nothing owns this fetch yet).
-
-**`nen gate derive --asserted <G2|G4>`** reports a mismatch rather than silently preferring either
-side: *"the invocation asserted G4; the diff derives G2, and the derived gate stands"* — the gate
-is a property of the diff, not of a prior belief.
+**This skill's own decision line stays here, because it is what a sweep does before it derives
+anything: decide the repository's ROLE first.** A **canon** repository — `zheref/hatsu`,
+`zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`, whose product
+*is* the process — derives with its own path sets. **Everything else is `G2` by role, and
+`nen gate derive` is not run at all**, because the role already settled it: a consumer's own
+`nen/*.json`, its CI workflow and its `scripts/` are *its* configuration and govern nothing
+elsewhere. **The one question is whether merging this would change what a DIFFERENT repository
+does.** A consumer declaring a policy surface of its own is **not ruled on** — until it is, the gate
+is `G2` and a genuine-looking exception is a **G5** (`nen/decisions.json` row
+`unruled-policy-surface`). Maintainer's ruling, 2026-09-18
+([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role,
+not the file's kind*).
 
 **In `<reference-repo>` almost every PR is G4** — it is a governance and machinery repo, so its process
 surface *is* its product. **In a consumer repo (`<product-repo-A>`, `<product-repo-B>`) it is not a ratio,
-it is a rule: the gate is `G2` by the repository's role**, and the path sets above are not run against it
-at all. A consumer's `nen/contract.json` and its `.github/workflows/` are its own setup, not anybody's
-canon — maintainer's ruling, 2026-09-18. What is decided per diff is which *canon* repository's surface a
-diff hit, never whether a consumer's configuration counts as policy; it does not.
+it is a rule: the gate is `G2` by the repository's role**, and no path set is run against it at all.
+What is decided per diff is which *canon* repository's surface a diff hit, never whether a consumer's
+configuration counts as policy; it does not.
 
 ### G5 is not the default bucket — this is the rule this skill exists to enforce
 

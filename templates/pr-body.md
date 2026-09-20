@@ -70,7 +70,7 @@
 - [x] Required tests — kotoamatsukami: `<N> passed / 0 failed` / `not applicable — no impacted suites` / seat quoted; never tick "green" when nothing ran
 - [x] Touched-file coverage — byakugan against `coverage.minimum` (not a hardcoded 80): lowest touched file `<n>%` / `not measurable here` with the reason
 - [x] Adversarial review settled — <reviewer> · <persona>, <n> findings, all disposed (hanten)
-- [x] `# What this changes for you` and `## How to verify` present — `nen pr body-check`, 3/3
+- [x] `## What this changes for you` and `## How to verify` present — `nen pr body-check`, 3/3
 - [x] Final `## Agent attribution` present — `nen pr body-check`, 4/4
 - [x] changelog fragment — `nen changelog fragment-required`: <verdict>
 - [ ] <a condition that is NOT met, with what is missing>

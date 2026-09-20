@@ -11,7 +11,7 @@
     "source": "zheref/nen",
     "repository": "https://github.com/zheref/nen",
     "minimum": "0.12",
-    "minimum_semantics": "MAJOR.MINOR capability minimum, checked by nen shu tools against the installed binary and its compatibility floor. Raise this for either a breaking compatibility floor or a newly adopted feature unavailable in earlier releases. Hatsu adopts the decision matrix (nen/decisions.json), the rich stop (nen stop --options/--propose-issue, nen.stop.mark/v0.2), nen shu warmup --carry, nen repo classify, nen surface capabilities and nen phase from v0.12.0, so its minimum is 0.11 even though Nen keeps floor 0.7. Never treat an older binary that accepts unknown JSON keys as proof it executes the new capability.",
+    "minimum_semantics": "MAJOR.MINOR capability minimum, checked by nen shu tools against the installed binary and its compatibility floor. Raise this for either a breaking compatibility floor or a newly adopted feature unavailable in earlier releases. Hatsu adopts, FROM v0.12.0 (zheref/nen#220, PRs #221 and #222): objects[] in nen report data, nen review scopes, nen pr threads list|reply|resolve, nen report render --variant and --graph, and nen report mermaid -- so its minimum is 0.12, even though Nen keeps floor 0.7. PRIOR ADOPTION, from v0.11.0 (zheref/nen#216) and still required: the decision matrix (nen/decisions.json), the rich stop (nen stop --options/--propose-issue, nen.stop.mark/v0.2), nen shu warmup --carry, nen repo classify, nen surface capabilities and nen phase. A minimum names the OLDEST release carrying every verb Hatsu executes, so it moves to the newest adoption and never back. Never treat an older binary that accepts unknown JSON keys as proof it executes the new capability.",
     "zero_major_caveat": {
       "applies_while": "the installed and pinned majors are both 0",
       "rule": "For a pin 0.A and installed build 0.B.z with compatibility floor 0.F, Nen accepts A <= B and A >= F, bounded by that build's own minor. Current Hatsu minimum 0.10 with Nen 0.10.0/floor 0.7 is accepted; Nen 0.8.0 is older than the required feature minimum. Legacy minimum 0.7 remains compatible with 0.10.0, but that does not prove an older binary supports device.extract. Read the exact range from nen shu tools. An unparseable version is unknown and unsatisfied, not a pass.",
@@ -21,7 +21,7 @@
     },
     "pinned_ref": "v0.12.0",
     "pinned_ref_semantics": "Published bootstrap release adopted after verifying its binaries and SHA256SUMS. v0.12.0 implements objects[] in report data, review scopes, pr threads and the report render variant and graph pass-through (Nen #220) on top of v0.11.0 (Nen #216) and keeps compatibility floor 0.7. Hatsu raises minimum to 0.12 for those verbs (zheref/nen#220). minimum and pinned_ref still move independently when no new feature or breaking floor requires a minimum change; never use latest or an unpublished ref.",
-    "pinned_ref_bootstrap_caveat": "A TAG IS NOT A RELEASE, and this is the durable rule for EVERY value `pinned_ref` ever takes, not a note about one of them. `bootstrap/nen.sh` resolves the binary and its SHA256SUMS from the GitHub RELEASE at --ref; the tag's own tree carries the script but no assets. So a `pinned_ref` whose release is not published exits 6 (EXIT_MANIFEST — SHA256SUMS unfetchable) on both install_paths, and the warm-up halts per `halt`. That is the fail-closed guard working rather than a defect in this file, and exit 6 is one of the two codes that is NEVER retried. THE RULE THIS IMPLIES: never move `pinned_ref` to a ref whose release is unpublished without knowing that the halt is the cost. CI DOES SEE IT, and that sentence used to say the opposite: `.github/workflows/surface-mirror-check.yml` reads `dependency.pinned_ref` out of this file and bootstraps it, so a pull request that moves the pin ahead of the release goes RED at that step — `curl` 404s on the raw script, or the script exits 6 on an unfetchable SHA256SUMS — on every pull request, not only the one that moved it. That is the guard working where it can be seen rather than only on a developer's machine, and it is a reason to sequence the repin behind the release rather than a reason to weaken either. Publishing the release is the nen maintainer's act and the only thing that clears it.",
+    "pinned_ref_bootstrap_caveat": "A TAG IS NOT A RELEASE, and this is the durable rule for EVERY value `pinned_ref` ever takes, not a note about one of them. `bootstrap/nen.sh` resolves the binary and its SHA256SUMS from the GitHub RELEASE at --ref; the tag's own tree carries the script but no assets. TWO CASES, AND THEY FAIL AT DIFFERENT STEPS. A `pinned_ref` whose TAG EXISTS but whose RELEASE is not published exits 6 (EXIT_MANIFEST — SHA256SUMS unfetchable) on both install_paths. A `pinned_ref` whose TAG DOES NOT EXIST YET NEVER REACHES EXIT 6 AT ALL: `raw.githubusercontent.com` 404s on the script itself, so `curl -f` exits 22 (or 56 mid-transfer), no file is created, and the second step never runs. Saying `exit 6` for both was wrong in a way that costs debugging time — an operator looking for a manifest failure when what is missing is the tag. Either way the warm-up halts per `halt`. That is the fail-closed guard working rather than a defect in this file, and exit 6 is one of the two codes that is NEVER retried. THE RULE THIS IMPLIES: never move `pinned_ref` to a ref whose release is unpublished without knowing that the halt is the cost. CI DOES SEE IT, and that sentence used to say the opposite: `.github/workflows/surface-mirror-check.yml` reads `dependency.pinned_ref` out of this file and bootstraps it, so a pull request that moves the pin ahead of the release goes RED at that step — `curl` 404s on the raw script, or the script exits 6 on an unfetchable SHA256SUMS — on every pull request, not only the one that moved it. That is the guard working where it can be seen rather than only on a developer's machine, and it is a reason to sequence the repin behind the release rather than a reason to weaken either. Publishing the release is the nen maintainer's act and the only thing that clears it.",
     "version_probe": [
       "nen",
       "--version"
@@ -53,9 +53,10 @@
         "4": "EXIT_DOWNLOAD — the binary asset could not be retrieved (the retryable one)",
         "5": "EXIT_CHECKSUM — SECURITY: bytes did not verify, or could not be verified",
         "6": "EXIT_MANIFEST — SHA256SUMS unfetchable, missing, malformed, or silent about the artifact",
-        "7": "raised by `nen bootstrap` only, never by the script: no bootstrap/nen.sh found on disk. Not a supply-chain failure — a wiring failure. Supply --script."
+        "7": "raised by `nen bootstrap` only, never by the script: no bootstrap/nen.sh found on disk. Not a supply-chain failure — a wiring failure. Supply --script.",
+        "curl 22 / 56 (before the script runs)": "THE SCRIPT ITSELF could not be fetched at the pinned ref and NO FILE WAS CREATED, so no exit code above was ever raised: `curl -f` exits 22 on the 404 and 56 on a mid-transfer failure. It means the tag or the release does not exist yet -- most often a pin moved ahead of the nen release. NEVER RETRIED: a tag that is absent now is absent on the next attempt. The fix is the nen release being published, which is the nen maintainer's act; nothing on this side clears it."
       },
-      "retry_policy": "Exit 4 may be retried once. Exits 5 and 6 are NEVER retried — retrying a checksum failure is how a fail-closed guard becomes a fail-open one by attrition. Exit 3 will not change on this host. Exits 2 and 7 are invocation errors: never retry the same command, but the FIXED invocation (correct usage; for 7, supply --script) is expected to succeed — fix and re-run rather than halting on them.",
+      "retry_policy": "A curl 22/56 before the script runs is NEVER retried -- the tag or release is absent and will be until it is published. Exit 4 may be retried once. Exits 5 and 6 are NEVER retried — retrying a checksum failure is how a fail-closed guard becomes a fail-open one by attrition. Exit 3 will not change on this host. Exits 2 and 7 are invocation errors: never retry the same command, but the FIXED invocation (correct usage; for 7, supply --script) is expected to succeed — fix and re-run rather than halting on them.",
       "published_binaries": [
         "nen-linux-x64",
         "nen-darwin-arm64",
@@ -91,6 +92,11 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/release-publish.sh, following this repository's one-lane-per-executable-guard pattern. The publisher's fixtures are hermetic and offline: they build a throwaway git repository with two tags and a changelog, and prove notes composition, the multi-version gap case, the DERIVED tag, and every refusal -- publishing nothing, ever."
+      },
+      "dist-tag-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/dist_tag.sh, kagutsuchi's distribution-tag block, following this repository's one-lane-per-executable-guard pattern. Its fixtures are hermetic and offline: they build a throwaway git repository with its own nen/workflow.json and identity file, and prove every refusal the guard exists to make -- no tags.deploy entry (exit 3), push:false dropping --push, a symlinked and an outside-repo nameFrom, an unreadable or missing target file, a target file that is not one printable line, a non-hex and a short build SHA, a dirty tree, an illegal composed ref, and a two-arg flag given no argument. It cuts nothing: every assertion runs through --dry-run or a refusal that fires before `nen tag cut` is reached."
       }
     },
     "defaultLane": "plugin",
@@ -110,7 +116,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and one bash guard script, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, tenkai-guard, release-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, tenkai-guard, release-guard, dist-tag-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/rikugan.html, which is a report template, not an application."
@@ -177,6 +183,16 @@
           ],
           "$comment": "Run it as `nen shu test --lane release-guard --repo <hatsu>` when scripts/release-publish.sh or templates/release-publish.sh changes."
         }
+      },
+      "dist-tag-guard": {
+        "test": {
+          "exe": "sh",
+          "argv": [
+            "scripts/dist_tag.sh",
+            "--self-test"
+          ],
+          "$comment": "The distribution-tag guard's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Every fixture is removed on every path. Run it as `nen shu test --lane dist-tag-guard --repo <hatsu>` when scripts/dist_tag.sh changes."
+        }
       }
     },
     "preconditions": {
@@ -203,7 +219,7 @@
         "darwin",
         "linux"
       ],
-      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: scripts/plugin_bump_check_fixture.sh and scripts/hatsu_plugin_update_fixture_check.sh use Bash and mktemp and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
+      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/tenkai_adopt.sh --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test) use a POSIX shell, git and mktemp and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
     },
     "targets": {},
     "toolchain": {

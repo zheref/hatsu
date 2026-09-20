@@ -192,7 +192,8 @@
           "**/*auth*",
           "**/*secret*",
           "**/*credential*",
-          "**/*token*"
+          "**/*token*",
+          "templates/*.html"
         ]
       },
       "architecture": {
@@ -205,9 +206,11 @@
           "docs/STANDALONE-ENTRY.md",
           "docs/DISCOVERY.md",
           "claude/agents/**",
+          "claude/skills/*/SKILL.md",
           "nen/*.json",
           "contracts/**"
-        ]
+        ],
+        "$comment": "layering, state ownership, the resolved stack rules, the repository's own architecture notes. claude/skills/*/SKILL.md is on this list because in a process repository the skills ARE the machinery: a step moved between phases, an authority widened or a protocol duplicated into a second file is an architecture change, and Nobunaga's code scope reads them for practice rather than for structure."
       },
       "ui": {
         "persona": "hisoka",
