@@ -2,6 +2,8 @@
 
 ## v0.42.0 — the reports and the reviewers carry their weight (zheref/hatsu#89)
 
+Release unit for `v0.41.0..v0.42.0`: [#91](https://github.com/zheref/hatsu/pull/91) (the delivery) and the reconciling [#92](https://github.com/zheref/hatsu/pull/92).
+
 > Pinned to nen **v0.12.0** (`minimum` `0.12`): `objects[]` in `nen report data`, `nen review scopes`, `nen pr threads list|reply|resolve`, `nen report render --variant --graph` and `nen report mermaid` arrive with that release (zheref/nen#220, PRs #221 and #222). **The warm-up reads `WRONG` until v0.12.0 is tagged and its release assets are published**, and re-pins through the bootstrap once it is — the same sequencing as v0.41.0.
 
 - **Names swapped (maintainer's ruling, 2026-09-20).** The per-turn and landing report and its skill, named `rikugan` through v0.41.0, are **Spiritual Message** (`hatsu:spiritual-message`, `templates/spiritual-message.html`); the desk-and-register page introduced this release is **Rikugan** (`templates/rikugan.html`, the `register` and `final` variants). Older sections and docs/history keep the names they were written under.
