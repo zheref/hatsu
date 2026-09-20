@@ -89,7 +89,13 @@ import json, sys
 doc = json.load(open(sys.argv[1]))
 allow = [f"Bash({r['exe']} {r['args']})" for r in doc["allow"]]
 deny = [f"Bash({r['exe']} {r['args']})" for r in doc["deny"]]
-print(json.dumps({"$comment": sys.argv[2], "permissions": {"allow": allow, "deny": deny}}, indent=2))
+# NOT ROOT-SCOPED, AND SAID SO: Claude Code's permission syntax is an exe-and-
+# argument pattern with no working-directory clause, so the only scope this
+# file has is where it lives -- this checkout's own .claude/ -- and the deny
+# rows. A pack that claimed more would be a claim the surface cannot enforce
+# (Copilot review on zheref/hatsu#87).
+note = "Patterns, not roots: this surface has no root-scoping syntax. Scope = this file lives in this checkout and applies to sessions opened here; an allowed command pointed at another checkout is not refused by it. Deny rows and hooks/guard-base-branch.sh are the second line."
+print(json.dumps({"$comment": f"{sys.argv[2]}. {note}", "permissions": {"allow": allow, "deny": deny}}, indent=2))
 PY
 }
 
@@ -145,10 +151,13 @@ import json, sys
 doc = json.load(open(sys.argv[1]))
 # The full exe-plus-args form, exactly as the Claude renderer emits it, so a
 # Shell(git) that would admit a force-push is never written; reads and writes
-# are scoped to the workspace.
+# are scoped to the workspace by the file's placement only: like Claude Code,
+# Cursor's permission syntax is a pattern with no root clause, and the
+# rendered file says so in its own comment.
 allow = [f"Shell({r['exe']} {r['args']})" for r in doc["allow"]] + ["Read(./**)", "Write(./**)"]
 deny = [f"Shell({r['exe']} {r['args']})" for r in doc["deny"]]
-print(json.dumps({"$comment": sys.argv[2], "permissions": {"allow": allow, "deny": deny}}, indent=2))
+note = "Patterns, not roots: this surface has no root-scoping syntax. Scope = this file lives in this checkout and applies to sessions opened here; an allowed command pointed at another checkout is not refused by it. Deny rows and hooks/guard-base-branch.sh are the second line."
+print(json.dumps({"$comment": f"{sys.argv[2]}. {note}", "permissions": {"allow": allow, "deny": deny}}, indent=2))
 PY
 }
 

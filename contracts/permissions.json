@@ -4,7 +4,8 @@
   "scope": {
     "repository": "the checkout the session stands in",
     "worktrees": "every linked worktree of that checkout (git rev-parse --git-common-dir)",
-    "associated": "repositories nen/repos.json lists under consumers, maintained_tools or pending_onboarding"
+    "associated": "repositories nen/repos.json lists under consumers, maintained_tools or pending_onboarding",
+    "enforced_by": "Codex only, through sandbox_workspace_write.writable_roots. Claude Code and Cursor allowlists are exe-and-argument PATTERNS with no root syntax: their scope is that the rendered file lives in this checkout's own .claude/ or .cursor/ directory and applies to sessions opened there, and nothing in the file refuses an allowed command pointed at another checkout. The deny rows and hooks/guard-base-branch.sh are the second line on every surface."
   },
   "allow": [
     {

@@ -631,9 +631,11 @@ hatsu_root='<the absolute path § 0 printed>'
 
 (`surface_bootstrap.sh` takes only `codex|cursor|antigravity`; the pack script takes `claude-code` too.
 A target with no `nen/contract.json` or `nen/workflow.json` is skipped with a named line.) Claude Code loads the
-plugin's own `claude/skills/` and `claude/agents/` directly from `$CLAUDE_PLUGIN_ROOT`; there is nothing to
-install into somebody else's checkout, and installing anything would be a write with no reason behind it.
-Say *"surface: claude-code — nothing installed, the plugin is read in place"* and move on.
+plugin's own `claude/skills/` and `claude/agents/` directly from `$CLAUDE_PLUGIN_ROOT`; no skill or persona
+is placed into the target checkout — the pack is the one write. Report its result, whichever line the
+script printed: *"surface: claude-code — plugin read in place; permission pack merged into
+`.claude/settings.local.json`"*, or *"… pack left alone (file not ours)"*, or *"… pack skipped (not a
+consumer)"* — and move on. Never say "nothing installed" on a run where the pack line said it wrote.
 
 **On Antigravity in global-plugin mode, nothing here runs and nothing in the target repository changes.**
 Antigravity loads the plugin directly from `${GEMINI_CONFIG_DIR:-~/.gemini}/config/plugins/hatsu` with
