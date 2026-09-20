@@ -89,6 +89,11 @@ says which composite is holding it instead.
 | 9 | **the landing report** | [`/spiritual-message`](../spiritual-message/SKILL.md) `as landing` | rendered after step 8 because the PR body and readiness result are its inputs; **00** is this mukai request |
 | → | **hand over and end Mukai** | [`/en`](../en/SKILL.md) | Mukai immediately starts En on the open PR and ends; En owns the capped drive to verified Ready at G2/G4 while the invoking user turn remains active |
 
+**A landing always runs the thorough profile**, whatever the turns before it named: step 4 is
+kotoamatsukami's impacted suites and step 5 byakugan's coverage, and no `profile` lowers either; and
+where a launch target is declared, the launch is [`amaterasu`](../amaterasu/SKILL.md)'s on the
+maintainer's call by name, never a mukai step.
+
 **The order is load-bearing in eight places, and those eight are the only ones mukai asserts:**
 
 - **1 before 2.** A review of a branch that is behind its base is a review of a diff nobody will

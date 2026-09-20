@@ -4,17 +4,17 @@
   "hooks": {
     "stop": [
       {
-        "command": "sh -c 'exec \"${HATSU_PLUGIN_ROOT}/hooks/stop-bell.sh\" \"$@\"' --"
+        "command": "sh -c 'exec \"${HATSU_PLUGIN_ROOT:-./.cursor}\"/hooks/stop-bell.sh' --"
       }
     ],
     "beforeShellExecution": [
       {
-        "command": "sh -c 'exec \"${HATSU_PLUGIN_ROOT}/hooks/guard-base-branch.sh\" \"$@\"' --"
+        "command": "sh -c 'exec \"${HATSU_PLUGIN_ROOT:-./.cursor}\"/hooks/guard-base-branch.sh' --"
       }
     ],
     "sessionStart": [
       {
-        "command": "sh -c 'exec \"${HATSU_PLUGIN_ROOT}/hooks/session-start.sh\" \"$@\"' --"
+        "command": "sh -c 'exec \"${HATSU_PLUGIN_ROOT:-./.cursor}\"/hooks/session-start.sh' --"
       }
     ]
   }

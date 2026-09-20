@@ -43,13 +43,13 @@ is **medium**, a change across skills or a new skill is **high**. `--effort` on 
 in either direction and is quoted in the title; a mixed request is two subsessions, one per kind,
 prose first so the machinery reads the wording it must carry.
 
-The subsession is raised through the surface's own subagent tool, read from
-`nen surface capabilities --surface <s> --json` → `subagent` (`Agent`, `spawn_agent`, `subagent`,
-`invoke_subagent`), with the tier read from `nen/workflow.json` → `models.<surface>` and **never the
-frontier tier**. Titled `great-hiker · kurapika · <alias>`. On Claude Code the Fable subsession is the
-`fable` alias in `model` with the effort in the prompt; a surface whose matrix has no alias for the
-tier reports the substitution in the title, exactly as hanten § 9a does. A missing tool or model id is
-resolved by `nen shu tools --install` (row `missing-tool`), never with elevation.
+How a subsession is raised, per surface, is [`hanten`](../hanten/SKILL.md) § 4 and § 7 (a surface that
+is not Claude Code) and [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The matrix, per surface*, and
+none of it is restated here. What is this skill's: which tier each kind runs on, prose on a Fable
+subsession at the effort above (on Claude Code the `fable` alias in `model`, the effort in the prompt)
+and machinery on `models.claude.fast`, and the effort heuristic itself. The title is
+`great-hiker · kurapika · <alias>`. A missing tool or model id is resolved by `nen shu tools --install`
+(row `missing-tool`), never with elevation.
 
 ## 3. Author in the canonical source
 

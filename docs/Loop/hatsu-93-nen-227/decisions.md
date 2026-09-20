@@ -13,3 +13,6 @@ Started 2026-09-20. Mode: **Transmuter** (machinery: the surface generator rows,
 | 2026-09-20 | Pin moves to nen `0.13` / `v0.13.0` before the tag exists | same sequencing as Sessions 1 and 2; the warm-up reads WRONG until the tag and its assets exist |
 
 No label applied: neither repository carries a delivery-stage taxonomy, so the stage-free path of build § 1 applies and the effort is carried locally to its own PR.
+
+| 2026-09-20 | nen delivery PR zheref/nen#231 opened through `nen pr open` from the dev binary; the release proposal zheref/nen#232 stacked on it, reconciled with its own number; Copilot requested by node id | the verbs this session built are used to ship it; #232 merges after #231, the tag is cut at the merge |
+| 2026-09-20 | Reviews on nen: Nobunaga 15, Feitan 8, all fixed; on hatsu: Chrollo 14, Feitan 11, Nobunaga 17, Phinks 9, Hisoka 3, settled in two remediation passes | hanten's shape; a `+main` force push and `--base=--upload-pack` were the two highest |

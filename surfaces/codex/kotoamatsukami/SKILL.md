@@ -162,7 +162,10 @@ that pretends the suite ran.
 ## 3. When this run is due
 
 Mukai calls this skill after review mutations are checkpointed and before byakugan. That is the
-first project-wide **test** run of the effort: aka did not run one.
+first project-wide **test** run of the effort: aka did not run one. Three callers reach this skill:
+mukai at its step 4; En, when a catch-up on the open PR invalidates the run; and
+[`$ren`](../ren/SKILL.md) under the `thorough` profile, after its step 3 on every turn of that
+profile (ren § 2a). Under `fast` and `standard`, ren never calls it.
 
 Re-run it, and invalidate the previous run, when any of these moves the tree: a review fix, a
 snapshot acceptance, a test byakugan added to reach the coverage bar, an execution-configuration

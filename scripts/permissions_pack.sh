@@ -175,7 +175,7 @@ if [ ! -f "$root/nen/contract.json" ] && [ ! -f "$root/nen/workflow.json" ]; the
   exit 0
 fi
 exclude="$(git -C "$root" rev-parse --path-format=absolute --git-path info/exclude)"
-written=""; kept=""
+written=""; kept=""; skipped=""
 
 is_tracked() { git -C "$root" ls-files --error-unmatch -- "$1" >/dev/null 2>&1; }
 ours() { [ -f "$root/$1" ] && grep -qsF "$MARKER" "$root/$1"; }
@@ -194,6 +194,16 @@ exclude_line() {
 place() { # relative-path content
   local rel="$1" content="$2"
   if is_tracked "$rel"; then kept="$kept $rel"; return 0; fi
+  # `[ -L ]` BEFORE `[ -e ]`: `-e` follows a symlink to whatever it points at,
+  # so a destination swapped for a symlink reads as "exists, ours or not" on
+  # the TARGET rather than being refused as the symlink it is (Feitan F2) --
+  # this script would then happily overwrite through it, or read "ours" off
+  # content it never wrote.
+  if [ -L "$root/$rel" ]; then
+    echo "permissions pack ($surface): refusing: $rel is a symlink" >&2
+    kept="$kept $rel"
+    return 0
+  fi
   if [ -e "$root/$rel" ] && ! ours "$rel"; then kept="$kept $rel"; return 0; fi
   mkdir -p "$(dirname "$root/$rel")"
   printf '%s\n' "$content" > "$root/$rel"
@@ -207,15 +217,39 @@ place() { # relative-path content
 # YET IS NOT AN ERROR HERE"), and ownership of an existing destination is
 # judged by nen's marker (`ours_generated`), not this script's own.
 place_generated() {
-  local rel="$1" source="$2"
+  # relative-path source-abs-path [extra-fragment-abs-path]. The optional
+  # third argument is appended verbatim to the placed file after the copy --
+  # for codex's config.toml, that is surfaces/codex/config.toml.fragment's
+  # '[agents] default_subagent_model' table, which lives in a SEPARATE
+  # generated file (it is merged, not generated as part of config.toml
+  # itself) and would otherwise never reach a placed .codex/config.toml at
+  # all, leaving default_subagent_model unset on every fresh install.
+  local rel="$1" source="$2" fragment="${3:-}"
   if is_tracked "$rel"; then kept="$kept $rel"; return 0; fi
+  if [ -L "$root/$rel" ]; then
+    echo "permissions pack ($surface): refusing: $rel is a symlink" >&2
+    kept="$kept $rel"
+    return 0
+  fi
   if [ -e "$root/$rel" ] && ! ours_generated "$rel" "$surface"; then kept="$kept $rel"; return 0; fi
   if [ ! -f "$source" ]; then
     echo "permissions pack ($surface): no generated file at $source yet -- skipping $rel" >&2
+    skipped="$skipped $rel"
     return 0
   fi
   mkdir -p "$(dirname "$root/$rel")"
   cp "$source" "$root/$rel"
+  if [ -n "$fragment" ]; then
+    if [ -f "$fragment" ]; then
+      {
+        printf '\n# --- merged from %s (nen surface mirror) ---\n' "$(basename "$fragment")"
+        cat "$fragment"
+      } >> "$root/$rel"
+    else
+      echo "permissions pack ($surface): no generated fragment at $fragment yet -- $rel placed without it" >&2
+      skipped="$skipped $rel(fragment)"
+    fi
+  fi
   exclude_line "$rel"
   written="$written $rel"
 }
@@ -225,6 +259,9 @@ case "$surface" in
     rel=".claude/settings.local.json"
     if is_tracked "$rel"; then
       kept="$kept $rel"
+    elif [ -L "$root/$rel" ]; then
+      echo "permissions pack ($surface): refusing: $rel is a symlink" >&2
+      kept="$kept $rel"
     else
       mkdir -p "$root/.claude"
       pack="$(render_claude)"
@@ -232,7 +269,10 @@ case "$surface" in
 import json, os, sys
 path, pack, marker = sys.argv[1], json.loads(sys.argv[2]), sys.argv[3]
 doc = {}
-if os.path.exists(path):
+if os.path.islink(path):
+    print(f"{path}: is a symlink; left alone", file=sys.stderr)
+    sys.exit(3)
+if os.path.exists(path) or os.path.lexists(path):
     try:
         with open(path) as f:
             doc = json.load(f)
@@ -273,7 +313,7 @@ PY
     fi
     ;;
   codex)
-    place_generated ".codex/config.toml" "$hatsu_root/surfaces/codex/config.toml"
+    place_generated ".codex/config.toml" "$hatsu_root/surfaces/codex/config.toml" "$hatsu_root/surfaces/codex/config.toml.fragment"
     place_generated ".codex/hooks.json" "$hatsu_root/surfaces/codex/hooks.json"
     ;;
   cursor)
@@ -284,6 +324,10 @@ PY
     ;;
 esac
 
-echo "permissions pack ($surface):${written:+ written:$written}${kept:+ · left alone (tracked or not ours):$kept}"
-[ -n "$written$kept" ] || echo "  nothing to place on $surface"
+echo "permissions pack ($surface):${written:+ written:$written}${kept:+ · left alone (tracked or not ours):$kept}${skipped:+ · skipped (generator has not run yet):$skipped}"
+[ -n "$written$kept$skipped" ] || echo "  nothing to place on $surface"
+# A surface's own pack file that could not be placed because the generator
+# has not produced it yet is not a silent success: --install exits non-zero
+# so a caller (the warm-up, CI) notices rather than reads "done" off exit 0.
+[ -z "$skipped" ] || exit 1
 exit 0

@@ -9,7 +9,7 @@ surface complete at `v0.1.0` — one of them, `drive`, **renamed to [`sharingan`
 the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side,
 **[`byakugan`](byakugan/) at `v0.24.0`**, the
 **three added at `v0.6.0`** that close the release side,
-**[`third-hand`](third-hand/) at `v0.27.0`** (a separate phase after En from `v0.28.0`), and the **two roster-machinery residents** that
+**[`third-hand`](third-hand/) at `v0.27.0`** (a separate phase after En from `v0.28.0`), **[`great-hiker`](great-hiker/) at `v0.43.0`** (the canon-authoring skill, in its own section), and the **two roster-machinery residents** that
 arrived with the skeleton ([zheref/hatsu#1][1]) and are counted separately. Nothing here is reserved, and
 nothing here is a placeholder.
 
@@ -58,7 +58,6 @@ mechanics, and a live transcript showing the same verdict from fewer improvised 
 | [`file`](file/) | Files one well-formed, correctly-labelled, non-duplicate issue — reconciled against the open backlog first, on one explicit confirmation. |
 | [`futon`](futon/) | Takes one whole severity band from open issues to PRs with an actor behind them, then **gates** the terminal step you typed (`then tag`, `then tag+fanout`): it holds the cut until no PR this run authored is short of Ready, and hands the cut itself to [`getsuga`](getsuga/). It cuts no tag and runs no fan-out of its own. |
 | [`getsuga`](getsuga/) | **Cuts** a release tag locally, end to end — preconditions, one folded **release-proposal** PR the maintainer merges at **G4** in a canon repository (**G2** in a consumer one), the **post-merge** tag, the `CON-22` fan-out and the consumers' repin PRs. The release unit it folds in is [`susanoo`](susanoo/)'s; publication is [`mugetsu`](mugetsu/)'s, at **G3**. Prepares a release; never publishes one. |
-| [`great-hiker`](great-hiker/) | **Canon authoring for every surface** (zheref/hatsu#93, not ported). Authors canon prose and machinery under `claude/` and `contracts/`, runs `nen surface mirror generate` for every surface with hooks, allowlists, rules files and model config, checks the mirrors and the installed copies, and opens one PR at G4 with a per-surface delta table. `evolve [<surface>]` diffs each surface guide against its cited official docs and files one Netero-shaped issue per drifted surface. Never edits `surfaces/` by hand, never claims a capability without the fetched line, never merges. |
 | [`izanagi`](izanagi/) | Repeats a task that **acts** until a condition holds, under a **mandatory** iteration cap — an invocation without `up to <N>` is refused. |
 | [`izanami`](izanami/) | Repeats a **read-only** task until a condition holds. It looks, reports and stops; it never writes. |
 | [`jujisho`](jujisho/) | Splits a mixed working copy into up to two stacked branches and PRs, by axis, proving the union of the splits equals the original diff. |
@@ -70,9 +69,20 @@ mechanics, and a live transcript showing the same verdict from fewer improvised 
 
 ---
 
+## The canon-authoring skill
+
+One skill is neither ported nor a phase of `ren`: it was authored at `v0.43.0` for this plugin's own
+canon (zheref/hatsu#93), and it runs on the maintainer's call, outside the turn loop.
+
+| Skill | What it does |
+|---|---|
+| [`great-hiker`](great-hiker/) | **Canon authoring for every surface.** Authors canon prose and machinery under `claude/` and `contracts/`, runs `nen surface mirror generate` for every surface with hooks, allowlists, rules files and model config, checks the mirrors and the installed copies, and opens one PR at G4 with a per-surface delta table. `evolve [<surface>]` diffs each surface guide against its cited official docs and files one Netero-shaped issue per drifted surface. Never edits `surfaces/` by hand, never claims a capability without the fetched line, never merges. |
+
+---
+
 ## The way of working
 
-The nineteen above each answer a request. The twenty-three below are the **loop that carries every request** —
+The nineteen ported skills and `great-hiker` each answer a request. The twenty-three below are the **loop that carries every request** —
 warm up, build, commit, launch, report, ring; pull, test, push — and the phases the maintainer calls by
 hand. [`../../docs/WORKFLOW.md`](../../docs/WORKFLOW.md) is the authority on all of it: the two configuration
 files ([`nen/contract.json`](../../nen/contract.json) → `project`, what nen **executes**;

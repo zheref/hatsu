@@ -20,8 +20,7 @@ is a bell nobody hears.**
 [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4 lists jutaisho as already total,
 so cold entry adds only **P1** ([`hatsu-warmup`](../hatsu-warmup/SKILL.md)), shared policy resolved at
 the plugin root as that skill's § 0 says. A standalone call also says **whether anything happened**:
-ring for a gate a run actually reached, and over a quiet checkout say the bell has nothing to announce
-rather than ringing to prove the skill works. **This phase is terminal** — the successor to a gate is
+ring for a gate a run reached; over a quiet checkout say there is nothing to announce. **This phase is terminal** — the successor to a gate is
 the maintainer's own decision, named in the options and never prompted for again.
 
 ## 1. Invocation
@@ -95,8 +94,7 @@ there is no hook.
 - **A marker older than 10 minutes is stale**, decided from **mtime** and removed without firing, so
   **the marker is written whole, in the turn it describes** — never amended, never carried over.
 - **`who` is the persona**, never the name the surface introduced itself as.
-- **One marker, overwritten**: no queue, because a backlog of notifications is what this skill
-  prevents.
+- **One marker, overwritten**: no queue.
 - **The hook is `hooks/hooks.json`'s**, a harness file this skill never edits and never installs.
 
 ## 4. A stop — the four parts, all four or it is not a stop
@@ -144,20 +142,22 @@ Everything else is a turn bell.
 
 ## 5. Surfaces, and the fallback where no hook is installed
 
-**Which surface fires rungs 2–3, the in-session fallback's two commands, their sanitising rules, the
-read-stderr-not-the-exit-code rule and the marker's removal are
-[`docs/SURFACES.md`](../../../docs/SURFACES.md) § 9** — Claude Code and Antigravity have the `Stop`
-hook, **Codex and Cursor have only the fallback**. What is this skill's: **the fallback is announced
-every time**, **an unfired rung is never rendered as fired**, and **the stop still stands** whichever
-path rang, § 4's four parts being the real bell.
+**Which side fires rungs 2–3 is one fact, not a surface list: was a hook file placed here?**
+[`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 6 is the authored home: every surface carries the
+`Stop` hook once its generated hook file is placed, and the in-session fallback runs only where none is. The
+fallback's two commands, their sanitising rules and the read-stderr-not-the-exit-code rule are
+[`docs/surfaces/README.md`](../../../docs/surfaces/README.md) § *Shared rules*. What is this skill's:
+**the fallback is announced every time**, **an unfired rung is never rendered as fired**, **the marker
+is removed by the side that consumed it** (the hook, when it fired; the fallback, only where no hook
+file is placed), and **the stop still stands** whichever path rang, § 4's four parts being the real bell.
 
 ## Residue
 
 `osascript` and `afplay` are harness-level shell, classified `[unknown]` by nen and refused by
-`nen watch until` — a notification primitive is a host capability, not a repository operation — and
+`nen watch until`, and
 `osascript`'s exit code is not a delivery receipt, its stderr being the only evidence. The `Stop` hook
-and the `PreToolUse` trunk guard are `hooks/hooks.json`'s: this skill reads whether one exists and
-never writes one. No surface but Claude Code and Antigravity has a turn-end hook.
+and the `PreToolUse` trunk guard are `hooks/hooks.json`'s and its generated mirrors': this skill reads
+whether a hook file was placed and never writes one.
 
 ## Authority
 
@@ -177,11 +177,11 @@ GitHub write, any label, merge or push — jutaisho ends a turn, it never advanc
   and never on the report, which is linked and never an option.
 - **Never hands off a G5 report link whose page lacks § 4's blocker verification** (zheref/hatsu#56).
 - **Never passes `--notified` for a push notification that did not go out**, **never claims a rung
-  fired that did not**, and **never reads `osascript`'s exit `0` as proof it fired** (SURFACES § 9).
+  fired that did not**, and **never reads `osascript`'s exit `0` as proof it fired** (§ 5).
 - **Never queues or replays a stale bell** — a marker older than ten minutes is removed, not fired.
-- **Never leaves its own marker behind on a surface with no hook** (SURFACES § 9).
+- **Never leaves its own marker behind where no hook file is placed** (§ 5).
 - **Never writes `who` from the name the surface introduced itself as** (§ 3).
-- **Never interpolates an unsanitised value into the fallback (SURFACES § 9).**
+- **Never interpolates an unsanitised value into the fallback (§ 5).**
 - **Never suppresses a real stop** because a turn bell already rang, and never fires its noise twice.
 - **Never rings rungs 2–3 in-session without saying so**, and **never escalates an ordinary turn just
-  because a surface has no hook**.
+  because no hook file is placed**.

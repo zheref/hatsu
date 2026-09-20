@@ -14,10 +14,10 @@ consumer copy is never a filing.
 
 [`backlog-state`](../backlog-state/SKILL.md) answers *"what is at my gate right now, and what does
 each thing need from me?"* as a markdown table. **This skill answers the identical question with the
-identical computation and paints it as a Rikugan page.** No third method, no second source of truth.
+identical computation and paints it as a Rikugan page.** No second source of truth.
 
-> **Read-only, without exception.** Inherited verbatim from `backlog-state`. If reading the board
-> makes the next action obvious, **say what the action is on the board** — do not take it.
+> **Read-only, without exception.** Inherited from `backlog-state`. If reading the board makes the
+> next action obvious, **say what the action is on the board** — do not take it.
 
 ## 1. Invocation
 
@@ -109,7 +109,7 @@ data document is § 2's `objects[]` ∪ `nen board build`'s rows ∪ the desk as
   objects[ <a § 2 row> ∪ { notation, marks, gate, gateClass, verdict, needs, session, lane, thought,
     labelsLine, checksLine, threadsLine, linkedLine, head, notes: string[] } ],
   architectureCaption, graphJson, graphMermaid, graphNodes[], graphEdges[],
-  spendEfforts[{name, actionsMinutes, spendNote, spendPhases[{lane,percent,amount,steps}],
+  spendEfforts[{name, actionsMinutes, spendNote, hasSpendPhases, noSpendPhases, spendPhases[{lane,percent,amount,steps}],
     spendUsage[{surface,model,input,output,cacheRead,cacheWrite,minutes,source,notReported,reported}]}],
   legendRows[{mark,meaning}] }
 ```
@@ -179,7 +179,7 @@ loop** — one fallback pass, then stop; it never retries blind.
 
 ## Hard limits
 
-Everything in `backlog-state`'s own never-list, verbatim, plus:
+Everything in `backlog-state`'s own never-list, plus:
 
 - **Never hand-authors the page.** § 3 is a verb call over a fixed template; a hand-filled page and a
   rendered one are not the same bytes, and only one is checkable.

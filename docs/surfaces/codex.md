@@ -134,10 +134,11 @@ nen surface mirror generate --surface codex \
 | emits | from |
 |---|---|
 | `surfaces/codex/<name>/SKILL.md`, 44 files (forty-three plus `hatsu-warmup`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `$<name>` | `claude/skills/**` |
-| `surfaces/codex/AGENTS.md`, the appendix the warm-up copies into `AGENTS.override.md` after the target's own `AGENTS.md`, 11 personas plus the preamble as sections | `claude/agents/**` |
-| `surfaces/codex/.codex/agents/<persona>.toml`, 12 files, `name`, `description`, `developer_instructions`, `model` from the persona's tier | `claude/agents/**` and `nen/workflow.json` |
-| `surfaces/codex/.codex/config.toml` fragment: `[agents]` from the matrix rows, `approval_policy`, `sandbox_mode`, `writable_roots` from the contract | `nen/workflow.json`, `contracts/permissions.json` |
-| `surfaces/codex/.codex/hooks.json`: `SessionStart`, `PreToolUse`, `Stop` | `hooks/hooks.json` |
+| `surfaces/codex/AGENTS.md`, the appendix the warm-up copies into `AGENTS.override.md` after the target's own `AGENTS.md`, eleven personas plus the preamble include as sections (`## _review-preamble`) | `claude/agents/**` |
+| `surfaces/codex/agents/<persona>.toml`, one per persona, `name`, `description`, `developer_instructions`, `model` from the persona's tier | `claude/agents/**` and `nen/workflow.json` |
+| `surfaces/codex/config.toml`, the pack: `approval_policy`, `sandbox_mode`, `writable_roots` | `contracts/permissions.json` |
+| `surfaces/codex/config.toml.fragment`: `[agents]` with `default_subagent_model` only, from the matrix row | `nen/workflow.json` |
+| `surfaces/codex/hooks.json`: `SessionStart`, `PreToolUse`, `Stop` | `hooks/hooks.json` |
 
 Marker, first markdown line after the frontmatter fence, line 1 in `AGENTS.md` and the TOML files:
 

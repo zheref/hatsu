@@ -88,6 +88,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/tenkai_adopt.sh, the hatsu:tenkai engine. The repository's pattern is ONE focused lane per executable guard -- the `test` seat on the `plugin` lane says so in its own words: 'Executable guards have their own focused lanes'. The engine shipped with a --self-test and no lane, so its assertions ran only when somebody typed the command: tsukuyomi had nothing to route to and no CI job covered it. An unrun check is exactly what that seat refuses to let read as a clean one."
       },
+      "workflow-policy-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/workflow_runner_policy_check.rb, the structural, offline regression guard three PR-facing workflows (plugin-bump-check.yml, surface-mirror-check.yml, pr-readiness.yml) and the surface-mirror-regenerate.yml builder all invoke as a trusted-revision step. Same one-lane-per-executable-guard pattern as tenkai-guard and release-guard: the guard shipped with a --self-test and no lane, so its own negative fixtures ran only when a human typed the command by hand."
+      },
       "release-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -172,6 +177,17 @@
             "--self-test"
           ],
           "$comment": "The hatsu:tenkai engine's own fixtures -- hermetic and offline. It builds throwaway git repositories under a temp dir, proves the runner derivation at every input, idempotence across three applies, every drift direction detected AND repaired, the read-only guarantee by content hash over the whole tree including .git/hooks, the two-PR ordering staged rather than hit, and that a hostile slug, a missing slug, a non-git directory and somebody else's workflow are each refused. Every fixture is removed on every path. Run it as `nen shu test --lane tenkai-guard --repo <hatsu>` when scripts/tenkai_adopt.sh or templates/pr-readiness.yml changes."
+        }
+      },
+      "workflow-policy-guard": {
+        "test": {
+          "exe": "ruby",
+          "argv": [
+            "scripts/workflow_runner_policy_check.rb",
+            "--self-test",
+            "."
+          ],
+          "$comment": "The workflow runner policy guard's own negative fixtures -- hermetic and offline, against a scratch copy of .github/workflows/ under a temp dir. Run it as `nen shu test --lane workflow-policy-guard --repo <hatsu>` when scripts/workflow_runner_policy_check.rb or any .github/workflows/*.yml it governs changes."
         }
       },
       "release-guard": {

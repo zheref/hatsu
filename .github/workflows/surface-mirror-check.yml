@@ -57,18 +57,17 @@ name: surface-mirror-check
 on:
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
-    # Only a job that actually reads the surface-relevant tree can carry a
-    # `paths:` filter without silently skipping a PR it should judge -- this
-    # job's own guard script regenerates from exactly these inputs.
-    paths:
-      - 'claude/**'
-      - 'surfaces/**'
-      - 'contracts/**'
-      - 'hooks/**'
-      - 'nen/**'
-      - 'scripts/surface_*'
-      - 'templates/**'
-      - '.github/workflows/surface-mirror-check.yml'
+    # NO `paths:` FILTER, DELIBERATELY. This job is (or is meant to become,
+    # docs/SURFACES.md) a REQUIRED context on `main`. A required context that
+    # carries a `paths:` filter never reports at all on a PR whose diff
+    # misses every listed path — GitHub does not skip it, it simply never
+    # schedules the job, and a required check with no report is a PR that
+    # cannot merge: not a false negative, a deadlock. (scripts/
+    # surface_mirror_wake_fixture.sh asserts this the other way when a filter
+    # IS present, by checking it covers every input the guard reads; with no
+    # filter at all this job wakes on every PR, which trivially covers all of
+    # them.) The regenerate workflow's own `push: paths:` is where a paths
+    # filter belongs: THAT trigger only builds, it is never a merge gate.
 
 concurrency:
   group: surface-mirror-check-${{ github.event.pull_request.number }}

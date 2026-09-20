@@ -13,8 +13,8 @@ workflows are deprecated and retire on 2026-11-01, so nothing here emits a workf
 | | |
 |---|---|
 | how Hatsu arrives | global plugin: `ln -sfn "$HATSU_PLUGIN_ROOT/surfaces/antigravity" ~/.gemini/config/plugins/hatsu` (`~/.gemini/antigravity-cli/plugins/hatsu` for the CLI); or workspace: `scripts/surface_bootstrap.sh --surface antigravity --target . --bootstrap`, then `/hatsu-warmup` |
-| plugin layout | `plugin.json` (required), `hooks.json`, `mcp_config.json`, `skills/`, `agents/`, `rules/`; the mirror is `<name>/` at the root plus `agents/`, `rules/hatsu.md`, `hooks.json`, `plugin.json` |
-| skills read from | plugin `skills/<name>/SKILL.md` as the plugins page lays it out; workspace `<repo>/.agents/skills/<name>/SKILL.md`; global `~/.gemini/config/skills/` (IDE) or `~/.gemini/antigravity-cli/skills/` (CLI). The mirror itself is flat, `surfaces/antigravity/<name>/SKILL.md`, and the warm-up copies each `<name>/` into `.agents/skills/` |
+| plugin layout | `plugin.json` (required), `hooks.json`, `mcp_config.json`, `skills/`, `agents/`, `rules/`; the mirror follows it: `skills/<name>/SKILL.md` plus `agents/`, `rules/hatsu.md`, `hooks.json`, `plugin.json` |
+| skills read from | plugin `skills/<name>/SKILL.md` as the plugins page lays it out; workspace `<repo>/.agents/skills/<name>/SKILL.md`; global `~/.gemini/config/skills/` (IDE) or `~/.gemini/antigravity-cli/skills/` (CLI). The mirror is `surfaces/antigravity/skills/<name>/SKILL.md`, the documented layout, and the warm-up copies each `skills/<name>/` into `.agents/skills/` |
 | personas read from | plugin `agents/<persona>.md`; workspace `<repo>/.agents/agents/<name>.md` or `.agents/agents/<name>/agent.md`; global `~/.gemini/config/agents/` |
 | rules read from | plugin `rules/`; workspace `<repo>/.agents/rules/`; each file at most 12,000 characters |
 | hooks read from | plugin `hooks.json`; workspace `<repo>/.agents/hooks.json`; global `~/.gemini/config/hooks.json` |
@@ -63,9 +63,10 @@ nothing is written into a target repository; the plugin's own `hooks.json` resol
 | decision shape | top-level `decision`: `allow`, `deny`, `ask`, `force_ask`, `deny_unless_prior_grant`, with `reason` and `permissionOverrides[]`; `ask` respects "Always Allow" |
 | what Hatsu installs | `PreInvocation` → `surface_bootstrap.sh --surface antigravity --target . --install-all` when `HATSU_PLUGIN_ROOT` is set and `.agents/` exists; `PreToolUse` on `run_command` → `hooks/guard-base-branch.sh` (`deny` on the base branch); `Stop` → `hooks/stop-bell.sh` |
 
-The hook commands resolve their script through four candidates in order: `./.agents/hooks/`, the global
-plugin's `hooks/`, `$HATSU_PLUGIN_ROOT/hooks/`, and `./hooks/` when the working directory is a Hatsu
-checkout. A `PreInvocation` refresh fires on every invocation, not once per session, which is why the
+The hook commands resolve their scripts through one expression, the `--hooks-root` the generator was
+given: `${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}/hooks/`, so an
+explicit `HATSU_PLUGIN_ROOT` wins and the global plugin path is the only fallback. There is no
+workspace candidate; if `./.agents/hooks/` is ever added it comes last, after both. A `PreInvocation` refresh fires on every invocation, not once per session, which is why the
 warm-up checks `--installed` first and copies only on drift.
 
 ## 5. Permissions
@@ -106,8 +107,8 @@ nen surface mirror generate --surface antigravity \
 
 | emits | from |
 |---|---|
-| `surfaces/antigravity/<name>/SKILL.md`, 44 files (forty-three plus `hatsu-warmup`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `/<name>` (anchored on the prefix, never a bare `gsub`) | `claude/skills/**` |
-| `surfaces/antigravity/agents/<persona>.md`, 12 files (11 personas plus the preamble), `model` from the tier where admissible | `claude/agents/**`, `nen/workflow.json` |
+| `surfaces/antigravity/skills/<name>/SKILL.md`, 44 files (forty-three plus `hatsu-warmup`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `/<name>` (anchored on the prefix, never a bare `gsub`) | `claude/skills/**` |
+| `surfaces/antigravity/agents/<persona>.md`, 12 files (eleven personas plus the preamble include), `model` from the tier where admissible | `claude/agents/**`, `nen/workflow.json` |
 | `surfaces/antigravity/rules/hatsu.md`, under 12,000 characters | the surface row and the matrix |
 | `surfaces/antigravity/hooks.json`: `PreInvocation`, `PreToolUse` on `run_command`, `Stop` | `hooks/hooks.json` |
 | `surfaces/antigravity/plugin.json`: `$schema`, `name`, `description`, `version` = the stamp | `.claude-plugin/plugin.json` |
@@ -157,7 +158,7 @@ nen surface mirror check --surface antigravity <same flags> --installed ~/.gemin
 - `/docs/personas` answers 404; personas are the `agents/` directory of the plugins page.
 - `.agent/workflows` in the current docs; only `.agents/workflows/` is named, and it is deprecated.
 - Any skill-size limit.
-- Whether a plugin folder whose skill directories sit at its root (the flat mirror linked as the global plugin) is discovered the way the documented `skills/` subfolder is; the plugins page names `skills/` only.
+- Whether the `agy` CLI reads a global plugin's `skills/` subfolder the way the IDE does; the plugins page documents the layout, not each reader, and no live run on the CLI is recorded.
 - Whether the `ultra` tier can be named anywhere but the main session.
 
 ## 11. How this guide evolves

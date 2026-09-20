@@ -23,7 +23,7 @@ reduced to the keys each surface documents and the invocation respelled, produce
 | rules file | none | `AGENTS.override.md` (32 KiB cap) | `.cursor/rules/hatsu.mdc` | `rules/hatsu.md`, 12,000 characters max |
 | invocation spelling | `hatsu:<name>` | `$<name>` | `/<name>` | `/<name>` |
 | turn-end hook | **yes**, `Stop` in `hooks/hooks.json` | **yes**, `Stop` in `.codex/hooks.json` | **yes**, `stop` in `.cursor/hooks.json` | **yes**, `Stop` in `.agents/hooks.json` |
-| session-start hook | `SessionStart`, `hooks/session-start.sh` (a reminder; the plugin is read in place) | `SessionStart` (mirror refresh) | `sessionStart` (mirror refresh) | `PreInvocation` (no `SessionStart` exists; mirror refresh) |
+| session-start hook | `SessionStart`, `hooks/session-start.sh` (a reminder; the plugin is read in place) | `SessionStart` (mirror refresh, adopted repositories only) | `sessionStart` (the same) | `PreInvocation` (no `SessionStart` exists; the same) |
 | trunk guard | `PreToolUse` on `Bash`, `permissionDecision: deny` | `PreToolUse`, `permissionDecision: deny` (`ask` not honoured yet) | `beforeShellExecution`, `permission: deny` | `PreToolUse` on `run_command`, `decision: deny` |
 | permissions | `.claude/settings.local.json`, `Bash(<exe> <args>)` | `.codex/config.toml`: `sandbox_mode`, `writable_roots` (the one root-scoped surface) | `.cursor/cli.json`, `Shell(<exe> <args>)` | per-agent `commandExecutionPolicy`; the guard is the enforcement |
 | in-session subagent | the Agent tool | `spawn_agent` | `.cursor/agents/` | `invoke_subagent`, `Workspace` `inherit`, `branch` or `share` |
@@ -35,6 +35,12 @@ reduced to the keys each surface documents and the invocation respelled, produce
 Each surface's rows are cited, dated 2026-09-20, in its guide's checklist. Two corrections made there
 on that date: Codex and Cursor **do** have hooks (the hub used to say otherwise), and Antigravity's
 workspace paths are `.agents/…` with `.agent/…` as back-compatibility only.
+
+**The session-start hook refreshes a consumer's mirrors only where Hatsu is already adopted**: the
+checkout carries `nen/workflow.json` or `nen/contract.json` and a placed marker, the hook refreshes only
+the surface its own generated marker names, and it writes its report to `.nen/session-start.log`. The
+plugin source copy under Claude Code only prints the warm-up reminder; adoption is `tenkai`'s, never a
+hook's.
 
 **First-run discovery is a bootstrap, not an environment variable.** `HATSU_PLUGIN_ROOT` names a
 checkout; it cannot make an undiscovered skill callable. Codex, Cursor and Antigravity workspace mode
@@ -52,11 +58,11 @@ and nen hard-codes no system's vocabulary.
 | Path | |
 |---|---|
 | `claude/skills/<name>/SKILL.md` | **authored.** The one source, 44 directories (forty-three plus `hatsu-warmup`) |
-| `claude/agents/<persona>.md` | **authored.** The one source, 11 personas plus `_review-preamble.md`, the shared reviewer protocol and not a persona (mirrored as one until `zheref/nen#223`) |
+| `claude/agents/<persona>.md` | **authored.** The one source, eleven personas plus the preamble include (`_review-preamble.md`, the shared reviewer protocol and not a persona: `agents/_review-preamble.md` on Cursor and Antigravity, a `## _review-preamble` section in Codex's `AGENTS.md`) |
 | `hooks/hooks.json`, `contracts/permissions.json`, `nen/workflow.json` | **authored.** The inputs the generator renders hooks, permissions and model config from |
-| `surfaces/codex/<name>/SKILL.md`, `AGENTS.md`, `.codex/agents/*.toml`, `.codex/config.toml`, `.codex/hooks.json` | **generated** |
+| `surfaces/codex/<name>/SKILL.md`, `AGENTS.md`, `agents/*.toml`, `config.toml`, `config.toml.fragment`, `hooks.json` | **generated** |
 | `surfaces/cursor/<name>/SKILL.md`, `agents/*.md`, `.cursor/rules/hatsu.mdc`, `.cursor/cli.json`, `.cursor/hooks.json` | **generated** |
-| `surfaces/antigravity/<name>/SKILL.md`, `agents/*.md`, `rules/hatsu.md`, `hooks.json`, `plugin.json` | **generated** |
+| `surfaces/antigravity/skills/<name>/SKILL.md`, `agents/*.md`, `rules/hatsu.md`, `hooks.json`, `plugin.json` | **generated** |
 
 Every generated file carries one marker as its first markdown line after the frontmatter fence (line 1
 where there is no fence; the `description` field in a JSON file), stamped with the plugin version:
@@ -142,6 +148,6 @@ The check runs beside the regeneration, in `mukai`, before `shibari` opens the P
 | headless validation commands and their transcripts | [`docs/surfaces/evidence/surfaces.md`](surfaces/evidence/surfaces.md), Appendix A |
 | placing the mirrors into a target | [`claude/skills/hatsu-warmup/SKILL.md`](../claude/skills/hatsu-warmup/SKILL.md) § 5 |
 | the bell and the picker at a gate | [`claude/skills/jutaisho/SKILL.md`](../claude/skills/jutaisho/SKILL.md) |
-| raising a reviewer per surface | [`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 9a |
+| raising a reviewer per surface | [`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 4 and § 7 |
 | the model matrix | [`nen/workflow.json`](../nen/workflow.json) → `models`; [`docs/WORKFLOW.md`](WORKFLOW.md) § 2 |
 | keeping the guides current | `hatsu:great-hiker`, one Netero-shaped issue per surface whose checklist moved |

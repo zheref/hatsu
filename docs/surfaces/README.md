@@ -52,7 +52,7 @@ nen surface mirror generate --surface <codex|cursor|antigravity> \
   --rules claude/rules/hatsu.md --source-surface claude \
   --hooks-root <root expression> --manifest .claude-plugin/plugin.json --stamp <plugin version>
 ```
-`--hooks-root` is the expression every mirrored hook command resolves the plugin root through: `${HATSU_PLUGIN_ROOT}` on Codex and Cursor, `${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}` on Antigravity; the hook scripts travel with the manifest under `hooks/`. `--manifest` writes Antigravity's `plugin.json` from the Claude plugin manifest. `--source-surface claude` names the row of `models` whose aliases the canonical personas carry (`model: opus`, `sonnet`, `haiku`), so the generator reads each alias back to its tier before mapping it to the target surface's alias.
+`--hooks-root` is the expression every mirrored hook command resolves the plugin root through: `${HATSU_PLUGIN_ROOT:-./.codex}` on Codex, `${HATSU_PLUGIN_ROOT:-./.cursor}` on Cursor and `${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}` on Antigravity (the plugin root first, the placed workspace copy as the last fallback, never ahead of it); the hook scripts travel with the manifest under `hooks/` and are placed beside it. `--manifest` writes Antigravity's `plugin.json` from the Claude plugin manifest. `--source-surface claude` names the row of `models` whose aliases the canonical personas carry (`model: opus`, `sonnet`, `haiku`), so the generator reads each alias back to its tier before mapping it to the target surface's alias.
 
 
 `nen surface mirror check` takes the same flags and writes nothing; with `--installed <path>` it diffs a
@@ -102,17 +102,25 @@ path. **Never write a target repository's `.gitignore`**: it is tracked, lands i
 history, and imposes this plugin's layout on every contributor. `.nen/` is never a mirror destination:
 proof files, En ledgers, the stop marker and Hanten's cycle ledger live there and must survive a warm-up.
 
-**The bell where no hook is installed.** Every surface documents a stop hook (see each guide's *Hooks*),
-so the in-session fallback in `jutaisho` runs only on a session whose hook file was not placed. There
-the skill fires rungs 2 and 3 itself and says so, sanitising every value exactly as
+**The bell where no hook is installed.** Which surfaces carry a stop hook, and that the fallback keys on
+whether a hook file was placed rather than on a surface list, is authored in
+[`docs/WORKFLOW.md`](../WORKFLOW.md) § 6 and not restated here. Where the fallback runs, `jutaisho`
+fires rungs 2 and 3 itself and says so, sanitising every value exactly as
 [`hooks/stop-bell.sh`](../../hooks/stop-bell.sh) does: strip `"`, `\` and newlines from title and body,
 pass each as one argument, reduce the sound name to `[A-Za-z0-9_-]` with `Glass` as the fallback, and
 drop a value that cannot be sanitised rather than ring with it. Read stderr, not the exit code:
 `osascript` exits 0 with nothing delivered where the session has no Notification Center seat, and
 `afplay` exits 1 with `AudioQueueStart failed`; either is reported `not applicable, no seat`, by rung.
-Never retry, never substitute another noise-maker, and an unfired rung is never rendered as fired. On a
-hookless surface the skill also removes `.nen/last-stop.json` once the stop is answered; on a surface
-whose hook consumed the marker it does not.
+Never retry, never substitute another noise-maker, and an unfired rung is never rendered as fired. Where no
+hook file is placed the skill also removes `.nen/last-stop.json` once the stop is answered; where the
+hook fired, the hook consumed the marker and the skill does not.
+
+**The session-start refresh.** `hooks/session-start.sh`, mirrored as each surface's session-start row,
+refreshes a consumer's mirrors only in a repository that already adopted Hatsu (it carries
+`nen/workflow.json` or `nen/contract.json` and a placed marker), only for the surface its own generated
+marker names, and writes its report to `.nen/session-start.log`; the plugin source copy under Claude
+Code only prints the warm-up reminder. Adoption is `tenkai`'s, never a hook's
+([`docs/SURFACES.md`](../SURFACES.md) § 1).
 
 **Keeping the plugin checkout current.** `scripts/hatsu_plugin_update.sh --root "$HATSU_PLUGIN_ROOT"`
 with `--channel trunk` (ff-only on the base), `--channel release` (newest `vX.Y.Z` tag) or `--auto` (the

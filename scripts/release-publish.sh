@@ -156,6 +156,19 @@ CL
   ok "$([ $? -eq 1 ] && echo 0 || echo 1)" "no section for the tag refuses (1) — notes are never invented"
   set -e
 
+  echo "the shipped copy and the template it was cut from cannot drift silently"
+  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+  TEMPLATE_COPY="$SCRIPT_DIR/../templates/release-publish.sh"
+  if [ -f "$TEMPLATE_COPY" ]; then
+    if cmp -s "$TEMPLATE_COPY" "$0"; then
+      ok 0 "templates/release-publish.sh matches scripts/release-publish.sh byte-for-byte"
+    else
+      ok 1 "templates/release-publish.sh matches scripts/release-publish.sh byte-for-byte"
+    fi
+  else
+    ok 1 "templates/release-publish.sh exists to compare against"
+  fi
+
   printf '\n'
   if [ "$fails" -gt 0 ]; then
     printf 'release-publish --self-test: %s FAILED of %s\n' "$fails" "$ran"

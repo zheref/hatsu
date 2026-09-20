@@ -360,11 +360,12 @@ summary:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
 <section id="spend">
 <h2>Spend</h2>
 <h3>Where the time went</h3>
-<ul class="bars">
+{{#if hasSpendPhases}}<ul class="bars">
   {{#each spendPhases}}
   <li><span class="lane">{{lane}}</span><span class="track"><i style="--pct:{{percent}}"></i></span><span class="amt">{{amount}}</span>{{#if steps}}<span class="steps">{{steps}}</span>{{/if}}</li>
   {{/each}}
-</ul>
+</ul>{{/if}}
+{{#if noSpendPhases}}<p class="muted">no phase ledger was recorded for this effort</p>{{/if}}
 <h3>Tokens by model</h3>
 <div class="wrap"><table>
   <tr><th>Surface</th><th>Model</th><th>Input</th><th>Output</th><th>Cache read</th><th>Cache write</th><th>Minutes</th><th>Source</th></tr>

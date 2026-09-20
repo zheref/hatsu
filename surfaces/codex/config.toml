@@ -6,6 +6,6 @@ approval_policy = "on-failure"
 sandbox_mode = "workspace-write"
 
 [sandbox_workspace_write]
-# The working tree, every linked worktree, and the git common directory.
-writable_roots = ["<the working tree>", "<each linked worktree>", "<the git common dir>"]
+# filled at install time by the consumer's placer: the working tree, each linked worktree, the git common dir (git rev-parse --show-toplevel / --git-common-dir, git worktree list)
+writable_roots = []
 network_access = true

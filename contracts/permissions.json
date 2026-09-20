@@ -7,6 +7,7 @@
     "associated": "repositories nen/repos.json lists under consumers, maintained_tools or pending_onboarding",
     "enforced_by": "Codex only, through sandbox_workspace_write.writable_roots. Claude Code and Cursor allowlists are exe-and-argument PATTERNS with no root syntax: their scope is that the rendered file lives in this checkout's own .claude/ or .cursor/ directory and applies to sessions opened there, and nothing in the file refuses an allowed command pointed at another checkout. The deny rows and hooks/guard-base-branch.sh are the second line on every surface."
   },
+  "$comment_removed_gh_auth_token": "REMOVED (Feitan F1, 2026-09-20): the shared allow list used to carry {exe: gh, args: 'auth token'}. Every verb that needs GH_TOKEN reads it out of gh's OWN credential store at call time (gh api/pr/issue/run/label all resolve auth internally) -- nothing in this codebase pipes 'gh auth token' output anywhere it needs to be. Allowing the bare command meant a session could run it and have the live OAuth token printed straight into the transcript, which is a credential leak an allowlist exists to prevent, not to grant.",
   "allow": [
     {
       "exe": "nen",
@@ -37,11 +38,6 @@
       "exe": "gh",
       "args": "run *",
       "why": "reruns and run timing"
-    },
-    {
-      "exe": "gh",
-      "args": "auth token",
-      "why": "GH_TOKEN for the verbs"
     },
     {
       "exe": "gh",
@@ -325,5 +321,22 @@
       "args": "push origin --force-with-lease*",
       "why": "the origin spelling of a lease force"
     }
-  ]
+  ],
+  "surfaces": {
+    "$comment": "Per-surface rows transcribed verbatim after the shared allow list, for that surface only (nen surface mirror generate --permissions, v0.13.0). Cursor has no implicit file access in cli.json, so its pack declares tree-wide read and write here rather than the generator adding them unasked (Feitan, 2026-09-20).",
+    "cursor": {
+      "allow": [
+        "Read(./**)",
+        "Write(./**)"
+      ],
+      "deny": [
+        "Read(.env*)",
+        "Read(**/*.key)",
+        "Read(**/*.pem)",
+        "Write(./.git/**)",
+        "Write(./.cursor/**)",
+        "Write(./.claude/**)"
+      ]
+    }
+  }
 }

@@ -133,13 +133,36 @@ jobs:
           gh api "repos/${REPO}/pulls/${PR}/files" --paginate \
             --jq '.[] | .filename, (.previous_filename // empty)' \
             > "${RUNNER_TEMP:-/tmp}/changed_files.txt"
-          # A base without the manifest at all (the very first commit) is not a
-          # failure: `{}` yields an empty version, which any real HEAD version
-          # differs from, so the guard reads it as bumped.
+          # A base without the manifest AT ALL -- the very first commit, where
+          # BASE_SHA predates .claude-plugin/plugin.json existing -- is
+          # legitimately not a failure: there is no lower version to have
+          # increased past. But `gh api` fails identically on that 404 and on
+          # an auth error, a rate limit, or a network blip, and treating every
+          # one of those the same way as "first commit" is a fail-open: the
+          # guard would read a same-or-lower head version as bumped whenever
+          # the API merely hiccuped. So the two are told apart by the actual
+          # HTTP status the API call reports, and only a genuine 404 gets the
+          # sentinel that tells the guard the base was legitimately absent.
+          base_out="${RUNNER_TEMP:-/tmp}/base_plugin.json"
+          base_err="${RUNNER_TEMP:-/tmp}/base_plugin.err"
+          sentinel="${base_out}.absent"
+          rm -f "$sentinel"
+          set +e
           gh api "repos/${REPO}/contents/.claude-plugin/plugin.json?ref=${BASE_SHA}" \
             -H "Accept: application/vnd.github.raw" \
-            > "${RUNNER_TEMP:-/tmp}/base_plugin.json" 2>/dev/null \
-            || echo '{}' > "${RUNNER_TEMP:-/tmp}/base_plugin.json"
+            > "$base_out" 2> "$base_err"
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ]; then
+            if grep -qi '404\|not found' "$base_err"; then
+              : > "$base_out"
+              : > "$sentinel"
+              echo "base .claude-plugin/plugin.json legitimately absent at ${BASE_SHA} (first commit) -- sentinel written"
+            else
+              echo "::error::gh api failed to read base .claude-plugin/plugin.json at ${BASE_SHA} (not a 404 -- refusing to treat this as 'first commit'): $(cat "$base_err")"
+              exit 1
+            fi
+          fi
           echo "changed files: $(wc -l < "${RUNNER_TEMP:-/tmp}/changed_files.txt")"
 
       - name: Write PR body to file

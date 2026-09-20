@@ -489,13 +489,16 @@ surface for exactly this reason: **the tier is the policy and the alias is the s
 | `frontier` — the orchestrator, the maintainer's own session | `fable` | `astra` | `grok` | `ultra` |
 | `deep` — **`models.roles.reviewer`**, so this is the reviewer tier | **`opus`** | **`sol`** | **`grok`** | **`pro`** |
 | `fast` — `worker`, `measurer` | `sonnet` | `terra` | `composer` | `flash` |
-| `economy` — `watcher`, `formatter` | `haiku` | `luna` | `composer` | `flash_lite` |
+| `economy` — `watcher`, `formatter` | `haiku` | `luna` | `composer` | `flash` |
 | **how a subagent is raised** | the harness's **Agent tool**, `isolation: "worktree"` | **in-session `spawn_agent`** (ChatGPT app, CLI, IDE). Hanten's isolated reviewer is still a second **`codex exec -m <id> -C <dir> -s workspace-write`** because that reviewer must not share the author's tree | a **subagent definition** at `.cursor/agents/<persona>.md`, mirrored there from `claude/agents/` | the harness's **`invoke_subagent` tool**, `Workspace: "branch"` (reviewers) or `"inherit"` (Third-Hand's Netero), `Model: "pro"` |
 | **isolation** | the harness makes the worktree | in-session spawn **shares the parent**; Hanten's reviewer is still **`git worktree add` first** — `-C` takes a directory and creates none | the surface's own; the skill states which it got | **`Workspace: "branch"`** for Hanten reviewers; **`"inherit"`** for Third-Hand's Netero (`share` only when it is the same checkout) |
 
+`nen/workflow.json` → `models` is the source and this table a convenience copy of it; where the two
+disagree the file wins and the table is the bug.
+
 **A reviewer runs at the `deep` tier on every surface** — `opus`, `sol`, `grok`, `pro` — because
 `models.roles.reviewer` is `deep` and a role maps to a tier rather than to a product.
-[`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 9a is the mechanism, per surface, with
+[`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 4 and § 7 are the mechanism, per surface, with
 the exact invocation.
 
 **The frontier tier never runs a subagent, on any surface.** Not `fable`, not `astra`, not `grok`, not `ultra`. The
@@ -538,16 +541,18 @@ that names none; a turn names one with `hatsu:ren <request> --profile <p>` or th
 
 | Profile | Per turn | Deferred to `mukai` | Report |
 |---|---|---|---|
-| `fast` | lint and the focused tests, then the commit | build, launch, coverage, the full page | `turn-fast` |
+| `fast` | steps 1 to 3 as ren § 2 states them; step 4 is skipped, the launch line reading `deferred by profile fast; the next standard or thorough turn, or hatsu:amaterasu by name, launches` | coverage and the full page; the launch is skipped, not moved | `turn-fast` |
 | `standard` | today's turn: every step of ren § 2 | nothing | `turn` |
-| `thorough` | `standard` plus the impacted suites (`kotoamatsukami`) | nothing | `turn` |
+| `thorough` | `standard` plus the impacted suites (`kotoamatsukami`) after step 3 | nothing | `turn` |
 
 **A landing always runs thorough**, whatever the turns before it named: a profile lowers a turn, never
-the phase that publishes. Every ren step is wrapped in `nen phase begin` / `nen phase end` so
+the phase that publishes. Deferred to mukai means kotoamatsukami's impacted suites and byakugan's
+coverage at the landing; mukai has no launch step, so a launch skipped under `fast` is taken by the next
+`standard` or `thorough` turn, or by `hatsu:amaterasu` named by the maintainer. Every ren step is wrapped in `nen phase begin` / `nen phase end` so
 `.nen/phases/<effort>.json` records one entry per phase regardless of profile, and step 5 records the
 usage entry through `nen usage record` (`--not-reported` where the surface exposes no cost readout).
 `nen schema check` validates the key from `v0.13.0`; the `v0.12.0` pin preserves it as raw data and
-reports nothing about it.
+reports nothing about it (verified on 0.12.0, 2026-09-20).
 
 **An alias is a name, and the id you type may still carry a version.** `models.rule` is *"latest alias only,
 never a version"*, and that governs **the file**; a surface's command line may need the concrete id — on
@@ -558,7 +563,7 @@ alias in the file honest.
 **A persona's `model:` pin does not translate between surfaces.** `nen surface mirror generate` carries
 `model` through to `.cursor/agents/<persona>.md` verbatim — correctly, since it mirrors rather than
 translates — so Hisoka's `sonnet` arrives on Cursor as a Claude alias in a Cursor-native-only matrix. The
-rule is `hanten`'s § 9a: **report the pin unresolvable, fall back to the role's tier, and state the
+rule is `hanten`'s § 7: **report the pin unresolvable, fall back to the role's tier, and state the
 substitution in the title.** Never silently honoured, never silently dropped.
 
 ---
@@ -931,7 +936,7 @@ cache, which is what the version bump in `.claude-plugin/plugin.json` exists to 
 
 ## 6 · The hooks
 
-[`../hooks/hooks.json`](../hooks/hooks.json) carries three Claude Code hooks: `SessionStart` (`hooks/session-start.sh`, a warm-up reminder on Claude Code and a mirror refresh on a mirrored surface, fail-open), `Stop` and `PreToolUse`. **None is a nen-owned step.**
+[`../hooks/hooks.json`](../hooks/hooks.json) carries three Claude Code hooks: `SessionStart` (`hooks/session-start.sh`, a warm-up reminder on Claude Code and, on a mirrored surface, a mirror refresh in a repository that already adopted Hatsu, fail-open; [`docs/SURFACES.md`](SURFACES.md) § 1), `Stop` and `PreToolUse`. **None is a nen-owned step.**
 They are executed by the harness *around* a session rather than by a skill *inside* one, and they exist for
 the two things a skill structurally cannot do: a skill only runs when the model calls it, and by the time the
 model has stopped talking, or has already typed the push, it is too late.
@@ -941,12 +946,17 @@ model has stopped talking, or has already typed the push, it is too late.
 | [`stop-bell.sh`](../hooks/stop-bell.sh) | `Stop` | rings `notifications` rungs **2 and 3** off the marker at `.nen/last-stop.json`, then consumes it |
 | [`guard-base-branch.sh`](../hooks/guard-base-branch.sh) | `PreToolUse`, matcher `Bash` | exits `2` — blocking the tool call — on a raw `git` commit or push while the branch equals `branch.base`; the skills commit and push through `nen commit write` and `nen wc publish`, and the latter refuses the trunk itself at exit `2` |
 
-**All three are Claude Code's, and only Claude Code's, until the generator mirrors them.** `hooks/hooks.json` is that host's manifest, discovered
-at the plugin's own `hooks/` path; **neither Codex nor Cursor reads it, and neither documents a turn-end
-hook of its own** ([`docs/SURFACES.md`](SURFACES.md) § 1). So on those two surfaces the bell has no hook to
-fire it and [`jutaisho`](../claude/skills/jutaisho/SKILL.md) § 6 runs rungs 2–3 in-session and says so, and
-the trunk guard has nothing behind it at all — the refusal to commit on `branch.base` is the skills' own
-rule there, not a reflex the harness enforces. **Say which of the two you are relying on.**
+**Every surface has all three hooks once its hook file was placed.** `hooks/hooks.json` is Claude Code's
+manifest, discovered at the plugin's own `hooks/` path; `nen surface mirror generate --hooks` renders the
+same three rows into the hook file each other surface documents (Codex `.codex/hooks.json` with `Stop`,
+Cursor `.cursor/hooks.json` with `stop`, Antigravity `.agents/hooks.json` or the global plugin's
+`hooks.json` with `Stop`; [`docs/SURFACES.md`](SURFACES.md) § 1), and the warm-up places that file. So
+the bell's in-session fallback in [`jutaisho`](../claude/skills/jutaisho/SKILL.md) § 5 keys on one fact,
+**was a hook file placed here**, never on a surface list: where none was placed the skill rings rungs 2
+and 3 itself, says so, and removes `.nen/last-stop.json` once the stop is answered; where one was placed
+the hook fires and consumes the marker, and the skill leaves it alone. The trunk guard keys on the same
+fact: with no hook file placed, the refusal to commit on `branch.base` is the skills' own rule, not a
+reflex the harness enforces. **Say which of the two you are relying on.**
 
 **The guard parses the command; it does not match a substring.** A shell wrapper is unwrapped first — `sh -c
 '<script>'` *runs* `<script>`, so the payload is recovered and parsed as its own segment. Quoted spans are then
@@ -1113,8 +1123,8 @@ Antigravity uses `ask_question` (`is_multi_select`) and `invoke_subagent` with `
 also generated into Codex and Cursor layouts under `surfaces/`, placed into a target repository by the
 warm-up, checked for drift by [`scripts/surface_mirror_check.sh`](../scripts/surface_mirror_check.sh), and
 documented in [`docs/SURFACES.md`](SURFACES.md). **Two things a surface does not have were named rather than
-assumed at `v0.7.0`**: Codex and Cursor have no turn-end hook (§ 6), and the 2026-09-10 CLI record said Codex
-had no in-session subagent. **From `v0.28.0` Codex does spawn in-session subagents**; Hanten's isolated
+assumed at `v0.7.0`**: Codex and Cursor had no documented turn-end hook then (both have one now, placed with
+their hook file, § 6), and the 2026-09-10 CLI record said Codex had no in-session subagent. **From `v0.28.0` Codex does spawn in-session subagents**; Hanten's isolated
 reviewer remains a second `codex exec` because that reviewer must not share the author's tree. **RETIRED at nen `0.5`: the mirror's own generator is in the pinned binary.**
 `nen surface mirror generate|check` runs at `v0.5.0` — `scripts/surface_mirror_check.sh` exits `0` with
 the counts it prints, `codex ok: 44` and `cursor ok: 55` at `v0.42.0` — so the CI job runs a real check instead of skipping with a notice. The

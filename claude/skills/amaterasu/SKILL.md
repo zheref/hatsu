@@ -24,8 +24,7 @@ already the most cold-ready phase: cold it adds **P1** ([`hatsu-warmup`](../hats
 and **P2**, read with § 3 — the branch, clean-or-dirty, and **whether this is a worktree**, a session
 standing in one **reporting the command rather than running it**. From any composite, skip it; shared
 policy is resolved at the plugin root as `hatsu-warmup` § 0 says. **The launch shows the tree on disk,
-not a commit**, so name it with the uncommitted paths, and nobody reads a running app as a
-demonstration of a recorded change.
+not a commit**, so name the uncommitted paths beside it.
 
 ## 1. Invocation
 
@@ -49,6 +48,12 @@ configuration already answered costs one per turn and trains the maintainer to d
 question, no stop, no bell — continue to [`spiritual-message`](../spiritual-message/SKILL.md) and
 [`jutaisho`](../jutaisho/SKILL.md).
 
+**§ 1a · The profile.** [`ren`](../ren/SKILL.md) § 2a reads `nen/workflow.json` → `profile`; under
+`fast` it does not invoke this phase, and the turn's launch line reads `deferred by profile fast; the
+next standard or thorough turn, or hatsu:amaterasu by name, launches`. Nothing is built and nothing
+moves to another phase: mukai has no launch step. Named by the maintainer, `hatsu:amaterasu [<target>]`
+runs under any profile.
+
 ## 2. The parameters, and the completion the launch owes
 
 | Value | File → key |
@@ -71,17 +76,17 @@ declaration within authorized scope, or record its blocker through
 [the discovery protocol](../../../docs/DISCOVERY.md). **Success requires the device-compatible build,
 installation of that artifact and application launch to complete**, each reported: a dry run or
 build-only result is **`launch incomplete`**, and missing install/launch steps are a declaration gap
-even at exit `0`. **Reusable record discovery belongs to Nen's shared launch resolver**
-([nen#204](https://github.com/zheref/nen/issues/204)), a temporary normalizer kept **linked** with its
-owner and removal condition, and **unsupported extraction keys never added to an older binary.**
+even at exit `0`. **Reusable record discovery is Nen's shared launch resolver's**
+([nen#204](https://github.com/zheref/nen/issues/204)); a temporary normalizer stays **linked** with its
+owner and removal condition, and **no extraction key is added to an older binary.**
 
 ## 3. The core working directory, never a worktree
 
 **A launch runs from the maintainer's own checkout and nowhere else** — not a `git worktree`, not a
 subagent's copy, not a temporary clone. Built from a worktree it is a *different* build of a
 *different* tree racing the one they are looking at, on the same port, derived-data directory and
-bundle id; a fresh worktree also **fails the declaration's own preconditions**, and **launching writes
-to a SHARED device**, so the isolation buys nothing on the axis that matters.
+bundle id; a fresh worktree **fails the declaration's own preconditions**, and **launching writes to a
+SHARED device**, so the isolation buys nothing.
 
 **nen will not stop you** — it renders the row with `cwd:` set to the worktree and no warning — so the
 rule is this skill's, kept two ways: **resolve the core working directory explicitly** and pass it as
@@ -124,7 +129,7 @@ nen shu <verb> --repo <core working directory> --target <name> [--lane <lane>]
   there is a **real** seat and is quoted as one.
 - The dry run prints the exact argv, the cwd, the env **names** and the declared artifacts, and spawns
   nothing. **The command pasted into the report and into chat is that `would run:` argv, verbatim** —
-  copied, never re-typed, prettified, or turned back into the package script it came from.
+  copied, never re-typed.
 - The bare run is **one line whether or not the target declares `args`**, nen appending them, and
   **an explicit `--lane` contradicting `project.launch.<name>.lane` is exit `2` naming both**.
 - `dev` and `run` are **long-running**, so `--json` without `--dry-run` is refused at exit `2`, and
@@ -135,8 +140,7 @@ nen shu <verb> --repo <core working directory> --target <name> [--lane <lane>]
   authored-code failure to [`rasengan`](../rasengan/SKILL.md), and treat a failed install or launch as
   incomplete delivery; `3` is an excluded host, a **G5**, never retried; `4` is a real seat, quoted,
   after which the repository's documented command is run and said; `5` is the program not on `PATH`.
-- **The after-steps are nen's to run**, as part of the same `--target` invocation, so nothing is run
-  by hand. **Quote the dry run's `substitutes:` line into the report** rather than `artifacts:`: they
+- **The after-steps are nen's to run**, in the same `--target` invocation, nothing by hand. **Quote the dry run's `substitutes:` line into the report** rather than `artifacts:`: they
   answer different questions — what this build produces, and what the child receives.
 
 ## 5. Residue
@@ -156,14 +160,12 @@ nobody reviewed; and **nothing in nen stops a long-running child**.
   device with no declared fallback is a stop-and-say, and an unsupported host (`3`) is its one **G5**.
 - **Never launches from anything but the core working directory**, except under § 3a's four
   conditions, said in its own words; **never from a parallel effort**; and **never reaches § 3a from a
-  composite** — an unattended path never launches from a non-core checkout.
+  composite**.
 - **Never falls back to a simulator for a present-but-unusable device**, to an undeclared device, or
   silently.
 - **Never types a `shu` subcommand the target did not declare**, and never works around nen's exit `2`
   by dropping `--target`.
-- **Never invents a target**, and **never asks when the declaration already answered** — the no-launch
-  case is `no launch target declared; skipped` in the turn report, every turn, without a question.
+- **Never invents a target**, and **never asks when the declaration already answered** (§ 1).
 - **Never substitutes a plausible command for a declared one**, re-types the pasted command from
   memory, or runs the bare lane verb for a target that declares `args`.
-- **Never runs a deploy**, with or without `--run`, and **never claims the app is running** on a dry
-  run or an exit code it did not read.
+- **Never claims the app is running** on a dry run or an exit code it did not read.

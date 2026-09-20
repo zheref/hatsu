@@ -441,6 +441,10 @@ returned. Harvesting is that phase's, not En's.
    is pushed to the maintainer. **Persistence was the half a session could never supply; being told
    is still unsupplied, and stays named here rather than claimed.** The rest of Illumi's row
    (`backlog-loop`, `futon`, `senkei`) stays `OPEN-1` and unreachable from here.
+5. **The commits-ahead count against an arbitrary reviewed head has no verb.** The no-op sync guard's
+   `git rev-list --count <reviewed-head>..HEAD` (§ 6) is read-only and named here as residue, not
+   improvisation: `nen wc classify` answers only against the base, and a nen request for a count
+   against a named head is owed.
 
 ## Authority
 

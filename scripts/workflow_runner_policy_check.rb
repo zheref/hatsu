@@ -4,6 +4,19 @@ require "psych"
 require "tmpdir"
 require "fileutils"
 
+# Every workflow YAML this script reads is UTF-8 (git, GitHub Actions, this
+# repository's own editors). Ruby 2.6's `File.read` otherwise decodes with
+# `Encoding.default_external`, which follows the process locale -- under
+# `LANG` unset or `C` (macOS's own default outside an interactive shell,
+# and some CI images) that is US-ASCII, and a workflow file carrying any
+# non-ASCII byte (an em dash, a curly quote) then raises
+# `Encoding::InvalidByteSequenceError` on the very first `File.read`, well
+# after this script has already announced success on unrelated checks.
+# Setting both defaults here, once, makes every `File.read` in this file
+# UTF-8 regardless of the calling shell's locale.
+Encoding.default_external = Encoding::UTF_8
+Encoding.default_internal = Encoding::UTF_8
+
 SAME_REPO_GUARD = "${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository }}"
 MAC_RUNNER = %w[self-hosted macOS ARM64].freeze
 WINDOWS_RUNNER = %w[self-hosted Windows X64].freeze
@@ -75,14 +88,17 @@ JOB_GUARDS = {
 CANCEL_IN_PROGRESS_REQUIRED = %w[plugin-bump-check.yml surface-mirror-check.yml pr-readiness.yml].freeze
 CANCEL_IN_PROGRESS_FORBIDDEN = %w[surface-mirror-regenerate.yml].freeze
 
-# The exact `paths:` filter surface-mirror-check.yml's trigger and the
-# regenerate workflow's `push` trigger are held to — every place a job in
-# either workflow actually reads from the tree. Kept as ONE frozen list so the
-# two workflows cannot drift from each other about what "the surface-relevant
-# tree" means.
-SURFACE_PATHS = %w[
+# REGENERATE_PATHS is the exact `paths:` filter surface-mirror-regenerate.yml's
+# `push` trigger is held to — the ONLY place in either workflow a `paths:`
+# filter is still permitted (Hatsu 0.44.0, zheref/hatsu#97): a `push` trigger
+# only BUILDS, it is never a merge gate, so a path it misses costs a delayed
+# regeneration rather than a deadlocked required check. `.claude-plugin/**` IS
+# an input (the stamp source, and the manifest --manifest renders into every
+# mirror); `surfaces/**` is NOT (it is the GENERATED OUTPUT this workflow
+# itself writes, never an input to wake on — see the workflow's own comment).
+REGENERATE_PATHS = %w[
   claude/**
-  surfaces/**
+  .claude-plugin/**
   contracts/**
   hooks/**
   nen/**
@@ -93,13 +109,14 @@ SURFACE_PATHS = %w[
 
 # Per-(workflow, event) expected `paths:` filter. A workflow/event pair absent
 # here carries NO `paths:` key at all (see the trigger loop in
-# `validate_workflow`) — `plugin-bump-check.yml` and `pr-readiness.yml` must
-# judge EVERY pull request, filtered or not, so they are deliberately absent.
-EXPECTED_PATHS = {
-  "surface-mirror-check.yml" => {
-    "pull_request_target" => SURFACE_PATHS
-  }
-}.freeze
+# `validate_workflow`) — FORBIDDEN, not merely unchecked. plugin-bump-check.yml,
+# surface-mirror-check.yml and pr-readiness.yml are all REQUIRED contexts on
+# `main` (or meant to become one), and a required context that carries a
+# `paths:` filter never reports at all on a PR whose diff misses every listed
+# path — not a false negative, a deadlock. So all three PR guards are
+# deliberately absent from this map; only a `push`-triggered BUILDER
+# (surface-mirror-regenerate.yml) may carry one, validated separately below.
+EXPECTED_PATHS = {}.freeze
 # Each workflow declares its EXACT trigger set as a map of event => types. This
 # replaced a single hardcoded `pull_request_target` key on the maintainer's
 # ruling of 2026-09-19. The shape is still exactly enumerated and still frozen --
@@ -215,6 +232,7 @@ EXPECTED_STEPS = {
     "Read the plugin stamp",
     "Regenerate every surface",
     "Detect drift",
+    "Verify the regenerated tree passes its own drift check",
     "Open a pull request with the regenerated mirrors"
   ]
 }.freeze
@@ -226,7 +244,7 @@ EXPECTED_STEPS = {
 BUILDER_TRIGGERS = {
   "surface-mirror-regenerate.yml" => {
     "workflow_dispatch" => nil,
-    "push" => { "branches" => %w[main], "paths" => SURFACE_PATHS }
+    "push" => { "branches" => %w[main], "paths" => REGENERATE_PATHS }
   }
 }.freeze
 
@@ -670,7 +688,7 @@ def validate_workflow(path)
   end
 end
 
-def validate_repo(root)
+def validate_repo(root, announce: true)
   paths = Dir.glob(File.join(root, ".github/workflows/*.{yml,yaml}")).sort
   fail_policy("#{root} has no workflows") if paths.empty?
   basenames = paths.map { |path| File.basename(path) }
@@ -685,7 +703,14 @@ def validate_repo(root)
       validate_workflow(path)
     end
   end
-  puts "workflow-runner-policy: #{paths.length} workflows structurally valid"
+  # Printed only when explicitly announced (the final, real invocation
+  # outside self-test): self-test's OWN internal validate_repo(tmp) calls run
+  # against a scratch copy mid-mutation, before the negative fixtures below
+  # have even run, so a pass line from one of them read as the script's
+  # verdict -- and, on a File.read encoding crash further down self_test, as
+  # a pass line printed just before the process died with no verdict at all
+  # (QA-21).
+  puts "workflow-runner-policy: #{paths.length} workflows structurally valid" if announce
 end
 
 # --- validate_builder_workflow PATH -----------------------------------------
@@ -792,7 +817,7 @@ def self_test(root)
   Dir.mktmpdir("hatsu-workflow-policy") do |tmp|
     FileUtils.mkdir_p(File.join(tmp, ".github/workflows"))
     Dir.glob(File.join(root, ".github/workflows/*.{yml,yaml}")).each { |path| FileUtils.cp(path, File.join(tmp, ".github/workflows")) }
-    validate_repo(tmp)
+    validate_repo(tmp, announce: false)
 
     plugin = File.join(tmp, ".github/workflows/plugin-bump-check.yml")
     original = File.read(plugin)
@@ -992,11 +1017,15 @@ def self_test(root)
 
     File.write(plugin, original)
 
-    File.write(surface, surface_original.sub(/\n\s*paths:\n(?:\s+- '[^']*'\n)+/, "\n"))
-    expect_rejected("surface-mirror-check loses its required paths filter") { validate_repo(tmp) }
-
-    File.write(surface, surface_original.sub("- '.github/workflows/surface-mirror-check.yml'", "- 'README.md'"))
-    expect_rejected("surface-mirror-check paths filter changed") { validate_repo(tmp) }
+    # `paths:` is FORBIDDEN on surface-mirror-check.yml (Hatsu 0.44.0,
+    # zheref/hatsu#97): it is a REQUIRED context, and a required context that
+    # never wakes for a PR whose diff misses every listed path is a PR that
+    # cannot merge -- a deadlock, not a false negative. Gaining one back is
+    # therefore rejected the same way plugin-bump-check.yml gaining one is.
+    File.write(surface, surface_original.sub(
+      "    types: [opened, synchronize, reopened, ready_for_review]",
+      "    types: [opened, synchronize, reopened, ready_for_review]\n    paths: ['claude/**']"))
+    expect_rejected("surface-mirror-check gains a paths filter — it must judge every PR") { validate_repo(tmp) }
 
     File.write(surface, surface_original)
 
@@ -1046,7 +1075,7 @@ def self_test(root)
     # already carries `echo "::error::nen/contract.json carries no ..."`, mid-line
     # inside a `|| { ... }` guard, and it must keep validating.
     File.write(surface, surface_original)
-    validate_repo(tmp)
+    validate_repo(tmp, announce: false)
   end
   puts "workflow-runner-policy: negative fixtures passed"
 end

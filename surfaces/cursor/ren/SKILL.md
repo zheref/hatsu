@@ -127,9 +127,16 @@ turn's first line names the profile in play.
 
 | Profile | What changes in § 2 |
 |---|---|
-| `fast` | step 1 runs once as before; step 2 runs lint ([`gyo`](../gyo/SKILL.md)) and the focused tests only; step 3 commits; **step 4 and any `nen shu build` are deferred to [`mukai`](../mukai/SKILL.md)**, and the report says so in *Not delivered*; step 5 renders `--variant turn-fast`; coverage is never captured |
+| `fast` | step 1 runs once as before; steps 2 and 3 run as their skills say; **step 4 is skipped for the turn**, and the report's launch line reads `deferred by profile fast; the next standard or thorough turn, or /amaterasu by name, launches`; step 5 renders `--variant turn-fast` |
 | `standard` | today's turn, as the table above states it |
-| `thorough` | `standard` plus the impacted suites ([`kotoamatsukami`](../kotoamatsukami/SKILL.md)) on every turn |
+| `thorough` | `standard`, and after step 3 [`kotoamatsukami`](../kotoamatsukami/SKILL.md)'s impacted suites run, on every turn |
+
+**A profile decides which steps run and which variant step 5 renders, never what happens inside a
+step.** Steps 2 and 3 run as their skills say under every profile. Under `fast` the impacted suites are
+not run (they are [`mukai`](../mukai/SKILL.md)'s, step 4 there); under `thorough` kotoamatsukami's
+impacted suites run after step 3, ren being that skill's third caller. The launch is skipped, not moved:
+mukai has no launch step, and [`amaterasu`](../amaterasu/SKILL.md) § 1a says how a skipped launch is
+taken. Coverage is captured by no ren profile; that is [`byakugan`](../byakugan/SKILL.md)'s, at mukai.
 
 **A landing (`mukai`) always runs thorough**, whatever the turns before it named.
 
@@ -222,7 +229,7 @@ owns which, so a maintainer tuning the file knows where the effect lands:
 
 | Key | The step it configures |
 |---|---|
-| `profile.default`, `profile.allowed` | every step, § 2a: which of them run in full, which defer to `mukai`, and which report variant step 5 renders |
+| `profile.default`, `profile.allowed` | every step, § 2a: which of them run, which is skipped, and which report variant step 5 renders |
 | `branch.template`, `branch.base` | step 1 — [`/breath`](../breath/SKILL.md) |
 | `iteration.checks`, `iteration.lane` | **three steps read the same pair, for three different questions** — step 1 [`/breath`](../breath/SKILL.md) (was the base sound), step 2 [`/rasengan`](../rasengan/SKILL.md) (does what I just wrote work), step 3 [`/kokusen`](../kokusen/SKILL.md) (is the tree I am about to record green) |
 | `commits.allowedAttributionTrailers`, `commits.forbiddenTrailers` | step 3 — [`/kokusen`](../kokusen/SKILL.md) |

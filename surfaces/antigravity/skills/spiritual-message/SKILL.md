@@ -33,7 +33,7 @@ recoverable`.
 `nen parse spiritual-message --grammar "as [<variant:turn|landing>] against [<base>]"` — anchored
 behind the literal `as`: a bare-bracket leading slot is exit `2`. Default **`turn`**. No `against`
 clause: `origin/<branch.base>` after `git fetch origin`, named on the page with its short SHA. **A
-local branch name is never the base**: a stale local `main` hands somebody else's delta over.
+local branch name is never the base**: a stale local `main` hands over somebody else's delta.
 
 ## 2. The variants
 
@@ -44,15 +44,15 @@ first step — the turn blocks **+ the PR body**, the verdict quoted inside the 
 
 **No `final` here.** The dated final report is a **one-effort Rikugan with a cleared desk**,
 [`backlog-board`](../backlog-board/SKILL.md) § 3's variant `final` into
-`<reports.dir>/<YYYY-MM-DD>-<effort>.html` (ruling 2026-09-19). Hand over and say so.
+`<reports.dir>/<YYYY-MM-DD>-<effort>.html` (ruling 2026-09-19). Hand over.
 
-After [`/aka`](../aka/SKILL.md) — pushed, no PR — re-render `turn` at the same address with the
-push in *Landed*; no fourth variant for a pause.
+After [`/aka`](../aka/SKILL.md) (pushed, no PR) re-render `turn` at the same address with the
+push in *Landed*.
 
 ## 3. The parameters
 
 From the target's `nen/workflow.json`; never remembered, never via `jq`. A file `nen schema check`
-FAILs is quoted by pointer and the defaults said out loud.
+FAILs is quoted by pointer.
 
 | Key | Used for | Default |
 |---|---|---|
@@ -96,18 +96,18 @@ design: a blank cell reads as a fact.
   decisions[{text,why}], architectureCaption, graphJson, graphMermaid,
   graphNodes[], graphEdges[], captures[{role,alt,src}], evidenceUnavailable,
   tests[{suite,name,status}], touchedCoverage[{file,percent,band}],
-  spendPhases[{lane,percent,amount,steps}], actionsMinutes, spendNote, launch, prBody[{markdown}],
+  spendPhases[{lane,percent,amount,steps}], hasSpendPhases, noSpendPhases, actionsMinutes, spendNote, launch, prBody[{markdown}],
   spendUsage[{surface,model,input,output,cacheRead,cacheWrite,minutes,source,notReported,reported}] }
 ```
 
 **`spendPhases`, never `phases`**: the verb answers `phases[]` (each with `durationMs`, `note` and
-`steps[{verb,durationMs,…}]`) and `usage[]` (the recorded rows); rows written over them destroy the
-source. Per phase: `percent` = `durationMs / max durationMs × 100` (§ 6's bar
-regex), `amount` as `12.3 s` / `4 m 05 s`, `steps` as `build 41.2 s · lint 3.1 s` or `""`.
-`spendUsage`: one row per surface+model, counters and `minutes` summed; a `--not-reported` entry
+`steps[{verb,durationMs,…}]`) and `usage[]`; rows written over them destroy the source. Per phase: `percent` = `durationMs / max durationMs × 100` (§ 6's bar
+regex), `amount` as `12.3 s` / `4 m 05 s`, `steps` as `build 41.2 s · lint 3.1 s` or `""`; `hasSpendPhases` /
+`noSpendPhases` are the inverse pair for an empty ledger.
+`spendUsage`: one row per surface+model, counters and minutes summed; a `--not-reported` entry
 sets `notReported: true`, `reported: false` (both keys always present). `actionsMinutes` sums
 `--minutes` entries, `not read` with none; `spendNote` is `""` or one muted line. `tests[]` and
-`touchedCoverage[]` are likewise **re-mapped** from `shu test-report` and the saved `shu coverage
+`touchedCoverage[]` are likewise re-mapped from `shu test-report` and the saved `shu coverage
 --touched`, never passed through.
 
 **Record usage before rendering**, from the surface's own readout: `nen usage record --effort

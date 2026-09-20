@@ -18,14 +18,26 @@
 # `surfaces/`: `main` is read, never written, and the three generate commands
 # run against a checkout of the commit that just landed.
 #
-# THIS NEVER PUSHES TO MAIN AND THE CHECK STAYS THE GATE. A push here lands on
-# `bot/surface-mirror-regenerate`, opened as an ordinary pull request that goes
-# through the same `surface-mirror-check` job as any other PR before it can
-# merge — this workflow proposes a regeneration, it does not certify one. If
-# the opened PR's own regeneration were somehow already stale by the time it is
-# reviewed, `surface-mirror-check` on THAT PR catches it exactly as it would
-# catch a hand-edited mirror. Nothing here is a required check, and nothing
-# here is trusted more than the PR it opens.
+# THIS NEVER PUSHES TO MAIN, AND THE DRIFT CHECK RUNS IN THIS JOB, NOT ON THE
+# PR IT OPENS. `surface-mirror-check` is a `pull_request_target` job gated to
+# `github.event.pull_request.head.repo.full_name == github.repository`; a PR
+# opened by `GITHUB_TOKEN` (this workflow's own `peter-evans/create-pull-
+# request` step) never satisfies that gate for a *required* check the same
+# way a human's fork-less PR does on some repos, and in any case a required
+# `surface-mirror-check` context that never reports on the bot's own PR is a
+# PR that cannot merge on its own. So the regeneration is verified HERE,
+# against the regenerated tree, before the PR is even opened: a fresh
+# `nen surface mirror generate` (this step) followed immediately by
+# `scripts/surface_mirror_check.sh` (the next step) on the SAME checkout —
+# generate, then check must exit 0, or the job fails outright rather than
+# opening a PR nobody's required check will bless. If `surface-mirror-check`
+# IS made a required context on `main` (docs/SURFACES.md; the ruleset itself
+# is a maintainer's repo-settings act), the maintainer's choice on the bot PR
+# is either of: merge on the strength of this job's own in-job check (the
+# PR's checks list will simply lack `surface-mirror-check`), or push an empty
+# commit to the bot branch to re-trigger the PR-side check under a human
+# actor. Nothing here is trusted more than the PR it opens; the in-job check
+# only makes sure that PR is never proposed already broken.
 #
 # `workflow_dispatch` exists for the same reason `getsuga`'s and `futon`'s
 # manual triggers do: a maintainer who wants to force a regeneration RIGHT NOW
@@ -39,8 +51,16 @@ on:
   push:
     branches: [main]
     paths:
+      # NOT 'surfaces/**': that is the GENERATED OUTPUT this job itself
+      # writes, never an input to wake on — a push that only touches
+      # surfaces/ (a hand edit, or this job's own regenerate commit landing
+      # some other way) is not a source change to regenerate FROM, and
+      # waking on the generated tree risks a self-triggering loop.
+      # '.claude-plugin/**' IS an input: it is the stamp source (--stamp
+      # reads plugin.json's version) and the manifest --manifest renders
+      # into every mirror.
       - 'claude/**'
-      - 'surfaces/**'
+      - '.claude-plugin/**'
       - 'contracts/**'
       - 'hooks/**'
       - 'nen/**'
@@ -125,7 +145,8 @@ jobs:
           for surface in codex cursor antigravity; do
             case "$surface" in
               antigravity) root='${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;;
-              *) root='${HATSU_PLUGIN_ROOT}' ;;
+              codex) root='${HATSU_PLUGIN_ROOT:-./.codex}' ;;
+              cursor) root='${HATSU_PLUGIN_ROOT:-./.cursor}' ;;
             esac
             "$NEN" surface mirror generate \
               --source claude/skills \
@@ -159,6 +180,19 @@ jobs:
             echo "dirty=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Verify the regenerated tree passes its own drift check
+        # generate, then check must exit 0. Runs against the SAME checkout
+        # the generate step just wrote, in this trusted job, because the PR
+        # this opens cannot rely on `surface-mirror-check` to report on it
+        # (see the header note above).
+        if: steps.drift.outputs.dirty == 'true'
+        env:
+          NEN_BIN: ${{ steps.nen.outputs.bin }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/surface_mirror_check.sh "$PWD"
+
       - name: Open a pull request with the regenerated mirrors
         if: steps.drift.outputs.dirty == 'true'
         uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
@@ -178,6 +212,12 @@ jobs:
             ${{ steps.drift.outputs.changed }}
             ```
 
-            `surface-mirror-check` is the gate on this PR the same as on any
-            other; this workflow only proposes the regeneration, it never
-            certifies or merges one.
+            This job already verified the regenerated tree against
+            `scripts/surface_mirror_check.sh` before opening this PR (see the
+            workflow's own header): `surface-mirror-check` itself will NOT
+            report on this PR (a `pull_request_target` job gated to the head
+            repo matching `github.repository`, which a `GITHUB_TOKEN`-opened
+            PR does not satisfy). If that check is a required context on
+            `main`, merge on the strength of the in-job verification above,
+            or push an empty commit to re-trigger the PR-side check under a
+            human actor.

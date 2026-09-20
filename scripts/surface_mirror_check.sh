@@ -55,9 +55,14 @@
 # § 2.3). So 2 is now UNEXPECTED: at this pin it means the nen on PATH is not the
 # pinned one, and .github/workflows/surface-mirror-check.yml turns it into an
 # ERROR rather than the skip-with-notice it used to be. Verified against the
-# pinned build: this script exits 0 with 44 skills per surface, personas 11 plus the
-# preamble, for codex, cursor and antigravity -- counts to re-read after a regeneration
-# rather than to remember.
+# pinned build: this script exits 0 for codex, cursor and antigravity against a
+# fresh generation (`ok: 62` codex; `ok: 61` cursor/antigravity — skills plus
+# personas plus the preamble include, plus the hook, rules, permission and
+# manifest files). Re-read the counts a run actually prints after a
+# regeneration rather than remember them here: a skill count, a persona
+# layout (one include today; nen may fold `_review-preamble.md` into a plain
+# `include` and move where antigravity's skills live) and a stamp all shift
+# the number without this comment noticing.
 #
 # NOT A SECOND LINT. nen/contract.json's `plugin` lane keeps exactly one lint
 # seat — `claude plugin validate . --strict` — and nen/workflow.json's
@@ -77,9 +82,15 @@ RULES_FILE="claude/rules/hatsu.md"
 SOURCE_SURFACE="claude"   # the personas carry models.claude aliases; --models reads them back to tiers
 MANIFEST_FILE=".claude-plugin/plugin.json"
 # The expression every mirrored hook command resolves the plugin root through: the warm-up exports
-# HATSU_PLUGIN_ROOT; Antigravity's global plugin dir is the fallback there (docs/surfaces/antigravity.md).
-hooks_root_for() { case "$1" in antigravity) printf %s '${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;; *) printf %s '${HATSU_PLUGIN_ROOT}' ;; esac; }
-PLUGIN_MANIFEST=".claude-plugin/plugin.json"
+# HATSU_PLUGIN_ROOT; the workspace copy is the LAST fallback, never ahead of the plugin root, and
+# Antigravity's global plugin dir is the fallback there (docs/surfaces/antigravity.md).
+hooks_root_for() {
+  case "$1" in
+    antigravity) printf %s '${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;;
+    codex) printf %s '${HATSU_PLUGIN_ROOT:-./.codex}' ;;
+    cursor) printf %s '${HATSU_PLUGIN_ROOT:-./.cursor}' ;;
+  esac
+}
 installed_path=""
 
 # --- usage: surface_mirror_check.sh [--installed <path>] [repo-root] -------
@@ -110,11 +121,20 @@ nen_bin() {
 # has it and the generic top-level help on one that does not (verified both
 # ways, docs/surfaces/evidence/surfaces.md § 2.3).
 has_surface_verb() {
-  local nen; nen="$(nen_bin)"
-  "$nen" surface mirror generate --help 2>&1 | grep -q '^nen surface'
+  local nen out; nen="$(nen_bin)"
+  # Captured into a variable and cased on, not piped into grep: under
+  # `set -o pipefail` a nen binary that closes its output early on --help
+  # (writes its banner, then exits before grep finishes reading) delivers
+  # SIGPIPE to nen's own process, and pipefail turns that into a non-zero
+  # pipeline status indistinguishable from "no surface verb".
+  out="$("$nen" surface mirror generate --help 2>&1 || true)"
+  case $'\n'"$out" in
+    *$'\n''nen surface'*) return 0 ;;
+    *) return 1 ;;
+  esac
 }
 
-# --- plugin_stamp PLUGIN_MANIFEST -------------------------------------------
+# --- plugin_stamp MANIFEST_FILE -------------------------------------------
 # Reads plugin.json's `version` field with the same structural awk this
 # repository already uses elsewhere (no python3 dependency in a bash-3.2 /
 # POSIX-sh lane). Empty on a missing or unparsable manifest rather than a hard
@@ -170,22 +190,26 @@ EOF
     exit 2
   fi
 
-  stamp="$(plugin_stamp "$PLUGIN_MANIFEST")"
+  stamp="$(plugin_stamp "$MANIFEST_FILE")"
   echo "surface-mirror-check: nen $("$nen" --version 2>/dev/null || echo "?") · source $SOURCE_DIR · agents $AGENTS_DIR · stamp ${stamp:-<none>}"
 
   if [ -n "$installed_path" ]; then
     echo "--- claude-code (installed: $installed_path)"
     local code=0
+    # claude-code's row is the source's OWN plugin layout, copied verbatim —
+    # never rewritten through a tier-to-alias map or an invocation-prefix
+    # rewrite the way codex/cursor/antigravity are. --models and
+    # --source-surface are refused here (nen: "'--models' declares no
+    # 'models.claude-code'" — there is no claude-code row in nen/workflow.json
+    # to read tiers from), so neither is passed on this row.
     "$nen" surface mirror check \
       --source "$SOURCE_DIR" \
       --agents "$AGENTS_DIR" \
       --surface claude-code \
       --installed "$installed_path" \
-      --models "$MODELS_FILE" \
       --permissions "$PERMISSIONS_FILE" \
       --hooks "$HOOKS_FILE" \
       --rules "$RULES_FILE" \
-      --source-surface "$SOURCE_SURFACE" \
       --stamp "$stamp" \
       --invocation-prefix "$INVOCATION_PREFIX" || code=$?
     case "$code" in

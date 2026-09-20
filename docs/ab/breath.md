@@ -345,7 +345,7 @@ on a detached `HEAD` lands on no branch), and the text output carries a `branch:
 **One refusal remains and it says what it means**: a `HEAD` that names no branch *and* resolves to no
 commit — a repository with no commits yet — has no working copy to classify.
 
-**Why this one mattered here.** `hanten` § 9a makes a `git worktree add --detach` for every Codex
+**Why this one mattered here.** `hanten` § 7 makes a `git worktree add --detach` for every Codex
 reviewer, so the surface Hatsu ships to was the surface whose ordinary starting state stopped § 3
 before it began. The skill used to route that refusal to § 5 and let `shu warmup` speak; § 3 now
 reads the classification like any other and § 5 still owns the one genuine stop — a detached `HEAD`

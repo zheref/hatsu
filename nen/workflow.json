@@ -138,7 +138,7 @@
       "standard",
       "thorough"
     ],
-    "$comment": "The run profile hatsu:ren reads (zheref/hatsu#93). `default` applies to every turn that names none; a turn may name one with --profile or the words \"fast turn\" / \"thorough turn\", and only a value in `allowed` is accepted. fast: lint and the focused tests per turn, a turn-fast page, build, launch, the full page and coverage deferred to mukai; standard: today's turn; thorough: the impacted suites (kotoamatsukami) on every turn. A landing (mukai) always runs thorough. Validated by nen schema check from v0.13.0; an older pin preserves the key as raw data."
+    "$comment": "The run profile hatsu:ren reads (zheref/hatsu#93). `default` applies to every turn that names none; a turn may name one with --profile or the words \"fast turn\" / \"thorough turn\", and only a value in `allowed` is accepted. fast: steps 1 to 3 per turn, a turn-fast page, the launch skipped for the turn (not moved: mukai has no launch step), the full page and coverage deferred to mukai; standard: today's turn; thorough: the impacted suites (kotoamatsukami) on every turn. A landing (mukai) always runs thorough. Validated by nen schema check from v0.13.0; an older pin preserves the key as raw data."
   },
   "models": {
     "rule": "latest alias only, never a version; subagents never on the frontier tier",
