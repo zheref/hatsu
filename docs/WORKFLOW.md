@@ -809,7 +809,7 @@ Then `shibari` hands the PR to `en` and stops. It never applies a gate label and
 [`sharingan`](../claude/skills/sharingan/)² → [`murasaki`](../claude/skills/murasaki/)³ when the branch is
 behind → `sharingan`⁴ → **observe⁵ while required CI or the current-head reviewer round is pending**, still
 reacting to new comments, threads, reviews and conflicts → [`jutaisho`](../claude/skills/jutaisho/)⁶ once
-at Ready → `rikugan` final, **the only report written to `Reports/`**, then stop at the human gate.
+at Ready → the dated **final** report, a one-effort Spiritual Message rendered through `nen report render --variant final` (`backlog-board` § 4's path), **the only report written to `Reports/`**, then stop at the human gate.
 
 | Key | What it bounds |
 |---|---|
@@ -1144,3 +1144,337 @@ including all issues in a combined PR. Scope changes trigger reconciliation of t
 Dependencies are listed separately. Closing clauses reflect completed issue scope; partial work
 must not be silently closed merely to obtain a sidebar link. Shibari owns the procedure and the
 GitHub auto-close caveat; build and sharingan enforce it at handover.
+
+---
+
+## Gate derivation
+
+**The protocol `hatsu:sharingan` and `hatsu:shibari` both need, stated once.** Moved here on
+2026-09-20 (zheref/hatsu#89) from `sharingan` § 2 and `shibari` § 7(c), which carried duplicate
+copies; both now point here. [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-18* remains the authority
+on the ruling itself.
+
+**1 · The repository's ROLE decides the gate, before any path is looked at.** **G4 is a canon
+repository**, whose product *is* the process; **everything else on that axis is G2**, a consumer's own
+`nen/*.json`, CI workflow and `scripts/` entries included. A consumer repository declaring a policy
+surface of its own — its *product's* spec, not its copy of this system's setup — **is unruled**: it is
+**G2**, and a repository that looks like a genuine exception is a **G5** for the maintainer
+(`nen/decisions.json` row `unruled-policy-surface`). **Do not improvise a path set for it.**
+
+**2 · A canon target derives by path; for a consumer the verb is not run**, because the role already
+settled it.
+
+```bash
+nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/" \
+                --process-paths ".github/workflows/,claude/,scripts/,tests/,docs/" \
+                --files <the changed paths> [--asserted <G2|G4>]
+```
+
+- **The path sets are the target repository's own canon**, not a universal set; nen ships none, and a
+  binary carrying one repository's sets would derive that repository's gates everywhere it was
+  pointed. The sets above are `zheref/hatsu`'s.
+- **`--files` is caller data** — the verb fetches nothing — and comes from
+  `gh pr diff <n> --repo <owner/name> --name-only`. A wrong file set gives the verb, and
+  `nen changelog fragment-required` beside it, a confident wrong answer.
+- **Keep both `nen/` and `schemas/`**: a prefix is taken literally and nen's own taxonomy resolution
+  never sees it, so an un-migrated target still edits a real `schemas/*.json` and that edit is still
+  policy. **Listing both under-derives nothing; dropping `schemas/` would.**
+- **Only the both-empty invocation is refused** (exit 1); one empty set and one that matches nothing
+  is accepted and answers `G2`.
+- **The verb reports; it does not gate**, and **a derived gate stands over an asserted one** —
+  `--asserted` prints the mismatch itself, and the run says it in one line, drives to the derived
+  gate, and carries the correction into its stop.
+
+**3 · It is the diff's half of the derivation only.** A pull request that is not ready **has no
+gate** — it is in progress and owned by its author — so a body names the gate the PR **will** stand at
+when it is ready, **as a forecast and never as a status**. The verb also does not know the base
+branch: read it with `gh pr view <n> --repo <owner/name> --json baseRefName -q .baseRefName`, report a
+base that could not be determined as `unresolved` rather than assuming `main`, and treat a sub-PR
+based on an `integration/*` branch as no maintainer gate row at all.
+
+**4 · Deriving is not labelling.** Applying a gate label is a claim about readiness, and readiness is
+`nen pr ready`'s verdict inside [`hatsu:en`](../claude/skills/en/SKILL.md), after the composing run
+has ended.
+
+---
+
+## The UZF-26 evidence shape
+
+Moved here on 2026-09-20 (zheref/hatsu#89) from `shibari` § 5, which owned it alone;
+[`rikugan`](../claude/skills/rikugan/SKILL.md) § 3 fills its own `evidence[]` from the same rows.
+
+- **The recorded test images are the screenshots** — never separately-staged captures, so the evidence
+  cannot drift from what the tests assert.
+- **One table per top-level user-facing screen**, titled with the issue(s) that composed it, with the
+  **changed states as columns** — typical / empty / loading / failure / not-editable / overflow — and
+  one row of cells per screen. Horizontal, never a tall stack of images.
+- **One entry per state the branch actually adds or re-records**, mirroring that set 1:1, never an
+  inventory of the screen's total states. **A logic-only change is exempt, and the body says so.**
+- **Two mechanisms, and a stack uses exactly one**, named by `nen/contract.json` →
+  `project.evidence.mechanism`: **`public-mirror`** embeds the image, hosted by the stack's own
+  registered public-assets mirror; **absent, or any other value**, names **each scene** and points the
+  reviewer at its **committed snapshot path** in the PR's *Files changed* tab. **A Files-changed body
+  that names its scenes is conformant, not a shortfall, and the two are never mixed in one body.**
+- **On `public-mirror` the images reach a public host through the target repository's own declared
+  publish step**, authorized by the same human call that asked for the PR and **said in the handover
+  line**. Nothing that call did not cover is assumed — not an unregistered mirror, not a host the
+  stack does not name, not a scene that is not one of the branch's own re-recorded artifacts.
+- **Canon admits exactly two incompletenesses, and both are *tracked*** — a timed deferral where there
+  is no snapshot-capable runner yet, and a demonstrated capture-tooling gap for a named scene. **An
+  untracked gap is the arbitrary waiver canon refuses**, and the answer to "I can't record baselines"
+  is a snapshot-capable runner, never a missing table. Where the IOU or the skip does not exist yet,
+  say so; filing it is [`hatsu:file`](../claude/skills/file/SKILL.md)'s.
+- **`project.evidence.globs` absent is the no-evidence case**, stated in the body; `.scene` defaults to
+  `{suite}-{scene}`. `nen shu evidence --repo <path> --base <ref>` reads the block, but the rows come
+  from `mukai` step 7's evidence pass and are **re-used rather than re-derived** — two derivations of
+  one set is how a report and a PR body come to disagree.
+
+## The standalone stash-and-restore shape
+
+Moved here 2026-09-20 out of [`breath`](../claude/skills/breath/SKILL.md) § 0, which is its only
+caller today; a second skill that ever has to preserve a maintainer's uncommitted tree across a trunk
+move reads it here rather than restating it.
+
+**The guaranteed outcome** (ruling 2026-09-18): *a branch off a `main` proven green, carrying the
+maintainer's own commits on that tip, with their uncommitted changes still uncommitted.*
+
+- **Preserve.** A stash is addressed **by SHA, never by `stash@{0}`** — capture and print
+  `git rev-parse stash@{0}` at push time and restore with `git stash apply <sha>`.
+  `--include-untracked` is mandatory. **Never `--discard`, `git checkout -- .` or `reset --hard`.**
+- **Prove.** An isolated `git worktree add --detach <tmp> origin/<base>` is preferred and removed on
+  every path; fall back to the maintainer's working directory only where a lane cannot run outside
+  it, **saying which**. A red base is a **G5**; a seat (exit `4`) is not red.
+- **Place.** Unpublished commits are replayed onto the proven tip through
+  [`ao`](../claude/skills/ao/SKILL.md), keeping the branch name; **published commits are merged
+  instead, not negotiable**; a detached `HEAD` is classified, its commits reported and their landing
+  asked. **Name the operation** in the report. Conflict discipline is ao's, and **a semantic conflict
+  is a G5 with both sides shown** (`nen/decisions.json` row `semantic-conflict`).
+- **Restore.** **Every stop restores the stash first and prints its SHA**, the red base and the
+  semantic conflict alike. **On a restore failure the stash is NOT dropped**: the report carries its
+  SHA and the exact recovery command. The run is finished when the changes are back **and still
+  uncommitted**.
+- **Report.** The starting state; the stash SHA and carried-path count, or *clean*; the base SHA with
+  each check's result; worktree or in place; which placement ran; conflicts classified; the restore.
+  **The claim that must be earned is *the base was green***, said only for checks that ran to
+  completion on that tip; a check that could not run leaves the base **UNPROVEN**, and the run stops.
+  **A red taken after the restore is the effort's own, not the base's.**
+- **Confirm through the surface's own picker only when the run will rewrite a commit the maintainer
+  wrote**, counts included.
+
+## The local verification gate
+
+Moved here 2026-09-20 out of [`kokusen`](../claude/skills/kokusen/SKILL.md) § 3, which is the phase
+that holds the index and so the only caller; the gate is stated once, and the skill carries its own
+refusals. It is run **on the tree in front of you, now** — never remembered from the author's inner
+loop, never inherited from the warm-up, never skipped because the last run was green.
+
+1. **Every declared `iteration.checks` entry, in order, for `iteration.lane`** —
+   `nen shu <check> --repo <path> --lane <iteration.lane>`, one call per entry. **`<check>` is
+   whatever the file lists and nothing else**, never a `build` added because a gate ought to have one;
+   where the entry is `lint` the check is [`gyo`](../claude/skills/gyo/SKILL.md). The exit table is
+   [`rasengan`](../claude/skills/rasengan/SKILL.md) § 6's, differing in one place: **here a `1` ends
+   the commit** — quote the failing check verbatim, commit nothing, hand the turn back to `rasengan`
+   and re-run the gate. **A red check is never a G5** (`nen/decisions.json` row `red-lint`): it
+   returns to rasengan as often as the turn honestly needs, and a red still standing at the end of the
+   turn is the next turn's first job, **never a commit "so the fix is saved" and never a narrowed
+   check**. **A seat (exit `4`) is not red**: quote the declaration's reason and move on.
+2. **The focused tests for changed executable behaviour, through
+   [`tsukuyomi`](../claude/skills/tsukuyomi/SKILL.md)** — mandatory even where the author already ran
+   them for feedback. Map every changed behaviour to its declared scoped lane and run **every
+   applicable lane, once each** (`nen shu test --repo <path> --lane <explicit-scoped-lane>`),
+   recording the mapping and each result; one lane suffices only where its declared argv covers all
+   changed behaviour. `--lane` is Nen's supported routing mechanism — **there is no `--scope` flag and
+   no separate checkpoint checks key** — and scope is never inferred from a lane name. A red focused
+   run returns to rasengan and the gate repeats. **Where behaviour changed and no unambiguous scoped
+   lane exists, hand the tree back to rasengan to author the tests and register the lane** (row
+   `missing-focused-route`) — never a stop, never an undeclared runner, never the full suite as a
+   substitute. Prose-only, data-only or other non-executable changes report `focused tests: not
+   applicable — <reason>`.
+3. **Read the build proof back — ONLY where step 1 ran a green `build` on this lane**, that condition
+   read off the policy file **before** running `nen commit check --repo <path> --require-proof
+   <iteration.lane>`. `.nen/proof/<lane>.json` is written by `nen shu build` and nothing else, so
+   **skip the step** where `build` is not in `iteration.checks` (step 1's own green run is the gate)
+   or where the lane **seats** `build` (quote the seat); a red build never reaches it. Running it
+   unconditionally is a loop — the lane passes its declared check, writes no proof because nothing
+   asked for one, answers `1`, and is sent back to step 1 forever. The check compares the proof's
+   `treeHash` against **this working copy's**, so exit `0` is *this tree is the proved one*; exit `1`,
+   reached only where the condition held, reads as **the tree has moved since step 1's build** and is
+   never reported as a red build; exit `2` (a missing flag, a lane escaping the tree, an unreadable
+   proof) **stops** and is never folded into "absent". It blocks nothing, so the refusal is the
+   skill's. **Never report a missing proof on a seated lane as a red build.**
+4. **This is not the trunk.** `nen wc classify --repo <path> --base <branch.base>` reporting
+   `must-move` means the work belongs on a branch first — [`breath`](../claude/skills/breath/SKILL.md)'s
+   job. The commit phase commits on a branch or it does not commit.
+
+## Writing a commit — the message and the two streams
+
+Moved here 2026-09-20 out of [`kokusen`](../claude/skills/kokusen/SKILL.md) §§ 5–6, beside the
+`commits` policy it enforces; [`aka`](../claude/skills/aka/SKILL.md) reads the same rules when it
+squashes.
+
+```bash
+nen commit format --repo <path> --type <type> --subject "<short imperative subject>" [--scope <scope>] \
+  [--breaking] [--body "<one paragraph>"] --trailer "Hatsu-Agent=<responsible-persona>"
+nen commit format … > <message file>      # exit 0 REQUIRED before the next line; NEVER 2>&1
+git commit --file <message file>          # residue: no nen verb writes a commit
+```
+
+`nen commit format` validates **shape** only — a declared type, a non-empty subject under 72
+characters, no trailing punctuation — plus the trailer policy when `--repo` is passed. What changed
+and why is the skill's to write, never nen's. **Always pass `--repo`**: the verb finding a policy from
+the working directory is a courtesy of where the command ran, not a contract.
+
+**Attribution** follows § `commits` above: pass exactly the truthful canonical trailer —
+`Hatsu-Agent=<responsible-persona>` for Hatsu work, `Akatsuki-Agent=<responsible-persona>` only for
+autonomous Akatsuki work — and **never infer or default the persona**. **Prospective tooling is not an
+exception**: disable or reconfigure any authorized injection that adds a forbidden attribution, and
+where it still adds one, **stop and report the required correction** rather than certifying the commit
+as compliant. **Existing history is not rewritten.** Reading the rendered output against
+`commits.forbiddenTrailers` before the commit is written is the layer that survives a missing flag.
+
+**The `git commit` line is gated on the format verb's exit code, and the two streams are kept apart.**
+The refusal goes to **stderr** with nothing on stdout, so both obvious spellings are wrong:
+`2>&1 > <file>` **commits the refusal as the message**, and a plain redirect that ignores the exit
+code **commits an empty file**.
+
+| Exit | Meaning | What the phase does |
+|---|---|---|
+| `0` | the message is on stdout | **use it** — `git commit --file` |
+| `2` | **refused** — a shape violation, or an attribution trailer `nen/workflow.json` does not admit | **stop**, quote the stderr sentence, fix the input, re-run. Never commit the file: it is empty |
+| `1` | the trailer policy could not be read — `nen/workflow.json` present and **malformed** | **stop.** Report it as a repository defect and point at `nen schema check` |
+
+**An empty `<message file>` is the tell for either refusal**, checked before `git commit` whichever
+way the exit code was read. `--file`, never `-m` retyped from memory. **Never `--no-verify`** — a
+commit hook that refuses is the repository speaking. Stage explicitly, path by path.
+
+## Verified delivery — the coordinator's four claims
+
+Moved here 2026-09-20 out of [`build`](../claude/skills/build/SKILL.md) § 7; it governs every
+coordinator that hands work to a delegate — `build`, [`mukai`](../claude/skills/mukai/SKILL.md) and
+[`en`](../claude/skills/en/SKILL.md) alike.
+
+**The coordinator owns verified delivery, including delegated work.** *Implemented*, *review findings
+fixed*, *review round completed* and *Ready* are **four separate claims**: a delegate may establish
+the first two with a pushed SHA and appropriate checks, and the coordinator **must personally verify
+the latter two against the live PR** before reporting completion. Delegation transfers a bounded task,
+never responsibility for the final claim. Before a handover:
+
+1. Read the current head, the checks, **every review body including suppressed findings**, and every
+   thread.
+2. Verify the fix **at the pushed SHA** — a green test run, a pushed commit or a delegate's "done" is
+   not that evidence.
+3. Post each on-thread disposition through `nen pr threads reply`, resolving a thread only when it is
+   addressed.
+4. Confirm a **fresh** snapshot carries no unresolved prior-round threads.
+5. Reconcile the associated-issue set under [`shibari`](../claude/skills/shibari/SKILL.md)'s linkage
+   contract — every issue in the body **and** in Development, completion or partial stated,
+   dependencies and incidental references named separately, re-checked after every scope change.
+6. Report code/checks complete, review handling complete, formal readiness and the human
+   merge/release decision **as four distinct claims**, naming absent evidence as remaining work or the
+   precise gate blocker — **never ending a run as delivered solely because a PR was opened**.
+
+## Building an issue with no CI plane
+
+Moved here 2026-09-20 out of [`build`](../claude/skills/build/SKILL.md) §§ 4–4a; it is the plane's
+fact, not one skill's, and [`backlog-loop`](../claude/skills/backlog-loop/SKILL.md) drives the same
+objects.
+
+**Hatsu holds no CI plane** — no App, no workflow, no bot identity — so a released issue has nothing
+to be routed *to*: Kurapika builds it himself, in session, in the confirmed mode. **Where the work is
+something a local session structurally cannot do at all** — a credential only a retired CI identity
+held, a decision only that nonexistent plane could make — the run **stops at G5** and names the gap,
+rather than pretending a wake occurred; local authorship is the default, so there is no escape hatch.
+
+### Releasing an issue into `building`
+
+```bash
+nen label apply <CODE>-IS-#<N> --label <the building label> --repo-slug <owner/name> \
+  --repo <the target checkout> --reason "<why, for the ledger>" --run
+```
+
+The stage label is the G1-M go-signal (`CON-25`) and real bookkeeping that `backlog-state` and
+`backlog-board` read. `--repo` names the checkout whose `nen/labels.json` validates the label. Inside
+a run holding the `CON-25` carve-out it may be applied without a further prompt, **for the named issue
+and for children created beneath it**, every application logged: object, label, time. **Exactly one
+stage label at a time, and zero before release** (`CON-9`) — no verb enforces the exclusivity, so it
+stays the run's own discipline.
+
+### Advancing an epic's waves
+
+```bash
+gh issue view <epic-N> --repo <owner/name> --json body -q .body > epic-body.md
+nen epic next-wave --body-file epic-body.md --citation <the clause the progress footer cites> \
+  [--completed <n>] [--inflight <a,b>] --cap 2 --out epic-body-out.md --json
+nen issue edit-body --target <owner/name> --issue <epic-N> --body-file epic-body-out.md
+```
+
+The child-line grammar, the `blocked by`/`blocks` edges, the `unparsed` row and the refusals are the
+verb's own. What the caller owes: **`--body-file` and `--out` resolve against `--repo`'s root**, not
+the cwd; **`--out` only rewrites the local file**, posting it back being `nen issue edit-body`, whose
+whole-body write is not conditional; and **a table-shaped epic is invisible to the verb**
+(`{"total":0,"done":0}`), so **an epic a Hatsu skill decomposes writes its children as checkbox lines
+carrying a resolvable issue reference**, stated to the decomposer explicitly.
+
+**The delivery PR is the terminus — computed, never inferred:**
+
+```bash
+nen issue terminus --target <owner/name> --issue <N> --chain-labels "<the caller's role map>" \
+  --integration-prefix "integration/" --trunk main
+```
+
+An issue with no epic/chore label answers `own-pr`; a closed one `run-already-ended`. For a team-mode
+epic the terminus is the single `integration/* → main` PR the maintainer merges at G2; for direct mode
+each child's own PR; for a `CON-36` chore the `integration/<chore> → main` delivery PR. **A sub-PR
+merged onto a chore or integration branch is not the gate** and never ends a run.
+
+### The local build, and the concurrency cap
+
+```bash
+nen loop slots --efforts <absolute path>/efforts.json --local-cap 2 --json
+nen shu warmup --repo <the target checkout> --branch kurapika/<slug> [--dry-run]
+nen shu tools  --repo <the target checkout> [--install]
+nen shu <iteration-check> --repo <the target checkout> --lane <iteration-lane> [--dry-run]
+nen shu test   --repo <the target checkout> --lane <declared-focused-lane>
+```
+
+**Never drive more than two efforts concurrently**, mechanized rather than eyeballed. **Every local
+effort is `"plane":"local"`**, so a slot never frees on "the PR opened": it frees only once a PR is
+both `"ready":true` **and** `"prompted":true` — the maintainer has actually been shown the `MERGE`
+ask. **`--local-cap` is required** (the old default of `7` was removed) and `--efforts` resolves
+against the process cwd, so pass an absolute path; say which effort is waiting when the cap binds.
+**Never let two children touch the same file at once** — sequence them and say so; no verb governs it.
+
+**Verification runs through the phase owners** — [`rasengan`](../claude/skills/rasengan/SKILL.md) for
+authoring feedback, [`kokusen`](../claude/skills/kokusen/SKILL.md) for the finished-tree checkpoint;
+full regression belongs to `kotoamatsukami` at `mukai` and coverage to `byakugan`, and **a composite
+confers no exception to those boundaries**. **The focused row must actually scope the authored
+behaviour and no runner or filter is invented.** A red iteration check kokusen cannot clear returns to
+rasengan (row `red-lint`), and a changed executable with no declared scoped lane gets its tests
+authored (row `missing-focused-route`) — neither is a stop.
+
+**Never `--discard` a tree you have not inspected**: `nen shu warmup` refuses a dirty tree at exit `2`
+listing every path, refuses a name that already exists locally or on `origin`, requires `--repo`, and
+has **no `--tests` on the initial warm-up**. **`nen shu tools` exit `5` names the fix per tool**:
+install or resolve through the surface's own catalogue probe (row `missing-tool`), never with
+elevation and never at an unpinned version. **Exit codes are `claude/agents/kurapika.md` § *The `shu`
+verbs*'**; **`4`** is a seat whose reason is quoted, after which the repository's own documented
+command is run and said so, a declaration change landing as its own PR at the declaration gate (**G4**
+in a canon repository, **G2** in a consumer one, ruling 2026-09-18); **`3`** is a **G5** naming the
+host that can, never a retry. **A repository with no `project` block** refuses every `shu` verb but
+`warmup` at exit `2` naming the missing file — a different fact from `nen shu detect` exiting `1` —
+and either way its own documented commands are run, **saying plainly that no declaration exists and
+which case it was**.
+
+### A target repository with no delivery-stage taxonomy
+
+Registry and labels are separate prerequisites, so a verified `nen/repos.json` and `nen/labels.json`
+enable identity resolution and issue filing even where the GitHub labels declare **no delivery
+stages**. **Never manufacture a `--chain-labels` map and never apply a nonexistent stage label.** For
+an explicitly authorized standalone local issue there, inspect the live issue state, body and
+associated PRs, state that `nen issue chain-position` has no usable role map, and carry the effort
+through authoring to its own PR — **a raw GitHub issue read is named residue for this path, never a
+computed chain verdict**. A PR goes to [`sharingan`](../claude/skills/sharingan/SKILL.md), a closed
+issue is reported and the run ends, and an unresolvable epic/integration relationship stays a real
+blocker. **The exception creates no G1 or label authority**, every gap goes through
+[the discovery protocol](DISCOVERY.md), and a missing metadata declaration is repaired only when
+authorized, or recorded pending — never guessed.

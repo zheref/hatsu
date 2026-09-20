@@ -84,3 +84,153 @@ change preserving UZF-19/UZF-26; consumer generated rules cannot repair their ow
 These are acceptance scenarios. Synthetic execution belongs to Nen #204's tests; actual device
 execution belongs to the consumer migration. This document does not claim either ran merely
 because a row describes its expected outcome.
+
+---
+
+## Launch declaration rules
+
+Moved here on 2026-09-20 (zheref/hatsu#89) from `hatsu:jujutsu` §§ 4 and 6 and `hatsu:amaterasu` §§ 2
+and 4, which carried them twice over; both skills now point here. `jujutsu` **writes** these
+declarations and `amaterasu` **executes** them.
+
+### The block, and what nen owns
+
+`project.launch.<target>` carries `verb` (`dev` or `run` — a **closed set**, refused at load
+otherwise, and nen does **not** carry a target across the two), `args`, `device`
+(`name`, `kind` — `simulator` marks one, and an absent `kind` is read as physical — `resolve`
+`{exe, argv}`, `extract`, `readyWhen`), `after[]`, and the optional `lane` and `artifact`.
+**`nen shu dev|run --target <name>` executes the whole block** — the probe, the lane's verb with
+`args` appended, then the after-steps with `{device.id}` and `{artifact}` substituted — and **nen
+parses the block rather than preserving it**, so a key one spelling out (`arg`, `devices`, `resolver`,
+`verbs`, or the block key itself as `launches`/`Launch`) is refused **by pointer**. A green
+`nen schema check` therefore proves the block **parses**, and never that the target works.
+
+### The canonical block
+
+Moved here with the rules (2026-09-20) from `jujutsu` § 6, which is now one line pointing at it. An
+iOS physical target, complete:
+
+```json
+"launch": {
+  "iphone": {
+    "verb": "dev",
+    "device": { "name": "<the probe's exact bytes>",
+                "resolve": { "exe": "xcrun",
+                             "argv": ["devicectl", "list", "devices", "--json-output", "-"] },
+                "extract": {
+                  "format": "json",
+                  "records": "result.devices",
+                  "name": ["properties.state.name", "deviceProperties.name"],
+                  "identifier": ["identifier", "hardwareProperties.udid"],
+                  "readiness": ["properties.connection.state", "connectionProperties.tunnelState"]
+                },
+                "readyWhen": { "in": ["connected"] } },
+    "after": [
+      { "exe": "xcrun", "argv": ["devicectl","device","install","app","--device","{device.id}","{artifact}"] },
+      { "exe": "xcrun", "argv": ["devicectl","device","process","launch","--device","{device.id}","<bundle id>"] }
+    ]
+  }
+}
+```
+
+A **simulator** declares `device.kind: "simulator"` with the platform's simulator list as its probe
+(`xcrun simctl list devices available`). The **Mac desktop** declares **no `device` at all**, reaching
+the app through `args` and an after-step: `"mac": { "verb": "dev", "args": ["-scheme", "<scheme>"],
+"after": [ { "exe": "open", "argv": ["{artifact}"] } ] }`.
+
+### `readyWhen` — the state column, written into the declaration every time
+
+**A device that is PRESENT is not a device that is READY.** A target registered without `readyWhen`
+resolves an `unauthorized` row at exit `0`, prints it as *resolved*, and then fails one `adb -s` at a
+time afterwards; **absent means unchanged, so the key protects nobody until it is written.**
+
+With `device.extract`, **`extract.readiness` owns the ordered readiness paths and `readyWhen` owns
+only the accepted values in `in`**; **never add a legacy `readyWhen.path` or `.field` beside
+`extract`**, which the schema refuses as mixed ownership. For a legacy declaration without `extract`,
+which shape applies is decided by what the probe **prints**:
+
+| The probe prints | The shape | Written for the probes below |
+|---|---|---|
+| **lines** (`adb devices -l`) | `{ "field": <n>, "in": [ … ] }` — `field` counts whitespace-separated tokens on the device's own row, the row's first token being field 1 | `{ "field": 2, "in": ["device"] }` |
+| **JSON** (`xcrun devicectl list devices --json-output -`) | `{ "path": "<dotted key>", "in": [ … ] }` — read off the object whose `name` matched, or an enclosing object up to **two** levels out | `{ "path": "connectionProperties.tunnelState", "in": ["connected"] }` |
+
+**Four validations, all at load and all by pointer**: exactly one of `field`/`path`, never both and
+never neither; `in` non-empty with every entry a non-empty string; `field` a whole number **≥ 1**, so
+a zero-indexed rule is refused rather than reading one column to the left for a year; and **a rule on
+a device with no `resolve` probe is refused outright**, nothing being spawned there for it to read.
+
+- **States are compared as whole strings, verbatim** — a JSON `true` or `3` at the named path compares
+  as `"true"` and `"3"`, so a boolean readiness flag needs no second shape.
+- **A state is read only where the rows carrying the name agree about it**: one device described twice
+  is one device, two rows naming two states is two answers, and nen reports neither.
+- **`--dry-run` prints it as a `readiness:` line** under the device, with nothing connected, because it
+  is the declaration's rule rather than a reading; `--json`'s `target.device` gains `readyWhen`.
+
+### The probe's states, and the third outcome
+
+| Probe | Register / launch from | **Present, not usable** | Absent |
+|---|---|---|---|
+| `xcrun devicectl list devices` (**State** column) | `connected` — the only one | `available (paired)`, `unavailable` | the name is not in the table |
+| `adb devices -l` (**second** column) | `device` — the only one | `unauthorized`, `offline`, `no permissions`, `recovery`, `sideload`, `bootloader` | not listed |
+
+**Present-but-unusable is a THIRD outcome and it is not "absent".** `unauthorized` means the phone is
+attached and has not accepted the RSA prompt; saying *"no device found"* sends the maintainer to look
+at the cable while the phone waits for a tap. **Refuse, name the state, quote the probe's whole
+output, and name the on-device step that closes it** — `unauthorized` → the RSA prompt, `offline` →
+replug or `adb kill-server`, `no permissions` → this host's USB rules. **Never fall back to the
+simulator for it**: the fallback answers "nobody plugged it in", and this device is one tap from
+working. Where the target declares `readyWhen`, **nen has already refused at exit `5`** naming the
+device, the state seen and the states accepted — relay that verbatim; where it declares none, read the
+state column by hand and **report the missing `readyWhen` as a declaration defect**.
+
+**`device.name` is matched byte for byte** — exact string equality, no case folding, no Unicode
+normalisation, no punctuation smoothing — so a name carrying **U+2019** (`Sergio’s iPhone`) declared
+with the ASCII `'` is a *different name*, and a plugged-in device is reported absent. **Copy the bytes
+out of the probe's own output**, never retype them, and say in the PR body where a name carries
+anything non-ASCII. **Never match loosely**: a probe listing three devices none of which is the
+declared one is an **absent** device, not "close enough".
+
+### The verb builds; the after-steps install and launch
+
+> **An `after` step is the ONLY place `{device.id}` reaches, so whatever must land on the named device
+> belongs there — never in the verb.**
+
+nen substitutes `{device.id}` and `{artifact}` in the target's `after` steps and nowhere else, and a
+`{device.id}` or `{artifact}` written into `args` is **exit `2` naming the token**. A declaration that
+ignores this resolves one phone and installs to another, with nothing in the transcript flagging it,
+because from nen's side nothing went wrong.
+
+| platform | `verb` (builds) | `after[]` (reaches the named device) |
+|---|---|---|
+| **Android** | `./gradlew assembleDebug`, with `artifacts` naming the APK | `adb -s {device.id} install -r {artifact}` → `adb -s {device.id} shell am start -n <pkg>/<activity>` |
+| **iOS** | `xcodebuild … build`, with `artifacts` naming the `.app` | `xcrun devicectl device install app --device {device.id} {artifact}` → `xcrun devicectl device process launch --device {device.id} <bundle id>` |
+
+**`installDebug`, `run`, `flutter run -d`, `xcodebuild … test` and every other verb that reaches a
+device itself belong in neither column** — they are a build and an install welded together, and the
+weld is where the device name gets lost. **The Apple caveat is a `lane`/`artifact` override, never
+`args`**: `xcodebuild` refuses a second `-scheme`, so declare a second row and point
+`project.launch.<name>.lane` at it, naming what the device installs with `.artifact`.
+
+**Which path `{artifact}` reads is a fact the dry run states**: `project.launch.<name>.artifact` where
+declared, otherwise the verb's own **first** `artifacts` entry. The override is refused outside the
+tree, refused as an empty string, and refused when **no after-step names `{artifact}`**. And
+**`{artifact}` is substituted as the after-step's own directory sees it** — declared paths are stated
+against the repository root while an after-step is spawned with its cwd set to
+`project.lanes.<lane>.cwd` — so the `substitutes:` line says both strings when they differ while
+`artifacts:` keeps reporting the repository-relative one. The two answer different questions: what
+does this build produce, and what will the child receive.
+
+### Other rules these two skills share
+
+- **The key is a short, human name** (`iphone`, `sim`, `mac`, `pixel`), because it is what the
+  maintainer types at `hatsu:amaterasu` — not the device's name and not its identifier.
+- **Never write a literal device identifier into the declaration**: a UDID is a fact about one
+  machine's cable, and a declaration is shared. `{device.id}` resolves at run time.
+- **Every toolchain name lives in the target repository's own file, never in nen.**
+- **Selecting the target is a separate key**: `nen/workflow.json` → `launch.default` /
+  `launch.fallback` name `project.launch` keys, so **registering a target does not make it the
+  default**, and changing the default is the maintainer's decision, stated in the PR either way.
+- **A simulator declares `device.kind: "simulator"`** with the platform's simulator list as its probe;
+  `devicectl` lists simulators too, under **Reality: simulated**, so a name resolving there is no
+  evidence that a *physical* device is attached. **The Mac desktop declares no `device` at all** and
+  reaches the app through `args` and an after-step.

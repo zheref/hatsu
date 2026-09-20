@@ -1,335 +1,186 @@
 ---
 name: backlog-board
-description: Render the current backlog as the Kurapika gate board — the same sweep, arguments and gate assignment as /backlog-state, painted as one self-contained HTML page published as an Artifact instead of a markdown table. Use when the maintainer asks to see the board, the gate register, or the state as a page, or invokes /backlog-board <repo|all>@<G1|G1-M|G2|G3|G4|G5|all> [every <turn|state-change|once>] — the optional trailing clause makes the board re-render on every turn or whenever a scoped item's state (including its gate) changes, instead of the once-and-stop default. Strictly read-only — it never labels, merges, pushes, comments or opens anything.
+description: Render the current backlog as the Kurapika gate board — the same sweep, arguments and gate assignment as /backlog-state, painted as a Spiritual Message page by nen report render --variant register instead of a markdown table. Use when the maintainer asks to see the board, the gate register, or the state as a page, or invokes /backlog-board <repo|all>@<G1|G1-M|G2|G3|G4|G5|all> [every <turn|state-change|once>] — the trailing clause makes the board re-render on every turn or whenever a scoped item's state changes, instead of the once-and-stop default. This skill also owns the render path futon, backlog-loop and the dated final report use. Strictly read-only — it never labels, merges, pushes, comments or opens anything.
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
-# Backlog board — the same board, painted (ex-`RR-IS-#700`)
+**Shared policy** (`docs/*.md`) lives at the Hatsu plugin root `hatsu-warmup` prints; a missing
+consumer copy is never a filing.
 
-**Nature: Manipulator.** The board-facing half of the work. Kurapika says so when he runs it.
+# Backlog board — the same board, painted
 
-`/backlog-state` answers *"what is at my gate right now, and what does each thing need from
-me?"* and paints the answer as a markdown table. **This skill answers the identical question with
-the identical computation and paints it as an HTML gate board** — a self-contained page published
-as an **Artifact**, so the maintainer reads it in the panel he is already in. Formerly
-`scripts/ichigo_board.sh`; this is its Kurapika-native successor.
+**Nature: Manipulator.** The board-facing half of the work.
 
-> **One sentence of scope:** `backlog-state` **computes and tabulates**; `backlog-board`
-> **computes the same thing and renders it as the page**. There is no third method, no second
-> source of truth and no per-surface variant of the data.
+[`backlog-state`](../backlog-state/SKILL.md) answers *"what is at my gate right now, and what does
+each thing need from me?"* as a markdown table. **This skill answers the identical question with the
+identical computation and paints it as a Spiritual Message page.** There is no third method and no
+second source of truth.
 
-> **Read-only, without exception.** Inherited verbatim from `backlog-state`. This skill renders
-> state. It never applies a label, merges, pushes, opens, closes or comments. If reading the board
+> **Read-only, without exception.** Inherited verbatim from `backlog-state`. If reading the board
 > makes the next action obvious, **say what the action is on the board** — do not take it.
-
----
 
 ## 1. Invocation
 
 ```
-/backlog-board <repo name | all>@<G1 | G1-M | G2 | G3 | G4 | G5 | all> [every <turn | state-change | once>]
+/backlog-board <repo | all>@<G1 | G1-M | G2 | G3 | G4 | G5 | all> [every <turn | state-change | once>]
 ```
 
-**The `<repo>@<gate>` half is identical grammar to backlog-state's invocation grammar,
-deliberately** — the same repo tokens, the same gate tokens, the same case-insensitivity, the same
-optional `@`, the same `G1` ⊇ `G1-M` inclusion, and the same rule that **an unknown repo is an
-error, never a guess**. Do not restate that grammar here; read it (§ 2 below links the file) and
-obey it.
-
-That includes **the no-repo default** — with no repo token the subject is **the repo you are
-standing in**, resolved from the working directory's `origin` against `nen/repos.json` (legacy
-named before the board, and an **error** — never a silent
-widening to `all` — when it resolves to nothing.
-
-**The trailing `every <…>` clause is this skill's own** — `backlog-state` renders a table, not a
-page kept open in front of the maintainer, so it has nothing here to mirror. Omitting the clause
-entirely, and writing it out as `every once`, mean the same thing: **`once`** — render, publish,
-say the line, stop.
-
-> **`nen parse` checks the whole `<repo>[@<gate>] [every <freq>]` shape — verified live at the
-> contract's pinned ref.** This skill's invocation is not one of `nen parse`'s three built-in grammars
-> (`futon`/`izanagi`/`izanami`), so it supplies its own `--grammar` template, with the gate clause
-> **bracketed** — which nen `v0.2.0` (#67, closes zheref/nen#30) made parse correctly, closing the
-> finding [`backlog-state`](../backlog-state/SKILL.md) § 1 filed at the port:
-> ```
-> nen parse backlog-board \
->   --grammar "<repo>[@<gate:G1|G1-M|G2|G3|G4|G5|all>] [every <freq:turn|state-change|once>]" \
->   --line "BC@G4 every state-change"
-> ```
-> Run against `v0.3.0`: `BC@G4 every state-change` → `repo: BC`, `gate: G4`, `freq: state-change`;
-> `BC every turn` → `repo: BC`, `freq: turn`; a bare `all` → `repo: all` with both clauses absent;
-> `all every once` → `repo: all`, `freq: once`; and `BC@G9 every turn` is **refused at exit `2`**
-> naming the enumerated values, with the corrected line on stderr. (At the port the unbracketed
-> `<repo>@<gate:…>` form was the only one that parsed, and it refused a bare `all` as "gate is
-> required" — the bracketed form was broken; now it is the right one.) Two of § 1's rules still live in
-> prose on top of the parse, because the grammar cannot say them: an absent `@<gate>` clause means
-> **`all`**, and an omitted repo token resolves to the working directory's `origin`.
-
-## 1a. Rendering frequency — `once` / `every turn` / `every state-change`
-
-The frequency clause controls **how many times this session loops through §§ 2–4** for the
-invocation's `<repo>@<gate>` scope. It changes nothing about *what* gets computed or how a row is
-classified.
-
-- **`once` (default).** Sweep, render, publish, say the line, stop.
-- **`every turn`.** Re-run §§ 2–4 — full sweep, full render, republished to the **same** Artifact
-  URL (§ 5's reuse rule) — before responding to each of the maintainer's subsequent messages in
-  this session, for as long as the scope stays in play. Echo the parsed mode back before the first
-  render. After that, a re-render that changed nothing is silent; a re-render that changed
-  something gets the one line § 5 already specifies, never a restated summary of the board
-  underneath it.
-- **`every state-change`.** The same loop, gated on a diff instead of a turn boundary. **This is
-  now `nen board diff`'s job, not a by-hand field comparison** — see § 3a. Before the first poll —
-  independent of whether that poll finds anything — echo the parsed mode, the interval chosen and
-  why, and what counts as a change (exactly the fields `nen board diff` compares: `gate`, `status`,
-  `needs`, and a row appearing in or dropping out of the scoped set). Only *after* that echo does
-  "nothing moved ⇒ no render, no line, no Artifact write" apply to a poll tick.
-- **Both repeating modes borrow `izanami`'s loop discipline** — no iteration cap (nothing here
-  writes to GitHub), one line per render and no line when nothing rendered, and the loop lives in
-  the session — no background timer, no cron, no deferral primitive.
-- **What ends the loop:** the maintainer says stop; the maintainer moves on to something the loop
-  isn't scoped to; a fresh `/backlog-board` invocation, which replaces whatever loop was
-  running; or the session itself ending. A rendering-frequency mode is **session-scoped**, never a
-  standing one.
-- **§ 6 still holds on every repeat, not only the first render.** No banner, no `nen stop`, no
-  push notification, on any pass. A **real** stop firing during the loop is never suppressed by it.
-
-## 2. Compute the picture — `/backlog-state`, unchanged
-
-Follow [`claude/skills/backlog-state/SKILL.md`](../backlog-state/SKILL.md) end to end for
-**everything about what the rows are**: the repo set, the fetch (`nen backlog fetch`/`nen backlog
-order`), the gate (`nen gate derive` composed with `nen pr ready`'s verdict), status colour (`nen
-color status`), synthesized titles, the expected-action line, session · lane, and ordering.
-
-**Nothing about the computation changes because the output is HTML.** If you find yourself
-deciding a gate differently because a page has more room than a table, you have started a second
-method. `backlog-state`'s rows, once computed, are the **only** input the rest of this skill
-touches.
-
-## 3. Map that picture onto `nen board build`'s row shape
-
-`nen board build --repo-slug <owner/name> --rows-from <path>` assembles a `Board` from **already-
-computed** rows — verified live (`nen board build --help`): *"a row's gate from `nen gate derive`,
-its colour from `nen color status`. `--rows-from` is a JSON array of BoardRow: `{ id, title, refs,
-gate, status, needs }`."* It does not fetch, derive a gate, or resolve a colour itself — it only
-assembles and echoes back what you already decided in § 2, plus a `repo` / `generatedAt` header.
-Confirmed live against the real `<reference-repo>` backlog:
-
-```
-$ nen board build --repo-slug <reference-repo> --rows-from boardrows.json --json
-{
-  "repo": "<reference-repo>",
-  "generatedAt": "2026-09-02T00:57:42.267Z",
-  "rows": [ { "id": "918", "title": "…", "refs": ["RR-IS-#918", "RR-IS-#939", "RR-IS-#877",
-             "RR-PR-#925"], "gate": null, "status": "in_progress", "needs": "…" }, … ]
-}
+```bash
+nen parse backlog-board \
+  --grammar "<repo>[@<gate:G1|G1-M|G2|G3|G4|G5|all>] [every <freq:turn|state-change|once>]" --line "<the invocation>"
 ```
 
-Field by field, from a row `backlog-state` already produced:
+**The `<repo>@<gate>` half is `backlog-state`'s grammar, deliberately** — same tokens, same
+case-insensitivity, same optional `@`, same `G1 ⊇ G1-M` inclusion, same rule that **an unknown repo
+is an error, never a guess**. Read it there; do not restate it. Two rules live in prose because the
+grammar cannot say them: an absent `@<gate>` means **`all`**, and an omitted repo token is **the
+repository you are standing in**, resolved from the working directory's `origin` — an error, never a
+silent widening to `all`, when it resolves to nothing.
 
-- **`id`** ← a stable per-effort id (the anchor issue's number is enough).
-- **`title`** ← the synthesized title, unchanged.
-- **`refs`** ← every object on the row in `<CODE>-<IS|PR>-#<N>` notation (`nen ref format`), as
-  **plain strings**. Board build does not carry a `url` or a `state` mark per ref the way the old
-  script's `objects[]` did — verified live, `board render`'s output lists the bare strings with no
-  links and no ✓/✗/✎ marks. Re-attach the URL and state yourself when you author the HTML in § 4;
-  `backlog-state`'s own rows already carry both, so nothing is lost, only re-threaded.
-- **`gate`** ← the row's already-decided `G1`/`G1-M`/`G2`/`G3`/`G4`/`G5`/`null` — the **composition**
-  of `nen gate derive`'s diff-half (verified live against the real open PR, `BC#925`: touches
-  `.github/workflows/`, `scripts/`, `tests/` → `"gate": "G4"`, `"basis": "the diff touches the
-  process surface … in a repository whose product is its process, that is a policy change"`) with
-  `nen pr ready`'s readiness verdict, per backlog-state's gate-derivation tree. **`gate derive` itself says
-  so** — its own `readinessNote` reads: *"This is the diff's half of the derivation only. A pull
-  request that is not ready has NO GATE … so compose this with a readiness verdict before putting
-  a row in anyone's queue."* `#925` is `not-ready` (`CON-32a`), so the composed gate is `null`
-  (in progress), not the `G4` `gate derive` alone would suggest — do not stop at the diff half.
-  **And the diff half itself is only asked in a CANON repository** — `zheref/hatsu`, `zheref/nen`,
-  `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold` — per `backlog-state`'s § 2 role step and the maintainer's ruling of 2026-09-18
-  ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*). A consumer repository's row
-  is `G2` by role, with no `gate derive` call behind it: `BC#925`'s `G4` is the reference repo's own
-  canon answering about itself.
-- **`status`** ← `nen color status --present <values> --category status --json`'s `resolved.name`.
-  Verified live for the same row: `--present in_progress` resolves `{"name": "in_progress", "emoji":
-  "🟠", "label": "In progress", …}` from the target repo's own `nen/colors.yml` (legacy
-  precedence — no glyph is hard-coded here or anywhere in this
-  pipeline.
-- **`needs`** ← backlog-state's expected-action line, one string, naming the action and its actor.
+## 1a. Rendering frequency
 
-**One collapsing step `nen backlog fetch` does NOT do for you — a finding, not a missing verb.**
-Verified live: three real open issues on `<reference-repo>` (`#918`, `#939`, `#877`) all reference
-the **same** open PR (`#925`) and `nen backlog fetch` returns **three separate rows**, one per
-issue, each carrying `prNumbers: [925]` — it assembles "an issue plus the PRs that reference it,
-or a lone PR", one row **per issue-anchor**, not one row per shared PR. `backlog-state`'s own rule
-("an issue and the PRs that serve it are ONE row") still has to collapse these three into one
-effort before they reach `board build` — that collapsing is `backlog-state`'s job, inherited by
-reference in § 2, and it does not happen automatically inside the fetch.
+The clause controls **how many times this session loops through §§ 2–4** for the scope. It changes
+nothing about what is computed.
 
-## 3a. `nen board diff` — the state-change engine
+- **`once` (default, and what an omitted clause means).** Sweep, render, publish, say the line, stop.
+- **`every turn`.** Re-run §§ 2–4 before each subsequent maintainer message, republished to the
+  **same** URL. Echo the parsed mode before the first render; afterwards a re-render that changed
+  nothing is silent.
+- **`every state-change`.** The same loop gated on `nen board diff` (§ 2a), never on a by-hand field
+  comparison. Before the first poll, echo the mode, the interval and what counts as a change —
+  exactly the fields `board diff` compares: `gate`, `status`, `needs`, and a row entering or leaving
+  the scoped set. Only after that echo does *nothing moved ⇒ no render, no line* apply.
+- Both repeating modes borrow [`izanami`](../izanami/SKILL.md)'s loop discipline: no iteration cap
+  (nothing here writes), one line per render, and the loop lives in the session — no timer, no cron.
+- **What ends it:** the maintainer says stop, moves on, invokes this skill again, or the session
+  ends. A frequency mode is **session-scoped**, never standing.
 
-`nen board diff --before <path> --after <path>` is a **field-level diff of two Board snapshots, by
-row id** — exactly what § 1a's `every state-change` mode needs, and it replaces the old skill's
-"compare status colour, gate and expected action by hand" instruction outright.
+## 2. Compute the picture
 
-Verified live, two ways:
+Follow [`backlog-state`](../backlog-state/SKILL.md) end to end for **everything about what the rows
+are**: the repo set, `nen backlog fetch` / `nen backlog order`, the gate (`nen gate derive` composed
+with `nen pr ready`'s verdict), status colour (`nen color status`), the expected-action line, session
+· lane, and ordering. **Nothing about the computation changes because the output is HTML.** Deciding
+a gate differently because a page has more room is a second method.
 
-- **A real null-diff.** Diffing a snapshot against itself: `{"rows": [], "changed": false}` —
-  nothing to say, nothing to render.
-- **A doctored two-snapshot diff**, built from the same 3-row sample above with two rows changed
-  (one PR turning `CON-32`-Ready, one issue moving from routed-not-building to building):
-  ```
-  changed  918: gate '' -> 'G4', status 'in_progress' -> 'ready_g2_g4', needs '…' -> '…'
-  changed  936: gate 'G1-M' -> '', status 'ready_g1' -> 'in_progress', needs '…' -> '…'
-  ```
-  The unchanged row (`937`) is silently absent from the diff — no need to eyeball which of three
-  rows moved.
-- **A malformed snapshot is refused, never diffed.** Since nen `v0.3.0` (#99, closes zheref/nen#92)
-  `board diff` — like `render` and `build` — validates both files at the read seam and refuses at exit
-  `2` naming the file, row and field (verified live: a `refs` given as a string instead of an array →
-  *"row '1' has the wrong shape for 'refs': expected an ARRAY of ref strings"*), where `v0.1.0` diffed
-  the string `"undefined"`. A hand-built snapshot that trips this is a caller bug in the § 3 mapping,
-  not a diff result; fix the row and re-run.
+Then take the object rows from the verb that owns them:
 
-**`nen watch until` cannot drive this poll, and that is now verified rather than assumed.** Its
-`--command` is spawned **directly, with no shell** — one program, classified before the first run — and
-a pipeline classifies `[unknown]`, which refuses (verified live at `v0.3.0`: `nen parse izanami "gh pr
-view 1 | grep MERGED until done"` → `[unknown]`, exit `1`). A fetch → `board build` → `board diff` chain
-is three programs, so it has no single `--command`. The loop as specified in § 1a runs directly under the
-session's own pacing, per `izanami`'s borrowed discipline; what `nen watch until` *can* watch is one
-read-only verb's own output (`nen pr ready …` classifies `[read-only]` since `v0.2.0`), which is not
-this board.
-
-## 4. Author the HTML — this is now a skill-authored step, not a verb call
-
-**Finding: `nen board render` does not emit HTML.** Verified live against the real binary —
-`nen board --help` lists exactly three verbs, `build` / `render` / `diff`, no fourth, and no
-`--format` flag on any of them. `render`'s own help text is explicit: *"Renders a Board … as the
-padded-markdown table this port's source repository established."* Run on the exact 3-row sample
-above, the output is a plain pipe table with raw status strings (`ready_g1 (G1-M)`, not 🟡) and no
-links:
-
-```
-<reference-repo> -- generated 2026-09-02T00:57:50.925Z
-
-| Effort              | Refs         | Status (gate)   | Needs        |
-| -------------------- | ------------ | --------------- | ------------ |
-| Cancelled build …     | RR-IS-#918, …| in_progress     | PR #925 is … |
-| Record the ruling …   | RR-IS-#937   | ready_g1 (G1-M) | Routed to …  |
+```bash
+nen report data --repo <path> --target <owner/name> --backlog --json
 ```
 
-The **same 3-row content**, run read-only through the retired `scripts/ichigo_board.sh` (extracted
-via `git show v0.11.3:scripts/ichigo_board.sh` into a scratch dir, never written back to
-`<reference-repo>`) at the OLD schema it actually consumes, produces a **28,092-byte self-contained HTML
-page** — design shell, per-gate desk with ranked `DECIDE`/`DO`/`MERGE` asks, a tally strip, a
-legend, a footer, and the identity sprite. `nen board`'s markdown table has none of that: no gate
-grouping, no DECIDE/DO/MERGE grammar, no options tables, no tally, no legend, no sprite. The exact
-input JSON behind that byte count — the constructed old-schema `board.json` for this 3-row sample —
-is embedded in `docs/ab/backlog-board.md` § 2.4, so the claim is independently re-runnable rather
-than asserted from a discarded file.
+`objects[]` is one row per open issue and pull request:
+`{ kind, number, title, url, state, labels[], head, mergeStateStatus, checks{}, threads{},
+reviewRequests[], linked[], readiness{verdict,reason,source} }`, with `readiness` read from the head
+SHA's `readiness` check where there is one, else computed from the in-process gate, else `null` with
+the reason on stderr. `nen board build --repo-slug <owner/name> --rows-from <path>` assembles the
+same rows into a `Board` for the diff; it fetches nothing and derives nothing itself.
 
-**This is the load-bearing finding of this port.** The old script's whole reason to exist — quoted
-in its own header — was that its ~2.8k-token design shell **never changes**, so generating it from
-a cached python3 renderer was affordable where hand-authoring it every time was not (measured
-there at old-table ≈14,000 bytes/≈3.7k tokens vs. the board's fixed shell ≈10,582 bytes/≈2.8k
-tokens). **Nen owns none of that renderer.** There is no verb that turns a Board into HTML, and
-this port's own file set (`SKILL.md` + `docs/ab/backlog-board.md` only) forbids shipping a
-replacement generator script inside the skill directory. So: **the HTML page is authored directly
-by Kurapika, fresh, from `nen board build --json`'s rows, every render** — via the Artifact tool,
-loading the `artifact-design` skill first per its own trigger rule, never a cached template kept
-between runs. The cost saving the old generator existed for has no home in this port; that is
-disclosed here rather than hidden, and the fix — if one is wanted — is a `nen board render --html`
-or equivalent verb, which does not exist today.
+## 2a. `nen board diff` — the state-change engine
 
-What still carries over as **judgment**, unchanged from the old skill, now applied while authoring
-the page rather than while assembling JSON for a generator to consume:
+`nen board diff --before <path> --after <path>` is a **field-level diff of two Board snapshots by row
+id**, and it is what `every state-change` runs on. A null diff is `{"rows": [], "changed": false}`;
+unchanged rows are silently absent. A malformed snapshot is **refused at exit `2` naming the file,
+row and field**, never diffed — that is a caller bug in the § 2 mapping, so fix the row and re-run.
 
-- **Rows the human must act on go to the desk, grouped by gate, ranked by unblocking power** —
-  widest blast radius first, pure hygiene last. A gate with no rows renders **cleared, with a
-  note**, never omitted.
-- **Rows that need nobody go to `G0`, which sorts last** — real, worth showing, not his.
-- **backlog-state's expected-action line is the ask, promoted to a real ask** — leading with its
-  kind (`DECIDE`/`DO`/`MERGE`, uppercase, first word), and a `DECIDE` owes `The question:`, lettered
-  options and a ⭐ recommendation.
-- **The register is every row**, collapsible, one per effort, carrying the evidence `nen` computed
-  (readiness objection, colour reason, diff basis) — never restating the row, only backing it.
-- **The header carries what the one-line summary carried — every one of these derived, never
-  asserted.** `dek` ← the resolved `<repo>@<gate>` scope this render answered, stated as the repo
-  set and the gate filter (the same words §1 uses to name it before the board). `live` ← the count
-  of rows on the desk, i.e. rows whose gate is the maintainer's (`G1`/`G1-M`/`G2`/`G3`/`G4`/`G5`),
-  never rows at `G0`. `tally` ← one count per status/gate band actually present on this render —
-  bucket the rendered rows and count each bucket; never a fixed set of buckets restated from a
-  previous render. `generated` ← the render's own absolute ISO-8601 UTC timestamp, taken verbatim
-  from `nen board build --json`'s `generatedAt`, never a relative string ("3 minutes ago") computed
-  by hand.
-- **The footer states the old page's shape line, adapted, and derived fresh from these rows —
-  never asserted.** The old page's own wording was *"31 rows. 9 close on one tag cut. 6 are one
-  merge away. 2 need only you."* — say the same shape for Kurapika's board: `<N>` = the register's
-  total row count; "close on one tag cut" = rows whose only remaining blocker is a release/tag;
-  "one merge away" = rows blocked on exactly one open, otherwise-`CON-32`-ready PR; "need only you"
-  = the same count as `live` above. Every number is counted straight off the rows this render just
-  produced, never carried over from a prior render and never estimated.
-- **No shipped Kurapika sprite exists yet in this repository** (`hatsu`'s roster carries agent
-  definitions, not a pixel-map asset). Render the identity as Kurapika's own text badge — 🟨
-  **Kurapika · Manipulator** — rather than inventing or porting an ASCII sprite file this port was
-  never given; that is a finding for whoever eventually wants one, not something to fabricate here.
+**`nen watch until` cannot drive this poll.** Its `--command` is spawned with no shell, and a fetch →
+`board build` → `board diff` chain is three programs, so it has no single command to classify (a
+pipeline classifies `[unknown]` and refuses). The loop runs under the session's own pacing.
 
-## 5. Publish it
+## 3. Render — the Spiritual Message, never hand-authored HTML
 
-Publish the authored page as an **Artifact**, titled **Gate Register**.
+**There is no by-hand HTML step any more.** The page is
+[`templates/spiritual-message.html`](../../../templates/spiritual-message.html), filled by the verb:
 
-- **Reuse the repo's existing Gate Register artifact — republish to the same URL.** Find it (list
-  the user's artifacts) and update in place, so the maintainer keeps one durable address per repo
-  that is always current. Publish a new URL only for a repo that has no board yet.
-- **Read before you overwrite.** A republish notice, or a `list` showing a version you did not
-  publish, means the page moved under you — re-read it first. A republish notice is itself a
-  reason to repaint: re-resolve the repo's backlog and render it again, never report what this
-  session happens to be holding.
-- **Say the one line in chat, and stop.** The repo and gate filter, the count needing him, the
-  link. Not a prose summary of the board underneath it.
+```bash
+nen report render --variant register --template templates/spiritual-message.html \
+  --data <the data document> --out <reports.dir>/current.html --repo <path> [--graph <file>]
+```
 
-## 6. This is NOT a gate event — no banner
+The variant's blocks come from `reports.sections.register` in `nen/workflow.json`
+(masthead, tally, desk, register, spend, legend), injected as presence flags before the fill. The
+data document is § 2's `objects[]` ∪ `nen board build`'s rows ∪ the desk asks you compose:
 
-A board rendered because the maintainer **asked for one** carries **no banner, no `nen stop`, no
-push notification** — he is already looking at it. This is the single carve-out from the rule that
-a drawn identity is the only "I need you" signal.
+```
+{ variant, title, scope, gate, generatedAt, footerNote, footerCount,
+  tallyScope, tallyNeedsYou, tallyBlockers, tallyReady, tallyInFlight,
+  gates[{ gate, label, cleared, asks[{ kind: DECIDE|DO|MERGE, rank, title, why, verdict,
+          options[{letter,label,command,consequence,star,starredClass}], objects[{label,url}] }] }],
+  objects[ <a § 2 row> ∪ { notation, marks, gate, gateClass, verdict, needs, session, lane, thought,
+                           labelsLine, checksLine, threadsLine, linkedLine, head } ],
+  architectureCaption, graphJson, graphMermaid, graphNodes[], graphEdges[],
+  spendEfforts[{name, usage, note, phases[{lane,percent,amount}]}], legendRows[{mark,meaning}] }
+```
 
-- **Requesting a board never suppresses a real stop.** If a gate comes due while he reads it, that
-  stop fires normally, with its banner.
-- **Rendering a board here is never itself a reason to act.** Read-only means read-only even when
-  the page makes the merge obvious.
+Every key is always present, empty where there is nothing: a token the data has not got is exit `2`
+by design, because a blank cell in a published register reads as a fact. The four `…Line` strings are
+flattened for display, so an issue row and a PR row carry the same keys. `spendEfforts[].note` is
+`not reported` where no ledger was read. `notation` is `nen ref format`'s output — **never typed from
+memory**; on a repository with no `nen/repos.json` it falls back to `<owner>/<name>#<n>` and the
+failed resolution goes into `footerNote`.
 
-## 7. When the pipeline cannot run
+**The desk is the board's point.** Asks grouped by gate then ranked by unblocking power, each opening
+`DECIDE`, `DO` or `MERGE`, each carrying lettered options with **exactly one star** — the same list,
+same order, same letters the surface's own picker will show. **A gate with nothing owed is rendered
+cleared, not omitted.** The page briefs; the picker asks.
 
-There is no longer a `python3`-on-the-host failure mode to degrade around — § 4's finding is that
-the HTML is authored by Kurapika through the Artifact tool, which carries no such local-runtime
-dependency, so that entire old degradation path is retired by this port, not merely relocated.
+**A drawing is optional.** Where the scope has a shape worth seeing — a chore's PR graph, an epic's
+child tree — author a `nen.report.graph/v0.1` document and pass `--graph`; the template draws it and
+keeps the node and edge list under `<details>` as the fallback. Leave `graphNodes` empty otherwise
+and the block does not render.
 
-What can still fail is the **data pipeline** itself: `nen board build`/`render`/`diff` unavailable
-because `nen` is missing or out of the pinned range (D10 — `hatsu-warmup`'s contract, not this
-skill's to re-litigate), or the underlying `backlog-state` sweep itself failing for any of its own
-reasons (§ 2). **Relay the failure in one line, then fall back to `/backlog-state`'s markdown
-table with the same arguments** — never silently render the table as though it were what was asked
-for.
+### The other callers of this path
 
-**Inside a repeating (`every turn` / `every state-change`) loop, the same failure ends the loop —
-it does not retry blind.** Relay it once on the pass it happened, fall back to the markdown table
-for that one pass, and stop.
+[`futon`](../futon/SKILL.md) and [`backlog-loop`](../backlog-loop/SKILL.md) render their per-cycle
+status board through this exact line, **the register variant, via backlog-board § 3**. The **dated
+final report** is the same template at `--variant final`: one effort, a cleared desk, written to
+`<reports.dir>/<YYYY-MM-DD>-<effort>.html` (maintainer's ruling, 2026-09-19). That is the one render
+of this template that is kept on disk.
 
-## 8. What this skill must never do
+## 4. Publish it
 
-Everything in `backlog-state`'s own "never" list, verbatim — plus:
+Publish as an **Artifact**, titled *Gate Register*, **republished to the same URL per repository** —
+find the existing one and update in place; a new URL only for a repository with no board yet. **Read
+before you overwrite**: a republish notice, or a listing showing a version this session did not
+publish, means the page moved, so re-read it and re-resolve the backlog rather than repainting what
+this session happens to be holding.
 
-- **Hand-author a cached HTML template kept between runs.** § 4 authors the page fresh from `nen
-  board build`'s JSON every time; it does not stand up a shim file this port's scope forbids.
-- **Publish a board whose rows came from session memory** rather than a fresh `backlog-state`
-  sweep, on the first render or any repeat.
-- **Fire the banner, `nen stop`, or a push notification** for a board that was requested, including
-  every re-render a repeating mode produces.
-- **Silently substitute the markdown table** when the pipeline failed, without saying so.
-- **Diverge from `backlog-state`'s grammar or classification** while advertising them as the same.
-- **Skip `nen board diff` and re-derive "what changed" by eye** in `every state-change` mode — that
-  is exactly the by-hand comparison § 3a exists to retire.
-- **Run a repeating mode with no stated pace, no echoed frequency, or no visible way to end it.**
-- **Carry a rendering-frequency loop past the session it was started in**, or promise a persistence
-  this skill was never given.
-- **Invent a Kurapika sprite or port the old Ichigo pixel map** — neither exists in this
-  repository; say so (§ 4) rather than fabricating one.
+**Say the one line in chat and stop** — the repo and gate filter, the count needing him, the link.
+Not a prose summary of the board underneath it.
+
+## 5. Not a gate event
+
+A board rendered because the maintainer asked for one carries **no banner, no `nen stop`, no push
+notification** — he is already looking at it. That holds on every repeat, not only the first render.
+A real gate coming due while he reads it fires normally; rendering never suppresses one, and a board
+that makes the merge obvious is still not a reason to act.
+
+## 6. When the pipeline cannot run
+
+`nen report render`, `board build` or `board diff` unavailable (nen missing or out of the pinned
+range — `hatsu-warmup`'s D10 contract, not this skill's to re-litigate), or the `backlog-state` sweep
+failing for its own reasons: **relay it in one line, then fall back to `backlog-state`'s markdown
+table with the same arguments**, saying that is what happened. Inside a repeating loop the same
+failure **ends the loop** — one fallback pass, then stop; it never retries blind.
+
+## Hard limits
+
+Everything in `backlog-state`'s own never-list, verbatim, plus:
+
+- **Never hand-authors the page.** § 3 is a verb call over a fixed template; a hand-filled page and a
+  rendered one are not the same bytes and only one is checkable.
+- **Never publishes a board whose rows came from session memory** rather than a fresh sweep, on the
+  first render or any repeat.
+- **Never fires the banner, `nen stop` or a push notification** for a requested board.
+- **Never silently substitutes the markdown table** when the pipeline failed.
+- **Never diverges from `backlog-state`'s grammar or classification** while advertising them as one.
+- **Never re-derives "what changed" by eye** in `every state-change` mode (§ 2a).
+- **Never runs a repeating mode with no stated pace, no echoed frequency or no way to end it**, and
+  never carries one past the session it started in.
+- **Never omits a cleared gate from the desk**, and never renders an ask without a starred option.
+- **Never writes outside `<reports.dir>`**, and never gives a `register` render a dated file — only
+  `final` gets one.
+- **Never labels, merges, pushes, comments, opens or closes anything.**
+
+*History, retired findings and verified-live transcripts moved to this effort's history file;
+`docs/ab/backlog-board.md` has the dated live verifications.*

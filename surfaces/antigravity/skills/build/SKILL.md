@@ -4,558 +4,193 @@ description: Take one issue from wherever it sits to a delivery PR standing read
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
-**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
-root**, not the consuming repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
-those files (re-resolve through that skill if unavailable). Relative links below identify source
-locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
-filing. Never copy or invent a second policy in the target repository.
-
-
 # Build — from an issue to a PR standing at the gate
 
-**Nature: Transmuter** for a machinery-shaped issue, **Conjurer** for a canon/governance one,
-occasionally **Enhancer** where the issue is genuinely product code. Kurapika names the mode at
-§ 3 and says so out loud when it switches mid-run.
+**Nature: Transmuter** for a machinery issue, **Conjurer** for a canon/governance one, **Enhancer**
+for product code; the mode is named at § 3, and said out loud when it switches mid-run.
 
-The contract:
+> **Give me an issue; I give you back a PR that is `CON-32`-Ready at its human gate — or a G5 stop
+> saying exactly why it could not get there.**
 
-> **Give me an issue; I give you back a PR that is `CON-32`-Ready at its human gate — or a G5
-> stop that says exactly why it could not get there.**
+**Everything after the first PR appears is [`sharingan`](../sharingan/SKILL.md)'s engine** — the
+readiness call, the unblocking channels, the reviewer-round policy and the escalation ladder are
+inherited, never restated; where the two disagree, sharingan wins on PR mechanics and this skill on
+what happens before a PR exists. **Hatsu has no CI plane, so there is nothing to route a released
+issue to** ([`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *Building an issue with no CI plane*):
+Kurapika builds it himself, in the mode § 3 confirms, stopping at **G5** where a local session
+structurally cannot do the work rather than pretending a wake occurred.
 
-`build` is the issue-shaped verb. Its PR-shaped half is [`sharingan`](../sharingan/SKILL.md) —
-**everything after the first PR appears is that skill's engine**: the readiness call
-(`nen pr ready` — see [`pr-state`](../pr-state/SKILL.md)), the unblocking channels and the
-escalation ladder are inherited from it, not restated here. Where the two disagree, `sharingan` wins
-on PR mechanics and this skill wins on what happens before a PR exists.
-
-> **Declared process change — read this before § 5.** The old skill released a routed issue to a
-> CI builder (`bankai:stage/building` woke Kisuke, Sasuke, Naruto or Yamamoto's workflow) and then
-> spent a whole section (§ 5) verifying the wake actually fired. **Hatsu has no CI plane at all** —
-> no App, no workflow, no bot identity (`claude/agents/kurapika.md` header) — and Gon, the one
-> agent whose *proposed* delegation grammar would let a mission cross a gate on its own, is
-> **ratified as an agent but unratified for that grammar** (`docs/ROSTER.md` § Gon,
-> `docs/delegation-grammar-DRAFT.md`): "**Gon does the work, takes it to the gate, and stops
-> there**," same as every agent by default. So there is nothing left to route a released issue
-> *to* — this port follows the precedent [`bankai-handbooks`](../bankai-handbooks/SKILL.md) set for
-> the identical structural gap under `CON-37` (§ 4): **where the old skill would wake
-> a CI builder, this one states the local-only reality outright.** Kurapika builds the issue
-> himself, in this same session, in the mode § 3 confirms — or, where the work is something a
-> local session structurally cannot do at all, this run stops at **G5** and says so, rather than
-> pretending a wake occurred. This is a declared change from the retired skill's behaviour, not a
-> silent one — per the ratified migration plan and its tracking issue (private).
-
----
+Shared policy is resolved at the plugin root as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 0 says,
+and **the phases this composite calls skip their own `## 0. Standalone entry`**, inheriting P1–P4
+from this run.
 
 ## 1. Invocation
 
 ```
 /build <product|repo_code>#<issue_number>
-```
-
-Split it mechanically rather than by hand:
-
-```bash
 nen parse build --grammar "<code>#<n>" --line "<the raw invocation>"
+nen repo resolve <CODE> --repo <the target repo's own checkout>
 ```
 
-Verified live: `nen parse build --grammar "<code>#<n>" --line "BC#918"` returns `code: BC`,
-`n: 918` (and the identical structured `slots[]` under `--json`); an unparseable line — no `#`, or
-no trailing number — is refused with a corrected line ready to paste (`docs/ab/build.md` § 2.1).
-This is a genuinely usable two-slot grammar, unlike `backlog-state`'s single-slot template (see
-that port's own A/B doc § 3) — no bracket-swallowing bug was found here.
+Case-insensitive; **an unresolved code is an error, never a guess**, and an unparseable line is
+refused with a corrected line to paste. **If `#<N>` is a PR, hand straight to
+[`sharingan`](../sharingan/SKILL.md) and say so** — § 2's `chain-position` call **is** the
+issue-vs-PR check, it and `nen issue terminus` refusing at exit `1` with
+`{ issue, refused: true, reason }`, **that refusal being the signal, not a failure**. **Say the run
+has started**: a named run holds a bounded `CON-25` delegation (§ 5), and a delegation nobody
+announced is one nobody can end.
 
-Resolve `<code>` against the registry, never from memory:
-
-```bash
-nen repo resolve <CODE> --repo <reference-repo checkout>
-```
-
-case-insensitive (`bc` and `BC` both resolve to `<reference-repo>` — `docs/ab/build.md` § 2.2);
-**an unresolved code is an error and never a guess.**
-
-**If `#<N>` is a PR, hand straight to [`/sharingan <CODE>#<N>`](../sharingan/SKILL.md) and say so.** Since
-nen `v0.2.0` **the verb makes this check for you**: `nen issue chain-position` and `nen issue terminus`
-both **refuse (exit `1`)** when `--issue` names a pull request, with the pinned `--json` shape
-`{ issue, refused: true, reason }` (#71, closes zheref/nen#25; `nen issue --help` at `v0.3.0`: *"a
-delivery-chain position is defined only for issues — classifying a PR's labels answers something
-plausible and silently wrong. Ask the `nen pr` family about a pull request"*). So § 2's
-`chain-position` call **is** the issue-vs-PR check: a `refused: true` naming a pull request is the
-signal to hand over to `sharingan`, not a failure. The raw `gh api repos/<owner>/<repo>/issues/<N> --jq
-'.pull_request'` read this port used to perform first is **retired** — it existed only because
-`v0.1.0` answered `routable`/`own-pr` for a real PR (`docs/ab/build.md` § 2.3, a finding this port filed
-and nen closed). Contract-verified against `nen issue --help` and the `v0.2.0` changelog; not exercised
-live at `v0.3.0`, since the check is a GitHub read.
-
-**Say the run has started.** A named skill run holds a bounded `CON-25` delegation (§ 6), and a
-delegation nobody announced is a delegation nobody can end.
-
-### Repositories with no delivery-stage taxonomy
-
-The registry and labels are separate prerequisites. Hatsu/Nen's verified `nen/repos.json` and
-`nen/labels.json` enable identity resolution and issue filing, but their GitHub labels declare no
-delivery stages. Never manufacture a `--chain-labels` map or apply a nonexistent stage label.
-For an explicitly authorized standalone local issue in such a repository, inspect its live issue
-state/body and associated PRs, state that `chain-position` has no usable role map, and carry the
-local effort record through authoring to its own PR. A raw GitHub issue read is named residue for
-this stage-free path, not a computed chain verdict. If the object is a PR, use sharingan; if closed,
-report its delivery and end. An epic/integration relationship that cannot be resolved remains a
-real blocker. This exception does not create G1 or label authority.
-
-Every encountered gap uses [the discovery protocol](../../../../docs/DISCOVERY.md); a missing
-metadata declaration is repaired only when authorized or recorded pending, never guessed.
-
-**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) is the
-contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
-from this run — the warm-up, the orientation, the change set and every derived argument — and
-re-deriving them would produce a second answer to a question this composite already settled. Each phase
-says which composite is holding it instead.
+**A target repository with no delivery-stage taxonomy** is
+[`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *Building an issue with no CI plane*'s last
+subsection: **never manufacture a `--chain-labels` map, never apply a nonexistent stage label**, and
+that path creates **no G1 or label authority**.
 
 ## 2. Read the issue before touching it — where is it on the chain?
 
 ```bash
-nen issue chain-position --target <owner/name> --issue <N> --repo <reference-repo checkout> \
-  --chain-labels "idea=bankai:stage/idea,researched=bankai:stage/researched,\
-approved-team=bankai:stage/ready-for-bankai,approved-direct=bankai:stage/ready-for-shikai,\
-building=bankai:stage/building,in-review=bankai:stage/in-review,epic=bankai:epic"
+nen issue chain-position --target <owner/name> --issue <N> --repo <the target checkout> \
+  --chain-labels "idea=<label>,researched=<label>,approved-team=<label>,approved-direct=<label>,\
+building=<label>,in-review=<label>,epic=<label>"
 ```
 
-`--chain-labels` is caller data — `<reference-repo>`'s own label names for each chain role, read from its
-`nen/labels.json`, never guessed. Its taxonomy carries **no `chore` label** at all (verified:
-`gh label list` names none) — omit the `chore=` entry; that is this repository's own fact, not a
-gap in the verb. Verified live, an incomplete map is refused outright rather than half-answered:
-with no `--chain-labels` at all, a real `in-review` issue (`<reference-repo>#918`) comes back
-`undecidable: role(s) building, in-review, idea, epic were never mapped … a run that reads a
-building issue as routable releases it twice` (exit `1`) — and an unknown role name in the map
-(`bogus=foo`) is refused outright at exit `2` (`docs/ab/build.md` § 2.7). Never guess past either
-refusal.
+`--chain-labels` is **caller data** — the target's own label names per role, from its
+`nen/labels.json`, never guessed. **Map `building`, `in-review`, `idea` and `epic`**, the four that
+decide whether an issue matching nothing is really `routable`; the rest come back under
+`unmappedRoles` and block nothing, so **omit a role this repository lacks** rather than inventing a
+placeholder. An unknown role name is refused at exit `2`, **never guessed past**.
 
-> ### RETIRED at nen `0.7`: supplying a placeholder for a role this repository does not have
->
-> **Four of the eight roles can refuse a verdict, and four cannot — and `--help` says which**
-> (`zheref/nen#55`, verified live at the pinned `0.7.0`; `docs/ab/build.md`
-> § *Retired at nen 0.7*):
->
-> ```text
-> FOUR OF THE EIGHT CAN REFUSE A VERDICT and the other four cannot:
-> building, in-review, idea and epic decide whether an issue that matched
-> nothing is really 'routable', so an unmapped one is 'undecidable' rather
-> than a guess. researched, approved-team, approved-direct and chore are
-> reported under unmappedRoles when absent and never block an answer …
-> ```
->
-> Through the pinned `v0.6.0` the refusal named roles without saying which ones mattered, so a caller
-> reasonably concluded it had to supply the full eight-role map on every call — **including a
-> placeholder for a role its own taxonomy genuinely lacks**, which is the one thing a taxonomy check
-> exists to prevent. **So: map `building`, `in-review`, `idea` and `epic` — those four are the ones
-> whose absence turns a matched-nothing issue into `undecidable` — and omit any of the other four
-> this repository does not have.** An omitted one comes back under `unmappedRoles` and blocks
-> nothing, which is why `chore=` above is an omission rather than a gap.
->
-> **What is NOT added is partial credit on the undecidable branch**, and that is deliberate: every
-> position a mapped role positively matches is decided and returned *before* the critical-role check
-> is consulted, so partial credit already applies wherever the labels answer the question. What
-> remains is the one branch where an issue matched nothing — and there a partial answer is exactly
-> the wrong answer, because reading a `building` issue as `routable` releases it twice.
+| `chain-position` reports | First move |
+|---|---|
+| `closed` | **The run ends** with what closed it and which PR delivered it |
+| `building` | Already released, with or without an open PR (`in-review` folds in here) → § 4 |
+| `idea` | Wake **Gon** to decompose it into an epic; his grammar is unratified, so he hands it back |
+| `epic-awaiting-approval` | **Stop at G1** (row `mode-label`): the mode label is the maintainer's (`CON-4`) |
+| `epic-approved` | Children advance wave by wave — § 4 |
+| `routable` | Confirm the mode (§ 3), release it (§ 4), then build it |
+| `undecidable` | **Refuse the guess**: supply the missing role and re-run |
 
-This one call replaces the old skill's "decide from labels, body and linked objects, never the
-title" prose. Its seven reported states map onto the same first moves, verified live against real
-objects (`docs/ab/build.md` §§ 2.4, 2.4a, 2.5, 2.7, 2.7a):
-
-| `chain-position` reports | The issue is… | First move |
-|---|---|---|
-| `closed` | closed | **The run ends** with what closed it and which PR delivered it (verified live, `<reference-repo>#733` — a closed epic — reports exactly this). Re-opening is the maintainer's call |
-| `building` | already released — **with or without an open PR**, `in-review` folds into this same bucket (verified live, `<reference-repo>#918`/`#337`/`#879` all report `building` — `docs/ab/build.md` §§ 2.4, 2.4a) | Skip straight to § 4's drive step — the release already happened |
-| `idea` | a raw brief (`bankai:stage/idea`) | Wake **Gon** so it is decomposed into an epic — his delegation grammar is **unratified** (`docs/ROSTER.md`), so this itself does not cross a gate on its own; he hands the decomposition back and this run takes it to § 3/§ 4 |
-| `epic-awaiting-approval` | an epic that carries the epic label but no mode label yet | **Stop at G1** (`nen/decisions.json` row `mode-label`). The mode label is the maintainer's and is never delegated (`CON-4`) — § 3/§ 4 |
-| `epic-approved` | an epic that carries the epic label **and** a mode label (`approved-team` or `approved-direct`) | Children advance wave by wave — § 4's epic-wave release step |
-| `routable` | a routable child or a standalone task (no idea/epic/release label at all — verified live, `#673`/`#710`/`#494`) | Confirm the mode (§ 3), release it (§ 5), then build it |
-| `undecidable` | a role in play was never mapped in `--chain-labels`, so this issue's true position cannot be told apart from another (verified live, `<reference-repo>#918` with no `--chain-labels` at all — § 2.7) | **Refuse the guess.** Supply the missing role and re-run; never proceed on a guess |
-
-**No open `<reference-repo>` issue currently carries `bankai:stage/idea`, `bankai:stage/researched`,
-`bankai:stage/ready-for-bankai` or `bankai:stage/ready-for-shikai`** (verified live, `gh issue list
---state all --label ...` for all four returns empty — `docs/ab/build.md` § 2.7). The `idea`,
-`epic-awaiting-approval` and `epic-approved` rows are therefore contract-verified against `nen
-issue chain-position --help` and the label taxonomy plus a **live run against a constructed role
-map on a real object** (an object in the private migration tracker — `docs/ab/build.md` § 2.7a), not against a
-`<reference-repo>` issue that natively carries those labels; say so rather than silently presenting
-every row as proven against `<reference-repo>` itself.
-
-An epic reported `epic-approved` is further split by which mode label it actually carries —
-`bankai:stage/ready-for-bankai` vs `ready-for-shikai` — read directly off the issue;
-`chain-position` folds both into the single `epic-approved` state and does not distinguish the two
-itself (both are stops the maintainer already resolved at G1, and § 4 reads which one from the
-labels present). Note also that `researched` is an **input role name** — one of the
-`--chain-labels` keys the caller supplies (`researched=<label>`) — never a `chain-position` output
-state; do not confuse the two.
+`epic-approved` folds both mode labels into one state, so read which the issue carries off its
+labels; `researched` is an **input role name**, never an output state.
 
 ## 3. The mode is confirmed before anything is released
 
-**The issue is expected to carry its `bankai:agent/*` label already** — the same scope label the
-retired skill read to choose a CI agent. In Hatsu it chooses Kurapika's **mode** instead, since he
-is the only builder there is:
+The issue is expected to carry its `bankai:agent/*` scope label already; in Hatsu it chooses
+Kurapika's **mode** rather than a CI agent.
 
-| Label present | Scope | Kurapika's mode |
-|---|---|---|
-| `bankai:agent/naruto` | needs a constitution/governance (`CON-{n}`) change | **Conjurer** |
-| `bankai:agent/yamamoto` | needs a handbook / Stack Matrix / schema / agent-def change | **Conjurer** (his mode already covers both halves of the retired split — `claude/agents/kurapika.md` § Conjurer) |
-| `bankai:agent/kisuke` | machinery only — a workflow, script, hook or scaffolder change an existing rule already sanctions | **Transmuter** |
-| several labels, spanning lanes | the change genuinely spans lanes, and if it then needs more than one PR it is a `CON-36` chore on an `integration/<chore>` branch | Say so in the ask — it changes what "done" looks like: the delivery PR is `integration/<chore> → main`, not a child |
+| Label present | Mode |
+|---|---|
+| `bankai:agent/naruto` — a constitution/governance (`CON-{n}`) change | **Conjurer** |
+| `bankai:agent/yamamoto` — a handbook / Stack Matrix / schema / agent-def change | **Conjurer** |
+| `bankai:agent/kisuke` — machinery only, sanctioned by an existing rule | **Transmuter** |
+| several, spanning lanes | a `CON-36` chore on an `integration/<chore>` branch where it needs more than one PR — say so in the ask; the delivery PR is then `integration/<chore> → main` |
 
-**When the issue carries none of these, propose one and ask** — routing decides which authority and
-which handbook the work is built under, and a wrong mode produces a plausible PR in the wrong
-shape. Ask it as a **`DECIDE`** through the harness's question interface, with the lettered
-options, the ⭐ recommendation and its basis, and what would tip it (`CON-37`).
+**With none of these, propose one and ask** — a wrong mode produces a plausible PR in the wrong
+shape. It is a **`DECIDE`** through the surface's own picker per
+[`jutaisho`](../jutaisho/SKILL.md) § 4, seeded by row `mode-unknown` (once per run). **A G1 stop is
+never a mode question**: for an unapproved epic the ask is the mode *label* — integration-branch team
+delivery or direct-to-main — and **only the maintainer applies it** (`CON-4`).
 
-**A G1 stop is never a mode question.** If the issue is an unapproved epic (`chain-position`
-reports `epic-awaiting-approval`), the ask is the mode label — `bankai:stage/ready-for-bankai` (integration-
-branch team delivery) or `bankai:stage/ready-for-shikai` (direct-to-main) — and **only the
-maintainer applies it** (`CON-4`). Present the trade-off; never apply either, inside a run or
-outside it.
+## 4. Driving the whole chain, and releasing into it
 
-## 4. Driving the whole chain
+Where the target is an epic, `build` follows it all the way down.
 
-Where the target is an epic, `build` follows it all the way down rather than stopping at the first
-child:
+1. **Gon decomposes** the idea into an epic with sequenced children (§ 2), watched in session.
+2. **G1 is the maintainer's.** Stop (`nen stop --gate G1 …`), brief the epic, ask for the mode label;
+   nothing below happens until it exists.
+3. **Waves advance — this run's job, always**, Hatsu carrying no epic-coordinator workflow.
+4. **Release** the issue into `building` — the G1-M go-signal (`CON-25`).
+5. **Then Kurapika builds it himself, in this session, in the confirmed mode.**
+6. **Each child's PR is driven** by [`sharingan`](../sharingan/SKILL.md)'s engine to `CON-32`
+   readiness — `nen pr ready`'s verdict, never eyeballed.
 
-1. **Gon decomposes** the idea into an epic with sequenced children (§ 2). His grammar is
-   unratified, so this step is watched in-session, not delegated unattended.
-2. **G1 is the maintainer's.** Stop (`nen stop --gate G1 ...`), brief the epic, ask for the mode
-   label. Nothing below happens until it exists.
-3. **Waves advance — this run's job, always.** Hatsu carries no `CON-23`-style epic-coordinator
-   workflow (`docs/ROSTER.md` names no such standing process; the closest proposed role, Illumi, is
-   **OPEN**, not adopted). There is no "watch, don't duplicate" branch to take here — releasing the
-   next wave is mechanized directly:
-   ```bash
-   gh issue view <epic-N> --repo <owner/name> --json body -q .body > epic-body.md
-   nen epic next-wave --body-file epic-body.md --citation <the clause the progress footer cites> \
-     [--completed <n>] [--inflight <a,b>] --cap 2 --out epic-body-out.md --json
-   ```
-   **The checklist parser widened in nen `v0.2.0` (#65) and `v0.3.0` (#103)** — re-verified live at
-   `v0.3.0` against a hand-written body: a child line is any `- [ ]` / `- [x]` checkbox, at any indent,
-   that references its issue **anywhere** on the line — a bare `#123`, an `owner/repo#123`, a
-   `[#123](url)` markdown link, or a link to an `/issues/123` URL under **any** link text (so
-   `- [ ] [RR-IS-#105](https://…/issues/105)` and `- [ ] **Phase 2** trailing ref #106` both count,
-   where `v0.1.0` counted neither — `docs/ab/build.md` § 2.8 is history). The **first** such reference
-   identifies the child; every ref inside a `blocked by` / `blocks` clause is an **edge**, never the
-   line's identity, and a checkbox whose only ref sits in such a clause is reported **`unparsed`**
-   (stderr warning plus `unparsed[]` in `--json`), never counted as a phantom child. A child releases
-   only when every declared blocker is a known, checked sibling; a duplicate child id, or a checklist
-   with checkbox lines none of which resolves, refuses at exit `1` rather than guessing (verified live).
-   **`--body-file` and `--out` resolve against `--repo`'s root from nen `0.7`**, not the process's cwd
-   (`zheref/nen#100`) — verified live against a decoy of the same relative name in the calling
-   directory, which `v0.6.0` read and `0.7.0` does not (`docs/ab/senkei.md` § *Retired at nen 0.7*).
-   An absolute path is still used as-is.
-   **`--out` only rewrites the local file** — posting the redrawn body back to the real epic issue is a
-   plain `gh issue edit <epic-N> --repo <owner/name> --body-file epic-body-out.md`, since no `nen` verb
-   owns writing an issue body back to GitHub (residue, § 11).
+**Step 4's label command, the `CON-25` carve-out it is applied under and the one-stage-label-at-a-
+time discipline (`CON-9`) are [`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *Releasing an issue
+into `building`***; every application is logged: object, label, time.
 
-   **This repository's own live epics still do not all use a shape `nen` reads.** Both real epics
-   checked at the port (`<reference-repo>#733`, closed; `#568`, closed) write their phases as a
-   **markdown table** or as bullets with a markdown-linked reference (`[RR-IS-#570](url)`). The linked
-   bullet form is readable since `v0.2.0` **when the bullet is a checkbox**; a table row is not a
-   checkbox line and is still invisible, and `nen epic next-wave` reads `{"total":0,"done":0}` against
-   a table-shaped epic (`docs/ab/build.md` § 2.9 — a finding about those epics' shape, not about the
-   verb). Any epic this skill decomposes going forward (§ 2's Gon step) writes its children as
-   checkbox lines carrying a resolvable reference, stated to Gon explicitly, or this verb never sees a
-   child at all.
-4. **Each child's PR is driven** by [`sharingan`](../sharingan/SKILL.md)'s engine to `CON-32` readiness —
-   reported, never eyeballed, via `nen pr ready` (see [`pr-state`](../pr-state/SKILL.md)).
-5. **The delivery PR is the terminus.** Compute it, never infer it:
-   ```bash
-   nen issue terminus --target <owner/name> --issue <N> --chain-labels "<same map as § 2, minus role prefixes that don't apply>" \
-     --integration-prefix "integration/" --trunk main
-   ```
-   Verified live: an issue with no epic/chore label answers `own-pr` — "the terminus is this
-   issue's own PR into `main`" (`<reference-repo>#918`/`#673`/`#337`, and the real PR `#925`
-   too — the same PR-vs-issue gap § 1 already flags; `#918` and `#337` transcribed in
-   `docs/ab/build.md` §§ 2.6, 2.4a); a closed issue answers `run-already-ended`
-   (`#733`, `docs/ab/build.md` § 2.6). For a `bankai`-mode epic that is the single
-   `integration/* → main` PR the maintainer merges at G2; for shikai mode it is each child's own PR;
-   for a `CON-36` chore it is the `integration/<chore> → main` delivery PR — **no live epic or
-   chore-labelled object exists today to confirm those two branches on the real backlog**
-   (`bankai:epic` has zero open issues, and `<reference-repo>`'s taxonomy carries no chore label at all —
-   § 2); they stand contract-verified against `nen issue terminus --help` only. **A sub-PR merged
-   onto a chore or integration branch is not the gate** and never ends the run.
+**Steps 3, 5 and 6's machinery is that document's § *Building an issue with no CI plane*** — `nen epic next-wave` and the checkbox-children rule, `nen issue terminus` and
+which PR is the gate, `nen loop slots --local-cap 2`, the `nen shu` sequence with its phase owners and
+exit codes, and the G5 for work a local session structurally cannot do.
 
-**Never drive more than two efforts concurrently.** Mechanized, not eyeballed:
-
-```bash
-nen loop slots --efforts efforts.json --local-cap 2 --json
-```
-
-**Every effort here is `"plane":"local"`** — Hatsu holds no `ci` plane at all, so a slot never frees
-on "the PR opened" (that rule exists for a plane Hatsu doesn't have); it frees only once a PR is
-both `"ready":true` **and** `"prompted":true` — the maintainer has actually been shown the `MERGE`
-ask (§ 8) — exactly `nen loop slots --help`'s own local-plane rule: *"nothing else is behind a
-locally-authored PR."* Verified live: two efforts with neither ready nor prompted report
-`local: 2/2 occupied, 0 free <- BINDING` at exit `1`; flip one to `ready:true, prompted:true` and it
-frees, `local: 1/2 occupied, 1 free` at exit `0` (`docs/ab/build.md` § 2.10).
-
-**Always pass `--local-cap 2` — the flag is now REQUIRED, not merely advisable.** This port filed a
-finding against `v0.1.0` (`docs/ab/build.md` § 2.10): the verb defaulted the local plane to `7`, so a
-forgotten flag silently tripled this skill's concurrency limit. **nen `v0.2.0` removed that default
-(#69, closes zheref/nen#52)** — verified live at `v0.3.0`, `nen loop slots --efforts <path>` without
-`--local-cap` refuses at exit `2`: *"--local-cap is required. The old default of 7 was removed (issue
-#52): a concurrency guard must be chosen, not inherited."* `--ci-cap` still defaults to `2`, a plane this
-skill never populates. `--efforts` resolves against the process cwd, not `--repo` — pass an absolute
-path. Say which effort is waiting when the cap binds — a PR **Ready and handed to the maintainer frees
-its slot**, otherwise the run deadlocks the moment two PRs are waiting on a human.
-
-**Never let two children touch the same file at once.** Sequence them and say so — no verb governs
-this; it stays this run's own judgment.
-
-## 5. Releasing into build — no CI plane to release *to*
-
-Release is still `bankai:stage/building` — the G1-M go-signal (`CON-25`) — because the label is
-still real bookkeeping: [`backlog-state`](../backlog-state/SKILL.md)/[`backlog-board`](../backlog-board/SKILL.md)
-(both already landed) read it to place the issue on the board, and `CON-9` still requires exactly
-one stage label at a time. Applying it is
-logged, contract-verified against the binary (never exercised live against `<reference-repo>` — the
-shared brief's read-only rule):
-
-```bash
-nen label apply RR-IS-#<N> --label bankai:stage/building --repo-slug <owner/name> \
-  --repo <the target repo's own checkout> --reason "<why, for the ledger>" --run
-```
-
-(`--repo` names the checkout whose `nen/labels.json`
-validates the label; the ledger defaults to that checkout's `label-ledger.jsonl`.) Inside this run it may
-be applied without a further prompt, under the fourth carve-out (§ 6), **for the named issue and for
-children created beneath it**. Every application is logged: object, label, time, exactly as
-`--reason`/the ledger record.
-
-**Then — the declared change (see the callout above § 1): Kurapika builds it himself, in this same
-session, in the mode § 3 confirmed.** There is no separate wake to verify, no `build` job to poll,
-no `probe` run to distinguish from a swallowed one — those all describe a CI plane Hatsu does not
-have. Say plainly that the build is local, and proceed to author it — **through the verbs the target
-repository declares**, in this order (nen `v0.3.0`'s `shu` family; `claude/agents/kurapika.md` § *The
-`shu` verbs* carries the full exit-code table this step reacts to):
-
-1. **Warm the working copy and cut the branch from the fresh trunk tip:**
-   ```bash
-   nen shu warmup --repo <the target checkout> --branch kurapika/<slug> --dry-run   # every git + toolchain command, nothing run
-   nen shu warmup --repo <the target checkout> --branch kurapika/<slug>   # refuse a dirty tree, fetch, ff main, cut, prove the declared build
-   ```
-   It refuses a dirty tree at exit `2` listing every path (never `--discard` a tree you have not
-   inspected — it runs `git reset --hard` then `git clean -fd`), refuses a name that already exists
-   locally or on `origin`, and runs the lane's declared `build` on the branch
-   it just cut. `--repo` is **required** here — the one `shu` verb that mutates git state. Verified live at
-   `v0.3.0` in `--dry-run` form against this plugin's own checkout: the thirteen git steps print in order,
-   exit `0`, and a repository with **no** `project` block gets the git half with `no declaration --
-   build/test verification skipped` on stderr — still exit `0`.
-2. **On a host this repository has not been built on, check the toolchain first:**
-   ```bash
-   nen shu tools --repo <the target checkout>            # exit 5 names, per tool, the exact command that fixes it
-   nen shu tools --repo <the target checkout> --install  # only what corepack can activate; never sudo, never an unpinned version
-   ```
-3. **Verify through the phase owners.** Read [`rasengan`](../rasengan/SKILL.md) for
-   authoring feedback and [`kokusen`](../kokusen/SKILL.md) for the finished-tree checkpoint.
-   Run only declared inexpensive iteration checks and the explicit focused test lane through Nen:
-   ```bash
-   nen shu <iteration-check> --repo <the target checkout> --lane <iteration-lane> --dry-run
-   nen shu <iteration-check> --repo <the target checkout> --lane <iteration-lane>
-   nen shu test --repo <the target checkout> --lane <declared-focused-lane>
-   ```
-   The focused row must actually scope the authored behavior; no runner or filter is invented.
-   Full regression belongs to kotoamatsukami at mukai, after catch-up, before publication. Coverage
-   belongs to byakugan and extracts matching artifacts without running the suite again. A build
-   composite confers no exception to those boundaries; no `--tests` on its initial warm-up.
-   Exit `1` is the ordinary red build — the tool's own code is in `steps[].exitCode`. Exit **`4`** means
-   the lane declares no such verb (a seat, with the declaration's own reason quoted at the refusal) —
-   verified live at `v0.3.0` on a freshly scaffolded `nextjs` tree whose `build` row `detect` withheld:
-   `nen shu build: lane 'nextjs' (nextjs) declares no 'build'. It declares: archive, deploy, release,
-   ui-test.` That is a fact about the repository, not a failure: quote it, run the repository's own
-   documented command, say that you did, and where the seat should be a real row, land the declaration
-   change as its own PR — at **G4** in a canon repository (`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`),
-   at **G2** in a consumer one, where a declaration is that repository's own configuration
-   ([`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*). Exit **`5`** is the declared
-   program not on `PATH` — back to step 2.
-   Exit **`3`** is a host the declaration excludes — a **G5** stop naming the host that can, never a retry.
-   **A repository with no `nen/contract.json` `project` block at all** refuses every `shu` verb but
-   `warmup` at exit `2` naming the missing file (or, as on this plugin's own checkout, the file's
-   missing `project` block) — that is the no-declaration fact, and it is read off `shu build`/`test`/
-   `lint`, never off `detect`. `nen shu detect --repo <path>` exiting `1` (*no lane detected*) is a
-   different fact — no marker on disk that nen recognises — and the two coincide only outside nen's
-   seven stacks (this checkout, the frozen reference implementation, any bash-and-markdown repository):
-   an Xcode tree with no declaration is `detect` exit `0` with a proposal and `shu build` exit `2`,
-   verified live at `v0.3.0`. Either way: run its own documented commands (`make test`, its package
-   scripts), **say plainly that no declaration exists yet, and which case it was**, and treat writing
-   one by hand as a change to propose at the target repository's own declaration gate (**G4** in a canon
-   repository, **G2** in a consumer one — § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*), not a blocker.
-
-**Where the work is something a local session structurally cannot do at all** — it needs a
-credential only a retired CI identity held, or the decision is one only that now-nonexistent plane
-could make — **stop at G5 immediately** and name the gap, the same move
-[`bankai-handbooks`](../bankai-handbooks/SKILL.md) makes for its own identical structural hole
-(§ 4: *"Surface the
-gap as a finding instead ... stop at G5 for the human to decide."*). This is the **only** shape this
-port's version of the old "local authorship on structural impossibility" exception takes — inverted
-from the retired skill's, where CI was the default and local authorship was the escape hatch; here
-local authorship *is* the default, and there is no CI escape hatch left to fall back to.
-
-**Exactly one stage label at a time (`CON-9`), and zero before release** — an issue that is
-routed but not released correctly carries none. No verb enforces the mutual exclusivity across
-`bankai:stage/*` itself; `nen label apply` applies one label and logs one decision — keeping only
-one on the object at a time stays this run's own discipline (residue, § 11).
-
-## 6. Authority — what this run may and may not do
+## 5. Authority — what this run may and may not do
 
 `CON-25`'s fourth carve-out: a human-invoked skill run holds the delegation its purpose requires,
-bounded by the same three conditions as any named loop run — **logged, run-scoped, and those label
-classes only**.
+**logged, run-scoped, and those label classes only**.
 
-| | `build` may |
+| | |
 |---|---|
-| **Release** | `bankai:stage/building` on the named issue and on children created beneath it |
-| **Route** | `bankai:agent/*` on **children it creates**, by scope (§ 3) |
-
-**No `Wake` row.** The retired skill's third row — `bankai:wake/iterate`, fired alone — existed to
-re-fire a *CI builder's* stalled loop. Hatsu has no CI builder for `build` to hold that authority
-over; a wake against some other automated participant on a PR (a stalled review round, say) is
-[`sharingan`](../sharingan/SKILL.md)'s authority, not this skill's. Dropping the row here is itself part of the
-declared change (§ 1 callout) — say so rather than quietly carrying an authority forward that no
-longer has anything to act on.
-
-| | `build` may **not** |
-|---|---|
-| **Route the named issue itself** | If it carries no mode label, § 3 **asks**. The entry point's mode is the maintainer's read, not the run's |
-| **G1 mode labels** | `ready-for-bankai` / `ready-for-shikai` — never delegated, inside a run or outside it |
-| **Merge** | Not `main` (`CON-5`/`CON-7`), not a chore delivery PR, not its own PR anywhere |
-| **Vote** | No review, ever — and never `request_changes` (`CON-26`) |
-| **Release a release** | G3 is the maintainer's (`CON-6`) |
+| **May release** | the `building` stage label on the named issue and on children created beneath it |
+| **May route** | `bankai:agent/*` on **children it creates**, by scope (§ 3) |
+| **No `Wake` row** | a wake existed to re-fire a *CI builder*; Hatsu has none, and a wake against another automated participant on a PR is [`sharingan`](../sharingan/SKILL.md)'s |
+| **Never routes the named issue itself** | with no mode label, § 3 **asks** — the entry point's mode is the maintainer's read |
+| **Never applies a G1 mode label** | not delegated, inside a run or outside it |
+| **Never merges** | not `main` (`CON-5`/`CON-7`, rows `merge`/`canon-merge`), not a chore delivery PR, not its own PR anywhere |
+| **Never votes** | no review, ever — and never `request_changes` (`CON-26`) |
+| **Never publishes a release** | G3 is the maintainer's (`CON-6`, row `release-go`) |
 
 **The delegation expires when the run ends. Say when it ends.**
 
-## 7. When it will not move
+## 6. When it will not move
 
-There is no CI-wake ladder for an effort Kurapika builds himself — that ladder (`sharingan` § 6 in the
-retired skill) exists to distinguish a builder that never woke from one still working, and Hatsu has
-no builder to distinguish. A stall in Kurapika's own work is reported plainly, in-session: what is
-blocking it, and whether it can be worked around now or needs the maintainer's decision. Where it
-cannot be resolved in this session, **stop at G5** and say exactly what is missing — a credential, a
-tool, a decision only the maintainer can make. There is no "two verified wakes" threshold to clear
-first, because there is nothing to verify a wake *of*.
+There is no CI-wake ladder for an effort Kurapika builds himself: a stall is reported plainly,
+in-session, with what blocks it and whether it needs the maintainer.
 
-Two shapes that still deserve their own naming, carried over from the retired skill with the same
-inversion § 5 describes:
+- **A released issue this session could not finish building** is reported `🔵 on hold` naming exactly
+  what blocks it, never as silently abandoned.
+- **Where Hatsu cannot do the work at all, that is a G5 naming the gap**, not a routing decision.
+- **Filing an issue is a legitimate outcome of a build run**: where a real defect elsewhere blocks
+  delivery, file it with [`file`](../file/SKILL.md), link it, and hold the build on it.
 
-- **A routed-and-released issue Kurapika could not finish building in this session** is the
-  closest analogue to the old "never produced a PR" stall. Report it as `🔵 on hold` naming exactly
-  what is blocking it, rather than as silently abandoned.
-- **The retired skill's "local authorship on structural impossibility" exception is now the only
-  path, not the fallback** (§ 5) — so its own escape hatch (falling back to CI) has nothing left to
-  fall back to. Where Hatsu cannot do the work at all, that is a **G5** stop naming the gap, full
-  stop, not a routing decision.
+## 7. Reporting and the stop
 
-**Filing an issue is a legitimate outcome of a build run.** If what blocks the delivery is a real
-defect elsewhere, file it with [`file`](../file/SKILL.md), link it, and say the build is held on
-it — a `🔵 on hold` effort naming what it waits on, not an abandoned one.
+**The six-step verified-delivery checklist and the four claims are
+[`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *Verified delivery — the coordinator's four
+claims***, owed in full before any handover, delegated work included.
 
-## 8. Reporting and the stop
+**The reviewer-round policy is [`sharingan`](../sharingan/SKILL.md) § 6's** — one Copilot round after
+`hanten` settles, arrivals remediated up to `nen/gates.json` → `round_policy.maxRounds`, an owed round
+inside the max re-requested without asking (row `cap-reached`), never one while a round is pending.
+`nen/workflow.json` → `monitor.maxCycles` is en's acting-cycle cap, a different number.
 
-### The coordinator owns verified delivery, including delegated work
+**Progress turns carry no banner** — a compact status line (issue, mode, PR, checks and rounds, what
+is next) and keep going. **Every gate stop is [`jutaisho`](../jutaisho/SKILL.md) § 4's full
+protocol**, through `nen stop --who Kurapika --gate <Gn> [--notified] efforts.md`.
 
-**“Implemented,” “review findings fixed,” “review round completed,” and “Ready” are separate
-claims.** A delegate may establish the first two with a pushed SHA and appropriate checks. Build
-must personally verify the latter two against the live PR before reporting completion. Delegation
-transfers a bounded task, not responsibility for the final claim.
-
-Before a handover, read the current head, checks, every review body (including suppressed findings),
-and every thread. Verify the fix at the pushed SHA; post each on-thread disposition and resolve it
-only when addressed. Confirm a fresh snapshot has no unresolved prior-round threads. A green test
-run, a pushed commit, or a delegate's “done” message cannot substitute for that evidence. Follow
-sharingan § 5: an owed round is requested on the maintainer's behalf while the PR is under the
-configured maximum (`nen/decisions.json` row `cap-reached`); never repeat a request while one is
-pending or merely to refresh a head SHA. **The maximum is `nen/gates.json` → `round_policy.maxRounds`** (Hatsu's own key beside nen's `stallMinutes`); `nen/workflow.json` → `monitor.maxCycles` is en's acting-cycle cap, a different number.
-
-Also verify the complete associated-issue set under shibari's linkage contract: **every issue this
-PR addresses appears in its body and in Development**, with completion/partial status stated.
-An entry issue is not a proxy for additional issues included as scope expands. Reconcile the list
-again after scope changes and before handover; dependencies and incidental references are named
-separately so the PR does not claim their implementation.
-
-The final report distinguishes code/checks complete, review handling complete, formal readiness,
-and the human merge/release decision. If any required evidence is absent, identify it as remaining
-work or the precise gate blocker. Do not end a build as delivered solely because a PR was opened.
-
-
-**Progress turns carry no banner.** Report a compact status line — the issue, the mode, the PR, its
-checks and rounds, what is next — and keep going.
-
-**Every gate stop is the full protocol:**
-
-```bash
-nen stop --who Kurapika --gate <Gn> [--notified] efforts.md
-```
-
-Verified live: rendered the `YOUR INPUT IS NEEDED` banner, the rung-1/rungs-2-3 notification-status
-lines, and the padded-markdown efforts table from a plain pipe-table input, unchanged
-(`docs/ab/build.md` § 2.11) — plus the board published as an Artifact, ~5 lines of chat, and the
-question — if there is one — through the harness's question interface. The gates this run reaches:
-
-| Gate | When | Ask kind |
+| Gate | When | The ask |
 |---|---|---|
-| **G1** | an epic awaits its mode label (`CON-4`) | `DECIDE` — bankai vs shikai, with the trade-off |
-| **G2 / G4** | the delivery PR is `CON-32`-Ready | `MERGE` — the verdict says everything |
-| **G5** | a stuck local build, or a capability a local session structurally cannot have. A mode tie is `nen/decisions.json` row `mode-unknown` (ask once, seeded options); a missing installable tool is row `missing-tool` and is installed, not asked | `DECIDE` or `DO`, Crazy Slots options with a proposed issue |
+| **G1** | an epic awaits its mode label (row `mode-label`) | `DECIDE`, with the trade-off |
+| **G2/G4** | the delivery PR is `CON-32`-Ready (rows `merge`, `canon-merge`) | `MERGE`, the verdict saying everything |
+| **G5** | a stuck local build, or a capability a local session cannot have | `DECIDE` or `DO`, Crazy Slots options and a proposed issue — a mode tie is row `mode-unknown`, a missing installable tool row `missing-tool`, installed not asked |
 
-The run **ends** when the delivery PR stands Ready at its gate, when the issue closes, or when it
-stops at a G5 it cannot pass. Say which — and say the delegation has lapsed.
+The run **ends** when the delivery PR stands Ready, when the issue closes, or at a G5 it cannot pass:
+say which, and say the delegation has lapsed.
 
-## 9. Resuming
+## 8. Resuming
 
-Resumable **by re-invocation**: `/build <CODE>#<issue>` run again re-reads live state (§ 2's
-`chain-position` call is idempotent — it reads, never writes) and picks up where the objects
-actually are. Write run state to `docs/Loop/<run-id>/` — decisions, every logged label application,
-and (since there is no wake to track any more) every local build session's own progress — so a
-fresh session does not re-derive it, and **never trust it over a fetch**.
+Resumable **by re-invocation**: the same call re-reads live state (§ 2's `chain-position` is
+idempotent) and picks up where the objects are. Write decisions, every logged label application and
+every build session's progress to `docs/Loop/<run-id>/`, and **never trust it over a fetch**.
 
-## 10. Findings against the binary — filed at `v0.1.0`, reconciled against `v0.3.0`
+## 9. Residue
 
-1. **CLOSED — `nen issue chain-position`/`terminus` now refuse a pull-request number** (nen `v0.2.0`
-   #71, closes zheref/nen#25). At the port both answered `routable`/`own-pr` for a real PR
-   (`<reference-repo>#925`) with no signal; now both exit `1` with `{ issue, refused: true, reason }`,
-   and § 1's manual `gh api … --jq '.pull_request'` read is retired.
-2. **UNCHANGED — a `--chain-labels` map missing any role in play is not a partial answer — it is
-   `undecidable`** (exit `1`), and an unknown role name is refused outright (exit `2`). Both
-   verified live at the port (§ 2); `nen issue --help` at `v0.3.0` states the same rule. Supply the
-   full map every time; there is no safe subset.
-3. **CLOSED — `nen epic next-wave`'s checklist parser** (nen `v0.2.0` #65, `v0.3.0` #103). It read only
-   `- [ ] #<N> …` at the port; it now reads a ref anywhere on a checkbox line in four spellings, treats
-   every ref in a `blocked by`/`blocks` clause as an edge, and reports an unresolvable checkbox as
-   `unparsed` rather than dropping it (§ 4, re-verified live). Table-shaped epics remain invisible.
-4. **CLOSED — `nen loop slots` no longer defaults the local plane to `7`** (nen `v0.2.0` #69, closes
-   zheref/nen#52): `--local-cap` is required at exit `2`, verified live (§ 4). This skill's `--local-cap
-   2` is now the only way the verb runs, not a defensive override.
+- **Severity/mode reasoning, § 3's `DECIDE` brief and § 6's G5 diagnosis** stay judgment.
+- **Keeping exactly one stage label on an object at a time** (`CON-9`) is not enforced by
+  `nen label apply`, which applies and logs the one label it was given.
+- **Building a repository that declares no `project` block** runs its own documented commands, said
+  so; writing the declaration is its own change at the declaration gate.
+- **The raw GitHub issue read on the stage-free path** (§ 1) is residue, never a chain verdict, and
+  **`nen issue edit-body`'s whole-body write is not conditional**, so a concurrent change goes to the
+  discovery protocol rather than being claimed as an atomic replacement.
 
-## 11. Residue — what stays this skill's own judgment, or has no verb yet
-
-- **Severity/mode reasoning, the `DECIDE` brief at § 3, and the G5 diagnosis at § 7** stay
-  judgment — `nen` computes and verifies; it never decides what only judgment can (the shared
-  brief's boundary list).
-- **Posting an epic's redrawn body back to GitHub** (§ 4) uses `nen issue edit-body`.
-  Its whole-body write is not conditional; concurrent changes use the common discovery protocol
-  and Nen #205 dependency rather than claiming an atomic replacement.
-- **Keeping exactly one `bankai:stage/*` label on an object at a time** (§ 5, `CON-9`) is not
-  enforced by `nen label apply` itself, which only ever applies and logs the one label it was given.
-- **Building a repository that declares no `project` block** (§ 5) runs that repository's own
-  documented commands, said so; writing the declaration is its own change at the target repository's
-  declaration gate — **G4** in a canon repository, **G2** in a consumer one — not this run's residue to
-  paper over.
-
-## 12. Hard limits
+## 10. Hard limits
 
 - **Never merges `main`**, never merges its own PR, never merges the chore/integration delivery PR.
 - **Never applies a G1 mode label**, and never routes the entry issue without an answer.
 - **Never self-reviews, never impersonates a reviewer, never casts `request_changes`.**
-- **Never exceeds two concurrently-driven efforts** (`nen loop slots --local-cap 2`, § 4), and never
-  lets two children touch one file.
-- **Never claims a CI builder is doing the work.** Hatsu has none — say plainly, every time, that
-  Kurapika builds it himself (§ 5).
-- **Never builds, tests or lints a declared repository from a remembered command line** — `nen shu
-  build`/`test`/`lint` run what the declaration states (§ 5), and a repository that declares nothing is
-  said to declare nothing.
-- **Never runs `nen shu deploy --run`.** A deploy is a G3 act; this run stops at G2/G4.
+- **Never exceeds two concurrently-driven efforts** (`--local-cap 2`), never lets two children touch
+  one file.
+- **Never claims a CI builder is doing the work** — say plainly that Kurapika builds it.
+- **Never builds, tests or lints a declared repository from a remembered command line**, and never
+  manufactures a `--chain-labels` map or a stage label a repository lacks.
+- **Never runs `nen shu deploy --run`** — a deploy is a G3 act; this run stops at G2/G4.
 - **Never publishes a release** — G3 is the maintainer's.
 - **Never leaves the delegation open** — the run says when it ends.

@@ -356,3 +356,33 @@ that correction:
 These are prose-contract regressions. The deterministic readiness result remains Nen's; the distinction
 between an observation and an acting-cycle claim is already enforced by using `nen watch until` and
 `nen loop iterate` as separate verbs.
+
+---
+
+## The reviewer-round policy moved to sharingan — 2026-09-20
+
+Session 2 of the 2026-09-19 hardening audit (`zheref/hatsu#89`, item 8). **En no longer states a
+reviewer-round policy of its own.** [`sharingan`](../../claude/skills/sharingan/SKILL.md) § 5 is
+where it is authored in full; § 2 here cites that section and carries four lines:
+
+- One Copilot round is requested after `hanten` settles, never before.
+- Arrivals are remediated up to `nen/gates.json` → `round_policy.maxRounds`; an owed round inside the
+  max is re-requested on the maintainer's behalf without asking (`nen/decisions.json` row
+  `cap-reached`), and en keeps watching.
+- Never re-request after a push that changed nothing reviewable — `git rev-list --count
+  <reviewed-head>..HEAD` and `git diff --stat <reviewed-head>..HEAD` first; zero reviewable change
+  means no request.
+- Copilot auto-reviews every push, so the cap governs **requests, not arrivals**; an arrival past the
+  cap is still remediated and its threads settled.
+
+**Why it is worth recording as a change and not a tidy-up.** The old paragraph was a second statement
+of the same rule, and the two numbers it stood beside are easy to conflate: `round_policy.maxRounds`
+in `nen/gates.json` bounds **reviewer-round requests**, while `monitor.maxCycles` in
+`nen/workflow.json` bounds **en's acting cycles**. That sentence stays in § 2, because it is the one
+distinction this file genuinely owns. § 4's pointer at sharingan now names the `maxRounds` request cap
+and the `nen pr threads` hygiene alongside the first-blocking-condition order and the confirmation
+pass, so a reader following it lands on the whole policy rather than half of it.
+
+**Unchanged:** the cap is grammar rather than a default; a quiet observation claims no cycle; the bell
+rings once, at Ready; en never merges and never casts a review vote; and Third-Hand is not started
+from inside this run.

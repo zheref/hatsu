@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{title}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Newsreader:wght@500;600&display=swap">
+<style>
+/* THE SHARED TOKEN SHEET -- copied verbatim into templates/rikugan.html and
+   templates/spiritual-message.html. Two pages, one visual language; no external
+   stylesheet, because a report must render off a thumb drive. The Google Fonts
+   link above is the one network wish: every family falls back to a system face.
+
+   Red is reserved for needs-you. Nothing else on either page is red. */
+:root{
+  color-scheme:light dark;
+  --ground:#F0EFEA;--surface:#FAFAF8;--ink:#16181D;--muted:#5C5F66;--rule:#D9D6CE;
+  --indigo:#23408E;--shu:#B93A25;--ok:#2C6349;--warn:#96601A;--tint:#E7E4DB;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --serif:"Newsreader",Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#15161A;--surface:#1D1F24;--ink:#ECEAE3;--muted:#A6A39B;--rule:#33363D;
+  --indigo:#8FA6E6;--shu:#E0745E;--ok:#7BB79A;--warn:#D6A55A;--tint:#262930;}}
+:root[data-theme="dark"]{
+  --ground:#15161A;--surface:#1D1F24;--ink:#ECEAE3;--muted:#A6A39B;--rule:#33363D;
+  --indigo:#8FA6E6;--shu:#E0745E;--ok:#7BB79A;--warn:#D6A55A;--tint:#262930;}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;margin:0;padding-block:0 64px;padding-inline:clamp(16px,4vw,40px);font-variant-numeric:tabular-nums}
+.page{max-width:62rem;margin:0 auto}
+a{color:var(--indigo);text-decoration:none;border-bottom:1px solid transparent}
+a:hover,a:focus-visible{border-bottom-color:currentColor;outline:none}
+img{max-width:100%;height:auto;display:block}
+code,kbd,pre,samp{font-family:var(--mono)}
+code{font-size:.88em;background:var(--tint);padding:.05em .3em;border-radius:3px}
+pre{font-size:.82rem;line-height:1.5;background:var(--surface);border:1px solid var(--rule);padding:14px 16px;overflow-x:auto;white-space:pre-wrap;word-break:break-word;margin:10px 0}
+h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(1.9rem,5vw,2.8rem);letter-spacing:-.01em;overflow-wrap:anywhere}
+h2{font-size:1.6rem;margin-top:52px;padding-top:16px;border-top:3px solid var(--ink)}
+h3{font-size:1.1rem;margin-top:26px;font-family:var(--sans);font-weight:600}
+h4{font-size:.95rem;margin:18px 0 6px;font-family:var(--sans);font-weight:600}
+p{margin:.8em 0;max-width:74ch}
+ul,ol{max-width:78ch;padding-left:1.3em}
+li{margin:.35em 0}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--mono)}
+.muted{color:var(--muted)}
+
+/* masthead: the 3px ink rule, the identity line, the theme switch */
+.mast{border-bottom:3px solid var(--ink);padding-block:28px 18px;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
+.mast .meta{font-family:var(--mono);font-size:.76rem;color:var(--muted);margin-top:8px;overflow-wrap:anywhere}
+.toggle{display:inline-flex;border:1px solid var(--rule);border-radius:999px;overflow:hidden;font-family:var(--mono);font-size:.75rem}
+.toggle button{background:var(--surface);color:var(--ink);border:0;padding:6px 12px;cursor:pointer;font:inherit}
+.toggle button[aria-pressed="true"]{background:var(--ink);color:var(--ground)}
+.toggle button:focus-visible{outline:2px solid var(--indigo);outline-offset:-2px}
+
+/* tally: counted cells, red only where you are owed something */
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:22px 0}
+.tally div{background:var(--surface);border:1px solid var(--rule);padding:12px 14px}
+.tally b{display:block;font-family:var(--serif);font-size:1.9rem;line-height:1;font-weight:600}
+.tally b.hot{color:var(--shu)}
+.tally b.cool{color:var(--indigo)}
+.tally b.good{color:var(--ok)}
+.tally span{font-size:.8rem;color:var(--muted)}
+
+/* the desk: red-left-border ask cards, lettered options, a starred pick */
+.ask{border-left:4px solid var(--shu);background:var(--surface);padding:14px 18px;margin:16px 0;max-width:84ch}
+.ask>h3{margin-top:0}
+.ask .k{font-family:var(--mono);font-size:.72rem;color:var(--shu);letter-spacing:.12em;text-transform:uppercase;font-weight:700}
+.ask .why{margin:.4em 0 .2em}
+.opts{list-style:none;padding:0;margin:12px 0 4px;max-width:none}
+.opts li{display:flex;gap:10px;align-items:baseline;border-top:1px solid var(--rule);padding:8px 0;margin:0}
+.opts li:last-child{border-bottom:1px solid var(--rule)}
+.opts .letter{font-family:var(--mono);font-weight:700;color:var(--ink);min-width:1.6em}
+.opts .starred .letter{color:var(--shu)}
+.opts .lab{font-weight:600}
+.opts .cons{display:block;color:var(--muted);font-size:.86rem}
+.opts code{display:inline-block;margin-top:3px}
+.verdict{border:1px solid var(--rule);background:var(--tint);padding:8px 12px;margin:12px 0 0;font-family:var(--mono);font-size:.8rem;overflow-wrap:anywhere}
+.verdict b{color:var(--ink)}
+.objs{font-family:var(--mono);font-size:.78rem;margin:10px 0 0}
+.objs a{margin-right:12px;white-space:nowrap}
+.cleared{border:1px dashed var(--rule);background:var(--surface);padding:10px 16px;margin:14px 0;max-width:84ch;color:var(--muted)}
+.cleared b{color:var(--ok);font-family:var(--mono);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase}
+.gate-group{margin-top:22px}
+.gate-group>.eyebrow{display:block;margin-bottom:2px}
+
+/* chips and pills */
+.pill{display:inline-block;font-family:var(--mono);font-size:.7rem;padding:1px 7px;border:1px solid var(--rule);border-radius:999px;color:var(--muted);white-space:nowrap}
+.pill.red{color:var(--shu);border-color:var(--shu)}
+.pill.ok{color:var(--ok);border-color:var(--ok)}
+.pill.warn{color:var(--warn);border-color:var(--warn)}
+.pill.info{color:var(--indigo);border-color:var(--indigo)}
+
+/* tables, details, notes */
+.wrap{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;width:100%;font-size:.86rem;background:var(--surface)}
+th,td{border:1px solid var(--rule);padding:8px 10px;text-align:left;vertical-align:top}
+th{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--tint)}
+details{border:1px solid var(--rule);background:var(--surface);padding:8px 14px;margin:10px 0}
+summary{cursor:pointer;font-weight:500}
+summary:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+.note{border-left:4px solid var(--indigo);background:var(--surface);padding:10px 16px;margin:14px 0;max-width:84ch}
+.stack{list-style:none;padding:0;margin:12px 0;max-width:84ch}
+.stack li{border-left:3px solid var(--rule);background:var(--surface);padding:8px 14px;margin:8px 0}
+.stack .why{display:block;color:var(--muted);font-size:.88rem;margin-top:2px}
+.stack li.good{border-left-color:var(--ok)}
+.stack li.hard{border-left-color:var(--warn)}
+.stack li.gap{border-left-color:var(--shu)}
+
+/* register: one collapsible row per object */
+.reg{margin:14px 0}
+.reg details{padding:0;margin:0 0 -1px}
+.reg summary{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;padding:10px 14px;font-weight:400}
+.reg summary .no{font-family:var(--mono);font-weight:600;white-space:nowrap}
+.reg summary .ti{flex:1 1 16ch;min-width:0;overflow-wrap:anywhere}
+.reg .body{border-top:1px solid var(--rule);padding:10px 14px;background:var(--ground)}
+.reg dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;margin:0;font-size:.88rem}
+.reg dt{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:3px}
+.reg dd{margin:0;overflow-wrap:anywhere}
+
+/* duration bars */
+.bars{list-style:none;padding:0;margin:12px 0;max-width:60ch}
+.bars li{display:grid;grid-template-columns:minmax(8ch,14ch) minmax(0,1fr) auto;gap:10px;align-items:center;margin:6px 0;font-size:.85rem}
+.bars .lane{font-family:var(--mono);font-size:.76rem;color:var(--muted);overflow-wrap:anywhere}
+.bars .track{background:var(--tint);border:1px solid var(--rule);height:14px;position:relative}
+.bars .track i{position:absolute;inset:0 auto 0 0;width:calc(var(--pct) * 1%);background:var(--indigo);display:block}
+.bars .amt{font-family:var(--mono);font-size:.76rem;white-space:nowrap}
+
+/* the drawn delta */
+.canvas{background:var(--surface);border:1px solid var(--rule);padding:8px;margin:14px 0;overflow-x:auto;min-height:60px}
+.canvas svg{display:block;max-width:100%;height:auto}
+@media (max-width:700px){.canvas svg{max-width:none}}
+.canvas .fallback{margin:6px 10px;color:var(--muted);font-size:.86rem}
+.glegend{font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:6px 0 0}
+.glegend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.glegend .a{background:var(--ok)}.glegend .c{background:var(--indigo)}
+.glegend .r{background:var(--shu)}.glegend .u{background:var(--muted)}
+
+.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:14px 0}
+.shots figure{margin:0;border:1px solid var(--rule);background:var(--surface);padding:8px}
+.shots figcaption{font-size:.8rem;color:var(--muted);margin-top:6px}
+
+.foot{margin-top:56px;padding-top:14px;border-top:1px solid var(--rule);font-family:var(--mono);font-size:.74rem;color:var(--muted);overflow-wrap:anywhere}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+@media (max-width:560px){
+  .reg summary{gap:6px}
+  .bars li{grid-template-columns:minmax(0,1fr) auto;row-gap:2px}
+  .bars .lane{grid-column:1 / -1}
+}
+@media print{.toggle{display:none}details{open:open}}
+</style>
+</head>
+<body>
+<div class="page">
+<!--
+  spiritual-message.html -- the desk and the register, across a batch.
+
+  RIKUGAN REPORTS ONE EFFORT'S TURN; THIS REPORTS A SET. A repository batch, an
+  epic across its children, a chore across its pull requests, a severity band
+  mid-run -- anything whose shape is "here is every object and here is what you
+  personally owe". It is Hatsu's counterpart of Ichigo's gate board, and it is
+  what `backlog-board`, `futon`, `backlog-loop` and the dated final report render
+  (variants `register` and `final` in nen/workflow.json).
+
+  Its rules come from that board: the tally first, then YOUR DESK -- asks grouped
+  by gate and ranked by unblocking power, every one opening with DECIDE, DO or
+  MERGE, options lettered with a star on the recommendation, cleared gates SHOWN
+  cleared rather than omitted -- and only then the register. The page briefs; the
+  surface's own option picker asks.
+
+  Which blocks render is `reports.sections.<variant>.blocks`, injected by
+  `nen report render --variant`. Every value is model-written or copied verbatim
+  from a Nen verb; the template decides nothing but the shape.
+
+  NOTHING IN THIS COMMENT SPELLS A SUBSTITUTION TAG -- the renderer substitutes
+  over the whole file, comments included. The language is in
+  claude/skills/rikugan/SKILL.md, section 4; the row shape is
+  `nen report data --backlog`'s `objects[]` plus the prose keys named in
+  claude/skills/backlog-board/SKILL.md.
+
+  ESCAPING: every value is escaped by the renderer. The raw opt-out appears
+  EXACTLY ONCE, on the graph document inside the JSON script tag. The data-URI
+  and percentage validations stay the caller's.
+-->
+{{#if sections.masthead}}
+<header class="mast">
+  <div>
+    <div class="eyebrow">Hatsu &middot; spiritual message &middot; {{variant}}</div>
+    <h1>{{title}}</h1>
+    <div class="meta">{{scope}} &middot; {{gate}} &middot; {{generatedAt}}</div>
+  </div>
+  <div class="toggle" role="group" aria-label="Theme">
+    <button type="button" id="t-light" aria-pressed="false">light</button>
+    <button type="button" id="t-system" aria-pressed="true">system</button>
+    <button type="button" id="t-dark" aria-pressed="false">dark</button>
+  </div>
+</header>
+{{/if}}
+{{#if sections.tally}}
+<section class="tally" aria-label="At a glance">
+  <div><b>{{tallyScope}}</b><span>in scope</span></div>
+  <div><b class="hot">{{tallyNeedsYou}}</b><span>need you</span></div>
+  <div><b class="hot">{{tallyBlockers}}</b><span>blockers</span></div>
+  <div><b class="good">{{tallyReady}}</b><span>ready</span></div>
+  <div><b class="cool">{{tallyInFlight}}</b><span>in flight</span></div>
+</section>
+{{/if}}
+{{#if sections.desk}}
+<section id="desk">
+<h2>Your desk</h2>
+<p class="muted">Grouped by gate, then ranked by how much each answer unblocks. A gate with nothing owed is shown cleared, not hidden.</p>
+{{#each gates}}
+<div class="gate-group">
+  <span class="eyebrow">{{gate}} &middot; {{label}}</span>
+  {{#each asks}}
+  <div class="ask">
+    <div class="k">{{kind}} &middot; rank {{rank}}</div>
+    <h3>{{title}}</h3>
+    <p class="why">{{why}}</p>
+    <ol class="opts">
+      {{#each options}}
+      <li class="{{starredClass}}"><span class="letter">{{letter}}</span><span><span class="lab">{{label}}</span>{{star}}
+        <span class="cons">{{consequence}}</span>
+        <code>{{command}}</code></span></li>
+      {{/each}}
+    </ol>
+    {{#if objects}}<p class="objs">{{#each objects}}<a href="{{url}}">{{label}}</a>{{/each}}</p>{{/if}}
+    {{#if verdict}}<p class="verdict"><b>Readiness, verbatim:</b> &ldquo;{{verdict}}&rdquo;</p>{{/if}}
+  </div>
+  {{/each}}
+  {{#if cleared}}<p class="cleared"><b>cleared</b><br>{{cleared}}</p>{{/if}}
+</div>
+{{/each}}
+</section>
+{{/if}}
+{{#if sections.register}}
+<section id="register">
+<h2>The register</h2>
+<p class="muted">One row per issue and pull request in scope. Open a row for its gate, its verdict and what it is waiting on.</p>
+<div class="reg">
+  {{#each objects}}
+  <details>
+    <summary>
+      <span class="no">{{notation}}</span>
+      <span class="ti">{{title}}</span>
+      <span class="mono muted">{{marks}}</span>
+      <span class="pill {{gateClass}}">{{gate}}</span>
+    </summary>
+    <div class="body">
+      <dl>
+        <dt>State</dt><dd>{{state}} &middot; {{labelsLine}}</dd>
+        <dt>Verdict</dt><dd>{{verdict}}</dd>
+        <dt>Checks</dt><dd>{{checksLine}}</dd>
+        <dt>Threads</dt><dd>{{threadsLine}}</dd>
+        <dt>Linked</dt><dd>{{linkedLine}}</dd>
+        <dt>Needs</dt><dd>{{needs}}</dd>
+        <dt>Driving</dt><dd>{{session}} &middot; lane {{lane}}</dd>
+        <dt>Head</dt><dd class="mono">{{head}}</dd>
+        <dt>Thought</dt><dd>{{thought}}</dd>
+        <dt>Link</dt><dd><a href="{{url}}">{{url}}</a></dd>
+      </dl>
+    </div>
+  </details>
+  {{/each}}
+</div>
+{{#if graphNodes}}
+<h3>{{architectureCaption}}</h3>
+  <div class="canvas" id="graph-canvas" data-state="pending">
+    <p class="fallback">Laying the graph out&hellip;</p>
+  </div>
+  <p class="glegend"><i class="a"></i>added &nbsp; <i class="c"></i>changed &nbsp; <i class="r"></i>removed &nbsp; <i class="u"></i>unchanged &nbsp; &middot; dashed edge = removed</p>
+  <script type="application/json" id="graph">{{{graphJson}}}</script>
+  <details>
+    <summary>The same delta as text &mdash; nodes and edges</summary>
+    <div class="wrap"><table>
+      <caption class="eyebrow" style="text-align:left;padding:6px 0">Nodes</caption>
+      <tr><th>Node</th><th>Kind</th><th>Change</th></tr>
+      {{#each graphNodes}}<tr><td>{{label}}</td><td class="mono">{{kind}}</td><td><span class="pill">{{change}}</span></td></tr>
+      {{/each}}
+    </table></div>
+    <div class="wrap"><table>
+      <caption class="eyebrow" style="text-align:left;padding:6px 0">Edges</caption>
+      <tr><th>From</th><th>Relation</th><th>To</th><th>Change</th></tr>
+      {{#each graphEdges}}<tr><td class="mono">{{from}}</td><td class="mono">{{rel}}</td><td class="mono">{{to}}</td><td><span class="pill">{{change}}</span></td></tr>
+      {{/each}}
+    </table></div>
+  </details>
+{{/if}}
+</section>
+{{/if}}
+{{#if sections.spend}}
+<section id="spend">
+<h2>Spend</h2>
+{{#each spendEfforts}}
+<h3>{{name}}</h3>
+{{#if phases}}
+<ul class="bars">
+  {{#each phases}}
+  <li><span class="lane">{{lane}}</span><span class="track"><i style="--pct:{{percent}}"></i></span><span class="amt">{{amount}}</span></li>
+  {{/each}}
+</ul>
+{{/if}}
+{{#if note}}<p class="muted">{{note}}</p>{{/if}}
+<p class="muted">Usage: {{usage}}</p>
+{{/each}}
+</section>
+{{/if}}
+{{#if sections.legend}}
+<section id="legend">
+<h2>Legend</h2>
+<div class="wrap"><table>
+  <tr><th>Mark</th><th>Means</th></tr>
+  {{#each legendRows}}<tr><td class="mono">{{mark}}</td><td>{{meaning}}</td></tr>
+  {{/each}}
+</table></div>
+</section>
+{{/if}}
+<p class="foot">{{footerCount}}<br>{{scope}} &middot; {{variant}} &middot; {{generatedAt}}<br>{{footerNote}}</p>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js" integrity="sha384-2IH3T69EIKYC4c+RXZifZRvaH5SRUdacJW7j6HtE5rQbvLhKKdawxq6vpIzJ7j9M" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+/* THE SHARED RENDERER -- identical text in templates/rikugan.html and
+   templates/spiritual-message.html. Two jobs, in order: the three-state theme
+   switch, and the drawn graph.
+
+   The graph is laid out at view time from the nodes-and-edges JSON in the page,
+   not shipped as hand-built SVG: the document stays a few hundred bytes and the
+   visual language (colour by change, struck removals, dashed removed edges) is
+   decided here rather than by whoever wrote the report. dagre is pinned at
+   0.8.5 with a subresource-integrity hash, so a swapped file does not execute.
+   When the script cannot load, the details list below the canvas IS the delta --
+   it is always in the page, never generated. */
+(function(){
+  var root=document.documentElement;
+  var ids={light:'t-light',system:'t-system',dark:'t-dark'};
+  function apply(mode){
+    if(mode==='system'){root.removeAttribute('data-theme');}else{root.setAttribute('data-theme',mode);}
+    Object.keys(ids).forEach(function(k){
+      var b=document.getElementById(ids[k]);
+      if(b)b.setAttribute('aria-pressed',String(k===mode));
+    });
+    try{localStorage.setItem('hatsu-report-theme',mode);}catch(e){}
+  }
+  var saved='system';
+  try{saved=localStorage.getItem('hatsu-report-theme')||'system';}catch(e){}
+  apply(saved);
+  Object.keys(ids).forEach(function(k){
+    var b=document.getElementById(ids[k]);
+    if(b)b.addEventListener('click',function(){apply(k);});
+  });
+})();
+(function(){
+  var root=document.documentElement;
+  var host=document.getElementById('graph-canvas');
+  var src=document.getElementById('graph');
+  if(!host||!src)return;
+  var doc=null;
+  try{doc=JSON.parse(src.textContent||'null');}catch(e){doc=null;}
+  if(!doc||!doc.nodes||!doc.nodes.length){
+    host.setAttribute('data-state','empty');
+    host.innerHTML='<p class="fallback">No graph document was supplied for this report.</p>';
+    return;
+  }
+  if(typeof dagre==='undefined'||!dagre.graphlib){
+    host.setAttribute('data-state','blocked');
+    host.innerHTML='<p class="fallback">The layout library did not load, so nothing is drawn. The node and edge list below is the whole delta.</p>';
+    return;
+  }
+  var CHANGES={added:1,changed:1,removed:1,unchanged:1};
+  function norm(c){return CHANGES[c]?c:'unchanged';}
+  function esc(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function palette(){
+    var s=getComputedStyle(root);
+    function v(n){return (s.getPropertyValue(n)||'').trim()||'#888';}
+    return {
+      added:v('--ok'),changed:v('--indigo'),removed:v('--shu'),unchanged:v('--muted'),
+      surface:v('--surface'),ink:v('--ink'),muted:v('--muted')
+    };
+  }
+  function draw(){
+    var c=palette();
+    var g=new dagre.graphlib.Graph({multigraph:true});
+    g.setGraph({rankdir:'LR',nodesep:24,ranksep:58,marginx:16,marginy:16});
+    g.setDefaultEdgeLabel(function(){return {};});
+    doc.nodes.forEach(function(n){
+      var label=String(n.label||n.id||'');
+      g.setNode(String(n.id),{
+        width:Math.max(96,Math.round(label.length*7.4)+30),height:38,
+        label:label,kind:String(n.kind||''),change:norm(n.change)
+      });
+    });
+    var seq=0;
+    (doc.edges||[]).forEach(function(e){
+      var a=String(e.from),b=String(e.to);
+      if(!g.hasNode(a)||!g.hasNode(b))return;
+      var rel=String(e.rel||'');
+      g.setEdge(a,b,{
+        rel:rel,change:norm(e.change),labelpos:'c',
+        width:Math.max(0,rel.length*6),height:rel?14:0
+      },'e'+(seq++));
+    });
+    dagre.layout(g);
+    var box=g.graph();
+    var W=Math.max(40,Math.ceil(box.width||40)),H=Math.max(40,Math.ceil(box.height||40));
+    var out=[];
+    out.push('<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Architecture delta, drawn from the graph document below.">');
+    out.push('<defs>');
+    Object.keys(CHANGES).forEach(function(k){
+      out.push('<marker id="ar-'+k+'" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="'+c[k]+'"/></marker>');
+    });
+    out.push('</defs>');
+    g.edges().forEach(function(k){
+      var e=g.edge(k),pts=e.points||[];
+      if(pts.length<2)return;
+      var d='M'+pts[0].x.toFixed(1)+','+pts[0].y.toFixed(1);
+      for(var i=1;i<pts.length;i++)d+=' L'+pts[i].x.toFixed(1)+','+pts[i].y.toFixed(1);
+      out.push('<path d="'+d+'" fill="none" stroke="'+c[e.change]+'" stroke-width="1.6"'+
+        (e.change==='removed'?' stroke-dasharray="5 4"':'')+' marker-end="url(#ar-'+e.change+')"/>');
+      if(e.rel&&typeof e.x==='number'){
+        out.push('<text x="'+e.x.toFixed(1)+'" y="'+(e.y-5).toFixed(1)+'" text-anchor="middle" font-size="10" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" fill="'+c.muted+'">'+esc(e.rel)+'</text>');
+      }
+    });
+    g.nodes().forEach(function(id){
+      var n=g.node(id),col=c[n.change];
+      var x=(n.x-n.width/2).toFixed(1),y=(n.y-n.height/2).toFixed(1);
+      out.push('<g>');
+      out.push('<title>'+esc(n.label)+(n.kind?' · '+esc(n.kind):'')+' · '+n.change+'</title>');
+      out.push('<rect x="'+x+'" y="'+y+'" width="'+n.width+'" height="'+n.height+'" rx="5" fill="'+c.surface+'" stroke="'+col+'" stroke-width="'+(n.change==='unchanged'?1:2)+'"/>');
+      out.push('<text x="'+n.x.toFixed(1)+'" y="'+(n.y+4.5).toFixed(1)+'" text-anchor="middle" font-size="12.5" font-family="inherit" fill="'+c.ink+'"'+
+        (n.change==='removed'?' text-decoration="line-through"':'')+'>'+esc(n.label)+'</text>');
+      out.push('</g>');
+    });
+    out.push('</svg>');
+    host.innerHTML=out.join('');
+    host.setAttribute('data-state','drawn');
+  }
+  try{draw();}catch(err){
+    host.setAttribute('data-state','failed');
+    host.innerHTML='<p class="fallback">The layout failed ('+String(err&&err.message||err)+'). The node and edge list below is the whole delta.</p>';
+    return;
+  }
+  if(typeof MutationObserver!=='undefined'){
+    new MutationObserver(function(){try{draw();}catch(e){}}).observe(root,{attributes:true,attributeFilter:['data-theme']});
+  }
+  if(window.matchMedia){
+    var mq=window.matchMedia('(prefers-color-scheme: dark)');
+    if(mq.addEventListener)mq.addEventListener('change',function(){try{draw();}catch(e){}});
+  }
+})();
+</script>
+</body>
+</html>

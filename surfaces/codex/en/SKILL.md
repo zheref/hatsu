@@ -160,10 +160,21 @@ inherited-and-forgotten default is dangerous in.
 
 **The cap is a ceiling, not a target.** Reaching it is a failure to reach Ready and is reported as one:
 what is still not true, and what the next cycle would have done. `izanagi` § 4's rule, unchanged.
-**A reviewer round owed inside the configured maximum is requested on the maintainer's behalf, every
-time, without asking** (ruling 2026-09-19, `nen/decisions.json` row `cap-reached`): `nen pr
-request-reviews --add-bots <reviewer>`, then keep watching. Past the maximum the run ends at not-ready
-with the board. Neither is a G5. **The maximum is `nen/gates.json` → `round_policy.maxRounds`** (Hatsu's own key beside nen's `stallMinutes`); `nen/workflow.json` → `monitor.maxCycles` is en's acting-cycle cap, a different number.
+**The reviewer-round policy is [`$sharingan`](../sharingan/SKILL.md) § 5's, written there in
+full and carried here in four lines:**
+
+- **One Copilot round is requested after [`$hanten`](../hanten/SKILL.md) settles, never before.**
+- **Arrivals are remediated up to `nen/gates.json` → `round_policy.maxRounds`; an owed round inside
+  the max is re-requested on the maintainer's behalf without asking** (ruling 2026-09-19,
+  `nen/decisions.json` row `cap-reached`), then en keeps watching.
+- **Never re-request after a push that changed nothing reviewable** — count commits ahead and the
+  diff since the last reviewed head first (`git rev-list --count <reviewed-head>..HEAD`,
+  `git diff --stat <reviewed-head>..HEAD`); zero reviewable change means no request.
+- **Copilot auto-reviews every push, so the cap governs requests, not arrivals**; an arrival past the
+  cap is still remediated and its threads settled.
+
+Past the maximum the run ends at not-ready with the board. Neither is a G5. `nen/workflow.json` →
+`monitor.maxCycles` is en's acting-cycle cap, a different number.
 
 ## 3. The run, in order
 
@@ -207,7 +218,8 @@ stale tree to readiness. That is the same owner map [`$sharingan`](../sharingan/
 
 Steps 2 and 4 are [`$sharingan`](../sharingan/SKILL.md)'s whole engine, not a substitute for
 it, and **this file restates none of its protocol** — the first-blocking-condition order, the
-channel decided by who authored the PR, the escalation ladder, the two-round cap and completed-round prerequisite, the
+channel decided by who authored the PR, the escalation ladder, the `round_policy.maxRounds` request
+cap and the completed-round prerequisite, the thread hygiene run through `nen pr threads`, the
 one-directional confirmation pass that may only veto. Read it there.
 
 Two things en relies on and does not re-derive:

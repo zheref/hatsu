@@ -482,3 +482,66 @@ and `evidenceUnavailable` names why. The page still states expected versus actua
 **Jutaisho.** A G5 stop whose rendered HTML lacks `#g5-blocker` (or lacks expected/actual) is not
 handed off. Re-render with `blocker` filled, then link.
 
+
+---
+
+## 2026-09-20 — the rebuilt template, verified live (zheref/hatsu#89)
+
+`templates/rikugan.html` was rebuilt on the shared Ichigo-board token sheet with every block wrapped
+in a `sections.<block>` presence flag. `nen report render --variant` and `--graph` did not exist on
+the nen branch when this ran, so the data document was written by hand with the same `sections.*`
+flags, `graphJson`, `graphMermaid`, `graphNodes[]` and `graphEdges[]` the flags will inject — the
+fill is identical — and the plain v0.11 verb did the render.
+
+Dev binary: `/Users/zheref/Code/CLIs/nen/.claude/worktrees/reports-reviewers` at `0628ad6`
+(`v0.11.0`), run as `bun src/index.ts …`.
+
+```
+$ bun src/index.ts report render \
+    --template <hatsu>/templates/rikugan.html \
+    --data <scratch>/sample-landing.json \
+    --out Reports/samples/rikugan-landing.html \
+    --repo /Users/zheref/Code/Agents/hatsu/.claude/worktrees/quirky-chatterjee-88d5f6
+… 104 tokens listed …
+wrote Reports/samples/rikugan-landing.html                                    exit 0
+```
+
+33,210 bytes written, `grep -c '{{'` = **0**. The sample is left at
+`Reports/samples/rikugan-landing.html` (git-ignored).
+
+**Observed in the built-in browser**, light and dark, 1024px and 375px:
+
+- The desk sits **directly under the tally**, above the fold at both widths — the ask card, its
+  three lettered options with one ⭐, the object links and the `G4 readiness, verbatim: "ready"`
+  block are all visible without scrolling past the maintainer's own request.
+- The delta **draws**: `data-state="drawn"`, `viewBox="0 0 932 208"`, 8 node rects and 8 arrowed
+  edges. Stroke colours read back exactly as the change class says — `#23408E` for every `changed`
+  node, `#2C6349` for `added`, `#B93A25` for the `removed` node, which also renders
+  `text-decoration="line-through"` with its incoming edge dashed.
+- Switching the masthead toggle to `dark` repaints the page **and re-draws the graph** through the
+  `MutationObserver` on `data-theme`; the redrawn SVG picks up the dark tokens.
+- **Fallback proven by breaking the script.** A copy of the rendered page with the dagre `src`
+  pointed at a non-existent file reports `typeof dagre === "undefined"`, `data-state="blocked"`, the
+  sentence *"The layout library did not load, so nothing is drawn. The node and edge list below is
+  the whole delta."*, and the `<details>` list still carries all 18 rows (8 nodes + 8 edges + 2
+  header rows). The list is in the page, never generated.
+- Phone width (375px): `document.documentElement.scrollWidth === window.innerWidth === 375` — no
+  horizontal page scroll. Tables scroll inside their own wrappers; the duration bars restack to two
+  columns; the graph keeps its natural width and scrolls inside `.canvas` rather than shrinking to
+  illegibility (`@media (max-width:700px){.canvas svg{max-width:none}}`).
+
+**SRI.** `dagre` 0.8.5 was fetched from cdnjs (283,803 bytes) and hashed on this machine:
+
+```
+$ openssl dgst -sha384 -binary dagre.min.js | openssl base64 -A
+2IH3T69EIKYC4c+RXZifZRvaH5SRUdacJW7j6HtE5rQbvLhKKdawxq6vpIzJ7j9M
+```
+
+The page pins `integrity="sha384-2IH3T69EIKYC4c+RXZifZRvaH5SRUdacJW7j6HtE5rQbvLhKKdawxq6vpIzJ7j9M"`
+and the browser loaded and executed it, which is the hash matching.
+
+**One sharp edge for the nen half.** `nen report render`'s `{{#if}}` resolves its key *before*
+testing it, so a `sections` object that omits an undeclared block makes `{{#if sections.landed}}` an
+**unknown token at exit 2**, not a false. Either inject every block name with `false` for the ones
+the variant does not declare, or make a missing later segment of a claimed dotted path falsey. The
+hand-built sample documents carry all thirteen block keys for exactly this reason.

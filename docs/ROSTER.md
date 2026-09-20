@@ -49,8 +49,10 @@ workspace branch isolation (`Workspace: "branch"`).
 
 ## The independents
 
-**Eight definitions stand in `claude/agents/` beside Kurapika's: seven ratified, and one — Illumi —
-*provisioned* rather than ratified, marked as such in its own row and in its own file.** Each carries a
+**Ten definitions stand in `claude/agents/` beside Kurapika's: nine ratified, and one — Illumi —
+*provisioned* rather than ratified, marked as such in its own row and in its own file.** Every reviewer
+among them reads one shared preamble first, [`claude/agents/_review-preamble.md`](../claude/agents/_review-preamble.md),
+which is not itself an agent. Each carries a
 discipline Kurapika delegates to rather than absorbing. Three of them landed at **`v0.5.0`**, with
 [`hanten`](../claude/skills/hanten/SKILL.md): Feitan and Chrollo on the ruling of 2026-09-09 below, Illumi on
 the provision. **Netero landed at `v0.25.0`** on the ruling of 2026-09-14. On Antigravity, they are provisioned as subagents (`agents/<persona>.md`) and unified rules
@@ -66,6 +68,8 @@ the provision. **Netero landed at `v0.25.0`** on the ruling of 2026-09-14. On An
 | **Chrollo** | `claude/agents/chrollo.md` | **Architecture and handbook conformance.** The `UZF-{n}` core, **exactly one** resolved stack handbook (`SW-`/`KT-`/`RC-`/`BC-`), and a repository's own architecture notes — KroApple's `.claude/Architecture/` is the live example — each cited by id or by path. He is the architecture reviewer the QA lane routes a coverage-floor breach or a missing unit test to (`UZF-19`). **He reviews the handbooks; he never authors them.** | **Ratified** on the ruling of 2026-09-09 below; **definition landed at `v0.5.0`** |
 | **Illumi** | `claude/agents/illumi.md` | **The long watch — `en`'s step 5, and no other loop.** Read-only observation through `nen watch until`, under `izanagi`'s mandatory cap and `workflow.json` → `monitor`. He wakes Kurapika and acts on nothing: never merges, votes, comments, labels, pushes, or fires a wake. His frontmatter carries no `Edit`, `Write` or `MultiEdit` — **but `Bash` is there, because every observation is a program, so read-only is a stated command allowlist in his own definition and not a property of the tool set.** Said that way rather than dressed up as a construction, per ruling 2's own standard. | **PROVISIONED, NOT RATIFIED** — `OPEN-1`, **partially** closed 2026-09-09. The definition landed at `v0.5.0` so the provision can be executed; **it widens nothing**. See below |
 | **Netero** | `claude/agents/netero.md` | **Process chairman.** Observes Hunters in execution and files complete, labelled issues when constitution, canon prose, or machinery need enhancement — duration, redundancy, autonomy gaps, repetitive jobs that should be Nen verbs, missing toolchain. The named wrap-up is [`hatsu:third-hand`](../claude/skills/third-hand/SKILL.md): after En completes he proposes 0–3 folded issues, the maintainer picks, he files those. He files; he never implements the filed work. | **Ratified** 2026-09-14; definition landed at `v0.25.0`; Third-Hand at `v0.27.0`, phase split `v0.28.0` |
+| **Nobunaga** | `claude/agents/nobunaga.md` | **Code practices, scope completeness and adversarial reading** — the general code reviewer, **Sasuke's local counterpart**. The `code` scope claims every path, so `hanten` raises him on every change set: acceptance criteria against the issue, tests for changed behaviour at `UZF-18`'s minimums, error handling and exit-code discipline, shell quoting and portability against the declared hosts, docs and cross-references current, counts agreeing with their lists, mirrors regenerated, the CHANGELOG fragment and PR body sections present, nothing improvised that a Nen verb owns, and one holistic pass on a delivery PR. **Two reviews per session and repository; deep on a process repository, fast on a product one.** | **Ratified** on the ruling of 2026-09-19 below; **definition landed at `v0.42.0`** |
+| **Shalnark** | `claude/agents/shalnark.md` | **Post-merge UI validation, optional.** After a delivery merges he drives every behaviour of the delivered feature against the **original specification's** acceptance criteria — the issue's list and the PR's *How to verify* — with the UI tooling `hatsu:bankai-quality` resolves, and reports **pass / fail / not-testable with evidence per criterion**. **Ephemeral by default**, persistent only where the repository declares `tests.uiValidation`. He files findings through the caller and **fixes nothing**. **Reachable only through [`hatsu:black-voice`](../claude/skills/black-voice/SKILL.md)** — never automatic, never from a composite. He is **not** offensive QA | **Ratified** on the ruling of 2026-09-19 below; **definition landed at `v0.42.0`** |
 
 ### ⚠️ Gon's delegation grammar is a DRAFT — **until it is ratified, Gon crosses no gate**
 
@@ -87,9 +91,10 @@ ratified the draft by itself.
 something that was previously open or unstated; each names what it does **not** close. Everything not listed
 below is unchanged — **with one exception, and it is ruling 4's**: the BENCH section is **no longer bench
 only**. Two of its seven profiles, **Chrollo** and **Feitan**, are activated by that ruling — **their definitions
-landed at `v0.5.0` and both have moved up into § *The independents***; **five remain benched** — Machi, Shalnark,
-Kortopi, Pakunoda and Shizuku. `OPEN-3` is **partially** closed, not open and not settled. The BENCH section
-below is written to say that, and the OPEN section's `OPEN-3` row with it.
+landed at `v0.5.0` and both have moved up into § *The independents***; **five remained benched** — Machi,
+Shalnark, Kortopi, Pakunoda and Shizuku — until the ruling of 2026-09-19 activated **Shalnark** and left
+**four**. `OPEN-3` is **partially** closed, not open and not settled. The BENCH section below is written to
+say that, and the OPEN section's `OPEN-3` row with it.
 
 ### 1 · The phases a human calls
 
@@ -160,8 +165,8 @@ source, and they stop at the gate. Each hands findings back in `hanten`'s fixed 
 evidence · proposed fix** — and an unsettled finding is a **G5**, raised by `hanten`, never by the reviewer.
 
 **What this does not close.** `OPEN-3` asked which of the seven Genei Ryodan profiles activate and when. Two
-are now answered. **Machi, Shalnark, Kortopi, Pakunoda and Shizuku remain bench only**, on the wording below,
-and adopting one is still a deliberate act with its own decision.
+were answered here and **Shalnark** by the ruling of 2026-09-19; **Machi, Kortopi, Pakunoda and Shizuku
+remain bench only**, and adopting one is still a deliberate act with its own decision.
 
 ### 5 · Illumi is provisioned — **OPEN-1 partially closed**
 
@@ -634,6 +639,40 @@ secret-shape path; an on-device security act; a supply-chain checksum or manifes
 consumer policy surface; a genuinely ambiguous request or a business rule canon does not adjudicate.
 Everything else has a row.
 
+## Rulings of 2026-09-19 — Nobunaga, Shalnark, the review preamble
+
+**From the hardening audit of 2026-09-19 (sections *Reviewers* and *The shared preamble and the diet*),
+zheref/hatsu#89.** Hanten routed to five specialists and had **no general code reviewer**, so the category
+Copilot finds most — about half of 108 recorded findings: correctness in skill procedures, shell and
+python, stale or overclaiming docs, disagreeing counts and un-regenerated mirrors, shell quoting and
+portability, config and YAML — **had no local owner**. Two bench profiles activate, and one post-merge role
+stays deliberately unstaffed.
+
+| Ruling | What it says |
+|---|---|
+| **Nobunaga activates, on every repository** | Code practices, scope completeness and adversarial reading — **Sasuke's local counterpart**, with Sasuke's completeness criteria. The `code` scope claims every path, so he is **the default reviewer everywhere** |
+| **Two reviews per session and repository** | `review.scopes.code.budget` is `2`, counted in hanten's cycle ledger like every other scope |
+| **Deep on a process repository, fast on a product one** | The declared `review.scopes.code.tier` is the **process** tier; `hanten` reads `nen repo classify`'s `kind` and **swaps to `fast`** for a product repository, saying which ran |
+| **Chrollo stays the sole architecture reviewer** | and **drops incidental consistency work to Nobunaga** rather than absorbing it |
+| **Feitan gains deterministic scan rows** | checksum-verified gitleaks that fails loud, a per-stack dependency audit, `nen stage triage` secret shapes, and a **builder-touching-workflow gate** in a consumer repository — plus the bounded delta pass when a spent reviewer meets a new head |
+| **Shalnark activates as the optional post-merge UI validation automator** | after a delivery merges he runs **ephemeral** automated UI tests exercising every behaviour of the delivered feature against the **original specification's** acceptance criteria, reports pass / fail / not-testable with evidence, **files findings and fixes nothing**; persistent tests only where the repository declares it |
+| **Shalnark is reachable only through `hatsu:black-voice`** | `hatsu:black-voice [<CODE>#<PR>]`, defaulting to the latest merged PR in the session. **Never automatic, never called from a composite** |
+| **Rukia's post-merge offensive QA stays unstaffed** | until Akatsuki-AI, by ruling. **Black Voice is not it** |
+| **One shared reviewer preamble** | [`claude/agents/_review-preamble.md`](../claude/agents/_review-preamble.md) carries, once, the identity-header rule, `nen repo classify`, the handbook set through `hatsu:bankai-handbooks`, the fixed finding shape, live re-verification before a `high`, the budget and delta-pass rule, the refusal list and the closing-line rule. **Every reviewer file is then its criteria checklist and its closing line, under 6 KB** — they were 16 to 23 KB each, where the reference implementation's reviewer prompts were 2.3 to 3 KB |
+
+**Their definitions land at `v0.42.0`**: [`claude/agents/nobunaga.md`](../claude/agents/nobunaga.md)
+(**deep** tier, effort `high`) and [`claude/agents/shalnark.md`](../claude/agents/shalnark.md) (**fast**
+tier, effort `medium`), both listed in `plugin.json`. Until a definition exists neither could be acted as —
+**an activation is a decision about standing, not a licence to improvise the agent** — and now that they
+exist, each is bound by what its own file says and by nothing wider. Both inherit every default: they never
+merge, never vote, never edit non-test source, and they stop at the gate.
+
+**What this does not close.** `OPEN-3` asked which of the seven Genei Ryodan profiles activate, and when.
+**Four remain bench only** — Machi, Kortopi, Pakunoda and Shizuku — and adopting one is still a deliberate
+act with its own decision. Killua's row (`OPEN-1`) and Gon's grammar (`OPEN-2`) are untouched.
+
+---
+
 ## 🔶 OPEN — Killua, and the rest of Illumi's row
 
 > **These rows are OPEN sub-decisions. The ruling is G4-class and it has not been made.** This is
@@ -660,27 +699,32 @@ open question with nobody deciding it.
 
 ## 🔶 BENCH — the Genei Ryodan
 
-> **Two activated and departed, five benched. `OPEN-3` is partially closed.** The ruling of 2026-09-09
+> **Three activated and departed, four benched. `OPEN-3` is partially closed.** The ruling of 2026-09-09
 > (§ *Rulings*, 4) activated **Chrollo** (architecture and handbook conformance) and **Feitan** (security,
-> and security only), both as `hanten` reviewers; **their definitions landed at `v0.5.0`, so their rows now
-> live in § *The independents* above and are no longer listed here.** The remaining **five profiles are bench
-> only, and no activation is implied for them**: which of them activate, and when, remains the open half of
-> `OPEN-3`. A benched row is one of the *extensible professional-profile agents, adopted as needed* — a shape
-> the roster can grow into, not a member of it.
+> and security only) as `hanten` reviewers, their definitions landing at `v0.5.0`; the ruling of 2026-09-19
+> (§ *Rulings of 2026-09-19 — Nobunaga, Shalnark, the review preamble*) activated **Shalnark** as the
+> optional post-merge UI validation automator, reachable only through `hatsu:black-voice`, his definition
+> landing at `v0.42.0`. **All three now live in § *The independents* above and are no longer listed here.**
+> The remaining **four profiles are bench only, and no activation is implied for them**: which of them
+> activate, and when, remains the open half of `OPEN-3`. A benched row is one of the *extensible
+> professional-profile agents, adopted as needed* — a shape the roster can grow into, not a member of it.
+>
+> **Nobunaga was never on this bench and is not moved from it**: he is activated by the ruling of
+> 2026-09-19 as **Sasuke's local counterpart**, the general code reviewer the roster had no seat for, and
+> his row is in § *The independents*.
 
 | Bench member | Professional profile | Standing |
 |---|---|---|
 | **Machi** | Integration surgery | Bench |
-| **Shalnark** | Automation | Bench |
 | **Kortopi** | Scaffolding | Bench |
 | **Pakunoda** | Repo forensics | Bench |
 | **Shizuku** | Cleanup | Bench |
 
-**For the five rows above**: none has a definition in `claude/agents/`, none is listed in `plugin.json`, and
+**For the four rows above**: none has a definition in `claude/agents/`, none is listed in `plugin.json`, and
 none may be acted as. Adopting one is a deliberate act with its own decision, not a consequence of it being
 written here. **Activation is a decision about standing, not a licence to improvise the agent** — which is
 why Chrollo and Feitan could not be acted as between the ruling on 2026-09-09 and their definitions landing at
-`v0.5.0`, a gap of one release.
+`v0.5.0`, a gap of one release, and why Shalnark could not be acted as before `v0.42.0`.
 
 ---
 
@@ -739,7 +783,10 @@ Clause ids are the inherited constitution's; the rewritten constitution keeps th
 **No agent in this roster casts a `request_changes` review — for any reason, on any PR.** They run on the
 human's credentials, so GitHub records the vote as **theirs**, and casting one manufactures their governance
 vote on a PR they have not read. The substitutes: a **wake label** for findings an automated reviewer already
-delivered, and a **filed issue** for a substantive finding of the agent's own.
+delivered, and a **filed issue** for a substantive finding of the agent's own. **That binds the reviewers
+activated on 2026-09-19 exactly as it binds the rest**: **Nobunaga** hands his findings to `hanten` in its
+fixed shape and crosses no gate, and **Shalnark** hands his pass / fail / not-testable rows to
+`hatsu:black-voice`, which files only on the maintainer's own pick.
 
 ---
 
@@ -749,7 +796,7 @@ delivered, and a **filed issue** for a substantive finding of the agent's own.
 |---|---|---|
 | **OPEN-1** | Illumi's and Killua's final roles | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 5): Illumi is **provisioned** for `en`'s long watch, and his definition landed at `v0.5.0` scoped to exactly that. His other proposed engines — `backlog-loop`, `futon`, `senkei` — **and the whole of Killua's row, remain OPEN**: a G4-class ruling by the maintainer, **unmade**. Provisioned is not ratified. |
 | **OPEN-2** | Gon's delegation-grammar clause | **Untouched.** Drafted here; ratified with the P3 constitution in the migration tracker (private). **Until then, Gon crosses no gate.** |
-| **OPEN-3** | Genei Ryodan bench adoption — which profiles activate, and when | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 4): **Feitan** (security only) and **Chrollo** (architecture and handbook conformance) are activated; **their definitions landed at `v0.5.0`** and both are now ratified independents. The other five profiles remain **bench doc only**, unscheduled. |
+| **OPEN-3** | Genei Ryodan bench adoption — which profiles activate, and when | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 4): **Feitan** (security only) and **Chrollo** (architecture and handbook conformance) are activated, definitions at `v0.5.0`. **FURTHER RULED 2026-09-19** (§ *Rulings of 2026-09-19 — Nobunaga, Shalnark, the review preamble*): **Shalnark** is activated as the optional post-merge UI validation automator, reachable only through `hatsu:black-voice`, definition at `v0.42.0`; **Nobunaga**, never benched, is activated as the general code reviewer in the same ruling. The other **four** profiles — Machi, Kortopi, Pakunoda, Shizuku — remain **bench doc only**, unscheduled. |
 | **Attribution** | Which trailers a commit may carry, and which of them this plane writes | **RULED 2026-09-09** (§ *Rulings of 2026-09-09*, 2), **REFINED 2026-09-10** (§ *Rulings of 2026-09-10*, *Two provenance trailers*): two provenance trailers, one per plane — this roster writes `Hatsu-Agent`, the CI plane writes `Akatsuki-Agent`, both are admitted by policy, and no other AI attribution trailer is ever recorded. **Closed.** |
 
 **Nothing above is resolved by reading this document confidently.** Where a row says PARTIALLY RULED, the
