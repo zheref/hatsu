@@ -11,7 +11,7 @@ verb is a verb** from the [**Nen**](https://github.com/zheref/nen) CLI: Nen dete
 verifies; the skill supplies only the judgment a binary cannot. Where no verb exists yet, the residue is
 **named per skill** in [`docs/ab/`](docs/ab/) rather than quietly improvised.
 
-No GitHub App. No bot identity. Nothing here merges `main`, publishes a release, or casts a review vote.
+No GitHub App. No bot identity. Nothing here merges `main` or casts a review vote. **Nothing here publishes a release on its own authority**: from `v0.40.0` the `plugin` lane declares a real `release` row, so `hatsu:mugetsu` has something to run — but it runs it only on your recorded per-target go at **`G3`** (`CON-6`), never a composite's and never an agent's.
 
 > **The current release is whatever [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json)'s `version`
 > says, and this line names no number on purpose** — a version repeated in prose is a version that drifts,

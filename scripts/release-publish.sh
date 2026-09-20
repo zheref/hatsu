@@ -58,6 +58,7 @@
 #   * a release ALREADY exists for that tag      -> 1  (one go publishes one
 #     target once; re-publishing is never the fix)
 #   * an --asset path that does not exist        -> 1
+#   * no `python3`                               -> 2  (it composes the notes)
 #   * no section for the tag in the changelog    -> 1  (the notes are the
 #     changelog's; this script does not write them)
 set -euo pipefail
@@ -126,6 +127,17 @@ CL
         --changelog "$T/CHANGELOG.md" --previous-tag v0.1.0 --dry-run 2>/dev/null || true)"
   case "$M" in *"2 section"*) ok 0 "both sections when the previous tag is older" ;; *) ok 1 "both sections when the previous tag is older" ;; esac
 
+  echo "an OLDER target — the backfill case"
+  B="$(SELF_TEST=0 bash "$0" --tag v1.0.0 --repo "$T" --slug acme/widget \
+        --changelog "$T/CHANGELOG.md" --dry-run 2>/dev/null || true)"
+  case "$B" in *"previous   : (none"*) ok 0 "an older target derives the tag BELOW it, not the newest" ;;
+    *"previous   : v2.0.0"*) ok 1 "an older target derives the tag BELOW it, not the newest" ;;
+    *) ok 0 "an older target derives the tag BELOW it, not the newest" ;; esac
+  case "$B" in *"1 section"*) ok 0 "and carries only its own section, not every older one" ;; *) ok 1 "and carries only its own section, not every older one" ;; esac
+  case "$B" in *"latest     : NO"*) ok 0 "--latest is WITHHELD for an older tag — the pointer never moves backwards" ;; *) ok 1 "--latest is WITHHELD for an older tag — the pointer never moves backwards" ;; esac
+  case "$B" in *"--verify-tag --latest"*) ok 1 "and the printed command omits --latest" ;; *) ok 0 "and the printed command omits --latest" ;; esac
+  case "$N" in *"latest     : yes"*) ok 0 "--latest IS passed for the newest tag" ;; *) ok 1 "--latest IS passed for the newest tag" ;; esac
+
   echo "refusals — each BEFORE anything is sent"
   set +e
   D="$(SELF_TEST=0 bash "$0" --repo "$T" --slug acme/widget --changelog "$T/CHANGELOG.md" --dry-run 2>/dev/null || true)"
@@ -156,6 +168,11 @@ fi
 # --------------------------------------------------------------------------
 [ -d "$REPO" ] || die "--repo '$REPO' is not a directory"
 command -v git >/dev/null 2>&1 || die "no 'git' on PATH"
+# python3 composes the notes and the title. Unvalidated, a missing interpreter
+# made the heredoc exit 127, which was then folded into the generic "no section"
+# refusal and reported as exit 1 -- a repository defect dressed as a changelog
+# one. An absent interpreter is an ENVIRONMENT defect and exits 2.
+command -v python3 >/dev/null 2>&1 || die "no 'python3' on PATH — it composes the notes and the title from the changelog"
 
 # --tag IS OPTIONAL, AND THAT IS WHAT MAKES THE DECLARED ROW RUNNABLE.
 # `nen shu release` runs the lane's argv with no arguments of its own -- it has
@@ -186,7 +203,25 @@ fi
 [ -r "$CHANGELOG" ] || refuse "changelog '$CHANGELOG' is not readable. Release notes are composed from it; this script does not invent them."
 
 if [ -z "$PREV" ]; then
-  PREV="$( ( cd "$REPO" && git tag --list 'v*' --sort=-v:refname ) | grep -vxF "$TAG" | head -1 || true )"
+  # THE TAG IMMEDIATELY BELOW THE TARGET, not merely the newest other tag.
+  # Taking the newest was wrong for any backfill or older target: publishing
+  # v1.0.0 while v2.0.0 exists derived PREV=v2.0.0, the notes walk never reached
+  # that newer tag after the target, and the release silently carried every older
+  # section instead of the one interval it names. Descending version order, then
+  # the first entry strictly BELOW the target.
+  PREV="$( ( cd "$REPO" && git tag --list 'v*' --sort=-v:refname ) \
+    | awk -v t="$TAG" 'BEGIN{seen=0} $0==t{seen=1;next} seen==1{print;exit}' )"
+fi
+
+# --latest IS CONDITIONAL, because it moves a pointer. Passing it for a backfill
+# or an older tag would move GitHub's "Latest release" BACKWARDS -- a published,
+# outward-facing regression that no later run undoes. It is passed only when the
+# target IS the newest `v*` this repository has.
+NEWEST="$( ( cd "$REPO" && git tag --list 'v*' --sort=-v:refname ) | head -1 || true )"
+if [ "$TAG" = "$NEWEST" ]; then
+  LATEST_FLAG=" --latest"; LATEST_WHY="yes — '$TAG' is the newest v* tag"
+else
+  LATEST_FLAG=""; LATEST_WHY="NO — '$TAG' is older than '$NEWEST'; --latest would move the pointer backwards"
 fi
 
 for a in ${ASSETS+"${ASSETS[@]}"}; do
@@ -240,7 +275,8 @@ if [ "$DRY" = "1" ]; then
   printf '  notes      : %s bytes, %s section(s) from %s\n' \
     "$(wc -c < "$NOTES_FILE" | tr -d ' ')" "$(grep -c '^## ' "$NOTES_FILE" || true)" "$CHANGELOG"
   printf '  assets     : %s\n' "${#ASSETS[@]}"
-  printf '  command    : gh release create %s --repo %s --verify-tag --latest\n' "$TAG" "$SLUG"
+  printf '  command    : gh release create %s --repo %s --verify-tag%s\n' "$TAG" "$SLUG" "$LATEST_FLAG"
+  printf '  latest     : %s\n' "$LATEST_WHY"
   printf '\nnothing was sent (--dry-run).\n'
   exit 0
 fi
@@ -257,8 +293,9 @@ if gh release view "$TAG" --repo "$SLUG" >/dev/null 2>&1; then
   refuse "a release already exists for '$TAG' on $SLUG. Re-publishing is never the fix; edit it by hand if the notes are wrong."
 fi
 
+# shellcheck disable=SC2086  # $LATEST_FLAG is a deliberate zero-or-one flag
 gh release create "$TAG" --repo "$SLUG" --title "$TITLE" \
-  --notes-file "$NOTES_FILE" --verify-tag --latest ${ASSETS+"${ASSETS[@]}"}
+  --notes-file "$NOTES_FILE" --verify-tag $LATEST_FLAG ${ASSETS+"${ASSETS[@]}"}
 
 if [ "$JSON" = "1" ]; then
   gh release view "$TAG" --repo "$SLUG" --json tagName,name,url,publishedAt

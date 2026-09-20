@@ -149,11 +149,22 @@ def derive_role(repo: Path, slug):
         d = json.loads(p.read_text())
     except Exception:
         return None
+    # VALID JSON IS NOT A VALID REGISTRY. A top-level `[]` parses, and then
+    # `d.get(...)` raised AttributeError -- so Tenkai CRASHED instead of returning
+    # the unknown-role `blocked` it promises. Shape is checked, not assumed.
+    if not isinstance(d, dict):
+        return None
 
     def slugs(key):
         out = set()
-        for e in d.get(key) or []:
-            out.add(e.get("repo") if isinstance(e, dict) else e)
+        v = d.get(key)
+        if not isinstance(v, list):
+            return out
+        for e in v:
+            if isinstance(e, dict):
+                out.add(e.get("repo"))
+            elif isinstance(e, str):
+                out.add(e)
         return out
 
     if slug in slugs("maintained_tools"):
@@ -172,11 +183,14 @@ def _default_lane(repo: Path):
         proj = json.loads(p.read_text()).get("project") or {}
     except Exception:
         return None, None
+    # NO FIRST-LANE FALLBACK. Picking `lanes[0]` invented the very thing this
+    # function exists to derive: nen's rule is that a null `defaultLane` makes
+    # `--lane` REQUIRED, so a guessed lane can route the release row to a lane nen
+    # would never select by default. An absent defaultLane is reported as unknown.
     lane = proj.get("defaultLane")
     if not lane:
-        lanes = [k for k in (proj.get("lanes") or {}) if not k.startswith("$")]
-        lane = lanes[0] if lanes else None
-    stack = ((proj.get("lanes") or {}).get(lane) or {}).get("stack") if lane else None
+        return None, None
+    stack = ((proj.get("lanes") or {}).get(lane) or {}).get("stack")
     return lane, stack
 
 
@@ -1029,18 +1043,47 @@ class ReleasePublisher(Item):
                             "absent — a process/system repository whose releases other repositories "
                             "consume has no publisher for `nen shu release` to run",
                             "render templates/release-publish.sh")
-        if self.MARKER not in p.read_text():
+        have = p.read_text()
+        if self.MARKER not in have:
             return self.row(DRIFT,
                             "a release-publish.sh is present that Tenkai did not render — "
                             "it will not be overwritten",
                             "review by hand, then delete it and re-run apply")
-        return self.row(SATISFIED, "present and rendered by Tenkai")
+        # THE MARKER PROVES PROVENANCE, NOT CURRENCY. A publisher rendered three
+        # versions ago keeps the marker forever, so marker-only meant a stale
+        # engine was reported satisfied and no later run ever repaired it --
+        # precisely the "looks installed and does nothing" class this tool exists
+        # to end. The bytes are compared against the shipped template.
+        if have != ctx.template("release-publish.sh"):
+            return self.row(DRIFT,
+                            "the rendered publisher differs from the shipped template — it was "
+                            "rendered by an older Tenkai, or hand-edited since",
+                            "re-render templates/release-publish.sh")
+        return self.row(SATISFIED, "present, and byte-identical to the shipped template")
 
     def repair(self, ctx):
         cur = self.detect(ctx)
-        if cur["state"] in (SATISFIED, BLOCKED, DRIFT):
+        # A STALE rendering IS repaired; a FOREIGN file is not. The two are
+        # different findings and only one of them is Tenkai's to overwrite.
+        if cur["state"] in (SATISFIED, BLOCKED):
+            return cur
+        if cur["state"] == DRIFT and "did not render" in cur["detail"]:
             return cur
         p = ctx.repo / self.REL
+        # THE PARENT COUNTS TOO. Checking only the final file left `scripts/`
+        # itself: a symlinked directory pointing out of the target meant
+        # `mkdir(exist_ok=True)` followed it and the publisher was written
+        # OUTSIDE `--repo`. Every directory between the root and the file is
+        # asked, not just the leaf.
+        rel = Path(self.REL)
+        probe = ctx.repo
+        for part in rel.parts[:-1]:
+            probe = probe / part
+            if probe.is_symlink():
+                return self.row(BLOCKED,
+                                f"{probe.relative_to(ctx.repo)} is a symlinked directory — writing "
+                                f"through it would land outside the repository Tenkai was pointed at",
+                                "replace it with a real directory")
         p.parent.mkdir(parents=True, exist_ok=True)
         _atomic_write(p, ctx.template("release-publish.sh"))
         p.chmod(0o755)
@@ -1071,7 +1114,23 @@ class ReleaseRow(Item):
         if ctx.role != ROLE_PROCESS:
             return self.row(SATISFIED, "not applicable — a PRODUCT repository declares whatever "
                                        "release row its own stack needs")
+        # ABSENT CONTRACT and DECLARED-BUT-LANELESS are different findings.
+        # The first is already routed by the nen/contract.json item above; saying
+        # "declare defaultLane" about a file that does not exist would send the
+        # maintainer to edit nothing.
+        if not (ctx.repo / "nen" / "contract.json").is_file():
+            return self.row(ROUTED,
+                            "nen/contract.json is absent, so there is no lane to declare a `release` "
+                            "row on yet. A process/system repository owes one once the contract exists",
+                            f"nen scaffold init --repo {ctx.repo}, then re-run — the release row "
+                            f"follows once a lane is declared")
         lane, stack = _default_lane(ctx.repo)
+        if lane is None:
+            return self.row(BLOCKED,
+                            "`project.defaultLane` is not declared, so which lane owes the `release` "
+                            "row cannot be derived — nen makes `--lane` required in exactly this "
+                            "case, and Tenkai does not pick one on nen's behalf",
+                            "declare project.defaultLane, then re-run")
         state = _release_row(ctx.repo)
         if state == "declared":
             return self.row(SATISFIED, f"lane '{lane}' declares a real `release` row")
@@ -1609,12 +1668,33 @@ def self_test() -> int:
           by[ReleasePublisher.REL]["state"] == REPAIRED and (dproc / ReleasePublisher.REL).is_file())
     check("the rendered publisher is executable",
           os.access(dproc / ReleasePublisher.REL, os.X_OK))
-    check("the release ROW is routed, never written", by["release/row"]["state"] == ROUTED)
+    # With no contract at all, the row routes to the contract itself rather than
+    # telling the maintainer to edit a file that does not exist.
+    check("with no contract, the row routes to nen scaffold init",
+          by["release/row"]["state"] == ROUTED
+          and "nen scaffold init" in (by["release/row"]["action"] or ""))
+    # A contract WITHOUT a defaultLane cannot name the lane, and Tenkai does not
+    # pick one on nen's behalf.
+    (dproc / "nen").mkdir(parents=True, exist_ok=True)
+    (dproc / "nen" / "contract.json").write_text(json.dumps({"project": {
+        "lanes": {"a": {"stack": "x"}, "b": {"stack": "y"}}, "verbs": {}}}))
+    rr = ReleaseRow().detect(ctx_for(dproc))
+    check("no defaultLane BLOCKS — the lane is never guessed", rr["state"] == BLOCKED)
+    check("and it says nen makes --lane required in that case", "--lane" in rr["detail"])
+    # With a defaultLane and a seat, the exact row is offered.
+    (dproc / "nen" / "contract.json").write_text(json.dumps({"project": {
+        "defaultLane": "plugin",
+        "lanes": {"plugin": {"stack": "claude-code-plugin"}},
+        "verbs": {"plugin": {"release": {"unsupported": "nothing publishes here"}}}}}))
+    rr = ReleaseRow().detect(ctx_for(dproc))
+    check("the release ROW is routed, never written", rr["state"] == ROUTED)
     check("and the exact row to declare is offered",
-          '"argv"' in (by["release/row"]["action"] or "")
-          and ReleasePublisher.REL in (by["release/row"]["action"] or ""))
-    check("nen/contract.json was NOT written by Tenkai",
-          not (dproc / "nen" / "contract.json").is_file())
+          '"argv"' in (rr["action"] or "") and ReleasePublisher.REL in (rr["action"] or ""))
+    # On its OWN fixture, so a later case writing a contract cannot mask it.
+    dnw = fixture(role=ROLE_PROCESS)
+    run("apply", ctx_for(dnw))
+    check("nen/contract.json is NEVER written by Tenkai",
+          not (dnw / "nen" / "contract.json").is_file())
 
     # A seat is named as a seat, with the consequence, not merely as 'missing'.
     (dproc / "nen").mkdir(parents=True, exist_ok=True)
@@ -1643,6 +1723,39 @@ def self_test() -> int:
     r = ReleasePublisher().repair(ctx_for(dfp))
     check("a hand-written publisher is DRIFT, not overwritten", r["state"] == DRIFT)
     check("and its bytes survive", "# mine" in (dfp / ReleasePublisher.REL).read_text())
+
+    # T5 — a syntactically valid but wrongly SHAPED registry must not crash.
+    dbad = fixture(role=None)
+    (dbad / "nen").mkdir(parents=True, exist_ok=True)
+    for shape in ("[]", '"a string"', '{"maintained_tools": "not-a-list"}', "123"):
+        (dbad / "nen" / "repos.json").write_text(shape)
+        try:
+            got = derive_role(dbad, "acme/widget")
+            check(f"a registry shaped {shape[:22]!r} returns unknown, never a crash", got is None)
+        except Exception as exc:
+            check(f"a registry shaped {shape[:22]!r} returns unknown, never a crash", False, repr(exc))
+
+    # T2 — a SYMLINKED PARENT DIRECTORY must not be written through.
+    dsp = fixture(role=ROLE_PROCESS)
+    outside2 = Path(tempfile.mkdtemp(prefix="tenkai-outside-")); _FIXTURES.append(outside2)
+    (dsp / "scripts").symlink_to(outside2)
+    row = ReleasePublisher().repair(ctx_for(dsp))
+    check("a symlinked parent directory is BLOCKED", row["state"] == BLOCKED)
+    check("and nothing was written outside the repository",
+          not (outside2 / "release-publish.sh").exists())
+
+    # T7 — the marker proves PROVENANCE; currency is proved by the bytes.
+    dst = fixture(role=ROLE_PROCESS)
+    ReleasePublisher().repair(ctx_for(dst))
+    stale = (dst / ReleasePublisher.REL)
+    stale.write_text(stale.read_text().replace("set -euo pipefail",
+                                               "set -euo pipefail\n# an older rendering", 1))
+    row = ReleasePublisher().detect(ctx_for(dst))
+    check("a MARKED but stale publisher is DRIFT, not satisfied",
+          row["state"] == DRIFT and "older Tenkai" in row["detail"])
+    ReleasePublisher().repair(ctx_for(dst))
+    check("and a stale rendering IS repaired",
+          ReleasePublisher().detect(ctx_for(dst))["state"] == SATISFIED)
 
     # The shipped template and Hatsu's own rendering are ONE engine.
     tmpl = (root / "templates" / "release-publish.sh").read_text()
