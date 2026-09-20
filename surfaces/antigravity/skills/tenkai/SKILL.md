@@ -140,6 +140,8 @@ is never improvised in prose and it is not improvised in a script either.
 | the policy-guard registration | **Hatsu** | **Routed**, and it gates the item below — § 5a |
 | `.github/workflows/pr-readiness.yml` | **Hatsu** | Rendered with this repository's slug and derived runner — § 5. **A file Tenkai did not render is never overwritten** |
 | other privileged workflows | **Hatsu** | **Observation only.** Named, never written — § 5d |
+| `scripts/release-publish.sh` | **Hatsu** | Rendered — **only in a process/system repository** — § 6a |
+| the lane's `release` row | **nen** | **Routed**, with the exact row *offered* — § 6a |
 
 **Seven states, and `drift` is the one the whole skill is for:**
 
@@ -358,6 +360,64 @@ wrong directory is the same silent-skip failure in a smaller costume.
 
 > **Whether a verb-delegating hook should ever supersede nen's data-baked one is a `G4` question**,
 > and it is the maintainer's. It is not a template this skill ships on its own authority.
+
+## 6a. The repository's ROLE, and the release row that depends on it
+
+**Maintainer's ruling, 2026-09-19.** A repository whose **product is the process** must declare a
+**real `release` row**, not a seat.
+
+**The role is derived, never asked and never invented.** The 2026-09-18 ruling already splits
+repositories by role rather than by file kind, and [`nen/repos.json`](../../../../nen/repos.json)
+already records that split in machine-readable form:
+
+| Where the registry names it | Role | What Tenkai asserts |
+|---|---|---|
+| `maintained_tools` | **process / system** | a real `release` row is owed, and a publisher must exist |
+| `consumers` | **product** | **nothing.** How a product publishes is its own business |
+| **neither** | unknown | **`blocked`** — *"Tenkai does not classify a repository for itself"* |
+
+**Reading the registry rather than parsing canon prose is the whole point.** The canon list lives in
+[`docs/ROSTER.md`](../../../../docs/ROSTER.md) as a ruling in the maintainer's own words; a script that
+scraped it would be counting canon in prose, which is the thing § 2 exists to stop. The registry is
+already the machine-readable form of the same fact, and it costs the preamble no third question.
+
+**Why the row matters, and it is not bookkeeping.** `/mugetsu`'s entire job is to execute the
+lane's declared `release` row at **`G3`**. A **seat** there tells nen there is nothing to run — so
+mugetsu has nothing to execute, and publication happens **by hand, outside the machinery, or not at
+all.** `zheref/hatsu` lived in exactly that state: its seat read *"nothing in this repository
+publishes one"* while a GitHub Release was being published by hand at `v0.39.0`. **A declaration
+that disagrees with the practice is a bug in the declaration**, and the seat is now retired.
+
+**Two halves, and the ownership line runs between them:**
+
+- **`scripts/release-publish.sh` is Hatsu's to render**, from `templates/release-publish.sh` — the
+  same engine Hatsu runs on itself, so a consumer receives what this repository dogfoods. **A
+  publisher Tenkai did not render is never overwritten.**
+- **The `release` row is nen's**, so Tenkai **routes** it and **offers** the exact row to paste,
+  composed from **this repository's own default lane and declared stack** rather than a template's
+  guess. It never hand-writes `nen/contract.json` — the rule the `commit-msg` hook already taught
+  this skill the hard way (§ 6).
+
+**What the publisher is kind-aware about, and what it refuses to guess.** Notes and title come from
+the repository's own `CHANGELOG.md`, which every declared stack has; assets come **only** from
+`--asset`, which the lane's own `archive` ([`/susanoo`](../susanoo/SKILL.md)) produces. So one
+engine serves a `claude-code-plugin` — distributed by git ref, where **the tag *is* the
+distribution** and there is no artifact — and a stack that does build one, without knowing either
+stack's name. **It never invents an artifact and never guesses a build.**
+
+> **`--tag` is optional, and that is what makes the row runnable at all.** `nen shu release` runs the
+> declared argv with **no arguments of its own**, so a row whose script *required* a tag could never
+> be executed by the verb that exists to execute it. Omitted, the tag is the newest `v*` by version
+> sort, and every output names it `(DERIVED)` so nobody has to infer which tag was chosen.
+
+**Every refusal fires before anything is sent**, because publication is not idempotent in any way a
+caller can rely on — a release notifies watchers the moment it exists: an absent tag, a tag missing
+from the **remote** (a release must not point at a ref nobody can fetch), a tag that **already has a
+release** (*one go publishes one target once*), an `--asset` that does not exist, and a changelog
+with no section for the tag.
+
+**This row is what mugetsu RUNS. It is never permission to run it.** `G3` (`CON-6`) still holds the
+go, per target, in the maintainer's own words.
 
 ## 7. Report — per item, and never a summary that hides a row
 
