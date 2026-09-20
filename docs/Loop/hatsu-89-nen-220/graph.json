@@ -1,0 +1,41 @@
+{
+  "contract": "nen.report.graph/v0.1",
+  "caption": "Session 2: the report path runs through one render verb and two templates; hanten classifies through nen review scopes and routes to Nobunaga by default; the reviewers read one preamble.",
+  "nodes": [
+    { "id": "rikugan", "label": "hatsu:rikugan", "kind": "skill", "change": "changed" },
+    { "id": "board", "label": "hatsu:backlog-board / futon / backlog-loop", "kind": "skill", "change": "changed" },
+    { "id": "report-data", "label": "nen report data (objects[])", "kind": "verb", "change": "changed" },
+    { "id": "report-render", "label": "nen report render --variant --graph", "kind": "verb", "change": "changed" },
+    { "id": "sections", "label": "reports.sections", "kind": "config", "change": "added" },
+    { "id": "tpl-rikugan", "label": "templates/rikugan.html", "kind": "template", "change": "changed" },
+    { "id": "tpl-sm", "label": "templates/spiritual-message.html", "kind": "template", "change": "added" },
+    { "id": "board-html", "label": "hand-authored board HTML", "kind": "residue", "change": "removed" },
+    { "id": "hanten", "label": "hatsu:hanten", "kind": "skill", "change": "changed" },
+    { "id": "review-scopes", "label": "nen review scopes / review.scopes", "kind": "verb", "change": "added" },
+    { "id": "preamble", "label": "_review-preamble.md", "kind": "agent", "change": "added" },
+    { "id": "nobunaga", "label": "Nobunaga", "kind": "agent", "change": "added" },
+    { "id": "feitan", "label": "Feitan + contracts/scans.json", "kind": "agent", "change": "changed" },
+    { "id": "black-voice", "label": "hatsu:black-voice -> Shalnark", "kind": "skill", "change": "added" },
+    { "id": "sharingan", "label": "hatsu:sharingan / en (Copilot policy)", "kind": "skill", "change": "changed" },
+    { "id": "pr-threads", "label": "nen pr threads", "kind": "verb", "change": "added" },
+    { "id": "graphql", "label": "GraphQL thread residue", "kind": "residue", "change": "removed" }
+  ],
+  "edges": [
+    { "from": "rikugan", "to": "report-data", "rel": "facts", "change": "unchanged" },
+    { "from": "rikugan", "to": "report-render", "rel": "fills", "change": "changed" },
+    { "from": "board", "to": "report-data", "rel": "--backlog", "change": "added" },
+    { "from": "board", "to": "report-render", "rel": "--variant register or final", "change": "added" },
+    { "from": "report-render", "to": "sections", "rel": "reads", "change": "added" },
+    { "from": "report-render", "to": "tpl-rikugan", "rel": "fills", "change": "unchanged" },
+    { "from": "report-render", "to": "tpl-sm", "rel": "fills", "change": "added" },
+    { "from": "board", "to": "board-html", "rel": "authored", "change": "removed" },
+    { "from": "hanten", "to": "review-scopes", "rel": "classifies through", "change": "added" },
+    { "from": "hanten", "to": "nobunaga", "rel": "code scope, every path", "change": "added" },
+    { "from": "hanten", "to": "feitan", "rel": "security scope + scan rows", "change": "changed" },
+    { "from": "nobunaga", "to": "preamble", "rel": "reads", "change": "added" },
+    { "from": "feitan", "to": "preamble", "rel": "reads", "change": "added" },
+    { "from": "black-voice", "to": "report-render", "rel": "--variant register", "change": "added" },
+    { "from": "sharingan", "to": "pr-threads", "rel": "reply / resolve", "change": "added" },
+    { "from": "sharingan", "to": "graphql", "rel": "improvised", "change": "removed" }
+  ]
+}
