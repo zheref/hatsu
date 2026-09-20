@@ -184,9 +184,11 @@ for agent_file in "$source_agents"/*.md; do
     }
     in_fm && /^---$/ {
       in_fm = 0; fm_done = 1;
-      # The permission pack on this surface (zheref/hatsu#85): a persona runs
-      # the commands contracts/permissions.json allows without a prompt.
-      print "commandExecutionPolicy: auto";
+      # NO commandExecutionPolicy IS EMITTED (Copilot review on zheref/hatsu#87):
+      # `auto` would approve arbitrary commands, not the set contracts/
+      # permissions.json declares, because this surface has no allowlist file
+      # to scope it. The Antigravity pack is the hooks only until the surface
+      # offers a scoped mechanism.
       print;
       print marker;
       next

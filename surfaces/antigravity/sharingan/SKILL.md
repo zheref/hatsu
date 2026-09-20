@@ -598,7 +598,7 @@ requested, not yet posted* means one is already in flight and the answer is to w
 again.
 
 **Requesting an owed round is not an escalation — inside § 6's cap.** When `nen pr ready` says a
-round is owed at the current head **and this PR is still within the two-round cap above**, request it
+round is owed at the current head **and this PR's requested rounds are under `round_policy.maxRounds`**, request it
 and keep watching; taking that to the maintainer is § 6's ladder spent on a step the run can perform
 itself. **A third owed round is the same case inside the configured maximum** (ruling 2026-09-19,
 `nen/decisions.json` row `cap-reached`): request it and keep watching. Only past the maximum does the run

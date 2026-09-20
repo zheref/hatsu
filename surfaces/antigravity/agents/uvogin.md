@@ -5,7 +5,6 @@ tools: Read, Grep, Glob, Edit, Write, MultiEdit, Bash, WebSearch, WebFetch
 model: flash
 effort: medium
 color: orange
-commandExecutionPolicy: auto
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 

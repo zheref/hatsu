@@ -5,7 +5,6 @@ tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
 model: flash
 effort: medium
 color: pink
-commandExecutionPolicy: auto
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 

@@ -20,10 +20,11 @@
 #                sandbox_workspace_write.writable_roots) + .codex/hooks.json
 #   cursor       .cursor/cli.json (permissions.allow / permissions.deny)
 #                + .cursor/hooks.json
-#   antigravity  no allowlist file exists; the per-persona
-#                `commandExecutionPolicy: auto` line is emitted by the mirror
-#                generator (scripts/antigravity_mirror_sync.sh). `--render`
-#                prints that fact; `--install` places nothing.
+#   antigravity  no allowlist file exists, and a per-persona
+#                `commandExecutionPolicy: auto` would approve ARBITRARY
+#                commands rather than the declared set, so none is emitted.
+#                The pack there is the hooks the mirror already places.
+#                `--render` prints that fact; `--install` places nothing.
 #
 # PLACEMENT RULES, the same as scripts/surface_bootstrap.sh: a file this
 # script did not write (no marker) is left alone and named; every written path
@@ -168,13 +169,13 @@ EOF
 render_antigravity() {
   cat <<EOF
 # $MARKER
-# Antigravity carries no allowlist file. The pack is:
-#   1. 'commandExecutionPolicy: auto' in every generated persona's frontmatter
-#      (surfaces/antigravity/agents/*.md, emitted by scripts/antigravity_mirror_sync.sh).
-#   2. The generated .agents/hooks.json already placed by surface_bootstrap.sh
-#      (Stop bell, PreToolUse guard); a PreInvocation entry running the
-#      bootstrap install is emitted by the same generator.
-# Nothing to write here.
+# Antigravity carries no allowlist file, and a per-persona
+# 'commandExecutionPolicy: auto' would approve arbitrary commands rather than
+# the declared set, so it is NOT emitted. The pack on this surface is the
+# generated .agents/hooks.json already placed by surface_bootstrap.sh (Stop
+# bell, PreToolUse guard, PreInvocation install). Commands outside the surface's
+# own defaults keep their confirmation until Antigravity offers a scoped
+# mechanism. Nothing to write here.
 EOF
 }
 

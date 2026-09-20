@@ -663,8 +663,11 @@ git worktree add "$rev" HEAD                      # the isolated copy — hanten
 
 # `sol` is the TIER ALIAS; -m wants the host's ID for it. Resolve, never remember.
 sol="$(codex debug models | grep -o '"slug":"[^"]*sol"' | cut -d'"' -f4)"
-[ -n "$sol" ] || sol="$(codex debug models | grep -o '"slug":"[^"]*"' | cut -d'"' -f4 | grep -v -e luna -e terra -e spark | head -n 1)"   # the deep tier's next listed id, disclosed in the finding (`nen/decisions.json` row `missing-tool`)
-[ -n "$sol" ] || { echo "codex debug models lists nothing usable — reviewer not raised; reported as a gap, never a G5" >&2; exit 1; }
+# The alias is nen/workflow.json → models.codex.deep, read at use (never remembered); the id is the
+# catalogue slug that CARRIES that alias token. No token match = no reviewer on this surface: the
+# scope is reported as a gap (`nen/decisions.json` row `missing-tool` names the remedy — refresh the
+# catalogue, or pin the deep alias to an id the host lists), never an arbitrary slug and never a G5.
+[ -n "$sol" ] || { echo "codex debug models lists no slug carrying the deep-tier alias — reviewer not raised on this surface; reported as a scope gap, never a G5" >&2; exit 1; }
 
 codex exec -C "$rev" -s workspace-write \
   --add-dir "$(git -C "$rev" rev-parse --path-format=absolute --git-common-dir)" \
@@ -687,9 +690,9 @@ as untracked noise in the diff it was raised to read.
 > `nen/workflow.json` → `models.codex.deep` carries, and `models.rule` — *"latest alias only, never a
 > version"* — is exactly why the file carries the alias and not the id. The id is a live property of the
 > host, so it is resolved at the moment of use. **A failed resolution is not a G5** (ruling 2026-09-19,
-> `nen/decisions.json` row `missing-tool`): the catalogue is refreshed, the next id the host lists for the
-> deep tier is taken and disclosed in the finding's own header, and only a host listing nothing usable
-> reports the scope as a gap.
+> `nen/decisions.json` row `missing-tool`): the catalogue is refreshed and the slug carrying the deep-tier
+> alias is taken; a host whose catalogue carries no such slug reports the scope as a gap in the finding
+> shape — never an arbitrary other model, which would be a review by a tier nobody chose.
 
 > **`--add-dir` is not optional here, and this is the one place in the repository where the omission
 > bites.** `git worktree add` makes a **linked** worktree, whose `.git` is a *file* pointing at

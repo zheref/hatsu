@@ -622,8 +622,15 @@ repository — is `$hatsu_root/docs/SURFACES.md` § *Targeting a local checkout*
 ## 5 · Surfaces — what a target repository gets on Codex, Cursor, and Antigravity
 
 **On Claude Code, § 5's mirror install does not run — the plugin is read in place — and the ONE thing
-that changes in the target repository is the permission pack merged into `.claude/settings.local.json`
-(§ 5 · refresh).** Claude Code loads the
+that changes in the target repository is the permission pack merged into `.claude/settings.local.json`:**
+
+```sh
+hatsu_root='<the absolute path § 0 printed>'
+"$hatsu_root/scripts/permissions_pack.sh" --surface claude-code --install --target "$(git rev-parse --show-toplevel)"
+```
+
+(`surface_bootstrap.sh` takes only `codex|cursor|antigravity`; the pack script takes `claude-code` too.
+A target with no `nen/contract.json` or `nen/workflow.json` is skipped with a named line.) Claude Code loads the
 plugin's own `claude/skills/` and `claude/agents/` directly from `$CLAUDE_PLUGIN_ROOT`; there is nothing to
 install into somebody else's checkout, and installing anything would be a write with no reason behind it.
 Say *"surface: claude-code — nothing installed, the plugin is read in place"* and move on.
@@ -886,7 +893,8 @@ surface='<codex, cursor, or antigravity — the host running this warm-up>'
 actually run, scoped to this repository, its worktrees and its declared associated repositories — into
 the surface's own files: `.claude/settings.local.json` (merged, never `.claude/settings.json`),
 `.codex/config.toml` + `.codex/hooks.json`, `.cursor/cli.json` + `.cursor/hooks.json`; on Antigravity the
-pack is the persona frontmatter the mirror generator already emits. A file the script did not write is
+pack is the generated hooks only (a persona-wide `commandExecutionPolicy: auto` is deliberately not
+emitted: it would approve arbitrary commands, not the declared set). A file the script did not write is
 left alone and named; every written path is excluded through `info/exclude`. **Say in § 4's line what
 was placed or left alone.** This is the one write on Claude Code, and it is the reason a session on any
 surface is no longer asked about `nen`, `gh` or `git` inside its own repository.

@@ -111,7 +111,8 @@ session is never asked about an action scoped to its own repository):
 
 It renders `contracts/permissions.json` into the surface's own files (`.claude/settings.local.json` merged;
 `.codex/config.toml` + `.codex/hooks.json`; `.cursor/cli.json` + `.cursor/hooks.json`; nothing on Antigravity,
-whose generated personas carry `commandExecutionPolicy: auto`), excludes every written path through
+which has no allowlist file — its pack is the generated hooks, and a persona-wide `auto` policy is
+deliberately not emitted because it would approve arbitrary commands), excludes every written path through
 `info/exclude`, leaves a file it did not write alone and names it, and skips a target that carries no
 `nen/contract.json` or `nen/workflow.json`. Report its one line beside the engine's rows. **The engine's
 `diagnose` does not yet know this item** — it is placed by this step and by the warm-up, and the

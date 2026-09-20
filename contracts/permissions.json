@@ -318,6 +318,11 @@
       "exe": "git",
       "args": "push origin main *",
       "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "push origin --force-with-lease*",
+      "why": "the origin spelling of a lease force"
     }
   ]
 }
