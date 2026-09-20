@@ -149,7 +149,7 @@ Verified live at nen `0.10.0`, including the two-clause and enum-plus-base shape
 
 | Relation | Clause | Skills |
 |---|---|---|
-| **A delta measured against a base** | **`against <base>`** | [`byakugan`](../claude/skills/byakugan/SKILL.md), [`kokusen`](../claude/skills/kokusen/SKILL.md), [`tsukuyomi`](../claude/skills/tsukuyomi/SKILL.md), [`kotoamatsukami`](../claude/skills/kotoamatsukami/SKILL.md), [`rikugan`](../claude/skills/rikugan/SKILL.md), [`hanten`](../claude/skills/hanten/SKILL.md) |
+| **A delta measured against a base** | **`against <base>`** | [`byakugan`](../claude/skills/byakugan/SKILL.md), [`kokusen`](../claude/skills/kokusen/SKILL.md), [`tsukuyomi`](../claude/skills/tsukuyomi/SKILL.md), [`kotoamatsukami`](../claude/skills/kotoamatsukami/SKILL.md), [`spiritual-message`](../claude/skills/spiritual-message/SKILL.md), [`hanten`](../claude/skills/hanten/SKILL.md) |
 | **A branch brought up to date *from* a base** | **`from <base>`** | [`ao`](../claude/skills/ao/SKILL.md), [`murasaki`](../claude/skills/murasaki/SKILL.md) |
 
 **Two prepositions, because they name two different relations**, not because the grammars drifted.
@@ -330,7 +330,7 @@ both.
 | [`byakugan`](../claude/skills/byakugan/SKILL.md) | S1 — the touched set against the remote base | nothing |
 | [`sharingan`](../claude/skills/sharingan/SKILL.md) | S2 — the PR from the branch, when `#N` is omitted | which PR, when the branch has none or several |
 | [`hanten`](../claude/skills/hanten/SKILL.md) | S4 — routes a missing cycle ledger to `breath`, its only writer, and reports a lost ledger when it is still absent; S1 — the scope classification | nothing about the ledger (breath asks that once); the review scope, when the delta does not classify cleanly |
-| [`rikugan`](../claude/skills/rikugan/SKILL.md) | S1 + S3 — turns and session context, read from git and the session | which variant, when it is not derivable |
+| [`spiritual-message`](../claude/skills/spiritual-message/SKILL.md) | S1 + S3 — turns and session context, read from git and the session | which variant, when it is not derivable |
 | [`kagutsuchi`](../claude/skills/kagutsuchi/SKILL.md) | nothing new — the target is required grammar | nothing. **The call is the maintainer's** |
 | [`mugetsu`](../claude/skills/mugetsu/SKILL.md) | nothing new — `G3` | nothing. **The go is the maintainer's** |
 | [`third-hand`](../claude/skills/third-hand/SKILL.md) | S3 — "this sitting", from the branch and any open PR | the harvest pick, as it always did |

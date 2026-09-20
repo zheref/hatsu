@@ -383,3 +383,50 @@ concept of an optional separator with a defaulted counterpart slot.
    carry a URL — but it means the skill must re-attach both from `backlog-state`'s own rows (which
    already carry them) when authoring the HTML, rather than reading them back off `board build`'s
    output.
+
+---
+
+## 2026-09-20 — Rikugan, verified live (zheref/hatsu#89)
+
+The hand-authored HTML step is retired. `templates/rikugan.html` is new, sharing one token
+sheet and one graph renderer with `templates/spiritual-message.html` — both files are assembled from the same
+fragments, so the sheet and the renderer are byte-identical rather than identical by promise.
+
+`--variant register` did not exist on the nen branch when this ran; the data document was written by
+hand with the `sections.*` flags that variant will inject, and rendered with the plain v0.11 verb.
+
+```
+$ bun src/index.ts report render \
+    --template <hatsu>/templates/rikugan.html \
+    --data <scratch>/sample-register.json \
+    --out Reports/samples/rikugan-register.html \
+    --repo /Users/zheref/Code/Agents/hatsu/.claude/worktrees/quirky-chatterjee-88d5f6
+… 65 tokens listed …
+wrote Reports/samples/rikugan-register.html                         exit 0
+```
+
+33,345 bytes written, `grep -c '{{'` = **0**. The sample is left at
+`Reports/samples/rikugan-register.html` (git-ignored): two asks, four register rows, a
+drawn graph, a spend block and the legend.
+
+**Observed in the built-in browser**, light and dark, 1024px and 375px:
+
+- Tally of five counted cells, then **your desk**, grouped by gate in board order. `G4` carries the
+  `MERGE` ask with its verdict quoted; `G1-M` carries the `DECIDE` ask; **`G2` and `G5` render as
+  dashed `cleared` lines rather than being omitted**, which is the Ichigo rule this page exists to
+  keep.
+- Each ask opens `MERGE · RANK 1` / `DECIDE · RANK 2` in shu, with lettered options, exactly one ⭐,
+  the consequence line and the command in mono.
+- The register is four `<details>` rows: `🔀 HA-PR-#90`, `📄 HA-IS-#89`, `📄 NN-IS-#220`,
+  `🔀 NN-PR-#218`, each opening onto state, verdict, checks, threads, linked, needs, driving session
+  and lane, head and thought flow. The four flattened `…Line` strings let an issue row and a PR row
+  carry the same keys, which is what stops `{{#each}}` refusing on a `checks` an issue has not got.
+- The graph block renders inside the register too (the epic/chore drawing case), same renderer, same
+  `<details>` fallback.
+- Spend shows one effort with four duration bars and one with `not reported — the nen effort is
+  still running…`. Red appears nowhere but the needs-you cells, the ask borders and the ask kind.
+- Phone width: no horizontal page scroll (`scrollWidth === innerWidth === 375`); summary rows wrap,
+  bars restack, tables scroll in their wrappers.
+
+Theme, fonts, the toggle, the SRI pin and the blocked-script fallback are the same mechanism as
+Spiritual Message's and were verified there — see `docs/ab/spiritual-message.md`, same date.

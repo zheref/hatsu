@@ -118,7 +118,7 @@ surfaces that keep it; it is not worth *relying* on here.
 ### Cursor has a MINIMUM `cursor-agent` version, and below it every Hatsu skill is silently absent
 
 **A `cursor-agent` that predates skills support answers your prompt, runs your commands, exits `0` —
-and has not loaded one of the forty.** With the mirror installed exactly as
+and has not loaded one of the forty-two.** With the mirror installed exactly as
 [`hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md) § 5b mandates, `2025.09.18-39624ef` answered
 a discovery probe with the whole reply **`NO SKILLS VISIBLE`**, seventeen bytes. The controlled
 fixture that followed is what settles it: the same build cannot see a **`cp -R` copy** either, and it
@@ -161,7 +161,7 @@ was renamed to `sharingan` at v0.5.0 and `surfaces/cursor/drive` does not exist.
 **On Claude Code this cannot happen** — `hatsu:build` and `bankai:build` are distinct names, which the
 Codex-half record called *"luck rather than design"*. **On Cursor the luck runs out.** The names Hatsu
 claims that are ordinary enough to collide with somebody: **`build`, `file`, `en`, `ao`, `ren`,
-`breath`**, and forty are claimed at once.
+`breath`**, and forty-two are claimed at once.
 
 > **The shadowing itself is INFERRED, not proven, and it is written here as such.** The evidence is
 > one listing's grouping and one alphabetical gap — `build` appeared once, outside the Hatsu block's
@@ -206,9 +206,9 @@ flat name space above matters.
 
 ### One honest limitation of a verbatim mirror
 
-The bodies carry **relative links written for this repository's layout** — `../rikugan/SKILL.md`,
+The bodies carry **relative links written for this repository's layout** — `../spiritual-message/SKILL.md`,
 `../../../docs/SURFACES.md`. Inside a target repository's `.agents/skills/` (a `cp -R`) a sibling link like
-`../rikugan/SKILL.md` still resolves — to the sibling copy — while `../../../docs/SURFACES.md` resolves to
+`../spiritual-message/SKILL.md` still resolves — to the sibling copy — while `../../../docs/SURFACES.md` resolves to
 `<target>/docs/SURFACES.md` and dangles. That is the price of "the body verbatim", it is deliberate, and it
 is stated rather than papered over: the mirrors are for an agent reading a skill, not for a human browsing
 a link tree.
@@ -230,13 +230,14 @@ a link tree.
 |---|---|
 | `claude/skills/<name>/SKILL.md` | **authored.** The one source. |
 | `claude/agents/<persona>.md` | **authored.** The one source. |
-| `surfaces/codex/<name>/SKILL.md` | **generated** — 41 files (the counted forty plus `hatsu-warmup`) |
+| `claude/agents/_review-preamble.md` | **authored, and NOT a persona** — the shared reviewer protocol. The generator has no concept of a shared file, so it mirrors this one **as if it were a persona** into every surface's agent set and counts it there. Harmless: nothing routes to it and its own frontmatter says so. `zheref/nen#223` is the fix that will let the generator skip a leading-underscore file, and until it lands the per-surface agent counts below include it. |
+| `surfaces/codex/<name>/SKILL.md` | **generated** — 43 files (the counted forty-two plus `hatsu-warmup`) |
 | `surfaces/codex/AGENTS.md` | **generated** — every persona as a `## <name>` section, 1 file |
-| `surfaces/cursor/<name>/SKILL.md` | **generated** — 41 files (the counted forty plus `hatsu-warmup`) |
-| `surfaces/cursor/agents/<persona>.md` | **generated** — 9 files |
-| `surfaces/antigravity/<name>/SKILL.md` | **generated** — 41 files (the counted forty plus `hatsu-warmup`) |
+| `surfaces/cursor/<name>/SKILL.md` | **generated** — 43 files (the counted forty-two plus `hatsu-warmup`) |
+| `surfaces/cursor/agents/<persona>.md` | **generated** — 12 files (eleven personas plus `_review-preamble.md`) |
+| `surfaces/antigravity/<name>/SKILL.md` | **generated** — 43 files (the counted forty-two plus `hatsu-warmup`) |
 | `surfaces/antigravity/rules/AGENTS.md` | **generated** — all personas in unified rules document |
-| `surfaces/antigravity/agents/<persona>.md` | **generated** — 9 subagent definitions |
+| `surfaces/antigravity/agents/<persona>.md` | **generated** — 12 files (eleven personas plus `_review-preamble.md`) |
 | `surfaces/antigravity/plugin.json` | **generated** — Antigravity plugin manifest |
 | `surfaces/antigravity/hooks.json` | **generated** — lifecycle hooks (`PreToolUse` and `Stop`) |
 
@@ -254,6 +255,86 @@ the price of the document loading at all. In `AGENTS.md`, which has no frontmatt
 
 **Edit the source, never the mirror.** A hand edit to a generated file is not merely overwritten on the next
 run; it is *reported* by the check below, by name, as `hand-edited`.
+
+### What the warm-up PLACES in a target repository, per surface
+
+Moved here on 2026-09-20 (zheref/hatsu#89) from `hatsu:hatsu-warmup` § 5, which duplicated it; the
+skill now keeps one line per surface pointing at this table.
+
+| Surface | What is placed | By which script | Excluded how |
+|---|---|---|---|
+| **Claude Code** | the permission pack only — the plugin is read in place from `$CLAUDE_PLUGIN_ROOT` | `scripts/permissions_pack.sh --surface claude-code --install --target <t>` | `info/exclude` |
+| **Antigravity, global plugin** | **nothing**; the plugin is read from `${GEMINI_CONFIG_DIR:-~/.gemini}/config/plugins/hatsu` | — | — |
+| **Codex** | `.agents/skills/<name>/` by **`cp -R`** per directory, `AGENTS.override.md`, the pack | `scripts/surface_bootstrap.sh --surface codex --target <t> --install-all`, then the pack | `info/exclude` |
+| **Cursor** | `.cursor/skills/<name>/` and `.cursor/agents/<persona>.md` by **symlink**, the pack | the same, `--surface cursor` | `info/exclude` |
+| **Antigravity, workspace mode** | `.agents/skills/`, `.agents/rules/AGENTS.md`, `.agents/hooks.json`, `.agents/hooks/`, the pack | the same, `--surface antigravity` | `info/exclude` |
+
+**The permission pack is placed on every surface, Claude Code included** (rulings of 2026-09-19),
+rendering `contracts/permissions.json` — the commands the skills actually run, scoped to this
+repository, its worktrees and its declared associated repositories — into
+`.claude/settings.local.json` (merged, **never** the tracked `.claude/settings.json`),
+`.codex/config.toml` + `.codex/hooks.json`, `.cursor/cli.json` + `.cursor/hooks.json`; on Antigravity
+it is the generated hooks only, because a persona-wide `commandExecutionPolicy: auto` would approve
+arbitrary commands rather than the declared set. **A file the script did not write is left alone and
+named**, and the warm-up's report says what was placed or left alone — never "nothing installed" on a
+run where the pack wrote.
+
+**Ownership at each destination.** An exclude governs **untracked** paths only, so a target that
+tracks a destination keeps it tracked and an `ln -sfn` or `rm -rf` over it destroys a file in
+somebody's history. Nothing there → create it. **A previous Hatsu install** — a symlink into
+`<hatsu root>/surfaces/`, or a directory whose `SKILL.md` carries the `GENERATED` marker above → replace
+it. **Anything else, and a TRACKED path is always anything else** → leave it untouched, install
+nothing under that name, and name it in the report. **A skipped name is reported, never swallowed,
+and this takes precedence over the refresh**: the warm-up would rather install thirty-eight of forty
+and say so than overwrite one file it did not write.
+
+```sh
+# ours DEST — true only for a destination the warm-up made. Tracked is NEVER ours: a repository's own
+# history outranks a marker comment.
+ours() {
+  git -C "$target" ls-files --error-unmatch -- "$1" >/dev/null 2>&1 && return 1
+  [ -L "$1" ] && case "$(readlink "$1")" in "$hatsu_root"/surfaces/*) return 0 ;; esac
+  grep -qsE 'GENERATED (by nen surface mirror|for surface: antigravity)' "$1/SKILL.md" "$1" 2>/dev/null
+}
+if { [ -e "$dest" ] || [ -L "$dest" ]; } && ! ours "$dest"; then kept="$kept $name"; continue; fi
+
+exclude="$(git -C "$target" rev-parse --git-path info/exclude)"   # NEVER "$(rev-parse --git-dir)/info/exclude"
+for line in '.agents/skills/' 'AGENTS.override.md' '.cursor/skills/' '.cursor/agents/'; do
+  grep -qxF "$line" "$exclude" 2>/dev/null || printf '%s\n' "$line" >> "$exclude"
+done
+git -C "$target" status --porcelain      # must print nothing for these paths
+```
+
+**On Codex, the sandbox must be able to write git BEFORE a warm-up reports clear.** A linked worktree
+keeps `HEAD`, the index, the objects, `refs/` **and `info/exclude`** under the main repository's
+`.git/`, outside a `workspace-write` sandbox, so every git write the placement above needs — and every
+one [`breath`](../claude/skills/breath/SKILL.md) and [`aka`](../claude/skills/aka/SKILL.md) need after
+it — is refused with *"Operation not permitted"* at exit `128`. The session must have been launched
+with `--add-dir "$(git -C <repo> rev-parse --path-format=absolute --git-common-dir)"`, or against a
+standalone clone whose `.git` is inside the workspace. **A skill cannot add the flag to a session
+already running: it reports the condition and stops**, naming the flag, rather than writing half an
+install into a checkout that cannot commit it.
+
+**`--git-path`, never `--git-dir`** — in a linked worktree the latter names a file git never reads for
+excludes — and that file is **per-repository**, shared by every worktree and the primary checkout, so
+the report names it by path rather than describing it as local to one directory. Prove it took with
+`git status --porcelain`, and `git check-ignore -v <one path>` when it did not come back clean.
+**Never write a target repository's `.gitignore`**: it is a tracked file that lands in their diff,
+their review and their history, and imposes this plugin's layout on every contributor — a hard limit,
+not a preference. And **`AGENTS.override.md` is excluded while a tracked `AGENTS.md` is never written:
+those two sentences are one rule**, because an unexcluded untracked file makes `nen shu warmup` refuse
+at exit `2` on a path it did not put there, which stops `breath` and `aka`.
+
+**`AGENTS.override.md` REPLACES the target's `AGENTS.md` rather than joining it**, so the warm-up
+writes the *whole* document: the target's own `AGENTS.md` **verbatim, re-read every warm-up and never
+cached**, then the generated block between its two markers (a target with none gets the block alone).
+**A tracked `AGENTS.md` is never written, appended to or touched**, and nothing outside the markers is
+the warm-up's to write. **The Codex re-copy is unconditional** — `rm -rf` then `cp -R`, every session —
+and **never diff-and-skip**: a hand-edited copy inside the target is drift to overwrite. **`.nen/` is
+never a mirror destination**: proof files, En loop ledgers, the stop marker and Hanten's cycle ledger
+live there and must survive a warm-up, or reviewer budgets and En caps reset.
+
+---
 
 ---
 
@@ -579,6 +660,31 @@ README § *Updating Hatsu on each surface* is the per-surface table a human foll
 
 ---
 
+
+### The warm-up form, and its hard limits
+
+Moved here on 2026-09-20 (zheref/hatsu#89) from `hatsu-warmup` § 4b, which now keeps one paragraph
+pointing at this section. The warm-up runs
+`scripts/hatsu_plugin_update.sh --root "$hatsu_root" --auto [--claude]` on **every** surface, Claude
+Code included, **before** the placement of § 2 reads the source — a checkout that has not moved
+installs last month's canon with no error anywhere.
+
+- **`--claude` is added on Claude Code**, so a versioned plugin cache is refreshed through the
+  surface's own loader rather than treated as a git checkout it is not.
+- **`--auto` is load-bearing.** Without it the script refuses a dirty tree, an authoring branch, a
+  missing `origin`, a diverged trunk and a Claude cache; a warm-up must not halt the session for any
+  of those, so it **quotes the skip and continues with the checkout it has**. The same command
+  *without* `--auto` is how a human asks for a refusal instead of a skip.
+- **A skip is reported as skipped, never rendered as updated**, and the script's one-line report is
+  quoted verbatim into the warm-up's own line.
+- **Hard limits, the same `nen shu warmup` uses on a target repository:** never `--discard`,
+  `reset --hard` or a non-fast-forward merge — a diverged consumer checkout is a skip, not a repair;
+  never update an authoring branch, a session writing Hatsu not being one consuming it; never treat a
+  Claude versioned cache as a git checkout, its refresh being `claude plugin update hatsu@hatsu -y`
+  plus a restart; and **a fetch failure under `--auto` is a skip, not a halt.**
+- **The first checkout is still a human act** (§ 1's bootstrap); this step only keeps an existing one
+  current.
+
 ## 7 · Targeting a local checkout
 
 `$HATSU_PLUGIN_ROOT` is the form that works on all four surfaces. Claude Code adds a second hop: it
@@ -613,3 +719,53 @@ shell profile is still named when it is rejected.
 | raising a reviewer per surface | [`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 9a |
 | the model matrix | [`nen/workflow.json`](../nen/workflow.json) → `models`; [`docs/WORKFLOW.md`](WORKFLOW.md) § 2 → `models` |
 | the recorded transcripts | [`docs/ab/surfaces.md`](ab/surfaces.md) |
+
+## 9 · The turn-end bell, per surface
+
+Moved here 2026-09-20 out of [`jutaisho`](../claude/skills/jutaisho/SKILL.md) §§ 5–6, which remains
+the bell's only caller; what belongs to a surface is recorded with the other surface facts.
+
+| Surface | Who fires rungs 2–3 | What jutaisho does |
+|---|---|---|
+| **Claude Code** | `hooks/stop-bell.sh`, off the `.nen/last-stop.json` marker | writes the marker, and stops |
+| **Antigravity** (`/jutaisho`) | the same, via the native `Stop` hook | writes the marker, and stops |
+| **Codex** (`$jutaisho`) | **the skill itself, in-session** | writes the marker, runs the two commands below, says so, and removes the marker |
+| **Cursor** (`/jutaisho`) | the same | the same |
+
+Neither Codex nor Cursor reads hooks or documents a turn-end hook, so the in-session fallback there is
+**the only path there is**. **The order is marker first, then the rungs, and the marker is still
+written**: it is the record that this stop happened, at what instant, at which gate, and whether rung
+1 had fired. **On a surface with no hook nothing else removes it, so the skill does** —
+`rm -f .nen/last-stop.json` or `nen stop clear` — once the stop has been answered; on Claude Code it
+does **not**, because the hook consumes the marker and removing it first removes the bell. **The
+report says which surface rang and how**, naming each rung's outcome and the marker's path and
+removal, because a bell the harness rang, a bell the model rang and **a bell nobody rang** must be
+tellable apart. **Rung 1 is the surface's own and is never faked**, and **a surface without a hook is
+not a reason to be louder**.
+
+### The in-session fallback, said out loud
+
+**Only where rungs 2–3 are owed at all** — a gate, or `notifications.turn: "all"`. With no
+`hooks/hooks.json` installed the skill runs the notifier itself and **says which rungs it fired that
+way**:
+
+```sh
+osascript -e 'display notification "<body>" with title "<title>"' 2>&1
+afplay /System/Library/Sounds/<notifications.sound>.aiff 2>&1
+```
+
+**Every value is sanitised exactly as [`hooks/stop-bell.sh`](../hooks/stop-bell.sh) sanitises it** —
+titles and bodies are repository-controlled and land in two nested quoting contexts, where a stray
+`'`, `"` or `\` ends the argument and hands the rest to the shell. Strip `"`, `\` and every newline
+from `<title>` and `<body>` and pass the result as **one argument**, never interpolating a raw value
+into the `-e` string; reduce `<notifications.sound>` to `[A-Za-z0-9_-]`, falling back to `Glass`; and
+**a value that cannot be sanitised is not rung with** — fall back to the generic line and say the
+title was dropped.
+
+**Read stderr, not the exit code.** `osascript` exits `0` with nothing delivered where the session has
+no Notification Center seat, saying so only on stderr, and `afplay` exits `1` with `AudioQueueStart
+failed`; either means the rung **did not fire**, and it is reported **`not applicable — no seat`**, by
+name, per rung — not "fired", not "failed". **Never retry them and never substitute another
+noise-maker**: a rung is what `notifications.rungs` declares. An absent `osascript` unfires rung 2 and
+leaves rung 3 to fire on its own, **an unfired rung is never rendered as fired**, the fallback is
+**announced every time**, and **the stop still stands** — jutaisho § 4's four parts are the real bell.

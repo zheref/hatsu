@@ -27,7 +27,7 @@ rings every turn is a bell nobody hears.**
 | Step | Owned by | State at `v0.3.0` |
 |---|---|---|
 | Parse the invocation | `nen parse jutaisho --grammar "at [<gate:…>]"` | **verb** (§ 2.1) |
-| Read `notifications.rungs` / `.sound` | `nen/workflow.json` | **read as data** — unvalidated (`docs/ab/rikugan.md` § 2.4) |
+| Read `notifications.rungs` / `.sound` | `nen/workflow.json` | **read as data** — unvalidated (`docs/ab/spiritual-message.md` § 2.4) |
 | Rung 1 — push notification | the surface | **not nen's** — nen *reports* it (§ 2.2) |
 | Rung 2 — OS notification | the `Stop` hook, or § 2.3's fallback | **not nen's, by design** (§ 2.2, § 2.3) |
 | Rung 3 — audible cue | the same | **not nen's, by design** |
@@ -54,7 +54,7 @@ $ nen parse jutaisho --grammar "at [<gate:G1|G1-M|G2|G3|G4|G5>]" --line "at"
 exit=0                                   # parses, clause absent -- a turn bell, not a stop
 ```
 
-The clause is anchored behind the literal `at` for the reason `docs/ab/rikugan.md` § 2.1 records
+The clause is anchored behind the literal `at` for the reason `docs/ab/spiritual-message.md` § 2.1 records
 live: a lone bracketed slot is refused **at the template**, naming the fix.
 
 ### 2.2 — `nen stop`: the banner, and nen saying which rungs it will not fire
@@ -166,7 +166,7 @@ scripts — and are therefore **harness-level shell, named as residue**, not a v
 3. **The `Stop` hook and the `PreToolUse` trunk guard** live in `hooks/hooks.json` — this
    repository's harness files, owned elsewhere in this wave. Jutaisho reads whether a hook exists;
    it never writes one.
-4. **`nen/workflow.json` read as data** — no schema row at `v0.3.0` (`docs/ab/rikugan.md` § 2.4).
+4. **`nen/workflow.json` read as data** — no schema row at `v0.3.0` (`docs/ab/spiritual-message.md` § 2.4).
    `notifications.rungs` defaults to `["push","os","sound"]` and `notifications.sound` to `Glass`,
    stated whenever a default applied.
 

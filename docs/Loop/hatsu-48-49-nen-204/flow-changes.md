@@ -13,7 +13,7 @@ identify changed obligations. Nen #204 is delivered separately in Nen PR #206; n
 | mukai / gyo | Coverage could invoke a suite again; intermediate push could precede final coverage proof | **Extract and gate matching captured coverage without rerunning tests**; a changed catch-up returns to verification before any push |
 | amaterasu | Declared target launch and after-steps, readiness/fallback protections | **Explicit compatible build → install → launch on the ready physical target each applicable turn**; shared record extraction replaces consumer parsing only after release and device proof |
 | jujutsu | Device registration and declaration | **Same shared discovery shape as amaterasu**; registration is not successful artifact delivery |
-| rikugan / ren | Completion and evidence could imply extra verification | **Report existing evidence and actual delivery truthfully**, with no hidden test/coverage reruns |
+| spiritual-message / ren | Completion and evidence could imply extra verification | **Report existing evidence and actual delivery truthfully**, with no hidden test/coverage reruns |
 | Discovery (#49) | Filing skill centered on explicit invocation and a proposed plan | **Standing encounter authority**: reconcile first, then create/update/fold, or persist a retryable pending record; no new implementation or gate authority |
 | Release | Existing release prerequisites | **#49 included before any new tag is considered**; Nen publication and consumer proof remain separate downstream steps |
 

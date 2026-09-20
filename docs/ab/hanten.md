@@ -175,7 +175,7 @@ default path map, in the open, reported as by-hand. See § 4.2 for where that ma
 gives Hisoka and Uvogin **`sonnet`** — the `fast` tier. Both readings are recorded as true in the same
 document (`docs/ROSTER.md` § 3). § 4.1 is what to do about it.
 
-`nen schema check` does not validate `nen/workflow.json` at this pin (`docs/ab/rikugan.md` § 2.4), so
+`nen schema check` does not validate `nen/workflow.json` at this pin (`docs/ab/spiritual-message.md` § 2.4), so
 these values are read as data and the defaults are stated whenever they apply.
 
 ### 2.5 — `nen stop --template`, and what it does not do
@@ -454,3 +454,64 @@ exit=0
 
 GitHub pull-request review-provider rounds are not in this table. This is local Hatsu reviewer
 invocations inside one cycle.
+
+---
+
+## 2026-09-19 — `nen review scopes` replaces the path→scope table (zheref/hatsu#89)
+
+**What changed.** § 2's path→scope map was this skill's own default, stated every run and corrected by
+hand where a repository's layout defeated it (§ Residue 5's named gap, now closed). `nen/workflow.json`
+gains a `review.scopes` block, and classification is `nen review scopes --base <ref> --repo <path> --json`.
+The hand table and the "gap worth naming" callout are retired to the session history file; the budgets they
+used to carry are now `review.scopes[].budget`, still counted by `scripts/hanten_cycle_ledger.sh`.
+
+### Verified live, in this worktree, at nen `0.11.0` + the `review` verb from `zheref/nen` reports-reviewers
+
+**`nen repo classify --repo .`** — used by § 2 for Nobunaga's tier swap and by every reviewer's preamble:
+
+```
+zheref/hatsu: role canon · kind process · stack claude-code-plugin · gate G4
+  lanes: plugin, plugin-bump-guard, plugin-update, tenkai-guard, release-guard
+  role from: <worktree>/nen/repos.json: maintained_tools
+  kind from: <worktree>/nen/contract.json: project.lanes (claude-code-plugin, ×5)
+```
+
+Exit `0`. **`kind process` is what makes Nobunaga run at the declared `deep` tier here**; a `product` kind
+would swap him to `fast` (§ 2).
+
+**`nen review scopes --base origin/main --repo <this worktree>`** — exit `0`, and the honest answer for a
+branch whose work is still uncommitted:
+
+```
+base 'origin/main': 0 changed file(s)
+raised: no scope
+nothing classified: 'origin/main...HEAD' carries no changed path, so no scope was raised and no gap in the table was tested
+```
+
+`--json` returns `{ "contract": "nen.review.scopes/v0.1", "base": "origin/main", "files": 0, "scopes": [],
+"unclaimed": [] }`. **A zero-file classification is reported as one rather than dressed up as a clean
+review** — the point of § 2's rule that the change set is the classification *plus* `git status
+--porcelain`.
+
+**The same verb over a committed diff**, proving the declaration's routing end to end
+(`--base HEAD~1`, exit `0`):
+
+```
+base 'HEAD~1': 1 changed file(s)
+raised: 2 scope(s)
+  code  nobunaga (deep, budget 2)  1 path(s)
+      CHANGELOG.md
+  release  phinks (deep, budget 1)  1 path(s)
+      CHANGELOG.md
+unclaimed: none -- every changed path is claimed by a declared scope
+```
+
+**Two scopes on one path is the shape § 2 describes**, not a defect: `code` claims `**` so Nobunaga is
+raised on every change set, and `CHANGELOG.md` is also a declared `release` path. The `--json` document
+carries the same rows in declaration order with `scope`, `persona`, `tier`, `budget` and `paths`.
+
+**Not verified here.** No reviewer subagent was raised and no cycle ledger was opened: this session
+authored the definitions rather than running a review, so § 2b's `decide`/`record` transitions and § 2a's
+scan rows (gitleaks, the per-stack audits, `nen stage triage`) remain exercised only by the ledger's own
+self-test above. The pinned consumer build of `nen` is `0.11.0`; the `review` verb is the unreleased
+`0.12.0` line, run from its development worktree.

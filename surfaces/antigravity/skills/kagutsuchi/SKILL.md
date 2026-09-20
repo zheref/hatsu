@@ -1,87 +1,29 @@
 ---
 name: kagutsuchi
-description: Send a build to a declared NON-PRODUCTION destination — the internal channel, the testers' track, the preview environment — by running the repository's own `deploy` row through `nen shu deploy --target <name> --run`. Use ONLY when the maintainer invokes /kagutsuchi <target> or asks in their own words to upload this to a named destination. The plan is printed always and sending happens only on that call, naming that target; no composite ever calls it, no agent ever proposes it, and one call sends to one target once. Production and the stores are /mugetsu at G3, never this skill.
+description: Send a build to a declared NON-PRODUCTION destination — the internal channel, the testers' track, the preview environment — by running the repository's own `deploy` row through `nen shu deploy --target <name> --run`. Use ONLY when the maintainer invokes /kagutsuchi <target> or asks in their own words to upload this to a named destination. The plan is printed always, sending happens only on that call naming that target, no composite calls it and no agent proposes it. Production and the stores are /mugetsu at G3, never this skill.
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
-**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
-root**, not the consuming repository. On an installed surface, use the absolute root printed by
-`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
-below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
-trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+# Kagutsuchi — one build, one named destination, on your word
 
-
-
-# Kagutsuchi — the flame given a shape: one build, one named destination, on your word
-
-> **The gate on a declaration change is the REPOSITORY's role, not the file's kind.** Maintainer's
-> ruling, 2026-09-18 ([`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is
-> the repository's role, not the file's kind*): **`G4` (`CON-7`) in a canon repository** —
-> `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`, whose product *is* the process — and **`G2`
-> (`CON-5`) in a consumer repository**, where a `nen/contract.json`, `nen/workflow.json` or
-> `nen/gates.json` is that repository's own configuration and governs nothing else. **This skill runs
-> against consumer checkouts by design**, so every declaration-gate instruction below names both
-> halves explicitly rather than asking you to reinterpret a bare "G4". The merge is the maintainer's
-> either way — the ruling moves the gate, never the prohibition.
-
-**Nature: Emitter.** The moment a build leaves this machine it is a release act, whichever nature
-authored the diff. [`/amaterasu`](../amaterasu/SKILL.md) starts an app *here* and is Transmuter
-for that reason; this skill sends one *there*, and the difference is the whole reason they are two
-skills.
+**Nature: Emitter.** The moment a build leaves this machine it is a release act.
 
 > **Show me exactly what would be sent and where. Then, because I said this target by name, send it —
 > once.**
 
-Kagutsuchi is a **human call, per target**. It is not a phase of any loop, it is not offered as a next
-step, and it never runs because something upstream finished successfully.
+A **human call, per target**. (The maintainer has written it *kagutsushi*; a misspelling is still an
+invocation, spelled correctly rather than corrected.) The declaration gate is the repository's ROLE
+([`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *Gate derivation*), and shared policy lives at the
+plugin root, resolved as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 0 says.
 
-> **The name.** The maintainer has written it *kagutsushi*; the skill is **`kagutsuchi`** — Sasuke's
-> Blaze Release: Kagutsuchi, the technique that shapes Amaterasu's black flames into something aimed.
-> Said once, here, so the invocation and the roster agree; a misspelling in a message is still an
-> invocation of this skill, and the reply spells it correctly rather than correcting the maintainer.
+## 0. Standalone entry
 
----
-
-## 0. Standalone entry — this skill was ALWAYS standalone
-
-**Kagutsuchi has no wired entry to add one to.** § 1 already says it: *no composite ever calls it, no
-agent ever proposes it, and one call sends to one target once*. It is reached exactly one way — the
-maintainer typing it, naming the target — so the contract in
-[`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) applies to it in the narrowest possible
-form, and **this section grants nothing**.
-
-**What it adds is two clauses of the preamble, and nothing else.**
-
-**P1 · Warm up.** [`/hatsu-warmup`](../hatsu-warmup/SKILL.md), unconditionally. The send is
-`nen shu deploy --target <name> --run`; a phase reached directly has nobody to have satisfied `D10`.
-
-**P2 · Orient before the plan, and put it IN the plan.** § 3 prints the plan always, before anything;
-cold, the plan's first block states what is being sent from:
-
-- the **branch**, and whether it is `branch.base`;
-- **clean or dirty**, with every uncommitted path — an upload built from a dirty tree ships something
-  that exists in no commit, and the destination has no way to tell;
-- **ahead of / behind** the fetched `origin/<branch.base>`, and whether the head is **published**;
-- the **tag or commit** the artifact will carry.
-
-**That block is orientation, not a gate.** Kagutsuchi does not refuse a dirty tree — the maintainer
-may have every reason — it **shows** it, so the call is made with the facts visible. Where the state
-is one the maintainer plausibly did not intend, say so in one line and print the plan anyway.
-
-**P4 · Nothing is ever asked.** § 1's rule stands verbatim: *asking again would be theatre — the human
-already named the target*. A cold entry does not earn a confirmation prompt, and adding one would
-convert a human call into a nudge.
-
-**What does not change — all of it.** One call, one target, once. The plan printed always, the send
-only on the call. § 5's refusal order, § 6's credentials asserted and never handled. **Production and
-the stores remain [`/mugetsu`](../mugetsu/SKILL.md) at `G3`, never this skill**, and no path
-through this section reaches one.
-
-**Hand-back.** *Terminal for this target. Nothing follows a send in the wired run, because there is no
-wired run — the next call, if any, is yours.*
-
----
+[`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) applies in its narrowest form, because
+**kagutsuchi has no wired entry to add one to**: cold it adds **P1** (`hatsu-warmup`) and **P2**,
+whose orientation goes **inside** § 3's plan — the branch and whether it is `branch.base`; clean or
+dirty with every uncommitted path; ahead of / behind the fetched `origin/<branch.base>` and whether
+the head is published; and the tag or commit the artifact will carry. **That block is orientation, not
+a gate**, and **nothing is ever asked**.
 
 ## 1. Invocation — and who is allowed to say it
 
@@ -89,94 +31,42 @@ wired run — the next call, if any, is yours.*
 /kagutsuchi <target>
 ```
 
-**`<target>` is required grammar, not a default.** It names a key of
-`nen/contract.json → project.targets`. There is no bare form, no "the usual one", and no picker: nen's
-own rule for `--target` is *"required and has no default, not even when exactly one target exists —
-nen never chooses where a build goes"*, and the skill inherits it for the stronger reason that **the
-maintainer typing the target's name is the authorization**. A run whose destination the maintainer
-did not type has no authorization to inherit.
+**`<target>` is required grammar, not a default**, naming a key of `nen/contract.json` →
+`project.targets`: no bare form, no "the usual one", no picker, because **the maintainer typing the
+target's name is the authorization**. **The call is the stop** — no confirmation, no lettered options,
+no picker — so the run **prints the plan first** (§ 3) and **says what it sent** (§ 5).
 
-**The call is the stop.** There is no separate confirmation step, no lettered options, no
-`AskUserQuestion` before sending. Asking again would be theatre: the human already named the
-destination, which is the only thing there was to ask. What the run does instead is **print the plan
-first** (§ 3) and **say what it sent** (§ 6).
-
-**The call is the maintainer's, in their own words or by name.** Three consequences, all binding:
-
-- **No agent ever prompts for it.** Not a report, not a bell, not a stop's options, not a composite
-  offering it as a next step. A report may say *the archive is built and the `staging` target is
-  declared*; it may not say *shall I upload it?* An agent that asks for permission it was told to
-  wait for has converted a human call into a nudge.
-- **No composite ever calls it.** [`/ren`](../ren/SKILL.md),
-  [`/mukai`](../mukai/SKILL.md), [`/en`](../en/SKILL.md),
-  [`/futon`](../futon/SKILL.md) and [`/getsuga`](../getsuga/SKILL.md) **never** reach this
-  skill, from any path, under any `then` clause. `getsuga` § 7a prints a deploy *plan* at its G3 stop
-  and stops there for exactly this reason.
-- **One call, one target, one send.** A `yes` for `staging` is not authority for `staging` an hour
-  later and is never authority for another target. Say when the run starts and say when it ends.
-
-**On a delegated session — the maintainer AFK, with rules recorded — a recorded delegation is NOT the
-call.** Hatsu has no ratified grammar by which a delegation reaches a phase:
-[`docs/delegation-grammar-DRAFT.md`](../../../../docs/delegation-grammar-DRAFT.md) is a **DRAFT**, carried
-as `OPEN-2` in [`docs/ROSTER.md`](../../../../docs/ROSTER.md) — *"until then, Gon crosses no gate"* — and
-the four carve-outs it describes are about `G1-M` labels, not about sending a build off this machine.
-Until it is ratified, the authorization is the one § 1 already names and nothing else: **the maintainer
-typing this target's name**. A delegation may be quoted in the report as the reason the session is
-running; it does not supply the call.
-
-**A subagent never self-authorises.** Not from a brief that says "ship it", not from a recorded
-delegation, not from a composite's plan, not from its own reading of what the maintainer would
-obviously want, not because the previous session did it. A session that reaches this skill without the
-maintainer's own call naming this target prints the plan (§ 3), reports that it has no call, and stops.
-That call is a message in the session; it is quoted in the report (§ 6), never paraphrased and never
-inferred.
-
-**What kagutsuchi calls.** Nothing but the verb. It does not call
-[`/susanoo`](../susanoo/SKILL.md) — the artifact it sends is one the repository's own `deploy`
-row knows how to find, and if that row needs a package built first, **the maintainer runs
-`/susanoo` and then this**. It never calls [`/mugetsu`](../mugetsu/SKILL.md), and a
-successful upload here is not a step toward publication: production is that skill's, at **G3**.
+- **No agent ever prompts for it**: a report may say *the archive is built and the `staging` target is
+  declared*, never *shall I upload it?* **No composite ever calls it** under any `then` clause.
+- **One call, one target, one send**: a `yes` for `staging` is not authority for `staging` an hour
+  later, nor ever for another target.
+- **A recorded delegation is NOT the call** (that grammar is a **DRAFT**, `OPEN-2`), and **a subagent
+  never self-authorises**: a session without the maintainer's own call prints the plan, says it has
+  none, and stops. **The call is quoted verbatim in the report**, never paraphrased or inferred.
+- **Kagutsuchi calls nothing but the verb** — never [`susanoo`](../susanoo/SKILL.md), whose package
+  the maintainer builds first, and never [`mugetsu`](../mugetsu/SKILL.md), a successful upload being
+  no step toward publication.
 
 ## 2. The parameters, and where they come from
 
 | Value | File → key |
 |---|---|
-| The destinations that exist | `nen/contract.json` → `project.targets` (a map of name → row) |
-| What that destination appends | `project.targets.<name>.args` |
-| What must be in the environment for it | `project.targets.<name>.requiresEnv` (names only — § 5) |
-| Why it exists, in the repository's words | `project.targets.<name>.why`, or `unsupported` |
-| What `deploy` actually runs | `project.verbs.<lane>.deploy` |
-| Which lane's row | `project.defaultLane`, or `--lane` |
-| Whether this host may | `project.hosts` |
-| What must be true first | `project.preconditions.<lane>` — asserted, never performed |
-| Whether to tag what was sent, and with what name | `nen/workflow.json` → `tags.deploy.<target>` — **the one thing kagutsuchi reads from the workflow file** (§ 4a). Absent, it tags nothing |
+| The destinations, what they append, require, and why | `nen/contract.json` → `project.targets.<name>` → `args`, `requiresEnv` (names only, § 5), `why`, `unsupported` |
+| What `deploy` runs, and in which lane | `project.verbs.<lane>.deploy`; `project.defaultLane` or `--lane` |
+| Whether this host may, and what must be true first | `project.hosts`; `project.preconditions.<lane>` — asserted, never performed |
+| Whether to tag what was sent, and with what name | `nen/workflow.json` → `tags.deploy.<target>`, `tags.identity.nameFrom` (§ 4a) |
 
-**Targets are project-level; `deploy` rows are per-lane**, and nen checks nothing about whether a
-target is *meaningful* for the lane it is used on. On a repository with two deployable lanes,
-`--target staging` is accepted on either. The plan printed in § 3 is what makes that visible — read
-the `target:` line and the composed `would run:` before answering, every time.
+**Targets are project-level while `deploy` rows are per-lane**, and nen checks nothing about whether a
+target is *meaningful* for the lane it is used on — so read the `target:` line and the composed
+`would run:` before answering, every time.
 
-**Non-production is the declaration's word, not this skill's — and it is PROSE, not a typed field.**
-**Nothing in nen marks a target as production or not, at the pinned build either — genuinely still
-residue:** `project.targets.<name>` carries `args`,
-`requiresEnv`, `why` and `unsupported`, and none of them says which side of **G3** a destination is on
-(§ *Residue* 1; `docs/ab/kagutsuchi.md` § 4.1 files it as the finding worth acting on). So the test is
-a **read of a sentence**, and it is written to fail closed in all three directions:
-
-- **A `why` that says or implies the destination reaches end users** — production, live, a store, a
-  public channel — is [`/mugetsu`](../mugetsu/SKILL.md)'s at **G3**, and this skill refuses it by
-  name whatever the maintainer typed.
-- **A target with no `why` at all** is refused, because *"this destination is not production"* is a
-  claim, and an unstated claim is not one anybody made.
-- **A `why` that does not clearly say the destination is non-production** is refused the same way —
-  *not* waved through for lacking the word *customers*. Ambiguity is the absent case wearing a
-  sentence. The refusal quotes the `why` and asks the maintainer to say which side it is on; the
-  durable fix is a word in the declaration, not a judgement call here.
-
-**What this cannot catch is a `why` that is untrue**, and no reading of prose can. A declaration that
-describes a production destination as an internal channel is a defect in the declaration — repaired
-there, in the repository's own file, through its own review — and until a target row can *state* its
-side of the gate, that residue is named rather than papered over.
+**Non-production is the declaration's word and it is PROSE, not a typed field** (§ Residue), so the
+test is a **read of a sentence** failing closed three ways: a `why` that says or implies the
+destination **reaches end users** is [`mugetsu`](../mugetsu/SKILL.md)'s at **G3** (row `release-go`);
+**a target with no `why`** is refused, an unstated claim being one nobody made; and **a `why` that
+does not clearly say the destination is non-production** is refused the same way, not waved through
+for lacking the word *customers*. **A `why` that is untrue is beyond any reading** and is a defect in
+the declaration.
 
 ## 3. The plan — printed always, before anything
 
@@ -184,28 +74,11 @@ side of the gate, that residue is named rather than papered over.
 nen shu deploy --repo <path> [--lane <lane>] --target <name> --dry-run
 ```
 
-Verified live at nen `0.3.0` (`docs/ab/kagutsuchi.md` § 2.1): exit `0`, and the report carries the
-`target:` line with what it appends and what it requires, the host row, every precondition asserted,
-the fully composed `would run:` argv, the cwd and the env **names** — and **spawns nothing**.
-
-**The bare form prints the same report.** `nen shu deploy --target <name>` with no `--run` is
-read-only by construction — *"without `--run` it is read-only, because nen spawns nothing whatever
-the declaration says — a property of nen rather than a claim about somebody else's argv"* — and it
-adds one line on stderr, quoted here because it is the sentence to relay:
-
-```
-nothing was sent: 'deploy' acts only with --run. The plan above is fully resolved -- the destination
-substituted into the argv, every precondition asserted -- and no process was started. Re-run the same
-line with --run to send it.
-```
-
-Both forms are exit `0` and byte-identical above that line (verified, `docs/ab/kagutsuchi.md` § 2.2).
-**Write `--dry-run` anyway.** It is the explicit spelling, it is the one form a reader of the
-transcript cannot misread, and it is the form that survives being copied into a report where nobody
-can see whether `--run` was on the next line.
-
-**Paste the plan into the reply before sending, every time.** It is the only thing a maintainer who
-was not watching the session can audit afterwards. What is sent must be what was shown.
+The report carries the `target:` line with what it appends and requires, the host row, every
+precondition asserted, the fully composed `would run:` argv, the cwd and the env **names** — and
+**spawns nothing**. The bare form without `--run` is read-only by construction; **write `--dry-run`
+anyway**, the one spelling a reader of the transcript cannot misread. **Paste the plan into the reply
+before sending, every time**, and **what is sent must be what was shown.**
 
 ## 4. The send — only on the call, only that target
 
@@ -213,345 +86,97 @@ was not watching the session can audit afterwards. What is sent must be what was
 nen shu deploy --repo <path> [--lane <lane>] --target <name> --run
 ```
 
-Verified live against the fixture: exit `0`, the composed argv spawned exactly as the plan rendered
-it, and nothing else (`docs/ab/kagutsuchi.md` § 2.6). `--run` is a second, independent flag: **there
-is no single-flag path to acting**, and `--run` with `--dry-run` together is refused at exit `2` with
-the reason — *"Nen will not pick one of two contradicting instructions on the one verb whose blast
-radius is other people's users"* (verified, § 2.3).
-
-Run it **once**. If it fails, read § 5, fix the named fact, and re-run — a re-run is the same
-authorization only while it is the same target under the same call; anything else is a new call.
+`--run` is a second, independent flag: **there is no single-flag path to acting**, and `--run` with
+`--dry-run` is refused at exit `2`. Run it **once**; if it fails, read § 5, fix the named fact and
+re-run — a re-run is the same authorization only while it is the same target under the same call.
 
 ### 4a. The distribution tag — OPT-IN, and only after the send succeeded
 
-**A repository may ask for what was just sent to be marked with a tag** (maintainer's ruling of
-2026-09-18, corrected 2026-09-19). **This is the one tag**, and it is cut here because here is where a
-build actually lands: an upload that succeeded is a thing that can be pointed at, and an archive that
-never left the machine is not. [`/susanoo`](../susanoo/SKILL.md) § 5a only NAMES the tag that is
-coming; it cuts nothing.
+A repository may ask for what was just sent to be marked with a tag (ruling 2026-09-18, corrected
+2026-09-19), declaring `tags.identity.nameFrom` (**first line the identity, second the build SHA**,
+shared with [`susanoo`](../susanoo/SKILL.md) § 5a so what was announced and what is cut cannot differ)
+and `tags.deploy.<target>` (**that this target is tagged at all**, and whether it is pushed — keyed by
+target, so one with no entry is not tagged). **This is the one tag**, cut here because here is where a
+build lands; the default is not to tag.
 
-The symmetry the ruling states: **an upload that succeeds becomes a tag, and a release Apple approves
-becomes a GitHub release.** A repository may declare this block or not — the default is not — and one
-that does not behaves exactly as it did before.
+**Every check, refusal and the cut live in [`scripts/dist_tag.sh`](../../../../scripts/dist_tag.sh)**,
+run **only after a green `--run`**:
 
-The declaration is `nen/workflow.json`, and **the NAME comes from the same file susanoo announced
-from** — there is exactly one source, so what was announced and what is cut cannot differ:
-
-```json
-"tags": {
-  "identity": { "nameFrom": ".nen/archive/tag-name" },
-  "deploy":   { "testflight": { "push": true } }
-}
+```sh
+#  <write the target, verbatim and alone, to "$target_file" with the SURFACE'S OWN file-writing tool —
+#   never echo, printf, cat or a heredoc, so the maintainer's word never enters shell source>
+"$hatsu_root/scripts/dist_tag.sh" --repo <path> --target-file "$target_file" [--dry-run]
 ```
 
-| Key | Meaning |
-|---|---|
-| `tags.identity.nameFrom` | first line is the tag's **identity** — `v1.0.0+1217`. Shared with [`/susanoo`](../susanoo/SKILL.md) § 5a |
-| `tags.deploy.<target>` | **that this target is tagged at all**, and whether the tag is pushed. Keyed by target: a target with no entry is not tagged, even where a sibling has one — and the procedure **reads it before anything else**, reporting `not declared for this target` and cutting nothing when it is absent |
+It reads the opt-in first; composes `dist/<target>/<identity>` **from variables, so the species prefix
+cannot disagree with the target**; refuses a `nameFrom` that is a symlink, not a regular file, or
+outside the repository; refuses a build SHA that is not a raw 40-character commit **rather than
+tagging HEAD**; refuses a dirty tree and an illegal ref name; reads `branch.base` as data; then runs
+`nen tag cut … [--push]`. **Exit `0`** cut (or every check passed under `--dry-run`); **`3`** not
+declared, nothing cut, not an error; **`2`** refused, reason on stderr; **`1`** `nen tag cut` refused
+— **its reason stands and is never routed around**, notably that `--at` needs an ancestor of
+`origin/<trunk>`.
 
-**The species prefix is the SKILL's, and it is composed from the target actually being sent to** —
-`dist/<target>/<identity>`. That is deliberate: only the cut knows its target, an archive does not,
-and a repository writing the whole name itself could write `dist/staging/…` on a `testflight` send.
-The prefix is not checked against a pattern, it is **built**, so it cannot disagree with the target.
+**`--push` is not atomic**, so a rejected push leaves the name taken locally and absent on `origin`,
+which the verb then refuses forever; the single remedy is a local tag of that name, at that SHA,
+**verified absent from `origin`**, deleted and re-cut. **A tag refusal never unsends anything**, so
+§ 5 reports the send as sent and the tag on its own line, and **a cut tag is not a promotion.**
 
-```bash
-# The JSON subscripts are DOUBLE-quoted inside the single-quoted -c argument.
-# Single quotes there terminate it, the shell strips them, and python dies
-# before reading anything — which would silently stop every declared tag.
-wf="$(git -C <path> rev-parse --show-toplevel)/nen/workflow.json"
+## 5. The refusals, credentials, and the report
 
-# THE TARGET IS THE MAINTAINER'S WORD, AND IT IS DATA. The line above used to
-# claim it was "never interpolated into shell source" while doing exactly that
-# on the next line: `target="<the target this run was called with>"` is a
-# PLACEHOLDER a caller fills in, and a filled-in `$(touch /tmp/pwned)` runs
-# during the assignment -- before the python lookup, before check-ref-format,
-# before anything below can refuse it. Double quotes stop `;` and they do not
-# stop command substitution.
-#
-# A QUOTED HEREDOC IS NOT ENOUGH EITHER, and the reason is worth keeping: it
-# stops `$` and backticks, but the DELIMITER is still in-band. A target
-# containing a line equal to the delimiter closes the heredoc early and the
-# bytes after it are read as shell commands. Narrowing the payload is not the
-# same as closing the channel.
-#
-# SO THE TARGET NEVER ENTERS SHELL SOURCE AT ALL. Write it to a file with the
-# surface's OWN file-writing primitive -- Claude Code's Write tool, Codex's
-# apply_patch, whichever the surface has -- which takes the value as an
-# argument to the tool and never as text the shell parses. Then read the file.
-# There is no delimiter to collide with because there is no in-band framing.
-#
-#   <write the target, verbatim and alone, to "$target_file" using the
-#    surface's file-writing tool -- NOT with echo, printf, cat or a heredoc,
-#    all of which put the value back into shell source>
-target_file="$(mktemp)"; trap 'rm -f "$target_file"' EXIT
-target="$(tr -d '\r\n' <"$target_file")"
-[ -n "$target" ] || { echo "no target named -- refused"; exit 2; }
-
-# READ THE OPT-IN FOR THIS TARGET FIRST. `tags.deploy.<target>` is the switch:
-# absent means this target is not tagged, even where a sibling target is, and
-# even where tags.identity is declared.
-#
-# THREE OUTCOMES, NOT TWO, and collapsing them is how "broken" gets reported as
-# "off". Exit 3 is "not declared" and is reported without cutting; ANY OTHER
-# nonzero means the file could not be read as declared -- unparseable JSON exits
-# 1 -- and that is a refusal, because § 7 promises a malformed declaration is
-# reported as read-and-rejected and never as absent. A bare `||` caught both and
-# broke that promise.
-#
-# `isinstance(d, dict)` is load-bearing: `in` against a STRING is a substring
-# test, so a `deploy` of "testflight-someday" would opt `testflight` IN -- the
-# fail-open direction, on a switch whose whole job is to keep tags off.
-python3 -c 'import json,sys
-d=json.load(open(sys.argv[1])).get("tags",{}).get("deploy",{})
-if not isinstance(d, dict): sys.exit("tags.deploy is %s, not an object" % type(d).__name__)
-# ABSENT AND null ARE DIFFERENT ANSWERS. `.get()` returns None for both, so
-# `tags.deploy.<target>: null` -- a present, malformed declaration -- was
-# reported as "not declared" and exited 0, silently disabling the tag. § 7
-# requires a present-but-malformed declaration to be REJECTED. Key presence is
-# tested first, and only then is the value validated.
-if sys.argv[2] not in d: sys.exit(3)
-e=d[sys.argv[2]]
-if not isinstance(e, dict): sys.exit("tags.deploy.%s is %s, not an object" % (sys.argv[2], type(e).__name__ if e is not None else "null"))
-p=e.get("push", False)
-if not isinstance(p, bool): sys.exit("tags.deploy.%s.push is %r, not a boolean" % (sys.argv[2], p))
-sys.exit(0 if p else 4)' "$wf" "$target"
-# FOUR OUTCOMES, because `push` is a VALUE and not merely a key. An earlier
-# version tested only that the key existed, so `{"push": false}` and
-# `{"push": true}` took the same path and the trailing `[--push]` was chosen by
-# the caller rather than by the declaration -- which is the declaration not
-# controlling the one thing it is there to control.
-case $? in
-  0) push_flag="--push" ;;
-  4) push_flag="" ;;
-  3) echo "no tags.deploy entry for '$target' -- not declared for this target, nothing cut"; exit 0 ;;
-  *) echo "$wf could not be read for tags.deploy -- present but unreadable is not absent; refused"; exit 2 ;;
-esac
-
-# THE SAME THREE-WAY READ FOR THE NAME. In a command substitution a failure here
-# is silent: nameFrom comes back EMPTY, "$root/" is a directory, and the refusals
-# below would report a misleading reason for a file that was never named.
-nameFrom="$(python3 -c 'import json,sys
-d=json.load(open(sys.argv[1])).get("tags",{}).get("identity",{})
-if not isinstance(d, dict) or not isinstance(d.get("nameFrom"), str) or not d["nameFrom"]:
-    sys.exit("tags.identity.nameFrom is missing or is not a non-empty string")
-print(d["nameFrom"])' "$wf")" \
-  || { echo "tags.identity.nameFrom could not be read from $wf -- refused"; exit 2; }
-
-root="$(git -C <path> rev-parse --show-toplevel)"
-file="$root/$nameFrom"
-[ -L "$file" ] && { echo "nameFrom is a symlink -- refused"; exit 2; }
-[ -f "$file" ] || { echo "nameFrom is not a regular file -- refused"; exit 2; }
-case "$(cd -P -- "$(dirname -- "$file")" && pwd -P)/" in
-  "$root"/*) : ;;
-  *) echo "nameFrom resolves outside the repository -- refused"; exit 2 ;;
-esac
-identity="$(sed -n '1p' -- "$file" | tr -d '\r')"
-built_at="$(sed -n '2p' -- "$file" | tr -d '\r')"
-[ -n "$identity" ] || { echo "nameFrom's first line is empty -- refused"; exit 2; }
-
-# THE SHA THE ARCHIVE WAS BUILT FROM, NOT HEAD. susanoo and this phase are
-# separate invocations with a human decision between them, so HEAD can have
-# moved -- and a tag at HEAD would then name a commit the archive never saw.
-[ -n "$built_at" ] || { echo "nameFrom carries no build SHA -- refused rather than tagging HEAD"; exit 2; }
-
-# IT MUST BE A RAW SHA, AND `cat-file -e` DOES NOT ASK THAT. It resolves
-# SYMBOLIC revisions too -- `HEAD`, `origin/main`, `HEAD~1` all exit 0 -- so a
-# nameFrom whose second line said `HEAD` passed this check and `--at` then
-# resolved whatever HEAD was at send time. That is precisely the "never HEAD"
-# rule this block exists to enforce, defeated by the check meant to enforce it.
-case "$built_at" in
-  *[!0-9a-f]* | "") echo "the recorded build SHA is not a raw lowercase hex object name -- refused"; exit 2 ;;
-esac
-[ "${#built_at}" -eq 40 ] || { echo "the recorded build SHA is not a full 40-character object name -- refused"; exit 2; }
-git -C <path> cat-file -e "${built_at}^{commit}" 2>/dev/null \
-  || { echo "the recorded build SHA is not a commit in this repository -- refused"; exit 2; }
-
-# A CLEAN TREE IS ASSERTED BELOW, SO IT IS CHECKED HERE. The prose said a clean
-# working tree is what keeps the tag from attesting bytes that were never
-# archived, and nothing checked it -- an assertion in prose and nowhere else is
-# the defect this review already caught once on check-ref-format.
-[ -z "$(git -C <path> status --porcelain)" ] \
-  || { echo "the working tree is dirty -- refused rather than tagging bytes the commit does not describe"; exit 2; }
-
-# BUILT from variables, never templated: the prefix cannot disagree with the
-# target, and an illegal target name is rejected by check-ref-format below.
-name="dist/$target/$identity"
-git -C <path> check-ref-format "refs/tags/$name" \
-  || { echo "the composed tag name is not a legal git ref -- refused"; exit 2; }
-# `branch.base` IS REPOSITORY-CONTROLLED AS WELL, and it was the last
-# placeholder still being substituted into this command's text -- a value
-# carrying `$(...)` would execute during that substitution, and one carrying a
-# space would change argv, both before nen ever validates the trunk. It is read
-# out of the same declaration as data, exactly like nameFrom.
-trunk="$(python3 -c 'import json,sys
-b=json.load(open(sys.argv[1])).get("branch",{})
-if not isinstance(b, dict): sys.exit("branch is not an object")
-t=b.get("base","main")
-if not isinstance(t, str) or not t: sys.exit("branch.base is not a non-empty string")
-print(t)' "$wf")" || { echo "branch.base could not be read from $wf -- refused"; exit 2; }
-git -C <path> check-ref-format --allow-onelevel "$trunk" \
-  || { echo "branch.base is not a legal git ref name -- refused"; exit 2; }
-
-nen tag cut --repo <path> --name "$name" --at "$built_at" --trunk "$trunk" ${push_flag}
-```
-
-**The ancestor rule is about the COMMIT, not the branch.** `--at` is refused unless that commit is an
-ancestor of `origin/<trunk>`: a feature branch sitting at the trunk's tip tags fine, one carrying its
-own unpushed work does not. The honest sentence is *a commit not yet on `origin/<trunk>` cannot be
-tagged* — and stating it as a branch rule is wrong in the reassuring direction, because it implies
-the branch is itself the protection. **What protects the tag from attesting the wrong bytes is a
-clean working tree at `--at`, which is a condition of the order above.** `--trunk` is passed from
-`nen/workflow.json` → `branch.base` rather than defaulted, or a repository whose trunk is `master`
-fails against a non-existent `origin/main`.
-
-**The name must carry its species prefix** — `dist/<target>/` — and a first line that does not is a
-reported refusal.
-A distribution tag sharing `getsuga`'s release namespace can take a version name permanently:
-`mugetsu` proves a release tag by its name resolving on `origin`, and forbids deleting one to
-recover.
-
-**`--push` is not atomic** — the tag is created locally, then pushed — so a rejected push leaves the
-name taken locally and absent on `origin`, which the verb then refuses forever. The single sanctioned
-remedy: a local tag of that name, at that SHA, **verified absent from `origin`**, may be deleted and
-re-cut, because nothing was ever published. That is the completion of an unfinished cut, not a
-re-tag.
-
-That refusal is reported with nen's own reason and is **never routed around** — and it never
-retroactively unsends anything. **The send already happened**: § 7's block reports it as sent, and the
-tag is reported as its own separate line with its own verdict. A run that uploaded cleanly and could
-not tag says both, in that order, and neither reads as the other.
-
-A cut tag here is **not** a promotion and **not** authorization for anything further:
-[`/mugetsu`](../mugetsu/SKILL.md) is still **G3** and still needs its own recorded per-target go.
-
-## 5. The refusals, in the order nen makes them
-
-`claude/agents/kurapika.md` § *The `shu` verbs* is the authority for the codes; this is what
-kagutsuchi does with each, and **the order matters** because it decides which refusal a mistyped line
-gets.
+`claude/agents/kurapika.md` § *The `shu` verbs* is the authority for the codes; **the order matters**,
+and **a seat beats a mistyped target** deliberately.
 
 | Exit | Fact | Reaction |
 |---|---|---|
-| `0` | the plan rendered (no `--run`), or the deploy ran (with it) | § 6 |
-| `1` | the deploy tool ran and **failed** — its own code is in `steps[].exitCode` | relay its output, name the failing step. **Say what state the destination is in**, or that you do not know; a half-completed upload is the one failure that is not local |
-| `2` | `--target` **absent** → *"there is no default … nen never chooses where a build goes"*, naming every declared target in byte order | ask the maintainer for the target. Never pick one |
-| `2` | `--target` **names no declared destination** → the declared ones are listed | relay the list verbatim. Never send to a near-match, and never add the target to the declaration to make the line work |
-| `2` | `--run` **with** `--dry-run` | a wiring error in the invocation; fix it and re-run |
-| `2` | an **unsatisfied precondition** — the lane's own, or a variable the target's `requiresEnv` names | **the plan still prints, with the failing rows marked `FAIL`.** Relay it whole. Satisfy the fact yourself and say which one it was |
-| `3` | **unsupported host** — this machine is not on `project.hosts` | **G5.** Name the hosts the declaration allows and stop. Never retry, never re-route |
-| `4` | **a seat** — the lane declares no `deploy`, in its own words | quote it verbatim and stop. This repository does not deploy |
-| `4` | **the target declares `unsupported`** — a destination with no command line at all | quote it verbatim and stop. The field shape behind it is real: *"the push to main IS the deploy, through the host's own integration"* |
-| `5` | the declared program could not be started | `nen shu tools --repo <path>` and relay the remedy — and read [`/susanoo`](../susanoo/SKILL.md) § 7 first: a green `tools` is not evidence about a program the toolchain block never declared |
+| `1` | the deploy tool ran and **failed** | relay its output, name the failing step, and **say what state the destination is in — or that you do not know** |
+| `2` | `--target` absent, or naming no declared destination | ask, or relay the declared list verbatim — **never pick one**, never a near-match, never add the target to the declaration |
+| `2` | `--run` with `--dry-run`; an unsatisfied precondition or `requiresEnv` variable | fix the wiring; a precondition **still prints the plan with the failing rows `FAIL`**, relayed whole |
+| `3` | **unsupported host** | **G5.** Name the hosts the declaration allows and stop — never retry, never re-route |
+| `4` | **a seat**, or the target declares `unsupported` | quote it verbatim and stop |
+| `5` | the program could not be started | `nen shu tools --repo <path>`; relay the remedy |
 
-**A seat beats a mistyped target**, and that is deliberate: verified live, `--lane docs --target beta`
-against a lane whose `deploy` is seated answers with the **seat** at exit `4`, not with "no such
-target" (`docs/ab/kagutsuchi.md` § 2.5). A refusal that sends someone to write a `targets` block that
-could not have helped is worse than one that costs a retype.
+**Credentials are asserted, never handled.** nen asserts each `requiresEnv` **variable** is set
+**without reading its value**, and **this skill never reads, prints, exports, writes or asks for
+one**; an unset variable is exit `2` with its **name**, and that is where the run ends.
 
-## 6. Credentials — asserted, never handled
-
-A target names environment **variables**, and **nen asserts each is set without ever reading its
-value**. No value appears in the text report, in `--json`, in a refusal or in a log line — verified
-live: with the fixture's `FIXTURE_DEPLOY_TOKEN` unset, the row reads
-`FAIL  env  FIXTURE_DEPLOY_TOKEN -- not set in this environment` and `--json` carries
-`target.requiresEnv: ["FIXTURE_DEPLOY_TOKEN"]` and no value anywhere
-(`docs/ab/kagutsuchi.md` § 2.4).
-
-**This skill handles no credential either.** It does not read one, print one, export one into a
-command line, write one into a file, or ask the maintainer to paste one into the conversation. An
-unset variable is exit `2` with the variable's **name**, and the maintainer sets it in their own
-environment. Where a credential is genuinely missing, that is where the run ends.
-
-## 7. Report, and stop
-
-One block, then stop: the target and its `why` quoted from the declaration, the lane, the plan's
-composed argv (copied out of the `--dry-run` report, not re-typed), whether `--run` was passed, each
-step's own exit code and nen's, and the maintainer's call **quoted verbatim** — the message that
-named this target. There is no second source for that line; a delegation recorded elsewhere in the
-session is reported as context beside it, never in its place (§ 1).
-
-**One line for the tag** (§ 4a): *cut and pushed*, *cut locally*, *refused with nen's reason*, or
-*not declared for this target* — and a declaration present but malformed is reported as read-and-
-rejected, never as absent. nen validates nothing in that block, so "off" and "broken" are otherwise
-the same silence.
-
-**Re-render the turn report before stopping.** The last render was truthful when it was written and is
-stale one step later. [`/rikugan`](../rikugan/SKILL.md) § 5 owns this: the `turn` variant,
-re-rendered at the same address, with the upload written into **01 Accomplished**. There is no fourth
-variant and this skill does not invent one.
-
-**Then say nothing about what is available next.** Not `/mugetsu`, not another target, not "shall
-I promote it". The next call is the maintainer's and they know they have it.
+**Then one block, and stop**: the target and its `why` quoted, the lane, the plan's composed argv
+copied out of the `--dry-run` report, whether `--run` was passed, each step's exit code and nen's, and
+**the maintainer's call quoted verbatim** — a delegation recorded elsewhere being context, never its
+place. **One line for the tag**: *cut and pushed*, *cut locally*, *refused with nen's
+reason*, or *not declared for the target*, a present-but-malformed declaration being read-and-rejected
+rather than absent. **Re-render the turn report before stopping**
+([`spiritual-message`](../spiritual-message/SKILL.md) § 5's `turn` variant, the upload in **01 Accomplished**), and **say
+nothing about what is next.**
 
 ## Residue
 
-1. **Nothing marks a target as production.** `project.targets.<name>` carries `args`,
-   `requiresEnv`, `why` and `unsupported`, and no field says which side of **G3** a destination is on
-   — verified against the declaration `nen shu deploy`'s own refusals enumerate
-   (`docs/ab/kagutsuchi.md` § 4.1). § 2's production test is therefore this skill's, read out of the
-   `why` prose by hand, and a target with no `why` is refused rather than assumed safe.
-2. **Nothing checks that a target belongs to the lane it is used on.** Targets are project-level by
-   design; `targets.<name>.lanes` is named in nen's own docs as the follow-up if the shape turns out
-   to be common. Until then the guard is reading the plan (§ 3), by hand.
-3. **What state a failed deploy left the destination in.** An exit `1` reports the tool's own code
-   and nothing about the far end; nen never queries a destination. Saying *"I do not know what state
-   the destination is in"* is the honest report, and it is by hand.
-4. **A record of the go.** Nothing in nen records that a maintainer authorised a target.
-   `nen stop --notified` writes `.nen/last-stop.json` for the bell and is not that record. The call
-   is quoted verbatim in the report (§ 7), by hand — the same discipline
-   [`/mugetsu`](../mugetsu/SKILL.md) § 3 states for the publication go.
-5. **A per-run log file.** `A .nen/logs/ transcript is not in this release (zheref/nen#91)` — the
-   report is the only record of what a send printed.
+**Nothing marks a target as production**, so § 2's test is this skill's, read out of the `why` prose.
+**Nothing checks that a target belongs to the lane it is used on**, so the guard is reading the plan.
+**An exit `1` says nothing about the far end**, so *"I do not know what state the destination is in"*
+is the honest report. **Nothing records that a maintainer authorised a target**, so the call is quoted
+by hand, and **a per-run log file is not in this release** (zheref/nen#91).
 
-## Authority
+## Authority and hard limits
 
-- **Permitted, and only on the maintainer's own call naming the target:** print the plan for any
-  declared target; run `nen shu deploy --target <that target> --run` **once**, for a destination the
-  declaration's own `why` says is not production.
-- **Also permitted, and only where the consuming repository declares `tags.deploy.<target>`:** cut
-  that one tag through `nen tag cut` after a green `--run`, pushing it when the declaration says
-  `push` (§ 4a).
-- **Not permitted:** `--run` for a production or store destination (that is
-  [`/mugetsu`](../mugetsu/SKILL.md), at **G3**); `nen shu release` in any form; a GitHub
-  Release; a merge; a PR; a label; an edit to `project.targets` to make a line work. **Any push or
-  tag other than the single declared one of § 4a** — that block is the whole of the permission, it is
-  opt-in and per-target, and a repository that does not declare it gets exactly the old behaviour.
-  Adding a `tags.deploy` block so that a tag will be cut is itself a declaration change at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one), never
-  something done here to make a run tag.
-- **The call is one send wide and ends when this run ends.** It is not standing authority to send to
-  this target again later, it is authority for no other target, and no delegation supplies it (§ 1).
-- **Not a gate event of its own** — the maintainer's call already crossed the boundary. Exit `3`
-  (unsupported host) is the one **G5** this skill raises.
-
-## Hard limits
-
-- **Never runs unasked, and never prompts for itself** — no agent, skill, report, bell or stop option
-  proposes `/kagutsuchi` (§ 1).
-- **Never runs from a composite.** `ren`, `mukai`, `en`, `futon` and `getsuga` never call it, under
-  any `then` clause, on any path.
-- **Never treats a delegation as the call.** Without the maintainer's own call naming this target —
-  and a recorded delegation is not one — the plan is printed and the run stops (§ 1).
-- **Never chooses a target**, never defaults one, never sends to a near-match of a mistyped one, and
-  never adds a target to the declaration so that a line will run.
-- **Never sends to production or a store.** That is `/mugetsu` at **G3**. The test is a read of
-  the declaration's `why` prose, because nen has no field for it at this pin, so it is written to refuse
-  three cases and not one: a `why` that reaches end users, a target with no `why`, and a `why` that
-  does not clearly say the destination is non-production (§ 2). A `why` that is simply **untrue** is
-  outside what any reading can catch, and is a defect in the declaration rather than a route through
-  this skill (§ *Residue* 1).
-- **Never sends what it did not show.** The plan is printed first, and what runs is that plan
-  (§ 3, § 4).
-- **Never reads, prints, exports or asks for a credential** — nen asserts a variable is set and never
-  reads it, and neither does this skill (§ 6).
-- **Never retries an exit `3`**, and never treats an exit `4` seat as a failure to route around.
-- **Never sends twice on one call**, and never treats one target's go as another's.
-- **Never claims a send succeeded** on the strength of a plan, or on an exit code it did not read.
-- **Never tags a target the repository did not declare under `tags.deploy`**, never composes a tag
-  name of its own, and never tags after a plan-only run or a failed send (§ 4a).
-- **Never re-tags, and never routes around a tag refusal** — not by tagging another commit, not by
-  pushing a branch to make `--at` an ancestor, not by dropping `--push` so a local tag stands in for
-  one that resolves on `origin`.
-- **Never lets a tag refusal read as a failed send, or a green send read as a cut tag.** The send
-  already happened; two verdicts, reported separately, every time (§ 4a).
-- **Never treats a cut tag as a promotion.** It records where a build went; it authorises nothing,
-  and **G3** still needs its own recorded go.
+- **Permitted, only on the maintainer's own call naming the target:** print the plan for any declared
+  target; run `nen shu deploy --target <that target> --run` **once**, for a destination whose own
+  `why` says it is not production; and, only where `tags.deploy.<target>` is declared, cut that one
+  tag through `scripts/dist_tag.sh` after a green `--run`.
+- **Not permitted:** `--run` for production or a store (that is `mugetsu` at **G3**);
+  `nen shu release`; a GitHub Release; a merge, PR or label; an edit to `project.targets` to make a
+  line work; **any push or tag other than § 4a's** — and adding a `tags.deploy` block so a tag will be
+  cut is itself a declaration change at the declaration gate.
+- **The call is one send wide, ends with the run, and is never authority for another target.** Not a
+  gate event of its own; exit `3` is the one **G5** it raises.
+- **Never runs unasked, prompts for itself, runs from a composite, or treats a delegation as the call.**
+- **Never chooses or defaults a target**, sends to a near-match, or adds a target to the declaration.
+- **Never sends to production or a store**, and **never sends what it did not show.**
+- **Never reads, prints, exports or asks for a credential.**
+- **Never retries an exit `3`**, routes around an exit `4` seat, sends twice on one call, or **claims
+  a send succeeded** on a plan or an exit code it did not read.
+- **Never tags an undeclared target**, composes a tag name of its own, tags after a plan-only run or a
+  failed send, re-tags, or **routes around a tag refusal** — not by tagging another commit, not by
+  pushing a branch to make `--at` an ancestor, not by dropping `--push`.
+- **Never lets a tag refusal read as a failed send, or a green send read as a cut tag**: **G3** still
+  needs its own recorded go.

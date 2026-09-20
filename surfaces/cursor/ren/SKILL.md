@@ -61,7 +61,7 @@ say so on the first one, so nobody is surprised by the report and the bell at th
 | 2 | **author the change** | [`/rasengan`](../rasengan/SKILL.md) | write what the maintainer asked for, on the stack this repository declares: the edits, the tests beside them, the docs and changelog its conventions owe — with the declared `iteration.checks` run as the author's own feedback while the work is in front of them |
 | 3 | **verify and commit** | [`/kokusen`](../kokusen/SKILL.md) | every inexpensive `iteration.checks` verb and the declared focused tests over the **finished** tree, red refused; then triage, an ask on what is flagged, one shaped commit — local only |
 | 4 | **launch** | [`/amaterasu`](../amaterasu/SKILL.md) | build a target-compatible artifact, install it and launch the configured device **from the core working directory** — or, where the repository declares no launch target (Hatsu's own case), record `no launch target declared; skipped` and continue **without asking** |
-| 5 | **report** | [`/rikugan`](../rikugan/SKILL.md) `as turn` | the page: accomplished, challenges, not delivered, architecture, screenshots, the exact launch command, decisions |
+| 5 | **report** | [`/spiritual-message`](../spiritual-message/SKILL.md) `as turn` | the page: accomplished, challenges, not delivered, architecture, screenshots, the exact launch command, decisions |
 | 6 | **bell** | [`/jutaisho`](../jutaisho/SKILL.md) | the rungs the workflow declares — and a stop only if one is genuinely due |
 
 > **Step 2 is the change itself, and it stopped being half-numbered on 2026-09-10.** This table used
@@ -200,7 +200,7 @@ tuning the file knows where the effect lands:
 | `iteration.checks`, `iteration.lane` | **three steps read the same pair, for three different questions** — step 1 [`/breath`](../breath/SKILL.md) (was the base sound), step 2 [`/rasengan`](../rasengan/SKILL.md) (does what I just wrote work), step 3 [`/kokusen`](../kokusen/SKILL.md) (is the tree I am about to record green) |
 | `commits.allowedAttributionTrailers`, `commits.forbiddenTrailers` | step 3 — [`/kokusen`](../kokusen/SKILL.md) |
 | `launch.default`, `launch.fallback` | step 4 — [`/amaterasu`](../amaterasu/SKILL.md) |
-| `reports.dir`, `.template`, `.retain`, `.captures`, `coverage.*` | step 5 — [`/rikugan`](../rikugan/SKILL.md) |
+| `reports.dir`, `.template`, `.retain`, `.captures`, `coverage.*` | step 5 — [`/spiritual-message`](../spiritual-message/SKILL.md) |
 | `notifications.rungs`, `notifications.sound` | step 6 — [`/jutaisho`](../jutaisho/SKILL.md) |
 
 **Each step states its own default when a key is absent.** Ren neither supplies a default nor
@@ -232,7 +232,7 @@ exists to replace, and duplicating it is how the page stops being read.
    > `nen report render`"*. Both are in the pinned binary and both were exercised against this
    > repository at the pin — `data` exit `0`, `render` exit `0` writing a 38 283-byte page — so the
    > by-hand assembly and the scratch renderer are gone rather than deferred
-   > ([`/rikugan`](../rikugan/SKILL.md) §§ 3–4).
+   > ([`/spiritual-message`](../spiritual-message/SKILL.md) §§ 3–4).
 
 ## Authority
 

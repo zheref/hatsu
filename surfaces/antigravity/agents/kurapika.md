@@ -498,7 +498,7 @@ written) → [`rasengan`](../skills/rasengan/SKILL.md) (**author the change**, o
 names, with the iteration checks as your own inner-loop feedback) →
 [`kokusen`](../skills/kokusen/SKILL.md) (**verify the finished tree with those same checks, refuse it on
 red, then commit**) → [`amaterasu`](../skills/amaterasu/SKILL.md) (launch) →
-[`rikugan`](../skills/rikugan/SKILL.md) (the turn's rich report) →
+[`spiritual-message`](../skills/spiritual-message/SKILL.md) (the turn's rich report) →
 [`jutaisho`](../skills/jutaisho/SKILL.md) (the bell). It loops until a human calls the next phase. **It never
 pushes and never opens a PR.**
 
@@ -530,7 +530,7 @@ the branch is already published — never a squash, never a force, never a proje
 UI/E2E suite where selection says it can move) → [`byakugan`](../skills/byakugan/SKILL.md)⁵ (the coverage bar; a touched
 file under `coverage.minimum` is a **G5**) → [`murasaki`](../skills/murasaki/SKILL.md)⁶ (publish the proved tree; if catch-up dirties it, return to 3–5 first) → evidence⁷ (the changed snapshot artifacts, grouped suite →
 scene) → [`shibari`](../skills/shibari/SKILL.md)⁸, which composes and opens the **one** PR and requests the
-reviewers → [`rikugan`](../skills/rikugan/SKILL.md)⁹ `as landing` → Mukai starts [`en`](../skills/en/SKILL.md) and ends.
+reviewers → [`spiritual-message`](../skills/spiritual-message/SKILL.md)⁹ `as landing` → Mukai starts [`en`](../skills/en/SKILL.md) and ends.
 Opening the PR, publishing screenshots, observing pending CI/review, or choosing to end a response is
 progress, not Mukai success. `shibari` never labels a gate and never merges.
 
@@ -558,11 +558,11 @@ legitimate is an unsettled finding quietly disappearing: a finding neither fixed
 **G5**, and `hanten` raises it.
 
 **`en` is the readiness watch, and its acting cap is grammar rather than a default.**
-[`en`](../skills/en/SKILL.md) runs [`rikugan`](../skills/rikugan/SKILL.md)¹ (landing) →
+[`en`](../skills/en/SKILL.md) runs [`spiritual-message`](../skills/spiritual-message/SKILL.md)¹ (landing) →
 [`sharingan`](../skills/sharingan/SKILL.md)² — **the skill formerly `drive`** — → `murasaki`³ when the branch
 is behind → `sharingan`⁴ → observe⁵ while required CI or the owed current-head review is pending, still
 reacting to every inline and summary finding and every conflict → [`jutaisho`](../skills/jutaisho/SKILL.md)⁶
-at Ready → `rikugan` final, the only report written to `Reports/`, and **stops at the human gate**.
+at Ready → the dated `final` report (`backlog-board` § 3), the only one written to `Reports/`, and **stops at the human gate**.
 When En has completed, start [`third-hand`](../skills/third-hand/SKILL.md) as **the next phase** —
 Netero harvests the sitting in parallel, proposes 0–3 folded process issues, the maintainer picks
 which to file, those are filed, and **the sitting is over**. En does not own Third-Hand. En is

@@ -4,92 +4,40 @@ description: Verify the finished tree and commit it locally. Run the shared iter
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
-**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
-root**, not the consuming repository. On an installed surface, use the absolute root printed by
-`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
-below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
-trigger a duplicate filing. Never copy or invent a second policy in the target repository.
-
-
-
 # Kokusen — the black flash: one clean local commit, and nothing else
 
-**Nature: Manipulator** carries every run — staging and committing is directing a body that is not
-yours under conditions declared in advance, which is this mode's whole shape. Note the difference
-from [`/tensho`](../tensho/SKILL.md), which carries the same nature for the same reason but
-reaches GitHub: **kokusen touches no remote at all.** The authorship nature of the diff being
-committed belongs to the phase that wrote it, and kokusen never renames it.
+**Nature: Manipulator.** Prove this tree still does what it claims, then put exactly what was meant
+onto this branch under a message that says what changed and why. Phase three of `ren`, after
+[`rasengan`](../rasengan/SKILL.md) authored the change and before [`amaterasu`](../amaterasu/SKILL.md)
+launches; it opens nothing, touches no remote, and **never pushes** — publishing is `/aka`'s, the
+maintainer's own call.
 
-> **Prove this tree still does what it claims, then put exactly what I meant onto this branch, under
-> a message that says what changed and why, with no attribution that is not mine.**
+**The compile-before-commit is this skill's** (ruling 2026-09-10,
+[`docs/ROSTER.md`](../../../docs/ROSTER.md)): [`breath`](../breath/SKILL.md) proves the **base tip**,
+`rasengan` runs the declared checks as inner-loop feedback, and **kokusen verifies the finished tree
+and refuses to commit on red** — the tree moves with every line written after the author's last run.
 
-Kokusen is **automatic**: phase three of `ren`, run after [`/rasengan`](../rasengan/SKILL.md)
-has authored the change and before [`/amaterasu`](../amaterasu/SKILL.md) launches. It is not
-human-called, it opens nothing, and **it never pushes** — publishing a branch is `/aka`'s, and
-`aka` is the maintainer's own call.
+## 0. Standalone entry
 
-> ### The ruling of 2026-09-10 — the compile-before-commit is THIS skill's
->
-> The maintainer's ruling ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-10*)
-> seats the three verifications where they belong: [`/breath`](../breath/SKILL.md) proves the
-> **base tip** before a line is written, [`/rasengan`](../rasengan/SKILL.md) **authors** the
-> change and runs the declared checks as its own inner-loop feedback, and **kokusen verifies the
-> finished tree and refuses to commit on red.** § 3 below is that gate. It is not a re-check of
-> somebody else's claim: the tree moves with every line the author writes after their last run, so
-> the only run a commit can rest on is the one taken by the phase holding the index.
+[`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the contract, and **inside `ren`
+this section is skipped**, rasengan having authored the change in the same turn. Cold, kokusen
+inherits state class **`S1`, the turn boundary** — *changed* has no referent until this section
+supplies one — with shared policy resolved at the plugin root as
+[`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 0 says.
 
----
+**P3 · The delta is the union of `git diff --name-only origin/<branch.base>...HEAD` and
+`git status --porcelain`, after `git fetch origin`**; name the resolved base and both counts out loud.
+`against <base>` overrides it; with no clause the base is the **latest** `branch.base`, fetched,
+a stale local `main` folding other people's work into the delta. **An empty union is a stop, not a
+commit**: say there is nothing to record and what would make that untrue.
 
-## 0. Standalone entry — when no composite is holding the run
+**P4 · Derive the lanes and name the mapping before running it**, exactly as § 3's gate does; a
+changed executable path matching no declared lane is its *missing focused route*, and
+[`tsukuyomi`](../tsukuyomi/SKILL.md) § 0 holds the offer to author the missing tests.
 
-**Kokusen is normally `ren`'s step 3, and this section is what it does when it is not.** The contract
-is [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md). **Running inside `ren`, skip this
-section entirely** — rasengan authored the change in the same turn, so the delta and the lanes are
-already established and re-deriving them would produce a second answer to a settled question.
-
-**The state class kokusen inherits is `S1` — the turn boundary.** § 3.2 maps *"every changed
-executable behavior"* to its declared scoped lane. Typed by hand over a tree somebody else authored —
-the IDE, an agent, last night — there is no turn, so *changed* has no referent until this section
-gives it one.
-
-**P3 · The delta is against the fetched remote trunk, and it is both halves.**
-
-```bash
-git fetch origin
-git diff --name-only origin/<branch.base>...HEAD   # committed since the base
-git status --porcelain                             # staged, unstaged, untracked
-```
-
-The change set is the **union**. Name the resolved base and both counts out loud. **`against <base>`
-overrides it** (§ 1); with no clause the base is the latest `branch.base`, fetched — a stale local `main` folds other people's work into the
-delta, and a commit gate that verified somebody else's change is not a commit gate.
-
-**An empty union is a stop, not a commit.** Say there is nothing to record and what would make that
-untrue. Kokusen never manufactures a commit out of an unchanged tree.
-
-**P4 · Derive the lanes, then ask only if the mapping is ambiguous.** Map the union onto the
-declared scoped lanes exactly as § 3.2 does, and **name the mapping before running it**. Where a
-changed executable path matches no declared lane, that is § 3.2's *missing focused route* and it is
-refused there, unchanged — [`/tsukuyomi`](../tsukuyomi/SKILL.md) § 0 is where the offer to
-author the missing tests lives, and kokusen points at it rather than absorbing it.
-
-**What does not change when kokusen is typed alone.** All of it. Every `iteration.checks` entry over
-**this** tree now, red refused with the check quoted; the focused lanes run, a red or missing route
-refused; § 4's triage with an ask on every flagged path; one shaped commit. **It still never pushes,
-never opens a PR, and never runs full regression or coverage** — those are
-[`/kotoamatsukami`](../kotoamatsukami/SKILL.md)'s and [`/byakugan`](../byakugan/SKILL.md)'s
-at `mukai`, and a cold entry is exactly where the temptation to fill in for a missing caller has to
-be refused.
-
-**P5 · Say what is not running.** *Standalone entry — this is not a `ren` turn: nothing authored
-anything in front of it, and no report or bell follows it.* A maintainer who reads a commit and
-assumes the turn happened around it has been misled by one omitted line.
-
-**Hand-back.** *Next in the wired run: `/amaterasu` (launch), then `/rikugan` (report).
-Leaving the machine is `/aka` or `/mukai`, and both are yours to call.*
-
----
+**P5 · Say what is not running** — *standalone entry: nothing authored anything in front of this, and
+no report or bell follows it.* It still **never pushes, never opens a PR, and never runs full
+regression or coverage**, which are `kotoamatsukami`'s and `byakugan`'s at `mukai`.
 
 ## 1. Invocation
 
@@ -98,437 +46,124 @@ Leaving the machine is `/aka` or `/mukai`, and both are yours to call.*
 ```
 
 ```bash
-nen parse kokusen --grammar "against [<base>]" --line "<the invocation, minus the /kokusen prefix and the flags>"
+nen parse kokusen --grammar "against [<base>]" --line "<the invocation, minus the prefix and the flags>"
 ```
 
-Verified live at nen `0.10.0`: `against origin/main` → `base: origin/main`, exit `0`; an empty line
-parses with the clause absent, also exit `0`. The clause is anchored behind a literal for the reason
-[`/rikugan`](../rikugan/SKILL.md) § 1 records, and **the parse runs only when the maintainer
-typed one** — there is nothing in a bare invocation to parse.
+The parse runs **only when the maintainer typed a clause**. With none, the base is the latest
+`nen/workflow.json` → `branch.base`: `git fetch origin` first, then `origin/<branch.base>`; the local
+ref is used only where the fetch proves it already equal, and **a fetch that cannot run is a stop, not
+a silent fall-back**. The resolved base is named out loud either way.
 
-**`against <base>` names the base every delta in this skill is read from.** With no clause the base
-is **the latest state of `nen/workflow.json` → `branch.base`** — `git fetch origin` first, then
-`origin/<branch.base>`; the local ref is used only where that fetch proves it already equal, and a
-fetch that cannot run is a stop rather than a silent fall-back
-([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 3 · P3). The resolved base is
-named out loud either way.
-
-Both flags are hints for § 4's message; with neither, the type and scope are read off the diff and
-stated in the report. One commit per coherent step: where a turn did two separable things, it is two
+Both flags are hints for § 5's message; with neither, the type and scope are read off the diff and
+stated in the report. **One commit per coherent step** — a turn that did two separable things is two
 calls, not one message with a bulleted body.
 
 ## 2. The parameters, and where they come from
 
 | Value | File → key |
 |---|---|
-| Trailers that may appear | `nen/workflow.json` → `commits.allowedAttributionTrailers` |
-| Trailers that may never appear | `nen/workflow.json` → `commits.forbiddenTrailers` |
-| The checks this skill runs over the tree before it stages anything (§ 3) | `nen/workflow.json` → `iteration.checks`, `iteration.lane` |
-| The base this branch is not | `nen/workflow.json` → `branch.base` (§ 3's trunk refusal) |
+| Trailers that may and may never appear | `nen/workflow.json` → `commits.allowedAttributionTrailers`, `.forbiddenTrailers` |
+| The checks run over the tree before staging (§ 3) | `nen/workflow.json` → `iteration.checks`, `iteration.lane` |
+| The base this branch is not | `nen/workflow.json` → `branch.base` |
 | What the checks actually run | `nen/contract.json` → `project.verbs.<lane>.<check>` |
-| The focused route for changed executable behavior | an explicitly selected `project.lanes.<scoped-lane>` whose declared `project.verbs.<scoped-lane>.test` argv is demonstrably scoped to the behavior |
+| The focused route for changed executable behaviour | an explicitly selected `project.lanes.<scoped-lane>` whose declared `test` argv is demonstrably scoped to that behaviour |
 
-**When `nen/workflow.json` is absent, say so in the turn's report, in these words —** *"no
-workflow.json: using the built-in defaults from `docs/WORKFLOW.md`"* — and use them:
-`allowedAttributionTrailers` = `["Hatsu-Agent", "Akatsuki-Agent"]`, `forbiddenTrailers` includes
-`Co-Authored-By`, `Claude-Session`, `Signed-off-by`, `Generated-by`, `Generated-with`, and `Reviewed-by`, `iteration.checks` = `["build"]`,
-`branch.base` = `main`. The defaults are the strict reading, deliberately: a repository that has said
-nothing about attribution gets the workflow's rule, not the harness's habit.
+**When `nen/workflow.json` is absent, say so in these words** — *"no workflow.json: using the built-in
+defaults from `docs/WORKFLOW.md`"* — and use them. **The defaults are the strict reading
+deliberately**: a repository that has said nothing about attribution gets the workflow's rule, not the
+harness's habit.
 
 ## 3. The verification gate — before anything is staged
 
-**This is the compile-before-commit, and it is run HERE, on this tree, now.** Not remembered from
-the author's inner loop, not inherited from the warm-up, not skipped because the last run was green.
-
-1. **Run every declared `iteration.checks` entry, in the order the file lists them, for
-   `iteration.lane`:**
-
-   ```bash
-   nen shu <check> --repo <path> --lane <iteration.lane>   # one call per iteration.checks entry, in order
-   ```
-
-   **`<check>` is whatever the file lists and nothing else** — never a `build` added because a gate
-   ought to have one. On this repository the list is `["lint"]`, so the gate is one
-   `nen shu lint --repo . --lane plugin`, and running `build` beside it would be running a verb the
-   policy did not ask for on a lane that seats it. When that entry is `lint`, the check is
-   [`/gyo`](../gyo/SKILL.md).
-
-   The exit table is [`/rasengan`](../rasengan/SKILL.md) § 6's — the same seven rows, read the
-   same way — and it differs in exactly one place: **here, a `1` ends the commit.** Quote the failing
-   check verbatim (the tool's own output, `step N of M`, the tool's code from `steps[].exitCode` and
-   nen's own `1`), commit nothing, and hand the turn back to
-   [`/rasengan`](../rasengan/SKILL.md) to author the fix. Re-run this gate over the repaired
-   tree. **A red check is never a G5 (ruling 2026-09-19, `nen/decisions.json` row `red-lint`)**: the
-   tree goes back to rasengan with the failing check quoted, as many times as the turn honestly
-   needs, and a red that still stands when the turn ends is stated on the turn page as the next
-   turn's first job — never a commit "so the fix is saved", and never a narrowed check
-   (`rasengan` § 4).
-
-   **A seat (exit `4`) is not red.** Historically verified against this repository on 2026-09-10
-   with Nen `0.7.0`, where the `plugin` lane seats `build` and declares `lint`:
-
-   ```text
-   $ nen shu build --repo .
-   nen shu build: 'build' is unsupported on lane 'plugin' (claude-code-plugin). The declaration's own
-   reason: Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two
-   JSON manifests, one POSIX hook pair and one bash guard script, all read as-is by Claude Code. `lint`
-   (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it
-   belongs.                                                                                    # exit 4
-
-   $ nen shu lint --repo .
-   ran:           claude plugin validate . --strict  -- exit 0 in 916ms                        # exit 0
-   ```
-
-   **Quote the seat's own reason and move on to the next check** — and note that Hatsu's own
-   `iteration.checks` is `["lint"]` precisely because the repository already said so. A seat is
-   never converted into "the build failed", and never used as a reason to skip the checks the lane
-   *does* declare.
-
-2. **Run the focused tests for changed executable behavior through
-   [`/tsukuyomi`](../tsukuyomi/SKILL.md).** This is mandatory at the checkpoint
-   even when rasengan already ran them for feedback. Map every changed executable behavior to its
-   declared scoped lane and run **every applicable lane**, once each; one lane is sufficient only
-   when its declared argv covers all changed behavior. Record the behavior-to-lane mapping and
-   each result. Repeat this invocation for each distinct applicable lane:
-
-   ```bash
-   nen shu test --repo <path> --lane <explicit-scoped-lane>
-   ```
-
-   The lane's declared argv must select only the changed behavior (and relevant authored snapshot
-   tests). `--lane` is Nen's supported routing mechanism. There is no `--scope` flag and no separate
-   checkpoint checks key; `iteration.checks` remains the same shared list used by breath, rasengan,
-   and this gate. Never infer scope from the lane name alone.
-
-   A red focused run returns to rasengan and this gate repeats. If executable behavior changed and
-   no unambiguous scoped lane exists, **hand the tree back to rasengan to author the focused tests
-   and register the scoped lane, then run them through tsukuyomi** (ruling 2026-09-19,
-   `nen/decisions.json` row `missing-focused-route`) — never a stop, never an undeclared runner, and
-   never the full suite as a substitute.
-   For prose-only, data-only, or other non-executable changes with no relevant runnable behavior,
-   report `focused tests: not applicable — <reason>` and continue. Hatsu's own Markdown-only changes
-   are not blocked by its deliberate `test` seat.
-
-3. **Read the proof back — ONLY when step 1 actually ran a green `build` on this lane.**
-   `.nen/proof/<lane>.json` is written by `nen shu build` and by nothing else, so this check has an
-   answer in exactly one case: **`build` is an entry of `iteration.checks`** *and* step 1's run of it
-   came back exit `0`. Read the condition off the policy file before running the verb, not off the
-   verb's exit code afterwards:
-
-   ```bash
-   nen commit check --repo <path> --require-proof <iteration.lane>   # only if `build` ∈ iteration.checks
-                                                                     # and step 1's build was exit 0
-   ```
-
-   **In every other case there is nothing to read, and the gate is step 1's own run.** Say which case
-   this repository is in and go on to § 4 — do not run the verb to collect a `1` you already know the
-   reason for, and never re-enter step 1 because of it. The three cases that have no proof to read:
-
-   | Case | Why there is no proof | What kokusen does |
-   |---|---|---|
-   | `build` is **not** in `iteration.checks` — Hatsu's own case, where the list is `["lint"]` | step 1 never ran `build`, so nothing wrote a proof | **skip this step.** The gate is step 1's green `lint`, named in the report |
-   | `build` **is** in the list but the lane **seats** it (exit `4`) | a seat runs nothing and writes nothing, forever | **skip this step**, quote the seat, and rest the gate on the checks that did run |
-   | step 1's `build` came back red | a red build **removes** an existing proof | the commit already ended at step 1; this step is never reached |
-
-   **This is the loop the condition exists to prevent:** a lane with a perfectly executable `build`
-   row and `iteration.checks: ["lint"]` passes its declared check, writes no proof because nothing
-   asked for one, and — if this step were unconditional — would answer `1`, be sent back to step 1,
-   pass `lint` again, and answer `1` again. The verb is right every time; the caller would be asking
-   it a question the policy never posed.
-
-   A red `nen shu build` **removes** the file, and this check compares the proof's `treeHash` against
-   **this working copy's** tree — so it answers "was THIS tree proved", not "did something pass
-   once". That is why it is run a moment before staging, with everything in place: it is the one
-   thing step 1 alone cannot tell you, because a build that was green two edits ago proved a tree
-   that no longer exists. Verified live at `v0.5.0`, exit `0`, *"verdict: OK -- this working copy is
-   the one the build proved green"*.
-
-   | Exit | What it means | What kokusen does |
-   |---|---|---|
-   | `0` | this tree is the proved one | stage and commit |
-   | `1` | no proof, another lane's proof, or **the tree has moved** (both hashes printed) — also what a red build since the last green one looks like | **reached only when this step's condition held**, so the honest reading is *the tree has moved since step 1's build*: re-run step 1's `build` over this tree and check again. A moved tree is not a red build and is never reported as one |
-   | `2` | a missing flag, a lane escaping the tree, or a proof present and unreadable | **stop** and report it; this is never folded into "absent" |
-
-   **It reports and blocks nothing** — no commit is refused and no file is written — so the refusal
-   is still this skill's, and step 1's run is what it rests on.
-
-   **What the skipped cases would have answered, recorded so the condition is not taken on trust.**
-   This repository is the first row of the table above — `iteration.checks` is `["lint"]` — *and* the
-   second: the `plugin` lane seats `build`. A historical run against Nen `0.7.0` on 2026-09-10 answered exactly what the condition predicts:
-
-   ```text
-   $ nen commit check --repo . --require-proof plugin
-   lane:      plugin
-   tree:      56870e6ec9655e90c190fcbac5f5875a4fa9d1f5
-   proof:     (none)
-   verdict:   NOT PROVED -- there is no build proof for lane 'plugin': .nen/proof/plugin.json is not
-              there. A green 'nen shu build --lane plugin' records one; a build that came out red
-              removes it, so this is also what a failed build since the last green one looks like.
-                                                                                              # exit 1
-   ```
-
-   **So the verdict a commit rests on here is `nen shu lint --repo .` at exit `0`**, with the `build`
-   seat quoted beside it — not a proof file the declaration guarantees will never exist. Reporting
-   that `1` as a red build would be reporting a seat as a failure, which is § 9's hard limit in the
-   other direction, and running the verb at all on this repository is a question the policy never
-   posed. **A red check is never committed over**, not even "so the fix is saved."
-4. **This is not the trunk.** `nen wc classify --repo <path> --base <branch.base>` reporting
-   `must-move` means the work is on the trunk and belongs on a branch first —
-   [`/breath`](../breath/SKILL.md)'s job, not this one's. Kokusen commits on a branch or it does
-   not commit.
+**The gate's four steps are [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The local verification
+gate***, run **here, on this tree, now**: the declared `iteration.checks` in order on
+`iteration.lane`; the focused tests for changed executable behaviour through
+[`tsukuyomi`](../tsukuyomi/SKILL.md); the build proof read back only where step 1 ran a green `build`;
+and `nen wc classify` proving this is not the trunk. What is this skill's is the refusal:
+**a `1` ends the commit** — quote the failing check, commit nothing, hand the turn back to
+[`rasengan`](../rasengan/SKILL.md) (row `red-lint`, never a G5) and re-run the gate — **a seat (exit
+`4`) is not red**, **a missing focused route goes back to rasengan** (row `missing-focused-route`),
+and **kokusen commits on a branch or it does not commit**.
 
 ## 4. Triage — every path is looked at, some are asked about
 
 **Never `git add -A` blind.**
 
 ```bash
-nen stage triage --repo <path> [--scope <in-scope prefixes>] [--mentions "<the message you are about to write>"]
+nen stage triage --repo <path> [--scope <in-scope prefixes>] [--mentions "<the message you are about to write>"] [--large-bytes <n>]
 ```
 
-Detects, never decides, and **exits `1` whenever anything is FLAGGED — `flagged` alone decides the
-exit code at the pinned build**, so a tree whose only dirty rows are git-ignored is exit `0`. The
-**six detectors and the one bucket**, verified live against a constructed working copy carrying one
-of each (`docs/ab/kokusen.md` § 2.1, § *Retired at nen 0.6* and § *Retired at nen 0.7*):
+It **detects, never decides**, and **`flagged` alone decides the exit code**, so a tree whose only
+dirty rows are git-ignored is exit `0`. One path can carry several reasons, and **every flagged file
+is presented with the reasons `nen` printed, one answer per file**.
 
-| Bucket / flag | Trigger |
-|---|---|
-| `secret-shape` | `.env`, `*.pem`, `*.key`, `credentials*`, or a token/key shape in the diff |
-| **`local-config`** | the `.local` filename infix a dozen tools agree means "this machine's copy" — `settings.local.json`, `.env.local`, `config.local.yml`, a bare `notes.local`. **Introduced in Nen `0.7.0`**, and a FILENAME check like the secret shape beside it, deliberately **not** a directory rule: `.claude/` and `.vscode/` hold committed project configuration as often as personal settings |
-| **`large`** | the file is at or over `--large-bytes`, default **1 MiB**. **Introduced in Nen `0.7.0`.** A path the verb could not MEASURE — a deletion, a broken symlink — is never flagged `large`, because "not measured" must not render as "measured and small"; an ignored path is not measured either |
-| `binary` | the file's content is binary |
-| `out-of-scope` | the path falls outside every `--scope` prefix — **omitted entirely** when `--scope` is not passed |
-| `unmentioned-deletion` | a tracked path was deleted and its basename does not appear in `--mentions` |
-| **`ignored`** | the path is git-ignored. **Its own bucket at the pinned build, not a flag on `flagged`** — a fact, not a question, because a plain `git add` cannot stage it at all |
+| Kind | What it is | Default |
+|---|---|---|
+| `secret-shape` | `.env`, `*.pem`, `*.key`, `credentials*`, or a token/key shape in the diff | **never askable** (row `secret-shape`): no yes exists, the fix is to rotate or remove it, and "it is only local" softens nothing |
+| `local-config` | the `.local` **filename** infix, deliberately not a directory rule | commit only when the request named it |
+| `large` | at or over `--large-bytes` (default 1 MiB); a path that could not be **measured** is never flagged | skip |
+| `binary` | — | commit only when the request named it |
+| `out-of-scope` | **omitted entirely** when `--scope` is not passed | skip |
+| `unmentioned-deletion` | a tracked path deleted whose basename is absent from `--mentions` | mention or skip |
+| `ignored` | **its own bucket, not a flag** — a plain `git add` cannot stage it | skip |
 
-One path can carry several reasons at once. **Present every flagged file together, with the reasons
-`nen` printed, and take one answer per file** — and at this pin `flagged` holds only paths a plain
-`git add` could actually stage, so every row in it is a row worth asking about.
+The six non-secret kinds are row `staging-flag`, resolved by those defaults. **A `secret-shape` inside
+an ignored tree is reported and left alone** — it lands in `ignored[]` carrying `["ignored",
+"secret-shape"]`, is named once and is **never rotated and never deleted**, a third-party fixture not
+being this repository's secret; **unignored, the categorical rule applies with no softening**. **Relay
+the verb's `ignored: <n> file(s), not listed` count; never compute one**, and never re-partition the
+rows: an ignored path that genuinely belongs is a deliberate `-f` the maintainer asks for by name.
+**`--large-bytes` is passed only where this repository has a real reason to differ**, said out loud;
+zero or negative is refused at exit `2`. **Deliberately untracked leftovers stay untracked** — offer
+the `.gitignore` line, never commit something to be tidy. Passing `--mentions` the message you are
+about to write is what makes `unmentioned-deletion` mean anything.
 
-> ### RETIRED at nen `0.6`: counting the ignored rows by hand
->
-> **`ignored` is a bucket the VERB reports, and its count is the verb's line.** Text output carries
-> `ignored: <n> file(s), not listed` — a count only, since this verb has no `--verbose` flag, so the
-> paths themselves print under `--json`, which gains a full `ignored[]` array of
-> `{ path, reasons[] }`. **And the exit code follows `flagged` ALONE**: a working copy whose only
-> dirty rows are ignored is exit `0`, where through `v0.5.0` it was exit `1`. Verified live
-> (`docs/ab/kokusen.md` § *Retired at nen 0.6*).
->
-> **The rule this skill used to carry is now the verb's**, and it was carrying it because the
-> alternative was unusable: a full `ren` run against the `zheref/nen` checkout flagged **5905** paths
-> on one turn and 5907 on the next, of which all but one were `[ignored, out-of-scope]`. A per-file
-> ask at that width is not a procedure anybody executes — it is a procedure everybody skips, and a
-> skipped triage is worse than a narrow one.
->
-> **So read `ignored:` off the verb and relay it, and take answers only on `flagged`.** Do not
-> re-partition the rows yourself and do not report a count you computed. Where an ignored path
-> genuinely belongs in the commit, that is a deliberate `-f` the maintainer asks for by name, and
-> then it is one path with one answer. **An entry that is both ignored and secret-shaped stays in
-> `ignored`** with `secret-shape` recorded alongside `ignored`, and never appears in `flagged` —
-> which is the next bullet, now stated by the verb rather than only here.
+## 5. The message, and the commit
 
-- **`secret-shape` is never askable, in the tree this commit could contain** (`nen/decisions.json` row `secret-shape`; the six other flag kinds are row `staging-flag`, resolved by their defaults). There is no yes; the
-  fix is to rotate or remove it. This is § 9's hard limit, and it is not softened by "it is only
-  local, it is not pushed" — a commit is permanent the moment it exists, and the push that would
-  publish it is one `/aka` away.
-- **A `secret-shape` inside an ignored dependency tree is reported and left alone.** Historically verified
-  against Nen `0.7.0`: a `.env` under an ignored `node_modules/` lands in **`ignored[]`** carrying
-  `["ignored", "secret-shape"]` and never in `flagged` — the same row shape a real run found on
-  `node_modules/bottleneck/.env`, in the bucket that now says what it is. Read
-  literally, the categorical rule would have this skill rotate or delete a third-party package's
-  fixture file, which is not this repository's secret, not this commit's business and not a thing a
-  commit phase has any authority to touch. **Scope the rule to what the commit could carry:** the
-  path is ignored, it will never be staged, so it is named once in the report — path, reasons, and
-  the sentence that it is ignored and untouched — and the run continues. If it is *not* ignored, the
-  categorical rule applies with no softening at all.
-> ### RETIRED at nen `0.7`: asking about local-config and size by eye
->
-> **Both shapes are detectors now**, and they were carried as residue because two skills — this one
-> and [`/tensho`](../tensho/SKILL.md) § 3 — were independently compensating for the same gap,
-> which is the shape of a missing feature rather than a preference. Historically verified with
-> Nen `0.7.0` against a constructed working copy carrying one of each (`docs/ab/kokusen.md`
-> § *Retired at nen 0.7*): the same tree that answered exit `0`-with-three-clean-rows at `v0.6.0`
-> now answers
->
-> ```text
-> flagged: 3 file(s) -- never staged without an explicit yes
->   .env.local  [secret-shape, local-config]
->   big.txt  [large]
->   settings.local.json  [local-config]                                                    # exit 1
-> ```
->
-> where at `v0.6.0` `big.txt` (2.6 MB) and `settings.local.json` reported **clean** and `.env.local`
-> carried `[secret-shape]` alone. **This is one of the four silent changes `zero_major_caveat.why`
-> in `nen/contract.json` names**: the same bytes, the opposite exit code.
->
-> **`local-config` travels alongside every other reason a path matched** — `.env.local` comes back
-> `[secret-shape, local-config]` — and § 9's hard limit is untouched by the second tag: a
-> `secret-shape` on a path this commit could contain is still never askable, whatever else it also
-> is. **A `local-config` path IS askable**, and the answer is usually no.
->
-> **`--large-bytes <n>` is the threshold and it has a default**, unlike `nen loop slots --local-cap`,
-> which refuses to have one — that flag is a concurrency GUARD whose forgotten default silently
-> widens what is allowed, while this is a DETECTION threshold on a verb that decides nothing and
-> whose default errs toward flagging. A zero or negative value is refused at exit `2`, verified
-> live. **Pass `--large-bytes` only when this repository has a real reason to differ**, and say the
-> reason; 1 MiB is not a number to re-litigate per run.
->
-> **So stop weighing repo weight by eye and stop scanning for `.local` by name.** Read the flags the
-> verb printed and take one answer per flagged path, exactly as for every other reason.
-- **Deliberately untracked leftovers stay untracked.** Offer the `.gitignore` line; do not commit
-  something to be tidy.
+**Both are [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Writing a commit — the message and the
+two streams***: `nen commit format --repo …`'s shape validation, the canonical-trailer rule from that
+document's § `commits`, the exit-code gate, the two-stream discipline and the exit table. What is this
+skill's: **the gate is § 3's, the staging is § 4's** — stage explicitly, path by path, from § 4's
+clean list **plus every flagged path that got an explicit yes**, and nothing else.
 
-Passing `--mentions` the message you are about to write is what makes `unmentioned-deletion`
-meaningful — verified live: the same deleted path is flagged without it and clean with it.
+## 6. Residue
 
-## 5. The message
+**Writing the commit itself** is residue — `nen commit format` formats and nothing in nen commits, so
+`git commit --file` and the explicit per-path `git add` are named raw calls, and **the exit-code gate
+and the two-stream discipline (§ 5) are part of it**. Of WORKFLOW § `commits`'s three enforcement layers
+the `commit-msg` hook exists only in a repository `nen scaffold init` stood up, so **say which layers
+the repository in front of you actually has**. **Whether two changes are one coherent commit stays
+judgment.** **Reusable focused selection is an owned dependency**
+([nen#207](https://github.com/zheref/nen/issues/207)): use actual runner identifiers and separate
+focused artifacts, never a probe-only lane of one language as focused tests for another's behaviour
+and never one permanent lane per ad hoc selection, and **a missing applicable focused path stays an
+owned dependency, never a full-suite substitution.**
 
-```bash
-nen commit format --repo <path> --type <type> --subject "<short imperative subject>" [--scope <scope>] [--breaking] \
-  [--body "<one paragraph>"] --trailer "Hatsu-Agent=<responsible-persona>"
-```
+## 7. Authority
 
-Validates **shape** only — a declared type, a non-empty subject under 72 characters, no trailing
-punctuation — and exits `2` on a violation naming it (verified live, `docs/ab/kokusen.md` § 2.2). What
-changed and why is this skill's to write, never nen's.
-
-**Attribution rule:** pass exactly the truthful canonical trailer: `Hatsu-Agent=<responsible-persona>`
-for Hatsu work, or `Akatsuki-Agent=<responsible-persona>` only for autonomous Akatsuki work. Never infer
-or default the persona. `Co-Authored-By`, `Claude-Session`, `Signed-off-by`, model names, and
-surface/runtime/session names are forbidden in prospective commit messages and bodies. Author and
-committer metadata preserve the actor's configured identity. Record actual participants only in the final
-`## Agent attribution` section of the PR body, following `<Hatsu plugin root>/docs/AGENT-ATTRIBUTION.md`
-(in this checkout, [`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md)). Existing history is not rewritten.
-
-> **Prospective tooling is not an exception.** Before committing, disable or reconfigure any authorized
-> injection that adds a forbidden model, surface, runtime, session, or generated-credit attribution. If
-> tooling still adds one, stop and report the required correction; never certify the resulting commit as
-> compliant. Existing published history remains unchanged: this does not authorize an automatic rewrite.
-
-**`nen commit format --repo <path>` validates this policy when a trailer is present.** Supply the
-truthful canonical `Hatsu-Agent` or `Akatsuki-Agent` key only; it must identify the responsible persona
-or autonomous plane, never a model, surface, runtime, or session.
-
-**Always pass `--repo`, and do not rely on being rescued when you forget.** Historically verified on
-2026-09-10 against Nen `0.7.0`, from this repository's own checkout: the refusal above fires **with
-`--repo`**, and it also fired **without** it — the verb found `nen/workflow.json` from the working
-directory. **That is a courtesy of where the command happened to be run, not a contract**: name the
-repository and the policy that is read is the one you meant. Reading the rendered output against
-`commits.forbiddenTrailers` before § 6 writes anything is still worth doing — it is the layer that
-survives a missing flag and a checkout the verb cannot locate a policy from — but it is no longer the
-only one (§ 7).
-
-> **The guard IS enforced at this pin, and any reading of this skill that treats it as residue is
-> stale.** A headless Cursor run against nen `0.3.0` found `--repo` **accepted and silently ignored**,
-> so `--trailer "Hatsu-Agent=kurapika"` rendered at exit `0` where a refusal was expected
-> (`docs/ab/surfaces.md` § 8, F12) — *"a flag that is accepted and ignored is worse than one that is
-> rejected: it reads like the guard ran."* **That was `0.3.0`. At the pinned build**, the verb
-> has its own `--repo`, opens the policy and refuses by name. § 7's residue list says `RETIRED` for
-> exactly this reason.
-
-## 6. The commit
-
-```bash
-nen commit format … > <message file>      # exit 0 REQUIRED before the next line; NEVER 2>&1
-git commit --file <message file>          # residue, § 7: no nen verb writes a commit
-```
-
-> **The second line is gated on the first's exit code, and the two streams are kept apart.** The
-> refusal goes to **stderr** with **nothing on stdout** — verified live at this pin: an 87-character
-> header exits `2` with `0` bytes on stdout and the sentence on stderr, while an accepted message
-> exits `0` with `0` bytes on stderr. So the two obvious ways of writing this line are both wrong:
-> `2>&1 > <file>` **commits the refusal as the message**, and a plain redirect that ignores the exit
-> code **commits an empty file**. The first happened — a merge landed carrying *"nen: header line is
-> 75 characters, over the 72-character convention"* as its subject, and was repairable only because
-> `origin` had not seen it yet (`docs/ab/mukai.md`). The verb's own behaviour is correct and is not
-> the finding; the residue path around it was missing its gate.
->
-> | Exit | What it means | What kokusen does |
-> |---|---|---|
-> | `0` | the message is on stdout | **use it** — `git commit --file` |
-> | `2` | **refused.** A shape violation (undeclared type, empty subject, header over 72 characters, trailing punctuation) or — with `--repo` — an attribution trailer `nen/workflow.json` does not admit | **stop.** Quote the sentence from stderr, fix the input, re-run. Never commit the file — it is empty |
-> | `1` | the trailer policy could not be read — `nen/workflow.json` present and **malformed** (with `--repo`) | **stop.** Report it as a repository defect and point at `nen schema check`; a message shaped under a policy nobody could read is not shaped |
->
-> Historically verified against Nen `v0.7.0`: a malformed `nen/workflow.json` answers `1` — *"nen will not
-> shape a message under a policy it could not read"* — and a `Co-Authored-By` trailer answers `2`
-> naming the file that refuses it. **An empty `<message file>` is the tell for either refusal**, and
-> it is checked before `git commit` whichever way the exit code was read.
-
-`--file`, never `-m` retyped from memory: the message that was validated is the message that lands.
-**Never `--no-verify`** — a commit hook that refuses is the repository speaking, and the answer is to
-fix what it named. Stage explicitly, path by path, from § 4's clean list plus every flagged path that
-got an explicit yes; `git add -A` is barred (§ 9).
-
-## 7. Residue — what has no verb at the pinned build
-
-- **RETIRED at nen `0.5`: the forbidden-trailer refusal.** `nen commit format --repo <path>` refuses
-  an unadmitted attribution trailer at exit `2`, naming the file (§ 5, verified live against this
-  repository). Enforcement is still **three-layered** — (a) this skill refusing to write the trailer,
-  (b) the `commit-msg` hook `nen scaffold init` generates from `allowedAttributionTrailers`, (c) the
-  verb itself — but the layer that used to be absent is now the pinned binary's. **(c) is installed
-  wherever `--repo` is passed**; (b) stays target-dependent, since it exists only in a repository
-  `nen scaffold init` has stood up. Say which layers the repository in front of you actually has,
-  rather than claiming a guard that is not installed.
-- **Writing the commit itself.** `nen commit format` formats; nothing in nen commits. `git commit
-  --file` is a named raw call, as is the explicit `git add <path>` for each approved path. **The
-  gate on the formatter's exit code and the two-stream discipline are part of that residue** (§ 6):
-  a verb that refuses on stderr at exit `2` with an empty stdout is safe on its own and unsafe
-  behind a redirect that ignores either fact.
-- **RETIRED at nen `0.6`: partitioning the ignored rows out of `flagged`.** `nen stage triage`
-  reports them in its own `ignored` bucket with its own `ignored: <n> file(s), not listed` count, and
-  the exit code follows `flagged` alone (§ 4, verified live at exit `0` on a tree of only ignored
-  rows). **Relay the verb's count; never compute one.**
-- **RETIRED at nen `0.7`: local-config and size detection** in staging (§ 4). `nen stage triage`
-  carries `local-config` (the `.local` filename infix) and `large` (at or over `--large-bytes`,
-  default 1 MiB) as detectors of its own, verified live at exit `1` on a tree the pinned `v0.6.0`
-  reported clean. **Read the flags; do not scan by eye and do not weigh repo size by eye.**
-- **RETIRED at nen `0.5`: validating `nen/workflow.json`** — `nen schema check` carries the row
-  ([`/breath`](../breath/SKILL.md) § 2). Reading the values is still this skill's, and a read is
-  not a residue.
-- **Whether two changes are one coherent commit** stays judgment; no verb splits an effort.
-
-## 8. Authority
-
-- **Permitted:** run the lane's declared `iteration.checks` over the working copy (§ 3), stage named
-  paths, write one local commit per coherent step, and say what it contains.
-- **Not permitted:** **any push** (that is `/aka`, human-called), any PR, any label, any merge,
-  any force, any `--no-verify`, any amend of a commit that is already published, any commit on the
-  trunk — and **no edit to the tree it is committing**: a red check is handed back to
-  [`/rasengan`](../rasengan/SKILL.md), never fixed here.
+- **Permitted:** run the lane's declared `iteration.checks` over the working copy; run the declared
+  scoped test lanes; stage named paths; write one local commit per coherent step; say what it
+  contains.
+- **Not permitted:** **any push** (that is `/aka`, human-called), any PR, label, merge, force,
+  `--no-verify`, any amend of a published commit, any commit on the trunk — and **no edit to the tree
+  it is committing**: a red check goes back to [`rasengan`](../rasengan/SKILL.md), never fixed here.
 - **Not a gate event**, with one exception it raises rather than owns: **a red check the turn cannot
-  honestly clear is a G5 stop**, with the failing check quoted (§ 3) — the same escalation
-  `rasengan` § 12 names, seated here because this is where the commit is refused. The per-file ask on
-  a flagged path is an in-session question, not a gate; a `secret-shape` is not a question at all.
+  honestly clear is a G5 stop** with the failing check quoted. The per-file ask on a flagged path is
+  an in-session question, not a gate; a `secret-shape` is not a question at all.
 
-## 9. Hard limits
+## 8. Hard limits
 
 - **Never runs `git commit --file` on a message file `nen commit format` did not exit `0` for**, and
-  never merges the verb's two streams into that file (§ 6).
+  never merges the verb's two streams into that file.
 - **Never commits a flagged file without an explicit yes**, and **never commits a secret at all** —
-  there is no yes for `secret-shape` on a path this commit could contain; rotate or remove it. A
-  `secret-shape` inside an ignored tree is reported and left alone (§ 4), never rotated, never
-  deleted.
-- **Never `git add -A`**, and never `git add -f`, and never stages a path it did not name. `-f` is
-  the maintainer's explicit call on one named path, never this skill's way past an `ignored` row.
-- **Never adds untruthful or runtime attribution** — use the truthful canonical `Hatsu-Agent` or
-  `Akatsuki-Agent` trailer only; never add `Co-Authored-By`, `Claude-Session`, a model, surface,
-  runtime, session, or generated-credit attribution.
-- **Never certifies a prospective commit with forbidden attribution from any source.** Disable or
-  reconfigure authorized injection before committing; otherwise stop and report the correction needed.
-  Existing published history is not automatically rewritten.
+  there is no yes for `secret-shape` on a path this commit could contain. A `secret-shape` inside an
+  ignored tree is reported and left alone, never rotated, never deleted.
+- **Never `git add -A`**, never `git add -f`, never stages a path it did not name. `-f` is the
+  maintainer's explicit call on one named path.
+- **Never adds untruthful or runtime attribution**, and **never certifies a prospective commit with
+  forbidden attribution from any source.**
 - **Never pushes, never force-pushes, never `--no-verify`, never commits on the trunk.**
-- **Never stages anything before § 3's gate has run over THIS tree.** Not an earlier turn's green,
-  not the warm-up's, not the author's inner loop — the checks are run here, now, by the phase holding
-  the index.
-- **Never commits over a red check**, and never narrows one to clear it. The fix is authored by
-  [`/rasengan`](../rasengan/SKILL.md) and the gate is run again.
-- **Never reports a seat (exit `4`) or a missing proof on a seated lane as a red build** (§ 3).
-
-
-### Reusable focused selection dependency
-
-[Nen #207](https://github.com/zheref/nen/issues/207) owns reusable dynamic test selection.
-At Nen 0.8.0 a static explicitly declared focused lane is available, but there is no test-selector
-passthrough. Use actual runner identifiers and separate focused artifacts; do not treat a probe-only
-Python lane as focused tests for Swift behavior. One permanent lane per ad hoc selection or copied
-consumer selection scripts is not the shared solution. Until that capability is released/adopted,
-a missing applicable focused path remains an owned dependency, never a full-suite substitution.
+- **Never stages anything before § 3's gate has run over THIS tree.**
+- **Never commits over a red check**, and never narrows one to clear it.
+- **Never reports a seat (exit `4`) or a missing proof on a seated lane as a red build.**
+- **Never runs full regression or coverage** — those are `kotoamatsukami`'s and `byakugan`'s.

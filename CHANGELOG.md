@@ -1,5 +1,533 @@
 # Changelog
 
+## v0.42.0 — the reports and the reviewers carry their weight (zheref/hatsu#89)
+
+> Pinned to nen **v0.12.0** (`minimum` `0.12`): `objects[]` in `nen report data`, `nen review scopes`, `nen pr threads list|reply|resolve`, `nen report render --variant --graph` and `nen report mermaid` arrive with that release (zheref/nen#220, PRs #221 and #222). **The warm-up reads `WRONG` until v0.12.0 is tagged and its release assets are published**, and re-pins through the bootstrap once it is — the same sequencing as v0.41.0.
+
+- **Names swapped (maintainer's ruling, 2026-09-20).** The per-turn and landing report and its skill, named `rikugan` through v0.41.0, are **Spiritual Message** (`hatsu:spiritual-message`, `templates/spiritual-message.html`); the desk-and-register page introduced this release is **Rikugan** (`templates/rikugan.html`, the `register` and `final` variants). Older sections and docs/history keep the names they were written under.
+- **Two templates on one token sheet.** [`templates/spiritual-message.html`](templates/spiritual-message.html) is rebuilt in the Ichigo board's language (ground, surface, ink, indigo, shu for needs-you only, ok, warn; IBM Plex Sans and Mono with Newsreader headings and system fallbacks; a light / system / dark switch persisted per viewer): masthead and tally, then **the desk** — the one ask, its kind (`DECIDE` / `DO` / `MERGE`), the Crazy Slots lettered options with one star, the object links and the readiness verdict **quoted verbatim, above the fold** — then this last turn, landed / fought back / not delivered, the **architecture delta drawn client-side** from a nodes-and-edges document (dagre 0.8.5 pinned from cdnjs with its SRI hash, one inline renderer shared by both templates, nodes coloured by change kind, removed items struck, the block list under `<details>` as the fallback when the script cannot load), evidence with phase durations as bars and usage or *not reported*, the launch line, the decisions ledger and the PR body. [`templates/rikugan.html`](templates/rikugan.html) is new — Hatsu's counterpart of the Ichigo gate register: masthead and tally, **your desk** grouped by gate and ranked by unblocking power with cleared gates shown cleared, **the register** with one collapsible row per issue and pull request (object notation, state marks, gate, the CON-32 verdict or the `readiness` check, needs, driving session and lane, thought flow), spend, legend. Every block wraps in a presence flag.
+- **Which blocks render is configuration.** `nen/workflow.json` → `reports.sections` declares five variants — `turn`, `turn-fast` (the per-turn publish under the fast profile: desk and last turn only), `landing` (Spiritual Message), `final` and `register` (Rikugan) — validated by `nen schema check` and injected by `nen report render --variant`. The graph document is the model's, validated by `--graph`, and the same document yields the PR body's mermaid through `nen report mermaid`. `spiritual-message` keeps the turn and landing variants; **the dated final report is a one-effort Rikugan with a cleared desk**, and `backlog-board`, `futon` and `backlog-loop` render the `register` variant through the same verb — no more hand-authored board HTML. `objects[]` (from `nen report data --target … --backlog|--prs`) is the register's data.
+- **Nobunaga activates — the default reviewer everywhere.** [`claude/agents/nobunaga.md`](claude/agents/nobunaga.md), Sasuke's local counterpart, for code practices, scope completeness and adversarial reading: acceptance criteria met against the issue, tests present for changed behaviour, error handling and exit-code discipline, shell quoting and portability, docs and counts current, mirrored copies regenerated, nothing improvised that a Nen verb owns, one holistic pass on a delivery PR, live re-verification before a `high`. **Two reviews per session and repository; deep tier in a process repository, fast in a product one** (`nen repo classify`'s `kind`). Recorded in `docs/ROSTER.md` § *Rulings of 2026-09-19 — Nobunaga, Shalnark, the review preamble*.
+- **Hanten classifies through `nen review scopes`.** `nen/workflow.json` → `review.scopes` is the path-to-scope map (code → Nobunaga on every path, security → Feitan, architecture → Chrollo, ui → Hisoka, performance → Uvogin, release → Phinks, each with its tier and budget); the hand table in hanten is retired. A spent reviewer meeting a new head gets one **bounded delta pass**. **Feitan gains deterministic scan rows** before he reads: checksum-verified gitleaks that fails loud, the per-stack dependency audit, `nen stage triage` secret shapes, and a builder-touching-workflow gate in a consumer repository — **and the tools are DATA**, in the new [`contracts/scans.json`](contracts/scans.json) (`hatsu.scans/v0.1`): the pinned gitleaks release with its `checksums.txt` and per-host asset names, the OSV `querybatch` endpoint at ecosystem `SwiftURL` for SwiftPM, `npm audit --audit-level=high`, `dependencyCheckAnalyze`. *The pinned release* was never a pin; this file is.
+- **One reviewer preamble, every reviewer under 6 KB.** [`claude/agents/_review-preamble.md`](claude/agents/_review-preamble.md) carries the protocol once — `nen repo classify` first, the handbook set through `hatsu:bankai-handbooks`, the fixed finding shape, the refusals, the budget and delta rule — and Chrollo, Feitan, Hisoka, Phinks, Uvogin, Gon, Illumi and Netero carry only their checklist and closing line (from 16–23 KB each). The mirror generator treats the preamble as a persona; it carries a frontmatter saying it is not one until zheref/nen#223 lands.
+- **Shalnark activates from the bench, behind `hatsu:black-voice`.** [`claude/agents/shalnark.md`](claude/agents/shalnark.md) is the optional post-merge UI validation automator: ephemeral automated UI tests against the delivered feature's acceptance criteria (persistent only when the repository declares it), pass / fail / not-testable with evidence, files findings and fixes nothing. Reachable **only** through the new skill [`black-voice`](claude/skills/black-voice/SKILL.md) — `hatsu:black-voice [<CODE>#<PR>]`, defaulting to the latest merged PR in the session — never automatic, never from a composite. The bench is four: Machi, Kortopi, Pakunoda, Shizuku.
+- **The Copilot policy, written once.** In `sharingan` § *Reviewer rounds*, carried by `en`, `senkei` and `build`: one Copilot round after hanten settles, never before; arrivals remediated up to `nen/gates.json` → `round_policy.maxRounds`; an owed round inside the max re-requested on the maintainer's behalf without asking (`cap-reached`); **never re-request after a push that changed nothing reviewable** (count commits ahead and the diff since the last reviewed head first). Thread hygiene runs through `nen pr threads list|reply|resolve`, and **the Copilot request is the verb too** — `nen pr request-reviews --target <owner/name> --pr <n> --add-bots BOT_kgDOCnlnWA`, the node id passing straight through (verified at `v0.12.0`, exit `0`, `BOT_kgDOCnlnWA -> bot [add-bots]`). **No GraphQL residue is left**: zheref/nen#160 is about resolving the bot by *login*, not by id.
+- **The diet.** The ten largest skills — `hatsu-warmup`, `sharingan`, `breath`, `shibari`, `jutaisho`, `build`, `kokusen`, `kagutsuchi`, `amaterasu`, `jujutsu` — are under **12 KB** each (from 36–91 KB), as are `spiritual-message`, `hanten`, `backlog-board`, `futon` and `backlog-loop`; the plugin description is two sentences. A rule survived as one sentence; shared protocol moved to the document that owns it (`docs/WORKFLOW.md` gains the gate derivation, the UZF-26 evidence shape, the standalone stash-and-restore shape, the local verification gate, the commit message and its two streams, verified delivery's four claims, and building an issue with no CI plane; `docs/SURFACES.md` gains § 9, the turn-end bell per surface; `docs/LAUNCH-MIGRATION.md` gains the launch declaration rules); shared bash moved to scripts (`scripts/hatsu_root.sh` resolves the plugin root and prints it alone; `scripts/dist_tag.sh` is kagutsuchi's distribution-tag block with a `--dry-run` **and a hermetic `--self-test`, seated on its own `dist-tag-guard` lane** beside the other executable guards); shibari's body is `templates/pr-body.md`. **The ceilings are now measured rather than remembered**: [`scripts/prose_size_check.sh`](scripts/prose_size_check.sh) holds every `claude/agents/*.md` except `kurapika.md` at **6,144 bytes** and the sixteen dieted skills at **12,288**, exiting `1` and naming each offender — a limit nothing measures is a limit already exceeded. History moved out of the prose is summarised below and archived verbatim in [`docs/history/v0.42.0-prose-diet.md`](docs/history/v0.42.0-prose-diet.md).
+- Counts: forty-two skills, ten independents beside Kurapika; README, `docs/SURFACES.md`, `docs/WORKFLOW.md` and the antigravity generator say so. Run state in `docs/Loop/hatsu-89-nen-220/`.
+
+### History moved out of skill prose
+Session 2 of the 2026-09-19 hardening audit (zheref/hatsu#89), the **diet**: the ten largest skills
+were rewritten to carry rules only. Everything below was **recorded history** — a decision already
+taken, a finding already filed, an incident already corrected, or a verified-live transcript — and is
+folded here so the skills stop paying for it on every load. Nothing here is a rule; every rule the
+prose carried stayed in its skill.
+
+#### hatsu-warmup
+
+- **§ 0 (`$CLAUDE_PLUGIN_ROOT`)** — the section once opened with `cat "$CLAUDE_PLUGIN_ROOT/nen/contract.json"`
+  before any resolution. On this host the variable is exported from `~/.zshrc` pointing at
+  **bankai 0.10.0**, so every Codex and Cursor session would have read *another plugin's* dependency
+  contract, silently (`docs/ab/surfaces.md` § 8, F3). Resolving first is now the rule; the incident is
+  here.
+- **§ 0 (`nen schema check`)** — this checkout's aggregate used to exit `1` on every run, five rows
+  `ok` and `nen/colors.yml` FAIL, because that file had never existed on any branch while six runtime
+  surfaces named it (zheref/hatsu#79). All six rows pass since it was declared and seeded through
+  `hatsu:tenkai` § 4. The durable cost recorded there: *a permanently-red check stops being read.*
+- **§ 0 (retired at nen 0.5)** — the `schemas/` fallback announced at v0.3.0 and held open at v0.4.0
+  was removed in v0.5.0; `--json`'s `location`, `shadow` and `shadowed` went with it and a boolean
+  `legacy` replaced them.
+- **§ 0a** — the adoption split was `zheref/hatsu#81`: *the same shape shows up every session:
+  `hatsu-warmup` re-does per-session work that should have been settled once, at adoption.*
+- **§ 1b / § 1c** — the two live `nen shu tools` transcripts (nen `0.7.0` printing no floor line,
+  nen `0.8.0` printing `compat floor: 0.7` and widening the same pin's ceiling from `<0.8.0` to
+  `<0.9.0`), and the retired defect they close: this section used to compute the range itself and
+  claimed *"`0.8.0` fails it exactly as `0.6.0` does"* — true through v0.7.0 and false the moment the
+  floor shipped. Left standing, every warm-up on a host carrying `0.8.0` would have rebound
+  `~/.local/bin/nen` **down** to v0.7.0, making the floor inert for every consumer.
+- **§ 1c** — why the floor sat at `0.7`: v0.5.0 removed the `schemas/` fallback, v0.6.0 changed three
+  behaviours in place, and v0.7.0 changed four more with no new flag (`stage triage` gained
+  `local-config` and `large`; relative own-path flags resolve against `--repo`; a missing or malformed
+  `--target` moved from `1` to `2` across sixteen verbs; `pr ready` began reading
+  `dependabot_carve_out`).
+- **§ 2b (retired at nen 0.7)** — the cache slot is keyed on source **and** ref
+  (`<cache-root>/<source>/<ref>/<artifact>`, zheref/nen#6); keyed on the ref alone, two `--source`
+  values at one tag collided in one slot, detected by the checksum gate rather than executed, costing
+  a fork or mirror a permanent cache miss. `--source a/..` used to pass the shape check and be
+  neutralised downstream; it is exit `2` at the flag now.
+- **§ 2b** — the live `v0.7.0` transcript showing `~/.cache/nen/zheref_nen/v0.7.0/nen-darwin-arm64`
+  with nothing in it called `nen`, and the observed failure it explains: `~/.local/bin/nen` still
+  pointed at the old target after an exit-`0` bootstrap (`docs/ab/surfaces.md` § 8, F5). The same run
+  is where a headless Cursor session chose the session-scoped binding unprompted and was right.
+- **§ 2 (exit codes, retired at nen 0.7)** — `nen bootstrap --help` publishes the whole table itself
+  now, including `7`; at v0.6.0 its `--help` named no exit code at all
+  (`docs/ab/hatsu-warmup.md` § *Retired at nen 0.7*).
+- **§ 5 prelude** — the unresolved-root glob incident: with the variable empty,
+  `for d in "$CLAUDE_PLUGIN_ROOT"/surfaces/codex/*/` ran its body once on the unexpanded pattern, so
+  `name` became `*`, the `rm -rf` fired on a literal `*` path and the copy failed on a source that was
+  never there (Copilot review thread `PRRT_kwDOUKPjxM6hAjLJ`). Also recorded: a `[ -d
+  "$root/surfaces/$surface" ]` guard checks shape, not identity — on this host it happened to fail
+  because bankai carries no `surfaces/`, which was the safe failure for the wrong reason.
+- **§ 5a (Codex)** — three controlled `codex debug prompt-input` renders, no model called, showing a
+  symlinked mirror listed as `hatsu:aka` and a `cp -R` of the same directory listed as the bare `ren`
+  (`docs/ab/surfaces.md` § 7, F1); and F10, where a symlinked mirror's relative
+  `../../../nen/workflow.json` resolved into the *plugin's* policy file rather than the target's.
+- **§ 5a (`AGENTS.override.md`)** — verified live with both files present, only the override reached
+  the instruction envelope: the project's `AGENTS.md` was **superseded**, not merged
+  (`docs/ab/surfaces.md` § 7, F9).
+- **§ 5b (Cursor)** — the row once carried a box saying link-following was unverified because
+  `cursor-agent status` reported *Not logged in*; four controlled probes on `2026.09.08-6caf4ff`
+  resolved it (a skill found through a symlink inside the workspace and through one pointing outside
+  it, listed under its **bare** name — Codex's F1 does not reproduce there). The link-resolution half
+  of `nen/workflow.json` was not re-tested and stays a caveat in the skill.
+- **§ 5b · i** — the measured failure the version check exists for: with the mirror installed exactly
+  as mandated, `2025.09.18-39624ef` answered a discovery probe with the whole reply `NO SKILLS
+  VISIBLE`, seventeen bytes, then answered the next question by grepping the working tree. It nearly
+  became a false finding against the symlink row; the control probe (the same build cannot see a
+  `cp -R` copy either) showed the variable was the binary (`docs/ab/surfaces.md` § 8, F2).
+- **§ 5b · ii** — on this host `.cursor/skills/` also carried Cursor's own built-ins and this host's
+  **Claude Code plugin skills**, `build` and `drive` among them (`docs/ab/surfaces.md` § 8, F4).
+- **§ 5d (`info/exclude`)** — verified live on a fixture: writing the exclude to the `--git-dir`
+  answer in a linked worktree left `git status --porcelain` printing `?? .agents/` and
+  `git check-ignore -v` at exit `1`; the `--git-path` answer silenced the status and made
+  `check-ignore` exit `0`, naming `<main>/.git/info/exclude:7` (`docs/ab/surfaces.md` § 7, F2).
+- **§ 5d (`AGENTS.md`)** — the section used to say `AGENTS.md` *"is the exception and is not
+  excluded"*. On a target tracking none — `zheref/nen` does not — that left `?? AGENTS.md` standing
+  forever, `nen shu warmup` refused at exit `2` on an untracked path it did not put there, and a whole
+  headless run stopped on it (`docs/ab/surfaces.md` § 7, F9). Also recorded: the `.gitignore` refusal
+  one directory over, Copilot review thread `PRRT_kwDOUKPjxM6hAjLf`.
+- **§ 5e (retired at nen 0.5)** — `nen surface mirror generate|check` exists at the pin (it answered
+  *"nen: unknown command 'surface'"* at exit `2` through v0.4.0); `bash scripts/surface_mirror_check.sh`
+  exits `0` with `codex ok: 40`, `cursor ok: 47`, so the mirror-check workflow runs a real check rather
+  than skipping with a notice.
+- **§ 5e** — `manifest_name` has been awk rather than grep since the tenth review round of #38.
+
+#### sharingan
+
+- **The rename.** The skill was `drive` until Hatsu v0.4.0; the rename (wave 3, v0.5.0) changed the
+  name only. The A/B evidence stays at `docs/ab/drive.md` under the original name.
+- **`nen pr fetch` and `nen pr next-blocker`, filed at v0.1.0.** Both were reproduced broken against
+  real reference-repository PRs: `#925` crashed *"could not fetch … reviews: gh: Unprocessable Entity
+  (HTTP 422)"*, `#940` crashed differently — `$.reviews -- expected an array, got object` (a lone
+  `PENDING` review returned unwrapped). `next-blocker`'s missing `--gates` half was **closed** by nen
+  v0.2.0 (#60, closes zheref/nen#20); the crash half was never re-verified, and the skill stopped
+  calling either verb for a verdict. Reproductions: `docs/ab/drive.md` § 2.
+- **Finding F17, measured live.** `contracts/reference.gates.json` pointed at `zheref/nen` returned
+  *"reviewers sasuke,tenma,copilot"* with row 4 FAILED — two identities that will never review that
+  repository, **permanently owed**, so the gate could never answer `ready` there at all. The rule that
+  survives is in § 4; the measurement is here.
+- **The `zheref/zheref.io` gate incident.** A résumé PR in a consumer repository touching
+  `nen/contract.json`, `nen/gates.json`, `.github/workflows/pr.yml`, `scripts/` and `docs/` derived
+  **G4** from the canon path sets and was reported as G4 in the PR body, a landing report and two
+  `nen stop` banners. It is G2. Dropping `nen/` from the policy set does not fix it — the path set was
+  never the dial; the repository's role is (ruling 2026-09-18).
+- **`RR-IS-#929`** — `nen gate derive` reads the diff's half only and cannot tell that a sub-PR based
+  on an `integration/*` branch is not a maintainer gate row at all.
+- **`RR-IS-#554`** — applying the wake label in the same breath as a comment: both dispatches land in
+  the same concurrency group seconds apart and the second cancels the first's `probe`, so `build`
+  never starts and the wake dies silently.
+- **`RR-IS-#798`** — a `CONFLICTING` PR dispatches no `pull_request`-family event, including the
+  `labeled` event the wake needs, and the wake is edge-triggered, so a label already present must be
+  removed and re-applied before it can even be tried — and on a still-conflicted PR that still will
+  not help. `copilot-sweeper.yml`'s `conflict_guard` redrives only a `kisuke-bankai[bot]`-authored PR.
+- **The Copilot-as-Bot cycle.** A session burned several cycles concluding the re-request *"cannot be
+  done on the maintainer's credentials"* and handed a routine step back as though it were a gate. The
+  four dead ends are recorded: `gh pr edit --add-reviewer` goes through `requestReviewsByLogin` and
+  never resolves a Bot (zheref/nen#160); `gh api …/requested_reviewers` with a bare login answers
+  **422 `Reviews may only be requested from collaborators`**, which reads like a permissions wall and
+  is not one; GraphQL `requestReviews(userIds: [BOT_…])` answers `NOT_FOUND`; and REST's
+  `requested_reviewers` lists users and teams only, so a pending bot request shows as `[]`.
+- **The old two-round cap.** The maintainer's ruling of 2026-09-12 replaced the inherited five-round
+  retry cap with *one completed round normally suffices, a second only for substantive reassessment*.
+  That number is now `nen/gates.json` → `round_policy.maxRounds`, and the prose cap is gone.
+- **PR 38 ran sixteen Copilot rounds before the 2026-09-12 ruling; PR 75 ran six after it**, because
+  Copilot auto-reviews every push and the cap governs requests, not arrivals (audit, *Reviewers*).
+- **§ 5's GraphQL thread residue is replaced.** The paginated `reviewThreads` read and the by-hand
+  reply/resolve mutations were the only way to do thread hygiene; `nen pr threads list|reply|resolve`
+  (nen v0.12.0, closes zheref/nen#215) owns it now.
+- **Live stop transcript.** The `RR-PR-#940` banner row (*"A fifth shell clause for a frozen-line
+  patch, expiring with the freeze … 🟢 (G4) … Merge — maintainer only"*) is kept here rather than in
+  the skill.
+
+#### breath
+
+- **Retired at nen 0.6: a detached `HEAD` is classified, not refused.** Through v0.5.0
+  `nen wc classify` exited **`1`** on one — the code the family reserves for *the tree is not clean* —
+  with `--json` printing prose rather than a document, so a caller could neither tell the refusals
+  apart nor parse the answer. At the pin the branch is a **field** (`state.branch: string | null`,
+  `state.detachedAt`), every case exits `0`, and one refusal remains: a `HEAD` that names no branch
+  *and* resolves to no commit. The shape mattered because `git worktree add --detach` is what
+  `hanten` § 9a makes for every Codex reviewer, and it stopped a whole headless run
+  (`docs/ab/surfaces.md` § 7, F4).
+- **Retired at nen 0.6: cutting by hand when another worktree holds the trunk.** A primary checkout on
+  `main` with every effort in its own worktree meant git refused to force-move the trunk — *fatal:
+  cannot force update the branch 'main' used by worktree at '…'* — and through v0.5.0 that landed
+  mid-run, after the fetch. At the pin `git worktree list --porcelain` is read first, matching the
+  **full** ref so `feat/main` is never mistaken for the trunk, and `--dry-run`'s guarantee changed
+  from *runs nothing* to *mutates nothing* plus that one read-only command, with a new `dryRun`
+  boolean because `steps[].exitCode` can no longer tell the two forms apart.
+- **Retired at nen 0.5: validating `nen/workflow.json`.** `nen schema check --repo <path>` carries the
+  row (`ok nen/workflow.json coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off
+  'main', checks: lint`).
+- **zheref/hatsu#60** — the incident behind § 3a: an unrelated effort landed on last week's
+  prize-recollection branch because a clean non-trunk checkout was read as "already warm".
+- **The `info/exclude` findings** — F2 (a linked worktree's `--git-dir` names a file git never reads)
+  and F9 (the surface mirror the warm-up had just installed was the untracked tree that stopped a
+  headless run), both `docs/ab/surfaces.md` § 7.
+- **The no-declaration transcript** — verified against the `zheref/nen` checkout, which carries no
+  `project` block: the git half prints in full and the run ends *"no declaration -- build/test
+  verification skipped … That is not a failure … this exits 0"*, `lane: (none)`
+  (`docs/ab/breath.md` § 2.3).
+- **The `nen shu warmup` detached-HEAD fixture transcript** (*"HEAD is DETACHED and reaches no commit
+  of its own -- reported, not an error"*), and the live `nen shu lint --repo . --lane plugin` exit `0`
+  that is the whole of this repository's base-tip proof.
+- **zheref/hatsu#63** — there is no Nen verb for per-effort Hatsu reviewer budgets, which is why the
+  cycle ledger is a script.
+- **The 2026-09-18 ruling's rationale** — § 0's earlier shape verified the base *underneath* work
+  already written, so a red check arrived late and ambiguous; the previous ruling accepted that cost
+  explicitly, and proving the tip on a tree holding none of the effort removes the ambiguity rather
+  than documenting it.
+
+#### shibari
+
+- **The stale-base measurement** — local `main` measured at 13, then 36, then 50 commits behind in a
+  single run, where `main...HEAD` named **43** changed files against the branch's own **8**
+  (`docs/ab/mukai.md`). The rule (fetch, then `origin/<base>...HEAD`) stayed; the numbers are here.
+- **Finding F6** — the landing report used to be rendered *before* this step, so `spiritual-message`'s `landing`
+  variant carried two empty sections and an empty **09** was indistinguishable from `not-ready`.
+- **Retired at nen 0.5: `nen shu evidence --repo <path> --base <ref>`** reads `project.evidence`
+  (exit `0`, rows grouped suite → scene), and **`nen pr edit-body`** replaced `gh pr edit --body-file`
+  — verified live against this repository's own PR 30, with the number certified before any write and
+  `nen issue edit-body --issue 30` refusing the same number at exit `2`.
+- **Retired at nen 0.6: requesting Copilot** — `nen pr request-reviews --add-bots BOT_kgDOCnlnWA`
+  routes to the `requestReviews` mutation's `botIds`, verified live against `zheref/hatsu#36` at exit
+  `0` with the `zheref -> user` / `BOT_kgDOCnlnWA -> bot` dry-run rendering. `--add-reviewers copilot`
+  against the same PR is exit `2` naming the login.
+- **The `--body-file` root change** — from nen 0.7 a relative `--body-file` resolves against
+  `--repo`'s root (zheref/nen#100), and the **resolved** path travels onward to `gh`. Through v0.6.0,
+  `--repo <the worktree> --body-file body.md` read `body.md` beside the *process*: on a machine
+  carrying the same file in both trees that is a wrong PR body posted at exit `0`.
+- **The two `fragment-required` findings**, both recorded rather than routed around
+  (`docs/ab/shibari.md` § 4): `--head-changelog` must exist or the verb refuses at exit `2` (*"A verb
+  that fell back to an empty input here would report a clean verdict for a check it never ran"*), and
+  `fragment-present` needs the fragment on disk at head as well as in `--files`.
+- **The `zheref/zheref.io` G4 incident** — the same one recorded under *sharingan*; shibari carried a
+  second copy of it.
+- **The `body-check` transcripts** — `3/3 requirement(s) satisfied` at exit `0`, `2/3` with a
+  `MISSING  How to verify` row at exit `1` (`docs/ab/shibari.md` § 2.1), and the three `gate derive`
+  renders at § 2.3.
+- **The KroApple mirror script** — `ci_scripts/pr_screenshots.sh -y` was named in the skill as the
+  concrete `public-mirror` publish step; the rule (the target's own declared step, authorized by the
+  `mukai` call) stayed, the example is here.
+
+#### jutaisho
+
+- **Finding F8** — § 1 read *"rungs fire per § 2"* for every turn while the hard limits read *"never
+  rings for a turn that needs nothing"*, and nothing defined what "needing something" was short of a
+  gate, so both readings were supportable and disagreed about every ordinary turn of every effort.
+  The table that resolves it is now the rule.
+- **Retired at nen 0.6: an ordinary turn may be spelled `--line ""`.** Through v0.5.0 the empty line
+  was exit `2` (*"the line must open with the literal 'at'"*) while a bare `at` was exit `0`, so the
+  ordinary invocation of the most-invoked step in the loop was the one a caller had to be told about.
+  A headless Cursor run found it by trying both (`docs/ab/surfaces.md` § 8, F11).
+- **Retired at nen 0.5: `notifications.turn` is in `nen.workflow/v0.1`** — a closed two-value set,
+  verified live both ways (`"turn": "loud"` FAILs naming the set, `"all"` validates `ok`), and written
+  into every scaffolded policy file.
+- **Retired at nen 0.11: the marker was this skill's hand-written residue.** Through v0.10.0
+  `nen stop --mark` wrote a five-field `nen.stop.mark/v0.1` document that nothing read, and this skill
+  wrote its own richer shape beside it, deliberately, because the nen shape carried no `title` and
+  every bell it rang said *"A decision is waiting."* with the report link dropped. `--mark --title
+  --body --report-url --options --propose-issue` now writes `nen.stop.mark/v0.2`, which the hook
+  reads. The v0.1 kept-residue rationale, the `§ 6` by-hand write block and residue entries 1, 6 and 8
+  all lapse with it. (Copilot review thread `PRRT_kwDOUKPjxM6hAjMh` is where the by-hand write was
+  spelled out rather than the verb.)
+- **The headless-seat measurement** (`docs/ab/surfaces.md` § 7, F8): inside `codex exec -s
+  workspace-write` on this host, `osascript -e 'display notification …'` exited **`0`** having
+  delivered nothing, with stderr *"NSNotificationCenter connection invalid"* /
+  *"ServerConnectionFailure: 1"*, while `afplay …/Glass.aiff` exited `1` with *"AudioQueueStart failed
+  (-66680)"*. The rule that survives is *read stderr, not the exit code*.
+- **F13** — after a headless run that ended successfully with the branch pushed,
+  `.nen/last-stop.json` still read `gate: "G5"` with a blocker answered three passes earlier, because
+  nothing on a hookless surface removes the marker.
+- **The live `nen stop` output** quoted in § 2: *"rungs 2-3 (OS notification, audible cue): not fired
+  by nen — only git/gh subprocesses are ever shelled out to"*, and the `--notified` line flipping from
+  *"NOT fired — the caller's to have sent"* to *"reported sent by the caller."*
+- **`nen parse izanami`'s classifications** — `osascript` and `afplay` both `[unknown]`, refused at
+  exit `1`; `nen stop` itself `[read-only]`, exit `0`.
+
+#### build
+
+- **The declared process change.** The retired skill released a routed issue to a CI builder
+  (`bankai:stage/building` woke Kisuke, Sasuke, Naruto or Yamamoto's workflow) and spent a whole
+  section verifying the wake fired. Hatsu has no CI plane at all, and Gon is ratified as an agent but
+  **unratified for the delegation grammar**, so there is nothing to route to. The port follows the
+  precedent `bankai-handbooks` set for the identical structural gap under `CON-37`.
+- **§ 10, Findings against the binary, filed at v0.1.0 and reconciled at v0.3.0** — all four rows:
+  (1) **closed**, `nen issue chain-position`/`terminus` now refuse a pull-request number (nen v0.2.0
+  #71, closes zheref/nen#25) where both answered `routable`/`own-pr` for a real PR with no signal, and
+  the manual `gh api … --jq '.pull_request'` read retired with it; (2) **unchanged**, an incomplete
+  `--chain-labels` map is `undecidable` and an unknown role name is exit `2`; (3) **closed**,
+  `nen epic next-wave`'s checklist parser widened in v0.2.0 (#65) and v0.3.0 (#103) from `- [ ] #<N>`
+  only to four spellings anywhere on a checkbox line, with `blocked by`/`blocks` refs treated as edges
+  and unresolvable checkboxes reported `unparsed`; (4) **closed**, `nen loop slots` no longer defaults
+  the local plane to `7` (v0.2.0 #69, closes zheref/nen#52), so a forgotten `--local-cap` used to
+  silently triple this skill's concurrency limit.
+- **Retired at nen 0.7: supplying a placeholder for a role this repository does not have.** Through
+  v0.6.0 the refusal named roles without saying which mattered, so callers reasonably supplied the
+  full eight-role map including a placeholder for a role their taxonomy genuinely lacked — the one
+  thing a taxonomy check exists to prevent (zheref/nen#55).
+- **The reference repository's live state at the port** — no open issue carried
+  `bankai:stage/idea`, `researched`, `ready-for-bankai` or `ready-for-shikai`; `bankai:epic` had zero
+  open issues; the taxonomy carries no `chore` label at all. The `idea`, `epic-awaiting-approval` and
+  `epic-approved` rows were contract-verified plus one live run against a constructed role map
+  (`docs/ab/build.md` § 2.7a), never against an issue natively carrying those labels.
+- **Table-shaped epics** — both real epics checked at the port (`#733`, `#568`, both closed) wrote
+  their phases as a markdown table or as linked bullets, and `nen epic next-wave` reads
+  `{"total":0,"done":0}` against a table-shaped epic. That is a finding about those epics' shape, not
+  about the verb; the rule (write children as checkbox lines carrying a resolvable reference) stayed.
+- **The `nen loop slots` transcript** — two efforts with neither ready nor prompted report
+  `local: 2/2 occupied, 0 free <- BINDING` at exit `1`; flipping one to `ready:true, prompted:true`
+  frees it at exit `0` (`docs/ab/build.md` § 2.10).
+- **The `shu build` seat transcript** on a freshly scaffolded `nextjs` tree (*"lane 'nextjs' (nextjs)
+  declares no 'build'. It declares: archive, deploy, release, ui-test."*), the thirteen-step
+  `shu warmup --dry-run` render, and the `nen stop` banner render at § 2.11.
+- **The `--efforts` cwd note** — it resolves against the process cwd rather than `--repo`, unlike the
+  flags nen 0.7 moved; the rule (pass an absolute path) stayed.
+
+#### kokusen
+
+- **Retired at nen 0.6: partitioning the ignored rows out of `flagged`.** `nen stage triage` reports
+  them in its own bucket with its own `ignored: <n> file(s), not listed` count, and the exit code
+  follows `flagged` alone — through v0.5.0 a tree whose only dirty rows were ignored was exit `1`.
+  The rule was carried because the alternative was unusable: a full `ren` run against the `zheref/nen`
+  checkout flagged **5905** paths on one turn and 5907 on the next, all but one `[ignored,
+  out-of-scope]` — *a per-file ask at that width is not a procedure anybody executes.*
+- **Retired at nen 0.7: local-config and size detection.** Both were carried as residue because this
+  skill and `tensho` § 3 were independently compensating for the same gap. The same constructed tree
+  that answered exit `0` with three clean rows at v0.6.0 answers exit `1` with `.env.local
+  [secret-shape, local-config]`, `big.txt [large]` and `settings.local.json [local-config]` — one of
+  the four silent changes `zero_major_caveat.why` names: the same bytes, the opposite exit code.
+- **The `node_modules/bottleneck/.env` row** — the real run that produced the ignored-tree
+  `secret-shape` rule: read literally, the categorical rule would have had a commit phase rotate or
+  delete a third-party package's fixture file.
+- **The `nen commit check` transcripts** — `verdict: OK -- this working copy is the one the build
+  proved green` at exit `0`, and this repository's own `NOT PROVED -- there is no build proof for lane
+  'plugin'` at exit `1`, which is exactly what the skipped-case condition predicts.
+- **The `plugin` lane's seat transcript** — `nen shu build --repo .` at exit `4` quoting *"Hatsu
+  compiles nothing. The plugin IS its source …"*, beside `nen shu lint --repo .` at exit `0` in 916ms.
+- **Retired at nen 0.5: the forbidden-trailer refusal.** `nen commit format --repo <path>` refuses an
+  unadmitted attribution trailer at exit `2` naming the file; the enforcement layer that used to be
+  absent is now the binary's. A headless Cursor run against nen 0.3.0 found `--repo` **accepted and
+  silently ignored** — *"a flag that is accepted and ignored is worse than one that is rejected: it
+  reads like the guard ran"* (`docs/ab/surfaces.md` § 8, F12) — which is why the skill once called it
+  residue.
+- **The merged-streams incident** — a merge landed carrying *"nen: header line is 75 characters, over
+  the 72-character convention"* as its subject, repairable only because `origin` had not seen it yet
+  (`docs/ab/mukai.md`). The verb's behaviour was correct; the residue path around it was missing its
+  gate, which is now the rule.
+- **Retired at nen 0.5: `nen/workflow.json` is validated** — `nen schema check` carries the row.
+
+#### kagutsuchi
+
+- **The name.** The maintainer has written it *kagutsushi*; the skill is `kagutsuchi` — Sasuke's Blaze
+  Release, the technique that shapes Amaterasu's black flames into something aimed. Said once so the
+  invocation and the roster agree.
+- **The § 4a script's incident comments.** Each refusal in the tag block was written against a real
+  defect found in review: the target was interpolated into shell source while the prose claimed it was
+  not (a filled-in `$(touch /tmp/pwned)` would run during the assignment); a quoted heredoc was
+  considered and rejected because its delimiter is still in-band; `tags.deploy` compared with `in`
+  against a **string** would opt `testflight` in from a value of `"testflight-someday"`; `.get()`
+  returning `None` for both absent and `null` reported a present-but-malformed declaration as *not
+  declared* and exited `0`; testing only that `push` existed let `{"push": false}` and `{"push":
+  true}` take the same path; a silent empty `nameFrom` made every later refusal report a misleading
+  reason; `cat-file -e` resolves `HEAD`, `origin/main` and `HEAD~1`, defeating the never-HEAD rule it
+  was checking; and the clean-tree condition was asserted in prose and checked nowhere. The checks
+  stayed; the narratives are here.
+- **The live transcripts** — `nen shu deploy --dry-run` at exit `0` with the target line, host row,
+  preconditions and composed argv (§ 2.1); the bare form byte-identical above its one stderr line
+  (§ 2.2); `--run` with `--dry-run` refused at exit `2` (§ 2.3); the unset `FIXTURE_DEPLOY_TOKEN` row
+  with no value anywhere in text or `--json` (§ 2.4); `--lane docs --target beta` answering with the
+  **seat** rather than "no such target" (§ 2.5); and the fixture send at exit `0` (§ 2.6).
+- **`docs/ab/kagutsuchi.md` § 4.1** files the finding worth acting on: no field in
+  `project.targets.<name>` says which side of G3 a destination is on.
+- **zheref/nen#91** — a per-run `.nen/logs/` transcript is not in this release.
+
+#### amaterasu
+
+- **Retired at nen 0.5: `--target` on a launch verb.** `nen shu dev --target sim --dry-run` renders
+  the target, the device, the appended `args`, the after-steps and both substitutions at exit `0`
+  (`docs/ab/amaterasu.md` § *Retired at nen 0.5*), so resolving the target, the probe and its exact
+  name match, appending `args` and running the after-steps are all nen's. Through v0.4.0 a
+  `{device.id}` or `{artifact}` in `args` was accepted and simply unfilled, reaching the child process
+  as itself; it is exit `2` now.
+- **Retired at nen 0.6: reading the resolved device's state, where `readyWhen` is declared**, and
+  **re-reading the target's verb behind a seat**. The trap the second closes, observed on 2026-09-10
+  against `zheref/KroAndroid` at the then-pinned 0.5.0: `nen shu run --target galaxy` answered exit
+  `4` — *"'run' is unsupported on lane 'android' … a release install to a device is a deploy, not a
+  local run"* — a correct exit `4` and the wrong sentence to act on, with the declaration's answer
+  (`dev --target galaxy`) one line away.
+- **The `unauthorized` launch** — the same run resolved `R52X603Q9BA unauthorized usb:33-3.2`,
+  printed `device: R52X603Q9BA  id usb:33-3.2` as *resolved*, and every `adb -s usb:33-3.2 …` after it
+  answered `adb: device unauthorized`.
+- **The worktree facts, both observed on 2026-09-10 in a linked worktree of `zheref/KroAndroid`:**
+  (a) a fresh worktree fails the declaration's own preconditions — `local.properties` is gitignored
+  and `bankai/` is a submodule, so `nen shu dev --target galaxy` refused at exit `2` naming both — *a
+  worktree is not a launch-capable checkout, it is a checkout of the tracked files only*; and (b)
+  launching writes to a **shared** device, so worktree isolation buys nothing on the axis that
+  matters. Also recorded: `nen shu dev --repo <a worktree> --dry-run` renders with `cwd:` set to the
+  worktree and **no warning of any kind** (`docs/ab/amaterasu.md` § 2.5).
+- **The `{artifact}` two-roots fix at nen 0.6** — on a lane whose cwd is not `.` the installer used to
+  be handed a path resolved against the wrong root and answered *"no such file"* about a file sitting
+  right there; `substitutes:` now prints both strings when they differ and `--json` gains
+  `artifactAs`. A lane at the root passes exactly the bytes it always did.
+- **Retired at nen 0.5: validating `nen/workflow.json`.**
+
+#### jujutsu
+
+- **The live probe transcripts** — `xcrun devicectl list devices` and `xcrun simctl list devices
+  available` (`docs/ab/jujutsu.md` § 2.2), and the Android one that is the case this skill exists for:
+  `List of devices attached` / `R52X603Q9BA	unauthorized` (§ 2.3).
+- **The name's bytes** — the device this machine sees is `Sergio’s iPhone Pro`, whose apostrophe is
+  U+2019 (`342 200 231` octal, three bytes), rendered `Sergio?s iPhone Pro` in a table that cannot
+  show the codepoint. The rule stayed; the measurement is here.
+- **`nen parse izanami "adb devices until …"`** classifies `adb devices` as `[unknown]` and refuses
+  the whole run at exit `1`; `xcrun devicectl list devices` gets the identical answer
+  (`docs/ab/jujutsu.md` § 2.4).
+- **The `readyWhen` observation** — the same `zheref/KroAndroid` run recorded under *amaterasu*, which
+  is why the declaration now carries the state column.
+- **The `installDebug` divergence, observed 2026-09-10** — the target's verb was `./gradlew
+  installDebug`, an install inside the verb with no way to name a device; with two phones attached nen
+  resolved and reported `usb:33-3.2` and Gradle installed to `R5CY213GAST`. Nothing in the transcript
+  flagged it, because from nen's side nothing went wrong.
+- **The AnteikuTV `-scheme` finding** — a row already carrying `-scheme X` plus `args: ["-scheme",
+  "Y"]` puts two `-scheme` flags on one `xcodebuild` command line and the tool errors rather than
+  letting the later one win.
+- **Retired at nen 0.5: `nen shu dev --target <name>`** renders the whole plan at exit `0`
+  (`docs/ab/jujutsu.md` § *Retired at nen 0.5*), and **`nen schema check`** reports
+  `ok nen/contract.json project (…)` for a declaration carrying `project.launch`.
+- **The `field`-form `readyWhen` is exercised live** in `docs/ab/jujutsu.md` § *Retired at nen 0.6*;
+  the iOS `path` form was read off nen's documented two-level walk and devicectl's nesting and **has
+  not been run against a physical device**.
+- **The old contradiction** — a hard limit read *"never reports `nen schema check`'s `ok` as evidence
+  that the target works — at this pin the block is preserved and read by nothing"* while § 6 said nen
+  **parses** the block. The limit stayed and its reason was corrected: `ok` proves the block parses,
+  not that anything resolves.
+
+---
+
+#### Second pass — 2026-09-20
+
+**`scripts/hatsu_root.sh` is new, and it is where the plugin-root prelude now lives.** `manifest_name`
+(the awk stack machine over the one manifest shape the tooling writes), `is_hatsu` (the manifest's own
+top-level name compared WHOLE, plus a `claude/skills/` directory checked as a directory), and the
+three-candidate loop with its three capture guards moved out of `hatsu-warmup` § 5 verbatim. The
+script prints the resolved root **alone on stdout**, names every passed-over candidate on stderr even
+on success, and exits `1` with the `NOT INSTALLED` reason when none resolves; `--quoted` adds the
+label line and the single-quoted literal a caller pastes. `hatsu-warmup` § 0 is now two lines pointing
+at it, and every skill that carried a copy of the prelude — sharingan, breath, shibari, jutaisho,
+build, kokusen, kagutsuchi, amaterasu, jujutsu — says *resolve the plugin root as `hatsu-warmup` § 0
+says* instead.
+
+**What else moved out of skill prose in this pass** (all of it rationale, none of it rule):
+
+- **hatsu-warmup** — the `$CLAUDE_PLUGIN_ROOT`-names-another-plugin incident and the unresolved-root
+  glob failure now live here rather than in § 0 and § 5; the per-surface *why* (Codex's namespacing,
+  Cursor's minimum and flat name space, first-run discovery, the plugin-source report forms) is a
+  one-line pointer at `docs/SURFACES.md` §§ 1, 2 and 6.
+- **sharingan** — the CI-agent wake channel and the escalation ladder were merged into one
+  subsection, since both serve a CI plane Hatsu does not have; the gate-derivation *reasoning* is a
+  pointer at `docs/ROSTER.md` § *Rulings of 2026-09-18*, and the readiness identity table a pointer at
+  `pr-state` § 2.
+- **shibari** — § 7(c) no longer restates the gate derivation and points at `sharingan` § 2; § 9 no
+  longer restates the reviewer-round policy and points at `sharingan` § 6.
+- **jutaisho** — the rung ladder and the per-surface picker are tables; `notifications.turn`'s
+  two-value validation and the marker's v0.2 shape are stated once.
+- **build** — the CI-plane-removal narrative is three sentences; the `shu` verb sequence is four
+  command lines with the exit rows that differ from `kurapika.md`'s table.
+- **kokusen** — § 3's three gate steps and § 4's seven triage kinds are single-sentence rules; the
+  `nen stage triage` kind list is prose rather than a table with a *trigger* column.
+- **kagutsuchi** — § 4a's tag script keeps every refusal and one-line reasons; the multi-paragraph
+  incident comments (the interpolated target, the heredoc delimiter, the `in`-against-a-string
+  fail-open, absent-versus-null, `push` as a value, the silent empty `nameFrom`, `cat-file -e`
+  resolving symbolic revisions, the unchecked clean tree) are recorded in the first pass above.
+- **amaterasu** and **jujutsu** — the device-state and after-step rules are tables and one-sentence
+  bullets; every remaining "verified live" line is gone.
+
+#### Third pass — 2026-09-20 (the widened paths, and the last four skills)
+
+**New files.**
+
+- `scripts/dist_tag.sh` — `kagutsuchi` § 4a's tag block, verbatim, as an executable taking
+  `--repo <path> --target-file <file> [--dry-run]`; exits `0` cut / dry-run ok, `2` refused,
+  `3` not declared, `1` `nen tag cut` failed. Kept: the target never enters shell source, the
+  three-way `tags.deploy` read, the four-way `push` read, `nameFrom`'s symlink/regular-file/
+  inside-repo checks, the raw-40-hex SHA check, the clean-tree check, `check-ref-format`, and
+  `branch.base` read as data. The skill keeps one paragraph naming the script and its exits.
+- `templates/pr-body.md` — `shibari`'s nine-part body, with the three mechanical checks
+  (`nen pr body-check`, `nen changelog fragment-required`, gate derivation) as comments at the top.
+  Shibari keeps the invocation, the parameter files, the linkage contract and the gate.
+- `scripts/hatsu_root.sh` — recorded in the second-pass section above.
+
+**Moved into `docs/WORKFLOW.md`** (each section names its origin and its date in the file itself):
+
+- `## Gate derivation` and `## The UZF-26 evidence shape` — as briefed.
+- `## The standalone stash-and-restore shape` — out of `breath` § 0: the guaranteed outcome
+  (ruling 2026-09-18), stash-by-SHA, `--include-untracked`, the never-`--discard`/`checkout -- .`/
+  `reset --hard` rule, the isolated worktree preference, ao placement (replay unpublished, merge
+  published, classify a detached `HEAD`), restore-before-every-stop, the never-drop-on-failure rule
+  and the report's contents including *the base was green* / UNPROVEN. Breath keeps the six command
+  lines, the once-per-session rule and the pointer. WHY-clauses dropped here rather than restated.
+- `## The local verification gate` — out of `kokusen` § 3: the four steps in full (iteration checks
+  in order; focused tests through tsukuyomi with the no-`--scope` rule and `missing-focused-route`;
+  the build-proof read-back with its skip conditions and exit semantics; `wc classify` proving this
+  is not the trunk). Kokusen keeps the four-step summary plus its own refusals.
+- `## Writing a commit — the message and the two streams` — out of `kokusen` §§ 5–6, beside the
+  `commits` policy it enforces (the coordinator's "point at WORKFLOW's commit section if one
+  exists"): `nen commit format`'s shape validation, always-`--repo`, the canonical-trailer rule, the
+  prospective-tooling rule, history-is-not-rewritten, the exit-code gate, the two-stream discipline
+  and the three-row exit table. Kokusen keeps the staging sentence.
+- `## Verified delivery — the coordinator's four claims` — out of `build` § 7: the four separate
+  claims and the six-step pre-handover checklist. It governs mukai and en as well as build.
+- `## Building an issue with no CI plane` (with `### Releasing an issue into `building``,
+  `### Advancing an epic's waves`, `### The local build, and the concurrency cap` and
+  `### A target repository with no delivery-stage taxonomy`) — out of `build` §§ 1, 4 and 4a: the
+  no-CI-plane fact and its G5, `nen epic next-wave` (child-line grammar left to the verb's own help,
+  per technique 3) with the checkbox-children rule and the `--body-file`/`--out` resolution, `nen
+  issue terminus` and which PR is the gate, `nen loop slots --local-cap 2` with the local-plane slot
+  rule, the `nen shu` sequence with its phase owners, the never-`--discard` rule and the `4`/`3`/no-
+  `project`-block exit semantics, the label-application discipline (`CON-9`), and the stage-free
+  taxonomy path. Build keeps the six numbered steps, the authority table and the gate table.
+
+**Moved into `docs/SURFACES.md`.**
+
+- § 2's placement table and the permission-pack paragraph (second pass), plus the Codex sandbox rule
+  and `### The warm-up form, and its hard limits` under § 6.
+- New `## 9 · The turn-end bell, per surface` — out of `jutaisho` §§ 5–6: the who-fires-rungs-2–3
+  table, the marker-first ordering, the hookless-surface removal rule, the report's contents, and the
+  in-session fallback with its sanitising rules and the read-stderr-not-the-exit-code rule. Jutaisho
+  keeps a six-line § 5 carrying the three rules that are its own; its hard limits now cite
+  SURFACES § 9 where they cited §§ 5–6.
+
+**Moved into `docs/LAUNCH-MIGRATION.md`**: `## Launch declaration rules` (second pass), read by
+`amaterasu` and `jujutsu`.
+
+**Breath's `info/exclude` mechanics** now point at `docs/SURFACES.md` § 2 (`rev-parse --git-path`,
+never `--git-dir`, never `.gitignore`, the sandbox `--add-dir`); breath keeps which paths qualify,
+the show-before-writing rule, the re-classify expectation and the refusal stop.
+
+**A defect found and fixed in this pass**: an earlier section-swap in `breath` matched to the next
+`##`/`###` heading and so deleted § 2c (the host probe) along with § 2b, since § 2c is a bold
+paragraph rather than a heading. Restored, tightened, and every later swap bounded explicitly.
+
+**Bytes after this pass** (`wc -c`, ceiling 12,288): hatsu-warmup 12,284 · sharingan 12,279 ·
+breath 12,262 · shibari 12,284 · jutaisho 12,126 · build 12,284 · kokusen 11,255 · kagutsuchi
+12,279 · amaterasu 12,281 · jujutsu 12,263. **All ten under the 12,288-byte ceiling.**
+
+Re-verified 2026-09-20: `claude plugin validate . --strict` passes; `grep -rn "open the report"` over
+sharingan/en/senkei returns nothing; `maxRounds`/`cap-reached` appear in sharingan, en, senkei and
+build; `sh scripts/dist_tag.sh --dry-run` prints the usage line and exits `2` with no arguments, and
+with `--repo . --target-file <a file holding "testflight">` reads the target from the file and exits
+`3` (`no tags.deploy entry ... not declared for this target`).
+
 ## v0.41.0 — fixed defaults, Crazy Slots, permission packs (zheref/hatsu#85)
 
 > Pinned to nen **v0.11.0** (`minimum` `0.11`): `nen/decisions.json`, `nen stop --options --propose-issue --title --body --report-url` and `nen stop clear`, `nen shu warmup --carry`, `nen repo classify`, `nen surface capabilities`, `nen phase begin|end|show`, the bounded reviewer round policy and `--exclude-check` in `nen pr ready`, an optional `nen/colors.yml`, `nen <bogus> --help` at exit 2, and `watch until` pacing itself by `monitor.*` all arrive with that release (zheref/nen#216). **The warm-up reads `WRONG` until v0.11.0 is tagged**, and re-pins through the bootstrap once it is.

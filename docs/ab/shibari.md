@@ -44,7 +44,7 @@ checks it applies to the body it wrote, and the two absences it works around by 
 | Writing the body back | **residue** — `nen pr edit-body` absent | **§ 2.4** |
 | Opening the PR | **residue** — no `nen` verb creates a PR | **§ 2.4** |
 | Requesting reviewers | `nen pr request-reviews` — contract only | **§ 2.5** |
-| The evidence rows | **residue** — `nen shu evidence` absent; re-used from `rikugan` | `docs/ab/rikugan.md` § 3 |
+| The evidence rows | **residue** — `nen shu evidence` absent; re-used from `spiritual-message` | `docs/ab/spiritual-message.md` § 3 |
 
 ---
 
@@ -269,9 +269,9 @@ nobody carries forward is a reviewer nobody requested.
 2. **`gh pr edit --body-file`** — `nen pr edit-body` absent at `v0.3.0` (§ 2.4), P2 in the brief.
    Always `--body-file`, never an inline `--body` string: a body carrying backticks, `$` and mermaid
    fences is one quoting mistake from a mangled PR.
-3. **`nen shu evidence --base <ref>`** — absent (`docs/ab/rikugan.md` § 2.2 records the same). The
+3. **`nen shu evidence --base <ref>`** — absent (`docs/ab/spiritual-message.md` § 2.2 records the same). The
    evidence rows are `git diff --name-only <base>...HEAD` filtered by `project.evidence.globs`,
-   **re-used from `rikugan`'s landing assembly rather than derived a second time**, so a report and
+   **re-used from `spiritual-message`'s landing assembly rather than derived a second time**, so a report and
    a PR body cannot disagree about which scenes changed.
 4. **The evidence mirror's publish step is the target repository's own script** — on KroApple,
    `ci_scripts/pr_screenshots.sh -y`. Nen shells out to `git` and `gh` and nothing else by design;

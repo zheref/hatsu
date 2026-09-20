@@ -2,7 +2,7 @@
 
 `claude/skills/kotoamatsukami/SKILL.md`: the declared end-to-end / UI suite — run it through
 `nen shu ui-test`, read the runner's own result, quote a seat verbatim, and hand the scenes it
-re-recorded to the evidence table [`rikugan`](../../claude/skills/rikugan/SKILL.md) and
+re-recorded to the evidence table [`spiritual-message`](../../claude/skills/spiritual-message/SKILL.md) and
 [`shibari`](../../claude/skills/shibari/SKILL.md) build from.
 
 **Phase ruling, 2026-09-14 (later).** Kotoamatsukami owns impacted unit, UI and integration tests
@@ -69,7 +69,7 @@ exit=0
 ```
 
 The slot is anchored behind the literal `on`, which is what the engine requires
-(`docs/ab/rikugan.md` § 2.1). As in `murasaki` (`docs/ab/murasaki.md` § 2.1), a **bare** invocation has
+(`docs/ab/spiritual-message.md` § 2.1). As in `murasaki` (`docs/ab/murasaki.md` § 2.1), a **bare** invocation has
 nothing to parse and makes no parse call; the lane then resolves from
 `nen/workflow.json → iteration.lane`, defaulting to the declaration's `project.defaultLane`.
 
@@ -238,7 +238,7 @@ exit=1
 file — the loader preserves Hatsu-authored keys verbatim and validates the block it knows
 (`docs/WORKFLOW.md` § 3). The four failing rows are about the fixture shipping no taxonomy files at all,
 which is a property of a throwaway fixture and says nothing about `evidence`; the exit `1` is the
-taxonomy's, not the contract's. (Run against a real checkout the taxonomy rows pass — `docs/ab/rikugan.md`
+taxonomy's, not the contract's. (Run against a real checkout the taxonomy rows pass — `docs/ab/spiritual-message.md`
 § 2.4 records Hatsu's own five-row output.)
 
 **What this pins down for the skill:** declaring `project.evidence` today is safe at the pinned `0.3.0`,
@@ -275,19 +275,19 @@ does *not* give `**` the meaning the declaration intends, so the declared string
 
 **This is the worst failure shape available here.** An empty evidence table is indistinguishable from
 the truthful "this change re-recorded nothing", so the pull request loses its `UZF-26` evidence and
-every downstream reader — [`rikugan`](../../claude/skills/rikugan/SKILL.md)'s screenshot section,
+every downstream reader — [`spiritual-message`](../../claude/skills/spiritual-message/SKILL.md)'s screenshot section,
 [`shibari`](../../claude/skills/shibari/SKILL.md)'s body, [`hisoka`](../../claude/agents/hisoka.md)'s
 read — is told a falsehood by omission rather than shown an error.
 
 Two consequences, both recorded in the skill:
 
 - **For the residue path today:** `:(glob)` on every declared glob, or filter the full
-  `git diff --name-status` output in the reader (which is what `rikugan` § 3's own residue row does, and
+  `git diff --name-status` output in the reader (which is what `spiritual-message` § 3's own residue row does, and
   which is the form to prefer because it has no matcher to get wrong).
 - **For `nen shu evidence` when it lands:** this is a **contract question the verb must answer
   explicitly** — in which dialect is `project.evidence.globs` written, and does the implementation
   translate or delegate? A verb that hands the declared string to `git diff --` unchanged inherits this
-  bug and makes it nen's. **Check it the day the pin moves**, the same way `rikugan` § 4 asks the nested
+  bug and makes it nen's. **Check it the day the pin moves**, the same way `spiritual-message` § 4 asks the nested
   `{{#each}}` and the default escaping to be checked when `nen report render` arrives. Worth one line in
   nen's own `USAGE.md` either way, because "glob" is a word two tools mean differently.
 
@@ -309,7 +309,7 @@ error.
 
 § 6 of the skill turns on a person looking at every re-recorded image. There is no verb for it, there is
 no residue command that substitutes for it, and there will not be one — the same class of boundary
-`rikugan` § Residue 7 names for the Artifact publish and `ren` § 4 names for the turn loop.
+`spiritual-message` § Residue 7 names for the Artifact publish and `ren` § 4 names for the turn loop.
 
 What matters is the failure mode: on a surface that cannot display an image, the honest report is
 **"the goldens were not looked at"**, enumerated. `hisoka`'s own `unread` marker exists for exactly this

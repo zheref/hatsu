@@ -121,7 +121,7 @@ nen parse murasaki --grammar "from [<base>]" --line "<the invocation, minus the 
 
 Verified live at `v0.3.0` (`docs/ab/murasaki.md` § 2.1): `from release/1.4` → `base: release/1.4`,
 exit `0`. The clause is anchored behind a literal for the reason
-[`/rikugan`](../rikugan/SKILL.md) § 1 records, and the shape is deliberately ao's, because the
+[`/spiritual-message`](../spiritual-message/SKILL.md) § 1 records, and the shape is deliberately ao's, because the
 clause means the same thing in both.
 
 > **A bare invocation is not parsed, and that is the verb's own answer rather than an omission.**

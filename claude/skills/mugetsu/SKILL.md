@@ -320,7 +320,7 @@ back to a hand-run 'gh issue comment' for the one step written in a human's own 
 character the parser would read as a flag. **The comment is the durable record; the session's
 transcript is not.**
 
-**Re-render the turn report before stopping** — [`hatsu:rikugan`](../rikugan/SKILL.md) § 5's `turn`
+**Re-render the turn report before stopping** — [`hatsu:spiritual-message`](../spiritual-message/SKILL.md) § 5's `turn`
 variant, at the same address, with the publication written into **01 Accomplished**.
 
 **Then say nothing about what is available next.** Not another target, not a promotion, not a next

@@ -68,7 +68,7 @@ has none, and inventing an optional clause so that a parse can be echoed would b
 **The call is the maintainer's, in their own words or by name.** Two consequences, both binding:
 
 - **No agent ever prompts for it.** Not [`hatsu:jutaisho`](../jutaisho/SKILL.md) at the end of a
-  turn, not [`hatsu:rikugan`](../rikugan/SKILL.md) in a report, not a composite offering it as a
+  turn, not [`hatsu:spiritual-message`](../spiritual-message/SKILL.md) in a report, not a composite offering it as a
   next step, not a lettered option in a stop. A report may say *the branch is ready to go out*; it
   may not say *shall I push it?* An agent that asks for permission it was told to wait for has
   converted a human call into a nudge, and the nudge is what the local plane's push discipline
@@ -366,13 +366,13 @@ and how it got underneath (rebase or merge), that tests are not due until mukai,
 
 **Re-render the turn report before stopping.** The last render was truthful when it was written and
 is stale one step later — it says nothing was pushed about a branch that is now on `origin`.
-[`hatsu:rikugan`](../rikugan/SKILL.md) § 5 owns this: the `turn` variant, re-rendered at the same
+[`hatsu:spiritual-message`](../spiritual-message/SKILL.md) § 5 owns this: the `turn` variant, re-rendered at the same
 address, with the push written into **00 This last turn** and **01 Accomplished**. There is no
 fourth variant and aka does not invent one. **00** answers the aka request: lint, squash, ao,
 push — and that tests were not due.
 
 **A G5 on this run fills `blocker` on that same `turn` page** ([zheref/hatsu#56](https://github.com/zheref/hatsu/issues/56);
-rikugan § 5a). Red lint, a semantic conflict from [`hatsu:ao`](../ao/SKILL.md), or any other stop
+spiritual-message § 5a). Red lint, a semantic conflict from [`hatsu:ao`](../ao/SKILL.md), or any other stop
 aka owns: the payload names the step, the rule, expected versus actual, and the next action.
 Visual failures embed this run's actual / reference / diff. Do not wait for `final` or for a PR.
 [`hatsu:jutaisho`](../jutaisho/SKILL.md) will refuse to hand off a report that does not contain

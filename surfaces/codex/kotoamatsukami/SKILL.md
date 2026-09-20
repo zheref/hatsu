@@ -119,7 +119,7 @@ named out loud either way.
 
 
 Verified live at `v0.3.0` (`docs/ab/kotoamatsukami.md` § 2.1): `on shell` → `lane: shell`, exit `0`.
-The clause is anchored behind a literal for the reason [`$rikugan`](../rikugan/SKILL.md) § 1
+The clause is anchored behind a literal for the reason [`$spiritual-message`](../spiritual-message/SKILL.md) § 1
 records; with no clause the starting lane is `nen/workflow.json` → `iteration.lane`, defaulting to
 the declaration's own `project.defaultLane`. **A bare invocation is not parsed** — there is nothing
 in it to parse — and the resolved starting lane is named out loud either way. Selection may then
@@ -172,10 +172,10 @@ push.
 
 A red required suite that was selected to run is mukai's **G5**, raised at the moment a pull
 request was about to open. Kotoamatsukami reports red; the phase that was about to publish decides
-what that costs. **The turn (or landing) page carries rikugan's `blocker` payload** — step,
+what that costs. **The turn (or landing) page carries spiritual-message's `blocker` payload** — step,
 rule, expected versus actual, this-run visual evidence or an explicit unavailable reason —
 before [`$jutaisho`](../jutaisho/SKILL.md) links it
-([zheref/hatsu#56](https://github.com/zheref/hatsu/issues/56); [`$rikugan`](../rikugan/SKILL.md) § 5a).
+([zheref/hatsu#56](https://github.com/zheref/hatsu/issues/56); [`$spiritual-message`](../spiritual-message/SKILL.md) § 5a).
 
 ## 4. Impact selection — run only what this change can move
 
@@ -342,7 +342,7 @@ images are the screenshots, never separately-staged captures, so the evidence ca
 the tests assert (`claude/agents/hisoka.md` § *The evidence set*). Kotoamatsukami's last act on a
 selected UI row is to hand that set on:
 
-- to [`$rikugan`](../rikugan/SKILL.md) § 4's `{{#each screenshots}}` — one table per screen, the
+- to [`$spiritual-message`](../spiritual-message/SKILL.md) § 4's `{{#each screenshots}}` — one table per screen, the
   states as **columns**, PNGs embedded as data URIs before a PR exists;
 - to [`$shibari`](../shibari/SKILL.md), which puts the same table in the PR body through the
   mechanism `project.evidence.mechanism` names.

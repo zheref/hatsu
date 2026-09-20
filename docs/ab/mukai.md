@@ -53,7 +53,7 @@ order, plus the run's boundaries.
 | 2 · adversarial review | `hatsu:hanten` | that skill's A/B file |
 | 3 · one full regression, with UI-specific handling where declared | `hatsu:tsukuyomi`, with `hatsu:kotoamatsukami` handling that same UI invocation | those skills' A/B files |
 | 4 · the coverage bar | `hatsu:gyo` | that skill's A/B file |
-| 5 · the evidence rows | `hatsu:rikugan` `as landing` | `docs/ab/rikugan.md` |
+| 5 · the evidence rows | `hatsu:spiritual-message` `as landing` | `docs/ab/spiritual-message.md` |
 | 6 · compose and open | `hatsu:shibari` | `docs/ab/shibari.md` |
 
 **Two rows are mukai's; the rest are references.** A composite whose A/B file re-proves its members'
@@ -100,7 +100,7 @@ binary that guessed the names would report a taxonomy this repository does not h
 exit=1
 ```
 
-**Five rows, and none of them is `nen/workflow.json`** — the same result `docs/ab/rikugan.md` § 2.4
+**Five rows, and none of them is `nen/workflow.json`** — the same result `docs/ab/spiritual-message.md` § 2.4
 recorded in wave 1, re-run here because `SKILL.md` § 5's whole parameter table depends on it. The
 workflow schema and loader are P1 and arrive with the `v0.4` line; until then **every step reads the
 file as data and states the default it fell back to**, and mukai neither supplies a default nor
@@ -133,7 +133,7 @@ second record of the same fact, and two records of one fact is how they come to 
    the skill that owns it*: `nen pr cascade-main` and its missing `--no-push` (step 1, named in
    `docs/ab/ao.md`), the Agent tool (step 2), `nen shu test` and the missing `nen shu test-report`
    (step 3), `nen shu coverage` and the missing `--touched` (step 4), the missing `nen shu evidence`
-   (step 5, named in `docs/ab/rikugan.md` § 3), `gh pr create` and the missing `nen pr edit-body`
+   (step 5, named in `docs/ab/spiritual-message.md` § 3), `gh pr create` and the missing `nen pr edit-body`
    (step 6, named in `docs/ab/shibari.md` § 3).
 
 **The test this file holds itself to:** if a bare shell command ever appears in
@@ -203,7 +203,7 @@ malformed key is now a FAIL by pointer rather than a thing each step has to noti
 The verbs the composed skills gained at this pin are recorded in their own A/B files:
 `docs/ab/murasaki.md` (`pr cascade-main --no-push`), `docs/ab/gyo.md` (`shu coverage --touched`),
 `docs/ab/kotoamatsukami.md` (`shu evidence`), `docs/ab/shibari.md` (`pr edit-body`) and
-`docs/ab/rikugan.md` (`report data`, `report render`).
+`docs/ab/spiritual-message.md` (`report data`, `report render`).
 
 **Step 7's mirror check is a real check now** rather than a skip: `bash scripts/surface_mirror_check.sh`
 exits `0` at this pin, `codex ok: 40`, `cursor ok: 47`.

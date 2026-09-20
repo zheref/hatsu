@@ -57,7 +57,7 @@ nen parse en --grammar "on [<ref>]" --line "<the invocation, minus the /en prefi
 
 Verified live at `v0.3.0` (`docs/ab/en.md` § 2.1): `on HA#41` → `ref: HA#41` at exit `0`, and a bare
 `on` parses with the clause absent, also exit `0`. The clause is anchored behind a literal for the
-reason [`/rikugan`](../rikugan/SKILL.md) § 1 records — a lone bracketed slot is refused at the
+reason [`/spiritual-message`](../spiritual-message/SKILL.md) § 1 records — a lone bracketed slot is refused at the
 template.
 
 > **The empty line is refused, and that is why a composite does not parse at all.** Verified live:
@@ -98,7 +98,7 @@ inherited, or forgotten.*
 | `monitor.maxCycles` | `nen/workflow.json` | **the cap** — the count of *acting* cycles (§ 6) | `20` |
 | `monitor.pollSeconds` | `nen/workflow.json` | the interval between observations, as `--interval-ms` | `300` (→ `--interval-ms 300000`) |
 | `branch.base` | `nen/workflow.json` | what step 3 catches up from, and what "behind" means | `main` |
-| `reports.dir` / `.template` / `.retain` | `nen/workflow.json` | step 7's file — [`/rikugan`](../rikugan/SKILL.md)'s keys | `Reports` / `rikugan` / `final-only` |
+| `reports.dir` / `.sections` / `.retain` | `nen/workflow.json` | step 7's file — [`backlog-board`](../backlog-board/SKILL.md) § 3's keys | `Reports` / five variants / `final-only` |
 | `notifications.rungs` / `.sound` | `nen/workflow.json` | step 6's rungs — [`/jutaisho`](../jutaisho/SKILL.md)'s keys | `["push","os","sound"]` / `Glass` |
 
 **Before cycle 1, the cap is spelled out through the verb that refuses a missing one:**
@@ -160,22 +160,33 @@ inherited-and-forgotten default is dangerous in.
 
 **The cap is a ceiling, not a target.** Reaching it is a failure to reach Ready and is reported as one:
 what is still not true, and what the next cycle would have done. `izanagi` § 4's rule, unchanged.
-**A reviewer round owed inside the configured maximum is requested on the maintainer's behalf, every
-time, without asking** (ruling 2026-09-19, `nen/decisions.json` row `cap-reached`): `nen pr
-request-reviews --add-bots <reviewer>`, then keep watching. Past the maximum the run ends at not-ready
-with the board. Neither is a G5. **The maximum is `nen/gates.json` → `round_policy.maxRounds`** (Hatsu's own key beside nen's `stallMinutes`); `nen/workflow.json` → `monitor.maxCycles` is en's acting-cycle cap, a different number.
+**The reviewer-round policy is [`/sharingan`](../sharingan/SKILL.md) § 5's, written there in
+full and carried here in four lines:**
+
+- **One Copilot round is requested after [`/hanten`](../hanten/SKILL.md) settles, never before.**
+- **Arrivals are remediated up to `nen/gates.json` → `round_policy.maxRounds`; an owed round inside
+  the max is re-requested on the maintainer's behalf without asking** (ruling 2026-09-19,
+  `nen/decisions.json` row `cap-reached`), then en keeps watching.
+- **Never re-request after a push that changed nothing reviewable** — count commits ahead and the
+  diff since the last reviewed head first (`git rev-list --count <reviewed-head>..HEAD`,
+  `git diff --stat <reviewed-head>..HEAD`); zero reviewable change means no request.
+- **Copilot auto-reviews every push, so the cap governs requests, not arrivals**; an arrival past the
+  cap is still remediated and its threads settled.
+
+Past the maximum the run ends at not-ready with the board. Neither is a G5. `nen/workflow.json` →
+`monitor.maxCycles` is en's acting-cycle cap, a different number.
 
 ## 3. The run, in order
 
 | # | Step | The skill that owns it | When |
 |---|---|---|---|
-| 1 | **landing report** | [`/rikugan`](../rikugan/SKILL.md) `as landing` | once, at the start — 00–07 plus **08 PR body** and **09 Readiness**. If this En was started by mukai in the same sitting with no newer human request, **00** still answers that mukai request |
+| 1 | **landing report** | [`/spiritual-message`](../spiritual-message/SKILL.md) `as landing` | once, at the start — 00–07 plus **08 PR body** and **09 Readiness**. If this En was started by mukai in the same sitting with no newer human request, **00** still answers that mukai request |
 | 2 | **drive** | [`/sharingan`](../sharingan/SKILL.md) | first blocking condition, threads, checks, the confirmation pass |
 | 3 | **catch up** | [`/murasaki`](../murasaki/SKILL.md) | **only when the branch is behind `branch.base`** |
 | 4 | **drive again** | [`/sharingan`](../sharingan/SKILL.md) | after step 3 moved the tree underneath it |
 | 5 | **observe** | this file, § 6 | while CI or a reviewer round is pending; rebuild the current-head snapshot on every change, returning to steps 2–4 when action is needed |
 | 6 | **the bell and gate handoff** | [`/jutaisho`](../jutaisho/SKILL.md) | **after verified Ready**, and only then |
-| 7 | **retained readiness report** | [`/rikugan`](../rikugan/SKILL.md) `as final` | after the bell; this is En's successful terminus |
+| 7 | **the dated final report** | [`/backlog-board`](../backlog-board/SKILL.md) § 3, `--variant final` | after the bell; this is En's successful terminus |
 
 **Four orderings are en's own assertions:**
 
@@ -185,7 +196,7 @@ with the board. Neither is a G5. **The maximum is `nen/gates.json` → `round_po
   reading the catch-up already invalidated.
 - **5 before 6.** Pending is not Ready. Required CI and every reviewer round owed at the current head
   must settle, and every incoming finding must be disposed, before the bell or handoff exists.
-- **6 before 7.** The retained report records the gate event the bell announced; rendering it first
+- **6 before 7.** The dated final report records the gate event the bell announced; rendering it first
   would preserve a readiness handoff that had not happened yet.
 
 **Step 3 is conditional and stays conditional.** A branch level with its base does not get a
@@ -207,7 +218,8 @@ stale tree to readiness. That is the same owner map [`/sharingan`](../sharingan/
 
 Steps 2 and 4 are [`/sharingan`](../sharingan/SKILL.md)'s whole engine, not a substitute for
 it, and **this file restates none of its protocol** — the first-blocking-condition order, the
-channel decided by who authored the PR, the escalation ladder, the two-round cap and completed-round prerequisite, the
+channel decided by who authored the PR, the escalation ladder, the `round_policy.maxRounds` request
+cap and the completed-round prerequisite, the thread hygiene run through `nen pr threads`, the
 one-directional confirmation pass that may only veto. Read it there.
 
 Two things en relies on and does not re-derive:
@@ -363,20 +375,21 @@ maintainer sees a budget being continued rather than one silently restarting.
 > the cap exists to make impossible, and improvising one would close a maintainer's OPEN question by
 > attrition rather than by ruling.
 
-## 8. The readiness report
+## 8. The dated final report
 
-After the deterministic Ready verdict and step 6's bell, render [`/rikugan`](../rikugan/SKILL.md)
-`as final` — sections 01–09 plus **10 Tests run** and **11 Touched coverage** — as the retained record
-of the run that reached its human gate:
+After the deterministic Ready verdict and step 6's bell, render the **`final`** variant — a
+**one-effort Rikugan with a cleared desk**, this effort's register, spend and legend —
+through [`backlog-board`](../backlog-board/SKILL.md) § 3, which owns that render path (maintainer's
+ruling, 2026-09-19). **There is no `spiritual-message as final` any more**; hand over and say so.
 
 ```
-<reports.dir>/<YYYY-MM-DD>-<branch-slug>-final.html
+<reports.dir>/<YYYY-MM-DD>-<effort>.html
 ```
 
-That path is `rikugan` § 6's and `reports.retain: final-only`'s, not en's invention: turn and
-readiness renders live at their Artifact address (or the transient `current.html` on a surface with
-none), and only this one gets a dated file. **`<reports.dir>` is git-ignored**, and rikugan writes
-nowhere else in the tree.
+That path is `backlog-board` § 3's and `reports.retain: final-only`'s, not en's invention: turn and
+landing renders live at their Artifact address (or the transient `current.html` on a surface with
+none), and only this one gets a dated file. **`<reports.dir>` is git-ignored**, and neither skill
+writes anywhere else in the tree.
 
 **Then the run ends at the gate.** Say the object notation, current head SHA, quoted readiness verdict,
 acting-cycle count spent out of the cap, and final report path. The human merge or vote remains outside
@@ -393,7 +406,7 @@ returned. Harvesting is that phase's, not En's.
    conversations (`docs/ab/ren.md` § 2.2, verified live). **En adds no residue of its own** — every
    deterministic step inside a cycle is a verb or a named residue *in the skill that owns it*: the
    absent `nen report data` / `nen report render` (step 1 and the readiness report, named in
-   [`rikugan`](../rikugan/SKILL.md)), `nen pr ready` / `nen pr body-check` / `nen pr staleness` and
+   [`spiritual-message`](../spiritual-message/SKILL.md)), `nen pr ready` / `nen pr body-check` / `nen pr staleness` and
    the two verbs `sharingan` refuses to call for a verdict (steps 2 and 4), `nen pr cascade-main`
    and its missing `--no-push` (step 3, named in [`ao`](../ao/SKILL.md)), `nen stop` plus the
    `osascript`/`afplay` fallback and the `.nen/last-stop.json` marker (step 6, named in

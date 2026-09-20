@@ -1,1267 +1,179 @@
 ---
 name: hatsu-warmup
-description: Satisfy Hatsu's hard Nen dependency (D10) before any Nen-owned work — probe `nen --version` for presence, then read the range verdict off `nen shu tools`'s `nen` row rather than computing it here — nen ships the compatibility floor that decides it — and when nen is absent or the row is not satisfied, install the pinned build through nen's own checksum-verified bootstrap. Fail-closed with auto-install. Then refresh a consumer plugin checkout to trunk or the latest release tag via `scripts/hatsu_plugin_update.sh --auto` so canon prose cannot silently rot. Use at the start of every Hatsu session, and again any time a `nen` invocation reports the binary is missing. It halts with the exact command ONLY if the bootstrap itself fails — and a Nen-owned operation is never improvised in prose. On Codex, Cursor, and Antigravity (in workspace mode) it also places the generated skill, rule, and hook mirrors from `surfaces/` into the target repository (`.agents/skills/` copied afresh each session + untracked rules and hooks, or `.cursor/skills/` + `.cursor/agents/`), excluded through the repository's `info/exclude` (`git rev-parse --git-path info/exclude`) and never through `.gitignore`, and it never writes a tracked `AGENTS.md`; on Claude Code and Antigravity global-plugin mode nothing in the target repository changes.
+description: Satisfy Hatsu's hard Nen dependency (D10) before any Nen-owned work — probe `nen --version`, read the range verdict off `nen shu tools`'s `nen` row rather than computing it, and install the pinned build through nen's own checksum-verified bootstrap when it is absent or unsatisfied. Fail-closed with auto-install; it halts only if the bootstrap itself fails, and a Nen-owned operation is never improvised in prose. Then refresh the plugin checkout, place the surface mirrors and place the permission pack. Use at the start of every Hatsu session, and whenever a `nen` invocation reports the binary is missing.
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
 # Hatsu warm-up — the Nen dependency contract, executed
 
-**`nen/contract.json` at the plugin root is the single source of truth.** This file is the procedure that
-enforces it. Every version, ref, URL and command below is a **convenience copy** of a value that lives
-there; where a copy disagrees with the contract, **the contract wins and the copy is the bug** — fix this
-file.
-
-The contract sits at `nen/contract.json` — nen's own location and shape for a repository's dependency
-declaration (USAGE v0.5.0, *Taxonomy as data*) — so that nen itself validates it: `dependency.version_probe`
-is an argv **array**, `dependency.bootstrap` nests inside `dependency`, and every Hatsu-authored key beside
-those is preserved verbatim and read by nothing in nen. It was `nen.contract.json` at the root until Hatsu
-`v0.5.0`; there is deliberately no second copy.
-
-Run this **first, every session**, before any work that touches a Nen verb. Run it again mid-session the
-moment a `nen` invocation reports the binary is missing (a cache eviction, a `PATH` change, a different
-shell).
-
-**Nature: Transmuter.** Machinery. Kurapika says so when he runs it.
-
----
+**`nen/contract.json` at the plugin root is the single source of truth**; this file enforces it, and
+every version, ref, URL and command here is a **convenience copy**, so **where a copy disagrees with
+the contract, the contract wins and the copy is the bug.** Run **first, every session**, and again
+whenever a `nen` invocation reports the binary is missing. **Transmuter.**
 
 ## 0 · Resolve the root, THEN read the contract yourself — no jq, no subprocess
 
-**The very first thing this skill does, on every surface, is resolve `$hatsu_root` — and it reads the
-contract in the SAME shell, because `$hatsu_root` is a shell variable and not an export.** The block below
-is that shell: `$HATSU_PLUGIN_ROOT`, else the path this invocation was handed, else `$CLAUDE_PLUGIN_ROOT`,
-**each accepted only if it holds a `.claude-plugin/plugin.json` whose own `name` is `hatsu`**, the winner
-canonicalised to an absolute path, printed, and read from. § 5's prelude is the same loop written out with
-its reasoning and with the rejected-path report the install needs; every later block in this skill opens
-with the quoted value this one prints, as an explicit input (§ 5's rule).
+Run `scripts/hatsu_root.sh --quoted` from the base directory the harness printed for this skill: it
+prints the root alone on stdout, then the quoted literal alone on the line after its label.
 
 ```bash
-# ONE shell: resolve, print, read. A block that uses $hatsu_root sets it in that block (§ 5).
-# the handed slot is SINGLE-quoted: $, backticks, backslashes and spaces in a path reach the test as themselves; a ' in it is written '\''.
-# The capture runs cd with CDPATH cleared and its stdout dropped, proves the captured path IS the candidate's
-# directory (-ef, so a stripped trailing newline is caught), refuses a root containing a newline (the handoff
-# below is ONE line), and assigns $hatsu_root only once all of that passed. The awk line is § 5's manifest_name
-# on one line: the TOP-LEVEL name of the canonical pretty-print, or nothing — any other shape is refused.
-hatsu_root=""; passed=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the path this invocation was handed, if any>' "${CLAUDE_PLUGIN_ROOT:-}"; do
-  [ -n "$c" ] || continue; case $c in -*) c=./$c;; esac; passed="$passed $c"   # an option-looking relative candidate is a path, not a flag
-  [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
-  mn=$(awk 'function scalar(v){return v~/^("([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*"|-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?|true|false|null)$/} function value_ok(v){return v=="{"||v=="["||v=="{}"||v=="[]"||scalar(v)} NR==1{if($0!="{")b=1;sp=1;top[1]="{";ind[1]=0;first=1;comma=0;next} {if(b||d){b=1;next};ni=match($0,/[^ ]/)-1;if(ni<0){b=1;next};body=substr($0,ni+1);if(body~/^[}\]],?$/){c=substr(body,1,1);tr=(body~/,$/);if(sp==0||ni!=ind[sp]||(top[sp]=="{"&&c!="}")||(top[sp]=="["&&c!="]")||comma){b=1;next};sp--;if(sp==0){if(tr)b=1;d=1;next};comma=tr;first=0;next};if(sp==0||ni!=ind[sp]+2||(!first&&!comma)){b=1;next};tr=(body~/,$/);if(tr)body=substr(body,1,length(body)-1);if(top[sp]=="{"){if(body!~/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /){b=1;next};v=body;sub(/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /,"",v);if(sp==1&&body~/^"name": "/){s=v;sub(/^"/,"",s);sub(/"$/,"",s);n++;name=s}}else v=body;if(!value_ok(v)){b=1;next};if(v=="{"||v=="["){if(tr){b=1;next};sp++;top[sp]=v;ind[sp]=ni;first=1;comma=0;next};comma=tr;first=0} END{if(!b&&d&&sp==0&&n==1)print name}' "$c/.claude-plugin/plugin.json") && [ "$mn" = hatsu ] &&   # captured first: bash 3.2 mis-parses quotes inside "$( )"
-  r=$(CDPATH= cd "$c" >/dev/null 2>&1 && pwd -P) && [ "$r/." -ef "$c/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && hatsu_root=$r && break
-done
-[ -n "$hatsu_root" ] || { echo "hatsu-warmup: no Hatsu root — \$HATSU_PLUGIN_ROOT unset or not a Hatsu checkout, nothing usable handed, \$CLAUDE_PLUGIN_ROOT empty or another plugin. Tried:$passed" >&2; exit 1; }
-passed=${passed% "$c"}; [ -z "$passed" ] || echo "hatsu-warmup: passed over (not a Hatsu checkout, or a path that cannot be handed on):$passed" >&2   # named on success too
-echo "hatsu_root resolved. The NEXT LINE is the quoted value every later block pastes verbatim, quotes included:"
-printf "'%s'\n" "$(printf '%s' "$hatsu_root" | sed "s/'/'\\\\''/g")"   # the literal ALONE on its line: single-quoted, any ' in the path written '\''
+hatsu_root="$("$base_dir/scripts/hatsu_root.sh" "$base_dir")" || exit 1   # exit 1 = NOT INSTALLED; stop
 cat "$hatsu_root/nen/contract.json"
+nen schema check --repo "$hatsu_root"                                     # once nen is on PATH
 ```
 
-> ### ⚠️ `$CLAUDE_PLUGIN_ROOT` is not safe to read from directly, and that is why the order is this way
->
-> This section used to open with `cat "$CLAUDE_PLUGIN_ROOT/nen/contract.json"`, before any resolution
-> had happened. **On Codex and Cursor that variable is usually empty** — Claude Code's harness exports
-> it inside a skill invocation and no other harness does — so the read was of `/nen/contract.json` and
-> the warm-up reported a missing contract instead of a missing root. **And on this host it is not even
-> empty:** it is *also* exported from the user's shell profile, pointing at **a different plugin**, so
-> every Codex and Cursor session inherits it and the read would have been of *another plugin's*
-> dependency contract, silently (`docs/ab/surfaces.md` § 8, F3). Resolving first costs nothing on
-> Claude Code, where the variable *is* the Hatsu checkout and passes the check on the first comparison.
->
-> **A root that will not resolve stops the warm-up here** — § 5's `NOT INSTALLED` line, naming every
-> path it rejected — rather than reading an empty path and reporting a missing contract.
+**Every block that uses `$hatsu_root` SETS it in that block** — from the script, or by the explicit
+input `hatsu_root='<the absolute path § 0 printed>'` — it being a shell variable, never an export.
+Other skills saying *resolve the plugin root as `hatsu-warmup` § 0 says* mean this, and
+**`$CLAUDE_PLUGIN_ROOT` is never read directly**: off Claude Code it is another plugin's or empty.
 
-**You are the JSON parser.** You have just opened the file; read `dependency.minimum`,
-`dependency.zero_major_caveat`, `dependency.pinned_ref`, `dependency.source`, `dependency.version_probe`
-(an argv array — run exactly those elements, with no shell between them), `dependency.bootstrap.url` and
-`install_paths` straight off the page, and substitute the **literal values** into the plain `curl` / `bash` /
-`nen` commands below.
+**You are the JSON parser.** Read `dependency.minimum`, `.pinned_ref`, `.source`, `.version_probe`
+(an argv array — run exactly those elements) and `.bootstrap.url`, and substitute the **literal
+values** below. **No `jq`, `yq` or `python`**, **never a version from memory**, and **nothing else
+echoed from the contract.** **`nen schema check` validates, never extracts**: read the
+`nen/contract.json` and `nen/workflow.json` rows and nothing else, the minimum and the pin being **two
+independent values** (§ 1). **A `FAIL` on either stops this gate** — a `version_probe` that became a
+string, a `bootstrap` outside `dependency`, a `minimum` that is not two components, or a
+malformed policy key, each **by pointer**. **There is no `schemas/` fallback; the registry is `nen/repos.json`
+only.**
 
-**Once nen is on `PATH` (§ 1 finds it there, or § 2 puts it there), let nen read the same file back.**
-This is the one machine read of the contract, and it is a validation, never a way of extracting values:
+## 0a · Adoption is settled ONCE, by Tenkai. This skill VERIFIES
 
-```bash
-hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): the line § 0 printed AFTER its label — the quoted literal alone — pasted in place of '<…>', quotes included; a variable from another shell is not here
-nen schema check --repo "$hatsu_root"
-```
-
-Verified live at nen `0.11.0` (the pinned build) against this branch: the `nen/contract.json` row prints
-`ok    nen/contract.json  dependency (nen >= 0.11, pinned v0.11.0), project (4 lanes: plugin, plugin-bump-guard, plugin-update, tenkai-guard; 13 verbs; 1 toolchain entry)`
-— the minimum and the pin nen parsed are the ones you just read, and they are **two independent values**:
-`>= 0.11` is the capability minimum this repository declares, `v0.11.0` is the build its bootstrap installs, and § 1b's
-floor rule is why the second may move without the first. A drift between them and this file's prose is a
-bug in the prose. **On this checkout all SIX schema rows pass and the aggregate exits `0`.** That
-sentence used to read the other way, and the difference is `zheref/hatsu#79`: `nen/colors.yml` had
-never existed on any branch while six runtime surfaces named it, so this one command — the one that
-answers *is this repository's taxonomy sound* — had answered **no** since the directory existed, and
-a reader learned to expect a red. **That is the durable cost of a permanently-red check: the next
-genuine taxonomy failure lands in a row nobody looks at.** The file is now declared and seeded for
-consumers through [`/tenkai`](../tenkai/SKILL.md) § 4. A `FAIL` on any of the six rows is now
-real, and is read as such. Warm-up reads the
-contract and workflow rows for this dependency/policy gate; a failure of either row stops the gate.
-
-**The sixth row is `nen/workflow.json`, and reading it is part of the warm-up now.** It reads
-`ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off 'main',
-checks: lint`, and a malformed policy key is a **FAIL by pointer** — so the shape of the policy file is
-nen's to judge, not something a skill squints at. Read the contract row, the workflow row, and nothing
-else. (`--json` puts them at `checks[].file == "nen/contract.json"` and `== "nen/workflow.json"`,
-`ok: true`.) A contract row that reads `FAIL` — a `version_probe` that became a string, a `bootstrap` that
-moved out of `dependency`, a `minimum` that is not exactly two components — is a defect in this repository
-to fix before anything else runs.
-
-> **RETIRED at nen `0.5`: there is no `schemas/` fallback, and the registry is `nen/repos.json` ONLY.**
-> The fallback v0.3.0 announced and v0.4.0 held open was **removed** in the release this contract pins: a
-> repository carrying a taxonomy file only under `schemas/` is refused exactly like one carrying it
-> nowhere, and the refusal names the migration. Verified live at the pin, and the refusal says it in as
-> many words — *"A legacy 'schemas/repos.json' is present -- run 'nen scaffold init --accept-detected' (or
-> copy it) to migrate; the schemas/ fallback was removed in v0.5.0."* The `--json` row shape moved with it:
-> `location`, `shadow` and `shadowed` are **gone**, and a new boolean `legacy` says a `schemas/<file>` copy
-> is on disk, detected, never read. **Never offer `schemas/` as a second place to look.**
-
-**Do not shell out to `jq`, `yq` or `python` to do this.** The ratified plan retires jq/yq as a DX friction —
-a machine needs one binary plus `git` and `gh` — and spawning a JSON parser to hand values back to the
-entity that just read the file buys a dependency for nothing, on the one code path that has to work on a
-machine where nothing is installed yet.
-
-Never hardcode a version in a reply or a commit from memory. A version you remember is a version that has
-already drifted.
-
----
-
-## 0a · Adoption is settled ONCE, by Tenkai. This skill VERIFIES — maintainer's ruling, 2026-09-19
-
-**The warm-up runs every session. Adoption does not.** Some of what this skill has historically done
-per session is genuinely one-time work — a repository has a `nen/colors.yml` or it does not, a
-`commit-msg` hook is installed or it is not, `Reports/` exists or it does not — and re-deriving a
-settled fact on every session is not thoroughness. It is the shape
-[`zheref/hatsu#81`](https://github.com/zheref/hatsu/issues/81) named: *the same shape shows up every
-session: `hatsu-warmup` re-does per-session work that should have been settled once, at adoption.*
-
-**The split is by QUESTION, not by file:**
-
-| Question | Whose | Cadence |
-|---|---|---|
-| *Is `nen` present, and does this host's build satisfy the pin?* | **this skill's** | **every session** — a host changes, a cache is evicted, a `PATH` moves |
-| *Is the plugin source current?* | **this skill's** (§ 4b) | every session |
-| *Does this repository CARRY what the skills read?* | **[`/tenkai`](../tenkai/SKILL.md)'s** | **once, at adoption — and again only when something drifted** |
-
-**So this skill VERIFIES adoption and never performs it.** Where a warm-up wants that answer, it asks
-for the verdict and does not re-derive it:
-
-```bash
-hatsu_root='<the absolute path § 0 printed>'   # explicit input — § 5's rule, never assumed
-"$hatsu_root/scripts/tenkai_adopt.sh" diagnose --repo <the target repository> --json
-# read-only. exit 0 = current, 1 = work remains, 2 = an invocation defect
-```
-
-**Read the exit code without a pipe** — `$?` after `cmd | tail` is `tail`'s status.
-
-**An outstanding item is REPORTED, never repaired here, and never a halt.** Say which items and name
-`/tenkai` as the one that settles them. Two reasons, and the second is the load-bearing one:
-
-- a warm-up that wrote files would be doing adoption's job on every session, which is the defect
-  rather than the fix; and
-- **a warm-up must not halt on an adoption gap.** § 3's halt is for a failed `nen` bootstrap and
-  nothing else. A repository missing `Reports/` can still be worked in, and a session that refused to
-  start over it would have converted a finding into an outage.
-
-> **This is not a new authority for either skill.** Tenkai gains nothing it did not already do; the
-> warm-up gives up work it should never have been carrying per session. The `D10` dependency gate —
-> §§ 1–3 — is untouched, still fail-closed, and still runs first.
-
----
+Ruling 2026-09-19, split by **question** not by file: *is `nen` present and does this build satisfy
+the pin* and *is the plugin source current* (§ 4b) are this skill's, every session; *does this
+repository CARRY what the skills read* is [`tenkai`](../tenkai/SKILL.md)'s, once at adoption. `"$hatsu_root/scripts/tenkai_adopt.sh" diagnose --repo <target> --json` is read-only — `0`
+current, `1` work remains, `2` an invocation defect — **read without a pipe**. **An outstanding item
+is REPORTED, never repaired here, and never a halt**: name the items and `/tenkai`.
 
 ## 1 · Probe, then let nen decide the range
 
-### 1a · Probe — present or absent, and nothing more
-
 ```bash
-nen --version
+nen --version                        # dependency.version_probe, spelled out
+nen shu tools --repo "$hatsu_root"   # HATSU's checkout, never the target
 ```
 
-(That is `dependency.version_probe` — `["nen", "--version"]` — spelled out; it prints a bare semver such
-as `0.8.0`.) **It answers exactly one question — is there a nen here at all — and no other.** Whether what
-it printed satisfies the pin is § 1b's, and § 1b does not compute it either:
+A probe exiting `0` with a semver goes to the rows below; **not found, non-zero or unparseable is
+absent** — go to § 2, safe because the bootstrap is idempotent and cached. **Read the `nen` row: it is
+the answer**, applying nen's own floor and the range it judged.
 
-| Probe | Meaning | Next |
-|---|---|---|
-| Exits `0`, prints a semver | A nen is on `PATH` | **§ 1b — ask nen for the verdict** |
-| Not found on `PATH` / non-zero exit / unparseable output | Absent | **§ 2a — the shell bootstrap** |
+| The `nen` row | Next |
+|---|---|
+| `ok` — satisfied at the printed range | **§ 4** |
+| `WRONG` + a **repin** remedy — the pin is **below** this build's floor | **§ 2b**; the repin is a `nen/contract.json` change **in a pull request**, which no install performs |
+| `WRONG`, no floor complaint — the binary is **older** than the pin | **§ 2b** |
+| `MISSING` — the probe would not start | **§ 2a** |
+| the verb absent | **§ 2b** |
 
-**An unparseable version is an absent version.** Do not squint at it. Fall through to § 2a, which is safe:
-the bootstrap is idempotent and cached. (nen answers the same way from its own side — a probe that ran and
-printed something no `versionFrom` member could read is rendered `unknown` and **never** satisfied, because
-a comparison nobody made must not render as one that came back clean.)
+Exit `5` is the code for every non-satisfied row and is **never `1`**: a missing or wrong tool is not
+a failed build, and a caller retrying a `1` retries forever on a machine nobody has set up.
 
-### 1b · The verdict on the range is **nen's**, not this file's
-
-```bash
-hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): the line § 0 printed AFTER its label — the quoted literal alone — pasted in place of '<…>', quotes included; a variable from another shell is not here
-nen shu tools --repo "$hatsu_root"
-```
-
-**Read the `nen` row. That row is the answer.** It reads the same `dependency` block § 0 just read, applies
-nen's own compatibility floor to it, and prints the exact range the verdict was taken against.
-
-> **`--repo` names HATSU's checkout, not the repository the session is standing in.** The `dependency`
-> block being enforced is Hatsu's own — § 0 read it from `$hatsu_root` and `nen schema check` validated it
-> there. A target repository's `nen/contract.json` declares *its* build, and pointing this verb at it would
-> answer a question nobody asked. (`$hatsu_root` is set in this block by the explicit-input line — § 5's
-> rule — from the quoted value § 0 printed; it is never carried over from § 0's shell.)
-
-**The verb is present on every binary this pin can meet.** `nen shu tools` ships from **`v0.3.0`**
-(`zheref/nen#120`), and so does the `dependency`-derived `nen` row it is read for — four minors below
-`minimum`, so at any version the range admits, both are there. If the verb answers
-`nen: unknown command` the binary is older than this plugin supports at all, and that is **§ 2b**, exactly
-as a version below the pin is.
-
-A live run at nen `0.7.0` against this repository:
-
-```text
-lane:          plugin  (claude-code-plugin)
-mode:          check
-  ok       nen     0.7.0    pinned >=0.7.0 <0.8.0
-  ok       claude  2.1.263  pinned >=2.0.0
-```
-
-(exit `0`)
-
-**From nen `0.8` a `compat floor:` line stands above the rows**, printed on **every** run and carried in
-`--json` as the top-level `compatibleMinorFloor` — including in a report whose declaration has no
-`dependency` block at all, because *"do I owe a repin"* is a question about nen and not about the
-declaration that asked. The same repository, read by a `v0.8.0` binary bootstrapped into a scratch cache:
-
-```text
-lane:          plugin  (claude-code-plugin)
-mode:          check
-compat floor:  0.7  (the lowest dependency.minimum nen 0.8.0 satisfies)
-  ok       nen     0.8.0    pinned >=0.7.0 <0.9.0
-  ok       claude  2.1.263  pinned >=2.0.0
-```
-
-(exit `0`; `--json` carries `compatibleMinorFloor: "0.7"` and the row's `pinned` as `>=0.7.0 <0.9.0`.)
-
-**The two runs are the whole point of this section.** The ceiling moved from `<0.8.0` to `<0.9.0` because
-the binary reading the pin changed, not because anything in this repository did — and the prose that used
-to sit here would have called the second one out of range.
-
-A `0.7.0` binary prints no floor line at all: the floor is what `0.8.0` added. **Say so rather than
-inventing one** — § 4's line carries `floor not reported (nen 0.7.0)` there.
-
-| The `nen` row | `--json` `state` | What it means | Next |
-|---|---|---|---|
-| `ok` | `present-and-matching` | satisfied, at the range the row printed | **§ 4 — report and proceed** |
-| `WRONG`, `remedy` naming a **repin** of `minimum` | `present-but-wrong-version` | the pin is **below** this build's floor: **no** build of that line satisfies it, whatever the host answers | **§ 2b**, with the ref the contract pins — **and the repin the row names is a change to [`nen/contract.json`](../../../nen/contract.json) in a pull request**, which no install performs |
-| `WRONG`, no floor complaint | `present-but-wrong-version` | the binary is **older** than the pin | **§ 2b — re-pin through the verb** |
-| `MISSING` | `missing` | the probe could not be started at all | **§ 2a — the shell bootstrap** |
-| the verb itself is absent | — | older than `v0.3.0`, below anything this plugin supports | **§ 2b** |
-
-Exit `5` is the code for every non-satisfied row, and it is **never** `1`: a missing or wrong tool is not a
-failed build, and a caller retrying a `1` would retry forever on a machine that is simply not set up.
-
-### 1c · How the range is decided — the floor rule
-
-`minimum` is `MAJOR.MINOR`. **What it admits is decided by the binary**, and the fact that decides it is one
-the binary *ships*: `COMPATIBLE_MINOR_FLOOR` in nen's `src/version.ts` — the lowest `minimum` pin that build
-satisfies (`zheref/nen#200`; `docs/USAGE.md` § *the compatibility floor*).
-
-**The maintainer's ruling of 2026-09-10: *exact minor is fine, unless there is a breaking change*.** A nen
-release whose CHANGELOG `### Breaking / consumer notes` section carries a real bullet sets the floor to its
-own minor; one that carries none leaves the floor where it stands, and thereby goes on accepting the pins
-already written. Before it, `0.6` meant `>=0.6.0 <0.7.0` *exactly* and **every** minor — breaking or not —
-owed a repin PR in every consuming repository, which is a repin nobody reads.
-
-A pin of `0.A`, read by a build `0.B.z` whose floor is `0.F`, is satisfied when **`A ≤ B`**, **`A ≥ F`**,
-and **`B` is at or below that build's own minor**. Written out, with this contract's pin of `0.7` and nen's
-floor of `0.7`:
-
-| pin | the build | floor | the range it applies | what the warm-up does |
-|---|---|---|---|---|
-| `0.7` | `0.7.0` | `0.7` | `>=0.7.0 <0.8.0` — **ok** | § 4 |
-| `0.7` | `0.8.0` | `0.7` | `>=0.7.0 <0.9.0` — **ok** | § 4. **No repin.** `v0.8.0` declared no breaking notes and kept the floor, so the pin already written still holds |
-| `0.6` | `0.7.0` | `0.7` | `>=0.6.0 <0.7.0` — **below the floor**, exit `5` | § 2b, and the row names the repin: `"0.6"` → `"0.7"` in the contract |
-| `0.10` | `0.8.0` | `0.7` | `>=0.10.0 <0.11.0` — the binary is **older than the pin**, exit `5` | § 2b: install `pinned_ref` |
-| `1.4` | any | — | `>=1.4.0 <2.0.0` | above major zero the floor is not consulted at all; nothing here applies |
-
-**Both directions stay fail-closed, and neither is negotiable:**
-
-- **A pin's own minor always satisfies it.** The floor only ever *widens* what is accepted. It is a floor
-  and never a ceiling.
-- **An older binary never certifies a newer line.** A `0.8.0` asked about a `0.10.0` on the host has no way
-  to know what `0.10.0` broke, so it refuses rather than guessing *compatible* — the fail-**open** read of
-  the one range where compatibility is least guaranteed.
-
-**A pre-release is read differently at each end**, each way round being the fail-closed one for that end:
-the floor keeps full semver precedence, so `0.7.0-rc.1` does **not** satisfy `0.7` — a release candidate is
-not the release; the ceiling compares version *numbers*, so `0.9.0-rc.1` does **not** slip under a `<0.9.0`
-bound, because it is a binary on the `0.9` line and the minor is what the whole rule turns on.
-
-> ### ⚠️ This section used to compute the range itself, and that is the defect this rewrite closes
->
-> It said `minimum: "0.7"` meant `>=0.7.0 <0.8.0` and that **"`0.8.0` fails it exactly as `0.6.0` does"** —
-> true of every nen through `v0.7.0`, and false the moment `v0.8.0` shipped the floor. Left standing, every
-> warm-up on a host carrying nen `0.8.0` would have read *out of range*, gone to § 2b, and rebound
-> `~/.local/bin/nen` **down** to `v0.7.0` — undoing a widening the binary itself certified, and making the
-> floor inert for every Hatsu consumer. **A range this file computes is a range that goes stale in a
-> release this file cannot see.** The verb reads the declaration and ships the floor in the same binary;
-> nothing here can.
-
-> **Why the floor sits at `0.7`, so nobody moves it casually.** SemVer 2.0.0 clause 4: at major version
-> zero the public API is unstable and **anything MAY change at any time**, so at `0.x` the *minor* is the
-> breaking-change vehicle. nen's `v0.5.0` was the first release since `v0.1.0` to **remove** something a
-> consumer could rely on — the `schemas/` fallback; `v0.6.0` changed three behaviours **in place**; and
-> `v0.7.0` changed four more, none announced by a new flag: `nen stage triage` gained the `local-config`
-> and `large` detectors, so a tree that answered exit `0` answers exit `1` on the same bytes; every
-> relative own-path flag resolves against `--repo`'s root instead of the process's directory; a missing or
-> malformed `--target` exits `2` rather than `1` across sixteen verbs, and so does an unreadable
-> caller-named input on `split verify`, `changelog` and `canon mirror check`; and `nen pr ready` **reads**
-> `nen/gates.json`'s `dependabot_carve_out`, so an unchanged file can turn a `not-ready` into a `ready`.
-> **That is why the floor is `0.7` and why `minimum` is `0.7`** — and it is also the shape of what moves
-> either of them again. `minimum` moves **only** when nen's CHANGELOG carries a real bullet under
-> `### Breaking / consumer notes`; `pinned_ref` may move on its own to a newer release inside the range,
-> which is exactly what `v0.7.0` → `v0.8.0` is.
-
-**From `1.0` onward** the familiar rule takes over: `X.Y` means `>=X.Y.0 <(X+1).0.0`, a higher minor or
-patch satisfies it, and the floor is not consulted at all. nen already answers that way for a `1.x` pin;
-the contract is bumped to say so when nen's own line gets there, and it is stated in
-`dependency.zero_major_caveat` rather than left to be inferred.
-
----
+**The range rule itself is the contract's** — `dependency.minimum_semantics` and
+`.zero_major_caveat`, carrying the floor, the 2026-09-10 ruling and the pre-release reading at each
+end. **This section never computes the range**: one computed here goes stale in a release it
+cannot see. A build predating the floor prints no floor line, and that is **said**, never inferred.
 
 ## 2 · Auto-install — two cases, two paths
 
-Absent or unsatisfied is **not** a halt. It is an install. **Which path applies is decided by § 1's two
-answers — the probe and the `nen` row — never by preference.** One case the install cannot close is named
-where it arises: a `minimum` that has fallen **below** the build's compatibility floor is a stale line in
-[`nen/contract.json`](../../../nen/contract.json), and the row names the repin. § 2b still runs — it puts a
-build the contract *does* admit on `PATH`, so the session can proceed — and the repin is a pull request
-against this plugin, reported alongside.
-
-Both start with the same fetch, and **it is always two steps**:
+Absent or unsatisfied is **not** a halt but an install, and **§ 1's answers decide the path, never
+preference.** It is always two steps:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.11.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
-```
-
-> ### ⚠️ Fetch to a file. **Never pipe the script into bash.**
->
-> ```bash
-> # WRONG — dies before it starts:
-> curl -fsSL <url> | bash -s -- --ref v0.11.0
-> ```
->
-> The script runs under `set -u` and reads `${BASH_SOURCE[0]}`. Piped into `bash -s --` there is no
-> `BASH_SOURCE`, so it fails with `BASH_SOURCE[0]: unbound variable` and **exits 1 — a code that appears in
-> no table in this file**, from a script that never reached its own argument parsing. It reads like an
-> ordinary failure and is not one: it means the *invocation form* was wrong, and retrying or halting on it
-> would both be the wrong response. Reproduced against the pinned ref.
-
-### 2a · nen is **absent** → run the shell bootstrap directly
-
-```bash
-bash /tmp/nen-bootstrap.sh --ref v0.11.0
-```
-
-**Why shell is permitted here, and only here.** Chicken-and-egg: `nen bootstrap` is a `nen` subcommand, so
-invoking it presupposes the binary that is precisely what is missing. The script exists because a bootstrap
-written in the language its own output provides cannot run before that output exists. **This is the sole
-carve-out and it does not generalize** — no other operation on any Hatsu path may reach for shell on the
-grounds that this one does.
-
-### 2b · nen is **present and does not satisfy the pin** → re-pin through nen's own verb
-
-```bash
-nen bootstrap --ref v0.11.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
-```
-
-A working `nen` is on `PATH`, so the chicken-and-egg rationale does not apply and the shell path is **not**
-the one to reach for. The verb is the Nen-first rule applied to Hatsu's own bootstrap.
-
-**`--script` is required, and the verb's name misleads about this.** `nen bootstrap` does **not** fetch the
-script — it *runs* the checksum bootstrap rather than reimplementing it, so it needs `bootstrap/nen.sh`
-**on disk**: from a checkout carrying it (`--repo`), or named with `--script` / `$NEN_BOOTSTRAP_SH`. A Hatsu
-user has no nen checkout, so `--script` pointed at the file you just fetched is the form that works.
-**Without it the verb exits `7`** with a message saying exactly this. That is deliberate on nen's part: a
-compiled binary has no sibling `bootstrap/` directory, and guessing one is how a path that does not exist
-becomes a silent failure.
-
-The verb **propagates the script's exit codes unchanged** — a forced failure through it returns `6`,
-verified — plus its own `7`.
-
-### What both paths guarantee, and must not re-implement
-
-- **Hatsu never vendors the script.** It lives in `zheref/nen` at `bootstrap/nen.sh` and is fetched at the
-  pinned ref every time. A copy in this repo would be a second, unreviewed supply chain drifting from the
-  manifest it verifies against.
-- **It fails closed, always.** An unfetchable, missing, malformed or artifact-silent `SHA256SUMS` refuses; a
-  missing `sha256sum`/`shasum`/`openssl` refuses; bytes that disagree are **deleted** and refused. Never
-  warn-and-continue, and never a path to a binary it did not verify.
-- **On success it prints the verified binary path on stdout, and nothing else.** Execute exactly that
-  path, or **bind the name `nen` to it** (below), and re-probe §1 to confirm.
-
-### The path it prints is not reachable as `nen`, and putting its directory on `PATH` does not fix it
-
-**This section used to say "or put its directory on `PATH`", and that does not work.** The verified
-binary is named for its platform, not for the command — recorded against `v0.7.0`, which is what was
-pinned when the run was made, and true of every ref:
-
-```sh
-$ nen bootstrap --ref v0.7.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
-nen bootstrap: verified nen-darwin-arm64 for zheref/nen@v0.7.0 (sha256 a0545d02…).      # exit 0
-$ ls ~/.cache/nen/zheref_nen/v0.7.0
-nen-darwin-arm64                       # ← there is nothing here called `nen`
-```
-
-> **The cache slot is keyed on the SOURCE as well as the ref, from nen `0.7`** (`zheref/nen#6`):
-> `<cache-root>/<source>/<ref>/<artifact>`, each key flattened to one path segment — verified live at
-> nen `0.7.0`, where the `v0.7.0` build sits under `~/.cache/nen/zheref_nen/` and the older refs remain
-> at the flat `~/.cache/nen/<ref>/` layout they were written under. Keyed on the ref alone, two
-> `--source` values at one tag collided in one slot; the checksum gate meant the collision was
-> **detected rather than executed**, so it never cost correctness — it cost a fork or a mirror a
-> permanent cache miss and a confusing refusal about bytes that were fine. **Quote the path the
-> bootstrap actually printed**, never one assembled from the ref.
->
-> Alongside it, **`--source` is shape-checked at the flag**: `--source a/..` is exit `2` — *"neither
-> half may be empty, '.' or '..'. It is NOT a filesystem path — 'nen --repo <path>' is the flag that
-> takes one"* — verified live, where it used to pass the shape check and be neutralised downstream
-> by the cache sanitiser instead.
-
-So `PATH` gains a directory holding `nen-darwin-arm64`, the name `nen` still resolves to whatever it
-resolved to before, and **the probe in § 1 answers with the version you were re-pinning away from** —
-a warm-up that reports itself clear while every later verb runs the wrong binary. Observed live
-(`docs/ab/surfaces.md` § 8, F5): `~/.local/bin/nen` was still the old target after an exit-`0`
-bootstrap.
-
-**Bind the name. Two forms, and which one to use is not a preference:**
-
-```sh
-verified=$(nen bootstrap --ref <pinned ref> --source zheref/nen --script /tmp/nen-bootstrap.sh | tail -n 1)
-
-# (a) THE HOST's `nen`, when the maintainer asked for the pin to stick — this is what this host does:
-ln -sfn "$verified" ~/.local/bin/nen        # ~/.local/bin is on PATH; the symlink IS the binding
-
-# (b) THIS SESSION's `nen`, when the re-pin is the session's business and not the host's:
-mkdir -p /tmp/nen-session-bin && ln -sfn "$verified" /tmp/nen-session-bin/nen
+curl -fsSL <dependency.bootstrap.url at the pinned ref> -o /tmp/nen-bootstrap.sh
+bash /tmp/nen-bootstrap.sh --ref <pinned_ref>                                      # § 2a, nen ABSENT
+nen bootstrap --ref <pinned_ref> --source <source> --script /tmp/nen-bootstrap.sh  # § 2b, PRESENT and unsatisfied
+verified=$(nen bootstrap --ref <pinned_ref> --source <source> --script /tmp/nen-bootstrap.sh | tail -n 1)
+mkdir -p /tmp/nen-session-bin && ln -sfn "$verified" /tmp/nen-session-bin/nen       # (b) THIS session — the default
 export PATH=/tmp/nen-session-bin:$PATH
+ln -sfn "$verified" ~/.local/bin/nen                                               # (a) THE HOST — on the maintainer's word only
 ```
 
-- **(b) is the default for a session that re-pinned because a repository's contract asked it to.**
-  Overwriting `~/.local/bin/nen` changes which nen every *other* session on the host runs, and a
-  warm-up invoked to satisfy one repository's range has no business doing that. A headless Cursor run
-  reached exactly this fork, chose (b) unprompted, and was right (`docs/ab/surfaces.md` § 8, F5).
-- **(a) is the maintainer's call, said out loud.** Take it when they asked for the host pin to move,
-  and **say which of the two you did in § 4's line**, with the path.
-- **Never copy the binary and never rename it in place.** The bootstrap's cache is what makes the next
-  run idempotent; a symlink leaves it intact and a copy quietly forks it.
-
-### The exit codes are a contract, not a label
-
-| Exit | Name | Meaning | Retry? |
-|---|---|---|---|
-| `0` | — | verified; the stdout path is safe to execute | — |
-| `2` | `EXIT_USAGE` | the invocation is wrong; nothing was attempted | **No** |
-| `3` | `EXIT_UNSUPPORTED_HOST` | this platform/arch ships no nen binary | **No** |
-| `4` | `EXIT_DOWNLOAD` | the binary asset could not be retrieved | **Once** |
-| `5` | `EXIT_CHECKSUM` | **SECURITY** — bytes did not verify, or could not be verified | **NEVER** |
-| `6` | `EXIT_MANIFEST` | `SHA256SUMS` unfetchable, missing, malformed, or silent about the artifact | **NEVER** |
-| `7` | *(the verb's own)* | no `bootstrap/nen.sh` on disk — a wiring failure, not a supply-chain one. Supply `--script` | **No** — fix the invocation |
-| `1` | *(not ours)* | you piped the script into bash. Not a failure to report — a form to fix. See §2 | **No** — re-run the two-step form |
-
-`4` is the transport failure and may be retried **once**. `5` and `6` are never retried: retrying a checksum
-failure is exactly how a fail-closed guard becomes a fail-open one by attrition, and a manifest that is
-absent, stripped or malformed does not become present by being asked again. `3` will not change on this host
-at all. `2` and `7` are invocation errors — re-running the **same** command is pointless, but the **fixed**
-command (correct usage; for `7`, `--script <fetched file>` supplied) is expected to succeed: fix and re-run,
-never halt on them as if they were bootstrap failures.
-
-> **RETIRED at nen `0.7`: discovering `7` empirically.** `nen bootstrap --help` prints the whole
-> table itself now — *"Exit codes are a PUBLISHED CONTRACT — this command relays the script's own,
-> and adds exactly one of its own on top"* — including which one is retryable and which two must
-> never be, and including `7` in the words this section already uses: *"the one code the script
-> itself can never return, which is precisely why it is 7 rather than 1: 'the bootstrap failed' and
-> 'the bootstrap never ran' are different facts, and only the first says anything about the release
-> you asked for."* Verified live at nen `0.7.0`, where `v0.6.0`'s `--help` named **no exit
-> code at all** (`docs/ab/hatsu-warmup.md` § *Retired at nen 0.7*). The table above stays — it is the
-> reaction table, and `nen/contract.json` is still the authority on the pin — but it is now a copy of
-> something the binary publishes rather than the only place the contract is written down. **Where
-> the two disagree, re-read `nen bootstrap --help` and fix the copy.**
-
----
+- ⚠️ **Fetch to a file. Never pipe the script into bash** (`bootstrap.fetch_must_be_two_step`): piped
+  in it dies on an unbound `${BASH_SOURCE[0]}` and **exits `1` — a code in no table** — never having
+  parsed its arguments, so neither retrying nor halting is the answer.
+- **§ 2a's shell is permitted here and only here**, `nen bootstrap` being a subcommand whose
+  invocation presupposes the missing binary; **the carve-out does not generalize.** **§ 2b's
+  `--script` is required**, it propagates the script's codes, and **`--source` is shape-checked at the
+  flag**.
+- **What the script guarantees, and its exit semantics, are `dependency.bootstrap`'s** —
+  `.exit_codes` and `.retry_policy`, which `nen bootstrap --help` publishes too. **Read them there**;
+  **neither path re-implements the script.**
+- **The verified path is not reachable as `nen`** (named for its platform, cached by **source and
+  ref**), so **quote what the bootstrap printed** and **bind the name** rather than adding its
+  directory to `PATH`, which leaves § 1's probe answering with the version you were re-pinning away
+  from. **(b) is the default**; **(a) is the maintainer's call, said out loud**, named in § 4 with its
+  path. **Never copy or rename the binary in place.**
 
 ## 3 · Halt — only when the bootstrap itself failed
 
-**This is the only halt in this skill** (`nen/decisions.json` row `supply-chain-failure`). Not "nen was missing" — that was §2's job and §2 did it. Only a
-non-zero exit *from the bootstrap* halts, and `1` and `7` are not that: they are your invocation to fix.
+**The only halt in this skill** (`nen/decisions.json` row `supply-chain-failure`). Not "nen was
+missing", which was § 2's job, and not the two invocation-defect codes, which are yours to fix. Print `halt.message_template`
+from the contract with the code and its meaning filled in, carrying the two-step command and the
+never-a-pipe sentence, then **stop** and report a **G5**. **What stopping
+means: the Nen-owned operation does not happen** — not with raw `gh`, not with a shell equivalent
+assembled on the spot, not approximately from what the verb usually returns, not from a previous
+transcript. **There is no improvised fallback for a Nen-owned operation, ever** (D10): a report that
+it could not be performed is the *correct* outcome, a plausible answer produced another way being
+indistinguishable from a real one.
 
-Print `halt.message_template` from the contract, with the code and its meaning filled in:
-
-> Nen is unavailable and the checksum-verified bootstrap failed (exit `5` — EXIT_CHECKSUM: bytes did not
-> verify, or could not be verified). This operation is Nen-owned and will not be improvised. Run this
-> yourself, then re-invoke:
->
-> ```
-> curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.11.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
-> bash /tmp/nen-bootstrap.sh --ref v0.11.0
-> ```
->
-> Two steps, never a pipe: the script reads `${BASH_SOURCE[0]}` under `set -u`, so `curl … | bash` dies
-> before it starts.
-
-Then **stop**. Report the halt as a **G5** — a checksum or manifest failure is a supply-chain event the
-maintainer needs to see, and an unsupported host is a machine fact only they can change.
-
-**What stopping means, precisely.** The Nen-owned operation **does not happen**. Not with raw `gh`, not with
-a shell equivalent assembled on the spot, not "approximately, from what the verb usually returns", not by
-reading the numbers off a previous transcript. There is **no LLM-improvised fallback for a Nen-owned
-operation, ever** — that is D10, and it is the whole reason the dependency is hard rather than soft. A report
-that the operation could not be performed is the *correct* outcome. A plausible-looking answer produced
-another way is the failure this rule exists to prevent, and it is worse than no answer because it cannot be
-told apart from a real one.
-
-A Nen-owned operation is any operation a `nen` verb covers — readiness, backlog fetch and ordering, board
-assembly and render, gate derivation, label application, changelog collation and completeness, fan-out
-computation, method-block validation, perf comparison, and the rest of `nen --help`.
-
----
 
 ## 4 · Report, in one line
 
-State the outcome before doing anything else, so the maintainer knows which of the six happened. **The
-line carries the floor beside the version**, because the version alone no longer says whether a repin is
-owed — that is the whole of what the floor added, and a report that omits it hides the one fact the reader
-would act on:
+**Every value is quoted from `nen shu tools`, never assembled** — the version is the row's `found`,
+the range its `pinned`, the floor the run's `compat floor:` line, and with none to quote the line says
+`floor not reported (nen <version>)` rather than **ever inferring one from the pin**. A clear run
+reads `Nen <v> · floor <f> · satisfies <range> · warm-up clear`; an install adds what it did
+(`bootstrapped to <ref> (checksum verified)`, or re-pinned, a pin **below the floor** adding
+`nen/contract.json owes a repin to "<f>"`); a failure reads `HALTED — G5` with the exit code and name.
+**Silence is not an outcome**: a warm-up that did not run is reported as **not run**.
 
-- `Nen 0.11.0 · floor 0.7 · satisfies >=0.11.0 <0.12.0 · warm-up clear`
-- `Nen 0.8.0 · floor 0.7 · older than the required >=0.11.0 <0.12.0 capability line · re-pinned to v0.11.0 via nen bootstrap (checksum verified) · warm-up clear`
-- `Nen absent · bootstrapped to v0.11.0 (checksum verified) · warm-up clear`
-- `Nen 0.6.0 · floor 0.7 · below the pin (>=0.11.0 <0.12.0) · re-pinned to v0.11.0 via nen bootstrap (checksum verified) · warm-up clear`
-- `Nen 1.0.0 · floor 1.0 · pin "0.11" is BELOW the floor · re-pinned to v0.11.0; nen/contract.json owes a repin to "1.0" · warm-up clear`
-- `Nen unavailable · bootstrap failed (exit 6, EXIT_MANIFEST) · HALTED — G5`
-
-**Every value on that line is quoted from `nen shu tools`, never assembled.** The version is the row's
-`found`, the range is the row's `pinned` — the *exact* range the verdict applied — and the floor is the
-run's `compat floor:` line, or `--json`'s `compatibleMinorFloor`. On a binary older than `0.8.0` there is
-no floor to quote and the line says `floor not reported (nen <version>)`; **it never carries a floor
-inferred from the pin**, which would be this file computing the range again by another name.
-
-**Silence is not one of the six.** A warm-up that did not run is reported as *not run*, never rendered as
-clear — the same discipline `nen warmup`'s own `--questions-from` omission follows, where a skipped sweep
-reports `{"checked": false}` rather than an empty finding set.
-
-**Every surface carries § 4b's plugin-source line** — updated, already current, or skipped, quoted from
-`scripts/hatsu_plugin_update.sh`. A warm-up that refreshed the target from a stale checkout and did not
-say so is the same failure as a Nen warm-up that did not run.
-
-**On a surface that is not Claude Code, the report carries § 5's line too** — which surface, what was
-installed into the target repository, and by which mechanism. A surface warm-up that silently did nothing
-is the same failure as a dependency warm-up that silently did nothing. **Four more facts belong in that
-line, and each of them is a real failure this warm-up has already had:**
-
-- **the surface CLI's own version**, and on Cursor whether it clears § 5b's minimum — *"cursor-agent
-  2026.09.08-6caf4ff, above the 2026.01 skills minimum"*. Below it, the surface is **not** claimed,
-  whatever was installed (§ 5b · i);
-- **every candidate root that was rejected**, by path (§ 5's prelude) — the resolution can succeed on
-  a later candidate and still have found something worth saying;
-- **the names already standing under the surface's skill directory**, and that a same-named skill from
-  another plugin on this host would not be visible from there (§ 5b · ii);
-- **which `nen` the name now resolves to**, when § 2 bound one — the host's or this session's, with
-  the path.
-
----
+**Every surface carries § 4b's plugin-source line verbatim**, and **off Claude Code § 5's line too** —
+which surface, what was placed, by which script — plus the surface CLI's version and, on Cursor,
+whether it clears the skills minimum (below it **the surface is not claimed**); **every rejected
+candidate root, by path**; the names under its skill directory, with the shadowing caveat; and
+**which `nen` the name resolves to**, with the path, when § 2 bound one.
 
 ## 4b · Keep the plugin source current
 
-§ 5 copies or links whatever `$hatsu_root` already holds. A checkout that has not moved since last month
-still installs last month's canon, with no error anywhere. **This step updates that source — when it is
-a consumer checkout — before § 5 reads it.** It runs on every surface, including Claude Code.
+§ 5 places whatever `$hatsu_root` holds, so **this step updates the source first**, on every surface:
+`"$hatsu_root/scripts/hatsu_plugin_update.sh" --root "$hatsu_root" --auto [--claude]`, `--claude`
+being added **on Claude Code**. **The `--auto` contract, the report forms and the hard limits are
+[`docs/SURFACES.md`](../../../docs/SURFACES.md) § 6**: warm-up **quotes the skip and continues**,
+never halting for a dirty tree, an authoring branch, a missing `origin`, a diverged trunk or a Claude
+cache, and **a skip is reported as skipped, never updated.**
+
+## 5 · Surfaces — what a target repository gets
+
+**[`docs/SURFACES.md`](../../../docs/SURFACES.md) § 2 is the placement table and the ownership
+rules** — what is placed per surface, by which script, excluded how; the `ours` check and the
+`info/exclude` append; `AGENTS.override.md`'s composition; the Codex re-copy; `.nen/` never being a
+destination; why Codex copies while Cursor symlinks; Cursor's flat name space and CLI minimum; and
+**the Codex sandbox check made before reporting clear**. Per surface: **Claude Code**
+reads the plugin in place and the pack is its one write; **Antigravity global-plugin mode** places
+nothing; **Codex, Cursor and Antigravity workspace mode** get the mirrors plus the pack.
 
 ```sh
-hatsu_root='<the absolute path § 0 printed>'
-"$hatsu_root/scripts/hatsu_plugin_update.sh" --root "$hatsu_root" --auto
+hatsu_root='<the absolute path § 0 printed>'; target="$(git rev-parse --show-toplevel)"
+surface='<codex|cursor|antigravity|claude-code>'
+[ "$surface" = claude-code ] || "$hatsu_root/scripts/surface_bootstrap.sh" --surface "$surface" --target "$target" --install-all
+"$hatsu_root/scripts/permissions_pack.sh" --surface "$surface" --install --target "$target"
 ```
 
-On Claude Code, pass `--claude` as well so a versioned plugin cache is refreshed through the surface's
-own loader rather than treated as a git checkout it is not:
-
-```sh
-"$hatsu_root/scripts/hatsu_plugin_update.sh" --root "$hatsu_root" --auto --claude
-```
-
-**`--auto` is load-bearing.** Without it the script refuses a dirty tree, an authoring branch, a missing
-`origin`, a diverged trunk and a Claude cache. Warm-up must not halt the session for any of those: it
-quotes the skip and continues with the checkout it has. Explicit invocation (the same command without
-`--auto`) is how a human asks for a refusal instead of a skip.
-
-| The script's one-line report | What it means |
-|---|---|
-| `updated trunk main <old>..<new> · plugin <ver>` | `$hatsu_root` was on the trunk and fast-forwarded |
-| `updated release vX.Y.Z → vA.B.C · plugin <ver>` | `$hatsu_root` was at a release tag and moved to the newest `vX.Y.Z` |
-| `already current · …` | fetch ran; nothing to apply |
-| `skipped · dirty working copy` | uncommitted paths; nothing discarded |
-| `skipped · authoring checkout (<branch>)` | HEAD is not the trunk and not detached at a release tag — this is a development tree |
-| `skipped · Claude versioned plugin cache v<ver> · run: claude plugin update hatsu@hatsu -y` | `--auto` without `--claude` on a cache. On Claude Code, re-run with `--claude` |
-| `claude plugin updated · restart Claude Code to apply` | `--claude` ran `claude plugin update hatsu@hatsu -y` |
-
-Carry that line into § 4's report, verbatim. **A skip is reported as skipped, never rendered as updated.**
-
-**Hard limits, and they are the same ones `nen shu warmup` uses on a target repository:**
-
-- **Never `--discard`, never `reset --hard`, never a non-fast-forward merge.** A diverged consumer
-  checkout is a skip (or a refusal without `--auto`), not something this step repairs.
-- **Never update an authoring branch.** A session standing in this repository on
-  `grok/kurapika/…` is writing Hatsu, not consuming it.
-- **Never treat a Claude versioned cache as a git checkout.** `~/.claude/plugins/cache/hatsu/hatsu/<ver>/`
-  has no `.git`. The refresh there is `claude plugin update hatsu@hatsu -y`, then a restart.
-- **A fetch failure under `--auto` is a skip**, not a halt — Codex's sandbox often cannot reach `origin`.
-  The next unsandboxed run, or the explicit command, is what catches up.
-
-The first checkout is still a human act (§ 5). This step keeps one that already exists current. Pointing
-a surface at a local tree — including so Cursor does not bind a stale Claude cache while you author this
-repository — is `$hatsu_root/docs/SURFACES.md` § *Targeting a local checkout*.
-
----
-
-## 5 · Surfaces — what a target repository gets on Codex, Cursor, and Antigravity
-
-**On Claude Code, § 5's mirror install does not run — the plugin is read in place — and the ONE thing
-that changes in the target repository is the permission pack merged into `.claude/settings.local.json`:**
-
-```sh
-hatsu_root='<the absolute path § 0 printed>'
-"$hatsu_root/scripts/permissions_pack.sh" --surface claude-code --install --target "$(git rev-parse --show-toplevel)"
-```
-
-(`surface_bootstrap.sh` takes only `codex|cursor|antigravity`; the pack script takes `claude-code` too.
-A target with no `nen/contract.json` or `nen/workflow.json` is skipped with a named line.) Claude Code loads the
-plugin's own `claude/skills/` and `claude/agents/` directly from `$CLAUDE_PLUGIN_ROOT`; no skill or persona
-is placed into the target checkout — the pack is the one write. Report its result, whichever line the
-script printed: *"surface: claude-code — plugin read in place; permission pack merged into
-`.claude/settings.local.json`"*, or *"… pack left alone (file not ours)"*, or *"… pack skipped (not a
-consumer)"* — and move on. Never say "nothing installed" on a run where the pack line said it wrote.
-
-**On Antigravity in global-plugin mode, nothing here runs and nothing in the target repository changes.**
-Antigravity loads the plugin directly from `${GEMINI_CONFIG_DIR:-~/.gemini}/config/plugins/hatsu` with
-`plugin.json`, `hooks.json`, and its root skills and agents. The target repository is untouched, so
-repository refresh is skipped entirely.
-Say *"surface: antigravity (global plugin) — nothing installed, the plugin is read in place"* and move on.
-
-**In workspace-bootstrap mode (Codex, Cursor, or Antigravity workspace mode), the skills and rules are
-placed in the repository the session is standing in.** On Codex and on Cursor there is no plugin loader
-for this plugin, so the skills and personas are always placed in the target repository. On Antigravity,
-workspace bootstrap is selected when the workspace uses local `.agents/skills/`, `.agents/rules/AGENTS.md`,
-`.agents/hooks.json`, and `.agents/hooks/`.
-[`docs/SURFACES.md`](../../../docs/SURFACES.md) is the authority on the whole mechanism; this section is
-the part the warm-up performs.
-
-The mirrors are **generated and committed** in this plugin at
-[`surfaces/codex/`](../../../surfaces/codex/), [`surfaces/cursor/`](../../../surfaces/cursor/), and
-[`surfaces/antigravity/`](../../../surfaces/antigravity/) — the output of surface mirror generation,
-one `SKILL.md` per skill plus the surface's own persona shape. **The warm-up never generates them.** It
-copies or links what is already there; regeneration is a change to this repository, made on a branch,
-checked in CI (§ *The check* in `docs/SURFACES.md`).
-
-> **On Codex, check the sandbox can write git BEFORE reporting the warm-up clear — a linked worktree
-> usually cannot.** `codex exec -s workspace-write` makes the *workspace* writable, and a linked worktree
-> keeps `HEAD`, the index, `FETCH_HEAD`, the objects, `refs/` **and `info/exclude`** under
-> `<main repo>/.git/`, outside it. Every git write § 5c needs, and every one
-> [`breath`](../breath/SKILL.md) and [`aka`](../aka/SKILL.md) need after it, is then refused with
-> *"Operation not permitted"* at exit `128`. **The session must have been launched either with
-> `--add-dir "$(git -C <repo> rev-parse --path-format=absolute --git-common-dir)"`, or against a
-> standalone clone whose `.git` is inside the workspace** — `docs/SURFACES.md` § 5 carries the probe and
-> both forms, and [`hanten`](../hanten/SKILL.md) § 9a carries it for a reviewer's worktree. This skill
-> cannot add the flag to a session already running: **it reports the condition and stops**, naming the
-> flag, rather than writing half an install into a checkout that cannot commit it.
-
-### 5 · prelude — `$hatsu_root`, and why `$CLAUDE_PLUGIN_ROOT` is not simply trusted
-
-**This block is the resolution the WHOLE skill uses, and § 0 runs it before it reads anything.** It
-lives here because § 5's install is what needs it most, not because it starts here: every path in this
-file — § 0's `cat`, § 0's `nen schema check --repo`, and every copy and link below — reads from
-`$hatsu_root`.
-
-`$CLAUDE_PLUGIN_ROOT` is a **Claude Code** variable: that harness exports it inside a skill invocation
-and nowhere else ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *`$CLAUDE_PLUGIN_ROOT` is set inside a
-skill invocation, and nowhere else*). **§ 5's install only ever runs on Codex and Cursor**, where there is
-no plugin loader, so there is ordinarily nothing to export it — it is empty in exactly the sessions these
-commands are written for, and the box below says what that costs. The fallback that section gives —
-`claude plugin list --json` → `installPath` — is the Claude Code CLI's own registry and is not a question
-those two surfaces can answer either.
-
-> **An unresolved root does not fail loudly on its own, which is why it is resolved rather than assumed.**
-> With the variable empty, `for d in "$CLAUDE_PLUGIN_ROOT"/surfaces/codex/*/` globs `/surfaces/codex/*/`,
-> matches nothing, and bash runs the body **once on the unexpanded pattern** — so `name` becomes `*`, the
-> `rm -rf` fires on a literal `*` path and the `cp -R` fails on a source that was never there. The session
-> then reports a copy error rather than *"no Hatsu source root"*, and the skills are simply absent
-> (Copilot review thread `PRRT_kwDOUKPjxM6hAjLJ`).
-
-| `$hatsu_root` comes from | when |
-|---|---|
-| **`$HATSU_PLUGIN_ROOT`** | the environment variable the session was started with — **the form that works on all three surfaces**, and the one to prefer |
-| the path the invocation was handed | `$hatsu-warmup <path>` on Codex, `/hatsu-warmup <path>` on Cursor |
-| **`$CLAUDE_PLUGIN_ROOT`** | Claude Code's own, kept last so one resolution serves every surface. **It is NOT inert off Claude Code — see the box — and it is accepted here only if it passes the identity check** |
-
-> ### ⚠️ `$CLAUDE_PLUGIN_ROOT` CAN fire here, and on this host it names a different plugin
->
-> This table used to end *"never because it can fire here"*. It fired. A headless Cursor session
-> recorded, unprompted, *"HATSU_PLUGIN_ROOT unset; CLAUDE_PLUGIN_ROOT pointed at bankai 0.10.0"* — and
-> the variable is exported from the user's **shell profile**, so every Codex and Cursor session on that
-> host inherits it (`docs/ab/surfaces.md` § 8, F3):
->
-> ```
-> $ grep -n CLAUDE_PLUGIN_ROOT ~/.zshrc
-> 26:export CLAUDE_PLUGIN_ROOT=/Users/zheref/.claude/plugins/cache/bankai/bankai/0.10.0
-> ```
->
-> **A `[ -d "$hatsu_root/surfaces/$surface" ]` guard checks SHAPE, not IDENTITY.** On that host it
-> happened to fail — bankai carries no `surfaces/` directory — so the warm-up would have reported
-> `NOT INSTALLED`, which is the *safe* failure for the *wrong* reason and with a misleading message.
-> **A plugin checkout that did carry a `surfaces/` directory would have installed the wrong plugin's
-> skills into somebody's repository with no error anywhere.** So a candidate root is checked for what
-> it **is**, not for what it contains.
-
-**Every candidate is verified before it is used**, in order, and the first one that passes wins:
-
-```sh
-# manifest_name FILE — prints the TOP-LEVEL "name" of a plugin manifest, or nothing.
-# No jq, and no line-by-line guess either: a small stack machine over the ONE shape
-# Claude Code's tooling writes and this repository ships — JSON.stringify(x, null, 2).
-# Line one is `{`; every item sits at its container's indentation plus two; a member
-# is a quoted key then `{`, `[`, `{}`, `[]` or a scalar, an element is one of those
-# without a key; members appear only inside `{` and elements only inside `[`; a
-# comma stands exactly between siblings and never after the last; every closer
-# matches the opener at its own indentation; the last line is the top-level `}` and
-# nothing follows it. Anything else — minified, tab- or odd-indented, a nested block
-# laid out flat, a stray second `}`, a junk line, a trailing comma, a missing comma,
-# a `]` closing a `{`, two top-level names — is refused rather than parsed, and so
-# is a token JSON would refuse: a number with a leading zero, a bare dot or a `+`,
-# a string with an escape outside \" \\ \/ \b \f \n \r \t \uXXXX or with a raw
-# control character in it, on a value or on a key alike. Refusal is the safe
-# direction, and the tooling never writes another shape. Exactly one top-level
-# name, or nothing.
-manifest_name() {
-  awk '
-    function scalar(v) { return v ~ /^("([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*"|-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?|true|false|null)$/ }
-    function value_ok(v) { return v == "{" || v == "[" || v == "{}" || v == "[]" || scalar(v) }
-    NR == 1 { if ($0 != "{") bad = 1; sp = 1; top[1] = "{"; ind[1] = 0; first = 1; comma = 0; next }
-    {
-      if (bad || done) { bad = 1; next }
-      ni = match($0, /[^ ]/) - 1; if (ni < 0) { bad = 1; next }
-      body = substr($0, ni + 1)
-      if (body ~ /^[}\]],?$/) {
-        c = substr(body, 1, 1); tr = (body ~ /,$/)
-        if (sp == 0 || ni != ind[sp] || (top[sp] == "{" && c != "}") || (top[sp] == "[" && c != "]") || comma) { bad = 1; next }
-        sp--; if (sp == 0) { if (tr) bad = 1; done = 1; next }
-        comma = tr; first = 0; next
-      }
-      if (sp == 0 || ni != ind[sp] + 2 || (!first && !comma)) { bad = 1; next }
-      tr = (body ~ /,$/); if (tr) body = substr(body, 1, length(body) - 1)
-      if (top[sp] == "{") {
-        if (body !~ /^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /) { bad = 1; next }
-        v = body; sub(/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /, "", v)
-        if (sp == 1 && body ~ /^"name": "/) { s = v; sub(/^"/, "", s); sub(/"$/, "", s); n++; name = s }
-      } else v = body
-      if (!value_ok(v)) { bad = 1; next }
-      if (v == "{" || v == "[") { if (tr) { bad = 1; next }; sp++; top[sp] = v; ind[sp] = ni; first = 1; comma = 0; next }
-      comma = tr; first = 0
-    }
-    END { if (!bad && done && sp == 0 && n == 1) print name }
-  ' "$1"
-}
-# is_hatsu ROOT — true only for a checkout of THIS plugin. Two facts, written out:
-#   1. The MANIFEST'S OWN name, read structurally by manifest_name and compared WHOLE,
-#      reads `hatsu`. A bare `grep '"name": "hatsu"'` would accept any plugin carrying
-#      that string anywhere, which is the wrong-root failure this check exists for.
-#   2. A second, independent fact about the same directory: a `claude/skills/`
-#      directory exists — checked as a directory, not read from the manifest's
-#      `skills` member, which this check never parses — so a plugin.json that
-#      passes (1) while standing over somebody else's tree still fails here.
-is_hatsu() {
-  [ -n "${1:-}" ] && [ -f "$1/.claude-plugin/plugin.json" ] && [ -d "$1/claude/skills" ] || return 1
-  [ "$(manifest_name "$1/.claude-plugin/plugin.json")" = "hatsu" ]
-}
-
-# Three candidates and no fourth. The winner is CANONICALISED — absolute, symlinks
-# resolved — so a relative $HATSU_PLUGIN_ROOT or a handed '.' can never reach a
-# --gates argument that nen would resolve against --repo (pr-state § 2). Three guards
-# on the capture, and $hatsu_root is assigned only once all three pass: cd runs with
-# CDPATH cleared and its stdout dropped, so a relative candidate resolves where the
-# file tests looked and a CDPATH hit can neither redirect it nor leak into the path;
-# `-ef` proves the captured path is the SAME directory as the candidate, so a trailing
-# newline that command substitution stripped is caught rather than pointed elsewhere;
-# and a root containing a newline is refused outright, because the handoff below is
-# one line. And it is a plain shell variable, not an export: it lives in THIS shell
-# only (see below).
-hatsu_root=""; rejected=""; unusable=""
-# The handed slot is SINGLE-quoted and substituted, exactly as in § 0: this block runs as a
-# shell block, never as a script, so there is no $1 for it to read.
-for cand in "${HATSU_PLUGIN_ROOT:-}" '<the path this invocation was handed, if any>' "${CLAUDE_PLUGIN_ROOT:-}"; do
-  [ -n "$cand" ] || continue; case $cand in -*) cand=./$cand;; esac   # an option-looking relative candidate is a path, not a flag
-  if ! is_hatsu "$cand"; then rejected="$rejected $cand"; continue; fi     # not this plugin: one reason
-  if r=$(CDPATH= cd "$cand" >/dev/null 2>&1 && pwd -P) \
-     && [ "$r/." -ef "$cand/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ]; then hatsu_root=$r; break; fi
-  unusable="$unusable $cand"                                              # a Hatsu checkout, but its path cannot be handed on: the other reason
-done
-# Passed-over candidates are named on SUCCESS too — a stale $CLAUDE_PLUGIN_ROOT in a shell
-# profile is a thing to fix, and this is where it becomes visible (README, § On Codex).
-[ -z "$rejected$unusable" ] || echo "hatsu-warmup: passed over —${rejected:+ rejected (not a Hatsu checkout):$rejected.}${unusable:+ unusable (path cannot be handed on as one line):$unusable.}" >&2
-
-[ -n "$hatsu_root" ] && [ -d "$hatsu_root/surfaces/$surface" ] || {
-  echo "surface: $surface — NOT INSTALLED. No Hatsu source root." \
-       "${rejected:+Rejected (no .claude-plugin/plugin.json naming hatsu at its top level):$rejected.}" \
-       "${unusable:+Unusable (a Hatsu checkout whose path cannot be handed on as one line — a newline in it, or cd could not reach it):$unusable.}" \
-       "\$HATSU_PLUGIN_ROOT is unset or is not a Hatsu checkout, no usable path was handed to this" \
-       "invocation, and this surface has no plugin registry to ask." >&2
-  exit 1        # § 4's line says NOT INSTALLED and names this. Never a partial install.
-}
-echo "hatsu_root resolved. The NEXT LINE is the quoted value every later block pastes verbatim, quotes included:"
-printf "'%s'\n" "$(printf '%s' "$hatsu_root" | sed "s/'/'\\\\''/g")"   # same form as § 0; a later shell cannot inherit the variable, it pastes this
-```
-
-- **A rejected candidate is named BY PATH, in the report.** *"surface: cursor — NOT INSTALLED.
-  Rejected: `/Users/…/plugins/cache/bankai/bankai/0.10.0` — not a Hatsu checkout"* is a sentence the
-  maintainer can act on in one step; *"no Hatsu source root"* on a host where the variable is plainly
-  set sends them looking in the wrong place.
-- **Falling through to the next candidate is right; reporting silently is not.** Name every rejected
-  path even when a later one succeeded — a stale `$CLAUDE_PLUGIN_ROOT` in a shell profile is a thing
-  to fix, and this is where it becomes visible.
-- **The check costs nothing on Claude Code and holds there too**: inside a Hatsu skill invocation
-  `$CLAUDE_PLUGIN_ROOT` *is* the Hatsu checkout, so it passes on the first comparison. § 0's read of
-  `nen/contract.json` uses this same resolution, and a root that will not resolve stops the warm-up
-  there as well.
-- **`$hatsu_root` is ABSOLUTE, and LOCAL to the shell that ran this block.** `pwd -P` canonicalises the
-  winning candidate, so a relative `$HATSU_PLUGIN_ROOT` or a handed `.` cannot reach a `--gates`
-  argument nen would resolve against `--repo`. And it is a shell variable, not an export: a later
-  tool-call shell, a subagent, or another skill's command does not inherit it — on any surface — and
-  prose telling a consumer to *run the prelude first* executes nothing. So the block prints the root it
-  resolved (the printed line above), and **the rule every block in this plugin follows is: a code block that
-  uses `$hatsu_root` SETS it in that block.** Two ways, and no third:
-  - **§ 0's resolver, verbatim** — the same three candidates, the same `is_hatsu` test, the same
-    `pwd -P`, six lines above the command. `pr-state` § 2, `futon` § 5 and `tensho` § 6 carry it, with
-    the printed root as the second candidate.
-  - **the one-line explicit input** `hatsu_root='<the absolute path § 0 printed>'` — this skill's own later
-    blocks (§ 0's `schema check`, § 1b's `shu tools`, § 5a's copy loop, § 5c's `ours`), `hanten` § 3's `ls`, and the prose
-    fallbacks in `backlog-state` and `getsuga` open with it.
-
-  **The path is never embedded raw in source text.** § 0 (and this prelude) prints a label line, then the
-  root ALONE on the next line as a single-quoted shell literal with every `'` in it written `'\''` —
-  `sed "s/'/'\\\\''/g"` — and a consumer pastes that one line verbatim, quotes included and nothing else,
-  into the explicit-input line or into the resolver's single-quoted handed slot. Inside
-  single quotes nothing else is special: `$`, backticks, backslashes and spaces reach the shell as
-  themselves (`docs/ab/surfaces.md` § 9.8 exercises a path carrying all five). **A root containing a
-  newline is refused** — the handoff is one line, and command substitution would strip a trailing one —
-  `cd` runs with `CDPATH` cleared and its stdout dropped so a `CDPATH` hit can neither redirect a relative
-  candidate nor leak into the captured path, and the variable is assigned only once every guard passed
-  (`docs/ab/surfaces.md` § 9.10).
-
-  Inlined rather than sourced from a helper file, because a helper file would have to be found by the
-  very root it resolves; and never *"run the prelude first"* in prose, which executes nothing.
-  **The loop reads three candidates and no fourth**: a run with none is `NOT INSTALLED`
-  here and `--reviewers` by hand in `sharingan` § 4, never a guess. On Claude Code alone, a caller that
-  has none of the three can obtain the path it *hands in* — the second candidate — from the surface's
-  own registry, `claude plugin list --json` → `installPath` (verified live); that is a way to produce
-  the handed path, not a step this loop takes, and neither other surface has a registry to ask.
-
-**The checkout is obtained on these surfaces, and discovery is bootstrapped once.** A plugin loader is
-what would fetch and register Hatsu; where a surface has none (or when workspace bootstrap is used on
-Antigravity), the **first** install is a human act — clone `zheref/hatsu` on the host and export
-`HATSU_PLUGIN_ROOT=<that checkout>`. That variable locates the checkout; it cannot make this skill visible.
-§ 4b is what keeps that checkout current after the clone. Before the first `$hatsu-warmup` or `/hatsu-warmup`, the user runs the non-skill bootstrap from the target repository:
-
-```sh
-"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface <codex|cursor|antigravity> --target . --bootstrap
-```
-
-It places **only** the generated `hatsu-warmup` directory in the host's documented discovery path, through
-the same ownership, collision, tracked-file and `info/exclude` safeguards as the complete refresh below.
-Once the host has reopened the target and discovered the skill, this section refreshes the whole surface.
-**A warm-up that cannot find its source reports `NOT INSTALLED` and stops** — the § 4 discipline,
-unchanged: a step that did not run is never rendered as clear. The pre-skill bootstrap has no warm-up status
-line yet: it exits non-zero with its specific checkout-validation error instead, and never seeds a partial
-discovery path.
-
-### 5 · refresh — one checked installer for all surfaces
-
-The discovered warm-up does not replay a fragile prose loop. It runs the installer from the root resolved
-above; `--install-all` makes the complete generated surface current while retaining the § 5a–5d rules:
-
-```sh
-hatsu_root='<the absolute path § 0 printed>'
-target="$(git rev-parse --show-toplevel)"
-surface='<codex, cursor, or antigravity — the host running this warm-up>'
-"$hatsu_root/scripts/surface_bootstrap.sh" --surface "$surface" --target "$target" --install-all
-"$hatsu_root/scripts/permissions_pack.sh" --surface "$surface" --install --target "$target"   # the permission pack, from contracts/permissions.json
-```
-
-**The permission pack is placed on every surface, Claude Code included** (zheref/hatsu#85, rulings of
-2026-09-19): `scripts/permissions_pack.sh` renders `contracts/permissions.json` — the commands the skills
-actually run, scoped to this repository, its worktrees and its declared associated repositories — into
-the surface's own files: `.claude/settings.local.json` (merged, never `.claude/settings.json`),
-`.codex/config.toml` + `.codex/hooks.json`, `.cursor/cli.json` + `.cursor/hooks.json`; on Antigravity the
-pack is the generated hooks only (a persona-wide `commandExecutionPolicy: auto` is deliberately not
-emitted: it would approve arbitrary commands, not the declared set). A file the script did not write is
-left alone and named; every written path is excluded through `info/exclude`. **Say in § 4's line what
-was placed or left alone.** This is the one write on Claude Code, and it is the reason a session on any
-surface is no longer asked about `nen`, `gh` or `git` inside its own repository.
-
-The bootstrap itself is the sole pre-skill shell carve-out. After discovery this script is the deterministic
-implementation of the existing mirror placement policy, not a replacement for the Nen-owned parts of this
-warm-up.
-
-### 5a · Codex
-
-| | |
-|---|---|
-| skills go to | `<target>/.agents/skills/<name>/` — **one `cp -R` per skill directory**, from `$hatsu_root/surfaces/codex/<name>`, refreshed **every session** |
-| personas go to | `<target>/AGENTS.override.md` — an **untracked** file this skill writes whole (below). A tracked `AGENTS.md` is **never** edited |
-| invocation | `$<name>` — e.g. `$breath`, `$rasengan`. The mirror already carries that spelling; the `/` prefix does not exist on this surface |
-
-**Copies, not symlinks, and the reason is what Codex advertises.** Codex lists a skill under its
-frontmatter `name`, **namespaced by the plugin manifest above the directory the path resolves to** — so a
-symlink into this checkout, which carries `.claude-plugin/plugin.json` (`"name": "hatsu"`), is listed as
-`/aka`, while a `cp -R` of the same directory is listed as the bare `ren`. Three controlled
-`codex debug prompt-input` renders on this host, no model called (`docs/ab/surfaces.md` § 7, F1). A
-symlink install therefore tells the reader to type one thing and shows the surface another — and it drags
-a second trap with it: through a symlink the mirror's own `../../../nen/workflow.json` resolves into the
-**plugin's** policy file rather than the target's (§ 5d, F10). The copy fixes both.
-
-The refresh command above uses `cp -R` for every generated Codex skill directory; it does not use
-symlinks.
-
-> **A copy is not self-healing, so the re-copy is what heals it — and that is why the loop is
-> unconditional.** `rm -rf` then `cp -R`, every session, for every mirrored directory: this skill already
-> runs **first, every session** (§ 0), so a target repository is at most one warm-up behind the plugin.
-> **Say the mechanism and the freshness in § 4's line** — *"surface: codex — 40 skill directories re-copied
-> from `surfaces/codex/` (plugin v<X.Y.Z>)"* — because the one failure mode a copy has is a session that
-> never warmed up serving last month's wording with no error anywhere. **Never diff-and-skip**: a
-> hand-edited copy inside the target is not a change to preserve, it is drift to overwrite, and the
-> authored file is `claude/skills/<name>/SKILL.md` in this repository.
-
-> **`.nen/` is never a mirror destination.** Proof files, En loop ledgers, the stop marker, and
-> Hanten's cycle ledger (`.nen/hanten/<branch-slug>.cycle.json`, `hatsu.hanten.cycle/v0.1`) live
-> there, git-ignored, and must survive a session warm-up. A refresh that deleted them would reset
-> reviewer budgets and En caps
-> ([zheref/hatsu#63](https://github.com/zheref/hatsu/issues/63)). Warm-up writes only the surface
-> skill, agent, rule and hook paths named in § 5.
-
-**The personas go to `AGENTS.override.md`, and it REPLACES the target's `AGENTS.md` rather than joining
-it.** That is Codex's own rule, verified live on this host with `codex debug prompt-input`
-(`docs/ab/surfaces.md` § 7, F9): with both files present, only `AGENTS.override.md`'s content reached the
-instruction envelope — the project's `AGENTS.md` was not merged, it was **superseded**. So the file this
-skill writes is the *whole* document:
-
-```text
-… the target's own AGENTS.md, verbatim, when it has one …
-
-<!-- BEGIN hatsu personas (generated — nen surface mirror, surface: codex) -->
-… the contents of <hatsu root>/surfaces/codex/AGENTS.md, verbatim …
-<!-- END hatsu personas (generated — nen surface mirror, surface: codex) -->
-```
-
-- **The target's own `AGENTS.md` is copied in first, unchanged, every time.** Writing the block alone would
-  silently delete that repository's instructions from every Codex session — an override that drops what it
-  overrode is worse than no install at all. Re-read it on each warm-up; do not cache it.
-- **A target with no `AGENTS.md` gets a file containing the block and nothing else.**
-- **A tracked `AGENTS.md` is never written, never appended to, never touched.** Verified live, both halves:
-  before the exclude the file stands as `?? AGENTS.override.md`; after § 5c's exclude
-  `git status --porcelain` prints **nothing**, and `nen wc classify` reports `on-branch-clean`
-  (`docs/ab/surfaces.md` § 7, F9). That is the whole point — see the box in § 5c.
-- The generated file's own `GENERATED by nen surface mirror` line rides along inside the block; that is
-  deliberate, and it is what tells a reader where the prose came from. **Nothing outside the two markers is
-  this skill's to write**, and on a re-run the file is rebuilt from the two sources rather than patched.
-
-### 5b · Cursor
-
-| | |
-|---|---|
-| skills go to | `<target>/.cursor/skills/<name>/` — one symlink per skill directory, pointing at `$hatsu_root/surfaces/cursor/<name>` |
-| personas go to | `<target>/.cursor/agents/<persona>.md` — one markdown subagent file each, symlinked from `$hatsu_root/surfaces/cursor/agents/` |
-| invocation | `/<name>` — e.g. `/breath`, `/rasengan` |
-
-**Both rows go through § 5c's `ours` check first**, per destination — a `.cursor/skills/<name>` or a
-`.cursor/agents/<persona>.md` the target already has is left alone and named in the report, never linked
-over. `ln -sfn` replaces silently, and `.cursor/agents/` is a directory a Cursor user is *expected* to keep
-their own subagents in, so this surface is where the collision is likeliest.
-
-`.cursor/agents/` is the surface's documented subagent directory and it is **the row's own fact**, not this
-skill's guess: `nen`'s `src/surface/rules.ts` carries `agents.dir: "agents"` under `--out` for the `cursor`
-row, cited to `https://cursor.com/docs/agent/subagents`, and that is why the generated mirror already has an
-`agents/` directory beside the skills.
-
-**RESOLVED: Cursor's link-following IS verified on this host.** This row used to carry a box saying it was
-not, because `cursor-agent status` reported *Not logged in*. The maintainer logged in, and four controlled
-probes on `2026.09.08-6caf4ff` found a skill through a symlink **inside** the workspace and through one
-pointing **outside** it, and listed a symlink into this plugin checkout under its **bare** name — so
-**Codex's F1 does not reproduce here** and the mirrors' `/<name>` spelling is honest (`docs/ab/surfaces.md`
-§ 8, § 1.4 P3/P4). The symlink row stands as written. **The other half of that old box is still open:**
-which repository a mirror's relative `../../../nen/workflow.json` lands in through a symlink was not
-re-tested, so § 5d's *read the file in the repository the session is standing in* is the rule that carries
-it, and the report says the link-resolution half is unverified on Cursor.
-
-### 5b · i — the version check, BEFORE the install count means anything
-
-**Print `cursor-agent -v` and compare it against the minimum, every session, in § 4's line:**
-
-```sh
-cav=$(cursor-agent -v 2>/dev/null)                       # e.g. 2026.09.08-6caf4ff
-cad=${cav%%-*}                                           # the date part: 2026.09.08
-```
-
-| | |
-|---|---|
-| **the minimum** | **`2026.01.*`** — [Cursor's CLI changelog](https://cursor.com/docs/cli/changelog) dates *"Skills, rules, and commands in the CLI"* to its **January 2026** entry |
-| **how exact it is** | the changelog groups by **month**, not by build id, so the floor is a month and **there is no exact version string to pin**. Compare the date part, and say that is what you compared |
-| **verified to see the mirror** | `2026.09.08-6caf4ff` — all 40 listed |
-| **verified to see NOTHING** | `2025.09.18-39624ef` — pre-skills |
-
-**Below the minimum the install is reported and the surface is NOT claimed:** *"surface: cursor —
-40 skills linked, but `cursor-agent` is `2025.09.18-39624ef`, below the `2026.01` skills minimum:
-**this session will not see any of them**. Update with `cursor-agent update`."* That is a `NOT
-INSTALLED`-class report even though every symlink was made, and § 4's discipline is the one that
-applies: **a warm-up whose work the surface cannot read is reported as not done, never rendered as
-clear.**
-
-> **Why this is a version check and not an install check.** With the mirror installed exactly as this
-> row mandates, `2025.09.18-39624ef` answered a discovery probe with the whole reply **`NO SKILLS
-> VISIBLE`**, seventeen bytes — and then answered the *next* question by grepping the working tree.
-> **Every Hatsu skill is silently absent on that build and the session still runs and still answers**,
-> which is the worst failure shape there is. It nearly became a false finding against the symlink row
-> above: the natural reading was *"Cursor does not follow symlinks"*, and the control probe — the same
-> build cannot see a `cp -R` **copy** either — is what showed the variable was the binary
-> (`docs/ab/surfaces.md` § 8, F2).
-
-### 5b · ii — list the names already standing there, before installing anything
-
-**Cursor's skill name space is FLAT, GLOBAL and shared.** A mirrored skill is advertised under its
-bare `name` with no plugin namespace, and the space a session sees is not only the repository's
-`.cursor/skills/`: on this host it also carried Cursor's own built-ins and **this host's Claude Code
-plugin skills**, `build` and `drive` among them (`docs/SURFACES.md` § 1, `docs/ab/surfaces.md` § 8,
-F4). Forty ordinary words are being claimed at once — `build`, `file`, `en`, `ao`, `ren`.
-
-```sh
-# every name already standing under .cursor/skills/, whoever made it, BEFORE anything is installed
-ls -1A "$target/.cursor/skills" 2>/dev/null
-```
-
-- **Report what that listed, by name**, beside the install count — *"surface: cursor — 38 of 40
-  linked; `.cursor/skills/` already held `build` and `reviewer`, left alone (§ 5c)"*. § 5c decides
-  what happens to each one; **this step is what makes the collision visible before the decision**,
-  rather than as a count that does not add up.
-- **And say what this check CANNOT see.** A collision with another plugin's skill of the same name
-  lives outside the target repository entirely, so `ours` and this listing both miss it, and the
-  surface may still resolve `/build` to somebody else's file with no error anywhere. **State that as
-  a caveat on the report, once**, rather than implying the listing is exhaustive: *"a same-named
-  skill from another plugin on this host would shadow the mirror and is not visible from here."*
-- **Never install under a name this listing showed and § 5c did not clear.** That is § 5c's hard
-  limit and this step feeds it.
-
-### 5c · Antigravity (workspace bootstrap mode)
-
-| | |
-|---|---|
-| skills go to | `<target>/.agents/skills/<name>/` — copied per skill directory from `$hatsu_root/surfaces/antigravity/<name>` |
-| rules go to | `<target>/.agents/rules/AGENTS.md` (consolidated personas and rules mirror) |
-| hooks go to | `<target>/.agents/hooks.json` and self-contained hook scripts under `<target>/.agents/hooks/` |
-| invocation | `/<name>` — e.g. `/breath`, `/rasengan` |
-
-**On Antigravity, workspace mode is selected when running outside the global plugin context.**
-The refresh command installs `.agents/skills/`, the consolidated `.agents/rules/AGENTS.md`,
-`.agents/hooks.json`, and the two self-contained hook scripts (`guard-base-branch.sh` and `stop-bell.sh`) under `.agents/hooks/`.
-All destinations are excluded through `.git/info/exclude` and protected by the same `ours` collision
-safeguards.
-
-### 5d · All surfaces — the target's history, and the file that is never touched
-
-**A destination this skill did not create is never replaced, and `info/exclude` does not make it safe to
-try.** An exclude file governs **untracked** paths only: a target that tracks a `.cursor/agents/reviewer.md`,
-or a `.agents/skills/build/` of its own, keeps it tracked, and the § 5b `ln -sfn` or the § 5a `rm -rf` +
-`cp -R` over it **destroys a file that is in somebody's history** — the same act § 5d already refuses one
-directory over for `.gitignore`, and refused there for the same reason (Copilot review thread
-`PRRT_kwDOUKPjxM6hAjLf`). A name collision is not rare, either: `build`, `file` and `en` are ordinary words
-and forty of them are being claimed at once.
-
-| what stands at the destination | what the warm-up does |
-|---|---|
-| **nothing** | create it |
-| **a previous Hatsu install** — a symlink into `$hatsu_root/surfaces/`, or a directory whose `SKILL.md` carries the generator's `GENERATED` line | **replace it.** § 5a's *never diff-and-skip* is about exactly this case and is unchanged |
-| **anything else — and a TRACKED path is always anything else** | **leave it untouched**, install nothing under that name, and **name it in § 4's line** |
-
-```sh
-hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): the line § 0 printed AFTER its label — the quoted literal alone — pasted in place of '<…>', quotes included; a variable from another shell is not here
-# ours DEST — true only for a destination this skill made. Tracked is never ours,
-# whatever it looks like: a repository's own history outranks a marker comment.
-ours() {
-  git -C "$target" ls-files --error-unmatch -- "$1" >/dev/null 2>&1 && return 1
-  [ -L "$1" ] && case "$(readlink "$1")" in "$hatsu_root"/surfaces/*) return 0 ;; esac
-  grep -qsE 'GENERATED (by nen surface mirror|for surface: antigravity)' "$1/SKILL.md" "$1" 2>/dev/null
-}
-# … and at each destination, before the rm -rf / ln -sfn:
-if { [ -e "$dest" ] || [ -L "$dest" ]; } && ! ours "$dest"; then
-  kept="$kept $name"; continue
-fi
-```
-
-**A skipped name is reported, never swallowed** — *"surface: cursor — 38 of 40 linked; `build` and
-`reviewer` left alone, the target tracks its own"*. Silence here would be the worst of both: the maintainer
-believes Hatsu is installed, `/build` runs the target's own file, and nothing anywhere says why. **This is a
-hard limit and it takes precedence over the refresh**: the warm-up would rather install thirty-eight of forty
-skills and say so than overwrite one file it did not write.
-
-**Every path this section writes into the target repository is excluded through the repository's
-`info/exclude`, and never through `.gitignore`.**
-
-```sh
-exclude="$(git -C "$target" rev-parse --git-path info/exclude)"
-mkdir -p "$(dirname "$exclude")"
-for line in '.agents/skills/' 'AGENTS.override.md' '.cursor/skills/' '.cursor/agents/'; do
-  grep -qxF "$line" "$exclude" 2>/dev/null || printf '%s\n' "$line" >> "$exclude"
-done
-git -C "$target" status --porcelain          # must print nothing for these paths
-```
-
-> **`--git-path info/exclude`, never `"$(git rev-parse --git-dir)/info/exclude"` — and the difference is
-> not cosmetic.** In a **linked worktree** `--git-dir` answers `<main repo>/.git/worktrees/<name>`, so the
-> older form wrote `<main>/.git/worktrees/<name>/info/exclude` — **a file git never reads for excludes.**
-> Verified live on a fixture (`docs/ab/surfaces.md` § 7, F2): after writing `.agents/skills/` there,
-> `git status --porcelain` still printed `?? .agents/` and `git check-ignore -v .agents/skills/ren/SKILL.md`
-> exited **`1`** (not ignored). Writing the same line to the `--git-path` answer silenced the status and
-> made `check-ignore` exit **`0`**, naming `<main>/.git/info/exclude:7:.agents/skills/`. **Prove it the
-> same way** — `git status --porcelain` after the append, and `git check-ignore -v <one path>` when it does
-> not come back clean.
->
-> **And that file is per-REPOSITORY, not per-checkout.** `--git-path` resolves to the **main** repository's
-> `.git/info/exclude`, which every linked worktree and the primary checkout share. Writing it is a change
-> to what *all* of them ignore, so it is stated in the report by path — not described as local to the
-> directory the warm-up was run in.
-
-**`.gitignore` is a tracked file in somebody else's repository.** Writing to it is a change that lands in
-their diff, their review and their history, made by a warm-up they invoked to install a tool — and it
-imposes this plugin's layout on every other contributor to that repository. `info/exclude` is
-**untracked and never pushed**: it is the correct place for a thing one developer's tooling put in one
-developer's working copy. **This is a hard limit, not a preference: never write a target repository's
-`.gitignore`.**
-
-> **`AGENTS.override.md` is excluded, and a tracked `AGENTS.md` is never written at all. Those two
-> sentences are one rule, and this section used to say the opposite.** It read that `AGENTS.md` *"is the
-> exception and is not excluded: it is a real document of the target repository that a human may well want
-> to commit."* On a target that tracks no `AGENTS.md` — `zheref/nen` does not — that left `?? AGENTS.md`
-> standing in the tree **forever**, and it is not cosmetic: `nen shu warmup` refuses at exit **`2`** on an
-> untracked path it did not put there, so `/breath` could not warm the checkout at all and
-> `/aka` § 4's first refusal would refuse the squash for the same reason. A whole headless run
-> stopped on exactly this (`docs/ab/surfaces.md` § 7, F9).
->
-> **The resolution is § 5a's:** the personas go to `AGENTS.override.md`, which is this skill's own file
-> rather than the repository's, so excluding it takes nothing away from anybody. **A human who wants the
-> personas in their history commits them themselves, through a PR, into their own `AGENTS.md`** — and the
-> warm-up will keep copying that `AGENTS.md` into the override verbatim afterwards. What the warm-up
-> installs is never the thing a human is asked to review.
-
-### 5d · The model matrix, per surface
-
-The warm-up states the matrix for the surface it just warmed, read from **the target repository's own
-`nen/workflow.json`** → `models`, and never from memory:
-
-> **Named by path, deliberately not as a link.** A relative link here reads differently on every surface:
-> in this repository `../../../nen/workflow.json` is Hatsu's own policy file, and inside a mirror installed
-> in a target it is `<target>/nen/workflow.json` — which is the one that was meant. Through a **symlinked**
-> mirror it resolved to the *plugin's* file instead, silently and with no error, which is why § 5a copies
-> and why this line is a path (`docs/ab/surfaces.md` § 7, F10). **Read the file in the repository the
-> session is standing in.** Where that repository has none, say so and use the defaults, exactly as
-> [`breath`](../breath/SKILL.md) § 2 does — never fall back to this plugin's copy, whose `models` block is
-> Hatsu's policy and not theirs.
-
-| tier | `claude` | `codex` | `cursor` | `antigravity` |
-|---|---|---|---|---|
-| `frontier` | `fable` | `astra` | `grok` | `ultra` |
-| `deep` | `opus` | `sol` | `grok` | `pro` |
-| `fast` | `sonnet` | `terra` | `composer` | `flash` |
-| `economy` | `haiku` | `luna` | `composer` | `flash_lite` |
-
-`models.roles` maps a role to a tier — `reviewer: deep`, `worker: fast`, `measurer: fast`,
-`orchestrator: frontier` — and `models.rule` is *"latest alias only, never a version; subagents never on the
-frontier tier"*.
-
-**The Cursor-native rule, verbatim from the file:**
-
-> `"note": "Cursor-native only; provider models there are reserved for Bugbot"`
-
-So on Cursor a role resolves to `grok` or `composer` and to nothing else. Naming a provider model there —
-a Claude, a GPT — is not a better choice made locally; it is a different budget, reserved elsewhere.
-
-### 5e · Residue in this section
-
-1. **Placing the mirror has no Nen verb.** `nen surface mirror generate` writes a mirror into a directory it
-   is given; **it does not install one into a target repository**, and it is not expected to — `--out` is a
-   path, not a deployment. `scripts/surface_bootstrap.sh` is the checked, narrow implementation of that
-   remaining placement policy: it is the only first-run shell carve-out and the warm-up calls it for the
-   complete refresh. **`nen surface mirror check` does not check an installed copy either** — it diffs this
-   repository's `surfaces/` against a fresh generation of `claude/skills/`, which is a different question
-   from "is the copy in that target current". The re-copy every session is the answer to the second
-   question, and it is a discipline rather than a check
-   ([`scripts/surface_mirror_check.sh`](../../../scripts/surface_mirror_check.sh) is the first).
-2. **Composing `AGENTS.override.md` has no verb either.** The generator writes a *whole* `AGENTS.md` for
-   the surface; concatenating the target's own document with it under the marker block is this skill's own
-   construction, and the re-run's rebuild is a by-hand write.
-3. **`info/exclude` is plain `git rev-parse --git-path` plus an append.** No nen verb owns a checkout's
-   local exclude file, and none should — it is a property of one working copy, which is the opposite of
-   what a repository-driven CLI reads. **Proving it took is residue too**: `git status --porcelain`, and
-   `git check-ignore -v <path>` when it did not come back clean.
-4. **RETIRED at nen `0.5`: `nen surface` EXISTS at the pin** — `nen surface mirror generate|check` is in
-   the pinned binary (it answered *"nen: unknown command 'surface'"* at exit `2` through `v0.4.0`,
-   `docs/ab/surfaces.md` § 2.3). Verified live at `v0.5.0`:
-   `bash scripts/surface_mirror_check.sh` exits `0`, `codex ok: 40`, `cursor ok: 47`, nothing missing,
-   extra, stale or hand-edited — so `.github/workflows/surface-mirror-check.yml` runs a real check now
-   rather than skipping with a notice. The mirrors are **still committed** in this repository, and for the
-   original reason: a warm-up installs what is on disk rather than regenerating anything in a target
-   repository. What changed is that *regenerating* them no longer needs a nen newer than the pin.
-5. **Resolving `$hatsu_root` is by hand, and there is no registry behind it off Claude Code** (§ 5's
-   prelude). `$CLAUDE_PLUGIN_ROOT` is Claude Code's, `claude plugin list --json` is Claude Code's CLI, and
-   Codex and Cursor have neither — so the root is an environment variable the session was started with, or
-   a path handed to the invocation, and **nothing else**. nen owns no plugin registry and should not: it
-   reads repositories, and where Hatsu is checked out on a host is a property of the host. The failure is
-   handled rather than filed — an unresolved root reports `NOT INSTALLED` and stops.
-6. **The first install on Codex and Cursor is a human act.** There is no plugin loader to fetch anything,
-   so this skill refreshes an existing checkout and never obtains one. Named here so the absence is read as
-   a boundary rather than as a step somebody forgot to write.
-7. **The surface CLI's version check is `cursor-agent -v` and a string comparison** (§ 5b · i). No verb
-   knows what a surface binary is, and none should — nen reads repositories. The minimum itself is
-   read out of Cursor's own changelog, which groups by month, so **the comparison is a date part and
-   not a semver**, and that is stated in the report rather than dressed up as a range check.
-8. **Verifying a candidate `$hatsu_root`** is § 5's `manifest_name` — an awk reader of the one manifest
-   shape Claude Code's tooling writes, taking the top-level `name` and refusing any other shape — plus the
-   `claude/skills/` check, on the one path that has to work before anything is installed; no jq, and no
-   grep either since the tenth review round of #38. `nen schema check` validates a contract *inside* a
-   root; it does not answer "is this root the right plugin's", and nen carries no manifest or JSON verb.
-9. **Listing what already stands under the surface's skill directory** is `ls -1A` (§ 5b · ii), and
-   **the host-global half of that question has no answer at all from inside a repository** — a
-   same-named skill from another plugin is outside every path this skill can read. Named as a
-   boundary, and carried into the report as a caveat rather than left implicit.
-10. **Updating the plugin source is `scripts/hatsu_plugin_update.sh`.** There is no Nen verb for
-    "fast-forward this plugin checkout" or for `claude plugin update`. § 4b shells out to the script
-    with `--auto` (and `--claude` on Claude Code). The fixture is
-    `$hatsu_root/scripts/hatsu_plugin_update_fixture_check.sh`.
-    A skip under `--auto` is the correct outcome for an authoring tree, a dirty tree, or a sandboxed
-    fetch — never a halt, and never rendered as updated.
-
----
-
-## What this skill is not
-
-It is **not** `nen warmup`. That verb is a different thing entirely: it detects stale pins across a target
-repository's **`nen/repos.json`** — default pins *and* per-caller overrides — and optionally sweeps
-handbook questions. **There is no `schemas/repos.json` fallback at this pin**: it was removed in `v0.5.0`,
-so a target carrying the registry only under `schemas/` is refused, not read, and the refusal names the
-migration (`nen scaffold init --accept-detected`). Say `nen/repos.json` and nothing else. It presupposes a working `nen` — it cannot
-run when `nen` is the thing that is missing, which is precisely the case this skill exists to handle. Two
-things about it changed in nen `v0.2.0` that a reader of its report must carry: a consumer recorded with
-**no pin at all** is now an `unpinned` finding that **fails the run (exit `1`)** exactly as a stale pin
-does, and its `--json` `pinFindings[].pinned` is `string | null` rather than always a string. An omitted
-`--questions-from` is still reported as `NOT CHECKED` / `{"checked": false}`, never as clean.
-
-It is **not** `nen shu warmup` either. That verb — which arrived in `v0.3.0` — warms a **working copy** (refuse or
-`--discard` uncommitted work, fetch, fast-forward the trunk, cut the branch you name, prove the declared
-build) and is the one `shu` verb that **mutates git state**; `nen warmup` warms a **registry** and reads
-only. Same word, two verbs, resolved by nesting, and neither is a rename of the other. The build-loop
-skills ([`build`](../build/SKILL.md) § 5, [`futon`](../futon/SKILL.md) § 4) are where `nen shu warmup`
-belongs; it has no place in this warm-up.
-
-The two compose, in order: **this skill first** (is there a `nen` at all, in a version the contract accepts),
-**then** `nen warmup --current <vX.Y.Z>` against the target repository (is that repository's policy inbox
-clear). Kurapika runs both at session start; see `claude/agents/kurapika.md` § Session warm-up.
+**The warm-up never generates a mirror**; **`surface_bootstrap.sh` is the sole pre-skill shell
+carve-out**; **a warm-up that cannot find its source reports `NOT INSTALLED` and stops**; **the pack
+is placed on every surface, Claude Code included** (rulings 2026-09-19), with **a file the script did
+not write left alone and named**; on Cursor `ls -1A "$target/.cursor/skills"` runs **before installing
+anything**; and **the model matrix is the TARGET's own `nen/workflow.json` → `models`**, named by
+path, **never this plugin's copy**.
+
+## Residue, and what this skill is not
+
+Placing a mirror, composing `AGENTS.override.md`, writing `info/exclude` and proving it took, the
+first install on Codex and Cursor, resolving the root and updating the plugin source are by hand: no
+nen verb owns a checkout's local exclude, and where Hatsu is checked out is a property of the host.
+Cursor's version check is a string comparison on a date part, and the host-global half of the
+name-collision question has no answer from inside a repository.
+
+**Not `nen warmup`** (stale pins across a target's `nen/repos.json`), which presupposes a working
+`nen` — the case this skill handles — and **not `nen shu warmup`**, which warms a **working copy** and
+mutates git state where `nen warmup` warms a **registry** and reads only. They compose: **this skill
+first**, then `nen warmup --current <vX.Y.Z>` against the target.

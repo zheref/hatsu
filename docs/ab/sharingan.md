@@ -32,7 +32,7 @@ Nothing below is redacted; both repositories are public.
 | A/B evidence | `docs/ab/drive.md` | `docs/ab/drive.md`, unmoved, plus this file |
 
 **Why the name changed.** Every other skill on this plane is named for a technique — `ren`,
-`rasengan`, `kokusen`, `amaterasu`, `rikugan`, `jutaisho`, `izanagi`, `izanami`, `tensho`,
+`rasengan`, `kokusen`, `amaterasu`, `spiritual-message`, `jutaisho`, `izanagi`, `izanami`, `tensho`,
 `getsuga`. `drive` was the one English verb in a roster of proper nouns, and an English verb is the
 one kind of name that reads as a description: *drive* the PR, *drive* the backlog, "the drive
 phase". Three of those readings are in this repository's own prose right now, and two of them are
@@ -139,7 +139,7 @@ exit=1
 ```
 
 *(The three `FAIL` rows and the `warn` are Hatsu's own standing state, not this change's: it ships no
-label, repo or colour taxonomy of its own and never has — the same five rows `docs/ab/rikugan.md`
+label, repo or colour taxonomy of its own and never has — the same five rows `docs/ab/spiritual-message.md`
 § 2.4 records, at the same exit `1`, and the same reason there is still no `nen/workflow.json` row
 at this pin. The `project` clause on the `ok` row is new since that run only because Hatsu's
 contract gained its `project` block in wave 1.)*
@@ -185,3 +185,52 @@ prefix literally and nen's taxonomy resolution never sees it, so an un-migrated 
 
 Nothing else in this skill's verb surface moved at the pin; the `pr` family gained `edit-body`, which
 `shibari` owns.
+
+---
+
+## The Copilot policy, written here in full — 2026-09-20
+
+Session 2 of the 2026-09-19 hardening audit (`zheref/hatsu#89`, item 8). **`sharingan` § 5 is now the
+single place the reviewer-round policy is authored**; [`en`](../../claude/skills/en/SKILL.md),
+[`senkei`](../../claude/skills/senkei/SKILL.md) and
+[`build`](../../claude/skills/build/SKILL.md) cite it and carry the same four lines rather than
+stating a policy of their own.
+
+**The policy, verbatim as § 5 carries it:**
+
+> One Copilot round is requested after `hanten` settles, never before. Arrivals are remediated up to
+> `nen/gates.json` → `round_policy.maxRounds`; an owed round inside the max is re-requested on the
+> maintainer's behalf without asking (`nen/decisions.json` row `cap-reached`); never re-request after
+> a push that changed nothing reviewable (count commits ahead and the diff since the last reviewed
+> head first — `git rev-list --count <reviewed-head>..HEAD` and `git diff --stat
+> <reviewed-head>..HEAD`; zero reviewable change means no request). Copilot auto-reviews every push,
+> so the cap governs requests, not arrivals; an arrival past the cap is still remediated and its
+> threads settled.
+
+**What changed, and why.**
+
+| Before | After | Why |
+|---|---|---|
+| A prose two-round cap (ruling 2026-09-12) restated in four skills | One number, `round_policy.maxRounds`, read from `nen/gates.json` | The audit measured PR 38 at sixteen Copilot rounds before that ruling and PR 75 at six after it — **because Copilot auto-reviews every push**, so a cap on *arrivals* was never the thing being counted |
+| Silence on whether a no-op push may be re-requested | An explicit pre-check: commits ahead **and** the diff since the last reviewed head | A re-request against an unchanged tree spends a round to be told the same thing |
+| Thread hygiene through paginated `reviewThreads` GraphQL plus by-hand reply and resolve mutations | `nen pr threads list\|reply\|resolve --target <owner/name> --pr <n>` (nen `v0.12.0`, closes `zheref/nen#215`) | § 5's residue text is replaced by a verb; the two acts a finding needs — an on-thread disposition, then a resolution only when addressed — are unchanged |
+| `--add-bots copilot` implied to work | The bot is requested **by node id** through the verb | The bot's REST login is `copilot-pull-request-reviewer[bot]`, and `--add-bots copilot` cannot resolve it — `zheref/nen#160` is that resolution-by-login, not the request |
+
+**Corrected 2026-09-20.** This section first carried a raw `requestReviews(botIds:)` mutation as
+residue. It was never owed: the node id has always routed through the verb. Verified live at nen
+`v0.12.0` —
+`bun src/index.ts pr request-reviews --target zheref/nen --pr 221 --add-bots BOT_kgDOCnlnWA --dry-run`
+exits `0` printing `BOT_kgDOCnlnWA -> bot [add-bots]`.
+
+```bash
+nen pr request-reviews --target <owner/name> --pr <n> --add-bots BOT_kgDOCnlnWA
+```
+
+**Not changed by this section:** a round is complete only when every finding has a disposition; the
+confirmation pass may only veto; the escalation ladder; and sharingan still never merges, never
+self-reviews and never casts a review vote.
+
+**Also on this date, the diet** (`#89` item 9): this skill was rewritten from **56,005** bytes to the
+size `wc -c` now reports, with every verified-live transcript, retired-at-nen callout, findings list
+and incident narrative moved to `CHANGELOG.md` § *History moved out of skill prose*. Every rule the
+prose carried stayed.
