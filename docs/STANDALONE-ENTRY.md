@@ -93,7 +93,7 @@ case and the pattern is general — **preserve, prove, place, restore**:
 
 | Step | What it does | The rule it carries |
 |---|---|---|
-| **Preserve** | `git stash push --include-untracked`, **SHA captured and printed** | Addressed by SHA, never `stash@{0}` — that index moves. Never `--discard`, never `reset --hard` |
+| **Preserve** | `nen shu warmup --carry` (nen `0.13`): the stash includes untracked paths, **SHA captured and printed** | Addressed by SHA, never `stash@{0}` — that index moves; a conflicting restore leaves the stash in place and stops. Never `--discard`, never `reset --hard` |
 | **Prove** | The declared checks against `origin/<branch.base>`, in an isolated worktree | The tree under test holds none of the effort. A red here is the base's, and it is a **G5** before anything returns |
 | **Place** | The maintainer's commits replayed onto the proven tip | Through [`hatsu:ao`](../claude/skills/ao/SKILL.md): rebase when nothing is published, **merge when something is**. A published commit is never rewritten |
 | **Restore** | The stash reapplied, still uncommitted | The working copy comes back. On any failure the stash is **not dropped**, and the SHA is printed with the recovery command |

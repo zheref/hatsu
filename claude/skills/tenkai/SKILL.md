@@ -118,6 +118,16 @@ deliberately not emitted because it would approve arbitrary commands), excludes 
 `diagnose` does not yet know this item** — it is placed by this step and by the warm-up, and the
 diagnose row for it is filed as a follow-up on the engine.
 
+**The surface packs are items too, placed by one generator.** Off Claude Code a consumer carries, per
+surface, the hooks, the allowlists, the rules files and the `.codex/agents` fragments — everything
+`nen surface mirror generate --surface <codex|cursor|antigravity> --out <consumer>/<surface dir>`
+emits from this plugin's `nen/workflow.json` models, `contracts/permissions.json` and `hooks/hooks.json`,
+stamped with the plugin version (zheref/hatsu#93). The surface dir is `.agents` for Codex skills and
+`.codex` for its config, `.cursor` for Cursor, the workspace's Antigravity dir for Antigravity. They
+are placed by this step at adoption and re-checked by the warm-up's `nen surface mirror check
+--installed`, which copies only on drift; a pack Tenkai did not generate is left alone and named,
+never overwritten, and the same `diagnose` follow-up covers its row.
+
 **State is written by a script with fixtures, never counted in prose.** This is the same rule
 [`scripts/hanten_cycle_ledger.sh`](../../../scripts/hanten_cycle_ledger.sh) carries and for the same
 reason: a skill that counted adoption items in its own reply would get the count right on the turn it

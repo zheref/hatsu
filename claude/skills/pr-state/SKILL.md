@@ -96,19 +96,13 @@ the short form is three shapes, and there is no fourth:
 nen pr ready <CODE>#<N> --repo <path> --explain
 
 # the target IS <reference-repo> itself — frozen, ships no gates file of its own.
-# $hatsu_root is THIS plugin's checkout, ABSOLUTE, resolved IN THIS SHELL: the block below is
-# hatsu-warmup § 5's prelude in its same-shell form. The variable is not exported, so a value
-# another shell set is not here. The second candidate is SINGLE-quoted: hatsu-warmup § 0 prints the root
-# already quoted with any ' escaped, ALONE on the line after its label — paste that line in place of '<…>',
-# quotes included, nothing else. The awk line is hatsu-warmup § 5's manifest_name on one line: the TOP-LEVEL
-# name of the canonical pretty-print, or nothing — any other manifest shape is refused, not parsed.
-hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<the absolute path § 0 printed>' "${CLAUDE_PLUGIN_ROOT:-}"; do
-  [ -n "$c" ] || continue; case $c in -*) c=./$c;; esac              # an option-looking relative candidate is a path, not a flag
-  [ -f "$c/.claude-plugin/plugin.json" ] && [ -d "$c/claude/skills" ] &&
-  mn=$(awk 'function scalar(v){return v~/^("([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*"|-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?|true|false|null)$/} function value_ok(v){return v=="{"||v=="["||v=="{}"||v=="[]"||scalar(v)} NR==1{if($0!="{")b=1;sp=1;top[1]="{";ind[1]=0;first=1;comma=0;next} {if(b||d){b=1;next};ni=match($0,/[^ ]/)-1;if(ni<0){b=1;next};body=substr($0,ni+1);if(body~/^[}\]],?$/){c=substr(body,1,1);tr=(body~/,$/);if(sp==0||ni!=ind[sp]||(top[sp]=="{"&&c!="}")||(top[sp]=="["&&c!="]")||comma){b=1;next};sp--;if(sp==0){if(tr)b=1;d=1;next};comma=tr;first=0;next};if(sp==0||ni!=ind[sp]+2||(!first&&!comma)){b=1;next};tr=(body~/,$/);if(tr)body=substr(body,1,length(body)-1);if(top[sp]=="{"){if(body!~/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /){b=1;next};v=body;sub(/^"([^"\\[:cntrl:]]|\\["\\\/bfnrt]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*": /,"",v);if(sp==1&&body~/^"name": "/){s=v;sub(/^"/,"",s);sub(/"$/,"",s);n++;name=s}}else v=body;if(!value_ok(v)){b=1;next};if(v=="{"||v=="["){if(tr){b=1;next};sp++;top[sp]=v;ind[sp]=ni;first=1;comma=0;next};comma=tr;first=0} END{if(!b&&d&&sp==0&&n==1)print name}' "$c/.claude-plugin/plugin.json") && [ "$mn" = hatsu ] &&   # captured first: bash 3.2 mis-parses quotes inside "$( )"
-  r=$(CDPATH= cd "$c" >/dev/null 2>&1 && pwd -P) && [ "$r/." -ef "$c/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && hatsu_root=$r && break
-done
-[ -n "$hatsu_root" ] || { echo "no Hatsu root resolved — pass --reviewers and explicit --approvers by hand instead (sharingan § 4)" >&2; exit 1; }
+# $hatsu_root is THIS plugin's checkout, ABSOLUTE: the root hatsu-warmup § 0 already resolved, taken
+# from $HATSU_PLUGIN_ROOT where the session exports it, else from the single-quoted line § 0 printed,
+# pasted verbatim in place of '<…>' (quotes included, nothing else). No manifest is parsed here: with
+# neither in hand, re-resolve through hatsu-warmup § 0 rather than reading plugin.json inline.
+hatsu_root="${HATSU_PLUGIN_ROOT:-}"; [ -n "$hatsu_root" ] || hatsu_root='<the absolute path § 0 printed>'
+[ -f "$hatsu_root/.claude-plugin/plugin.json" ] && [ -d "$hatsu_root/claude/skills" ] \
+  || { echo "no Hatsu root in hand: re-run hatsu-warmup § 0, or pass --reviewers and explicit --approvers by hand (sharingan § 4)" >&2; exit 1; }
 nen pr ready <CODE>#<N> --repo <path> \
   --gates "$hatsu_root/contracts/reference.gates.json" --explain
 
@@ -127,12 +121,11 @@ at a checkout that lacks the file: `nen: <repo>/contracts/reference.gates.json: 
 given 'contracts/reference.gates.json', which is RELATIVE, so it was resolved against the target
 repository root … not the current directory` (exit `2`). The file lives in *this* plugin's checkout, not in
 the target's, so only an **absolute** path reaches it from any `--repo`. **`$hatsu_root` is the house
-convention for exactly this** — the Hatsu checkout as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 5's
-prelude resolves it, on every surface: `$HATSU_PLUGIN_ROOT`, else the path the invocation was handed, else
-`$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout, the winner canonicalised to an absolute
-path — so a relative `$HATSU_PLUGIN_ROOT` or a handed `.` cannot reach this flag. It is a shell variable and
-not an export, so the code block above carries the prelude's same-shell form and runs it before the call —
-nothing is inherited from the warm-up's shell, and the root the warm-up printed is what that block hands in.
+convention for exactly this** — the Hatsu checkout as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 0
+resolves it, on every surface, the winner canonicalised to an absolute path. It is a shell variable and
+not an export, so the code block above takes it from `$HATSU_PLUGIN_ROOT` or the line the warm-up printed
+and runs no resolver of its own: with neither in hand it re-resolves through `hatsu-warmup` rather than
+parsing a manifest, and the root the warm-up printed is what that block hands in.
 It is spelled that way and never as
 `$CLAUDE_PLUGIN_ROOT` alone because that variable is Claude Code's: exported by that harness inside a skill
 invocation and nowhere else, and on Codex and Cursor — where this body runs as a verbatim mirror

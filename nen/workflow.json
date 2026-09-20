@@ -71,6 +71,7 @@
           "landed",
           "delta",
           "evidence",
+          "spend",
           "launch",
           "decisions",
           "prBody"
@@ -130,6 +131,15 @@
     "pollSeconds": 300,
     "$comment": "en's izanagi cap and its poll interval. The cap is grammar, not a default: a watch loop with no cap does not run."
   },
+  "profile": {
+    "default": "standard",
+    "allowed": [
+      "fast",
+      "standard",
+      "thorough"
+    ],
+    "$comment": "The run profile hatsu:ren reads (zheref/hatsu#93). `default` applies to every turn that names none; a turn may name one with --profile or the words \"fast turn\" / \"thorough turn\", and only a value in `allowed` is accepted. fast: lint and the focused tests per turn, a turn-fast page, build, launch, the full page and coverage deferred to mukai; standard: today's turn; thorough: the impacted suites (kotoamatsukami) on every turn. A landing (mukai) always runs thorough. Validated by nen schema check from v0.13.0; an older pin preserves the key as raw data."
+  },
   "models": {
     "rule": "latest alias only, never a version; subagents never on the frontier tier",
     "claude": {
@@ -155,14 +165,17 @@
       "frontier": "ultra",
       "deep": "pro",
       "fast": "flash",
-      "economy": "flash_lite",
-      "note": "Google AI / Gemini tiers; subagents use pro, flash, flash_lite"
+      "economy": "flash",
+      "note": "Google AI / Gemini tiers. A persona's model accepts only inherit, flash or pro (https://antigravity.google/docs/subagents, fetched 2026-09-20), so economy maps to flash here; flash_lite is not a documented persona value"
     },
     "roles": {
       "reviewer": "deep",
       "worker": "fast",
       "measurer": "fast",
-      "orchestrator": "frontier"
+      "orchestrator": "frontier",
+      "watcher": "economy",
+      "formatter": "economy",
+      "$comment": "watcher and formatter run on economy (zheref/hatsu#93): Illumi and hatsu:izanami polls run as watcher, formatting passes (gyo's auto-fix, prose reflow) as formatter. A role maps to a tier, never to a model."
     },
     "$comment": "A tier is named, never a model version — a pinned version is a pin that rots. The orchestrator tier is the main session's; a SUBAGENT never runs on it, because the frontier tier is where the human's own conversation lives and a delegate that outranks its caller has inverted the delegation."
   },

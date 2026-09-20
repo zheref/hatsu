@@ -4,7 +4,7 @@ This directory is the plugin's skill surface (`plugin.json` → `"skills": "./cl
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together
 under *Skills* by `claude plugin details`, which is why they are described together here.
 
-**Forty skills at `v0.30.0`**: the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
+**Forty-three skills at `v0.43.0`** (forty at `v0.30.0`, forty-four directories per surface with `hatsu-warmup`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
 surface complete at `v0.1.0` — one of them, `drive`, **renamed to [`sharingan`](sharingan/) at `v0.5.0`** —
 the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side,
 **[`byakugan`](byakugan/) at `v0.24.0`**, the
@@ -58,6 +58,7 @@ mechanics, and a live transcript showing the same verdict from fewer improvised 
 | [`file`](file/) | Files one well-formed, correctly-labelled, non-duplicate issue — reconciled against the open backlog first, on one explicit confirmation. |
 | [`futon`](futon/) | Takes one whole severity band from open issues to PRs with an actor behind them, then **gates** the terminal step you typed (`then tag`, `then tag+fanout`): it holds the cut until no PR this run authored is short of Ready, and hands the cut itself to [`getsuga`](getsuga/). It cuts no tag and runs no fan-out of its own. |
 | [`getsuga`](getsuga/) | **Cuts** a release tag locally, end to end — preconditions, one folded **release-proposal** PR the maintainer merges at **G4** in a canon repository (**G2** in a consumer one), the **post-merge** tag, the `CON-22` fan-out and the consumers' repin PRs. The release unit it folds in is [`susanoo`](susanoo/)'s; publication is [`mugetsu`](mugetsu/)'s, at **G3**. Prepares a release; never publishes one. |
+| [`great-hiker`](great-hiker/) | **Canon authoring for every surface** (zheref/hatsu#93, not ported). Authors canon prose and machinery under `claude/` and `contracts/`, runs `nen surface mirror generate` for every surface with hooks, allowlists, rules files and model config, checks the mirrors and the installed copies, and opens one PR at G4 with a per-surface delta table. `evolve [<surface>]` diffs each surface guide against its cited official docs and files one Netero-shaped issue per drifted surface. Never edits `surfaces/` by hand, never claims a capability without the fetched line, never merges. |
 | [`izanagi`](izanagi/) | Repeats a task that **acts** until a condition holds, under a **mandatory** iteration cap — an invocation without `up to <N>` is refused. |
 | [`izanami`](izanami/) | Repeats a **read-only** task until a condition holds. It looks, reports and stops; it never writes. |
 | [`jujisho`](jujisho/) | Splits a mixed working copy into up to two stacked branches and PRs, by axis, proving the union of the splits equals the original diff. |
@@ -133,7 +134,7 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 
 ## The two roster-machinery residents
 
-Neither is one of the forty-two. They landed with the skeleton because the plugin does not function
+Neither is one of the forty-three. They landed with the skeleton because the plugin does not function
 without them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |
