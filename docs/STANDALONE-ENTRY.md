@@ -277,7 +277,9 @@ because a cold entry is where each is most likely to be quietly re-read:
   clause written into a skill in passing. A `## 0.` that widens a touched set, a budget, or a base
   clause has changed policy from inside a phase, which is the failure this bullet exists to name.
 
-**A G5 (`CON-47`) reached from a standalone entry is a real G5**: the `nen stop` banner, the report
+**A condition with an `autonomous` row in `nen/decisions.json` is resolved by its default from a standalone
+entry exactly as from a wired one** — a dirty tree is carried, a cap's owed round is requested, a red
+lint returns to rasengan — and the turn page names the row. **A G5 (`CON-47`) reached from a standalone entry is a real G5**: the `nen stop` banner, the report
 link, lettered options with ⭐ on the recommendation, and the question through the surface's own
 picker — [`hatsu:jutaisho`](../claude/skills/jutaisho/SKILL.md) § 4's four parts, all four. **And its
 population never widens**: the five conditions are the five, measured over exactly the set the wired

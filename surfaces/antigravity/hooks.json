@@ -14,6 +14,15 @@
       }
     ]
   },
+  "hatsu-session-start": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "sh -c 'if [ -n \"${HATSU_PLUGIN_ROOT:-}\" ] && [ -x \"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh\" ] && [ -d ./.agents ]; then exec \"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh\" --surface antigravity --target . --install-all; fi' --",
+        "timeout": 60
+      }
+    ]
+  },
   "hatsu-stop-bell": {
     "Stop": [
       {

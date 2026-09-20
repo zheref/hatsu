@@ -99,6 +99,15 @@ cat > "$tmp_dir/hooks.json" <<EOF
       }
     ]
   },
+  "hatsu-session-start": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "sh -c 'if [ -n \"\${HATSU_PLUGIN_ROOT:-}\" ] && [ -x \"\$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh\" ] && [ -d ./.agents ]; then exec \"\$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh\" --surface antigravity --target . --install-all; fi' --",
+        "timeout": 60
+      }
+    ]
+  },
   "hatsu-stop-bell": {
     "Stop": [
       {
@@ -175,6 +184,9 @@ for agent_file in "$source_agents"/*.md; do
     }
     in_fm && /^---$/ {
       in_fm = 0; fm_done = 1;
+      # The permission pack on this surface (zheref/hatsu#85): a persona runs
+      # the commands contracts/permissions.json allows without a prompt.
+      print "commandExecutionPolicy: auto";
       print;
       print marker;
       next

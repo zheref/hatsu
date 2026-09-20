@@ -394,4 +394,4 @@ the table — a status-only pass reports plainly, no banner.
   different repo's `nen pr ready` call (§ 4).
 - Never exercise `nen run rerun-failed`'s affirmative rerun path against a repo whose PRs you do
   not control the consequences of — this port only confirms the refusal shape (§ 4).
-- 5-round cap per PR (`agents/_conventions.md` § Discipline 2), then escalate to the maintainer.
+- The configured round maximum governs every PR: an owed round inside it is requested on the maintainer's behalf, never asked (`nen/decisions.json` row `cap-reached`); past it the pass reports not-ready with the board. **The maximum is `nen/gates.json` → `round_policy.maxRounds`** (Hatsu's own key beside nen's `stallMinutes`); `nen/workflow.json` → `monitor.maxCycles` is en's acting-cycle cap, a different number.

@@ -5,6 +5,7 @@ tools: Read, Grep, Glob, Edit, Write, MultiEdit, Bash, WebSearch, WebFetch
 model: pro
 effort: high
 color: green
+commandExecutionPolicy: auto
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 

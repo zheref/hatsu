@@ -89,7 +89,7 @@ authorization, and the other half is § 3's recorded go.
 
 **The call is the maintainer's, in their own words or by name.** Four consequences, all binding:
 
-- **No agent ever prompts for it.** Not a report, not a bell, not a stop's options, not a release PR
+- **No agent ever prompts for it** (`nen/decisions.json` row `release-go`, a human gate at G3). Not a report, not a bell, not a stop's options, not a release PR
   body, not a composite offering it as a next step. A report may say *the tag is cut and the
   `production` target is declared*; it may not say *shall I publish?* An agent that asks for
   permission it was told to wait for has converted a human gate into a nudge, and this is the gate
@@ -223,7 +223,7 @@ live, *"FAIL open critical issues -- not supplied -- not checked (pass --critica
 live `CON-36` chore, an uncollated `changelog.d/`, an unreconciled `CON-33(c)`. Relay the whole table
 as printed — the verb reports every row and never stops at the first — and stop with
 [`$jutaisho`](../jutaisho/SKILL.md) § 4's rendering: `nen stop --who kurapika --gate G3
-<efforts.md>`, the report link, the options with ⭐ on the report, the question through the surface's
+<efforts.md>`, the report link, the options with ⭐ on the recommended decision — the report linked, never an option (Crazy Slots), the question through the surface's
 own picker. **A held release is honoured as printed**; `getsuga` § 2 carries the `RELEASE_HOLD`
 truthiness rules and this skill does not restate them.
 

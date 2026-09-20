@@ -546,11 +546,13 @@ Only then may a substantive change justify the second request below. Never reque
 to repeat a clean assessment. A push that changes the reviewed tree is substantive for the current-head
 gate when `nen pr ready --explain` says the round is owed; in that case wait for or request the owed round
 instead of reporting the stale earlier round as sufficient. If the deterministic current-head gate still
-refuses after an otherwise sufficient round, report that exact policy mismatch at G5; do not weaken the
-gate, manufacture approval, or spend another round to hide it. After the second round, address its findings
-and stop at the human gate; if another push leaves a third round owed, that is the concrete cap/blocker to
-bring to the maintainer. This cap does not allow unresolved findings to be ignored and does not itself make
-a PR Ready.
+refuses after an otherwise sufficient round, report that exact policy mismatch as a finding in the turn
+page and file it (`nen pr ready`'s bounded policy from nen `0.11.0` no longer re-owes a posted round at
+every head); do not weaken the gate or manufacture approval. **A third owed round is requested on the
+maintainer's behalf when it is inside the configured maximum, and never asked about** (ruling
+2026-09-19, `nen/decisions.json` row `cap-reached`); past the maximum the run ends at not-ready with the
+board. Neither is a G5. **The maximum is `nen/gates.json` → `round_policy.maxRounds`** (Hatsu's own key beside nen's `stallMinutes`); `nen/workflow.json` → `monitor.maxCycles` is en's acting-cycle cap, a different number. This cap does not allow unresolved findings to be ignored
+and does not itself make a PR Ready.
 
 Re-request on the maintainer's own user token only when these preconditions hold (a bot token
 can silently no-op here):
@@ -597,10 +599,9 @@ again.
 **Requesting an owed round is not an escalation — inside § 6's cap.** When `nen pr ready` says a
 round is owed at the current head **and this PR is still within the two-round cap above**, request it
 and keep watching; taking that to the maintainer is § 6's ladder spent on a step the run can perform
-itself. **A third owed round is the other case and the cap still governs it**: it is the concrete
-blocker § 6 says to bring to the maintainer, and the fact that requesting it is mechanically easy is
-not a reason to spend it. Knowing how to perform a step is not authority to perform it again past the
-point the cap stops.
+itself. **A third owed round is the same case inside the configured maximum** (ruling 2026-09-19,
+`nen/decisions.json` row `cap-reached`): request it and keep watching. Only past the maximum does the run
+end — at not-ready with the board, never with a question — and a cap reached is reported, not raised.
 
 **It is conflicted:**
 

@@ -97,7 +97,7 @@ that entry is in the list. This skill is the name of that entry, not a second co
 |---|---|---|
 | [`/breath`](../breath/SKILL.md) | the fresh tip, first turn of an effort, when `lint` is in `iteration.checks` | **G5** — a base that does not lint is not this effort's to repair |
 | [`/rasengan`](../rasengan/SKILL.md) | inner-loop feedback, as often as the work wants it | the loop working — fix, run again, never hand a red tree to kokusen |
-| [`/kokusen`](../kokusen/SKILL.md) | the finished tree, every Ren turn, before staging | the commit ends; a red lint the turn cannot honestly clear is **G5** |
+| [`/kokusen`](../kokusen/SKILL.md) | the finished tree, every Ren turn, before staging | the commit ends and the tree returns to rasengan (`nen/decisions.json` row `red-lint`); never a G5 |
 | [`/aka`](../aka/SKILL.md) | before squash, and again after catch-up unless catch-up was a complete no-op | the push ends |
 
 **Mukai does not call this skill for coverage.** Catch-up inside mukai still hits lint through

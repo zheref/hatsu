@@ -92,7 +92,7 @@ about how to arrive at it honestly, not about what the answer is.
 Four things make an authored change this repository's rather than a plausible one:
 
 1. **The request, read as asked.** Not the nearest familiar problem, not the larger refactor it
-   suggests. Where the request is genuinely ambiguous, ask — an assumption written into code is an
+   suggests. Where the request is genuinely ambiguous, ask once through Crazy Slots with the readings as the options (`nen/decisions.json` row `ambiguous-intent`) — an assumption written into code is an
    assumption nobody reviewed.
 2. **The stack, resolved rather than assumed.** `nen/contract.json` → `project.lanes.<lane>.stack`
    says what this repository is; `project.verbs.<lane>` says what it runs. A change written in the

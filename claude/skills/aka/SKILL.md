@@ -247,7 +247,7 @@ trailing period) each refuse at exit `2` with a named reason — the transcripts
    > which warms a detached `HEAD` through `nen shu warmup` and cuts the effort's branch from the trunk's
    > fresh tip. This is the ordinary starting shape of a Codex reviewer's worktree, so it is a case rather
    > than a curiosity, and it is **not** a G5: nothing has gone wrong, a step was skipped.
-2. **A commit already on the upstream refuses.** The § 4 table's range is computed, never assumed,
+2. **A commit already on the upstream refuses** (`nen/decisions.json` row `rewrite-published-history`). The § 4 table's range is computed, never assumed,
    and a range that would include an already-pushed commit is refused outright, not force-pushed
    past.
 3. **A non-ancestor squash point refuses** — if the computed point is not an ancestor of `HEAD`, the

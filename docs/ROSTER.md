@@ -595,6 +595,45 @@ product is the process, whether they express it as prose, as scripts, or as a de
 
 ---
 
+## Rulings of 2026-09-19 — fixed defaults, Crazy Slots, permission packs
+
+**The maintainer's words, from the hardening audit review of 2026-09-19:** *"If a third round is all
+that's had, we should go ahead and approve it every single time without having to ask me. The agent
+itself should re-request the review on my behalf."* · *"As long as we are not affecting the surrounding
+environment, other repositories, projects, or other elements, we should never be asked if that is
+scoped to the current project, repository, or associated repositories."* · *"If we are missing a
+declaration, we should always provide a path forward to include it, and maybe have the workflow ask
+the corresponding questions to set it up itself."* · *"Release preconditions should be reconciled to
+the same chunk rather than having them become a cause of stopping the workflow."* · *"Every actual human
+gate from G1 to G5 should certainly be human-only. What we have to come to understand is what is truly
+a G5 stopper."* · On options: *"I expect the options to be non-deterministic, so that the model is
+responsible for actually assessing what is more relevant given the context, while keeping some
+parameters of which ones are the most common or preferred options."* · Fixed defaults: dirty tree at
+breath always carry; cap reached in en always request the owed round; red lint and missing focused
+route always hand back to rasengan; missing tool or model id always install; missing consumer
+declaration: tenkai for a scaffolding piece, otherwise an assisted setup; semantic conflict in ao always
+the picker, with ours, theirs, a genuine third, and *"resolve it and show me the diff before anything is
+committed"*. · Names: the decision picker specification is **Crazy Slots** (Kite); the fixed defaults
+live in `nen/decisions.json` as data AND in one prose line per skill citing the row id.
+
+**What changed.** `nen/decisions.json` (`nen.decisions/v0.1`, nen `0.11.0`) carries 8 autonomous rows,
+2 ask-once rows and 13 human-gate rows; `jutaisho` § 4 is the Crazy Slots specification (the report
+always linked and never an option, the star on the recommended decision, at least three executable
+options seeded by the row's `preferred[]`, a proposed process issue on every real stop);
+`nen stop --mark --title --body --report-url --options --propose-issue` writes the marker the bell reads
+(`nen.stop.mark/v0.2`) and `hooks/stop-bell.sh` carries the ask and the link into the notification, honours
+`HATSU_ATTENTION=off`, and ports the Linux and Windows rungs from bankai-core (untested until a host runs
+them); `contracts/permissions.json` is the one source `scripts/permissions_pack.sh` renders into
+`.claude/settings.local.json`, `.codex/config.toml` + `.codex/hooks.json`, `.cursor/cli.json` +
+`.cursor/hooks.json`, placed by the warm-up and by `hatsu:tenkai` after `apply`; the reviewer round cap is one key,
+`nen/gates.json` → `round_policy.maxRounds`, read by `sharingan`, `senkei`, `en` and `build`. The five human gates are unmoved.
+
+**What is truly a G5, by these rulings:** a merge, a G3 go, a G1 label; a semantic conflict; force-pushing
+or rewriting published history and overwriting a tracked path; signing material, a live credential, a
+secret-shape path; an on-device security act; a supply-chain checksum or manifest failure; an unruled
+consumer policy surface; a genuinely ambiguous request or a business rule canon does not adjudicate.
+Everything else has a row.
+
 ## 🔶 OPEN — Killua, and the rest of Illumi's row
 
 > **These rows are OPEN sub-decisions. The ruling is G4-class and it has not been made.** This is

@@ -159,6 +159,10 @@ inherited-and-forgotten default is dangerous in.
 
 **The cap is a ceiling, not a target.** Reaching it is a failure to reach Ready and is reported as one:
 what is still not true, and what the next cycle would have done. `izanagi` § 4's rule, unchanged.
+**A reviewer round owed inside the configured maximum is requested on the maintainer's behalf, every
+time, without asking** (ruling 2026-09-19, `nen/decisions.json` row `cap-reached`): `nen pr
+request-reviews --add-bots <reviewer>`, then keep watching. Past the maximum the run ends at not-ready
+with the board. Neither is a G5. **The maximum is `nen/gates.json` → `round_policy.maxRounds`** (Hatsu's own key beside nen's `stallMinutes`); `nen/workflow.json` → `monitor.maxCycles` is en's acting-cycle cap, a different number.
 
 ## 3. The run, in order
 
@@ -225,7 +229,7 @@ because a long watch is where the temptation compounds.
 
 Step 6 is [`hatsu:jutaisho`](../jutaisho/SKILL.md) `at <G2|G4>`, with the gate
 [`shibari`](../shibari/SKILL.md) derived and `sharingan` confirmed. It owes all four of that skill's
-parts — the `nen stop` banner, the report link, lettered options with a ⭐ on the report, and the
+parts — the `nen stop` banner, the report link, lettered options with a ⭐ on the recommended decision — the report linked, never an option (Crazy Slots), and the
 question through the surface's own native option picker.
 
 `nen stop --template` emits the blank five-column shape the efforts table is filled into — verified

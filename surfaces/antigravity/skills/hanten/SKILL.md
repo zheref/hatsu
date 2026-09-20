@@ -564,7 +564,7 @@ count, severity and ordinary implementation work remaining never create a mainta
 themselves. Where a mixed review contains one ambiguous finding, every independent finding is still
 fixed, rebutted or durably tracked; only work whose outcome depends on that ambiguity pauses.
 
-## 7. A genuinely unsettled decision is a **G5**
+## 7. A genuinely unsettled decision is a **G5** (`nen/decisions.json` row `unsettled-finding`)
 
 **A finding becomes unsettled only after investigation proves that none of § 6's dispositions can be
 chosen without a maintainer decision.** The concrete boundary is a scope change, a new business rule,
@@ -581,7 +581,7 @@ discovery protocol when that protocol applies; it is not a shortcut to human att
 The stop is [`/jutaisho`](../jutaisho/SKILL.md)'s shape, in full — the `nen stop` banner and
 efforts table (`nen stop --who Kurapika --gate G5 <efforts.md>`; `nen stop --template` emits the blank
 table, verified live, `docs/ab/hanten.md` § 2.4), the [`/rikugan`](../rikugan/SKILL.md) report's
-link, lettered options with a ⭐ on the report, and **the question through the surface's own native
+link, lettered options with a ⭐ on the recommended decision — the report linked, never an option (Crazy Slots), and **the question through the surface's own native
 option picker** (`AskUserQuestion` on Claude Code).
 
 **What hanten puts in it:** the finding verbatim — all six fields — the reviewer who raised it, the
@@ -663,7 +663,8 @@ git worktree add "$rev" HEAD                      # the isolated copy — hanten
 
 # `sol` is the TIER ALIAS; -m wants the host's ID for it. Resolve, never remember.
 sol="$(codex debug models | grep -o '"slug":"[^"]*sol"' | cut -d'"' -f4)"
-[ -n "$sol" ] || { echo "codex debug models lists no 'sol' slug — G5, the reviewer cannot be raised" >&2; exit 1; }
+[ -n "$sol" ] || sol="$(codex debug models | grep -o '"slug":"[^"]*"' | cut -d'"' -f4 | grep -v -e luna -e terra -e spark | head -n 1)"   # the deep tier's next listed id, disclosed in the finding (`nen/decisions.json` row `missing-tool`)
+[ -n "$sol" ] || { echo "codex debug models lists nothing usable — reviewer not raised; reported as a gap, never a G5" >&2; exit 1; }
 
 codex exec -C "$rev" -s workspace-write \
   --add-dir "$(git -C "$rev" rev-parse --path-format=absolute --git-common-dir)" \
@@ -685,8 +686,10 @@ as untracked noise in the diff it was raised to read.
 > F1; Copilot review thread `PRRT_kwDOUKPjxM6hAjL9`). `sol` is the *alias*
 > `nen/workflow.json` → `models.codex.deep` carries, and `models.rule` — *"latest alias only, never a
 > version"* — is exactly why the file carries the alias and not the id. The id is a live property of the
-> host, so it is resolved at the moment of use and a failed resolution is a **G5**, not a guess: raising
-> a reviewer on some other model is not a smaller version of raising the right one.
+> host, so it is resolved at the moment of use. **A failed resolution is not a G5** (ruling 2026-09-19,
+> `nen/decisions.json` row `missing-tool`): the catalogue is refreshed, the next id the host lists for the
+> deep tier is taken and disclosed in the finding's own header, and only a host listing nothing usable
+> reports the scope as a gap.
 
 > **`--add-dir` is not optional here, and this is the one place in the repository where the omission
 > bites.** `git worktree add` makes a **linked** worktree, whose `.git` is a *file* pointing at

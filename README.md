@@ -984,7 +984,7 @@ Unchanged, name for name. **`$ren` runs on every request** — `$breath` on the 
 `$kokusen`, `$amaterasu`, `$rikugan`, `$jutaisho` — and it never pushes. **Five phases are yours to call,
 and no agent ever prompts for them**: `$aka` (push), `$mukai` (review and PR), the **merge**, `$kagutsuchi`
 (non-production upload) and `$mugetsu` (publish, **G3**). A genuine **G5** stop is still the banner, the
-report link, the lettered options with a star on the report, and the question **asked through this
+report link, the lettered options with a star on the recommended decision (the report is linked with every stop and is never one of the options — Crazy Slots), and the question **asked through this
 surface's own option picker** — `AskUserQuestion` is Claude Code's name for that, and what the rule binds
 is the *shape*: a stop rendered as a paragraph ending in a question mark is a stop you have to compose an
 answer to. **The picker is not the turn-end hook**; the hook is what escalates a *bell* (below), and its
@@ -1165,7 +1165,7 @@ the mirrors print is the one that works.
 
 Unchanged: **`/ren` on every request** — `/breath`, `/rasengan`, `/kokusen`, `/amaterasu`, `/rikugan`,
 `/jutaisho` — never pushing. Yours to call: `/aka`, `/mukai`, the **merge**, `/kagutsuchi` and `/mugetsu`
-(**G3**). A **G5** stop is the banner, the report link, the lettered options with a star on the report, and
+(**G3**). A **G5** stop is the banner, the report link, the lettered options with a star on the recommended decision (the report linked, never an option; `HATSU_ATTENTION=off` silences rungs 2 and 3 on any host), and
 the question asked through this surface's own option picker — the same four parts, and all four or it is
 not a stop. As on Codex, **the picker is not the turn-end hook**: the missing hook is a fact about the
 *bell*, below.

@@ -1,0 +1,258 @@
+{
+  "$schema": "nen.decisions/v0.1",
+  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition a running workflow can stop on. `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check`; read by `nen stop --options` and by every skill before it asks. Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure (hatsu-warmup), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan). Data-only until a skill cites them: merge, mode-label, signing-material, on-device-act, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
+  "contract": "nen.decisions/v0.1",
+  "rows": [
+    {
+      "id": "dirty-tree",
+      "class": "autonomous",
+      "default": "nen shu warmup --repo <checkout> --branch <branch> --carry",
+      "why": "Ruling 2026-09-19: a dirty working copy at breath is always carried onto the new branch (stash including untracked, warm, restore). Nothing is discarded, the paths are listed in the report."
+    },
+    {
+      "id": "cap-reached",
+      "class": "autonomous",
+      "default": "nen pr request-reviews --target <owner/name> --pr <n> --add-bots <reviewer>",
+      "why": "Ruling 2026-09-19: an owed reviewer round is requested on the maintainer's behalf while this PR's requested rounds are under nen/gates.json round_policy.maxRounds (never asked about); at maxRounds the run ends at not-ready with the board, never with a question. nen/workflow.json monitor.maxCycles is en's ACTING-cycle cap, a different number."
+    },
+    {
+      "id": "red-lint",
+      "class": "autonomous",
+      "default": "hand the tree back to hatsu:rasengan with the failing check quoted",
+      "why": "Ruling 2026-09-19: a red iteration check kokusen cannot clear returns to rasengan; the turn continues. It is never a G5."
+    },
+    {
+      "id": "missing-focused-route",
+      "class": "autonomous",
+      "default": "hand the tree back to hatsu:rasengan to author the focused tests, then hatsu:tsukuyomi runs them",
+      "why": "Ruling 2026-09-19: a changed executable with no declared scoped lane gets its tests authored, never a stop and never the full suite as a substitute."
+    },
+    {
+      "id": "missing-tool",
+      "class": "autonomous",
+      "default": "nen shu tools --repo <checkout> --install",
+      "why": "Ruling 2026-09-19: a missing tool or model id is installed or resolved through the surface's own catalogue probe, never with elevation and never a version the declaration did not pin. A verify-only row that cannot be installed is reported with its remedy line and the run continues where it can."
+    },
+    {
+      "id": "stale-base",
+      "class": "autonomous",
+      "default": "nen pr cascade-main --repo <checkout> --trunk <branch.base> --no-push",
+      "why": "A base that can be fast-forwarded or merged mechanically is caught up; only a semantic conflict reaches semantic-conflict."
+    },
+    {
+      "id": "release-precondition-red",
+      "class": "autonomous",
+      "default": "nen changelog collate --write, then nen changelog completeness; reconcile in the same chunk and re-run nen release preflight",
+      "why": "Ruling 2026-09-19: a red release precondition (changelog completeness, uncollated fragments) is reconciled inside the same chunk of work, never a cause of stopping. An active RELEASE_HOLD and an open critical issue are not preconditions of this kind and stay human gates."
+    },
+    {
+      "id": "staging-flag",
+      "class": "autonomous",
+      "default": "skip ignored, large and out-of-scope paths; mention-or-skip an unmentioned deletion; commit local-config and binary paths only when the request named them",
+      "why": "Six of the seven nen stage triage flag kinds have a canon default; secret-shape is the seventh and is never askable (see secret-shape)."
+    },
+    {
+      "id": "missing-consumer-declaration",
+      "class": "ask-once-per-run",
+      "default": "hatsu:tenkai (apply, after its own diagnose) for a Hatsu-owned scaffolding piece",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "repair the scaffolding piece",
+          "command": "scripts/tenkai_adopt.sh apply --repo <checkout>",
+          "consequence": "the Hatsu-owned file is rendered; nothing routed to nen is written",
+          "recommended": true
+        },
+        {
+          "key": "B",
+          "label": "assisted setup of the nen declaration",
+          "command": "nen scaffold init --repo <checkout> --accept-detected --dry-run, then the real run after the questions are answered",
+          "consequence": "the declaration lands as its own PR at G2 in a consumer repository"
+        },
+        {
+          "key": "C",
+          "label": "continue with the refusal quoted",
+          "command": "nen shu <verb> --repo <checkout> --dry-run",
+          "consequence": "the phase is reported not measurable here"
+        }
+      ],
+      "proposeIssue": true,
+      "why": "Ruling 2026-09-19: a missing declaration always gets a path forward. A Hatsu-owned scaffolding piece is repaired by tenkai without asking; a nen-routed declaration is set up through an assisted flow that asks the configuration questions itself and runs the owning verb."
+    },
+    {
+      "id": "mode-unknown",
+      "class": "ask-once-per-run",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "Transmuter (machinery)",
+          "command": "proceed in Transmuter mode",
+          "consequence": "workflows, scripts, hooks, generators; G4 in a canon repository",
+          "recommended": true
+        },
+        {
+          "key": "B",
+          "label": "Conjurer (canon and governance)",
+          "command": "proceed in Conjurer mode",
+          "consequence": "constitution, handbooks, skill prose; G4 in a canon repository"
+        },
+        {
+          "key": "C",
+          "label": "Enhancer (product code)",
+          "command": "proceed in Enhancer mode",
+          "consequence": "product source and tests; G2"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "The mode is derived from the issue's labels and the diff's paths first; the picker fires only on a genuine tie."
+    },
+    {
+      "id": "semantic-conflict",
+      "class": "human-gate",
+      "gate": "G5",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "take ours",
+          "command": "git checkout --ours -- <path> && git add <path>",
+          "consequence": "the branch's meaning wins on this hunk"
+        },
+        {
+          "key": "B",
+          "label": "take theirs",
+          "command": "git checkout --theirs -- <path> && git add <path>",
+          "consequence": "the base's meaning wins on this hunk"
+        },
+        {
+          "key": "C",
+          "label": "a genuine third resolution the run proposes",
+          "command": "apply the shown patch, then git add <path>",
+          "consequence": "both meanings are kept as the run describes"
+        },
+        {
+          "key": "D",
+          "label": "resolve it and show me the diff before anything is committed",
+          "command": "resolve, then git diff --cached -- <path>; commit only after the maintainer reads it",
+          "consequence": "the run types, the maintainer decides"
+        }
+      ],
+      "proposeIssue": true,
+      "why": "Ruling 2026-09-19: a semantic conflict in ao always goes to Crazy Slots with both sides shown verbatim and these four options; the run never picks a side."
+    },
+    {
+      "id": "unsettled-finding",
+      "class": "human-gate",
+      "gate": "G5",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "extend scope and take the proposed fix",
+          "command": "apply the reviewer's proposed fix",
+          "consequence": "the change set grows by the finding"
+        },
+        {
+          "key": "B",
+          "label": "adopt the business rule the finding implies",
+          "command": "record the rule in the PR body and apply it",
+          "consequence": "a new rule, stated where it can be reviewed"
+        },
+        {
+          "key": "C",
+          "label": "keep the durable pending record and stop",
+          "command": "hatsu:file with the finding as evidence",
+          "consequence": "the finding outlives the branch as an issue"
+        }
+      ],
+      "proposeIssue": true,
+      "why": "hanten section 7: only after the four-fact test proves none of section 6's dispositions can be chosen without the maintainer."
+    },
+    {
+      "id": "merge",
+      "class": "human-gate",
+      "gate": "G2",
+      "why": "CON-5: no agent in this plane merges main or its own PR anywhere."
+    },
+    {
+      "id": "canon-merge",
+      "class": "human-gate",
+      "gate": "G4",
+      "why": "CON-7: a merge in a canon repository decides how every other repository behaves."
+    },
+    {
+      "id": "release-go",
+      "class": "human-gate",
+      "gate": "G3",
+      "why": "CON-6: publication is the maintainer's recorded per-target go; no composite reaches it."
+    },
+    {
+      "id": "mode-label",
+      "class": "human-gate",
+      "gate": "G1",
+      "why": "CON-4 and CON-25: the epic mode label and the building label are the maintainer's."
+    },
+    {
+      "id": "rewrite-published-history",
+      "class": "human-gate",
+      "gate": "G5",
+      "why": "A force-push, a rewrite of a pushed commit, or an overwrite of a tracked path destroys somebody's history."
+    },
+    {
+      "id": "secret-shape",
+      "class": "human-gate",
+      "gate": "G5",
+      "why": "A secret-shape path is never committed and never askable: the answer is rotate or remove. Reported, not offered."
+    },
+    {
+      "id": "signing-material",
+      "class": "human-gate",
+      "gate": "G5",
+      "why": "nen never synthesises signing material and neither does any skill; a missing identity ends the run naming the precondition."
+    },
+    {
+      "id": "on-device-act",
+      "class": "human-gate",
+      "gate": "G5",
+      "why": "A trust prompt or a security setting on a device is the maintainer's own act (jujutsu)."
+    },
+    {
+      "id": "supply-chain-failure",
+      "class": "human-gate",
+      "gate": "G5",
+      "why": "A checksum or manifest failure in the bootstrap is a security event the maintainer must see; never retried."
+    },
+    {
+      "id": "unruled-policy-surface",
+      "class": "human-gate",
+      "gate": "G5",
+      "why": "A consumer repository declaring a policy surface of its own is unruled; until ruled it is G2 and a genuine-looking exception is brought to the maintainer."
+    },
+    {
+      "id": "ambiguous-intent",
+      "class": "human-gate",
+      "gate": "G5",
+      "why": "A request that is genuinely ambiguous, a scope change, or conflicting requirements canon does not adjudicate cannot be defaulted; rasengan brings it to the maintainer once, through Crazy Slots, with the readings it can see as the options.",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "the narrowest reading",
+          "command": "proceed with the reading the run states, recorded on the turn page",
+          "consequence": "the smallest change that satisfies the request as read",
+          "recommended": true
+        },
+        {
+          "key": "B",
+          "label": "the wider reading",
+          "command": "proceed with the wider reading the run states",
+          "consequence": "more surface changes; named in the PR body"
+        },
+        {
+          "key": "C",
+          "label": "restate the request",
+          "command": "stop; the maintainer restates",
+          "consequence": "nothing authored on a guess"
+        }
+      ],
+      "proposeIssue": false
+    }
+  ]
+}
