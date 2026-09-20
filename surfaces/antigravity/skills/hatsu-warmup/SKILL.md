@@ -83,10 +83,10 @@ hatsu_root='<the absolute path § 0 printed>'   # explicit input (§ 5's rule): 
 nen schema check --repo "$hatsu_root"
 ```
 
-Verified live at nen `0.10.0` against this branch: the `nen/contract.json` row prints
-`ok    nen/contract.json  dependency (nen >= 0.10, pinned v0.10.0), project (4 lanes: plugin, plugin-bump-guard, plugin-update, tenkai-guard; 13 verbs; 1 toolchain entry)`
+Verified live at nen `0.11.0` (the pinned build) against this branch: the `nen/contract.json` row prints
+`ok    nen/contract.json  dependency (nen >= 0.11, pinned v0.11.0), project (4 lanes: plugin, plugin-bump-guard, plugin-update, tenkai-guard; 13 verbs; 1 toolchain entry)`
 — the minimum and the pin nen parsed are the ones you just read, and they are **two independent values**:
-`>= 0.10` is the capability minimum this repository declares, `v0.10.0` is the build its bootstrap installs, and § 1b's
+`>= 0.11` is the capability minimum this repository declares, `v0.11.0` is the build its bootstrap installs, and § 1b's
 floor rule is why the second may move without the first. A drift between them and this file's prose is a
 bug in the prose. **On this checkout all SIX schema rows pass and the aggregate exits `0`.** That
 sentence used to read the other way, and the difference is `zheref/hatsu#79`: `nen/colors.yml` had
@@ -338,14 +338,14 @@ against this plugin, reported alongside.
 Both start with the same fetch, and **it is always two steps**:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.10.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
+curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.11.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
 ```
 
 > ### ⚠️ Fetch to a file. **Never pipe the script into bash.**
 >
 > ```bash
 > # WRONG — dies before it starts:
-> curl -fsSL <url> | bash -s -- --ref v0.10.0
+> curl -fsSL <url> | bash -s -- --ref v0.11.0
 > ```
 >
 > The script runs under `set -u` and reads `${BASH_SOURCE[0]}`. Piped into `bash -s --` there is no
@@ -357,7 +357,7 @@ curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.10.0/bootstrap/nen.sh
 ### 2a · nen is **absent** → run the shell bootstrap directly
 
 ```bash
-bash /tmp/nen-bootstrap.sh --ref v0.10.0
+bash /tmp/nen-bootstrap.sh --ref v0.11.0
 ```
 
 **Why shell is permitted here, and only here.** Chicken-and-egg: `nen bootstrap` is a `nen` subcommand, so
@@ -369,7 +369,7 @@ grounds that this one does.
 ### 2b · nen is **present and does not satisfy the pin** → re-pin through nen's own verb
 
 ```bash
-nen bootstrap --ref v0.10.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
+nen bootstrap --ref v0.11.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
 ```
 
 A working `nen` is on `PATH`, so the chicken-and-egg rationale does not apply and the shell path is **not**
@@ -488,7 +488,7 @@ never halt on them as if they were bootstrap failures.
 
 ## 3 · Halt — only when the bootstrap itself failed
 
-**This is the only halt in this skill.** Not "nen was missing" — that was §2's job and §2 did it. Only a
+**This is the only halt in this skill** (`nen/decisions.json` row `supply-chain-failure`). Not "nen was missing" — that was §2's job and §2 did it. Only a
 non-zero exit *from the bootstrap* halts, and `1` and `7` are not that: they are your invocation to fix.
 
 Print `halt.message_template` from the contract, with the code and its meaning filled in:
@@ -498,8 +498,8 @@ Print `halt.message_template` from the contract, with the code and its meaning f
 > yourself, then re-invoke:
 >
 > ```
-> curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.10.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
-> bash /tmp/nen-bootstrap.sh --ref v0.10.0
+> curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.11.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh
+> bash /tmp/nen-bootstrap.sh --ref v0.11.0
 > ```
 >
 > Two steps, never a pipe: the script reads `${BASH_SOURCE[0]}` under `set -u`, so `curl … | bash` dies
@@ -529,11 +529,11 @@ line carries the floor beside the version**, because the version alone no longer
 owed — that is the whole of what the floor added, and a report that omits it hides the one fact the reader
 would act on:
 
-- `Nen 0.10.0 · floor 0.7 · satisfies >=0.10.0 <0.11.0 · warm-up clear`
-- `Nen 0.8.0 · floor 0.7 · older than the required >=0.10.0 <0.11.0 capability line · re-pinned to v0.10.0 via nen bootstrap (checksum verified) · warm-up clear`
-- `Nen absent · bootstrapped to v0.10.0 (checksum verified) · warm-up clear`
-- `Nen 0.6.0 · floor 0.7 · below the pin (>=0.10.0 <0.11.0) · re-pinned to v0.10.0 via nen bootstrap (checksum verified) · warm-up clear`
-- `Nen 1.0.0 · floor 1.0 · pin "0.10" is BELOW the floor · re-pinned to v0.10.0; nen/contract.json owes a repin to "1.0" · warm-up clear`
+- `Nen 0.11.0 · floor 0.7 · satisfies >=0.11.0 <0.12.0 · warm-up clear`
+- `Nen 0.8.0 · floor 0.7 · older than the required >=0.11.0 <0.12.0 capability line · re-pinned to v0.11.0 via nen bootstrap (checksum verified) · warm-up clear`
+- `Nen absent · bootstrapped to v0.11.0 (checksum verified) · warm-up clear`
+- `Nen 0.6.0 · floor 0.7 · below the pin (>=0.11.0 <0.12.0) · re-pinned to v0.11.0 via nen bootstrap (checksum verified) · warm-up clear`
+- `Nen 1.0.0 · floor 1.0 · pin "0.11" is BELOW the floor · re-pinned to v0.11.0; nen/contract.json owes a repin to "1.0" · warm-up clear`
 - `Nen unavailable · bootstrap failed (exit 6, EXIT_MANIFEST) · HALTED — G5`
 
 **Every value on that line is quoted from `nen shu tools`, never assembled.** The version is the row's
@@ -621,10 +621,21 @@ repository — is `$hatsu_root/docs/SURFACES.md` § *Targeting a local checkout*
 
 ## 5 · Surfaces — what a target repository gets on Codex, Cursor, and Antigravity
 
-**On Claude Code, nothing in § 5 runs and nothing in the target repository changes.** Claude Code loads the
-plugin's own `claude/skills/` and `claude/agents/` directly from `$CLAUDE_PLUGIN_ROOT`; there is nothing to
-install into somebody else's checkout, and installing anything would be a write with no reason behind it.
-Say *"surface: claude-code — nothing installed, the plugin is read in place"* and move on.
+**On Claude Code, § 5's mirror install does not run — the plugin is read in place — and the ONE thing
+that changes in the target repository is the permission pack merged into `.claude/settings.local.json`:**
+
+```sh
+hatsu_root='<the absolute path § 0 printed>'
+"$hatsu_root/scripts/permissions_pack.sh" --surface claude-code --install --target "$(git rev-parse --show-toplevel)"
+```
+
+(`surface_bootstrap.sh` takes only `codex|cursor|antigravity`; the pack script takes `claude-code` too.
+A target with no `nen/contract.json` or `nen/workflow.json` is skipped with a named line.) Claude Code loads the
+plugin's own `claude/skills/` and `claude/agents/` directly from `$CLAUDE_PLUGIN_ROOT`; no skill or persona
+is placed into the target checkout — the pack is the one write. Report its result, whichever line the
+script printed: *"surface: claude-code — plugin read in place; permission pack merged into
+`.claude/settings.local.json`"*, or *"… pack left alone (file not ours)"*, or *"… pack skipped (not a
+consumer)"* — and move on. Never say "nothing installed" on a run where the pack line said it wrote.
 
 **On Antigravity in global-plugin mode, nothing here runs and nothing in the target repository changes.**
 Antigravity loads the plugin directly from `${GEMINI_CONFIG_DIR:-~/.gemini}/config/plugins/hatsu` with
@@ -876,7 +887,19 @@ hatsu_root='<the absolute path § 0 printed>'
 target="$(git rev-parse --show-toplevel)"
 surface='<codex, cursor, or antigravity — the host running this warm-up>'
 "$hatsu_root/scripts/surface_bootstrap.sh" --surface "$surface" --target "$target" --install-all
+"$hatsu_root/scripts/permissions_pack.sh" --surface "$surface" --install --target "$target"   # the permission pack, from contracts/permissions.json
 ```
+
+**The permission pack is placed on every surface, Claude Code included** (zheref/hatsu#85, rulings of
+2026-09-19): `scripts/permissions_pack.sh` renders `contracts/permissions.json` — the commands the skills
+actually run, scoped to this repository, its worktrees and its declared associated repositories — into
+the surface's own files: `.claude/settings.local.json` (merged, never `.claude/settings.json`),
+`.codex/config.toml` + `.codex/hooks.json`, `.cursor/cli.json` + `.cursor/hooks.json`; on Antigravity the
+pack is the generated hooks only (a persona-wide `commandExecutionPolicy: auto` is deliberately not
+emitted: it would approve arbitrary commands, not the declared set). A file the script did not write is
+left alone and named; every written path is excluded through `info/exclude`. **Say in § 4's line what
+was placed or left alone.** This is the one write on Claude Code, and it is the reason a session on any
+surface is no longer asked about `nen`, `gh` or `git` inside its own repository.
 
 The bootstrap itself is the sole pre-skill shell carve-out. After discovery this script is the deterministic
 implementation of the existing mirror placement policy, not a replacement for the Nen-owned parts of this

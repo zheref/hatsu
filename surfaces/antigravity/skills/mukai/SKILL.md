@@ -199,7 +199,7 @@ one PR carrying two concerns because the run had already started.
 make; a repository that cannot honestly reach `minimum` is a G5, not a smaller number.
 
 **A stop is all four of `jutaisho` § 4's parts or it is not a stop**: the `nen stop` banner, the
-report link, lettered options with a ⭐ on the report, and the question through the surface's own
+report link, lettered options with a ⭐ on the recommended decision — the report linked, never an option (Crazy Slots), and the question through the surface's own
 native option picker (`AskUserQuestion` on Claude Code). A stop typed as prose in the middle of a
 reply is one the maintainer can scroll past, and one they scroll past is one that did not happen.
 

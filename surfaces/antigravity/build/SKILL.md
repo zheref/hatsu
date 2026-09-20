@@ -167,7 +167,7 @@ objects (`docs/ab/build.md` §§ 2.4, 2.4a, 2.5, 2.7, 2.7a):
 | `closed` | closed | **The run ends** with what closed it and which PR delivered it (verified live, `<reference-repo>#733` — a closed epic — reports exactly this). Re-opening is the maintainer's call |
 | `building` | already released — **with or without an open PR**, `in-review` folds into this same bucket (verified live, `<reference-repo>#918`/`#337`/`#879` all report `building` — `docs/ab/build.md` §§ 2.4, 2.4a) | Skip straight to § 4's drive step — the release already happened |
 | `idea` | a raw brief (`bankai:stage/idea`) | Wake **Gon** so it is decomposed into an epic — his delegation grammar is **unratified** (`docs/ROSTER.md`), so this itself does not cross a gate on its own; he hands the decomposition back and this run takes it to § 3/§ 4 |
-| `epic-awaiting-approval` | an epic that carries the epic label but no mode label yet | **Stop at G1.** The mode label is the maintainer's and is never delegated (`CON-4`) — § 3/§ 4 |
+| `epic-awaiting-approval` | an epic that carries the epic label but no mode label yet | **Stop at G1** (`nen/decisions.json` row `mode-label`). The mode label is the maintainer's and is never delegated (`CON-4`) — § 3/§ 4 |
 | `epic-approved` | an epic that carries the epic label **and** a mode label (`approved-team` or `approved-direct`) | Children advance wave by wave — § 4's epic-wave release step |
 | `routable` | a routable child or a standalone task (no idea/epic/release label at all — verified live, `#673`/`#710`/`#494`) | Confirm the mode (§ 3), release it (§ 5), then build it |
 | `undecidable` | a role in play was never mapped in `--chain-labels`, so this issue's true position cannot be told apart from another (verified live, `<reference-repo>#918` with no `--chain-labels` at all — § 2.7) | **Refuse the guess.** Supply the missing role and re-run; never proceed on a guess |
@@ -465,8 +465,9 @@ Before a handover, read the current head, checks, every review body (including s
 and every thread. Verify the fix at the pushed SHA; post each on-thread disposition and resolve it
 only when addressed. Confirm a fresh snapshot has no unresolved prior-round threads. A green test
 run, a pushed commit, or a delegate's “done” message cannot substitute for that evidence. Follow
-sharingan § 5's one-round norm/two-round cap before any further review request; never repeat a
-request while one is pending or merely to refresh a head SHA.
+sharingan § 5: an owed round is requested on the maintainer's behalf while the PR is under the
+configured maximum (`nen/decisions.json` row `cap-reached`); never repeat a request while one is
+pending or merely to refresh a head SHA. **The maximum is `nen/gates.json` → `round_policy.maxRounds`** (Hatsu's own key beside nen's `stallMinutes`); `nen/workflow.json` → `monitor.maxCycles` is en's acting-cycle cap, a different number.
 
 Also verify the complete associated-issue set under shibari's linkage contract: **every issue this
 PR addresses appears in its body and in Development**, with completion/partial status stated.
@@ -497,7 +498,7 @@ question — if there is one — through the harness's question interface. The g
 |---|---|---|
 | **G1** | an epic awaits its mode label (`CON-4`) | `DECIDE` — bankai vs shikai, with the trade-off |
 | **G2 / G4** | the delivery PR is `CON-32`-Ready | `MERGE` — the verdict says everything |
-| **G5** | a stuck local build, a mode question, a missing capability | `DECIDE` or `DO`, with options |
+| **G5** | a stuck local build, or a capability a local session structurally cannot have. A mode tie is `nen/decisions.json` row `mode-unknown` (ask once, seeded options); a missing installable tool is row `missing-tool` and is installed, not asked | `DECIDE` or `DO`, Crazy Slots options with a proposed issue |
 
 The run **ends** when the delivery PR stands Ready at its gate, when the issue closes, or when it
 stops at a G5 it cannot pass. Say which — and say the delegation has lapsed.

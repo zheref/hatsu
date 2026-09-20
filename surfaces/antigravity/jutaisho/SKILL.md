@@ -1,6 +1,6 @@
 ---
 name: jutaisho
-description: Ring the bell at the end of a turn — the three escalation rungs from nen/workflow.json (a push notification through the surface, an OS notification, an audible cue), the .nen/last-stop.json marker the Stop hook reads, and the fallback that runs the notifier in-session and says so when no hook is installed. Use when /ren reaches its sixth step, when /en reaches Ready, or when the maintainer invokes /jutaisho [at <gate>]. An ordinary turn rings rung 1 only — rungs 2 and 3 escalate at a gate, or when nen/workflow.json notifications.turn says a turn rings — and a turn that did nothing rings nothing; a genuine gate gets the nen stop banner, the report link, lettered options with a star on the report, and the question through the surface's own option picker. Never prompts for /aka.
+description: Ring the bell at the end of a turn — the three escalation rungs from nen/workflow.json (a push notification through the surface, an OS notification, an audible cue), the .nen/last-stop.json marker the Stop hook reads, and the fallback that runs the notifier in-session and says so when no hook is installed. Use when /ren reaches its sixth step, when /en reaches Ready, or when the maintainer invokes /jutaisho [at <gate>]. An ordinary turn rings rung 1 only — rungs 2 and 3 escalate at a gate, or when nen/workflow.json notifications.turn says a turn rings — and a turn that did nothing rings nothing; a genuine gate gets the nen stop banner, the report link, lettered options with a star on the recommended decision (Crazy Slots; the report is linked and never an option), and the question through the surface's own option picker. Never prompts for /aka.
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
@@ -178,6 +178,10 @@ degradation, and it is reported as configured rather than as missing.
 > three; the two numberings compose (`push`/`os`/`sound` = nen's 1/2-3, the banner = nen's 4) and
 > neither renumbers the other. Say "rung 2" and mean the OS notification, both ways.
 
+**`HATSU_ATTENTION=off` in the environment rings rungs 2 and 3 nowhere** and still consumes the marker
+— the switch for a host that must stay quiet, kept under Hatsu's name from bankai-core's
+`BANKAI_ATTENTION`. The hook honours it on every platform.
+
 ## 3. The marker — `.nen/last-stop.json`
 
 Rungs 2 and 3 are fired by the harness `Stop` hook, and the hook needs to be told. **The skill
@@ -188,20 +192,35 @@ writes the marker; the hook reads it, fires, and removes it.**
 marker on disk is a request to interrupt, and writing one for every turn would hand the hook the
 escalation § 1 just withheld.
 
+```bash
+nen stop --who Kurapika --gate <gate> --notified --mark \
+  --title "<one short line — what happened>" --body "<one line — the ask>" \
+  --report-url "<the rikugan report's link>" \
+  --options <options.json> [--propose-issue <issue.json>] <efforts.md>
 ```
-.nen/last-stop.json
+
+```
+.nen/last-stop.json            (nen.stop.mark/v0.2, written by nen stop --mark)
 {
-  "contract":  "hatsu.stop-marker/v0.1",
-  "at":        "<absolute ISO-8601 UTC timestamp>",
-  "gate":      "G5" | null,
+  "contract":  "nen.stop.mark/v0.2",
   "who":       "kurapika",
+  "gate":      "G5" | null,
+  "notified":  true,
+  "at":        "<absolute ISO-8601 UTC timestamp>",
   "title":     "<one short line — what happened>",
-  "body":      "<one line — what is needed, or what finished>",
+  "body":      "<one line — the ask>",
   "reportUrl": "<the rikugan report's link or path>",
-  "sound":     "<notifications.sound>",
-  "rungs":     ["os", "sound"]
+  "options":   [ { "key": "A", "label": …, "command": …, "consequence": …, "recommended": true }, … ],
+  "proposedIssue": { "title": …, "body": …, "labels": [ … ] } | null
 }
 ```
+
+**From nen `0.11.0` the marker is nen's file, not this skill's.** `nen stop --mark` writes it whole; the
+older hand-written `hatsu.stop-marker/v0.1` shape (through Hatsu `v0.38.0`) is read by the hook still but
+never written again. `sound` and `rungs` are not in the marker: the hook reads them from
+`nen/workflow.json` itself, which is where the policy lives. An ordinary turn bell (no gate) writes no
+marker; `nen stop show` reads one back and validates it (exit 1 naming the defect), and `nen stop clear`
+consumes one on a surface with no Stop hook.
 
 - **`.nen/` is git-ignored**, and the marker is the only file this skill writes anywhere.
 - **The hook treats a marker older than 10 minutes as stale**: it decides from the file's **mtime**
@@ -219,10 +238,11 @@ escalation § 1 just withheld.
 - **The hook is `hooks/hooks.json`'s** — a harness hook, POSIX `sh`, documented as the harness's and
   **not as a nen-owned step**. This skill never edits it and never installs it.
 
-> **Writing this file is residue: `nen stop` does not write it.** Verified live — `nen stop`'s
-> `--help` names one output, the banner and table, and its own text says nen shells out to git and
-> gh only. `nen stop --notified` records that rung 1 fired; it records nothing about rungs 2–3 and
-> creates nothing on disk. The marker is this skill's own file, written by hand, named here.
+> **RETIRED at nen `0.11`: the marker was this skill's hand-written residue.** Through `v0.10.0`
+> `nen stop --mark` wrote a five-field marker nothing read and this skill wrote its own richer shape
+> beside it. `nen stop --mark --title --body --report-url --options --propose-issue` now writes the
+> one marker the hook reads (`nen.stop.mark/v0.2`), and `hooks/stop-bell.sh` carries the title, the
+> ask and the report link into the OS notification.
 
 ## 4. A stop — the four parts, all four or it is not a stop
 
@@ -239,7 +259,10 @@ fill (`Effort | Open issues & PRs | Status (gate) | Thought flow | Session / lan
 exit `0`. Pass `--notified` **only if rung 1 actually fired** (§ 2). Both forms verified live,
 `docs/ab/jutaisho.md` § 2.2.
 
-**2 · The report link — and the page must actually explain this stop.** [`/rikugan`](../rikugan/SKILL.md) has already rendered and published
+**2 · The report link — always, everywhere, and never an option.** The link goes in the banner line,
+the chat line, the marker's `reportUrl` and the OS notification body. It is never one of the lettered
+options: a report is read, not decided, and the picker lists only the decisions that move the workflow.
+**And the page must actually explain this stop.** [`/rikugan`](../rikugan/SKILL.md) has already rendered and published
 the turn's page (`ren` step 5 runs before this one). **Before the link goes in the stop, verify
 the rendered HTML contains readable G5 blocker content** ([zheref/hatsu#56](https://github.com/zheref/hatsu/issues/56);
 rikugan § 5a): section `#g5-blocker` (or the `g5-blocker` class), the step that stopped, why, the
@@ -250,13 +273,22 @@ content, re-render through rikugan with `blocker` filled and verify again; **do 
 link whose page does not explain the stop.** The stop never restates the page's contents once
 that check has passed.
 
-**3 · Lettered options, with a ⭐ on the report.** The recommendation is always *read the report
-first* — the maintainer deciding without having opened the page is the failure this whole ordering
-exists to prevent. Options are concrete acts, not moods: *"⭐ A — open the report", "B — take side
-`ours` on `src/session.ts`", "C — stop here and hand it back."*
+**3 · Crazy Slots — lettered options, at least three, with a ⭐ on the recommended decision.** The
+options are composed by the model from the session's context and the state of the workflow, **seeded
+by the matching row's `preferred[]` in `nen/decisions.json`** and never limited to it. Every option is
+an executable act with its exact command line and its consequence — never a mood, never "open the
+report". Exactly one carries the star, on the decision the run recommends, and the line says what
+would tip it. **Every real stop also carries a proposed process issue** (`--propose-issue`, Netero's
+completeness shape) so the next session does not hit the same stop; the third-hand harvest picks it
+up. *"⭐ A — carry the tree onto the branch (`nen shu warmup --carry`)", "B — take side `ours` on
+`src/session.ts`", "C — stop here and hand it back."* A condition whose row is `autonomous` never
+reaches this part: it was resolved by its default, and the turn page says so with the row id.
 
 **4 · The question through the surface's own option picker.** On Claude Code that is
-**AskUserQuestion**, not a paragraph ending in a question mark. A stop rendered as prose is a stop
+**AskUserQuestion**; on Codex `request_user_input`; on Cursor `AskQuestion`; on Antigravity
+`ask_question` (`nen surface capabilities --surface <s>` names it) — not a paragraph ending in a
+question mark. The picker's options are the marker's, verbatim, same letters, same order; a `DO` or
+`MERGE` ask takes no picker because the act is the maintainer's outside the session. A stop rendered as prose is a stop
 the maintainer has to compose an answer to, and it is not this skill's shape.
 
 **Only a genuine G5-class stop interrupts.** Red required tests inside [`/kotoamatsukami`](../kotoamatsukami/SKILL.md),
@@ -511,7 +543,7 @@ same — that is what rungs 2 and 3 are for.
   the surface's own line and nothing else: no OS notification, no sound, no marker, no banner, no
   `nen stop` (§ 1, § 3). And **a turn that did nothing rings nothing at all** — § 1's narrow case.
 - **Never renders a stop with fewer than § 4's four parts** — banner, report link, lettered options
-  with ⭐ on the report, and the question through the surface's own picker.
+  with ⭐ on the recommended decision (never on the report, which is linked and never an option), and the question through the surface's own picker.
 - **Never hands off a G5 report link whose page lacks § 4's blocker verification** — step, why,
   rule, expected versus actual, this-run evidence or an explicit unavailable reason
   ([zheref/hatsu#56](https://github.com/zheref/hatsu/issues/56)).

@@ -99,6 +99,15 @@ cat > "$tmp_dir/hooks.json" <<EOF
       }
     ]
   },
+  "hatsu-session-start": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "sh -c 'if [ -n \"\${HATSU_PLUGIN_ROOT:-}\" ] && [ -x \"\$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh\" ] && [ -d ./.agents ]; then exec \"\$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh\" --surface antigravity --target . --install-all; fi' --",
+        "timeout": 60
+      }
+    ]
+  },
   "hatsu-stop-bell": {
     "Stop": [
       {
@@ -175,6 +184,11 @@ for agent_file in "$source_agents"/*.md; do
     }
     in_fm && /^---$/ {
       in_fm = 0; fm_done = 1;
+      # NO commandExecutionPolicy IS EMITTED (Copilot review on zheref/hatsu#87):
+      # `auto` would approve arbitrary commands, not the set contracts/
+      # permissions.json declares, because this surface has no allowlist file
+      # to scope it. The Antigravity pack is the hooks only until the surface
+      # offers a scoped mechanism.
       print;
       print marker;
       next

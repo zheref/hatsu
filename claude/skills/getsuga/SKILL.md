@@ -179,7 +179,7 @@ every row the table used to check by separate hand-run command now comes back in
 | `RELEASE_HOLD` | **Honour it as printed.** Stop and say who set it. (`false`/`0`/`no`/unset is not held since nen `v0.2.0`; any other non-empty value fails closed as held) |
 | Open `critical` issues | **Stop.** A release shipping past an open `critical` is the failure the severity exists to name |
 | `CON-36` live chores | **Hold**, unless none has partial scope on `main` — and that reading is a `G5` ask for the maintainer, never your call (§ 5) |
-| `changelog.d/` empty at the cut point | Collate — § 3 |
+| `changelog.d/` empty at the cut point | Collate — § 3 (`nen/decisions.json` row `release-precondition-red`: reconciled in the same chunk, never a stop) |
 | `CON-33(c)` reconciled | Back-fill — § 3 |
 | Tag does not already exist | Stop. Re-tagging is never the fix |
 
@@ -300,7 +300,7 @@ by hand in `<reference-repo>` (RR-PR-#651, RR-PR-#679, RR-PR-#682, RR-PR-#691) b
 > delete the superseded entry.** State the **net effect** so nobody has to reconcile two entries
 > themselves. This stays judgment — no verb reads intent.
 
-Then **stop at the declaration gate** with the banner and the board — **`G4` in a canon repository
+Then **stop at the declaration gate** (`nen/decisions.json` row `canon-merge` in a canon repository, `merge` in a consumer) with the banner and the board — **`G4` in a canon repository
 (`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`), `G2` in a consumer one**, because a release
 proposal in a repository whose product is not the process is that repository's own configuration:
 

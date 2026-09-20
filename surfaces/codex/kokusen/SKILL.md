@@ -158,8 +158,11 @@ the author's inner loop, not inherited from the warm-up, not skipped because the
    check verbatim (the tool's own output, `step N of M`, the tool's code from `steps[].exitCode` and
    nen's own `1`), commit nothing, and hand the turn back to
    [`$rasengan`](../rasengan/SKILL.md) to author the fix. Re-run this gate over the repaired
-   tree. **A red check the turn cannot honestly clear is a G5 stop, with that check quoted** — never
-   a commit "so the fix is saved", and never a narrowed check (`rasengan` § 4).
+   tree. **A red check is never a G5 (ruling 2026-09-19, `nen/decisions.json` row `red-lint`)**: the
+   tree goes back to rasengan with the failing check quoted, as many times as the turn honestly
+   needs, and a red that still stands when the turn ends is stated on the turn page as the next
+   turn's first job — never a commit "so the fix is saved", and never a narrowed check
+   (`rasengan` § 4).
 
    **A seat (exit `4`) is not red.** Historically verified against this repository on 2026-09-10
    with Nen `0.7.0`, where the `plugin` lane seats `build` and declares `lint`:
@@ -198,8 +201,10 @@ the author's inner loop, not inherited from the warm-up, not skipped because the
    and this gate. Never infer scope from the lane name alone.
 
    A red focused run returns to rasengan and this gate repeats. If executable behavior changed and
-   no unambiguous scoped lane exists, record the missing declaration/capability durably and stop at
-   G5 before staging; never use an undeclared runner and never run the full suite as a substitute.
+   no unambiguous scoped lane exists, **hand the tree back to rasengan to author the focused tests
+   and register the scoped lane, then run them through tsukuyomi** (ruling 2026-09-19,
+   `nen/decisions.json` row `missing-focused-route`) — never a stop, never an undeclared runner, and
+   never the full suite as a substitute.
    For prose-only, data-only, or other non-executable changes with no relevant runnable behavior,
    report `focused tests: not applicable — <reason>` and continue. Hatsu's own Markdown-only changes
    are not blocked by its deliberate `test` seat.
@@ -321,7 +326,7 @@ One path can carry several reasons at once. **Present every flagged file togethe
 > `ignored`** with `secret-shape` recorded alongside `ignored`, and never appears in `flagged` —
 > which is the next bullet, now stated by the verb rather than only here.
 
-- **`secret-shape` is never askable, in the tree this commit could contain.** There is no yes; the
+- **`secret-shape` is never askable, in the tree this commit could contain** (`nen/decisions.json` row `secret-shape`; the six other flag kinds are row `staging-flag`, resolved by their defaults). There is no yes; the
   fix is to rotate or remove it. This is § 9's hard limit, and it is not softened by "it is only
   local, it is not pushed" — a commit is permanent the moment it exists, and the push that would
   publish it is one `$aka` away.

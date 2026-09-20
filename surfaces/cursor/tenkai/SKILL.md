@@ -103,6 +103,22 @@ bare `scripts/tenkai_adopt.sh` resolves to nothing — or, worse, to a same-name
 repository happens to carry. `--hatsu-root` defaults to the script's own parent, which is right once
 the script is the right script.
 
+**After `apply`, place the permission pack** (zheref/hatsu#85 — the maintainer's ruling of 2026-09-19 that a
+session is never asked about an action scoped to its own repository):
+
+```bash
+"$hatsu_root/scripts/permissions_pack.sh" --surface <claude-code|codex|cursor|antigravity> --install --target <path>
+```
+
+It renders `contracts/permissions.json` into the surface's own files (`.claude/settings.local.json` merged;
+`.codex/config.toml` + `.codex/hooks.json`; `.cursor/cli.json` + `.cursor/hooks.json`; nothing on Antigravity,
+which has no allowlist file — its pack is the generated hooks, and a persona-wide `auto` policy is
+deliberately not emitted because it would approve arbitrary commands), excludes every written path through
+`info/exclude`, leaves a file it did not write alone and names it, and skips a target that carries no
+`nen/contract.json` or `nen/workflow.json`. Report its one line beside the engine's rows. **The engine's
+`diagnose` does not yet know this item** — it is placed by this step and by the warm-up, and the
+diagnose row for it is filed as a follow-up on the engine.
+
 **State is written by a script with fixtures, never counted in prose.** This is the same rule
 [`scripts/hanten_cycle_ledger.sh`](../../../scripts/hanten_cycle_ledger.sh) carries and for the same
 reason: a skill that counted adoption items in its own reply would get the count right on the turn it

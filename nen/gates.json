@@ -25,5 +25,11 @@
       "codex/"
     ],
     "labels": []
+  },
+  "round_policy": {
+    "$comment": "Maintainer's rulings of 2026-09-19 (zheref/hatsu#85). stallMinutes is read by nen pr ready (v0.11.0): a pending review request older than it reads not-ready: reviewer round stalled. minRounds and maxRounds are Hatsu's own keys, read by the skills: an owed reviewer round is requested on the maintainer's behalf while the PR's requested rounds are under maxRounds; at maxRounds the run ends at not-ready with the board, never with a question. monitor.maxCycles in nen/workflow.json is a different number -- en's ACTING-cycle cap.",
+    "stallMinutes": 30,
+    "minRounds": 1,
+    "maxRounds": 3
   }
 }

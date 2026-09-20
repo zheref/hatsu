@@ -262,6 +262,9 @@ permission ([`kokusen`](../kokusen/SKILL.md) § 5).
 with `git -C <path> rebase --continue`, which reuses the replayed commit's own message. The build is
 re-proved the same way before the rebase is allowed to finish.
 
+A mechanical conflict, and a base that merely moved, are resolved and caught up without a word
+(`nen/decisions.json` row `stale-base`).
+
 ## 6. A semantic conflict is a stop, at G5
 
 **Never pick a side.** Not "ours is newer", not "theirs is bigger", not `-X ours`, not `-X theirs`,
@@ -274,8 +277,11 @@ report, and the question through the surface's own option picker. What this skil
 
 - **Both sides shown, verbatim** — `git show :2:<path>` and `git show :3:<path>`, with `:1:` where a
   base stage exists — never summarised, never paraphrased into "they disagree about retries".
-- **The options are the actual resolutions**, one per side plus any genuine third: *"A — keep
-  `retries = 5` (ours)", "B — take `retries = 9` (theirs)", "C — 9 with the branch's timeout"*.
+- **The options are the actual resolutions — four of them, by the maintainer's ruling of 2026-09-19
+  (`nen/decisions.json` row `semantic-conflict`)**: *"A — keep `retries = 5` (ours)", "B — take
+  `retries = 9` (theirs)", "C — 9 with the branch's timeout"* (a genuine third the run proposes), and
+  *"D — resolve it and show me the diff before anything is committed"* — the run types, the
+  maintainer decides. This is always Crazy Slots; the run never picks a side.
 - **The tree is left conflicted, and that is stated**, with the one-line undo printed:
   `git -C <path> merge --abort` (or `git rebase --abort`). Leaving it is deliberate — the conflict
   markers and the three stages are what the maintainer needs in front of them — but a checkout left

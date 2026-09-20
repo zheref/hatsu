@@ -230,7 +230,7 @@ whose base could not be determined is reported `unresolved`, never defaulted to 
 >   its copy of this system's setup — **is NOT ruled on.** The maintainer named the canon
 >   repositories and called everything else configuration; that question was not reached. **Do not
 >   improvise a path set for it.** Until it is ruled, the gate is `G2`, and a repository that looks
->   like a genuine exception is a **G5** for the maintainer.
+>   like a genuine exception is a **G5** for the maintainer (`nen/decisions.json` row `unruled-policy-surface`).
 >
 > **The incident this corrects.** In `zheref/zheref.io`, a consumer repository, a résumé PR touching
 > `nen/contract.json`, `nen/gates.json`, `.github/workflows/pr.yml`, `scripts/` and `docs/` derived

@@ -89,8 +89,9 @@ required`** — stated with the paths, and it is an answer rather than a gap.
 
 **Cold, a missing focused route is not the end of the run.** Inside `kokusen` it is a refusal,
 because the authoring phase sat immediately before it and owed the test. Typed by hand over somebody
-else's tree, there is nobody to refuse back to, so tsukuyomi **offers**, through the surface's own
-picker, with the recommendation starred:
+else's tree, there is nobody to refuse back to, so tsukuyomi **takes the first row without asking**
+(ruling 2026-09-19, `nen/decisions.json` row `missing-focused-route`) and names the other two on the
+turn page as what it did not do:
 
 | Option | What it means |
 |---|---|

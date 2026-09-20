@@ -1,0 +1,329 @@
+{
+  "contract": "hatsu.permissions/v0.1",
+  "$comment": "The ONE source of every permission pack (zheref/hatsu#85). These are the commands Hatsu's skills actually run, scoped to the repository the session stands in, its linked worktrees, and the repositories nen/repos.json declares as associated (consumers, maintained_tools). Anything outside that scope -- another repository, a system setting, a credential store, an elevation -- is deliberately absent and keeps prompting. scripts/permissions_pack.sh renders this file into each surface's own permission and hook files; the maintainer's rulings of 2026-09-19: a session is never asked about an action scoped to the current project or its associated repositories. The deny rows are a second line: hooks/guard-base-branch.sh is the guard that parses a push and refuses the base branch and force forms whatever the spelling.",
+  "scope": {
+    "repository": "the checkout the session stands in",
+    "worktrees": "every linked worktree of that checkout (git rev-parse --git-common-dir)",
+    "associated": "repositories nen/repos.json lists under consumers, maintained_tools or pending_onboarding",
+    "enforced_by": "Codex only, through sandbox_workspace_write.writable_roots. Claude Code and Cursor allowlists are exe-and-argument PATTERNS with no root syntax: their scope is that the rendered file lives in this checkout's own .claude/ or .cursor/ directory and applies to sessions opened there, and nothing in the file refuses an allowed command pointed at another checkout. The deny rows and hooks/guard-base-branch.sh are the second line on every surface."
+  },
+  "allow": [
+    {
+      "exe": "nen",
+      "args": "*",
+      "why": "every deterministic step is a Nen verb; nen shells out only to git and gh"
+    },
+    {
+      "exe": "curl",
+      "args": "-fsSL https://raw.githubusercontent.com/zheref/*",
+      "why": "the warm-up fetches nen's checksum-verified bootstrap script to a file"
+    },
+    {
+      "exe": "gh",
+      "args": "pr *",
+      "why": "readiness, reviews, PR bodies"
+    },
+    {
+      "exe": "gh",
+      "args": "issue *",
+      "why": "filing and reconciling issues"
+    },
+    {
+      "exe": "gh",
+      "args": "api *",
+      "why": "reads the verbs perform through gh"
+    },
+    {
+      "exe": "gh",
+      "args": "run *",
+      "why": "reruns and run timing"
+    },
+    {
+      "exe": "gh",
+      "args": "auth token",
+      "why": "GH_TOKEN for the verbs"
+    },
+    {
+      "exe": "gh",
+      "args": "label *",
+      "why": "label sync"
+    },
+    {
+      "exe": "git",
+      "args": "fetch *",
+      "why": "the delta is read against the fetched base"
+    },
+    {
+      "exe": "git",
+      "args": "status *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "log *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "diff *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "show *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "rev-parse *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "merge-base *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "ls-remote *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "ls-files *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "check-ignore *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "check-ref-format *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "branch *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "switch *",
+      "why": "breath cuts the effort branch"
+    },
+    {
+      "exe": "git",
+      "args": "worktree *",
+      "why": "breath's isolated proof and hanten's reviewer sandboxes"
+    },
+    {
+      "exe": "git",
+      "args": "stash *",
+      "why": "nen shu warmup --carry, addressed by SHA"
+    },
+    {
+      "exe": "git",
+      "args": "add *",
+      "why": "kokusen stages what nen stage triage cleared"
+    },
+    {
+      "exe": "git",
+      "args": "commit *",
+      "why": "kokusen commits on a branch; the base-branch guard refuses main"
+    },
+    {
+      "exe": "git",
+      "args": "merge *",
+      "why": "ao catches the branch up"
+    },
+    {
+      "exe": "git",
+      "args": "rebase *",
+      "why": "ao rebases an unpublished branch"
+    },
+    {
+      "exe": "git",
+      "args": "push origin *",
+      "why": "aka and murasaki publish a branch; the guard refuses main and force forms"
+    },
+    {
+      "exe": "git",
+      "args": "tag *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "remote *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "cat-file *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "write-tree",
+      "why": ""
+    },
+    {
+      "exe": "claude",
+      "args": "plugin *",
+      "why": "the warm-up refreshes the plugin"
+    },
+    {
+      "exe": "codex",
+      "args": "debug models",
+      "why": "resolving a model tier alias on Codex"
+    },
+    {
+      "exe": "codex",
+      "args": "exec *",
+      "why": "hanten raises a reviewer in a worktree on Codex"
+    },
+    {
+      "exe": "cursor-agent",
+      "args": "-v",
+      "why": "the warm-up's version check on Cursor"
+    },
+    {
+      "exe": "osascript",
+      "args": "*",
+      "why": "the bell's OS notification on macOS"
+    },
+    {
+      "exe": "afplay",
+      "args": "*",
+      "why": "the bell's sound on macOS"
+    },
+    {
+      "exe": "bash",
+      "args": "scripts/*",
+      "why": "the repository's own scripts (fixtures, ledgers, bootstrap)"
+    },
+    {
+      "exe": "xcrun",
+      "args": "simctl *",
+      "why": "amaterasu and jujutsu, when the declaration names a simulator"
+    },
+    {
+      "exe": "bun",
+      "args": "*",
+      "why": "declared lanes on a Bun stack"
+    },
+    {
+      "exe": "pnpm",
+      "args": "*",
+      "why": "declared lanes on a Node stack"
+    },
+    {
+      "exe": "npm",
+      "args": "*",
+      "why": "declared lanes on a Node stack"
+    },
+    {
+      "exe": "npx",
+      "args": "*",
+      "why": ""
+    },
+    {
+      "exe": "xcodebuild",
+      "args": "*",
+      "why": "declared lanes on an Xcode stack"
+    },
+    {
+      "exe": "./gradlew",
+      "args": "*",
+      "why": "declared lanes on a Gradle stack"
+    },
+    {
+      "exe": "make",
+      "args": "*",
+      "why": "a repository's own documented commands"
+    }
+  ],
+  "deny": [
+    {
+      "exe": "git",
+      "args": "push origin main",
+      "why": "G2 is the maintainer's"
+    },
+    {
+      "exe": "git",
+      "args": "push origin HEAD:main",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "push --force *",
+      "why": "published history is never rewritten"
+    },
+    {
+      "exe": "git",
+      "args": "push -f *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "push origin --force *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "push origin -f *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "reset --hard *",
+      "why": "nothing is discarded that was not shown"
+    },
+    {
+      "exe": "gh",
+      "args": "pr merge *",
+      "why": "no agent in this plane merges"
+    },
+    {
+      "exe": "gh",
+      "args": "pr review *",
+      "why": "no agent casts a review vote"
+    },
+    {
+      "exe": "gh",
+      "args": "release create *",
+      "why": "G3 is mugetsu on a recorded go"
+    },
+    {
+      "exe": "sudo",
+      "args": "*",
+      "why": "never with elevation"
+    },
+    {
+      "exe": "rm",
+      "args": "-rf /*",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "push --force-with-lease*",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "push origin +*",
+      "why": "a + refspec is a force"
+    },
+    {
+      "exe": "git",
+      "args": "push origin main *",
+      "why": ""
+    },
+    {
+      "exe": "git",
+      "args": "push origin --force-with-lease*",
+      "why": "the origin spelling of a lease force"
+    }
+  ]
+}

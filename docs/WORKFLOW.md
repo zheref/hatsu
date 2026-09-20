@@ -663,8 +663,23 @@ a line is authored, because a broken trunk is its own effort and folding it into
 regression inside an unrelated change set. It interrupts nothing that had started.
 
 Nothing else stops the loop. **A stop is `nen stop`'s banner, the report link, the options with ⭐ on the
-recommendation, and the question asked through the surface's own native option picker** —
-`AskUserQuestion` on Claude Code. A stop typed as prose in the middle of a reply is a stop the maintainer can
+recommended decision — never on the report, which is linked and never an option — a proposed process
+issue, and the question asked through the surface's own native option picker** (Crazy Slots;
+`AskUserQuestion` on Claude Code, `request_user_input` on Codex, `AskQuestion` on Cursor,
+`ask_question` on Antigravity).
+
+**The conditions that do NOT stop are data, from v0.41.0: [`nen/decisions.json`](../nen/decisions.json)**
+(`nen.decisions/v0.1`, validated by `nen schema check`). By the maintainer's rulings of 2026-09-19 the
+recurring stops have fixed defaults and every skill states its default in one line citing the row id: a
+dirty tree at breath is carried (`dirty-tree`); an owed reviewer round inside the configured maximum is
+requested on the maintainer's behalf (`cap-reached`); a red lint returns to rasengan (`red-lint`); a
+missing focused route is authored by rasengan (`missing-focused-route`); a missing tool or model id is
+installed or resolved (`missing-tool`); a red release precondition is reconciled in the same chunk
+(`release-precondition-red`); a missing consumer declaration is repaired by tenkai or set up through an
+assisted flow (`missing-consumer-declaration`, the one ask-once row); and a semantic conflict is always
+Crazy Slots with ours, theirs, a genuine third, and resolve-and-show-the-diff (`semantic-conflict`). A
+`human-gate` row can never be widened by a consumer's own file; an unruled condition asks once with a
+proposed issue, never a silent default. A stop typed as prose in the middle of a reply is a stop the maintainer can
 scroll past, and one they scroll past is one that did not happen.
 
 ---
