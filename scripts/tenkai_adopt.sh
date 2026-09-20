@@ -120,6 +120,98 @@ NEN_DECLARATIONS = [
 ]
 
 
+# REPOSITORY ROLE — maintainer's ruling, 2026-09-19. Derived, never asked when
+# the registry can answer, and never invented.
+#
+# The 2026-09-18 ruling already splits repositories by ROLE rather than by file
+# kind: a CANON repository's product IS the process, so merging there changes
+# what other repositories do; everything else is a consumer. `nen/repos.json`
+# already records that split in machine-readable form -- `maintained_tools` are
+# the process/system repositories, `consumers` are the products -- so Tenkai
+# reads it rather than parsing canon prose or adding a third question to the
+# preamble.
+#
+# WHY THE ROLE MATTERS HERE, AND ONLY HERE. A process/system repository is one
+# whose releases other repositories consume, so its `release` row must be real:
+# a SEAT there means `hatsu:mugetsu` -- whose whole job is to execute that row at
+# G3 -- has nothing to execute, and publication happens by hand, outside the
+# machinery. A product repository's release row is its own business and Tenkai
+# asserts nothing about it.
+ROLE_PROCESS, ROLE_PRODUCT = "process", "product"
+
+
+def derive_role(repo: Path, slug):
+    """process / product / None — None means the registry names neither."""
+    p = repo / "nen" / "repos.json"
+    if not p.is_file() or not slug:
+        return None
+    try:
+        d = json.loads(p.read_text())
+    except Exception:
+        return None
+    # VALID JSON IS NOT A VALID REGISTRY. A top-level `[]` parses, and then
+    # `d.get(...)` raised AttributeError -- so Tenkai CRASHED instead of returning
+    # the unknown-role `blocked` it promises. Shape is checked, not assumed.
+    if not isinstance(d, dict):
+        return None
+
+    def slugs(key):
+        out = set()
+        v = d.get(key)
+        if not isinstance(v, list):
+            return out
+        for e in v:
+            if isinstance(e, dict):
+                out.add(e.get("repo"))
+            elif isinstance(e, str):
+                out.add(e)
+        return out
+
+    if slug in slugs("maintained_tools"):
+        return ROLE_PROCESS
+    if slug in slugs("consumers"):
+        return ROLE_PRODUCT
+    return None
+
+
+def _default_lane(repo: Path):
+    """The lane a release row would be declared on, and its declared stack."""
+    p = repo / "nen" / "contract.json"
+    if not p.is_file():
+        return None, None
+    try:
+        proj = json.loads(p.read_text()).get("project") or {}
+    except Exception:
+        return None, None
+    # NO FIRST-LANE FALLBACK. Picking `lanes[0]` invented the very thing this
+    # function exists to derive: nen's rule is that a null `defaultLane` makes
+    # `--lane` REQUIRED, so a guessed lane can route the release row to a lane nen
+    # would never select by default. An absent defaultLane is reported as unknown.
+    lane = proj.get("defaultLane")
+    if not lane:
+        return None, None
+    stack = ((proj.get("lanes") or {}).get(lane) or {}).get("stack")
+    return lane, stack
+
+
+def _release_row(repo: Path):
+    """satisfied / seat / absent — read from the declaration, never guessed."""
+    lane, _ = _default_lane(repo)
+    p = repo / "nen" / "contract.json"
+    if not lane or not p.is_file():
+        return "absent"
+    try:
+        verbs = (json.loads(p.read_text()).get("project") or {}).get("verbs") or {}
+    except Exception:
+        return "absent"
+    row = (verbs.get(lane) or {}).get("release")
+    if row is None:
+        return "absent"
+    if isinstance(row, dict) and "unsupported" in row:
+        return "seat"
+    return "declared"
+
+
 def _atomic_write(path: Path, text: str):
     """Write through a temp file in the same directory, then os.replace.
 
@@ -341,6 +433,7 @@ class Ctx:
             self_hosted = probe_gh(self.slug, "runners")
         self.visibility = visibility
         self.self_hosted = self_hosted or 0
+        self.role = derive_role(repo, self.slug)
         self.runner = derive_runner(visibility, self.self_hosted)
         self.runner_labels = runner_labels
         if runner_labels is not None and not LABELS_RE.match(runner_labels):
@@ -915,6 +1008,151 @@ class ReadinessWorkflow(Item):
         return self.row(REPAIRED, f"rendered for {ctx.slug}, runs-on {shown}{note}")
 
 
+class ReleasePublisher(Item):
+    """Hatsu's to render, for a PROCESS repository only.
+
+    A product repository publishes however its own stack publishes; Tenkai has
+    no opinion there and asserts none. A process/system repository's releases
+    are consumed by other repositories, so it needs a publisher that exists.
+    """
+
+    REL = "scripts/release-publish.sh"
+    MARKER = "RENDERED BY hatsu:tenkai from `templates/release-publish.sh`"
+
+    def __init__(self):
+        super().__init__(self.REL, "the release publisher mugetsu's declared row runs", "hatsu")
+
+    def detect(self, ctx):
+        if ctx.role is None:
+            return self.row(BLOCKED,
+                            "this repository's role is not recorded — `nen/repos.json` names it "
+                            "under neither `maintained_tools` (process/system) nor `consumers` "
+                            "(product), and Tenkai does not classify a repository for itself",
+                            "record it in nen/repos.json, then re-run")
+        if ctx.role != ROLE_PROCESS:
+            return self.row(SATISFIED,
+                            "not applicable — this is a PRODUCT repository, and how it publishes "
+                            "is its own business")
+        p = ctx.repo / self.REL
+        if p.is_symlink():
+            return self.row(BLOCKED, f"{self.REL} is a symlink — Tenkai does not follow one out of "
+                                     f"the repository it was pointed at",
+                            "replace it with a regular file")
+        if not p.is_file():
+            return self.row(MISSING,
+                            "absent — a process/system repository whose releases other repositories "
+                            "consume has no publisher for `nen shu release` to run",
+                            "render templates/release-publish.sh")
+        have = p.read_text()
+        if self.MARKER not in have:
+            return self.row(DRIFT,
+                            "a release-publish.sh is present that Tenkai did not render — "
+                            "it will not be overwritten",
+                            "review by hand, then delete it and re-run apply")
+        # THE MARKER PROVES PROVENANCE, NOT CURRENCY. A publisher rendered three
+        # versions ago keeps the marker forever, so marker-only meant a stale
+        # engine was reported satisfied and no later run ever repaired it --
+        # precisely the "looks installed and does nothing" class this tool exists
+        # to end. The bytes are compared against the shipped template.
+        if have != ctx.template("release-publish.sh"):
+            return self.row(DRIFT,
+                            "the rendered publisher differs from the shipped template — it was "
+                            "rendered by an older Tenkai, or hand-edited since",
+                            "re-render templates/release-publish.sh")
+        return self.row(SATISFIED, "present, and byte-identical to the shipped template")
+
+    def repair(self, ctx):
+        cur = self.detect(ctx)
+        # A STALE rendering IS repaired; a FOREIGN file is not. The two are
+        # different findings and only one of them is Tenkai's to overwrite.
+        if cur["state"] in (SATISFIED, BLOCKED):
+            return cur
+        if cur["state"] == DRIFT and "did not render" in cur["detail"]:
+            return cur
+        p = ctx.repo / self.REL
+        # THE PARENT COUNTS TOO. Checking only the final file left `scripts/`
+        # itself: a symlinked directory pointing out of the target meant
+        # `mkdir(exist_ok=True)` followed it and the publisher was written
+        # OUTSIDE `--repo`. Every directory between the root and the file is
+        # asked, not just the leaf.
+        rel = Path(self.REL)
+        probe = ctx.repo
+        for part in rel.parts[:-1]:
+            probe = probe / part
+            if probe.is_symlink():
+                return self.row(BLOCKED,
+                                f"{probe.relative_to(ctx.repo)} is a symlinked directory — writing "
+                                f"through it would land outside the repository Tenkai was pointed at",
+                                "replace it with a real directory")
+        p.parent.mkdir(parents=True, exist_ok=True)
+        _atomic_write(p, ctx.template("release-publish.sh"))
+        p.chmod(0o755)
+        return self.row(REPAIRED, f"rendered to {self.REL} — declare it as the lane's `release` row")
+
+
+class ReleaseRow(Item):
+    """nen-owned: DIAGNOSED here, and the row to declare is OFFERED, never written.
+
+    `nen/contract.json` is nen's, and Tenkai's central rule is that it never
+    hand-writes a nen-owned declaration. So this item reads the row, and when it
+    is a seat on a process/system repository it routes -- handing over the exact
+    row to paste, composed from THIS repository's own default lane and declared
+    stack rather than from a template's guess.
+    """
+
+    def __init__(self):
+        super().__init__("release/row", "the lane's `release` row, which mugetsu executes at G3", "nen")
+
+    def detect(self, ctx):
+        if ctx.role is None:
+            return self.row(BLOCKED,
+                            "this repository's role is not recorded in `nen/repos.json` — it names it "
+                            "under neither `maintained_tools` nor `consumers`, and Tenkai does not "
+                            "classify a repository for itself, so whether a real `release` row is "
+                            "owed cannot be derived",
+                            "record it under `maintained_tools` or `consumers`, then re-run")
+        if ctx.role != ROLE_PROCESS:
+            return self.row(SATISFIED, "not applicable — a PRODUCT repository declares whatever "
+                                       "release row its own stack needs")
+        # ABSENT CONTRACT and DECLARED-BUT-LANELESS are different findings.
+        # The first is already routed by the nen/contract.json item above; saying
+        # "declare defaultLane" about a file that does not exist would send the
+        # maintainer to edit nothing.
+        if not (ctx.repo / "nen" / "contract.json").is_file():
+            return self.row(ROUTED,
+                            "nen/contract.json is absent, so there is no lane to declare a `release` "
+                            "row on yet. A process/system repository owes one once the contract exists",
+                            f"nen scaffold init --repo {ctx.repo}, then re-run — the release row "
+                            f"follows once a lane is declared")
+        lane, stack = _default_lane(ctx.repo)
+        if lane is None:
+            return self.row(BLOCKED,
+                            "`project.defaultLane` is not declared, so which lane owes the `release` "
+                            "row cannot be derived — nen makes `--lane` required in exactly this "
+                            "case, and Tenkai does not pick one on nen's behalf",
+                            "declare project.defaultLane, then re-run")
+        state = _release_row(ctx.repo)
+        if state == "declared":
+            return self.row(SATISFIED, f"lane '{lane}' declares a real `release` row")
+        offered = json.dumps({
+            "exe": "bash",
+            "argv": [ReleasePublisher.REL, "--repo", "."],
+        }, indent=2)
+        why = ("absent" if state == "absent" else
+               "a SEAT — it tells nen there is nothing to run, so `hatsu:mugetsu` has nothing to "
+               "execute at G3 and publication happens by hand, outside the machinery")
+        return self.row(ROUTED,
+                        f"lane '{lane}'"
+                        + (f" (stack '{stack}')" if stack else "")
+                        + f"'s `release` row is {why}. nen owns this file and Tenkai does not "
+                          f"hand-write one",
+                        f"declare it at project.verbs.{lane}.release — the row this repository's "
+                        f"own lane and stack call for:\n{offered}")
+
+    def repair(self, ctx):
+        return self.detect(ctx)   # offered, never written
+
+
 class PrivilegedWorkflows(Item):
     """Read-only. Names every OTHER privileged workflow, and the enforcement gap.
 
@@ -972,6 +1210,8 @@ def items():
     out.append(NenCommitMsgHook())
     out.append(GuardRegistration())
     out.append(ReadinessWorkflow())
+    out.append(ReleasePublisher())
+    out.append(ReleaseRow())
     out.append(PrivilegedWorkflows())
     return out
 
@@ -1041,8 +1281,12 @@ def self_test() -> int:
     check("zheref/hatsu's own measured facts derive hosted",
           derive_runner("public", 0)["runs_on"] == HOSTED_RUNNER)
 
-    def fixture(slug="acme/widget", with_guard=None, registered=False):
+    def fixture(slug="acme/widget", with_guard=None, registered=False, role=ROLE_PROCESS):
         d = Path(tempfile.mkdtemp(prefix="tenkai-fixture-"))
+        if role is not None:
+            (d / "nen").mkdir(parents=True, exist_ok=True)
+            key = "maintained_tools" if role == ROLE_PROCESS else "consumers"
+            (d / "nen" / "repos.json").write_text(json.dumps({key: [{"repo": slug}]}))
         _FIXTURES.append(d)
         subprocess.run(["git", "-C", str(d), "init", "-q"], check=True)
         subprocess.run(["git", "-C", str(d), "remote", "add", "origin",
@@ -1066,9 +1310,14 @@ def self_test() -> int:
     by = {r["id"]: r for r in first["items"]}
     check("the commit-msg hook routes to nen, never written",
           by["hooks/commit-msg"]["state"] == ROUTED)
-    check("all five nen declarations route to nen, never hand-written",
+    # nen/repos.json is PRESENT in the fixture, because the role is read from it —
+    # so four route and that one is satisfied. Asserting "all five" would be
+    # asserting against a fixture that no longer exists.
+    check("every ABSENT nen declaration routes to nen, never hand-written",
           all(by[p]["state"] == ROUTED and "nen scaffold init" in (by[p]["action"] or "")
-              for p, _ in NEN_DECLARATIONS))
+              for p, _ in NEN_DECLARATIONS if p != "nen/repos.json"))
+    check("and the one the fixture provides is satisfied, not routed",
+          by["nen/repos.json"]["state"] == SATISFIED)
     check("colors.yml is Hatsu's to write, not routed", by["nen/colors.yml"]["state"] == MISSING)
     check("no guard -> no two-PR ordering", by["guard/registration"]["state"] == SATISFIED)
     check("workflow is merely missing, not staged", by[WORKFLOW_PATH]["state"] == MISSING)
@@ -1389,6 +1638,131 @@ def self_test() -> int:
     check("a symlinked .gitignore is BLOCKED", row["state"] == BLOCKED)
     check("and apply did not append through the link", victim2.read_text() == "theirs\n")
 
+    print("\nREPOSITORY ROLE — derived from the registry, never invented")
+    dproc = fixture(role=ROLE_PROCESS)
+    dprod = fixture(role=ROLE_PRODUCT)
+    dnone = fixture(role=None)
+    check("maintained_tools derives process", derive_role(dproc, "acme/widget") == ROLE_PROCESS)
+    check("consumers derives product", derive_role(dprod, "acme/widget") == ROLE_PRODUCT)
+    check("a registry naming neither derives NOTHING, never a guess",
+          derive_role(dnone, "acme/widget") is None)
+
+    row = ReleaseRow().detect(ctx_for(dnone))
+    check("an underivable role BLOCKS rather than assuming product", row["state"] == BLOCKED)
+    check("and says Tenkai does not classify a repository for itself",
+          "does not classify" in row["detail"])
+
+    # A PRODUCT repository is asserted about in neither direction.
+    check("a product repo needs no publisher",
+          ReleasePublisher().detect(ctx_for(dprod))["state"] == SATISFIED)
+    check("and no release row is owed of it",
+          ReleaseRow().detect(ctx_for(dprod))["state"] == SATISFIED)
+    ReleasePublisher().repair(ctx_for(dprod))
+    check("nothing is rendered into a product repo",
+          not (dprod / ReleasePublisher.REL).is_file())
+
+    # A PROCESS repository gets the publisher, and the ROW is OFFERED not written.
+    res = run("apply", ctx_for(dproc))
+    by = {r["id"]: r for r in res["items"]}
+    check("a process repo gets the publisher rendered",
+          by[ReleasePublisher.REL]["state"] == REPAIRED and (dproc / ReleasePublisher.REL).is_file())
+    check("the rendered publisher is executable",
+          os.access(dproc / ReleasePublisher.REL, os.X_OK))
+    # With no contract at all, the row routes to the contract itself rather than
+    # telling the maintainer to edit a file that does not exist.
+    check("with no contract, the row routes to nen scaffold init",
+          by["release/row"]["state"] == ROUTED
+          and "nen scaffold init" in (by["release/row"]["action"] or ""))
+    # A contract WITHOUT a defaultLane cannot name the lane, and Tenkai does not
+    # pick one on nen's behalf.
+    (dproc / "nen").mkdir(parents=True, exist_ok=True)
+    (dproc / "nen" / "contract.json").write_text(json.dumps({"project": {
+        "lanes": {"a": {"stack": "x"}, "b": {"stack": "y"}}, "verbs": {}}}))
+    rr = ReleaseRow().detect(ctx_for(dproc))
+    check("no defaultLane BLOCKS — the lane is never guessed", rr["state"] == BLOCKED)
+    check("and it says nen makes --lane required in that case", "--lane" in rr["detail"])
+    # With a defaultLane and a seat, the exact row is offered.
+    (dproc / "nen" / "contract.json").write_text(json.dumps({"project": {
+        "defaultLane": "plugin",
+        "lanes": {"plugin": {"stack": "claude-code-plugin"}},
+        "verbs": {"plugin": {"release": {"unsupported": "nothing publishes here"}}}}}))
+    rr = ReleaseRow().detect(ctx_for(dproc))
+    check("the release ROW is routed, never written", rr["state"] == ROUTED)
+    check("and the exact row to declare is offered",
+          '"argv"' in (rr["action"] or "") and ReleasePublisher.REL in (rr["action"] or ""))
+    # On its OWN fixture, so a later case writing a contract cannot mask it.
+    dnw = fixture(role=ROLE_PROCESS)
+    run("apply", ctx_for(dnw))
+    check("nen/contract.json is NEVER written by Tenkai",
+          not (dnw / "nen" / "contract.json").is_file())
+
+    # A seat is named as a seat, with the consequence, not merely as 'missing'.
+    (dproc / "nen").mkdir(parents=True, exist_ok=True)
+    (dproc / "nen" / "contract.json").write_text(json.dumps({"project": {
+        "defaultLane": "plugin",
+        "lanes": {"plugin": {"stack": "claude-code-plugin"}},
+        "verbs": {"plugin": {"release": {"unsupported": "nothing publishes here"}}}}}))
+    row = ReleaseRow().detect(ctx_for(dproc))
+    check("a SEAT is routed with mugetsu's consequence named",
+          row["state"] == ROUTED and "mugetsu" in row["detail"])
+    check("and the offered row names this repo's own lane and stack",
+          "plugin" in row["detail"] and "claude-code-plugin" in row["detail"])
+
+    # A real row satisfies it.
+    (dproc / "nen" / "contract.json").write_text(json.dumps({"project": {
+        "defaultLane": "plugin",
+        "lanes": {"plugin": {"stack": "claude-code-plugin"}},
+        "verbs": {"plugin": {"release": {"exe": "bash", "argv": [ReleasePublisher.REL]}}}}}))
+    check("a real release row is satisfied",
+          ReleaseRow().detect(ctx_for(dproc))["state"] == SATISFIED)
+
+    # SOMEBODY ELSE'S PUBLISHER IS SOMEBODY ELSE'S.
+    dfp = fixture(role=ROLE_PROCESS)
+    (dfp / "scripts").mkdir(parents=True, exist_ok=True)
+    (dfp / ReleasePublisher.REL).write_text("#!/bin/sh\n# mine\nexit 0\n")
+    r = ReleasePublisher().repair(ctx_for(dfp))
+    check("a hand-written publisher is DRIFT, not overwritten", r["state"] == DRIFT)
+    check("and its bytes survive", "# mine" in (dfp / ReleasePublisher.REL).read_text())
+
+    # T5 — a syntactically valid but wrongly SHAPED registry must not crash.
+    dbad = fixture(role=None)
+    (dbad / "nen").mkdir(parents=True, exist_ok=True)
+    for shape in ("[]", '"a string"', '{"maintained_tools": "not-a-list"}', "123"):
+        (dbad / "nen" / "repos.json").write_text(shape)
+        try:
+            got = derive_role(dbad, "acme/widget")
+            check(f"a registry shaped {shape[:22]!r} returns unknown, never a crash", got is None)
+        except Exception as exc:
+            check(f"a registry shaped {shape[:22]!r} returns unknown, never a crash", False, repr(exc))
+
+    # T2 — a SYMLINKED PARENT DIRECTORY must not be written through.
+    dsp = fixture(role=ROLE_PROCESS)
+    outside2 = Path(tempfile.mkdtemp(prefix="tenkai-outside-")); _FIXTURES.append(outside2)
+    (dsp / "scripts").symlink_to(outside2)
+    row = ReleasePublisher().repair(ctx_for(dsp))
+    check("a symlinked parent directory is BLOCKED", row["state"] == BLOCKED)
+    check("and nothing was written outside the repository",
+          not (outside2 / "release-publish.sh").exists())
+
+    # T7 — the marker proves PROVENANCE; currency is proved by the bytes.
+    dst = fixture(role=ROLE_PROCESS)
+    ReleasePublisher().repair(ctx_for(dst))
+    stale = (dst / ReleasePublisher.REL)
+    stale.write_text(stale.read_text().replace("set -euo pipefail",
+                                               "set -euo pipefail\n# an older rendering", 1))
+    row = ReleasePublisher().detect(ctx_for(dst))
+    check("a MARKED but stale publisher is DRIFT, not satisfied",
+          row["state"] == DRIFT and "older Tenkai" in row["detail"])
+    ReleasePublisher().repair(ctx_for(dst))
+    check("and a stale rendering IS repaired",
+          ReleasePublisher().detect(ctx_for(dst))["state"] == SATISFIED)
+
+    # The shipped template and Hatsu's own rendering are ONE engine.
+    tmpl = (root / "templates" / "release-publish.sh").read_text()
+    mine = (root / "scripts" / "release-publish.sh").read_text()
+    check("templates/release-publish.sh and scripts/release-publish.sh are the same engine",
+          tmpl == mine)
+
     print("\nCLAIMS THAT HAD NO FIXTURE — the combination that rots quietly")
     # A TUNED colors.yml MUST SURVIVE. § 4 and Hard limits both promise the engine
     # never compares it byte-for-byte against the seed; nothing tested it.
@@ -1471,7 +1845,7 @@ def self_test() -> int:
 
     print("\nblocked states are reported, never repaired around")
     d5 = fixture()
-    (d5 / "nen").mkdir()
+    (d5 / "nen").mkdir(parents=True, exist_ok=True)
     (d5 / "nen" / "contract.json").write_text("{not json")
     row = NenDeclaration("nen/contract.json", "x").detect(ctx_for(d5))
     check("malformed JSON is BLOCKED, not silently rewritten", row["state"] == BLOCKED)
