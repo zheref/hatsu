@@ -21,10 +21,84 @@ HOSTED_RUNNER = "ubuntu-latest"
 # workflow's deletion being caught at all.
 PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml pr-readiness.yml].freeze
 
+# The one non-PR-targeting workflow this policy admits: a push-to-main /
+# workflow_dispatch BUILDER that regenerates surfaces/ and opens a PR, never a
+# `pull_request_target`/`pull_request_review` job holding a credential over
+# PR-controlled content. It is validated by `validate_builder_workflow`, a
+# separate and lighter pipeline, because the `.trusted/` split that the three
+# PR-targeting workflows below are held to has no PR checkout to defend
+# against here — the trust boundary this workflow needs is "never push
+# directly to main", not "never trust the PR's own copy of anything".
+BUILDER_WORKFLOWS = %w[surface-mirror-regenerate.yml].freeze
+
+# THE CLOSED SET OF WORKFLOWS THIS POLICY KNOWS ABOUT AT ALL. `validate_repo`
+# refuses any `.github/workflows/*.yml` whose basename is in neither list,
+# rather than letting it fall through unchecked — a new workflow is exactly
+# the thing a PR-controlled diff could add to gain a privileged trigger this
+# policy never reasoned about, so silence is not an option the fail-closed
+# design allows.
+KNOWN_WORKFLOWS = (PORTABLE_HOSTED_WORKFLOWS + BUILDER_WORKFLOWS).freeze
+
 EXPECTED_JOBS = {
   "plugin-bump-check.yml" => "check",
   "surface-mirror-check.yml" => "surface-mirror-check",
-  "pr-readiness.yml" => "readiness"
+  "pr-readiness.yml" => "readiness",
+  "surface-mirror-regenerate.yml" => "regenerate"
+}.freeze
+
+# The job-level same-repository guard EACH PR-targeting workflow must carry,
+# verbatim. All three now carry the DRAFT-SKIP CONJUNCTION rather than the
+# bare guard (maintainer ruling, 2026-09-20): a draft PR has nothing ready to
+# judge, and re-running these jobs on every push to a draft spends minutes on
+# a verdict nobody can act on yet. `ready_for_review` (see EXPECTED_TYPES) is
+# what re-fires them the moment the draft flag clears.
+# NOT `"#{SAME_REPO_GUARD} && ..."` — SAME_REPO_GUARD already carries its own
+# closing `}}`, so naively appending text after it would put the draft check
+# OUTSIDE the `${{ }}` expression: `${{ A }} && B` string-concatenates `A`'s
+# rendered "true"/"false" with the literal text " && B" into one non-empty
+# string, which is ALWAYS TRUTHY regardless of either operand. The whole
+# conjunction has to live inside one `${{ }}` for the `&&` to be evaluated
+# rather than concatenated.
+DRAFT_SKIP_GUARD = "${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false }}"
+JOB_GUARDS = {
+  "plugin-bump-check.yml" => DRAFT_SKIP_GUARD,
+  "surface-mirror-check.yml" => DRAFT_SKIP_GUARD,
+  "pr-readiness.yml" => DRAFT_SKIP_GUARD
+}.freeze
+
+# `cancel-in-progress` is a PR-GUARD property, not a builder one. A guard
+# superseded by a newer push has nothing left worth finishing, so cancelling
+# it is free; a REGENERATION superseded mid-run could leave `surfaces/` half
+# written when the `git status --porcelain` check below runs, so it is
+# FORBIDDEN there instead — the second push queues behind the first rather
+# than racing it.
+CANCEL_IN_PROGRESS_REQUIRED = %w[plugin-bump-check.yml surface-mirror-check.yml pr-readiness.yml].freeze
+CANCEL_IN_PROGRESS_FORBIDDEN = %w[surface-mirror-regenerate.yml].freeze
+
+# The exact `paths:` filter surface-mirror-check.yml's trigger and the
+# regenerate workflow's `push` trigger are held to — every place a job in
+# either workflow actually reads from the tree. Kept as ONE frozen list so the
+# two workflows cannot drift from each other about what "the surface-relevant
+# tree" means.
+SURFACE_PATHS = %w[
+  claude/**
+  surfaces/**
+  contracts/**
+  hooks/**
+  nen/**
+  scripts/surface_*
+  templates/**
+  .github/workflows/surface-mirror-check.yml
+].freeze
+
+# Per-(workflow, event) expected `paths:` filter. A workflow/event pair absent
+# here carries NO `paths:` key at all (see the trigger loop in
+# `validate_workflow`) — `plugin-bump-check.yml` and `pr-readiness.yml` must
+# judge EVERY pull request, filtered or not, so they are deliberately absent.
+EXPECTED_PATHS = {
+  "surface-mirror-check.yml" => {
+    "pull_request_target" => SURFACE_PATHS
+  }
 }.freeze
 # Each workflow declares its EXACT trigger set as a map of event => types. This
 # replaced a single hardcoded `pull_request_target` key on the maintainer's
@@ -46,21 +120,26 @@ EXPECTED_JOBS = {
 # need a second, weaker job guard, and it is deliberately NOT admitted here.
 EXPECTED_TYPES = {
   "plugin-bump-check.yml" => {
-    "pull_request_target" => %w[opened synchronize reopened edited]
+    "pull_request_target" => %w[opened synchronize reopened edited ready_for_review]
   },
   "surface-mirror-check.yml" => {
-    "pull_request_target" => %w[opened synchronize reopened]
+    "pull_request_target" => %w[opened synchronize reopened ready_for_review]
   },
   "pr-readiness.yml" => {
     # No `edited`: the verdict reads checks, rounds and threads, and none of
     # those changes when the body or title is edited.
     # `review_requested` / `review_request_removed` are CON-32(b) inputs in their
     # own right: the gate distinguishes a round in flight from one that is owed.
-    "pull_request_target" => %w[opened synchronize reopened review_requested review_request_removed],
+    "pull_request_target" => %w[opened synchronize reopened review_requested review_request_removed ready_for_review],
     # CON-32(b) / CON-16 -- a reviewer round landing, changing or being dismissed.
     "pull_request_review" => %w[submitted edited dismissed]
   }
 }.freeze
+# `ready_for_review` (maintainer ruling, 2026-09-20) is what re-fires each PR
+# guard/readiness job the instant a draft's flag clears — paired with
+# JOB_GUARDS's draft-skip conjunction, which otherwise leaves a
+# just-undrafted PR waiting for its NEXT push or review event before any of
+# these jobs runs again.
 
 # The only events a privileged job in this repository may be triggered by. All
 # run in the BASE repository context with a credential, so this list is the
@@ -128,7 +207,35 @@ EXPECTED_STEPS = {
     # head that has since moved, so removing it must fail the guard.
     "Confirm the verdict still describes the event head",
     "Publish the check on the exact PR head"
+  ],
+  "surface-mirror-regenerate.yml" => [
+    "Checkout main",
+    "Read the pinned nen ref from nen/contract.json",
+    "Bootstrap nen at the pinned ref (checksum-verified, two steps, never a pipe)",
+    "Read the plugin stamp",
+    "Regenerate every surface",
+    "Detect drift",
+    "Open a pull request with the regenerated mirrors"
   ]
+}.freeze
+
+# surface-mirror-regenerate.yml's own trigger shape. `nil` marks an event that
+# carries no further keys at all (`workflow_dispatch: {}` — a bare mapping
+# with nothing inside it, not `types:`); every other event names its expected
+# sub-keys and their exact values.
+BUILDER_TRIGGERS = {
+  "surface-mirror-regenerate.yml" => {
+    "workflow_dispatch" => nil,
+    "push" => { "branches" => %w[main], "paths" => SURFACE_PATHS }
+  }
+}.freeze
+
+# The exact workflow-level `permissions:` this builder needs and no more:
+# `contents: write` to push its branch, `pull-requests: write` to open the PR.
+# Nothing here ever touches `checks:` — that is the PR-targeting workflows'
+# concern, not a push-to-main builder's.
+BUILDER_PERMISSIONS = {
+  "surface-mirror-regenerate.yml" => { "contents" => "write", "pull-requests" => "write" }
 }.freeze
 
 # Workflows that read a dependency pin and then fetch+execute a bootstrap from a
@@ -285,6 +392,40 @@ def same_repository?(repository, head_repository)
   repository == "zheref/hatsu" && head_repository == repository
 end
 
+# --- validate_concurrency PATH ROOT ------------------------------------------
+# Shared by both pipelines. `group` is required on every workflow this policy
+# knows about — an ungrouped guard or builder can run arbitrarily many copies
+# of itself concurrently, which is exactly the race
+# `surface-mirror-regenerate.yml`'s own `cancel-in-progress: false` posture is
+# there to avoid on the builder side, and burns runner minutes needlessly on
+# the guard side. Whether `cancel-in-progress: true` is REQUIRED or FORBIDDEN
+# is per-workflow (see CANCEL_IN_PROGRESS_REQUIRED / _FORBIDDEN); a workflow in
+# neither list is not reachable here (every known workflow is in exactly one).
+def validate_concurrency(path, root)
+  basename = File.basename(path)
+  concurrency = mapping(root.fetch("concurrency") { fail_policy("#{path} has no concurrency block") }, "#{path} concurrency")
+  fail_policy("#{path} concurrency must declare a group") unless concurrency.key?("group")
+  extra = concurrency.keys - %w[group cancel-in-progress]
+  fail_policy("#{path} concurrency has unexpected keys #{extra.inspect}") unless extra.empty?
+  cancel = concurrency.key?("cancel-in-progress") ? scalar(concurrency["cancel-in-progress"]) : nil
+  if CANCEL_IN_PROGRESS_REQUIRED.include?(basename)
+    fail_policy("#{path} concurrency must set cancel-in-progress: true") unless cancel == "true"
+  elsif CANCEL_IN_PROGRESS_FORBIDDEN.include?(basename)
+    fail_policy("#{path} concurrency must not set cancel-in-progress: true — it is a builder, not a PR guard, and cancelling it mid-run risks a half-written surfaces/ tree") if cancel == "true"
+  end
+end
+
+# --- validate_timeout PATH JOB_NAME JOB -------------------------------------
+# `timeout-minutes` is required on EVERY job this policy validates, PR-target
+# or builder alike: an unbounded job is an unbounded credentialed runner
+# minute, and the value itself is left to the workflow's own judgement (a
+# guard's few minutes vs. a builder's regeneration) rather than fixed here.
+def validate_timeout(path, job_name, job)
+  timeout = job["timeout-minutes"]
+  fail_policy("#{path} job #{job_name} needs timeout-minutes") unless timeout
+  fail_policy("#{path} job #{job_name} timeout-minutes must be a positive integer") unless scalar(timeout) =~ /\A[1-9][0-9]*\z/
+end
+
 def expect_rejected(label)
   rejected = false
   begin
@@ -309,22 +450,37 @@ def validate_workflow(path)
   expected_triggers.each do |event, expected_types|
     trigger = mapping(triggers[event], "#{path} #{event}")
     trigger_types = sequence(trigger.fetch("types") { fail_policy("#{path} #{event} has no types") }, "#{path} #{event} types")
-    fail_policy("#{path} #{event} types changed") unless trigger.keys == ["types"] && trigger_types == expected_types
+    fail_policy("#{path} #{event} types changed") unless trigger_types == expected_types
+    # `paths:` is a declared, per-(workflow, event) EXTRA key — absent here
+    # means FORBIDDEN, not merely unchecked. plugin-bump-check.yml and
+    # pr-readiness.yml must judge every pull request, so they carry no filter;
+    # surface-mirror-check.yml's own job only reads the surface-relevant tree,
+    # so it may.
+    expected_paths = EXPECTED_PATHS.dig(File.basename(path), event)
+    allowed_keys = expected_paths ? %w[paths types] : %w[types]
+    fail_policy("#{path} #{event} has unexpected keys") unless trigger.keys.sort == allowed_keys
+    next unless expected_paths
+    actual_paths = sequence(trigger.fetch("paths") { fail_policy("#{path} #{event} has no paths") }, "#{path} #{event} paths")
+    fail_policy("#{path} #{event} paths changed") unless actual_paths == expected_paths
   end
   targets_pr = true
   reject_write_permissions(root["permissions"], "#{path} permissions")
   if targets_pr && scalar(mapping(root["permissions"], "#{path} permissions")["checks"]) != "write"
     fail_policy("#{path} needs only checks: write to publish the exact-head result")
   end
+  validate_concurrency(path, root)
 
   jobs = mapping(root.fetch("jobs") { fail_policy("#{path} has no jobs mapping") }, "#{path} jobs")
   expected_job = EXPECTED_JOBS.fetch(File.basename(path)) { fail_policy("#{path} has no declared job policy") }
   fail_policy("#{path} job id must be exactly #{expected_job}") unless jobs.keys == [expected_job]
   jobs.each do |job_name, job_node|
     job = mapping(job_node, "#{path} job #{job_name}")
-    if targets_pr && scalar(job["if"]) != SAME_REPO_GUARD
-      fail_policy("#{path} job #{job_name} needs the exact same-repository job guard")
+    expected_guard = JOB_GUARDS.fetch(File.basename(path)) { fail_policy("#{path} has no declared job guard") }
+    if targets_pr && scalar(job["if"]) != expected_guard
+      fail_policy("#{path} job #{job_name} needs the exact same-repository job guard (with the draft-skip conjunction)")
     end
+
+    validate_timeout(path, job_name, job)
 
     runner_node = job.fetch("runs-on") { fail_policy("#{path} job #{job_name} has no runs-on") }
     runner = runner_node.is_a?(Psych::Nodes::Sequence) ? sequence(runner_node, "runs-on") : scalar(runner_node)
@@ -520,8 +676,111 @@ def validate_repo(root)
   basenames = paths.map { |path| File.basename(path) }
   missing = PORTABLE_HOSTED_WORKFLOWS - basenames
   fail_policy("#{root} is missing required workflows: #{missing.join(', ')}") unless missing.empty?
-  paths.each { |path| validate_workflow(path) }
+  unknown = basenames - KNOWN_WORKFLOWS
+  fail_policy("#{root} carries undeclared workflow(s): #{unknown.join(', ')} — every workflow under .github/workflows/ needs a declared policy entry before it can be trusted") unless unknown.empty?
+  paths.each do |path|
+    if BUILDER_WORKFLOWS.include?(File.basename(path))
+      validate_builder_workflow(path)
+    else
+      validate_workflow(path)
+    end
+  end
   puts "workflow-runner-policy: #{paths.length} workflows structurally valid"
+end
+
+# --- validate_builder_workflow PATH -----------------------------------------
+# The lighter pipeline for a push-to-main / workflow_dispatch BUILDER
+# (currently only surface-mirror-regenerate.yml). It shares no PR checkout
+# with a pull request, so it carries none of `validate_workflow`'s
+# `.trusted/`-split machinery — there is no untrusted copy to defend against,
+# because this job's cwd is `main` itself, checked out directly. What it MUST
+# still prove: an exact, frozen trigger/permission/step shape; a bounded,
+# non-cancelling concurrency group; and that it never pushes straight to
+# `main` — every change to `surfaces/` reaches `main` only through the pull
+# request this job opens, which `surface-mirror-check` then judges exactly
+# like any other.
+def validate_builder_workflow(path)
+  document = Psych.parse_file(path)
+  reject_duplicate_keys(document.root, path)
+  root = mapping(document.root, path)
+  basename = File.basename(path)
+
+  triggers = mapping(root.fetch("on") { fail_policy("#{path} has no on mapping") }, "#{path} on")
+  expected_triggers = BUILDER_TRIGGERS.fetch(basename)
+  fail_policy("#{path} trigger set changed") unless triggers.keys.sort == expected_triggers.keys.sort
+  expected_triggers.each do |event, expected|
+    trigger_node = triggers[event]
+    if expected.nil?
+      empty = trigger_node.is_a?(Psych::Nodes::Mapping) && trigger_node.children.empty?
+      empty ||= trigger_node.is_a?(Psych::Nodes::Scalar) && scalar(trigger_node).nil?
+      fail_policy("#{path} #{event} must declare nothing") unless empty
+      next
+    end
+    trigger = mapping(trigger_node, "#{path} #{event}")
+    fail_policy("#{path} #{event} has unexpected keys") unless trigger.keys.sort == expected.keys.sort
+    expected.each do |key, expected_value|
+      actual_value = sequence(trigger.fetch(key) { fail_policy("#{path} #{event} has no #{key}") }, "#{path} #{event} #{key}")
+      fail_policy("#{path} #{event} #{key} changed") unless actual_value == expected_value
+    end
+  end
+
+  permissions = mapping(root.fetch("permissions") { fail_policy("#{path} has no permissions mapping") }, "#{path} permissions")
+  expected_permissions = BUILDER_PERMISSIONS.fetch(basename)
+  fail_policy("#{path} permissions changed") unless permissions.keys.sort == expected_permissions.keys.sort
+  expected_permissions.each do |name, level|
+    fail_policy("#{path} permissions.#{name} must be #{level}") unless scalar(permissions[name]) == level
+  end
+
+  validate_concurrency(path, root)
+
+  jobs = mapping(root.fetch("jobs") { fail_policy("#{path} has no jobs mapping") }, "#{path} jobs")
+  expected_job = EXPECTED_JOBS.fetch(basename)
+  fail_policy("#{path} job id must be exactly #{expected_job}") unless jobs.keys == [expected_job]
+  job = mapping(jobs[expected_job], "#{path} job #{expected_job}")
+
+  # NO same-repository guard: `github.event.pull_request` does not exist on
+  # `push`/`workflow_dispatch`, so the PR-targeting guard is not merely absent
+  # here, it is inapplicable — a job condition referencing it would be null on
+  # every event and therefore always skip.
+  fail_policy("#{path} job #{expected_job} must not carry an if guard") if job.key?("if")
+
+  runner = scalar(job.fetch("runs-on") { fail_policy("#{path} job #{expected_job} has no runs-on") })
+  fail_policy("#{path} job #{expected_job} uses an unapproved runner #{runner.inspect}") unless runner == HOSTED_RUNNER
+
+  fail_policy("#{path} job #{expected_job} must inherit workflow permissions") if job.key?("permissions")
+
+  validate_timeout(path, expected_job, job)
+
+  steps_node = job.fetch("steps") { fail_policy("#{path} job #{expected_job} has no steps") }
+  fail_policy("#{path} job #{expected_job} steps must be a sequence") unless steps_node.is_a?(Psych::Nodes::Sequence)
+  step_maps = steps_node.children.each_with_index.map { |node, index| mapping(node, "#{path} job #{expected_job} step #{index + 1}") }
+  step_names = step_maps.map { |step| scalar(step["name"]) }
+  fail_policy("#{path} job #{expected_job} step set or order changed") unless step_names == EXPECTED_STEPS.fetch(basename)
+
+  fail_policy("#{path} sets workflow defaults, which can carry working-directory") if root.key?("defaults")
+  fail_policy("#{path} job sets working-directory") if job.key?("defaults")
+  step_maps.each do |step|
+    code = code_of(scalar(step["run"]))
+    fail_policy("#{path} step #{scalar(step["name"]).inspect} sets working-directory") if step.key?("working-directory")
+    if code =~ /\bgit\s+push\b/
+      fail_policy("#{path} step #{scalar(step["name"]).inspect} pushes directly with git — this builder must only open a pull request onto bot/surface-mirror-regenerate")
+    end
+    if code =~ /\b(cd|pushd|popd|chdir)\b/
+      fail_policy("#{path} step #{scalar(step["name"]).inspect} mentions a directory-changing command")
+    end
+  end
+
+  pr_step_name = "Open a pull request with the regenerated mirrors"
+  pr_step = step_maps.find { |step| scalar(step["name"]) == pr_step_name }
+  fail_policy("#{path} has no #{pr_step_name.inspect} step") unless pr_step
+  uses = scalar(pr_step["uses"])
+  fail_policy("#{path} #{pr_step_name.inspect} must pin peter-evans/create-pull-request by a full 40-character commit SHA") unless uses =~ %r{\Apeter-evans/create-pull-request@[0-9a-f]{40}\z}
+  fail_policy("#{path} #{pr_step_name.inspect} must run only when drift was detected") unless scalar(pr_step["if"]) == "steps.drift.outputs.dirty == 'true'"
+  pr_with = mapping(pr_step["with"], "#{path} #{pr_step_name} with")
+  fail_policy("#{path} #{pr_step_name.inspect} must target bot/surface-mirror-regenerate, never main") unless scalar(pr_with["branch"]) == "bot/surface-mirror-regenerate"
+
+  checkout_steps = step_maps.select { |step| scalar(step["uses"])&.start_with?("actions/checkout@") }
+  fail_policy("#{path} must checkout main") unless checkout_steps.any? { |step| scalar(mapping(step["with"], "#{path} checkout with")["ref"]) == "main" }
 end
 
 def self_test(root)
@@ -558,7 +817,7 @@ def self_test(root)
     expect_rejected("new workflow with an unexpected event") { validate_repo(tmp) }
 
     FileUtils.rm(extra)
-    File.write(plugin, original.sub("types: [opened, synchronize, reopened, edited]", "types: [closed]"))
+    File.write(plugin, original.sub("types: [opened, synchronize, reopened, edited, ready_for_review]", "types: [closed]"))
     expect_rejected("changed pull_request_target types") { validate_repo(tmp) }
 
     File.write(plugin, original.sub("jobs:\n  check:", "jobs:\n  renamed:"))
@@ -711,6 +970,77 @@ def self_test(root)
     File.write(surface, surface_original.sub(
       "  pull_request_target:", "  pull_request_review_thread:\n    types: [resolved, unresolved]\n  pull_request_target:"))
     expect_rejected("workflow naming the non-existent pull_request_review_thread trigger") { validate_repo(tmp) }
+
+    # --- concurrency / timeout-minutes / draft-skip / paths (2026-09-20) -----
+
+    File.write(plugin, original.sub(/^    timeout-minutes: \d+\n/, ""))
+    expect_rejected("job missing timeout-minutes") { validate_repo(tmp) }
+
+    File.write(plugin, original.sub("cancel-in-progress: true", "cancel-in-progress: false"))
+    expect_rejected("guard workflow with cancel-in-progress: false") { validate_repo(tmp) }
+
+    File.write(plugin, original.sub(/\n\s*cancel-in-progress: true\n/, "\n"))
+    expect_rejected("guard workflow with no cancel-in-progress at all") { validate_repo(tmp) }
+
+    File.write(plugin, original.sub(" && github.event.pull_request.draft == false", ""))
+    expect_rejected("guard job reverted to the bare same-repository guard") { validate_repo(tmp) }
+
+    File.write(plugin, original.sub(
+      "    types: [opened, synchronize, reopened, edited, ready_for_review]",
+      "    types: [opened, synchronize, reopened, edited, ready_for_review]\n    paths: ['claude/**']"))
+    expect_rejected("plugin-bump-check gains a paths filter — it must judge every PR") { validate_repo(tmp) }
+
+    File.write(plugin, original)
+
+    File.write(surface, surface_original.sub(/\n\s*paths:\n(?:\s+- '[^']*'\n)+/, "\n"))
+    expect_rejected("surface-mirror-check loses its required paths filter") { validate_repo(tmp) }
+
+    File.write(surface, surface_original.sub("- '.github/workflows/surface-mirror-check.yml'", "- 'README.md'"))
+    expect_rejected("surface-mirror-check paths filter changed") { validate_repo(tmp) }
+
+    File.write(surface, surface_original)
+
+    # --- surface-mirror-regenerate.yml: the builder pipeline ----------------
+    regenerate = File.join(tmp, ".github/workflows/surface-mirror-regenerate.yml")
+    regenerate_original = File.read(regenerate)
+
+    expect_rejected("an entirely undeclared workflow file") do
+      extra_unknown = File.join(tmp, ".github/workflows/unknown-builder.yml")
+      File.write(extra_unknown, regenerate_original)
+      begin
+        validate_repo(tmp)
+      ensure
+        FileUtils.rm(extra_unknown)
+      end
+    end
+
+    File.write(regenerate, regenerate_original.sub(
+      "group: surface-mirror-regenerate-${{ github.ref }}",
+      "group: surface-mirror-regenerate-${{ github.ref }}\n  cancel-in-progress: true"))
+    expect_rejected("regenerate workflow cancels in progress — a mid-run cancel risks a half-written surfaces/ tree") { validate_repo(tmp) }
+
+    File.write(regenerate, regenerate_original.sub(/^    timeout-minutes: \d+\n/, ""))
+    expect_rejected("regenerate job missing timeout-minutes") { validate_repo(tmp) }
+
+    File.write(regenerate, regenerate_original.sub(
+      /uses: peter-evans\/create-pull-request@[0-9a-f]{40} # v7\.0\.11/,
+      "uses: peter-evans/create-pull-request@v7"))
+    expect_rejected("regenerate PR step pinned by a mutable tag instead of a full commit SHA") { validate_repo(tmp) }
+
+    File.write(regenerate, regenerate_original.sub(
+      "branch: bot/surface-mirror-regenerate", "branch: main"))
+    expect_rejected("regenerate PR step targets main directly") { validate_repo(tmp) }
+
+    File.write(regenerate, regenerate_original.sub(
+      /(jobs:\n  regenerate:\n)/, "\\1    if: ${{ true }}\n"))
+    expect_rejected("regenerate job carries an if guard that does not exist on push/workflow_dispatch") { validate_repo(tmp) }
+
+    File.write(regenerate, regenerate_original.sub(
+      %Q{      - name: Checkout main\n        uses: actions/checkout@v7\n        with:\n          ref: main\n},
+      %Q{      - name: Checkout main\n        uses: actions/checkout@v7\n        with:\n          ref: main\n\n      - name: Push straight to main\n        shell: bash\n        run: |\n          git push origin HEAD:main\n}))
+    expect_rejected("regenerate workflow pushes directly with git instead of only opening a PR") { validate_repo(tmp) }
+
+    File.write(regenerate, regenerate_original)
 
     # And the control: a DIAGNOSTIC naming the file is not a read. This workflow
     # already carries `echo "::error::nen/contract.json carries no ..."`, mid-line

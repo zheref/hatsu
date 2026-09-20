@@ -47,7 +47,7 @@ on:
     # `edited` matters: the `no plugin bump: <reason>` opt-out lives in the PR
     # body, so re-running when the body changes is what makes the opt-out
     # usable without an empty push.
-    types: [opened, synchronize, reopened, edited]
+    types: [opened, synchronize, reopened, edited, ready_for_review]
 
 concurrency:
   group: plugin-bump-check-${{ github.event.pull_request.number }}
@@ -61,9 +61,9 @@ permissions:
 
 jobs:
   check:
-    if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository }}
+    if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Start required check on the exact PR head
         id: head_check

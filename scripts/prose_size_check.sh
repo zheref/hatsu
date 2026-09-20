@@ -8,7 +8,7 @@
 # nothing measures is a limit that has already been exceeded, so this measures it.
 #
 #   every claude/agents/*.md except kurapika.md   <=  6144 bytes
-#   the sixteen dieted skills                     <= 12288 bytes
+#   the seventeen dieted skills                   <= 12288 bytes
 #
 # kurapika.md is exempt deliberately: he is the lead persona and the whole local plane in one file,
 # and no reviewer budget or subagent raise depends on his size. The skills NOT on the list below are
@@ -24,9 +24,9 @@ set -eu
 AGENT_MAX=6144
 SKILL_MAX=12288
 
-# The sixteen, from CHANGELOG v0.42.0 "The diet" plus black-voice, which was authored under the
-# ceiling rather than reduced to it.
-DIETED_SKILLS="amaterasu backlog-board backlog-loop black-voice breath build futon hanten
+# The seventeen: fifteen from CHANGELOG v0.42.0 "The diet" plus black-voice and great-hiker, which
+# were authored under the ceiling rather than reduced to it.
+DIETED_SKILLS="amaterasu backlog-board backlog-loop black-voice breath build futon great-hiker hanten
 hatsu-warmup jujutsu jutaisho kagutsuchi kokusen spiritual-message sharingan shibari"
 
 root="${1:-}"

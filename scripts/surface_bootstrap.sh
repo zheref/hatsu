@@ -162,6 +162,14 @@ for name in "${skill_names[@]}"; do
 done
 
 declare -a persona_sources=()
+# The Antigravity hook SCRIPTS `nen surface mirror generate` has produced so
+# far -- discovered rather than a fixed pair, because this deliverable is
+# still landing (soon): `hooks/*.sh` under surfaces/antigravity/ gained
+# guard-base-branch.sh and stop-bell.sh first and session-start.sh after, and a
+# hardcoded pair would have missed the third the moment it appeared. Basenames
+# only; every reader below re-joins them under surfaces/antigravity/hooks/ or
+# .agents/hooks/ as needed.
+declare -a antigravity_hook_scripts=()
 if [ "$mode" = "--install-all" ]; then
   if [ "$surface" = "codex" ]; then
     [ -f "$hatsu_root/surfaces/codex/AGENTS.md" ] || {
@@ -176,22 +184,94 @@ if [ "$mode" = "--install-all" ]; then
       echo "refusing: target AGENTS.md is not a regular file" >&2
       exit 1
     fi
-  elif [ "$surface" = "antigravity" ]; then
-    [ -f "$hatsu_root/surfaces/antigravity/rules/AGENTS.md" ] || {
-      echo "generated antigravity mirror is missing rules/AGENTS.md" >&2
+    [ -f "$hatsu_root/surfaces/codex/hooks.json" ] || {
+      echo "generated codex mirror is missing hooks.json" >&2
       exit 2
     }
-    [ -f "$hatsu_root/surfaces/antigravity/hooks.json" ] || {
-      echo "generated antigravity mirror is missing hooks.json" >&2
-      exit 2
-    }
-  else
     [ -d "$hatsu_root/claude/agents" ] || {
       echo "Hatsu checkout has no canonical persona sources" >&2
       exit 2
     }
     for source in "$hatsu_root/claude/agents"/*.md; do
       [ -f "$source" ] || continue
+      # A leading underscore names a shared PROSE FRAGMENT composed into
+      # other agent files at doc-authoring time (_review-preamble.md), never
+      # a standalone persona -- nen mirrors no surface agent for it, so a
+      # persona_sources entry expecting one would fail every install.
+      case "$(basename "$source")" in _*) continue ;; esac
+      # nen renders codex personas as TOML (codex's own subagent config
+      # format), never as the .md the source is authored in -- so the mirror
+      # path swaps the extension rather than keeping the source's basename.
+      name="$(basename "$source" .md).toml"
+      source="$hatsu_root/surfaces/codex/agents/$name"
+      [ -f "$source" ] || {
+        echo "generated codex mirror is missing agents/$name" >&2
+        exit 2
+      }
+      persona_sources+=("$source")
+    done
+    [ "${#persona_sources[@]}" -gt 0 ] || {
+      echo "generated codex mirror has no persona sources" >&2
+      exit 2
+    }
+  elif [ "$surface" = "antigravity" ]; then
+    [ -f "$hatsu_root/surfaces/antigravity/rules/hatsu.md" ] || {
+      echo "generated antigravity mirror is missing rules/hatsu.md" >&2
+      exit 2
+    }
+    [ -f "$hatsu_root/surfaces/antigravity/hooks.json" ] || {
+      echo "generated antigravity mirror is missing hooks.json" >&2
+      exit 2
+    }
+    [ -d "$hatsu_root/claude/agents" ] || {
+      echo "Hatsu checkout has no canonical persona sources" >&2
+      exit 2
+    }
+    for source in "$hatsu_root/claude/agents"/*.md; do
+      [ -f "$source" ] || continue
+      # A leading underscore names a shared PROSE FRAGMENT composed into
+      # other agent files at doc-authoring time (_review-preamble.md), never
+      # a standalone persona -- nen mirrors no surface agent for it, so a
+      # persona_sources entry expecting one would fail every install.
+      case "$(basename "$source")" in _*) continue ;; esac
+      name="$(basename "$source")"
+      source="$hatsu_root/surfaces/antigravity/agents/$name"
+      [ -f "$source" ] || {
+        echo "generated antigravity mirror is missing agents/$name" >&2
+        exit 2
+      }
+      persona_sources+=("$source")
+    done
+    [ "${#persona_sources[@]}" -gt 0 ] || {
+      echo "generated antigravity mirror has no persona sources" >&2
+      exit 2
+    }
+    if [ -d "$hatsu_root/surfaces/antigravity/hooks" ]; then
+      for source in "$hatsu_root/surfaces/antigravity/hooks"/*.sh; do
+        [ -f "$source" ] || continue
+        antigravity_hook_scripts+=("$(basename "$source")")
+      done
+    fi
+  else
+    [ -f "$hatsu_root/surfaces/cursor/rules/hatsu.mdc" ] || {
+      echo "generated cursor mirror is missing rules/hatsu.mdc" >&2
+      exit 2
+    }
+    [ -f "$hatsu_root/surfaces/cursor/hooks.json" ] || {
+      echo "generated cursor mirror is missing hooks.json" >&2
+      exit 2
+    }
+    [ -d "$hatsu_root/claude/agents" ] || {
+      echo "Hatsu checkout has no canonical persona sources" >&2
+      exit 2
+    }
+    for source in "$hatsu_root/claude/agents"/*.md; do
+      [ -f "$source" ] || continue
+      # A leading underscore names a shared PROSE FRAGMENT composed into
+      # other agent files at doc-authoring time (_review-preamble.md), never
+      # a standalone persona -- nen mirrors no surface agent for it, so a
+      # persona_sources entry expecting one would fail every install.
+      case "$(basename "$source")" in _*) continue ;; esac
       name="$(basename "$source")"
       source="$hatsu_root/surfaces/cursor/agents/$name"
       [ -f "$source" ] || {
@@ -323,16 +403,30 @@ preflight_install_destinations() {
     for name in "${skill_names[@]}"; do
       preflight_destination ".agents/skills/$name" skill
     done
-    [ "$mode" != "--install-all" ] || preflight_destination 'AGENTS.override.md' override
+    if [ "$mode" = "--install-all" ]; then
+      preflight_destination 'AGENTS.override.md' override
+      preflight_destination '.codex/hooks.json' skill
+      for source in "${persona_sources[@]}"; do
+        preflight_destination ".codex/agents/$(basename "$source")" skill
+      done
+    fi
   elif [ "$surface" = "antigravity" ]; then
     for name in "${skill_names[@]}"; do
       preflight_destination ".agents/skills/$name" skill
     done
     if [ "$mode" = "--install-all" ]; then
-      preflight_destination '.agents/rules/AGENTS.md' skill
+      preflight_destination '.agents/rules/hatsu.md' skill
       preflight_destination '.agents/hooks.json' hooks
-      preflight_destination '.agents/hooks/guard-base-branch.sh' hook_script
-      preflight_destination '.agents/hooks/stop-bell.sh' hook_script
+      # HOOK SCRIPTS ARE WHATEVER THE GENERATOR HAS PRODUCED SO FAR: see
+      # antigravity_hook_scripts's own comment. Nothing is preflighted for a
+      # script the generator has not produced yet -- there is no destination
+      # this run could ever write for it.
+      for name in "${antigravity_hook_scripts[@]}"; do
+        preflight_destination ".agents/hooks/$name" hook_script
+      done
+      for source in "${persona_sources[@]}"; do
+        preflight_destination ".agents/agents/$(basename "$source")" skill
+      done
     fi
   else
     for name in "${skill_names[@]}"; do
@@ -342,6 +436,8 @@ preflight_install_destinations() {
       for source in "${persona_sources[@]}"; do
         preflight_destination ".cursor/agents/$(basename "$source")" skill
       done
+      preflight_destination '.cursor/rules/hatsu.mdc' skill
+      preflight_destination '.cursor/hooks.json' skill
     fi
   fi
 }
@@ -451,17 +547,31 @@ prepare_staged_surface() {
       mkdir -p "$(dirname "$stage_path")"
       cp -R "$hatsu_root/surfaces/codex/$name" "$stage_path"
     done
-    if [ "$mode" = "--install-all" ] && will_replace_override; then
-      stage_path="$staging/AGENTS.override.md"
-      {
-        if [ -f "$target/AGENTS.md" ]; then
-          cat "$target/AGENTS.md"
-          printf '\n\n'
-        fi
-        printf '%s\n' '<!-- BEGIN hatsu personas (generated — nen surface mirror, surface: codex) -->'
-        cat "$hatsu_root/surfaces/codex/AGENTS.md"
-        printf '%s\n' '<!-- END hatsu personas (generated — nen surface mirror, surface: codex) -->'
-      } > "$stage_path"
+    if [ "$mode" = "--install-all" ]; then
+      if will_replace_override; then
+        stage_path="$staging/AGENTS.override.md"
+        {
+          if [ -f "$target/AGENTS.md" ]; then
+            cat "$target/AGENTS.md"
+            printf '\n\n'
+          fi
+          printf '%s\n' '<!-- BEGIN hatsu personas (generated — nen surface mirror, surface: codex) -->'
+          cat "$hatsu_root/surfaces/codex/AGENTS.md"
+          printf '%s\n' '<!-- END hatsu personas (generated — nen surface mirror, surface: codex) -->'
+        } > "$stage_path"
+      fi
+      if will_replace '.codex/hooks.json'; then
+        stage_path="$staging/.codex/hooks.json"
+        mkdir -p "$(dirname "$stage_path")"
+        cp "$hatsu_root/surfaces/codex/hooks.json" "$stage_path"
+      fi
+      for source in "${persona_sources[@]}"; do
+        relative=".codex/agents/$(basename "$source")"
+        will_replace "$relative" || continue
+        stage_path="$staging/$relative"
+        mkdir -p "$(dirname "$stage_path")"
+        cp "$source" "$stage_path"
+      done
     fi
   elif [ "$surface" = "antigravity" ]; then
     for name in "${skill_names[@]}"; do
@@ -472,28 +582,39 @@ prepare_staged_surface() {
       cp -R "$hatsu_root/surfaces/antigravity/$name" "$stage_path"
     done
     if [ "$mode" = "--install-all" ]; then
-      if will_replace '.agents/rules/AGENTS.md'; then
-        stage_path="$staging/.agents/rules/AGENTS.md"
+      # SOURCE AND DESTINATION both hatsu.md, as of nen's regenerated mirror:
+      # Antigravity's documented layout (.agents/rules/<name>.md, up to 12,000
+      # chars each) never names a fixed "AGENTS.md" -- that spelling came from
+      # following Codex's convention on a surface that does not use it, and
+      # `nen surface mirror generate` now renders under the corrected name too.
+      if will_replace '.agents/rules/hatsu.md'; then
+        stage_path="$staging/.agents/rules/hatsu.md"
         mkdir -p "$(dirname "$stage_path")"
-        cp "$hatsu_root/surfaces/antigravity/rules/AGENTS.md" "$stage_path"
+        cp "$hatsu_root/surfaces/antigravity/rules/hatsu.md" "$stage_path"
       fi
       if will_replace_hooks; then
         stage_path="$staging/.agents/hooks.json"
         mkdir -p "$(dirname "$stage_path")"
         cp "$hatsu_root/surfaces/antigravity/hooks.json" "$stage_path"
       fi
-      if will_replace_hook_script '.agents/hooks/guard-base-branch.sh'; then
-        stage_path="$staging/.agents/hooks/guard-base-branch.sh"
+      # HOOK SCRIPTS, WHICHEVER ONES THE GENERATOR HAS PRODUCED. See
+      # antigravity_hook_scripts's own comment: this is discovered per run,
+      # not a fixed pair.
+      for name in "${antigravity_hook_scripts[@]}"; do
+        relative=".agents/hooks/$name"
+        will_replace_hook_script "$relative" || continue
+        stage_path="$staging/$relative"
         mkdir -p "$(dirname "$stage_path")"
-        cp "$hatsu_root/surfaces/antigravity/hooks/guard-base-branch.sh" "$stage_path"
+        cp "$hatsu_root/surfaces/antigravity/hooks/$name" "$stage_path"
         chmod 755 "$stage_path"
-      fi
-      if will_replace_hook_script '.agents/hooks/stop-bell.sh'; then
-        stage_path="$staging/.agents/hooks/stop-bell.sh"
+      done
+      for source in "${persona_sources[@]}"; do
+        relative=".agents/agents/$(basename "$source")"
+        will_replace "$relative" || continue
+        stage_path="$staging/$relative"
         mkdir -p "$(dirname "$stage_path")"
-        cp "$hatsu_root/surfaces/antigravity/hooks/stop-bell.sh" "$stage_path"
-        chmod 755 "$stage_path"
-      fi
+        cp "$source" "$stage_path"
+      done
     fi
   else
     for name in "${skill_names[@]}"; do
@@ -511,6 +632,16 @@ prepare_staged_surface() {
         mkdir -p "$(dirname "$stage_path")"
         ln -s "$source" "$stage_path"
       done
+      if will_replace '.cursor/rules/hatsu.mdc'; then
+        stage_path="$staging/.cursor/rules/hatsu.mdc"
+        mkdir -p "$(dirname "$stage_path")"
+        ln -s "$hatsu_root/surfaces/cursor/rules/hatsu.mdc" "$stage_path"
+      fi
+      if will_replace '.cursor/hooks.json'; then
+        stage_path="$staging/.cursor/hooks.json"
+        mkdir -p "$(dirname "$stage_path")"
+        ln -s "$hatsu_root/surfaces/cursor/hooks.json" "$stage_path"
+      fi
     fi
   fi
 }
@@ -607,8 +738,17 @@ collect_exclude_lines() {
       relative=".agents/skills/$name"
       will_replace "$relative" && exclude_lines+=("$relative")
     done
-    if [ "$mode" = "--install-all" ] && will_replace_override; then
-      exclude_lines+=('AGENTS.override.md')
+    if [ "$mode" = "--install-all" ]; then
+      if will_replace_override; then
+        exclude_lines+=('AGENTS.override.md')
+      fi
+      if will_replace '.codex/hooks.json'; then
+        exclude_lines+=('.codex/hooks.json')
+      fi
+      for source in "${persona_sources[@]}"; do
+        relative=".codex/agents/$(basename "$source")"
+        will_replace "$relative" && exclude_lines+=("$relative")
+      done
     fi
   elif [ "$surface" = "antigravity" ]; then
     for name in "${skill_names[@]}"; do
@@ -616,18 +756,20 @@ collect_exclude_lines() {
       will_replace "$relative" && exclude_lines+=("$relative")
     done
     if [ "$mode" = "--install-all" ]; then
-      if will_replace '.agents/rules/AGENTS.md'; then
-        exclude_lines+=('.agents/rules/AGENTS.md')
+      if will_replace '.agents/rules/hatsu.md'; then
+        exclude_lines+=('.agents/rules/hatsu.md')
       fi
       if will_replace_hooks; then
         exclude_lines+=('.agents/hooks.json')
       fi
-      if will_replace_hook_script '.agents/hooks/guard-base-branch.sh'; then
-        exclude_lines+=('.agents/hooks/guard-base-branch.sh')
-      fi
-      if will_replace_hook_script '.agents/hooks/stop-bell.sh'; then
-        exclude_lines+=('.agents/hooks/stop-bell.sh')
-      fi
+      for name in "${antigravity_hook_scripts[@]}"; do
+        relative=".agents/hooks/$name"
+        will_replace_hook_script "$relative" && exclude_lines+=("$relative")
+      done
+      for source in "${persona_sources[@]}"; do
+        relative=".agents/agents/$(basename "$source")"
+        will_replace "$relative" && exclude_lines+=("$relative")
+      done
     fi
   else
     for name in "${skill_names[@]}"; do
@@ -639,6 +781,12 @@ collect_exclude_lines() {
         relative=".cursor/agents/$(basename "$source")"
         will_replace "$relative" && exclude_lines+=("$relative")
       done
+      if will_replace '.cursor/rules/hatsu.mdc'; then
+        exclude_lines+=('.cursor/rules/hatsu.mdc')
+      fi
+      if will_replace '.cursor/hooks.json'; then
+        exclude_lines+=('.cursor/hooks.json')
+      fi
     fi
   fi
 }
@@ -646,7 +794,16 @@ collect_exclude_lines() {
 # Validate every destination root, and the sole required bootstrap destination,
 # before changing the shared ignore file or replacing a surface entry.
 if [ "$surface" = "codex" ]; then
+  # SKILLS LIVE AT `.agents/skills/<name>` ONLY. This is the one skills path
+  # this script has ever placed for Codex -- `.codex/skills` is Codex's own
+  # directory family for everything ELSE (agents, hooks, config), but Codex
+  # discovers skills at the same `.agents/skills` path Antigravity and the
+  # documented convention both use, and this script has never written a second,
+  # `.codex/skills` copy of them.
   ensure_local_directory '.agents/skills'
+  if [ "$mode" = "--install-all" ]; then
+    ensure_local_directory '.codex/agents'
+  fi
   if [ "$mode" = "--bootstrap" ]; then
     preflight_bootstrap_destination '.agents/skills/hatsu-warmup'
   fi
@@ -655,6 +812,7 @@ elif [ "$surface" = "antigravity" ]; then
   if [ "$mode" = "--install-all" ]; then
     ensure_local_directory '.agents/rules'
     ensure_local_directory '.agents/hooks'
+    ensure_local_directory '.agents/agents'
   fi
   if [ "$mode" = "--bootstrap" ]; then
     preflight_bootstrap_destination '.agents/skills/hatsu-warmup'
@@ -663,6 +821,7 @@ else
   ensure_local_directory '.cursor/skills'
   if [ "$mode" = "--install-all" ]; then
     ensure_local_directory '.cursor/agents'
+    ensure_local_directory '.cursor/rules'
   fi
   if [ "$mode" = "--bootstrap" ]; then
     preflight_bootstrap_destination '.cursor/skills/hatsu-warmup'
@@ -708,6 +867,34 @@ if [ "$surface" = "codex" ]; then
       transaction_replace "$relative"
       installed+=("$relative")
     fi
+
+    relative=".codex/hooks.json"
+    destination="$target/$relative"
+    if is_tracked "$relative"; then
+      kept+=("$relative")
+    elif { [ -e "$destination" ] || [ -L "$destination" ]; } && ! is_ours "$relative"; then
+      kept+=("$relative")
+    else
+      transaction_replace "$relative"
+      installed+=("$relative")
+    fi
+
+    remove_stale_agents "$target/.codex/agents"
+    for source in "${persona_sources[@]}"; do
+      name="$(basename "$source")"
+      relative=".codex/agents/$name"
+      destination="$target/$relative"
+      if is_tracked "$relative"; then
+        kept+=("agents/$name")
+        continue
+      fi
+      if { [ -e "$destination" ] || [ -L "$destination" ]; } && ! is_ours "$relative"; then
+        kept+=("agents/$name")
+        continue
+      fi
+      transaction_replace "$relative"
+      installed+=("agents/$name")
+    done
   fi
 elif [ "$surface" = "antigravity" ]; then
   if [ "$mode" = "--install-all" ]; then
@@ -732,7 +919,11 @@ elif [ "$surface" = "antigravity" ]; then
   done
 
   if [ "$mode" = "--install-all" ]; then
-    for relative in ".agents/rules/AGENTS.md" ".agents/hooks.json" ".agents/hooks/guard-base-branch.sh" ".agents/hooks/stop-bell.sh"; do
+    declare -a antigravity_named_destinations=(".agents/rules/hatsu.md" ".agents/hooks.json")
+    for name in "${antigravity_hook_scripts[@]}"; do
+      antigravity_named_destinations+=(".agents/hooks/$name")
+    done
+    for relative in "${antigravity_named_destinations[@]}"; do
       destination="$target/$relative"
       ownership="skill"
       case "$relative" in
@@ -750,6 +941,23 @@ elif [ "$surface" = "antigravity" ]; then
         transaction_replace "$relative"
         installed+=("$relative")
       fi
+    done
+
+    remove_stale_agents "$target/.agents/agents"
+    for source in "${persona_sources[@]}"; do
+      name="$(basename "$source")"
+      relative=".agents/agents/$name"
+      destination="$target/$relative"
+      if is_tracked "$relative"; then
+        kept+=("agents/$name")
+        continue
+      fi
+      if { [ -e "$destination" ] || [ -L "$destination" ]; } && ! is_ours "$relative"; then
+        kept+=("agents/$name")
+        continue
+      fi
+      transaction_replace "$relative"
+      installed+=("agents/$name")
     done
   fi
 else
@@ -790,6 +998,18 @@ else
       fi
       transaction_replace "$relative"
       installed+=("agents/$name")
+    done
+
+    for relative in ".cursor/rules/hatsu.mdc" ".cursor/hooks.json"; do
+      destination="$target/$relative"
+      if is_tracked "$relative"; then
+        kept+=("$relative")
+      elif { [ -e "$destination" ] || [ -L "$destination" ]; } && ! is_ours "$relative"; then
+        kept+=("$relative")
+      else
+        transaction_replace "$relative"
+        installed+=("$relative")
+      fi
     done
   fi
 fi

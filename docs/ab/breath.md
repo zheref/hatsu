@@ -309,7 +309,7 @@ FAIL  nen/workflow.json  …: at notifications.turn, 'loud' is not one nen imple
 Run against the released `zheref/nen` `v0.6.0` binary (`nen-darwin-arm64`, sha256
 `2674dc58…151737e1`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.6.0`, on `PATH` as
 `nen`; `nen --version` → `0.6.0`). Two residues retire here and both were found by real runs rather
-than by reading the changelog: one stopped a headless Codex run dead (`docs/ab/surfaces.md` § 7, F4),
+than by reading the changelog: one stopped a headless Codex run dead (`docs/surfaces/evidence/surfaces.md` § 7, F4),
 the other is the shape every delegated effort in this repository actually has.
 
 | Residue retired | Verb at the pin | Exit |

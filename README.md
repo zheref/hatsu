@@ -25,7 +25,7 @@ No GitHub App. No bot identity. Nothing here merges `main` or casts a review vot
 > written down. **`v0.4.0` adds the
 > way of working**: ten skills that make the local loop itself explicit, two configuration files that hold
 > every parameter of it ([`nen/contract.json`](nen/contract.json) → `project` and
-> [`nen/workflow.json`](nen/workflow.json)), and two harness hooks — a stop bell and a refusal to commit on
+> [`nen/workflow.json`](nen/workflow.json)), and three harness hooks — a session-start reminder, a stop bell and a refusal to commit on
 > the trunk. **`v0.5.0` adds the PR side**: eight more skills — `mukai`, `murasaki`, `hanten`, `gyo`,
 > `kotoamatsukami`, `shibari`, `en` and `jujutsu` — the rename of `drive` to **`sharingan`**, and the three
 > agent definitions that side needs: **Feitan**, **Chrollo** and **Illumi**. **`v0.6.0` closes the release
@@ -98,7 +98,7 @@ installed copy runs does.)
 > ### ⚠️ Below `2026.01`, `cursor-agent` sees **none** of the skills — and answers anyway
 >
 > A `cursor-agent` that predates skills support takes your prompt, runs your commands and exits `0` with
-> not one of the thirty-nine loaded. With the mirror installed exactly as the warm-up mandates,
+> not one of the forty-four loaded. With the mirror installed exactly as the warm-up mandates,
 > `2025.09.18-39624ef` answered a discovery probe with the whole reply **`NO SKILLS VISIBLE`**, seventeen
 > bytes — and the control that settles it is that the same build cannot see a plain `cp -R` **copy**
 > either: it has no skills mechanism at all, and reached its answer by grepping the working tree.
@@ -235,7 +235,7 @@ That warm-up refreshes the complete surface every session. What it places in **y
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **41**, the forty plus `hatsu-warmup` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
+| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **44**, the forty-three plus `hatsu-warmup` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
 | `<repo>/AGENTS.override.md` | **untracked**, written whole: your own `AGENTS.md` verbatim first, then the personas between a `BEGIN`/`END hatsu personas` marker pair |
 
 **Copies, not symlinks, and the reason is what Codex advertises.** Codex lists a skill under its
@@ -250,7 +250,7 @@ resolving one is an agent answering confidently from the wrong file.
 **What the warm-up refuses**, and these are hard limits rather than preferences:
 
 - **A destination it did not create is left untouched, and named in the report.** A previous Hatsu install
-  is replaced; a **tracked** path is always somebody else's, whatever it looks like. Forty ordinary
+  is replaced; a **tracked** path is always somebody else's, whatever it looks like. Forty-four ordinary
   words are being claimed at once — `build`, `file`, `en`, `ao`, `ren` — so a collision is not a rare case,
   and the warm-up would rather install thirty-seven and say so than overwrite one file it did not write.
 - **It never writes your `.gitignore`.** Everything it places is excluded through the repository's own
@@ -313,8 +313,8 @@ The warm-up refreshes the complete Cursor surface every session:
 
 | | |
 |---|---|
-| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **41**, the forty plus `hatsu-warmup` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
-| `<repo>/.cursor/agents/<persona>.md` | one markdown subagent file each — **8** — symlinked from `$HATSU_PLUGIN_ROOT/surfaces/cursor/agents/` |
+| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **44**, the forty-three plus `hatsu-warmup` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
+| `<repo>/.cursor/agents/<persona>.md` | one markdown subagent file each — **12**, eleven personas plus `_review-preamble.md` — symlinked from `$HATSU_PLUGIN_ROOT/surfaces/cursor/agents/` |
 
 **Symlinks are honest here, and that is measured rather than assumed.** Four controlled probes on
 `2026.09.08-6caf4ff` found a skill through a symlink **inside** the workspace and through one pointing
@@ -368,10 +368,10 @@ ln -s "$HATSU_PLUGIN_ROOT/surfaces/antigravity" ~/.gemini/config/plugins/hatsu
 
 Antigravity automatically discovers:
 - `plugin.json` — Antigravity plugin manifest
-- 40 skills — discoverable via slash commands (`/<name>`)
-- `rules/AGENTS.md` — unified persona instructions
-- `agents/<persona>.md` — 8 modular subagent definitions
-- `hooks.json` — native `PreToolUse` (trunk guard) and `Stop` (bell) lifecycle hooks
+- 44 skills (forty-three plus `hatsu-warmup`), each at `<name>/SKILL.md` — discoverable via slash commands (`/<name>`)
+- `rules/hatsu.md` — the identity rules file, under Antigravity's 12,000-character limit
+- `agents/<persona>.md` — 11 personas plus `_review-preamble.md`
+- `hooks.json` — native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) lifecycle hooks
 
 In this mode, no files are written into your target repositories. Open any workspace in Antigravity or use the CLI (`agy`), and run `/kurapika` or `/hatsu-warmup`.
 
@@ -387,9 +387,10 @@ Open Antigravity in that repository and run `/hatsu-warmup`. The warm-up perform
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | **41** mirrored skill directories — the forty plus `hatsu-warmup` itself — copied from `surfaces/antigravity/<name>/` |
-| `<repo>/.agents/rules/AGENTS.md` | Persona instructions for all 8 Hatsu personas |
-| `<repo>/.agents/hooks.json` | Native `PreToolUse` (trunk guard) and `Stop` (bell) hooks |
+| `<repo>/.agents/skills/<name>/` | **44** mirrored skill directories — the forty-three plus `hatsu-warmup` itself — copied from `surfaces/antigravity/<name>/` |
+| `<repo>/.agents/agents/<persona>.md` | 11 personas plus `_review-preamble.md`, copied from `surfaces/antigravity/agents/` |
+| `<repo>/.agents/rules/hatsu.md` | The identity rules file, under the 12,000-character limit a rules file has |
+| `<repo>/.agents/hooks.json` | Native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) hooks |
 | `<repo>/.agents/hooks/` | Self-contained hook scripts (`guard-base-branch.sh` and `stop-bell.sh`) |
 
 Everything is cleanly excluded through `.git/info/exclude`; `.gitignore` is never modified.
@@ -859,8 +860,8 @@ apart is what keeps the second class of mistake visible.
 - **Branches read `{model}/{persona}/{descriptor}`**, and every subagent is titled
   `<skill> · <persona> · <model alias>` — what ran, as whom, on what. A subagent is **never** given the
   frontier model tier; that tier is where your own conversation lives.
-- **[`hooks/hooks.json`](hooks/hooks.json)** ships two harness hooks, and they are discovered automatically at
-  that path: a `Stop` bell that notifies and plays a sound when a gate stop is waiting, and a `PreToolUse`
+- **[`hooks/hooks.json`](hooks/hooks.json)** ships three harness hooks, and they are discovered automatically at
+  that path: a `SessionStart` reminder (`hooks/session-start.sh`, which on a mirrored surface refreshes a consumer's installed mirrors and otherwise prints the warm-up reminder), a `Stop` bell that notifies and plays a sound when a gate stop is waiting, and a `PreToolUse`
   guard on `Bash` that refuses a `git commit` or `git push` while you are standing on the base branch. The
   guard **parses** the command — quoted spans masked, the line split into segments, git's global options
   walked past — so `echo 'git commit'` is not a write and `git -C <dir> commit` is judged in `<dir>`; it
@@ -1267,8 +1268,8 @@ cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
    keep the tail, and a thirty-character description would be worse everywhere and no better here. What
    follows instead is that **on Cursor the skill `name` does almost all of the routing work.**
 2. **The name space is flat, global and shared.** It is not only your repository's `.cursor/skills/`: on
-   this host one listing carried the forty mirrored skills **plus** Cursor's own built-ins **plus**
-   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims forty ordinary
+   this host one listing carried the forty-four mirrored skills **plus** Cursor's own built-ins **plus**
+   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims forty-four ordinary
    words at once — `build`, `file`, `en`, `ao`, `ren`, `breath`. **The shadowing itself is inferred, not
    proven, and is written here as such**: two probes tried to confirm it and could not, because the
    descriptions this surface keeps are far too short to tell two rival `build` entries apart. It is a

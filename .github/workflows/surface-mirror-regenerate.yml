@@ -1,0 +1,183 @@
+# surface-mirror-regenerate — close the loop `surface-mirror-check.yml` only
+# opens.
+#
+# THAT CHECK FAILS A DRIFTED PULL REQUEST; IT NEVER FIXES ONE. Regenerating
+# `surfaces/codex`, `surfaces/cursor` and `surfaces/antigravity` and committing
+# the result is still a human (or an authoring session) running
+# `nen surface mirror generate` three times and opening a PR by hand. This
+# workflow is that chore, run automatically the moment the source it mirrors —
+# `claude/skills/**`, `claude/agents/**`, or any of the shared inputs the
+# generator itself reads (`nen/workflow.json`, `contracts/permissions.json`,
+# `hooks/hooks.json`) — lands on `main`.
+#
+# THE SHAPE IS BANKAI-CORE'S `sync-canon`, DELIBERATELY. That workflow regenerates
+# a derived tree from its source of truth on a push to its default branch and
+# opens a pull request only when the regeneration actually produced a diff — it
+# never pushes to the default branch itself, and the derived tree only ever
+# changes through a reviewed PR. This workflow is the same pattern applied to
+# `surfaces/`: `main` is read, never written, and the three generate commands
+# run against a checkout of the commit that just landed.
+#
+# THIS NEVER PUSHES TO MAIN AND THE CHECK STAYS THE GATE. A push here lands on
+# `bot/surface-mirror-regenerate`, opened as an ordinary pull request that goes
+# through the same `surface-mirror-check` job as any other PR before it can
+# merge — this workflow proposes a regeneration, it does not certify one. If
+# the opened PR's own regeneration were somehow already stale by the time it is
+# reviewed, `surface-mirror-check` on THAT PR catches it exactly as it would
+# catch a hand-edited mirror. Nothing here is a required check, and nothing
+# here is trusted more than the PR it opens.
+#
+# `workflow_dispatch` exists for the same reason `getsuga`'s and `futon`'s
+# manual triggers do: a maintainer who wants to force a regeneration RIGHT NOW
+# (after a template or contract change lands out of band, or to confirm the
+# pin still produces byte-identical output) should not have to make an empty
+# source commit to get one.
+name: surface-mirror-regenerate
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - 'claude/**'
+      - 'surfaces/**'
+      - 'contracts/**'
+      - 'hooks/**'
+      - 'nen/**'
+      - 'scripts/surface_*'
+      - 'templates/**'
+      - '.github/workflows/surface-mirror-check.yml'
+
+concurrency:
+  # NO cancel-in-progress: this is a builder, not a PR guard. Cancelling a
+  # regeneration mid-run because a second push landed would risk a half-written
+  # working tree feeding the `git status --porcelain` check below; letting the
+  # first run finish and the second queue behind it is the safe order.
+  group: surface-mirror-regenerate-${{ github.ref }}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - name: Read the pinned nen ref from nen/contract.json
+        # Same shape as surface-mirror-check.yml's own pin step: this workflow
+        # runs on `main` already, so there is no untrusted PR checkout to keep
+        # this data apart from — the two-step bootstrap below is copied for the
+        # checksum-verification discipline, not for a trust boundary this job
+        # does not have.
+        id: pin
+        shell: bash
+        run: |
+          set -euo pipefail
+          ref="$(jq -r '.dependency.pinned_ref // empty' nen/contract.json)"
+          [ -n "$ref" ] || { echo "::error::nen/contract.json carries no dependency.pinned_ref."; exit 1; }
+          case "$ref" in
+            *..*|*//*) echo "::error::dependency.pinned_ref '$ref' is not a valid git ref (contains '..' or '//')."; exit 1 ;;
+          esac
+          if [[ ! "$ref" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$ ]]; then
+            echo "::error::dependency.pinned_ref is not a plain git ref ([A-Za-z0-9][A-Za-z0-9._/-]{0,99}); refusing to use it in a URL or a shell."
+            exit 1
+          fi
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "pinned nen ref: $ref"
+
+      - name: Bootstrap nen at the pinned ref (checksum-verified, two steps, never a pipe)
+        id: nen
+        env:
+          PINNED_REF: ${{ steps.pin.outputs.ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ref="$PINNED_REF"
+          url="https://raw.githubusercontent.com/zheref/nen/${ref}/bootstrap/nen.sh"
+          curl -fsSL "$url" -o "${RUNNER_TEMP}/nen-bootstrap.sh"
+          bin="$(bash "${RUNNER_TEMP}/nen-bootstrap.sh" --ref "$ref")"
+          [ -x "$bin" ] || { echo "::error::bootstrap printed '$bin', which is not executable."; exit 1; }
+          echo "bin=$bin" >> "$GITHUB_OUTPUT"
+          echo "nen: $("$bin" --version) at $bin"
+
+      - name: Read the plugin stamp
+        id: stamp
+        shell: bash
+        run: |
+          set -euo pipefail
+          stamp="$(awk -F'"' '/"version"[[:space:]]*:/ { for (i = 1; i <= NF; i++) { if ($i == "version") { print $(i + 2); exit } } }' .claude-plugin/plugin.json)"
+          [ -n "$stamp" ] || { echo "::error::.claude-plugin/plugin.json carries no readable version."; exit 1; }
+          echo "value=$stamp" >> "$GITHUB_OUTPUT"
+
+      - name: Regenerate every surface
+        env:
+          NEN: ${{ steps.nen.outputs.bin }}
+          STAMP: ${{ steps.stamp.outputs.value }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for surface in codex cursor antigravity; do
+            case "$surface" in
+              antigravity) root='${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;;
+              *) root='${HATSU_PLUGIN_ROOT}' ;;
+            esac
+            "$NEN" surface mirror generate \
+              --source claude/skills \
+              --agents claude/agents \
+              --surface "$surface" \
+              --out "surfaces/$surface" \
+              --models nen/workflow.json \
+              --permissions contracts/permissions.json \
+              --hooks hooks/hooks.json \
+              --rules claude/rules/hatsu.md \
+              --source-surface claude \
+              --hooks-root "$root" \
+              --manifest .claude-plugin/plugin.json \
+              --stamp "$STAMP" \
+              --invocation-prefix "hatsu:"
+          done
+
+      - name: Detect drift
+        id: drift
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "$(git status --porcelain -- surfaces/)" ]; then
+            echo "dirty=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "changed<<SURFACE_DRIFT_EOF"
+              git status --porcelain -- surfaces/
+              echo "SURFACE_DRIFT_EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "dirty=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open a pull request with the regenerated mirrors
+        if: steps.drift.outputs.dirty == 'true'
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
+        with:
+          commit-message: "chore(surfaces): regenerate mirrors"
+          branch: bot/surface-mirror-regenerate
+          delete-branch: true
+          title: "chore(surfaces): regenerate mirrors"
+          body: |
+            A fresh `nen surface mirror generate` (codex, cursor, antigravity)
+            against `main` at ${{ github.sha }} produced a mirror that differs
+            from what is committed under `surfaces/`. This PR carries only that
+            regeneration — no hand edits.
+
+            Drifted paths:
+            ```
+            ${{ steps.drift.outputs.changed }}
+            ```
+
+            `surface-mirror-check` is the gate on this PR the same as on any
+            other; this workflow only proposes the regeneration, it never
+            certifies or merges one.

@@ -214,15 +214,74 @@ plugin_version() {
   jq -r '.version // empty' "$file" 2>/dev/null || echo ""
 }
 
+# --- semver_parts VERSION ----------------------------------------------------
+# Echoes "MAJOR MINOR PATCH PRERELEASE" (space-separated; PRERELEASE may be
+# empty) for a well-formed `MAJOR.MINOR.PATCH[-PRERELEASE]` string, or nothing
+# at all for anything else. Deliberately narrow: this guard's job is to compare
+# two versions it already trusts are meant to be semver, not to accept
+# arbitrary plugin.json content as one. Build metadata (a trailing `+...`) is
+# not accepted — plugin.json has never carried one and a guard that silently
+# ignored it would compare the wrong string.
+semver_parts() {
+  local version="$1"
+  case "$version" in
+    [0-9]*.[0-9]*.[0-9]*) ;;
+    *) return 1 ;;
+  esac
+  local core="$version" prerelease=""
+  case "$version" in
+    *-*) core="${version%%-*}"; prerelease="${version#*-}" ;;
+  esac
+  local major="${core%%.*}" rest="${core#*.}"
+  local minor="${rest%%.*}" patch="${rest#*.}"
+  case "$major" in ''|*[!0-9]*) return 1 ;; esac
+  case "$minor" in ''|*[!0-9]*) return 1 ;; esac
+  case "$patch" in ''|*[!0-9]*) return 1 ;; esac
+  printf '%s %s %s %s\n' "$major" "$minor" "$patch" "$prerelease"
+}
+
+# --- version_greater BASE HEAD -----------------------------------------------
+# Returns 0 if HEAD is a strict semver INCREASE over BASE: MAJOR, then MINOR,
+# then PATCH, compared numerically in that order, with a lower or equal triple
+# failing regardless of any pre-release suffix. A malformed HEAD or BASE is
+# never "greater" — it fails closed, which is what version_bumped's caller
+# turns into the named refusal rather than a silent pass.
+#
+# WHY NOT `!=`. The guard this replaces accepted ANY change, including a
+# DOWNGRADE — v0.40.0 was never tagged because a later PR's plugin.json still
+# read a version two releases behind, `!=` was satisfied, and the guard passed
+# a PR that made the manifest wrong in the other direction. An increase is the
+# only change that keeps Claude Code's plugin-cache key ahead of what shipped.
+version_greater() {
+  local base="$1" head="$2" base_parts head_parts
+  base_parts="$(semver_parts "$base")" || return 1
+  head_parts="$(semver_parts "$head")" || return 1
+  local bmaj bmin bpat bpre hmaj hmin hpat hpre
+  set -- $base_parts
+  bmaj="$1"; bmin="$2"; bpat="$3"; bpre="${4:-}"
+  set -- $head_parts
+  hmaj="$1"; hmin="$2"; hpat="$3"; hpre="${4:-}"
+  [ "$hmaj" -gt "$bmaj" ] && return 0
+  [ "$hmaj" -lt "$bmaj" ] && return 1
+  [ "$hmin" -gt "$bmin" ] && return 0
+  [ "$hmin" -lt "$bmin" ] && return 1
+  [ "$hpat" -gt "$bpat" ] && return 0
+  return 1
+}
+
 # --- version_bumped BASE_PLUGIN_JSON HEAD_PLUGIN_JSON ------------------------
-# Returns 0 if the `version` field actually changed between BASE and HEAD:
-# HEAD carries a non-empty version different from BASE's.
+# Returns 0 if HEAD's `version` field is a STRICT SEMVER INCREASE over BASE's —
+# not merely different. An empty BASE (no prior manifest, e.g. the repository's
+# first commit) always counts as bumped, the same as before: there is no lower
+# version to increase past. A HEAD that is malformed, equal to, or lower than
+# BASE fails; the CLI below reports which and why.
 version_bumped() {
   local base="$1" head="$2" base_version head_version
   head_version="$(plugin_version "$head")"
   [ -n "$head_version" ] || return 1
   base_version="$(plugin_version "$base")"
-  [ "$head_version" != "$base_version" ]
+  [ -n "$base_version" ] || return 0
+  version_greater "$base_version" "$head_version"
 }
 
 # --- pr_body_has_opt_out PR_BODY_FILE ----------------------------------------
@@ -290,6 +349,13 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     echo "plugin.json version bumped — plugin-bump guard satisfied"
     exit 0
   fi
+
+  base_version_reported="$(plugin_version "$base_plugin")"
+  head_version_reported="$(plugin_version "$head_plugin")"
+  {
+    echo "plugin.json version is not a strict increase: base ${base_version_reported:-<none>} -> head ${head_version_reported:-<none>}"
+    echo "a version that does not increase is how v0.40.0 went untagged"
+  } >&2
 
   cat >&2 <<'EOF'
 This PR changes a plugin-shipped surface (.claude-plugin/**, claude/**,
