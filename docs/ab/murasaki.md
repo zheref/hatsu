@@ -85,7 +85,7 @@ maintainer typed a clause.** `hatsu:murasaki` bare has nothing to parse, and the
 at all.
 
 The bracketed-slot template itself is accepted here because the slot is **anchored behind a literal**,
-which is the shape `docs/ab/rikugan.md` § 2.1 established the engine requires.
+which is the shape `docs/ab/spiritual-message.md` § 2.1 established the engine requires.
 
 ### 2.2 — `nen pr cascade-main`: it merges **and pushes**, and `--no-push` is not there
 
@@ -185,7 +185,7 @@ at `1`, and a seat is exit `4` with the declaration's sentence quoted and **no `
    (§ 2.3).
 5. **`nen shu test-report`** — absent at this pin (`docs/ab/tsukuyomi.md` § 2.4). The suite's verdict is
    the runner's own summary, quoted.
-6. **`nen/workflow.json` read as data** — no schema row at `v0.3.0` (`docs/ab/rikugan.md` § 2.4).
+6. **`nen/workflow.json` read as data** — no schema row at `v0.3.0` (`docs/ab/spiritual-message.md` § 2.4).
    `branch.base` defaults to `main`, `iteration.checks` to `["build"]`, `tests.required` to `["test"]`,
    each stated when it applied.
 

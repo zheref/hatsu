@@ -1,10 +1,12 @@
-# A/B evidence — `rikugan` (new skill, wave 2)
+# A/B evidence — `spiritual-message` (new skill, wave 2)
 
-`claude/skills/rikugan/SKILL.md` plus `templates/rikugan.html`: the turn / landing / final report,
+**Names swapped (maintainer's ruling, 2026-09-20).** The per-turn and landing report and its skill, named `rikugan` through v0.41.0, are **Spiritual Message** (`hatsu:spiritual-message`, `templates/spiritual-message.html`); the desk-and-register page introduced this release is **Rikugan** (`templates/rikugan.html`, the `register` and `final` variants). Older sections and docs/history keep the names they were written under.
+
+`claude/skills/spiritual-message/SKILL.md` plus `templates/spiritual-message.html`: the turn / landing / final report,
 rendered as one HTML page from one fixed template and published at one address per branch.
 
 **A new skill, so there is no "old mechanics" column.** What this record establishes instead is
-which of rikugan's deterministic steps `nen` owns **at the pinned ref** and which are residue — and
+which of spiritual-message's deterministic steps `nen` owns **at the pinned ref** and which are residue — and
 for a skill whose entire P1 verb family does not exist yet, that distinction is the whole document.
 
 Run: 2026-09-09 (local clock). `nen 0.3.0` at `/Users/zheref/.local/bin/nen`, host `darwin` (arm64).
@@ -21,7 +23,7 @@ Nothing below is redacted; both repositories are public.
 
 ## 1. The skill
 
-Rikugan renders one **session** of work as a self-contained HTML page — **00 This last turn · 01
+Spiritual Message renders one **session** of work as a self-contained HTML page — **00 This last turn · 01
 Accomplished · 02 Challenges · 03 Not delivered · 04 Architecture delta · 05 Screenshots · 06 How
 to launch · 07 Decisions** — with two variant additions (**08 PR body + 09 Readiness** for
 `landing`; **10 Tests run + 11 Touched coverage** for `final`). It is `hatsu:ren`'s fifth step,
@@ -37,7 +39,7 @@ last-turn-only, are the old reading.
 
 | Step | Owned by | State at `v0.3.0` |
 |---|---|---|
-| Parse the invocation | `nen parse rikugan --grammar "as [<variant:…>]"` | **verb** (§ 2.1) |
+| Parse the invocation | `nen parse spiritual-message --grammar "as [<variant:…>]"` | **verb** (§ 2.1) |
 | Read the parameters | `nen/workflow.json` | **read as data** — unvalidated (§ 2.4) |
 | Assemble the data | `nen report data` | **absent** → residue (§ 2.2, § 3.1) |
 | Evidence rows | `nen shu evidence --base <ref>` | **absent** → residue (§ 2.2, § 3.3) |
@@ -56,10 +58,10 @@ skill's `## Residue` section is longer than most.
 
 ## 2. Verbs exercised live
 
-### 2.1 — `nen parse rikugan`: the bare-bracket refusal, and the anchored form that works
+### 2.1 — `nen parse spiritual-message`: the bare-bracket refusal, and the anchored form that works
 
 ```
-$ nen parse rikugan --grammar "[<variant:turn|landing|final>]" --line ""
+$ nen parse spiritual-message --grammar "[<variant:turn|landing|final>]" --line ""
 nen parse: template '[<variant:turn|landing|final>]' is refused: its leading slot <variant> is
 bracketed but nothing introduces it, so an omitted value cannot be told apart from a mistyped one.
 Anchor it behind a literal ('word [<variant>]') or drop the brackets.
@@ -68,25 +70,25 @@ exit=2
 ```
 
 ```
-$ nen parse rikugan --grammar "as [<variant:turn|landing|final>]" --line "as landing"
+$ nen parse spiritual-message --grammar "as [<variant:turn|landing|final>]" --line "as landing"
 variant: landing
 exit=0
 
-$ nen parse rikugan --grammar "as [<variant:turn|landing|final>]" --line "as"
+$ nen parse spiritual-message --grammar "as [<variant:turn|landing|final>]" --line "as"
 exit=0                                  # parses, clause absent -- the default applies
 
-$ nen parse rikugan --grammar "as [<variant:turn|landing|final>]" --line "as interim"
+$ nen parse spiritual-message --grammar "as [<variant:turn|landing|final>]" --line "as interim"
 nen parse: <variant> is one of turn | landing | final (case-insensitively), and 'interim' is none of
 them. It is resolved, never guessed at: the closest match is not the answer.
 
 Corrected line:
-  rikugan as <variant: turn | landing | final>
+  spiritual-message as <variant: turn | landing | final>
 exit=2
 ```
 
 This reproduces, at `v0.3.0`, exactly the engine behaviour `claude/skills/tensho/SKILL.md` § 1
 records as *"refused at the template, by design"*. **Tensho concluded that its own grammar therefore
-stays prose** (its optional word has no introducing literal to anchor to). **Rikugan concluded the
+stays prose** (its optional word has no introducing literal to anchor to). **Spiritual Message concluded the
 opposite** — give the clause a literal (`as`) and let the verb own the parse — which is why § 1 of
 the skill file carries a `nen parse` invocation and tensho's does not. Same engine, two different
 grammars, two different correct answers.
@@ -168,7 +170,7 @@ $ nen shu test --repo <fixture> --dry-run --json
 exit=0
 ```
 
-**What this establishes for rikugan:** the declared `artifacts[]` is where a report file lives and
+**What this establishes for spiritual-message:** the declared `artifacts[]` is where a report file lives and
 nen already *reports whether it exists* — but it does **not** parse it. `nen shu test-report`'s
 whole job (brief § 4.5: JUnit XML, `.xcresult`, vitest `--reporter=json`, Gradle) is the missing
 half, and § 2.2 shows the subcommand is absent. Until it lands, the final variant's rows come off
@@ -199,7 +201,7 @@ state (it ships a `dependency`-only contract and no taxonomy layer — `nen/cont
 
 ### 2.5 — The template, rendered end to end by hand
 
-`templates/rikugan.html` was filled with a complete `final`-variant data document — every list
+`templates/spiritual-message.html` was filled with a complete `final`-variant data document — every list
 non-empty, three screenshot states on one screen and two on another, four coverage rows across all
 four bands, three test rows across all three statuses — and opened in a browser. **Zero `{{` tokens
 survived the substitution**, every section rendered, the screenshot table put states in columns as
@@ -222,7 +224,7 @@ and reported as by-hand on the page it produces.
    Assembled from `git log --format='%h %s' <base>...HEAD`, `git diff --name-status <base>...HEAD`
    and `git diff --name-only <base>...HEAD`, plus `.nen/proof/<lane>.json` and
    `.nen/last-stop.json` where they exist. Brief § 4.3 is the shape it will return.
-2. **`nen report render --template --data --out`** (§ 2.2). `templates/rikugan.html` is filled by
+2. **`nen report render --template --data --out`** (§ 2.2). `templates/spiritual-message.html` is filled by
    hand, same template, same tokens (§ 2.5).
 3. **`nen shu evidence --base <ref>`** (§ 2.2). Screenshot rows from `git diff --name-only
    <base>...HEAD` filtered by `nen/contract.json` → `project.evidence.globs`, grouped by
@@ -244,11 +246,11 @@ and reported as by-hand on the page it produces.
 
 *File nothing from this document; this is the list.*
 
-### 4.1 — The P1 render spec does not say whether `{{#each}}` may nest, and rikugan needs it to
+### 4.1 — The P1 render spec does not say whether `{{#each}}` may nest, and spiritual-message needs it to
 
 Brief § 4.3 specifies `nen report render` as *"`{{token}}` substitution with `{{#each list}}…
 {{/each}}` blocks, no logic beyond that (same spirit as `canon mirror generate`)."* The screenshot
-section of `templates/rikugan.html` is **`{{#each screenshots}}` containing two `{{#each states}}`
+section of `templates/spiritual-message.html` is **`{{#each screenshots}}` containing two `{{#each states}}`
 blocks** — one emitting the header row of state names, one emitting the image row — because "one
 table per screen, states as columns" is a two-level shape with no one-level spelling that keeps the
 per-screen grouping.
@@ -261,7 +263,7 @@ lands, either it nests and the template is already correct, or it does not and t
 
 § 2.3: `artifacts: reports/junit.xml (absent)` / `{"kind": "path", "value": "reports/junit.xml",
 "exists": false}`. nen already resolves where a lane's outputs land and whether they arrived; the
-gap between that and rikugan's needs is purely the parse (`test-report`) and the filter
+gap between that and spiritual-message's needs is purely the parse (`test-report`) and the filter
 (`coverage --touched`). Both are already scoped as P1 (brief § 4.4, § 4.5); noted here as
 corroboration that the missing verbs are small extensions of a seam that exists, not new machinery.
 
@@ -275,14 +277,14 @@ grammar cannot be parsed by verb at all. This wave's five skills all comply
 rediscover it. `docs/ab/tensho.md` § 4.1 filed the original observation against `v0.1.0`; this is
 its settled form.
 
-### 4.4 — Not a finding: there is no HTML-rendering verb, and rikugan does not want one
+### 4.4 — Not a finding: there is no HTML-rendering verb, and spiritual-message does not want one
 
 `nen board`'s three verbs (`build`/`render`/`diff`) render **markdown**, and
-`docs/ab/backlog-board.md` § 4 records the same absence for the gate board. Rikugan's answer differs
+`docs/ab/backlog-board.md` § 4 records the same absence for the gate board. Spiritual Message's answer differs
 from backlog-board's in one respect worth stating: **backlog-board authors its page fresh every
-render**, having no template to fill, whereas rikugan **ships `templates/rikugan.html` and fills
+render**, having no template to fill, whereas spiritual-message **ships `templates/spiritual-message.html` and fills
 it**. That is deliberate — a report whose shape drifts between turns is not comparable across turns,
-which is most of what a per-turn report is for. So the P1 verb rikugan wants is
+which is most of what a per-turn report is for. So the P1 verb spiritual-message wants is
 `nen report render --template <file>`, a substitution engine over a template the repository owns —
 **not** a `--html` flag on a renderer that owns the shape.
 
@@ -294,7 +296,7 @@ which is most of what a per-turn report is for. So the P1 verb rikugan wants is
 **2026-09-10** with the `0.4.0` binary at `/Users/zheref/Code/WebStorm/Claude/nen/.nen/bin/nen-0.4.0`
 (the `PATH` binary is still the pinned `0.3.0`), against the **`zheref/nen`** checkout at
 `64c175a` on `opus/kurapika/launch-lane-artifact`. The template under test is this repository's
-`templates/rikugan.html` as edited on `opus/kurapika/wave-3-validation-fixes`.
+`templates/spiritual-message.html` as edited on `opus/kurapika/wave-3-validation-fixes`.
 
 ### 5.1 — F12: the template parses now, and the refusals that remain are the honest ones
 
@@ -303,9 +305,9 @@ own CSS comment. With the comment rewritten to describe the syntax in words, the
 the only refusal left is a token the data document genuinely has not got:
 
 ```
-$ nen-0.4.0 report render --template <hatsu>/templates/rikugan.html \
+$ nen-0.4.0 report render --template <hatsu>/templates/spiritual-message.html \
     --data /tmp/tpl/base6.json --out Reports/dry.html --repo <nen> --dry-run
-nen report: <hatsu>/templates/rikugan.html: '{{title}}' names 'title', which the data document has
+nen report: <hatsu>/templates/spiritual-message.html: '{{title}}' names 'title', which the data document has
 not got. Every token a template names must be in the data -- a blank renders as a fact, so nen
 refuses the whole render rather than publishing a report with a hole in it. … This template names 40
 token(s): title, variant, repo, branch, base, generatedAt, accomplished, text, why, challenges,
@@ -324,11 +326,11 @@ and it is the last one: no refusal quotes a comment, and none names a token the 
 $ nen-0.4.0 report data --repo <nen> --base HEAD~6 --tiers /tmp/tpl/tiers.json --json > base6.json
    exit=0 — nen.report.data/v0.1, 69 commits, 108 files, evidence [], coverage lcov 94.4%
 $ # merge: base6.json ∪ the extension keys (§ 4's merge shape), one evidence row given a src
-$ nen-0.4.0 report render --template <hatsu>/templates/rikugan.html \
+$ nen-0.4.0 report render --template <hatsu>/templates/spiritual-message.html \
     --data /tmp/tpl/merged6.json --out Reports/landing.html --repo <nen> --dry-run
 tokens: 40 … (dry run) nothing written -- the tokens above are every one this template asks for.
                                                                                          exit=0
-$ nen-0.4.0 report render --template <hatsu>/templates/rikugan.html \
+$ nen-0.4.0 report render --template <hatsu>/templates/spiritual-message.html \
     --data /tmp/tpl/merged6.json --out Reports/landing.html --repo <nen>
 wrote Reports/landing.html                                                               exit=0
 $ wc -c < Reports/landing.html          →  39452
@@ -394,7 +396,7 @@ actually returned.
 | Residue retired | Verb at the pin | Exit |
 |---|---|---|
 | the by-hand assembly (`git log` / `git diff --name-status`) | `nen report data --repo . --base origin/main --json` | `0` |
-| the scratch renderer — ~60 lines of substitution, escaping and validation | `nen report render --template templates/rikugan.html --data <merged> --out Reports/current.html` | `0` |
+| the scratch renderer — ~60 lines of substitution, escaping and validation | `nen report render --template templates/spiritual-message.html --data <merged> --out Reports/current.html` | `0` |
 | the same, checked first | the same with `--dry-run` | `0`, 40 tokens listed |
 | `nen shu evidence`, `nen shu test-report`, `nen shu coverage --touched` | see those skills' own sections | `0` / `1`(named) / `0` |
 | `nen/workflow.json` unvalidated | `nen schema check --repo .` | that row `ok` |
@@ -418,12 +420,12 @@ never its absolute path.
 Then the merge and the render, on the real template:
 
 ```
-$ nen report render --repo . --template templates/rikugan.html --data <merged> \
+$ nen report render --repo . --template templates/spiritual-message.html --data <merged> \
     --out Reports/current.html --dry-run
 tokens: 40
 exit=0
 
-$ nen report render --repo . --template templates/rikugan.html --data <merged> --out Reports/current.html
+$ nen report render --repo . --template templates/spiritual-message.html --data <merged> --out Reports/current.html
 wrote Reports/current.html
 exit=0
 
@@ -487,7 +489,7 @@ handed off. Re-render with `blocker` filled, then link.
 
 ## 2026-09-20 — the rebuilt template, verified live (zheref/hatsu#89)
 
-`templates/rikugan.html` was rebuilt on the shared Ichigo-board token sheet with every block wrapped
+`templates/spiritual-message.html` was rebuilt on the shared Ichigo-board token sheet with every block wrapped
 in a `sections.<block>` presence flag. `nen report render --variant` and `--graph` did not exist on
 the nen branch when this ran, so the data document was written by hand with the same `sections.*`
 flags, `graphJson`, `graphMermaid`, `graphNodes[]` and `graphEdges[]` the flags will inject — the
@@ -498,16 +500,16 @@ Dev binary: `/Users/zheref/Code/CLIs/nen/.claude/worktrees/reports-reviewers` at
 
 ```
 $ bun src/index.ts report render \
-    --template <hatsu>/templates/rikugan.html \
+    --template <hatsu>/templates/spiritual-message.html \
     --data <scratch>/sample-landing.json \
-    --out Reports/samples/rikugan-landing.html \
+    --out Reports/samples/spiritual-message-landing.html \
     --repo /Users/zheref/Code/Agents/hatsu/.claude/worktrees/quirky-chatterjee-88d5f6
 … 104 tokens listed …
-wrote Reports/samples/rikugan-landing.html                                    exit 0
+wrote Reports/samples/spiritual-message-landing.html                                    exit 0
 ```
 
 33,210 bytes written, `grep -c '{{'` = **0**. The sample is left at
-`Reports/samples/rikugan-landing.html` (git-ignored).
+`Reports/samples/spiritual-message-landing.html` (git-ignored).
 
 **Observed in the built-in browser**, light and dark, 1024px and 375px:
 

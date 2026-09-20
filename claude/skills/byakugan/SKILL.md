@@ -87,7 +87,7 @@ never lowered because the run was started by hand**. Capture is collection, neve
 byakugan that finds no capture says so and points at
 [`hatsu:kotoamatsukami`](../kotoamatsukami/SKILL.md); it does not execute a suite to make one.
 
-**Hand-back.** *Next in the wired run: `hatsu:rikugan as landing`, then `hatsu:shibari` — the PR.
+**Hand-back.** *Next in the wired run: `hatsu:spiritual-message as landing`, then `hatsu:shibari` — the PR.
 Neither ran here.*
 
 ---
@@ -102,7 +102,7 @@ hatsu:byakugan [against <base>]
 nen parse byakugan --grammar "against [<base>]" --line "<the invocation, minus the hatsu:byakugan prefix>"
 ```
 
-The clause is anchored behind a literal for the reason [`hatsu:rikugan`](../rikugan/SKILL.md) § 1
+The clause is anchored behind a literal for the reason [`hatsu:spiritual-message`](../spiritual-message/SKILL.md) § 1
 records. **With no clause the base is `nen/workflow.json` → `branch.base`, default `main`**, and
 the base is named out loud — the whole measurement is *relative to it*.
 

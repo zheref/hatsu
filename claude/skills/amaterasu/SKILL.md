@@ -44,9 +44,9 @@ it again.
 | `launch.default` **`null`** but targets **are** declared, no argument | **the case that asks**: list what is declared and ask which |
 | an argument naming an undeclared target | refuse by name, list what is declared, continue — **never a near-match** |
 
-**Asking on the no-launch case is the defect**: `ren` is automatic, so a question a repository's
-configuration already answered costs one per turn and trains the maintainer to dismiss the phase. No
-question, no stop, no bell — continue to [`rikugan`](../rikugan/SKILL.md) and
+**Asking on the no-launch case is the defect**: `ren` is automatic, so a question the
+configuration already answered costs one per turn and trains the maintainer to dismiss it. No
+question, no stop, no bell — continue to [`spiritual-message`](../spiritual-message/SKILL.md) and
 [`jutaisho`](../jutaisho/SKILL.md).
 
 ## 2. The parameters, and the completion the launch owes

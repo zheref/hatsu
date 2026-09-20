@@ -32,7 +32,7 @@ Nothing below is redacted; both repositories are public.
 | A/B evidence | `docs/ab/drive.md` | `docs/ab/drive.md`, unmoved, plus this file |
 
 **Why the name changed.** Every other skill on this plane is named for a technique — `ren`,
-`rasengan`, `kokusen`, `amaterasu`, `rikugan`, `jutaisho`, `izanagi`, `izanami`, `tensho`,
+`rasengan`, `kokusen`, `amaterasu`, `spiritual-message`, `jutaisho`, `izanagi`, `izanami`, `tensho`,
 `getsuga`. `drive` was the one English verb in a roster of proper nouns, and an English verb is the
 one kind of name that reads as a description: *drive* the PR, *drive* the backlog, "the drive
 phase". Three of those readings are in this repository's own prose right now, and two of them are
@@ -139,7 +139,7 @@ exit=1
 ```
 
 *(The three `FAIL` rows and the `warn` are Hatsu's own standing state, not this change's: it ships no
-label, repo or colour taxonomy of its own and never has — the same five rows `docs/ab/rikugan.md`
+label, repo or colour taxonomy of its own and never has — the same five rows `docs/ab/spiritual-message.md`
 § 2.4 records, at the same exit `1`, and the same reason there is still no `nen/workflow.json` row
 at this pin. The `project` clause on the `ok` row is new since that run only because Hatsu's
 contract gained its `project` block in wave 1.)*

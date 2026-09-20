@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Newsreader:wght@500;600&display=swap">
 <style>
-/* THE SHARED TOKEN SHEET -- copied verbatim into templates/rikugan.html and
-   templates/spiritual-message.html. Two pages, one visual language; no external
+/* THE SHARED TOKEN SHEET -- copied verbatim into templates/spiritual-message.html and
+   templates/rikugan.html. Two pages, one visual language; no external
    stylesheet, because a report must render off a thumb drive. The Google Fonts
    link above is the one network wish: every family falls back to a system face.
 
@@ -159,50 +159,49 @@ summary:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
 <body>
 <div class="page">
 <!--
-  spiritual-message.html -- the desk and the register, across a batch.
+  spiritual-message.html -- the turn and landing report, one effort, this session.
 
-  RIKUGAN REPORTS ONE EFFORT'S TURN; THIS REPORTS A SET. A repository batch, an
-  epic across its children, a chore across its pull requests, a severity band
-  mid-run -- anything whose shape is "here is every object and here is what you
-  personally owe". It is Hatsu's counterpart of Ichigo's gate board, and it is
-  what `backlog-board`, `futon`, `backlog-loop` and the dated final report render
-  (variants `register` and `final` in nen/workflow.json).
+  WHAT IS FIXED AND WHAT IS NOT. This file is the whole visual contract; every
+  value in it is model-written and arrives in the data document that
+  `nen report render` fills it from. Which blocks appear is neither: it is
+  configuration, read off `reports.sections.<variant>.blocks` in nen/workflow.json
+  by `nen report render --variant`, which injects one presence flag per declared
+  block before the fill. So a block below renders only where the repository asked
+  for it, and `turn-fast` publishes the desk and the last turn and nothing else
+  without this file changing a line.
 
-  Its rules come from that board: the tally first, then YOUR DESK -- asks grouped
-  by gate and ranked by unblocking power, every one opening with DECIDE, DO or
-  MERGE, options lettered with a star on the recommendation, cleared gates SHOWN
-  cleared rather than omitted -- and only then the register. The page briefs; the
-  surface's own option picker asks.
+  THE DESK IS ABOVE THE FOLD, DIRECTLY UNDER THE TALLY. It used to sit below the
+  maintainer's own request, which meant the one thing only they can do was the
+  ninth thing they read (audit of 2026-09-19, Reports).
 
-  Which blocks render is `reports.sections.<variant>.blocks`, injected by
-  `nen report render --variant`. Every value is model-written or copied verbatim
-  from a Nen verb; the template decides nothing but the shape.
+  NOTHING IN THIS COMMENT SPELLS A SUBSTITUTION TAG, AND THAT IS DELIBERATE:
+  `nen report render` substitutes over the whole file, comments included, so a
+  comment that quoted one would be read as markup and the render refused. The
+  language is described in claude/skills/spiritual-message/SKILL.md, section 4.
 
-  NOTHING IN THIS COMMENT SPELLS A SUBSTITUTION TAG -- the renderer substitutes
-  over the whole file, comments included. The language is in
-  claude/skills/rikugan/SKILL.md, section 4; the row shape is
-  `nen report data --backlog`'s `objects[]` plus the prose keys named in
-  claude/skills/backlog-board/SKILL.md.
-
-  ESCAPING: every value is escaped by the renderer. The raw opt-out appears
-  EXACTLY ONCE, on the graph document inside the JSON script tag, and that slot
-  is safe as a RENDERER PROPERTY: `nen report render --graph` serialises
-  graphJson with `<`, `>` and U+2028/U+2029 escaped (src/report/graph.ts,
-  serialiseGraph, pinned by its own tests), so `</script>` cannot occur in it.
-  THREE caller validations stay the caller's, run before the document is handed
-  to the verb: a capture source against
-  ^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$ ; a bar percentage against
-  ^(100|[0-9]{1,2})(\.[0-9]+)?$ ; and every `url` field against
-  ^(https?://|mailto:|#|/) -- escaping makes a `javascript:` href harmless as
-  TEXT and harmless as nothing else. A failing value is DROPPED and named in
-  "Not delivered".
+  ESCAPING -- unchanged from the first build of this template, and it binds.
+  Every value on this page is repository-controlled, so every value is escaped by
+  the renderer. The raw opt-out appears EXACTLY ONCE, on the graph document
+  inside the JSON script tag, and that one slot is safe as a RENDERER PROPERTY,
+  not as a hope: `nen report render --graph` serialises graphJson with `<`, `>`
+  and U+2028/U+2029 escaped (src/report/graph.ts, serialiseGraph, pinned by its
+  own tests), so the sequence that would close the script tag CANNOT occur in
+  that value. The three validations that escaping cannot do -- a capture source
+  against
+      ^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$
+  a bar percentage against ^(100|[0-9]{1,2})(\.[0-9]+)?$
+  and every `url` field against ^(https?://|mailto:|#|/)
+  -- stay the CALLER'S, run before the data document is handed to the verb.
+  Escaping makes a `javascript:` href harmless as TEXT and harmless as nothing
+  else, which is why the third check is here. A value that fails its check is
+  dropped and the gap is named in "Not delivered".
 -->
 {{#if sections.masthead}}
 <header class="mast">
   <div>
-    <div class="eyebrow">Hatsu &middot; spiritual message &middot; {{variant}}</div>
+    <div class="eyebrow">Hatsu &middot; spiritual-message &middot; {{variant}}</div>
     <h1>{{title}}</h1>
-    <div class="meta">{{scope}} &middot; {{gate}} &middot; {{generatedAt}}</div>
+    <div class="meta">{{repo}} &middot; {{branch}} against {{base}} &middot; {{gate}} &middot; {{generatedAt}}</div>
   </div>
   <div class="toggle" role="group" aria-label="Theme">
     <button type="button" id="t-light" aria-pressed="false">light</button>
@@ -213,72 +212,100 @@ summary:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
 {{/if}}
 {{#if sections.tally}}
 <section class="tally" aria-label="At a glance">
-  <div><b>{{tallyScope}}</b><span>in scope</span></div>
   <div><b class="hot">{{tallyNeedsYou}}</b><span>need you</span></div>
   <div><b class="hot">{{tallyBlockers}}</b><span>blockers</span></div>
-  <div><b class="good">{{tallyReady}}</b><span>ready</span></div>
-  <div><b class="cool">{{tallyInFlight}}</b><span>in flight</span></div>
+  <div><b class="good">{{tallyLanded}}</b><span>landed</span></div>
+  <div><b class="cool">{{tallyGaps}}</b><span>gaps</span></div>
 </section>
 {{/if}}
 {{#if sections.desk}}
 <section id="desk">
 <h2>Your desk</h2>
-{{#each gates}}
-<div class="gate-group">
-  <span class="eyebrow">{{gate}} &middot; {{label}}</span>
-  {{#each asks}}
-  <div class="ask">
-    <div class="k">{{kind}} &middot; rank {{rank}}</div>
-    <h3>{{title}}</h3>
-    <p class="why">{{why}}</p>
-    <ol class="opts">
-      {{#each options}}
-      <li class="{{starredClass}}"><span class="letter">{{letter}}</span><span><span class="lab">{{label}}</span>{{#if star}}<svg class="star" viewBox="0 0 20 19" width="14" height="14" role="img" aria-label="{{star}}"><path d="M10 0l2.9 6.2 6.6.9-4.8 4.7 1.2 6.8L10 15.4 4.1 18.6l1.2-6.8L.5 7.1l6.6-.9z" fill="currentColor"/></svg>{{/if}}
-        <span class="cons">{{consequence}}</span>
-        <code>{{command}}</code></span></li>
-      {{/each}}
-    </ol>
-    {{#if objects}}<p class="objs">{{#each objects}}<a href="{{url}}">{{label}}</a>{{/each}}</p>{{/if}}
-    {{#if verdict}}<p class="verdict"><b>Readiness, verbatim:</b> &ldquo;{{verdict}}&rdquo;</p>{{/if}}
-  </div>
+{{#if ask}}
+<div class="ask">
+  <div class="k">{{ask.kind}} &middot; {{ask.gate}}</div>
+  <h3>{{ask.question}}</h3>
+  <p class="why">{{ask.whyNow}}</p>
+  <ol class="opts">
+    {{#each ask.options}}
+    <li class="{{starredClass}}"><span class="letter">{{letter}}</span><span><span class="lab">{{label}}</span>{{#if star}}<svg class="star" viewBox="0 0 20 19" width="14" height="14" role="img" aria-label="{{star}}"><path d="M10 0l2.9 6.2 6.6.9-4.8 4.7 1.2 6.8L10 15.4 4.1 18.6l1.2-6.8L.5 7.1l6.6-.9z" fill="currentColor"/></svg>{{/if}}
+      <span class="cons">{{consequence}}</span>
+      <code>{{command}}</code></span></li>
+    {{/each}}
+  </ol>
+  {{#if ask.objects}}
+  <p class="objs">{{#each ask.objects}}<a href="{{url}}">{{label}}</a>{{/each}}</p>
+  {{/if}}
+  {{#each readiness}}
+  <p class="verdict"><b>{{gate}} readiness, verbatim:</b> &ldquo;{{verdict}}&rdquo;<br>{{reason}}</p>
   {{/each}}
-  {{#if cleared}}<p class="cleared"><b>cleared</b><br>{{cleared}}</p>{{/if}}
-</div>
-{{/each}}
-</section>
-{{/if}}
-{{#if sections.register}}
-<section id="register">
-<h2>The register</h2>
-<p class="muted">One row per issue and pull request in scope. Open a row for its gate, its verdict and what it is waiting on.</p>
-<div class="reg">
-  {{#each objects}}
-  <details>
-    <summary>
-      <span class="no">{{notation}}</span>
-      <span class="ti">{{title}}</span>
-      <span class="mono muted">{{marks}}</span>
-      <span class="pill {{gateClass}}">{{gate}}</span>
-    </summary>
-    <div class="body">
-      <dl>
-        <dt>State</dt><dd>{{state}} &middot; {{labelsLine}}</dd>
-        <dt>Verdict</dt><dd>{{verdict}}</dd>
-        <dt>Checks</dt><dd>{{checksLine}}</dd>
-        <dt>Threads</dt><dd>{{threadsLine}}</dd>
-        <dt>Linked</dt><dd>{{linkedLine}}</dd>
-        <dt>Needs</dt><dd>{{needs}}</dd>
-        <dt>Driving</dt><dd>{{session}} &middot; lane {{lane}}</dd>
-        <dt>Head</dt><dd class="mono">{{head}}</dd>
-        <dt>Thought</dt><dd>{{thought}}</dd>
-        <dt>Link</dt><dd><a href="{{url}}">{{url}}</a></dd>
-      </dl>
+  {{#if ask.blocker}}
+  <details id="g5-blocker" open>
+    <summary>Why this is a G5 &mdash; the evidence</summary>
+    <div>
+      <p class="mono" style="font-size:.8rem">{{ask.blocker.rule}} &middot; stopped at {{ask.blocker.step}} &middot; after {{ask.blocker.executedAfter}}</p>
+      <p>{{ask.blocker.why}}</p>
+      <p><b>Next action:</b> {{ask.blocker.nextAction}}</p>
+      <ul>{{#each ask.blocker.findings}}<li>{{text}}</li>{{/each}}</ul>
     </div>
   </details>
-  {{/each}}
+  {{/if}}
 </div>
-{{#if graphNodes}}
-<h3>{{architectureCaption}}</h3>
+{{/if}}
+{{#if deskCleared}}
+<p class="cleared"><b>cleared</b><br>{{deskCleared}}</p>
+{{/if}}
+</section>
+{{/if}}
+{{#if sections.lastTurn}}
+<section id="last-turn">
+<h2>This last turn</h2>
+<p class="lead">{{lastTurnRequest}}</p>
+<details>
+  <summary>The request, in full</summary>
+  <pre>{{lastTurnRequestFull}}</pre>
+</details>
+<ul class="stack">
+  {{#each lastTurnHighlights}}
+  <li><span class="pill {{outcomeClass}}">{{outcome}}</span> {{text}}<span class="why">{{why}}</span></li>
+  {{/each}}
+</ul>
+{{#if mukaiLastTurn}}
+<h3>Corrections, check fallout and half-run stops</h3>
+<div class="wrap"><table>
+  <tr><th>Correction</th><th>Asked by</th><th>Why</th><th>Handled</th></tr>
+  {{#each lastTurnCorrections}}<tr><td>{{what}}</td><td>{{who}}</td><td>{{whyAsked}}</td><td>{{howHandled}}</td></tr>
+  {{/each}}
+</table></div>
+<div class="wrap"><table>
+  <tr><th>Check</th><th>What it found</th><th>Handled</th></tr>
+  {{#each lastTurnCheckIssues}}<tr><td class="mono">{{check}}</td><td>{{issue}}</td><td>{{howHandled}}</td></tr>
+  {{/each}}
+</table></div>
+<div class="wrap"><table>
+  <tr><th>Stopped</th><th>Autonomy</th><th>Policy</th></tr>
+  {{#each lastTurnStops}}<tr><td>{{why}}</td><td>{{autonomy}}</td><td class="mono">{{policy}}</td></tr>
+  {{/each}}
+</table></div>
+{{/if}}
+</section>
+{{/if}}
+{{#if sections.landed}}
+<section id="landed">
+<h2>Landed, fought back, not delivered</h2>
+<p class="muted">The whole session against <code>{{base}}</code>, not just this turn.</p>
+<h3>Landed</h3>
+<ul class="stack">{{#each accomplished}}<li class="good">{{text}}<span class="why">{{why}}</span></li>{{/each}}</ul>
+<h3>Fought back</h3>
+<ul class="stack">{{#each challenges}}<li class="hard">{{text}}<span class="why">{{why}}</span></li>{{/each}}</ul>
+<h3>Not delivered</h3>
+<ul class="stack">{{#each notDelivered}}<li class="gap">{{text}}<span class="why">{{why}}</span></li>{{/each}}</ul>
+</section>
+{{/if}}
+{{#if sections.delta}}
+<section id="delta">
+<h2>Architecture delta</h2>
+<p class="muted">{{architectureCaption}}</p>
   <div class="canvas" id="graph-canvas" data-state="pending">
     <p class="fallback">Laying the graph out&hellip;</p>
   </div>
@@ -299,44 +326,68 @@ summary:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
       {{/each}}
     </table></div>
   </details>
-{{/if}}
 </section>
 {{/if}}
-{{#if sections.spend}}
-<section id="spend">
-<h2>Spend</h2>
-{{#each spendEfforts}}
-<h3>{{name}}</h3>
-{{#if phases}}
+{{#if sections.evidence}}
+<section id="evidence">
+<h2>Evidence</h2>
+{{#if evidenceUnavailable}}<p class="note">{{evidenceUnavailable}}</p>{{/if}}
+<div class="shots">
+  {{#each captures}}
+  <figure><img src="{{src}}" alt="{{alt}}"><figcaption>{{role}}</figcaption></figure>
+  {{/each}}
+</div>
+<h3>Tests</h3>
+<div class="wrap"><table>
+  <tr><th>Suite</th><th>What it proves</th><th>Result</th></tr>
+  {{#each tests}}<tr><td class="mono">{{suite}}</td><td>{{name}}</td><td>{{status}}</td></tr>
+  {{/each}}
+</table></div>
+<h3>Touched-file coverage</h3>
+{{#if coverage}}
+<p class="muted mono">{{coverage.lane}} &middot; {{coverage.path}} &middot; {{coverage.format}} &middot; {{coverage.total.lines.percent}}% overall</p>
+{{/if}}
+<div class="wrap"><table>
+  <tr><th>File</th><th>Lines</th><th>Band</th></tr>
+  {{#each touchedCoverage}}<tr><td class="mono">{{file}}</td><td>{{percent}}%</td><td><span class="pill">{{band}}</span></td></tr>
+  {{/each}}
+</table></div>
+<h3>Where the time went</h3>
 <ul class="bars">
-  {{#each phases}}
+  {{#each phaseBars}}
   <li><span class="lane">{{lane}}</span><span class="track"><i style="--pct:{{percent}}"></i></span><span class="amt">{{amount}}</span></li>
   {{/each}}
 </ul>
-{{/if}}
-{{#if note}}<p class="muted">{{note}}</p>{{/if}}
 <p class="muted">Usage: {{usage}}</p>
-{{/each}}
 </section>
 {{/if}}
-{{#if sections.legend}}
-<section id="legend">
-<h2>Legend</h2>
-<div class="wrap"><table>
-  <tr><th>Mark</th><th>Means</th></tr>
-  <tr><td class="mono"><svg class="star" viewBox="0 0 20 19" width="14" height="14" role="img" aria-label="recommended"><path d="M10 0l2.9 6.2 6.6.9-4.8 4.7 1.2 6.8L10 15.4 4.1 18.6l1.2-6.8L.5 7.1l6.6-.9z" fill="currentColor"/></svg></td><td>the recommended option on an ask &mdash; exactly one per ask, and the same one the surface's own picker stars</td></tr>
-  <tr><td class="mono">Grouped by gate</td><td>the desk is ordered by gate, then by how much each answer unblocks. A gate with nothing owed is shown cleared, never hidden</td></tr>
-  {{#each legendRows}}<tr><td class="mono">{{mark}}</td><td>{{meaning}}</td></tr>
-  {{/each}}
-</table></div>
+{{#if sections.launch}}
+<section id="launch">
+<h2>How to launch</h2>
+<pre>{{launch}}</pre>
 </section>
 {{/if}}
-<p class="foot">{{footerCount}}<br>{{scope}} &middot; {{variant}} &middot; {{generatedAt}}<br>{{footerNote}}</p>
+{{#if sections.decisions}}
+<section id="decisions">
+<h2>Decisions already made</h2>
+<ul class="stack">{{#each decisions}}<li>{{text}}<span class="why">{{why}}</span></li>{{/each}}</ul>
+</section>
+{{/if}}
+{{#if sections.prBody}}
+<section id="pr-body">
+<h2>The pull request body</h2>
+<details>
+  <summary>As it was posted</summary>
+  {{#each prBody}}<pre>{{markdown}}</pre>{{/each}}
+</details>
+</section>
+{{/if}}
+<p class="foot">{{repo}} &middot; {{branch}} against {{base}} &middot; {{variant}} &middot; {{gate}} &middot; {{generatedAt}}<br>{{footerNote}}</p>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js" integrity="sha384-2IH3T69EIKYC4c+RXZifZRvaH5SRUdacJW7j6HtE5rQbvLhKKdawxq6vpIzJ7j9M" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
-/* THE SHARED RENDERER -- identical text in templates/rikugan.html and
-   templates/spiritual-message.html. Two jobs, in order: the three-state theme
+/* THE SHARED RENDERER -- identical text in templates/spiritual-message.html and
+   templates/rikugan.html. Two jobs, in order: the three-state theme
    switch, and the drawn graph.
 
    The graph is laid out at view time from the nodes-and-edges JSON in the page,

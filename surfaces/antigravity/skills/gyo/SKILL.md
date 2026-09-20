@@ -67,7 +67,7 @@ coverage number.*
 nen parse gyo --grammar "on [<lane>]" --line "<the invocation, minus the /gyo prefix>"
 ```
 
-The clause is anchored behind a literal for the reason [`/rikugan`](../rikugan/SKILL.md) § 1
+The clause is anchored behind a literal for the reason [`/spiritual-message`](../spiritual-message/SKILL.md) § 1
 records. With no clause the lane is `nen/workflow.json` → `iteration.lane`, defaulting to
 `project.defaultLane`. **A bare invocation is not parsed** — there is nothing in it to parse — and
 the resolved lane is named out loud either way.

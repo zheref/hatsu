@@ -53,7 +53,7 @@
 # CON-32(a) checks, CON-32(b) reviewer rounds, CON-32(b)/CON-16 approvals and
 # CON-32(d) unresolved threads — exactly the five things the maintainer asks to
 # be told about. But the verdict only ever existed inside a session's terminal
-# or a rikugan report, so the only way to learn a PR had reached its gate was to
+# or a spiritual-message report, so the only way to learn a PR had reached its gate was to
 # ask a session to go and look. A PR that became ready overnight told nobody.
 # This job runs the same verb on the repository's own machinery, on every event
 # that can change the answer, and writes the result where GitHub already shows

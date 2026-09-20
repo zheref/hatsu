@@ -386,10 +386,10 @@ concept of an optional separator with a defaulted counterpart slot.
 
 ---
 
-## 2026-09-20 — Spiritual Message, verified live (zheref/hatsu#89)
+## 2026-09-20 — Rikugan, verified live (zheref/hatsu#89)
 
-The hand-authored HTML step is retired. `templates/spiritual-message.html` is new, sharing one token
-sheet and one graph renderer with `templates/rikugan.html` — both files are assembled from the same
+The hand-authored HTML step is retired. `templates/rikugan.html` is new, sharing one token
+sheet and one graph renderer with `templates/spiritual-message.html` — both files are assembled from the same
 fragments, so the sheet and the renderer are byte-identical rather than identical by promise.
 
 `--variant register` did not exist on the nen branch when this ran; the data document was written by
@@ -397,16 +397,16 @@ hand with the `sections.*` flags that variant will inject, and rendered with the
 
 ```
 $ bun src/index.ts report render \
-    --template <hatsu>/templates/spiritual-message.html \
+    --template <hatsu>/templates/rikugan.html \
     --data <scratch>/sample-register.json \
-    --out Reports/samples/spiritual-message-register.html \
+    --out Reports/samples/rikugan-register.html \
     --repo /Users/zheref/Code/Agents/hatsu/.claude/worktrees/quirky-chatterjee-88d5f6
 … 65 tokens listed …
-wrote Reports/samples/spiritual-message-register.html                         exit 0
+wrote Reports/samples/rikugan-register.html                         exit 0
 ```
 
 33,345 bytes written, `grep -c '{{'` = **0**. The sample is left at
-`Reports/samples/spiritual-message-register.html` (git-ignored): two asks, four register rows, a
+`Reports/samples/rikugan-register.html` (git-ignored): two asks, four register rows, a
 drawn graph, a spend block and the legend.
 
 **Observed in the built-in browser**, light and dark, 1024px and 375px:
@@ -429,4 +429,4 @@ drawn graph, a spend block and the legend.
   bars restack, tables scroll in their wrappers.
 
 Theme, fonts, the toggle, the SRI pin and the blocked-script fallback are the same mechanism as
-Rikugan's and were verified there — see `docs/ab/rikugan.md`, same date.
+Spiritual Message's and were verified there — see `docs/ab/spiritual-message.md`, same date.

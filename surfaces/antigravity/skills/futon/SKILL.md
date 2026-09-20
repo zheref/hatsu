@@ -143,7 +143,7 @@ maintainer the exact command**; never route around a refusal, and this run never
 
 ## 9. Reporting — the register, every cycle
 
-**Progress turns carry no banner.** The per-cycle status board is a **Spiritual Message**, rendered
+**Progress turns carry no banner.** The per-cycle status board is a **Rikugan**, rendered
 through the register variant, via [`backlog-board`](../backlog-board/SKILL.md) § 3 — no hand-authored
 HTML. Rows are the band's issues and their PRs; the desk carries this cycle's asks. State every cycle
 the briefed items awaiting a decision, the blocked items and their blockers, what was triaged into

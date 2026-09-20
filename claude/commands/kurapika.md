@@ -55,11 +55,11 @@ deploy plan (`nen shu deploy --target <name>`, no `--run`) you may print; `--run
 When I call **`mukai`**, run it in its fixed order: `murasaki` (pull + push) → `hanten` (the adversarial
 review) → `kokusen` (focused checkpoint) → `kotoamatsukami` (impacted unit, UI and integration tests) → `byakugan` (the coverage bar; a touched file under the ladder's minimum is a **G5**) →
 `murasaki` publishes the proved tree (or returns to the checkpoint if catch-up dirties it) →
-evidence → `shibari` opens the one PR → `rikugan` renders its landing report → Mukai immediately starts
+evidence → `shibari` opens the one PR → `spiritual-message` renders its landing report → Mukai immediately starts
 **`en`** and ends. The user turn remains active under `en`, which owns the readiness watch —
 **`sharingan`** (the skill formerly `drive`) →
 `murasaki` when behind → `sharingan` → observe required CI and the owed current-head review → `jutaisho`
-at Ready → the final `rikugan`, then stop at the human gate. It is capped by `nen/workflow.json` →
+at Ready → the dated final report — a one-effort `rikugan`, rendered through `backlog-board` § 3 — then stop at the human gate. It is capped by `nen/workflow.json` →
 `monitor`; **a run with no acting cap does not run, and quiet observations spend none**. Opening the PR,
 publishing screenshots, or reporting CI/review pending is progress, never success. The merge itself is
 **G2** and it is mine.

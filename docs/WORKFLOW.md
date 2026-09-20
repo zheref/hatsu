@@ -24,7 +24,7 @@ A local checkpoint, branch publication and PR completion are separate outcomes. 
 | `mukai` / `kotoamatsukami` | Review, then run only the declared unit, UI and integration suites the change can affect | Selection is fail-closed; edits return through focused checkpoint and kotoamatsukami before publication |
 | `byakugan` | Capture and measure touched-file coverage independently of those suites | Extraction must not rerun tests; the G5 under `coverage.minimum` is this skill's |
 | `gyo` | Declared `lint` verb on every Ren turn (breath tip, rasengan may, kokusen must) and at aka | Not coverage. A seat is quoted; red at kokusen refuses the commit |
-| `rikugan` | Render the owning phases' evidence and discovery statuses; **00** is last-turn only; **01–07** are the session; **04** is a structural diagram | Reports run no tests/coverage; absent, stale and not-due evidence remain explicit; file lists are inventory, not architecture |
+| `spiritual-message` | Render the owning phases' evidence and discovery statuses; **00** is last-turn only; **01–07** are the session; **04** is a structural diagram | Reports run no tests/coverage; absent, stale and not-due evidence remain explicit; file lists are inventory, not architecture |
 
 The single `iteration.checks` list still serves `breath`, `rasengan`, and `kokusen`. There is no
 checkpoint-only routing key. A scoped test runs through an explicitly declared test lane whose
@@ -233,7 +233,7 @@ is not connected it reports the device **by name** and falls back to `fallback`,
 **A `null` `default` with no `project.launch` is the no-launch case, and it is an answer.** Hatsu's own are
 both `null`, and it declares no `project.launch` at all: a plugin is loaded by Claude Code, not launched. In
 that repository `amaterasu` records **`no launch target declared; skipped`** in the turn report and continues
-to `rikugan` and `jutaisho` — **it does not ask**. `ren` reaches the phase every turn, so a question there
+to `spiritual-message` and `jutaisho` — **it does not ask**. `ren` reaches the phase every turn, so a question there
 would be a question per turn about something the configuration already settled. The case that *does* ask is a
 repository whose `project.launch` declares targets while `launch.default` is `null`: that is an unanswered
 question, not an answered one.
@@ -241,7 +241,7 @@ question, not an answered one.
 ### `reports`
 
 ```json
-"reports": { "dir": "Reports", "retain": "final-only", "template": "rikugan",
+"reports": { "dir": "Reports", "retain": "final-only", "template": "spiritual-message",
              "captures": "Reports/captures" }
 ```
 
@@ -249,9 +249,9 @@ question, not an answered one.
 |---|---|---|
 | `dir` | `Reports` | **git-ignored.** The only directory a report is ever written to |
 | `retain` | `final-only` | **the retention rule — what is KEPT**; see below |
-| `template` | `rikugan` | `templates/<name>.html` in this repository |
+| `template` | `spiritual-message` | `templates/<name>.html` in this repository |
 | `captures` | `Reports/captures` | where screenshots land before they are inlined as data URIs |
-| `sections.<variant>.template` | — | which of `templates/*.html` this variant renders: `rikugan` for `turn`, `turn-fast` and `landing`, `spiritual-message` for `final` and `register` |
+| `sections.<variant>.template` | — | which of `templates/*.html` this variant renders: `spiritual-message` for `turn`, `turn-fast` and `landing`, `rikugan` for `final` and `register` |
 | `sections.<variant>.blocks` | — | the block names this variant renders, injected as `sections.<block>` presence flags by `nen report render --variant`. A variant declaring none renders every block |
 
 **The template language `nen report render` fills these with.** `{{token}}` (escaped),
@@ -263,7 +263,7 @@ spells a substitution tag in its own comments**: the renderer substitutes over t
 comments included.
 
 **Which blocks a report renders is configuration, and so is who renders it** (maintainer's ruling,
-2026-09-19). Five variants are declared: [`rikugan`](../claude/skills/rikugan/SKILL.md) renders
+2026-09-19). Five variants are declared: [`spiritual-message`](../claude/skills/spiritual-message/SKILL.md) renders
 **`turn`** every Ren turn, **`turn-fast`** at the same step under the fast profile (desk and last
 turn only) and **`landing`** at `mukai` step 9 and `en` step 1;
 [`backlog-board`](../claude/skills/backlog-board/SKILL.md) § 3 renders **`register`** for its own
@@ -272,7 +272,7 @@ Every value inside a block is the model's; only the presence flags come from thi
 
 **The retention rule — and what it does *not* say.** A report is published at three moments — every
 turn, at landing, and once current-head readiness is verified — and `retain: final-only` means **only
-the last one is KEPT**: the **`final`** variant, a one-effort Spiritual Message with a cleared desk,
+the last one is KEPT**: the **`final`** variant, a one-effort Rikugan with a cleared desk,
 rendered through [`backlog-board`](../claude/skills/backlog-board/SKILL.md) § 3 to
 `<reports.dir>/<YYYY-MM-DD>-<effort>.html`. A directory holding one report per turn is a directory
 nobody opens; the final one is the one with the register, the tests run and the touched coverage on
@@ -658,7 +658,7 @@ one runs against a tree nobody has open. Parallel subagent efforts launch nothin
 
 `globs` are the artifacts that count as visual evidence; `scene` is the template that turns a path into a
 suite-and-scene pair; `mechanism` is how the images reach a pull-request body. `kotoamatsukami` re-records
-them, `rikugan` lays them out as a table with scenes as columns, and `shibari` puts that table in the PR.
+them, `spiritual-message` lays them out as a table with scenes as columns, and `shibari` puts that table in the PR.
 Pre-PR, PNGs are embedded as **data URIs** so a report is one self-contained file with no host to go stale.
 
 ---
@@ -668,7 +668,7 @@ Pre-PR, PNGs are embedded as **data URIs** so a report is one self-contained fil
 **Per request, the loop is `ren`**, and it runs without being asked:
 
 `breath` (first turn of an effort — and it proves the base tip builds) → `rasengan` (**author the change**)
-→ `kokusen` (**verify the finished tree, then commit**) → `amaterasu` (launch) → `rikugan` (the turn's
+→ `kokusen` (**verify the finished tree, then commit**) → `amaterasu` (launch) → `spiritual-message` (the turn's
 report) → `jutaisho` (the bell).
 
 It loops. **It never pushes and never opens a pull request.**
@@ -760,7 +760,7 @@ maintainer's to call. Its order is fixed, and each step has exactly one job.
 | **6** | the push half of [`murasaki`](../claude/skills/murasaki/) | **publishes the final proved tree**, and only when this catch-up is a no-op. If it changes any tree path, return to steps 3–5 (kokusen, kotoamatsukami, byakugan) before pushing. Review fixes and byakugan's new tests are working-copy edits; neither of those skills may commit or push; step 8 refuses to open a PR while `HEAD` is ahead of `origin/<branch>` | **G5** on a semantic conflict where the base moved again |
 | **7** | evidence | the changed visual artifacts, from `project.evidence` (§ 3), grouped **suite → scene**, from kotoamatsukami's existing artifacts | not a gate event |
 | **8** | [`shibari`](../claude/skills/shibari/) | composes and opens **one** PR, requests the reviewers and writes the body back | never labels a gate, never merges |
-| **9** | [`rikugan`](../claude/skills/rikugan/) `as landing` | the landing report, rendered **after** the PR exists because its two extra sections — the PR body and the readiness verdict — are step 8's outputs. Mukai then starts [`en`](../claude/skills/en/) and ends | not a gate event; En owns current-head readiness from the immediate handoff, and the user turn remains active under En while CI/review is pending |
+| **9** | [`spiritual-message`](../claude/skills/spiritual-message/) `as landing` | the landing report, rendered **after** the PR exists because its two extra sections — the PR body and the readiness verdict — are step 8's outputs. Mukai then starts [`en`](../claude/skills/en/) and ends | not a gate event; En owns current-head readiness from the immediate handoff, and the user turn remains active under En while CI/review is pending |
 
 **Four of the five G5 conditions of § 4 live inside this one phase.** That is not an accident of layout: a
 pull request is the moment work stops being private, so it is the moment the honest questions are cheapest to
@@ -849,11 +849,11 @@ Then `shibari` hands the PR to `en` and stops. It never applies a gate label and
 "monitor": { "maxCycles": 20, "pollSeconds": 300 }
 ```
 
-`en`'s order: [`rikugan`](../claude/skills/rikugan/)¹ (landing — the PR body and the readiness verdict) →
+`en`'s order: [`spiritual-message`](../claude/skills/spiritual-message/)¹ (landing — the PR body and the readiness verdict) →
 [`sharingan`](../claude/skills/sharingan/)² → [`murasaki`](../claude/skills/murasaki/)³ when the branch is
 behind → `sharingan`⁴ → **observe⁵ while required CI or the current-head reviewer round is pending**, still
 reacting to new comments, threads, reviews and conflicts → [`jutaisho`](../claude/skills/jutaisho/)⁶ once
-at Ready → the dated **final** report, a one-effort Spiritual Message rendered through `nen report render --variant final` (`backlog-board` § 3's path), **the only report written to `Reports/`**, then stop at the human gate.
+at Ready → the dated **final** report, a one-effort Rikugan rendered through `nen report render --variant final` (`backlog-board` § 3's path), **the only report written to `Reports/`**, then stop at the human gate.
 
 | Key | What it bounds |
 |---|---|
@@ -995,7 +995,7 @@ the installed plugin directory, which changes on every update, so it is never wr
 
 Several skills build an absolute path from the plugin root — `pr-state`, `sharingan`, `backlog-state`,
 `futon`, `tensho` and `getsuga` for `nen pr ready --gates`, `hatsu-warmup` for `nen/contract.json`, `hanten`
-for a persona's definition under `claude/agents/`. (`rikugan` is not on this list: its template is the target
+for a persona's definition under `claude/agents/`. (`spiritual-message` is not on this list: its template is the target
 repository's own `templates/<name>.html`, named by that repository's `nen/workflow.json`.) **The name they
 spell it with is `$hatsu_root`, never `$CLAUDE_PLUGIN_ROOT` on its own**, because a skill body is mirrored
 verbatim onto Codex and Cursor ([`docs/SURFACES.md`](SURFACES.md)) and `$CLAUDE_PLUGIN_ROOT` is Claude
@@ -1033,7 +1033,7 @@ passing `--reviewers` instead (`sharingan` § 4), not by guessing a path. This i
 
 **Every residue this section used to list was retired when the pin moved to nen `0.5.0`.** Build proof and
 the stall guard (`rasengan`), `--target` on `shu dev` with `lane`/`artifact` (`amaterasu`, `jujutsu`), both
-report verbs (`rikugan`), `--no-push` and `conflicts[]` on `pr cascade-main` (`ao`, `murasaki`),
+report verbs (`spiritual-message`), `--no-push` and `conflicts[]` on `pr cascade-main` (`ao`, `murasaki`),
 `wc squash` (`aka`), `shu test-report` (`tsukuyomi`), `shu evidence` (`kotoamatsukami`, `shibari`),
 `shu coverage --touched` with the ladder (`byakugan`), `pr edit-body` (`shibari`), the forbidden-trailer refusal
 in `commit format` (`kokusen`), `nen/workflow.json` validation and `notifications.turn` (`breath`,
@@ -1053,8 +1053,8 @@ live and recorded in the matching `docs/ab/<skill>.md` under *Retired at nen 0.5
 | the marker's SHAPE — `hatsu.stop-marker/v0.1` | `jutaisho` | `nen stop --mark` writes a poorer document with no `title`, `sound` or `rungs`, and **replaces** the file; adopting it would ring the generic line on every gate. Kept deliberately |
 | removing the marker on a hookless surface | `jutaisho` | `--mark` writes and never removes |
 | a coverage tool's own exclusions | `byakugan` | `--touched` narrows the rows nen parsed; it cannot know what was never instrumented |
-| embedding a capture as a `data:` URI | `rikugan` | no verb turns a PNG into one |
-| the Artifact publish | `rikugan` | the surface's tool, not a deterministic step nen owns |
+| embedding a capture as a `data:` URI | `spiritual-message` | no verb turns a PNG into one |
+| the Artifact publish | `spiritual-message` | the surface's tool, not a deterministic step nen owns |
 | a `.xcresult` with no declared extraction step, and a Playwright HTML report | `tsukuyomi`, `kotoamatsukami` | `test-report` reads a **declared** summary; nen opens no result bundle itself |
 | placing a surface mirror into a target repository, and `info/exclude` | `hatsu-warmup` | `--out` is a path, not a deployment; an exclude file is one working copy's property |
 | an artifact's size, freshness and checksum | `susanoo` | nen reports a declared artifact's existence and nothing more |
@@ -1064,7 +1064,7 @@ live and recorded in the matching `docs/ab/<skill>.md` under *Retired at nen 0.5
 file, never a gap to route around.
 
 Skill availability follows the same honesty: `breath`, `rasengan`, `kokusen`, `amaterasu`, `tsukuyomi`,
-`rikugan`, `jutaisho`, `ao`, `aka` and `ren` shipped at Hatsu **`v0.4.0`**. **`v0.5.0` adds the PR side of
+`spiritual-message`, `jutaisho`, `ao`, `aka` and `ren` shipped at Hatsu **`v0.4.0`**. **`v0.5.0` adds the PR side of
 § 5** — `mukai`, `murasaki`, `hanten`, `gyo`, `kotoamatsukami`, `shibari`, `en` and `jujutsu`, plus the
 `drive` → `sharingan` rename — and the three agent definitions it needs: Feitan, Chrollo and Illumi.
 **`v0.24.0` adds `byakugan`** (coverage capture and measurement, independent of kotoamatsukami's tests).
@@ -1245,7 +1245,7 @@ has ended.
 ## The UZF-26 evidence shape
 
 Moved here on 2026-09-20 (zheref/hatsu#89) from `shibari` § 5, which owned it alone;
-[`rikugan`](../claude/skills/rikugan/SKILL.md) § 3 fills its own `evidence[]` from the same rows.
+[`spiritual-message`](../claude/skills/spiritual-message/SKILL.md) § 3 fills its own `evidence[]` from the same rows.
 
 - **The recorded test images are the screenshots** — never separately-staged captures, so the evidence
   cannot drift from what the tests assert.

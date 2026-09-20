@@ -74,7 +74,7 @@ exit=0
 
 A bare `against` parses with the clause **absent** at exit `0` — the same behaviour `ao`'s `from` clause
 records (`docs/ab/ao.md` § 2.1) — so the literal may be typed without a value and the default applies.
-The slot is anchored behind a literal, which is what the engine requires (`docs/ab/rikugan.md` § 2.1).
+The slot is anchored behind a literal, which is what the engine requires (`docs/ab/spiritual-message.md` § 2.1).
 
 ### 2.2 — `nen shu coverage`: it parses, it reports `met`, and it never gates
 
@@ -235,7 +235,7 @@ coverage here?"* with the repository's own sentence rather than with a number no
 2. **Per-file `met`** (§ 4.1). `threshold` is one object about the **total**; every per-file band in the
    skill's § 4 table is computed by the skill from `targets[].lines.percent` against the ladder.
 3. **`nen shu test-report`** — absent at this pin (`docs/ab/tsukuyomi.md` § 2.4).
-4. **`nen/workflow.json` read as data** — no schema row at `v0.3.0` (`docs/ab/rikugan.md` § 2.4). The
+4. **`nen/workflow.json` read as data** — no schema row at `v0.3.0` (`docs/ab/spiritual-message.md` § 2.4). The
    ladder defaults to 80 / 85 / 90 / `touched`, stated when it applied. From `0.4.0` the verb reads the
    ladder itself for its default threshold.
 5. **Judging whether a test asserts anything** — § 4.4.

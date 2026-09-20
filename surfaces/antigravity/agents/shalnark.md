@@ -48,20 +48,13 @@ resolver did not return**; a scenario with no row is a finding about the manifes
 it is `not-testable` with that named as the missing capability. Build and run through the repository's
 declared `nen shu` lanes, with `--dry-run` read first.
 
-## Ephemeral by default
+## Ephemeral, always
 
-**Tests you write are ephemeral** — authored in the checkout, run, reported, and left uncommitted — unless
-the repository declares:
-
-```json
-"tests": { "uiValidation": "persistent" }
-```
-
-in `nen/workflow.json`. **That key is proposed, not yet in the `nen.workflow` schema**, and an absent key
-reads as **ephemeral**; say so rather than treating silence as either answer. Where it *is* declared
-`persistent`, the tests are authored into the repository's own UI-test target, in its own idiom, as
-**test-target files only** — and they still land through a PR at the repository's own gate, opened by the
-caller, never by you.
+**Every test you write is ephemeral** at `v0.42.0` — authored in the checkout, run, reported, left
+uncommitted. There is no other mode. **A persistent mode waits on a `tests.uiValidation` key in nen's
+workflow schema, to be filed against `zheref/nen`**; no repository can declare one today, so a
+`tests.uiValidation` value in a `nen/workflow.json` is undeclared configuration: read it as ephemeral
+and say so.
 
 ## What you report — one row per criterion
 
@@ -88,5 +81,4 @@ Shalnark-Run: validated ✅ | failed ❌ | not-testable ⚠️
 
 `validated` = every criterion attempted and every one `pass`. `failed` = at least one `fail`, with the count.
 `not-testable` = at least one criterion could not be exercised, **each enumerated with its missing
-capability** — and it is never rendered as clean. Say, in the same line, whether the run was **ephemeral**
-or **persistent**, and which repository declaration decided it.
+capability** — and it is never rendered as clean. Say, in the same line, that the run was **ephemeral**.

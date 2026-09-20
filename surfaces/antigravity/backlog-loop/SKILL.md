@@ -1,6 +1,6 @@
 ---
 name: backlog-loop
-description: Drive a target repository's backlog to zero open actionable issues, in severity order, as gate-ready PRs. Use when the maintainer asks to work the backlog, clear open issues, run the loop, or keep a repo current. Kurapika triages, sequences build and sharingan across at most two efforts, cuts tags and runs the fan-out at severity-batch boundaries, and renders the per-cycle status board as a Spiritual Message. Never merges main; G2/G4/G3 stay the maintainer's.
+description: Drive a target repository's backlog to zero open actionable issues, in severity order, as gate-ready PRs. Use when the maintainer asks to work the backlog, clear open issues, run the loop, or keep a repo current. Kurapika triages, sequences build and sharingan across at most two efforts, cuts tags and runs the fan-out at severity-batch boundaries, and renders the per-cycle status board as a Rikugan. Never merges main; G2/G4/G3 stay the maintainer's.
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
@@ -171,7 +171,7 @@ command** — never route around a refusal, never write `latest` for a tag that 
 
 ## 8. The status board — the register, every cycle
 
-**Rendered, never hand-formatted.** The per-cycle status board is a **Spiritual Message**, rendered
+**Rendered, never hand-formatted.** The per-cycle status board is a **Rikugan**, rendered
 through the register variant, via [`backlog-board`](../backlog-board/SKILL.md) § 3 — one collapsible
 row per issue and PR in the queue, the desk carrying this cycle's asks, grouped by gate and ranked.
 No hand-authored HTML and no markdown table standing in for it.
@@ -197,7 +197,7 @@ moves** (`nen pr cascade-main --repo <path> [--trunk main]`); **never two effort
 
 The run ends when the actionable queue is empty: every open issue delivered as a PR standing at its
 gate, briefed and awaiting a decision, or blocked with its blocker named. Say the run has ended so
-the delegation lapses. **The final report is the `final` Spiritual Message** (backlog-board § 3) —
+the delegation lapses. **The final report is the `final` Rikugan** (backlog-board § 3) —
 one effort, a cleared desk, written to `<reports.dir>/<YYYY-MM-DD>-<effort>.html` — carrying every
 issue with its state, every PR's verdict verbatim, every label with its time, and what is on the
 maintainer's plate. **This skill never resumes itself** — re-invoke it.

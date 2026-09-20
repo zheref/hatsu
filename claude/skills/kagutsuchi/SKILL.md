@@ -143,10 +143,10 @@ one**; an unset variable is exit `2` with its **name**, and that is where the ru
 copied out of the `--dry-run` report, whether `--run` was passed, each step's exit code and nen's, and
 **the maintainer's call quoted verbatim** — a delegation recorded elsewhere being context, never its
 place. **One line for the tag**: *cut and pushed*, *cut locally*, *refused with nen's
-reason*, or *not declared for this target*, a present-but-malformed declaration being read-and-rejected
+reason*, or *not declared for the target*, a present-but-malformed declaration being read-and-rejected
 rather than absent. **Re-render the turn report before stopping**
-([`rikugan`](../rikugan/SKILL.md) § 5's `turn` variant, the upload in **01 Accomplished**), and **say
-nothing about what is available next.**
+([`spiritual-message`](../spiritual-message/SKILL.md) § 5's `turn` variant, the upload in **01 Accomplished**), and **say
+nothing about what is next.**
 
 ## Residue
 

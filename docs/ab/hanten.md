@@ -175,7 +175,7 @@ default path map, in the open, reported as by-hand. See § 4.2 for where that ma
 gives Hisoka and Uvogin **`sonnet`** — the `fast` tier. Both readings are recorded as true in the same
 document (`docs/ROSTER.md` § 3). § 4.1 is what to do about it.
 
-`nen schema check` does not validate `nen/workflow.json` at this pin (`docs/ab/rikugan.md` § 2.4), so
+`nen schema check` does not validate `nen/workflow.json` at this pin (`docs/ab/spiritual-message.md` § 2.4), so
 these values are read as data and the defaults are stated whenever they apply.
 
 ### 2.5 — `nen stop --template`, and what it does not do

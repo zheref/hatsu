@@ -219,7 +219,7 @@ exit=2
 3. **Waiting for the device** — no loop primitive will take it (§ 2.4). Jujutsu asks and waits.
 4. **The first probe** — run from the platform's documented command, before there is a
    `device.resolve` to read it from (§ 2.2, § 2.3). Named every run; read from the file thereafter.
-5. **`nen/workflow.json` read as data** — no schema row at `v0.3.0` (`docs/ab/rikugan.md` § 2.4).
+5. **`nen/workflow.json` read as data** — no schema row at `v0.3.0` (`docs/ab/spiritual-message.md` § 2.4).
    `launch.default` and `launch.fallback` are read directly.
 
 ---

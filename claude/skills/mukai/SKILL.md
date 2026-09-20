@@ -85,7 +85,7 @@ says which composite is holding it instead.
 | 6 | **publish the proved tree** | [`hatsu:murasaki`](../murasaki/SKILL.md) | final catch-up check; if it changes any tree path, invalidate regression and coverage and return to steps 3–5; only an unchanged, fully proved tree is pushed |
 | 7 | **collect the evidence** | [`hatsu:kotoamatsukami`](../kotoamatsukami/SKILL.md)'s existing artifacts | build the `UZF-26` table without rerunning UI regression |
 | 8 | **compose and open** | [`hatsu:shibari`](../shibari/SKILL.md) | the body, checks, evidence, reviewers, and PR from the last pushed commit |
-| 9 | **the landing report** | [`hatsu:rikugan`](../rikugan/SKILL.md) `as landing` | rendered after step 8 because the PR body and readiness result are its inputs; **00** is this mukai request |
+| 9 | **the landing report** | [`hatsu:spiritual-message`](../spiritual-message/SKILL.md) `as landing` | rendered after step 8 because the PR body and readiness result are its inputs; **00** is this mukai request |
 | → | **hand over and end Mukai** | [`hatsu:en`](../en/SKILL.md) | Mukai immediately starts En on the open PR and ends; En owns the capped drive to verified Ready at G2/G4 while the invoking user turn remains active |
 
 **The order is load-bearing in eight places, and those eight are the only ones mukai asserts:**
@@ -108,10 +108,10 @@ says which composite is holding it instead.
   bless a tree whose coverage was measured before the merge.
 - **6 before 7.** Evidence is selected from artifacts for the pushed tree.
 - **7 before 8.** The PR body's evidence table needs its rows.
-- **8 before 9.** [`rikugan`](../rikugan/SKILL.md) § 5's `landing` variant is 00–07 **plus 08 PR
+- **8 before 9.** [`spiritual-message`](../spiritual-message/SKILL.md) § 5's `landing` variant is 00–07 **plus 08 PR
   body and 09 Readiness**, and both are step 8's outputs. **The landing report is
   rendered once, here, after the PR exists** — not rendered early and re-rendered later.
-  Rikugan fills **00 This last turn** from this mukai request: corrections (who asked, why,
+  Spiritual Message fills **00 This last turn** from this mukai request: corrections (who asked, why,
   handled or pushed back), local checks that brought work back, and any half-run stop with
   the policy and the autonomy fix. Architecture delta is the structural diagram, not the
   file list.
@@ -215,7 +215,7 @@ maintainer tuning the file knows where the effect lands:
 | `coverage.minimum` / `.recommended` / `.ideal` / `.scope` | `nen/workflow.json` | step 5 — [`hatsu:byakugan`](../byakugan/SKILL.md) |
 | `models.*`, `models.roles.reviewer` | `nen/workflow.json` | step 2's reviewer tier — [`hatsu:hanten`](../hanten/SKILL.md) |
 | `commits.allowedAttributionTrailers` / `.forbiddenTrailers` | `nen/workflow.json` | step 3's message — [`hatsu:kokusen`](../kokusen/SKILL.md) |
-| `reports.dir`, `.template`, `.captures`, `.retain` | `nen/workflow.json` | step 9 — [`hatsu:rikugan`](../rikugan/SKILL.md) `as landing` |
+| `reports.dir`, `.template`, `.captures`, `.retain` | `nen/workflow.json` | step 9 — [`hatsu:spiritual-message`](../spiritual-message/SKILL.md) `as landing` |
 | `project.evidence.globs` / `.scene` / `.mechanism` | `nen/contract.json` | steps 7 and 8 — the table's rows and how they reach the body |
 | `project.verbs` (`test`, `ui-test`, `coverage`, `build`) | `nen/contract.json` | whatever the step's own verb spawns |
 
@@ -262,7 +262,7 @@ it is how the page stops being read.
    `nen commit format --repo` gated on its own exit code and `git commit --file`, still residue
    (step 3, named in [`kokusen`](../kokusen/SKILL.md)), `nen shu evidence` (step 7), `gh pr create`,
    still residue, and `nen pr edit-body` (step 8, named in [`shibari`](../shibari/SKILL.md)), and
-   `nen report data` / `nen report render` (step 9, named in [`rikugan`](../rikugan/SKILL.md)).
+   `nen report data` / `nen report render` (step 9, named in [`spiritual-message`](../spiritual-message/SKILL.md)).
 
    > **RETIRED at nen `0.5`.** Six of the verbs this list used to call *missing* are in the pinned
    > binary — `pr cascade-main --no-push`, `shu test-report`, `shu coverage --touched`,

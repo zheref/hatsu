@@ -58,7 +58,7 @@ nen parse ao --grammar "from [<base>]" --line "<the invocation, minus the $ao pr
 
 Verified live at `v0.3.0` (`docs/ab/ao.md` § 2.1): `from release/1.4` → `base: release/1.4`; a bare
 `from` parses with the clause absent, exit `0`. The clause is anchored behind a literal for the
-reason [`$rikugan`](../rikugan/SKILL.md) § 1 records.
+reason [`$spiritual-message`](../spiritual-message/SKILL.md) § 1 records.
 
 **With no clause the base is `nen/workflow.json` → `branch.base`, default `main`** when the key or
 the file is absent. Name the base out loud before fetching it — a branch quietly caught up against
@@ -272,7 +272,7 @@ and never a blend that is neither side's intent.
 
 The stop is [`$jutaisho`](../jutaisho/SKILL.md)'s shape, in full — the `nen stop` banner and
 efforts table (`nen stop --who Kurapika --gate G5 <efforts.md>`, verified live, `docs/ab/ao.md`
-§ 2.5), the [`$rikugan`](../rikugan/SKILL.md) report's link, lettered options with a ⭐ on the
+§ 2.5), the [`$spiritual-message`](../spiritual-message/SKILL.md) report's link, lettered options with a ⭐ on the
 report, and the question through the surface's own option picker. What this skill adds to it:
 
 - **Both sides shown, verbatim** — `git show :2:<path>` and `git show :3:<path>`, with `:1:` where a

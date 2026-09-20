@@ -1,8 +1,8 @@
 # A/B evidence — `en` (new skill, wave 3)
 
-`claude/skills/en/SKILL.md`: the capped readiness watch — `rikugan`¹ landing → `sharingan`² →
+`claude/skills/en/SKILL.md`: the capped readiness watch — `spiritual-message`¹ landing → `sharingan`² →
 `murasaki`³ when behind base → `sharingan`⁴ → observe⁵ while current-head CI/review is pending,
-reacting to new findings and conflicts by going back to step 2 → `jutaisho`⁶ at Ready → `rikugan`⁷
+reacting to new findings and conflicts by going back to step 2 → `jutaisho`⁶ at Ready → `spiritual-message`⁷
 final, written to
 `Reports/<date>-<branch>-final.html`. Third-Hand is a later phase, not this run.
 
@@ -33,7 +33,7 @@ Nothing below is redacted; both repositories are public.
 | The bell's table shape | `nen stop --template` | **§ 2.4, here** |
 | The parameter table's pin caveat | `nen schema check` | **§ 2.5, here** |
 | Counting cycles 1..N | `nen loop iterate` (retired from residue at Nen 0.7) | **§ 2.6 plus retired section, here** |
-| 1, final · landing and readiness reports | `hatsu:rikugan` | `docs/ab/rikugan.md` |
+| 1, final · landing and readiness reports | `hatsu:spiritual-message` | `docs/ab/spiritual-message.md` |
 | 2, 4 · drive | `hatsu:sharingan` | `docs/ab/drive.md` (that skill's record, under its original name) |
 | 3 · catch up | `hatsu:murasaki` | that skill's A/B file |
 | 6 · the bell | `hatsu:jutaisho` | `docs/ab/jutaisho.md` |
@@ -69,7 +69,7 @@ exit=2
 
 **Four transcripts, and the third is the load-bearing one.** The engine's rule — a lone bracketed
 slot is refused at the template, so an optional clause needs an introducing literal — is
-`docs/ab/rikugan.md` § 2.1's finding, re-confirmed here (fourth transcript). What is **new** is the
+`docs/ab/spiritual-message.md` § 2.1's finding, re-confirmed here (fourth transcript). What is **new** is the
 third: once the clause is anchored, **the anchor itself becomes required**. `"no clause"` and
 `"an empty line"` are different inputs, and only the first parses.
 
@@ -179,7 +179,7 @@ exit=1
 
 **`monitor.maxCycles` and `monitor.pollSeconds` are unvalidated at this pin** — the loader is P1 and
 lands with the `v0.4` line. En reads them as data and states the defaults (`20`, `300`) whenever they
-are what applied. Same five rows as `docs/ab/rikugan.md` § 2.4 and `docs/ab/mukai.md` § 2.2.
+are what applied. Same five rows as `docs/ab/spiritual-message.md` § 2.4 and `docs/ab/mukai.md` § 2.2.
 
 ### 2.6 — Nothing counts the cycles, and `--max-iterations` is not the cap
 
@@ -215,7 +215,7 @@ program."*
 1. **The composition itself has no verb** — `docs/ab/ren.md` § 2.2, cited rather than re-proven.
    **En adds no residue of its own**: every deterministic step inside a cycle is a verb or a named
    residue *in the skill that owns it* — the absent `nen report data` / `nen report render`
-   (steps 1 and 7, `docs/ab/rikugan.md` § 3), `nen pr ready`/`body-check`/`staleness` plus the two
+   (steps 1 and 7, `docs/ab/spiritual-message.md` § 3), `nen pr ready`/`body-check`/`staleness` plus the two
    verbs `sharingan` refuses to call for a verdict (steps 2 and 4, `docs/ab/drive.md`),
    `nen pr cascade-main` and its missing `--no-push` (step 3, `docs/ab/ao.md`), `nen stop` plus the
    `osascript`/`afplay` fallback and the `.nen/last-stop.json` marker (step 5,
@@ -242,7 +242,7 @@ resulting grammar then **refuses an empty line**. The refusal itself is clear on
 (*"the line must open with the literal 'on'"*, with a corrected line), so this is a documentation
 observation and not a defect: the engine is consistent, and "an omitted clause" in this grammar means
 *the anchor with nothing after it*, not *nothing at all*. **Recorded because every optional clause in
-this wave and the last one has the same shape** (`rikugan as`, `jutaisho at`, `ao from`, `en on`), so
+this wave and the last one has the same shape** (`spiritual-message as`, `jutaisho at`, `ao from`, `en on`), so
 any composite invoking one of those skills programmatically will meet it.
 
 ### 4.2 — `en`'s long watch is a missing ROLE, not a missing verb, and it is a maintainer's OPEN question

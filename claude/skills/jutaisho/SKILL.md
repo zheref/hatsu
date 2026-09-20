@@ -79,7 +79,7 @@ or `notifications.turn: "all"` — because a marker on disk is a request to inte
 ```bash
 nen stop --who Kurapika --gate <gate> --notified --mark \
   --title "<one short line — what happened>" --body "<one line — the ask>" \
-  --report-url "<the rikugan report's link>" \
+  --report-url "<the spiritual-message report's link>" \
   --options <options.json> [--propose-issue <issue.json>] <efforts.md>
 ```
 
@@ -112,9 +112,9 @@ nen stop --who Kurapika --gate <G1|G1-M|G2|G3|G4|G5> --notified <efforts.md>
 **2 · The report link — always, everywhere, never an option**: the banner line, the chat line, the
 marker's `reportUrl` and the OS notification body. A report is read, not decided, so the picker lists
 only decisions that move the workflow. **And the page must actually explain this stop**:
-[`rikugan`](../rikugan/SKILL.md) rendered it at `ren` step 5, and before the link goes in, **verify
-the rendered HTML carries the readable `#g5-blocker` content rikugan § 4 specifies**
-(zheref/hatsu#56). Lacking it, re-render through rikugan with `blocker` filled and verify again;
+[`spiritual-message`](../spiritual-message/SKILL.md) rendered it at `ren` step 5, and before the link goes in, **verify
+the rendered HTML carries the readable `#g5-blocker` content spiritual-message § 4 specifies**
+(zheref/hatsu#56). Lacking it, re-render through spiritual-message with `blocker` filled and verify again;
 **never hand off a link whose page does not explain the stop.** The stop never restates the page.
 
 **3 · Crazy Slots — lettered options, at least three, ⭐ on the recommended decision.** Composed by

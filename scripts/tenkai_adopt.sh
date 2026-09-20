@@ -1205,7 +1205,7 @@ class PrivilegedWorkflows(Item):
 def items():
     out = [NenDeclaration(path, what) for path, what in NEN_DECLARATIONS]
     out.append(ColorsFile())
-    out.append(IgnoredDir("dirs/reports", "Reports", "where rikugan writes the retained final report"))
+    out.append(IgnoredDir("dirs/reports", "Reports", "where the retained final Rikugan report is written"))
     out.append(IgnoredDir("dirs/nen-state", ".nen", "where the hanten cycle ledger and the stop marker live"))
     out.append(NenCommitMsgHook())
     out.append(GuardRegistration())

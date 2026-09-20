@@ -36,7 +36,7 @@ No GitHub App. No bot identity. Nothing here merges `main` or casts a review vot
 > generated into Codex and Cursor layouts under [`surfaces/`](surfaces/) — see [*Surfaces*](#surfaces).
 > **`v0.24.0` adds `byakugan`**: coverage capture and measurement, independent of tests; kotoamatsukami is unit, UI and integration suites only; gyo remains lint. The live skill surface is **thirty-nine**.
 > **`v0.27.0` adds `third-hand`**: wrap-up harvest after En. **`v0.28.0`**: it is a separate phase that starts once En has completed, not En step 8. Codex uses `request_user_input` and in-session spawn; Antigravity uses `ask_question` and `invoke_subagent` with `Workspace: inherit`. **`v0.29.0`**: Illumi's En watch uses Codex spawn; generated inventories are 41 skill files and 9 personas. **`v0.30.0`**: Hanten's cycle ledger is fail-closed — Breath `init`s it after the cut; `decide`/`record` refuse a missing file; load-mutate-save is locked. The merge remains G2 with no skill. The live skill surface is **forty**.
-> **`v0.42.0` — the reports and the reviewers carry their weight.** Rikugan is rebuilt with the desk above the fold and the delta drawn from a nodes-and-edges document; **Spiritual Message** (`templates/spiritual-message.html`) is the desk-and-register page `backlog-board`, `futon`, `backlog-loop` and the dated final report render through `nen report render --variant`; **Nobunaga** joins as the default code reviewer and **Shalnark** as the optional post-merge UI validation automator behind the new `hatsu:black-voice`; every reviewer reads one shared preamble and fits under 6 KB; the ten largest skills fit under 12 KB. The live skill surface is **forty-two**.
+> **`v0.42.0` — the reports and the reviewers carry their weight.** Spiritual Message is rebuilt with the desk above the fold and the delta drawn from a nodes-and-edges document; **Rikugan** (`templates/rikugan.html`) is the desk-and-register page `backlog-board`, `futon`, `backlog-loop` and the dated final report render through `nen report render --variant`; **Nobunaga** joins as the default code reviewer and **Shalnark** as the optional post-merge UI validation automator behind the new `hatsu:black-voice`; every reviewer reads one shared preamble and fits under 6 KB; the ten largest skills fit under 12 KB. The live skill surface is **forty-two**.
 > **`v0.40.0` — the release row is real.** A repository whose product is the process must declare a real `release` row, not a seat: `hatsu:mugetsu` exists to run that row at `G3`, and a seat meant it had nothing to run while releases were published by hand. `templates/release-publish.sh` is the engine, Hatsu dogfoods it, and Tenkai derives a repository's role from `nen/repos.json` rather than classifying one for itself.
 > **`v0.39.0` — a repository becomes a consumer, deterministically.** `hatsu:tenkai` adopts a repository new or existing, diagnosing before it writes and repairing **drift** — the workflow rendered for another slug that is skipped on every event, looking installed and doing nothing. Idempotent by construction; `scripts/tenkai_adopt.sh` proves it against fixtures. Runner selection derived per repository; the two-PR ordering staged rather than hit; `nen/colors.yml` declared at last, so `nen schema check` is green here for the first time.
 > **`v0.38.0` — the readiness verdict is published where a human can see it.** `.github/workflows/pr-readiness.yml` runs `nen pr ready --explain` on every event that can change the answer and publishes the verb's own verdict as the `readiness` check run — deterministic, agent-free, and persisting past the session that opened the PR. Not a label (only `checks: write` is admissible on a `pull_request_target` job) and not the title (authored content that becomes the squash-merge subject). The conclusion is always `success` by construction: `CON-32(a)` requires every reported check green, so a red readiness check would make the gate it reports on permanently unsatisfiable.
@@ -490,7 +490,7 @@ an ordinary request *is* a `ren` turn.
 What the first turn does before any of your change is authored: `breath` fetches, fast-forwards the trunk,
 cuts `{model}/{persona}/{descriptor}` from its fresh tip and proves the declared checks on it. Then
 `rasengan` authors the change and focused tests, `kokusen` runs focused tests plus iteration checks and commits locally, `amaterasu` builds, installs and launches the declared
-target, `rikugan` publishes the turn report and `jutaisho` rings the bell. Nothing is pushed until you say so.
+target, `spiritual-message` publishes the turn report and `jutaisho` rings the bell. Nothing is pushed until you say so.
 
 ### On Claude Code
 
@@ -765,7 +765,7 @@ Thirty-eight, invoked as `hatsu:<name>`. Longer descriptions in
 |---|---|
 | `black-voice` | **Post-merge UI validation, on your call only** — `hatsu:black-voice [<CODE>#<PR>]`, defaulting to the latest merged PR in the session. Raises **Shalnark** once against the delivered feature's acceptance criteria and reports pass / fail / not-testable with evidence. Files findings, fixes nothing; never automatic, never from a composite. |
 | `backlog-state` | The whole backlog as one gate-oriented table — every open issue, its PRs, the gate it sits at, what it needs next. Read-only. |
-| `backlog-board` | The identical sweep and computation, rendered as a **Spiritual Message** page (`nen report render --variant register`) and published as an Artifact. Read-only. |
+| `backlog-board` | The identical sweep and computation, rendered as a **Rikugan** page (`nen report render --variant register`) and published as an Artifact. Read-only. |
 | `backlog-loop` | Drives a repository's backlog to zero open actionable issues, in severity order, as gate-ready PRs. **Also cuts the release tag and opens the consumers' repin PRs at declared severity-batch boundaries** — never publishes a release. |
 | `backlog-synthesis` | Groups open issues sharing a clause, a machinery file or a root cause into one consolidated issue, attaches the originals as sub-issues **and closes them** — behind a plan you approve first. |
 | `bankai-handbooks` | Resolves which handbooks govern a repo and scenario, and which rule-ID prefix each one owns, so a citation is never improvised. |
@@ -794,11 +794,11 @@ configuration files behind it, and the phases only you can call.
 | `kokusen` | **atomic** | **Verify, then commit — automatically, locally.** The declared iteration checks and applicable focused tests over the finished tree (**the checkpoint gate is here**), red refused with the failing check quoted; then staging triage with an **ask on every flagged file** and never a secret, then the formatted message. Commits, and only commits. |
 | `amaterasu` | **atomic** | **Launch, every turn.** Builds the configured target and starts it **from your working directory, never a worktree**. A disconnected device is reported by name. |
 | `tsukuyomi` | **atomic** | **Focused tests.** The scoped lane for the behavior this turn changed — rasengan may run it for feedback, kokusen must run it at every local checkpoint. It never walks `tests.required` and never patches a test to make it pass. |
-| `rikugan` | **atomic** | **The rich report** — turn and landing — rendered from `templates/rikugan.html` through `nen report render --variant`, never markdown: the desk (the one ask, its Crazy Slots options and the quoted verdict) sits above the fold, then this last turn, the session-wide landed / fought back / not delivered, and the architecture delta drawn client-side from a nodes-and-edges document. Which blocks render is `reports.sections` in `nen/workflow.json`; under the fast profile a turn publishes the desk and last turn only. The dated final report is a one-effort **Spiritual Message** (`templates/spiritual-message.html`, the `final` variant), the only page written to the git-ignored `Reports/`. |
+| `spiritual-message` | **atomic** | **The rich report** — turn and landing — rendered from `templates/spiritual-message.html` through `nen report render --variant`, never markdown: the desk (the one ask, its Crazy Slots options and the quoted verdict) sits above the fold, then this last turn, the session-wide landed / fought back / not delivered, and the architecture delta drawn client-side from a nodes-and-edges document. Which blocks render is `reports.sections` in `nen/workflow.json`; under the fast profile a turn publishes the desk and last turn only. The dated final report is a one-effort **Rikugan** (`templates/rikugan.html`, the `final` variant), the only page written to the git-ignored `Reports/`. |
 | `jutaisho` | **atomic** | **The bell.** Rings the notification ladder you declared, and drops the marker the `Stop` hook reads. |
 | `ao` | **atomic** | **Pull from the base.** Rebase if unpushed, merge if not; mechanical conflicts resolved, a **semantic** one raised as a **G5** with both sides shown. Never pushes. |
 | `aka` | **atomic** | **Push — yours to call.** Gyo (lint) → squash the unpushed commits → `ao` → gyo again if catch-up moved the tree → push. No project-wide tests, no PR, and no agent ever prompts for it. |
-| `ren` | **composite** | **The per-request loop**: `breath` (prove the base) → `rasengan` (author the change) → `kokusen` (verify, then commit) → `amaterasu` → `rikugan` → `jutaisho`, looping until you call the next phase. **It never pushes.** |
+| `ren` | **composite** | **The per-request loop**: `breath` (prove the base) → `rasengan` (author the change) → `kokusen` (verify, then commit) → `amaterasu` → `spiritual-message` → `jutaisho`, looping until you call the next phase. **It never pushes.** |
 
 ### The nine that are the PR side — eight new in `v0.5.0`, `byakugan` at `v0.24.0`
 
@@ -986,7 +986,7 @@ is advertised bare (`ren`) while a symlink into this checkout would be advertise
 ### The loop, and the phases only you call
 
 Unchanged, name for name. **`$ren` runs on every request** — `$breath` on the first turn, then `$rasengan`,
-`$kokusen`, `$amaterasu`, `$rikugan`, `$jutaisho` — and it never pushes. **Five phases are yours to call,
+`$kokusen`, `$amaterasu`, `$spiritual-message`, `$jutaisho` — and it never pushes. **Five phases are yours to call,
 and no agent ever prompts for them**: `$aka` (push), `$mukai` (review and PR), the **merge**, `$kagutsuchi`
 (non-production upload) and `$mugetsu` (publish, **G3**). A genuine **G5** stop is still the banner, the
 report link, the lettered options with a star on the recommended decision (the report is linked with every stop and is never one of the options — Crazy Slots), and the question **asked through this
@@ -1168,7 +1168,7 @@ the mirrors print is the one that works.
 
 ### The loop, and the phases only you call
 
-Unchanged: **`/ren` on every request** — `/breath`, `/rasengan`, `/kokusen`, `/amaterasu`, `/rikugan`,
+Unchanged: **`/ren` on every request** — `/breath`, `/rasengan`, `/kokusen`, `/amaterasu`, `/spiritual-message`,
 `/jutaisho` — never pushing. Yours to call: `/aka`, `/mukai`, the **merge**, `/kagutsuchi` and `/mugetsu`
 (**G3**). A **G5** stop is the banner, the report link, the lettered options with a star on the recommended decision (the report linked, never an option; `HATSU_ATTENTION=off` silences rungs 2 and 3 on any host), and
 the question asked through this surface's own option picker — the same four parts, and all four or it is

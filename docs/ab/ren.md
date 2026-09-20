@@ -1,7 +1,7 @@
 # A/B evidence — `ren` (new skill, wave 2)
 
 `claude/skills/ren/SKILL.md`: the composite turn loop —
-`breath`¹ (first turn) → `rasengan`² → `kokusen`³ → `amaterasu`⁴ → `rikugan`⁵ → `jutaisho`⁶ — one
+`breath`¹ (first turn) → `rasengan`² → `kokusen`³ → `amaterasu`⁴ → `spiritual-message`⁵ → `jutaisho`⁶ — one
 pass per request, never pushing, ending only on `hatsu:aka` or `hatsu:tensho`.
 
 > **Dated 2026-09-10 — the turn's order changed after this record was written.** The header line
@@ -9,7 +9,7 @@ pass per request, never pushing, ending only on `hatsu:aka` or `hatsu:tensho`.
 > maintainer's ruling of 2026-09-10 ([`../ROSTER.md`](../ROSTER.md) § *Rulings of 2026-09-10*) folds
 > that step into `rasengan`, which is the **authoring** phase, and seats the compile-before-commit in
 > `kokusen`. The order is now six whole steps: `breath`¹ (and it proves the base tip) → `rasengan`²
-> (author the change) → `kokusen`³ (verify the tree, then commit) → `amaterasu`⁴ → `rikugan`⁵ →
+> (author the change) → `kokusen`³ (verify the tree, then commit) → `amaterasu`⁴ → `spiritual-message`⁵ →
 > `jutaisho`⁶. The transcripts below are untouched and still stand — they are evidence about
 > `nen parse`, `nen watch until` and `nen loop slots`, none of which this ruling touches.
 
@@ -42,7 +42,7 @@ order — build before commit, launch before report, report before bell — plus
 | 2 · build | `hatsu:rasengan` | that skill's A/B file |
 | 3 · commit | `hatsu:kokusen` | that skill's A/B file |
 | 4 · launch | `hatsu:amaterasu` | that skill's A/B file |
-| 5 · report | `hatsu:rikugan` | `docs/ab/rikugan.md` |
+| 5 · report | `hatsu:spiritual-message` | `docs/ab/spiritual-message.md` |
 | 6 · bell | `hatsu:jutaisho` | `docs/ab/jutaisho.md` |
 
 **Two steps are ren's; six are references.** A composite whose A/B file re-proves its members'
@@ -71,8 +71,8 @@ exit=2
 **The slot is required, not bracketed, and that is the design.** A turn with no request is refused
 outright rather than inferred from whatever the session was last doing — which is the one way a
 turn loop can quietly start doing work nobody asked for. Contrast the three optional clauses in this
-wave (`rikugan as`, `jutaisho at`, `ao from`), each of which had to be anchored behind a literal
-because a lone bracketed slot is refused at the template (`docs/ab/rikugan.md` § 2.1). Ren needs no
+wave (`spiritual-message as`, `jutaisho at`, `ao from`), each of which had to be anchored behind a literal
+because a lone bracketed slot is refused at the template (`docs/ab/spiritual-message.md` § 2.1). Ren needs no
 anchor: its slot is mandatory.
 
 ### 2.2 — Neither loop primitive nen ships can drive a turn
@@ -154,7 +154,7 @@ happened, no background timer, no deferral primitive, and a visible way to end i
    deterministic step inside a turn is a verb or a named residue *in the skill that owns it*:
    `nen shu build` / `nen shu tools` (step 2), `nen stage triage` / `nen commit format` (step 3),
    `nen shu dev` (step 4), the absent `nen report data` / `nen report render` (step 5, named in
-   `docs/ab/rikugan.md` § 3), `nen stop` plus the `osascript`/`afplay` fallback (step 6, named in
+   `docs/ab/spiritual-message.md` § 3), `nen stop` plus the `osascript`/`afplay` fallback (step 6, named in
    `docs/ab/jutaisho.md` § 3).
 
 **The test this file holds itself to:** if a bare shell command ever appears in
@@ -189,7 +189,7 @@ an oversight someone later "fixes".
 ### 4.3 — The composed skills' A/B evidence is where a reviewer of ren should actually look
 
 A composite is only as sound as its members, and this file deliberately proves almost nothing.
-A reviewer checking whether ren is safe should read, in this order: `docs/ab/rikugan.md` (step 5 —
+A reviewer checking whether ren is safe should read, in this order: `docs/ab/spiritual-message.md` (step 5 —
 five residue entries, the largest verb gap in the loop), `docs/ab/jutaisho.md` (step 6 — the
 rung boundary), then the wave's `breath`, `rasengan`, `kokusen` and `amaterasu` records for steps
 1–4. **Ren's own risk surface is the ordering and the two refusals** (never pushes, never proposes

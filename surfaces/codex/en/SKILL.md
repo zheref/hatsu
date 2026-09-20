@@ -57,7 +57,7 @@ nen parse en --grammar "on [<ref>]" --line "<the invocation, minus the $en prefi
 
 Verified live at `v0.3.0` (`docs/ab/en.md` § 2.1): `on HA#41` → `ref: HA#41` at exit `0`, and a bare
 `on` parses with the clause absent, also exit `0`. The clause is anchored behind a literal for the
-reason [`$rikugan`](../rikugan/SKILL.md) § 1 records — a lone bracketed slot is refused at the
+reason [`$spiritual-message`](../spiritual-message/SKILL.md) § 1 records — a lone bracketed slot is refused at the
 template.
 
 > **The empty line is refused, and that is why a composite does not parse at all.** Verified live:
@@ -180,7 +180,7 @@ Past the maximum the run ends at not-ready with the board. Neither is a G5. `nen
 
 | # | Step | The skill that owns it | When |
 |---|---|---|---|
-| 1 | **landing report** | [`$rikugan`](../rikugan/SKILL.md) `as landing` | once, at the start — 00–07 plus **08 PR body** and **09 Readiness**. If this En was started by mukai in the same sitting with no newer human request, **00** still answers that mukai request |
+| 1 | **landing report** | [`$spiritual-message`](../spiritual-message/SKILL.md) `as landing` | once, at the start — 00–07 plus **08 PR body** and **09 Readiness**. If this En was started by mukai in the same sitting with no newer human request, **00** still answers that mukai request |
 | 2 | **drive** | [`$sharingan`](../sharingan/SKILL.md) | first blocking condition, threads, checks, the confirmation pass |
 | 3 | **catch up** | [`$murasaki`](../murasaki/SKILL.md) | **only when the branch is behind `branch.base`** |
 | 4 | **drive again** | [`$sharingan`](../sharingan/SKILL.md) | after step 3 moved the tree underneath it |
@@ -378,9 +378,9 @@ maintainer sees a budget being continued rather than one silently restarting.
 ## 8. The dated final report
 
 After the deterministic Ready verdict and step 6's bell, render the **`final`** variant — a
-**one-effort Spiritual Message with a cleared desk**, this effort's register, spend and legend —
+**one-effort Rikugan with a cleared desk**, this effort's register, spend and legend —
 through [`backlog-board`](../backlog-board/SKILL.md) § 3, which owns that render path (maintainer's
-ruling, 2026-09-19). **There is no `rikugan as final` any more**; hand over and say so.
+ruling, 2026-09-19). **There is no `spiritual-message as final` any more**; hand over and say so.
 
 ```
 <reports.dir>/<YYYY-MM-DD>-<effort>.html
@@ -406,7 +406,7 @@ returned. Harvesting is that phase's, not En's.
    conversations (`docs/ab/ren.md` § 2.2, verified live). **En adds no residue of its own** — every
    deterministic step inside a cycle is a verb or a named residue *in the skill that owns it*: the
    absent `nen report data` / `nen report render` (step 1 and the readiness report, named in
-   [`rikugan`](../rikugan/SKILL.md)), `nen pr ready` / `nen pr body-check` / `nen pr staleness` and
+   [`spiritual-message`](../spiritual-message/SKILL.md)), `nen pr ready` / `nen pr body-check` / `nen pr staleness` and
    the two verbs `sharingan` refuses to call for a verdict (steps 2 and 4), `nen pr cascade-main`
    and its missing `--no-push` (step 3, named in [`ao`](../ao/SKILL.md)), `nen stop` plus the
    `osascript`/`afplay` fallback and the `.nen/last-stop.json` marker (step 6, named in

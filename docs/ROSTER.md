@@ -99,7 +99,7 @@ say that, and the OPEN section's `OPEN-3` row with it.
 ### 1 · The phases a human calls
 
 The local loop is [`ren`](../claude/skills/ren/) and it runs on every request without being asked:
-`breath` → `rasengan` → `kokusen` → `amaterasu` → `rikugan` → `jutaisho` — where `rasengan` **authors the
+`breath` → `rasengan` → `kokusen` → `amaterasu` → `spiritual-message` → `jutaisho` — where `rasengan` **authors the
 change** and `kokusen` **verifies the tree and commits it** (§ *Rulings of 2026-09-10*, *`rasengan` is the
 AUTHORING phase*). **It never pushes and never opens a
 pull request.** Five phases are the maintainer's to call, and **no agent ever prompts for any of them**:
@@ -312,7 +312,7 @@ What that settles, in the order it bites:
    cut; the ruling makes the reason explicit — that run is a verdict on the trunk, taken before a line is
    authored, and **a red base tip is a G5 stop**, never repaired inside this effort.
 4. **`ren`'s order is six whole steps and the interim `1.5` is gone.**
-   `breath`¹ → `rasengan`² → `kokusen`³ → `amaterasu`⁴ → `rikugan`⁵ → `jutaisho`⁶. The half-numbered *"the
+   `breath`¹ → `rasengan`² → `kokusen`³ → `amaterasu`⁴ → `spiritual-message`⁵ → `jutaisho`⁶. The half-numbered *"the
    work"* a wave-1 fix added is folded into `rasengan`, where it always belonged, and the load-bearing order
    is stated as five relations: no authoring on an unverified base; nothing committed that was not authored
    in this turn and verified in it; the launch shows the committed tree; the report quotes the launch that
@@ -355,7 +355,7 @@ need enhancement; and for two defects that session had already paid for
    even from a clean unrelated feature branch. Continuation requires the caller to say so, or a
    later turn of the effort this session already cut. Dirty-tree preservation, no implicit
    discard, no push, no PR — unchanged.
-3. **A G5 stop report explains the blocker on the `turn` page.** Rikugan's `blocker` payload is
+3. **A G5 stop report explains the blocker on the `turn` page.** Spiritual Message's `blocker` payload is
    visible without `final`, without a PR, and without asking the maintainer to reconstruct the
    failure from chat. Jutaisho verifies that content before the stop handoff links the page.
    Aka, kotoamatsukami/mukai, and every other G5 owner fill the same object.
@@ -684,7 +684,7 @@ act with its own decision. Killua's row (`OPEN-1`) and Gon's grammar (`OPEN-2`) 
 
 ---
 
-## Rulings of 2026-09-19 — the report variants and the Spiritual Message
+## Rulings of 2026-09-19 — the report variants and the Rikugan register
 
 **From the hardening audit of 2026-09-19 (section *Reports*), zheref/hatsu#89.** One template was
 being asked to be a turn report, a landing report, a retained record and a gate board at once, and
@@ -692,12 +692,14 @@ the board half was hand-authored HTML — a second way of producing the same pag
 nothing could check. **Which blocks a report renders is now configuration, and there are two
 templates.**
 
+**Names swapped (maintainer's ruling, 2026-09-20).** The per-turn and landing report and its skill, named `rikugan` through v0.41.0, are **Spiritual Message** (`hatsu:spiritual-message`, `templates/spiritual-message.html`); the desk-and-register page introduced this release is **Rikugan** (`templates/rikugan.html`, the `register` and `final` variants). Older sections and docs/history keep the names they were written under.
+
 | Ruling | What it says |
 |---|---|
 | **Five variants, declared in `nen/workflow.json`** | `reports.sections.<variant>` carries a `template` and a `blocks` list, validated by `nen schema check` and injected as presence flags by `nen report render --variant`. Every value inside a block stays the model's |
-| **`turn`, `turn-fast` and `landing` are Rikugan** | [`templates/rikugan.html`](../templates/rikugan.html). `turn` every Ren turn; `turn-fast` the same step under the fast profile — **the desk and the last turn, nothing else**; `landing` at `mukai` step 9 and `en` step 1, adding the PR body and the readiness verdict quoted |
-| **`final` and `register` are the Spiritual Message** | [`templates/spiritual-message.html`](../templates/spiritual-message.html), Hatsu's counterpart of the Ichigo gate register: desk grouped by gate and ranked by unblocking power, one collapsible row per issue and pull request, spend, legend |
-| **The dated final report is a one-effort Spiritual Message with a cleared desk** | written to `<reports.dir>/<YYYY-MM-DD>-<effort>.html`, and it is **the only report kept on disk**. **`rikugan as final` is retired** — the render path is [`backlog-board`](../claude/skills/backlog-board/SKILL.md) § 3, the same one `futon` and `backlog-loop` use for `register` |
+| **`turn`, `turn-fast` and `landing` are Spiritual Message** | [`templates/spiritual-message.html`](../templates/spiritual-message.html). `turn` every Ren turn; `turn-fast` the same step under the fast profile — **the desk and the last turn, nothing else**; `landing` at `mukai` step 9 and `en` step 1, adding the PR body and the readiness verdict quoted |
+| **`final` and `register` are the Rikugan** | [`templates/rikugan.html`](../templates/rikugan.html), Hatsu's counterpart of the Ichigo gate register: desk grouped by gate and ranked by unblocking power, one collapsible row per issue and pull request, spend, legend |
+| **The dated final report is a one-effort Rikugan with a cleared desk** | written to `<reports.dir>/<YYYY-MM-DD>-<effort>.html`, and it is **the only report kept on disk**. **`spiritual-message as final` is retired** — the render path is [`backlog-board`](../claude/skills/backlog-board/SKILL.md) § 3, the same one `futon` and `backlog-loop` use for `register` |
 | **No more hand-authored board HTML** | a board is `nen report render --variant register` over the fixed template. A hand-filled page and a rendered one are not the same bytes, and only one of them is checkable |
 | **The architecture delta is a graph document, drawn client-side** | the model authors `nen.report.graph/v0.1` — nodes and edges with a `change` on each — and the page lays it out with **dagre 0.8.5, pinned from cdnjs under an SRI hash**, one renderer shared by both templates, the node and edge list under `<details>` as the fallback when the script cannot load. **Never a hand-built SVG, never a file-line inventory**, and the same document yields the PR body's mermaid through `nen report mermaid` |
 
@@ -869,7 +871,7 @@ captures or gates coverage.
 **Gyo remains linting.** The earlier same-day ruling that folded coverage onto kotoamatsukami is
 superseded for that ownership; the linting rename stands.
 
-The earlier 2026-09-14 rikugan ruling below is unchanged.
+The earlier 2026-09-14 spiritual-message ruling below is unchanged.
 
 ## Rulings of 2026-09-14 — gyo is linting; kotoamatsukami owns coverage
 
@@ -881,11 +883,11 @@ is every Ren turn; the rename does not add a seventh step.
 **Superseded later the same day for coverage ownership:** kotoamatsukami no longer captures,
 extracts or gates coverage. That is byakugan's. Kotoamatsukami remains the impacted-test owner.
 
-The earlier 2026-09-14 rikugan ruling below is unchanged.
+The earlier 2026-09-14 spiritual-message ruling below is unchanged.
 
-## Rulings of 2026-09-14 — rikugan last-turn board and architecture as diagram
+## Rulings of 2026-09-14 — spiritual-message last-turn board and architecture as diagram
 
-Every Rikugan page opens with **This last turn**, answering the last human maintainer request —
+Every Spiritual Message page opens with **This last turn**, answering the last human maintainer request —
 what was done, what was not, and (when that request was mukai) what was corrected, which agent
 asked and why, how it was handled or pushed back, which local checks brought work back, and
 why a half-run stopped plus how later iterations can go further unattended. **00 is last-turn

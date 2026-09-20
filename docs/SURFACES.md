@@ -206,9 +206,9 @@ flat name space above matters.
 
 ### One honest limitation of a verbatim mirror
 
-The bodies carry **relative links written for this repository's layout** — `../rikugan/SKILL.md`,
+The bodies carry **relative links written for this repository's layout** — `../spiritual-message/SKILL.md`,
 `../../../docs/SURFACES.md`. Inside a target repository's `.agents/skills/` (a `cp -R`) a sibling link like
-`../rikugan/SKILL.md` still resolves — to the sibling copy — while `../../../docs/SURFACES.md` resolves to
+`../spiritual-message/SKILL.md` still resolves — to the sibling copy — while `../../../docs/SURFACES.md` resolves to
 `<target>/docs/SURFACES.md` and dangles. That is the price of "the body verbatim", it is deliberate, and it
 is stated rather than papered over: the mirrors are for an agent reading a skill, not for a human browsing
 a link tree.

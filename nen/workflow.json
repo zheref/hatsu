@@ -33,13 +33,13 @@
   "reports": {
     "dir": "Reports",
     "retain": "final-only",
-    "template": "rikugan",
+    "template": "spiritual-message",
     "captures": "Reports/captures",
     "$comment": "`dir` is git-ignored (.gitignore). `retain: final-only` governs what is KEPT, not whether a working file exists (maintainer's ruling, 2026-09-09): only the final current-head readiness report at the G2/G4 human gate gets a dated file of its own under `dir`, before any human merge, and the per-turn and landing reports are published to the conversation as an Artifact -- or, on a surface that cannot publish one, opened from the TRANSIENT `<dir>/current.html`, which every render overwrites and git ignores. One always-latest working file is not a retained report. `template` names templates/<name>.html in this repository.",
     "sections": {
-      "$comment": "Maintainer's ruling of 2026-09-19 (zheref/hatsu#89): which blocks each report variant renders is configuration, read by nen report render --variant (v0.12.0), which injects sections.<block> presence flags for the template; every value inside a block is model-written. turn and landing are Rikugan (templates/rikugan.html); turn-fast is the per-turn publish under the fast profile (desk and last turn only); final and register are Spiritual Message (templates/spiritual-message.html) -- the dated final report is a one-effort Spiritual Message with a cleared desk, and register is what backlog-board, futon and backlog-loop render.",
+      "$comment": "Maintainer's ruling of 2026-09-19 (zheref/hatsu#89): which blocks each report variant renders is configuration, read by nen report render --variant (v0.12.0), which injects sections.<block> presence flags for the template; every value inside a block is model-written. turn and landing are Spiritual Message (templates/spiritual-message.html); turn-fast is the per-turn publish under the fast profile (desk and last turn only); final and register are Rikugan (templates/rikugan.html) -- the dated final report is a one-effort Rikugan with a cleared desk, and register is what backlog-board, futon and backlog-loop render.",
       "turn": {
-        "template": "rikugan",
+        "template": "spiritual-message",
         "blocks": [
           "masthead",
           "tally",
@@ -53,7 +53,7 @@
         ]
       },
       "turn-fast": {
-        "template": "rikugan",
+        "template": "spiritual-message",
         "blocks": [
           "masthead",
           "tally",
@@ -62,7 +62,7 @@
         ]
       },
       "landing": {
-        "template": "rikugan",
+        "template": "spiritual-message",
         "blocks": [
           "masthead",
           "tally",
@@ -77,7 +77,7 @@
         ]
       },
       "final": {
-        "template": "spiritual-message",
+        "template": "rikugan",
         "blocks": [
           "masthead",
           "tally",
@@ -88,7 +88,7 @@
         ]
       },
       "register": {
-        "template": "spiritual-message",
+        "template": "rikugan",
         "blocks": [
           "masthead",
           "tally",

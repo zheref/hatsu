@@ -1,6 +1,6 @@
 ---
 name: backlog-board
-description: Render the current backlog as the Kurapika gate board — the same sweep, arguments and gate assignment as /backlog-state, painted as a Spiritual Message page by nen report render --variant register instead of a markdown table. Use when the maintainer asks to see the board, the gate register, or the state as a page, or invokes /backlog-board <repo|all>@<G1|G1-M|G2|G3|G4|G5|all> [every <turn|state-change|once>] — the trailing clause makes the board re-render on every turn or whenever a scoped item's state changes, instead of the once-and-stop default. This skill also owns the render path futon, backlog-loop and the dated final report use. Strictly read-only — it never labels, merges, pushes, comments or opens anything.
+description: Render the current backlog as the Kurapika gate board — the same sweep, arguments and gate assignment as /backlog-state, painted as a Rikugan page by nen report render --variant register instead of a markdown table. Use when the maintainer asks to see the board, the gate register, or the state as a page, or invokes /backlog-board <repo|all>@<G1|G1-M|G2|G3|G4|G5|all> [every <turn|state-change|once>] — the trailing clause makes the board re-render on every turn or whenever a scoped item's state changes, instead of the once-and-stop default. This skill also owns the render path futon, backlog-loop and the dated final report use. Strictly read-only — it never labels, merges, pushes, comments or opens anything.
 ---
 <!-- GENERATED for surface: antigravity -- do not edit; edit the source and regenerate -->
 
@@ -13,7 +13,7 @@ consumer copy is never a filing.
 
 [`backlog-state`](../backlog-state/SKILL.md) answers *"what is at my gate right now, and what does
 each thing need from me?"* as a markdown table. **This skill answers the identical question with the
-identical computation and paints it as a Spiritual Message page.** There is no third method and no
+identical computation and paints it as a Rikugan page.** There is no third method and no
 second source of truth.
 
 > **Read-only, without exception.** Inherited verbatim from `backlog-state`. If reading the board
@@ -87,13 +87,13 @@ row and field**, never diffed — that is a caller bug in the § 2 mapping, so f
 `board build` → `board diff` chain is three programs, so it has no single command to classify (a
 pipeline classifies `[unknown]` and refuses). The loop runs under the session's own pacing.
 
-## 3. Render — the Spiritual Message, never hand-authored HTML
+## 3. Render — the Rikugan, never hand-authored HTML
 
 **There is no by-hand HTML step any more.** The page is
-[`templates/spiritual-message.html`](../../../templates/spiritual-message.html), filled by the verb:
+[`templates/rikugan.html`](../../../templates/rikugan.html), filled by the verb:
 
 ```bash
-nen report render --variant register --template templates/spiritual-message.html \
+nen report render --variant register --template templates/rikugan.html \
   --data <the data document> --out <reports.dir>/current.html --repo <path> [--graph <file>]
 ```
 

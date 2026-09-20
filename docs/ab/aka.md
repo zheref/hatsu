@@ -90,7 +90,7 @@ exit=0
 `--json` returns `{"contract": "nen.shu.test/v0.1", lane, stack, verb, target, steps[], cwd, env[],
 host{platform,supported,declared}, preconditions[], exitCode, durationMs, artifacts[], log{mode:
 "dry-run", captured: false, …}}` at exit `0` — the full document is transcribed in
-`docs/ab/rikugan.md` § 2.3 and is not repeated here.
+`docs/ab/spiritual-message.md` § 2.3 and is not repeated here.
 
 **What this pins down for aka:** the dry run prints *the argv that would be spawned, from the same
 rendering* — so "the tests that ran" is a quotable fact, and the exit-code table
@@ -199,7 +199,7 @@ merge"*). So aka's § 6 is `git push [-u] origin HEAD`, named as residue.
    decides the squash range and therefore whether a plain push can possibly suffice.
    `nen wc classify --json` reports nothing about the remote (`docs/ab/ao.md` § 2.2).
 4. **The push** — `git push [-u] origin HEAD` (§ 2.4).
-5. **`nen/workflow.json` read as data** — no schema row at `v0.3.0` (`docs/ab/rikugan.md` § 2.4).
+5. **`nen/workflow.json` read as data** — no schema row at `v0.3.0` (`docs/ab/spiritual-message.md` § 2.4).
    `tests.required` defaults to `["test"]`, `branch.base` to `main`,
    `commits.allowedAttributionTrailers` to `["Akatsuki-Agent"]` and `commits.forbiddenTrailers` to
    `["Co-Authored-By", "Claude-Session", "Signed-off-by"]`, each stated when it applied.
@@ -246,7 +246,7 @@ no arguments, so there is nothing to parse, and adding an optional clause purely
 could be echoed would be ceremony — the same judgement `claude/skills/tensho/SKILL.md` § 1 makes
 about its own default, from the other direction. Recorded so that "no `nen parse` call" is read as a
 decision rather than an omission. The three skills in this wave that *do* have optional clauses
-(`rikugan as`, `jutaisho at`, `ao from`) all parse by verb, each verified live.
+(`spiritual-message as`, `jutaisho at`, `ao from`) all parse by verb, each verified live.
 
 ### 4.4 — Not a finding: `nen shu test`'s dry run is exactly the right pre-flight, and its exit codes carry the policy
 

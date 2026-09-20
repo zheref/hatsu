@@ -2,22 +2,22 @@
   "contract": "nen.report.graph/v0.1",
   "caption": "The reporting path after #89: one render verb, two templates, one renderer.",
   "nodes": [
-    { "id": "rikugan", "label": "hatsu:rikugan", "kind": "skill", "change": "changed" },
+    { "id": "spiritual-message", "label": "hatsu:spiritual-message", "kind": "skill", "change": "changed" },
     { "id": "backlog-board", "label": "hatsu:backlog-board", "kind": "skill", "change": "changed" },
     { "id": "report-data", "label": "nen report data", "kind": "verb", "change": "changed" },
     { "id": "report-render", "label": "nen report render", "kind": "verb", "change": "changed" },
     { "id": "sections", "label": "reports.sections", "kind": "config", "change": "added" },
-    { "id": "tpl-rikugan", "label": "templates/rikugan.html", "kind": "template", "change": "changed" },
-    { "id": "tpl-sm", "label": "templates/spiritual-message.html", "kind": "template", "change": "added" },
+    { "id": "tpl-spiritual-message", "label": "templates/spiritual-message.html", "kind": "template", "change": "changed" },
+    { "id": "tpl-sm", "label": "templates/rikugan.html", "kind": "template", "change": "added" },
     { "id": "handwritten", "label": "hand-authored board HTML", "kind": "residue", "change": "removed" }
   ],
   "edges": [
-    { "from": "rikugan", "to": "report-data", "rel": "facts", "change": "unchanged" },
-    { "from": "rikugan", "to": "report-render", "rel": "fills", "change": "changed" },
+    { "from": "spiritual-message", "to": "report-data", "rel": "facts", "change": "unchanged" },
+    { "from": "spiritual-message", "to": "report-render", "rel": "fills", "change": "changed" },
     { "from": "backlog-board", "to": "report-data", "rel": "--backlog", "change": "added" },
     { "from": "backlog-board", "to": "report-render", "rel": "--variant register", "change": "added" },
     { "from": "report-render", "to": "sections", "rel": "reads", "change": "added" },
-    { "from": "report-render", "to": "tpl-rikugan", "rel": "fills", "change": "unchanged" },
+    { "from": "report-render", "to": "tpl-spiritual-message", "rel": "fills", "change": "unchanged" },
     { "from": "report-render", "to": "tpl-sm", "rel": "fills", "change": "added" },
     { "from": "backlog-board", "to": "handwritten", "rel": "was", "change": "removed" }
   ]

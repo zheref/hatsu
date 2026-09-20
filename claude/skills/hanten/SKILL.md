@@ -148,11 +148,11 @@ Kurapika alone applies [`docs/DISCOVERY.md`](../../../docs/DISCOVERY.md).
 recorded and the set goes into the PR body through [`shibari`](../shibari/SKILL.md); a `fixed` one is
 proved by the declared `iteration.checks`. **A finding is work, not a gate.**
 
-**A genuinely unsettled finding is a G5** (`nen/decisions.json` row `unsettled-finding`, `CON-47`), only
+**An unsettled finding is a G5** (`nen/decisions.json` row `unsettled-finding`, `CON-47`), only
 once investigation proves no disposition can be chosen without a maintainer decision. Record it, what
 was tried and the alternatives, then raise [`jutaisho`](../jutaisho/SKILL.md)'s shape in full: `nen stop
---gate G5`, the [`rikugan`](../rikugan/SKILL.md) report **linked and never an option**, lettered options
-with a ⭐ on the recommendation, the question through the surface's own picker. **Never one re-grading a
+--gate G5`, the [`spiritual-message`](../spiritual-message/SKILL.md) report **linked and never an option**, lettered options
+with a ⭐ on the recommendation, the question through the surface's picker. **Never one re-grading a
 severity.**
 
 **One Copilot round is requested after hanten settles**, and

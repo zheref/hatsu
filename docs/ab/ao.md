@@ -53,7 +53,7 @@ $ nen parse ao --grammar "from [<base>]" --line "from"
 exit=0                                   # parses, clause absent -- branch.base applies
 ```
 
-Anchored behind the literal `from` for the reason `docs/ab/rikugan.md` § 2.1 records live.
+Anchored behind the literal `from` for the reason `docs/ab/spiritual-message.md` § 2.1 records live.
 
 ### 2.2 — `nen wc classify`: what it reports, and what it does not
 
