@@ -86,6 +86,11 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/tenkai_adopt.sh, the hatsu:tenkai engine. The repository's pattern is ONE focused lane per executable guard -- the `test` seat on the `plugin` lane says so in its own words: 'Executable guards have their own focused lanes'. The engine shipped with a --self-test and no lane, so its assertions ran only when somebody typed the command: tsukuyomi had nothing to route to and no CI job covered it. An unrun check is exactly what that seat refuses to let read as a clean one."
+      },
+      "release-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/release-publish.sh, following this repository's one-lane-per-executable-guard pattern. The publisher's fixtures are hermetic and offline: they build a throwaway git repository with two tags and a changelog, and prove notes composition, the multi-version gap case, the DERIVED tag, and every refusal -- publishing nothing, ever."
       }
     },
     "defaultLane": "plugin",
@@ -105,7 +110,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and one bash guard script, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, tenkai-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, tenkai-guard, release-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/rikugan.html, which is a report template, not an application."
@@ -117,7 +122,13 @@
           "unsupported": "A Claude Code plugin is distributed by git ref through a marketplace, never as a built package: `claude plugin marketplace add zheref/hatsu` reads the tree at a ref. There is no artifact to produce, so there is nothing for `archive` to name."
         },
         "release": {
-          "unsupported": "Publication is a git tag plus the marketplace entry that already points at this repository — there is no publish step to run, and G3 (CON-6) holds the tag decision anyway. Emitter prepares a release here; nothing in this repository publishes one."
+          "exe": "bash",
+          "argv": [
+            "scripts/release-publish.sh",
+            "--repo",
+            "."
+          ],
+          "$comment": "RETIRED SEAT, maintainer's ruling 2026-09-19. This row previously read: \"Publication is a git tag plus the marketplace entry that already points at this repository — there is no publish step to run, and G3 (CON-6) holds the tag decision anyway. Emitter prepares a release here; nothing in this repository publishes one.\" -- and that became false the moment a GitHub Release was published by hand at v0.39.0. A declaration that disagrees with the practice is a bug in the declaration, and the cost was concrete: `hatsu:mugetsu` exists to execute this row at G3, so a seat here meant publication happened outside the machinery entirely. The row now runs scripts/release-publish.sh, which publishes ONE GitHub Release for a tag that already resolves on the remote. It cuts no tag (that is `nen tag cut`, hatsu:getsuga section 4), pushes nothing, builds nothing, and attaches only artifacts it is handed -- for this stack there are none, because a Claude Code plugin is distributed by git ref through a marketplace and the tag IS the distribution. --tag is omitted here deliberately: `nen shu release` runs this argv with no arguments, so the script derives the newest v* tag and names it as DERIVED in its output. Every refusal fires before anything is sent -- an absent tag, a tag missing from the remote, and a tag that already has a release. G3 (CON-6) still holds the go: this row is what mugetsu RUNS, never permission to run it."
         },
         "dev": {
           "unsupported": "There is no debug build to start. The development loop is `claude plugin marketplace add ./hatsu` against a local checkout followed by `claude plugin install hatsu@hatsu`, which is a host operation on the developer's own session, not a process this repository spawns."
@@ -155,6 +166,16 @@
             "--self-test"
           ],
           "$comment": "The hatsu:tenkai engine's own fixtures -- hermetic and offline. It builds throwaway git repositories under a temp dir, proves the runner derivation at every input, idempotence across three applies, every drift direction detected AND repaired, the read-only guarantee by content hash over the whole tree including .git/hooks, the two-PR ordering staged rather than hit, and that a hostile slug, a missing slug, a non-git directory and somebody else's workflow are each refused. Every fixture is removed on every path. Run it as `nen shu test --lane tenkai-guard --repo <hatsu>` when scripts/tenkai_adopt.sh or templates/pr-readiness.yml changes."
+        }
+      },
+      "release-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/release-publish.sh",
+            "--self-test"
+          ],
+          "$comment": "Run it as `nen shu test --lane release-guard --repo <hatsu>` when scripts/release-publish.sh or templates/release-publish.sh changes."
         }
       }
     },

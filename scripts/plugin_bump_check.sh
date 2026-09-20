@@ -175,6 +175,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/hanten_cycle_ledger.sh'
   'scripts/hatsu_plugin_update.sh'
   'scripts/tenkai_adopt.sh'
+  'scripts/release-publish.sh'
   '.mcp.json'
 )
 

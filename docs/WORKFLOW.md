@@ -668,7 +668,7 @@ issue, and the question asked through the surface's own native option picker** (
 `AskUserQuestion` on Claude Code, `request_user_input` on Codex, `AskQuestion` on Cursor,
 `ask_question` on Antigravity).
 
-**The conditions that do NOT stop are data, from v0.40.0: [`nen/decisions.json`](../nen/decisions.json)**
+**The conditions that do NOT stop are data, from v0.41.0: [`nen/decisions.json`](../nen/decisions.json)**
 (`nen.decisions/v0.1`, validated by `nen schema check`). By the maintainer's rulings of 2026-09-19 the
 recurring stops have fixed defaults and every skill states its default in one line citing the row id: a
 dirty tree at breath is carried (`dirty-tree`); an owed reviewer round inside the configured maximum is
