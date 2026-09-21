@@ -337,6 +337,10 @@
         "Write(./.cursor/**)",
         "Write(./.claude/**)"
       ]
+    },
+    "codex": {
+      "network_access": true,
+      "$comment": "Codex's verbs reach the network on purpose: en/mukai's PR verbs fetch from github.com, hanten's reviewer raise pushes a worktree branch, and getsuga/backlog verbs call `gh`. nen's surface-mirror generator emits the Codex config.toml `network_access` line from this declaration alone (v0.13.0) — remove it here and the generated surface goes network-closed under those verbs."
     }
   }
 }

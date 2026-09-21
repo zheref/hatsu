@@ -175,3 +175,14 @@ does not copy Hatsu's. The content is yours: this page is what you tune it with.
 ```bash
 scripts/tenkai_adopt.sh diagnose --repo <path>
 ```
+
+---
+
+**2026-09-20.** Changing a guard's trigger shape is a two-step landing: first the validator that
+accepts both shapes, then the workflow; the trusted copy judges the PR. `scripts/
+workflow_runner_policy_check.rb` (§5 above) is checked out from `main` and run against every pull
+request's own `.github/workflows/`, so a PR that changes BOTH a live guard's shape and this
+validator's acceptance of that shape in the same commit is judged by the OLD validator on `main` —
+which still expects the old shape — and is refused no matter how the new shape and the new validator
+agree with each other. Land the validator first, accepting the old shape and the new one; only once
+`main` trusts that validator can a follow-up PR flip the live workflow.

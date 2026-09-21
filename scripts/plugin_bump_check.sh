@@ -221,27 +221,62 @@ plugin_version() {
 
 # --- semver_parts VERSION ----------------------------------------------------
 # Echoes "MAJOR MINOR PATCH PRERELEASE" (space-separated; PRERELEASE may be
-# empty) for a well-formed `MAJOR.MINOR.PATCH[-PRERELEASE]` string, or nothing
-# at all for anything else. Deliberately narrow: this guard's job is to compare
-# two versions it already trusts are meant to be semver, not to accept
-# arbitrary plugin.json content as one. Build metadata (a trailing `+...`) is
-# not accepted — plugin.json has never carried one and a guard that silently
-# ignored it would compare the wrong string.
+# empty) for a version that matches the FULL SemVer 2.0.0 grammar, or nothing
+# at all for anything else. Accepted shape:
+#
+#   MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]
+#
+# where MAJOR/MINOR/PATCH are each `0` or `[1-9][0-9]*` (no leading zeros),
+# PRERELEASE is one or more dot-separated identifiers of `[0-9A-Za-z-]+`
+# (a purely-numeric identifier carries no leading zero unless it IS `0`; an
+# alphanumeric one may), and BUILD is one or more dot-separated identifiers
+# of `[0-9A-Za-z-]+` with no leading-zero rule (build metadata is never
+# numerically compared). Anything else — an empty prerelease (`1.2.3-`), an
+# empty build (`1.2.3+`), an empty dot-segment (`1.2.3-a..b`), a leading zero
+# anywhere it is not allowed — is rejected. This guard's job is to compare two
+# versions it trusts are MEANT to be semver, not to accept arbitrary
+# plugin.json content as one, but "meant to be semver" now means the actual
+# grammar rather than a narrower approximation of it. Build metadata is parsed
+# so a well-formed `+build` version is not refused as malformed, but — per
+# SemVer 2.0.0 clause 10 — it is still ignored for ordering: only the
+# PRERELEASE field is returned alongside MAJOR/MINOR/PATCH, and
+# version_greater below compares numeric triples only.
 semver_parts() {
   local version="$1"
-  case "$version" in
-    [0-9]*.[0-9]*.[0-9]*) ;;
-    *) return 1 ;;
-  esac
-  local core="$version" prerelease=""
-  case "$version" in
-    *-*) core="${version%%-*}"; prerelease="${version#*-}" ;;
-  esac
-  local major="${core%%.*}" rest="${core#*.}"
-  local minor="${rest%%.*}" patch="${rest#*.}"
-  case "$major" in ''|*[!0-9]*) return 1 ;; esac
-  case "$minor" in ''|*[!0-9]*) return 1 ;; esac
-  case "$patch" in ''|*[!0-9]*) return 1 ;; esac
+  local main_re='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z.-]+))?(\+([0-9A-Za-z.-]+))?$'
+  [[ "$version" =~ $main_re ]] || return 1
+  local major="${BASH_REMATCH[1]}" minor="${BASH_REMATCH[2]}" patch="${BASH_REMATCH[3]}"
+  local prerelease_tag="${BASH_REMATCH[4]}" prerelease="${BASH_REMATCH[5]}"
+  local build_tag="${BASH_REMATCH[6]}" build="${BASH_REMATCH[7]}"
+
+  local ident
+  if [ -n "$prerelease_tag" ]; then
+    [ -n "$prerelease" ] || return 1
+    local IFS='.'
+    for ident in $prerelease; do
+      [ -n "$ident" ] || return 1
+      case "$ident" in
+        *[!0-9A-Za-z-]*) return 1 ;;
+      esac
+      case "$ident" in
+        *[!0-9]*) ;;        # not purely numeric (has a letter/hyphen): no rule
+        0) ;;               # numeric "0" alone: fine
+        0*) return 1 ;;     # purely numeric with a leading zero: reject
+        *) ;;
+      esac
+    done
+  fi
+  if [ -n "$build_tag" ]; then
+    [ -n "$build" ] || return 1
+    local IFS='.'
+    for ident in $build; do
+      [ -n "$ident" ] || return 1
+      case "$ident" in
+        *[!0-9A-Za-z-]*) return 1 ;;
+      esac
+    done
+  fi
+
   printf '%s %s %s %s\n' "$major" "$minor" "$patch" "$prerelease"
 }
 
@@ -302,10 +337,11 @@ version_bumped() {
   local base="$1" head="$2" base_version head_version
   head_version="$(plugin_version "$head")"
   [ -n "$head_version" ] || return 1
-  if [ ! -e "$base" ]; then
-    [ -f "${base}.absent" ] && return 0
-    return 1
-  fi
+  # The sentinel is checked BEFORE the existence test: the workflow leaves an
+  # empty base file beside it on a genuine 404, and an empty file is not a
+  # readable manifest (Copilot on #94).
+  [ -f "${base}.absent" ] && return 0
+  [ -e "$base" ] || return 1
   base_version="$(plugin_version "$base")"
   [ -n "$base_version" ] || return 1
   version_greater "$base_version" "$head_version"

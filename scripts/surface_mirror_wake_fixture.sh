@@ -59,24 +59,42 @@ job_if="$(printf '%s\n' "$wake" | sed -n 's/^IF=//p')"
   || fail "event set is '$event', expected exactly 'pull_request_target'"
 
 # 2 · each type, independently
-for t in opened synchronize reopened ready_for_review; do
+#
+# TWO-STEP LANDING (docs/GATE-CONFIGURATION.md, Hatsu 0.43.0 / zheref/hatsu#94):
+# the LIVE workflow this fixture reads still carries the shape `main`'s
+# trusted validator judges every PR against -- no `ready_for_review` -- until
+# a follow-up PR flips it once THIS repo's own validator (which now accepts
+# either shape) is what `main` trusts. So `ready_for_review` is asserted
+# ABSENT here, not present; flip this fixture alongside the live workflow in
+# that follow-up PR.
+for t in opened synchronize reopened; do
   case ",$types," in
     *",$t,"*) pass "type '$t' present" ;;
     *)        fail "type '$t' absent from [$types]" ;;
   esac
 done
+case ",$types," in
+  *",ready_for_review,"*) fail "type 'ready_for_review' present on the live workflow before its two-step landing follow-up (docs/GATE-CONFIGURATION.md)" ;;
+  *)                      pass "type 'ready_for_review' absent (deferred to the follow-up PR)" ;;
+esac
 
-# 3 · each `if:` conjunct, independently
+# 3 · each `if:` conjunct, independently. The draft-skip conjunct is likewise
+# deferred to the follow-up PR -- see the two-step-landing note above.
 for conj in \
   "github.repository == 'zheref/hatsu'" \
-  "github.event.pull_request.head.repo.full_name == github.repository" \
-  "github.event.pull_request.draft == false"
+  "github.event.pull_request.head.repo.full_name == github.repository"
 do
   case "$job_if" in
     *"$conj"*) pass "if-conjunct present: $conj" ;;
     *)         fail "if-conjunct MISSING: $conj  (if: $job_if)" ;;
   esac
 done
+case "$job_if" in
+  *"github.event.pull_request.draft == false"*)
+    fail "draft-skip conjunct present on the live workflow before its two-step landing follow-up (docs/GATE-CONFIGURATION.md)" ;;
+  *)
+    pass "draft-skip conjunct absent (deferred to the follow-up PR)" ;;
+esac
 
 declared_inputs="$(
   grep -E '^(SOURCE_DIR|AGENTS_DIR|MODELS_FILE|PERMISSIONS_FILE|HOOKS_FILE|RULES_FILE|MANIFEST_FILE)="' "$guard" \
@@ -135,7 +153,14 @@ path_covered "surfaces/codex/aka/SKILL.md" \
 #     is what repairs the drift the check reports, and it carries the same
 #     `paths:` list on `push: branches: [main]`. A file that wakes neither is a
 #     file whose drift is never reported AND never repaired.
+#
+#     TWO-STEP LANDING: this workflow is not yet live -- it ships at
+#     `templates/surface-mirror-regenerate.yml` until the follow-up PR
+#     installs it under `.github/workflows/` (docs/GATE-CONFIGURATION.md).
+#     Assert against whichever copy exists so this fixture keeps proving the
+#     paths shape today and needs no further edit when the file moves.
 regen="$root/.github/workflows/surface-mirror-regenerate.yml"
+[ -f "$regen" ] || regen="$root/templates/surface-mirror-regenerate.yml"
 if [ -f "$regen" ]; then
   paths="$(
     ruby -ryaml -e '
@@ -156,7 +181,7 @@ if [ -f "$regen" ]; then
 $declared_inputs
 EOF2
 else
-  fail "no .github/workflows/surface-mirror-regenerate.yml to assert"
+  fail "no surface-mirror-regenerate.yml to assert (checked .github/workflows/ and templates/)"
 fi
 
 if [ "$fails" -ne 0 ]; then

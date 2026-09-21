@@ -59,24 +59,39 @@ EXPECTED_JOBS = {
   "surface-mirror-regenerate.yml" => "regenerate"
 }.freeze
 
-# The job-level same-repository guard EACH PR-targeting workflow must carry,
-# verbatim. All three now carry the DRAFT-SKIP CONJUNCTION rather than the
-# bare guard (maintainer ruling, 2026-09-20): a draft PR has nothing ready to
-# judge, and re-running these jobs on every push to a draft spends minutes on
-# a verdict nobody can act on yet. `ready_for_review` (see EXPECTED_TYPES) is
-# what re-fires them the moment the draft flag clears.
+# The job-level same-repository guard each PR-targeting workflow must carry.
+#
+# TWO-STEP LANDING (maintainer ruling, 2026-09-20; docs/GATE-CONFIGURATION.md).
+# The hardened shape — the DRAFT-SKIP CONJUNCTION, paired with `ready_for_review`
+# in the trigger types below — is where these three workflows are headed: a
+# draft PR has nothing ready to judge, and re-running these jobs on every push
+# to a draft spends minutes on a verdict nobody can act on yet. But the LIVE
+# workflows are judged on every PR by the TRUSTED copy of this very script
+# checked out from `main` (`ruby .trusted/scripts/workflow_runner_policy_check.rb
+# --self-test "$PWD"`), and main's copy still expects the bare guard and the
+# narrower trigger set. Shipping the hardened shape and this validator's
+# acceptance of it in the SAME PR is therefore self-defeating: the PR that
+# changes the live files is judged by the OLD validator on `main`, which
+# refuses them, so no PR could ever land the two together. The landing is
+# split instead: this PR ships a validator that accepts BOTH the bare guard
+# and the draft-skip conjunction (and both trigger shapes below), while the
+# live `.github/workflows/*.yml` files stay on the bare shape main's
+# validator still recognizes; a follow-up PR — once THIS validator is the one
+# `main` trusts — flips the live files to the hardened shape.
+#
 # NOT `"#{SAME_REPO_GUARD} && ..."` — SAME_REPO_GUARD already carries its own
 # closing `}}`, so naively appending text after it would put the draft check
 # OUTSIDE the `${{ }}` expression: `${{ A }} && B` string-concatenates `A`'s
 # rendered "true"/"false" with the literal text " && B" into one non-empty
 # string, which is ALWAYS TRUTHY regardless of either operand. The whole
 # conjunction has to live inside one `${{ }}` for the `&&` to be evaluated
-# rather than concatenated.
+# rather than concatenated. ALLOWED_JOB_GUARDS therefore holds the two exact
+# accepted strings, never a pattern that could admit that bug.
 DRAFT_SKIP_GUARD = "${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false }}"
-JOB_GUARDS = {
-  "plugin-bump-check.yml" => DRAFT_SKIP_GUARD,
-  "surface-mirror-check.yml" => DRAFT_SKIP_GUARD,
-  "pr-readiness.yml" => DRAFT_SKIP_GUARD
+ALLOWED_JOB_GUARDS = {
+  "plugin-bump-check.yml" => [SAME_REPO_GUARD, DRAFT_SKIP_GUARD].freeze,
+  "surface-mirror-check.yml" => [SAME_REPO_GUARD, DRAFT_SKIP_GUARD].freeze,
+  "pr-readiness.yml" => [SAME_REPO_GUARD, DRAFT_SKIP_GUARD].freeze
 }.freeze
 
 # `cancel-in-progress` is a PR-GUARD property, not a builder one. A guard
@@ -135,7 +150,33 @@ EXPECTED_PATHS = {}.freeze
 # three share one byte-compared SAME_REPO_GUARD. `check_suite` does NOT -- its
 # payload carries `check_suite.pull_requests[]` instead -- so admitting it would
 # need a second, weaker job guard, and it is deliberately NOT admitted here.
-EXPECTED_TYPES = {
+# TWO SHAPES, BOTH ACCEPTED (see ALLOWED_JOB_GUARDS above for why). BASE_TYPES
+# is exactly what `main`'s trusted validator still expects today. HARDENED_TYPES
+# adds `ready_for_review`, which is what re-fires each PR guard/readiness job
+# the instant a draft's flag clears — paired with the draft-skip conjunction,
+# which otherwise leaves a just-undrafted PR waiting for its NEXT push or
+# review event before any of these jobs runs again. A workflow may carry
+# EITHER shape for a given event's `types:` (and independently of which job-if
+# guard it carries — the follow-up PR that flips the live files is free to
+# move either one first).
+BASE_TYPES = {
+  "plugin-bump-check.yml" => {
+    "pull_request_target" => %w[opened synchronize reopened edited]
+  },
+  "surface-mirror-check.yml" => {
+    "pull_request_target" => %w[opened synchronize reopened]
+  },
+  "pr-readiness.yml" => {
+    # No `edited`: the verdict reads checks, rounds and threads, and none of
+    # those changes when the body or title is edited.
+    # `review_requested` / `review_request_removed` are CON-32(b) inputs in their
+    # own right: the gate distinguishes a round in flight from one that is owed.
+    "pull_request_target" => %w[opened synchronize reopened review_requested review_request_removed],
+    # CON-32(b) / CON-16 -- a reviewer round landing, changing or being dismissed.
+    "pull_request_review" => %w[submitted edited dismissed]
+  }
+}.freeze
+HARDENED_TYPES = {
   "plugin-bump-check.yml" => {
     "pull_request_target" => %w[opened synchronize reopened edited ready_for_review]
   },
@@ -143,20 +184,18 @@ EXPECTED_TYPES = {
     "pull_request_target" => %w[opened synchronize reopened ready_for_review]
   },
   "pr-readiness.yml" => {
-    # No `edited`: the verdict reads checks, rounds and threads, and none of
-    # those changes when the body or title is edited.
-    # `review_requested` / `review_request_removed` are CON-32(b) inputs in their
-    # own right: the gate distinguishes a round in flight from one that is owed.
     "pull_request_target" => %w[opened synchronize reopened review_requested review_request_removed ready_for_review],
-    # CON-32(b) / CON-16 -- a reviewer round landing, changing or being dismissed.
     "pull_request_review" => %w[submitted edited dismissed]
   }
 }.freeze
-# `ready_for_review` (maintainer ruling, 2026-09-20) is what re-fires each PR
-# guard/readiness job the instant a draft's flag clears — paired with
-# JOB_GUARDS's draft-skip conjunction, which otherwise leaves a
-# just-undrafted PR waiting for its NEXT push or review event before any of
-# these jobs runs again.
+# The event SET (the keys of either shape's map) is identical between
+# BASE_TYPES and HARDENED_TYPES for every workflow -- only a `types:` array
+# inside an already-admitted event ever differs between the two shapes -- so
+# either constant would do for deriving the expected event set; HARDENED_TYPES
+# is used for that below purely because it is declared last.
+ALLOWED_TYPE_SHAPES = HARDENED_TYPES.keys.each_with_object({}) do |file, memo|
+  memo[file] = [BASE_TYPES.fetch(file), HARDENED_TYPES.fetch(file)]
+end.freeze
 
 # The only events a privileged job in this repository may be triggered by. All
 # run in the BASE repository context with a credential, so this list is the
@@ -460,15 +499,17 @@ def validate_workflow(path)
   reject_duplicate_keys(document.root, path)
   root = mapping(document.root, path)
   triggers = mapping(root.fetch("on") { fail_policy("#{path} has no on mapping") }, "#{path} on")
-  expected_triggers = EXPECTED_TYPES.fetch(File.basename(path)) { fail_policy("#{path} has no declared trigger policy") }
+  expected_shapes = ALLOWED_TYPE_SHAPES.fetch(File.basename(path)) { fail_policy("#{path} has no declared trigger policy") }
+  expected_events = expected_shapes.first.keys
   triggers.keys.each do |event|
     fail_policy("#{path} uses trigger #{event.inspect}, which is not an admitted privileged trigger") unless ALLOWED_TRIGGERS.include?(event)
   end
-  fail_policy("#{path} trigger set changed") unless triggers.keys.sort == expected_triggers.keys.sort
-  expected_triggers.each do |event, expected_types|
+  fail_policy("#{path} trigger set changed") unless triggers.keys.sort == expected_events.sort
+  expected_events.each do |event|
     trigger = mapping(triggers[event], "#{path} #{event}")
     trigger_types = sequence(trigger.fetch("types") { fail_policy("#{path} #{event} has no types") }, "#{path} #{event} types")
-    fail_policy("#{path} #{event} types changed") unless trigger_types == expected_types
+    allowed_types = expected_shapes.map { |shape| shape.fetch(event) }.uniq
+    fail_policy("#{path} #{event} types changed") unless allowed_types.include?(trigger_types)
     # `paths:` is a declared, per-(workflow, event) EXTRA key — absent here
     # means FORBIDDEN, not merely unchecked. plugin-bump-check.yml and
     # pr-readiness.yml must judge every pull request, so they carry no filter;
@@ -493,9 +534,9 @@ def validate_workflow(path)
   fail_policy("#{path} job id must be exactly #{expected_job}") unless jobs.keys == [expected_job]
   jobs.each do |job_name, job_node|
     job = mapping(job_node, "#{path} job #{job_name}")
-    expected_guard = JOB_GUARDS.fetch(File.basename(path)) { fail_policy("#{path} has no declared job guard") }
-    if targets_pr && scalar(job["if"]) != expected_guard
-      fail_policy("#{path} job #{job_name} needs the exact same-repository job guard (with the draft-skip conjunction)")
+    allowed_guards = ALLOWED_JOB_GUARDS.fetch(File.basename(path)) { fail_policy("#{path} has no declared job guard") }
+    if targets_pr && !allowed_guards.include?(scalar(job["if"]))
+      fail_policy("#{path} job #{job_name} needs the same-repository job guard, bare or with the draft-skip conjunction")
     end
 
     validate_timeout(path, job_name, job)
@@ -842,7 +883,7 @@ def self_test(root)
     expect_rejected("new workflow with an unexpected event") { validate_repo(tmp) }
 
     FileUtils.rm(extra)
-    File.write(plugin, original.sub("types: [opened, synchronize, reopened, edited, ready_for_review]", "types: [closed]"))
+    File.write(plugin, original.sub("types: [opened, synchronize, reopened, edited]", "types: [closed]"))
     expect_rejected("changed pull_request_target types") { validate_repo(tmp) }
 
     File.write(plugin, original.sub("jobs:\n  check:", "jobs:\n  renamed:"))
@@ -995,6 +1036,7 @@ def self_test(root)
     File.write(surface, surface_original.sub(
       "  pull_request_target:", "  pull_request_review_thread:\n    types: [resolved, unresolved]\n  pull_request_target:"))
     expect_rejected("workflow naming the non-existent pull_request_review_thread trigger") { validate_repo(tmp) }
+    File.write(surface, surface_original)
 
     # --- concurrency / timeout-minutes / draft-skip / paths (2026-09-20) -----
 
@@ -1007,12 +1049,39 @@ def self_test(root)
     File.write(plugin, original.sub(/\n\s*cancel-in-progress: true\n/, "\n"))
     expect_rejected("guard workflow with no cancel-in-progress at all") { validate_repo(tmp) }
 
-    File.write(plugin, original.sub(" && github.event.pull_request.draft == false", ""))
-    expect_rejected("guard job reverted to the bare same-repository guard") { validate_repo(tmp) }
+    # BOTH SHAPES ARE ACCEPTED (two-step landing, see ALLOWED_JOB_GUARDS): the
+    # live `original` file carries the bare guard and BASE_TYPES today, and
+    # that must keep validating exactly as-is -- proven already by the plain
+    # `validate_repo(tmp)` call at the top of this function. What is proven
+    # here is the OTHER shape: swapping in the hardened guard AND the
+    # hardened trigger types together must ALSO validate, and independently,
+    # swapping only one of the two must ALSO validate -- the two are not
+    # required to move together.
+    hardened_if = original.sub(/^    if: .*\n/, "    if: #{DRAFT_SKIP_GUARD}\n")
+    File.write(plugin, hardened_if)
+    validate_repo(tmp, announce: false) # hardened guard only, base types: must pass
+    File.write(plugin, hardened_if.sub(
+      "    types: [opened, synchronize, reopened, edited]",
+      "    types: [opened, synchronize, reopened, edited, ready_for_review]"))
+    validate_repo(tmp, announce: false) # both hardened together: must pass
 
     File.write(plugin, original.sub(
-      "    types: [opened, synchronize, reopened, edited, ready_for_review]",
-      "    types: [opened, synchronize, reopened, edited, ready_for_review]\n    paths: ['claude/**']"))
+      "    types: [opened, synchronize, reopened, edited]",
+      "    types: [opened, synchronize, reopened, edited, ready_for_review]"))
+    validate_repo(tmp, announce: false) # hardened types only, bare guard: must pass
+
+    # THE STRING-CONCATENATION BUG ITSELF, covered by fixture rather than only
+    # by the comment above ALLOWED_JOB_GUARDS. Writing the draft conjunct so
+    # it lands OUTSIDE the `${{ }}` expression must still be refused -- it is
+    # not one of the two exact accepted strings, but a regex or suffix test in
+    # place of the exact-string check could easily let it through.
+    malformed_guard = "#{SAME_REPO_GUARD} && github.event.pull_request.draft == false"
+    File.write(plugin, original.sub(/^    if: .*\n/, "    if: #{malformed_guard}\n"))
+    expect_rejected("draft conjunct written outside the ${{ }} expression (string-concatenation bug)") { validate_repo(tmp) }
+
+    File.write(plugin, original.sub(
+      "    types: [opened, synchronize, reopened, edited]",
+      "    types: [opened, synchronize, reopened, edited]\n    paths: ['claude/**']"))
     expect_rejected("plugin-bump-check gains a paths filter — it must judge every PR") { validate_repo(tmp) }
 
     File.write(plugin, original)
@@ -1023,15 +1092,25 @@ def self_test(root)
     # cannot merge -- a deadlock, not a false negative. Gaining one back is
     # therefore rejected the same way plugin-bump-check.yml gaining one is.
     File.write(surface, surface_original.sub(
-      "    types: [opened, synchronize, reopened, ready_for_review]",
-      "    types: [opened, synchronize, reopened, ready_for_review]\n    paths: ['claude/**']"))
+      "    types: [opened, synchronize, reopened]",
+      "    types: [opened, synchronize, reopened]\n    paths: ['claude/**']"))
     expect_rejected("surface-mirror-check gains a paths filter — it must judge every PR") { validate_repo(tmp) }
 
     File.write(surface, surface_original)
 
-    # --- surface-mirror-regenerate.yml: the builder pipeline ----------------
+    # --- surface-mirror-regenerate.yml: the builder pipeline, OPTIONAL ------
+    # It ships at `templates/surface-mirror-regenerate.yml`, not under
+    # `.github/workflows/`, until the follow-up PR in the two-step landing
+    # installs it (docs/GATE-CONFIGURATION.md). The plain `validate_repo(tmp)`
+    # calls already run above -- before this workflow is ever copied in --
+    # are what prove the ABSENT case passes; everything below proves the
+    # PRESENT case: copy the template in, prove the untouched file validates,
+    # then run every negative fixture against it exactly as before.
     regenerate = File.join(tmp, ".github/workflows/surface-mirror-regenerate.yml")
-    regenerate_original = File.read(regenerate)
+    regenerate_source = File.join(root, "templates/surface-mirror-regenerate.yml")
+    regenerate_original = File.read(regenerate_source)
+    FileUtils.cp(regenerate_source, regenerate)
+    validate_repo(tmp, announce: false)
 
     expect_rejected("an entirely undeclared workflow file") do
       extra_unknown = File.join(tmp, ".github/workflows/unknown-builder.yml")
@@ -1070,6 +1149,12 @@ def self_test(root)
     expect_rejected("regenerate workflow pushes directly with git instead of only opening a PR") { validate_repo(tmp) }
 
     File.write(regenerate, regenerate_original)
+    validate_repo(tmp, announce: false)
+
+    # Remove the builder again: the ABSENT case must still validate after all
+    # of this file's churn, confirming its optionality one more time.
+    FileUtils.rm(regenerate)
+    validate_repo(tmp, announce: false)
 
     # And the control: a DIAGNOSTIC naming the file is not a read. This workflow
     # already carries `echo "::error::nen/contract.json carries no ..."`, mid-line

@@ -166,7 +166,7 @@ CL
       ok 1 "templates/release-publish.sh matches scripts/release-publish.sh byte-for-byte"
     fi
   else
-    ok 1 "templates/release-publish.sh exists to compare against"
+    ok 0 "not applicable: no adjacent template (consumer layout)"
   fi
 
   printf '\n'

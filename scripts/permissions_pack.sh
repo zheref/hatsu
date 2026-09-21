@@ -210,6 +210,95 @@ place() { # relative-path content
   exclude_line "$rel"
   written="$written $rel"
 }
+# --- codex_writable_roots ROOT -----------------------------------------------
+# Prints one absolute path per line for codex's own
+# `sandbox_workspace_write.writable_roots` (Copilot, zheref/hatsu#94 thread B:
+# the generator emits a placeholder `writable_roots = []` that the installer
+# never filled in, so every codex verb ran outside the one root it was ever
+# going to be allowed to write):
+#   - ROOT itself (`git rev-parse --show-toplevel`)
+#   - every `worktree <path>` line from `git worktree list --porcelain`
+#     (ROOT's own entry included, so the toplevel dedupes against it)
+#   - the absolute git common dir (`git rev-parse --git-common-dir`) — the
+#     shared `.git` a linked worktree writes packed-refs and logs into
+#   - every local checkout path ROOT's own nen/repos.json declares associated
+#     (a `path` field on a `consumers`, `maintained_tools` or
+#     `pending_onboarding` entry) — read with jq when jq is present; the
+#     schema does not carry this field as of this writing, so this reads as
+#     literally nothing on today's registries, which is correct, not a bug.
+# Deduplication and sorting are the caller's job (this only enumerates).
+codex_writable_roots() {
+  local root="$1"
+  git -C "$root" rev-parse --show-toplevel
+  git -C "$root" worktree list --porcelain 2>/dev/null | awk '/^worktree /{ sub(/^worktree /, ""); print }'
+  git -C "$root" rev-parse --path-format=absolute --git-common-dir 2>/dev/null
+  local repos_json="$root/nen/repos.json"
+  if [ -f "$repos_json" ] && command -v jq >/dev/null 2>&1; then
+    jq -r '
+      [(.consumers // [])[], (.maintained_tools // [])[], (.pending_onboarding // [])[]]
+      | map(select(has("path") and (.path | type == "string") and (.path != "")))
+      | .[].path
+    ' "$repos_json" 2>/dev/null || true
+  fi
+}
+
+# --- codex_repos_json_has_no_path_field ROOT ---------------------------------
+# True if ROOT's nen/repos.json exists but declares no `path` field on any
+# consumers/maintained_tools/pending_onboarding entry (or jq is unavailable to
+# check) — the case the rewrite below names in a comment rather than silently
+# contributing nothing.
+codex_repos_json_has_no_path_field() {
+  local root="$1" repos_json="$root/nen/repos.json"
+  [ -f "$repos_json" ] || return 1
+  command -v jq >/dev/null 2>&1 || return 0
+  local count
+  count="$(jq -r '
+    [(.consumers // [])[], (.maintained_tools // [])[], (.pending_onboarding // [])[]]
+    | map(select(has("path") and (.path | type == "string") and (.path != "")))
+    | length
+  ' "$repos_json" 2>/dev/null || echo 0)"
+  [ "${count:-0}" -eq 0 ]
+}
+
+# --- rewrite_codex_writable_roots FILE ROOT ----------------------------------
+# Rewrites the placed .codex/config.toml's `writable_roots = [...]` line in
+# place with the TOML string array codex_writable_roots computes, deduplicated
+# and sorted for a stable, idempotent diff on re-install. Only called on a
+# file this run just placed or already owns (see the `written` guard at the
+# call site) — never on a tracked or foreign file.
+rewrite_codex_writable_roots() {
+  local file="$1" root="$2"
+  [ -f "$file" ] || return 0
+  grep -q '^writable_roots[[:space:]]*=' "$file" || return 0
+  local roots note=""
+  roots="$(codex_writable_roots "$root" | awk 'NF' | sort -u)"
+  if codex_repos_json_has_no_path_field "$root"; then
+    note="nen/repos.json declares no local path field on any entry -- none contributed"
+  fi
+  # `python3 -` reads its PROGRAM from stdin, so the roots list cannot also
+  # arrive over stdin — that pipe would collide with (and be shadowed by) the
+  # heredoc below. Passed through the environment instead.
+  CODEX_WRITABLE_ROOTS="$roots" python3 - "$file" "$note" <<'PY'
+import os, re, sys
+path, note = sys.argv[1], sys.argv[2]
+roots = [line for line in os.environ.get("CODEX_WRITABLE_ROOTS", "").splitlines() if line]
+with open(path) as f:
+    text = f.read()
+
+def toml_string(s):
+    return '"' + s.replace('\\', '\\\\').replace('"', '\\"') + '"'
+
+array = "[" + ", ".join(toml_string(r) for r in roots) + "]"
+line = f"writable_roots = {array}"
+if note:
+    line += f"  # {note}"
+new_text, count = re.subn(r'^writable_roots[ \t]*=.*$', lambda _m: line, text, count=1, flags=re.MULTILINE)
+if count:
+    with open(path, "w") as f:
+        f.write(new_text)
+PY
+}
+
 # --- place_generated RELATIVE_PATH SOURCE_ABS_PATH --------------------------
 # Same transaction shape as `place()`, but for a file this script only COPIES
 # rather than authors: a missing generator output is reported and skipped
@@ -314,6 +403,12 @@ PY
     ;;
   codex)
     place_generated ".codex/config.toml" "$hatsu_root/surfaces/codex/config.toml" "$hatsu_root/surfaces/codex/config.toml.fragment"
+    # Only on a file this run placed or already owns (never a tracked or
+    # foreign one — `written` only ever names a path place_generated itself
+    # wrote this call).
+    case " $written " in
+      *" .codex/config.toml "*) rewrite_codex_writable_roots "$root/.codex/config.toml" "$root" ;;
+    esac
     place_generated ".codex/hooks.json" "$hatsu_root/surfaces/codex/hooks.json"
     ;;
   cursor)

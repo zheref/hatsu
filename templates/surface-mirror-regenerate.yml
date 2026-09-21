@@ -1,3 +1,10 @@
+# NOT YET LIVE. This file sits in `templates/` rather than
+# `.github/workflows/` because the two-step guard landing (docs/GATE-
+# CONFIGURATION.md) requires the validator that accepts it to land first; the
+# follow-up PR that flips the three PR guards' trigger shape also installs
+# this file at `.github/workflows/surface-mirror-regenerate.yml`, byte-
+# identical apart from this header.
+#
 # surface-mirror-regenerate — close the loop `surface-mirror-check.yml` only
 # opens.
 #

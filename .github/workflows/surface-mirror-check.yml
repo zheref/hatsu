@@ -29,7 +29,7 @@
 # exit 2, precisely so that it would disappear by itself the moment the pinned
 # nen carried the verb — no edit to this file, no remembering.
 #
-# The pin is `v0.7.0` and that nen carries `nen surface mirror generate|check`.
+# The pin is `v0.13.0` (nen/contract.json is the source; this line is a convenience copy) and that nen carries `nen surface mirror generate|check` with the v0.13 pack flags.
 # Verified locally against this branch: `bash scripts/surface_mirror_check.sh`
 # exits 0 with 44 skills per surface, personas 11 plus the preamble, for codex,
 # cursor and antigravity, no drift rows. So the skip branch is unreachable at this pin, and it is kept as an
@@ -56,7 +56,7 @@ name: surface-mirror-check
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened]
     # NO `paths:` FILTER, DELIBERATELY. This job is (or is meant to become,
     # docs/SURFACES.md) a REQUIRED context on `main`. A required context that
     # carries a `paths:` filter never reports at all on a PR whose diff
@@ -79,7 +79,7 @@ permissions:
 
 jobs:
   surface-mirror-check:
-    if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false }}
+    if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

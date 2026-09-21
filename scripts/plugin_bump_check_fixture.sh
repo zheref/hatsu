@@ -68,3 +68,30 @@ run_case 'higher patch passes' 0 "$fixture_root/changed-discovery.txt" "$fixture
 run_case 'higher minor passes' 0 "$fixture_root/changed-discovery.txt" "$fixture_root/head-higher-minor.json" 'plugin.json version bumped'
 run_case 'higher major passes' 0 "$fixture_root/changed-discovery.txt" "$fixture_root/head-higher-major.json" 'plugin.json version bumped'
 run_case 'malformed head version fails' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/head-malformed.json" 'not a strict increase'
+
+# --- full SemVer 2.0.0 grammar cases (2026-09-20) ---------------------------
+# semver_parts now validates the full grammar rather than a narrower
+# approximation: MAJOR.MINOR.PATCH each `0|[1-9][0-9]*`, an optional
+# `-<prerelease>` of non-empty dot-separated `[0-9A-Za-z-]+` identifiers
+# (numeric ones with no leading zero unless exactly `0`), and an optional
+# `+<build>` of the same identifier shape. Anything outside that grammar is
+# malformed and refused, same as any other unparseable version. Pre-release
+# stays out of scope for ordering — a well-formed prerelease/build head still
+# needs a numeric MAJOR.MINOR.PATCH increase over base to pass.
+printf '%s\n' '{"version":"0.43.1-"}' > "$fixture_root/head-semver-empty-prerelease.json"
+printf '%s\n' '{"version":"01.2.3"}' > "$fixture_root/head-semver-leading-zero-major.json"
+printf '%s\n' '{"version":"1.02.3"}' > "$fixture_root/head-semver-leading-zero-minor.json"
+printf '%s\n' '{"version":"1.2.3-01"}' > "$fixture_root/head-semver-leading-zero-prerelease.json"
+printf '%s\n' '{"version":"1.2.3-"}' > "$fixture_root/head-semver-trailing-dash.json"
+printf '%s\n' '{"version":"1.2.3+"}' > "$fixture_root/head-semver-trailing-plus.json"
+printf '%s\n' '{"version":"0.16.1-rc.1"}' > "$fixture_root/head-semver-prerelease-increase.json"
+printf '%s\n' '{"version":"0.16.1+build.5"}' > "$fixture_root/head-semver-build-increase.json"
+
+run_case 'SemVer: empty pre-release (0.43.1-) is malformed' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/head-semver-empty-prerelease.json" 'not a strict increase'
+run_case 'SemVer: leading zero in major (01.2.3) is malformed' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/head-semver-leading-zero-major.json" 'not a strict increase'
+run_case 'SemVer: leading zero in minor (1.02.3) is malformed' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/head-semver-leading-zero-minor.json" 'not a strict increase'
+run_case 'SemVer: leading zero in pre-release (1.2.3-01) is malformed' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/head-semver-leading-zero-prerelease.json" 'not a strict increase'
+run_case 'SemVer: trailing dash (1.2.3-) is malformed' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/head-semver-trailing-dash.json" 'not a strict increase'
+run_case 'SemVer: trailing plus (1.2.3+) is malformed' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/head-semver-trailing-plus.json" 'not a strict increase'
+run_case 'SemVer: valid pre-release (1.2.3-rc.1) with a real increase passes' 0 "$fixture_root/changed-discovery.txt" "$fixture_root/head-semver-prerelease-increase.json" 'plugin.json version bumped'
+run_case 'SemVer: valid build metadata (1.2.3+build.5) with a real increase passes' 0 "$fixture_root/changed-discovery.txt" "$fixture_root/head-semver-build-increase.json" 'plugin.json version bumped'

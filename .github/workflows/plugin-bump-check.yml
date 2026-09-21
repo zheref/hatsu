@@ -47,7 +47,7 @@ on:
     # `edited` matters: the `no plugin bump: <reason>` opt-out lives in the PR
     # body, so re-running when the body changes is what makes the opt-out
     # usable without an empty push.
-    types: [opened, synchronize, reopened, edited, ready_for_review]
+    types: [opened, synchronize, reopened, edited]
 
 concurrency:
   group: plugin-bump-check-${{ github.event.pull_request.number }}
@@ -61,7 +61,7 @@ permissions:
 
 jobs:
   check:
-    if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false }}
+    if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -155,7 +155,7 @@ jobs:
           set -e
           if [ "$rc" -ne 0 ]; then
             if grep -qi '404\|not found' "$base_err"; then
-              : > "$base_out"
+              rm -f "$base_out"
               : > "$sentinel"
               echo "base .claude-plugin/plugin.json legitimately absent at ${BASE_SHA} (first commit) -- sentinel written"
             else
