@@ -295,7 +295,7 @@ must open with the literal 'at' — it is what introduces `<gate>`"*, with the c
 while a bare `at` was exit `0` with the clause absent. So the **ordinary** invocation of the
 most-invoked step in the whole loop was the one a caller had to be told about, and the refusal read
 like a malformed invocation rather than like a spelling note. A headless Cursor run found it by
-trying both and recorded the working form (`docs/ab/surfaces.md` § 8, F11 — now marked closed).
+trying both and recorded the working form (`docs/surfaces/evidence/surfaces.md` § 8, F11 — now marked closed).
 
 **Three things worth carrying into § 1.** The rule is *every slot bracketed*, and it holds whichever
 side of the brackets the template writes the separator on (`[onto <slot>]` already worked; `at

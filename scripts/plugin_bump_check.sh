@@ -198,7 +198,12 @@ path_is_plugin_surface() {
 any_path_is_plugin_surface() {
   local file="$1" path
   [ -f "$file" ] || return 1
-  while IFS= read -r path; do
+  # `|| [ -n "$path" ]`: a changed-files list whose LAST line carries no
+  # trailing newline still has that line handed to `read`, which sets $path
+  # from it before returning failure at EOF -- the bare `while read` form
+  # never enters the loop body for that final read, so an unterminated last
+  # line was silently dropped from the scan (QA-16).
+  while IFS= read -r path || [ -n "$path" ]; do
     [ -z "$path" ] && continue
     path_is_plugin_surface "$path" && return 0
   done < "$file"
@@ -214,15 +219,132 @@ plugin_version() {
   jq -r '.version // empty' "$file" 2>/dev/null || echo ""
 }
 
+# --- semver_parts VERSION ----------------------------------------------------
+# Echoes "MAJOR MINOR PATCH PRERELEASE" (space-separated; PRERELEASE may be
+# empty) for a version that matches the FULL SemVer 2.0.0 grammar, or nothing
+# at all for anything else. Accepted shape:
+#
+#   MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]
+#
+# where MAJOR/MINOR/PATCH are each `0` or `[1-9][0-9]*` (no leading zeros),
+# PRERELEASE is one or more dot-separated identifiers of `[0-9A-Za-z-]+`
+# (a purely-numeric identifier carries no leading zero unless it IS `0`; an
+# alphanumeric one may), and BUILD is one or more dot-separated identifiers
+# of `[0-9A-Za-z-]+` with no leading-zero rule (build metadata is never
+# numerically compared). Anything else — an empty prerelease (`1.2.3-`), an
+# empty build (`1.2.3+`), an empty dot-segment (`1.2.3-a..b`), a leading zero
+# anywhere it is not allowed — is rejected. This guard's job is to compare two
+# versions it trusts are MEANT to be semver, not to accept arbitrary
+# plugin.json content as one, but "meant to be semver" now means the actual
+# grammar rather than a narrower approximation of it. Build metadata is parsed
+# so a well-formed `+build` version is not refused as malformed, but — per
+# SemVer 2.0.0 clause 10 — it is still ignored for ordering: only the
+# PRERELEASE field is returned alongside MAJOR/MINOR/PATCH, and
+# version_greater below compares numeric triples only.
+semver_parts() {
+  local version="$1"
+  local main_re='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z.-]+))?(\+([0-9A-Za-z.-]+))?$'
+  [[ "$version" =~ $main_re ]] || return 1
+  local major="${BASH_REMATCH[1]}" minor="${BASH_REMATCH[2]}" patch="${BASH_REMATCH[3]}"
+  local prerelease_tag="${BASH_REMATCH[4]}" prerelease="${BASH_REMATCH[5]}"
+  local build_tag="${BASH_REMATCH[6]}" build="${BASH_REMATCH[7]}"
+
+  local ident
+  if [ -n "$prerelease_tag" ]; then
+    [ -n "$prerelease" ] || return 1
+    local IFS='.'
+    for ident in $prerelease; do
+      [ -n "$ident" ] || return 1
+      case "$ident" in
+        *[!0-9A-Za-z-]*) return 1 ;;
+      esac
+      case "$ident" in
+        *[!0-9]*) ;;        # not purely numeric (has a letter/hyphen): no rule
+        0) ;;               # numeric "0" alone: fine
+        0*) return 1 ;;     # purely numeric with a leading zero: reject
+        *) ;;
+      esac
+    done
+  fi
+  if [ -n "$build_tag" ]; then
+    [ -n "$build" ] || return 1
+    local IFS='.'
+    for ident in $build; do
+      [ -n "$ident" ] || return 1
+      case "$ident" in
+        *[!0-9A-Za-z-]*) return 1 ;;
+      esac
+    done
+  fi
+
+  printf '%s %s %s %s\n' "$major" "$minor" "$patch" "$prerelease"
+}
+
+# --- version_greater BASE HEAD -----------------------------------------------
+# Returns 0 if HEAD is a strict semver INCREASE over BASE: MAJOR, then MINOR,
+# then PATCH, compared numerically in that order, with a lower or equal triple
+# failing regardless of any pre-release suffix. A malformed HEAD or BASE is
+# never "greater" — it fails closed, which is what version_bumped's caller
+# turns into the named refusal rather than a silent pass.
+#
+# WHY NOT `!=`. The guard this replaces accepted ANY change, including a
+# DOWNGRADE — v0.40.0 was never tagged because a later PR's plugin.json still
+# read a version two releases behind, `!=` was satisfied, and the guard passed
+# a PR that made the manifest wrong in the other direction. An increase is the
+# only change that keeps Claude Code's plugin-cache key ahead of what shipped.
+version_greater() {
+  local base="$1" head="$2" base_parts head_parts
+  base_parts="$(semver_parts "$base")" || return 1
+  head_parts="$(semver_parts "$head")" || return 1
+  local bmaj bmin bpat hmaj hmin hpat n
+  IFS=' ' read -r bmaj bmin bpat _ <<< "$base_parts"
+  IFS=' ' read -r hmaj hmin hpat _ <<< "$head_parts"
+  # A component longer than 18 digits is outside bash's signed 64-bit integer
+  # range: `[ "$x" -gt "$y" ]` on one would not compare, it would print
+  # `[: integer expression expected` to stderr and this guard's -e would take
+  # that as a crash rather than a refusal. semver has never needed a
+  # major/minor/patch this large, so a value that large fails closed instead.
+  for n in "$bmaj" "$bmin" "$bpat" "$hmaj" "$hmin" "$hpat"; do
+    [ "${#n}" -le 18 ] || return 1
+  done
+  [ "$hmaj" -gt "$bmaj" ] && return 0
+  [ "$hmaj" -lt "$bmaj" ] && return 1
+  [ "$hmin" -gt "$bmin" ] && return 0
+  [ "$hmin" -lt "$bmin" ] && return 1
+  [ "$hpat" -gt "$bpat" ] && return 0
+  return 1
+}
+
 # --- version_bumped BASE_PLUGIN_JSON HEAD_PLUGIN_JSON ------------------------
-# Returns 0 if the `version` field actually changed between BASE and HEAD:
-# HEAD carries a non-empty version different from BASE's.
+# Returns 0 if HEAD's `version` field is a STRICT SEMVER INCREASE over BASE's —
+# not merely different. A HEAD that is malformed, equal to, or lower than BASE
+# fails; the CLI below reports which and why.
+#
+# THE ONLY LEGITIMATE "NO PRIOR VERSION" IS THE REPOSITORY'S FIRST COMMIT, AND
+# IT IS MARKED, NEVER GUESSED. `.github/workflows/plugin-bump-check.yml` writes
+# a `<base>.absent` sentinel file ONLY when the API told it the manifest
+# genuinely does not exist at BASE_SHA (a 404) — never on an auth failure, a
+# rate limit, or a network blip, all of which also leave the base manifest
+# unreadable but are not evidence of anything about the head version. Before
+# that sentinel existed, ANY unreadable base — including the workflow's own
+# `... || echo '{}' > base_plugin.json` fallback on ANY API failure — read as
+# "first commit" and returned bumped: a fail-open on the exact input this
+# guard cannot re-derive (QA-15/QA-16, the hostile fixture's base-manifest
+# corpus). Now an empty, absent, malformed, or unreadable base with NO
+# sentinel fails CLOSED, the same as a base that parses but carries no
+# `version` field.
 version_bumped() {
   local base="$1" head="$2" base_version head_version
   head_version="$(plugin_version "$head")"
   [ -n "$head_version" ] || return 1
+  # The sentinel is checked BEFORE the existence test: the workflow leaves an
+  # empty base file beside it on a genuine 404, and an empty file is not a
+  # readable manifest (Copilot on #94).
+  [ -f "${base}.absent" ] && return 0
+  [ -e "$base" ] || return 1
   base_version="$(plugin_version "$base")"
-  [ "$head_version" != "$base_version" ]
+  [ -n "$base_version" ] || return 1
+  version_greater "$base_version" "$head_version"
 }
 
 # --- pr_body_has_opt_out PR_BODY_FILE ----------------------------------------
@@ -258,10 +380,45 @@ version_bumped() {
 #        arrow) all matched, and none of them declares anything. Found by
 #        Copilot on zheref/hatsu#34; transcripts in
 #        docs/ab/plugin-bump-guard.md § 8.
+# An invisible declaration is not a declaration. Two ways markdown hides
+# text from the rendered PR while still handing it to this grep verbatim:
+#   - an HTML comment (`<!-- no plugin bump: … -->`), which can span multiple
+#     lines and is never shown by GitHub's renderer;
+#   - a fenced code block (``` … ```), where the phrase is being QUOTED as an
+#     example (this file's own refusal message ends with the phrase) rather
+#     than stated as a declaration.
+# Both are stripped, in one pass with awk (no python), before the grep below
+# ever sees the text.
+strip_invisible_markdown() {
+  awk '
+    BEGIN { in_comment = 0; in_fence = 0 }
+    {
+      line = $0
+      if (in_comment) {
+        if (index(line, "-->") > 0) { sub(/^.*-->/, "", line); in_comment = 0 } else { next }
+      }
+      while (!in_comment && index(line, "<!--") > 0) {
+        pre = substr(line, 1, index(line, "<!--") - 1)
+        rest = substr(line, index(line, "<!--") + 4)
+        if (index(rest, "-->") > 0) {
+          line = pre substr(rest, index(rest, "-->") + 3)
+        } else {
+          line = pre
+          in_comment = 1
+        }
+      }
+      if (line ~ /^[[:space:]]*```/) { in_fence = !in_fence; next }
+      if (in_fence) next
+      print line
+    }
+  '
+}
+
 pr_body_has_opt_out() {
   local file="$1"
   [ -f "$file" ] || return 1
-  grep -qiE '^[[:space:]]*(>[[:space:]]*|-[[:space:]]+)*no plugin bump:[[:space:]]*[^[:space:]]' "$file"
+  strip_invisible_markdown < "$file" \
+    | grep -qiE '^[[:space:]]*(>[[:space:]]*|-[[:space:]]+)*no plugin bump:[[:space:]]*[^[:space:]]'
 }
 
 if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
@@ -273,6 +430,10 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 
   [ -f "$changed_files" ] || {
     echo "error: changed-files-file '$changed_files' does not exist — refusing to fail-open on a bad workflow wiring input" >&2
+    exit 2
+  }
+  [ -r "$changed_files" ] || {
+    echo "error: changed-files-file '$changed_files' exists but is not readable — refusing to fail-open on a bad workflow wiring input" >&2
     exit 2
   }
 
@@ -291,32 +452,40 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     exit 0
   fi
 
-  cat >&2 <<'EOF'
-This PR changes a plugin-shipped surface (.claude-plugin/**, claude/**,
-nen/**, contracts/**, docs/ROSTER.md,
-docs/delegation-grammar-DRAFT.md, docs/WORKFLOW.md, docs/DISCOVERY.md,
-docs/LAUNCH-MIGRATION.md, docs/AGENT-ATTRIBUTION.md, docs/STANDALONE-ENTRY.md,
-hooks/**, templates/**, surfaces/**,
-scripts/surface_bootstrap.sh, scripts/hanten_cycle_ledger.sh, scripts/hatsu_plugin_update.sh, or .mcp.json)
-but leaves
-.claude-plugin/plugin.json's `version` field unchanged.
+  base_version_reported="$(plugin_version "$base_plugin")"
+  head_version_reported="$(plugin_version "$head_plugin")"
+  {
+    echo "plugin.json version is not a strict increase: base ${base_version_reported:-<none>} -> head ${head_version_reported:-<none>}"
+    echo "a version that does not increase is how v0.40.0 went untagged"
+  } >&2
 
-Claude Code keys its plugin cache on that field. An already-installed Hatsu
-will never pick this change up until the version is bumped — no error, no
-warning, the change simply does not ship. (Ported from the frozen reference
-implementation's own guard, filed after exactly this omission shipped a
-four-surface change to nobody.)
+  # Generated FROM the array rather than transcribed: a hand-copied list
+  # drifts the moment a glob is added to PLUGIN_SURFACE_GLOBS and nobody
+  # remembers to update this message too (it had fallen to 18 of 21).
+  globs_list="$(IFS=', '; echo "${PLUGIN_SURFACE_GLOBS[*]}")"
 
-Bump `.claude-plugin/plugin.json`'s `version` (semver):
-  - patch  — wording/fix-only change to a shipped surface.
-  - minor  — an agent definition's or a skill's BEHAVIOUR changes; a new skill;
-             a new pinned nen ref in nen/contract.json.
-  - major  — a breaking change to the plugin's public interface (a command, an
-             agent's invocation contract, the shape of the Nen contract) — on a
-             0.x plugin, the MINOR carries these, per SemVer 2.0.0 clause 4.
-
-Or, if this change provably does not affect the shipped plugin surface (e.g. a
-comment-only edit), state `no plugin bump: <reason>` in the PR body.
-EOF
+  {
+    echo "This PR changes a plugin-shipped surface ($globs_list)"
+    echo "but $head_plugin's \`version\` does not carry a strictly higher"
+    echo "version than $base_plugin's — equal, lower (a downgrade), or"
+    echo "unparseable all fail this check the same way."
+    echo
+    echo "Claude Code keys its plugin cache on that field. An already-installed Hatsu"
+    echo "will never pick this change up until the version is bumped — no error, no"
+    echo "warning, the change simply does not ship. (Ported from the frozen reference"
+    echo "implementation's own guard, filed after exactly this omission shipped a"
+    echo "four-surface change to nobody.)"
+    echo
+    echo 'Bump `.claude-plugin/plugin.json`'"'"'s `version` (semver):'
+    echo "  - patch  — wording/fix-only change to a shipped surface."
+    echo "  - minor  — an agent definition's or a skill's BEHAVIOUR changes; a new skill;"
+    echo "             a new pinned nen ref in nen/contract.json."
+    echo "  - major  — a breaking change to the plugin's public interface (a command, an"
+    echo "             agent's invocation contract, the shape of the Nen contract) — on a"
+    echo "             0.x plugin, the MINOR carries these, per SemVer 2.0.0 clause 4."
+    echo
+    echo "Or, if this change provably does not affect the shipped plugin surface (e.g. a"
+    echo 'comment-only edit), state `no plugin bump: <reason>` in the PR body.'
+  } >&2
   exit 1
 fi

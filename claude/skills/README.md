@@ -4,12 +4,12 @@ This directory is the plugin's skill surface (`plugin.json` → `"skills": "./cl
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together
 under *Skills* by `claude plugin details`, which is why they are described together here.
 
-**Forty skills at `v0.30.0`**: the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
+**Forty-three skills at `v0.43.0`** (forty at `v0.30.0`, forty-four directories per surface with `hatsu-warmup`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
 surface complete at `v0.1.0` — one of them, `drive`, **renamed to [`sharingan`](sharingan/) at `v0.5.0`** —
 the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side,
 **[`byakugan`](byakugan/) at `v0.24.0`**, the
 **three added at `v0.6.0`** that close the release side,
-**[`third-hand`](third-hand/) at `v0.27.0`** (a separate phase after En from `v0.28.0`), and the **two roster-machinery residents** that
+**[`third-hand`](third-hand/) at `v0.27.0`** (a separate phase after En from `v0.28.0`), **[`great-hiker`](great-hiker/) at `v0.43.0`** (the canon-authoring skill, in its own section), and the **two roster-machinery residents** that
 arrived with the skeleton ([zheref/hatsu#1][1]) and are counted separately. Nothing here is reserved, and
 nothing here is a placeholder.
 
@@ -69,9 +69,20 @@ mechanics, and a live transcript showing the same verdict from fewer improvised 
 
 ---
 
+## The canon-authoring skill
+
+One skill is neither ported nor a phase of `ren`: it was authored at `v0.43.0` for this plugin's own
+canon (zheref/hatsu#93), and it runs on the maintainer's call, outside the turn loop.
+
+| Skill | What it does |
+|---|---|
+| [`great-hiker`](great-hiker/) | **Canon authoring for every surface.** Authors canon prose and machinery under `claude/` and `contracts/`, runs `nen surface mirror generate` for every surface with hooks, allowlists, rules files and model config, checks the mirrors and the installed copies, and opens one PR at G4 with a per-surface delta table. `evolve [<surface>]` diffs each surface guide against its cited official docs and files one Netero-shaped issue per drifted surface. Never edits `surfaces/` by hand, never claims a capability without the fetched line, never merges. |
+
+---
+
 ## The way of working
 
-The nineteen above each answer a request. The twenty-three below are the **loop that carries every request** —
+The nineteen ported skills and `great-hiker` each answer a request. The twenty-three below are the **loop that carries every request** —
 warm up, build, commit, launch, report, ring; pull, test, push — and the phases the maintainer calls by
 hand. [`../../docs/WORKFLOW.md`](../../docs/WORKFLOW.md) is the authority on all of it: the two configuration
 files ([`nen/contract.json`](../../nen/contract.json) → `project`, what nen **executes**;
@@ -133,7 +144,7 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 
 ## The two roster-machinery residents
 
-Neither is one of the forty-two. They landed with the skeleton because the plugin does not function
+Neither is one of the forty-three. They landed with the skeleton because the plugin does not function
 without them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |

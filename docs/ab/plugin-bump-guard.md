@@ -691,3 +691,35 @@ the paths are recognized rather than merely listed. The bumped `docs/DISCOVERY.m
 runtime surface and still passes with an unchanged version. The fixture is a permanent focused
 check for this executable only; it is neither Hatsu's general regression suite nor a GitHub
 workflow result.
+
+## 10. Semver-increase, not `!=` (2026-09-20)
+
+`version_bumped` compared old and new plugin versions with `!=`: ANY change satisfied it, including
+a **downgrade**. That is how `v0.40.0` went untagged — a later PR's `plugin.json` still read a
+version two releases behind, `!=` was satisfied against that stale base, and the guard passed a PR
+that made the manifest wrong in the other direction rather than catching it.
+
+`scripts/plugin_bump_check.sh` now parses both versions as `MAJOR.MINOR.PATCH[-PRERELEASE]`
+(`semver_parts`) and requires HEAD to be a **strict numeric increase** over BASE
+(`version_greater`), compared MAJOR, then MINOR, then PATCH — a pre-release suffix never decides
+the comparison. An empty BASE (no prior manifest) still counts as bumped, unchanged from before. A
+HEAD that is malformed, equal to, or lower than BASE now fails, and the refusal names both versions
+plus the `v0.40.0` incident directly: `plugin.json version is not a strict increase: base X -> head
+Y` / `a version that does not increase is how v0.40.0 went untagged`. The `no plugin bump: <reason>`
+opt-out is unchanged.
+
+`scripts/plugin_bump_check_fixture.sh` gained the six cases the acceptance criteria named: equal
+(fail), lower (fail), higher patch/minor/major (each pass), and a malformed HEAD version (fail).
+Verified locally — `bash scripts/plugin_bump_check_fixture.sh`:
+
+```
+equal version fails: exit 1
+lower version fails: exit 1
+higher patch passes: exit 0
+higher minor passes: exit 0
+higher major passes: exit 0
+malformed head version fails: exit 1
+```
+
+alongside all of the pre-existing cases, unchanged. The fixture file is executable (`chmod 755`),
+matching the exec-bit assertion `plugin-bump-check.yml` already makes on the guard script itself.

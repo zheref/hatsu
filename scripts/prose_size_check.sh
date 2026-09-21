@@ -8,7 +8,12 @@
 # nothing measures is a limit that has already been exceeded, so this measures it.
 #
 #   every claude/agents/*.md except kurapika.md   <=  6144 bytes
-#   the sixteen dieted skills                     <= 12288 bytes
+#   the seventeen dieted skills                   <= 12288 bytes
+#   every claude/rules/*.md                       <= 12000 characters (Antigravity's own documented
+#                                                     rules-file limit, docs/surfaces/antigravity.md --
+#                                                     the smallest limit any surface documents for a
+#                                                     rules/instructions file, so it is the one this
+#                                                     source file is measured against)
 #
 # kurapika.md is exempt deliberately: he is the lead persona and the whole local plane in one file,
 # and no reviewer budget or subagent raise depends on his size. The skills NOT on the list below are
@@ -23,10 +28,11 @@ set -eu
 
 AGENT_MAX=6144
 SKILL_MAX=12288
+RULES_MAX=12000
 
-# The sixteen, from CHANGELOG v0.42.0 "The diet" plus black-voice, which was authored under the
-# ceiling rather than reduced to it.
-DIETED_SKILLS="amaterasu backlog-board backlog-loop black-voice breath build futon hanten
+# The seventeen: fifteen from CHANGELOG v0.42.0 "The diet" plus black-voice and great-hiker, which
+# were authored under the ceiling rather than reduced to it.
+DIETED_SKILLS="amaterasu backlog-board backlog-loop black-voice breath build futon great-hiker hanten
 hatsu-warmup jujutsu jutaisho kagutsuchi kokusen spiritual-message sharingan shibari"
 
 root="${1:-}"
@@ -37,6 +43,7 @@ fi
   || { echo "prose_size_check.sh: $root is not a Hatsu checkout (no claude/agents, claude/skills)" >&2; exit 2; }
 
 size_of() { wc -c <"$1" | tr -d ' '; }
+chars_of() { wc -m <"$1" | tr -d ' '; }
 
 offenders=0
 checked=0
@@ -69,8 +76,20 @@ for s in $DIETED_SKILLS; do
   fi
 done
 
+if [ -d "$root/claude/rules" ]; then
+  for f in "$root"/claude/rules/*.md; do
+    [ -f "$f" ] || continue
+    checked=$((checked + 1))
+    n="$(chars_of "$f")"
+    if [ "$n" -gt "$RULES_MAX" ]; then
+      echo "OVER  ${f#"$root"/}  $n > $RULES_MAX chars"
+      offenders=$((offenders + 1))
+    fi
+  done
+fi
+
 if [ "$offenders" -eq 0 ]; then
-  echo "prose ok: $checked files within their ceilings (agents $AGENT_MAX, dieted skills $SKILL_MAX)"
+  echo "prose ok: $checked files within their ceilings (agents $AGENT_MAX, dieted skills $SKILL_MAX, rules $RULES_MAX chars)"
   exit 0
 fi
 echo "prose_size_check.sh: $offenders file(s) over the ceiling" >&2

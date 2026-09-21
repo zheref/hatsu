@@ -26,6 +26,7 @@ from pathlib import Path
 
 CONTRACT = "hatsu.hanten.cycle/v0.1"
 MAXIMA = {
+    "nobunaga": 2,
     "feitan": 1,
     "chrollo": 1,
     "phinks": 1,

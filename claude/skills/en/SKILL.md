@@ -166,9 +166,12 @@ full and carried here in four lines:**
 - **Arrivals are remediated up to `nen/gates.json` → `round_policy.maxRounds`; an owed round inside
   the max is re-requested on the maintainer's behalf without asking** (ruling 2026-09-19,
   `nen/decisions.json` row `cap-reached`), then en keeps watching.
-- **Never re-request after a push that changed nothing reviewable** — count commits ahead and the
-  diff since the last reviewed head first (`git rev-list --count <reviewed-head>..HEAD`,
-  `git diff --stat <reviewed-head>..HEAD`); zero reviewable change means no request.
+- **Before any re-request, `nen wake verify --repo-slug <owner/name> --now <ISO> --author-pattern
+  <the maintainer login> --run`** redrives a swallowed run once (`action_required` or
+  `startup_failure` that never executed); an `action_required` run by the Copilot bot cannot be
+  retried and is reported as such. **Then the no-op sync guard**: count commits ahead of the last
+  reviewed head (`git rev-list --count <reviewed-head>..HEAD`, read-only) and the diff stat; zero
+  reviewable change means no request.
 - **Copilot auto-reviews every push, so the cap governs requests, not arrivals**; an arrival past the
   cap is still remediated and its threads settled.
 
@@ -183,7 +186,7 @@ Past the maximum the run ends at not-ready with the board. Neither is a G5. `nen
 | 2 | **drive** | [`hatsu:sharingan`](../sharingan/SKILL.md) | first blocking condition, threads, checks, the confirmation pass |
 | 3 | **catch up** | [`hatsu:murasaki`](../murasaki/SKILL.md) | **only when the branch is behind `branch.base`** |
 | 4 | **drive again** | [`hatsu:sharingan`](../sharingan/SKILL.md) | after step 3 moved the tree underneath it |
-| 5 | **observe** | this file, § 6 | while CI or a reviewer round is pending; rebuild the current-head snapshot on every change, returning to steps 2–4 when action is needed |
+| 5 | **observe** | this file, § 6 | while CI or a reviewer round is pending; each poll runs `nen wake verify` in dry-run (no `--run`), and `--run` only when a swallowed run is found; rebuild the current-head snapshot on every change, returning to steps 2–4 when action is needed |
 | 6 | **the bell and gate handoff** | [`hatsu:jutaisho`](../jutaisho/SKILL.md) | **after verified Ready**, and only then |
 | 7 | **the dated final report** | [`hatsu:backlog-board`](../backlog-board/SKILL.md) § 3, `--variant final` | after the bell; this is En's successful terminus |
 
@@ -437,6 +440,10 @@ returned. Harvesting is that phase's, not En's.
    is pushed to the maintainer. **Persistence was the half a session could never supply; being told
    is still unsupplied, and stays named here rather than claimed.** The rest of Illumi's row
    (`backlog-loop`, `futon`, `senkei`) stays `OPEN-1` and unreachable from here.
+5. **The commits-ahead count against an arbitrary reviewed head has no verb.** The no-op sync guard's
+   `git rev-list --count <reviewed-head>..HEAD` (§ 6) is read-only and named here as residue, not
+   improvisation: `nen wc classify` answers only against the base, and a nen request for a count
+   against a named head is owed.
 
 ## Authority
 

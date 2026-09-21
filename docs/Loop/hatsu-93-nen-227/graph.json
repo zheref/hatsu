@@ -1,0 +1,43 @@
+{
+  "contract": "nen.report.graph/v0.1",
+  "caption": "Session 3: one generator behind three mirrors and the installed-copy check; ledgers for phases and usage feeding the spend block; four git verbs replacing hand-rolled git in the skills; Great Hiker owning canon propagation.",
+  "nodes": [
+    {"id": "mirror", "label": "nen surface mirror generate, check (rows: codex, cursor, antigravity, claude-code)", "kind": "verb", "change": "changed"},
+    {"id": "packs", "label": "--models --permissions --hooks --rules --stamp --hooks-root --manifest", "kind": "verb", "change": "added"},
+    {"id": "installed", "label": "check --installed", "kind": "verb", "change": "added"},
+    {"id": "ag-script", "label": "scripts/antigravity_mirror_sync.sh", "kind": "residue", "change": "removed"},
+    {"id": "mirror-check", "label": "scripts/surface_mirror_check.sh + surface-mirror-check (required)", "kind": "script", "change": "changed"},
+    {"id": "regen", "label": ".github/workflows/surface-mirror-regenerate.yml", "kind": "workflow", "change": "added"},
+    {"id": "guides", "label": "docs/surfaces/{README,claude-code,codex,cursor,antigravity}.md", "kind": "docs", "change": "added"},
+    {"id": "great-hiker", "label": "hatsu:great-hiker", "kind": "skill", "change": "added"},
+    {"id": "rules", "label": "claude/rules/hatsu.md", "kind": "canon", "change": "added"},
+    {"id": "session-start", "label": "hooks/session-start.sh (SessionStart)", "kind": "hook", "change": "added"},
+    {"id": "phase", "label": "nen phase (+ shu steps[])", "kind": "verb", "change": "changed"},
+    {"id": "usage", "label": "nen usage record, show", "kind": "verb", "change": "added"},
+    {"id": "report-data", "label": "nen report data (phases[], usage[])", "kind": "verb", "change": "changed"},
+    {"id": "spend", "label": "spend block (spiritual-message.html, rikugan.html)", "kind": "template", "change": "added"},
+    {"id": "profile", "label": "workflow.json profile + ren § 2a", "kind": "config", "change": "added"},
+    {"id": "roles", "label": "models.roles watcher and formatter; Illumi haiku, Netero sonnet", "kind": "config", "change": "changed"},
+    {"id": "git-verbs", "label": "nen wc catch-up, wc publish, commit write, pr open", "kind": "verb", "change": "added"},
+    {"id": "skills-git", "label": "breath, ao, kokusen, shibari, aka, mukai, murasaki, izanami", "kind": "skill", "change": "changed"},
+    {"id": "en", "label": "hatsu:en (nen wake verify, no-op sync guard)", "kind": "skill", "change": "changed"},
+    {"id": "ci", "label": "CI template + workflows: timeouts, concurrency, paths, draft skip; bump guard semver", "kind": "script", "change": "changed"}
+  ],
+  "edges": [
+    {"from": "packs", "to": "mirror", "rel": "flags on", "change": "added"},
+    {"from": "installed", "to": "mirror", "rel": "subcommand of", "change": "added"},
+    {"from": "mirror-check", "to": "mirror", "rel": "runs per surface", "change": "changed"},
+    {"from": "mirror-check", "to": "ag-script", "rel": "shelled out to", "change": "removed"},
+    {"from": "regen", "to": "mirror", "rel": "opens a PR on drift", "change": "added"},
+    {"from": "great-hiker", "to": "mirror", "rel": "propagates through", "change": "added"},
+    {"from": "great-hiker", "to": "guides", "rel": "evolution duty diffs", "change": "added"},
+    {"from": "mirror", "to": "rules", "rel": "--rules", "change": "added"},
+    {"from": "mirror", "to": "session-start", "rel": "--hooks copies", "change": "added"},
+    {"from": "phase", "to": "report-data", "rel": "phases[]", "change": "unchanged"},
+    {"from": "usage", "to": "report-data", "rel": "usage[]", "change": "added"},
+    {"from": "report-data", "to": "spend", "rel": "spendPhases, spendUsage", "change": "added"},
+    {"from": "profile", "to": "phase", "rel": "every step begin/end", "change": "added"},
+    {"from": "git-verbs", "to": "skills-git", "rel": "replace git stash/rebase/push, gh pr create", "change": "added"},
+    {"from": "roles", "to": "great-hiker", "rel": "Fable prose, fast machinery", "change": "added"}
+  ]
+}

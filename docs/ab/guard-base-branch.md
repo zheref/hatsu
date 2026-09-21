@@ -382,3 +382,73 @@ Filed nowhere, listed here.
    the other side, and it is by design — the guard parses the command line it is given, not the
    filesystem — but it means the reflex is defeated by one indirection. It is a reflex under the skills,
    not a boundary.
+
+## 6. `git push origin feature:main` — a refspec, not the checkout, decides the destination (2026-09-20)
+
+**Added on 2026-09-20**, settling PRRT_kwDOUKPjxM6kNY4S (Copilot's second review round on this branch).
+The branch comparison in § 1–4 above judges the directory a write *runs in*; it never looked at what a
+`push`'s own refspec argument *names as the destination*. `git push origin feature:main` passed every
+check: the checkout never has to stand on `main` for that command to write to it, and `feature` — the
+refspec's source side — never has to be `$base` either. The gap was real regardless of which checkout
+ran the command, including a linked worktree standing on a feature branch, which is precisely the shape
+this guard exists to let through for everything else.
+
+**The fix** adds `push_targets_base()`, called once per `push` segment, independent of the branch
+comparison and independent of whether the checkout's own branch could even be read (a detached HEAD
+pushing a refspec at `main` is judged the same as one standing anywhere else). It walks the segment's own
+`push` arguments and reads a refspec's destination as: the part after `:` (`src:dst`); the whole token
+for a bare `<name>` with no `:` — git's own rule that a nameless destination pushes to a remote branch of
+the same name; or the source side of a `:dst` deletion refspec. A leading `+` (an inline force) is
+stripped first, and `refs/heads/<base>` is read as the same destination as the bare name. A quoted
+argument this guard cannot read (masked to `@`) is skipped rather than guessed at, the one place this
+check stays inside the existing fail-open-on-ambiguity design rather than adding a new fail-closed form.
+
+Live against the fixture built for this run (`$FIX/trunk` on `main`, declaring `branch.base: main`, and
+`$FIX/feature`, a **linked worktree** of it standing on `feat/x`) — `/bin/sh` is bash `3.2.57` in POSIX
+mode (`arm64-apple-darwin`, macOS 26.4.1), git `2.50.1`:
+
+Standing on `main` (`$FIX/trunk`):
+
+| payload | exit | why |
+|---|---|---|
+| `git commit -m x` | `2` | unchanged — base branch, no refspec involved |
+| `git push` | `2` | unchanged — bare push, checkout is the base |
+| `git commit-tree -m x` | `0` | unchanged |
+| `echo 'git commit'` | `0` | unchanged |
+| `gh pr edit 29 --body 'we push on green'` | `0` | unchanged |
+| `git status` | `0` | unchanged |
+| `git push origin main` | `2` | **new** — bare `<name>` destination equal to base |
+| `git push origin feat/x:main` | `2` | **new** — the shape in the review thread |
+
+From `$FIX/feature`, a linked worktree standing on `feat/x` — every one of these would have passed the
+pre-fix branch comparison, because the checkout is not `main` and the refspec's source is not `$base`:
+
+| payload | exit | why |
+|---|---|---|
+| `git push origin HEAD:main` | `2` | `HEAD` resolves nothing this guard reads; the destination alone decides |
+| `git push origin :main` | `2` | a deletion refspec is still a write to `main` |
+| `git push origin +feat/x:main` | `2` | the leading `+` (an inline force) is stripped before the comparison |
+| `git push origin feat/x:refs/heads/main` | `2` | the fully-qualified spelling of the same destination |
+| `git push -u origin feat/x` | `0` | the refspec targets the feature branch, not the base |
+| `git push --force origin feat/x:feat/x` | `0` | same branch on both sides of `:`, not the base |
+
+Every payload above was fed to the committed script on stdin exactly as § 3 documents, from a throwaway
+fixture built and deleted for this run; nothing is reconstructed.
+
+**Scope note:** `push_targets_base()` walks a deliberately small table of `git push`'s own options (most
+of the ones relevant to `push` take their value with `=`, and every option it does not recognize by name
+is a `-*` token skipped over, never mistaken for a refspec) rather than the exhaustive global-option walk
+`parse_git_segment` already does for the git call itself — that walk is unaffected and still owns the
+`-C` / `--git-dir` / `--work-tree` resolution this new check reuses via `$base`. A push whose remote or
+refspec argument is quoted in a form this guard cannot recover is left to the existing quoted-argument
+handling (masked to `@`, then skipped by this check) rather than refused outright, which keeps this
+addition inside the guard's stated default — it refuses on a fact, never on a doubt — instead of adding a
+sixth fail-closed form to § 1's list.
+
+Two companion changes landed with this one, both outside `hooks/guard-base-branch.sh` itself:
+`contracts/permissions.json`'s deny list gained `git push origin *:main`, `git push origin
+*:refs/heads/main`, `git push * *:main` and the bare deletion form `git push origin :main`, so the same
+shapes are refused at the permission-pack layer on surfaces that read it, independent of this hook; and
+`hooks/session-start.sh` / `scripts/surface_bootstrap.sh`'s adoption-gate marker match was tightened in
+the same round (PRRT_kwDOUKPjxM6kNY3x) to require the marker name the surface being adopted, since Codex
+and Antigravity share `.agents/` as their marker directory.

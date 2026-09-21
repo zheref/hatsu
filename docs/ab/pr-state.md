@@ -247,7 +247,7 @@ command above stands in for.
 > **Dated note, 2026-09-10 — the anchor is now `$hatsu_root`, and the transcript above stands.** Copilot's
 > review of PR #36 (`surfaces/codex/pr-state/SKILL.md` and `surfaces/cursor/pr-state/SKILL.md`, line 101)
 > pointed out that the mirrored body carried `$CLAUDE_PLUGIN_ROOT` onto two surfaces where that variable
-> is normally unset — or, exported from a shell profile, names a different plugin (`docs/ab/surfaces.md`
+> is normally unset — or, exported from a shell profile, names a different plugin (`docs/surfaces/evidence/surfaces.md`
 > § 8, F3). The finding is older than PR #36: the line existed before that PR touched it, and the same
 > anchor sat in `futon`, `backlog-state`, `getsuga`, `tensho`, `sharingan`, `hanten` and the Kurapika
 > definition. The fix is in the SOURCE, not in nen's generator: `nen surface mirror generate` copies a

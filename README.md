@@ -5,7 +5,7 @@ authored for [Claude Code](#on-claude-code), and read on [Codex](#using-hatsu-on
 [Cursor](#using-hatsu-on-cursor) from generated mirrors of the same files.**
 
 One lead persona — **Kurapika**, who names which of six declared work-modes he is holding before he acts —
-plus a small roster of focused independents, and **forty-two skills** that take a backlog, a pull request or
+plus a small roster of focused independents, and **forty-three skills** that take a backlog, a pull request or
 a release from where it is to the human gate where a person decides. **Every deterministic step that has a
 verb is a verb** from the [**Nen**](https://github.com/zheref/nen) CLI: Nen detects, computes, formats and
 verifies; the skill supplies only the judgment a binary cannot. Where no verb exists yet, the residue is
@@ -25,7 +25,7 @@ No GitHub App. No bot identity. Nothing here merges `main` or casts a review vot
 > written down. **`v0.4.0` adds the
 > way of working**: ten skills that make the local loop itself explicit, two configuration files that hold
 > every parameter of it ([`nen/contract.json`](nen/contract.json) → `project` and
-> [`nen/workflow.json`](nen/workflow.json)), and two harness hooks — a stop bell and a refusal to commit on
+> [`nen/workflow.json`](nen/workflow.json)), and three harness hooks — a session-start reminder, a stop bell and a refusal to commit on
 > the trunk. **`v0.5.0` adds the PR side**: eight more skills — `mukai`, `murasaki`, `hanten`, `gyo`,
 > `kotoamatsukami`, `shibari`, `en` and `jujutsu` — the rename of `drive` to **`sharingan`**, and the three
 > agent definitions that side needs: **Feitan**, **Chrollo** and **Illumi**. **`v0.6.0` closes the release
@@ -98,7 +98,7 @@ installed copy runs does.)
 > ### ⚠️ Below `2026.01`, `cursor-agent` sees **none** of the skills — and answers anyway
 >
 > A `cursor-agent` that predates skills support takes your prompt, runs your commands and exits `0` with
-> not one of the thirty-nine loaded. With the mirror installed exactly as the warm-up mandates,
+> not one of the forty-four loaded. With the mirror installed exactly as the warm-up mandates,
 > `2025.09.18-39624ef` answered a discovery probe with the whole reply **`NO SKILLS VISIBLE`**, seventeen
 > bytes — and the control that settles it is that the same build cannot see a plain `cp -R` **copy**
 > either: it has no skills mechanism at all, and reached its answer by grepping the working tree.
@@ -235,7 +235,7 @@ That warm-up refreshes the complete surface every session. What it places in **y
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **41**, the forty plus `hatsu-warmup` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
+| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **44**, the forty-three plus `hatsu-warmup` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
 | `<repo>/AGENTS.override.md` | **untracked**, written whole: your own `AGENTS.md` verbatim first, then the personas between a `BEGIN`/`END hatsu personas` marker pair |
 
 **Copies, not symlinks, and the reason is what Codex advertises.** Codex lists a skill under its
@@ -250,7 +250,7 @@ resolving one is an agent answering confidently from the wrong file.
 **What the warm-up refuses**, and these are hard limits rather than preferences:
 
 - **A destination it did not create is left untouched, and named in the report.** A previous Hatsu install
-  is replaced; a **tracked** path is always somebody else's, whatever it looks like. Forty ordinary
+  is replaced; a **tracked** path is always somebody else's, whatever it looks like. Forty-four ordinary
   words are being claimed at once — `build`, `file`, `en`, `ao`, `ren` — so a collision is not a rare case,
   and the warm-up would rather install thirty-seven and say so than overwrite one file it did not write.
 - **It never writes your `.gitignore`.** Everything it places is excluded through the repository's own
@@ -313,8 +313,8 @@ The warm-up refreshes the complete Cursor surface every session:
 
 | | |
 |---|---|
-| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **41**, the forty plus `hatsu-warmup` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
-| `<repo>/.cursor/agents/<persona>.md` | one markdown subagent file each — **8** — symlinked from `$HATSU_PLUGIN_ROOT/surfaces/cursor/agents/` |
+| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **44**, the forty-three plus `hatsu-warmup` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
+| `<repo>/.cursor/agents/<persona>.md` | one markdown subagent file each — **12**, eleven personas plus the preamble include — symlinked from `$HATSU_PLUGIN_ROOT/surfaces/cursor/agents/` |
 
 **Symlinks are honest here, and that is measured rather than assumed.** Four controlled probes on
 `2026.09.08-6caf4ff` found a skill through a symlink **inside** the workspace and through one pointing
@@ -366,12 +366,12 @@ mkdir -p ~/.gemini/config/plugins
 ln -s "$HATSU_PLUGIN_ROOT/surfaces/antigravity" ~/.gemini/config/plugins/hatsu
 ```
 
-Antigravity automatically discovers:
+The mirror follows the layout the Antigravity plugins page documents ([`docs/surfaces/antigravity.md`](docs/surfaces/antigravity.md) § 1; the CLI reader is a named gap in its § 10):
 - `plugin.json` — Antigravity plugin manifest
-- 40 skills — discoverable via slash commands (`/<name>`)
-- `rules/AGENTS.md` — unified persona instructions
-- `agents/<persona>.md` — 8 modular subagent definitions
-- `hooks.json` — native `PreToolUse` (trunk guard) and `Stop` (bell) lifecycle hooks
+- 44 skills (forty-three plus `hatsu-warmup`), each at `skills/<name>/SKILL.md`, invoked as `/<name>`
+- `rules/hatsu.md` — the identity rules file, under Antigravity's 12,000-character limit
+- `agents/<persona>.md` — eleven personas plus the preamble include
+- `hooks.json` — native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) lifecycle hooks
 
 In this mode, no files are written into your target repositories. Open any workspace in Antigravity or use the CLI (`agy`), and run `/kurapika` or `/hatsu-warmup`.
 
@@ -387,9 +387,10 @@ Open Antigravity in that repository and run `/hatsu-warmup`. The warm-up perform
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | **41** mirrored skill directories — the forty plus `hatsu-warmup` itself — copied from `surfaces/antigravity/<name>/` |
-| `<repo>/.agents/rules/AGENTS.md` | Persona instructions for all 8 Hatsu personas |
-| `<repo>/.agents/hooks.json` | Native `PreToolUse` (trunk guard) and `Stop` (bell) hooks |
+| `<repo>/.agents/skills/<name>/` | **44** mirrored skill directories — the forty-three plus `hatsu-warmup` itself — copied from `surfaces/antigravity/skills/<name>/` |
+| `<repo>/.agents/agents/<persona>.md` | eleven personas plus the preamble include, copied from `surfaces/antigravity/agents/` |
+| `<repo>/.agents/rules/hatsu.md` | The identity rules file, under the 12,000-character limit a rules file has |
+| `<repo>/.agents/hooks.json` | Native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) hooks |
 | `<repo>/.agents/hooks/` | Self-contained hook scripts (`guard-base-branch.sh` and `stop-bell.sh`) |
 
 Everything is cleanly excluded through `.git/info/exclude`; `.gitignore` is never modified.
@@ -475,7 +476,8 @@ mkdir -p ~/.gemini/config/plugins
 ln -sfn "$HATSU_PLUGIN_ROOT/surfaces/antigravity" ~/.gemini/config/plugins/hatsu
 ```
 
-Authority for the rest of the mechanism: [`docs/SURFACES.md`](docs/SURFACES.md).
+The linked folder carries the documented plugin layout (`plugin.json`, `skills/`, `agents/`, `rules/`,
+`hooks.json`). Authority for the rest of the mechanism: [`docs/SURFACES.md`](docs/SURFACES.md).
 
 ---
 
@@ -756,10 +758,10 @@ later. Adopting another remains a deliberate act with its own decision.
 
 ## The skills
 
-Thirty-eight, invoked as `hatsu:<name>`. Longer descriptions in
+Forty-three, invoked as `hatsu:<name>` (forty-four directories with `hatsu-warmup`). Longer descriptions in
 [`claude/skills/README.md`](claude/skills/README.md).
 
-### The eighteen that answer a request
+### The nineteen that answer a request
 
 | Skill | |
 |---|---|
@@ -780,7 +782,14 @@ Thirty-eight, invoked as `hatsu:<name>`. Longer descriptions in
 | `pr-state` | Reports one PR's readiness as the deterministic gate's verdict, quoted, with the conjunct that failed. Read-only. |
 | `senkei` | Inventories a consuming product repo's own backlog and states a Ready/not-Ready call for every open PR. **It writes as well as reads**: it re-runs failed checks (`nen run rerun-failed`) and fires `bankai:wake/iterate` on a stalled PR. Never merges. |
 | `sharingan` | Drives one open PR to readiness at its gate and stops there — first blocking condition, threads, wakes. **Renamed from `drive` at `v0.5.0`**; the behaviour is unchanged and `hatsu:drive` no longer resolves. |
+| `tenkai` | **Consumer adoption.** Turns another repository into a Hatsu consumer: the declarations it is missing, the `readiness` workflow, the permission pack and the surface mirrors, each staged as its own PR at that repository's own gate. Read-only until you say apply. |
 | `tensho` | Turns a dirty working copy into one PR, reviewing every file before staging it, then hands that PR to `sharingan`'s engine to reach its gate. |
+
+### The one that authors the canon
+
+| Skill | |
+|---|---|
+| `great-hiker` | **Canon authoring for every surface.** Writes canon prose and machinery under `claude/` and `contracts/`, regenerates every surface mirror, checks the mirrors and the installed copies, and opens one PR at G4 with a per-surface delta table; `evolve [<surface>]` diffs a surface guide against its cited official docs and files one Netero-shaped issue per drifted surface. Never edits `surfaces/` by hand, never merges. |
 
 ### The ten that *are* the way of working — new in `v0.4.0`
 
@@ -800,9 +809,9 @@ configuration files behind it, and the phases only you can call.
 | `aka` | **atomic** | **Push — yours to call.** Gyo (lint) → squash the unpushed commits → `ao` → gyo again if catch-up moved the tree → push. No project-wide tests, no PR, and no agent ever prompts for it. |
 | `ren` | **composite** | **The per-request loop**: `breath` (prove the base) → `rasengan` (author the change) → `kokusen` (verify, then commit) → `amaterasu` → `spiritual-message` → `jutaisho`, looping until you call the next phase. **It never pushes.** |
 
-### The nine that are the PR side — eight new in `v0.5.0`, `byakugan` at `v0.24.0`
+### The ten that are the PR side — eight new in `v0.5.0`, `byakugan` at `v0.24.0`, `third-hand` at `v0.27.0`
 
-Six atomic, three composite. `mukai` is yours to call; everything else here is something it runs.
+Seven atomic, three composite. `mukai` is yours to call; everything else here is something it runs.
 [`docs/WORKFLOW.md`](docs/WORKFLOW.md) § 5 is the authority.
 
 | Skill | | |
@@ -816,6 +825,7 @@ Six atomic, three composite. `mukai` is yours to call; everything else here is s
 | `murasaki` | **composite** | **Pull + push.** `ao` → the declared checkpoint checks on the merged tree → if catch-up changed the tree, return so kotoamatsukami can refresh tests and byakugan can recapture coverage → push, **only if the branch is already published**. Never squashes, never force-pushes, never runs tests or coverage itself. |
 | `mukai` | **composite** | **The review-and-publication phase — yours to call.** `murasaki` → `hanten` → kokusen checkpoint → `kotoamatsukami` impacted tests → `byakugan` coverage bar → publish proved updates → evidence → `shibari` → landing report → start `en`, then Mukai ends. The user turn continues under En through current-head readiness. **Four pre-PR G5 stops live inside Mukai; readiness stops belong to En.** |
 | `en` | **composite** | **The readiness watch, capped.** Landing report → `sharingan` → `murasaki` when behind → `sharingan` → observe required CI/current-head review → `jutaisho` at Ready → the final readiness report, then stop at the human gate. **A run with no acting cap does not run; quiet polls spend none**. A long observation hold may be handed to **Illumi**, read-only. |
+| `third-hand` | **atomic** | **Session harvest, after En.** Raises Netero once, folds this sitting's process friction into 0 to 3 issues, files only what you pick through the surface picker, then the sitting is over. Never merges, never implements. Not a step of En. |
 
 ### The three that close the release side — new in `v0.6.0`
 
@@ -859,8 +869,8 @@ apart is what keeps the second class of mistake visible.
 - **Branches read `{model}/{persona}/{descriptor}`**, and every subagent is titled
   `<skill> · <persona> · <model alias>` — what ran, as whom, on what. A subagent is **never** given the
   frontier model tier; that tier is where your own conversation lives.
-- **[`hooks/hooks.json`](hooks/hooks.json)** ships two harness hooks, and they are discovered automatically at
-  that path: a `Stop` bell that notifies and plays a sound when a gate stop is waiting, and a `PreToolUse`
+- **[`hooks/hooks.json`](hooks/hooks.json)** ships three harness hooks, and they are discovered automatically at
+  that path: a `SessionStart` reminder (`hooks/session-start.sh`, which on a mirrored surface refreshes a consumer's installed mirrors and otherwise prints the warm-up reminder), a `Stop` bell that notifies and plays a sound when a gate stop is waiting, and a `PreToolUse`
   guard on `Bash` that refuses a `git commit` or `git push` while you are standing on the base branch. The
   guard **parses** the command — quoted spans masked, the line split into segments, git's global options
   walked past — so `echo 'git commit'` is not a write and `git -C <dir> commit` is judged in `<dir>`; it
@@ -973,7 +983,7 @@ run on each.
 
 **Everything above about the loop, the gates and the roster is true here.** What changes is the spelling,
 where a delegate comes from, who rings the bell, and which aliases the model matrix answers with. Nothing
-in this section is product- or stack-specific: it is the same forty-two skills reading your
+in this section is product- or stack-specific: it is the same forty-three skills reading your
 repository's own [`nen/contract.json`](nen/contract.json).
 
 ### Invoking a skill
@@ -1041,11 +1051,12 @@ diff.
 
 ### The bell
 
-**There is no turn-end hook on this surface**, so [`hooks/hooks.json`](hooks/hooks.json) is read by nobody
-here and `$jutaisho`'s in-session path is not a fallback — it is the only path there is. The skill writes
-the marker itself, runs whatever escalation rungs **your repository's** `nen/workflow.json` →
+**Codex has a `Stop` hook once `.codex/hooks.json` is placed** (the warm-up places it from the pack;
+[`docs/WORKFLOW.md`](docs/WORKFLOW.md) § 6). Where that file was placed the hook fires rungs 2 and 3 off
+the marker and consumes it. Where it was not, `$jutaisho`'s in-session fallback is the path: the skill
+writes the marker itself, runs whatever escalation rungs **your repository's** `nen/workflow.json` →
 `notifications.rungs` declares, **says which of them actually rang**, and removes its own marker once the
-stop has been answered, which on Claude Code the hook would have done. In the default list — `push`, `os`,
+stop has been answered, which the hook would otherwise have done. In the default list — `push`, `os`,
 `sound` — rung 1 is the surface's own turn-end signal and rungs 2 and 3 are the ones below; a repository
 that declares a shorter list has fewer, and the report names what it ran either way.
 
@@ -1267,8 +1278,8 @@ cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
    keep the tail, and a thirty-character description would be worse everywhere and no better here. What
    follows instead is that **on Cursor the skill `name` does almost all of the routing work.**
 2. **The name space is flat, global and shared.** It is not only your repository's `.cursor/skills/`: on
-   this host one listing carried the forty mirrored skills **plus** Cursor's own built-ins **plus**
-   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims forty ordinary
+   this host one listing carried the forty-four mirrored skills **plus** Cursor's own built-ins **plus**
+   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims forty-four ordinary
    words at once — `build`, `file`, `en`, `ao`, `ren`, `breath`. **The shadowing itself is inferred, not
    proven, and is written here as such**: two probes tried to confirm it and could not, because the
    descriptions this surface keeps are far too short to tell two rival `build` entries apart. It is a

@@ -1,0 +1,1444 @@
+# A/B — the Codex and Cursor surfaces (`surfaces/`, `nen surface mirror`)
+
+**Recorded 2026-09-10, Hatsu `v0.7.0`.** Everything below was run on the maintainer's own machine against
+this repository and against the two CLIs it claims things about. Nothing is redacted — both repositories are
+public, and the third-party output is a public CLI's own help and catalogue.
+
+**The pin, stated first, because it governs every transcript here.** `nen/contract.json` pins
+`dependency.pinned_ref: v0.3.0`, and **that nen has no `surface` verb**. The generation was therefore run
+with a build from nen `main` (`--version` → `0.4.0`, carrying `surface mirror`), and § 2.3 records what the
+pinned binary answers. The mirrors are **committed** precisely so that the pin's absence of the verb costs a
+*user* nothing: only regenerating needs the newer build.
+
+| | |
+|---|---|
+| the doc | [`docs/SURFACES.md`](../../SURFACES.md) |
+| the mirrors | [`surfaces/codex/`](../../../surfaces/codex/) — 40 files · [`surfaces/cursor/`](../../../surfaces/cursor/) — 47 files |
+| the guard | [`scripts/surface_mirror_check.sh`](../../../scripts/surface_mirror_check.sh) |
+| the CI job | [`.github/workflows/surface-mirror-check.yml`](../../../.github/workflows/surface-mirror-check.yml) |
+| the skills that changed | `hatsu-warmup` § 5, `jutaisho` § 6, `hanten` § 9a |
+
+---
+
+## 1. What this records
+
+Hatsu is authored once, under `claude/skills/` and `claude/agents/`, and *generated* into two more agent
+surfaces. This file is the evidence that the generation, the drift check and the claims about each surface
+were performed rather than described: the exact commands, their exact output, and their exit codes.
+
+### 1.1 First-run bootstrap — issue #46
+
+The old install wording made an environment variable do two incompatible jobs: identify Hatsu's checkout
+and make a skill discoverable. The first is real; the second is not. `scripts/surface_bootstrap.sh` is the
+one non-skill step between them. It seeds only `hatsu-warmup`; after that skill is discovered, its ordinary
+refresh calls the script's `--install-all` mode.
+
+The executable fixture check creates empty Git repositories for both hosts, runs the documented bootstrap,
+checks the one discovery-path `SKILL.md`, performs the complete refresh twice, removes stale Hatsu-owned
+entries, and verifies collisions remain visible, tracked deletions and malformed or negated exclude rules
+stay protected, and neither symlinked `AGENTS.md` nor symlinked or tracked parents are followed. It also
+rejects a manifest that the warm-up's structural root check would reject, newline-containing source or target
+paths, and a partial generated surface before it can remove an existing warm-up or start a refresh:
+
+```text
+$ scripts/surface_bootstrap_fixture_check.sh
+surface bootstrap: codex bootstrap — installed 1
+surface bootstrap: codex bootstrap — installed 1
+surface bootstrap: codex install-all — installed 40
+surface bootstrap: codex install-all — installed 40
+surface bootstrap: cursor bootstrap — installed 1
+surface bootstrap: cursor bootstrap — installed 1
+surface bootstrap: cursor install-all — installed 47
+surface bootstrap: cursor install-all — installed 47
+surface-bootstrap-fixture: Codex and Cursor first-run bootstrap checks passed
+```
+
+**exit `0`.** The fixture uses the documented discovery paths rather than pretending it can invoke an LLM:
+Codex receives `.agents/skills/hatsu-warmup/SKILL.md` as a copy; Cursor receives
+`.cursor/skills/hatsu-warmup` as a link. The former was additionally rendered by Codex's no-model discovery
+probe on this host:
+
+```text
+$ cd <fresh-codex-fixture> && codex debug prompt-input "inspect first-run Hatsu discovery"
+### Skill roots
+- r9 = <fresh-codex-fixture>/.agents/skills
+### Available skills
+- hatsu-warmup: Satisfy Hatsu's hard Nen dependency … (file: r9/hatsu-warmup/SKILL.md)
+```
+
+That is the host's own inventory, not a model self-report. Cursor has no equivalent no-model inventory, so
+the fixture makes the stronger check available there: its exact documented link exists, resolves to the
+generated Cursor mirror, and retains the frontmatter name `hatsu-warmup`; Cursor's version floor and live
+discovery evidence remain in § 8.
+
+---
+
+## 2. The verb, exercised live
+
+### 2.1 `generate` — both surfaces, from empty
+
+```bash
+nen surface mirror generate --source claude/skills --agents claude/agents \
+  --surface codex --out surfaces/codex --invocation-prefix "hatsu:"
+```
+```text
+nen: note: codex: this surface ALSO documents standalone per-agent TOML files under .codex/agents/ (name, description, developer_instructions), which this verb does not write: it mirrors markdown to markdown, and a persona lands in AGENTS.md as prose. See https://learn.chatgpt.com/docs/agent-configuration/subagents.
+surface: codex (.agents/skills/<name>/SKILL.md)
+out: surfaces/codex
+written: AGENTS.md, aka/SKILL.md, amaterasu/SKILL.md, … (40 files)
+unchanged: (none)
+deleted (orphaned): (none)
+```
+exit `0`. **40 files**: 39 `SKILL.md` — one per skill directory under `claude/skills/`, whose `README.md` is
+not a skill and is correctly not mirrored — plus one `AGENTS.md` holding all eight personas as `## <name>`
+sections.
+
+The same for `--surface cursor --out surfaces/cursor`: exit `0`, **47 files** — the same 39 `SKILL.md` plus
+`agents/chrollo.md`, `agents/feitan.md`, `agents/gon.md`, `agents/hisoka.md`, `agents/illumi.md`,
+`agents/kurapika.md`, `agents/phinks.md`, `agents/uvogin.md`. The caveat printed on **stderr** for that row:
+
+```text
+nen: note: cursor: this surface documents that a skill's `name` must be lowercase letters, numbers and hyphens and must match its folder name; nen mirrors the folder name and the `name` line it was given, and refuses neither.
+```
+
+**The marker is where the documentation says it is** — after the closing frontmatter fence, not above it:
+
+```text
+---
+name: breath
+description: Warm the local working copy once per effort — … invoke `$breath` by name only to re-warm …
+---
+<!-- GENERATED by nen surface mirror (surface: codex) -- do not edit; edit the source and regenerate -->
+```
+
+and on line 1 of `AGENTS.md`, which has no frontmatter. **The invocation rewriting reaches the description
+as well as the body** — the source reads `hatsu:breath` in both, and the Cursor mirror reads `/breath`.
+
+**Frontmatter reduction, observed:** `surfaces/cursor/agents/hisoka.md` keeps `name`, `description` and
+`model: sonnet` (three of the five keys that row documents; the source carries no `readonly` or
+`is_background`), while the Codex `AGENTS.md` section for the same persona is prose with no frontmatter at
+all — which is that row's `kind: "appendix"`.
+
+### 2.2 `check` — clean, drifted three ways, healed
+
+Clean, immediately after generation:
+
+```text
+surface: codex        surface: cursor
+ok: 40                ok: 47
+missing: (none)       missing: (none)
+extra: (none)         extra: (none)
+stale: (none)         stale: (none)
+hand-edited: (none)   hand-edited: (none)
+```
+exit `0` both times.
+
+**A hand edit** — one paragraph appended to `surfaces/codex/jutaisho/SKILL.md`:
+
+```text
+surface: codex
+ok: 39
+missing: (none)
+extra: (none)
+stale: (none)
+hand-edited: jutaisho/SKILL.md
+```
+**exit `1`.**
+
+**A deletion** — `surfaces/cursor/breath/SKILL.md` removed:
+
+```text
+surface: cursor
+ok: 46
+missing: breath/SKILL.md
+extra: (none)
+stale: (none)
+hand-edited: (none)
+```
+**exit `1`.**
+
+**Healed by re-running `generate`** — `written: jutaisho/SKILL.md` and `written: breath/SKILL.md`
+respectively, `deleted (orphaned): (none)`, exit `0`; the check then returns to `ok: 40` / `ok: 47` at
+exit `0`.
+
+**The fourth class, `stale`, reproduced deliberately** by checking the *cursor* mirror as the *codex*
+surface:
+
+```bash
+nen surface mirror check --source claude/skills --agents claude/agents \
+  --surface codex --out surfaces/cursor --invocation-prefix "hatsu:"
+```
+```text
+surface: codex
+ok: 0
+missing: AGENTS.md
+stale: aka/SKILL.md, amaterasu/SKILL.md, … (39 files)
+hand-edited: (none)
+```
+exit `1`. The class is right and the wording is why it matters: those files were **generated**, for the
+other surface. Calling them hand-edited would send somebody looking for an edit nobody made.
+
+### 2.3 The pinned nen `v0.3.0` has no `surface` verb
+
+```bash
+nen --version          # 0.3.0
+nen surface
+```
+```text
+nen: unknown command 'surface'.
+Run 'nen --help'.
+```
+exit `2`. And `nen surface mirror check --source … --surface codex --out …` at that pin:
+
+```text
+nen: unknown option '--surface'. Known options here: --cache-dir <value>, --help, --json, --ref <value>, --repo <value>, --script <value>, --source <value>, --version.
+```
+exit `2` — it is parsed as `nen bootstrap`-family flags, which is worth knowing: **`nen surface … --help`
+prints the generic top-level help at exit `0` on `0.3.0`**, so a `--help` that *succeeds* proves nothing.
+That is why [`scripts/surface_mirror_check.sh`](../../../scripts/surface_mirror_check.sh) probes for the
+**banner** (`nen surface mirror generate --help | grep -q '^nen surface'`) rather than for an exit code.
+
+### 2.4 The guard, both ways
+
+With the pinned `nen 0.3.0` on `PATH`:
+
+```text
+surface-mirror-check: this 'nen' has no 'surface' verb, so the mirrors under
+surfaces/ were NOT checked. This is reported rather than passed: a check that
+could not run is not a check that succeeded.
+
+  nen on PATH : 0.3.0
+  the verb     : nen surface mirror generate|check  (added after v0.3.0)
+  the pin      : nen/contract.json -> dependency.pinned_ref
+```
+**exit `2`** — the code the CI job turns into a `::notice::` skip.
+
+With `NEN_BIN` pointing at a build that carries the verb, on a tree where three sources had been edited and
+not regenerated — **a real drift, not a constructed one**:
+
+```text
+surface-mirror-check: nen 0.4.0 · source claude/skills · agents claude/agents
+--- codex (surfaces/codex)
+ok: 37
+hand-edited: hanten/SKILL.md, hatsu-warmup/SKILL.md, jutaisho/SKILL.md
+--- cursor (surfaces/cursor)
+ok: 44
+hand-edited: hanten/SKILL.md, hatsu-warmup/SKILL.md, jutaisho/SKILL.md
+```
+**exit `1`**, with the two regeneration commands printed. After regenerating: `ok: 40` / `ok: 47`,
+*"both mirrors match a fresh generation"*, **exit `0`**.
+
+> Note what the class says there. Editing the **source** and not regenerating is reported as
+> **`hand-edited`** on the mirror — which is literally true of the mirror's bytes and is the opposite of
+> where the edit happened. The word is nen's and it is not wrong; a reader of a CI log should know to look
+> at `claude/skills/` first. Recorded as finding **F3**.
+
+---
+
+## 3. The surfaces themselves, verified live
+
+### 3.1 Codex discovers a **symlinked** skill directory under `.agents/skills/`
+
+The claim that mattered for `hatsu-warmup` § 5a was whether the mirror can be *linked* rather than copied.
+Tested without spending a model call, using `codex debug prompt-input`, which renders the model-visible
+prompt as JSON:
+
+```bash
+mkdir -p /tmp/…/repo/.agents/skills && git init -q /tmp/…/repo
+printf -- '---\nname: demo-skill\ndescription: A demo skill for symlink discovery testing.\n---\n\nDemo body.\n' \
+  > /tmp/…/real/demo-skill/SKILL.md
+ln -s /tmp/…/real/demo-skill /tmp/…/repo/.agents/skills/demo-skill   # a SYMLINKED DIRECTORY
+cd /tmp/…/repo && codex debug prompt-input "hi"
+```
+
+The rendered developer message contains:
+
+```text
+### Skill roots
+…
+- `r9` = `/private/tmp/…/repo/.agents/skills`
+### Available skills
+…
+- demo-skill: A demo skill for symlink discovery testing. (file: r9/demo-skill/SKILL.md)
+```
+
+**So Codex follows the symlink, resolves the skill, and roots it at the repository.** `codex-cli 0.149.0`.
+That is the verified basis for "symlink per skill, copy only where links are unavailable".
+
+### 3.2 Codex reads the repository's `AGENTS.md` as prose
+
+The same render, after writing an `AGENTS.md` containing `ZQAGENTSMARKER persona prose.`:
+
+```text
+ZQAGENTSMARKER persona prose.\n\n</INSTRUCTIONS>
+```
+
+— the file's content arrives inside the session's instruction block. **This is why the persona appendix is
+appended into `AGENTS.md` under a marker block rather than written as per-persona files**: on this surface
+there is no per-persona markdown file to write, which is exactly what nen's `codex` row says
+(`agents: { kind: "appendix", file: "AGENTS.md" }`) and what its printed caveat repeats.
+
+### 3.3 Cursor — not logged in **on 2026-09-09**, and superseded by § 8
+
+```bash
+cursor-agent status
+```
+```text
+Not logged in
+```
+
+`cursor-agent` version `2025.09.18-39624ef`. **No Cursor session was run on that date**, so nothing
+about Cursor's *runtime* behaviour was verified in this section — including whether it follows the
+symlinks the warm-up installs.
+
+> **Read this section as a dated snapshot, not as the state of the surface.** The maintainer logged in
+> on 2026-09-10 and the first logged-in run is recorded in **§ 8**, which answers most of what this
+> section left open. **And the version above is a `pre-skills` build**: `2025.09.18-39624ef` has no
+> `.cursor/skills` mechanism at all and sees *no* Hatsu skill, copied or symlinked (§ 8, F2). It is
+> **not** the reference build for anything, and `docs/SURFACES.md` § 1 now carries a minimum.
+
+### 3.4 `codex exec --help` — no subagent, and the flags the docs quote
+
+Read in full. The flags Hatsu relies on and their exact documented meanings:
+
+| flag | help text |
+|---|---|
+| `-m, --model <MODEL>` | *"Model the agent should use"* |
+| `-C, --cd <DIR>` | *"Tell the agent to use the specified directory as its working root"* |
+| `-s, --sandbox <SANDBOX_MODE>` | *"Select the sandbox policy…"* — `[possible values: read-only, workspace-write, danger-full-access]` |
+| `-o, --output-last-message <FILE>` | *"Specifies file where the last message from the agent should be written"* |
+| `--json` | *"Print events to stdout as JSONL"* |
+
+**There is no flag, and no `codex exec` subcommand, that raises a delegate.** The subcommands are `resume`,
+`fork`, `review` and `help`; top-level `codex agents` *browses* existing sessions on the local daemon and
+spawns nothing. **That is the verified basis for `hanten` § 9a**: on Codex a reviewer is a second
+`codex exec` run, in a `git worktree` hanten makes itself, under `-s workspace-write`.
+
+`cursor-agent --help`, for the other half of `docs/SURFACES.md` § 5: `-p, --print` *"(for scripts or
+non-interactive use)"*, `--output-format <text|json|stream-json>` *"(only works with --print)"*,
+`--model <model>` *"(e.g. gpt-5, sonnet-4, sonnet-4-thinking)"*, `-f, --force` *"Force allow commands unless
+explicitly denied"*.
+
+### 3.5 The Codex model id is versioned; the matrix alias is not
+
+```bash
+codex debug models | grep -o '"slug":"[^"]*"'
+```
+```text
+"slug":"gpt-reserve"
+"slug":"gpt-5.6-sol"
+"slug":"gpt-5.6-terra"
+"slug":"gpt-5.6-luna"
+"slug":"gpt-5.5"
+"slug":"gpt-5.3-codex-spark"
+"slug":"codex-auto-review"
+```
+
+The deep-tier alias in `nen/workflow.json` is `sol`; **the id this host accepts today is `gpt-5.6-sol`.**
+The delegation brief for this wave wrote the validation command as `-m gpt-6-sol`, which is the same alias
+at a version this catalogue does not carry. **Recorded as finding F1**, and resolved the way `models.rule`
+already implies: the *file* keeps the versionless alias, and the *command line* reads the id from
+`codex debug models` at the moment of use. `docs/SURFACES.md` § 5 carries the brief's spelling and that
+correction together.
+
+---
+
+## 4. `notifications.turn`, and `nen stop --mark`
+
+### 4.1 `nen stop --mark` exists from nen `0.4.0`, not at the pin
+
+`nen stop --help`, pinned `v0.3.0`:
+
+```text
+nen stop [--who <name>] [--gate G1|G1-M|G2|G3|G4|G5] [--notified] [efforts.md | -]
+```
+
+The same on a `main` build:
+
+```text
+nen stop [--who <name>] [--gate G1|G1-M|G2|G3|G4|G5] [--notified] [--mark]
+         [--repo <path>] [efforts.md | -]
+…
+  --mark              Also write '.nen/last-stop.json' under --repo:
+                      { contract, who, gate, notified, at }, where 'contract'
+                      is 'nen.stop.mark/v0.1' … The ONLY form of this verb that writes.
+```
+
+**So `jutaisho` § 6's `nen stop --mark` is a real verb that is not available at the pin**, and § 3's by-hand
+write is what runs until `dependency.pinned_ref` moves. **And the two marker shapes do not agree**:
+nen's is `nen.stop.mark/v0.1` with five keys; Hatsu's is `hatsu.stop-marker/v0.1` and carries `title`,
+`body`, `reportUrl`, `sound` and `rungs` besides. `hooks/stop-bell.sh` reads `gate` and `title` and defaults
+`title` to *"A decision is waiting."*, so **nen's marker would ring with the generic line every time** — a
+degradation, not a failure. **Finding F2.**
+
+### 4.2 The workflow loader landed at `0.4.0` **without** `notifications.turn`
+
+`jutaisho` § Residue 5 said the key "must be admitted by the workflow schema when the loader lands at nen
+`0.4.0`". The loader landed. `src/schema/workflow.ts` on nen `main`:
+
+```text
+"notifications",
+"A notifications policy's two keys are",
+rungs: stringsOr(path, "notifications.rungs", raw["rungs"], DEFAULT_RUNGS),
+sound: stringOr(path, "notifications.sound", raw["sound"], DEFAULT_SOUND),
+```
+
+Two keys, and `turn` is not one of them (`grep` for it in that file returns nothing). **So the target moves
+to nen `0.5.0`**, and the key stays residue on the pinned `0.3.0` exactly as it was: read as data, default
+`"rung1"`, validated by nothing. `jutaisho` § 2 and § Residue 5 are corrected in this change rather than
+left standing. **Finding F4.**
+
+---
+
+## 5. Residue — what has no verb, and is done by hand
+
+1. **Placing a mirror into a target repository.** `generate --out` writes a directory; it does not install
+   one. `hatsu-warmup` § 5's `rm -rf` + `cp -R` loop (Codex) and `ln -sfn` loop (Cursor) are named residue.
+   Neither does `mirror check` check an *installed* copy — the re-copy every session is the answer to that,
+   and it is a discipline rather than a check (§ 7, F1).
+2. **Composing `AGENTS.override.md`.** The generator writes a whole `AGENTS.md` for the surface;
+   concatenating the target's own document with it under two markers is Hatsu's own construction (§ 7, F9).
+3. **`info/exclude`.** No nen verb owns a checkout's local exclude file, and none should. Resolving it is
+   residue with it — `git rev-parse --git-path info/exclude`, never `--git-dir` (§ 7, F2).
+4. **The reviewer's worktree on Codex.** `codex exec -C` takes a directory and creates none; `hanten` § 9a
+   runs `git worktree add` itself.
+5. **`nen stop --mark`** (§ 4.1) and **`notifications.turn`** (§ 4.2), both residue at the pin.
+6. **The whole `surface` family** is residue at the pin (§ 2.3) — which is why the mirrors are committed.
+
+---
+
+## 6. Findings against the binary — listed, filed nowhere
+
+Per the evidence-record convention: these are recorded, not filed.
+
+| | |
+|---|---|
+| **F1** | **A model *alias* and a model *id* are different things, and only the alias is stable.** `nen/workflow.json`'s `models` is deliberately versionless (`models.rule`), but every surface's CLI wants a versioned id — `gpt-5.6-sol` today. Nothing in nen resolves one to the other, and nothing should guess. A future `nen model resolve --surface codex --tier deep` that ran the surface's own catalogue probe would close it; until then, read the catalogue (§ 3.5). |
+| **F2** | **`nen stop --mark`'s marker and `hatsu.stop-marker/v0.1` are different shapes** (§ 4.1). nen's is the narrower and carries no `title`, so Hatsu's own hook rings with a generic line. Not a defect in nen — its marker records what *nen* knows — but the two must be reconciled in the change that moves the pin, by decision rather than by default. |
+| **F3** | **`check` calls a stale mirror `hand-edited` when the edit was to the SOURCE** (§ 2.4). Byte-accurate and momentarily misleading in a CI log. A fifth class, or a note when the source's mtime is newer, would read better; the current wording is defensible and is recorded rather than filed. |
+| **F4** | **`notifications.turn` is still not in `nen.workflow/v0.1`** (§ 4.2), after `0.4.0` shipped the loader. Hatsu's own key, defined in `jutaisho` § 2, now targeting nen `0.5.0`. |
+| **F5** | **`--help` is not a capability probe on an older nen** (§ 2.3): `nen surface mirror generate --help` exits `0` with the *generic* help on `0.3.0`. Any caller testing for a verb by running its `--help` and checking the exit code gets a false positive. The guard here probes the banner text instead; a `nen --has-verb <name>` or a machine-readable verb index would make that unnecessary. |
+| **F6** | **Cursor is documented, not verified** (§ 3.3). Nothing in nen or Hatsu can close this — it needs a logged-in `cursor-agent` on a machine somebody is sitting at. |
+
+---
+
+## 7. Findings from the wave-5 headless CODEX run — one line each, and what changed here
+
+> **These finding ids are the Codex half's.** The Cursor half ran on 2026-09-10 and has its own
+> F1–F13 in **§ 8**; a citation elsewhere in this repository always names the section as well as the
+> finding, and `§ 7, F13` and `§ 8, F13` are different findings about different things.
+
+
+**The run:** a real headless Codex session (`codex-cli 0.149.0`, model id `gpt-5.6-sol` — the `sol` alias,
+read from `codex debug models` at the moment of use; **no Astra model at any point**) took `$ren` and then
+`$aka` through the mirrored skills against a linked worktree of `zheref/nen`. Its own transcript, the three
+G5 stops and the per-step exit codes are the wave-5 validation record; this section is the **fix** column —
+what each finding changed in this repository, and the probe that verified it. **Every probe below was run
+on this host by the session that made these edits**, on constructed fixtures, not carried over.
+
+| | Fixed by | Verified by |
+|---|---|---|
+| **F1** — Codex advertised a symlinked mirror as `hatsu:<name>`, not the mirror's own `$<name>` | `hatsu-warmup` § 5a now **copies** (`rm -rf` + `cp -R`, re-copied every session) instead of symlinking; `docs/SURFACES.md` § 1 gains *What Codex advertises* | three controlled `codex debug prompt-input` renders in a throwaway repo, no model called: a `cp -R` listed **`ren`** bare; a symlink to a directory under **no** plugin root listed **`breath`** bare; a symlink into this checkout, which carries `.claude-plugin/plugin.json` (`"name": "hatsu"`), listed **`hatsu:aka`**. The manifest above the RESOLVED path is what namespaces it |
+| **F2** — § 5c's exclude snippet wrote a file git does not read | `hatsu-warmup` § 5c and `breath` § 3/§ 8 now use `git rev-parse --git-path info/exclude`, and both say the file is **per-repository** | on a linked-worktree fixture: `--git-dir` → `…/.git/worktrees/wt/info/exclude`, after which `git status --porcelain` still printed `?? .agents/` and `git check-ignore -v .agents/skills/ren/SKILL.md` exited **`1`**. `--git-path` → `<main>/.git/info/exclude`, after which status printed nothing and `check-ignore -v` exited **`0`**, naming `<main>/.git/info/exclude:7:.agents/skills/` |
+| **F3** (CRITICAL) — `-s workspace-write` cannot perform **any** git write in a linked worktree | `docs/SURFACES.md` § 5 and `hanten` § 9a now pass `--add-dir "$(git -C <repo> rev-parse --path-format=absolute --git-common-dir)"`, with the standalone clone named as the alternative; `hatsu-warmup` § 5 and `breath` § 3 say the same and **stop** rather than half-installing | two `codex exec` runs on a linked-worktree fixture, identical but for the flag. Without it, `printf 'y' >> a.txt && git add a.txt && git commit -m …` died at exit **`128`** — *"fatal: Unable to create `…/.git/worktrees/wt/index.lock`: Operation not permitted"*. With it, exit **`0`** and the commit was made. (`/tmp` is writable by default under `workspace-write`, so both runs also passed `-c sandbox_workspace_write.exclude_slash_tmp=true -c …exclude_tmpdir_env_var=true` to reproduce a real repository's geometry) |
+| **F4** — `breath` § 3 had no case for a detached `HEAD` | `breath` § 3 gains a fourth row and a box: a detached `HEAD` goes to § 5 and **the verb decides**; `aka` § 4's first refusal gains its own detached case (stop, and run `breath`) | on a fixture detached at `origin/trunk`, `nen shu warmup --branch … --from trunk` printed *"HEAD is DETACHED and reaches no commit of its own — reported, not an error"* and went on to fetch and fast-forward; `nen wc classify` on the same checkout refused at exit `1` |
+| **F5** — `nen wc classify` refuses a detached `HEAD` at exit `1`, and `--json` returns prose | **nothing filed here** — recorded for the orchestrator to file against `zheref/nen`. `breath` § 3 and `aka` § 4 read the refusal correctly in the meantime | `nen wc classify --repo <detached fixture> --base trunk --json` → plain prose on stdout, **exit `1`**. A refusal before any mutation is exit `2` in the family table, and `--json` is supposed to be one document |
+| **F6** — § 5 documented the first turn only; `codex exec resume` takes none of its flags | `docs/SURFACES.md` § 5 gains *Answering a G5 stop*, with the two substitutions spelled out | `codex exec resume -C /tmp …`, `--add-dir …` and `-s workspace-write` each → *"error: unexpected argument … found"*, **exit `2`**; `codex exec resume --help` lists `-c`, `--last`, `--all`, `--enable/--disable`, `-i`, `-m`, `--strict-config`, `--skip-git-repo-check`, `--ephemeral`, `--ignore-user-config`, `--ignore-rules`, `--output-schema`, `--json`, `-o` and no others |
+| **F7** — Codex truncates the mirrored descriptions mid-clause | `docs/SURFACES.md` § 1 gains *Codex shortens the descriptions*, with the measured numbers and the authoring rule (trigger and refusals inside the first ~180 characters). **No description was rewritten to "fit"** — there is no number to fit inside | measured from two `prompt-input` renders: with **51** skills visible the longest surviving description was **411** characters; with **87** visible (39 mirrored Hatsu skills + this host's other plugins) every Hatsu description was **186–190**. The budget is shared and dynamic, so the cut moves with what else is installed |
+| **F8** — `$jutaisho`'s rungs 2–3 cannot fire headlessly, and rung 2 exits `0` anyway | `jutaisho` § 5 and § 6 now say to capture **stderr**, report `not applicable — no seat` per rung, and never read an exit code as a delivery receipt; the hard limits carry it | inside `codex exec -s workspace-write` on this host: `osascript -e 'display notification …'` → **exit `0`**, stderr *"NSNotificationCenter connection invalid"* / *"Connection to notification center invalid. ServerConnectionFailure: 1"*; `afplay …/Glass.aiff` → exit `1`, *"Error: AudioQueueStart failed (-66680)"*. Neither was delivered |
+| **F9** — the appended `AGENTS.md` dirtied a tracked file and made `nen shu warmup` refuse forever | the personas now go to an **untracked `AGENTS.override.md`** that carries the target's own `AGENTS.md` verbatim above the marker block, excluded via `info/exclude`; a tracked `AGENTS.md` is never written. `breath` § 3's third door names the mirror as its canonical example | `codex debug prompt-input` on a fixture: with `AGENTS.md` **and** `AGENTS.override.md` present only `MARKER_OVERRIDE` reached the envelope — the override **replaces**, it does not merge — so the target's own text must be copied in; with the composed file in place both `MARKER_TARGET_OWN_AGENTS` and `MARKER_HATSU_BLOCK` arrived. After the exclude, `git status --porcelain` printed nothing and `nen wc classify` reported `on-branch-clean` at exit `0` |
+| **F10** — § 5d's link read the PLUGIN's `nen/workflow.json`, not the target's | § 5d now names the file by **path** and says to read the repository the session is standing in; `docs/SURFACES.md`'s limitation paragraph says a link that *resolves* into the plugin is worse than one that dangles | path arithmetic on the fixture: from a **copy**, `.agents/skills/hatsu-warmup/../../../nen/workflow.json` → `<target>/nen/workflow.json` (correct); through a **symlink**, the same path → `<plugin checkout>/nen/workflow.json` (Hatsu's own policy). The copy install fixes this one as a side effect |
+| **F11** — a persona on Codex is prose competing with the host's own identity instruction | `docs/SURFACES.md` § 1 gains the note; `jutaisho` § 3 makes `who` explicit and its hard limits forbid taking it from the surface | observed in this session's own probe runs: every `codex exec` reply opened *"Happy here…"* (this host's user-level instruction) while the work was done as asked. The persona record is `--who`, the marker's `who`, and the `Hatsu-Agent` trailer (`Akatsuki-Agent` after the ruling of 2026-09-10; the transcripts in this file predate it) — never the transcript's greeting |
+| **F12** — `$spiritual-message` §§ 3–4 quoted a refusal the pinned nen does not give | `spiritual-message` § 3 now quotes both, and says which command produces which | at `0.3.0`: `nen report data --repo … --base … --json` → *"nen: unknown option `--base`. Known options here: …"*, exit `2`; bare `nen report` → *"nen: unknown command 'report'"*, exit `2`; `nen report render --template …` → *"unknown option `--template`"*, exit `2`. Same conclusion, different text — the global option parser speaks first |
+| **F13** — `.nen/last-stop.json` outlived the stop it recorded | `jutaisho` § 6 adds `rm -f .nen/last-stop.json` once the stop is answered **on a hookless surface only**, and § 3 states the freshness rule is the file's **mtime** | `hooks/stop-bell.sh` decides with `find "$marker" -mmin -10` and `rm -f`s a stale marker without ringing — read from the hook. On Codex and Cursor nothing runs that hook, so nothing removed it, and a run that ended with the branch pushed still read `gate: "G5"` |
+| **F14** — `$spiritual-message` § 3's `main...HEAD` residue assumed `$breath` had run | § 3's box already required `origin/<base>`; it now adds the **stopped-turn** case — use `origin/<branch.base>` whether or not the warm-up ran, **name the ref and its SHA on the page**, and report an unmeasurable delta as unmeasured | the run's own measurement: local `main` was **72** commits stale when the turn stopped before the fast-forward, so `main...HEAD` produced a delta unrelated to the effort |
+
+**Not findings, and deliberately unchanged:** `nen stage triage`'s exit `1` on flagged-but-ignored paths
+(6 893 of them, reported as a count — wave-1 F4's fix behaving as intended); `nen wc squash`'s absence at
+the pin (*"nen wc: unknown option `--onto`"*, exit `2` — verified again here, and `aka` § 4's named git
+residue already covers it); and every row of § 5 of the wave-5 validation record, which the fixes above
+were written not to disturb.
+
+
+---
+
+## Retired at nen 0.5 — 2026-09-10
+
+Run against the binary built from `zheref/nen` `v0.5.0` (`204b9ee6`), put on `PATH` as `nen`
+(`nen --version` → `0.5.0`). This section records what stopped being residue when
+`nen/contract.json`'s `pinned_ref` moved from `v0.4.0` to `v0.5.0`, with the exit code each verb
+actually returned.
+
+| Residue retired | Verb at the pin | Exit |
+|---|---|---|
+| `nen surface` absent — the mirrors regenerable only from a `main` build | `nen surface mirror generate --source claude/skills --agents claude/agents --surface codex\|cursor --out surfaces/<s> --invocation-prefix "hatsu:"` | `0`, both |
+| the CI job skipping with a `::notice::` | `bash scripts/surface_mirror_check.sh` | `0` |
+| `nen stop --mark` absent (§ 4) | `nen stop --mark --repo <fixture> --who kurapika --gate G5` | `0` — see `docs/ab/jutaisho.md` for why it is not adopted |
+| `notifications.turn` in no schema (§ 4.2) | `nen schema check` against a fixture declaring it | `FAIL` by pointer on a bad value, `ok` on `"all"` |
+
+```
+$ bash scripts/surface_mirror_check.sh
+surface-mirror-check: nen 0.5.0 · source claude/skills · agents claude/agents
+--- codex (surfaces/codex)
+surface: codex
+ok: 40
+missing: (none)
+extra: (none)
+stale: (none)
+hand-edited: (none)
+--- cursor (surfaces/cursor)
+surface: cursor
+ok: 47
+missing: (none)
+extra: (none)
+stale: (none)
+hand-edited: (none)
+surface-mirror-check: both mirrors match a fresh generation.
+exit=0
+```
+
+Through `v0.4.0` `nen surface` answered *"nen: unknown command 'surface'"* at exit `2` (§ 2.3), the script
+exited `2` on that, and `.github/workflows/surface-mirror-check.yml` turned that `2` into a skip-with-notice
+so a PR was never failed on a condition its author could not fix. **The skip was designed to disappear by
+itself when the pin moved, and it did.** That workflow's exit-`2` branch is now an **error**: at a pin that
+carries the verb, exit `2` means the pin or the bootstrap is wrong.
+
+The generator prints two per-surface notes, both of them boundaries rather than gaps: Codex *also*
+documents standalone per-agent TOML files under `.codex/agents/`, which this verb does not write (it
+mirrors markdown to markdown, and a persona lands in `AGENTS.md` as prose); and Cursor documents that a
+skill's `name` must match its folder name, which nen mirrors and does not enforce.
+
+**Still residue:** placing a mirror into a target repository. `--out` is a path, not a deployment, and
+`mirror check` diffs `surfaces/` against a fresh generation rather than checking an installed copy.
+
+---
+
+## 8. The first logged-in Cursor run — 2026-09-10
+
+> **The finding ids below are this run's own**, numbered from F1 independently of § 7's Codex half.
+
+**What it was.** A real headless `cursor-agent` session, model id **`cursor-grok-4.6-high`** (the
+`grok` alias, resolved from the host at the moment of use), running `/ren` then `/aka` against a
+**linked worktree** of `zheref/nen` at `origin/main`. Cursor-native only: no provider model was named
+anywhere. nen's primary checkout was not touched; no PR, no merge, no force-push, no `--no-verify`.
+`cursor-agent status` → **`Logged in`**, checked before anything else ran. **This is the half § 3.3
+recorded as pending.**
+
+**Two things moved under the run and both are recorded rather than smoothed over.** `~/.local/bin/nen`
+was retargeted `0.3.0` → `0.5.0` mid-session, and Cursor caught it: it read hatsu's `nen/contract.json`
+(`>=0.3.0 <0.4.0` at the time), declared 0.5.0 out of range, re-pinned with `nen bootstrap` (checksum
+verified) and put it on its **session** `PATH` only, deliberately not overwriting the user's symlink.
+And `zheref/nen`'s `main` gained the two-trailer policy mid-flight. **The run therefore executed
+against nen `0.3.0`, which is no longer hatsu's pin** — every residue it hit is read against that
+pin, not against `v0.5.0`.
+
+### 8.1 The findings that changed this repository
+
+| | finding | where it landed |
+|---|---|---|
+| **F1** | `--model grok` is refused; the id is `cursor-grok-4.6-high` | `docs/SURFACES.md` § 5 — a resolve-at-use substitution |
+| **F2** | the recorded build sees **no** skills at all | `docs/SURFACES.md` § 1 minimum; `hatsu-warmup` § 5b prints `cursor-agent -v` |
+| **F3** | `$CLAUDE_PLUGIN_ROOT` is exported on this host, to **another plugin** | `hatsu-warmup` § 5 prelude verifies the root's identity |
+| **F4** | the Cursor skill space is flat, global and shared | `docs/SURFACES.md` § 1; `hatsu-warmup` § 5b lists collisions |
+| **F5** | `nen bootstrap` prints a path the name `nen` does not reach | `hatsu-warmup` § 2 — bind the name with a symlink |
+| **F6** | three operational facts the Cursor block omitted | `docs/SURFACES.md` § 5 |
+| **F8** | the guard hook refuses a document that QUOTES a git write | `hooks/guard-base-branch.sh`, `docs/ab/guard-base-branch.md` § 3.5 |
+| **F11** | `nen parse jutaisho --line ""` is refused | `jutaisho` § 1 — **closed at nen `0.6.0`**: both spellings parse identically, exit `0` (`zheref/nen#170`, re-verified live 2026-09-10; `docs/ab/jutaisho.md` § *Retired at nen 0.6*) |
+| **F12** | `nen commit format` ignored `--repo` at `0.3.0` | nothing to change: at the pinned `0.6.0` the verb enforces it |
+| **F13** | Cursor keeps roughly **thirty** characters of a description | `docs/SURFACES.md` § 1 — stated, and no description shortened |
+
+**F7, F9 and F10 were nen-side, and all three are CLOSED at nen `0.6.0`** — `zheref/nen#168`
+(`shu warmup` in a linked worktree: the trunk held elsewhere is now skipped and named, `--json` gains
+`dryRun`), `#169` (`stage triage`'s own `ignored` bucket, with the exit code following `flagged`
+alone), `#170` (`parse` on an empty clause). Each was re-verified live against the released `0.6.0`
+binary on 2026-09-10; the transcripts are in `docs/ab/breath.md`, `docs/ab/kokusen.md` and
+`docs/ab/jutaisho.md` under *Retired at nen 0.6*. What remains from that run is the `-p` process that
+does not exit, which is a Cursor bug and is recorded as a timeout instruction in
+`docs/SURFACES.md` § 5.
+
+### 8.2 F1 — the model id, and how it is read
+
+```
+$ cursor-agent -p --output-format text --model grok -f "<prompt>"
+Cannot use this model: grok. Available models: auto, gpt-5.3-codex-low, … cursor-grok-4.6-high,
+composer-2.5, …
+```
+
+Nothing ran. The wave-5 run had no catalogue command to fall back on — `2025.09.18-39624ef`'s
+`--help` lists no `models` subcommand and no `--list-models` — so it enumerated from the refusal
+message itself. **On the current build there IS a catalogue**, read live from this session on
+2026-09-10:
+
+```
+$ cursor-agent -v
+2026.09.08-6caf4ff
+$ cursor-agent models                                                               # exit 0
+Available models
+
+auto - Auto (default)
+…
+cursor-grok-4.6-high - Cursor Grok 4.6
+cursor-grok-4.6-xhigh - Cursor Grok 4.6 Extra High
+cursor-grok-4.6-high-fast - Cursor Grok 4.6 Fast
+composer-2.5 - Composer 2.5
+…
+$ cursor-agent models | sed -n 's/^\(cursor-grok-[0-9.]*-high\) - .*$/\1/p' | sort -Vr | head -n 1
+cursor-grok-4.6-high
+$ cursor-agent models | sed -n 's/^\(composer-[0-9.]*\) - .*$/\1/p' | sort -Vr | head -n 1
+composer-2.5
+```
+
+**`--help` on the same build also lists `--workspace`, `--add-dir` and `-w, --worktree`** — three
+flags the recorded build did not have, and the reason `docs/SURFACES.md` § 5 now states the working
+root per build rather than as an absence. **The catalogue and the working-directory flag both arrived
+with a newer binary, which is F2 seen from a third side.**
+
+### 8.3 F2 — the version confound, and the five probes that isolated it
+
+None of these wrote anything. P1 and P2 ran against the nen worktree; P3–P5 against a purpose-built
+fixture, afterwards, to find out what P1 had actually measured.
+
+| # | install | build | answer |
+|---|---|---|---|
+| P1 | **39 symlinks** into `$hatsu_root/surfaces/cursor/` (§ 5b as written) | `2025.09.18-39624ef` | **`NO SKILLS VISIBLE`** — the whole reply, 17 bytes |
+| P2 | **39 `cp -R` copies** of the same directories | `2026.09.08-6caf4ff` | all **39**, listed **bare** |
+| P3 | one copy + one symlink **inside** the workspace | `2026.09.08-6caf4ff` | **both** found |
+| P4 | + a symlink **outside** the workspace, + a symlink into the hatsu checkout (which carries `.claude-plugin/plugin.json`) | `2026.09.08-6caf4ff` | both found; the push skill listed as **`aka`** — **bare, not `hatsu:aka`** |
+| P5 | the P4 tree, unchanged | **`2025.09.18-39624ef`** | **nothing found**, reached by `Searched files (**/*zzcopyprobe*)` — grepping the tree, no skills loaded |
+
+**P5 is the control that settles it.** Same fixture, same prompt, and the old build cannot see a
+**copied** skill either. So P1 measured the **binary**, not the install, and its `NO SKILLS VISIBLE`
+says nothing whatever about symlinks. `~/.local/share/cursor-agent/versions/` holds both directories;
+the new one was created while P1's process was still running the old build.
+
+**What survives, and it is good news for § 5b:** symlinks work on Cursor, inside the workspace and
+pointing outside it; **Codex's F1 does not reproduce here** — a symlink into a plugin checkout is
+still advertised bare, which is what the mirrors' `/aka` spelling needs. **Still open:** which
+repository a mirror's relative `../../../nen/workflow.json` lands in through a symlink. The run used
+copies and the fixture probes did not follow a relative link.
+
+> **One mechanical caveat on § 5c's proof step, and it is not a finding.** While the skills were
+> *symlinks*, `git check-ignore -v .cursor/skills/ren/SKILL.md` exited **`128`** — *"fatal: pathspec
+> … is beyond a symbolic link"*. git refuses to path-check **through** a symlink, so § 5c's own proof
+> step cannot be run against a file inside a symlinked skill directory at all. `git status
+> --porcelain` was silent either way, so nothing was hidden — but a reader following § 5c literally
+> on a symlink install gets a `128` and no answer.
+
+### 8.4 F3 — `$CLAUDE_PLUGIN_ROOT` fired, and pointed at another plugin
+
+§ 5's prelude listed it third and said it was *"never because it can fire here"*. It fired. Cursor's
+own warm-up step recorded, unprompted, *"HATSU_PLUGIN_ROOT unset; CLAUDE_PLUGIN_ROOT pointed at
+bankai 0.10.0"*, and it is exported from the user's shell profile:
+
+```
+$ grep -n CLAUDE_PLUGIN_ROOT ~/.zshrc
+26:export CLAUDE_PLUGIN_ROOT=/Users/zheref/.claude/plugins/cache/bankai/bankai/0.10.0
+```
+
+**Every Codex and Cursor session on this host inherits it**, and it names a different plugin at a
+version that is not even the installed one. Followed literally, the warm-up would have resolved
+`$hatsu_root` to the bankai checkout, found `surfaces/cursor` absent and reported `NOT INSTALLED` —
+the *safe* failure, for the wrong reason, with a misleading message. **A bankai checkout that did
+carry a `surfaces/` directory would have installed the wrong plugin's skills with no error at all.**
+The existing `[ -d "$hatsu_root/surfaces/$surface" ]` guard checks **shape, not identity**; § 5's
+prelude now checks identity.
+
+### 8.5 F4 — what the flat name space actually looked like
+
+P2's listing carried the 39 mirrored skills **and** Cursor's own built-ins from
+`~/.cursor/skills-cursor/` **and** this host's Claude Code plugin skills — including `build` and
+`drive`, both at `~/.claude/plugins/marketplaces/bankai/claude/skills/`. `drive` is not a Hatsu skill
+at all (renamed to `sharingan` at v0.5.0; `surfaces/cursor/drive` does not exist). And **`build`
+appeared once, outside the Hatsu block's otherwise unbroken alphabetical run** (`…, breath, en,
+file, …`), grouped with the bankai/adobe cluster.
+
+**The shadowing is inferred from that grouping and that gap, and two probes could not confirm it** —
+the rival `build` descriptions are byte-identical for their first ~120 characters and diverge only at
+the invocation spelling and, later, at the persona name, both far beyond F13's cut. `docs/SURFACES.md`
+§ 1 records it as a hazard rather than a mechanism, and says what would confirm it.
+
+### 8.6 F5 — the bootstrap prints a path the name `nen` does not reach
+
+```
+$ nen bootstrap --ref v0.3.0 --source zheref/nen --script /tmp/nen-bootstrap.sh
+nen bootstrap: cache hit for zheref/nen@v0.3.0 (nen-darwin-arm64), checksum verified.     # exit 0
+$ ls ~/.cache/nen/v0.3.0
+nen-darwin-arm64
+$ ls -la ~/.local/bin/nen
+… -> /Users/zheref/.cache/nen/v0.5.0/nen-darwin-arm64
+```
+
+§ 2's remedy — *"execute that path, or put its directory on `PATH`"* — **does not work in the second
+form**: the cache directory contains a file called `nen-darwin-arm64` and nothing called `nen`, so
+`nen` still resolves to whatever it did before. Cursor's own residue was a session shim
+(`ln -sfn <cached binary> /tmp/nen-session-bin/nen; export PATH=/tmp/nen-session-bin:$PATH`), and it
+deliberately did **not** overwrite `~/.local/bin/nen` — the right call, and one the skill did not tell
+it to make. § 2 now says how to bind the name.
+
+### 8.7 What the run did NOT verify — read this before treating the surface as validated
+
+1. **No commit was made, so the commit path is unexercised on this surface.** The chosen task
+   (`zheref/nen#139`) turned out to need no change — Cursor checked both halves of the issue against
+   the files and found neither still true, which is the right *outcome* and a poor *exercise*. So
+   `/kokusen`'s ask-on-flagged, `nen wc squash`'s residue over a real range, and the
+   **`Hatsu-Agent: kurapika` trailer on an actual commit object** all went untested. The trailer was
+   only ever *rendered* by `nen commit format`.
+2. **No G5 stop fired**, so `--resume` was never used in anger.
+3. **Whether a mirror's relative link resolves into the plugin or the target is still open** (§ 8.3).
+4. **F4's shadowing is inferred** (§ 8.5).
+5. **F13's ~30 characters is a self-report and possibly a shared budget** — measured with ~70 skills
+   visible, and never against a varying count.
+6. **The pin moved.** The run executed against nen `0.3.0`; hatsu now pins `v0.5.0`.
+
+### 8.8 What worked exactly as written
+
+- **§ 5c's `--git-path info/exclude`** — resolved to the **main** repository's `.git/info/exclude`,
+  `git status --porcelain` silent immediately afterwards for both `.cursor/skills/` and
+  `.cursor/agents/`, and `check-ignore` naming the line at `…/nen/.git/info/exclude:14`. The Codex
+  half's F2 fix is now confirmed on a second surface.
+- **§ 5b's symlink row**, once the version confound was removed (§ 8.3, P3/P4).
+- **The bare `/name` spelling.** Honest here; Codex's F1 does not reproduce.
+- **No sandbox problem at all.** Codex's F3 — the CRITICAL one, where `-s workspace-write` cannot
+  perform a single git write in a linked worktree — has **no Cursor counterpart**. The fetch, branch
+  cut, rebase and first-publish all ran in a linked worktree with no permission failure.
+- **The workflow's own discipline.** `--dry-run` before every spawning verb; exit codes read and
+  reacted to rather than retried past; the launch step skipped without asking, per `/ren` § 2; `/aka`
+  run only because the maintainer's call was in the instruction; residue named every time a verb was
+  missing, with the missing verb identified. `nen shu test` → **`0`, 167 files, 4197 tests passed**,
+  re-run independently afterwards with identical numbers.
+- **Every hard limit held.** No PR, no merge, no force-push, no `--no-verify`, no AI attribution
+  trailer, nothing written to the primary checkout, nothing committed under `.cursor/`, `.nen/` or
+  `Reports/`.
+- **The persona presented** — the first line was `🟨 Kurapika · Conjurer — Hatsu's local plane,
+  entire`, with `Manipulator` named alongside for the reporting and push steps: the mode-declaration
+  discipline `claude/agents/kurapika.md` requires, and a visible contrast with the Codex half's F11.
+  **This is not evidence about Cursor's agent-loading mechanism**, though: the prompt told it to read
+  `.cursor/agents/kurapika.md`, so what is shown is that the file governs once read.
+
+---
+
+## 9. The mirrored `$CLAUDE_PLUGIN_ROOT` — 2026-09-10
+
+**Found by Copilot's review of PR #36** (review `5168133411`), on `surfaces/codex/pr-state/SKILL.md` and
+`surfaces/cursor/pr-state/SKILL.md` line 101: the mirrored `--gates
+"$CLAUDE_PLUGIN_ROOT/contracts/reference.gates.json"` cannot reliably load the gates file on either
+surface, where that variable is normally unset — or, exported from a shell profile, names a different
+plugin (§ 8.4, F3). The review added that *the same issue affects the other touched mirrored skills*, and it
+is wider than that PR: the anchor predates it, and a grep of the SOURCE found it in ten files — eight skills
+(`hatsu-warmup` among them, where the mentions are deliberate and define the convention), the Kurapika
+persona, and the Claude-only `/kurapika` command. Everything but the command is carried verbatim into both
+mirrors; the command is Claude Code's own and is not mirrored.
+
+### 9.1 Where it was, and why `check` never flagged it
+
+```
+$ git grep -l 'CLAUDE_PLUGIN_ROOT' main -- 'claude/*.md'
+main:claude/agents/kurapika.md
+main:claude/commands/kurapika.md
+main:claude/skills/backlog-state/SKILL.md
+main:claude/skills/futon/SKILL.md
+main:claude/skills/getsuga/SKILL.md
+main:claude/skills/hanten/SKILL.md
+main:claude/skills/hatsu-warmup/SKILL.md
+main:claude/skills/pr-state/SKILL.md
+main:claude/skills/sharingan/SKILL.md
+main:claude/skills/tensho/SKILL.md
+```
+
+(`main` at `7587f9d`, the base of this change. An earlier draft of this record wrote the command with
+`--include=SKILL.md`, which excludes the two files outside `claude/skills/` it then listed — Copilot's
+review of #38 caught it, § 9.4.)
+
+`nen surface mirror check` reported both surfaces clean before the change and after it, because a mirror
+that faithfully carries a non-portable line is not drift. The verb's own `--help` says what it rewrites:
+*"the body verbatim, the frontmatter reduced to the keys the surface documents, and — where the surface
+documents an explicit invocation spelling — every `<prefix><name>` mention rewritten into it."* Nothing
+else — a shell variable in a body is a body.
+
+### 9.2 Source, not generator — and why
+
+Two fixes were on the table: teach `nen surface mirror generate` to rewrite `$CLAUDE_PLUGIN_ROOT` per
+surface, or make the source surface-neutral. **The source won**, for the same reasons the invocation rewrite
+is shaped the way it is:
+
+- **The invocation rewrite has a documented target.** Each row of nen's `src/surface/rules.ts` carries the
+  page it read the surface's spelling from, and `--invocation-prefix` is caller data. Neither Codex nor
+  Cursor documents a plugin-root variable — neither has a plugin loader — so there is nothing
+  surface-documented to rewrite the variable *into*. The right target is not a variable at all but a
+  resolution, `hatsu-warmup` § 5's prelude, and a generator cannot emit a resolution in place of a word.
+- **nen hard-codes no system's vocabulary** (`docs/SURFACES.md` § 1). `$HATSU_PLUGIN_ROOT` and
+  `$hatsu_root` are Hatsu's words; a generator that knew them would be carrying one consumer's convention,
+  or growing a flag to be told it.
+- **A text rewrite cannot tell a USE from a MENTION.** `hatsu-warmup` names `$CLAUDE_PLUGIN_ROOT` seventeen
+  times on purpose — it is the section that explains why the variable is not trusted, and its resolution
+  loop reads it as the last candidate. Rewriting those would corrupt the definition of the convention every
+  other skill now cites.
+
+So every path built from the plugin root is spelled **`$hatsu_root`** — `$HATSU_PLUGIN_ROOT`, else the path
+the run was handed, else `$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout, the winner
+canonicalised to an absolute path — with one sentence beside it saying so, pointing at the prelude, and
+saying that the prelude runs in the shell that runs the command, because the variable is not exported. `$CLAUDE_PLUGIN_ROOT` is still named where a
+sentence is *about* it (why it is not enough on its own; the Claude-Code-only `claude plugin list --json`
+fallback), which is a mention, and true on every surface. `sharingan` § 4's identity box and `hanten` § 3's
+root paragraph — the two the others cite — now lead with the resolution and keep the verified-live facts
+about the variable beneath it. `docs/WORKFLOW.md`'s section keeps its heading (the warm-up links to it by
+name) and its table now has `$hatsu_root`'s four rows.
+
+### 9.3 Verification
+
+```
+$ grep -rn 'CLAUDE_PLUGIN_ROOT/' claude/skills claude/agents claude/commands --include='*.md' | grep -v hatsu-warmup
+(no output — no path is built from the bare variable outside the skill that defines the resolution)
+
+$ nen surface mirror generate --source claude/skills --agents claude/agents --surface codex  --out surfaces/codex  --invocation-prefix hatsu:
+written: AGENTS.md, backlog-state/SKILL.md, futon/SKILL.md, getsuga/SKILL.md, hanten/SKILL.md, pr-state/SKILL.md, sharingan/SKILL.md, tensho/SKILL.md   # + hatsu-warmup/SKILL.md after § 9.4
+$ nen surface mirror generate --source claude/skills --agents claude/agents --surface cursor --out surfaces/cursor --invocation-prefix hatsu:
+written: agents/kurapika.md, backlog-state/SKILL.md, futon/SKILL.md, getsuga/SKILL.md, hanten/SKILL.md, pr-state/SKILL.md, sharingan/SKILL.md, tensho/SKILL.md   # + hatsu-warmup/SKILL.md after § 9.4
+
+$ bash scripts/surface_mirror_check.sh          # recorded BEFORE #39 repinned to nen 0.7 — a historical run; every later round's check below ran on 0.7.0
+surface-mirror-check: nen 0.6.0 · source claude/skills · agents claude/agents
+--- codex (surfaces/codex)
+ok: 40   missing: (none)   extra: (none)   stale: (none)   hand-edited: (none)
+--- cursor (surfaces/cursor)
+ok: 47   missing: (none)   extra: (none)   stale: (none)   hand-edited: (none)
+surface-mirror-check: both mirrors match a fresh generation.
+$ echo $?
+0
+
+$ claude plugin validate . --strict
+✔ Validation passed
+```
+
+**What this did not verify.** No Codex or Cursor session was run against the regenerated mirrors; the
+claim is that the spelling now matches the resolution `hatsu-warmup` § 5 already performs on those surfaces
+(§ 8.8 records that resolution working), not that a `--gates` call was exercised there.
+
+### 9.4 Copilot's review of #38, and what changed
+
+Two inline threads and six suppressed comments, five distinct points; every one landed somewhere.
+
+| finding | disposition |
+|---|---|
+| `$hatsu_root` is a shell-local variable in the prelude, never exported, so a later shell running `nen pr ready` cannot see it | **Fixed in the prose, not by an export.** A tool-call shell inherits nothing from another on any surface, so an export would promise what no harness delivers. The prelude now says it is local; every consumer's code comment says *resolve it in this shell first*, and `sharingan` § 4, `hanten` § 3 and `docs/WORKFLOW.md` say why |
+| the absolute-path guarantee fails for a relative `$HATSU_PLUGIN_ROOT` or a handed `.` — the prelude stored the winning candidate verbatim | **Fixed in the prelude**: `hatsu_root=$(cd "$cand" && pwd -P)`, so the winner is absolute and symlink-free before any consumer sees it. Transcript below |
+| the `claude plugin list --json` fallback stated in `sharingan`, `hanten` and `docs/WORKFLOW.md` is not a step the prelude takes — after three candidates it reports `NOT INSTALLED` | **Reframed, not implemented.** The registry is how a Claude Code caller PRODUCES the path it hands in (the second candidate); it was never a fourth candidate, and the loop stays at three: the two other surfaces have no registry, and a JSON registry read without `jq` is not a step the warm-up should own. All three passages and the prelude's own bullet now say exactly that |
+| `contracts/reference.gates.json`'s own `$comment` still said `$CLAUDE_PLUGIN_ROOT/…`, and `pr-state` sends readers to that header | **Fixed**: the comment anchors on `$hatsu_root`, names the prelude, and says the variable is resolved in the calling shell |
+| § 9.1's recorded grep (`--include=SKILL.md`) could not have listed the agent and command files it showed | **Fixed**: the command is the `git grep` that was actually run against `main`, with its output |
+
+**The canonicalisation, exercised.** The prelude's loop, verbatim after the change, run four ways from
+this checkout — a relative `$HATSU_PLUGIN_ROOT`, a relative handed path with a wrong `$CLAUDE_PLUGIN_ROOT`
+beside it, the Claude Code skill-invocation shape, and nothing usable (local absolute paths sanitised as
+`<wt>`, this effort's worktree):
+
+```
+$ HATSU_PLUGIN_ROOT=. CLAUDE_PLUGIN_ROOT= bash prelude-test.sh
+candidate: . | handed: <none> | rejected:<none>
+hatsu_root: <wt>
+
+$ cd docs && HATSU_PLUGIN_ROOT= CLAUDE_PLUGIN_ROOT=/tmp bash prelude-test.sh ..
+candidate: <unset> | handed: .. | rejected:<none>
+hatsu_root: <wt>
+
+$ HATSU_PLUGIN_ROOT= CLAUDE_PLUGIN_ROOT=<wt> bash prelude-test.sh
+candidate: <unset> | handed: <none> | rejected:<none>
+hatsu_root: <wt>
+
+$ HATSU_PLUGIN_ROOT= CLAUDE_PLUGIN_ROOT=/tmp bash prelude-test.sh
+candidate: <unset> | handed: <none> | rejected: /tmp
+hatsu_root: <unresolved>
+```
+
+`.` and `..` both come out as the same absolute path; `/tmp` is rejected by name and nothing is resolved
+in its place. (The second case does not exercise the loop's `rejected` list for `/tmp` because the handed
+path wins first — the fourth case does.) After the change both mirrors regenerate clean (`ok: 40`,
+`ok: 47`, script exit `0`), `claude plugin validate . --strict` passes, and the edited gates file still
+parses with its five reviewers.
+
+**Still not verified:** the same as § 9.3 — no Codex or Cursor session ran a `--gates` call from the
+regenerated mirror.
+
+### 9.5 Copilot's second round — the resolver has to EXECUTE in the consumer's shell
+
+One thread and one suppressed comment.
+
+| finding | disposition |
+|---|---|
+| *"prose saying to run the prelude first is not sufficient"* — the assignment lives in `hatsu-warmup`'s own code block, consumers only cite it, and the later tool-call shell expands `"$hatsu_root/contracts/…"` to `/contracts/…` | **Fixed by inlining.** Every code block that consumes the variable — `pr-state` § 2, `futon` § 5, `tensho` § 6 — now carries the prelude's *same-shell form* verbatim above its own command: the same three candidates, the same `is_hatsu` test, the same `pwd -P`. The warm-up's block now `echo`es the root it resolved, and that printed path is the block's second candidate (the handed one). A helper file, the reviewer's other suggestion, was not taken: it would have to be found by the very root it resolves |
+| `spiritual-message` listed in `docs/WORKFLOW.md` as a consumer of the plugin root — its template is the target repository's own `templates/<name>.html`, target-relative | **Fixed**: dropped from the list, with the reason stated in place |
+
+**The inlined block, exercised against a real PR.** The block as the three skills carry it, saved to a
+file with `"$1"` in the handed slot, then `nen pr ready` on this very pull request — a read-only call whose
+`--explain` header prints the identities path nen actually resolved. Run from `$HOME`, with
+`HATSU_PLUGIN_ROOT` and `CLAUDE_PLUGIN_ROOT` both empty, the printed root handed in:
+
+```
+$ cd ~ && HATSU_PLUGIN_ROOT= CLAUDE_PLUGIN_ROOT= bash same-shell.sh <wt>
+hatsu_root=<wt>
+zheref/hatsu#38: not-ready: a configured reviewer's round is still owed at the current head (CON-32b): sasuke (no round at head);tenma (no round at head)
+
+  head cb7d1ed4f0a587083074eed03a393d293e9992c6 · reviewers sasuke,tenma,copilot · approvers sasuke,tenma
+  policy bounded · delivery PR no · identities <wt>/contracts/reference.gates.json
+nen exit 1
+```
+
+`identities <wt>/contracts/reference.gates.json` — absolute, the file this plugin ships, read from a shell
+that inherited nothing. (The `not-ready` is correct and expected: this repository ships no `nen/gates.json`,
+so the reference file's `sasuke`/`tenma` are owed here — the exact wrong-reviewers case `sharingan` § 4
+names, used deliberately because it proves the path and nothing else.) The same block with
+`HATSU_PLUGIN_ROOT=..` from `docs/` and the placeholder left unsubstituted resolves the same absolute path;
+with nothing usable at all it prints *no Hatsu root resolved — pass --reviewers by hand instead* and exits
+`1` before `nen` runs. Mirrors regenerated clean after the change (`ok: 40`, `ok: 47`, script exit `0`);
+`claude plugin validate . --strict` passes.
+
+**Still not verified:** a Codex or Cursor session running the mirrored block. What is verified is that the
+block a mirror carries is byte-identical to the one above (the mirror is verbatim) and that this block
+resolves from a shell with no Claude Code state in it.
+
+### 9.6 Copilot's third round — every block sets the variable it uses, and main moved underneath
+
+One thread and four suppressed comments, one theme: a consumer that *cites* the resolver still expands
+`$hatsu_root` empty in its own shell. `claude/commands/kurapika.md` and `claude/agents/kurapika.md` told
+Kurapika to read `$hatsu_root/nen/contract.json` after the warm-up; `backlog-state` and `getsuga` embedded
+the variable in a fallback and pointed at `pr-state`'s block; and inside `hatsu-warmup` itself § 0's `cat`
+and § 5's install blocks were separate fenced blocks from the § 5 resolver — *"stating that they are in the
+same shell does not make it so."*
+
+**The rule that now holds mechanically: a fenced block that uses `$hatsu_root` sets it in that block.** Two
+ways and no third — § 0's resolver verbatim, or the one-line explicit input
+`hatsu_root=<the absolute path § 0 printed>`; a `<hatsu root>` in prose is that same explicit input,
+substituted literally.
+
+| where | before | after |
+|---|---|---|
+| `hatsu-warmup` § 0 | prose said *resolve first*, then a lone `cat "$hatsu_root/nen/contract.json"` | ONE block: the six-line resolver, `echo "hatsu_root: …"`, then the `cat` — the read cannot run without the resolution |
+| `hatsu-warmup` § 0 `schema check`, § 5a copy loop, § 5c `ours` | used the variable, set nowhere in the block | each opens with the explicit-input line |
+| `claude/agents/kurapika.md`, `claude/commands/kurapika.md` | *read `$hatsu_root/nen/contract.json`* after the warm-up | *its § 0 block is one shell: resolves, prints, reads* — no variable named across a shell boundary |
+| `backlog-state`, `getsuga` | `"$hatsu_root/contracts/…"` citing `pr-state`'s block | `"<hatsu root>/contracts/…"` — an explicit input, the path § 0 printed, substituted literally |
+| `pr-state` § 2, `futon` § 5, `tensho` § 6 | already carried the resolver (§ 9.5) | unchanged but for the handed slot's name: `<the absolute path § 0 printed>` |
+| `docs/WORKFLOW.md` | *a consumer runs the prelude* | the rule, with which files take which of the two ways |
+
+The check that says the rule holds, over every fenced block under `claude/` (the one `text` illustration
+that named the path now uses the `<hatsu root>` placeholder, so the count is zero with no exception):
+
+```
+$ python3 - <<'PY'
+import pathlib, re
+bad = sum(1 for p in pathlib.Path('claude').rglob('*.md')
+          for m in re.finditer(r'```[a-z]*\n(.*?)```', p.read_text(), re.S)
+          if '$hatsu_root' in m.group(1) and not re.search(r'(^|\n)\s*hatsu_root=', m.group(1)))
+print("fenced blocks that use $hatsu_root without setting it:", bad)
+PY
+fenced blocks that use $hatsu_root without setting it: 0
+```
+
+**§ 0's block, run verbatim.** Extracted from the skill by its first and last lines, the handed slot
+filled with this checkout (the one substitution an agent makes), run from `$HOME` with both variables
+empty:
+
+```
+$ cd ~ && HATSU_PLUGIN_ROOT= CLAUDE_PLUGIN_ROOT= bash sec0.sh | head -3
+hatsu_root: <wt>
+{
+  "$schema": "nen.contract/v0.1",
+```
+
+With the slot left unsubstituted and nothing else set it exits `1` before the `cat`:
+*`hatsu-warmup: no Hatsu root — $HATSU_PLUGIN_ROOT unset or not a Hatsu checkout, nothing usable handed,
+$CLAUDE_PLUGIN_ROOT empty or another plugin`*. The explicit-input form of the next block —
+`hatsu_root=<wt>; nen schema check --repo "$hatsu_root"` — prints the
+`ok  nen/contract.json  dependency (nen >= 0.7, pinned v0.7.0) …` row.
+
+**Main moved underneath, three times.** PR #39 (the nen `0.7` repin) landed while this PR was under review
+and took plugin `0.11.0`; main was merged into the branch (never rebased — it is published), two conflicts
+resolved on main's side of the text, and the bump moved to `0.12.0`. Then #40 and #41 landed while this
+round was being addressed and took `0.12.0`; a second merge, one conflict (the manifest again), and the bump
+moved to `0.13.0`. Then #42 (the warm-up reads its range verdict off `nen shu tools`) landed and took
+`0.13.0`; a third merge, the manifest and one paragraph of the Kurapika command in conflict, and the bump is
+**`0.14.0`**. That third merge also brought one new consumer of the variable — § 1b's
+`nen shu tools --repo "$hatsu_root"` — which the fenced-block check caught on the merged tree and which now
+opens with the explicit-input line, regenerated in the same merge commit. Each merge commit regenerates
+clean, so each passes the drift check on its own; the fenced-block check reports zero again and the plugin
+validates.
+
+**Still not verified:** a Codex or Cursor session running the mirrored blocks — same caveat as § 9.3 and
+§ 9.5. Verified: the blocks a mirror carries are byte-identical to these, and these run.
+
+### 9.7 Copilot's fourth round — quoting, and three records set straight
+
+Run against the head before the second catch-up. Two threads, two suppressed comments.
+
+| finding | disposition |
+|---|---|
+| the explicit-input line `hatsu_root=<the absolute path § 0 printed>` is an unquoted assignment — a checkout at `/work/Hatsu Plugin` becomes an assignment followed by a command | **Fixed**: `hatsu_root='<the absolute path § 0 printed>'`, single-quoted, in § 0's `schema check`, § 5a's copy loop and § 5c's `ours`, and in the two prose mentions of the form (`hatsu-warmup` § 5, `docs/WORKFLOW.md`). The resolver's handed slot was already double-quoted |
+| the PR body's footer still read `0.10.0 → 0.11.0` against a manifest that had moved | **Already fixed on the live body** before this round was read — the footer says `0.12.0 → 0.13.0` and names the two catch-ups; the review ran against the earlier text |
+| `docs/WORKFLOW.md`'s handed-path row dropped the surface prefixes | **Fixed**: `$hatsu-warmup <path>` on Codex, `/hatsu-warmup <path>` on Cursor, citing `docs/SURFACES.md` § 1 |
+| § 9's inventory said *seven skills plus the Kurapika definition, every one mirrored* over a listing of ten files including the unmirrored command | **Fixed**: ten files — eight skills, the persona, and the Claude-only command, which is not mirrored |
+
+The quoted form, exercised: `hatsu_root='/tmp/hatsu space test'; printf '%s\n' "$hatsu_root"` prints the
+path as one word; the unquoted form of the same line is *"command not found: test"* after an assignment
+of `/tmp/hatsu`. Mirrors regenerated clean after the change, the fenced-block check reports zero, the plugin
+validates.
+
+### 9.8 Copilot's fifth round — the path is never embedded raw in source text
+
+Two threads and three suppressed comments, one theme with a sharper edge than round four: single quotes
+alone are not shell-safe for every valid path (`/work/O'Brien/hatsu` ends the literal), the resolver's
+double-quoted handed slot expands `$` and backticks, the prose-only consumers (`backlog-state`, `getsuga`)
+substituted a literal into a double-quoted argument, and two `<plugin root>` placeholders (`hanten` § 3's
+`ls`, `sharingan` § 4's table and its `next-blocker` note) were never defined as anything.
+
+**The mechanism, now.** § 0 prints the root as a **ready-to-paste single-quoted shell literal** —
+`printf "hatsu_root: '%s'\n" "$(printf '%s' "$hatsu_root" | sed "s/'/'\\\\''/g")"` — every `'` in the path
+written `'\''`. A consumer pastes that quoted value verbatim, quotes included, into the explicit-input line
+`hatsu_root='…'` or into the resolver's handed slot, which is single-quoted in all four copies now (§ 0,
+`pr-state`, `futon`, `tensho`). Inside single quotes nothing else is special, so `$`, backticks, backslashes
+and spaces reach the shell as themselves; the one character that could end the literal is the one § 0
+escapes. `hanten` § 3's block sets the variable; `sharingan`'s two examples use it and its box says where it
+is set; `backlog-state` and `getsuga` are back on the variable, set in that shell by the quoted explicit
+input. No `<plugin root>` or `<hatsu root>` is left in a command anywhere under `claude/`.
+
+**Exercised end to end, through the skill text itself.** A minimal Hatsu checkout copy (`plugin.json`,
+`claude/skills/`, `contracts/`, `nen/contract.json`) was placed at a path carrying all five hostile
+characters — a quote, `$HOME`, backticks around `id`, a backslash, spaces. § 0's block was extracted from
+`hatsu-warmup` by its first and last lines, the handed slot filled the way the rule says, and run from
+`$HOME` with both variables empty:
+
+```
+hatsu_root: '<scratch>/O'\''Brien $HOME `id` back\slash dir/hatsu'
+{
+  "$schema": "nen.contract/v0.1",
+```
+
+Then `pr-state` § 2's block was extracted the same way, the printed quoted value pasted in place of `'<…>'`
+verbatim, and run from `$HOME` against this very pull request:
+
+```
+hatsu_root=""; for c in "${HATSU_PLUGIN_ROOT:-}" '<scratch>/O'\''Brien $HOME `id` back\slash dir/hatsu' "${CLAUDE_PLUGIN_ROOT:-}"; do
+…
+zheref/hatsu#38: not-ready: a configured reviewer's round is still owed at the current head (CON-32b): …
+  policy bounded · delivery PR no · identities <scratch>/O'Brien $HOME `id` back\slash dir/hatsu/contracts/reference.gates.json
+```
+
+`identities …/O'Brien $HOME `id` back\slash dir/hatsu/contracts/reference.gates.json` — the path nen
+resolved is the hostile path unchanged: `$HOME` was not expanded, `id` was not executed, the quote and the
+backslash survived. (The `not-ready` is the expected wrong-reviewers verdict for a repository that ships no
+gates file, as in § 9.5.) Both mirrors regenerate clean after the change (`ok: 40`, `ok: 47`, script exit
+`0`), the fenced-block check reports zero, no double-quoted handed slot remains, and the plugin validates.
+
+**Still not verified:** a Codex or Cursor session — same caveat as before. What is verified is the block
+each mirror carries, byte-identical to these, run from a shell with no Claude Code state in it.
+
+### 9.9 Copilot's sixth round — the literal alone, and a structural manifest check
+
+One thread and eight suppressed comments, three points.
+
+| finding | disposition |
+|---|---|
+| § 0 printed `hatsu_root: '…'` and consumers were told to paste "the value printed, quotes included" — pasting the whole line carries the label into the path | **Fixed**: § 0 prints a label line, then the quoted literal **alone** on the next line; every consumer says to paste that one line and nothing else |
+| § 5's prelude still printed the root raw (`echo "hatsu_root: $hatsu_root"`), a second handoff that differed from § 0's | **Fixed**: the prelude prints the same two lines as § 0, the literal escaped the same way |
+| the identity check matched the first `"name"` line anywhere (`… \| head -n 1`), so a manifest with a nested `name: hatsu` ahead of a top-level `name: other` passed | **Fixed in all five copies** (§ 0, § 5's `is_hatsu`, `pr-state`, `futon`, `tensho`): the key is matched at the **top level** of the pretty-printed, two-space-indented manifest Claude Code's tooling writes — exactly two leading spaces — and the output compared whole, so a nested name never matches, two top-level matches fail, and a minified manifest is refused rather than parsed. nen has no JSON read verb and the installed path has no `jq`; indentation is the structure the tooling guarantees, and refusal is the safe direction |
+
+The check, run as the skill carries it, against six crafted manifests:
+
+```
+  sed -n 's/^  "name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p'
+  minified-nested-first.json  {"metadata":{"name":"hatsu"},"name":"other"}          refuse   (old check: refuse)
+  minified-top-hatsu.json     {"name":"hatsu"}                                      refuse   (old check: refuse)
+  pretty-both-hatsu.json      top-level hatsu, nested hatsu                          ACCEPT   (old check: ACCEPT)
+  pretty-nested-first.json    nested hatsu FIRST, then top-level other               refuse   (old check: ACCEPT — the flaw)
+  pretty-top-hatsu.json       top-level hatsu, nested other                          ACCEPT   (old check: ACCEPT)
+  real.json                   this repository's .claude-plugin/plugin.json           ACCEPT   (old check: ACCEPT)
+```
+
+The hostile-path run of § 9.8 repeated on the new output — § 0's block extracted verbatim, run from `$HOME`
+with both variables empty, the **second** line pasted into `pr-state` § 2's block and run against this PR:
+
+```
+hatsu_root resolved. The NEXT LINE is the quoted value every later block pastes verbatim, quotes included:
+'<scratch>/O'\''Brien $HOME `id` back\slash dir/hatsu'
+…
+  policy bounded · delivery PR no · identities <scratch>/O'Brien $HOME `id` back\slash dir/hatsu/contracts/reference.gates.json
+```
+
+Both mirrors regenerate clean (`ok: 40`, `ok: 47`, script exit `0`), the fenced-block check reports zero, and
+the plugin validates. **Still not verified:** a Codex or Cursor session — as before.
+
+### 9.10 Copilot's seventh round — the capture itself
+
+One thread and two suppressed comments, run against the head before the third catch-up.
+
+| finding | disposition |
+|---|---|
+| command substitution strips a trailing newline, so a root whose canonical path ends in one is printed as a different path | **Fixed in all five copies**: the captured path must be the *same directory* as the candidate — `[ "$r/." -ef "$c/." ]` — so a stripped newline is caught rather than pointed elsewhere; and a root containing a newline anywhere is refused — `[ "$(printf '%s' "$r" \| wc -l)" -eq 0 ]` — because the handoff is one line. `$hatsu_root` is assigned only once every guard has passed; an early assignment that survived a failed guard was a defect the first test run caught, and it is gone |
+| `cd "$c"` on a relative candidate can echo a `CDPATH`-selected directory into the substitution | **Fixed**: `CDPATH= cd "$c" >/dev/null 2>&1` — cleared so a relative candidate resolves where the file tests looked, stdout dropped so nothing but `pwd -P` is captured |
+| § 9.3's transcript reads `nen 0.6.0` against a contract pinned at `0.7.0` | **Labelled** as the pre-#39 historical run it was; every later round's check ran on `0.7.0` |
+
+**Exercised, § 0's block extracted verbatim and run from `$HOME` with both variables empty, the handed slot
+filled each way** (`<scratch>` sanitised; each copy is a minimal Hatsu checkout — manifest, `claude/skills/`,
+`contracts/`, `nen/contract.json`):
+
+```
+A. a checkout named "hatsu\n"  (name ENDS in a newline)      → exit 1, nothing on stdout, refused by name
+B. a checkout named "hat\nsu"  (newline INSIDE the name)     → exit 1, nothing on stdout, refused by name
+C. handed the RELATIVE name 'hatsu' from a cwd that holds one, with CDPATH pointing at ANOTHER 'hatsu'
+                                                             → exit 0, line 2: '<scratch>/cdpath-cwd/hatsu'   (the cwd one; CDPATH neither redirected nor leaked)
+D. the hostile path of § 9.8                                 → exit 0, line 2: '<scratch>/O'\''Brien $HOME `id` back\slash dir/hatsu'
+E. handed '.' from inside this checkout                      → exit 0, line 2: '<wt>'
+```
+
+**And § 5's full form** (with `is_hatsu` and the rejected-path report), handed the hostile path as `$1` with
+`CLAUDE_PLUGIN_ROOT=/tmp` beside it: exit `0`, the hostile root resolved. Handed the newline-ending name:
+exit `1`, *`surface: codex — NOT INSTALLED. No Hatsu source root. Rejected (…): <scratch>/nl-test/hatsu`* —
+refused and named.
+
+Both mirrors regenerate clean after the change (`ok: 40`, `ok: 47`, script exit `0`), the fenced-block check
+reports zero, and the plugin validates. **Still not verified:** a Codex or Cursor session — as before.
+
+### 9.11 Copilot's tenth round — a structural read of the manifest, and a bash 3.2 finding on the way
+
+No thread; five suppressed comments, three points.
+
+| finding | disposition |
+|---|---|
+| the two-space match was still a line heuristic: a manifest with top-level keys at column zero and a nested `metadata.name: "hatsu"` at two spaces would pass | **Fixed with a structural reader.** `manifest_name` (an awk program, named in § 5 and carried on one line in the four compact copies) reads the one shape Claude Code's tooling writes — `JSON.stringify(x, null, 2)`: line one `{`, every inner line indented at least two spaces, the last `}` — and takes a key at two spaces as top-level only when no two-space line opened a nested block above it. Any other shape is refused rather than parsed. Eleven manifests tested, below |
+| § 5's prelude appended a candidate to `rejected` on a capture-guard failure too, so a valid checkout with a newline in its path was reported as *no plugin.json naming hatsu* | **Fixed**: `rejected` (not this plugin) and `unusable` (a Hatsu checkout whose path cannot be handed on as one line) are kept apart and each named in the `NOT INSTALLED` line |
+| `docs/ab/pr-state.md` § 1's mapping row and § 2.6's paragraph still called `$CLAUDE_PLUGIN_ROOT` the load-bearing anchor | **Marked historical**, pointing at the same-shell `$hatsu_root` form; the transcript commands stay as they ran |
+
+**The reader, as `pr-state` carries it, against eleven manifest shapes:**
+
+```
+  four-space-top.json                    refuse   (reads nothing)
+  minified-nested-first.json             refuse   (reads nothing)     {"metadata":{"name":"hatsu"},"name":"other"}
+  minified-top-hatsu.json                refuse   (reads nothing)     {"name":"hatsu"} — not the shape the tooling writes
+  nested-at-2-no-top.json                refuse   (reads nothing)     a nested block laid out at two spaces, no top-level name
+  nested-at-2-top-other.json             refuse   (reads: other)      a nested block laid out at two spaces, then a top-level name
+  pretty-both-hatsu.json                 ACCEPT   (reads: hatsu)
+  pretty-nested-first.json               refuse   (reads: other)      the round-six case
+  pretty-top-hatsu.json                  ACCEPT   (reads: hatsu)
+  real-shape-with-braces-in-strings.json ACCEPT   (reads: hatsu)      "{" and "[" inside string values do not open a block
+  real.json                              ACCEPT   (reads: hatsu)      this repository's manifest
+  zero-indent-nested-at-2.json           refuse   (reads nothing)     the round-ten case: keys at column zero, nested name at two spaces
+```
+
+**A finding on the way, against the shell rather than the skill.** The first cut wrote the reader inline
+as `[ "$(awk '…' file)" = hatsu ]`. That line passes under zsh and fails under **bash 3.2** — the `/bin/bash`
+macOS ships — with awk reporting a program that had lost a chunk: bash 3.2 does not honour single quotes
+when it scans for the `)` that closes a `$( … )` inside double quotes, so the program's own `)` ended the
+substitution early. `mn=$(awk '…' file) && [ "$mn" = hatsu ]` — the capture as a bare assignment, then the
+test — passes under bash 3.2, `sh` and zsh alike, and that is the form the four compact copies carry, with
+the reason beside it. § 5's `manifest_name` is a function call inside `"$( )"` with no quotes in it and was
+never affected.
+
+**The capture cases of § 9.10 rerun on the final text, § 0's block verbatim, under bash 3.2** (and the
+hostile path also under `sh` and zsh): A and B refused, C resolves the cwd checkout with `CDPATH` pointing
+elsewhere, D and E resolve; § 5's full form resolves the hostile handed path beside a wrong
+`CLAUDE_PLUGIN_ROOT`, reports the newline-ending checkout as *Unusable* and names it, and reports `/tmp`
+as *Rejected*; `pr-state` § 2 with the printed line pasted reports `identities` under the hostile path.
+Both mirrors regenerate clean (`ok: 40`, `ok: 47`, script exit `0`), the fenced-block check reports zero,
+and the plugin validates. **Still not verified:** a Codex or Cursor session — as before.
+
+### 9.12 Copilot's eleventh round — one refuted, two fixed, two records
+
+One thread and four suppressed comments, read against the head before the fourth catch-up.
+
+| finding | disposition |
+|---|---|
+| a canonical manifest with an object inside an array is rejected: `    },` at four spaces is never counted while `  ]` removes a level | **Refuted, with a transcript.** Opens at four spaces are ignored exactly as closes at four spaces are — the depth counter only reads two-space lines — so the nesting stays balanced. `real-shape-object-in-array.json`, generated by `json.dumps(x, indent=2)` with objects inside arrays and an array inside an object inside an array, reads `hatsu` and is accepted, before and after this round |
+| a second top-level `}` is accepted: the `^}$` branch set `done` and skipped without checking it was already set | **Confirmed and fixed** in the named reader and the four one-line copies: `if (done) bad = 1`. `extra-closing-brace.json` — a valid manifest followed by a stray `}` — was accepted and is refused now |
+| `rejected` and `unusable` were printed only on failure, so a stale `$CLAUDE_PLUGIN_ROOT` passed over by a later winning candidate stayed invisible, against the README's stated guarantee | **Fixed**: § 5's prelude prints a *passed over* line on success too, naming each candidate under its reason; § 0's block does the same with one list, and names every candidate it tried in its failure line |
+| § 7's residue entry 8 still said a candidate is verified with `grep` | **Reworded** to the structural reader; mirrors regenerated |
+| the PR body's first-round paragraph still said *no further bump: 0.11.0 covers this PR* | **Marked historical** on the live body |
+
+**The reader, as `pr-state` carries it, against thirteen manifests** — the two new shapes beside the eleven
+of § 9.11:
+
+```
+  extra-closing-brace.json                 refuse   (reads nothing)   NEW — a valid manifest, then a stray `}`: accepted before, refused now
+  real-shape-object-in-array.json          ACCEPT   (reads: hatsu)    NEW — objects inside arrays, an array inside an object inside an array: the refuted case
+  … the eleven of § 9.11, unchanged
+```
+
+**The passed-over report, on a successful fallback** — `HATSU_PLUGIN_ROOT=/tmp` beside the hostile path
+handed in, under bash 3.2:
+
+```
+§ 0's block   → exit 0, the hostile root resolved, and on stderr:
+               hatsu-warmup: passed over (not a Hatsu checkout, or a path that cannot be handed on): /tmp
+§ 5's prelude → exit 0, the hostile root resolved, and on stderr:
+               hatsu-warmup: passed over — rejected (not a Hatsu checkout): /tmp.
+```
+
+Every capture case of § 9.10 reruns unchanged on this text (A and B refused, C resolves the cwd checkout
+under `CDPATH`, D and E resolve, the newline-ending checkout reported *Unusable* and `/tmp` *Rejected* by
+§ 5, `pr-state` § 2 reporting `identities` under the hostile path). Both mirrors regenerate clean, the
+fenced-block check reports zero, the plugin validates. **Still not verified:** a Codex or Cursor session.
+
+### 9.13 Copilot's twelfth round — every line validated, and the manifests describe this release
+
+One thread and one suppressed comment.
+
+| finding | disposition |
+|---|---|
+| the reader ignored an unrecognised two-space line, so `{`, `  "name": "hatsu"`, `  junk`, `}` read `hatsu` although it is not JSON | **Fixed in all five copies.** Every inner line is now validated against the pretty-printed grammar: a member (a quoted key, then `{`, `[`, `{}`, `[]` or a scalar — a string with escapes, a number, `true`, `false`, `null`), a closer, or an array element at four spaces or deeper; anything else refuses the manifest. Eighteen shapes below |
+| `.claude-plugin/marketplace.json` still said *Pinned to nen v0.7.0* in its metadata description and both manifests' narratives stopped before this release | **Fixed**: the marketplace's pin reads the contract's values (`v0.8.0`, minimum `0.7`), and `plugin.json` plus both marketplace descriptions carry a v0.14.0 sentence naming the same-shell root, the structural reader and the capture guards |
+
+**The reader, as `pr-state` carries it, against eighteen manifests** — the thirteen of § 9.12 plus five new
+shapes — under bash 3.2, every result the expected one:
+
+```
+  junk-line-at-2.json      {  "name": "hatsu"  junk  }                         refuse   NEW — the round's case
+  junk-line-at-4.json      a junk line inside a nested object                  refuse   NEW
+  key-without-value.json   a bare "x" where a member should be                 refuse   NEW
+  unquoted-key.json        x: 1                                                refuse   NEW
+  valid-tricky.json        numbers, booleans, null, {}, [], escaped quotes and
+                           backslashes in strings, arrays of arrays, objects
+                           inside arrays — all canonical                       ACCEPT   NEW
+  … the thirteen of § 9.12, unchanged (six accepted, seven refused)
+```
+
+The one-line form and the named function agree on all eighteen; this checkout's own manifest, with the
+new sentence in its description, still reads `hatsu`. Every capture case reruns unchanged (the newline-ending
+checkout refused; the hostile path and a handed `.` resolved; `/tmp` named as passed over on success in both
+forms; `pr-state` § 2 reporting `identities` under the hostile path). Both mirrors regenerate clean, the
+fenced-block check reports zero, the plugin validates with the new descriptions. **Still not verified:** a
+Codex or Cursor session — as before.
+
+### 9.14 Copilot's thirteenth round — separators and delimiters: the reader is a validator of the shape
+
+One thread, and it was right: the line grammar of § 9.13 stripped a trailing comma from every member and
+never checked commas between siblings or that a closer matched its opener, so `{`, `  "name": "hatsu",`, `}`
+still read `hatsu`.
+
+**The reader is now a small stack machine over the canonical pretty-print**, in the named `manifest_name`
+and, byte-for-byte the same logic, on one line in the four compact copies:
+
+- line one is `{`; every item sits at its container's indentation plus two; the last line is the top-level
+  `}` and nothing follows it;
+- a member is a quoted key then `{`, `[`, `{}`, `[]` or a scalar; an element is one of those without a
+  key; members appear only inside `{` and elements only inside `[`;
+- a comma stands exactly between siblings and never after the last; every closer matches the opener at its
+  own indentation;
+- a duplicate top-level `name` refuses, as does anything else — minified, tab- or odd-indented, a nested
+  block laid out flat, a stray second `}`, a junk line, a trailing comma, a missing comma, a `]` closing a `{`.
+
+**Twenty-seven manifest shapes**, the eighteen of § 9.13 plus nine new, the named function and the one-line
+form agreeing on every one under bash 3.2:
+
+```
+  trailing-comma-last-member.json     {  "name": "hatsu",  }                refuse   NEW — the round's case
+  missing-comma-between-members.json  two members, no comma                 refuse   NEW
+  mismatched-closer.json              an array closed by `},`               refuse   NEW
+  three-space-indent.json                                                   refuse   NEW
+  closer-at-wrong-indent.json         `    },` closing a two-space opener   refuse   NEW
+  element-inside-object.json          a bare `"z"` where a member should be refuse   NEW
+  member-inside-array.json            `"k": 1` inside `[`                   refuse   NEW
+  duplicate-top-name.json             two top-level names                   refuse   NEW
+  valid-deep.json                     arrays in objects in arrays, `[]` and
+                                      `{}` as elements and values           ACCEPT   NEW
+  … the eighteen of § 9.13, unchanged (six accepted, twelve refused)
+```
+
+**A sweep of the real manifests on this host.** Every cached Hatsu manifest (`0.3.0` through `0.13.1`) reads
+`hatsu`; `bankai` reads `bankai`, `warp` reads `warp`; one manifest — a third-party plugin from the official
+marketplace — is refused, because it is indented at **four** spaces, not the shape Claude Code's own tooling
+writes. That is the documented policy doing what it says, in the safe direction: the reader answers "is this
+root Hatsu's", and a manifest it will not read is a root it will not accept.
+
+Every capture case reruns unchanged (the newline-ending checkout refused; the hostile path and a handed `.`
+resolved; `/tmp` named as passed over on success in both forms; `pr-state` § 2 reporting `identities` under
+the hostile path); this checkout's own manifest reads `hatsu`. Both mirrors regenerate clean, the
+fenced-block check reports zero, the plugin validates. **Still not verified:** a Codex or Cursor session.
+
+### 9.15 Copilot's fourteenth round — strict tokens
+
+Four threads (one per copy) and eight suppressed comments on the mirrors, one point: the scalar grammar was
+permissive — `01` passed as a number and `\\.` accepted any escape, `\q` included — so a manifest that JSON
+would refuse could still print `hatsu`.
+
+**Tokens now follow JSON**, in the named reader and the four one-line copies alike: a number is
+`-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?` — no leading zero, no bare dot, no `+`; a string admits only
+`\" \\ \/ \b \f \n \r \t` and `\uXXXX` as escapes and no raw control character; and the same string grammar
+applies to keys, so a key with a bad escape refuses the manifest too.
+
+**Thirty-five shapes**, the twenty-seven of § 9.14 plus eight token cases, both forms agreeing on every one
+under bash 3.2, and this checkout's own manifest reading `hatsu`:
+
+```
+  number-leading-zero.json     "x": 01                                  refuse   NEW — the round's case
+  bad-escape.json              "x": "\q"                                refuse   NEW — the round's case
+  bad-escape-in-key.json       "na\qme": "hatsu"                        refuse   NEW
+  number-trailing-dot.json     "x": 1.                                  refuse   NEW
+  number-leading-dot.json      "x": .5                                  refuse   NEW
+  number-plus.json             "x": +1                                  refuse   NEW
+  raw-tab-in-string.json       a literal tab inside a string            refuse   NEW
+  valid-tokens.json            é \n \" \\ \/ \b\f\r\t, -0, 1e5,
+                               -12.5E-3                                 ACCEPT   NEW
+  … the twenty-seven of § 9.14, unchanged (seven accepted, twenty refused)
+```
+
+Every capture case reruns unchanged (the newline-ending checkout refused; the hostile path and a handed `.`
+resolved; `/tmp` named as passed over on success in both forms; `pr-state` § 2 reporting `identities` under
+the hostile path). Both mirrors regenerate clean, the fenced-block check reports zero, the plugin validates.
+**Still not verified:** a Codex or Cursor session.
+
+### 9.16 Copilot's fifteenth and sixteenth rounds — four edges, and a watcher that could not count past thirty
+
+No thread in either; eleven suppressed comments, four points. (Both rounds landed while my own watch
+reported *no fifteenth review*: the reviews endpoint pages at thirty, the pull request had exactly thirty
+reviews on page one — Copilot's fourteen and sixteen of my thread replies — and the watch never paginated.
+The timeline showed the two rounds; the watch now pages.)
+
+| finding | disposition |
+|---|---|
+| a relative candidate that starts with `-` — `HATSU_PLUGIN_ROOT=-P`, or `-P` handed in — is read by `cd` as an option and refused | **Fixed in all five resolvers**: `case $c in -*) c=./$c;; esac` before anything touches the candidate, so it is a path to `cd`, `test` and `awk` alike. A checkout at `<parent>/-P` resolves from its parent by hand-off, by `HATSU_PLUGIN_ROOT`, and through `pr-state` § 2's copy |
+| `sharingan`'s two `--gates` mentions said `$hatsu_root` was *set in § 4's box*, a block that only exports `GH_TOKEN` | **Repointed** to `pr-state` § 2's resolver or the explicit-input line, with the note that nothing in § 4 sets it |
+| the `is_hatsu` comment said `claude/skills/` was *what the manifest's `skills` key points at*, a link the check never reads | **Reworded** to what it checks: the directory exists; the `skills` member is not parsed |
+| § 5's loop read `"${1:-}"` for the handed path, a slot never populated when the block runs as a shell block | **Fixed**: the handed path is the same single-quoted substituted slot § 0 carries, with the reason beside it |
+
+**Exercised, under bash 3.2:**
+
+```
+J. § 0, '-P' handed from its parent                 → exit 0, resolved '<scratch>/dash-test/-P'
+K. § 0, HATSU_PLUGIN_ROOT=-P from its parent        → exit 0, resolved '<scratch>/dash-test/-P'
+L. § 5's prelude, '-P' handed                       → exit 0, resolved (the install-dir guard satisfied)
+   pr-state § 2's copy, '-P' pasted                 → exit 0, $hatsu_root = <scratch>/dash-test/-P
+F. § 5's prelude, hostile handed beside /tmp first  → exit 0, "passed over — rejected (not a Hatsu checkout): /tmp."
+G. § 5's prelude, newline-ending handed             → exit 1, reported Unusable
+A, D, E, I, D' of § 9.10                            → unchanged
+```
+
+The reader still agrees with itself on the thirty-five manifests of § 9.15 and reads this checkout's
+manifest as `hatsu`; `pr-state` § 2 with the printed line pasted still reports `identities` under the
+hostile path. Both mirrors regenerate clean, the fenced-block check reports zero, the plugin validates.
+**Still not verified:** a Codex or Cursor session.
+
+---
+
+## Appendix A. Headless validation runs, per surface, moved from `docs/SURFACES.md` § 5 on 2026-09-20
+
+The hub keeps one command line per surface; the reasoning behind each flag lives here, cited to the
+findings above. Both `--help`s were read on this host before these were written down (§ 3.4, § 3.5).
+
+### A.1 Codex
+
+```sh
+# the deep tier's id AS THE HOST SPELLS IT TODAY, resolved and never remembered
+sol="$(codex debug models | grep -o '"slug":"[^"]*sol"' | cut -d'"' -f4)"
+[ -n "$sol" ] || { echo "codex debug models lists no 'sol' slug" >&2; exit 1; }
+
+codex exec -C <repo> -s workspace-write \
+  --add-dir "$(git -C <repo> rev-parse --path-format=absolute --git-common-dir)" \
+  -m "$sol" "<prompt>"
+```
+
+**`--add-dir` is not an optimisation. Without it a linked worktree cannot commit at all.**
+`-s workspace-write` makes the workspace writable, and in a linked worktree essentially all of git's
+own state lives outside it:
+
+| what | where it lives | inside `-C <worktree>`? |
+|---|---|---|
+| `HEAD`, `index`, `FETCH_HEAD`, `ORIG_HEAD` | `<main repo>/.git/worktrees/<name>/` | no |
+| objects, `refs/`, `packed-refs`, `config` | `<main repo>/.git/` | no |
+| `info/exclude` | `<main repo>/.git/info/` | no |
+
+Reproduced on a constructed fixture both ways (§ 7 F3): `printf 'y\n' >> a.txt && git add a.txt &&
+git commit -m …` under `-s workspace-write` died at exit 128, *"fatal: Unable to create
+`…/.git/worktrees/wt/index.lock`: Operation not permitted"*; the same command with `--add-dir
+"$(git rev-parse --path-format=absolute --git-common-dir)"` exited 0. `--git-common-dir` is the right
+ref and `--git-dir` is not: in a linked worktree `--git-dir` answers `<main>/.git/worktrees/<name>`,
+which covers `HEAD` and the index and leaves objects, `refs/` and `info/exclude` outside.
+`--path-format=absolute` because the bare form answers `.git` in a primary checkout. The alternative
+is a standalone clone, whose `.git` is inside the workspace. Either way `--add-dir` widens the sandbox
+by exactly one git directory; it is not `--dangerously-bypass-approvals-and-sandbox`.
+
+- `-C, --cd <DIR>` is the working root; `-s, --sandbox` takes `read-only`, `workspace-write` or
+  `danger-full-access`. `-m, --model` takes a versioned id even though the matrix alias is not: on this
+  host the slug list is `gpt-reserve`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`,
+  `gpt-5.3-codex-spark`, `codex-auto-review` (§ 3.5). There is no bare `sol` and no `gpt-6-sol`; a
+  command line carrying a remembered id fails on the day the version moves (Copilot thread
+  `PRRT_kwDOUKPjxM6hAjNK`).
+- `-o, --output-last-message <FILE>` when something downstream reads the answer; `--json` for JSONL.
+- The skills must already be in `<repo>/.agents/skills/`; that is the warm-up's job.
+
+**Answering a G5 stop is `codex exec resume`, which takes almost none of the flags above:**
+
+```sh
+sol="$(codex debug models | grep -o '"slug":"[^"]*sol"' | cut -d'"' -f4)"   # resolved here too
+cd <repo> && codex exec resume --last -m "$sol" --skip-git-repo-check \
+  -c 'sandbox_workspace_write.writable_roots=["<extra root>", "<repo git common dir>"]' \
+  -o <file> "<the answer>"
+```
+
+`resume` accepts neither `-C/--cd`, nor `-s/--sandbox`, nor `--add-dir`; each refused with *"error:
+unexpected argument … found"* at exit 2 (§ 7 F6). Its options are `-c`, `--last`, `--all`,
+`--enable/--disable`, `-i`, `-m`, `--strict-config`, `--skip-git-repo-check`, `--ephemeral`,
+`--ignore-user-config`, `--ignore-rules`, `--output-schema`, `--json` and `-o`. So the working root
+comes from the shell's `cd` and every extra writable root from `-c
+'sandbox_workspace_write.writable_roots=[…]'`; a resume that forgets it hits F3's `Operation not
+permitted` on the turn after the stop was answered. `-m` is resolved on the resume as on the first
+invocation (Copilot thread `PRRT_kwDOUKPjxM6hAjNv`).
+
+Codex's picker is `request_user_input` (`questions` 1 to 3, `isBlocking`); in-session delegates are
+`spawn_agent`. Hanten still uses the `codex exec` form above, in a worktree, when the reviewer must not
+share the author's tree.
+
+### A.2 Cursor
+
+```sh
+# the deep/frontier tier's id AS THE HOST SPELLS IT TODAY, resolved and never remembered
+grok="$(cursor-agent models | sed -n 's/^\(cursor-grok-[0-9.]*-high\) - .*$/\1/p' | sort -Vr | head -n 1)"
+[ -n "$grok" ] || { echo "cursor-agent models lists no cursor-grok id" >&2; exit 1; }
+
+cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
+```
+
+**`--model grok` does not exist.** Run verbatim on this host (§ 8 F1): *"Cannot use this model: grok.
+Available models: auto, gpt-5.3-codex-low, … cursor-grok-4.6-high, composer-2.5, …"*. `grok` is the
+tier alias in `nen/workflow.json` → `models.cursor.deep`; the catalogue is `cursor-agent models`
+(equivalently `--list-models`), read live on 2026-09-10 at `2026.09.08-6caf4ff`, one `<id> - <label>`
+per line. The Cursor-native rows: `cursor-grok-4.6-{low,medium,high,xhigh}[-fast]`,
+`cursor-grok-4.5-high[-fast]`, `composer-2.5[-fast]`. The alias resolves to the newest `cursor-grok`'s
+plain `-high` (labelled with no qualifier: `cursor-grok-4.6-high - Cursor Grok 4.6`), never `-fast`;
+the `sed` / `sort -Vr` above is that rule, executable. `composer` resolves the same way:
+`composer="$(cursor-agent models | sed -n 's/^\(composer-[0-9.]*\) - .*$/\1/p' | sort -Vr | head -n 1)"`.
+On `2025.09.18-39624ef` there was no catalogue to read: `--help` listed `-v --api-key -p
+--output-format -b --resume --model -f` and nothing else, and the refusal message was the only
+enumeration. That is what a build below the minimum leaves you with.
+
+- `-p, --print` is the non-interactive form; `--output-format` takes `text`, `json` or `stream-json`
+  and only works with `--print`. **`-f` is `--force`, not a file flag**: it takes no value, and the
+  prompt is a positional argument.
+- The working root is the shell's `cd`. `--workspace <path-or-name>`, `--add-dir <path>` and `-w,
+  --worktree [name]` exist from `2026.09.08-6caf4ff`; the `cd` form works on both.
+- There is no sandbox to widen: `-f/--force` allows commands unless denied, and a headless run
+  fetched, cut a branch, rebased and first-published inside a linked worktree with no permission
+  failure (§ 8).
+- A G5 is answered with `--resume [chatId]` on the same command line. Fix the id up front with
+  `cursor-agent create-chat` (the wave-5 run used `dc796003-a2c1-46e3-b867-70dc0a59bf3e`); `ls` and
+  `resume` reach the latest otherwise. The path is unexercised: no G5 fired in that run.
+- Give a `-p` run a timeout. Once, on `2025.09.18-39624ef`, the process printed its complete answer
+  and stayed alive at 0% CPU twelve minutes later. Not reproduced on `2026.09.08-6caf4ff`.
+- `--model` is Cursor-native only per the matrix's own note; `cursor-agent models` lists provider ids
+  too (`claude-opus-5-*`, `gpt-5.3-codex-*`, `gemini-3.7-*`) and the CLI accepts them, and this policy
+  does not: *"provider models there are reserved for Bugbot"*.
+
+`cursor-agent` is logged in on this host (`cursor-agent status` → *"Logged in"*), and a headless
+`/ren` + `/aka` run against a linked worktree of `zheref/nen` completed with no G5 stop, publishing a
+branch and touching neither the primary checkout nor a pull request (§ 8). What that run verified,
+corrected and left open is § 8.7 and § 8.8.
+
+### A.3 Antigravity
+
+```sh
+# A headless validation run at the deep tier
+agy --model pro "<prompt>"
+```
+
+Antigravity loads either the global plugin (`~/.gemini/config/plugins/hatsu`) or `.agents/` inside the
+repository. The hooks (`PreToolUse` on `run_command` via `guard-base-branch.sh`, `Stop` via
+`stop-bell.sh`, `PreInvocation` for the refresh) are active in interactive and headless CLI runs.
+Subagents raised via `invoke_subagent` choose a workspace: `inherit` (Third-Hand's Netero), `branch`
+(an isolated worktree, Hanten's reviewers) or `share`; they run concurrently in the background. The
+picker is `ask_question` with `is_multi_select: true` when several options may all be true. No
+headless Antigravity run has been recorded in this file yet; the command above is the documented form,
+not a transcript.

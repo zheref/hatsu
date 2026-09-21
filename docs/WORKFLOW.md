@@ -450,7 +450,8 @@ never the committed `nen/`. Two consequences worth stating here rather than only
   "claude": { "frontier": "fable", "deep": "opus", "fast": "sonnet", "economy": "haiku" },
   "codex":  { "frontier": "astra", "deep": "sol",  "fast": "terra",  "economy": "luna" },
   "cursor": { "frontier": "grok",  "deep": "grok", "fast": "composer", "economy": "composer" },
-  "roles":  { "reviewer": "deep", "worker": "fast", "measurer": "fast", "orchestrator": "frontier" }
+  "roles":  { "reviewer": "deep", "worker": "fast", "measurer": "fast", "orchestrator": "frontier",
+              "watcher": "economy", "formatter": "economy" }
 }
 ```
 
@@ -468,9 +469,15 @@ six months. On Cursor the tiers are Cursor-native only — provider models there
   afterwards: what ran, as whom, on what.
 
 The persona pins that follow from `roles` are frontmatter in the agent definitions themselves: **Gon** and
-**Phinks** `model: opus` / `effort: high`; **Hisoka** `model: sonnet` / `effort: high`; **Uvogin**
-`model: sonnet` / `effort: medium`. **Kurapika carries neither** — he is the main session and inherits
-whatever the maintainer is running.
+**Phinks** `model: opus` / `effort: high`; **Hisoka** `model: sonnet` / `effort: high`; **Uvogin** and
+**Netero** `model: sonnet` / `effort: medium`; **Illumi** `model: haiku`. **Kurapika carries neither** — he
+is the main session and inherits whatever the maintainer is running.
+
+**Two roles ride on the `economy` tier from zheref/hatsu#93, so the tier is no longer declared and unused.**
+`watcher` is the long watch: Illumi, and every `hatsu:izanami` poll, since an observation that reads and
+compares needs no reasoning budget. `formatter` is a formatting pass with no judgement in it: gyo's
+auto-fix, a prose reflow. Neither role authors, reviews or files; a task that does is `worker` or
+`reviewer`, whatever it is called.
 
 #### The matrix, per surface — the reviewer tier, and how a delegate is raised
 
@@ -482,13 +489,16 @@ surface for exactly this reason: **the tier is the policy and the alias is the s
 | `frontier` — the orchestrator, the maintainer's own session | `fable` | `astra` | `grok` | `ultra` |
 | `deep` — **`models.roles.reviewer`**, so this is the reviewer tier | **`opus`** | **`sol`** | **`grok`** | **`pro`** |
 | `fast` — `worker`, `measurer` | `sonnet` | `terra` | `composer` | `flash` |
-| `economy` | `haiku` | `luna` | `composer` | `flash_lite` |
+| `economy` — `watcher`, `formatter` | `haiku` | `luna` | `composer` | `flash` |
 | **how a subagent is raised** | the harness's **Agent tool**, `isolation: "worktree"` | **in-session `spawn_agent`** (ChatGPT app, CLI, IDE). Hanten's isolated reviewer is still a second **`codex exec -m <id> -C <dir> -s workspace-write`** because that reviewer must not share the author's tree | a **subagent definition** at `.cursor/agents/<persona>.md`, mirrored there from `claude/agents/` | the harness's **`invoke_subagent` tool**, `Workspace: "branch"` (reviewers) or `"inherit"` (Third-Hand's Netero), `Model: "pro"` |
 | **isolation** | the harness makes the worktree | in-session spawn **shares the parent**; Hanten's reviewer is still **`git worktree add` first** — `-C` takes a directory and creates none | the surface's own; the skill states which it got | **`Workspace: "branch"`** for Hanten reviewers; **`"inherit"`** for Third-Hand's Netero (`share` only when it is the same checkout) |
 
+`nen/workflow.json` → `models` is the source and this table a convenience copy of it; where the two
+disagree the file wins and the table is the bug.
+
 **A reviewer runs at the `deep` tier on every surface** — `opus`, `sol`, `grok`, `pro` — because
 `models.roles.reviewer` is `deep` and a role maps to a tier rather than to a product.
-[`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 9a is the mechanism, per surface, with
+[`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 4 and § 7 are the mechanism, per surface, with
 the exact invocation.
 
 **The frontier tier never runs a subagent, on any surface.** Not `fable`, not `astra`, not `grok`, not `ultra`. The
@@ -518,6 +528,32 @@ So a role on Cursor resolves to `grok` or `composer` and to nothing else — eve
 --model` will happily accept a provider model, and its own `--help` gives provider models as the examples.
 Accepting one is out of policy, not a local optimisation.
 
+### `profile`
+
+```json
+"profile": { "default": "standard", "allowed": ["fast", "standard", "thorough"] }
+```
+
+The run profile [`ren`](../claude/skills/ren/) § 2a reads (zheref/hatsu#93). `default` applies to every turn
+that names none; a turn names one with `hatsu:ren <request> --profile <p>` or the words "fast turn" /
+"thorough turn", and a value outside `allowed` is refused with the list quoted. An absent key reads as
+`standard`, said out loud.
+
+| Profile | Per turn | Deferred to `mukai` | Report |
+|---|---|---|---|
+| `fast` | steps 1 to 3 as ren § 2 states them; step 4 is skipped, the launch line reading `deferred by profile fast; the next standard or thorough turn, or hatsu:amaterasu by name, launches` | coverage and the full page; the launch is skipped, not moved | `turn-fast` |
+| `standard` | today's turn: every step of ren § 2 | nothing | `turn` |
+| `thorough` | `standard` plus the impacted suites (`kotoamatsukami`) after step 3 | nothing | `turn` |
+
+**A landing always runs thorough**, whatever the turns before it named: a profile lowers a turn, never
+the phase that publishes. Deferred to mukai means kotoamatsukami's impacted suites and byakugan's
+coverage at the landing; mukai has no launch step, so a launch skipped under `fast` is taken by the next
+`standard` or `thorough` turn, or by `hatsu:amaterasu` named by the maintainer. Every ren step is wrapped in `nen phase begin` / `nen phase end` so
+`.nen/phases/<effort>.json` records one entry per phase regardless of profile, and step 5 records the
+usage entry through `nen usage record` (`--not-reported` where the surface exposes no cost readout).
+`nen schema check` validates the key from `v0.13.0`; the `v0.12.0` pin preserves it as raw data and
+reports nothing about it (verified on 0.12.0, 2026-09-20).
+
 **An alias is a name, and the id you type may still carry a version.** `models.rule` is *"latest alias only,
 never a version"*, and that governs **the file**; a surface's command line may need the concrete id — on
 Codex the `sol` tier is spelled `gpt-<version>-sol`, so the id is **read from `codex debug models` at the
@@ -527,7 +563,7 @@ alias in the file honest.
 **A persona's `model:` pin does not translate between surfaces.** `nen surface mirror generate` carries
 `model` through to `.cursor/agents/<persona>.md` verbatim — correctly, since it mirrors rather than
 translates — so Hisoka's `sonnet` arrives on Cursor as a Claude alias in a Cursor-native-only matrix. The
-rule is `hanten`'s § 9a: **report the pin unresolvable, fall back to the role's tier, and state the
+rule is `hanten`'s § 7: **report the pin unresolvable, fall back to the role's tier, and state the
 substitution in the title.** Never silently honoured, never silently dropped.
 
 ---
@@ -829,10 +865,11 @@ not in the session:
 | **the checklist** | the repository's own |
 | **`Closes #N`** | GitHub's native autolink, kept beside the object notation |
 
-The verbs: `nen pr body-check` (the body's completeness), `nen changelog fragment-required` (whether this
-change owes a fragment), `nen gate derive` (which gate the PR stands at — **derived, never labelled by
-`shibari`**), `nen pr edit-body` to write the body back, and `nen pr request-reviews` to request the
-reviewers. **`nen pr edit-body --target <owner/name> --pr <n> --body-file <path>` exists at the pinned
+The verbs: `nen pr open` (the one PR, from the pushed head, at nen `0.13`: exit `2` when the head is not
+on the remote, exit `1` naming an open PR for the branch), `nen pr body-check` (the body's completeness),
+`nen changelog fragment-required` (whether this change owes a fragment), `nen gate derive` (which gate
+the PR stands at — **derived, never labelled by `shibari`**), `nen pr edit-body` to write the body back,
+and `nen pr request-reviews` to request the reviewers. **`nen pr edit-body --target <owner/name> --pr <n> --body-file <path>` exists at the pinned
 `0.5.0`** and replaces the body outright from the file's bytes, certifying the number before any write and
 refusing an issue number at exit `2`. `gh pr edit --body-file` is retired with it (§ 7).
 
@@ -899,7 +936,7 @@ cache, which is what the version bump in `.claude-plugin/plugin.json` exists to 
 
 ## 6 · The hooks
 
-[`../hooks/hooks.json`](../hooks/hooks.json) carries two Claude Code hooks. **Neither is a nen-owned step.**
+[`../hooks/hooks.json`](../hooks/hooks.json) carries three Claude Code hooks: `SessionStart` (`hooks/session-start.sh`, a warm-up reminder on Claude Code and, on a mirrored surface, a mirror refresh in a repository that already adopted Hatsu, fail-open; [`docs/SURFACES.md`](SURFACES.md) § 1), `Stop` and `PreToolUse`. **None is a nen-owned step.**
 They are executed by the harness *around* a session rather than by a skill *inside* one, and they exist for
 the two things a skill structurally cannot do: a skill only runs when the model calls it, and by the time the
 model has stopped talking, or has already typed the push, it is too late.
@@ -907,14 +944,19 @@ model has stopped talking, or has already typed the push, it is too late.
 | Hook | Event | What it does |
 |---|---|---|
 | [`stop-bell.sh`](../hooks/stop-bell.sh) | `Stop` | rings `notifications` rungs **2 and 3** off the marker at `.nen/last-stop.json`, then consumes it |
-| [`guard-base-branch.sh`](../hooks/guard-base-branch.sh) | `PreToolUse`, matcher `Bash` | exits `2` — blocking the tool call — on a `git commit` or `git push` while the branch equals `branch.base` |
+| [`guard-base-branch.sh`](../hooks/guard-base-branch.sh) | `PreToolUse`, matcher `Bash` | exits `2` — blocking the tool call — on a raw `git` commit or push while the branch equals `branch.base`; the skills commit and push through `nen commit write` and `nen wc publish`, and the latter refuses the trunk itself at exit `2` |
 
-**Both are Claude Code's, and only Claude Code's.** `hooks/hooks.json` is that host's manifest, discovered
-at the plugin's own `hooks/` path; **neither Codex nor Cursor reads it, and neither documents a turn-end
-hook of its own** ([`docs/SURFACES.md`](SURFACES.md) § 1). So on those two surfaces the bell has no hook to
-fire it and [`jutaisho`](../claude/skills/jutaisho/SKILL.md) § 6 runs rungs 2–3 in-session and says so, and
-the trunk guard has nothing behind it at all — the refusal to commit on `branch.base` is the skills' own
-rule there, not a reflex the harness enforces. **Say which of the two you are relying on.**
+**Every surface has all three hooks once its hook file was placed.** `hooks/hooks.json` is Claude Code's
+manifest, discovered at the plugin's own `hooks/` path; `nen surface mirror generate --hooks` renders the
+same three rows into the hook file each other surface documents (Codex `.codex/hooks.json` with `Stop`,
+Cursor `.cursor/hooks.json` with `stop`, Antigravity `.agents/hooks.json` or the global plugin's
+`hooks.json` with `Stop`; [`docs/SURFACES.md`](SURFACES.md) § 1), and the warm-up places that file. So
+the bell's in-session fallback in [`jutaisho`](../claude/skills/jutaisho/SKILL.md) § 5 keys on one fact,
+**was a hook file placed here**, never on a surface list: where none was placed the skill rings rungs 2
+and 3 itself, says so, and removes `.nen/last-stop.json` once the stop is answered; where one was placed
+the hook fires and consumes the marker, and the skill leaves it alone. The trunk guard keys on the same
+fact: with no hook file placed, the refusal to commit on `branch.base` is the skills' own rule, not a
+reflex the harness enforces. **Say which of the two you are relying on.**
 
 **The guard parses the command; it does not match a substring.** A shell wrapper is unwrapped first — `sh -c
 '<script>'` *runs* `<script>`, so the payload is recovered and parsed as its own segment. Quoted spans are then
@@ -1001,11 +1043,11 @@ spell it with is `$hatsu_root`, never `$CLAUDE_PLUGIN_ROOT` on its own**, becaus
 verbatim onto Codex and Cursor ([`docs/SURFACES.md`](SURFACES.md)) and `$CLAUDE_PLUGIN_ROOT` is Claude
 Code's alone: **the harness exports it while a skill is running, and it is EMPTY in an ordinary tool-call
 shell and inside a subagent** — verified live — and on the two other surfaces it is usually unset or, exported
-from a shell profile, names a different plugin (`docs/ab/surfaces.md` § 8, F3). `$hatsu_root` is the
+from a shell profile, names a different plugin (`docs/surfaces/evidence/surfaces.md` § 8, F3). `$hatsu_root` is the
 resolution [`hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md) § 5's prelude runs on every surface,
 each candidate accepted only if it is a Hatsu checkout, the winner canonicalised to an absolute path and
 held in a shell variable that is not exported. **So a code block that uses `$hatsu_root` sets it in that
-block** — `hatsu-warmup` § 0's resolver verbatim (`pr-state`, `futon`, `tensho`), or the one-line explicit
+block** — `hatsu-warmup` § 0's resolver verbatim (`futon`; `pr-state` and `tensho` read `$HATSU_PLUGIN_ROOT` or the line § 0 printed and re-resolve through the warm-up when neither is in hand, from 0.43.0), or the one-line explicit
 input `hatsu_root='<the absolute path § 0 printed>'` (the warm-up's own later blocks, `hanten` § 3, and the
 prose fallbacks in `backlog-state` and `getsuga`). **The path is never embedded raw in source text**: § 0
 prints a label line, then the root alone on the next line as a single-quoted shell literal with every `'`
@@ -1045,11 +1087,7 @@ live and recorded in the matching `docs/ab/<skill>.md` under *Retired at nen 0.5
 
 | Residue | Where | Why it is still residue |
 |---|---|---|
-| the push itself — `git push [-u] origin HEAD` | `aka`, `murasaki` | `pr cascade-main` pushes only what it merged itself; there is no push verb |
-| `git rebase origin/<base>` | `ao` | the cascade verb *"merges (never rebases)"* by its own `--help` |
-| the merge/rebase commit — `git commit --file`, `git rebase --continue` | `ao`, `kokusen` | `commit format` formats; nothing in nen commits |
-| `gh pr create` | `shibari` | `nen pr` carries nine subcommands and `create` is not one |
-| showing both sides of a conflict — `git show :1:|:2:|:3:` | `ao` | `conflicts[]` names the commits, not the content |
+| **RETIRED at nen `0.13`**: the push (`wc publish`), the rebase and the merge (`wc catch-up`), the commit (`commit write`), the PR (`pr open`), the stash-and-restore (`shu warmup --carry`) and both sides of a conflict (`catch-up`'s `conflicted[]`) | `aka`, `murasaki`, `ao`, `kokusen`, `shibari`, `breath` | each is a verb in `0.13`; only a `:1:` base stage is still `git show` |
 | the marker's SHAPE — `hatsu.stop-marker/v0.1` | `jutaisho` | `nen stop --mark` writes a poorer document with no `title`, `sound` or `rungs`, and **replaces** the file; adopting it would ring the generic line on every gate. Kept deliberately |
 | removing the marker on a hookless surface | `jutaisho` | `--mark` writes and never removes |
 | a coverage tool's own exclusions | `byakugan` | `--touched` narrows the rows nen parsed; it cannot know what was never instrumented |
@@ -1058,7 +1096,7 @@ live and recorded in the matching `docs/ab/<skill>.md` under *Retired at nen 0.5
 | a `.xcresult` with no declared extraction step, and a Playwright HTML report | `tsukuyomi`, `kotoamatsukami` | `test-report` reads a **declared** summary; nen opens no result bundle itself |
 | placing a surface mirror into a target repository, and `info/exclude` | `hatsu-warmup` | `--out` is a path, not a deployment; an exclude file is one working copy's property |
 | an artifact's size, freshness and checksum | `susanoo` | nen reports a declared artifact's existence and nothing more |
-| `git push`/`git commit` guards on the trunk | `hooks/` | harness hooks, not nen-owned steps |
+| the trunk guard hook (`guard-base-branch.sh`) | `hooks/` | a harness hook, not a nen-owned step |
 
 **A residue lapses when the pin moves and a verb arrives for it** — and a missing verb is a finding to
 file, never a gap to route around.
@@ -1085,8 +1123,8 @@ Antigravity uses `ask_question` (`is_multi_select`) and `invoke_subagent` with `
 also generated into Codex and Cursor layouts under `surfaces/`, placed into a target repository by the
 warm-up, checked for drift by [`scripts/surface_mirror_check.sh`](../scripts/surface_mirror_check.sh), and
 documented in [`docs/SURFACES.md`](SURFACES.md). **Two things a surface does not have were named rather than
-assumed at `v0.7.0`**: Codex and Cursor have no turn-end hook (§ 6), and the 2026-09-10 CLI record said Codex
-had no in-session subagent. **From `v0.28.0` Codex does spawn in-session subagents**; Hanten's isolated
+assumed at `v0.7.0`**: Codex and Cursor had no documented turn-end hook then (both have one now, placed with
+their hook file, § 6), and the 2026-09-10 CLI record said Codex had no in-session subagent. **From `v0.28.0` Codex does spawn in-session subagents**; Hanten's isolated
 reviewer remains a second `codex exec` because that reviewer must not share the author's tree. **RETIRED at nen `0.5`: the mirror's own generator is in the pinned binary.**
 `nen surface mirror generate|check` runs at `v0.5.0` — `scripts/surface_mirror_check.sh` exits `0` with
 the counts it prints, `codex ok: 44` and `cursor ok: 55` at `v0.42.0` — so the CI job runs a real check instead of skipping with a notice. The
@@ -1282,9 +1320,10 @@ move reads it here rather than restating it.
 **The guaranteed outcome** (ruling 2026-09-18): *a branch off a `main` proven green, carrying the
 maintainer's own commits on that tip, with their uncommitted changes still uncommitted.*
 
-- **Preserve.** A stash is addressed **by SHA, never by `stash@{0}`** — capture and print
-  `git rev-parse stash@{0}` at push time and restore with `git stash apply <sha>`.
-  `--include-untracked` is mandatory. **Never `--discard`, `git checkout -- .` or `reset --hard`.**
+- **Preserve.** `nen shu warmup --carry` (nen `0.13`) stashes the tree, untracked paths included,
+  addressed **by SHA, never by `stash@{0}`**, warms, and restores by `stash apply <sha>` with a
+  checked drop; a conflicting restore leaves the stash in place and stops as `nen/decisions.json`
+  row `semantic-conflict`. **Never `--discard`, `git checkout -- .` or `reset --hard`.**
 - **Prove.** An isolated `git worktree add --detach <tmp> origin/<base>` is preferred and removed on
   every path; fall back to the maintainer's working directory only where a lane cannot run outside
   it, **saying which**. A red base is a **G5**; a seat (exit `4`) is not red.
@@ -1360,7 +1399,8 @@ squashes.
 nen commit format --repo <path> --type <type> --subject "<short imperative subject>" [--scope <scope>] \
   [--breaking] [--body "<one paragraph>"] --trailer "Hatsu-Agent=<responsible-persona>"
 nen commit format … > <message file>      # exit 0 REQUIRED before the next line; NEVER 2>&1
-git commit --file <message file>          # residue: no nen verb writes a commit
+nen commit write --repo <path> --message-file <message file> [--trailer "<Key: value>"]... \
+  [--require-proof <lane>] [--dry-run] [--json]   # nen 0.13: validates again, commits, -> {sha, subject, trailers}
 ```
 
 `nen commit format` validates **shape** only — a declared type, a non-empty subject under 72
@@ -1376,19 +1416,21 @@ where it still adds one, **stop and report the required correction** rather than
 as compliant. **Existing history is not rewritten.** Reading the rendered output against
 `commits.forbiddenTrailers` before the commit is written is the layer that survives a missing flag.
 
-**The `git commit` line is gated on the format verb's exit code, and the two streams are kept apart.**
-The refusal goes to **stderr** with nothing on stdout, so both obvious spellings are wrong:
-`2>&1 > <file>` **commits the refusal as the message**, and a plain redirect that ignores the exit
-code **commits an empty file**.
+**The `commit write` line is gated on the format verb's exit code, and the two streams are kept
+apart.** The refusal goes to **stderr** with nothing on stdout, so both obvious spellings are wrong:
+`2>&1 > <file>` **hands the refusal over as the message**, and a plain redirect that ignores the exit
+code **hands over an empty file**. `commit write` validates the file as `commit format` does and
+refuses a red proof under `--require-proof` and an empty index, so it catches both; it is still not
+the layer to lean on.
 
 | Exit | Meaning | What the phase does |
 |---|---|---|
-| `0` | the message is on stdout | **use it** — `git commit --file` |
+| `0` | the message is on stdout | **use it** — `nen commit write --message-file` |
 | `2` | **refused** — a shape violation, or an attribution trailer `nen/workflow.json` does not admit | **stop**, quote the stderr sentence, fix the input, re-run. Never commit the file: it is empty |
 | `1` | the trailer policy could not be read — `nen/workflow.json` present and **malformed** | **stop.** Report it as a repository defect and point at `nen schema check` |
 
-**An empty `<message file>` is the tell for either refusal**, checked before `git commit` whichever
-way the exit code was read. `--file`, never `-m` retyped from memory. **Never `--no-verify`** — a
+**An empty `<message file>` is the tell for either refusal**, checked before `commit write` whichever
+way the exit code was read. `--message-file`, never a message retyped from memory. **Never `--no-verify`** — a
 commit hook that refuses is the repository speaking. Stage explicitly, path by path.
 
 ## Verified delivery — the coordinator's four claims

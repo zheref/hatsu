@@ -16,16 +16,14 @@ the plugin root as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 0 says.
 [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) carries the shape (`S3`, `P1b`), and
 **the preserve/prove/place/restore/report rules are [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md)
 § *The standalone stash-and-restore shape*** — including the guaranteed outcome. Cold, run **P1** and
-**P2**, then §§ 2–4 wrapped in the stash and the restore below; from a composite, skip this section.
+**P2**, then §§ 2–4 with the tree carried by `--carry` below; from a composite, skip this section.
 **Once per session**: already run, report and return. After the restore, § 3a's `init` runs once.
 
 ```bash
 git rev-parse --abbrev-ref HEAD; git status --porcelain; git log --oneline origin/<branch.base>..HEAD
 git rev-parse --verify --quiet refs/remotes/origin/<branch>
-git stash push --include-untracked -m "hatsu:breath <ISO>" && git rev-parse stash@{0}   # PRINT it
-git fetch origin && git merge --ff-only origin/<branch.base>
-git worktree add --detach <tmp> origin/<branch.base>   # prove § 4's checks here, then remove it
-git stash apply <the captured SHA>
+git fetch origin && git worktree add --detach <tmp> origin/<branch.base>   # prove § 4 here, then remove it
+nen shu warmup --repo <path> --branch <name> --from <branch.base> --carry   # stash by SHA, warm, restore
 ```
 
 ## 1. Invocation, and the parameters
@@ -60,7 +58,7 @@ nen wc classify --repo <path> --base <branch.base>
 |---|---|
 | `on-branch-clean` on the **trunk** | New effort → § 3 |
 | `on-branch-clean` on a **branch** | Not proof this request is that effort — classify first (§ 2a) |
-| `must-move` (trunk, dirty) | **Never asked** (row `dirty-tree`): `nen shu warmup --carry` stashes including untracked, warms, cuts and restores it still uncommitted, **by stash SHA**, every carried path listed. A conflicting pop leaves the stash in place, names its SHA and the exact `git stash apply <sha>`, and is the one outcome that stops — a `semantic-conflict`, not a question about the tree |
+| `must-move` (trunk, dirty) | **Never asked** (row `dirty-tree`): `nen shu warmup --carry` stashes including untracked, warms, cuts and restores it still uncommitted, **by stash SHA**, every carried path listed. A conflicting restore leaves the stash in place, names its SHA and the recovery line, and is the one outcome that stops — a `semantic-conflict`, not a question about the tree |
 | `on-branch-dirty` | § 2a first: a continuation of *this* effort reports the subjects and paths and hands the turn to [`kokusen`](../kokusen/SKILL.md) or the maintainer; a **new** effort shows the paths and **asks** — never discard, never cut a second branch over it |
 | detached `HEAD` | Classified into a row above with `branch: null`, never `must-move`; read `detachedAt`, report it, go on |
 
@@ -155,7 +153,8 @@ verdict, the build's exit code, any `info/exclude` path and lines written, and w
 *no workflow.json* sentence. **A warm-up that did not run is reported as not run, never as clear.**
 
 Rendering `branch.template`, appending `info/exclude` and proving it took (`nen wc classify`,
-`git check-ignore -v`), and opening the cycle ledger (zheref/hatsu#63) are by hand. **Deciding whether
+`git check-ignore -v`), and opening the cycle ledger (zheref/hatsu#63) are by hand. **RETIRED at nen
+`0.13`**: § 0's stash-and-restore is `nen shu warmup --carry`, nothing stashed by hand. **Deciding whether
 an existing dirty branch is this effort stays judgment**; new-versus-continuation on a *clean* feature
 branch is not — § 2a is a closed table.
 

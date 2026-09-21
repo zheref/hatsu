@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.43.0 — surfaces, spend and speed (zheref/hatsu#93)
+
+Release unit for `v0.42.0..v0.43.0`: [#94](https://github.com/zheref/hatsu/pull/94) (the delivery).
+
+> Pinned to nen **v0.13.0** (`minimum` `0.13`, zheref/nen#227): the `antigravity` and `claude-code` surface rows with `--models`, `--permissions`, `--hooks`, `--rules` and `--stamp`, `nen surface mirror check --installed`, `nen usage record`, `nen shu` step durations under the open phase, `phases[]` and `usage[]` in `nen report data`, the two-gate stall rule, `nen wc catch-up`, `nen wc publish`, `nen commit write`, `nen pr open`, and the `profile` key. **The warm-up reads `WRONG` until v0.13.0 is tagged and its release assets are published.**
+
+- **One generator.** `scripts/antigravity_mirror_sync.sh` is retired; `scripts/surface_mirror_check.sh` runs one `nen surface mirror check` per surface (codex, cursor, antigravity) with the shared flags and the plugin version stamped into every marker, and takes `--installed <path>` for a host's plugin cache. The Antigravity mirror follows the plugins page's layout: `skills/<name>/SKILL.md` (the plugin's own `skills/` folder; the old flat copies at the root are gone), `agents/`, `rules/hatsu.md` (from `claude/rules/hatsu.md`, under the 12,000-character limit), `hooks.json` with its scripts under `hooks/`, and `plugin.json`. `templates/surface-mirror-regenerate.yml` is the regenerate-on-drift workflow, installed under `.github/workflows/` by the follow-up PR once the validator that accepts it is on `main`; `surface-mirror-check` is to be required on `main` (the ruleset act is the maintainer's).
+- **`docs/surfaces/`.** A shared skeleton and one evolution guide per surface with a dated checklist (fetched 2026-09-20) quoting the official line per row; `docs/ab/surfaces.md` moved to `docs/surfaces/evidence/surfaces.md`; `docs/SURFACES.md` is a short hub. Corrected: Codex and Cursor do have hooks (`.codex/hooks.json`, `.cursor/hooks.json`); Antigravity's workspace paths are `.agents/…` and its global plugin path `~/.gemini/config/plugins/<name>`; the skill counts read forty-three plus `hatsu-warmup`.
+- **Great Hiker** (`hatsu:great-hiker`): authors canon prose and machinery and propagates it to every surface; prose as a Fable subsession at low, medium or high effort by skills touched, machinery on the fast tier; the evolution duty diffs each guide against its cited docs and files one Netero-shaped issue per surface.
+- **Tiers and roles.** `models.roles.watcher` and `formatter` on `economy`; Illumi runs as watcher (`haiku`), Netero on the fast tier (`sonnet`, medium effort); the Codex `[agents]` fragment and Cursor `model: inherit` come from the generator rows.
+- **Run profiles.** `profile` (`fast`, `standard`, `thorough`; default `standard`) in `nen/workflow.json`; `ren` § 2a reads it, wraps every step in `nen phase begin|end`, records usage at the report step, and under `fast` publishes `turn-fast` and defers build, launch, the full page and coverage to `mukai`; a landing always runs thorough.
+- **`en`** runs `nen wake verify` on every observation and before any re-request, and states the no-op sync guard once.
+- **The spend block** in both templates: phase durations as bars with their `nen shu` steps, tokens by surface and model, Actions minutes, `not reported` per surface; `spiritual-message` and `backlog-board` build it from `phases[]` and `usage[]` and record usage through `nen usage record` before rendering.
+- **CI hardening, landing in two steps (zheref/hatsu#94).** `timeout-minutes` on every job and `concurrency` with cancel-in-progress on the three PR guards land live this release. `ready_for_review` and a draft skip on the guards do **not** land live yet: `scripts/workflow_runner_policy_check.rb` now *accepts* both the old trigger/guard shape and the hardened one (main's own trusted copy of the validator still judges every PR by the old shape, so the live workflow and the validator that accepts its successor cannot change in the same PR — see `docs/GATE-CONFIGURATION.md`'s dated note), and a **follow-up PR** flips the three live `.github/workflows/*.yml` files to the hardened shape once this validator is itself the one `main` trusts. `templates/pr-readiness.yml` (the consumer scaffold, which carries no trusted-validator step of its own) ships the hardened shape today — timeouts, concurrency, `ready_for_review`, the draft skip, deliberately no `paths` filter, since a readiness verdict reads the whole PR state and the check is required. The mirror check's `paths` filter was dropped for the same reason: a required context must always report. The auto-regenerator that closes the mirror-drift loop ships as [`templates/surface-mirror-regenerate.yml`](templates/surface-mirror-regenerate.yml) — not yet installed under `.github/workflows/` — until that same follow-up PR installs it live. `scripts/plugin_bump_check.sh` refuses a non-increasing version (a downgrade or an equal version, the way v0.40.0 went untagged), with fixture cases.
+- **No hand-rolled git.** breath, ao, kokusen, shibari, aka, mukai, murasaki and izanami use `nen shu warmup --carry`, `nen wc catch-up`, `nen commit write`, `nen wc squash`, `nen wc publish` and `nen pr open`; pr-state and tensho read the warm-up's resolved plugin root instead of the awk manifest reader.
+- **Warm-up.** `nen surface mirror check --installed` runs first and the mirrors are copied only on drift (also the answer to #90's post-cut host re-pin); `tenkai` places the surface packs through the generator.
+- **A third harness hook.** `SessionStart` → `hooks/session-start.sh`: a warm-up reminder on Claude Code, a mirror refresh on a mirrored surface (Codex `SessionStart`, Cursor `sessionStart`, Antigravity `PreInvocation`), fail-open; the hook manifests on every surface now come from `hooks/hooks.json` through the generator, and the Codex one uses the documented `{"hooks": {...}}` wrapper.
+- Counts: forty-three skills plus `hatsu-warmup`, ten independents beside Kurapika plus the reviewer preamble; the plugin manifest at 0.43.0.
+
 ## v0.42.0 — the reports and the reviewers carry their weight (zheref/hatsu#89)
 
 Release unit for `v0.41.0..v0.42.0`: [#91](https://github.com/zheref/hatsu/pull/91) (the delivery) and the reconciling [#92](https://github.com/zheref/hatsu/pull/92).
@@ -29,7 +48,7 @@ prose carried stayed in its skill.
 - **§ 0 (`$CLAUDE_PLUGIN_ROOT`)** — the section once opened with `cat "$CLAUDE_PLUGIN_ROOT/nen/contract.json"`
   before any resolution. On this host the variable is exported from `~/.zshrc` pointing at
   **bankai 0.10.0**, so every Codex and Cursor session would have read *another plugin's* dependency
-  contract, silently (`docs/ab/surfaces.md` § 8, F3). Resolving first is now the rule; the incident is
+  contract, silently (`docs/surfaces/evidence/surfaces.md` § 8, F3). Resolving first is now the rule; the incident is
   here.
 - **§ 0 (`nen schema check`)** — this checkout's aggregate used to exit `1` on every run, five rows
   `ok` and `nen/colors.yml` FAIL, because that file had never existed on any branch while six runtime
@@ -58,7 +77,7 @@ prose carried stayed in its skill.
   neutralised downstream; it is exit `2` at the flag now.
 - **§ 2b** — the live `v0.7.0` transcript showing `~/.cache/nen/zheref_nen/v0.7.0/nen-darwin-arm64`
   with nothing in it called `nen`, and the observed failure it explains: `~/.local/bin/nen` still
-  pointed at the old target after an exit-`0` bootstrap (`docs/ab/surfaces.md` § 8, F5). The same run
+  pointed at the old target after an exit-`0` bootstrap (`docs/surfaces/evidence/surfaces.md` § 8, F5). The same run
   is where a headless Cursor session chose the session-scoped binding unprompted and was right.
 - **§ 2 (exit codes, retired at nen 0.7)** — `nen bootstrap --help` publishes the whole table itself
   now, including `7`; at v0.6.0 its `--help` named no exit code at all
@@ -71,11 +90,11 @@ prose carried stayed in its skill.
   because bankai carries no `surfaces/`, which was the safe failure for the wrong reason.
 - **§ 5a (Codex)** — three controlled `codex debug prompt-input` renders, no model called, showing a
   symlinked mirror listed as `hatsu:aka` and a `cp -R` of the same directory listed as the bare `ren`
-  (`docs/ab/surfaces.md` § 7, F1); and F10, where a symlinked mirror's relative
+  (`docs/surfaces/evidence/surfaces.md` § 7, F1); and F10, where a symlinked mirror's relative
   `../../../nen/workflow.json` resolved into the *plugin's* policy file rather than the target's.
 - **§ 5a (`AGENTS.override.md`)** — verified live with both files present, only the override reached
   the instruction envelope: the project's `AGENTS.md` was **superseded**, not merged
-  (`docs/ab/surfaces.md` § 7, F9).
+  (`docs/surfaces/evidence/surfaces.md` § 7, F9).
 - **§ 5b (Cursor)** — the row once carried a box saying link-following was unverified because
   `cursor-agent status` reported *Not logged in*; four controlled probes on `2026.09.08-6caf4ff`
   resolved it (a skill found through a symlink inside the workspace and through one pointing outside
@@ -85,17 +104,17 @@ prose carried stayed in its skill.
   as mandated, `2025.09.18-39624ef` answered a discovery probe with the whole reply `NO SKILLS
   VISIBLE`, seventeen bytes, then answered the next question by grepping the working tree. It nearly
   became a false finding against the symlink row; the control probe (the same build cannot see a
-  `cp -R` copy either) showed the variable was the binary (`docs/ab/surfaces.md` § 8, F2).
+  `cp -R` copy either) showed the variable was the binary (`docs/surfaces/evidence/surfaces.md` § 8, F2).
 - **§ 5b · ii** — on this host `.cursor/skills/` also carried Cursor's own built-ins and this host's
-  **Claude Code plugin skills**, `build` and `drive` among them (`docs/ab/surfaces.md` § 8, F4).
+  **Claude Code plugin skills**, `build` and `drive` among them (`docs/surfaces/evidence/surfaces.md` § 8, F4).
 - **§ 5d (`info/exclude`)** — verified live on a fixture: writing the exclude to the `--git-dir`
   answer in a linked worktree left `git status --porcelain` printing `?? .agents/` and
   `git check-ignore -v` at exit `1`; the `--git-path` answer silenced the status and made
-  `check-ignore` exit `0`, naming `<main>/.git/info/exclude:7` (`docs/ab/surfaces.md` § 7, F2).
+  `check-ignore` exit `0`, naming `<main>/.git/info/exclude:7` (`docs/surfaces/evidence/surfaces.md` § 7, F2).
 - **§ 5d (`AGENTS.md`)** — the section used to say `AGENTS.md` *"is the exception and is not
   excluded"*. On a target tracking none — `zheref/nen` does not — that left `?? AGENTS.md` standing
   forever, `nen shu warmup` refused at exit `2` on an untracked path it did not put there, and a whole
-  headless run stopped on it (`docs/ab/surfaces.md` § 7, F9). Also recorded: the `.gitignore` refusal
+  headless run stopped on it (`docs/surfaces/evidence/surfaces.md` § 7, F9). Also recorded: the `.gitignore` refusal
   one directory over, Copilot review thread `PRRT_kwDOUKPjxM6hAjLf`.
 - **§ 5e (retired at nen 0.5)** — `nen surface mirror generate|check` exists at the pin (it answered
   *"nen: unknown command 'surface'"* at exit `2` through v0.4.0); `bash scripts/surface_mirror_check.sh`
@@ -159,7 +178,7 @@ prose carried stayed in its skill.
   `state.detachedAt`), every case exits `0`, and one refusal remains: a `HEAD` that names no branch
   *and* resolves to no commit. The shape mattered because `git worktree add --detach` is what
   `hanten` § 9a makes for every Codex reviewer, and it stopped a whole headless run
-  (`docs/ab/surfaces.md` § 7, F4).
+  (`docs/surfaces/evidence/surfaces.md` § 7, F4).
 - **Retired at nen 0.6: cutting by hand when another worktree holds the trunk.** A primary checkout on
   `main` with every effort in its own worktree meant git refused to force-move the trunk — *fatal:
   cannot force update the branch 'main' used by worktree at '…'* — and through v0.5.0 that landed
@@ -174,7 +193,7 @@ prose carried stayed in its skill.
   prize-recollection branch because a clean non-trunk checkout was read as "already warm".
 - **The `info/exclude` findings** — F2 (a linked worktree's `--git-dir` names a file git never reads)
   and F9 (the surface mirror the warm-up had just installed was the untracked tree that stopped a
-  headless run), both `docs/ab/surfaces.md` § 7.
+  headless run), both `docs/surfaces/evidence/surfaces.md` § 7.
 - **The no-declaration transcript** — verified against the `zheref/nen` checkout, which carries no
   `project` block: the git half prints in full and the run ends *"no declaration -- build/test
   verification skipped … That is not a failure … this exits 0"*, `lane: (none)`
@@ -230,7 +249,7 @@ prose carried stayed in its skill.
 - **Retired at nen 0.6: an ordinary turn may be spelled `--line ""`.** Through v0.5.0 the empty line
   was exit `2` (*"the line must open with the literal 'at'"*) while a bare `at` was exit `0`, so the
   ordinary invocation of the most-invoked step in the loop was the one a caller had to be told about.
-  A headless Cursor run found it by trying both (`docs/ab/surfaces.md` § 8, F11).
+  A headless Cursor run found it by trying both (`docs/surfaces/evidence/surfaces.md` § 8, F11).
 - **Retired at nen 0.5: `notifications.turn` is in `nen.workflow/v0.1`** — a closed two-value set,
   verified live both ways (`"turn": "loud"` FAILs naming the set, `"all"` validates `ok`), and written
   into every scaffolded policy file.
@@ -242,7 +261,7 @@ prose carried stayed in its skill.
   reads. The v0.1 kept-residue rationale, the `§ 6` by-hand write block and residue entries 1, 6 and 8
   all lapse with it. (Copilot review thread `PRRT_kwDOUKPjxM6hAjMh` is where the by-hand write was
   spelled out rather than the verb.)
-- **The headless-seat measurement** (`docs/ab/surfaces.md` § 7, F8): inside `codex exec -s
+- **The headless-seat measurement** (`docs/surfaces/evidence/surfaces.md` § 7, F8): inside `codex exec -s
   workspace-write` on this host, `osascript -e 'display notification …'` exited **`0`** having
   delivered nothing, with stderr *"NSNotificationCenter connection invalid"* /
   *"ServerConnectionFailure: 1"*, while `afplay …/Glass.aiff` exited `1` with *"AudioQueueStart failed
@@ -320,7 +339,7 @@ prose carried stayed in its skill.
   unadmitted attribution trailer at exit `2` naming the file; the enforcement layer that used to be
   absent is now the binary's. A headless Cursor run against nen 0.3.0 found `--repo` **accepted and
   silently ignored** — *"a flag that is accepted and ignored is worse than one that is rejected: it
-  reads like the guard ran"* (`docs/ab/surfaces.md` § 8, F12) — which is why the skill once called it
+  reads like the guard ran"* (`docs/surfaces/evidence/surfaces.md` § 8, F12) — which is why the skill once called it
   residue.
 - **The merged-streams incident** — a merge landed carrying *"nen: header line is 75 characters, over
   the 72-character convention"* as its subject, repairable only because `origin` had not seen it yet

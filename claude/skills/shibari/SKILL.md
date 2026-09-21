@@ -49,7 +49,7 @@ not asked again per scene. **One call, one PR** — a run that finds two efforts
 - `nen schema check --repo <path>` validates the workflow file, so a malformed key is a FAIL **by
   pointer** that this skill quotes; every default that applied is said out loud.
 - **The range is `origin/<branch.base>...HEAD`, after `git -C <path> fetch origin <branch.base>`** —
-  nothing fast-forwards *local* `main` after `breath` cut the branch, and **`nen gate derive` and
+  nothing fast-forwards *local* `main`, and **`nen gate derive` and
   `nen changelog fragment-required` take `--files`, so a wrong set gives a confident wrong answer.**
 - `nen shu evidence --repo <path> --base <ref>` reads `project.evidence`, but the rows come from
   `mukai` step 7 and **shibari re-uses them rather than re-deriving them**.
@@ -90,8 +90,8 @@ git -C <path> fetch origin <branch>
 git -C <path> rev-parse HEAD refs/remotes/origin/<branch>     # the two MUST be equal
 nen repo resolve --repo <path> --from <path>                  # -> <owner>/<name> (<CODE>)
 nen ref format --code <CODE> --kind PR --number <n>
-gh pr create --repo <owner/name> --base <branch.base> --head <branch> \
-  --title "<the one commit's subject, or the effort in one line>" --body-file <abs path>
+nen pr open --target <owner/name> --base <branch.base> --title-file <abs> --body-file <abs> \
+  [--head <branch>] [--draft] [--dry-run] [--json]   # title-file: the one commit's subject
 
 nen pr body-check --body-from <abs path> --requirements-from <path>
 nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,nen/,schemas/,agents/,.github/workflows/" \
@@ -101,14 +101,15 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
 ```
 
 - **The two refs must be equal**; they are not, and the run **stops and says which is ahead**, never
-  pushing to satisfy its own precondition. It opens **once**, draft or ready-for-review being the
-  repository's convention, stated in the handover.
+  pushing to satisfy its own precondition. **`pr open` refuses a head that is not on the remote at
+  exit `2` and exits `1` naming an open PR for the branch**; it opens **once**, draft or ready
+  being the repository's convention.
 - **`body-check` reports every requirement, never stopping at the first miss**; **exit `1` is a
   finding to fix**.
 - **`fragment-required` has four verdicts** — `not-applicable`, `required` (exit `1`),
   `fragment-present`, and `opt-out` where `--body-from` carries a `no CHANGELOG entry: <reason>` line.
   **Keep both `nen/` and `schemas/`**; **`--head-changelog` must exist or the verb refuses at exit
-  `2`**, reported as the fact it is; and **`fragment-present` needs the fragment on disk at head as
+  `2`**; and **`fragment-present` needs the fragment on disk at head as
   well as in `--files`**.
 - **The gate is derived exactly as [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation*
   says**, and **the body names it as a FORECAST, never a status**, a PR shibari just opened being by
@@ -118,7 +119,7 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
   `readiness` check run; no consumer carries it, and shibari never writes it either.
 - **The body is written back only after all three checks have run.** The create is the first write and
   **every later revision is an edit**: `nen pr edit-body` replaces the body outright and **certifies
-  the number before any write**, refusing a 404/410, `--dry-run` still performing that read. **Always
+  the number before any write**, refusing a 404/410. **Always
   `--body-file`, never an inline `--body` string**, and **a relative `--body-file` resolves against
   `--repo`'s root**, so the body is written to an **absolute** path.
 
@@ -133,7 +134,7 @@ nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <a,b> [--a
 [`hanten`](../hanten/SKILL.md) settles, never before — and this skill makes only the first request.
 The verb routes per name: a collaborator through `requestReviewsByLogin`, a bot through
 `requestReviews`'s `botIds`, an `org/team` slug unlooked-up, a bare login resolving to neither refused
-at exit `2` pointing at `--add-bots`, both flags absent exit `1`, `--dry-run` printing each route.
+at exit `2` pointing at `--add-bots`, both flags absent exit `1`.
 **Copilot goes through `--add-bots <node id>`** (`BOT_kgDOCnlnWA` here — data, read off the target's
 own reviewer set elsewhere), since `--add-bots copilot` cannot resolve it today (zheref/nen#160). The
 same mutation answers `NOT_FOUND` under one token and succeeds under another, so **report success from
@@ -148,9 +149,9 @@ whether the three checks passed, the evidence mechanism, who was requested, and 
 
 ## 6. Residue, authority and hard limits
 
-`gh pr create` (no `nen` verb opens a PR), the evidence mirror's publish step, the base-ref read
-(`gh pr view --json baseRefName`), the last-pushed-commit comparison and Development linking are
-named raw calls.
+**RETIRED at nen `0.13`: `nen pr open` opens the PR.** The evidence mirror's publish step, the
+base-ref read (`gh pr view --json baseRefName`), the last-pushed-commit comparison and Development
+linking are named raw calls.
 
 - **Permitted, only on the maintainer's own `hatsu:mukai` or `hatsu:shibari` call:** read the working
   copy and its history; write the body file; open **one** PR against `branch.base` from the last

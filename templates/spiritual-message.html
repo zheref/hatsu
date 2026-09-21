@@ -131,6 +131,8 @@ summary:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
 .bars .track{background:var(--tint);border:1px solid var(--rule);height:14px;position:relative}
 .bars .track i{position:absolute;inset:0 auto 0 0;width:calc(var(--pct) * 1%);background:var(--indigo);display:block}
 .bars .amt{font-family:var(--mono);font-size:.76rem;white-space:nowrap}
+.bars .steps{grid-column:1 / -1;font-family:var(--mono);font-size:.72rem;color:var(--muted);overflow-wrap:anywhere}
+#spend td.n{font-family:var(--mono);text-align:right;white-space:nowrap}
 
 /* the drawn delta */
 .canvas{background:var(--surface);border:1px solid var(--rule);padding:8px;margin:14px 0;overflow-x:auto;min-height:60px}
@@ -352,13 +354,26 @@ summary:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
   {{#each touchedCoverage}}<tr><td class="mono">{{file}}</td><td>{{percent}}%</td><td><span class="pill">{{band}}</span></td></tr>
   {{/each}}
 </table></div>
+</section>
+{{/if}}
+{{#if sections.spend}}
+<section id="spend">
+<h2>Spend</h2>
 <h3>Where the time went</h3>
-<ul class="bars">
-  {{#each phaseBars}}
-  <li><span class="lane">{{lane}}</span><span class="track"><i style="--pct:{{percent}}"></i></span><span class="amt">{{amount}}</span></li>
+{{#if hasSpendPhases}}<ul class="bars">
+  {{#each spendPhases}}
+  <li><span class="lane">{{lane}}</span><span class="track"><i style="--pct:{{percent}}"></i></span><span class="amt">{{amount}}</span>{{#if steps}}<span class="steps">{{steps}}</span>{{/if}}</li>
   {{/each}}
-</ul>
-<p class="muted">Usage: {{usage}}</p>
+</ul>{{/if}}
+{{#if noSpendPhases}}<p class="muted">no phase ledger was recorded for this effort</p>{{/if}}
+<h3>Tokens by model</h3>
+<div class="wrap"><table>
+  <tr><th>Surface</th><th>Model</th><th>Input</th><th>Output</th><th>Cache read</th><th>Cache write</th><th>Minutes</th><th>Source</th></tr>
+  {{#each spendUsage}}<tr><td class="mono">{{surface}}</td><td class="mono">{{model}}</td>{{#if notReported}}<td class="muted" colspan="6">not reported</td>{{/if}}{{#if reported}}<td class="n">{{input}}</td><td class="n">{{output}}</td><td class="n">{{cacheRead}}</td><td class="n">{{cacheWrite}}</td><td class="n">{{minutes}}</td><td>{{source}}</td>{{/if}}</tr>
+  {{/each}}
+</table></div>
+<p class="muted mono">Actions minutes: {{actionsMinutes}}</p>
+{{#if spendNote}}<p class="muted">{{spendNote}}</p>{{/if}}
 </section>
 {{/if}}
 {{#if sections.launch}}

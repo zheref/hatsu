@@ -309,7 +309,7 @@ FAIL  nen/workflow.json  …: at notifications.turn, 'loud' is not one nen imple
 Run against the released `zheref/nen` `v0.6.0` binary (`nen-darwin-arm64`, sha256
 `2674dc58…151737e1`, fetched and checksum-verified by `bootstrap/nen.sh --ref v0.6.0`, on `PATH` as
 `nen`; `nen --version` → `0.6.0`). Two residues retire here and both were found by real runs rather
-than by reading the changelog: one stopped a headless Codex run dead (`docs/ab/surfaces.md` § 7, F4),
+than by reading the changelog: one stopped a headless Codex run dead (`docs/surfaces/evidence/surfaces.md` § 7, F4),
 the other is the shape every delegated effort in this repository actually has.
 
 | Residue retired | Verb at the pin | Exit |
@@ -345,7 +345,7 @@ on a detached `HEAD` lands on no branch), and the text output carries a `branch:
 **One refusal remains and it says what it means**: a `HEAD` that names no branch *and* resolves to no
 commit — a repository with no commits yet — has no working copy to classify.
 
-**Why this one mattered here.** `hanten` § 9a makes a `git worktree add --detach` for every Codex
+**Why this one mattered here.** `hanten` § 7 makes a `git worktree add --detach` for every Codex
 reviewer, so the surface Hatsu ships to was the surface whose ordinary starting state stopped § 3
 before it began. The skill used to route that refusal to § 5 and let `shu warmup` speak; § 3 now
 reads the classification like any other and § 5 still owns the one genuine stop — a detached `HEAD`

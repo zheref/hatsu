@@ -151,8 +151,14 @@ Model choice is by **tier**, from [`../nen/workflow.json`](../nen/workflow.json)
   delegation.
 - **Every subagent is titled `<skill> · <persona> · <model alias>`** — what ran, as whom, on what.
 - The pins are frontmatter in the definitions: **Gon** and **Phinks** `model: opus` / `effort: high`;
-  **Hisoka** `model: sonnet` / `effort: high`; **Uvogin** `model: sonnet` / `effort: medium`. **Kurapika
+  **Hisoka** `model: sonnet` / `effort: high`; **Uvogin** `model: sonnet` / `effort: medium`;
+  **Netero** `model: sonnet` / `effort: medium` (the `fast` tier, ruling of 2026-09-19 below);
+  **Illumi** `model: haiku` (`models.roles.watcher`, the `economy` tier). **Kurapika
   carries neither** — he is the main session and inherits whatever the maintainer is running.
+- **Six roles map to the four tiers** (`models.roles`): `reviewer` deep, `worker` and `measurer` fast,
+  `orchestrator` frontier, and from zheref/hatsu#93 **`watcher`** and **`formatter`** on `economy`:
+  Illumi and `hatsu:izanami` polls run as watcher, formatting passes (gyo's auto-fix, prose reflow)
+  as formatter.
 
 ### 4 · Two bench profiles activate — **OPEN-3 partially closed**
 
@@ -709,8 +715,26 @@ block, so an un-declared report is loud rather than empty.
 
 **What this does not close.** **Session 3's spend numbers** — what a phase bar and the usage line are
 actually measured from, and by which verb — are not ruled on here; until they are, `usage` reads
-*not reported* rather than a guessed figure. **The run profiles** are not ruled on either: `turn-fast`
-names the fast profile, but which profile a session runs under, and who chooses it, stays open.
+*not reported* rather than a guessed figure. **The run profiles** were not ruled on either at the time;
+both items close in the rulings of 2026-09-19 below (Session 3, zheref/hatsu#93).
+
+---
+
+## Rulings of 2026-09-19 — Great Hiker, two economy roles, run profiles
+
+**From the hardening audit of 2026-09-19 (sections *Surfaces*, *Time and billing*, *Iteration speed*),
+zheref/hatsu#93.** Propagation to the surfaces had two generators and no owner; the `economy` tier was
+declared and used by nobody; Netero filed issues on the deep tier at high effort; and `turn-fast` was a
+declared report variant with no caller.
+
+| Ruling | What it says |
+|---|---|
+| **Great Hiker is a skill, not a persona** | [`claude/skills/great-hiker/SKILL.md`](../claude/skills/great-hiker/SKILL.md) authors and maintains canon prose and canon machinery in the governance and process repositories and guarantees it lands on every supported surface with that surface's best capabilities: skills, personas, hooks, allowlists, rules files, model config. It is the writer [`tenkai`](../claude/skills/tenkai/) and the warm-up install from. Kurapika runs it as **Conjurer** for prose and **Transmuter** for machinery, at **G4** in a canon repository |
+| **Its model rule** | prose work runs as a Fable subsession at low, medium or high effort by skills touched (one section low, one skill medium, cross-skill or a new skill high; the request may override); machinery work runs on Sonnet (`models.claude.fast`) at the required effort. A subsession is never on the frontier tier |
+| **Its evolution duty** | `hatsu:great-hiker evolve [<surface>]` fetches each URL a surface guide (`docs/surfaces/<surface>.md`) cites, diffs the quoted lines and the generator's `SurfaceRow`, and files one Netero-shaped issue per drifted surface; a pure data edit opens the PR directly |
+| **Its three nevers** | never edits `surfaces/` by hand, never claims a capability without the fetched line quoted, never merges |
+| **`watcher` and `formatter` roles on `economy`** | `models.roles` gains both; **Illumi moves to the watcher role** (`model: haiku` on Claude), **Netero to the `fast` tier** (`model: sonnet` / `effort: medium`); `hatsu:izanami` polls run as watcher |
+| **Run profiles** | `nen/workflow.json` → `profile` (`fast`, `standard`, `thorough`; default `standard`) is read by [`ren`](../claude/skills/ren/) § 2a; a landing always runs thorough. This closes the *run profiles* item the previous ruling left open |
 
 ---
 

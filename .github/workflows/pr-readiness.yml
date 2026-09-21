@@ -131,7 +131,7 @@ jobs:
   readiness:
     if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout PR head (data only — nothing from here is executed)
         uses: actions/checkout@v7
