@@ -186,3 +186,10 @@ validator's acceptance of that shape in the same commit is judged by the OLD val
 which still expects the old shape — and is refused no matter how the new shape and the new validator
 agree with each other. Land the validator first, accepting the old shape and the new one; only once
 `main` trusts that validator can a follow-up PR flip the live workflow.
+
+**Step two landed (zheref/hatsu#93 follow-up, Hatsu 0.44.0).** `plugin-bump-check.yml`,
+`surface-mirror-check.yml` and `pr-readiness.yml` now carry the hardened shape: `ready_for_review`
+in their `pull_request_target` `types:`, and the job `if:` guard carrying the draft-skip conjunct as
+one `${{ }}` expression. `surface-mirror-regenerate.yml` is installed live at
+`.github/workflows/surface-mirror-regenerate.yml`. This is no longer a follow-up to schedule; it is
+done.

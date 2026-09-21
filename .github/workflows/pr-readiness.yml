@@ -107,7 +107,7 @@ on:
     # their own right: `nen pr ready` distinguishes a round that is IN FLIGHT
     # from one that is OWED, so adding or removing a reviewer changes the answer.
     # No `edited`: the verdict never reads the body or the title.
-    types: [opened, synchronize, reopened, review_requested, review_request_removed]
+    types: [opened, synchronize, reopened, review_requested, review_request_removed, ready_for_review]
   # CON-32(b) / CON-16 -- a reviewer round landing, changing or being dismissed.
   pull_request_review:
     types: [submitted, edited, dismissed]
@@ -129,7 +129,7 @@ permissions:
 
 jobs:
   readiness:
-    if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository }}
+    if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

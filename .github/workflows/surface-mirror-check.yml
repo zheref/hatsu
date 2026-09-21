@@ -56,7 +56,7 @@ name: surface-mirror-check
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review]
     # NO `paths:` FILTER, DELIBERATELY. This job is (or is meant to become,
     # docs/SURFACES.md) a REQUIRED context on `main`. A required context that
     # carries a `paths:` filter never reports at all on a PR whose diff
@@ -79,7 +79,7 @@ permissions:
 
 jobs:
   surface-mirror-check:
-    if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository }}
+    if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

@@ -883,7 +883,7 @@ def self_test(root)
     expect_rejected("new workflow with an unexpected event") { validate_repo(tmp) }
 
     FileUtils.rm(extra)
-    File.write(plugin, original.sub("types: [opened, synchronize, reopened, edited]", "types: [closed]"))
+    File.write(plugin, original.sub("types: [opened, synchronize, reopened, edited, ready_for_review]", "types: [closed]"))
     expect_rejected("changed pull_request_target types") { validate_repo(tmp) }
 
     File.write(plugin, original.sub("jobs:\n  check:", "jobs:\n  renamed:"))
@@ -1050,25 +1050,26 @@ def self_test(root)
     expect_rejected("guard workflow with no cancel-in-progress at all") { validate_repo(tmp) }
 
     # BOTH SHAPES ARE ACCEPTED (two-step landing, see ALLOWED_JOB_GUARDS): the
-    # live `original` file carries the bare guard and BASE_TYPES today, and
-    # that must keep validating exactly as-is -- proven already by the plain
+    # live `original` file carries the HARDENED guard and HARDENED_TYPES now
+    # (Hatsu 0.44.0, zheref/hatsu#93 follow-up) -- proven already by the plain
     # `validate_repo(tmp)` call at the top of this function. What is proven
-    # here is the OTHER shape: swapping in the hardened guard AND the
-    # hardened trigger types together must ALSO validate, and independently,
-    # swapping only one of the two must ALSO validate -- the two are not
-    # required to move together.
-    hardened_if = original.sub(/^    if: .*\n/, "    if: #{DRAFT_SKIP_GUARD}\n")
-    File.write(plugin, hardened_if)
-    validate_repo(tmp, announce: false) # hardened guard only, base types: must pass
-    File.write(plugin, hardened_if.sub(
-      "    types: [opened, synchronize, reopened, edited]",
-      "    types: [opened, synchronize, reopened, edited, ready_for_review]"))
-    validate_repo(tmp, announce: false) # both hardened together: must pass
+    # here is the OTHER shape: swapping back to the bare guard AND the base
+    # trigger types together must ALSO validate, and independently, swapping
+    # only one of the two back must ALSO validate -- the two are not required
+    # to move together.
+    plugin_hardened_types_line = "    types: [opened, synchronize, reopened, edited, ready_for_review]"
+    plugin_base_types_line     = "    types: [opened, synchronize, reopened, edited]"
 
-    File.write(plugin, original.sub(
-      "    types: [opened, synchronize, reopened, edited]",
-      "    types: [opened, synchronize, reopened, edited, ready_for_review]"))
-    validate_repo(tmp, announce: false) # hardened types only, bare guard: must pass
+    base_if = original.sub(/^    if: .*\n/, "    if: #{SAME_REPO_GUARD}\n")
+    File.write(plugin, base_if)
+    validate_repo(tmp, announce: false) # bare guard only, hardened types: must pass
+    File.write(plugin, base_if.sub(plugin_hardened_types_line, plugin_base_types_line))
+    validate_repo(tmp, announce: false) # both base together: must pass
+
+    File.write(plugin, original.sub(plugin_hardened_types_line, plugin_base_types_line))
+    validate_repo(tmp, announce: false) # base types only, hardened guard: must pass
+
+    File.write(plugin, original)
 
     # THE STRING-CONCATENATION BUG ITSELF, covered by fixture rather than only
     # by the comment above ALLOWED_JOB_GUARDS. Writing the draft conjunct so
@@ -1080,8 +1081,8 @@ def self_test(root)
     expect_rejected("draft conjunct written outside the ${{ }} expression (string-concatenation bug)") { validate_repo(tmp) }
 
     File.write(plugin, original.sub(
-      "    types: [opened, synchronize, reopened, edited]",
-      "    types: [opened, synchronize, reopened, edited]\n    paths: ['claude/**']"))
+      plugin_hardened_types_line,
+      "#{plugin_hardened_types_line}\n    paths: ['claude/**']"))
     expect_rejected("plugin-bump-check gains a paths filter — it must judge every PR") { validate_repo(tmp) }
 
     File.write(plugin, original)
@@ -1091,23 +1092,26 @@ def self_test(root)
     # never wakes for a PR whose diff misses every listed path is a PR that
     # cannot merge -- a deadlock, not a false negative. Gaining one back is
     # therefore rejected the same way plugin-bump-check.yml gaining one is.
+    surface_hardened_types_line = "    types: [opened, synchronize, reopened, ready_for_review]"
     File.write(surface, surface_original.sub(
-      "    types: [opened, synchronize, reopened]",
-      "    types: [opened, synchronize, reopened]\n    paths: ['claude/**']"))
+      surface_hardened_types_line,
+      "#{surface_hardened_types_line}\n    paths: ['claude/**']"))
     expect_rejected("surface-mirror-check gains a paths filter — it must judge every PR") { validate_repo(tmp) }
 
     File.write(surface, surface_original)
 
-    # --- surface-mirror-regenerate.yml: the builder pipeline, OPTIONAL ------
-    # It ships at `templates/surface-mirror-regenerate.yml`, not under
-    # `.github/workflows/`, until the follow-up PR in the two-step landing
-    # installs it (docs/GATE-CONFIGURATION.md). The plain `validate_repo(tmp)`
-    # calls already run above -- before this workflow is ever copied in --
-    # are what prove the ABSENT case passes; everything below proves the
-    # PRESENT case: copy the template in, prove the untouched file validates,
-    # then run every negative fixture against it exactly as before.
+    # --- surface-mirror-regenerate.yml: the builder pipeline, now LIVE ------
+    # It ships at `.github/workflows/surface-mirror-regenerate.yml` since the
+    # two-step landing's follow-up PR installed it there (docs/GATE-
+    # CONFIGURATION.md, zheref/hatsu#93 follow-up). It is already present in
+    # `tmp` from the glob-copy at the top of this function, and the plain
+    # `validate_repo(tmp)` call there already proved the PRESENT case passes.
+    # This constant re-reads it from the live root so every negative fixture
+    # below has an `original` to restore between mutations, and the ABSENT
+    # case is proven further down by removing it: BUILDER_WORKFLOWS keeps its
+    # presence OPTIONAL at the validator's own rule even though it now ships.
     regenerate = File.join(tmp, ".github/workflows/surface-mirror-regenerate.yml")
-    regenerate_source = File.join(root, "templates/surface-mirror-regenerate.yml")
+    regenerate_source = File.join(root, ".github/workflows/surface-mirror-regenerate.yml")
     regenerate_original = File.read(regenerate_source)
     FileUtils.cp(regenerate_source, regenerate)
     validate_repo(tmp, announce: false)

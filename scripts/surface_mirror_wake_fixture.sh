@@ -60,41 +60,30 @@ job_if="$(printf '%s\n' "$wake" | sed -n 's/^IF=//p')"
 
 # 2 · each type, independently
 #
-# TWO-STEP LANDING (docs/GATE-CONFIGURATION.md, Hatsu 0.43.0 / zheref/hatsu#94):
-# the LIVE workflow this fixture reads still carries the shape `main`'s
-# trusted validator judges every PR against -- no `ready_for_review` -- until
-# a follow-up PR flips it once THIS repo's own validator (which now accepts
-# either shape) is what `main` trusts. So `ready_for_review` is asserted
-# ABSENT here, not present; flip this fixture alongside the live workflow in
-# that follow-up PR.
-for t in opened synchronize reopened; do
+# TWO-STEP LANDING, STEP TWO (docs/GATE-CONFIGURATION.md, Hatsu 0.44.0 /
+# zheref/hatsu#93 follow-up, zheref/hatsu#94): the LIVE workflow now carries
+# the hardened shape -- `ready_for_review` included -- since the validator
+# that accepts it is what `main` trusts. So `ready_for_review` is asserted
+# PRESENT here.
+for t in opened synchronize reopened ready_for_review; do
   case ",$types," in
     *",$t,"*) pass "type '$t' present" ;;
     *)        fail "type '$t' absent from [$types]" ;;
   esac
 done
-case ",$types," in
-  *",ready_for_review,"*) fail "type 'ready_for_review' present on the live workflow before its two-step landing follow-up (docs/GATE-CONFIGURATION.md)" ;;
-  *)                      pass "type 'ready_for_review' absent (deferred to the follow-up PR)" ;;
-esac
 
-# 3 · each `if:` conjunct, independently. The draft-skip conjunct is likewise
-# deferred to the follow-up PR -- see the two-step-landing note above.
+# 3 · each `if:` conjunct, independently. The draft-skip conjunct has now
+# landed alongside the trigger flip above -- see the two-step-landing note.
 for conj in \
   "github.repository == 'zheref/hatsu'" \
-  "github.event.pull_request.head.repo.full_name == github.repository"
+  "github.event.pull_request.head.repo.full_name == github.repository" \
+  "github.event.pull_request.draft == false"
 do
   case "$job_if" in
     *"$conj"*) pass "if-conjunct present: $conj" ;;
     *)         fail "if-conjunct MISSING: $conj  (if: $job_if)" ;;
   esac
 done
-case "$job_if" in
-  *"github.event.pull_request.draft == false"*)
-    fail "draft-skip conjunct present on the live workflow before its two-step landing follow-up (docs/GATE-CONFIGURATION.md)" ;;
-  *)
-    pass "draft-skip conjunct absent (deferred to the follow-up PR)" ;;
-esac
 
 declared_inputs="$(
   grep -E '^(SOURCE_DIR|AGENTS_DIR|MODELS_FILE|PERMISSIONS_FILE|HOOKS_FILE|RULES_FILE|MANIFEST_FILE)="' "$guard" \
@@ -154,14 +143,17 @@ path_covered "surfaces/codex/aka/SKILL.md" \
 #     `paths:` list on `push: branches: [main]`. A file that wakes neither is a
 #     file whose drift is never reported AND never repaired.
 #
-#     TWO-STEP LANDING: this workflow is not yet live -- it ships at
-#     `templates/surface-mirror-regenerate.yml` until the follow-up PR
-#     installs it under `.github/workflows/` (docs/GATE-CONFIGURATION.md).
-#     Assert against whichever copy exists so this fixture keeps proving the
-#     paths shape today and needs no further edit when the file moves.
+#     TWO-STEP LANDING, STEP TWO: this workflow is now LIVE, installed at
+#     `.github/workflows/surface-mirror-regenerate.yml` (docs/GATE-
+#     CONFIGURATION.md, zheref/hatsu#93 follow-up). Assert it lives there --
+#     a copy left behind at `templates/` is itself a fixture failure, not a
+#     fallback to accept.
 regen="$root/.github/workflows/surface-mirror-regenerate.yml"
-[ -f "$regen" ] || regen="$root/templates/surface-mirror-regenerate.yml"
+if [ -f "$root/templates/surface-mirror-regenerate.yml" ]; then
+  fail "templates/surface-mirror-regenerate.yml still present -- the regenerator should live only at .github/workflows/surface-mirror-regenerate.yml now"
+fi
 if [ -f "$regen" ]; then
+  pass "surface-mirror-regenerate.yml lives under .github/workflows"
   paths="$(
     ruby -ryaml -e '
       doc = YAML.safe_load(File.read(ARGV[0]), aliases: true)
@@ -181,7 +173,7 @@ if [ -f "$regen" ]; then
 $declared_inputs
 EOF2
 else
-  fail "no surface-mirror-regenerate.yml to assert (checked .github/workflows/ and templates/)"
+  fail "no surface-mirror-regenerate.yml under .github/workflows to assert"
 fi
 
 if [ "$fails" -ne 0 ]; then

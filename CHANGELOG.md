@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.44.0 — the guards on the hardened shape (zheref/hatsu#93 follow-up)
+
+- **Two-step landing, step two (zheref/hatsu#94, zheref/hatsu#93 follow-up).** `plugin-bump-check.yml`, `surface-mirror-check.yml` and `pr-readiness.yml` now carry the hardened shape `scripts/workflow_runner_policy_check.rb`'s `HARDENED_TYPES`/`ALLOWED_JOB_GUARDS` describe -- `ready_for_review` added to their `pull_request_target` `types:`, and the job `if:` guard now carries the draft-skip conjunct (`github.event.pull_request.draft == false`) as a single `${{ }}` expression -- since the validator that accepts either shape is now what `main` trusts. `templates/surface-mirror-regenerate.yml` is installed live at `.github/workflows/surface-mirror-regenerate.yml` (byte-identical apart from its now-obsolete "NOT YET LIVE" header); `scripts/surface_mirror_wake_fixture.sh` asserts the hardened shape and the regenerator's live location instead of their prior deferred absence.
+
 ## v0.43.0 — surfaces, spend and speed (zheref/hatsu#93)
 
 Release unit for `v0.42.0..v0.43.0`: [#94](https://github.com/zheref/hatsu/pull/94) (the delivery).
