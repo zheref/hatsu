@@ -65,9 +65,13 @@ nothing is written into a target repository; the plugin's own `hooks.json` resol
 
 The hook commands resolve their scripts through one expression, the `--hooks-root` the generator was
 given: `${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}/hooks/`, so an
-explicit `HATSU_PLUGIN_ROOT` wins and the global plugin path is the only fallback. There is no
-workspace candidate; if `./.agents/hooks/` is ever added it comes last, after both. A `PreInvocation` refresh fires on every invocation, not once per session, which is why the
-warm-up checks `--installed` first and copies only on drift.
+explicit `HATSU_PLUGIN_ROOT` wins and the global plugin path is the fallback. That is the TRACKED
+mirror and the global-plugin install. A WORKSPACE install is different: `surface_bootstrap.sh` places
+the hook scripts at `.agents/hooks/` and rewrites the PLACED `.agents/hooks.json` (never the tracked
+mirror) to `${HATSU_PLUGIN_ROOT:-./.agents}/hooks/`, so the workspace copy comes last and only there;
+the generator cannot emit that fallback itself because its root expression admits no command
+substitution. A `PreInvocation` refresh fires on every invocation, not once per session, which is
+why the warm-up checks `--installed` first and copies only on drift.
 
 ## 5. Permissions
 
