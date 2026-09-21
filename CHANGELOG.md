@@ -2,7 +2,7 @@
 
 ## v0.43.0 — surfaces, spend and speed (zheref/hatsu#93)
 
-Release unit for `v0.42.0..v0.43.0`: the delivery PR (cited when it opens).
+Release unit for `v0.42.0..v0.43.0`: [#94](https://github.com/zheref/hatsu/pull/94) (the delivery).
 
 > Pinned to nen **v0.13.0** (`minimum` `0.13`, zheref/nen#227): the `antigravity` and `claude-code` surface rows with `--models`, `--permissions`, `--hooks`, `--rules` and `--stamp`, `nen surface mirror check --installed`, `nen usage record`, `nen shu` step durations under the open phase, `phases[]` and `usage[]` in `nen report data`, the two-gate stall rule, `nen wc catch-up`, `nen wc publish`, `nen commit write`, `nen pr open`, and the `profile` key. **The warm-up reads `WRONG` until v0.13.0 is tagged and its release assets are published.**
 
