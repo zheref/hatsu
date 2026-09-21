@@ -701,6 +701,74 @@ has_write_token() {
   return 1
 }
 
+push_targets_base() {
+  # True when the `git push` segment $1 carries a REFSPEC that writes to the
+  # branch named $2, whatever the checkout's OWN current branch is —
+  # `git push origin feature:main` passes every check above (the checkout
+  # never has to be `main`, and `feature` never has to be `$base`), because
+  # the branch comparison above judges the checkout, not the destination the
+  # refspec names.
+  #
+  # A refspec's destination is: the part after `:` (`src:dst`); the whole
+  # token, for a bare `<name>` with no `:` at all — git's own rule is that a
+  # nameless destination pushes to a remote branch of the SAME name, so a
+  # bare `main` positional argument to push IS a write to `main`; or nothing
+  # at all for a bare `:dst` deletion refspec, which this reads the same way
+  # (`${tok#*:}` on `:main` is `main`). A leading `+` (an inline force) is
+  # stripped first, and `refs/heads/<base>` is read as the same destination
+  # as the bare name.
+  #
+  # This walks the segment's OWN argv independently of parse_git_segment,
+  # rather than sharing it, because parse_git_segment's early return on the
+  # subcommand token is what leaves `$@` sitting on `push <the rest>` for the
+  # caller — reusing it here would consume those positional parameters before
+  # the caller reads them. It is intentionally NOT exhaustive over every
+  # value-taking push option (`git push` has very few of those, and every one
+  # left unwalked is a `-*` token skipped over, never mistaken for a
+  # refspec); the token this function cannot read at all — a quoted argument
+  # masked to `@` — is skipped rather than guessed at, the same "cannot
+  # establish" case that leaves other unreadable input at exit 0 elsewhere in
+  # this script.
+  pt_base=$2
+  # shellcheck disable=SC2086  # deliberate word split; globbing is off (set -f)
+  set -- $1
+  [ "${1:-}" = "git" ] || return 1
+  shift
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -C|--git-dir|--work-tree|-c|--namespace|--super-prefix|--attr-source|--config-env)
+        shift 2 2>/dev/null || return 1 ;;
+      --git-dir=*|--work-tree=*|--namespace=*|--super-prefix=*|--attr-source=*|--config-env=*|--exec-path=*|--list-cmds=*)
+        shift ;;
+      -v|--version|-h|--help|-p|-P|--paginate|--no-pager|--bare|--exec-path|\
+      --html-path|--man-path|--info-path|--no-replace-objects|--no-lazy-fetch|\
+      --no-optional-locks|--no-advice|--literal-pathspecs|--glob-pathspecs|\
+      --noglob-pathspecs|--icase-pathspecs|--)
+        shift ;;
+      push) shift; break ;;
+      -*) shift ;;
+      *) return 1 ;;   # not a `push` segment at all — nothing to check
+    esac
+  done
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      '@') shift ;;
+      -*) shift ;;
+      *)
+        pt_candidate=$1
+        case "$pt_candidate" in '+'*) pt_candidate=${pt_candidate#+} ;; esac
+        case "$pt_candidate" in
+          *:*) pt_dest=${pt_candidate#*:} ;;
+          *)   pt_dest=$pt_candidate ;;
+        esac
+        [ "$pt_dest" = "$pt_base" ] && return 0
+        [ "$pt_dest" = "refs/heads/$pt_base" ] && return 0
+        shift ;;
+    esac
+  done
+  return 1
+}
+
 # --- pass 1: what is in this line -------------------------------------------
 writes=0
 changes_branch=0
@@ -867,9 +935,14 @@ EOF
     root=$(git -C "$target" rev-parse --show-toplevel 2>/dev/null || :)
   fi
 
-  # Empty means a detached HEAD or not a repository at all — neither is this
-  # guard's business.
-  [ -n "$branch" ] || continue
+  # Empty means a detached HEAD or not a repository at all, UNLESS this is a
+  # push carrying its own refspec: `git push origin feature:main` never has
+  # to be run from `main`, or even from a resolvable branch at all, for its
+  # refspec to still write to it — so a push is judged below whether or not
+  # a current branch could be read, and every other write still requires one.
+  if [ -z "$branch" ] && [ "$sub" != "push" ]; then
+    continue
+  fi
 
   base="main"
   if [ -n "$root" ] && [ -f "$root/nen/workflow.json" ]; then
@@ -877,6 +950,15 @@ EOF
     [ -n "$declared" ] && base=$declared
   fi
 
+  # THE REFSPEC, INDEPENDENT OF THE CHECKOUT'S OWN BRANCH. `git push origin
+  # feature:main` passes the branch comparison below on every checkout —
+  # `feature` is read from local state the refspec never even names — because
+  # that comparison judges where the command is RUN, not what it WRITES TO.
+  if [ "$sub" = "push" ] && push_targets_base "$seg" "$base"; then
+    deny_refusal "hatsu: refusing this push — one of its refspecs writes to $base — $base is the workflow base (nen/workflow.json branch.base) and is only ever reached through a merged PR, whatever branch this push is run from; cut {model}/{persona}/{descriptor} with the breath skill (nen shu warmup --repo <path> --branch <name>) and push that instead."
+  fi
+
+  [ -n "$branch" ] || continue
   [ "$branch" = "$base" ] || continue
 
   deny_refusal "hatsu: refusing git $sub on $base — $base is the workflow base (nen/workflow.json branch.base) and is only ever reached through a merged PR; cut {model}/{persona}/{descriptor} with the breath skill (nen shu warmup --repo <path> --branch <name>) and commit there."

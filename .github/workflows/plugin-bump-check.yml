@@ -140,29 +140,60 @@ jobs:
           # an auth error, a rate limit, or a network blip, and treating every
           # one of those the same way as "first commit" is a fail-open: the
           # guard would read a same-or-lower head version as bumped whenever
-          # the API merely hiccuped. So the two are told apart by the actual
-          # HTTP status the API call reports, and only a genuine 404 gets the
-          # sentinel that tells the guard the base was legitimately absent.
+          # the API merely hiccuped. So the two are told apart in two steps:
+          #
+          #   1. Prove BASE_SHA itself exists. `gh api .../commits/<sha>
+          #      --silent` either succeeds (the commit is real) or fails --
+          #      and a failure here can never be read as "no manifest at this
+          #      commit", because there IS no such commit to have lacked one.
+          #      This is what a rate limit or an auth hiccup looks like from
+          #      the contents call alone, so it is checked first and fails
+          #      the step outright rather than falling through to "absent".
+          #   2. Only once the commit is proven real is the manifest fetched,
+          #      and fetched with `--include` so the actual HTTP status line
+          #      is read rather than grepped for a substring out of
+          #      free-form stderr text (which a 404 error BODY can also
+          #      contain on an otherwise-different failure). 200 -> the
+          #      manifest is written. 404 -> the sentinel is written and no
+          #      file. Anything else -> the step fails, naming the status.
+          if ! gh api "repos/${REPO}/commits/${BASE_SHA}" --silent; then
+            echo "::error::gh api could not confirm base commit ${BASE_SHA} exists in ${REPO} -- refusing to treat a failed commit lookup as 'first commit' (base manifest legitimately absent)"
+            exit 1
+          fi
           base_out="${RUNNER_TEMP:-/tmp}/base_plugin.json"
-          base_err="${RUNNER_TEMP:-/tmp}/base_plugin.err"
+          base_raw="${RUNNER_TEMP:-/tmp}/base_plugin.raw"
           sentinel="${base_out}.absent"
-          rm -f "$sentinel"
+          rm -f "$sentinel" "$base_out"
           set +e
           gh api "repos/${REPO}/contents/.claude-plugin/plugin.json?ref=${BASE_SHA}" \
             -H "Accept: application/vnd.github.raw" \
-            > "$base_out" 2> "$base_err"
+            --include \
+            > "$base_raw"
           rc=$?
           set -e
           if [ "$rc" -ne 0 ]; then
-            if grep -qi '404\|not found' "$base_err"; then
-              rm -f "$base_out"
-              : > "$sentinel"
-              echo "base .claude-plugin/plugin.json legitimately absent at ${BASE_SHA} (first commit) -- sentinel written"
-            else
-              echo "::error::gh api failed to read base .claude-plugin/plugin.json at ${BASE_SHA} (not a 404 -- refusing to treat this as 'first commit'): $(cat "$base_err")"
-              exit 1
-            fi
+            echo "::error::gh api failed outright reading base .claude-plugin/plugin.json at ${BASE_SHA}: $(cat "$base_raw")"
+            exit 1
           fi
+          # The first line of `--include` output is the HTTP status line
+          # (e.g. "HTTP/2.0 200" or "HTTP/2.0 404"); the response body
+          # follows the blank line that ends the headers.
+          status_line="$(head -n1 "$base_raw" | tr -d '\r')"
+          status_code="$(printf '%s\n' "$status_line" | awk '{print $2}')"
+          case "$status_code" in
+            200)
+              awk 'f{print} /^\r?$/{f=1}' "$base_raw" > "$base_out"
+              echo "base .claude-plugin/plugin.json read at ${BASE_SHA} (HTTP 200)"
+              ;;
+            404)
+              : > "$sentinel"
+              echo "base .claude-plugin/plugin.json legitimately absent at ${BASE_SHA} (HTTP 404, first commit) -- sentinel written"
+              ;;
+            *)
+              echo "::error::gh api returned HTTP ${status_code:-<none>} reading base .claude-plugin/plugin.json at ${BASE_SHA} (not 200, not 404 -- refusing to treat this as 'first commit'): ${status_line}"
+              exit 1
+              ;;
+          esac
           echo "changed files: $(wc -l < "${RUNNER_TEMP:-/tmp}/changed_files.txt")"
 
       - name: Write PR body to file

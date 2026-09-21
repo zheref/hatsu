@@ -320,6 +320,26 @@
       "exe": "git",
       "args": "push origin --force-with-lease*",
       "why": "the origin spelling of a lease force"
+    },
+    {
+      "exe": "git",
+      "args": "push origin *:main",
+      "why": "a refspec landing on main is main, whatever the source branch is named"
+    },
+    {
+      "exe": "git",
+      "args": "push origin *:refs/heads/main",
+      "why": "the fully-qualified spelling of the same refspec"
+    },
+    {
+      "exe": "git",
+      "args": "push * *:main",
+      "why": "a non-origin remote pointed at this repository's main is still main"
+    },
+    {
+      "exe": "git",
+      "args": "push origin :main",
+      "why": "a bare deletion refspec against main is a write to main"
     }
   ],
   "surfaces": {
