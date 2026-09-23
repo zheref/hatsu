@@ -204,7 +204,7 @@ summary:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
   <div>
     <div class="eyebrow">Hatsu &middot; rikugan &middot; {{variant}}</div>
     <h1>{{title}}</h1>
-    <div class="meta">{{scope}} &middot; {{gate}} &middot; {{generatedAt}}</div>
+    <div class="meta">{{scope}} &middot; {{gate}} &middot; <time datetime="{{generatedAt}}" title="{{generatedAt}}">{{generatedAtLocal}}</time></div>
   </div>
   <div class="toggle" role="group" aria-label="Theme">
     <button type="button" id="t-light" aria-pressed="false">light</button>
@@ -339,7 +339,7 @@ summary:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
 </table></div>
 </section>
 {{/if}}
-<p class="foot">{{footerCount}}<br>{{scope}} &middot; {{variant}} &middot; {{generatedAt}}<br>{{footerNote}}</p>
+<p class="foot">{{footerCount}}<br>{{scope}} &middot; {{variant}} &middot; <time datetime="{{generatedAt}}" title="{{generatedAt}}">{{generatedAtLocal}}</time><br>{{footerNote}}</p>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js" integrity="sha384-2IH3T69EIKYC4c+RXZifZRvaH5SRUdacJW7j6HtE5rQbvLhKKdawxq6vpIzJ7j9M" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>

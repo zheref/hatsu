@@ -4,7 +4,7 @@ description: Inventory a consuming product repo's own backlog — open epics, li
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
 `hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
@@ -79,8 +79,13 @@ trip it.
 nen repo resolve all --repo <path to a checkout carrying nen/repos.json — or schemas/repos.json under the fallback nen keeps until v0.4.0>
 ```
 
-An unknown repo is an error that names the token and lists the codes `nen repo resolve`'s own
-refusal prints — never a guess, never a prefix match.
+An empty slot (`nen parse` exit `2`) or an unknown repo is the trigger to ask, not the end: the
+picker names the token and offers the codes `nen repo resolve`'s own refusal prints — never a guess,
+never a prefix match. A missing argument or configuration item is asked for and set up inline
+(`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set
+up, continue*). **An unregistered product repo is reported, never written**: `<reference-repo>`'s
+registry is a frozen, foreign one, so senkei names the missing `consumers` entry and the repository
+that owns the registry, and stops that repo's run (WORKFLOW § 4 *What is not a gap*).
 
 **Product repos do not reliably ship their own registry.** Verified live against the real
 `<product-repo-A>` at the port: it carried no `schemas/` directory at all — no `repos.json`, no
@@ -302,8 +307,10 @@ against another's vocabulary. For a product repo with no `--gates` file of its o
   `<product-repo-A>` itself, modeling `bisky` the way `<reference-repo>`'s own contract does, is what
   would close this fully — until one exists, say so every time this fallback is used, rather than
   presenting `sasuke,tenma,copilot` as `<product-repo-A>`'s own considered choice.
-- If neither is available, the refusal **is** the report — surface it verbatim (`nen pr` never
-  falls back to a guess), never route around it with an assumed identity set.
+- If neither is available, ask for the identities (**the maintainer's word: never derived**) and offer
+  a `nen/gates.json` as that repo's own declaration PR at its gate; with no answer the refusal **is**
+  the report — surface it verbatim (`nen pr` never falls back to a guess), never route around it with
+  an assumed identity set.
 
 **Real verdict, verified live** against `<product-repo-A>#509` with its actual reviewer identities
 supplied (`docs/ab/senkei.md` § 4.2): `not-ready: required checks reported but are not all green

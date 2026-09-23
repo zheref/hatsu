@@ -4,7 +4,7 @@ description: Harvest one sitting's process friction as Netero — propose 0–3 
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
 those files (re-resolve through that skill if unavailable). Relative links below identify source
 locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
@@ -104,6 +104,9 @@ nen parse third-hand --grammar "on [<ref>]" --line "<the invocation, minus the h
 Verified live at nen `0.10.0` (`docs/ab/third-hand.md` § 2.1): `on HA#62` → `ref: HA#62` at exit
 `0`; a bare `on` and an empty line both parse with the clause absent, also exit `0`. **No clause
 means this sitting** — the PR En is holding, or the branch this session cut, named out loud.
+
+A missing argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*).
 
 **En does not start this skill.** Echoing a parse of a line nobody typed is theatre, the same
 reason [`hatsu:en`](../en/SKILL.md) § 1 does not parse Mukai's handoff. The caller starts

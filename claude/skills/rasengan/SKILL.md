@@ -4,7 +4,7 @@ description: Author the requested change and its focused tests on the declared s
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
 `hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
@@ -138,6 +138,11 @@ workflow.json: using the built-in defaults from `docs/WORKFLOW.md`"* — and use
 `iteration.checks` = `["build"]`, `iteration.lane` = `project.defaultLane`. `iteration.checks` names
 `shu` verbs (`build`, `test`, `lint`, `ui-test`, `coverage`), never tool names: a repository that
 calls its type-check `build` has said so in its declaration, and rasengan runs the declaration.
+
+A missing argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) — a
+lane or verb in `nen/contract.json` through `nen scaffold init`. **The request is the maintainer's
+word: never derived** (§ 0).
 
 ## 3. The protocol — understand, plan, implement, self-check, hand over
 
@@ -285,7 +290,7 @@ differs in exactly one row — a `1` there ends the commit rather than the edit.
 | `0` | the declared step ran and passed (or the dry run rendered) | next check; when the list is exhausted, keep authoring or hand over (§ 3) |
 | `1` | **the ordinary red build** — the tool ran and failed; its own code is in `steps[].exitCode`, nen's is always `1` | **This is the loop working.** Relay the tool's own output, name the failing step (`step N of M`), fix the code, run it again. Never soften the check (§ 4), and never hand a red tree to kokusen (§ 10) |
 | `1` | *also*: `nen/contract.json` is present and **malformed** | a repository defect, not a red build. The refusal names the file and the pointer — fix the declaration, and land it as machinery at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one) where it is not this effort's own file |
-| `2` | usage: no declaration, no `project` block, an unknown `--lane`, an unsubstituted placeholder, a path that **really** lands outside the repo (§ 5a), or an **unsatisfied precondition** | fix the invocation or the declaration. A precondition is nen's to assert and never to perform: satisfy it yourself and say which one it was. § 7 covers the no-declaration case |
+| `2` | usage: no declaration, no `project` block, an unknown `--lane`, an unsubstituted placeholder, a path that **really** lands outside the repo (§ 5a), or an **unsatisfied precondition** | fix the invocation or the declaration — a missing one asked for and set up inline (§ 2, § 7), never the end of the turn. A precondition is nen's to assert and never to perform: satisfy it yourself and say which one it was. § 7 covers the no-declaration case |
 | `3` | **unsupported host** — the verb is real, this machine is not on `project.hosts` | **G5.** Name the host the declaration allows and stop; never retry, never route around it. Authoring cannot proceed on a host that cannot check it |
 | `4` | **a seat** — the lane declares no such verb, in the declaration's own words | Not a failure and **not red**. **Quote the seat's reason verbatim**, run the repository's own documented command for that check, say that you did — and where the seat should be a real row, land the declaration change as its own PR at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one) |
 | `5` | the declared program could not be started at all | run `nen shu tools --repo <path>` and relay its per-tool remedy; `--install` for what `corepack` can activate, a human for the rest. Never `sudo`, never a version the declaration did not pin |
@@ -294,8 +299,13 @@ differs in exactly one row — a `1` there ends the commit rather than the edit.
 
 Exit `2` naming the file: *"no such file: `<path>/nen/contract.json`. 'nen shu' runs what a repository
 DECLARES … and this repository declares nothing"* (verified live against the `zheref/nen` checkout —
-`docs/ab/rasengan.md` § 2.4). Then: run the repository's own documented commands, **say plainly that
-no declaration exists yet**, and treat writing a `project` block as a change to propose at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one).
+`docs/ab/rasengan.md` § 2.4). **That exit is the trigger to set the declaration up, not the end**
+(`missing-configuration`): **say plainly that no declaration exists yet**, offer the `project` block
+`nen scaffold init` detects, starred, validate it with `nen schema check` and resume the loop in the
+same turn — the file riding this effort's branch, or its own PR at the **declaration gate** (**G4**
+in a canon repository, **G2** in a consumer one) when it is not this effort's. Where the maintainer
+picks running once without it, run the repository's own documented commands and name the gap in
+*Not delivered*.
 
 **Read the no-declaration fact off `build`/`test`/`lint`, never off `detect`.** `nen shu detect`
 answers a different question — whether a *marker on disk* proposes a lane — and the two do not track

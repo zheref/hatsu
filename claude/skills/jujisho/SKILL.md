@@ -4,7 +4,7 @@ description: Split a mixed working copy into up to two stacked branches and PRs,
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
 `hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not

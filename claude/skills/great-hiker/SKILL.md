@@ -26,9 +26,12 @@ nen parse great-hiker --grammar "<request> [--effort <effort:low|medium|high>]" 
 ```
 
 The first parse at exit `0` is the evolution duty, `surface: (clause absent)` meaning every surface.
-Exit `2` there is not a refusal but the request shape, parsed by the second line; only a line both
-grammars refuse is refused, with nen's corrected line pasted. An empty line is never inferred from
-what the session was last doing.
+Exit `2` there is not a refusal but the request shape, parsed by the second line; a line both grammars
+refuse, or an empty one, is the trigger to ask as **free text**, nen's corrected line shown for
+reference, never a starred or pickable option (row `missing-maintainer-choice`). A missing
+argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) —
+the request is **the maintainer's word: never derived** or inferred from the session.
 
 ## 2. Classify: what kind of change, and how much model it needs
 
@@ -80,7 +83,7 @@ the installed-copy check can tell a stale copy from a drifted one. Then, in this
 
 1. `bash scripts/surface_mirror_check.sh`: one `nen surface mirror check` per surface; exit `1` names
    the class (`missing`, `extra`, `stale`, `hand-edited`), exit `2` means the nen on PATH is not the
-   pin and the run stops there.
+   pin: [`hatsu-warmup`](../hatsu-warmup/SKILL.md) installs it (row `missing-tool`) and the check re-runs.
 2. `nen surface mirror check --installed <path>` against the Claude Code plugin cache and against
    every consumer checkout the request named; a stale installed copy is reported per path with the
    stamp it carries, and the warm-up is what replaces it, never this skill.

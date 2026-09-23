@@ -29,9 +29,9 @@
 # exit 2, precisely so that it would disappear by itself the moment the pinned
 # nen carried the verb — no edit to this file, no remembering.
 #
-# The pin is `v0.13.0` (nen/contract.json is the source; this line is a convenience copy) and that nen carries `nen surface mirror generate|check` with the v0.13 pack flags.
+# The pin is `v0.14.0` (nen/contract.json is the source; this line is a convenience copy) and that nen carries `nen surface mirror generate|check` with the v0.13 pack flags.
 # Verified locally against this branch: `bash scripts/surface_mirror_check.sh`
-# exits 0 with 44 skills per surface, personas 11 plus the preamble, for codex,
+# exits 0 with 45 skill directories per surface (44 plus hatsu-warmup), personas 11 plus the preamble, for codex,
 # cursor and antigravity, no drift rows. So the skip branch is unreachable at this pin, and it is kept as an
 # ERROR rather than deleted: a pinned nen without the verb now means the pin or
 # the bootstrap is wrong, which is a failure to report and not a condition to

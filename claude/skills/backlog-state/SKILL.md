@@ -88,13 +88,18 @@ nen repo resolve --repo <path> --from <cwd>
 > ever refuses a repository the code list names, that is a new finding — reuse the code its refusal
 > printed and file it, never hand-read the registry.
 >
-> An `origin` that resolves to nothing in the registry at all is a genuine error — say which remote
-> failed and list `product_codes`. It is never a fallback to `all`.
+> An `origin` that resolves to nothing in the registry at all is never a fallback to `all`: say which
+> remote failed, and ask for the repo with `product_codes` as the options (below).
 
-**An unknown repo is an error, never a guess.** Say which token failed and list the codes `nen repo
-resolve`'s own refusal names. Resolving a bare `<prefix>` to the one registry entry whose name
-happens to begin with it is exactly the kind of helpfulness that reports the wrong repo's
-backlog.
+**An unknown repo is asked for, never guessed.** Say which token failed and offer the codes `nen repo
+resolve`'s own refusal names in the picker; the answer is re-parsed and the sweep continues. Resolving
+a bare `<prefix>` to the one registry entry whose name happens to begin with it is exactly the kind of
+helpfulness that reports the wrong repo's backlog. A missing argument or configuration item is asked
+for and set up inline (`missing-argument`, `missing-configuration`;
+[`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) — a repository the registry
+lacks is a `nen/repos.json` entry set up in the registry's own checkout, on its own declaration PR
+at that repository's gate — the sweep itself stays read-only; a gate token `nen parse` refuses at exit `2` is the same trigger, its corrected line the
+starred option.
 
 ## 2. Resolving the repo set
 

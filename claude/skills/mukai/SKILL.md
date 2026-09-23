@@ -4,7 +4,7 @@ description: Take a pushed branch through catch-up, review, impacted tests, cove
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
 `hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
@@ -226,7 +226,9 @@ maintainer tuning the file knows where the effect lands:
 
 **Each step states its own default when a key is absent.** Mukai neither supplies a default nor
 overrides one — a composite that quietly substituted a value would make the file a lie for the step
-that owns it.
+that owns it. A missing argument or configuration item is asked for and set up inline by the step
+that reads it (`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md)
+§ 4 *Ask, set up, continue*); a `project` lane or verb through `nen scaffold init`.
 
 > **`nen schema check` VALIDATES `nen/workflow.json` at the pinned build** — verified live
 > (`docs/ab/mukai.md` § *Retired at nen 0.5*): six rows, the sixth the workflow file, `ok`. A

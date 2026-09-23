@@ -4,7 +4,7 @@ description: Bring an already-published branch up to date with its base, rerun t
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
 `hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
@@ -141,6 +141,10 @@ clause means the same thing in both.
 reads `ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}'
 off 'main', checks: lint`. A malformed key is a FAIL **by pointer**, so this skill no longer checks
 the shape by eye; it reads the values, and states the defaults whenever they are what applied.
+
+A missing argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*); a
+typed clause that exits `2` is the trigger to ask for the base, not the end.
 
 ## 3. The three steps, in order
 

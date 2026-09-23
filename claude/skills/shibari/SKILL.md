@@ -9,35 +9,31 @@ description: Compose the pull request body from templates/pr-body.md and open th
 PR on it, and hand it to [`en`](../en/SKILL.md); the authoring nature is **named inside the body**, in
 *Why*, never adopted here. Shibari is **step 8 of [`mukai`](../mukai/SKILL.md)**, the last step that
 writes anything and the only one that writes to GitHub, and **it proves nothing of its own**: a
-section with no fact behind it says so, never written from what the change was supposed to do. The
-landing report is rendered **after** this step, from what is on the PR.
+section with no fact behind it says so. The landing report is rendered **after** this step, from what is on the PR.
 
 ## 0. Standalone entry
 
-[`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4 lists shibari's grammar as already
-total, so cold entry adds **P1** ([`hatsu-warmup`](../hatsu-warmup/SKILL.md)) and **P2**, carrying the
-one precondition a cold call can fail — **the branch must already be pushed**. State the branch,
-whether it is published, and how many commits are unpushed: unpushed commits would open a PR that
-omits them, so **stop and name [`aka`](../aka/SKILL.md)**, never pushing on the maintainer's behalf.
-Where the evidence the body owes does not exist because `hanten`, `kotoamatsukami` or `byakugan` did
-not run, **the body says that section is unavailable and why**, never a plausible table. Shared policy
-lives at the plugin root, resolved as `hatsu-warmup` § 0 says.
+Already total ([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4): cold entry adds
+**P1** and **P2**, carrying the one precondition a cold call can fail — **the branch must already be
+pushed**. State the branch, whether it is published and how many commits are unpushed; a PR would
+omit them, so **stop and name [`aka`](../aka/SKILL.md)**, never pushing for the maintainer. Evidence that does not exist because `hanten`, `kotoamatsukami` or
+`byakugan` did not run is **stated unavailable, with why** — never a plausible table.
 
-## 1. Invocation — and where the authority comes from
+## 1. Invocation and authority
 
 ```
 hatsu:shibari
 ```
 
-No arguments, so there is nothing for `nen parse` to own: the branch is the input, the base comes from
+No arguments, so no `nen parse`: the branch is the input, the base comes from
 the workflow file (§ 2), the issue from the branch's own commits. **The maintainer's `hatsu:mukai`
-call is this run's authorization**, the only other source being a direct `hatsu:shibari`: opening a PR
-is a human call ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4), no agent proposes it, no
-composite reaches this step unasked, and that same call covers the evidence mechanism's publish step,
-not asked again per scene. **One call, one PR** — a run that finds two efforts opens neither, names
+or `hatsu:shibari` call is this run's authorization**: opening a PR is a human call
+([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4) no agent proposes and no composite reaches
+unasked, and that call covers the evidence mechanism's publish step, not asked again per scene.
+**One call, one PR** — a run that finds two efforts opens neither, names
 [`jujisho`](../jujisho/SKILL.md) and stops.
 
-## 2. The parameters — both files, with the defaults stated
+## 2. The parameters, defaults stated
 
 | Key | File | Used for | Default |
 |---|---|---|---|
@@ -46,29 +42,34 @@ not asked again per scene. **One call, one PR** — a run that finds two efforts
 | `coverage.*` | `nen/workflow.json` | the band the checklist quotes from `byakugan` | 80/85/90 |
 | `project.evidence.globs`/`.scene`/`.mechanism` | `nen/contract.json` | the `UZF-26` rows, scene naming, and which mechanism the stack is on | **no globs is the no-evidence case**, stated in the body; `{suite}-{scene}`; **the committed-path mechanism**, never the mirror |
 
-- `nen schema check --repo <path>` validates the workflow file, so a malformed key is a FAIL **by
-  pointer** that this skill quotes; every default that applied is said out loud.
+- A missing configuration item is asked for and set up inline (`missing-configuration`;
+  [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*); both files are read and
+  validated as [`PROCESS.md`](../../../docs/PROCESS.md) § *Invocation and parsing* says.
 - **The range is `origin/<branch.base>...HEAD`, after `git -C <path> fetch origin <branch.base>`** —
   nothing fast-forwards *local* `main`, and **`nen gate derive` and
   `nen changelog fragment-required` take `--files`, so a wrong set gives a confident wrong answer.**
 - `nen shu evidence --repo <path> --base <ref>` reads `project.evidence`, but the rows come from
-  `mukai` step 7 and **shibari re-uses them rather than re-deriving them**.
+  `mukai` step 7 and **shibari re-uses them, never re-derives them**.
 
 ## 3. The body
 
-**The body is [`templates/pr-body.md`](../../../templates/pr-body.md), filled** — the nine parts in
-order, what each must contain, and § 4's three checks as comments at its top. The target's own
+**The body is [`templates/pr-body.md`](../../../templates/pr-body.md), filled** — its nine parts in
+order, § 4's three checks commented at its top. The target's own
 template governs the section *names* where it has one, and **the `UZF-26` evidence shape is
-[`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The UZF-26 evidence shape***.
+[`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The UZF-26 evidence shape***. **Every screenshot is a
+cell of that section's table** — states as named columns, variants as labelled rows, one fixed-width
+labelled image per cell — and **`"$hatsu_root/scripts/pr_body_evidence_check.sh" --body <file>` passes before the
+body is written**, on the first write and on every rewrite after a review, which re-renders the whole
+*Evidence* section and never appends below it.
 
-**Associated issues — body AND Development** (ruling 2026-09-12), this skill's contract to enforce:
+**Associated issues — body AND Development** (ruling 2026-09-12), which shibari enforces:
 
 - **Every** issue the PR addresses appears in **both**, on single-issue and combined PRs, at creation,
   at every scope amendment and at handover; the body table carries each canonical URL, the scope this
   PR implements, and whether merging **completes** it or delivers part, with prerequisites listed
   separately and a PR with no associated issue saying so.
 - After opening or editing, compare the expected set against **live** Development associations — a
-  body mention alone is not proof, and a missing link is never reported as present. A separate
+  body mention alone is not proof. A separate
   supported closing clause per issue creates it on a default-branch PR; otherwise use GitHub's own
   linking interface and verify. **Never invent a Nen link verb; never assume `Part of #N` links.**
   Non-default bases, cross-repository links and the UI's link-count limit need live checks.
@@ -76,12 +77,10 @@ template governs the section *names* where it has one, and **the `UZF-26` eviden
   sidebar, never change auto-close settings, preserve a partial issue's remaining scope, and report an
   auto-close conflict for the maintainer's disposition before merge.
 
-**Agent attribution** is the final heading, following
-[`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md): every and only the agents that
-actually participated, with canonical persona, contribution and reviewable evidence — **no model,
-runtime, surface or session metadata**, and never a contributor inferred from the branch, a default
-persona, a reviewer request or a model label. Commit messages carry only the canonical
-`Hatsu-Agent`/`Akatsuki-Agent` trailer.
+**Agent attribution** is the final heading, exactly as
+[`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md) specifies: **every and only the
+agents that actually participated**, never one inferred from the branch, a reviewer request or a model
+label.
 
 ## 4. Open it, check it, write it back
 
@@ -100,68 +99,50 @@ nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,nen/,sc
 nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-run] [--json]
 ```
 
-- **The two refs must be equal**; they are not, and the run **stops and says which is ahead**, never
-  pushing to satisfy its own precondition. **`pr open` refuses a head that is not on the remote at
+- **The two refs must be equal**; if not, the run **stops and says which is ahead**. **`pr open` refuses a head that is not on the remote at
   exit `2` and exits `1` naming an open PR for the branch**; it opens **once**, draft or ready
   being the repository's convention.
-- **`body-check` reports every requirement, never stopping at the first miss**; **exit `1` is a
-  finding to fix**.
+- **`body-check` reports every requirement**; **exit `1` is a finding to fix**.
 - **`fragment-required` has four verdicts** — `not-applicable`, `required` (exit `1`),
   `fragment-present`, and `opt-out` where `--body-from` carries a `no CHANGELOG entry: <reason>` line.
-  **Keep both `nen/` and `schemas/`**; **`--head-changelog` must exist or the verb refuses at exit
-  `2`**; and **`fragment-present` needs the fragment on disk at head as
-  well as in `--files`**.
+  **Keep both `nen/` and `schemas/`**; **a missing `--head-changelog` is exit `2`**; and **`fragment-present` needs the fragment on disk at head as well as in `--files`**.
 - **The gate is derived exactly as [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation*
-  says**, and **the body names it as a FORECAST, never a status**, a PR shibari just opened being by
-  definition not ready. **Shibari derives the gate and never labels one**: a label is a readiness
-  claim, and readiness is `nen pr ready`'s verdict inside [`en`](../en/SKILL.md) after this run has
-  ended. In `zheref/hatsu` only, `pr-readiness.yml` publishes that oracle's own bytes as the
-  `readiness` check run; no consumer carries it, and shibari never writes it either.
+  says**, and **the body names it as a FORECAST, never a status** — a PR just opened is not ready.
+  **Shibari derives the gate and never labels one**: a label is a readiness
+  claim, and readiness is `nen pr ready`'s verdict inside [`en`](../en/SKILL.md), after this run (in `zheref/hatsu`, `pr-readiness.yml` publishes it as the `readiness` check; shibari never
+  writes that either).
 - **The body is written back only after all three checks have run.** The create is the first write and
   **every later revision is an edit**: `nen pr edit-body` replaces the body outright and **certifies
-  the number before any write**, refusing a 404/410. **Always
-  `--body-file`, never an inline `--body` string**, and **a relative `--body-file` resolves against
+  the number before any write**, refusing a 404/410. **A relative `--body-file` resolves against
   `--repo`'s root**, so the body is written to an **absolute** path.
 
 ## 5. Reviewers, and the hand to `en`
 
 ```bash
-export GH_TOKEN=$(gh auth token)
 nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <a,b> [--add-bots <id,...>]
 ```
 
 **The reviewer-round policy is [`sharingan`](../sharingan/SKILL.md) § 6's** — one Copilot round after
 [`hanten`](../hanten/SKILL.md) settles, never before — and this skill makes only the first request.
-The verb routes per name: a collaborator through `requestReviewsByLogin`, a bot through
-`requestReviews`'s `botIds`, an `org/team` slug unlooked-up, a bare login resolving to neither refused
-at exit `2` pointing at `--add-bots`, both flags absent exit `1`.
-**Copilot goes through `--add-bots <node id>`** (`BOT_kgDOCnlnWA` here — data, read off the target's
-own reviewer set elsewhere), since `--add-bots copilot` cannot resolve it today (zheref/nen#160). The
-same mutation answers `NOT_FOUND` under one token and succeeds under another, so **report success from
-the mutation's own response, never from the ids sent**; check first whether Copilot already reviews
-this repository automatically; and request on the **maintainer's** user token, a bot token silently
-no-opping. **Shibari requests; it never reviews.**
+**The request's mechanics are [PROCESS.md](../../../docs/PROCESS.md) § *Reviewer rounds and review
+threads***: the maintainer's token, Copilot through `--add-bots <node id>`, and **success read from
+the mutation's own response, never from the ids sent**.
 
-**Then one line, and stop**: the object notation, the base, the derived gate as a **forecast**,
-whether the three checks passed, the evidence mechanism, who was requested, and that
-[`en`](../en/SKILL.md) has the PR. **No `nen stop` banner** — opening a PR is not a gate event, and
+**Then one line, and stop**: the notation, the base, the gate **forecast**, whether the three checks
+passed, the evidence mechanism, who was requested, and that [`en`](../en/SKILL.md) has the PR. **No `nen stop` banner** — opening a PR is not a gate event, and
 `en`'s own [`jutaisho`](../jutaisho/SKILL.md) step rings at Ready.
 
 ## 6. Residue, authority and hard limits
 
-**RETIRED at nen `0.13`: `nen pr open` opens the PR.** The evidence mirror's publish step, the
-base-ref read (`gh pr view --json baseRefName`), the last-pushed-commit comparison and Development
-linking are named raw calls.
+Named raw calls: [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned dependencies*.
 
 - **Permitted, only on the maintainer's own `hatsu:mukai` or `hatsu:shibari` call:** read the working
   copy and its history; write the body file; open **one** PR against `branch.base` from the last
   pushed commit; edit **that** PR's body; request reviewers; run the target's own declared
   evidence-publish step on `public-mirror`. **The delegation is one run wide.**
-- **Not permitted:** any merge; any label; any review vote; any push, force-push or `--no-verify`;
-  any commit; a second PR; touching a PR this run did not open.
-- **Never opens more than one PR**, never one for a branch whose `HEAD` is ahead of
-  `origin/<branch>`, **never pushes** to satisfy its own precondition, **never labels a gate**,
-  **never merges**, and **never casts a review vote**.
+- **Not permitted:** any merge, label, review vote or commit; any push, force-push or `--no-verify`,
+  even to satisfy its own precondition; a second PR, or one for a branch whose `HEAD` is ahead of
+  `origin/<branch>`; touching a PR this run did not open.
 - **Never opens a PR without `# What this changes for you`, `## How to verify`, the final
   `## Agent attribution`, and the `changelog.d/` fragment where one is owed** — all decided by verb.
 - **Never writes a section with no fact behind it**, and **never ticks a completion box by assertion**.

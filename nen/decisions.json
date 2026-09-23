@@ -1,6 +1,6 @@
 {
   "$schema": "nen.decisions/v0.1",
-  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition a running workflow can stop on. `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check`; read by `nen stop --options` and by every skill before it asks. Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure (hatsu-warmup), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan). Data-only until a skill cites them: merge, mode-label, signing-material, on-device-act, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
+  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition a running workflow can stop on. `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check`; read by `nen stop --options` and by every skill before it asks. Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure (hatsu-warmup), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan), missing-argument and missing-configuration (every skill that takes arguments or reads configuration, WORKFLOW.md § 4 Ask, set up, continue), missing-maintainer-choice (kagutsuchi, mugetsu, izanagi, jujutsu, ren's missing request; the keys it governs are its own `governs` list). Data-only until a skill cites them: merge, mode-label, signing-material, on-device-act, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
   "contract": "nen.decisions/v0.1",
   "rows": [
     {
@@ -78,6 +78,94 @@
       ],
       "proposeIssue": true,
       "why": "Ruling 2026-09-19: a missing declaration always gets a path forward. A Hatsu-owned scaffolding piece is repaired by tenkai without asking; a nen-routed declaration is set up through an assisted flow that asks the configuration questions itself and runs the owning verb."
+    },
+    {
+      "id": "missing-argument",
+      "class": "ask-once-per-run",
+      "default": "derive the value from the session, the branch, its open PRs and nen/workflow.json; one candidate a canon default covers is used and stated for this run only, otherwise ask with the candidates. Not for a maintainer's-word value; see missing-maintainer-choice",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "use the derived value",
+          "command": "re-run nen parse <skill> with the line completed by the derived value, then continue",
+          "consequence": "the skill runs as if the value had been typed; the turn page names where it came from",
+          "recommended": true
+        },
+        {
+          "key": "B",
+          "label": "use the next candidate",
+          "command": "re-run nen parse <skill> with the line completed by the next candidate, then continue",
+          "consequence": "the same run on the other reading"
+        },
+        {
+          "key": "C",
+          "label": "type the value",
+          "command": "the picker's free-text answer completes the line; nen parse re-runs on it",
+          "consequence": "nothing runs on a guess"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Ruling 2026-09-22: a missing or unparseable argument is completed inline, through the picker, and the operation continues; a refusal the maintainer has to retype around is never the outcome."
+    },
+    {
+      "id": "missing-configuration",
+      "class": "ask-once-per-run",
+      "default": "ask per item; on the answer, set the item up through its owner, validate it with nen schema check, and resume the operation in the same turn. Nothing tracked is written unasked",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "set it up now with the detected value",
+          "command": "write the item through its owner (nen scaffold init, scripts/tenkai_adopt.sh apply, hatsu:jujutsu, or the file's own key), nen schema check, then resume; a new lane, a verb argv or a project.targets entry lands through its declaration PR at that repository's gate before it runs",
+          "consequence": "the configuration exists from now on; a tracked file rides this effort's branch or its own declaration PR at that repository's gate",
+          "recommended": true
+        },
+        {
+          "key": "B",
+          "label": "set it up with another value",
+          "command": "the same write with the value the maintainer picks or types",
+          "consequence": "the same, on the maintainer's value"
+        },
+        {
+          "key": "C",
+          "label": "run once without it",
+          "command": "the owning verb's --dry-run, or the phase reported not measurable here",
+          "consequence": "nothing is written; the gap is named in Not delivered and asked again next time"
+        }
+      ],
+      "proposeIssue": true,
+      "why": "Ruling 2026-09-22: a missing configuration item is asked for per item, written on the maintainer's behalf once answered, and the operation continues. What is not a gap is refused, never asked: WORKFLOW.md § 4 Ask, set up, continue holds the one list.",
+      "refuse": [
+        "a value shaped like a secret, credential or signing material is never written: a requiresEnv-style key takes environment-variable NAMES only, and nen stage triage runs on the written file before the operation resumes (secret-shape, signing-material)",
+        "a frozen or foreign registry (a reference repository, another owner's nen/repos.json) is reported, never written"
+      ]
+    },
+    {
+      "id": "missing-maintainer-choice",
+      "class": "ask-once-per-run",
+      "governs": [
+        "kagutsuchi <target>",
+        "mugetsu <target>",
+        "mugetsu go",
+        "izanagi <cap>",
+        "jujutsu <device>",
+        "ren <request>"
+      ],
+      "preferred": [
+        {
+          "key": "A",
+          "label": "type the value",
+          "command": "the maintainer types the value as free text; the declared candidates are listed for reference, none starred, none a picker option that performs the act",
+          "consequence": "the line is completed with the typed value and nen parse re-runs on it"
+        },
+        {
+          "key": "B",
+          "label": "stop here",
+          "command": "end the run with the plan printed and nothing acted on",
+          "consequence": "nothing runs; the operation resumes when the maintainer types the value"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Ruling 2026-09-23: a value that is the maintainer's own word (a target, a go, a cap, a device, the request) is typed, never picked and never derived. No default and no recommended option: a default is a derivation and a starred option is a pick. The declared candidates may be listed for reference, none starred, and none is ever an option that performs the act. mugetsu asks only when the maintainer typed hatsu:mugetsu <target> in the same turn; every other reach prints the plan and stops."
     },
     {
       "id": "mode-unknown",

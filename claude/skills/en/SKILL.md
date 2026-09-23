@@ -4,7 +4,7 @@ description: Take one open pull request from the moment it opens to verified rea
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
 `hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
@@ -66,6 +66,11 @@ template.
 > `nen parse en` not at all** — echoing a parse of a line nobody typed would be theatre, and
 > feeding it `""` would produce a refusal that means nothing. The parse runs when, and only when,
 > the maintainer typed a clause.
+
+A missing argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*): a
+maintainer's line that exits `2`, or names no PR where the session holds none, is the trigger to
+offer the session's open PRs in the picker and resume on the answer, never the end of the run.
 
 Resolve the code once, up front, and keep the slug for every later call — never re-derive it a
 second way (`claude/agents/kurapika.md` § *How you work*):
@@ -230,6 +235,9 @@ Two things en relies on and does not re-derive:
   satisfied**, both deterministic, neither re-derived by eye. `sharingan` § 4's rule, and
   [`hatsu:pr-state`](../pr-state/SKILL.md)'s before it: **a readiness claim is that verdict, quoted,
   or it is not made.**
+- **A body this run rewrites** — new or re-recorded screenshots after a review — **re-renders the whole
+  *Evidence* table** and passes `"$hatsu_root/scripts/pr_body_evidence_check.sh" --body <file>` before it is written
+  ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The UZF-26 evidence shape*, *The table, exactly*).
 - **`sharingan`'s escalation is a G5 and it ends this run's cycle**, not just its step. A PR that
   will not reach Ready is one of the plane's five genuine stops
   ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4), and en does not spend the rest of its cap

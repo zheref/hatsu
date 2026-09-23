@@ -4,7 +4,7 @@ description: Execute the repository's declared focused tests for the behavior th
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
 `hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
@@ -131,8 +131,12 @@ the changed behavior. There is no `--mode`, no `--extra`, and no walk of
 `nen/workflow.json → tests.required`. Those keys belong to kotoamatsukami.
 
 A bare invocation without `--lane` is diagnostic only when the caller already named the lane in
-prose and tsukuyomi repeats it; otherwise refuse rather than defaulting to `iteration.lane`, which
-is the repository lane and usually the full suite.
+prose and tsukuyomi repeats it; otherwise ask for it, the declared scoped lanes as the options,
+rather than defaulting to `iteration.lane`, which is the repository lane and usually the full suite.
+
+A missing argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*); a
+missing scoped lane or `project` block is set up through `nen scaffold init`.
 
 ## 2. The parameters, and where they come from
 
@@ -217,9 +221,11 @@ route for this behavior; § 5 is a repository that declared nothing at all, and 
 
 ## 5. A repository that declares nothing
 
-`nen shu test` exits `2` naming the missing `nen/contract.json` (or its missing `project` block). Then:
-run the repository's own documented test command, **say plainly that no declaration exists yet**, and
-treat writing one as a change to propose at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one). Read that fact off `test`/`build`/`lint` and **never
+`nen shu test` exits `2` naming the missing `nen/contract.json` (or its missing `project` block) —
+the trigger to set it up (§ 1), not the end. Run the repository's own documented test command,
+**say plainly that no declaration exists yet**, and set one up through `nen scaffold init` on the
+maintainer's answer, riding its own PR at the **declaration gate** (**G4** in a canon repository,
+**G2** in a consumer one). Read that fact off `test`/`build`/`lint` and **never
 off `nen shu detect`**, which answers a different question and reports `1` for repositories that test
 perfectly well ([`hatsu:rasengan`](../rasengan/SKILL.md) § 7, verified live in both directions).
 

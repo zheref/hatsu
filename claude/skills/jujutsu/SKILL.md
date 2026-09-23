@@ -7,21 +7,18 @@ description: Pair a new device with this machine and register it as a named laun
 
 **Nature: Transmuter.** The output is a `project.launch` block in `nen/contract.json`.
 
-> **Get this device paired, prove it with the probe, and write it into the declaration through a pull
-> request — once, so nobody has to do it again.**
+> **Get this device paired, prove it with the probe, and write it into the declaration through a PR —
+> once, so nobody has to again.**
 
-Jujutsu runs **once per device**. **Half of this skill is not something an agent does**: trusting a
-computer, enabling Developer Mode and accepting an RSA fingerprint are acts on the device's own
-screen, by the person holding it, and they are the security boundary that makes a paired device mean
-anything. What jujutsu does is probe read-only, write one JSON block, and open a pull request.
+Jujutsu runs **once per device**. **Half of it is not an agent's to do**: trusting a computer,
+enabling Developer Mode and accepting an RSA fingerprint are acts on the device's own screen, by the
+person holding it — the security boundary that makes a paired device mean anything. Jujutsu probes
+read-only, writes one JSON block, and opens a pull request.
 
-**The declaration rules it writes are [`docs/LAUNCH-MIGRATION.md`](../../../docs/LAUNCH-MIGRATION.md)
-§ *Launch declaration rules*** — the block's keys, `readyWhen`'s two shapes and four load-time
-validations, the probe's three outcomes, the byte-for-byte name match, and the verb-builds /
-after-steps-install-and-launch table. **The declaration gate is the repository's ROLE**
-([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation*), usually **G2** here, so
-**resolve the target repository first and say which gate you are standing at.** Shared policy lives at
-the plugin root, resolved as [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 0 says.
+**Every declaration rule it writes is [`docs/LAUNCH-MIGRATION.md`](../../../docs/LAUNCH-MIGRATION.md)
+§ *Launch declaration rules***. The gate is the repository's role, usually **G2** here
+([PROCESS.md](../../../docs/PROCESS.md) § *Authority every phase shares*, which also resolves the
+plugin root): **resolve the target repository first and say which gate you stand at.**
 
 ## 1. Invocation
 
@@ -30,10 +27,12 @@ hatsu:jujutsu pair <device>
 nen parse jujutsu --grammar "pair <device>" --line "<the invocation, minus the prefix>"
 ```
 
-**`<device>` is required and never defaulted** — a device registered under the wrong name is a launch
-target that resolves to somebody else's phone — and a bare `pair` refuses at exit `2` with the
-corrected line printed. **The name typed here is provisional**: what goes into the declaration is the
-name the **probe** prints, byte for byte.
+**`<device>` is required and never defaulted** — registered under the wrong name, a target resolves to
+somebody else's phone. **It is the maintainer's word, typed, never picked** (`missing-maintainer-choice`;
+[`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4): a bare `pair` (`nen parse` exit `2`) asks for it as
+free text, the probe's rows listed for reference, none starred and none a picker option. Other gaps
+are `missing-configuration`. **The name typed is
+provisional**: the declaration gets the name the **probe** prints, byte for byte.
 
 ## 2. Once per device — check before pairing anything
 
@@ -41,136 +40,127 @@ Read `nen/contract.json` → `project.launch` — the keys and each one's `devic
 
 | State | What jujutsu does |
 |---|---|
-| already a key **and** the probe resolves it | **Say so and stop**, naming the target key |
-| a key, and the probe does **not** resolve it | **A connection problem, not a pairing one** — report what the probe *did* see (§ 4) and stop |
-| a key, and the probe sees it **present but not usable** | **An on-device step** — name the state, quote the probe, say which § 3 step closes it, stop |
+| a key **and** the probe resolves it | **Say so and stop**, naming the key |
+| a key, the probe does **not** resolve it | **A connection problem, not pairing** — report what the probe *did* see (§ 4), stop |
+| a key, the probe sees it **present but not usable** | **An on-device step** — name the state, quote the probe, say which § 3 step closes it, stop |
 | not a key | § 3 |
 
-**Pairing a device twice is not idempotent in a useful way**: it produces a second key for the same
-hardware, and then two targets resolve to one phone and neither name means anything.
+**Pairing twice is not usefully idempotent**: a second key for the same hardware leaves two targets on
+one phone, and neither name means anything.
 
 ## 3. The pairing walk-through — the maintainer's hands, not this skill's
 
-Present one platform's list, then **wait**, saying what the next probe will show when it has worked.
+Present one platform's list, then **wait**, saying what the next probe shows once it has worked.
 
-**iOS / iPadOS.** 1 · **Connect** by cable (Wi-Fi pairing comes after the first cable pairing, never
-before). 2 · **Unlock** and tap **Trust This Computer** on the prompt, which appears on the *device*,
-then enter the passcode. 3 · **Enable Developer Mode** (Settings → Privacy & Security); the device
-**restarts** and asks again, so confirm it there too. 4 · Say when all three are done.
+**iOS / iPadOS.** 1 · **Connect** by cable (Wi-Fi pairing only after the first cable pairing). 2 ·
+**Unlock** and tap **Trust This Computer** on the *device's* prompt, then enter the passcode. 3 ·
+**Enable Developer Mode** (Settings → Privacy & Security); the device **restarts** and asks again —
+confirm there too. 4 · Say when all three are done.
 
 **Android.** 1 · **Enable Developer options**: Settings → About phone → tap **Build number** seven
-times. 2 · **Enable USB debugging** under Developer options. 3 · **Connect** by cable and accept the
-**Allow USB debugging?** prompt showing this computer's **RSA key fingerprint**, ticking *Always allow
-from this computer* to survive replugging. 4 · **Optionally wireless debugging, only after step 3 has
-worked over the cable**: `adb pair <host>:<port>` with the six-digit code, then
-`adb connect <host>:<debug-port>` — **the pairing port and the connect port are different numbers**.
-5 · Say when it is done.
+times. 2 · **Enable USB debugging** there. 3 · **Connect** by cable and accept **Allow USB
+debugging?** showing this computer's **RSA key fingerprint**, ticking *Always allow from this
+computer*. 4 · **Wireless debugging, optional and only after step 3 worked over the cable**: `adb pair
+<host>:<port>` with the six-digit code, then `adb connect <host>:<debug-port>` — **the pairing and
+connect ports differ**. 5 · Say when it is done.
 
-**Jujutsu performs none of the above, and that is a rule rather than a limitation**: those prompts
-exist so that a human looked at them. **It never enters a passcode, accepts a trust or debugging
-prompt, toggles a security setting, or asks the maintainer to disable one** — a step that seems to
-require turning something off is a finding to report (row `on-device-act`). **And the waiting is not a
+**Jujutsu performs none of the above — a rule, not a limitation**: those prompts exist so that a
+human looked at them. **It never enters a passcode, accepts a trust or debugging
+prompt, or toggles a security setting** (§ Authority) — a step that seems to need something turned
+off is a finding to report (row `on-device-act`). **And the waiting is not a
 loop**: `nen parse izanami` classifies both probes `[unknown]` and refuses the run at exit `1`, so
 jujutsu **asks, waits for the maintainer's word, and probes once**.
 
 ## 4. Verify with the probe — and read the state, not just the presence
 
 ```bash
-xcrun devicectl list devices      # iOS; --json-output <path> for the machine-readable form
-adb devices -l                    # Android; the state is the SECOND column
+xcrun devicectl list devices  # iOS; --json-output <path> for the machine-readable form
+adb devices -l                # Android; the state is the SECOND column
 ```
 
-**Which states register from, which are present-but-unusable and which are absent is
+**Which states register, which are present-but-unusable and which absent is
 [LAUNCH-MIGRATION](../../../docs/LAUNCH-MIGRATION.md) § *The probe's states, and the third
-outcome*.** What is this skill's is the act at pairing time, where **there is no declaration yet, so
-reading the state is THIS SKILL'S**: `readyWhen` is what jujutsu is about to write.
+outcome*.** At pairing time **there is no declaration yet, so reading the state is THIS SKILL'S** —
+`readyWhen` is what it is about to write.
 
-- **Refuse to register it**, in those words — *"`<name>` is attached and `unauthorized`; the probe
+- **Refuse to register it**, saying *"`<name>` is attached and `unauthorized`; the probe
   saw: `<the whole list>`"* — and **say which of § 3's steps closes it**.
-- **Never register the name anyway "so the declaration is ready"**: a target written from a row that
-  cannot be talked to resolves at run time, reports itself resolved, and fails in an `after` step.
-- **Never fall through to the "absent" branch**, whose remedy is the cable rather than a tap, and
-  **when the probe does not see it at all, report what the probe *did* see** — the whole list.
-- **The first probe is the platform's documented command, named as such**, since `device.resolve` is
-  what jujutsu is about to write: **the argv typed here is the argv that goes into the declaration**,
-  and from the second run onward it is read from the file, never retyped.
+- **Never register it anyway "so the declaration is ready"**: a target written from a row nothing can
+  talk to resolves at run time, reports itself resolved, and fails in an `after` step.
+- **Never fall through to the "absent" branch** (its remedy is the cable, not a tap); **when the probe
+  does not see it at all, report what it *did* see** — the whole list.
+- **The first probe is the platform's documented command, named as such**: `device.resolve` is what
+  jujutsu writes, so **the argv typed here goes into the declaration**, and later runs read it from the
+  file, never retyped.
 
-**Delivery is proved, not assumed.** Register a lane that **actually builds for the selected target's
-declared platform**, a matching artifact path, and the install/launch steps it requires, then **prove
-the complete target through its declared `dev`/`run` verb with `--repo <core-checkout> --target
-<declared-target>`**: pairing, probe, dry-run and build success are intermediate outcomes, and where
-validation cannot finish because the device is absent, registration is **unverified for delivery**,
-never a successful launch. A reusable missing capability goes through
+**Delivery is proved, not assumed.** Register a lane that **actually builds for the target's declared
+platform**, a matching artifact path and the install/launch steps it needs, then **prove the whole
+target through its declared `dev`/`run` verb with `--repo <core-checkout> --target
+<declared-target>`**: pairing, probe, dry run and build are intermediate outcomes, and a validation
+the absent device cannot finish leaves registration **unverified for delivery**, never a launch. A reusable missing capability goes through
 [the discovery protocol](../../../docs/DISCOVERY.md) and upstream
 ([nen#204](https://github.com/zheref/nen/issues/204)).
 
 ## 5. The name is **bytes**, and it is copied, never retyped
 
-**`device.name` is matched byte for byte** (LAUNCH-MIGRATION, same section), so a device named
-`Sergio’s iPhone Pro` carries **U+2019**, three bytes, not the ASCII `'` a keyboard produces — and a
-terminal renders it `Sergio?s iPhone Pro` where the codepoint cannot be shown. **Neither the rendered
-form nor the typed form is the name**: copy the bytes out of the probe's JSON output, and where a name
-carries anything non-ASCII, **say so in the pull request body** so the next reader does not "fix" it.
+**`device.name` is matched byte for byte** (LAUNCH-MIGRATION), so `Sergio’s iPhone Pro` carries
+**U+2019**, three bytes, not a keyboard's ASCII `'` — and a terminal may render it `Sergio?s iPhone
+Pro`. **Neither the rendered nor the typed form is the name**: copy the bytes out of the probe's JSON,
+and where a name carries anything non-ASCII, **say so in the PR body** so nobody "fixes" it.
 
 ## 6. Register it — one `project.launch` key, then the declaration PR
 
-**The block's shape is [LAUNCH-MIGRATION](../../../docs/LAUNCH-MIGRATION.md) § *The canonical
-block*** — a complete iOS physical target, plus the simulator and Mac-desktop forms — and **every
-rule for filling it is that document's.** What is this skill's is that it **writes `readyWhen` every
-time**, absent meaning unchanged and a target with no readiness rule being one this skill has not
-finished writing, and that the PR body says **which states the rule admits and which the probe
-offered**, pasting the probe's own object and naming the key it took.
+**The block's shape and every rule for filling it are [LAUNCH-MIGRATION](../../../docs/LAUNCH-MIGRATION.md)
+§ *The canonical block***. This skill's part: it **writes `readyWhen` every time** — a target with no
+readiness rule is one it has not finished writing — and the PR body says **which states the rule
+admits and which the probe offered**, pasting the probe's object and naming the key it took.
 
-**Prove the file first** with `nen schema check --repo <path>`: nen **parses** the block, so a key one
-spelling out is refused **by pointer**, but `ok` says the block **parses**, never that the target
-works, and jujutsu never reports it as if it did. What says the target works is § 4's probe resolving
-the name, run and shown, and — once the block is on `main` — `nen shu dev --repo <path> --target
-<name> --dry-run`.
+**Prove the file first** with `nen schema check --repo <path>`: a misspelt key is refused **by
+pointer**, but `ok` says only that the block **parses**, never that the target works. What says it
+works is § 4's probe resolving the name, run and shown, and — once on `main` — `nen shu dev --repo
+<path> --target <name> --dry-run`.
 
-**Then the pull request, at the declaration gate.** [`aka`](../aka/SKILL.md) publishes the branch on
-the maintainer's call and [`mukai`](../mukai/SKILL.md) opens the PR; jujutsu writes the block, states
-the gate, and **never merges**. The body says which device, which target key, what the probe printed,
-whether `launch.default` changed, and — where the name carries a non-ASCII byte — that it was copied.
+**Then the PR, at the declaration gate**: [`aka`](../aka/SKILL.md) publishes on the maintainer's call
+and [`mukai`](../mukai/SKILL.md) opens it; jujutsu writes the block, states the gate, **never
+merges**. The body names the device, the target key, what the probe printed, whether `launch.default`
+changed, and that a non-ASCII name was copied.
 
 ## 7. Simulators, the Mac desktop, and the report
 
-There is nothing to pair for either, and that is why they go through this skill: **one path means one
-set of rules** — their forms are in LAUNCH-MIGRATION's canonical block, and both still get the schema
-check and the declaration PR, because **skipping the PR because "there was no pairing" is how a
-declaration acquires an entry nobody reviewed.**
+Nothing to pair, and that is why they come through here: **one path, one set of rules** — forms in
+LAUNCH-MIGRATION's canonical block, the schema check and the declaration PR all the same, because
+**skipping the PR for "no pairing" is how a declaration gains an entry nobody reviewed.**
 
 **The report** is one line, then the block: the device as the probe named it, **its state quoted from
-the probe's own column**, the target key, the `resolve` argv, whether `launch.default` moved, and the
-gate the PR stands at. Where the run stopped at § 2 or § 4, that instead, with the probe's full output
-and the on-device step that closes it.
+the probe's column**, the target key, the `resolve` argv, whether `launch.default` moved, the PR's
+gate. A run stopped at § 2 or § 4 reports that, with the probe's full output and the on-device step
+that closes it.
 
 ## Residue
 
-**The pairing steps have no verb and never will** — a boundary, not a gap — and **waiting has no loop
+**The pairing steps have no verb and never will** — a boundary, not a gap; **waiting has no loop
 primitive**, so jujutsu asks and waits. **The first probe is the platform's documented command**,
-named every run. **At pairing time the target does not exist**, so § 4's first read of the state
-column is by eye; at **launch** time the state is nen's, through the `readyWhen` this skill writes.
+named every run, and **its state column is read by eye** (no target exists yet); at **launch** the
+state is nen's, through the `readyWhen` written here.
 
 ## Authority and hard limits
 
-- **Permitted:** run read-only device probes; read `nen/contract.json` and `nen/workflow.json`; write
-  a `project.launch` block and, on the maintainer's word, a `launch.default`/`launch.fallback`; run
-  `nen schema check`; commit that change on a branch.
-- **Not permitted:** any on-device step; entering a passcode or credential; accepting a trust,
-  pairing or debugging prompt; changing a security setting; installing anything; writing a device
-  identifier into the declaration; merging the PR. **It carries no delegation**, and being reached
-  from [`amaterasu`](../amaterasu/SKILL.md)'s failure path lends it none.
-- **Never taps, confirms or bypasses a trust, pairing, Developer-Mode or USB-debugging prompt**, and
-  never asks the maintainer to disable a security setting (row `on-device-act`).
-- **Never enters a passcode, PIN, password or any credential**, anywhere, for any reason.
+- **Permitted:** read-only device probes; reading `nen/contract.json` and `nen/workflow.json`; writing
+  a `project.launch` block and, on the maintainer's word, `launch.default`/`launch.fallback`; `nen
+  schema check`; committing that change on a branch.
+- **Not permitted:** any on-device step; installing anything; merging the PR. **It carries no
+  delegation**; reached from [`amaterasu`](../amaterasu/SKILL.md)'s failure path, it borrows none.
+- **Never taps, confirms or bypasses a trust, pairing, Developer-Mode or USB-debugging prompt**, never
+  changes a security setting or asks the maintainer to disable one (row `on-device-act`), and **never enters a
+  passcode, PIN, password or any credential**, anywhere, for any reason.
 - **Never registers a device it has not seen the probe resolve**, one whose row is present but not in
   a usable state, or one **without a `readyWhen` rule**; **never reports a present-but-unusable device
   as absent**; and **never retypes a device name** (§ 5).
 - **Never writes an install or a launch into the target's verb**, never appends a second `-scheme`
   through `args`, and **never writes a UDID, serial or hardware identifier into the declaration.**
-- **Never reports `nen schema check`'s `ok` as evidence that the target works.**
+- **Never reports `nen schema check`'s `ok` as evidence the target works.**
 - **Never registers a second target for a device that already has one**, and **never changes
   `launch.default` silently.**
 - **Never merges the declaration PR** — G4 in a canon repository, G2 in a consumer one, **both the
-  maintainer's**; the gate moves with the repository, the prohibition does not.
-- **Never polls for the device on a timer**, and **never presents a by-hand probe as a verb's output.**
+  maintainer's**: the gate moves with the repository, the prohibition does not.
+- **Never polls for the device on a timer**, or **presents a by-hand probe as a verb's output.**

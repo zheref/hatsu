@@ -58,8 +58,12 @@
 
 ## Evidence
 
-<!-- The UZF-26 table — docs/WORKFLOW.md § The UZF-26 evidence shape. The rows come from mukai step 7's
-     evidence pass and are RE-USED, never re-derived. -->
+<!-- The UZF-26 table — docs/WORKFLOW.md § The UZF-26 evidence shape, "The table, exactly". The rows
+     come from mukai step 7's evidence pass and are RE-USED, never re-derived. One table per screen:
+     STATES as named columns, VARIANTS (device · theme) as bold-labelled rows, one fixed-width image per
+     cell with alt text "state, variant", "—" where a state does not apply. Never an image outside the
+     table; an update after review re-renders this whole section. Checked before every write by
+     "$hatsu_root/scripts/pr_body_evidence_check.sh" --body <file>. -->
 
 ## Completion checklist
 

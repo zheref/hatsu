@@ -4,7 +4,7 @@ description: Bring the branch up to date with its base — rebase when nothing h
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
 `hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
@@ -62,6 +62,9 @@ reason [`hatsu:spiritual-message`](../spiritual-message/SKILL.md) § 1 records.
 **With no clause the base is `nen/workflow.json` → `branch.base`, default `main`** when the key or
 the file is absent. Name the base out loud before fetching it — a branch quietly caught up against
 the wrong base is a diff nobody can read afterwards.
+
+A missing argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*).
 
 ## 2. Read the checkout first
 

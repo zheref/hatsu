@@ -4,12 +4,12 @@ description: Make a repository — new or existing, consumer or not — a workin
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md`, `docs/GATE-CONFIGURATION.md` and `docs/STANDALONE-ENTRY.md` belong to the
-resolved **Hatsu plugin root**, not the consuming repository. On an installed surface, use the
-absolute root printed by `hatsu-warmup` to read those files (re-resolve through that skill if
-unavailable). Relative links below identify source locations; a missing consumer `docs/` copy is not
-a missing policy and must not trigger a duplicate filing. Never copy or invent a second policy in the
-target repository.
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
+root**, not the consuming repository. On an installed surface, use the absolute root printed by
+`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
+trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+`docs/GATE-CONFIGURATION.md` resolves there too.
 
 
 # Tenkai — the unfolding, by which a repository becomes a consumer
@@ -80,6 +80,11 @@ before it writes anything — with the count of items it would change in the que
 
 > `<repo>` has `<n>` outstanding item(s): `<ids>`. I will render `<k>` file(s) and install `<h>` hook(s).
 > ⭐ **Apply** · **Diagnose only** · **Stop**
+
+A missing argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) —
+tenkai **is** the owner that sets up a Hatsu-owned piece (`scripts/tenkai_adopt.sh apply`), and it
+routes a nen declaration to `nen scaffold init`.
 
 **`diagnose` is the same run with the question suppressed**, for a caller that wants the verdict
 and not the offer — which is what [`hatsu:hatsu-warmup`](../hatsu-warmup/SKILL.md) § 0a calls. **One name, not two** — an earlier draft called it `check` here and `diagnose` there.
