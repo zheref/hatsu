@@ -84,8 +84,8 @@ the resolved lane is named out loud either way.
 | What lint actually runs | `nen/contract.json` → `project.verbs.<lane>.lint` | none — an absent row is exit `2`, the trigger to ask and set it up; a **seat** is exit `4` |
 
 A missing argument or configuration item is asked for and set up inline (`missing-argument`,
-`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*), a
-missing `lint` row or lane set up through `nen scaffold init`.
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*); a
+missing `lint` row or lane is set up through `nen scaffold init`.
 
 **When `nen/workflow.json` is absent, say so in the turn's report, in these words —** *"no
 workflow.json: using the built-in defaults from `docs/WORKFLOW.md`"* — and use `iteration.lane` =

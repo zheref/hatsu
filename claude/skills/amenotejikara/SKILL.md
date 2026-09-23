@@ -88,8 +88,10 @@ After a swap nen names any `project.pbxproj`, `Package.resolved`, `Podfile.lock`
 Core's uncommitted work (untracked files included) is written through a temporary index into a
 commit object **pinned at `refs/nen/wc-swap/parked`**, and only then is core cleared for the
 checkout. **The stash stack is shared by every worktree and every session**, so it is never used.
-**Ignored files — build products, `xcuserdata`, local secrets — are never touched** in either
-direction. `return` restores modified, new and deleted paths exactly, nothing staged, and drops the
+**Ignored files — build products, `xcuserdata`, and local secrets kept ignored — are never touched**
+in either direction. **An untracked file that is not ignored IS parked** into that commit object in
+the local git database, so a local secret belongs in `.gitignore` (or `info/exclude`) before a swap;
+`list` shows each checkout's uncommitted count first. `return` restores modified, new and deleted paths exactly, nothing staged, and drops the
 ref. The swap record is `<common git dir>/nen-wc-swap.json`, where no checkout and no `git clean`
 reaches it, and a swap or return holds its advisory lock (`nen-wc-swap.json.lock`), so two sessions
 never swap core at once.
