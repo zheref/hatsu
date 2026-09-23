@@ -4,7 +4,7 @@ description: Cut a release tag locally, end to end — preconditions, one folded
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md` and `docs/PROCESS.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
 `hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
@@ -76,6 +76,12 @@ hatsu:getsuga <hash | branch-name | main | last-commit | checkout>
 | `<hash>` | that commit |
 | `<branch-name>` | that branch's tip |
 | `checkout` | the current working copy's `HEAD` |
+
+A missing argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) —
+**the maintainer's word: never derived** for the cut point: a missing or unresolvable token is asked
+with the five forms above as options, none starred. A missing registry or declaration item is set up
+through its owner (`nen scaffold init`, or `nen/repos.json`'s own key).
 
 **Resolve, then test reachability — this is the load-bearing check**, and it is one verb now, not
 two hand-run `git` commands:

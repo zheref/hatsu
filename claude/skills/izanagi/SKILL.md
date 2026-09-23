@@ -1,6 +1,6 @@
 ---
 name: izanagi
-description: Repeat a task that ACTS until a condition holds, under a mandatory iteration cap. Use when the maintainer invokes hatsu:izanagi <task> until <condition> up to <N>, or asks to keep doing something until it is done. The cap is required grammar, not a default — an invocation without "up to <N>" is refused. Each iteration runs under its own authority; a human gate ends the loop rather than being retried past.
+description: Repeat a task that ACTS until a condition holds, under a mandatory iteration cap. Use when the maintainer invokes hatsu:izanagi <task> until <condition> up to <N>, or asks to keep doing something until it is done. The cap is required grammar, not a default — an invocation without "up to <N>" is asked for the cap, which is never defaulted or derived. Each iteration runs under its own authority; a human gate ends the loop rather than being retried past.
 ---
 
 # Izanagi — act until it is true, and never more than N times
@@ -18,8 +18,8 @@ forgotten.**
 
 The old `<reference-repo>` skill enforced the cap and the parse by an agent reading its own prose grammar
 by eye, every invocation. This port replaces the parse and the per-iteration condition check with
-`nen`: `nen parse izanagi` splits the line and refuses outright when the cap is missing or
-malformed, `nen watch until` — the same read-only observation engine `izanami`'s port uses —
+`nen`: `nen parse izanagi` splits the line and exits `2` when the cap is missing or malformed —
+the trigger to ask for it (§ 1), never to default it — `nen watch until` — the same read-only observation engine `izanami`'s port uses —
 evaluates the condition, run single-shot per iteration, and from nen `0.7` **`nen loop iterate`
 holds the count of acting iterations across the whole loop**, refusing the claim at the cap instead
 of trusting a caller to stop (§ 3). **What `nen` still does not own, verified live below, is the act
@@ -84,11 +84,16 @@ $ echo $?
 2
 ```
 
-Do not infer a cap from the task, do not offer to pick one, and do not run "just once" to see. Relay
-this refusal and its corrected line **exactly** — this is the one case that makes the whole grammar
-mean something, and it is `nen`'s to enforce now, not the agent's to remember.
+Do not infer a cap from the task, do not star or default one, and do not run "just once" to see.
+Exit `2` is the trigger to **ask for the cap**, the rest of the line intact, and re-run `nen parse
+izanagi` on the answer; nothing iterates until it parses. This is the one case that makes the whole
+grammar mean something, and it is `nen`'s to enforce now, not the agent's to remember.
 
-**Missing `until`, and a malformed cap — both refused, verified live:**
+A missing argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) —
+the maintainer's word: never derived. The cap is asked for, never derived or defaulted.
+
+**Missing `until`, and a malformed cap — both exit `2`, verified live, and both are asked for the same way:**
 
 ```
 $ nen parse izanagi "gh pr merge 925 --repo <reference-repo> up to 3"
@@ -368,9 +373,9 @@ remains and the recommended next step.
 
 ## 6. Hard limits
 
-- **Never runs without an explicit `up to <N>`** — `nen parse izanagi` refuses it (§ 1), and
-  `nen loop iterate --line` refuses the same shape again on every claim; relay either refusal, never
-  route around it.
+- **Never runs without an explicit `up to <N>`** — `nen parse izanagi` exits `2` on it (§ 1) and the
+  cap is asked for, and `nen loop iterate --line` refuses the same shape again on every claim; never
+  route around either.
 - **Never raises its own cap mid-run**, and never restarts itself to get more iterations. **Refused
   mechanically from nen `0.7`**: a claim whose `--line` differs from the running one is exit `2`
   naming both lines, so re-typing the invocation with a bigger `N` is not a way past this (§ 3).

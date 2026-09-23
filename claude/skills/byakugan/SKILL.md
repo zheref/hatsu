@@ -4,7 +4,7 @@ description: Capture instrumented coverage and measure touched-file coverage at 
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md` and `docs/PROCESS.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
 `hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
@@ -104,7 +104,11 @@ nen parse byakugan --grammar "against [<base>]" --line "<the invocation, minus t
 
 The clause is anchored behind a literal for the reason [`hatsu:spiritual-message`](../spiritual-message/SKILL.md) § 1
 records. **With no clause the base is `nen/workflow.json` → `branch.base`, default `main`**, and
-the base is named out loud — the whole measurement is *relative to it*.
+the base is named out loud — the whole measurement is *relative to it*. A missing argument or
+configuration item is asked for and set up inline (`missing-argument`, `missing-configuration`;
+[`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) — a lane in
+`nen/contract.json` through `nen scaffold init`; a declared seat is § 9's answer, not a gap, and **a
+ladder value is never lowered by setting it up** (§ 8).
 
 This is the grammar gyo-as-coverage used. Gyo's live grammar is now `on [<lane>]` (lint).
 

@@ -90,10 +90,12 @@ a description of what it does.
 |---|---|
 | `0` | The line parsed AND every command classifies read-only |
 | `1` | The line parsed but at least one command classifies `mutating` or `unknown` — **the whole run is refused**, and the message names `nen parse izanagi <task> until <condition> up to <N>` as the mutating twin |
-| `2` | The line itself does not parse — no `until` found at all (`nen: no 'until <condition>'. Expected '<task> until <condition>'.`), or `until <condition>` with no task and no following command at all (`nen: no task and no commands to repeat -- expected a task on the first line, or a command per following line.`) |
+| `2` | The line itself does not parse — no `until` found at all (`nen: no 'until <condition>'. Expected '<task> until <condition>'.`), or `until <condition>` with no task and no following command at all (`nen: no task and no commands to repeat -- expected a task on the first line, or a command per following line.`) — the trigger to ask for the missing part and re-parse, not the end |
 
 Never reconstruct this parse by hand once `nen` is available — echo its output verbatim and act on the
-exit code.
+exit code. A missing argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*); exit
+`1` is not a gap — a command that writes is refused, never reworded to pass.
 
 ## 2. Read-only, enforced before the first iteration — `nen`'s classifier IS the table
 

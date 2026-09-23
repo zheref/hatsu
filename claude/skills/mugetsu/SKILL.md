@@ -4,7 +4,7 @@ description: Publish one release to one production destination — a store, the 
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md` and `docs/PROCESS.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
 `hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
@@ -49,8 +49,9 @@ with no tag is refused, and one go publishes one target once*. The contract in
 **Nothing in this section is an authorisation.** Not the warm-up, not the orientation block, not the
 plan. The only thing that authorises a publication is § 3's **recorded per-target go, in the
 maintainer's own words, quoted verbatim** — and a session that reaches this skill without one prints
-the preflight and the plan, reports that it has no go, and stops. That is unchanged, and a cold entry
-is the case it was written for.
+the preflight and the plan, reports that it has no go, and asks for it (§ 3) — never derived, never
+defaulted; nothing publishes until the maintainer types it. That is unchanged, and a cold entry is the
+case it was written for.
 
 **P1 · Warm up.** [`hatsu:hatsu-warmup`](../hatsu-warmup/SKILL.md), unconditionally — `nen release
 preflight` and `nen shu release` are `nen` calls.
@@ -61,9 +62,10 @@ refused*), and whether that tag is reachable from `origin/<branch.base>`. A publ
 operation in this system with no undo, so the state it runs from is stated before the preflight rather
 than inferred from it.
 
-**P4 · Nothing is asked, and this is the strongest form of that rule in the plugin.** Mugetsu does not
-prompt for the go, does not offer to publish, does not present publication as an option in any picker,
-and does not read a cold invocation as intent. **The invocation is not the go**: `hatsu:mugetsu <target>`
+**P4 · Nothing is offered, and this is the strongest form of that rule in the plugin.** Mugetsu does
+not offer to publish, does not present publication as a recommended option in any picker, and does not
+read a cold invocation as intent; the only ask is § 3's, for a missing part of a go the maintainer's own
+call started. **The invocation is not the go**: `hatsu:mugetsu <target>`
 typed alone is half the authorisation, and § 3's recorded message is the other half.
 
 **What a standalone entry explicitly does NOT become.** Not a delegation (§ 1: a delegation is never
@@ -83,8 +85,14 @@ hatsu:mugetsu <target>
 **`<target>` is required grammar.** It names the destination being published to — a key of
 `nen/contract.json → project.targets` where the repository publishes through `deploy`, or the lane
 whose `release` row is the publication step where it publishes through `release` (§ 4). There is no
-bare form, no default and no picker: the maintainer naming the destination is half of the
-authorization, and the other half is § 3's recorded go.
+bare form and no default: the maintainer naming the destination is half of the authorization, and the
+other half is § 3's recorded go.
+
+A missing argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) —
+the maintainer's word: never derived. A missing target is offered from the declared targets with none
+starred; an undeclared one is set up through `nen/contract.json`'s own key, at the repository's
+declaration gate, before anything runs.
 
 **The call is the maintainer's, in their own words or by name.** Four consequences, all binding:
 
@@ -92,7 +100,8 @@ authorization, and the other half is § 3's recorded go.
   body, not a composite offering it as a next step. A report may say *the tag is cut and the
   `production` target is declared*; it may not say *shall I publish?* An agent that asks for
   permission it was told to wait for has converted a human gate into a nudge, and this is the gate
-  where that costs the most.
+  where that costs the most. Asking for the missing part of a go the maintainer's own invocation
+  started (§ 3) proposes nothing: it completes their call.
 - **No composite ever calls it.** [`hatsu:getsuga`](../getsuga/SKILL.md),
   [`hatsu:futon`](../futon/SKILL.md), [`hatsu:en`](../en/SKILL.md),
   [`hatsu:mukai`](../mukai/SKILL.md) and [`hatsu:ren`](../ren/SKILL.md) **never** reach this skill,
@@ -119,13 +128,14 @@ running under none.
 not from a recorded delegation, not from a release PR that was merged, not from a composite's plan, not
 because the previous release went the same way. A session that reaches this skill without **the
 maintainer's own per-target go** (§ 3) **prints the preflight and the plan, reports that it has no go,
-and stops**. What it must never do is publish and explain afterwards.
+and asks the maintainer for it** — a subagent relays that ask and supplies nothing. What it must never do is publish and explain afterwards.
 
 ## 2. The order — and every step of it before the first byte leaves
 
 Nothing below is optional and nothing below is reordered.
 
-1. **The recorded go exists and names this target** — § 3. Without it the run ends here.
+1. **The recorded go exists and names this target** — § 3. Without it, it is asked for, and nothing
+   past this step runs until the maintainer types it.
 2. **The tag is cut, and it resolves on `origin`** — § 3's second half. A go with no tag is refused.
 3. **`nen release preflight` reads clean at the tagged commit** — § 4, and read its one inverted row
    carefully.
@@ -147,7 +157,9 @@ from a `kagutsuchi` upload to a testing channel that went fine, not from an earl
 gone the same way, not from silence, not from *"looks good"* on a different question. If you are
 reconstructing what the maintainer meant, there is no go.
 
-**What a go must contain** — and where any part is missing, ask for that part and stop:
+**What a go must contain** — and where any part is missing, ask for that part (never derived, never
+defaulted) and run nothing until the answer arrives. **The go is typed, never picked**: the ask takes
+the maintainer's free-text answer, and no picker ever carries a *publish* option.
 
 | Part | Why |
 |---|---|

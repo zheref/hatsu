@@ -40,7 +40,11 @@ never a value remembered from a prior session. **Exits 1** with a **distinct** r
 checkout carries no registry at all (the refusal names both `nen/repos.json` and the legacy path), the
 target is not recorded anywhere in it, or it is recorded but carries no `scenario` field (verified live
 at `v0.3.0` against nen's bundled registry) — every one a finding about the registry, never a licence to
-guess a scenario.
+guess a scenario. **Each is the trigger to ask and set up, not the end**: a missing argument or
+configuration item is asked for and set up inline (`missing-argument`, `missing-configuration`;
+[`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) — the `scenario` offered in
+the picker and written to the `nen/repos.json` entry in the registry's own checkout, on its own
+declaration PR at that repository's gate, then the resolution re-run.
 
 > **`<reference-repo>` itself is the one case this verb cannot resolve, and that is expected, not a defect.**
 > A repository cannot be its own consumer, so `<reference-repo>` carries no `consumers[]` entry for itself
@@ -198,7 +202,8 @@ the declaration excludes — `not-testable-here`, host named; a repository with 
 exit `2` naming the missing `nen/contract.json` (or its missing `project` block) — a fact read off these
 verbs, not off `nen shu detect`, whose exit `1` means no marker nen recognises; the two coincide only
 outside the seven stacks — and is tested by its own documented commands, the report saying which case it
-was (`claude/agents/kurapika.md` § *The `shu` verbs*). `nen shu deploy --run` is never this resolver's, nor
+was; the absent declaration is the trigger to offer the one `nen scaffold init` detects on its own PR at
+that repository's gate (`missing-configuration`), never a change to the candidate under test (`claude/agents/kurapika.md` § *The `shu` verbs*). `nen shu deploy --run` is never this resolver's, nor
 Phinks' nor Uvogin's: the plan without `--run` is a read of where the candidate would go; the run is G3.
 
 ## 6. Machinery scenario (`<reference-repo>`) — `QA-16`–`QA-18`

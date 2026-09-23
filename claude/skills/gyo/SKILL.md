@@ -4,7 +4,7 @@ description: Lint the tree on every Ren turn — the named Hatsu process for the
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md` and `docs/PROCESS.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
 `hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
@@ -81,7 +81,11 @@ the resolved lane is named out loud either way.
 |---|---|---|
 | Which lane the lint row runs in | `nen/workflow.json` → `iteration.lane` | `project.defaultLane` |
 | Whether this run is due as an iteration check | `nen/workflow.json` → `iteration.checks` contains `lint` | Hatsu's own list is `["lint"]`; a repository that omits `lint` still gets a named gyo run when a caller invokes this skill, and a seat is quoted |
-| What lint actually runs | `nen/contract.json` → `project.verbs.<lane>.lint` | none — an absent row is exit `2`, a **seat** is exit `4` |
+| What lint actually runs | `nen/contract.json` → `project.verbs.<lane>.lint` | none — an absent row is exit `2`, the trigger to ask and set it up; a **seat** is exit `4` |
+
+A missing argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*), a
+missing `lint` row or lane set up through `nen scaffold init`.
 
 **When `nen/workflow.json` is absent, say so in the turn's report, in these words —** *"no
 workflow.json: using the built-in defaults from `docs/WORKFLOW.md`"* — and use `iteration.lane` =

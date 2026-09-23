@@ -1,7 +1,7 @@
 {
   "name": "hatsu",
   "displayName": "Hatsu Agent Team",
-  "version": "0.44.0",
+  "version": "0.45.0",
   "description": "Hatsu is the local plane of the Akatsuki system: Kurapika leads it with six declared work-modes and a roster of focused independents, running on your own credentials with no GitHub App and no bot identity. Every deterministic step is a Nen verb, skills compose each other by name, and the five human gates are never crossed by an agent.",
   "author": {
     "name": "zheref",

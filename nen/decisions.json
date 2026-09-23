@@ -1,6 +1,6 @@
 {
   "$schema": "nen.decisions/v0.1",
-  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition a running workflow can stop on. `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check`; read by `nen stop --options` and by every skill before it asks. Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure (hatsu-warmup), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan). Data-only until a skill cites them: merge, mode-label, signing-material, on-device-act, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
+  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition a running workflow can stop on. `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check`; read by `nen stop --options` and by every skill before it asks. Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure (hatsu-warmup), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan), missing-argument and missing-configuration (every skill, WORKFLOW.md § 4 Ask, set up, continue). Data-only until a skill cites them: merge, mode-label, signing-material, on-device-act, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
   "contract": "nen.decisions/v0.1",
   "rows": [
     {
@@ -78,6 +78,62 @@
       ],
       "proposeIssue": true,
       "why": "Ruling 2026-09-19: a missing declaration always gets a path forward. A Hatsu-owned scaffolding piece is repaired by tenkai without asking; a nen-routed declaration is set up through an assisted flow that asks the configuration questions itself and runs the owning verb."
+    },
+    {
+      "id": "missing-argument",
+      "class": "ask-once-per-run",
+      "default": "derive the value from the session, the branch, its open PRs and nen/workflow.json; one candidate a canon default covers is used and stated, otherwise ask with the candidates",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "use the derived value",
+          "command": "re-run nen parse <skill> with the line completed by the derived value, then continue",
+          "consequence": "the skill runs as if the value had been typed; the turn page names where it came from",
+          "recommended": true
+        },
+        {
+          "key": "B",
+          "label": "use the next candidate",
+          "command": "re-run nen parse <skill> with the line completed by the next candidate, then continue",
+          "consequence": "the same run on the other reading"
+        },
+        {
+          "key": "C",
+          "label": "type the value",
+          "command": "the picker's free-text answer completes the line; nen parse re-runs on it",
+          "consequence": "nothing runs on a guess"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Ruling 2026-09-22: a missing or unparseable argument is completed inline, through the picker, and the operation continues; a refusal the maintainer has to retype around is never the outcome."
+    },
+    {
+      "id": "missing-configuration",
+      "class": "ask-once-per-run",
+      "default": "set the item up in place through its owner, validate it with nen schema check, and resume the operation in the same turn",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "set it up now with the detected value",
+          "command": "write the key through its owner (nen scaffold init, scripts/tenkai_adopt.sh apply, hatsu:jujutsu, or the file's own key), nen schema check, then resume",
+          "consequence": "the configuration exists from now on; a tracked file rides this effort's branch or its own declaration PR at that repository's gate",
+          "recommended": true
+        },
+        {
+          "key": "B",
+          "label": "set it up with another value",
+          "command": "the same write with the value the maintainer picks or types",
+          "consequence": "the same, on the maintainer's value"
+        },
+        {
+          "key": "C",
+          "label": "run once without it",
+          "command": "the owning verb's --dry-run, or the phase reported not measurable here",
+          "consequence": "nothing is written; the gap is named in Not delivered and asked again next time"
+        }
+      ],
+      "proposeIssue": true,
+      "why": "Ruling 2026-09-22: a missing configuration item is guided and written on the maintainer's behalf, then the operation continues. A skill aborts only when neither the agent nor the maintainer's answer can supply it: no tool or permission can, the value is a secret or signing material, or the act is on-device or a human gate."
     },
     {
       "id": "mode-unknown",

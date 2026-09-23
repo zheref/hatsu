@@ -4,7 +4,7 @@ description: Send the branch out — gyo (lint) before rewriting history, squash
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md` and `docs/PROCESS.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
 `hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
@@ -89,6 +89,11 @@ has none, and inventing an optional clause so that a parse can be echoed would b
 reads `ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}'
 off 'main', checks: lint`. A malformed key is a FAIL **by pointer**, so this skill no longer checks
 the shape by eye; it reads the values, and states the defaults whenever they are what applied.
+
+A missing argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*); a
+default above that covers the key is used and stated, never asked about. **§ 4's refusals are not gaps**:
+rewriting published history, a forbidden trailer and a push of the trunk still refuse, never guessed past.
 
 > **Declared change from `claude/agents/kurapika.md` § *How you work* — named, not slipped in.**
 > The agent definition today reads *"No AI attribution beyond the trailers the maintainer's own

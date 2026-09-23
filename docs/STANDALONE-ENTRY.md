@@ -39,7 +39,9 @@ derive, is not a skill the maintainer can reach.** That is what this contract fi
 
 **Rule 1 — every skill is reachable alone.** A phase named in
 [`claude/skills/`](../claude/skills/) can be typed by the maintainer into any checkout, in any state,
-and will either run or say precisely which fact it needs and ask for it. *It does not matter that it
+and will either run or say precisely which fact it needs and ask for it — through the picker, then
+setting up any missing configuration and resuming ([`WORKFLOW.md`](WORKFLOW.md) § 4 *Ask, set up, continue*); it never
+ends on a refusal the maintainer has to retype around. *It does not matter that it
 was authored as somebody's step.*
 
 **Rule 2 — no skill is ever indefinitely independent.** Standalone entry is an **entry**, not a mode.

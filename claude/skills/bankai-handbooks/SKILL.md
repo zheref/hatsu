@@ -46,6 +46,12 @@ previous session or from this file's own prose.
 nen repo scenario --repo <reference-repo checkout> --target <owner/name>
 ```
 
+A missing argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*): a
+repository the caller did not name is asked for, never assumed. **The registry is the frozen
+`<reference-repo>`'s**, so a target it does not record is reported in the verb's own words and raised
+as a § 4 finding — never set up by writing to it.
+
 Reads the `scenario` value **recorded for `<owner/name>` in that checkout's registry** —
 `nen/repos.json` — the registry the frozen `<reference-repo>`
 still carries and nen reads through the fallback — verified live against the real registry: `<product-repo-A>` → `swiftui-tca-uzf-v2`, `<product-repo-B>`
@@ -93,8 +99,8 @@ its separate `maintained_tools` ownership entry).
     *"It is the GitHub side of the pair; `--repo` names a checkout on disk and is never used to
     address the API."*
 - **Exit `2`** → an **invocation** mistake: an omitted or malformed `--target`, an omitted `--repo`,
-  or a `--repo` path that does not exist on disk. Fix the command; **never read exit `2` as "no
-  scenario."**
+  or a `--repo` path that does not exist on disk. Fix the command — asking for whichever value the
+  session cannot supply — and **never read exit `2` as "no scenario."**
 
 > **The exit code is now load-bearing, and reading it is the point of the change.** *"You typed it
 > wrong"* and *"the thing you asked for did not work"* want different reactions, and a retry wrapper

@@ -4,7 +4,7 @@ description: File one well-formed, correctly-labelled, non-duplicate issue — r
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md` and `docs/STANDALONE-ENTRY.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md` and `docs/PROCESS.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
 those files (re-resolve through that skill if unavailable). Relative links below identify source
 locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
@@ -77,7 +77,7 @@ not a typo'd repo — never silently repoint a filing at a repo the maintainer d
 > no such file. Nen reads this repository's taxonomy from 'nen/repos.json' in the TARGET repo and has no
 > built-in copy to fall back on."* **So the branch above must be read three ways, not two**: `0` the token
 > resolved, `1` the registry opened fine and the token is not in it, `2` there is no registry to read — a
-> precondition, not a data problem. A registry that is present but **malformed** is unaffected and stays
+> precondition, not a data problem, and the trigger to set the registry up (below), not the end. A registry that is present but **malformed** is unaffected and stays
 > `1`.
 
 **The repo, when omitted:** run `nen repo resolve` with **no token** — it resolves the current
@@ -86,6 +86,10 @@ repo, it refuses (verified live) and the refusal text already lists the registry
 repositories — **ask, quoting that list**, rather than reconstructing it. Filing into the wrong
 repo is worse than a round-trip: it routes the work to the wrong lane, wakes the wrong agent,
 and hides from the sweep that would have caught it.
+
+A missing argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*); a
+missing registry is set up through `nen scaffold init`, a missing entry through `nen/repos.json`'s own key.
 
 **The problem, when omitted (bare `hatsu:file`):** the subject is **the problem this session has
 just been discussing** — the defect just diagnosed, the gap just hit, the thing that just went

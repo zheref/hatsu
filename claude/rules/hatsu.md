@@ -1,6 +1,6 @@
 # Hatsu, in one page
 
-Derived. Every rule here is authored in docs/WORKFLOW.md, docs/ROSTER.md, nen/contract.json or nen/decisions.json; where this page disagrees with one of them, that file wins and this page is the bug.
+Derived. Every rule here is authored in docs/WORKFLOW.md, docs/PROCESS.md, docs/ROSTER.md, nen/contract.json or nen/decisions.json; where this page disagrees with one of them, that file wins and this page is the bug.
 
 Hatsu is the local plane of the Akatsuki system. It runs on the maintainer's own credentials, with no GitHub App and no bot identity. Every deterministic step is a `nen` verb; the skills compose each other by name; the five human gates are never crossed by an agent.
 
@@ -31,7 +31,7 @@ A tier is named, never a model version: frontier for the maintainer's own sessio
 - **G3** publishing a release or deploying to production, on a recorded go.
 - **G5** a stop the canon cannot answer: a semantic conflict, a new business rule, signing material, an on-device trust prompt, a supply-chain failure.
 
-Every other stop has a fixed default in `nen/decisions.json`: a dirty tree is carried, a red lint goes back to the author, a missing tool is installed, an owed reviewer round is requested on the maintainer's behalf. When a real stop is reached the report is rendered and linked, the options are lettered with a star on the recommended decision, and a process issue is proposed.
+Every other stop has a fixed default in `nen/decisions.json`: a dirty tree is carried, a red lint goes back to the author, a missing tool is installed, an owed reviewer round is requested on the maintainer's behalf. When a real stop is reached the report is rendered and linked, the options are lettered with a star on the recommended decision, and a process issue is proposed. A missing argument or configuration item never aborts a skill: it is derived, else asked once through the picker, set up on the maintainer's behalf through its owner, and the operation resumes (rows `missing-argument`, `missing-configuration`); a skill aborts only when no tool, permission or answer can supply it — a secret, signing material, an on-device act, a human gate. A decision offered on the report is always asked through the surface's own picker in the same turn, never left on the page alone; a deferred picker tool is loaded, not treated as missing.
 
 ## Never
 

@@ -57,7 +57,7 @@ and nen hard-codes no system's vocabulary.
 
 | Path | |
 |---|---|
-| `claude/skills/<name>/SKILL.md` | **authored.** The one source, 44 directories (forty-three plus `hatsu-warmup`) |
+| `claude/skills/<name>/SKILL.md` | **authored.** The one source, 45 directories (forty-four plus `hatsu-warmup`) |
 | `claude/agents/<persona>.md` | **authored.** The one source, eleven personas plus the preamble include (`_review-preamble.md`, the shared reviewer protocol and not a persona: `agents/_review-preamble.md` on Cursor and Antigravity, a `## _review-preamble` section in Codex's `AGENTS.md`) |
 | `hooks/hooks.json`, `contracts/permissions.json`, `nen/workflow.json` | **authored.** The inputs the generator renders hooks, permissions and model config from |
 | `surfaces/codex/<name>/SKILL.md`, `AGENTS.md`, `agents/*.toml`, `config.toml`, `config.toml.fragment`, `hooks.json` | **generated** |

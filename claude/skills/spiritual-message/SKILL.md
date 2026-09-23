@@ -3,8 +3,7 @@ name: spiritual-message
 description: Render one turn of work as a rich HTML page from templates/spiritual-message.html, never a markdown summary — the desk above the fold, the last turn, what landed and what did not, the delta graph, evidence, spend, launch, decisions. Use when the maintainer invokes hatsu:spiritual-message [as turn|landing], asks to see the report, or when hatsu:ren, hatsu:mukai or hatsu:en reaches its reporting step. Which blocks a variant renders is configuration; the dated final report is hatsu:backlog-board's.
 ---
 
-**Shared policy** (`docs/*.md`) lives at the Hatsu plugin root `hatsu-warmup` prints; a missing
-consumer copy is never a filing.
+**Shared policy:** [`PROCESS.md`](../../../docs/PROCESS.md) § *Standalone entry*.
 
 # Spiritual Message — the turn, seen
 
@@ -14,7 +13,7 @@ consumer copy is never a filing.
 
 [`ren`](../ren/SKILL.md)'s fifth step, [`mukai`](../mukai/SKILL.md)'s handover artifact and
 [`en`](../en/SKILL.md)'s first. **The desk comes first, under the tally**: the one thing only the
-maintainer can do is never read ninth. **Never markdown**: a chat summary scrolls away; a page has an address.
+maintainer can do is never read ninth. **Never markdown.**
 
 ## 0. Standalone entry
 
@@ -29,10 +28,11 @@ recoverable`.
 hatsu:spiritual-message [as <turn | landing>] [against <base>]
 ```
 
-`nen parse spiritual-message --grammar "as [<variant:turn|landing>] against [<base>]"` — anchored
-behind the literal `as`: a bare-bracket leading slot is exit `2`. Default **`turn`**. No `against`
+`nen parse spiritual-message --grammar "as [<variant:turn|landing>] against [<base>]"`. Default **`turn`**. No `against`
 clause: `origin/<branch.base>` after `git fetch origin`, named on the page with its short SHA. **A
-local branch name is never the base**: a stale local `main` hands over somebody else's delta.
+local branch name is never the base**: a stale local `main` hands over somebody else's delta. A
+missing argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*).
 
 ## 2. The variants
 
@@ -50,8 +50,8 @@ push in *Landed*.
 
 ## 3. The parameters
 
-From the target's `nen/workflow.json`; never remembered, never via `jq`. A file `nen schema check`
-FAILs is quoted by pointer.
+From the target's `nen/workflow.json`, read as [`PROCESS.md`](../../../docs/PROCESS.md)
+§ *Invocation and parsing* says.
 
 | Key | Used for | Default |
 |---|---|---|
@@ -59,6 +59,7 @@ FAILs is quoted by pointer.
 | `reports.sections.<variant>.blocks` | **the blocks this variant renders** | none declared → every block |
 | `coverage.minimum` / `.recommended` / `.ideal` | the coverage band | `80` / `85` / `90` |
 | `branch.base` | the delta's base | `main` |
+| `reports.timeZone` | the page's clock | the host's zone |
 
 **Reporting does not schedule verification.** Use what the owning phase produced (`coverage: not due
 until mukai`); `coverage.*` configures presentation, never permits running it. Evidence of another
@@ -73,16 +74,17 @@ nen report data --repo <path> --base origin/<branch.base> [--tiers <json>] [--ta
 One `nen.report.data/v0.1` document: `commits[]`, `files[]`, `evidence[]`, `coverage`, `proof`,
 `lastStop`, `phases[]`, `usage[]`, the header fields, plus `objects[]` where a target was named. It
 never writes; **every absence is `null` with the reason on stderr**, quoted not replaced; an
-unresolvable base is exit `2`, never an empty branch. Three companions fill what git cannot know:
-`nen shu evidence --base <ref>` (rows gaining `src`, the capture as a `data:` URI), `nen shu
+unresolvable base is exit `2`. Three companions fill what git cannot know:
+`nen shu evidence --base <ref>` (rows gaining a `data:` URI `src`), `nen shu
 test-report --from-artifacts`, the **saved** `nen shu coverage --touched` with nen's band.
 
-**The merge shape — base document ∪ extension, every key always present, empty where there is
-nothing, every row key spelled because the template iterates them.** A missing key is exit `2` by
-design: a blank cell reads as a fact.
+**The merge shape — base document ∪ extension, every row key spelled because the template iterates
+them**, keys and values per [`PROCESS.md`](../../../docs/PROCESS.md) § *Escaping and validation of
+report data*:
 
 ```
-<base data> ∪ { variant, title, gate, footerNote,
+<base data> ∪ { variant, title, gate, footerNote, generatedAtLocal,
+  turnLabel, effortStage, stageClass, worktree,
   tallyNeedsYou, tallyBlockers, tallyLanded, tallyGaps, deskCleared,
   ask: null | { kind: DECIDE|DO|MERGE, gate, question, whyNow, objects[{label,url}],
     options[{letter,label,command,consequence,star,starredClass}],
@@ -100,24 +102,23 @@ design: a blank cell reads as a fact.
 ```
 
 **`spendPhases`, never `phases`**: the verb answers `phases[]` (each with `durationMs`, `note` and
-`steps[{verb,durationMs,…}]`) and `usage[]`; rows written over them destroy the source. Per phase: `percent` = `durationMs / max durationMs × 100` (§ 6's bar
-regex), `amount` as `12.3 s` / `4 m 05 s`, `steps` as `build 41.2 s · lint 3.1 s` or `""`; `hasSpendPhases` /
+`steps[{verb,durationMs,…}]`) and `usage[]`. Per phase: `percent` = `durationMs / max durationMs × 100` (the
+bar regex), `amount` as `12.3 s` / `4 m 05 s`, `steps` as `build 41.2 s · lint 3.1 s` or `""`; `hasSpendPhases` /
 `noSpendPhases` are the inverse pair for an empty ledger.
 `spendUsage`: one row per surface+model, counters and minutes summed; a `--not-reported` entry
-sets `notReported: true`, `reported: false` (both keys always present). `actionsMinutes` sums
+sets `notReported: true`, `reported: false`. `actionsMinutes` sums
 `--minutes` entries, `not read` with none; `spendNote` is `""` or one muted line. `tests[]` and
 `touchedCoverage[]` are likewise re-mapped from `shu test-report` and the saved `shu coverage
---touched`, never passed through.
+--touched`, never passed through. `generatedAtLocal`: `scripts/report_time.sh`; `repo`, `gate`, `turnLabel`,
+`effortStage`, `stageClass`, `worktree`: derived per `WORKFLOW.md` § *Where the effort is*.
 
 **Record usage before rendering**, from the surface's own readout: `nen usage record --effort
 <branch> --surface <s> [--model <alias>] --input/--output/--cache-read/--cache-write <n> --source
-<text>` — Claude Code's `/cost` line (or its OTEL export), Codex's session-log usage, Cursor and
+<text>` — Claude Code's `/cost` line, Codex's session-log usage, Cursor and
 Antigravity `--not-reported` (nothing exposed); Actions minutes for the runs `en` observed from
 `gh api repos/{o}/{r}/actions/runs/{id}/timing`, recorded `--minutes <n> --source "gh actions timing"`.
 
-`--variant` injects `sections.<block>` and `sectionList`. `star` is `"recommended"` on exactly
-one option, `""` on the rest — **the page draws an inline SVG star**, so the value is a label, never
-the glyph; `starredClass` is `"starred"` there, `""` elsewhere.
+`--variant` injects `sections.<block>` and `sectionList`.
 
 **The ask is the desk.** At most one per turn, opening `DECIDE`, `DO` or `MERGE`, with the Crazy
 Slots options, one star, and **the `nen pr ready` verdict quoted verbatim**. A turn owing nothing
@@ -127,16 +128,14 @@ link (hatsu#56).
 
 ## 5. The graph document
 
-The delta is **conceptual and session-wide**, never a file list (the old one-file-one-node defect).
+The delta is **conceptual and session-wide**, never a file list.
 Author `nen.report.graph/v0.1` — `{ contract, caption, nodes[{id,label,kind,change}],
 edges[{from,to,rel,change}] }`, [worked example](../../../templates/graph.example.json).
 
 `change` is `added | changed | removed | unchanged` on nodes and edges; every edge endpoint names a
 declared node. `nen report render --graph <file>` validates it, injecting `graphJson`,
-`graphMermaid`, `graphNodes[]`, `graphEdges[]`. **`graphJson` is the page's one raw slot, safe as a
-renderer property**: `serialiseGraph` escapes `<`, `>` and U+2028/9 (pinned by nen's
-tests), so `</script>` cannot occur. The page draws it with dagre (cdnjs, integrity-pinned); the
-`<details>` list is the text fallback. **Never hand-build SVG or a second renderer.**
+`graphMermaid`, `graphNodes[]`, `graphEdges[]`; `<details>` carries the text fallback. **Never
+hand-build SVG or a second renderer.**
 
 ## 6. Fill the template
 
@@ -146,41 +145,30 @@ nen report render --variant <turn|turn-fast|landing> --graph <graph file> \
 ```
 
 Template language, exit codes and `--dry-run`: [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 2
-→ `reports`; prove a template with `--dry-run` before it ships.
-
-**Escaping binds both paths**: every value is repository-controlled, so every value is escaped; the
-raw form is admitted for **one** slot, the graph document's script tag. **Three** checks escaping
-cannot do are the **caller's**: a capture source against
-`^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$`, a bar percentage against
-`^(100|[0-9]{1,2})(\.[0-9]+)?$`, and **every `url` field** against `^(https?://|mailto:|#|/)` —
-escaping makes a `javascript:` href harmless as text, not as a link. A failing value is dropped and
-the gap named in *Not delivered*. **The PR body's diagram is the same graph** — `nen report mermaid
---graph <file>`, pasted by [`shibari`](../shibari/SKILL.md) § 3, never twice.
+→ `reports`; prove a template with `--dry-run` before it ships. Escaping and the caller's three
+validations: PROCESS.md, as § 4.
+**The PR body's diagram is the same graph** — `nen report mermaid --graph <file>`, pasted by
+[`shibari`](../shibari/SKILL.md) § 3, never twice.
 
 ## 7. Publish it
 
-**On Claude Code the page is an Artifact, republished to ONE URL per branch** — a new URL only for
-a branch with none. **Read before you overwrite**: a republish notice or a version this
-session did not publish means the page moved. Elsewhere: `<reports.dir>/current.html`,
-overwritten every render, git-ignored, **transient**. Say which happened.
+**On Claude Code an Artifact, ONE URL per branch** ([`PROCESS.md`](../../../docs/PROCESS.md)
+§ *Publishing a report*). **The title is a synthesized headline, never the branch** — ≤ 60 characters naming what the effort
+delivers, stable across turns, no ref or turn number ([`WORKFLOW.md`](../../../docs/WORKFLOW.md)
+§ *Report titles*).
 
-The title is the object notation and the branch, from `nen repo resolve` and `nen ref format`,
-**never memory**. Both read `nen/repos.json` (missing registry: exit `2`; unresolved token: exit
-`1`); fallbacks `<owner>/<name> · <branch>` and `<owner>/<name>#<n>`, **the failure in `footerNote`**.
-
-**Say one line in chat and stop** — variant, branch, link or path. **A block that cannot be filled**
-renders without those rows, shows its empty-state line and names the gap in *Not delivered*; no page
-at all is said so. **A markdown recap is never the fallback.**
+**Say one line in chat and stop** — variant, branch, link or path.
 
 ## 8. Not a gate event
 
-No `nen stop` banner, efforts table or push notification — the maintainer is already looking. The
-bell is [`jutaisho`](../jutaisho/SKILL.md)'s, runs *after* this skill in `ren`'s order and takes this
-page's link. A stop coming due mid-render fires normally.
+Rendering, its one line and its gaps follow [`PROCESS.md`](../../../docs/PROCESS.md) § *Reporting a
+phase*; **a markdown recap is never the fallback**. The bell is [`jutaisho`](../jutaisho/SKILL.md)'s, runs *after* this skill in `ren`'s order and takes this
+page's link.
 
 **Permitted:** read the working copy, its history and `nen/*.json`; publish or republish **this
 branch's** report Artifact; write under `<reports.dir>`. **Not permitted:** anything else on disk,
-any GitHub write, label, merge or push, and **no `CON-25`-equivalent delegation** — a composite lends none.
+any GitHub write, label, merge or push, or a delegation
+([`PROCESS.md`](../../../docs/PROCESS.md) § *Authority every phase shares*).
 
 ## Hard limits
 
