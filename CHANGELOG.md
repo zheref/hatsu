@@ -2,6 +2,8 @@
 
 ## v0.45.0 — the reader's clock, ask before aborting, and a worktree swapped into core
 
+Release unit for `v0.44.0..v0.45.0`: [#109](https://github.com/zheref/hatsu/pull/109) (the delivery) and the reconciling [#110](https://github.com/zheref/hatsu/pull/110).
+
 > Pinned to nen **v0.14.0** (`minimum` `0.14`, zheref/nen#242): `nen wc swap` (`--take`, `--return`, `--status`) and `nen wc worktrees`, the engine of `hatsu:amenotejikara`. Nen's compatibility floor stays `0.7`.
 
 - **Report time, titles and status.** Every report page says its clock in the reader's zone: `scripts/report_time.sh` turns `generatedAt` (still the document's UTC truth, kept in `<time datetime>`) into `generatedAtLocal` and the dated file name's `generatedDateLocal`, read from `reports.timeZone`, then `$TZ`, then the host. It refuses a zone whose zoneinfo file is not a compiled `TZif` zone (so `zone.tab`, `tzdata.zi`, `+VERSION`, `leapseconds` and `iso3166.tab` are refused), an impossible date (`2026-02-30`, read back through UTC and compared) and a fraction that is not `.` and digits. `docs/WORKFLOW.md` § *Report time* notes that the zone name is printed on every page and that `Etc/GMT±n` keeps the clock without the city. The title is a synthesized headline of what the effort delivers, never the branch (§ *Report titles*), and every turn shows its turn number, stage, gate, worktree and branch in the masthead's status line (`role="group"`, sized like the meta line), the footer and the chat line (§ *Where the effort is*). `black-voice` fills the clock through `backlog-board` § 3's data shape.
