@@ -80,8 +80,9 @@ of them lives* once the lattice is the map.
 
 A missing argument or configuration item is asked for and set up inline (`missing-argument`,
 `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) —
-**the maintainer's word: never derived** for the cut point: a missing or unresolvable token is asked
-with the five forms above as options, none starred. A missing registry or declaration item is set up
+**the maintainer's word: never derived** for the cut point (row `missing-maintainer-choice`): a
+missing or unresolvable token is asked as **free text**, the five forms above listed for reference,
+none starred and none a picker option that performs the cut. A missing registry or declaration item is set up
 through its owner (`nen scaffold init`, or `nen/repos.json`'s own key).
 
 **Resolve, then test reachability — this is the load-bearing check**, and it is one verb now, not
