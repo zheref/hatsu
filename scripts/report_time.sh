@@ -10,7 +10,9 @@
 # zone the report is for, so the page can show it readable and keep the UTC value in <time datetime>.
 #
 # The zone, in order: --tz (the caller passes `reports.timeZone` from nen/workflow.json here when it
-# is set); else a non-empty $TZ; else the host's /etc/localtime; else UTC. An IANA name that is not
+# is set); else a non-empty $TZ; else the zone the host's /etc/localtime names (a zoneinfo symlink,
+# relative or absolute, or /etc/timezone beside a copied file); else UTC when there is no localtime at
+# all. A localtime that exists but that nothing names is REFUSED (exit 2), never guessed as UTC. An IANA name that is not
 # in the zoneinfo database is REFUSED rather than passed to `date`, which would silently answer UTC.
 # "In the database" means a compiled zone: a file whose first four bytes are `TZif`. The database
 # directory also holds tables and metadata (zone.tab, tzdata.zi, +VERSION, leapseconds, iso3166.tab)
@@ -51,11 +53,21 @@ host_zone() {
     printf '%s\n' "${TZ#:}"
     return
   fi
-  link="$(readlink /etc/localtime 2>/dev/null)"
+  # REPORT_TIME_LOCALTIME / REPORT_TIME_TIMEZONE_FILE are test seams for --self-test only.
+  lt="${REPORT_TIME_LOCALTIME:-/etc/localtime}"
+  tzfile="${REPORT_TIME_TIMEZONE_FILE:-/etc/timezone}"
+  link="$(readlink "$lt" 2>/dev/null)"
   case "$link" in
-    */zoneinfo/*) printf '%s\n' "${link##*/zoneinfo/}" ;;
-    *) printf 'UTC\n' ;;
+    */zoneinfo/*) printf '%s\n' "${link##*/zoneinfo/}"; return ;;
   esac
+  if [ -r "$tzfile" ]; then  # Debian and friends name the zone here when localtime is a copy
+    name="$(sed -n '1{s/^[[:space:]]*//;s/[[:space:]]*$//;p;}' "$tzfile")"
+    [ -n "$name" ] && { printf '%s\n' "$name"; return; }
+  fi
+  # No localtime at all is UTC, which is what the C library itself answers. A localtime that
+  # exists but that nothing names (a copied file) is NOT guessed as UTC: print nothing, and the
+  # caller refuses, asking for --tz / reports.timeZone.
+  [ -e "$lt" ] || [ -L "$lt" ] || printf 'UTC\n'
 }
 
 to_epoch() {  # to_epoch <YYYY-MM-DDTHH:MM:SS> — read as UTC
@@ -154,6 +166,25 @@ self_test() {
   st_expect "half-hour offset" \
     "generatedAtLocal=Wed 23 Sep 2026 · 00:35 Asia/Kolkata (UTC+05:30)${nl}generatedDateLocal=2026-09-23${nl}timeZone=Asia/Kolkata" \
     --at 2026-09-22T19:05:00Z --tz Asia/Kolkata
+  st_host="$(mktemp -d)"
+  mkdir -p "$st_host/zoneinfo/America"
+  ln -s ../zoneinfo/America/Bogota "$st_host/relative-link"
+  printf 'TZif-copy' > "$st_host/copied"
+  printf '  America/Bogota  \n' > "$st_host/timezone"
+  st_zone() { env -u TZ REPORT_TIME_LOCALTIME="$1" REPORT_TIME_TIMEZONE_FILE="$2" sh "$st_self" --at 2026-09-22T19:05:00Z 2>&1; }
+  st_got="$(st_zone "$st_host/relative-link" "$st_host/none" | sed -n 3p)"
+  if [ "$st_got" = "timeZone=America/Bogota" ]; then echo "ok    a relative localtime symlink names the zone"; else
+    echo "FAIL  a relative localtime symlink names the zone: got $st_got"; st_fails=$((st_fails + 1)); fi
+  st_got="$(st_zone "$st_host/copied" "$st_host/timezone" | sed -n 3p)"
+  if [ "$st_got" = "timeZone=America/Bogota" ]; then echo "ok    a copied localtime is named by /etc/timezone"; else
+    echo "FAIL  a copied localtime is named by /etc/timezone: got $st_got"; st_fails=$((st_fails + 1)); fi
+  st_zone "$st_host/copied" "$st_host/none" >/dev/null; st_rc=$?
+  if [ "$st_rc" -eq 2 ]; then echo "ok    a copied localtime nothing names is refused, never guessed as UTC (refused)"; else
+    echo "FAIL  a copied localtime nothing names: want exit 2, got $st_rc"; st_fails=$((st_fails + 1)); fi
+  st_got="$(st_zone "$st_host/absent" "$st_host/none" | sed -n 3p)"
+  if [ "$st_got" = "timeZone=UTC" ]; then echo "ok    no localtime at all is UTC, as libc answers"; else
+    echo "FAIL  no localtime at all is UTC: got $st_got"; st_fails=$((st_fails + 1)); fi
+  rm -rf "$st_host"
   st_got="$(TZ=Europe/Madrid sh "$st_self" --at 2026-09-22T19:05:00Z 2>&1 | sed -n 3p)"
   if [ "$st_got" = "timeZone=Europe/Madrid" ]; then echo "ok    \$TZ is the default zone"; else
     echo "FAIL  \$TZ is the default zone: got $st_got"; st_fails=$((st_fails + 1)); fi
@@ -190,4 +221,5 @@ while [ $# -gt 0 ]; do
 done
 [ -n "$at" ] || { echo "report_time.sh: --at is required" >&2; usage; exit 2; }
 [ -n "$tz" ] || tz="$(host_zone)"
+[ -n "$tz" ] || { echo "report_time.sh: cannot name this host's zone (its localtime is a copy that nothing names); pass --tz or set reports.timeZone" >&2; exit 2; }
 render "$at" "$tz"
