@@ -12,6 +12,13 @@
 # The zone, in order: --tz (the caller passes `reports.timeZone` from nen/workflow.json here when it
 # is set); else a non-empty $TZ; else the host's /etc/localtime; else UTC. An IANA name that is not
 # in the zoneinfo database is REFUSED rather than passed to `date`, which would silently answer UTC.
+# "In the database" means a compiled zone: a file whose first four bytes are `TZif`. The database
+# directory also holds tables and metadata (zone.tab, tzdata.zi, +VERSION, leapseconds, iso3166.tab)
+# that `date` cannot use as a zone, and each of them is refused the same way.
+#
+# The instant is refused when it names a date that does not exist (2026-02-30): the parsed epoch is
+# turned back into a UTC stamp and must equal the input, because BSD date(1) rolls an impossible day
+# into the next month rather than failing. A fraction of a second is `.` and digits, nothing else.
 #
 # Output, one `key=value` per line, for the caller to merge into the data document:
 #   generatedAtLocal=Tue 22 Sep 2026 · 14:05 America/Bogota (UTC-05:00)
@@ -33,7 +40,8 @@ zoneinfo_has() {  # zoneinfo_has <zone>
     ''|/*|*..*) return 1 ;;
   esac
   for zdir in /usr/share/zoneinfo /var/db/timezone/zoneinfo; do
-    [ -f "$zdir/$1" ] && return 0
+    [ -f "$zdir/$1" ] || continue
+    [ "$(dd if="$zdir/$1" bs=4 count=1 2>/dev/null)" = "TZif" ] && return 0
   done
   return 1
 }
@@ -77,15 +85,28 @@ render() {  # render <instant> <zone>
     *+00:00) core="${at%+00:00}" ;;
     *) echo "report_time.sh: '$at' is not a UTC instant (it must end in Z or +00:00)" >&2; return 2 ;;
   esac
-  core="${core%%.*}"
+  frac=""
+  case "$core" in
+    *.*) frac="${core#*.}"; core="${core%%.*}"
+      case "$frac" in
+        ''|*[!0-9]*) echo "report_time.sh: '$at' has a fraction that is not digits (it must be .[0-9]+)" >&2; return 2 ;;
+      esac ;;
+  esac
   case "$core" in
     [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9]) ;;
-    [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]) core="$core:00" ;;
+    [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9])
+      [ -z "$frac" ] || { echo "report_time.sh: '$at' has a fraction with no seconds" >&2; return 2; }
+      core="$core:00" ;;
     *) echo "report_time.sh: '$at' is not an ISO-8601 instant (YYYY-MM-DDTHH:MM[:SS[.fff]]Z)" >&2; return 2 ;;
   esac
   epoch="$(to_epoch "$core")"
   if [ -z "$epoch" ]; then
     echo "report_time.sh: date(1) could not read '$at'" >&2
+    return 2
+  fi
+  back="$(in_zone UTC "$epoch" +%Y-%m-%dT%H:%M:%S)"
+  if [ "$back" != "$core" ]; then
+    echo "report_time.sh: '$at' names a date or time that does not exist (it reads back as ${back}Z)" >&2
     return 2
   fi
   day="$(in_zone "$zone" "$epoch" +%d)"; day="${day#0}"
@@ -136,6 +157,17 @@ self_test() {
   st_got="$(TZ=Europe/Madrid sh "$st_self" --at 2026-09-22T19:05:00Z 2>&1 | sed -n 3p)"
   if [ "$st_got" = "timeZone=Europe/Madrid" ]; then echo "ok    \$TZ is the default zone"; else
     echo "FAIL  \$TZ is the default zone: got $st_got"; st_fails=$((st_fails + 1)); fi
+  st_expect "Etc/UTC is kept" \
+    "generatedAtLocal=Tue 22 Sep 2026 · 19:05 Etc/UTC (UTC+00:00)${nl}generatedDateLocal=2026-09-22${nl}timeZone=Etc/UTC" \
+    --at 2026-09-22T19:05:00Z --tz Etc/UTC
+  for st_meta in zone.tab tzdata.zi +VERSION leapseconds iso3166.tab; do
+    st_refuse "database metadata is not a zone: $st_meta" --at 2026-09-22T19:05:00Z --tz "$st_meta"
+  done
+  st_refuse "an impossible date: 2026-02-30" --at 2026-02-30T12:00:00Z --tz UTC
+  st_refuse "an impossible date: 2026-09-31" --at 2026-09-31T12:00:00Z --tz UTC
+  st_refuse "a fraction that is not digits" --at 2026-09-22T19:05:00.abcZ --tz UTC
+  st_refuse "an empty fraction" --at 2026-09-22T19:05:00.Z --tz UTC
+  st_refuse "a fraction with two dots" --at 2026-09-22T19:05:00.1.2Z --tz UTC
   st_refuse "a zone not in zoneinfo" --at 2026-09-22T19:05:00Z --tz Mars/Olympus
   st_refuse "a path, not a zone" --at 2026-09-22T19:05:00Z --tz ../../etc/passwd
   st_refuse "a non-UTC instant" --at 2026-09-22T14:05:00-05:00 --tz America/Bogota

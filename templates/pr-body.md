@@ -63,7 +63,7 @@
      STATES as named columns, VARIANTS (device · theme) as bold-labelled rows, one fixed-width image per
      cell with alt text "state, variant", "—" where a state does not apply. Never an image outside the
      table; an update after review re-renders this whole section. Checked before every write by
-     scripts/pr_body_evidence_check.sh --body <file>. -->
+     "$hatsu_root/scripts/pr_body_evidence_check.sh" --body <file>. -->
 
 ## Completion checklist
 

@@ -4,7 +4,7 @@ description: Inventory a consuming product repo's own backlog — open epics, li
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md` and `docs/PROCESS.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
 `hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
@@ -83,7 +83,9 @@ An empty slot (`nen parse` exit `2`) or an unknown repo is the trigger to ask, n
 picker names the token and offers the codes `nen repo resolve`'s own refusal prints — never a guess,
 never a prefix match. A missing argument or configuration item is asked for and set up inline
 (`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set
-up, continue*); an unregistered product repo is set up as its entry in `<reference-repo>`'s registry.
+up, continue*). **An unregistered product repo is reported, never written**: `<reference-repo>`'s
+registry is a frozen, foreign one, so senkei names the missing `consumers` entry and the repository
+that owns the registry, and stops that repo's run (WORKFLOW § 4 *What is not a gap*).
 
 **Product repos do not reliably ship their own registry.** Verified live against the real
 `<product-repo-A>` at the port: it carried no `schemas/` directory at all — no `repos.json`, no

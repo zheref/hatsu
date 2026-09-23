@@ -8,6 +8,11 @@ skills under [`../claude/skills/`](../claude/skills/) are the authority on what 
 disagree, **the file wins and this document is the bug** — the same rule
 [`../nen/contract.json`](../nen/contract.json) already states for itself.
 
+**Precedence among the prose, one order, stated identically in [`PROCESS.md`](PROCESS.md):** a
+skill's own hard limit **>** this document **>** [`PROCESS.md`](PROCESS.md). `PROCESS.md` is binding
+wherever the skill is silent; where a skill's hard limit is narrower than either page, the hard limit
+holds.
+
 ---
 
 ## Phase ownership — ruling of 2026-09-12
@@ -92,7 +97,7 @@ There are two execution/policy configuration files, and the split is not stylist
 | **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — both at the build `nen/contract.json` pins; dated evidence retains the version it actually exercised |
 
 > **The nen DEPENDENCY is the third block of the first file, and its two version values move
-> independently.** `dependency.minimum` is `0.10` and `dependency.pinned_ref` is `v0.10.0`: the first is the
+> independently.** `dependency.minimum` is `0.14` and `dependency.pinned_ref` is `v0.14.0`: the first is the
 > pin this repository declares, the second is the build its bootstrap installs. **The range `minimum`
 > stands for is nen's answer, not a document's** — the binary ships `COMPATIBLE_MINOR_FLOOR`, the lowest
 > `minimum` pin it satisfies, and `nen shu tools` applies it, prints it as `compat floor:` and carries it
@@ -288,6 +293,12 @@ missing it is exit `2`, never a UTC clock read as local. Fill it from one call a
 America/Bogota (UTC-05:00)`), `timeZone`, and **`generatedDateLocal` — the `<YYYY-MM-DD>` of the
 dated report's file name**, so a report finished late in the evening is filed under the day it was
 finished where it was read, not under tomorrow's UTC date.
+
+**Privacy: the zone name is printed on every page.** `America/Bogota` in a masthead tells every
+reader of a published report roughly where its maintainer sits. Where that is more than a repository
+should say, set `reports.timeZone` to a fixed-offset zone — `Etc/GMT+5` keeps the same clock as
+Bogota without the city (POSIX sign: `Etc/GMT+5` is UTC−05:00) — and note that a fixed offset does not
+follow daylight saving.
 
 **Report titles — a headline, never the branch** (maintainer's request, 2026-09-22). The `title`
 token is the page's `<h1>`, its `<title>` and so the Artifact's name, and a branch name repeated
@@ -547,8 +558,8 @@ surface for exactly this reason: **the tier is the policy and the alias is the s
 | `deep` — **`models.roles.reviewer`**, so this is the reviewer tier | **`opus`** | **`sol`** | **`grok`** | **`pro`** |
 | `fast` — `worker`, `measurer` | `sonnet` | `terra` | `composer` | `flash` |
 | `economy` — `watcher`, `formatter` | `haiku` | `luna` | `composer` | `flash` |
-| **how a subagent is raised** | the harness's **Agent tool**, `isolation: "worktree"` | **in-session `spawn_agent`** (ChatGPT app, CLI, IDE). Hanten's isolated reviewer is still a second **`codex exec -m <id> -C <dir> -s workspace-write`** because that reviewer must not share the author's tree | a **subagent definition** at `.cursor/agents/<persona>.md`, mirrored there from `claude/agents/` | the harness's **`invoke_subagent` tool**, `Workspace: "branch"` (reviewers) or `"inherit"` (Third-Hand's Netero), `Model: "pro"` |
-| **isolation** | the harness makes the worktree | in-session spawn **shares the parent**; Hanten's reviewer is still **`git worktree add` first** — `-C` takes a directory and creates none | the surface's own; the skill states which it got | **`Workspace: "branch"`** for Hanten reviewers; **`"inherit"`** for Third-Hand's Netero (`share` only when it is the same checkout) |
+| **how a subagent is raised** | the harness's **Agent tool**; Hanten **omits** `isolation` — `isolation: "worktree"` would isolate the *plugin's* repository, not the target | **in-session `spawn_agent`** (ChatGPT app, CLI, IDE). Hanten's isolated reviewer is still a second **`codex exec -m <id> -C <dir> -s workspace-write`** because that reviewer must not share the author's tree | a **subagent definition** at `.cursor/agents/<persona>.md`, mirrored there from `claude/agents/` | the harness's **`invoke_subagent` tool**, `Workspace: "branch"` (reviewers) or `"inherit"` (Third-Hand's Netero), `Model: "pro"` |
+| **isolation** | Hanten's reviewer: **`git -C <target> worktree add --detach <target>/.claude/worktrees/hanten-<persona> HEAD` first**, the path in the prompt with *"do not request a worktree"*, removed when the review returns ([`hanten`](../claude/skills/hanten/SKILL.md) § 4) | in-session spawn **shares the parent**; Hanten's reviewer is still **`git worktree add` first** — `-C` takes a directory and creates none | the surface's own; the skill states which it got | **`Workspace: "branch"`** for Hanten reviewers; **`"inherit"`** for Third-Hand's Netero (`share` only when it is the same checkout) |
 
 `nen/workflow.json` → `models` is the source and this table a convenience copy of it; where the two
 disagree the file wins and the table is the bug.
@@ -820,17 +831,16 @@ issue, and the question asked through the surface's own native option picker** (
 `AskUserQuestion` on Claude Code, `request_user_input` on Codex, `AskQuestion` on Cursor,
 `ask_question` on Antigravity).
 
-**A decision on the page is a decision in the picker — always, in the same turn** (maintainer's
-report, 2026-09-22: G5 options appeared on the report and nowhere else). The page renders any `ask`
-the turn composed, but `jutaisho` asks only when it is called `at <gate>`; when step 6 rang a plain
-turn bell, the options sat on a page nobody is prompted to answer. So the two are coupled by the
-data, never by judgment: **a report whose `ask.kind` is `DECIDE` makes step 6 `jutaisho at
-<ask.gate>`**, and the picker carries the page's options verbatim, same letters, same order, same
-star. The converse holds too: a condition not worth interrupting for is not a `DECIDE` — its default is
-applied and the page says so with the `decisions.json` row id. A picker tool the surface lists as
-**deferred is loaded first** (Claude Code's tool search) and never treated as absent; only a surface
-with no picker at all prints the lettered options in chat, closing with *answer with a letter*, and
-says the picker was unavailable.
+**A question on the page is a question in the picker — always, in the same turn** (maintainer's
+report, 2026-09-22: G5 options appeared on the report and nowhere else). Which asks make the bell a
+stop and which only reach the picker is authored once, in [`jutaisho`](../claude/skills/jutaisho/SKILL.md)
+§ 1, and cited here: an ask whose `gate` is G1–G5 makes step 6 `jutaisho at <gate>` — one of the five
+above, or a G1–G4 genuinely due, never a sixth kind — and any other ask reaches the picker with rung 1
+and no banner. The converse holds too: a condition not worth interrupting for is not an ask — its
+default is applied and the page says so with the `decisions.json` row id. A picker tool the surface
+lists as **deferred is loaded first** (Claude Code's tool search) and never treated as absent; only a
+surface with no picker at all prints the lettered options in chat, closing with *answer with a
+letter*, and says the picker was unavailable.
 
 **The conditions that do NOT stop are data, from v0.41.0: [`nen/decisions.json`](../nen/decisions.json)**
 (`nen.decisions/v0.1`, validated by `nen schema check`). By the maintainer's rulings of 2026-09-19 the
@@ -840,7 +850,7 @@ requested on the maintainer's behalf (`cap-reached`); a red lint returns to rase
 missing focused route is authored by rasengan (`missing-focused-route`); a missing tool or model id is
 installed or resolved (`missing-tool`); a red release precondition is reconciled in the same chunk
 (`release-precondition-red`); a missing consumer declaration is repaired by tenkai or set up through an
-assisted flow (`missing-consumer-declaration`, the one ask-once row); and a semantic conflict is always
+assisted flow (`missing-consumer-declaration`, an ask-once row); and a semantic conflict is always
 Crazy Slots with ours, theirs, a genuine third, and resolve-and-show-the-diff (`semantic-conflict`). A
 `human-gate` row can never be widened by a consumer's own file; an unruled condition asks once with a
 proposed issue, never a silent default. A stop typed as prose in the middle of a reply is a stop the maintainer can
@@ -853,31 +863,56 @@ scaffolding piece — **does not end the operation**. In order:
 
 1. **Derive.** The session, the branch, its open PRs, `nen/workflow.json`, the detectors (`nen shu
    detect`, `nen repo resolve`, `nen shu tools`, the host's zone, the device list). One candidate that
-   a canon default covers is **used and stated**, never asked about — the maintainer's standing
-   preference for autonomy.
-2. **Ask once, inline**, through the surface's picker (Crazy Slots) with the candidates as options,
+   a canon default covers is **used and stated for this run only**, never asked about — the
+   maintainer's standing preference for autonomy. A derived value is never written to a tracked file
+   on that basis: writing is step 3's, and step 3 needs step 2's answer.
+2. **Ask per item, inline**, through the surface's picker (Crazy Slots) with the candidates as options,
    the best one starred and the picker's free-text answer standing in for "type it" — rows
-   `missing-argument` and `missing-configuration`. Never a paragraph ending in a question mark.
-3. **Set it up on the maintainer's behalf** through the item's owner — `nen scaffold init` for a nen
-   declaration, `scripts/tenkai_adopt.sh apply` for a Hatsu-owned piece, [`jujutsu`](../claude/skills/jujutsu/SKILL.md)
-   for a device, the file's own key otherwise — validate with `nen schema check`, and say which file
-   changed. A tracked file rides this effort's branch, or its own declaration PR at that repository's
-   gate when the effort is elsewhere.
+   `missing-argument` and `missing-configuration`. **One question per missing item**, never one
+   bundled question for the whole run, and never a paragraph ending in a question mark.
+3. **Set it up on the maintainer's behalf, on that answer**, through the item's owner — `nen scaffold
+   init` for a nen declaration, `scripts/tenkai_adopt.sh apply` for a Hatsu-owned piece,
+   [`jujutsu`](../claude/skills/jujutsu/SKILL.md) for a device, the file's own key otherwise — validate
+   with `nen schema check`, and say which file changed. **Any write to a tracked file needs the step-2
+   answer; nothing is written unasked.** A tracked file rides this effort's branch, or its own
+   declaration PR at that repository's gate when the effort is elsewhere. **A new lane, a verb `argv`
+   or a `project.targets` entry lands through its declaration PR at that repository's gate before it
+   runs** — never executed from an unmerged edit. **A value that looks like a secret is never
+   written**: a `requiresEnv`-style key takes environment-variable NAMES only, and `nen stage triage`
+   runs on the written file before the operation resumes (the `missing-configuration` row's `refuse`
+   list, citing `secret-shape` and `signing-material`). **A frozen or foreign registry** — a reference
+   repository such as `<reference-repo>`, another owner's `nen/repos.json` — **is reported, never
+   written.**
 4. **Resume the original operation in the same turn**, with the completed line re-parsed.
 
-**Aborting is valid only when neither the agent nor the maintainer's answer can supply the item**: no
-tool or permission can (a sandbox or permission refusal, an install that needs `sudo`), the value is a
-secret, credential or signing material — never typed into chat, the maintainer supplies it through
-their own tool — or the act is on-device or a human gate. Such an abort names what is missing, what
-was tried, the one command or act that unblocks it, and where the operation resumes. **"Never invent
-a value" still holds** — an answered question is not an invention — and **"never write the file to
-silence a message" means never unasked**, not never.
+**What is not a gap — refused, never asked, never softened into a default.** Authored here once;
+[`PROCESS.md`](PROCESS.md) § *Exit codes and refusals* and `claude/rules/hatsu.md` cite this list:
+
+- **no tool or permission can supply it** — a sandbox or permission refusal, an install that needs
+  `sudo`;
+- **a secret, credential or signing material** — never typed into chat; the maintainer supplies it
+  through their own tool;
+- **an on-device act** — a trust prompt, a security setting;
+- **a human gate** — G1–G5;
+- **a supply-chain failure** — a checksum or manifest mismatch, never retried;
+- **a mutating command inside a read-only loop**;
+- **a safety precondition** — a go with no tag, a tag unreachable from the trunk;
+- **a frozen or foreign repository** — reported, never written.
+
+Such a refusal names what is missing, what was tried, the one command or act that unblocks it, and
+where the operation resumes. **"Never invent a value" still holds** — an answered question is not an
+invention — and **"never write the file unasked to silence a message"** holds with it: a message is
+silenced by the maintainer's answer, never by a write nobody asked for.
 
 **The maintainer's word is never derived.** Where a skill requires a value to be the maintainer's own
-choice — a deploy or release target (`kagutsuchi`, `mugetsu`), a G3 go, an iteration cap
-(`izanagi`), a device to trust — step 1 never substitutes a candidate, even a single one: the
-candidates are offered in the picker and nothing runs until one is picked. Asking replaces the
-refusal; it never replaces the choice.
+choice — a deploy or release target (`kagutsuchi`, `mugetsu`), a G3 go (`mugetsu`), an iteration cap
+(`izanagi`), a device to trust (`jujutsu`), the request itself (`ren`) — it is **typed, never
+picked** (row `missing-maintainer-choice`, whose `governs` list names those keys, with no `default`
+and no recommended option). Step 1 never substitutes a candidate, even a single one; the ask takes the
+maintainer's free-text answer; the declared candidates may be listed for reference, **none starred**,
+and **never as a picker option that performs the act**. An undeclared target is refused, naming the
+declaration PR that would add it. Asking replaces the refusal; it never replaces the choice, and a
+skill may narrow it further (`mugetsu` asks only on the maintainer's own same-turn call).
 
 **How a skill cites this.** One line where its invocation or configuration is read, in this form, and
 nothing restated:
@@ -885,9 +920,9 @@ nothing restated:
 > *A missing argument or configuration item is asked for and set up inline (`missing-argument`,
 > `missing-configuration`; [`WORKFLOW.md`](WORKFLOW.md) § 4 *Ask, set up, continue*).*
 
-— adding *"the maintainer's word: never derived"* where the rule above applies, and naming the owner
-that sets up a skill-specific item (a lane, a target, a registry entry) when it is not the file's own
-key.
+— or, where the value is the maintainer's word, *"typed, never picked (`missing-maintainer-choice`)"*,
+and naming the owner that sets up a skill-specific item (a lane, a target, a registry entry) when it
+is not the file's own key.
 
 ---
 
@@ -1149,8 +1184,11 @@ the installed plugin directory, which changes on every update, so it is never wr
 
 Several skills build an absolute path from the plugin root — `pr-state`, `sharingan`, `backlog-state`,
 `futon`, `tensho` and `getsuga` for `nen pr ready --gates`, `hatsu-warmup` for `nen/contract.json`, `hanten`
-for a persona's definition under `claude/agents/`. (`spiritual-message` is not on this list: its template is the target
-repository's own `templates/<name>.html`, named by that repository's `nen/workflow.json`.) **The name they
+for a persona's definition under `claude/agents/`, and `en`, `shibari`, `sharingan`, `spiritual-message`,
+`backlog-board`, `black-voice` and `templates/pr-body.md` for the report clock and the PR-body evidence
+check (`"$hatsu_root/scripts/report_time.sh"`, `"$hatsu_root/scripts/pr_body_evidence_check.sh"`). (A
+report's *template* is not on this list: it is the target repository's own `templates/<name>.html`,
+named by that repository's `nen/workflow.json`.) **The name they
 spell it with is `$hatsu_root`, never `$CLAUDE_PLUGIN_ROOT` on its own**, because a skill body is mirrored
 verbatim onto Codex and Cursor ([`docs/SURFACES.md`](SURFACES.md)) and `$CLAUDE_PLUGIN_ROOT` is Claude
 Code's alone: **the harness exports it while a skill is running, and it is EMPTY in an ordinary tool-call
@@ -1447,7 +1485,7 @@ screenshot a PR body carries sits in a **cell** of this shape, on the first writ
 - **An update after a review re-renders the whole *Evidence* section** from the current rows: a
   re-recorded shot replaces its cell, a new state becomes a column, and one line under the table names
   what changed and the review it answers. **Images are never appended below the table.**
-- **Checked before every body write** — `scripts/pr_body_evidence_check.sh --body <file>` (plugin
+- **Checked before every body write** — `"$hatsu_root/scripts/pr_body_evidence_check.sh" --body <file>` (plugin
   root, lane `pr-body-guard`) refuses any image outside a table and any image without alt text, each
   by line number. A refusal is fixed in the body file and re-checked; it never reaches the PR.
 

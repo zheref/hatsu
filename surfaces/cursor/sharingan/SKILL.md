@@ -123,33 +123,14 @@ git diff --stat <reviewed-head>..HEAD
 cap is still remediated and settled.** Past the maximum the run ends not-ready with the board, never
 a question, and not a G5; `monitor.maxCycles` is en's acting cap, a different number.
 
-A round is **complete** when every finding has a disposition, not when a fix commit exists: a fresh
-snapshot shows every accepted finding fixed in a pushed commit, every summary-only one given a
-PR-level disposition, every thread replied to and resolved, no earlier request pending — **never an
-unfixed finding resolved to clear a counter** (§ 5).
+**Round completeness, thread hygiene (`nen pr threads list|reply|resolve`) and the Copilot request
+(`nen pr request-reviews --add-bots <node id>`, verified by `nen pr ready`, never REST) are
+[PROCESS.md](../../../docs/PROCESS.md) § *Reviewer rounds and review threads*** — a thread resolved
+only when addressed, never an unfixed finding resolved to clear a counter (§ 5).
+
 A fix that adds or re-records screenshots **re-renders the whole *Evidence* table** in the body and
-passes `scripts/pr_body_evidence_check.sh` first — never images appended below it
+passes `"$hatsu_root/scripts/pr_body_evidence_check.sh" --body <file>` first — never images appended below it
 ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The UZF-26 evidence shape*).
-
-**Thread hygiene is a verb**: every inline thread gets an on-thread **disposition** (reply) and is
-**resolved only when addressed**.
-
-```bash
-nen pr threads list    --target <owner/name> --pr <n>
-nen pr threads reply   --target <owner/name> --pr <n> --thread <id> --body-file <abs path>
-nen pr threads resolve --target <owner/name> --pr <n> --thread <id>
-```
-
-**Copilot is a `Bot`**, which `gh pr edit --add-reviewer` and `…/requested_reviewers` never resolve.
-Humans go through `--add-reviewers <a,b>`; **the bot through `--add-bots`**, its node id **data**
-read off the target's own reviewer set:
-
-```bash
-nen pr request-reviews --target <owner/name> --pr <n> --add-bots BOT_kgDOCnlnWA
-```
-
-Verify with `nen pr ready`, never REST (it shows a pending bot as `[]`): *no round at head* is one
-owed; *review requested, not yet posted* is one in flight — wait.
 
 ## 7. The other channels, and the escalation ladder
 

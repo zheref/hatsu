@@ -108,7 +108,9 @@ nothing**; the findings come back here.
 ## 6. Publish, then offer to file
 
 The result is published as an **Artifact page**, rendered through
-`nen report render --variant register` — the Rikugan template, whose desk carries **one ask per
+`nen report render --variant register` in [`backlog-board`](../backlog-board/SKILL.md) § 3's data
+shape — every key present, `generatedAtLocal` filled by
+`"$hatsu_root/scripts/report_time.sh" --at <generatedAt> [--tz <reports.timeZone>]` — the Rikugan template, whose desk carries **one ask per
 failing criterion** (kind `DO`, the gate it stands at, the criterion quoted as the *why*, and options that
 are the actual next moves) and whose register carries one collapsible row per criterion with its evidence,
 while a run with no failure renders the desk cleared. The page is the deliverable; a pasted summary is not.

@@ -58,7 +58,7 @@ order, § 4's three checks commented at its top. The target's own
 template governs the section *names* where it has one, and **the `UZF-26` evidence shape is
 [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The UZF-26 evidence shape***. **Every screenshot is a
 cell of that section's table** — states as named columns, variants as labelled rows, one fixed-width
-labelled image per cell — and **`scripts/pr_body_evidence_check.sh --body <file>` passes before the
+labelled image per cell — and **`"$hatsu_root/scripts/pr_body_evidence_check.sh" --body <file>` passes before the
 body is written**, on the first write and on every rewrite after a review, which re-renders the whole
 *Evidence* section and never appends below it.
 
@@ -119,19 +119,14 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
 ## 5. Reviewers, and the hand to `en`
 
 ```bash
-export GH_TOKEN=$(gh auth token)
 nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <a,b> [--add-bots <id,...>]
 ```
 
 **The reviewer-round policy is [`sharingan`](../sharingan/SKILL.md) § 6's** — one Copilot round after
 [`hanten`](../hanten/SKILL.md) settles, never before — and this skill makes only the first request.
-A bare login that is neither collaborator nor bot is exit `2` pointing at `--add-bots`; both flags
-absent, exit `1`. **Copilot goes through `--add-bots <node id>`** (`BOT_kgDOCnlnWA` here; elsewhere read off the target's
-reviewer set), since `--add-bots copilot` cannot resolve it today (zheref/nen#160). The
-same mutation answers `NOT_FOUND` under one token and succeeds under another, so **report success from
-the mutation's own response, never from the ids sent**; check first whether Copilot already reviews
-this repository automatically; and request on the **maintainer's** user token, a bot token silently
-no-opping.
+**The request's mechanics are [PROCESS.md](../../../docs/PROCESS.md) § *Reviewer rounds and review
+threads***: the maintainer's token, Copilot through `--add-bots <node id>`, and **success read from
+the mutation's own response, never from the ids sent**.
 
 **Then one line, and stop**: the notation, the base, the gate **forecast**, whether the three checks
 passed, the evidence mechanism, who was requested, and that [`en`](../en/SKILL.md) has the PR. **No `nen stop` banner** — opening a PR is not a gate event, and
@@ -139,8 +134,7 @@ passed, the evidence mechanism, who was requested, and that [`en`](../en/SKILL.m
 
 ## 6. Residue, authority and hard limits
 
-Named raw calls: the evidence mirror's publish, `gh pr view --json baseRefName`, the last-pushed
-comparison, Development linking ([`PROCESS.md`](../../../docs/PROCESS.md) § *History*).
+Named raw calls: [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned dependencies*.
 
 - **Permitted, only on the maintainer's own `hatsu:mukai` or `hatsu:shibari` call:** read the working
   copy and its history; write the body file; open **one** PR against `branch.base` from the last

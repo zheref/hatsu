@@ -90,9 +90,11 @@ Exit `2` is the trigger to **ask for the cap**, the rest of the line intact, and
 izanagi` on the answer; nothing iterates until it parses. This is the one case that makes the whole
 grammar mean something, and it is `nen`'s to enforce now, not the agent's to remember.
 
-A missing argument or configuration item is asked for and set up inline (`missing-argument`,
-`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) —
-the maintainer's word: never derived. The cap is asked for, never derived or defaulted.
+**The cap is the maintainer's word, typed, never picked** (`missing-maintainer-choice`;
+[`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *The maintainer's word is never derived*): asked for as
+free text, never derived, defaulted or offered as a picker option — not `nen`'s placeholder, not a
+value "that worked last time". Any other missing argument or configuration item is asked for and set
+up inline (`missing-argument`, `missing-configuration`; § 4 *Ask, set up, continue*).
 
 **Missing `until`, and a malformed cap — both exit `2`, verified live, and both are asked for the same way:**
 

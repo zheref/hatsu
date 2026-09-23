@@ -14,11 +14,11 @@ description: Render one turn of work as a rich HTML page from templates/spiritua
 
 [`ren`](../ren/SKILL.md)'s fifth step, [`mukai`](../mukai/SKILL.md)'s handover artifact and
 [`en`](../en/SKILL.md)'s first. **The desk comes first, under the tally**: the one thing only the
-maintainer can do is never read ninth. **Never markdown.**
+maintainer can do is never read ninth.
 
 ## 0. Standalone entry
 
-From a composite, skip this. Reached bare, the contract is
+From a composite, skip this; bare, the contract is
 [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) (`S1`, `S3`). Every block is
 evidence-sourced or **marked unavailable**; no recoverable turn boundary reads `this last turn: not
 recoverable`.
@@ -46,8 +46,8 @@ first step — the turn blocks **+ the PR body**, the verdict quoted inside the 
 [`backlog-board`](../backlog-board/SKILL.md) § 3's variant `final` into
 `<reports.dir>/<YYYY-MM-DD>-<effort>.html` (ruling 2026-09-19). Hand over.
 
-After [`/aka`](../aka/SKILL.md) (pushed, no PR) re-render `turn` at the same address with the
-push in *Landed*.
+After [`/aka`](../aka/SKILL.md) (pushed, no PR) re-render `turn` at the same address, the push
+in *Landed*.
 
 ## 3. The parameters
 
@@ -110,10 +110,10 @@ bar regex), `amount` as `12.3 s` / `4 m 05 s`, `steps` as `build 41.2 s · lint 
 sets `notReported: true`, `reported: false`. `actionsMinutes` sums
 `--minutes` entries, `not read` with none; `spendNote` is `""` or one muted line. `tests[]` and
 `touchedCoverage[]` are likewise re-mapped from `shu test-report` and the saved `shu coverage
---touched`, never passed through. `generatedAtLocal`: `scripts/report_time.sh`; `repo`, `gate`, `turnLabel`,
+--touched`, never passed through. `generatedAtLocal`: `"$hatsu_root/scripts/report_time.sh"`; `repo`, `gate`, `turnLabel`,
 `effortStage`, `stageClass`, `worktree`: derived per `WORKFLOW.md` § *Where the effort is*.
 
-**Record usage before rendering**, from the surface's own readout: `nen usage record --effort
+**Record usage before rendering**, from the surface's readout: `nen usage record --effort
 <branch> --surface <s> [--model <alias>] --input/--output/--cache-read/--cache-write <n> --source
 <text>` — Claude Code's `/cost` line, Codex's session-log usage, Cursor and
 Antigravity `--not-reported` (nothing exposed); Actions minutes for the runs `en` observed from
@@ -129,14 +129,12 @@ link (hatsu#56).
 
 ## 5. The graph document
 
-The delta is **conceptual and session-wide**, never a file list.
-Author `nen.report.graph/v0.1` — `{ contract, caption, nodes[{id,label,kind,change}],
+The delta is **conceptual and session-wide**, never a file list. Author `nen.report.graph/v0.1` — `{ contract, caption, nodes[{id,label,kind,change}],
 edges[{from,to,rel,change}] }`, [worked example](../../../templates/graph.example.json).
 
 `change` is `added | changed | removed | unchanged` on nodes and edges; every edge endpoint names a
 declared node. `nen report render --graph <file>` validates it, injecting `graphJson`,
-`graphMermaid`, `graphNodes[]`, `graphEdges[]`; `<details>` carries the text fallback. **Never
-hand-build SVG or a second renderer.**
+`graphMermaid`, `graphNodes[]`, `graphEdges[]`; `<details>` carries the text fallback.
 
 ## 6. Fill the template
 
@@ -147,7 +145,7 @@ nen report render --variant <turn|turn-fast|landing> --graph <graph file> \
 
 Template language, exit codes and `--dry-run`: [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 2
 → `reports`; prove a template with `--dry-run` before it ships. Escaping and the caller's three
-validations: PROCESS.md, as § 4.
+validations: [PROCESS.md](../../../docs/PROCESS.md) § *Escaping and validation of report data*.
 **The PR body's diagram is the same graph** — `nen report mermaid --graph <file>`, pasted by
 [`shibari`](../shibari/SKILL.md) § 3, never twice.
 

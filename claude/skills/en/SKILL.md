@@ -4,7 +4,7 @@ description: Take one open pull request from the moment it opens to verified rea
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md` and `docs/PROCESS.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
 `hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
@@ -236,7 +236,7 @@ Two things en relies on and does not re-derive:
   [`hatsu:pr-state`](../pr-state/SKILL.md)'s before it: **a readiness claim is that verdict, quoted,
   or it is not made.**
 - **A body this run rewrites** — new or re-recorded screenshots after a review — **re-renders the whole
-  *Evidence* table** and passes `scripts/pr_body_evidence_check.sh --body <file>` before it is written
+  *Evidence* table** and passes `"$hatsu_root/scripts/pr_body_evidence_check.sh" --body <file>` before it is written
   ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The UZF-26 evidence shape*, *The table, exactly*).
 - **`sharingan`'s escalation is a G5 and it ends this run's cycle**, not just its step. A PR that
   will not reach Ready is one of the plane's five genuine stops

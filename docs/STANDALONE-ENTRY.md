@@ -39,8 +39,9 @@ derive, is not a skill the maintainer can reach.** That is what this contract fi
 
 **Rule 1 — every skill is reachable alone.** A phase named in
 [`claude/skills/`](../claude/skills/) can be typed by the maintainer into any checkout, in any state,
-and will either run or say precisely which fact it needs and ask for it — through the picker, then
-setting up any missing configuration and resuming ([`WORKFLOW.md`](WORKFLOW.md) § 4 *Ask, set up, continue*); it never
+and will either run or say precisely which fact it needs and ask for it — through the picker (as
+free text where the value is the maintainer's own word), then setting up any missing configuration on
+the answer and resuming ([`WORKFLOW.md`](WORKFLOW.md) § 4 *Ask, set up, continue*); it never
 ends on a refusal the maintainer has to retype around. *It does not matter that it
 was authored as somebody's step.*
 
@@ -316,7 +317,7 @@ doing* (`ROSTER.md` § *Rulings of 2026-09-09*, 1).
 
 ## 7. The skills that carry a `## 0. Standalone entry`
 
-**Twenty do**, and they fall into two groups. The split is the useful fact: a reader asking *what
+**Twenty-one do**, and they fall into two groups. The split is the useful fact: a reader asking *what
 will this derive if I type it cold* needs the first table, and a reader asking *does P1 apply* needs
 both.
 
@@ -333,13 +334,13 @@ both.
 | [`sharingan`](../claude/skills/sharingan/SKILL.md) | S2 — the PR from the branch, when `#N` is omitted | which PR, when the branch has none or several |
 | [`hanten`](../claude/skills/hanten/SKILL.md) | S4 — routes a missing cycle ledger to `breath`, its only writer, and reports a lost ledger when it is still absent; S1 — the scope classification | nothing about the ledger (breath asks that once); the review scope, when the delta does not classify cleanly |
 | [`spiritual-message`](../claude/skills/spiritual-message/SKILL.md) | S1 + S3 — turns and session context, read from git and the session | which variant, when it is not derivable |
-| [`kagutsuchi`](../claude/skills/kagutsuchi/SKILL.md) | nothing new — the target is required grammar | nothing. **The call is the maintainer's** |
-| [`mugetsu`](../claude/skills/mugetsu/SKILL.md) | nothing new — `G3` | nothing. **The go is the maintainer's** |
+| [`kagutsuchi`](../claude/skills/kagutsuchi/SKILL.md) | nothing new — the target is required grammar | a missing target, **typed, never picked** (`missing-maintainer-choice`). **The call is the maintainer's** |
+| [`mugetsu`](../claude/skills/mugetsu/SKILL.md) | nothing new — `G3` | nothing, except a missing part of a go on the maintainer's own same-turn `hatsu:mugetsu <target>`, typed. **The go is the maintainer's** |
 | [`third-hand`](../claude/skills/third-hand/SKILL.md) | S3 — "this sitting", from the branch and any open PR | the harvest pick, as it always did |
 | [`murasaki`](../claude/skills/murasaki/SKILL.md) | S1 — the base, hence the catch-up; conflicts classified before one is touched | only a dirty working copy, before git state moves |
 
 
-### 7b · Seven whose `## 0.` adds P1, orientation and expectations only
+### 7b · Eight whose `## 0.` adds P1, orientation and expectations only
 
 These inherit no caller state. Their `## 0.` says P1 still applies, states what their run does **not**
 cover, and — for the two the contract used to mis-file — names why.
@@ -353,6 +354,7 @@ cover, and — for the two the contract used to mis-file — names why.
 | [`jutaisho`](../claude/skills/jutaisho/SKILL.md) | Already total. P1, plus: a run that did nothing rings nothing |
 | [`shibari`](../claude/skills/shibari/SKILL.md) | Already total, and both-ways by § 1. P1, plus the one cold precondition — the branch must already be pushed — and the rule that a missing evidence section says so rather than being filled |
 | [`rasengan`](../claude/skills/rasengan/SKILL.md) | **Deliberately caller-bound** (§ 4): the request is the input. P1, plus *ask for the request, never infer it* |
+| [`amenotejikara`](../claude/skills/amenotejikara/SKILL.md) | Already total: `--repo` names any checkout and nen resolves core. P1 — **required**, since `nen wc swap` and `nen wc worktrees` exist only from nen `0.14` — plus `status` first, so an active swap is seen before core moves |
 
 **The skills with no `## 0.` at all** are the composites, the loop engines, and the three read-only
 resolvers § 4 names — `pr-state`, `backlog-state`, `bankai-handbooks` — which reach P1 through

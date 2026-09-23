@@ -143,6 +143,18 @@ fi
 #                       session; a stale copy would skip the refresh or apply the
 #                       wrong channel, so this runtime script is covered; the
 #                       fixture check beside it is test-only and is not.
+#   docs/PROCESS.md   — the shared phase conventions every skill points at
+#                       by section (Hatsu 0.45.0). Binding exactly as if written
+#                       in each skill, read from the plugin root at run time:
+#                       same criterion as docs/WORKFLOW.md.
+#   scripts/report_time.sh
+#                     — the report clock (Hatsu 0.45.0). Every report page
+#                       runs it from `$hatsu_root/scripts/` to fill
+#                       generatedAtLocal; a stale copy says the wrong time.
+#   scripts/pr_body_evidence_check.sh
+#                     — the UZF-26 evidence-table check (Hatsu 0.45.0),
+#                       run from `$hatsu_root/scripts/` before every PR body
+#                       write; a stale copy passes a body a fixed one refuses.
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #
@@ -168,6 +180,7 @@ PLUGIN_SURFACE_GLOBS=(
   'docs/AGENT-ATTRIBUTION.md'
   'docs/STANDALONE-ENTRY.md'
   'docs/GATE-CONFIGURATION.md'
+  'docs/PROCESS.md'
   'hooks/*'
   'templates/*'
   'surfaces/*'
@@ -176,6 +189,8 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/hatsu_plugin_update.sh'
   'scripts/tenkai_adopt.sh'
   'scripts/release-publish.sh'
+  'scripts/report_time.sh'
+  'scripts/pr_body_evidence_check.sh'
   '.mcp.json'
 )
 

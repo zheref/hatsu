@@ -130,13 +130,12 @@ empty and the block does not render.
 
 ### Other callers
 
-[`futon`](../futon/SKILL.md) and [`backlog-loop`](../backlog-loop/SKILL.md) render their per-cycle
-status board through this exact line, **the register variant, via backlog-board § 3**. The **dated
-final report** is the same template at `--variant final`, titled by the effort's headline
-(`WORKFLOW.md` § *Report titles*): one effort, a cleared desk, written to
-`<reports.dir>/<YYYY-MM-DD>-<effort>.html` (maintainer's ruling, 2026-09-19; the date and
-`generatedAtLocal` are `scripts/report_time.sh`'s, `WORKFLOW.md` § *Report time*) — the one render of this
-template kept on disk.
+[`futon`](../futon/SKILL.md), [`backlog-loop`](../backlog-loop/SKILL.md) and
+[`black-voice`](../black-voice/SKILL.md) render through this exact line, **the register variant, in
+§ 3's data shape**, `generatedAtLocal` from `"$hatsu_root/scripts/report_time.sh"` on every render
+(`WORKFLOW.md` § *Report time*). The **dated final report** is the same template at `--variant
+final`, titled by the effort's headline (§ *Report titles*): one effort, a cleared desk, at
+`<reports.dir>/<generatedDateLocal>-<effort>.html` (ruling 2026-09-19) — the one render kept on disk.
 
 ## 4. Publish it
 

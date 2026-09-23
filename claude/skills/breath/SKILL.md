@@ -37,14 +37,18 @@ call as `--repo <path>`, never the cwd default (`nen shu warmup` requires it).
 defaults are `{model}/{persona}/{descriptor}`, `main`, `["build"]`, `project.defaultLane`. A missing
 argument or configuration item is asked for and set up inline (`missing-argument`,
 `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) —
-**never invented**; `nen schema check --repo <path>` validates the write (a malformed key FAILs by
-pointer).
+**never invented**, and **never written unasked to silence a message**; `nen schema check --repo
+<path>` validates the write (a malformed key FAILs by pointer).
 
 ## 2. Where the checkout sits
 
 ```bash
+nen wc swap --status --repo <path>   # first
 nen wc classify --repo <path> --base <branch.base>
 ```
+
+**Breath refuses core while a swap is active** ([`amenotejikara`](../amenotejikara/SKILL.md)), or a
+worktree whose branch a `--take` holds, naming `hatsu:amenotejikara return`.
 
 | Case | What breath does |
 |---|---|
@@ -54,8 +58,7 @@ nen wc classify --repo <path> --base <branch.base>
 | `on-branch-dirty` | § 2a first: a continuation of *this* effort reports subjects and paths and hands the turn to [`kokusen`](../kokusen/SKILL.md) or the maintainer; a **new** effort shows the paths and **asks** — never discard, never cut a second branch over it |
 | detached `HEAD` | A row above with `branch: null`, never `must-move`; read `detachedAt`, report it, go on |
 
-An unresolvable `--base` exits `1`: the trigger to ask for `branch.base`, set it up (§ 1) and
-re-classify. The only other non-zero is an empty repo.
+An unresolvable `--base` exits `1`: ask for `branch.base`, set it up (§ 1), re-classify. The only other non-zero is an empty repo.
 
 **§ 2a · New effort vs explicit continuation. Default: a new effort.** Reusing the feature branch is
 valid **only** on the caller's explicit identification, or on turn 2+ of a `ren` loop whose step 1 cut
@@ -65,12 +68,11 @@ the old branch be**; a continuation reports and returns; a dirty tree plus a new
 **asks**, showing every uncommitted path.
 
 **§ 2b · The third door — untracked paths that are not work** (`.idea/`, `.claude/worktrees/`, the
-surface mirror): **append them to `info/exclude`** (located with `rev-parse
---git-path`, **never `--git-dir`**; **never `.gitignore`**; [`docs/SURFACES.md`](../../../docs/SURFACES.md) § 2). Breath's part: **only
-ignorable, untracked paths none of the effort's business**, shown before writing, under a dated
-comment naming the run; then **re-run `nen wc classify`, expecting `uncommittedPaths: []`**. A refused
-append — a sandbox refusal — is reported with that `--add-dir` named, and **stops**. The file is the
-main repository's, shared by every worktree: **name it by path**.
+surface mirror): **append them to `info/exclude`** (`rev-parse --git-path`, **never `--git-dir`**;
+**never `.gitignore`**; [`docs/SURFACES.md`](../../../docs/SURFACES.md) § 2) — **only ignorable,
+untracked paths none of the effort's business**, shown first, under a dated comment naming the run;
+then **re-run `nen wc classify`, expecting `uncommittedPaths: []`**. A sandbox refusal is reported
+with that `--add-dir` named, and **stops**. The file is shared by every worktree: **name it by path**.
 
 **§ 2c · The host.** `nen shu tools --repo <path> [--dry-run | --install]` on a host this repository
 was never built on, and after a toolchain pin moves; `--install` covers only what corepack activates,
@@ -130,19 +132,17 @@ warmup`'s exit code alone**: it proves the lane's `build` only, so with `iterati
 and `build` seated, the `lint` run is the whole proof. The exit table is
 [`rasengan`](../rasengan/SKILL.md) § 6's, one row differing — **a red base tip is a G5 taken BEFORE
 any authoring**: report `steps[]`, name the check, stop — **never fix it in passing** or hand it
-forward as this effort's red. Breath proves the base → `rasengan` authors →
-[`kokusen`](../kokusen/SKILL.md) verifies and commits.
+forward as this effort's red.
 
 **The iteration list stays inexpensive**: `--tests` only when `iteration.checks` has `test`, never
-coverage (`kotoamatsukami`'s tests and `byakugan`'s coverage are `mukai`'s); a full suite hidden in an
-iteration verb is a [`DISCOVERY.md`](../../../docs/DISCOVERY.md) gap, never leave to run a later phase
-early.
+coverage (both are `mukai`'s); a full suite hidden in an iteration verb is a
+[`DISCOVERY.md`](../../../docs/DISCOVERY.md) gap.
 
 ## 5. What the turn reports, and the residue
 
-One line, not a gate event: the `wc classify` case, **new effort or explicit continuation**, the
-branch cut and its tip (or the branch reused), the toolchain verdict, the build's exit code, any
-`info/exclude` path and lines, and the *no workflow.json* sentence where it applies. **A warm-up that
+One line, not a gate event: any active swap, the `wc classify` case, **new effort or explicit
+continuation**, the branch cut and its tip (or the branch reused), the toolchain verdict, the build's
+exit code, any `info/exclude` lines, and the *no workflow.json* sentence where it applies. **A warm-up that
 did not run is reported as not run, never as clear.**
 
 By hand: rendering `branch.template`, appending `info/exclude` and proving it (`nen wc classify`, `git

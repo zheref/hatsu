@@ -30,10 +30,10 @@ nen parse jujutsu --grammar "pair <device>" --line "<the invocation, minus the p
 ```
 
 **`<device>` is required and never defaulted** — registered under the wrong name, a target resolves to
-somebody else's phone. A missing argument or configuration item is asked for and set up inline
-(`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask,
-set up, continue*) — **the maintainer's word: never derived**: a bare `pair` (`nen parse` exit `2`) is
-the trigger to ask which device, the probe's rows as options, none starred. **The name typed is
+somebody else's phone. **It is the maintainer's word, typed, never picked** (`missing-maintainer-choice`;
+[`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4): a bare `pair` (`nen parse` exit `2`) asks for it as
+free text, the probe's rows listed for reference, none starred and none a picker option. Other gaps
+are `missing-configuration`. **The name typed is
 provisional**: the declaration gets the name the **probe** prints, byte for byte.
 
 ## 2. Once per device — check before pairing anything

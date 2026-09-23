@@ -29,6 +29,9 @@ printf '%s\n' 'docs/WORKFLOW.md' > "$fixture_root/changed-workflow.txt"
 printf '%s\n' 'docs/AGENT-ATTRIBUTION.md' > "$fixture_root/changed-agent-attribution.txt"
 printf '%s\n' 'docs/ab/plugin-bump-guard.md' > "$fixture_root/changed-unrelated.txt"
 printf '%s\n' 'scripts/hatsu_plugin_update.sh' > "$fixture_root/changed-updater.txt"
+printf '%s\n' 'docs/PROCESS.md' > "$fixture_root/changed-process.txt"
+printf '%s\n' 'scripts/report_time.sh' > "$fixture_root/changed-report-time.txt"
+printf '%s\n' 'scripts/pr_body_evidence_check.sh' > "$fixture_root/changed-evidence-check.txt"
 
 run_case() {
   local name="$1" expected_status="$2" changed="$3" head="$4" expected_text="$5"
@@ -58,6 +61,9 @@ run_case 'AGENT-ATTRIBUTION unchanged version' 1 "$fixture_root/changed-agent-at
 run_case 'DISCOVERY bumped version' 0 "$fixture_root/changed-discovery.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
 run_case 'unrelated docs unchanged version' 0 "$fixture_root/changed-unrelated.txt" "$fixture_root/head-unchanged.json" 'no plugin-shipped surface changed'
 run_case 'updater script unchanged version' 1 "$fixture_root/changed-updater.txt" "$fixture_root/head-unchanged.json" 'scripts/hatsu_plugin_update.sh'
+run_case 'PROCESS unchanged version' 1 "$fixture_root/changed-process.txt" "$fixture_root/head-unchanged.json" 'docs/PROCESS.md'
+run_case 'report clock script unchanged version' 1 "$fixture_root/changed-report-time.txt" "$fixture_root/head-unchanged.json" 'scripts/report_time.sh'
+run_case 'evidence check script unchanged version' 1 "$fixture_root/changed-evidence-check.txt" "$fixture_root/head-unchanged.json" 'scripts/pr_body_evidence_check.sh'
 run_case 'updater script bumped version' 0 "$fixture_root/changed-updater.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
 
 # --- semver-increase cases (2026-09-20): equal, lower, and malformed all fail;

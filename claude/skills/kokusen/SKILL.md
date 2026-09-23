@@ -125,10 +125,10 @@ index, and reports `{sha, subject, trailers}`.
 
 ## 6. Residue
 
-The explicit per-path `git add` is the one named raw call (history: [PROCESS.md](../../../docs/PROCESS.md)
-§ History). Of WORKFLOW § `commits`'s three enforcement layers
-the `commit-msg` hook exists only in a repository `nen scaffold init` stood up, so **say which layers
-the repository in front of you actually has**. **Whether two changes are one coherent commit stays
+The explicit per-path `git add` is the one raw call ([PROCESS.md](../../../docs/PROCESS.md)
+§ Residue and owned dependencies). Of WORKFLOW § `commits`'s three enforcement layers the
+`commit-msg` hook exists only in a repository `nen scaffold init` stood up, so **say which layers
+the repository in front of you actually has**. **Whether two changes are one coherent commit is
 judgment.** **Reusable focused selection is an owned dependency**
 ([nen#207](https://github.com/zheref/nen/issues/207)): use actual runner identifiers and separate
 focused artifacts, never a probe-only lane of one language as focused tests for another's behaviour

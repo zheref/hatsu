@@ -16,9 +16,8 @@ is a bell nobody hears.**
 ## 0. Standalone entry
 
 Already total ([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4): cold entry adds
-only **P1**. A standalone call also says **whether anything happened**: ring for a gate a run reached;
-over a quiet checkout say there is nothing to announce. **This phase is terminal** — the successor to
-a gate is the maintainer's own decision, named in the options and never prompted for again.
+only **P1**, and says **whether anything happened** — over a quiet checkout, nothing to announce.
+**Terminal**: a gate's successor is the maintainer's decision, named in the options, never prompted.
 
 ## 1. Invocation
 
@@ -27,8 +26,8 @@ hatsu:jutaisho [at <G1 | G1-M | G2 | G3 | G4 | G5>]
 nen parse jutaisho --grammar "at [<gate:G1|G1-M|G2|G3|G4|G5>]" --line "<the invocation, minus the prefix>"
 ```
 
-An empty `--line` and a bare `at` parse identically, both exit `0` with `gate: (clause absent)`.
-**The clause's absence is meaningful, not a gap**: no `at <gate>` is a **turn bell**, nothing asked
+An empty `--line` or a bare `at` parses to `gate: (clause absent)`, exit `0` — **meaningful, not a
+gap**: no `at <gate>` is a **turn bell**, nothing asked
 and no banner; with a gate it is a **stop** and § 4's whole shape is owed. An unparseable line or an
 absent `notifications` item is asked for and set up inline (`missing-argument`,
 `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*).
@@ -37,7 +36,13 @@ absent `notifications` item is asked for and set up inline (`missing-argument`,
 |---|---|
 | **An ordinary turn** — no `at <gate>` | **rung 1 only** — the surface's own turn-end line |
 | **A repository that asks for more** (`notifications.turn: "all"`) | every rung in `notifications.rungs` |
-| **A gate** — `at <gate>` present, **or the page carries a `DECIDE` ask** (its `ask.gate`) | every rung in `notifications.rungs`, plus § 4's banner |
+| **A gate** — `at <gate>` present, or the page's ask has a `gate` (below) | every rung in `notifications.rungs`, plus § 4's banner |
+
+**The page's ask decides the bell — authored here, cited everywhere else.** A report `ask` of **any**
+kind reaches the surface's picker **in this same turn**, its options verbatim (same letters, order,
+star); a page is never the only place a question is put. **Only an ask whose `gate` is G1–G5 makes
+this `jutaisho at <gate>`**, with § 4's four parts. An ask from an `ask-once-per-run` row of
+`nen/decisions.json` gets the picker and rung 1, and no banner.
 
 **Rung 1 is a line in a transcript the maintainer is already reading; rungs 2–3 take over the
 machine**, so an ordinary turn rings 2–3 only where a repository says so by name. **"A turn
@@ -65,8 +70,6 @@ rendered, no step refused — and that turn rings *nothing at all*, not even run
   everything `rungs` lists regardless of it.
 - **nen fires none of rungs 1–3** and only reports rung 1, so **`--notified` is a claim about what
   this skill already did** — passed only after rung 1 went out.
-- **nen's own numbering calls the banner rung 4**; the two compose, and "rung 2" means the OS
-  notification both ways.
 - **`HATSU_ATTENTION=off` rings rungs 2 and 3 nowhere** and still consumes the marker.
 
 ## 3. The marker — `.nen/last-stop.json`
@@ -88,8 +91,8 @@ hand-written** ([`PROCESS.md`](../../../docs/PROCESS.md) § *History*). `sound` 
 there is no hook.
 
 - **`.nen/` is git-ignored**, and the marker is the only file this skill writes anywhere.
-- **A marker older than 10 minutes is stale**, decided from **mtime** and removed without firing, so
-  **the marker is written whole, in the turn it describes** — never amended, never carried over.
+- **A marker older than 10 minutes is stale**, decided from **mtime** and removed without firing —
+  never queued or replayed — so **it is written whole, in the turn it describes**, never amended.
 - **`who` is the persona**, never the name the surface introduced itself as.
 - **One marker, overwritten**: no queue.
 - **The hook is `hooks/hooks.json`'s** (and the `PreToolUse` trunk guard): read, never edited or
@@ -119,25 +122,23 @@ the session's context and the workflow's state, **seeded by the matching row's
 with its exact command and consequence — never a mood, never the report. Exactly one carries
 the star, and the line says what would tip it. **Every real stop also carries a proposed process
 issue** (`--propose-issue`, Netero's completeness shape) so the next session does not hit the same
-stop; the third-hand harvest picks it up. **A condition whose row is `autonomous` never reaches this part**: it was resolved by its default, and the
+stop. **A condition whose row is `autonomous` never reaches this part**: it was resolved by its default, and the
 turn page says so with the row id.
 
 **4 · The question through the surface's own option picker** ([`docs/SURFACES.md`](../../../docs/SURFACES.md)'s
 *native option picker* row; `nen surface capabilities --surface <s>` names it) — never a paragraph
-ending in a question mark. The picker's options are the
-marker's, verbatim, same letters, same order. **A `DO` or `MERGE` ask takes no picker**, the act being
-the maintainer's outside the session.
+ending in a question mark; its options are the marker's, verbatim (§ 1). **A `DO` or `MERGE` ask's picker never carries the act**,
+which is the maintainer's outside the session.
 
 **Only a genuine stop interrupts** — the five G5s [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4
 lists, plus G1/G2/G3/G4 when one is genuinely due. Everything else is a turn bell.
 
 ## 5. Surfaces, and the fallback without a hook
 
-**Which side fires rungs 2–3 is one fact, not a surface list: was a hook file placed here?**
+**Which side fires rungs 2–3 is one fact: was a hook file placed here?**
 ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 6.) The fallback's commands, sanitising and
 read-stderr rules are [`docs/surfaces/README.md`](../../../docs/surfaces/README.md) § *Shared rules*.
-This skill's own:
-**the fallback is announced every time**, **an unfired rung is never rendered as fired**, **the marker
+Here: **the fallback is announced every time**, **an unfired rung is never rendered as fired**, **the marker
 is removed by the side that consumed it** (the hook, when it fired; the fallback, only where no hook
 file is placed), and **the stop still stands** whichever path rang, § 4's four parts being the real bell.
 **Residue:** `osascript` and `afplay` are harness shell, `[unknown]` to nen and refused by `nen watch
@@ -161,7 +162,6 @@ delegation** ([`PROCESS.md`](../../../docs/PROCESS.md) § *Authority every phase
   never on the report, and **never hands off a G5 link whose page lacks the blocker** (hatsu#56).
 - **Never passes `--notified` for a push notification that did not go out**, **never claims a rung
   fired that did not**, and **never reads `osascript`'s exit `0` as proof it fired** (§ 5).
-- **Never queues or replays a stale bell** — a marker older than ten minutes is removed, not fired.
 - **Never leaves its own marker behind where no hook file is placed**, **never writes `who` from the
   name the surface introduced itself as**, and **never interpolates an unsanitised value into the
   fallback** (§§ 3, 5).

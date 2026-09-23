@@ -583,10 +583,11 @@ FAIL by pointer — and [`docs/WORKFLOW.md`](docs/WORKFLOW.md) documents both.
 
 ### The range
 
-*Current pin, echoed for convenience:* **`nen >= 0.10`**, with the bootstrap installing **`v0.10.0`**.
-Those are two values and they move independently. Hatsu adopts `approval_policy: review-round-only`,
-introduced in v0.10.0; this feature requirement raises its minimum even though Nen's compatibility
-floor remains 0.7.
+*Current pin, echoed for convenience:* **`nen >= 0.14`**, with the bootstrap installing **`v0.14.0`**.
+Those are two values and they move independently. Hatsu adopts `nen wc swap` and `nen wc worktrees`,
+introduced in v0.14.0 as the engine of `amenotejikara`; this feature requirement raises its minimum
+even though Nen's compatibility floor remains 0.7. The live skill surface is **forty-four**, forty-five
+directories per surface with `hatsu-warmup`.
 
 **The range is nen's answer, not this README's arithmetic — and not the warm-up's either.** The binary
 ships `COMPATIBLE_MINOR_FLOOR` (`src/version.ts`), the lowest `minimum` pin that build satisfies, and

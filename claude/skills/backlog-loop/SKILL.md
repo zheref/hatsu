@@ -3,7 +3,7 @@ name: backlog-loop
 description: Drive a target repository's backlog to zero open actionable issues, in severity order, as gate-ready PRs. Use when the maintainer asks to work the backlog, clear open issues, run the loop, or keep a repo current. Kurapika triages, sequences build and sharingan across at most two efforts, cuts tags and runs the fan-out at severity-batch boundaries, and renders the per-cycle status board as a Rikugan. Never merges main; G2/G4/G3 stay the maintainer's.
 ---
 
-**Shared policy** resolves as [PROCESS.md](../../../docs/PROCESS.md) § Standalone entry says.
+**Shared policy:** [`PROCESS.md`](../../../docs/PROCESS.md) § *Standalone entry*.
 
 # Backlog loop — drive a backlog to zero, in severity order
 

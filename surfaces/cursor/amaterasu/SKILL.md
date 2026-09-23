@@ -13,8 +13,7 @@ code and sends nothing (a **deploy** is **G3**).
 > **Build what I am working on and start it on the target I said, from the directory I actually work
 > in, and tell me the exact command so I can run it myself.**
 
-Phase four of `ren`, after [`kokusen`](../kokusen/SKILL.md) and before the turn's report; it never
-pushes or opens anything. **Every rule of the declaration it executes is
+Phase four of `ren`, after [`kokusen`](../kokusen/SKILL.md); it never pushes or opens anything. **Every rule of the declaration it executes is
 [`docs/LAUNCH-MIGRATION.md`](../../../docs/LAUNCH-MIGRATION.md) § *Launch declaration rules***.
 
 ## 0. Standalone entry
@@ -23,7 +22,7 @@ pushes or opens anything. **Every rule of the declaration it executes is
 root per [PROCESS.md](../../../docs/PROCESS.md) § *Authority every phase shares*). Cold it adds **P1**
 and **P2**, read with § 3 — **whether this is a worktree**, a session in one **reporting the command
 rather than running it**. **The launch shows the tree on disk, not a commit**: name uncommitted
-paths beside it.
+paths.
 
 ## 1. Invocation
 
@@ -42,14 +41,14 @@ launch target set up through [`jujutsu`](../jujutsu/SKILL.md).
 | `project.launch` **absent** or **empty** | record `no launch target declared; skipped`, naming `nen/contract.json`, and continue |
 | `launch.default` **`null`**, no argument, **no** declared targets | the same, naming `launch.default` |
 | `launch.default` **`null`** but targets **are** declared, no argument | **the case that asks**, the declared targets as options |
-| an argument naming an undeclared target | **the trigger to ask**: name it, the declared targets as options (or set one up through `jujutsu`) — **never a near-match** |
+| an argument naming an undeclared target | **the trigger to ask**: name it, the declared targets as options (or one set up through `jujutsu`), **never a near-match** |
 
-**Asking on the no-launch case is the defect**: in automatic `ren`, a question the configuration
-answered, asked every turn, trains the maintainer to dismiss it — no question, stop or bell; continue.
+**Asking on the no-launch case is the defect**: a question the configuration answered, asked every
+`ren` turn, trains the maintainer to dismiss it — no question, stop or bell; continue.
 
 **§ 1a · The profile.** Under `nen/workflow.json` → `profile` `fast`, [`ren`](../ren/SKILL.md) § 2a
 skips this phase and the launch line reads `deferred by profile fast; the next standard or thorough
-turn, or /amaterasu by name, launches` — nothing built, nothing moved (mukai has no launch step).
+turn, or /amaterasu by name, launches` — nothing built or moved (mukai has no launch step).
 Named by the maintainer, it runs under any profile.
 
 ## 2. The parameters, and the completion the launch owes
@@ -67,7 +66,7 @@ and **no** `launch.fallback`: with targets declared, name them and ask; with non
 case.
 
 **Physical-device completion.** The lane must build for the target's **actual platform** — check the
-dry run's lane, destination, artifact substitution and ordered after-steps first. **An iPhone target
+dry run's lane, destination, artifact substitution and after-steps first. **An iPhone target
 wired to a simulator build is an incomplete declaration** (a simulator `.app` named in `after[]` is no
 device artifact): repair it within authorized scope or record the blocker through
 [the discovery protocol](../../../docs/DISCOVERY.md). **Success is the device build, its install and
@@ -79,16 +78,18 @@ resolver's** ([nen#204](https://github.com/zheref/nen/issues/204)); a temporary 
 ## 3. The core working directory, never a worktree
 
 **A launch runs from the maintainer's own checkout and nowhere else** — not a `git worktree`, a
-subagent's copy or a temporary clone. From a worktree it is a *different* build of a *different* tree
-racing theirs on the same port, derived-data directory and bundle id; a fresh worktree **fails the
+subagent's copy or a temporary clone. From a worktree it is another tree's build racing theirs on
+one port, derived-data directory and bundle id; a fresh worktree **fails the
 declaration's own preconditions**, and **launching writes to a SHARED device**, so isolation buys
 nothing.
 
-**nen will not stop you** (it renders `cwd:` as the worktree, no warning), so the rule is this
-skill's, kept two ways: **resolve the core working directory explicitly** and pass it as `--repo` —
-never a path under `.claude/worktrees/` or one `git rev-parse --git-common-dir` shows is another
-checkout; and **a parallel subagent effort never launches**, reporting § 4's dry-run argv verbatim
-and stopping.
+**nen will not stop you** (`cwd:` renders the worktree, silently), so the rule is this skill's:
+**core is `nen wc worktrees --repo <any checkout> --json`'s `core`**, passed as `--repo`; and **a
+parallel subagent effort never launches**, reporting § 4's dry-run argv verbatim and stopping.
+
+**Then `nen wc swap --status --repo <core>`.** An active swap ([`amenotejikara`](../amenotejikara/SKILL.md))
+is **named** in the launch line — branch or commit, view or take — since core builds that tree. A status that does not answer (exit `1`/`2`) is **refused**: no launch on a
+half-swapped core.
 
 **§ 3a · The one sanctioned exception — validating a declaration** from a non-core checkout, since
 [`jujutsu`](../jujutsu/SKILL.md) § 6 hands off a declaration PR nothing has run. Only when **all
@@ -107,7 +108,7 @@ outside those four is forbidden.**
 | Present **and usable** | substitute its id into `{device.id}` in the after-steps |
 | **Present but NOT usable** | **Refuse; never the simulator fallback** — it is plugged in, one tap from working. With `readyWhen`, **nen already refused at exit `5`** (device, state seen, states accepted): relay it and name the on-device step that closes it ([`jujutsu`](../jujutsu/SKILL.md) § 3). With **no** rule nen reports it resolved: read the probe's state column and **report the missing `readyWhen` as a declaration defect** |
 | **Absent** | **Report it by name** — *"`<device.name>` is not connected; the probe saw: `<what it listed>`"* — then fall back to `launch.fallback`, saying so and naming it |
-| Absent, `launch.fallback` `null` | say so and stop — plugging a device in is an on-device act, and picking another is a guess |
+| Absent, `launch.fallback` `null` | say so and stop: plugging one in is an on-device act, picking another a guess |
 | No `device` declared | straight to the dry run |
 
 ```bash
@@ -125,7 +126,7 @@ nen shu <verb> --repo <core working directory> --target <name> [--lane <lane>]
 - `dev`/`run` are **long-running**: `--json` without `--dry-run` is exit `2`, and **the launch is never
   backgrounded** to free the terminal — say the app is running and what holds it.
 - **Exit codes** per `claude/agents/kurapika.md` § *The `shu` verbs*; here `1` is a declared step
-  failing — **say whether build, install or launch**, hand authored-code failures to
+  failing — **say which: build, install or launch** — hand authored-code failures to
   [`rasengan`](../rasengan/SKILL.md), a failed install or launch being incomplete delivery; `3` an
   excluded host, a **G5**, never retried; `4` a real seat, quoted, then the repository's documented
   command run and said; `5` the program not on `PATH`.
@@ -134,8 +135,7 @@ nen shu <verb> --repo <core working directory> --target <name> [--lane <lane>]
 
 ## 5. Residue
 
-**By hand:** the core-working-directory check (no verb knows a "core" checkout) and § 3a's four
-conditions. **Reading device state with no `readyWhen`** is residue **with a fix**, lapsing when a
+**By hand:** § 3a's four conditions. **Reading device state with no `readyWhen`** is residue **with a fix**, lapsing when a
 jujutsu PR writes the rule. **No default target ever**, **no `--` passthrough** (an undeclared argv
 is an unreviewed one), and **nothing in nen stops a long-running child**.
 
@@ -144,7 +144,7 @@ is an unreviewed one), and **nothing in nen stops a long-running child**.
 - **Permitted:** run the lane's declared build/`dev` row from the core working directory, run a
   declared device probe, run the declared `after` steps, hand back the exact command.
 - **Not permitted:** `nen shu deploy --run` in any form (**G3**, row `release-go`); any push, commit,
-  PR, label or release. **Not a gate event**; a disconnected
+  PR, label or release. **Not a gate event**: a disconnected
   device with no declared fallback is a stop-and-say, and an unsupported host (`3`) is its one **G5**.
 - **Never launches from anything but the core working directory**, except under § 3a's four
   conditions, said in its own words; **never from a parallel effort**; and **never reaches § 3a from a
@@ -154,4 +154,4 @@ is an unreviewed one), and **nothing in nen stops a long-running child**.
 - **Never types a `shu` subcommand the target did not declare**, or drops `--target` to get past exit `2`.
 - **Never substitutes a plausible command for a declared one**, re-types the pasted command from
   memory, or runs the bare lane verb for a target that declares `args`.
-- **Never claims the app is running** on a dry run or an unread exit code.
+- **Never claims the app is running** on a dry run or unread exit code.

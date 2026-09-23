@@ -7,10 +7,12 @@ section by name (`PROCESS.md § <Section>`). **Everything here is binding exactl
 in each skill that points at it**; moving a rule here moved where it is written, never whether it holds.
 
 It sits beside [`WORKFLOW.md`](WORKFLOW.md) (the configuration keys, the phases, the gates and the
-decision matrix), [`STANDALONE-ENTRY.md`](STANDALONE-ENTRY.md) (a phase called cold) and
-[`DISCOVERY.md`](DISCOVERY.md) (gaps found during authorized work). Where this page and one of those
-disagree, that file wins and this page is the bug. *Assembled 2026-09-22 from the passages the skill
-diet moved out of the capped skills, so each skill keeps headroom for its own rules.*
+decision matrix), [`STANDALONE-ENTRY.md`](STANDALONE-ENTRY.md) (a phase called cold),
+[`DISCOVERY.md`](DISCOVERY.md) (gaps found during authorized work) and [`SURFACES.md`](SURFACES.md)
+(the surfaces). **Precedence, one order, stated identically in [`WORKFLOW.md`](WORKFLOW.md):** a
+skill's own hard limit **>** `WORKFLOW.md` **>** this page. This page is **binding wherever the skill
+is silent**; where it and `WORKFLOW.md` disagree, `WORKFLOW.md` wins and this page is the bug.
+*Assembled 2026-09-22 from the passages the skill diet moved out of the capped skills, so each skill keeps headroom for its own rules.*
 
 ## Standalone entry
 
@@ -33,9 +35,10 @@ words: *"no workflow.json: using the built-in defaults from `docs/WORKFLOW.md`"*
 [`WORKFLOW.md`](WORKFLOW.md) § 2's; each skill names only the consequence specific to it.
 
 **A gap is never the end of a run.** A missing argument or configuration item — and a value no default
-covers — is asked for and set up inline ([`WORKFLOW.md`](WORKFLOW.md) § 4 *Ask, set up, continue*,
-rows `missing-argument` and `missing-configuration`); the maintainer's own word (a target, a go, a
-cap, a device) is asked and **never derived**.
+covers — is asked for per item and set up inline on the answer ([`WORKFLOW.md`](WORKFLOW.md) § 4 *Ask,
+set up, continue*, rows `missing-argument` and `missing-configuration`); the maintainer's own word (a
+target, a go, a cap, a device, the request) is **typed, never picked and never derived**
+(`missing-maintainer-choice`).
 
 **An optional bracketed clause and an empty line are different inputs to `nen parse`.** An empty
 `--line` and a bare anchor parse identically (exit `0`, the clause absent), but a grammar carrying a
@@ -66,10 +69,9 @@ failed; a missing or wrong tool is not a failed build, and a caller that retries
 on a machine nobody set up. Every `nen shu tools` row that is not satisfied reports `5`, and a skill
 relaying it keeps the code — and installs the tool where it can (`missing-tool`).
 
-**A refusal that is a gap is a question; a refusal that is a safety rule stays a refusal.** Human
-gates, secrets and signing material, on-device acts, a supply-chain failure, a mutating command inside
-a read-only loop, and a precondition such as a go with no tag are refusals by design — they are named,
-never softened into a default.
+**A refusal that is a gap is a question; a refusal that is a safety rule stays a refusal.** The list
+of what is not a gap is authored once, in [`WORKFLOW.md`](WORKFLOW.md) § 4 *What is not a gap*; each
+is named, never asked about and never softened into a default.
 
 ## Reporting a phase
 
@@ -78,9 +80,9 @@ event.** It carries **no `nen stop` banner, no efforts table and no push notific
 maintainer is already looking at it, on every repeat of a repeating render. **A real gate coming due
 while the page is read fires normally**: rendering never suppresses a stop, and a page that makes the
 next act obvious is still not a reason to take it. The bell is
-[`jutaisho`](../claude/skills/jutaisho/SKILL.md)'s alone — and **a page carrying a `DECIDE` ask makes
-the bell `jutaisho at <ask.gate>`**, so the decision reaches the picker in the same turn
-([`WORKFLOW.md`](WORKFLOW.md) § 4).
+[`jutaisho`](../claude/skills/jutaisho/SKILL.md)'s alone, and **which asks on a page make it a stop is
+authored in its § 1**: every ask reaches the picker in the same turn, and only one whose `gate` is
+G1–G5 brings the banner.
 
 **A progress turn carries no banner**: a compact status line naming the object, its state and what is
 next, and the run keeps going. **Every gate stop is [`jutaisho`](../claude/skills/jutaisho/SKILL.md)
@@ -161,6 +163,43 @@ label, merge, tag, deploy or review vote the phase does not hold in its own righ
 signalling phase carries **no `CON-25`-equivalent delegation**: its authority is exactly its own
 *Permitted* list, whatever called it.
 
+## Reviewer rounds and review threads
+
+The **policy** — when a round is owed, the cap, never before [`hanten`](../claude/skills/hanten/SKILL.md)
+settles — is [`sharingan`](../claude/skills/sharingan/SKILL.md) § 6's. The **mechanics** every phase
+that requests a round or answers a thread shares (`shibari`, `sharingan`, `en`) are here.
+
+**A round is complete when every finding has a disposition**, not when a fix commit exists: a fresh
+snapshot shows every accepted finding fixed in a pushed commit, every summary-only one given a
+PR-level disposition, every thread replied to and resolved, and no earlier request pending — **never
+an unfixed finding resolved to clear a counter**.
+
+**Thread hygiene is a verb**: every inline thread gets an on-thread **disposition** (a reply) and is
+**resolved only when addressed**.
+
+```bash
+nen pr threads list    --target <owner/name> --pr <n>
+nen pr threads reply   --target <owner/name> --pr <n> --thread <id> --body-file <abs path>
+nen pr threads resolve --target <owner/name> --pr <n> --thread <id>
+```
+
+**Requesting a round.** `export GH_TOKEN=$(gh auth token)` first — the **maintainer's** user token; a
+bot token silently no-ops. Humans go through `--add-reviewers <a,b>`. **Copilot is a `Bot`**, which
+`gh pr edit --add-reviewer` and `…/requested_reviewers` never resolve, so it goes through
+`--add-bots <node id>`, the id **data** read off the target's own reviewer set (`BOT_kgDOCnlnWA` in
+`zheref/hatsu`); `--add-bots copilot` cannot resolve it today (zheref/nen#160). A bare login that is
+neither collaborator nor bot is exit `2` pointing at `--add-bots`; both flags absent, exit `1`. The
+same mutation answers `NOT_FOUND` under one token and succeeds under another, so **report success
+from the mutation's own response, never from the ids sent**, and check first whether Copilot already
+reviews the repository automatically.
+
+```bash
+nen pr request-reviews --target <owner/name> --pr <n> [--add-reviewers <a,b>] [--add-bots <id,...>]
+```
+
+**Verify with `nen pr ready`, never REST** (REST shows a pending bot as `[]`): *no round at head* is
+one owed; *review requested, not yet posted* is one in flight — wait.
+
 ## Resuming a run
 
 **A composite run is resumable by re-invocation, never by memory.** The same call re-reads live state
@@ -195,23 +234,38 @@ and says so.
 **A step no nen verb owns is named as residue in the report, never presented as a verb's output**, and
 where a verb should own it, it is an **owned dependency** with an issue, never a silent workaround.
 
-**Warm-up residue.** Copying a mirror (the drift check is nen's), composing `AGENTS.override.md`,
-writing `info/exclude` and proving it took, the first install on Codex and Cursor, resolving the plugin
-root and updating the plugin source are done by the warm-up's scripts and by hand: no nen verb owns a
-checkout's local exclude, and where Hatsu is checked out is the host's property. Cursor's version check
-is a string compare on a date part; the host-global half of the skill-name collision question has no
-answer from inside a repository.
+**Named residue, by skill** — the live list; each skill's `Residue` section points here.
+
+- **`hatsu-warmup`.** Copying a mirror (the drift check is nen's), composing `AGENTS.override.md`,
+  writing `info/exclude` and proving it took, the first install on Codex and Cursor, resolving the
+  plugin root and updating the plugin source are done by the warm-up's scripts and by hand: no nen
+  verb owns a checkout's local exclude, and where Hatsu is checked out is the host's property.
+  Cursor's version check is a string compare on a date part; the host-global half of the skill-name
+  collision question has no answer from inside a repository.
+- **`shibari`.** The evidence mirror's publish step, the base-ref read (`gh pr view --json
+  baseRefName`), the last-pushed-commit comparison and Development linking are named raw calls; the
+  PR itself is `nen pr open`.
+- **`kokusen`.** The explicit per-path `git add` is the one raw call left; the commit is `nen commit
+  write --message-file`, gated on `nen commit format`.
+
+**Owned dependencies.**
+
+- **`nen report data` derives less than a page needs**
+  ([zheref/nen#258](https://github.com/zheref/nen/issues/258)). It does not derive `effortStage`,
+  `gate`, `turnLabel`, `worktree` or `generatedAtLocal`, so the caller fills them (the last through
+  `scripts/report_time.sh`); and it stamps `repo` from the **worktree directory's** name rather than
+  the project's, so the caller overwrites `repo` with the project name
+  ([`WORKFLOW.md`](WORKFLOW.md) § `reports`, *Where the effort is*). Each filled value is named as
+  residue on the page until the verb derives it.
 
 ## History
 
 Retired mechanics the skills used to carry, kept so a reader of an old transcript can place them.
 None of it is a rule.
 
-- **nen `0.13`** — `nen pr open` opens the PR (shibari); the evidence mirror's publish step, the
-  base-ref read, the last-pushed-commit comparison and Development linking remain named raw calls. The
-  commit itself is `nen commit write --message-file`, still gated on `nen commit format`, the explicit
-  per-path `git add` the one raw call left (kokusen). § 0's stash-and-restore is `nen shu warmup
-  --carry` (breath).
+- **nen `0.13`** — `nen pr open` began opening the PR (shibari), `nen commit write --message-file`
+  began writing the commit (kokusen), and § 0's stash-and-restore became `nen shu warmup --carry`
+  (breath). The raw calls still named are § *Residue and owned dependencies*'s, not this list's.
 - **nen `0.11.0`** — the stop marker is nen's file (jutaisho): `.nen/last-stop.json` is written by
   `nen stop --mark` as `nen.stop.mark/v0.2`; the hand-written `hatsu.stop-marker/v0.1` shape is still
   **read** by the hook and **never written again**.

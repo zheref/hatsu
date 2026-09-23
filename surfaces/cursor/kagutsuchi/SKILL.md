@@ -30,12 +30,11 @@ every phase shares*.
 
 **`<target>` is required grammar, never a default — not even where exactly one destination is
 declared** — a key of `nen/contract.json` → `project.targets`, because **naming it is the
-authorization**. A missing argument or configuration item is asked for and set up inline
-(`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set
-up, continue*) — **the maintainer's word: never derived**: the declared keys are the options, **none
-starred**, nothing runs until one is picked, and a new destination is a declaration change at its
-gate. **A named call is the stop** — no confirmation, no lettered options — so the plan prints first
-(§ 3) and the report says what was sent (§ 5).
+authorization**. **It is the maintainer's word, typed, never picked** (`missing-maintainer-choice`;
+[`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4): a missing one is asked as free text, the declared
+keys listed for reference, **none starred and none a picker option**; an undeclared one is refused,
+naming the declaration PR that would add it; other gaps are `missing-configuration`. **A named call is the stop** — no confirmation, no
+lettered options — so the plan prints first (§ 3) and the report says what was sent (§ 5).
 
 - **No agent prompts for it** (*the `staging` target is declared*, never *shall I upload it?*), **no
   composite calls it** under any `then` clause, **a recorded delegation is NOT the call** (a
