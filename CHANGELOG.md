@@ -2,7 +2,7 @@
 
 ## v0.45.0 — the reader's clock, ask before aborting, and a worktree swapped into core
 
-Release unit for `v0.44.0..v0.45.0`: [#109](https://github.com/zheref/hatsu/pull/109) (the delivery) and the reconciling release proposal.
+Release unit for `v0.44.0..v0.45.0`: [#109](https://github.com/zheref/hatsu/pull/109) (the delivery) and the reconciling [#110](https://github.com/zheref/hatsu/pull/110).
 
 > Pinned to nen **v0.14.0** (`minimum` `0.14`, zheref/nen#242): `nen wc swap` (`--take`, `--return`, `--status`) and `nen wc worktrees`, the engine of `hatsu:amenotejikara`. Nen's compatibility floor stays `0.7`.
 
