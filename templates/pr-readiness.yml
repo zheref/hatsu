@@ -210,7 +210,12 @@ jobs:
           set -euo pipefail
           ref=""
           if [ -f .trusted/nen/contract.json ]; then
-            if ! ref="$(jq -r '.dependency.pinned_ref // empty' .trusted/nen/contract.json)"; then
+            if ! ref="$(jq -r '
+              if type != "object" then error("root must be an object")
+              elif has("dependency") and (.dependency | type) != "object" then error("dependency must be an object")
+              elif (.dependency.pinned_ref | type) != "string" and (.dependency.pinned_ref | type) != "null" then error("dependency.pinned_ref must be a string")
+              else .dependency.pinned_ref // empty end
+            ' .trusted/nen/contract.json)"; then
               echo "::error::Trusted nen/contract.json is malformed or unreadable."
               exit 1
             fi

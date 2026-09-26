@@ -1934,6 +1934,24 @@ def self_test() -> int:
         check("a malformed trusted contract fails closed before consumer fallback",
               bad_pin.returncode != 0 and "malformed or unreadable" in bad_pin.stdout
               and output_path.read_text() == "")
+        for label, contract in (
+                ("non-object root", []),
+                ("null dependency", {"dependency": None}),
+                ("numeric pinned ref", {"dependency": {"pinned_ref": 123}})):
+            (pin_dir / ".trusted" / "nen" / "contract.json").write_text(json.dumps(contract))
+            output_path.write_text("")
+            bad_shape = subprocess.run(["bash", "-c", pin_script], cwd=pin_dir,
+                                       env=env, capture_output=True, text=True)
+            check(f"a trusted contract with {label} fails closed",
+                  bad_shape.returncode != 0 and "malformed or unreadable" in bad_shape.stdout
+                  and output_path.read_text() == "")
+        (pin_dir / ".trusted" / "nen" / "contract.json").write_text("{}")
+        output_path.write_text("")
+        omitted_pin = subprocess.run(["bash", "-c", pin_script], cwd=pin_dir,
+                                     env=env, capture_output=True, text=True)
+        check("a valid consumer contract may omit dependency and use the fallback",
+              omitted_pin.returncode == 0
+              and output_path.read_text().strip() == f"ref={ctx_for(dprod).nen_ref()}")
     product_workflow_path = dprod / WORKFLOW_PATH
     product_workflow_path.write_text(product_workflow.replace(
         "TENKAI_GUARD_REQUIRED: false", "TENKAI_GUARD_REQUIRED: true"))
