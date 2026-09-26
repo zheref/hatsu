@@ -878,7 +878,9 @@ class ReadinessWorkflow(Item):
                           "a consumer without Hatsu's Ruby guard would fail before readiness")
         if f"TENKAI_PIN_FALLBACK_ALLOWED: {fallback}" not in live or \
                 f"TENKAI_FALLBACK_REF: {ctx.nen_ref()}" not in live or \
-                'ref="$TENKAI_FALLBACK_REF"' not in live:
+                'ref="$TENKAI_FALLBACK_REF"' not in live or \
+                'if [ -f .trusted/nen/contract.json ]; then' not in live or \
+                'if ! ref="$(jq -r' not in live:
             drifts.append("the Nen pin step does not carry Hatsu's current trusted fallback; "
                           "a consumer with no dependency block would fail before readiness")
         # THE INVARIANTS THE TEMPLATE SAYS IT INHERITS. Checking the slug, the
@@ -1936,6 +1938,12 @@ def self_test() -> int:
         "TENKAI_PIN_FALLBACK_ALLOWED: true", "TENKAI_PIN_FALLBACK_ALLOWED: false"))
     row = ReadinessWorkflow().detect(ctx_for(dprod))
     check("a consumer workflow with no Nen pin fallback is DRIFT",
+          row["state"] == DRIFT and "pin step" in row["detail"])
+    product_workflow_path.write_text(product_workflow.replace(
+        'if [ -f .trusted/nen/contract.json ]; then',
+        '# stale pin guard removed by old rendering'))
+    row = ReadinessWorkflow().detect(ctx_for(dprod))
+    check("an older consumer workflow reading a missing trusted contract is DRIFT",
           row["state"] == DRIFT and "pin step" in row["detail"])
     product_workflow_path.write_text(product_workflow)
     check("maintained_tools derives process", derive_role(dproc, "acme/widget") == ROLE_PROCESS)
