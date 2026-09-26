@@ -876,13 +876,19 @@ class ReadinessWorkflow(Item):
                 'if [ -f .trusted/scripts/workflow_runner_policy_check.rb ]; then' not in live:
             drifts.append("the trusted guard step does not handle this repository's role; "
                           "a consumer without Hatsu's Ruby guard would fail before readiness")
-        if f"TENKAI_PIN_FALLBACK_ALLOWED: {fallback}" not in live or \
-                f"TENKAI_FALLBACK_REF: {ctx.nen_ref()}" not in live or \
-                'ref="$TENKAI_FALLBACK_REF"' not in live or \
-                'if [ -f .trusted/nen/contract.json ]; then' not in live or \
-                'if ! ref="$(jq -r' not in live:
-            drifts.append("the Nen pin step does not carry Hatsu's current trusted fallback; "
-                          "a consumer with no dependency block would fail before readiness")
+        # Compare the executable step, not snippets somewhere in the workflow.
+        # A shell `echo 'if [ -f ... ]; then'` otherwise makes a bare, failing
+        # jq invocation appear guarded to a whole-file substring search.
+        pin_name = "- name: Read the pinned nen ref from trusted nen/contract.json"
+        def pin_block(source):
+            blocks = re.split(r"\n(?=\s*- name:)", source)
+            return next((block.strip() for block in blocks
+                         if any(line.strip() == pin_name for line in block.splitlines())), None)
+        expected_live = "\n".join(l for l in self.render(ctx).splitlines()
+                                  if not l.lstrip().startswith("#"))
+        if pin_block(live) != pin_block(expected_live):
+            drifts.append("the Nen pin step differs from Hatsu's current trusted rendering; "
+                          "a consumer with no dependency block may fail before readiness")
         # THE INVARIANTS THE TEMPLATE SAYS IT INHERITS. Checking the slug, the
         # runner and the triggers left every security property of a PRIVILEGED,
         # CREDENTIALED workflow unchecked: a rendered file was mutated with the
@@ -1944,6 +1950,16 @@ def self_test() -> int:
         '# stale pin guard removed by old rendering'))
     row = ReadinessWorkflow().detect(ctx_for(dprod))
     check("an older consumer workflow reading a missing trusted contract is DRIFT",
+          row["state"] == DRIFT and "pin step" in row["detail"])
+    decoy = product_workflow.replace(
+        '          if [ -f .trusted/nen/contract.json ]; then\n'
+        '            if ! ref="$(jq -r',
+        '          echo \'if [ -f .trusted/nen/contract.json ]; then\'\n'
+        '          echo \'if ! ref="$(jq -r\'\n'
+        '          if ! ref="$(jq -r')
+    product_workflow_path.write_text(decoy)
+    row = ReadinessWorkflow().detect(ctx_for(dprod))
+    check("echo decoys cannot hide an unguarded trusted-contract read",
           row["state"] == DRIFT and "pin step" in row["detail"])
     product_workflow_path.write_text(product_workflow)
     check("maintained_tools derives process", derive_role(dproc, "acme/widget") == ROLE_PROCESS)
