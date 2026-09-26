@@ -214,6 +214,7 @@ jobs:
               if type != "object" then error("root must be an object")
               elif has("dependency") and (.dependency | type) != "object" then error("dependency must be an object")
               elif (.dependency.pinned_ref | type) != "string" and (.dependency.pinned_ref | type) != "null" then error("dependency.pinned_ref must be a string")
+              elif .dependency.pinned_ref == "" then error("dependency.pinned_ref must not be empty")
               else .dependency.pinned_ref // empty end
             ' .trusted/nen/contract.json)"; then
               echo "::error::Trusted nen/contract.json is malformed or unreadable."

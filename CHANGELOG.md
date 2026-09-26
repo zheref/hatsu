@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.45.1 — product lane readiness in Tenkai
+## v0.46.0 — product lane readiness in Tenkai
 
 - Tenkai reports every declared product lane command, including unsupported seats, and routes a missing release row when no product lane declares one. Store and direct-download destinations can carry separate archive and release decisions. The generic Hatsu publisher remains specific to process repositories.
 - Tenkai now checks the joins that make a declared lane useful: toolchain, selected tests, test results, coverage and UI evidence. The guided readiness pass asks unresolved owner choices through native pickers, validates scoped consumer configuration edits, and keeps unproved checks visible.

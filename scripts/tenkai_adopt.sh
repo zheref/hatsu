@@ -1256,6 +1256,22 @@ class LaneVerb(Item):
             return self.row(ROUTED,
                             f"declared unsupported: {reason}{required}",
                             action + "; validate with nen schema check --repo <path>")
+        def valid_step(step):
+            return (isinstance(step, dict)
+                    and isinstance(step.get("exe"), str) and bool(step["exe"])
+                    and isinstance(step.get("argv"), list)
+                    and all(isinstance(arg, str) for arg in step["argv"]))
+        command = self.command
+        valid_command = (isinstance(command, dict) and (
+            valid_step(command) or
+            (isinstance(command.get("steps"), list) and bool(command["steps"])
+             and all(valid_step(step) for step in command["steps"]))))
+        if not valid_command:
+            return self.row(ROUTED,
+                            "malformed command declaration: expected {exe, argv} or "
+                            "{steps: [{exe, argv}, ...]}; Nen cannot execute this row",
+                            f"repair project.verbs.{self.lane}.{self.verb} in nen/contract.json; "
+                            "validate with nen schema check --repo <path>")
         return self.row(SATISFIED, "executable command declared; nen schema check owns validity")
 
     def repair(self, ctx):
@@ -1937,7 +1953,8 @@ def self_test() -> int:
         for label, contract in (
                 ("non-object root", []),
                 ("null dependency", {"dependency": None}),
-                ("numeric pinned ref", {"dependency": {"pinned_ref": 123}})):
+                ("numeric pinned ref", {"dependency": {"pinned_ref": 123}}),
+                ("empty pinned ref", {"dependency": {"pinned_ref": ""}})):
             (pin_dir / ".trusted" / "nen" / "contract.json").write_text(json.dumps(contract))
             output_path.write_text("")
             bad_shape = subprocess.run(["bash", "-c", pin_script], cwd=pin_dir,
@@ -2017,6 +2034,14 @@ def self_test() -> int:
           and "No linter" in product_by["lane/windows/lint"]["detail"])
     check("a real build row is satisfied",
           product_by["lane/windows/build"]["state"] == SATISFIED)
+    check("a malformed release scalar is routed, never called executable",
+          LaneVerb("windows", "release", "not-a-command").detect(ctx_for(dprod))["state"] == ROUTED)
+    check("a malformed command argv is routed",
+          LaneVerb("windows", "test", {"exe": "dotnet", "argv": "test"}).detect(
+              ctx_for(dprod))["state"] == ROUTED)
+    check("a valid multi-step command is satisfied",
+          LaneVerb("windows", "test", {"steps": [{"exe": "dotnet", "argv": ["test"]}]}).detect(
+              ctx_for(dprod))["state"] == SATISFIED)
     check("an absent required iteration test row is routed",
           product_by["lane/windows/test"]["state"] == ROUTED)
     check("a focused test lane owes only its declared test",
