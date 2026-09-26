@@ -8,6 +8,7 @@
 - The workflow canon now distinguishes Tenkai's structural adoption report from executable readiness. It explicitly verifies test-result parsing, launch semantics, and host-supported checks after consumer configuration changes, while keeping external release prerequisites visible.
 - The consumer PR readiness template now runs without Hatsu's Ruby policy guard or a consumer Nen dependency pin. It checks the guard when present and falls back to Hatsu's trusted Nen ref; process repositories still require both. A previously installed workflow missing either consumer path is reported as drift and repaired.
 - The Codex, Cursor and Antigravity mirrors carry the updated Tenkai guidance. Windows console output uses UTF-8 so adoption reports can print their Unicode policy text.
+- The Hanten reviewer budget ledger now locks on native Windows as well as POSIX hosts, and its self-test includes Nobunaga's two-review budget. Windows Hatsu consumers can run the local review phase without a Unix Python runtime.
 
 ## v0.45.0 — the reader's clock, ask before aborting, and a worktree swapped into core
 
