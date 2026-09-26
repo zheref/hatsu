@@ -1284,8 +1284,17 @@ def product_lane_items(ctx):
         for verb in sorted(named):
             out.append(LaneVerb(lane, verb, rows.get(verb),
                                 required=lane == iteration_lane and verb in checks))
-    if not has_release and project.get("defaultLane") in lanes:
-        out.append(LaneVerb(project["defaultLane"], "release", None))
+    if not has_release:
+        if project.get("defaultLane") in lanes:
+            out.append(LaneVerb(project["defaultLane"], "release", None))
+        elif lanes:
+            out.append(ProductReadiness(
+                "workflow/release-destination", "product release destination selected",
+                False,
+                "no lane declares a release command or seat, and no defaultLane selects "
+                "where to route the missing row",
+                "ask which declared lane(s) publish this product, then add a release "
+                "command or explicit unsupported seat for each selected destination"))
     return out
 
 
@@ -1892,6 +1901,31 @@ def self_test() -> int:
           "TENKAI_PIN_FALLBACK_ALLOWED: true" in product_workflow
           and f"TENKAI_FALLBACK_REF: {ctx_for(dprod).nen_ref()}" in product_workflow
           and 'ref="$TENKAI_FALLBACK_REF"' in product_workflow)
+    pin_step = product_workflow.split(
+        "      - name: Read the pinned nen ref from trusted nen/contract.json", 1)[1]
+    pin_step = pin_step.split("      - name: Bootstrap nen at the trusted pinned ref", 1)[0]
+    pin_body = pin_step.split("        run: |\n", 1)[1]
+    pin_script = "\n".join(line[10:] if line.startswith("          ") else line
+                           for line in pin_body.splitlines())
+    with tempfile.TemporaryDirectory() as pin_tmp:
+        pin_dir = Path(pin_tmp)
+        output_path = pin_dir / "github-output.txt"
+        env = dict(os.environ, TENKAI_PIN_FALLBACK_ALLOWED="true",
+                   TENKAI_FALLBACK_REF=ctx_for(dprod).nen_ref(),
+                   GITHUB_OUTPUT=str(output_path))
+        missing_pin = subprocess.run(["bash", "-c", pin_script], cwd=pin_dir,
+                                     env=env, capture_output=True, text=True)
+        check("consumer pin step executes fallback when trusted contract is absent",
+              missing_pin.returncode == 0
+              and output_path.read_text().strip() == f"ref={ctx_for(dprod).nen_ref()}")
+        (pin_dir / ".trusted" / "nen").mkdir(parents=True)
+        (pin_dir / ".trusted" / "nen" / "contract.json").write_text("{bad json")
+        output_path.write_text("")
+        bad_pin = subprocess.run(["bash", "-c", pin_script], cwd=pin_dir,
+                                 env=env, capture_output=True, text=True)
+        check("a malformed trusted contract fails closed before consumer fallback",
+              bad_pin.returncode != 0 and "malformed or unreadable" in bad_pin.stdout
+              and output_path.read_text() == "")
     product_workflow_path = dprod / WORKFLOW_PATH
     product_workflow_path.write_text(product_workflow.replace(
         "TENKAI_GUARD_REQUIRED: false", "TENKAI_GUARD_REQUIRED: true"))
@@ -1983,6 +2017,18 @@ def self_test() -> int:
     check("a product with no release row anywhere is routed on its default lane",
           absent_release["lane/windows/release"]["state"] == ROUTED
           and "no product release command" in absent_release["lane/windows/release"]["detail"])
+    no_default_product = fixture(role=ROLE_PRODUCT)
+    (no_default_product / "nen" / "contract.json").write_text(json.dumps({"project": {
+        "lanes": {"store-msix": {"stack": "dotnet-winui"},
+                  "github-msix": {"stack": "dotnet-winui"}},
+        "verbs": {"store-msix": {"archive": {"unsupported": "identity pending"}},
+                  "github-msix": {"archive": {"unsupported": "signing pending"}}}}}))
+    (no_default_product / "nen" / "workflow.json").write_text("{}")
+    no_default_rows = {r["id"]: r for r in run("diagnose", ctx_for(no_default_product))["items"]}
+    check("a product with no default lane still routes its missing release destination",
+          no_default_rows["workflow/release-destination"]["state"] == ROUTED
+          and "which declared lane(s)" in
+          (no_default_rows["workflow/release-destination"]["action"] or ""))
 
     # A PROCESS repository gets the publisher, and the ROW is OFFERED not written.
     res = run("apply", ctx_for(dproc))

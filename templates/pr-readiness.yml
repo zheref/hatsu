@@ -208,7 +208,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ref="$(jq -r '.dependency.pinned_ref // empty' .trusted/nen/contract.json)"
+          ref=""
+          if [ -f .trusted/nen/contract.json ]; then
+            if ! ref="$(jq -r '.dependency.pinned_ref // empty' .trusted/nen/contract.json)"; then
+              echo "::error::Trusted nen/contract.json is malformed or unreadable."
+              exit 1
+            fi
+          fi
           if [ -z "$ref" ] && [ "$TENKAI_PIN_FALLBACK_ALLOWED" = true ]; then
             ref="$TENKAI_FALLBACK_REF"
             echo "Using the Nen ref rendered from Hatsu's dependency contract: $ref"

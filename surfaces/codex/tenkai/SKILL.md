@@ -86,7 +86,9 @@ decision for that run:
 > ⭐ **Apply** · **Diagnose only** · **Stop**
 
 If only nen-owned routed seats remain, skip the apply picker: `apply` cannot configure a product's
-commands. Continue through § 6c's guided readiness pass. A product's Store and direct-download
+commands. For an explicit `diagnose`, report § 6c's remaining choices and checks without asking or
+writing. Otherwise continue through § 6c's guided readiness pass after a setup request or owner
+answer. A product's Store and direct-download
 release decisions are asked together when they are unknown, then recorded as separate lane seats;
 Tenkai never substitutes a generic process publisher for either destination.
 
@@ -96,8 +98,10 @@ tenkai **is** the owner that sets up a Hatsu-owned piece (`scripts/tenkai_adopt.
 It routes an initial Nen declaration to `nen scaffold init`; an existing consumer's
 missing lane configuration follows § 6c.
 
-**`diagnose` is the same run with the question suppressed**, for a caller that wants the verdict
-and not the offer — which is what [`$hatsu-warmup`](../hatsu-warmup/SKILL.md) § 0a calls. **One name, not two** — an earlier draft called it `check` here and `diagnose` there.
+**`diagnose` is a strictly read-only run with every setup question suppressed**: § 6c may inspect
+declarations and run read-only Nen probes, but it neither executes artifact-producing checks nor
+edits consumer files. This is what [`$hatsu-warmup`](../hatsu-warmup/SKILL.md) § 0a calls.
+**One name, not two** — an earlier draft called it `check` here and `diagnose` there.
 
 ---
 
@@ -517,8 +521,9 @@ Work the outstanding rows in dependency order, carrying prior owner answers forw
    is a choice to ask, not a pass. Check `dev` and `run` against their declared launch semantics.
 2. **Evidence:** match tests that produce reports to `test-report`, coverage capture to the
    workflow's coverage ladder, and rendered changes to `project.evidence` and snapshot tooling.
-   Prove the command exists with `nen shu <verb> --dry-run`; run a safe local check when the host
-   supports it. In particular, an artifact path on a test row is only a structural join: run
+   Prove the command exists with `nen shu <verb> --dry-run`; on a setup run, execute a safe local
+   check when the host supports it. In particular, an artifact path on a test row is only a
+   structural join: run
    `nen shu test-report` after the test and check that Nen can parse its actual format and
    count. Mark an unsupported host or a missing runner as unread, with its remedy.
 3. **Distribution:** keep each product destination separate. For every `archive`, `release` and
@@ -532,7 +537,8 @@ workflow behaviour the maintainer wants, not a request to fill JSON. Do not re-a
 already made in the session. An unanswered required choice remains `routed` with the precise
 question, owner, and next safe step; continue independent rows.
 
-**Who writes:** `tenkai_adopt.sh apply` writes only Hatsu-owned surfaces. Run `nen scaffold init`
+**Who writes, on `apply` or an explicit setup request only:** `tenkai_adopt.sh apply` writes only
+Hatsu-owned surfaces. Run `nen scaffold init`
 for missing Nen scaffolded files, after its dry run. For an existing consumer declaration,
 use a Nen edit verb if one exists; if no verb edits that field, Tenkai may author the consumer's
 `nen/contract.json` or `nen/workflow.json` in this working branch once the owner has chosen the
