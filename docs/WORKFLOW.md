@@ -97,7 +97,7 @@ There are two execution/policy configuration files, and the split is not stylist
 | **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — both at the build `nen/contract.json` pins; dated evidence retains the version it actually exercised |
 
 > **The nen DEPENDENCY is the third block of the first file, and its two version values move
-> independently.** `dependency.minimum` is `0.14` and `dependency.pinned_ref` is `v0.14.0`: the first is the
+> independently.** `dependency.minimum` is `0.15` and `dependency.pinned_ref` is `v0.15.0`: the first is the
 > pin this repository declares, the second is the build its bootstrap installs. **The range `minimum`
 > stands for is nen's answer, not a document's** — the binary ships `COMPATIBLE_MINOR_FLOOR`, the lowest
 > `minimum` pin it satisfies, and `nen shu tools` applies it, prints it as `compat floor:` and carries it
@@ -377,10 +377,30 @@ on every change set and no diff is reviewed by nobody. The other five are raised
 `security` (Feitan), `architecture` (Chrollo), `ui` (Hisoka), `performance` (Uvogin), `release`
 (Phinks).
 
-**One tier is swapped rather than read.** `nen repo classify` answers `kind`; a **`process`**
-repository takes the declared `review.scopes.code.tier` (`deep`), and a **`product`** one swaps
-Nobunaga to **`fast`**. Hanten says which ran. No other row's tier moves, and the declaration is
+**One tier is swapped rather than read.** `nen repo classify` answers `kind`; a **`process`** or
+**`library`** repository takes the declared `review.scopes.code.tier` (`deep`), and a **`product`** one
+swaps Nobunaga to **`fast`**. Hanten says which ran. No other row's tier moves, and the declaration is
 never edited to get a different one for one run.
+
+### Repository kinds — what `nen repo classify` answers
+
+**Maintainer's ruling of 2026-09-26.** `nen repo classify --target <owner/name> --json` reports one
+`kind`, and this is the one place hatsu canon defines the three; every skill that reads it cites this
+section and restates nothing:
+
+| `kind` | What it is | How it is read |
+|---|---|---|
+| **`process`** | Plugins and machinery — the repositories whose product is the way of working, `zheref/hatsu` (`claude-code-plugin`) and `zheref/nen` (`bun-cli`) among them; CLIs are process | derived from the lanes' stacks, or declared |
+| **`product`** | An application or service that a release deploys to an environment or uploads to a store | derived from the lanes' stacks, or declared |
+| **`library`** | Reusable code, on any stack, maintained to be shared across repositories — products, and other process or library repositories | **declared only**: `nen/contract.json` → `project.kind: "library"`; nothing derives it |
+| `unknown` | Nothing in the lanes says, and nothing is declared | the fallback, never a verdict |
+
+A declared `project.kind` (`product`, `process` or `library`) is the repository's own word and wins
+over the derivation; `sources.kind` in the `--json` names what the lanes alone would have read. The
+declaration is a `nen/contract.json` change and **lands through that repository's own declaration
+gate** (§ *Rulings of 2026-09-18*: G4 in a canon repository, G2 in a consumer one) before anything
+reads it. What the kind decides: the reviewer tier above, and whether [`mugetsu`](../claude/skills/mugetsu/)
+§ 3's advance go may name it — `process` and `library` may, `product` and `unknown` may not.
 
 ### `notifications`
 
@@ -783,15 +803,18 @@ It loops. **It never pushes and never opens a pull request.**
 |---|---|---|
 | [`aka`](../claude/skills/aka/) | lint → squash the unpushed commits → `ao` → re-lint if catch-up moved the tree → push | publishing work is a decision, and a squash is destructive |
 | [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → kokusen checkpoint → `kotoamatsukami` impacted tests → `byakugan` coverage → publish proven updates → evidence → `shibari` opens the PR → landing report → start `en` and end Mukai. **§ 5 is the full shape** | Mukai hands ownership to En; the same user turn continues, and pending is En's in-progress state |
-| **merge** | **G2** (`CON-5`) | never delegated, by any agent, anywhere |
+| **merge** | **G2** (`CON-5`) | never delegated, by any agent, anywhere — with one carve-out, the maintainer's ruling of 2026-09-26: [`getsuga`](../claude/skills/getsuga/) § 3 merges **its own release-proposal PR** when its diff is the release unit only and `CON-32` reads Ready, through the repository's own protection, never a delivery PR |
 | [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always, and `--run` acts only on a call that **names the target** | the blast radius leaves this machine |
 | [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3** (`CON-6`): only on a recorded per-target go, with the preflight green and the tag already cut — one target per call | the blast radius is other people's users |
 
 **The per-target rule is the whole of the last two rows, and it is not a formality.** A go for one
 destination is a go for *that* destination: `--target` is required with no default even where exactly one
 is declared, and a second destination is a second call the maintainer makes. Neither phase is ever reached
-from a composite — not from [`futon`](../claude/skills/futon/)'s `then` clause, not from
-[`getsuga`](../claude/skills/getsuga/), not from [`en`](../claude/skills/en/) — and the release unit both
+from a composite on the composite's authority — not from [`getsuga`](../claude/skills/getsuga/), not from
+[`en`](../claude/skills/en/); [`futon`](../claude/skills/futon/)'s `then` chain reaches either **only on
+the advance go** ([`mugetsu`](../claude/skills/mugetsu/) § 3: the maintainer's own typed invocation,
+bound to the tag that run cuts, one target, once, `mugetsu` only where `nen repo classify` reports
+`kind` `process` or `library`, § *Repository kinds*) — and the release unit both
 of them send is built by [`susanoo`](../claude/skills/susanoo/), which uploads nothing itself and
 cuts no tag — where the repository declares `tags.identity` it names the identity `kagutsuchi`'s tag will carry.
 

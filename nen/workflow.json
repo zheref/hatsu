@@ -268,5 +268,22 @@
         ]
       }
     }
+  },
+  "release": {
+    "$comment": "The RELEASE UNIT -- the maintainer's ruling of 2026-09-26 (getsuga merges its own release-proposal PR, bounded). Exactly the paths getsuga § 3 writes when it folds a release: the collated CHANGELOG section and the fragments it deletes, the registry's `latest`, and the plugin manifest bump. `nen release unit-check --pr <n>` compares a pull request's changed files to this list (the same prefix/glob grammar review.scopes uses), and `nen pr merge --release-unit` refuses to merge a release-proposal PR that touches anything outside it. Hatsu declares no tags.identity, so no archive-written identity file belongs here.",
+    "unitPaths": [
+      "CHANGELOG.md",
+      "changelog.d/**",
+      "nen/repos.json",
+      ".claude-plugin/plugin.json"
+    ]
+  },
+  "futon": {
+    "$comment": "The ADVANCE-GO GATE -- the maintainer's rulings of 2026-09-26 (getsuga and kagutsuchi take an advance go on any repository kind; mugetsu only on a process or library repository, never a product that deploys or uploads to a store; the three kinds are docs/WORKFLOW.md § Repository kinds). `nen parse futon` annotates every skill-chain step whose skill is listed here with gate: {allowed, kind, reason}, the kind being `nen repo classify`'s own verdict for the resolved repo (unknown fails closed); a skill not listed here gets no gate. The policy lives here and nowhere in prose: mugetsu § 3 and futon § 8 read the gate line verbatim.",
+    "advanceGo": {
+      "mugetsu": ["process", "library"],
+      "getsuga": ["product", "process", "library"],
+      "kagutsuchi": ["product", "process", "library"]
+    }
   }
 }

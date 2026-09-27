@@ -1,6 +1,6 @@
 ---
 name: mugetsu
-description: Publish one release to one production destination — a store, the live environment — by running the repository's declared `release` row (`nen shu release`) and/or `nen shu deploy --target <production target> --run`, after `nen release preflight` reads green and the tag has been cut. Use ONLY when the maintainer records a per-target go in their own words; that message is quoted verbatim in the report and on the release PR, and is never inferred. This is **G3** (`CON-6`): no composite reaches it — not `getsuga`, not `futon`, not `en` — no agent proposes it, a go with no tag is refused, and one go publishes one target once.
+description: Publish one release to one production destination — a store, the live environment — by running the repository's declared `release` row (`nen shu release`) and/or `nen shu deploy --target <production target> --run`, after `nen release preflight` reads green and the tag has been cut. Use ONLY when the maintainer records a per-target go in their own words; that message is quoted verbatim in the report and on the release PR, and is never inferred. This is **G3** (`CON-6`): no composite reaches it on its own authority — not `getsuga`, not `en`, and `futon` only as a typed `then` step carrying the ADVANCE GO its § 3 defines (the maintainer's own invocation, bound to the tag that run cuts, one target, once, and only on a repository `nen repo classify` reports as kind process or library) — no agent proposes it, a go with no tag is refused unless it is that advance go, and one go publishes one target once.
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
@@ -34,25 +34,30 @@ and G3 is the maintainer's — never delegated, never inferred, never carried ov
 Mugetsu is a **human call, per target, at G3**. It is not a phase of any loop. Nothing upstream
 finishing successfully brings the session here — not a green [`hatsu:susanoo`](../susanoo/SKILL.md),
 not a merged release PR, not a cut tag, not a successful
-[`hatsu:kagutsuchi`](../kagutsuchi/SKILL.md) upload to a staging channel.
+[`hatsu:kagutsuchi`](../kagutsuchi/SKILL.md) upload to a staging channel. **The one composite path is
+the advance go** (§ 3): the maintainer's own typed `hatsu:futon … then …+mugetsu` invocation, which
+is a go given before the tag exists and is narrower than the ordinary one on every axis.
 
 ---
 
 ## 0. Standalone entry — this skill was ALWAYS standalone, and `G3` is why
 
 **Mugetsu has no wired entry, by construction.** § 1 already forbids every one: *no composite ever
-calls it* — not `getsuga`, not `futon`, not `en`, not `mukai`, not `ren` — *no agent proposes it, a go
-with no tag is refused, and one go publishes one target once*. The contract in
+calls it on its own authority* — not `getsuga`, not `en`, not `mukai`, not `ren`, and `futon` only as
+the carrier of § 3's advance go, which is the maintainer's typed word and not the composite's — *no
+agent proposes it, a go with no tag is refused unless it is that advance go, and one go publishes one
+target once*. The contract in
 [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is explicit that it **moves no gate**
 (§ 5), and this section is written to be read as **subtracting** rather than adding.
 
 **Nothing in this section is an authorisation.** Not the warm-up, not the orientation block, not the
 plan. The only thing that authorises a publication is § 3's **recorded per-target go, in the
 maintainer's own words, quoted verbatim** — and a session that reaches this skill without one prints
-the preflight and the plan, reports that it has no go, and stops. **The one exception is narrow**: when
+the preflight and the plan, reports that it has no go, and stops. **Two exceptions, both narrow**: when
 the maintainer typed `hatsu:mugetsu <target>` in this same turn, § 3 may ask for the missing part of
-that go — typed, never picked, never derived, never defaulted. Every other reach, a subagent included,
-stops without relaying any ask. That is unchanged, and a cold entry is the case it was written for.
+that go — typed, never picked, never derived, never defaulted; and when the maintainer typed a futon
+invocation whose `then` chain names this skill, § 3's advance go is the recorded go, bound to the tag
+that run cuts. Every other reach, a subagent included, stops without relaying any ask. That is unchanged, and a cold entry is the case it was written for.
 
 **P1 · Warm up.** [`hatsu:hatsu-warmup`](../hatsu-warmup/SKILL.md), unconditionally — `nen release
 preflight` and `nen shu release` are `nen` calls.
@@ -107,16 +112,17 @@ repository's declaration gate — and nothing is written or run here.
   permission it was told to wait for has converted a human gate into a nudge, and this is the gate
   where that costs the most. Asking for the missing part of a go the maintainer's own invocation
   started in this same turn (§ 3, P4) proposes nothing: it completes their call.
-- **No composite ever calls it.** [`hatsu:getsuga`](../getsuga/SKILL.md),
-  [`hatsu:futon`](../futon/SKILL.md), [`hatsu:en`](../en/SKILL.md),
-  [`hatsu:mukai`](../mukai/SKILL.md) and [`hatsu:ren`](../ren/SKILL.md) **never** reach this skill,
-  from any path, under any `then` clause. `getsuga` prints a deploy *plan* at its G3 stop and stops
-  there; its own § 8 forbids the rest.
+- **No composite ever calls it on its own authority.** [`hatsu:getsuga`](../getsuga/SKILL.md),
+  [`hatsu:en`](../en/SKILL.md), [`hatsu:mukai`](../mukai/SKILL.md) and [`hatsu:ren`](../ren/SKILL.md)
+  **never** reach this skill, from any path. `getsuga` prints a deploy *plan* at its G3 stop and stops
+  there; its own § 8 forbids the rest. [`hatsu:futon`](../futon/SKILL.md) reaches it **only** as a
+  typed `then` step carrying the **advance go** (§ 3) — the maintainer's own invocation, not the
+  composite's plan — and never under futon's `CON-25` delegation.
 - **One go, one target, one publication.** A go for the iOS App Store is not a go for Google Play,
   for the web production environment, or for the same store's next build. Each is its own call, its
   own quoted go, and its own run of this skill.
-- **The go is not standing authority.** It expires when this run ends. A second publication needs a
-  second message.
+- **The go is not standing authority.** It expires when this run ends — an advance go (§ 3) when the
+  futon run that carries it ends or stops. A second publication needs a second message.
 
 **On a delegated session — the maintainer AFK, with rules recorded — a delegation is NOT the go, and
 there is no arrangement under which it becomes one.** `G3` is ruled **not delegable**:
@@ -193,6 +199,46 @@ and read as name-existence checks for that reason.
 The go names the version, so the human is the discriminator in practice. This clause is what makes it
 so by rule as well.
 
+### The advance go — the one go typed before the tag exists
+
+**Maintainer's ruling, 2026-09-26** (this effort's history file): a futon invocation whose `then` chain
+names this skill — `hatsu:futon <repo>@<selector> then getsuga+mugetsu[@<target>]` — **is itself the
+go**, given in advance of the tag. It is the one way a composite reaches this skill, and it is
+narrower than the ordinary go on every axis. **This is the canonical definition**; [`futon`](../futon/SKILL.md)
+§ 8, [`getsuga`](../getsuga/SKILL.md) § 1 and [`kagutsuchi`](../kagutsuchi/SKILL.md) § 1 cite it and
+restate none of it.
+
+- **Record.** The maintainer's **typed futon invocation, quoted verbatim**, is the go: their own words,
+  never inferred, never picked. An invocation Kurapika composed, a picker option, a recorded delegation
+  or a brief is not one.
+- **Binding.** It covers **only the tag that run's `getsuga` step cuts** — the version is filled in
+  when cut and quoted beside the go — and the destination the step names (`mugetsu@<target>`) or,
+  with none, the repository's **single** declared destination for this skill. Two or more declared and
+  none named → ask as free text (`missing-maintainer-choice`), never picked.
+- **Single use.** One go, one target, once. It **lapses** if the run ends or stops before this step is
+  reached, or if the tag in hand is not the one this run's getsuga produced. Never carried to another
+  run.
+- **Order.** This step runs only after its tag exists on `origin`, with every precondition of § 2 and
+  § 4 still holding — `nen release preflight` green, the plan printed. **Delivery merges stay the
+  maintainer's (G2/G4)**: the chain waits at each of those prompts and merges none. The one PR the
+  chain does not wait for is getsuga's own release-proposal PR, which getsuga merges itself under
+  the bounds of its § 3 (the maintainer's ruling of 2026-09-26).
+- **Repository kind — this skill only.** Allowed only on a repository of kind **`process`** or
+  **`library`** — the kinds [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Repository kinds* defines:
+  plugins, machinery and CLIs (`zheref/hatsu` is `claude-code-plugin`/`process`, `zheref/nen` is
+  `bun-cli`/`process`), and reusable code shared across repositories, which says so by declaring
+  `project.kind: "library"` in its `nen/contract.json` through its own declaration gate. **The policy is
+  data, not prose**: `nen/workflow.json` → `futon.advanceGo` lists this skill with those two kinds, and
+  `nen parse futon` annotates the `mugetsu` step with `gate: {allowed, kind, reason}` from
+  `nen repo classify`'s own verdict — `product`, and `unknown` failing closed, print a
+  `refused: mugetsu (<reason>)` line that futon **relays verbatim at its parse echo**; the maintainer gives the go the ordinary way once the tag is
+  cut, and the rest of the chain still runs. `getsuga` and `kagutsuchi` take an advance go on any
+  kind; kagutsuchi remains non-production only.
+
+Still: no agent proposes it, no picker carries a publish option, and **G3** (`CON-6`) is satisfied
+by the maintainer's typed word — only the human authorises a release, and here only the human did,
+in advance.
+
 ### A go with no tag is refused
 
 **The tag is cut first, by [`hatsu:getsuga`](../getsuga/SKILL.md), and it resolves on `origin`.**
@@ -200,7 +246,9 @@ A publication with no tag is a build nobody can point at afterwards: `latest` in
 CHANGELOG section, the fan-out ledger and the release record all name a tag, and `CON-14` forbids
 writing any of them for a tag that does not resolve.
 
-So: **no tag → refuse, name `hatsu:getsuga` as the phase that cuts it, and stop.** Do not cut it here
+So: **no tag → refuse, name `hatsu:getsuga` as the phase that cuts it, and stop** — unless the go is an
+advance go bound to this run's tag (above), in which case the step waits for that cut and means that
+tag and no other. Do not cut it here
 — that is Kurapika's duty in *that* skill (`CON-33(b)`/`CON-41`), with its own preconditions, its own
 release PR and its own G4 — and never publish "and tag afterwards".
 
@@ -380,8 +428,8 @@ version. The next go is the maintainer's.
   nothing moves one); merging `main`; opening or merging a PR; a G1 mode label; publishing a second
   target, a second build or a second time on one go; writing `latest` or a dated CHANGELOG section
   for a tag that does not resolve (`CON-14`).
-- **G3 is the maintainer's** (`CON-6`). This skill executes a recorded go; it never grants one, never
-  infers one, and never treats its own reasoning as one.
+- **G3 is the maintainer's** (`CON-6`). This skill executes a recorded go — the ordinary one or § 3's
+  advance go — it never grants one, never infers one, and never treats its own reasoning as one.
 - **The go is one publication wide and ends when this run ends.** It is the maintainer's own message
   and nothing else — a delegation does not stand in for it, because `G3` is not delegable (§ 1).
 
@@ -389,8 +437,9 @@ version. The next go is the maintainer's.
 
 - **Never runs unasked, and never prompts for itself** — no agent, skill, report, bell, stop option
   or PR body proposes `hatsu:mugetsu` (§ 1).
-- **Never runs from a composite.** `getsuga`, `futon`, `en`, `mukai` and `ren` never call it, under
-  any `then` clause, on any path.
+- **Never runs from a composite on the composite's authority.** `getsuga`, `en`, `mukai` and `ren`
+  never call it, on any path; `futon` reaches it only as a typed `then` step on § 3's advance go, on a
+  repository of kind `process` or `library`, and never under its delegation.
 - **Never treats a delegation as the go** — `G3` is not delegable, so a session running under one has
   no more authority here than a session running under none — and never publishes and explains
   afterwards (§ 1).

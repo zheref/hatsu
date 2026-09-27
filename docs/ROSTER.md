@@ -35,7 +35,7 @@ believes he is holding, so they can catch him holding the wrong one before he ac
 | **Conjurer** | **Canon & governance authoring** — the constitution, handbooks, schemas, agent definitions, taxonomies, thresholds. Conjured contracts *with conditions*: a clause states what it binds, what it costs, when it lapses, and what happens when it is broken. | **G4** (`CON-7`) **in a canon repository** (`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`); the same edit in a consumer repository is **G2** — § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind* |
 | **Transmuter** | **Machinery** — Nen verbs and their tests, scaffolding, hooks, workflows, generators, plugin manifests, contract files. The standing transmutation is *improvised shell → deterministic verb*. | **G4** (`CON-7`) **for canon machinery** — machinery in `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai` or `zheref/bankai-scaffold`, which *is* the process. The same file kinds in a consumer repository are that repository's **configuration** and stand at **G2** — § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind* |
 | **Manipulator** | **GitHub-side ops** — drives, wakes, labels, retargets, cascades, thread stewardship. Never merges, never votes, never self-reviews. | drives *to* a gate, crosses none |
-| **Emitter** | **Release & fan-out** — `susanoo` builds the release unit, `getsuga` opens the release-proposal PR and cuts the post-merge tag, and the repin fan-out follows: collation, preflight, `latest`. Prepares a release; never publishes one, and never reaches `kagutsuchi` or `mugetsu`. | **G3** stays the human's (`CON-6`) |
+| **Emitter** | **Release & fan-out** — `susanoo` builds the release unit, `getsuga` opens the release-proposal PR, merges it himself inside its § 3a bounds (release unit only, `CON-32` Ready, the repository's own protection — ruling of 2026-09-26) and cuts the post-merge tag, and the repin fan-out follows: collation, preflight, `latest`. Prepares a release; never publishes one, and never reaches `kagutsuchi` or `mugetsu` on his own authority — only as later steps of a `futon` `then` chain on the maintainer's advance go (`mugetsu` § 3). | **G3** stays the human's (`CON-6`) |
 | **Specialist** | **Product intake** — his kept Product-Owner canon. A raw thought elicited into a decision-complete brief, filed only on explicit confirmation. | **G1** stays the human's (`CON-4`) |
 
 **Kurapika is local-only.** His prior trajectory in the upstream canon — local surface retired into another
@@ -241,8 +241,10 @@ same reason the rulings above are: this file is the authority on standing.
 this roster performs, so there is no procedure for a skill to carry — only the rule that nobody here
 crosses it. The surface is **thirty-eight skills**.
 Nothing about the phases themselves changes: `kagutsuchi` and `mugetsu` remain the maintainer's own calls,
-one target per call, never reached from a composite — not from `getsuga`, not from `futon`'s `then` clause,
-not from `en` — and Emitter still prepares a release and never publishes one. **A skill is a written phase,
+one target per call, never reached from a composite on its own authority — not from `getsuga`, not from `en`;
+from `futon`'s `then` chain only on the maintainer's typed **advance go** (ruling of 2026-09-26, `mugetsu`
+§ 3, `mugetsu` only on a repository of kind `process` or `library`, `WORKFLOW.md` § *Repository kinds*) — and Emitter still prepares a release and never
+publishes one. **A skill is a written phase,
 not a new authority**, which is why the boundary held identically while these three were only names.
 
 **Spelling: `kagutsuchi` is the ruled form.** The maintainer's own writing has carried **"kagutsushi"**;
@@ -840,7 +842,7 @@ Clause ids are the inherited constitution's; the rewritten constitution keeps th
 |---|---|---|---|
 | **G1** | `CON-4` | Epic approval — the human applies one delivery-mode label | **Never** |
 | **G1-M** | `CON-25` | Release into build — applying the building stage label | Only under `CON-25`'s four exhaustive carve-outs |
-| **G2** | `CON-5` | Merge to `main` | **Never** by these agents. No agent here merges `main`, or its own PR anywhere |
+| **G2** | `CON-5` | Merge to `main` | **Never** by these agents. No agent here merges `main`, or its own PR anywhere — with one carve-out, the maintainer's ruling of 2026-09-26: `getsuga` § 3a merges its own release-proposal PR when its diff is the release unit only and `CON-32` reads Ready, through the repository's own protection, never a delivery PR |
 | **G3** | `CON-6` | Release go/no-go | **Never.** Preparing a release is allowed; publishing is not |
 | **G4** | `CON-7` | Policy / spec change — **authoring or maintaining a canon repository** (`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`): the repositories whose product is the process, so a merge there changes what every other repository does. A consumer repository's own `nen/*.json`, CI workflow or `scripts/` entry is **configuration, and stands at G2** (§ *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*) | **Never** |
 | **G5** | `CON-47` | Any other human-only decision or action | **Never** — its definition *is* "the decision is theirs" |

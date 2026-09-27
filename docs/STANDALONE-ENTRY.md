@@ -266,7 +266,8 @@ because a cold entry is where each is most likely to be quietly re-read:
   one-confirmation rule is unchanged, and `G1-M` is never applied by a phase that merely started cold.
 - **`G2` — the merge.** It has no skill, and standalone entry does not give it one.
 - **`G3` (`CON-6`) — publication.** [`hatsu:mugetsu`](../claude/skills/mugetsu/SKILL.md) is *already*
-  standalone-only: no composite may reach it and no agent may propose it. Its § 0 therefore adds
+  standalone-only: no composite may reach it on its own authority — `futon`'s `then` chain only on the
+  maintainer's advance go (its § 3) — and no agent may propose it. Its § 0 therefore adds
   **nothing** to what it may do — it only makes the preamble's orientation and refusals legible, so a
   cold invocation prints the preflight and the plan and reports that it has no go, exactly as before.
 - **`G4` (`CON-7`) — canon and machinery, *in a canon repository*.** The gate is the repository's role,

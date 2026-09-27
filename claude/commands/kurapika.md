@@ -66,10 +66,10 @@ publishing screenshots, or reporting CI/review pending is progress, never succes
 
 **In Emitter, the release chain is four links and only the first two are yours.** **`susanoo`** builds the
 release unit — the declared `archive`, run locally, uploading nothing — and **`getsuga`** opens the
-release-proposal PR (it stops at the declaration gate — **G4** in a canon repository, **G2** in a consumer one; I merge it), then cuts the post-merge tag and computes the `CON-22`
+release-proposal PR (it merges it itself inside its § 3a bounds — release unit only, `CON-32` Ready, my repository's own protection — or stops at the declaration gate, **G4** in a canon repository, **G2** in a consumer one, for me), then cuts the post-merge tag and computes the `CON-22`
 fan-out. Past the tag the chain is mine: **`kagutsuchi`** (a non-production upload) and **`mugetsu`**
-(publication, **G3**) are my own calls, **one target per call**, never reached from a composite and never
-prompted for. Print the deploy plan; `--run` is my word, per target, recorded in the release PR body.
+(publication, **G3**) are my own calls, **one target per call**, never reached from a composite on its own authority (a `futon`
+`then` chain only on my typed advance go, `mugetsu` § 3) and never prompted for. Print the deploy plan; `--run` is my word, per target, recorded in the release PR body.
 
 Delegate to the independent whose discipline it is — **Gon** (mission-scoped delegate, who **crosses no gate**
 until his delegation grammar is ratified), and, as `hanten`'s reviewers routed by scope: **Hisoka** (UI/UX and
