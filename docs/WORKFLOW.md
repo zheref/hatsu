@@ -1309,8 +1309,25 @@ scripts/tenkai_adopt.sh apply    --repo <path>
   longer matches what the repository derives — looks installed. `missing` and `drift` are therefore
   always reported as different things.
 
-**What it will not do.** It writes no `nen/*.json`: those are nen's and are routed to
-`nen scaffold init` with the command named. It does not copy this repository's `nen/gates.json` into
+**Adoption includes executable readiness, not just installed files.** Tenkai's guided pass
+(`hatsu:tenkai` § 6c) joins the consumer's iteration checks, selected test suites, toolchain,
+machine-readable test results, coverage ladder, visual evidence, CI, launch targets and each
+distribution destination. The engine reports the structural joins; `nen schema check`, the
+relevant `nen shu <verb> --dry-run`, and a host-supported local run test whether a declared
+command actually works. A structurally present artifact is not proof that `nen shu test-report`
+can parse it, and a `dev` command is not proof of a production `run`. Tenkai carries prior owner
+choices forward and uses the native picker only for decisions that remain open. Its final report
+names each unsupported seat and missing external prerequisite, rather than counting either as
+configured.
+
+The policy inbox is part of that pass: `nen warmup` checks consumer pins against the **installed,
+released** Hatsu version. An unpublished authoring branch is not a consumer pin. An `unpinned`
+consumer, a stale pin, or an unswept handbook-question source stays visible until resolved.
+
+**What the engine will not do.** `scripts/tenkai_adopt.sh` writes no `nen/*.json`: an initial
+declaration is routed to `nen scaffold init`. The guided pass may edit an existing consumer's
+declaration after the owner chooses its behavior, then validates that edit at the consumer's G2
+gate (§ 6c). The engine does not copy this repository's `nen/gates.json` into
 yours — the reviewer identities in it are Hatsu's, and
 [`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) is the page for tuning your own. It does not merge,
 push, or open a pull request.

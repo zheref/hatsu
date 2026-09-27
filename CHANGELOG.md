@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.46.0 — product lane readiness in Tenkai
+
+- Tenkai reports every declared product lane command, including unsupported seats, and routes a missing release row when no product lane declares one. Store and direct-download destinations can carry separate archive and release decisions. The generic Hatsu publisher remains specific to process repositories.
+- Tenkai now checks the joins that make a declared lane useful: toolchain, selected tests, test results, coverage and UI evidence. The guided readiness pass asks unresolved owner choices through native pickers, validates scoped consumer configuration edits, and keeps unproved checks visible.
+- The guided pass now runs `nen warmup` against the target's actual installed Hatsu release and reports stale or missing consumer pins and an unchecked handbook-question sweep separately from the engine's parseability check. It never writes an unpublished Hatsu version as a consumer pin.
+- The workflow canon now distinguishes Tenkai's structural adoption report from executable readiness. It explicitly verifies test-result parsing, launch semantics, and host-supported checks after consumer configuration changes, while keeping external release prerequisites visible.
+- The consumer PR readiness template now runs without Hatsu's Ruby policy guard or a consumer Nen dependency pin. It checks the guard when present and falls back to Hatsu's trusted Nen ref; process repositories still require both. A previously installed workflow missing either consumer path is reported as drift and repaired.
+- The consumer Nen-ref fallback now also works when the trusted base has no `nen/contract.json`; a present malformed contract still fails closed. Tenkai reports the missing release destination when a product has multiple lanes but no default lane.
+- The Codex, Cursor and Antigravity mirrors carry the updated Tenkai guidance. Windows console output uses UTF-8 so adoption reports can print their Unicode policy text.
+- The Hanten reviewer budget ledger now locks on native Windows as well as POSIX hosts, and its self-test includes Nobunaga's two-review budget. Windows Hatsu consumers can run the local review phase without a Unix Python runtime.
+
 ## v0.45.0 — the reader's clock, ask before aborting, and a worktree swapped into core
 
 Release unit for `v0.44.0..v0.45.0`: [#109](https://github.com/zheref/hatsu/pull/109) (the delivery) and the reconciling [#110](https://github.com/zheref/hatsu/pull/110).
