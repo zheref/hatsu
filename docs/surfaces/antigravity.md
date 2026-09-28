@@ -51,7 +51,10 @@ nothing is written into a target repository; the plugin's own `hooks.json` resol
 
 `ultra` is a matrix alias the persona key does not admit: the orchestrator tier never runs a subagent. In-session delegation is
 `invoke_subagent` with `Workspace` `inherit`, `branch` (an isolated worktree, Hanten's reviewers) or
-`share`.
+`share`. For `en`'s long watch, `en · illumi` can be raised on the fast tier (`flash`) with `Workspace` `inherit`.
+Antigravity supports reactive wakeup from subagents and background tasks, as well as one-shot timers (`schedule`),
+allowing the observation loop to pace checks (`monitor.pollSeconds`) without burning turns or abandoning the watch.
+Pending CI or open reviewer rounds keep the watch active; readiness is strictly gated on `nen pr ready` exiting 0.
 
 ## 4. Hooks
 
@@ -92,6 +95,8 @@ why the warm-up checks `--installed` first and copies only on drift.
 
 The former `rules/AGENTS.md` held every persona at ~119 KB, ten times the limit, and was read partially
 or not at all. From v0.43.0 the personas live only in `agents/*.md` and the rules file points at them.
+The Always-on `rules/hatsu.md` enforces that readiness is never claimed without quoting `nen pr ready`
+at exit 0, and that pending CI, reviewer rounds, or open review threads strictly forbid premature G2/G4 claims.
 
 ## 7. The option picker
 

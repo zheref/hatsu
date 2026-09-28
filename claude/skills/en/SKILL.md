@@ -372,11 +372,16 @@ maintainer sees a budget being continued rather than one silently restarting.
 > maintainer closing the session still has no mechanism anywhere in this plane** — that is named,
 > reported as an interruption, and never simulated.
 >
-> **Codex has in-session subagents** (`spawn_agent`, skill-requested delegation; ChatGPT app, CLI,
-> and IDE). En may hand this watch to `en · illumi` there the same way. The second-process
+> **Codex and Antigravity have in-session subagents** (`spawn_agent` on Codex; `invoke_subagent`
+> with `Workspace` `inherit` on Antigravity). En may hand this watch to `en · illumi` there the same
+> way. In Antigravity, one-shot timers (`schedule`) or `nen watch until` pace observations without polling
+> in a busy loop, and reactive wakeup resumes execution when background tasks notify. The second-process
 > `codex exec` worktree remains Hanten's isolation for a reviewer who must not share the author's
-> tree; it is not this watch and is not a persistence mechanism. If the Codex task is interrupted,
-> the resumable ledger is reported exactly as above.
+> tree; it is not this watch and is not a persistence mechanism. If the task is interrupted,
+> the resumable ledger is reported exactly as above. A model choosing to stop calling tools while
+> CI checks, reviewer rounds, or review comments are pending is not an outcome and must not report G2/G4
+> readiness: the observation hold must remain active until `nen pr ready` exits 0 or the acting-cycle
+> cap is reached.
 >
 > **And the hand-off widens nothing.** Illumi is provisioned for *this* watch and no other loop —
 > not `backlog-loop`, not `futon`, not `senkei`; that half of `OPEN-1`, and the whole of Killua's
@@ -485,7 +490,8 @@ returned. Harvesting is that phase's, not En's.
   manufacture a cap-out (§ 6).
 - **Never rings outside Ready** (§ 5), and never rings twice for the same transition.
 - **Never claims readiness by eye** — `nen pr ready` + `nen pr body-check`, quoted, or it is not
-  claimed (§ 4).
+  claimed (§ 4). Never declares a PR G2/G4 ready while checks, reviewer rounds, or review threads are
+  pending.
 - **Never renders the final report while required CI or the owed current-head review round is pending**,
   and never gives a turn render a kept file (§ 8).
 - **Never starts Third-Hand from inside this run.** Harvesting is the next phase, after En has completed.
