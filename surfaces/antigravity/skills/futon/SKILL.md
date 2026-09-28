@@ -186,6 +186,5 @@ the maintainer's plate. **Futon never resumes itself**; re-invoke it.
 - **Never hand-authors the status board** (§ 9); **never leaves the delegation open**.
 
 *History and residue: this effort's history file; dated verifications: `docs/ab/futon.md`. The label
-selector, the `then` chain and its `gate` need nen v0.15.0; the fail-closed default policy,
-duplicate-step refusal and empty-selector rule ship in the release after v0.15.0; an older binary's
+selector, the `then` chain and its fail-closed `gate` need nen v0.15.1, the pin; an older binary's
 exit `2` is relayed, never worked around.*

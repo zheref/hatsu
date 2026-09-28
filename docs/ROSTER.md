@@ -922,7 +922,7 @@ amended by this one, and says so in place.
    judged by reading rather than by a nen command be deterministic and rely on the nen command"* —
    the release unit (`nen release unit-check`, `release.unitPaths`), the bounded merge (`nen pr merge
    --release-unit`, five gates, `merged:` line) and the advance-go gate (`nen parse futon`'s `gate`,
-   `futon.advanceGo`, nen's built-in default where none is declared from the release after v0.15.0).
+   `futon.advanceGo`, nen's built-in default where none is declared from nen v0.15.1).
    No prose joins classify to parse or names the unit's paths.
 6. **bankai-core is no longer canon for Hatsu** (2026-09-27): *"We are no longer relying on that
    process here. This is Hatsu-based with nen and Akatsuki AI."* Which repositories are canon is read

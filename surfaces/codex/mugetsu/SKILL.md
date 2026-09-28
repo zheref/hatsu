@@ -234,7 +234,7 @@ prompted for and never proposed; the chain is the call.
 - **Repository kind — this skill only.** Allowed only on a repository of kind **`process`** or
   **`library`** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Repository kinds* defines the three).
   **The policy is data, not prose**: `nen/workflow.json` → `futon.advanceGo` (nen's built-in default
-  where none is declared, from the release after v0.15.0), read by `nen parse futon`, which annotates
+  where none is declared, from nen v0.15.1), read by `nen parse futon`, which annotates
   the step with `gate: {allowed, kind, reason, source}` from `nen repo classify`'s own verdict —
   `unknown` fails closed — and prints a `refused: mugetsu (<reason>) [<source>]` line that
   [`futon`](../futon/SKILL.md) § 8 **relays verbatim at its parse echo**; the maintainer gives the go

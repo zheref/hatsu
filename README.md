@@ -583,10 +583,10 @@ FAIL by pointer — and [`docs/WORKFLOW.md`](docs/WORKFLOW.md) documents both.
 
 ### The range
 
-*Current pin, echoed for convenience:* **`nen >= 0.15`**, with the bootstrap installing **`v0.15.0`**.
+*Current pin, echoed for convenience:* **`nen >= 0.15`**, with the bootstrap installing **`v0.15.1`**.
 Those are two values and they move independently. Hatsu adopts the futon label selector, `then` skill
 chains and advance-go gate, the `library` kind, `nen release unit-check` and `nen pr merge --release-unit`,
-introduced in v0.15.0; this feature requirement raises its minimum even though Nen's compatibility floor
+introduced in v0.15.0 and made fail-closed in v0.15.1; this feature requirement raises its minimum even though Nen's compatibility floor
 remains 0.7. The live skill surface is **forty-four**, forty-five
 directories per surface with `hatsu-warmup`.
 
