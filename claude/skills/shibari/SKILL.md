@@ -129,7 +129,8 @@ threads***: the maintainer's token, Copilot through `--add-bots <node id>`, and 
 the mutation's own response, never from the ids sent**.
 
 **Then one line, and stop**: the notation, the base, the gate **forecast**, whether the three checks
-passed, the evidence mechanism, who was requested, and that [`en`](../en/SKILL.md) has the PR. **No `nen stop` banner** — opening a PR is not a gate event, and
+passed, the evidence mechanism, who was requested, and — from `mukai` — its offer of [`en`](../en/SKILL.md) on the PR
+(En has it already only under `mukai.autoEn`). **No `nen stop` banner** — opening a PR is not a gate event, and
 `en`'s own [`jutaisho`](../jutaisho/SKILL.md) step rings at Ready.
 
 ## 6. Residue, authority and hard limits

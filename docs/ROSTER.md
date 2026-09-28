@@ -68,7 +68,7 @@ the provision. **Netero landed at `v0.25.0`** on the ruling of 2026-09-14. On An
 | **Chrollo** | `claude/agents/chrollo.md` | **Architecture and handbook conformance.** The `UZF-{n}` core, **exactly one** resolved stack handbook (`SW-`/`KT-`/`RC-`/`BC-`), and a repository's own architecture notes — KroApple's `.claude/Architecture/` is the live example — each cited by id or by path. He is the architecture reviewer the QA lane routes a coverage-floor breach or a missing unit test to (`UZF-19`). **He reviews the handbooks; he never authors them.** | **Ratified** on the ruling of 2026-09-09 below; **definition landed at `v0.5.0`** |
 | **Illumi** | `claude/agents/illumi.md` | **The long watch — `en`'s step 5, and no other loop.** Read-only observation through `nen watch until`, under `izanagi`'s mandatory cap and `workflow.json` → `monitor`. He wakes Kurapika and acts on nothing: never merges, votes, comments, labels, pushes, or fires a wake. His frontmatter carries no `Edit`, `Write` or `MultiEdit` — **but `Bash` is there, because every observation is a program, so read-only is a stated command allowlist in his own definition and not a property of the tool set.** Said that way rather than dressed up as a construction, per ruling 2's own standard. | **PROVISIONED, NOT RATIFIED** — `OPEN-1`, **partially** closed 2026-09-09. The definition landed at `v0.5.0` so the provision can be executed; **it widens nothing**. See below |
 | **Netero** | `claude/agents/netero.md` | **Process chairman.** Observes Hunters in execution and files complete, labelled issues when constitution, canon prose, or machinery need enhancement — duration, redundancy, autonomy gaps, repetitive jobs that should be Nen verbs, missing toolchain. The named wrap-up is [`hatsu:third-hand`](../claude/skills/third-hand/SKILL.md): after En completes he proposes 0–3 folded issues, the maintainer picks, he files those. He files; he never implements the filed work. | **Ratified** 2026-09-14; definition landed at `v0.25.0`; Third-Hand at `v0.27.0`, phase split `v0.28.0` |
-| **Nobunaga** | `claude/agents/nobunaga.md` | **Code practices, scope completeness and adversarial reading** — the general code reviewer, **Sasuke's local counterpart**. The `code` scope claims every path, so `hanten` raises him on every change set: acceptance criteria against the issue, tests for changed behaviour at `UZF-18`'s minimums, error handling and exit-code discipline, shell quoting and portability against the declared hosts, docs and cross-references current, counts agreeing with their lists, mirrors regenerated, the CHANGELOG fragment and PR body sections present, nothing improvised that a Nen verb owns, and one holistic pass on a delivery PR. **Two reviews per session and repository; deep on a process repository, fast on a product one.** | **Ratified** on the ruling of 2026-09-19 below; **definition landed at `v0.42.0`** |
+| **Nobunaga** | `claude/agents/nobunaga.md` | **Code practices, scope completeness and adversarial reading** — the general code reviewer, **Sasuke's local counterpart**. The `code` scope claims every path, so `hanten` raises him on every change set: acceptance criteria against the issue, tests for changed behaviour at `UZF-18`'s minimums, error handling and exit-code discipline, shell quoting and portability against the declared hosts, docs and cross-references current, counts agreeing with their lists, mirrors regenerated, the CHANGELOG fragment and PR body sections present, nothing improvised that a Nen verb owns, and one holistic pass on a delivery PR. **Two reviews per effort (one PR; ruling 2026-09-28); deep on a process repository, fast on a product one.** | **Ratified** on the ruling of 2026-09-19 below; **definition landed at `v0.42.0`** |
 | **Shalnark** | `claude/agents/shalnark.md` | **Post-merge UI validation, optional.** After a delivery merges he drives every behaviour of the delivered feature against the **original specification's** acceptance criteria — the issue's list and the PR's *How to verify* — with the UI tooling `hatsu:bankai-quality` resolves, and reports **pass / fail / not-testable with evidence per criterion**. **Ephemeral by default**, persistent only where the repository declares `tests.uiValidation`. He files findings through the caller and **fixes nothing**. **Reachable only through [`hatsu:black-voice`](../claude/skills/black-voice/SKILL.md)** — never automatic, never from a composite. He is **not** offensive QA | **Ratified** on the ruling of 2026-09-19 below; **definition landed at `v0.42.0`** |
 
 ### ⚠️ Gon's delegation grammar is a DRAFT — **until it is ratified, Gon crosses no gate**
@@ -668,7 +668,7 @@ stays deliberately unstaffed.
 | Ruling | What it says |
 |---|---|
 | **Nobunaga activates, on every repository** | Code practices, scope completeness and adversarial reading — **Sasuke's local counterpart**, with Sasuke's completeness criteria. The `code` scope claims every path, so he is **the default reviewer everywhere** |
-| **Two reviews per session and repository** | `review.scopes.code.budget` is `2`, counted in hanten's cycle ledger like every other scope |
+| **Two reviews per effort** (amended 2026-09-28: per branch and PR, never per session or repository) | `review.scopes.code.budget` is `2`, counted in hanten's cycle ledger like every other scope |
 | **Deep on a process repository, fast on a product one** | The declared `review.scopes.code.tier` is the **process** tier; `hanten` reads `nen repo classify`'s `kind` and **swaps to `fast`** for a product repository, saying which ran |
 | **Chrollo stays the sole architecture reviewer** | and **drops incidental consistency work to Nobunaga** rather than absorbing it |
 | **Feitan gains deterministic scan rows** | checksum-verified gitleaks that fails loud, a per-stack dependency audit, `nen stage triage` secret shapes, and a **builder-touching-workflow gate** in a consumer repository — plus the bounded delta pass when a spent reviewer meets a new head |
@@ -883,7 +883,7 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
 
 ## Rulings of 2026-09-26/27/28 — futon's selector and chains, the advance go, three kinds, getsuga's own merge, nen decides
 
-Seven rulings, recorded here once; every skill, agent file, manifest and decisions row that carries one
+Eight rulings, recorded here once; every skill, agent file, manifest and decisions row that carries one
 cites this section rather than the date alone. Where an earlier section says the opposite it is
 amended by this one, and says so in place.
 
@@ -942,6 +942,20 @@ amended by this one, and says so in place.
    that phase's missing safe prerequisites in order, stopping at any that is the maintainer's call:
    [`ten`](../claude/skills/ten/SKILL.md) § 6 is the phase → prerequisite map, and its *Suggested
    next steps* list is unruled. [`getsuga`](../claude/skills/getsuga/SKILL.md) § 1.
+8. **Review budgets are per effort; mukai offers en; ten's catch-up resolves mechanical conflicts**
+   (2026-09-28). *"The budget should never be per session, but per effort, which usually translates to
+   a PR. So, I expect every PR to have fresh budgets for hanten reviews even if started from the same
+   session."* — `review.scopes.<scope>.budget` is counted per effort in `.nen/hanten/<branch-slug>.cycle.json`,
+   one branch and one PR; a new PR starts every scope full, and no budget is per session or per
+   repository ([`hanten`](../claude/skills/hanten/SKILL.md) § 2b, the review preamble § 6). *"Let's
+   amend mukai spec so that once the PR lands it immediately offers to start 'en' against it. We should
+   always enable a new configuration property so that this is automatic instead (should be off by
+   default)."* — mukai ends with one line offering `hatsu:en on <CODE>#<N>`, never starting En silently;
+   `nen/workflow.json` → `mukai.autoEn: true` (absent is false) starts En immediately as before
+   ([`mukai`](../claude/skills/mukai/SKILL.md) § 2 → row). *"On the new 'ten': I don't expect the turn
+   to stop if when performing 'ao' it encounters conflicts. If conflicts are mechanically solvable, it
+   should just happen without asking."* — ten § 6 step 2 runs ao, which resolves mechanical conflicts
+   unasked and continues; only a semantic conflict, by ao's own classification, stops at ao's G5.
 
 ## Rulings of 2026-09-14 — byakugan owns coverage; kotoamatsukami owns tests
 

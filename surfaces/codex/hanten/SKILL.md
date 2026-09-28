@@ -69,8 +69,9 @@ is not scanned, never clean.** **Every version, URL, asset and command is data**
 ## 2b · Budgets — one effort, one ledger
 
 **A Hanten invocation is not a new review budget.** Remediation, a resumed session, a later `ren` turn
-and `mukai` re-entering continue the **same cycle**; a new branch is the only reset. **Each scope's
-maximum is its own `budget`**, per session and repository, counted by the ledger, never in prose.
+and `mukai` re-entering continue the **same cycle**; a new effort — a new branch, a new PR — is the only
+reset and starts with every scope's full budget. **Each scope's maximum is its own `budget`**, **per
+effort, never per session or repository** (ruling 2026-09-28), counted by the ledger, never in prose.
 
 ```bash
 "$hatsu_root/scripts/hanten_cycle_ledger.sh" decide --repo <path> --branch <branch> \

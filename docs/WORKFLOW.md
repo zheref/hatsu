@@ -369,7 +369,7 @@ One row per scope:
 |---|---|
 | `persona` | the agent file raised for this scope — `claude/agents/<persona>.md`. A scope whose persona has no definition is a **gap**, never improvised past |
 | `tier` | `models.<surface>.<tier>` of the `models` block below, read at use, **never the frontier tier** |
-| `budget` | reviews of this scope per session and repository, counted in `.nen/hanten/<branch-slug>.cycle.json`. Remediation does not reset it |
+| `budget` | reviews of this scope **per effort** — one branch, one PR — counted in `.nen/hanten/<branch-slug>.cycle.json`; never per session or repository, and a new PR starts full. Remediation does not reset it (ruling 2026-09-28) |
 | `paths` | prefixes or globs in `nen report data`'s tier-table grammar. **One path may raise several scopes**, and a path no row claims is reported as `unclaimed` |
 
 **`code`'s `paths` is `**`, deliberately: it claims every path**, so Nobunaga is the default reviewer
@@ -987,7 +987,7 @@ carried five reviewers and a four-field shape long after there were six of each.
 `security` is **Feitan's**, `architecture` **Chrollo's**, `ui` **Hisoka's**, `performance`
 **Uvogin's** and `release` **Phinks'**, each raised only by the paths its own row declares. Every row
 carries its `persona`, its `tier` (`models.<surface>.<tier>` of § 2, never the frontier one) and its
-`budget` — the reviews that scope gets per session and repository, counted in
+`budget` — the reviews that scope gets per effort (one branch, one PR; never per session), counted in
 `.nen/hanten/<branch-slug>.cycle.json` and never in prose. **Reviewers advise; Kurapika acts** — he
 fixes the finding or pushes back with a cited reason, and a finding that is neither is the **G5** of
 § 4, raised by `hanten` and never by the reviewer. **Pre-PR, a finding's home is the working copy,

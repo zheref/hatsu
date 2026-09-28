@@ -77,7 +77,7 @@ export PATH=/tmp/nen-session-bin:$PATH
 ln -sfn "$verified" ~/.local/bin/nen  # (a) THE HOST — the maintainer's word only
 ```
 
-- ⚠️ **Fetch to a file. Never pipe the script into bash** (`bootstrap.fetch_must_be_two_step`): piped
+- ⚠️ **Fetch to a file; never pipe the script into bash** (`bootstrap.fetch_must_be_two_step`): piped
   in, it dies on an unbound `${BASH_SOURCE[0]}` and **exits `1` — a code in no table**.
 - **§ 2a's shell is permitted here only**; **§ 2b's `--script` is required** and propagates the
   script's codes, `--source` shape-checked. Its guarantees and exit semantics are
@@ -88,7 +88,7 @@ ln -sfn "$verified" ~/.local/bin/nen  # (a) THE HOST — the maintainer's word o
 
 ## 3 · Halt — only when the bootstrap failed
 
-**The only supply-chain halt here** (`nen/decisions.json` row `supply-chain-failure`). Print
+**The only supply-chain halt** (`nen/decisions.json` row `supply-chain-failure`). Print
 `halt.message_template` from the contract with the code and meaning filled in, carrying the two-step
 command and the never-a-pipe sentence, then **stop** and report a **G5**. **The Nen-owned operation
 then does not happen** — not with raw `gh`, not improvised, not from an old transcript (D10): a
@@ -140,7 +140,7 @@ the TARGET's `nen/workflow.json` → `models`**, never this plugin's.
 ## 6 · Catch-up: the prerequisites of the phase that called me
 
 Ten is P1 of every Nen-owned phase ([`STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 3).
-A phase typed further along the workflow has nobody behind it to have run the earlier ones:
+A phase typed further along the workflow has nobody behind it to have run the earlier ones;
 **after §§ 1–5 ten runs the missing SAFE prerequisites of `<phase>`, in order, stopping (never
 skipping) at the first that is the maintainer's call**. No phase → § 6 runs nothing and says so.
 Every step is an existing verb or skill — **never improvised shell for a Nen-owned operation** —
@@ -148,12 +148,12 @@ and a satisfied step is reported `satisfied`, not re-run.
 
 | Step | Read | Missing → run | Stops |
 |---|---|---|---|
-| 1 base & branch | `nen wc classify --repo . --base <branch.base> --json` | detached HEAD or on the trunk → [`breath`](../breath/SKILL.md)'s warm: fast-forward local `branch.base` from origin, cut the `branch.template` branch off the **fresh** base; `must-move` (dirty trunk) → breath's `nen shu warmup --carry`, **never discard** | a conflicting restore (`semantic-conflict`) |
-| 2 base fresh | branch behind `origin/<branch.base>` | [`ao`](../ao/SKILL.md) (catch-up) | a semantic conflict — ao's G5 |
-| 3 base proven | breath's iteration checks not run this effort | breath § 4 on the fresh base | a red — breath's G5 |
+| 1 base & branch | `nen wc classify --repo . --base <branch.base> --json` | detached HEAD or trunk → [`breath`](../breath/SKILL.md)'s warm: fast-forward local `branch.base` from origin, cut the `branch.template` branch off the **fresh** base; `must-move` (dirty trunk) → breath's `nen shu warmup --carry`, **never discard** | a conflicting restore (`semantic-conflict`) |
+| 2 base fresh | branch behind `origin/<branch.base>` | [`ao`](../ao/SKILL.md): mechanical conflicts resolved unasked, the turn continues | a **semantic** conflict only — ao's G5 |
+| 3 base proven | breath's iteration checks not run this effort | breath § 4 on the fresh base | red — breath's G5 |
 | 4 authenticated | `gh auth status`, `GH_TOKEN` | nothing — **G5 naming the fix**, never an elevation | missing |
 | 5 declarations | `nen schema check --repo .` | nothing — `FAIL` stops **before the phase**, by pointer | `FAIL` |
-| 6 stale state | an open PR for this branch; merged status | open PR → hand to [`en`](../en/SKILL.md), never a second; merged → say so, offer breath | never — a redirect |
+| 6 stale state | an open PR for this branch; merged status | open PR → hand to [`en`](../en/SKILL.md), never a second; merged → say so, offer breath | never — redirects |
 | 7 the human's call | a gate the maintainer crosses | **never auto-run** | always, naming it |
 
 | Invoking phase | Steps, in order |
@@ -175,8 +175,7 @@ ruling 2b), so ten runs it like steps 1–6. A phase a composite holds skips § 
 
 **Suggested next steps (not adopted; the maintainer rules):** the SessionStart or
 UserPromptSubmit hook runs ten's catch-up itself; a `nen wc ensure-effort` verb making step 1 one
-call; a nen read for step 6; stale-worktree pruning via `nen wc worktrees`; refusing to author on a
-merged branch instead of offering breath.
+call; a nen read for step 6; pruning via `nen wc worktrees`; refusing to author on a merged branch.
 
 ## Residue; what this skill is not
 
