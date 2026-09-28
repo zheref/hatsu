@@ -44,8 +44,8 @@ is a label**, matched exactly as typed (case and spaces kept, quotes stripped) a
 `label`, never both. **Exit `2` asks, never ends**: the corrected line goes to the picker (an empty
 selector gets none), the answer is re-parsed, and a missing argument or configuration item is set up
 inline (`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4).
-**A re-parsed picker answer never carries an advance go**: a corrected line is offered with its
-`getsuga`, `kagutsuchi`, `mugetsu`, `aka` and `mukai` steps stripped; the maintainer retypes them. **The selector is the maintainer's word: never derived.** No `then` clause is not a
+**A re-parsed picker answer never carries a `then` step**: a corrected line is offered with its whole
+`then` clause stripped, and the maintainer retypes it. **The selector is the maintainer's word: never derived.** No `then` clause is not a
 gap (§ 8).
 
 **Echo the full parse before anything is fetched** — repo, the selector (a band with its severities

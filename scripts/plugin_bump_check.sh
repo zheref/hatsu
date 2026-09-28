@@ -428,7 +428,9 @@ strip_invisible_markdown() {
       if (in_fence) {
         if (match(line, "^[[:space:]]*" (fence_char == "`" ? "`+" : "~+"))) {
           run = substr(line, RSTART, RLENGTH); sub(/^[[:space:]]*/, "", run)
-          if (length(run) >= fence_len) { in_fence = 0; fence_char = ""; fence_len = 0 }
+          # A closing fence carries nothing but whitespace after its run (CommonMark);
+          # a line with an info string is still inside the block, never its end.
+          if (length(run) >= fence_len && substr(line, RSTART + RLENGTH) ~ /^[[:space:]]*$/) { in_fence = 0; fence_char = ""; fence_len = 0 }
         }
         next
       }
