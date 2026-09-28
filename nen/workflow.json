@@ -268,5 +268,20 @@
         ]
       }
     }
+  },
+  "release": {
+    "$comment": "The RELEASE UNIT -- the maintainer's rulings of 2026-09-26 and 2026-09-28 (docs/ROSTER.md § Rulings of 2026-09-26/27/28: getsuga merges its own release-proposal PR, bounded; in hatsu the plugin manifest is bumped in the DELIVERY PR, so the release PR touches the changelog only). Exactly the paths getsuga § 3 writes when it folds a release here: the collated CHANGELOG section and the fragments it deletes. Not .claude-plugin/plugin.json (the delivery PR carries the bump; getsuga § 3 step 5 is a no-op in this repository), and not nen/repos.json (this registry carries no `latest` key). `nen release unit-check --pr <n>` compares a pull request's changed files to this list (the same prefix/glob grammar review.scopes uses), and `nen pr merge --release-unit` refuses to merge a release-proposal PR that touches anything outside it. From nen v0.15.1 an entry may also be {\"path\": \"<exact json file>\", \"keys\": [...]} to bound a JSON file to named leaf keys -- unused here. Hatsu declares no tags.identity, so no archive-written identity file belongs here.",
+    "unitPaths": [
+      "CHANGELOG.md",
+      "changelog.d/**"
+    ]
+  },
+  "futon": {
+    "$comment": "The ADVANCE-GO GATE -- the maintainer's rulings of 2026-09-26 and 2026-09-28 (docs/ROSTER.md § Rulings of 2026-09-26/27/28: getsuga and kagutsuchi take an advance go on any repository kind; mugetsu only on a process or library repository, never a product that deploys or uploads to a store; the three kinds are docs/WORKFLOW.md § Repository kinds). `nen parse futon` annotates every skill-chain step whose skill is listed here with gate: {allowed, kind, reason}, the kind being `nen repo classify`'s own verdict for the resolved repo (unknown fails closed); a skill not listed here gets no gate, and futon § 8 refuses a listed skill's step that carries none. From nen v0.15.1 an ABSENT key falls back to nen's built-in default policy (gate.source \"default\"), and a declared one replaces it wholesale (gate.source \"declared\") -- hatsu declares its own so the policy is read from here. The policy lives here and nowhere in prose: mugetsu § 3 and futon § 8 read the gate line verbatim.",
+    "advanceGo": {
+      "mugetsu": ["process", "library"],
+      "getsuga": ["product", "process", "library"],
+      "kagutsuchi": ["product", "process", "library"]
+    }
   }
 }

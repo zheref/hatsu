@@ -11,7 +11,7 @@ verb is a verb** from the [**Nen**](https://github.com/zheref/nen) CLI: Nen dete
 verifies; the skill supplies only the judgment a binary cannot. Where no verb exists yet, the residue is
 **named per skill** in [`docs/ab/`](docs/ab/) rather than quietly improvised.
 
-No GitHub App. No bot identity. Nothing here merges `main` or casts a review vote. **Nothing here publishes a release on its own authority**: from `v0.40.0` the `plugin` lane declares a real `release` row, so `hatsu:mugetsu` has something to run — but it runs it only on your recorded per-target go at **`G3`** (`CON-6`), never a composite's and never an agent's.
+No GitHub App. No bot identity. Nothing here casts a review vote, and nothing here merges `main` except `getsuga` merging its own release-proposal PR through `nen pr merge --release-unit` (your ruling of 2026-09-26, `docs/ROSTER.md` § *Rulings of 2026-09-26/27/28*). **Nothing here publishes a release on its own authority**: from `v0.40.0` the `plugin` lane declares a real `release` row, so `hatsu:mugetsu` has something to run — but it runs it only on your typed go at **`G3`** — by name, or in advance as a step of your own `futon` `then` chain (the advance go) — never a composite's own and never an agent's.
 
 > **The current release is whatever [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json)'s `version`
 > says, and this line names no number on purpose** — a version repeated in prose is a version that drifts,
@@ -583,10 +583,11 @@ FAIL by pointer — and [`docs/WORKFLOW.md`](docs/WORKFLOW.md) documents both.
 
 ### The range
 
-*Current pin, echoed for convenience:* **`nen >= 0.14`**, with the bootstrap installing **`v0.14.0`**.
-Those are two values and they move independently. Hatsu adopts `nen wc swap` and `nen wc worktrees`,
-introduced in v0.14.0 as the engine of `amenotejikara`; this feature requirement raises its minimum
-even though Nen's compatibility floor remains 0.7. The live skill surface is **forty-four**, forty-five
+*Current pin, echoed for convenience:* **`nen >= 0.15`**, with the bootstrap installing **`v0.15.1`**.
+Those are two values and they move independently. Hatsu adopts the futon label selector, `then` skill
+chains and advance-go gate, the `library` kind, `nen release unit-check` and `nen pr merge --release-unit`,
+introduced in v0.15.0 and made fail-closed in v0.15.1; this feature requirement raises its minimum even though Nen's compatibility floor
+remains 0.7. The live skill surface is **forty-four**, forty-five
 directories per surface with `hatsu-warmup`.
 
 **The range is nen's answer, not this README's arithmetic — and not the warm-up's either.** The binary
@@ -775,8 +776,8 @@ Forty-four, invoked as `hatsu:<name>` (forty-five directories with `hatsu-warmup
 | `bankai-quality` | Resolves the adversarial-test tooling, performance tooling and QA rules for a repo's scenario, before a release is cut. |
 | `build` | Takes one issue from wherever it sits to a delivery PR standing ready at its human gate. |
 | `file` | Files one well-formed, correctly-labelled, non-duplicate issue — reconciled against the open backlog first. |
-| `futon` | Takes one whole severity band from open issues to PRs with an actor behind them, then **gates** the terminal step you typed — it clears its own gate and hands the cut to `getsuga`; it never cuts a tag itself. |
-| `getsuga` | **Cuts** a release tag locally, end to end — preconditions, one folded **release-proposal** PR you merge, the **post-merge** tag, the fan-out and the consumers' repin PRs. The release unit is `susanoo`'s; publication is `mugetsu`'s. Never publishes a release. |
+| `futon` | Takes one selector's worth of the backlog — a whole severity band (`@<severity>[+]`), or every open issue carrying one exact label (`@<label>`) — from open issues to PRs with an actor behind them, then **gates** whatever you typed after `then` — `tag`/`tag+fanout` handed to `getsuga`, any installed skill run under its own authority, or prose mapped to skills and verbs before acting; nothing runs until every PR this run authored is Ready, and it never cuts a tag itself. |
+| `getsuga` | **Cuts** a release tag locally, end to end — preconditions, one folded **release-proposal** PR it merges itself through `nen pr merge --release-unit` (otherwise you merge), the **post-merge** tag, the fan-out and the consumers' repin PRs. The release unit is `susanoo`'s; publication is `mugetsu`'s. Never publishes a release. |
 | `izanagi` | Repeats a task that **acts** until a condition holds, under a **mandatory** iteration cap. No cap, no run. |
 | `izanami` | Repeats a **read-only** task until a condition holds. It looks, reports, and stops. |
 | `jujisho` | Splits a mixed working copy into up to two stacked branches and PRs, by axis, proving nothing was left behind. |
@@ -837,8 +838,8 @@ of the five. [`docs/WORKFLOW.md`](docs/WORKFLOW.md) § 4 is the authority.
 | Skill | | |
 |---|---|---|
 | `susanoo` | **atomic** | **Archive and packaging.** Runs the lane's declared `archive` and produces the distributable **locally**. It uploads nothing and signs nothing — Nen never synthesises signing material — and an unsupported seat is quoted, never routed around. Where the repository declares `tags.identity`, it also NAMES the identity the tag `kagutsuchi` cuts on a successful upload will carry — it cuts none itself. This is the release unit `getsuga` folds into the release PR and the two phases below send. |
-| `kagutsuchi` | **atomic** | **Non-production upload — yours to call, per target.** The plan is always printed (`nen shu deploy --target <name>`, no `--run`); `--run` acts only on your own call **naming the target**, and never from a composite. `--target` is required with no default, even where exactly one destination is declared. |
-| `mugetsu` | **atomic** | **Publication — yours to call, per target, G3.** Only on your recorded per-target go, with the preflight green and the tag already cut. **One target per call**, and never from `getsuga`, `futon` or `en`. This is the only phase that reaches other people's users. |
+| `kagutsuchi` | **atomic** | **Non-production upload — yours to call, per target.** The plan is always printed (`nen shu deploy --target <name>`, no `--run`); `--run` acts only on your own call **naming the target** — by name, or as a `futon` `then` step on your advance go — never from a composite on its own. `--target` is required with no default, even where exactly one destination is declared. |
+| `mugetsu` | **atomic** | **Publication — yours to call, per target, G3.** Only on your recorded per-target go, with the preflight green and the tag already cut. **One target per call**, never from `getsuga` or `en`, and from `futon` only as a `then` step on your advance go, on a process or library repository (`nen repo classify`; a library declares `project.kind`). This is the only phase that reaches other people's users. |
 
 > **The boundary was always the governance, not the file.** These three were named phases before they were
 > skills, and the loop stopped at them then exactly as it does now.
@@ -1313,9 +1314,9 @@ rewrite; [`docs/ROSTER.md`](docs/ROSTER.md) carries the same table.
 |---|---|---|
 | **G1 — Epic approval** — the human applies one delivery-mode label | `CON-4` | **Never** |
 | **G1-M — Release into build** — applying the building stage label | `CON-25` | **The one delegated crossing** — only under `CON-25`'s four exhaustive, named carve-outs |
-| **G2 — Merge to `main`** | `CON-5` | **Never** by these agents. No agent here merges `main`, or its own PR anywhere. |
-| **G3 — Release go/no-go** | `CON-6` | **Never.** Preparing a release is allowed; publishing is not. |
-| **G4 — Policy / spec change**, meaning **authoring or maintaining a canon repository** — `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`, whose product *is* the process | `CON-7` | **Never** |
+| **G2 — Merge to `main`** | `CON-5` | **Never** by these agents — save `getsuga` § 3a merging its own release-proposal PR through `nen pr merge --release-unit` (`docs/ROSTER.md` § *Rulings of 2026-09-26/27/28*). |
+| **G3 — Release go/no-go** | `CON-6` | **Never on an agent's word.** Preparing a release is allowed; publishing runs only on your typed go — by name, or as a `mugetsu` step of your own `futon` chain. |
+| **G4 — Policy / spec change**, meaning **authoring or maintaining a canon repository** — the repositories `nen repo classify` reports as `role: canon`, whose product *is* the process | `CON-7` | **Never** — with the same one carve-out as G2, `getsuga` § 3a's own release proposal at `canon-merge` |
 | **G5 — Anything else human-only** | `CON-47` | **Never** — its definition *is* "the decision is yours" |
 
 > **G4 is the repository's role, not the file's kind (maintainer's ruling, 2026-09-18).** A change is

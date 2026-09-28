@@ -773,3 +773,24 @@ where I expected"*. It is no longer a mismatch to note as a nen defect.
 **Unchanged**: § Hard limits' rule against re-ordering the written section by eye. The written order
 was always correct, and hand-reordering it would corrupt a real changelog into oldest-first. Nothing
 was ever dropped, duplicated or misattributed, and the written content was always right.
+
+
+## Dated verification, 2026-09-28 — § 3a's chain shape at nen 0.15.0
+
+Run live in the hatsu checkout (`--repo .`, `nen 0.15.0`), the invocation § 3a is reached from:
+
+```text
+$ nen parse futon --repo . "hatsu@bug then getsuga+mugetsu"
+repo: zheref/hatsu
+label: bug (exact match, no expansion)
+then: skills getsuga -> mugetsu (existence and authority are the caller's to check)
+  gate: getsuga allowed ('process' is an allowed repo kind for 'getsuga')
+  gate: mugetsu allowed ('process' is an allowed repo kind for 'mugetsu')
+exit=0
+```
+
+`getsuga` is the first step with no `@<target>`, so § 1 resolves the token to `main`; the step's `gate`
+is `nen parse futon`'s on `futon.advanceGo`, not this skill's. `nen pr merge --release-unit` itself was
+not run: no release-proposal PR was open in this checkout, and a plan-only run against a delivery PR
+would refuse at `release unit-check` by design (`release.unitPaths` is `CHANGELOG.md` and
+`changelog.d/**`). The verb's own scripted fixtures are nen's (`src/pr/mergeunit.test.ts`).
