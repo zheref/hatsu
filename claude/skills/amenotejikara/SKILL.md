@@ -6,7 +6,7 @@ description: Swap which worktree the maintainer's core checkout holds, and swap 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
 `docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
-`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+`ten` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
 trigger a duplicate filing. Never copy or invent a second policy in the target repository.
 
@@ -29,7 +29,7 @@ the wrong one: breakpoints are keyed on source paths, so they bind unreliably an
 
 [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 7b: this skill inherits no caller
 state, so its `## 0.` adds **P1** and orientation only. **P1 · Warm up** through
-[`hatsu:hatsu-warmup`](../hatsu-warmup/SKILL.md), unconditionally: every verb here is `nen wc swap` or
+[`hatsu:ten amenotejikara`](../ten/SKILL.md), unconditionally (ten § 6 catches up the prerequisites): every verb here is `nen wc swap` or
 `nen wc worktrees`, which exist only from nen `0.14`, so a warm-up that has not proved the pinned
 build has not proved this skill can run. A binary older than `0.14` answers the verbs as unknown —
 that is the warm-up's re-pin, never a reason to improvise the swap with raw git. **Orientation:** say

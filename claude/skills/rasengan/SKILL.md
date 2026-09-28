@@ -6,7 +6,7 @@ description: Author the requested change and its focused tests on the declared s
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
 `docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
-`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+`ten` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
 trigger a duplicate filing. Never copy or invent a second policy in the target repository.
 
@@ -68,7 +68,7 @@ request and runs exactly as `ren` step 2 does. A **bare** `hatsu:rasengan` has n
 the request through the surface's own picker or in one line, and **never infer it** from the last thing
 the session was doing (`ren` § 1's rule, for the same reason).
 
-**Two clauses of the contract apply.** **P1** — [`hatsu:hatsu-warmup`](../hatsu-warmup/SKILL.md) — and,
+**Two clauses of the contract apply.** **P1** — [`hatsu:ten rasengan`](../ten/SKILL.md), ten § 6 catching up the fresh base and effort branch — and,
 where no [`hatsu:breath`](../breath/SKILL.md) ran, **say so**: authoring onto an unverified base is the
 one ordering relation `ren` § 2 names first, and a red base discovered later reads as this change's fault.
 Offer breath; it will read work-in-progress as a continuation and cut nothing.

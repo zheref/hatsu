@@ -48,7 +48,7 @@ fi
 #   claude/*          — everything plugin.json points at: `agents` (kurapika,
 #                       gon, hisoka, phinks, uvogin, and — from Hatsu 0.5.0 —
 #                       feitan, chrollo, illumi; from Hatsu 0.25.0, netero), `commands` (/kurapika), and
-#                       `skills` (the 40 skills + hatsu-warmup — 35 until
+#                       `skills` (the 40 skills + ten — 35 until
 #                       Hatsu 0.6.0 added susanoo, kagutsuchi and mugetsu, 38
 #                       until 0.24.0 added byakugan, 39 until 0.27.0 added
 #                       third-hand), plus
@@ -110,7 +110,7 @@ fi
 #                       SAME CRITERION AS templates/ AND docs/ROSTER.md, and it
 #                       is the run-time read that puts them here rather than
 #                       their being generated: on Codex and Cursor there is no
-#                       plugin loader, so `hatsu-warmup` § 5 reads
+#                       plugin loader, so `ten` § 5 reads
 #                       `$CLAUDE_PLUGIN_ROOT/surfaces/<surface>/` and links (or
 #                       copies) it into the repository the session is standing
 #                       in. An installed copy whose mirrors are stale therefore
@@ -126,7 +126,7 @@ fi
 #   scripts/surface_bootstrap.sh
 #                     — the one non-skill first-run installer for Codex and
 #                       Cursor. It is invoked from an installed checkout before
-#                       hatsu-warmup can be discovered, then by that warm-up for
+#                       ten can be discovered, then by that warm-up for
 #                       each complete surface refresh. A stale installed copy
 #                       recreates the first-run failure this guard exists to
 #                       prevent, so this one runtime script is covered; the

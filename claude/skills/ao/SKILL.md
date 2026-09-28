@@ -6,7 +6,7 @@ description: Bring the branch up to date with its base — rebase when nothing h
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
 `docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
-`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+`ten` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
 trigger a duplicate filing. Never copy or invent a second policy in the target repository.
 
@@ -31,7 +31,7 @@ pushes what it produced.
 **Ao already reads the checkout rather than a caller.** § 2 reads the state before anything, § 3 decides
 rebase-vs-merge from whether anything has been published, and `from <base>` carries the base with
 `nen/workflow.json → branch.base` underneath it. [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4 lists it as already total; the clauses that
-apply are **P1** — [`hatsu:hatsu-warmup`](../hatsu-warmup/SKILL.md) when no composite ran it — and the
+apply are **P1** — [`hatsu:ten ao`](../ten/SKILL.md) when no composite ran it, catching up this phase's prerequisites (ten § 6) — and the
 base resolving against the **fetched `origin/`** ref, which § 3 already requires.
 
 **Nothing about a standalone call relaxes § 6**: a *semantic* conflict is a **G5** stop with both sides

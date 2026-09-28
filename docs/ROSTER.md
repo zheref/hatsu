@@ -798,7 +798,7 @@ why Chrollo and Feitan could not be acted as between the ruling on 2026-09-09 an
 Hatsu depends hard on the [Nen](https://github.com/zheref/nen) CLI (**D10**). The contract is machine-readable
 at [`../nen/contract.json`](../nen/contract.json) — nen's own location and shape for a repository's dependency
 declaration, so `nen schema check` validates it — and executed by the
-[`hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md) skill, which every agent runs first, every session:
+[`ten`](../claude/skills/ten/SKILL.md) skill, which every agent runs first, every session:
 
 **The contract file is the single source of truth**; the values below are convenience copies of what lives
 there, and where a copy disagrees the contract wins.
@@ -883,7 +883,7 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
 
 ## Rulings of 2026-09-26/27/28 — futon's selector and chains, the advance go, three kinds, getsuga's own merge, nen decides
 
-Six rulings, recorded here once; every skill, agent file, manifest and decisions row that carries one
+Seven rulings, recorded here once; every skill, agent file, manifest and decisions row that carries one
 cites this section rather than the date alone. Where an earlier section says the opposite it is
 amended by this one, and says so in place.
 
@@ -929,6 +929,19 @@ amended by this one, and says so in place.
    from `nen repo classify`'s `role`, never from a list in prose; no Hatsu ruling waits on another
    repository's constitution. Earlier sections that list `zheref/bankai-core` among the canon are
    history, amended here.
+7. **getsuga's cut point is the configuration's; `ten` catches up the phase's prerequisites**
+   (2026-09-28): *"Let's have getsuga ALWAYS default to `main` unless specified differently from the
+   one of the configuration files we already use … Getsuga can always expect an override to target
+   but should NEVER require one."* The default is `nen/workflow.json` → `branch.base` (the trunk
+   breath fast-forwards and ao pulls from), plain `main` when the key or file is absent, stated with
+   its source in the run's first line; a typed token always overrides; a version-shaped token that
+   resolves to nothing is the tag name. The `missing-maintainer-choice` rule is lifted for the cut
+   point alone. *"Let's rename hatsu-warmup to be called ten"* — `hatsu:ten`, everywhere a live
+   reference stands; dated transcripts stay as written. *"Let's have ten also catch up with any
+   missing required step in the Hatsu workflow"* — ten receives the invoking phase's name and runs
+   that phase's missing safe prerequisites in order, stopping at any that is the maintainer's call:
+   [`ten`](../claude/skills/ten/SKILL.md) § 6 is the phase → prerequisite map, and its *Suggested
+   next steps* list is unruled. [`getsuga`](../claude/skills/getsuga/SKILL.md) § 1.
 
 ## Rulings of 2026-09-14 — byakugan owns coverage; kotoamatsukami owns tests
 

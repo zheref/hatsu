@@ -6,7 +6,7 @@ description: Capture instrumented coverage and measure touched-file coverage at 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
 `docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
-`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+`ten` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
 trigger a duplicate filing. Never copy or invent a second policy in the target repository.
 
@@ -53,7 +53,7 @@ tree and asks a different question — *how much of what I changed did they actu
 already. The contract is [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md), and this
 section states the two things § 1 left to the caller. **Reached from ANY composite, skip this section entirely** — the composite established P1–P4, and re-deriving them is how two answers to one question appear. Say which composite is holding the run. `mukai` and `en` both reach it.
 
-**P1 · Warm up.** [`hatsu:hatsu-warmup`](../hatsu-warmup/SKILL.md), unconditionally.
+**P1 · Warm up.** [`hatsu:ten byakugan`](../ten/SKILL.md), unconditionally; ten § 6 catches up this phase's prerequisites.
 
 **P3 · With no `against` clause the base is `origin/<branch.base>`, fetched — the REMOTE trunk.**
 § 1 resolves the clause-less case to `nen/workflow.json → branch.base`; cold, that name is resolved

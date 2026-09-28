@@ -8,7 +8,7 @@ Request from the human: $ARGUMENTS
 
 Kurapika: run your **session warm-up first**, both steps, in order.
 
-1. **The Nen dependency contract (D10).** Load the **`hatsu-warmup`** skill and run it. Its § 0 block is
+1. **The Nen dependency contract (D10).** Load the **`ten`** skill and run it. Its § 0 block is
 ONE shell: it resolves the Hatsu root — `$HATSU_PLUGIN_ROOT`, else the path you were handed, else
 `$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout, canonicalised to an absolute path —
 prints it, and reads `nen/contract.json` from it in that same shell; a variable from an earlier shell is never

@@ -126,7 +126,7 @@ driving them. A legacy-CI PR does not hold it. Then, as `nen parse futon` classi
 - **`then <skill>[@<target>][+…]`** (`kind: skills`, `steps` inside; bare or `hatsu:`-prefixed) run
   **in order**, each resolved against the installed skills (bare `name` as `hatsu:name`; an
   unresolved token makes the clause prose) and run **under its own authority, gates and grammar**,
-  never futon's delegation (§ 7), `@<target>` its argument (getsuga's token, `main` with none; a
+  never futon's delegation (§ 7), `@<target>` its argument (getsuga's token, its configuration default — `branch.base` — with none; a
   destination otherwise). The typed invocation is the **advance go** [`mugetsu`](../mugetsu/SKILL.md)
   § 3 defines and this file does not restate — quoted at the echo; a delivery-merge prompt is a wait,
   and only a **G5 or a halt** ends it. **The gate is the parse's**: a step of a skill

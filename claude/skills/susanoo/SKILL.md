@@ -6,7 +6,7 @@ description: Produce the distributable this repository declares — run the lane
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
 `docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
-`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+`ten` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
 trigger a duplicate filing. Never copy or invent a second policy in the target repository.
 
@@ -46,7 +46,7 @@ to see what a checkout packages to. It never pushes, never opens anything, and n
 release unit, **and** it is invoked by name to package a checkout on demand. That is exactly the
 wireability [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 2 Rule 2 asks of every skill, and susanoo had it first.
 
-The only clause to add is **P1** — [`hatsu:hatsu-warmup`](../hatsu-warmup/SKILL.md) when no composite
+The only clause to add is **P1** — [`hatsu:ten susanoo`](../ten/SKILL.md), ten § 6 catching up the prerequisites, when no composite
 ran it — plus one line of **P2** in the report: **which commit and whether the tree was clean**, because
 an archive built from a dirty checkout is a distributable that matches no commit and the path list alone
 does not say so.

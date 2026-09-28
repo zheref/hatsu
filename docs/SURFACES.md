@@ -17,7 +17,7 @@ reduced to the keys each surface documents and the invocation respelled, produce
 
 | | **Claude Code** | **Codex** | **Cursor** | **Antigravity** |
 |---|---|---|---|---|
-| how Hatsu arrives | `claude plugin install hatsu@hatsu` | bootstrap seeds `hatsu-warmup`; the warm-up refreshes every session | the same, by symlink | global plugin at `~/.gemini/config/plugins/hatsu`, or bootstrapped into `.agents/` |
+| how Hatsu arrives | `claude plugin install hatsu@hatsu` | bootstrap seeds `ten`; the warm-up refreshes every session | the same, by symlink | global plugin at `~/.gemini/config/plugins/hatsu`, or bootstrapped into `.agents/` |
 | skills read from | `$CLAUDE_PLUGIN_ROOT/claude/skills/<name>/SKILL.md` | `<repo>/.agents/skills/<name>/SKILL.md` (copies) | `<repo>/.cursor/skills/<name>/SKILL.md` (symlinks) | plugin `<name>/SKILL.md` or `<repo>/.agents/skills/<name>/SKILL.md` |
 | personas read from | `claude/agents/<persona>.md` | `AGENTS.override.md` as prose, plus `.codex/agents/<persona>.toml` | `.cursor/agents/<persona>.md` | plugin `agents/<persona>.md` or `.agents/agents/<persona>.md` |
 | rules file | none | `AGENTS.override.md` (32 KiB cap) | `.cursor/rules/hatsu.mdc` | `rules/hatsu.md`, 12,000 characters max |
@@ -46,7 +46,7 @@ hook's.
 checkout; it cannot make an undiscovered skill callable. Codex, Cursor and Antigravity workspace mode
 need one command before their first warm-up:
 `"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface <codex|cursor|antigravity> --target . --bootstrap`,
-which seeds only `hatsu-warmup`; that skill's every-session refresh calls the same script with
+which seeds only `ten`; that skill's every-session refresh calls the same script with
 `--install-all`. Fixture: `scripts/surface_bootstrap_fixture_check.sh`.
 
 **The invocation spelling is the mirror's.** Every `hatsu:<name>` in a skill body is rewritten by the
@@ -57,7 +57,7 @@ and nen hard-codes no system's vocabulary.
 
 | Path | |
 |---|---|
-| `claude/skills/<name>/SKILL.md` | **authored.** The one source, 45 directories (forty-four plus `hatsu-warmup`) |
+| `claude/skills/<name>/SKILL.md` | **authored.** The one source, 45 directories (forty-four plus `ten`) |
 | `claude/agents/<persona>.md` | **authored.** The one source, eleven personas plus the preamble include (`_review-preamble.md`, the shared reviewer protocol and not a persona: `agents/_review-preamble.md` on Cursor and Antigravity, a `## _review-preamble` section in Codex's `AGENTS.md`) |
 | `hooks/hooks.json`, `contracts/permissions.json`, `nen/workflow.json` | **authored.** The inputs the generator renders hooks, permissions and model config from |
 | `surfaces/codex/<name>/SKILL.md`, `AGENTS.md`, `agents/*.toml`, `config.toml`, `config.toml.fragment`, `hooks.json` | **generated** |
@@ -146,7 +146,7 @@ The check runs beside the regeneration, in `mukai`, before `shibari` opens the P
 | per-surface paths, keys, hooks, permissions, rules, picker, generation, dated checklist | [`docs/surfaces/<surface>.md`](surfaces/README.md) |
 | the skeleton every guide follows, the shared placement rules, updating the checkout | [`docs/surfaces/README.md`](surfaces/README.md) |
 | headless validation commands and their transcripts | [`docs/surfaces/evidence/surfaces.md`](surfaces/evidence/surfaces.md), Appendix A |
-| placing the mirrors into a target | [`claude/skills/hatsu-warmup/SKILL.md`](../claude/skills/hatsu-warmup/SKILL.md) § 5 |
+| placing the mirrors into a target | [`claude/skills/ten/SKILL.md`](../claude/skills/ten/SKILL.md) § 5 |
 | the bell and the picker at a gate | [`claude/skills/jutaisho/SKILL.md`](../claude/skills/jutaisho/SKILL.md) |
 | raising a reviewer per surface | [`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 4 and § 7 |
 | the model matrix | [`nen/workflow.json`](../nen/workflow.json) → `models`; [`docs/WORKFLOW.md`](WORKFLOW.md) § 2 |

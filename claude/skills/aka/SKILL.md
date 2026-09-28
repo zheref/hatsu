@@ -6,7 +6,7 @@ description: Send the branch out — gyo (lint) before rewriting history, squash
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
 `docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
-`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+`ten` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
 trigger a duplicate filing. Never copy or invent a second policy in the target repository.
 
@@ -42,7 +42,7 @@ the advance go [`mugetsu`](../mugetsu/SKILL.md) § 3 defines — still never pro
 a stop's options and a composite must never offer — and a standalone run is precisely where such an offer
 would read as the pipeline knowing best.
 
-**P1** applies — [`hatsu:hatsu-warmup`](../hatsu-warmup/SKILL.md) — and **P2** belongs in the report
+**P1** applies — [`hatsu:ten aka`](../ten/SKILL.md), which catches up this phase's prerequisites (ten § 6) — and **P2** belongs in the report
 before the squash: the branch, clean-or-dirty, how many commits are unpushed, and which are already on
 the remote. § 4 squashes **only unpushed** commits and that boundary is read from the remote, never
 remembered.

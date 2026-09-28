@@ -73,7 +73,8 @@ Every skill that carries a **`## 0. Standalone entry`** section runs this first 
 holding the run. A skill running *inside* a composite skips it entirely: the caller already
 established every one of these, and re-deriving them is how two answers to one question appear.
 
-**P1 · Warm up.** [`hatsu:hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md), unconditionally.
+**P1 · Warm up.** [`hatsu:ten <phase>`](../claude/skills/ten/SKILL.md), unconditionally, with the
+phase's own name so ten § 6 catches up that phase's missing prerequisites (ruling 2026-09-28).
 Hatsu's hard Nen dependency (`D10`) is satisfied by the composites before they reach a phase; a phase
 reached directly has nobody to have done it. A `nen` call on an unwarmed host is the failure this step
 exists to prevent, and it is fail-closed with auto-install.

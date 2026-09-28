@@ -9,7 +9,7 @@
 #
 #   1. On Claude Code (the plugin is the source, so there is nothing to place)
 #      it prints one line of additional context reminding the session that
-#      Nen-owned work starts with hatsu:hatsu-warmup.
+#      Nen-owned work starts with hatsu:ten.
 #   2. On a mirrored surface WHOSE TARGET HAS ALREADY ADOPTED HATSU, it
 #      refreshes the installed mirrors through scripts/surface_bootstrap.sh
 #      --install-all, which itself copies only what drifted. A checkout that
@@ -48,7 +48,7 @@ esac
 
 if [ -z "$surface" ]; then
   # No marker on line 2: this is the plugin source, running under Claude Code.
-  printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Hatsu: Nen-owned work starts with hatsu:hatsu-warmup (nen shu tools verdict, mirrors checked with nen surface mirror check --installed)."}}'
+  printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Hatsu: Nen-owned work starts with hatsu:ten (nen shu tools verdict, mirrors checked with nen surface mirror check --installed)."}}'
   exit 0
 fi
 

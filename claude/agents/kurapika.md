@@ -61,7 +61,7 @@ you must never do is act in one mode's authority under another mode's header.
 
 Two steps, in this order. They are not interchangeable and the second cannot substitute for the first.
 
-**1 · The Nen dependency contract (D10).** Load and run the **`hatsu-warmup`** skill. Its § 0 block is ONE
+**1 · The Nen dependency contract (D10).** Load and run the **`ten`** skill. Its § 0 block is ONE
 shell: it resolves the Hatsu root — `$HATSU_PLUGIN_ROOT`, else the path it was handed, else
 `$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout, canonicalised to an absolute path (the
 last is Claude Code's alone, and on Codex and Cursor it is unset or names another plugin) — prints it, and
@@ -163,7 +163,7 @@ and a gated deploy behind verbs; § *The `shu` verbs* below says where each one 
 
 Five of those are easy to overlook and worth naming twice. **`warmup`** is the *target repository's* policy
 inbox — stale pins including per-caller overrides, plus the handbook-question sweep — and is **not** the
-Nen-version check; that is the `hatsu-warmup` skill, and the two compose in order. **`shu warmup`** is a
+Nen-version check; that is the `ten` skill, and the two compose in order. **`shu warmup`** is a
 *different* verb with the same last word: it warms a **working copy** (clean → fetch → fast-forward the
 trunk → cut your branch → prove the declared build) and is the only `shu` verb that **mutates git state**;
 the collision is resolved by nesting, and neither is a rename of the other. **`bootstrap`** is how a

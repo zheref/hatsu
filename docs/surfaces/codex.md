@@ -11,7 +11,7 @@ been emitting a `SessionStart` hook there since v0.41.0.
 
 | | |
 |---|---|
-| how Hatsu arrives | a checkout on the host, one bootstrap (`scripts/surface_bootstrap.sh --surface codex --target . --bootstrap`, which seeds only `hatsu-warmup`), then `$hatsu-warmup` every session |
+| how Hatsu arrives | a checkout on the host, one bootstrap (`scripts/surface_bootstrap.sh --surface codex --target . --bootstrap`, which seeds only `ten`), then `$ten` every session |
 | skills read from | `<repo>/.agents/skills/<name>/SKILL.md`, scanned from the working directory upward; also `$HOME/.agents/skills` and `/etc/codex/skills` |
 | personas read from | `<repo>/AGENTS.override.md` as prose (all personas, one `## <name>` section each) and `<repo>/.codex/agents/<persona>.toml` as project-scoped custom agents |
 | config read from | `~/.codex/config.toml` (user), `.codex/config.toml` (project, trusted projects only) |
@@ -133,7 +133,7 @@ nen surface mirror generate --surface codex \
 
 | emits | from |
 |---|---|
-| `surfaces/codex/<name>/SKILL.md`, 44 files (forty-three plus `hatsu-warmup`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `$<name>` | `claude/skills/**` |
+| `surfaces/codex/<name>/SKILL.md`, 44 files (forty-three plus `ten`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `$<name>` | `claude/skills/**` |
 | `surfaces/codex/AGENTS.md`, the appendix the warm-up copies into `AGENTS.override.md` after the target's own `AGENTS.md`, eleven personas plus the preamble include as sections (`## _review-preamble`) | `claude/agents/**` |
 | `surfaces/codex/agents/<persona>.toml`, one per persona, `name`, `description`, `developer_instructions`, `model` from the persona's tier | `claude/agents/**` and `nen/workflow.json` |
 | `surfaces/codex/config.toml`, the pack: `approval_policy`, `sandbox_mode`, `writable_roots` | `contracts/permissions.json` |

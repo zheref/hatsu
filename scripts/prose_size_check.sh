@@ -33,7 +33,7 @@ RULES_MAX=12000
 # The seventeen: fifteen from CHANGELOG v0.42.0 "The diet" plus black-voice and great-hiker, which
 # were authored under the ceiling rather than reduced to it.
 DIETED_SKILLS="amaterasu backlog-board backlog-loop black-voice breath build futon great-hiker hanten
-hatsu-warmup jujutsu jutaisho kagutsuchi kokusen spiritual-message sharingan shibari"
+ten jujutsu jutaisho kagutsuchi kokusen spiritual-message sharingan shibari"
 
 root="${1:-}"
 if [ -z "$root" ]; then

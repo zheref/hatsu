@@ -2,7 +2,7 @@
 # Install Hatsu's first discoverable skill, or refresh a whole generated surface.
 #
 # This script exists for the one moment a Hatsu skill cannot run: before Codex or
-# Cursor has discovered hatsu-warmup. It deliberately shares the warm-up's
+# Cursor has discovered ten. It deliberately shares the warm-up's
 # safety contract: only generated Hatsu destinations may be replaced, tracked
 # files always win, and local installation state belongs in info/exclude.
 
@@ -13,8 +13,8 @@ usage() {
   cat <<'EOF'
 usage: scripts/surface_bootstrap.sh --surface codex|cursor|antigravity --target <repository> --bootstrap|--install-all
 
---bootstrap   Install only hatsu-warmup, making the first skill invocation discoverable.
---install-all Refresh the complete generated surface. hatsu-warmup uses this after discovery.
+--bootstrap   Install only ten, making the first skill invocation discoverable.
+--install-all Refresh the complete generated surface. ten uses this after discovery.
 EOF
 }
 
@@ -81,7 +81,7 @@ hatsu_root="$(canonical_directory "$script_dir/..")" || {
   exit 2
 }
 
-# Same structural manifest reader as hatsu-warmup: accept only the canonical
+# Same structural manifest reader as ten: accept only the canonical
 # pretty-printed plugin manifest shape, with exactly one top-level name.
 manifest_name() {
   awk '
@@ -156,7 +156,7 @@ target="$(canonical_directory "$target_candidate")" || {
 
 # ADOPTION GATE (zheref/hatsu#94), --install-all ONLY. --bootstrap is the
 # documented, human-run FIRST step (README.md, docs/SURFACES.md) that seeds
-# only hatsu-warmup into a target BEFORE it carries a Nen taxonomy file at
+# only ten into a target BEFORE it carries a Nen taxonomy file at
 # all, so it is deliberately exempt. --install-all is what places a COMPLETE
 # generated surface -- the mode the SessionStart hook calls automatically --
 # and it is refused unless the target has already adopted Hatsu: a Nen
@@ -172,7 +172,7 @@ if [ "$mode" = "--install-all" ]; then
   # path documented above at "SKILLS LIVE AT .agents/skills/<name> ONLY"),
   # never under `.codex/` -- `.codex/` only ever holds hooks.json, personas
   # and AGENTS.override.md. So a prior --bootstrap (which places only
-  # hatsu-warmup's SKILL.md, always under .agents/skills/) is detected there
+  # ten's SKILL.md, always under .agents/skills/) is detected there
   # for BOTH codex and antigravity, which share that path; only cursor's own
   # skills live under `.cursor/` itself.
   case "$surface" in
@@ -184,7 +184,7 @@ if [ "$mode" = "--install-all" ]; then
   # symlinks (a skill directory symlinked in from surfaces/cursor/<name>/),
   # and grep -r never follows a symlink into the tree it points at -- a
   # cursor target that had only ever seen --bootstrap (which places nothing
-  # but a symlinked hatsu-warmup) would read as never-adopted forever.
+  # but a symlinked ten) would read as never-adopted forever.
   #
   # THE MARKER MUST NAME *THIS* SURFACE. Codex and Antigravity both place
   # under `.agents/`, so a marker stamped `(surface: codex, …)` sitting there
@@ -207,7 +207,7 @@ fi
 
 declare -a skill_names=()
 if [ "$mode" = "--bootstrap" ]; then
-  skill_names=("hatsu-warmup")
+  skill_names=("ten")
 else
   # The canonical Claude source names the complete expected surface. Do not
   # infer it from a possibly partial generated mirror before removing stales.
@@ -450,9 +450,9 @@ ensure_local_directory() {
 fail_bootstrap_blocker() {
   local relative="$1"
   if [ "$mode" = "--bootstrap" ] && {
-    [ "$relative" = '.agents/skills/hatsu-warmup' ] || [ "$relative" = '.cursor/skills/hatsu-warmup' ]
+    [ "$relative" = '.agents/skills/ten' ] || [ "$relative" = '.cursor/skills/ten' ]
   }; then
-    echo "refusing bootstrap: $relative blocks required hatsu-warmup discovery" >&2
+    echo "refusing bootstrap: $relative blocks required ten discovery" >&2
     exit 1
   fi
 }
@@ -937,7 +937,7 @@ if [ "$surface" = "codex" ]; then
     ensure_local_directory '.codex/hooks'
   fi
   if [ "$mode" = "--bootstrap" ]; then
-    preflight_bootstrap_destination '.agents/skills/hatsu-warmup'
+    preflight_bootstrap_destination '.agents/skills/ten'
   fi
 elif [ "$surface" = "antigravity" ]; then
   ensure_local_directory '.agents/skills'
@@ -947,7 +947,7 @@ elif [ "$surface" = "antigravity" ]; then
     ensure_local_directory '.agents/agents'
   fi
   if [ "$mode" = "--bootstrap" ]; then
-    preflight_bootstrap_destination '.agents/skills/hatsu-warmup'
+    preflight_bootstrap_destination '.agents/skills/ten'
   fi
 else
   ensure_local_directory '.cursor/skills'
@@ -957,7 +957,7 @@ else
     ensure_local_directory '.cursor/rules'
   fi
   if [ "$mode" = "--bootstrap" ]; then
-    preflight_bootstrap_destination '.cursor/skills/hatsu-warmup'
+    preflight_bootstrap_destination '.cursor/skills/ten'
   fi
 fi
 preflight_install_destinations

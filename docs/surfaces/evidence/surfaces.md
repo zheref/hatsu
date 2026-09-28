@@ -1,5 +1,7 @@
 # A/B — the Codex and Cursor surfaces (`surfaces/`, `nen surface mirror`)
 
+> Historical record, kept as written: the skill named `hatsu-warmup` throughout is `hatsu:ten` since `v0.48.0` (ruling 2026-09-28).
+
 **Recorded 2026-09-10, Hatsu `v0.7.0`.** Everything below was run on the maintainer's own machine against
 this repository and against the two CLIs it claims things about. Nothing is redacted — both repositories are
 public, and the third-party output is a public CLI's own help and catalogue.
