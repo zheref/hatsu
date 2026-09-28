@@ -14,7 +14,6 @@
 set -euo pipefail
 
 python3 - "$@" <<'PY'
-import fcntl
 import json
 import os
 import sys
@@ -23,6 +22,12 @@ import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+if os.name == "nt":
+    import msvcrt
+    _windows_thread_lock = threading.Lock()
+else:
+    import fcntl
 
 CONTRACT = "hatsu.hanten.cycle/v0.1"
 MAXIMA = {
@@ -58,23 +63,59 @@ def refuse(msg: str):
 
 
 class LedgerLock:
-    """Exclusive flock across load, mutation, and save for one branch ledger."""
+    """Exclusive file lock across load, mutation, and save for one branch ledger."""
 
     def __init__(self, repo: Path, branch: str):
         self.path = lock_path(repo, branch)
         self.fd = None
+        self.thread_lock_held = False
 
     def __enter__(self):
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.fd = os.open(self.path, os.O_CREAT | os.O_RDWR, 0o644)
-        fcntl.flock(self.fd, fcntl.LOCK_EX)
+        try:
+            if os.name == "nt":
+                # Windows byte-range locks need a byte to lock. The thread lock
+                # also serializes callers inside this Python process.
+                _windows_thread_lock.acquire()
+                self.thread_lock_held = True
+                if os.fstat(self.fd).st_size == 0:
+                    os.write(self.fd, b"\0")
+                os.lseek(self.fd, 0, os.SEEK_SET)
+                deadline = time.monotonic() + 30
+                while True:
+                    try:
+                        msvcrt.locking(self.fd, msvcrt.LK_NBLCK, 1)
+                        break
+                    except OSError:
+                        if time.monotonic() >= deadline:
+                            raise
+                        time.sleep(0.05)
+            else:
+                fcntl.flock(self.fd, fcntl.LOCK_EX)
+        except BaseException:
+            os.close(self.fd)
+            self.fd = None
+            if self.thread_lock_held:
+                _windows_thread_lock.release()
+                self.thread_lock_held = False
+            raise
         return self
 
     def __exit__(self, *exc):
         if self.fd is not None:
-            fcntl.flock(self.fd, fcntl.LOCK_UN)
-            os.close(self.fd)
-            self.fd = None
+            try:
+                if os.name == "nt":
+                    os.lseek(self.fd, 0, os.SEEK_SET)
+                    msvcrt.locking(self.fd, msvcrt.LK_UNLCK, 1)
+                else:
+                    fcntl.flock(self.fd, fcntl.LOCK_UN)
+            finally:
+                os.close(self.fd)
+                self.fd = None
+                if self.thread_lock_held:
+                    _windows_thread_lock.release()
+                    self.thread_lock_held = False
 
 
 def empty_reviewers():
@@ -264,7 +305,7 @@ def self_test() -> int:
     with tempfile.TemporaryDirectory() as tmp:
         repo = Path(tmp)
         branch = "grok/kurapika/demo-cycle"
-        all_five = list(PERSONAS)
+        all_reviewers = list(PERSONAS)
 
         try:
             load(repo, branch)
@@ -286,9 +327,9 @@ def self_test() -> int:
             doc = load(repo, branch)
 
         # Entry 1: every reviewer applicable and within budget.
-        d1 = decide(doc, all_five)
-        check("entry-1-raise-all-five", d1["raise"] == all_five, str(d1["raise"]))
-        for p in all_five:
+        d1 = decide(doc, all_reviewers)
+        check("entry-1-raise-all-reviewers", d1["raise"] == all_reviewers, str(d1["raise"]))
+        for p in all_reviewers:
             record(doc, p, "ran")
         with LedgerLock(repo, branch):
             save(repo, doc)
@@ -296,7 +337,7 @@ def self_test() -> int:
         # Remediation does not reset.
         with LedgerLock(repo, branch):
             doc2 = load(repo, branch)
-        check("remediation-keeps-used", all(doc2["reviewers"][p]["used"] == 1 for p in all_five))
+        check("remediation-keeps-used", all(doc2["reviewers"][p]["used"] == 1 for p in all_reviewers))
 
         try:
             record(doc2, "hisoka", "skipped-exhausted")
@@ -304,11 +345,12 @@ def self_test() -> int:
         except SystemExit as e:
             check("refuse-skipped-exhausted-under-budget", e.code == 2, str(e))
 
-        # Entry 2: Chrollo/Feitan/Phinks exhausted; Hisoka and Uvogin still raise.
-        d2 = decide(doc2, all_five)
+        # Entry 2: Chrollo/Feitan/Phinks exhausted; Nobunaga, Hisoka and Uvogin still raise.
+        d2 = decide(doc2, all_reviewers)
         check("entry-2-chrollo-exhausted", d2["skippedExhausted"] == ["feitan", "chrollo", "phinks"], str(d2["skippedExhausted"]))
-        check("entry-2-hisoka-uvogin-raise", d2["raise"] == ["hisoka", "uvogin"], str(d2["raise"]))
+        check("entry-2-nobunaga-hisoka-uvogin-raise", d2["raise"] == ["nobunaga", "hisoka", "uvogin"], str(d2["raise"]))
         record(doc2, "feitan", "skipped-exhausted")
+        record(doc2, "nobunaga", "ran")
         record(doc2, "hisoka", "ran")
         record(doc2, "uvogin", "ran")
         with LedgerLock(repo, branch):
@@ -320,7 +362,7 @@ def self_test() -> int:
         # Entry 3: Hisoka now exhausted (2/2); Uvogin still has one (2/3).
         with LedgerLock(repo, branch):
             doc3 = load(repo, branch)
-        d3 = decide(doc3, all_five)
+        d3 = decide(doc3, all_reviewers)
         check("entry-3-hisoka-exhausted", "hisoka" in d3["skippedExhausted"] and "hisoka" not in d3["raise"])
         check("entry-3-uvogin-raise", d3["raise"] == ["uvogin"], str(d3["raise"]))
         check("entry-3-chrollo-still-one", doc3["reviewers"]["chrollo"]["used"] == 1 and doc3["reviewers"]["chrollo"]["max"] == 1)
@@ -331,12 +373,13 @@ def self_test() -> int:
         # Entry 4: Uvogin hits 3/3; nobody raises.
         with LedgerLock(repo, branch):
             doc4 = load(repo, branch)
-        d4 = decide(doc4, all_five)
+        d4 = decide(doc4, all_reviewers)
         check("entry-4-no-raises", d4["raise"] == [], str(d4["raise"]))
         check("entry-4-uvogin-exhausted", "uvogin" in d4["skippedExhausted"])
         check(
             "maxima",
-            doc4["reviewers"]["feitan"]["used"] == 1
+            doc4["reviewers"]["nobunaga"]["used"] == 2
+            and doc4["reviewers"]["feitan"]["used"] == 1
             and doc4["reviewers"]["chrollo"]["used"] == 1
             and doc4["reviewers"]["phinks"]["used"] == 1
             and doc4["reviewers"]["hisoka"]["used"] == 2

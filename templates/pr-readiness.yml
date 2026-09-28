@@ -183,20 +183,48 @@ jobs:
           persist-credentials: false
 
       - name: Enforce workflow runner policy from trusted workflow revision
+        env:
+          TENKAI_GUARD_REQUIRED: @@GUARD_REQUIRED@@
         shell: bash
         run: |
           set -euo pipefail
-          ruby .trusted/scripts/workflow_runner_policy_check.rb --self-test "$PWD"
+          if [ -f .trusted/scripts/workflow_runner_policy_check.rb ]; then
+            ruby .trusted/scripts/workflow_runner_policy_check.rb --self-test "$PWD"
+          elif [ "$TENKAI_GUARD_REQUIRED" = true ]; then
+            echo "::error::The process repository's trusted workflow guard is missing."
+            exit 1
+          else
+            echo "::notice::No repository workflow guard is installed; Tenkai checks the rendered workflow at adoption."
+          fi
 
       - name: Read the pinned nen ref from trusted nen/contract.json
         # Identical in intent and in shape to surface-mirror-check.yml's own pin
         # step: the trusted contract is the single source of truth for the nen
         # dependency, and the value is shape-checked before it reaches a URL.
         id: pin
+        env:
+          TENKAI_PIN_FALLBACK_ALLOWED: @@PIN_FALLBACK_ALLOWED@@
+          TENKAI_FALLBACK_REF: @@NEN_REF@@
         shell: bash
         run: |
           set -euo pipefail
-          ref="$(jq -r '.dependency.pinned_ref // empty' .trusted/nen/contract.json)"
+          ref=""
+          if [ -f .trusted/nen/contract.json ]; then
+            if ! ref="$(jq -r '
+              if type != "object" then error("root must be an object")
+              elif has("dependency") and (.dependency | type) != "object" then error("dependency must be an object")
+              elif (.dependency.pinned_ref | type) != "string" and (.dependency.pinned_ref | type) != "null" then error("dependency.pinned_ref must be a string")
+              elif .dependency.pinned_ref == "" then error("dependency.pinned_ref must not be empty")
+              else .dependency.pinned_ref // empty end
+            ' .trusted/nen/contract.json)"; then
+              echo "::error::Trusted nen/contract.json is malformed or unreadable."
+              exit 1
+            fi
+          fi
+          if [ -z "$ref" ] && [ "$TENKAI_PIN_FALLBACK_ALLOWED" = true ]; then
+            ref="$TENKAI_FALLBACK_REF"
+            echo "Using the Nen ref rendered from Hatsu's dependency contract: $ref"
+          fi
           [ -n "$ref" ] || { echo "::error::nen/contract.json carries no dependency.pinned_ref."; exit 1; }
           case "$ref" in
             *..*|*//*) echo "::error::dependency.pinned_ref '$ref' is not a valid git ref (contains '..' or '//')."; exit 1 ;;

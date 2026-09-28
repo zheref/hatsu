@@ -258,19 +258,19 @@
       "id": "merge",
       "class": "human-gate",
       "gate": "G2",
-      "why": "CON-5: no agent in this plane merges main or its own PR anywhere."
+      "why": "No agent in this plane merges main or its own PR anywhere -- with one carve-out, docs/ROSTER.md § Rulings of 2026-09-26/27/28: getsuga § 3a merges its own release-proposal PR through nen pr merge --release-unit when every gate of that verb passes, never a delivery PR. A typed futon then step counts as the maintainer's call for a skill whose call is the maintainer's (the advance go, mugetsu § 3)."
     },
     {
       "id": "canon-merge",
       "class": "human-gate",
       "gate": "G4",
-      "why": "CON-7: a merge in a canon repository decides how every other repository behaves."
+      "why": "A merge in a canon repository decides how every other repository behaves -- with the same one carve-out as the merge row (docs/ROSTER.md § Rulings of 2026-09-26/27/28): getsuga § 3a merges its own release-proposal PR through nen pr merge --release-unit in a canon repository too; the release unit is declared in nen/workflow.json release.unitPaths and the verb bounds the diff to it."
     },
     {
       "id": "release-go",
       "class": "human-gate",
       "gate": "G3",
-      "why": "CON-6: publication is the maintainer's recorded per-target go; no composite reaches it."
+      "why": "Publication is the maintainer's recorded go; no composite reaches it on its own authority. The one composite path is the advance go (mugetsu § 3, docs/ROSTER.md § Rulings of 2026-09-26/27/28): the maintainer's own typed futon invocation whose then chain names mugetsu, gated by nen parse futon on nen/workflow.json futon.advanceGo (process and library only). With no target typed, mugetsu publishes the latest unpublished cut tag to the single declared destination; only several declared and none named is asked, as free text."
     },
     {
       "id": "mode-label",

@@ -67,6 +67,12 @@ import sys
 import tempfile
 from pathlib import Path
 
+# Windows PowerShell can start Python with a legacy console encoding. Adoption
+# reports contain Unicode policy text, so make their output portable as well.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
 CONTRACT = "hatsu.tenkai.adoption/v0.1"
 _FIXTURES: list = []
 HOSTED_RUNNER = "ubuntu-latest"
@@ -131,12 +137,14 @@ NEN_DECLARATIONS = [
 # reads it rather than parsing canon prose or adding a third question to the
 # preamble.
 #
-# WHY THE ROLE MATTERS HERE, AND ONLY HERE. A process/system repository is one
+# WHY THE ROLE MATTERS HERE. A process/system repository is one
 # whose releases other repositories consume, so its `release` row must be real:
 # a SEAT there means `hatsu:mugetsu` -- whose whole job is to execute that row at
 # G3 -- has nothing to execute, and publication happens by hand, outside the
-# machinery. A product repository's release row is its own business and Tenkai
-# asserts nothing about it.
+# machinery. A product chooses its own publisher and destination; Tenkai does
+# not render the process publisher there, but it does report an absent or seated
+# release row and every other declared lane seat. Otherwise "adopted" conceals
+# the very configuration work the product still needs.
 ROLE_PROCESS, ROLE_PRODUCT = "process", "product"
 
 
@@ -451,6 +459,19 @@ class Ctx:
             usage(f"no template at {p} — --hatsu-root must point at a Hatsu checkout or plugin root")
         return p.read_text()
 
+    def nen_ref(self):
+        """The bootstrap ref is Hatsu's pin, not a guessed consumer dependency."""
+        try:
+            contract = json.loads((self.hatsu_root / "nen" / "contract.json").read_text())
+            ref = contract["dependency"]["pinned_ref"]
+        except (OSError, ValueError, KeyError, TypeError):
+            return None
+        if not isinstance(ref, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/-]{0,99}", ref):
+            return None
+        if ".." in ref or "//" in ref:
+            return None
+        return ref
+
 
 # --------------------------------------------------------------------------
 # Items
@@ -762,11 +783,21 @@ class ReadinessWorkflow(Item):
         # workflow off its self-hosted labelled runner. Declining to judge a fact
         # and then overwriting it is worse than either alone.
         runs_on = keep_runs_on or ctx.runner["runs_on"]
+        process = ctx.role == ROLE_PROCESS
         return (t.replace("@@REPO_SLUG@@", ctx.slug)
                  .replace("@@RUNS_ON@@", runs_on)
-                 .replace("@@RUNNER_REASON@@", ctx.runner["reason"]))
+                 .replace("@@RUNNER_REASON@@", ctx.runner["reason"])
+                 .replace("@@GUARD_REQUIRED@@", "true" if process else "false")
+                 .replace("@@PIN_FALLBACK_ALLOWED@@", "false" if process else "true")
+                 .replace("@@NEN_REF@@", ctx.nen_ref()))
 
     def detect(self, ctx):
+        if ctx.role is None:
+            return self.row(BLOCKED, "repository role is unknown; the trusted guard and pin policy "
+                            "cannot be rendered safely", "record the role in nen/repos.json")
+        if ctx.nen_ref() is None:
+            return self.row(BLOCKED, "Hatsu's dependency.pinned_ref is absent or malformed; "
+                            "the readiness workflow cannot bootstrap Nen", "repair Hatsu's nen/contract.json")
         # BEFORE the file check, so `repair`'s BLOCKED early-return stops the write
         # on a fresh repository too -- not only where a file already exists.
         if ctx.runner.get("labels_required"):
@@ -834,6 +865,30 @@ class ReadinessWorkflow(Item):
         elif m and m.group(1) != ctx.runner["runs_on"]:
             drifts.append(f"runs-on is '{m.group(1)}', but this repository derives "
                           f"'{ctx.runner['runs_on']}' ({ctx.runner['reason']})")
+        # A consumer need not carry Hatsu's process guard or dependency block.
+        # Both are absent in a freshly scaffolded product. A rendered workflow
+        # that invokes the guard unconditionally or has no pin fallback is
+        # guaranteed to fail before the verdict, even though its YAML is valid.
+        process = ctx.role == ROLE_PROCESS
+        required = "true" if process else "false"
+        fallback = "false" if process else "true"
+        if f"TENKAI_GUARD_REQUIRED: {required}" not in live or \
+                'if [ -f .trusted/scripts/workflow_runner_policy_check.rb ]; then' not in live:
+            drifts.append("the trusted guard step does not handle this repository's role; "
+                          "a consumer without Hatsu's Ruby guard would fail before readiness")
+        # Compare the executable step, not snippets somewhere in the workflow.
+        # A shell `echo 'if [ -f ... ]; then'` otherwise makes a bare, failing
+        # jq invocation appear guarded to a whole-file substring search.
+        pin_name = "- name: Read the pinned nen ref from trusted nen/contract.json"
+        def pin_block(source):
+            blocks = re.split(r"\n(?=\s*- name:)", source)
+            return next((block.strip() for block in blocks
+                         if any(line.strip() == pin_name for line in block.splitlines())), None)
+        expected_live = "\n".join(l for l in self.render(ctx).splitlines()
+                                  if not l.lstrip().startswith("#"))
+        if pin_block(live) != pin_block(expected_live):
+            drifts.append("the Nen pin step differs from Hatsu's current trusted rendering; "
+                          "a consumer with no dependency block may fail before readiness")
         # THE INVARIANTS THE TEMPLATE SAYS IT INHERITS. Checking the slug, the
         # runner and the triggers left every security property of a PRIVILEGED,
         # CREDENTIALED workflow unchecked: a rendered file was mutated with the
@@ -1031,8 +1086,8 @@ class ReleasePublisher(Item):
                             "record it in nen/repos.json, then re-run")
         if ctx.role != ROLE_PROCESS:
             return self.row(SATISFIED,
-                            "not applicable — this is a PRODUCT repository, and how it publishes "
-                            "is its own business")
+                            "the generic process-repository publisher is not installed in a "
+                            "product; product lane release rows audit each destination")
         p = ctx.repo / self.REL
         if p.is_symlink():
             return self.row(BLOCKED, f"{self.REL} is a symlink — Tenkai does not follow one out of "
@@ -1111,9 +1166,6 @@ class ReleaseRow(Item):
                             "classify a repository for itself, so whether a real `release` row is "
                             "owed cannot be derived",
                             "record it under `maintained_tools` or `consumers`, then re-run")
-        if ctx.role != ROLE_PROCESS:
-            return self.row(SATISFIED, "not applicable — a PRODUCT repository declares whatever "
-                                       "release row its own stack needs")
         # ABSENT CONTRACT and DECLARED-BUT-LANELESS are different findings.
         # The first is already routed by the nen/contract.json item above; saying
         # "declare defaultLane" about a file that does not exist would send the
@@ -1134,6 +1186,16 @@ class ReleaseRow(Item):
         state = _release_row(ctx.repo)
         if state == "declared":
             return self.row(SATISFIED, f"lane '{lane}' declares a real `release` row")
+        if ctx.role == ROLE_PRODUCT:
+            why = "absent" if state == "absent" else "an unsupported seat"
+            return self.row(ROUTED,
+                            f"product lane '{lane}' (stack '{stack}') has {why} for `release`; "
+                            "Tenkai cannot call this product release-ready or choose its "
+                            "distribution channel",
+                            f"choose the product's release destinations, package identity, "
+                            f"signing and publisher; declare the executable at "
+                            f"project.verbs.{lane}.release in nen/contract.json, then run "
+                            "nen schema check --repo <path>. Tenkai never writes this declaration")
         offered = json.dumps({
             "exe": "bash",
             "argv": [ReleasePublisher.REL, "--repo", "."],
@@ -1151,6 +1213,211 @@ class ReleaseRow(Item):
 
     def repair(self, ctx):
         return self.detect(ctx)   # offered, never written
+
+
+class LaneVerb(Item):
+    """Observe a product lane's declared command, including an honest seat.
+
+    Focused lanes only owe the verbs they declare. The iteration lane also owes
+    every verb named in workflow.iteration.checks, even if its row is absent.
+    This routes configuration to the owning repository without inventing argv.
+    Process releases have their own item above. Product releases are per lane:
+    Store and direct-download lanes may have different credentials and gates.
+    """
+
+    def __init__(self, lane, verb, row, required=False):
+        super().__init__(f"lane/{lane}/{verb}", f"the '{verb}' command on lane '{lane}'", "nen")
+        self.lane, self.verb, self.command, self.required = lane, verb, row, required
+
+    def detect(self, ctx):
+        if self.command is None:
+            if self.verb == "release" and not self.required:
+                return self.row(ROUTED,
+                                "no product release command or explicit unsupported seat is "
+                                "declared on any lane",
+                                f"choose the product's release destination, package identity, "
+                                f"signing and publisher; declare project.verbs.{self.lane}.release "
+                                "or an explicit unsupported seat in nen/contract.json; validate "
+                                "with nen schema check --repo <path>")
+            return self.row(ROUTED,
+                            f"iteration.checks requires '{self.verb}' on lane '{self.lane}', "
+                            "but no command is declared",
+                            f"declare project.verbs.{self.lane}.{self.verb} in nen/contract.json "
+                            "and validate with nen schema check --repo <path>")
+        if isinstance(self.command, dict) and "unsupported" in self.command:
+            reason = self.command.get("unsupported") or "no reason declared"
+            required = "; iteration.checks requires this verb" if self.required else ""
+            action = (f"choose this lane's package identity, signing source, destination and "
+                      f"publisher; declare project.verbs.{self.lane}.release in nen/contract.json"
+                      if self.verb == "release" else
+                      f"choose and verify the product command for '{self.verb}' on lane "
+                      f"'{self.lane}', or keep this explicit limitation visible; update "
+                      f"project.verbs.{self.lane}.{self.verb} in nen/contract.json")
+            return self.row(ROUTED,
+                            f"declared unsupported: {reason}{required}",
+                            action + "; validate with nen schema check --repo <path>")
+        def valid_step(step):
+            return (isinstance(step, dict)
+                    and isinstance(step.get("exe"), str) and bool(step["exe"])
+                    and isinstance(step.get("argv"), list)
+                    and all(isinstance(arg, str) for arg in step["argv"]))
+        command = self.command
+        valid_command = (isinstance(command, dict) and (
+            valid_step(command) or
+            (isinstance(command.get("steps"), list) and bool(command["steps"])
+             and all(valid_step(step) for step in command["steps"]))))
+        if not valid_command:
+            return self.row(ROUTED,
+                            "malformed command declaration: expected {exe, argv} or "
+                            "{steps: [{exe, argv}, ...]}; Nen cannot execute this row",
+                            f"repair project.verbs.{self.lane}.{self.verb} in nen/contract.json; "
+                            "validate with nen schema check --repo <path>")
+        return self.row(SATISFIED, "executable command declared; nen schema check owns validity")
+
+    def repair(self, ctx):
+        return self.detect(ctx)   # nen-owned declaration, never hand-written here
+
+
+def product_lane_items(ctx):
+    """Return the product's declared rows, plus missing iteration checks."""
+    if ctx.role != ROLE_PRODUCT:
+        return []
+    try:
+        contract = json.loads((ctx.repo / "nen" / "contract.json").read_text())
+        project = contract.get("project") or {}
+        lanes = project.get("lanes") or {}
+        verbs = project.get("verbs") or {}
+        workflow = json.loads((ctx.repo / "nen" / "workflow.json").read_text())
+        iteration = workflow.get("iteration") or {}
+    except (OSError, ValueError, AttributeError):
+        return []   # the declaration items diagnose these defects
+    if not isinstance(lanes, dict) or not isinstance(verbs, dict):
+        return []
+    iteration_lane = iteration.get("lane") or project.get("defaultLane")
+    checks = iteration.get("checks") or []
+    out = []
+    has_release = False
+    for lane in sorted(lanes):
+        rows = verbs.get(lane) or {}
+        if not isinstance(rows, dict):
+            continue
+        has_release = has_release or "release" in rows
+        named = set(rows)
+        if lane == iteration_lane and isinstance(checks, list):
+            named.update(v for v in checks if isinstance(v, str))
+        for verb in sorted(named):
+            out.append(LaneVerb(lane, verb, rows.get(verb),
+                                required=lane == iteration_lane and verb in checks))
+    if not has_release:
+        if project.get("defaultLane") in lanes:
+            out.append(LaneVerb(project["defaultLane"], "release", None))
+        elif lanes:
+            out.append(ProductReadiness(
+                "workflow/release-destination", "product release destination selected",
+                False,
+                "no lane declares a release command or seat, and no defaultLane selects "
+                "where to route the missing row",
+                "ask which declared lane(s) publish this product, then add a release "
+                "command or explicit unsupported seat for each selected destination"))
+    return out
+
+
+class ProductReadiness(Item):
+    """A declared workflow input that exists but cannot yet do its job."""
+
+    def __init__(self, ident, title, good, detail, action):
+        super().__init__(ident, title, "nen")
+        self.good, self.detail, self.action = good, detail, action
+
+    def detect(self, ctx):
+        return self.row(SATISFIED if self.good else ROUTED, self.detail,
+                        None if self.good else self.action)
+
+    def repair(self, ctx):
+        return self.detect(ctx)  # all declarations are Nen-owned
+
+
+def product_workflow_items(ctx):
+    """Inspect the joins between declared lanes and Hatsu's delivery phases.
+
+    The checks use only declared keys, not a guessed stack command. The owning
+    skill asks for a real command or an explicit limitation for each routed row.
+    """
+    if ctx.role != ROLE_PRODUCT:
+        return []
+    try:
+        project = json.loads((ctx.repo / "nen" / "contract.json").read_text()).get("project") or {}
+        workflow = json.loads((ctx.repo / "nen" / "workflow.json").read_text())
+    except (OSError, ValueError, AttributeError):
+        return []  # the declaration rows already report these defects
+    if not isinstance(project, dict) or not isinstance(workflow, dict):
+        return []
+    lanes = project.get("lanes") or {}
+    verbs = project.get("verbs") or {}
+    iteration = workflow.get("iteration") or {}
+    tests = workflow.get("tests") or {}
+    if not all(isinstance(v, dict) for v in (lanes, verbs, iteration, tests)):
+        return []
+    lane = iteration.get("lane") or project.get("defaultLane")
+    if not isinstance(lane, str) or lane not in lanes:
+        return []  # Nen owns the malformed lane verdict
+    rows = verbs.get(lane) or {}
+    if not isinstance(rows, dict):
+        return []
+    out = []
+    tools = project.get("toolchain") or {}
+    out.append(ProductReadiness(
+        "workflow/toolchain", "host prerequisites checked by nen shu tools",
+        isinstance(tools, dict) and bool(tools),
+        "project.toolchain declares host probes" if tools else
+        "no project.toolchain: nen shu tools checks zero programs and cannot certify this host",
+        "declare pinned probes for the programs this stack actually invokes in "
+        "nen/contract.json; run nen shu tools --repo <path>"))
+    selected = []
+    for key in ("required", "extra"):
+        value = tests.get(key) or []
+        if isinstance(value, list):
+            selected.extend(v for v in value if isinstance(v, str))
+    for verb in ("test", "ui-test"):
+        command = rows.get(verb)
+        if command is not None and verb not in selected:
+            out.append(ProductReadiness(
+                f"workflow/test-selection/{verb}", f"{verb} selected for Mukai",
+                False, f"lane '{lane}' declares {verb}, but tests.required and tests.extra "
+                "never select it; Mukai cannot run it as an impacted suite",
+                f"decide whether {verb} belongs in tests.required or tests.extra in "
+                "nen/workflow.json; an intentionally scoped-only lane stays separate"))
+        if verb in selected and command is None:
+            out.append(ProductReadiness(
+                f"workflow/test-selection/{verb}", f"{verb} selected for Mukai",
+                False, f"tests.required or tests.extra selects {verb}, but lane '{lane}' "
+                "declares no such command",
+                f"declare project.verbs.{lane}.{verb}, or remove the unsupported "
+                "selection with its reason"))
+    test_row = rows.get("test") or {}
+    if "test" in selected and isinstance(test_row, dict) and test_row and \
+            "unsupported" not in test_row:
+        artifacts = test_row.get("artifacts") or []
+        out.append(ProductReadiness(
+            "workflow/test-results", "machine-readable test results for Mukai",
+            bool(artifacts),
+            "the selected test row names result artifacts" if artifacts else
+            "the selected test row declares no artifacts; nen shu test-report cannot read results",
+            f"make lane '{lane}' write a Nen-readable test result and name its "
+            "path in project.verbs.<lane>.test.artifacts; verify with nen shu test-report"))
+    if isinstance(workflow.get("coverage"), dict) and "coverage" not in rows:
+        out.append(ProductReadiness(
+            "workflow/coverage", "coverage captured for the declared ladder", False,
+            f"workflow.coverage sets a floor, but lane '{lane}' has no coverage row",
+            f"declare an extraction-only project.verbs.{lane}.coverage command or an "
+            "explicit unsupported seat; never rerun tests from coverage"))
+    if "ui-test" in rows and not project.get("evidence"):
+        out.append(ProductReadiness(
+            "workflow/evidence", "rendered-state evidence for Mukai", False,
+            "a UI test row exists but project.evidence is absent; nen shu evidence refuses",
+            "decide which UI states need snapshots and how they reach the PR; declare "
+            "project.evidence only after a real capture path exists"))
+    return out
 
 
 class PrivilegedWorkflows(Item):
@@ -1202,7 +1469,7 @@ class PrivilegedWorkflows(Item):
         return self.detect(ctx)   # observation only; it writes nothing, ever
 
 
-def items():
+def items(ctx):
     out = [NenDeclaration(path, what) for path, what in NEN_DECLARATIONS]
     out.append(ColorsFile())
     out.append(IgnoredDir("dirs/reports", "Reports", "where the retained final Rikugan report is written"))
@@ -1211,7 +1478,10 @@ def items():
     out.append(GuardRegistration())
     out.append(ReadinessWorkflow())
     out.append(ReleasePublisher())
-    out.append(ReleaseRow())
+    if ctx.role != ROLE_PRODUCT:
+        out.append(ReleaseRow())
+    out.extend(product_lane_items(ctx))
+    out.extend(product_workflow_items(ctx))
     out.append(PrivilegedWorkflows())
     return out
 
@@ -1224,7 +1494,7 @@ GLYPH = {SATISFIED: "ok  ", REPAIRED: "NEW ", MISSING: "MISS", DRIFT: "DRIF",
 
 
 def run(mode, ctx):
-    rows = [(it.repair(ctx) if mode == "apply" else it.detect(ctx)) for it in items()]
+    rows = [(it.repair(ctx) if mode == "apply" else it.detect(ctx)) for it in items(ctx)]
     return {"contract": CONTRACT, "mode": mode, "repo": str(ctx.repo), "slug": ctx.slug,
             "runner": ctx.runner, "items": rows,
             "outstanding": sum(1 for r in rows if r["state"] in OUTSTANDING)}
@@ -1331,6 +1601,10 @@ def self_test() -> int:
     check("the rendered workflow carries the real slug",
           "github.repository == 'acme/widget'" in (d / WORKFLOW_PATH).read_text())
     check("no @@TOKEN@@ survives rendering", "@@" not in (d / WORKFLOW_PATH).read_text())
+    rendered = (d / WORKFLOW_PATH).read_text()
+    check("a process repository requires its own guard and dependency pin",
+          "TENKAI_GUARD_REQUIRED: true" in rendered
+          and "TENKAI_PIN_FALLBACK_ALLOWED: false" in rendered)
     check("private+registered renders the LABELLED set, never a bare self-hosted",
           re.search(r"runs-on:\s*\[self-hosted, Linux, X64\]", (d / WORKFLOW_PATH).read_text()) is not None
           and re.search(r"runs-on:\s*self-hosted\s*$", (d / WORKFLOW_PATH).read_text(), re.M) is None)
@@ -1642,6 +1916,87 @@ def self_test() -> int:
     dproc = fixture(role=ROLE_PROCESS)
     dprod = fixture(role=ROLE_PRODUCT)
     dnone = fixture(role=None)
+    run("apply", ctx_for(dprod))
+    product_workflow = (dprod / WORKFLOW_PATH).read_text()
+    check("a consumer can run without Hatsu's Ruby guard",
+          "TENKAI_GUARD_REQUIRED: false" in product_workflow
+          and 'if [ -f .trusted/scripts/workflow_runner_policy_check.rb ]; then' in product_workflow)
+    check("a consumer without a dependency block gets Hatsu's verified Nen ref",
+          "TENKAI_PIN_FALLBACK_ALLOWED: true" in product_workflow
+          and f"TENKAI_FALLBACK_REF: {ctx_for(dprod).nen_ref()}" in product_workflow
+          and 'ref="$TENKAI_FALLBACK_REF"' in product_workflow)
+    pin_step = product_workflow.split(
+        "      - name: Read the pinned nen ref from trusted nen/contract.json", 1)[1]
+    pin_step = pin_step.split("      - name: Bootstrap nen at the trusted pinned ref", 1)[0]
+    pin_body = pin_step.split("        run: |\n", 1)[1]
+    pin_script = "\n".join(line[10:] if line.startswith("          ") else line
+                           for line in pin_body.splitlines())
+    with tempfile.TemporaryDirectory() as pin_tmp:
+        pin_dir = Path(pin_tmp)
+        output_path = pin_dir / "github-output.txt"
+        env = dict(os.environ, TENKAI_PIN_FALLBACK_ALLOWED="true",
+                   TENKAI_FALLBACK_REF=ctx_for(dprod).nen_ref(),
+                   GITHUB_OUTPUT=str(output_path))
+        missing_pin = subprocess.run(["bash", "-c", pin_script], cwd=pin_dir,
+                                     env=env, capture_output=True, text=True)
+        check("consumer pin step executes fallback when trusted contract is absent",
+              missing_pin.returncode == 0
+              and output_path.read_text().strip() == f"ref={ctx_for(dprod).nen_ref()}")
+        (pin_dir / ".trusted" / "nen").mkdir(parents=True)
+        (pin_dir / ".trusted" / "nen" / "contract.json").write_text("{bad json")
+        output_path.write_text("")
+        bad_pin = subprocess.run(["bash", "-c", pin_script], cwd=pin_dir,
+                                 env=env, capture_output=True, text=True)
+        check("a malformed trusted contract fails closed before consumer fallback",
+              bad_pin.returncode != 0 and "malformed or unreadable" in bad_pin.stdout
+              and output_path.read_text() == "")
+        for label, contract in (
+                ("non-object root", []),
+                ("null dependency", {"dependency": None}),
+                ("numeric pinned ref", {"dependency": {"pinned_ref": 123}}),
+                ("empty pinned ref", {"dependency": {"pinned_ref": ""}})):
+            (pin_dir / ".trusted" / "nen" / "contract.json").write_text(json.dumps(contract))
+            output_path.write_text("")
+            bad_shape = subprocess.run(["bash", "-c", pin_script], cwd=pin_dir,
+                                       env=env, capture_output=True, text=True)
+            check(f"a trusted contract with {label} fails closed",
+                  bad_shape.returncode != 0 and "malformed or unreadable" in bad_shape.stdout
+                  and output_path.read_text() == "")
+        (pin_dir / ".trusted" / "nen" / "contract.json").write_text("{}")
+        output_path.write_text("")
+        omitted_pin = subprocess.run(["bash", "-c", pin_script], cwd=pin_dir,
+                                     env=env, capture_output=True, text=True)
+        check("a valid consumer contract may omit dependency and use the fallback",
+              omitted_pin.returncode == 0
+              and output_path.read_text().strip() == f"ref={ctx_for(dprod).nen_ref()}")
+    product_workflow_path = dprod / WORKFLOW_PATH
+    product_workflow_path.write_text(product_workflow.replace(
+        "TENKAI_GUARD_REQUIRED: false", "TENKAI_GUARD_REQUIRED: true"))
+    row = ReadinessWorkflow().detect(ctx_for(dprod))
+    check("a consumer workflow requiring Hatsu's absent guard is DRIFT",
+          row["state"] == DRIFT and "Ruby guard" in row["detail"])
+    product_workflow_path.write_text(product_workflow.replace(
+        "TENKAI_PIN_FALLBACK_ALLOWED: true", "TENKAI_PIN_FALLBACK_ALLOWED: false"))
+    row = ReadinessWorkflow().detect(ctx_for(dprod))
+    check("a consumer workflow with no Nen pin fallback is DRIFT",
+          row["state"] == DRIFT and "pin step" in row["detail"])
+    product_workflow_path.write_text(product_workflow.replace(
+        'if [ -f .trusted/nen/contract.json ]; then',
+        '# stale pin guard removed by old rendering'))
+    row = ReadinessWorkflow().detect(ctx_for(dprod))
+    check("an older consumer workflow reading a missing trusted contract is DRIFT",
+          row["state"] == DRIFT and "pin step" in row["detail"])
+    decoy = product_workflow.replace(
+        '          if [ -f .trusted/nen/contract.json ]; then\n'
+        '            if ! ref="$(jq -r',
+        '          echo \'if [ -f .trusted/nen/contract.json ]; then\'\n'
+        '          echo \'if ! ref="$(jq -r\'\n'
+        '          if ! ref="$(jq -r')
+    product_workflow_path.write_text(decoy)
+    row = ReadinessWorkflow().detect(ctx_for(dprod))
+    check("echo decoys cannot hide an unguarded trusted-contract read",
+          row["state"] == DRIFT and "pin step" in row["detail"])
+    product_workflow_path.write_text(product_workflow)
     check("maintained_tools derives process", derive_role(dproc, "acme/widget") == ROLE_PROCESS)
     check("consumers derives product", derive_role(dprod, "acme/widget") == ROLE_PRODUCT)
     check("a registry naming neither derives NOTHING, never a guess",
@@ -1652,14 +2007,95 @@ def self_test() -> int:
     check("and says Tenkai does not classify a repository for itself",
           "does not classify" in row["detail"])
 
-    # A PRODUCT repository is asserted about in neither direction.
-    check("a product repo needs no publisher",
+    # Products choose their own publisher, but a release seat is a visible gap.
+    check("a product repo gets no generic process publisher",
           ReleasePublisher().detect(ctx_for(dprod))["state"] == SATISFIED)
-    check("and no release row is owed of it",
-          ReleaseRow().detect(ctx_for(dprod))["state"] == SATISFIED)
+    check("a product with no contract is routed to nen scaffold",
+          ReleaseRow().detect(ctx_for(dprod))["state"] == ROUTED)
     ReleasePublisher().repair(ctx_for(dprod))
-    check("nothing is rendered into a product repo",
+    check("no generic publisher is rendered into a product repo",
           not (dprod / ReleasePublisher.REL).is_file())
+    (dprod / "nen" / "contract.json").write_text(json.dumps({"project": {
+        "defaultLane": "windows",
+        "lanes": {"windows": {"stack": "dotnet-winui"}, "focused": {"stack": "dotnet-winui"}},
+        "verbs": {"windows": {"build": {"exe": "dotnet", "argv": ["build"]},
+                              "lint": {"unsupported": "No linter"},
+                              "release": {"unsupported": "No publisher"}},
+                  "focused": {"test": {"exe": "dotnet", "argv": ["test"]}}}}}))
+    (dprod / "nen" / "workflow.json").write_text(json.dumps({"iteration": {
+        "lane": "windows", "checks": ["build", "test"]}}))
+    product = run("diagnose", ctx_for(dprod))
+    product_by = {r["id"]: r for r in product["items"]}
+    check("a product release seat is routed per lane, with destination choice named",
+          product_by["lane/windows/release"]["state"] == ROUTED
+          and "destination" in (product_by["lane/windows/release"]["action"] or ""))
+    check("a product lint seat is visible with its reason",
+          product_by["lane/windows/lint"]["state"] == ROUTED
+          and "No linter" in product_by["lane/windows/lint"]["detail"])
+    check("a real build row is satisfied",
+          product_by["lane/windows/build"]["state"] == SATISFIED)
+    check("a malformed release scalar is routed, never called executable",
+          LaneVerb("windows", "release", "not-a-command").detect(ctx_for(dprod))["state"] == ROUTED)
+    check("a malformed command argv is routed",
+          LaneVerb("windows", "test", {"exe": "dotnet", "argv": "test"}).detect(
+              ctx_for(dprod))["state"] == ROUTED)
+    check("a valid multi-step command is satisfied",
+          LaneVerb("windows", "test", {"steps": [{"exe": "dotnet", "argv": ["test"]}]}).detect(
+              ctx_for(dprod))["state"] == SATISFIED)
+    check("an absent required iteration test row is routed",
+          product_by["lane/windows/test"]["state"] == ROUTED)
+    check("a focused test lane owes only its declared test",
+          "lane/focused/build" not in product_by
+          and product_by["lane/focused/test"]["state"] == SATISFIED)
+    check("a product with no toolchain cannot report host readiness",
+          product_by["workflow/toolchain"]["state"] == ROUTED)
+    product_contract = json.loads((dprod / "nen" / "contract.json").read_text())
+    product_contract["project"]["verbs"]["windows"]["test"] = {
+        "exe": "dotnet", "argv": ["test"]}
+    product_contract["project"]["verbs"]["windows"]["ui-test"] = {
+        "exe": "dotnet", "argv": ["vstest"]}
+    (dprod / "nen" / "contract.json").write_text(json.dumps(product_contract))
+    (dprod / "nen" / "workflow.json").write_text(json.dumps({
+        "iteration": {"lane": "windows", "checks": ["build", "test"]},
+        "tests": {"required": ["test"], "extra": []},
+        "coverage": {"minimum": 80, "recommended": 85, "ideal": 90}}))
+    product_by = {r["id"]: r for r in run("diagnose", ctx_for(dprod))["items"]}
+    check("an unselected UI suite is routed to the test policy",
+          product_by["workflow/test-selection/ui-test"]["state"] == ROUTED)
+    check("a selected test without a result artifact is routed",
+          product_by["workflow/test-results"]["state"] == ROUTED)
+    check("a coverage ladder without a capture row is routed",
+          product_by["workflow/coverage"]["state"] == ROUTED)
+    check("a UI lane without a snapshot evidence block is routed",
+          product_by["workflow/evidence"]["state"] == ROUTED)
+    before = (dprod / "nen" / "contract.json").read_bytes()
+    run("apply", ctx_for(dprod))
+    check("apply never rewrites a product's nen declaration",
+          before == (dprod / "nen" / "contract.json").read_bytes())
+    product_contract = json.loads(before)
+    product_contract["project"]["verbs"]["windows"]["release"] = {
+        "exe": "powershell", "argv": ["-File", "scripts/release.ps1"]}
+    (dprod / "nen" / "contract.json").write_text(json.dumps(product_contract))
+    check("a product with a real release row is satisfied",
+          ReleaseRow().detect(ctx_for(dprod))["state"] == SATISFIED)
+    del product_contract["project"]["verbs"]["windows"]["release"]
+    (dprod / "nen" / "contract.json").write_text(json.dumps(product_contract))
+    absent_release = {r["id"]: r for r in run("diagnose", ctx_for(dprod))["items"]}
+    check("a product with no release row anywhere is routed on its default lane",
+          absent_release["lane/windows/release"]["state"] == ROUTED
+          and "no product release command" in absent_release["lane/windows/release"]["detail"])
+    no_default_product = fixture(role=ROLE_PRODUCT)
+    (no_default_product / "nen" / "contract.json").write_text(json.dumps({"project": {
+        "lanes": {"store-msix": {"stack": "dotnet-winui"},
+                  "github-msix": {"stack": "dotnet-winui"}},
+        "verbs": {"store-msix": {"archive": {"unsupported": "identity pending"}},
+                  "github-msix": {"archive": {"unsupported": "signing pending"}}}}}))
+    (no_default_product / "nen" / "workflow.json").write_text("{}")
+    no_default_rows = {r["id"]: r for r in run("diagnose", ctx_for(no_default_product))["items"]}
+    check("a product with no default lane still routes its missing release destination",
+          no_default_rows["workflow/release-destination"]["state"] == ROUTED
+          and "which declared lane(s)" in
+          (no_default_rows["workflow/release-destination"]["action"] or ""))
 
     # A PROCESS repository gets the publisher, and the ROW is OFFERED not written.
     res = run("apply", ctx_for(dproc))

@@ -109,6 +109,33 @@ printf '%s\n' '-->' >> "$root/body-html-comment-multiline.md"
   printf '%s\n' 'no plugin bump: <reason>'
   printf '%s\n' '```'
 } > "$root/body-fenced-code.md"
+# CommonMark fences: a tilde fence hides the phrase exactly as a backtick one
+# does, and a ``` line INSIDE a ```` block is content, not a close -- a guard
+# that toggled on every ``` would reopen the text at that inner line and read
+# the quoted phrase as a declaration.
+{
+  printf '%s\n' 'Quoted with tildes:'
+  printf '%s\n' '~~~'
+  printf '%s\n' 'no plugin bump: <reason>'
+  printf '%s\n' '~~~'
+} > "$root/body-tilde-fence.md"
+{
+  printf '%s\n' 'A four-backtick block quoting a three-backtick one:'
+  printf '%s\n' '````markdown'
+  printf '%s\n' '```'
+  printf '%s\n' 'no plugin bump: <reason>'
+  printf '%s\n' '```'
+  printf '%s\n' '````'
+} > "$root/body-four-backtick-fence.md"
+# A closing fence carries only whitespace after its run: a ``` line with an
+# info string inside an open block is content, so the block stays open.
+{
+  printf '%s\n' 'A block whose inner line only looks like a close:'
+  printf '%s\n' '```'
+  printf '%s\n' '```not-a-closing-fence'
+  printf '%s\n' 'no plugin bump: <reason>'
+  printf '%s\n' '```'
+} > "$root/body-info-string-closer.md"
 
 expect_closed 'opt-out hidden inside an HTML comment' \
   "$root/cf.txt" "$root/base-good.json" "$root/head-same.json" "$root/body-html-comment.md"
@@ -116,6 +143,12 @@ expect_closed 'opt-out hidden inside a multi-line HTML comment' \
   "$root/cf.txt" "$root/base-good.json" "$root/head-same.json" "$root/body-html-comment-multiline.md"
 expect_closed 'opt-out only quoted inside a fenced code block' \
   "$root/cf.txt" "$root/base-good.json" "$root/head-same.json" "$root/body-fenced-code.md"
+expect_closed 'opt-out only quoted inside a tilde fence' \
+  "$root/cf.txt" "$root/base-good.json" "$root/head-same.json" "$root/body-tilde-fence.md"
+expect_closed 'opt-out only quoted inside a four-backtick fence that contains a three-backtick line' \
+  "$root/cf.txt" "$root/base-good.json" "$root/head-same.json" "$root/body-four-backtick-fence.md"
+expect_closed 'opt-out after a fence line carrying an info string, still inside the block' \
+  "$root/cf.txt" "$root/base-good.json" "$root/head-same.json" "$root/body-info-string-closer.md"
 
 if [ "$fails" -ne 0 ]; then
   printf '\nplugin-bump-hostile: %s case(s) failed open\n' "$fails" >&2
