@@ -374,14 +374,14 @@ maintainer sees a budget being continued rather than one silently restarting.
 >
 > **Codex and Antigravity have in-session subagents** (`spawn_agent` on Codex; `invoke_subagent`
 > with `Workspace` `inherit` on Antigravity). En may hand this watch to `en · illumi` there the same
-> way. In Antigravity, one-shot timers (`schedule`) or `nen watch until` pace observations without polling
-> in a busy loop, and reactive wakeup resumes execution when background tasks notify. The second-process
-> `codex exec` worktree remains Hanten's isolation for a reviewer who must not share the author's
-> tree; it is not this watch and is not a persistence mechanism. If the task is interrupted,
-> the resumable ledger is reported exactly as above. A model choosing to stop calling tools while
-> CI checks, reviewer rounds, or review comments are pending is not an outcome and must not report G2/G4
-> readiness: the observation hold must remain active until `nen pr ready` exits 0 or the acting-cycle
-> cap is reached.
+> way. The hand-off buys in-session attention, never background persistence: the watch remains
+> bound to the active session, paced by `nen watch until` (§ 6). The second-process `codex exec`
+> worktree remains Hanten's isolation for a reviewer who must not share the author's tree; it is not
+> this watch and is not a persistence mechanism. If the session is interrupted, the resumable ledger
+> is reported exactly as above. A model choosing to stop calling tools while CI checks, reviewer rounds,
+> or review comments are pending is voluntarily abandoning the watch, which is not an outcome and must
+> never report G2/G4 readiness: the observation hold remains active in-session until `nen pr ready` exits 0,
+> the acting-cycle cap is reached, or the session is actually interrupted.
 >
 > **And the hand-off widens nothing.** Illumi is provisioned for *this* watch and no other loop —
 > not `backlog-loop`, not `futon`, not `senkei`; that half of `OPEN-1`, and the whole of Killua's

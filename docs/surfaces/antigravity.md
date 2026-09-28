@@ -52,9 +52,6 @@ nothing is written into a target repository; the plugin's own `hooks.json` resol
 `ultra` is a matrix alias the persona key does not admit: the orchestrator tier never runs a subagent. In-session delegation is
 `invoke_subagent` with `Workspace` `inherit`, `branch` (an isolated worktree, Hanten's reviewers) or
 `share`. For `en`'s long watch, `en · illumi` can be raised on the fast tier (`flash`) with `Workspace` `inherit`.
-Antigravity supports reactive wakeup from subagents and background tasks, as well as one-shot timers (`schedule`),
-allowing the observation loop to pace checks (`monitor.pollSeconds`) without burning turns or abandoning the watch.
-Pending CI or open reviewer rounds keep the watch active; readiness is strictly gated on `nen pr ready` exiting 0.
 
 ## 4. Hooks
 
