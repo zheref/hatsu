@@ -399,14 +399,17 @@ version_bumped() {
 # text from the rendered PR while still handing it to this grep verbatim:
 #   - an HTML comment (`<!-- no plugin bump: … -->`), which can span multiple
 #     lines and is never shown by GitHub's renderer;
-#   - a fenced code block (``` … ```), where the phrase is being QUOTED as an
-#     example (this file's own refusal message ends with the phrase) rather
-#     than stated as a declaration.
+#   - a fenced code block (``` … ``` or ~~~ … ~~~), where the phrase is being
+#     QUOTED as an example (this file's own refusal message ends with the
+#     phrase) rather than stated as a declaration. Fences are read the way
+#     CommonMark reads them: the opener is a run of three or more backticks or
+#     tildes, and only a run of the SAME character at least as long closes it,
+#     so a ``` line inside a ```` block is content, not a close.
 # Both are stripped, in one pass with awk (no python), before the grep below
 # ever sees the text.
 strip_invisible_markdown() {
   awk '
-    BEGIN { in_comment = 0; in_fence = 0 }
+    BEGIN { in_comment = 0; in_fence = 0; fence_char = ""; fence_len = 0 }
     {
       line = $0
       if (in_comment) {
@@ -422,8 +425,18 @@ strip_invisible_markdown() {
           in_comment = 1
         }
       }
-      if (line ~ /^[[:space:]]*```/) { in_fence = !in_fence; next }
-      if (in_fence) next
+      if (in_fence) {
+        if (match(line, "^[[:space:]]*" (fence_char == "`" ? "`+" : "~+"))) {
+          run = substr(line, RSTART, RLENGTH); sub(/^[[:space:]]*/, "", run)
+          if (length(run) >= fence_len) { in_fence = 0; fence_char = ""; fence_len = 0 }
+        }
+        next
+      }
+      if (match(line, /^[[:space:]]*(```+|~~~+)/)) {
+        run = substr(line, RSTART, RLENGTH); sub(/^[[:space:]]*/, "", run)
+        fence_char = substr(run, 1, 1); fence_len = length(run); in_fence = 1
+        next
+      }
       print line
     }
   '

@@ -30,11 +30,12 @@ and the publish are not.
 Read from the phase lattice rather than from this file's own numbering, getsuga is the **release half**
 of the line: everything that happens once the delivery work is already on `main`, ending at the
 **post-merge tag** and the fan-out. It is **not** invoked after a release proposal has been merged — it
-is what *opens* that proposal and then stands at the maintainer's merge of it:
+is what *opens* that proposal and then **merges it itself** through § 3a's bounded verb, standing at
+the maintainer's declaration gate only where one of that verb's gates fails:
 
 > [`susanoo`](../susanoo/SKILL.md) *(builds the release unit)* → the **release-proposal PR** (§ 3) →
-> **the merge of that PR**, the maintainer's (**G4**) → the **post-merge tag** (§ 4) → the `CON-22`
-> fan-out (§ 7)
+> **the merge of that PR** — § 3a's `nen pr merge --release-unit`, or the maintainer's where it fell
+> back → the **post-merge tag** (§ 4) → the `CON-22` fan-out (§ 7)
 
 **"Post-merge" qualifies the tag, not the phase.** § 4 cuts at a commit reachable from `origin/main`,
 which is exactly why the merge stands in the middle of that chain rather than before all of it.
@@ -81,12 +82,11 @@ of them lives* once the lattice is the map.
 | `<branch-name>` | that branch's tip |
 | `checkout` | the current working copy's `HEAD` |
 
-**Reached as a [`futon`](../futon/SKILL.md) `then` step on an advance go** ([`mugetsu`](../mugetsu/SKILL.md)
-§ 3 — the maintainer's typed futon invocation, bound to the tag this run cuts, one use): the step's
-`@<target>` is the token above, `main` with none. Everything here is unchanged by it — the same
-preconditions, the release-proposal PR still stopping at its declaration gate for the maintainer's
-merge, the same fan-out, no publication of its own; a later step of the same chain (`kagutsuchi`,
-`mugetsu`) is run by that skill under its own preconditions after the tag exists, never by this one.
+**Reached as a [`futon`](../futon/SKILL.md) `then` step on an advance go** — the definition is
+[`mugetsu`](../mugetsu/SKILL.md) § 3's and is not restated here: the step's `@<target>` is the token
+above, `main` with none. Everything here is unchanged by it — the same preconditions, the
+release-proposal PR merged by § 3a or else standing at its declaration gate, the same fan-out, no
+publication of its own; a later step of the same chain is that skill's own run, never this one's.
 
 A missing argument or configuration item is asked for and set up inline (`missing-argument`,
 `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) —
@@ -219,7 +219,7 @@ never verified at all.
 > *plan* and stops for that reason.
 
 `CON-33(b)` wants a release PR merged before the tag cuts — **this skill's own, and from the
-maintainer's ruling of 2026-09-26 this skill merges it itself** (§ 3a). **One PR carries all of it:**
+maintainer's ruling of 2026-09-26 this skill merges it itself** (§ 3a; [`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*). **One PR carries all of it:**
 
 1. **Collate** every `changelog.d/` fragment into a dated `### vX.Y.Z — <theme>` section:
 
@@ -293,9 +293,12 @@ maintainer's ruling of 2026-09-26 this skill merges it itself** (§ 3a). **One P
    to protect — `nen/` is the only file anything reads. A `schemas/` copy sitting beside a loaded
    `nen/` one is a `warn` **leftover** naming the `git rm` that clears it, and whether its bytes
    still agree no longer changes the verdict. Edit `nen/repos.json`; delete the stale duplicate.
-5. **Bump `.claude-plugin/plugin.json`** — same reasoning as the old skill: a cached plugin would
-   report consumers current while they sit a tag behind. No `nen` verb owns this write either —
-   residue, a direct edit; prefer the bump to a `no plugin bump:` opt-out.
+5. **Bump the version manifest** — same reasoning as the old skill: a cached plugin would report
+   consumers current while they sit a tag behind. No `nen` verb owns this write either — residue, a
+   direct edit; prefer the bump to a `no plugin bump:` opt-out. **Where the surface stamp follows
+   `plugin.json` and the delivery PR carries the bump — hatsu, by the maintainer's ruling of
+   2026-09-28 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*) — this step is a no-op**: the release PR
+   touches the changelog only, and `release.unitPaths` says exactly that.
 
 **What cannot fold: the `CON-22` repin PRs.** They target *other repositories*. One PR per affected
 consumer, after the tag, § 7.
@@ -321,7 +324,7 @@ by hand in `<reference-repo>` (RR-PR-#651, RR-PR-#679, RR-PR-#682, RR-PR-#691) b
 
 ### 3a. The release-proposal PR merges itself — bounded
 
-> **Maintainer's ruling of 2026-09-26:** *"If I call getsuga, I don't expect to be called just to
+> **Maintainer's ruling of 2026-09-26** ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*)**:** *"If I call getsuga, I don't expect to be called just to
 > approve and merge a PR that is only touching hatsu-related changes … I expect getsuga to handle
 > that itself and then get to the actual tag completely autonomously."*
 
@@ -333,31 +336,41 @@ nen pr merge <n|owner/name#n> --release-unit --requirements-from <path> --repo <
 nen pr merge <n|owner/name#n> --release-unit --requirements-from <path> --repo <path> --run   # the merge
 ```
 
-The verb runs three gates in order, prints every verdict line verbatim, and merges only when all
-three pass — **quote those lines in the report**, never a summary of them:
+**The verb bounds the diff; this skill bounds which PR.** Record, when § 3 opens the proposal, **its
+PR number and head SHA** — that pair, and no other object, is what § 3a may merge. The verb then runs
+**five gates** in order, every one regardless of an earlier failure, and prints every verdict line
+verbatim — **quote those lines in the report**, never a summary of them:
 
-1. **`pr ready`** — `CON-32` readiness on the current head.
-2. **`pr body-check`** — against the PR's **live** body and the repository's own
+1. **`pr ready`** — `CON-32` readiness, naming the exact commit it judged.
+2. **head pin** — the PR's head still matches that judged commit (both SHAs printed on a mismatch);
+   the merge argv carries `--match-head-commit`, so GitHub itself refuses a head that moved after the
+   read.
+3. **`pr body-check`** — against the PR's **live** body and the repository's own
    `--requirements-from` ([`tensho`](../tensho/SKILL.md) § 6's `{name, pattern}` array).
-3. **`release unit-check`** — every changed path inside the repository's declared **release unit**,
-   `nen/workflow.json` → `release.unitPaths`: the paths § 3 itself writes, declared once there and
-   restated nowhere. `outside: <path>` lines name what fell out.
+4. **`release unit-check`** — every changed path inside the **release unit**, `release.unitPaths` as
+   read at the PR's **base** commit (never this checkout's file, never a policy the PR itself edits):
+   the paths § 3 writes, declared once there and restated nowhere. `outside: <path>` lines name what
+   fell out; an undeclared key is this gate failing, not a usage error.
+5. **whose pr** — the PR is not from a fork and its author is the `gh` viewer.
 
-**Exit `1` — a gate did not pass:** fall back to the stop this section used to be, the
-declaration-gate prompt for the maintainer's merge, naming the failing gate by its own line. **Exit
-`2` — usage, or `release.unitPaths` undeclared:** the refusal names the key to add; a declaration is a
-`nen/workflow.json` change at this repository's own gate, never an edit made to get one merge through.
-**Exit `5` — `gh` refused the merge** (branch protection, a required approving review this session
-cannot give itself): a **G5** with the stderr and the exact command nen printed, handed over, never
-routed around. The verb declares neither `--admin` nor `--auto`, so there is no bypass to reach for.
-**Never self-reviews, never approves its own PR** (`claude/agents/kurapika.md`), and **only this
-PR**: a delivery PR — futon's, build's, anything a `then` chain drove — still waits for the maintainer
-at its gate; `--release-unit` is the verb's own refusal of anything else.
+**Go to § 4 only on the verb's `merged:` line** — GitHub's own MERGED state, re-read after the run.
+`queued (auto-merge or merge queue):` or anything unconfirmed → re-read the PR's state and wait; never
+cut until MERGED, else fall back. **Exit `1` — a gate did not pass:** fall back to the stop this
+section used to be, the declaration-gate prompt for the maintainer's merge, naming the failing gate
+by its own line. **Exit `2` — usage:** a missing `--release-unit` or `--requirements-from`, a ref that
+is not `--repo`'s own origin, or `--admin`/`--auto`, which the verb does not declare — there is no
+bypass to reach for. **Exit `5` — `gh` refused the merge** (branch protection, a required approving
+review this session cannot give itself): a **G5** with the stderr and the exact command nen printed,
+handed over, never routed around. **Exit `6` — `gh` could not run at all:** a **G5** handing over the
+same command. **The `main` ruleset is admin-bypassable, so the verb's gates are the real bound**, not
+the branch protection. **Never self-reviews, never approves its own PR** (`claude/agents/kurapika.md`),
+and **only this PR**: a delivery PR — futon's, build's, anything a `then` chain drove — still waits
+for the maintainer at its gate; `--release-unit` is the verb's own refusal of anything else.
 
 A fall-back **stops at the declaration gate** (`nen/decisions.json` row `canon-merge` in a canon
 repository, `merge` in a consumer) with the banner and the board — **`G4` in a canon repository
-(`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`),
-`G2` in a consumer one**, because a release proposal in a repository whose product is not the process
+(`nen repo classify` → `role: canon`, read from `nen/repos.json`'s `maintained_tools`, never a list
+remembered here), `G2` in a consumer one**, because a release proposal in a repository whose product is not the process
 is that repository's own configuration:
 
 ```bash
@@ -369,8 +382,9 @@ nen stop --who kurapika --gate <G4|G2> <efforts.md>
 consumer's release proposal, which is the misclassification the 2026-09-18 ruling exists to remove
 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role,
 not the file's kind*). Outside § 3a's gates the maintainer merges, and Kurapika never merges
-`main` (`CON-5`/`CON-7`) — the 2026-09-18 ruling moves the gate, and the 2026-09-26 one opens exactly
-one PR's worth of it, through `nen pr merge --release-unit` and nothing else.
+`main` — the 2026-09-18 ruling moves the gate, and the ruling of 2026-09-26 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*)
+opens exactly one PR's worth of it, at `merge` and at `canon-merge` alike, through
+`nen pr merge --release-unit` and nothing else.
 
 ## 4. The cut
 
@@ -542,9 +556,9 @@ through nen and this section does not apply. `<reference-repo>` is machinery and
   through [`kagutsuchi`](../kagutsuchi/SKILL.md) (non-production) or
   [`mugetsu`](../mugetsu/SKILL.md) (production), per target, never from here — a futon chain's later
   step is that skill's own run on the advance go, not this skill's.
-- **Never merges past § 3a**: not a PR it did not open in this run, never by a raw `gh pr merge`, never
-  on a `nen pr merge` that read anything but exit `0`, never around a protection rule, and never with
-  a review or approval of its own.
+- **Never merges past § 3a**: not a PR it did not open in this run (the recorded number and head SHA),
+  never by a raw `gh pr merge`, never on a `nen pr merge` that read anything but `merged:`, never
+  around a protection rule, and never with a review or approval of its own.
 - **Never rules on `CON-36` clause 4 itself** — that is `G5`.
 - **Never deletes a superseded CHANGELOG entry** to resolve a contradiction.
 - **Never publishes the release.** Preparing it is the job; G3 is not — publication is `mugetsu`'s

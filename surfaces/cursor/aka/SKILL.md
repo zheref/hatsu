@@ -37,7 +37,10 @@ unaskable.
 ## 0. Standalone entry — this skill was ALWAYS the maintainer's call
 
 **Aka has no wired entry.** § 1 already says it: the whole skill runs only on the maintainer's publish
-call, and **agents never propose it**. [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 6 names it among the phases a report, a bell,
+call, and **agents never propose it**. **One carve-out, the maintainer's ruling of 2026-09-28 (b)**
+([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*): a `then` step naming
+this skill in a typed [`futon`](../futon/SKILL.md) invocation **is** the maintainer's publish call —
+the advance go [`mugetsu`](../mugetsu/SKILL.md) § 3 defines — still never prompted for, never proposed. [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 6 names it among the phases a report, a bell,
 a stop's options and a composite must never offer — and a standalone run is precisely where such an offer
 would read as the pipeline knowing best.
 
@@ -427,7 +430,8 @@ that content.
 ## Hard limits
 
 - **The whole aka run never runs unasked**, and **never prompts for itself** — no agent, skill,
-  report or stop option proposes `/aka` (§ 1).
+  report or stop option proposes `/aka` (§ 1); a typed futon `then` step is the maintainer's
+  own call (§ 0), not a proposal.
 - **Never runs project-wide tests or coverage** — that is mukai's, through kotoamatsukami and
   byakugan. Aka that "just validates everything still passes" is the cost this split exists to stop.
 - **Never force-pushes, and never rewrites a commit that is already on the remote** — a rejected

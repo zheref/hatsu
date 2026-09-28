@@ -384,7 +384,7 @@ never edited to get a different one for one run.
 
 ### Repository kinds — what `nen repo classify` answers
 
-**Maintainer's ruling of 2026-09-26.** `nen repo classify --target <owner/name> --json` reports one
+**Maintainer's ruling of 2026-09-26** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-26/27/28*). `nen repo classify --target <owner/name> --json` reports one
 `kind`, and this is the one place hatsu canon defines the three; every skill that reads it cites this
 section and restates nothing:
 
@@ -803,18 +803,19 @@ It loops. **It never pushes and never opens a pull request.**
 |---|---|---|
 | [`aka`](../claude/skills/aka/) | lint → squash the unpushed commits → `ao` → re-lint if catch-up moved the tree → push | publishing work is a decision, and a squash is destructive |
 | [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → kokusen checkpoint → `kotoamatsukami` impacted tests → `byakugan` coverage → publish proven updates → evidence → `shibari` opens the PR → landing report → start `en` and end Mukai. **§ 5 is the full shape** | Mukai hands ownership to En; the same user turn continues, and pending is En's in-progress state |
-| **merge** | **G2** (`CON-5`) | never delegated, by any agent, anywhere — with one carve-out, the maintainer's ruling of 2026-09-26: [`getsuga`](../claude/skills/getsuga/) § 3 merges **its own release-proposal PR** when its diff is the release unit only and `CON-32` reads Ready, through the repository's own protection, never a delivery PR |
+| **merge** | **G2** (`merge`) and **G4** (`canon-merge`) | never delegated, by any agent, anywhere — with one carve-out, the maintainer's ruling of 2026-09-26 ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-26/27/28*): [`getsuga`](../claude/skills/getsuga/) § 3a merges **its own release-proposal PR** through `nen pr merge --release-unit`, at either row, never a delivery PR |
 | [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always, and `--run` acts only on a call that **names the target** | the blast radius leaves this machine |
-| [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3** (`CON-6`): only on a recorded per-target go, with the preflight green and the tag already cut — one target per call | the blast radius is other people's users |
+| [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3**: only on a recorded go, with the preflight green and the tag already cut — one target per call; with no target typed, the single declared destination and the latest cut tag with no published release (ruling of 2026-09-28) | the blast radius is other people's users |
 
 **The per-target rule is the whole of the last two rows, and it is not a formality.** A go for one
-destination is a go for *that* destination: `--target` is required with no default even where exactly one
-is declared, and a second destination is a second call the maintainer makes. Neither phase is ever reached
-from a composite on the composite's authority — not from [`getsuga`](../claude/skills/getsuga/), not from
-[`en`](../claude/skills/en/); [`futon`](../claude/skills/futon/)'s `then` chain reaches either **only on
-the advance go** ([`mugetsu`](../claude/skills/mugetsu/) § 3: the maintainer's own typed invocation,
-bound to the tag that run cuts, one target, once, `mugetsu` only where `nen repo classify` reports
-`kind` `process` or `library`, § *Repository kinds*) — and the release unit both
+destination is a go for *that* destination: `kagutsuchi`'s `--target` is required with no default even
+where exactly one is declared; `mugetsu` resolves the single declared one and asks, as free text, only
+where several are declared and none named. A second destination is a second call the maintainer makes.
+Neither phase is ever reached from a composite on the composite's authority — not from
+[`getsuga`](../claude/skills/getsuga/), not from [`en`](../claude/skills/en/);
+[`futon`](../claude/skills/futon/)'s `then` chain reaches either **only on the advance go**, defined
+once in [`mugetsu`](../claude/skills/mugetsu/) § 3 and gated by `nen parse futon` on
+`futon.advanceGo` — and the release unit both
 of them send is built by [`susanoo`](../claude/skills/susanoo/), which uploads nothing itself and
 cuts no tag — where the repository declares `tags.identity` it names the identity `kagutsuchi`'s tag will carry.
 

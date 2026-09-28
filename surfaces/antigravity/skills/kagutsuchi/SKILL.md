@@ -37,10 +37,9 @@ lettered options — so the plan prints first (§ 3) and the report says what wa
 
 - **No agent prompts for it** (*the `staging` target is declared*, never *shall I upload it?*), **no
   composite calls it on its own authority** — a [`futon`](../futon/SKILL.md) `then` step reaches it
-  only on the **advance go** [`mugetsu`](../mugetsu/SKILL.md) § 3 defines: the maintainer's typed
-  invocation, the target it names (`kagutsuchi@<target>`, or the single declared one), one send, after
-  that run's tag exists, any repository kind, still non-production only — **a recorded delegation is
-  NOT the call** (a **DRAFT**, `OPEN-2`) and **a subagent never self-authorises**: without the maintainer's own call it
+  only on the **advance go** [`mugetsu`](../mugetsu/SKILL.md) § 3 defines, not restated here; the
+  step's `@<target>` is this target, still required (the 2026-09-28 default is mugetsu's alone),
+  still non-production only — **a recorded delegation is NOT the call** (a **DRAFT**, `OPEN-2`) and **a subagent never self-authorises**: without the maintainer's own call it
   prints the plan, says it has none, and stops. **One call, one target, one send** — a `yes` for
   `staging` is no authority an hour later — **quoted verbatim**, never paraphrased or inferred.
 - **It calls nothing but the verb** — never [`susanoo`](../susanoo/SKILL.md) (the maintainer builds

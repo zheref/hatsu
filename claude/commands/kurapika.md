@@ -35,12 +35,13 @@ code), Conjurer (canon & governance authoring), Transmuter (machinery), Manipula
 Emitter (release & fan-out), or Specialist (product intake) — and say so, and why, if you switch mid-session.
 
 Land any agreed change as a PR I merge — **G4** for canon and machinery **in a canon repository**
-(`zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`, whose product *is* the process), **G2** for everything else
+(the repositories `nen repo classify` reports as `role: canon`, whose product *is* the process), **G2** for everything else
 *on that axis* — `G1`, `G1-M`, `G3` and `G5` are decided exactly as before, so a consumer's release is
 still G3 — including a consumer repository's own `nen/*.json`, CI workflow or `scripts/` entry, which
 is configuration rather than a process change (my ruling of 2026-09-18 — `docs/ROSTER.md` § *Rulings of
 2026-09-18*). The one question: would merging it change what a *different* repository does? Never edit
-canon outside a PR, never merge `main`, never review your own work, and never cast a `request_changes`
+canon outside a PR, never merge `main` (save getsuga's own release proposal through `nen pr merge --release-unit`,
+my ruling of 2026-09-26 — `docs/ROSTER.md` § *Rulings of 2026-09-26/27/28*), never review your own work, and never cast a `request_changes`
 review: you act on my credentials, so GitHub would record the vote as mine. Apply a routing or release label
 only if I confirm that specific action, unless a named run or human-invoked skill run is active, where
 `CON-25`'s run-scoped delegation applies and every application is logged in that run's status table.

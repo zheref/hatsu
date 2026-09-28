@@ -459,3 +459,67 @@ locally-authored PR in the band short of Ready) is clear.
   port verified the mechanics (fetch, order, parse, readiness, concurrency) on samples and on the
   two real open PRs, not a full end-to-end clearance of any band (out of scope for a build-port; the
   skill's own mechanics are what this evidence is for).
+
+
+## Dated verification, 2026-09-28 — `nen parse futon` at nen 0.15.0 (label, `c++`, chain, gate lines)
+
+Run live in the hatsu checkout (`--repo .`, origin `zheref/hatsu`, `nen repo classify` → `kind: process`),
+binary `nen 0.15.0`. Transcripts verbatim.
+
+```text
+$ nen parse futon --repo . "hatsu@bug"
+repo: zheref/hatsu
+label: bug (exact match, no expansion)
+terminal: (none -- build-only)
+exit=0
+
+$ nen parse futon --repo . "hatsu@c++"
+repo: zheref/hatsu
+label: c++ (exact match, no expansion)
+terminal: (none -- build-only)
+exit=0
+
+$ nen parse futon --repo . "hatsu@bug then getsuga+mugetsu"
+repo: zheref/hatsu
+label: bug (exact match, no expansion)
+then: skills getsuga -> mugetsu (existence and authority are the caller's to check)
+  gate: getsuga allowed ('process' is an allowed repo kind for 'getsuga')
+  gate: mugetsu allowed ('process' is an allowed repo kind for 'mugetsu')
+exit=0
+
+$ nen parse futon --repo . "hatsu@high+ then getsuga+kagutsuchi@testflight+mugetsu@github"
+repo: zheref/hatsu
+band: high+ -> critical, high
+then: skills getsuga -> kagutsuchi@testflight -> mugetsu@github (existence and authority are the caller's to check)
+  gate: getsuga allowed ('process' is an allowed repo kind for 'getsuga')
+  gate: kagutsuchi allowed ('process' is an allowed repo kind for 'kagutsuchi')
+  gate: mugetsu allowed ('process' is an allowed repo kind for 'mugetsu')
+exit=0
+
+$ nen parse futon --repo . "hatsu@bug then aka+mukai"
+repo: zheref/hatsu
+label: bug (exact match, no expansion)
+then: skills aka -> mukai (existence and authority are the caller's to check)
+exit=0
+
+$ nen parse futon --repo . "hatsu@bug then getsuga+getsuga"
+repo: zheref/hatsu
+label: bug (exact match, no expansion)
+then: skills getsuga -> getsuga (existence and authority are the caller's to check)
+  gate: getsuga allowed ('process' is an allowed repo kind for 'getsuga')
+  gate: getsuga allowed ('process' is an allowed repo kind for 'getsuga')
+exit=0
+
+$ nen parse futon --repo . "@bug then tag"
+repo: zheref/hatsu
+label: bug (exact match, no expansion)
+terminal: tag
+exit=0
+```
+
+`--json` for the two-step chain carries `then: {kind: "skills", steps: [{skill: "getsuga", target: null,
+gate: {allowed: true, kind: "process", reason: …}}, {skill: "mugetsu", …}]}`, `band: null`, `label: "bug"`,
+`terminal: null`. Read against the skill: `c++` is one label, not `c+` with `+`; `aka` and `mukai` steps
+carry no `gate` because `futon.advanceGo` does not list them (§ 8's fail-closed rule applies only to a
+listed skill); at 0.15.0 the duplicate `getsuga+getsuga` chain is accepted and the `gate` line carries no
+`[declared]` suffix — both are the release after v0.15.0 (the duplicate refused, the source printed).

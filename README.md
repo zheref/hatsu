@@ -11,7 +11,7 @@ verb is a verb** from the [**Nen**](https://github.com/zheref/nen) CLI: Nen dete
 verifies; the skill supplies only the judgment a binary cannot. Where no verb exists yet, the residue is
 **named per skill** in [`docs/ab/`](docs/ab/) rather than quietly improvised.
 
-No GitHub App. No bot identity. Nothing here merges `main` or casts a review vote. **Nothing here publishes a release on its own authority**: from `v0.40.0` the `plugin` lane declares a real `release` row, so `hatsu:mugetsu` has something to run — but it runs it only on your recorded per-target go at **`G3`** (`CON-6`) — typed by name, or in advance as a `futon` `then` step on a process/library repository — never a composite's own and never an agent's.
+No GitHub App. No bot identity. Nothing here casts a review vote, and nothing here merges `main` except `getsuga` merging its own release-proposal PR through `nen pr merge --release-unit` (your ruling of 2026-09-26, `docs/ROSTER.md` § *Rulings of 2026-09-26/27/28*). **Nothing here publishes a release on its own authority**: from `v0.40.0` the `plugin` lane declares a real `release` row, so `hatsu:mugetsu` has something to run — but it runs it only on your typed go at **`G3`** — by name, or in advance as a step of your own `futon` `then` chain (the advance go) — never a composite's own and never an agent's.
 
 > **The current release is whatever [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json)'s `version`
 > says, and this line names no number on purpose** — a version repeated in prose is a version that drifts,
@@ -777,7 +777,7 @@ Forty-four, invoked as `hatsu:<name>` (forty-five directories with `hatsu-warmup
 | `build` | Takes one issue from wherever it sits to a delivery PR standing ready at its human gate. |
 | `file` | Files one well-formed, correctly-labelled, non-duplicate issue — reconciled against the open backlog first. |
 | `futon` | Takes one selector's worth of the backlog — a whole severity band (`@<severity>[+]`), or every open issue carrying one exact label (`@<label>`) — from open issues to PRs with an actor behind them, then **gates** whatever you typed after `then` — `tag`/`tag+fanout` handed to `getsuga`, any installed skill run under its own authority, or prose mapped to skills and verbs before acting; nothing runs until every PR this run authored is Ready, and it never cuts a tag itself. |
-| `getsuga` | **Cuts** a release tag locally, end to end — preconditions, one folded **release-proposal** PR it merges itself when the diff is the release unit only and `CON-32` reads Ready (through your repository's own protection; otherwise you merge), the **post-merge** tag, the fan-out and the consumers' repin PRs. The release unit is `susanoo`'s; publication is `mugetsu`'s. Never publishes a release. |
+| `getsuga` | **Cuts** a release tag locally, end to end — preconditions, one folded **release-proposal** PR it merges itself through `nen pr merge --release-unit` (otherwise you merge), the **post-merge** tag, the fan-out and the consumers' repin PRs. The release unit is `susanoo`'s; publication is `mugetsu`'s. Never publishes a release. |
 | `izanagi` | Repeats a task that **acts** until a condition holds, under a **mandatory** iteration cap. No cap, no run. |
 | `izanami` | Repeats a **read-only** task until a condition holds. It looks, reports, and stops. |
 | `jujisho` | Splits a mixed working copy into up to two stacked branches and PRs, by axis, proving nothing was left behind. |
@@ -1314,9 +1314,9 @@ rewrite; [`docs/ROSTER.md`](docs/ROSTER.md) carries the same table.
 |---|---|---|
 | **G1 — Epic approval** — the human applies one delivery-mode label | `CON-4` | **Never** |
 | **G1-M — Release into build** — applying the building stage label | `CON-25` | **The one delegated crossing** — only under `CON-25`'s four exhaustive, named carve-outs |
-| **G2 — Merge to `main`** | `CON-5` | **Never** by these agents. No agent here merges `main`, or its own PR anywhere. |
-| **G3 — Release go/no-go** | `CON-6` | **Never.** Preparing a release is allowed; publishing is not. |
-| **G4 — Policy / spec change**, meaning **authoring or maintaining a canon repository** — `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`, whose product *is* the process | `CON-7` | **Never** |
+| **G2 — Merge to `main`** | `CON-5` | **Never** by these agents — save `getsuga` § 3a merging its own release-proposal PR through `nen pr merge --release-unit` (`docs/ROSTER.md` § *Rulings of 2026-09-26/27/28*). |
+| **G3 — Release go/no-go** | `CON-6` | **Never on an agent's word.** Preparing a release is allowed; publishing runs only on your typed go — by name, or as a `mugetsu` step of your own `futon` chain. |
+| **G4 — Policy / spec change**, meaning **authoring or maintaining a canon repository** — the repositories `nen repo classify` reports as `role: canon`, whose product *is* the process | `CON-7` | **Never** — with the same one carve-out as G2, `getsuga` § 3a's own release proposal at `canon-merge` |
 | **G5 — Anything else human-only** | `CON-47` | **Never** — its definition *is* "the decision is yours" |
 
 > **G4 is the repository's role, not the file's kind (maintainer's ruling, 2026-09-18).** A change is

@@ -57,7 +57,7 @@ mechanics, and a live transcript showing the same verdict from fewer improvised 
 | [`build`](build/) | Takes one issue from wherever it sits to a delivery PR standing ready at its human gate. Never applies a mode label. |
 | [`file`](file/) | Files one well-formed, correctly-labelled, non-duplicate issue — reconciled against the open backlog first, on one explicit confirmation. |
 | [`futon`](futon/) | Takes one selector's worth of the backlog — a whole severity band, or every open issue carrying one exact label — from open issues to PRs with an actor behind them, then **gates** whatever you typed after `then` — `tag` or `tag+fanout` (handed to [`getsuga`](getsuga/)), any installed skill (run under its own authority), or prose Kurapika maps to skills and verbs before acting: nothing runs until no PR this run authored is short of Ready. It cuts no tag and runs no fan-out of its own. |
-| [`getsuga`](getsuga/) | **Cuts** a release tag locally, end to end — preconditions, one folded **release-proposal** PR it merges itself inside its § 3a bounds — release unit only, `CON-32` Ready, the repository's own protection (ruling of 2026-09-26) — or that the maintainer merges at **G4** in a canon repository (**G2** in a consumer one), the **post-merge** tag, the `CON-22` fan-out and the consumers' repin PRs. The release unit it folds in is [`susanoo`](susanoo/)'s; publication is [`mugetsu`](mugetsu/)'s, at **G3**. Prepares a release; never publishes one. |
+| [`getsuga`](getsuga/) | **Cuts** a release tag locally, end to end — preconditions, one folded **release-proposal** PR it merges itself through `nen pr merge --release-unit` (§ 3a; `docs/ROSTER.md` § *Rulings of 2026-09-26/27/28*) or that the maintainer merges at **G4** in a canon repository (**G2** in a consumer one), the **post-merge** tag, the `CON-22` fan-out and the consumers' repin PRs. The release unit it folds in is [`susanoo`](susanoo/)'s; publication is [`mugetsu`](mugetsu/)'s, at **G3**. Prepares a release; never publishes one. |
 | [`izanagi`](izanagi/) | Repeats a task that **acts** until a condition holds, under a **mandatory** iteration cap — an invocation without `up to <N>` is refused. |
 | [`izanami`](izanami/) | Repeats a **read-only** task until a condition holds. It looks, reports and stops; it never writes. |
 | [`jujisho`](jujisho/) | Splits a mixed working copy into up to two stacked branches and PRs, by axis, proving the union of the splits equals the original diff. |
@@ -137,7 +137,10 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 > [`mugetsu`](mugetsu/) are the last three rows of the atomic table above, so **every phase a skill can
 > carry now has one** — and of the five the maintainer calls (`aka`, `mukai`, **the merge**,
 > `kagutsuchi`, `mugetsu`), **four are skill-backed**. The fifth is the merge, and it has no file because
-> there is nothing for one to describe: **G2** (`CON-5`) is an action no agent in this plane performs.
+> there is nothing for one to describe: **G2** (`CON-5`) is an action no agent in this plane performs —
+> save [`getsuga`](getsuga/) § 3a merging its own release-proposal PR through `nen pr merge --release-unit`
+> (`docs/ROSTER.md` § *Rulings of 2026-09-26/27/28*), and a typed `futon` `then` chain is the maintainer's own call for the
+> skills it names (the advance go, [`mugetsu`](mugetsu/) § 3).
 > The rule that carried the other four while they were only names is unchanged and was never contingent
 > on the file: **name the phase and stop there anyway** — the boundary is the governance.
 

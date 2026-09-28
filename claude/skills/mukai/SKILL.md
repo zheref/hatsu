@@ -46,7 +46,10 @@ comes from `nen/workflow.json`, and every step reads its own configuration. Same
 [`hatsu:aka`](../aka/SKILL.md) § 1 states for its own bare verb: inventing an optional clause so
 that a parse could be echoed would be ceremony, not a grammar.
 
-**The call is the maintainer's, in their own words or by name**, and it carries three consequences:
+**The call is the maintainer's, in their own words or by name** — or as a `then` step of a typed
+[`futon`](../futon/SKILL.md) invocation, which the maintainer's ruling of 2026-09-28 (b) makes their
+call for this skill too ([`mugetsu`](../mugetsu/SKILL.md) § 3, the advance go; [`docs/ROSTER.md`](../../../docs/ROSTER.md)
+§ *Rulings of 2026-09-26/27/28*) — and it carries three consequences:
 
 - **No agent ever prompts for it.** Not a report, not a bell, not a composite offering it as a next
   step, not a lettered option in a stop. A report may say *the branch is ready to go up*; it may

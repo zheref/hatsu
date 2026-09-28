@@ -19,7 +19,7 @@ trigger a duplicate filing. Never copy or invent a second policy in the target r
 > **The gate on a declaration change is the REPOSITORY's role, not the file's kind.** Maintainer's
 > ruling, 2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is
 > the repository's role, not the file's kind*): **`G4` (`CON-7`) in a canon repository** —
-> `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`, whose product *is* the process — and **`G2`
+> the repositories `nen repo classify` reports as `role: canon` (`nen/repos.json` → `maintained_tools`), whose product *is* the process — and **`G2`
 > (`CON-5`) in a consumer repository**, where a `nen/contract.json`, `nen/workflow.json` or
 > `nen/gates.json` is that repository's own configuration and governs nothing else. **This skill runs
 > against consumer checkouts by design**, so every declaration-gate instruction below names both
@@ -56,10 +56,10 @@ target once*. The contract in
 plan. The only thing that authorises a publication is § 3's **recorded per-target go, in the
 maintainer's own words, quoted verbatim** — and a session that reaches this skill without one prints
 the preflight and the plan, reports that it has no go, and stops. **Two exceptions, both narrow**: when
-the maintainer typed `$mugetsu <target>` in this same turn, § 3 may ask for the missing part of
-that go — typed, never picked, never derived, never defaulted; and when the maintainer typed a futon
-invocation whose `then` chain names this skill, § 3's advance go is the recorded go, bound to the tag
-that run cuts. Every other reach, a subagent included, stops without relaying any ask. That is unchanged, and a cold entry is the case it was written for.
+the maintainer typed `$mugetsu [<target>]` in this same turn, § 3 may ask for a destination only
+where several are declared and none named — typed, never picked; and when the maintainer typed a
+futon invocation whose `then` chain names this skill, § 3's advance go is the recorded go, bound to
+the tag that run cuts. Every other reach, a subagent included, stops without relaying any ask. That is unchanged, and a cold entry is the case it was written for.
 
 **P1 · Warm up.** [`$hatsu-warmup`](../hatsu-warmup/SKILL.md), unconditionally — `nen release
 preflight` and `nen shu release` are `nen` calls.
@@ -89,20 +89,19 @@ second publication needs a second go. Not a subagent's self-authorisation, at th
 ## 1. Invocation — and who is allowed to say it
 
 ```
-$mugetsu <target>
+$mugetsu [<target>]
 ```
 
-**`<target>` is required grammar.** It names the destination being published to — a key of
-`nen/contract.json → project.targets` where the repository publishes through `deploy`, or the lane
-whose `release` row is the publication step where it publishes through `release` (§ 4). There is no
-bare form and no default: the maintainer naming the destination is half of the authorization, and the
-other half is § 3's recorded go.
-
-**The target and the go are the maintainer's word** (`missing-maintainer-choice`;
-[`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *The maintainer's word is never derived*): never
-derived, never defaulted, never a picker option. **A missing target is never asked for** — P4's
-exception needs `<target>` already typed — so `$mugetsu` with none prints the declared targets
-for reference, none starred, and stops. **An undeclared
+**`<target>` names the destination** — a key of `nen/contract.json → project.targets` where the
+repository publishes through `deploy`, or the lane whose `release` row is the publication step where it
+publishes through `release` (§ 4). **By the maintainer's ruling of 2026-09-28** ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*), naming it is
+**never mandatory, not even on a direct call**: with none typed, this skill publishes to the
+repository's **single** declared destination, and the version it publishes is **the latest cut
+(getsuga release) tag that has no published release yet** — resolved at publish time, printed, and
+quoted beside the go in the report. Only **two or more declared destinations and none named** is a
+gap, asked as **free text** (`missing-maintainer-choice`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md)
+§ 4 *The maintainer's word is never derived*): the declared keys listed for reference, none starred,
+none a picker option that publishes. **The go itself is never derived or defaulted.** **An undeclared
 target is refused**, naming the declaration PR that would add it — a `project.targets` entry at that
 repository's declaration gate — and nothing is written or run here.
 
@@ -149,10 +148,11 @@ afterwards.
 
 Nothing below is optional and nothing below is reordered.
 
-1. **The recorded go exists and names this target** — § 3. Without it the run ends here, except under
-   P4's same-turn exception, where the missing part is asked for and nothing past this step runs until
-   the maintainer types it.
-2. **The tag is cut, and it resolves on `origin`** — § 3's second half. A go with no tag is refused.
+1. **The recorded go exists, and the destination resolves** — § 3, § 1: the one named, or the single
+   declared one. Without a go the run ends here; with several destinations and none named, P4's
+   same-turn exception asks, and nothing past this step runs until the maintainer types it.
+2. **The tag is cut, and it resolves on `origin`** — § 3's second half: the one named, or the latest
+   cut tag with no published release, printed. No cut tag at all is refused.
 3. **`nen release preflight` reads clean at the tagged commit** — § 4, and read its one inverted row
    carefully.
 4. **The plan is printed** — `nen shu release … --dry-run`, or
@@ -173,16 +173,17 @@ from a `kagutsuchi` upload to a testing channel that went fine, not from an earl
 gone the same way, not from silence, not from *"looks good"* on a different question. If you are
 reconstructing what the maintainer meant, there is no go.
 
-**What a go must contain** — and where any part is missing, stop; under P4's same-turn exception only,
-ask for that part (never derived, never defaulted) and run nothing until the answer arrives. **The go
+**What a go carries** — the word to proceed is never defaulted; the destination and the tag resolve
+as § 1 says, and only a destination among several is asked, under P4's same-turn exception, with
+nothing run until the answer arrives. **The go
 is typed, never picked**: the ask takes the maintainer's free-text answer, and no picker ever carries a
 *publish* option.
 
 | Part | Why |
 |---|---|
-| the **destination**, by the name the declaration gives it | a go for one store is not a go for another |
-| the **version or tag** being published | a go is for a build, not for a repository |
-| the maintainer's own **word to proceed** | not an agent's paraphrase of their intent |
+| the maintainer's own **word to proceed** | not an agent's paraphrase of their intent — the one part that is never defaulted |
+| the **destination**, by the name the declaration gives it — **or the single declared one** (§ 1, ruling of 2026-09-28) | a go for one store is not a go for another; several declared and none named is the one ask |
+| the **version or tag** being published — **or the latest cut tag with no published release** (§ 1) | a go is for a build, not for a repository; the resolved tag is printed and quoted beside the go |
 
 Nothing in nen records this (§ Residue). `nen stop --notified` writes `.nen/last-stop.json` for the
 bell and is not a record of an authorization. The quote is the record.
@@ -203,43 +204,45 @@ so by rule as well.
 
 ### The advance go — the one go typed before the tag exists
 
-**Maintainer's ruling, 2026-09-26** (this effort's history file): a futon invocation whose `then` chain
+**Maintainer's ruling, 2026-09-26** ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*): a futon invocation whose `then` chain
 names this skill — `$futon <repo>@<selector> then getsuga+mugetsu[@<target>]` — **is itself the
 go**, given in advance of the tag. It is the one way a composite reaches this skill, and it is
-narrower than the ordinary go on every axis. **This is the canonical definition**; [`futon`](../futon/SKILL.md)
-§ 8, [`getsuga`](../getsuga/SKILL.md) § 1 and [`kagutsuchi`](../kagutsuchi/SKILL.md) § 1 cite it and
-restate none of it.
+narrower than the ordinary go on every axis. **This is the canonical definition** (recorded in [`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*); [`futon`](../futon/SKILL.md)
+§ 8, [`getsuga`](../getsuga/SKILL.md) § 1, [`kagutsuchi`](../kagutsuchi/SKILL.md) § 1, [`aka`](../aka/SKILL.md)
+§ 0 and [`mukai`](../mukai/SKILL.md) § 1 cite it and restate none of it. **By the ruling of
+2026-09-28 (b) it is wider than this skill**: a typed chain step is the maintainer's own call for
+**any** skill whose call is the maintainer's — `aka`, `mukai`, `kagutsuchi`, this one — still never
+prompted for and never proposed; the chain is the call.
 
 - **Record.** The maintainer's **typed futon invocation, quoted verbatim**, is the go: their own words,
   never inferred, never picked. An invocation Kurapika composed, a picker option, a recorded delegation
   or a brief is not one.
-- **Binding.** It covers **only the tag that run's `getsuga` step cuts** — the version is filled in
-  when cut and quoted beside the go — and the destination the step names (`mugetsu@<target>`) or,
-  with none, the repository's **single** declared destination for this skill. Two or more declared and
-  none named → ask as free text (`missing-maintainer-choice`), never picked.
-- **Single use.** One go, one target, once. It **lapses** if the run ends or stops before this step is
-  reached, or if the tag in hand is not the one this run's getsuga produced. Never carried to another
-  run.
+- **Binding.** It covers the tag this run's `getsuga` step cuts, or — with no getsuga step ahead of
+  it, or one that cut nothing — **the latest cut tag with no published release**, resolved when this
+  step runs (§ 1, ruling of 2026-09-28 (a)); either way the version is printed and quoted beside the
+  go. The destination is the one the step names (`mugetsu@<target>`) or, with none, the repository's
+  **single** declared one; two or more declared and none named → asked as free text
+  (`missing-maintainer-choice`), never picked.
+- **Single use.** One go, one target, once. It **lapses** if the run ends, halts or stops at a **G5**
+  before this step is reached (a delivery-merge prompt is a wait, not a stop), or if a getsuga step
+  ahead of it cut a tag and the tag in hand is not that one. Never carried to another run.
 - **Order.** This step runs only after its tag exists on `origin`, with every precondition of § 2 and
   § 4 still holding — `nen release preflight` green, the plan printed. **Delivery merges stay the
   maintainer's (G2/G4)**: the chain waits at each of those prompts and merges none. The one PR the
-  chain does not wait for is getsuga's own release-proposal PR, which getsuga merges itself under
-  the bounds of its § 3 (the maintainer's ruling of 2026-09-26).
+  chain does not wait for is getsuga's own release-proposal PR, which getsuga merges itself through
+  its § 3a (the same rulings section).
 - **Repository kind — this skill only.** Allowed only on a repository of kind **`process`** or
-  **`library`** — the kinds [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Repository kinds* defines:
-  plugins, machinery and CLIs (`zheref/hatsu` is `claude-code-plugin`/`process`, `zheref/nen` is
-  `bun-cli`/`process`), and reusable code shared across repositories, which says so by declaring
-  `project.kind: "library"` in its `nen/contract.json` through its own declaration gate. **The policy is
-  data, not prose**: `nen/workflow.json` → `futon.advanceGo` lists this skill with those two kinds, and
-  `nen parse futon` annotates the `mugetsu` step with `gate: {allowed, kind, reason}` from
-  `nen repo classify`'s own verdict — `product`, and `unknown` failing closed, print a
-  `refused: mugetsu (<reason>)` line that futon **relays verbatim at its parse echo**; the maintainer gives the go the ordinary way once the tag is
-  cut, and the rest of the chain still runs. `getsuga` and `kagutsuchi` take an advance go on any
-  kind; kagutsuchi remains non-production only.
+  **`library`** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Repository kinds* defines the three).
+  **The policy is data, not prose**: `nen/workflow.json` → `futon.advanceGo` (nen's built-in default
+  where none is declared, from the release after v0.15.0), read by `nen parse futon`, which annotates
+  the step with `gate: {allowed, kind, reason, source}` from `nen repo classify`'s own verdict —
+  `unknown` fails closed — and prints a `refused: mugetsu (<reason>) [<source>]` line that
+  [`futon`](../futon/SKILL.md) § 8 **relays verbatim at its parse echo**; the maintainer gives the go
+  the ordinary way once the tag is cut, and the rest of the chain still runs.
 
-Still: no agent proposes it, no picker carries a publish option, and **G3** (`CON-6`) is satisfied
-by the maintainer's typed word — only the human authorises a release, and here only the human did,
-in advance.
+Still: no agent proposes it, no picker carries a publish option, and **G3** is satisfied by the
+maintainer's typed word — only the human authorises a release, and here only the human did, in
+advance.
 
 ### A go with no tag is refused
 
@@ -248,9 +251,10 @@ A publication with no tag is a build nobody can point at afterwards: `latest` in
 CHANGELOG section, the fan-out ledger and the release record all name a tag, and `CON-14` forbids
 writing any of them for a tag that does not resolve.
 
-So: **no tag → refuse, name `$getsuga` as the phase that cuts it, and stop** — unless the go is an
-advance go bound to this run's tag (above), in which case the step waits for that cut and means that
-tag and no other. Do not cut it here
+So: **no cut tag at all → refuse, name `$getsuga` as the phase that cuts it, and stop.** With
+no version typed the tag it means is § 1's — the latest cut tag with no published release — and an
+advance go bound to a getsuga step ahead of it waits for that cut and means that tag and no other.
+Do not cut it here
 — that is Kurapika's duty in *that* skill (`CON-33(b)`/`CON-41`), with its own preconditions, its own
 release PR and its own G4 — and never publish "and tag afterwards".
 
