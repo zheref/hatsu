@@ -79,7 +79,7 @@ set makes the approve limb of the readiness gate vacuously true*. That refusal i
 which of the two you mean; do not arrive at an empty set by omission.
 
 > **Solo maintainer, no second human?** `"review-round-only"` with an automated reviewer declared is
-> the honest shape — the round is real and the merge stays yours. Setting `"required"` and listing
+> the honest shape — the round is real, and the run merges its own PR at its terminus (`en` § 5). Setting `"required"` and listing
 > yourself makes the approve limb vacuous by a different route.
 
 ### `default_approvers` — whose approval counts

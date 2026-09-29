@@ -183,8 +183,8 @@ progress.
 
 ## 10. Hard limits
 
-- **Never merges `main`** (`CON-5`/`CON-7`, rows `merge`/`canon-merge`), its own PR anywhere, or the
-  chore/integration delivery PR.
+- **Never merges another's PR, or the chore/integration delivery PR** (`CON-5`/`CON-7`, rows
+  `merge`/`canon-merge`); its own is `en` § 5's, at its terminus (row `own-pr-merge`, ruling 2026-09-29 (3)).
 - **Never applies a G1 mode label**, inside a run or outside it, and never routes the entry issue
   without an answer.
 - **Never votes, self-reviews, impersonates a reviewer, or casts `request_changes`** (`CON-26`).

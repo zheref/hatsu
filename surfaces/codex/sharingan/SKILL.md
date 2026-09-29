@@ -95,7 +95,7 @@ and resolutions. **Not permitted:** any G1 mode label, merge, review vote, routi
 label — a drive needing one is [`build`](../build/SKILL.md)'s job. **Every label application is
 logged** (object, label, time) in the stop.
 
-- **Never merges** — not `main`, not a chore branch, never on `mergePermitted` — and **never
+- **Never merges** (en § 5 does) — not a chore branch, never on `mergePermitted` — and **never
   self-reviews, impersonates an automated reviewer, casts `request_changes`, force-pushes,
   `--no-verify`s, pushes `main`, or opens a PR.** **Never reports readiness it did not get from
   `nen pr ready` + `nen pr body-check`**, and never promotes a `not-ready` verdict on inference.
@@ -137,7 +137,7 @@ no bound lets the run request is an impossible condition, not one to poll) — n
 moves down `chain` to the next identity `reviewers[]` carries (a fallback request counts toward M); with
 the chain exhausted hanten's rounds are the review, nothing is requested, the PR goes to its merge
 prompt with **the verb's verdict quoted verbatim and one Hatsu line beside it, never in its place**.
-**The merge is never the run's** — *and merge* is the merge prompt, not a delegation (G4).
+**The merge is en's** (§ 5 there; ruling 2026-09-29 (3)) — *and merge* means merged.
 
 **Round completeness, thread hygiene (`nen pr threads list|reply|resolve`) and the Copilot request
 (`nen pr request-reviews --add-bots <node id>`, verified by `nen pr ready`, never REST) are

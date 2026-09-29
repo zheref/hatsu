@@ -443,8 +443,8 @@ nen stop --who kurapika --gate <G4|G2> <efforts.md>
 **`--gate` is not a constant here.** A hard-coded `G4` prints a canon-repository banner over a
 consumer's release proposal, which is the misclassification the 2026-09-18 ruling exists to remove
 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role,
-not the file's kind*). Outside § 3a's gates the maintainer merges, and Kurapika never merges
-`main` — the 2026-09-18 ruling moves the gate, and the ruling of 2026-09-26 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*)
+not the file's kind*). Outside § 3a's gates a delivery PR is `en` § 5's to merge at its terminus (ruling 2026-09-29 (3)) and
+another's PR the maintainer's — the 2026-09-18 ruling moves the gate, and the ruling of 2026-09-26 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*)
 opens exactly one PR's worth of it, at `merge` and at `canon-merge` alike, through
 `nen pr merge --release-unit` and nothing else.
 
