@@ -386,3 +386,13 @@ pass, so a reader following it lands on the whole policy rather than half of it.
 **Unchanged:** the cap is grammar rather than a default; a quiet observation claims no cycle; the bell
 rings once, at Ready; en never merges and never casts a review vote; and Third-Hand is not started
 from inside this run.
+
+## The outstanding reviewer round is a named pending row — 2026-09-28 (zheref/hatsu#103)
+
+§ 6's observation table gains its first row: a requested reviewer round not yet posted at the current head
+is pending, not Ready, and spends no cycle. Measured on HA-PR-#121 the same day: `nen pr ready HA#121
+--explain` seconds after the PR opened read `not-ready: a configured reviewer's round is still owed at the
+current head (CON-32b): copilot (review requested, not yet posted)` with every check green; the round posted
+four minutes later with five threads, and the verdict moved to `CON-32(d)`. § 1 names `getsuga` § 3 and the
+composites among the callers that start en, and cites `docs/PROCESS.md` § *Reporting a phase* for the rule
+that every PR a session opens reaches the maintainer through en or with the verdict quoted.

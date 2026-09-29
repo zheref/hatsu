@@ -347,6 +347,37 @@ the real `v0.11.3` release PR (RR-PR-#916): `nen` reports it **should list ITSEL
 against `v0.11.3..v0.11.3` (correct — already reachable from its own tag). Four laps got this wrong
 by hand in `<reference-repo>` (RR-PR-#651, RR-PR-#679, RR-PR-#682, RR-PR-#691) before this existed.
 
+**The proposal is opened, then handed to `hatsu:en` — never called ready on CI alone**
+(zheref/hatsu#103). `nen pr open` opens it; from that moment it is a pull request like any other,
+and its readiness is [`en`](../en/SKILL.md)'s: `hatsu:en on <CODE>#<N>`, whose pre-Ready hold
+covers the required checks **and** the asynchronous reviewer round `nen/gates.json` configures
+(Copilot's round lands minutes after a request or a push, and a proposal opened minutes ago is
+not ready while it is outstanding — `nen pr ready` row 4, `CON-32(b)`) and every review thread.
+§ 3a's verb re-runs `pr ready` as its first gate, but § 3a is entered only once en has read
+**`ready`**; where § 3a falls back to the maintainer's merge, the stop's line is `nen pr ready`'s
+verdict **quoted** — never "green", never `gh pr checks`, never a delegate's "checks passed".
+
+**A stacked proposal is retargeted the moment its delivery merges** (zheref/hatsu#98). A
+proposal opened while § 6 was driving an off-`main` target sits on that delivery branch; **GitHub
+retargets a pull request only when its base branch is deleted**, so a delivery that merges without
+deleting its branch leaves the proposal aimed at a dead branch, and merging it there lands the bump
+nowhere (zheref/nen#232 merged into `fable/kurapika/surfaces-spend-speed` 71 minutes after that
+branch had merged; zheref/nen#222 the same shape; `main` was carried by hand and pushed straight,
+zheref/nen#234). **So the retarget is a step this skill takes, never assumed:**
+
+```bash
+nen repo resolve --repo <checkout> --from <checkout>                        # -> <owner/name>
+nen pr retarget --target <owner/name> --pr <N> --base <branch.base>
+gh pr view <N> --repo <owner/name> --json baseRefName -q .baseRefName      # the read-back: MUST print <branch.base> (residue: nen exposes no read of a PR's base)
+```
+
+**While `baseRefName` is anything but `branch.base`, the proposal is presented at no gate**: § 3a
+does not run (its `release unit-check` reads `release.unitPaths` at the PR's **base**, which must be
+the trunk), and a G4 ask names the retarget as the blocking step. Retrospective check a reader can
+run: `gh pr view 232 -R zheref/nen --json baseRefName` and the same for `222` both return a
+`fable/…` branch — this rule would have stopped both merges. [`jujisho`](../jujisho/SKILL.md) states
+the same discipline for a stacked split; it is authored there for splits and here for the proposal.
+
 > **Collation manufactures contradictions — look for them.** Two fragments written weeks apart are
 > each true when written and become **simultaneous claims** in one dated section. Before opening the
 > PR, read the assembled section for entries that contradict each other. **Reconcile in place; never
@@ -368,9 +399,12 @@ nen pr merge <n|owner/name#n> --release-unit --requirements-from <path> --repo <
 ```
 
 **The verb bounds the diff; this skill bounds which PR.** Record, when § 3 opens the proposal, **its
-PR number and head SHA** — that pair, and no other object, is what § 3a may merge. The verb then runs
-**five gates** in order, every one regardless of an earlier failure, and prints every verdict line
-verbatim — **quote those lines in the report**, never a summary of them:
+PR number and head SHA** — that pair, and no other object, is what § 3a may merge. **Two
+preconditions this skill checks before the verb**: the proposal's `baseRefName` is `branch.base`
+(§ 3's retarget, read back), and [`en`](../en/SKILL.md) has read `ready` on it — a proposal on a
+delivery branch, or one whose Copilot round is still outstanding, is not offered to the verb. The
+verb then runs **five gates** in order, every one regardless of an earlier failure, and prints every
+verdict line verbatim — **quote those lines in the report**, never a summary of them:
 
 1. **`pr ready`** — `CON-32` readiness, naming the exact commit it judged.
 2. **head pin** — the PR's head still matches that judged commit (both SHAs printed on a mismatch);
@@ -590,6 +624,9 @@ through nen and this section does not apply. `<reference-repo>` is machinery and
   through [`kagutsuchi`](../kagutsuchi/SKILL.md) (non-production) or
   [`mugetsu`](../mugetsu/SKILL.md) (production), per target, never from here — a futon chain's later
   step is that skill's own run on the advance go, not this skill's.
+- **Never presents the proposal at a gate, nor runs § 3a, while its base is not `branch.base`** — a
+  stacked proposal is retargeted with `nen pr retarget` and read back first (§ 3); **never calls a
+  release PR ready on CI alone** — its readiness is `en`'s `nen pr ready` verdict, quoted (§ 3).
 - **Never merges past § 3a**: not a PR it did not open in this run (the recorded number and head SHA),
   never by a raw `gh pr merge`, never on a `nen pr merge` that read anything but `merged:`, never
   around a protection rule, and never with a review or approval of its own.

@@ -102,6 +102,19 @@ using it.
 **Objects are named in `<CODE>-<IS|PR>-#<N>` notation from `nen ref format`, never from memory** — in
 a status board, a register row, a ledger line and a final report alike.
 
+**Every pull request a session opens or causes to be opened — a delegated subagent's included, a
+release proposal included — reaches the maintainer only through [`hatsu:en`](../claude/skills/en/SKILL.md),
+or with `nen pr ready`'s verdict line quoted** (maintainer's incident of 2026-09-22/23, zheref/hatsu#103:
+zheref/nen#246 was called "green … ready for you to merge" from `gh pr checks`, and zheref/nen#247 was
+relayed "ready (G4)" from a subagent's "macOS, Linux and compile green" while it carried two unresolved
+Copilot threads posted after the subagent had stopped). Three consequences, binding on every skill and
+every brief: **a subagent brief that opens a PR ends at the quoted verdict with zero unresolved threads**
+— or hands the PR to `en` — never at "checks green"; **the words *ready*, *G2-ready* and *G4-ready* appear
+in a report or chat line only beside the quoted verdict line**; and **a `not-ready` verdict on an excluded
+or infrastructure row stays `not-ready`, naming the row** — never softened into "ready" because the failing
+check is one the maintainer ruled out (`--exclude-check` is how that ruling reaches the verdict, not a
+paraphrase). A pending asynchronous reviewer round at the current head is `not-ready` too (`en` § 6).
+
 ## Publishing a report
 
 **On Claude Code a report is an Artifact, republished to ONE URL per key** — the skill names the key

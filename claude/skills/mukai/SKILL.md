@@ -60,14 +60,28 @@ call for this skill too ([`mugetsu`](../mugetsu/SKILL.md) § 3, the advance go; 
   converted a human call into a nudge.
 - **This call is the authorization for the pull request itself**, which is why no step below asks
   again before opening it ([`hatsu:shibari`](../shibari/SKILL.md) § 1).
-- **It is also the authorization for the evidence mechanism's public step.** On a stack whose
-  `project.evidence.mechanism` is `public-mirror`, the branch's re-recorded snapshots have to reach
-  a public host before the body can embed them — on **KroApple**, the repository's own
-  `ci_scripts/pr_screenshots.sh -y`. A maintainer who typed `mukai` asked for a pull request **with
-  its evidence attached**, on the mechanism their own repository declares; asking again per scene
-  would turn one authorization into a queue of them. **What the call does not cover is anything the
-  stack has not declared** — an unregistered mirror, an unnamed host, an image that is not one of
-  the branch's own re-recorded artifacts. Step 6 states what it published.
+- **It is also the authorization for the evidence mechanism's public step — in Hatsu's terms.** On a
+  stack whose `project.evidence.mechanism` is `public-mirror`, the branch's re-recorded snapshots have
+  to reach a public host before the body can embed them — on **KroApple**, the repository's own
+  `ci_scripts/pr_screenshots.sh`. A maintainer who typed `mukai` asked for a pull request **with its
+  evidence attached**, on the mechanism their own repository declares; asking again per scene would
+  turn one authorization into a queue of them. **What the call does not cover is anything the stack
+  has not declared** — an unregistered mirror, an unnamed host, an image that is not one of the
+  branch's own re-recorded artifacts. Step 6 states what it published.
+
+  **The harness's own permission classifier is a separate layer this call does not reach**
+  (zheref/hatsu#101). It reads a script's `-y` / `--yes` as a blind apply and asks regardless of what
+  this skill says it authorized; Hatsu never overrides or works around that classifier, and no skill
+  asks for it. So: **`-y` is passed only because the script's own confirmation would block a
+  non-interactive tool, never as a token of authority**, and the run says so before the call — *"this
+  publishes the branch's N re-recorded snapshots to <the declared host>; the harness may ask once."*
+  **The portable grant is the consumer's, not a per-machine `.claude/settings.local.json` edit**:
+  a repository that declares `public-mirror` puts its publish command's allow row in its **tracked**
+  `.claude/settings.json` (`"permissions": {"allow": ["Bash(ci_scripts/pr_screenshots.sh:*)"]}` on
+  KroApple), which travels with every checkout; Hatsu's own pack (`contracts/permissions.json`,
+  placed by ten § 5) carries Hatsu's verbs only and never a consumer's script. **Where the consumer
+  has not declared it, the stop at that step is expected and named** — mukai states it in step 6's
+  line before running the command, and it is not a G5.
 
 **One call, one Mukai run, one PR, then the offer to start En** — or, with `mukai.autoEn` true, one
 immediate En run in the same user turn (ruling 2026-09-28). A `yes` for this pull request is not

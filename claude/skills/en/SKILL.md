@@ -53,7 +53,12 @@ hatsu:en [on <CODE>#<N>]
 ```
 
 Started by [`hatsu:mukai`](../mukai/SKILL.md) with no clause under `mukai.autoEn` — the PR is the one
-step 8 just opened — or by the maintainer, naming a PR that is already open (mukai's offer line):
+step 8 just opened — by [`hatsu:getsuga`](../getsuga/SKILL.md) § 3 for the release proposal it just
+opened, by a composite (`futon`, `build`) for the PR its own effort opened, or by the maintainer,
+naming a PR that is already open (mukai's offer line). **Every PR a session opens or causes to be
+opened — a delegated subagent's included — reaches the maintainer through this run or with `nen pr
+ready`'s verdict line quoted** ([`docs/PROCESS.md`](../../../docs/PROCESS.md) § *Reporting a phase*,
+zheref/hatsu#103):
 
 ```bash
 nen parse en --grammar "on [<ref>]" --line "<the invocation, minus the hatsu:en prefix>"
@@ -323,6 +328,7 @@ en acts, and the `<n>/<cap>` the verb prints is the number the report carries.
 
 | Observed | What en does |
 |---|---|
+| **a requested reviewer round not yet posted at the current head** — Copilot minutes after a request or a push, `nen pr ready` row 4 (`CON-32(b)`: *review requested, not yet posted*) | **pending, not Ready**, and no cycle is spent: a PR opened or pushed minutes ago is not ready while a requested round is outstanding, however green its checks (zheref/hatsu#103: nen#246 and nen#247 were called ready on `gh pr checks` while Copilot's round was still to land). Observe until it posts, or until `round_policy.stallMinutes` makes it a stalled round — a different row, `sharingan` § 6's to act on |
 | **a new review, comment or thread** | inspect and classify it first. If it requires remediation or a reviewer re-request, claim an acting cycle, then return to step 2; an approval or informational event that needs only a read spends no cycle. [`hatsu:sharingan`](../sharingan/SKILL.md) addresses every inline and summary finding through its own channel |
 | **the branch fell behind, or the PR went `dirty`** | claim an acting cycle, then step 3 and step 4 — catch up, then re-decide. A conflicted PR gets *no checks at all*, which reads as "clean" rather than "broken" (`sharingan` § 5) |
 | the PR becomes Ready | step 6 — bell and stop at the human gate |
