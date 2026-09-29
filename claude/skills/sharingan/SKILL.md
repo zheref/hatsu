@@ -70,7 +70,11 @@ never re-derived by eye (`export GH_TOKEN=$(gh auth token)` first).
 - **The identity flag is [`pr-state`](../pr-state/SKILL.md) § 2's three-row table**: own
   `nen/gates.json` → none; frozen `<reference-repo>` → an absolute
   `--gates "$hatsu_root/contracts/reference.gates.json"`; anything else → `--reviewers` plus explicit
-  `--approvers`, by hand, named on the page.
+  `--approvers`, by hand, named on the page. **The exclusion flag is that section's too**
+  (zheref/hatsu#104): every live `check_exclusions[]` row of the target's `nen/gates.json` as
+  `--exclude-check <a,b>`, the verdict quoted with the exclusion named; a name the flag cannot carry
+  is `not-ready (CON-32(a): excluded check <name> pending)` with the other rows — never `ready`, never
+  a ruling carried in prose.
 - **Relay the provenance line** (`decided by nen <version> (<path>) at <timestamp>`) verbatim, and
   `meta.dependabotCarveOut` where declared — `ready` through it is `ready`; a not-ready one needs
   green shim contexts, not a round.
@@ -101,9 +105,11 @@ logged** (object, label, time) in the stop.
   `nen pr ready` + `nen pr body-check`**, and never promotes a `not-ready` verdict on inference.
 - **Never points `--gates` at another repository's gates file**, omits `--approvers` on the
   hand-supplied path, passes a bare relative `--gates` path (§ 4), counts an unverified wake, or fabricates a `--wakes-from` entry.
-- **Never exceeds `round_policy.maxRounds` requests**, requests one before the previous is complete or
-  after a push that changed nothing reviewable (§ 6); **never resolves a thread with no disposition**,
-  nor an unfixed finding.
+- **Never requests a reviewer round except through `nen pr request-reviews`** — never a raw GraphQL
+  `requestReviews`, never `gh api` (zheref/hatsu#102); **never exceeds `round_policy.maxRounds`
+  requests**, never requests once `round_policy.minRounds` rounds stand resolved, before the previous
+  round is complete, or after a push that changed nothing reviewable (§ 6); **never resolves a thread
+  with no disposition**, nor an unfixed finding.
 - **Never reports Ready while a required context or current-head round is pending**, holds `nen pr
   ready` unbounded, rolls its own sleep loop or schedules a wake-up (§ 3), or **comments with a raw
   `gh pr comment`/`gh issue comment`.**
@@ -111,9 +117,19 @@ logged** (object, label, time) in the stop.
 ## 6. Reviewer rounds — the Copilot policy
 
 **One Copilot round is requested after [`hanten`](../hanten/SKILL.md) settles, never before.**
-Arrivals are remediated up to `nen/gates.json` → `round_policy.maxRounds`; an owed round inside it is
-re-requested **without asking** (row `cap-reached`); **never after a push that changed nothing
-reviewable** — count commits and diff since the last reviewed head first:
+**The ceiling is two numbers in one declared home** — `nen/gates.json` → `round_policy.minRounds`
+(**N**, resolved rounds enough) and `.maxRounds` (**M**, requests at most), Hatsu's own keys, never a
+copy in prose (zheref/hatsu#102; #69's specification). **A round is requested only while requested < M
+AND resolved < N**, and only through `nen pr request-reviews` — never a raw GraphQL `requestReviews`,
+never `gh api`. A round is *resolved* when every finding it posted is fixed in a pushed commit, replied
+to and its thread resolved; *requested* counts this run's own requests plus the one `nen pr ready`
+row 4 reports in flight. Until zheref/nen#240 counts them in `--explain`, the count is the configured reviewer's posted
+reviews (`gh api …/pulls/<n>/reviews`, logins by `gates.reviewers[].login_pattern`) plus this run's own
+requests — residue.
+**An owed round inside both bounds is re-requested without asking** (row `cap-reached`); **once N
+resolved rounds exist no further round is requested — *owed at head* after your own push or request
+is not a reason** (KroApple#577); **never after a push that
+changed nothing reviewable** — count commits and diff since the last reviewed head first:
 
 ```bash
 git rev-list --count <reviewed-head>..HEAD
@@ -121,8 +137,10 @@ git diff --stat <reviewed-head>..HEAD
 ```
 
 **Copilot auto-reviews every push, so the cap governs requests, not arrivals; an arrival past the
-cap is still remediated and settled.** Past the maximum the run ends not-ready with the board, never
-a question, and not a G5; `monitor.maxCycles` is en's acting cap, a different number.
+cap is still remediated and settled.** **M requested with fewer than N resolved is the concrete
+blocker**, reported not-ready with `nen pr ready --explain` quoted and the board, never a question,
+never a G5, never a ceiling raised in-session; `monitor.maxCycles` is en's acting cap, a different
+number.
 
 **Round completeness, thread hygiene (`nen pr threads list|reply|resolve`) and the Copilot request
 (`nen pr request-reviews --add-bots <node id>`, verified by `nen pr ready`, never REST) are

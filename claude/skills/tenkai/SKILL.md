@@ -187,6 +187,7 @@ either operation.
 | the default lane's `release` row | **nen** | In a process repository, a seat gets an exact row offered — § 6a |
 | `lane/<lane>/<verb>` in a product | **nen** | Every declared command is checked; unsupported seats and missing iteration checks are routed — § 6b |
 | `workflow/<join>` in a product | **consumer configuration** | Checks toolchain, test selection and results, coverage, and visual evidence links across the declarations — § 6c |
+| `gates/check-exclusions` | **Hatsu** | Reads `nen/gates.json` → `check_exclusions[]` (zheref/hatsu#104): none, or every row live, is `satisfied`; a row past its `until` date or missing a field is `drift`, named — the ruling is removed or re-ruled, never silently honoured |
 
 **Seven states, and `drift` is the one the whole skill is for:**
 
@@ -513,6 +514,12 @@ Work the outstanding rows in dependency order, carrying prior owner answers forw
    released, resolvable Hatsu tag. An unpublished plugin version is a pending fan-out,
    not a ref to write into the consumer registry.
 1. **Iteration:** inspect `nen/workflow.json`'s checks and selected suites, the product lanes,
+   and — where the consumer carries `.claude/canon-values.yml` — the regeneration command its README
+   or `iteration.$comment` names for `.claude/rules/`, which the local verification gate runs and reads
+   on every commit that touches the bindings ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The local
+   verification gate*, step 1a; zheref/hatsu#111); a consumer with the bindings and no named command is
+   a routed gap, never a weekly cron waited on.
+   Also
    `project.toolchain`, and the actual CI workflow. For every executable check, identify its exact
    `nen shu` route, host, result artifact, and whether CI runs it. A `lint` seat needs a real lint
    command or an owner-approved documented reason it cannot exist. A suite omitted from selection

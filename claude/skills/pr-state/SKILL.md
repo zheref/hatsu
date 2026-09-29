@@ -121,6 +121,19 @@ nen pr ready <CODE>#<N> --repo <path> --reviewers <a,b,c> --approvers <a,b> --ex
 or, with a bare number against a repo slug directly, the same three shapes with `<N> --gh-repo
 <owner/repo>` in place of `<CODE>#<N> --repo <path>`.
 
+**The exclusion flag rides beside the identity flag, and it is read from a declared home only**
+(zheref/hatsu#104). A maintainer's ruling that a check is not watched — an absent self-hosted runner,
+a matrix leg ruled out — lives in the target's `nen/gates.json` → `check_exclusions[]` (`name`,
+`reason`, `ruled`, `until`; [`docs/GATE-CONFIGURATION.md`](../../../docs/GATE-CONFIGURATION.md) § 3),
+never in chat or a brief: every row whose `until` has not passed goes on the call as
+`--exclude-check <a,b>`, by name, and the verdict is quoted with the exclusion named. **A ruling
+with no row is `missing-configuration`** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up,
+continue*): written into the declaration at that repository's gate, then the verb re-read — never a
+verdict read around. **A name the flag cannot carry** (a comma inside a matrix check's name,
+zheref/nen#243) is reported as `not-ready (CON-32(a): excluded check <name> pending)` with the
+remaining rows quoted, **never as `ready`**; the row `CON-32(a)` reads by eye is the one the
+declaration owes nen (zheref/nen#249), and reading it by eye is the failure this flag exists to end.
+
 **Always the `$hatsu_root`-anchored form when `--gates` is the one in play, never a bare `contracts/reference.gates.json`.** The
 reason moved with nen `v0.2.0` (#86) and the practice did not: a **relative** `--gates` now resolves
 against **`--repo`'s root, never the cwd** — verified live at `v0.3.0`, from `/tmp` with `--repo` pointed

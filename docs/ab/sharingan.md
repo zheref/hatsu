@@ -234,3 +234,12 @@ self-reviews and never casts a review vote.
 size `wc -c` now reports, with every verified-live transcript, retired-at-nen callout, findings list
 and incident narrative moved to `CHANGELOG.md` § *History moved out of skill prose*. Every rule the
 prose carried stayed.
+
+## Dated 2026-09-29 — the ceiling is `round_policy`'s two numbers; the exclusion flag rides beside identity (zheref/hatsu#102, #104)
+
+`nen 0.15.1`. § 6 reads N/M from `nen/gates.json` → `round_policy.minRounds`/`.maxRounds` (this repository:
+1 and 3), requests only while requested < M and resolved < N, only through `nen pr request-reviews`, and
+never once N resolved rounds exist; the counts come from the configured reviewer's posted reviews until
+zheref/nen#240 puts them in `--explain`. § 4 adds `--exclude-check <a,b>` from `check_exclusions[]` (empty
+here); `nen pr ready --help` at this pin documents the flag and that an EMPTY rollup after exclusion is
+`not-ready: no checks reported`, never ready — the fail-closed half the skills lean on.

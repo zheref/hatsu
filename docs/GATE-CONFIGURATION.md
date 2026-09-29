@@ -124,6 +124,41 @@ at all.*
 Omit the block entirely if you do not want the carve-out. An absent block is a decision; an empty one
 is a hole.
 
+### `round_policy` — how many reviewer rounds, and when the asking stops
+
+```json
+"round_policy": { "stallMinutes": 30, "minRounds": 1, "maxRounds": 3 }
+```
+
+`stallMinutes` is nen's: a review request older than it reads `not-ready: reviewer round stalled`.
+`minRounds` (**N**) and `maxRounds` (**M**) are **Hatsu's own keys** (zheref/hatsu#102; nen preserves them as
+raw data — counting them in `nen pr ready --explain` is zheref/nen#240): the skills request a round
+only while *requested < M and resolved < N*, only through `nen pr request-reviews`, and **never again
+once N resolved rounds exist**. What that means for a consumer under nen's `bounded` policy (zheref/nen#214):
+**a push re-owes the reviewer's round at the new head, but an owed round is not a request** — the skill
+does not ask again because its own push or request re-opened the row; `review_on_push` on the reviewer's
+side is what answers a push. M requests with fewer than N resolved is reported as the concrete blocker,
+`--explain` quoted, never a raised number. A `$comment` in your `nen/gates.json` that still says *every
+push re-opens that condition until the reviewer reviews again* describes the pre-#214 gate and should go.
+
+### `check_exclusions` — a ruling that a check is not watched, with an expiry
+
+```json
+"check_exclusions": [
+  { "name": "check (Windows, windows-latest)", "reason": "no self-hosted Windows runner is registered",
+    "ruled": "2026-09-22", "until": "the runner is enabled" }
+]
+```
+
+**Hatsu's own key** (zheref/hatsu#104): the declared home of a maintainer's check-exclusion ruling,
+which otherwise lives only in chat and makes every verdict permanently red on `CON-32(a)` — and a red
+verdict is how readiness falls back to reading CI by eye. `name` is the check exactly as the rollup
+reports it; `until` is a date or the condition that lifts it. The skills pass every live row as
+`nen pr ready --exclude-check <a,b>` and quote the verdict with the exclusion named; a name the flag
+cannot carry (zheref/nen#243) keeps the PR `not-ready (CON-32(a): excluded check <name> pending)`,
+never `ready`. `scripts/tenkai_adopt.sh diagnose` reports a row past its `until` date as drift. nen
+preserves the key; validating it is zheref/nen#249. An empty array is a decision: nothing is excluded.
+
 ---
 
 ## 4. Validate it, and read the pointer

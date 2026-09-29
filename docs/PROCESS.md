@@ -209,7 +209,9 @@ bot token silently no-ops. Humans go through `--add-reviewers <a,b>`. **Copilot 
 neither collaborator nor bot is exit `2` pointing at `--add-bots`; both flags absent, exit `1`. The
 same mutation answers `NOT_FOUND` under one token and succeeds under another, so **report success
 from the mutation's own response, never from the ids sent**, and check first whether Copilot already
-reviews the repository automatically.
+reviews the repository automatically. **The verb is the only route** — never a raw GraphQL
+`requestReviews(botIds:…)`, never `gh api` (zheref/hatsu#102): a request outside the verb is one no
+ceiling can count.
 
 ```bash
 nen pr request-reviews --target <owner/name> --pr <n> [--add-reviewers <a,b>] [--add-bots <id,...>]

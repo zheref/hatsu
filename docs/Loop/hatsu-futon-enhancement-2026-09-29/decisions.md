@@ -32,3 +32,11 @@ lone PRs #125 and #120.
 
 No label applied: the repository carries no delivery-stage taxonomy, so the stage-free path of build § 1
 applies and each effort is carried locally to its own PR.
+
+| When | E6 `fable/kurapika/rounds-exclusions-repin` (#102, #104, #90, #111) | Why |
+|---|---|---|
+| 2026-09-29 | Cut off HA-PR-#126's head e4065c38 with the upstream **unset** before any publish; mode **Conjurer** (sharingan, en, pr-state, getsuga, ten, kokusen, tenkai, WORKFLOW, PROCESS, GATE-CONFIGURATION) with **Transmuter** for `scripts/tenkai_adopt.sh` and `nen/gates.json` | a fifth stacked branch is the only conflict-free shape; derived from the paths |
+| 2026-09-29 | #102: N/M already had their home (`round_policy.minRounds`/`maxRounds`, #85) — acceptance 1 is met by the existing key, said so; the skills now read both numbers, request only through the verb, and stop once N resolved rounds exist; `nen schema check` preserves the keys as raw data, counting them is zheref/nen#240 | the issue's own reconciliation: #69's Hatsu half |
+| 2026-09-29 | #104: `check_exclusions[]` declared **empty** in zheref/hatsu's `nen/gates.json` (the Windows ruling is zheref/nen's, written there at its gate, not here); the skills pass the flag; tenkai reports expiry; nen#249 owns validation | a declaration Hatsu can read today without waiting for the nen half; an empty array is a decision |
+| 2026-09-29 | #90: the step lives in getsuga § 7b (after the tag, gated on the attached assets), not in ten § 2 — ten runs once at session start and its range verdict is right to stay silent; ten § 2 points at getsuga | the issue's own analysis of why the warm-up cannot catch it |
+| 2026-09-29 | #111: only the session-policy half is Hatsu's — the gate step, kokusen's count, tenkai's adoption line; the regeneration command is the consumer's, never invented; acceptance 2's workflow half (a dispatch that cannot carry unrelated commits) is the consumer's own workflow, forbidden as a route in the gate prose | the issue's own split (its comment filed the deterministic half as zheref/nen#262) |

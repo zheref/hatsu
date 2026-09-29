@@ -179,9 +179,14 @@ what is still not true, and what the next cycle would have done. `izanagi` § 4'
 full and carried here in four lines:**
 
 - **One Copilot round is requested after [`hatsu:hanten`](../hanten/SKILL.md) settles, never before.**
-- **Arrivals are remediated up to `nen/gates.json` → `round_policy.maxRounds`; an owed round inside
-  the max is re-requested on the maintainer's behalf without asking** (ruling 2026-09-19,
-  `nen/decisions.json` row `cap-reached`), then en keeps watching.
+- **Arrivals are remediated up to `nen/gates.json` → `round_policy.maxRounds`; an owed round is
+  re-requested on the maintainer's behalf without asking only while requested < `maxRounds` AND
+  resolved < `minRounds`** (ruling 2026-09-19, `nen/decisions.json` row `cap-reached`; the counting is
+  sharingan § 6's, zheref/hatsu#102), then en keeps watching. **Once `minRounds` resolved rounds exist
+  no further round is requested — *owed at head* after en's own push or request is not a reason**;
+  `maxRounds` reached with fewer resolved is reported as the concrete blocker, `nen pr ready --explain`
+  quoted, never raised in-session. **The request is `nen pr request-reviews` and nothing else** — never
+  a raw GraphQL `requestReviews`, never `gh api`.
 - **Before any re-request, `nen wake verify --repo-slug <owner/name> --now <ISO> --author-pattern
   <the maintainer login> --run`** redrives a swallowed run once (`action_required` or
   `startup_failure` that never executed); an `action_required` run by the Copilot bot cannot be
@@ -298,14 +303,18 @@ Each refresh window has exactly two observations: the first establishes the wind
 
 ```bash
 export GH_TOKEN=$(gh auth token)
-nen watch until --command "nen pr ready <CODE>#<N> --repo <path> <identity flags>" \
+nen watch until --command "nen pr ready <CODE>#<N> --repo <path> <identity flags> <exclusion flags>" \
   --max-iterations 2 --interval-ms <monitor.pollSeconds × 1000> # one paced refresh window
 ```
 
 `<identity flags>` is selected by [`sharingan`](../sharingan/SKILL.md) § 4 for the target: omit it
 when the target ships `nen/gates.json`; use `--gates "$hatsu_root/contracts/reference.gates.json"`
 only for `<reference-repo>`; otherwise pass the target's hand-supplied `--reviewers` and explicit
-`--approvers`. **Never point one repository's gates file at another repository.**
+`--approvers`. **Never point one repository's gates file at another repository.** `<exclusion flags>`
+is `--exclude-check <a,b>` from the target's `nen/gates.json` → `check_exclusions[]`, every live row by
+name ([`pr-state`](../pr-state/SKILL.md) § 2, zheref/hatsu#104) — a ruling with no row is
+`missing-configuration`, and a name the flag cannot carry keeps the PR `not-ready (CON-32(a): excluded
+check <name> pending)`, quoted, never `ready`.
 
 **`nen pr ready` classifies `[read-only]`** — verified live at `v0.3.0` (`docs/ab/en.md` § 2.3):
 `nen parse izanami "nen pr ready HA#41 --repo /path --gates /abs/gates.json until it is ready"` →
@@ -335,7 +344,7 @@ en acts, and the `<n>/<cap>` the verb prints is the number the report carries.
 | Observed | What en does |
 |---|---|
 | **a requested reviewer round not yet posted at the current head** — Copilot minutes after a request or a push, `nen pr ready` row 4 (`CON-32(b)`: *review requested, not yet posted*) | **pending, not Ready** ([`sharingan`](../sharingan/SKILL.md) § 5's rule, the verb's row 4 its evidence) and no cycle is spent: observe until it posts, or until `round_policy.stallMinutes` makes it a stalled round — a different row, `sharingan` § 6's to act on (zheref/hatsu#103) |
-| **a new review, comment or thread** | inspect and classify it first. If it requires remediation or a reviewer re-request, claim an acting cycle, then return to step 2; an approval or informational event that needs only a read spends no cycle. [`hatsu:sharingan`](../sharingan/SKILL.md) addresses every inline and summary finding through its own channel |
+| **a new review, comment or thread** | inspect and classify it first. If it requires remediation or a reviewer re-request, claim an acting cycle, then return to step 2; an approval or informational event that needs only a read spends no cycle. [`hatsu:sharingan`](../sharingan/SKILL.md) addresses every inline and summary finding through its own channel. **A new round's findings are fixed, replied to and resolved — and once `round_policy.minRounds` resolved rounds exist no further round is requested**: *owed at head* after en's own request or push is not a reason to request again (§ 2; zheref/hatsu#102) |
 | **the branch fell behind, or the PR went `dirty`** | claim an acting cycle, then step 3 and step 4 — catch up, then re-decide. A conflicted PR gets *no checks at all*, which reads as "clean" rather than "broken" (`sharingan` § 5) |
 | the PR becomes Ready | step 6 — bell and stop at the human gate |
 | the PR merged before the gate handoff | end as a terminal external state, naming that readiness was not the run's observed terminus |
@@ -507,6 +516,9 @@ returned. Harvesting is that phase's, not En's.
   and resumable live state. Do not misname interruption as success or cap exhaustion.
 - **Never counts an observation that found nothing as a cycle**, and never fabricates one to
   manufacture a cap-out (§ 6).
+- **Never requests a reviewer round except through `nen pr request-reviews`**, never one past
+  `round_policy.maxRounds` or once `minRounds` rounds stand resolved, and never raises either number
+  in-session (§ 2; zheref/hatsu#102).
 - **Never rings outside Ready** (§ 5), and never rings twice for the same transition.
 - **Never claims readiness by eye** — `nen pr ready` + `nen pr body-check`, quoted, or it is not
   claimed (§ 4). Never declares a PR G2/G4 ready while checks, reviewer rounds, or review threads are

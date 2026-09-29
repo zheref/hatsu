@@ -970,7 +970,10 @@ scaffolding piece — **does not end the operation**. In order:
    runs on the written file before the operation resumes (the `missing-configuration` row's `refuse`
    list, citing `secret-shape` and `signing-material`). **A frozen or foreign registry** — a reference
    repository such as `<reference-repo>`, another owner's `nen/repos.json` — **is reported, never
-   written.**
+   written.** **A maintainer ruling that changes what readiness reads** — a check not to watch, a
+   reviewer identity, an approval policy — **is `missing-configuration` too** (zheref/hatsu#104): it is
+   written into `nen/gates.json` (`check_exclusions[]`, `reviewers`, `approval_policy`) at that
+   repository's gate and the verb re-read, never carried in prose or a subagent's brief.
 4. **Resume the original operation in the same turn**, with the completed line re-parsed.
 
 **What is not a gap — refused, never asked, never softened into a default.** Authored here once;
@@ -1649,6 +1652,17 @@ loop, never inherited from the warm-up, never skipped because the last run was g
    returns to rasengan as often as the turn honestly needs, and a red still standing at the end of the
    turn is the next turn's first job, **never a commit "so the fix is saved" and never a narrowed
    check**. **A seat (exit `4`) is not red**: quote the declaration's reason and move on.
+1a. **A consumer's canon mirror, where the delta touches `.claude/canon-values.yml`**
+   (zheref/hatsu#111). Regenerate `.claude/rules/` with the consumer's own documented regeneration
+   command — named in its README or `iteration.$comment`, run locally, never the weekly cron and never
+   a `workflow_dispatch` that can carry the branch into a PR against trunk — and read
+   `git status --porcelain .claude/rules` after it: **a non-empty read is a stale mirror, a red gate**
+   (row `red-lint`): the regenerated files ride this commit, or nothing does. Then the correctness
+   read drift cannot give: `grep -rn '<the superseded value>' .claude/rules/` — a hit is a finding
+   (a placeholder column the generator left hardcoded), reported, never passed. The deterministic half —
+   a `nen schema check` row over the bindings — is zheref/nen#262, an owned dependency; until it lands
+   the two reads above are the gate. A consumer with no `.claude/canon-values.yml` reports `canon
+   mirror: not applicable`.
 2. **The focused tests for changed executable behaviour, through
    [`tsukuyomi`](../claude/skills/tsukuyomi/SKILL.md)** — mandatory even where the author already ran
    them for feedback. Map every changed behaviour to its declared scoped lane and run **every
