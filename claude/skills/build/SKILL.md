@@ -110,6 +110,16 @@ application is logged: object, label, time.
 **Steps 3, 5 and 6's machinery — waves, the terminus PR, the `--local-cap 2` slots, the `nen shu`
 sequence and its G5 — is that document's § *Building an issue with no CI plane***.
 
+**Every phase this run itself runs is one ledger entry** (#100): before it, `nen phase begin --effort
+<branch> --phase <release|build|hanten|remediate|open> --surface <s> [--model <alias>]`; after it,
+`nen phase end --effort <branch> --phase <name> --exit <code>`, and every `nen shu` step inside carries
+`--effort <branch>` so it lands under the open entry — `.nen/phases/<effort>.json` then holds the
+authoring and remediation phases, not only those a later `ren`, `hanten` or `en` opened. **Spend is
+recorded at every § 7 report**, never transcribed at the end: `nen usage record --effort <branch>
+--surface <s> [--model <alias>] --input/--output/--cache-read/--cache-write <n> --source "<call site:
+readout>"` from the surface's own readout (Claude Code `/cost`), `--not-reported` where it exposes
+none; the reviewers' entries are [`hanten`](../hanten/SKILL.md) § 4's.
+
 ## 5. Authority — what this run may and may not do
 
 `CON-25`'s fourth carve-out: a human-invoked skill run holds the delegation its purpose requires,

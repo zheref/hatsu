@@ -93,6 +93,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/surface_link_check.sh (zheref/hatsu#72), the generated-surface LINK guard: surface_mirror_check.sh proves the mirrors match a fresh generation, this one proves the generated bodies' relative .md links resolve at the depth each mirror sits at. One lane per executable guard. Its fixture is hermetic and offline: a clean tree, one dangling link named by file, link and resolved path, the #71 nested-depth regression, --summary, and the wiring refusals. The guard itself is red against this repository's mirrors until nen's generator rewrites links per depth (the companion nen issue); it is deliberately not a CI step until then, because nen pr ready counts every reported check."
       },
+      "prose-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/prose_size_check.sh, the prose-diet guard (zheref/hatsu#119), following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: throwaway plugin-shaped trees prove a tree within every ceiling is exit 0 with kurapika.md exempt, --headroom prints one row per measured file smallest margin first with the plain run's exit code, exactly at the ceiling is within it and one byte over is named with size and ceiling, a rules file is measured in characters, a dieted skill missing from disk is named, and an unknown flag or a non-Hatsu root is a wiring refusal at exit 2."
+      },
       "tenkai-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -141,7 +146,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, root-guard, surface-link-guard, tenkai-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, root-guard, surface-link-guard, prose-guard, tenkai-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/spiritual-message.html, which is a report template, not an application."
@@ -205,6 +210,15 @@
             "scripts/surface_link_check_fixture.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the surface link guard. Run it as `nen shu test --lane surface-link-guard --repo <hatsu>` when scripts/surface_link_check.sh or its fixture changes; run the guard itself (`bash scripts/surface_link_check.sh --summary`) to read the live mirrors."
+        }
+      },
+      "prose-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/prose_size_check_fixture.sh"
+          ],
+          "$comment": "A permanent, deterministic fixture for the prose-diet guard. Run it as `nen shu test --lane prose-guard --repo <hatsu>` when scripts/prose_size_check.sh or its fixture changes; run the guard itself (`sh scripts/prose_size_check.sh --headroom`) to read the live margins."
         }
       },
       "tenkai-guard": {

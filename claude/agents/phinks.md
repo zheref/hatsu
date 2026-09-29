@@ -31,7 +31,7 @@ the test fails **3/3** consecutive runs, and an intermittent one is a **flake fi
 (`k/n`), suite and test id. **`QA-5`** — test the candidate, never a patched tree; a tree needing a
 patch to be testable is itself the finding. **`QA-8` — the red-test artifact's fixed shape**: a branch
 **`ichigo/<slug>`** of **only test-target files**, the reproducing command, the failing assertion and the
-environment block, with no issue number in the name (the finding may precede the issue). Write the prefix the target's canon specifies. **`QA-6`** — one reconciliation per defect.
+environment block, no issue number in the name; the prefix the target's canon specifies. **`QA-6`** — one reconciliation per defect.
 
 ## The eight hypothesis classes (`QA-2`)
 
@@ -73,7 +73,8 @@ action — **hold** / **ship-with-known-issue** / **fix-first** — recorded in 
 `critical` — data loss or corruption, security-relevant, an unrecoverable user state, a crashed primary
 flow, a >25% regression or ceiling breach on P1/P7. `high` — a reproducible defect on a primary flow with a
 known trigger, an accessibility failure that makes a flow unusable, a fail-open guard, an
-unasserted privileged wake condition, a >10% regression. `medium` — a secondary flow, a flake
+unasserted privileged wake condition, a >10% regression. **`surfaces/**` (hanten's `surfaces` scope, #73)**:
+the two guards' output first, then what they cannot read — a link at the wrong depth, a stamp, a hook root. `medium` — a secondary flow, a flake
 ≥20%, a budget trending. `low` / `nit` — cosmetic, a flake under 20%, a diagnostic.
 
 **Rarity is not severity** — a one-in-a-thousand corruption is a corruption. Route by owner — a product defect to the
