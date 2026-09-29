@@ -328,7 +328,7 @@ doing* (`ROSTER.md` § *Rulings of 2026-09-09*, 1).
 
 ## 7. The skills that carry a `## 0. Standalone entry`
 
-**Twenty-one do**, and they fall into two groups. The split is the useful fact: a reader asking *what
+**Twenty-three do**, and they fall into two groups. The split is the useful fact: a reader asking *what
 will this derive if I type it cold* needs the first table, and a reader asking *does P1 apply* needs
 both.
 
@@ -351,7 +351,7 @@ both.
 | [`murasaki`](../claude/skills/murasaki/SKILL.md) | S1 — the base, hence the catch-up; conflicts classified before one is touched | only a dirty working copy, before git state moves |
 
 
-### 7b · Eight whose `## 0.` adds P1, orientation and expectations only
+### 7b · Ten whose `## 0.` adds P1, orientation and expectations only
 
 These inherit no caller state. Their `## 0.` says P1 still applies, states what their run does **not**
 cover, and — for the two the contract used to mis-file — names why.
@@ -366,6 +366,8 @@ cover, and — for the two the contract used to mis-file — names why.
 | [`shibari`](../claude/skills/shibari/SKILL.md) | Already total, and both-ways by § 1. P1, plus the one cold precondition — the branch must already be pushed — and the rule that a missing evidence section says so rather than being filled |
 | [`rasengan`](../claude/skills/rasengan/SKILL.md) | **Deliberately caller-bound** (§ 4): the request is the input. P1, plus *ask for the request, never infer it* |
 | [`amenotejikara`](../claude/skills/amenotejikara/SKILL.md) | Already total: `--repo` names any checkout and nen resolves core. P1 — **required**, since `nen wc swap` and `nen wc worktrees` exist only from nen `0.14` — plus `status` first, so an active swap is seen before core moves |
+| [`tenkai`](../claude/skills/tenkai/SKILL.md) | Adoption **is** its wired position — no composite owns it. P1, P2, P4 and P5 run; **P1b and P3 are declined explicitly** (a repository is diagnosed as it stands, so there is no delta and no base to prove), and `(fetched <sha>)` is never asserted. Asks only `--slug` when no `origin` resolves one |
+| [`limbo`](../claude/skills/limbo/SKILL.md) | Typed, or reached from a canon release's fan-out — its wired position. P1 — **required**, since `nen canon pin` and `canon mirror --surfaces` exist only from nen `0.16` — P2 and P5 run; **P3 is declined** (the subject is the checkout's current mirror against the canon at its pin, not a change set); P1b applies to a sync through `breath` and is declined for `as check`. Asks only the surfaces the consumer has not declared, and a pin — **typed** |
 
 **The skills with no `## 0.` at all** are the composites, the loop engines, and the three read-only
 resolvers § 4 names — `pr-state`, `backlog-state`, `bankai-handbooks` — which reach P1 through

@@ -1,6 +1,6 @@
 {
   "$schema": "nen.decisions/v0.1",
-  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition a running workflow can stop on. `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check`; read by `nen stop --options` and by every skill before it asks. Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure (ten), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan), missing-argument and missing-configuration (every skill that takes arguments or reads configuration, WORKFLOW.md § 4 Ask, set up, continue), missing-maintainer-choice (kagutsuchi, mugetsu, izanagi, jujutsu, ren's missing request; the keys it governs are its own `governs` list). Data-only until a skill cites them: merge, mode-label, signing-material, on-device-act, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
+  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition a running workflow can stop on. `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check`; read by `nen stop --options` and by every skill before it asks. Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), hand-edited-canon-mirror (limbo), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure (ten), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan), missing-argument and missing-configuration (every skill that takes arguments or reads configuration, WORKFLOW.md § 4 Ask, set up, continue), missing-maintainer-choice (kagutsuchi, mugetsu, izanagi, jujutsu, ren's missing request; the keys it governs are its own `governs` list). Data-only until a skill cites them: merge, mode-label, signing-material, on-device-act, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
   "contract": "nen.decisions/v0.1",
   "rows": [
     {
@@ -299,6 +299,33 @@
       ],
       "proposeIssue": true,
       "why": "hanten section 7: only after the four-fact test proves none of section 6's dispositions can be chosen without the maintainer."
+    },
+    {
+      "id": "hand-edited-canon-mirror",
+      "class": "human-gate",
+      "gate": "G5",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "the edit is canon: file it upstream, then regenerate",
+          "command": "hatsu:file with the mirror file's diff as evidence, against the canonical handbooks repository (G4 there); then hatsu:limbo for <path> as sync",
+          "consequence": "the mirror returns to the canon's bytes; the rule lives on as an issue where canon is authored"
+        },
+        {
+          "key": "B",
+          "label": "the edit is repo-specific: move it to the consumer's own file, then regenerate",
+          "command": "move the content to a file the mirror does not own (a subdirectory of the rules directory, CLAUDE.md, prose outside the AGENTS.md block); then hatsu:limbo for <path> as sync",
+          "consequence": "the consumer keeps its rule as its own; the mirror is the canon again"
+        },
+        {
+          "key": "C",
+          "label": "the file is a predecessor generator's mirror: remove it, then regenerate",
+          "command": "git rm the files whose first line is the predecessor's marker; then hatsu:limbo for <path> as sync",
+          "consequence": "nothing is lost -- the canon at the pin is the source; every surface carries nen's marker from now on"
+        }
+      ],
+      "proposeIssue": true,
+      "why": "limbo section 3: a hand-edited mirror file means a rule was written into the mirror instead of the canon, and nen canon mirror generate would overwrite a marked one silently (an unmarked one it refuses whole, exit 2, nothing written). Where the rule belongs -- canon, the consumer's own file, or nowhere because the file was a retired generator's -- is the maintainer's to say; limbo names the files and stops before any write. C is starred in the picker only for a file whose first line is the predecessor's marker."
     },
     {
       "id": "merge",

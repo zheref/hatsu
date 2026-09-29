@@ -40,8 +40,9 @@ session or from this file's own prose.
 >
 > **`CON-13`, as rewritten at handbook set v0.6:** one canonical source, a **generated, pinned
 > mirror** everywhere canon is read. A consumer carries, in the rules location of every agent surface
-> it uses, a mirror rendered by Hatsu/Nen from a **tag** of `bankai-handbooks` (`nen canon mirror
-> generate`, checked by `nen canon mirror check`) — never hand-edited, a build artifact and not a
+> it declares, a mirror rendered from a **tag** of `bankai-handbooks` — **[`/limbo`](../limbo/SKILL.md)
+> is the skill that renders and checks it** (`nen canon mirror generate` / `check`, the generated-from
+> marker as the ownership claim) — never hand-edited, a build artifact and not a
 > second source — and a live `nen canon resolve` against a checkout at the same pin returns the
 > **same** canon. **This skill takes the live path**: it resolves from the checkout at the pin, because
 > the computation is cheap and exact, and it never treats a product repo's mirror as its source. Point
