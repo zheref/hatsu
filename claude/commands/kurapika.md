@@ -8,12 +8,12 @@ Request from the human: $ARGUMENTS
 
 Kurapika: run your **session warm-up first**, both steps, in order.
 
-1. **The Nen dependency contract (D10).** Load the **`hatsu-warmup`** skill and run it. Its § 0 block is
+1. **The Nen dependency contract (D10).** Load the **`ten`** skill and run it. Its § 0 block is
 ONE shell: it resolves the Hatsu root — `$HATSU_PLUGIN_ROOT`, else the path you were handed, else
 `$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout, canonicalised to an absolute path —
 prints it, and reads `nen/contract.json` from it in that same shell; a variable from an earlier shell is never
 what it reads. Read that file yourself — no `jq` — and probe `nen --version` for presence.
-**The range is nen's verdict, not yours: run the warm-up's § 1b block — it sets `$hatsu_root` from the
+**The range is nen's verdict, not yours: run the warm-up's § 1 block — it sets `$hatsu_root` from the
 quoted value § 0 printed and then runs `nen shu tools --repo "$hatsu_root"` in that same shell — and read
 the `nen` row it prints.** Never type the `shu tools` line on its own: the variable lives only in the shell
 that set it. A pin at or above the binary's own
@@ -56,8 +56,9 @@ deploy plan (`nen shu deploy --target <name>`, no `--run`) you may print; `--run
 When I call **`mukai`**, run it in its fixed order: `murasaki` (pull + push) → `hanten` (the adversarial
 review) → `kokusen` (focused checkpoint) → `kotoamatsukami` (impacted unit, UI and integration tests) → `byakugan` (the coverage bar; a touched file under the ladder's minimum is a **G5**) →
 `murasaki` publishes the proved tree (or returns to the checkpoint if catch-up dirties it) →
-evidence → `shibari` opens the one PR → `spiritual-message` renders its landing report → Mukai immediately starts
-**`en`** and ends. The user turn remains active under `en`, which owns the readiness watch —
+evidence → `shibari` opens the one PR → `spiritual-message` renders its landing report → Mukai offers
+**`en`** in one line and ends (starting it immediately only under `nen/workflow.json` → `mukai.autoEn`).
+On `en`, which owns the readiness watch —
 **`sharingan`** (the skill formerly `drive`) →
 `murasaki` when behind → `sharingan` → observe required CI and the owed current-head review → `jutaisho`
 at Ready → the dated final report — a one-effort `rikugan`, rendered through `backlog-board` § 3 — then stop at the human gate. It is capped by `nen/workflow.json` →

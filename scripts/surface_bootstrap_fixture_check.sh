@@ -64,15 +64,15 @@ assert_empty_untracked() {
 # --- mark_adopted DIRECTORY SURFACE ------------------------------------------
 # Stamps the SECOND half of the --install-all adoption gate: a Hatsu-placed
 # marker already sitting under that surface's own directory
-# (.agents/skills/hatsu-warmup for codex AND antigravity, which share that
-# skills path; .cursor/skills/hatsu-warmup for cursor). Used by every fixture
+# (.agents/skills/ten for codex AND antigravity, which share that
+# skills path; .cursor/skills/ten for cursor). Used by every fixture
 # below that calls --install-all directly, without a prior --bootstrap of its
 # own, so the behavior each one actually tests is what's exercised rather than
 # the adoption gate short-circuiting it with an early, unrelated exit 0.
 mark_adopted() {
-  # A DEDICATED marker name -- never "hatsu-warmup" itself -- so calling this
+  # A DEDICATED marker name -- never "ten" itself -- so calling this
   # never interferes with a fixture's own assertions about whether
-  # hatsu-warmup specifically got installed or stayed absent.
+  # ten specifically got installed or stayed absent.
   #
   # The marker must NAME the surface it is adopting: `(surface: <surface>,`,
   # the same stamp form `nen surface mirror generate` writes
@@ -118,10 +118,10 @@ new_fixture() {
 codex_fixture="$fixture_root/codex"
 new_fixture "$codex_fixture"
 "$bootstrap" --surface codex --target "$codex_fixture" --bootstrap
-[ -f "$codex_fixture/.agents/skills/hatsu-warmup/SKILL.md" ] || fail "Codex warm-up was not seeded"
-[ ! -e "$codex_fixture/.agents/skills/breath" ] || fail "Codex bootstrap installed more than hatsu-warmup"
-grep -qx 'name: hatsu-warmup' "$codex_fixture/.agents/skills/hatsu-warmup/SKILL.md" || fail "Codex seed is not discoverable as hatsu-warmup"
-assert_ignored "$codex_fixture" '.agents/skills/hatsu-warmup/SKILL.md'
+[ -f "$codex_fixture/.agents/skills/ten/SKILL.md" ] || fail "Codex warm-up was not seeded"
+[ ! -e "$codex_fixture/.agents/skills/breath" ] || fail "Codex bootstrap installed more than ten"
+grep -qx 'name: ten' "$codex_fixture/.agents/skills/ten/SKILL.md" || fail "Codex seed is not discoverable as ten"
+assert_ignored "$codex_fixture" '.agents/skills/ten/SKILL.md'
 assert_empty_untracked "$codex_fixture"
 "$bootstrap" --surface codex --target "$codex_fixture" --bootstrap
 "$bootstrap" --surface codex --target "$codex_fixture" --install-all
@@ -154,15 +154,15 @@ case "$stale_output" in *"installed $codex_installed_count; removed stale stale-
 cursor_fixture="$fixture_root/cursor"
 new_fixture "$cursor_fixture"
 "$bootstrap" --surface cursor --target "$cursor_fixture" --bootstrap
-[ -L "$cursor_fixture/.cursor/skills/hatsu-warmup" ] || fail "Cursor warm-up was not linked"
-[ ! -e "$cursor_fixture/.cursor/skills/breath" ] || fail "Cursor bootstrap installed more than hatsu-warmup"
-grep -qx 'name: hatsu-warmup' "$cursor_fixture/.cursor/skills/hatsu-warmup/SKILL.md" || fail "Cursor seed is not discoverable as hatsu-warmup"
-assert_ignored "$cursor_fixture" '.cursor/skills/hatsu-warmup'
+[ -L "$cursor_fixture/.cursor/skills/ten" ] || fail "Cursor warm-up was not linked"
+[ ! -e "$cursor_fixture/.cursor/skills/breath" ] || fail "Cursor bootstrap installed more than ten"
+grep -qx 'name: ten' "$cursor_fixture/.cursor/skills/ten/SKILL.md" || fail "Cursor seed is not discoverable as ten"
+assert_ignored "$cursor_fixture" '.cursor/skills/ten'
 assert_empty_untracked "$cursor_fixture"
 "$bootstrap" --surface cursor --target "$cursor_fixture" --bootstrap
 "$bootstrap" --surface cursor --target "$cursor_fixture" --install-all
 
-ln -s "$hatsu_root/surfaces/cursor/hatsu-warmup" "$cursor_fixture/.cursor/skills/stale-hatsu-skill"
+ln -s "$hatsu_root/surfaces/cursor/ten" "$cursor_fixture/.cursor/skills/stale-hatsu-skill"
 ln -s "$hatsu_root/surfaces/cursor/agents/kurapika.md" "$cursor_fixture/.cursor/agents/stale-hatsu-agent.md"
 cursor_installed_count=$(( $(count_skills "$(skills_source_dir cursor)") + $(find "$hatsu_root/surfaces/cursor/agents" -maxdepth 1 -name '[!_]*.md' -type f | wc -l | tr -d ' ') + $(count_files "$hatsu_root/surfaces/cursor/hooks" '*.sh') + 1 + 1 ))
 stale_output="$("$bootstrap" --surface cursor --target "$cursor_fixture" --install-all)"
@@ -186,10 +186,10 @@ assert_empty_untracked "$cursor_fixture"
 antigravity_fixture="$fixture_root/antigravity"
 new_fixture "$antigravity_fixture"
 "$bootstrap" --surface antigravity --target "$antigravity_fixture" --bootstrap
-[ -f "$antigravity_fixture/.agents/skills/hatsu-warmup/SKILL.md" ] || fail "Antigravity warm-up was not seeded"
-[ ! -e "$antigravity_fixture/.agents/skills/breath" ] || fail "Antigravity bootstrap installed more than hatsu-warmup"
-grep -qx 'name: hatsu-warmup' "$antigravity_fixture/.agents/skills/hatsu-warmup/SKILL.md" || fail "Antigravity seed is not discoverable as hatsu-warmup"
-assert_ignored "$antigravity_fixture" '.agents/skills/hatsu-warmup/SKILL.md'
+[ -f "$antigravity_fixture/.agents/skills/ten/SKILL.md" ] || fail "Antigravity warm-up was not seeded"
+[ ! -e "$antigravity_fixture/.agents/skills/breath" ] || fail "Antigravity bootstrap installed more than ten"
+grep -qx 'name: ten' "$antigravity_fixture/.agents/skills/ten/SKILL.md" || fail "Antigravity seed is not discoverable as ten"
+assert_ignored "$antigravity_fixture" '.agents/skills/ten/SKILL.md'
 assert_empty_untracked "$antigravity_fixture"
 "$bootstrap" --surface antigravity --target "$antigravity_fixture" --bootstrap
 "$bootstrap" --surface antigravity --target "$antigravity_fixture" --install-all
@@ -244,7 +244,7 @@ case "$codex_only_output" in
   *"carries no existing antigravity mirror marker"*) ;;
   *) fail "a codex-only marker under .agents did not get antigravity's own adoption-gate refusal: $codex_only_output" ;;
 esac
-[ ! -e "$codex_only_fixture/.agents/skills/hatsu-warmup" ] || fail "a codex-only marker let antigravity's --install-all place hatsu-warmup"
+[ ! -e "$codex_only_fixture/.agents/skills/ten" ] || fail "a codex-only marker let antigravity's --install-all place ten"
 [ ! -e "$codex_only_fixture/.agents/hooks.json" ] || fail "a codex-only marker let antigravity's --install-all place hooks.json"
 # The mirror case: an antigravity-only marker must not pass Codex's gate.
 antigravity_only_fixture="$fixture_root/antigravity-only-not-codex"
@@ -255,7 +255,7 @@ case "$antigravity_only_output" in
   *"carries no existing codex mirror marker"*) ;;
   *) fail "an antigravity-only marker under .agents did not get codex's own adoption-gate refusal: $antigravity_only_output" ;;
 esac
-[ ! -e "$antigravity_only_fixture/.agents/skills/hatsu-warmup" ] || fail "an antigravity-only marker let codex's --install-all place hatsu-warmup"
+[ ! -e "$antigravity_only_fixture/.agents/skills/ten" ] || fail "an antigravity-only marker let codex's --install-all place ten"
 
 antigravity_collision_fixture="$fixture_root/antigravity-collision"
 new_fixture "$antigravity_collision_fixture"
@@ -270,11 +270,11 @@ fi
 
 collision_fixture="$fixture_root/collision"
 new_fixture "$collision_fixture"
-mkdir -p "$collision_fixture/.agents/skills/hatsu-warmup"
-printf 'third-party Codex skill\n' > "$collision_fixture/.agents/skills/hatsu-warmup/SKILL.md"
+mkdir -p "$collision_fixture/.agents/skills/ten"
+printf 'third-party Codex skill\n' > "$collision_fixture/.agents/skills/ten/SKILL.md"
 cp "$collision_fixture/.git/info/exclude" "$fixture_root/collision-exclude-before"
 assert_fails "Codex collision reported a successful bootstrap" "$bootstrap" --surface codex --target "$collision_fixture" --bootstrap
-grep -qx 'third-party Codex skill' "$collision_fixture/.agents/skills/hatsu-warmup/SKILL.md" || fail "Codex collision was overwritten"
+grep -qx 'third-party Codex skill' "$collision_fixture/.agents/skills/ten/SKILL.md" || fail "Codex collision was overwritten"
 cmp -s "$fixture_root/collision-exclude-before" "$collision_fixture/.git/info/exclude" || fail "Codex collision changed info/exclude"
 
 full_collision_fixture="$fixture_root/full-collision"
@@ -290,20 +290,20 @@ fi
 
 tracked_fixture="$fixture_root/tracked"
 new_fixture "$tracked_fixture"
-mkdir -p "$tracked_fixture/.cursor/skills/hatsu-warmup"
-printf 'tracked Cursor skill\n' > "$tracked_fixture/.cursor/skills/hatsu-warmup/SKILL.md"
-git -C "$tracked_fixture" add .cursor/skills/hatsu-warmup/SKILL.md
+mkdir -p "$tracked_fixture/.cursor/skills/ten"
+printf 'tracked Cursor skill\n' > "$tracked_fixture/.cursor/skills/ten/SKILL.md"
+git -C "$tracked_fixture" add .cursor/skills/ten/SKILL.md
 assert_fails "tracked Cursor collision reported a successful bootstrap" "$bootstrap" --surface cursor --target "$tracked_fixture" --bootstrap
-grep -qx 'tracked Cursor skill' "$tracked_fixture/.cursor/skills/hatsu-warmup/SKILL.md" || fail "tracked Cursor skill was overwritten"
+grep -qx 'tracked Cursor skill' "$tracked_fixture/.cursor/skills/ten/SKILL.md" || fail "tracked Cursor skill was overwritten"
 
 deleted_fixture="$fixture_root/deleted-tracked"
 new_fixture "$deleted_fixture"
-mkdir -p "$deleted_fixture/.agents/skills/hatsu-warmup"
-printf 'tracked then deleted Codex skill\n' > "$deleted_fixture/.agents/skills/hatsu-warmup/SKILL.md"
-git -C "$deleted_fixture" add .agents/skills/hatsu-warmup/SKILL.md
-rm -rf "$deleted_fixture/.agents/skills/hatsu-warmup"
+mkdir -p "$deleted_fixture/.agents/skills/ten"
+printf 'tracked then deleted Codex skill\n' > "$deleted_fixture/.agents/skills/ten/SKILL.md"
+git -C "$deleted_fixture" add .agents/skills/ten/SKILL.md
+rm -rf "$deleted_fixture/.agents/skills/ten"
 assert_fails "deleted tracked Codex skill was restored" "$bootstrap" --surface codex --target "$deleted_fixture" --bootstrap
-[ ! -e "$deleted_fixture/.agents/skills/hatsu-warmup" ] || fail "deleted tracked Codex skill was restored"
+[ ! -e "$deleted_fixture/.agents/skills/ten" ] || fail "deleted tracked Codex skill was restored"
 
 deleted_full_fixture="$fixture_root/deleted-tracked-full"
 new_fixture "$deleted_full_fixture"
@@ -337,7 +337,7 @@ new_fixture "$parent_link_fixture"
 mkdir -p "$outside_fixture"
 ln -s "$outside_fixture" "$parent_link_fixture/.agents"
 assert_fails "symlinked Codex parent was accepted" "$bootstrap" --surface codex --target "$parent_link_fixture" --bootstrap
-[ ! -e "$outside_fixture/skills/hatsu-warmup" ] || fail "bootstrap wrote outside the target through a symlink"
+[ ! -e "$outside_fixture/skills/ten" ] || fail "bootstrap wrote outside the target through a symlink"
 
 cursor_parent_link_fixture="$fixture_root/cursor-parent-link"
 new_fixture "$cursor_parent_link_fixture"
@@ -345,7 +345,7 @@ mark_adopted "$cursor_parent_link_fixture" cursor
 mkdir -p "$cursor_parent_link_fixture/.cursor"
 ln -s "$outside_fixture" "$cursor_parent_link_fixture/.cursor/agents"
 assert_fails "symlinked Cursor agents parent was accepted" "$bootstrap" --surface cursor --target "$cursor_parent_link_fixture" --install-all
-[ ! -e "$cursor_parent_link_fixture/.cursor/skills/hatsu-warmup" ] || fail "Cursor refresh wrote skills before preflighting agents"
+[ ! -e "$cursor_parent_link_fixture/.cursor/skills/ten" ] || fail "Cursor refresh wrote skills before preflighting agents"
 
 submodule_source="$fixture_root/submodule-source"
 new_fixture "$submodule_source"
@@ -356,7 +356,7 @@ submodule_fixture="$fixture_root/submodule-parent"
 new_fixture "$submodule_fixture"
 git -C "$submodule_fixture" -c protocol.file.allow=always submodule add -q "$submodule_source" .agents/skills
 assert_fails "tracked submodule parent was accepted" "$bootstrap" --surface codex --target "$submodule_fixture" --bootstrap
-[ ! -e "$submodule_fixture/.agents/skills/hatsu-warmup" ] || fail "bootstrap wrote inside a tracked submodule"
+[ ! -e "$submodule_fixture/.agents/skills/ten" ] || fail "bootstrap wrote inside a tracked submodule"
 
 deleted_parent_fixture="$fixture_root/deleted-tracked-parent"
 new_fixture "$deleted_parent_fixture"
@@ -372,14 +372,14 @@ new_fixture "$no_newline_fixture"
 printf 'user-rule' > "$no_newline_fixture/.git/info/exclude"
 "$bootstrap" --surface codex --target "$no_newline_fixture" --bootstrap >/dev/null
 grep -qxF 'user-rule' "$no_newline_fixture/.git/info/exclude" || fail "info/exclude final rule was concatenated"
-grep -qxF '.agents/skills/hatsu-warmup' "$no_newline_fixture/.git/info/exclude" || fail "Codex exclusion was not appended on its own line"
+grep -qxF '.agents/skills/ten' "$no_newline_fixture/.git/info/exclude" || fail "Codex exclusion was not appended on its own line"
 
 negated_exclude_fixture="$fixture_root/negated-exclude"
 new_fixture "$negated_exclude_fixture"
-printf '%s\n' '.agents/skills/hatsu-warmup' '!.agents/skills/hatsu-warmup' > "$negated_exclude_fixture/.git/info/exclude"
+printf '%s\n' '.agents/skills/ten' '!.agents/skills/ten' > "$negated_exclude_fixture/.git/info/exclude"
 "$bootstrap" --surface codex --target "$negated_exclude_fixture" --bootstrap >/dev/null
-assert_ignored "$negated_exclude_fixture" '.agents/skills/hatsu-warmup/SKILL.md'
-[ "$(grep -Fxc '.agents/skills/hatsu-warmup' "$negated_exclude_fixture/.git/info/exclude")" = 2 ] || fail "effective Codex exclusion was not restored after a negation"
+assert_ignored "$negated_exclude_fixture" '.agents/skills/ten/SKILL.md'
+[ "$(grep -Fxc '.agents/skills/ten' "$negated_exclude_fixture/.git/info/exclude")" = 2 ] || fail "effective Codex exclusion was not restored after a negation"
 
 agents_symlink_fixture="$fixture_root/agents-symlink"
 new_fixture "$agents_symlink_fixture"
@@ -389,25 +389,25 @@ printf 'outside instructions must not be read\n' > "$outside_agents_source"
 ln -s "$outside_agents_source" "$agents_symlink_fixture/AGENTS.md"
 cp "$agents_symlink_fixture/.git/info/exclude" "$fixture_root/agents-symlink-exclude-before"
 assert_fails "symlinked target AGENTS.md was accepted" "$bootstrap" --surface codex --target "$agents_symlink_fixture" --install-all
-[ ! -e "$agents_symlink_fixture/.agents/skills/hatsu-warmup" ] || fail "symlinked target AGENTS.md left a partial refresh"
+[ ! -e "$agents_symlink_fixture/.agents/skills/ten" ] || fail "symlinked target AGENTS.md left a partial refresh"
 cmp -s "$fixture_root/agents-symlink-exclude-before" "$agents_symlink_fixture/.git/info/exclude" || fail "symlinked target AGENTS.md changed info/exclude"
 
 partial_surface_root="$fixture_root/partial-surface-root"
 mkdir -p "$partial_surface_root/.claude-plugin" "$partial_surface_root/scripts" \
-  "$partial_surface_root/claude/skills/hatsu-warmup" "$partial_surface_root/claude/skills/breath" \
-  "$partial_surface_root/surfaces/codex/hatsu-warmup"
+  "$partial_surface_root/claude/skills/ten" "$partial_surface_root/claude/skills/breath" \
+  "$partial_surface_root/surfaces/codex/ten"
 cp "$hatsu_root/.claude-plugin/plugin.json" "$partial_surface_root/.claude-plugin/plugin.json"
 cp "$bootstrap" "$partial_surface_root/scripts/surface_bootstrap.sh"
-printf '%s\n' 'name: hatsu-warmup' > "$partial_surface_root/claude/skills/hatsu-warmup/SKILL.md"
+printf '%s\n' 'name: ten' > "$partial_surface_root/claude/skills/ten/SKILL.md"
 printf '%s\n' 'name: breath' > "$partial_surface_root/claude/skills/breath/SKILL.md"
-printf '%s\n' 'name: hatsu-warmup' > "$partial_surface_root/surfaces/codex/hatsu-warmup/SKILL.md"
+printf '%s\n' 'name: ten' > "$partial_surface_root/surfaces/codex/ten/SKILL.md"
 partial_surface_target="$fixture_root/partial-surface-target"
 new_fixture "$partial_surface_target"
-mkdir -p "$partial_surface_target/.agents/skills/hatsu-warmup"
-printf 'GENERATED by nen surface mirror (surface: codex, stamp: fixture)\n' > "$partial_surface_target/.agents/skills/hatsu-warmup/SKILL.md"
+mkdir -p "$partial_surface_target/.agents/skills/ten"
+printf 'GENERATED by nen surface mirror (surface: codex, stamp: fixture)\n' > "$partial_surface_target/.agents/skills/ten/SKILL.md"
 cp "$partial_surface_target/.git/info/exclude" "$fixture_root/partial-surface-exclude-before"
 assert_fails "partial generated surface was accepted" "$partial_surface_root/scripts/surface_bootstrap.sh" --surface codex --target "$partial_surface_target" --install-all
-[ -f "$partial_surface_target/.agents/skills/hatsu-warmup/SKILL.md" ] || fail "partial generated surface removed the existing warm-up"
+[ -f "$partial_surface_target/.agents/skills/ten/SKILL.md" ] || fail "partial generated surface removed the existing warm-up"
 cmp -s "$fixture_root/partial-surface-exclude-before" "$partial_surface_target/.git/info/exclude" || fail "partial generated surface changed info/exclude"
 
 transaction_fixture="$fixture_root/transaction-failure"
@@ -418,12 +418,12 @@ printf '%s\n' '#!/bin/sh' "case \"\$1\" in" '  */.hatsu-surface.*) exit 1 ;;' 'e
 chmod 700 "$transaction_bin/mv"
 cp "$transaction_fixture/.git/info/exclude" "$fixture_root/transaction-exclude-before"
 assert_fails "failed transaction reported a successful bootstrap" env "PATH=$transaction_bin:$PATH" "$bootstrap" --surface codex --target "$transaction_fixture" --bootstrap
-[ ! -e "$transaction_fixture/.agents/skills/hatsu-warmup" ] || fail "failed transaction left an installed skill"
+[ ! -e "$transaction_fixture/.agents/skills/ten" ] || fail "failed transaction left an installed skill"
 cmp -s "$fixture_root/transaction-exclude-before" "$transaction_fixture/.git/info/exclude" || fail "failed transaction left new exclusions"
 [ -z "$(find "$transaction_fixture" -maxdepth 1 -name '.hatsu-*' -print -quit)" ] || fail "failed transaction left staging files"
 
 malformed_root="$fixture_root/malformed-root"
-mkdir -p "$malformed_root/.claude-plugin" "$malformed_root/scripts" "$malformed_root/claude/skills" "$malformed_root/surfaces/codex/hatsu-warmup"
+mkdir -p "$malformed_root/.claude-plugin" "$malformed_root/scripts" "$malformed_root/claude/skills" "$malformed_root/surfaces/codex/ten"
 cp "$bootstrap" "$malformed_root/scripts/surface_bootstrap.sh"
 printf '{"name":"hatsu"}\n' > "$malformed_root/.claude-plugin/plugin.json"
 malformed_target="$fixture_root/malformed-target"
@@ -431,19 +431,19 @@ new_fixture "$malformed_target"
 assert_fails "malformed Hatsu manifest was accepted" "$malformed_root/scripts/surface_bootstrap.sh" --surface codex --target "$malformed_target" --bootstrap
 
 missing_sources_root="$fixture_root/missing-sources-root"
-mkdir -p "$missing_sources_root/.claude-plugin" "$missing_sources_root/scripts" "$missing_sources_root/claude/skills" "$missing_sources_root/surfaces/codex/hatsu-warmup" "$missing_sources_root/surfaces/cursor/hatsu-warmup"
+mkdir -p "$missing_sources_root/.claude-plugin" "$missing_sources_root/scripts" "$missing_sources_root/claude/skills" "$missing_sources_root/surfaces/codex/ten" "$missing_sources_root/surfaces/cursor/ten"
 cp "$hatsu_root/.claude-plugin/plugin.json" "$missing_sources_root/.claude-plugin/plugin.json"
 cp "$bootstrap" "$missing_sources_root/scripts/surface_bootstrap.sh"
-printf '%s\n' 'name: hatsu-warmup' > "$missing_sources_root/surfaces/codex/hatsu-warmup/SKILL.md"
-printf '%s\n' 'name: hatsu-warmup' > "$missing_sources_root/surfaces/cursor/hatsu-warmup/SKILL.md"
+printf '%s\n' 'name: ten' > "$missing_sources_root/surfaces/codex/ten/SKILL.md"
+printf '%s\n' 'name: ten' > "$missing_sources_root/surfaces/cursor/ten/SKILL.md"
 missing_sources_target="$fixture_root/missing-sources-target"
 new_fixture "$missing_sources_target"
 mark_adopted "$missing_sources_target" codex
 mark_adopted "$missing_sources_target" cursor
 assert_fails "missing Codex personas were accepted" "$missing_sources_root/scripts/surface_bootstrap.sh" --surface codex --target "$missing_sources_target" --install-all
 assert_fails "missing Cursor personas were accepted" "$missing_sources_root/scripts/surface_bootstrap.sh" --surface cursor --target "$missing_sources_target" --install-all
-[ ! -e "$missing_sources_target/.agents/skills/hatsu-warmup" ] || fail "missing Codex personas left a partial refresh"
-[ ! -e "$missing_sources_target/.cursor/skills/hatsu-warmup" ] || fail "missing Cursor personas left a partial refresh"
+[ ! -e "$missing_sources_target/.agents/skills/ten" ] || fail "missing Codex personas left a partial refresh"
+[ ! -e "$missing_sources_target/.cursor/skills/ten" ] || fail "missing Cursor personas left a partial refresh"
 
 newline_target="$fixture_root/newline-target"$'\n'
 new_fixture "$newline_target"
@@ -514,5 +514,22 @@ new_fixture "$hostile_target"
 mark_adopted "$hostile_target" cursor
 ( cd "$hostile_target" && HATSU_PLUGIN_ROOT="$hostile_root" "$hatsu_root/surfaces/cursor/hooks/session-start.sh" >/dev/null 2>&1 )
 [ ! -e "$hostile_root/EXECUTED" ] || fail "session-start.sh executed scripts/surface_bootstrap.sh out of an unverified HATSU_PLUGIN_ROOT"
+
+# The v0.49.0 rename cases (Phinks P-1 and P-3, docs/ROSTER.md ruling 9):
+# these clone THIS checkout's committed HEAD and the last tree that still
+# shipped hatsu-warmup, so they exercise the upgrade path itself. They need
+# git history reaching the rename; with no such commit reachable they skip.
+if git -C "$hatsu_root" log --format=%H -1 --diff-filter=D HEAD -- claude/skills/hatsu-warmup/SKILL.md 2>/dev/null | grep -q .; then
+  bash "$hatsu_root/scripts/ten_rename_collision_red.sh" || fail "ten rename: --install-all dropped Hatsu's entry for a consumer-owned ten (Phinks P-1)"
+  bash "$hatsu_root/scripts/ten_rename_cursor_bootstrap_red.sh" || fail "ten rename: a bootstrap-only Cursor consumer lost its entry (Phinks P-3)"
+else
+  echo "surface-bootstrap-fixture: rename cases skipped (no hatsu-warmup deletion reachable from HEAD)"
+fi
+# getsuga's default cut point in a non-main-base consumer (ruling 9 R1) needs nen on PATH.
+if command -v nen >/dev/null 2>&1; then
+  bash "$hatsu_root/scripts/getsuga_default_cut_point_red.sh" || fail "getsuga: the documented no-token cut point does not resolve with --trunk <branch.base> (Phinks P-2/R1)"
+else
+  echo "surface-bootstrap-fixture: getsuga default cut point case skipped (nen not on PATH)"
+fi
 
 echo "surface-bootstrap-fixture: Codex, Cursor, and Antigravity first-run bootstrap checks passed"

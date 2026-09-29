@@ -6,7 +6,7 @@ description: Split a mixed working copy into up to two stacked branches and PRs,
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
 `docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
-`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+`ten` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
 trigger a duplicate filing. Never copy or invent a second policy in the target repository.
 
@@ -31,7 +31,7 @@ Read from the phase lattice rather than from this file's own numbering, jujisho 
 [`hatsu:tensho`](../tensho/SKILL.md)'s composition **run once per axis**:
 
 > per axis: [`kokusen`](../kokusen/SKILL.md) → [`aka`](../aka/SKILL.md) →
-> [`mukai`](../mukai/SKILL.md) → **starts** [`en`](../en/SKILL.md) — **A first**, B stacked on A
+> [`mukai`](../mukai/SKILL.md) → **offers** [`en`](../en/SKILL.md) — **A first**, B stacked on A
 
 **This is a restatement, and it changes no mechanics.** Every section below stands exactly as it is
 written. What the line adds is three things the per-axis reading makes explicit:

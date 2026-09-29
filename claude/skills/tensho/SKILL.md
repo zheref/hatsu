@@ -5,7 +5,7 @@ description: Turn a dirty working copy into one PR standing ready at its gate. U
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
 `docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
-root**, not the consuming repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+root**, not the consuming repository. On an installed surface, use the absolute root printed by `ten` to read
 those files (re-resolve through that skill if unavailable). Relative links below identify source
 locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
 filing. Never copy or invent a second policy in the target repository.
@@ -36,7 +36,7 @@ carries two concerns.
 Read from the phase lattice rather than from this file's own numbering, tensho is:
 
 > [`kokusen`](../kokusen/SKILL.md) *(if the tree is dirty)* → [`aka`](../aka/SKILL.md) →
-> [`mukai`](../mukai/SKILL.md) → **starts** [`en`](../en/SKILL.md)
+> [`mukai`](../mukai/SKILL.md) → **offers** [`en`](../en/SKILL.md) (starts it under `mukai.autoEn`)
 
 **This is a restatement, and it changes no mechanics.** Every section below stands exactly as it is
 written: § 2's `nen wc classify` reading, § 3's staging triage, § 4's commit shaping, § 5's body
@@ -332,19 +332,19 @@ needs): the readiness **check** by itself is [`hatsu:pr-state`](../pr-state/SKIL
 
 ```bash
 export GH_TOKEN=$(gh auth token)
-# $hatsu_root is THIS plugin's checkout, ABSOLUTE: the root hatsu-warmup § 0 already resolved, taken
+# $hatsu_root is THIS plugin's checkout, ABSOLUTE: the root ten § 0 already resolved, taken
 # from $HATSU_PLUGIN_ROOT where the session exports it, else from the single-quoted line § 0 printed,
 # pasted verbatim in place of '<…>' (quotes included, nothing else). No manifest is parsed here: with
-# neither in hand, re-resolve through hatsu-warmup § 0 rather than reading plugin.json inline.
+# neither in hand, re-resolve through ten § 0 rather than reading plugin.json inline.
 hatsu_root="${HATSU_PLUGIN_ROOT:-}"; [ -n "$hatsu_root" ] || hatsu_root='<the absolute path § 0 printed>'
 [ -f "$hatsu_root/.claude-plugin/plugin.json" ] && [ -d "$hatsu_root/claude/skills" ] \
-  || { echo "no Hatsu root in hand: re-run hatsu-warmup § 0, or pass --reviewers and explicit --approvers by hand (sharingan § 4)" >&2; exit 1; }
+  || { echo "no Hatsu root in hand: re-run ten § 0, or pass --reviewers and explicit --approvers by hand (sharingan § 4)" >&2; exit 1; }
 nen pr ready <CODE>#<N> --repo <path> --gates "$hatsu_root/contracts/reference.gates.json" --explain
 ```
 
 The `--gates` shown is [`sharingan`](../sharingan/SKILL.md) § 4's identity rule, cited rather than
 copied, its `$hatsu_root` anchor included — the Hatsu checkout as
-[`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 0 resolves it on every surface, taken by the block above
+[`ten`](../ten/SKILL.md) § 0 resolves it on every surface, taken by the block above
 from `$HATSU_PLUGIN_ROOT` or the line § 0 printed, never re-derived from a manifest here and never
 `$CLAUDE_PLUGIN_ROOT` alone, which is Claude Code's: it holds ONLY where the target is frozen
 `<reference-repo>` itself (no gates file of its own);

@@ -151,7 +151,7 @@ phase*), **on every repeat** too; a board that makes the merge obvious is still 
 ## 6. When the pipeline cannot run
 
 `nen report render`, `board build` or `board diff` unavailable (nen out of range is
-`hatsu-warmup`'s D10 contract), or the `backlog-state` sweep
+`ten`'s D10 contract), or the `backlog-state` sweep
 failing for its own reasons: **relay it in one line, then fall back to `backlog-state`'s markdown
 table with the same arguments**, saying so. Inside a repeating loop the same failure **ends the
 loop** — one fallback pass, then stop; it never retries blind.

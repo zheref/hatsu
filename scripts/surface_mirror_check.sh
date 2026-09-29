@@ -7,7 +7,7 @@
 # `surfaces/antigravity/**` are generated from them by `nen surface mirror
 # generate` and committed, because a Codex, Cursor or Antigravity session has
 # no plugin loader: the warm-up places those files into the repository the
-# session is standing in (claude/skills/hatsu-warmup/SKILL.md § 5). Edit a
+# session is standing in (claude/skills/ten/SKILL.md § 5). Edit a
 # SKILL.md without regenerating and the other surfaces keep serving the
 # previous wording — silently, with no error anywhere, exactly the way an
 # un-bumped plugin.json keeps serving the previous plugin.
@@ -215,7 +215,7 @@ EOF
     case "$code" in
       0) echo "surface-mirror-check: installed plugin cache matches a fresh generation." ; return 0 ;;
       1)
-        echo "surface-mirror-check: the installed plugin cache at '$installed_path' has drifted from a fresh generation. Refresh it the way hatsu-warmup does (docs/SURFACES.md § 4)." >&2
+        echo "surface-mirror-check: the installed plugin cache at '$installed_path' has drifted from a fresh generation. Refresh it the way ten does (docs/SURFACES.md § 4)." >&2
         return 1
         ;;
       *)

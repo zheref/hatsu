@@ -6,7 +6,7 @@ description: Bring the branch up to date with its base — rebase when nothing h
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
 `docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
-`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+`ten` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
 trigger a duplicate filing. Never copy or invent a second policy in the target repository.
 
@@ -31,7 +31,7 @@ pushes what it produced.
 **Ao already reads the checkout rather than a caller.** § 2 reads the state before anything, § 3 decides
 rebase-vs-merge from whether anything has been published, and `from <base>` carries the base with
 `nen/workflow.json → branch.base` underneath it. [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4 lists it as already total; the clauses that
-apply are **P1** — [`hatsu:hatsu-warmup`](../hatsu-warmup/SKILL.md) when no composite ran it — and the
+apply are **P1** — [`hatsu:ten ao`](../ten/SKILL.md) when no composite ran it, catching up this phase's prerequisites (ten § 6) — and the
 base resolving against the **fetched `origin/`** ref, which § 3 already requires.
 
 **Nothing about a standalone call relaxes § 6**: a *semantic* conflict is a **G5** stop with both sides
@@ -176,6 +176,12 @@ merge algorithm holds the belief. So is a `UU` where both sides changed the same
 > hunk. Semantically it is two people deciding a policy number, and taking either side silently
 > ships somebody's decision that nobody made. `git show :1:` / `:2:` / `:3:` on the path prints the
 > three versions exactly — base, ours, theirs — and that is what the stop shows.
+
+**Under [`ten`](../ten/SKILL.md) § 6's unasked catch-up, two classes are always semantic** whatever
+their shape (ruling 2026-09-28, ROSTER ruling 9): a conflicted path matched by `nen/workflow.json` →
+`review.scopes.security.paths`, and any lockfile — the base's side is not taken and nothing is
+regenerated without the maintainer seeing both sides, because a silent resolution there is a
+supply-chain or credential decision nobody made.
 
 **Resolve the mechanical ones, one at a time, saying what each was and why the resolution was
 determined.** Then re-run the declared build before the merge is committed — a green merge that was

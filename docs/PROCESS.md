@@ -16,7 +16,7 @@ is silent**; where it and `WORKFLOW.md` disagree, `WORKFLOW.md` wins and this pa
 
 ## Standalone entry
 
-**Shared policy (`docs/*.md`) lives at the Hatsu plugin root that `hatsu-warmup` prints**, and every
+**Shared policy (`docs/*.md`) lives at the Hatsu plugin root that `ten` prints**, and every
 `../../../docs/…` link in a skill resolves there. **A missing consumer copy of a `docs/` file is never a
 missing policy and never a filing**: a skill reads the policy it cites from the plugin root, never from
 the consuming repository's tree. A phase reached from a composite skips its own `## 0.` and says which
@@ -149,7 +149,7 @@ on that option and `""` elsewhere. A maintainer's-word ask stars none.
 ## Authority every phase shares
 
 **Shared policy is resolved at the Hatsu plugin root, never read from the consumer's working
-directory**, as [`hatsu-warmup`](../claude/skills/hatsu-warmup/SKILL.md) § 0 says. **A path into the
+directory**, as [`ten`](../claude/skills/ten/SKILL.md) § 0 says. **A path into the
 plugin is built from `$hatsu_root`, never from `$CLAUDE_PLUGIN_ROOT` alone**, which is empty outside a
 skill invocation and unset on the other surfaces ([`WORKFLOW.md`](WORKFLOW.md) § 6).
 
@@ -236,7 +236,7 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
 
 **Named residue, by skill** — the live list; each skill's `Residue` section points here.
 
-- **`hatsu-warmup`.** Copying a mirror (the drift check is nen's), composing `AGENTS.override.md`,
+- **`ten`.** Copying a mirror (the drift check is nen's), composing `AGENTS.override.md`,
   writing `info/exclude` and proving it took, the first install on Codex and Cursor, resolving the
   plugin root and updating the plugin source are done by the warm-up's scripts and by hand: no nen
   verb owns a checkout's local exclude, and where Hatsu is checked out is the host's property.

@@ -6,7 +6,7 @@ description: Bring an already-published branch up to date with its base, rerun t
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
 `docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
-`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+`ten` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
 trigger a duplicate filing. Never copy or invent a second policy in the target repository.
 
@@ -109,6 +109,9 @@ as a next step this run is waiting on, and [`docs/STANDALONE-ENTRY.md`](../../..
 ---
 
 ## 1. Invocation
+
+**P1 — this run opens with `hatsu:ten murasaki`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
+missing prerequisites under its own name; the phases this run calls skip theirs).
 
 ```
 hatsu:murasaki [from <base>]

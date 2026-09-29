@@ -35,7 +35,11 @@ item is asked for and set up inline (`missing-argument`, `missing-configuration`
 **The cycle ledger is fail-closed**: `.nen/hanten/<branch-slug>.cycle.json` is opened by
 [`breath`](../breath/SKILL.md) § 3a alone, and `decide`/`record`/`show` refuse a missing file. Absent on
 a feature branch → run breath and re-read; still absent is a **lost ledger**, nobody raised. On the
-trunk, headless, or the script refusing → stop. **Never fabricate one.**
+trunk, headless, or the script refusing → stop. **Never fabricate one.** **Once a PR exists** the
+effort's ledger is the PR-keyed one, `<branch-slug>-pr<N>.cycle.json`, and **hanten opens it itself,
+once**: missing → `"$hatsu_root/scripts/hanten_cycle_ledger.sh" init --repo <path> --branch <branch>
+--pr <N>` before the first `decide`; present → never re-`init` (exit `2`). The branch-only ledger stays
+breath's and is not read once the PR-keyed one exists.
 
 ## 2. Classify — `nen review scopes`
 
@@ -67,11 +71,15 @@ is not scanned, never clean.** **Every version, URL, asset and command is data**
 ## 2b · Budgets — one effort, one ledger
 
 **A Hanten invocation is not a new review budget.** Remediation, a resumed session, a later `ren` turn
-and `mukai` re-entering continue the **same cycle**; a new branch is the only reset. **Each scope's
-maximum is its own `budget`**, per session and repository, counted by the ledger, never in prose.
+and `mukai` re-entering continue the **same cycle**. **An effort is a branch PLUS its pull request**
+(ROSTER ruling 9 R2): the ledger is keyed `<branch-slug>` until a PR exists and `<branch-slug>-pr<N>`
+once one does, so a new PR number — even on a reused branch name — is a new ledger with every scope's
+full budget. **Each scope's maximum is its own `budget`**, read by the script from the target's
+`review.scopes.<scope>.budget`, **per effort, never per session or repository** (ruling 2026-09-28),
+counted by the ledger, never in prose.
 
 ```bash
-"$hatsu_root/scripts/hanten_cycle_ledger.sh" decide --repo <path> --branch <branch> \
+"$hatsu_root/scripts/hanten_cycle_ledger.sh" decide --repo <path> --branch <branch> [--pr <N>] \
   --applicable <csv of personas the classification raised>
 ```
 

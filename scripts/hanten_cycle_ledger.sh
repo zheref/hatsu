@@ -2,14 +2,24 @@
 # hanten_cycle_ledger.sh — per-effort Hanten reviewer budgets (zheref/hatsu#63).
 #
 # Hatsu owns this file. Nen does not. The skill
-# `claude/skills/hanten/SKILL.md` § 2a is the policy; this script is the writer
+# `claude/skills/hanten/SKILL.md` § 2b is the policy; this script is the writer
 # so used/max cannot be counted in prose and forgotten on the next remediation.
 #
+# AN EFFORT IS A BRANCH PLUS ITS PULL REQUEST (maintainer's ruling of
+# 2026-09-28, docs/ROSTER.md § Rulings of 2026-09-26/27/28, ruling 9): the
+# ledger is keyed `<branch-slug>` until a PR exists and `<branch-slug>-pr<N>`
+# once one does, so a new PR number on the same branch name is a new ledger
+# and every reviewer starts fresh. `init` refuses only the SAME key twice.
+# The maxima are the target repository's own `nen/workflow.json` ->
+# `review.scopes.<scope>.budget`, matched by each scope's `persona`; a persona
+# no scope declares falls back to the built-in default below, and the ledger
+# records which source each maximum came from (`budgetSource`).
+#
 # Usage:
-#   scripts/hanten_cycle_ledger.sh init   --repo <path> --branch <name>
-#   scripts/hanten_cycle_ledger.sh decide --repo <path> --branch <name> --applicable <csv>
-#   scripts/hanten_cycle_ledger.sh record --repo <path> --branch <name> --persona <id> --outcome ran|skipped-exhausted
-#   scripts/hanten_cycle_ledger.sh show   --repo <path> --branch <name>
+#   scripts/hanten_cycle_ledger.sh init   --repo <path> --branch <name> [--pr <n>]
+#   scripts/hanten_cycle_ledger.sh decide --repo <path> --branch <name> [--pr <n>] --applicable <csv>
+#   scripts/hanten_cycle_ledger.sh record --repo <path> --branch <name> [--pr <n>] --persona <id> --outcome ran|skipped-exhausted
+#   scripts/hanten_cycle_ledger.sh show   --repo <path> --branch <name> [--pr <n>]
 #   scripts/hanten_cycle_ledger.sh --self-test
 set -euo pipefail
 
@@ -30,7 +40,7 @@ else:
     import fcntl
 
 CONTRACT = "hatsu.hanten.cycle/v0.1"
-MAXIMA = {
+DEFAULT_MAXIMA = {
     "nobunaga": 2,
     "feitan": 1,
     "chrollo": 1,
@@ -38,23 +48,64 @@ MAXIMA = {
     "hisoka": 2,
     "uvogin": 3,
 }
-PERSONAS = tuple(MAXIMA)
+PERSONAS = tuple(DEFAULT_MAXIMA)
+# Filled per invocation from the target's nen/workflow.json (see budgets()).
+MAXIMA = dict(DEFAULT_MAXIMA)
+BUDGET_SOURCE = {p: "default" for p in PERSONAS}
+
+
+def budgets(repo: Path) -> None:
+    """Read review.scopes.<scope>.budget by persona from the TARGET's nen/workflow.json.
+
+    A missing file, an unreadable file or a scope without a numeric budget
+    leaves that persona on the built-in default and says so in budgetSource.
+    """
+    global MAXIMA, BUDGET_SOURCE
+    MAXIMA = dict(DEFAULT_MAXIMA)
+    BUDGET_SOURCE = {p: "default" for p in PERSONAS}
+    path = repo / "nen" / "workflow.json"
+    if not path.is_file():
+        return
+    try:
+        scopes = json.loads(path.read_text()).get("review", {}).get("scopes", {})
+    except (ValueError, AttributeError):
+        return
+    if not isinstance(scopes, dict):
+        return
+    for scope, row in scopes.items():
+        if not isinstance(row, dict):
+            continue
+        persona = str(row.get("persona", "")).lower()
+        budget = row.get("budget")
+        if persona in DEFAULT_MAXIMA and isinstance(budget, int) and not isinstance(budget, bool) and budget >= 0:
+            MAXIMA[persona] = budget
+            BUDGET_SOURCE[persona] = f"nen/workflow.json review.scopes.{scope}.budget"
 
 
 def utc_now():
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
 
 
-def slug(branch: str) -> str:
-    return branch.replace("/", "-")
+def slug(branch: str, pr: str | None = None) -> str:
+    base = branch.replace("/", "-")
+    return f"{base}-pr{pr}" if pr else base
 
 
-def ledger_path(repo: Path, branch: str) -> Path:
-    return repo / ".nen" / "hanten" / f"{slug(branch)}.cycle.json"
+def ledger_path(repo: Path, branch: str, pr: str | None = None) -> Path:
+    return repo / ".nen" / "hanten" / f"{slug(branch, pr)}.cycle.json"
 
 
-def lock_path(repo: Path, branch: str) -> Path:
-    return repo / ".nen" / "hanten" / f"{slug(branch)}.cycle.lock"
+def lock_path(repo: Path, branch: str, pr: str | None = None) -> Path:
+    return repo / ".nen" / "hanten" / f"{slug(branch, pr)}.cycle.lock"
+
+
+def parse_pr(raw: str | None) -> str | None:
+    if raw is None or not str(raw).strip():
+        return None
+    value = str(raw).strip().lstrip("#")
+    if not value.isdigit() or int(value) <= 0:
+        refuse(f"hanten_cycle_ledger: --pr must be a positive PR number, got {raw!r}")
+    return str(int(value))
 
 
 def refuse(msg: str):
@@ -65,8 +116,8 @@ def refuse(msg: str):
 class LedgerLock:
     """Exclusive file lock across load, mutation, and save for one branch ledger."""
 
-    def __init__(self, repo: Path, branch: str):
-        self.path = lock_path(repo, branch)
+    def __init__(self, repo: Path, branch: str, pr: str | None = None):
+        self.path = lock_path(repo, branch, pr)
         self.fd = None
         self.thread_lock_held = False
 
@@ -119,50 +170,55 @@ class LedgerLock:
 
 
 def empty_reviewers():
-    return {p: {"max": MAXIMA[p], "used": 0, "invocations": []} for p in PERSONAS}
+    return {p: {"max": MAXIMA[p], "used": 0, "budgetSource": BUDGET_SOURCE[p], "invocations": []} for p in PERSONAS}
 
 
-def new_doc(branch: str) -> dict:
+def new_doc(branch: str, pr: str | None = None) -> dict:
     now = utc_now()
     return {
         "contract": CONTRACT,
         "branch": branch,
-        "slug": slug(branch),
+        "pr": int(pr) if pr else None,
+        "slug": slug(branch, pr),
         "openedAt": now,
         "updatedAt": now,
         "reviewers": empty_reviewers(),
     }
 
 
-def _hydrate(doc: dict, path: Path, branch: str) -> dict:
+def _hydrate(doc: dict, path: Path, branch: str, pr: str | None = None) -> dict:
     if doc.get("contract") != CONTRACT:
         refuse(f"hanten_cycle_ledger: {path} is not {CONTRACT}")
     if doc.get("branch") != branch:
         refuse(f"hanten_cycle_ledger: ledger branch {doc.get('branch')!r} is not {branch!r}")
+    want_pr = int(pr) if pr else None
+    if doc.get("pr") != want_pr:
+        refuse(f"hanten_cycle_ledger: ledger pr {doc.get('pr')!r} is not {want_pr!r}")
     reviewers = doc.setdefault("reviewers", {})
     for p in PERSONAS:
         row = reviewers.get(p) or {"max": MAXIMA[p], "used": 0, "invocations": []}
         row["max"] = MAXIMA[p]
+        row["budgetSource"] = BUDGET_SOURCE[p]
         row.setdefault("used", 0)
         row.setdefault("invocations", [])
         reviewers[p] = row
     return doc
 
 
-def load(repo: Path, branch: str) -> dict:
-    path = ledger_path(repo, branch)
+def load(repo: Path, branch: str, pr: str | None = None) -> dict:
+    path = ledger_path(repo, branch, pr)
     if not path.is_file():
         refuse(
             f"hanten_cycle_ledger: no ledger at {path} — "
-            "init if this effort is new; if reviews already ran, the ledger is lost "
-            "and must not get a fresh budget"
+            "init if this effort (this branch and this PR) is new; if reviews already ran "
+            "under this key, the ledger is lost and must not get a fresh budget"
         )
     doc = json.loads(path.read_text())
-    return _hydrate(doc, path, branch)
+    return _hydrate(doc, path, branch, pr)
 
 
 def save(repo: Path, doc: dict) -> Path:
-    path = ledger_path(repo, doc["branch"])
+    path = ledger_path(repo, doc["branch"], str(doc["pr"]) if doc.get("pr") else None)
     path.parent.mkdir(parents=True, exist_ok=True)
     doc["updatedAt"] = utc_now()
     fd, tmp_name = tempfile.mkstemp(
@@ -185,11 +241,11 @@ def save(repo: Path, doc: dict) -> Path:
     return path
 
 
-def init(repo: Path, branch: str) -> dict:
-    path = ledger_path(repo, branch)
+def init(repo: Path, branch: str, pr: str | None = None) -> dict:
+    path = ledger_path(repo, branch, pr)
     if path.is_file():
         refuse(f"hanten_cycle_ledger: ledger already exists at {path}")
-    doc = new_doc(branch)
+    doc = new_doc(branch, pr)
     save(repo, doc)
     return doc
 
@@ -235,6 +291,7 @@ def decide(doc: dict, applicable: list[str]) -> dict:
     return {
         "contract": CONTRACT,
         "branch": doc["branch"],
+        "pr": doc.get("pr"),
         "path": None,
         "reviewers": rows,
         "raise": [r["persona"] for r in rows if r["action"] == "raise"],
@@ -275,7 +332,7 @@ def parse_args(argv):
     opts = {}
     i = 1
     while i < len(argv):
-        if argv[i] in ("--repo", "--branch", "--applicable", "--persona", "--outcome") and i + 1 < len(argv):
+        if argv[i] in ("--repo", "--branch", "--pr", "--applicable", "--persona", "--outcome") and i + 1 < len(argv):
             opts[argv[i][2:]] = argv[i + 1]
             i += 2
             continue
@@ -304,6 +361,8 @@ def self_test() -> int:
 
     with tempfile.TemporaryDirectory() as tmp:
         repo = Path(tmp)
+        budgets(repo)
+        check("no-workflow-json-uses-defaults", MAXIMA == DEFAULT_MAXIMA and all(v == "default" for v in BUDGET_SOURCE.values()))
         branch = "grok/kurapika/demo-cycle"
         all_reviewers = list(PERSONAS)
 
@@ -421,6 +480,63 @@ def self_test() -> int:
             resumed = load(repo, branch)
         check("resume-same-file", resumed["reviewers"]["chrollo"]["used"] == 1)
 
+        # An effort is a branch PLUS its PR (ruling 2026-09-28): a PR number on
+        # the same branch name is a new key -- init is not refused, every
+        # reviewer starts fresh, and the branch-only ledger is untouched.
+        with LedgerLock(repo, branch, "7"):
+            init(repo, branch, "7")
+            pr7 = load(repo, branch, "7")
+        # hanten's one-time init of the PR-keyed ledger while the branch-only one already exists.
+        check("init-pr-beside-existing-branch-ledger", ledger_path(repo, branch).is_file() and ledger_path(repo, branch, "7").is_file())
+        check("same-branch-new-pr-is-fresh", pr7["reviewers"]["chrollo"]["used"] == 0 and pr7["pr"] == 7 and pr7["slug"].endswith("-pr7"))
+        check("same-branch-new-pr-new-file", ledger_path(repo, branch, "7") != ledger_path(repo, branch))
+        record(pr7, "chrollo", "ran")
+        with LedgerLock(repo, branch, "7"):
+            save(repo, pr7)
+        with LedgerLock(repo, branch, "8"):
+            init(repo, branch, "8")
+            pr8 = load(repo, branch, "8")
+        check("second-pr-same-branch-resets", decide(pr8, ["chrollo"])["raise"] == ["chrollo"])
+        try:
+            with LedgerLock(repo, branch, "8"):
+                init(repo, branch, "8")
+            check("refuse-second-init-same-pr", False, "init succeeded")
+        except SystemExit as e:
+            check("refuse-second-init-same-pr", e.code == 2, str(e))
+        try:
+            with LedgerLock(repo, branch, "7"):
+                _hydrate(json.loads(ledger_path(repo, branch, "7").read_text()), ledger_path(repo, branch, "7"), branch, "8")
+            check("refuse-pr-mismatch", False, "hydrate succeeded")
+        except SystemExit as e:
+            check("refuse-pr-mismatch", e.code == 2, str(e))
+        try:
+            parse_pr("seven")
+            check("refuse-non-numeric-pr", False, "parse succeeded")
+        except SystemExit as e:
+            check("refuse-non-numeric-pr", e.code == 2, str(e))
+        check("pr-hash-prefix-normalised", parse_pr("#12") == "12")
+
+        # Maxima come from the target's own nen/workflow.json review.scopes.
+        wf = repo / "nen" / "workflow.json"
+        wf.parent.mkdir(parents=True, exist_ok=True)
+        wf.write_text(json.dumps({"review": {"scopes": {
+            "code": {"persona": "nobunaga", "budget": 5},
+            "security": {"persona": "feitan", "budget": 0},
+            "odd": {"persona": "nobody", "budget": 9},
+            "broken": {"persona": "hisoka", "budget": "two"},
+        }}}))
+        budgets(repo)
+        check("budget-from-workflow", MAXIMA["nobunaga"] == 5 and MAXIMA["feitan"] == 0 and MAXIMA["hisoka"] == DEFAULT_MAXIMA["hisoka"], json.dumps(MAXIMA))
+        check("budget-source-recorded", BUDGET_SOURCE["nobunaga"] == "nen/workflow.json review.scopes.code.budget" and BUDGET_SOURCE["hisoka"] == "default")
+        wf_branch = "grok/kurapika/workflow-budget"
+        with LedgerLock(repo, wf_branch, "3"):
+            init(repo, wf_branch, "3")
+            wf_doc = load(repo, wf_branch, "3")
+        d_wf = decide(wf_doc, ["nobunaga", "feitan"])
+        check("workflow-budget-drives-decide", d_wf["raise"] == ["nobunaga"] and d_wf["skippedExhausted"] == ["feitan"] and wf_doc["reviewers"]["nobunaga"]["max"] == 5, str(d_wf["raise"]))
+        wf.unlink()
+        budgets(repo)
+
         # Concurrent RMW: exclusive lock so both records land.
         conc_branch = "grok/kurapika/concurrent"
         with LedgerLock(repo, conc_branch):
@@ -471,24 +587,27 @@ def main(argv):
     if not repo.is_dir():
         refuse(f"hanten_cycle_ledger: --repo {repo} is not a directory")
     branch = opts["branch"]
-    with LedgerLock(repo, branch):
+    pr = parse_pr(opts.get("pr"))
+    budgets(repo)
+    with LedgerLock(repo, branch, pr):
         if cmd == "init":
-            doc = init(repo, branch)
-            path = ledger_path(repo, branch)
-            json.dump({"path": str(path), "branch": doc["branch"], "contract": CONTRACT}, sys.stdout, indent=2)
+            doc = init(repo, branch, pr)
+            path = ledger_path(repo, branch, pr)
+            json.dump({"path": str(path), "branch": doc["branch"], "pr": doc["pr"], "contract": CONTRACT,
+                       "budgets": {p: {"max": MAXIMA[p], "source": BUDGET_SOURCE[p]} for p in PERSONAS}}, sys.stdout, indent=2)
             sys.stdout.write("\n")
             return
-        doc = load(repo, branch)
+        doc = load(repo, branch, pr)
         if cmd == "show":
             out = dict(doc)
-            out["path"] = str(ledger_path(repo, branch))
+            out["path"] = str(ledger_path(repo, branch, pr))
             json.dump(out, sys.stdout, indent=2)
             sys.stdout.write("\n")
             return
         if cmd == "decide":
             applicable = parse_applicable(opts.get("applicable", ""))
             result = decide(doc, applicable)
-            result["path"] = str(ledger_path(repo, branch))
+            result["path"] = str(ledger_path(repo, branch, pr))
             json.dump(result, sys.stdout, indent=2)
             sys.stdout.write("\n")
             return

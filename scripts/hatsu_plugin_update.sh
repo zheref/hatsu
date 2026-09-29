@@ -2,7 +2,7 @@
 # Keep a Hatsu plugin source current — a git checkout on trunk or the latest
 # release tag, or Claude Code's versioned plugin cache via `claude plugin update`.
 #
-# hatsu-warmup calls this with --auto after Nen is satisfied and before it
+# ten calls this with --auto after Nen is satisfied and before it
 # refreshes a target repository, so Codex/Cursor/Antigravity copies cannot
 # silently serve last month's canon. Explicit invocation is the same command
 # without --auto: dirty trees, authoring branches and missing remotes refuse

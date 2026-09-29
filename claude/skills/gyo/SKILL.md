@@ -6,7 +6,7 @@ description: Lint the tree on every Ren turn — the named Hatsu process for the
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
 `docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
-`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+`ten` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
 trigger a duplicate filing. Never copy or invent a second policy in the target repository.
 
@@ -42,7 +42,7 @@ It is also invocable alone as a diagnostic.
 **Gyo needs nothing from a caller.** The lane comes from its own `on <lane>` clause or from
 `nen/workflow.json → iteration.lane`, and linting reads the tree in front of it rather than a delta,
 so there is no turn boundary to inherit. [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4 lists it as already total, and the whole of that
-contract that applies here is **P1**: run [`hatsu:hatsu-warmup`](../hatsu-warmup/SKILL.md) first when
+contract that applies here is **P1**: run [`hatsu:ten gyo`](../ten/SKILL.md) (ten § 6 catches up the prerequisites) first when
 no composite did, because `nen shu lint` is a `nen` call.
 
 **Being typed by hand changes nothing else.** Gyo still never measures coverage and never runs tests —

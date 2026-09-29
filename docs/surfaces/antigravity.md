@@ -12,7 +12,7 @@ workflows are deprecated and retire on 2026-11-01, so nothing here emits a workf
 
 | | |
 |---|---|
-| how Hatsu arrives | global plugin: `ln -sfn "$HATSU_PLUGIN_ROOT/surfaces/antigravity" ~/.gemini/config/plugins/hatsu` (`~/.gemini/antigravity-cli/plugins/hatsu` for the CLI); or workspace: `scripts/surface_bootstrap.sh --surface antigravity --target . --bootstrap`, then `/hatsu-warmup` |
+| how Hatsu arrives | global plugin: `ln -sfn "$HATSU_PLUGIN_ROOT/surfaces/antigravity" ~/.gemini/config/plugins/hatsu` (`~/.gemini/antigravity-cli/plugins/hatsu` for the CLI); or workspace: `scripts/surface_bootstrap.sh --surface antigravity --target . --bootstrap`, then `/ten` |
 | plugin layout | `plugin.json` (required), `hooks.json`, `mcp_config.json`, `skills/`, `agents/`, `rules/`; the mirror follows it: `skills/<name>/SKILL.md` plus `agents/`, `rules/hatsu.md`, `hooks.json`, `plugin.json` |
 | skills read from | plugin `skills/<name>/SKILL.md` as the plugins page lays it out; workspace `<repo>/.agents/skills/<name>/SKILL.md`; global `~/.gemini/config/skills/` (IDE) or `~/.gemini/antigravity-cli/skills/` (CLI). The mirror is `surfaces/antigravity/skills/<name>/SKILL.md`, the documented layout, and the warm-up copies each `skills/<name>/` into `.agents/skills/` |
 | personas read from | plugin `agents/<persona>.md`; workspace `<repo>/.agents/agents/<name>.md` or `.agents/agents/<name>/agent.md`; global `~/.gemini/config/agents/` |
@@ -113,7 +113,7 @@ nen surface mirror generate --surface antigravity \
 
 | emits | from |
 |---|---|
-| `surfaces/antigravity/skills/<name>/SKILL.md`, 44 files (forty-three plus `hatsu-warmup`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `/<name>` (anchored on the prefix, never a bare `gsub`) | `claude/skills/**` |
+| `surfaces/antigravity/skills/<name>/SKILL.md`, 45 files (forty-four plus `ten`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `/<name>` (anchored on the prefix, never a bare `gsub`) | `claude/skills/**` |
 | `surfaces/antigravity/agents/<persona>.md`, 12 files (eleven personas plus the preamble include), `model` from the tier where admissible | `claude/agents/**`, `nen/workflow.json` |
 | `surfaces/antigravity/rules/hatsu.md`, under 12,000 characters | the surface row and the matrix |
 | `surfaces/antigravity/hooks.json`: `PreInvocation`, `PreToolUse` on `run_command`, `Stop` | `hooks/hooks.json` |

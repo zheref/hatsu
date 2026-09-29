@@ -138,5 +138,5 @@ once; author and run ephemeral UI tests in a checkout; publish the page; offer t
 - **Never runs against production data, a live account or a real payment rail** (`QA-10`'s discipline):
   synthetic and local, or `not-testable`.
 - **Never improvises a Nen-owned operation** — `nen pr fetch`, `nen repo classify`, `nen report render` and
-  the declared `nen shu` lanes are verbs; if `nen` is unavailable, [`hatsu-warmup`](../hatsu-warmup/SKILL.md)
+  the declared `nen shu` lanes are verbs; if `nen` is unavailable, [`ten`](../ten/SKILL.md)
   installs it (`missing-tool`), and where it cannot the run does not happen, and that is the report.

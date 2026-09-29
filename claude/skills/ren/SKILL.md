@@ -5,7 +5,7 @@ description: Run one request end to end as a turn — warm up on the first turn,
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
 `docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
-root**, not the consuming repository. On an installed surface, use the absolute root printed by `hatsu-warmup` to read
+root**, not the consuming repository. On an installed surface, use the absolute root printed by `ten` to read
 those files (re-resolve through that skill if unavailable). Relative links below identify source
 locations; a missing consumer `docs/` copy is not a missing policy and must not trigger a duplicate
 filing. Never copy or invent a second policy in the target repository.
@@ -34,6 +34,9 @@ authored, because a rule restated in two places drifts in one of them.
 ---
 
 ## 1. Invocation
+
+**P1 — this run opens with `hatsu:ten ren`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
+missing prerequisites under its own name; the phases this run calls skip theirs).
 
 ```
 hatsu:ren <request> [--profile fast|standard|thorough]

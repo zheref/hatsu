@@ -180,7 +180,7 @@
     "$comment": "A tier is named, never a model version — a pinned version is a pin that rots. The orchestrator tier is the main session's; a SUBAGENT never runs on it, because the frontier tier is where the human's own conversation lives and a delegate that outranks its caller has inverted the delegation."
   },
   "review": {
-    "$comment": "Maintainer's rulings of 2026-09-09 (Feitan, Chrollo), 2026-09-19 (Nobunaga, Shalnark) -- zheref/hatsu#89. nen review scopes --base <ref> (v0.12.0) classifies the branch diff by these rows: a path may raise several scopes, and each raised scope is reviewed by its persona under hanten, within budget (reviews per session and repository). code is Nobunaga's and claims every path, so he is the default reviewer everywhere; tier is read against models.<surface>.<tier>, and Nobunaga's tier depends on nen repo classify's kind (deep on a process repository, fast on a product one). Paths are prefixes or globs in nen report data's tier-table grammar.",
+    "$comment": "Maintainer's rulings of 2026-09-09 (Feitan, Chrollo), 2026-09-19 (Nobunaga, Shalnark) -- zheref/hatsu#89. nen review scopes --base <ref> (v0.12.0) classifies the branch diff by these rows: a path may raise several scopes, and each raised scope is reviewed by its persona under hanten, within budget (reviews per EFFORT -- one branch, one PR -- never per session or repository; a new PR starts every scope full, maintainer's ruling of 2026-09-28). code is Nobunaga's and claims every path, so he is the default reviewer everywhere; tier is read against models.<surface>.<tier>, and Nobunaga's tier depends on nen repo classify's kind (deep on a process repository, fast on a product one). Paths are prefixes or globs in nen report data's tier-table grammar.",
     "scopes": {
       "code": {
         "persona": "nobunaga",
@@ -268,6 +268,10 @@
         ]
       }
     }
+  },
+  "mukai": {
+    "autoEn": false,
+    "$comment": "Maintainer's ruling of 2026-09-28 (docs/ROSTER.md section Rulings of 2026-09-26/27/28, ruling 8): once shibari has opened the PR and the landing report is rendered, mukai OFFERS to start en on it in one line naming the PR and never starts it silently -- unless this key is true, in which case en starts immediately in the same user turn as it did before. Absent means false. Read by the mukai skill only; nen validates the file and hands no value out."
   },
   "release": {
     "$comment": "The RELEASE UNIT -- the maintainer's rulings of 2026-09-26 and 2026-09-28 (docs/ROSTER.md § Rulings of 2026-09-26/27/28: getsuga merges its own release-proposal PR, bounded; in hatsu the plugin manifest is bumped in the DELIVERY PR, so the release PR touches the changelog only). Exactly the paths getsuga § 3 writes when it folds a release here: the collated CHANGELOG section and the fragments it deletes. Not .claude-plugin/plugin.json (the delivery PR carries the bump; getsuga § 3 step 5 is a no-op in this repository), and not nen/repos.json (this registry carries no `latest` key). `nen release unit-check --pr <n>` compares a pull request's changed files to this list (the same prefix/glob grammar review.scopes uses), and `nen pr merge --release-unit` refuses to merge a release-proposal PR that touches anything outside it. From nen v0.15.1 an entry may also be {\"path\": \"<exact json file>\", \"keys\": [...]} to bound a JSON file to named leaf keys -- unused here. Hatsu declares no tags.identity, so no archive-written identity file belongs here.",

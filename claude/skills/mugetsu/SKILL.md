@@ -6,7 +6,7 @@ description: Publish one release to one production destination — a store, the 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
 `docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
-`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+`ten` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
 trigger a duplicate filing. Never copy or invent a second policy in the target repository.
 
@@ -59,7 +59,7 @@ where several are declared and none named — typed, never picked; and when the 
 futon invocation whose `then` chain names this skill, § 3's advance go is the recorded go, bound to
 the tag that run cuts. Every other reach, a subagent included, stops without relaying any ask. That is unchanged, and a cold entry is the case it was written for.
 
-**P1 · Warm up.** [`hatsu:hatsu-warmup`](../hatsu-warmup/SKILL.md), unconditionally — `nen release
+**P1 · Warm up.** [`hatsu:ten mugetsu`](../ten/SKILL.md), unconditionally (ten § 6 catches up auth and declarations, never the go) — `nen release
 preflight` and `nen shu release` are `nen` calls.
 
 **P2 · Orient, and put it above the preflight.** State the branch, clean-or-dirty with paths, the

@@ -11,7 +11,7 @@ since v0.41.0.
 
 | | |
 |---|---|
-| how Hatsu arrives | a checkout on the host, one bootstrap (`scripts/surface_bootstrap.sh --surface cursor --target . --bootstrap`, which links only `hatsu-warmup`), then `/hatsu-warmup` every session |
+| how Hatsu arrives | a checkout on the host, one bootstrap (`scripts/surface_bootstrap.sh --surface cursor --target . --bootstrap`, which links only `ten`), then `/ten` every session |
 | skills read from | `<repo>/.cursor/skills/<name>/SKILL.md`; a `.cursor/skills/` or `.agents/skills/` folder anywhere in the repository is picked up |
 | personas read from | `<repo>/.cursor/agents/<persona>.md`, one markdown subagent file each |
 | rules read from | `<repo>/.cursor/rules/*.mdc` |
@@ -122,7 +122,7 @@ nen surface mirror generate --surface cursor \
 
 | emits | from |
 |---|---|
-| `surfaces/cursor/<name>/SKILL.md`, 44 files (forty-three plus `hatsu-warmup`), frontmatter reduced to the documented keys, `hatsu:<name>` respelled `/<name>` | `claude/skills/**` |
+| `surfaces/cursor/<name>/SKILL.md`, 45 files (forty-four plus `ten`), frontmatter reduced to the documented keys, `hatsu:<name>` respelled `/<name>` | `claude/skills/**` |
 | `surfaces/cursor/agents/<persona>.md`, 12 files (eleven personas plus the preamble include), `model: inherit` | `claude/agents/**`, `nen/workflow.json` |
 | `surfaces/cursor/.cursor/rules/hatsu.mdc` | the surface row and the matrix |
 | `surfaces/cursor/.cursor/cli.json` | `contracts/permissions.json` |

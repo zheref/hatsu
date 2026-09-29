@@ -1,12 +1,12 @@
 ---
 name: getsuga
-description: Cut a release tag locally, end to end — preconditions, one folded release-proposal PR merged inside § 3a's bounds (or by the maintainer where they do not hold), the post-merge tag, then the CON-22 fan-out. Use when the maintainer invokes hatsu:getsuga <hash | branch-name | main | last-commit | checkout>, or asks to cut a tag, cut a release, or ship a version. An off-main target is driven to main first, and susanoo builds the release unit. Merges exactly one PR itself — its own release-proposal PR, when its diff is the release unit only and CON-32 reads Ready, through the repository's own protection (the maintainer's ruling of 2026-09-26) — and never a delivery PR; never publishes a release — publication is mugetsu's, per target, at G3 — and never tags a commit unreachable from origin/main.
+description: Cut a release tag locally, end to end — preconditions, one folded release-proposal PR merged inside § 3a's bounds (or by the maintainer where they do not hold), the post-merge tag, then the CON-22 fan-out. Use when the maintainer invokes hatsu:getsuga [<hash | branch-name | main | last-commit | checkout>], or asks to cut a tag, cut a release, or ship a version. The cut point is never required: with no token it is origin/<branch.base> from nen/workflow.json (plain main when none is declared), stated with its source in the first line; a typed token always overrides, and a version-shaped token is read as the tag name. An off-main target is driven to main first, and susanoo builds the release unit. Merges exactly one PR itself — its own release-proposal PR, when its diff is the release unit only and CON-32 reads Ready, through the repository's own protection (the maintainer's ruling of 2026-09-26) — and never a delivery PR; never publishes a release — publication is mugetsu's, per target, at G3 — and never tags a commit unreachable from the configured trunk, origin/<branch.base>.
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
 `docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
-`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+`ten` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
 trigger a duplicate filing. Never copy or invent a second policy in the target repository.
 
@@ -36,7 +36,7 @@ the maintainer's declaration gate only where one of that verb's gates fails:
 > **the merge of that PR** — § 3a's `nen pr merge --release-unit`, or the maintainer's where it fell
 > back → the **post-merge tag** (§ 4) → the `CON-22` fan-out (§ 7)
 
-**"Post-merge" qualifies the tag, not the phase.** § 4 cuts at a commit reachable from `origin/main`,
+**"Post-merge" qualifies the tag, not the phase.** § 4 cuts at a commit reachable from `origin/<branch.base>`,
 which is exactly why the merge stands in the middle of that chain rather than before all of it.
 
 **This is a restatement, and it changes no mechanics.** Every section below stands exactly as it is
@@ -69,49 +69,81 @@ of them lives* once the lattice is the map.
 
 ## 1. Invocation
 
+**P1 — this run opens with `hatsu:ten getsuga`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
+missing prerequisites under its own name; the phases this run calls skip theirs).
+
 ```
-hatsu:getsuga <hash | branch-name | main | last-commit | checkout>
+hatsu:getsuga [<hash | branch-name | main | last-commit | checkout>]
 ```
 
 | Token | Resolves to |
 |---|---|
-| `main` | `origin/main`'s tip, re-fetched |
-| `last-commit` | the tip of `origin/main` — the same commit, named the way people say it |
+| *(none)* | **the configuration default**: `origin/<branch.base>`'s tip, re-fetched, `branch.base` read from `nen/workflow.json` — `main` here; plain `main` when the key or the file is absent |
+| `main` | `origin/<branch.base>`'s tip, re-fetched — the trunk the configuration names, whatever it is called (`main` itself here) |
+| `last-commit` | the tip of `origin/<branch.base>` — the same commit, named the way people say it |
 | `<hash>` | that commit |
 | `<branch-name>` | that branch's tip |
 | `checkout` | the current working copy's `HEAD` |
 
+**The cut point is never required** (maintainer's ruling of 2026-09-28, [`ROSTER.md`](../../../docs/ROSTER.md)
+§ Rulings of 2026-09-26/27/28, rulings 7 and 9). getsuga always *accepts* an override and never
+*asks* for one: with no token the run's **first line after the mode header** states the cut point and
+its source — `cut point: origin/develop (configuration default: nen/workflow.json branch.base =
+develop)` or `cut point: origin/main (no branch.base declared: main)` — and proceeds. `branch.base` is
+the same key breath fast-forwards and ao pulls from, so the default is the trunk the whole workflow
+already agrees on, **and the ancestry check below uses that same trunk** (`--trunk <branch.base>`). A
+typed token always overrides it.
+
+**A version-shaped token** (`v?\d+\.\d+\.\d+`; a missing `v` is normalised, `0.47.0` → `v0.47.0`)
+is checked **against the tags first**: `git rev-parse --verify -q refs/tags/<vX.Y.Z>` succeeding means
+the tag exists and the run is **refused — a tag is never re-cut**. Absent as a tag and resolving to no
+commit or branch, it is read as **the tag name to cut**, with the cut point defaulted as above, and the
+first line after the mode header says so: `tag: v0.47.0 (from the token) · cut point: origin/main
+(configuration default …)`. A tag name that disagrees with the version the manifest and changelog
+carry (`.claude-plugin/plugin.json` `version`, the top `CHANGELOG.md` section) **stops, naming both**
+— the maintainer reconciles, never the skill. Any other token that resolves to nothing is refused
+naming the five valid forms.
+
 **Reached as a [`futon`](../futon/SKILL.md) `then` step on an advance go** — the definition is
 [`mugetsu`](../mugetsu/SKILL.md) § 3's and is not restated here: the step's `@<target>` is the token
-above, `main` with none. Everything here is unchanged by it — the same preconditions, the
+above, the configuration default with none. Everything here is unchanged by it — the same preconditions, the
 release-proposal PR merged by § 3a or else standing at its declaration gate, the same fan-out, no
 publication of its own; a later step of the same chain is that skill's own run, never this one's.
 
-A missing argument or configuration item is asked for and set up inline (`missing-argument`,
-`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) —
-**the maintainer's word: never derived** for the cut point (row `missing-maintainer-choice`): a
-missing or unresolvable token is asked as **free text**, the five forms above listed for reference,
-none starred and none a picker option that performs the cut. A missing registry or declaration item is set up
-through its owner (`nen scaffold init`, or `nen/repos.json`'s own key).
+A missing argument or configuration item **other than the cut point** is asked for and set up inline
+(`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask,
+set up, continue*) — **the maintainer's word, never derived** (row `missing-maintainer-choice`)
+still holds for everything else here: a version the changelog and manifest do not settle, a go, a
+destination. The cut point alone is the configuration's, by ruling. A missing registry or
+declaration item is set up through its owner (`nen scaffold init`, or `nen/repos.json`'s own key).
 
 **Resolve, then test reachability — this is the load-bearing check**, and it is one verb now, not
 two hand-run `git` commands:
 
 ```bash
-nen release resolve-target --repo <path to the checkout> --token <token>
+git rev-parse --verify -q '<token>^{commit}' >/dev/null || <refuse: unresolvable, the five forms named>   # a hash or branch token only
+nen release resolve-target --repo <path to the checkout> --token <token> --trunk <branch.base>   # no token typed: --token main
 ```
 
-This re-fetches `origin/main` itself, then runs `git merge-base --is-ancestor <resolved>
-origin/main`, and refuses a dirty `checkout` outright (uncommitted work is not in any commit, so
-there is nothing to tag). Verified live against the real `<reference-repo>` (`docs/ab/getsuga.md`
+**The `rev-parse` runs first because `resolve-target`'s exit `1` conflates an unresolvable token with
+a resolved commit that is not an ancestor** — the two need different answers (a refusal naming the
+forms, versus § 6); a distinct exit code is a nen residue, filed as an issue. `--trunk <branch.base>`
+is required, not decoration: nen's `--trunk` defaults to `main`, so in a repository whose
+`branch.base` is `develop` the documented default was refused as *NOT an ancestor of the trunk*
+(`scripts/getsuga_default_cut_point_red.sh`, green since ruling 9). **With no token typed the token
+passed is the LITERAL `main`**: nen maps it to the re-fetched `origin/<trunk>` tip, whatever the
+trunk is called, whereas `--token <branch.base>` would resolve a possibly stale LOCAL ref — a typed
+token is passed through only as the explicit override it is. The verb re-fetches `origin/<trunk>`
+itself, runs `git merge-base --is-ancestor <resolved> origin/<trunk>`, and refuses a
+dirty `checkout` outright (uncommitted work is not in any commit, so there is nothing to tag). Verified live against the real `<reference-repo>` (`docs/ab/getsuga.md`
 § 2.1): `--token main` and `--token last-commit` both resolve to the freshly re-fetched
 `origin/main` tip and report `an ancestor of the trunk -- safe to cut`; a branch token pointing at a
 live `integration/*` branch reports `NOT an ancestor of the trunk -- it has to reach the trunk first
 before it can be tagged` — exit `1`, never a refusal to run.
 
 - **Exit `0`** → an ancestor. Proceed to § 2.
-- **Exit `1`** → not an ancestor. It has to reach `main` first (§ 6). **Do not refuse, and do not
-  tag it where it stands.**
+- **Exit `1`** → not an ancestor (the `rev-parse` above already excluded *unresolvable*). It has to
+  reach `<branch.base>` first (§ 6). **Do not refuse, and do not tag it where it stands.**
 
 **A dirty `checkout` is never the cut point.** Hand it to
 [`hatsu:tensho`](../tensho/SKILL.md), which is the verb for that, and resume once its PR lands.
@@ -392,8 +424,11 @@ with `nen tag cut`, which enforces reachability itself:
 
 ```bash
 nen tag cut --repo <path> --name <vX.Y.Z> --at <the release PR's merge SHA> \
-  [--message "<text>"] --push
+  --trunk <branch.base> [--message "<text>"] --push
 ```
+
+`--trunk <branch.base>` is required here for the same reason as in § 1: the verb's reachability check
+defaults to `main`, so on a repository whose trunk is `develop` the cut would refuse every commit.
 
 > ⚠️ **Pin the commit explicitly — never `HEAD`.** `--at` is required and never defaulted;
 > `nen tag cut --help` states this outright. "Cut from `main`" is not an instruction the verb can
@@ -405,10 +440,10 @@ nen tag cut --repo <path> --name <vX.Y.Z> --at <the release PR's merge SHA> \
 - **Cut the reconciled commit, not necessarily the tip.** Verify § 2 again at that exact SHA before
   cutting; if either the `changelog.d/` or `CON-33(c)` row fails there, the cut needs another
   collation lap.
-- **`--at` not an ancestor of `origin/main` → refused, never tagged off-trunk.** **The tag name
+- **`--at` not an ancestor of `origin/<branch.base>` → refused, never tagged off-trunk.** **The tag name
   already existing, locally or on origin → refused, never re-tagged.** Both verified live in a
   disposable scratch repo, never against `<reference-repo>` or `hatsu` (`docs/ab/getsuga.md` § 2.5):
-  cutting at an unreachable commit refuses with `is not an ancestor of origin/main ... Use 'nen
+  cutting at an unreachable commit refuses with `is not an ancestor of origin/<trunk> ... Use 'nen
   release resolve-target' first`; re-cutting an existing name refuses with `already exists locally
   -- never re-tagged`.
 - **The tag is created LOCALLY ONLY unless `--push` is passed — verified live**: without `--push`,
@@ -455,7 +490,7 @@ The maintainer's ruling: an unreachable target is **driven to `main` first**, no
    `v0.4.0`, so a gates file only there is refused exactly like one carrying none; `--gates
    "$hatsu_root/contracts/reference.gates.json"` (absolute — `$hatsu_root` SET IN THAT SAME SHELL by the
    explicit-input line `hatsu_root='<the absolute path § 0 printed>'`, the value
-   [`hatsu-warmup`](../hatsu-warmup/SKILL.md) § 0 prints already single-quoted with any `'` escaped, pasted
+   [`ten`](../ten/SKILL.md) § 0 prints already single-quoted with any `'` escaped, pasted
    quotes included, or by `pr-state` § 2's resolver; never a variable carried from another shell, never a
    raw path embedded in the command text, never `$CLAUDE_PLUGIN_ROOT` alone, which is Claude Code's) ONLY
    where the target is frozen
@@ -545,7 +580,7 @@ through nen and this section does not apply. `<reference-repo>` is machinery and
 
 ## 9. Hard limits
 
-- **Never tags a commit unreachable from `origin/main`** — `nen release resolve-target` and
+- **Never tags a commit unreachable from `origin/<branch.base>`** — `nen release resolve-target` and
   `nen tag cut`'s own `--at` check both enforce this; verified live in scratch, never against
   `<reference-repo>` or `hatsu`.
 - **Never tags past an open `critical`, an active `RELEASE_HOLD`, or an unreconciled `CON-33(c)`** —

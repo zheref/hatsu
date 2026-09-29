@@ -6,7 +6,7 @@ description: Take one open pull request from the moment it opens to verified rea
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
 `docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
-`hatsu-warmup` to read those files (re-resolve through that skill if unavailable). Relative links
+`ten` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
 trigger a duplicate filing. Never copy or invent a second policy in the target repository.
 
@@ -23,8 +23,10 @@ Transmuter), named out loud for that cycle and handed back afterwards.
 > Ready, ring once at its human gate — and stop after at most N acting cycles.**
 
 En is the last composite of the local plane and the only one that may need to **hold attention past
-the moment the PR was opened**. [`hatsu:mukai`](../mukai/SKILL.md) ends by starting this handoff; from
-there the PR and the still-active user turn belong to En until Sharingan proves it Ready, or a concrete
+the moment the PR was opened**. [`hatsu:mukai`](../mukai/SKILL.md) ends by offering this handoff — starting it itself only under
+`nen/workflow.json` → `mukai.autoEn` (ruling 2026-09-28); from
+there the PR belongs to En — and the still-active user turn only on the `autoEn` path, a typed start
+from the offer being its own turn — until Sharingan proves it Ready, or a concrete
 blocker/cap/terminal state/cancellation ends En's run. The merge itself is the maintainer's later act
 and is outside En. **This run does not harvest.** When En has completed, the regular pipeline's next
 phase is [`hatsu:third-hand`](../third-hand/SKILL.md) — a separate skill, started after this file's
@@ -43,12 +45,15 @@ anything. Third-Hand is not in that boundary.
 
 ## 1. Invocation
 
+**P1 — this run opens with `hatsu:ten en`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
+missing prerequisites under its own name; the phases this run calls skip theirs).
+
 ```
 hatsu:en [on <CODE>#<N>]
 ```
 
-Started by [`hatsu:mukai`](../mukai/SKILL.md) with no clause — the PR is the one step 8 just opened
-— or by the maintainer, naming a PR that is already open:
+Started by [`hatsu:mukai`](../mukai/SKILL.md) with no clause under `mukai.autoEn` — the PR is the one
+step 8 just opened — or by the maintainer, naming a PR that is already open (mukai's offer line):
 
 ```bash
 nen parse en --grammar "on [<ref>]" --line "<the invocation, minus the hatsu:en prefix>"
@@ -62,7 +67,7 @@ template.
 > **The empty line is refused, and that is why a composite does not parse at all.** Verified live:
 > `--line ""` exits `2` with *"the line must open with the literal 'on' — it is what introduces
 > `<ref>`"*. **An anchored optional clause requires its anchor**; "no clause" and "empty line" are
-> different inputs, and only the first parses. So `mukai` hands the PR over directly and **calls
+> different inputs, and only the first parses. So `mukai`, under `autoEn`, hands the PR over directly and **calls
 > `nen parse en` not at all** — echoing a parse of a line nobody typed would be theatre, and
 > feeding it `""` would produce a refusal that means nothing. The parse runs when, and only when,
 > the maintainer typed a clause.
@@ -187,7 +192,7 @@ Past the maximum the run ends at not-ready with the board. Neither is a G5. `nen
 
 | # | Step | The skill that owns it | When |
 |---|---|---|---|
-| 1 | **landing report** | [`hatsu:spiritual-message`](../spiritual-message/SKILL.md) `as landing` | once, at the start — 00–07 plus **08 PR body** and **09 Readiness**. If this En was started by mukai in the same sitting with no newer human request, **00** still answers that mukai request |
+| 1 | **landing report** | [`hatsu:spiritual-message`](../spiritual-message/SKILL.md) `as landing` | once, at the start — 00–07 plus **08 PR body** and **09 Readiness**. If this En was started by mukai (`autoEn`) or typed from its offer in the same sitting with no newer human request, **00** still answers that mukai request |
 | 2 | **drive** | [`hatsu:sharingan`](../sharingan/SKILL.md) | first blocking condition, threads, checks, the confirmation pass |
 | 3 | **catch up** | [`hatsu:murasaki`](../murasaki/SKILL.md) | **only when the branch is behind `branch.base`** |
 | 4 | **drive again** | [`hatsu:sharingan`](../sharingan/SKILL.md) | after step 3 moved the tree underneath it |
