@@ -261,3 +261,8 @@ no `xcrun notarytool` … Publishing is a human action through App Store Connect
    its failure usable as proof of reachability. Worth stating in the row's own detail text.
 5. **No missing verb for the publication itself.** Every deterministic step that is not in § 3 is a
    verb, exercised live above with its exit code.
+
+
+## 2026-09-29 — the first publication on an advance go
+
+Go: the maintainer's typed `hatsu:futon hatsu@bug then getsuga+mugetsu`, quoted on HA-PR-#130. Destination: the single declared one (`project.targets` is `{}`; the `plugin` lane's `release` row). Tag: `v0.55.0`, the one this run's getsuga cut, resolving on origin. Preflight at the tagged commit: every row ok except `FAIL tag does not already exist -- 'v0.55.0' already exists` (the inverted row, as § 4 says). `nen shu release --repo . --lane plugin --dry-run` → `would run: bash scripts/release-publish.sh --repo .`; the publisher's own dry run: `gh release create v0.55.0 --repo zheref/hatsu --verify-tag --latest`, notes 30444 bytes, 5 sections, 0 assets, latest yes. The bare line: `ran: bash scripts/release-publish.sh --repo . -- exit 0 in 4682ms`; `gh release view v0.55.0`: published 2026-09-29T18:32:09Z, not draft, not pre-release, latest. The record went to #130 as a comment carrying the go verbatim.

@@ -6,7 +6,7 @@
 | Hatsu #49 | Existing scope | Standing discovery protocol and real tool-repository metadata; no stage labels invented |
 | Nen #204 | Existing scope | Shared record extraction; independent review defects repaired inside this authorized implementation, not filed again |
 | [Nen #205](https://github.com/zheref/nen/issues/205) | Created | Four passes found no related issue; whole-body updates have no conditional write guarantee. Narrow dependency recorded, not implemented as part of #204 |
-| [Bankai #895](https://github.com/zheref/bankai-core/issues/895#issuecomment-5647669282) | Updated | Existing completion-boundary issue received material phase evidence and Rules 07/12/16 synchronization requirements; inspected body and comments; no open PR; no new duplicate |
+| RR-IS-#895 (the frozen reference implementation, private — unlinked) | Updated | Existing completion-boundary issue received material phase evidence and Rules 07/12/16 synchronization requirements; inspected body and comments; no open PR; no new duplicate |
 | KroApple migration | Pending filing / release | Four-pass search found only unrelated #481 in documentation lane; its body/comments inspected, no open PR. Consumer `nen/labels.json` and `nen/repos.json` are absent. Retain this sanitized record until owner metadata and compatible Nen release permit recovery |
 
 ## KroApple pending record
