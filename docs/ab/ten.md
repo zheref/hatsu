@@ -69,23 +69,31 @@ levels and four levels for a resolver before running it; Phinks and Nobunaga sho
 "four-level" case was three deep — the nested antigravity layout is now the four-level case. The walk is
 reported on its own stderr line (`resolved by walking up from …`), never under `passed over`.
 
-## 2026-09-28 — the tree wins (zheref/hatsu#67)
+## 2026-09-28 — the tree is named, never trusted by itself (zheref/hatsu#67)
 
 Cursor bound `/mukai` from `~/.claude/plugins/cache/hatsu/hatsu/0.14.0/…` while the checkout in front of
-it authored 0.25–0.30 (HA-PR-#64). `scripts/hatsu_root.sh` now compares the git toplevel's own manifest with
-the resolved candidate's and prints the checkout when it is newer, on stderr. Run live from this checkout
-(then at 0.52.0) against the installed 0.49.0 cache:
+it authored 0.25–0.30 (HA-PR-#64). The first cut of this effort let a newer checkout *replace* the
+resolved candidate; hanten withdrew it (Feitan, SEC-14: a directory naming itself `hatsu` at 999.0.0
+became the plugin root by being `cd`'d into, and ten § 4b then ran its scripts — reproduced with a
+synthetic tree). `scripts/hatsu_root.sh` now keeps the candidate and names the tree. Live from this
+checkout (0.53.0) with the installed 0.49.0 cache handed:
 
 ```text
 $ scripts/hatsu_root.sh /Users/zheref/.claude/plugins/cache/hatsu/hatsu/0.49.0
-hatsu_root.sh: the checkout in front of you (<this checkout>, version 0.52.0) is newer than the resolved root (/Users/zheref/.claude/plugins/cache/hatsu/hatsu/0.49.0, version 0.49.0): the tree wins (zheref/hatsu#67); the installed pin was passed over — export HATSU_PLUGIN_ROOT=<this checkout> to make it explicit
-<this checkout>
+hatsu_root.sh: the checkout in front of you (<this checkout>, version 0.53.0) is newer than the root the handed path resolved (/Users/zheref/.claude/plugins/cache/hatsu/hatsu/0.49.0, version 0.49.0) — the bound pin stays: this session's skill bodies came from it; read <this checkout>/claude/skills/<name>/SKILL.md for the tree's protocol, and export HATSU_PLUGIN_ROOT='<this checkout>' binds the tree from the next session (not on Claude Code, whose bodies are the installed pin's) (zheref/hatsu#67)
+/Users/zheref/.claude/plugins/cache/hatsu/hatsu/0.49.0
 exit=0
 ```
 
-The seven fixture cases (`scripts/hatsu_root_fixture_check.sh`, lane `root-guard`) cover newer/older/equal/
-pre-release, the kept export, self-resolution with no candidate, and a plain repository; every earlier case
-now runs from a neutral directory, because the checkout carrying the fixture would otherwise decide them all
-(the first run without that change failed exactly so: `root resolved to '<this checkout>'`). The body the
-surface inlined for the current slash-skill is the old pin's and is not rewritten mid-session — ten § 4's
-line names the out-versioned root, and the Hunter re-reads the tree.
+The fixture (`scripts/hatsu_root_fixture_check.sh`, lane `root-guard`) covers the named newer checkout
+with its deferral and quoted export, a handed skill directory's walk line, a stale `$CLAUDE_PLUGIN_ROOT`,
+an explicit export given as the root and as a skill directory, a 999.0.0 tree with no candidate (NOT
+INSTALLED, named), older and equal, four unorderable versions (`1.0.0-rc.1`, `0.53`, `1`, a twenty-digit
+field) with no shell noise, a path carrying a space and `;`, a newline-bearing toplevel beside a Hatsu
+sibling, git absent from PATH, and a plain repository; every case runs from a neutral directory under
+`/tmp` with git's ambient environment cleared (the first run without that failed exactly so: `root
+resolved to '<this checkout>'`). **The line exists from the first installed pin whose resolver carries
+it**: ten § 0 runs the bound pin's own `hatsu_root.sh`, so a 0.49.0 or 0.14.0 pin says nothing and
+`export HATSU_PLUGIN_ROOT='<checkout>'` is the only form there (three reviewers, 3/3 through § 0 as
+shipped). On Claude Code the bodies are always the installed pin's; on Cursor whether `.cursor/skills/`
+outranks the cache is unverified.

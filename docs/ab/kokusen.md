@@ -517,22 +517,32 @@ pinned `0.7.0`; the same pair was recorded at `v0.5.0` in [`rasengan.md`](raseng
 deciding what an absence means on a lane that declares a seat is the caller's, which is what
 `SKILL.md` § 3 now does explicitly.
 
-## 2026-09-28 — the injected trailer is caught at the tip (zheref/hatsu#66)
+## 2026-09-28 — the injected trailer is caught at the written commit (zheref/hatsu#66)
 
 HA-PR-#64's `4ee8ce3`, `c202034`, `516ed5f`, `75c8ce8`, `2025e84` and `06b45cf` carry
 `Co-authored-by: Cursor <cursoragent@cursor.com>` beside `Hatsu-Agent: kurapika`: Cursor appends it at
-`git commit` time, after `nen commit format` accepted the message and inside `nen commit write`'s own
-call, so layers (a) and (c) never see it. § 5 now reads the tip back after every `commit write`:
+`git commit` time, before hooks run — observed on the raw `git commit --file` path; whether it reaches a
+verb's child `git commit` is not verified here. § 5 reads the tip back after every `commit write`, and
+aka § 4 the squash commit before the push. The positive case, on this checkout's own history:
 
 ```text
-$ git log -1 --format='%(trailers:only)'
+$ git log -1 --format='%(trailers:only,unfold)' 4ee8ce3
+Hatsu-Agent: kurapika
+Co-authored-by: Cursor <cursoragent@cursor.com>
+```
+
+`Co-authored-by` is not in `commits.allowedAttributionTrailers` (`Hatsu-Agent`, `Akatsuki-Agent`), keys
+compared case-insensitively — the policy spells the forbidden key `Co-Authored-By`, the injected one
+`Co-authored-by`, and a literal compare would miss exactly this case (Chrollo, Nobunaga and Phinks, 3/3).
+So that commit is a stop with row `injected-attribution-trailer`'s default. The clean case, at 8a822c99:
+
+```text
+$ git log -1 --format='%(trailers:only,unfold)' 8a822c99
 Hatsu-Agent: kurapika
 ```
 
-against `commits.forbiddenTrailers`; a forbidden key is a stop — an unpublished tip is dropped with
-`git reset --soft HEAD~1` and re-committed once the switch is set, a published one is never rewritten.
 The off-switch is Cursor's own (Cursor Settings → Git & Pull Requests → *Commit Attribution*, or
 `attribution.attributeCommitsToAgent: false` in `~/.cursor/cli-config.json`), per Cursor's forum answer
-of 2026-08-21, which also notes a known gap on some non-IDE paths. **Not verified live: this host runs no
-Cursor**; the read-back is what catches the case whatever the switch does. Read on this checkout at
-8a822c99: the tip carries `Hatsu-Agent: kurapika` only.
+of 2026-08-21 — **forum-sourced, not verified live: this host runs no Cursor**, and a forum report says
+the SDK local executor ignores it (`docs/surfaces/cursor.md` § 10); the read-back is the guard whatever
+the switch does. The verb-side read-back is an owned dependency: zheref/nen#273.

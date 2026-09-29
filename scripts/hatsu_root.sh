@@ -3,22 +3,23 @@
 #
 #   scripts/hatsu_root.sh [--quoted] [<a candidate path the harness handed this invocation>]
 #
-# Three candidates, in order, the first that passes winning — and one rule above them:
+# Three candidates and no fourth, in order, the first that passes winning:
 #   1. $HATSU_PLUGIN_ROOT   — the form that works on all surfaces, and the one to prefer
 #   2. $1                   — the path this invocation was handed
 #   3. $CLAUDE_PLUGIN_ROOT  — Claude Code's own, kept last so one resolution serves every surface
 #
-# THE TREE WINS (zheref/hatsu#67). When the working tree this script runs in is ITSELF a Hatsu
-# checkout (the git toplevel of $PWD carries .claude-plugin/plugin.json naming hatsu), that checkout
-# is the plugin under development, and an installed copy the surface bound — Claude's versioned
-# cache at an older marketplace pin, handed as $1 or exported as $CLAUDE_PLUGIN_ROOT — must not
-# silently win: if the checkout's manifest version is NEWER than the resolved candidate's, the
-# checkout is printed instead and stderr says which pin was passed over; if it is older or equal, the
-# candidate stays and stderr says so; a version either manifest states in a form this script cannot
-# order (anything but MAJOR.MINOR.PATCH digits) leaves the candidate in place and is named. An
-# explicit $HATSU_PLUGIN_ROOT is the maintainer's word and is never overruled — the line then only
-# names the newer checkout. With no candidate at all, a Hatsu checkout in front of you resolves on
-# its own, so an authoring session on a surface with no registry needs no export.
+# THE TREE IS NAMED, NEVER TRUSTED BY ITSELF (zheref/hatsu#67). When the working tree this script
+# runs in is a Hatsu checkout (the git toplevel of $PWD carries .claude-plugin/plugin.json naming
+# hatsu) whose manifest version is NEWER than the resolved candidate's, the candidate STAYS — a
+# directory's own claim about itself is never what picks the root that later steps run scripts
+# from (a checkout naming itself `hatsu` at version 999.0.0 must not become the plugin root by
+# being cd'd into; Feitan, SEC-14) — and stderr says so: which pin this session bound, that the
+# skill bodies already inlined came from it, where to read the tree's protocol, and the quoted
+# `export HATSU_PLUGIN_ROOT='…'` that binds the tree from the next session (the maintainer's word,
+# candidate 1). With no candidate at all the answer stays NOT INSTALLED, the checkout named the same
+# way. An older, equal or unorderable version (anything but three dot-separated digit fields of at
+# most nine digits) is said and changes nothing. A git that is absent from PATH, or refuses the
+# directory, is said as "tree check not run".
 #
 # A candidate may be a SKILL DIRECTORY inside the plugin rather than the root (zheref/hatsu#105):
 # Claude Code prints `<root>/claude/skills/<name>` as a skill's base directory, and an installed
@@ -107,16 +108,24 @@ manifest_version() {
 }
 
 # semver_newer A B — exit 0 when A is strictly newer than B, 1 when older or equal, 2 when either is
-# not MAJOR.MINOR.PATCH digits (a pre-release or build suffix is not ordered here; refusal is the
-# safe direction, and the caller says so).
+# not exactly three dot-separated digit fields of at most nine digits (a pre-release or build suffix,
+# a one- or two-field version and an over-long field are not ordered here; refusal is the safe
+# direction, and the caller says so).
 semver_newer() {
-  case $1 in *[!0-9.]*|"") return 2 ;; esac; case $2 in *[!0-9.]*|"") return 2 ;; esac
+  for v in "$1" "$2"; do
+    case $v in *.*.*.*|*..*|.*|*.|"") return 2 ;; *.*.*) ;; *) return 2 ;; esac
+    case $v in *[!0-9.]*) return 2 ;; esac
+    f1=${v%%.*}; rest=${v#*.}; f2=${rest%%.*}; f3=${rest#*.}
+    for f in "$f1" "$f2" "$f3"; do case $f in ""|??????????*) return 2 ;; esac; done
+  done
   a1=${1%%.*}; r=${1#*.}; a2=${r%%.*}; a3=${r#*.}; b1=${2%%.*}; r=${2#*.}; b2=${r%%.*}; b3=${r#*.}
-  for f in "$a1" "$a2" "$a3" "$b1" "$b2" "$b3"; do case $f in ""|*.*) return 2 ;; esac; done
   [ "$a1" -gt "$b1" ] && return 0; [ "$a1" -lt "$b1" ] && return 1
   [ "$a2" -gt "$b2" ] && return 0; [ "$a2" -lt "$b2" ] && return 1
   [ "$a3" -gt "$b3" ]
 }
+
+# shell_quote S — S as a single-quoted shell literal, every ' written '\''.
+shell_quote() { printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"; }
 
 # is_hatsu ROOT — two independent facts: the MANIFEST'S OWN top-level name is `hatsu` (compared
 # WHOLE, so a plugin merely carrying the string anywhere is rejected), and a claude/skills/ directory
@@ -142,7 +151,7 @@ walk_up() {
   return 1
 }
 
-hatsu_root=""; rejected=""; unusable=""; walked=""
+hatsu_root=""; rejected=""; unusable=""; walked=""; won=""; slot=0
 nl="$(printf '\nx')"; nl="${nl%x}"
 # The winner is CANONICALISED — absolute, symlinks resolved — so a relative root can never reach a
 # --gates argument nen resolves against --repo. Four guards, and $hatsu_root is assigned only once
@@ -154,46 +163,46 @@ nl="$(printf '\nx')"; nl="${nl%x}"
 # through its TARGET); `-ef` proves the captured path IS the candidate's directory; and the
 # canonical path is checked for identity AGAIN, so what is printed is what passed is_hatsu.
 for cand in "${HATSU_PLUGIN_ROOT:-}" "${1:-}" "${CLAUDE_PLUGIN_ROOT:-}"; do
-  [ -n "$cand" ] || continue
+  slot=$((slot + 1)); [ -n "$cand" ] || continue
   case $cand in *"$nl"*) unusable="$unusable $(printf '%s' "$cand" | tr '\n' '?')"; continue ;; esac
   case $cand in -*) cand=./$cand ;; esac   # an option-looking relative candidate is a path, not a flag
   if ! found=$(walk_up "$cand"); then rejected="$rejected $cand"; continue; fi
   [ "$found" = "$cand" ] || walked="$walked $cand"
   cand=$found
   if r=$(CDPATH= cd -P "$cand" >/dev/null 2>&1 && pwd -P) \
-     && [ "$r/." -ef "$cand/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && is_hatsu "$r"; then hatsu_root=$r; break; fi
+     && [ "$r/." -ef "$cand/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && is_hatsu "$r"; then hatsu_root=$r; case $slot in 1) won='$HATSU_PLUGIN_ROOT' ;; 2) won='the handed path' ;; *) won='$CLAUDE_PLUGIN_ROOT' ;; esac; break; fi
   unusable="$unusable $cand"
 done
 
-# The tree wins (zheref/hatsu#67): the git toplevel of the working directory, when it is a Hatsu
-# checkout, is compared with what the candidates gave. An explicit export is never overruled.
-here=""
-if here=$(CDPATH= git rev-parse --show-toplevel 2>/dev/null) && [ -n "$here" ] \
-   && r=$(CDPATH= cd -P "$here" >/dev/null 2>&1 && pwd -P) && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && is_hatsu "$r"; then
-  here=$r
-else
-  here=""
+# The tree is named (zheref/hatsu#67): the git toplevel of the working directory, when it is a Hatsu
+# checkout, is compared with what the candidates gave — and NEVER replaces them. The toplevel is
+# captured with a sentinel so a trailing newline survives the substitution, refused when it carries
+# one, canonicalised, proved identical (-ef) and checked for identity, as every candidate is.
+here=""; tree_note=""
+if ! command -v git >/dev/null 2>&1; then
+  tree_note='hatsu_root.sh: tree check not run — git is not on PATH (zheref/hatsu#67)'
+elif top=$(CDPATH= git rev-parse --show-toplevel 2>/dev/null && printf x); then
+  top=${top%x}; top=${top%"$nl"}
+  case $top in *"$nl"*) tree_note='hatsu_root.sh: tree check not run — the working tree'"'"'s toplevel carries a newline (zheref/hatsu#67)' ;;
+  *) if [ -n "$top" ] && r=$(CDPATH= cd -P "$top" >/dev/null 2>&1 && pwd -P) && [ "$r/." -ef "$top/." ] \
+        && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && is_hatsu "$r"; then here=$r; fi ;;
+  esac
 fi
 if [ -n "$here" ]; then
+  export_line="export HATSU_PLUGIN_ROOT=$(shell_quote "$here")"
   if [ -z "$hatsu_root" ]; then
-    hatsu_root=$here
-    printf 'hatsu_root.sh: no candidate resolved; the checkout in front of you is a Hatsu checkout and wins (zheref/hatsu#67): %s\n' "$here" >&2
+    tree_note="hatsu_root.sh: no candidate resolved; the checkout in front of you ($here) is a Hatsu checkout but a tree never binds itself — $export_line to bind it, then run the warm-up again (zheref/hatsu#67)"
   elif [ "$here/." -ef "$hatsu_root/." ]; then
     :
   else
     vh=$(manifest_version "$here/.claude-plugin/plugin.json"); vr=$(manifest_version "$hatsu_root/.claude-plugin/plugin.json")
     semver_newer "$vh" "$vr"; cmp=$?
     if [ "$cmp" -eq 2 ]; then
-      printf 'hatsu_root.sh: the checkout in front of you (%s, version %s) and the resolved root (%s, version %s) cannot be ordered — the resolved root stays; export HATSU_PLUGIN_ROOT to choose (zheref/hatsu#67)\n' "$here" "${vh:-unreadable}" "$hatsu_root" "${vr:-unreadable}" >&2
+      tree_note="hatsu_root.sh: the checkout in front of you ($here, version ${vh:-unreadable}) and the root $won resolved ($hatsu_root, version ${vr:-unreadable}) cannot be ordered — the resolved root stays; $export_line binds the tree (zheref/hatsu#67)"
     elif [ "$cmp" -eq 0 ]; then
-      if [ -n "${HATSU_PLUGIN_ROOT:-}" ] && [ "$hatsu_root/." -ef "$HATSU_PLUGIN_ROOT/." ]; then
-        printf 'hatsu_root.sh: the checkout in front of you (%s, version %s) is newer than $HATSU_PLUGIN_ROOT (%s, version %s); the export is your word and stays (zheref/hatsu#67)\n' "$here" "$vh" "$hatsu_root" "$vr" >&2
-      else
-        printf 'hatsu_root.sh: the checkout in front of you (%s, version %s) is newer than the resolved root (%s, version %s): the tree wins (zheref/hatsu#67); the installed pin was passed over — export HATSU_PLUGIN_ROOT=%s to make it explicit\n' "$here" "$vh" "$hatsu_root" "$vr" "$here" >&2
-        hatsu_root=$here
-      fi
+      tree_note="hatsu_root.sh: the checkout in front of you ($here, version $vh) is newer than the root $won resolved ($hatsu_root, version $vr) — the bound pin stays: this session's skill bodies came from it; read $here/claude/skills/<name>/SKILL.md for the tree's protocol, and $export_line binds the tree from the next session (not on Claude Code, whose bodies are the installed pin's) (zheref/hatsu#67)"
     else
-      printf 'hatsu_root.sh: the checkout in front of you (%s, version %s) is not newer than the resolved root (%s, version %s); the resolved root stays (zheref/hatsu#67)\n' "$here" "$vh" "$hatsu_root" "$vr" >&2
+      tree_note="hatsu_root.sh: the checkout in front of you ($here, version $vh) is not newer than the root $won resolved ($hatsu_root, version $vr); the resolved root stays (zheref/hatsu#67)"
     fi
   fi
 fi
@@ -202,6 +211,8 @@ fi
   "${rejected:+ rejected (not a Hatsu checkout, nor inside one within four levels):$rejected.}" \
   "${unusable:+ unusable (path cannot be handed on as one line):$unusable.}" >&2
 [ -z "$walked" ] || printf 'hatsu_root.sh: resolved by walking up from%s%s\n' "$walked" "${hatsu_root:+ → $hatsu_root}" >&2
+
+[ -z "$tree_note" ] || printf '%s\n' "$tree_note" >&2
 
 if [ -z "$hatsu_root" ]; then
   printf '%s %s%s%s\n' \

@@ -128,22 +128,21 @@ clean list **plus every flagged path that got an explicit yes**, and nothing els
 makes the commit: it validates the file as `commit format` does, refuses a red proof and an empty
 index, and reports `{sha, subject, trailers}`.
 
-**Then read the tip back** — `git log -1 --format='%(trailers:only)'` (§ 6 residue) against
-`commits.forbiddenTrailers`: **a harness can inject a trailer at `git commit` time, after `commit
-format` accepted the message and inside `commit write`'s own call** — Cursor's `Co-authored-by:
-Cursor <cursoragent@cursor.com>` is the known case (zheref/hatsu#66; WORKFLOW § `commits` names its
-off-switch, which is Cursor's own and is set **before the first commit**; Claude Code's
-`includeCoAuthoredBy` covers Claude Code only). A forbidden key on the tip is a **stop, said in the
-turn**: that commit is not a tip this branch publishes — unpublished, it is dropped with
-`git reset --soft HEAD~1` (the index kept; unpublished history is the branch's own, what `aka`
-squashes anyway), the off-switch is set, and this step is re-run; **published, it is never amended
-or rewritten** — it stays, named in the PR ledger, and the switch is fixed before the next commit.
-Never `--no-verify`. A repository carrying layer (b) refuses it before it lands.
+**Then read the tip back** — `git log -1 --format='%(trailers:only,unfold)'` (§ 6 residue): a
+harness can append a trailer at `git commit` time, after `commit format` accepted the message —
+Cursor's `Co-authored-by: Cursor <…>` (zheref/hatsu#66). **Any trailer key outside
+`commits.allowedAttributionTrailers`, compared case-insensitively as nen's layer (c) does, is a stop
+with a default** (`nen/decisions.json` row `injected-attribution-trailer`): the tip just written is
+unpublished by construction, so **drop it with `git reset --soft
+HEAD~1`** — never an earlier commit, never an amend — and raise the off-switch as a
+`missing-configuration` ask ([WORKFLOW](../../../docs/WORKFLOW.md) § `commits` names Cursor's; no
+skill writes a harness file); then re-run. `aka` § 4 reads its squash commit back before the push. Never `--no-verify`.
 
 ## 6. Residue
 
-The explicit per-path `git add` is the one raw call ([PROCESS.md](../../../docs/PROCESS.md)
-§ Residue and owned dependencies). Of WORKFLOW § `commits`'s three enforcement layers the
+The explicit per-path `git add`, the tip read-back and its `git reset --soft HEAD~1` are the raw
+calls ([PROCESS.md](../../../docs/PROCESS.md) § Residue and owned dependencies; the read-back is
+owned, [nen#273](https://github.com/zheref/nen/issues/273)). Of WORKFLOW § `commits`'s three enforcement layers the
 `commit-msg` hook exists only in a repository `nen scaffold init` stood up, so **say which layers
 the repository in front of you actually has**. **Whether two changes are one coherent commit is
 judgment.** **Reusable focused selection is an owned dependency**
@@ -155,8 +154,8 @@ owned dependency, never a full-suite substitution.**
 ## 7. Authority
 
 - **Permitted:** run the lane's declared `iteration.checks` over the working copy; run the declared
-  scoped test lanes; stage named paths; write one local commit per coherent step; say what it
-  contains.
+  scoped test lanes; stage named paths; write one local commit per coherent step; drop **the tip this
+  step just wrote** on an injected attribution key (§ 5; never an earlier commit); say what it contains.
 - **Not permitted:** **any push** (that is `/aka`, human-called), any PR, label, merge, force,
   `--no-verify`, any amend of a published commit, any commit on the trunk — and **no edit to the tree
   it is committing**: a red check goes back to [`rasengan`](../rasengan/SKILL.md), never fixed here.
