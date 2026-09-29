@@ -210,9 +210,16 @@ has never once run.
 
 **nen ships no built-in colour table and no fallback, deliberately**: a binary that guessed the names
 would report a taxonomy the repository does not have. So `nen scaffold init` does not write one
-either, and a repository without the file has a permanently red `nen schema check` and a
-`nen color status` that cannot run at all — which is exactly what `zheref/hatsu` itself lived with
-until [`#79`](https://github.com/zheref/hatsu/issues/79).
+either. A repository without the file still has a `nen color status` that cannot run at all — which
+is exactly what `zheref/hatsu` itself lived with until
+[`#79`](https://github.com/zheref/hatsu/issues/79).
+
+**It no longer reds the aggregate, and that changed under this file.** Through nen `0.10.x` an
+absent `nen/colors.yml` failed `nen schema check` outright; **since nen `0.11.0` it is an `ok` row
+reading `absent (optional)`** — the verbs that resolve a colour refuse by name when asked, and the
+aggregate no longer fails a repository that never adopted the file. So the file is a seed worth
+placing, not a precondition for a readable taxonomy, and § 4a's table reports that row as `ok`
+rather than as a failure.
 
 **The vocabulary `templates/colors.yml` carries is not invented and is not nen's**: it is transcribed
 from the skills that already resolve it — [`backlog-state`](../backlog-state/SKILL.md) § 6's five
