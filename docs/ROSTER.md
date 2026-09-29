@@ -264,7 +264,7 @@ admitted exactly one key, at a moment when only one plane existed to write it. T
 maintainer's words are the rule:
 
 > A commit carries `Akatsuki-Agent: <persona>` **only** when an Akatsuki roster agent — the autonomous CI
-> plane, `zheref/akatsuki-ai` — made it. A commit made by Hatsu's local roster (Kurapika and the
+> plane, `<ci-plane-repo>` — made it. A commit made by Hatsu's local roster (Kurapika and the
 > independents, on the maintainer's own credentials) carries `Hatsu-Agent: <persona>`. Both are the
 > **system's own provenance**, never an AI-authorship claim; **no other AI attribution trailer is ever
 > recorded**. Existing commits are not rewritten.
@@ -480,8 +480,10 @@ moved.
 
 - **G4 (`CON-7`) is authoring or maintaining a canon repository.** Which repositories are the canon is
   **read, never remembered**: `nen repo classify --target <owner/name>` → `role: canon`, from
-  `nen/repos.json`'s `maintained_tools` (§ *Rulings of 2026-09-26/27/28*: `zheref/bankai-core` is no
-  longer canon for Hatsu; the list this bullet carried is history). Their product *is* the process — prose,
+  `nen/repos.json`'s `maintained_tools` (§ *Rulings of 2026-09-26/27/28*, ruling 6: the frozen
+  `<reference-repo>` is no longer canon for Hatsu — the handbooks it carried live in the public
+  `zheref/bankai-handbooks` since 2026-09-28, registered here under `maintained_tools` and pinned at
+  `v0.6.0`; the list this bullet carried is history). Their product *is* the process — prose,
   scripts and deterministic jobs together — and what they say governs how every other repository
   behaves. A change there changes the process itself, so it is the maintainer's.
 - **G2 (`CON-5`) is everything else *on this axis*** — including a consumer repository declaring its
@@ -585,26 +587,27 @@ repository says which gate it stands at, and the two are independent.
 
 #### Two identifications this ruling forced, and the question it left open — now closed
 
-**`zheref/bankai-core`, not `zheref/bankai`.** The ruling was spoken as *"bankai"*, and the canon it
-means is at **`zheref/bankai-core`** (private) — the checkout carrying `CONSTITUTION.md`, `agents/`,
+**`<reference-repo>`, not `zheref/bankai`.** The ruling was spoken as *"bankai"*, and the canon it
+means is at **`<reference-repo>`** (private — the frozen reference implementation, named in full in the
+ruling and redacted here per `docs/PUBLIC-REDACTION.md`) — the checkout carrying `CONSTITUTION.md`, `agents/`,
 `claude/` and `.claude-plugin/`. **`zheref/bankai` resolves on GitHub to `zheref/Bankai`**, a public
 **Swift product repository** last pushed in 2025, which is a *consumer*. The two are one keystroke
 apart and the gate is now decided by which one you named, so the long name is written out everywhere
 and the short one is never used for the canon.
 
-**`zheref/akatsuki-ai` and `zheref/bankai-scaffold` were added on 2026-09-19 — the tension this
+**`<ci-plane-repo>` and `<scaffold-repo>` were added on 2026-09-19 — the tension this
 section recorded is closed.** The first draft of this ruling named three repositories, and this
 paragraph flagged that the one-question test answered *yes* for the CI plane while the enumeration
 answered *no*. **The maintainer resolved it by ruling the test right and the list short**: both
 repositories are canon.
 
-- **`zheref/akatsuki-ai`** — the autonomous CI plane. Its own description is *"canon + agent
+- **`<ci-plane-repo>`** — the autonomous CI plane. Its own description is *"canon + agent
   workflows + Ninjutsu CI CLI"*, and it carries `CONSTITUTION.md`, `agents/`, `canon/` and
   `bootstrap/`. Its workflows run against other repositories, so a merge there changes what they do.
   **The trailer rule is untouched by this**: `Akatsuki-Agent:` is still written only by an Akatsuki
   roster agent, and a Hatsu persona still refuses it. Being canon is about which gate a change to it
   stands at, not about who may sign a commit.
-- **`zheref/bankai-scaffold`** — and this one *sharpens* the rule rather than just extending it. It
+- **`<scaffold-repo>`** — and this one *sharpens* the rule rather than just extending it. It
   carries **no constitution prose at all**: it is a TypeScript package (`source/`, `scripts/`,
   `package.json`). It is canon because **a scaffolder writes the setup into every repository it
   touches**, so merging a change there changes what other repositories do — which is the test,
@@ -613,7 +616,7 @@ repositories are canon.
 
 **So canon is not "the repositories that carry a constitution".** It is the repositories whose
 product is the process, whether they express it as prose, as scripts, or as a deterministic job.
-`zheref/bankai-scaffold` is the case that makes the difference legible.
+`<scaffold-repo>` is the case that makes the difference legible.
 
 ---
 
@@ -644,7 +647,7 @@ always linked and never an option, the star on the recommended decision, at leas
 options seeded by the row's `preferred[]`, a proposed process issue on every real stop);
 `nen stop --mark --title --body --report-url --options --propose-issue` writes the marker the bell reads
 (`nen.stop.mark/v0.2`) and `hooks/stop-bell.sh` carries the ask and the link into the notification, honours
-`HATSU_ATTENTION=off`, and ports the Linux and Windows rungs from bankai-core (untested until a host runs
+`HATSU_ATTENTION=off`, and ports the Linux and Windows rungs from `<reference-repo>` (untested until a host runs
 them); `contracts/permissions.json` is the one source `scripts/permissions_pack.sh` renders into
 `.claude/settings.local.json`, `.codex/config.toml` + `.codex/hooks.json`, `.cursor/cli.json` +
 `.cursor/hooks.json`, placed by the warm-up and by `hatsu:tenkai` after `apply`; the reviewer round cap is one key,
@@ -924,11 +927,14 @@ amended by this one, and says so in place.
    --release-unit`, five gates, `merged:` line) and the advance-go gate (`nen parse futon`'s `gate`,
    `futon.advanceGo`, nen's built-in default where none is declared from nen v0.15.1).
    No prose joins classify to parse or names the unit's paths.
-6. **bankai-core is no longer canon for Hatsu** (2026-09-27): *"We are no longer relying on that
+6. **`<reference-repo>` is no longer canon for Hatsu** (2026-09-27): *"We are no longer relying on that
    process here. This is Hatsu-based with nen and Akatsuki AI."* Which repositories are canon is read
    from `nen repo classify`'s `role`, never from a list in prose; no Hatsu ruling waits on another
-   repository's constitution. Earlier sections that list `zheref/bankai-core` among the canon are
-   history, amended here.
+   repository's constitution. Earlier sections that list `<reference-repo>` among the canon are
+   history, amended here. *Note (2026-09-28, a record, not a ruling):* the handbooks, constitution and
+   shared agent conventions that repository carried were migrated into the public
+   `zheref/bankai-handbooks` (`CON-13` as rewritten there); Hatsu registers it under `maintained_tools`
+   — so `nen repo classify` reads it as `role: canon` — and pins the tag its resolvers read (`v0.6.0`).
 7. **getsuga's cut point is the configuration's; `ten` catches up the phase's prerequisites**
    (2026-09-28): *"Let's have getsuga ALWAYS default to `main` unless specified differently from the
    one of the configuration files we already use … Getsuga can always expect an override to target
