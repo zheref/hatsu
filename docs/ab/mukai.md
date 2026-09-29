@@ -239,4 +239,4 @@ only because the script's own confirmation would block a non-interactive tool, n
 authority, and the run says so before the call; the portable grant is the consumer's tracked
 `.claude/settings.json` allow row (`Bash(ci_scripts/pr_screenshots.sh:*)` on KroApple), never Hatsu's pack
 (which carries Hatsu's verbs only) and never a per-machine file; where the consumer has not declared it, the
-stop is expected and named in step 6's line, not a G5. Not re-run against KroApple here.
+stop is expected and named in shibari § 5's handover line (step 8 — the disclosure publish is shibari's; step 6 publishes the proved Git tree), not a G5. Not re-run against KroApple here.

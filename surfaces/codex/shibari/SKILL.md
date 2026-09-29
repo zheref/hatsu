@@ -140,7 +140,9 @@ threads***: the maintainer's token, Copilot through `--add-bots <node id>`, and 
 the mutation's own response, never from the ids sent**.
 
 **Then one line, and stop**: the notation, the base, the gate **forecast**, whether the three checks
-passed, the evidence mechanism, who was requested, and — from `mukai` — its offer of [`en`](../en/SKILL.md) on the PR
+passed, the evidence mechanism — and, where the harness classifier stopped its publish step, the field
+`permission stop: expected — <consumer> declares no allow row for <script>` naming the missing grant
+(§ 1; zheref/hatsu#101), never a G5 — who was requested, and — from `mukai` — its offer of [`en`](../en/SKILL.md) on the PR
 (En has it already only under `mukai.autoEn`). **No `nen stop` banner** — opening a PR is not a gate event, and
 `en`'s own [`jutaisho`](../jutaisho/SKILL.md) step rings at Ready.
 

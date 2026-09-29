@@ -9,8 +9,9 @@ when it was not:
 - **zheref/nen#247** (`fix(contract): declare the release row instead of a seat`, opened by a delegated
   Opus subagent whose brief said "stop when macOS, Linux and compile are green") was relayed as "ready for
   you to merge (G4)". Read afterwards, `nen pr ready 247 --gh-repo zheref/nen --explain` answered
-  **not-ready** with two unresolved Copilot threads (`src/dev/release-publish.ts:117` and `:102`), posted at
-  03:21Z — after the subagent had already stopped.
+  **not-ready** (the incident-era verb short-circuited at its first failing row, so which row it quoted is
+  not on record — the nen half below); separately, the PR carried two unresolved Copilot threads
+  (`src/dev/release-publish.ts:117` and `:102`), posted at 03:21Z — after the subagent had already stopped.
 
 Canon already said a readiness claim is `nen pr ready`'s verdict, quoted, or it is not made
 (`pr-state`, `en` § 4, `sharingan` § 4). Both PRs simply never entered the path that enforces it: a release
