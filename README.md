@@ -5,7 +5,7 @@ authored for [Claude Code](#on-claude-code), and read on [Codex](#using-hatsu-on
 [Cursor](#using-hatsu-on-cursor) from generated mirrors of the same files.**
 
 One lead persona — **Kurapika**, who names which of six declared work-modes he is holding before he acts —
-plus a small roster of focused independents, and **forty-four skills** that take a backlog, a pull request or
+plus a small roster of focused independents, and **forty-five skills** that take a backlog, a pull request or
 a release from where it is to the human gate where a person decides. **Every deterministic step that has a
 verb is a verb** from the [**Nen**](https://github.com/zheref/nen) CLI: Nen detects, computes, formats and
 verifies; the skill supplies only the judgment a binary cannot. Where no verb exists yet, the residue is
@@ -235,7 +235,7 @@ That warm-up refreshes the complete surface every session. What it places in **y
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **45**, the forty-four plus `ten` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
+| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **46**, the forty-five plus `ten` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
 | `<repo>/AGENTS.override.md` | **untracked**, written whole: your own `AGENTS.md` verbatim first, then the personas between a `BEGIN`/`END hatsu personas` marker pair |
 
 **Copies, not symlinks, and the reason is what Codex advertises.** Codex lists a skill under its
@@ -313,7 +313,7 @@ The warm-up refreshes the complete Cursor surface every session:
 
 | | |
 |---|---|
-| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **45**, the forty-four plus `ten` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
+| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **46**, the forty-five plus `ten` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
 | `<repo>/.cursor/agents/<persona>.md` | one markdown subagent file each — **12**, eleven personas plus the preamble include — symlinked from `$HATSU_PLUGIN_ROOT/surfaces/cursor/agents/` |
 
 **Symlinks are honest here, and that is measured rather than assumed.** Four controlled probes on
@@ -368,7 +368,7 @@ ln -s "$HATSU_PLUGIN_ROOT/surfaces/antigravity" ~/.gemini/config/plugins/hatsu
 
 The mirror follows the layout the Antigravity plugins page documents ([`docs/surfaces/antigravity.md`](docs/surfaces/antigravity.md) § 1; the CLI reader is a named gap in its § 10):
 - `plugin.json` — Antigravity plugin manifest
-- 45 skills (forty-four plus `ten`), each at `skills/<name>/SKILL.md`, invoked as `/<name>`
+- 46 skills (forty-five plus `ten`), each at `skills/<name>/SKILL.md`, invoked as `/<name>`
 - `rules/hatsu.md` — the identity rules file, under Antigravity's 12,000-character limit
 - `agents/<persona>.md` — eleven personas plus the preamble include
 - `hooks.json` — native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) lifecycle hooks
@@ -387,7 +387,7 @@ Open Antigravity in that repository and run `/ten`. The warm-up performs `--inst
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | **45** mirrored skill directories — the forty-four plus `ten` itself — copied from `surfaces/antigravity/skills/<name>/` |
+| `<repo>/.agents/skills/<name>/` | **46** mirrored skill directories — the forty-five plus `ten` itself — copied from `surfaces/antigravity/skills/<name>/` |
 | `<repo>/.agents/agents/<persona>.md` | eleven personas plus the preamble include, copied from `surfaces/antigravity/agents/` |
 | `<repo>/.agents/rules/hatsu.md` | The identity rules file, under the 12,000-character limit a rules file has |
 | `<repo>/.agents/hooks.json` | Native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) hooks |
@@ -583,11 +583,12 @@ FAIL by pointer — and [`docs/WORKFLOW.md`](docs/WORKFLOW.md) documents both.
 
 ### The range
 
-*Current pin, echoed for convenience:* **`nen >= 0.15`**, with the bootstrap installing **`v0.16.0`**.
-Those are two values and they move independently. Hatsu adopts the futon label selector, `then` skill
-chains and advance-go gate, the `library` kind, `nen release unit-check` and `nen pr merge --release-unit`,
-introduced in v0.15.0 and made fail-closed in v0.15.1; this feature requirement raises its minimum even though Nen's compatibility floor
-remains 0.7. The live skill surface is **forty-four**, forty-five
+*Current pin, echoed for convenience:* **`nen >= 0.16`**, with the bootstrap installing **`v0.16.0`**.
+Those are two values and they move independently. Hatsu adopts `nen canon pin` and `nen canon mirror
+generate|check --surfaces`, introduced in v0.16.0 and executed by `hatsu:limbo`, on top of the futon label
+selector, `then` skill chains and advance-go gate, the `library` kind, `nen release unit-check` and
+`nen pr merge --release-unit` (v0.15.0, fail-closed in v0.15.1); each feature requirement raised the minimum
+even though Nen's compatibility floor remains 0.7. The live skill surface is **forty-five**, forty-six
 directories per surface with `ten`.
 
 **The range is nen's answer, not this README's arithmetic — and not the warm-up's either.** The binary
@@ -760,10 +761,10 @@ later. Adopting another remains a deliberate act with its own decision.
 
 ## The skills
 
-Forty-four, invoked as `hatsu:<name>` (forty-five directories with `ten`). Longer descriptions in
+Forty-five, invoked as `hatsu:<name>` (forty-six directories with `ten`). Longer descriptions in
 [`claude/skills/README.md`](claude/skills/README.md).
 
-### The nineteen that answer a request
+### The twenty that answer a request
 
 | Skill | |
 |---|---|
@@ -785,6 +786,7 @@ Forty-four, invoked as `hatsu:<name>` (forty-five directories with `ten`). Longe
 | `senkei` | Inventories a consuming product repo's own backlog and states a Ready/not-Ready call for every open PR. **It writes as well as reads**: it re-runs failed checks (`nen run rerun-failed`) and fires `bankai:wake/iterate` on a stalled PR. Never merges. |
 | `sharingan` | Drives one open PR to readiness at its gate and stops there — first blocking condition, threads, wakes. **Renamed from `drive` at `v0.5.0`**; the behaviour is unchanged and `hatsu:drive` no longer resolves. |
 | `tenkai` | **Consumer adoption.** Turns another repository into a Hatsu consumer: the declarations it is missing, the `readiness` workflow, the permission pack and the surface mirrors, each staged as its own PR at that repository's own gate. Read-only until you say apply. |
+| `limbo` | **Consumer canon mirror.** `hatsu:limbo [for <path>] [to <tag>] [as check\|sync]` keeps a consumer's mirror of [`zheref/bankai-handbooks`](https://github.com/zheref/bankai-handbooks) current on every agent surface its `.claude/canon-values.yml` declares (`CON-13`): reads the recorded pin, checks the canon out at that tag, classifies every surface's committed copy (`nen canon mirror check`), regenerates on your answer (`nen canon mirror generate`) and lands the mirror as one PR at that repository's own gate. A pin behind the canon is reported, never moved without your typed `to <tag>`; a hand-edited mirror file stops the run before any write. Never writes canon, never merges. |
 | `tensho` | Turns a dirty working copy into one PR, reviewing every file before staging it, then hands that PR to `sharingan`'s engine to reach its gate. |
 
 ### The one that authors the canon
@@ -986,7 +988,7 @@ run on each.
 
 **Everything above about the loop, the gates and the roster is true here.** What changes is the spelling,
 where a delegate comes from, who rings the bell, and which aliases the model matrix answers with. Nothing
-in this section is product- or stack-specific: it is the same forty-four skills reading your
+in this section is product- or stack-specific: it is the same forty-five skills reading your
 repository's own [`nen/contract.json`](nen/contract.json).
 
 ### Invoking a skill
@@ -1281,8 +1283,8 @@ cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
    keep the tail, and a thirty-character description would be worse everywhere and no better here. What
    follows instead is that **on Cursor the skill `name` does almost all of the routing work.**
 2. **The name space is flat, global and shared.** It is not only your repository's `.cursor/skills/`: on
-   this host one listing carried the forty-five mirrored skills **plus** Cursor's own built-ins **plus**
-   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims forty-five ordinary
+   this host one listing carried the forty-six mirrored skills **plus** Cursor's own built-ins **plus**
+   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims forty-six ordinary
    words at once — `build`, `file`, `en`, `ao`, `ren`, `breath`. **The shadowing itself is inferred, not
    proven, and is written here as such**: two probes tried to confirm it and could not, because the
    descriptions this surface keeps are far too short to tell two rival `build` entries apart. It is a
