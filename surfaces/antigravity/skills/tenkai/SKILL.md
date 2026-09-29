@@ -211,9 +211,16 @@ has never once run.
 
 **nen ships no built-in colour table and no fallback, deliberately**: a binary that guessed the names
 would report a taxonomy the repository does not have. So `nen scaffold init` does not write one
-either, and a repository without the file has a permanently red `nen schema check` and a
-`nen color status` that cannot run at all — which is exactly what `zheref/hatsu` itself lived with
-until [`#79`](https://github.com/zheref/hatsu/issues/79).
+either. A repository without the file still has a `nen color status` that cannot run at all — which
+is exactly what `zheref/hatsu` itself lived with until
+[`#79`](https://github.com/zheref/hatsu/issues/79).
+
+**It no longer reds the aggregate, and that changed under this file.** Through nen `0.10.x` an
+absent `nen/colors.yml` failed `nen schema check` outright; **since nen `0.11.0` it is an `ok` row
+reading `absent (optional)`** — the verbs that resolve a colour refuse by name when asked, and the
+aggregate no longer fails a repository that never adopted the file. So the file is a seed worth
+placing, not a precondition for a readable taxonomy, and § 4a's table reports that row as `ok`
+rather than as a failure.
 
 **The vocabulary `templates/colors.yml` carries is not invented and is not nen's**: it is transcribed
 from the skills that already resolve it — [`backlog-state`](../backlog-state/SKILL.md) § 6's five
@@ -226,6 +233,71 @@ block, the item is `satisfied` — **the engine never compares it byte-for-byte 
 so a repository that tuned its own families keeps them across every later re-run. **Never widen a
 taxonomy on a consumer's behalf**: a colour family they did not ask for is canon authored inside an
 adoption run.
+
+---
+
+## 4a. A repository with no lane — where § 3's routing has nowhere to route
+
+**§ 3 routes all five `nen/` files to `nen scaffold init`. That routing has no destination in a
+repository with no code lane** — a canon, handbook or documentation repository whose product is
+prose. `nen scaffold init` refuses outright:
+
+```
+nen scaffold: --accept-detected has nothing to accept: no lane was detected under <path>.
+Nen proposes a lane only from a marker it can see, so state the stack with --stack <id> instead.
+```
+
+and `--stack <id>` is no answer either, because there is no stack to state. **Nen never guesses a
+stack**, which is correct and is exactly why the repair cannot be routed. In such a repository the
+taxonomy is hand-authored — modelled on a sibling that already carries it, never invented — and the
+item is `routed` to the maintainer rather than to a verb.
+
+**What the bare repository's `nen schema check` actually says**, so the minimum set is not guessed:
+
+| Row | Verdict on a repository carrying no `nen/` |
+|---|---|
+| `nen/labels.json` | **FAIL** — the aggregate refuses; nen has no built-in copy to fall back on |
+| `nen/repos.json` | **FAIL** — same |
+| `nen/gates.json` | `warn` — but `nen pr ready` cannot judge the repository without it |
+| `nen/contract.json`, `nen/workflow.json`, `nen/decisions.json`, `nen/colors.yml` | `ok` — absent, optional, or defaults apply |
+
+So the floor is `labels.json` + `repos.json` to make the taxonomy readable at all, and `gates.json`
+before any readiness verdict means anything.
+
+### Three shapes that are `drift` rather than `missing`
+
+Each of these parses, validates, and is quietly wrong — the state § 3 says the whole skill is for.
+
+- **`latest` is a TOP-LEVEL key of `nen/repos.json`.** Placed inside a `maintained_tools` entry it
+  still validates, and `nen schema check` reports `latest (unrecorded)` — a row that reads like a
+  repository which has not released yet rather than one whose version is in the wrong place. Read
+  the row, not the file.
+- **`nen changelog collate` needs an `### Unreleased` anchor.** A `CHANGELOG.md` seeded without one
+  is refused with *"the changelog has no '### Unreleased' header to anchor the collation on"* — so a
+  freshly adopted repository's first release stops at its first collation unless the seed carries it.
+- **A declared label is not a provisioned one.** `nen release preflight` trusts the caller's issue
+  list and never checks that the label exists. A `bankai:severity/critical` declared in
+  `nen/labels.json` but never created on the repository returns zero matches, and the criticals
+  precondition reports **none open because nothing could match**. Adoption must create the labels on
+  the repository, not only declare them — the declaration is the record, the provisioning is the gate.
+
+### A repository with no build still needs a check that reports
+
+`CON-32(a)` fails on an **empty** rollup, not only a red one, and it is the second conjunct — so
+every later row is `unevaluated` and the pull request can never reach readiness:
+
+```
+2  FAILED  CON-32(a)  Every reported check green, on the latest run per check name
+     └ NO checks reported at head — an EMPTY rollup, not a red one
+3-6  unevaluated
+```
+
+§ 5's `pr-readiness.yml` *publishes* `nen pr ready`'s verdict; it is not a substantive gate and does
+not stand in for one. **A repository whose product is prose has no build to report, so a check has
+to be authored for it** — what such a repository can silently get wrong is not compilation but its
+own content: a link that does not resolve, a taxonomy that does not parse, or, in a public
+repository built from private sources, a name that should never have been published. Adoption is not
+complete while the readiness gate has nothing to read.
 
 ---
 
