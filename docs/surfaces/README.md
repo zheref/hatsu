@@ -28,7 +28,7 @@ the first heading except its title and one paragraph, and nothing after the last
 
 | # | Section | What it holds |
 |---|---|---|
-| 1 | **Identity and paths** | how Hatsu arrives on the surface, the discovery paths for skills, personas, rules and hooks (project and global), the invocation spelling, the headless command, and how to point the surface at a local checkout |
+| 1 | **Identity and paths** | how Hatsu arrives on the surface, the discovery paths for skills, personas, rules, hooks, artifacts and transcripts (project, global and session), the invocation spelling, the headless command, and how to point the surface at a local checkout |
 | 2 | **Skills** | the frontmatter keys the surface documents, any size or description budget, how the name is listed, and what the surface does with the tail of a description |
 | 3 | **Personas and model config** | the per-persona file or its absence, the frontmatter the surface documents, the model key and its admissible values, and which `nen/workflow.json` tier maps to which alias |
 | 4 | **Hooks** | the hook file and its shape, the events that exist, the decision key a `PreToolUse`-class hook answers with, and what Hatsu installs (trunk guard, session start, stop bell) |

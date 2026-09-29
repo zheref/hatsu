@@ -122,13 +122,10 @@ release proposal's verdict returns to getsuga and § 3a merges: en rings no bell
 
 ## Publishing a report
 
-**On Claude Code a report is an Artifact, republished to ONE URL per key** — the skill names the key
-(the branch for a turn or landing page, the repository for a gate register); a new URL only for a key
-that has none yet, and a better title never mints a new one. **Read before you overwrite**: a republish
-notice, or a listing showing a version this session did not publish, means the page moved — re-read it
-and re-resolve the data rather than repainting what this session happens to be holding. **Elsewhere**
-the page is `<reports.dir>/current.html`, overwritten every render, git-ignored, **transient**. **Say
-which happened.**
+**On an artifact-capable surface, a report is an Artifact:**
+- **On Claude Code**, republished to ONE URL per key — the skill names the key (the branch for a turn or landing page, the repository for a gate register); a new URL only for a key that has none yet, and a better title never mints a new one. **Read before you overwrite**: a republish notice, or a listing showing a version this session did not publish, means the page moved — re-read it and re-resolve the data rather than repainting what this session happens to be holding.
+- **On Antigravity**, published as a native Markdown artifact into `<appDataDir>/brain/<conversation-id>/spiritual-message.md` via `write_to_file` with `ArtifactMetadata` (`{ Summary: "Turn report for <effort>", UserFacing: true, RequestFeedback: false }`), formatted with GFM tables, alert callouts (`> [!NOTE]`, `> [!IMPORTANT]`), and Mermaid diagrams (`graphMermaid`), updated on each turn.
+- **Elsewhere** (surfaces without native artifact capability, e.g. Cursor, Codex), the page is `<reports.dir>/current.html`, overwritten every render, git-ignored, **transient**. **Say which happened.**
 
 **Every object notation on a page is `nen ref format`'s output.** Where it cannot be resolved — no
 `nen/repos.json` — the page falls back to `<owner>/<name>#<n>` and the failed resolution goes into
