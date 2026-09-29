@@ -776,3 +776,8 @@ guard now skips a symlinked `surfaces/` or surface directory, accepts a surface 
 (≤ 32) and a stamp only as `[0-9A-Za-z.+-]+` (≤ 64), printing `<malformed>` otherwise — still lagging, so the
 job still fails — and clears `CDPATH` before the `cd`. Two fixture cases: the hostile stamp prints as
 `<malformed>` with no CR in the output; the symlinked surface is not read.
+
+**Copilot round 3 on HA-PR-#121 (2026-09-28).** The surface-name whitelist was a glob (`[a-z][a-z-]*`), whose
+trailing `*` matches anything: `surfaces/ab<CR>/` reached the log. The check is now an anchored character
+class (`*[!a-z-]*` refused, a leading letter, ≤ 32); the fixture proves a CR-bearing and a space-bearing
+directory name are never printed.

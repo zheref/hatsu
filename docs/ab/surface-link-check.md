@@ -64,3 +64,10 @@ the mirrors; a directory named `*.md` would satisfy `-e`; on GNU grep a binary m
 the guard does not silence, so a NUL-bearing file reads as a garbage row and fails closed (BSD grep prints
 it on stdout, same outcome). Uvogin's numbers were not taken: the sweep runs in about half a second on
 this host (a diagnostic, not a QA-15 reading).
+
+**Copilot round 3 on HA-PR-#121 (2026-09-28).** The extractor read only `](target)`; angle-bracketed
+(`](<target>)`), titled (`](target "title")`) and reference-definition (`[label]: target`) links were never
+counted, and the header's "a drop in the checked count would show it" was a signal nothing enforced. The
+guard now reads the three CommonMark forms through `extract_targets`, the header names them as the scope and
+calls any fourth form a gap to extend rather than a signal, and the fixture proves each form resolving and
+dangling. The live count is unchanged (404 of 2644): the mirrors carry none of the other two forms today.
