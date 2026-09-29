@@ -59,6 +59,10 @@ def budgets(repo: Path) -> None:
 
     A missing file, an unreadable file or a scope without a numeric budget
     leaves that persona on the built-in default and says so in budgetSource.
+    A persona claimed by MORE THAN ONE scope (phinks: release and surfaces,
+    zheref/hatsu#73) keeps ONE budget -- the smallest declared, so no scope's
+    ceiling is silently exceeded -- and budgetSource names every scope that
+    declared it; the last declaration never wins in silence.
     """
     global MAXIMA, BUDGET_SOURCE
     MAXIMA = dict(DEFAULT_MAXIMA)
@@ -72,14 +76,20 @@ def budgets(repo: Path) -> None:
         return
     if not isinstance(scopes, dict):
         return
+    seen: dict[str, list[str]] = {}
     for scope, row in scopes.items():
         if not isinstance(row, dict):
             continue
         persona = str(row.get("persona", "")).lower()
         budget = row.get("budget")
         if persona in DEFAULT_MAXIMA and isinstance(budget, int) and not isinstance(budget, bool) and budget >= 0:
-            MAXIMA[persona] = budget
-            BUDGET_SOURCE[persona] = f"nen/workflow.json review.scopes.{scope}.budget"
+            if persona in seen:
+                MAXIMA[persona] = min(MAXIMA[persona], budget)
+                seen[persona].append(scope)
+            else:
+                MAXIMA[persona] = budget
+                seen[persona] = [scope]
+            BUDGET_SOURCE[persona] = "nen/workflow.json review.scopes." + "+".join(seen[persona]) + ".budget" + (" (min of the scopes named)" if len(seen[persona]) > 1 else "")
 
 
 def utc_now():

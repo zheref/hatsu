@@ -51,7 +51,7 @@
 # request would read every pull request not-ready for a defect none of them made. Its FIXTURE runs
 # through `nen shu test --lane surface-link-guard` (hermetic: green says the guard works, never that
 # the mirrors are clean); the LIVE verdict is this entry point, run by hand. Until the CI step lands,
-# a new Hatsu-authored dangling link is indistinguishable from the generator's 341 — an accepted,
+# a new Hatsu-authored dangling link is indistinguishable from the generator's own count, read off this guard's summary line at the head under review (408 at v0.54.0) — an accepted,
 # stated cost. The CI step beside surface-mirror-check is the follow-up once the generator fix lands
 # and surfaces/ regenerates clean.
 

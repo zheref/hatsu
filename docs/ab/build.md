@@ -619,3 +619,15 @@ For a combined issue PR, the audit also compares the complete body issue set wit
 Scenarios: fixed code/open thread remains incomplete; resolved thread/no reply remains incomplete;
 all findings handled but gate refused is reported not-ready; body lists two issues/sidebar one
 requires link repair before handover. These are prose protocol checks, not new Nen enforcement.
+
+---
+
+## Dated 2026-09-29 — the phases build itself runs are ledger entries (zheref/hatsu#100)
+
+`nen 0.15.1`. `nen phase begin|end --effort <branch> --phase <name>` and `nen usage record --effort
+<branch> …` are both in the pinned build (`nen phase --help`, `nen usage --help`): `begin` refuses two
+open entries of one name, `end` with nothing open is a usage error naming the effort, and a `nen shu`
+step run with `--effort <id>` (or `NEN_EFFORT`) appends itself to the open entry. § 4 now wraps
+`release`, `build`, `hanten`, `remediate` and `open`, and records usage at every § 7 report from the
+surface's own readout, so `.nen/phases/<effort>.json` carries the authoring and remediation phases
+rather than the three a later `ren`, `hanten` or `en` happened to open (the shape #100 measured).

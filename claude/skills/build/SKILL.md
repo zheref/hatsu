@@ -110,6 +110,14 @@ application is logged: object, label, time.
 **Steps 3, 5 and 6's machinery — waves, the terminus PR, the `--local-cap 2` slots, the `nen shu`
 sequence and its G5 — is that document's § *Building an issue with no CI plane***.
 
+**Every § 4 step this run performs is one ledger entry** (#100), `--phase <step-name>` in this
+section's own vocabulary (`decompose`, `release`, `build`, `hanten`, `remediate`, `open`, …), opened
+before the step and closed after it with its exit, every `nen shu` inside carrying `--effort <branch>`
+— so `.nen/phases/<effort>.json` holds the authoring and remediation phases, not only those a later
+`ren`, `hanten` or `en` opened. **Spend is recorded at every § 7 report**, never transcribed at the
+end; the reviewers' entries are [`hanten`](../hanten/SKILL.md) § 4's. The argv, the flags, the files
+and the branch key are [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The effort's ledgers*.
+
 ## 5. Authority — what this run may and may not do
 
 `CON-25`'s fourth carve-out: a human-invoked skill run holds the delegation its purpose requires,
