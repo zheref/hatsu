@@ -135,8 +135,8 @@ default** — [WORKFLOW](../../../docs/WORKFLOW.md) § `commits`'s rule: a key e
 `forbiddenTrailers`, case-insensitive; `Closes` is ordinary (`nen/decisions.json` row
 `injected-attribution-trailer`): the tip just written is unpublished by construction, so **drop it
 with `git reset --soft HEAD~1`** — never an earlier commit, never an amend — and ask once for the
-switch (row `harness-attribution-switch`, the maintainer's toggle); then re-run. `aka` § 7 reads the
-tip again before the push. Never `--no-verify`.
+switch (row `harness-attribution-switch`, the maintainer's toggle); then re-run. `aka` § 7 reads every
+outgoing commit before the push. Never `--no-verify`.
 
 ## 6. Residue
 

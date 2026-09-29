@@ -523,7 +523,7 @@ HA-PR-#64's `4ee8ce3`, `c202034`, `516ed5f`, `75c8ce8`, `2025e84` and `06b45cf` 
 `Co-authored-by: Cursor <cursoragent@cursor.com>` beside `Hatsu-Agent: kurapika`: Cursor appends it at
 `git commit` time, before hooks run — observed on the raw `git commit --file` path; whether it reaches a
 verb's child `git commit` is not verified here. § 5 reads the tip back after every `commit write`, and
-aka § 7 the tip again immediately before the push (after ao's catch-up and the re-lint). The positive case, on this checkout's own history:
+aka § 7 every outgoing commit (`<origin/<branch> | origin/<base>>..HEAD`) immediately before the push, after ao's catch-up and the re-lint — the tip alone would miss a squash parent under ao's merge (Copilot, HA-PR-#124 round 2). The positive case, on this checkout's own history:
 
 ```text
 $ git log -1 --format='%(trailers:only,unfold)' 4ee8ce3

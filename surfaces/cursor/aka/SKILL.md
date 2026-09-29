@@ -349,14 +349,16 @@ test run.
 ## 7. Push — or first-publish
 
 ```bash
-git -C <path> log -1 --format='%(trailers:only,unfold)'          # 0. read the tip that is about to be pushed (zheref/hatsu#66)
+git -C <path> log --format='%h%n%(trailers:only,unfold)' <origin/<branch> | origin/<base>>..HEAD   # 0. read EVERY outgoing commit (zheref/hatsu#66)
 nen wc publish --repo <path> [--dry-run] [--json]                  # already published
 nen wc publish --repo <path> --set-upstream [--dry-run] [--json]   # first publish: also sets upstream
 ```
 
-**Step 0 is the last read before the remote, and it runs here** — after § 4's squash, § 5's catch-up
-(ao may merge or rebase and replace `HEAD`) and § 6's re-lint — so the commit inspected is the commit
-pushed. A harness can append a trailer at `git commit` time. **An attribution key** —
+**Step 0 is the last read before the remote, and it reads the whole outgoing range, not `HEAD`** —
+after § 4's squash, § 5's catch-up (ao may add a merge commit above the squash, so `HEAD` alone would
+miss the squash parent the push also sends) and § 6's re-lint. The range is § 4's own table: from
+`origin/<branch>` on a published branch, from `origin/<base>` on a first publish — exactly what
+`nen wc publish` will send. A harness can append a trailer at `git commit` time. **An attribution key** —
 [WORKFLOW](../../../docs/WORKFLOW.md) § `commits`'s one rule: a key ending `-by`/`-with` or listed in
 `commits.forbiddenTrailers`; `Closes` and its kind are ordinary and never compared — **outside
 `commits.allowedAttributionTrailers`** (keys compared case-insensitively, as `nen commit format` and
