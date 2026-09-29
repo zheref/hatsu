@@ -147,7 +147,7 @@ nen report render --variant <turn|turn-fast|landing> --graph <graph file> \
 Template language, exit codes and `--dry-run`: [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 2
 → `reports`; prove with `--dry-run` before shipping. Escaping and validations:
 [`PROCESS.md`](../../../docs/PROCESS.md) § *Escaping and validation of report data*.
-**Template path**: `$hatsu_root` is resolved per § 0 (`hatsu_root="${HATSU_PLUGIN_ROOT:-}"; [ -n "$hatsu_root" ] || hatsu_root='<absolute path § 0 printed>'`);
+**Template path**: `$hatsu_root` is resolved per [`ten`](../ten/SKILL.md) § 0 (`hatsu_root="${HATSU_PLUGIN_ROOT:-}"; [ -n "$hatsu_root" ] || hatsu_root='<the absolute path ten § 0 printed>'`);
 `"$hatsu_root/templates/spiritual-message.html"` resolves deterministically across checkouts.
 **PR body diagram**: `nen report mermaid --graph <file>`, pasted by [`shibari`](../shibari/SKILL.md) § 3.
 
