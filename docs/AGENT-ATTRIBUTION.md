@@ -7,7 +7,11 @@ or stamp a default persona when it was not responsible. `Co-Authored-By`, `Claud
 `Signed-off-by`, `Generated-by`, `Generated-with`, `Reviewed-by`, model, surface/runtime/session, and
 "Generated with" attribution are forbidden in commit messages and bodies. Author and committer metadata
 preserve the actor's configured identity. Earlier commits and
-dated evidence records are historical and are not rewritten.
+dated evidence records are historical and are not rewritten. This rule is canon as **`CON-51(c)`** in
+[`zheref/bankai-handbooks`](https://github.com/zheref/bankai-handbooks)' `CONSTITUTION.md` (handbook set
+v0.6): a commit carries the truthful canonical plane/persona trailer for the responsible actor — never a
+model, surface, runtime, session or "generated-with" attribution, and never a `Co-Authored-By:` naming an
+AI assistant.
 
 The pull request body also ends with this final section:
 

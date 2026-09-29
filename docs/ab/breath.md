@@ -439,3 +439,14 @@ Constructed remaining cases, not re-run as a second git mutation:
 | Clean trunk, new effort | ordinary § 4–6 cut |
 | Explicit "continue" / turn 2+ of this session's effort | report current branch, do not cut |
 | Dirty unrelated feature branch, new effort | ask, showing paths; never `--discard` |
+
+---
+
+## Dated 2026-09-29 — § 2d, the live worktree on the same topic (zheref/hatsu#113)
+
+`nen 0.15.1`. Before § 3 cuts, `nen wc worktrees --repo <path> --json` lists every checkout of the
+project with `path`, `branch`, `head`, `dirty`, `ahead`, `behind`, `lastSubject` and `lastAge`
+(contract `nen.wc.worktrees/v0.1`, read live on this repository with seven worktrees, the core marked
+`core` and a foreign one carrying `null` fields). A row whose `branch` or `lastSubject` shares a word
+of the rendered descriptor is reported and asked — continue there, or cut anyway by name — never
+resolved silently. Name-level only; a diff-level read is a separate Nen ask.

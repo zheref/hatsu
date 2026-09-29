@@ -140,7 +140,7 @@ nen repo resolve <CODE> --repo <path>               # matches an explicit code i
 > though `BC` was a listed code. Since `v0.2.0` every token — the origin included — resolves from
 > **everything** the registry records (consumers, `product_codes` keys and values, `maintained_tools`,
 > `pending_onboarding`; `nen repo --help`, and `src/repo/resolve.ts` rule 5 names this exact case). The
-> token form is verified live (`nen repo resolve BC --repo <path>` → `bankai-core (BC) via code`); the
+> token form is verified live (`nen repo resolve BC --repo <path>` → `<reference-repo> (BC) via code`); the
 > origin form needs a checkout whose `origin` the registry records and was not re-run here. Either form
 > works from inside the registry-owning repo now; if the origin form ever refuses a repository its own
 > code list names, pass the code explicitly and reconcile the finding through [DISCOVERY.md](../../../docs/DISCOVERY.md);
@@ -291,8 +291,8 @@ one, and the base read off the PR. It lived here as a copy for long enough to dr
 owns it now.
 
 **This skill's own decision line: decide the repository's ROLE before anything is derived.** A
-**canon** repository — `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`,
-`zheref/bankai-scaffold`, whose product *is* the process — derives with its own path sets.
+**canon** repository — one `nen repo classify` reports as `role: canon` (`nen/repos.json` →
+`maintained_tools`), whose product *is* the process — derives with its own path sets.
 **Everything else is `G2` by role and the verb is not run**: a consumer's `nen/*.json`, its CI
 workflow and its `scripts/` are its own configuration, not anybody's canon. Maintainer's ruling,
 2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18*). A consumer that

@@ -84,7 +84,7 @@ nen repo resolve --repo <path> --from <cwd>
 > --help` says so; `src/repo/resolve.ts` rule 5 names this port's exact case, "refused the
 > registry's own origin FROM ITS OWN CHECKOUT — five independent skill ports tripped on exactly that").
 > The origin form is not re-run live here (it needs a checkout with an `origin` remote in the registry);
-> the token form is: `nen repo resolve BC --repo <path>` → `bankai-core (BC) via code`. If the origin form
+> the token form is: `nen repo resolve BC --repo <path>` → `<reference-repo> (BC) via code`. If the origin form
 > ever refuses a repository the code list names, that is a new finding — reuse the code its refusal
 > printed and file it, never hand-read the registry.
 >
@@ -178,8 +178,8 @@ Has an open PR?
 │        │        merge and must be worded as one, never as "G2"
 │        └─ NO  → is it CON-32-Ready?  (nen pr ready — § 5)
 │                 ├─ YES → is the TARGET a canon repo?
-│                 │         (zheref/hatsu, zheref/nen, zheref/bankai-core, zheref/akatsuki-ai, zheref/bankai-scaffold — NOT zheref/Bankai,
-│                 │          which is a Swift product repo, and NOT any consumer)
+│                 │         (role: canon from nen repo classify — nen/repos.json's maintained_tools;
+│                 │          NOT zheref/Bankai, which is a Swift product repo, and NOT any consumer)
 │                 │        ├─ NO  → G2 (CON-5). A consumer's own nen/*.json or CI workflow is
 │                 │        │        configuration, not policy; nen gate derive is NOT run
 │                 │        └─ YES → does the diff touch CONSTITUTION.md, handbooks/, agents/,
@@ -220,8 +220,8 @@ one, and the base read off the PR. It lived here as a copy for long enough to dr
 owns it now.
 
 **This skill's own decision line stays here, because it is what a sweep does before it derives
-anything: decide the repository's ROLE first.** A **canon** repository — `zheref/hatsu`,
-`zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai`, `zheref/bankai-scaffold`, whose product
+anything: decide the repository's ROLE first.** A **canon** repository — one `nen repo classify`
+reports as `role: canon` (`nen/repos.json` → `maintained_tools`), whose product
 *is* the process — derives with its own path sets. **Everything else is `G2` by role, and
 `nen gate derive` is not run at all**, because the role already settled it: a consumer's own
 `nen/*.json`, its CI workflow and its `scripts/` are *its* configuration and govern nothing

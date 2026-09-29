@@ -130,8 +130,8 @@ Which matches `docs/ROSTER.md` § 3 exactly, and collides with the role map — 
 > **Dated note, 2026-09-18 — the record stands; the path sets below are `zheref/hatsu`'s OWN canon.**
 > Every transcript here is verbatim and stays that way. The maintainer's ruling of 2026-09-18
 > ([`docs/ROSTER.md`](../ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*) settles what these runs never asked:
-> **G4 is authoring or maintaining a canon repository** — `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`,
-> `zheref/akatsuki-ai`, `zheref/bankai-scaffold` — and **everything else on that axis is G2** — `G1`, `G1-M`, `G3` and `G5` are untouched — including a consumer repository declaring its own
+> **G4 is authoring or maintaining a canon repository** — `zheref/hatsu`, `zheref/nen`, `<reference-repo>`,
+> `<ci-plane-repo>`, `<scaffold-repo>` — and **everything else on that axis is G2** — `G1`, `G1-M`, `G3` and `G5` are untouched — including a consumer repository declaring its own
 > `nen/*.json` or adding a CI workflow. So read the `G4`s below as *the reference repository
 > answering about itself*, which is what they are. In a consumer repository the gate is `G2` by role
 > and `nen gate derive` is not called at all. What these runs establish about the verb is unaffected
@@ -529,3 +529,30 @@ in the subagent*, said once and enumerated in the closing line. Hanten names the
 when it cannot resolve a `nen` itself, so the limitation is declared by the machinery once rather than
 rediscovered per persona. Not re-run against KroApple here; the preamble and hanten § 4 are the
 authored change, mirrored at stamp 0.50.0.
+
+---
+
+## Dated 2026-09-29 — two scopes raised by content, and the spend recorded as it lands (zheref/hatsu#73, #100)
+
+`nen 0.15.1`. `nen review scopes` classifies by path, and two things a path cannot name now have a
+row: a diff adding or editing a `## 0.` section, or any table that routes control flow, raises a
+**totality pass** on the architecture scope (Chrollo; a § 3 gap when he is spent), and `surfaces/**`
+raises the `surfaces` scope declared in `nen/workflow.json` (Phinks, budget 1, the two guards
+`scripts/surface_link_check.sh` and `scripts/surface_mirror_check.sh` handed to him first). Verified
+live on the effort that added it: `nen schema check --repo .` reports
+`nen/workflow.json#review.scopes  7 scope(s): … surfaces (phinks), release (phinks)`, and the ledger
+script keeps one budget per persona (`scripts/hanten_cycle_ledger.sh` reads `budget` by persona, the
+later scope winning), which is why § 2b says one persona, one budget. § 4 records each reviewer's
+spend with `nen usage record` as it returns (`--source "hanten § 4: <persona>, <readout>"`); the
+verb refuses an entry with no number and no `--not-reported` at exit 2 (its own `--help`), so an
+unrecorded reviewer cannot read as recorded. The prose stayed under 12,288 bytes through five named
+trims, each read off `sh scripts/prose_size_check.sh --headroom` (#119).
+
+**Residue, same date — a worktree-isolated session pins its subagents.** Raised from a session the
+harness had isolated in `.claude/worktrees/ledgers-scopes-headroom`, all four reviewers were refused
+every `cd`/`git -C` into the detached `hanten-<persona>` checkout § 4 creates, and read the effort's
+own worktree instead — at the candidate head, but live, while remediation of the first return landed
+under the later ones. Two reviewers pinned their evidence to `git archive <candidate>` extracts; the
+worktrees § 4 adds were created and never entered. Named here, not fixed: § 4's isolation is a property
+of the raising session's own isolation on Claude Code, and the honest line is the one the reviewers
+wrote — which checkout was read, at which head.

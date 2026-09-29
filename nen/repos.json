@@ -1,5 +1,5 @@
 {
-  "$comment": "Issue-routing registry for the two tool repositories, verified from their origins and GitHub on 2026-09-12. This does not assert consumer adoption or release pins.",
+  "$comment": "Issue-routing registry for the tool repositories Hatsu maintains or reads, verified from their origins and GitHub on 2026-09-12 (zheref/hatsu, zheref/nen) and 2026-09-28 (zheref/bankai-handbooks). This does not assert consumer adoption or Hatsu's own release pins. `pinned` on the zheref/bankai-handbooks entry is the tag of THAT repository at which Hatsu's resolvers read canon (hatsu:bankai-handbooks, hatsu:bankai-quality) -- prose nen carries but does not model on a maintained_tools entry; move it when the canon is repinned, tag first (CON-13).",
   "consumers": [],
   "maintained_tools": [
     {
@@ -9,10 +9,16 @@
     {
       "repo": "zheref/nen",
       "role": "Shared deterministic machinery"
+    },
+    {
+      "repo": "zheref/bankai-handbooks",
+      "role": "Canonical handbooks, constitution and shared agent conventions (CON-13) -- the canon Hatsu resolves live and mirrors into consumers",
+      "pinned": "v0.6.0"
     }
   ],
   "product_codes": {
     "HA": "zheref/hatsu",
-    "NN": "zheref/nen"
+    "NN": "zheref/nen",
+    "BH": "zheref/bankai-handbooks"
   }
 }

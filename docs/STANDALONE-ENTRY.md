@@ -282,7 +282,7 @@ because a cold entry is where each is most likely to be quietly re-read:
   cold invocation prints the preflight and the plan and reports that it has no go, exactly as before.
 - **`G4` (`CON-7`) — canon and machinery, *in a canon repository*.** The gate is the repository's role,
   not the file's kind (maintainer's ruling, 2026-09-18 — [`ROSTER.md`](ROSTER.md) § *Rulings of
-  2026-09-18*): it is `zheref/hatsu`, `zheref/nen`, `zheref/bankai-core`, `zheref/akatsuki-ai` and `zheref/bankai-scaffold`, whose product is the process,
+  2026-09-18*): it is the repositories `nen repo classify` reports as `role: canon` (`nen/repos.json` → `maintained_tools`; ruling 6 of 2026-09-27), whose product is the process,
   and a consumer repository's own `nen/*.json` or CI workflow is configuration standing at `G2`. This is
   the gate this document itself sits at, and the one
   a `## 0.` section is most tempted to cross by accident. **Standalone entry authors no canon.** A rule
@@ -343,7 +343,7 @@ both.
 | [`kotoamatsukami`](../claude/skills/kotoamatsukami/SKILL.md) | S1 — the delta, hence the impacted suites | nothing, where the declaration is complete |
 | [`byakugan`](../claude/skills/byakugan/SKILL.md) | S1 — the touched set against the remote base | nothing |
 | [`sharingan`](../claude/skills/sharingan/SKILL.md) | S2 — the PR from the branch, when `#N` is omitted | which PR, when the branch has none or several |
-| [`hanten`](../claude/skills/hanten/SKILL.md) | S4 — routes a missing branch cycle ledger through Tenkai diagnosis; after review-history inspection, recovers a confirmed first cycle with an audited marker or restores prior used counts. An unreconstructable prior cycle is a safety stop; S1 — the scope classification | whether this is the first Hanten cycle under this effort key when evidence cannot settle it; the review scope when the delta does not classify cleanly |
+| [`hanten`](../claude/skills/hanten/SKILL.md) | S4 — asks `breath` for a missing ledger, then routes a still-missing one through Tenkai diagnosis and review-history inspection; recovers a confirmed first cycle with an audited marker or restores prior used counts. An unreconstructable prior cycle is a safety stop. S1 — scope classification, path-raised by `nen review scopes` and content-raised by hanten § 2 (a `## 0.` or routing-table edit is a totality pass). | whether this is the first Hanten cycle under this effort key when evidence cannot settle it; the review scope when the delta does not classify cleanly |
 | [`spiritual-message`](../claude/skills/spiritual-message/SKILL.md) | S1 + S3 — turns and session context, read from git and the session | which variant, when it is not derivable |
 | [`kagutsuchi`](../claude/skills/kagutsuchi/SKILL.md) | nothing new — the target is required grammar | a missing target, **typed, never picked** (`missing-maintainer-choice`). **The call is the maintainer's** |
 | [`mugetsu`](../claude/skills/mugetsu/SKILL.md) | nothing new — `G3` | nothing, except a missing part of a go on the maintainer's own same-turn `hatsu:mugetsu <target>`, typed. **The go is the maintainer's** |
