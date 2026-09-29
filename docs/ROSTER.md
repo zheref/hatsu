@@ -884,7 +884,16 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   never at `main`, and never write to it.
 
 
-## Rulings of 2026-09-29 — the reviewer fallback chain
+## Rulings of 2026-09-29 — the reviewer fallback chain, and no prompt off the trunk
+
+**Ruling 2 (19:50Z).** On HA-PR-#127 standing on #126's branch after #126 merged, the maintainer asked:
+*"Why am I being prompted to manually merge a PR that is not targeted to the main trunk branch? I don't
+expect that to happen at all."* So: **a merge prompt exists only for a PR whose base is `branch.base`**.
+A stacked PR is retargeted through `nen pr retarget` and its base read back the moment its delivery
+merges — getsuga § 3 already said it for release proposals; `en` § 5 now says it for every PR the bell
+rings for, and `futon` § 5's *prompted* means prompted on `branch.base`. The register desk that listed
+#127's prompt before its retarget was the run's error, not the spec's.
+
 
 One ruling, recorded here once; `docs/PROCESS.md` § *Reviewer rounds and review threads* (*The fallback
 chain*) states the rule and its mechanics once, `sharingan` § 6 cites it, `nen/gates.json` → `reviewer_fallback` the declaration, and `nen/decisions.json` row

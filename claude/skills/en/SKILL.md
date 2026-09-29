@@ -291,7 +291,11 @@ live at `v0.3.0`, exit `0` (`docs/ab/en.md` § 2.4):
 Ready and which gate it stands at, and stops there.
 
 **It rings exactly once for this run — at Ready, or at § 6's declared reviewer-exhaustion stop — and at
-no other time.** A quiet observation rings
+no other time.** **And never while the PR's base is not `branch.base`**: a stacked PR whose delivery
+just merged is retargeted through `nen pr retarget` and its base read back (`gh pr view <N> --json
+baseRefName`, [`getsuga`](../getsuga/SKILL.md) § 3's mechanism, [`jujisho`](../jujisho/SKILL.md)'s)
+**before** the bell exists — a merge prompt for a PR off the trunk is presented nowhere (ruling
+2026-09-29, `docs/ROSTER.md` § *Rulings of 2026-09-29*). A quiet observation rings
 nothing — a bell that rings every poll of a four-hour wait is a bell nobody hears.
 
 ## 6. The observation hold — `nen watch until` on `nen pr ready`, and what a cycle is

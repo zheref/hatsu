@@ -91,9 +91,9 @@ kurapika.md § *The `shu` verbs*; work a local session cannot do is a **G5**, ga
 
 ## 5. Done is `CON-32` Ready and prompted
 
-> Every PR futon produces is Kurapika's own, so it is **not done at PR-open** but when
-> `nen pr ready` **and** `nen pr body-check` both pass, quoted, and the maintainer has been prompted
-> to merge it — it **holds its slot** until then.
+> Every PR futon produces is Kurapika's own: **not done at PR-open**, but when
+> `nen pr ready` **and** `nen pr body-check` both pass, quoted, and you are prompted
+> to merge it **on `branch.base`** (en § 5) — it **holds its slot** till then.
 
 ## 6. Two concurrency budgets, counted separately
 
