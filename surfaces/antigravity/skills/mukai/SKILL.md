@@ -21,8 +21,8 @@ the reply, with **Manipulator** named alongside it from step 6 on — the first 
 the remote. Name the mode in play, say when it switches and why, and never blend two under one header
 (`claude/agents/kurapika.md`).
 
-> **The work is done and it is on the remote. Prove it, review it, show it, put it up, then hand the
-> open PR to En and end. En holds the current-head readiness circle from there.**
+> **The work is done and it is on the remote. Prove it, review it, show it, put it up, then offer the
+> open PR to En and end. En holds the current-head readiness circle once the maintainer starts it.**
 
 Mukai is the **second human call** in the local plane. [`/aka`](../aka/SKILL.md) is the first —
 it put the branch on the remote — and this one asks other people to look at it. **The two are
@@ -37,6 +37,9 @@ authored, because a rule restated in two places drifts in one of them.
 ---
 
 ## 1. Invocation — and what the call authorizes
+
+**P1 — this run opens with `/ten mukai`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
+missing prerequisites under its own name; the phases this run calls skip theirs).
 
 ```
 /mukai
@@ -91,7 +94,7 @@ says which composite is holding it instead.
 | 7 | **collect the evidence** | [`/kotoamatsukami`](../kotoamatsukami/SKILL.md)'s existing artifacts | build the `UZF-26` table without rerunning UI regression |
 | 8 | **compose and open** | [`/shibari`](../shibari/SKILL.md) | the body, checks, evidence, reviewers, and PR from the last pushed commit |
 | 9 | **the landing report** | [`/spiritual-message`](../spiritual-message/SKILL.md) `as landing` | rendered after step 8 because the PR body and readiness result are its inputs; **00** is this mukai request |
-| → | **offer En, and end Mukai** | [`/en`](../en/SKILL.md) | Mukai ends with one line offering `/en on <CODE>#<N>` — the maintainer's call, never started silently. With `nen/workflow.json` → `mukai.autoEn` **true** (absent is false) Mukai instead starts En immediately; En then owns the capped drive to verified Ready at G2/G4 while the invoking user turn remains active |
+| → | **ring, offer En, and end Mukai** | [`/jutaisho`](../jutaisho/SKILL.md), then [`/en`](../en/SKILL.md) | Mukai rings the turn bell (jutaisho rung 1) and asks **through the surface's native picker** (`AskUserQuestion` on Claude Code): *start `/en on <CODE>#<N>` now?* — the maintainer's call, never started silently (ruling 9 R4). With `nen/workflow.json` → `mukai.autoEn` **`true`** (JSON `true` only; absent or any other value offers) Mukai instead starts En immediately; En then owns the capped drive to verified Ready at G2/G4 while the invoking user turn remains active |
 
 **A landing always runs the thorough profile**, whatever the turns before it named: step 4 is
 kotoamatsukami's impacted suites and step 5 byakugan's coverage, and no `profile` lowers either; and
@@ -220,7 +223,7 @@ the step that owns it, so a maintainer tuning the file knows where the effect la
 
 | Key | File | The step it configures |
 |---|---|---|
-| `mukai.autoEn` | `nen/workflow.json` | the → row: `false` (or absent) offers En in one line; `true` starts En immediately (ruling 2026-09-28) |
+| `mukai.autoEn` | `nen/workflow.json` | the → row: only JSON `true` starts En immediately; `false`, absent or any other value rings and offers En through the picker (rulings 8 and 9 R4) |
 | `branch.base` | `nen/workflow.json` | steps 1 and 6 catch-up; step 8's PR base |
 | `iteration.checks`, `iteration.lane` | `nen/workflow.json` | step 1's proof of the merged tree, through [`/murasaki`](../murasaki/SKILL.md) § 5 |
 | `tests.required`, `tests.extra` | `nen/workflow.json` | step 4 — [`/kotoamatsukami`](../kotoamatsukami/SKILL.md) |
@@ -253,8 +256,8 @@ that published a review's fixes from one that had nothing to publish.
 
 Then the handover line, which is [`/shibari`](../shibari/SKILL.md) § 10's and is not restated
 here: the object notation, the base, the derived gate as a **forecast**, the three body checks, the
-evidence mechanism used and what it published, the reviewers requested, and then the offer —
-`/en on <CODE>#<N>` — which closes Mukai; the maintainer types it or not. Under `mukai.autoEn`
+evidence mechanism used and what it published, the reviewers requested, and then the bell and the
+picker — *start `/en on <CODE>#<N>` now?* — which closes Mukai; the maintainer's answer starts En or not. Under `mukai.autoEn`
 that line instead says `en` has the PR and is a progress line, the closing line coming only from En's
 verified gate handoff or one of its evidenced non-ready termini.
 
@@ -317,9 +320,9 @@ it is how the page stops being read.
   effort's; Mukai re-enters it, it does not reset it.
 - **Never converts step 7's absent `ui-test` declaration into hand-staged captures** — the
   logic-only exemption is stated, not filled in.
-- **Never claims readiness itself or by eye.** Mukai ends after it starts [`/en`](../en/SKILL.md)
-  with the open PR and landing report. En obtains the `nen pr ready` + `nen pr body-check` +
-  confirmation verdict and owns the G2/G4 handoff.
+- **Never claims readiness itself or by eye.** Mukai ends at the En offer (or, under `mukai.autoEn`,
+  after starting [`/en`](../en/SKILL.md)) with the open PR and landing report. En obtains the
+  `nen pr ready` + `nen pr body-check` + confirmation verdict and owns the G2/G4 handoff.
 - **Never restates another skill's protocol.** If mukai and a composed skill disagree, the composed
   skill is right and this file is the bug.
 - **Never starts `en` silently.** Mukai's completion is the offer line; En runs on the maintainer's

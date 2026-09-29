@@ -25,7 +25,8 @@ Transmuter), named out loud for that cycle and handed back afterwards.
 En is the last composite of the local plane and the only one that may need to **hold attention past
 the moment the PR was opened**. [`hatsu:mukai`](../mukai/SKILL.md) ends by offering this handoff — starting it itself only under
 `nen/workflow.json` → `mukai.autoEn` (ruling 2026-09-28); from
-there the PR and the still-active user turn belong to En until Sharingan proves it Ready, or a concrete
+there the PR belongs to En — and the still-active user turn only on the `autoEn` path, a typed start
+from the offer being its own turn — until Sharingan proves it Ready, or a concrete
 blocker/cap/terminal state/cancellation ends En's run. The merge itself is the maintainer's later act
 and is outside En. **This run does not harvest.** When En has completed, the regular pipeline's next
 phase is [`hatsu:third-hand`](../third-hand/SKILL.md) — a separate skill, started after this file's
@@ -43,6 +44,9 @@ anything. Third-Hand is not in that boundary.
 ---
 
 ## 1. Invocation
+
+**P1 — this run opens with `hatsu:ten en`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
+missing prerequisites under its own name; the phases this run calls skip theirs).
 
 ```
 hatsu:en [on <CODE>#<N>]

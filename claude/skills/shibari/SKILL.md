@@ -1,6 +1,6 @@
 ---
 name: shibari
-description: Compose the pull request body from templates/pr-body.md and open the PR — the UZF-26 evidence table, the completion checklist, every associated issue and the agent-attribution ledger — then check it by verb and hand the PR to hatsu:en. Use when hatsu:mukai reaches its eighth step, or when the maintainer invokes hatsu:shibari directly. It opens exactly one PR, from the last pushed commit, against the workflow's base; it derives the gate but never labels one, requests reviewers, and never merges.
+description: Compose the pull request body from templates/pr-body.md and open the PR — the UZF-26 evidence table, the completion checklist, every associated issue and the agent-attribution ledger — then check it by verb and return the PR to mukai, which offers it to hatsu:en (or starts En under mukai.autoEn). Use when hatsu:mukai reaches its eighth step, or when the maintainer invokes hatsu:shibari directly. It opens exactly one PR, from the last pushed commit, against the workflow's base; it derives the gate but never labels one, requests reviewers, and never merges.
 ---
 
 # Shibari — the work becomes a request for attention
@@ -20,6 +20,9 @@ omit them, so **stop and name [`aka`](../aka/SKILL.md)**, never pushing for the 
 `byakugan` did not run is **stated unavailable, with why** — never a plausible table.
 
 ## 1. Invocation and authority
+
+**P1 — this run opens with `hatsu:ten shibari`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
+missing prerequisites under its own name; the phases this run calls skip theirs).
 
 ```
 hatsu:shibari

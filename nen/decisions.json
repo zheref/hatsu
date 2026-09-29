@@ -36,7 +36,7 @@
     {
       "id": "stale-base",
       "class": "autonomous",
-      "default": "nen pr cascade-main --repo <checkout> --trunk <branch.base> --no-push",
+      "default": "nen wc catch-up --repo <checkout> --base <branch.base> (ao section 3; rebase when unpublished, merge when published)",
       "why": "A base that can be fast-forwarded or merged mechanically is caught up; only a semantic conflict reaches semantic-conflict."
     },
     {

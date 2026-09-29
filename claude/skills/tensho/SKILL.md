@@ -36,7 +36,7 @@ carries two concerns.
 Read from the phase lattice rather than from this file's own numbering, tensho is:
 
 > [`kokusen`](../kokusen/SKILL.md) *(if the tree is dirty)* → [`aka`](../aka/SKILL.md) →
-> [`mukai`](../mukai/SKILL.md) → **starts** [`en`](../en/SKILL.md)
+> [`mukai`](../mukai/SKILL.md) → **offers** [`en`](../en/SKILL.md) (starts it under `mukai.autoEn`)
 
 **This is a restatement, and it changes no mechanics.** Every section below stands exactly as it is
 written: § 2's `nen wc classify` reading, § 3's staging triage, § 4's commit shaping, § 5's body

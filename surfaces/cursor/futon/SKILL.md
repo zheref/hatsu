@@ -28,6 +28,8 @@ things — a **selector**, an **explicit `then`**, and **who is behind every PR*
 
 ## 1. Invocation
 
+**P1 — `/ten futon` opens this run** ([`ten`](../ten/SKILL.md) § 6).
+
 ```
 /futon <repo>@<severity>[+] [then tag | then tag+fanout | then <skill>[@<target>][+<skill>[@<target>]…] | then <prose>]
 /futon <repo>@<label>       [then ...]

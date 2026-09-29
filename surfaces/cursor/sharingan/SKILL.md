@@ -14,6 +14,9 @@ is [PROCESS.md](../../../docs/PROCESS.md) § *Authority every phase shares*.
 
 ## 1. Invocation
 
+**P1 — this run opens with `/ten sharingan`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
+missing prerequisites under its own name; the phases this run calls skip theirs).
+
 `/sharingan <product_code>#<pr_number> to <G2 | G4>`
 
 - `<product_code>` is a `nen/repos.json` → `product_codes` code, case-insensitive, **never guessed**,

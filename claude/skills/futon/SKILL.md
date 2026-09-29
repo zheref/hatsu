@@ -26,6 +26,8 @@ things — a **selector**, an **explicit `then`**, and **who is behind every PR*
 
 ## 1. Invocation
 
+**P1 — `hatsu:ten futon` opens this run** ([`ten`](../ten/SKILL.md) § 6).
+
 ```
 hatsu:futon <repo>@<severity>[+] [then tag | then tag+fanout | then <skill>[@<target>][+<skill>[@<target>]…] | then <prose>]
 hatsu:futon <repo>@<label>       [then ...]

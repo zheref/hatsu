@@ -668,7 +668,7 @@ stays deliberately unstaffed.
 | Ruling | What it says |
 |---|---|
 | **Nobunaga activates, on every repository** | Code practices, scope completeness and adversarial reading — **Sasuke's local counterpart**, with Sasuke's completeness criteria. The `code` scope claims every path, so he is **the default reviewer everywhere** |
-| **Two reviews per effort** (amended 2026-09-28: per branch and PR, never per session or repository) | `review.scopes.code.budget` is `2`, counted in hanten's cycle ledger like every other scope |
+| **Two reviews per effort** (amended 2026-09-28, ruling 9 R2: keyed by branch and PR number, never per session or repository) | `review.scopes.code.budget` is `2`, counted in hanten's cycle ledger like every other scope |
 | **Deep on a process repository, fast on a product one** | The declared `review.scopes.code.tier` is the **process** tier; `hanten` reads `nen repo classify`'s `kind` and **swaps to `fast`** for a product repository, saying which ran |
 | **Chrollo stays the sole architecture reviewer** | and **drops incidental consistency work to Nobunaga** rather than absorbing it |
 | **Feitan gains deterministic scan rows** | checksum-verified gitleaks that fails loud, a per-stack dependency audit, `nen stage triage` secret shapes, and a **builder-touching-workflow gate** in a consumer repository — plus the bounded delta pass when a spent reviewer meets a new head |
@@ -883,7 +883,7 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
 
 ## Rulings of 2026-09-26/27/28 — futon's selector and chains, the advance go, three kinds, getsuga's own merge, nen decides
 
-Eight rulings, recorded here once; every skill, agent file, manifest and decisions row that carries one
+Nine rulings, recorded here once; every skill, agent file, manifest and decisions row that carries one
 cites this section rather than the date alone. Where an earlier section says the opposite it is
 amended by this one, and says so in place.
 
@@ -941,7 +941,11 @@ amended by this one, and says so in place.
    missing required step in the Hatsu workflow"* — ten receives the invoking phase's name and runs
    that phase's missing safe prerequisites in order, stopping at any that is the maintainer's call:
    [`ten`](../claude/skills/ten/SKILL.md) § 6 is the phase → prerequisite map, and its *Suggested
-   next steps* list is unruled. [`getsuga`](../claude/skills/getsuga/SKILL.md) § 1.
+   next steps* are recorded here, unruled: (a) the SessionStart or UserPromptSubmit hook runs ten's
+   catch-up itself; (b) a `nen wc ensure-effort` verb making step 1 one call; (c) a nen read for
+   step 6 (an open PR by head branch, merged status); (d) stale-worktree pruning through `nen wc
+   worktrees`; (e) refusing to author on a branch whose PR merged instead of offering breath.
+   [`getsuga`](../claude/skills/getsuga/SKILL.md) § 1.
 8. **Review budgets are per effort; mukai offers en; ten's catch-up resolves mechanical conflicts**
    (2026-09-28). *"The budget should never be per session, but per effort, which usually translates to
    a PR. So, I expect every PR to have fresh budgets for hanten reviews even if started from the same
@@ -956,6 +960,28 @@ amended by this one, and says so in place.
    to stop if when performing 'ao' it encounters conflicts. If conflicts are mechanically solvable, it
    should just happen without asking."* — ten § 6 step 2 runs ao, which resolves mechanical conflicts
    unasked and continues; only a semantic conflict, by ao's own classification, stops at ao's G5.
+9. **Four picker answers of 2026-09-28** — recorded question and answer. **R1** *"getsuga with no token
+   in a repository whose `branch.base` is not `main`?"* — *default `origin/<branch.base>` AND pass
+   `--trunk <branch.base>` to `nen release resolve-target` so the ancestry check uses the same trunk;
+   the `main` and `last-commit` rows read `branch.base` too; the first line after the mode header names
+   the source* ([`getsuga`](../claude/skills/getsuga/SKILL.md) § 1; `scripts/getsuga_default_cut_point_red.sh`).
+   **R2** *"What is an effort for the hanten budget?"* — *a branch PLUS its PR: key the ledger by branch
+   and PR number, so every new PR starts every reviewer fresh even on a reused branch name*
+   (`scripts/hanten_cycle_ledger.sh --pr <N>`, `<branch-slug>-pr<N>.cycle.json`, maxima read from the
+   target's `review.scopes.<scope>.budget`; [`hanten`](../claude/skills/hanten/SKILL.md) § 2b).
+   **R3** *"breath's once-per-session guard?"* — *once per EFFORT, not per session*
+   ([`breath`](../claude/skills/breath/SKILL.md) § 0, [`STANDALONE-ENTRY.md`](STANDALONE-ENTRY.md) § 3).
+   **R4** *"How does mukai offer en when `mukai.autoEn` is false?"* — *as a PICKER question through the
+   surface's native picker (`AskUserQuestion` on Claude Code), after ringing the turn bell (jutaisho
+   rung 1): "start `hatsu:en on <CODE>#<N>` now?" — never started silently; `autoEn` true (only JSON
+   `true`) starts it immediately* ([`mukai`](../claude/skills/mukai/SKILL.md) § 2 → row). The same
+   sitting fixed the pre-PR review findings: ten's bootstrap exit code and private `mktemp -d`
+   (Feitan F1, F5), `GH_TOKEN` never printed and taken from `gh auth token` (F6, Nobunaga F10),
+   `surface_bootstrap.sh --install-all` refusing on a consumer-owned `ten` and migrating a dangling
+   Cursor bootstrap link (Phinks P-1, P-3), ten § 6 wired as every composite's P1 with the phase map
+   corrected (Nobunaga F1–F4, F6, F9, F12; Chrollo C1–C4, C8–C11, C16–C18; Feitan F2–F4), the
+   mukai/en boundary (Nobunaga F5, Chrollo C5–C7, C15), getsuga's tag pre-checks (Nobunaga F7, F8,
+   F13; Chrollo C12, C13; Phinks P-2). Residue: Phinks P-4 (the installed-cache check).
 
 ## Rulings of 2026-09-14 — byakugan owns coverage; kotoamatsukami owns tests
 

@@ -179,6 +179,12 @@ merge algorithm holds the belief. So is a `UU` where both sides changed the same
 > ships somebody's decision that nobody made. `git show :1:` / `:2:` / `:3:` on the path prints the
 > three versions exactly — base, ours, theirs — and that is what the stop shows.
 
+**Under [`ten`](../ten/SKILL.md) § 6's unasked catch-up, two classes are always semantic** whatever
+their shape (ruling 2026-09-28, ROSTER ruling 9): a conflicted path matched by `nen/workflow.json` →
+`review.scopes.security.paths`, and any lockfile — the base's side is not taken and nothing is
+regenerated without the maintainer seeing both sides, because a silent resolution there is a
+supply-chain or credential decision nobody made.
+
 **Resolve the mechanical ones, one at a time, saying what each was and why the resolution was
 determined.** Then re-run the declared build before the merge is committed — a green merge that was
 never built is a claim, not a result.

@@ -507,7 +507,7 @@ there:
 ```
 <the next request, as a plain message>   # another ren turn on the same branch
 /hatsu:aka                               # lint, squash, catch up, push — when YOU decide the branch goes up
-/hatsu:mukai                             # catch-up, review, impacted tests, coverage bar, evidence, one PR, then en's readiness watch
+/hatsu:mukai                             # catch-up, review, impacted tests, coverage bar, evidence, one PR, then the offer of en
 ```
 
 `/hatsu:ren <request>` invokes the loop directly and is the right call in a session that is already warmed
@@ -517,7 +517,7 @@ verified Ready, reports that human gate, and stops; the merge remains yours, lat
 ### On Codex
 
 ```
-$ten                            # once per session: refreshes the mirrors, verifies nen
+$ten                                     # once per session: refreshes the mirrors, verifies nen
 $ren Add a "Clear all" action to the notifications list, with a confirmation sheet
 $aka
 $mukai
@@ -531,7 +531,7 @@ and the full, verified form is under [Using Hatsu on Codex → Headless](#headle
 ### On Cursor
 
 ```
-/ten                            # once per session: links .cursor/skills and .cursor/agents (the links persist), verifies nen and cursor-agent's version
+/ten                                     # once per session: links .cursor/skills and .cursor/agents (the links persist), verifies nen and cursor-agent's version
 /ren Add a "Clear all" action to the notifications list, with a confirmation sheet
 /aka
 /mukai
@@ -862,7 +862,7 @@ apart is what keeps the second class of mistake visible.
   upload) and `mugetsu` (publish, **G3**).
 - **`mukai` is the whole PR side, in a fixed order** — `murasaki`, then `hanten`'s scope-routed review, then
   kotoamatsukami's impacted tests and byakugan's coverage bar, then the evidence, then `shibari` opening one PR and
-  continuing through `en`'s capped readiness watch. Required CI and the owed current-head reviewer round
+  the picker offering `en`'s capped readiness watch (started at once only under `mukai.autoEn`). Required CI and the owed current-head reviewer round
   are observed after every push; opening the PR or reporting either as pending is not success. Reviewers
   advise and never vote; **the merge stays yours**.
 - **Only a genuine G5 interrupts you** — red required tests, touched-file coverage under the ladder's

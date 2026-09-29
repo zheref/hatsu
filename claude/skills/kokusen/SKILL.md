@@ -35,6 +35,9 @@ no report or bell follows it.* § 8 still binds in full.
 
 ## 1. Invocation
 
+**P1 — this run opens with `hatsu:ten kokusen`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
+missing prerequisites under its own name; the phases this run calls skip theirs).
+
 ```
 hatsu:kokusen [against <base>] [--type <feat|fix|chore|docs|refactor|test|perf|build|ci>] [--scope <scope>]
 ```

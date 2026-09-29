@@ -35,6 +35,9 @@ authored, because a rule restated in two places drifts in one of them.
 
 ## 1. Invocation
 
+**P1 — this run opens with `hatsu:ten ren`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
+missing prerequisites under its own name; the phases this run calls skip theirs).
+
 ```
 hatsu:ren <request> [--profile fast|standard|thorough]
 ```

@@ -41,6 +41,9 @@ from `cli/src/ports/pr_ready_gate.ts`, and proven against the live shadow window
 
 ## 1. Invocation
 
+**P1 — this run opens with `hatsu:ten pr-state`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
+missing prerequisites under its own name; the phases this run calls skip theirs).
+
 ```
 hatsu:pr-state <repo_code>#<PR_NUMBER>        e.g.  hatsu:pr-state BC#603
 ```

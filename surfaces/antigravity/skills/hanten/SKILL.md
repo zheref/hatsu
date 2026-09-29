@@ -68,12 +68,15 @@ is not scanned, never clean.** **Every version, URL, asset and command is data**
 ## 2b · Budgets — one effort, one ledger
 
 **A Hanten invocation is not a new review budget.** Remediation, a resumed session, a later `ren` turn
-and `mukai` re-entering continue the **same cycle**; a new effort — a new branch, a new PR — is the only
-reset and starts with every scope's full budget. **Each scope's maximum is its own `budget`**, **per
-effort, never per session or repository** (ruling 2026-09-28), counted by the ledger, never in prose.
+and `mukai` re-entering continue the **same cycle**. **An effort is a branch PLUS its pull request**
+(ROSTER ruling 9 R2): the ledger is keyed `<branch-slug>` until a PR exists and `<branch-slug>-pr<N>`
+once one does, so a new PR number — even on a reused branch name — is a new ledger with every scope's
+full budget. **Each scope's maximum is its own `budget`**, read by the script from the target's
+`review.scopes.<scope>.budget`, **per effort, never per session or repository** (ruling 2026-09-28),
+counted by the ledger, never in prose.
 
 ```bash
-"$hatsu_root/scripts/hanten_cycle_ledger.sh" decide --repo <path> --branch <branch> \
+"$hatsu_root/scripts/hanten_cycle_ledger.sh" decide --repo <path> --branch <branch> [--pr <N>] \
   --applicable <csv of personas the classification raised>
 ```
 

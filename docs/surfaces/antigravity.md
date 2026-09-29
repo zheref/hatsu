@@ -111,7 +111,7 @@ nen surface mirror generate --surface antigravity \
 
 | emits | from |
 |---|---|
-| `surfaces/antigravity/skills/<name>/SKILL.md`, 44 files (forty-three plus `ten`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `/<name>` (anchored on the prefix, never a bare `gsub`) | `claude/skills/**` |
+| `surfaces/antigravity/skills/<name>/SKILL.md`, 45 files (forty-four plus `ten`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `/<name>` (anchored on the prefix, never a bare `gsub`) | `claude/skills/**` |
 | `surfaces/antigravity/agents/<persona>.md`, 12 files (eleven personas plus the preamble include), `model` from the tier where admissible | `claude/agents/**`, `nen/workflow.json` |
 | `surfaces/antigravity/rules/hatsu.md`, under 12,000 characters | the surface row and the matrix |
 | `surfaces/antigravity/hooks.json`: `PreInvocation`, `PreToolUse` on `run_command`, `Stop` | `hooks/hooks.json` |

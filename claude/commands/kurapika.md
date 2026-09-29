@@ -13,7 +13,7 @@ ONE shell: it resolves the Hatsu root — `$HATSU_PLUGIN_ROOT`, else the path yo
 `$CLAUDE_PLUGIN_ROOT`, each accepted only if it is a Hatsu checkout, canonicalised to an absolute path —
 prints it, and reads `nen/contract.json` from it in that same shell; a variable from an earlier shell is never
 what it reads. Read that file yourself — no `jq` — and probe `nen --version` for presence.
-**The range is nen's verdict, not yours: run the warm-up's § 1b block — it sets `$hatsu_root` from the
+**The range is nen's verdict, not yours: run the warm-up's § 1 block — it sets `$hatsu_root` from the
 quoted value § 0 printed and then runs `nen shu tools --repo "$hatsu_root"` in that same shell — and read
 the `nen` row it prints.** Never type the `shu tools` line on its own: the variable lives only in the shell
 that set it. A pin at or above the binary's own

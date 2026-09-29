@@ -515,4 +515,21 @@ mark_adopted "$hostile_target" cursor
 ( cd "$hostile_target" && HATSU_PLUGIN_ROOT="$hostile_root" "$hatsu_root/surfaces/cursor/hooks/session-start.sh" >/dev/null 2>&1 )
 [ ! -e "$hostile_root/EXECUTED" ] || fail "session-start.sh executed scripts/surface_bootstrap.sh out of an unverified HATSU_PLUGIN_ROOT"
 
+# The v0.48.0 rename cases (Phinks P-1 and P-3, docs/ROSTER.md ruling 9):
+# these clone THIS checkout's committed HEAD and the last tree that still
+# shipped hatsu-warmup, so they exercise the upgrade path itself. They need
+# git history reaching the rename; with no such commit reachable they skip.
+if git -C "$hatsu_root" log --format=%H -1 --diff-filter=D HEAD -- claude/skills/hatsu-warmup/SKILL.md 2>/dev/null | grep -q .; then
+  bash "$hatsu_root/scripts/ten_rename_collision_red.sh" || fail "ten rename: --install-all dropped Hatsu's entry for a consumer-owned ten (Phinks P-1)"
+  bash "$hatsu_root/scripts/ten_rename_cursor_bootstrap_red.sh" || fail "ten rename: a bootstrap-only Cursor consumer lost its entry (Phinks P-3)"
+else
+  echo "surface-bootstrap-fixture: rename cases skipped (no hatsu-warmup deletion reachable from HEAD)"
+fi
+# getsuga's default cut point in a non-main-base consumer (ruling 9 R1) needs nen on PATH.
+if command -v nen >/dev/null 2>&1; then
+  bash "$hatsu_root/scripts/getsuga_default_cut_point_red.sh" || fail "getsuga: the documented no-token cut point does not resolve with --trunk <branch.base> (Phinks P-2/R1)"
+else
+  echo "surface-bootstrap-fixture: getsuga default cut point case skipped (nen not on PATH)"
+fi
+
 echo "surface-bootstrap-fixture: Codex, Cursor, and Antigravity first-run bootstrap checks passed"

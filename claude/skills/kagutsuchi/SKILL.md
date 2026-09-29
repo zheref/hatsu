@@ -22,6 +22,9 @@ every phase shares*.
 
 ## 1. Invocation — and who is allowed to say it
 
+**P1 — this run opens with `hatsu:ten kagutsuchi`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
+missing prerequisites under its own name; the phases this run calls skip theirs).
+
 ```
 hatsu:kagutsuchi <target>
 ```

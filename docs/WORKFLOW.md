@@ -107,7 +107,7 @@ There are two execution/policy configuration files, and the split is not stylist
 > range. Wherever this document says *"at the pinned nen `0.7.0`"* it names the build the fact was
 > verified against; [`../nen/contract.json`](../nen/contract.json) is the only place either value is
 > written down, and the warm-up
-> ([`ten`](../claude/skills/ten/SKILL.md) § 1b) reads the verdict rather than computing
+> ([`ten`](../claude/skills/ten/SKILL.md) § 1) reads the verdict rather than computing
 > it.
 
 The reason to keep them apart is that they fail differently. A wrong `project` block produces a wrong
@@ -137,7 +137,7 @@ gets when it declares nothing.
 | Key | Default | Read by |
 |---|---|---|
 | `template` | `{model}/{persona}/{descriptor}` | `breath` (cuts it), `hooks/guard-base-branch.sh` (names it in the refusal) |
-| `base` | `main` | `breath` (fast-forwards it), `ao` (pulls from it), `shibari` (opens against it), `hooks/guard-base-branch.sh` (refuses a commit or a push on it) |
+| `base` | `main` | `breath` (fast-forwards it), `ao` (pulls from it), `shibari` (opens against it), `getsuga` (its default cut point and `--trunk`), `ten` (its orient line and catch-up), `hooks/guard-base-branch.sh` (refuses a commit or a push on it) |
 
 `{model}` is the **model alias** the actor is running on — `opus`, `sonnet`, `haiku`, `fable` — never a
 version. `{persona}` is the roster persona it acts as. `{descriptor}` is a short kebab noun phrase for the
@@ -354,6 +354,16 @@ the latest render and can never be found again after the next turn is not a reta
 git-ignored for the same reason a build output is: it is derived, and a derived file in git is a merge
 conflict waiting to be resolved by coin toss.
 
+### `mukai`
+
+```json
+"mukai": { "autoEn": false }
+```
+
+| Key | Default | Read by |
+|---|---|---|
+| `autoEn` | `false` | `mukai` only. **Only JSON `true` starts `en` immediately** once the PR is open and the landing report rendered; `false`, absent or any other value makes mukai ring the turn bell and ask through the surface's native picker whether to start `hatsu:en on <CODE>#<N>` now (rulings 8 and 9 R4). `nen schema check` tolerates the block (it does not validate it) |
+
 ### `review`
 
 ```json
@@ -369,7 +379,7 @@ One row per scope:
 |---|---|
 | `persona` | the agent file raised for this scope — `claude/agents/<persona>.md`. A scope whose persona has no definition is a **gap**, never improvised past |
 | `tier` | `models.<surface>.<tier>` of the `models` block below, read at use, **never the frontier tier** |
-| `budget` | reviews of this scope **per effort** — one branch, one PR — counted in `.nen/hanten/<branch-slug>.cycle.json`; never per session or repository, and a new PR starts full. Remediation does not reset it (ruling 2026-09-28) |
+| `budget` | reviews of this scope **per effort** — a branch plus its PR — counted in `.nen/hanten/<branch-slug>[-pr<N>].cycle.json` by `scripts/hanten_cycle_ledger.sh`, which reads this value; never per session or repository, and a new PR number starts full. Remediation does not reset it (ruling 2026-09-28, ROSTER ruling 9 R2) |
 | `paths` | prefixes or globs in `nen report data`'s tier-table grammar. **One path may raise several scopes**, and a path no row claims is reported as `unclaimed` |
 
 **`code`'s `paths` is `**`, deliberately: it claims every path**, so Nobunaga is the default reviewer
@@ -802,7 +812,7 @@ It loops. **It never pushes and never opens a pull request.**
 | Phase | What it does | Why it is the human's |
 |---|---|---|
 | [`aka`](../claude/skills/aka/) | lint → squash the unpushed commits → `ao` → re-lint if catch-up moved the tree → push | publishing work is a decision, and a squash is destructive |
-| [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → kokusen checkpoint → `kotoamatsukami` impacted tests → `byakugan` coverage → publish proven updates → evidence → `shibari` opens the PR → landing report → start `en` and end Mukai. **§ 5 is the full shape** | Mukai hands ownership to En; the same user turn continues, and pending is En's in-progress state |
+| [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → kokusen checkpoint → `kotoamatsukami` impacted tests → `byakugan` coverage → publish proven updates → evidence → `shibari` opens the PR → landing report → ring, **offer** `en` through the picker and end Mukai. **§ 5 is the full shape** | En runs on the maintainer's answer (or at once under `mukai.autoEn`); pending is En's in-progress state |
 | **merge** | **G2** (`merge`) and **G4** (`canon-merge`) | never delegated, by any agent, anywhere — with one carve-out, the maintainer's ruling of 2026-09-26 ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-26/27/28*): [`getsuga`](../claude/skills/getsuga/) § 3a merges **its own release-proposal PR** through `nen pr merge --release-unit`, at either row, never a delivery PR |
 | [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always, and `--run` acts only on a call that **names the target** | the blast radius leaves this machine |
 | [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3**: only on a recorded go, with the preflight green and the tag already cut — one target per call; with no target typed, the single declared destination and the latest cut tag with no published release (ruling of 2026-09-28) | the blast radius is other people's users |
@@ -967,7 +977,7 @@ maintainer's to call. Its order is fixed, and each step has exactly one job.
 | **6** | the push half of [`murasaki`](../claude/skills/murasaki/) | **publishes the final proved tree**, and only when this catch-up is a no-op. If it changes any tree path, return to steps 3–5 (kokusen, kotoamatsukami, byakugan) before pushing. Review fixes and byakugan's new tests are working-copy edits; neither of those skills may commit or push; step 8 refuses to open a PR while `HEAD` is ahead of `origin/<branch>` | **G5** on a semantic conflict where the base moved again |
 | **7** | evidence | the changed visual artifacts, from `project.evidence` (§ 3), grouped **suite → scene**, from kotoamatsukami's existing artifacts | not a gate event |
 | **8** | [`shibari`](../claude/skills/shibari/) | composes and opens **one** PR, requests the reviewers and writes the body back | never labels a gate, never merges |
-| **9** | [`spiritual-message`](../claude/skills/spiritual-message/) `as landing` | the landing report, rendered **after** the PR exists because its two extra sections — the PR body and the readiness verdict — are step 8's outputs. Mukai then starts [`en`](../claude/skills/en/) and ends | not a gate event; En owns current-head readiness from the immediate handoff, and the user turn remains active under En while CI/review is pending |
+| **9** | [`spiritual-message`](../claude/skills/spiritual-message/) `as landing` | the landing report, rendered **after** the PR exists because its two extra sections — the PR body and the readiness verdict — are step 8's outputs. Mukai then rings, offers [`en`](../claude/skills/en/) through the picker and ends (starting it only under `mukai.autoEn`) | not a gate event; En owns current-head readiness once started, and the user turn remains active under En while CI/review is pending |
 
 **Four of the five G5 conditions of § 4 live inside this one phase.** That is not an accident of layout: a
 pull request is the moment work stops being private, so it is the moment the honest questions are cheapest to
@@ -987,8 +997,8 @@ carried five reviewers and a four-field shape long after there were six of each.
 `security` is **Feitan's**, `architecture` **Chrollo's**, `ui` **Hisoka's**, `performance`
 **Uvogin's** and `release` **Phinks'**, each raised only by the paths its own row declares. Every row
 carries its `persona`, its `tier` (`models.<surface>.<tier>` of § 2, never the frontier one) and its
-`budget` — the reviews that scope gets per effort (one branch, one PR; never per session), counted in
-`.nen/hanten/<branch-slug>.cycle.json` and never in prose. **Reviewers advise; Kurapika acts** — he
+`budget` — the reviews that scope gets per effort (a branch plus its PR; never per session), counted in
+`.nen/hanten/<branch-slug>[-pr<N>].cycle.json` and never in prose. **Reviewers advise; Kurapika acts** — he
 fixes the finding or pushes back with a cited reason, and a finding that is neither is the **G5** of
 § 4, raised by `hanten` and never by the reviewer. **Pre-PR, a finding's home is the working copy,
 not the tracker**: an issue is filed only when the finding outlives the branch.
@@ -1218,7 +1228,7 @@ verbatim onto Codex and Cursor ([`docs/SURFACES.md`](SURFACES.md)) and `$CLAUDE_
 Code's alone: **the harness exports it while a skill is running, and it is EMPTY in an ordinary tool-call
 shell and inside a subagent** — verified live — and on the two other surfaces it is usually unset or, exported
 from a shell profile, names a different plugin (`docs/surfaces/evidence/surfaces.md` § 8, F3). `$hatsu_root` is the
-resolution [`ten`](../claude/skills/ten/SKILL.md) § 5's prelude runs on every surface,
+resolution [`ten`](../claude/skills/ten/SKILL.md) § 0 runs on every surface,
 each candidate accepted only if it is a Hatsu checkout, the winner canonicalised to an absolute path and
 held in a shell variable that is not exported. **So a code block that uses `$hatsu_root` sets it in that
 block** — `ten` § 0's resolver verbatim (`futon`; `pr-state` and `tensho` read `$HATSU_PLUGIN_ROOT` or the line § 0 printed and re-resolve through the warm-up when neither is in hand, from 0.43.0), or the one-line explicit

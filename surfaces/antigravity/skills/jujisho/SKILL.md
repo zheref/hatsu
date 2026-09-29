@@ -32,7 +32,7 @@ Read from the phase lattice rather than from this file's own numbering, jujisho 
 [`/tensho`](../tensho/SKILL.md)'s composition **run once per axis**:
 
 > per axis: [`kokusen`](../kokusen/SKILL.md) → [`aka`](../aka/SKILL.md) →
-> [`mukai`](../mukai/SKILL.md) → **starts** [`en`](../en/SKILL.md) — **A first**, B stacked on A
+> [`mukai`](../mukai/SKILL.md) → **offers** [`en`](../en/SKILL.md) — **A first**, B stacked on A
 
 **This is a restatement, and it changes no mechanics.** Every section below stands exactly as it is
 written. What the line adds is three things the per-axis reading makes explicit:

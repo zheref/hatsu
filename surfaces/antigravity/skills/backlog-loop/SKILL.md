@@ -22,6 +22,9 @@ compute|record`, `nen changelog collate|completeness|fragment-required`, `nen re
 
 ## 1. Invocation
 
+**P1 — this run opens with `/ten backlog-loop`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
+missing prerequisites under its own name; the phases this run calls skip theirs).
+
 ```
 /backlog-loop <repo_code>
 ```

@@ -25,6 +25,9 @@ structurally cannot, never pretending a wake occurred.
 
 ## 1. Invocation
 
+**P1 — this run opens with `/ten build`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
+missing prerequisites under its own name; the phases this run calls skip theirs).
+
 ```
 /build <product|repo_code>#<issue_number>
 nen parse build --grammar "<code>#<n>" --line "<the raw invocation>"

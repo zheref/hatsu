@@ -69,6 +69,9 @@ of them lives* once the lattice is the map.
 
 ## 1. Invocation
 
+**P1 — this run opens with `hatsu:ten getsuga`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
+missing prerequisites under its own name; the phases this run calls skip theirs).
+
 ```
 hatsu:getsuga [<hash | branch-name | main | last-commit | checkout>]
 ```
@@ -76,23 +79,30 @@ hatsu:getsuga [<hash | branch-name | main | last-commit | checkout>]
 | Token | Resolves to |
 |---|---|
 | *(none)* | **the configuration default**: `origin/<branch.base>`'s tip, re-fetched, `branch.base` read from `nen/workflow.json` — `main` here; plain `main` when the key or the file is absent |
-| `main` | `origin/main`'s tip, re-fetched |
-| `last-commit` | the tip of `origin/main` — the same commit, named the way people say it |
+| `main` | `origin/<branch.base>`'s tip, re-fetched — the trunk the configuration names, whatever it is called (`main` itself here) |
+| `last-commit` | the tip of `origin/<branch.base>` — the same commit, named the way people say it |
 | `<hash>` | that commit |
 | `<branch-name>` | that branch's tip |
 | `checkout` | the current working copy's `HEAD` |
 
 **The cut point is never required** (maintainer's ruling of 2026-09-28, [`ROSTER.md`](../../../docs/ROSTER.md)
-§ Rulings of 2026-09-26/27/28, ruling 7). getsuga always *accepts* an override and never *asks* for
-one: with no token the run's **first line** states the cut point and its source —
-`cut point: origin/main (configuration default: nen/workflow.json branch.base = main)` or
-`cut point: origin/main (no branch.base declared: main)` — and proceeds. `branch.base` is the same
-key breath fast-forwards and ao pulls from, so the default is the trunk the whole workflow already
-agrees on. A typed token always overrides it. **A version-shaped token** (`v?\d+\.\d+\.\d+`, say
-`v0.47.0`) that resolves to no commit or branch is read as **the tag name to cut**, with the cut
-point defaulted as above, and the first line says so: `tag: v0.47.0 (from the token) · cut point:
-origin/main (configuration default …)`. Any other token that resolves to nothing is refused naming
-the five valid forms.
+§ Rulings of 2026-09-26/27/28, rulings 7 and 9). getsuga always *accepts* an override and never
+*asks* for one: with no token the run's **first line after the mode header** states the cut point and
+its source — `cut point: origin/develop (configuration default: nen/workflow.json branch.base =
+develop)` or `cut point: origin/main (no branch.base declared: main)` — and proceeds. `branch.base` is
+the same key breath fast-forwards and ao pulls from, so the default is the trunk the whole workflow
+already agrees on, **and the ancestry check below uses that same trunk** (`--trunk <branch.base>`). A
+typed token always overrides it.
+
+**A version-shaped token** (`v?\d+\.\d+\.\d+`; a missing `v` is normalised, `0.47.0` → `v0.47.0`)
+is checked **against the tags first**: `git rev-parse --verify -q refs/tags/<vX.Y.Z>` succeeding means
+the tag exists and the run is **refused — a tag is never re-cut**. Absent as a tag and resolving to no
+commit or branch, it is read as **the tag name to cut**, with the cut point defaulted as above, and the
+first line after the mode header says so: `tag: v0.47.0 (from the token) · cut point: origin/main
+(configuration default …)`. A tag name that disagrees with the version the manifest and changelog
+carry (`.claude-plugin/plugin.json` `version`, the top `CHANGELOG.md` section) **stops, naming both**
+— the maintainer reconciles, never the skill. Any other token that resolves to nothing is refused
+naming the five valid forms.
 
 **Reached as a [`futon`](../futon/SKILL.md) `then` step on an advance go** — the definition is
 [`mugetsu`](../mugetsu/SKILL.md) § 3's and is not restated here: the step's `@<target>` is the token
@@ -111,20 +121,26 @@ declaration item is set up through its owner (`nen scaffold init`, or `nen/repos
 two hand-run `git` commands:
 
 ```bash
-nen release resolve-target --repo <path to the checkout> --token <token>   # no token typed: --token <branch.base>
+git rev-parse --verify -q '<token>^{commit}' >/dev/null || <refuse: unresolvable, the five forms named>   # a hash or branch token only
+nen release resolve-target --repo <path to the checkout> --token <token> --trunk <branch.base>   # no token typed: --token <branch.base>
 ```
 
-This re-fetches `origin/main` itself, then runs `git merge-base --is-ancestor <resolved>
-origin/main`, and refuses a dirty `checkout` outright (uncommitted work is not in any commit, so
-there is nothing to tag). Verified live against the real `<reference-repo>` (`docs/ab/getsuga.md`
+**The `rev-parse` runs first because `resolve-target`'s exit `1` conflates an unresolvable token with
+a resolved commit that is not an ancestor** — the two need different answers (a refusal naming the
+forms, versus § 6); a distinct exit code is a nen residue, filed as an issue. `--trunk <branch.base>`
+is required, not decoration: nen's `--trunk` defaults to `main`, so in a repository whose
+`branch.base` is `develop` the documented default was refused as *NOT an ancestor of the trunk*
+(`scripts/getsuga_default_cut_point_red.sh`, green since ruling 9). The verb re-fetches
+`origin/<trunk>` itself, runs `git merge-base --is-ancestor <resolved> origin/<trunk>`, and refuses a
+dirty `checkout` outright (uncommitted work is not in any commit, so there is nothing to tag). Verified live against the real `<reference-repo>` (`docs/ab/getsuga.md`
 § 2.1): `--token main` and `--token last-commit` both resolve to the freshly re-fetched
 `origin/main` tip and report `an ancestor of the trunk -- safe to cut`; a branch token pointing at a
 live `integration/*` branch reports `NOT an ancestor of the trunk -- it has to reach the trunk first
 before it can be tagged` — exit `1`, never a refusal to run.
 
 - **Exit `0`** → an ancestor. Proceed to § 2.
-- **Exit `1`** → not an ancestor. It has to reach `main` first (§ 6). **Do not refuse, and do not
-  tag it where it stands.**
+- **Exit `1`** → not an ancestor (the `rev-parse` above already excluded *unresolvable*). It has to
+  reach `<branch.base>` first (§ 6). **Do not refuse, and do not tag it where it stands.**
 
 **A dirty `checkout` is never the cut point.** Hand it to
 [`hatsu:tensho`](../tensho/SKILL.md), which is the verb for that, and resume once its PR lands.

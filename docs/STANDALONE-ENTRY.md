@@ -74,20 +74,24 @@ holding the run. A skill running *inside* a composite skips it entirely: the cal
 established every one of these, and re-deriving them is how two answers to one question appear.
 
 **P1 · Warm up.** [`hatsu:ten <phase>`](../claude/skills/ten/SKILL.md), unconditionally, with the
-phase's own name so ten § 6 catches up that phase's missing prerequisites (ruling 2026-09-28).
+phase's own name so ten § 6 catches up that phase's missing prerequisites (ruling 2026-09-28) —
+**a composite passes its own name** (`hatsu:ten mukai`), and ten prints P2's orient line itself before
+its first change, so a phase reached through it reads that line rather than re-running the verb.
 Hatsu's hard Nen dependency (`D10`) is satisfied by the composites before they reach a phase; a phase
 reached directly has nobody to have done it. A `nen` call on an unwarmed host is the failure this step
 exists to prevent, and it is fail-closed with auto-install.
 
-**A phase that WARMS state, rather than merely reading it, runs at most once per session and is never
-skipped when it is owed** — maintainer's ruling, 2026-09-18.
-[`hatsu:breath`](../claude/skills/breath/SKILL.md) § 0a is the live case, and both halves bind: a
-second run in one session is refused as a repeat rather than performed as a no-op, and a session that
-never ran it is a session working on an unproven base. **The guard is the session's own record, not a
-file on disk**: the ruling is per session, so a later session re-enters the phase and finds the work
-already reflected in the checkout — which is what makes the second pass cheap instead of a repeat. An
-artifact left behind by an earlier run is evidence of state, never a substitute for the session's own
-knowledge of what it has done.
+**A phase that WARMS state, rather than merely reading it, runs at most once per EFFORT and is never
+skipped when it is owed** — maintainer's ruling of 2026-09-18, amended 2026-09-28 (ROSTER ruling 9 R3:
+the unit is the effort — this branch and its PR — not the session).
+[`hatsu:breath`](../claude/skills/breath/SKILL.md) § 0 is the live case, and both halves bind: a
+second run on a branch this effort already cut and proved is refused as a repeat rather than performed
+as a no-op, whichever session asks, and an effort that never ran it is working on an unproven base.
+**The guard is the checkout's own state, read**: `nen wc classify` and the branch's existence off the
+fresh base say whether the effort was warmed, so a later session re-enters the phase and finds the
+work already reflected in the checkout — which is what makes the second pass cheap instead of a
+repeat. An artifact left behind by an earlier run is evidence of state, never a substitute for reading
+the checkout.
 
 **P1b · A phase that must prove a base proves it on a tree holding none of the effort** —
 maintainer's ruling, 2026-09-18. Verifying a base *underneath* work already written produces a red
@@ -223,13 +227,15 @@ where a maintainer believes a change has been reviewed, tested and reported beca
 
 ## 4. Where the preamble does NOT run
 
-- **Inside ANY composite.** A composite establishes P1–P4 itself, so the phase it calls **skips § 0
-  entirely** and **says which composite is holding it**. The condition is generic on purpose: a phase
+- **Inside ANY composite.** A composite establishes P1–P4 itself — **its P1 is `hatsu:ten <its own
+  name>`**, so ten's catch-up runs for the composite, once — and the phase it calls **skips § 0
+  entirely** and **says which composite is holding it**. [`hatsu:ten`](../claude/skills/ten/SKILL.md)
+  § 6 holds `breath` and `ao` the same way. The condition is generic on purpose: a phase
   must not carry a list of its callers, because the list is what goes stale — `sharingan` naming only
   `en` while `build`, `futon`, `getsuga`, `backlog-loop` and `jujisho` all reach it is exactly that
   failure. **Both sides state it**: every composite that calls a `## 0.`-bearing phase carries the
   skip clause — `ren`, `mukai`, `en`, `build`, `futon`, `getsuga`, `backlog-loop`, `tensho`,
-  `jujisho`, `senkei` — and every phase states the generic condition rather than a caller list.
+  `jujisho`, `senkei`, `ten` — and every phase states the generic condition rather than a caller list.
   **The failure this prevents is a composite and a § 0 deriving the same value two ways**: a `build`
   run that passes `sharingan` a PR number must not have § 0 re-derive one from `gh pr list`.
 - **In a skill whose grammar or reading is already total** — it resolves everything from its own

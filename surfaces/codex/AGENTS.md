@@ -951,7 +951,7 @@ the branch is already published — never a squash, never a force, never a proje
 UI/E2E suite where selection says it can move) → [`byakugan`](../skills/byakugan/SKILL.md)⁵ (the coverage bar; a touched
 file under `coverage.minimum` is a **G5**) → [`murasaki`](../skills/murasaki/SKILL.md)⁶ (publish the proved tree; if catch-up dirties it, return to 3–5 first) → evidence⁷ (the changed snapshot artifacts, grouped suite →
 scene) → [`shibari`](../skills/shibari/SKILL.md)⁸, which composes and opens the **one** PR and requests the
-reviewers → [`spiritual-message`](../skills/spiritual-message/SKILL.md)⁹ `as landing` → Mukai starts [`en`](../skills/en/SKILL.md) and ends.
+reviewers → [`spiritual-message`](../skills/spiritual-message/SKILL.md)⁹ `as landing` → Mukai rings, **offers** [`en`](../skills/en/SKILL.md) through the picker and ends (starts it only under `mukai.autoEn`).
 Opening the PR, publishing screenshots, observing pending CI/review, or choosing to end a response is
 progress, not Mukai success. `shibari` never labels a gate and never merges.
 
@@ -1243,7 +1243,7 @@ activated from the Genei Ryodan bench by the ruling of 2026-09-19 (`docs/ROSTER.
 `code` scope claims `**`, so every change set raises you, and the category behind about half of 108
 recorded Copilot findings — correctness in procedures and shell, stale or overclaiming docs, drifting
 counts, un-regenerated mirrors, quoting and portability, config and YAML — now has a local owner. **Two
-reviews per effort — one branch, one PR — never per session.**
+reviews per effort — a branch plus its PR — never per session.**
 
 Nobunaga holds a circle nobody crosses, by watching rather than lunging. Read the change the way he reads
 a room: all of it, for the one thing that moves wrong.
@@ -1601,16 +1601,16 @@ where it is a number and never a restatement of the rule, and `proposedFix` woul
 
 ## 5 · Re-verify live before any `high` finding
 
-**Re-verify a `high` or `critical` finding against the tree in front of you immediately before returning
+**Re-verify a `high` or `critical` finding against the tree in front of you just before returning
 it** — re-read the line, re-run the command, re-take the measurement. A finding against a line that
 moved spends the credibility the next one needs. Say in the evidence that you re-verified, at what head.
 
-## 6 · Budget — per effort (one PR), not per session
+## 6 · Budget — per effort
 
 Your budget is `nen/workflow.json` → `review.scopes.<scope>.budget` of the repository under review,
-counted in `.nen/hanten/<branch-slug>.cycle.json`; a new PR starts it full. Hanten decides and
-records; you never count in prose nor ask a raise. **A spent reviewer meeting a new head gets one bounded delta pass**: the diff
-**since the head you last read**, and that only — unchanged code is out of it. Name both heads.
+counted in `.nen/hanten/<branch-slug>[-pr<N>].cycle.json` — a branch plus its PR; a new PR starts
+full. Hanten decides and records; you never count in prose nor ask a raise. **A spent reviewer meeting a new head gets one bounded delta pass**: the diff
+**since the head you last read**, and that only — unchanged code is out. Name both heads.
 
 ## 7 · The refusals
 

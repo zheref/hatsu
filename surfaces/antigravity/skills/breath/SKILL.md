@@ -15,7 +15,9 @@ and returns. Plugin root and the declaration gate by role: [PROCESS.md](../../..
 [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) carries the shape (`S3`, `P1b`);
 **its rules and guaranteed outcome are [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The
 standalone stash-and-restore shape***. Cold: **P1**, **P2**, then §§ 2–4 with the tree carried by
-`--carry`; from a composite, skip this. **Once per session** — already run: report, return. After
+`--carry`; from a composite — or from [`ten`](../ten/SKILL.md) § 6, which holds it — skip this.
+**Once per effort** (ruling 2026-09-28, ROSTER ruling 9 R3): a branch this effort already cut and
+proved reports and returns, whatever session asks. After
 the restore, § 3a's `init` runs once.
 
 ## 1. Invocation, and the parameters
