@@ -119,6 +119,25 @@ rm -rf "$emptysurf/surfaces"; mkdir -p "$emptysurf/surfaces"
 run 2 "$emptysurf"
 assert_contains "$out" 'holds no generated file to read' 'an empty surfaces/ is exit 2'
 
+# --- the three CommonMark forms: angle-bracketed, titled, reference definition -- resolving and dangling ---
+forms="$fixture_root/forms"
+make_root "$forms"
+cat > "$forms/surfaces/codex/ten/SKILL.md" <<'FORMS'
+# ten
+Angle [ok](<../../../docs/SURFACES.md>) and [bad](<../../../docs/GONE-A.md>).
+Titled [ok](../../../docs/SURFACES.md "the hub") and [bad](../../../docs/GONE-B.md 'gone').
+Reference use [hub][h] and [gone][g].
+
+[h]: ../../../docs/SURFACES.md
+[g]: <../../../docs/GONE-C.md>
+FORMS
+printf '%s\n' '# nested' > "$forms/surfaces/antigravity/skills/ten/SKILL.md"
+run 1 "$forms"
+assert_contains "$out" $'\t../../../docs/GONE-A.md\t' 'an angle-bracketed dangling target is reported (unwrapped)'
+assert_contains "$out" $'\t../../../docs/GONE-B.md\t' 'a titled dangling target is reported (title dropped)'
+assert_contains "$out" $'\t../../../docs/GONE-C.md\t' 'a reference-definition dangling target is reported (unwrapped)'
+assert_contains "$out" '3 of 6 relative link(s) under surfaces/ dangle' 'the three resolving forms count and pass'
+
 # --- --summary prints classes before the verdict ---
 run 1 --summary "$nested"
 assert_contains "$out" 'antigravity · skills (nested) · ../../../docs/' '--summary classifies by surface, kind and prefix'

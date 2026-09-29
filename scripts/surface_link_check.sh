@@ -18,10 +18,13 @@
 # pointed at. Absolute paths, `http(s)://`, `mailto:` and fragment-only links are not relative links
 # and are not judged; a fragment after a relative path is stripped before the path is resolved.
 # Links inside fenced code blocks ARE judged: a mirror renders them as text a reader copies, and a
-# copied dangling path dangles the same. Angle-bracket (`](<x>)`) and titled (`](x "t")`) link forms
-# are not matched; none exists in the mirrors today, and a generator that started writing them would
-# show up as a drop in the checked count. A file this guard cannot read is a wiring refusal (exit 2),
-# never a file with zero links; an empty surfaces/ is exit 2 too.
+# copied dangling path dangles the same. Three CommonMark forms are
+# read: the inline link `](target)`, its angle-bracketed (`](<target>)`) and titled (`](target
+# "title")`, `](target 'title')`) variants, and the reference definition `[label]: target` /
+# `[label]: <target>` (the reference USE `[text][label]` carries no path of its own). A form outside
+# these three is a gap to extend here, never a signal; the fixture proves each. A file this guard
+# cannot read is a wiring refusal (exit 2), never a file with zero links; an empty surfaces/ is
+# exit 2 too.
 #
 # EXIT CODES — the guard contract scripts/surface_mirror_check.sh uses, with one honest gap:
 #   0  every relative link under surfaces/** resolves
@@ -73,6 +76,16 @@ report="$(mktemp "${TMPDIR:-/tmp}/surface-link-check.XXXXXX")"
 files="$(mktemp "${TMPDIR:-/tmp}/surface-link-files.XXXXXX")"
 trap 'rm -f "$report" "$files"' EXIT
 
+# extract_targets FILE -- one link target per line, from the three forms the header names. Inline:
+# the parenthesised part after `](`, an angle-bracketed target unwrapped and a trailing quoted title
+# dropped. Reference definition: the token after `[label]:`, unwrapped.
+extract_targets() {
+  grep -o '\]([^)]*)' "$1" | sed 's/^](//; s/)$//' \
+    | sed -e 's/^[[:space:]]*//' -e 's/^<\([^>]*\)>.*$/\1/' -e "s/[[:space:]]\{1,\}[\"'].*$//" -e 's/[[:space:]]*$//'
+  grep -oE '^[[:space:]]*\[[^]]+\]:[[:space:]]*<?[^[:space:]>]+>?' "$1" \
+    | sed -e 's/^[[:space:]]*\[[^]]*\]:[[:space:]]*//' -e 's/^<//' -e 's/>$//'
+}
+
 # The file list is materialised first so find's own status is checked (a process substitution's
 # status is invisible to set -e); then one file per line, links as `](<target>)`.
 find surfaces -type f \( -name '*.md' -o -name '*.mdc' -o -name '*.toml' \) | sort > "$files" \
@@ -93,7 +106,7 @@ while IFS= read -r file; do
       dangling=$((dangling + 1))
       printf '%s\t%s\t%s\n' "$file" "$link" "$dir/$target" >> "$report"
     fi
-  done < <(grep -o '\]([^)[:space:]]\{1,\})' "$file" | sed 's/^](//; s/)$//')
+  done < <(extract_targets "$file")
 done < "$files"
 
 if [ "$summary" -eq 1 ]; then
