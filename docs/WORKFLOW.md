@@ -482,8 +482,9 @@ forum answer of 2026-08-21 ([`docs/surfaces/cursor.md`](surfaces/cursor.md) § 9
 executor path reported to ignore it and the second `Made-with: Cursor` trailer); **forum-sourced and not
 verified live on this host, which runs no Cursor**. Because the switch is per machine, harness-owned
 and unverified, the guard of record is agent-side: `kokusen` § 5 reads the tip back after every
-`commit write` and `aka` § 7 reads the tip again immediately before `nen wc publish` (after § 5's
-catch-up and § 6's re-lint, so the commit inspected is the commit pushed). **What they classify is an
+`commit write` and `aka` § 7 reads **every outgoing commit** immediately before `nen wc publish` (`git log
+<origin/<branch> | origin/<base>>..HEAD`, after § 5's catch-up and § 6's re-lint — ao may add a merge
+above the squash, so the tip alone would miss the squash parent the push also sends). **What they classify is an
 attribution key, and this is the one rule for it:** a trailer key that ends in `-by` or `-with`
 (case-insensitive — `Co-authored-by`, `Signed-off-by`, `Reviewed-by`, `Generated-by`, `Made-with`) or
 that `commits.forbiddenTrailers` lists is an attribution key; every other key — `Closes`, `Fixes`,
@@ -503,7 +504,7 @@ grep -n '"attributeCommitsToAgent": *false' ~/.cursor/cli-config.json   # no out
 
 | Layer | What refuses | Where it lives | Live at the pinned nen `0.7.0`? |
 |---|---|---|---|
-| **(a)** the **skills'** own refusal — `kokusen` reads the rendered message before it commits and the written tip after (§ 5), `aka` the message before it squashes and the tip again immediately before it pushes (§ 7) | agent-side | this repository | **yes**, and it is the layer Hatsu ships |
+| **(a)** the **skills'** own refusal — `kokusen` reads the rendered message before it commits and the written tip after (§ 5), `aka` the message before it squashes and every outgoing commit immediately before it pushes (§ 7) | agent-side | this repository | **yes**, and it is the layer Hatsu ships |
 | **(b)** the target repository's **`commit-msg` hook**, generated from `allowedAttributionTrailers` by `nen scaffold init` | the target repository's `.git/hooks/` | **target-dependent** — it exists only in a repository `nen scaffold init` has stood up; this week in `zheref/nen`; KroApple and kro-pwa already carry one | **target-dependent** |
 
 > **From nen `v0.6.0` that hook's automated half is DERIVED from the repository's own policy, not a fixed

@@ -270,7 +270,7 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   --format='%(trailers:only,unfold)'`) and the drop of a just-written tip on an injected attribution key
   (`git reset --soft HEAD~1`, row `injected-attribution-trailer`) are the raw calls; the commit is
   `nen commit write --message-file`, gated on `nen commit format`.
-- **`aka`.** The tip's trailer read-back immediately before the push (§ 7 step 0), the same call.
+- **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<origin/<branch> | origin/<base>>..HEAD`.
 
 **Owned dependencies.** `nen commit write` / `nen wc squash` should read back the trailers of the commit they wrote and report an injected key ([zheref/nen#273](https://github.com/zheref/nen/issues/273)); until then the read-back above is prose.
 
