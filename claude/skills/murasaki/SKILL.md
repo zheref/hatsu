@@ -110,6 +110,9 @@ as a next step this run is waiting on, and [`docs/STANDALONE-ENTRY.md`](../../..
 
 ## 1. Invocation
 
+**P1 — this run opens with `hatsu:ten murasaki`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
+missing prerequisites under its own name; the phases this run calls skip theirs).
+
 ```
 hatsu:murasaki [from <base>]
 ```

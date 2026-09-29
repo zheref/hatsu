@@ -486,6 +486,8 @@ def self_test() -> int:
         with LedgerLock(repo, branch, "7"):
             init(repo, branch, "7")
             pr7 = load(repo, branch, "7")
+        # hanten's one-time init of the PR-keyed ledger while the branch-only one already exists.
+        check("init-pr-beside-existing-branch-ledger", ledger_path(repo, branch).is_file() and ledger_path(repo, branch, "7").is_file())
         check("same-branch-new-pr-is-fresh", pr7["reviewers"]["chrollo"]["used"] == 0 and pr7["pr"] == 7 and pr7["slug"].endswith("-pr7"))
         check("same-branch-new-pr-new-file", ledger_path(repo, branch, "7") != ledger_path(repo, branch))
         record(pr7, "chrollo", "ran")

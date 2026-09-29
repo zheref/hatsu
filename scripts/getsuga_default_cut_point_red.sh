@@ -2,7 +2,7 @@
 # Fixture (Phinks, pre-PR, hatsu v0.49.0; green since ruling 9 R1): getsuga's
 # no-token cut point in a consumer whose nen/workflow.json declares a
 # branch.base other than main. claude/skills/getsuga/SKILL.md § 1 spells the
-# call as `nen release resolve-target --repo <path> --token <branch.base>
+# call as `nen release resolve-target --repo <path> --token main
 # --trunk <branch.base>`: nen's --trunk defaults to `main`, so without it the
 # documented default was refused as "NOT an ancestor of the trunk" and the cut
 # point was required after all.
@@ -29,9 +29,9 @@ git -C "$c" -c user.email=t@t -c user.name=t commit -qm work
 git -C "$c" push -q origin develop
 
 base="$(sed -n 's/.*"base"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$c/nen/workflow.json")"
-out="$(nen release resolve-target --repo "$c" --token "$base" --trunk "$base" 2>&1)"; rc=$?
+out="$(nen release resolve-target --repo "$c" --token main --trunk "$base" 2>&1)"; rc=$?
 if [ "$rc" -ne 0 ]; then
-  echo "FAIL: documented default (branch.base=$base, --trunk $base) exit $rc: $out"
+  echo "FAIL: documented default (--token main --trunk $base) exit $rc: $out"
   exit 1
 fi
 echo "ok: default cut point resolves ($out)"

@@ -36,7 +36,11 @@ item is asked for and set up inline (`missing-argument`, `missing-configuration`
 **The cycle ledger is fail-closed**: `.nen/hanten/<branch-slug>.cycle.json` is opened by
 [`breath`](../breath/SKILL.md) § 3a alone, and `decide`/`record`/`show` refuse a missing file. Absent on
 a feature branch → run breath and re-read; still absent is a **lost ledger**, nobody raised. On the
-trunk, headless, or the script refusing → stop. **Never fabricate one.**
+trunk, headless, or the script refusing → stop. **Never fabricate one.** **Once a PR exists** the
+effort's ledger is the PR-keyed one, `<branch-slug>-pr<N>.cycle.json`, and **hanten opens it itself,
+once**: missing → `"$hatsu_root/scripts/hanten_cycle_ledger.sh" init --repo <path> --branch <branch>
+--pr <N>` before the first `decide`; present → never re-`init` (exit `2`). The branch-only ledger stays
+breath's and is not read once the PR-keyed one exists.
 
 ## 2. Classify — `nen review scopes`
 
