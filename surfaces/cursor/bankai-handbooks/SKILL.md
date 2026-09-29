@@ -32,8 +32,8 @@ rule exists to prevent — resolve fresh, every time; never carry a fixed list f
 session or from this file's own prose.
 
 > **The pin is a tag, read from the registry — verify the checkout sits on it** with
-> `git -C <bankai-handbooks checkout> describe --tags --exact-match` before trusting it (a stale local
-> clone silently drifts off the pin; verified live at this port: `v0.6.0`). **`<reference-repo>` is
+> `git -C "$canon" describe --tags --exact-match` (§ 0) before trusting it (a stale local clone
+> silently drifts off the pin; verified live at this port: `v0.6.0`). **`<reference-repo>` is
 > FROZEN and is not read any more**: its `handbooks/` are the pre-migration copy at `v0.11.3`, not
 > canon, and **nothing is ever written to it** — no PRs, no branches, no issues, nothing. A handbook
 > gap found while resolving is a finding to raise to the human (§ 4); its landing repository is now
@@ -49,6 +49,36 @@ session or from this file's own prose.
 > `--repo` at a registry (§ 1) and open the resolved files in the `bankai-handbooks` checkout (§ 2).
 
 ---
+
+## 0. Locate the canon checkout — or fetch it at the pin
+
+The handbooks are files on disk, so every step below needs a checkout of `zheref/bankai-handbooks`
+sitting on the pinned tag. **No nen verb fetches one** (`nen bootstrap` fetches nen itself) — that is
+residue, named here, and the shell below is its one carve-out. It is deterministic: an explicit
+location or a cache slot keyed on the repository, never the cwd; a public, anonymous, read-only clone;
+and the tag re-verified on every run.
+
+```bash
+pin='<nen/repos.json → maintained_tools → zheref/bankai-handbooks → pinned, read by you; e.g. v0.6.0>'
+canon="${HATSU_CANON_CHECKOUT:-${XDG_CACHE_HOME:-$HOME/.cache}/hatsu/canon/zheref/bankai-handbooks}"
+[ -d "$canon/.git" ] || git clone --quiet https://github.com/zheref/bankai-handbooks.git "$canon"
+git -C "$canon" fetch --quiet --tags origin
+git -C "$canon" -c advice.detachedHead=false checkout --quiet "$pin"
+git -C "$canon" describe --tags --exact-match        # must print exactly $pin
+```
+
+- **`$pin` is read off `nen/repos.json`, never remembered** — the same no-`jq` reading `/ten` § 0
+  applies to `nen/contract.json`. A registry entry with no `pinned` is a `missing-configuration`
+  finding, never a fall-back to `main`.
+- **`HATSU_CANON_CHECKOUT`** names a checkout the maintainer already keeps (asked for once as
+  `missing-configuration`, then carried as a shell variable in the block that uses it); absent, the
+  cache slot is used and created on first use. Nothing here writes into the repository itself.
+- **The `describe` line is the gate.** Anything but the pin — a branch, a newer tag, `fatal: no tag
+  exactly matches` — is a **G5** stop naming what it printed, never a read of whatever happens to be
+  checked out. A dirty tree (`git -C "$canon" status --porcelain` non-empty) is the same stop.
+- `/ten` does not yet place this checkout at warm-up — a follow-up for the warm-up, named in the
+  PR that made this port. Until then every run of this skill (and of `bankai-quality`, which reads the
+  same `$canon`) runs this block first.
 
 ## 1. Resolve the scenario
 
@@ -66,13 +96,19 @@ answers today — tried in this order, never guessed past:
    `v0.6.0` it records **no consumers**: the repository is public and the estate's product
    repositories are private, so they are not named there. Every `--target` is therefore refused today
    with the verb's own sentence — verified live at nen `0.15.1`: `nen repo scenario --repo
-   <bankai-handbooks checkout> --target zheref/hatsu` → *"'zheref/hatsu' is recorded in …
+   "$canon" --target zheref/hatsu` → *"'zheref/hatsu' is recorded in …
    nen/repos.json (under 'maintained_tools'), but only a consumers[] entry carries a 'scenario'
    field"*, exit `1`.
 2. **The target's own checkout**, when its `nen/repos.json` records itself under `consumers[]` with a
    `scenario` — verified live at nen `0.15.1` against a registry carrying exactly one such entry:
    `nen repo scenario --repo <that checkout> --target <its slug>` → the scenario, exit `0`, and
    `nen canon resolve` against the same `--repo` → the full set (§ 2).
+
+A repository recorded only under `maintained_tools` — a machinery repository: `zheref/bankai-handbooks`
+itself, `zheref/hatsu`, `zheref/nen` — has no `consumers[]` scenario in **any** registry by construction,
+and both answers above refuse it with the same sentence. That is the expected answer, not a defect to
+repair by writing a registry entry: its scenario is `bankai-machinery`, read from `handbooks/INDEX.md`
+(§ 2) — the one direct read this skill keeps, spelled out in [`bankai-quality`](../bankai-quality/SKILL.md) § 1.
 
 A target neither registry records is a **`missing-configuration`** finding, asked for and set up
 inline (`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4
@@ -100,7 +136,7 @@ the order above is what runs, and an OPEN item stays OPEN.
   with and without a token"*, `nen repo --help`), which closes the finding this port filed against
   `v0.1.0` (`docs/ab/bankai-handbooks.md` § 2.3: the token form read the registry from the process's
   cwd regardless). `BH` is `zheref/bankai-handbooks` in Hatsu's registry and in its own (verified live:
-  `nen repo resolve BH --repo <bankai-handbooks checkout>` → `zheref/bankai-handbooks  (BH)  via code`).
+  `nen repo resolve BH --repo "$canon"` → `zheref/bankai-handbooks  (BH)  via code`).
   `--from` is the no-token form's flag only and is refused beside a token.
 - **No `GH_TOKEN` needed anywhere in this skill.** Both verbs here are pure local-file reads against
   the checkouts on disk — verified live with no token exported at all.
@@ -129,13 +165,13 @@ the order above is what runs, and an OPEN item stays OPEN.
 
 ```bash
 nen canon resolve --repo <registry checkout> --target <owner/name> \
-  --always-load <paths from the bankai-handbooks checkout's handbooks/INDEX.md "Always load" table, comma-separated> \
+  --always-load <paths from "$canon"/handbooks/INDEX.md's "Always load" table, comma-separated> \
   --stack-dir handbooks/stacks \
   --json
 ```
 
 **`--always-load` is caller data — read fresh from `handbooks/INDEX.md`'s own "Always load" table, in
-the `zheref/bankai-handbooks` checkout at the pin, every time.** It is not looked up by the verb; you
+`$canon` (§ 0) at the pin, every time.** It is not looked up by the verb; you
 supply it. It is also not stable: the table grew twice while the retired skill's own copy of it sat
 frozen (three files → four → five, § above). Verified live at `v0.6.0`, it resolves to:
 
@@ -161,8 +197,8 @@ let `--repo` fall back to the cwd silently; that residue is retired.) Never omit
 The verb computes, in one call, both halves the old skill's title promised: the always-load set
 (echoed back for confirmation) and **exactly one** stack handbook, derived directly from the scenario
 `nen repo scenario` returned — never looked up in a table of its own. The paths it returns are
-**relative to the `bankai-handbooks` checkout**, and that is where you open them — at the pinned tag,
-never at a branch. Today's scenario → stack → rule-prefix mapping, read from `handbooks/INDEX.md`'s
+**relative to `$canon`** (§ 0), and that is where you open them — at the pinned tag, never at a
+branch. Today's scenario → stack → rule-prefix mapping, read from `handbooks/INDEX.md`'s
 own stack table at resolve time, never memorized:
 
 | Scenario | Stack handbook | Rule-ID prefix | Platform · UI |
@@ -194,7 +230,7 @@ Quote the resolved set; do not summarize it:
 
 ```
 <owner/name>  (scenario: <scenario>)
-  canon: zheref/bankai-handbooks @ <tag the checkout sits on>
+  canon: zheref/bankai-handbooks @ <tag $canon sits on>  ($canon)
   always load: <alwaysLoad, joined>
   stack handbook: <stackHandbook>
 ```

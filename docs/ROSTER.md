@@ -264,7 +264,7 @@ admitted exactly one key, at a moment when only one plane existed to write it. T
 maintainer's words are the rule:
 
 > A commit carries `Akatsuki-Agent: <persona>` **only** when an Akatsuki roster agent — the autonomous CI
-> plane, `zheref/akatsuki-ai` — made it. A commit made by Hatsu's local roster (Kurapika and the
+> plane, `<ci-plane-repo>` — made it. A commit made by Hatsu's local roster (Kurapika and the
 > independents, on the maintainer's own credentials) carries `Hatsu-Agent: <persona>`. Both are the
 > **system's own provenance**, never an AI-authorship claim; **no other AI attribution trailer is ever
 > recorded**. Existing commits are not rewritten.
@@ -595,19 +595,19 @@ ruling and redacted here per `docs/PUBLIC-REDACTION.md`) — the checkout carryi
 apart and the gate is now decided by which one you named, so the long name is written out everywhere
 and the short one is never used for the canon.
 
-**`zheref/akatsuki-ai` and `zheref/bankai-scaffold` were added on 2026-09-19 — the tension this
+**`<ci-plane-repo>` and `<scaffold-repo>` were added on 2026-09-19 — the tension this
 section recorded is closed.** The first draft of this ruling named three repositories, and this
 paragraph flagged that the one-question test answered *yes* for the CI plane while the enumeration
 answered *no*. **The maintainer resolved it by ruling the test right and the list short**: both
 repositories are canon.
 
-- **`zheref/akatsuki-ai`** — the autonomous CI plane. Its own description is *"canon + agent
+- **`<ci-plane-repo>`** — the autonomous CI plane. Its own description is *"canon + agent
   workflows + Ninjutsu CI CLI"*, and it carries `CONSTITUTION.md`, `agents/`, `canon/` and
   `bootstrap/`. Its workflows run against other repositories, so a merge there changes what they do.
   **The trailer rule is untouched by this**: `Akatsuki-Agent:` is still written only by an Akatsuki
   roster agent, and a Hatsu persona still refuses it. Being canon is about which gate a change to it
   stands at, not about who may sign a commit.
-- **`zheref/bankai-scaffold`** — and this one *sharpens* the rule rather than just extending it. It
+- **`<scaffold-repo>`** — and this one *sharpens* the rule rather than just extending it. It
   carries **no constitution prose at all**: it is a TypeScript package (`source/`, `scripts/`,
   `package.json`). It is canon because **a scaffolder writes the setup into every repository it
   touches**, so merging a change there changes what other repositories do — which is the test,
@@ -616,7 +616,7 @@ repositories are canon.
 
 **So canon is not "the repositories that carry a constitution".** It is the repositories whose
 product is the process, whether they express it as prose, as scripts, or as a deterministic job.
-`zheref/bankai-scaffold` is the case that makes the difference legible.
+`<scaffold-repo>` is the case that makes the difference legible.
 
 ---
 

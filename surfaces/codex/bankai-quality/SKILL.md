@@ -51,17 +51,20 @@ configuration item is asked for and set up inline (`missing-argument`, `missing-
 the picker and written to the `nen/repos.json` entry in the registry's own checkout, on its own
 declaration PR at that repository's gate, then the resolution re-run.
 
-> **The canon repository itself is the one case this verb cannot resolve, and that is expected, not a defect.**
-> A repository cannot be its own consumer, so `zheref/bankai-handbooks` carries no `consumers[]` entry for
-> itself — `nen repo scenario --repo <its checkout> --target zheref/bankai-handbooks` refuses at exit `1`
-> with the *recorded-but-not-a-consumer* reason (*"only a consumers[] entry carries a 'scenario' field"*),
-> exactly as the frozen `<reference-repo>` refused for itself at the port (`docs/ab/bankai-quality.md` § 2.1).
-> The machinery scenario is **`bankai-machinery`** — renamed at handbook set v0.6 from the frozen
-> repository's own name (`handbooks/INDEX.md`; `MIGRATION.md` § 3 there), the **`BC-` prefix kept** —
-> and it is the scenario `INDEX.md` states for the CI plane, the CLI and the local plugin. For a machinery
-> repository no registry records, read that literal from `INDEX.md`, say so, and never route it through
-> this verb as though a registry had answered. This is the one scenario resolution this skill still does
-> by direct read, and only because there is structurally no registry entry to resolve it against.
+> **A machinery repository recorded only under `maintained_tools` is the one class this verb cannot resolve, and that is expected, not a defect.**
+> Only a `consumers[]` entry carries a `scenario`. `zheref/bankai-handbooks` (a repository cannot be its own
+> consumer), `zheref/hatsu` and `zheref/nen` sit under `maintained_tools` in both the public canon registry
+> and Hatsu's own, so `nen repo scenario --repo <either registry> --target <any of the three>` refuses at
+> exit `1` with the *recorded-but-not-a-consumer* reason (*"only a consumers[] entry carries a 'scenario'
+> field"*) — verified live for `zheref/hatsu` at nen `0.15.1`, and exactly how the frozen `<reference-repo>`
+> refused for itself at the port (`docs/ab/bankai-quality.md` § 2.1). That refusal is the expected answer
+> for a machinery repository, not a configuration defect to repair by writing a registry entry. Their
+> scenario is **`bankai-machinery`** — renamed at handbook set v0.6 from the frozen repository's own name
+> (`handbooks/INDEX.md`; `MIGRATION.md` § 3 there), the **`BC-` prefix kept** — the scenario `INDEX.md`
+> states for the CI plane, the CLI and the local plugin. Read that literal from `INDEX.md`, say so, and
+> never route it through this verb as though a registry had answered. This is the one scenario resolution
+> this skill still does by direct read, and only because there is structurally no registry entry to
+> resolve it against.
 
 ## 2. Load the quality canon — always, live, never from memory
 
@@ -73,8 +76,9 @@ declaration PR at that repository's gate, then the resolution re-run.
 3. `handbooks/stacks/<scenario>/architecture.md` — only when a finding needs a stack rule cited
    (`SW-{n}` / `KT-{n}` / `RC-{n}` / `BC-{n}`). Never load another scenario's folder.
 
-All three are read from the `zheref/bankai-handbooks` checkout at the pinned **tag**, never at a branch
-(`git -C <checkout> describe --tags --exact-match` → `v0.6.0`, verified live), and never written to from
+All three are read from the `zheref/bankai-handbooks` checkout that [`bankai-handbooks`](../bankai-handbooks/SKILL.md)
+§ 0 locates or fetches (`$canon`), at the pinned **tag**, never at a branch
+(`git -C "$canon" describe --tags --exact-match` → `v0.6.0`, verified live), and never written to from
 this skill — a gap is a finding (§ *Rules*). The frozen `<reference-repo>`'s pre-migration `handbooks/` copy
 is not read at all.
 

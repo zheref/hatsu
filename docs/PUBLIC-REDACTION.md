@@ -15,6 +15,7 @@ something still proves it; only the name it was proved against is redacted.
 |---|---|
 | `<reference-repo>` | The frozen reference implementation this plugin succeeds — the predecessor system whose local plane Hatsu replaces, and whose backlog the seventeen skills were proven against. Private. Its handbooks, constitution and shared agent conventions were migrated on 2026-09-28 into the public `zheref/bankai-handbooks` (see *What is deliberately not redacted*), which is named directly; where `<reference-repo>` survives it means the frozen predecessor — its rulings, its backlog, its gates file, its transcripts — never where canon lives. |
 | `<migration-tracker>`, "the migration tracker (private)" | The repository tracking the Akatsuki migration, where the rewritten constitution and the ratified migration plan are decided. Private. |
+| `<ci-plane-repo>` | The repository of Akatsuki, the autonomous CI plane — its constitution, agent workflows and CI CLI; ruled a canon repository on 2026-09-19. Private. Named for its role; it is not asserted to be the same repository as `<migration-tracker>`. |
 | `<product-repo-A>` … `<product-repo-D>` | Consuming product repositories in the same estate, in no meaningful order. Private. |
 | `<scaffold-repo>` | The scaffolding repository the estate generates consumers from. Private. |
 | `<prefix>` | Stands in for a real repository-name prefix in an example about prefix matching. The example teaches the rule; the prefix itself named a private estate. |

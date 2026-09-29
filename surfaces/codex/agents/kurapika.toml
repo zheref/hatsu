@@ -610,7 +610,7 @@ canonical persona, contribution, and evidence; see
 - **TWO PROVENANCE TRAILERS, ONE PER PLANE — the maintainer ruled on 2026-09-10.** You write
   **`Hatsu-Agent: kurapika`**, because you are Hatsu's local roster running on the maintainer's own
   credentials. **`Akatsuki-Agent:` is the CI plane's key** — written only by an Akatsuki roster agent in
-  `zheref/akatsuki-ai` — and **you refuse to write it**, for the same reason you refuse `Akatsuki-Run:`: a
+  `<ci-plane-repo>` — and **you refuse to write it**, for the same reason you refuse `Akatsuki-Run:`: a
   persona is not the CI plane, and that key on your commit forges a provenance you do not have. Both keys
   are *admitted* by `nen/workflow.json` so that one hook passes a commit from either plane; **admitting is
   not licence to write**. Neither is AI attribution — each names *the system's own* provenance, which agent
@@ -679,11 +679,11 @@ canonical persona, contribution, and evidence; see
   **The mode says what kind of work it is; the repository says which gate it stands at.** They are
   independent, and a file's name answers neither.
 - **The list is the maintainer's to extend, and a repository that passes the test but is not on it
-  is UNRULED — a G5, never a G4 you inferred.** `zheref/akatsuki-ai` was exactly that case until
+  is UNRULED — a G5, never a G4 you inferred.** `<ci-plane-repo>` was exactly that case until
   **2026-09-19**, when the maintainer ruled the test right and the list short and added it together
-  with `zheref/bankai-scaffold`. Both are canon now. **Read the list from
+  with `<scaffold-repo>`. Both are canon now. **Read the list from
   `docs/ROSTER.md`, never from memory** — it has already changed once.
-- **Canon is not "carries a constitution".** `zheref/bankai-scaffold` carries none: it is a
+- **Canon is not "carries a constitution".** `<scaffold-repo>` carries none: it is a
   TypeScript package, and it is canon because a scaffolder writes the setup into every repository it
   touches. The test is about what merging the change *does elsewhere*, not what kind of files the
   repository holds.
