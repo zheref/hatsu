@@ -84,11 +84,14 @@ the installed-copy check can tell a stale copy from a drifted one. Then, in this
 1. `bash scripts/surface_mirror_check.sh`: one `nen surface mirror check` per surface; exit `1` names
    the class (`missing`, `extra`, `stale`, `hand-edited`), exit `2` means the nen on PATH is not the
    pin: [`ten`](../ten/SKILL.md) installs it (row `missing-tool`) and the check re-runs.
-2. `bash scripts/surface_mirror_check.sh` again on every consumer checkout the request named that carries
-   a whole mirror copy (a symlinked `surfaces/<s>`, Antigravity's global plugin); `--installed` diffs a
-   FULL mirror, so a skills-only placed copy and the Claude Code cache are not checked this way (ten § 5,
-   zheref/hatsu#106) — the warm-up's `surface_bootstrap.sh --install-all` is what refreshes a placed
-   copy, never this skill.
+2. For every consumer the request named whose copy is a WHOLE mirror (Antigravity's global plugin at
+   `~/.gemini/config/plugins/hatsu`, or a symlink into `surfaces/<s>`), the direct verb with the same flags
+   `scripts/surface_mirror_check.sh` passes per surface: `nen surface mirror check --surface <s> <those
+   flags> --installed <that copy>`; a stale copy is reported per path with the stamp it carries. The wrapper
+   itself takes only a Hatsu source root. A skills-only placed copy (`.agents/skills`, `.cursor/skills`) and
+   the Claude Code cache are NOT whole mirrors and read `missing` under `--installed` (ten § 5,
+   zheref/hatsu#106): they are not checked this way, and the warm-up's `surface_bootstrap.sh --install-all`
+   is what refreshes them, never this skill.
 
 The regeneration lands in the **same commit** as the change that caused it.
 

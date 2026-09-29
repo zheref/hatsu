@@ -139,7 +139,7 @@ is the in-tree check `scripts/surface_mirror_check.sh` runs first; the warm-up t
 through `surface_bootstrap.sh --install-all` (ten § 5):
 
 ```sh
-nen surface mirror check --surface cursor <same flags> --installed <repo>/.cursor
+bash scripts/surface_mirror_check.sh "$HATSU_PLUGIN_ROOT"   # source vs surfaces/cursor, which the workspace links point into
 ```
 
 ## 9. Dated checklist

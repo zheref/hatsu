@@ -133,8 +133,8 @@ skills-only and reads `missing` under `--installed` (zheref/hatsu#106), so the w
 `scripts/surface_mirror_check.sh` on the source and then `surface_bootstrap.sh --install-all` (ten § 5):
 
 ```sh
-nen surface mirror check --surface antigravity <same flags> --installed <repo>/.agents
-nen surface mirror check --surface antigravity <same flags> --installed ~/.gemini/config/plugins/hatsu
+bash scripts/surface_mirror_check.sh "$HATSU_PLUGIN_ROOT"                                    # the warm-up's check: source vs surfaces/antigravity
+nen surface mirror check --surface antigravity <same flags> --installed ~/.gemini/config/plugins/hatsu   # a whole mirror copy, by hand
 ```
 
 ## 9. Dated checklist

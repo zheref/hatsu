@@ -492,8 +492,8 @@ if [ "$detected" = "trunk" ]; then
   fi
   # git refuses a fast-forward that would overwrite an untracked file: that refusal is a SKIP with
   # its reason, never a bare death under `set -e` (Chrollo, zheref/hatsu#118 review).
-  git -C "$root" merge --ff-only "origin/$trunk" >/dev/null 2>&1 \
-    || skip_or_refuse "fast-forward refused by git (a working-tree file would be overwritten) · staying at $trunk @$before"
+  ff_err="$(git -C "$root" merge --ff-only "origin/$trunk" 2>&1 >/dev/null)" \
+    || skip_or_refuse "fast-forward refused by git: $(one_line "${ff_err:-no reason printed}") · staying at $trunk @$before"
   after="$(git -C "$root" rev-parse --short HEAD)"
   plugin_ver="$(plugin_version "$root")"
   if [ "$before" = "$after" ]; then

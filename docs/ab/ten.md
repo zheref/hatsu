@@ -56,9 +56,9 @@ Code records `mirrors: not applicable` and places the permission pack only. A ge
 mirroring surface still exits `1` from the same script — a hand-edited `aka/SKILL.md` in the copy above
 read `hand-edited: aka/SKILL.md`, exit 1.
 
-**Residue.** `scripts/surface_mirror_check.sh --installed <cache>` (zheref/hatsu#90's row) compares the
-versioned cache against a layout it does not have and reads every file `missing`; it is not what ten
-runs, and a check that can tell a stale cache from a fresh one is still owed to #90.
+**Residue.** `scripts/surface_mirror_check.sh --installed <cache>` compares the versioned cache against a
+layout it does not have and reads every file `missing`; it is not what ten runs, and a check that can tell a
+stale cache from a fresh one is still owed — zheref/hatsu#122 (its header's #90 citation was the wrong issue).
 
 **After the pre-PR review (2026-09-28).** Feitan showed the walk's answer travelled through a command
 substitution, which strips a trailing newline, so a Hatsu-shaped `p<LF>` beside a plain `p` resolved to

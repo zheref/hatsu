@@ -103,7 +103,7 @@ claude-code --installed <cache>` diffs a target `.claude/` layout Hatsu never pl
 skill `missing` against the cache (measured in `docs/ab/ten.md`), so `ten` § 5 records `mirrors: not
 applicable` here and places the permission pack only; what keeps the cache current is `ten` § 4b
 (`hatsu_plugin_update.sh --auto --claude`, § 1 above). A check that can tell a stale cache from a
-fresh one is still owed to zheref/hatsu#90. There is no marker on this surface because there is no
+fresh one is still owed — zheref/hatsu#122. There is no marker on this surface because there is no
 generated file.
 
 ## 9. Dated checklist
