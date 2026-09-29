@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.54.0 — guided review setup and audited ledger recovery
 
 - Tenkai diagnoses missing review scopes and the active effort's Hanten ledger. Hanten guides a missing ledger through review-history inspection, records a maintainer-confirmed first-cycle recovery, and preserves prior reviewer counts when restoring history. A genuinely lost cycle remains a safety stop.
 
