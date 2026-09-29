@@ -413,7 +413,7 @@ updates the first as well, when it is a consumer checkout.
 | Surface | What "the source" is | How it updates | Then |
 |---|---|---|---|
 | **Claude Code** (GitHub marketplace) | `~/.claude/plugins/cache/hatsu/hatsu/<version>/` — **not a git checkout**; keyed on `plugin.json` `version` | `claude plugin marketplace update` then `claude plugin update hatsu@hatsu -y`. Warm-up runs this with `--auto --claude`. **Restart required.** | Open a new session; `/hatsu:ten` |
-| **Claude Code** (local marketplace `./hatsu`) | the clone you `marketplace add`-ed, **plus** the versioned cache copied from it | `"$HATSU_PLUGIN_ROOT/scripts/hatsu_plugin_update.sh" --channel trunk` (or `--channel release`) on the clone, **then** `claude plugin update hatsu@hatsu -y`. A pull that does not bump `version` leaves the cache on the old slot — that is what [`scripts/plugin_bump_check.sh`](scripts/plugin_bump_check.sh) exists to prevent. | Restart Claude Code |
+| **Claude Code** (local marketplace `./hatsu`) | the clone you `marketplace add`-ed, **plus** the versioned cache copied from it | `"$HATSU_PLUGIN_ROOT/scripts/hatsu_plugin_update.sh" --channel trunk` (or `--channel release`) on the clone, **then** `claude plugin update hatsu@hatsu -y`. The warm-up's `--auto --claude` does both in that order: it reads the marketplace's Directory source from `plugins/known_marketplaces.json`, fast-forwards it when it is clean and on its trunk, and says in the report line when it could not (#118). A pull that does not bump `version` leaves the cache on the old slot — that is what [`scripts/plugin_bump_check.sh`](scripts/plugin_bump_check.sh) exists to prevent. | Restart Claude Code |
 | **Codex** | `$HATSU_PLUGIN_ROOT` (a git clone) | Warm-up `--auto`: trunk fast-forwards `origin/<branch.base>`; a detached `vX.Y.Z` checkout moves to the newest release tag. Hand form: `scripts/hatsu_plugin_update.sh --channel trunk\|release` | `$ten` re-copies `.agents/skills/` |
 | **Cursor** | `$HATSU_PLUGIN_ROOT` (a git clone); workspace `.cursor/skills/<name>` are **symlinks** into `$HATSU_PLUGIN_ROOT/surfaces/cursor/` | Same `--auto` as Codex. A trunk/tag update is most of the update because the links already follow the checkout. | `/ten` repairs lost links and reprints collisions |
 | **Antigravity** (global plugin) | the directory `~/.gemini/config/plugins/hatsu` points at (`ln -s $HATSU_PLUGIN_ROOT/surfaces/antigravity …`) | Update `$HATSU_PLUGIN_ROOT` the same way; the symlink follows. Retarget the symlink only if you changed where the checkout lives. | Restart Antigravity / `agy` |
@@ -1344,17 +1344,22 @@ that already has the plugin installed** — no error, no warning, the fix ships 
 
 [`scripts/plugin_bump_check.sh`](scripts/plugin_bump_check.sh), wired as the
 [`plugin-bump-check`](.github/workflows/plugin-bump-check.yml) workflow, fails a PR that tries. The guarded
-surface is `.claude-plugin/**`, `claude/**`, `nen/**`, `contracts/**`, `docs/ROSTER.md`,
-`docs/delegation-grammar-DRAFT.md`, `hooks/**`, `templates/**`, `surfaces/**`,
-`scripts/surface_bootstrap.sh`, `scripts/hanten_cycle_ledger.sh`,
-`scripts/hatsu_plugin_update.sh` and `.mcp.json` — everything an
+surface is `.claude-plugin/**`, `claude/**`, `nen/**`, `contracts/**`, `hooks/**`, `templates/**`, `surfaces/**`,
+`.mcp.json`, the shipped docs (`docs/ROSTER.md`, `docs/delegation-grammar-DRAFT.md`, `docs/WORKFLOW.md`,
+`docs/DISCOVERY.md`, `docs/LAUNCH-MIGRATION.md`, `docs/AGENT-ATTRIBUTION.md`, `docs/STANDALONE-ENTRY.md`,
+`docs/GATE-CONFIGURATION.md`, `docs/PROCESS.md`, `docs/SURFACES.md`, `docs/PUBLIC-REDACTION.md`) and every
+runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scripts/hanten_cycle_ledger.sh`,
+`scripts/hatsu_plugin_update.sh`, `scripts/hatsu_root.sh`, `scripts/surface_mirror_check.sh`,
+`scripts/permissions_pack.sh`, `scripts/dist_tag.sh`, `scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
+`scripts/report_time.sh`, `scripts/pr_body_evidence_check.sh`) — the one list is `PLUGIN_SURFACE_GLOBS` in the
+script, from which the refusal message is generated; this paragraph is a copy of it — everything an
 installed runtime reads, the generated Codex and Cursor mirrors included: the warm-up reads plugin resources
 from `$CLAUDE_PLUGIN_ROOT`, while first-run bootstrap and the plugin-source updater read their scripts
 from the canonical `$HATSU_PLUGIN_ROOT` checkout. Bump
 `version` (patch for wording, minor for behaviour or a new skill, major for a breaking interface change —
 which the minor carries while Hatsu is on `0.x`, SemVer clause 4, the reading applied to nen's own line);
 or, if a change provably cannot affect the shipped surface, write `no plugin bump: <reason>` in the PR
-body. Recorded refuse/pass transcripts: [`docs/ab/plugin-bump-guard.md`](docs/ab/plugin-bump-guard.md).
+body. **A bump beside mirrors still stamped with the old version fails by name** (zheref/hatsu#99): the guard reads the stamp off each `surfaces/<s>` marker and, when it lags the bumped manifest, prints the old and new stamps and the regeneration command, so the required check names the cause — the bump, fixed by a regeneration — where `surface-mirror-check` reports only the drift; the local catch before a PR opens is mukai's `scripts/surface_mirror_check.sh`. Recorded refuse/pass transcripts: [`docs/ab/plugin-bump-guard.md`](docs/ab/plugin-bump-guard.md).
 
 **The check is required on `main`** by the repository ruleset *main: plugin-bump guard required*
 (`enforcement: active`), so a failing `plugin-bump-check` blocks the merge. It runs through

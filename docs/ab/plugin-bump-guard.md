@@ -723,3 +723,61 @@ malformed head version fails: exit 1
 
 alongside all of the pre-existing cases, unchanged. The fixture file is executable (`chmod 755`),
 matching the exec-bit assertion `plugin-bump-check.yml` already makes on the guard script itself.
+
+## 2026-09-28 — two more guarded rows, and the stamp lag a bump makes necessary (zheref/hatsu#74, #99)
+
+`PLUGIN_SURFACE_GLOBS` gains `docs/SURFACES.md` and `docs/PUBLIC-REDACTION.md` (#74: both are read by an
+installed copy — SURFACES.md is cited by name from hanten § 9a and ten § 5, PUBLIC-REDACTION.md from the
+redaction notice ROSTER.md, STANDALONE-ENTRY.md and the agent definitions carry) and the four runtime
+scripts the criterion "an installed copy reads it" had missed — `scripts/hatsu_root.sh` and
+`scripts/surface_mirror_check.sh` (Phinks's proof on the #105/#106 delivery: a resolver-only fix with no bump
+passed the guard and shipped to nobody), `scripts/permissions_pack.sh` and `scripts/dist_tag.sh`. The header
+cites each document's real citers — `docs/SURFACES.md` is read by ten § 5, `docs/PUBLIC-REDACTION.md` by the
+notice `docs/ROSTER.md`, `docs/STANDALONE-ENTRY.md` and `claude/skills/README.md` carry (Nobunaga corrected the
+older reasons copied from #74). The refusal heredoc was already generated from the array; README's paragraph is
+now a copy that says so.
+
+After a real bump the guard reads the stamp off each `surfaces/<s>` marker (#99) and names the CAUSE on the
+required check — `surface-mirror-check` reports the same drift in the same CI round with no cause attached,
+and mukai's `scripts/surface_mirror_check.sh` is the local catch before a PR opens; the "before the push"
+reason first written for this check was wrong (nothing runs this guard before a push unless a human does),
+Chrollo's delta pass corrected it. A surface with no readable marker is reported `unread`, never as read.
+The run #99 asked for, against the real shas of HA-PR-#95 (`git archive` trees, a constructed base manifest at
+0.43.0 — the guard reads only its `version`; the two heads' own manifests read 0.44.0):
+
+```text
+$ T=$(mktemp -d); mkdir -p "$T/a" "$T/b"; git archive 112f1063 | tar -x -C "$T/a"; git archive a46468a0 | tar -x -C "$T/b"
+$ printf '%s\n' '{"version":"0.43.0"}' > "$T/base.json"; printf 'claude/skills/ten/SKILL.md\n' > "$T/changed.txt"
+$ bash scripts/plugin_bump_check.sh "$T/changed.txt" "$T/base.json" "$T/a/.claude-plugin/plugin.json" /dev/null
+plugin.json version bumped to 0.44.0, but generated files under surfaces/ carry a different stamp:
+  - surfaces/antigravity: stamp(s) 0.43.0 (needs 0.44.0 on every generated file)
+  - surfaces/codex: stamp(s) 0.43.0 (needs 0.44.0 on every generated file)
+  - surfaces/cursor: stamp(s) 0.43.0 (needs 0.44.0 on every generated file)
+A bump restamps every mirror file: the cause is this bump, the fix is a regeneration at stamp 0.44.0, never a source edit (zheref/hatsu#99).
+Regenerate and commit the result: docs/SURFACES.md § 3 is the one owner of the command; scripts/surface_mirror_check.sh reproduces its exact flags per surface.
+exit=1
+$ bash scripts/plugin_bump_check.sh "$T/changed.txt" "$T/base.json" "$T/b/.claude-plugin/plugin.json" /dev/null
+plugin.json version bumped — plugin-bump guard satisfied; surfaces/ stamps read 0.44.0: antigravity, codex, cursor
+exit=0
+```
+
+A head root with no `surfaces/` says `no surfaces/ mirrors under the head tree to scan` and passes; a detached
+head manifest (not at `<root>/.claude-plugin/plugin.json`) skips the check and says so. Every generated marker
+under a surface is read, whatever the file's suffix: a surface whose first file is current and whose others lag
+reads `stamp(s) 0.16.0,0.16.1` and fails; a surface with no marker at all reads `unread`, named in the pass line
+and never counted among the read ones. The head tree is the directory the head manifest sits under
+(`.claude-plugin/plugin.json` → `.`), which is CI's PR checkout, so no workflow argument changed. Fixture:
+eight new guarded-row cases and four stamp-lag cases, `nen shu test --lane plugin-bump-guard` exit 0.
+
+**After the pre-PR review (2026-09-28, Feitan's delta pass).** The PR head is data under
+`pull_request_target`: a marker whose stamp carried a CR and a `::notice` string reached the trusted job's
+log raw (a forged annotation, no privilege), and a symlinked `surfaces/<s>` was followed by `grep -r`. The
+guard now skips a symlinked `surfaces/` or surface directory, accepts a surface name only as `[a-z][a-z-]*`
+(≤ 32) and a stamp only as `[0-9A-Za-z.+-]+` (≤ 64), printing `<malformed>` otherwise — still lagging, so the
+job still fails — and clears `CDPATH` before the `cd`. Two fixture cases: the hostile stamp prints as
+`<malformed>` with no CR in the output; the symlinked surface is not read.
+
+**Copilot round 3 on HA-PR-#121 (2026-09-28).** The surface-name whitelist was a glob (`[a-z][a-z-]*`), whose
+trailing `*` matches anything: `surfaces/ab<CR>/` reached the log. The check is now an anchored character
+class (`*[!a-z-]*` refused, a leading letter, ≤ 32); the fixture proves a CR-bearing and a space-bearing
+directory name are never printed.

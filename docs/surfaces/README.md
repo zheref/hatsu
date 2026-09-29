@@ -56,8 +56,9 @@ nen surface mirror generate --surface <codex|cursor|antigravity> \
 
 
 `nen surface mirror check` takes the same flags and writes nothing; with `--installed <path>` it diffs a
-host's installed copy against a fresh generation instead of the committed mirror, which is what the
-warm-up runs before it copies. Every generated file carries, as its first markdown line after the
+WHOLE mirror copy against a fresh generation instead of the committed mirror — a manual check: the
+warm-up runs the in-tree check and then `surface_bootstrap.sh --install-all`, because a placed copy is
+skills-only and reads `missing` under `--installed` (ten § 5, zheref/hatsu#106). Every generated file carries, as its first markdown line after the
 frontmatter fence (line 1 where there is no fence):
 
 ```text
@@ -126,9 +127,13 @@ Code only prints the warm-up reminder. Adoption is `tenkai`'s, never a hook's
 with `--channel trunk` (ff-only on the base), `--channel release` (newest `vX.Y.Z` tag) or `--auto` (the
 warm-up form: skip on a dirty tree, an authoring branch, a missing `origin`, a diverged trunk, or a fetch
 failure, and say so). `--auto --claude` on Claude Code refreshes the versioned cache through
-`claude plugin update hatsu@hatsu -y` instead of treating it as a checkout. It never discards, never
-force-updates and never touches an authoring branch. Fixture:
-`scripts/hatsu_plugin_update_fixture_check.sh`.
+`claude plugin update hatsu@hatsu -y` instead of treating it as a checkout — after bringing the
+`hatsu` marketplace's Directory source current when it is a git checkout (read from Claude Code's own
+`plugins/known_marketplaces.json`), or stating in the same report line why it could not, because that
+checkout is what `claude plugin update` compares against (zheref/hatsu#118). Untracked files never
+block a trunk fast-forward: only tracked changes read as dirty, and git itself refuses a fast-forward
+that would overwrite one. It never discards, never force-updates and never touches an authoring
+branch. Fixture: `scripts/hatsu_plugin_update_fixture_check.sh`.
 
 ## How the set evolves
 

@@ -232,4 +232,150 @@ case "$(git -C "$malformed" describe --tags --exact-match 2>/dev/null || true)" 
   v[0-9]*.[0-9]*.[0-9]*.*) fail "release channel landed on extra-segment tag" ;;
 esac
 
+# --- untracked files never block a trunk fast-forward (#118) ---
+# Rewind a clean trunk clone one commit, drop an untracked .claude/ beside it (what every Claude
+# Code marketplace checkout carries), and the updater must still fast-forward it.
+untracked="$fixture_root/untracked"
+git clone -q "$origin" "$untracked"
+git -C "$untracked" reset -q --hard HEAD~1
+# A plain untracked file, not a .claude/ path: a host's global excludes may ignore .claude/, and an
+# ignored path is not what this case is about.
+printf 'scratch\n' > "$untracked/scratch-notes.txt"
+[ "$(git -C "$untracked" status --porcelain=v1 -uall)" = '?? scratch-notes.txt' ] || fail "fixture precondition: scratch-notes.txt must read as untracked"
+untracked_out="$("$updater" --root "$untracked" --channel trunk)"
+assert_contains "$untracked_out" 'updated trunk main' 'untracked files must not block a fast-forward'
+assert_contains "$untracked_out" '1 untracked, not blocking' 'the report names the untracked count'
+[ "$(git -C "$untracked" rev-parse HEAD)" = "$(git -C "$seed" rev-parse HEAD)" ] || fail "untracked clone did not fast-forward"
+[ -f "$untracked/scratch-notes.txt" ] || fail "fast-forward removed an untracked file"
+
+# --- an untracked file git would overwrite: a SKIP with its reason, never a bare git death ---
+collide="$fixture_root/collide"
+git clone -q "$origin" "$collide"
+git -C "$collide" reset -q --hard HEAD~1
+printf 'mine\n' > "$collide/README.md.new"
+write_plugin_json "$seed" "$(git -C "$seed" show HEAD:.claude-plugin/plugin.json | sed -n 's/.*"version": "\(.*\)".*/\1/p')"
+printf 'theirs\n' > "$seed/README.md.new"
+commit_tree "$seed" 'adds README.md.new'
+git -C "$seed" push -q origin HEAD:main
+collide_before="$(git -C "$collide" rev-parse HEAD)"
+collide_out="$("$updater" --root "$collide" --auto)"
+assert_contains "$collide_out" 'skipped · fast-forward refused by git' 'a colliding untracked file is a skip with its reason'
+[ "$(git -C "$collide" rev-parse HEAD)" = "$collide_before" ] || fail "colliding clone moved"
+[ "$(cat "$collide/README.md.new")" = mine ] || fail "colliding untracked file was overwritten"
+assert_fails "colliding untracked file was fast-forwarded without --auto" "$updater" --root "$collide" --channel trunk
+
+# --- an IGNORED file that an incoming commit adds: a SKIP naming it, the file intact (Copilot, HA-PR-#121) ---
+ignored_clone="$fixture_root/ignored"
+git clone -q "$origin" "$ignored_clone"
+git -C "$ignored_clone" reset -q --hard HEAD~1
+printf 'local.log\n' > "$ignored_clone/.git/info/exclude"
+printf 'mine\n' > "$ignored_clone/local.log"
+[ -z "$(git -C "$ignored_clone" status --porcelain=v1 -uall)" ] || fail "fixture precondition: local.log must be ignored"
+printf 'theirs\n' > "$seed/local.log"
+commit_tree "$seed" 'adds local.log'
+git -C "$seed" push -q origin HEAD:main
+ignored_before="$(git -C "$ignored_clone" rev-parse HEAD)"
+ignored_out="$("$updater" --root "$ignored_clone" --auto)"
+assert_contains "$ignored_out" 'skipped · fast-forward would overwrite ignored file(s): local.log' 'an ignored file git would overwrite is a skip naming it'
+[ "$(git -C "$ignored_clone" rev-parse HEAD)" = "$ignored_before" ] || fail "ignored-collision clone moved"
+[ "$(cat "$ignored_clone/local.log")" = mine ] || fail "ignored file was overwritten"
+git -C "$seed" rm -q local.log && commit_tree "$seed" 'drops local.log again' && git -C "$seed" push -q origin HEAD:main
+
+# --- --claude on a versioned cache brings the Directory-source marketplace current first (#118) ---
+# A fake `claude` on PATH records its calls and answers the way the real one did in #118; the
+# marketplace registry is Claude Code's own shape, pointed at a clone that is behind origin.
+fake_home="$fixture_root/claude-config"
+mkdir -p "$fake_home/plugins" "$fixture_root/bin"
+claude_log="$fixture_root/claude-calls.log"
+cat > "$fixture_root/bin/claude" <<EOF
+#!/usr/bin/env bash
+printf '%s\n' "\$*" >> "$claude_log"
+case "\$*" in
+  'plugin update hatsu@hatsu -y') echo 'Plugin hatsu is already at the latest version' ;;
+esac
+exit 0
+EOF
+chmod +x "$fixture_root/bin/claude"
+write_registry() {
+  # \$1 = the directory the `hatsu` marketplace points at (JSON-escaped for a plain path)
+  printf '%s\n' '{
+  "claude-plugins-official": {
+    "source": {
+      "source": "github",
+      "repo": "anthropics/claude-plugins-official"
+    },
+    "installLocation": "/nowhere/claude-plugins-official",
+    "lastUpdated": "2026-09-29T00:00:00.000Z"
+  },
+  "hatsu": {
+    "source": {
+      "source": "directory",
+      "path": "'"$1"'"
+    },
+    "installLocation": "'"$1"'",
+    "lastUpdated": "2026-09-29T00:00:00.000Z"
+  }
+}' > "$fake_home/plugins/known_marketplaces.json"
+}
+
+mkt="$fixture_root/marketplace-src"
+git clone -q "$origin" "$mkt"
+mkt="$(CDPATH='' cd -- "$mkt" >/dev/null 2>&1 && pwd -P)"   # the updater reports the canonical path
+git -C "$mkt" reset -q --hard HEAD~1
+mkdir -p "$mkt/.claude/worktrees"     # the untracked dir every marketplace checkout carries
+write_registry "$mkt"
+cache2="$fixture_root/cache2/hatsu/0.14.0"
+write_plugin_json "$cache2" '0.14.0'
+mkt_before="$(git -C "$mkt" rev-parse HEAD)"
+
+# dry-run plans the marketplace fast-forward and moves nothing
+mkt_dry="$(CLAUDE_CONFIG_DIR="$fake_home" PATH="$fixture_root/bin:$PATH" "$updater" --root "$cache2" --auto --claude --dry-run)"
+assert_contains "$mkt_dry" "marketplace source $mkt" 'dry-run names the marketplace source'
+assert_contains "$mkt_dry" 'would run: git merge --ff-only origin/main' 'dry-run plans the marketplace fast-forward'
+[ "$(git -C "$mkt" rev-parse HEAD)" = "$mkt_before" ] || fail "dry-run moved the marketplace checkout"
+[ ! -e "$claude_log" ] || fail "dry-run invoked claude"
+
+# live: the marketplace checkout is fast-forwarded BEFORE claude plugin update, and the line says so
+mkt_live="$(CLAUDE_CONFIG_DIR="$fake_home" PATH="$fixture_root/bin:$PATH" "$updater" --root "$cache2" --auto --claude)"
+assert_contains "$mkt_live" "marketplace source $mkt: updated trunk main" 'live run fast-forwards the marketplace source'
+assert_contains "$mkt_live" 'claude plugin updated' 'live run still refreshes the cache'
+assert_contains "$mkt_live" 'marketplace source at v0.3.0, this cache slot is v0.14.0' 'live run compares the source manifest with the cache slot'
+[ "$(git -C "$mkt" rev-parse HEAD)" = "$(git -C "$seed" rev-parse HEAD)" ] || fail "marketplace checkout was not fast-forwarded"
+grep -qx 'plugin update hatsu@hatsu -y' "$claude_log" || fail "claude plugin update was not invoked"
+grep -qx 'plugin marketplace update' "$claude_log" || fail "claude plugin marketplace update was not invoked"
+
+# the marketplace source on an authoring branch is NOT fast-forwarded, and the line says why
+git -C "$mkt" checkout -q -b feat/mkt-work
+git -C "$mkt" reset -q --hard HEAD~1
+mkt_branch_before="$(git -C "$mkt" rev-parse HEAD)"
+mkt_branch="$(CLAUDE_CONFIG_DIR="$fake_home" PATH="$fixture_root/bin:$PATH" "$updater" --root "$cache2" --auto --claude)"
+assert_contains "$mkt_branch" "marketplace source $mkt NOT brought current: authoring checkout (feat/mkt-work)" 'authoring marketplace source is named, not fast-forwarded'
+assert_contains "$mkt_branch" 'compares against that checkout as it stands' 'the claim is qualified'
+[ "$(git -C "$mkt" rev-parse HEAD)" = "$mkt_branch_before" ] || fail "authoring marketplace checkout was moved"
+
+# no hatsu Directory source in the registry: said, never a bare claim
+write_registry_github() {
+  printf '%s\n' '{
+  "hatsu": {
+    "source": {
+      "source": "github",
+      "repo": "zheref/hatsu"
+    },
+    "installLocation": "/nowhere/hatsu",
+    "lastUpdated": "2026-09-29T00:00:00.000Z"
+  }
+}' > "$fake_home/plugins/known_marketplaces.json"
+}
+printf '%s\n' '{"hatsu":{"source":{"source":"directory","path":"/nowhere"}}}' > "$fake_home/plugins/known_marketplaces.json"   # minified: not the one shape
+mkt_minified="$(CLAUDE_CONFIG_DIR="$fake_home" PATH="$fixture_root/bin:$PATH" "$updater" --root "$cache2" --auto --claude)"
+assert_contains "$mkt_minified" 'registry is present but no hatsu Directory source parsed' 'a registry not in the one shape is named as such, never as current'
+rm -rf "$fake_home/plugins/known_marketplaces.json"
+mkt_noreg="$(CLAUDE_CONFIG_DIR="$fake_home" PATH="$fixture_root/bin:$PATH" "$updater" --root "$cache2" --auto --claude)"
+assert_contains "$mkt_noreg" 'no readable known_marketplaces.json' 'an absent registry is named as such'
+
+write_registry_github
+mkt_none="$(CLAUDE_CONFIG_DIR="$fake_home" PATH="$fixture_root/bin:$PATH" "$updater" --root "$cache2" --auto --claude)"
+assert_contains "$mkt_none" 'registry is present but no hatsu Directory source parsed' 'a GitHub-sourced marketplace is reported as unverified'
+assert_contains "$mkt_none" 'claude plugin updated' 'a GitHub-sourced marketplace still refreshes the cache'
+
 echo 'hatsu-plugin-update-fixture: ok'

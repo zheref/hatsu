@@ -105,8 +105,13 @@ On Claude Code the reviewer is a subagent raised with the harness's Agent tool, 
 **`hanten · <persona> · <model alias>`**; `model` is `models.<surface>.<tier>` for that scope's `tier`,
 read at use, never frontier, and **not passed at all** where the persona's definition pins one;
 `isolation` is **omitted**; the `prompt` carries the checkout path, the scope, the base, the raising
-paths, § 5's shape, **the ABSOLUTE path `$hatsu_root/claude/agents/_review-preamble.md`** (a relative
-one resolves inside the repository under review) and *"do not request a worktree"*.
+paths, § 5's shape, **the ABSOLUTE path `$hatsu_root/claude/agents/_review-preamble.md`**, **the
+ABSOLUTE path of the pinned `nen`** and *"do not request a worktree"*. **A subagent inherits no `PATH`
+binding** (#107): pass the path [`ten`](../ten/SKILL.md) § 2 bound as `nen: <path>` with the pin,
+resolved under ten's `PATH` prefix and checked at `nen --version` (a bare `command -v nen` can name an
+older host binary); the reviewer prefixes it per block (preamble § 2). Unresolvable here, the prompt
+names every Nen-owned check **unread** once, by hanten; one failing at the reviewer's end is the
+reviewer's to declare.
 
 ```bash
 git -C <target repo> worktree add --detach <target repo>/.claude/worktrees/hanten-<persona> HEAD
@@ -115,8 +120,8 @@ git -C <target repo> worktree add --detach <target repo>/.claude/worktrees/hante
 **The isolated checkout makes *never edits non-test source* a property of where the reviewer stands**;
 `.claude/` is git-ignored, and it is removed when the review returns. **Never pass `isolation:
 "worktree"`**: it isolates the *plugin's* repository, not the target.
-**Say what was raised before the reviews come back** — scopes, personas, aliases, gaps, and per
-reviewer `used`/`max` with **raised**, **delta** or **skipped**.
+**Say what was raised before the reviews return** — scopes, personas, aliases, gaps, per reviewer
+`used`/`max` with raised, delta or skipped.
 
 ## 5. One fixed finding shape
 
@@ -162,7 +167,8 @@ carries the whole policy. Hanten only hands over.
 
 § 4's mechanism is Claude Code's; the contract is not. **The adapter contract is
 [PROCESS.md](../../../docs/PROCESS.md) § Surfaces and pickers**, binding here: the worker at the
-scope's tier, the copy is the repository under review, the document is § 5's shape.
+scope's tier, the copy is the repository under review, the document is § 5's shape, and the pinned
+`nen` by absolute path with its pin (§ 4), or none where the worker already carries it (preamble § 2).
 
 ## Authority
 

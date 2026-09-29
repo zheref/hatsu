@@ -47,3 +47,57 @@ tag refused (exit 2) instead of silent exit 1.
 skip, not a release update. A named branch that is not the trunk is never a consumer channel, even
 when `git describe --exact-match` would return a tag. That order was the first fixture failure, then
 the detection rule.
+
+## 2026-09-28 — the marketplace source is part of the claim (zheref/hatsu#118)
+
+Observed on the maintainer's host: the `hatsu` marketplace is a Directory source
+(`~/.claude/plugins/known_marketplaces.json` → `"source": "directory", "path": "/Users/zheref/Code/Agents/hatsu"`),
+so `claude plugin update hatsu@hatsu -y` compares the versioned cache against that checkout and
+reports "already at the latest version" whenever the two agree — 23 commits and four releases behind
+`origin/main` on 2026-09-26..28, because nothing fast-forwarded the checkout. `--claude` now reads that
+registry (one JSON shape, the `hatsu` entry's `source.path` when `source.source` is `directory`),
+re-enters this script on the checkout with `--channel auto --auto` (a clean trunk fast-forwards; an
+authoring branch, a diverged trunk, tracked changes, no origin or a failed fetch skip with the reason),
+and carries the verdict in the report line beside the Claude refresh:
+
+```text
+$ scripts/hatsu_plugin_update.sh --root ~/.claude/plugins/cache/hatsu/hatsu/0.49.0 --auto --claude --dry-run
+would run: git fetch origin
+would run: git merge --ff-only origin/main
+would run: claude plugin marketplace update
+would run: claude plugin update hatsu@hatsu -y
+hatsu-plugin-update: marketplace source /Users/zheref/Code/Agents/hatsu: dry-run · would fast-forward main from e2b704b · dry-run · claude plugin update hatsu@hatsu · plugin 0.49.0
+```
+
+Untracked files no longer read as dirty: only tracked modifications (`git status --untracked-files=no`)
+skip or refuse, because a marketplace checkout always carries an untracked `.claude/` and `git merge
+--ff-only` itself refuses a fast-forward that would overwrite an untracked file. The fixture gained
+five cases: an untracked file beside a behind trunk still fast-forwards (and the count is reported); a
+fake `claude` on `PATH` plus a fixture `CLAUDE_CONFIG_DIR` registry prove the dry run plans the
+marketplace fast-forward and moves nothing, the live run fast-forwards the marketplace clone before
+`claude plugin update` and compares the source manifest with the cache slot, an authoring-branch
+marketplace clone is named `NOT brought current` and left unmoved, and a GitHub-sourced marketplace is
+reported `not a Directory source` while the cache still refreshes. The first fixture run caught a real
+defect — `${dry_run:+--dry-run}` passed `--dry-run` to the sub-run whenever `dry_run` was `0` — fixed
+before this note was written.
+
+**After the pre-PR review (2026-09-28).** Chrollo and Nobunaga both reproduced the one path the
+untracked-file relaxation opened: an untracked file that an incoming commit also adds makes `git merge
+--ff-only` refuse, and under `set -e` the script died with git's text and no report line. The refusal is
+now a skip with its reason (`skipped · fast-forward refused by git (a working-tree file would be
+overwritten) · staying at main @<sha>`), fixture-proven with the file left intact. Feitan showed the self
+re-entry took its path from `$0`, which under `bash -s < script` is `bash` and would have executed
+`./bash` from the working directory: the script now locates itself through `BASH_SOURCE`, re-enters as
+`bash "$self_script"` only when that is a regular file, and otherwise reports the source as not examined;
+the fallback report clause carries one bounded line of the sub-run's output (exit code, last line,
+control characters stripped, 200 characters), never the whole stream; a relative registry path is
+refused; and a registry that exists but is not in the one shape Claude Code writes is named as such,
+distinct from an absent one. The trust anchor is stated in the header: the marketplace checkout's own
+`origin` and branch protection, exactly as for `--channel trunk` on any consumer checkout.
+
+**Copilot round 2 on HA-PR-#121 (2026-09-28).** git refuses a fast-forward that would overwrite an untracked
+file but silently overwrites an IGNORED one, so `--untracked-files=no` alone weakened "never discards work"
+for a `.gitignore`d file an incoming commit also adds. Before the merge the trunk step now intersects the
+incoming paths (`git diff --name-only HEAD origin/<trunk>`) with `git ls-files --others --ignored
+--exclude-standard` and skips on any hit, naming the paths; a fixture case (an ignored `local.log` that
+origin adds) proves the skip and the file intact.
