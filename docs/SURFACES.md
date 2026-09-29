@@ -130,8 +130,8 @@ the ref `nen/contract.json` pins and runs the script from the trusted checkout a
 **required on `main`, pending the ruleset**: listing the `surface-mirror-check` context in the
 repository ruleset is the maintainer's act, named in the PR that lands this; renaming the job silently
 un-requires it. [`surface-mirror-regenerate.yml`](../.github/workflows/surface-mirror-regenerate.yml)
-runs the generator on drift and opens a pull request with the regenerated mirrors, as bankai-core's
-sync-canon did, so a source change merged without its mirrors is repaired by a PR rather than by a
+runs the generator on drift and opens a pull request with the regenerated mirrors, as the frozen `<reference-repo>`'s
+`sync-canon` did, so a source change merged without its mirrors is repaired by a PR rather than by a
 red check nobody reads.
 
 **Not a second lint.** `nen/contract.json`'s `plugin` lane keeps one `lint` seat,

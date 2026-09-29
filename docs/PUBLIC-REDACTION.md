@@ -13,7 +13,7 @@ something still proves it; only the name it was proved against is redacted.
 
 | Placeholder | What it stands for |
 |---|---|
-| `<reference-repo>` | The frozen reference implementation this plugin succeeds — the predecessor system whose local plane Hatsu replaces, and whose backlog the seventeen skills were proven against. Private. |
+| `<reference-repo>` | The frozen reference implementation this plugin succeeds — the predecessor system whose local plane Hatsu replaces, and whose backlog the seventeen skills were proven against. Private. Its handbooks, constitution and shared agent conventions were migrated on 2026-09-28 into the public `zheref/bankai-handbooks` (see *What is deliberately not redacted*), which is named directly; where `<reference-repo>` survives it means the frozen predecessor — its rulings, its backlog, its gates file, its transcripts — never where canon lives. |
 | `<migration-tracker>`, "the migration tracker (private)" | The repository tracking the Akatsuki migration, where the rewritten constitution and the ratified migration plan are decided. Private. |
 | `<product-repo-A>` … `<product-repo-D>` | Consuming product repositories in the same estate, in no meaningful order. Private. |
 | `<scaffold-repo>` | The scaffolding repository the estate generates consumers from. Private. |
@@ -54,11 +54,17 @@ they are the evidence's internal cross-references.
   mention. It is the name of the *system* Hatsu is the local plane of, not the name of a repository;
   redacting it would make the roster and the two provenance trailers unreadable without hiding anything a
   reader could open. Hatsu's own trailer, `Hatsu-Agent:`, is named for the same reason.
-- **Stack handbook names** (`swiftui-tca-uzf-v2`, `compose-uzf-v2`, `react-uzf-v1`) and their rule
-  prefixes. They are canon names carried in the tooling's own fixtures, not repository names.
+- **Stack handbook names** (`swiftui-tca-uzf-v2`, `compose-uzf-v2`, `react-uzf-v1`, `bankai-machinery`) and
+  their rule prefixes. They are canon names carried in the tooling's own fixtures, not repository names;
+  `bankai-machinery` replaced, at handbook set v0.6, a scenario id that *was* the frozen repository's own
+  name, and its `BC-` prefix is kept so existing citations stay valid.
 - **The plugin name "bankai"** where it means the predecessor plugin a reader may already have installed
   (the rollback line in [`README.md`](../README.md)).
-- **Public repositories** — `zheref/nen`, `zheref/kro-pwa`, and this repository — which readers can open.
+- **Public repositories** — `zheref/nen`, `zheref/kro-pwa`, this repository, and **`zheref/bankai-handbooks`**,
+  the canon repository (public, MIT): the Bankai handbooks, `CONSTITUTION.md` (`CON-{n}`) and the shared
+  agent conventions live there since 2026-09-28 (`CON-13`), it is named directly and never placeheld, and
+  the tag Hatsu reads is pinned in `nen/repos.json` (`maintained_tools` → `pinned`). Readers can open every
+  one of these.
 - **Version tags** (`v0.11.3`), issue and PR *numbers*, dates, and every verdict, count and transcript
   line. Facts stay; names go.
 
