@@ -234,3 +234,27 @@ self-reviews and never casts a review vote.
 size `wc -c` now reports, with every verified-live transcript, retired-at-nen callout, findings list
 and incident narrative moved to `CHANGELOG.md` § *History moved out of skill prose*. Every rule the
 prose carried stayed.
+
+## Dated 2026-09-29 — the ceiling is `round_policy`'s two numbers; the exclusion flag rides beside identity (zheref/hatsu#102, #104)
+
+`nen 0.15.1`. § 6 reads N/M from `nen/gates.json` → `round_policy.minRounds`/`.maxRounds` (this repository:
+1 and 3), requests only while requested < M and resolved < N, only through `nen pr request-reviews`, and
+never once N resolved rounds exist; the counts come from the configured reviewer's posted reviews until
+zheref/nen#240 puts them in `--explain`. § 4 adds `--exclude-check <a,b>` from `check_exclusions[]` (empty
+here); `nen pr ready --help` at this pin documents the flag and that an EMPTY rollup after exclusion is
+`not-ready: no checks reported`, never ready — the fail-closed half the skills lean on.
+
+## Dated 2026-09-29 — the reviewer fallback chain, measured at the stop that ruled it
+
+`nen 0.15.1`. `nen pr ready 126 --reviewers "" --approvers ""` still reads `copilot (no round at head)` — the
+target's own `nen/gates.json` wins over the flag — and a derived gates file with `reviewers: []` is refused by
+name (*at base_reviewers, is empty … has to be said somewhere a reviewer will read it, not by omission*), so
+no Hatsu-side narrowing can make the verb read past an exhausted reviewer: the skill says the narrowing, the
+verdict stays quoted as it stands, and the read in `pr ready` is nen's to add (zheref/nen#275). The request that
+registers nothing looks like this at 0.15.1: `nen pr request-reviews --add-bots BOT_kgDOCnlnWA` → `ok: true`,
+message *pending review requests now include bot(s): (none reported back)*; GraphQL `reviewRequests.nodes: []`;
+no `review_requested` timeline event. On HA-PR-#124 the same call registered and Copilot answered in five minutes.
+
+Later the same day § 4's identity-and-exclusion table was folded into pr-state § 2 (the effort-6 review), so the entry above describing § 4 as adding `--exclude-check` reads as history; the flag is pr-state's and § 4 cites it.
+
+**2026-09-29 18:43Z — the chain's second step, live and unrequested.** Cursor Bugbot (`cursor[bot]`, `BOT_kgDODFXTxQ`) reviewed HA-PR-#127 at `0e080a49` with no request from this run (no `review_requested` event; the app reviews on push once installed): four findings, two high, two medium, every one settled in the next commit and its thread replied to and resolved through `nen pr threads`. `nen pr ready` did not count the round — `reviewers[]` carries only `copilot` — so the verdict stayed `not-ready … copilot (no round at head)`; `tenkai diagnose` row `gates/reviewer-fallback` reads the undeclared step as `routed`. Declaring `cursor` in `reviewers[]` would make its round required on every PR (nen requires every configured reviewer at head), which is more than the ruling's *expects Cursor* when Copilot is out — the maintainer's call, put on the desk, not made here.

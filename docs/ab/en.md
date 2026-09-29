@@ -396,3 +396,17 @@ current head (CON-32b): copilot (review requested, not yet posted)` with every c
 about five minutes later with five threads, and the verdict moved to `CON-32(d)`. § 1 names `getsuga` § 3 (where en returns its verdict and rings no bell) and
 `futon`'s chain among the callers that start en, and cites `docs/PROCESS.md` § *Reporting a phase* for the rule
 that every PR a session opens reaches the maintainer through en or with the verdict quoted.
+
+## The round ceiling is two numbers, and the repro is KroApple#577 — 2026-09-29 (zheref/hatsu#102)
+
+On zheref/KroApple#577 (2026-09-22) en requested Copilot **eight** times under a two-round ruling: rounds 2
+through 8 were agent requests on the maintainer's token, each justified by `nen pr ready` reading *a round
+is owed at the current head* — a state the agent's own just-made request had produced (`review_on_push`
+is off there, so nothing else was requesting). The ceiling was prose then, and the requests went out as
+raw GraphQL `requestReviews`, past the verb. § 2 now reads the two numbers from their one home,
+`nen/gates.json` → `round_policy.minRounds` / `.maxRounds` (Hatsu's own keys, preserved by nen as raw
+data; counting them in `--explain` is zheref/nen#240), requests only while requested < M and resolved < N,
+only through `nen pr request-reviews`, and never again once N resolved rounds exist; M reached with fewer
+than N resolved is the reported blocker. Read on this repository at nen 0.15.1: `round_policy` reads
+`minRounds 1, maxRounds 3`, and HA-PR-#126's first request answered *(none reported back)* while the
+verdict read `no round at head` — one requested, none posted, none resolved.

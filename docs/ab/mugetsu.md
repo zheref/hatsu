@@ -266,3 +266,14 @@ no `xcrun notarytool` … Publishing is a human action through App Store Connect
 ## 2026-09-29 — the first publication on an advance go
 
 Go: the maintainer's typed `hatsu:futon hatsu@bug then getsuga+mugetsu`, quoted on HA-PR-#130. Destination: the single declared one (`project.targets` is `{}`; the `plugin` lane's `release` row). Tag: `v0.55.0`, the one this run's getsuga cut, resolving on origin. Preflight at the tagged commit: every row ok except `FAIL tag does not already exist -- 'v0.55.0' already exists` (the inverted row, as § 4 says). `nen shu release --repo . --lane plugin --dry-run` → `would run: bash scripts/release-publish.sh --repo .`; the publisher's own dry run: `gh release create v0.55.0 --repo zheref/hatsu --verify-tag --latest`, notes 30444 bytes, 5 sections, 0 assets, latest yes. The bare line: `ran: bash scripts/release-publish.sh --repo . -- exit 0 in 4682ms`; `gh release view v0.55.0`: published 2026-09-29T18:32:09Z, not draft, not pre-release, latest. The record went to #130 as a comment carrying the go verbatim.
+
+## Dated 2026-09-29 — § 7's host re-pin, after a sitting publishes its own `nen` (zheref/hatsu#90)
+
+`nen 0.15.1`. The step lives here and not in getsuga because getsuga's own Composition ends it at the tag
+and mugetsu never runs from inside it: § 7 is the phase still running when the assets § 5 attached exist.
+The condition is one equality — the target's `origin` (`nen repo resolve --from`) against the plugin's
+`nen/contract.json` → `dependency.source` — the mechanism ten § 2b's verb for the tag read back from the
+release just published (`nen bootstrap --ref v0.15.1 --source zheref/nen --script <fetched>` on this host
+answered `cache hit … checksum verified`, the verified path on its last line). The report line names the
+version on `PATH`; a sitting that skips the step leaves no line. Not exercised against a fresh tag this
+sitting (hatsu's own cut is not nen's).

@@ -867,7 +867,7 @@ It loops. **It never pushes and never opens a pull request.**
 |---|---|---|
 | [`aka`](../claude/skills/aka/) | lint → squash the unpushed commits → `ao` → re-lint if catch-up moved the tree → push | publishing work is a decision, and a squash is destructive |
 | [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → kokusen checkpoint → `kotoamatsukami` impacted tests → `byakugan` coverage → publish proven updates → evidence → `shibari` opens the PR → landing report → ring, **offer** `en` through the picker and end Mukai. **§ 5 is the full shape** | En runs on the maintainer's answer (or at once under `mukai.autoEn`); pending is En's in-progress state |
-| **merge** | **G2** (`merge`) and **G4** (`canon-merge`) | never delegated, by any agent, anywhere — with one carve-out, the maintainer's ruling of 2026-09-26 ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-26/27/28*): [`getsuga`](../claude/skills/getsuga/) § 3a merges **its own release-proposal PR** through `nen pr merge --release-unit`, at either row, never a delivery PR |
+| **merge** | **G2** (`merge`) and **G4** (`canon-merge`) | **the run's own PR, at its terminus, on `branch.base`** — [`en`](../claude/skills/en/) § 5 merges it, at either row ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-29*, ruling 3); [`getsuga`](../claude/skills/getsuga/) § 3a merges **its own release-proposal PR** through `nen pr merge --release-unit`; never another's PR, never past a `gh` refusal |
 | [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always, and `--run` acts only on a call that **names the target** | the blast radius leaves this machine |
 | [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3**: only on a recorded go, with the preflight green and the tag already cut — one target per call; with no target typed, the single declared destination and the latest cut tag with no published release (ruling of 2026-09-28) | the blast radius is other people's users |
 
@@ -903,7 +903,7 @@ attrition. The loop simply stops and waits.
 2. **touched-file coverage under `coverage.minimum`** — in `byakugan`
 3. **a semantic conflict** — in `ao`. A *mechanical* conflict is resolved, not escalated
 4. **an unsettled adversarial finding** — in `hanten`, after Kurapika has fixed it or pushed back with a reason
-5. **a `sharingan` escalation** — a PR that will not reach Ready
+5. **a `sharingan` escalation** — a PR that will not reach Ready. **A declared reviewer exhaustion is not one** (ruling 2026-09-29): the PR is merged by `en` § 5 on hanten's review, `nen/decisions.json` rows `reviewer-exhausted` and `own-pr-merge`, `docs/PROCESS.md` § *Reviewer rounds and review threads*
 
 **A red *iteration* check is not a sixth condition, and the ruling of 2026-09-10 did not make it one.** It is
 fixed where it is found: inside `rasengan`'s inner loop while the change is being written, or by handing the
@@ -970,7 +970,10 @@ scaffolding piece — **does not end the operation**. In order:
    runs on the written file before the operation resumes (the `missing-configuration` row's `refuse`
    list, citing `secret-shape` and `signing-material`). **A frozen or foreign registry** — a reference
    repository such as `<reference-repo>`, another owner's `nen/repos.json` — **is reported, never
-   written.**
+   written.** **A maintainer ruling that changes what readiness reads** — a check not to watch, a
+   reviewer identity, an approval policy — **is `missing-configuration` too** (zheref/hatsu#104): it is
+   written into `nen/gates.json` (`check_exclusions[]`, `reviewers`, `approval_policy`) at that
+   repository's gate and the verb re-read, never carried in prose or a subagent's brief.
 4. **Resume the original operation in the same turn**, with the completed line re-parsed.
 
 **Every skill routes a missing repository declaration through Tenkai's diagnosis and guided
@@ -1660,7 +1663,24 @@ loop, never inherited from the warm-up, never skipped because the last run was g
    returns to rasengan as often as the turn honestly needs, and a red still standing at the end of the
    turn is the next turn's first job, **never a commit "so the fix is saved" and never a narrowed
    check**. **A seat (exit `4`) is not red**: quote the declaration's reason and move on.
-2. **The focused tests for changed executable behaviour, through
+2. **A consumer's canon mirror, where the delta touches `.claude/canon-values.yml`**
+   (zheref/hatsu#111). Regenerate `.claude/rules/` with `nen/workflow.json` →
+   `iteration.canonMirror.command` — an argv array, Hatsu's own key, preserved by `nen schema check`
+   (the README or `iteration.$comment` only while zheref/nen#262 is open and the key is absent, which
+   `tenkai` names as the routed gap) — run locally, never the weekly cron and never a `workflow_dispatch`
+   that can carry the branch into a PR against trunk — and read
+   `git status --porcelain .claude/rules` after it. **A non-zero exit from the command is red** (row
+   `red-lint`). **A non-empty read is the stale mirror caught, not red**: this gate runs before
+   anything is staged, so the regenerated files are what `kokusen` § 4's triage now stages — **they
+   ride this commit, or nothing does**; red is a commit that carries `.claude/canon-values.yml`
+   without them, and a read still non-empty after a second run of the command (a generator that is not
+   idempotent — a finding, reported). Then the correctness
+   read drift cannot give: `grep -rn '<the superseded value>' .claude/rules/` — a hit is a finding
+   (a placeholder column the generator left hardcoded), reported, never passed. The deterministic half —
+   a `nen schema check` row over the bindings — is zheref/nen#262, an owned dependency; until it lands
+   the two reads above are the gate. A consumer with no `.claude/canon-values.yml` reports `canon
+   mirror: not applicable`.
+3. **The focused tests for changed executable behaviour, through
    [`tsukuyomi`](../claude/skills/tsukuyomi/SKILL.md)** — mandatory even where the author already ran
    them for feedback. Map every changed behaviour to its declared scoped lane and run **every
    applicable lane, once each** (`nen shu test --repo <path> --lane <explicit-scoped-lane>`),
@@ -1672,7 +1692,7 @@ loop, never inherited from the warm-up, never skipped because the last run was g
    `missing-focused-route`) — never a stop, never an undeclared runner, never the full suite as a
    substitute. Prose-only, data-only or other non-executable changes report `focused tests: not
    applicable — <reason>`.
-3. **Read the build proof back — ONLY where step 1 ran a green `build` on this lane**, that condition
+4. **Read the build proof back — ONLY where step 1 ran a green `build` on this lane**, that condition
    read off the policy file **before** running `nen commit check --repo <path> --require-proof
    <iteration.lane>`. `.nen/proof/<lane>.json` is written by `nen shu build` and nothing else, so
    **skip the step** where `build` is not in `iteration.checks` (step 1's own green run is the gate)
@@ -1684,7 +1704,7 @@ loop, never inherited from the warm-up, never skipped because the last run was g
    never reported as a red build; exit `2` (a missing flag, a lane escaping the tree, an unreadable
    proof) **stops** and is never folded into "absent". It blocks nothing, so the refusal is the
    skill's. **Never report a missing proof on a seated lane as a red build.**
-4. **This is not the trunk.** `nen wc classify --repo <path> --base <branch.base>` reporting
+5. **This is not the trunk.** `nen wc classify --repo <path> --base <branch.base>` reporting
    `must-move` means the work belongs on a branch first — [`breath`](../claude/skills/breath/SKILL.md)'s
    job. The commit phase commits on a branch or it does not commit.
 

@@ -387,4 +387,4 @@ against G4."*
   `changelog.d/` fragment where one is owed** — all three checked by verb, none by eye.
 - **Never claims readiness by eye** — the verdict § 6 reports is `nen pr ready`'s (whether it
   arrives through `sharingan` or through the fallback check), quoted, or it is not made.
-- **Never merges** — G2 and G4 are the maintainer's.
+- **Never merges** — the merge is `en` § 5's, at the PR's terminus (ruling 2026-09-29 (3)); another's PR is the maintainer's.
