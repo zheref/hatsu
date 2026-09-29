@@ -189,6 +189,8 @@ either operation.
 | `workflow/<join>` in a product | **consumer configuration** | Checks toolchain, test selection and results, coverage, and visual evidence links across the declarations — § 6c |
 | `gates/check-exclusions` | **Hatsu** | **Observation only.** Reads `nen/gates.json` → `check_exclusions[]` (zheref/hatsu#104): none, or every row live, is `satisfied`; a row lapsed, malformed, or carrying a name the flag cannot be handed is `drift`, named — the maintainer removes or re-rules it; the engine never rewrites a gate |
 | `gates/reviewer-fallback` | **Hatsu** | **Observation only.** Reads `nen/gates.json` → `reviewer_fallback` (ruling 2026-09-29): a chain of identities, `terminal: hanten`, a live exhaustion is `satisfied`; a chain step `reviewers[]` does not carry is `routed` (declare it once the app is installed); a lapsed or malformed row, a terminal that is not `hanten`, or the terminal inside the chain is `drift`, named |
+| `workflow/review-scopes` | **consumer configuration** | Guide the owner through `review.scopes` when absent; validate with `nen schema check` before Hanten resumes |
+| `effort/review-ledger` | **Hanten** | On an active effort branch, diagnose the branch ledger or its PR-keyed ledger when one exists; multiple PR candidates route exact-key selection to Hanten. Hanten checks history and uses `recover-first --confirmed-first-cycle` only after the maintainer confirms no review ran under this key; otherwise restore used counts. Tenkai `apply` does not mint a review budget |
 
 **Seven states, and `drift` is the one the whole skill is for:**
 

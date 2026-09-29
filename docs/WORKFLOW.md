@@ -976,6 +976,17 @@ scaffolding piece — **does not end the operation**. In order:
    repository's gate and the verb re-read, never carried in prose or a subagent's brief.
 4. **Resume the original operation in the same turn**, with the completed line re-parsed.
 
+**Every skill routes a missing repository declaration through Tenkai's diagnosis and guided
+readiness pass**, then resumes its own verb after validation. The caller remains responsible for
+its operation; Tenkai owns detection and the setup conversation. An effort artifact is different:
+the `.nen/hanten/` review ledger is local audit state, normally created by Breath when the branch
+starts. Tenkai diagnoses its absence on an active effort branch, but its `apply` cannot create review
+history. Hanten inspects prior review evidence; after the maintainer confirms this is the first
+cycle under the key, Hanten runs `hanten_cycle_ledger.sh recover-first
+--confirmed-first-cycle`, recording the recovery in the file. Otherwise it restores the original
+used counts. Unreconstructable prior review history is a **safety precondition**, not a missing
+configuration value; it stops at G5 rather than issuing a fresh budget.
+
 **What is not a gap — refused, never asked, never softened into a default.** Authored here once;
 [`PROCESS.md`](PROCESS.md) § *Exit codes and refusals* and `claude/rules/hatsu.md` cite this list:
 
