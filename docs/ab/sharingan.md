@@ -243,3 +243,14 @@ never once N resolved rounds exist; the counts come from the configured reviewer
 zheref/nen#240 puts them in `--explain`. § 4 adds `--exclude-check <a,b>` from `check_exclusions[]` (empty
 here); `nen pr ready --help` at this pin documents the flag and that an EMPTY rollup after exclusion is
 `not-ready: no checks reported`, never ready — the fail-closed half the skills lean on.
+
+## Dated 2026-09-29 — the reviewer fallback chain, measured at the stop that ruled it
+
+`nen 0.15.1`. `nen pr ready 126 --reviewers "" --approvers ""` still reads `copilot (no round at head)` — the
+target's own `nen/gates.json` wins over the flag — and a derived gates file with `reviewers: []` is refused by
+name (*at base_reviewers, is empty … has to be said somewhere a reviewer will read it, not by omission*), so
+no Hatsu-side narrowing can make the verb read past an exhausted reviewer: the skill says the narrowing, the
+verdict stays quoted as it stands, and the read in `pr ready` is nen's to add (zheref/nen#275). The request that
+registers nothing looks like this at 0.15.1: `nen pr request-reviews --add-bots BOT_kgDOCnlnWA` → `ok: true`,
+message *pending review requests now include bot(s): (none reported back)*; GraphQL `reviewRequests.nodes: []`;
+no `review_requested` timeline event. On HA-PR-#124 the same call registered and Copilot answered in five minutes.

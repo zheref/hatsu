@@ -67,12 +67,9 @@ maintainer cancelling.
 Ready **iff `nen pr ready` says `ready` AND `nen pr body-check` says every requirement is satisfied**,
 never re-derived by eye (`export GH_TOKEN=$(gh auth token)` first).
 
-- **Both flags on the call — the identity flag and the exclusion flag — are
-  [`pr-state`](../pr-state/SKILL.md) § 2's, stated there once, nothing restated here**: the three-row
-  identity table (own `nen/gates.json` → none; frozen `<reference-repo>` → an absolute
-  `--gates "$hatsu_root/contracts/reference.gates.json"`; anything else → `--reviewers` plus explicit
-  `--approvers`, by hand, named on the page) and `check_exclusions[]`'s live rows as
-  `--exclude-check <a,b>` (zheref/hatsu#104), the verdict quoted with the exclusion named.
+- **Both flags on the call — identity and exclusion — are [`pr-state`](../pr-state/SKILL.md) § 2's,
+  stated there once, nothing restated here**; the verdict is quoted with any exclusion named
+  (zheref/hatsu#104).
 - **Relay the provenance line** (`decided by nen <version> (<path>) at <timestamp>`) verbatim, and
   `meta.dependabotCarveOut` where declared — `ready` through it is `ready`; a not-ready one needs
   green shim contexts, not a round.
@@ -118,11 +115,9 @@ logged** (object, label, time) in the stop.
 **The ceiling is two numbers in one declared home** — `nen/gates.json` → `round_policy.minRounds`
 (**N**) and `.maxRounds` (**M**), Hatsu's own keys, never copied into prose (zheref/hatsu#102). **A round is requested only while requested < M
 AND resolved < N**, and only through `nen pr request-reviews` — never a raw GraphQL `requestReviews`,
-never `gh api`. A round is *resolved* when every finding it posted is fixed in a pushed commit, replied
-to and its thread resolved; *requested* counts this run's own requests plus the one `nen pr ready`
-row 4 reports in flight. Until zheref/nen#240 counts them in `--explain`, the count is a **read, never a request** — the
-configured reviewer's posted reviews (`gh api …/pulls/<n>/reviews`, logins by
-`gates.reviewers[].login_pattern`) plus this run's own requests — residue.
+never `gh api`. *Resolved*: every finding it posted fixed in a pushed commit, replied to, its thread resolved;
+*requested*: this run's own requests plus the one `nen pr ready` row 4 reports in flight. Until zheref/nen#240 counts them in `--explain`, the count is a **read, never a request** (`gh api …/pulls/<n>/reviews`, logins by
+`gates.reviewers[].login_pattern`, plus this run's own requests) — residue.
 **An owed round inside both bounds is re-requested without asking** (row `cap-reached`); **once N
 resolved rounds exist no further round is requested — *owed at head* after your own push or request
 is not a reason** (KroApple#577); **never after a push that
@@ -133,12 +128,15 @@ git rev-list --count <reviewed-head>..HEAD
 git diff --stat <reviewed-head>..HEAD
 ```
 
-**Copilot auto-reviews every push, so the cap governs requests, not arrivals; an arrival past the
-cap is still remediated and settled.** **Either bound reached ends the run** — M requested, or N resolved with the verdict still not-ready
+**The cap governs requests, not arrivals; an arrival past it is still remediated and settled.** **Either bound reached ends the run** — M requested, or N resolved with the verdict still not-ready
 (a round owed at head that no bound lets the run request is a named impossible condition, not a state
 to poll) — not-ready with `nen pr ready --explain` quoted and the board, never a question, never a G5,
 never a ceiling raised in-session; `monitor.maxCycles` is en's acting cap, a different
-number.
+number. **A reviewer whose credits are exhausted is declared, never guessed** — `nen/gates.json` →
+`reviewer_fallback` (ruling 2026-09-29; PROCESS § *Reviewer rounds* has the mechanics): the next name in
+`chain` is requested where the gate knows its identity; with the chain exhausted **hanten's rounds are
+the review**: the PR goes to its merge prompt, the verdict quoted as it stands — `not-ready (CON-32(b):
+reviewer <name> exhausted)`, never `ready`.
 
 **Round completeness, thread hygiene (`nen pr threads list|reply|resolve`) and the Copilot request
 (`nen pr request-reviews --add-bots <node id>`, verified by `nen pr ready`, never REST) are

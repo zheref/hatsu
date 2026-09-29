@@ -16,6 +16,12 @@
       "why": "Ruling 2026-09-19, bounded by zheref/hatsu#102: an owed reviewer round is requested on the maintainer's behalf, through nen pr request-reviews only, while this PR's requested rounds are under nen/gates.json round_policy.maxRounds AND its resolved rounds are under round_policy.minRounds (never asked about); once minRounds resolved rounds exist no further round is requested -- 'owed at head' after the run's own push or request is not a reason -- and maxRounds with fewer resolved is the reported blocker: the run ends at not-ready with the board and nen pr ready --explain quoted, never with a question, never a number raised in-session. nen/workflow.json monitor.maxCycles is en's ACTING-cycle cap, a different number."
     },
     {
+      "id": "reviewer-exhausted",
+      "class": "autonomous",
+      "default": "read nen/gates.json reviewer_fallback; request the next reviewer in chain through nen pr request-reviews, or, with the chain exhausted, present the PR at its merge prompt on hanten's rounds with nen pr ready's verdict quoted as it stands",
+      "why": "Ruling 2026-09-29: when a configured reviewer's credits are exhausted (a live reviewer_fallback.exhausted[] row), the run does not wait on it and does not ask -- the next reviewer in the chain is requested where the gate knows its identity, and with the chain exhausted the local hanten review rounds are the review and the PR goes to the maintainer's merge prompt, the verdict quoted as not-ready on that one row, never claimed ready. The merge stays the maintainer's (G4)."
+    },
+    {
       "id": "red-lint",
       "class": "autonomous",
       "default": "hand the tree back to hatsu:rasengan with the failing check quoted",

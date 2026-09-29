@@ -166,6 +166,25 @@ condition is confirmed); a row past its `until` date. The day is your `reports.t
 and the row says which. nen preserves the key; validating it is zheref/nen#249. An empty array is a
 decision: nothing is excluded.
 
+### `reviewer_fallback` — when a reviewer's credits run out
+
+```json
+"reviewer_fallback": {
+  "chain": ["copilot", "cursor", "hanten"],
+  "exhausted": [ { "reviewer": "copilot", "reason": "credits exhausted", "ruled": "2026-09-29", "until": "condition: the credits are restored" } ]
+}
+```
+
+**Hatsu's own key** (ruling 2026-09-29; the rule is [`sharingan`](../claude/skills/sharingan/SKILL.md) § 6's):
+a configured reviewer whose credits are exhausted is **declared**, as a dated row shaped like a
+`check_exclusions` row, never inferred from a request that silently registers nothing. The skills then
+request the next name in `chain` where `reviewers[]` carries its identity (declare Cursor's review bot
+there once its app is installed; a chain step with no identity is `missing-configuration`), and with the
+chain exhausted the local hanten rounds are the review: the PR is presented at its merge prompt with
+`nen pr ready`'s verdict quoted as it stands — `not-ready (CON-32(b): reviewer <name> exhausted)`, never
+`ready`. The merge stays yours. nen reads neither key (the owned dependency is zheref/nen#275), and
+`tenkai diagnose` does not yet read this one — a lapsed row here is yours to notice until it does.
+
 ---
 
 ## 4. Validate it, and read the pointer

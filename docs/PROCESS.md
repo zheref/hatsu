@@ -220,6 +220,18 @@ nen pr request-reviews --target <owner/name> --pr <n> [--add-reviewers <a,b>] [-
 **Verify with `nen pr ready`, never REST** (REST shows a pending bot as `[]`): *no round at head* is
 one owed; *review requested, not yet posted* is one in flight — wait.
 
+**The fallback chain** (ruling 2026-09-29, `docs/ROSTER.md` § *Rulings of 2026-09-29*; the rule is
+[`sharingan`](../claude/skills/sharingan/SKILL.md) § 6's). A request the mutation accepts with no pending
+reviewer coming back — `(none reported back)`, no `review_requested` event — is not a request; it is the
+signal to read `nen/gates.json` → `reviewer_fallback`. **An exhaustion is declared, dated, never guessed**:
+a live `exhausted[]` row naming the configured reviewer moves the read to the next name in `chain`,
+requested through the verb where `gates.reviewers[]` carries its identity (a chain step with no identity
+is `missing-configuration`: Cursor's review bot is declared once its app is installed); with the chain
+exhausted, **hanten's rounds are the review** — the PR is presented at its merge prompt (`en` § 5), the
+verdict quoted as it stands, `not-ready (CON-32(b): reviewer <name> exhausted)`, never `ready`, and the PR
+body says which review it had. nen reads neither key; an exhausted-reviewer read in `pr ready` is the
+owned dependency zheref/nen#275.
+
 ## Resuming a run
 
 **A composite run is resumable by re-invocation, never by memory.** The same call re-reads live state

@@ -267,6 +267,11 @@ step and § 8 do not run: en hands the quoted `nen pr ready` + `body-check` verd
 back to getsuga, rings no bell and poses no `MERGE` ask, because § 3a is that PR's merge (ROSTER ruling 4);
 the bell rings only where § 3a falls back to the declaration gate.
 
+**Under a live `reviewer_fallback` exhaustion with the chain exhausted** (ruling 2026-09-29,
+[`sharingan`](../sharingan/SKILL.md) § 6), the bell rings when the verdict's one failing row is the
+exhausted reviewer's — quoted as `not-ready (CON-32(b): reviewer <name> exhausted)`, never `ready` —
+and the `MERGE` ask says the review was hanten's; the merge stays the maintainer's.
+
 Step 6 is [`/jutaisho`](../jutaisho/SKILL.md) `at <G2|G4>`, with the gate
 [`shibari`](../shibari/SKILL.md) derived and `sharingan` confirmed. It owes all four of that skill's
 parts — the `nen stop` banner, the report link, lettered options with a ⭐ on the recommended decision — the report linked, never an option (Crazy Slots), and the

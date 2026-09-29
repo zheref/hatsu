@@ -137,7 +137,11 @@ a quote, a metacharacter, a lapsed or malformed date — **is refused at the dec
 on the call**: `tenkai diagnose` names it `drift`, the verdict is read without it and quoted as it
 stands, **never `ready` on a row nobody could pass** and never a check dropped by a split name. The
 row `CON-32(a)` then reads by eye is the one the declaration owes nen (zheref/nen#249), and reading it
-by eye is the failure this flag exists to end.
+by eye is the failure this flag exists to end. **An exhausted reviewer is the same shape one key over**
+— `reviewer_fallback.exhausted[]`, ruling 2026-09-29, [`sharingan`](../sharingan/SKILL.md) § 6 — read
+the same way: the row named, the verdict quoted as it stands, never `ready`; nen has no exhausted-reviewer
+read yet (zheref/nen#275), so the narrowing is the skill's to say, never a `--gates` file with the reviewer
+struck out, which nen refuses (*an empty base set … has to be said somewhere a reviewer will read it*).
 
 **Always the `$hatsu_root`-anchored form when `--gates` is the one in play, never a bare `contracts/reference.gates.json`.** The
 reason moved with nen `v0.2.0` (#86) and the practice did not: a **relative** `--gates` now resolves
