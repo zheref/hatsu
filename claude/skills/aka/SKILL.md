@@ -158,21 +158,7 @@ git -C <path> cat-file -e <the SHA ls-remote printed>^{commit} \
   || git -C <path> fetch origin <branch>
 # 4. the squash, --onto the point the table names
 nen wc squash --repo <path> --onto <the SHA ls-remote printed | origin/<base>> --message-file <file>
-# 5. read the squash commit back (zheref/hatsu#66): a harness can append a trailer at `git commit` time
-git -C <path> log -1 --format='%(trailers:only,unfold)'
 ```
-
-**Step 5 is the last read before the remote.** Any trailer key not in
-`commits.allowedAttributionTrailers` — keys compared case-insensitively, as `nen commit format` and
-`nen wc squash` compare them — is a stop with a default (`nen/decisions.json` row
-`injected-attribution-trailer`, [`kokusen`](../kokusen/SKILL.md) § 5): the squash commit is above the
-squash point by construction, so it is unpublished, and the run re-squashes once the harness's
-off-switch is set ([WORKFLOW](../../../docs/WORKFLOW.md) § `commits`; a `missing-configuration` ask, never
-a file this skill writes). **A commit at or below the squash point that carries one is published and
-is never rewritten** (row `rewrite-published-history`): it is named in the PR body by
-[`shibari`](../shibari/SKILL.md), outside the attribution ledger, and the switch is fixed before the
-next commit. The read-back and the verb's own report differ on purpose: the verb reports the message
-file's trailers, the read-back the commit's ([nen#273](https://github.com/zheref/nen/issues/273)).
 
 **`ls-remote` is the stated default, and the fetch of `<branch>` is the fallback.** The two are not
 equivalent and the difference is not stylistic:
@@ -361,9 +347,26 @@ test run.
 ## 7. Push — or first-publish
 
 ```bash
+git -C <path> log -1 --format='%(trailers:only,unfold)'          # 0. read the tip that is about to be pushed (zheref/hatsu#66)
 nen wc publish --repo <path> [--dry-run] [--json]                  # already published
 nen wc publish --repo <path> --set-upstream [--dry-run] [--json]   # first publish: also sets upstream
 ```
+
+**Step 0 is the last read before the remote, and it runs here** — after § 4's squash, § 5's catch-up
+(ao may merge or rebase and replace `HEAD`) and § 6's re-lint — so the commit inspected is the commit
+pushed. A harness can append a trailer at `git commit` time. **An attribution key** —
+[WORKFLOW](../../../docs/WORKFLOW.md) § `commits`'s one rule: a key ending `-by`/`-with` or listed in
+`commits.forbiddenTrailers`; `Closes` and its kind are ordinary and never compared — **outside
+`commits.allowedAttributionTrailers`** (keys compared case-insensitively, as `nen commit format` and
+`nen wc squash` compare them) is a stop with a default (`nen/decisions.json` row
+`injected-attribution-trailer`, [`kokusen`](../kokusen/SKILL.md) § 5): a tip above the squash point is
+unpublished by construction and is re-squashed once the maintainer answers row
+`harness-attribution-switch` (their own toggle; no file this skill writes). **A commit at or below the
+squash point that carries one is published and is never rewritten** (row `rewrite-published-history`):
+it is disclosed by [`shibari`](../shibari/SKILL.md) § 3 as its own checklist line, outside the
+attribution ledger, and the switch is fixed before the next commit. The read-back and the verb's own
+report differ on purpose: the verb reports the message file's trailers, the read-back the commit's
+([nen#273](https://github.com/zheref/nen/issues/273)).
 
 **RETIRED at nen `0.13`: the push is a verb.** `wc publish` pushes the current branch to `origin`
 and nothing else: it refuses a detached `HEAD`, the trunk and any refspec or force form at exit `2`,
@@ -431,7 +434,7 @@ that content.
 ## Authority
 
 - **Permitted on the maintainer's own aka call:** run the declared lint row; reset and re-commit
-  **unpushed** commits, the re-squash on an injected attribution key included (§ 4 step 5); invoke [`hatsu:ao`](../ao/SKILL.md); push a **non-base** branch, including a
+  **unpushed** commits, the re-squash on an injected attribution key included (§ 7 step 0); invoke [`hatsu:ao`](../ao/SKILL.md); push a **non-base** branch, including a
   first publish that sets upstream.
 - **Not permitted:** opening or touching a PR; any label; any merge of the base; any force-push;
   any rewrite of a commit that exists on the remote; `--no-verify`; pushing `branch.base`; running

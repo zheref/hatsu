@@ -482,11 +482,17 @@ forum answer of 2026-08-21 ([`docs/surfaces/cursor.md`](surfaces/cursor.md) § 9
 executor path reported to ignore it and the second `Made-with: Cursor` trailer); **forum-sourced and not
 verified live on this host, which runs no Cursor**. Because the switch is per machine, harness-owned
 and unverified, the guard of record is agent-side: `kokusen` § 5 reads the tip back after every
-`commit write` and `aka` § 4 reads the squash commit back before the push, both stopping on any
-attribution key outside `allowedAttributionTrailers` (case-insensitively, as nen compares) with the
-default `nen/decisions.json` row `injected-attribution-trailer` states — the just-written commit is
-dropped or re-squashed, the switch is a `missing-configuration` ask, a published commit is never
-rewritten. Layer (b), where a repository carries it, is the only mechanical refusal in that path; this
+`commit write` and `aka` § 7 reads the tip again immediately before `nen wc publish` (after § 5's
+catch-up and § 6's re-lint, so the commit inspected is the commit pushed). **What they classify is an
+attribution key, and this is the one rule for it:** a trailer key that ends in `-by` or `-with`
+(case-insensitive — `Co-authored-by`, `Signed-off-by`, `Reviewed-by`, `Generated-by`, `Made-with`) or
+that `commits.forbiddenTrailers` lists is an attribution key; every other key — `Closes`, `Fixes`,
+`Refs`, `See-also` — is an ordinary trailer, permitted above, and never compared. An attribution key
+outside `allowedAttributionTrailers` (keys compared case-insensitively, as nen's layer (c) compares) is
+a stop with the default `nen/decisions.json` row `injected-attribution-trailer` states — the
+just-written commit is dropped or re-squashed; the switch is row `harness-attribution-switch`, an ask
+the maintainer answers by toggling the harness (no skill writes that file); a published commit is never
+rewritten and is disclosed by `shibari` in the PR body's checklist. Layer (b), where a repository carries it, is the only mechanical refusal in that path; this
 repository does not carry it.
 
 ```bash
@@ -497,7 +503,7 @@ grep -n '"attributeCommitsToAgent": *false' ~/.cursor/cli-config.json   # no out
 
 | Layer | What refuses | Where it lives | Live at the pinned nen `0.7.0`? |
 |---|---|---|---|
-| **(a)** the **skills'** own refusal — `kokusen` reads the rendered message before it commits and the written tip after (§ 5), `aka` the message before it squashes and the squash commit after (§ 4) | agent-side | this repository | **yes**, and it is the layer Hatsu ships |
+| **(a)** the **skills'** own refusal — `kokusen` reads the rendered message before it commits and the written tip after (§ 5), `aka` the message before it squashes and the tip again immediately before it pushes (§ 7) | agent-side | this repository | **yes**, and it is the layer Hatsu ships |
 | **(b)** the target repository's **`commit-msg` hook**, generated from `allowedAttributionTrailers` by `nen scaffold init` | the target repository's `.git/hooks/` | **target-dependent** — it exists only in a repository `nen scaffold init` has stood up; this week in `zheref/nen`; KroApple and kro-pwa already carry one | **target-dependent** |
 
 > **From nen `v0.6.0` that hook's automated half is DERIVED from the repository's own policy, not a fixed

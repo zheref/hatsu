@@ -62,6 +62,10 @@ expected and named in § 5's line, never a G5.
 
 ## 3. The body
 
+**A published injected attribution trailer** ([`aka`](../aka/SKILL.md) § 7, zheref/hatsu#66) is
+disclosed as its own `## Completion checklist` line — `injected attribution trailer: <sha> <key>,
+published before the switch; not rewritten` — not in the ledger.
+
 **The body is [`templates/pr-body.md`](../../../templates/pr-body.md), filled** — its nine parts in
 order, § 4's three checks commented at its top. The target's own
 template governs the section *names* where it has one, and **the `UZF-26` evidence shape is

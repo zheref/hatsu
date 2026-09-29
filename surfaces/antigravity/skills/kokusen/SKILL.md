@@ -128,14 +128,14 @@ makes the commit: it validates the file as `commit format` does, refuses a red p
 index, and reports `{sha, subject, trailers}`.
 
 **Then read the tip back** — `git log -1 --format='%(trailers:only,unfold)'` (§ 6 residue): a
-harness can append a trailer at `git commit` time, after `commit format` accepted the message —
-Cursor's `Co-authored-by: Cursor <…>` (zheref/hatsu#66). **Any trailer key outside
-`commits.allowedAttributionTrailers`, compared case-insensitively as nen's layer (c) does, is a stop
-with a default** (`nen/decisions.json` row `injected-attribution-trailer`): the tip just written is
-unpublished by construction, so **drop it with `git reset --soft
-HEAD~1`** — never an earlier commit, never an amend — and raise the off-switch as a
-`missing-configuration` ask ([WORKFLOW](../../../docs/WORKFLOW.md) § `commits` names Cursor's; no
-skill writes a harness file); then re-run. `aka` § 4 reads its squash commit back before the push. Never `--no-verify`.
+harness can append a trailer at `git commit` time — Cursor's `Co-authored-by: Cursor <…>`
+(zheref/hatsu#66). **An attribution key outside `commits.allowedAttributionTrailers` is a stop with a
+default** — [WORKFLOW](../../../docs/WORKFLOW.md) § `commits`'s rule: a key ending `-by`/`-with` or in
+`forbiddenTrailers`, case-insensitive; `Closes` is ordinary (`nen/decisions.json` row
+`injected-attribution-trailer`): the tip just written is unpublished by construction, so **drop it
+with `git reset --soft HEAD~1`** — never an earlier commit, never an amend — and ask once for the
+switch (row `harness-attribution-switch`, the maintainer's toggle); then re-run. `aka` § 7 reads the
+tip again before the push. Never `--no-verify`.
 
 ## 6. Residue
 

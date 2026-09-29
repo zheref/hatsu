@@ -24,8 +24,36 @@
     {
       "id": "injected-attribution-trailer",
       "class": "autonomous",
-      "default": "git reset --soft HEAD~1 on the tip this step just wrote (kokusen § 5) or re-squash (aka § 4), then the missing-configuration ask for the harness off-switch",
-      "why": "Ruling 2026-09-28 (zheref/hatsu#66): a trailer key outside commits.allowedAttributionTrailers on a commit a Hatsu step just wrote is a harness injection (Cursor's Co-authored-by), compared case-insensitively as nen's layer (c) does. The just-written tip is unpublished by construction and is dropped, never amended; the switch is the maintainer's harness configuration, asked once, never written by a skill; a published commit is row rewrite-published-history."
+      "default": "git reset --soft HEAD~1 on the tip this step just wrote (kokusen § 5) or re-squash (aka § 7), then row harness-attribution-switch for the off-switch",
+      "why": "Ruling 2026-09-28 (zheref/hatsu#66): an ATTRIBUTION key (docs/WORKFLOW.md § commits: a trailer key ending in -by or -with, or listed in commits.forbiddenTrailers; Closes and its kind are ordinary and untouched) outside commits.allowedAttributionTrailers on a commit a Hatsu step just wrote is a harness injection (Cursor's Co-authored-by), keys compared case-insensitively as nen's layer (c) does. The just-written tip is unpublished by construction and is dropped, never amended; a published commit is row rewrite-published-history."
+    },
+    {
+      "id": "harness-attribution-switch",
+      "class": "ask-once-per-run",
+      "default": "ask once: the harness's commit-attribution switch is the maintainer's own configuration outside the repository, toggled by their hand; no skill writes it. On their word the dropped commit is re-run (kokusen § 5) or re-squashed (aka § 7)",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "toggle the harness switch off, then re-run the step",
+          "command": "the maintainer toggles it (Cursor: Settings → Git & Pull Requests → Commit Attribution off, or attribution.attributeCommitsToAgent=false in ~/.cursor/cli-config.json), then kokusen § 5 re-runs nen commit write / aka § 7 re-squashes",
+          "consequence": "the re-written commit reads back clean; nothing in the repository changes",
+          "recommended": true
+        },
+        {
+          "key": "B",
+          "label": "re-run the step from a surface whose harness appends nothing",
+          "command": "the same nen commit write / nen wc squash from that surface",
+          "consequence": "the branch is committed there; the switch stays for the maintainer to set later"
+        },
+        {
+          "key": "C",
+          "label": "leave the tip dropped and stop here",
+          "command": "nen stop --who Kurapika --gate G5 <efforts.md>",
+          "consequence": "the working copy keeps the change uncommitted; named in Not delivered"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Ruling 2026-09-28 (zheref/hatsu#66, Copilot round 1 on HA-PR-#124): missing-configuration's default writes the item through its owner, which a harness file outside the repository never has; this row gives the picker an action that resumes after the maintainer toggles it."
     },
     {
       "id": "missing-focused-route",
