@@ -49,6 +49,22 @@ need one command before their first warm-up:
 which seeds only `ten`; that skill's every-session refresh calls the same script with
 `--install-all`. Fixture: `scripts/surface_bootstrap_fixture_check.sh`.
 
+**Authoring the plugin: the tree is named, never trusted by itself** (zheref/hatsu#67). When the working
+tree is a Hatsu checkout — its `.claude-plugin/plugin.json` names `hatsu` — and its manifest version is
+newer than the resolved candidate's, [`scripts/hatsu_root.sh`](../scripts/hatsu_root.sh) **keeps the
+candidate** (a directory's claim about itself never picks the root later steps run scripts from) and says
+on stderr which pin this session bound, that the skill bodies already inlined are that pin's, where to
+read the tree's protocol (`<checkout>/claude/skills/<name>/SKILL.md`) and the quoted
+`export HATSU_PLUGIN_ROOT='<checkout>'` — candidate 1, the maintainer's word — that binds the tree from
+the next session. The effective order is unchanged: `$HATSU_PLUGIN_ROOT`, the handed path,
+`$CLAUDE_PLUGIN_ROOT`; the tree is a fourth only in the sense that it is named. Three limits, stated:
+the line exists from the first installed pin whose resolver carries it (0.53.0 or later — `ten` § 0
+runs the bound pin's own resolver, so an older pin says nothing and the export is the only form); on
+Claude Code the slash-skill bodies are always the installed pin's (no mirror, § 2), so binding the tree
+there is a plugin-install question, not this script's; on Cursor, whether the linked `.cursor/skills/`
+outranks the Claude cache is unverified ([`cursor.md`](surfaces/cursor.md) § 10). Fixture: the
+tree-is-named cases of `scripts/hatsu_root_fixture_check.sh`.
+
 **The invocation spelling is the mirror's.** Every `hatsu:<name>` in a skill body is rewritten by the
 generator because `--invocation-prefix hatsu:` tells it the source's namespace; `hatsu:` is caller data
 and nen hard-codes no system's vocabulary.

@@ -256,7 +256,7 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
 
 - **`ten`.** Copying a mirror (the drift check is nen's), composing `AGENTS.override.md`,
   writing `info/exclude` and proving it took, the first install on Codex and Cursor, resolving the
-  plugin root and updating the plugin source are done by the warm-up's scripts and by hand: no nen
+  plugin root (and ordering the checkout's manifest version against the bound pin's, zheref/hatsu#67) and updating the plugin source are done by the warm-up's scripts and by hand: no nen
   verb owns a checkout's local exclude, and where Hatsu is checked out is the host's property.
   Cursor's version check is a string compare on a date part; the host-global half of the skill-name
   collision question has no answer from inside a repository.
@@ -266,10 +266,13 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
 - **`getsuga`.** The release proposal's base read-back after a retarget (`gh pr view <N> --json
   baseRefName`), because nen exposes no read of a PR's base (zheref/hatsu#98); the retarget itself is
   `nen pr retarget`.
-- **`kokusen`.** The explicit per-path `git add` is the one raw call left; the commit is `nen commit
-  write --message-file`, gated on `nen commit format`.
+- **`kokusen`.** The explicit per-path `git add`, the tip read-back (`git -C <path> log -1
+  --format='%(trailers:only,unfold)'`) and the drop of a just-written tip on an injected attribution key
+  (`git -C <path> reset --soft HEAD~1`, row `injected-attribution-trailer`) are the raw calls; the commit is
+  `nen commit write --message-file`, gated on `nen commit format`.
+- **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`.
 
-**Owned dependencies.**
+**Owned dependencies.** `nen commit write` / `nen wc squash` should read back the trailers of the commit they wrote and report an injected key ([zheref/nen#273](https://github.com/zheref/nen/issues/273)); until then the read-back above is prose.
 
 - **`nen report data` derives less than a page needs**
   ([zheref/nen#258](https://github.com/zheref/nen/issues/258)). It does not derive `effortStage`,
