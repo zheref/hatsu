@@ -516,3 +516,34 @@ pinned `0.7.0`; the same pair was recorded at `v0.5.0` in [`rasengan.md`](raseng
 `1` on a seated lane is correct rather than awkward: the verb reports the absence of a proof, and
 deciding what an absence means on a lane that declares a seat is the caller's, which is what
 `SKILL.md` § 3 now does explicitly.
+
+## 2026-09-28 — the injected trailer is caught at the written commit (zheref/hatsu#66)
+
+HA-PR-#64's `4ee8ce3`, `c202034`, `516ed5f`, `75c8ce8`, `2025e84` and `06b45cf` carry
+`Co-authored-by: Cursor <cursoragent@cursor.com>` beside `Hatsu-Agent: kurapika`: Cursor appends it at
+`git commit` time, before hooks run — observed on the raw `git commit --file` path; whether it reaches a
+verb's child `git commit` is not verified here. § 5 reads the tip back after every `commit write`, and
+aka § 7 every outgoing commit (`<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`) immediately before the push, after ao's catch-up and the re-lint — the tip alone would miss a squash parent under ao's merge (Copilot, HA-PR-#124 round 2). The positive case, on this checkout's own history:
+
+```text
+$ git log -1 --format='%(trailers:only,unfold)' 4ee8ce3
+Hatsu-Agent: kurapika
+Co-authored-by: Cursor <cursoragent@cursor.com>
+```
+
+`Co-authored-by` is an attribution key (it ends in `-by`) outside `commits.allowedAttributionTrailers`
+(`Hatsu-Agent`, `Akatsuki-Agent`), keys compared case-insensitively; a `Closes: #66` on the same commit
+is ordinary and never compared — the policy spells the forbidden key `Co-Authored-By`, the injected one
+`Co-authored-by`, and a literal compare would miss exactly this case (Chrollo, Nobunaga and Phinks, 3/3).
+So that commit is a stop with row `injected-attribution-trailer`'s default. The clean case, at 8a822c99:
+
+```text
+$ git log -1 --format='%(trailers:only,unfold)' 8a822c99
+Hatsu-Agent: kurapika
+```
+
+The off-switch is Cursor's own (Cursor Settings → Git & Pull Requests → *Commit Attribution*, or
+`attribution.attributeCommitsToAgent: false` in `~/.cursor/cli-config.json`), per Cursor's forum answer
+of 2026-08-21 — **forum-sourced, not verified live: this host runs no Cursor**, and a forum report says
+the SDK local executor ignores it (`docs/surfaces/cursor.md` § 10); the read-back is the guard whatever
+the switch does. The verb-side read-back is an owned dependency: zheref/nen#273.

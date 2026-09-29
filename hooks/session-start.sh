@@ -12,7 +12,7 @@
 #      Nen-owned work starts with hatsu:ten.
 #   2. On a mirrored surface WHOSE TARGET HAS ALREADY ADOPTED HATSU, it
 #      refreshes the installed mirrors through scripts/surface_bootstrap.sh
-#      --install-all, which itself copies only what drifted. A checkout that
+#      --install-all, which refreshes the placed copy (per name: installed, replaced, kept). A checkout that
 #      has not adopted Hatsu is left alone: adoption is hatsu:tenkai's, never
 #      a hook's (zheref/hatsu#94 — a directory ladder alone installed a full
 #      surface into any repository that merely happened to carry a
@@ -48,7 +48,7 @@ esac
 
 if [ -z "$surface" ]; then
   # No marker on line 2: this is the plugin source, running under Claude Code.
-  printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Hatsu: Nen-owned work starts with hatsu:ten (nen shu tools verdict, mirrors checked with nen surface mirror check --installed)."}}'
+  printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Hatsu: Nen-owned work starts with hatsu:ten (nen shu tools verdict; the in-tree mirrors checked with scripts/surface_mirror_check.sh, the placed copy refreshed by surface_bootstrap.sh --install-all; none on Claude Code)."}}'
   exit 0
 fi
 
