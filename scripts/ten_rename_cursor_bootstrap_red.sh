@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# RED TEST (Phinks, pre-PR, hatsu v0.48.0 candidate): a Cursor consumer that
+# RED TEST (Phinks, pre-PR, hatsu v0.49.0 candidate): a Cursor consumer that
 # ran the documented first step (`surface_bootstrap.sh --bootstrap`) at the
 # last pre-rename release and had not yet run the warm-up is left with NO
 # discoverable Hatsu skill once the same Hatsu checkout moves to the

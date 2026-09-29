@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fixture (Phinks, pre-PR, hatsu v0.48.0; green since ruling 9 R1): getsuga's
+# Fixture (Phinks, pre-PR, hatsu v0.49.0; green since ruling 9 R1): getsuga's
 # no-token cut point in a consumer whose nen/workflow.json declares a
 # branch.base other than main. claude/skills/getsuga/SKILL.md § 1 spells the
 # call as `nen release resolve-target --repo <path> --token <branch.base>

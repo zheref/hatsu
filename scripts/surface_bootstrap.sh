@@ -200,7 +200,7 @@ if [ "$mode" = "--install-all" ]; then
     # A DANGLING symlink whose target sits under THIS checkout's generated
     # surface for this very surface is the old bootstrap's own placement,
     # orphaned by a rename of the skill it pointed at (hatsu-warmup -> ten,
-    # v0.48.0): `find -L -type f` cannot see through it, but the link's text
+    # v0.49.0): `find -L -type f` cannot see through it, but the link's text
     # names our surfaces/<surface>/ tree, which nothing else writes. It is
     # evidence of adoption, and --install-all is exactly what migrates it.
     while IFS= read -r -d '' file; do
@@ -462,7 +462,7 @@ ensure_local_directory() {
 
 # The discovery entry is required in EVERY mode, not only --bootstrap: an
 # --install-all that kept a consumer-owned `ten` and went on to remove the
-# working `hatsu-warmup` as stale (v0.48.0 rename) would exit 0 with no
+# working `hatsu-warmup` as stale (v0.49.0 rename) would exit 0 with no
 # discoverable Hatsu entry left -- `$ten` / `/ten` (P1 of every phase) would
 # run the consumer's skill and the D10 warm-up would be gone. So a blocker on
 # the entry refuses the whole run, before any stale removal, leaving whatever

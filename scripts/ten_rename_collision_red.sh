@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# RED TEST (Phinks, pre-PR, hatsu v0.48.0 candidate): a consumer that already
+# RED TEST (Phinks, pre-PR, hatsu v0.49.0 candidate): a consumer that already
 # owns a skill directory named `ten` (tracked or untracked) and adopted Hatsu
 # at the last pre-rename release. On upgrade, --install-all removes the
 # working Hatsu entry (hatsu-warmup) as stale, keeps the consumer's own `ten`,

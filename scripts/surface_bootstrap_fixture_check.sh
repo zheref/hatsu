@@ -515,7 +515,7 @@ mark_adopted "$hostile_target" cursor
 ( cd "$hostile_target" && HATSU_PLUGIN_ROOT="$hostile_root" "$hatsu_root/surfaces/cursor/hooks/session-start.sh" >/dev/null 2>&1 )
 [ ! -e "$hostile_root/EXECUTED" ] || fail "session-start.sh executed scripts/surface_bootstrap.sh out of an unverified HATSU_PLUGIN_ROOT"
 
-# The v0.48.0 rename cases (Phinks P-1 and P-3, docs/ROSTER.md ruling 9):
+# The v0.49.0 rename cases (Phinks P-1 and P-3, docs/ROSTER.md ruling 9):
 # these clone THIS checkout's committed HEAD and the last tree that still
 # shipped hatsu-warmup, so they exercise the upgrade path itself. They need
 # git history reaching the rename; with no such commit reachable they skip.
