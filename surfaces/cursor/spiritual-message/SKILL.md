@@ -114,7 +114,7 @@ sets `notReported: true`, `reported: false`. `actionsMinutes` sums
 --touched`, never passed through. `generatedAtLocal`: `"$hatsu_root/scripts/report_time.sh"`; `repo`, `gate`, `turnLabel`,
 `effortStage`, `stageClass`, `worktree`: derived per `WORKFLOW.md` § *Where the effort is*.
 
-**Record usage before rendering**, from the surface's readout: `nen usage record --effort
+**Record usage before rendering** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The effort's ledgers*), from the surface's readout: `nen usage record --effort
 <branch> --surface <s> [--model <alias>] --input/--output/--cache-read/--cache-write <n> --source
 <text>` — Claude Code's `/cost` line, Codex's session-log usage, Cursor and
 Antigravity `--not-reported` (nothing exposed); Actions minutes for the runs `en` observed from

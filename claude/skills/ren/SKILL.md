@@ -145,7 +145,8 @@ taken. Coverage is captured by no ren profile; that is [`byakugan`](../byakugan/
 
 **A landing (`mukai`) always runs thorough**, whatever the turns before it named.
 
-**Every step is one ledger entry.** Before a step, `nen phase begin --effort <branch> --phase
+**Every step is one ledger entry** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The effort's ledgers* owns the
+mechanism; what is ren's is which steps and when). Before a step, `nen phase begin --effort <branch> --phase
 <step-name> --surface <s> [--model <alias>]`; after it, `nen phase end --effort <branch> --phase
 <step-name> --exit <code>`, so `.nen/phases/<effort>.json` carries one timed entry per phase, a refused
 step included. **The usage entry is recorded at step 5**: `nen usage record --effort

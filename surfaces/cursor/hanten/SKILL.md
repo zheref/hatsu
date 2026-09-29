@@ -10,7 +10,7 @@ summary: Have the change read
 > **Have somebody whose job is finding what is wrong read it, and settle everything they found —
 > fixed, or refused with a reason I can check.**
 
-**No fixed mode**: hanten holds the nature the change was authored in. It is
+**No fixed mode**: hanten holds the nature the change was authored in;
 [`mukai`](../mukai/SKILL.md)'s second step, after [`murasaki`](../murasaki/SKILL.md), and invocable
 alone. **Pre-PR a finding costs an edit, not a review round — and it is a review, not a gate.**
 
@@ -26,19 +26,18 @@ nen parse hanten \
   --line "<the invocation, minus the /hanten prefix>"
 ```
 
-**`against <base>` names the base the change set is read from**; with none, base and change set are
-P3's — `origin/<branch.base>` fetched (a failed fetch stops), the delta plus `git status --porcelain` ([`STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 3). **`all` is not every
-reviewer** — it is every scope the diff raises, and `for <scope>` narrows without widening. An unknown
-scope (exit `2`) is the trigger to ask, the eight as the options; a missing argument or configuration
-item is set up inline (`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4).
+**`against <base>` names the base**; with none, base and change set are P3's (`origin/<branch.base>`
+fetched, the delta plus `git status --porcelain`; [`STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md)
+§ 3). **`all` is every scope the diff raises**, `for <scope>` narrows, never widens; an unknown scope
+(exit `2`) asks with the eight as options; a missing argument or configuration item is set up inline
+(`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4).
 
-**The cycle ledger is fail-closed**: `.nen/hanten/<branch-slug>.cycle.json` is opened by
-[`breath`](../breath/SKILL.md) § 3a alone, and `decide`/`record`/`show` refuse a missing file. Absent on
-a feature branch → breath, re-read; still absent is a **lost ledger**, nobody raised; on the trunk,
-headless, or the script refusing → stop; **never fabricate one**. **Once a PR exists** the
-effort's ledger is `<branch-slug>-pr<N>.cycle.json`, opened by hanten **once** —
-`"$hatsu_root/scripts/hanten_cycle_ledger.sh" init --repo <path> --branch <branch> --pr <N>` before the
-first `decide`; present → never re-`init` (exit `2`); the branch-only ledger is not read after that.
+**The cycle ledger is fail-closed**: `.nen/hanten/<branch-slug>.cycle.json` is
+[`breath`](../breath/SKILL.md) § 3b's to open, and `decide`/`record`/`show` refuse a missing file —
+absent on a feature branch → breath, re-read; still absent is a **lost ledger**, nobody raised; the
+trunk, headless, or the script refusing → stop; **never fabricate one**. **Once a PR exists** the ledger
+is `<branch-slug>-pr<N>.cycle.json`, opened by hanten once (`… init --repo <path> --branch <branch>
+--pr <N>` before the first `decide`; present → never re-`init`); the branch-only one is not read again.
 
 ## 2. Classify — by path, then by content
 
@@ -52,13 +51,15 @@ nen review scopes --base origin/<branch.base> --repo <path> --json
 **`unclaimed` paths are named.** Nobunaga's tier swap is [`WORKFLOW.md`](../../../docs/WORKFLOW.md)
 § 2 → `review`: say which ran.
 
-**Two scopes the paths cannot raise, hanten raises by content** (#73): a diff adding or editing a
-`## 0.` section, or **any table that routes control flow**, raises a **totality pass** on
-`architecture` — every reachable input state matches exactly one row, the fall-through named —
-**Chrollo's**, a § 3 **gap** when he is spent or absent. The `surfaces` scope
-(`surfaces/**`, Phinks) runs its two deterministic rows first, handed over as § 2a's are:
-`"$hatsu_root/scripts/surface_link_check.sh"` and `"$hatsu_root/scripts/surface_mirror_check.sh"`.
-**Print the classification, content rows included, before raising anyone.**
+**Two scopes the paths cannot raise, hanten raises by content** (#73): a diff adding, editing or
+removing a `## 0.` section, **any table that routes control flow**, or the fall-through statement
+beneath one, raises a **totality pass** on `architecture` — every reachable input state matches
+exactly one row, the fall-through named — **Chrollo's**; absent or unraisable, a § 3 gap; spent,
+§ 2b's `skipped-exhausted`. The `surfaces` scope (`surfaces/**`, Phinks) runs its two deterministic
+rows first, handed to him as § 2a's are: `"$hatsu_root/scripts/surface_link_check.sh" <path>` and
+`"$hatsu_root/scripts/surface_mirror_check.sh" <path>`, `<path>` the checkout under review. **A
+content-raised persona joins § 2b's `--applicable`; print the classification, content rows included,
+before raising anyone.**
 
 ### 2a · The security scope's deterministic rows, before Feitan reads
 
@@ -77,9 +78,9 @@ never clean**; every version, URL, asset and command is `$hatsu_root/contracts/s
 **A Hanten invocation is not a new review budget**: remediation, a resumed session, a later `ren` turn
 and `mukai` re-entering continue the **same cycle**. **An effort is a branch PLUS its pull request**
 (ROSTER ruling 9 R2) — keyed `<branch-slug>`, then `<branch-slug>-pr<N>`, so a new PR number is a new
-ledger with every scope's full budget. **Each scope's maximum is its own `budget`** (`review.scopes.<scope>.budget`), **per effort, never per
-session or repository** (ruling 2026-09-28), counted by the ledger, never in prose; **one persona, one budget**: two scopes he owns raised together
-are one raise carrying both.
+ledger with every scope's full budget. **Each scope's maximum is its own `budget`, per effort, never per session or repository** (ruling
+2026-09-28), the ledger's count, never prose's; **one persona, one budget** (the smallest declared): two
+scopes he owns raised together are one raise carrying both.
 
 ```bash
 "$hatsu_root/scripts/hanten_cycle_ledger.sh" decide --repo <path> --branch <branch> [--pr <N>] \
@@ -92,37 +93,38 @@ read, both heads named, the row saying `delta`, `used` never past the cap.
 
 ## 3. A scope whose persona has no definition is a **gap**
 
-Three checks per persona: **`ls "$hatsu_root/claude/agents/<persona>.md"`**; **`ls
-"$hatsu_root/claude/agents/_review-preamble.md"`** — the protocol every reviewer reads, **missing is a
-gap too**; and **the surface's own agent registry** for whether it raises `hatsu:<persona>`, which
-`ls` cannot answer. Present and raisable → raise; present, not raisable → **§ 7's adapter, disclosed
-as weaker**, the row carrying `"adapted": "…"`; **absent → a gap**: the persona its declaration names,
-the raising paths, and that **this scope was not reviewed** — never a pass, never improvised past.
+Three checks per persona: `ls "$hatsu_root/claude/agents/<persona>.md"`; `ls
+"$hatsu_root/claude/agents/_review-preamble.md"` (**missing is a gap too**); and **the surface's own
+agent registry** for whether it raises `hatsu:<persona>` — `ls` cannot answer that. Raisable → raise;
+present, not raisable → **§ 7's adapter, disclosed as weaker** (`"adapted": "…"`); **absent → a gap**:
+the persona named, the raising paths, and that **this scope was not reviewed** — never a pass, never
+improvised past.
 
 ## 4. Raising a reviewer, and its cost
 
-On Claude Code the reviewer is a subagent raised with the harness's Agent tool, one per scope, in parallel.
-`subagent_type` is `hatsu:<persona>`; `description` is
-**`hanten · <persona> · <model alias>`**; `model` is `models.<surface>.<tier>` for the scope's `tier`,
-never frontier, **not passed** where the persona pins one; `isolation` **omitted**; the `prompt` carries
-the checkout path, scope, base, raising paths, § 5's shape, the **absolute** paths of
-`$hatsu_root/claude/agents/_review-preamble.md` and of the pinned `nen`, and *"do not request a worktree"*. **A subagent inherits no `PATH`**
-(#107): pass the `nen` [`ten`](../ten/SKILL.md) § 2 bound as `nen: <path>` with its pin (never a bare
-`command -v nen`); the reviewer prefixes it per block (preamble § 2). Unresolvable, the prompt names
-every Nen-owned check **unread** once; one failing at the reviewer's end is the reviewer's to declare.
+On Claude Code the reviewer is a subagent (the harness's Agent tool), one per scope, in parallel:
+`subagent_type` `hatsu:<persona>`, `description` **`hanten · <persona> · <model alias>`**, `model`
+`models.<surface>.<tier>` for the scope's `tier` (never frontier, **not passed** where the persona pins
+one), `isolation` **omitted**, the `prompt` carrying the checkout path, scope, base, raising paths, § 5's
+shape, the **absolute** paths of `$hatsu_root/claude/agents/_review-preamble.md` and of the pinned
+`nen`, and *"do not request a worktree"*. **A subagent inherits no `PATH`** (#107): pass the `nen`
+[`ten`](../ten/SKILL.md) § 2 bound as `nen: <path>` with its pin (never a bare `command -v nen`); it
+prefixes every block (preamble § 2); unresolvable, the prompt names every Nen-owned check **unread**
+once, and one failing at the reviewer's end is the reviewer's to declare.
 
 ```bash
 git -C <target repo> worktree add --detach <target repo>/.claude/worktrees/hanten-<persona> HEAD
 ```
 
-**The isolated checkout makes *never edits non-test source* a property of where the reviewer stands**
-(`.claude/` is ignored; removed when the review returns). **Never `isolation: "worktree"`**: that
-isolates the *plugin's* repository, not the target.
-**Say what was raised before the reviews return**: scopes, personas, aliases, gaps, per reviewer
-`used`/`max` (raised, delta, skipped). **As each returns, record its spend** (#100): `nen usage
-record --effort <branch> --surface <s> --model <alias> --input/--output <n> --source "hanten § 4:
-<persona>, <readout>"` (the Agent tool's result totals; `--not-reported` where none) — five reviewers,
-five entries, at the round's close.
+**The isolated checkout makes *never edits non-test source* a property of where the reviewer stands**,
+removed when the review returns; **never `isolation: "worktree"`** — that isolates the *plugin's*
+repository, not the target.
+**Say what was raised before the reviews return**: scopes, personas, aliases, gaps, each `used`/`max`. **As each returns, one entry — never a transcription after the round** (#100): `nen usage record
+--effort <branch> --surface <s> --model <alias> --input/--output <n> --source "hanten § 4: <persona>,
+<readout>"` — `--effort` the branch (only the cycle ledger is PR-keyed), `<readout>` the surface's own
+figure for that reviewer at its return (on Claude Code the Agent tool's completion totals),
+`--not-reported` where the surface gives none; the mechanism is
+[`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The effort's ledgers*.
 
 ## 5. One fixed finding shape
 
@@ -133,9 +135,9 @@ five entries, at the round's close.
 |---|---|
 | `rule` | **a rule id** (`UX-3`, `SEC-…`, `QA-11`, a WCAG SC, a HIG reference), never a bare preference |
 | `severity` | `critical` \| `high` \| `medium` \| `low` \| `nit` ([Hisoka's ladder](../../agents/hisoka.md)) |
-| `path`, `line` | where, exactly. A finding with no location is a note |
+| `path`, `line` | where, exactly; no location is a note |
 | `evidence` | **what was observed or measured**, method included for a number; never a restatement of the rule |
-| `proposedFix` | what would settle it. A reviewer proposes; it does not apply |
+| `proposedFix` | what would settle it; a reviewer proposes, never applies |
 
 **A "finding" missing `rule` or `evidence` is a note**, reported as one. The record is one ignored
 `hatsu.hanten.findings/v0.1` document at `<reports.dir>/hanten/<branch-slug>.json`: `scopes[]` (persona,
@@ -152,10 +154,10 @@ the security `scans`) and `findings[]` (the six fields plus hanten's `id`, `scop
 | **`pushed-back`** | the finding does not hold | **a cited reason** — the rule misread, a constraint they could not see, a contradicting measurement; never "disagree" or "out of scope" alone |
 | **`deferred`** | it outlives this branch | the tracked item, or its durable `pending` record. An untracked deferral is `unsettled` |
 
-**A push-back is an argument, not a veto**, held to the finding's standard. Every disposition is
+**A push-back is an argument, not a veto**. Every disposition is
 recorded and reaches the PR body through [`shibari`](../shibari/SKILL.md); a `fixed` one is proved
 by the declared `iteration.checks`, and one editing a dieted file quotes that file's
-`"$hatsu_root/scripts/prose_size_check.sh" --headroom` line (#119). **A finding is work, not a gate.**
+`"$hatsu_root/scripts/prose_size_check.sh" --headroom <path>` line (#119). **A finding is work, not a gate.**
 
 **An unsettled finding is a G5** (`nen/decisions.json` row `unsettled-finding`, `CON-47`), only once
 investigation proves no disposition can be chosen without a maintainer decision: record it, what was
@@ -163,7 +165,7 @@ tried and the alternatives, then stop in [`jutaisho`](../jutaisho/SKILL.md) § 4
 parts. **Never one re-grading a severity.**
 
 **One Copilot round is requested after hanten settles**; [`sharingan`](../sharingan/SKILL.md) § 6
-carries the policy. Hanten only hands over.
+carries the policy. Hanten hands over.
 
 ## 7. On a surface that is not Claude Code
 

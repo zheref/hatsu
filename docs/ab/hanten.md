@@ -547,3 +547,12 @@ spend with `nen usage record` as it returns (`--source "hanten § 4: <persona>, 
 verb refuses an entry with no number and no `--not-reported` at exit 2 (its own `--help`), so an
 unrecorded reviewer cannot read as recorded. The prose stayed under 12,288 bytes through five named
 trims, each read off `sh scripts/prose_size_check.sh --headroom` (#119).
+
+**Residue, same date — a worktree-isolated session pins its subagents.** Raised from a session the
+harness had isolated in `.claude/worktrees/ledgers-scopes-headroom`, all four reviewers were refused
+every `cd`/`git -C` into the detached `hanten-<persona>` checkout § 4 creates, and read the effort's
+own worktree instead — at the candidate head, but live, while remediation of the first return landed
+under the later ones. Two reviewers pinned their evidence to `git archive <candidate>` extracts; the
+worktrees § 4 adds were created and never entered. Named here, not fixed: § 4's isolation is a property
+of the raising session's own isolation on Claude Code, and the honest line is the one the reviewers
+wrote — which checkout was read, at which head.

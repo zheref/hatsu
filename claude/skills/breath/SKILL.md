@@ -84,18 +84,23 @@ per-tool `remedy` lines, resolve a missing tool through the surface's catalogue 
 stale tree, not the host**: record it *deferred* and **re-probe after the cut**, reporting that
 answer; § 3's dry run shares the blind spot.
 
-**§ 2d · A live worktree on the same topic** (#113). Before § 3 cuts, `nen wc worktrees --repo <path>
---json`: a row whose `branch` or `lastSubject` shares a word of the rendered `{descriptor}` is an
-**overlap — reported and asked, never resolved or ignored silently**: show its `path`, `branch`,
-`ahead`, `dirty` and `lastSubject`, and offer *continue there*
-([`amenotejikara`](../amenotejikara/SKILL.md)) or *cut anyway, by name*. Nothing here merges, closes
-or reassigns the work found; this is a name-level read — diff-level overlap is a Nen ask, filed apart.
-
 ## 3. Cutting the branch — dry run, then bare
 
 Render `branch.template`: `{model}` the model alias, `{persona}` the persona (`kurapika` unless the
 run says otherwise), `{descriptor}` a short kebab slug from the request, never the date. **Rendering
 is this skill's**; `--branch` is required, no default.
+
+**§ 3a · A live worktree on the same topic, before the dry run** (#113). `nen wc worktrees --repo
+<path> --json`: a row whose `branch` or `lastSubject` shares a kebab segment of four letters or more
+with the `{descriptor}` just rendered — the `{model}`/`{persona}` segments and `fix`, `feat`, `docs`,
+`the`, `and`, `settle`, `round`, `merge` never count — is an **overlap — reported and asked, never
+resolved or ignored silently** (one shared segment is reported as *weak*, two or more asked): show its `path`, `branch`,
+`ahead`, `dirty` and `lastSubject`, and offer *work there* (that path, in the maintainer's own session —
+no skill continues another worktree's authoring; [`amenotejikara`](../amenotejikara/SKILL.md) is the
+build-and-debug swap, not this) or *cut anyway, by name*. **A row whose `lastSubject` is `null` is
+unread, never no-overlap**: named with its path and branch, matched on the branch alone. Nothing here
+merges, closes or reassigns the work found; this is a name-level read — diff-level overlap is a Nen
+ask, filed apart.
 
 ```bash
 nen shu warmup --repo <path> --branch <rendered name> --from <branch.base> [--dry-run]
@@ -120,7 +125,7 @@ nen shu warmup --repo <path> --branch <rendered name> --from <branch.base> [--dr
 | `2` | refused before any mutation — fix, re-run, **never with `--discard`** |
 | `4` | a seat, reason quoted; **`shu warmup` proved nothing**, § 4's loop is the whole proof |
 
-**§ 3a · Opening the Hanten cycle ledger.** Once the branch exists (exit `0` or `4`, or a
+**§ 3b · Opening the Hanten cycle ledger.** Once the branch exists (exit `0` or `4`, or a
 no-declaration git half that cut `--branch`):
 `"$hatsu_root/scripts/hanten_cycle_ledger.sh" init --repo <path> --branch <rendered name>`. Exit `0`
 is a new cycle; `2 already exists` is reported, never reset; a file missing later is a lost ledger

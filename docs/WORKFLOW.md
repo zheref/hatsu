@@ -383,9 +383,9 @@ One row per scope:
 | `paths` | prefixes or globs in `nen report data`'s tier-table grammar. **One path may raise several scopes**, and a path no row claims is reported as `unclaimed` |
 
 **`code`'s `paths` is `**`, deliberately: it claims every path**, so Nobunaga is the default reviewer
-on every change set and no diff is reviewed by nobody. The other five are raised by their own paths —
-`security` (Feitan), `architecture` (Chrollo), `ui` (Hisoka), `performance` (Uvogin), `release`
-(Phinks).
+on every change set and no diff is reviewed by nobody. The other six are raised by their own paths —
+`security` (Feitan), `architecture` (Chrollo), `ui` (Hisoka), `performance` (Uvogin), `surfaces` (Phinks)
+and `release` (Phinks).
 
 **One tier is swapped rather than read.** `nen repo classify` answers `kind`; a **`process`** or
 **`library`** repository takes the declared `review.scopes.code.tier` (`deep`), and a **`product`** one
@@ -675,9 +675,8 @@ that names none; a turn names one with `hatsu:ren <request> --profile <p>` or th
 **A landing always runs thorough**, whatever the turns before it named: a profile lowers a turn, never
 the phase that publishes. Deferred to mukai means kotoamatsukami's impacted suites and byakugan's
 coverage at the landing; mukai has no launch step, so a launch skipped under `fast` is taken by the next
-`standard` or `thorough` turn, or by `hatsu:amaterasu` named by the maintainer. Every ren step is wrapped in `nen phase begin` / `nen phase end` so
-`.nen/phases/<effort>.json` records one entry per phase regardless of profile, and step 5 records the
-usage entry through `nen usage record` (`--not-reported` where the surface exposes no cost readout).
+`standard` or `thorough` turn, or by `hatsu:amaterasu` named by the maintainer. Every ren step is a
+ledger entry regardless of profile (§ *The effort's ledgers* below).
 `nen schema check` validates the key from `v0.13.0`; the `v0.12.0` pin preserves it as raw data and
 reports nothing about it (verified on 0.12.0, 2026-09-20).
 
@@ -694,6 +693,31 @@ rule is `hanten`'s § 7: **report the pin unresolvable, fall back to the role's 
 substitution in the title.** Never silently honoured, never silently dropped.
 
 ---
+
+### The effort's ledgers — phases and usage
+
+**Stated once, here; the skills cite it and add only what is theirs** (zheref/hatsu#93, #100). Two
+ledgers per effort, both generated output under `.nen/`, both keyed by the **branch** — `--effort
+<branch>`, never the PR-keyed form the hanten cycle ledger uses — so one effort names one phase file
+and one usage file across every skill that writes them:
+
+```bash
+nen phase begin --effort <branch> --phase <step-name> --surface <s> [--model <alias>]   # before a step
+nen phase end   --effort <branch> --phase <step-name> --exit <code>                      # after it
+nen shu <verb> --repo <path> --effort <branch>          # a step inside an open phase lands under it
+nen usage record --effort <branch> --surface <s> [--model <alias>] \
+  --input/--output/--cache-read/--cache-write <n> [--minutes <n>] --source "<call site: readout>"
+nen usage record --effort <branch> --surface <s> --not-reported                          # no readout
+```
+
+`.nen/phases/<effort>.json` holds one timed entry per phase, a refused step included; `.nen/usage/<effort>.json`
+one entry per reading, `source` naming the call site and the readout (Claude Code's `/cost`, the Agent
+tool's result totals for a subagent, Codex's session log; `--not-reported` on a surface exposing none).
+**Every skill that runs a phase wraps its own phases, and every skill that spends records at the moment
+it spends** — never a transcription at the end of a sitting. Who writes what: `ren` § 2 (every step; usage
+at step 5), `build` § 4 (its own steps; usage at every § 7 report), `hanten` § 4 (one usage entry per
+reviewer, as each returns), `spiritual-message` § 4 and `backlog-board` § 3 (usage before a render).
+`nen report data` merges both as `phases[]` and `usage[]`.
 
 ## 3 · `project.launch` and `project.evidence`
 
@@ -1021,7 +1045,7 @@ ask and most expensive to skip.
 is a second source that drifts the moment a scope is added, which is what happened: this section
 carried five reviewers and a four-field shape long after there were six of each.
 
-**What is worth saying once, in prose: there are six scopes, and one of them claims every path.**
+**What is worth saying once, in prose: there are seven scopes, and one of them claims every path.**
 `code` is **Nobunaga's** and its `paths` is `**`, so he is the default reviewer on every change set;
 `security` is **Feitan's**, `architecture` **Chrollo's**, `ui` **Hisoka's**, `performance`
 **Uvogin's** and `release` **Phinks'**, each raised only by the paths its own row declares. Every row

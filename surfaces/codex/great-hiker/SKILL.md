@@ -99,7 +99,7 @@ The regeneration lands in the **same commit** as the change that caused it.
 
 ## 5. Verify
 
-`claude plugin validate . --strict`, `bash scripts/prose_size_check.sh`, and the plugin bump in
+`claude plugin validate . --strict`, `sh scripts/prose_size_check.sh`, and the plugin bump in
 `.claude-plugin/plugin.json` (a skill or agent edit that reaches no installed copy without it;
 `scripts/plugin_bump_check.sh` refuses an equal or lower version). A red check is handed back to the
 authoring subsession with the failing line quoted (row `red-lint`); it is never a G5.
