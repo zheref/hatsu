@@ -75,15 +75,15 @@ up, continue*); a missing scoped lane is authored by rasengan (`missing-focused-
 ## 3. The verification gate — before anything is staged
 
 **The gate's five steps are [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The local verification
-gate***, run **here, on this tree, now**: the declared `iteration.checks` in order on
-`iteration.lane`; a consumer's canon mirror regenerated, staged, where `.claude/canon-values.yml`
+gate***, run **here, now**: the declared `iteration.checks` in order on
+`iteration.lane`; a consumer's canon mirror regenerated and staged where `.claude/canon-values.yml`
 changed (#111); the focused tests for changed executable behaviour through
 [`tsukuyomi`](../tsukuyomi/SKILL.md); the build proof read back only where step 1 ran a green `build`;
 and `nen wc classify` proving this is not the trunk. What is this skill's is the refusal:
 **a `1` ends the commit** — quote the failing check, commit nothing, hand the turn back to
 [`rasengan`](../rasengan/SKILL.md) (row `red-lint`, never a G5) and re-run the gate — **a seat (exit
 `4`) is not red**, **a missing focused route goes back to rasengan** (row `missing-focused-route`),
-and **kokusen commits on a branch or it does not commit**.
+and **kokusen commits on a branch or not at all**.
 
 ## 4. Triage — every path is looked at, some are asked about
 
