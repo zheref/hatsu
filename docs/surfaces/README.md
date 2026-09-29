@@ -56,8 +56,9 @@ nen surface mirror generate --surface <codex|cursor|antigravity> \
 
 
 `nen surface mirror check` takes the same flags and writes nothing; with `--installed <path>` it diffs a
-host's installed copy against a fresh generation instead of the committed mirror, which is what the
-warm-up runs before it copies. Every generated file carries, as its first markdown line after the
+WHOLE mirror copy against a fresh generation instead of the committed mirror — a manual check: the
+warm-up runs the in-tree check and then `surface_bootstrap.sh --install-all`, because a placed copy is
+skills-only and reads `missing` under `--installed` (ten § 5, zheref/hatsu#106). Every generated file carries, as its first markdown line after the
 frontmatter fence (line 1 where there is no fence):
 
 ```text

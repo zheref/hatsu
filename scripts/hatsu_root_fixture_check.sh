@@ -29,10 +29,11 @@ assert_contains() {
 # A Hatsu-shaped tree: the manifest names hatsu at its top level, claude/skills/ exists.
 make_plugin() {
   local directory="$1" name="${2:-hatsu}"
-  mkdir -p "$directory/.claude-plugin" "$directory/claude/skills/ten" "$directory/surfaces/cursor/ten"
+  mkdir -p "$directory/.claude-plugin" "$directory/claude/skills/ten" "$directory/surfaces/cursor/ten" "$directory/surfaces/antigravity/skills/ten"
   printf '%s\n' '{' '  "name": "'"$name"'",' '  "version": "0.1.0"' '}' > "$directory/.claude-plugin/plugin.json"
   printf '%s\n' '---' 'name: ten' '---' > "$directory/claude/skills/ten/SKILL.md"
   printf '%s\n' '---' 'name: ten' '---' > "$directory/surfaces/cursor/ten/SKILL.md"
+  printf '%s\n' '---' 'name: ten' '---' > "$directory/surfaces/antigravity/skills/ten/SKILL.md"
 }
 
 plugin="$fixture_root/plugin"
@@ -58,14 +59,23 @@ run 0 "$plugin"
 # the skill directory Claude Code prints (three levels) walks up, and says so
 run 0 "$plugin/claude/skills/ten"
 [ "$out" = "$canon_plugin" ] || fail "skill directory resolved to '$out', expected '$canon_plugin'"
-assert_contains "$err" 'walked up from a skill directory to its plugin root' 'the walk is named on stderr'
+assert_contains "$err" 'resolved by walking up from' 'the walk is named on stderr, on its own line'
 assert_contains "$err" "$canon_plugin" 'the walk names where it ended'
 
-# one level and four levels
+# one level, three levels on a flat mirror, and FOUR levels on the nested antigravity mirror
 run 0 "$plugin/claude"
 [ "$out" = "$canon_plugin" ] || fail "one level up resolved to '$out'"
 run 0 "$plugin/surfaces/cursor/ten"
-[ "$out" = "$canon_plugin" ] || fail "a mirrored skill directory (four levels) resolved to '$out'"
+[ "$out" = "$canon_plugin" ] || fail "a flat mirrored skill directory (three levels) resolved to '$out'"
+run 0 "$plugin/surfaces/antigravity/skills/ten"
+[ "$out" = "$canon_plugin" ] || fail "a nested mirrored skill directory (four levels) resolved to '$out'"
+
+# a plugin whose path carries a space resolves like any other
+spaced="$fixture_root/with space/plugin"
+make_plugin "$spaced"
+canon_spaced="$(CDPATH='' cd -- "$spaced" >/dev/null 2>&1 && pwd -P)"
+run 0 "$spaced/claude/skills/ten"
+[ "$out" = "$canon_spaced" ] || fail "a path with a space resolved to '$out', expected '$canon_spaced'"
 
 # a symlinked skill directory (Cursor's .cursor/skills/<name>) walks up through its TARGET
 target="$fixture_root/target/.cursor/skills"
@@ -86,6 +96,17 @@ make_plugin "$other" 'not-hatsu'
 run 1 "$other/claude/skills/ten"
 assert_contains "$err" 'NOT INSTALLED' 'another plugin is NOT INSTALLED'
 run 1 "$other"
+
+# a candidate carrying a trailing newline is refused BEFORE the walk: a Hatsu-shaped `p<LF>` beside a
+# plain `p` must never resolve to `p` (the command substitution would strip the newline)
+nldir="$fixture_root/nl"
+mkdir -p "$nldir/p"
+make_plugin "$nldir/p
+"
+run 1 "$nldir/p
+"
+assert_contains "$err" 'unusable' 'a newline-bearing candidate is unusable'
+assert_contains "$err" 'NOT INSTALLED' 'a newline-bearing candidate is NOT INSTALLED'
 
 # no candidate at all
 run 1

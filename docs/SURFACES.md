@@ -131,7 +131,7 @@ under it; the warm-up therefore runs this script without `--installed` (the sour
 `surfaces/<s>`) and lets `surface_bootstrap.sh --install-all` report the placed copy per name.
 With `--installed <path>` the same verb diffs a whole mirror copy (`~/.gemini/config/plugins/hatsu`,
 a symlinked `surfaces/<s>`) against a fresh
-generation; the warm-up runs it first and copies only on drift.
+generation — a manual check, not the warm-up's step.
 
 **In CI.** [`surface-mirror-check.yml`](../.github/workflows/surface-mirror-check.yml) bootstraps nen at
 the ref `nen/contract.json` pins and runs the script from the trusted checkout against the PR's. It is

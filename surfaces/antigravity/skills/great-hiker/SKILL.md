@@ -85,9 +85,11 @@ the installed-copy check can tell a stale copy from a drifted one. Then, in this
 1. `bash scripts/surface_mirror_check.sh`: one `nen surface mirror check` per surface; exit `1` names
    the class (`missing`, `extra`, `stale`, `hand-edited`), exit `2` means the nen on PATH is not the
    pin: [`ten`](../ten/SKILL.md) installs it (row `missing-tool`) and the check re-runs.
-2. `nen surface mirror check --installed <path>` against the Claude Code plugin cache and against
-   every consumer checkout the request named; a stale installed copy is reported per path with the
-   stamp it carries, and the warm-up is what replaces it, never this skill.
+2. `bash scripts/surface_mirror_check.sh` again on every consumer checkout the request named that carries
+   a whole mirror copy (a symlinked `surfaces/<s>`, Antigravity's global plugin); `--installed` diffs a
+   FULL mirror, so a skills-only placed copy and the Claude Code cache are not checked this way (ten § 5,
+   zheref/hatsu#106) — the warm-up's `surface_bootstrap.sh --install-all` is what refreshes a placed
+   copy, never this skill.
 
 The regeneration lands in the **same commit** as the change that caused it.
 

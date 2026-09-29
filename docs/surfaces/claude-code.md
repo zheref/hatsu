@@ -96,20 +96,15 @@ rather than a checklist row (see *Known gaps*).
 
 ## 8. Generation
 
-Nothing is generated for this surface. The canonical copy is `claude/skills/**` and `claude/agents/**`;
-the three mirrors are generated from it (see the other guides). What this surface gets is the check
-against its installed copy:
-
-```sh
-nen surface mirror check --surface claude-code \
-  --source claude/skills --agents claude/agents \
-  --installed "$HOME/.claude/plugins/cache/hatsu/hatsu/<version>" \
-  --stamp <plugin version>
-```
-
-The warm-up runs it after `hatsu_plugin_update.sh --auto --claude`; a drifted cache means the update did
-not take and the report says so rather than reading the stale copy as current. There is no marker on
-this surface because there is no generated file.
+Nothing is generated for this surface, and nothing is drift-checked on it (zheref/hatsu#106): the
+canonical copy is `claude/skills/**` and `claude/agents/**`, the three mirrors are generated from it
+(see the other guides), and the versioned cache is read in place. `nen surface mirror check --surface
+claude-code --installed <cache>` diffs a target `.claude/` layout Hatsu never places and reads every
+skill `missing` against the cache (measured in `docs/ab/ten.md`), so `ten` § 5 records `mirrors: not
+applicable` here and places the permission pack only; what keeps the cache current is `ten` § 4b
+(`hatsu_plugin_update.sh --auto --claude`, § 1 above). A check that can tell a stale cache from a
+fresh one is still owed to zheref/hatsu#90. There is no marker on this surface because there is no
+generated file.
 
 ## 9. Dated checklist
 

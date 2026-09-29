@@ -17,13 +17,14 @@ level for what it is, and names the walk on stderr; § 0's block is
 
 ```text
 $ scripts/hatsu_root.sh "$cache/claude/skills/ten"
-hatsu_root.sh: passed over — walked up from a skill directory to its plugin root: …/0.49.0/claude/skills/ten → …/0.49.0.
+hatsu_root.sh: resolved by walking up from …/0.49.0/claude/skills/ten → …/0.49.0.
 /Users/zheref/.claude/plugins/cache/hatsu/hatsu/0.49.0                                  # exit 0
 
 $ scripts/hatsu_root.sh --quoted "$cache/claude/skills/ten"                             # exit 0, three lines
 $ scripts/hatsu_root.sh "$cache"                                                        # exit 0, no walk
-$ scripts/hatsu_root.sh "<checkout>/surfaces/cursor/ten"                                # exit 0 — a mirrored copy, four levels
-$ scripts/hatsu_root.sh "$(mktemp -d)/a/b/c/e/f"                                        # exit 1 — NOT INSTALLED, the walk named
+$ scripts/hatsu_root.sh "<checkout>/surfaces/cursor/ten"                                # exit 0 — a flat mirror, three levels
+$ scripts/hatsu_root.sh "<checkout>/surfaces/antigravity/skills/ten"                    # exit 0 — the nested mirror, four levels
+$ scripts/hatsu_root.sh "$(mktemp -d)/a/b/c/e/f"                                        # exit 1 — NOT INSTALLED, rejected at depth 0 (no Hatsu root within four levels)
 $ scripts/hatsu_root.sh "$cache/claude/skills/ten/x/y"                                  # exit 1 — five levels is too many
 ```
 
@@ -58,3 +59,12 @@ read `hand-edited: aka/SKILL.md`, exit 1.
 **Residue.** `scripts/surface_mirror_check.sh --installed <cache>` (zheref/hatsu#90's row) compares the
 versioned cache against a layout it does not have and reads every file `missing`; it is not what ten
 runs, and a check that can tell a stale cache from a fresh one is still owed to #90.
+
+**After the pre-PR review (2026-09-28).** Feitan showed the walk's answer travelled through a command
+substitution, which strips a trailing newline, so a Hatsu-shaped `p<LF>` beside a plain `p` resolved to
+`p` — a candidate carrying a newline is now refused before the walk and the canonical path is checked for
+identity again; Chrollo and Nobunaga showed § 0's `$base_dir/../../..` is three levels (Claude Code) while
+a nested mirror needs four and a stale profile export needs a fallback — § 0 now tries the export, three
+levels and four levels for a resolver before running it; Phinks and Nobunaga showed the fixture's
+"four-level" case was three deep — the nested antigravity layout is now the four-level case. The walk is
+reported on its own stderr line (`resolved by walking up from …`), never under `passed over`.

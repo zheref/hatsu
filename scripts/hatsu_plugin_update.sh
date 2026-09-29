@@ -26,11 +26,18 @@
 # verdict rides beside it every time.
 #
 # Untracked files never block a trunk fast-forward: `git merge --ff-only`
-# refuses on its own any fast-forward that would overwrite one, so only tracked
-# modifications (staged or not) read as dirty. A checkout that is also a Claude
-# Code marketplace source always carries an untracked .claude/ (worktrees,
+# refuses on its own any fast-forward that would overwrite one (and that
+# refusal is reported as a skip with its reason), so only tracked modifications
+# (staged or not) read as dirty. A checkout that is also a Claude Code
+# marketplace source always carries an untracked .claude/ (worktrees,
 # settings.local.json), and treating that as dirty is what left the checkout in
 # #118 stale forever.
+#
+# TRUST. The marketplace checkout's `origin` is whatever the maintainer
+# registered; nothing here checks it against zheref/hatsu, and what is
+# fast-forwarded there is what `claude plugin update` installs next. That is the
+# trunk channel by design: the trust anchors are that checkout's remote and its
+# branch protection, exactly as for `--channel trunk` on any consumer checkout.
 
 set -euo pipefail
 LC_ALL=C
@@ -203,14 +210,21 @@ EOF
   return 1
 }
 
-case "$0" in
-  */*) script_base="${0%/*}" ;;
+# Where THIS script is, from BASH_SOURCE and never $0: under `bash -s < script` or when sourced,
+# $0 is `bash`, and a self re-entry built from it would execute `./bash` from the working directory
+# (Feitan, zheref/hatsu#118 review). self_script is re-entered as `bash "$self_script"` so neither
+# an executable bit nor a shebang is trusted, and only when it is a regular file at that path.
+self_source="${BASH_SOURCE[0]:-$0}"
+case "$self_source" in
+  */*) script_base="${self_source%/*}" ;;
   *) script_base='.' ;;
 esac
 script_dir="$(canonical_directory "$script_base")" || {
   echo "hatsu-plugin-update: cannot canonicalize its script directory" >&2
   exit 2
 }
+self_script="$script_dir/${self_source##*/}"
+[ -f "$self_script" ] || self_script=""
 script_hatsu="$(canonical_directory "$script_dir/..")" || {
   echo "hatsu-plugin-update: cannot canonicalize its checkout" >&2
   exit 2
@@ -254,12 +268,14 @@ would() {
   fi
 }
 
-# marketplace_directory_source — the directory the `hatsu` marketplace points at in Claude Code's
-# own registry, or nothing (no registry, no `hatsu` entry, or a GitHub-sourced one). One shape is
-# read, the JSON.stringify(x, null, 2) Claude Code writes; JSON's \\ and \" in the path are undone.
+# marketplace_directory_source — the ABSOLUTE directory the `hatsu` marketplace points at in Claude
+# Code's own registry, or nothing (no registry, no `hatsu` entry, a GitHub-sourced one, a registry
+# not in the one shape read, or a relative path). One shape is read, the JSON.stringify(x, null, 2)
+# Claude Code writes; JSON's \\ and \" in the path are undone, any other escape is left as is (the
+# path then does not exist and reads as not verified, the safe direction).
 marketplace_directory_source() {
   local registry="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/known_marketplaces.json"
-  [ -f "$registry" ] || return 1
+  [ -r "$registry" ] || return 1
   awk '
     /^  "hatsu": \{$/ { inm = 1; next }
     inm && /^  \},?$/ { exit }
@@ -270,8 +286,14 @@ marketplace_directory_source() {
       s = $0; sub(/^      "path": "/, "", s); sub(/",?$/, "", s)
       gsub(/\\"/, "\"", s); gsub(/\\\\/, "\\", s); path = s; next
     }
-    END { if (isdir && path != "") print path }
+    END { if (isdir && path ~ /^\//) print path }
   ' "$registry"
+}
+
+# one_line TEXT — the last non-empty line of TEXT, control characters stripped, capped at 200
+# characters: what a report line may carry of a subprocess's output (Feitan, log hygiene).
+one_line() {
+  printf '%s\n' "$1" | awk 'NF { line = $0 } END { print line }' | tr -d '\000-\037' | cut -c1-200
 }
 
 # marketplace_verdict — sets MKT_VERDICT, one clause for the report line: what happened to the
@@ -280,10 +302,14 @@ marketplace_directory_source() {
 # never a claim. The sub-run's own `would run:` lines pass straight through to stdout.
 MKT_VERDICT=""
 marketplace_verdict() {
-  local mkt canon_mkt sub_out sub_line
+  local mkt canon_mkt sub_out sub_line sub_rc
   mkt="$(marketplace_directory_source || true)"
   if [ -z "$mkt" ]; then
-    MKT_VERDICT="marketplace source: not a Directory source (or no hatsu entry in known_marketplaces.json) — not verified against origin"
+    if [ -r "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/known_marketplaces.json" ]; then
+      MKT_VERDICT="marketplace source: the registry is present but no hatsu Directory source parsed from it (no hatsu entry, GitHub-sourced, not an absolute path, or not the one shape Claude Code writes) — not verified against origin"
+    else
+      MKT_VERDICT="marketplace source: no readable known_marketplaces.json under ${CLAUDE_CONFIG_DIR:-\$HOME/.claude}/plugins — not verified against origin"
+    fi
     return 0
   fi
   canon_mkt="$(canonical_directory "$mkt" 2>/dev/null || printf '%s' "$mkt")"
@@ -295,13 +321,20 @@ marketplace_verdict() {
     MKT_VERDICT="marketplace source $canon_mkt is not a git checkout — not verified against origin"
     return 0
   fi
+  if [ -z "$self_script" ]; then
+    MKT_VERDICT="marketplace source $canon_mkt not examined: the updater cannot locate itself to re-enter (run it by path) — not verified against origin"
+    return 0
+  fi
   # Re-enter this script on the marketplace checkout: --auto so a checkout that cannot be brought
   # current SKIPS with its reason rather than refusing the Claude refresh outright. Its report line
-  # is the verdict, verbatim after the prefix and minus its own plugin suffix.
+  # is the verdict, verbatim after the prefix and minus its own plugin suffix. The sub-run is THIS
+  # file's copy, which may be older than the checkout it updates: it fast-forwards and reports, and
+  # the next warm-up runs the newer copy.
   local -a sub_args=(--root "$canon_mkt" --channel auto --auto)
   [ "$dry_run" -eq 1 ] && sub_args+=(--dry-run)
   set +e
-  sub_out="$("$script_dir/${0##*/}" "${sub_args[@]}" 2>&1)"
+  sub_out="$(bash "$self_script" "${sub_args[@]}" 2>&1)"
+  sub_rc=$?
   set -e
   printf '%s\n' "$sub_out" | grep '^would run: ' || true
   sub_line="$(printf '%s\n' "$sub_out" | awk '/^hatsu-plugin-update: /{ line = $0 } END { sub(/ · plugin [^ ]+$/, "", line); print line }')"
@@ -313,7 +346,7 @@ marketplace_verdict() {
       MKT_VERDICT="marketplace source $canon_mkt: ${sub_line#hatsu-plugin-update: }"
       ;;
     *)
-      MKT_VERDICT="marketplace source $canon_mkt: could not be examined (${sub_out:-no output}) — not verified against origin"
+      MKT_VERDICT="marketplace source $canon_mkt: could not be examined (sub-run exit $sub_rc: $(one_line "${sub_out:-no output}")) — not verified against origin"
       ;;
   esac
 }
@@ -457,7 +490,10 @@ if [ "$detected" = "trunk" ]; then
     report "dry-run · would fast-forward $trunk from $before"
     exit 0
   fi
-  git -C "$root" merge --ff-only "origin/$trunk" >/dev/null
+  # git refuses a fast-forward that would overwrite an untracked file: that refusal is a SKIP with
+  # its reason, never a bare death under `set -e` (Chrollo, zheref/hatsu#118 review).
+  git -C "$root" merge --ff-only "origin/$trunk" >/dev/null 2>&1 \
+    || skip_or_refuse "fast-forward refused by git (a working-tree file would be overwritten) · staying at $trunk @$before"
   after="$(git -C "$root" rev-parse --short HEAD)"
   plugin_ver="$(plugin_version "$root")"
   if [ "$before" = "$after" ]; then

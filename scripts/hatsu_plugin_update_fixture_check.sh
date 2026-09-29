@@ -248,6 +248,22 @@ assert_contains "$untracked_out" '1 untracked, not blocking' 'the report names t
 [ "$(git -C "$untracked" rev-parse HEAD)" = "$(git -C "$seed" rev-parse HEAD)" ] || fail "untracked clone did not fast-forward"
 [ -f "$untracked/scratch-notes.txt" ] || fail "fast-forward removed an untracked file"
 
+# --- an untracked file git would overwrite: a SKIP with its reason, never a bare git death ---
+collide="$fixture_root/collide"
+git clone -q "$origin" "$collide"
+git -C "$collide" reset -q --hard HEAD~1
+printf 'mine\n' > "$collide/README.md.new"
+write_plugin_json "$seed" "$(git -C "$seed" show HEAD:.claude-plugin/plugin.json | sed -n 's/.*"version": "\(.*\)".*/\1/p')"
+printf 'theirs\n' > "$seed/README.md.new"
+commit_tree "$seed" 'adds README.md.new'
+git -C "$seed" push -q origin HEAD:main
+collide_before="$(git -C "$collide" rev-parse HEAD)"
+collide_out="$("$updater" --root "$collide" --auto)"
+assert_contains "$collide_out" 'skipped · fast-forward refused by git' 'a colliding untracked file is a skip with its reason'
+[ "$(git -C "$collide" rev-parse HEAD)" = "$collide_before" ] || fail "colliding clone moved"
+[ "$(cat "$collide/README.md.new")" = mine ] || fail "colliding untracked file was overwritten"
+assert_fails "colliding untracked file was fast-forwarded without --auto" "$updater" --root "$collide" --channel trunk
+
 # --- --claude on a versioned cache brings the Directory-source marketplace current first (#118) ---
 # A fake `claude` on PATH records its calls and answers the way the real one did in #118; the
 # marketplace registry is Claude Code's own shape, pointed at a clone that is behind origin.
@@ -333,9 +349,16 @@ write_registry_github() {
   }
 }' > "$fake_home/plugins/known_marketplaces.json"
 }
+printf '%s\n' '{"hatsu":{"source":{"source":"directory","path":"/nowhere"}}}' > "$fake_home/plugins/known_marketplaces.json"   # minified: not the one shape
+mkt_minified="$(CLAUDE_CONFIG_DIR="$fake_home" PATH="$fixture_root/bin:$PATH" "$updater" --root "$cache2" --auto --claude)"
+assert_contains "$mkt_minified" 'registry is present but no hatsu Directory source parsed' 'a registry not in the one shape is named as such, never as current'
+rm -rf "$fake_home/plugins/known_marketplaces.json"
+mkt_noreg="$(CLAUDE_CONFIG_DIR="$fake_home" PATH="$fixture_root/bin:$PATH" "$updater" --root "$cache2" --auto --claude)"
+assert_contains "$mkt_noreg" 'no readable known_marketplaces.json' 'an absent registry is named as such'
+
 write_registry_github
 mkt_none="$(CLAUDE_CONFIG_DIR="$fake_home" PATH="$fixture_root/bin:$PATH" "$updater" --root "$cache2" --auto --claude)"
-assert_contains "$mkt_none" 'not a Directory source' 'a GitHub-sourced marketplace is reported as unverified'
+assert_contains "$mkt_none" 'registry is present but no hatsu Directory source parsed' 'a GitHub-sourced marketplace is reported as unverified'
 assert_contains "$mkt_none" 'claude plugin updated' 'a GitHub-sourced marketplace still refreshes the cache'
 
 echo 'hatsu-plugin-update-fixture: ok'

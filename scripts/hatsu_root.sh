@@ -87,28 +87,32 @@ walk_up() {
 }
 
 hatsu_root=""; rejected=""; unusable=""; walked=""
+nl="$(printf '\nx')"; nl="${nl%x}"
 # The winner is CANONICALISED — absolute, symlinks resolved — so a relative root can never reach a
-# --gates argument nen resolves against --repo. Three guards, and $hatsu_root is assigned only once
-# all three pass: cd runs with CDPATH cleared and its stdout dropped, so a relative candidate
-# resolves where the file tests looked and a CDPATH hit can neither redirect it nor leak into the
-# path (`cd -P`, so a symlinked skill directory walks up through its TARGET, #105); `-ef` proves the captured path IS the candidate's directory, so a trailing newline command
-# substitution stripped is caught rather than pointed elsewhere; and a root containing a newline is
-# refused outright, because the handoff is ONE line.
+# --gates argument nen resolves against --repo. Four guards, and $hatsu_root is assigned only once
+# all four pass: a candidate carrying a newline is refused BEFORE the walk (walk_up hands its answer
+# back through a command substitution, which strips trailing newlines, so the old `-ef` guard alone
+# could no longer see one — Feitan, zheref/hatsu#105 review); cd runs with CDPATH cleared and its
+# stdout dropped, so a relative candidate resolves where the file tests looked and a CDPATH hit can
+# neither redirect it nor leak into the path (`cd -P`, so a symlinked skill directory walks up
+# through its TARGET); `-ef` proves the captured path IS the candidate's directory; and the
+# canonical path is checked for identity AGAIN, so what is printed is what passed is_hatsu.
 for cand in "${HATSU_PLUGIN_ROOT:-}" "${1:-}" "${CLAUDE_PLUGIN_ROOT:-}"; do
   [ -n "$cand" ] || continue
+  case $cand in *"$nl"*) unusable="$unusable $(printf '%s' "$cand" | tr '\n' '?')"; continue ;; esac
   case $cand in -*) cand=./$cand ;; esac   # an option-looking relative candidate is a path, not a flag
   if ! found=$(walk_up "$cand"); then rejected="$rejected $cand"; continue; fi
   [ "$found" = "$cand" ] || walked="$walked $cand"
   cand=$found
   if r=$(CDPATH= cd -P "$cand" >/dev/null 2>&1 && pwd -P) \
-     && [ "$r/." -ef "$cand/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ]; then hatsu_root=$r; break; fi
+     && [ "$r/." -ef "$cand/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ] && is_hatsu "$r"; then hatsu_root=$r; break; fi
   unusable="$unusable $cand"
 done
 
-[ -z "$rejected$unusable$walked" ] || printf 'hatsu_root.sh: passed over —%s%s%s\n' \
+[ -z "$rejected$unusable" ] || printf 'hatsu_root.sh: passed over —%s%s\n' \
   "${rejected:+ rejected (not a Hatsu checkout, nor inside one within four levels):$rejected.}" \
-  "${unusable:+ unusable (path cannot be handed on as one line):$unusable.}" \
-  "${walked:+ walked up from a skill directory to its plugin root:$walked${hatsu_root:+ → $hatsu_root}.}" >&2
+  "${unusable:+ unusable (path cannot be handed on as one line):$unusable.}" >&2
+[ -z "$walked" ] || printf 'hatsu_root.sh: resolved by walking up from%s%s\n' "$walked" "${hatsu_root:+ → $hatsu_root}" >&2
 
 if [ -z "$hatsu_root" ]; then
   printf '%s %s%s%s\n' \

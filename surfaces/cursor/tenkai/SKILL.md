@@ -143,8 +143,8 @@ surface, the hooks, the allowlists, the rules files and the `.codex/agents` frag
 emits from this plugin's `nen/workflow.json` models, `contracts/permissions.json` and `hooks/hooks.json`,
 stamped with the plugin version (zheref/hatsu#93). The surface dir is `.agents` for Codex skills and
 `.codex` for its config, `.cursor` for Cursor, the workspace's Antigravity dir for Antigravity. They
-are placed by this step at adoption and re-checked by the warm-up's `nen surface mirror check
---installed`, which copies only on drift; a pack Tenkai did not generate is left alone and named,
+are placed by this step at adoption and refreshed by the warm-up's `surface_bootstrap.sh
+--install-all` on every session (ten § 5), the in-tree mirrors having passed `scripts/surface_mirror_check.sh` first; a pack Tenkai did not generate is left alone and named,
 never overwritten, and the same `diagnose` follow-up covers its row.
 
 **State is written by a script with fixtures, never counted in prose.** This is the same rule

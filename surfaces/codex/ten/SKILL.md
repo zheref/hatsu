@@ -13,11 +13,11 @@ summary: Satisfy Hatsu's hard Nen dependency (D10) before any Nen-owned work —
 
 ## 0 · Resolve the root, THEN read the contract yourself
 
-The resolver lives at the **plugin root** (an installed skill directory holds only `SKILL.md`) and
-walks a handed skill directory up to its root (#105).
+The resolver lives at the **plugin root**, never in the skill directory, and walks a handed skill
+directory up to its root (#105).
 
 ```bash
-root="${HATSU_PLUGIN_ROOT:-$base_dir/../../..}"  # Claude Code's base dir is <root>/claude/skills/ten; mirrors export HATSU_PLUGIN_ROOT
+root=${HATSU_PLUGIN_ROOT:-}; for r in "$root" "$base_dir/../../.." "$base_dir/../../../.."; do [ -x "$r/scripts/hatsu_root.sh" ] && root=$r && break; done  # export, Claude Code, nested mirror
 hatsu_root="$("$root/scripts/hatsu_root.sh" "$base_dir")" || exit 1  # 1 = NOT INSTALLED; stop. --quoted: the pasteable literal
 cat "$hatsu_root/nen/contract.json"
 nen schema check --repo "$hatsu_root"  # once nen is on PATH
@@ -50,7 +50,7 @@ nen shu tools --repo "$hatsu_root"  # HATSU's checkout, not the target
 ```
 
 A probe exiting `0` with a semver goes to the rows below; **not found, non-zero or unparseable is
-absent** — § 2. **The `nen` row is the answer.**
+absent** — § 2.
 
 | The `nen` row | Next |
 |---|---|
@@ -84,6 +84,7 @@ ln -sfn "$verified" ~/.local/bin/nen  # (a) the host — maintainer's word only
 - **§ 2a's shell is permitted here only**; **§ 2b's `--script` is required** and propagates the
   script's codes, `--source` shape-checked. **Neither path hides its exit code behind a pipe**: a
   non-zero exit is § 3, quoting `rc`, nothing linked; both read `out`'s last line and `[ -x ]` it.
+  Exit semantics, retries: `dependency.bootstrap.exit_codes`/`.retry_policy`.
 - **The verified path is not reachable as `nen`**: quote what the bootstrap printed and **bind the
   name**. **(b) is the default; (a) is the maintainer's call**, named in § 4. **Never copy or rename
   the binary.**
@@ -93,8 +94,8 @@ ln -sfn "$verified" ~/.local/bin/nen  # (a) the host — maintainer's word only
 **The only supply-chain halt** (`nen/decisions.json` row `supply-chain-failure`). Print
 `halt.message_template` from the contract with the code and meaning filled in, carrying the two-step
 command and the never-a-pipe sentence, then **stop** and report a **G5**. **The Nen-owned operation
-then does not happen** — not improvised, not from an old transcript (D10): that report is the
-*correct* outcome.
+then does not happen** — not with raw `gh`, not improvised, not from an old transcript (D10): that
+report is the *correct* outcome.
 
 ## 4 · Report, in one line
 
@@ -125,19 +126,19 @@ then does not happen** — not improvised, not from an old transcript (D10): tha
 per-surface rules, the Codex sandbox check included.
 
 ```sh
-hatsu_root='<the absolute path § 0 printed>'; target="$(git rev-parse --show-toplevel)"; surface='<codex|cursor|antigravity>'
-"$hatsu_root/scripts/surface_mirror_check.sh" "$hatsu_root"  # FIRST: source vs surfaces/<s>, every flag the verb needs; 0 current, 1 stale
-"$hatsu_root/scripts/surface_bootstrap.sh" --surface "$surface" --target "$target" --install-all  # refreshes the placed copy, per name
+hatsu_root='<the absolute path § 0 printed>'; target="$(git rev-parse --show-toplevel)"; surface='<codex|cursor|antigravity|claude-code>'
+[ "$surface" = claude-code ] || "$hatsu_root/scripts/surface_mirror_check.sh" "$hatsu_root"  # FIRST: source vs surfaces/<s>; 0 current, 1 stale
+[ "$surface" = claude-code ] || "$hatsu_root/scripts/surface_bootstrap.sh" --surface "$surface" --target "$target" --install-all  # refreshes the placed copy
 "$hatsu_root/scripts/permissions_pack.sh" --surface "$surface" --install --target "$target"  # every surface, Claude Code included
 ```
 
-**Claude Code has no mirror**: the plugin is read in place — record `mirrors: not applicable`, place
-the pack only. `nen surface mirror check --installed` diffs a FULL mirror, never the skills-only
-placed copy nor the versioned cache — not this step's check (#106). Exit `0` records `mirrors:
-current`; `1` is stale **in the plugin** — said, still placed, regenerated only in a Hatsu PR. **Ten
-never generates a mirror**; `surface_bootstrap.sh` is the sole pre-skill shell carve-out; a file the
-script did not write is left alone and named; on Cursor `ls -1A "$target/.cursor/skills"` runs
-**before installing anything**; **the model matrix is the TARGET's `nen/workflow.json` → `models`**.
+**Claude Code has no mirror**: the plugin is read in place — record `mirrors: not applicable`, the
+pack line only. `--installed` diffs a FULL mirror, never a placed copy nor the cache — not this
+step's check (#106). Exit `0` records `mirrors: current`; `1` is stale **in the plugin** — said,
+still placed, regenerated only in a Hatsu PR. **Ten never generates a mirror**; `surface_bootstrap.sh`
+is the sole pre-skill shell carve-out; a file the script did not write is left alone and named; on
+Cursor `ls -1A "$target/.cursor/skills"` runs **before installing anything**; **the model matrix is
+the TARGET's `nen/workflow.json` → `models`**.
 
 ## 6 · Catch-up: the prerequisites of the phase that called me
 
@@ -150,10 +151,10 @@ improvised shell; a satisfied step reads `satisfied`; **`breath` and `ao` run he
 
 | Step | Read | Missing → run | Stops |
 |---|---|---|---|
-| 1 base & branch | the orient line | detached HEAD or trunk → [`breath`](../breath/SKILL.md) §§ 2–3: fast-forward local `branch.base`, cut the `branch.template` branch off the **fresh** base; `must-move` → `nen shu warmup --carry`, **never discard** | breath's |
+| 1 base & branch | the orient line | detached HEAD or trunk → [`breath`](../breath/SKILL.md) §§ 2–3: fast-forward local `branch.base`, cut the `branch.template` branch off the fresh base; `must-move` → `--carry`, never discard | breath's |
 | 2 base fresh | branch behind `origin/<branch.base>` | [`ao`](../ao/SKILL.md): mechanical conflicts resolved unasked, the turn continues; on the trunk → `satisfied`. **A conflicted path under `review.scopes.security.paths`, or any lockfile, is always semantic here** (ao § 5) | ao § 6's semantic G5; ao's refusals quoted |
 | 3 base proven | step 1 cut the branch **in this run** | breath § 4, preserve → prove → place → restore; cut earlier → `satisfied` | breath § 4's red |
-| 4 authenticated | `gh auth status` | its failure is the only G5 here, naming the fix, never an elevation; signed in and `[ -n "${GH_TOKEN:+x}" ]` false → `export GH_TOKEN="$(gh auth token)"` **in the block that needs it**, never printed | red |
+| 4 authenticated | `gh auth status` | its failure is the only G5 here, naming the fix, never an elevation; signed in → `export GH_TOKEN="$(gh auth token)"` **in the block that needs it**, never printed | red |
 | 5 declarations | `nen schema check --repo .` | nothing — `FAIL` stops **before the phase** | `FAIL` |
 | 6 stale state | an open PR for this branch; merged status | open PR → **refuse a second PR**, offer [`en`](../en/SKILL.md) on it ([`mukai`](../mukai/SKILL.md) § 2's picker, `mukai.autoEn`); merged → say so, offer breath | never |
 | 7 the human's call | a gate the maintainer crosses | **never auto-run** | always, named |
@@ -179,5 +180,5 @@ steps: ruling 7.
 ## Residue
 
 Manual steps no nen verb owns: [PROCESS.md](../../../docs/PROCESS.md) § Residue. **Not `nen
-warmup`** (stale pins, read-only) nor **`nen shu warmup`** (breath's, via § 6 step 1); they compose:
-**this skill first**, then `nen warmup --current <vX.Y.Z>` against the target.
+warmup`** (read-only) nor **`nen shu warmup`** (breath's); they compose: **this skill first**, then
+`nen warmup --current <vX.Y.Z>` against the target.
