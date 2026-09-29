@@ -21,9 +21,8 @@
 #   scripts/hanten_cycle_ledger.sh record --repo <path> --branch <name> [--pr <n>] --persona <id> --outcome ran|skipped-exhausted
 #   scripts/hanten_cycle_ledger.sh show   --repo <path> --branch <name> [--pr <n>]
 #   scripts/hanten_cycle_ledger.sh --self-test
-set -euo pipefail
-
 python3 - "$@" <<'PY'
+from __future__ import annotations
 import json
 import os
 import sys

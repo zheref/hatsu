@@ -22,11 +22,26 @@ workflows are deprecated and retire on 2026-11-01, so nothing here emits a workf
 | headless command | `agy --model pro "<prompt>"` in the target repository |
 | pointing at a local checkout | the global symlink above follows `$HATSU_PLUGIN_ROOT`; in workspace mode the warm-up copies from it |
 | back-compatibility | `.agent/rules` and `.agent/skills` are still read; Hatsu writes only `.agents/` |
+| artifacts written to | `<appDataDir>/brain/<conversation-id>/` (supplied in agent context), tool `write_to_file` with `ArtifactMetadata` (`Summary`, `UserFacing`, `RequestFeedback`); markdown (`.md`) format with GFM tables, alerts (`> [!NOTE]`), and Mermaid |
+| transcripts log | `<appDataDir>/brain/<conversation-id>/.system_generated/logs/transcript.jsonl` (and `transcript_full.jsonl`) |
+| generative UI | `<agent-embed src="file:///<artifact_path>/widget.html"></agent-embed>` inline in conversation, or standalone in side pane |
 
 In workspace mode the warm-up places `.agents/skills/`, `.agents/agents/`, `.agents/rules/hatsu.md`,
 `.agents/hooks.json` and `.agents/hooks/`, all excluded through `info/exclude`. In global plugin mode
 nothing is written into a target repository; the plugin's own `hooks.json` resolves its scripts through
 `${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu/hooks/`.
+
+Antigravity supports native **Artifacts**: structured deliverables (such as Implementation Plans,
+walkthroughs, diagrams, and turn reports) that communicate progress and thinking asynchronously.
+Artifacts reside in the session conversation store `<appDataDir>/brain/<conversation-id>/` and are
+registered via the `write_to_file` tool by supplying the `ArtifactMetadata` object
+(`{ Summary: string, UserFacing: boolean, RequestFeedback: boolean }`). `ArtifactMetadata` is reserved
+for managed artifacts and is never passed when writing regular project source files to the workspace.
+Native artifacts are authored in GitHub Flavored Markdown (`.md`) with GFM tables, alert callouts
+(`> [!NOTE]`, `> [!IMPORTANT]`, `> [!WARNING]`, etc.), and Mermaid diagrams (````mermaid ... ````).
+Interactive HTML widgets (Generative UI) can also be created as `.html` artifacts and embedded inline
+into chat via `<agent-embed src="file:///<artifact_path>/widget.html"></agent-embed>`. Conversation
+transcripts are captured per step in `<appDataDir>/brain/<conversation-id>/.system_generated/logs/transcript.jsonl`.
 
 ## 2. Skills
 
@@ -159,6 +174,10 @@ nen surface mirror check --surface antigravity <same flags> --installed ~/.gemin
 | subagent model | inherit, flash, pro | "Model tier used when invoked (inherit, flash, or pro)." | https://antigravity.google/docs/subagents | 2026-09-20 |
 | command policy | four values | "Auto-execution policy for shell commands (off, auto, eager, sandbox)." | https://antigravity.google/docs/subagents | 2026-09-20 |
 | Always Proceed | deny list survives | "Always Proceed: The agent will execute commands without prompting (except those explicitly added to your configurable Deny list)." | https://antigravity.google/docs/agent-settings | 2026-09-20 |
+| artifacts definition | structured deliverable across surfaces | "An Artifact is a structured deliverable created by the agent to accomplish its task and communicate its progress and thinking to the human user. Artifacts include rich markdown plans (Implementation Plans), code diffs, architecture diagrams, images, and browser recordings." | https://antigravity.google/docs/artifacts | 2026-09-29 |
+| artifacts review | pause and request review | "Depending on your configuration, the agent will pause at intermediate milestones and request review on its plans or code edits before executing them." | https://antigravity.google/docs/artifacts | 2026-09-29 |
+| generative UI | rich interactive widgets | "How to render rich interactive HTML widgets inline in the chat or as standalone artifacts." | https://antigravity.google/docs/features | 2026-09-29 |
+| transcripts | session logs track execution | "system logs (such as transcript.jsonl) can track artifacts alongside other execution data" | https://antigravity.google/docs/artifacts | 2026-09-29 |
 
 ## 10. Known gaps (not documented)
 
