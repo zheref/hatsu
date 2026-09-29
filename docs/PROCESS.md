@@ -104,16 +104,21 @@ a status board, a register row, a ledger line and a final report alike.
 
 **Every pull request a session opens or causes to be opened — a delegated subagent's included, a
 release proposal included — reaches the maintainer only through [`hatsu:en`](../claude/skills/en/SKILL.md),
-or with `nen pr ready`'s verdict line quoted** (maintainer's incident of 2026-09-22/23, zheref/hatsu#103:
+or with `nen pr ready`'s verdict line quoted (with `nen pr body-check`'s, where the PR's body is in scope —
+[`pr-state`](../claude/skills/pr-state/SKILL.md)'s rule and [`sharingan`](../claude/skills/sharingan/SKILL.md)
+§ 4's conjunction, cited, not re-authored)** (maintainer's incident of 2026-09-22/23, zheref/hatsu#103:
 zheref/nen#246 was called "green … ready for you to merge" from `gh pr checks`, and zheref/nen#247 was
 relayed "ready (G4)" from a subagent's "macOS, Linux and compile green" while it carried two unresolved
 Copilot threads posted after the subagent had stopped). Three consequences, binding on every skill and
-every brief: **a subagent brief that opens a PR ends at the quoted verdict with zero unresolved threads**
-— or hands the PR to `en` — never at "checks green"; **the words *ready*, *G2-ready* and *G4-ready* appear
-in a report or chat line only beside the quoted verdict line**; and **a `not-ready` verdict on an excluded
-or infrastructure row stays `not-ready`, naming the row** — never softened into "ready" because the failing
-check is one the maintainer ruled out (`--exclude-check` is how that ruling reaches the verdict, not a
-paraphrase). A pending asynchronous reviewer round at the current head is `not-ready` too (`en` § 6).
+every brief: **a subagent brief that opens a PR ends at a quoted `ready` verdict (exit `0`) with zero
+unresolved threads, or hands the PR to `en`** — a quoted `not-ready` is reported as not-ready and the PR is
+never left unheld, and "checks green" is never a terminus; **the words *ready*, *G2-ready* and *G4-ready*
+appear in a report or chat line only beside the quoted verdict line**; and **a `not-ready` verdict on an
+excluded or infrastructure row stays `not-ready`, naming the row** — never softened into "ready" because the
+failing check is one the maintainer ruled out (`--exclude-check` is how that ruling reaches the verdict,
+not a paraphrase). A requested reviewer round not yet posted at the current head is `not-ready` too
+(`nen pr ready` row 4; [`sharingan`](../claude/skills/sharingan/SKILL.md) § 5). Under `getsuga` § 3 the
+release proposal's verdict returns to getsuga and § 3a merges: en rings no bell for it.
 
 ## Publishing a report
 
@@ -258,6 +263,9 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
 - **`shibari`.** The evidence mirror's publish step, the base-ref read (`gh pr view --json
   baseRefName`), the last-pushed-commit comparison and Development linking are named raw calls; the
   PR itself is `nen pr open`.
+- **`getsuga`.** The release proposal's base read-back after a retarget (`gh pr view <N> --json
+  baseRefName`), because nen exposes no read of a PR's base (zheref/hatsu#98); the retarget itself is
+  `nen pr retarget`.
 - **`kokusen`.** The explicit per-path `git add` is the one raw call left; the commit is `nen commit
   write --message-file`, gated on `nen commit format`.
 

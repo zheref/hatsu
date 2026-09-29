@@ -1073,6 +1073,11 @@ behind → `sharingan`⁴ → **observe⁵ while required CI or the current-head
 reacting to new comments, threads, reviews and conflicts → [`jutaisho`](../claude/skills/jutaisho/)⁶ once
 at Ready → the dated **final** report, a one-effort Rikugan rendered through `nen report render --variant final` (`backlog-board` § 3's path), **the only report written to `Reports/`**, then stop at the human gate.
 
+**Who starts en:** [`mukai`](../claude/skills/mukai/) (its offer, or `mukai.autoEn`), [`futon`](../claude/skills/futon/)'s
+per-issue chain, the maintainer by name — and [`getsuga`](../claude/skills/getsuga/) § 3 for the release
+proposal it opens, where en runs ¹–⁵ and **returns the quoted verdict to getsuga instead of ringing ⁶**:
+§ 3a is that proposal's merge (ROSTER § *Rulings of 2026-09-26/27/28*, ruling 4; zheref/hatsu#103).
+
 | Key | What it bounds |
 |---|---|
 | `maxCycles` | the `izanagi` cap on **acting reactions**. **Grammar, not a default** — an en run invoked without one does not run, and `nen loop iterate` refuses the claim that would exceed it. Quiet observations claim nothing |

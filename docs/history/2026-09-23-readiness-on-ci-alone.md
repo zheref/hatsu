@@ -17,7 +17,7 @@ Canon already said a readiness claim is `nen pr ready`'s verdict, quoted, or it 
 proposal stopped at the gate without `en`, a delegate's PR had no owner for readiness, and the chat line
 "ready at G4" had no guard.
 
-**What changed (zheref/hatsu#121, effort 3 of the futon run of 2026-09-28).**
+**What changed (branch `fable/kurapika/release-pr-readiness`, stacked on zheref/hatsu#121 — effort 3 of the futon run of 2026-09-28; its own PR number is in the run record).**
 
 - `getsuga` § 3 hands the release proposal to `hatsu:en` the moment it opens; § 3a is entered only once
   `en` has read `ready`, and a fall-back stop quotes the verdict, never "green".
@@ -28,8 +28,9 @@ proposal stopped at the gate without `en`, a delegate's PR had no owner for read
   `not-ready`, naming the row.
 - `en` § 6's observation hold names the asynchronous reviewer round explicitly: a requested round not yet
   posted at the current head is pending, not ready, however green the checks, and spends no cycle.
-- The nen half — `nen pr ready` short-circuiting so rows after the first failure read *unevaluated*
-  (zheref/nen#248), and `--exclude-check` refusing a comma-bearing name (zheref/nen#243) — is nen's.
+- The nen half is nen's: `nen pr ready` short-circuiting so rows after the first failure read *unevaluated*
+  (zheref/nen#248 — fixed; the pinned 0.15.1 prints "Every row is evaluated"), and `--exclude-check`
+  refusing a comma-bearing name (zheref/nen#243, open).
 
 **The corrected practice, on the record.** HA-PR-#121 itself was driven this way: every readiness line in
 its run quotes the verdict (`not-ready: a configured reviewer's round is still owed at the current head

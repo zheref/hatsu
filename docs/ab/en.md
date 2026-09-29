@@ -393,6 +393,6 @@ from inside this run.
 is pending, not Ready, and spends no cycle. Measured on HA-PR-#121 the same day: `nen pr ready HA#121
 --explain` seconds after the PR opened read `not-ready: a configured reviewer's round is still owed at the
 current head (CON-32b): copilot (review requested, not yet posted)` with every check green; the round posted
-four minutes later with five threads, and the verdict moved to `CON-32(d)`. § 1 names `getsuga` § 3 and the
-composites among the callers that start en, and cites `docs/PROCESS.md` § *Reporting a phase* for the rule
+about five minutes later with five threads, and the verdict moved to `CON-32(d)`. § 1 names `getsuga` § 3 (where en returns its verdict and rings no bell) and
+`futon`'s chain among the callers that start en, and cites `docs/PROCESS.md` § *Reporting a phase* for the rule
 that every PR a session opens reaches the maintainer through en or with the verdict quoted.

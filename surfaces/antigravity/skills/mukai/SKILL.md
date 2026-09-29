@@ -68,21 +68,24 @@ call for this skill too ([`mugetsu`](../mugetsu/SKILL.md) § 3, the advance go; 
   evidence attached**, on the mechanism their own repository declares; asking again per scene would
   turn one authorization into a queue of them. **What the call does not cover is anything the stack
   has not declared** — an unregistered mirror, an unnamed host, an image that is not one of the
-  branch's own re-recorded artifacts. Step 6 states what it published.
+  branch's own re-recorded artifacts. Step 8 ([`shibari`](../shibari/SKILL.md)) states what it published.
 
   **The harness's own permission classifier is a separate layer this call does not reach**
   (zheref/hatsu#101). It reads a script's `-y` / `--yes` as a blind apply and asks regardless of what
   this skill says it authorized; Hatsu never overrides or works around that classifier, and no skill
-  asks for it. So: **`-y` is passed only because the script's own confirmation would block a
-  non-interactive tool, never as a token of authority**, and the run says so before the call — *"this
-  publishes the branch's N re-recorded snapshots to <the declared host>; the harness may ask once."*
-  **The portable grant is the consumer's, not a per-machine `.claude/settings.local.json` edit**:
-  a repository that declares `public-mirror` puts its publish command's allow row in its **tracked**
-  `.claude/settings.json` (`"permissions": {"allow": ["Bash(ci_scripts/pr_screenshots.sh:*)"]}` on
-  KroApple), which travels with every checkout; Hatsu's own pack (`contracts/permissions.json`,
-  placed by ten § 5) carries Hatsu's verbs only and never a consumer's script. **Where the consumer
-  has not declared it, the stop at that step is expected and named** — mukai states it in step 6's
-  line before running the command, and it is not a G5.
+  asks for it. The step itself is step 8's — [`shibari`](../shibari/SKILL.md) § 1 and § 5 own the
+  publish and say, before the call, what it publishes and that the harness may ask once; `-y` is passed
+  there only because the script's own confirmation would block a non-interactive tool, never as a token
+  of authority. **The portable grant is the consumer's — the maintainer adds it; no skill writes a
+  permission setting** (`claude/agents/kurapika.md` § Never): on Claude Code a **tracked**
+  `.claude/settings.json` allow row (`"permissions": {"allow": ["Bash(ci_scripts/pr_screenshots.sh:*)"]}`
+  would be KroApple's, scoped to that one script — KroApple carries no such file today, so the stop
+  there is expected until it does), which travels with every checkout; the other surfaces' equivalents
+  are [`docs/SURFACES.md`](../../../docs/SURFACES.md) § 1's permissions row and are unverified for
+  this step. Hatsu's own pack (`contracts/permissions.json`, placed by ten § 5 into the per-checkout
+  `.claude/settings.local.json`) carries Hatsu's verbs only, never a consumer's script. **Where the
+  consumer has not declared it, the stop at that step is expected and named** in shibari's handover
+  line, and it is not a G5.
 
 **One call, one Mukai run, one PR, then the offer to start En** — or, with `mukai.autoEn` true, one
 immediate En run in the same user turn (ruling 2026-09-28). A `yes` for this pull request is not

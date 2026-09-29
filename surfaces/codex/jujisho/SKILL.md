@@ -185,12 +185,14 @@ needs the other, A is the one whose merge frees the most.
 - **B cannot merge until A does, and retargeting it is a step you take.** GitHub only auto-retargets
   a PR when its base branch is **deleted**, which depends on the repo's delete-on-merge setting and
   on the maintainer not keeping the branch. **Do not rely on it:** after A merges, run
-  `nen pr retarget --target <owner/name> --pr <B> --base main` (resolve `<owner/name>` with
+  `nen pr retarget --target <owner/name> --pr <B> --base <branch.base>` (the trunk `nen/workflow.json`
+  names, never a literal `main`; resolve `<owner/name>` with
   `nen repo resolve --from <checkout>` rather than reading `git remote -v` by hand) and confirm the
   base changed — `nen` exposes no read-back for a PR's current base, so `gh pr view <B> --json
   baseRefName` remains the confirmation step (`docs/ab/jujisho.md` § 3 residue). A stacked PR
   silently left pointing at a merged branch shows an empty or nonsensical diff, and reads as
-  "already done".
+  "already done". **This paragraph is the one owner of the retarget mechanism**: `getsuga` § 3 cites
+  it for a stacked release proposal (zheref/hatsu#98) and adds only that proposal's own rule.
 - **If A moves, B's base moves under it.** When A takes review commits, or `main` cascades into A,
   **cascade A into B in the same pass, by merge, never by rebase** — a rebase of A orphans B's
   history and is the failure `CON-21` exists to prevent. With B checked out:
