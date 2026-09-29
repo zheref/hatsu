@@ -2,7 +2,7 @@
 
 ## v0.49.0 — ten, getsuga's default cut point
 
-Release unit for `v0.45.0..v0.49.0`: [#116](https://github.com/zheref/hatsu/pull/116) (the delivery), [#115](https://github.com/zheref/hatsu/pull/115), [#114](https://github.com/zheref/hatsu/pull/114) and [#112](https://github.com/zheref/hatsu/pull/112), and the reconciling release proposal. `v0.46.0`, `v0.47.0` and `0.48.0` were never tagged: their sections below (and #115's entry here) ship inside `v0.49.0`, the first tag after `v0.45.0`.
+Release unit for `v0.45.0..v0.49.0`: [#116](https://github.com/zheref/hatsu/pull/116) (the delivery), [#115](https://github.com/zheref/hatsu/pull/115), [#114](https://github.com/zheref/hatsu/pull/114) and [#112](https://github.com/zheref/hatsu/pull/112), and the reconciling [#117](https://github.com/zheref/hatsu/pull/117). `v0.46.0`, `v0.47.0` and `0.48.0` were never tagged: their sections below (and #115's entry here) ship inside `v0.49.0`, the first tag after `v0.45.0`.
 
 - **Untagged 0.48.0 — Antigravity readiness and the en observation loop** ([#115](https://github.com/zheref/hatsu/pull/115)). `claude/rules/hatsu.md` Rule 5 requires `nen pr ready` at exit `0`, quoted verbatim, before any G2/G4 readiness claim, and keeps `en` holding the observation loop while CI, a reviewer round or a review thread is open; `## Never` forbids claiming readiness without the quoted verdict or abandoning an `en` watch. `en` § 7 names Antigravity's in-session subagents (`invoke_subagent`) beside Codex's `spawn_agent`. The plugin was bumped to 0.48.0 without a section of its own; this entry is its record.
 
