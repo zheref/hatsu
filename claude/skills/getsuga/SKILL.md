@@ -565,29 +565,14 @@ audit ledger — it **never opens a repin PR itself**, per its own `--help`; thi
 a live repo (`docs/ab/getsuga.md` § 3). **Opening the repin PR in each affected consumer remains
 this skill's own action** — it targets *other repositories*, which no `nen` verb here does.
 
-## 7b. The host re-pin — when the repository just published IS this session's `nen`
-
-**One condition, and it applies to nen and nothing else** (zheref/hatsu#90): the target's own
-`origin` (`nen repo resolve --repo <path> --from <path>`) resolves to the plugin's
-`nen/contract.json` → `dependency.source`. Then the binary on this session's `PATH` predates the tag it
-just cut, and every verb after it runs an older contract than the one the sitting shipped. **After the
-release assets are attached** — [`mugetsu`](../mugetsu/SKILL.md) § 5's publication, read back from the
-release, never assumed from the tag — the host re-pin runs through [`ten`](../ten/SKILL.md) § 2b's
-verb and nothing else, **before any further `nen` invocation**:
-
-```bash
-d="$(mktemp -d)"; curl -fsSL <dependency.bootstrap.url with <newTag> in place of the pinned ref> -o "$d/nen-bootstrap.sh"
-out="$(nen bootstrap --ref <newTag> --source <dependency.source> --script "$d/nen-bootstrap.sh")"   # ten § 2b, exit codes ten § 3's
-verified="${out##*$'\n'}"; [ -x "$verified" ] && mkdir -p "$d/bin" && ln -sfn "$verified" "$d/bin/nen" && export PATH="$d/bin:$PATH"   # (b) this session
-```
-
-**Not yet attached** (the release exists without assets, or `nen bootstrap` refuses the ref): wait
-for mugetsu's publication where the sitting is going there, otherwise **stay on the current binary
-and say so** — `host nen: <version> on PATH, pre-release; re-pin deferred: <reason>`. **The report
-line names the version now on `PATH`** — `host nen: <version> on PATH (re-pinned from <old>)` — and
-**its absence is the signal that the step was skipped**. ten § 2's (a), the `~/.local/bin/nen` link,
-stays the maintainer's word. **`nen/contract.json`'s pin is not touched here**: a repin of `minimum` or
-`pinned_ref` is a pull request at the declaration gate, never an install's side effect (ten § 1).
+**§ 7's last line — a hand-forward, not a step** (zheref/hatsu#90): when the target's own `origin`
+(`nen repo resolve --repo <path> --from <path>`) resolves to the plugin's `nen/contract.json` →
+`dependency.source`, the tag this skill just cut is this session's own `nen`, and the binary on `PATH`
+predates it. **The host re-pin is [`mugetsu`](../mugetsu/SKILL.md) § 7's**, after its § 5 attaches
+the release assets — nothing here waits on mugetsu (§ Composition: it never runs from inside this
+skill) — so this skill says one line and stops: `host nen: <version> on PATH, pre-release; the re-pin
+is mugetsu § 7's once the assets attach`. `nen/contract.json`'s pin is not touched by either skill: a
+repin of `minimum` or `pinned_ref` is a pull request at the declaration gate (ten § 1).
 
 ## 7a. A deploy — the plan is printed at G3; the run is the maintainer's
 

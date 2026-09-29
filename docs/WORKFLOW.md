@@ -1652,10 +1652,12 @@ loop, never inherited from the warm-up, never skipped because the last run was g
    returns to rasengan as often as the turn honestly needs, and a red still standing at the end of the
    turn is the next turn's first job, **never a commit "so the fix is saved" and never a narrowed
    check**. **A seat (exit `4`) is not red**: quote the declaration's reason and move on.
-1a. **A consumer's canon mirror, where the delta touches `.claude/canon-values.yml`**
-   (zheref/hatsu#111). Regenerate `.claude/rules/` with the consumer's own documented regeneration
-   command — named in its README or `iteration.$comment`, run locally, never the weekly cron and never
-   a `workflow_dispatch` that can carry the branch into a PR against trunk — and read
+2. **A consumer's canon mirror, where the delta touches `.claude/canon-values.yml`**
+   (zheref/hatsu#111). Regenerate `.claude/rules/` with `nen/workflow.json` →
+   `iteration.canonMirror.command` — an argv array, Hatsu's own key, preserved by `nen schema check`
+   (the README or `iteration.$comment` only while zheref/nen#262 is open and the key is absent, which
+   `tenkai` names as the routed gap) — run locally, never the weekly cron and never a `workflow_dispatch`
+   that can carry the branch into a PR against trunk — and read
    `git status --porcelain .claude/rules` after it: **a non-empty read is a stale mirror, a red gate**
    (row `red-lint`): the regenerated files ride this commit, or nothing does. Then the correctness
    read drift cannot give: `grep -rn '<the superseded value>' .claude/rules/` — a hit is a finding
@@ -1663,7 +1665,7 @@ loop, never inherited from the warm-up, never skipped because the last run was g
    a `nen schema check` row over the bindings — is zheref/nen#262, an owned dependency; until it lands
    the two reads above are the gate. A consumer with no `.claude/canon-values.yml` reports `canon
    mirror: not applicable`.
-2. **The focused tests for changed executable behaviour, through
+3. **The focused tests for changed executable behaviour, through
    [`tsukuyomi`](../claude/skills/tsukuyomi/SKILL.md)** — mandatory even where the author already ran
    them for feedback. Map every changed behaviour to its declared scoped lane and run **every
    applicable lane, once each** (`nen shu test --repo <path> --lane <explicit-scoped-lane>`),
@@ -1675,7 +1677,7 @@ loop, never inherited from the warm-up, never skipped because the last run was g
    `missing-focused-route`) — never a stop, never an undeclared runner, never the full suite as a
    substitute. Prose-only, data-only or other non-executable changes report `focused tests: not
    applicable — <reason>`.
-3. **Read the build proof back — ONLY where step 1 ran a green `build` on this lane**, that condition
+4. **Read the build proof back — ONLY where step 1 ran a green `build` on this lane**, that condition
    read off the policy file **before** running `nen commit check --repo <path> --require-proof
    <iteration.lane>`. `.nen/proof/<lane>.json` is written by `nen shu build` and nothing else, so
    **skip the step** where `build` is not in `iteration.checks` (step 1's own green run is the gate)
@@ -1687,7 +1689,7 @@ loop, never inherited from the warm-up, never skipped because the last run was g
    never reported as a red build; exit `2` (a missing flag, a lane escaping the tree, an unreadable
    proof) **stops** and is never folded into "absent". It blocks nothing, so the refusal is the
    skill's. **Never report a missing proof on a seated lane as a red build.**
-4. **This is not the trunk.** `nen wc classify --repo <path> --base <branch.base>` reporting
+5. **This is not the trunk.** `nen wc classify --repo <path> --base <branch.base>` reporting
    `must-move` means the work belongs on a branch first — [`breath`](../claude/skills/breath/SKILL.md)'s
    job. The commit phase commits on a branch or it does not commit.
 

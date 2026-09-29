@@ -261,3 +261,14 @@ no `xcrun notarytool` … Publishing is a human action through App Store Connect
    its failure usable as proof of reachability. Worth stating in the row's own detail text.
 5. **No missing verb for the publication itself.** Every deterministic step that is not in § 3 is a
    verb, exercised live above with its exit code.
+
+## Dated 2026-09-29 — § 7's host re-pin, after a sitting publishes its own `nen` (zheref/hatsu#90)
+
+`nen 0.15.1`. The step lives here and not in getsuga because getsuga's own Composition ends it at the tag
+and mugetsu never runs from inside it: § 7 is the phase still running when the assets § 5 attached exist.
+The condition is one equality — the target's `origin` (`nen repo resolve --from`) against the plugin's
+`nen/contract.json` → `dependency.source` — the mechanism ten § 2b's verb for the tag read back from the
+release just published (`nen bootstrap --ref v0.15.1 --source zheref/nen --script <fetched>` on this host
+answered `cache hit … checksum verified`, the verified path on its last line). The report line names the
+version on `PATH`; a sitting that skips the step leaves no line. Not exercised against a fresh tag this
+sitting (hatsu's own cut is not nen's).

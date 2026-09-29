@@ -379,6 +379,31 @@ One block, then stop:
 - The **plan's composed argv**, copied out of the `--dry-run` report, not re-typed.
 - What ran, each step's own exit code and nen's, and **which destination** it reached.
 - **`published` or `not published`**, in those words.
+- **The host re-pin, when the repository just published IS this session's `nen`** (zheref/hatsu#90):
+  the target's `origin` (`nen repo resolve --repo <path> --from <path>`) resolves to the plugin's
+  `nen/contract.json` → `dependency.source`, and § 5 has just attached the assets. Then, **before any
+  further `nen` invocation**, [`ten`](../ten/SKILL.md) § 2b's verb and nothing else, for **the tag this
+  run published, read back from the release § 5 wrote** — never a tag listing; a `<newTag>` that is not
+  that release is a halt, not a fallback:
+
+  ```bash
+  d="$(mktemp -d)"; curl -fsSL <dependency.bootstrap.url with <newTag> in place of the pinned ref> -o "$d/nen-bootstrap.sh"
+  out="$(nen bootstrap --ref <newTag> --source <dependency.source> --script "$d/nen-bootstrap.sh")" || { rc=$?; <ten § 3's halt, quoting rc>; }   # ten § 2b
+  verified="${out##*$'\n'}"; [ -x "$verified" ] || { <ten § 3's halt: not executable>; }   # BEFORE any ln or PATH
+  mkdir -p "$d/bin" && ln -sfn "$verified" "$d/bin/nen" && export PATH="$d/bin:$PATH"   # (b) this session
+  ```
+
+  **A non-zero exit is never hidden**: the halt quotes `rc`, nothing is linked, and the report line
+  reads `host nen: <version> on PATH; re-pin FAILED: rc <n>` — a failed re-pin and a skipped one are
+  two different lines (ten § 2: *neither path hides its exit code*).
+
+  The script at `<newTag>` is fetched outside the contract's pin — the one call site where it is —
+  and the binary it produces is still checksum-verified by the verb; the contract's pin follows in
+  the repin PR (ten § 1), never here. **Assets not attached, or the verb refusing the ref**: stay on
+  the current binary and say so — `host nen: <version> on PATH, pre-release; re-pin deferred:
+  <reason>`. **The report line names the version now on `PATH`** — `host nen: <version> on PATH
+  (re-pinned from <old>)` — and **its absence is the signal that the step was skipped**. ten § 2's
+  (a), the `~/.local/bin/nen` link, stays the maintainer's word. Applies to nen and nothing else.
 
 **The same quote goes onto the release PR or the tracking issue** — through the one verb that owns a
 caller-written comment, never a raw `gh`:

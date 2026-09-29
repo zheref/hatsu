@@ -647,8 +647,8 @@ options seeded by the row's `preferred[]`, a proposed process issue on every rea
 `HATSU_ATTENTION=off`, and ports the Linux and Windows rungs from bankai-core (untested until a host runs
 them); `contracts/permissions.json` is the one source `scripts/permissions_pack.sh` renders into
 `.claude/settings.local.json`, `.codex/config.toml` + `.codex/hooks.json`, `.cursor/cli.json` +
-`.cursor/hooks.json`, placed by the warm-up and by `hatsu:tenkai` after `apply`; the reviewer round cap is one key,
-`nen/gates.json` → `round_policy.maxRounds`, read by `sharingan`, `senkei`, `en` and `build`. The five human gates are unmoved.
+`.cursor/hooks.json`, placed by the warm-up and by `hatsu:tenkai` after `apply`; the reviewer round ceiling is two keys,
+`nen/gates.json` → `round_policy.minRounds` and `.maxRounds`, read by `sharingan` (§ 6, the one statement), `senkei` and `en` (zheref/hatsu#102). The five human gates are unmoved.
 
 **What is truly a G5, by these rulings:** a merge, a G3 go, a G1 label; a semantic conflict; force-pushing
 or rewriting published history and overwriting a tracked path; signing material, a live credential, a

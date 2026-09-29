@@ -817,12 +817,9 @@ stacked proposal exists in this sitting, and a retarget is a GitHub write.
 § 3 also hands the proposal to `hatsu:en` the moment `nen pr open` returns (#103): its readiness is en's
 `nen pr ready` verdict, quoted — the incident record is `docs/history/2026-09-23-readiness-on-ci-alone.md`.
 
-## Dated 2026-09-29 — § 7b, the host re-pin after a sitting cuts its own `nen` (zheref/hatsu#90)
+## Dated 2026-09-29 — § 7 hands the host re-pin forward (zheref/hatsu#90)
 
-`nen 0.15.1`. The condition is one equality — the target's `origin` (`nen repo resolve --from`) against
-the plugin's `nen/contract.json` → `dependency.source` — and the mechanism is ten § 2b's verb for the new
-tag, run after the release assets attach and before any further `nen` call; `nen bootstrap --ref v0.15.1
---source zheref/nen --script <fetched>` on this host answered `cache hit … checksum verified` and printed
-the verified path on its last line, the shape § 7b binds. The report line names the version on `PATH`; a
-sitting that skips the step leaves no line, which is the signal. Not exercised live against a fresh tag
-this sitting (hatsu's own cut is not nen's).
+`nen 0.15.1`. The executable step is mugetsu § 7's (`docs/ab/mugetsu.md`, same date): getsuga's Composition ends
+the phase at the tag and mugetsu never runs from inside it, so a step here that waited on the attached
+assets could only ever take its deferral branch. § 7 says one line — the target's `origin` equals
+`dependency.source`, the re-pin is mugetsu's once the assets attach — and touches no pin.

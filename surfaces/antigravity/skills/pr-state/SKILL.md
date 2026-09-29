@@ -96,8 +96,9 @@ export GH_TOKEN=$(gh auth token)
 ```
 
 **Which identity flag goes on the call is decided BEFORE it is typed — never the `--gates` form by
-default.** [`sharingan`](../sharingan/SKILL.md) § 4 states the rule in full and is authoritative;
-the short form is three shapes, and there is no fourth:
+default.** This section owns the rule for every flag on the call — the identity flag and, below, the
+exclusion flag — and [`sharingan`](../sharingan/SKILL.md) § 4 and [`en`](../en/SKILL.md) § 6 cite it;
+the identity flag is three shapes, and there is no fourth:
 
 ```bash
 # the target ships its own nen/gates.json — no identity flag at all (the schemas/ fallback is REMOVED at the pinned build; a gates file only there is refused, same as none at all)
@@ -126,14 +127,18 @@ or, with a bare number against a repo slug directly, the same three shapes with 
 (zheref/hatsu#104). A maintainer's ruling that a check is not watched — an absent self-hosted runner,
 a matrix leg ruled out — lives in the target's `nen/gates.json` → `check_exclusions[]` (`name`,
 `reason`, `ruled`, `until`; [`docs/GATE-CONFIGURATION.md`](../../../docs/GATE-CONFIGURATION.md) § 3),
-never in chat or a brief: every row whose `until` has not passed goes on the call as
-`--exclude-check <a,b>`, by name, and the verdict is quoted with the exclusion named. **A ruling
-with no row is `missing-configuration`** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up,
-continue*): written into the declaration at that repository's gate, then the verb re-read — never a
-verdict read around. **A name the flag cannot carry** (a comma inside a matrix check's name,
-zheref/nen#243) is reported as `not-ready (CON-32(a): excluded check <name> pending)` with the
-remaining rows quoted, **never as `ready`**; the row `CON-32(a)` reads by eye is the one the
-declaration owes nen (zheref/nen#249), and reading it by eye is the failure this flag exists to end.
+never in chat or a brief: **every row `scripts/tenkai_adopt.sh diagnose` reports live** goes on the
+call as `--exclude-check <a,b>`, **each name its own argv element, never interpolated into a
+`--command` string or a shell line** (SEC-7 — the target's gates file is third-party data next to a
+live token), and the verdict is quoted with the exclusion named. **A ruling with no row is
+`missing-configuration`** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*):
+written into the declaration at that repository's gate, then the verb re-read — never a verdict read
+around. **A row the flag cannot carry** — a comma in the name (the flag's separator, zheref/nen#243),
+a quote, a metacharacter, a lapsed or malformed date — **is refused at the declaration and never put
+on the call**: `tenkai diagnose` names it `drift`, the verdict is read without it and quoted as it
+stands, **never `ready` on a row nobody could pass** and never a check dropped by a split name. The
+row `CON-32(a)` then reads by eye is the one the declaration owes nen (zheref/nen#249), and reading it
+by eye is the failure this flag exists to end.
 
 **Always the `$hatsu_root`-anchored form when `--gates` is the one in play, never a bare `contracts/reference.gates.json`.** The
 reason moved with nen `v0.2.0` (#86) and the practice did not: a **relative** `--gates` now resolves

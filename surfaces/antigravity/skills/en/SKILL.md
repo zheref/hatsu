@@ -176,18 +176,13 @@ inherited-and-forgotten default is dangerous in.
 
 **The cap is a ceiling, not a target.** Reaching it is a failure to reach Ready and is reported as one:
 what is still not true, and what the next cycle would have done. `izanagi` § 4's rule, unchanged.
-**The reviewer-round policy is [`/sharingan`](../sharingan/SKILL.md) § 5's, written there in
-full and carried here in four lines:**
+**The reviewer-round policy is [`/sharingan`](../sharingan/SKILL.md) § 6's, stated there once
+and cited here, never restated:**
 
 - **One Copilot round is requested after [`/hanten`](../hanten/SKILL.md) settles, never before.**
-- **Arrivals are remediated up to `nen/gates.json` → `round_policy.maxRounds`; an owed round is
-  re-requested on the maintainer's behalf without asking only while requested < `maxRounds` AND
-  resolved < `minRounds`** (ruling 2026-09-19, `nen/decisions.json` row `cap-reached`; the counting is
-  sharingan § 6's, zheref/hatsu#102), then en keeps watching. **Once `minRounds` resolved rounds exist
-  no further round is requested — *owed at head* after en's own push or request is not a reason**;
-  `maxRounds` reached with fewer resolved is reported as the concrete blocker, `nen pr ready --explain`
-  quoted, never raised in-session. **The request is `nen pr request-reviews` and nothing else** — never
-  a raw GraphQL `requestReviews`, never `gh api`.
+- **Arrivals are remediated, and an owed round is re-requested without asking only inside sharingan
+  § 6's two bounds** (`round_policy.maxRounds` requests, `round_policy.minRounds` resolved; row
+  `cap-reached`), then en keeps watching; either bound reached is § 6's fifth stop.
 - **Before any re-request, `nen wake verify --repo-slug <owner/name> --now <ISO> --author-pattern
   <the maintainer login> --run`** redrives a swallowed run once (`action_required` or
   `startup_failure` that never executed); an `action_required` run by the Copilot bot cannot be
@@ -344,17 +339,23 @@ en acts, and the `<n>/<cap>` the verb prints is the number the report carries.
 
 | Observed | What en does |
 |---|---|
-| **a requested reviewer round not yet posted at the current head** — Copilot minutes after a request or a push, `nen pr ready` row 4 (`CON-32(b)`: *review requested, not yet posted*) | **pending, not Ready** ([`sharingan`](../sharingan/SKILL.md) § 5's rule, the verb's row 4 its evidence) and no cycle is spent: observe until it posts, or until `round_policy.stallMinutes` makes it a stalled round — a different row, `sharingan` § 6's to act on (zheref/hatsu#103) |
-| **a new review, comment or thread** | inspect and classify it first. If it requires remediation or a reviewer re-request, claim an acting cycle, then return to step 2; an approval or informational event that needs only a read spends no cycle. [`/sharingan`](../sharingan/SKILL.md) addresses every inline and summary finding through its own channel. **A new round's findings are fixed, replied to and resolved — and once `round_policy.minRounds` resolved rounds exist no further round is requested**: *owed at head* after en's own request or push is not a reason to request again (§ 2; zheref/hatsu#102) |
+| **a requested reviewer round not yet posted at the current head** — Copilot minutes after a request or a push, `nen pr ready` row 4 (`CON-32(b)`: *review requested, not yet posted*) | **pending, not Ready** ([`sharingan`](../sharingan/SKILL.md) § 5's rule, the verb's row 4 its evidence) and no cycle is spent: observe until it posts; once `round_policy.stallMinutes` makes it a stalled round (row 3), claim an acting cycle and act as `sharingan` § 6 says (zheref/hatsu#103) |
+| **a required check turned red at the current head** | claim an acting cycle and return to step 2 (§ 3's step-5 cell): the failing run is read, the fix authored, verified through the phase owners and pushed — a new epoch |
+| **the PR converted to draft, or its base retargeted** | outside the hold's vocabulary: name it, end the watch, and hand back — a draft is not driven, and a retarget re-derives the gate (WORKFLOW § *Gate derivation*) |
+| **a new review, comment or thread** | inspect and classify it first. If it requires remediation or a reviewer re-request, claim an acting cycle, then return to step 2; an approval or informational event that needs only a read spends no cycle. [`/sharingan`](../sharingan/SKILL.md) addresses every inline and summary finding through its own channel, and decides whether a further round may be requested (§ 6 there; *owed at head* after en's own request or push is not a reason) |
 | **the branch fell behind, or the PR went `dirty`** | claim an acting cycle, then step 3 and step 4 — catch up, then re-decide. A conflicted PR gets *no checks at all*, which reads as "clean" rather than "broken" (`sharingan` § 5) |
 | the PR becomes Ready | step 6 — bell and stop at the human gate |
 | the PR merged before the gate handoff | end as a terminal external state, naming that readiness was not the run's observed terminus |
 | the PR closed unmerged | the run ends, saying so — there is nothing to land, and reopening is the maintainer's call |
 | nothing changed | **one line, or no line.** Not a status screenful; `nen watch until` already prints one line per observation |
 
-**Four stops apply here**: the condition true (verified Ready); the **cap reached**, reported with what
-is still not true; **a human gate**, which is never retried past; and an **impossible condition**, named
-rather than waited on — a closed PR will not become Ready. `izanagi`'s generic three-no-op stop does
+**Five stops apply here**: the condition true (verified Ready); the **cap reached**, reported with what
+is still not true; **a human gate**, which is never retried past; an **impossible condition**, named
+rather than waited on — a closed PR will not become Ready; and **the round ceiling** (zheref/hatsu#102):
+`round_policy.maxRounds` requested, or `round_policy.minRounds` resolved with the verdict still
+not-ready — a round owed at head that no bound lets en request is a named impossible condition for
+the watch, not a state to poll — reported not-ready with `nen pr ready --explain` quoted and the board,
+never a raised number, never a G5. `izanagi`'s generic three-no-op stop does
 not apply to En: quiet observations claim no cycle, and three unchanged pending reads cannot terminate
 the current-head readiness promise. Three consecutive **observation errors** still stop `nen watch until`
 as an unread capability failure, exactly as the verb documents; that is not a pending-state success.
@@ -517,9 +518,8 @@ returned. Harvesting is that phase's, not En's.
   and resumable live state. Do not misname interruption as success or cap exhaustion.
 - **Never counts an observation that found nothing as a cycle**, and never fabricates one to
   manufacture a cap-out (§ 6).
-- **Never requests a reviewer round except through `nen pr request-reviews`**, never one past
-  `round_policy.maxRounds` or once `minRounds` rounds stand resolved, and never raises either number
-  in-session (§ 2; zheref/hatsu#102).
+- **Never requests a reviewer round outside `sharingan` § 6's rule** — the verb only, inside both
+  bounds, never a number raised in-session (§ 2; zheref/hatsu#102).
 - **Never rings outside Ready** (§ 5), and never rings twice for the same transition.
 - **Never claims readiness by eye** — `nen pr ready` + `nen pr body-check`, quoted, or it is not
   claimed (§ 4). Never declares a PR G2/G4 ready while checks, reviewer rounds, or review threads are

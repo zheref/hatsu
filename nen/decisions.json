@@ -13,7 +13,7 @@
       "id": "cap-reached",
       "class": "autonomous",
       "default": "nen pr request-reviews --target <owner/name> --pr <n> --add-bots <reviewer>",
-      "why": "Ruling 2026-09-19: an owed reviewer round is requested on the maintainer's behalf while this PR's requested rounds are under nen/gates.json round_policy.maxRounds (never asked about); at maxRounds the run ends at not-ready with the board, never with a question. nen/workflow.json monitor.maxCycles is en's ACTING-cycle cap, a different number."
+      "why": "Ruling 2026-09-19, bounded by zheref/hatsu#102: an owed reviewer round is requested on the maintainer's behalf, through nen pr request-reviews only, while this PR's requested rounds are under nen/gates.json round_policy.maxRounds AND its resolved rounds are under round_policy.minRounds (never asked about); once minRounds resolved rounds exist no further round is requested -- 'owed at head' after the run's own push or request is not a reason -- and maxRounds with fewer resolved is the reported blocker: the run ends at not-ready with the board and nen pr ready --explain quoted, never with a question, never a number raised in-session. nen/workflow.json monitor.maxCycles is en's ACTING-cycle cap, a different number."
     },
     {
       "id": "red-lint",

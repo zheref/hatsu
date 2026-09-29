@@ -52,7 +52,7 @@ The parse runs **only when the maintainer typed a clause**; exit `2` asks, never
 the base is P3's fetched `origin/<branch.base>` — **a fetch that cannot run is a stop, not a silent
 fall-back** — named either way.
 
-Both flags are hints for § 5's message; with neither, type and scope are read off the diff and stated.
+Both flags hint § 5's message; with neither, type and scope are read off the diff and stated in the report.
 **One commit per coherent step** — two separable things are two calls, not one bulleted message.
 
 ## 2. The parameters, and where they come from

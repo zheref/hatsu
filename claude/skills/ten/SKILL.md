@@ -84,7 +84,7 @@ ln -sfn "$verified" ~/.local/bin/nen  # (a) the host — maintainer's word only
   non-zero exit is § 3, quoting `rc`, nothing linked; both read `out`'s last line and `[ -x ]` it.
   Exit semantics, retries: `dependency.bootstrap.exit_codes`/`.retry_policy`.
 - **The verified path is not reachable as `nen`**: quote what the bootstrap printed and **bind the
-  name**; **(b) is the default, (a) the maintainer's call** (§ 4); **never copy or rename the binary.** **Publishing `nen` itself → § 2b for the new tag** ([`getsuga`](../getsuga/SKILL.md) § 7b, #90).
+  name**; **(b) is the default, (a) the maintainer's call** (§ 4); **never copy or rename the binary.** **Publishing `nen` itself → § 2b for its tag** ([`mugetsu`](../mugetsu/SKILL.md) § 7).
 
 ## 3 · Halt — only when the bootstrap failed
 
@@ -96,7 +96,7 @@ report is the *correct* outcome.
 
 ## 4 · Report, in one line
 
-**Every value is `nen shu tools`'s, never assembled** — version from `found`, range from
+**Every value is quoted from `nen shu tools`, never assembled** — version from `found`, range from
 `pinned`, floor from the `compat floor:` line, else `floor not reported (nen <version>)`, never
 **inferred from the pin**. A clear run reads
 `Nen <v> · floor <f> · satisfies <range> · warm-up clear`; an install adds what it did

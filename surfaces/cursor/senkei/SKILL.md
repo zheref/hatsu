@@ -403,15 +403,9 @@ the table — a status-only pass reports plainly, no banner.
   different repo's `nen pr ready` call (§ 4).
 - Never exercise `nen run rerun-failed`'s affirmative rerun path against a repo whose PRs you do
   not control the consequences of — this port only confirms the refusal shape (§ 4).
-- **The reviewer-round policy is [`/sharingan`](../sharingan/SKILL.md) § 5's, written there in
-  full and carried here in four lines.** One Copilot round is requested after `/hanten` settles,
-  never before. Arrivals are remediated up to `nen/gates.json` → `round_policy.maxRounds`; an owed
-  round inside the max is re-requested on the maintainer's behalf without asking
-  (`nen/decisions.json` row `cap-reached`). Never re-request after a push that changed nothing
-  reviewable — count commits ahead and the diff since the last reviewed head first
-  (`git rev-list --count <reviewed-head>..HEAD`, `git diff --stat <reviewed-head>..HEAD`); zero
-  reviewable change means no request. Copilot auto-reviews every push, so the cap governs requests,
-  not arrivals; an arrival past the cap is still remediated and its threads settled
-  (`nen pr threads list|reply|resolve --target <owner/name> --pr <n>`). Past the maximum the pass
-  reports not-ready with the board. `nen/workflow.json` → `monitor.maxCycles` is en's acting-cycle
-  cap, a different number.
+- **The reviewer-round policy is [`/sharingan`](../sharingan/SKILL.md) § 6's, stated there once and
+  not restated here**: one round after `/hanten` settles; a request only through `nen pr
+  request-reviews`, only while requested < `round_policy.maxRounds` and resolved < `round_policy.minRounds`,
+  never once `minRounds` resolved rounds exist, never after a push that changed nothing reviewable;
+  either bound reached ends the pass not-ready with the board (zheref/hatsu#102). `nen/workflow.json` →
+  `monitor.maxCycles` is en's acting-cycle cap, a different number.
