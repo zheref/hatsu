@@ -817,6 +817,10 @@ stacked proposal exists in this sitting, and a retarget is a GitHub write.
 § 3 also hands the proposal to `hatsu:en` the moment `nen pr open` returns (#103): its readiness is en's
 `nen pr ready` verdict, quoted — the incident record is `docs/history/2026-09-23-readiness-on-ci-alone.md`.
 
+
+## 2026-09-29 — the first cut as a futon `then` step; two proposals because `main` moved under the first
+
+Run `hatsu:futon hatsu@bug then getsuga+mugetsu` (the advance go, quoted). No token: `nen release resolve-target --repo . --token main --trunk main` → `main -> d686d3d8 … an ancestor of the trunk -- safe to cut`. Preflight at that SHA: five rows ok, `FAIL CON-33(c) reconciled -- missing: #121, #123, #124` → § 3's line, HA-PR-#128 (changelog only; `nen release unit-check`: every changed path inside `CHANGELOG.md, changelog.d/**`). Copilot answered no review request (the mutation returned ok, GitHub recorded no event — three requests in a row), so `nen pr merge #128 --release-unit` printed four passing gates and `pr ready: not-ready … copilot (no round at head)`; § 3a fell back to the declaration gate and the maintainer merged (`7a29398a`). **The preflight re-verified at that SHA failed again** — #120 and #125 had merged under the proposal, and the manifest there read 0.55.0 — so a second changelog-only proposal, HA-PR-#130, back-filled them and named itself (`nen release self-check`: lists itself); merged by the maintainer at `a9b24144`; preflight there all ok; `nen tag cut --repo . --name v0.55.0 --at a9b24144… --trunk main --push` → `created local tag … pushed 'v0.55.0' to origin`. Lesson for the skill: re-run the preflight at the proposal's own head *before* asking for the merge, and say when `main` has moved since the line was written.
 ## Dated 2026-09-29 — § 7 hands the host re-pin forward (zheref/hatsu#90)
 
 `nen 0.15.1`. The executable step is mugetsu § 7's (`docs/ab/mugetsu.md`, same date): getsuga's Composition ends

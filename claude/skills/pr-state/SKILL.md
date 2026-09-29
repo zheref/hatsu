@@ -68,7 +68,7 @@ registry entry is set up through the registry's own key, never by this read-only
 > **Closed by nen `v0.2.0` (#72, closes zheref/nen#26)** — the shorthand now reads the **longest
 > trailing digit run** as the number, and `nen pr ready --help` says so. Verified live at `v0.3.0`
 > against the bundled registry: `nen pr ready BC925 --repo <path>` and `nen pr ready BC#925 --repo
-> <path>` both resolve to `zheref/bankai-core#925` (and then, with no token, `unevaluated` at exit `1` —
+> <path>` both resolve to `<reference-repo>#925` (and then, with no token, `unevaluated` at exit `1` —
 > the ref resolved; GitHub was not read). The instruction stands as belt-and-braces rather than as a
 > workaround: `<CODE>#<N>` is the unambiguous form, and a product code that itself **ends in a digit**
 > still needs the `#`, by the verb's own account.

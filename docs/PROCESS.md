@@ -296,11 +296,11 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
 - **`getsuga`.** The release proposal's base read-back after a retarget (`gh pr view <N> --json
   baseRefName`), because nen exposes no read of a PR's base (zheref/hatsu#98); the retarget itself is
   `nen pr retarget`.
-- **`kokusen`.** The explicit per-path `git add`, the tip read-back (`git log -1
+- **`kokusen`.** The explicit per-path `git add`, the tip read-back (`git -C <path> log -1
   --format='%(trailers:only,unfold)'`) and the drop of a just-written tip on an injected attribution key
-  (`git reset --soft HEAD~1`, row `injected-attribution-trailer`) are the raw calls; the commit is
+  (`git -C <path> reset --soft HEAD~1`, row `injected-attribution-trailer`) are the raw calls; the commit is
   `nen commit write --message-file`, gated on `nen commit format`.
-- **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<origin/<branch> | origin/<base>>..HEAD`.
+- **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`.
 
 **Owned dependencies.** `nen commit write` / `nen wc squash` should read back the trailers of the commit they wrote and report an injected key ([zheref/nen#273](https://github.com/zheref/nen/issues/273)); until then the read-back above is prose.
 

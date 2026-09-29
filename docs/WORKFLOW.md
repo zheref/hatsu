@@ -482,8 +482,8 @@ forum answer of 2026-08-21 ([`docs/surfaces/cursor.md`](surfaces/cursor.md) § 9
 executor path reported to ignore it and the second `Made-with: Cursor` trailer); **forum-sourced and not
 verified live on this host, which runs no Cursor**. Because the switch is per machine, harness-owned
 and unverified, the guard of record is agent-side: `kokusen` § 5 reads the tip back after every
-`commit write` and `aka` § 7 reads **every outgoing commit** immediately before `nen wc publish` (`git log
-<origin/<branch> | origin/<base>>..HEAD`, after § 5's catch-up and § 6's re-lint — ao may add a merge
+`commit write` and `aka` § 7 reads **every outgoing commit** immediately before `nen wc publish` (`git -C <path> log
+<the SHA ls-remote printed | origin/<base>>..HEAD`, after § 5's catch-up and § 6's re-lint — ao may add a merge
 above the squash, so the tip alone would miss the squash parent the push also sends). **What they classify is an
 attribution key, and this is the one rule for it:** a trailer key that ends in `-by` or `-with`
 (case-insensitive — `Co-authored-by`, `Signed-off-by`, `Reviewed-by`, `Generated-by`, `Made-with`) or
