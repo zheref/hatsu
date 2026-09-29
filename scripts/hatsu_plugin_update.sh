@@ -10,6 +10,27 @@
 #
 # This script never discards work, never force-updates a diverged history, and
 # never treats a Claude versioned plugin cache as a git checkout.
+#
+# THE MARKETPLACE SOURCE IS PART OF THE CLAIM (zheref/hatsu#118). `claude plugin
+# update hatsu@hatsu` compares the versioned cache against the marketplace the
+# plugin was installed from; for a Directory-source marketplace that is a git
+# checkout, "already at the latest version" only means "the same version as
+# that checkout", which nobody fast-forwards. So --claude first resolves the
+# `hatsu` marketplace's directory from Claude Code's own registry
+# (${CLAUDE_CONFIG_DIR:-~/.claude}/plugins/known_marketplaces.json), and when it
+# is a git checkout brings it current the same way this script brings any
+# checkout current (trunk fast-forward, --auto semantics, never a discard) —
+# or says, in the report line, exactly why it could not be verified (an
+# authoring branch, a diverged trunk, a dirty tree, no origin, no fetch). The
+# report never prints a bare "already at the latest version": the marketplace
+# verdict rides beside it every time.
+#
+# Untracked files never block a trunk fast-forward: `git merge --ff-only`
+# refuses on its own any fast-forward that would overwrite one, so only tracked
+# modifications (staged or not) read as dirty. A checkout that is also a Claude
+# Code marketplace source always carries an untracked .claude/ (worktrees,
+# settings.local.json), and treating that as dirty is what left the checkout in
+# #118 stale forever.
 
 set -euo pipefail
 LC_ALL=C
@@ -31,7 +52,9 @@ usage: scripts/hatsu_plugin_update.sh [--root <path>] [--channel auto|trunk|rele
             channel, is dirty, diverged, or cannot fetch. Never discards.
 --dry-run   Print the plan; mutate nothing.
 --claude    After a git update — or instead of one, when --root is a versioned
-            plugin cache — run `claude plugin marketplace update` then
+            plugin cache — bring the `hatsu` marketplace's Directory source
+            current when it is a git checkout (or say why it could not be), then
+            run `claude plugin marketplace update` and
             `claude plugin update hatsu@hatsu -y`. Restart Claude Code to apply.
 EOF
 }
@@ -231,32 +254,109 @@ would() {
   fi
 }
 
+# marketplace_directory_source — the directory the `hatsu` marketplace points at in Claude Code's
+# own registry, or nothing (no registry, no `hatsu` entry, or a GitHub-sourced one). One shape is
+# read, the JSON.stringify(x, null, 2) Claude Code writes; JSON's \\ and \" in the path are undone.
+marketplace_directory_source() {
+  local registry="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/known_marketplaces.json"
+  [ -f "$registry" ] || return 1
+  awk '
+    /^  "hatsu": \{$/ { inm = 1; next }
+    inm && /^  \},?$/ { exit }
+    inm && /^    "source": \{$/ { ins = 1; next }
+    inm && ins && /^    \},?$/ { ins = 0; next }
+    inm && ins && /^      "source": "directory",?$/ { isdir = 1; next }
+    inm && ins && /^      "path": "/ {
+      s = $0; sub(/^      "path": "/, "", s); sub(/",?$/, "", s)
+      gsub(/\\"/, "\"", s); gsub(/\\\\/, "\\", s); path = s; next
+    }
+    END { if (isdir && path != "") print path }
+  ' "$registry"
+}
+
+# marketplace_verdict — sets MKT_VERDICT, one clause for the report line: what happened to the
+# marketplace source. A git checkout is brought current by THIS script (trunk channel, --auto
+# semantics, never a discard); anything else is stated as unverified with its reason. Never silent,
+# never a claim. The sub-run's own `would run:` lines pass straight through to stdout.
+MKT_VERDICT=""
+marketplace_verdict() {
+  local mkt canon_mkt sub_out sub_line
+  mkt="$(marketplace_directory_source || true)"
+  if [ -z "$mkt" ]; then
+    MKT_VERDICT="marketplace source: not a Directory source (or no hatsu entry in known_marketplaces.json) — not verified against origin"
+    return 0
+  fi
+  canon_mkt="$(canonical_directory "$mkt" 2>/dev/null || printf '%s' "$mkt")"
+  if [ "$canon_mkt" = "$root" ]; then
+    MKT_VERDICT="marketplace source is this checkout"
+    return 0
+  fi
+  if ! git -C "$canon_mkt" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    MKT_VERDICT="marketplace source $canon_mkt is not a git checkout — not verified against origin"
+    return 0
+  fi
+  # Re-enter this script on the marketplace checkout: --auto so a checkout that cannot be brought
+  # current SKIPS with its reason rather than refusing the Claude refresh outright. Its report line
+  # is the verdict, verbatim after the prefix and minus its own plugin suffix.
+  local -a sub_args=(--root "$canon_mkt" --channel auto --auto)
+  [ "$dry_run" -eq 1 ] && sub_args+=(--dry-run)
+  set +e
+  sub_out="$("$script_dir/${0##*/}" "${sub_args[@]}" 2>&1)"
+  set -e
+  printf '%s\n' "$sub_out" | grep '^would run: ' || true
+  sub_line="$(printf '%s\n' "$sub_out" | awk '/^hatsu-plugin-update: /{ line = $0 } END { sub(/ · plugin [^ ]+$/, "", line); print line }')"
+  case "$sub_line" in
+    'hatsu-plugin-update: skipped · '*)
+      MKT_VERDICT="marketplace source $canon_mkt NOT brought current: ${sub_line#hatsu-plugin-update: skipped · } — claude plugin update compares against that checkout as it stands"
+      ;;
+    'hatsu-plugin-update: '*)
+      MKT_VERDICT="marketplace source $canon_mkt: ${sub_line#hatsu-plugin-update: }"
+      ;;
+    *)
+      MKT_VERDICT="marketplace source $canon_mkt: could not be examined (${sub_out:-no output}) — not verified against origin"
+      ;;
+  esac
+}
+
 claude_refresh() {
-  local after_git="${1:-}"
+  local after_git="${1:-}" mkt_verdict mkt_path mkt_ver cache_note
   if ! command -v claude >/dev/null 2>&1; then
     if [ -n "$after_git" ]; then
       skip_or_refuse "$after_git · Claude Code refresh skipped (claude not on PATH). Run: claude plugin update hatsu@hatsu -y"
     fi
     skip_or_refuse "Claude Code plugin cache (v$plugin_ver); claude is not on PATH. Run: claude plugin marketplace update && claude plugin update hatsu@hatsu -y"
   fi
+  # The marketplace source first (#118): what `claude plugin update` will compare against.
+  marketplace_verdict
+  mkt_verdict="$MKT_VERDICT"
   would "claude plugin marketplace update"
   would "claude plugin update hatsu@hatsu -y"
   if [ "$dry_run" -eq 1 ]; then
-    report "${after_git:+$after_git · }dry-run · claude plugin update hatsu@hatsu"
+    report "${after_git:+$after_git · }$mkt_verdict · dry-run · claude plugin update hatsu@hatsu"
     exit 0
   fi
   # Marketplace name may be absent on a host that installed from a path; updating
   # all marketplaces then the plugin is the documented Claude Code refresh.
   claude plugin marketplace update >/dev/null 2>&1 || true
   if claude plugin update hatsu@hatsu -y; then
+    # A versioned cache path names ONE version forever, so re-reading $root cannot see a newer
+    # slot; the marketplace source's own manifest says what the cache should now hold.
+    cache_note=""
+    mkt_path="$(marketplace_directory_source || true)"
+    if [ -n "$mkt_path" ] && [ -f "$mkt_path/.claude-plugin/plugin.json" ]; then
+      mkt_ver="$(plugin_version "$mkt_path" 2>/dev/null || true)"
+      if [ -n "$mkt_ver" ] && [ "$mkt_ver" != "$plugin_ver" ]; then
+        cache_note=" · marketplace source at v$mkt_ver, this cache slot is v$plugin_ver (a newer slot is installed beside it, or the update did not move)"
+      fi
+    fi
     plugin_ver="$(plugin_version "$root" 2>/dev/null || printf '%s' "$plugin_ver")"
-    report "${after_git:+$after_git · }claude plugin updated · restart Claude Code to apply"
+    report "${after_git:+$after_git · }$mkt_verdict · claude plugin updated$cache_note · restart Claude Code to apply"
     exit 0
   fi
   if [ -n "$after_git" ]; then
-    skip_or_refuse "$after_git · claude plugin update hatsu@hatsu failed; run it yourself, then restart Claude Code"
+    skip_or_refuse "$after_git · $mkt_verdict · claude plugin update hatsu@hatsu failed; run it yourself, then restart Claude Code"
   fi
-  skip_or_refuse "claude plugin update hatsu@hatsu failed. Run it yourself, then restart Claude Code"
+  skip_or_refuse "$mkt_verdict · claude plugin update hatsu@hatsu failed. Run it yourself, then restart Claude Code"
 }
 
 is_git_worktree() {
@@ -295,10 +395,13 @@ if [ -z "$branch" ]; then
   detached_at="$(git -C "$root" rev-parse --short HEAD 2>/dev/null || true)"
 fi
 exact_tag="$(git -C "$root" describe --tags --exact-match 2>/dev/null || true)"
-porcelain="$(git -C "$root" status --porcelain=v1 -uall)"
+# Tracked modifications only: an untracked file never blocks a fast-forward, and git itself
+# refuses one that would overwrite it (see the header, #118).
+porcelain="$(git -C "$root" status --porcelain=v1 --untracked-files=no)"
+untracked_count="$(git -C "$root" status --porcelain=v1 -uall | awk '/^\?\? /{ n++ } END { if (n) print n }')"
 
 if [ -n "$porcelain" ]; then
-  skip_or_refuse "dirty working copy · staying at ${branch:-detached $detached_at}"
+  skip_or_refuse "dirty working copy (tracked changes) · staying at ${branch:-detached $detached_at}"
 fi
 
 detected="$channel"
@@ -358,9 +461,9 @@ if [ "$detected" = "trunk" ]; then
   after="$(git -C "$root" rev-parse --short HEAD)"
   plugin_ver="$(plugin_version "$root")"
   if [ "$before" = "$after" ]; then
-    git_result="already current · trunk $trunk @$after"
+    git_result="already current · trunk $trunk @$after${untracked_count:+ · $untracked_count untracked, not blocking}"
   else
-    git_result="updated trunk $trunk $before..$after"
+    git_result="updated trunk $trunk $before..$after${untracked_count:+ · $untracked_count untracked, not blocking}"
   fi
 elif [ "$detected" = "release" ]; then
   would "git fetch origin --tags"

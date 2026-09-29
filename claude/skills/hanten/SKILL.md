@@ -106,7 +106,12 @@ On Claude Code the reviewer is a subagent raised with the harness's Agent tool, 
 read at use, never frontier, and **not passed at all** where the persona's definition pins one;
 `isolation` is **omitted**; the `prompt` carries the checkout path, the scope, the base, the raising
 paths, § 5's shape, **the ABSOLUTE path `$hatsu_root/claude/agents/_review-preamble.md`** (a relative
-one resolves inside the repository under review) and *"do not request a worktree"*.
+one resolves inside the repository under review), **the ABSOLUTE path of the pinned `nen`** and *"do
+not request a worktree"*. **A subagent inherits none of this session's `PATH` binding** (#107): resolve
+`command -v nen` here — the binary [`ten`](../ten/SKILL.md) § 2 bound — and pass it as `nen: <path>`;
+the reviewer prefixes its directory onto `PATH` in every block (preamble § 2). Unresolvable here, the
+prompt says so and names every Nen-owned check as **unread** up front, once, by hanten — never left for
+each persona to rediscover.
 
 ```bash
 git -C <target repo> worktree add --detach <target repo>/.claude/worktrees/hanten-<persona> HEAD

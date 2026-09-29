@@ -1,12 +1,19 @@
 #!/bin/sh
 # hatsu_root.sh — resolve the Hatsu plugin root and print it ALONE on stdout.
 #
-#   scripts/hatsu_root.sh [<a candidate path the harness handed this invocation>]
+#   scripts/hatsu_root.sh [--quoted] [<a candidate path the harness handed this invocation>]
 #
 # Three candidates and no fourth, in order, the first that passes winning:
 #   1. $HATSU_PLUGIN_ROOT   — the form that works on all surfaces, and the one to prefer
 #   2. $1                   — the path this invocation was handed
 #   3. $CLAUDE_PLUGIN_ROOT  — Claude Code's own, kept last so one resolution serves every surface
+#
+# A candidate may be a SKILL DIRECTORY inside the plugin rather than the root (zheref/hatsu#105):
+# Claude Code prints `<root>/claude/skills/<name>` as a skill's base directory, and an installed
+# skill directory holds only SKILL.md, so a skill cannot run this script from where it stands. Each
+# candidate is therefore walked up at most four levels — skills/<name> → skills → claude → root, or
+# surfaces/<surface>/skills/<name> on a mirrored copy — and EVERY level is checked for what it IS;
+# the walk names its start and its end on stderr. Nothing is accepted by shape.
 #
 # $CLAUDE_PLUGIN_ROOT is NOT inert off Claude Code: exported from a shell profile it names another
 # plugin, and a `[ -d "$root/surfaces/…" ]` guard checks SHAPE, not IDENTITY — a plugin checkout that
@@ -66,31 +73,47 @@ is_hatsu() {
 quoted=0
 [ "${1:-}" = "--quoted" ] && { quoted=1; shift; }
 
-hatsu_root=""; rejected=""; unusable=""
+# walk_up PATH — print the first of PATH and its four nearest ancestors that IS a Hatsu root, or
+# nothing. `..` segments are resolved by the kernel, so a symlinked skill directory (Cursor's
+# .cursor/skills/<name> → <root>/surfaces/cursor/<name>) walks up through its TARGET's parents.
+walk_up() {
+  probe=$1; depth=0
+  while [ "$depth" -le 4 ]; do
+    if is_hatsu "$probe"; then printf '%s\n' "$probe"; return 0; fi
+    [ -d "$probe" ] || return 1
+    probe="$probe/.."; depth=$((depth + 1))
+  done
+  return 1
+}
+
+hatsu_root=""; rejected=""; unusable=""; walked=""
 # The winner is CANONICALISED — absolute, symlinks resolved — so a relative root can never reach a
 # --gates argument nen resolves against --repo. Three guards, and $hatsu_root is assigned only once
 # all three pass: cd runs with CDPATH cleared and its stdout dropped, so a relative candidate
 # resolves where the file tests looked and a CDPATH hit can neither redirect it nor leak into the
-# path; `-ef` proves the captured path IS the candidate's directory, so a trailing newline command
+# path (`cd -P`, so a symlinked skill directory walks up through its TARGET, #105); `-ef` proves the captured path IS the candidate's directory, so a trailing newline command
 # substitution stripped is caught rather than pointed elsewhere; and a root containing a newline is
 # refused outright, because the handoff is ONE line.
 for cand in "${HATSU_PLUGIN_ROOT:-}" "${1:-}" "${CLAUDE_PLUGIN_ROOT:-}"; do
   [ -n "$cand" ] || continue
   case $cand in -*) cand=./$cand ;; esac   # an option-looking relative candidate is a path, not a flag
-  if ! is_hatsu "$cand"; then rejected="$rejected $cand"; continue; fi
-  if r=$(CDPATH= cd "$cand" >/dev/null 2>&1 && pwd -P) \
+  if ! found=$(walk_up "$cand"); then rejected="$rejected $cand"; continue; fi
+  [ "$found" = "$cand" ] || walked="$walked $cand"
+  cand=$found
+  if r=$(CDPATH= cd -P "$cand" >/dev/null 2>&1 && pwd -P) \
      && [ "$r/." -ef "$cand/." ] && [ "$(printf '%s' "$r" | wc -l)" -eq 0 ]; then hatsu_root=$r; break; fi
   unusable="$unusable $cand"
 done
 
-[ -z "$rejected$unusable" ] || printf 'hatsu_root.sh: passed over —%s%s\n' \
-  "${rejected:+ rejected (not a Hatsu checkout):$rejected.}" \
-  "${unusable:+ unusable (path cannot be handed on as one line):$unusable.}" >&2
+[ -z "$rejected$unusable$walked" ] || printf 'hatsu_root.sh: passed over —%s%s%s\n' \
+  "${rejected:+ rejected (not a Hatsu checkout, nor inside one within four levels):$rejected.}" \
+  "${unusable:+ unusable (path cannot be handed on as one line):$unusable.}" \
+  "${walked:+ walked up from a skill directory to its plugin root:$walked${hatsu_root:+ → $hatsu_root}.}" >&2
 
 if [ -z "$hatsu_root" ]; then
   printf '%s %s%s%s\n' \
     "hatsu_root.sh: NOT INSTALLED. No Hatsu source root." \
-    "${rejected:+Rejected (no .claude-plugin/plugin.json naming hatsu at its top level):$rejected. }" \
+    "${rejected:+Rejected (no .claude-plugin/plugin.json naming hatsu at its top level, there or within four levels above):$rejected. }" \
     "${unusable:+Unusable (a Hatsu checkout whose path cannot be handed on as one line):$unusable. }" \
     "\$HATSU_PLUGIN_ROOT is unset or is not a Hatsu checkout, no usable path was handed to this invocation, and this surface has no plugin registry to ask." >&2
   exit 1

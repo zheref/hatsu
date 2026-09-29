@@ -20,8 +20,13 @@ event or a permission rule is made against a quoted line and not a memory.
 | pointing at a local checkout | `claude plugin marketplace add "$HATSU_PLUGIN_ROOT"` then `claude plugin install hatsu@hatsu`; after a version bump, `claude plugin update hatsu@hatsu -y` and a restart. Confirm `claude plugin list` shows this tree's `version` |
 
 The versioned cache is a copy, not a checkout: editing `$HATSU_PLUGIN_ROOT` changes nothing a running
-session reads until the plugin is updated. `nen surface mirror check --installed` (below) is how the
-warm-up tells the two apart.
+session reads until the plugin is updated. There is no mirror to drift-check on this surface
+(zheref/hatsu#106): `ten` § 5 records `mirrors: not applicable` and places the permission pack only.
+What keeps the two apart is `ten` § 4b — `scripts/hatsu_plugin_update.sh --auto --claude` brings the
+marketplace's Directory source current first when it is a clean git checkout on its trunk, says in its
+report line why it could not (an authoring branch, a diverged trunk, tracked changes), and only then
+runs `claude plugin update hatsu@hatsu -y`, so "already at the latest version" is never a bare claim
+(zheref/hatsu#118).
 
 ## 2. Skills
 

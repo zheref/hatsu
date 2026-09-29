@@ -121,8 +121,16 @@ with the same flags for codex, cursor and antigravity, and writes nothing:
 | `2` | the `nen` on `PATH` has no `surface` verb, or a wiring defect; never silently passed |
 | `3` | no `nen` on `PATH` |
 
-With `--installed <path>` the same verb diffs a host's installed copy (`~/.claude/plugins/cache/…`,
-`<repo>/.agents/skills`, `<repo>/.cursor`, `~/.gemini/config/plugins/hatsu`) against a fresh
+**On Claude Code there is no mirror to check** (zheref/hatsu#106): the plugin is read in place from the
+versioned cache, and nen's `claude-code` row mirrors into a target's `.claude/` (`skills/`, `agents/`,
+`hooks/hooks.json`, `settings.local.json`), a layout Hatsu never places — so `ten` § 5 records
+`mirrors: not applicable` there and places the permission pack only. The verb's `--installed <path>`
+diffs a FULL mirror (`AGENTS.md`, `agents/`, `config.toml`, `hooks/` included) against a fresh
+generation, so a skills-only copy the warm-up placed, or the versioned cache, always reads `missing`
+under it; the warm-up therefore runs this script without `--installed` (the source against
+`surfaces/<s>`) and lets `surface_bootstrap.sh --install-all` report the placed copy per name.
+With `--installed <path>` the same verb diffs a whole mirror copy (`~/.gemini/config/plugins/hatsu`,
+a symlinked `surfaces/<s>`) against a fresh
 generation; the warm-up runs it first and copies only on drift.
 
 **In CI.** [`surface-mirror-check.yml`](../.github/workflows/surface-mirror-check.yml) bootstraps nen at

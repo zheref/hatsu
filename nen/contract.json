@@ -81,7 +81,12 @@
       "plugin-update": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/hatsu_plugin_update.sh. Its declared fixture builds throwaway origin/consumer clones and asserts trunk ff, release catch-up, dirty/authoring/cache/no-origin skips, GIT_DIR isolation, and the no-stable-tag refuse. It is not a general suite."
+        "$comment": "The focused lane for scripts/hatsu_plugin_update.sh. Its declared fixture builds throwaway origin/consumer clones and asserts trunk ff, release catch-up, dirty/authoring/cache/no-origin skips, GIT_DIR isolation, the no-stable-tag refuse, an untracked file not blocking a fast-forward, and --claude bringing a Directory-source marketplace checkout current (or saying why not) before the Claude refresh (zheref/hatsu#118). It is not a general suite."
+      },
+      "root-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/hatsu_root.sh, the plugin-root resolver every skill's section 0 runs, following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: throwaway plugin-shaped trees prove that a handed root resolves, that a handed skill directory walks up to its root at one, three and four levels (a symlinked one through its target), that five levels, a look-alike tree naming another plugin and no candidate at all are NOT INSTALLED, that $HATSU_PLUGIN_ROOT wins over the handed path, and that --quoted prints the pasteable literal (zheref/hatsu#105)."
       },
       "tenkai-guard": {
         "stack": "claude-code-plugin",
@@ -131,7 +136,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and one bash guard script, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, tenkai-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, root-guard, tenkai-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/spiritual-message.html, which is a report template, not an application."
@@ -177,6 +182,15 @@
             "scripts/hatsu_plugin_update_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the plugin-source updater. Run it only as `nen shu test --lane plugin-update --repo <hatsu>` when scripts/hatsu_plugin_update.sh or its fixture changes."
+        }
+      },
+      "root-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/hatsu_root_fixture_check.sh"
+          ],
+          "$comment": "A permanent, deterministic fixture for the plugin-root resolver. Run it as `nen shu test --lane root-guard --repo <hatsu>` when scripts/hatsu_root.sh or its fixture changes."
         }
       },
       "tenkai-guard": {

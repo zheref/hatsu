@@ -47,3 +47,36 @@ tag refused (exit 2) instead of silent exit 1.
 skip, not a release update. A named branch that is not the trunk is never a consumer channel, even
 when `git describe --exact-match` would return a tag. That order was the first fixture failure, then
 the detection rule.
+
+## 2026-09-28 — the marketplace source is part of the claim (zheref/hatsu#118)
+
+Observed on the maintainer's host: the `hatsu` marketplace is a Directory source
+(`~/.claude/plugins/known_marketplaces.json` → `"source": "directory", "path": "/Users/zheref/Code/Agents/hatsu"`),
+so `claude plugin update hatsu@hatsu -y` compares the versioned cache against that checkout and
+reports "already at the latest version" whenever the two agree — 23 commits and four releases behind
+`origin/main` on 2026-09-26..28, because nothing fast-forwarded the checkout. `--claude` now reads that
+registry (one JSON shape, the `hatsu` entry's `source.path` when `source.source` is `directory`),
+re-enters this script on the checkout with `--channel auto --auto` (a clean trunk fast-forwards; an
+authoring branch, a diverged trunk, tracked changes, no origin or a failed fetch skip with the reason),
+and carries the verdict in the report line beside the Claude refresh:
+
+```text
+$ scripts/hatsu_plugin_update.sh --root ~/.claude/plugins/cache/hatsu/hatsu/0.49.0 --auto --claude --dry-run
+would run: git fetch origin
+would run: git merge --ff-only origin/main
+would run: claude plugin marketplace update
+would run: claude plugin update hatsu@hatsu -y
+hatsu-plugin-update: marketplace source /Users/zheref/Code/Agents/hatsu: dry-run · would fast-forward main from e2b704b · dry-run · claude plugin update hatsu@hatsu · plugin 0.49.0
+```
+
+Untracked files no longer read as dirty: only tracked modifications (`git status --untracked-files=no`)
+skip or refuse, because a marketplace checkout always carries an untracked `.claude/` and `git merge
+--ff-only` itself refuses a fast-forward that would overwrite an untracked file. The fixture gained
+five cases: an untracked file beside a behind trunk still fast-forwards (and the count is reported); a
+fake `claude` on `PATH` plus a fixture `CLAUDE_CONFIG_DIR` registry prove the dry run plans the
+marketplace fast-forward and moves nothing, the live run fast-forwards the marketplace clone before
+`claude plugin update` and compares the source manifest with the cache slot, an authoring-branch
+marketplace clone is named `NOT brought current` and left unmoved, and a GitHub-sourced marketplace is
+reported `not a Directory source` while the cache still refreshes. The first fixture run caught a real
+defect — `${dry_run:+--dry-run}` passed `--dry-run` to the sub-run whenever `dry_run` was `0` — fixed
+before this note was written.
