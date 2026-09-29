@@ -283,4 +283,4 @@ against a base that will change; take A to its gate, and start B once A's merge 
   `CON-21`).
 - **Never opens B against `main`** while A is unmerged.
 - **Never commits a flagged file without an explicit yes.**
-- **Never merges A to unblock B** — G2/G4 are the maintainer's.
+- **Never merges A to unblock B** — A merges at its own terminus through `en` § 5, never earlier.

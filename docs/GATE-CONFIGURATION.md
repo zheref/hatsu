@@ -79,7 +79,7 @@ set makes the approve limb of the readiness gate vacuously true*. That refusal i
 which of the two you mean; do not arrive at an empty set by omission.
 
 > **Solo maintainer, no second human?** `"review-round-only"` with an automated reviewer declared is
-> the honest shape — the round is real and the merge stays yours. Setting `"required"` and listing
+> the honest shape — the round is real, and the run merges its own PR at its terminus (`en` § 5). Setting `"required"` and listing
 > yourself makes the approve limb vacuous by a different route.
 
 ### `default_approvers` — whose approval counts
@@ -124,6 +124,79 @@ at all.*
 Omit the block entirely if you do not want the carve-out. An absent block is a decision; an empty one
 is a hole.
 
+### `round_policy` — how many reviewer rounds, and when the asking stops
+
+```json
+"round_policy": { "stallMinutes": 30, "minRounds": 1, "maxRounds": 3 }
+```
+
+`stallMinutes` is nen's: a review request older than it reads `not-ready: reviewer round stalled`.
+`minRounds` (**N**) and `maxRounds` (**M**) are **Hatsu's own keys** (zheref/hatsu#102; nen preserves them as
+raw data — counting them in `nen pr ready --explain` is zheref/nen#240). **The rule that reads them is
+[`sharingan`](../claude/skills/sharingan/SKILL.md) § 6's, stated there once**; what a consumer needs to
+know under nen's `bounded` policy (zheref/nen#214) is one sentence of it: **a push re-owes the reviewer's
+round at the new head, but an owed round is not a request** — the skill does not ask again because its
+own push or request re-opened the row, and once N rounds stand resolved it does not ask at all;
+`review_on_push` on the reviewer's side is what answers a push. A `$comment` in your `nen/gates.json`
+that still says *every push re-opens that condition until the reviewer reviews again* describes the
+pre-#214 gate and should go.
+
+### `check_exclusions` — a ruling that a check is not watched, with an expiry
+
+```json
+"check_exclusions": [
+  { "name": "windows-build", "reason": "no self-hosted Windows runner is registered",
+    "ruled": "2026-09-22", "until": "condition: the runner is enabled" }
+]
+```
+
+**Hatsu's own key** (zheref/hatsu#104): the declared home of a maintainer's check-exclusion ruling,
+which otherwise lives only in chat and makes every verdict permanently red on `CON-32(a)` — and a red
+verdict is how readiness falls back to reading CI by eye. `name` is the check exactly as the rollup
+reports it; `ruled` is a `YYYY-MM-DD` date, not in the future; `until` is a `YYYY-MM-DD` date **or**
+`condition: <what lifts it>`. The skills pass every live row as `nen pr ready --exclude-check <a,b>`,
+each name its own argv element ([`pr-state`](../claude/skills/pr-state/SKILL.md) § 2 owns the rule), and
+quote the verdict with the exclusion named. **What this key refuses** — `scripts/tenkai_adopt.sh
+diagnose` names each as `drift`, and a refused row is **never put on the call**: a name carrying a
+comma (the flag's separator, zheref/nen#243 — a matrix check named `check (Windows, windows-latest)`
+cannot be excluded until nen carries a repeatable flag), a quote, a shell metacharacter or a control
+byte; a near-miss date in `until` (`2026-9-1`, `09/01/2026`, a date with a trailing note — never read
+as a condition); a condition row older than 90 days from `ruled` (re-rule it with today's date once the
+condition is confirmed); a row past its `until` date. The day is your `reports.timeZone`, else the host's,
+and the row says which. nen preserves the key; validating it is zheref/nen#249. An empty array is a
+decision: nothing is excluded.
+
+### `reviewer_fallback` — when a reviewer's credits run out
+
+```json
+"reviewer_fallback": {
+  "chain": ["copilot", "cursor"], "terminal": "hanten",
+  "exhausted": [ { "reviewer": "copilot", "reason": "credits exhausted", "ruled": "2026-09-29", "until": "condition: the credits are restored" } ]
+}
+```
+
+**Hatsu's own key** (ruling 2026-09-29). **The shape**: `chain` is reviewer identities in fallback order —
+each requestable only where `reviewers[]` carries it (a step it does not carry is passed over; Cursor Bugbot is `cursor[bot]`,
+`BOT_kgDODFXTxQ`, and declaring it in `reviewers[]` makes its round required on every PR until nen
+reads the chain — the maintainer's call); `terminal` is the one non-reviewer, the
+local hanten rounds, never requested; `exhausted[]` rows are `check_exclusions` rows one key over
+(`reviewer`, `reason`, `ruled` `YYYY-MM-DD`, `until` a date or `condition: <what lifts it>`) and are
+**live only while not lapsed** — a row past its `until` date, a condition row unconfirmed past 90 days
+from `ruled`, or a malformed row is not honoured, and `scripts/tenkai_adopt.sh diagnose` names it
+(`gates/reviewer-fallback`, observation only). **The behaviour** — what a silent request means, the
+counting, the terminus, the quoted verdict and its one annotation line, the merge staying yours — is
+[`docs/PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *The fallback chain*, stated once.
+nen reads neither key (zheref/nen#275).
+
+### Hatsu's own keys in `nen/gates.json` — the convention
+
+Three keys here are Hatsu's, not nen's: `round_policy.minRounds`/`.maxRounds` (`stallMinutes` in the
+same object is nen's — the `$comment` says which is which), `check_exclusions[]` and `reviewer_fallback`.
+Each is a gate **declaration**, so it lives in the gate's file; each is **preserved, not read**, by `nen
+schema check` (a string `minRounds` reads `ok` — nothing validates these at 0.15.1); an object-valued key
+carries its `$comment` inside, an array-valued key a `$`-prefixed sibling; each names its ruling, the one
+skill that states its rule, one owned nen issue for the eventual machine read (zheref/nen#240, #249,
+#275), and one `tenkai diagnose` row where a row can lapse.
 ---
 
 ## 4. Validate it, and read the pointer

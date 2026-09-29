@@ -443,8 +443,8 @@ nen stop --who kurapika --gate <G4|G2> <efforts.md>
 **`--gate` is not a constant here.** A hard-coded `G4` prints a canon-repository banner over a
 consumer's release proposal, which is the misclassification the 2026-09-18 ruling exists to remove
 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role,
-not the file's kind*). Outside § 3a's gates the maintainer merges, and Kurapika never merges
-`main` — the 2026-09-18 ruling moves the gate, and the ruling of 2026-09-26 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*)
+not the file's kind*). Outside § 3a's gates a delivery PR is `en` § 5's to merge at its terminus (ruling 2026-09-29 (3)) and
+another's PR the maintainer's — the 2026-09-18 ruling moves the gate, and the ruling of 2026-09-26 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*)
 opens exactly one PR's worth of it, at `merge` and at `canon-merge` alike, through
 `nen pr merge --release-unit` and nothing else.
 
@@ -564,6 +564,15 @@ audit ledger — it **never opens a repin PR itself**, per its own `--help`; thi
 (a local ledger file, not GitHub) and was A/B'd by contract inspection only, never exercised against
 a live repo (`docs/ab/getsuga.md` § 3). **Opening the repin PR in each affected consumer remains
 this skill's own action** — it targets *other repositories*, which no `nen` verb here does.
+
+**§ 7's last line — a hand-forward, not a step** (zheref/hatsu#90): when the target's own `origin`
+(`nen repo resolve --repo <path> --from <path>`) resolves to the plugin's `nen/contract.json` →
+`dependency.source`, the tag this skill just cut is this session's own `nen`, and the binary on `PATH`
+predates it. **The host re-pin is [`mugetsu`](../mugetsu/SKILL.md) § 7's**, after its § 5 attaches
+the release assets — nothing here waits on mugetsu (§ Composition: it never runs from inside this
+skill) — so this skill says one line and stops: `host nen: <version> on PATH, pre-release; the re-pin
+is mugetsu § 7's once the assets attach`. `nen/contract.json`'s pin is not touched by either skill: a
+repin of `minimum` or `pinned_ref` is a pull request at the declaration gate (ten § 1).
 
 ## 7a. A deploy — the plan is printed at G3; the run is the maintainer's
 

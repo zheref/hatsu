@@ -78,15 +78,13 @@ mkdir -p "$d/bin" && ln -sfn "$verified" "$d/bin/nen" && export PATH="$d/bin:$PA
 ln -sfn "$verified" ~/.local/bin/nen  # (a) the host — maintainer's word only
 ```
 
-- ⚠️ **Fetch to a file; never pipe the script into bash**: piped in it **exits `1` — a code in no
-  table**.
+- ⚠️ **Fetch to a file; never pipe the script into bash**: piped, it **exits `1`, a code in no table**.
 - **§ 2a's shell is permitted here only**; **§ 2b's `--script` is required** and propagates the
   script's codes, `--source` shape-checked. **Neither path hides its exit code behind a pipe**: a
   non-zero exit is § 3, quoting `rc`, nothing linked; both read `out`'s last line and `[ -x ]` it.
   Exit semantics, retries: `dependency.bootstrap.exit_codes`/`.retry_policy`.
 - **The verified path is not reachable as `nen`**: quote what the bootstrap printed and **bind the
-  name**. **(b) is the default; (a) is the maintainer's call**, named in § 4. **Never copy or rename
-  the binary.**
+  name**; **(b) is the default, (a) the maintainer's call** (§ 4); **never copy or rename the binary.** **Publishing `nen` itself → § 2b for its tag** ([`mugetsu`](../mugetsu/SKILL.md) § 7).
 
 ## 3 · Halt — only when the bootstrap failed
 
@@ -104,12 +102,11 @@ report is the *correct* outcome.
 `Nen <v> · floor <f> · satisfies <range> · warm-up clear`; an install adds what it did
 (`bootstrapped to <ref> (checksum verified)`, re-pinned, or — pin **below the floor** —
 `nen/contract.json owes a repin to "<f>"`); a failure reads `HALTED — G5`, code and name.
-**Silence is not an outcome**: not run is reported **not run**. Then
+**Not run is reported not run.** Then
 `ten <phase> · caught up: <steps> · stopped at: <step|none>`.
 
 **Every surface carries § 4b's line verbatim**, off Claude Code § 5's too — what was placed (or
-`mirrors: current` / `not applicable`), the surface CLI's version (Cursor under the skills minimum is
-**not claimed**), every rejected, walked-up or out-versioned root (#67), Cursor's skill names (shadowing), and which `nen`
+`mirrors: current` / `not applicable`), the surface CLI's version (Cursor under the skills minimum **not claimed**), every rejected, walked-up or out-versioned root (#67), Cursor's skill names (shadowing), and which `nen`
 § 2 bound.
 
 ## 4b · Keep the plugin source current

@@ -209,7 +209,9 @@ bot token silently no-ops. Humans go through `--add-reviewers <a,b>`. **Copilot 
 neither collaborator nor bot is exit `2` pointing at `--add-bots`; both flags absent, exit `1`. The
 same mutation answers `NOT_FOUND` under one token and succeeds under another, so **report success
 from the mutation's own response, never from the ids sent**, and check first whether Copilot already
-reviews the repository automatically.
+reviews the repository automatically. **The verb is the only route** — never a raw GraphQL
+`requestReviews(botIds:…)`, never `gh api` (zheref/hatsu#102): a request outside the verb is one no
+ceiling can count.
 
 ```bash
 nen pr request-reviews --target <owner/name> --pr <n> [--add-reviewers <a,b>] [--add-bots <id,...>]
@@ -217,6 +219,34 @@ nen pr request-reviews --target <owner/name> --pr <n> [--add-reviewers <a,b>] [-
 
 **Verify with `nen pr ready`, never REST** (REST shows a pending bot as `[]`): *no round at head* is
 one owed; *review requested, not yet posted* is one in flight — wait.
+
+**The fallback chain** (ruling 2026-09-29, `docs/ROSTER.md` § *Rulings of 2026-09-29* — **stated once,
+here**; `sharingan` § 6, `en` § 5/§ 6, `pr-state` § 2, `nen/decisions.json` row `reviewer-exhausted` and
+`docs/GATE-CONFIGURATION.md` § 3 cite this paragraph and restate nothing). A request the mutation accepts
+with no pending reviewer coming back — `(none reported back)`, no `review_requested` event — is not a
+request; it is the signal to read `nen/gates.json` → `reviewer_fallback`. **An exhaustion is declared,
+dated, never guessed**: a **live** `exhausted[]` row (not past its `until` date, a condition row not
+unconfirmed past 90 days from `ruled`, well-formed — `tenkai diagnose` row `gates/reviewer-fallback` names
+the rest as drift and a lapsed row is not honoured) naming the configured reviewer moves the request to
+the next identity in `chain` that `reviewers[]` carries, through the verb; **a step `reviewers[]` does not
+carry is passed over, not asked about** (declaring it is `missing-configuration` only when the maintainer
+chooses to — Cursor Bugbot, `cursor[bot]`, is installed and reviews on its own, HA-PR-#127 at
+`0e080a49` unrequested on 2026-09-29; declared in `reviewers[]` its round becomes **required on every
+PR** until nen reads the chain, so the declaration is the maintainer's call, never the run's); **a fallback request
+is a round and counts toward `round_policy.maxRounds` as any other**. With the chain exhausted, `terminal:
+hanten` — **hanten's rounds are the review**: no round is requested, no bound is touched, this terminus
+outranks `cap-reached`, and the PR is merged by `en` § 5 (§ 6 there, the sixth stop) with **the verb's
+verdict quoted verbatim** — today `not-ready: a configured reviewer's round is
+still owed at the current head (CON-32b): copilot (no round at head)` — **and one Hatsu line beside it,
+never in its place**: `Hatsu: reviewer copilot declared exhausted (nen/gates.json reviewer_fallback, ruled
+2026-09-29); nen does not read this — zheref/nen#275`. The same line goes into the PR body's completion
+checklist through `nen pr edit-body`, written by `en` before the merge — the one durable record that a
+hanten-only review happened. **The merge is the run's**: the ruling's *and merge* means `en` § 5 merges
+it (ruling 2026-09-29 (3): *"The merge is not mine. It is yours and it has been."*). No Hatsu-side
+narrowing can make the verb read past an exhausted reviewer — `--reviewers ""` is ignored where the
+target ships `nen/gates.json`, and a derived gates file with `reviewers: []` is refused by name
+(measured at nen 0.15.1, `docs/ab/sharingan.md` § *Dated 2026-09-29 — the reviewer fallback chain*) — so
+the read in `pr ready` is nen's to add (zheref/nen#275).
 
 ## Resuming a run
 
