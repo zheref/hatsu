@@ -32,10 +32,18 @@ scope (exit `2`) is the trigger to ask, the seven as the options. A missing argu
 item is asked for and set up inline (`missing-argument`, `missing-configuration`;
 [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*).
 
-**The cycle ledger is fail-closed**: `.nen/hanten/<branch-slug>.cycle.json` is opened by
-[`breath`](../breath/SKILL.md) § 3a alone, and `decide`/`record`/`show` refuse a missing file. Absent on
-a feature branch → run breath and re-read; still absent is a **lost ledger**, nobody raised. On the
-trunk, headless, or the script refusing → stop. **Never fabricate one.** **Once a PR exists** the
+**The cycle ledger is fail-closed**: `.nen/hanten/<branch-slug>.cycle.json` is normally opened by
+[`breath`](../breath/SKILL.md) § 3a; `decide`/`record`/`show` refuse a missing file. Absent on
+a feature branch → run `hatsu:tenkai diagnose` on that checkout and inspect prior review evidence
+(the effort's findings record, report and session history). Guide the maintainer through the
+missing item **in this turn**: if this is the first Hanten cycle under this effort key, ask them to
+confirm that fact through the native picker, then run
+`"$hatsu_root/scripts/hanten_cycle_ledger.sh" recover-first --repo <path> --branch <branch>
+--confirmed-first-cycle`. The ledger records `openedAs: confirmed-first-cycle-recovery`.
+If reviews already ran, restore the original ledger with its used counts; never reset the budget.
+If review history cannot be established, name the missing audit state as a safety precondition and
+stop at G5 with the restore/reconstruction path. Tenkai `apply` never creates a ledger. On the
+trunk, headless, or the script refusing → stop. **Never fabricate review history.** **Once a PR exists** the
 effort's ledger is the PR-keyed one, `<branch-slug>-pr<N>.cycle.json`, and **hanten opens it itself,
 once**: missing → `"$hatsu_root/scripts/hanten_cycle_ledger.sh" init --repo <path> --branch <branch>
 --pr <N>` before the first `decide`; present → never re-`init` (exit `2`). The branch-only ledger stays
@@ -49,7 +57,8 @@ nen review scopes --base origin/<branch.base> --repo <path> --json
 
 **The raised scopes, their personas, tiers, budgets and paths come from that document** — the
 target's own `review.scopes`, over `<base>...HEAD`. Exit `1` is a repository declaring no `review`
-block — the trigger to set one up (`missing-configuration`), never a review skipped; exit `2` a
+block — invoke Tenkai's guided readiness pass to configure and validate `review.scopes` in the
+consumer, then re-run classification (`missing-configuration`), never a review skipped; exit `2` a
 malformed block or unresolvable base. **`unclaimed` paths are named.** Nobunaga's `code` scope and its
 tier swap are [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 2 → `review`: say which tier ran, and
 **print the classification before raising anyone.**

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Tenkai diagnoses missing review scopes and the active effort's Hanten ledger. Hanten guides a missing ledger through review-history inspection, records a maintainer-confirmed first-cycle recovery, and preserves prior reviewer counts when restoring history. A genuinely lost cycle remains a safety stop.
+
 ## v0.53.0 — the injected trailer is caught at the written commit; inside a newer checkout the tree is named, never trusted by itself
 
 Delivered by the `hatsu:futon hatsu@bug then getsuga+mugetsu` run of 2026-09-28, effort 4 of 4, stacked on v0.52.0's branch (zheref/hatsu#123; run record `docs/Loop/hatsu-futon-bug-2026-09-28/`): [#66](https://github.com/zheref/hatsu/issues/66) and [#67](https://github.com/zheref/hatsu/issues/67).
