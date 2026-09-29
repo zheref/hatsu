@@ -76,7 +76,7 @@
       "plugin-bump-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The one static focused lane for the executable plugin-version guard. Its declared fixture exercises only scripts/plugin_bump_check.sh's runtime-document classification and version result; it is not Hatsu's general regression suite or a substitute for an unavailable dynamic test selector."
+        "$comment": "The one static focused lane for the executable plugin-version guard. Its declared fixture exercises only scripts/plugin_bump_check.sh's runtime-document classification, version result and, from 0.51.0, the mirror-stamp lag a bump makes necessary (zheref/hatsu#99); it is not Hatsu's general regression suite or a substitute for an unavailable dynamic test selector."
       },
       "plugin-update": {
         "stack": "claude-code-plugin",
@@ -87,6 +87,11 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/hatsu_root.sh, the plugin-root resolver every skill's section 0 runs, following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: throwaway plugin-shaped trees prove that a handed root resolves, that a handed skill directory walks up to its root at one, three and four levels (a symlinked one through its target), that five levels, a look-alike tree naming another plugin and no candidate at all are NOT INSTALLED, that $HATSU_PLUGIN_ROOT wins over the handed path, and that --quoted prints the pasteable literal (zheref/hatsu#105)."
+      },
+      "surface-link-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/surface_link_check.sh (zheref/hatsu#72), the generated-surface LINK guard: surface_mirror_check.sh proves the mirrors match a fresh generation, this one proves the generated bodies' relative .md links resolve at the depth each mirror sits at. One lane per executable guard. Its fixture is hermetic and offline: a clean tree, one dangling link named by file, link and resolved path, the #71 nested-depth regression, --summary, and the wiring refusals. The guard itself is red against this repository's mirrors until nen's generator rewrites links per depth (the companion nen issue); it is deliberately not a CI step until then, because nen pr ready counts every reported check."
       },
       "tenkai-guard": {
         "stack": "claude-code-plugin",
@@ -136,7 +141,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and one bash guard script, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, root-guard, tenkai-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, root-guard, surface-link-guard, tenkai-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/spiritual-message.html, which is a report template, not an application."
@@ -191,6 +196,15 @@
             "scripts/hatsu_root_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the plugin-root resolver. Run it as `nen shu test --lane root-guard --repo <hatsu>` when scripts/hatsu_root.sh or its fixture changes."
+        }
+      },
+      "surface-link-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/surface_link_check_fixture.sh"
+          ],
+          "$comment": "A permanent, deterministic fixture for the surface link guard. Run it as `nen shu test --lane surface-link-guard --repo <hatsu>` when scripts/surface_link_check.sh or its fixture changes; run the guard itself (`bash scripts/surface_link_check.sh --summary`) to read the live mirrors."
         }
       },
       "tenkai-guard": {
@@ -279,7 +293,7 @@
         "darwin",
         "linux"
       ],
-      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test) use a POSIX shell, git and mktemp and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
+      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/surface_link_check_fixture.sh, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test) use a POSIX shell, git and mktemp and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
     },
     "targets": {},
     "toolchain": {

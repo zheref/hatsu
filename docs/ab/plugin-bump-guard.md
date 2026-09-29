@@ -723,3 +723,33 @@ malformed head version fails: exit 1
 
 alongside all of the pre-existing cases, unchanged. The fixture file is executable (`chmod 755`),
 matching the exec-bit assertion `plugin-bump-check.yml` already makes on the guard script itself.
+
+## 2026-09-28 — two more guarded rows, and the stamp lag a bump makes necessary (zheref/hatsu#74, #99)
+
+`PLUGIN_SURFACE_GLOBS` gains `docs/SURFACES.md` and `docs/PUBLIC-REDACTION.md` (#74: both are read by an
+installed copy — SURFACES.md is cited by name from hanten § 9a and ten § 5, PUBLIC-REDACTION.md from the
+redaction notice ROSTER.md, STANDALONE-ENTRY.md and the agent definitions carry) and the four runtime
+scripts the criterion "an installed copy reads it" had missed — `scripts/hatsu_root.sh` and
+`scripts/surface_mirror_check.sh` (Phinks's proof on the #105/#106 delivery: a resolver-only fix with no bump
+passed the guard and shipped to nobody), `scripts/permissions_pack.sh` and `scripts/dist_tag.sh`. The refusal
+heredoc was already generated from the array; README's paragraph is now a copy that says so.
+
+After a real bump the guard reads the stamp off each `surfaces/<s>` marker (#99). At HA-PR-#95's
+`112f1063` shape — manifest bumped, mirrors still at the base stamp — it fails by name:
+
+```text
+plugin.json version bumped to 0.16.1, but the generated mirrors under surfaces/ still carry an older stamp:
+  - surfaces/antigravity: stamp 0.16.0 (needs 0.16.1)
+  - surfaces/codex: stamp 0.16.0 (needs 0.16.1)
+  - surfaces/cursor: stamp 0.16.0 (needs 0.16.1)
+A bump restamps every mirror file; surface-mirror-check would fail this head one CI round trip from now without naming the bump as the cause (zheref/hatsu#99).
+Regenerate at the new stamp and commit the result: for each of codex, cursor and antigravity,
+  nen surface mirror generate … --stamp 0.16.1 --invocation-prefix hatsu:
+exit=1
+```
+
+At the `a46468a0` shape (mirrors restamped) it passes: `plugin.json version bumped — plugin-bump guard
+satisfied; surfaces/ stamps read 0.16.1 or no mirrors present`. A head root with no `surfaces/` (a fixture
+root, a consumer) has nothing to lag and passes. The head tree is the directory the head manifest sits under
+(`.claude-plugin/plugin.json` → `.`), which is CI's PR checkout, so no workflow argument changed. Fixture:
+eight new guarded-row cases and four stamp-lag cases, `nen shu test --lane plugin-bump-guard` exit 0.

@@ -133,6 +133,8 @@ With `--installed <path>` the same verb diffs a whole mirror copy (`~/.gemini/co
 a symlinked `surfaces/<s>`) against a fresh
 generation — a manual check, not the warm-up's step.
 
+**The link guard** ([`scripts/surface_link_check.sh`](../scripts/surface_link_check.sh), zheref/hatsu#72) proves what the drift check cannot: that the generated bodies' relative `.md` links resolve at the depth each mirror sits at. It resolves every such link from its file's own directory and exits `0` clean, `1` dangling (file, link, resolved path per row; `--summary` classifies by surface and prefix), `2` on a wiring defect; it needs no `nen`, so `3` is never used. Focused lane `surface-link-guard`. **It is red against this repository's mirrors today** — 341 of 2571 links, every one generator-produced (the nested antigravity skills' `../../../docs/`, the agents mirrors' `../../docs/` and `../skills/<name>/`, codex's `AGENTS.md` `../skills/<name>/`, the flat skills' `../../agents/`), filed as zheref/nen#270 — and it is deliberately **not a CI step until that fix lands and the mirrors regenerate clean**: `nen pr ready` counts every reported check, so a context red on every pull request would read every pull request not-ready for a defect none of them made. Never an allowlist, a warning mode or a skipped run.
+
 **In CI.** [`surface-mirror-check.yml`](../.github/workflows/surface-mirror-check.yml) bootstraps nen at
 the ref `nen/contract.json` pins and runs the script from the trusted checkout against the PR's. It is
 **required on `main`, pending the ruleset**: listing the `surface-mirror-check` context in the
