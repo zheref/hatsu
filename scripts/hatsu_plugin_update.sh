@@ -27,7 +27,9 @@
 #
 # Untracked files never block a trunk fast-forward: `git merge --ff-only`
 # refuses on its own any fast-forward that would overwrite one (and that
-# refusal is reported as a skip with its reason), so only tracked modifications
+# refusal is reported as a skip with its reason; an IGNORED file git would
+# overwrite is caught by comparing the incoming paths with the ignored set
+# before the merge), so only tracked modifications
 # (staged or not) read as dirty. A checkout that is also a Claude Code
 # marketplace source always carries an untracked .claude/ (worktrees,
 # settings.local.json), and treating that as dirty is what left the checkout in
@@ -489,6 +491,15 @@ if [ "$detected" = "trunk" ]; then
   if [ "$dry_run" -eq 1 ]; then
     report "dry-run · would fast-forward $trunk from $before"
     exit 0
+  fi
+  # git refuses a fast-forward that would overwrite an UNTRACKED file, but it silently overwrites
+  # an IGNORED one (Copilot, HA-PR-#121 round 2): compare the incoming paths with the ignored set
+  # first and skip on any intersection, naming the paths. That keeps "never discards work" true
+  # for a file .gitignore hides as well as for one it does not.
+  incoming="$(git -C "$root" diff --name-only HEAD "origin/$trunk" 2>/dev/null || true)"
+  ignored_hits="$(git -C "$root" ls-files --others --ignored --exclude-standard 2>/dev/null | grep -Fxf <(printf '%s\n' "$incoming") 2>/dev/null || true)"
+  if [ -n "$ignored_hits" ]; then
+    skip_or_refuse "fast-forward would overwrite ignored file(s): $(printf '%s' "$ignored_hits" | tr '\n' ' ' | cut -c1-200)· staying at $trunk @$before"
   fi
   # git refuses a fast-forward that would overwrite an untracked file: that refusal is a SKIP with
   # its reason, never a bare death under `set -e` (Chrollo, zheref/hatsu#118 review).

@@ -94,3 +94,10 @@ control characters stripped, 200 characters), never the whole stream; a relative
 refused; and a registry that exists but is not in the one shape Claude Code writes is named as such,
 distinct from an absent one. The trust anchor is stated in the header: the marketplace checkout's own
 `origin` and branch protection, exactly as for `--channel trunk` on any consumer checkout.
+
+**Copilot round 2 on HA-PR-#121 (2026-09-28).** git refuses a fast-forward that would overwrite an untracked
+file but silently overwrites an IGNORED one, so `--untracked-files=no` alone weakened "never discards work"
+for a `.gitignore`d file an incoming commit also adds. Before the merge the trunk step now intersects the
+incoming paths (`git diff --name-only HEAD origin/<trunk>`) with `git ls-files --others --ignored
+--exclude-standard` and skips on any hit, naming the paths; a fixture case (an ignored `local.log` that
+origin adds) proves the skip and the file intact.

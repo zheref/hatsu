@@ -7,7 +7,7 @@
 # Offline, hermetic, writes only under mktemp.
 
 set -euo pipefail
-LC_ALL=C
+export LC_ALL=C
 
 script_dir="$(CDPATH='' cd -- "$(dirname -- "$0")" >/dev/null 2>&1 && pwd -P)"
 guard="$script_dir/surface_link_check.sh"
@@ -52,11 +52,16 @@ make_root "$clean"
 cat > "$clean/surfaces/codex/ten/SKILL.md" <<'EOF'
 See [the surfaces doc](../../../docs/SURFACES.md), [§ 4](../../../docs/SURFACES.md#4-the-check),
 [the lead persona](../agents/kurapika.md), [an absolute path](/docs/SURFACES.md), a
-[web link](https://example.invalid/x.md), [mail](mailto:nobody@example.invalid) and [a fragment](#here).
+[web link](https://example.invalid/x.md), [mail](mailto:nobody@example.invalid), [a fragment](#here) and
+[a script](../../../scripts/dist_tag.sh).
 EOF
+mkdir -p "$clean/scripts"; printf '%s\n' '#!/bin/sh' > "$clean/scripts/dist_tag.sh"
 printf '%s\n' '# nested' 'Reads [the hub](../../../../docs/SURFACES.md).' > "$clean/surfaces/antigravity/skills/ten/SKILL.md"
+printf '%s\n' 'name = "kurapika"' 'developer_instructions = "Reads [the hub](../../../docs/SURFACES.md)."' > "$clean/surfaces/codex/agents/kurapika.toml"
 run 0 "$clean"
-assert_contains "$out" 'every relative .md link under surfaces/ resolves (4 checked)' 'a clean tree is exit 0 and counts only relative .md links'
+assert_contains "$out" 'every relative link under surfaces/ resolves (6 checked)' 'a clean tree is exit 0 and counts only relative links, .toml bodies included'
+run 2 . --summary "$clean"
+assert_contains "$out" 'unexpected argument' 'an extra positional is refused, never silently dropped'
 
 # --- one dangling link: exit 1, file · link · resolved path named ---
 one="$fixture_root/one"
@@ -65,7 +70,7 @@ printf '%s\n' '# ten' 'Reads [a missing doc](../../../docs/MISSING.md).' > "$one
 printf '%s\n' '# nested' 'Reads [the hub](../../../../docs/SURFACES.md).' > "$one/surfaces/antigravity/skills/ten/SKILL.md"
 run 1 "$one"
 assert_contains "$out" $'surfaces/codex/ten/SKILL.md\t../../../docs/MISSING.md\tsurfaces/codex/ten/../../../docs/MISSING.md' 'the dangling row names file, link and resolved path'
-assert_contains "$out" '1 of 2 relative .md link(s) under surfaces/ dangle' 'the verdict counts'
+assert_contains "$out" '1 of 2 relative link(s) under surfaces/ dangle' 'the verdict counts'
 
 # --- the #71 regression: a nested mirror carrying the flat mirror's depth ---
 nested="$fixture_root/nested"
@@ -75,6 +80,44 @@ printf '%s\n' '# nested' 'Reads [the hub](../../../docs/SURFACES.md).' > "$neste
 run 1 "$nested"
 assert_contains "$out" $'surfaces/antigravity/skills/ten/SKILL.md\t../../../docs/SURFACES.md' 'the nested mirror at flat depth dangles'
 case "$out" in *$'surfaces/codex/ten/SKILL.md\t'*) fail "the flat mirror's correct link was reported as dangling" ;; esac
+
+# --- a non-.md relative target (a script, a template, a JSON file) is judged like any other ---
+nonmd="$fixture_root/nonmd"
+make_root "$nonmd"
+printf '%s\n' '# ten' 'Runs [the tag block](../../../scripts/dist_tag.sh) and reads [the example](../../../templates/graph.example.json).' > "$nonmd/surfaces/codex/ten/SKILL.md"
+printf '%s\n' '# nested' 'Reads [the hub](../../../../docs/SURFACES.md).' > "$nonmd/surfaces/antigravity/skills/ten/SKILL.md"
+mkdir -p "$nonmd/scripts"; printf '%s\n' '#!/bin/sh' > "$nonmd/scripts/dist_tag.sh"
+run 1 "$nonmd"
+assert_contains "$out" $'surfaces/codex/ten/SKILL.md\t../../../templates/graph.example.json' 'a dangling non-.md target is reported'
+case "$out" in *$'dist_tag.sh\t'*) fail "a resolving non-.md target was reported as dangling" ;; esac
+
+# --- a Codex persona .toml body is scanned like a markdown file ---
+tomltree="$fixture_root/toml"
+make_root "$tomltree"
+printf '%s\n' '# ten' 'Reads [the hub](../../../docs/SURFACES.md).' > "$tomltree/surfaces/codex/ten/SKILL.md"
+printf '%s\n' '# nested' > "$tomltree/surfaces/antigravity/skills/ten/SKILL.md"
+printf '%s\n' 'name = "kurapika"' 'developer_instructions = "Reads [a skill](../skills/build/SKILL.md)."' > "$tomltree/surfaces/codex/agents/kurapika.toml"
+run 1 "$tomltree"
+assert_contains "$out" $'surfaces/codex/agents/kurapika.toml\t../skills/build/SKILL.md' 'a dangling link inside a persona .toml is reported'
+
+# --- an unreadable mirror file is a wiring refusal, never a file with zero links ---
+if [ "$(id -u)" -ne 0 ]; then
+  unread="$fixture_root/unread"
+  make_root "$unread"
+  printf '%s\n' '# ten' 'Reads [the hub](../../../docs/SURFACES.md).' > "$unread/surfaces/codex/ten/SKILL.md"
+  printf '%s\n' '# nested' > "$unread/surfaces/antigravity/skills/ten/SKILL.md"
+  chmod 000 "$unread/surfaces/antigravity/skills/ten/SKILL.md"
+  run 2 "$unread"
+  assert_contains "$out" 'cannot read' 'an unreadable mirror file is exit 2'
+  chmod 644 "$unread/surfaces/antigravity/skills/ten/SKILL.md"
+fi
+
+# --- an empty surfaces/ is a wiring refusal, not a clean tree ---
+emptysurf="$fixture_root/emptysurf"
+make_root "$emptysurf"
+rm -rf "$emptysurf/surfaces"; mkdir -p "$emptysurf/surfaces"
+run 2 "$emptysurf"
+assert_contains "$out" 'holds no generated file to read' 'an empty surfaces/ is exit 2'
 
 # --- --summary prints classes before the verdict ---
 run 1 --summary "$nested"

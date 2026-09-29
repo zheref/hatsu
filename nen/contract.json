@@ -138,7 +138,7 @@
           "$comment": "The host's own validator, run strictly, is the whole of Hatsu's mechanical verification: it parses both manifests, resolves every path plugin.json points at (agents, commands, skills, hooks), and fails on a surface the manifest claims but the tree does not carry. It is what workflow.json declares as the single `iteration.checks` entry, so this is exactly what breath proves on the fresh tip, what rasengan re-runs as its inner loop while authoring, and what kokusen runs over the finished tree before every commit."
         },
         "build": {
-          "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and one bash guard script, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
+          "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
           "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, root-guard, surface-link-guard, tenkai-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."

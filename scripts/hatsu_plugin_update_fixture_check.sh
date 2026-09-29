@@ -264,6 +264,23 @@ assert_contains "$collide_out" 'skipped · fast-forward refused by git' 'a colli
 [ "$(cat "$collide/README.md.new")" = mine ] || fail "colliding untracked file was overwritten"
 assert_fails "colliding untracked file was fast-forwarded without --auto" "$updater" --root "$collide" --channel trunk
 
+# --- an IGNORED file that an incoming commit adds: a SKIP naming it, the file intact (Copilot, HA-PR-#121) ---
+ignored_clone="$fixture_root/ignored"
+git clone -q "$origin" "$ignored_clone"
+git -C "$ignored_clone" reset -q --hard HEAD~1
+printf 'local.log\n' > "$ignored_clone/.git/info/exclude"
+printf 'mine\n' > "$ignored_clone/local.log"
+[ -z "$(git -C "$ignored_clone" status --porcelain=v1 -uall)" ] || fail "fixture precondition: local.log must be ignored"
+printf 'theirs\n' > "$seed/local.log"
+commit_tree "$seed" 'adds local.log'
+git -C "$seed" push -q origin HEAD:main
+ignored_before="$(git -C "$ignored_clone" rev-parse HEAD)"
+ignored_out="$("$updater" --root "$ignored_clone" --auto)"
+assert_contains "$ignored_out" 'skipped · fast-forward would overwrite ignored file(s): local.log' 'an ignored file git would overwrite is a skip naming it'
+[ "$(git -C "$ignored_clone" rev-parse HEAD)" = "$ignored_before" ] || fail "ignored-collision clone moved"
+[ "$(cat "$ignored_clone/local.log")" = mine ] || fail "ignored file was overwritten"
+git -C "$seed" rm -q local.log && commit_tree "$seed" 'drops local.log again' && git -C "$seed" push -q origin HEAD:main
+
 # --- --claude on a versioned cache brings the Directory-source marketplace current first (#118) ---
 # A fake `claude` on PATH records its calls and answers the way the real one did in #118; the
 # marketplace registry is Claude Code's own shape, pointed at a clone that is behind origin.

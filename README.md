@@ -1359,7 +1359,7 @@ from the canonical `$HATSU_PLUGIN_ROOT` checkout. Bump
 `version` (patch for wording, minor for behaviour or a new skill, major for a breaking interface change —
 which the minor carries while Hatsu is on `0.x`, SemVer clause 4, the reading applied to nen's own line);
 or, if a change provably cannot affect the shipped surface, write `no plugin bump: <reason>` in the PR
-body. **A bump beside mirrors still stamped with the old version fails by name** (zheref/hatsu#99): the guard reads the stamp off each `surfaces/<s>` marker and, when it lags the bumped manifest, prints the old and new stamps and the regeneration command, so the author learns before pushing rather than from `surface-mirror-check` a CI round trip later. Recorded refuse/pass transcripts: [`docs/ab/plugin-bump-guard.md`](docs/ab/plugin-bump-guard.md).
+body. **A bump beside mirrors still stamped with the old version fails by name** (zheref/hatsu#99): the guard reads the stamp off each `surfaces/<s>` marker and, when it lags the bumped manifest, prints the old and new stamps and the regeneration command, so the required check names the cause — the bump, fixed by a regeneration — where `surface-mirror-check` reports only the drift; the local catch before a PR opens is mukai's `scripts/surface_mirror_check.sh`. Recorded refuse/pass transcripts: [`docs/ab/plugin-bump-guard.md`](docs/ab/plugin-bump-guard.md).
 
 **The check is required on `main`** by the repository ruleset *main: plugin-bump guard required*
 (`enforcement: active`), so a failing `plugin-bump-check` blocks the merge. It runs through
