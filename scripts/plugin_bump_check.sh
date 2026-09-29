@@ -21,7 +21,14 @@
 # WHAT IT DOES
 # A PR whose diff touches a plugin-shipped surface but leaves
 # `.claude-plugin/plugin.json`'s `version` unchanged FAILS — unless the PR body
-# carries a documented `no plugin bump: <reason>` opt-out.
+# carries a documented `no plugin bump: <reason>` opt-out. A PR whose version DID
+# increase is then read a second time (zheref/hatsu#99): the mirrors under
+# `surfaces/` carry the version in their generated marker, and one whose stamp
+# lags the bumped manifest fails BY NAME — the cause is the bump, the fix a
+# regeneration — instead of surface-mirror-check's drift row with no cause
+# attached. The head tree for that read is the directory two levels above
+# <head-plugin-json> (`<root>/.claude-plugin/plugin.json`); a detached head
+# manifest, or a root with no `surfaces/`, has nothing to scan and says so.
 #
 # SHAPE
 # Pure comparison logic above, CLI at the bottom. Everything above the
@@ -157,12 +164,40 @@ fi
 #                       write; a stale copy passes a body a fixed one refuses.
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
+#   docs/SURFACES.md  — the authority on how personas and skills reach Codex,
+#                       Cursor and Antigravity, read by ten § 5 (the one skill
+#                       that places them) from the plugin root at run time
+#                       (Hatsu 0.51.0, zheref/hatsu#74). Same criterion as
+#                       docs/ROSTER.md.
+#   docs/PUBLIC-REDACTION.md
+#                     — cited from the redaction notice docs/ROSTER.md,
+#                       docs/STANDALONE-ENTRY.md and claude/skills/README.md
+#                       carry, all of which ship (zheref/hatsu#74).
+#   scripts/hatsu_root.sh
+#                     — the plugin-root resolver every skill's § 0 runs from the
+#                       installed root (Hatsu 0.50.0, zheref/hatsu#105); a stale
+#                       copy resolves the wrong root, or none.
+#   scripts/surface_mirror_check.sh
+#                     — ten § 5 runs it from `$hatsu_root/scripts/` on every
+#                       mirrored-surface warm-up (Hatsu 0.50.0, #106); the same
+#                       script is CI's drift guard, which is the trusted copy.
+#   scripts/permissions_pack.sh
+#                     — ten § 5 places the permission pack through it on every
+#                       surface, Claude Code included; a stale copy places a
+#                       stale allowlist.
+#   scripts/dist_tag.sh
+#                     — kagutsuchi's distribution-tag block, run from
+#                       `$hatsu_root/scripts/` on an upload; a stale copy cuts
+#                       the wrong ref or refuses the right one.
 #
 # Deliberately NOT covered — nothing installed reads them at run time:
 #   README.md, docs/ab/** (the evidence records; read by humans on GitHub, never
-#   by an installed copy), scripts/surface_bootstrap_fixture_check.sh and other
-#   scripts/** (CI-only; the runtime bootstrap, hanten cycle ledger and plugin
-#   updater are the explicit exceptions above),
+#   by an installed copy), and every other scripts/** entry — the fixtures
+#   (*_fixture_check.sh, *_fixture.sh, *_red.sh), this guard, the link guard,
+#   prose_size_check.sh and workflow_runner_policy_check.rb are CI- or
+#   maintainer-only; every runtime script an installed copy executes is an
+#   explicit row above (the criterion is "an installed copy reads it", checked
+#   script by script),
 #   .github/**.
 #
 # Bash `[[ == glob ]]` matches `*` across `/` — it is pattern matching, not
@@ -181,18 +216,75 @@ PLUGIN_SURFACE_GLOBS=(
   'docs/STANDALONE-ENTRY.md'
   'docs/GATE-CONFIGURATION.md'
   'docs/PROCESS.md'
+  'docs/SURFACES.md'
+  'docs/PUBLIC-REDACTION.md'
   'hooks/*'
   'templates/*'
   'surfaces/*'
   'scripts/surface_bootstrap.sh'
   'scripts/hanten_cycle_ledger.sh'
   'scripts/hatsu_plugin_update.sh'
+  'scripts/hatsu_root.sh'
+  'scripts/surface_mirror_check.sh'
+  'scripts/permissions_pack.sh'
+  'scripts/dist_tag.sh'
   'scripts/tenkai_adopt.sh'
   'scripts/release-publish.sh'
   'scripts/report_time.sh'
   'scripts/pr_body_evidence_check.sh'
   '.mcp.json'
 )
+
+# --- surfaces_stamp_scan ROOT HEAD_VERSION ------------------------------------
+# zheref/hatsu#99. `nen surface mirror generate` writes the plugin version into
+# every generated file's marker, so bumping .claude-plugin/plugin.json makes all
+# three mirrors stale at once. The local catch is mukai's scripts/surface_mirror_check.sh
+# (docs/WORKFLOW.md § 2 → iteration); in CI, surface-mirror-check reports drift in the
+# same round as this guard. What this guard adds is the CAUSE, named on the required
+# check without nen: a lagging stamp right after a bump is the bump, and the fix is a
+# regeneration, not a source edit (186 files of stamp churn on HA-PR-#95 arrived with no
+# such line). For each surface directory under ROOT/surfaces it reads the stamp off the
+# first generated marker it finds and prints one line per surface:
+#   `<surface> lag <stamps>`    at least one generated file's stamp is not HEAD_VERSION —
+#                               every DISTINCT stamp found is listed, comma-joined
+#   `<surface> ok <stamp>`      every generated file under it is stamped HEAD_VERSION
+#   `<surface> unread -`        no GENERATED marker matched in any file (the grammar moved,
+#                               or the directory holds no generated file) — never "read"
+# EVERY marker under the surface is read, in every generated file whatever its suffix
+# (.md, .mdc, .toml, .json, .sh, .yml), never the first .md only: a surface whose first
+# file is current and whose others lag is lagging (Phinks, HA-PR-#121). Returns 0 when
+# at least one surface lags (the caller fails by name), 1 otherwise — including when ROOT
+# carries no surfaces/ at all (a fixture root, a consumer with no mirrors): nothing
+# printed, and absence of mirrors is not a lag.
+surfaces_stamp_scan() {
+  local root="$1" head_version="$2" surface_dir surface marker stamp lag=1
+  # The PR head is DATA under pull_request_target (Feitan, HA-PR-#121): a symlinked surfaces/ or
+  # surface directory is never followed, and a stamp or surface name is printed only when it
+  # matches a strict whitelist -- a CR or ESC inside a marker would otherwise reach the trusted
+  # job's log as a forged workflow command or concealed text. A malformed stamp still counts as
+  # lagging, printed as the fixed word <malformed>.
+  [ -d "$root/surfaces" ] && [ ! -L "$root/surfaces" ] || return 1
+  for surface_dir in "$root"/surfaces/*/; do
+    [ -d "$surface_dir" ] && [ ! -L "${surface_dir%/}" ] || continue
+    surface="${surface_dir%/}"; surface="${surface##*/}"
+    # Anchored: every character must be [a-z-], the first a letter, at most 32 -- a shell glob's
+    # trailing `*` matches anything, so `[a-z][a-z-]*` alone let `ab<CR>` through (Copilot, round 3).
+    case "$surface" in *[!a-z-]*|""|-*) continue ;; esac
+    [ "${#surface}" -le 32 ] || continue
+    stamps="$(LC_ALL=C grep -rhoE 'GENERATED by nen surface mirror \(surface: [a-z-]+, stamp: [^)]+\)' "$surface_dir" 2>/dev/null \
+      | sed 's/.*stamp: //; s/)$//' \
+      | awk '{ if ($0 == "" || $0 ~ /[^0-9A-Za-z.+-]/ || length($0) > 64) print "<malformed>"; else print $0 }' \
+      | sort -u | tr '\n' ',' | sed 's/,$//')"
+    if [ -z "$stamps" ]; then printf '%s unread -\n' "$surface"; continue; fi
+    if [ "$stamps" = "$head_version" ]; then
+      printf '%s ok %s\n' "$surface" "$stamps"
+    else
+      printf '%s lag %s\n' "$surface" "$stamps"
+      lag=0
+    fi
+  done
+  return "$lag"
+}
 
 # --- path_is_plugin_surface PATH --------------------------------------------
 # Returns 0 (true) if PATH is a plugin-shipped surface this guard covers.
@@ -453,7 +545,7 @@ pr_body_has_opt_out() {
 
 if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
   [ "$#" -eq 4 ] || {
-    echo "usage: $0 <changed-files-file> <base-plugin-json> <head-plugin-json> <pr-body-file>" >&2
+    echo "usage: $0 <changed-files-file> <base-plugin-json> <head-plugin-json> <pr-body-file>   # the head tree is dirname(<head-plugin-json>)/.." >&2
     exit 2
   }
   changed_files="$1" base_plugin="$2" head_plugin="$3" pr_body="$4"
@@ -478,7 +570,51 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
   fi
 
   if version_bumped "$base_plugin" "$head_plugin"; then
-    echo "plugin.json version bumped — plugin-bump guard satisfied"
+    # The bump is real. Now the cause the bump makes worth naming (#99): the mirrors under
+    # surfaces/ carry the version in their stamp, and a lagging one right after a bump is the
+    # bump — surface-mirror-check reports the drift in the same CI round, this line says why.
+    # The head tree is the directory the head manifest sits under (`<root>/.claude-plugin/
+    # plugin.json` → `<root>`, which is CI's PR checkout); a root with no surfaces/ has nothing
+    # to scan, and a surface with no readable marker is reported unread, never as read.
+    # Only a manifest that sits at <root>/.claude-plugin/plugin.json names a head tree; a detached
+    # manifest (a fixture's <tmp>/head.json) names none, and the stamp check is skipped and said so
+    # rather than scanning whatever surfaces/ happens to sit beside the file's parent (Nobunaga,
+    # Phinks, HA-PR-#121: that read made the fixture non-hermetic).
+    head_root=""
+    if [ "$(basename "$(dirname "$head_plugin")")" = ".claude-plugin" ]; then
+      head_root="$(CDPATH= cd "$(dirname "$head_plugin")/.." 2>/dev/null && pwd -P)" || head_root=""
+    fi
+    head_version_now="$(plugin_version "$head_plugin")"
+    stamp_scan=""
+    if [ -n "$head_root" ]; then
+      set +e
+      stamp_scan="$(surfaces_stamp_scan "$head_root" "$head_version_now")"
+      stamp_lag_rc=$?
+      set -e
+      if [ "$stamp_lag_rc" -eq 0 ]; then
+        {
+          echo "plugin.json version bumped to ${head_version_now}, but generated files under surfaces/ carry a different stamp:"
+          printf '%s\n' "$stamp_scan" | while read -r s st stamp; do
+            case "$st" in
+              lag) echo "  - surfaces/$s: stamp(s) $stamp (needs $head_version_now on every generated file)" ;;
+              unread) echo "  - surfaces/$s: stamp unread (no GENERATED marker matched)" ;;
+            esac
+          done
+          echo "A bump restamps every mirror file: the cause is this bump, the fix is a regeneration at stamp ${head_version_now}, never a source edit (zheref/hatsu#99)."
+          echo "Regenerate and commit the result: docs/SURFACES.md § 3 is the one owner of the command; scripts/surface_mirror_check.sh reproduces its exact flags per surface."
+        } >&2
+        exit 1
+      fi
+    fi
+    stamps_ok="$(printf '%s\n' "$stamp_scan" | awk '$2 == "ok" { printf "%s%s", (n++ ? ", " : ""), $1 }')"
+    stamps_unread="$(printf '%s\n' "$stamp_scan" | awk '$2 == "unread" { printf "%s%s", (n++ ? ", " : ""), $1 }')"
+    summary=""
+    [ -n "$stamps_ok" ] && summary="surfaces/ stamps read ${head_version_now}: ${stamps_ok}"
+    [ -n "$stamps_unread" ] && summary="${summary:+$summary; }stamp unread (no GENERATED marker matched): ${stamps_unread}"
+    if [ -z "$summary" ]; then
+      if [ -n "$head_root" ]; then summary="no surfaces/ mirrors under the head tree to scan"; else summary="stamp check skipped (the head manifest is not at <root>/.claude-plugin/plugin.json, so no head tree)"; fi
+    fi
+    echo "plugin.json version bumped — plugin-bump guard satisfied; ${summary}"
     exit 0
   fi
 
