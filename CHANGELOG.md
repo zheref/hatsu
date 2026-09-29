@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.58.0 — the Nen pin moves to v0.16.0, and the minimum deliberately does not
+
+- **`nen/contract.json` pins `v0.16.0`** (zheref/nen#272/#274/#278, released by #281). That release renders the canon mirror into **every surface a consumer declares** — `AGENTS.md` as one managed block, `.cursor/rules/*.mdc`, `.agents/rules/*.md`, `.claude/rules/*.md` — with the generated-from marker as the ownership claim, so an unmarked destination refuses the whole run before the first byte lands on any surface. It also adds `nen canon pin` and the `nen/repos.json` `maintained_tools[].pinned` field it reads.
+- **The feature minimum stays `0.15`, on purpose.** A minimum names the oldest release carrying every verb Hatsu *executes*, and no skill on `main` executes `canon pin` or `canon mirror --surfaces` yet — `hatsu:limbo` is the skill that will, and the change that lands it raises the minimum to `0.16` with it. Raising it now would refuse a `0.15` binary that runs everything Hatsu actually does. The pin moves ahead of the minimum so limbo can be built against a **released** binary rather than an unpublished tag: `bootstrap/nen.sh` resolves the binary and `SHA256SUMS` from the GitHub *release* at `--ref`, and a pin whose release is unpublished goes red on every pull request, not only the one that moved it.
+
 ## v0.57.0 — guided review setup and audited ledger recovery
 
 - Tenkai diagnoses missing review scopes and the active effort's Hanten ledger. Hanten guides a missing ledger through review-history inspection, records a maintainer-confirmed first-cycle recovery, and preserves prior reviewer counts when restoring history. A genuinely lost cycle remains a safety stop.
