@@ -470,6 +470,24 @@ that drives this workflow. **Saying it is configured off when nobody has configu
 three-layer table read one layer stronger than it is**, which is the failure mode the table exists to
 prevent.
 
+**Cursor has its own mandate, and `includeCoAuthoredBy` does not reach it** (zheref/hatsu#66). Cursor's
+harness appends `Co-authored-by: Cursor <cursoragent@cursor.com>` at `git commit` time — at the tooling
+layer, after `nen commit format` accepted the message and inside `nen commit write`'s own `git commit`, so
+layers (a) and (c) never see it (HA-PR-#64's `4ee8ce3`, `c202034`, `516ed5f`, `75c8ce8`, `2025e84`,
+`06b45cf` carry it beside `Hatsu-Agent`). The off-switch is Cursor's: **Cursor Settings → Git & Pull
+Requests → *Commit Attribution* off** (and *PR Attribution*), or for the CLI
+`"attribution": { "attributeCommitsToAgent": false }` in `~/.cursor/cli-config.json` — Cursor's own
+answer of 2026-08-21 on its forum, which also notes a known gap on some non-IDE paths; **not verified
+live on this host, which runs no Cursor** (`docs/ab/kokusen.md`). Because the switch is per machine and
+the injection is invisible to the verbs, `kokusen` § 5 reads the tip back after every `commit write`
+and stops on a forbidden key: an unpublished tip is dropped and re-committed once the switch is set,
+a published one is never rewritten. Layer (b), where a repository carries it, is the only mechanical
+refusal in that path; this repository does not carry it.
+
+```bash
+grep -n attributeCommitsToAgent ~/.cursor/cli-config.json   # no output = Cursor's default applies
+```
+
 **Enforcement is three-layered, and at the pinned nen `0.7.0` two of the three are mechanical.**
 
 | Layer | What refuses | Where it lives | Live at the pinned nen `0.7.0`? |

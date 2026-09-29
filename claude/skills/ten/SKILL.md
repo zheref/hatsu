@@ -108,7 +108,7 @@ report is the *correct* outcome.
 
 **Every surface carries § 4b's line verbatim**, off Claude Code § 5's too — what was placed (or
 `mirrors: current` / `not applicable`), the surface CLI's version (Cursor under the skills minimum is
-**not claimed**), every rejected or walked-up root, Cursor's skill names (shadowing), and which `nen`
+**not claimed**), every rejected, walked-up or out-versioned root (#67), Cursor's skill names (shadowing), and which `nen`
 § 2 bound.
 
 ## 4b · Keep the plugin source current

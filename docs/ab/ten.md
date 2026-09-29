@@ -68,3 +68,24 @@ a nested mirror needs four and a stale profile export needs a fallback — § 0 
 levels and four levels for a resolver before running it; Phinks and Nobunaga showed the fixture's
 "four-level" case was three deep — the nested antigravity layout is now the four-level case. The walk is
 reported on its own stderr line (`resolved by walking up from …`), never under `passed over`.
+
+## 2026-09-28 — the tree wins (zheref/hatsu#67)
+
+Cursor bound `/mukai` from `~/.claude/plugins/cache/hatsu/hatsu/0.14.0/…` while the checkout in front of
+it authored 0.25–0.30 (HA-PR-#64). `scripts/hatsu_root.sh` now compares the git toplevel's own manifest with
+the resolved candidate's and prints the checkout when it is newer, on stderr. Run live from this checkout
+(then at 0.52.0) against the installed 0.49.0 cache:
+
+```text
+$ scripts/hatsu_root.sh /Users/zheref/.claude/plugins/cache/hatsu/hatsu/0.49.0
+hatsu_root.sh: the checkout in front of you (<this checkout>, version 0.52.0) is newer than the resolved root (/Users/zheref/.claude/plugins/cache/hatsu/hatsu/0.49.0, version 0.49.0): the tree wins (zheref/hatsu#67); the installed pin was passed over — export HATSU_PLUGIN_ROOT=<this checkout> to make it explicit
+<this checkout>
+exit=0
+```
+
+The seven fixture cases (`scripts/hatsu_root_fixture_check.sh`, lane `root-guard`) cover newer/older/equal/
+pre-release, the kept export, self-resolution with no candidate, and a plain repository; every earlier case
+now runs from a neutral directory, because the checkout carrying the fixture would otherwise decide them all
+(the first run without that change failed exactly so: `root resolved to '<this checkout>'`). The body the
+surface inlined for the current slash-skill is the old pin's and is not rewritten mid-session — ten § 4's
+line names the out-versioned root, and the Hunter re-reads the tree.

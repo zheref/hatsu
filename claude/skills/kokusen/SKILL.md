@@ -126,6 +126,18 @@ clean list **plus every flagged path that got an explicit yes**, and nothing els
 makes the commit: it validates the file as `commit format` does, refuses a red proof and an empty
 index, and reports `{sha, subject, trailers}`.
 
+**Then read the tip back** — `git log -1 --format='%(trailers:only)'` (§ 6 residue) against
+`commits.forbiddenTrailers`: **a harness can inject a trailer at `git commit` time, after `commit
+format` accepted the message and inside `commit write`'s own call** — Cursor's `Co-authored-by:
+Cursor <cursoragent@cursor.com>` is the known case (zheref/hatsu#66; WORKFLOW § `commits` names its
+off-switch, which is Cursor's own and is set **before the first commit**; Claude Code's
+`includeCoAuthoredBy` covers Claude Code only). A forbidden key on the tip is a **stop, said in the
+turn**: that commit is not a tip this branch publishes — unpublished, it is dropped with
+`git reset --soft HEAD~1` (the index kept; unpublished history is the branch's own, what `aka`
+squashes anyway), the off-switch is set, and this step is re-run; **published, it is never amended
+or rewritten** — it stays, named in the PR ledger, and the switch is fixed before the next commit.
+Never `--no-verify`. A repository carrying layer (b) refuses it before it lands.
+
 ## 6. Residue
 
 The explicit per-path `git add` is the one raw call ([PROCESS.md](../../../docs/PROCESS.md)

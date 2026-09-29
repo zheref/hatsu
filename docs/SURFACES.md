@@ -49,6 +49,20 @@ need one command before their first warm-up:
 which seeds only `ten`; that skill's every-session refresh calls the same script with
 `--install-all`. Fixture: `scripts/surface_bootstrap_fixture_check.sh`.
 
+**Authoring the plugin: the tree wins** (zheref/hatsu#67). When the working tree is itself a Hatsu
+checkout — its `.claude-plugin/plugin.json` names `hatsu` — that checkout is the skill authority, and an
+installed copy the surface bound (Claude's versioned cache at an older marketplace pin, a stale
+`$CLAUDE_PLUGIN_ROOT`) cannot silently win: [`scripts/hatsu_root.sh`](../scripts/hatsu_root.sh) compares
+the checkout's manifest version with the resolved candidate's and prints the checkout when it is newer,
+naming the pin it passed over on stderr (an explicit `$HATSU_PLUGIN_ROOT` is the maintainer's word and is
+kept, the newer checkout named beside it; an older, equal or unorderable checkout leaves the candidate in
+place; with no candidate at all the checkout resolves alone). What that changes is everything downstream
+of § 0: the contract read, the scripts run, the mirrors `ten` § 5 links into `.cursor/skills/` or copies
+into `.agents/skills/` — so the **next** session binds the tree. The body the surface inlined for the
+current slash-skill came from the old pin and is not rewritten mid-session: the line names that fact, and
+the Hunter re-reads `claude/skills/<name>/SKILL.md` for the protocol. Fixture: the tree-wins cases of
+`scripts/hatsu_root_fixture_check.sh`.
+
 **The invocation spelling is the mirror's.** Every `hatsu:<name>` in a skill body is rewritten by the
 generator because `--invocation-prefix hatsu:` tells it the source's namespace; `hatsu:` is caller data
 and nen hard-codes no system's vocabulary.

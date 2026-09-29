@@ -516,3 +516,23 @@ pinned `0.7.0`; the same pair was recorded at `v0.5.0` in [`rasengan.md`](raseng
 `1` on a seated lane is correct rather than awkward: the verb reports the absence of a proof, and
 deciding what an absence means on a lane that declares a seat is the caller's, which is what
 `SKILL.md` § 3 now does explicitly.
+
+## 2026-09-28 — the injected trailer is caught at the tip (zheref/hatsu#66)
+
+HA-PR-#64's `4ee8ce3`, `c202034`, `516ed5f`, `75c8ce8`, `2025e84` and `06b45cf` carry
+`Co-authored-by: Cursor <cursoragent@cursor.com>` beside `Hatsu-Agent: kurapika`: Cursor appends it at
+`git commit` time, after `nen commit format` accepted the message and inside `nen commit write`'s own
+call, so layers (a) and (c) never see it. § 5 now reads the tip back after every `commit write`:
+
+```text
+$ git log -1 --format='%(trailers:only)'
+Hatsu-Agent: kurapika
+```
+
+against `commits.forbiddenTrailers`; a forbidden key is a stop — an unpublished tip is dropped with
+`git reset --soft HEAD~1` and re-committed once the switch is set, a published one is never rewritten.
+The off-switch is Cursor's own (Cursor Settings → Git & Pull Requests → *Commit Attribution*, or
+`attribution.attributeCommitsToAgent: false` in `~/.cursor/cli-config.json`), per Cursor's forum answer
+of 2026-08-21, which also notes a known gap on some non-IDE paths. **Not verified live: this host runs no
+Cursor**; the read-back is what catches the case whatever the switch does. Read on this checkout at
+8a822c99: the tip carries `Hatsu-Agent: kurapika` only.
