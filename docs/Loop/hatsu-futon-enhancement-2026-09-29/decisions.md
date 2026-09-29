@@ -32,3 +32,7 @@ lone PRs #125 and #120.
 
 No label applied: the repository carries no delivery-stage taxonomy, so the stage-free path of build § 1
 applies and each effort is carried locally to its own PR.
+
+| When | E5 delivery | Record |
+|---|---|---|
+| 2026-09-29 | 🔀 HA-PR-#126 opened at 06:12Z (`nen pr open`, head e4065c38 == origin, base `fable/kurapika/cursor-trailer-and-bind`) — the base had moved to 3ade3b0f under the effort (the bug run's session settled #124's Copilot thread) and was merged in by `nen wc catch-up` with no conflict; mirrors re-checked, lint and the diet green on the merged tree | `nen pr request-reviews --add-bots BOT_kgDOCnlnWA` answered *(none reported back)*: Copilot's request is read through `nen pr ready`, never the ids sent. `closingIssuesReferences` is empty: a `Closes` clause links only on a default-branch PR, so the four Development links appear at the retarget to `main` after #124 merges, and are read back then |
