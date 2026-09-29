@@ -386,14 +386,17 @@ One block, then stop:
 
   ```bash
   d="$(mktemp -d)"; curl -fsSL <dependency.bootstrap.url with <newTag> in place of the pinned ref> -o "$d/nen-bootstrap.sh"
-  out="$(nen bootstrap --ref <newTag> --source <dependency.source> --script "$d/nen-bootstrap.sh")" || { rc=$?; <ten § 3's halt, quoting rc>; }   # ten § 2b
-  verified="${out##*$'\n'}"; [ -x "$verified" ] || { <ten § 3's halt: not executable>; }   # BEFORE any ln or PATH
-  mkdir -p "$d/bin" && ln -sfn "$verified" "$d/bin/nen" && export PATH="$d/bin:$PATH"   # (b) this session
+  out="$(nen bootstrap --ref <newTag> --source <dependency.source> --script "$d/nen-bootstrap.sh")" || { rc=$?; repin="FAILED: rc $rc"; }   # ten § 2b's verb; NOT ten § 3's halt
+  verified="${out##*$'\n'}"; { [ -z "${rc:-}" ] && [ -x "$verified" ]; } || repin="${repin:-FAILED: not executable}"   # BEFORE any ln or PATH
+  [ -n "${repin:-}" ] || { mkdir -p "$d/bin" && ln -sfn "$verified" "$d/bin/nen" && export PATH="$d/bin:$PATH"; }   # (b) this session
   ```
 
-  **A non-zero exit is never hidden**: the halt quotes `rc`, nothing is linked, and the report line
-  reads `host nen: <version> on PATH; re-pin FAILED: rc <n>` — a failed re-pin and a skipped one are
-  two different lines (ten § 2: *neither path hides its exit code*).
+  **A non-zero exit is never hidden — and never a halt.** `ten` § 3 is the session-start supply-chain
+  halt; here § 5 has already published, so a failed re-pin **links nothing, keeps the pre-release
+  binary the session came in with on PATH (said), and goes into the report** as `host nen: <version>
+  on PATH; re-pin FAILED: rc <n>` — § 6's release-PR comment and the publication report still go out,
+  and the next session's `ten` § 2b meets the new pin or halts there. A failed re-pin and a skipped
+  one are two different lines (ten § 2: *neither path hides its exit code*).
 
   The script at `<newTag>` is fetched outside the contract's pin — the one call site where it is —
   and the binary it produces is still checksum-verified by the verb; the contract's pin follows in

@@ -305,17 +305,22 @@ Each refresh window has exactly two observations: the first establishes the wind
 
 ```bash
 export GH_TOKEN=$(gh auth token)
-nen watch until --command "nen pr ready <CODE>#<N> --repo <path> <identity flags> <exclusion flags>" \
+nen watch until --command "nen pr ready <CODE>#<N> --repo <path> <identity flags>" \   # no exclusion flag here
   --max-iterations 2 --interval-ms <monitor.pollSeconds × 1000> # one paced refresh window
 ```
 
 `<identity flags>` is selected by [`sharingan`](../sharingan/SKILL.md) § 4 for the target: omit it
 when the target ships `nen/gates.json`; use `--gates "$hatsu_root/contracts/reference.gates.json"`
 only for `<reference-repo>`; otherwise pass the target's hand-supplied `--reviewers` and explicit
-`--approvers`. **Never point one repository's gates file at another repository.** `<exclusion flags>`
-is `--exclude-check <a,b>` from the target's `nen/gates.json` → `check_exclusions[]`, every live row by
-name ([`pr-state`](../pr-state/SKILL.md) § 2, zheref/hatsu#104) — a ruling with no row is
-`missing-configuration`, and a name the flag cannot carry keeps the PR not-ready — the verb's verdict quoted verbatim, the excluded check named beside it — never `ready`.
+`--approvers`. **Never point one repository's gates file at another repository.** **The exclusion flag never rides
+the `--command` string** ([`pr-state`](../pr-state/SKILL.md) § 2, SEC-7): `nen watch until` splits
+that string itself, a check name with a space (the declaration admits one) splits into two words, and
+the gates file is third-party data beside a live token. On a target with live `check_exclusions[]`
+rows the window watches the **bare** verdict — it only paces — and **the verdict that counts is
+pr-state § 2's own read after the window**, every live row's name its own argv element
+(zheref/hatsu#104); a ruling with no row is `missing-configuration`, and a name the flag cannot carry
+keeps the PR not-ready — the verb's verdict quoted verbatim, the excluded check named beside it —
+never `ready`.
 
 **`nen pr ready` classifies `[read-only]`** — verified live at `v0.3.0` (`docs/ab/en.md` § 2.3):
 `nen parse izanami "nen pr ready HA#41 --repo /path --gates /abs/gates.json until it is ready"` →
@@ -528,7 +533,8 @@ returned. Harvesting is that phase's, not En's.
   manufacture a cap-out (§ 6).
 - **Never requests a reviewer round outside `sharingan` § 6's rule** — the verb only, inside both
   bounds, never a number raised in-session (§ 2; zheref/hatsu#102).
-- **Never rings outside Ready** (§ 5), and never rings twice for the same transition.
+- **Never rings outside a terminus** — verified Ready, or § 6's declared reviewer-exhaustion stop
+  (§ 5) — and never rings twice for the same transition.
 - **Never claims readiness by eye** — `nen pr ready` + `nen pr body-check`, quoted, or it is not
   claimed (§ 4). Never declares a PR G2/G4 ready while checks, reviewer rounds, or review threads are
   pending.

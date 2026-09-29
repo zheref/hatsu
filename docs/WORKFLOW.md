@@ -1658,8 +1658,12 @@ loop, never inherited from the warm-up, never skipped because the last run was g
    (the README or `iteration.$comment` only while zheref/nen#262 is open and the key is absent, which
    `tenkai` names as the routed gap) — run locally, never the weekly cron and never a `workflow_dispatch`
    that can carry the branch into a PR against trunk — and read
-   `git status --porcelain .claude/rules` after it: **a non-empty read is a stale mirror, a red gate**
-   (row `red-lint`): the regenerated files ride this commit, or nothing does. Then the correctness
+   `git status --porcelain .claude/rules` after it. **A non-zero exit from the command is red** (row
+   `red-lint`). **A non-empty read is the stale mirror caught, not red**: this gate runs before
+   anything is staged, so the regenerated files are what `kokusen` § 4's triage now stages — **they
+   ride this commit, or nothing does**; red is a commit that carries `.claude/canon-values.yml`
+   without them, and a read still non-empty after a second run of the command (a generator that is not
+   idempotent — a finding, reported). Then the correctness
    read drift cannot give: `grep -rn '<the superseded value>' .claude/rules/` — a hit is a finding
    (a placeholder column the generator left hardcoded), reported, never passed. The deterministic half —
    a `nen schema check` row over the bindings — is zheref/nen#262, an owned dependency; until it lands

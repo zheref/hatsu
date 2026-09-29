@@ -176,8 +176,9 @@ decision: nothing is excluded.
 ```
 
 **Hatsu's own key** (ruling 2026-09-29). **The shape**: `chain` is reviewer identities in fallback order —
-each requestable only where `reviewers[]` carries it (a step it does not carry is passed over; declare
-Cursor's review bot in `reviewers[]` once its app is installed); `terminal` is the one non-reviewer, the
+each requestable only where `reviewers[]` carries it (a step it does not carry is passed over; Cursor Bugbot is `cursor[bot]`,
+`BOT_kgDODFXTxQ`, and declaring it in `reviewers[]` makes its round required on every PR until nen
+reads the chain — the maintainer's call); `terminal` is the one non-reviewer, the
 local hanten rounds, never requested; `exhausted[]` rows are `check_exclusions` rows one key over
 (`reviewer`, `reason`, `ruled` `YYYY-MM-DD`, `until` a date or `condition: <what lifts it>`) and are
 **live only while not lapsed** — a row past its `until` date, a condition row unconfirmed past 90 days

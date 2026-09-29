@@ -230,7 +230,9 @@ unconfirmed past 90 days from `ruled`, well-formed — `tenkai diagnose` row `ga
 the rest as drift and a lapsed row is not honoured) naming the configured reviewer moves the request to
 the next identity in `chain` that `reviewers[]` carries, through the verb; **a step `reviewers[]` does not
 carry is passed over, not asked about** (declaring it is `missing-configuration` only when the maintainer
-chooses to install that reviewer — Cursor's review bot has no identity here today); **a fallback request
+chooses to — Cursor Bugbot, `cursor[bot]`, is installed and reviews on its own, HA-PR-#127 at
+`0e080a49` unrequested on 2026-09-29; declared in `reviewers[]` its round becomes **required on every
+PR** until nen reads the chain, so the declaration is the maintainer's call, never the run's); **a fallback request
 is a round and counts toward `round_policy.maxRounds` as any other**. With the chain exhausted, `terminal:
 hanten` — **hanten's rounds are the review**: no round is requested, no bound is touched, this terminus
 outranks `cap-reached`, and the PR is presented at its merge prompt (`en` § 5, the bell; § 6, the sixth
