@@ -17,7 +17,7 @@ standalone stash-and-restore shape***. Cold: **P1**, **P2**, then §§ 2–4 wit
 `--carry`; from a composite — or from [`ten`](../ten/SKILL.md) § 6, which holds it — skip this.
 **Once per effort** (ruling 2026-09-28, ROSTER ruling 9 R3): a branch this effort already cut and
 proved reports and returns, whatever session asks. After
-the restore, § 3a's `init` runs once.
+the restore, § 3b's `init` runs once.
 
 ## 1. Invocation, and the parameters
 
@@ -180,4 +180,4 @@ tip that does not build (§ 4).
 - **Never lets authoring begin on a base tip that did not build** — the trunk's red, a **G5**, never
   repaired inside this effort.
 - **Never reports an unrun warm-up as clear** or an undeclared repository as verified; **never invents
-  a `workflow.json` value**, runs twice on one effort, or resets a Hanten cycle ledger (§ 3a).
+  a `workflow.json` value**, runs twice on one effort, or resets a Hanten cycle ledger (§ 3b).
