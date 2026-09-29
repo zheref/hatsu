@@ -49,6 +49,22 @@ need one command before their first warm-up:
 which seeds only `ten`; that skill's every-session refresh calls the same script with
 `--install-all`. Fixture: `scripts/surface_bootstrap_fixture_check.sh`.
 
+**Authoring the plugin: the tree is named, never trusted by itself** (zheref/hatsu#67). When the working
+tree is a Hatsu checkout — its `.claude-plugin/plugin.json` names `hatsu` — and its manifest version is
+newer than the resolved candidate's, [`scripts/hatsu_root.sh`](../scripts/hatsu_root.sh) **keeps the
+candidate** (a directory's claim about itself never picks the root later steps run scripts from) and says
+on stderr which pin this session bound, that the skill bodies already inlined are that pin's, where to
+read the tree's protocol (`<checkout>/claude/skills/<name>/SKILL.md`) and the quoted
+`export HATSU_PLUGIN_ROOT='<checkout>'` — candidate 1, the maintainer's word — that binds the tree from
+the next session. The effective order is unchanged: `$HATSU_PLUGIN_ROOT`, the handed path,
+`$CLAUDE_PLUGIN_ROOT`; the tree is a fourth only in the sense that it is named. Three limits, stated:
+the line exists from the first installed pin whose resolver carries it (0.53.0 or later — `ten` § 0
+runs the bound pin's own resolver, so an older pin says nothing and the export is the only form); on
+Claude Code the slash-skill bodies are always the installed pin's (no mirror, § 2), so binding the tree
+there is a plugin-install question, not this script's; on Cursor, whether the linked `.cursor/skills/`
+outranks the Claude cache is unverified ([`cursor.md`](surfaces/cursor.md) § 10). Fixture: the
+tree-is-named cases of `scripts/hatsu_root_fixture_check.sh`.
+
 **The invocation spelling is the mirror's.** Every `hatsu:<name>` in a skill body is rewritten by the
 generator because `--invocation-prefix hatsu:` tells it the source's namespace; `hatsu:` is caller data
 and nen hard-codes no system's vocabulary.
@@ -98,7 +114,7 @@ From the repository root, one line per surface, in the same commit as the source
 ```sh
 v="$(python3 -c 'import json;print(json.load(open(".claude-plugin/plugin.json"))["version"])')"
 for s in codex cursor antigravity; do
-  case "$s" in antigravity) root='${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;; *) root='${HATSU_PLUGIN_ROOT}' ;; esac
+  case "$s" in antigravity) root='${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;; *) root="\${HATSU_PLUGIN_ROOT:-./.$s}" ;; esac  # the roots scripts/surface_mirror_check.sh expects; any other reads hand-edited: hooks.json
   nen surface mirror generate --surface "$s" --source claude/skills --agents claude/agents \
     --out "surfaces/$s" --invocation-prefix hatsu: --models nen/workflow.json \
     --permissions contracts/permissions.json --hooks hooks/hooks.json --rules claude/rules/hatsu.md --source-surface claude \
@@ -133,7 +149,7 @@ With `--installed <path>` the same verb diffs a whole mirror copy (`~/.gemini/co
 a symlinked `surfaces/<s>`) against a fresh
 generation — a manual check, not the warm-up's step.
 
-**The link guard** ([`scripts/surface_link_check.sh`](../scripts/surface_link_check.sh), zheref/hatsu#72) proves what the drift check cannot: that the generated bodies' relative links — every `](…)` target that is not absolute, `http(s)`, `mailto:` or a bare fragment, whatever its suffix — resolve at the depth each mirror sits at, in every generated file that carries markdown (`.md`, Cursor's `.mdc`, the Codex persona `.toml` bodies). It resolves every such link from its file's own directory and exits `0` clean, `1` dangling (file, link, resolved path per row; `--summary` classifies by surface and prefix), `2` on a wiring defect (a non-Hatsu root, no or an empty `surfaces/`, an unreadable file, an unexpected argument); it needs no `nen`, so `3` is never used. Its fixture is the focused lane `surface-link-guard` (hermetic: a green lane says the guard works, never that the mirrors are clean); the live verdict is the script itself, run by hand. **It is red against this repository's mirrors today** — 404 of 2644 links, every one generator-produced (the nested antigravity skills' `../../../docs/`, `templates/`, `scripts/` and `nen/`; the agents mirrors' `../../docs/` and `../skills/<name>/`, the Codex persona `.toml` bodies included; codex's `AGENTS.md` `../skills/<name>/`; the flat skills' `../../agents/`; the table is in `docs/ab/surface-link-check.md`), filed as zheref/nen#270 — and it is deliberately **not a CI step until that fix lands and the mirrors regenerate clean**: `nen pr ready` counts every reported check, so a context red on every pull request would read every pull request not-ready for a defect none of them made. Never an allowlist, a warning mode or a skipped run; and until that step lands, a new Hatsu-authored dangling link is indistinguishable from the generator's — an accepted, stated cost.
+**The link guard** ([`scripts/surface_link_check.sh`](../scripts/surface_link_check.sh), zheref/hatsu#72) proves what the drift check cannot: that the generated bodies' relative links — every `](…)` target that is not absolute, `http(s)`, `mailto:` or a bare fragment, whatever its suffix — resolve at the depth each mirror sits at, in every generated file that carries markdown (`.md`, Cursor's `.mdc`, the Codex persona `.toml` bodies). It resolves every such link from its file's own directory and exits `0` clean, `1` dangling (file, link, resolved path per row; `--summary` classifies by surface and prefix), `2` on a wiring defect (a non-Hatsu root, no or an empty `surfaces/`, an unreadable file, an unexpected argument); it needs no `nen`, so `3` is never used. Its fixture is the focused lane `surface-link-guard` (hermetic: a green lane says the guard works, never that the mirrors are clean); the live verdict is the script itself, run by hand. **It is red against this repository's mirrors today** — 406 of 2674 links at v0.52.0 (404 of 2644 when the guard landed at v0.51.0; every new authored link into `docs/` adds a row until the generator is fixed), every one generator-produced (the nested antigravity skills' `../../../docs/`, `templates/`, `scripts/` and `nen/`; the agents mirrors' `../../docs/` and `../skills/<name>/`, the Codex persona `.toml` bodies included; codex's `AGENTS.md` `../skills/<name>/`; the flat skills' `../../agents/`; the table is in `docs/ab/surface-link-check.md`), filed as zheref/nen#270 — and it is deliberately **not a CI step until that fix lands and the mirrors regenerate clean**: `nen pr ready` counts every reported check, so a context red on every pull request would read every pull request not-ready for a defect none of them made. Never an allowlist, a warning mode or a skipped run; and until that step lands, a new Hatsu-authored dangling link is indistinguishable from the generator's — an accepted, stated cost.
 
 **In CI.** After a real bump, `plugin-bump-check` (required on `main`) also fails a `surfaces/<s>` whose marker stamp lags the bumped manifest, naming the bump as the cause (zheref/hatsu#99); `surface-mirror-check` reports the same drift in the same round, and mukai's `scripts/surface_mirror_check.sh` is the local catch before the PR opens. [`surface-mirror-check.yml`](../.github/workflows/surface-mirror-check.yml) bootstraps nen at
 the ref `nen/contract.json` pins and runs the script from the trusted checkout against the PR's. It is

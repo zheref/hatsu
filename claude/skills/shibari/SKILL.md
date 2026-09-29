@@ -32,7 +32,13 @@ No arguments, so no `nen parse`: the branch is the input, the base comes from
 the workflow file (§ 2), the issue from the branch's own commits. **The maintainer's `hatsu:mukai`
 or `hatsu:shibari` call is this run's authorization**: opening a PR is a human call
 ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4) no agent proposes and no composite reaches
-unasked, and that call covers the evidence mechanism's publish step, not asked again per scene.
+unasked, and that call covers the evidence mechanism's publish step, not asked again per scene — **in
+Hatsu's terms** (zheref/hatsu#101): the harness's own permission classifier is a separate layer that reads
+`-y` as a blind apply, so the publish command carries `-y` only because its own confirmation would block a
+non-interactive tool, this run says before the call what it publishes and that the harness may ask once,
+and where the consumer has not declared the grant (on Claude Code, a tracked `.claude/settings.json` allow
+row for that one script, added by the maintainer — [`mukai`](../mukai/SKILL.md) § 1) the stop there is
+expected and named in § 5's line, never a G5.
 **One call, one PR** — a run that finds two efforts opens neither, names
 [`jujisho`](../jujisho/SKILL.md) and stops.
 
@@ -55,6 +61,10 @@ unasked, and that call covers the evidence mechanism's publish step, not asked a
   `mukai` step 7 and **shibari re-uses them, never re-derives them**.
 
 ## 3. The body
+
+**A published injected attribution trailer** ([`aka`](../aka/SKILL.md) § 7, zheref/hatsu#66) is
+disclosed as its own `## Completion checklist` line — `injected attribution trailer: <sha> <key>,
+published before the switch; not rewritten` — not in the ledger.
 
 **The body is [`templates/pr-body.md`](../../../templates/pr-body.md), filled** — its nine parts in
 order, § 4's three checks commented at its top. The target's own
@@ -132,7 +142,9 @@ threads***: the maintainer's token, Copilot through `--add-bots <node id>`, and 
 the mutation's own response, never from the ids sent**.
 
 **Then one line, and stop**: the notation, the base, the gate **forecast**, whether the three checks
-passed, the evidence mechanism, who was requested, and — from `mukai` — its offer of [`en`](../en/SKILL.md) on the PR
+passed, the evidence mechanism — and, where the harness classifier stopped its publish step, the field
+`permission stop: expected — <consumer> declares no allow row for <script>` naming the missing grant
+(§ 1; zheref/hatsu#101), never a G5 — who was requested, and — from `mukai` — its offer of [`en`](../en/SKILL.md) on the PR
 (En has it already only under `mukai.autoEn`). **No `nen stop` banner** — opening a PR is not a gate event, and
 `en`'s own [`jutaisho`](../jutaisho/SKILL.md) step rings at Ready.
 

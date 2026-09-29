@@ -794,3 +794,25 @@ is `nen parse futon`'s on `futon.advanceGo`, not this skill's. `nen pr merge --r
 not run: no release-proposal PR was open in this checkout, and a plan-only run against a delivery PR
 would refuse at `release unit-check` by design (`release.unitPaths` is `CHANGELOG.md` and
 `changelog.d/**`). The verb's own scripted fixtures are nen's (`src/pr/mergeunit.test.ts`).
+
+## Dated verification, 2026-09-28 — the proposal reaches en; a stacked proposal is retargeted (zheref/hatsu#98, #103)
+
+The retrospective check #98 asked for, read live from GitHub:
+
+```text
+$ gh pr view 232 -R zheref/nen --json baseRefName,mergedAt -q '[.baseRefName,.mergedAt]|@tsv'
+fable/kurapika/surfaces-spend-speed	2026-09-21T02:59:42Z      # merged 71 minutes after that branch had merged into main at 543f5f4
+$ gh pr view 222 -R zheref/nen --json baseRefName -q .baseRefName
+fable/kurapika/reports-reviewers
+```
+
+Both release proposals merged into a delivery branch, not `main`, because GitHub retargets only on base-branch
+deletion and nothing in § 3 retargeted them; § 3 now runs `nen pr retarget --target <owner/name> --pr <N>
+--base <branch.base>` the moment the delivery merges, reads the base back with `gh pr view … --json baseRefName`
+(residue: nen exposes no read of a PR's base), and presents the proposal at no gate — nor to § 3a's verb, whose
+`release unit-check` reads `release.unitPaths` at the PR's base — while that read is anything but the trunk.
+`nen pr retarget` is present at the pin (`nen pr --help`, 0.15.1). The verb was not exercised live here: no
+stacked proposal exists in this sitting, and a retarget is a GitHub write.
+
+§ 3 also hands the proposal to `hatsu:en` the moment `nen pr open` returns (#103): its readiness is en's
+`nen pr ready` verdict, quoted — the incident record is `docs/history/2026-09-23-readiness-on-ci-alone.md`.

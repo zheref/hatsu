@@ -470,11 +470,41 @@ that drives this workflow. **Saying it is configured off when nobody has configu
 three-layer table read one layer stronger than it is**, which is the failure mode the table exists to
 prevent.
 
+**Cursor has its own mandate, and `includeCoAuthoredBy` does not reach it** (zheref/hatsu#66). Cursor
+appends `Co-authored-by: Cursor <cursoragent@cursor.com>` at `git commit` time, at the tooling layer and
+before hooks run — observed on the raw `git commit --file` residue path (HA-PR-#64's `4ee8ce3`,
+`c202034`, `516ed5f`, `75c8ce8`, `2025e84`, `06b45cf` carry it beside `Hatsu-Agent`); **whether it reaches
+the `git commit` that `nen commit write` or `nen wc squash` spawn is not verified here**, and the
+read-back below catches it either way. The off-switch is Cursor's: **Cursor Settings → Git & Pull
+Requests → *Commit Attribution* off** (and *PR Attribution*), or for the CLI
+`"attribution": { "attributeCommitsToAgent": false }` in `~/.cursor/cli-config.json` — Cursor's own
+forum answer of 2026-08-21 ([`docs/surfaces/cursor.md`](surfaces/cursor.md) § 9 quotes it, § 10 the
+executor path reported to ignore it and the second `Made-with: Cursor` trailer); **forum-sourced and not
+verified live on this host, which runs no Cursor**. Because the switch is per machine, harness-owned
+and unverified, the guard of record is agent-side: `kokusen` § 5 reads the tip back after every
+`commit write` and `aka` § 7 reads **every outgoing commit** immediately before `nen wc publish` (`git -C <path> log
+<the SHA ls-remote printed | origin/<base>>..HEAD`, after § 5's catch-up and § 6's re-lint — ao may add a merge
+above the squash, so the tip alone would miss the squash parent the push also sends). **What they classify is an
+attribution key, and this is the one rule for it:** a trailer key that ends in `-by` or `-with`
+(case-insensitive — `Co-authored-by`, `Signed-off-by`, `Reviewed-by`, `Generated-by`, `Made-with`) or
+that `commits.forbiddenTrailers` lists is an attribution key; every other key — `Closes`, `Fixes`,
+`Refs`, `See-also` — is an ordinary trailer, permitted above, and never compared. An attribution key
+outside `allowedAttributionTrailers` (keys compared case-insensitively, as nen's layer (c) compares) is
+a stop with the default `nen/decisions.json` row `injected-attribution-trailer` states — the
+just-written commit is dropped or re-squashed; the switch is row `harness-attribution-switch`, an ask
+the maintainer answers by toggling the harness (no skill writes that file); a published commit is never
+rewritten and is disclosed by `shibari` in the PR body's checklist. Layer (b), where a repository carries it, is the only mechanical refusal in that path; this
+repository does not carry it.
+
+```bash
+grep -n '"attributeCommitsToAgent": *false' ~/.cursor/cli-config.json   # no output = Cursor's default applies; the IDE toggle has no file check here
+```
+
 **Enforcement is three-layered, and at the pinned nen `0.7.0` two of the three are mechanical.**
 
 | Layer | What refuses | Where it lives | Live at the pinned nen `0.7.0`? |
 |---|---|---|---|
-| **(a)** the **skills'** own refusal — `kokusen` reads the rendered message before it commits, `aka` before it squashes | agent-side | this repository | **yes**, and it is the layer Hatsu ships |
+| **(a)** the **skills'** own refusal — `kokusen` reads the rendered message before it commits and the written tip after (§ 5), `aka` the message before it squashes and every outgoing commit immediately before it pushes (§ 7) | agent-side | this repository | **yes**, and it is the layer Hatsu ships |
 | **(b)** the target repository's **`commit-msg` hook**, generated from `allowedAttributionTrailers` by `nen scaffold init` | the target repository's `.git/hooks/` | **target-dependent** — it exists only in a repository `nen scaffold init` has stood up; this week in `zheref/nen`; KroApple and kro-pwa already carry one | **target-dependent** |
 
 > **From nen `v0.6.0` that hook's automated half is DERIVED from the repository's own policy, not a fixed
@@ -1072,6 +1102,11 @@ Then `shibari` hands the PR to `en` and stops. It never applies a gate label and
 behind → `sharingan`⁴ → **observe⁵ while required CI or the current-head reviewer round is pending**, still
 reacting to new comments, threads, reviews and conflicts → [`jutaisho`](../claude/skills/jutaisho/)⁶ once
 at Ready → the dated **final** report, a one-effort Rikugan rendered through `nen report render --variant final` (`backlog-board` § 3's path), **the only report written to `Reports/`**, then stop at the human gate.
+
+**Who starts en:** [`mukai`](../claude/skills/mukai/) (its offer, or `mukai.autoEn`), [`futon`](../claude/skills/futon/)'s
+per-issue chain, the maintainer by name — and [`getsuga`](../claude/skills/getsuga/) § 3 for the release
+proposal it opens, where en runs ¹–⁵ and **returns the quoted verdict to getsuga instead of ringing ⁶**:
+§ 3a is that proposal's merge (ROSTER § *Rulings of 2026-09-26/27/28*, ruling 4; zheref/hatsu#103).
 
 | Key | What it bounds |
 |---|---|
