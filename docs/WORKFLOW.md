@@ -903,7 +903,7 @@ attrition. The loop simply stops and waits.
 2. **touched-file coverage under `coverage.minimum`** — in `byakugan`
 3. **a semantic conflict** — in `ao`. A *mechanical* conflict is resolved, not escalated
 4. **an unsettled adversarial finding** — in `hanten`, after Kurapika has fixed it or pushed back with a reason
-5. **a `sharingan` escalation** — a PR that will not reach Ready
+5. **a `sharingan` escalation** — a PR that will not reach Ready. **A declared reviewer exhaustion is not one** (ruling 2026-09-29): the PR ends at its merge prompt on hanten's review, `nen/decisions.json` row `reviewer-exhausted`, `docs/PROCESS.md` § *Reviewer rounds and review threads*
 
 **A red *iteration* check is not a sixth condition, and the ruling of 2026-09-10 did not make it one.** It is
 fixed where it is found: inside `rasengan`'s inner loop while the change is being written, or by handing the

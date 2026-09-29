@@ -18,8 +18,8 @@
     {
       "id": "reviewer-exhausted",
       "class": "autonomous",
-      "default": "read nen/gates.json reviewer_fallback; request the next reviewer in chain through nen pr request-reviews, or, with the chain exhausted, present the PR at its merge prompt on hanten's rounds with nen pr ready's verdict quoted as it stands",
-      "why": "Ruling 2026-09-29: when a configured reviewer's credits are exhausted (a live reviewer_fallback.exhausted[] row), the run does not wait on it and does not ask -- the next reviewer in the chain is requested where the gate knows its identity, and with the chain exhausted the local hanten review rounds are the review and the PR goes to the maintainer's merge prompt, the verdict quoted as not-ready on that one row, never claimed ready. The merge stays the maintainer's (G4)."
+      "default": "read nen/gates.json reviewer_fallback; request the next identity in chain that reviewers[] carries through nen pr request-reviews (a fallback request is a round and counts toward round_policy.maxRounds); with the chain exhausted (terminal hanten) request nothing and present the PR at its merge prompt with nen pr ready's verdict quoted verbatim and the one Hatsu exhaustion line beside it",
+      "why": "Ruling 2026-09-29 (docs/PROCESS.md § Reviewer rounds and review threads, The fallback chain, states it once): when a configured reviewer's credits are exhausted (a live reviewer_fallback.exhausted[] row), the run does not wait on it and does not ask -- a chain step whose identity reviewers[] lacks is passed over -- and with the chain exhausted the local hanten review rounds are the review and the PR goes to the maintainer's merge prompt. PRECEDENCE: this terminus outranks cap-reached -- it is a declared impossibility, not a ceiling -- and the board cap-reached would have carried is carried onto the merge prompt. The verdict is nen pr ready's, quoted verbatim (today: not-ready ... (CON-32b): copilot (no round at head)), never a string the verb did not print and never 'ready'. The merge stays the maintainer's (G4)."
     },
     {
       "id": "red-lint",

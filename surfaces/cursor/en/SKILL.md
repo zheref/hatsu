@@ -215,7 +215,8 @@ Past the maximum the run ends at not-ready with the board. Neither is a G5. `nen
 - **4 before 6.** The bell carries a verdict. Ringing before the second drive would ring on a
   reading the catch-up already invalidated.
 - **5 before 6.** Pending is not Ready. Required CI and every reviewer round owed at the current head
-  must settle, and every incoming finding must be disposed, before the bell or handoff exists.
+  must settle, and every incoming finding must be disposed, before the bell or handoff exists — the one
+  round that settles by declaration rather than by arriving is the exhausted reviewer's (§ 6's sixth stop).
 - **6 before 7.** The dated final report records the gate event the bell announced; rendering it first
   would preserve a readiness handoff that had not happened yet.
 
@@ -261,17 +262,17 @@ record the vote as **theirs** — a governance vote on a PR they have not read. 
 the finding is real and even when it is the only path visible. `sharingan` § 5's rule, binding here
 because a long watch is where the temptation compounds.
 
-## 5. The bell — once, at Ready
+## 5. The bell — once, at a terminus
 
 **Not under [`getsuga`](../getsuga/SKILL.md) § 3.** For a release proposal getsuga started en on, this
 step and § 8 do not run: en hands the quoted `nen pr ready` + `body-check` verdict and its `judged head:`
 back to getsuga, rings no bell and poses no `MERGE` ask, because § 3a is that PR's merge (ROSTER ruling 4);
 the bell rings only where § 3a falls back to the declaration gate.
 
-**Under a live `reviewer_fallback` exhaustion with the chain exhausted** (ruling 2026-09-29,
-[`sharingan`](../sharingan/SKILL.md) § 6), the bell rings when the verdict's one failing row is the
-exhausted reviewer's — quoted as `not-ready (CON-32(b): reviewer <name> exhausted)`, never `ready` —
-and the `MERGE` ask says the review was hanten's; the merge stays the maintainer's.
+**Or at § 6's sixth stop, a declared reviewer exhaustion** ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *The
+fallback chain* — stated there, not here): the bell rings on the not-ready verdict quoted verbatim with
+the one Hatsu exhaustion line beside it; the `MERGE` ask says the review was hanten's; en writes that
+line into the body's completion checklist through `nen pr edit-body`; the merge stays the maintainer's.
 
 Step 6 is [`/jutaisho`](../jutaisho/SKILL.md) `at <G2|G4>`, with the gate
 [`shibari`](../shibari/SKILL.md) derived and `sharingan` confirmed. It owes all four of that skill's
@@ -287,11 +288,12 @@ live at `v0.3.0`, exit `0` (`docs/ab/en.md` § 2.4):
 | <title> | <link>            | <status (gate)> | <one line>   | <session>      |
 ```
 
-**The ask at Ready is a `MERGE` kind and takes no options** — the verdict says everything
+**The ask at the bell is a `MERGE` kind and takes no options** — the verdict says everything
 (`sharingan` § 8). **En never proposes the merge as something it could do**; it says the PR is
 Ready and which gate it stands at, and stops there.
 
-**It rings at Ready exactly once for this run, and at no other time.** A quiet observation rings
+**It rings exactly once for this run — at Ready, or at § 6's declared reviewer-exhaustion stop — and at
+no other time.** A quiet observation rings
 nothing — a bell that rings every poll of a four-hour wait is a bell nobody hears.
 
 ## 6. The observation hold — `nen watch until` on `nen pr ready`, and what a cycle is
@@ -315,8 +317,7 @@ only for `<reference-repo>`; otherwise pass the target's hand-supplied `--review
 `--approvers`. **Never point one repository's gates file at another repository.** `<exclusion flags>`
 is `--exclude-check <a,b>` from the target's `nen/gates.json` → `check_exclusions[]`, every live row by
 name ([`pr-state`](../pr-state/SKILL.md) § 2, zheref/hatsu#104) — a ruling with no row is
-`missing-configuration`, and a name the flag cannot carry keeps the PR `not-ready (CON-32(a): excluded
-check <name> pending)`, quoted, never `ready`.
+`missing-configuration`, and a name the flag cannot carry keeps the PR not-ready — the verb's verdict quoted verbatim, the excluded check named beside it — never `ready`.
 
 **`nen pr ready` classifies `[read-only]`** — verified live at `v0.3.0` (`docs/ab/en.md` § 2.3):
 `nen parse izanami "nen pr ready HA#41 --repo /path --gates /abs/gates.json until it is ready"` →
@@ -351,17 +352,20 @@ en acts, and the `<n>/<cap>` the verb prints is the number the report carries.
 | **a new review, comment or thread** | inspect and classify it first. If it requires remediation or a reviewer re-request, claim an acting cycle, then return to step 2; an approval or informational event that needs only a read spends no cycle. [`/sharingan`](../sharingan/SKILL.md) addresses every inline and summary finding through its own channel, and decides whether a further round may be requested (§ 6 there; *owed at head* after en's own request or push is not a reason) |
 | **the branch fell behind, or the PR went `dirty`** | claim an acting cycle, then step 3 and step 4 — catch up, then re-decide. A conflicted PR gets *no checks at all*, which reads as "clean" rather than "broken" (`sharingan` § 5) |
 | the PR becomes Ready | step 6 — bell and stop at the human gate |
+| **a round owed at head to a reviewer with a live `reviewer_fallback.exhausted[]` row, the chain exhausted** ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *The fallback chain*) | **not a pending state — the round will not arrive.** End the hold and go to step 6 with the verdict quoted verbatim and the Hatsu exhaustion line beside it; no cycle is spent |
 | the PR merged before the gate handoff | end as a terminal external state, naming that readiness was not the run's observed terminus |
 | the PR closed unmerged | the run ends, saying so — there is nothing to land, and reopening is the maintainer's call |
 | nothing changed | **one line, or no line.** Not a status screenful; `nen watch until` already prints one line per observation |
 
-**Five stops apply here**: the condition true (verified Ready); the **cap reached**, reported with what
+**Six stops apply here**: the condition true (verified Ready); the **cap reached**, reported with what
 is still not true; **a human gate**, which is never retried past; an **impossible condition**, named
 rather than waited on — a closed PR will not become Ready; and **the round ceiling** (zheref/hatsu#102):
 `round_policy.maxRounds` requested, or `round_policy.minRounds` resolved with the verdict still
 not-ready — a round owed at head that no bound lets en request is a named impossible condition for
 the watch, not a state to poll — reported not-ready with `nen pr ready --explain` quoted and the board,
-never a raised number, never a G5. `izanagi`'s generic three-no-op stop does
+never a raised number, never a G5; and **a declared reviewer exhaustion** with the chain exhausted — the
+hold ends at step 6 on the not-ready verdict, the sixth stop, which outranks the round ceiling
+(`nen/decisions.json` row `reviewer-exhausted`). `izanagi`'s generic three-no-op stop does
 not apply to En: quiet observations claim no cycle, and three unchanged pending reads cannot terminate
 the current-head readiness promise. Three consecutive **observation errors** still stop `nen watch until`
 as an unread capability failure, exactly as the verb documents; that is not a pending-state success.

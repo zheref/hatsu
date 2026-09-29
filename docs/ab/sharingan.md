@@ -254,3 +254,5 @@ verdict stays quoted as it stands, and the read in `pr ready` is nen's to add (z
 registers nothing looks like this at 0.15.1: `nen pr request-reviews --add-bots BOT_kgDOCnlnWA` → `ok: true`,
 message *pending review requests now include bot(s): (none reported back)*; GraphQL `reviewRequests.nodes: []`;
 no `review_requested` timeline event. On HA-PR-#124 the same call registered and Copilot answered in five minutes.
+
+Later the same day § 4's identity-and-exclusion table was folded into pr-state § 2 (the effort-6 review), so the entry above describing § 4 as adding `--exclude-check` reads as history; the flag is pr-state's and § 4 cites it.

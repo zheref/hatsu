@@ -190,6 +190,7 @@ either operation.
 | `lane/<lane>/<verb>` in a product | **nen** | Every declared command is checked; unsupported seats and missing iteration checks are routed — § 6b |
 | `workflow/<join>` in a product | **consumer configuration** | Checks toolchain, test selection and results, coverage, and visual evidence links across the declarations — § 6c |
 | `gates/check-exclusions` | **Hatsu** | **Observation only.** Reads `nen/gates.json` → `check_exclusions[]` (zheref/hatsu#104): none, or every row live, is `satisfied`; a row lapsed, malformed, or carrying a name the flag cannot be handed is `drift`, named — the maintainer removes or re-rules it; the engine never rewrites a gate |
+| `gates/reviewer-fallback` | **Hatsu** | **Observation only.** Reads `nen/gates.json` → `reviewer_fallback` (ruling 2026-09-29): a chain of identities, `terminal: hanten`, a live exhaustion is `satisfied`; a chain step `reviewers[]` does not carry is `routed` (declare it once the app is installed); a lapsed or malformed row, a terminal that is not `hanten`, or the terminal inside the chain is `drift`, named |
 
 **Seven states, and `drift` is the one the whole skill is for:**
 

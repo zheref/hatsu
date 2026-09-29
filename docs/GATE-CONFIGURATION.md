@@ -170,21 +170,32 @@ decision: nothing is excluded.
 
 ```json
 "reviewer_fallback": {
-  "chain": ["copilot", "cursor", "hanten"],
+  "chain": ["copilot", "cursor"], "terminal": "hanten",
   "exhausted": [ { "reviewer": "copilot", "reason": "credits exhausted", "ruled": "2026-09-29", "until": "condition: the credits are restored" } ]
 }
 ```
 
-**Hatsu's own key** (ruling 2026-09-29; the rule is [`sharingan`](../claude/skills/sharingan/SKILL.md) § 6's):
-a configured reviewer whose credits are exhausted is **declared**, as a dated row shaped like a
-`check_exclusions` row, never inferred from a request that silently registers nothing. The skills then
-request the next name in `chain` where `reviewers[]` carries its identity (declare Cursor's review bot
-there once its app is installed; a chain step with no identity is `missing-configuration`), and with the
-chain exhausted the local hanten rounds are the review: the PR is presented at its merge prompt with
-`nen pr ready`'s verdict quoted as it stands — `not-ready (CON-32(b): reviewer <name> exhausted)`, never
-`ready`. The merge stays yours. nen reads neither key (the owned dependency is zheref/nen#275), and
-`tenkai diagnose` does not yet read this one — a lapsed row here is yours to notice until it does.
+**Hatsu's own key** (ruling 2026-09-29). **The shape**: `chain` is reviewer identities in fallback order —
+each requestable only where `reviewers[]` carries it (a step it does not carry is passed over; declare
+Cursor's review bot in `reviewers[]` once its app is installed); `terminal` is the one non-reviewer, the
+local hanten rounds, never requested; `exhausted[]` rows are `check_exclusions` rows one key over
+(`reviewer`, `reason`, `ruled` `YYYY-MM-DD`, `until` a date or `condition: <what lifts it>`) and are
+**live only while not lapsed** — a row past its `until` date, a condition row unconfirmed past 90 days
+from `ruled`, or a malformed row is not honoured, and `scripts/tenkai_adopt.sh diagnose` names it
+(`gates/reviewer-fallback`, observation only). **The behaviour** — what a silent request means, the
+counting, the terminus, the quoted verdict and its one annotation line, the merge staying yours — is
+[`docs/PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *The fallback chain*, stated once.
+nen reads neither key (zheref/nen#275).
 
+### Hatsu's own keys in `nen/gates.json` — the convention
+
+Three keys here are Hatsu's, not nen's: `round_policy.minRounds`/`.maxRounds` (`stallMinutes` in the
+same object is nen's — the `$comment` says which is which), `check_exclusions[]` and `reviewer_fallback`.
+Each is a gate **declaration**, so it lives in the gate's file; each is **preserved, not read**, by `nen
+schema check` (a string `minRounds` reads `ok` — nothing validates these at 0.15.1); an object-valued key
+carries its `$comment` inside, an array-valued key a `$`-prefixed sibling; each names its ruling, the one
+skill that states its rule, one owned nen issue for the eventual machine read (zheref/nen#240, #249,
+#275), and one `tenkai diagnose` row where a row can lapse.
 ---
 
 ## 4. Validate it, and read the pointer

@@ -69,8 +69,7 @@ Ready **iff `nen pr ready` says `ready` AND `nen pr body-check` says every requi
 never re-derived by eye (`export GH_TOKEN=$(gh auth token)` first).
 
 - **Both flags on the call — identity and exclusion — are [`pr-state`](../pr-state/SKILL.md) § 2's,
-  stated there once, nothing restated here**; the verdict is quoted with any exclusion named
-  (zheref/hatsu#104).
+  stated once**; the verdict is quoted with any exclusion named (zheref/hatsu#104).
 - **Relay the provenance line** (`decided by nen <version> (<path>) at <timestamp>`) verbatim, and
   `meta.dependabotCarveOut` where declared — `ready` through it is `ready`; a not-ready one needs
   green shim contexts, not a round.
@@ -110,34 +109,34 @@ logged** (object, label, time) in the stop.
   ready` unbounded, rolls its own sleep loop or schedules a wake-up (§ 3), or **comments with a raw
   `gh pr comment`/`gh issue comment`.**
 
-## 6. Reviewer rounds — the Copilot policy
+## 6. Reviewer rounds — the policy, and the fallback chain
 
-**One Copilot round is requested after [`hanten`](../hanten/SKILL.md) settles, never before.**
+**A reviewer round is requested after [`hanten`](../hanten/SKILL.md) settles, never before.**
 **The ceiling is two numbers in one declared home** — `nen/gates.json` → `round_policy.minRounds`
-(**N**) and `.maxRounds` (**M**), Hatsu's own keys, never copied into prose (zheref/hatsu#102). **A round is requested only while requested < M
+(**N**) and `.maxRounds` (**M**), Hatsu's keys, never copied into prose (zheref/hatsu#102). **A round is requested only while requested < M
 AND resolved < N**, and only through `nen pr request-reviews` — never a raw GraphQL `requestReviews`,
 never `gh api`. *Resolved*: every finding it posted fixed in a pushed commit, replied to, its thread resolved;
 *requested*: this run's own requests plus the one `nen pr ready` row 4 reports in flight. Until zheref/nen#240 counts them in `--explain`, the count is a **read, never a request** (`gh api …/pulls/<n>/reviews`, logins by
-`gates.reviewers[].login_pattern`, plus this run's own requests) — residue.
+`gates.reviewers[].login_pattern`, plus this run's requests) — residue.
 **An owed round inside both bounds is re-requested without asking** (row `cap-reached`); **once N
-resolved rounds exist no further round is requested — *owed at head* after your own push or request
-is not a reason** (KroApple#577); **never after a push that
-changed nothing reviewable** — count commits and diff since the last reviewed head first:
+resolved rounds exist none is requested — *owed at head* after your own push or request is not a
+reason**; **never after a push that changed nothing reviewable** — count commits and diff since the last
+reviewed head:
 
 ```bash
 git rev-list --count <reviewed-head>..HEAD
 git diff --stat <reviewed-head>..HEAD
 ```
 
-**The cap governs requests, not arrivals; an arrival past it is still remediated and settled.** **Either bound reached ends the run** — M requested, or N resolved with the verdict still not-ready
-(a round owed at head that no bound lets the run request is a named impossible condition, not a state
-to poll) — not-ready with `nen pr ready --explain` quoted and the board, never a question, never a G5,
-never a ceiling raised in-session; `monitor.maxCycles` is en's acting cap, a different
-number. **A reviewer whose credits are exhausted is declared, never guessed** — `nen/gates.json` →
-`reviewer_fallback` (ruling 2026-09-29; PROCESS § *Reviewer rounds* has the mechanics): the next name in
-`chain` is requested where the gate knows its identity; with the chain exhausted **hanten's rounds are
-the review**: the PR goes to its merge prompt, the verdict quoted as it stands — `not-ready (CON-32(b):
-reviewer <name> exhausted)`, never `ready`.
+**The cap governs requests, not arrivals; an arrival past it is still settled.** **Either bound reached
+ends the run** — M requested, or N resolved with the verdict still not-ready (a round owed at head that
+no bound lets the run request is an impossible condition, not one to poll) — not-ready,
+`--explain` quoted, the board, never a question, never a G5, never a ceiling raised in-session;
+`monitor.maxCycles` is en's acting cap, another number. **A declared reviewer exhaustion** is [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *The fallback chain*, stated once there: the request
+moves down `chain` to the next identity `reviewers[]` carries (a fallback request counts toward M); with
+the chain exhausted hanten's rounds are the review, nothing is requested, the PR goes to its merge
+prompt with **the verb's verdict quoted verbatim and one Hatsu line beside it, never in its place**.
+**The merge is never the run's** — *and merge* is the merge prompt, not a delegation (G4).
 
 **Round completeness, thread hygiene (`nen pr threads list|reply|resolve`) and the Copilot request
 (`nen pr request-reviews --add-bots <node id>`, verified by `nen pr ready`, never REST) are

@@ -1531,41 +1531,7 @@ class CheckExclusions(Item):
         if not rows:
             return self.row(SATISFIED, "no check exclusion declared -- an empty array is a decision")
         today, clock = self.today(ctx)
-        bad, expired, live = [], [], []
-        for i, r in enumerate(rows):
-            if not isinstance(r, dict) or any(not isinstance(r.get(k), str) or not r.get(k).strip() for k in self.FIELDS):
-                bad.append(f"row {i}: every row carries name, reason, ruled and until, non-empty strings")
-                continue
-            name, ruled_s, until = r["name"], r["ruled"], r["until"]
-            if not self.NAME_OK.match(name):
-                bad.append(f"row {i}: name carries a character no argv element is handed (a comma, a quote, a shell metacharacter or a control byte)")
-                continue
-            if not self.DATE.match(ruled_s):
-                bad.append(f"row {i}: ruled is not a YYYY-MM-DD date")
-                continue
-            try:
-                ruled = datetime.date.fromisoformat(ruled_s)
-            except ValueError:
-                bad.append(f"row {i}: ruled is not a real date")
-                continue
-            if ruled > today:
-                bad.append(f"row {i}: ruled is in the future ({clock})")
-                continue
-            if self.DATE.match(until):
-                try:
-                    d = datetime.date.fromisoformat(until)
-                except ValueError:
-                    bad.append(f"row {i}: until is not a real date")
-                    continue
-                (expired if d < today else live).append(f"{name} (until {until})")
-            elif until.startswith(self.CONDITION) and until[len(self.CONDITION):].strip():
-                age = (today - ruled).days
-                if age > self.MAX_CONDITION_DAYS:
-                    expired.append(f"{name} ({until}; ruled {ruled_s}, {age} days ago -- unconfirmed past {self.MAX_CONDITION_DAYS} days)")
-                else:
-                    live.append(f"{name} ({until}; ruled {ruled_s})")
-            else:
-                bad.append(f"row {i}: until is neither a YYYY-MM-DD date nor 'condition: <what lifts it>'")
+        bad, expired, live = dated_rows(rows, "name", today)
         if bad:
             return self.row(DRIFT, "malformed -- " + "; ".join(bad) + " -- a row that cannot be passed safely is never put on the call",
                             "complete the row as the $check_exclusions note shapes it, or remove it")
@@ -1576,6 +1542,110 @@ class CheckExclusions(Item):
 
     def repair(self, ctx):
         # a lapsed or malformed ruling is the maintainer's to remove or re-rule; Tenkai never rewrites a gate
+        return self.detect(ctx)
+
+
+def dated_rows(rows, name_key, today, name_ok=CheckExclusions.NAME_OK, max_days=CheckExclusions.MAX_CONDITION_DAYS):
+    """The one validator both dated-ruling keys share (check_exclusions, reviewer_fallback.exhausted):
+    returns (bad, expired, live) descriptions. A near-miss date is refused, never read as a condition."""
+    import datetime
+    bad, expired, live = [], [], []
+    fields = (name_key, "reason", "ruled", "until")
+    for i, r in enumerate(rows):
+        if not isinstance(r, dict) or any(not isinstance(r.get(k), str) or not r.get(k).strip() for k in fields):
+            bad.append(f"row {i}: every row carries {name_key}, reason, ruled and until, non-empty strings")
+            continue
+        name, ruled_s, until = r[name_key], r["ruled"], r["until"]
+        if not name_ok.match(name):
+            bad.append(f"row {i}: {name_key} carries a character no argv element is handed (a comma, a quote, a shell metacharacter or a control byte)")
+            continue
+        if not CheckExclusions.DATE.match(ruled_s):
+            bad.append(f"row {i}: ruled is not a YYYY-MM-DD date")
+            continue
+        try:
+            ruled = datetime.date.fromisoformat(ruled_s)
+        except ValueError:
+            bad.append(f"row {i}: ruled is not a real date")
+            continue
+        if ruled > today:
+            bad.append(f"row {i}: ruled is in the future")
+            continue
+        if CheckExclusions.DATE.match(until):
+            try:
+                d = datetime.date.fromisoformat(until)
+            except ValueError:
+                bad.append(f"row {i}: until is not a real date")
+                continue
+            (expired if d < today else live).append(f"{name} (until {until})")
+        elif until.startswith(CheckExclusions.CONDITION) and until[len(CheckExclusions.CONDITION):].strip():
+            age = (today - ruled).days
+            if age > max_days:
+                expired.append(f"{name} ({until}; ruled {ruled_s}, {age} days ago -- unconfirmed past {max_days} days)")
+            else:
+                live.append(f"{name} ({until}; ruled {ruled_s})")
+        else:
+            bad.append(f"row {i}: until is neither a YYYY-MM-DD date nor 'condition: <what lifts it>'")
+    return bad, expired, live
+
+
+class ReviewerFallback(Item):
+    """nen/gates.json -> reviewer_fallback (the ruling of 2026-09-29): the chain holds reviewer identities
+    only, `terminal` is the local hanten rounds, and exhausted[] rows are dated rulings that lapse.
+    OBSERVATION ONLY. nen reads none of it (zheref/nen#275)."""
+
+    TERMINAL = "hanten"
+
+    def __init__(self):
+        super().__init__("gates/reviewer-fallback", "the reviewer fallback chain -- observation only: identities in the chain, a live exhaustion, the terminal", "hatsu")
+
+    def detect(self, ctx):
+        p = ctx.repo / "nen" / "gates.json"
+        if p.is_symlink():
+            return self.row(DRIFT, "nen/gates.json is a symlink -- a gate is read as a file of this repository, never through a link", "replace the link with the file")
+        if not p.is_file():
+            return self.row(SATISFIED, "no nen/gates.json -- nothing declared")
+        try:
+            doc = json.loads(p.read_text())
+        except (ValueError, OSError, UnicodeDecodeError):
+            return self.row(ROUTED, "nen/gates.json is not parseable -- nen schema check's row", f"nen schema check --repo {ctx.repo}")
+        if not isinstance(doc, dict):
+            return self.row(ROUTED, "nen/gates.json is not a JSON object -- nen schema check's row", f"nen schema check --repo {ctx.repo}")
+        fb = doc.get("reviewer_fallback")
+        if fb is None:
+            return self.row(SATISFIED, "no reviewer_fallback declared -- the configured reviewers are the whole gate")
+        if not isinstance(fb, dict):
+            return self.row(DRIFT, "reviewer_fallback is not an object", "shape it as {chain: [identities], terminal: 'hanten', exhausted: [rows]}")
+        identities = set()
+        for r in doc.get("reviewers") or []:
+            if isinstance(r, dict) and isinstance(r.get("name"), str):
+                identities.add(r["name"].lower())
+        chain = fb.get("chain")
+        if not isinstance(chain, list) or not chain or any(not isinstance(c, str) or not c.strip() for c in chain):
+            return self.row(DRIFT, "chain is not a non-empty array of reviewer names", "list the reviewer identities in fallback order")
+        if fb.get("terminal") != self.TERMINAL:
+            return self.row(DRIFT, f"terminal is {fb.get('terminal')!r}, not {self.TERMINAL!r} -- the terminal is the local hanten rounds, never a reviewer", "set terminal to 'hanten'")
+        if self.TERMINAL in [c.lower() for c in chain]:
+            return self.row(DRIFT, "the chain names the terminal as if it were a reviewer identity", "keep 'hanten' in terminal only")
+        rows = fb.get("exhausted", [])
+        if not isinstance(rows, list):
+            return self.row(DRIFT, "exhausted is not an array", "make it an array of {reviewer, reason, ruled, until} rows, or [] for none")
+        today, clock = CheckExclusions.today(ctx)
+        bad, expired, live = dated_rows(rows, "reviewer", today)
+        for i, r in enumerate(rows):
+            if isinstance(r, dict) and isinstance(r.get("reviewer"), str) and r["reviewer"].lower() not in [c.lower() for c in chain]:
+                bad.append(f"row {i}: reviewer {r['reviewer']!r} is not in the chain")
+        if bad:
+            return self.row(DRIFT, "malformed -- " + "; ".join(bad) + " -- a row that cannot be read is not honoured", "complete the row as the reviewer_fallback note shapes it, or remove it")
+        missing = [c for c in chain if c.lower() not in identities]
+        if expired:
+            return self.row(DRIFT, f"lapsed ({clock}): " + "; ".join(expired) + " -- the ruling has lapsed and the reviewer is requested again", "remove the row, or re-rule it with today's date")
+        if missing:
+            return self.row(ROUTED, f"live ({clock}): " + ("; ".join(live) or "no exhaustion") + f"; chain step(s) with no identity in reviewers[]: {', '.join(missing)} -- passed over until declared",
+                            "declare each reviewer's identity in nen/gates.json reviewers[] once its app is installed")
+        return self.row(SATISFIED, f"live ({clock}): " + ("; ".join(live) or "no exhaustion") + "; every chain step has an identity")
+
+    def repair(self, ctx):
+        # a lapsed ruling or an undeclared identity is the maintainer's; Tenkai never rewrites a gate
         return self.detect(ctx)
 
 
@@ -1594,6 +1664,7 @@ def items(ctx):
     out.extend(product_workflow_items(ctx))
     out.append(PrivilegedWorkflows())
     out.append(CheckExclusions())
+    out.append(ReviewerFallback())
     return out
 
 
@@ -2451,6 +2522,36 @@ def self_test() -> int:
     (dx / "nen" / "workflow.json").write_text(json.dumps({"reports": {"timeZone": "America/Bogota"}}))
     r = ex([row()])
     check("the declared reports.timeZone is the clock, and is named", "America/Bogota" in r["detail"])
+
+    print("\nreviewer fallback -- identities in the chain, the terminal, a live exhaustion (ruling 2026-09-29)")
+    dr = fixture()
+    (dr / "nen").mkdir(parents=True, exist_ok=True)
+    gr = dr / "nen" / "gates.json"
+
+    def fb(block, reviewers=("copilot",)):
+        gr.write_text(json.dumps({"reviewers": [{"name": n} for n in reviewers], "reviewer_fallback": block}))
+        return ReviewerFallback().detect(ctx_for(dr))
+    gr.write_text(json.dumps({"reviewers": [{"name": "copilot"}]}))
+    check("no reviewer_fallback is satisfied", ReviewerFallback().detect(ctx_for(dr))["state"] == SATISFIED)
+    ok_row = {"reviewer": "copilot", "reason": "credits", "ruled": _today, "until": "condition: the credits are restored"}
+    r = fb({"chain": ["copilot"], "terminal": "hanten", "exhausted": [ok_row]})
+    check("a live exhaustion with every chain step declared is satisfied", r["state"] == SATISFIED and "copilot" in r["detail"])
+    r = fb({"chain": ["copilot", "cursor"], "terminal": "hanten", "exhausted": [ok_row]})
+    check("a chain step with no identity is ROUTED, named, never DRIFT", r["state"] == ROUTED and "cursor" in r["detail"])
+    r = fb({"chain": ["copilot", "hanten"], "terminal": "hanten", "exhausted": []})
+    check("the terminal inside the chain is DRIFT", r["state"] == DRIFT)
+    r = fb({"chain": ["copilot"], "terminal": "copilot", "exhausted": []})
+    check("a terminal that is not hanten is DRIFT", r["state"] == DRIFT)
+    r = fb({"chain": ["copilot"], "terminal": "hanten", "exhausted": [dict(ok_row, ruled=_old)]})
+    check("a condition exhaustion older than 90 days is DRIFT, lapsed", r["state"] == DRIFT and "lapsed" in r["detail"])
+    r = fb({"chain": ["copilot"], "terminal": "hanten", "exhausted": [dict(ok_row, until="2026-9-1")]})
+    check("a near-miss date in an exhaustion is DRIFT, never a condition", r["state"] == DRIFT and "neither" in r["detail"])
+    r = fb({"chain": ["copilot"], "terminal": "hanten", "exhausted": [dict(ok_row, reviewer="bugbot")]})
+    check("an exhausted reviewer not in the chain is DRIFT", r["state"] == DRIFT and "not in the chain" in r["detail"])
+    r = fb({"chain": [], "terminal": "hanten", "exhausted": []})
+    check("an empty chain is DRIFT", r["state"] == DRIFT)
+    gr.write_text(json.dumps({"reviewers": [{"name": "copilot"}], "reviewer_fallback": "x"}))
+    check("a non-object reviewer_fallback is DRIFT", ReviewerFallback().detect(ctx_for(dr))["state"] == DRIFT)
 
     print("\nblocked states are reported, never repaired around")
     d5 = fixture()

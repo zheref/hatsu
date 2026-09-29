@@ -883,8 +883,8 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
 
 ## Rulings of 2026-09-29 — the reviewer fallback chain
 
-One ruling, recorded here once; `sharingan` § 6 states the rule, `docs/PROCESS.md` § *Reviewer rounds* the
-mechanics, `nen/gates.json` → `reviewer_fallback` the declaration, and `nen/decisions.json` row
+One ruling, recorded here once; `docs/PROCESS.md` § *Reviewer rounds and review threads* (*The fallback
+chain*) states the rule and its mechanics once, `sharingan` § 6 cites it, `nen/gates.json` → `reviewer_fallback` the declaration, and `nen/decisions.json` row
 `reviewer-exhausted` the default.
 
 1. **When a configured reviewer's credits are exhausted, the review falls back down a declared chain, and
@@ -892,12 +892,14 @@ mechanics, `nen/gates.json` → `reviewer_fallback` the declaration, and `nen/de
    and HA-PR-#127 not-ready on Copilot's round alone while the request would not register). The
    maintainer's words: *"Copilot's credits are exhausted as of right now. Let's make it so that when this
    happens, it expects Cursor, if limit has been reached, proceed with just the local hanten review rounds
-   and merge."* So: `reviewer_fallback.chain` is `copilot → cursor → hanten`; an exhaustion is declared
+   and merge."* So: `reviewer_fallback.chain` is `copilot, cursor` and `terminal` is `hanten`; an exhaustion is declared
    as a dated row, never guessed from a silent mutation; the next reviewer in the chain is requested where
    `gates.reviewers[]` carries its identity (Cursor's review bot once its app is installed —
    `missing-configuration` until then); with the chain exhausted the local hanten rounds are the review
-   and the PR is presented at its merge prompt with `nen pr ready`'s verdict quoted as it stands —
-   `not-ready (CON-32(b): reviewer copilot exhausted)`, never `ready`. **The merge itself stays the
+   and the PR is presented at its merge prompt with `nen pr ready`'s verdict **quoted verbatim** (today
+   `not-ready: a configured reviewer's round is still owed at the current head (CON-32b): copilot (no round
+   at head)`) and one Hatsu line beside it, never in its place — never `ready`, never a string the verb did
+   not print. **The merge itself stays the
    maintainer's** (G4, `CON-5`/`CON-7`): *"and merge"* is read as the PR reaching its merge prompt on
    hanten's review, not as a delegation of the merge, which no ruling here grants. nen reads neither key;
    an exhausted-reviewer read in `pr ready` is the owned dependency zheref/nen#275.
