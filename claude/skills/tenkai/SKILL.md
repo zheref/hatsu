@@ -187,6 +187,8 @@ either operation.
 | the default lane's `release` row | **nen** | In a process repository, a seat gets an exact row offered — § 6a |
 | `lane/<lane>/<verb>` in a product | **nen** | Every declared command is checked; unsupported seats and missing iteration checks are routed — § 6b |
 | `workflow/<join>` in a product | **consumer configuration** | Checks toolchain, test selection and results, coverage, and visual evidence links across the declarations — § 6c |
+| `workflow/review-scopes` | **consumer configuration** | Guide the owner through `review.scopes` when absent; validate with `nen schema check` before Hanten resumes |
+| `effort/review-ledger` | **Hanten** | On an active effort branch, diagnose the branch ledger or its PR-keyed ledger when one exists; multiple PR candidates route exact-key selection to Hanten. Hanten checks history and uses `recover-first --confirmed-first-cycle` only after the maintainer confirms no review ran under this key; otherwise restore used counts. Tenkai `apply` does not mint a review budget |
 
 **Seven states, and `drift` is the one the whole skill is for:**
 

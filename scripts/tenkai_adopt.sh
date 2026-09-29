@@ -1337,6 +1337,104 @@ class ProductReadiness(Item):
         return self.detect(ctx)  # all declarations are Nen-owned
 
 
+class ReviewScopes(Item):
+    """A review cannot be routed when the repository declares no scopes."""
+
+    def __init__(self):
+        super().__init__("workflow/review-scopes", "scoped local review policy", "consumer configuration")
+
+    def detect(self, ctx):
+        path = ctx.repo / "nen" / "workflow.json"
+        try:
+            workflow = json.loads(path.read_text())
+        except (OSError, ValueError):
+            return self.row(ROUTED, "review scopes cannot be inspected until nen/workflow.json parses",
+                            "repair the workflow declaration through its owning item, then re-diagnose")
+        review = workflow.get("review") if isinstance(workflow, dict) else None
+        scopes = review.get("scopes") if isinstance(review, dict) else None
+        if not isinstance(scopes, dict) or not scopes:
+            return self.row(ROUTED, "no review.scopes are declared; Hanten cannot classify a change set",
+                            "choose review scopes, personas, paths and budgets in nen/workflow.json; "
+                            "validate with nen schema check --repo <path>, then resume Hanten")
+        return self.row(SATISFIED, f"{len(scopes)} review scope(s) declared; nen schema check owns validity")
+
+    def repair(self, ctx):
+        return self.detect(ctx)  # consumer policy is chosen by its owner
+
+
+class ReviewLedger(Item):
+    """Diagnose the active effort's local review history without resetting it."""
+
+    def __init__(self):
+        super().__init__("effort/review-ledger", "Hanten review-cycle ledger", "hanten")
+
+    def detect(self, ctx):
+        try:
+            branch = subprocess.run(["git", "-C", str(ctx.repo), "branch", "--show-current"],
+                                    capture_output=True, text=True, timeout=15)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            return self.row(BLOCKED, f"git could not identify the active branch: {exc}",
+                            "restore a readable checkout before Hanten reviews")
+        if branch.returncode != 0:
+            return self.row(BLOCKED, "git could not identify the active branch",
+                            "restore a readable checkout before Hanten reviews")
+        name = branch.stdout.strip()
+        if not name:
+            return self.row(SATISFIED, "detached checkout: no active branch review cycle to diagnose")
+        try:
+            workflow = json.loads((ctx.repo / "nen" / "workflow.json").read_text())
+            branch_policy = workflow.get("branch") if isinstance(workflow, dict) else None
+            base = branch_policy.get("base", "main") if isinstance(branch_policy, dict) else "main"
+        except (OSError, ValueError, AttributeError):
+            base = "main"  # the declaration item separately reports an unreadable workflow
+        if name == base:
+            return self.row(SATISFIED, f"on trunk '{name}': no effort ledger is due")
+        ledger_dir = ctx.repo / ".nen" / "hanten"
+        slug = name.replace('/', '-')
+        pr_candidates = [candidate for candidate in ledger_dir.glob(f"{slug}-pr*.cycle.json")
+                         if re.fullmatch(rf"{re.escape(slug)}-pr[1-9][0-9]*\.cycle\.json", candidate.name)]
+        if len(pr_candidates) > 1:
+            return self.row(ROUTED, f"multiple PR-keyed ledgers exist for branch '{name}'; active PR key is unknown",
+                            "Hanten identifies the current PR number and diagnoses its exact ledger; never pick a prior PR's budget")
+        expected_pr = int(pr_candidates[0].name.removeprefix(f"{slug}-pr").removesuffix(".cycle.json")) if pr_candidates else None
+        path = pr_candidates[0] if pr_candidates else ledger_dir / f"{slug}.cycle.json"
+        if not path.is_file():
+            return self.row(ROUTED, f"no branch-keyed review ledger for '{name}' at {path}; "
+                            "Tenkai cannot establish whether an open PR needs its own key or whether review history was lost",
+                            "Hanten identifies the active branch or PR effort key, checks prior review evidence, "
+                            "then asks whether this is the first cycle under that exact key; "
+                            "only a confirmed first cycle may run hanten_cycle_ledger.sh recover-first "
+                            "--confirmed-first-cycle. "
+                            "If reviews already ran, restore their ledger without resetting used counts")
+        try:
+            doc = json.loads(path.read_text())
+        except (OSError, ValueError) as exc:
+            return self.row(BLOCKED, f"review ledger is unreadable: {exc}",
+                            "restore the ledger with its used counts; never initialize over it")
+        if (not isinstance(doc, dict) or doc.get("contract") != "hatsu.hanten.cycle/v0.1"
+                or doc.get("branch") != name or doc.get("pr") != expected_pr
+                or not isinstance(doc.get("reviewers"), dict)):
+            return self.row(BLOCKED, "review ledger does not match this branch or has no reviewer counts",
+                            "restore the matching ledger with its used counts; never reset the cycle")
+        # Match hanten_cycle_ledger.sh's fixed PERSONAS. Its loader refuses a
+        # missing row rather than silently minting a fresh reviewer budget.
+        for persona in ("nobunaga", "feitan", "chrollo", "phinks", "hisoka", "uvogin"):
+            row = doc["reviewers"].get(persona)
+            if (not isinstance(row, dict) or type(row.get("used")) is not int
+                    or row["used"] < 0 or not isinstance(row.get("invocations"), list)):
+                return self.row(BLOCKED, f"review ledger has no valid count for {persona}",
+                                "restore the original reviewer history; never mint missing counts")
+            outcomes = [entry.get("outcome") if isinstance(entry, dict) else None for entry in row["invocations"]]
+            if any(outcome not in ("ran", "skipped-exhausted") for outcome in outcomes) or outcomes.count("ran") != row["used"]:
+                return self.row(BLOCKED, f"review ledger has inconsistent count and history for {persona}",
+                                "restore the original reviewer history; never reset used counts")
+        key = f"PR #{expected_pr}" if expected_pr else "branch"
+        return self.row(SATISFIED, f"{key} ledger present for '{name}'; Hanten verifies the active effort key")
+
+    def repair(self, ctx):
+        return self.detect(ctx)  # an adoption apply must never mint a review budget
+
+
 def product_workflow_items(ctx):
     """Inspect the joins between declared lanes and Hatsu's delivery phases.
 
@@ -1478,6 +1576,10 @@ def items(ctx):
     out.append(GuardRegistration())
     out.append(ReadinessWorkflow())
     out.append(ReleasePublisher())
+    review_scopes = ReviewScopes()
+    out.append(review_scopes)
+    if review_scopes.detect(ctx)["state"] == SATISFIED:
+        out.append(ReviewLedger())
     if ctx.role != ROLE_PRODUCT:
         out.append(ReleaseRow())
     out.extend(product_lane_items(ctx))
@@ -1572,6 +1674,61 @@ def self_test() -> int:
 
     def ctx_for(d, slug="acme/widget", vis="private", sh=2, labels="[self-hosted, Linux, X64]"):
         return Ctx(d, root, slug, vis, sh, probe=False, runner_labels=labels)
+
+    print("\nreview readiness — branch state is diagnosed, never reset")
+    review_repo = fixture()
+    review_workflow = review_repo / "nen" / "workflow.json"
+    review_workflow.write_text(json.dumps({"branch": {"base": "main"}, "review": {
+        "scopes": {"code": {"persona": "nobunaga", "budget": 2, "paths": ["**"]}}}}))
+    subprocess.run(["git", "-C", str(review_repo), "switch", "-q", "-c", "topic/review"], check=True)
+    review_ctx = ctx_for(review_repo)
+    check("declared review scopes are visible", ReviewScopes().detect(review_ctx)["state"] == SATISFIED)
+    missing_ledger = ReviewLedger().detect(review_ctx)
+    check("a missing effort ledger routes without minting a budget",
+          missing_ledger["state"] == ROUTED and "first cycle" in missing_ledger["action"]
+          and not (review_repo / ".nen" / "hanten").exists())
+    check("Tenkai apply leaves missing review history untouched",
+          ReviewLedger().repair(review_ctx)["state"] == ROUTED
+          and not (review_repo / ".nen" / "hanten").exists())
+    ledger = review_repo / ".nen" / "hanten" / "topic-review.cycle.json"
+    ledger.parent.mkdir(parents=True)
+    full_reviewers = {p: {"used": 0, "invocations": []} for p in
+                      ("nobunaga", "feitan", "chrollo", "phinks", "hisoka", "uvogin")}
+    full_reviewers["nobunaga"] = {"used": 1, "invocations": [{"outcome": "ran"}]}
+    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": full_reviewers}))
+    check("a matching ledger is reported without changing used counts",
+          ReviewLedger().detect(review_ctx)["state"] == SATISFIED
+          and json.loads(ledger.read_text())["reviewers"]["nobunaga"]["used"] == 1)
+    inconsistent_reviewers = json.loads(json.dumps(full_reviewers))
+    inconsistent_reviewers["nobunaga"]["used"] = 0
+    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": inconsistent_reviewers}))
+    check("a used count that contradicts run history is blocked",
+          ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
+    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": {}}))
+    check("an empty count map is blocked, not treated as a fresh budget",
+          ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
+    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "another/review", "reviewers": {}}))
+    check("a wrong-branch ledger is blocked, never replaced",
+          ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
+    ledger.unlink()
+    pr_ledger = ledger.with_name("topic-review-pr7.cycle.json")
+    pr_ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review",
+                                     "pr": 7, "reviewers": full_reviewers}))
+    check("a PR-keyed ledger satisfies the effort without its branch ledger",
+          ReviewLedger().detect(review_ctx)["state"] == SATISFIED)
+    another_pr = ledger.with_name("topic-review-pr8.cycle.json")
+    another_pr.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review",
+                                     "pr": 8, "reviewers": full_reviewers}))
+    check("multiple PR-keyed ledgers route active-key selection to Hanten",
+          ReviewLedger().detect(review_ctx)["state"] == ROUTED)
+    another_pr.unlink()
+    pr_ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review",
+                                     "pr": 8, "reviewers": full_reviewers}))
+    check("wrong PR number in ledger is blocked",
+          ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
+    review_workflow.write_text("{}")
+    check("missing review scopes are routed as configuration",
+          ReviewScopes().detect(review_ctx)["state"] == ROUTED)
 
     print("\ngreenfield — diagnose then apply then apply again")
     d = fixture()

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.57.0 — guided review setup and audited ledger recovery
+
+- Tenkai diagnoses missing review scopes and the active effort's Hanten ledger. Hanten guides a missing ledger through review-history inspection, records a maintainer-confirmed first-cycle recovery, and preserves prior reviewer counts when restoring history. A genuinely lost cycle remains a safety stop.
+
 ## v0.56.0 — the effort keeps its own ledgers, the generated surfaces and every routing table get a reviewer, and headroom is a number
 
 Delivered by the `hatsu:futon hatsu@enhancement then getsuga+mugetsu` run of 2026-09-29, effort 5, stacked on v0.53.0's branch (zheref/hatsu#124; run record `docs/Loop/hatsu-futon-enhancement-2026-09-29/`): [#100](https://github.com/zheref/hatsu/issues/100), [#73](https://github.com/zheref/hatsu/issues/73), [#113](https://github.com/zheref/hatsu/issues/113) and [#119](https://github.com/zheref/hatsu/issues/119).

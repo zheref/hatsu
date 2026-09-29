@@ -204,14 +204,19 @@ def _hydrate(doc: dict, path: Path, branch: str, pr: str | None = None) -> dict:
     want_pr = int(pr) if pr else None
     if doc.get("pr") != want_pr:
         refuse(f"hanten_cycle_ledger: ledger pr {doc.get('pr')!r} is not {want_pr!r}")
-    reviewers = doc.setdefault("reviewers", {})
+    reviewers = doc.get("reviewers")
+    if not isinstance(reviewers, dict):
+        refuse(f"hanten_cycle_ledger: {path} has no reviewer count map; restore the original ledger")
     for p in PERSONAS:
-        row = reviewers.get(p) or {"max": MAXIMA[p], "used": 0, "invocations": []}
+        row = reviewers.get(p)
+        if (not isinstance(row, dict) or type(row.get("used")) is not int
+                or row["used"] < 0 or not isinstance(row.get("invocations"), list)):
+            refuse(f"hanten_cycle_ledger: {path} has no valid {p} review history; restore it without resetting used counts")
+        outcomes = [entry.get("outcome") if isinstance(entry, dict) else None for entry in row["invocations"]]
+        if any(outcome not in ("ran", "skipped-exhausted") for outcome in outcomes) or outcomes.count("ran") != row["used"]:
+            refuse(f"hanten_cycle_ledger: {path} has inconsistent {p} used count and invocation history; restore the original ledger")
         row["max"] = MAXIMA[p]
         row["budgetSource"] = BUDGET_SOURCE[p]
-        row.setdefault("used", 0)
-        row.setdefault("invocations", [])
-        reviewers[p] = row
     return doc
 
 
@@ -251,11 +256,13 @@ def save(repo: Path, doc: dict) -> Path:
     return path
 
 
-def init(repo: Path, branch: str, pr: str | None = None) -> dict:
+def init(repo: Path, branch: str, pr: str | None = None, *, first_cycle_recovery: bool = False) -> dict:
     path = ledger_path(repo, branch, pr)
     if path.is_file():
         refuse(f"hanten_cycle_ledger: ledger already exists at {path}")
     doc = new_doc(branch, pr)
+    if first_cycle_recovery:
+        doc["openedAs"] = "confirmed-first-cycle-recovery"
     save(repo, doc)
     return doc
 
@@ -335,7 +342,7 @@ def record(doc: dict, persona: str, outcome: str) -> dict:
 def parse_args(argv):
     if not argv or argv[0] in ("-h", "--help"):
         refuse(
-            "hanten_cycle_ledger.sh init|decide|record|show|--self-test "
+            "hanten_cycle_ledger.sh init|recover-first|decide|record|show|--self-test "
             "[--repo PATH --branch NAME --applicable CSV --persona ID --outcome ran|skipped-exhausted]"
         )
     cmd = argv[0]
@@ -345,6 +352,10 @@ def parse_args(argv):
         if argv[i] in ("--repo", "--branch", "--pr", "--applicable", "--persona", "--outcome") and i + 1 < len(argv):
             opts[argv[i][2:]] = argv[i + 1]
             i += 2
+            continue
+        if argv[i] == "--confirmed-first-cycle":
+            opts["confirmed-first-cycle"] = True
+            i += 1
             continue
         refuse(f"hanten_cycle_ledger: unexpected argument {argv[i]!r}")
     return cmd, opts
@@ -384,6 +395,41 @@ def self_test() -> int:
 
         with LedgerLock(repo, branch):
             init(repo, branch)
+
+        recovery_branch = "grok/kurapika/first-review"
+        parsed, recovery_opts = parse_args(["recover-first", "--repo", str(repo), "--branch", recovery_branch,
+                                           "--confirmed-first-cycle"])
+        check("recovery-command-requires-explicit-flag", parsed == "recover-first" and recovery_opts.get("confirmed-first-cycle") is True)
+        try:
+            main(["recover-first", "--repo", str(repo), "--branch", recovery_branch])
+            check("recover-first-without-confirmation-refused", False, "command succeeded")
+        except SystemExit as e:
+            check("recover-first-without-confirmation-refused", e.code == 2 and not ledger_path(repo, recovery_branch).exists())
+        with LedgerLock(repo, recovery_branch):
+            recovered = init(repo, recovery_branch, first_cycle_recovery=True)
+        check("first-cycle-recovery-is-audited", recovered.get("openedAs") == "confirmed-first-cycle-recovery"
+              and load(repo, recovery_branch).get("openedAs") == "confirmed-first-cycle-recovery")
+        try:
+            with LedgerLock(repo, recovery_branch):
+                init(repo, recovery_branch, first_cycle_recovery=True)
+            check("recovery-never-replaces-an-existing-ledger", False, "recovery succeeded")
+        except SystemExit as e:
+            check("recovery-never-replaces-an-existing-ledger", e.code == 2, str(e))
+        recovered["reviewers"] = {}
+        save(repo, recovered)
+        try:
+            load(repo, recovery_branch)
+            check("incomplete-count-map-refused", False, "load succeeded")
+        except SystemExit as e:
+            check("incomplete-count-map-refused", e.code == 2, str(e))
+        recovered["reviewers"] = empty_reviewers()
+        recovered["reviewers"]["nobunaga"]["invocations"] = [{"outcome": "ran"}]
+        save(repo, recovered)
+        try:
+            load(repo, recovery_branch)
+            check("inconsistent-used-count-refused", False, "load succeeded")
+        except SystemExit as e:
+            check("inconsistent-used-count-refused", e.code == 2, str(e))
 
         try:
             with LedgerLock(repo, branch):
@@ -600,10 +646,15 @@ def main(argv):
     pr = parse_pr(opts.get("pr"))
     budgets(repo)
     with LedgerLock(repo, branch, pr):
-        if cmd == "init":
-            doc = init(repo, branch, pr)
+        if cmd in ("init", "recover-first"):
+            if cmd == "recover-first" and not opts.get("confirmed-first-cycle"):
+                refuse("hanten_cycle_ledger: recover-first requires --confirmed-first-cycle after the maintainer confirms no review ran under this effort key")
+            if cmd == "init" and opts.get("confirmed-first-cycle"):
+                refuse("hanten_cycle_ledger: --confirmed-first-cycle is only valid with recover-first")
+            doc = init(repo, branch, pr, first_cycle_recovery=cmd == "recover-first")
             path = ledger_path(repo, branch, pr)
             json.dump({"path": str(path), "branch": doc["branch"], "pr": doc["pr"], "contract": CONTRACT,
+                       "openedAs": doc.get("openedAs", "normal-init"),
                        "budgets": {p: {"max": MAXIMA[p], "source": BUDGET_SOURCE[p]} for p in PERSONAS}}, sys.stdout, indent=2)
             sys.stdout.write("\n")
             return
