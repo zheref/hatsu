@@ -1418,7 +1418,13 @@ class ReviewLedger(Item):
                             "restore the matching ledger with its used counts; never reset the cycle")
         # Match hanten_cycle_ledger.sh's fixed PERSONAS. Its loader refuses a
         # missing row rather than silently minting a fresh reviewer budget.
-        for persona in ("nobunaga", "feitan", "chrollo", "phinks", "hisoka", "uvogin"):
+        # A persona ADDED after the ledger contract shipped (leorio) has no row in
+        # an older ledger and could not have run there: absent is tolerated (the
+        # loader hydrates it at used 0); present-but-malformed is still BLOCKED.
+        late_personas = ("leorio",)
+        for persona in ("nobunaga", "feitan", "chrollo", "phinks", "hisoka", "uvogin", "leorio"):
+            if persona in late_personas and persona not in doc["reviewers"]:
+                continue
             row = doc["reviewers"].get(persona)
             if (not isinstance(row, dict) or type(row.get("used")) is not int
                     or row["used"] < 0 or not isinstance(row.get("invocations"), list)):
@@ -1881,12 +1887,26 @@ def self_test() -> int:
     ledger = review_repo / ".nen" / "hanten" / "topic-review.cycle.json"
     ledger.parent.mkdir(parents=True)
     full_reviewers = {p: {"used": 0, "invocations": []} for p in
-                      ("nobunaga", "feitan", "chrollo", "phinks", "hisoka", "uvogin")}
+                      ("nobunaga", "feitan", "chrollo", "phinks", "hisoka", "uvogin", "leorio")}
     full_reviewers["nobunaga"] = {"used": 1, "invocations": [{"outcome": "ran"}]}
     ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": full_reviewers}))
     check("a matching ledger is reported without changing used counts",
           ReviewLedger().detect(review_ctx)["state"] == SATISFIED
           and json.loads(ledger.read_text())["reviewers"]["nobunaga"]["used"] == 1)
+    pre_leorio = {k: v for k, v in full_reviewers.items() if k != "leorio"}
+    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": pre_leorio}))
+    check("a ledger opened before leorio existed is not blocked for his absent row",
+          ReviewLedger().detect(review_ctx)["state"] == SATISFIED)
+    bad_leorio = json.loads(json.dumps(full_reviewers))
+    bad_leorio["leorio"] = {"used": "one", "invocations": []}
+    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": bad_leorio}))
+    check("a present but malformed leorio row is blocked",
+          ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
+    no_feitan = {k: v for k, v in full_reviewers.items() if k != "feitan"}
+    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": no_feitan}))
+    check("a missing row for a non-late persona is still blocked",
+          ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
+    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": full_reviewers}))
     inconsistent_reviewers = json.loads(json.dumps(full_reviewers))
     inconsistent_reviewers["nobunaga"]["used"] = 0
     ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": inconsistent_reviewers}))

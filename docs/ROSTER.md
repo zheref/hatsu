@@ -49,13 +49,14 @@ workspace branch isolation (`Workspace: "branch"`).
 
 ## The independents
 
-**Ten definitions stand in `claude/agents/` beside Kurapika's: nine ratified, and one — Illumi —
+**Eleven definitions stand in `claude/agents/` beside Kurapika's: ten ratified, and one — Illumi —
 *provisioned* rather than ratified, marked as such in its own row and in its own file.** Every reviewer
 among them reads one shared preamble first, [`claude/agents/_review-preamble.md`](../claude/agents/_review-preamble.md),
 which is not itself an agent. Each carries a
 discipline Kurapika delegates to rather than absorbing. Three of them landed at **`v0.5.0`**, with
 [`hanten`](../claude/skills/hanten/SKILL.md): Feitan and Chrollo on the ruling of 2026-09-09 below, Illumi on
-the provision. **Netero landed at `v0.25.0`** on the ruling of 2026-09-14. On Antigravity, they are provisioned as subagents (`agents/<persona>.md`) and unified rules
+the provision. **Netero landed at `v0.25.0`** on the ruling of 2026-09-14. **Leorio lands at `v0.67.0`** on
+the ruling of 2026-09-30. On Antigravity, they are provisioned as subagents (`agents/<persona>.md`) and unified rules
 (`rules/AGENTS.md`), dispatched at `deep` (`pro`) for reviewers and the chairman, `fast` (`flash`) for workers.
 
 | Agent | Definition | Discipline | Status |
@@ -70,6 +71,7 @@ the provision. **Netero landed at `v0.25.0`** on the ruling of 2026-09-14. On An
 | **Netero** | `claude/agents/netero.md` | **Process chairman.** Observes Hunters in execution and files complete, labelled issues when constitution, canon prose, or machinery need enhancement — duration, redundancy, autonomy gaps, repetitive jobs that should be Nen verbs, missing toolchain. The named wrap-up is [`hatsu:third-hand`](../claude/skills/third-hand/SKILL.md): after En completes he proposes 0–3 folded issues, the maintainer picks, he files those. He files; he never implements the filed work. | **Ratified** 2026-09-14; definition landed at `v0.25.0`; Third-Hand at `v0.27.0`, phase split `v0.28.0` |
 | **Nobunaga** | `claude/agents/nobunaga.md` | **Code practices, scope completeness and adversarial reading** — the general code reviewer, **Sasuke's local counterpart**. The `code` scope claims every path, so `hanten` raises him on every change set: acceptance criteria against the issue, tests for changed behaviour at `UZF-18`'s minimums, error handling and exit-code discipline, shell quoting and portability against the declared hosts, docs and cross-references current, counts agreeing with their lists, mirrors regenerated, the CHANGELOG fragment and PR body sections present, nothing improvised that a Nen verb owns, and one holistic pass on a delivery PR. **Two reviews per effort (one PR; ruling 2026-09-28); deep on a process repository, fast on a product one.** | **Ratified** on the ruling of 2026-09-19 below; **definition landed at `v0.42.0`** |
 | **Shalnark** | `claude/agents/shalnark.md` | **Post-merge UI validation, optional.** After a delivery merges he drives every behaviour of the delivered feature against the **original specification's** acceptance criteria — the issue's list and the PR's *How to verify* — with the UI tooling `hatsu:bankai-quality` resolves, and reports **pass / fail / not-testable with evidence per criterion**. **Ephemeral by default**, persistent only where the repository declares `tests.uiValidation`. He files findings through the caller and **fixes nothing**. **Reachable only through [`hatsu:black-voice`](../claude/skills/black-voice/SKILL.md)** — never automatic, never from a composite. He is **not** offensive QA | **Ratified** on the ruling of 2026-09-19 below; **definition landed at `v0.42.0`** |
+| **Leorio** | `claude/agents/leorio.md` | **Economics review — and economics only, advisory.** The `economics` scope of `hanten`, raised **only** when a change may move money: what the product's users pay, or what the maintainer pays in resources, usage and billing to keep the product and its associated services active — by the billing/pricing/plan/entitlement/purchase/quota/infra paths, or by content (a model/effort pin, a tier map, a review budget, a cap/poll/retry number, a schedule, a price or quota constant, a paid host, API, SDK or runner class). He cites `ECON-1`–`ECON-8` from [`docs/ECONOMICS.md`](ECONOMICS.md), resolved and never remembered, and returns a **charted report** — delta table, Mermaid charts each with its data table, the case for landing *and* against, the thresholds that flip the call, unestimated items, method — for the maintainer to decide informed. **A cost is never a finding**; a finding exists only where the decision cannot be informed (`ECON-4` unbounded, `ECON-5` money wrong, `ECON-7` undisclosed, `ECON-8` no method). He never rejects, recommends, votes or estimates from live billing data. | **Ratified** on the ruling of 2026-09-30 below; **definition landing at `v0.67.0`** |
 
 ### ⚠️ Gon's delegation grammar is a DRAFT — **until it is ratified, Gon crosses no gate**
 
@@ -158,7 +160,8 @@ Model choice is by **tier**, from [`../nen/workflow.json`](../nen/workflow.json)
 - The pins are frontmatter in the definitions: **Gon** and **Phinks** `model: opus` / `effort: high`;
   **Hisoka** `model: sonnet` / `effort: high`; **Uvogin** `model: sonnet` / `effort: medium`;
   **Netero** `model: sonnet` / `effort: medium` (the `fast` tier, ruling of 2026-09-19 below);
-  **Illumi** `model: haiku` (`models.roles.watcher`, the `economy` tier). **Kurapika
+  **Leorio** `model: opus` / `effort: high` (the `reviewer` role's `deep` tier, ruling of 2026-09-30
+  below); **Illumi** `model: haiku` (`models.roles.watcher`, the `economy` tier). **Kurapika
   carries neither** — he is the main session and inherits whatever the maintainer is running.
 - **Six roles map to the four tiers** (`models.roles`): `reviewer` deep, `worker` and `measurer` fast,
   `orchestrator` frontier, and from zheref/hatsu#93 **`watcher`** and **`formatter`** on `economy`:
@@ -888,6 +891,38 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   (`UX-{n}`), `handbooks/uzf-core.md` (`UZF-26`). That repository is **frozen**; read it at its snapshot tag,
   never at `main`, and never write to it.
 
+
+## Rulings of 2026-09-30 — Leorio, the economics reviewer
+
+**The maintainer's request, verbatim** (the ruling; typos preserved):
+
+> We need to add a Handen reviewer that works ONLY when there are changes in code that may affect
+> billing within the product, or any product-specific or process-specific change that may render a
+> resouces, consumption or financial difference upon landing the changes. Leorio will NOT reject, but
+> have a piece of report delivered specifically on that regard, hightlighting any potential (or sure)
+> key differences in terms of economics for the product users, or of the maintainer resources, usage
+> and billing of available services and assets which keep the product business active and the
+> associated products: So, the maintainer may make INFORMED decisions around any number tides or
+> patterns changes. A detailed report will focus in illustrating with charts the potential
+> differences, why he should still go with them, as well as why he shouldn't.
+
+("Handen" is `hanten`.) **Leorio is a Hunter, not a Troupe member** — the aspiring doctor who is candid
+about money — and he joins the independents as a `hanten` reviewer, **ratified** on this ruling,
+definition at `v0.67.0`. What the ruling settles:
+
+| Ruling | What it says |
+|---|---|
+| **A new scope, `economics`, persona `leorio`** | `nen/workflow.json` → `review.scopes.economics`: `tier: deep`, `budget: 1` per effort (a branch plus its PR), a `$comment` citing this ruling. Its paths are Hatsu's own machinery paths plus the generic product globs — `.github/workflows/**`, `templates/*.yml`, `**/*billing*`, `**/*pricing*`, `**/*price*`, `**/*subscription*`, `**/*paywall*`, `**/*entitlement*`, `**/*purchase*`, `**/*payment*`, `**/*invoice*`, `**/*quota*`, `**/*.storekit`, `**/*.tf` — and **a consumer declares its own** |
+| **Raised by content too — and ONLY by path or content** | `hanten` § 2 raises `economics` beside the totality and workflow rows when a diff changes a `model:`/`effort:` pin, a `models`/`roles` tier map, a review `budget`, a cap/limit/poll/retry/timeout number, a cron or schedule, a price, plan, trial or quota constant, or adds a paid host, API, SDK or runner class — even when no path did. *"ONLY when"* means never on every diff |
+| **Leorio never rejects** | An economic delta is **not a finding** — a change that costs more is report content. A finding exists only where the maintainer cannot decide informed: an unbounded consumption (`ECON-4`), money granted or charged wrongly (`ECON-5`), an undisclosed user-facing economic change (`ECON-7`), a number with no method (`ECON-8`). No recommendation, no verdict, no vote |
+| **The rules are canon** | `ECON-1`–`ECON-8` live in [`docs/ECONOMICS.md`](ECONOMICS.md) — price and plan surface, metered consumption per user action, maintainer run cost, bounded, revenue integrity, provider and store terms, disclosure, method — resolved from `$hatsu_root/docs/ECONOMICS.md` and never remembered; the reviewer preamble § 3 admits the `ECON-` prefix from that path, Hatsu's own canon and no bankai handbook |
+| **The report, and where it goes** | Leorio **returns** it in his reply as one Markdown block (a reviewer stands in a disposable checkout and writes no file); `hanten` writes it verbatim to `<reports.dir>/hanten/<branch-slug>.economics.md` and records the path in the findings document's `reports[]`. Sections in order: summary and who is affected · delta table (dimension · ECON id · who pays · before · after · delta · confidence) · Mermaid `xychart-beta` charts, **every chart immediately followed by its data table** · case for landing · case against · what would flip the call · unestimated · method. It reaches the PR body as the optional `## Economics` section of `templates/pr-body.md`, present only when Leorio ran |
+| **Closing line** | `Leorio-Ledger: no delta ⚪ \| delta charted 📊 \| unread ⚠️` — `delta charted` is a difference for the maintainer to weigh, **not a rejection**; `unread` enumerates what could not be checked and is never clean |
+| **Pins** | `model: opus` / `effort: high` / `color: green`, the `reviewer` role on the `deep` tier; tools as Feitan's. Header line `💴 **Leorio · economics**` |
+| **What he never does** | never estimates from a live account's billing data, never calls a paid API to measure — synthetic runs or published price sheets only, each fetched page cited with its URL and date; never re-runs for a friendlier number |
+| **Plugin and ledger** | `0.66.0` → `0.67.0`; the cycle ledger hydrates an **absent** `leorio` row at `used: 0` (`hydratedAs: persona-added-after-ledger-opened`) because he could not have run before he existed — a **present but malformed** row still refuses, and every other persona's missing row still refuses |
+
+---
 
 ## Rulings of 2026-09-29 — the reviewer fallback chain, no prompt off the trunk, the merge is the run's
 

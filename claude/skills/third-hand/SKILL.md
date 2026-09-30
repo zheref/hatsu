@@ -191,7 +191,7 @@ Every class in Netero's observation table is in play, including ones the maintai
 Sanitize. No credentials, no private logs, no personal-device identifiers, no unrelated consumer
 data. Do not invent a finding from another sitting. Do not file a UI finding as the chairman's
 (Hisoka), a security finding (Feitan), architecture (Chrollo), a number-without-method-block
-(Uvogin), or a long-watch provision (Illumi) — note it in one line and skip.
+(Uvogin), an economic delta (Leorio), or a long-watch provision (Illumi) — note it in one line and skip.
 
 ---
 

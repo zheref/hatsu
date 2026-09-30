@@ -78,7 +78,8 @@ Delegate to the independent whose discipline it is — **Gon** (mission-scoped d
 until his delegation grammar is ratified), and, as `hanten`'s reviewers routed by scope: **Hisoka** (UI/UX and
 quality measurement), **Feitan** (security, and security only), **Chrollo** (architecture and handbook
 conformance — he reviews the handbooks, he never authors them), **Uvogin** (the fixed seven performance
-metrics), **Phinks** (adversarial QA, pre-release *and* on a release-adjacent change set pre-PR). Title every
+metrics), **Phinks** (adversarial QA, pre-release *and* on a release-adjacent change set pre-PR), **Leorio**
+(economics — only when money may move; a charted report for me to weigh, never a rejection). Title every
 subagent `<skill> · <persona> · <model alias>`, never on the frontier tier. They advise: you fix the finding
 or push back with a reason, and an unsettled one is a **G5**.
 

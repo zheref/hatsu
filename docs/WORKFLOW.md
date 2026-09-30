@@ -402,9 +402,11 @@ One row per scope:
 | `paths` | prefixes or globs in `nen report data`'s tier-table grammar. **One path may raise several scopes**, and a path no row claims is reported as `unclaimed` |
 
 **`code`'s `paths` is `**`, deliberately: it claims every path**, so Nobunaga is the default reviewer
-on every change set and no diff is reviewed by nobody. The other six are raised by their own paths —
-`security` (Feitan), `architecture` (Chrollo), `ui` (Hisoka), `performance` (Uvogin), `surfaces` (Phinks)
-and `release` (Phinks).
+on every change set and no diff is reviewed by nobody. The other seven are raised by their own paths —
+`security` (Feitan), `architecture` (Chrollo), `ui` (Hisoka), `performance` (Uvogin), `surfaces` (Phinks),
+`release` (Phinks) and `economics` (Leorio, **also raised by content** — a model/effort pin, a tier map, a
+review budget, a cap/poll/retry number, a schedule, a price or quota constant, a paid host or runner
+class; [`ECONOMICS.md`](ECONOMICS.md) § 1 — and never on every diff).
 
 **One tier is swapped rather than read.** `nen repo classify` answers `kind`; a **`process`** or
 **`library`** repository takes the declared `review.scopes.code.tier` (`deep`), and a **`product`** one
@@ -616,7 +618,8 @@ six months. On Cursor the tiers are Cursor-native only — provider models there
   afterwards: what ran, as whom, on what.
 
 The persona pins that follow from `roles` are frontmatter in the agent definitions themselves: **Gon** and
-**Phinks** `model: opus` / `effort: high`; **Hisoka** `model: sonnet` / `effort: high`; **Uvogin** and
+**Phinks** `model: opus` / `effort: high`; **Leorio** `model: opus` / `effort: high` (ruling of 2026-09-30);
+**Hisoka** `model: sonnet` / `effort: high`; **Uvogin** and
 **Netero** `model: sonnet` / `effort: medium`; **Illumi** `model: haiku`. **Kurapika carries neither** — he
 is the main session and inherits whatever the maintainer is running.
 
@@ -1108,10 +1111,13 @@ ask and most expensive to skip.
 is a second source that drifts the moment a scope is added, which is what happened: this section
 carried five reviewers and a four-field shape long after there were six of each.
 
-**What is worth saying once, in prose: there are seven scopes, and one of them claims every path.**
+**What is worth saying once, in prose: there are eight scopes, and one of them claims every path.**
 `code` is **Nobunaga's** and its `paths` is `**`, so he is the default reviewer on every change set;
 `security` is **Feitan's**, `architecture` **Chrollo's**, `ui` **Hisoka's**, `performance`
-**Uvogin's** and `release` **Phinks'**, each raised only by the paths its own row declares. Every row
+**Uvogin's**, `surfaces` and `release` **Phinks'**, each raised only by the paths its own row declares;
+`economics` is **Leorio's**, raised by its paths *or* by content ([`ECONOMICS.md`](ECONOMICS.md) § 1) and
+never on every diff — and his return is a **report** the maintainer weighs, not a verdict: a cost is never
+a finding, and hanten writes the report to `<reports.dir>/hanten/<branch-slug>.economics.md`. Every row
 carries its `persona`, its `tier` (`models.<surface>.<tier>` of § 2, never the frontier one) and its
 `budget` — the reviews that scope gets per effort (a branch plus its PR; never per session), counted in
 `.nen/hanten/<branch-slug>[-pr<N>].cycle.json` and never in prose. **Reviewers advise; Kurapika acts** — he

@@ -184,7 +184,7 @@
     "$comment": "A tier is named, never a model version — a pinned version is a pin that rots. The orchestrator tier is the main session's; a SUBAGENT never runs on it, because the frontier tier is where the human's own conversation lives and a delegate that outranks its caller has inverted the delegation."
   },
   "review": {
-    "$comment": "Maintainer's rulings of 2026-09-09 (Feitan, Chrollo), 2026-09-19 (Nobunaga, Shalnark) -- zheref/hatsu#89. nen review scopes --base <ref> (v0.12.0) classifies the branch diff by these rows: a path may raise several scopes, and each raised scope is reviewed by its persona under hanten, within budget (reviews per EFFORT -- one branch, one PR -- never per session or repository; a new PR starts every scope full, maintainer's ruling of 2026-09-28). code is Nobunaga's and claims every path, so he is the default reviewer everywhere; tier is read against models.<surface>.<tier>, and Nobunaga's tier depends on nen repo classify's kind (deep on a process repository, fast on a product one). Paths are prefixes or globs in nen report data's tier-table grammar.",
+    "$comment": "Maintainer's rulings of 2026-09-09 (Feitan, Chrollo), 2026-09-19 (Nobunaga, Shalnark), 2026-09-30 (Leorio) -- zheref/hatsu#89. nen review scopes --base <ref> (v0.12.0) classifies the branch diff by these rows: a path may raise several scopes, and each raised scope is reviewed by its persona under hanten, within budget (reviews per EFFORT -- one branch, one PR -- never per session or repository; a new PR starts every scope full, maintainer's ruling of 2026-09-28). code is Nobunaga's and claims every path, so he is the default reviewer everywhere; tier is read against models.<surface>.<tier>, and Nobunaga's tier depends on nen repo classify's kind (deep on a process repository, fast on a product one). Paths are prefixes or globs in nen report data's tier-table grammar.",
     "scopes": {
       "code": {
         "persona": "nobunaga",
@@ -262,6 +262,28 @@
           "surfaces/**"
         ],
         "$comment": "generated-surface integrity (zheref/hatsu#73): the two guards run first -- scripts/surface_link_check.sh and scripts/surface_mirror_check.sh -- and Phinks reads what they cannot (a link at the wrong depth, a stamp, a hook root, an invocation prefix). One persona, one budget: a diff raising release and surfaces together is one Phinks raise carrying both scopes. Totality is content, not path: hanten § 2 raises it on the architecture scope."
+      },
+      "economics": {
+        "persona": "leorio",
+        "tier": "deep",
+        "budget": 1,
+        "paths": [
+          ".github/workflows/**",
+          "templates/*.yml",
+          "**/*billing*",
+          "**/*pricing*",
+          "**/*price*",
+          "**/*subscription*",
+          "**/*paywall*",
+          "**/*entitlement*",
+          "**/*purchase*",
+          "**/*payment*",
+          "**/*invoice*",
+          "**/*quota*",
+          "**/*.storekit",
+          "**/*.tf"
+        ],
+        "$comment": "Maintainer's ruling of 2026-09-30 (Leorio): advisory economics -- billing, consumption and run-cost differences charted for the maintainer's informed decision; he never rejects. Paths are Hatsu's own plus the generic product globs (a consumer declares its own). Content raises this scope too even when no path did (hanten section 2): a model/effort pin, a models/roles tier map, a review budget, a cap/limit/poll/retry/timeout number, a schedule, a price/plan/trial/quota constant, or a newly paid host, API, SDK or runner class. Rules are ECON-1..ECON-8 in docs/ECONOMICS.md."
       },
       "release": {
         "persona": "phinks",

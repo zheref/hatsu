@@ -46,8 +46,15 @@ DEFAULT_MAXIMA = {
     "phinks": 1,
     "hisoka": 2,
     "uvogin": 3,
+    "leorio": 1,
 }
 PERSONAS = tuple(DEFAULT_MAXIMA)
+# Personas ADDED after the ledger contract shipped. A ledger opened before such
+# a persona existed has no row for him, and he could not have run in it, so an
+# ABSENT row is hydrated at used 0 (marked hydratedAs). A row that is PRESENT
+# but malformed still refuses, and every other persona's missing row still
+# refuses: counts are never minted for someone who could have run.
+LATE_PERSONAS = frozenset({"leorio"})
 # Filled per invocation from the target's nen/workflow.json (see budgets()).
 MAXIMA = dict(DEFAULT_MAXIMA)
 BUDGET_SOURCE = {p: "default" for p in PERSONAS}
@@ -208,6 +215,8 @@ def _hydrate(doc: dict, path: Path, branch: str, pr: str | None = None) -> dict:
         refuse(f"hanten_cycle_ledger: {path} has no reviewer count map; restore the original ledger")
     for p in PERSONAS:
         row = reviewers.get(p)
+        if p not in reviewers and p in LATE_PERSONAS:
+            row = reviewers[p] = {"used": 0, "invocations": [], "hydratedAs": "persona-added-after-ledger-opened"}
         if (not isinstance(row, dict) or type(row.get("used")) is not int
                 or row["used"] < 0 or not isinstance(row.get("invocations"), list)):
             refuse(f"hanten_cycle_ledger: {path} has no valid {p} review history; restore it without resetting used counts")
@@ -461,7 +470,7 @@ def self_test() -> int:
 
         # Entry 2: Chrollo/Feitan/Phinks exhausted; Nobunaga, Hisoka and Uvogin still raise.
         d2 = decide(doc2, all_reviewers)
-        check("entry-2-chrollo-exhausted", d2["skippedExhausted"] == ["feitan", "chrollo", "phinks"], str(d2["skippedExhausted"]))
+        check("entry-2-chrollo-exhausted", d2["skippedExhausted"] == ["feitan", "chrollo", "phinks", "leorio"], str(d2["skippedExhausted"]))
         check("entry-2-nobunaga-hisoka-uvogin-raise", d2["raise"] == ["nobunaga", "hisoka", "uvogin"], str(d2["raise"]))
         record(doc2, "feitan", "skipped-exhausted")
         record(doc2, "nobunaga", "ran")
@@ -497,7 +506,8 @@ def self_test() -> int:
             and doc4["reviewers"]["chrollo"]["used"] == 1
             and doc4["reviewers"]["phinks"]["used"] == 1
             and doc4["reviewers"]["hisoka"]["used"] == 2
-            and doc4["reviewers"]["uvogin"]["used"] == 3,
+            and doc4["reviewers"]["uvogin"]["used"] == 3
+            and doc4["reviewers"]["leorio"]["used"] == 1,
             json.dumps({p: doc4["reviewers"][p]["used"] for p in PERSONAS}),
         )
 
@@ -591,6 +601,44 @@ def self_test() -> int:
         check("workflow-budget-drives-decide", d_wf["raise"] == ["nobunaga"] and d_wf["skippedExhausted"] == ["feitan"] and wf_doc["reviewers"]["nobunaga"]["max"] == 5, str(d_wf["raise"]))
         wf.unlink()
         budgets(repo)
+
+        # Late persona (leorio): an old ledger with no leorio row loads, hydrated at used 0.
+        old_branch = "grok/kurapika/old-ledger"
+        with LedgerLock(repo, old_branch):
+            old = init(repo, old_branch)
+        del old["reviewers"]["leorio"]
+        save(repo, old)
+        with LedgerLock(repo, old_branch):
+            hydrated = load(repo, old_branch)
+        lrow = hydrated["reviewers"]["leorio"]
+        check("old-ledger-without-leorio-loads-hydrated",
+              lrow["used"] == 0 and lrow["invocations"] == [] and lrow["max"] == MAXIMA["leorio"]
+              and lrow.get("hydratedAs") == "persona-added-after-ledger-opened", json.dumps(lrow))
+        check("hydrated-leorio-raises", decide(hydrated, ["leorio"])["raise"] == ["leorio"])
+        # Present-but-malformed leorio row refuses.
+        old["reviewers"]["leorio"] = {"used": "one", "invocations": []}
+        save(repo, old)
+        try:
+            load(repo, old_branch)
+            check("malformed-leorio-row-refused", False, "load succeeded")
+        except SystemExit as e:
+            check("malformed-leorio-row-refused", e.code == 2, str(e))
+        old["reviewers"]["leorio"] = {"used": 1, "invocations": []}
+        save(repo, old)
+        try:
+            load(repo, old_branch)
+            check("inconsistent-leorio-row-refused", False, "load succeeded")
+        except SystemExit as e:
+            check("inconsistent-leorio-row-refused", e.code == 2, str(e))
+        # A missing row for a NON-late persona still refuses.
+        old["reviewers"] = empty_reviewers()
+        del old["reviewers"]["feitan"]
+        save(repo, old)
+        try:
+            load(repo, old_branch)
+            check("missing-feitan-row-still-refused", False, "load succeeded")
+        except SystemExit as e:
+            check("missing-feitan-row-still-refused", e.code == 2, str(e))
 
         # Concurrent RMW: exclusive lock so both records land.
         conc_branch = "grok/kurapika/concurrent"

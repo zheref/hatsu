@@ -64,7 +64,7 @@ fi
 #                       pinned to the wrong slot with no error anywhere else.
 #   claude/*          — everything plugin.json points at: `agents` (kurapika,
 #                       gon, hisoka, phinks, uvogin, and — from Hatsu 0.5.0 —
-#                       feitan, chrollo, illumi; from Hatsu 0.25.0, netero), `commands` (/kurapika), and
+#                       feitan, chrollo, illumi; from Hatsu 0.25.0, netero; from 0.67.0, leorio), `commands` (/kurapika), and
 #                       `skills` (forty-seven skill directories, `ten` among
 #                       them — 35 until Hatsu 0.6.0 added susanoo, kagutsuchi
 #                       and mugetsu, 38 until 0.24.0 added byakugan, 39 until

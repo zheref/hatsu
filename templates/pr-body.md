@@ -65,6 +65,16 @@
      table; an update after review re-renders this whole section. Checked before every write by
      "$hatsu_root/scripts/pr_body_evidence_check.sh" --body <file>. -->
 
+## Economics
+
+<!-- OPTIONAL — present ONLY when hanten raised Leorio (the `economics` scope) on this effort; omit the
+     heading entirely otherwise. The content is PASTED VERBATIM from the report file hanten wrote,
+     `<reports.dir>/hanten/<branch-slug>.economics.md` (docs/ECONOMICS.md § 4): summary and who is
+     affected, the delta table, every Mermaid chart with its data table, the case for landing and the
+     case against, what would flip the call, unestimated, method. Never paraphrased, never trimmed to
+     one side, and it carries no recommendation, verdict or vote — the decision is the maintainer's at
+     the gate. -->
+
 ## Completion checklist
 
 <!-- One box per condition this PR claims to have met, EACH WITH THE EVIDENCE THAT SETTLES IT ON THE
@@ -74,6 +84,7 @@
 - [x] Required tests — kotoamatsukami: `<N> passed / 0 failed` / `not applicable — no impacted suites` / seat quoted; never tick "green" when nothing ran
 - [x] Touched-file coverage — byakugan against `coverage.minimum` (not a hardcoded 80): lowest touched file `<n>%` / `not measurable here` with the reason
 - [x] Adversarial review settled — <reviewer> · <persona>, <n> findings, all disposed (hanten)
+- [x] Economics report — `## Economics` pasted from `<reports.dir>/hanten/<branch-slug>.economics.md` / `n/a — the economics scope was not raised`
 - [x] `## What this changes for you` and `## How to verify` present — `nen pr body-check`, 3/3
 - [x] Final `## Agent attribution` present — `nen pr body-check`, 4/4
 - [x] changelog fragment — `nen changelog fragment-required`: <verdict>
