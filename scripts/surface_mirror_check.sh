@@ -25,10 +25,13 @@
 # Runs `nen surface mirror check` for every surface in SURFACES with whichever
 # `nen` is on PATH. That verb REGENERATES IN MEMORY and diffs; it writes
 # nothing at all, so this script is safe to run anywhere, including on a dirty
-# tree.
+# tree. A surface that drifts at its current hooks root is checked once more at
+# its NEXT root (hooks_root_next_for, below) while a root change lands in two
+# steps; a match there passes and says so, and nothing else changes.
 #
 # EXIT CODES — and the one that matters most is 2.
-#   0  every mirror is byte-identical to a fresh generation
+#   0  every mirror is byte-identical to a fresh generation (at its current root,
+#      or at its next root, which is said on its own line)
 #   1  drift, in nen's own drift classes: missing / extra / stale / hand-edited
 #   2  the `nen` on PATH HAS NO `surface` VERB — said in those words; also the
 #      wiring errors (a root that is not a Hatsu checkout, a refusal from the
@@ -90,6 +93,36 @@ hooks_root_for() {
     codex) printf %s '${HATSU_PLUGIN_ROOT:-./.codex}' ;;
     cursor) printf %s '${HATSU_PLUGIN_ROOT:-./.cursor}' ;;
   esac
+}
+# THE NEXT ROOT, accepted beside the current one while a root change lands in two steps
+# (docs/GATE-CONFIGURATION.md, 2026-09-20: the trusted copy judges the PR). surface-mirror-check
+# runs THIS file from `main` under pull_request_target, so a PR that regenerates a mirror at a new
+# root reads `hand-edited` until main's copy knows that root. Step one (this) accepts both; step two
+# (zheref/hatsu#151: the Codex plugin's hooks run the installed slot first, CWE-426) moves the
+# current root and deletes this function. A surface with no next root prints nothing.
+hooks_root_next_for() {
+  case "$1" in
+    codex) printf %s '${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}' ;;
+  esac
+}
+# check_one SURFACE ROOT -- one `nen surface mirror check` of SURFACE's committed mirror against a
+# fresh in-memory generation whose hook commands resolve through ROOT. The exit code is nen's:
+# 0 match, 1 drift, anything else a refusal. Reads the caller's $nen and $stamp.
+check_one() {
+  "$nen" surface mirror check \
+    --source "$SOURCE_DIR" \
+    --agents "$AGENTS_DIR" \
+    --surface "$1" \
+    --out "surfaces/$1" \
+    --models "$MODELS_FILE" \
+    --permissions "$PERMISSIONS_FILE" \
+    --hooks "$HOOKS_FILE" \
+    --rules "$RULES_FILE" \
+    --source-surface "$SOURCE_SURFACE" \
+    --hooks-root "$2" \
+    --manifest "$MANIFEST_FILE" \
+    --stamp "$stamp" \
+    --invocation-prefix "$INVOCATION_PREFIX"
 }
 installed_path=""
 
@@ -225,7 +258,7 @@ EOF
     esac
   fi
 
-  local surface code
+  local surface code report next_root next_code next_report accepted_next=""
   for surface in "${SURFACES[@]}"; do
     echo "--- $surface (surfaces/$surface)"
     # `check` writes NOTHING — it regenerates in memory and diffs. Exit 1 is
@@ -237,21 +270,38 @@ EOF
     # false `if` with no `else`, `$?` is the COMPOUND command's status, which is
     # 0 — so the obvious spelling reads every drift as a pass. Under `set -e`
     # the `||` is also what keeps the non-zero from killing the loop.
+    #
+    # Drift at the current root is re-checked at the surface's next root, if it has one: a
+    # mirror that matches there is accepted and said so, and only then is the first run's
+    # report withheld. Anything else prints the first run and keeps its exit code.
     code=0
-    "$nen" surface mirror check \
-      --source "$SOURCE_DIR" \
-      --agents "$AGENTS_DIR" \
-      --surface "$surface" \
-      --out "surfaces/$surface" \
-      --models "$MODELS_FILE" \
-      --permissions "$PERMISSIONS_FILE" \
-      --hooks "$HOOKS_FILE" \
-      --rules "$RULES_FILE" \
-      --source-surface "$SOURCE_SURFACE" \
-      --hooks-root "$(hooks_root_for "$surface")" \
-      --manifest "$MANIFEST_FILE" \
-      --stamp "$stamp" \
-      --invocation-prefix "$INVOCATION_PREFIX" || code=$?
+    report="$(check_one "$surface" "$(hooks_root_for "$surface")" 2>&1)" || code=$?
+    next_root="$(hooks_root_next_for "$surface")"
+    if [ "$code" -eq 1 ] && [ -n "$next_root" ]; then
+      next_code=0
+      next_report="$(check_one "$surface" "$next_root" 2>&1)" || next_code=$?
+      case "$next_code" in
+        0)
+          report="$next_report
+surface-mirror-check: $surface matches a fresh generation at its NEXT hooks root $next_root, accepted while that root lands in two steps (zheref/hatsu#151)."
+          code=0
+          accepted_next="$accepted_next $surface"
+          ;;
+        1)
+          report="$report
+surface-mirror-check: $surface was re-checked at the next hooks root $next_root and drifts there too, so neither root explains it; the report above is the current root's."
+          ;;
+        *)
+          # A refusal is an invocation defect, never drift: it keeps its own exit
+          # code, so the refusal arm below names it.
+          report="$report
+$next_report
+surface-mirror-check: the re-check of $surface at the next hooks root $next_root refused at exit $next_code."
+          code=$next_code
+          ;;
+      esac
+    fi
+    printf '%s\n' "$report"
 
     case "$code" in
       0) ;;
@@ -287,7 +337,7 @@ EOF
     exit 1
   fi
 
-  echo "surface-mirror-check: all mirrors match a fresh generation."
+  echo "surface-mirror-check: all mirrors match a fresh generation${accepted_next:+ (at the next hooks root:$accepted_next)}."
 }
 
 main "$@"
