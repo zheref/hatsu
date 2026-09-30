@@ -64,12 +64,12 @@ fi
 #                       pinned to the wrong slot with no error anywhere else.
 #   claude/*          — everything plugin.json points at: `agents` (kurapika,
 #                       gon, hisoka, phinks, uvogin, and — from Hatsu 0.5.0 —
-#                       feitan, chrollo, illumi; from Hatsu 0.25.0, netero), `commands` (/kurapika), and
+#                       feitan, chrollo, illumi; from Hatsu 0.25.0, netero; from 0.67.0, leorio), `commands` (/kurapika), and
 #                       `skills` (forty-eight skill directories, `ten` among
 #                       them — 35 until Hatsu 0.6.0 added susanoo, kagutsuchi
 #                       and mugetsu, 38 until 0.24.0 added byakugan, 39 until
 #                       0.27.0 added third-hand, 45 until 0.60.0 added limbo,
-#                       46 until 0.66.0 added bakuryuha, 47 until 0.67.0 added
+#                       46 until 0.66.0 added bakuryuha, 47 until 0.68.0 added
 #                       jusshin), plus
 #                       `templates/` where a skill renders from one.
 #   nen/*             — the D10 dependency contract, `nen/contract.json`. Read

@@ -107,6 +107,10 @@ WORKFLOW_PATH = ".github/workflows/pr-readiness.yml"
 # a named limitation, not an oversight, and § 5c of the skill states it.
 REQUIRED_TRIGGERS = ("pull_request_target", "pull_request_review")
 GUARD_PATH = "scripts/workflow_runner_policy_check.rb"
+# The review ledger's persona sets, kept equal to scripts/hanten_cycle_ledger.sh's
+# DEFAULT_MAXIMA keys and LATE_PERSONAS -- the self-test reads that script and fails on drift.
+REVIEW_PERSONAS = ("nobunaga", "feitan", "chrollo", "phinks", "hisoka", "uvogin", "leorio")
+LATE_REVIEW_PERSONAS = ("leorio",)
 
 # States, most-satisfied first. `apply` turns missing/drift into repaired; it
 # never turns routed, staged or blocked into anything, because those are owned
@@ -1418,7 +1422,23 @@ class ReviewLedger(Item):
                             "restore the matching ledger with its used counts; never reset the cycle")
         # Match hanten_cycle_ledger.sh's fixed PERSONAS. Its loader refuses a
         # missing row rather than silently minting a fresh reviewer budget.
-        for persona in ("nobunaga", "feitan", "chrollo", "phinks", "hisoka", "uvogin"):
+        # A persona ADDED after the ledger contract shipped (leorio) has no row in
+        # an older ledger and could not have run there: absent is tolerated (the
+        # loader hydrates it at used 0) ONLY when the ledger never knew him --
+        # neither personasAtOpen nor lateHydrated names him, the loader's _knew();
+        # a malformed stamp reads as knowing him. Present-but-malformed is BLOCKED.
+        late_personas = LATE_REVIEW_PERSONAS
+
+        def knew(persona):
+            for key in ("personasAtOpen", "lateHydrated"):
+                seen = doc.get(key)
+                if seen is not None and (not isinstance(seen, list) or persona in seen):
+                    return True
+            return False
+
+        for persona in REVIEW_PERSONAS:
+            if persona in late_personas and persona not in doc["reviewers"] and not knew(persona):
+                continue
             row = doc["reviewers"].get(persona)
             if (not isinstance(row, dict) or type(row.get("used")) is not int
                     or row["used"] < 0 or not isinstance(row.get("invocations"), list)):
@@ -1881,12 +1901,43 @@ def self_test() -> int:
     ledger = review_repo / ".nen" / "hanten" / "topic-review.cycle.json"
     ledger.parent.mkdir(parents=True)
     full_reviewers = {p: {"used": 0, "invocations": []} for p in
-                      ("nobunaga", "feitan", "chrollo", "phinks", "hisoka", "uvogin")}
+                      ("nobunaga", "feitan", "chrollo", "phinks", "hisoka", "uvogin", "leorio")}
     full_reviewers["nobunaga"] = {"used": 1, "invocations": [{"outcome": "ran"}]}
     ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": full_reviewers}))
     check("a matching ledger is reported without changing used counts",
           ReviewLedger().detect(review_ctx)["state"] == SATISFIED
           and json.loads(ledger.read_text())["reviewers"]["nobunaga"]["used"] == 1)
+    ledger_src = (root / "scripts" / "hanten_cycle_ledger.sh").read_text()
+    maxima_block = re.search(r"DEFAULT_MAXIMA = \{(.*?)\}", ledger_src, re.S)
+    late_block = re.search(r"LATE_PERSONAS = frozenset\(\{(.*?)\}\)", ledger_src, re.S)
+    check("REVIEW_PERSONAS equals hanten_cycle_ledger.sh's DEFAULT_MAXIMA keys, in order",
+          maxima_block is not None
+          and tuple(re.findall(r'"([a-z]+)":', maxima_block.group(1))) == REVIEW_PERSONAS)
+    check("LATE_REVIEW_PERSONAS equals hanten_cycle_ledger.sh's LATE_PERSONAS",
+          late_block is not None
+          and set(re.findall(r'"([a-z]+)"', late_block.group(1))) == set(LATE_REVIEW_PERSONAS))
+    pre_leorio = {k: v for k, v in full_reviewers.items() if k != "leorio"}
+    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": pre_leorio}))
+    check("a ledger opened before leorio existed is not blocked for his absent row",
+          ReviewLedger().detect(review_ctx)["state"] == SATISFIED)
+    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review",
+                                  "personasAtOpen": list(full_reviewers), "reviewers": pre_leorio}))
+    check("a ledger opened after leorio existed is blocked for his lost row",
+          ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
+    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review",
+                                  "lateHydrated": ["leorio"], "reviewers": pre_leorio}))
+    check("a ledger that hydrated leorio once is blocked for his lost row",
+          ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
+    bad_leorio = json.loads(json.dumps(full_reviewers))
+    bad_leorio["leorio"] = {"used": "one", "invocations": []}
+    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": bad_leorio}))
+    check("a present but malformed leorio row is blocked",
+          ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
+    no_feitan = {k: v for k, v in full_reviewers.items() if k != "feitan"}
+    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": no_feitan}))
+    check("a missing row for a non-late persona is still blocked",
+          ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
+    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": full_reviewers}))
     inconsistent_reviewers = json.loads(json.dumps(full_reviewers))
     inconsistent_reviewers["nobunaga"]["used"] = 0
     ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": inconsistent_reviewers}))
