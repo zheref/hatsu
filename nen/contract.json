@@ -98,6 +98,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/hatsu_root.sh, the plugin-root resolver every skill's section 0 runs, following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: throwaway plugin-shaped trees prove that a handed root resolves, that a handed skill directory walks up to its root at one, three and four levels (a symlinked one through its target), that five levels, a look-alike tree naming another plugin and no candidate at all are NOT INSTALLED, that $HATSU_PLUGIN_ROOT wins over the handed path, and that --quoted prints the pasteable literal (zheref/hatsu#105)."
       },
+      "surface-mirror-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/surface_mirror_check.sh, the generated-surface DRIFT guard surface-mirror-check runs from main under pull_request_target, following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: a stub nen answers each check by surface, and it proves a clean tree passes with one check per surface, each handed its own --hooks-root, a drift fails at exit 1 and is never re-checked at another root, a refusal keeps its own exit code and is never read as drift, and a Cursor drift is checked once. The next-root re-check zheref/hatsu#153 added for the Codex root's two-step landing was removed with its cases when zheref/hatsu#151 made that root current (docs/GATE-CONFIGURATION.md, 2026-09-30)."
+      },
       "surface-link-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -166,7 +171,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, root-guard, surface-link-guard, prose-guard, tenkai-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, freshness-guard, fresh-worktree-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, root-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, freshness-guard, fresh-worktree-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/spiritual-message.html, which is a report template, not an application."
@@ -230,6 +235,15 @@
             "scripts/surface_bootstrap_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the surface placement script. Run it as `nen shu test --lane surface-bootstrap-guard --repo <hatsu>` when scripts/surface_bootstrap.sh or its fixture changes; it reads the committed surfaces/ mirrors, so run it after they are regenerated."
+        }
+      },
+      "surface-mirror-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/surface_mirror_check_fixture.sh"
+          ],
+          "$comment": "A permanent, deterministic fixture for the mirror drift guard. Run it as `nen shu test --lane surface-mirror-guard --repo <hatsu>` when scripts/surface_mirror_check.sh or its fixture changes."
         }
       },
       "root-guard": {
@@ -365,7 +379,7 @@
         "darwin",
         "linux"
       ],
-      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/kagutsuchi_worktree.sh --self-test) use a POSIX shell, git and mktemp and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
+      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/kagutsuchi_worktree.sh --self-test) use a POSIX shell, git and mktemp and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
     },
     "targets": {},
     "toolchain": {

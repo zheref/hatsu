@@ -7,7 +7,7 @@
 # WHY IT EXISTS. Hatsu 0.43.0 adds a `paths:` filter to the mirror-drift
 # guard's `pull_request_target` trigger, and the same release stamps
 # `.claude-plugin/plugin.json`'s `version` into EVERY generated mirror marker
-# (`--stamp`, scripts/surface_mirror_check.sh line 173). A `paths:` filter is a
+# (`--stamp`, read by `plugin_stamp` in scripts/surface_mirror_check.sh). A `paths:` filter is a
 # wake condition, and a wake condition that omits an input the guard reads is a
 # guard that does not wake for a change it would have failed. QA-17: assert it
 # against the LIVE workflow definition, conjunct by conjunct, never by eye.

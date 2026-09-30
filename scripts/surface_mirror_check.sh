@@ -93,15 +93,36 @@ MANIFEST_FILE=".claude-plugin/plugin.json"
 # bootstrap that never unset it -- is an untrusted search path once a plugin hook is actually
 # running: honoring it ahead of PLUGIN_ROOT would let that stray value redirect every one of the
 # hook's script references away from the plugin Codex actually installed. So under the Codex plugin,
-# PLUGIN_ROOT wins outright and HATSU_PLUGIN_ROOT is never consulted; the legacy workspace placement
-# (PLUGIN_ROOT unset, no installed plugin in play) falls through to HATSU_PLUGIN_ROOT exactly as
-# before, then to the placed workspace copy (./.codex) as the last fallback -- unchanged order there.
+# PLUGIN_ROOT wins outright and HATSU_PLUGIN_ROOT is never consulted. The legacy workspace placement
+# is a project-local hook, which Codex never hands a PLUGIN_ROOT, so scripts/surface_bootstrap.sh
+# places it rewritten to ${HATSU_PLUGIN_ROOT:-./.codex} and a stray PLUGIN_ROOT cannot redirect it.
+# This root landed in two steps (docs/GATE-CONFIGURATION.md, 2026-09-30): zheref/hatsu#153 taught the
+# trusted copy to accept it beside the old one, and zheref/hatsu#151 made it current.
 hooks_root_for() {
   case "$1" in
     antigravity) printf %s '${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;;
     codex) printf %s '${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}' ;;
     cursor) printf %s '${HATSU_PLUGIN_ROOT:-./.cursor}' ;;
   esac
+}
+# check_one SURFACE ROOT -- one `nen surface mirror check` of SURFACE's committed mirror against a
+# fresh in-memory generation whose hook commands resolve through ROOT. The exit code is nen's:
+# 0 match, 1 drift, anything else a refusal. Reads the caller's $nen and $stamp.
+check_one() {
+  "$nen" surface mirror check \
+    --source "$SOURCE_DIR" \
+    --agents "$AGENTS_DIR" \
+    --surface "$1" \
+    --out "surfaces/$1" \
+    --models "$MODELS_FILE" \
+    --permissions "$PERMISSIONS_FILE" \
+    --hooks "$HOOKS_FILE" \
+    --rules "$RULES_FILE" \
+    --source-surface "$SOURCE_SURFACE" \
+    --hooks-root "$2" \
+    --manifest "$MANIFEST_FILE" \
+    --stamp "$stamp" \
+    --invocation-prefix "$INVOCATION_PREFIX"
 }
 installed_path=""
 
@@ -250,20 +271,7 @@ EOF
     # 0 — so the obvious spelling reads every drift as a pass. Under `set -e`
     # the `||` is also what keeps the non-zero from killing the loop.
     code=0
-    "$nen" surface mirror check \
-      --source "$SOURCE_DIR" \
-      --agents "$AGENTS_DIR" \
-      --surface "$surface" \
-      --out "surfaces/$surface" \
-      --models "$MODELS_FILE" \
-      --permissions "$PERMISSIONS_FILE" \
-      --hooks "$HOOKS_FILE" \
-      --rules "$RULES_FILE" \
-      --source-surface "$SOURCE_SURFACE" \
-      --hooks-root "$(hooks_root_for "$surface")" \
-      --manifest "$MANIFEST_FILE" \
-      --stamp "$stamp" \
-      --invocation-prefix "$INVOCATION_PREFIX" || code=$?
+    check_one "$surface" "$(hooks_root_for "$surface")" || code=$?
 
     case "$code" in
       0) ;;
