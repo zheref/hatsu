@@ -51,9 +51,14 @@ DEFAULT_MAXIMA = {
 PERSONAS = tuple(DEFAULT_MAXIMA)
 # Personas ADDED after the ledger contract shipped. A ledger opened before such
 # a persona existed has no row for him, and he could not have run in it, so an
-# ABSENT row is hydrated at used 0 (marked hydratedAs). A row that is PRESENT
-# but malformed still refuses, and every other persona's missing row still
-# refuses: counts are never minted for someone who could have run.
+# ABSENT row is hydrated at used 0 (marked hydratedAs). That leniency is for a
+# ledger that PROVABLY predates him: init stamps personasAtOpen, and a
+# hydration is recorded in lateHydrated beside the row it wrote, so an absent
+# row in a ledger that names him in either refuses like any other (his row was
+# lost, deleted or re-cased -- Feitan/Phinks/Chrollo, hanten on 265c2533). A
+# row that is PRESENT but malformed still refuses, and every other persona's
+# missing row still refuses: counts are never minted for someone who could
+# have run.
 LATE_PERSONAS = frozenset({"leorio"})
 # Filled per invocation from the target's nen/workflow.json (see budgets()).
 MAXIMA = dict(DEFAULT_MAXIMA)
@@ -198,8 +203,18 @@ def new_doc(branch: str, pr: str | None = None) -> dict:
         "slug": slug(branch, pr),
         "openedAt": now,
         "updatedAt": now,
+        "personasAtOpen": list(PERSONAS),
         "reviewers": empty_reviewers(),
     }
+
+
+def _knew(doc: dict, persona: str) -> bool:
+    """True when this ledger already knew the persona: opened with him, or hydrated him once."""
+    for key in ("personasAtOpen", "lateHydrated"):
+        seen = doc.get(key)
+        if seen is not None and (not isinstance(seen, list) or persona in seen):
+            return True  # a malformed stamp is read as knowing him: fail closed
+    return False
 
 
 def _hydrate(doc: dict, path: Path, branch: str, pr: str | None = None) -> dict:
@@ -215,8 +230,9 @@ def _hydrate(doc: dict, path: Path, branch: str, pr: str | None = None) -> dict:
         refuse(f"hanten_cycle_ledger: {path} has no reviewer count map; restore the original ledger")
     for p in PERSONAS:
         row = reviewers.get(p)
-        if p not in reviewers and p in LATE_PERSONAS:
+        if p not in reviewers and p in LATE_PERSONAS and not _knew(doc, p):
             row = reviewers[p] = {"used": 0, "invocations": [], "hydratedAs": "persona-added-after-ledger-opened"}
+            doc["lateHydrated"] = sorted(set(doc.get("lateHydrated") or []) | {p})
         if (not isinstance(row, dict) or type(row.get("used")) is not int
                 or row["used"] < 0 or not isinstance(row.get("invocations"), list)):
             refuse(f"hanten_cycle_ledger: {path} has no valid {p} review history; restore it without resetting used counts")
@@ -468,7 +484,7 @@ def self_test() -> int:
         except SystemExit as e:
             check("refuse-skipped-exhausted-under-budget", e.code == 2, str(e))
 
-        # Entry 2: Chrollo/Feitan/Phinks exhausted; Nobunaga, Hisoka and Uvogin still raise.
+        # Entry 2: Feitan/Chrollo/Phinks/Leorio exhausted; Nobunaga, Hisoka and Uvogin still raise.
         d2 = decide(doc2, all_reviewers)
         check("entry-2-chrollo-exhausted", d2["skippedExhausted"] == ["feitan", "chrollo", "phinks", "leorio"], str(d2["skippedExhausted"]))
         check("entry-2-nobunaga-hisoka-uvogin-raise", d2["raise"] == ["nobunaga", "hisoka", "uvogin"], str(d2["raise"]))
@@ -607,6 +623,7 @@ def self_test() -> int:
         with LedgerLock(repo, old_branch):
             old = init(repo, old_branch)
         del old["reviewers"]["leorio"]
+        del old["personasAtOpen"]  # the pre-0.67.0 shape: no stamp, no leorio row
         save(repo, old)
         with LedgerLock(repo, old_branch):
             hydrated = load(repo, old_branch)
@@ -615,6 +632,17 @@ def self_test() -> int:
               lrow["used"] == 0 and lrow["invocations"] == [] and lrow["max"] == MAXIMA["leorio"]
               and lrow.get("hydratedAs") == "persona-added-after-ledger-opened", json.dumps(lrow))
         check("hydrated-leorio-raises", decide(hydrated, ["leorio"])["raise"] == ["leorio"])
+        check("hydration-is-on-record", hydrated.get("lateHydrated") == ["leorio"], str(hydrated.get("lateHydrated")))
+        # A ledger that already knew him (stamped at init, or hydrated once) refuses a lost row.
+        for label, doc_edit in (("stamped", {"personasAtOpen": list(PERSONAS)}), ("hydrated-once", {"lateHydrated": ["leorio"]})):
+            knew = json.loads(json.dumps(old)); knew.update(doc_edit)
+            save(repo, knew)
+            try:
+                load(repo, old_branch)
+                check(f"lost-leorio-row-refused-when-{label}", False, "load succeeded")
+            except SystemExit as e:
+                check(f"lost-leorio-row-refused-when-{label}", e.code == 2, str(e))
+        save(repo, old)
         # Present-but-malformed leorio row refuses.
         old["reviewers"]["leorio"] = {"used": "one", "invocations": []}
         save(repo, old)

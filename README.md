@@ -334,7 +334,7 @@ The warm-up refreshes the complete Cursor surface every session:
 | | |
 |---|---|
 | `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **47**, the forty-six plus `ten` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
-| `<repo>/.cursor/agents/<persona>.md` | one markdown subagent file each — **12**, eleven personas plus the preamble include — symlinked from `$HATSU_PLUGIN_ROOT/surfaces/cursor/agents/` |
+| `<repo>/.cursor/agents/<persona>.md` | one markdown subagent file each — **13**, twelve personas plus the preamble include — symlinked from `$HATSU_PLUGIN_ROOT/surfaces/cursor/agents/` |
 
 **Symlinks are honest here, and that is measured rather than assumed.** Four controlled probes on
 `2026.09.08-6caf4ff` found a skill through a symlink **inside** the workspace and through one pointing
@@ -395,7 +395,7 @@ The mirror follows the layout the Antigravity plugins page documents ([`docs/sur
 - `plugin.json` — Antigravity plugin manifest
 - 47 skills (forty-six plus `ten`), each at `skills/<name>/SKILL.md`, invoked as `/<name>`
 - `rules/hatsu.md` — the identity rules file, under Antigravity's 12,000-character limit
-- `agents/<persona>.md` — eleven personas plus the preamble include
+- `agents/<persona>.md` — twelve personas plus the preamble include
 - `hooks.json` — native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) lifecycle hooks
 
 In this mode, no files are written into your target repositories. Open any workspace in Antigravity or use the CLI (`agy`), and run `/kurapika` or `/ten`.
@@ -413,7 +413,7 @@ Open Antigravity in that repository and run `/ten`. The warm-up performs `--inst
 | | |
 |---|---|
 | `<repo>/.agents/skills/<name>/` | **47** mirrored skill directories — the forty-six plus `ten` itself — copied from `surfaces/antigravity/skills/<name>/` |
-| `<repo>/.agents/agents/<persona>.md` | eleven personas plus the preamble include, copied from `surfaces/antigravity/agents/` |
+| `<repo>/.agents/agents/<persona>.md` | twelve personas plus the preamble include, copied from `surfaces/antigravity/agents/` |
 | `<repo>/.agents/rules/hatsu.md` | The identity rules file, under the 12,000-character limit a rules file has |
 | `<repo>/.agents/hooks.json` | Native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) hooks |
 | `<repo>/.agents/hooks/` | Self-contained hook scripts (`guard-base-branch.sh` and `stop-bell.sh`) |
@@ -734,7 +734,7 @@ the PR side that needs them. **Netero landed at `v0.25.0`.**
 | **[Nobunaga](claude/agents/nobunaga.md)** | **Code practices, scope completeness and adversarial reading** — Sasuke's local counterpart: acceptance criteria met against the issue, tests present for changed behaviour, error handling and exit-code discipline, shell quoting and portability, docs and counts current, mirrored copies regenerated, nothing improvised that a Nen verb owns, one holistic pass on a delivery PR. **Two reviews per effort — one PR, never per session**; the default reviewer everywhere. | **Ratified** 2026-09-19; definition at `v0.42.0` |
 | **[Shalnark](claude/agents/shalnark.md)** | **Post-merge UI validation automator, optional** — after a delivery merges, ephemeral automated UI tests against the delivered feature's acceptance criteria (persistent only when the repository declares it), pass / fail / not-testable with evidence. Files findings and fixes nothing. Reachable **only** through `hatsu:black-voice`; never automatic, never from a composite. | **Activated from the bench** 2026-09-19; definition at `v0.42.0` |
 | **[Netero](claude/agents/netero.md)** | **Process chairman** — observes Hunters in execution and files complete, labelled issues when constitution, canon prose, or machinery need enhancement. Routes each finding to Nen or Hatsu with acceptance criteria and cross-references for deployment, fan-out and provisioning. He files; he never implements the filed work. | **Ratified** 2026-09-14; definition at `v0.25.0` |
-| **[Leorio](claude/agents/leorio.md)** | **Economics review, advisory** — raised **only** when a change may move money: what users pay, or what the maintainer pays in resources, usage and billing to keep the product and its services running — by the billing/pricing/plan/entitlement/quota/infra paths, or by content (a model or effort pin, a tier map, a review budget, a cap or poll number, a schedule, a price constant, a paid host or runner class). Cites `ECON-1`–`ECON-8` from [`docs/ECONOMICS.md`](docs/ECONOMICS.md) and returns a **charted report** — delta table, Mermaid charts each with its data table, the case for landing *and* against, the thresholds that flip it — so the maintainer decides informed. **A cost is never a finding**; he never rejects, recommends or votes, and never measures against live billing data. | **Ratified** 2026-09-30; definition at `v0.67.0` |
+| **[Leorio](claude/agents/leorio.md)** | **Economics review, advisory** — raised **only** when a change may move money: what users pay, or what the maintainer pays in resources, usage and billing to keep the product and its services running — by path or by content ([`docs/ECONOMICS.md`](docs/ECONOMICS.md) § 1). Cites `ECON-1`–`ECON-8` from [`docs/ECONOMICS.md`](docs/ECONOMICS.md) and returns a **charted report** — delta table, Mermaid charts each with its data table, the case for landing *and* against, the thresholds that flip it — so the maintainer decides informed. **A cost is never a finding**; he never rejects, recommends or votes, and never measures against live billing data. | **Ratified** 2026-09-30; definition at `v0.67.0` |
 
 > #### ⚠️ Gon's delegation grammar is a DRAFT — until it is ratified, Gon crosses no gate
 >

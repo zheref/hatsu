@@ -556,7 +556,7 @@ do not pick a reviewer by feel — the scope decides:
 | **architecture / handbook conformance** — layering, state ownership, the resolved stack rules, the repo's own architecture notes | **Chrollo** (`chrollo.md`) | deep · high |
 | **performance** | **Uvogin** (`uvogin.md`) | fast · medium |
 | **release-adjacent** — release machinery, build and packaging, a deploy target, a guard that gates one | **Phinks** (`phinks.md`) | deep · high |
-| **economics** — billing, pricing, plans, entitlements, quotas, infra; or by content a model/effort pin, a tier map, a review budget, a cap/poll/retry number, a schedule, a price constant, a paid host or runner class. **Only** then; a charted report (`docs/ECONOMICS.md`), never a rejection | **Leorio** (`leorio.md`) | deep · high |
+| **economics** — a change that may move money, by path or by content (`docs/ECONOMICS.md` § 1). **Only** then; a charted report, never a rejection | **Leorio** (`leorio.md`) | deep · high |
 
 Each is titled **`hanten · <persona> · <model alias>`** — the subagent title rule, so the transcript says what
 ran, as whom, on what — and **never on the frontier tier**. Every reviewer hands back findings in **one fixed

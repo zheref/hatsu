@@ -153,6 +153,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/send_freshness_check.sh, kagutsuchi's freshness gate (zheref/hatsu#146), following this repository's one-lane-per-executable-guard pattern. Its fixtures are hermetic and offline: a bare repository stands in for origin so the fetch is real, and they prove every refusal the gate exists to make -- a dirty tree before the send, an absent, symlinked, out-of-tree or SHA-less nameFrom, a non-hex build SHA, an archive built from a commit that is not HEAD, one at HEAD but behind origin/<base>'s tip, a --base origin does not carry, a two-arg flag given no argument -- plus the fresh case and the exit-3 unverified case where no tags.identity is declared. It sends nothing and tags nothing."
       },
+      "ledger-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/hanten_cycle_ledger.sh, hanten's fail-closed review-budget ledger. It shipped with an embedded --self-test and no lane (Phinks, hanten on 265c2533), so a budget-minting defect could land with nothing routed to catch it. One entry runs both: the late-persona fixture calls the script's --self-test first, then drives the ledgers that already knew a late persona."
+      },
       "fresh-worktree-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -176,7 +181,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, freshness-guard, fresh-worktree-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, freshness-guard, fresh-worktree-guard, ledger-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/spiritual-message.html, which is a report template, not an application."
@@ -356,6 +361,15 @@
             "--self-test"
           ],
           "$comment": "The freshness gate's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Every fixture is removed on every path. Run it as `nen shu test --lane freshness-guard --repo <hatsu>` when scripts/send_freshness_check.sh changes."
+        }
+      },
+      "ledger-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/hanten_cycle_ledger_late_persona_fixture.sh"
+          ],
+          "$comment": "Hermetic and offline: throwaway repositories under a temp dir. The script's own --self-test (budgets from workflow.json, decide/record, recover-first, PR-keyed ledgers, concurrency, late-persona hydration), then a lost, deleted or re-cased late-persona row refused in a ledger that already knew him (personasAtOpen, lateHydrated), with a 0.66.0-shaped ledger still hydrating. Run it as `nen shu test --lane ledger-guard --repo <hatsu>` when scripts/hanten_cycle_ledger.sh changes."
         }
       },
       "fresh-worktree-guard": {

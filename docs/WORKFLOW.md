@@ -404,9 +404,8 @@ One row per scope:
 **`code`'s `paths` is `**`, deliberately: it claims every path**, so Nobunaga is the default reviewer
 on every change set and no diff is reviewed by nobody. The other seven are raised by their own paths —
 `security` (Feitan), `architecture` (Chrollo), `ui` (Hisoka), `performance` (Uvogin), `surfaces` (Phinks),
-`release` (Phinks) and `economics` (Leorio, **also raised by content** — a model/effort pin, a tier map, a
-review budget, a cap/poll/retry number, a schedule, a price or quota constant, a paid host or runner
-class; [`ECONOMICS.md`](ECONOMICS.md) § 1 — and never on every diff).
+`release` (Phinks) and `economics` (Leorio, **by path or by content** — [`ECONOMICS.md`](ECONOMICS.md) § 1
+is the one home of both predicates — and never on every diff).
 
 **One tier is swapped rather than read.** `nen repo classify` answers `kind`; a **`process`** or
 **`library`** repository takes the declared `review.scopes.code.tier` (`deep`), and a **`product`** one
@@ -1117,7 +1116,8 @@ carried five reviewers and a four-field shape long after there were six of each.
 **Uvogin's**, `surfaces` and `release` **Phinks'**, each raised only by the paths its own row declares;
 `economics` is **Leorio's**, raised by its paths *or* by content ([`ECONOMICS.md`](ECONOMICS.md) § 1) and
 never on every diff — and his return is a **report** the maintainer weighs, not a verdict: a cost is never
-a finding, and hanten writes the report to `<reports.dir>/hanten/<branch-slug>.economics.md`. Every row
+a finding, and hanten writes the report keyed per effort, `<reports.dir>/hanten/<branch-slug>[-pr<N>].economics.md`
+([`ECONOMICS.md`](ECONOMICS.md) § 5). Every row
 carries its `persona`, its `tier` (`models.<surface>.<tier>` of § 2, never the frontier one) and its
 `budget` — the reviews that scope gets per effort (a branch plus its PR; never per session), counted in
 `.nen/hanten/<branch-slug>[-pr<N>].cycle.json` and never in prose. **Reviewers advise; Kurapika acts** — he
