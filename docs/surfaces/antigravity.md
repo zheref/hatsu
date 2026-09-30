@@ -66,8 +66,8 @@ transcripts are captured per step in `<appDataDir>/brain/<conversation-id>/.syst
 | what the generator writes | `model` from the persona's own Claude alias read back to its tier (`--source-surface claude`) and mapped to this row's alias (`opus` → `pro`, `sonnet` and `haiku` → `flash`); an alias outside `inherit`, `flash`, `pro` is emitted and named under `undocumentedAliases`; `commandExecutionPolicy` left at the default, because a persona-wide `auto` would approve arbitrary commands rather than the declared set |
 
 `ultra` is a matrix alias the persona key does not admit: the orchestrator tier never runs a subagent. In-session delegation is
-`invoke_subagent` with `Workspace` `inherit`, `branch` (an isolated worktree, Hanten's reviewers) or
-`share`. For `en`'s long watch, `en · illumi` can be raised on the fast tier (`flash`) with `Workspace` `inherit`.
+`invoke_subagent` with `Workspace` `branch` (isolated worktree — mandatory for all autonomous feature authoring, parity implementations, and Hanten reviewers), `inherit` (read-only long watch e.g. `en · illumi`, or in-context reporting e.g. Third-Hand's Netero), or `share`. All Hatsu-specific development efforts on Antigravity run in separate worktrees (`Workspace: "branch"`) unless explicitly instructed otherwise by the maintainer; the core checkout is reserved for the primary IDE and `/amaterasu`.
+
 
 ## 4. Hooks
 
