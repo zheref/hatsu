@@ -73,8 +73,10 @@ second lane is the one that packages. With neither, the lane is the declaration'
 not this skill's) — its absence is the trigger to ask, the declared lanes as the options.
 
 **Composition — who calls it, and what it never calls.** It is called by
-[`hatsu:getsuga`](../getsuga/SKILL.md) (§ 3, to build the release unit before the tag) and by the
-maintainer directly. It calls no other skill. It **never** calls
+[`hatsu:getsuga`](../getsuga/SKILL.md) (§ 3, to build the release unit before the tag), by
+[`hatsu:kagutsuchi`](../kagutsuchi/SKILL.md) § 3b (only when its freshness gate finds the archive
+is not a build of the trunk's tip — in a clean worktree, on the maintainer's own send call, HA#146)
+and by the maintainer directly. It calls no other skill. It **never** calls
 [`hatsu:kagutsuchi`](../kagutsuchi/SKILL.md) or [`hatsu:mugetsu`](../mugetsu/SKILL.md), and nothing
 about a successful archive is authorization for either: a package on disk is a package on disk.
 
@@ -382,8 +384,9 @@ are not one flag apart here.
    the gap where it bit (zheref/hatsu#146: a 95-commit-stale `.ipa` one green `--run` from
    TestFlight) is [`kagutsuchi`](../kagutsuchi/SKILL.md) § 3a — before any send, the build SHA
    § 5a's `nameFrom` records must be the checkout's `HEAD` and the tip of `origin/<branch.base>`,
-   on a clean tree — and [`kamui`](../kamui/SKILL.md), which archives in a fresh worktree at that tip
-   so the property holds by construction. **Existence is still not freshness; the send now checks.**
+   on a clean tree — and kagutsuchi § 3b, which, only when that gate finds the archive stale, runs
+   this skill again in a fresh worktree at that tip so the property holds by construction.
+   **Existence is still not freshness; the send now checks.**
 3. **RETIRED at nen `0.5`: build proof.** A green `nen shu build` writes
    `.nen/proof/<lane>.json` (`nen.shu.proof/v0.1`: `contract`, `lane`, `verb`, `treeHash`, `at`,
    `exitCode`), a red one removes it, and `nen commit check --repo <path> --require-proof <lane>`

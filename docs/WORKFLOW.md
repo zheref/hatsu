@@ -249,12 +249,10 @@ question, not an answered one.
 "deploy": { "defaultTarget": "<a key of project.targets, or null>" }
 ```
 
-**Hatsu's own key, read by [`kagutsuchi`](../claude/skills/kagutsuchi/) § 1 and
-[`kamui`](../claude/skills/kamui/) § 1 and by nothing in nen** (zheref/hatsu#146; the maintainer's
+**Hatsu's own key, read by [`kagutsuchi`](../claude/skills/kagutsuchi/) § 1 and by nothing in nen** (zheref/hatsu#146; the maintainer's
 ruling of 2026-09-29: *"rely on a default value from one of our configuration files … so that it
 doesn't always require destination and it can be easily chained with other skills like futon"*).
-`defaultTarget` names the destination a `hatsu:kagutsuchi` or `hatsu:kamui` invocation typed with **no
-target** sends to — **a typed target always overrides it, the report says which source the target came
+`defaultTarget` names the destination a `hatsu:kagutsuchi` invocation typed with **no target** sends to — **a typed target always overrides it, the report says which source the target came
 from** (`typed` or `workflow.json → deploy.defaultTarget`), and it is honoured **only for a target whose
 `why` reads non-production**: a default naming a store or the live environment is refused, and **G3**
 (`mugetsu`) is unchanged. `nen shu deploy` is unchanged too — the skill always passes `--target`
@@ -875,18 +873,20 @@ Pre-PR, PNGs are embedded as **data URIs** so a report is one self-contained fil
 "fromCore": [ { "path": "Kro/Config.xcconfig", "why": "<why it lives only in the maintainer's checkout>" } ]
 ```
 
-**Hatsu's own block, beside `project.preconditions`, read by [`kamui`](../claude/skills/kamui/) § 3
-through `scripts/kamui_worktree.sh` and by nothing in nen** — nen's loader preserves it (verified at
+**Hatsu's own block, beside `project.preconditions`, read by [`kagutsuchi`](../claude/skills/kagutsuchi/)
+§ 3b through `scripts/kagutsuchi_worktree.sh` and by nothing in nen** — nen's loader preserves it (verified at
 `0.16.0`: `nen schema check` and the `shu` executor both accept a contract carrying it), and **nen still
 asserts the precondition in the worktree exactly as before**; this block only says where the file
 comes from. The maintainer's ruling of 2026-09-29 (zheref/hatsu#146): *"Let's have the composite ALWAYS
 copy own file from core checkout."* Each entry names a **repo-relative, gitignored, untracked** path
 that exists in the core checkout and nowhere in git — the base configuration carrying credentials, a
-local signing note — and kamui copies it **from core into its worktree, before the archive**, listing
-each copied path in the report. The script refuses, before anything moves, an entry that is tracked (it
+local signing note — and kagutsuchi § 3b copies it **from core into its worktree, before the fresh
+archive it runs only when the freshness gate found the last one stale**, listing each copied path. The script refuses, before anything moves, an entry that is tracked (it
 is in every worktree already), not gitignored (the copy would dirty the worktree and refuse the next
 run), absent in core (the maintainer's own machine is where it comes from — **nothing is synthesised**,
-the same rule `project.preconditions` states), a symlink, or a path that leaves the tree. **No block
+the same rule `project.preconditions` states), a symlink, or a path that leaves the tree — and, at the
+trunk's tip, a destination that is tracked, unignored or a symlink (a trunk commit never decides where a
+credential lands). **No block
 copies nothing and says so.** A precondition that FAILs in the worktree on a path that exists gitignored
 in core is the `missing-configuration` ask for a row here — proposed with its `why`, landed through
 that repository's declaration PR at its gate, never written unasked.
@@ -910,25 +910,25 @@ It loops. **It never pushes and never opens a pull request.**
 | [`aka`](../claude/skills/aka/) | lint → squash the unpushed commits → `ao` → re-lint if catch-up moved the tree → push | publishing work is a decision, and a squash is destructive |
 | [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → kokusen checkpoint → `kotoamatsukami` impacted tests → `byakugan` coverage → publish proven updates → evidence → `shibari` opens the PR → landing report → ring, **offer** `en` through the picker and end Mukai. **§ 5 is the full shape** | En runs on the maintainer's answer (or at once under `mukai.autoEn`); pending is En's in-progress state |
 | **merge** | **G2** (`merge`) and **G4** (`canon-merge`) | **the run's own PR, at its terminus, on `branch.base`** — [`en`](../claude/skills/en/) § 5 merges it, at either row ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-29*, ruling 3); [`getsuga`](../claude/skills/getsuga/) § 3a merges **its own release-proposal PR** through `nen pr merge --release-unit`; never another's PR, never past a `gh` refusal |
-| [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always, § 3a's freshness gate refuses a dirty tree or an archive not built from `HEAD` at `origin/<branch.base>`'s tip, and `--run` acts only on a call — the target **typed, or the declared `deploy.defaultTarget`** (§ 2) | the blast radius leaves this machine |
-| [`kamui`](../claude/skills/kamui/) | the same upload, **built first from a clean worktree at the trunk's tip**: one idempotent worktree under core's `.nen/`, the maintainer's own gitignored files copied from core (`project.fromCore`, § 3), `susanoo` then `kagutsuchi` there — on the maintainer's typed `hatsu:kamui [<target>]`, or a futon `then` step on the advance go | it is kagutsuchi's send, with the archive's provenance settled by construction |
+| [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always; § 3a's freshness gate reads the archive's build SHA against `HEAD` and `origin/<branch.base>`'s tip on a clean tree, and **only when it is not the tip's build** § 3b runs `susanoo` first in one idempotent clean worktree under core's `.nen/` (the maintainer's gitignored files copied from core, `project.fromCore`, § 3) and sends from there; `--run` acts only on a call — the target **typed, or the declared `deploy.defaultTarget`** (§ 2) | the blast radius leaves this machine |
 | [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3**: only on a recorded go, with the preflight green and the tag already cut — one target per call; with no target typed, the single declared destination and the latest cut tag with no published release (ruling of 2026-09-28) | the blast radius is other people's users |
 
-**The per-target rule is the whole of the last three rows, and it is not a formality.** A go for one
+**The per-target rule is the whole of the last two rows, and it is not a formality.** A go for one
 destination is a go for *that* destination: `kagutsuchi`'s target is **typed, or the one the maintainer
 declared as `deploy.defaultTarget`** (§ 2; ruling 2026-09-29, zheref/hatsu#146 — before it, required
 grammar with no default) and is still passed to `nen shu deploy --target` explicitly, still
 non-production only; `mugetsu` resolves the single declared one and asks, as free text, only where
 several are declared and none named. A second destination is a second call the maintainer makes.
-None of the three is ever reached from a composite on the composite's authority — not from
+Neither phase is ever reached from a composite on the composite's authority — not from
 [`getsuga`](../claude/skills/getsuga/), not from [`en`](../claude/skills/en/);
-[`futon`](../claude/skills/futon/)'s `then` chain reaches any of them **only on the advance go**, defined
+[`futon`](../claude/skills/futon/)'s `then` chain reaches either **only on the advance go**, defined
 once in [`mugetsu`](../claude/skills/mugetsu/) § 3 and gated by `nen parse futon` on
-`futon.advanceGo`, and `kamui` reaches `kagutsuchi` only as the last step of the maintainer's own typed
-`hatsu:kamui` call — and the release unit both of them send is built by
+`futon.advanceGo` — and the release unit both of them send is built by
 [`susanoo`](../claude/skills/susanoo/), which uploads nothing itself and cuts no tag — where the
 repository declares `tags.identity` it names the identity `kagutsuchi`'s tag will carry, and the commit
-`kagutsuchi` § 3a proves fresh before the send.
+`kagutsuchi` § 3a proves fresh before the send, rebuilding through `susanoo` in a clean worktree when it
+is not (§ 3b, the maintainer's ruling of 2026-09-29: only when the latest build is not up to date with
+the target branch).
 
 **One more thing only the maintainer calls — and it is not one of the five.**
 

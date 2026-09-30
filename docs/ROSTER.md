@@ -898,27 +898,30 @@ so. Another's PR, and a release proposal outside getsuga § 3a, stay the maintai
 (branch protection) stands the PR at the declaration gate. `nen pr merge` merges a release unit only —
 the delivery form is the owned dependency zheref/nen#286.
 
-**Rulings 4–6 (HA-IS-#146, the KroApple `hatsu:ao then /kagu` sitting).** A `hatsu:kagutsuchi testflight`
+**Rulings 4–7 (HA-IS-#146, the KroApple `hatsu:ao then /kagu` sitting).** A `hatsu:kagutsuchi testflight`
 from a fresh worktree found no archive there and one in core — identity `v1.0.0+1251`, built nine days
 earlier from a commit **95 commits behind `origin/main`**, on a dirty tree — and every plan row read `ok`:
-canon protected the tag (cut after the send) and not the send. Three rulings, quoted: **(4)** *"Great to
+canon protected the tag (cut after the send) and not the send. Four rulings, quoted: **(4)** *"Great to
 collapse Step #1 and #2 if fully idempotent."* — **(5)** *"Let's have the composite ALWAYS copy own file
 from core checkout."* — **(6)** *"Let's update kagutsuchi so that it can rely on a default value from
 one of our configuration files (with a default value per stack) so that it doesn't always require
-destination and it can be easily chained with other skills like futon."* So: **a non-production send is
-gated on freshness** — [`kagutsuchi`](../claude/skills/kagutsuchi/SKILL.md) § 3a runs
-`scripts/send_freshness_check.sh` before every `--run`, refusing a dirty tree and an archive whose
-recorded build SHA is not the checkout's `HEAD` at `origin/<branch.base>`'s tip (row `stale-send`,
-autonomous: never a question); **[`kamui`](../claude/skills/kamui/SKILL.md)** is the composite that
-builds and sends from **one idempotent detached worktree** under core's `.nen/`, copying the
-maintainer's own gitignored files **from core only** (`nen/contract.json` → `project.fromCore`, never
-synthesised) before `susanoo` and `kagutsuchi` run there, on the maintainer's typed `hatsu:kamui
-[<target>]` or a futon `then` step on the advance go (`futon.advanceGo` lists it beside `kagutsuchi`);
-and **the target may come from configuration** — `nen/workflow.json` → `deploy.defaultTarget`, honoured
-only where its `why` reads non-production, the report saying `typed` or `workflow.json →
-deploy.defaultTarget`, a typed target always winning. `nen shu deploy` is unchanged and still takes
-`--target` explicitly; the per-stack default in nen's reference pack is nen's to add. The per-target rule
-holds: one call, one target, one send; `mugetsu` at **G3** is untouched.
+destination and it can be easily chained with other skills like futon."* — and, mid-build, on the run's
+first shape (a new composite named `kamui`), **(7)** *"Wait, I never said I wanted this to be called
+"kamui". I'd like to make it so that kagutsuchi by defaults runs susanoo for a fresh build ONLY when
+latest build is not up to date with target branch (usually main). Let's reserve Kamui for another thing
+later on."* So: **a non-production send is gated on freshness** —
+[`kagutsuchi`](../claude/skills/kagutsuchi/SKILL.md) § 3a runs `scripts/send_freshness_check.sh` before
+every `--run`; a dirty tree, a missing archive, or an archive whose recorded build SHA is not the
+checkout's `HEAD` at `origin/<branch.base>`'s tip is **never sent as it stands and never a question**
+(row `stale-send`, autonomous); **only then**, § 3b runs `susanoo` for a fresh build, in **one idempotent
+detached worktree** under core's `.nen/` (`scripts/kagutsuchi_worktree.sh`), copying the maintainer's own
+gitignored files **from core only** (`nen/contract.json` → `project.fromCore`, never synthesised, each
+proven in core and at the tip), then sends from there; a `fresh` gate sends from where it stands. **The
+target may come from configuration** — `nen/workflow.json` → `deploy.defaultTarget`, honoured only where
+its `why` reads non-production, a typed target always winning, the report saying `typed` or
+`workflow.json → deploy.defaultTarget`. `nen shu deploy` is unchanged and still takes `--target`
+explicitly; the per-stack default in nen's reference pack is nen's to add. **No new skill, and `kamui` is
+reserved.** The per-target rule holds: one call, one target, one send; `mugetsu` at **G3** is untouched.
 
 **Ruling 2 (19:50Z).** On HA-PR-#127 standing on #126's branch after #126 merged, the maintainer asked:
 *"Why am I being prompted to manually merge a PR that is not targeted to the main trunk branch? I don't

@@ -298,14 +298,15 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   (`git -C <path> reset --soft HEAD~1`, row `injected-attribution-trailer`) are the raw calls; the commit is
   `nen commit write --message-file`, gated on `nen commit format`.
 - **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`.
-- **`kagutsuchi`.** The freshness gate (§ 3a) is `scripts/send_freshness_check.sh` — a `git fetch`,
-  `rev-parse` and `status --porcelain` over the archive's recorded build SHA — and the default target
-  is a `nen/workflow.json` key nen validates but does not read (`deploy.defaultTarget`); nen's own
-  `shu deploy` still takes `--target` explicitly, and the skill still passes it.
-- **`kamui`.** `git worktree add --detach`, `git checkout --detach`, `git worktree prune`,
-  `git check-ignore` and `cp -p` inside `scripts/kamui_worktree.sh`, because **nen has no worktree
-  verb** (`nen wc worktrees` reads, never writes); core is resolved the way that verb resolves it
-  (`git rev-parse --git-common-dir`) and the verb's own row is what the report quotes.
+- **`kagutsuchi` § 3a.** The freshness gate is `scripts/send_freshness_check.sh` — a `git fetch`,
+  `rev-parse`, `rev-list` and `status --porcelain` over the archive's recorded build SHA — and the
+  default target is a `nen/workflow.json` key nen neither validates nor reads (`deploy.defaultTarget`);
+  nen's own `shu deploy` still takes `--target` explicitly, and the skill still passes it.
+- **`kagutsuchi` § 3b.** `git fetch`, `git worktree list|add --detach|remove --force`, `git checkout
+  --detach`, `git ls-files`, `git check-ignore`, `git status --porcelain`, `mktemp`, `cp -p` and `mv -f`
+  inside `scripts/kagutsuchi_worktree.sh`, because **nen has no worktree verb** (`nen wc worktrees` reads,
+  never writes); core is resolved the way that verb resolves it (`git rev-parse --git-common-dir`) and
+  the report quotes the script's own `core:` line beside the verb's.
 
 **Owned dependencies.** A per-stack `deploy.defaultTarget` in `nen shu detect`'s reference pack, and a
 worktree verb that cuts, moves and prunes one detached worktree at a fixed path, are nen's to add

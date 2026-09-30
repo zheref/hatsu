@@ -148,6 +148,24 @@ self_test_main() {
   st_run 2 "an absent nameFrom is refused: no archive has run here" --repo "$d"
   st_says "no archive" "and says no archive has run"
 
+  d="$(st_copy outside)"; printf 'v1\n%s\n' "$st_sha" >"$st_tmp/outside-identity.txt"
+  printf '{ "branch": { "base": "main" }, "tags": { "identity": { "nameFrom": "../outside-identity.txt" } } }\n' >"$d/nen/workflow.json"
+  st_git -C "$d" commit -q -am outside
+  st_run 2 "a nameFrom resolving outside the repository is refused" --repo "$d"
+  st_says "outside the repository" "and says so"
+
+  d="$(st_copy shortsha)"; printf 'v1.2.3\n%s\n' "$(printf '%s' "$st_sha" | cut -c1-39)" >"$d/dist/identity.txt"
+  st_run 2 "an abbreviated 39-character build SHA is refused" --repo "$d"
+
+  d="$(st_copy unknownsha)"; printf 'v1.2.3\n0123456789abcdef0123456789abcdef01234567\n' >"$d/dist/identity.txt"
+  st_run 2 "a 40-hex build SHA that is no commit here is refused" --repo "$d"
+  st_says "not a commit" "and says so"
+
+  d="$(st_copy badtags)"; printf '{ "branch": { "base": "main" }, "tags": [] }\n' >"$d/nen/workflow.json"
+  st_git -C "$d" commit -q -am badtags
+  st_run 2 "a malformed tags block is refused, never read as absent" --repo "$d"
+  st_says "present but unreadable is not absent" "and says so"
+
   # --- 3. built SHA is not HEAD ------------------------------------------------------------------
   d="$(st_copy behind)"
   printf 'more\n' >>"$d/README"; st_git -C "$d" commit -q -am second
@@ -162,6 +180,7 @@ self_test_main() {
   git -C "$st_tmp/other" push -q origin main
   st_run 2 "an archive at HEAD behind origin/<base>'s tip is refused, both SHAs named" --repo "$d"
   st_says "is not the tip of origin/main" "and says which"
+  st_says "0 ahead, 1 behind" "and counts ahead and behind"
   git -C "$st_tmp/origin.git" update-ref refs/heads/main "$st_sha"
 
   # --- --base overrides branch.base, and a base that does not exist on origin refuses ------------
@@ -214,9 +233,11 @@ git -C "$root" check-ref-format --allow-onelevel "$base" \
 
 # 1. A CLEAN TREE, FIRST. An archive sent from a dirty tree is a binary no commit describes, and the
 #    only refusal that used to catch it fired after the upload.
-if [ -n "$(git -C "$root" status --porcelain)" ]; then
+# CAPTURED, THEN TESTED: a `git status` that FAILS must never read as a clean tree (Nobunaga, 2026-09-30).
+st="$(git -C "$root" status --porcelain)" || { echo "send_freshness_check.sh: git status failed in $root -- refused" >&2; exit 2; }
+if [ -n "$st" ]; then
   echo "send_freshness_check.sh: the working tree is dirty -- refused before the send, not at the tag:" >&2
-  git -C "$root" status --porcelain | sed 's/^/    /' >&2
+  printf '%s\n' "$st" | sed 's/^/    /' >&2
   exit 2
 fi
 head="$(git -C "$root" rev-parse HEAD)" || { echo "send_freshness_check.sh: no HEAD -- refused" >&2; exit 2; }
@@ -238,7 +259,8 @@ case $rc in
     # The fetch still runs so the trunk line is real, and the tree line already held.
     git -C "$root" fetch -q origin "refs/heads/$base:refs/remotes/origin/$base" 2>/dev/null \
       || { echo "send_freshness_check.sh: git fetch origin $base failed -- refused, the trunk's tip is unknown" >&2; exit 2; }
-    tip="$(git -C "$root" rev-parse "refs/remotes/origin/$base")"
+    tip="$(git -C "$root" rev-parse --verify -q "refs/remotes/origin/$base")" \
+      || { echo "send_freshness_check.sh: origin/$base does not resolve after the fetch -- refused" >&2; exit 2; }
     printf 'built:          unrecorded (no tags.identity declared)\n'
     printf 'head:           %s\n' "$head"
     printf 'origin/%s:    %s\n' "$base" "$tip"
@@ -279,8 +301,9 @@ git -C "$root" fetch -q origin "refs/heads/$base:refs/remotes/origin/$base" 2>/d
 tip="$(git -C "$root" rev-parse "refs/remotes/origin/$base")" \
   || { echo "send_freshness_check.sh: origin/$base does not resolve after the fetch -- refused" >&2; exit 2; }
 if [ "$built" != "$tip" ]; then
-  behind="$(git -C "$root" rev-list --count "$built..$tip" 2>/dev/null || echo '?')"
-  echo "send_freshness_check.sh: the archive was built from $built, which is not the tip of origin/$base ($tip; $behind commit(s) behind) -- refused; catch the checkout up, re-run the archive, then send" >&2
+  lr="$(git -C "$root" rev-list --left-right --count "$built...$tip" 2>/dev/null || echo '? ?')"
+  ahead="${lr%%[[:space:]]*}"; behind="${lr##*[[:space:]]}"
+  echo "send_freshness_check.sh: the archive was built from $built, which is not the tip of origin/$base ($tip; the build is $ahead ahead, $behind behind) -- refused; catch the checkout up, re-run the archive, then send" >&2
   exit 2
 fi
 
