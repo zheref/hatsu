@@ -5,7 +5,7 @@ authored for [Claude Code](#on-claude-code), and read on [Codex](#using-hatsu-on
 [Cursor](#using-hatsu-on-cursor) from generated mirrors of the same files.**
 
 One lead persona — **Kurapika**, who names which of six declared work-modes he is holding before he acts —
-plus a small roster of focused independents, and **forty-six skills** that take a backlog, a pull request or
+plus a small roster of focused independents, and **forty-seven skills** that take a backlog, a pull request or
 a release from where it is to the human gate where a person decides. **Every deterministic step that has a
 verb is a verb** from the [**Nen**](https://github.com/zheref/nen) CLI: Nen detects, computes, formats and
 verifies; the skill supplies only the judgment a binary cannot. Where no verb exists yet, the residue is
@@ -36,6 +36,7 @@ No GitHub App. No bot identity. Nothing here casts a review vote, and nothing he
 > generated into Codex and Cursor layouts under [`surfaces/`](surfaces/) — see [*Surfaces*](#surfaces).
 > **`v0.24.0` adds `byakugan`**: coverage capture and measurement, independent of tests; kotoamatsukami is unit, UI and integration suites only; gyo remains lint. The live skill surface is **thirty-nine**.
 > **`v0.27.0` adds `third-hand`**: wrap-up harvest after En. **`v0.28.0`**: it is a separate phase that starts once En has completed, not En step 8. Codex uses `request_user_input` and in-session spawn; Antigravity uses `ask_question` and `invoke_subagent` with `Workspace: inherit`. **`v0.29.0`**: Illumi's En watch uses Codex spawn; generated inventories are 41 skill files and 9 personas. **`v0.30.0`**: Hanten's cycle ledger is fail-closed — Breath `init`s it after the cut; `decide`/`record` refuse a missing file; load-mutate-save is locked. The merge remains G2 with no skill. The live skill surface is **forty**.
+> **`v0.67.0` — `jusshin` raises a consumer's self-hosted runners.** `hatsu:jusshin [for <owner/repo>] [pool <id>] [x <count>] [on <machine-code>]` plans the runner names from the consumer's `nen/workflow.json` → `runners` declaration, renders one host script you consent to once (the UAC prompt and the service-account password on Windows, `sudo` on Linux, Login Items on macOS), verifies the runners online, proves the pool with a preflight job that runs as the service does, and only then switches the pool's jobs on — every deterministic step a `nen runner` verb. The live skill surface is **forty-seven**.
 > **`v0.66.0` — every surface serves Hatsu first-party from your own checkout, and `bakuryuha` switches it.** Claude Code loads the checkout in place as `hatsu@skills-dir`, Codex installs it as its own `hatsu` plugin through `.codex-plugin/plugin.json`, and Antigravity links its global plugin directory to `surfaces/antigravity`. `hatsu:bakuryuha` makes or confirms that install, updates the checkout, re-proves with the new `ten`, reads back what the surface serves, and ends every run with the one thing left to type or open. The live skill surface is **forty-six**.
 > **`v0.64.0` — the send is gated on freshness, and a stale archive is rebuilt before it goes.** `kagutsuchi` runs a freshness gate before every `--run`; a dirty tree, a missing archive, or one not built from `HEAD` at the trunk's tip is never sent — `kagutsuchi` runs `susanoo` for a fresh build first, in one idempotent clean worktree at `origin/<branch.base>` with your gitignored files copied from core (`project.fromCore`), and only then. The target comes from your invocation or from `nen/workflow.json` → `deploy.defaultTarget`. No new skill: the surface stays **forty-five**, and `kamui` is reserved.
 > **`v0.42.0` — the reports and the reviewers carry their weight.** Spiritual Message is rebuilt with the desk above the fold and the delta drawn from a nodes-and-edges document; **Rikugan** (`templates/rikugan.html`) is the desk-and-register page `backlog-board`, `futon`, `backlog-loop` and the dated final report render through `nen report render --variant`; **Nobunaga** joins as the default code reviewer and **Shalnark** as the optional post-merge UI validation automator behind the new `hatsu:black-voice`; every reviewer reads one shared preamble and fits under 6 KB; the ten largest skills fit under 12 KB. The live skill surface is **forty-two**.
@@ -100,7 +101,7 @@ installed copy runs does.)
 > ### ⚠️ Below `2026.01`, `cursor-agent` sees **none** of the skills — and answers anyway
 >
 > A `cursor-agent` that predates skills support takes your prompt, runs your commands and exits `0` with
-> not one of the forty-seven loaded. With the mirror installed exactly as the warm-up mandates,
+> not one of the forty-eight loaded. With the mirror installed exactly as the warm-up mandates,
 > `2025.09.18-39624ef` answered a discovery probe with the whole reply **`NO SKILLS VISIBLE`**, seventeen
 > bytes — and the control that settles it is that the same build cannot see a plain `cp -R` **copy**
 > either: it has no skills mechanism at all, and reached its answer by grepping the working tree.
@@ -255,7 +256,7 @@ That warm-up refreshes the complete surface every session. What it places in **y
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **47**, the forty-six plus `ten` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
+| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **48**, the forty-seven plus `ten` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
 | `<repo>/AGENTS.override.md` | **untracked**, written whole: your own `AGENTS.md` verbatim first, then the personas between a `BEGIN`/`END hatsu personas` marker pair |
 
 **Copies, not symlinks, and the reason is what Codex advertises.** Codex lists a skill under its
@@ -270,7 +271,7 @@ resolving one is an agent answering confidently from the wrong file.
 **What the warm-up refuses**, and these are hard limits rather than preferences:
 
 - **A destination it did not create is left untouched, and named in the report.** A previous Hatsu install
-  is replaced; a **tracked** path is always somebody else's, whatever it looks like. Forty-seven ordinary
+  is replaced; a **tracked** path is always somebody else's, whatever it looks like. Forty-eight ordinary
   words are being claimed at once — `build`, `file`, `en`, `ao`, `ren` — so a collision is not a rare case,
   and the warm-up would rather install thirty-seven and say so than overwrite one file it did not write.
 - **It never writes your `.gitignore`.** Everything it places is excluded through the repository's own
@@ -333,7 +334,7 @@ The warm-up refreshes the complete Cursor surface every session:
 
 | | |
 |---|---|
-| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **47**, the forty-six plus `ten` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
+| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **48**, the forty-seven plus `ten` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
 | `<repo>/.cursor/agents/<persona>.md` | one markdown subagent file each — **12**, eleven personas plus the preamble include — symlinked from `$HATSU_PLUGIN_ROOT/surfaces/cursor/agents/` |
 
 **Symlinks are honest here, and that is measured rather than assumed.** Four controlled probes on
@@ -393,7 +394,7 @@ from the next conversation; `/hatsu:bakuryuha` fast-forwards it and ends with wh
 
 The mirror follows the layout the Antigravity plugins page documents ([`docs/surfaces/antigravity.md`](docs/surfaces/antigravity.md) § 1; the CLI reader is a named gap in its § 10):
 - `plugin.json` — Antigravity plugin manifest
-- 47 skills (forty-six plus `ten`), each at `skills/<name>/SKILL.md`, invoked as `/<name>`
+- 48 skills (forty-seven plus `ten`), each at `skills/<name>/SKILL.md`, invoked as `/<name>`
 - `rules/hatsu.md` — the identity rules file, under Antigravity's 12,000-character limit
 - `agents/<persona>.md` — eleven personas plus the preamble include
 - `hooks.json` — native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) lifecycle hooks
@@ -412,7 +413,7 @@ Open Antigravity in that repository and run `/ten`. The warm-up performs `--inst
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | **47** mirrored skill directories — the forty-six plus `ten` itself — copied from `surfaces/antigravity/skills/<name>/` |
+| `<repo>/.agents/skills/<name>/` | **48** mirrored skill directories — the forty-seven plus `ten` itself — copied from `surfaces/antigravity/skills/<name>/` |
 | `<repo>/.agents/agents/<persona>.md` | eleven personas plus the preamble include, copied from `surfaces/antigravity/agents/` |
 | `<repo>/.agents/rules/hatsu.md` | The identity rules file, under the 12,000-character limit a rules file has |
 | `<repo>/.agents/hooks.json` | Native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) hooks |
@@ -615,7 +616,7 @@ Those are two values and they move independently. Hatsu adopts `nen canon pin` a
 generate|check --surfaces`, introduced in v0.16.0 and executed by `hatsu:limbo`, on top of the futon label
 selector, `then` skill chains and advance-go gate, the `library` kind, `nen release unit-check` and
 `nen pr merge --release-unit` (v0.15.0, fail-closed in v0.15.1); each feature requirement raised the minimum
-even though Nen's compatibility floor remains 0.7. The live skill surface is **forty-six**, forty-seven
+even though Nen's compatibility floor remains 0.7. The live skill surface is **forty-seven**, forty-eight
 directories per surface with `ten`.
 
 **The range is nen's answer, not this README's arithmetic — and not the warm-up's either.** The binary
@@ -788,10 +789,10 @@ later. Adopting another remains a deliberate act with its own decision.
 
 ## The skills
 
-Forty-six, invoked as `hatsu:<name>` (forty-seven directories with `ten`). Longer descriptions in
+Forty-seven, invoked as `hatsu:<name>` (forty-eight directories with `ten`). Longer descriptions in
 [`claude/skills/README.md`](claude/skills/README.md).
 
-### The twenty that answer a request
+### The twenty-one that answer a request
 
 | Skill | |
 |---|---|
@@ -814,6 +815,7 @@ Forty-six, invoked as `hatsu:<name>` (forty-seven directories with `ten`). Longe
 | `sharingan` | Drives one open PR to readiness at its gate and stops there — first blocking condition, threads, wakes. **Renamed from `drive` at `v0.5.0`**; the behaviour is unchanged and `hatsu:drive` no longer resolves. |
 | `tenkai` | **Consumer adoption.** Turns another repository into a Hatsu consumer: the declarations it is missing, the `readiness` workflow, the permission pack and the surface mirrors, each staged as its own PR at that repository's own gate. Read-only until you say apply. |
 | `limbo` | **Consumer canon mirror.** `hatsu:limbo [for <path>] [to <tag>] [as check\|sync]` keeps a consumer's mirror of [`zheref/bankai-handbooks`](https://github.com/zheref/bankai-handbooks) current on every agent surface its `.claude/canon-values.yml` declares (`CON-13`): reads the recorded pin, checks the canon out at that tag, classifies every surface's committed copy (`nen canon mirror check`), regenerates on your answer (`nen canon mirror generate`) and lands the mirror as one PR at that repository's own gate. A pin behind the canon is reported, never moved without your typed `to <tag>`; a hand-edited mirror file stops the run before any write. Never writes canon, never merges. |
+| `jusshin` | **Consumer self-hosted runners.** `hatsu:jusshin [for <owner/repo>] [pool <id>] [x <count>] [on <machine-code>] [--dry-run]` registers one pool the consumer declares in `nen/workflow.json` → `runners` — names `<machine>-<consumer>R<slot>`, labels exactly `self-hosted`, OS, arch — as boot-persistent services under a local service identity, through one host script `nen runner script` renders and you consent to once; verifies them online, proves the pool with a preflight job that runs as the service does (registration is not capability), and only then sets the pool's enable variable with `nen runner enable --after-run <green run>`. Tenkai derives which runner a readiness workflow targets; jusshin provisions. Never elevates itself, never handles a password or token, never merges. |
 | `tensho` | Turns a dirty working copy into one PR, reviewing every file before staging it, then hands that PR to `sharingan`'s engine to reach its gate. |
 
 ### The one that authors the canon
@@ -1021,7 +1023,7 @@ run on each.
 
 **Everything above about the loop, the gates and the roster is true here.** What changes is the spelling,
 where a delegate comes from, who rings the bell, and which aliases the model matrix answers with. Nothing
-in this section is product- or stack-specific: it is the same forty-six skills reading your
+in this section is product- or stack-specific: it is the same forty-seven skills reading your
 repository's own [`nen/contract.json`](nen/contract.json).
 
 ### Invoking a skill
@@ -1316,8 +1318,8 @@ cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
    keep the tail, and a thirty-character description would be worse everywhere and no better here. What
    follows instead is that **on Cursor the skill `name` does almost all of the routing work.**
 2. **The name space is flat, global and shared.** It is not only your repository's `.cursor/skills/`: on
-   this host one listing carried the forty-seven mirrored skills **plus** Cursor's own built-ins **plus**
-   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims forty-seven ordinary
+   this host one listing carried the forty-eight mirrored skills **plus** Cursor's own built-ins **plus**
+   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims forty-eight ordinary
    words at once — `build`, `file`, `en`, `ao`, `ren`, `breath`. **The shadowing itself is inferred, not
    proven, and is written here as such**: two probes tried to confirm it and could not, because the
    descriptions this surface keeps are far too short to tell two rival `build` entries apart. It is a

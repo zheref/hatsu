@@ -328,7 +328,7 @@ doing* (`ROSTER.md` § *Rulings of 2026-09-09*, 1).
 
 ## 7. The skills that carry a `## 0. Standalone entry`
 
-**Twenty-four do**, and they fall into two groups. The split is the useful fact: a reader asking *what
+**Twenty-five do**, and they fall into two groups. The split is the useful fact: a reader asking *what
 will this derive if I type it cold* needs the first table, and a reader asking *does P1 apply* needs
 both.
 
@@ -351,7 +351,7 @@ both.
 | [`murasaki`](../claude/skills/murasaki/SKILL.md) | S1 — the base, hence the catch-up; conflicts classified before one is touched | only a dirty working copy, before git state moves |
 
 
-### 7b · Eleven whose `## 0.` adds P1, orientation and expectations only
+### 7b · Twelve whose `## 0.` adds P1, orientation and expectations only
 
 These inherit no caller state. Their `## 0.` says P1 still applies, states what their run does **not**
 cover, and — for the two the contract used to mis-file — names why.
@@ -369,6 +369,7 @@ cover, and — for the two the contract used to mis-file — names why.
 | [`tenkai`](../claude/skills/tenkai/SKILL.md) | Adoption **is** its wired position — no composite owns it. P1, P2, P4 and P5 run; **P1b and P3 are declined explicitly** (a repository is diagnosed as it stands, so there is no delta and no base to prove), and `(fetched <sha>)` is never asserted. Asks only `--slug` when no `origin` resolves one |
 | [`limbo`](../claude/skills/limbo/SKILL.md) | Typed, or reached from a canon release's fan-out — its wired position. P1 — **required**, since `nen canon pin` and `canon mirror --surfaces` exist only from nen `0.16` — P2 and P5 run; **P3 is declined** (the subject is the checkout's current mirror against the canon at its pin, not a change set); P1b applies to a sync through `breath` and is declined for `as check`. Asks only the surfaces the consumer has not declared, and a pin — **typed** |
 | [`bakuryuha`](../claude/skills/bakuryuha/SKILL.md) | Already total: § 2 reads the surface first match wins (the body's marker, a Codex plugin-cache path, `$CLAUDECODE` with a host install) and **asks** when none holds, cloud session among the options; the install is read from the host. P1 **after** the update, from the new version's `ten` read from disk (§ 5) — the loaded `ten` would prove the pin this run replaces — plus the *before* row printed before anything moves |
+| [`jusshin`](../claude/skills/jusshin/SKILL.md) | Typed — its wired position; no composite provisions runners. P1 — **required**, since the `nen runner` verbs exist only from nen `0.18` — P2 on the **consumer** checkout, P4 and P5 run; **P1b and P3 are declined** (the subject is a host and a declared pool, not a change set). Asks the target, the machine code, the service identity and the runner root **typed**, never picked (`missing-maintainer-choice`); the pool, the count and the consumer code through the picker, derived and starred |
 
 **The skills with no `## 0.` at all** are the composites, the loop engines, and the three read-only
 resolvers § 4 names — `pr-state`, `backlog-state`, `bankai-handbooks` — which reach P1 through

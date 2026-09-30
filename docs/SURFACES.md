@@ -88,7 +88,7 @@ and nen hard-codes no system's vocabulary.
 
 | Path | |
 |---|---|
-| `claude/skills/<name>/SKILL.md` | **authored.** The one source, 47 directories (forty-six plus `ten`) |
+| `claude/skills/<name>/SKILL.md` | **authored.** The one source, 48 directories (forty-seven plus `ten`) |
 | `claude/agents/<persona>.md` | **authored.** The one source, eleven personas plus the preamble include (`_review-preamble.md`, the shared reviewer protocol and not a persona: `agents/_review-preamble.md` on Cursor and Antigravity, a `## _review-preamble` section in Codex's `AGENTS.md`) |
 | `hooks/hooks.json`, `contracts/permissions.json`, `nen/workflow.json` | **authored.** The inputs the generator renders hooks, permissions and model config from |
 | `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `.codex-plugin/plugin.json` | **authored.** The manifests: Claude Code's, the marketplace both Claude Code and Codex read, and the Codex overlay (`skills`, `hooks`, `interface`), held at the Claude manifest's `version` by `scripts/plugin_bump_check.sh` |

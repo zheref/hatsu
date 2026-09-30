@@ -116,6 +116,11 @@ release its channel offers and switching the running surface onto it. It crosses
 repository's history; the one step a surface keeps for a human (`/reload-plugins` on Claude Code) is
 handed over, never performed.
 
+**Nor is [`jusshin`](../claude/skills/jusshin/)** — raising a consumer's self-hosted runners for a pool
+it declares. It crosses no gate itself: the preflight workflow goes out through `mukai` at the
+consumer's gate, and the host acts it needs (the UAC consent and the service-account password, `sudo`,
+a Login Items approval) are handed over, never performed.
+
 **Only a genuine G5 (`CON-47`) interrupts the maintainer, and there are five**: red required tests, touched-
 file coverage under the ladder's `minimum`, a *semantic* merge conflict, an unsettled adversarial finding, and
 a stuck-PR escalation. A stop is `nen stop`'s banner, the report link, options with ⭐ on the recommendation,

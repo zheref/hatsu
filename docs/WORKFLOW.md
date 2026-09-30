@@ -1495,7 +1495,10 @@ consumer inherits the ordering as a sequenced plan rather than as a red check to
 
 **Runner selection is derived per repository** — maintainer's ruling, 2026-09-19 — from visibility
 and registered self-hosted runners, always terminating on a runner that exists. `hatsu:tenkai` § 5b
-is the table; `scripts/tenkai_adopt.sh runner-policy` is the single encoding.
+is the table; `scripts/tenkai_adopt.sh runner-policy` is the single encoding. **Provisioning is
+[`jusshin`](../claude/skills/jusshin/SKILL.md)'s**: it registers the pools a consumer declares in
+`nen/workflow.json` → `runners`, proves each with a preflight job and only then switches its jobs on —
+it never changes what this derivation selects.
 
 **Warm-up verifies adoption; it never performs it.** `ten` § 0a is the split: the `nen`
 dependency gate is per-session, adoption is once. An outstanding adoption item is reported and is
