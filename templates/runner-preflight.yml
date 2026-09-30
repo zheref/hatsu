@@ -24,6 +24,12 @@
 # is not knowable here: a consumer whose policy requires SHA pins re-pins that
 # one line in the pull request that adds the rendering.
 #
+# Its safety properties -- the trigger set, the repository binding, runs-on,
+# the read-only token, the unpersisted credential, the time bound -- are held
+# by scripts/runner_preflight_fixture_check.sh, on this file and on a
+# rendering of it. The body is not byte-identical to nen's own test template:
+# the job never prints an account name or a resolved tool path.
+#
 # runner-preflight -- proves the self-hosted @@POOL_ID@@ pool can RUN a job,
 # not merely that it is registered. Rendered by @@RENDERED_BY@@ for
 # @@REPO_SLUG@@; re-render it rather than editing it.
@@ -93,7 +99,9 @@ jobs:
         run: |
           echo "runner name : ${RUNNER_NAME:-<unset>}"
           echo "runner os   : ${RUNNER_OS:-<unset>}"
-          echo "service acct: ${USERNAME:-${USER:-${LOGNAME:-unknown}}}"
+          # Whether an account is set, never its name: on a public repository
+          # this log is public.
+          if [ -n "${USERNAME:-${USER:-${LOGNAME:-}}}" ]; then echo "service acct: set"; else echo "service acct: unset"; fi
           if [ "${RUNNER_OS:-}" != "$EXPECTED_OS" ]; then
             echo "::error::Preflight landed on '${RUNNER_OS:-<unset>}', not $EXPECTED_OS -- it proves nothing about the @@POOL_ID@@ pool. Check runs-on and that a runner of this pool was free."
             exit 1
@@ -110,14 +118,13 @@ jobs:
           TOOLS: '@@TOOLS@@'
         run: |
           set -uo pipefail
-          acct="${USERNAME:-${USER:-${LOGNAME:-unknown}}}"
           status=0
           for tool in $TOOLS; do
             rc=0
             "$tool" --version || rc=$?
             case "$rc" in
               0) ;;
-              126) echo "::error::'$tool' resolves on the PATH but the runner service account ($acct) cannot EXECUTE it (exit 126). An ACL problem, not a PATH problem: grant Users read-and-execute on the file it resolves to, then restart the runner services."; status=$rc ;;
+              126) echo "::error::'$tool' resolves on the PATH but the runner service account cannot EXECUTE it (exit 126). An ACL problem, not a PATH problem: grant Users read-and-execute on the file it resolves to, then restart the runner services."; status=$rc ;;
               127) echo "::error::'$tool' is not on the runner service's PATH (exit 127). Install it machine-wide, put its directory on the MACHINE PATH, then restart the runner services."; status=$rc ;;
               *) echo "::error::'$tool --version' exited $rc -- found and executed, so neither a PATH (127) nor an ACL (126) problem. Read the output above."; status=$rc ;;
             esac
@@ -126,7 +133,9 @@ jobs:
 
       # A Windows service runs with the MACHINE environment. A tool installed for
       # the maintainer's user resolves in their shell and is invisible here, so
-      # an AppData hit fails the run.
+      # an AppData hit fails the run. Each tool's NAME and verdict are printed,
+      # never the path it resolved to: a path under the Users folder carries an
+      # account name, and on a public repository this log is public.
       - name: Resolution must be machine-wide (Windows)
         if: runner.os == 'Windows'
         shell: bash
@@ -134,24 +143,30 @@ jobs:
           TOOLS: '@@TOOLS@@'
         run: |
           set -uo pipefail
-          resolved="$(where.exe $TOOLS || true)"
-          resolved="${resolved//$'\r'/}"
-          printf '%s\n' "$resolved"
           bad=0
           shopt -s nocasematch
-          while IFS= read -r line; do
-            [ -z "$line" ] && continue
-            norm="${line//\\//}"
-            if [[ "$norm" == */appdata/* ]]; then
-              echo "::error::'$line' resolves under AppData -- a per-user install the runner service cannot rely on. Reinstall it machine-wide and restart the runner services."
+          for tool in $TOOLS; do
+            resolved="$(where.exe "$tool" 2>/dev/null || true)"
+            resolved="${resolved//$'\r'/}"
+            verdict="machine-wide"
+            [ -z "$resolved" ] && verdict="not found"
+            while IFS= read -r line; do
+              [ -z "$line" ] && continue
+              norm="${line//\//}"
+              if [[ "$norm" == */appdata/* ]]; then verdict="per-user (AppData)"; fi
+            done <<< "$resolved"
+            echo "$tool: $verdict"
+            if [ "$verdict" != "machine-wide" ]; then
+              echo "::error::'$tool' is $verdict -- the runner service cannot rely on it. Install it machine-wide and restart the runner services."
               bad=1
             fi
-          done <<< "$resolved"
+          done
           exit "$bad"
 
       # A launchd agent (macOS) or a systemd service (Linux) can see a tool in a
       # user-scope directory, so a hit there is a WARNING, not a failure: it
       # works for this account and would not survive a change of service user.
+      # As on Windows, the verdict is printed and the path is not.
       - name: Resolution outside the home directory (Linux, macOS)
         if: runner.os != 'Windows'
         shell: bash
@@ -161,8 +176,11 @@ jobs:
           set -uo pipefail
           for tool in $TOOLS; do
             path="$(command -v "$tool" || true)"
-            echo "$tool -> ${path:-<not found>}"
             case "$path" in
-              "$HOME"/.local/*|"$HOME"/bin/*) echo "::warning::'$tool' resolves to $path, a user-scope directory. It works for this service user and would not survive another one." ;;
+              "") echo "$tool: not found" ;;
+              "$HOME"/.local/*|"$HOME"/bin/*)
+                echo "$tool: user-scope"
+                echo "::warning::'$tool' resolves in a user-scope directory under the service user's home. It works for this service user and would not survive another one." ;;
+              *) echo "$tool: machine-scope" ;;
             esac
           done

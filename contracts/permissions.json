@@ -45,16 +45,6 @@
       "why": "label sync"
     },
     {
-      "exe": "gh",
-      "args": "variable *",
-      "why": "a pool's enable switch is a repository variable: jusshin reads it back, and nen runner enable sets it only with a green preflight run id"
-    },
-    {
-      "exe": "gh",
-      "args": "workflow run *",
-      "why": "jusshin dispatches a pool's preflight workflow in the consumer; the run it starts is read through gh run and the runners endpoints through gh api, both already allowed above"
-    },
-    {
       "exe": "git",
       "args": "fetch *",
       "why": "the delta is read against the fetched base"
@@ -248,11 +238,6 @@
       "exe": "make",
       "args": "*",
       "why": "a repository's own documented commands"
-    },
-    {
-      "exe": "powershell",
-      "args": "-NoProfile -ExecutionPolicy Bypass -Command \"Start-Process powershell -Verb RunAs *",
-      "why": "the ONE elevation shape: nen runner script --json's launch line for a Windows pool, run by jusshin only when the maintainer has consented to it in advance. It elevates nothing by itself -- Start-Process -Verb RunAs raises the UAC prompt, and accepting it (then typing the service-account password into that window, never into the session) is the maintainer's own act. No row runs config.cmd, config.sh or svc.sh from the session, and sudo stays denied"
     }
   ],
   "deny": [
@@ -305,6 +290,16 @@
       "exe": "gh",
       "args": "release create *",
       "why": "G3 is mugetsu on a recorded go"
+    },
+    {
+      "exe": "gh",
+      "args": "variable delete *",
+      "why": "a repository variable is a switch other workflows read -- a pool's enable variable, RELEASE_HOLD. jusshin never sets one itself: nen runner enable does, under nen's own row, only after it certifies a green preflight run. A session deleting one directly switches a gate off with no such check (Feitan, hanten F4 on the jusshin branch, 2026-09-30)"
+    },
+    {
+      "exe": "gh",
+      "args": "variable set RELEASE_HOLD*",
+      "why": "RELEASE_HOLD holds a cut: getsuga's preflight reads it, so a session lifting it directly bypasses that read (Feitan, hanten F4 on the jusshin branch, 2026-09-30)"
     },
     {
       "exe": "sudo",
