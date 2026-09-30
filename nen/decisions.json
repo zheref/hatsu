@@ -74,6 +74,28 @@
       "why": "Ruling 2026-09-28 (zheref/hatsu#66, Copilot round 1 on HA-PR-#124): missing-configuration's default writes the item through its owner, which a harness file outside the repository never has; this row gives the picker an action that resumes after the maintainer toggles it."
     },
     {
+      "id": "host-nen-link",
+      "class": "ask-once-per-run",
+      "default": "ask once: the login shell is the maintainer's own configuration outside the repository; ten section 2c states the exact change (one name-correct symlink, and one PATH line only where ~/.local/bin is not on the login shell's PATH) and takes it on their word only. Until then the session runs on its own binding, (b), and the report reads installed, not reachable",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "place the name-correct link, and the PATH line where it is missing",
+          "command": "ln -sfn <the checksum-verified binary path the bootstrap printed> ~/.local/bin/nen; and only where the login shell lacks it, append export PATH=\"$HOME/.local/bin:$PATH\" to the maintainer's shell rc, quoted back before it is written",
+          "consequence": "\"$SHELL\" -lic 'command -v nen && nen --version' prints ~/.local/bin/nen and the pinned version; a later bump repoints the one link and the shell line never changes",
+          "recommended": true
+        },
+        {
+          "key": "B",
+          "label": "leave the host as it is; this session keeps its own binding",
+          "command": "nothing is written; every pasted argv is reported as one the maintainer's shell does not resolve",
+          "consequence": "the warm-up line keeps reading installed, not reachable, every session, until A is taken"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "zheref/hatsu#164: the warm-up had proved nen runs for the agent while the maintainer's pasted command answered command not found. Installed and reachable are two facts; only the second is the human's, and a directory holding only nen-darwin-arm64 on PATH is the trap that fails silently at the point of use, so the offer names the link, not the directory."
+    },
+    {
       "id": "missing-focused-route",
       "class": "autonomous",
       "default": "hand the tree back to hatsu:rasengan to author the focused tests, then hatsu:tsukuyomi runs them",

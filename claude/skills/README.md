@@ -1,4 +1,4 @@
-# Hatsu skills
+# Hatsu skillsstopping at any that is the maintainer's call (§ 6). Since `v0.69.0` it also asks the maintainer's **own login shell** whether `nen` resolves at the pin (§ 2c, zheref/hatsu#164): *installed, not reachable* is an unmet dependency with that reason, and the name-correct host link is an offer taken only on their word. |
 
 This directory is the plugin's skill surface (`plugin.json` → `"skills": "./claude/skills/"`). The summon
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together

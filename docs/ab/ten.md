@@ -97,3 +97,52 @@ it**: ten § 0 runs the bound pin's own `hatsu_root.sh`, so a 0.49.0 or 0.14.0 p
 `export HATSU_PLUGIN_ROOT='<checkout>'` is the only form there (three reviewers, 3/3 through § 0 as
 shipped). On Claude Code the bodies are always the installed pin's; on Cursor whether `.cursor/skills/`
 outranks the cache is unverified.
+
+## 2026-09-30 — installed is not reachable (zheref/hatsu#164)
+
+The issue's own shape reproduced in the sitting that took it. Plugin 0.59.0 bound (this checkout at
+0.67.0 named, not bound); the harness shell is non-interactive, so nothing in `~/.zshrc` applies to it:
+
+```text
+$ nen --version                                   # § 1, the agent's shell
+(eval):6: command not found: nen                                                        # exit 127
+$ ls -la ~/.local/bin/nen
+lrwxr-xr-x  ~/.local/bin/nen -> /Users/zheref/.cache/nen/zheref_nen/v0.15.1/nen-darwin-arm64
+$ "$SHELL" -lic 'command -v nen && nen --version'   # § 2c, the maintainer's login shell
+/Users/zheref/.local/bin/nen
+0.15.1                                                                                  # exit 0
+```
+
+Installed at the previous pin and reachable at it, invisible to the agent — the inverse of the
+report that raised the issue, and the same two facts. Then the target's contract (`nen >= 0.16`,
+pinned `v0.16.0`) read the host's build as older than the pin:
+
+```text
+$ nen shu tools --repo .                          # after PATH="$HOME/.local/bin:$PATH", session only
+  WRONG    nen     0.15.1   pinned >=0.16.0 <0.17.0
+                   verify-only: install by hand -- the bootstrap this repository pins installs v0.16.0. …
+$ nen bootstrap --ref v0.16.0 --source zheref/nen --script "$d/nen-bootstrap.sh"          # § 2b
+nen bootstrap: cache hit for zheref/nen@v0.16.0 (nen-darwin-arm64), checksum verified.
+/Users/zheref/.cache/nen/zheref_nen/v0.16.0/nen-darwin-arm64                            # exit 0
+$ nen shu tools --repo .                          # on (b), the session binding
+  ok       nen     0.16.0   pinned >=0.16.0 <0.17.0
+$ "$SHELL" -lic 'command -v nen && nen --version'
+/Users/zheref/.local/bin/nen
+0.15.1                                                                                  # a version other than the pin's
+```
+
+So the § 4 line for this sitting reads `Nen 0.16.0 · floor 0.7 · satisfies >=0.16.0 <0.17.0 · host:
+installed, not reachable (~/.local/bin/nen → 0.15.1, pin v0.16.0) · bootstrapped to v0.16.0 (checksum
+verified)`, and § 2c's offer is one `ln -sfn /Users/zheref/.cache/nen/zheref_nen/v0.16.0/nen-darwin-arm64
+~/.local/bin/nen` — the shell line already there (`~/.zshrc` exports `~/.local/bin`, the reference
+shape the issue recorded) is not touched. The offer was stated and not taken in this sitting: `(a)`
+stays the maintainer's word (row `host-nen-link`), and the turn ran on `(b)`.
+
+**Why the link and not the directory.** `~/.cache/nen/zheref_nen/v0.16.0/` holds one file,
+`nen-darwin-arm64`; a `PATH` entry naming that directory resolves no `nen` and fails at the point of
+use, silently, which is the trap the issue names. A name-correct link on a directory the login shell
+already searches is repointed on a bump and the shell line never changes again.
+
+**Residue.** The login-shell probe is harness shell — no nen verb reads a host's `PATH`, and none binds
+a name on a host (`PROCESS.md` § Residue, ten). The verdict distinguishes installed from reachable in
+the report line; `nen shu tools` keeps answering only what the shell it runs in resolves.

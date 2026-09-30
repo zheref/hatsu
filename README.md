@@ -119,7 +119,9 @@ installed copy runs does.)
 > ([`nen/contract.json`](nen/contract.json) → `dependency.bootstrap.flags`), which is **outside** the
 > directory `codex exec -s workspace-write` makes writable — so a session under that sandbox has nowhere to
 > install to. A Cursor session did run the bootstrap itself, checksum-verified, and put the result on its
-> own session `PATH`.
+> own session `PATH`. Either way the warm-up then asks **your own login shell** whether `nen` resolves at the pin
+> ([`ten`](claude/skills/ten/SKILL.md) § 2c) and, when it does not, reports *installed, not reachable* and offers the
+> one name-correct link (`~/.local/bin/nen`) — stated first, taken only on your word.
 
 ## Install
 
