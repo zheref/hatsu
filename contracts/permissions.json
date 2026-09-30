@@ -45,6 +45,16 @@
       "why": "label sync"
     },
     {
+      "exe": "gh",
+      "args": "variable *",
+      "why": "a pool's enable switch is a repository variable: jusshin reads it back, and nen runner enable sets it only with a green preflight run id"
+    },
+    {
+      "exe": "gh",
+      "args": "workflow run *",
+      "why": "jusshin dispatches a pool's preflight workflow in the consumer; the run it starts is read through gh run and the runners endpoints through gh api, both already allowed above"
+    },
+    {
       "exe": "git",
       "args": "fetch *",
       "why": "the delta is read against the fetched base"
@@ -238,6 +248,11 @@
       "exe": "make",
       "args": "*",
       "why": "a repository's own documented commands"
+    },
+    {
+      "exe": "powershell",
+      "args": "-NoProfile -ExecutionPolicy Bypass -Command Start-Process powershell -Verb RunAs *",
+      "why": "the ONE elevation shape: nen runner script --json's launch line for a Windows pool, run by jusshin only when the maintainer has consented to it in advance. It elevates nothing by itself -- Start-Process -Verb RunAs raises the UAC prompt, and accepting it (then typing the service-account password into that window, never into the session) is the maintainer's own act. No row runs config.cmd, config.sh or svc.sh from the session, and sudo stays denied"
     }
   ],
   "deny": [
