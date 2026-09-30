@@ -24,6 +24,14 @@ among twelve events.
 | update and activation | `hatsu:bakuryuha`: § 3 installs the plugin where copies were placed, § 4 fast-forwards the marketplace checkout and re-adds the plugin, the new `ten` places personas only (`--plugin`); running sessions refresh skills and hooks after an external plugin upgrade (codex-cli 0.154.0), personas load at the next run, and a changed hook is skipped until trusted in `/hooks` (§ 9, § 10) |
 | validated build | `codex-cli 0.149.0` (`codex --version`, read live 2026-09-10); no skills-support floor is documented |
 
+**What the plugin install copies.** `codex plugin add` copies the whole marketplace root, `.git` and every
+git-ignored path included (`.claude/settings.local.json`, `.claude/worktrees/`, `.nen/`, `Reports/`), into
+`$CODEX_HOME/plugins/cache/hatsu/hatsu/<version>/`, and the next `add` replaces that slot (evidence § 10
+F6, F7). Serving a clean tree instead is zheref/hatsu#147. **The plugin's hooks run the source
+`hooks/*.sh`** of that slot, which carry no generated marker, so `session-start.sh` takes its reminder
+branch on purpose: its mirror-refresh branch would re-place the skill copies the plugin replaces. Trust
+in `/hooks` covers a hook's definition; the scripts behind it change with each installed version.
+
 **Copies, not symlinks — the legacy placement.** Codex lists a skill under its frontmatter `name`, namespaced by the plugin
 manifest above the directory the path resolves to: a symlink into this checkout (which carries
 `.claude-plugin/plugin.json`) is listed as `hatsu:aka`, a `cp -R` of the same directory as bare `aka`,
@@ -139,7 +147,7 @@ nen surface mirror generate --surface codex \
 | `surfaces/codex/agents/<persona>.toml`, one per persona, `name`, `description`, `developer_instructions`, `model` from the persona's tier | `claude/agents/**` and `nen/workflow.json` |
 | `surfaces/codex/config.toml`, the pack: `approval_policy`, `sandbox_mode`, `writable_roots` | `contracts/permissions.json` |
 | `surfaces/codex/config.toml.fragment`: `[agents]` with `default_subagent_model` only, from the matrix row | `nen/workflow.json` |
-| `surfaces/codex/hooks.json`: `SessionStart`, `PreToolUse`, `Stop`, rooted at `${HATSU_PLUGIN_ROOT:-${PLUGIN_ROOT:-./.codex}}` — the export, then the root Codex hands a plugin hook, then the placed copy — so one file serves the plugin (named by the overlay) and the legacy placement | `hooks/hooks.json` |
+| `surfaces/codex/hooks.json`: `SessionStart`, `PreToolUse`, `Stop`, rooted at `${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}` — the installed slot Codex hands a plugin hook first, then the export, then the placed copy — so one file serves the plugin (named by the overlay) and the legacy placement, and a plugin hook never runs a live-checkout or working-directory script (Feitan, CWE-426) | `hooks/hooks.json` |
 
 Marker, first markdown line after the frontmatter fence, line 1 in `AGENTS.md` and the TOML files:
 

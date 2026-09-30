@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # Prove scripts/hatsu_surface_link.sh: fresh links per surface, re-pointing an
 # owned link, refusing a foreign destination (left intact), the Claude Code
-# marketplace handover (only when recorded), Codex's foreign-marketplace and
-# version-mismatch refusals, a missing required CLI at exit 4, a
-# /plugins/cache/ root refused at exit 2, and --dry-run / --status changing
-# nothing on disk and calling no mutating CLI subcommand.
+# marketplace handover (only when recorded), a claude-absent handover refused
+# up front when one is owed, a malformed settings.json refused before
+# anything links, Codex's foreign-marketplace and version-mismatch refusals,
+# a missing required CLI at exit 5, a /plugins/cache/ root refused at exit 2,
+# and --dry-run / --status changing nothing on disk and calling no mutating
+# CLI subcommand.
 #
 # Hermetic and offline: every invocation gets its own throwaway
 # CLAUDE_CONFIG_DIR / GEMINI_CONFIG_DIR / CODEX_HOME / HOME under mktemp, and
@@ -43,6 +45,18 @@ assert_not_contains() {
   case "$haystack" in
     *"$needle"*) fail "$message: did not expect '$needle' in: $haystack" ;;
     *) ;;
+  esac
+}
+
+# assert_line_starts HAYSTACK PREFIX MESSAGE -- true when some line of
+# HAYSTACK (not merely some substring anywhere in it) starts with PREFIX.
+# Nobunaga BC-9: would_link's own report must be its own line, not text
+# folded into the middle of the surface's report line.
+assert_line_starts() {
+  local haystack="$1" prefix="$2" message="$3"
+  case $'\n'"$haystack" in
+    *$'\n'"$prefix"*) ;;
+    *) fail "$message: no line starts with '$prefix' in: $haystack" ;;
   esac
 }
 
@@ -226,7 +240,7 @@ mkdir -p "$claude_home" "$gemini_home" "$codex_home" "$home_unused"
 
 # Two throwaway Hatsu checkouts: checkout1 is the one under test throughout;
 # checkout2 stands in for "some OTHER Hatsu tree" for the re-point and
-# foreign-marketplace cases. checkout_no_overlay is a pre-v0.60.0-shaped tree
+# foreign-marketplace cases. checkout_no_overlay is a pre-v0.62.0-shaped tree
 # that never carried .codex-plugin/plugin.json at all.
 checkout1_raw="$fixture_root/checkout-a"; make_hatsu_checkout "$checkout1_raw" '0.60.0'
 checkout1="$(canon "$checkout1_raw")"
@@ -412,11 +426,37 @@ assert_contains "$out" "$claude_home/settings.json" '(b) the refusal names setti
 assert_contains "$out" 'extraKnownMarketplaces.hatsu' '(b) the refusal names the key left declared'
 grep -qxF '    "hatsu": {' "$claude_home/settings.json" || fail "(b) the script edited settings.json by hand"
 
+# --- a malformed settings.json shape is refused before anything links ------
+# (Phinks, 2026-09-29): every shape check runs BEFORE ensure_symlink now, so
+# a refusal changes nothing -- not even the destination symlink.
+rm -rf "$claude_home"; mkdir -p "$claude_home"
+printf '%s' '{"enabledPlugins":{"hatsu@hatsu":true}}' > "$claude_home/settings.json"
+: > "$claude_log"
+export CLAUDE_SHIM_LOG="$claude_log" CLAUDE_SHIM_INSTALL_PATH="$claude_home/skills/hatsu"
+run 1 --surface claude-code --root "$checkout1"
+unset CLAUDE_SHIM_LOG CLAUDE_SHIM_INSTALL_PATH
+assert_contains "$out" 'not in the one shape read' 'a minified settings.json is refused for its shape'
+[ ! -e "$claude_home/skills/hatsu" ] || fail "a settings.json shape refusal must not create the destination"
+[ ! -s "$claude_log" ] || fail "a settings.json shape refusal must not call claude at all: $(cat "$claude_log")"
+
+# --- settings.json holding exactly "{}" (JSON.stringify({}, null, 2)) is ---
+# accepted as declaring nothing (Phinks: the old shape check required at
+# least two lines unconditionally, and so refused the one line an empty
+# settings object legitimately is).
+rm -rf "$claude_home"; mkdir -p "$claude_home"
+printf '{}\n' > "$claude_home/settings.json"
+: > "$claude_log"
+export CLAUDE_SHIM_LOG="$claude_log" CLAUDE_SHIM_INSTALL_PATH="$claude_home/skills/hatsu"
+run 0 --surface claude-code --root "$checkout1"
+unset CLAUDE_SHIM_LOG CLAUDE_SHIM_INSTALL_PATH
+assert_contains "$out" 'linked' 'a settings.json holding only "{}" is accepted as declaring nothing'
+
 # --- --dry-run changes nothing, calls nothing --------------------------------
 rm -rf "$claude_home"; mkdir -p "$claude_home"
 : > "$claude_log"
 run 0 --surface claude-code --root "$checkout1" --dry-run
 assert_contains "$out" 'would link:' 'dry-run prints the would-link plan'
+assert_line_starts "$out" 'would link: ' 'the would-link plan is its own line, not folded into the report line'
 assert_contains "$out" 'dry-run' 'the report is marked dry-run'
 [ ! -e "$claude_home/skills/hatsu" ] || fail "dry-run created the destination"
 [ ! -s "$claude_log" ] || fail "dry-run invoked claude: $(cat "$claude_log")"
@@ -438,6 +478,39 @@ rm -rf "$claude_home"; mkdir -p "$claude_home"
 run_restricted 0 --surface claude-code --root "$checkout1"
 assert_contains "$out" 'claude not on PATH: read-back not done' 'an absent claude is reported, never fatal'
 [ -L "$claude_home/skills/hatsu" ] || fail "linking did not happen without claude on PATH"
+
+# --- claude absent AND a handover is owed: refused at exit 5, before any ---
+# change (Nobunaga N6 / Phinks, 2026-09-29): without claude on PATH there is
+# no CLI to run the handover, so a recorded install or declaration is a hard
+# refusal rather than a link left silently shadowed. Three independent
+# triggers, each named in the refusal.
+rm -rf "$claude_home"; mkdir -p "$claude_home/plugins"
+printf '%s\n' '{' '  "version": 2,' '  "plugins": {' '    "hatsu@hatsu": [' '      {' \
+  '        "scope": "user",' '        "installPath": "'"$fixture_root/elsewhere/cache/hatsu/hatsu/0.49.0"'",' \
+  '        "version": "0.49.0"' '      }' '    ]' '  }' '}' > "$claude_home/plugins/installed_plugins.json"
+run_restricted 5 --surface claude-code --root "$checkout1"
+assert_contains "$out" 'installed_plugins.json records hatsu@hatsu' 'a claude-absent handover names what installed_plugins.json records'
+[ ! -e "$claude_home/skills/hatsu" ] || fail "a claude-absent handover refusal must not create the destination"
+
+rm -rf "$claude_home"; mkdir -p "$claude_home"
+printf '%s\n' '{' '  "enabledPlugins": {' '    "hatsu@hatsu": true' '  }' '}' > "$claude_home/settings.json"
+run_restricted 5 --surface claude-code --root "$checkout1"
+assert_contains "$out" 'enabledPlugins "hatsu@hatsu": true' 'a claude-absent handover names the enabledPlugins declaration'
+[ ! -e "$claude_home/skills/hatsu" ] || fail "a claude-absent handover refusal must not create the destination"
+
+rm -rf "$claude_home"; mkdir -p "$claude_home"
+printf '%s\n' '{' '  "extraKnownMarketplaces": {' '    "hatsu": {' '      "source": {' \
+  '        "source": "git",' '        "url": "https://github.com/zheref/hatsu.git"' '      }' '    }' '  }' '}' \
+  > "$claude_home/settings.json"
+run_restricted 5 --surface claude-code --root "$checkout1"
+assert_contains "$out" 'extraKnownMarketplaces.hatsu' 'a claude-absent handover names the extraKnownMarketplaces declaration'
+[ ! -e "$claude_home/skills/hatsu" ] || fail "a claude-absent handover refusal must not create the destination"
+
+# --- claude absent, NOTHING owed: unchanged -- links, says so, exit 0 ------
+rm -rf "$claude_home"; mkdir -p "$claude_home"
+run_restricted 0 --surface claude-code --root "$checkout1"
+assert_contains "$out" 'claude not on PATH: read-back not done' 'a claude-absent run with nothing owed is unchanged'
+[ -L "$claude_home/skills/hatsu" ] || fail "linking did not happen without claude on PATH when nothing was owed"
 
 # ============================================================================
 # antigravity
@@ -514,9 +587,10 @@ assert_contains "$out" 'agy not on PATH: validate not done' 'an absent agy is re
 # codex
 # ============================================================================
 
-# --- missing codex: exit 4, named --------------------------------------------
-run_restricted 4 --surface codex --root "$checkout1"
-assert_contains "$out" 'codex is not on PATH' 'a missing codex is named at exit 4'
+# --- missing codex: exit 5, named (Chrollo: a missing/unsatisfied tool is --
+# always exit 5, never 4 -- docs/PROCESS.md) ---------------------------------
+run_restricted 5 --surface codex --root "$checkout1"
+assert_contains "$out" 'codex is not on PATH' 'a missing codex is named at exit 5'
 
 # --- fresh install: no existing marketplace row -----------------------------
 : > "$codex_log"
@@ -610,7 +684,7 @@ run 0 --surface codex --root "$checkout1" --status
 unset CODEX_SHIM_LOG CODEX_SHIM_FILLER_ROWS CODEX_SHIM_MARKETPLACE_ROOT CODEX_SHIM_VERSION
 assert_contains "$out" 'hatsu@hatsu installed, enabled 0.60.0' '--status survives >10,000 filler rows in marketplace list and plugin list'
 
-# --- pre-overlay checkouts (before v0.60.0): no .codex-plugin/plugin.json at
+# --- pre-overlay checkouts (before v0.62.0): no .codex-plugin/plugin.json at
 # all. Codex then reads .claude-plugin/plugin.json, so the compare falls
 # back to it rather than refusing every such checkout at exit 2 for a file
 # it was never going to carry -- and the report names which manifest it used.

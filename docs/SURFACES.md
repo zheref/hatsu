@@ -13,8 +13,9 @@ was read from, is in [`docs/surfaces/`](surfaces/README.md): [`claude-code.md`](
 
 The Cursor and Antigravity mirrors are not a port either: the same skill bodies, byte for byte, with the
 frontmatter reduced to the keys each surface documents and the invocation respelled, produced by one
-generator, [`nen surface mirror`](https://github.com/zheref/nen) (nen v0.13.0). Codex's mirror now
-supplies only the personas, the pack and the hooks its plugin names.
+generator, [`nen surface mirror`](https://github.com/zheref/nen) (nen v0.13.0). Codex's mirror
+supplies the personas, the pack and the hooks its plugin names, and still the skill copies a legacy
+placement reads.
 
 ## 1. The four surfaces
 
@@ -130,7 +131,7 @@ From the repository root, one line per surface, in the same commit as the source
 ```sh
 v="$(python3 -c 'import json;print(json.load(open(".claude-plugin/plugin.json"))["version"])')"
 for s in codex cursor antigravity; do
-  case "$s" in antigravity) root='${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;; codex) root='${HATSU_PLUGIN_ROOT:-${PLUGIN_ROOT:-./.codex}}' ;; *) root="\${HATSU_PLUGIN_ROOT:-./.$s}" ;; esac  # the roots scripts/surface_mirror_check.sh expects; any other reads hand-edited: hooks.json
+  case "$s" in antigravity) root='${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;; codex) root='${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}' ;; *) root="\${HATSU_PLUGIN_ROOT:-./.$s}" ;; esac  # the roots scripts/surface_mirror_check.sh expects; any other reads hand-edited: hooks.json
   nen surface mirror generate --surface "$s" --source claude/skills --agents claude/agents \
     --out "surfaces/$s" --invocation-prefix hatsu: --models nen/workflow.json \
     --permissions contracts/permissions.json --hooks hooks/hooks.json --rules claude/rules/hatsu.md --source-surface claude \

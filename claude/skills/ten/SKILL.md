@@ -123,15 +123,15 @@ per-surface rules, Codex's sandbox check included.
 
 ```sh
 hatsu_root='<the absolute path § 0 printed>'; target="$(git rev-parse --show-toplevel)"; surface='<codex|cursor|antigravity|claude-code>'
-[ "$surface" = claude-code ] || "$hatsu_root/scripts/surface_mirror_check.sh" "$hatsu_root"  # FIRST: source vs surfaces/<s>; 0 current, 1 stale
-[ "$surface" = claude-code ] || "$hatsu_root/scripts/surface_bootstrap.sh" --surface "$surface" --target "$target" --install-all [--plugin]  # --plugin: Codex's plugin serves skills+hooks
+[ "$surface" = claude-code ] || "$hatsu_root/scripts/surface_mirror_check.sh" "$hatsu_root"  # FIRST: source vs surfaces/<s>
+[ "$surface" = claude-code ] || "$hatsu_root/scripts/surface_bootstrap.sh" --surface "$surface" --target "$target" --install-all [--plugin]  # --plugin iff `codex plugin list` reads hatsu@hatsu installed, enabled
 "$hatsu_root/scripts/permissions_pack.sh" --surface "$surface" --install --target "$target"  # every surface, Claude Code included
 ```
 
 **Claude Code has no mirror**: its link serves the checkout in place — `mirrors: not applicable`,
 the pack only. `--installed` diffs a FULL mirror, never a placed copy or an install (#106). Exit `0` records `mirrors: current`; `1` is stale **in the plugin** — said,
-still placed, regenerated only in a Hatsu PR. **Ten never generates a mirror**; `surface_bootstrap.sh`
-is the sole pre-skill shell carve-out; a file it did not write is left alone, named; on
+still placed, regenerated only in a Hatsu PR. **Ten never generates a mirror**; `surface_bootstrap.sh` is
+the pre-skill shell carve-out; a file it did not write is left alone, named; on
 Cursor `ls -1A "$target/.cursor/skills"` runs **before installing anything**; **the model matrix is
 the TARGET's `nen/workflow.json` → `models`**.
 

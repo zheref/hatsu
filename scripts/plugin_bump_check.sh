@@ -306,13 +306,25 @@ surfaces_stamp_scan() {
 # is not a defect — not every checkout carries one; a present one whose name
 # is not `hatsu`, or whose version does not equal .claude-plugin/plugin.json's,
 # leaves every Codex install pinned to the wrong slot with no error anywhere
-# else. Echoes ONE line naming the problem and its consequence, and returns 0
-# when it found one; returns 1 (nothing echoed) when the overlay is absent or
-# fully consistent.
+# else. A path that EXISTS (or is a symlink at all, dangling or not) but is
+# NOT A REGULAR FILE — a directory sitting where the manifest should be, or a
+# dangling/broken symlink — is the same failure, never "absent": Codex cannot
+# read a plugin-cache manifest out of either one, and reading it as "no
+# overlay" would silently let a broken overlay through (Nobunaga; Phinks's
+# note on the same finding). Echoes ONE line naming the problem and its
+# consequence, and returns 0 when it found one; returns 1 (nothing echoed)
+# when the overlay is genuinely absent — no path and no symlink sitting there
+# at all — or fully consistent.
 codex_overlay_check() {
   local root="$1" claude_version="$2" overlay name version
   overlay="$root/.codex-plugin/plugin.json"
-  [ -f "$overlay" ] || return 1
+  if [ ! -e "$overlay" ] && [ ! -L "$overlay" ]; then
+    return 1
+  fi
+  if [ ! -f "$overlay" ]; then
+    printf '.codex-plugin/plugin.json exists but is not a regular file (a directory, or a dangling symlink) -- Codex cannot read its own plugin-cache manifest from it\n'
+    return 0
+  fi
   name="$(plugin_name "$overlay")"
   version="$(plugin_version "$overlay")"
   if [ "$name" != "hatsu" ]; then

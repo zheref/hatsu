@@ -270,6 +270,81 @@ esac
 [ "$(count_files "$plugin_override_adoption_fixture/.codex/agents" '*.toml')" = "$(count_files "$hatsu_root/surfaces/codex/agents" '*.toml')" ] || fail "adoption via AGENTS.override.md alone did not place every persona"
 [ ! -e "$plugin_override_adoption_fixture/.agents/skills/ten" ] || fail "adoption via AGENTS.override.md alone placed a skill"
 
+# --- CWE-59 (Feitan): --plugin mode's removal pass (remove_plugin_served_skills,
+# remove_plugin_served_hooks) skipped ensure_local_directory's own tracked-parent
+# and symlinked-parent refusal for .agents/skills and .codex/hooks, so a
+# symlinked (tracked or untracked) parent could send the enumeration -- and
+# transaction_remove's `mv` -- outside the target. Adoption here is via
+# AGENTS.override.md alone (the same technique as plugin_override_adoption_fixture
+# above), so has_marker_under's own read-only `find -L` traversal into the
+# hostile symlink is the only thing that ever looks inside it; nothing under
+# the outside directory is ever moved or removed once the fix is in place.
+outside_tracked_symlink_skills="$fixture_root/outside-tracked-symlink-skills"
+mkdir -p "$outside_tracked_symlink_skills"
+printf 'do not delete me (tracked symlink repro)\n' > "$outside_tracked_symlink_skills/victim.txt"
+plugin_tracked_symlink_skills_fixture="$fixture_root/plugin-tracked-symlink-skills"
+new_fixture "$plugin_tracked_symlink_skills_fixture"
+{
+  printf '%s\n' '<!-- BEGIN hatsu personas (generated — nen surface mirror, surface: codex) -->'
+  printf 'fake persona body\n'
+  printf '%s\n' '<!-- END hatsu personas (generated — nen surface mirror, surface: codex) -->'
+} > "$plugin_tracked_symlink_skills_fixture/AGENTS.override.md"
+mkdir -p "$plugin_tracked_symlink_skills_fixture/.agents"
+ln -s "../../outside-tracked-symlink-skills" "$plugin_tracked_symlink_skills_fixture/.agents/skills"
+git -C "$plugin_tracked_symlink_skills_fixture" add .agents/skills
+assert_fails "a TRACKED symlinked .agents/skills was accepted under --plugin (Feitan CWE-59)" \
+  "$bootstrap" --surface codex --target "$plugin_tracked_symlink_skills_fixture" --install-all --plugin
+[ -f "$outside_tracked_symlink_skills/victim.txt" ] || fail "a tracked symlinked .agents/skills let --plugin delete a file outside the target"
+grep -qx 'do not delete me (tracked symlink repro)' "$outside_tracked_symlink_skills/victim.txt" || fail "a tracked symlinked .agents/skills let --plugin modify a file outside the target"
+
+outside_untracked_symlink_skills="$fixture_root/outside-untracked-symlink-skills"
+mkdir -p "$outside_untracked_symlink_skills"
+printf 'do not delete me (untracked skills symlink repro)\n' > "$outside_untracked_symlink_skills/victim.txt"
+plugin_untracked_symlink_skills_fixture="$fixture_root/plugin-untracked-symlink-skills"
+new_fixture "$plugin_untracked_symlink_skills_fixture"
+{
+  printf '%s\n' '<!-- BEGIN hatsu personas (generated — nen surface mirror, surface: codex) -->'
+  printf 'fake persona body\n'
+  printf '%s\n' '<!-- END hatsu personas (generated — nen surface mirror, surface: codex) -->'
+} > "$plugin_untracked_symlink_skills_fixture/AGENTS.override.md"
+mkdir -p "$plugin_untracked_symlink_skills_fixture/.agents"
+ln -s "$outside_untracked_symlink_skills" "$plugin_untracked_symlink_skills_fixture/.agents/skills"
+assert_fails "an UNTRACKED symlinked .agents/skills was accepted under --plugin (Feitan CWE-59)" \
+  "$bootstrap" --surface codex --target "$plugin_untracked_symlink_skills_fixture" --install-all --plugin
+[ -f "$outside_untracked_symlink_skills/victim.txt" ] || fail "an untracked symlinked .agents/skills let --plugin delete a file outside the target"
+grep -qx 'do not delete me (untracked skills symlink repro)' "$outside_untracked_symlink_skills/victim.txt" || fail "an untracked symlinked .agents/skills let --plugin modify a file outside the target"
+
+outside_untracked_symlink_hooks="$fixture_root/outside-untracked-symlink-hooks"
+mkdir -p "$outside_untracked_symlink_hooks"
+printf 'do not delete me (untracked hooks symlink repro)\n' > "$outside_untracked_symlink_hooks/victim.txt"
+plugin_untracked_symlink_hooks_fixture="$fixture_root/plugin-untracked-symlink-hooks"
+new_fixture "$plugin_untracked_symlink_hooks_fixture"
+mark_adopted "$plugin_untracked_symlink_hooks_fixture" codex
+mkdir -p "$plugin_untracked_symlink_hooks_fixture/.codex"
+ln -s "$outside_untracked_symlink_hooks" "$plugin_untracked_symlink_hooks_fixture/.codex/hooks"
+assert_fails "an UNTRACKED symlinked .codex/hooks was accepted under --plugin (Feitan CWE-59)" \
+  "$bootstrap" --surface codex --target "$plugin_untracked_symlink_hooks_fixture" --install-all --plugin
+[ -f "$outside_untracked_symlink_hooks/victim.txt" ] || fail "an untracked symlinked .codex/hooks let --plugin delete a file outside the target"
+grep -qx 'do not delete me (untracked hooks symlink repro)' "$outside_untracked_symlink_hooks/victim.txt" || fail "an untracked symlinked .codex/hooks let --plugin modify a file outside the target"
+
+# --- Phinks (Feitan note): is_ours accepted ANY surface's marker, and Codex
+# and Antigravity share .agents/skills, so `--surface codex --install-all
+# --plugin` used to remove every Antigravity-stamped skill it found there
+# too. Only Codex's OWN stamped placements are removed; an Antigravity
+# placement sharing the directory survives, and is named kept.
+plugin_antigravity_survives_fixture="$fixture_root/plugin-antigravity-survives"
+new_fixture "$plugin_antigravity_survives_fixture"
+mark_adopted "$plugin_antigravity_survives_fixture" codex
+mkdir -p "$plugin_antigravity_survives_fixture/.agents/skills/antigravity-owned"
+printf 'GENERATED by nen surface mirror (surface: antigravity, stamp: fixture)\n' > "$plugin_antigravity_survives_fixture/.agents/skills/antigravity-owned/SKILL.md"
+plugin_antigravity_survives_output="$("$bootstrap" --surface codex --target "$plugin_antigravity_survives_fixture" --install-all --plugin)"
+[ -d "$plugin_antigravity_survives_fixture/.agents/skills/antigravity-owned" ] || fail "--plugin removed an Antigravity-stamped skill sharing .agents/skills (Phinks)"
+grep -qx 'GENERATED by nen surface mirror (surface: antigravity, stamp: fixture)' "$plugin_antigravity_survives_fixture/.agents/skills/antigravity-owned/SKILL.md" || fail "--plugin altered an Antigravity-stamped skill sharing .agents/skills"
+case "$plugin_antigravity_survives_output" in
+  *"kept existing antigravity-owned"*) ;;
+  *) fail "--plugin did not name the surviving Antigravity skill as kept: $plugin_antigravity_survives_output" ;;
+esac
+
 cursor_fixture="$fixture_root/cursor"
 new_fixture "$cursor_fixture"
 "$bootstrap" --surface cursor --target "$cursor_fixture" --bootstrap

@@ -410,12 +410,20 @@ marketplace_verdict() {
 # "as given" re-entry form used by the --claude in-place link and the --codex local marketplace
 # root — distinct from marketplace_verdict's own sub-run, which always forces --channel auto --auto
 # because the marketplace checkout there is a side concern the primary flow must not fail over.
-# Sets REENTER_VERDICT; the sub-run's own `would run:` lines pass straight through to stdout.
+# Sets REENTER_VERDICT and REENTER_RC (the sub-run's own exit code, 0 when self_script is empty and
+# no sub-run was even attempted): a caller must refuse (through skip_or_refuse) rather than fold a
+# nonzero REENTER_RC into a success report when THIS run is not --auto — the sub-run only omits
+# --auto when this run omitted it too, so a nonzero exit there is a real refusal, not a skip. With
+# --auto the sub-run always carries --auto as well, so it exits 0 on its own skip semantics and the
+# reason still rides in REENTER_VERDICT. The sub-run's own `would run:` lines pass straight through
+# to stdout.
 REENTER_VERDICT=""
+REENTER_RC=0
 reenter_verdict() {
   local target="$1" sub_out sub_rc sub_line
   if [ -z "$self_script" ]; then
     REENTER_VERDICT="not examined: the updater cannot locate itself to re-enter (run it by path)"
+    REENTER_RC=0
     return 0
   fi
   local -a sub_args=(--root "$target" --channel "$channel")
@@ -426,6 +434,7 @@ reenter_verdict() {
   sub_out="$(bash "$self_script" "${sub_args[@]}" 2>&1)"
   sub_rc=$?
   set -e
+  REENTER_RC="$sub_rc"
   printf '%s\n' "$sub_out" | grep '^would run: ' || true
   sub_line="$(printf '%s\n' "$sub_out" | awk '/^hatsu-plugin-update: /{ line = $0 } END { sub(/ · plugin [^ ]+$/, "", line); print line }')"
   case "$sub_line" in
@@ -439,13 +448,17 @@ reenter_verdict() {
 }
 
 # installed_plugins_has_hatsu REGISTRY — true when Claude Code's installed_plugins.json records a
-# top-level "hatsu@hatsu" entry (JSON.stringify(x, null, 2) shape, read the same way
-# marketplace_directory_source reads known_marketplaces.json): a cached hatsu@hatsu install takes
-# precedence over the in-place skills/hatsu link and needs retargeting.
+# hatsu@hatsu entry in the REAL v2 registry shape: {"version": 2, "plugins": {"hatsu@hatsu": [
+# {...} ]}}, i.e. the line `    "hatsu@hatsu": [` nested under the top-level "plugins" object —
+# the exact line scripts/hatsu_surface_link.sh greps for its own adoption handover (F9). The OLD
+# flat top-level-object shape ({"hatsu@hatsu": {...}}) is a shape Claude Code never writes and must
+# never be mistaken for a recorded install (it would let --claude report "served in place" while a
+# cached hatsu@hatsu actually shadows the link): a cached hatsu@hatsu install takes precedence over
+# the in-place skills/hatsu link and needs retargeting.
 installed_plugins_has_hatsu() {
   local registry="$1"
   [ -r "$registry" ] || return 1
-  awk '/^  "hatsu@hatsu": \{$/ { found = 1 } END { exit found ? 0 : 1 }' "$registry"
+  awk '$0 == "    \"hatsu@hatsu\": [" { found = 1 } END { exit found ? 0 : 1 }' "$registry"
 }
 
 # codex_marketplace_root — the ABSOLUTE root the `hatsu` marketplace resolves to in `codex plugin
@@ -485,17 +498,41 @@ codex_plugin_version() {
   '
 }
 
+# codex_expected_version MARKETPLACE_ROOT — the version Codex keys its `hatsu@hatsu` slot on when
+# installing from a directory source: an overlay manifest at .codex-plugin/plugin.json when the
+# marketplace root carries one, else the shared .claude-plugin/plugin.json's own version (same
+# one-shape read as plugin_version). Nothing when neither file is present or readable.
+codex_expected_version() {
+  local manifest="$1/.codex-plugin/plugin.json"
+  [ -f "$manifest" ] || manifest="$1/.claude-plugin/plugin.json"
+  [ -f "$manifest" ] || return 1
+  awk '
+    /^  "version": "/ {
+      s = $0
+      sub(/^  "version": "/, "", s)
+      sub(/",?$/, "", s)
+      print s
+      exit
+    }
+  ' "$manifest"
+}
+
 # claude_refresh_link TARGET AFTER_GIT — the in-place `hatsu@skills-dir` install: TARGET is what
 # ${CLAUDE_CONFIG_DIR:-~/.claude}/skills/hatsu resolves to. Bring it current (unless it IS --root,
 # already brought current above), say whether a cached hatsu@hatsu install shadows it, and stop —
 # `claude plugin marketplace update` / `claude plugin update` are never invoked here (#118's
 # comparison-against-a-stale-cache problem does not exist when Claude loads the checkout directly).
+# When TARGET differs from --root and re-entering it refuses (REENTER_RC nonzero) on a run that is
+# not --auto, that refusal is THIS run's refusal too — never folded into a "served in place" report.
 claude_refresh_link() {
   local target="$1" after_git="${2:-}" note tail installed
   if [ "$target" = "$root" ]; then
     note="in-place link $target"
   else
     reenter_verdict "$target"
+    if [ "$auto" -eq 0 ] && [ "$REENTER_RC" -ne 0 ]; then
+      skip_or_refuse "${after_git:+$after_git · }in-place link $target: $REENTER_VERDICT"
+    fi
     if [ "$dry_run" -eq 1 ]; then
       report "${after_git:+$after_git · }in-place link $target: $REENTER_VERDICT · dry-run"
       exit 0
@@ -566,11 +603,16 @@ claude_refresh() {
 # codex_refresh AFTER_GIT — mirrors claude_refresh for Codex 0.154.0: resolve the `hatsu`
 # marketplace root from `codex plugin marketplace list`, bring it current (a Codex-managed snapshot
 # under $CODEX_HOME upgrades itself; a local checkout that is not --root is re-entered exactly as
-# --claude's in-place link is), then `codex plugin add hatsu@hatsu` and read back the installed
-# version. --dry-run touches the `codex` binary not at all beyond the initial PATH check — every
-# step is a `would run:` line, mirroring --claude's own zero-invocation dry run.
+# --claude's in-place link is — and when that re-entry refuses on a run that is not --auto, THIS run
+# refuses too, before `codex plugin add` is ever invoked), then `codex plugin add hatsu@hatsu` and
+# read back the installed version. An empty read-back, or one that differs from
+# codex_expected_version's verdict for the marketplace root, is refused naming both values — never a
+# silent "installed" on a version Codex did not actually activate. `codex plugin add`'s own output is
+# always captured (never discarded) and quoted on failure. --dry-run touches the `codex` binary not
+# at all beyond the initial PATH check — every step is a `would run:` line, mirroring --claude's own
+# zero-invocation dry run.
 codex_refresh() {
-  local after_git="${1:-}" mkt_root canon_mkt codex_home is_managed verdict ver
+  local after_git="${1:-}" mkt_root canon_mkt codex_home is_managed verdict ver expected add_out
   if ! command -v codex >/dev/null 2>&1; then
     skip_or_refuse "${after_git:+$after_git · }codex not on PATH"
   fi
@@ -601,14 +643,20 @@ codex_refresh() {
     verdict="marketplace root is this checkout"
   else
     reenter_verdict "$canon_mkt"
+    if [ "$auto" -eq 0 ] && [ "$REENTER_RC" -ne 0 ]; then
+      skip_or_refuse "${after_git:+$after_git · }marketplace root $canon_mkt: $REENTER_VERDICT"
+    fi
     verdict="marketplace root $canon_mkt: $REENTER_VERDICT"
   fi
-  if codex plugin add hatsu@hatsu >/dev/null 2>&1; then
-    ver="$(codex_plugin_version || true)"
-    report "${after_git:+$after_git · }$verdict · codex plugin hatsu@hatsu at v${ver:-unknown} · apply: running Codex sessions refresh skills and hooks after an external plugin upgrade (codex-cli 0.154.0); if one does not, open a new session"
-    exit 0
+  add_out="$(codex plugin add hatsu@hatsu 2>&1)" \
+    || skip_or_refuse "${after_git:+$after_git · }$verdict · codex plugin add hatsu@hatsu failed: $(one_line "${add_out:-no output}")"
+  ver="$(codex_plugin_version || true)"
+  expected="$(codex_expected_version "$canon_mkt" 2>/dev/null || true)"
+  if [ -z "$ver" ] || { [ -n "$expected" ] && [ "$ver" != "$expected" ]; }; then
+    skip_or_refuse "${after_git:+$after_git · }$verdict · codex plugin add hatsu@hatsu read back version '${ver:-empty}', expected '${expected:-unknown}'"
   fi
-  skip_or_refuse "${after_git:+$after_git · }$verdict · codex plugin add hatsu@hatsu failed"
+  report "${after_git:+$after_git · }$verdict · codex plugin hatsu@hatsu at v${ver:-unknown} · apply: running Codex sessions refresh skills and hooks after an external plugin upgrade (codex-cli 0.154.0); if one does not, open a new session"
+  exit 0
 }
 
 is_git_worktree() {

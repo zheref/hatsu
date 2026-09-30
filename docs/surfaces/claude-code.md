@@ -159,6 +159,7 @@ generated file.
 - Why the loading page's in-place claim for a local-directory marketplace does not hold for Hatsu's
   shape (`"source": "./"`, a pinned `version`): observed copying on 2.1.284 (evidence § 10 F1). Hatsu
   does not depend on it; the skills-directory link is the install.
+- A `hatsu` marketplace or `hatsu@hatsu` enable declared in a **project** or **managed** settings scope: the handover clears the user scope only, and such a declaration could bring a shadowing copy back after the name is freed (Feitan's note, 2026-09-29); Claude Code's own trust prompt stands in front of a project declaration.
 - Whether live `SKILL.md` change detection ("picks up the change within the current session") reaches a
   skills-directory plugin's nested `claude/skills/` bodies, and what watching a linked checkout that holds
   `.claude/worktrees/` costs. Not claimed: `hatsu:bakuryuha` names `/reload-plugins` or a new session.

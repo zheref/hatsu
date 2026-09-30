@@ -86,7 +86,7 @@
       "surface-link": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/hatsu_surface_link.sh, which points a surface's own first-party install at this checkout -- a Claude Code skills-dir symlink with marketplace handover, a Codex marketplace registration plus plugin add, or an Antigravity symlink into surfaces/antigravity -- never a Claude-shaped mirror and never a versioned plugin cache. Its declared fixture builds throwaway Hatsu-shaped checkouts and PATH-shimmed claude/codex/agy binaries and asserts fresh links, re-pointing an owned link, refusing a foreign destination intact, the Claude Code handover firing only when a prior install is recorded, Codex's foreign-marketplace and version-mismatch refusals, a missing required CLI at exit 4, a /plugins/cache/ root refused at exit 2, and --dry-run/--status changing nothing. Run it only as `nen shu test --lane surface-link --repo <hatsu>` when scripts/hatsu_surface_link.sh or its fixture changes. It is not a general suite."
+        "$comment": "The focused lane for scripts/hatsu_surface_link.sh, which points a surface's own first-party install at this checkout -- a Claude Code skills-dir symlink with marketplace handover, a Codex marketplace registration plus plugin add, or an Antigravity symlink into surfaces/antigravity -- never a Claude-shaped mirror and never a versioned plugin cache. Its declared fixture builds throwaway Hatsu-shaped checkouts and PATH-shimmed claude/codex/agy binaries and asserts fresh links, re-pointing an owned link, refusing a foreign destination intact, the Claude Code handover firing only when a prior install is recorded, Codex's foreign-marketplace and version-mismatch refusals, a missing required CLI at exit 5 (PROCESS § Exit codes), a /plugins/cache/ root refused at exit 2, and --dry-run/--status changing nothing. Run it only as `nen shu test --lane surface-link --repo <hatsu>` when scripts/hatsu_surface_link.sh or its fixture changes. It is not a general suite."
       },
       "surface-bootstrap-guard": {
         "stack": "claude-code-plugin",
@@ -162,7 +162,7 @@
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/spiritual-message.html, which is a report template, not an application."
         },
         "coverage": {
-          "unsupported": "Nothing here executes, so nothing here is covered. byakugan reports Hatsu's touched files as `not measurable here` against the ladder in nen/workflow.json rather than against a number, and the ladder still governs every repository Hatsu drives that declares none of its own. Gyo is linting."
+          "unsupported": "The guard scripts under scripts/ execute under their focused fixture lanes, but no line-coverage tool is declared for shell yet (kcov or bashcov): an unmeasured gap, tracked in zheref/hatsu#148, never a clean zero. Until then byakugan reports Hatsu's touched files as `not measurable here` against the ladder in nen/workflow.json rather than against a number, and the ladder still governs every repository Hatsu drives that declares none of its own. Gyo is linting."
         },
         "archive": {
           "unsupported": "A Claude Code plugin is distributed by git ref through a marketplace, never as a built package: `claude plugin marketplace add zheref/hatsu` reads the tree at a ref. There is no artifact to produce, so there is nothing for `archive` to name."

@@ -11,7 +11,7 @@ summary: Have the change read adversarially before it is anybody else's problem 
 > fixed, or refused with a reason I can check.**
 
 **No fixed mode**: hanten holds the nature the change was authored in;
-[`mukai`](../mukai/SKILL.md)'s second step, after [`murasaki`](../murasaki/SKILL.md), and invocable
+[`mukai`](../mukai/SKILL.md)'s second step, after `murasaki`, and invocable
 alone. **Pre-PR a finding costs an edit, not a review round — and it is a review, not a gate.**
 
 ## 1. Invocation
@@ -56,11 +56,12 @@ readiness pass configures and validates `review.scopes`, then classification re-
 **`unclaimed` paths are named.** Nobunaga's `code` scope and its tier swap are
 [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 2 → `review`: say which tier ran.
 
-**Two scopes paths cannot raise, hanten raises by content** (#73): a diff adding, editing or
+**Paths cannot raise these; hanten raises them by content** (#73): a diff adding, editing or
 removing a `## 0.` section, **any table that routes control flow**, or the fall-through beneath one
 raises a **totality pass** on `architecture` (every reachable input state matches exactly one row, the
 fall-through named), **Chrollo's**; absent or unraisable, a § 3 gap; spent,
-§ 2b's `skipped-exhausted`. The `surfaces` scope (`surfaces/**`, Phinks) runs its two guards first and
+§ 2b's `skipped-exhausted`. A **consumer** diff touching `.github/workflows/**` raises `security`
+(Feitan's row, never waived). The `surfaces` scope (`surfaces/**`, Phinks) runs its two guards first and
 hands him their output: `"$hatsu_root/scripts/surface_link_check.sh" <path>` and
 `"$hatsu_root/scripts/surface_mirror_check.sh" <path>`, `<path>` the checkout under review. **A
 content-raised persona joins § 2b's `--applicable`; print the classification, content rows included,
@@ -69,7 +70,7 @@ before raising anyone.**
 ### 2a · The security scope's deterministic rows, before Feitan reads
 
 Hanten runs [Feitan's table](../../agents/feitan.md) — secret scan, dependency audit, secret shapes,
-builder-touching workflow, each with the failure rule its row states — and hands him the output. **A
+builder-touching workflow, each with its row's failure rule — and hands him the output. **A
 row that cannot run is not scanned, never clean**; values are `$hatsu_root/contracts/scans.json`'s.
 
 ## 2b · Budgets — one effort, one ledger
@@ -89,15 +90,15 @@ he owns raised together are one raise for both.
   --applicable <csv of personas the classification raised>
 ```
 
-**Raise only `raise[]`'s personas.** A returned reviewer — raised or adapted — is `record --outcome
-ran`; a budget skip `--outcome skipped-exhausted`; either misused is exit `2`. **A spent reviewer meeting a new head gets one bounded delta pass**: the diff since the head it last
-read, both named, the row `delta`, `used` never past the cap.
+**Raise only `raise[]`'s personas.** A returned reviewer, raised or adapted, is `record --outcome
+ran`, a budget skip `--outcome skipped-exhausted`; either misused, exit `2`. **A spent reviewer meeting a new head gets one bounded delta pass**: the diff since its last head,
+both named, the row `delta`, `used` never past the cap.
 
 ## 3. A scope whose persona has no definition is a **gap**
 
 Three checks per persona: `ls "$hatsu_root/claude/agents/<persona>.md"`; `ls
 "$hatsu_root/claude/agents/_review-preamble.md"` (**missing is a gap too**); and **the surface's own
-agent registry** for whether it raises `hatsu:<persona>`, which `ls` cannot answer. Raisable → raise;
+agent registry** for `hatsu:<persona>`, which `ls` cannot answer. Raisable → raise;
 present, not raisable → **§ 7's adapter, disclosed as weaker** (`"adapted": "…"`); **absent → a gap**:
 the persona, the raising paths, and **this scope not reviewed** — never a pass, never improvised
 past.
@@ -138,10 +139,10 @@ tool's totals), or `--not-reported`.
 | `rule` | **a rule id** (`UX-3`, `SEC-…`, `QA-11`, a WCAG SC, a HIG reference), never a bare preference |
 | `severity` | `critical` \| `high` \| `medium` \| `low` \| `nit` ([Hisoka's ladder](../../agents/hisoka.md)) |
 | `path`, `line` | where, exactly; no location is a note |
-| `evidence` | **what was observed or measured**, method included for a number; never a restatement of the rule |
-| `proposedFix` | what would settle it; a reviewer proposes, never applies |
+| `evidence` | **what was observed or measured**, a number with its method; never the rule restated |
+| `proposedFix` | what would settle it, proposed, never applied |
 
-**A "finding" missing `rule` or `evidence` is a note**, reported so. The record is one ignored
+**A "finding" without `rule` or `evidence` is a note.** The record is one ignored
 `hatsu.hanten.findings/v0.1` document at `<reports.dir>/hanten/<branch-slug>.json`: `scopes[]` (persona,
 tier, model, `used`/`max`, `invocation` = `ran` | `delta` | `skipped-exhausted`, plus `adapted`, `gap` or
 the security `scans`) and `findings[]` (the six fields plus hanten's `id`, `scope`, `persona`,

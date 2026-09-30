@@ -51,7 +51,7 @@ Claude Code plugin skills, `build` and `drive` among them (evidence § 8 F4). Th
 inferred, not proven: two probes could not tell two rival `build` entries apart because the surviving
 descriptions are too short. The warm-up lists every name already standing under `.cursor/skills/`
 before it installs anything and says that a host-level collision it cannot see may still win. Hatsu
-claims forty-six ordinary words at once, `build`, `file`, `en`, `ao`, `ren`, `breath` among them.
+claims forty-seven ordinary words at once, `build`, `file`, `en`, `ao`, `ren`, `breath` among them.
 
 **Do not shorten a description to fit thirty characters.** Asked for the length of `build`'s
 description, a session answered "30 characters long"; the description dies inside its first clause, and

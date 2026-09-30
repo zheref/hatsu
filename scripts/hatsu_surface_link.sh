@@ -65,8 +65,14 @@ usage: scripts/hatsu_surface_link.sh --surface claude-code|codex|antigravity
             change nothing. Mutually exclusive with --dry-run.
 
 Exit codes: 0 ok; 2 usage, wiring, or --root refused; 3 the destination is
-not ours to replace; 4 the surface's required CLI is missing; 1 a CLI step
-(or a post-install read-back) failed, its last line quoted.
+not ours to replace; 5 the surface's required CLI is missing (a missing or
+unsatisfied tool is always 5, never 4 -- docs/PROCESS.md); on claude-code
+this also covers claude absent while a handover is owed
+(installed_plugins.json records hatsu@hatsu, or settings.json declares
+enabledPlugins "hatsu@hatsu" or extraKnownMarketplaces.hatsu), refused
+before anything is touched -- claude absent with nothing owed still links
+and reports the read-back as not done, exit 0; 1 a CLI step (or a
+post-install read-back) failed, its last line quoted.
 EOF
 }
 
@@ -312,33 +318,69 @@ canonical_hatsu_target() {
   printf '%s' "$canon"
 }
 
+# verify_symlink_created DEST TARGET SUFFIX -- proves, right after an `ln`,
+# that DEST is actually a symlink and canonicalises to TARGET (per
+# canonical_hatsu_target's own SUFFIX rule). Phinks, 2026-09-29: bash 3.2
+# drops errexit for a command run INSIDE a command substitution, so the old
+# `changes="$(ensure_symlink ...)"` let a failed `ln` still be read back as
+# "linked" at exit 0, and the adoption handover then ran against a host that
+# served no Hatsu at all. Two distinct refusals, not one: DEST not even a
+# symlink is exit 1 (ln itself did not do what it claimed); DEST a symlink
+# that resolves to something other than TARGET is exit 3, the same code
+# every other "not ours" refusal in this script uses -- a race that let a
+# DIFFERENT process win the destination between our own check and our own
+# `ln` reads exactly like a foreign destination, because it is one.
+verify_symlink_created() {
+  local dest="$1" target="$2" suffix="$3" canon
+  if [ ! -L "$dest" ]; then
+    echo "hatsu-surface-link: $dest was not created as a symlink after ln -- refusing to proceed" >&2
+    exit 1
+  fi
+  if canon="$(canonical_hatsu_target "$dest" "$suffix")" && [ "$canon" = "$target" ]; then
+    return 0
+  fi
+  echo "hatsu-surface-link: $dest is not ours after ln (resolves to ${canon:-a foreign or dangling target}, not $target) -- refusing to proceed" >&2
+  exit 3
+}
+
 # ensure_symlink DEST TARGET SUFFIX -- the one ownership-respecting linker
 # both claude-code and antigravity use. Absent -> links. Ours (per
-# canonical_hatsu_target) but pointed elsewhere -> re-points with `ln -sfn`.
-# Anything else -- a real directory, a file, or a symlink into a non-Hatsu
-# tree -- is refused at exit 3 and left exactly as it was; this script never
-# discards what is not its own. Echoes one of: linked / already linked /
-# re-pointed from <previous target>.
+# canonical_hatsu_target) but pointed elsewhere -> re-points. Anything else
+# -- a real directory, a file, or a symlink into a non-Hatsu tree -- is
+# refused at exit 3 and left exactly as it was; this script never discards
+# what is not its own. Both creating branches use `ln -sfn` (never `ln -s`
+# alone): `-n` is what keeps a symlink-to-a-directory DEST from silently
+# receiving the new link INSIDE itself, and `-f` is what lets a second `ln`
+# win a race against whatever a first one left behind, which
+# verify_symlink_created then checks was actually us.
+#
+# MUST be called directly, never as `x="$(ensure_symlink ...)"` -- see
+# verify_symlink_created's own comment for why bash 3.2 makes that unsafe.
+# Sets the global ENSURE_SYMLINK_RESULT to one of: linked / already linked /
+# re-pointed from <previous target>; callers read that global instead.
 ensure_symlink() {
   local dest="$1" target="$2" suffix="$3" canon what
+  ENSURE_SYMLINK_RESULT=""
   if [ ! -e "$dest" ] && [ ! -L "$dest" ]; then
     would_link "ln -s $target $dest"
     if [ "$dry_run" -eq 0 ]; then
       mkdir -p "$(dirname "$dest")"
-      ln -s "$target" "$dest"
+      ln -sfn "$target" "$dest"
+      verify_symlink_created "$dest" "$target" "$suffix"
     fi
-    printf 'linked'
+    ENSURE_SYMLINK_RESULT='linked'
     return 0
   fi
   if canon="$(canonical_hatsu_target "$dest" "$suffix")"; then
     if [ "$canon" = "$target" ]; then
-      printf 'already linked'
+      ENSURE_SYMLINK_RESULT='already linked'
     else
       would_link "ln -sfn $target $dest (was $canon)"
       if [ "$dry_run" -eq 0 ]; then
         ln -sfn "$target" "$dest"
+        verify_symlink_created "$dest" "$target" "$suffix"
       fi
-      printf 're-pointed from %s' "$canon"
+      ENSURE_SYMLINK_RESULT="re-pointed from $canon"
     fi
     return 0
   fi
@@ -417,21 +459,26 @@ claude_list_hatsu_hatsu_enabled() {
 # possible, clear these two settings.json declarations -- and must never
 # silently believe them gone when it cannot actually read the file.
 #
-# settings_file_shape_ok FILE -- true when FILE's first non-empty line is
-# exactly "{" and its last is exactly "}" (JSON.stringify(x, null, 2)'s own
-# top-level shape, the same assumption manifest_name makes of a plugin.json).
-# A minified or otherwise-shaped settings.json fails this, on purpose: this
-# script does not attempt to parse arbitrary JSON, only to recognise the one
-# shape Claude Code itself writes, and anything else must read as
-# "not verified" rather than silently as "declares nothing".
+# settings_file_shape_ok FILE -- true for either of the two shapes
+# JSON.stringify(x, null, 2) actually produces for the objects this script
+# reads: the pretty-printed multi-line form (first non-empty line exactly
+# "{", last non-empty line exactly "}", at least one line between them), or
+# the single-line empty object "{}" that same call prints for `{}` itself
+# (Phinks, 2026-09-29: the old check required n >= 2 unconditionally and so
+# refused a bare "{}" settings.json -- the exact shape an empty settings
+# object legitimately takes -- as unreadable, when it plainly declares
+# nothing). A minified or otherwise-shaped settings.json still fails this,
+# on purpose: this script does not attempt to parse arbitrary JSON, only to
+# recognise the shapes Claude Code itself writes, and anything else must
+# read as "not verified" rather than silently as "declares nothing".
 settings_file_shape_ok() {
   local file="$1"
   awk '
-    NR == 1 { first = $0 }
-    { last = $0; n = NR }
+    NF { if (!seen) { first = $0; seen = 1 }; last = $0; n++ }
     END {
-      if (n <= 1 || first != "{" || last != "}") { print "bad"; exit }
-      print "ok"
+      if (n == 1 && first == "{}") { print "ok"; exit }
+      if (n >= 2 && first == "{" && last == "}") { print "ok"; exit }
+      print "bad"
     }
   ' "$file"
 }
@@ -670,8 +717,61 @@ do_claude_code() {
     return 0
   fi
 
+  # EVERY PRECONDITION IS READ BEFORE ANYTHING IS LINKED (Phinks/Nobunaga,
+  # 2026-09-29). A settings.json this script cannot verify, or a handover
+  # claude cannot perform, must change nothing -- not even the destination
+  # symlink -- so both are decided here, ahead of ensure_symlink.
+  local installed_file="$config_dir/plugins/installed_plugins.json"
+  local marketplaces_file="$config_dir/plugins/known_marketplaces.json"
+  local settings_file="$config_dir/settings.json"
+
+  local is_installed=0
+  if [ -r "$installed_file" ] && grep -qxF '    "hatsu@hatsu": [' "$installed_file"; then
+    is_installed=1
+  fi
+
+  local enb_result enb_shape enb_declared
+  enb_result="$(settings_declares_enabled_plugin "$settings_file")"
+  enb_shape="$(line1 "${enb_result}")"
+  enb_declared="$(line2 "${enb_result}")"
+  if [ "$enb_shape" != "ok" ]; then
+    echo "hatsu-surface-link: $settings_file is not in the one shape read (JSON.stringify(x, null, 2)) -- could not verify enabledPlugins" >&2
+    exit 1
+  fi
+
+  local mkt_result mkt_shape mkt_declared
+  mkt_result="$(settings_declares_marketplace "$settings_file")"
+  mkt_shape="$(line1 "${mkt_result}")"
+  mkt_declared="$(line2 "${mkt_result}")"
+  if [ "$mkt_shape" != "ok" ]; then
+    echo "hatsu-surface-link: $settings_file is not in the one shape read (JSON.stringify(x, null, 2)) -- could not verify extraKnownMarketplaces" >&2
+    exit 1
+  fi
+
+  # A HANDOVER claude CANNOT PERFORM (Nobunaga N6 / Phinks, 2026-09-29):
+  # without claude on PATH there is no CLI to run the disable/uninstall/
+  # marketplace-remove sequence below, so a recorded install or declaration
+  # is a hard refusal, before $dest is even touched -- never linked and left
+  # to keep silently shadowing. Nothing owed is unchanged from before:
+  # link, and say the read-back could not be done.
+  if ! command -v claude >/dev/null 2>&1; then
+    local owed=""
+    [ "$is_installed" -eq 1 ] && owed="installed_plugins.json records hatsu@hatsu"
+    if [ -n "$enb_declared" ]; then
+      owed="${owed:+$owed, }settings.json declares enabledPlugins \"hatsu@hatsu\": true"
+    fi
+    if [ -n "$mkt_declared" ]; then
+      owed="${owed:+$owed, }settings.json declares extraKnownMarketplaces.hatsu"
+    fi
+    if [ -n "$owed" ]; then
+      echo "hatsu-surface-link: claude is not on PATH, but a handover is owed ($owed) -- refusing before $dest is touched" >&2
+      exit 5
+    fi
+  fi
+
   local changes list_out found_path
-  changes="$(ensure_symlink "$dest" "$root" "")"
+  ensure_symlink "$dest" "$root" ""
+  changes="$ENSURE_SYMLINK_RESULT"
 
   if ! command -v claude >/dev/null 2>&1; then
     if [ "$dry_run" -eq 1 ]; then
@@ -690,25 +790,9 @@ do_claude_code() {
   # claude_list_hatsu_hatsu_enabled) are read alongside the registry files,
   # because either alone can bring the shadow back on the next reload. Every
   # check reads a FILE directly (never a `claude` query) so the plan is
-  # knowable, and identical, under --dry-run.
-  local installed_file="$config_dir/plugins/installed_plugins.json"
-  local marketplaces_file="$config_dir/plugins/known_marketplaces.json"
-  local settings_file="$config_dir/settings.json"
+  # knowable, and identical, under --dry-run. is_installed/enb_declared/
+  # mkt_declared were already read above, ahead of ensure_symlink.
   local did_clear=0
-
-  local is_installed=0
-  if [ -r "$installed_file" ] && grep -qxF '    "hatsu@hatsu": [' "$installed_file"; then
-    is_installed=1
-  fi
-
-  local enb_result enb_shape enb_declared
-  enb_result="$(settings_declares_enabled_plugin "$settings_file")"
-  enb_shape="$(line1 "${enb_result}")"
-  enb_declared="$(line2 "${enb_result}")"
-  if [ "$enb_shape" != "ok" ]; then
-    echo "hatsu-surface-link: $settings_file is not in the one shape read (JSON.stringify(x, null, 2)) -- could not verify enabledPlugins" >&2
-    exit 1
-  fi
 
   if [ "$is_installed" -eq 1 ] || [ -n "$enb_declared" ]; then
     would_run "claude plugin disable hatsu@hatsu --scope user"
@@ -727,17 +811,10 @@ do_claude_code() {
     fi
   fi
 
-  local known_declared mkt_result mkt_shape mkt_declared
+  local known_declared
   known_declared=0
   if [ -r "$marketplaces_file" ] && grep -qxF '  "hatsu": {' "$marketplaces_file"; then
     known_declared=1
-  fi
-  mkt_result="$(settings_declares_marketplace "$settings_file")"
-  mkt_shape="$(line1 "${mkt_result}")"
-  mkt_declared="$(line2 "${mkt_result}")"
-  if [ "$mkt_shape" != "ok" ]; then
-    echo "hatsu-surface-link: $settings_file is not in the one shape read (JSON.stringify(x, null, 2)) -- could not verify extraKnownMarketplaces" >&2
-    exit 1
   fi
 
   if [ "$known_declared" -eq 1 ] || [ -n "$mkt_declared" ]; then
@@ -886,7 +963,7 @@ do_codex() {
 
   if ! command -v codex >/dev/null 2>&1; then
     echo "hatsu-surface-link: codex is not on PATH" >&2
-    exit 4
+    exit 5
   fi
 
   local mkt_out mkt_root changes
@@ -951,7 +1028,7 @@ do_codex() {
   fi
 
   # WHICH MANIFEST CODEX ACTUALLY KEYS ITS SLOT ON. .codex-plugin/plugin.json
-  # is Hatsu's own Codex overlay, but it did not exist before v0.60.0: a
+  # is Hatsu's own Codex overlay, but it did not exist before v0.62.0: a
   # checkout cut before then has no overlay at all, and Codex reads
   # .claude-plugin/plugin.json instead (there is no other manifest to read).
   # Comparing against an overlay that does not exist would refuse every such
@@ -1034,7 +1111,8 @@ do_antigravity() {
   fi
 
   local changes out rc
-  changes="$(ensure_symlink "$dest" "$target" "surfaces/antigravity")"
+  ensure_symlink "$dest" "$target" "surfaces/antigravity"
+  changes="$ENSURE_SYMLINK_RESULT"
 
   if [ "$dry_run" -eq 1 ]; then
     report "antigravity" "$changes · dry-run" "$dest" "$antigravity_apply"

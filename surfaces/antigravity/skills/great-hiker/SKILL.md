@@ -67,12 +67,13 @@ is authored in the shape [`tenkai`](../tenkai/SKILL.md) set: frontmatter `name` 
 residue, never improvised shell. Prose inside a dieted skill stays under 12,288 bytes and an agent
 under 6,144 (`scripts/prose_size_check.sh`).
 
-**One body, four readers.** Claude Code and Codex read `claude/skills/` first-party, both listing
-`hatsu:<name>`; Cursor and Antigravity read the generated mirror. So a body names a harness tool only
+**One body, four readers.** Claude Code and the Codex plugin read `claude/skills/` first-party, both
+listing `hatsu:<name>`; Cursor, Antigravity and a legacy Codex placement read the generated mirror. So a body names a harness tool only
 through [PROCESS.md](../../../docs/PROCESS.md) § *Surfaces and pickers*, spells every invocation
 `hatsu:<name>` for the generator to respell, builds plugin paths from `$hatsu_root`, keeps frontmatter
 to `name` and `description` within the smallest budget [`SURFACES.md`](../../../docs/SURFACES.md) § 1
-records, and links only into what every install carries. A fact true on one surface is that surface's
+records, and reaches shared policy through `$hatsu_root` ([PROCESS.md](../../../docs/PROCESS.md)
+§ *Standalone entry*), never a relative link a mirror cannot resolve. A fact true on one surface is that surface's
 row, never the rule.
 
 ## 4. Propagate: one generate per surface, then two checks

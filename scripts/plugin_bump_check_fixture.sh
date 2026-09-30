@@ -192,3 +192,23 @@ printf '%s\n' '{"version":"0.16.1"}' > "$fixture_root/tree-codex-absent/.claude-
 run_case 'Codex overlay matching version passes' 0 "$fixture_root/changed-discovery.txt" "$fixture_root/tree-codex-equal/.claude-plugin/plugin.json" 'plugin.json version bumped'
 run_case 'Codex overlay lagging version fails naming both' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/tree-codex-lagging/.claude-plugin/plugin.json" '.codex-plugin/plugin.json version is 0.16.0, .claude-plugin/plugin.json version is 0.16.1'
 run_case 'no Codex overlay at all is not an error' 0 "$fixture_root/changed-discovery.txt" "$fixture_root/tree-codex-absent/.claude-plugin/plugin.json" 'plugin.json version bumped'
+
+# --- a present-but-not-a-regular-file overlay is a FAILURE, never "absent"
+# (Nobunaga; Phinks's note on the same finding): a directory sitting where
+# the manifest should be, and a dangling/broken symlink, both fail naming the
+# problem rather than being read as "no overlay" and passing silently. A
+# misnamed overlay (name != hatsu) is the same existing codex_overlay_check
+# branch as the lagging-version case above, exercised here for the first
+# time. --------------------------------------------------------------------
+mkdir -p "$fixture_root/tree-codex-not-file/.claude-plugin" "$fixture_root/tree-codex-not-file/.codex-plugin/plugin.json"
+printf '%s\n' '{"version":"0.16.1"}' > "$fixture_root/tree-codex-not-file/.claude-plugin/plugin.json"
+mkdir -p "$fixture_root/tree-codex-dangling/.claude-plugin" "$fixture_root/tree-codex-dangling/.codex-plugin"
+printf '%s\n' '{"version":"0.16.1"}' > "$fixture_root/tree-codex-dangling/.claude-plugin/plugin.json"
+ln -s "$fixture_root/tree-codex-dangling/.codex-plugin/nonexistent-target.json" "$fixture_root/tree-codex-dangling/.codex-plugin/plugin.json"
+mkdir -p "$fixture_root/tree-codex-misnamed/.claude-plugin" "$fixture_root/tree-codex-misnamed/.codex-plugin"
+printf '%s\n' '{"version":"0.16.1"}' > "$fixture_root/tree-codex-misnamed/.claude-plugin/plugin.json"
+printf '%s\n' '{"name":"not-hatsu","version":"0.16.1"}' > "$fixture_root/tree-codex-misnamed/.codex-plugin/plugin.json"
+
+run_case 'Codex overlay that is a directory fails, not absent' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/tree-codex-not-file/.claude-plugin/plugin.json" 'exists but is not a regular file'
+run_case 'Codex overlay that is a dangling symlink fails, not absent' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/tree-codex-dangling/.claude-plugin/plugin.json" 'exists but is not a regular file'
+run_case 'Codex overlay with the wrong name fails naming it' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/tree-codex-misnamed/.claude-plugin/plugin.json" 'name is not-hatsu, must be hatsu'

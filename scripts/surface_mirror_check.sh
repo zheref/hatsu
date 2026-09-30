@@ -84,16 +84,22 @@ MANIFEST_FILE=".claude-plugin/plugin.json"
 # The expression every mirrored hook command resolves the plugin root through: the warm-up exports
 # HATSU_PLUGIN_ROOT; the workspace copy is the LAST fallback, never ahead of the plugin root, and
 # Antigravity's global plugin dir is the fallback there (docs/surfaces/antigravity.md). Codex's own
-# fallback chain has a THIRD rung in between the two: Codex now installs Hatsu as a first-party
-# PLUGIN (`codex plugin add hatsu@hatsu`) as well as through the workspace bootstrap, and a Codex
-# plugin hook command is handed PLUGIN_ROOT (the installed plugin root) alongside the documented
-# CLAUDE_PLUGIN_ROOT -- so the explicit export wins first as always, PLUGIN_ROOT resolves a plugin
-# install second, and the placed workspace copy (./.codex) is still the last fallback, never ahead
-# of either plugin root.
+# fallback chain has a THIRD rung in between the two, and PLUGIN_ROOT -- not HATSU_PLUGIN_ROOT -- is
+# checked FIRST there (Feitan, CWE-426: untrusted search path). Codex now installs Hatsu as a
+# first-party PLUGIN (`codex plugin add hatsu@hatsu`) as well as through the workspace bootstrap, and
+# a Codex plugin hook command is handed PLUGIN_ROOT by Codex itself -- the installed slot Codex
+# resolved for THIS invocation, trusted the same way CLAUDE_PLUGIN_ROOT is trusted on Claude Code. An
+# ambient HATSU_PLUGIN_ROOT -- left exported by an unrelated shell, a stale session, or a workspace
+# bootstrap that never unset it -- is an untrusted search path once a plugin hook is actually
+# running: honoring it ahead of PLUGIN_ROOT would let that stray value redirect every one of the
+# hook's script references away from the plugin Codex actually installed. So under the Codex plugin,
+# PLUGIN_ROOT wins outright and HATSU_PLUGIN_ROOT is never consulted; the legacy workspace placement
+# (PLUGIN_ROOT unset, no installed plugin in play) falls through to HATSU_PLUGIN_ROOT exactly as
+# before, then to the placed workspace copy (./.codex) as the last fallback -- unchanged order there.
 hooks_root_for() {
   case "$1" in
     antigravity) printf %s '${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;;
-    codex) printf %s '${HATSU_PLUGIN_ROOT:-${PLUGIN_ROOT:-./.codex}}' ;;
+    codex) printf %s '${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}' ;;
     cursor) printf %s '${HATSU_PLUGIN_ROOT:-./.cursor}' ;;
   esac
 }
