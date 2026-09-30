@@ -737,6 +737,19 @@ prepare_staged_surface() {
           stage_path="$staging/.codex/hooks.json"
           mkdir -p "$(dirname "$stage_path")"
           cp "$hatsu_root/surfaces/codex/hooks.json" "$stage_path"
+          # THE PLACED COPY'S ROOT (CWE-426). The generated mirror resolves
+          # ${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}} so that the Codex
+          # PLUGIN's hooks run the installed slot Codex hands them. A placed
+          # .codex/hooks.json is a project-local hook, and Codex sets no
+          # PLUGIN_ROOT for those, so there the name could only come from the
+          # user's own environment and would outrank the HATSU_PLUGIN_ROOT the
+          # warm-up binds. The placed copy drops it, the way the Antigravity
+          # placement below rewrites its own root; the tracked mirror under
+          # surfaces/ keeps the generated form.
+          tmp_hooks_json="$stage_path.rewrite.$$"
+          sed 's#${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}#${HATSU_PLUGIN_ROOT:-./.codex}#g' \
+            "$stage_path" > "$tmp_hooks_json"
+          mv "$tmp_hooks_json" "$stage_path"
         fi
         # HOOK SCRIPTS, WHICHEVER ONES THE GENERATOR HAS PRODUCED. See
         # hook_scripts's own comment: this is discovered per run, not a fixed set.

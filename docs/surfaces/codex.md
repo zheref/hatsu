@@ -147,7 +147,7 @@ nen surface mirror generate --surface codex \
 | `surfaces/codex/agents/<persona>.toml`, one per persona, `name`, `description`, `developer_instructions`, `model` from the persona's tier | `claude/agents/**` and `nen/workflow.json` |
 | `surfaces/codex/config.toml`, the pack: `approval_policy`, `sandbox_mode`, `writable_roots` | `contracts/permissions.json` |
 | `surfaces/codex/config.toml.fragment`: `[agents]` with `default_subagent_model` only, from the matrix row | `nen/workflow.json` |
-| `surfaces/codex/hooks.json`: `SessionStart`, `PreToolUse`, `Stop`, rooted at `${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}` — the installed slot Codex hands a plugin hook first, then the export, then the placed copy — so one file serves the plugin (named by the overlay) and the legacy placement, and a plugin hook never runs a live-checkout or working-directory script (Feitan, CWE-426) | `hooks/hooks.json` |
+| `surfaces/codex/hooks.json`: `SessionStart`, `PreToolUse`, `Stop`, rooted at `${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}` — the installed slot Codex hands a plugin hook first, then the export, then the placed copy — so a plugin hook (named by the overlay) never runs a live-checkout or working-directory script (Feitan, CWE-426). The legacy placement is a project-local hook, which Codex never hands a `PLUGIN_ROOT`, so `surface_bootstrap.sh` places it rewritten to `${HATSU_PLUGIN_ROOT:-./.codex}`: a stray `PLUGIN_ROOT` in the user's environment cannot redirect it | `hooks/hooks.json` |
 
 Marker, first markdown line after the frontmatter fence, line 1 in `AGENTS.md` and the TOML files:
 
