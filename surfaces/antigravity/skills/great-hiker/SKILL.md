@@ -49,10 +49,10 @@ prose first so the machinery reads the wording it must carry.
 How a subsession is raised, per surface, is [`hanten`](../hanten/SKILL.md) § 4 and § 7 (a surface that
 is not Claude Code) and [`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *The matrix, per surface*, and
 none of it is restated here. What is this skill's: which tier each kind runs on, prose on a Fable
-subsession at the effort above (on Claude Code the `fable` alias in `model`, the effort in the prompt)
-and machinery on `models.claude.fast`, and the effort heuristic itself. The title is
-`great-hiker · kurapika · <alias>`. A missing tool or model id is resolved by `nen shu tools --install`
-(row `missing-tool`), never with elevation.
+subsession at the effort above (on Claude Code `fable`; on Antigravity `pro` via `invoke_subagent`)
+and machinery on `models.<surface>.fast` (Sonnet on Claude, `flash` on Antigravity), and the effort
+heuristic itself. The title is `great-hiker · kurapika · <alias>`. A missing tool or model id is
+resolved by `nen shu tools --install` (row `missing-tool`), never with elevation.
 
 ## 3. Author in the canonical source
 

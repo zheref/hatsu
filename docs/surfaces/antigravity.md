@@ -66,8 +66,8 @@ transcripts are captured per step in `<appDataDir>/brain/<conversation-id>/.syst
 | what the generator writes | `model` from the persona's own Claude alias read back to its tier (`--source-surface claude`) and mapped to this row's alias (`opus` → `pro`, `sonnet` and `haiku` → `flash`); an alias outside `inherit`, `flash`, `pro` is emitted and named under `undocumentedAliases`; `commandExecutionPolicy` left at the default, because a persona-wide `auto` would approve arbitrary commands rather than the declared set |
 
 `ultra` is a matrix alias the persona key does not admit: the orchestrator tier never runs a subagent. In-session delegation is
-`invoke_subagent` with `Workspace` `inherit`, `branch` (an isolated worktree, Hanten's reviewers) or
-`share`. For `en`'s long watch, `en · illumi` can be raised on the fast tier (`flash`) with `Workspace` `inherit`.
+`invoke_subagent` with `Workspace` `branch` (isolated worktree — mandatory for all autonomous feature authoring, parity implementations, and Hanten reviewers), `inherit` (read-only long watch e.g. `en · illumi`, or in-context reporting e.g. Third-Hand's Netero), or `share`. All Hatsu-specific development efforts on Antigravity run in separate worktrees (`Workspace: "branch"`) unless explicitly instructed otherwise by the maintainer; the core checkout is reserved for the primary IDE and `/amaterasu`.
+
 
 ## 4. Hooks
 
@@ -195,10 +195,37 @@ nen surface mirror check --surface antigravity <same flags> --installed ~/.gemin
 - Whether the `ultra` tier can be named anywhere but the main session.
 - An update or reload action for the IDE or for a global plugin: the plugins page documents `agy plugin` install, uninstall, enable, disable and list, and no update; whether a running IDE conversation sees a changed global plugin is not stated. The CLI's own staging path is documented as `~/.gemini/antigravity-cli/plugins/<name>/` while `agy` 1.0.6 installs into `~/.gemini/config/plugins/` (evidence § 10 F8); Hatsu links only the latter, which the IDE reads and `agy` 1.0.6 installs into; a CLI session loading it was not observed.
 
-## 11. How this guide evolves
+## 11. Subagent delegation and Mukai lifecycle discipline
+
+Antigravity executes autonomous subagents via the `invoke_subagent` tool. In Hatsu, delegated subagents must strictly adhere to the standard protocol lifecycle rather than cutting corners or improvising toolchains.
+
+### 11.1 Worktree isolation by default and delegation
+1. **Isolated Worktrees by Default**: By default, all authoring, implementation, and PR delivery tasks—both those delegated to subagents and those run directly by the lead session—MUST execute in separate, isolated git worktrees.
+   - **Subagents**: MUST be invoked with `Workspace: "branch"` (or `"share"` when sharing underlying objects without duplicating storage). Spawning builder subagents on `Workspace: "inherit"` is strictly forbidden as it risks concurrent dirtying of the core worktree. Reviewers (`hanten`) and read-only observers (`izanami`, `en · illumi`) may use `inherit`.
+   - **Lead Session Direct Tasks**: When the lead persona (Kurapika) executes authoring tasks directly rather than delegating, it must provision a dedicated worktree (`git worktree add <dir> <branch>` or `amenotejikara`) and operate within that directory, leaving the core checkout parked on the trunk (`main`).
+2. **Maintainer Waiver for Core Checkout**: Working directly in the core checkout is permitted ONLY when the human maintainer explicitly states so in prose in the prompt (e.g. "work on the core checkout", "in-place", etc.). In the absence of an explicit maintainer instruction, an agent must never branch, edit, or commit in the core checkout.
+3. **Canonical Lifecycle in Subagents**: A subagent tasked with delivering a feature, bugfix, or CI configuration must run the full Hatsu sequence:
+   - `ren`: author changes and locally verify them.
+   - `aka`: publish branch to remote (`nen wc publish --set-upstream`).
+   - `mukai`: execute all 10 composite phases: `/murasaki` catch-up, pre-PR `/hanten` adversarial review with settled findings, `/kokusen` local verification checkpoint, `/kotoamatsukami` impacted tests, `/byakugan` coverage bar, `/shibari` 9-part body from `templates/pr-body.md` validated via `nen pr body-check` and `pr_body_evidence_check.sh`, and `/spiritual-message as landing`.
+   - `/en`: drive the pull request through required CI and review to verified readiness (`nen pr ready` exit 0).
+4. **Never Jump Past Mukai**: A subagent must NEVER be instructed or allowed to run raw `gh pr create` or bypass Mukai's review, test, and evidence checks.
+
+### 11.2 Gemini-based model characteristics and prompt discipline
+Antigravity agents are backed by Google Gemini models (`pro`, `flash`). Effective delegation on this surface requires explicit prompt construction:
+1. **Explicit Negative Boundaries**: Gemini models respond with high fidelity to clear negative constraints. Every delegation prompt MUST explicitly forbid:
+   - Raw `gh pr create` or direct manual git push without `nen wc publish`.
+   - Single-line commit messages or commits without descriptive message bodies.
+   - Committing scratch files (`.txt`), patch files (`.patch`), or merge leftovers (`.rej`, `.orig`).
+   - Claiming readiness without quoting `nen pr ready` exit 0.
+2. **Multi-line Conventional Commits Bodies**: Every commit must carry a Conventional Commits header (<= 72 chars), a descriptive paragraph body explaining context and rationale, and the canonical `Hatsu-Agent: <persona>` trailer.
+3. **Staging Hygiene**: Before committing, subagents must perform staging triage (`git status`, `nen stage triage`) to stage only tracked deliverables. Blind staging (`git add .` or `git add -A`) is strictly forbidden.
+
+## 12. How this guide evolves
 
 `hatsu:great-hiker` re-fetches the ten URLs above, diffs every quoted line, and files one Netero-shaped
 issue for this surface when one moved, naming the row, the generator rule (`src/surface/rules.ts` in
 nen), the hooks resolver and the warm-up section. The retirement date for workflows is the first dated
 row this set carries; the pass after 2026-11-01 removes the workflows rows and the back-compat note
 when the page does.
+
