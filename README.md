@@ -890,7 +890,7 @@ apart is what keeps the second class of mistake visible.
   Claude Code settings so the harness stops adding `Co-Authored-By:`. Enforcement is **three-layered, and at the
   pinned build the third layer is the binary's**: (a) `kokusen` and `aka` refuse to **write** such a
   trailer — agent-side, and it is what Hatsu itself carries; (b) the **target repository's `commit-msg`
-  hook**, which `nen scaffold init` generates from `commits.allowedAttributionTrailers` (KroApple and
+  hook**, which `nen scaffold init` generates from `commits.allowedAttributionTrailers` (`<product-repo-A>` and
   kro-pwa carry one) — and from nen `v0.6.0` that hook's automated half is **derived from the repository's
   own policy**, requiring the one key `--agent-trailer` resolved to plus the optional `commits.runTrailer`,
   rather than a fixed pair; (c) **`nen commit format --repo`** and **`nen wc squash`** refusing the trailer

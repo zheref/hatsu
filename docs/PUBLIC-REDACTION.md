@@ -66,6 +66,14 @@ they are the evidence's internal cross-references.
   agent conventions live there since 2026-09-28 (`CON-13`), it is named directly and never placeheld, and
   the tag Hatsu reads is pinned in `nen/repos.json` (`maintained_tools` → `pinned`). Readers can open every
   one of these.
+- **Product names and app identifiers** — the `Kro` product, its bundle id `io.zheref.kro`, and
+  simulator names in transcripts. The product is public through `zheref/kro-pwa`, and this policy
+  redacts *repositories*: the private repositories behind the product are placeheld
+  (`<product-repo-A>`, `<product-repo-B>`), the product they ship is not.
+- **The predecessor generator's marker**, `<!-- GENERATED from bankai-core@`, where `hatsu:limbo` and
+  [`docs/ab/limbo.md`](ab/limbo.md) quote it. It is the literal first line of files a consumer
+  still carries, matched byte for byte: a placeholder there would match nothing, and limbo would miss
+  the one file it exists to catch. Everywhere else the predecessor is `<reference-repo>`.
 - **Version tags** (`v0.11.3`), issue and PR *numbers*, dates, and every verdict, count and transcript
   line. Facts stay; names go.
 

@@ -257,7 +257,7 @@ Note also the `port` precondition row above: a new precondition kind at this rel
 connecting to `127.0.0.1:<port>` and destroying the socket, with `expect` **required** out of a closed
 two-member set.
 
-## The Galaxy launch run — 2026-09-10, `zheref/KroAndroid`
+## The Galaxy launch run — 2026-09-10, `<product-repo-B>`
 
 The first time this skill's launch path was run against a **physical** device, with `nen 0.5.0`.
 Three findings land in the skill text; the device-state half of the transcript is in

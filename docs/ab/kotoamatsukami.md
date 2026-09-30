@@ -33,7 +33,7 @@ Every transcript ran against a **constructed throwaway fixture** at `<worktree>/
 hand-written `nen/contract.json` `project` block with three lanes (a runnable `ui-test`, a **seat**, and
 a deliberately red one), a `project.evidence` block, a local `git init` and three commits including three
 re-recorded PNGs — created for this run and deleted before the branch was committed. **No verb was run
-against KroApple, KroAndroid or kro-pwa in any form, and nothing was pushed anywhere.**
+against `<product-repo-A>`, `<product-repo-B>` or kro-pwa in any form, and nothing was pushed anywhere.**
 
 Nothing below is redacted; both repositories are public.
 

@@ -296,7 +296,7 @@ shape does not obviously express.
 **Recorded as an open question for the `0.4.0` resolver**, alongside § 4.2: iOS's `devicectl` returns
 names and identifiers in one JSON document, and Android's `adb` does not. A `resolve` shape that works
 for one may need a `steps:[…]` form — which `project.verbs` already has — for the other. Nothing here is
-broken today; nothing here is declared today either, and KroAndroid's `project.launch` block will be the
+broken today; nothing here is declared today either, and `<product-repo-B>`'s `project.launch` block will be the
 first to find out.
 
 ### 4.4 — Not a finding: the pairing itself has no verb, and must not
@@ -344,7 +344,7 @@ The exact-bytes rule for `device.name` (§ 5) is now nen's own documented behavi
 `nen shu dev` section states from this release that the match is a string comparison with **no Unicode
 normalisation**, so a name macOS writes with U+2019 must be declared with that character.
 
-## The Galaxy pairing run — 2026-09-10, `zheref/KroAndroid`
+## The Galaxy pairing run — 2026-09-10, `<product-repo-B>`
 
 A real pairing-and-launch validation against the maintainer's own Galaxy, with `nen 0.5.0` on `PATH`.
 The full record is the launch-validation transcript; what belongs here is the **state** half, because
