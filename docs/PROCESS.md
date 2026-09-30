@@ -308,9 +308,11 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   never writes); core is resolved the way that verb resolves it (`git rev-parse --git-common-dir`) and
   the report quotes the script's own `core:` line beside the verb's.
 
-**Owned dependencies.** A per-stack `deploy.defaultTarget` in `nen shu detect`'s reference pack, and a
-worktree verb that cuts, moves and prunes one detached worktree at a fixed path, are nen's to add
-(zheref/hatsu#146); until then the two scripts above are the mechanism and are named as such.
+**Owned dependencies.** A worktree verb that cuts, reuses, moves and drops one detached worktree at a
+fixed path, with the core-to-worktree copy ([zheref/nen#299](https://github.com/zheref/nen/issues/299)),
+and `deploy.defaultTarget` validated by pointer with a per-stack default in `nen shu detect`'s reference
+pack ([zheref/nen#300](https://github.com/zheref/nen/issues/300)) are nen's to add (zheref/hatsu#146);
+until then the two scripts above are the mechanism and are named as such.
 
 **Owned dependencies.** `nen commit write` / `nen wc squash` should read back the trailers of the commit they wrote and report an injected key ([zheref/nen#273](https://github.com/zheref/nen/issues/273)); until then the read-back above is prose.
 

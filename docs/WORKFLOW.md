@@ -259,7 +259,8 @@ from** (`typed` or `workflow.json → deploy.defaultTarget`), and it is honoured
 explicitly, so *nen never chooses where a build goes* stays true of nen; the choice lives here, in
 configuration the maintainer wrote. **`null`, or the key absent, is the ask**: an omitted target is
 typed as free text (`missing-maintainer-choice`), exactly as before. Hatsu's own is `null` — a plugin
-declares no deploy target. A per-stack default in `nen shu detect`'s reference pack is nen's to add.
+declares no deploy target. A per-stack default in `nen shu detect`'s reference pack, and validation of this key by pointer, are nen's to
+add ([zheref/nen#300](https://github.com/zheref/nen/issues/300)).
 
 ### `reports`
 
