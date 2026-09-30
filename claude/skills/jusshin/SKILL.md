@@ -75,7 +75,7 @@ nen runner plan --repo <path> --target <t> --pool <id> --machine-code <CODE> --c
 The inventory is read first on every run, so a re-run resumes: standing names are `existing`, and
 `plan` only adds the lowest free slots; `x 0` skips `plan` and § 5. Exit `0` → § 4. `1`: inventory's *"needs
 admin on `<target>`"* is refused, never asked; plan's name-exists,
-count-range or no-download refusal is quoted and the item re-asked. `2`: the declaration (§ 2) or
+or no-download refusal is quoted and the item re-asked. `2`: the declaration (§ 2), a count outside 1..16, or
 *"pass --consumer-code"* (`missing-argument`). `5`: `gh` absent (row `missing-tool`). `mkdir -p
 "<path>/.nen/jusshin"` first.
 
