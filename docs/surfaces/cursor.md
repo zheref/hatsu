@@ -21,6 +21,7 @@ since v0.41.0.
 | headless command | `cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"`, with `grok` resolved live from `cursor-agent models` (newest `cursor-grok-*`, plain `-high`, never `-fast`); a G5 is answered with the same line plus `--resume <chatId>`. The full record is [`evidence/surfaces.md`](evidence/surfaces.md) § 8 and Appendix A |
 | pointing at a local checkout | `surface_bootstrap.sh --surface cursor --target "$HATSU_PLUGIN_ROOT" --install-all` when authoring Hatsu on Cursor, so `.cursor/skills/` links into this `surfaces/cursor/`; otherwise Cursor discovers Claude's versioned cache and serves last-tag prose. **The tree is named, never trusted by itself** (zheref/hatsu#67): inside a Hatsu checkout whose manifest is newer than the bound pin's, `scripts/hatsu_root.sh` keeps the pin and prints the deferral on stderr — the bodies Cursor inlined this session are the pin's; read `<checkout>/claude/skills/<name>/SKILL.md`; the quoted `export HATSU_PLUGIN_ROOT='<checkout>'` binds the tree from the next session. That line exists from the first installed pin that carries it (0.53.0 or later); below it the export is the only form. Whether `.cursor/skills/` then outranks the Claude cache Cursor also discovers is § 10's open gap |
 | commit attribution | Cursor appends `Co-authored-by: Cursor <cursoragent@cursor.com>` at `git commit` time; turn it off before the first commit — Cursor Settings → Git & Pull Requests → *Commit Attribution*, or `attribution.attributeCommitsToAgent: false` in `~/.cursor/cli-config.json` (§ 9, forum-sourced, not verified live; [`docs/WORKFLOW.md`](../WORKFLOW.md) § `commits`, zheref/hatsu#66); `kokusen` § 5 reads the written tip back and `aka` § 7 every outgoing commit before the push and stop on an attribution key (a key ending `-by`/`-with`, or listed in `forbiddenTrailers`; `Closes` is ordinary) outside `allowedAttributionTrailers` |
+| update and activation | `hatsu:bakuryuha`: the updater fast-forwards `$HATSU_PLUGIN_ROOT`, the `.cursor/skills/` links already follow it, and the new `ten` repairs links and places any new name; the running chat keeps the skill list it started with, a new chat gets the updated set (forum-sourced), and a restart or **Developer: Reload Window** is the documented form; hooks reload on save (§ 9) |
 | minimum build | `cursor-agent 2026.01.*`: the CLI changelog dates skills, rules and commands in the CLI to January 2026, and `2025.09.18-39624ef` saw no skills at all (evidence § 8 F2). The changelog groups by month, so the floor is a month; compare the date part of `cursor-agent -v` |
 
 **Symlinks are honest here.** On `2026.09.08-6caf4ff` a symlink inside the workspace, one pointing
@@ -50,7 +51,7 @@ Claude Code plugin skills, `build` and `drive` among them (evidence § 8 F4). Th
 inferred, not proven: two probes could not tell two rival `build` entries apart because the surviving
 descriptions are too short. The warm-up lists every name already standing under `.cursor/skills/`
 before it installs anything and says that a host-level collision it cannot see may still win. Hatsu
-claims forty-four ordinary words at once, `build`, `file`, `en`, `ao`, `ren`, `breath` among them.
+claims forty-six ordinary words at once, `build`, `file`, `en`, `ao`, `ren`, `breath` among them.
 
 **Do not shorten a description to fit thirty characters.** Asked for the length of `build`'s
 description, a session answered "30 characters long"; the description dies inside its first clause, and
@@ -123,7 +124,7 @@ nen surface mirror generate --surface cursor \
 
 | emits | from |
 |---|---|
-| `surfaces/cursor/<name>/SKILL.md`, 45 files (forty-four plus `ten`), frontmatter reduced to the documented keys, `hatsu:<name>` respelled `/<name>` | `claude/skills/**` |
+| `surfaces/cursor/<name>/SKILL.md`, 47 files (forty-six plus `ten`), frontmatter reduced to the documented keys, `hatsu:<name>` respelled `/<name>` | `claude/skills/**` |
 | `surfaces/cursor/agents/<persona>.md`, 12 files (eleven personas plus the preamble include), `model: inherit` | `claude/agents/**`, `nen/workflow.json` |
 | `surfaces/cursor/.cursor/rules/hatsu.mdc` | the surface row and the matrix |
 | `surfaces/cursor/.cursor/cli.json` | `contracts/permissions.json` |
@@ -165,6 +166,10 @@ bash scripts/surface_mirror_check.sh "$HATSU_PLUGIN_ROOT"   # source vs surfaces
 | option picker | the ask question tool | "instructing them to \"use the ask question tool.\"" | https://cursor.com/changelog/2-4 | 2026-09-20 |
 | option picker over ACP | `cursor/ask_question`, blocking | "Blocking methods (cursor/ask_question, cursor/create_plan): The agent waits for a response" | https://cursor.com/docs/cli/acp | 2026-09-20 |
 | skills in the CLI | January 2026 | "Skills, rules, and commands in the CLI" (January 2026 entry) | https://cursor.com/docs/cli/changelog | 2026-09-20 |
+| when skills are discovered | at start | "When Cursor starts, it automatically discovers skills from skill directories and makes them available to Agent." | https://cursor.com/docs/context/skills | 2026-09-29 |
+| the documented reload | restart, or Reload Window | "Restart Cursor, or run **Developer: Reload Window**." (the local-plugin steps) | https://cursor.com/docs/plugins | 2026-09-29 |
+| hooks after an edit | reloaded on save | "Cursor watches hooks config files and reloads them automatically." | https://cursor.com/docs/agent/hooks | 2026-09-29 |
+| a chat's skill list | fixed per chat, forum-sourced (staff) | "So an existing chat will keep seeing the old set of skills, while a new chat will get the updated set." | https://forum.cursor.com/t/165124 | 2026-09-29 |
 
 ## 10. Known gaps (not documented)
 
@@ -174,11 +179,12 @@ bash scripts/surface_mirror_check.sh "$HATSU_PLUGIN_ROOT"   # source vs surfaces
   its answer (evidence § 8), so give a headless run a timeout.
 - The `--resume` path in anger: no G5 fired in the recorded run.
 - The commit-attribution off-switch: forum-sourced only; a forum report (https://forum.cursor.com/t/local-executor-ignores-cli-config-attribution-opt-out-forcing-co-authored-by-trailer/167722) says the SDK local executor ignores `attributeCommitsToAgent: false`, and a second trailer `Made-with: Cursor` is reported (https://forum.cursor.com/t/allow-disabling-made-with-cursor-commit-trailer/154494) — the `kokusen`/`aka` read-back stops on any key outside `allowedAttributionTrailers` for that reason; whether the injection reaches a nen verb's child `git commit` is unobserved (zheref/hatsu#66).
+- Whether a running chat reads a linked skill's changed body when it is invoked again; the pages document discovery at start only, and `hatsu:bakuryuha` § 5 reads the body from disk rather than assume it.
 - Whether `.cursor/skills/` linked into a checkout outranks the Claude plugin cache Cursor also discovers (zheref/hatsu#67's first criterion): unverified — no Cursor on the authoring host.
 
 ## 11. How this guide evolves
 
-`hatsu:great-hiker` re-fetches the seven URLs above, diffs every quoted line, and files one Netero-shaped
+`hatsu:great-hiker` re-fetches the eleven URLs above, diffs every quoted line, and files one Netero-shaped
 issue for this surface when one moved, naming the row, the generator rule (`src/surface/rules.ts` in
 nen), the pack renderer and the warm-up section. The description-budget gap is the one to close first:
 a measurement against a varying skill count on a host with no other plugins.

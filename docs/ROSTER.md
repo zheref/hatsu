@@ -111,6 +111,11 @@ pull request.** Five phases are the maintainer's to call, and **no agent ever pr
 ephemeral automated UI tests. It crosses no gate and is **never automatic and never called from a
 composite** (ruling of 2026-09-19); the skill refuses a composite invocation mechanically.
 
+**Nor is [`bakuryuha`](../claude/skills/bakuryuha/)** — bringing this host's own Hatsu to the newest
+release its channel offers and switching the running surface onto it. It crosses no gate and writes no
+repository's history; the one step a surface keeps for a human (`/reload-plugins` on Claude Code) is
+handed over, never performed.
+
 **Only a genuine G5 (`CON-47`) interrupts the maintainer, and there are five**: red required tests, touched-
 file coverage under the ladder's `minimum`, a *semantic* merge conflict, an unsettled adversarial finding, and
 a stuck-PR escalation. A stop is `nen stop`'s banner, the report link, options with ⭐ on the recommendation,

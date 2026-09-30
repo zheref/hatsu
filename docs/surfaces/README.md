@@ -52,7 +52,7 @@ nen surface mirror generate --surface <codex|cursor|antigravity> \
   --rules claude/rules/hatsu.md --source-surface claude \
   --hooks-root <root expression> --manifest .claude-plugin/plugin.json --stamp <plugin version>
 ```
-`--hooks-root` is the expression every mirrored hook command resolves the plugin root through: `${HATSU_PLUGIN_ROOT:-./.codex}` on Codex, `${HATSU_PLUGIN_ROOT:-./.cursor}` on Cursor and `${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}` on Antigravity (the plugin root first, the placed workspace copy as the last fallback, never ahead of it); the hook scripts travel with the manifest under `hooks/` and are placed beside it. `--manifest` writes Antigravity's `plugin.json` from the Claude plugin manifest. `--source-surface claude` names the row of `models` whose aliases the canonical personas carry (`model: opus`, `sonnet`, `haiku`), so the generator reads each alias back to its tier before mapping it to the target surface's alias.
+`--hooks-root` is the expression every mirrored hook command resolves the plugin root through: `${HATSU_PLUGIN_ROOT:-${PLUGIN_ROOT:-./.codex}}` on Codex (`PLUGIN_ROOT` is what Codex hands a plugin hook, so the one generated file serves the Hatsu plugin and the legacy placement), `${HATSU_PLUGIN_ROOT:-./.cursor}` on Cursor and `${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}` on Antigravity (the plugin root first, the placed workspace copy as the last fallback, never ahead of it); the hook scripts travel with the manifest under `hooks/` and are placed beside it. `--manifest` writes Antigravity's `plugin.json` from the Claude plugin manifest. `--source-surface claude` names the row of `models` whose aliases the canonical personas carry (`model: opus`, `sonnet`, `haiku`), so the generator reads each alias back to its tier before mapping it to the target surface's alias.
 
 
 `nen surface mirror check` takes the same flags and writes nothing; with `--installed <path>` it diffs a
@@ -78,7 +78,7 @@ destination keeps it tracked and an `ln -sfn` or `rm -rf` over it destroys a fil
 Nothing there: create it. A previous Hatsu install (a symlink into `<hatsu root>/surfaces/`, or a
 directory whose `SKILL.md` carries the marker above): replace it. Anything else, and a tracked path is
 always anything else: leave it untouched, install nothing under that name, and name it in the report. A
-skipped name is reported, never swallowed; the warm-up would rather place forty of forty-four and say
+skipped name is reported, never swallowed; the warm-up would rather place forty of forty-six and say
 so than overwrite one file it did not write.
 
 ```sh
@@ -134,6 +134,20 @@ checkout is what `claude plugin update` compares against (zheref/hatsu#118). Unt
 block a trunk fast-forward: only tracked changes read as dirty, and git itself refuses a fast-forward
 that would overwrite one. It never discards, never force-updates and never touches an authoring
 branch. Fixture: `scripts/hatsu_plugin_update_fixture_check.sh`.
+
+**The first-party installs** (from v0.62.0) change what "the source" is: Claude Code's
+`~/.claude/skills/hatsu` link and Antigravity's global plugin link name the checkout itself, so
+`--claude` fast-forwards the linked checkout and never runs `claude plugin update`, and naming a
+shadowing `hatsu@hatsu` is its only Claude Code step; Codex copies, so `--codex` fast-forwards the
+marketplace checkout (or upgrades a Git snapshot) and re-adds `hatsu@hatsu`. Git never runs in a
+surface's plugin cache, even one Codex copied a `.git` into.
+
+**Switching the running surface onto the update** is `hatsu:bakuryuha`'s: the first-party install made
+where a legacy form stood (`scripts/hatsu_surface_link.sh`), the same updater without `--auto` (a skip
+becomes a refusal it asks about), the new version's `ten` run from disk, the served version read back,
+and a **Next** block that tells the maintainer what to type or open. What each surface switches, and
+when, is its guide's § 1 *update and activation* row, quoted in its § 9; a surface whose guide quotes
+no switch is claimed only for the next launch.
 
 ## How the set evolves
 

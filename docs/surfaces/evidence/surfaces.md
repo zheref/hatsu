@@ -1316,6 +1316,121 @@ hostile path. Both mirrors regenerate clean, the fenced-block check reports zero
 
 ---
 
+## 10. First-party installs, verified live — 2026-09-29
+
+Run by `hatsu:great-hiker` for `hatsu:bakuryuha` on the maintainer's machine, **every CLI against a
+throwaway home** (`CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `HOME` under the session scratchpad, written `$S`
+below) and a detached worktree of `origin/main` at v0.59.0 standing in for the checkout (`$S/hatsu-copy`).
+The maintainer's own `~/.claude`, `~/.codex` and `~/.gemini` were not touched. Builds: `claude` 2.1.284
+(the desktop app bundles 2.1.281), `codex-cli 0.154.0`, `agy` 1.0.6.
+
+### 10.1 Claude Code — a local-directory marketplace copies; a skills-directory link does not
+
+**F1. The documented in-place load does not happen for Hatsu's shape.** `plugins/loading` says a
+relative-path plugin of a local-directory marketplace "loads in place"; a fresh install copies it:
+
+```text
+$ CLAUDE_CONFIG_DIR=$S/cc-home claude plugin marketplace add $S/hatsu-copy
+✔ Successfully added marketplace: hatsu (declared in user settings)
+$ CLAUDE_CONFIG_DIR=$S/cc-home claude plugin install hatsu@hatsu
+✔ Successfully installed plugin: hatsu@hatsu (scope: user)
+$ CLAUDE_CONFIG_DIR=$S/cc-home claude plugin list --json
+{"id": "hatsu@hatsu", "version": "0.59.0", ..., "installPath": "$S/cc-home/plugins/cache/hatsu/hatsu/0.59.0"}
+```
+
+The cache slot is a real copy (`ls -la` shows directories and files, no links). The maintainer's own
+install, recorded 2026-09-25, loads `~/.claude/plugins/cache/hatsu/hatsu/0.49.0` the same way.
+
+**F2. A symlink under `skills/` loads the checkout in place.** A plugin directory saved under
+`~/.claude/skills/` is a skills-directory plugin, and "the directory loads in place and is never
+copied" (`plugins/loading`). A link is accepted and its path is what loads:
+
+```text
+$ ln -sfn $S/hatsu-copy $S/cc-home2/skills/hatsu
+$ CLAUDE_CONFIG_DIR=$S/cc-home2 claude plugin list --json
+{"id": "hatsu@skills-dir", "version": "0.59.0", "scope": "user", "enabled": true, "installPath": "$S/cc-home2/skills/hatsu"}
+$ CLAUDE_CONFIG_DIR=$S/cc-home2 claude plugin list
+Skills-directory plugins (.claude/skills/*):
+  ❯ hatsu@skills-dir
+    Version: 0.59.0
+    Status: ✔ loaded
+```
+
+**F3. An installed marketplace copy shadows the link; uninstalling it hands over.** With both present:
+
+```text
+hatsu@hatsu True cache/hatsu/hatsu/0.59.0 None
+hatsu@skills-dir False ['Not loaded — the name "hatsu" is already taken by an installed plugin (hatsu@hatsu), which takes precedence. ...']
+$ claude plugin uninstall hatsu@hatsu        → ✔ Successfully uninstalled plugin: hatsu (scope: user)
+$ claude plugin marketplace remove hatsu     → ✔ Successfully removed marketplace: hatsu
+hatsu@skills-dir True skills/hatsu None
+```
+
+`scripts/hatsu_surface_link.sh --surface claude-code` performs exactly this, and reads the result back.
+
+**F9. On the maintainer's own host, a declared marketplace brought the copy back** (2026-09-29, the
+desktop app's build 2.1.281). The switch above ran there and read back green; a later `/reload-plugins`
+reported `1 error during load`, and `claude plugin list --json` showed `hatsu@hatsu` reinstalled at
+0.61.0 with `hatsu@skills-dir` `Not loaded — the name "hatsu" is already taken`. `~/.claude/settings.json`
+declared `extraKnownMarketplaces.hatsu` as a **git** source while `known_marketplaces.json` held the
+**directory** one, plus `enabledPlugins["hatsu@hatsu"]: true`; `marketplace remove hatsu` had removed only
+the known entry, and the loading page says what followed — a marketplace "that settings declare but
+`known_marketplaces.json` lacks: Claude Code clones it, then reloads plugins and downloads enabled plugins
+that aren't cached yet". What held: `claude plugin disable hatsu@hatsu --scope user`, `claude plugin
+uninstall hatsu@hatsu`, then `claude plugin marketplace remove hatsu` again, after which settings carried
+neither key. The script now clears the declarations too, and reads them back. An isolated home had no
+declarations, which is why F3 did not show it.
+
+### 10.2 Codex — Hatsu's own marketplace, installed as a plugin
+
+**F4. Codex reads `.claude-plugin/marketplace.json` as it stands** (the "legacy-compatible marketplace" of
+the plugin build guide) and lists every skill under the plugin namespace, the spelling the canonical
+bodies already use:
+
+```text
+$ CODEX_HOME=$S/codex-home codex plugin marketplace add $S/hatsu-copy
+Added marketplace `hatsu` from $S/hatsu-copy.
+$ codex plugin add hatsu@hatsu
+Installed plugin root: $S/codex-home/plugins/cache/hatsu/hatsu/0.59.0
+$ codex debug prompt-input "hi"      # the skills list, abridged
+- hatsu:aka: Send the branch out — ... (file: r1/aka/SKILL.md)
+  ... 45 names, hatsu:aka through hatsu:tsukuyomi
+```
+
+**F5. A `.codex-plugin/plugin.json` overlay becomes the manifest.** With one present Codex took its
+`version`, and discovered **0** skills until the overlay declared `"skills": "./claude/skills/"`; with it,
+45 again. Hatsu's overlay therefore carries `skills`, and `hooks: ./surfaces/codex/hooks.json` (the
+generated Codex hooks; "Legacy packages can declare `hooks` directly in `.codex-plugin/plugin.json`").
+
+**F6. A newer source is not noticed until the plugin is added again.** After the source moved to 0.59.1,
+`codex plugin list` still read `0.59.0`; `codex plugin add hatsu@hatsu` installed `0.59.1` and the old slot
+was gone. `scripts/hatsu_plugin_update.sh --codex` re-adds after every update.
+
+**F7. Codex copies the whole plugin root**, `.git` and git-ignored directories included: a probe
+`.claude/worktrees/wt1/` and `Reports/` both appeared in the slot. The maintainer's core checkout, with
+its worktrees, is about 95 MB. A GitHub source (`codex plugin marketplace add zheref/hatsu`) snapshots a
+clean clone instead (16 MB, root under `$CODEX_HOME/.tmp/marketplaces/hatsu`, refreshed by
+`codex plugin marketplace upgrade`); a `file://` URL is refused ("invalid marketplace source format").
+Hatsu keeps the local checkout, the maintainer's ruling for every surface, and names the size.
+
+### 10.3 Antigravity — the global plugin link, and what `agy plugin install` does instead
+
+**F8. `agy plugin install <dir>` copies** into `~/.gemini/config/plugins/hatsu` and records it in
+`~/.gemini/config/import_manifest.json` (`"source": "local-install"`) — the same directory the IDE's
+global plugin link already occupies on this host, so it is never run over that link.
+`agy plugin validate surfaces/antigravity` reads the generated plugin:
+
+```text
+[ok]    surfaces/antigravity
+        ✔ skills      : 45 processed
+        ✔ agents      : 12 processed
+        ✔ hooks       : 3 processed
+```
+
+`agy plugin list` answers `No imported plugins.` for a linked plugin: it lists the import manifest. The
+plugins page is the claim that a folder placed in `~/.gemini/config/plugins/` "activates across all
+workspaces"; no live session was run to watch the CLI load it.
+
 ## Appendix A. Headless validation runs, per surface, moved from `docs/SURFACES.md` § 5 on 2026-09-20
 
 The hub keeps one command line per surface; the reasoning behind each flag lives here, cited to the

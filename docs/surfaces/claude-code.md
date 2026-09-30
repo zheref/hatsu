@@ -1,7 +1,8 @@
 # Claude Code
 
 Claude Code is the surface Hatsu is authored for. Nothing is generated for it: the plugin under
-`claude/` is the canonical copy, and every other surface is a mirror of it. This guide records what the
+`claude/` is the canonical copy, read in place from the maintainer's own checkout (§ 1), and Codex reads
+the same skills through its own plugin install. This guide records what the
 harness documents about the files that copy consists of, so that a change to a frontmatter key, a hook
 event or a permission rule is made against a quoted line and not a memory.
 
@@ -9,24 +10,27 @@ event or a permission rule is made against a quoted line and not a memory.
 
 | | |
 |---|---|
-| how Hatsu arrives | `claude plugin install hatsu@hatsu` after `claude plugin marketplace add <path or repo>`; the loader copies the tree into `~/.claude/plugins/cache/hatsu/hatsu/<plugin.json version>/` |
+| how Hatsu arrives | **in place**: `~/.claude/skills/hatsu` is a link to the maintainer's checkout, loaded as `hatsu@skills-dir` with nothing copied (`scripts/hatsu_surface_link.sh --surface claude-code`, § 9). The marketplace route, `claude plugin install hatsu@hatsu` after `claude plugin marketplace add <path or repo>`, copies the tree into `~/.claude/plugins/cache/hatsu/hatsu/<version>/` even from a local directory, and an installed `hatsu@hatsu` shadows the link: it is the legacy form `hatsu:bakuryuha` § 3 migrates |
 | manifest | `.claude-plugin/plugin.json` (`skills`, `agents`, `commands`, `hooks` by convention) |
-| skills read from | `$CLAUDE_PLUGIN_ROOT/claude/skills/<name>/SKILL.md` (`plugin.json` → `"skills": "./claude/skills/"`) |
+| skills read from | `$CLAUDE_PLUGIN_ROOT/claude/skills/<name>/SKILL.md` (`plugin.json` → `"skills": "./claude/skills/"`); with the link, `$CLAUDE_PLUGIN_ROOT` is `~/.claude/skills/hatsu` and the file is the checkout's own |
 | personas read from | `claude/agents/<persona>.md`, listed one by one under `plugin.json` → `agents` |
 | hooks read from | `hooks/hooks.json` at the plugin root, active while the plugin is enabled |
 | permissions | `.claude/settings.local.json` in the target checkout (the pack), never a plugin file |
 | invocation spelling | `hatsu:<name>` |
 | headless command | `claude -p "<prompt>"` in the target checkout with the plugin enabled |
-| pointing at a local checkout | `claude plugin marketplace add "$HATSU_PLUGIN_ROOT"` then `claude plugin install hatsu@hatsu`; after a version bump, `claude plugin update hatsu@hatsu -y` and a restart. Confirm `claude plugin list` shows this tree's `version` |
+| pointing at a local checkout | the link above is the local checkout: `"$HATSU_PLUGIN_ROOT/scripts/hatsu_surface_link.sh" --surface claude-code --root "$HATSU_PLUGIN_ROOT"`. A new commit there is served at the next `/reload-plugins` or session, with no version bump and no `claude plugin update`; `claude plugin list --json` shows `hatsu@skills-dir` and the link as `installPath` |
+| update and activation | `hatsu:bakuryuha`: § 3 retargets a cache install onto the link, § 4 fast-forwards the linked checkout (`hatsu_plugin_update.sh --claude`), the new `ten` runs from disk, and `installPath` is read back; the switch is `/reload-plugins` **typed by the human** or the next session, never an app restart (§ 9) |
 
-The versioned cache is a copy, not a checkout: editing `$HATSU_PLUGIN_ROOT` changes nothing a running
-session reads until the plugin is updated. There is no mirror to drift-check on this surface
-(zheref/hatsu#106): `ten` § 5 records `mirrors: not applicable` and places the permission pack only.
-What keeps the two apart is `ten` § 4b — `scripts/hatsu_plugin_update.sh --auto --claude` brings the
-marketplace's Directory source current first when it is a clean git checkout on its trunk, says in its
-report line why it could not (an authoring branch, a diverged trunk, tracked changes), and only then
-runs `claude plugin update hatsu@hatsu -y`, so "already at the latest version" is never a bare claim
-(zheref/hatsu#118).
+**Whatever the linked checkout holds is what Claude Code serves**, at the next reload or session: a
+feature branch, a swap `hatsu:amenotejikara` made in core, uncommitted edits. So the checkout stays on its
+trunk, and the updater never moves an authoring branch; it says which branch is served instead. There is
+no mirror to drift-check on this surface (zheref/hatsu#106): `ten` § 5 records `mirrors: not applicable`
+and places the permission pack only. `ten` § 4b runs `scripts/hatsu_plugin_update.sh --auto --claude`,
+which fast-forwards the linked checkout, never runs `claude plugin update` for it, and names a shadowing
+`hatsu@hatsu`; on a host still on the cache it keeps the #118 path, the marketplace source first. An
+update reaches the running session only through `/reload-plugins`, which the human types, or a new
+session; until then `hatsu:bakuryuha` § 6 follows the new skill bodies from the checkout, and hooks and
+personas stay the loaded version's (§ 9).
 
 ## 2. Skills
 
@@ -130,16 +134,38 @@ generated file.
 | manifest path | `.claude-plugin/plugin.json` | "Manifest \| `.claude-plugin/plugin.json` \| Plugin metadata and configuration (optional)" | https://code.claude.com/docs/en/plugins-reference | 2026-09-20 |
 | manifest keys | `name`, `displayName`, `version`, `description`, `author`, `homepage`, `repository`, `license`, `keywords`, `metadata`, `skills`, `commands`, `agents`, `hooks`, `mcpServers`, `outputStyles`, `lspServers`, `experimental`, `dependencies` | (manifest schema on the page) | https://code.claude.com/docs/en/plugins-reference | 2026-09-20 |
 | plugin layout hooks row | `hooks/hooks.json` | "Hooks \| `hooks/hooks.json` \| Hook configuration" | https://code.claude.com/docs/en/plugins-reference | 2026-09-20 |
+| when an update applies | next session, or `/reload-plugins` | "Update a plugin to the latest version its marketplace offers. The new version loads in your next session, or after you run `/reload-plugins` in a running one." | https://code.claude.com/docs/en/plugins/cli-reference | 2026-09-29 |
+| the running session's layer | loaded at start or last reload | "Changes to settings or to disk don't reach this layer until you run `/reload-plugins` or start a new session." | https://code.claude.com/docs/en/plugins/loading | 2026-09-29 |
+| what `/reload-plugins` switches | skills, agents, hooks, plugin MCP and LSP servers | "Claude Code reloads every active plugin and prints one summary line, `Reloaded: N plugins · N skills · N agents · N hooks · N plugin MCP servers · N plugin LSP servers`" | https://code.claude.com/docs/en/plugins/cli-reference | 2026-09-29 |
+| `/reload-plugins` in the desktop app | from v2.1.260; MCP servers wait | "`/reload-plugins` also runs in sessions without an interactive terminal, such as the desktop app, the Agent SDK, and non-interactive mode with `-p`. Requires Claude Code v2.1.260 or later." · "The reload in those sessions doesn't connect or disconnect plugin MCP servers." | https://code.claude.com/docs/en/plugins/cli-reference | 2026-09-29 |
+| who can run `/reload-plugins` | the human, typed | "the command runs only when you type it into the session yourself, such as in the `-p` prompt or the desktop app's prompt box" | https://code.claude.com/docs/en/plugins/cli-reference | 2026-09-29 |
+| hooks after a mid-session update | the previous path, until reload | "When a copied plugin updates mid-session, hook commands, monitors, MCP servers, and LSP servers keep using the previous version's path." | https://code.claude.com/docs/en/plugins/loading | 2026-09-29 |
+| plugin skills watched live | no; skill directories only | "When you add, edit, or remove a skill under `~/.claude/skills/`, the project `.claude/skills/`, or a `.claude/skills/` inside an `--add-dir` directory, Claude Code picks up the change within the current session, without a restart." | https://code.claude.com/docs/en/skills | 2026-09-29 |
+| local-directory marketplace plugin | loads in place (documented; **not observed** for Hatsu's shape, evidence § 10 F1) | "the plugin loads in place from its path inside the marketplace folder. Your edits to the source directory take effect at the next session start or `/reload-plugins`, and you don't need to increase the version." | https://code.claude.com/docs/en/plugins/loading | 2026-09-29 |
+| version read-back | `claude plugin list --json` → `version`, `installPath` | "`id`, `version`, `scope`, `enabled`, and `installPath` are always present" · "`installPath` \| string \| Directory the plugin loads from" | https://code.claude.com/docs/en/plugins/cli-reference | 2026-09-29 |
+| auto-update for a local marketplace | off by default | "**Off by default**: every other marketplace, including the community marketplace, third-party marketplaces, and local development marketplaces." | https://code.claude.com/docs/en/plugins/install | 2026-09-29 |
+| cloud sessions | no local plugins | "has no plugin browser and doesn't load the plugins you installed on your own machine or the ones your repository's `.claude/settings.json` turns on" | https://code.claude.com/docs/en/plugins/install | 2026-09-29 |
+| skills-directory plugin | loads in place | "`--plugin-dir` and skills-directory plugins: the directory loads in place and is never copied" | https://code.claude.com/docs/en/plugins/loading | 2026-09-29 |
+| its id | `hatsu@skills-dir` | "You saved a plugin directory that has a `.claude-plugin/plugin.json` under `~/.claude/skills/` or the project's `.claude/skills/`" | https://code.claude.com/docs/en/plugins/loading | 2026-09-29 |
+| precedence | an installed marketplace plugin wins | "An installed marketplace plugin. A skills-directory plugin of the same name gets the same `Not loaded` row, naming the installed plugin" | https://code.claude.com/docs/en/plugins/loading | 2026-09-29 |
+| a link under `skills/` | accepted, loads in place (live, not a page) | `hatsu@skills-dir` · `Status: ✔ loaded` · `installPath` = the link; the cache route copies — evidence § 10 F1–F3 | [evidence § 10](evidence/surfaces.md) | 2026-09-29 |
+| a declared marketplace | re-cloned, enabled plugins re-downloaded | "**A marketplace that settings declare but `known_marketplaces.json` lacks**: Claude Code clones it, then reloads plugins and downloads enabled plugins that aren't cached yet" — observed reinstalling `hatsu@hatsu` over the link on the maintainer's host (evidence § 10 F9) | https://code.claude.com/docs/en/plugins/loading | 2026-09-29 |
 
 ## 10. Known gaps (not documented)
 
 - A skill `name` length limit. No page states one; Hatsu's longest is `spiritual-message`.
 - A page for `AskUserQuestion`. The tool is observed in the session's tool set; no URL was fetched.
 - Whether the 1,536-character budget is enforced by truncation or by refusal to load.
+- Why the loading page's in-place claim for a local-directory marketplace does not hold for Hatsu's
+  shape (`"source": "./"`, a pinned `version`): observed copying on 2.1.284 (evidence § 10 F1). Hatsu
+  does not depend on it; the skills-directory link is the install.
+- Whether live `SKILL.md` change detection ("picks up the change within the current session") reaches a
+  skills-directory plugin's nested `claude/skills/` bodies, and what watching a linked checkout that holds
+  `.claude/worktrees/` costs. Not claimed: `hatsu:bakuryuha` names `/reload-plugins` or a new session.
 
 ## 11. How this guide evolves
 
-`hatsu:great-hiker` re-fetches the six URLs above on each pass, diffs every quoted line, and files one
+`hatsu:great-hiker` re-fetches the nine URLs above on each pass, diffs every quoted line, and files one
 Netero-shaped issue for this surface when a line moved: which row, the old line, the new line, and what
 in `claude/`, `hooks/hooks.json` or `scripts/permissions_pack.sh` the change reaches. A key this surface
 stops documenting is removed from the source frontmatter in that issue's PR, never silently.

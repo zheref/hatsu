@@ -40,6 +40,27 @@
 # fast-forwarded there is what `claude plugin update` installs next. That is the
 # trunk channel by design: the trust anchors are that checkout's remote and its
 # branch protection, exactly as for `--channel trunk` on any consumer checkout.
+#
+# THE IN-PLACE LINK TAKES PRIORITY OVER THE CACHE (observed live, 2026-09-29).
+# Claude Code 2.1.284 copies a local-directory marketplace install into
+# plugins/cache/hatsu/hatsu/<version>; a symlink at
+# ${CLAUDE_CONFIG_DIR:-~/.claude}/skills/hatsu onto a Hatsu git checkout loads
+# that checkout IN PLACE as hatsu@skills-dir instead, and an installed
+# hatsu@hatsu SHADOWS it. So --claude checks that link first: when it resolves
+# to a Hatsu git checkout, THAT checkout is what gets brought current — never
+# `claude plugin update`, which only ever compares a versioned cache slot — and
+# the report says whether a shadowing hatsu@hatsu cache install needs
+# retargeting instead (scripts/hatsu_surface_link.sh --surface claude-code).
+# --codex mirrors the same idea for Codex 0.154.0's own `codex plugin add
+# hatsu@hatsu`, which copies the WHOLE plugin root — .git included — into its
+# own cache slot under $CODEX_HOME, by resolving the `hatsu` marketplace root
+# through `codex plugin marketplace list` and bringing THAT current first.
+#
+# A SURFACE'S OWN PLUGIN CACHE IS NEVER GIT-PULLED, even when it carries a real
+# .git (Codex's copy does): any --root whose path runs through a
+# `plugins/cache/` directory is routed straight to the not-a-git-checkout
+# report, naming itself a surface plugin cache, rather than fast-forwarded as
+# if it were the maintainer's own checkout.
 
 set -euo pipefail
 LC_ALL=C
@@ -47,7 +68,8 @@ LC_ALL=C
 usage() {
   cat <<'EOF'
 usage: scripts/hatsu_plugin_update.sh [--root <path>] [--channel auto|trunk|release]
-                                      [--from <branch>] [--auto] [--dry-run] [--claude]
+                                      [--from <branch>] [--auto] [--dry-run]
+                                      [--claude | --codex]
 
 --root      Plugin checkout to update. Defaults to $HATSU_PLUGIN_ROOT, else this
             script's own Hatsu checkout.
@@ -60,11 +82,30 @@ usage: scripts/hatsu_plugin_update.sh [--root <path>] [--channel auto|trunk|rele
 --auto      Warm-up mode: skip (exit 0) when the checkout is not a consumer
             channel, is dirty, diverged, or cannot fetch. Never discards.
 --dry-run   Print the plan; mutate nothing.
---claude    After a git update — or instead of one, when --root is a versioned
-            plugin cache — bring the `hatsu` marketplace's Directory source
-            current when it is a git checkout (or say why it could not be), then
-            run `claude plugin marketplace update` and
-            `claude plugin update hatsu@hatsu -y`. Restart Claude Code to apply.
+--claude    After a git update — or instead of one, when --root is a surface's
+            own plugin cache — refresh what Claude Code serves. When
+            ${CLAUDE_CONFIG_DIR:-~/.claude}/skills/hatsu is a symlink onto a
+            Hatsu git checkout (the in-place `hatsu@skills-dir` install), THAT
+            checkout is what gets brought current instead (never `claude
+            plugin marketplace update` / `claude plugin update` in this case),
+            and the report names whether a cached `hatsu@hatsu` install
+            shadows it (retarget: scripts/hatsu_surface_link.sh --surface
+            claude-code). Otherwise, bring the `hatsu` marketplace's Directory
+            source current when it is a git checkout (or say why it could not
+            be), then run `claude plugin marketplace update` and
+            `claude plugin update hatsu@hatsu -y`. Apply: type /reload-plugins
+            in the running session, or open a new session. Mutually exclusive
+            with --codex.
+--codex     After a git update — or instead of one, when --root is a surface's
+            own plugin cache — resolve the `hatsu` marketplace root from
+            `codex plugin marketplace list`, bring it current (`codex plugin
+            marketplace upgrade hatsu` when Codex manages it under
+            ${CODEX_HOME:-~/.codex}, otherwise a git fast-forward of that
+            checkout, unless it is already --root), then run `codex plugin add
+            hatsu@hatsu` and read back the installed version. Apply: a running
+            Codex session refreshes skills and hooks after an external plugin
+            upgrade (codex-cli 0.154.0); open a new one if it does not.
+            Mutually exclusive with --claude.
 EOF
 }
 
@@ -74,6 +115,7 @@ from_input=""
 auto=0
 dry_run=0
 claude_update=0
+codex_update=0
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -104,6 +146,10 @@ while [ "$#" -gt 0 ]; do
       claude_update=1
       shift
       ;;
+    --codex)
+      codex_update=1
+      shift
+      ;;
     --help|-h)
       usage
       exit 0
@@ -121,6 +167,12 @@ case "$channel" in auto|trunk|release) ;; *)
   exit 2
   ;;
 esac
+
+if [ "$claude_update" -eq 1 ] && [ "$codex_update" -eq 1 ]; then
+  echo "hatsu-plugin-update: --claude and --codex are mutually exclusive" >&2
+  usage >&2
+  exit 2
+fi
 
 canonical_directory() {
   local candidate="${1:-}" rendered resolved
@@ -353,8 +405,125 @@ marketplace_verdict() {
   esac
 }
 
+# reenter_verdict TARGET — bring TARGET current by re-entering this script on it with the
+# --channel/--from/--dry-run this run was given, and --auto only when this run had it. This is the
+# "as given" re-entry form used by the --claude in-place link and the --codex local marketplace
+# root — distinct from marketplace_verdict's own sub-run, which always forces --channel auto --auto
+# because the marketplace checkout there is a side concern the primary flow must not fail over.
+# Sets REENTER_VERDICT; the sub-run's own `would run:` lines pass straight through to stdout.
+REENTER_VERDICT=""
+reenter_verdict() {
+  local target="$1" sub_out sub_rc sub_line
+  if [ -z "$self_script" ]; then
+    REENTER_VERDICT="not examined: the updater cannot locate itself to re-enter (run it by path)"
+    return 0
+  fi
+  local -a sub_args=(--root "$target" --channel "$channel")
+  [ -n "$from_input" ] && sub_args+=(--from "$from_input")
+  [ "$auto" -eq 1 ] && sub_args+=(--auto)
+  [ "$dry_run" -eq 1 ] && sub_args+=(--dry-run)
+  set +e
+  sub_out="$(bash "$self_script" "${sub_args[@]}" 2>&1)"
+  sub_rc=$?
+  set -e
+  printf '%s\n' "$sub_out" | grep '^would run: ' || true
+  sub_line="$(printf '%s\n' "$sub_out" | awk '/^hatsu-plugin-update: /{ line = $0 } END { sub(/ · plugin [^ ]+$/, "", line); print line }')"
+  case "$sub_line" in
+    'hatsu-plugin-update: '*)
+      REENTER_VERDICT="${sub_line#hatsu-plugin-update: }"
+      ;;
+    *)
+      REENTER_VERDICT="could not be examined (sub-run exit $sub_rc: $(one_line "${sub_out:-no output}"))"
+      ;;
+  esac
+}
+
+# installed_plugins_has_hatsu REGISTRY — true when Claude Code's installed_plugins.json records a
+# top-level "hatsu@hatsu" entry (JSON.stringify(x, null, 2) shape, read the same way
+# marketplace_directory_source reads known_marketplaces.json): a cached hatsu@hatsu install takes
+# precedence over the in-place skills/hatsu link and needs retargeting.
+installed_plugins_has_hatsu() {
+  local registry="$1"
+  [ -r "$registry" ] || return 1
+  awk '/^  "hatsu@hatsu": \{$/ { found = 1 } END { exit found ? 0 : 1 }' "$registry"
+}
+
+# codex_marketplace_root — the ABSOLUTE root the `hatsu` marketplace resolves to in `codex plugin
+# marketplace list` (header "MARKETPLACE  ROOT", then rows like "hatsu   /abs/root"): the row whose
+# first whitespace-separated field is exactly `hatsu`, root is the rest of the line after that run
+# of spaces. Nothing when Codex has no such marketplace. A real `codex plugin marketplace list` can
+# print thousands of rows; an awk that `exit`s the moment it finds `hatsu` closes its end of the
+# pipe while `codex` may still be writing later rows, and under this script's `pipefail` that
+# SIGPIPE (codex killed writing to a closed pipe) surfaces as the PIPELINE's exit status even
+# though awk itself succeeded — a silent 141 a caller's `|| true` masks the symptom of but not the
+# cause. So the match is held in a variable and printed only from END, reading every row.
+codex_marketplace_root() {
+  codex plugin marketplace list 2>/dev/null | awk '
+    $1 == "hatsu" && !found {
+      line = $0
+      sub(/^hatsu[ \t]+/, "", line)
+      found = 1
+    }
+    END { if (found) print line }
+  '
+}
+
+# codex_plugin_version — the version field off the `hatsu@hatsu` row of `codex plugin list`
+# (header "PLUGIN  STATUS  VERSION  SOURCE", e.g. "hatsu@hatsu  installed, enabled  0.59.1
+# /abs/source"). The STATUS column itself carries an embedded space ("installed, enabled"), so a
+# plain whitespace split misaligns VERSION into field 4; columns are separated by RUNS of two or
+# more spaces instead, which the STATUS value's own single space never produces. `codex plugin
+# list` can print thousands of rows too, so — same reason as codex_marketplace_root above — the
+# match is held and printed only from END rather than `exit`ing mid-stream and SIGPIPE-ing `codex`.
+codex_plugin_version() {
+  codex plugin list 2>/dev/null | awk -F'  +' '
+    $1 == "hatsu@hatsu" && !found {
+      ver = $3
+      found = 1
+    }
+    END { if (found) print ver }
+  '
+}
+
+# claude_refresh_link TARGET AFTER_GIT — the in-place `hatsu@skills-dir` install: TARGET is what
+# ${CLAUDE_CONFIG_DIR:-~/.claude}/skills/hatsu resolves to. Bring it current (unless it IS --root,
+# already brought current above), say whether a cached hatsu@hatsu install shadows it, and stop —
+# `claude plugin marketplace update` / `claude plugin update` are never invoked here (#118's
+# comparison-against-a-stale-cache problem does not exist when Claude loads the checkout directly).
+claude_refresh_link() {
+  local target="$1" after_git="${2:-}" note tail installed
+  if [ "$target" = "$root" ]; then
+    note="in-place link $target"
+  else
+    reenter_verdict "$target"
+    if [ "$dry_run" -eq 1 ]; then
+      report "${after_git:+$after_git · }in-place link $target: $REENTER_VERDICT · dry-run"
+      exit 0
+    fi
+    note="in-place link $target: $REENTER_VERDICT"
+  fi
+  installed="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json"
+  if installed_plugins_has_hatsu "$installed"; then
+    tail="hatsu@hatsu (a cached marketplace install) shadows the in-place link; retarget: scripts/hatsu_surface_link.sh --surface claude-code"
+  else
+    tail="served in place from $target (hatsu@skills-dir)"
+  fi
+  report "${after_git:+$after_git · }$note · $tail · apply: type /reload-plugins in the running session, or open a new session"
+  exit 0
+}
+
 claude_refresh() {
-  local after_git="${1:-}" mkt_verdict mkt_path mkt_ver cache_note
+  local after_git="${1:-}" mkt_verdict mkt_path mkt_ver cache_note link link_canon
+  link="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/hatsu"
+  if [ -L "$link" ]; then
+    link_canon="$(canonical_directory "$link" 2>/dev/null || true)"
+    case "$link_canon" in
+      */plugins/cache/*) link_canon="" ;;  # a link into a surface's own cache is not "served in place"
+    esac
+    if [ -n "$link_canon" ] && is_hatsu "$link_canon" && git -C "$link_canon" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+      claude_refresh_link "$link_canon" "$after_git"
+    fi
+  fi
   if ! command -v claude >/dev/null 2>&1; then
     if [ -n "$after_git" ]; then
       skip_or_refuse "$after_git · Claude Code refresh skipped (claude not on PATH). Run: claude plugin update hatsu@hatsu -y"
@@ -385,13 +554,61 @@ claude_refresh() {
       fi
     fi
     plugin_ver="$(plugin_version "$root" 2>/dev/null || printf '%s' "$plugin_ver")"
-    report "${after_git:+$after_git · }$mkt_verdict · claude plugin updated$cache_note · restart Claude Code to apply"
+    report "${after_git:+$after_git · }$mkt_verdict · claude plugin updated$cache_note · cached install: retarget in place with scripts/hatsu_surface_link.sh --surface claude-code · apply: type /reload-plugins in the running session, or open a new session"
     exit 0
   fi
   if [ -n "$after_git" ]; then
-    skip_or_refuse "$after_git · $mkt_verdict · claude plugin update hatsu@hatsu failed; run it yourself, then restart Claude Code"
+    skip_or_refuse "$after_git · $mkt_verdict · claude plugin update hatsu@hatsu failed; run it yourself, then apply: type /reload-plugins in the running session, or open a new session"
   fi
-  skip_or_refuse "$mkt_verdict · claude plugin update hatsu@hatsu failed. Run it yourself, then restart Claude Code"
+  skip_or_refuse "$mkt_verdict · claude plugin update hatsu@hatsu failed. Run it yourself, then apply: type /reload-plugins in the running session, or open a new session"
+}
+
+# codex_refresh AFTER_GIT — mirrors claude_refresh for Codex 0.154.0: resolve the `hatsu`
+# marketplace root from `codex plugin marketplace list`, bring it current (a Codex-managed snapshot
+# under $CODEX_HOME upgrades itself; a local checkout that is not --root is re-entered exactly as
+# --claude's in-place link is), then `codex plugin add hatsu@hatsu` and read back the installed
+# version. --dry-run touches the `codex` binary not at all beyond the initial PATH check — every
+# step is a `would run:` line, mirroring --claude's own zero-invocation dry run.
+codex_refresh() {
+  local after_git="${1:-}" mkt_root canon_mkt codex_home is_managed verdict ver
+  if ! command -v codex >/dev/null 2>&1; then
+    skip_or_refuse "${after_git:+$after_git · }codex not on PATH"
+  fi
+  if [ "$dry_run" -eq 1 ]; then
+    would "codex plugin marketplace list"
+    would "codex plugin marketplace upgrade hatsu"
+    would "codex plugin add hatsu@hatsu"
+    report "${after_git:+$after_git · }dry-run · codex plugin add hatsu@hatsu"
+    exit 0
+  fi
+  mkt_root="$(codex_marketplace_root || true)"
+  if [ -z "$mkt_root" ]; then
+    skip_or_refuse "${after_git:+$after_git · }no hatsu marketplace in Codex; install first-party: scripts/hatsu_surface_link.sh --surface codex"
+  fi
+  canon_mkt="$(canonical_directory "$mkt_root" 2>/dev/null || printf '%s' "$mkt_root")"
+  codex_home="$(canonical_directory "${CODEX_HOME:-$HOME/.codex}" 2>/dev/null || true)"
+  is_managed=0
+  if [ -n "$codex_home" ]; then
+    case "$canon_mkt" in
+      "$codex_home"/*) is_managed=1 ;;
+    esac
+  fi
+  if [ "$is_managed" -eq 1 ]; then
+    codex plugin marketplace upgrade hatsu >/dev/null 2>&1 \
+      || skip_or_refuse "${after_git:+$after_git · }codex plugin marketplace upgrade hatsu failed"
+    verdict="codex-managed marketplace root $canon_mkt upgraded"
+  elif [ "$canon_mkt" = "$root" ]; then
+    verdict="marketplace root is this checkout"
+  else
+    reenter_verdict "$canon_mkt"
+    verdict="marketplace root $canon_mkt: $REENTER_VERDICT"
+  fi
+  if codex plugin add hatsu@hatsu >/dev/null 2>&1; then
+    ver="$(codex_plugin_version || true)"
+    report "${after_git:+$after_git · }$verdict · codex plugin hatsu@hatsu at v${ver:-unknown} · apply: running Codex sessions refresh skills and hooks after an external plugin upgrade (codex-cli 0.154.0); if one does not, open a new session"
+    exit 0
+  fi
+  skip_or_refuse "${after_git:+$after_git · }$verdict · codex plugin add hatsu@hatsu failed"
 }
 
 is_git_worktree() {
@@ -402,22 +619,44 @@ is_git_worktree() {
   [ "$top" = "$root" ]
 }
 
-if [ -e "$root/.git" ]; then
+# A surface's OWN plugin cache — Claude's versioned slot, or Codex's copy of the whole plugin root
+# (which carries a real .git, per HA-BAKURYUHA-88d5f6): never git-pulled here, no matter what it
+# carries, so this is checked by PATH alone, before is_git_worktree ever runs `git` against it.
+surface_cache=0
+case "$root" in
+  */plugins/cache/*) surface_cache=1 ;;
+esac
+
+if [ "$surface_cache" -eq 0 ] && [ -e "$root/.git" ]; then
   if ! is_git_worktree; then
     skip_or_refuse "git metadata unreadable"
   fi
-elif ! is_git_worktree; then
+elif [ "$surface_cache" -eq 1 ] || ! is_git_worktree; then
   if [ "$claude_update" -eq 1 ]; then
     claude_refresh
   fi
+  if [ "$codex_update" -eq 1 ]; then
+    codex_refresh
+  fi
+  if [ "$surface_cache" -eq 1 ]; then
+    if [ "$auto" -eq 1 ]; then
+      report "skipped · surface plugin cache v$plugin_ver (a surface's own copied install; never git-pulled here) · Claude: claude plugin update hatsu@hatsu -y · Codex: codex plugin add hatsu@hatsu"
+      exit 0
+    fi
+    echo "hatsu-plugin-update: $root is a surface plugin cache (v$plugin_ver) — a surface's own copied plugin install (Claude Code's versioned cache, or Codex's copy of the whole plugin root, .git included). It is never git-pulled here. Refresh through the surface's own update path instead:" >&2
+    echo "  Claude Code: claude plugin marketplace update && claude plugin update hatsu@hatsu -y" >&2
+    echo "  Codex:       codex plugin marketplace upgrade hatsu (or a git fast-forward of its checkout) && codex plugin add hatsu@hatsu" >&2
+    echo "Or clone zheref/hatsu and point the surface at that checkout — docs/SURFACES.md § Targeting a local checkout." >&2
+    exit 4
+  fi
   if [ "$auto" -eq 1 ]; then
-    report "skipped · Claude versioned plugin cache v$plugin_ver · run: claude plugin update hatsu@hatsu -y (restart required)"
+    report "skipped · Claude versioned plugin cache v$plugin_ver · run: claude plugin update hatsu@hatsu -y (apply: type /reload-plugins in the running session, or open a new session)"
     exit 0
   fi
   echo "hatsu-plugin-update: $root is a Hatsu tree but not a git checkout (Claude versioned plugin cache v$plugin_ver). It cannot be git-pulled. Run:" >&2
   echo "  claude plugin marketplace update" >&2
   echo "  claude plugin update hatsu@hatsu -y" >&2
-  echo "then restart Claude Code. Or clone zheref/hatsu and point the surface at that checkout — docs/SURFACES.md § Targeting a local checkout." >&2
+  echo "then type /reload-plugins in the running session, or open a new session. Or clone zheref/hatsu and point the surface at that checkout — docs/SURFACES.md § Targeting a local checkout." >&2
   exit 4
 fi
 
@@ -469,7 +708,11 @@ if [ "$detected" = "release" ] && [ "$channel" != "auto" ] && [ -n "$branch" ] &
   skip_or_refuse "release channel refuses a feature branch ($branch); check out a tag or the trunk first"
 fi
 
-if ! git -C "$root" remote | grep -qx origin; then
+# `grep -q` exits the moment it finds a match, closing its end of the pipe while `git remote` may
+# still be writing — under this script's `pipefail` that SIGPIPE would surface as the pipeline's
+# exit status. `git remote` output is small in practice, but the fix costs nothing: match without
+# `-q`, output suppressed by redirection instead, so grep reads every remote name to completion.
+if ! git -C "$root" remote | grep -x origin >/dev/null; then
   skip_or_refuse "no origin remote"
 fi
 
@@ -489,28 +732,32 @@ if [ "$detected" = "trunk" ]; then
   before="$(git -C "$root" rev-parse --short HEAD)"
   would "git merge --ff-only origin/$trunk"
   if [ "$dry_run" -eq 1 ]; then
-    report "dry-run · would fast-forward $trunk from $before"
-    exit 0
-  fi
-  # git refuses a fast-forward that would overwrite an UNTRACKED file, but it silently overwrites
-  # an IGNORED one (Copilot, HA-PR-#121 round 2): compare the incoming paths with the ignored set
-  # first and skip on any intersection, naming the paths. That keeps "never discards work" true
-  # for a file .gitignore hides as well as for one it does not.
-  incoming="$(git -C "$root" diff --name-only HEAD "origin/$trunk" 2>/dev/null || true)"
-  ignored_hits="$(git -C "$root" ls-files --others --ignored --exclude-standard 2>/dev/null | grep -Fxf <(printf '%s\n' "$incoming") 2>/dev/null || true)"
-  if [ -n "$ignored_hits" ]; then
-    skip_or_refuse "fast-forward would overwrite ignored file(s): $(printf '%s' "$ignored_hits" | tr '\n' ' ' | cut -c1-200)· staying at $trunk @$before"
-  fi
-  # git refuses a fast-forward that would overwrite an untracked file: that refusal is a SKIP with
-  # its reason, never a bare death under `set -e` (Chrollo, zheref/hatsu#118 review).
-  ff_err="$(git -C "$root" merge --ff-only "origin/$trunk" 2>&1 >/dev/null)" \
-    || skip_or_refuse "fast-forward refused by git: $(one_line "${ff_err:-no reason printed}") · staying at $trunk @$before"
-  after="$(git -C "$root" rev-parse --short HEAD)"
-  plugin_ver="$(plugin_version "$root")"
-  if [ "$before" = "$after" ]; then
-    git_result="already current · trunk $trunk @$after${untracked_count:+ · $untracked_count untracked, not blocking}"
+    # Set the verdict and fall through to --claude/--codex below (never exit here): with neither
+    # flag, the bottom-of-script `report "$git_result"; exit 0` reproduces this exact line byte for
+    # byte, and with one, its own `would run:` lines print beside this git plan instead of never
+    # being reached (HA-BAKURYUHA-88d5f6 follow-up).
+    git_result="dry-run · would fast-forward $trunk from $before"
   else
-    git_result="updated trunk $trunk $before..$after${untracked_count:+ · $untracked_count untracked, not blocking}"
+    # git refuses a fast-forward that would overwrite an UNTRACKED file, but it silently overwrites
+    # an IGNORED one (Copilot, HA-PR-#121 round 2): compare the incoming paths with the ignored set
+    # first and skip on any intersection, naming the paths. That keeps "never discards work" true
+    # for a file .gitignore hides as well as for one it does not.
+    incoming="$(git -C "$root" diff --name-only HEAD "origin/$trunk" 2>/dev/null || true)"
+    ignored_hits="$(git -C "$root" ls-files --others --ignored --exclude-standard 2>/dev/null | grep -Fxf <(printf '%s\n' "$incoming") 2>/dev/null || true)"
+    if [ -n "$ignored_hits" ]; then
+      skip_or_refuse "fast-forward would overwrite ignored file(s): $(printf '%s' "$ignored_hits" | tr '\n' ' ' | cut -c1-200)· staying at $trunk @$before"
+    fi
+    # git refuses a fast-forward that would overwrite an untracked file: that refusal is a SKIP with
+    # its reason, never a bare death under `set -e` (Chrollo, zheref/hatsu#118 review).
+    ff_err="$(git -C "$root" merge --ff-only "origin/$trunk" 2>&1 >/dev/null)" \
+      || skip_or_refuse "fast-forward refused by git: $(one_line "${ff_err:-no reason printed}") · staying at $trunk @$before"
+    after="$(git -C "$root" rev-parse --short HEAD)"
+    plugin_ver="$(plugin_version "$root")"
+    if [ "$before" = "$after" ]; then
+      git_result="already current · trunk $trunk @$after${untracked_count:+ · $untracked_count untracked, not blocking}"
+    else
+      git_result="updated trunk $trunk $before..$after${untracked_count:+ · $untracked_count untracked, not blocking}"
+    fi
   fi
 elif [ "$detected" = "release" ]; then
   would "git fetch origin --tags"
@@ -538,20 +785,21 @@ EOF
     skip_or_refuse "no vX.Y.Z release tags on this checkout"
   fi
   if [ "$exact_tag" = "$tag" ]; then
+    # Set the verdict and fall through (never exit here) — see the trunk branch's own comment above.
     if [ "$dry_run" -eq 1 ]; then
-      report "dry-run · already at release $tag"
-      exit 0
+      git_result="dry-run · already at release $tag"
+    else
+      git_result="already current · release $tag"
     fi
-    git_result="already current · release $tag"
   else
     would "git checkout --detach $tag"
     if [ "$dry_run" -eq 1 ]; then
-      report "dry-run · would check out release $tag (from ${exact_tag:-$branch})"
-      exit 0
+      git_result="dry-run · would check out release $tag (from ${exact_tag:-$branch})"
+    else
+      git -C "$root" checkout --detach "$tag" >/dev/null 2>&1 || skip_or_refuse "could not check out $tag"
+      plugin_ver="$(plugin_version "$root")"
+      git_result="updated release ${exact_tag:-$branch} → $tag"
     fi
-    git -C "$root" checkout --detach "$tag" >/dev/null 2>&1 || skip_or_refuse "could not check out $tag"
-    plugin_ver="$(plugin_version "$root")"
-    git_result="updated release ${exact_tag:-$branch} → $tag"
   fi
 else
   echo "hatsu-plugin-update: internal error: unknown channel '$detected'" >&2
@@ -560,6 +808,9 @@ fi
 
 if [ "$claude_update" -eq 1 ]; then
   claude_refresh "$git_result"
+fi
+if [ "$codex_update" -eq 1 ]; then
+  codex_refresh "$git_result"
 fi
 
 report "$git_result"

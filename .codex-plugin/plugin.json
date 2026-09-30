@@ -1,0 +1,31 @@
+{
+  "name": "hatsu",
+  "version": "0.62.0",
+  "description": "Hatsu is the local plane of the Akatsuki system: Kurapika leads it with six declared work-modes and a roster of focused independents, running on your own credentials with no GitHub App and no bot identity. Every deterministic step is a Nen verb, skills compose each other by name, and the five human gates are the maintainer's.",
+  "author": {
+    "name": "zheref",
+    "url": "https://github.com/zheref"
+  },
+  "repository": "https://github.com/zheref/hatsu",
+  "license": "MIT",
+  "keywords": [
+    "hatsu",
+    "akatsuki",
+    "nen",
+    "agents",
+    "product-management",
+    "process-architecture",
+    "product-engineering",
+    "qa",
+    "performance"
+  ],
+  "skills": "./claude/skills/",
+  "hooks": "./surfaces/codex/hooks.json",
+  "interface": {
+    "displayName": "Hatsu Agent Team",
+    "shortDescription": "The way of working: backlog, PRs, releases and QA driven to the human gate on Nen verbs",
+    "developerName": "zheref",
+    "category": "Productivity",
+    "websiteURL": "https://github.com/zheref/hatsu"
+  }
+}

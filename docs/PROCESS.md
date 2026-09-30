@@ -297,6 +297,11 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   --format='%(trailers:only,unfold)'`) and the drop of a just-written tip on an injected attribution key
   (`git -C <path> reset --soft HEAD~1`, row `injected-attribution-trailer`) are the raw calls; the commit is
   `nen commit write --message-file`, gated on `nen commit format`.
+- **`bakuryuha`.** The first-party install is `scripts/hatsu_surface_link.sh` and updating the checkout is
+  `scripts/hatsu_plugin_update.sh`, as for `ten`; the served-version read-backs (`claude plugin list
+  --json`, `codex plugin list`, `agy plugin validate`, a placed marker stamp) and following a skill body
+  from the new path until the surface switches are done by hand: no nen verb owns a host's installed
+  plugin.
 - **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`.
 
 **Owned dependencies.** `nen commit write` / `nen wc squash` should read back the trailers of the commit they wrote and report an injected key ([zheref/nen#273](https://github.com/zheref/nen/issues/273)); until then the read-back above is prose.

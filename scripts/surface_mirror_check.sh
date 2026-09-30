@@ -83,11 +83,17 @@ SOURCE_SURFACE="claude"   # the personas carry models.claude aliases; --models r
 MANIFEST_FILE=".claude-plugin/plugin.json"
 # The expression every mirrored hook command resolves the plugin root through: the warm-up exports
 # HATSU_PLUGIN_ROOT; the workspace copy is the LAST fallback, never ahead of the plugin root, and
-# Antigravity's global plugin dir is the fallback there (docs/surfaces/antigravity.md).
+# Antigravity's global plugin dir is the fallback there (docs/surfaces/antigravity.md). Codex's own
+# fallback chain has a THIRD rung in between the two: Codex now installs Hatsu as a first-party
+# PLUGIN (`codex plugin add hatsu@hatsu`) as well as through the workspace bootstrap, and a Codex
+# plugin hook command is handed PLUGIN_ROOT (the installed plugin root) alongside the documented
+# CLAUDE_PLUGIN_ROOT -- so the explicit export wins first as always, PLUGIN_ROOT resolves a plugin
+# install second, and the placed workspace copy (./.codex) is still the last fallback, never ahead
+# of either plugin root.
 hooks_root_for() {
   case "$1" in
     antigravity) printf %s '${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;;
-    codex) printf %s '${HATSU_PLUGIN_ROOT:-./.codex}' ;;
+    codex) printf %s '${HATSU_PLUGIN_ROOT:-${PLUGIN_ROOT:-./.codex}}' ;;
     cursor) printf %s '${HATSU_PLUGIN_ROOT:-./.cursor}' ;;
   esac
 }

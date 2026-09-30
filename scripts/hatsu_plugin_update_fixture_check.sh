@@ -56,6 +56,18 @@ commit_tree() {
   git -C "$directory" commit -qm "$message"
 }
 
+read_plugin_version() {
+  awk '
+    /^  "version": "/ {
+      s = $0
+      sub(/^  "version": "/, "", s)
+      sub(/",?$/, "", s)
+      print s
+      exit
+    }
+  ' "$1/.claude-plugin/plugin.json"
+}
+
 # --- not a Hatsu checkout ---
 not_hatsu="$fixture_root/not-hatsu"
 init_repo "$not_hatsu"
@@ -377,5 +389,228 @@ write_registry_github
 mkt_none="$(CLAUDE_CONFIG_DIR="$fake_home" PATH="$fixture_root/bin:$PATH" "$updater" --root "$cache2" --auto --claude)"
 assert_contains "$mkt_none" 'registry is present but no hatsu Directory source parsed' 'a GitHub-sourced marketplace is reported as unverified'
 assert_contains "$mkt_none" 'claude plugin updated' 'a GitHub-sourced marketplace still refreshes the cache'
+assert_contains "$mkt_none" 'cached install: retarget in place with scripts/hatsu_surface_link.sh --surface claude-code' 'a successful cache update names the in-place retarget command'
+
+# --- (a)/(b) --claude: the in-place ${CLAUDE_CONFIG_DIR}/skills/hatsu link takes priority over the
+# marketplace cache entirely (HA-BAKURYUHA-88d5f6). It is checked before `claude` is even looked up
+# on PATH, and `claude plugin marketplace update` / `claude plugin update` are never invoked. ---
+link_home="$fixture_root/claude-link-home"
+mkdir -p "$link_home/skills" "$link_home/plugins"
+link_target="$fixture_root/link-target"
+git clone -q "$origin" "$link_target"
+git -C "$link_target" config user.email 'fixture@example.invalid'
+git -C "$link_target" config user.name 'Hatsu fixture'
+git -C "$link_target" reset -q --hard HEAD~1
+ln -s "$link_target" "$link_home/skills/hatsu"
+link_target_before="$(git -C "$link_target" rev-parse HEAD)"
+
+rm -f "$claude_log"
+link_out="$(CLAUDE_CONFIG_DIR="$link_home" PATH="$fixture_root/bin:$PATH" "$updater" --root "$link_target" --claude)"
+assert_contains "$link_out" 'served in place' '(a) in-place link report names being served in place'
+assert_contains "$link_out" '/reload-plugins' '(a) in-place link report carries the apply instruction'
+[ "$(git -C "$link_target" rev-parse HEAD)" = "$(git -C "$seed" rev-parse HEAD)" ] || fail "(a) link target did not fast-forward"
+[ "$(git -C "$link_target" rev-parse HEAD)" != "$link_target_before" ] || fail "(a) fixture precondition: link target must have been behind origin"
+[ ! -e "$claude_log" ] || fail "(a) in-place link invoked claude"
+
+printf '%s\n' '{
+  "hatsu@hatsu": {
+    "version": "0.1.0"
+  }
+}' > "$link_home/plugins/installed_plugins.json"
+rm -f "$claude_log"
+shadow_out="$(CLAUDE_CONFIG_DIR="$link_home" PATH="$fixture_root/bin:$PATH" "$updater" --root "$link_target" --claude)"
+assert_contains "$shadow_out" 'shadows the in-place link' '(b) a cached hatsu@hatsu install shadowing the link is named'
+assert_contains "$shadow_out" 'scripts/hatsu_surface_link.sh --surface claude-code' '(b) the shadow clause names the retarget command'
+[ ! -e "$claude_log" ] || fail "(b) shadow-link case invoked claude"
+rm -f "$link_home/plugins/installed_plugins.json"
+
+# --- (c) a --root under a surface's plugins/cache/ directory is NEVER git-pulled, even when it
+# carries a real .git (Codex copies the whole plugin root, .git included, into its own cache). ---
+cache_git_root="$fixture_root/surface-caches/claude/plugins/cache/hatsu/hatsu/0.1.0"
+mkdir -p "$(dirname "$cache_git_root")"
+git clone -q "$origin" "$cache_git_root"
+git -C "$cache_git_root" reset -q --hard HEAD~1
+cache_git_before="$(git -C "$cache_git_root" rev-parse HEAD)"
+set +e
+cache_git_err="$("$updater" --root "$cache_git_root" 2>&1)"
+cache_git_code=$?
+set -e
+[ "$cache_git_code" -eq 4 ] || fail "(c) surface cache with a real .git exited $cache_git_code, expected 4"
+assert_contains "$cache_git_err" 'surface plugin cache' '(c) a plugins/cache root with a real .git is named a surface plugin cache'
+[ "$(git -C "$cache_git_root" rev-parse HEAD)" = "$cache_git_before" ] || fail "(c) surface cache with a real .git was git-pulled"
+cache_git_auto="$("$updater" --root "$cache_git_root" --auto)"
+assert_contains "$cache_git_auto" 'skipped · surface plugin cache' '(c) --auto on a plugins/cache root with a real .git skips, naming the surface cache'
+[ "$(git -C "$cache_git_root" rev-parse HEAD)" = "$cache_git_before" ] || fail "(c) surface cache with a real .git moved under --auto"
+
+# --- (d)/(e)/(f)/(h) --codex: a fake `codex` on PATH mirrors the fake `claude` above. It logs argv
+# and answers the row shapes codex-cli 0.154.0 prints for `plugin marketplace list` / `plugin list`,
+# reading the live marketplace root's plugin.json from a state file each call so the read-back
+# reflects whatever the fixture just fast-forwarded it to. ---
+codex_log="$fixture_root/codex-calls.log"
+codex_mkt_root_file="$fixture_root/codex-mkt-root.txt"
+cat > "$fixture_root/bin/codex" <<EOF
+#!/usr/bin/env bash
+printf '%s\n' "\$*" >> "$codex_log"
+mkt_root="\$(cat "$codex_mkt_root_file" 2>/dev/null || true)"
+case "\$*" in
+  'plugin marketplace list')
+    printf 'MARKETPLACE  ROOT\n'
+    [ -n "\$mkt_root" ] && printf 'hatsu        %s\n' "\$mkt_root"
+    ;;
+  'plugin list')
+    printf 'PLUGIN       STATUS              VERSION  SOURCE\n'
+    if [ -n "\$mkt_root" ] && [ -f "\$mkt_root/.claude-plugin/plugin.json" ]; then
+      ver="\$(awk '/^  "version": "/ { s = \$0; sub(/^  "version": "/, "", s); sub(/",?\$/, "", s); print s; exit }' "\$mkt_root/.claude-plugin/plugin.json")"
+      printf 'hatsu@hatsu  installed, enabled  %s   %s\n' "\${ver:-unknown}" "\$mkt_root"
+    fi
+    ;;
+esac
+exit 0
+EOF
+chmod +x "$fixture_root/bin/codex"
+
+# (d) a local marketplace root (not --root, not under $CODEX_HOME) behind origin is fast-forwarded.
+codex_local_mkt="$fixture_root/codex-local-mkt"
+git clone -q "$origin" "$codex_local_mkt"
+git -C "$codex_local_mkt" reset -q --hard HEAD~1
+printf '%s\n' "$codex_local_mkt" > "$codex_mkt_root_file"
+codex_root_d="$fixture_root/codex-root-d"
+git clone -q "$origin" "$codex_root_d"
+: > "$codex_log"
+codex_out_d="$(CODEX_HOME="$fixture_root/codex-home-unused" PATH="$fixture_root/bin:$PATH" "$updater" --root "$codex_root_d" --codex)"
+[ "$(git -C "$codex_local_mkt" rev-parse HEAD)" = "$(git -C "$seed" rev-parse HEAD)" ] || fail "(d) codex local marketplace root did not fast-forward"
+grep -qx 'plugin add hatsu@hatsu' "$codex_log" || fail "(d) codex plugin add was not invoked"
+assert_contains "$codex_out_d" "codex plugin hatsu@hatsu at v$(read_plugin_version "$codex_local_mkt")" '(d) report shows the read-back version'
+
+# (e) a marketplace root under $CODEX_HOME is a Codex-managed snapshot: `codex plugin marketplace
+# upgrade hatsu` is what brings it current, never a git fast-forward run by this script.
+codex_home_e="$fixture_root/codex-home-e"
+codex_managed_mkt="$codex_home_e/marketplaces/hatsu"
+mkdir -p "$(dirname "$codex_managed_mkt")"
+git clone -q "$origin" "$codex_managed_mkt"
+git -C "$codex_managed_mkt" reset -q --hard HEAD~1
+printf '%s\n' "$codex_managed_mkt" > "$codex_mkt_root_file"
+codex_root_e="$fixture_root/codex-root-e"
+git clone -q "$origin" "$codex_root_e"
+: > "$codex_log"
+CODEX_HOME="$codex_home_e" PATH="$fixture_root/bin:$PATH" "$updater" --root "$codex_root_e" --codex >/dev/null 2>&1 \
+  || fail "(e) --codex on a codex-managed marketplace root should succeed"
+grep -qx 'plugin marketplace upgrade hatsu' "$codex_log" || fail "(e) codex plugin marketplace upgrade hatsu was not invoked"
+grep -qx 'plugin add hatsu@hatsu' "$codex_log" || fail "(e) codex plugin add hatsu@hatsu was not invoked"
+upgrade_at="$(grep -n '^plugin marketplace upgrade hatsu$' "$codex_log" | head -1 | cut -d: -f1)"
+add_at="$(grep -n '^plugin add hatsu@hatsu$' "$codex_log" | head -1 | cut -d: -f1)"
+[ -n "$upgrade_at" ] && [ -n "$add_at" ] && [ "$upgrade_at" -lt "$add_at" ] || fail "(e) marketplace upgrade must precede plugin add"
+
+# (f) no `codex` on PATH: --auto skips (exit 0) naming the reason, never fails the warm-up.
+minimal_bin="$fixture_root/minimal-bin"
+mkdir -p "$minimal_bin"
+for tool in bash git awk sed grep cat cut tr wc sort; do
+  tool_path="$(command -v "$tool" 2>/dev/null || true)"
+  [ -n "$tool_path" ] && ln -sf "$tool_path" "$minimal_bin/$tool"
+done
+codex_root_f="$fixture_root/codex-root-f"
+git clone -q "$origin" "$codex_root_f"
+codex_f_out="$(PATH="$minimal_bin" "$updater" --root "$codex_root_f" --codex --auto)"
+assert_contains "$codex_f_out" 'skipped' '(f) --codex --auto with no codex on PATH skips rather than fails'
+assert_contains "$codex_f_out" 'codex not on PATH' '(f) the skip names the reason'
+
+# (g) --claude and --codex together refuse at exit 2, before --root is even resolved.
+assert_fails "(g) --claude and --codex together were accepted" "$updater" --root "$fixture_root" --claude --codex
+set +e
+g_err="$("$updater" --root "$fixture_root" --claude --codex 2>&1)"
+g_code=$?
+set -e
+[ "$g_code" -eq 2 ] || fail "(g) --claude --codex exited $g_code, expected 2"
+
+# (h) --dry-run --codex: only `would run:` lines, and the codex binary itself is never invoked
+# (mirrors --claude's own zero-invocation dry run) — a plain non-git Hatsu tree reaches --codex
+# regardless of --dry-run, the same route the #118 --claude cache tests use.
+codex_cache_h="$fixture_root/codex-cache-h/hatsu/0.1.0"
+write_plugin_json "$codex_cache_h" '0.1.0'
+: > "$codex_log"
+codex_dry="$(PATH="$fixture_root/bin:$PATH" "$updater" --root "$codex_cache_h" --codex --dry-run)"
+assert_contains "$codex_dry" 'would run: codex plugin marketplace list' '(h) dry-run codex plan lists the marketplace resolution step'
+assert_contains "$codex_dry" 'would run: codex plugin marketplace upgrade hatsu' '(h) dry-run codex plan lists the upgrade step'
+assert_contains "$codex_dry" 'would run: codex plugin add hatsu@hatsu' '(h) dry-run codex plan lists the plugin add step'
+[ ! -s "$codex_log" ] || fail "(h) dry-run --codex invoked the codex binary"
+
+# --- (i)/(j) a --dry-run whose git path itself would change (trunk behind origin) must fall
+# through to --claude / --codex instead of exiting before ever reaching them: one dry run prints
+# the git `would run:` lines, then the surface's own `would run:` lines, then ONE report line
+# (HA-BAKURYUHA-88d5f6 follow-up). Without --claude/--codex this git-path dry-run text is unchanged
+# (already proven above by the existing dirty/diverged/release --dry-run cases). ---
+
+# (i) trunk-behind + --claude --dry-run with the skills/hatsu link: the report carries both the
+# would-fast-forward clause and the link's own "served in place" / "/reload-plugins" clauses,
+# nothing is mutated, and the claude shim is never invoked.
+link_target_dry="$fixture_root/link-target-dry"
+git clone -q "$origin" "$link_target_dry"
+git -C "$link_target_dry" reset -q --hard HEAD~1
+link_target_dry_before="$(git -C "$link_target_dry" rev-parse HEAD)"
+rm -f "$link_home/skills/hatsu"
+ln -s "$link_target_dry" "$link_home/skills/hatsu"
+rm -f "$claude_log"
+link_dry_out="$(CLAUDE_CONFIG_DIR="$link_home" PATH="$fixture_root/bin:$PATH" "$updater" --root "$link_target_dry" --channel trunk --claude --dry-run)"
+assert_contains "$link_dry_out" 'would fast-forward' '(i) trunk-behind --claude --dry-run names the git plan'
+assert_contains "$link_dry_out" 'served in place' '(i) trunk-behind --claude --dry-run still names the in-place link'
+assert_contains "$link_dry_out" '/reload-plugins' '(i) trunk-behind --claude --dry-run still carries the apply instruction'
+[ "$(git -C "$link_target_dry" rev-parse HEAD)" = "$link_target_dry_before" ] || fail "(i) trunk-behind --claude --dry-run mutated the link target"
+[ ! -e "$claude_log" ] || fail "(i) trunk-behind --claude --dry-run invoked claude"
+
+# (j) trunk-behind + --codex --dry-run: the git would-run lines plus `would run: codex plugin add
+# hatsu@hatsu`, nothing mutated, the codex shim log stays empty.
+codex_root_trunk_dry="$fixture_root/codex-root-trunk-dry"
+git clone -q "$origin" "$codex_root_trunk_dry"
+git -C "$codex_root_trunk_dry" reset -q --hard HEAD~1
+codex_trunk_dry_before="$(git -C "$codex_root_trunk_dry" rev-parse HEAD)"
+: > "$codex_log"
+codex_trunk_dry_out="$(PATH="$fixture_root/bin:$PATH" "$updater" --root "$codex_root_trunk_dry" --channel trunk --codex --dry-run)"
+assert_contains "$codex_trunk_dry_out" 'would fast-forward' '(j) trunk-behind --codex --dry-run names the git plan'
+assert_contains "$codex_trunk_dry_out" 'would run: codex plugin add hatsu@hatsu' '(j) trunk-behind --codex --dry-run names the codex plan'
+[ "$(git -C "$codex_root_trunk_dry" rev-parse HEAD)" = "$codex_trunk_dry_before" ] || fail "(j) trunk-behind --codex --dry-run mutated the root"
+[ ! -s "$codex_log" ] || fail "(j) trunk-behind --codex --dry-run invoked the codex binary"
+
+# --- (k) SIGPIPE safety: a real `codex plugin list` can print thousands of rows (observed live at
+# 5,344 on one host, where a sibling script's `awk '...exit'` died silently with exit 141 under
+# `pipefail` because it stopped reading the pipe while `codex` was still writing it). A dedicated
+# shim answers both `plugin marketplace list` and `plugin list` with >10,000 filler rows before the
+# real hatsu row; --codex must still exit 0 with the correct read-back version. ---
+bin_big="$fixture_root/bin-big"
+mkdir -p "$bin_big"
+codex_big_log="$fixture_root/codex-big-calls.log"
+codex_big_mkt_root_file="$fixture_root/codex-big-mkt-root.txt"
+cat > "$bin_big/codex" <<EOF
+#!/usr/bin/env bash
+printf '%s\n' "\$*" >> "$codex_big_log"
+mkt_root="\$(cat "$codex_big_mkt_root_file" 2>/dev/null || true)"
+case "\$*" in
+  'plugin marketplace list')
+    printf 'MARKETPLACE  ROOT\n'
+    awk 'BEGIN { for (i = 1; i <= 10001; i++) printf "filler-%d        /nowhere/filler-%d\n", i, i }'
+    [ -n "\$mkt_root" ] && printf 'hatsu        %s\n' "\$mkt_root"
+    ;;
+  'plugin list')
+    printf 'PLUGIN       STATUS              VERSION  SOURCE\n'
+    awk 'BEGIN { for (i = 1; i <= 10001; i++) printf "filler-plugin-%d  installed, enabled  0.0.%d   /nowhere/filler-%d\n", i, i, i }'
+    if [ -n "\$mkt_root" ] && [ -f "\$mkt_root/.claude-plugin/plugin.json" ]; then
+      ver="\$(awk '/^  "version": "/ { s = \$0; sub(/^  "version": "/, "", s); sub(/",?\$/, "", s); print s; exit }' "\$mkt_root/.claude-plugin/plugin.json")"
+      printf 'hatsu@hatsu  installed, enabled  %s   %s\n' "\${ver:-unknown}" "\$mkt_root"
+    fi
+    ;;
+esac
+exit 0
+EOF
+chmod +x "$bin_big/codex"
+
+codex_big_root="$fixture_root/codex-big-root"
+git clone -q "$origin" "$codex_big_root"
+printf '%s\n' "$codex_big_root" > "$codex_big_mkt_root_file"
+: > "$codex_big_log"
+set +e
+big_out="$(PATH="$bin_big:$PATH" "$updater" --root "$codex_big_root" --codex 2>&1)"
+big_code=$?
+set -e
+[ "$big_code" -eq 0 ] || fail "(k) --codex with >10,000 filler rows before the hatsu rows exited $big_code, expected 0: $big_out"
+assert_contains "$big_out" "codex plugin hatsu@hatsu at v$(read_plugin_version "$codex_big_root")" '(k) report shows the read-back version even amid a huge codex plugin list'
 
 echo 'hatsu-plugin-update-fixture: ok'
