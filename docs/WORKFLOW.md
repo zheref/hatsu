@@ -97,7 +97,7 @@ There are two execution/policy configuration files, and the split is not stylist
 | **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — both at the build `nen/contract.json` pins; dated evidence retains the version it actually exercised |
 
 > **The nen DEPENDENCY is the third block of the first file, and its two version values move
-> independently.** `dependency.minimum` is `0.16` and `dependency.pinned_ref` is `v0.16.0`: the first is the
+> independently.** `dependency.minimum` is `0.18` and `dependency.pinned_ref` is `v0.18.1`: the first is the
 > pin this repository declares, the second is the build its bootstrap installs. **The range `minimum`
 > stands for is nen's answer, not a document's** — the binary ships `COMPATIBLE_MINOR_FLOOR`, the lowest
 > `minimum` pin it satisfies, and `nen shu tools` applies it, prints it as `compat floor:` and carries it
@@ -1058,8 +1058,9 @@ silenced by the maintainer's answer, never by a write nobody asked for.
 
 **The maintainer's word is never derived.** Where a skill requires a value to be the maintainer's own
 choice — a deploy or release target (`kagutsuchi`, `mugetsu`), a G3 go (`mugetsu`), an iteration cap
-(`izanagi`), a device to trust (`jujutsu`), the request itself (`ren`) — it is **typed, never
-picked** (row `missing-maintainer-choice`, whose `governs` list names those keys, with no `default`
+(`izanagi`), a device to trust (`jujutsu`), the request itself (`ren`), a runner pool's target,
+machine code and service identity (`jusshin`, ROSTER § *Rulings of 2026-09-30 — jusshin*) — it is
+**typed, never picked** (row `missing-maintainer-choice`, whose `governs` list names those keys, with no `default`
 and no recommended option). Step 1 never substitutes a candidate, even a single one; the ask takes the
 maintainer's free-text answer; the declared candidates may be listed for reference, **none starred**,
 and **never as a picker option that performs the act**. An undeclared target is refused, naming the
@@ -1501,7 +1502,10 @@ consumer inherits the ordering as a sequenced plan rather than as a red check to
 
 **Runner selection is derived per repository** — maintainer's ruling, 2026-09-19 — from visibility
 and registered self-hosted runners, always terminating on a runner that exists. `hatsu:tenkai` § 5b
-is the table; `scripts/tenkai_adopt.sh runner-policy` is the single encoding.
+is the table; `scripts/tenkai_adopt.sh runner-policy` is the single encoding. **Provisioning is
+[`jusshin`](../claude/skills/jusshin/SKILL.md)'s**: it registers the pools a consumer declares in
+`nen/workflow.json` → `runners`, proves each with a preflight job and only then switches its jobs on —
+it never changes what this derivation selects.
 
 **Warm-up verifies adoption; it never performs it.** `ten` § 0a is the split: the `nen`
 dependency gate is per-session, adoption is once. An outstanding adoption item is reported and is

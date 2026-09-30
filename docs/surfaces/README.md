@@ -78,7 +78,7 @@ destination keeps it tracked and an `ln -sfn` or `rm -rf` over it destroys a fil
 Nothing there: create it. A previous Hatsu install (a symlink into `<hatsu root>/surfaces/`, or a
 directory whose `SKILL.md` carries the marker above): replace it. Anything else, and a tracked path is
 always anything else: leave it untouched, install nothing under that name, and name it in the report. A
-skipped name is reported, never swallowed; the warm-up would rather place forty of forty-six and say
+skipped name is reported, never swallowed; the warm-up would rather place forty of forty-seven and say
 so than overwrite one file it did not write.
 
 ```sh

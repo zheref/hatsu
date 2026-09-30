@@ -1,0 +1,293 @@
+---
+name: jusshin
+description: Raise a consumer repository's self-hosted GitHub Actions runners — register one declared pool's runners on any GitHub-supported OS and arch as boot-persistent services, prove the pool with a preflight job that runs as the service does, and only then switch its jobs on; every deterministic step a nen runner verb, every human step handed over. Use when the maintainer invokes hatsu:jusshin [for <owner/repo>] [pool <id>] [x <count>] [on <machine-code>] [--dry-run], or asks to add, register or bring back self-hosted runners. Never elevates itself, never handles a password or token, never reads the host script's transcript, never registers on a repository the maintainer did not type, never sets the enable variable without a green preflight run, never merges.
+---
+
+# Jusshin — the fleet, raised by hand once and standing on every boot
+
+**Nature: Transmuter** (host machinery); **Manipulator** for the variable and the PR. Many bodies, one
+act: one consent, and every planned runner stands as a service.
+
+> **Plan the names, render the host script outside the runner root, let the maintainer consent, then
+> prove the pool from inside a job before anything is switched on.**
+
+The verbs are nen `v0.18.0`'s `runner` family ([`docs/ab/jusshin.md`](../../../docs/ab/jusshin.md)),
+reading the target's `nen/workflow.json` → `runners` (`naming`, `pools[]`). [`tenkai`](../tenkai/SKILL.md)
+§ 5b **derives** which runner a readiness workflow targets; jusshin **provisions** the pools a
+consumer declares.
+
+**The fall-through, F.** Every table here ends in it: an exit or message no row names is quoted
+verbatim, nothing further runs, and **Next** is the line that reproduces it.
+
+## 0. Standalone entry
+
+Typed by the maintainer — its wired position; no composite provisions runners
+([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 7b). **Reached from one, skip this
+section.**
+
+| Step | What jusshin does |
+|---|---|
+| **`P1`** | `hatsu:ten jusshin`, unconditionally: `D10` — the `runner` verbs exist from nen `0.18` — and `$hatsu_root`, which § 7's block sets |
+| **`P1b`** | Applies to the preflight branch, through `breath` (§ 7); declined for an `x 0` run, which cuts none |
+| **`P2`** | `nen repo classify --repo '<path>' --json` (slug, role, gate) and `nen wc classify --repo '<path>' --json`, read out loud |
+| **`P3`** | **Declined**: the subject is a host and a declared pool, not a change set; `(fetched <sha>)` is never asserted |
+| **`P4`** | § 2's asks |
+| **`P5`** | `standalone entry · no composite is holding this run · <t> (role <role> → <gate>) · pool <id> <labels> · machine <CODE> · x <n> · identity <id> · root <dir> (<source>) · not running: aka, mukai, the merge (the preflight PR is yours)` |
+
+**The gate** is the target's **declaration gate** — **G4** for a canon repository, **G2** for a
+consumer, as `nen repo classify` answers (PROCESS § *Authority every phase shares*).
+
+## 1. Invocation
+
+```
+hatsu:jusshin [for <owner/repo>] [pool <id>] [x <count>] [on <machine-code>] [--dry-run]
+```
+
+```bash
+nen parse jusshin --grammar "[for <target>] [pool <pool>] [x <count>] [on <machine>] [--dry-run]" --line="<line>"
+```
+
+Clauses parse **in this order only**; a line opening with a dash needs `--line=`. An anchor with no
+value is dropped, and an out-of-order clause is swallowed by the slot before it — so the echo is read
+back and a slot that is not one value is asked again (`missing-argument`). `--dry-run` runs §§ 2–4
+and § 5's render with `--dry-run`; it launches nothing, and §§ 6–8 do not run.
+
+## 2. Elicit
+
+A missing argument or configuration item is asked for and set up inline (`missing-argument`,
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*).
+The target, the machine code and the service identity are the maintainer's word — **typed, never
+picked** (`missing-maintainer-choice`; [`ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of
+2026-09-30 — jusshin*); the rest is derived and stated, and asked only where it cannot be.
+
+| Item | Source | Asked as |
+|---|---|---|
+| `<path>` | the session's checkout — never asked. A typed target that is not its `origin` is **refused**, naming a checkout of that target to stand in | — |
+| target | typed; the checkout's `origin` listed for reference | typed (`missing-maintainer-choice`) |
+| machine code | typed; `^[A-Z0-9]{1,8}$` | typed (same row) |
+| service identity | typed, per § 4. Not asked on a macOS pool or at `x 0`. No slot carries it: the answer completes § 2, not the line | typed (same row) |
+| pool | `runners.pools[]`, this host's OS/arch starred | picker (`missing-argument`) |
+| count | no default; `0` starred when this machine already stands in the pool | picker (same row) |
+| consumer code | derived: the `nen/repos.json` → `product_codes` key naming the target, stated | picker, only when none or several (§ 3) |
+| runner root | derived: the pool's `root.<os>`, else nen's default, stated. Not asked at `x 0` | `missing-argument`, only when underivable (§ 3) |
+
+**No `runners` block** (a verb exits `2` naming the key): `missing-configuration`, asked per field,
+written into the target's `nen/workflow.json`, `nen schema check` and `nen stage triage` run on it
+(row `secret-shape`), and **landed through its declaration PR at the gate before a verb reads it
+live**. Whatever the target's visibility, the rendered preflight takes no `pull_request` event
+([`templates/runner-preflight.yml`](../../../templates/runner-preflight.yml) § *FORK SAFETY*, held by
+`scripts/runner_preflight_fixture_check.sh`; nen's own by its `runner-policy` test), and for a public
+target tenkai § 5b still derives a hosted readiness runner — nothing here changes that.
+
+## 3. Inventory and plan
+
+**Every path argument is single-quoted**: Git Bash eats an unquoted backslash, so `C:\GithubRunners`
+reaches nen as `C:GithubRunners` and an unquoted `--out` lands in the working tree (ab row 9).
+
+```bash
+nen runner inventory --target <t> --repo '<path>' --pool <id> --json
+nen runner plan --repo '<path>' --target <t> --pool <id> --machine-code <CODE> --count <n> \
+  [--service-account <name>] [--consumer-code <CC>] [--root '<dir>'] \
+  --out '<path>/.nen/jusshin/<id>.plan.json' --json
+```
+
+`--service-account` is omitted for a macOS pool (plan stores `invoking-user`); `--consumer-code` and
+`--root` only when § 2 asked them. `--out` creates its own directory.
+
+**The count.** Plan adds `n` at the lowest free slots; it never resumes. **The resume is `x 0`**:
+plan and § 5 are skipped, and § 6 expects the inventory's runners in this pool whose parsed machine
+is `<CODE>` — none is refused: *"nothing stands in pool `<id>` for `<CODE>` — run `x <n>` first"*.
+After a partial registration, `n` is the total wanted minus what stands, declared in P5.
+
+| Exit | Message | Reaction |
+|---|---|---|
+| `0` | — | § 4 |
+| `1` | *"needs admin on `<target>`"* (inventory) | refused, never asked: the maintainer's `repo` scope and admin role |
+| `1` | no runner package for the pool's OS/arch | quoted; the pool re-asked |
+| `1` | a planned name *"is already registered"* | quoted; inventory and plan once more, then F |
+| `2` | *"no pool … Declared: …"* | the pool picker, seeded with nen's list |
+| `2` | `--machine-code` / `--service-account` / `--target` / `--count` refused | that item re-asked, as § 2 asks it |
+| `2` | `~` or non-absolute root, for another host | the root asked (`missing-argument`) |
+| `2` | *"Pass --consumer-code"* | the consumer-code picker |
+| `2` | no or a malformed `runners` block | § 2 |
+| `5` | `gh` could not start | row `missing-tool` |
+| any | anything else — a GitHub refusal included | F |
+
+## 4. Host readiness — the three rules
+
+- **W1 — machine-located and machine-readable.** A service resolves tools on the **machine** `PATH`,
+  as its own account, with no profile: each declared tool must be on it **and** grant that account (or
+  `BUILTIN\Users`) `ReadAndExecute` on the file the entry resolves to.
+- **W2 — `126` ≠ `127`.** `127` is not found — location. `126` is found and refused — an ACL; every
+  `PATH` check passes during a `126`, so re-running them proves nothing.
+- **W3 — registration is not capability.** `online` and `Idle` prove the runner process. Only a job
+  running **as the service** observes W1 and W2: § 7's preflight, never the session's own `where.exe`.
+
+| Host | Service identity | Refused |
+|---|---|---|
+| Windows | a **local-only** `Users` account, logged into once so its profile exists | a Microsoft account or Hello PIN (no local hash); `NETWORK SERVICE` unless typed `network-service` (no profile: it dies starting) |
+| Linux | the user `svc.sh install <user>` takes (systemd) | `root` (`config.sh` refuses it) |
+| macOS | a launchd agent as the invoking user; not asked | any named account (plan exit `2`) |
+| **pool OS ≠ this host** | as that OS's row | **running here**: § 5 renders, prints the file and `launch`, and the maintainer runs it on that host |
+
+## 5. Render and run the host script
+
+```bash
+nen runner script --repo '<path>' --plan '<path>/.nen/jusshin/<id>.plan.json' --out '<script>' --json
+```
+
+**The script is rendered outside the runner root**, where only the maintainer can write: Windows
+`'C:\Users\<you>\AppData\Local\nen\jusshin\register-<id>.ps1'` — the literal of `%LOCALAPPDATA%`,
+never `$LOCALAPPDATA` inside single quotes, which does not expand — and Linux/macOS
+`'<home>/.local/state/nen/jusshin/register-<id>.sh'`, the home written out. The runner root stays
+writable by others until zheref/nen#312 locks it down.
+
+`script` exit `0` → the run below. `2`: *"not a runner plan"* → § 3 again; identity still `ask` → the
+identity asked, § 3 again; an `--out` with a space or quote → a path without one asked
+(`missing-argument`); else F.
+
+The script mints each token itself, verifies the download's SHA-256 and skips a runner already
+configured. What runs it is `--json`'s **`launch` field, verbatim** — never typed from memory:
+
+- **Windows**: the session runs `launch`, and **the harness asks first by design** — no allow row
+  exists ([`contracts/permissions.json`](../../../contracts/permissions.json)); its permission prompt,
+  showing the exact string, is the maintainer's advance consent. The UAC prompt and the password typed
+  once into the elevated window follow — the maintainer's on-device acts (row `on-device-act`). The
+  launch returns before the script's exit can be read, so the session notes the time and reads **only
+  the summary file** — `<projectDir>\_jusshin\register-<ts>.summary`, one line, `jusshin: <n>
+  registered, <m> skipped, <k> failed`, modified after the launch — **never the transcript**.
+  **No summary newer than the launch**: *nothing registered this run* (UAC declined, or the script
+  stopped early; the window says which) — except that a `0.18.0` rendering writes none
+  (zheref/nen#312), and then § 6 alone reads the result.
+- **Linux**: `launch` (`sudo bash <script>`) is **printed for the maintainer**, never run — an
+  install needing `sudo` is refused, never asked (WORKFLOW § 4). Its exits are theirs to read; § 6
+  follows their word.
+- **macOS**: the session runs `launch` (`bash <script>`) and reads its exit: `0` → § 6; `3` (run
+  as root) → rerun as the user; `5` → `missing-tool`; `6` (checksum mismatch) → row
+  `supply-chain-failure`, never retried; `1` (a runner not running) → § 6 and J7; else F.
+- **Pool OS ≠ this host**: the file and `launch` are printed, never run; § 6 follows the maintainer's
+  word.
+
+## 6. Verify
+
+```bash
+nen runner verify --target <t> --expect <name,…> --labels <a,b,c> --wait 120 --json
+```
+
+`--expect` is plan's `runners[].name`, or `x 0`'s inventory set (§ 3). **Never a partial pass.**
+
+| Exit | Row | Reaction |
+|---|---|---|
+| `0` | all `ok` | § 7 |
+| `1` | `missing` | not registered: § 5's outcome — the summary line, or the Linux command still owed |
+| `1` | `offline` | the service is not running: J1, J7, or a restart (§ 7) |
+| `1` | `labels: missing <x>` | the registration and the declaration disagree; the runner is the maintainer's to remove (residue 3) |
+| `2` | usage | F |
+| `5` | `gh` | `missing-tool` |
+| any | anything else — a GitHub refusal included | F |
+
+## 7. Prove the pool
+
+```bash
+hatsu_root='<the absolute path ten § 0 printed>'
+nen runner workflow --repo '<path>' --pool <id> --target <t> --template "$hatsu_root/templates/runner-preflight.yml" --json
+```
+
+On this effort's branch ([`hatsu:breath jusshin-<id>`](../breath/SKILL.md) on `<path>`), committed
+through [`hatsu:kokusen --type ci --scope runners`](../kokusen/SKILL.md). Exit `0`: `written` is
+committed, `unchanged` is not. `1`: *"differs … N line(s)"* is asked — `--force` only on the answer;
+a leftover placeholder or invalid YAML is a **finding against the template**, never `--force`
+(`hatsu:file`). `2`: an unknown pool or no block → § 2; an unreadable template → `$hatsu_root`
+unresolved, `hatsu:ten jusshin` again. Else F. A consumer whose policy wants SHA pins re-pins
+`actions/checkout` in the PR; a red check there is row `red-lint`; a registration-first guard takes
+tenkai § 5a's two-PR order. **The branch is ready to go up; `hatsu:mukai` is the maintainer's call**,
+at the target's gate. After the merge, `x 0` resumes here.
+
+```bash
+nen runner preflight --target <t> --workflow <pool.preflightWorkflow> --wait 600 --json
+```
+
+Exit `0` (quote `runId`, `runnerName`) → § 8. `2` — not on the ref: *"merge the preflight workflow
+first"*. `1` by `verdict`: `failure` → the failing step's log against the table below; `queued` → no
+free runner, quoted with the inventory; `timeout` → unfinished, the same line later. `5` →
+`missing-tool`. Else F. Every remedy is the maintainer's act on the host, then § 7 again. The rows
+carry bankai-core's `docs/SETUP-SELF-HOSTED-RUNNERS.md` § *Troubleshooting* (T7–T13) under local ids:
+
+| Id | Seen | Remedy |
+|---|---|---|
+| J1 | Windows: service *"cannot start … timely fashion"* | a local account, logged in once; § 5 again |
+| J2 | Windows: `config.cmd` rejects the password | a local-only account |
+| J3 | `Access to the path … is denied` | `(RX)` on every parent up the hierarchy |
+| J4 | exit `127` | Windows: machine-scope install, `C:\Program Files\Git\bin` on the machine `PATH` (no installer adds it); Linux/macOS: a system path the service user reads; then restart |
+| J5 | exit `126` | Windows: created in place under `C:\Program Files\<tool>\`, never a winget portable or a `Move-Item`, `Get-Acl` showing `Users` `ReadAndExecute`; Linux/macOS: `chmod`/owner on the resolved file; then restart |
+| J6 | landed on another OS | `runs-on` as rendered; an online runner with all three labels on **this** repository |
+| J7 | macOS: runner offline after start | Login Items → Allow in the Background, then `launchctl kickstart -kp gui/$(id -u)/<service>`, per runner |
+| — | anything else | F, with the failing step's log quoted |
+
+**A service reads `PATH` at start** — the restart, elevated and the maintainer's: Windows
+`Get-Service "actions.runner.<owner>-<repo>.*" | Restart-Service`; Linux `sudo ./svc.sh stop` then
+`start` per runner dir; macOS `launchctl kickstart -kp gui/$(id -u)/<service>`.
+
+## 8. Switch it on
+
+The pool's `enableVariable` is read from the declaration first. **None: ungated** — the jobs are live
+on registration, said, and the verb is not run. Otherwise:
+
+```bash
+nen runner enable --repo '<path>' --target <t> --pool <id> --after-run <runId> --json
+```
+
+Exit `0`: `variable`, `value`, `previous`, `changed` quoted. `1`: *"not a green preflight … Nothing was
+set"* → each reason quoted, § 7's preflight again; the read-back disagrees → the variable may be set:
+quoted, Next is the same call with `--dry-run`, which reads it. `5` → `missing-tool`. `2` and anything
+else — F. **Only after exit `0` or an ungated pool**: a `nen/gates.json` → `check_exclusions[]` row
+excluding this pool's check *until the runner is enabled* is removed through the file's own key, on
+the answer, at the gate (`missing-configuration`).
+
+## 9. Report
+
+The P5 line; the fleet table — **name · labels · status · service · install dir** — from §§ 3 and 6;
+the summary line; the preflight run; the enable line; and the **off switch**, the maintainer's own
+act: the services stopped (`Stop-Service`, `svc.sh stop`, `launchctl bootout`) and the variable
+restored to the `previous` § 8 quoted. Then, every run, last:
+
+```
+Next: <one line>
+```
+
+The first that holds: **dry run** — the same line without `--dry-run`; **a refusal or host remedy** —
+the one act, then the same line again; **declaration unmerged** — its PR at `<gate>`, then the same
+line again; **preflight unmerged** — `hatsu:mukai` in `<path>`, then `hatsu:jusshin for <t> pool <id>
+x 0`; **exclusion edit pending** — that PR at `<gate>`; **live** — *nothing — the pool is live*;
+**otherwise** — F's line. Then the hand-back line ([`STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md)
+§ 6). Never a picker option.
+
+## Residue
+
+1. **The elevated launch has no verb** — the consent is the harness's prompt and then UAC, by design.
+2. **The summary read** — the launch time noted and the newest `register-*.summary` after it, by hand.
+3. Removal and deregistration — owed, unfiled.
+4. The shared `_work/_actions` cache — owed, unfiled.
+5. Runner groups on organization accounts; `--ephemeral` supervisors — owed, unfiled.
+6. The root lockdown, secrets off `config.cmd`'s argv, and the summary file — zheref/nen#312.
+7. `nen parse` carries no alternation and no integer slot, as for great-hiker; § 1's read-back stands in.
+
+Listed in [PROCESS.md](../../../docs/PROCESS.md) § *Residue*.
+
+## Authority and hard limits
+
+**Permitted:** the seven `nen runner` verbs; the plan under `<path>/.nen/jusshin/`, the script outside
+the runner root; `launch`, verbatim, through the harness's prompt; the preflight workflow on this
+effort's branch; `nen runner enable` on a green run; the `runners` declaration and the
+`check_exclusions` edit on the maintainer's answer. **Not permitted:** another consumer's runners, a
+gate, elevation, `gh variable` or `gh workflow run` directly (nen's, under its own row).
+
+- **Never types a password, registration token or `gh` token** into chat, a file, a log or any
+  argument the session runs, **and never reads the script's transcript** — the summary line only.
+- **Never elevates itself**; `config.cmd`, `config.sh` and `svc.sh` run only inside the rendered script.
+- **Never renders a bare `self-hosted`** or an undeclared label set; never names a runner outside
+  `runners.naming`.
+- **Never registers on a repository the maintainer did not type**, and never sets the enable variable
+  without a green preflight run id.
+- **Never merges, never improvises a Nen-owned operation** — a missing verb is residue; the trailer is
+  `Hatsu-Agent: kurapika`. **Never ends without the Next block.**

@@ -292,6 +292,16 @@
       "why": "G3 is mugetsu on a recorded go"
     },
     {
+      "exe": "gh",
+      "args": "variable delete *",
+      "why": "a repository variable is a switch other workflows read -- a pool's enable variable, RELEASE_HOLD. jusshin never sets one itself: nen runner enable does, under nen's own row, only after it certifies a green preflight run. A session deleting one directly switches a gate off with no such check (Feitan, hanten F4 on the jusshin branch, 2026-09-30)"
+    },
+    {
+      "exe": "gh",
+      "args": "variable set RELEASE_HOLD*",
+      "why": "RELEASE_HOLD holds a cut: getsuga's preflight reads it, so a session lifting it directly bypasses that read (Feitan, hanten F4 on the jusshin branch, 2026-09-30)"
+    },
+    {
       "exe": "sudo",
       "args": "*",
       "why": "never with elevation"

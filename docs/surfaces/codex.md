@@ -142,8 +142,8 @@ nen surface mirror generate --surface codex \
 
 | emits | from |
 |---|---|
-| `surfaces/codex/<name>/SKILL.md`, 47 files (forty-six plus `ten`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `$<name>` | `claude/skills/**` |
-| `surfaces/codex/AGENTS.md`, the appendix the warm-up copies into `AGENTS.override.md` after the target's own `AGENTS.md`, eleven personas plus the preamble include as sections (`## _review-preamble`) | `claude/agents/**` |
+| `surfaces/codex/<name>/SKILL.md`, 48 files (forty-seven plus `ten`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `$<name>` | `claude/skills/**` |
+| `surfaces/codex/AGENTS.md`, the appendix the warm-up copies into `AGENTS.override.md` after the target's own `AGENTS.md`, twelve personas plus the preamble include as sections (`## _review-preamble`) | `claude/agents/**` |
 | `surfaces/codex/agents/<persona>.toml`, one per persona, `name`, `description`, `developer_instructions`, `model` from the persona's tier | `claude/agents/**` and `nen/workflow.json` |
 | `surfaces/codex/config.toml`, the pack: `approval_policy`, `sandbox_mode`, `writable_roots` | `contracts/permissions.json` |
 | `surfaces/codex/config.toml.fragment`: `[agents]` with `default_subagent_model` only, from the matrix row | `nen/workflow.json` |

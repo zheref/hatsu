@@ -51,7 +51,7 @@ Claude Code plugin skills, `build` and `drive` among them (evidence § 8 F4). Th
 inferred, not proven: two probes could not tell two rival `build` entries apart because the surviving
 descriptions are too short. The warm-up lists every name already standing under `.cursor/skills/`
 before it installs anything and says that a host-level collision it cannot see may still win. Hatsu
-claims forty-seven ordinary words at once, `build`, `file`, `en`, `ao`, `ren`, `breath` among them.
+claims forty-eight ordinary words at once, `build`, `file`, `en`, `ao`, `ren`, `breath` among them.
 
 **Do not shorten a description to fit thirty characters.** Asked for the length of `build`'s
 description, a session answered "30 characters long"; the description dies inside its first clause, and
@@ -124,8 +124,8 @@ nen surface mirror generate --surface cursor \
 
 | emits | from |
 |---|---|
-| `surfaces/cursor/<name>/SKILL.md`, 47 files (forty-six plus `ten`), frontmatter reduced to the documented keys, `hatsu:<name>` respelled `/<name>` | `claude/skills/**` |
-| `surfaces/cursor/agents/<persona>.md`, 12 files (eleven personas plus the preamble include), `model: inherit` | `claude/agents/**`, `nen/workflow.json` |
+| `surfaces/cursor/<name>/SKILL.md`, 48 files (forty-seven plus `ten`), frontmatter reduced to the documented keys, `hatsu:<name>` respelled `/<name>` | `claude/skills/**` |
+| `surfaces/cursor/agents/<persona>.md`, 13 files (twelve personas plus the preamble include), `model: inherit` | `claude/agents/**`, `nen/workflow.json` |
 | `surfaces/cursor/.cursor/rules/hatsu.mdc` | the surface row and the matrix |
 | `surfaces/cursor/.cursor/cli.json` | `contracts/permissions.json` |
 | `surfaces/cursor/.cursor/hooks.json`: `sessionStart`, `beforeShellExecution`, `stop` | `hooks/hooks.json` |

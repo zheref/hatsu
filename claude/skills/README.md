@@ -4,12 +4,12 @@ This directory is the plugin's skill surface (`plugin.json` → `"skills": "./cl
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together
 under *Skills* by `claude plugin details`, which is why they are described together here.
 
-**Forty-six skills at `v0.66.0`** (forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`, forty-seven directories per surface with `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
+**Forty-seven skills at `v0.68.0`** (forty-six at `v0.66.0`, forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`, forty-eight directories per surface with `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
 surface complete at `v0.1.0` — one of them, `drive`, **renamed to [`sharingan`](sharingan/) at `v0.5.0`** —
 the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side,
 **[`byakugan`](byakugan/) at `v0.24.0`**, the
 **three added at `v0.6.0`** that close the release side,
-**[`third-hand`](third-hand/) at `v0.27.0`** (a separate phase after En from `v0.28.0`), **[`great-hiker`](great-hiker/) at `v0.43.0`** (the canon-authoring skill, in its own section), **[`limbo`](limbo/) at `v0.60.0`** (the canon-mirror sync, beside `tenkai`), **[`bakuryuha`](bakuryuha/) at `v0.66.0`** (the plugin-update skill, in its own section), and the **two roster-machinery residents** that
+**[`third-hand`](third-hand/) at `v0.27.0`** (a separate phase after En from `v0.28.0`), **[`great-hiker`](great-hiker/) at `v0.43.0`** (the canon-authoring skill, in its own section), **[`limbo`](limbo/) at `v0.60.0`** (the canon-mirror sync, beside `tenkai`), **[`bakuryuha`](bakuryuha/) at `v0.66.0`** (the plugin-update skill, in its own section), **[`jusshin`](jusshin/) at `v0.68.0`** (a consumer's self-hosted runners, beside `tenkai` and `limbo`), and the **two roster-machinery residents** that
 arrived with the skeleton ([zheref/hatsu#1][1]) and are counted separately. Nothing here is reserved, and
 nothing here is a placeholder.
 
@@ -26,10 +26,10 @@ below.
 
 ---
 
-## The twenty that answer a request
+## The twenty-one that answer a request
 
 Seventeen were ported from the frozen reference implementation **under their existing names** — only the mechanics changed — and
-`black-voice`, `tenkai` and `limbo` were authored here in the same shape: **every deterministic
+`black-voice`, `tenkai`, `limbo` and `jusshin` were authored here in the same shape: **every deterministic
 step that has a verb** is a [Nen](https://github.com/zheref/nen) verb, where it used to be improvised shell
 (`gh`, `git`, hand-rolled API calls). What stayed with the skill is deliberate — severity reasoning,
 synthesized titles, root-cause grouping, the adversarial confirmation pass, and the *ask* on every flagged
@@ -67,6 +67,7 @@ mechanics, and a live transcript showing the same verdict from fewer improvised 
 | [`sharingan`](sharingan/) | Drives one open PR to readiness at its gate and stops there — first blocking condition, thread stewardship, wakes. Never merges, never votes. **Renamed from `drive` at `v0.5.0`** — same behaviour, and `hatsu:drive` no longer resolves. |
 | [`tenkai`](tenkai/) | **Consumer adoption.** Turns another repository into a Hatsu consumer through [`scripts/tenkai_adopt.sh`](../../scripts/tenkai_adopt.sh): the declarations it is missing, the `readiness` workflow, the permission pack and the surface mirrors, each staged as its own PR at that repository's own gate. Idempotent, and read-only until the maintainer says apply. |
 | [`limbo`](limbo/) | **Consumer canon mirror.** Keeps one consumer's mirror of the canonical handbooks current on every agent surface it declares (`CON-13`): reads the recorded pin (`nen canon pin`), checks the public `zheref/bankai-handbooks` out at that tag, classifies every surface's committed copy (`nen canon mirror check` — `ok / missing / extra / stale / hand-edited / foreign`), regenerates on the maintainer's answer (`nen canon mirror generate`) and lands the mirror as one PR at that repository's own gate, handed to [`en`](en/). A pin behind the canon is reported, never moved without a typed `to <tag>`; a hand-edited mirror file is a **G5** before any write; the surface set is the consumer's own `surfaces:` declaration, never all four. Never writes canon, never merges. |
+| [`jusshin`](jusshin/) | **Consumer self-hosted runners.** Registers one pool the consumer declares in `nen/workflow.json` → `runners` — names `<machine>-<consumer>R<slot>`, labels exactly `self-hosted`, OS and arch — as boot-persistent services under a local service identity: `nen runner inventory` and `plan`, then one host script `nen runner script` renders, rendered outside the runner root and launched by its own `launch` line — the harness's permission prompt on that line is the maintainer's consent, then UAC and the typed service-account password on Windows; `sudo` and Login Items approval stay the maintainer's own acts; the session reads only the script's one-line summary, never its transcript. `nen runner verify` reads them online; a preflight workflow (`nen runner workflow`, landed through [`mukai`](mukai/) at the target's declaration gate, dispatched by `nen runner preflight`) proves the pool from inside a job, because registration is not capability; only a green run's id lets `nen runner enable` set the pool's variable. [`tenkai`](tenkai/) § 5b derives which runner a readiness workflow targets; jusshin provisions. Never elevates itself, never handles a password or token, never merges. |
 | [`tensho`](tensho/) | Turns a dirty working copy into one PR, reviewing every uncommitted file before staging it, then hands that PR to [`sharingan`](sharingan/)'s engine to reach its gate. |
 
 ---
@@ -94,7 +95,7 @@ every-session `--auto` refresh stays as it is.
 
 ## The way of working
 
-The twenty request-answering skills above and `great-hiker` each answer a request. The twenty-four below are the **loop that carries every request** —
+The twenty-one request-answering skills above and `great-hiker` each answer a request. The twenty-four below are the **loop that carries every request** —
 warm up, build, commit, launch, report, ring; pull, test, push — and the phases the maintainer calls by
 hand. [`../../docs/WORKFLOW.md`](../../docs/WORKFLOW.md) is the authority on all of it: the two configuration
 files ([`nen/contract.json`](../../nen/contract.json) → `project`, what nen **executes**;
@@ -160,7 +161,7 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 
 ## The two roster-machinery residents
 
-Neither is one of the forty-six. They landed with the skeleton because the plugin does not function
+Neither is one of the forty-seven. They landed with the skeleton because the plugin does not function
 without them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |

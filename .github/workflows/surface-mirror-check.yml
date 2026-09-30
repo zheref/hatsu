@@ -29,7 +29,7 @@
 # exit 2, precisely so that it would disappear by itself the moment the pinned
 # nen carried the verb — no edit to this file, no remembering.
 #
-# The pin is `v0.16.0` (nen/contract.json is the source; this line is a convenience copy) and that nen carries `nen surface mirror generate|check` with the v0.13 pack flags.
+# The pin is `v0.18.1` (nen/contract.json is the source; this line is a convenience copy) and that nen carries `nen surface mirror generate|check` with the v0.13 pack flags.
 #
 # NOTE, and it is why a repin PR goes red here: the step below reads the ref from
 # the TRUSTED checkout's own copy of the contract, never from the PR's -- a pull

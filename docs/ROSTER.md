@@ -118,6 +118,12 @@ release its channel offers and switching the running surface onto it. It crosses
 repository's history; the one step a surface keeps for a human (`/reload-plugins` on Claude Code) is
 handed over, never performed.
 
+**Nor is [`jusshin`](../claude/skills/jusshin/)** — raising a consumer's self-hosted runners for a pool
+it declares. It crosses no gate itself: the preflight workflow goes out through `mukai` at the
+target's declaration gate (**G4** for a canon repository, **G2** for a consumer, as `nen repo classify`
+answers), and the host acts it needs (the UAC consent and the service-account password, `sudo`, a Login
+Items approval) are handed over, never performed.
+
 **Only a genuine G5 (`CON-47`) interrupts the maintainer, and there are five**: red required tests, touched-
 file coverage under the ladder's `minimum`, a *semantic* merge conflict, an unsettled adversarial finding, and
 a stuck-PR escalation. A stop is `nen stop`'s banner, the report link, options with ⭐ on the recommendation,
@@ -891,6 +897,23 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   (`UX-{n}`), `handbooks/uzf-core.md` (`UZF-26`). That repository is **frozen**; read it at its snapshot tag,
   never at `main`, and never write to it.
 
+
+## Rulings of 2026-09-30 — jusshin: the target, the machine and the service identity are the maintainer's word
+
+**The maintainer's request, verbatim** (typed while `hatsu:jusshin` was specified):
+
+> Skill should always as[k] user for platform/account/repository keys and aspects that cannot be handled agentically in order to complete and register new runners up to the very end, following the conventions we are already following under Hatsu.
+
+What it settles, for [`jusshin`](../claude/skills/jusshin/SKILL.md) and no other skill:
+
+| Ruling | What it says |
+|---|---|
+| **The class widens for jusshin** | `missing-maintainer-choice`'s class — *a target, a go, a cap, a device, the request* (ruling of 2026-09-23) — extends to jusshin's **target repository**, the **machine code** every runner on a host is named by, and the **service identity** its services log on as: typed, never picked and never derived, the declared candidates listed for reference with none starred |
+| **The keys** | `nen/decisions.json` → `missing-maintainer-choice.governs`: `jusshin <target>` and `jusshin <machine>` are the grammar's slots; `jusshin <service-identity>` is typed like `jujutsu <device>` and is not a slot — the answer completes the skill's elicitation, not the line |
+| **What stays derived** | the pool, the count, the consumer code and the runner root are derived and stated, asked through the picker only when they cannot be (`missing-argument`); the root is the pool's declared `root.<os>`, never a typed override of it |
+| **What it does not settle** | the question budget (STANDALONE-ENTRY § 3 P4's *at most three* against WORKFLOW § 4's *one question per missing item*) and the reading of an on-device act (a `G5` row, an entry on WORKFLOW § 4's *not a gap* list, and not one of the five G5s above) — both raised as handbook questions, open |
+
+---
 
 ## Rulings of 2026-09-30 — Leorio, the economics reviewer
 
