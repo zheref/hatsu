@@ -447,6 +447,79 @@ reenter_verdict() {
   esac
 }
 
+# --- settings.json reads, verbatim from scripts/hatsu_surface_link.sh (settings_file_shape_ok
+# through settings_declares_enabled_plugin). scripts/hatsu_plugin_update_fixture_check.sh fails when the
+# two copies differ, so a change is made in both or in neither. Why the updater needs them (Cursor
+# Bugbot on #151): a settings.json that still declares extraKnownMarketplaces.hatsu or enables
+# hatsu@hatsu makes the next /reload-plugins reinstall the cached copy that shadows the link, even
+# with no installed_plugins.json row (docs/surfaces/evidence/surfaces.md § 10 F9). Read-only; no
+# `claude` call. See the originals for the shapes they trust.
+settings_file_shape_ok() {
+  local file="$1"
+  awk '
+    NF { if (!seen) { first = $0; seen = 1 }; last = $0; n++ }
+    END {
+      if (n == 1 && first == "{}") { print "ok"; exit }
+      if (n >= 2 && first == "{" && last == "}") { print "ok"; exit }
+      print "bad"
+    }
+  ' "$file"
+}
+
+# settings_scan FILE KEY LEAF_REGEX -- FILE absent or unreadable: echoes
+# "ok" then an empty line (nothing declared -- an absent settings.json
+# declares nothing, confidently). FILE present: first checks
+# settings_file_shape_ok; if that fails, echoes "bad" then empty (caller
+# fails closed). Otherwise scans for a top-level "KEY": { ... } block (or
+# the inline empty "KEY": {} / "KEY": {},) opened and closed each on their
+# own 2-space line -- deliberately NOT validating everything between them,
+# since both blocks this script reads (extraKnownMarketplaces, enabledPlugins)
+# hold further-nested values -- and echoes "declared" as its second line when
+# a line inside the block matches LEAF_REGEX. A KEY block opened twice, or
+# opened and never closed, is itself "bad" (not the one shape trusted here).
+settings_scan() {
+  local file="$1" key="$2" leaf_regex="$3" shape
+  if [ ! -r "$file" ]; then
+    printf 'ok\n\n'
+    return 0
+  fi
+  shape="$(settings_file_shape_ok "$file")"
+  if [ "$shape" != "ok" ]; then
+    printf 'bad\n\n'
+    return 0
+  fi
+  awk -v key="$key" -v leaf="$leaf_regex" '
+    BEGIN { ok = 1; declared = ""; in_block = 0; seen = 0 }
+    $0 == "  \"" key "\": {}" || $0 == "  \"" key "\": {}," { next }
+    $0 == "  \"" key "\": {" {
+      if (seen) { ok = 0 }
+      in_block = 1; seen = 1; next
+    }
+    in_block && ($0 == "  }" || $0 == "  },") { in_block = 0; next }
+    in_block {
+      if ($0 ~ leaf) declared = "declared"
+      next
+    }
+    END {
+      if (in_block) ok = 0
+      print (ok ? "ok" : "bad")
+      print declared
+    }
+  ' "$file"
+}
+
+# settings_declares_marketplace FILE -- two lines: shape ("ok"/"bad"), then
+# "declared"/"" for extraKnownMarketplaces.hatsu.
+settings_declares_marketplace() {
+  settings_scan "$1" 'extraKnownMarketplaces' '^    "hatsu": \{$'
+}
+
+# settings_declares_enabled_plugin FILE -- two lines: shape ("ok"/"bad"),
+# then "declared"/"" for enabledPlugins["hatsu@hatsu"] == true.
+settings_declares_enabled_plugin() {
+  settings_scan "$1" 'enabledPlugins' '^    "hatsu@hatsu": true,?$'
+}
+
 # installed_plugins_has_hatsu REGISTRY — true when Claude Code's installed_plugins.json records a
 # hatsu@hatsu entry in the REAL v2 registry shape: {"version": 2, "plugins": {"hatsu@hatsu": [
 # {...} ]}}, i.e. the line `    "hatsu@hatsu": [` nested under the top-level "plugins" object —
@@ -525,7 +598,7 @@ codex_expected_version() {
 # When TARGET differs from --root and re-entering it refuses (REENTER_RC nonzero) on a run that is
 # not --auto, that refusal is THIS run's refusal too — never folded into a "served in place" report.
 claude_refresh_link() {
-  local target="$1" after_git="${2:-}" note tail installed
+  local target="$1" after_git="${2:-}" note tail installed settings mkt enb risk reasons
   if [ "$target" = "$root" ]; then
     note="in-place link $target"
   else
@@ -540,8 +613,22 @@ claude_refresh_link() {
     note="in-place link $target: $REENTER_VERDICT"
   fi
   installed="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json"
+  settings="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
+  mkt="$(settings_declares_marketplace "$settings")"
+  enb="$(settings_declares_enabled_plugin "$settings")"
+  risk=""
+  if [ "${mkt%%$'\n'*}" != "ok" ] || [ "${enb%%$'\n'*}" != "ok" ]; then
+    risk="$settings: not verified (unexpected shape)"
+  else
+    reasons=""
+    [ "${mkt#*$'\n'}" = "declared" ] && reasons="settings.json declares extraKnownMarketplaces.hatsu"
+    [ "${enb#*$'\n'}" = "declared" ] && reasons="${reasons:+$reasons, }settings.json enables hatsu@hatsu"
+    [ -n "$reasons" ] && risk="will reinstall hatsu@hatsu on reload ($reasons); retarget: scripts/hatsu_surface_link.sh --surface claude-code"
+  fi
   if installed_plugins_has_hatsu "$installed"; then
     tail="hatsu@hatsu (a cached marketplace install) shadows the in-place link; retarget: scripts/hatsu_surface_link.sh --surface claude-code"
+  elif [ -n "$risk" ]; then
+    tail="served in place from $target (hatsu@skills-dir) until the next reload: $risk"
   else
     tail="served in place from $target (hatsu@skills-dir)"
   fi

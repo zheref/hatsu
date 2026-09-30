@@ -425,6 +425,40 @@ assert_contains "$shadow_out" 'scripts/hatsu_surface_link.sh --surface claude-co
 [ ! -e "$claude_log" ] || fail "(b) shadow-link case invoked claude"
 rm -f "$link_home/plugins/installed_plugins.json"
 
+# (b3) Cursor Bugbot on #151: settings.json declarations make the next /reload-plugins reinstall the
+# shadowing copy even with no installed_plugins.json row (evidence § 10 F9). The link report names
+# the risk and the retarget command, still without invoking claude; a minified settings.json is
+# "not verified", never "declares nothing"; an empty object declares nothing.
+printf '%s\n' '{' '  "enabledPlugins": {' '    "hatsu@hatsu": true' '  }' '}' > "$link_home/settings.json"
+rm -f "$claude_log"
+enb_out="$(CLAUDE_CONFIG_DIR="$link_home" PATH="$fixture_root/bin:$PATH" "$updater" --root "$link_target" --claude)"
+assert_contains "$enb_out" 'until the next reload' '(b3) an enabled hatsu@hatsu in settings.json is named as a reload risk'
+assert_contains "$enb_out" 'settings.json enables hatsu@hatsu' '(b3) the reason names the declaration'
+assert_contains "$enb_out" 'scripts/hatsu_surface_link.sh --surface claude-code' '(b3) the risk names the retarget command'
+[ ! -e "$claude_log" ] || fail "(b3) settings-declaration case invoked claude"
+printf '%s\n' '{' '  "extraKnownMarketplaces": {' '    "hatsu": {' '      "source": {' '        "source": "directory",' '        "path": "/nowhere"' '      }' '    }' '  }' '}' > "$link_home/settings.json"
+mkt_decl_out="$(CLAUDE_CONFIG_DIR="$link_home" PATH="$fixture_root/bin:$PATH" "$updater" --root "$link_target" --claude)"
+assert_contains "$mkt_decl_out" 'settings.json declares extraKnownMarketplaces.hatsu' '(b3) a declared hatsu marketplace is named as a reload risk'
+printf '%s\n' '{"enabledPlugins":{"hatsu@hatsu":true}}' > "$link_home/settings.json"
+min_out="$(CLAUDE_CONFIG_DIR="$link_home" PATH="$fixture_root/bin:$PATH" "$updater" --root "$link_target" --claude)"
+assert_contains "$min_out" 'not verified (unexpected shape)' '(b3) a minified settings.json is not verified, never read as declaring nothing'
+printf '%s\n' '{}' > "$link_home/settings.json"
+empty_out="$(CLAUDE_CONFIG_DIR="$link_home" PATH="$fixture_root/bin:$PATH" "$updater" --root "$link_target" --claude)"
+case "$empty_out" in
+  *'until the next reload'*) fail "(b3) an empty settings object was read as a reload risk: $empty_out" ;;
+esac
+assert_contains "$empty_out" 'served in place' '(b3) an empty settings object declares nothing'
+rm -f "$link_home/settings.json"
+
+# (b4) the settings readers are ONE parser in two files: the updater's copy must stay byte-identical
+# to scripts/hatsu_surface_link.sh's, from settings_file_shape_ok through settings_declares_enabled_plugin.
+settings_readers() {
+  awk '/^settings_file_shape_ok\(\) \{$/ { on = 1 } on { print } on && /^settings_declares_enabled_plugin\(\) \{$/ { last = 1 } last && /^\}$/ { exit }' "$1"
+}
+[ -n "$(settings_readers "$updater")" ] || fail "(b4) the updater carries no settings readers"
+[ "$(settings_readers "$updater")" = "$(settings_readers "$(dirname "$updater")/hatsu_surface_link.sh")" ] ||
+  fail "(b4) the settings readers differ between scripts/hatsu_plugin_update.sh and scripts/hatsu_surface_link.sh"
+
 # (b2) the OLD flat top-level-object shape ({"hatsu@hatsu": {...}}) is not a shape Claude Code ever
 # writes and must NOT be mistaken for a recorded install -- the link is still reported served in
 # place, never shadowed.
