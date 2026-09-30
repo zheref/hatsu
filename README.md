@@ -617,7 +617,7 @@ v0.18.0 and executed by `hatsu:jusshin`, on top of `nen canon pin` and `nen cano
 --surfaces` (v0.16.0, `hatsu:limbo`), the futon label selector, `then` skill chains and advance-go gate, the
 `library` kind, `nen release unit-check` and `nen pr merge --release-unit` (v0.15.0, fail-closed in
 v0.15.1); each feature requirement raised the minimum. Nen's compatibility floor stayed 0.7 until v0.17.0
-raised it to 0.17 for breaking consumer notes, which this pin absorbs. The live skill surface is **forty-seven**, forty-eight
+raised it to 0.17 and v0.18.0 to 0.18, both for breaking consumer notes, which this pin absorbs. The live skill surface is **forty-seven**, forty-eight
 directories per surface with `ten`.
 
 **The range is nen's answer, not this README's arithmetic — and not the warm-up's either.** The binary
