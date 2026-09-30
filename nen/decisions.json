@@ -1,6 +1,6 @@
 {
   "$schema": "nen.decisions/v0.1",
-  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition a running workflow can stop on. `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check`; read by `nen stop --options` and by every skill before it asks. Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), hand-edited-canon-mirror (limbo), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure (ten), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan), missing-argument and missing-configuration (every skill that takes arguments or reads configuration, WORKFLOW.md § 4 Ask, set up, continue), missing-maintainer-choice (kagutsuchi, mugetsu, izanagi, jujutsu, ren's missing request, jusshin's target, machine code, service identity and runner root; the keys it governs are its own `governs` list), stale-send (kagutsuchi section 3a), on-device-act (jusshin: the UAC consent, the typed service-account password, the macOS Login Items approval), missing-tool, secret-shape and red-lint (also jusshin). Data-only until a skill cites them: merge, mode-label, signing-material, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
+  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition a running workflow can stop on. `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check`; read by `nen stop --options` and by every skill before it asks. Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), hand-edited-canon-mirror (limbo), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure (ten), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan), missing-argument and missing-configuration (every skill that takes arguments or reads configuration, WORKFLOW.md § 4 Ask, set up, continue), missing-maintainer-choice (kagutsuchi, mugetsu, izanagi, jujutsu, ren's missing request, jusshin's target, machine code and service identity; the keys it governs are its own `governs` list), stale-send (kagutsuchi section 3a), on-device-act (jusshin: the UAC consent, the typed service-account password, the macOS Login Items approval), missing-tool, secret-shape and red-lint (also jusshin). Data-only until a skill cites them: merge, mode-label, signing-material, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
   "contract": "nen.decisions/v0.1",
   "rows": [
     {
@@ -202,9 +202,8 @@
         "jujutsu <device>",
         "ren <request>",
         "jusshin <target>",
-        "jusshin <machine-code>",
-        "jusshin <service-identity>",
-        "jusshin <runner-root>"
+        "jusshin <machine>",
+        "jusshin <service-identity>"
       ],
       "preferred": [
         {
@@ -221,7 +220,7 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Ruling 2026-09-23: a value that is the maintainer's own word (a target, a go, a cap, a device, the request) is typed, never picked and never derived. No default and no recommended option: a default is a derivation and a starred option is a pick. The declared candidates may be listed for reference, none starred, and none is ever an option that performs the act. mugetsu asks only when the maintainer typed hatsu:mugetsu <target> in the same turn; every other reach prints the plan and stops."
+      "why": "Ruling 2026-09-23: a value that is the maintainer's own word (a target, a go, a cap, a device, the request) is typed, never picked and never derived. No default and no recommended option: a default is a derivation and a starred option is a pick. The declared candidates may be listed for reference, none starred, and none is ever an option that performs the act. mugetsu asks only when the maintainer typed hatsu:mugetsu <target> in the same turn; every other reach prints the plan and stops. Ruling 2026-09-30 (docs/ROSTER.md, Rulings of 2026-09-30 -- jusshin) extends the class to jusshin's target repository, the machine code every runner on a host is named by, and the service identity its services log on as; <target> and <machine> are grammar slots, and <service-identity> is typed like jujutsu <device>, completing the elicitation rather than the line."
     },
     {
       "id": "mode-unknown",
@@ -383,7 +382,7 @@
       "id": "on-device-act",
       "class": "human-gate",
       "gate": "G5",
-      "why": "A trust prompt or a security setting on a device is the maintainer's own act (jujutsu)."
+      "why": "A trust prompt or a security setting on a device is the maintainer's own act (jujutsu; jusshin: the UAC prompt and the service-account password typed into the elevated window, after the harness's own permission prompt on the launch line, which is the advance consent)."
     },
     {
       "id": "supply-chain-failure",

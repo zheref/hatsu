@@ -125,7 +125,7 @@ nen surface mirror generate --surface cursor \
 | emits | from |
 |---|---|
 | `surfaces/cursor/<name>/SKILL.md`, 48 files (forty-seven plus `ten`), frontmatter reduced to the documented keys, `hatsu:<name>` respelled `/<name>` | `claude/skills/**` |
-| `surfaces/cursor/agents/<persona>.md`, 12 files (eleven personas plus the preamble include), `model: inherit` | `claude/agents/**`, `nen/workflow.json` |
+| `surfaces/cursor/agents/<persona>.md`, 13 files (twelve personas plus the preamble include), `model: inherit` | `claude/agents/**`, `nen/workflow.json` |
 | `surfaces/cursor/.cursor/rules/hatsu.mdc` | the surface row and the matrix |
 | `surfaces/cursor/.cursor/cli.json` | `contracts/permissions.json` |
 | `surfaces/cursor/.cursor/hooks.json`: `sessionStart`, `beforeShellExecution`, `stop` | `hooks/hooks.json` |

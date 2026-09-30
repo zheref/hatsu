@@ -1058,8 +1058,9 @@ silenced by the maintainer's answer, never by a write nobody asked for.
 
 **The maintainer's word is never derived.** Where a skill requires a value to be the maintainer's own
 choice — a deploy or release target (`kagutsuchi`, `mugetsu`), a G3 go (`mugetsu`), an iteration cap
-(`izanagi`), a device to trust (`jujutsu`), the request itself (`ren`) — it is **typed, never
-picked** (row `missing-maintainer-choice`, whose `governs` list names those keys, with no `default`
+(`izanagi`), a device to trust (`jujutsu`), the request itself (`ren`), a runner pool's target,
+machine code and service identity (`jusshin`, ROSTER § *Rulings of 2026-09-30 — jusshin*) — it is
+**typed, never picked** (row `missing-maintainer-choice`, whose `governs` list names those keys, with no `default`
 and no recommended option). Step 1 never substitutes a candidate, even a single one; the ask takes the
 maintainer's free-text answer; the declared candidates may be listed for reference, **none starred**,
 and **never as a picker option that performs the act**. An undeclared target is refused, naming the
