@@ -24,7 +24,7 @@ A local checkpoint, branch publication and PR completion are separate outcomes. 
 |---|---|---|
 | `rasengan` | Author behavior and focused tests; use them and inexpensive iteration checks for feedback | Feedback is not the checkpoint verdict |
 | `kokusen` | Run declared iteration checks and applicable declared focused tests on the finished tree; commit locally | Full regression and coverage are not checkpoint gates |
-| `amaterasu` | Build the selected platform artifact, install it and launch it from the core checkout on each applicable turn | Report build/install/launch separately; absent and unusable devices remain distinct |
+| `amaterasu` | Build the selected platform artifact, install it and launch it from the session's own checkout — core or its worktree — on each applicable turn | Report build/install/launch separately; absent and unusable devices remain distinct |
 | `aka` | Lint (`gyo`) before squash; squash only unpublished history; catch up; recheck changed-tree lint; push | No project-wide tests. Regression and coverage wait for mukai |
 | `mukai` / `kotoamatsukami` | Review, then run only the declared unit, UI and integration suites the change can affect | Selection is fail-closed; edits return through focused checkpoint and kotoamatsukami before publication |
 | `byakugan` | Capture and measure touched-file coverage independently of those suites | Extraction must not rerun tests; the G5 under `coverage.minimum` is this skill's |
@@ -834,8 +834,10 @@ test reports `shu coverage` and `shu test-report` read back.
 and a skill must never report it as one.
 
 `amaterasu` runs `--dry-run` first, pastes that argv into the report and the chat, then runs it bare — **from
-the core working directory, never from a worktree**. A worktree exists to produce a diff; an app started from
-one runs against a tree nobody has open. Parallel subagent efforts launch nothing at all.
+the session's own checkout, core or the worktree the session works in** (`docs/ROSTER.md` § *Rulings of
+2026-09-29*, ruling 4), naming the checkout, branch and HEAD it built; a worktree missing core's gitignored
+local setup gets it copied from core, never invented. `hatsu:amaterasu help` prints the target guide. Parallel
+subagent efforts launch nothing at all.
 
 ### `project.evidence`
 

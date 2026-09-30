@@ -53,8 +53,9 @@ completed build/install/launch; that issue evidence is not a device run by this 
 4. Through Nen, prove synthetic record tests and the applicable checkpoint checks. Run the full
    regression in aka and extraction-only coverage in mukai; do not turn migration into a hidden
    early full-suite or coverage run.
-5. From the maintainer's core checkout, read the target's declared `verb` and run
-   `nen shu <declared-dev-or-run-verb> --repo <core-checkout> --target iphone`.
+5. From the maintainer's session checkout — core, or the worktree the session works in
+   (`hatsu:amaterasu` § 3) — read the target's declared `verb` and run
+   `nen shu <declared-dev-or-run-verb> --repo <session-checkout> --target iphone`.
    Record build, installation and launch results separately. A dry run is not delivery. Preserve
    the temporary fallback until the replacement is verified; remove the two Python files and the
    probe-only test row as part of the verified consumer migration. If device proof is unavailable,
@@ -223,7 +224,9 @@ does this build produce, and what will the child receive.
 ### Other rules these two skills share
 
 - **The key is a short, human name** (`iphone`, `sim`, `mac`, `pixel`), because it is what the
-  maintainer types at `hatsu:amaterasu` — not the device's name and not its identifier.
+  maintainer types at `hatsu:amaterasu` — not the device's name and not its identifier. Prefer ASCII
+  with no spaces: a key carrying either must be typed quoted and byte for byte. `hatsu:amaterasu help`
+  lists every key with what it lands on, so **`help` is reserved** and never a key.
 - **Never write a literal device identifier into the declaration**: a UDID is a fact about one
   machine's cable, and a declaration is shared. `{device.id}` resolves at run time.
 - **Every toolchain name lives in the target repository's own file, never in nen.**

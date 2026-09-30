@@ -421,3 +421,97 @@ and docs/LAUNCH-MIGRATION.md; historical command transcripts above retain their 
 | Turn/final report sees stale test or coverage artifact | Mark stale; do not execute tests/coverage merely to render the page |
 | Repeated discovery already captured | Unchanged result and no GitHub write; retain canonical link |
 | Filing unavailable | Durable sanitized pending record; original work continues where possible |
+
+## Launch from the session's checkout, and the target guide — 2026-09-29
+
+The maintainer's ruling 4 of 2026-09-29 ([`docs/ROSTER.md`](../ROSTER.md) § *Rulings of 2026-09-29*):
+a session working in a worktree launches **that worktree**, and `hatsu:amaterasu help` prints the
+target guide. Run with `nen 0.16.0` (the contract's `pinned_ref`, bootstrapped checksum-verified from
+the cache, `darwin-arm64`), host `Darwin 27.0.0 arm64`. Two sources: a **constructed fixture** in the
+session's scratch directory, deleted afterwards, and **dry runs only** against a private Xcode consumer
+(named nowhere, per [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md); its scheme, product and
+device owners' names are placeheld). Nothing was installed on any device.
+
+### § 2.5, read again: nen was never the obstacle
+
+§ 2.5 recorded that nen launches from a worktree *silently*, and concluded the ban had to be the
+skill's. The consumer's core checkout and one of its linked worktrees, same target, same pin:
+
+```text
+$ nen shu dev --repo <consumer core> --target sim --dry-run
+preconditions:
+  ok    path <gitignored config>
+would run:     xcodebuild -project <app>.xcodeproj -scheme '<scheme>' -destination 'platform=iOS Simulator,…' … -derivedDataPath .nen/dd … build
+cwd:           <consumer core>                                                                   # exit 0
+$ nen shu dev --repo <consumer worktree> --target sim --dry-run
+preconditions:
+  ok    path <gitignored config>
+would run:     xcodebuild -project <app>.xcodeproj -scheme '<scheme>' -destination 'platform=iOS Simulator,…' … -derivedDataPath .nen/dd … build
+cwd:           <consumer worktree>                                                               # exit 0
+```
+
+The same held for the physical `iphone` and the `mac` targets. Two of § 3's old reasons fall here:
+**`-derivedDataPath .nen/dd` is relative, so each checkout builds into its own**, and no port was
+declared to race over. The third — *a fresh worktree fails the declaration's own preconditions* — is
+true, and the consumer's worktree shows how it was being answered: its `<gitignored config>`
+(`git check-ignore` matches it) is byte-for-byte the size of core's, **copied by hand**. That hand
+step is what § 3 now names.
+
+### The fresh worktree, and the copy from core
+
+The fixture: one `generic` lane whose `dev` prints its working directory and a gitignored
+`local.properties`, a `path` precondition on that file, and three launch targets (`sim`, `mac`, and
+`Mac Desktop`, an alias of `mac` differing only in `why`). A linked worktree cut from its only commit.
+
+```text
+$ nen shu dev --repo <worktree> --target sim --dry-run          # fresh worktree
+preconditions:
+  FAIL  path local.properties -- not present
+cwd:           <worktree>
+1 precondition on lane 'app' is not satisfied. nen ASSERTS a precondition and never performs it:
+satisfy it with this repository's own tooling, then run this again.                             # exit 2
+$ nen wc worktrees --repo <worktree> --json   →   "core": "<core>"
+$ git -C <worktree> check-ignore local.properties   →   local.properties                         # exit 0
+$ cp -n <core>/local.properties <worktree>/local.properties                                     # exit 0
+$ git -C <worktree> status --porcelain                                                          # (empty)
+$ nen shu dev --repo <worktree> --target sim
+preconditions:
+  ok    path local.properties
+ran:           sh -c 'echo building from $PWD with $(cat local.properties)'
+ran:           echo 'install on' 'iPhone 17 Pro'
+building from <worktree> with sdk.dir=/opt/sdk
+install on iPhone 17 Pro                                                                         # exit 0
+```
+
+**Exit `2` is the precondition, not the checkout**: the same call from core reads `ok` and exit `0`.
+`cp -n` never overwrites, the file stays ignored and unstaged, and the launch that follows builds the
+worktree's tree. A file core lacks too would fail both checkouts alike — the precondition's own
+refusal, relayed, which is why § 3 copies only what core carries.
+
+### The target guide, prototyped
+
+No nen verb lists `project.launch` (an undeclared `--target` is exit `2` naming the keys, and nothing
+more), so § 1b is residue: the two files read as data, then one `--dry-run` per target from the
+session's checkout. Against the consumer's worktree — sixteen declared targets, placeheld:
+
+| type this | lands on | lane · verb | | status |
+|---|---|---|---|---|
+| `iphone` | `<name>’s iPhone Pro` (physical) | apple-device · dev | | `0` ready |
+| `<name2>-iphone` · `"<name2>'s iPhone"` | `<name2>’s iPhone` (physical) | apple-device · dev | | `0` ready |
+| `mac` | this host | apple-mac · dev | | `0` ready |
+| `sim` | iPhone 17 Pro (simulator) | the verb's lane · dev | | `0` ready |
+| `watch` · `"<app> Watch"` · `"<app> Watch (All Flags)"` | Apple Watch Series 11 (46mm) (simulator) | apple-watch · dev | | `0` ready |
+| `watch-black` · `"<name>'s Apple Watch Black"` | `<name>’s Apple Watch Black` (physical) | apple-watch-device · dev | | `0` ready |
+| `pair` · `"iPhone and Watch"` | `<name>’s iPhone Pro` (physical) | apple-device · dev | | `0` ready |
+| `watch-silver` · `"<name>'s Apple Watch Silver"` | `<name>’s Apple Watch Silver` (physical) | apple-watch-device · dev | **default** | `0` ready |
+| `watch-s12` · `"Apple Watch Series 12 with watchOS 27"` | Apple Watch Series 12 (46mm) (simulator) | apple-watch-s12 · dev | **fallback** | `0` ready |
+
+**Sixteen keys are nine targets.** A first cut grouped only byte-identical blocks and printed sixteen
+rows: the aliases differ in `why` alone (*"Exact-phrase alias for watch-black."*), which is why § 1b
+compares blocks **but for `why`/`$comment`**. Three of the quoted keys carry an ASCII `'` while the
+device names they alias carry U+2019 — the guide quotes each key as it must be typed. `0 ready` is the
+dry run's verdict on the declaration, **never a claim that a device is connected**: a dry run probes
+nothing.
+
+**Hatsu itself** declares no `project.launch` and `launch.default` `null`, so its guide is the
+no-targets line — and `ren`'s launch step is still § 1's silent skip, never a question.

@@ -884,7 +884,22 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   never at `main`, and never write to it.
 
 
-## Rulings of 2026-09-29 — the reviewer fallback chain, no prompt off the trunk, the merge is the run's
+## Rulings of 2026-09-29 — the reviewer fallback chain, no prompt off the trunk, the merge is the run's, a worktree launches in place
+
+**Ruling 4 (22:09Z).** On `hatsu:amaterasu` reporting its command instead of running it from a
+session in a worktree, the maintainer: *"I would expect work happening on a worktree to be launchable
+against the target platforms so that I can see the progress, maintain it, and test all the changes
+myself without having to switch back to the core checkout."* And: *"Let's always make sure to allow the
+user to call Amaterasu and to be provided with a guide to learn how to easily target or what options
+are there on the given project."* So: **a launch builds the session's own checkout — core, or the
+worktree the session works in** — named in the launch line with its branch, HEAD and uncommitted
+paths; a worktree lacking core's gitignored local setup gets it **copied from core**, never invented
+or staged; and **`hatsu:amaterasu help`** prints the target guide (every declared target, what it
+lands on, the line to type, each one's dry-run status). `amaterasu` § 1b and § 3 state it; § 3a's
+validation exception is retired, having nothing left to except. **Unchanged:** a subagent, a parallel
+effort or a temporary clone launches nothing; `amenotejikara` stays the way to put a worktree's tree
+in front of an IDE opened on core. This supersedes the 2026-09-12 ruling's *"from the core checkout"*
+below and `docs/ab/amaterasu.md` § 2.5's reading that the rule had to be the skill's.
 
 **Ruling 3 (20:05Z).** On HA-PR-#127 presented at a merge prompt on `main`, the maintainer: *"The merge is
 not mine. It is yours and it has been. And if it is not clear spec-wise, let's make it so during this very
@@ -1096,7 +1111,8 @@ name:** gyo is linting. **Superseded later the same day:** byakugan extracts; ko
 runs tests only.
 
 Amaterasu owes a platform-compatible artifact, installation and actual launch on each applicable
-turn from the core checkout. Shared record normalization belongs to Nen #204; consumer Python
+turn from the core checkout. **Superseded 2026-09-29 for the checkout** (ruling 4 of that day): the
+launch builds the session's own checkout, core or its worktree. Shared record normalization belongs to Nen #204; consumer Python
 workarounds remain temporary until a compatible release is available and migration is verified.
 
 Hatsu #49 grants standing discovery filing/folding authority across phases and resumed work,

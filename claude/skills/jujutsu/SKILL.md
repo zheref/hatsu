@@ -95,8 +95,9 @@ outcome*.** At pairing time **there is no declaration yet, so reading the state 
 
 **Delivery is proved, not assumed.** Register a lane that **actually builds for the target's declared
 platform**, a matching artifact path and the install/launch steps it needs, then **prove the whole
-target through its declared `dev`/`run` verb with `--repo <core-checkout> --target
-<declared-target>`**: pairing, probe, dry run and build are intermediate outcomes, and a validation
+target through its declared `dev`/`run` verb with `--repo <the session's checkout> --target
+<declared-target>`** ([`amaterasu`](../amaterasu/SKILL.md) § 3 — core or the declaration's
+worktree): pairing, probe, dry run and build are intermediate outcomes, and a validation
 the absent device cannot finish leaves registration **unverified for delivery**, never a launch. A reusable missing capability goes through
 [the discovery protocol](../../../docs/DISCOVERY.md) and upstream
 ([nen#204](https://github.com/zheref/nen/issues/204)).
