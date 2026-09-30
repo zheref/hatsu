@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-# Prove scripts/surface_mirror_check.sh's verdicts per surface, the NEXT-root re-check included
-# (docs/GATE-CONFIGURATION.md, 2026-09-30): a clean tree passes with no re-check; Codex drifting at
-# its current root and matching at its next passes and says so; drifting at both fails and says the
-# next root drifted too; a refusal at the current root keeps its code and is never re-checked; a
-# refusal at the next root keeps ITS code and is named; a surface with no next root (Cursor) is never
-# re-checked. Offline and hermetic: a stub `nen` stands in for the generator, answering each check by
-# the surface and the --hooks-root it was handed, and logging every call under mktemp.
+# Prove scripts/surface_mirror_check.sh's verdicts per surface: a clean tree passes with one check per
+# surface; a drift fails at exit 1 and is never re-checked at another root; a refusal keeps its own
+# exit code and is named; each surface is handed its own --hooks-root. The next-root re-check that
+# zheref/hatsu#153 added for the Codex root's two-step landing is gone since zheref/hatsu#151 made
+# that root current (docs/GATE-CONFIGURATION.md, 2026-09-30). Offline and hermetic: a stub `nen`
+# stands in for the generator, answering each check by surface, and logging every call under mktemp.
 
 set -euo pipefail
 LC_ALL=C
@@ -25,8 +24,8 @@ tree="$fixture_root/tree"
 mkdir -p "$tree/claude/skills/ten" "$tree/.claude-plugin"
 printf '{\n  "name": "hatsu",\n  "version": "9.9.9"\n}\n' > "$tree/.claude-plugin/plugin.json"
 
-# The stub. STUB_<SURFACE>_CURRENT and STUB_CODEX_NEXT are the exit codes it answers with; a root
-# that opens with ${PLUGIN_ROOT:- is Codex's next root. Every check is appended to $STUB_LOG.
+# The stub. STUB_<SURFACE> is the exit code it answers a surface's check with. Every check is
+# appended to $STUB_LOG as "<surface> <hooks root>".
 stub="$fixture_root/nen"
 cat > "$stub" <<'STUB'
 #!/usr/bin/env bash
@@ -45,14 +44,13 @@ while [ "$#" -gt 0 ]; do
     *) shift ;;
   esac
 done
-case "$root" in '${PLUGIN_ROOT:-'*) which=next ;; *) which=current ;; esac
-printf '%s %s\n' "$surface" "$which" >> "$STUB_LOG"
-var="STUB_$(printf '%s' "$surface" | tr '[:lower:]' '[:upper:]')_$(printf '%s' "$which" | tr '[:lower:]' '[:upper:]')"
+printf '%s %s\n' "$surface" "$root" >> "$STUB_LOG"
+var="STUB_$(printf '%s' "$surface" | tr '[:lower:]' '[:upper:]')"
 code="${!var:-0}"
 case "$code" in
   0) echo "surface: $surface"; echo "hand-edited: (none)" ;;
   1) echo "surface: $surface"; echo "hand-edited: hooks.json" ;;
-  *) echo "nen: surface mirror check refused (stub, $which root)" >&2 ;;
+  *) echo "nen: surface mirror check refused (stub)" >&2 ;;
 esac
 exit "$code"
 STUB
@@ -78,40 +76,48 @@ expect_not_in() {
   case "$2" in *"$3"*) fail "$1: did not expect '$3' in: $2" ;; *) ;; esac
 }
 
-# (a) every surface clean: exit 0, one check each, no next-root line.
+# (a) every surface clean: exit 0, one check each, each with its own root.
 run clean 0
 [ "$(printf '%s\n' "$calls" | wc -l | tr -d ' ')" = 3 ] || fail "clean: expected 3 checks, got: $calls"
-expect_not_in clean "$out" 'next hooks root'
+expect_in clean "$calls" 'codex ${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}'
+expect_in clean "$calls" 'cursor ${HATSU_PLUGIN_ROOT:-./.cursor}'
 expect_in clean "$out" 'all mirrors match a fresh generation.'
-expect_not_in clean "$out" 'NEXT hooks root'
 
-# (b) Codex drifts at its current root and matches at its next: exit 0, said, checked twice.
-run next-accepted 0 STUB_CODEX_CURRENT=1 STUB_CODEX_NEXT=0
-expect_in next-accepted "$out" 'codex matches a fresh generation at its NEXT hooks root'
-expect_in next-accepted "$calls" 'codex next'
-expect_not_in next-accepted "$out" 'hand-edited: hooks.json'
-expect_in next-accepted "$out" 'all mirrors match a fresh generation (at the next hooks root: codex).'
+# (b) Codex drifts: exit 1, the drift printed, checked once, never at another root.
+run codex-drift 1 STUB_CODEX=1
+expect_in codex-drift "$out" 'hand-edited: hooks.json'
+[ "$(printf '%s\n' "$calls" | grep -c '^codex ')" = 1 ] || fail "codex-drift: codex was checked more than once: $calls"
 
-# (c) Codex drifts at both roots: exit 1, the current root's report kept, the second drift said.
-run both-drift 1 STUB_CODEX_CURRENT=1 STUB_CODEX_NEXT=1
-expect_in both-drift "$out" 'hand-edited: hooks.json'
-expect_in both-drift "$out" 'drifts there too'
-expect_not_in both-drift "$out" 'at its NEXT hooks root'
+# (c) a refusal: its own exit code, named, never read as drift.
+run codex-refused 2 STUB_CODEX=2
+expect_in codex-refused "$out" 'refused at exit 2'
+expect_not_in codex-refused "$out" 'the committed mirror is not what the source generates'
 
-# (d) a refusal at the current root: its own exit, never re-checked.
-run current-refused 2 STUB_CODEX_CURRENT=2
-expect_not_in current-refused "$calls" 'codex next'
-expect_in current-refused "$out" 'refused at exit 2'
+# (d) Cursor drifts: exit 1, checked once.
+run cursor-drift 1 STUB_CURSOR=1
+[ "$(printf '%s\n' "$calls" | grep -c '^cursor ')" = 1 ] || fail "cursor-drift: cursor was checked more than once: $calls"
 
-# (e) drift at the current root, a refusal at the next: the refusal's exit, named.
-run next-refused 2 STUB_CODEX_CURRENT=1 STUB_CODEX_NEXT=2
-expect_in next-refused "$out" 'the re-check of codex at the next hooks root'
-expect_not_in next-refused "$out" 'at its NEXT hooks root'
-expect_in next-refused "$out" 'refused at exit 2'
+# (e) one root per surface, written the same everywhere it is written: hooks_root_for in the check,
+# the regenerate workflow's case arms, docs/SURFACES.md § 3's loop (Codex and Antigravity; Cursor
+# goes through its generic arm) and the search side of surface_bootstrap.sh's placed-hooks sed. The
+# workflow's copy drifted once (zheref/hatsu#151); this is the check that it cannot again.
+repo="$(CDPATH='' cd -- "$script_dir/.." >/dev/null 2>&1 && pwd -P)"
+for s in codex cursor antigravity; do
+  in_check="$(grep -o "$s) printf %s '[^']*'" "$guard" | sed "s/^$s) printf %s //")"
+  in_workflow="$(grep -o "$s) root='[^']*'" "$repo/.github/workflows/surface-mirror-regenerate.yml" | sed "s/^$s) root=//")"
+  [ -n "$in_check" ] || fail "roots: no $s root in hooks_root_for"
+  [ "$in_check" = "$in_workflow" ] || fail "roots: $s is $in_check in the check but $in_workflow in surface-mirror-regenerate.yml"
+  case "$s" in
+    cursor) ;;
+    *)
+      in_docs="$(grep -o "$s) root='[^']*'" "$repo/docs/SURFACES.md" | sed "s/^$s) root=//")"
+      [ "$in_check" = "$in_docs" ] || fail "roots: $s is $in_check in the check but $in_docs in docs/SURFACES.md § 3"
+      ;;
+  esac
+done
+# The Codex placed-copy sed is the one whose replacement is the workspace root ./.codex.
+in_sed="$(grep -o "sed 's#[^#]*#\${HATSU_PLUGIN_ROOT:-./.codex}#g'" "$repo/scripts/surface_bootstrap.sh" | sed "s/^sed 's#//; s/#.*//")"
+[ "'$in_sed'" = "$(grep -o "codex) printf %s '[^']*'" "$guard" | sed "s/^codex) printf %s //")" ] ||
+  fail "roots: surface_bootstrap.sh rewrites $in_sed, which is not the check's Codex root"
 
-# (f) Cursor has no next root: its drift is never re-checked.
-run cursor-drift 1 STUB_CURSOR_CURRENT=1
-expect_not_in cursor-drift "$calls" 'cursor next'
-expect_not_in cursor-drift "$out" 'next hooks root'
-
-echo 'surface-mirror-check-fixture: ok (clean, next root accepted, drift at both, current refused, next refused, cursor never re-checked)'
+echo 'surface-mirror-check-fixture: ok (clean, codex drift checked once, refusal kept, cursor drift checked once, one root per surface everywhere it is written)'

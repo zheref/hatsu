@@ -52,13 +52,24 @@ fi
 # failure: the repository is right and the installed plugin is wrong.
 #
 #   .claude-plugin/*  — the manifests themselves (plugin.json, marketplace.json).
+#   .codex-plugin/*   — the Codex-facing plugin manifest overlay (plugin.json).
+#                       Codex keys its OWN plugin-cache slot on this file's
+#                       `version`, exactly as Claude Code keys its cache on
+#                       .claude-plugin/plugin.json's — see version_bumped's
+#                       caller below, which fails a bump whose head tree
+#                       carries this overlay out of step with it (name not
+#                       `hatsu`, or a version that does not equal
+#                       .claude-plugin/plugin.json's). A copy that lags, or
+#                       whose name is wrong, leaves every Codex install
+#                       pinned to the wrong slot with no error anywhere else.
 #   claude/*          — everything plugin.json points at: `agents` (kurapika,
 #                       gon, hisoka, phinks, uvogin, and — from Hatsu 0.5.0 —
 #                       feitan, chrollo, illumi; from Hatsu 0.25.0, netero), `commands` (/kurapika), and
-#                       `skills` (forty-five skills, `ten` among them — 35 until
-#                       Hatsu 0.6.0 added susanoo, kagutsuchi and mugetsu, 38
-#                       until 0.24.0 added byakugan, 39 until 0.27.0 added
-#                       third-hand, 44 until 0.60.0 added limbo), plus
+#                       `skills` (forty-seven skill directories, `ten` among
+#                       them — 35 until Hatsu 0.6.0 added susanoo, kagutsuchi
+#                       and mugetsu, 38 until 0.24.0 added byakugan, 39 until
+#                       0.27.0 added third-hand, 45 until 0.60.0 added limbo,
+#                       46 until 0.66.0 added bakuryuha), plus
 #                       `templates/` where a skill renders from one.
 #   nen/*             — the D10 dependency contract, `nen/contract.json`. Read
 #                       at run time through `$CLAUDE_PLUGIN_ROOT/nen/contract.json`
@@ -189,13 +200,31 @@ fi
 #                     — kagutsuchi's distribution-tag block, run from
 #                       `$hatsu_root/scripts/` on an upload; a stale copy cuts
 #                       the wrong ref or refuses the right one.
+#   scripts/send_freshness_check.sh
+#   scripts/kagutsuchi_worktree.sh
+#                     — kagutsuchi § 3a's freshness gate and § 3b's clean
+#                       worktree (v0.64.0), both run from `$hatsu_root/scripts/`
+#                       before every `--run`; a stale copy sends an archive
+#                       the gate should refuse, or rebuilds in the wrong tree.
+#                       From v0.66.0 this matters twice over: Codex installs
+#                       Hatsu by COPYING the checkout into a slot keyed on this
+#                       version, so an unbumped script change never reaches it.
+#   scripts/hatsu_surface_link.sh
+#                     — bakuryuha § 3 makes each surface's first-party install
+#                       through it (v0.66.0), run from the checkout it serves;
+#                       covered anyway so that the version bakuryuha reports back
+#                       names a change to how it links, registers or hands over.
+#   scripts/surface_link_check.sh
+#   scripts/prose_size_check.sh
+#                     — hanten § 2 runs the link guard and § 6 the prose guard
+#                       from `$hatsu_root/scripts/` in every review, consumers'
+#                       included; a stale copy judges a review by old rules.
 #
 # Deliberately NOT covered — nothing installed reads them at run time:
 #   README.md, docs/ab/** (the evidence records; read by humans on GitHub, never
 #   by an installed copy), and every other scripts/** entry — the fixtures
-#   (*_fixture_check.sh, *_fixture.sh, *_red.sh), this guard, the link guard,
-#   prose_size_check.sh and workflow_runner_policy_check.rb are CI- or
-#   maintainer-only; every runtime script an installed copy executes is an
+#   (*_fixture_check.sh, *_fixture.sh, *_red.sh), this guard and
+#   workflow_runner_policy_check.rb are CI- or maintainer-only; every runtime script an installed copy executes is an
 #   explicit row above (the criterion is "an installed copy reads it", checked
 #   script by script),
 #   .github/**.
@@ -204,6 +233,7 @@ fi
 # filename globbing — so `claude/*` and `.claude-plugin/*` cover any depth.
 PLUGIN_SURFACE_GLOBS=(
   '.claude-plugin/*'
+  '.codex-plugin/*'
   'claude/*'
   'nen/*'
   'contracts/*'
@@ -228,6 +258,11 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/surface_mirror_check.sh'
   'scripts/permissions_pack.sh'
   'scripts/dist_tag.sh'
+  'scripts/send_freshness_check.sh'
+  'scripts/kagutsuchi_worktree.sh'
+  'scripts/hatsu_surface_link.sh'
+  'scripts/surface_link_check.sh'
+  'scripts/prose_size_check.sh'
   'scripts/tenkai_adopt.sh'
   'scripts/release-publish.sh'
   'scripts/report_time.sh'
@@ -286,6 +321,46 @@ surfaces_stamp_scan() {
   return "$lag"
 }
 
+# --- codex_overlay_check ROOT CLAUDE_VERSION ---------------------------------
+# .codex-plugin/plugin.json is the Codex-facing plugin manifest overlay
+# (see PLUGIN_SURFACE_GLOBS's own comment on it). Codex keys its OWN
+# plugin-cache slot on this file's name and version, exactly as Claude Code
+# keys its cache on .claude-plugin/plugin.json's `version`. A missing overlay
+# is not a defect — not every checkout carries one; a present one whose name
+# is not `hatsu`, or whose version does not equal .claude-plugin/plugin.json's,
+# leaves every Codex install pinned to the wrong slot with no error anywhere
+# else. A path that EXISTS (or is a symlink at all, dangling or not) but is
+# NOT A REGULAR FILE — a directory sitting where the manifest should be, or a
+# dangling/broken symlink — is the same failure, never "absent": Codex cannot
+# read a plugin-cache manifest out of either one, and reading it as "no
+# overlay" would silently let a broken overlay through (Nobunaga; Phinks's
+# note on the same finding). Echoes ONE line naming the problem and its
+# consequence, and returns 0 when it found one; returns 1 (nothing echoed)
+# when the overlay is genuinely absent — no path and no symlink sitting there
+# at all — or fully consistent.
+codex_overlay_check() {
+  local root="$1" claude_version="$2" overlay name version
+  overlay="$root/.codex-plugin/plugin.json"
+  if [ ! -e "$overlay" ] && [ ! -L "$overlay" ]; then
+    return 1
+  fi
+  if [ ! -f "$overlay" ]; then
+    printf '.codex-plugin/plugin.json exists but is not a regular file (a directory, or a dangling symlink) -- Codex cannot read its own plugin-cache manifest from it\n'
+    return 0
+  fi
+  name="$(plugin_name "$overlay")"
+  version="$(plugin_version "$overlay")"
+  if [ "$name" != "hatsu" ]; then
+    printf '.codex-plugin/plugin.json name is %s, must be hatsu (Codex keys its own plugin-cache slot on this manifest'"'"'s name and version)\n' "${name:-<none>}"
+    return 0
+  fi
+  if [ "$version" != "$claude_version" ]; then
+    printf '.codex-plugin/plugin.json version is %s, .claude-plugin/plugin.json version is %s -- they must match (Codex keys its own plugin-cache slot on this manifest'"'"'s version, so a lagging overlay leaves every Codex install on the old slot)\n' "${version:-<none>}" "$claude_version"
+    return 0
+  fi
+  return 1
+}
+
 # --- path_is_plugin_surface PATH --------------------------------------------
 # Returns 0 (true) if PATH is a plugin-shipped surface this guard covers.
 path_is_plugin_surface() {
@@ -324,6 +399,16 @@ plugin_version() {
   local file="$1"
   [ -f "$file" ] || { echo ""; return; }
   jq -r '.version // empty' "$file" 2>/dev/null || echo ""
+}
+
+# --- plugin_name FILE ---------------------------------------------------------
+# Echoes plugin.json's top-level `name` field (empty if the file is absent,
+# unreadable, or has none). Same jq contract as plugin_version, a different
+# field: this guard's own parsing helper, reused rather than duplicated.
+plugin_name() {
+  local file="$1"
+  [ -f "$file" ] || { echo ""; return; }
+  jq -r '.name // empty' "$file" 2>/dev/null || echo ""
 }
 
 # --- semver_parts VERSION ----------------------------------------------------
@@ -602,6 +687,18 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
           done
           echo "A bump restamps every mirror file: the cause is this bump, the fix is a regeneration at stamp ${head_version_now}, never a source edit (zheref/hatsu#99)."
           echo "Regenerate and commit the result: docs/SURFACES.md § 3 is the one owner of the command; scripts/surface_mirror_check.sh reproduces its exact flags per surface."
+        } >&2
+        exit 1
+      fi
+      set +e
+      codex_overlay_problem="$(codex_overlay_check "$head_root" "$head_version_now")"
+      codex_overlay_rc=$?
+      set -e
+      if [ "$codex_overlay_rc" -eq 0 ]; then
+        {
+          echo "plugin.json version bumped to ${head_version_now}, but .codex-plugin/plugin.json is not consistent with it:"
+          echo "  - ${codex_overlay_problem}"
+          echo "Codex keys its own plugin-cache slot on .codex-plugin/plugin.json's name and version, exactly as Claude Code keys its cache on .claude-plugin/plugin.json's — a lagging or misnamed overlay leaves every Codex install on the old slot."
         } >&2
         exit 1
       fi

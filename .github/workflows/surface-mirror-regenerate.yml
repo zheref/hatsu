@@ -145,7 +145,7 @@ jobs:
           for surface in codex cursor antigravity; do
             case "$surface" in
               antigravity) root='${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;;
-              codex) root='${HATSU_PLUGIN_ROOT:-./.codex}' ;;
+              codex) root='${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}' ;;
               cursor) root='${HATSU_PLUGIN_ROOT:-./.cursor}' ;;
             esac
             "$NEN" surface mirror generate \

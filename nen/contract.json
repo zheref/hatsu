@@ -83,15 +83,30 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/hatsu_plugin_update.sh. Its declared fixture builds throwaway origin/consumer clones and asserts trunk ff, release catch-up, dirty/authoring/cache/no-origin skips, GIT_DIR isolation, the no-stable-tag refuse, an untracked file not blocking a fast-forward, and --claude bringing a Directory-source marketplace checkout current (or saying why not) before the Claude refresh (zheref/hatsu#118). It is not a general suite."
       },
+      "surface-link": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/hatsu_surface_link.sh, which points a surface's own first-party install at this checkout -- a Claude Code skills-dir symlink with marketplace handover, a Codex marketplace registration plus plugin add, or an Antigravity symlink into surfaces/antigravity -- never a Claude-shaped mirror and never a versioned plugin cache. Its declared fixture builds throwaway Hatsu-shaped checkouts and PATH-shimmed claude/codex/agy binaries and asserts fresh links, re-pointing an owned link, refusing a foreign destination intact, the Claude Code handover firing only when a prior install is recorded, Codex's foreign-marketplace and version-mismatch refusals, a missing required CLI at exit 5 (PROCESS § Exit codes), a /plugins/cache/ root refused at exit 2, and --dry-run/--status changing nothing. Run it only as `nen shu test --lane surface-link --repo <hatsu>` when scripts/hatsu_surface_link.sh or its fixture changes. It is not a general suite."
+      },
+      "surface-bootstrap-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/surface_bootstrap.sh, the placement script ten § 5 and the session-start hook run on Codex, Cursor and Antigravity, following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: throwaway targets prove the adoption gate, the ownership rule (a tracked or foreign destination is kept and named, never replaced), the excludes, and the Codex plugin mode (--install-all --plugin places personas only and removes the skill copies and hooks a placement left)."
+      },
       "root-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/hatsu_root.sh, the plugin-root resolver every skill's section 0 runs, following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: throwaway plugin-shaped trees prove that a handed root resolves, that a handed skill directory walks up to its root at one, three and four levels (a symlinked one through its target), that five levels, a look-alike tree naming another plugin and no candidate at all are NOT INSTALLED, that $HATSU_PLUGIN_ROOT wins over the handed path, and that --quoted prints the pasteable literal (zheref/hatsu#105)."
       },
+      "permissions-pack-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/permissions_pack.sh, which ten § 5 and tenkai run on every surface, following the one-lane-per-executable-guard pattern (its fixture existed and no lane ran it until 0.66.0). Hermetic and offline: throwaway consumer repositories prove Codex writable_roots are filled, the placed .codex/hooks.json drops PLUGIN_ROOT with nen's marker kept and the same rewrite as scripts/surface_bootstrap.sh (CWE-426), --plugin leaves .codex/hooks.json to the Codex plugin and is refused off codex, a re-install is idempotent, and a tracked file is left alone."
+      },
       "surface-mirror-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/surface_mirror_check.sh, the generated-surface DRIFT guard surface-mirror-check runs from main under pull_request_target, following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: a stub nen answers each check by surface and --hooks-root, and it proves a clean tree passes with no re-check, Codex drifting at its current root and matching at its NEXT root passes and says so, drift at both fails and says so, a refusal at the current root keeps its code and is never re-checked, a refusal at the next root keeps its code and is named, and Cursor (no next root) is never re-checked (docs/GATE-CONFIGURATION.md, 2026-09-30)."
+        "$comment": "The focused lane for scripts/surface_mirror_check.sh, the generated-surface DRIFT guard surface-mirror-check runs from main under pull_request_target, following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: a stub nen answers each check by surface, and it proves a clean tree passes with one check per surface, each handed its own --hooks-root, a drift fails at exit 1 and is never re-checked at another root, a refusal keeps its own exit code and is never read as drift, and a Cursor drift is checked once; and each surface's hooks root is written the same in the check, surface-mirror-regenerate.yml, docs/SURFACES.md § 3 and surface_bootstrap.sh's placed-hooks sed (the workflow's copy drifted once). The next-root re-check zheref/hatsu#153 added for the Codex root's two-step landing was removed with its cases when zheref/hatsu#151 made that root current (docs/GATE-CONFIGURATION.md, 2026-09-30)."
       },
       "surface-link-guard": {
         "stack": "claude-code-plugin",
@@ -161,13 +176,13 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, root-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, freshness-guard, fresh-worktree-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, freshness-guard, fresh-worktree-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/spiritual-message.html, which is a report template, not an application."
         },
         "coverage": {
-          "unsupported": "Nothing here executes, so nothing here is covered. byakugan reports Hatsu's touched files as `not measurable here` against the ladder in nen/workflow.json rather than against a number, and the ladder still governs every repository Hatsu drives that declares none of its own. Gyo is linting."
+          "unsupported": "The guard scripts under scripts/ execute under their focused fixture lanes, but no line-coverage tool is declared for shell yet (kcov or bashcov): an unmeasured gap, tracked in zheref/hatsu#148, never a clean zero. Until then byakugan reports Hatsu's touched files as `not measurable here` against the ladder in nen/workflow.json rather than against a number, and the ladder still governs every repository Hatsu drives that declares none of its own. Gyo is linting."
         },
         "archive": {
           "unsupported": "A Claude Code plugin is distributed by git ref through a marketplace, never as a built package: `claude plugin marketplace add zheref/hatsu` reads the tree at a ref. There is no artifact to produce, so there is nothing for `archive` to name."
@@ -207,6 +222,33 @@
             "scripts/hatsu_plugin_update_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the plugin-source updater. Run it only as `nen shu test --lane plugin-update --repo <hatsu>` when scripts/hatsu_plugin_update.sh or its fixture changes."
+        }
+      },
+      "surface-link": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/hatsu_surface_link_fixture_check.sh"
+          ],
+          "$comment": "A permanent, deterministic fixture for the surface-link installer. Run it only as `nen shu test --lane surface-link --repo <hatsu>` when scripts/hatsu_surface_link.sh or its fixture changes."
+        }
+      },
+      "surface-bootstrap-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/surface_bootstrap_fixture_check.sh"
+          ],
+          "$comment": "A permanent, deterministic fixture for the surface placement script. Run it as `nen shu test --lane surface-bootstrap-guard --repo <hatsu>` when scripts/surface_bootstrap.sh or its fixture changes; it reads the committed surfaces/ mirrors, so run it after they are regenerated."
+        }
+      },
+      "permissions-pack-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/permissions_pack_fixture_check.sh"
+          ],
+          "$comment": "A permanent, deterministic fixture for the permission pack. Run it as `nen shu test --lane permissions-pack-guard --repo <hatsu>` when scripts/permissions_pack.sh, its fixture, or the Codex placed-hooks rewrite changes."
         }
       },
       "surface-mirror-guard": {
@@ -351,7 +393,7 @@
         "darwin",
         "linux"
       ],
-      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/kagutsuchi_worktree.sh --self-test) use a POSIX shell, git and mktemp and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
+      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/permissions_pack_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/kagutsuchi_worktree.sh --self-test) use a POSIX shell, git and mktemp and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
     },
     "targets": {},
     "toolchain": {

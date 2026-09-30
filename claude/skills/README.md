@@ -4,12 +4,12 @@ This directory is the plugin's skill surface (`plugin.json` → `"skills": "./cl
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together
 under *Skills* by `claude plugin details`, which is why they are described together here.
 
-**Forty-five skills at `v0.60.0`** (forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`, forty-six directories per surface with `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
+**Forty-six skills at `v0.66.0`** (forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`, forty-seven directories per surface with `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
 surface complete at `v0.1.0` — one of them, `drive`, **renamed to [`sharingan`](sharingan/) at `v0.5.0`** —
 the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side,
 **[`byakugan`](byakugan/) at `v0.24.0`**, the
 **three added at `v0.6.0`** that close the release side,
-**[`third-hand`](third-hand/) at `v0.27.0`** (a separate phase after En from `v0.28.0`), **[`great-hiker`](great-hiker/) at `v0.43.0`** (the canon-authoring skill, in its own section), **[`limbo`](limbo/) at `v0.60.0`** (the canon-mirror sync, beside `tenkai`), and the **two roster-machinery residents** that
+**[`third-hand`](third-hand/) at `v0.27.0`** (a separate phase after En from `v0.28.0`), **[`great-hiker`](great-hiker/) at `v0.43.0`** (the canon-authoring skill, in its own section), **[`limbo`](limbo/) at `v0.60.0`** (the canon-mirror sync, beside `tenkai`), **[`bakuryuha`](bakuryuha/) at `v0.66.0`** (the plugin-update skill, in its own section), and the **two roster-machinery residents** that
 arrived with the skeleton ([zheref/hatsu#1][1]) and are counted separately. Nothing here is reserved, and
 nothing here is a placeholder.
 
@@ -79,6 +79,16 @@ canon (zheref/hatsu#93), and it runs on the maintainer's call, outside the turn 
 | Skill | What it does |
 |---|---|
 | [`great-hiker`](great-hiker/) | **Canon authoring for every surface.** Authors canon prose and machinery under `claude/` and `contracts/`, runs `nen surface mirror generate` for every surface with hooks, allowlists, rules files and model config, checks the mirrors and the installed copies, and opens one PR at G4 with a per-surface delta table. `evolve [<surface>]` diffs each surface guide against its cited official docs and files one Netero-shaped issue per drifted surface. Never edits `surfaces/` by hand, never claims a capability without the fetched line, never merges. |
+
+## The plugin-update skill
+
+The other half of the canon's journey: `great-hiker` writes it, this skill puts the newest release on
+the host and switches the running surface onto it. Human-called, outside the turn loop; `ten` § 4b's
+every-session `--auto` refresh stays as it is.
+
+| Skill | What it does |
+|---|---|
+| [`bakuryuha`](bakuryuha/) | **Update Hatsu on this surface and switch to it — human-called.** Serves the surface first-party from the maintainer's checkout: makes the install where a legacy form stands (`scripts/hatsu_surface_link.sh`: Claude Code's in-place `~/.claude/skills/hatsu` link, the Codex plugin, Antigravity's global plugin link), fast-forwards the checkout through `scripts/hatsu_plugin_update.sh` (refusing instead of skipping a dirty tree or an authoring branch; on Codex re-adding the plugin), runs the new version's `ten` from disk, and reads back what is served. Every run ends with a **Next** block — the one thing to type or open (`/reload-plugins`, a new chat or conversation) — and until then the session follows the new skill bodies from disk. Never discards, never restarts the app, never types a human-only command. |
 
 ---
 
@@ -150,7 +160,7 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 
 ## The two roster-machinery residents
 
-Neither is one of the forty-five. They landed with the skeleton because the plugin does not function
+Neither is one of the forty-six. They landed with the skeleton because the plugin does not function
 without them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |

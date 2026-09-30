@@ -1,28 +1,32 @@
 # Surfaces
 
-**Hatsu is authored once, for Claude Code, and mirrored onto three other agent surfaces: Codex, Cursor
-and Antigravity.** This file is the hub: the four compared, which files are written and which are
-generated, the one generator and its stamp, the check and the workflow that regenerates. Everything
-per surface, with every capability cited to the official line it was read from, is in
-[`docs/surfaces/`](surfaces/README.md): [`claude-code.md`](surfaces/claude-code.md),
+**Hatsu is authored once, for Claude Code, and every surface installs it first-party from the
+maintainer's own checkout** (from v0.66.0): Claude Code loads the checkout in place, Codex installs it
+as its own plugin and reads the same canonical skills, Antigravity links the generated plugin into its
+global plugin folder, and Cursor links the generated mirror. This file is the hub: the four compared,
+which files are written and which are generated, the one generator and its stamp, the check and the
+workflow that regenerates. Everything per surface, with every capability cited to the official line it
+was read from, is in [`docs/surfaces/`](surfaces/README.md): [`claude-code.md`](surfaces/claude-code.md),
 [`codex.md`](surfaces/codex.md), [`cursor.md`](surfaces/cursor.md),
 [`antigravity.md`](surfaces/antigravity.md); the recorded transcripts are
-[`surfaces/evidence/surfaces.md`](surfaces/evidence/surfaces.md).
+[`surfaces/evidence/surfaces.md`](surfaces/evidence/surfaces.md), the installs in § 10.
 
-Nothing here is a port. The mirrors are the same skill bodies, byte for byte, with the frontmatter
-reduced to the keys each surface documents and the invocation respelled, produced by one generator,
-[`nen surface mirror`](https://github.com/zheref/nen) (nen v0.13.0), for all three.
+The Cursor and Antigravity mirrors are not a port either: the same skill bodies, byte for byte, with the
+frontmatter reduced to the keys each surface documents and the invocation respelled, produced by one
+generator, [`nen surface mirror`](https://github.com/zheref/nen) (nen v0.13.0). Codex's mirror
+supplies the personas, the pack and the hooks its plugin names, and still the skill copies a legacy
+placement reads.
 
 ## 1. The four surfaces
 
 | | **Claude Code** | **Codex** | **Cursor** | **Antigravity** |
 |---|---|---|---|---|
-| how Hatsu arrives | `claude plugin install hatsu@hatsu` | bootstrap seeds `ten`; the warm-up refreshes every session | the same, by symlink | global plugin at `~/.gemini/config/plugins/hatsu`, or bootstrapped into `.agents/` |
-| skills read from | `$CLAUDE_PLUGIN_ROOT/claude/skills/<name>/SKILL.md` | `<repo>/.agents/skills/<name>/SKILL.md` (copies) | `<repo>/.cursor/skills/<name>/SKILL.md` (symlinks) | plugin `<name>/SKILL.md` or `<repo>/.agents/skills/<name>/SKILL.md` |
+| how Hatsu arrives | **in place**: `~/.claude/skills/hatsu` → the checkout (`hatsu@skills-dir`) | **the Hatsu plugin**: the checkout as a marketplace, `codex plugin add hatsu@hatsu` (a copy per version) | bootstrap seeds `ten`; the warm-up links `surfaces/cursor/` | **global plugin**: `~/.gemini/config/plugins/hatsu` → `<checkout>/surfaces/antigravity` |
+| skills read from | `$CLAUDE_PLUGIN_ROOT/claude/skills/<name>/SKILL.md`, the checkout's own | the plugin's `claude/skills/<name>/SKILL.md` (the overlay's `skills`) | `<repo>/.cursor/skills/<name>/SKILL.md` (symlinks) | plugin `skills/<name>/SKILL.md` |
 | personas read from | `claude/agents/<persona>.md` | `AGENTS.override.md` as prose, plus `.codex/agents/<persona>.toml` | `.cursor/agents/<persona>.md` | plugin `agents/<persona>.md` or `.agents/agents/<persona>.md` |
 | rules file | none | `AGENTS.override.md` (32 KiB cap) | `.cursor/rules/hatsu.mdc` | `rules/hatsu.md`, 12,000 characters max |
-| invocation spelling | `hatsu:<name>` | `$<name>` | `/<name>` | `/<name>` |
-| turn-end hook | **yes**, `Stop` in `hooks/hooks.json` | **yes**, `Stop` in `.codex/hooks.json` | **yes**, `stop` in `.cursor/hooks.json` | **yes**, `Stop` in `.agents/hooks.json` |
+| invocation spelling | `hatsu:<name>` | `$hatsu:<name>` (plugin); `$<name>` (legacy copy) | `/<name>` | `/<name>` |
+| turn-end hook | **yes**, `Stop` in `hooks/hooks.json` | **yes**, `Stop` in `surfaces/codex/hooks.json`, named by the plugin overlay (legacy: `.codex/hooks.json`) | **yes**, `stop` in `.cursor/hooks.json` | **yes**, `Stop` in the plugin's `hooks.json` |
 | session-start hook | `SessionStart`, `hooks/session-start.sh` (a reminder; the plugin is read in place) | `SessionStart` (mirror refresh, adopted repositories only) | `sessionStart` (the same) | `PreInvocation` (no `SessionStart` exists; the same) |
 | trunk guard | `PreToolUse` on `Bash`, `permissionDecision: deny` | `PreToolUse`, `permissionDecision: deny` (`ask` not honoured yet) | `beforeShellExecution`, `permission: deny` | `PreToolUse` on `run_command`, `decision: deny` |
 | permissions | `.claude/settings.local.json`, `Bash(<exe> <args>)` | `.codex/config.toml`: `sandbox_mode`, `writable_roots` (the one root-scoped surface) | `.cursor/cli.json`, `Shell(<exe> <args>)` | per-agent `commandExecutionPolicy`; the guard is the enforcement |
@@ -30,9 +34,10 @@ reduced to the keys each surface documents and the invocation respelled, produce
 | native option picker | `AskUserQuestion` | `request_user_input` | the ask question tool (`cursor/ask_question`) | `ask_question`, `is_multi_select` |
 | persona model key | `model`: tier alias | `model` in the TOML; `[agents]` fragment from the rows | `model: inherit` (Cursor-native only) | `model`: `inherit`, `flash`, `pro` |
 | reviewer tier (`models.roles.reviewer` = `deep`) | `opus` | `sol` | `grok` | `pro` |
+| update and switch (`hatsu:bakuryuha`) | the checkout moves; **type `/reload-plugins`**, or a new session; the model cannot run it | the checkout moves and the plugin is re-added; running sessions refresh skills and hooks (0.154.0); personas at the next run; a changed hook waits for `/hooks` trust | a new chat (forum-sourced), or **Developer: Reload Window** | a new conversation; the CLI's `/skills reload` (≥ 1.2.4), typed |
 | minimum build | n/a | none documented; validated on `codex-cli 0.149.0` | `cursor-agent 2026.01.*`, below it no skill is seen | Antigravity IDE / `agy` CLI |
 
-Each surface's rows are cited, dated 2026-09-20, in its guide's checklist. Two corrections made there
+Each surface's rows are cited, dated 2026-09-20 (the update-and-switch row 2026-09-29), in its guide's checklist. Two corrections made there
 on that date: Codex and Cursor **do** have hooks (the hub used to say otherwise), and Antigravity's
 workspace paths are `.agents/…` with `.agent/…` as back-compatibility only.
 
@@ -42,7 +47,17 @@ the surface its own generated marker names, and it writes its report to `.nen/se
 plugin source copy under Claude Code only prints the warm-up reminder; adoption is `tenkai`'s, never a
 hook's.
 
-**First-run discovery is a bootstrap, not an environment variable.** `HATSU_PLUGIN_ROOT` names a
+**The first-party install is one command per surface, run from the checkout** (the maintainer's core
+working directory): `"$HATSU_PLUGIN_ROOT/scripts/hatsu_surface_link.sh" --surface
+<claude-code|codex|antigravity> --root "$HATSU_PLUGIN_ROOT"`. It links (Claude Code's `skills/hatsu`,
+Antigravity's global plugin) or registers and installs (the Codex plugin), refuses a destination it did
+not make, retires the shadowing `hatsu@hatsu` on Claude Code together with the marketplace and enable
+declarations settings keep of it, and reads the result back; `--status` is
+read-only. `hatsu:bakuryuha` runs it when a surface is still on its legacy form. Whatever the checkout
+holds is what every surface serves, so it stays on its trunk. Fixture:
+`scripts/hatsu_surface_link_fixture_check.sh`; the live record is evidence § 10.
+
+**First-run discovery on Cursor, and in the legacy placements, is a bootstrap, not an environment variable.** `HATSU_PLUGIN_ROOT` names a
 checkout; it cannot make an undiscovered skill callable. Codex, Cursor and Antigravity workspace mode
 need one command before their first warm-up:
 `"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface <codex|cursor|antigravity> --target . --bootstrap`,
@@ -73,9 +88,10 @@ and nen hard-codes no system's vocabulary.
 
 | Path | |
 |---|---|
-| `claude/skills/<name>/SKILL.md` | **authored.** The one source, 46 directories (forty-five plus `ten`) |
+| `claude/skills/<name>/SKILL.md` | **authored.** The one source, 47 directories (forty-six plus `ten`) |
 | `claude/agents/<persona>.md` | **authored.** The one source, eleven personas plus the preamble include (`_review-preamble.md`, the shared reviewer protocol and not a persona: `agents/_review-preamble.md` on Cursor and Antigravity, a `## _review-preamble` section in Codex's `AGENTS.md`) |
 | `hooks/hooks.json`, `contracts/permissions.json`, `nen/workflow.json` | **authored.** The inputs the generator renders hooks, permissions and model config from |
+| `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `.codex-plugin/plugin.json` | **authored.** The manifests: Claude Code's, the marketplace both Claude Code and Codex read, and the Codex overlay (`skills`, `hooks`, `interface`), held at the Claude manifest's `version` by `scripts/plugin_bump_check.sh` |
 | `surfaces/codex/<name>/SKILL.md`, `AGENTS.md`, `agents/*.toml`, `config.toml`, `config.toml.fragment`, `hooks.json` | **generated** |
 | `surfaces/cursor/<name>/SKILL.md`, `agents/*.md`, `.cursor/rules/hatsu.mdc`, `.cursor/cli.json`, `.cursor/hooks.json` | **generated** |
 | `surfaces/antigravity/skills/<name>/SKILL.md`, `agents/*.md`, `rules/hatsu.md`, `hooks.json`, `plugin.json` | **generated** |
@@ -97,9 +113,10 @@ papered over.
 
 | Surface | What is placed | Excluded how |
 |---|---|---|
-| Claude Code | the permission pack only; the plugin is read in place | `info/exclude` |
+| Claude Code | the permission pack only; the plugin is read in place through `~/.claude/skills/hatsu` | `info/exclude` |
 | Antigravity, global plugin | nothing; read from `${GEMINI_CONFIG_DIR:-~/.gemini}/config/plugins/hatsu` | none |
-| Codex | `.agents/skills/<name>/` by `cp -R`, `AGENTS.override.md`, `.codex/` from the pack | `info/exclude` |
+| Codex, plugin | `AGENTS.override.md` and the persona files, `.codex/` from the pack (`--install-all --plugin`); the skill copies and hooks file a legacy placement left are removed, the plugin serves them | `info/exclude` |
+| Codex, legacy placement | `.agents/skills/<name>/` by `cp -R`, `AGENTS.override.md`, `.codex/` from the pack | `info/exclude` |
 | Cursor | `.cursor/skills/<name>/` and `.cursor/agents/<persona>.md` by symlink, `.cursor/` from the pack | `info/exclude` |
 | Antigravity, workspace | `.agents/skills/`, `.agents/agents/`, `.agents/rules/hatsu.md`, `.agents/hooks.json`, `.agents/hooks/` | `info/exclude` |
 
@@ -114,7 +131,7 @@ From the repository root, one line per surface, in the same commit as the source
 ```sh
 v="$(python3 -c 'import json;print(json.load(open(".claude-plugin/plugin.json"))["version"])')"
 for s in codex cursor antigravity; do
-  case "$s" in antigravity) root='${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;; *) root="\${HATSU_PLUGIN_ROOT:-./.$s}" ;; esac  # the roots scripts/surface_mirror_check.sh expects (Codex's next root, ${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}, is also accepted until zheref/hatsu#151 makes it current; docs/GATE-CONFIGURATION.md 2026-09-30); any other reads hand-edited: hooks.json
+  case "$s" in antigravity) root='${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;; codex) root='${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}' ;; *) root="\${HATSU_PLUGIN_ROOT:-./.$s}" ;; esac  # the roots scripts/surface_mirror_check.sh expects; any other reads hand-edited: hooks.json
   nen surface mirror generate --surface "$s" --source claude/skills --agents claude/agents \
     --out "surfaces/$s" --invocation-prefix hatsu: --models nen/workflow.json \
     --permissions contracts/permissions.json --hooks hooks/hooks.json --rules claude/rules/hatsu.md --source-surface claude \

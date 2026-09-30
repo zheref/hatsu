@@ -5,7 +5,7 @@ authored for [Claude Code](#on-claude-code), and read on [Codex](#using-hatsu-on
 [Cursor](#using-hatsu-on-cursor) from generated mirrors of the same files.**
 
 One lead persona — **Kurapika**, who names which of six declared work-modes he is holding before he acts —
-plus a small roster of focused independents, and **forty-five skills** that take a backlog, a pull request or
+plus a small roster of focused independents, and **forty-six skills** that take a backlog, a pull request or
 a release from where it is to the human gate where a person decides. **Every deterministic step that has a
 verb is a verb** from the [**Nen**](https://github.com/zheref/nen) CLI: Nen detects, computes, formats and
 verifies; the skill supplies only the judgment a binary cannot. Where no verb exists yet, the residue is
@@ -36,6 +36,7 @@ No GitHub App. No bot identity. Nothing here casts a review vote, and nothing he
 > generated into Codex and Cursor layouts under [`surfaces/`](surfaces/) — see [*Surfaces*](#surfaces).
 > **`v0.24.0` adds `byakugan`**: coverage capture and measurement, independent of tests; kotoamatsukami is unit, UI and integration suites only; gyo remains lint. The live skill surface is **thirty-nine**.
 > **`v0.27.0` adds `third-hand`**: wrap-up harvest after En. **`v0.28.0`**: it is a separate phase that starts once En has completed, not En step 8. Codex uses `request_user_input` and in-session spawn; Antigravity uses `ask_question` and `invoke_subagent` with `Workspace: inherit`. **`v0.29.0`**: Illumi's En watch uses Codex spawn; generated inventories are 41 skill files and 9 personas. **`v0.30.0`**: Hanten's cycle ledger is fail-closed — Breath `init`s it after the cut; `decide`/`record` refuse a missing file; load-mutate-save is locked. The merge remains G2 with no skill. The live skill surface is **forty**.
+> **`v0.66.0` — every surface serves Hatsu first-party from your own checkout, and `bakuryuha` switches it.** Claude Code loads the checkout in place as `hatsu@skills-dir`, Codex installs it as its own `hatsu` plugin through `.codex-plugin/plugin.json`, and Antigravity links its global plugin directory to `surfaces/antigravity`. `hatsu:bakuryuha` makes or confirms that install, updates the checkout, re-proves with the new `ten`, reads back what the surface serves, and ends every run with the one thing left to type or open. The live skill surface is **forty-six**.
 > **`v0.64.0` — the send is gated on freshness, and a stale archive is rebuilt before it goes.** `kagutsuchi` runs a freshness gate before every `--run`; a dirty tree, a missing archive, or one not built from `HEAD` at the trunk's tip is never sent — `kagutsuchi` runs `susanoo` for a fresh build first, in one idempotent clean worktree at `origin/<branch.base>` with your gitignored files copied from core (`project.fromCore`), and only then. The target comes from your invocation or from `nen/workflow.json` → `deploy.defaultTarget`. No new skill: the surface stays **forty-five**, and `kamui` is reserved.
 > **`v0.42.0` — the reports and the reviewers carry their weight.** Spiritual Message is rebuilt with the desk above the fold and the delta drawn from a nodes-and-edges document; **Rikugan** (`templates/rikugan.html`) is the desk-and-register page `backlog-board`, `futon`, `backlog-loop` and the dated final report render through `nen report render --variant`; **Nobunaga** joins as the default code reviewer and **Shalnark** as the optional post-merge UI validation automator behind the new `hatsu:black-voice`; every reviewer reads one shared preamble and fits under 6 KB; the ten largest skills fit under 12 KB. The live skill surface is **forty-two**.
 > **`v0.40.0` — the release row is real.** A repository whose product is the process must declare a real `release` row, not a seat: `hatsu:mugetsu` exists to run that row at `G3`, and a seat meant it had nothing to run while releases were published by hand. `templates/release-publish.sh` is the engine, Hatsu dogfoods it, and Tenkai derives a repository's role from `nen/repos.json` rather than classifying one for itself.
@@ -99,7 +100,7 @@ installed copy runs does.)
 > ### ⚠️ Below `2026.01`, `cursor-agent` sees **none** of the skills — and answers anyway
 >
 > A `cursor-agent` that predates skills support takes your prompt, runs your commands and exits `0` with
-> not one of the forty-five loaded. With the mirror installed exactly as the warm-up mandates,
+> not one of the forty-seven loaded. With the mirror installed exactly as the warm-up mandates,
 > `2025.09.18-39624ef` answered a discovery probe with the whole reply **`NO SKILLS VISIBLE`**, seventeen
 > bytes — and the control that settles it is that the same build cannot see a plain `cp -R` **copy**
 > either: it has no skills mechanism at all, and reached its answer by grepping the working tree.
@@ -123,49 +124,49 @@ installed copy runs does.)
 
 ### On Claude Code
 
+Hatsu is served **in place from a checkout you keep**, never from Claude Code's plugin cache (from
+`v0.66.0`): a link under `~/.claude/skills/` makes it a skills-directory plugin, `hatsu@skills-dir`,
+which "loads in place and is never copied".
+
 ```sh
-claude plugin marketplace add zheref/hatsu
-claude plugin install hatsu@hatsu
+git clone https://github.com/zheref/hatsu.git ~/Code/Agents/hatsu     # or wherever you keep it
+~/Code/Agents/hatsu/scripts/hatsu_surface_link.sh --surface claude-code --root ~/Code/Agents/hatsu
 ```
 
-Then, in Claude Code:
+The script links `~/.claude/skills/hatsu` to the checkout, and if an older `hatsu@hatsu` marketplace
+install is present (it would shadow the link) it disables and uninstalls it and removes that
+marketplace, including the declaration your `~/.claude/settings.json` keeps of it (left there, a reload
+clones it back and reinstalls the copy), then reads the result back. Then open a new session, or type `/reload-plugins` in one that is running:
 
 ```
 /kurapika
 ```
 
-To install from a local checkout instead — for development, or to run a branch:
+Confirm what loads:
 
 ```sh
-git clone https://github.com/zheref/hatsu.git
-claude plugin marketplace add ./hatsu
-claude plugin install hatsu@hatsu
+claude plugin list --json    # hatsu@skills-dir · installPath ~/.claude/skills/hatsu · the checkout's version
 ```
 
-Confirm what landed:
+`/kurapika` runs the warm-up (`/hatsu:ten`) before beginning the loop; discovery happens before the first
+invocation, without writing into the target repository. **Keep the checkout on `main`**: whatever it
+holds is what every session serves.
+
+The marketplace route (`claude plugin marketplace add zheref/hatsu`, `claude plugin install
+hatsu@hatsu`) still works for someone who does not keep a checkout, but it installs a **copy** into the
+cache, even from a local directory ([`docs/surfaces/evidence/surfaces.md`](docs/surfaces/evidence/surfaces.md)
+§ 10), and it is the form `/hatsu:bakuryuha` migrates.
+
+**To update**, type `/hatsu:bakuryuha` in any session: it fast-forwards the checkout, re-proves the
+warm-up from the new files, reads back what is served, and ends with the one line left to type. By hand:
 
 ```sh
-claude plugin list                  # hatsu@hatsu — Version: <the version you just installed>
-claude plugin details hatsu@hatsu   # the full component inventory
+~/Code/Agents/hatsu/scripts/hatsu_plugin_update.sh --root ~/Code/Agents/hatsu --channel trunk --claude
 ```
 
-Open a new Claude Code session and run `/hatsu:ten`; it is already registered by the plugin loader.
-`/kurapika` is the normal first request and runs that same warm-up before beginning the loop. This is the
-fresh-install path Claude Code has that Codex and Cursor do not: discovery happens before the first
-invocation, without writing into the target repository.
-
-**To update** an already-installed plugin (Claude keys its cache on `plugin.json`'s `version`, so a
-release you have not picked up is simply invisible):
-
-```sh
-claude plugin marketplace update
-claude plugin update hatsu@hatsu -y
-```
-
-Restart Claude Code. `/hatsu:ten` then runs the same command with `--auto --claude`. A local
-marketplace (`claude plugin marketplace add ./hatsu`) still needs the checkout fast-forwarded first —
-[`scripts/hatsu_plugin_update.sh`](scripts/hatsu_plugin_update.sh) `--channel trunk` against that clone —
-because the cache copies whatever the marketplace currently points at.
+Then type `/reload-plugins` in the running session, or open a new one: no app restart and no
+`claude plugin update` ([`docs/surfaces/claude-code.md`](docs/surfaces/claude-code.md) § 9).
+`/hatsu:ten` runs the same update with `--auto --claude` at every warm-up.
 
 ### Obtaining Hatsu on Codex and Cursor — a checkout, once, by hand
 
@@ -217,7 +218,25 @@ warm-up then resolves its root from that variable first, then from a path handed
 
 ### On Codex
 
-From the repository you want to work in, seed the one skill Codex must discover first:
+**Hatsu is a Codex plugin** (from `v0.66.0`): Codex reads the checkout's `.claude-plugin/marketplace.json`
+as a legacy-compatible marketplace, and the `.codex-plugin/plugin.json` overlay hands it the canonical
+skills, listed and invoked as `$hatsu:<name>`, plus the generated Codex hooks:
+
+```sh
+"$HATSU_PLUGIN_ROOT/scripts/hatsu_surface_link.sh" --surface codex --root "$HATSU_PLUGIN_ROOT"
+# = codex plugin marketplace add "$HATSU_PLUGIN_ROOT" && codex plugin add hatsu@hatsu, read back
+```
+
+Codex installs a **copy** per version under `~/.codex/plugins/cache/hatsu/hatsu/<version>/` (the whole
+checkout, ignored worktrees included) and does not notice a newer source by itself, so an update is
+`$hatsu:bakuryuha`, or `scripts/hatsu_plugin_update.sh --codex`, which fast-forwards the checkout and
+re-adds the plugin; running sessions then refresh skills and hooks. Trust Hatsu's hooks once in `/hooks`
+(Codex never trusts a plugin's hooks by itself). The plugin carries no personas: in each repository
+`$hatsu:ten` still places `AGENTS.override.md` and the persona files, and removes the skill copies and
+hooks file the placement below used to leave (`surface_bootstrap.sh --install-all --plugin`).
+
+**The legacy placement**, still supported where no plugin is installed. From the repository you want to
+work in, seed the one skill Codex must discover first:
 
 ```sh
 "$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface codex --target . --bootstrap
@@ -236,7 +255,7 @@ That warm-up refreshes the complete surface every session. What it places in **y
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **46**, the forty-five plus `ten` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
+| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **47**, the forty-six plus `ten` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
 | `<repo>/AGENTS.override.md` | **untracked**, written whole: your own `AGENTS.md` verbatim first, then the personas between a `BEGIN`/`END hatsu personas` marker pair |
 
 **Copies, not symlinks, and the reason is what Codex advertises.** Codex lists a skill under its
@@ -251,7 +270,7 @@ resolving one is an agent answering confidently from the wrong file.
 **What the warm-up refuses**, and these are hard limits rather than preferences:
 
 - **A destination it did not create is left untouched, and named in the report.** A previous Hatsu install
-  is replaced; a **tracked** path is always somebody else's, whatever it looks like. Forty-five ordinary
+  is replaced; a **tracked** path is always somebody else's, whatever it looks like. Forty-seven ordinary
   words are being claimed at once — `build`, `file`, `en`, `ao`, `ren` — so a collision is not a rare case,
   and the warm-up would rather install thirty-seven and say so than overwrite one file it did not write.
 - **It never writes your `.gitignore`.** Everything it places is excluded through the repository's own
@@ -314,7 +333,7 @@ The warm-up refreshes the complete Cursor surface every session:
 
 | | |
 |---|---|
-| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **46**, the forty-five plus `ten` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
+| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **47**, the forty-six plus `ten` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
 | `<repo>/.cursor/agents/<persona>.md` | one markdown subagent file each — **12**, eleven personas plus the preamble include — symlinked from `$HATSU_PLUGIN_ROOT/surfaces/cursor/agents/` |
 
 **Symlinks are honest here, and that is measured rather than assumed.** Four controlled probes on
@@ -360,16 +379,21 @@ Antigravity supports two usage modalities:
 
 #### 1. Global Plugin Mode (Recommended)
 
-Link or copy Hatsu's Antigravity surface into your global plugins directory:
+Link Hatsu's generated Antigravity plugin into your global plugins directory, in place (a folder there
+"activates across all workspaces on your workstation"):
 
 ```sh
-mkdir -p ~/.gemini/config/plugins
-ln -s "$HATSU_PLUGIN_ROOT/surfaces/antigravity" ~/.gemini/config/plugins/hatsu
+"$HATSU_PLUGIN_ROOT/scripts/hatsu_surface_link.sh" --surface antigravity --root "$HATSU_PLUGIN_ROOT"
+# = ln -s "$HATSU_PLUGIN_ROOT/surfaces/antigravity" ~/.gemini/config/plugins/hatsu, then agy plugin validate
 ```
+
+**Link, never `agy plugin install`**: install copies into that same directory (evidence § 10 F8), which
+would freeze the version and could write through an existing link. A commit to the checkout is served
+from the next conversation; `/hatsu:bakuryuha` fast-forwards it and ends with what to open.
 
 The mirror follows the layout the Antigravity plugins page documents ([`docs/surfaces/antigravity.md`](docs/surfaces/antigravity.md) § 1; the CLI reader is a named gap in its § 10):
 - `plugin.json` — Antigravity plugin manifest
-- 46 skills (forty-five plus `ten`), each at `skills/<name>/SKILL.md`, invoked as `/<name>`
+- 47 skills (forty-six plus `ten`), each at `skills/<name>/SKILL.md`, invoked as `/<name>`
 - `rules/hatsu.md` — the identity rules file, under Antigravity's 12,000-character limit
 - `agents/<persona>.md` — eleven personas plus the preamble include
 - `hooks.json` — native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) lifecycle hooks
@@ -388,7 +412,7 @@ Open Antigravity in that repository and run `/ten`. The warm-up performs `--inst
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | **46** mirrored skill directories — the forty-five plus `ten` itself — copied from `surfaces/antigravity/skills/<name>/` |
+| `<repo>/.agents/skills/<name>/` | **47** mirrored skill directories — the forty-six plus `ten` itself — copied from `surfaces/antigravity/skills/<name>/` |
 | `<repo>/.agents/agents/<persona>.md` | eleven personas plus the preamble include, copied from `surfaces/antigravity/agents/` |
 | `<repo>/.agents/rules/hatsu.md` | The identity rules file, under the 12,000-character limit a rules file has |
 | `<repo>/.agents/hooks.json` | Native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) hooks |
@@ -407,18 +431,20 @@ Reviewers (Feitan, Chrollo, Hisoka, Phinks) run as isolated subagents via `invok
 
 ## Updating Hatsu on each surface
 
-**The plugin source and the target-repo install are two different copies.** Warm-up refreshes the second
-from the first. If the first is stale, every surface is stale, with no error. From v0.31.0 the warm-up
-updates the first as well, when it is a consumer checkout.
+**One command, every surface: `hatsu:bakuryuha`** (spelled `$hatsu:bakuryuha` on Codex, `/bakuryuha` on
+Cursor and Antigravity). It makes the first-party install where a legacy form still stands, fast-forwards
+your checkout, re-proves the warm-up from the new files, reads back what the surface serves, and **always
+ends with a Next block**: the one thing to type or open to finish. From `v0.66.0` every surface's source
+is **your checkout**; only Codex copies it.
 
-| Surface | What "the source" is | How it updates | Then |
+| Surface | What is served | How it updates | Next, to use it |
 |---|---|---|---|
-| **Claude Code** (GitHub marketplace) | `~/.claude/plugins/cache/hatsu/hatsu/<version>/` — **not a git checkout**; keyed on `plugin.json` `version` | `claude plugin marketplace update` then `claude plugin update hatsu@hatsu -y`. Warm-up runs this with `--auto --claude`. **Restart required.** | Open a new session; `/hatsu:ten` |
-| **Claude Code** (local marketplace `./hatsu`) | the clone you `marketplace add`-ed, **plus** the versioned cache copied from it | `"$HATSU_PLUGIN_ROOT/scripts/hatsu_plugin_update.sh" --channel trunk` (or `--channel release`) on the clone, **then** `claude plugin update hatsu@hatsu -y`. The warm-up's `--auto --claude` does both in that order: it reads the marketplace's Directory source from `plugins/known_marketplaces.json`, fast-forwards it when it is clean and on its trunk, and says in the report line when it could not (#118). A pull that does not bump `version` leaves the cache on the old slot — that is what [`scripts/plugin_bump_check.sh`](scripts/plugin_bump_check.sh) exists to prevent. | Restart Claude Code |
-| **Codex** | `$HATSU_PLUGIN_ROOT` (a git clone) | Warm-up `--auto`: trunk fast-forwards `origin/<branch.base>`; a detached `vX.Y.Z` checkout moves to the newest release tag. Hand form: `scripts/hatsu_plugin_update.sh --channel trunk\|release` | `$ten` re-copies `.agents/skills/` |
-| **Cursor** | `$HATSU_PLUGIN_ROOT` (a git clone); workspace `.cursor/skills/<name>` are **symlinks** into `$HATSU_PLUGIN_ROOT/surfaces/cursor/` | Same `--auto` as Codex. A trunk/tag update is most of the update because the links already follow the checkout. | `/ten` repairs lost links and reprints collisions |
-| **Antigravity** (global plugin) | the directory `~/.gemini/config/plugins/hatsu` points at (`ln -s $HATSU_PLUGIN_ROOT/surfaces/antigravity …`) | Update `$HATSU_PLUGIN_ROOT` the same way; the symlink follows. Retarget the symlink only if you changed where the checkout lives. | Restart Antigravity / `agy` |
-| **Antigravity** (workspace bootstrap) | `$HATSU_PLUGIN_ROOT` plus copies under `<repo>/.agents/` | Same `--auto` as Codex, then `/ten` re-copies | — |
+| **Claude Code** | the checkout, in place, through `~/.claude/skills/hatsu` (`hatsu@skills-dir`) | `scripts/hatsu_plugin_update.sh --claude`: fast-forward the linked checkout; no `claude plugin update` | **type `/reload-plugins`**, or open a new session: no app restart |
+| **Claude Code**, legacy cache install | `~/.claude/plugins/cache/hatsu/hatsu/<version>/`, a copy | `hatsu:bakuryuha` retargets it onto the link (`scripts/hatsu_surface_link.sh --surface claude-code`) | as above |
+| **Codex** | the Hatsu plugin, a copy of the checkout per version | `--codex`: fast-forward the marketplace checkout, then `codex plugin add hatsu@hatsu` again | running sessions refresh skills and hooks; personas at the next run; trust a changed hook in `/hooks` |
+| **Cursor** | `.cursor/skills/<name>` links into `<checkout>/surfaces/cursor/` | fast-forward the checkout (`--auto` in the warm-up); `/ten` repairs links | a new chat, or **Developer: Reload Window** |
+| **Antigravity** | `~/.gemini/config/plugins/hatsu` → `<checkout>/surfaces/antigravity`, in place | fast-forward the checkout; the link follows | a new conversation; the CLI's `/skills reload` (≥ 1.2.4) |
+| **Antigravity**, workspace bootstrap (legacy) | copies under `<repo>/.agents/` | fast-forward, then `/ten` re-copies | a new conversation |
 
 **`--auto` never discards and never updates an authoring branch.** A session standing in this repository
 on `grok/kurapika/…` is writing Hatsu; the skip is the correct outcome. Explicit `--channel trunk` or
@@ -589,7 +615,7 @@ Those are two values and they move independently. Hatsu adopts `nen canon pin` a
 generate|check --surfaces`, introduced in v0.16.0 and executed by `hatsu:limbo`, on top of the futon label
 selector, `then` skill chains and advance-go gate, the `library` kind, `nen release unit-check` and
 `nen pr merge --release-unit` (v0.15.0, fail-closed in v0.15.1); each feature requirement raised the minimum
-even though Nen's compatibility floor remains 0.7. The live skill surface is **forty-five**, forty-six
+even though Nen's compatibility floor remains 0.7. The live skill surface is **forty-six**, forty-seven
 directories per surface with `ten`.
 
 **The range is nen's answer, not this README's arithmetic — and not the warm-up's either.** The binary
@@ -762,7 +788,7 @@ later. Adopting another remains a deliberate act with its own decision.
 
 ## The skills
 
-Forty-five, invoked as `hatsu:<name>` (forty-six directories with `ten`). Longer descriptions in
+Forty-six, invoked as `hatsu:<name>` (forty-seven directories with `ten`). Longer descriptions in
 [`claude/skills/README.md`](claude/skills/README.md).
 
 ### The twenty that answer a request
@@ -795,6 +821,12 @@ Forty-five, invoked as `hatsu:<name>` (forty-six directories with `ten`). Longer
 | Skill | |
 |---|---|
 | `great-hiker` | **Canon authoring for every surface.** Writes canon prose and machinery under `claude/` and `contracts/`, regenerates every surface mirror, checks the mirrors and the installed copies, and opens one PR at G4 with a per-surface delta table; `evolve [<surface>]` diffs a surface guide against its cited official docs and files one Netero-shaped issue per drifted surface. Never edits `surfaces/` by hand, never merges. |
+
+### The one that brings the host current — new in `v0.66.0`
+
+| Skill | |
+|---|---|
+| `bakuryuha` | **Update Hatsu on this surface and switch to it — yours to call.** `hatsu:bakuryuha [--channel auto\|trunk\|release] [--dry-run]` serves every surface first-party from your own checkout — Claude Code in place through `~/.claude/skills/hatsu`, the Codex plugin, Antigravity's global plugin link — making that install where a cache or placed copy still stands, fast-forwarding the checkout (refusing, never skipping, a dirty tree or an authoring branch), running the **new** `ten` from disk and reading back what is served. It **always ends with a Next block**: the one thing to type or open (`/reload-plugins`, a new chat or conversation), never an app restart. See [*Updating Hatsu on each surface*](#updating-hatsu-on-each-surface). |
 
 ### The ten that *are* the way of working — new in `v0.4.0`
 
@@ -989,7 +1021,7 @@ run on each.
 
 **Everything above about the loop, the gates and the roster is true here.** What changes is the spelling,
 where a delegate comes from, who rings the bell, and which aliases the model matrix answers with. Nothing
-in this section is product- or stack-specific: it is the same forty-five skills reading your
+in this section is product- or stack-specific: it is the same forty-six skills reading your
 repository's own [`nen/contract.json`](nen/contract.json).
 
 ### Invoking a skill
@@ -1284,8 +1316,8 @@ cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
    keep the tail, and a thirty-character description would be worse everywhere and no better here. What
    follows instead is that **on Cursor the skill `name` does almost all of the routing work.**
 2. **The name space is flat, global and shared.** It is not only your repository's `.cursor/skills/`: on
-   this host one listing carried the forty-six mirrored skills **plus** Cursor's own built-ins **plus**
-   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims forty-six ordinary
+   this host one listing carried the forty-seven mirrored skills **plus** Cursor's own built-ins **plus**
+   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims forty-seven ordinary
    words at once — `build`, `file`, `en`, `ao`, `ren`, `breath`. **The shadowing itself is inferred, not
    proven, and is written here as such**: two probes tried to confirm it and could not, because the
    descriptions this surface keeps are far too short to tell two rival `build` entries apart. It is a
@@ -1347,13 +1379,15 @@ that already has the plugin installed** — no error, no warning, the fix ships 
 
 [`scripts/plugin_bump_check.sh`](scripts/plugin_bump_check.sh), wired as the
 [`plugin-bump-check`](.github/workflows/plugin-bump-check.yml) workflow, fails a PR that tries. The guarded
-surface is `.claude-plugin/**`, `claude/**`, `nen/**`, `contracts/**`, `hooks/**`, `templates/**`, `surfaces/**`,
+surface is `.claude-plugin/**`, `.codex-plugin/**`, `claude/**`, `nen/**`, `contracts/**`, `hooks/**`, `templates/**`, `surfaces/**`,
 `.mcp.json`, the shipped docs (`docs/ROSTER.md`, `docs/delegation-grammar-DRAFT.md`, `docs/WORKFLOW.md`,
 `docs/DISCOVERY.md`, `docs/LAUNCH-MIGRATION.md`, `docs/AGENT-ATTRIBUTION.md`, `docs/STANDALONE-ENTRY.md`,
 `docs/GATE-CONFIGURATION.md`, `docs/PROCESS.md`, `docs/SURFACES.md`, `docs/PUBLIC-REDACTION.md`) and every
 runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scripts/hanten_cycle_ledger.sh`,
 `scripts/hatsu_plugin_update.sh`, `scripts/hatsu_root.sh`, `scripts/surface_mirror_check.sh`,
-`scripts/permissions_pack.sh`, `scripts/dist_tag.sh`, `scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
+`scripts/permissions_pack.sh`, `scripts/dist_tag.sh`, `scripts/send_freshness_check.sh`, `scripts/kagutsuchi_worktree.sh`,
+`scripts/hatsu_surface_link.sh`, `scripts/surface_link_check.sh`, `scripts/prose_size_check.sh`,
+`scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
 `scripts/report_time.sh`, `scripts/pr_body_evidence_check.sh`) — the one list is `PLUGIN_SURFACE_GLOBS` in the
 script, from which the refusal message is generated; this paragraph is a copy of it — everything an
 installed runtime reads, the generated Codex and Cursor mirrors included: the warm-up reads plugin resources

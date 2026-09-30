@@ -25,13 +25,10 @@
 # Runs `nen surface mirror check` for every surface in SURFACES with whichever
 # `nen` is on PATH. That verb REGENERATES IN MEMORY and diffs; it writes
 # nothing at all, so this script is safe to run anywhere, including on a dirty
-# tree. A surface that drifts at its current hooks root is checked once more at
-# its NEXT root (hooks_root_next_for, below) while a root change lands in two
-# steps; a match there passes and says so, and nothing else changes.
+# tree.
 #
 # EXIT CODES — and the one that matters most is 2.
-#   0  every mirror is byte-identical to a fresh generation (at its current root,
-#      or at its next root, which is said on its own line)
+#   0  every mirror is byte-identical to a fresh generation
 #   1  drift, in nen's own drift classes: missing / extra / stale / hand-edited
 #   2  the `nen` on PATH HAS NO `surface` VERB — said in those words; also the
 #      wiring errors (a root that is not a Hatsu checkout, a refusal from the
@@ -86,23 +83,26 @@ SOURCE_SURFACE="claude"   # the personas carry models.claude aliases; --models r
 MANIFEST_FILE=".claude-plugin/plugin.json"
 # The expression every mirrored hook command resolves the plugin root through: the warm-up exports
 # HATSU_PLUGIN_ROOT; the workspace copy is the LAST fallback, never ahead of the plugin root, and
-# Antigravity's global plugin dir is the fallback there (docs/surfaces/antigravity.md).
+# Antigravity's global plugin dir is the fallback there (docs/surfaces/antigravity.md). Codex's own
+# fallback chain has a THIRD rung in between the two, and PLUGIN_ROOT -- not HATSU_PLUGIN_ROOT -- is
+# checked FIRST there (Feitan, CWE-426: untrusted search path). Codex now installs Hatsu as a
+# first-party PLUGIN (`codex plugin add hatsu@hatsu`) as well as through the workspace bootstrap, and
+# a Codex plugin hook command is handed PLUGIN_ROOT by Codex itself -- the installed slot Codex
+# resolved for THIS invocation, trusted the same way CLAUDE_PLUGIN_ROOT is trusted on Claude Code. An
+# ambient HATSU_PLUGIN_ROOT -- left exported by an unrelated shell, a stale session, or a workspace
+# bootstrap that never unset it -- is an untrusted search path once a plugin hook is actually
+# running: honoring it ahead of PLUGIN_ROOT would let that stray value redirect every one of the
+# hook's script references away from the plugin Codex actually installed. So under the Codex plugin,
+# PLUGIN_ROOT wins outright and HATSU_PLUGIN_ROOT is never consulted. The legacy workspace placement
+# is a project-local hook, which Codex never hands a PLUGIN_ROOT, so scripts/surface_bootstrap.sh
+# places it rewritten to ${HATSU_PLUGIN_ROOT:-./.codex} and a stray PLUGIN_ROOT cannot redirect it.
+# This root landed in two steps (docs/GATE-CONFIGURATION.md, 2026-09-30): zheref/hatsu#153 taught the
+# trusted copy to accept it beside the old one, and zheref/hatsu#151 made it current.
 hooks_root_for() {
   case "$1" in
     antigravity) printf %s '${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;;
-    codex) printf %s '${HATSU_PLUGIN_ROOT:-./.codex}' ;;
-    cursor) printf %s '${HATSU_PLUGIN_ROOT:-./.cursor}' ;;
-  esac
-}
-# THE NEXT ROOT, accepted beside the current one while a root change lands in two steps
-# (docs/GATE-CONFIGURATION.md, 2026-09-20: the trusted copy judges the PR). surface-mirror-check
-# runs THIS file from `main` under pull_request_target, so a PR that regenerates a mirror at a new
-# root reads `hand-edited` until main's copy knows that root. Step one (this) accepts both; step two
-# (zheref/hatsu#151: the Codex plugin's hooks run the installed slot first, CWE-426) moves the
-# current root and deletes this function. A surface with no next root prints nothing.
-hooks_root_next_for() {
-  case "$1" in
     codex) printf %s '${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}' ;;
+    cursor) printf %s '${HATSU_PLUGIN_ROOT:-./.cursor}' ;;
   esac
 }
 # check_one SURFACE ROOT -- one `nen surface mirror check` of SURFACE's committed mirror against a
@@ -258,7 +258,7 @@ EOF
     esac
   fi
 
-  local surface code report next_root next_code next_report accepted_next=""
+  local surface code
   for surface in "${SURFACES[@]}"; do
     echo "--- $surface (surfaces/$surface)"
     # `check` writes NOTHING — it regenerates in memory and diffs. Exit 1 is
@@ -270,38 +270,8 @@ EOF
     # false `if` with no `else`, `$?` is the COMPOUND command's status, which is
     # 0 — so the obvious spelling reads every drift as a pass. Under `set -e`
     # the `||` is also what keeps the non-zero from killing the loop.
-    #
-    # Drift at the current root is re-checked at the surface's next root, if it has one: a
-    # mirror that matches there is accepted and said so, and only then is the first run's
-    # report withheld. Anything else prints the first run and keeps its exit code.
     code=0
-    report="$(check_one "$surface" "$(hooks_root_for "$surface")" 2>&1)" || code=$?
-    next_root="$(hooks_root_next_for "$surface")"
-    if [ "$code" -eq 1 ] && [ -n "$next_root" ]; then
-      next_code=0
-      next_report="$(check_one "$surface" "$next_root" 2>&1)" || next_code=$?
-      case "$next_code" in
-        0)
-          report="$next_report
-surface-mirror-check: $surface matches a fresh generation at its NEXT hooks root $next_root, accepted while that root lands in two steps (zheref/hatsu#151)."
-          code=0
-          accepted_next="$accepted_next $surface"
-          ;;
-        1)
-          report="$report
-surface-mirror-check: $surface was re-checked at the next hooks root $next_root and drifts there too, so neither root explains it; the report above is the current root's."
-          ;;
-        *)
-          # A refusal is an invocation defect, never drift: it keeps its own exit
-          # code, so the refusal arm below names it.
-          report="$report
-$next_report
-surface-mirror-check: the re-check of $surface at the next hooks root $next_root refused at exit $next_code."
-          code=$next_code
-          ;;
-      esac
-    fi
-    printf '%s\n' "$report"
+    check_one "$surface" "$(hooks_root_for "$surface")" || code=$?
 
     case "$code" in
       0) ;;
@@ -337,7 +307,7 @@ EOF
     exit 1
   fi
 
-  echo "surface-mirror-check: all mirrors match a fresh generation${accepted_next:+ (at the next hooks root:$accepted_next)}."
+  echo "surface-mirror-check: all mirrors match a fresh generation."
 }
 
 main "$@"

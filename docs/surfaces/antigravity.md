@@ -12,7 +12,7 @@ workflows are deprecated and retire on 2026-11-01, so nothing here emits a workf
 
 | | |
 |---|---|
-| how Hatsu arrives | global plugin: `ln -sfn "$HATSU_PLUGIN_ROOT/surfaces/antigravity" ~/.gemini/config/plugins/hatsu` (`~/.gemini/antigravity-cli/plugins/hatsu` for the CLI); or workspace: `scripts/surface_bootstrap.sh --surface antigravity --target . --bootstrap`, then `/ten` |
+| how Hatsu arrives | **the global plugin, first-party and in place**: `~/.gemini/config/plugins/hatsu` is a link to `<checkout>/surfaces/antigravity`, the generated plugin (`scripts/hatsu_surface_link.sh --surface antigravity`); the IDE reads it, and `agy` 1.0.6 installs into the same directory (evidence § 10 F8). `agy plugin install` **copies**, so it is never run over the link. Legacy form: `scripts/surface_bootstrap.sh --surface antigravity --target . --bootstrap`, then `/ten` placing `.agents/` copies |
 | plugin layout | `plugin.json` (required), `hooks.json`, `mcp_config.json`, `skills/`, `agents/`, `rules/`; the mirror follows it: `skills/<name>/SKILL.md` plus `agents/`, `rules/hatsu.md`, `hooks.json`, `plugin.json` |
 | skills read from | plugin `skills/<name>/SKILL.md` as the plugins page lays it out; workspace `<repo>/.agents/skills/<name>/SKILL.md`; global `~/.gemini/config/skills/` (IDE) or `~/.gemini/antigravity-cli/skills/` (CLI). The mirror is `surfaces/antigravity/skills/<name>/SKILL.md`, the documented layout, and the warm-up copies each `skills/<name>/` into `.agents/skills/` |
 | personas read from | plugin `agents/<persona>.md`; workspace `<repo>/.agents/agents/<name>.md` or `.agents/agents/<name>/agent.md`; global `~/.gemini/config/agents/` |
@@ -20,7 +20,8 @@ workflows are deprecated and retire on 2026-11-01, so nothing here emits a workf
 | hooks read from | plugin `hooks.json`; workspace `<repo>/.agents/hooks.json`; global `~/.gemini/config/hooks.json` |
 | invocation spelling | `/<name>` |
 | headless command | `agy --model pro "<prompt>"` in the target repository |
-| pointing at a local checkout | the global symlink above follows `$HATSU_PLUGIN_ROOT`; in workspace mode the warm-up copies from it |
+| pointing at a local checkout | the global link names the checkout's `surfaces/antigravity`; a commit there is served from the next conversation, no copy to refresh |
+| update and activation | `hatsu:bakuryuha`: § 3 makes the link where `.agents/` copies stood, § 4 fast-forwards the checkout the link names, and `agy plugin validate` reads the plugin back; a new conversation lists the updated skills, and the CLI's `/skills reload` (from v1.2.4, typed) reloads them in the running one (§ 9); the IDE documents no reload, so personas, rules and hooks there are claimed on restart only |
 | back-compatibility | `.agent/rules` and `.agent/skills` are still read; Hatsu writes only `.agents/` |
 | artifacts written to | `<appDataDir>/brain/<conversation-id>/` (supplied in agent context), tool `write_to_file` with `ArtifactMetadata` (`Summary`, `UserFacing`, `RequestFeedback`); markdown (`.md`) format with GFM tables, alerts (`> [!NOTE]`), and Mermaid |
 | transcripts log | `<appDataDir>/brain/<conversation-id>/.system_generated/logs/transcript.jsonl` (and `transcript_full.jsonl`) |
@@ -130,7 +131,7 @@ nen surface mirror generate --surface antigravity \
 
 | emits | from |
 |---|---|
-| `surfaces/antigravity/skills/<name>/SKILL.md`, 45 files (forty-four plus `ten`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `/<name>` (anchored on the prefix, never a bare `gsub`) | `claude/skills/**` |
+| `surfaces/antigravity/skills/<name>/SKILL.md`, 47 files (forty-six plus `ten`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `/<name>` (anchored on the prefix, never a bare `gsub`) | `claude/skills/**` |
 | `surfaces/antigravity/agents/<persona>.md`, 12 files (eleven personas plus the preamble include), `model` from the tier where admissible | `claude/agents/**`, `nen/workflow.json` |
 | `surfaces/antigravity/rules/hatsu.md`, under 12,000 characters | the surface row and the matrix |
 | `surfaces/antigravity/hooks.json`: `PreInvocation`, `PreToolUse` on `run_command`, `Stop` | `hooks/hooks.json` |
@@ -178,6 +179,10 @@ nen surface mirror check --surface antigravity <same flags> --installed ~/.gemin
 | artifacts review | pause and request review | "Depending on your configuration, the agent will pause at intermediate milestones and request review on its plans or code edits before executing them." | https://antigravity.google/docs/artifacts | 2026-09-29 |
 | generative UI | rich interactive widgets | "How to render rich interactive HTML widgets inline in the chat or as standalone artifacts." | https://antigravity.google/docs/features | 2026-09-29 |
 | transcripts | session logs track execution | "system logs (such as transcript.jsonl) can track artifacts alongside other execution data" | https://antigravity.google/docs/artifacts | 2026-09-29 |
+| when skills are listed | per conversation | "Discovery: when a conversation starts, the agent sees a list of available skills with their names and descriptions." | https://antigravity.google/docs/skills | 2026-09-29 |
+| CLI skill reload | `/skills reload`, typed | "Added a /skills reload subcommand to asynchronously reload discovered skills and slash commands without restarting the session or blocking user input." (CLI v1.2.4, September 16, 2026) | https://antigravity.google/docs/changelog | 2026-09-29 |
+| global plugin folder | activates everywhere | "Global level: place your plugin folder in ~/.gemini/config/plugins/. The plugin activates across all workspaces on your workstation." | https://antigravity.google/docs/plugins | 2026-09-29 |
+| the install, live | `agy plugin install` copies; `validate` reads the link | evidence § 10 F8 (`agy` 1.0.6, an isolated `HOME`) | [evidence § 10](evidence/surfaces.md) | 2026-09-29 |
 
 ## 10. Known gaps (not documented)
 
@@ -188,10 +193,11 @@ nen surface mirror check --surface antigravity <same flags> --installed ~/.gemin
 - Any skill-size limit.
 - Whether the `agy` CLI reads a global plugin's `skills/` subfolder the way the IDE does; the plugins page documents the layout, not each reader, and no live run on the CLI is recorded.
 - Whether the `ultra` tier can be named anywhere but the main session.
+- An update or reload action for the IDE or for a global plugin: the plugins page documents `agy plugin` install, uninstall, enable, disable and list, and no update; whether a running IDE conversation sees a changed global plugin is not stated. The CLI's own staging path is documented as `~/.gemini/antigravity-cli/plugins/<name>/` while `agy` 1.0.6 installs into `~/.gemini/config/plugins/` (evidence § 10 F8); Hatsu links only the latter, which the IDE reads and `agy` 1.0.6 installs into; a CLI session loading it was not observed.
 
 ## 11. How this guide evolves
 
-`hatsu:great-hiker` re-fetches the eight URLs above, diffs every quoted line, and files one Netero-shaped
+`hatsu:great-hiker` re-fetches the ten URLs above, diffs every quoted line, and files one Netero-shaped
 issue for this surface when one moved, naming the row, the generator rule (`src/surface/rules.ts` in
 nen), the hooks resolver and the warm-up section. The retirement date for workflows is the first dated
 row this set carries; the pass after 2026-11-01 removes the workflows rows and the back-compat note

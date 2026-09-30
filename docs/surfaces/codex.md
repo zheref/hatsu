@@ -1,33 +1,42 @@
 # Codex
 
-Codex reads Hatsu from files the warm-up places in the repository the session stands in: a copy of each
-mirrored skill, an instruction override carrying the personas, project-scoped agent files, and a config
-fragment and hooks file rendered from the permission contract. **Correction, 2026-09-20: Codex has
-hooks.** The hub used to say it had no turn-end hook; the official hooks page documents `Stop` and
-`SessionStart` among twelve events, read from `<repo>/.codex/hooks.json`, and the permission pack has
-been emitting a `SessionStart` hook there since v0.41.0.
+**Codex installs Hatsu first-party, as a plugin, from the maintainer's own checkout** (from v0.66.0):
+Codex reads the checkout's `.claude-plugin/marketplace.json` as a legacy-compatible marketplace, and the
+`.codex-plugin/plugin.json` overlay hands it the canonical `claude/skills/` (listed `hatsu:<name>`, the
+spelling the bodies carry) and the generated Codex hooks. The plugin carries no personas, so the warm-up
+still places the instruction override and the project-scoped agent files; the skill copies and the hooks
+file it used to place are the legacy form, removed in plugin mode (`surface_bootstrap.sh --plugin`).
+**Correction, 2026-09-20: Codex has hooks.** The official hooks page documents `Stop` and `SessionStart`
+among twelve events.
 
 ## 1. Identity and paths
 
 | | |
 |---|---|
-| how Hatsu arrives | a checkout on the host, one bootstrap (`scripts/surface_bootstrap.sh --surface codex --target . --bootstrap`, which seeds only `ten`), then `$ten` every session |
-| skills read from | `<repo>/.agents/skills/<name>/SKILL.md`, scanned from the working directory upward; also `$HOME/.agents/skills` and `/etc/codex/skills` |
+| how Hatsu arrives | **the Hatsu plugin**: `codex plugin marketplace add <checkout>` then `codex plugin add hatsu@hatsu` (`scripts/hatsu_surface_link.sh --surface codex`); Codex **copies** the whole checkout, ignored worktrees included, into `$CODEX_HOME/plugins/cache/hatsu/hatsu/<version>/` (evidence § 10 F4–F7). Legacy form: a checkout, one bootstrap (`scripts/surface_bootstrap.sh --surface codex --target . --bootstrap`), then `$ten` placing `.agents/skills/` copies |
+| skills read from | the plugin: `<cache slot>/claude/skills/<name>/SKILL.md` (`.codex-plugin/plugin.json` → `"skills": "./claude/skills/"`; without it the overlay finds none, evidence § 10 F5). Legacy: `<repo>/.agents/skills/<name>/SKILL.md`, scanned upward; also `$HOME/.agents/skills` and `/etc/codex/skills` |
 | personas read from | `<repo>/AGENTS.override.md` as prose (all personas, one `## <name>` section each) and `<repo>/.codex/agents/<persona>.toml` as project-scoped custom agents |
 | config read from | `~/.codex/config.toml` (user), `.codex/config.toml` (project, trusted projects only) |
-| hooks read from | `~/.codex/hooks.json`, `<repo>/.codex/hooks.json`; a plugin's `hooks/hooks.json` |
-| invocation spelling | `$<name>` |
+| hooks read from | the plugin's `.codex-plugin/plugin.json` → `"hooks": "./surfaces/codex/hooks.json"`, the generated rows, run with `PLUGIN_ROOT` set; `~/.codex/hooks.json` and `<repo>/.codex/hooks.json` (legacy placement) |
+| invocation spelling | `$hatsu:<name>` under the plugin (the documented `$<plugin>:<skill>` form); `$<name>` for a legacy placed copy |
 | headless command | `codex exec -C <repo> -s workspace-write --add-dir "$(git -C <repo> rev-parse --path-format=absolute --git-common-dir)" -m "$sol" "<prompt>"`, with `sol` resolved live from `codex debug models`; a G5 is answered with `codex exec resume --last -m "$sol" --skip-git-repo-check -c 'sandbox_workspace_write.writable_roots=[…]' -o <file> "<answer>"`. The full record, including why `--add-dir` is mandatory in a linked worktree and which flags `resume` refuses, is [`evidence/surfaces.md`](evidence/surfaces.md) § 7 F3, F6 and Appendix A |
-| pointing at a local checkout | export `HATSU_PLUGIN_ROOT`, run the bootstrap, then the warm-up; Codex reads `$HATSU_PLUGIN_ROOT/surfaces/codex/` through the warm-up's copies |
+| pointing at a local checkout | the marketplace **is** the local checkout; after it moves, `codex plugin add hatsu@hatsu` again (Codex does not notice a newer source, evidence § 10 F6), which `scripts/hatsu_plugin_update.sh --codex` does |
+| update and activation | `hatsu:bakuryuha`: § 3 installs the plugin where copies were placed, § 4 fast-forwards the marketplace checkout and re-adds the plugin, the new `ten` places personas only (`--plugin`); running sessions refresh skills and hooks after an external plugin upgrade (codex-cli 0.154.0), personas load at the next run, and a changed hook is skipped until trusted in `/hooks` (§ 9, § 10) |
 | validated build | `codex-cli 0.149.0` (`codex --version`, read live 2026-09-10); no skills-support floor is documented |
 
-**Copies, not symlinks.** Codex lists a skill under its frontmatter `name`, namespaced by the plugin
+**What the plugin install copies.** `codex plugin add` copies the whole marketplace root, `.git` and every
+git-ignored path included (`.claude/settings.local.json`, `.claude/worktrees/`, `.nen/`, `Reports/`), into
+`$CODEX_HOME/plugins/cache/hatsu/hatsu/<version>/`, and the next `add` replaces that slot (evidence § 10
+F6, F7). Serving a clean tree instead is zheref/hatsu#147. **The plugin's hooks run the source
+`hooks/*.sh`** of that slot, which carry no generated marker, so `session-start.sh` takes its reminder
+branch on purpose: its mirror-refresh branch would re-place the skill copies the plugin replaces. Trust
+in `/hooks` covers a hook's definition; the scripts behind it change with each installed version.
+
+**Copies, not symlinks — the legacy placement.** Codex lists a skill under its frontmatter `name`, namespaced by the plugin
 manifest above the directory the path resolves to: a symlink into this checkout (which carries
 `.claude-plugin/plugin.json`) is listed as `hatsu:aka`, a `cp -R` of the same directory as bare `aka`,
-which is the spelling the mirror bodies carry. Verified with three `codex debug prompt-input` renders
-(evidence § 7 F1). A symlink also resolves `../../../nen/workflow.json` into the plugin's own policy
-file with no error anywhere (§ 7 F10); through the copy the same path resolves to the target's file. So
-the re-copy is unconditional every session, `rm -rf` then `cp -R`, never diff-and-skip.
+which is the spelling the mirror bodies carry (evidence § 7 F1). The plugin install makes that
+namespacing the rule instead: `hatsu:aka` everywhere, the canonical bodies unchanged.
 
 **`AGENTS.override.md` replaces `AGENTS.md`** rather than joining it, so the warm-up writes the whole
 file: the target's own `AGENTS.md` verbatim, re-read every warm-up, then the generated block between its
@@ -133,12 +142,12 @@ nen surface mirror generate --surface codex \
 
 | emits | from |
 |---|---|
-| `surfaces/codex/<name>/SKILL.md`, 45 files (forty-four plus `ten`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `$<name>` | `claude/skills/**` |
+| `surfaces/codex/<name>/SKILL.md`, 47 files (forty-six plus `ten`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `$<name>` | `claude/skills/**` |
 | `surfaces/codex/AGENTS.md`, the appendix the warm-up copies into `AGENTS.override.md` after the target's own `AGENTS.md`, eleven personas plus the preamble include as sections (`## _review-preamble`) | `claude/agents/**` |
 | `surfaces/codex/agents/<persona>.toml`, one per persona, `name`, `description`, `developer_instructions`, `model` from the persona's tier | `claude/agents/**` and `nen/workflow.json` |
 | `surfaces/codex/config.toml`, the pack: `approval_policy`, `sandbox_mode`, `writable_roots` | `contracts/permissions.json` |
 | `surfaces/codex/config.toml.fragment`: `[agents]` with `default_subagent_model` only, from the matrix row | `nen/workflow.json` |
-| `surfaces/codex/hooks.json`: `SessionStart`, `PreToolUse`, `Stop` | `hooks/hooks.json` |
+| `surfaces/codex/hooks.json`: `SessionStart`, `PreToolUse`, `Stop`, rooted at `${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}` — the installed slot Codex hands a plugin hook first, then the export, then the placed copy — so a plugin hook (named by the overlay) never runs a live-checkout or working-directory script (Feitan, CWE-426). The legacy placement is a project-local hook, which Codex never hands a `PLUGIN_ROOT`, so `surface_bootstrap.sh` places it rewritten to `${HATSU_PLUGIN_ROOT:-./.codex}`: a stray `PLUGIN_ROOT` in the user's environment cannot redirect it | `hooks/hooks.json` |
 
 Marker, first markdown line after the frontmatter fence, line 1 in `AGENTS.md` and the TOML files:
 
@@ -182,6 +191,18 @@ nen surface mirror check --surface codex <same flags> --installed <a whole surfa
 | option picker | `tool/requestUserInput` | "tool/requestUserInput - prompt the user with 1-3 short questions … (experimental)" | https://learn.chatgpt.com/docs/app-server | 2026-09-20 |
 | instructions override | `AGENTS.override.md` | "Codex reads AGENTS.override.md if it exists. Otherwise, Codex reads AGENTS.md." | https://learn.chatgpt.com/docs/agent-configuration/agents-md | 2026-09-20 |
 | instructions cap | 32 KiB | "limit defined by project_doc_max_bytes (32 KiB by default)" | https://learn.chatgpt.com/docs/agent-configuration/agents-md | 2026-09-20 |
+| skill changes | picked up in-session | "Codex detects skill changes automatically. If an update doesn’t appear, restart Codex." | https://learn.chatgpt.com/docs/build-skills | 2026-09-29 |
+| config changes | on restart | "Restart Codex after changing ~/.codex/config.toml." | https://learn.chatgpt.com/docs/build-skills | 2026-09-29 |
+| when instructions load | once per run or TUI session | "Codex builds an instruction chain when it starts (once per run; in the TUI this usually means once per launched session)." | https://learn.chatgpt.com/docs/agent-configuration/agents-md | 2026-09-29 |
+| changed hooks | skipped until re-trusted | "Codex records trust against the hook’s current hash, so new or changed hooks are marked for review and skipped until trusted." | https://learn.chatgpt.com/docs/hooks | 2026-09-29 |
+| marketplace from a checkout | `.claude-plugin/marketplace.json` read as is | "a legacy-compatible marketplace at `$REPO_ROOT/.claude-plugin/marketplace.json`" | https://developers.openai.com/plugins/build/plugins | 2026-09-29 |
+| Claude-compatible manifests | accepted | "OpenAI also accepts legacy and Claude-compatible manifests, but new packages should use this format." | https://developers.openai.com/plugins/build/plugins | 2026-09-29 |
+| overlay hooks | declared in `.codex-plugin/plugin.json` | "Legacy packages can declare `hooks` directly in `.codex-plugin/plugin.json`." | https://developers.openai.com/plugins/build/plugins | 2026-09-29 |
+| plugin hook root | `PLUGIN_ROOT` | "`PLUGIN_ROOT` points to the installed plugin root" | https://developers.openai.com/plugins/build/plugins | 2026-09-29 |
+| plugin hooks trusted | never automatically | "Installing or enabling a plugin doesn't automatically trust its hooks." | https://developers.openai.com/plugins/build/plugins | 2026-09-29 |
+| what loads | the installed copy | "ChatGPT loads the installed copy from that cache path rather than directly from the marketplace entry." | https://developers.openai.com/plugins/build/plugins | 2026-09-29 |
+| running sessions after an upgrade | skills and hooks refresh (release notes) | "Existing sessions pick up newly installed plugin tools and refresh skills and hooks after external plugin upgrades or rollbacks." | https://github.com/openai/codex/releases/tag/rust-v0.154.0 | 2026-09-29 |
+| the install, live | copies, `hatsu:<name>`, re-add to update | evidence § 10 F4–F7 (codex-cli 0.154.0, an isolated `CODEX_HOME`) | [evidence § 10](evidence/surfaces.md) | 2026-09-29 |
 
 `developers.openai.com/codex/*` redirects to `learn.chatgpt.com/docs/*`; the URLs above are the
 destination.
@@ -193,10 +214,11 @@ destination.
 - `.codex/skills` as a skills path; the documented path is `.agents/skills`.
 - A minimum CLI build for skills support.
 - Whether `Stop` fires on a `codex exec` run's final turn the way it does in the TUI (not exercised).
+- Whether a session honours a skill body it already read once the file changes. The pages say only that changes are detected; the pull request that added the detection (https://github.com/openai/codex/pull/10478, fetched 2026-09-29) says "if it has already read the contents of a modified skill, it will not honor the new behavior" and that new skills are not announced to the model. `hatsu:bakuryuha` § 5 therefore reads changed bodies from disk rather than trusting the detection.
 
 ## 11. How this guide evolves
 
-`hatsu:great-hiker` re-fetches the seven URLs above, diffs every quoted line, and files one Netero-shaped
+`hatsu:great-hiker` re-fetches the nine URLs above, diffs every quoted line, and files one Netero-shaped
 issue for this surface when one moved, naming the row, the generator rule it reaches
 (`src/surface/rules.ts` in nen), the pack renderer, and the warm-up section. The `ask` row is the one to
 watch: the day Codex honours it, the guard may answer `ask` instead of `deny`.
