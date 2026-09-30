@@ -902,7 +902,7 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
 
 **The maintainer's request, verbatim** (typed while `hatsu:jusshin` was specified):
 
-> Skill should always ask user for platform/account/repository keys …
+> Skill should always as[k] user for platform/account/repository keys and aspects that cannot be handled agentically in order to complete and register new runners up to the very end, following the conventions we are already following under Hatsu.
 
 What it settles, for [`jusshin`](../claude/skills/jusshin/SKILL.md) and no other skill:
 
