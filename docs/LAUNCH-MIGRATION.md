@@ -15,8 +15,9 @@ SHA256SUMS are published. Hatsu initially adopted extraction with `minimum: "0.9
 declared in `nen/contract.json` and is Nen 0.10 for the explicit reviewer policy. Nen 0.9 kept compatibility floor 0.7 for
 consumers that retain older declarations, which is separate from the feature minimum.
 Verify the installed binary accepts the extraction declaration before changing a consumer.
-Retain KroApple's normalizer until its declaration migration and successful physical build,
-install and launch; publishing the shared replacement is not consumer-device proof.
+Retain the Apple-device normalizer (`ci_scripts/nen_apple_devices.py`) in the consumer that carries it
+(`<product-repo-A>`) until its declaration migration and successful physical build, install and
+launch; publishing the shared replacement is not consumer-device proof.
 Hatsu #49 was addressed by Hatsu PR #50 before the next Hatsu release. This migration guide does
 not itself authorize a tag or release.
 
@@ -39,9 +40,9 @@ and `docs/STACK-MATRIX.md`. Check those against the installed release; do not co
 key into an older consumer and hope it is ignored. Existing targets without extraction preserve
 their documented behavior until migrated.
 
-## KroApple sequence
+## The Apple-device normalizer consumer (`<product-repo-A>`) sequence
 
-KroApple commit `718d3766` records the temporary `ci_scripts/nen_apple_devices.py` normalizer and
+The consumer carrying `ci_scripts/nen_apple_devices.py` (`<product-repo-A>`): its commit `718d3766` records the temporary `ci_scripts/nen_apple_devices.py` normalizer and
 `ci_scripts/test_nen_apple_devices.py`. The normalized probe plus the physical build lane reportedly
 completed build/install/launch; that issue evidence is not a device run by this Hatsu change.
 

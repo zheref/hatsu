@@ -397,9 +397,9 @@ about five minutes later with five threads, and the verdict moved to `CON-32(d)`
 `futon`'s chain among the callers that start en, and cites `docs/PROCESS.md` § *Reporting a phase* for the rule
 that every PR a session opens reaches the maintainer through en or with the verdict quoted.
 
-## The round ceiling is two numbers, and the repro is KroApple#577 — 2026-09-29 (zheref/hatsu#102)
+## The round ceiling is two numbers, and the repro is RA-PR-#577 — 2026-09-29 (zheref/hatsu#102)
 
-On zheref/KroApple#577 (2026-09-22) en requested Copilot **eight** times under a two-round ruling: rounds 2
+On RA-PR-#577 (2026-09-22) en requested Copilot **eight** times under a two-round ruling: rounds 2
 through 8 were agent requests on the maintainer's token, each justified by `nen pr ready` reading *a round
 is owed at the current head* — a state the agent's own just-made request had produced (`review_on_push`
 is off there, so nothing else was requesting). The ceiling was prose then, and the requests went out as

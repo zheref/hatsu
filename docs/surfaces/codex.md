@@ -1,6 +1,6 @@
 # Codex
 
-**Codex installs Hatsu first-party, as a plugin, from the maintainer's own checkout** (from v0.62.0):
+**Codex installs Hatsu first-party, as a plugin, from the maintainer's own checkout** (from v0.64.0):
 Codex reads the checkout's `.claude-plugin/marketplace.json` as a legacy-compatible marketplace, and the
 `.codex-plugin/plugin.json` overlay hands it the canonical `claude/skills/` (listed `hatsu:<name>`, the
 spelling the bodies carry) and the generated Codex hooks. The plugin carries no personas, so the warm-up

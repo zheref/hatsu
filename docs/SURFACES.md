@@ -1,7 +1,7 @@
 # Surfaces
 
 **Hatsu is authored once, for Claude Code, and every surface installs it first-party from the
-maintainer's own checkout** (from v0.62.0): Claude Code loads the checkout in place, Codex installs it
+maintainer's own checkout** (from v0.64.0): Claude Code loads the checkout in place, Codex installs it
 as its own plugin and reads the same canonical skills, Antigravity links the generated plugin into its
 global plugin folder, and Cursor links the generated mirror. This file is the hub: the four compared,
 which files are written and which are generated, the one generator and its stamp, the check and the

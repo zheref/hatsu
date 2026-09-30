@@ -16,11 +16,12 @@ something still proves it; only the name it was proved against is redacted.
 | `<reference-repo>` | The frozen reference implementation this plugin succeeds — the predecessor system whose local plane Hatsu replaces, and whose backlog the seventeen skills were proven against. Private. Its handbooks, constitution and shared agent conventions were migrated on 2026-09-28 into the public `zheref/bankai-handbooks` (see *What is deliberately not redacted*), which is named directly; where `<reference-repo>` survives it means the frozen predecessor — its rulings, its backlog, its gates file, its transcripts — never where canon lives. |
 | `<migration-tracker>`, "the migration tracker (private)" | The repository tracking the Akatsuki migration, where the rewritten constitution and the ratified migration plan are decided. Private. |
 | `<ci-plane-repo>` | The repository of Akatsuki, the autonomous CI plane — its constitution, agent workflows and CI CLI; ruled a canon repository on 2026-09-19. Private. Named for its role; it is not asserted to be the same repository as `<migration-tracker>`. |
-| `<product-repo-A>` … `<product-repo-D>` | Consuming product repositories in the same estate, in no meaningful order. Private. |
+| `<product-repo-A>` … `<product-repo-E>` | Consuming product repositories in the same estate, in no meaningful order. Private. **One letter per repository, for good**: a letter already in the tree is read off its existing uses before a new repository is given one, and never reassigned. |
 | `<scaffold-repo>` | The scaffolding repository the estate generates consumers from. Private. |
 | `<prefix>` | Stands in for a real repository-name prefix in an example about prefix matching. The example teaches the rule; the prefix itself named a private estate. |
-| `RA`, `RB`, `RC`, `RD` | Placeholder **product codes** for `<product-repo-A>` … `<product-repo-D>`, used wherever a registry row, refusal message or command example paired a code with one of those repositories. Their real codes shared a prefix with a public repository's code in the same registry, which reconstructed the family name. |
+| `RA` … `RE` | Placeholder **product codes** for `<product-repo-A>` … `<product-repo-E>`, used wherever a registry row, refusal message or command example paired a code with one of those repositories. Their real codes shared a prefix with a public repository's code in the same registry, which reconstructed the family name. |
 | `RR-IS-#<n>` / `RR-PR-#<n>`, `RA-IS-#<n>` / `RA-PR-#<n>`, … | Object ids that named a private repository by its product code. |
+| `<bundle-id>`, `<simulator-n>`, `<android-serial-n>`, `<udid-n>`, `<name>` | Inside transcripts: the app identifier and simulator names that tie the product family to a placeheld repository, a physical device's hardware serial or UDID, and a third party's name in a device name. Numbered where one transcript tells two devices apart, so it still proves what it proved. The maintainer's own name stays, as it does in every commit's authorship. |
 
 Placeholders composed with the existing path convention keep that convention: `<reference-repo checkout>`
 means "a local checkout of the frozen reference implementation", exactly as `<checkout>`, `<cache>` and
@@ -29,7 +30,7 @@ means "a local checkout of the frozen reference implementation", exactly as `<ch
 ## The object-id rule, stated once
 
 **Object ids of *any* private repository take the placeholder-letter prefix** — `RR-` for
-`<reference-repo>`, `RA-`/`RB-`/`RC-`/`RD-` for `<product-repo-A>` … `<product-repo-D>` — in both
+`<reference-repo>`, `RA-` … `RE-` for `<product-repo-A>` … `<product-repo-E>` — in both
 directions, `-IS-` and `-PR-`. The **number is kept**: a bare number identifies nothing on its own,
 and the transcripts are evidence that must stay checkable against itself.
 
@@ -66,6 +67,12 @@ they are the evidence's internal cross-references.
   agent conventions live there since 2026-09-28 (`CON-13`), it is named directly and never placeheld, and
   the tag Hatsu reads is pinned in `nen/repos.json` (`maintained_tools` → `pinned`). Readers can open every
   one of these.
+- **The predecessor generator's marker** where it is quoted as a marker — `hatsu:limbo`, its mirrors
+  and [`docs/ab/limbo.md`](ab/limbo.md). It is the literal first line of files a consumer
+  still carries, and limbo matches it byte for byte: a placeholder there would match nothing, and limbo
+  would miss the one file it exists to catch. **The marker names the predecessor's repository, so it
+  makes `<reference-repo>` identifiable**; nothing here relies on that placeholder for secrecy, and
+  prose that means the predecessor says so in words or writes `<reference-repo>`.
 - **Version tags** (`v0.11.3`), issue and PR *numbers*, dates, and every verdict, count and transcript
   line. Facts stay; names go.
 

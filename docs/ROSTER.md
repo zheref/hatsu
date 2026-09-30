@@ -65,7 +65,7 @@ the provision. **Netero landed at `v0.25.0`** on the ruling of 2026-09-14. On An
 | **Phinks** | `claude/agents/phinks.md` | **Adversarial pre-release QA — the proven-finding discipline.** From `v0.5.0` also a **`hanten` routing target**, pre-PR, on a release-adjacent change set (§ *Rulings*, 6). All eight `QA-2` hypothesis classes, a disposition recorded for every one (`QA-3`), and nothing filed that is not proven (`QA-1`): a committed test failing **3/3** against the candidate, or a measured number with its method block. Owns the advisory `Quality-Gate:` line (`QA-21`). | **Ratified** |
 | **Uvogin** | `claude/agents/uvogin.md` | **Performance tests — the fixed seven metrics, method blocks, baselines.** `QA-11`'s P1–P7 on every pre-release run, with `QA-12`'s pinned tooling, `QA-13`'s regression thresholds and absolute ceilings, `QA-14`'s in-repo baselines, and `QA-15`'s five-field method block. | **Ratified** |
 | **Feitan** | `claude/agents/feitan.md` | **Security, and security only.** The security-bearing scope of an adversarial review: auth flows, secrets and credential handling, network and storage boundaries, data minimisation, the supply chain. Cites the inherited `SEC-{n}` rules **by id, resolved and never remembered** (`SEC-8` and `SEC-14` are referenced in the product repositories), plus a repository's own security notes by path. | **Ratified** on the ruling of 2026-09-09 below; **definition landed at `v0.5.0`** |
-| **Chrollo** | `claude/agents/chrollo.md` | **Architecture and handbook conformance.** The `UZF-{n}` core, **exactly one** resolved stack handbook (`SW-`/`KT-`/`RC-`/`BC-`), and a repository's own architecture notes — KroApple's `.claude/Architecture/` is the live example — each cited by id or by path. He is the architecture reviewer the QA lane routes a coverage-floor breach or a missing unit test to (`UZF-19`). **He reviews the handbooks; he never authors them.** | **Ratified** on the ruling of 2026-09-09 below; **definition landed at `v0.5.0`** |
+| **Chrollo** | `claude/agents/chrollo.md` | **Architecture and handbook conformance.** The `UZF-{n}` core, **exactly one** resolved stack handbook (`SW-`/`KT-`/`RC-`/`BC-`), and a repository's own architecture notes — `<product-repo-A>`'s `.claude/Architecture/` is the live example — each cited by id or by path. He is the architecture reviewer the QA lane routes a coverage-floor breach or a missing unit test to (`UZF-19`). **He reviews the handbooks; he never authors them.** | **Ratified** on the ruling of 2026-09-09 below; **definition landed at `v0.5.0`** |
 | **Illumi** | `claude/agents/illumi.md` | **The long watch — `en`'s step 5, and no other loop.** Read-only observation through `nen watch until`, under `izanagi`'s mandatory cap and `workflow.json` → `monitor`. He wakes Kurapika and acts on nothing: never merges, votes, comments, labels, pushes, or fires a wake. His frontmatter carries no `Edit`, `Write` or `MultiEdit` — **but `Bash` is there, because every observation is a program, so read-only is a stated command allowlist in his own definition and not a property of the tool set.** Said that way rather than dressed up as a construction, per ruling 2's own standard. | **PROVISIONED, NOT RATIFIED** — `OPEN-1`, **partially** closed 2026-09-09. The definition landed at `v0.5.0` so the provision can be executed; **it widens nothing**. See below |
 | **Netero** | `claude/agents/netero.md` | **Process chairman.** Observes Hunters in execution and files complete, labelled issues when constitution, canon prose, or machinery need enhancement — duration, redundancy, autonomy gaps, repetitive jobs that should be Nen verbs, missing toolchain. The named wrap-up is [`hatsu:third-hand`](../claude/skills/third-hand/SKILL.md): after En completes he proposes 0–3 folded issues, the maintainer picks, he files those. He files; he never implements the filed work. | **Ratified** 2026-09-14; definition landed at `v0.25.0`; Third-Hand at `v0.27.0`, phase split `v0.28.0` |
 | **Nobunaga** | `claude/agents/nobunaga.md` | **Code practices, scope completeness and adversarial reading** — the general code reviewer, **Sasuke's local counterpart**. The `code` scope claims every path, so `hanten` raises him on every change set: acceptance criteria against the issue, tests for changed behaviour at `UZF-18`'s minimums, error handling and exit-code discipline, shell quoting and portability against the declared hosts, docs and cross-references current, counts agreeing with their lists, mirrors regenerated, the CHANGELOG fragment and PR body sections present, nothing improvised that a Nen verb owns, and one holistic pass on a delivery PR. **Two reviews per effort (one PR; ruling 2026-09-28); deep on a process repository, fast on a product one.** | **Ratified** on the ruling of 2026-09-19 below; **definition landed at `v0.42.0`** |
@@ -136,7 +136,7 @@ surface, runtime, or session attribution in a commit message. **A harness that m
 false`). **Enforcement is three-layered, and at the pinned build the third layer is the
 binary's**: the skills refuse to *write* such a trailer (`kokusen`, `aka` — agent-side, always live); a
 target repository's **`commit-msg` hook**, generated by `nen scaffold init` from
-`allowedAttributionTrailers` (KroApple and kro-pwa carry one); and **`nen commit format --repo` and
+`allowedAttributionTrailers` (`<product-repo-A>` and kro-pwa carry one); and **`nen commit format --repo` and
 `nen wc squash`**, which refuse it outright at exit `2` naming the file. **Layer (b) stays
 target-dependent** — a repository that has not been scaffolded has the agent-side refusal plus the verb's,
 and no hook, and that is stated rather than dressed up as mechanical. The two lists are data, in
@@ -509,13 +509,13 @@ G4. No → G2. A file's name never answers it; the repository it sits in does.
 
 #### Why the correction was needed — the incident
 
-In **`zheref/zheref.io`**, a **consumer** repository, `hatsu:mukai` ran on a résumé PR whose diff
+In **`<product-repo-E>`**, a **consumer** repository, `hatsu:mukai` ran on a résumé PR whose diff
 touched `nen/contract.json`, `nen/gates.json`, `.github/workflows/pr.yml`, `scripts/` and `docs/`.
 Every one of those paths is in the canon-shaped path set the skills hand `nen gate derive`, so the
 run derived **G4** and reported it in the PR body, a landing report and two `nen stop` banners. The
 maintainer corrected it to **G2**. Corrected in that repository at commit `a2bce25` (its
 `nen/gates.json` `$comment` now carries the distinction) and in the body of
-[zheref/zheref.io#22](https://github.com/zheref/zheref.io/pull/22).
+RE-PR-#22.
 
 **The misreading was defensible, which is why the text moved and not only the verdict.** The gate
 table's G4 row said *"Policy / spec change"* and named no repository; the Transmuter row said
@@ -536,7 +536,7 @@ already states this ruling in its own words — verified live at nen `0.10.0`:
 > one repository's sets would derive that repository's gates everywhere it was pointed.
 
 **The defect was in the callers, which passed a canon path set to every repository as a literal.**
-Measured in `zheref.io`'s change set at nen `0.10.0`:
+Measured in `<product-repo-E>`'s change set at nen `0.10.0`:
 
 | Invocation | Result |
 |---|---|
@@ -682,7 +682,7 @@ stays deliberately unstaffed.
 | **Feitan gains deterministic scan rows** | checksum-verified gitleaks that fails loud, a per-stack dependency audit, `nen stage triage` secret shapes, and a **builder-touching-workflow gate** in a consumer repository — plus the bounded delta pass when a spent reviewer meets a new head |
 | **Shalnark activates as the optional post-merge UI validation automator** | after a delivery merges he runs **ephemeral** automated UI tests exercising every behaviour of the delivered feature against the **original specification's** acceptance criteria, reports pass / fail / not-testable with evidence, **files findings and fixes nothing**; persistent tests only where the repository declares it |
 | **Shalnark is reachable only through `hatsu:black-voice`** | `hatsu:black-voice [<CODE>#<PR>]`, defaulting to the latest merged PR in the session. **Never automatic, never called from a composite** |
-| **Rukia's post-merge offensive QA stays unstaffed** | until Akatsuki-AI, by ruling. **Black Voice is not it** |
+| **Rukia's post-merge offensive QA stays unstaffed** | until Akatsuki, by ruling. **Black Voice is not it** |
 | **One shared reviewer preamble** | [`claude/agents/_review-preamble.md`](../claude/agents/_review-preamble.md) carries, once, the identity-header rule, `nen repo classify`, the handbook set through `hatsu:bankai-handbooks`, the fixed finding shape, live re-verification before a `high`, the budget and delta-pass rule, the refusal list and the closing-line rule. **Every reviewer file is then its criteria checklist and its closing line, under 6 KB** — they were 16 to 23 KB each, where the reference implementation's reviewer prompts were 2.3 to 3 KB |
 
 **Their definitions land at `v0.42.0`**: [`claude/agents/nobunaga.md`](../claude/agents/nobunaga.md)

@@ -134,7 +134,7 @@ exit=4
 
 The same shape as the two seats already in the field: Hatsu's own `nen/contract.json`
 (*"A Claude Code plugin is distributed by git ref through a marketplace, never as a built package"*)
-and KroApple's (*"No repository invokes `xcodebuild archive` … heavy builds are delegated to Xcode
+and `<product-repo-A>`'s (*"No repository invokes `xcodebuild archive` … heavy builds are delegated to Xcode
 Cloud, whose workflows live server-side and have no command line here"*, read at
 `opus/kurapika/nen-declaration`). **Across the stacks this family serves, the seat is the common
 case**, which is why the skill's § 6 is a section rather than a footnote.

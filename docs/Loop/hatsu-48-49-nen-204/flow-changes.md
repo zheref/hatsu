@@ -20,7 +20,7 @@ identify changed obligations. Nen #204 is delivered separately in Nen PR #206; n
 Hatsu itself declares `iteration.checks: [lint]` and no automated suite. The focused-test obligation
 applies when a declared test lane covers the authored behavior. Nen's `device-records` lane is the
 working example. Dynamic per-change test selection remains [Nen #207](https://github.com/zheref/nen/issues/207);
-KroApple's Python probe tests do not prove Swift feature behavior.
+`<product-repo-A>`'s Python probe tests do not prove Swift feature behavior.
 
 ```mermaid
 flowchart TD

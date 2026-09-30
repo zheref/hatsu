@@ -123,7 +123,7 @@ installed copy runs does.)
 ### On Claude Code
 
 Hatsu is served **in place from a checkout you keep**, never from Claude Code's plugin cache (from
-`v0.62.0`): a link under `~/.claude/skills/` makes it a skills-directory plugin, `hatsu@skills-dir`,
+`v0.64.0`): a link under `~/.claude/skills/` makes it a skills-directory plugin, `hatsu@skills-dir`,
 which "loads in place and is never copied".
 
 ```sh
@@ -216,7 +216,7 @@ warm-up then resolves its root from that variable first, then from a path handed
 
 ### On Codex
 
-**Hatsu is a Codex plugin** (from `v0.62.0`): Codex reads the checkout's `.claude-plugin/marketplace.json`
+**Hatsu is a Codex plugin** (from `v0.64.0`): Codex reads the checkout's `.claude-plugin/marketplace.json`
 as a legacy-compatible marketplace, and the `.codex-plugin/plugin.json` overlay hands it the canonical
 skills, listed and invoked as `$hatsu:<name>`, plus the generated Codex hooks:
 
@@ -432,7 +432,7 @@ Reviewers (Feitan, Chrollo, Hisoka, Phinks) run as isolated subagents via `invok
 **One command, every surface: `hatsu:bakuryuha`** (spelled `$hatsu:bakuryuha` on Codex, `/bakuryuha` on
 Cursor and Antigravity). It makes the first-party install where a legacy form still stands, fast-forwards
 your checkout, re-proves the warm-up from the new files, reads back what the surface serves, and **always
-ends with a Next block**: the one thing to type or open to finish. From `v0.62.0` every surface's source
+ends with a Next block**: the one thing to type or open to finish. From `v0.64.0` every surface's source
 is **your checkout**; only Codex copies it.
 
 | Surface | What is served | How it updates | Next, to use it |
@@ -820,7 +820,7 @@ Forty-six, invoked as `hatsu:<name>` (forty-seven directories with `ten`). Longe
 |---|---|
 | `great-hiker` | **Canon authoring for every surface.** Writes canon prose and machinery under `claude/` and `contracts/`, regenerates every surface mirror, checks the mirrors and the installed copies, and opens one PR at G4 with a per-surface delta table; `evolve [<surface>]` diffs a surface guide against its cited official docs and files one Netero-shaped issue per drifted surface. Never edits `surfaces/` by hand, never merges. |
 
-### The one that brings the host current — new in `v0.62.0`
+### The one that brings the host current — new in `v0.64.0`
 
 | Skill | |
 |---|---|
@@ -921,7 +921,7 @@ apart is what keeps the second class of mistake visible.
   Claude Code settings so the harness stops adding `Co-Authored-By:`. Enforcement is **three-layered, and at the
   pinned build the third layer is the binary's**: (a) `kokusen` and `aka` refuse to **write** such a
   trailer — agent-side, and it is what Hatsu itself carries; (b) the **target repository's `commit-msg`
-  hook**, which `nen scaffold init` generates from `commits.allowedAttributionTrailers` (KroApple and
+  hook**, which `nen scaffold init` generates from `commits.allowedAttributionTrailers` (`<product-repo-A>` and
   kro-pwa carry one) — and from nen `v0.6.0` that hook's automated half is **derived from the repository's
   own policy**, requiring the one key `--agent-trailer` resolved to plus the optional `commits.runTrailer`,
   rather than a fixed pair; (c) **`nen commit format --repo`** and **`nen wc squash`** refusing the trailer

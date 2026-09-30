@@ -1028,7 +1028,7 @@ do_codex() {
   fi
 
   # WHICH MANIFEST CODEX ACTUALLY KEYS ITS SLOT ON. .codex-plugin/plugin.json
-  # is Hatsu's own Codex overlay, but it did not exist before v0.62.0: a
+  # is Hatsu's own Codex overlay, but it did not exist before v0.64.0: a
   # checkout cut before then has no overlay at all, and Codex reads
   # .claude-plugin/plugin.json instead (there is no other manifest to read).
   # Comparing against an overlay that does not exist would refuse every such

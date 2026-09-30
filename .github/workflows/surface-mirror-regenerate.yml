@@ -10,7 +10,7 @@
 # generator itself reads (`nen/workflow.json`, `contracts/permissions.json`,
 # `hooks/hooks.json`) — lands on `main`.
 #
-# THE SHAPE IS BANKAI-CORE'S `sync-canon`, DELIBERATELY. That workflow regenerates
+# THE SHAPE IS THE PREDECESSOR'S `sync-canon`, DELIBERATELY. That workflow regenerates
 # a derived tree from its source of truth on a push to its default branch and
 # opens a pull request only when the regeneration actually produced a diff — it
 # never pushes to the default branch itself, and the derived tree only ever
@@ -145,7 +145,7 @@ jobs:
           for surface in codex cursor antigravity; do
             case "$surface" in
               antigravity) root='${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;;
-              codex) root='${HATSU_PLUGIN_ROOT:-./.codex}' ;;
+              codex) root='${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}' ;;
               cursor) root='${HATSU_PLUGIN_ROOT:-./.cursor}' ;;
             esac
             "$NEN" surface mirror generate \

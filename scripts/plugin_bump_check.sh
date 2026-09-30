@@ -69,7 +69,7 @@ fi
 #                       them — 35 until Hatsu 0.6.0 added susanoo, kagutsuchi
 #                       and mugetsu, 38 until 0.24.0 added byakugan, 39 until
 #                       0.27.0 added third-hand, 45 until 0.60.0 added limbo,
-#                       46 until 0.62.0 added bakuryuha), plus
+#                       46 until 0.64.0 added bakuryuha), plus
 #                       `templates/` where a skill renders from one.
 #   nen/*             — the D10 dependency contract, `nen/contract.json`. Read
 #                       at run time through `$CLAUDE_PLUGIN_ROOT/nen/contract.json`
