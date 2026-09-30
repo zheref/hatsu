@@ -7,11 +7,11 @@
 | Nen #204 | Existing scope | Shared record extraction; independent review defects repaired inside this authorized implementation, not filed again |
 | [Nen #205](https://github.com/zheref/nen/issues/205) | Created | Four passes found no related issue; whole-body updates have no conditional write guarantee. Narrow dependency recorded, not implemented as part of #204 |
 | RR-IS-#895 (the frozen reference implementation, private — unlinked) | Updated | Existing completion-boundary issue received material phase evidence and Rules 07/12/16 synchronization requirements; inspected body and comments; no open PR; no new duplicate |
-| KroApple migration | Pending filing / release | Four-pass search found only unrelated #481 in documentation lane; its body/comments inspected, no open PR. Consumer `nen/labels.json` and `nen/repos.json` are absent. Retain this sanitized record until owner metadata and compatible Nen release permit recovery |
+| `<product-repo-A>` migration | Pending filing / release | Four-pass search found only unrelated #481 in documentation lane; its body/comments inspected, no open PR. Consumer `nen/labels.json` and `nen/repos.json` are absent. Retain this sanitized record until owner metadata and compatible Nen release permit recovery |
 
-## KroApple pending record
+## `<product-repo-A>` pending record
 
-- Timestamp: 2026-09-12; owner: zheref/KroApple.
+- Timestamp: 2026-09-12; owner: `<product-repo-A>`.
 - Affected paths: nen/contract.json, nen/workflow.json, .claude/CLAUDE.md, ci_scripts/nen_apple_devices.py, ci_scripts/test_nen_apple_devices.py; inherited generated rules require upstream source correction.
 - Evidence: current apple.test collects instrumented .nen/test.xcresult. apple.coverage deletes that bundle and reruns the entire suite before extraction. apple-device.test is focused on the temporary Python probe. iphone now selects apple-device with install and launch after-steps.
 - Required consumer work: declare scoped authored tests, make coverage extraction-only with tree/configuration provenance, align completion language, migrate device.extract only after compatible released Nen, then retire both Python files and their focused test row after successful physical build/install/launch.
@@ -44,7 +44,7 @@ is still required and no review is cast by this run.
 
 [Nen #207](https://github.com/zheref/nen/issues/207) was created after four-pass reconciliation for
 reusable focused selection, and material details were added to Hatsu #48. The current static-lane
-mechanism is not a shipped dynamic selector. The related KroApple task was informed directly;
+mechanism is not a shipped dynamic selector. The related `<product-repo-A>` task was informed directly;
 its Python probe lane is not evidence for focused Swift behavior.
 
 

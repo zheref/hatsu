@@ -518,7 +518,7 @@ self-test above. The pinned consumer build of `nen` is `0.11.0`; the `review` ve
 
 ## 2026-09-28 — the reviewer's `nen` is bound by the prompt (zheref/hatsu#107)
 
-Three reviewers raised in parallel on `zheref/KroApple` (2026-09-22) each reported `nen: command not
+Three reviewers raised in parallel on `<product-repo-A>` (2026-09-22) each reported `nen: command not
 found` and returned their deterministic checks `unread`: the session had bound the pinned binary onto
 its own `PATH` (ten § 2, form (b)), and a subagent is a different process tree. The fix is prose on
 both sides of the raise, no new machinery: hanten § 4 resolves `command -v nen` in the calling session
@@ -527,7 +527,7 @@ classify* — has every block the reviewer runs start `PATH="<its directory>:$PA
 prompt, or `nen --version` failing at it, every Nen verb is `unread` with the one reason *nen not bound
 in the subagent*, said once and enumerated in the closing line. Hanten names the unread set up front
 when it cannot resolve a `nen` itself, so the limitation is declared by the machinery once rather than
-rediscovered per persona. Not re-run against KroApple here; the preamble and hanten § 4 are the
+rediscovered per persona. Not re-run against `<product-repo-A>` here; the preamble and hanten § 4 are the
 authored change, mirrored at stamp 0.50.0.
 
 ---

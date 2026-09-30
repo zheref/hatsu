@@ -150,7 +150,7 @@ instead, and its presence in mukai is the bug. At the time of this run there is 
 
 `SKILL.md` § 1 makes two claims that no verb can enforce: that the maintainer's `mukai` call
 authorizes the pull request, and that it also authorizes the evidence mechanism's public step (the
-`public-mirror` case, on KroApple `ci_scripts/pr_screenshots.sh -y`). **Neither is checkable by a
+`public-mirror` case, on `<product-repo-A>` `ci_scripts/pr_screenshots.sh -y`). **Neither is checkable by a
 binary**, because both are facts about what a human meant by typing a word. The mitigation is
 structural rather than mechanical: the call is a bare verb with no arguments, so there is no way to
 type it and mean *less* than it means; and step 6 reports what it actually published, so an
@@ -231,12 +231,12 @@ not conflate Mukai's successful En handoff with En's later readiness result.
 
 ## The disclosure step and the harness classifier — 2026-09-28 (zheref/hatsu#101)
 
-Observed on `zheref/KroApple#576`: `ci_scripts/pr_screenshots.sh -y` — the `public-mirror` publish step § 1
+Observed on `RA-PR-#576`: `ci_scripts/pr_screenshots.sh -y` — the `public-mirror` publish step § 1
 says the mukai call authorizes — was stopped by the harness's auto-mode classifier as a blind apply, and the
 recovery was a per-machine `.claude/settings.local.json` row. § 1 now separates the two layers: the call is
 the authorization in Hatsu's terms; the classifier is the harness's and is never overridden; `-y` is passed
 only because the script's own confirmation would block a non-interactive tool, never as a token of
 authority, and the run says so before the call; the portable grant is the consumer's tracked
-`.claude/settings.json` allow row (`Bash(ci_scripts/pr_screenshots.sh:*)` on KroApple), never Hatsu's pack
+`.claude/settings.json` allow row (`Bash(ci_scripts/pr_screenshots.sh:*)` on `<product-repo-A>`), never Hatsu's pack
 (which carries Hatsu's verbs only) and never a per-machine file; where the consumer has not declared it, the
-stop is expected and named in shibari § 5's handover line (step 8 — the disclosure publish is shibari's; step 6 publishes the proved Git tree), not a G5. Not re-run against KroApple here.
+stop is expected and named in shibari § 5's handover line (step 8 — the disclosure publish is shibari's; step 6 publishes the proved Git tree), not a G5. Not re-run against `<product-repo-A>` here.

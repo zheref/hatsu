@@ -331,7 +331,7 @@ exit=4
 failure and it is not a gap: across the stacks this family serves, most lanes really do declare
 `{"unsupported": "<why>"}` here. The two seats in the field today say it plainly — Hatsu's own
 (*"A Claude Code plugin is distributed by git ref through a marketplace, never as a built package …
-There is no artifact to produce"*, `nen/contract.json`) and KroApple's (*"No repository invokes
+There is no artifact to produce"*, `nen/contract.json`) and `<product-repo-A>`'s (*"No repository invokes
 `xcodebuild archive` … heavy builds are delegated to Xcode Cloud, whose workflows live server-side
 and have no command line here"*).
 

@@ -524,7 +524,7 @@ grep -n '"attributeCommitsToAgent": *false' ~/.cursor/cli-config.json   # no out
 | Layer | What refuses | Where it lives | Live at the pinned nen `0.7.0`? |
 |---|---|---|---|
 | **(a)** the **skills'** own refusal — `kokusen` reads the rendered message before it commits and the written tip after (§ 5), `aka` the message before it squashes and every outgoing commit immediately before it pushes (§ 7) | agent-side | this repository | **yes**, and it is the layer Hatsu ships |
-| **(b)** the target repository's **`commit-msg` hook**, generated from `allowedAttributionTrailers` by `nen scaffold init` | the target repository's `.git/hooks/` | **target-dependent** — it exists only in a repository `nen scaffold init` has stood up; this week in `zheref/nen`; KroApple and kro-pwa already carry one | **target-dependent** |
+| **(b)** the target repository's **`commit-msg` hook**, generated from `allowedAttributionTrailers` by `nen scaffold init` | the target repository's `.git/hooks/` | **target-dependent** — it exists only in a repository `nen scaffold init` has stood up; this week in `zheref/nen`; `<product-repo-A>` and kro-pwa already carry one | **target-dependent** |
 
 > **From nen `v0.6.0` that hook's automated half is DERIVED from the repository's own policy, not a fixed
 > pair baked into the generator.** It requires exactly the ONE attribution trailer `--agent-trailer`
@@ -1506,8 +1506,8 @@ never a halt — § 3's halt is for a failed bootstrap and nothing else.
 
 [Nen #207](https://github.com/zheref/nen/issues/207) tracks a reusable declared test-selection
 mapping. Nen 0.8.0 has no selector passthrough. A static focused lane with real runner identifiers
-and separate artifacts is the current supported path; KroApple's apple-device Python tests do not
-cover Swift behavior, and its all-KroTests apple row cannot substitute for scoped execution.
+and separate artifacts is the current supported path; `<product-repo-A>`'s apple-device Python tests do not
+cover Swift behavior, and its whole-suite apple row cannot substitute for scoped execution.
 Do not proliferate permanent lanes per ad hoc selection or copied consumer scripts. The shared
 capability and its consumer adoption remain explicitly pending.
 

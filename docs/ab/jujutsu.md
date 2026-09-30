@@ -78,11 +78,11 @@ exit=0
 Name                          Hostname   Identifier                             State                Model                                     Reality
 ---------------------------   --------   ------------------------------------   ------------------   ---------------------------------------   ---------
 Apple Watch Ultra 3 (49mm)               5AD75D64-99CC-49D3-9464-75D444AAAEF1   shutdown             Apple Watch Ultra 3 (49mm) (Watch7,12)    simulated
-Edwin’s iPhone                           A28E1282-75CD-5D1C-AC3D-0423ADAE929D   available (paired)   iPhone 16 (iPhone17,3)                    physical
-Kro-CoverageAgent-ad288af4               C38D74A4-BD44-4FF9-B9FB-6C6E2D60FB24   connected            iPhone 17 Pro (iPhone18,1)                simulated
-Kro-Details-Redesign                     5C6BA381-63F6-4B3F-95A0-93E610228384   connected            iPhone 17 Pro (iPhone18,1)                simulated
-Sergio’s Apple Watch Black               26C3D600-7685-54CB-A36B-1C78A2B09258   unavailable          Apple Watch Ultra 2 (Watch7,5)            physical
-Sergio’s iPhone Pro                      E4E6AC2C-5CA5-5A18-B762-0FA1DED4B4E0   connected            iPhone 17 Pro Max (iPhone18,2)            physical
+<name>’s iPhone                           <udid-2>                               available (paired)   iPhone 16 (iPhone17,3)                    physical
+<simulator-1>                            C38D74A4-BD44-4FF9-B9FB-6C6E2D60FB24   connected            iPhone 17 Pro (iPhone18,1)                simulated
+<simulator-2>                            5C6BA381-63F6-4B3F-95A0-93E610228384   connected            iPhone 17 Pro (iPhone18,1)                simulated
+Sergio’s Apple Watch Black               <udid-3>                               unavailable          Apple Watch Ultra 2 (Watch7,5)            physical
+Sergio’s iPhone Pro                      <udid-1>                               connected            iPhone 17 Pro Max (iPhone18,2)            physical
 iPad Pro 13-inch (M4)                    EEF72415-EB3A-4495-A1F1-EBFFC51EC964   shutdown             iPad Pro 13-inch (M4) (iPad16,6)          simulated
 … (38 rows in total)
 ```
@@ -102,8 +102,8 @@ The machine-readable form carries the same facts as structured data:
 $ xcrun devicectl list devices --json-output <path>
 exit=0
 # device count: 38
-# 'Sergio’s iPhone Pro'  udid E4E6AC2C-5CA5-5A18-B762-0FA1DED4B4E0  tunnelState connected  platform iOS  pairingState paired
-# 'Edwin’s iPhone'       udid A28E1282-75CD-5D1C-AC3D-0423ADAE929D  tunnelState disconnected  platform iOS  pairingState paired
+# 'Sergio’s iPhone Pro'  udid <udid-1>                              tunnelState connected  platform iOS  pairingState paired
+# '<name>’s iPhone'       udid <udid-2>                              tunnelState disconnected  platform iOS  pairingState paired
 ```
 
 **And the name is not ASCII:**
@@ -134,7 +134,7 @@ $ xcrun simctl list devices available
 ```
 $ adb devices
 List of devices attached
-R52X603Q9BA	unauthorized
+<android-serial-1>	unauthorized
 
 exit=0
 ```
@@ -287,7 +287,7 @@ fine.
 
 `project.launch.<target>.device.resolve` is declared as an argv whose **output** is matched on
 `device.name`, which is the right design and sidesteps this: nen will look for the name and refuse when
-it is not there. **But `R52X603Q9BA` is a serial, not a name** — `adb devices` prints no device name at
+it is not there. **But `<android-serial-1>` is a serial, not a name** — `adb devices` prints no device name at
 all, and `adb -s <serial> shell getprop ro.product.model` is a *second* command. So an Android
 `device.resolve` probe either matches on a serial (a fact about one cable, exactly what § 6 of the skill
 forbids writing into a shared declaration) or runs a two-step probe the `resolve` block's `{exe, argv}`
@@ -296,7 +296,7 @@ shape does not obviously express.
 **Recorded as an open question for the `0.4.0` resolver**, alongside § 4.2: iOS's `devicectl` returns
 names and identifiers in one JSON document, and Android's `adb` does not. A `resolve` shape that works
 for one may need a `steps:[…]` form — which `project.verbs` already has — for the other. Nothing here is
-broken today; nothing here is declared today either, and KroAndroid's `project.launch` block will be the
+broken today; nothing here is declared today either, and `<product-repo-B>`'s `project.launch` block will be the
 first to find out.
 
 ### 4.4 — Not a finding: the pairing itself has no verb, and must not
@@ -344,7 +344,7 @@ The exact-bytes rule for `device.name` (§ 5) is now nen's own documented behavi
 `nen shu dev` section states from this release that the match is a string comparison with **no Unicode
 normalisation**, so a name macOS writes with U+2019 must be declared with that character.
 
-## The Galaxy pairing run — 2026-09-10, `zheref/KroAndroid`
+## The Galaxy pairing run — 2026-09-10, `<product-repo-B>`
 
 A real pairing-and-launch validation against the maintainer's own Galaxy, with `nen 0.5.0` on `PATH`.
 The full record is the launch-validation transcript; what belongs here is the **state** half, because
@@ -353,16 +353,16 @@ it is § 4's whole subject and this run is the case the section was written for.
 ```
 $ adb devices -l                                                                        # exit 0
 List of devices attached
-R52X603Q9BA            unauthorized usb:33-3.2 transport_id:1
-R5CY213GAST            device usb:32-3.1 product:pa3qxxx model:SM_S938B device:pa3q transport_id:3
+<android-serial-1>            unauthorized usb:33-3.2 transport_id:1
+<android-serial-2>            device usb:32-3.1 product:pa3qxxx model:SM_S938B device:pa3q transport_id:3
 ```
 
 **Two phones, and the declared one is not the authorised one.** `project.launch.galaxy.device.name`
-named `R52X603Q9BA`, whose second column reads `unauthorized` — attached, RSA prompt never accepted:
+named `<android-serial-1>`, whose second column reads `unauthorized` — attached, RSA prompt never accepted:
 
 ```
-$ adb -s R5CY213GAST shell getprop ro.product.model → SM-S938B    ; ro.serialno → R5CY213GAST   # 0
-$ adb -s R52X603Q9BA shell getprop ro.product.model
+$ adb -s <android-serial-2> shell getprop ro.product.model → SM-S938B    ; ro.serialno → <android-serial-2>   # 0
+$ adb -s <android-serial-1> shell getprop ro.product.model
 adb: device unauthorized. This adb server's $ADB_VENDOR_KEYS is not set                          # 1
 ```
 
@@ -375,7 +375,7 @@ remedy deletes the maintainer's app data) was reported rather than cleared.
 the declared name and printed
 
 ```
-device:        R52X603Q9BA  id usb:33-3.2                       # ← an UNAUTHORIZED device, "resolved"
+device:        <android-serial-1>  id usb:33-3.2                       # ← an UNAUTHORIZED device, "resolved"
 ```
 
 `device.resolve` is `{exe, argv}` plus a name to match, with nowhere to say which states count, so
@@ -393,7 +393,7 @@ nen shu: launch target 't' names {device.id} in project.launch.t.args, and nen s
 the argument this build needs literally.                                                          # exit 2
 ```
 
-So with two phones attached, nen resolved `usb:33-3.2` and Gradle installed to `R5CY213GAST` — the
+So with two phones attached, nen resolved `usb:33-3.2` and Gradle installed to `<android-serial-2>` — the
 other one — and nothing in the transcript flagged it. The declaration was not restructured in that
 run, because with the install blocked the `build` → `adb -s {device.id} install -r {artifact}` →
 `am start` shape could not be proven end to end, and unverified machinery is worse than a reported
@@ -453,7 +453,7 @@ readyWhen.in.                                                                   
 ```
 
 (wrapped here; nen prints it as one line.) **This is the Galaxy run's F1, closed.** That run matched
-`R52X603Q9BA` in a row reading `unauthorized`, printed it as resolved at exit `0`, and every
+`<android-serial-1>` in a row reading `unauthorized`, printed it as resolved at exit `0`, and every
 `adb -s usb:33-3.2 …` after it failed one at a time. The declaration can now say which states count,
 and § 6 makes writing one part of every registration.
 
