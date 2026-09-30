@@ -210,8 +210,8 @@ narrower than the ordinary go on every axis. **This is the canonical definition*
 § 8, [`getsuga`](../getsuga/SKILL.md) § 1, [`kagutsuchi`](../kagutsuchi/SKILL.md) § 1, [`aka`](../aka/SKILL.md)
 § 0 and [`mukai`](../mukai/SKILL.md) § 1 cite it and restate none of it. **By the ruling of
 2026-09-28 (b) it is wider than this skill**: a typed chain step is the maintainer's own call for
-**any** skill whose call is the maintainer's — `aka`, `mukai`, `kagutsuchi`, `kamui`, this one — still
-never prompted for and never proposed; the chain is the call.
+**any** skill whose call is the maintainer's — `aka`, `mukai`, `kagutsuchi`, this one — still never
+prompted for and never proposed; the chain is the call.
 
 - **Record.** The maintainer's **typed futon invocation, quoted verbatim**, is the go: their own words,
   never inferred, never picked. An invocation Kurapika composed, a picker option, a recorded delegation
