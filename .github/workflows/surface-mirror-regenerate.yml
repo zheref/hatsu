@@ -10,7 +10,7 @@
 # generator itself reads (`nen/workflow.json`, `contracts/permissions.json`,
 # `hooks/hooks.json`) — lands on `main`.
 #
-# THE SHAPE IS BANKAI-CORE'S `sync-canon`, DELIBERATELY. That workflow regenerates
+# THE SHAPE IS THE PREDECESSOR'S `sync-canon`, DELIBERATELY. That workflow regenerates
 # a derived tree from its source of truth on a push to its default branch and
 # opens a pull request only when the regeneration actually produced a diff — it
 # never pushes to the default branch itself, and the derived tree only ever

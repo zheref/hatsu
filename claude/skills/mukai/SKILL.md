@@ -62,7 +62,7 @@ call for this skill too ([`mugetsu`](../mugetsu/SKILL.md) § 3, the advance go; 
   again before opening it ([`hatsu:shibari`](../shibari/SKILL.md) § 1).
 - **It is also the authorization for the evidence mechanism's public step — in Hatsu's terms.** On a
   stack whose `project.evidence.mechanism` is `public-mirror`, the branch's re-recorded snapshots have
-  to reach a public host before the body can embed them — on **KroApple**, the repository's own
+  to reach a public host before the body can embed them — on **`<product-repo-A>`**, the repository's own
   `ci_scripts/pr_screenshots.sh`. A maintainer who typed `mukai` asked for a pull request **with its
   evidence attached**, on the mechanism their own repository declares; asking again per scene would
   turn one authorization into a queue of them. **What the call does not cover is anything the stack
@@ -78,7 +78,7 @@ call for this skill too ([`mugetsu`](../mugetsu/SKILL.md) § 3, the advance go; 
   of authority. **The portable grant is the consumer's — the maintainer adds it; no skill writes a
   permission setting** (`claude/agents/kurapika.md` § Never): on Claude Code a **tracked**
   `.claude/settings.json` allow row (`"permissions": {"allow": ["Bash(ci_scripts/pr_screenshots.sh:*)"]}`
-  would be KroApple's, scoped to that one script — KroApple carries no such file today, so the stop
+  would be `<product-repo-A>`'s, scoped to that one script — `<product-repo-A>` carries no such file today, so the stop
   there is expected until it does), which travels with every checkout; the other surfaces' equivalents
   are [`docs/SURFACES.md`](../../../docs/SURFACES.md) § 1's permissions row and are unverified for
   this step. Hatsu's own pack (`contracts/permissions.json`, placed by ten § 5 into the per-checkout

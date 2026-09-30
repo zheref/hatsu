@@ -273,7 +273,7 @@ nobody carries forward is a reviewer nobody requested.
    evidence rows are `git diff --name-only <base>...HEAD` filtered by `project.evidence.globs`,
    **re-used from `spiritual-message`'s landing assembly rather than derived a second time**, so a report and
    a PR body cannot disagree about which scenes changed.
-4. **The evidence mirror's publish step is the target repository's own script** — on KroApple,
+4. **The evidence mirror's publish step is the target repository's own script** — on `<product-repo-A>`,
    `ci_scripts/pr_screenshots.sh -y`. Nen shells out to `git` and `gh` and nothing else by design;
    a hosting mechanism is a stack's machinery, not a repository operation.
 5. **`gh pr view --json baseRefName`** — `nen gate derive` reads the diff's half only and does not

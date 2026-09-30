@@ -218,7 +218,7 @@ exit=5
 
 Hatsu's own declaration carries the seat shape verbatim — *"Publication is a git tag plus the
 marketplace entry that already points at this repository … G3 (`CON-6`) holds the tag decision
-anyway"* — and so does KroApple's, at `opus/kurapika/nen-declaration`: *"no fastlane, no altool, and
+anyway"* — and so does `<product-repo-A>`'s, at `opus/kurapika/nen-declaration`: *"no fastlane, no altool, and
 no `xcrun notarytool` … Publishing is a human action through App Store Connect and Xcode Cloud, and
 **nen never synthesises signing material**."*
 
