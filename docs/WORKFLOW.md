@@ -1459,7 +1459,7 @@ never a halt — § 3's halt is for a failed bootstrap and nothing else.
 [Nen #207](https://github.com/zheref/nen/issues/207) tracks a reusable declared test-selection
 mapping. Nen 0.8.0 has no selector passthrough. A static focused lane with real runner identifiers
 and separate artifacts is the current supported path; `<product-repo-A>`'s apple-device Python tests do not
-cover Swift behavior, and its all-KroTests apple row cannot substitute for scoped execution.
+cover Swift behavior, and its whole-suite apple row cannot substitute for scoped execution.
 Do not proliferate permanent lanes per ad hoc selection or copied consumer scripts. The shared
 capability and its consumer adoption remain explicitly pending.
 

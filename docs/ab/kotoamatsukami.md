@@ -35,7 +35,8 @@ a deliberately red one), a `project.evidence` block, a local `git init` and thre
 re-recorded PNGs — created for this run and deleted before the branch was committed. **No verb was run
 against `<product-repo-A>`, `<product-repo-B>` or kro-pwa in any form, and nothing was pushed anywhere.**
 
-Nothing below is redacted; both repositories are public.
+Nothing below the fixture is redacted: every transcript ran in that throwaway fixture, and the
+repositories it names are public.
 
 ---
 

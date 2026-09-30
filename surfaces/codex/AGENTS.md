@@ -1115,7 +1115,7 @@ canonical persona, contribution, and evidence; see
   They are the target repository's canon"* — and its two sets cannot both be empty. In a consumer
   repository the gate is **G2 by role** and the verb is not called at all.
 
-**This was corrected from a real error, not anticipated.** In `<product-repo-D>`, a consumer repository, a
+**This was corrected from a real error, not anticipated.** In `<product-repo-E>`, a consumer repository, a
 résumé PR touching `nen/contract.json`, `nen/gates.json`, `.github/workflows/pr.yml`, `scripts/` and
 `docs/` was reported at **G4** in the PR body, a landing report and two `nen stop` banners. It was **G2**.
 
@@ -1403,7 +1403,7 @@ by the maintainer's ruling of 2026-09-19 (`docs/ROSTER.md` § *Rulings of 2026-0
 the review preamble*). Shalnark's antenna is a remote-control device: he attaches it, the body performs the
 routine exactly, and he is not the one doing the fighting. That is this role. You drive the delivered
 feature through its own stated criteria and report what happened. **You are not offensive QA** — Rukia's
-equivalent post-merge adversarial pass stays **unstaffed until Akatsuki-AI, by ruling**, and Black Voice is
+equivalent post-merge adversarial pass stays **unstaffed until Akatsuki, by ruling**, and Black Voice is
 not it.
 
 > ⚫ **Shalnark · post-merge UI validation** — *local, on your creds · I drive the delivered feature against its own acceptance criteria · I fix nothing, I file nothing myself*

@@ -504,13 +504,13 @@ G4. No → G2. A file's name never answers it; the repository it sits in does.
 
 #### Why the correction was needed — the incident
 
-In **`<product-repo-D>`**, a **consumer** repository, `hatsu:mukai` ran on a résumé PR whose diff
+In **`<product-repo-E>`**, a **consumer** repository, `hatsu:mukai` ran on a résumé PR whose diff
 touched `nen/contract.json`, `nen/gates.json`, `.github/workflows/pr.yml`, `scripts/` and `docs/`.
 Every one of those paths is in the canon-shaped path set the skills hand `nen gate derive`, so the
 run derived **G4** and reported it in the PR body, a landing report and two `nen stop` banners. The
 maintainer corrected it to **G2**. Corrected in that repository at commit `a2bce25` (its
 `nen/gates.json` `$comment` now carries the distinction) and in the body of
-RD-PR-#22.
+RE-PR-#22.
 
 **The misreading was defensible, which is why the text moved and not only the verdict.** The gate
 table's G4 row said *"Policy / spec change"* and named no repository; the Transmuter row said
@@ -531,7 +531,7 @@ already states this ruling in its own words — verified live at nen `0.10.0`:
 > one repository's sets would derive that repository's gates everywhere it was pointed.
 
 **The defect was in the callers, which passed a canon path set to every repository as a literal.**
-Measured in `zheref.io`'s change set at nen `0.10.0`:
+Measured in `<product-repo-E>`'s change set at nen `0.10.0`:
 
 | Invocation | Result |
 |---|---|
@@ -677,7 +677,7 @@ stays deliberately unstaffed.
 | **Feitan gains deterministic scan rows** | checksum-verified gitleaks that fails loud, a per-stack dependency audit, `nen stage triage` secret shapes, and a **builder-touching-workflow gate** in a consumer repository — plus the bounded delta pass when a spent reviewer meets a new head |
 | **Shalnark activates as the optional post-merge UI validation automator** | after a delivery merges he runs **ephemeral** automated UI tests exercising every behaviour of the delivered feature against the **original specification's** acceptance criteria, reports pass / fail / not-testable with evidence, **files findings and fixes nothing**; persistent tests only where the repository declares it |
 | **Shalnark is reachable only through `hatsu:black-voice`** | `hatsu:black-voice [<CODE>#<PR>]`, defaulting to the latest merged PR in the session. **Never automatic, never called from a composite** |
-| **Rukia's post-merge offensive QA stays unstaffed** | until Akatsuki-AI, by ruling. **Black Voice is not it** |
+| **Rukia's post-merge offensive QA stays unstaffed** | until Akatsuki, by ruling. **Black Voice is not it** |
 | **One shared reviewer preamble** | [`claude/agents/_review-preamble.md`](../claude/agents/_review-preamble.md) carries, once, the identity-header rule, `nen repo classify`, the handbook set through `hatsu:bankai-handbooks`, the fixed finding shape, live re-verification before a `high`, the budget and delta-pass rule, the refusal list and the closing-line rule. **Every reviewer file is then its criteria checklist and its closing line, under 6 KB** — they were 16 to 23 KB each, where the reference implementation's reviewer prompts were 2.3 to 3 KB |
 
 **Their definitions land at `v0.42.0`**: [`claude/agents/nobunaga.md`](../claude/agents/nobunaga.md)

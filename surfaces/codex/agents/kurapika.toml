@@ -695,7 +695,7 @@ canonical persona, contribution, and evidence; see
   They are the target repository's canon"* — and its two sets cannot both be empty. In a consumer
   repository the gate is **G2 by role** and the verb is not called at all.
 
-**This was corrected from a real error, not anticipated.** In `<product-repo-D>`, a consumer repository, a
+**This was corrected from a real error, not anticipated.** In `<product-repo-E>`, a consumer repository, a
 résumé PR touching `nen/contract.json`, `nen/gates.json`, `.github/workflows/pr.yml`, `scripts/` and
 `docs/` was reported at **G4** in the PR body, a landing report and two `nen stop` banners. It was **G2**.
 

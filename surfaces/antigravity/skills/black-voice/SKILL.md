@@ -14,7 +14,7 @@ raised** — never automatically, never from `en`, `mukai`, `getsuga`, `futon` o
 as a step of anything. The maintainer types it, or it does not happen.
 
 **It is not offensive QA.** Rukia's equivalent post-merge adversarial pass stays **unstaffed until
-Akatsuki-AI, by the maintainer's ruling** (`docs/ROSTER.md` § *Rulings of 2026-09-19 — Nobunaga, Shalnark,
+Akatsuki, by the maintainer's ruling** (`docs/ROSTER.md` § *Rulings of 2026-09-19 — Nobunaga, Shalnark,
 the review preamble*), and Black Voice is not it: this validates the delivered behaviour against the
 stated criteria and nothing more. Adversarial hypotheses are still **Phinks'**.
 

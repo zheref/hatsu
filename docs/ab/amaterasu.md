@@ -284,14 +284,14 @@ that an exit `4` from a launch verb is re-read against that key before it is quo
 lane:          android  (gradle-android)
 verb:          dev
 target:        galaxy  (appends no argument)
-device:        R52X603Q9BA  -- id not resolved (nothing was probed)
+device:        <android-serial-1>  -- id not resolved (nothing was probed)
 preconditions:
   ok    path local.properties
   ok    path bankai/BankaiCore/settings.gradle.kts
 would run:     adb devices -l
 would run:     ./gradlew installDebug
-would run:     adb -s {device.id} shell am start -n io.zheref.kro/io.zheref.kro.application.MainActivity
-substitutes:   {device.id} <- the id of device 'R52X603Q9BA', read from the probe above
+would run:     adb -s {device.id} shell am start -n <bundle-id>/<bundle-id>.application.MainActivity
+substitutes:   {device.id} <- the id of device '<android-serial-1>', read from the probe above
 cwd:           …/.claude/worktrees/launch-check                                                  # exit 0
 ```
 
@@ -320,10 +320,10 @@ the report. The ban on unattended composites is unchanged and is stated as absol
 **What the run proved on the phone**, and what it did not:
 
 ```
-$ adb -s R5CY213GAST shell am start -n io.zheref.kro/io.zheref.kro.application.MainActivity
-Starting: Intent { cmp=io.zheref.kro/.application.MainActivity }                                 # exit 0
-$ adb -s R5CY213GAST shell dumpsys activity activities | grep io.zheref.kro
-    topResumedActivity=ActivityRecord{… io.zheref.kro/.application.MainActivity …}
+$ adb -s <android-serial-2> shell am start -n <bundle-id>/<bundle-id>.application.MainActivity
+Starting: Intent { cmp=<bundle-id>/.application.MainActivity }                                 # exit 0
+$ adb -s <android-serial-2> shell dumpsys activity activities | grep <bundle-id>
+    topResumedActivity=ActivityRecord{… <bundle-id>/.application.MainActivity …}
 ```
 
 The declared activity is correct and the `after` step's `adb -s <id>` form reaches the phone. It does
