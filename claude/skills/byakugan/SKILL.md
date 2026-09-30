@@ -182,7 +182,9 @@ changes the exit code.** Nen does not decide whether a number is good enough; th
 skill's.
 
 **A dry run is told by `exitCode: 0` with `total: null`.** Exit codes: `1` the command ran and
-failed, or no readable artifact; `2` usage; `3` host; `4` a **seat** (§ 9); `5` not on `PATH`.
+failed, or no readable artifact; `2` usage; `3` host; `4` a **seat** (§ 9); `5` not on `PATH`;
+`6` **nothing measured** — `--touched` matched none of a non-empty touched set: not a pass and not
+0%, the unresolved paths named (§ 5's `unmatched`).
 
 The range is `origin/<base>...HEAD` after that fetch — never the bare branch name.
 
