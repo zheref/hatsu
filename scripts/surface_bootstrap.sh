@@ -705,7 +705,7 @@ add_exclude_lines() {
 }
 
 prepare_staged_surface() {
-  local name relative source stage_path
+  local name relative source stage_path tmp_hooks_json
   staging="$(mktemp -d "$target/.hatsu-surface.XXXXXX")"
   backup="$(mktemp -d "$target/.hatsu-backup.XXXXXX")"
 
@@ -750,6 +750,12 @@ prepare_staged_surface() {
           sed 's#${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}#${HATSU_PLUGIN_ROOT:-./.codex}#g' \
             "$stage_path" > "$tmp_hooks_json"
           mv "$tmp_hooks_json" "$stage_path"
+          # A copy that still names ${PLUGIN_ROOT (the mirror's root changed under
+          # the sed) is refused, never placed quietly in its old form.
+          if grep -qF '${PLUGIN_ROOT' "$stage_path"; then
+            echo "refusing .codex/hooks.json: its hooks root still names \${PLUGIN_ROOT after the placed-copy rewrite (did the mirror's root change?)" >&2
+            exit 1
+          fi
         fi
         # HOOK SCRIPTS, WHICHEVER ONES THE GENERATOR HAS PRODUCED. See
         # hook_scripts's own comment: this is discovered per run, not a fixed set.

@@ -1379,13 +1379,15 @@ that already has the plugin installed** — no error, no warning, the fix ships 
 
 [`scripts/plugin_bump_check.sh`](scripts/plugin_bump_check.sh), wired as the
 [`plugin-bump-check`](.github/workflows/plugin-bump-check.yml) workflow, fails a PR that tries. The guarded
-surface is `.claude-plugin/**`, `claude/**`, `nen/**`, `contracts/**`, `hooks/**`, `templates/**`, `surfaces/**`,
+surface is `.claude-plugin/**`, `.codex-plugin/**`, `claude/**`, `nen/**`, `contracts/**`, `hooks/**`, `templates/**`, `surfaces/**`,
 `.mcp.json`, the shipped docs (`docs/ROSTER.md`, `docs/delegation-grammar-DRAFT.md`, `docs/WORKFLOW.md`,
 `docs/DISCOVERY.md`, `docs/LAUNCH-MIGRATION.md`, `docs/AGENT-ATTRIBUTION.md`, `docs/STANDALONE-ENTRY.md`,
 `docs/GATE-CONFIGURATION.md`, `docs/PROCESS.md`, `docs/SURFACES.md`, `docs/PUBLIC-REDACTION.md`) and every
 runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scripts/hanten_cycle_ledger.sh`,
 `scripts/hatsu_plugin_update.sh`, `scripts/hatsu_root.sh`, `scripts/surface_mirror_check.sh`,
-`scripts/permissions_pack.sh`, `scripts/dist_tag.sh`, `scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
+`scripts/permissions_pack.sh`, `scripts/dist_tag.sh`, `scripts/send_freshness_check.sh`, `scripts/kagutsuchi_worktree.sh`,
+`scripts/hatsu_surface_link.sh`, `scripts/surface_link_check.sh`, `scripts/prose_size_check.sh`,
+`scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
 `scripts/report_time.sh`, `scripts/pr_body_evidence_check.sh`) — the one list is `PLUGIN_SURFACE_GLOBS` in the
 script, from which the refusal message is generated; this paragraph is a copy of it — everything an
 installed runtime reads, the generated Codex and Cursor mirrors included: the warm-up reads plugin resources

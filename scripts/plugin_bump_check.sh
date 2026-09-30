@@ -211,16 +211,20 @@ fi
 #                       version, so an unbumped script change never reaches it.
 #   scripts/hatsu_surface_link.sh
 #                     — bakuryuha § 3 makes each surface's first-party install
-#                       through it (v0.66.0); a stale copy links, registers or
-#                       hands over the wrong way, and the version bakuryuha
-#                       reports back would not name the change.
+#                       through it (v0.66.0), run from the checkout it serves;
+#                       covered anyway so that the version bakuryuha reports back
+#                       names a change to how it links, registers or hands over.
+#   scripts/surface_link_check.sh
+#   scripts/prose_size_check.sh
+#                     — hanten § 2 runs the link guard and § 6 the prose guard
+#                       from `$hatsu_root/scripts/` in every review, consumers'
+#                       included; a stale copy judges a review by old rules.
 #
 # Deliberately NOT covered — nothing installed reads them at run time:
 #   README.md, docs/ab/** (the evidence records; read by humans on GitHub, never
 #   by an installed copy), and every other scripts/** entry — the fixtures
-#   (*_fixture_check.sh, *_fixture.sh, *_red.sh), this guard, the link guard,
-#   prose_size_check.sh and workflow_runner_policy_check.rb are CI- or
-#   maintainer-only; every runtime script an installed copy executes is an
+#   (*_fixture_check.sh, *_fixture.sh, *_red.sh), this guard and
+#   workflow_runner_policy_check.rb are CI- or maintainer-only; every runtime script an installed copy executes is an
 #   explicit row above (the criterion is "an installed copy reads it", checked
 #   script by script),
 #   .github/**.
@@ -257,6 +261,8 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/send_freshness_check.sh'
   'scripts/kagutsuchi_worktree.sh'
   'scripts/hatsu_surface_link.sh'
+  'scripts/surface_link_check.sh'
+  'scripts/prose_size_check.sh'
   'scripts/tenkai_adopt.sh'
   'scripts/release-publish.sh'
   'scripts/report_time.sh'

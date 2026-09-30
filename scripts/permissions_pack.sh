@@ -73,20 +73,24 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-usage: scripts/permissions_pack.sh --surface claude-code|codex|cursor|antigravity (--render | --install --target <repository>) [--hatsu-root <path>]
+usage: scripts/permissions_pack.sh --surface claude-code|codex|cursor|antigravity (--render | --install --target <repository> [--plugin]) [--hatsu-root <path>]
 
 --render    Print the pack for the surface to stdout.
 --install   Place the pack into --target (merge for claude-code; write-if-absent-or-ours
             for codex and cursor), and exclude the written paths through info/exclude.
+--plugin    codex only, with --install: the Codex plugin serves the hooks, so .codex/hooks.json
+            is not placed (surface_bootstrap.sh --plugin removes one a placement left). The
+            warm-up passes it exactly when it passes --plugin to surface_bootstrap.sh.
 EOF
 }
 
-surface=""; mode=""; target=""; hatsu_root=""
+surface=""; mode=""; target=""; hatsu_root=""; plugin=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --surface) [ $# -ge 2 ] || { echo "--surface needs a value" >&2; exit 2; }; surface=$2; shift 2 ;;
     --render) mode=render; shift ;;
     --install) mode=install; shift ;;
+    --plugin) plugin=1; shift ;;
     --target) [ $# -ge 2 ] || { echo "--target needs a value" >&2; exit 2; }; target=$2; shift 2 ;;
     --hatsu-root) [ $# -ge 2 ] || { echo "--hatsu-root needs a value" >&2; exit 2; }; hatsu_root=$2; shift 2 ;;
     -h|--help) usage; exit 0 ;;
@@ -95,6 +99,9 @@ while [ $# -gt 0 ]; do
 done
 case "$surface" in claude-code|codex|cursor|antigravity) ;; *) echo "--surface must be claude-code, codex, cursor or antigravity" >&2; exit 2 ;; esac
 [ -n "$mode" ] || { echo "choose --render or --install" >&2; exit 2; }
+if [ "$plugin" -eq 1 ] && { [ "$surface" != codex ] || [ "$mode" != install ]; }; then
+  echo "--plugin is valid only with --surface codex --install" >&2; exit 2
+fi
 if [ "$mode" = install ]; then
   [ -n "$target" ] || { echo "--install needs --target <repository>" >&2; exit 2; }
   [ -d "$target" ] || { echo "--target '$target' is not a directory" >&2; exit 2; }
@@ -135,6 +142,26 @@ render_generated() {
   cat "$path"
 }
 
+# THE PLACED CODEX HOOKS' ROOT (CWE-426). The generated mirror resolves
+# ${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}} so the Codex PLUGIN's hooks run
+# the installed slot Codex hands them; a placed .codex/hooks.json is a
+# project-local hook, which Codex never hands a PLUGIN_ROOT, so there the name
+# could only come from the user's environment. The placed copy drops it -- the
+# same sed scripts/surface_bootstrap.sh applies to the copy it places, which the
+# pack fixture holds byte-identical -- and a copy that still names ${PLUGIN_ROOT
+# afterwards (the mirror's root changed under the sed) is refused, never placed.
+codex_placed_hooks() { # source-abs-path -> the placed form on stdout; exit 1 when the rewrite did not take
+  local out
+  out="$(sed 's#${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}#${HATSU_PLUGIN_ROOT:-./.codex}#g' "$1")"
+  case "$out" in
+    *'${PLUGIN_ROOT'*)
+      echo "permissions pack (codex): refusing .codex/hooks.json: its hooks root still names \${PLUGIN_ROOT after the placed-copy rewrite (did the mirror's root change?)" >&2
+      return 1
+      ;;
+  esac
+  printf '%s\n' "$out"
+}
+
 render_antigravity() {
   cat <<EOF
 # $MARKER
@@ -154,8 +181,9 @@ if [ "$mode" = render ]; then
     codex)
       render_generated "$hatsu_root/surfaces/codex/config.toml" ".codex/config.toml"
       echo
-      echo "# --- .codex/hooks.json ---"
-      render_generated "$hatsu_root/surfaces/codex/hooks.json" ".codex/hooks.json"
+      echo "# --- .codex/hooks.json (as placed: PLUGIN_ROOT dropped; not placed under --plugin) ---"
+      render_generated "$hatsu_root/surfaces/codex/hooks.json" ".codex/hooks.json" >/dev/null
+      codex_placed_hooks "$hatsu_root/surfaces/codex/hooks.json" || exit 1
       ;;
     cursor)
       render_generated "$hatsu_root/surfaces/cursor/cli.json" ".cursor/cli.json"
@@ -175,7 +203,7 @@ if [ ! -f "$root/nen/contract.json" ] && [ ! -f "$root/nen/workflow.json" ]; the
   exit 0
 fi
 exclude="$(git -C "$root" rev-parse --path-format=absolute --git-path info/exclude)"
-written=""; kept=""; skipped=""
+written=""; kept=""; skipped=""; skipped_plugin=""; placed_hooks=""
 
 is_tracked() { git -C "$root" ls-files --error-unmatch -- "$1" >/dev/null 2>&1; }
 ours() { [ -f "$root/$1" ] && grep -qsF "$MARKER" "$root/$1"; }
@@ -409,7 +437,20 @@ PY
     case " $written " in
       *" .codex/config.toml "*) rewrite_codex_writable_roots "$root/.codex/config.toml" "$root" ;;
     esac
-    place_generated ".codex/hooks.json" "$hatsu_root/surfaces/codex/hooks.json"
+    if [ "$plugin" -eq 1 ]; then
+      skipped_plugin=".codex/hooks.json (the Codex plugin serves the hooks)"
+    else
+      place_generated ".codex/hooks.json" "$hatsu_root/surfaces/codex/hooks.json"
+      case " $written " in
+        *" .codex/hooks.json "*)
+          placed_hooks="$(codex_placed_hooks "$hatsu_root/surfaces/codex/hooks.json")" || {
+            rm -f "$root/.codex/hooks.json"
+            exit 1
+          }
+          printf '%s\n' "$placed_hooks" > "$root/.codex/hooks.json"
+          ;;
+      esac
+    fi
     ;;
   cursor)
     place_generated ".cursor/cli.json" "$hatsu_root/surfaces/cursor/cli.json"
@@ -419,8 +460,8 @@ PY
     ;;
 esac
 
-echo "permissions pack ($surface):${written:+ written:$written}${kept:+ · left alone (tracked or not ours):$kept}${skipped:+ · skipped (generator has not run yet):$skipped}"
-[ -n "$written$kept$skipped" ] || echo "  nothing to place on $surface"
+echo "permissions pack ($surface):${written:+ written:$written}${kept:+ · left alone (tracked or not ours):$kept}${skipped:+ · skipped (generator has not run yet):$skipped}${skipped_plugin:+ · not placed: $skipped_plugin}"
+[ -n "$written$kept$skipped$skipped_plugin" ] || echo "  nothing to place on $surface"
 # A surface's own pack file that could not be placed because the generator
 # has not produced it yet is not a silent success: --install exits non-zero
 # so a caller (the warm-up, CI) notices rather than reads "done" off exit 0.
