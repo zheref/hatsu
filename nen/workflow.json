@@ -30,6 +30,10 @@
     "fallback": null,
     "$comment": "Hatsu has no runnable application: it is a plugin read by Claude Code. amaterasu names that fact and launches nothing. A repository with launch targets names them in nen/contract.json under project.launch and selects one here."
   },
+  "deploy": {
+    "defaultTarget": null,
+    "$comment": "Hatsu's own key, read by hatsu:kagutsuchi section 1 and by nothing in nen (zheref/hatsu#146; the maintainer's ruling of 2026-09-29: \"rely on a default value from one of our configuration files ... so that it doesn't always require destination and it can be easily chained with other skills like futon\"). `defaultTarget` names a key of nen/contract.json -> project.targets that a hatsu:kagutsuchi invocation typed with NO target sends to; a typed target always overrides it, and the report says which source the target came from (\"typed\" or \"workflow.json -> deploy.defaultTarget\"). It is honoured only for a target whose `why` reads non-production -- a default naming a store or the live environment is refused, and G3 (mugetsu) is unchanged. `nen shu deploy` itself is unchanged: --target is always passed explicitly by the skill, so \"nen never chooses where a build goes\" stays true of nen; the choice is recorded here, in configuration the maintainer wrote. null (Hatsu's own value: a plugin declares no deploy target) means an omitted target is asked as free text, exactly as before. A per-stack default in nen shu detect's reference pack is nen's to add."
+  },
   "reports": {
     "dir": "Reports",
     "retain": "final-only",
