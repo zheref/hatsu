@@ -79,7 +79,7 @@ any new release tag is considered.
 
 | | |
 |---|---|
-| [`nen`](https://github.com/zheref/nen) **`>= 0.7`** | a **hard** dependency — see [The Nen contract](#the-nen-contract-d10). **A later `0.x` satisfies it unless that release declared a breaking change**, which nen decides and says: the binary ships a compatibility floor and `nen shu tools` prints it. You do **not** need to install it yourself; the warm-up does it, checksum-verified. **One exception, on Codex** — the box below the surface table. |
+| [`nen`](https://github.com/zheref/nen) **`>= 0.18`** | a **hard** dependency — see [The Nen contract](#the-nen-contract-d10). **A later `0.x` satisfies it unless that release declared a breaking change**, which nen decides and says: the binary ships a compatibility floor and `nen shu tools` prints it. You do **not** need to install it yourself; the warm-up does it, checksum-verified. **One exception, on Codex** — the box below the surface table. |
 | `git` + [`gh`](https://cli.github.com), authenticated | the skills read and write GitHub as **you**. |
 | a [`nen/contract.json`](nen/contract.json) in the repository you point Hatsu at | **the only thing Hatsu asks of your project.** It declares what *your* build, test, lint, archive and deploy commands are, so nothing here is bound to a language, a framework, a build system or a product. A repository that declares none gets the git half of every skill and its own documented commands, said plainly rather than guessed at. |
 
@@ -611,12 +611,13 @@ FAIL by pointer — and [`docs/WORKFLOW.md`](docs/WORKFLOW.md) documents both.
 
 ### The range
 
-*Current pin, echoed for convenience:* **`nen >= 0.16`**, with the bootstrap installing **`v0.16.0`**.
-Those are two values and they move independently. Hatsu adopts `nen canon pin` and `nen canon mirror
-generate|check --surfaces`, introduced in v0.16.0 and executed by `hatsu:limbo`, on top of the futon label
-selector, `then` skill chains and advance-go gate, the `library` kind, `nen release unit-check` and
-`nen pr merge --release-unit` (v0.15.0, fail-closed in v0.15.1); each feature requirement raised the minimum
-even though Nen's compatibility floor remains 0.7. The live skill surface is **forty-seven**, forty-eight
+*Current pin, echoed for convenience:* **`nen >= 0.18`**, with the bootstrap installing **`v0.18.0`**.
+Those are two values and they move independently. Hatsu adopts the `nen runner` family, introduced in
+v0.18.0 and executed by `hatsu:jusshin`, on top of `nen canon pin` and `nen canon mirror generate|check
+--surfaces` (v0.16.0, `hatsu:limbo`), the futon label selector, `then` skill chains and advance-go gate, the
+`library` kind, `nen release unit-check` and `nen pr merge --release-unit` (v0.15.0, fail-closed in
+v0.15.1); each feature requirement raised the minimum. Nen's compatibility floor stayed 0.7 until v0.17.0
+raised it to 0.17 for breaking consumer notes, which this pin absorbs. The live skill surface is **forty-seven**, forty-eight
 directories per surface with `ten`.
 
 **The range is nen's answer, not this README's arithmetic — and not the warm-up's either.** The binary
