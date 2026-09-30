@@ -114,7 +114,7 @@ From the repository root, one line per surface, in the same commit as the source
 ```sh
 v="$(python3 -c 'import json;print(json.load(open(".claude-plugin/plugin.json"))["version"])')"
 for s in codex cursor antigravity; do
-  case "$s" in antigravity) root='${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;; *) root="\${HATSU_PLUGIN_ROOT:-./.$s}" ;; esac  # the roots scripts/surface_mirror_check.sh expects; any other reads hand-edited: hooks.json
+  case "$s" in antigravity) root='${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;; *) root="\${HATSU_PLUGIN_ROOT:-./.$s}" ;; esac  # the roots scripts/surface_mirror_check.sh expects (Codex's next root, ${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}, is also accepted until zheref/hatsu#151 makes it current; docs/GATE-CONFIGURATION.md 2026-09-30); any other reads hand-edited: hooks.json
   nen surface mirror generate --surface "$s" --source claude/skills --agents claude/agents \
     --out "surfaces/$s" --invocation-prefix hatsu: --models nen/workflow.json \
     --permissions contracts/permissions.json --hooks hooks/hooks.json --rules claude/rules/hatsu.md --source-surface claude \

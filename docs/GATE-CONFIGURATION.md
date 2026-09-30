@@ -266,3 +266,16 @@ in their `pull_request_target` `types:`, and the job `if:` guard carrying the dr
 one `${{ }}` expression. `surface-mirror-regenerate.yml` is installed live at
 `.github/workflows/surface-mirror-regenerate.yml`. This is no longer a follow-up to schedule; it is
 done.
+
+**2026-09-30. A generated mirror's hooks root is the same two-step landing.** `surface-mirror-check`
+runs `scripts/surface_mirror_check.sh` from `main` and judges the pull request's `surfaces/` with the
+roots *that* copy knows, so a PR that regenerates a mirror at a new `--hooks-root` reads
+`hand-edited` until `main` knows the root — no commit on the PR can fix it. Step one teaches the
+check the next root beside the current one (`hooks_root_next_for`, Hatsu 0.65.0: Codex's
+`${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}`, accepted and said so); step two
+([zheref/hatsu#151](https://github.com/zheref/hatsu/pull/151)) regenerates at that root, makes it the
+current one everywhere the root is written — `hooks_root_for` in the script, the regenerate loop in
+`surface-mirror-regenerate.yml`, the one in [`docs/SURFACES.md`](SURFACES.md) § 3 and the root table in
+`docs/surfaces/README.md` — deletes the next-root row and its fixture cases
+(`scripts/surface_mirror_check_fixture.sh`, lane `surface-mirror-guard`), and checks that the old root
+now reads `hand-edited`.
