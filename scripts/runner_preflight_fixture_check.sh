@@ -11,9 +11,13 @@
 #   runs-on       the pool's labels, exactly (a bare self-hosted is never rendered)
 #   permissions   contents: read at the top, none widened on the job
 #   checkout      persist-credentials: false
+#   pins          every uses: pinned by a 40-hex commit SHA with a '# vN' comment (Feitan SEC-14)
 #   time bound    timeout-minutes on the job
 #   log hygiene   no step prints the service account's name or a resolved tool path (hanten F5)
 #   rendering     no @@PLACEHOLDER@@ left standing
+#   appdata       the Windows step normalises with nen's two-backslash form, and, lifted from the live
+#                 template and its rendering and run against a stubbed where.exe on three CRLF lines,
+#                 fails AppData and passes Program Files (Feitan BC-9, Nobunaga)
 #
 # Properties, not bytes: the template is not byte-identical to nen's own test template
 # (src/runner/fixtures/runner-preflight.template.yml) since F5, and nothing here compares them.
@@ -136,6 +140,15 @@ check() {
     fail "$label: no 'persist-credentials: false' on the checkout"
   fi
 
+  got="$(grep -E '^[[:space:]]*(- )?uses:' "$file")"
+  if [ -z "$got" ]; then
+    fail "$label: no uses: line at all (the checkout step is gone)"
+  elif printf '%s\n' "$got" | grep -Evq '^[[:space:]]*(- )?uses: [A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+@[0-9a-f]{40} # v[0-9]+[[:space:]]*$'; then
+    fail "$label: a uses: is not pinned by a 40-hex commit SHA with a '# vN' comment (SEC-14): $(printf '%s\n' "$got" | grep -Ev '@[0-9a-f]{40} # v[0-9]+' | sed 's/^[[:space:]]*//' | tr '\n' ' ')"
+  else
+    pass "$label: every uses: is pinned by a 40-hex SHA with a '# vN' comment"
+  fi
+
   if grep -Eq '^    timeout-minutes: [1-9][0-9]*[[:space:]]*$' "$file"; then
     pass "$label: the job carries a timeout-minutes bound"
   else
@@ -202,6 +215,56 @@ for pool in windows-x64 macos-arm64; do
   else
     fail "render $pool: nen runner workflow exit $render_code: $render_out"
   fi
+done
+
+# 2b. The Windows AppData step, lifted whole out of the LIVE template and out of its rendering, and run
+# (Feitan BC-9 and Nobunaga on zheref/nen's rendering: the template carried `${line//\//}` -- ONE
+# backslash, so the pattern was a literal '/', where.exe's backslashes stood, */appdata/* never matched
+# and the step could only pass). The normalisation must be nen's own fixture's two-backslash form, and
+# the step, with where.exe stubbed as a shell function printing one CRLF-terminated line, must fail a
+# backslash and a forward-slash path under AppData, pass a Program Files path, and never print the
+# path. Placeholder account names only.
+norm_lines="$(grep -E '^[[:space:]]*norm=' "$template" | sed 's/^[[:space:]]*//')"
+if [ "$norm_lines" = 'norm="${line//\\//}"' ]; then
+  pass "appdata step: the template normalises with norm=\"\${line//\\\\//}\" and nothing else"
+else
+  fail "appdata step: the template's normalisation is [$norm_lines], not exactly norm=\"\${line//\\\\//}\" (BC-9)"
+fi
+if grep -Fq '${line//\//}' "$template"; then
+  fail "appdata step: the one-backslash \${line//\\//} (deletes '/', keeps '\\') is in the template (BC-9)"
+else
+  pass "appdata step: the one-backslash \${line//\\//} is absent"
+fi
+# step_body <file> : the run: block of the Windows resolution step, de-indented.
+step_body() {
+  awk '
+    /^      - name: Resolution must be machine-wide \(Windows\)/ { s = 1; next }
+    s && /^      - / { exit }
+    s && /^        run: \|/ { r = 1; next }
+    r && /^[^ ]/ { exit }
+    r && /^        [^ ]/ { exit }
+    r { sub(/^          /, ""); print }
+  ' "$1"
+}
+for src in template rendering; do
+  from="$template"; [ "$src" = rendering ] && from="$work/windows-x64.yml"
+  step="$work/appdata-step-$src.sh"
+  { echo "where.exe() { printf '%s\\r\\n' \"\$STUB_PATH\"; }"; step_body "$from"; } > "$step"
+  grep -q 'appdata' "$step" || { fail "appdata step ($src): the Windows resolution step was not found"; continue; }
+  for probe in 'C:\Users\x\AppData\Local\Programs\gh\gh.exe|1|gh: per-user (AppData)' \
+               'C:/Users/x/AppData/Local/gh.exe|1|gh: per-user (AppData)' \
+               'C:\Program Files\GitHub CLI\gh.exe|0|gh: machine-wide'; do
+    path="${probe%%|*}" rest="${probe#*|}"
+    want_code="${rest%%|*}" want="${rest#*|}"
+    out="$(STUB_PATH="$path" TOOLS=gh bash "$step" 2>&1)"
+    code=$?
+    first="$(printf '%s\n' "$out" | head -n 1)"
+    if [ "$code" = "$want_code" ] && [ "$first" = "$want" ] && [ "${out#*Users}" = "$out" ]; then
+      pass "appdata step ($src): $path (CRLF) -> exit $code, '$want', path not printed"
+    else
+      fail "appdata step ($src): $path -> exit $code '$first', not exit $want_code '$want' (BC-9: the AppData check fails open), or the path was printed"
+    fi
+  done
 done
 
 # 3. Negative: a hostile copy -- pull_request_target added, the repository binding dropped. nen renders
