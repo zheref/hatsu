@@ -36,6 +36,8 @@ No GitHub App. No bot identity. Nothing here casts a review vote, and nothing he
 > generated into Codex and Cursor layouts under [`surfaces/`](surfaces/) — see [*Surfaces*](#surfaces).
 > **`v0.24.0` adds `byakugan`**: coverage capture and measurement, independent of tests; kotoamatsukami is unit, UI and integration suites only; gyo remains lint. The live skill surface is **thirty-nine**.
 > **`v0.27.0` adds `third-hand`**: wrap-up harvest after En. **`v0.28.0`**: it is a separate phase that starts once En has completed, not En step 8. Codex uses `request_user_input` and in-session spawn; Antigravity uses `ask_question` and `invoke_subagent` with `Workspace: inherit`. **`v0.29.0`**: Illumi's En watch uses Codex spawn; generated inventories are 41 skill files and 9 personas. **`v0.30.0`**: Hanten's cycle ledger is fail-closed — Breath `init`s it after the cut; `decide`/`record` refuse a missing file; load-mutate-save is locked. The merge remains G2 with no skill. The live skill surface is **forty**.
+> **`v0.66.0` — every surface serves Hatsu first-party from your own checkout, and `bakuryuha` switches it.** Claude Code loads the checkout in place as `hatsu@skills-dir`, Codex installs it as its own `hatsu` plugin through `.codex-plugin/plugin.json`, and Antigravity links its global plugin directory to `surfaces/antigravity`. `hatsu:bakuryuha` makes or confirms that install, updates the checkout, re-proves with the new `ten`, reads back what the surface serves, and ends every run with the one thing left to type or open. The live skill surface is **forty-six**.
+> **`v0.64.0` — the send is gated on freshness, and a stale archive is rebuilt before it goes.** `kagutsuchi` runs a freshness gate before every `--run`; a dirty tree, a missing archive, or one not built from `HEAD` at the trunk's tip is never sent — `kagutsuchi` runs `susanoo` for a fresh build first, in one idempotent clean worktree at `origin/<branch.base>` with your gitignored files copied from core (`project.fromCore`), and only then. The target comes from your invocation or from `nen/workflow.json` → `deploy.defaultTarget`. No new skill: the surface stays **forty-five**, and `kamui` is reserved.
 > **`v0.42.0` — the reports and the reviewers carry their weight.** Spiritual Message is rebuilt with the desk above the fold and the delta drawn from a nodes-and-edges document; **Rikugan** (`templates/rikugan.html`) is the desk-and-register page `backlog-board`, `futon`, `backlog-loop` and the dated final report render through `nen report render --variant`; **Nobunaga** joins as the default code reviewer and **Shalnark** as the optional post-merge UI validation automator behind the new `hatsu:black-voice`; every reviewer reads one shared preamble and fits under 6 KB; the ten largest skills fit under 12 KB. The live skill surface is **forty-two**.
 > **`v0.40.0` — the release row is real.** A repository whose product is the process must declare a real `release` row, not a seat: `hatsu:mugetsu` exists to run that row at `G3`, and a seat meant it had nothing to run while releases were published by hand. `templates/release-publish.sh` is the engine, Hatsu dogfoods it, and Tenkai derives a repository's role from `nen/repos.json` rather than classifying one for itself.
 > **`v0.39.0` — a repository becomes a consumer, deterministically.** `hatsu:tenkai` adopts a repository new or existing, diagnosing before it writes and repairing **drift** — the workflow rendered for another slug that is skipped on every event, looking installed and doing nothing. Idempotent by construction; `scripts/tenkai_adopt.sh` proves it against fixtures. Runner selection derived per repository; the two-PR ordering staged rather than hit; `nen/colors.yml` declared at last, so `nen schema check` is green here for the first time.
@@ -123,7 +125,7 @@ installed copy runs does.)
 ### On Claude Code
 
 Hatsu is served **in place from a checkout you keep**, never from Claude Code's plugin cache (from
-`v0.64.0`): a link under `~/.claude/skills/` makes it a skills-directory plugin, `hatsu@skills-dir`,
+`v0.66.0`): a link under `~/.claude/skills/` makes it a skills-directory plugin, `hatsu@skills-dir`,
 which "loads in place and is never copied".
 
 ```sh
@@ -216,7 +218,7 @@ warm-up then resolves its root from that variable first, then from a path handed
 
 ### On Codex
 
-**Hatsu is a Codex plugin** (from `v0.64.0`): Codex reads the checkout's `.claude-plugin/marketplace.json`
+**Hatsu is a Codex plugin** (from `v0.66.0`): Codex reads the checkout's `.claude-plugin/marketplace.json`
 as a legacy-compatible marketplace, and the `.codex-plugin/plugin.json` overlay hands it the canonical
 skills, listed and invoked as `$hatsu:<name>`, plus the generated Codex hooks:
 
@@ -432,7 +434,7 @@ Reviewers (Feitan, Chrollo, Hisoka, Phinks) run as isolated subagents via `invok
 **One command, every surface: `hatsu:bakuryuha`** (spelled `$hatsu:bakuryuha` on Codex, `/bakuryuha` on
 Cursor and Antigravity). It makes the first-party install where a legacy form still stands, fast-forwards
 your checkout, re-proves the warm-up from the new files, reads back what the surface serves, and **always
-ends with a Next block**: the one thing to type or open to finish. From `v0.64.0` every surface's source
+ends with a Next block**: the one thing to type or open to finish. From `v0.66.0` every surface's source
 is **your checkout**; only Codex copies it.
 
 | Surface | What is served | How it updates | Next, to use it |
@@ -820,7 +822,7 @@ Forty-six, invoked as `hatsu:<name>` (forty-seven directories with `ten`). Longe
 |---|---|
 | `great-hiker` | **Canon authoring for every surface.** Writes canon prose and machinery under `claude/` and `contracts/`, regenerates every surface mirror, checks the mirrors and the installed copies, and opens one PR at G4 with a per-surface delta table; `evolve [<surface>]` diffs a surface guide against its cited official docs and files one Netero-shaped issue per drifted surface. Never edits `surfaces/` by hand, never merges. |
 
-### The one that brings the host current — new in `v0.64.0`
+### The one that brings the host current — new in `v0.66.0`
 
 | Skill | |
 |---|---|
@@ -871,7 +873,7 @@ of the five. [`docs/WORKFLOW.md`](docs/WORKFLOW.md) § 4 is the authority.
 | Skill | | |
 |---|---|---|
 | `susanoo` | **atomic** | **Archive and packaging.** Runs the lane's declared `archive` and produces the distributable **locally**. It uploads nothing and signs nothing — Nen never synthesises signing material — and an unsupported seat is quoted, never routed around. Where the repository declares `tags.identity`, it also NAMES the identity the tag `kagutsuchi` cuts on a successful upload will carry — it cuts none itself. This is the release unit `getsuga` folds into the release PR and the two phases below send. |
-| `kagutsuchi` | **atomic** | **Non-production upload — yours to call, per target.** The plan is always printed (`nen shu deploy --target <name>`, no `--run`); `--run` acts only on your own call **naming the target** — by name, or as a `futon` `then` step on your advance go — never from a composite on its own. `--target` is required with no default, even where exactly one destination is declared. |
+| `kagutsuchi` | **atomic** | **Non-production upload — yours to call, per target.** The plan is always printed (`nen shu deploy --target <name>`, no `--run`); then **the freshness gate** (`scripts/send_freshness_check.sh`, v0.64.0) reads the archive's recorded build SHA against the checkout's `HEAD` and `origin/<branch.base>`'s fetched tip on a clean tree — and **only when it is not the tip's build**, `kagutsuchi` runs `susanoo` first for a fresh one, in one idempotent clean worktree under core's `.nen/` with your own gitignored files copied from the core checkout (`project.fromCore`, never synthesised), then sends from there. `--run` acts only on your own call — the target **typed, or the `deploy.defaultTarget` you declared** in `nen/workflow.json` (non-production only; the report says which), by name or as a `futon` `then` step on the advance go. It never chooses a near-match, never adds a target to the declaration, and cuts the one opt-in `dist/<target>/<identity>` tag only after a green send. |
 | `mugetsu` | **atomic** | **Publication — yours to call, per target, G3.** Only on your recorded per-target go, with the preflight green and the tag already cut. **One target per call**, never from `getsuga` or `en`, and from `futon` only as a `then` step on your advance go, on a process or library repository (`nen repo classify`; a library declares `project.kind`). This is the only phase that reaches other people's users. |
 
 > **The boundary was always the governance, not the file.** These three were named phases before they were

@@ -69,7 +69,7 @@ fi
 #                       them — 35 until Hatsu 0.6.0 added susanoo, kagutsuchi
 #                       and mugetsu, 38 until 0.24.0 added byakugan, 39 until
 #                       0.27.0 added third-hand, 45 until 0.60.0 added limbo,
-#                       46 until 0.64.0 added bakuryuha), plus
+#                       46 until 0.66.0 added bakuryuha), plus
 #                       `templates/` where a skill renders from one.
 #   nen/*             — the D10 dependency contract, `nen/contract.json`. Read
 #                       at run time through `$CLAUDE_PLUGIN_ROOT/nen/contract.json`
@@ -200,6 +200,20 @@ fi
 #                     — kagutsuchi's distribution-tag block, run from
 #                       `$hatsu_root/scripts/` on an upload; a stale copy cuts
 #                       the wrong ref or refuses the right one.
+#   scripts/send_freshness_check.sh
+#   scripts/kagutsuchi_worktree.sh
+#                     — kagutsuchi § 3a's freshness gate and § 3b's clean
+#                       worktree (v0.64.0), both run from `$hatsu_root/scripts/`
+#                       before every `--run`; a stale copy sends an archive
+#                       the gate should refuse, or rebuilds in the wrong tree.
+#                       From v0.66.0 this matters twice over: Codex installs
+#                       Hatsu by COPYING the checkout into a slot keyed on this
+#                       version, so an unbumped script change never reaches it.
+#   scripts/hatsu_surface_link.sh
+#                     — bakuryuha § 3 makes each surface's first-party install
+#                       through it (v0.66.0); a stale copy links, registers or
+#                       hands over the wrong way, and the version bakuryuha
+#                       reports back would not name the change.
 #
 # Deliberately NOT covered — nothing installed reads them at run time:
 #   README.md, docs/ab/** (the evidence records; read by humans on GitHub, never
@@ -240,6 +254,9 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/surface_mirror_check.sh'
   'scripts/permissions_pack.sh'
   'scripts/dist_tag.sh'
+  'scripts/send_freshness_check.sh'
+  'scripts/kagutsuchi_worktree.sh'
+  'scripts/hatsu_surface_link.sh'
   'scripts/tenkai_adopt.sh'
   'scripts/release-publish.sh'
   'scripts/report_time.sh'

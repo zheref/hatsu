@@ -135,7 +135,7 @@ block a trunk fast-forward: only tracked changes read as dirty, and git itself r
 that would overwrite one. It never discards, never force-updates and never touches an authoring
 branch. Fixture: `scripts/hatsu_plugin_update_fixture_check.sh`.
 
-**The first-party installs** (from v0.64.0) change what "the source" is: Claude Code's
+**The first-party installs** (from v0.66.0) change what "the source" is: Claude Code's
 `~/.claude/skills/hatsu` link and Antigravity's global plugin link name the checkout itself, so
 `--claude` fast-forwards the linked checkout and never runs `claude plugin update`, and naming a
 shadowing `hatsu@hatsu` is its only Claude Code step; Codex copies, so `--codex` fast-forwards the

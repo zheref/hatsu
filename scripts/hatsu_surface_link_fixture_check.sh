@@ -240,7 +240,7 @@ mkdir -p "$claude_home" "$gemini_home" "$codex_home" "$home_unused"
 
 # Two throwaway Hatsu checkouts: checkout1 is the one under test throughout;
 # checkout2 stands in for "some OTHER Hatsu tree" for the re-point and
-# foreign-marketplace cases. checkout_no_overlay is a pre-v0.64.0-shaped tree
+# foreign-marketplace cases. checkout_no_overlay is a pre-v0.66.0-shaped tree
 # that never carried .codex-plugin/plugin.json at all.
 checkout1_raw="$fixture_root/checkout-a"; make_hatsu_checkout "$checkout1_raw" '0.60.0'
 checkout1="$(canon "$checkout1_raw")"
@@ -684,7 +684,7 @@ run 0 --surface codex --root "$checkout1" --status
 unset CODEX_SHIM_LOG CODEX_SHIM_FILLER_ROWS CODEX_SHIM_MARKETPLACE_ROOT CODEX_SHIM_VERSION
 assert_contains "$out" 'hatsu@hatsu installed, enabled 0.60.0' '--status survives >10,000 filler rows in marketplace list and plugin list'
 
-# --- pre-overlay checkouts (before v0.64.0): no .codex-plugin/plugin.json at
+# --- pre-overlay checkouts (before v0.66.0): no .codex-plugin/plugin.json at
 # all. Codex then reads .claude-plugin/plugin.json, so the compare falls
 # back to it rather than refusing every such checkout at exit 2 for a file
 # it was never going to carry -- and the report names which manifest it used.
