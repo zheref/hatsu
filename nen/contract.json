@@ -127,6 +127,16 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/pr_body_evidence_check.sh, which refuses a pull request body whose screenshots are not cells of the UZF-26 evidence table or carry no alt text (docs/WORKFLOW.md, The UZF-26 evidence shape, The table exactly). One lane per executable guard. Its fixtures are hermetic and offline: bodies with no images, a markdown table and an HTML table of labelled images pass; a loose markdown image, a loose <img>, images stacked one per line, an unlabeled markdown image, an <img> with an empty or no alt, and a second unlabeled <img> on a labelled line are refused; an image inside a code fence is ignored; an unreadable body and an unknown argument are usage errors."
+      },
+      "freshness-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/send_freshness_check.sh, kagutsuchi's freshness gate (zheref/hatsu#146), following this repository's one-lane-per-executable-guard pattern. Its fixtures are hermetic and offline: a bare repository stands in for origin so the fetch is real, and they prove every refusal the gate exists to make -- a dirty tree before the send, an absent, symlinked, out-of-tree or SHA-less nameFrom, a non-hex build SHA, an archive built from a commit that is not HEAD, one at HEAD but behind origin/<base>'s tip, a --base origin does not carry, a two-arg flag given no argument -- plus the fresh case and the exit-3 unverified case where no tags.identity is declared. It sends nothing and tags nothing."
+      },
+      "kamui-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/kamui_worktree.sh, the clean worktree hatsu:kamui builds and sends from (zheref/hatsu#146), following the one-lane-per-executable-guard pattern. Its fixtures are hermetic and offline: a bare origin and a core clone declaring one project.fromCore path, proving the dry run creates nothing, a first run creates one detached worktree at origin/<base>'s tip and copies the declared gitignored file from core, a second run at the same tip reuses it (idempotent), a moved trunk moves a clean worktree, a dirty worktree is refused and never discarded, a tracked, unignored, absent, escaping or symlinked fromCore path is refused, a missing fromCore block copies nothing, a stray directory at the fixed path is refused, and a pruned registration is re-created. Nothing leaves the machine."
       }
     },
     "defaultLane": "plugin",
@@ -146,7 +156,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, root-guard, surface-link-guard, prose-guard, tenkai-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, root-guard, surface-link-guard, prose-guard, tenkai-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, freshness-guard, kamui-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/spiritual-message.html, which is a report template, not an application."
@@ -281,6 +291,26 @@
           ],
           "$comment": "The PR-body evidence check's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Run it as `nen shu test --lane pr-body-guard --repo <hatsu>` when scripts/pr_body_evidence_check.sh changes."
         }
+      },
+      "freshness-guard": {
+        "test": {
+          "exe": "sh",
+          "argv": [
+            "scripts/send_freshness_check.sh",
+            "--self-test"
+          ],
+          "$comment": "The freshness gate's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Every fixture is removed on every path. Run it as `nen shu test --lane freshness-guard --repo <hatsu>` when scripts/send_freshness_check.sh changes."
+        }
+      },
+      "kamui-guard": {
+        "test": {
+          "exe": "sh",
+          "argv": [
+            "scripts/kamui_worktree.sh",
+            "--self-test"
+          ],
+          "$comment": "The kamui worktree guard's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Every fixture is removed on every path. Run it as `nen shu test --lane kamui-guard --repo <hatsu>` when scripts/kamui_worktree.sh changes."
+        }
       }
     },
     "preconditions": {
@@ -307,7 +337,7 @@
         "darwin",
         "linux"
       ],
-      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test) use a POSIX shell, git and mktemp and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
+      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/kamui_worktree.sh --self-test) use a POSIX shell, git and mktemp and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
     },
     "targets": {},
     "toolchain": {

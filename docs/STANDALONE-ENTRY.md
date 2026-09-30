@@ -235,7 +235,7 @@ where a maintainer believes a change has been reviewed, tested and reported beca
   `en` while `build`, `futon`, `getsuga`, `backlog-loop` and `jujisho` all reach it is exactly that
   failure. **Both sides state it**: every composite that calls a `## 0.`-bearing phase carries the
   skip clause — `ren`, `mukai`, `en`, `build`, `futon`, `getsuga`, `backlog-loop`, `tensho`,
-  `jujisho`, `senkei`, `ten` — and every phase states the generic condition rather than a caller list.
+  `jujisho`, `senkei`, `ten`, `kamui` — and every phase states the generic condition rather than a caller list.
   **The failure this prevents is a composite and a § 0 deriving the same value two ways**: a `build`
   run that passes `sharingan` a PR number must not have § 0 re-derive one from `gh pr list`.
 - **In a skill whose grammar or reading is already total** — it resolves everything from its own
@@ -345,7 +345,7 @@ both.
 | [`sharingan`](../claude/skills/sharingan/SKILL.md) | S2 — the PR from the branch, when `#N` is omitted | which PR, when the branch has none or several |
 | [`hanten`](../claude/skills/hanten/SKILL.md) | S4 — asks `breath` for a missing ledger, then routes a still-missing one through Tenkai diagnosis and review-history inspection; recovers a confirmed first cycle with an audited marker or restores prior used counts. An unreconstructable prior cycle is a safety stop. S1 — scope classification, path-raised by `nen review scopes` and content-raised by hanten § 2 (a `## 0.` or routing-table edit is a totality pass). | whether this is the first Hanten cycle under this effort key when evidence cannot settle it; the review scope when the delta does not classify cleanly |
 | [`spiritual-message`](../claude/skills/spiritual-message/SKILL.md) | S1 + S3 — turns and session context, read from git and the session | which variant, when it is not derivable |
-| [`kagutsuchi`](../claude/skills/kagutsuchi/SKILL.md) | nothing new — the target is required grammar | a missing target, **typed, never picked** (`missing-maintainer-choice`). **The call is the maintainer's** |
+| [`kagutsuchi`](../claude/skills/kagutsuchi/SKILL.md) | S2 — the target, from the invocation or, omitted, `nen/workflow.json` → `deploy.defaultTarget` (HA#146), the source said; the archive's commit, read as § 3a's freshness gate | a target neither typed nor declared, **typed, never picked** (`missing-maintainer-choice`). **The call is the maintainer's** — typed, a futon `then` step, or `kamui`'s typed call, which holds this `## 0.` |
 | [`mugetsu`](../claude/skills/mugetsu/SKILL.md) | nothing new — `G3` | nothing, except a missing part of a go on the maintainer's own same-turn `hatsu:mugetsu <target>`, typed. **The go is the maintainer's** |
 | [`third-hand`](../claude/skills/third-hand/SKILL.md) | S3 — "this sitting", from the branch and any open PR | the harvest pick, as it always did |
 | [`murasaki`](../claude/skills/murasaki/SKILL.md) | S1 — the base, hence the catch-up; conflicts classified before one is touched | only a dirty working copy, before git state moves |

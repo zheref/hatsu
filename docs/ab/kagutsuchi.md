@@ -217,3 +217,58 @@ shown.
    verified, and worth recording as a property that held rather than only as a claim in the docs.
 5. **No missing verb.** Every deterministic step of the upload phase that is not in § 3 is a verb,
    exercised live above with its exit code.
+
+---
+
+## Dated 2026-09-30 — the freshness gate (zheref/hatsu#146)
+
+**Run:** `nen 0.16.0`, host `Darwin 27.0.0 arm64`, Hatsu at `fable/kurapika/kamui-fresh-send` off
+`origin/main` `5df0bc37`. `claude/skills/kagutsuchi/SKILL.md` § 3a now runs
+`scripts/send_freshness_check.sh --repo <path>` after the plan and before `--run`. Nothing was sent.
+
+### The hermetic half — `--self-test`, exit `0`, 25 assertions (lane `freshness-guard`)
+
+A bare `origin.git` plus a `core` clone whose `dist/identity.txt` (line 2) records the commit the
+archive "ran" at, so the fetch in check 4 is real and offline. Every refusal the gate exists to make
+is proven: a dirty tree before the send; an absent, symlinked, SHA-less or non-hex `nameFrom`; a
+build SHA that is not `HEAD` (both named); one at `HEAD` behind `origin/main` (both named, the
+distance counted); a `--base` origin does not carry; and the two verdicts that are not refusals —
+`fresh`, and exit `3` `unverified` where no `tags.identity` is declared.
+
+### The live half — zheref/KroApple, exactly as the maintainer left it
+
+```
+$ scripts/send_freshness_check.sh --repo /Users/zheref/Code/Apple/KroApple
+send_freshness_check.sh: the working tree is dirty -- refused before the send, not at the tag:
+     M Kro.xcodeproj/project.pbxproj
+     M Kro.xcodeproj/xcshareddata/xcschemes/PreviewHost.xcscheme
+     M KroTests/Application/Do/DoDayContextSnapshotTests.swift
+     … (22 paths)
+exit=2
+```
+
+**This is the issue's core checkout** — the one whose `v1.0.0+1251` archive, built from `6589c870`,
+would have gone to TestFlight on 2026-09-29 with every plan row `ok`. The gate refuses it on the
+first check, before the archive's commit is even read.
+
+```
+$ scripts/send_freshness_check.sh --repo /Users/zheref/Code/Apple/KroApple/.claude/worktrees/hatsu-ao-kagu-b49b3f
+send_freshness_check.sh: the archive was built from dd490bed6a946be31484b1c8f81647f3728716f2, which is
+not the tip of origin/main (dfce334ea31296b803b4c2fbcb5c501237840b5f; 8 commit(s) behind) -- refused;
+catch the checkout up, re-run the archive, then send
+exit=2
+```
+
+**The worktree the maintainer cut at `main`'s tip on 2026-09-29** — clean, with an archive built from
+its own `HEAD` (`dd490bed`) — and the trunk has moved 8 commits since. Check 3 passed (built ==
+`HEAD`); check 4 refused after the fetch, both SHAs and the distance named. This is the case the
+issue's *"Why it matters"* describes: a build that reaches testers matches a known commit **at the
+trunk's tip**, and a day-old tip is not it.
+
+### What changed in the skill, and what did not
+
+`--target` is now typed **or** `nen/workflow.json` → `deploy.defaultTarget` (§ 1; the report says
+which); `nen shu deploy` is unchanged and still receives `--target` explicitly. § 3a is a script,
+not a verb — named as residue in [`docs/PROCESS.md`](../PROCESS.md) § *Residue and owned
+dependencies*. § 2.3's *"nen never chooses where a build goes"* is still nen's own sentence, and
+still true: the choice moved into configuration the maintainer wrote, not into the binary.

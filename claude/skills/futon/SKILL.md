@@ -136,8 +136,8 @@ driving them. A legacy-CI PR does not hold it. Then, as `nen parse futon` classi
   `gate: allowed: true` — no `gate` or `allowed: false` fails closed — relayed at the echo by its
   `refused: <skill> (<reason>) [default|declared]` line, never re-judged; the rest of the chain runs.
 - **`then <prose>`**: Kurapika states which skills and verbs the words map to **before acting**,
-  then runs them; fan-out prose maps to getsuga's `CON-22` lane. **Prose never maps to `kagutsuchi`
-  or `mugetsu`** — those are typed steps or nothing. Words no skill or verb covers are a **G5
+  then runs them; fan-out prose maps to getsuga's `CON-22` lane. **Prose never maps to `kagutsuchi`,
+  `kamui` or `mugetsu`** — those are typed steps or nothing. Words no skill or verb covers are a **G5
   `DECIDE`** brief, never improvised shell for a Nen-owned operation.
 
 ## 9. Reporting — the register, every cycle

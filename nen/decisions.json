@@ -10,6 +10,12 @@
       "why": "Ruling 2026-09-19: a dirty working copy at breath is always carried onto the new branch (stash including untracked, warm, restore). Nothing is discarded, the paths are listed in the report."
     },
     {
+      "id": "stale-send",
+      "class": "autonomous",
+      "default": "scripts/send_freshness_check.sh --repo <checkout> refuses at exit 2 with both SHAs named; the send does not happen, the plan stays printed, and the run says: catch the checkout up, re-run the archive (or run hatsu:kamui, which builds at the tip by construction), then send",
+      "why": "Ruling 2026-09-29 (zheref/hatsu#146): a non-production upload is a release act, so the archive kagutsuchi sends must be a build of the checkout's HEAD at origin/<branch.base>'s tip, on a clean tree, asserted BEFORE --run rather than by the tag after it. A stale, dirty or foreign-commit archive is refused, never a question: no maintainer answer makes a 95-commit-stale binary the right one to put in front of testers. A repository declaring no tags.identity cannot be checked (exit 3): the send proceeds and the report reads `freshness: unverified`, never `fresh`."
+    },
+    {
       "id": "cap-reached",
       "class": "autonomous",
       "default": "nen pr request-reviews --target <owner/name> --pr <n> --add-bots <reviewer>",
@@ -190,6 +196,7 @@
       "class": "ask-once-per-run",
       "governs": [
         "kagutsuchi <target>",
+        "kamui <target>",
         "mugetsu <target>",
         "mugetsu go",
         "izanagi <cap>",

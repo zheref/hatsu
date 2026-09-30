@@ -376,9 +376,14 @@ are not one flag apart here.
    report prints the path with `(absent)` or without it, and `--json` carries
    `{kind, value, exists}` (verified live, `docs/ab/susanoo.md` § 2.2). The byte count in § 5 is a
    by-hand `stat`/`ls -l`, named as by-hand wherever it is reported.
-2. **Artifact freshness.** Nothing distinguishes a path this run wrote from one a previous run left
-   (§ 5, verified live at § 2.3 — `exists: true` on a run that spawned nothing). Recording mtime or
-   size before and after is by hand.
+2. **Artifact freshness — at the SEND, now a gate.** Nothing in nen distinguishes a path this run
+   wrote from one a previous run left (§ 5, verified live at § 2.3 — `exists: true` on a run that
+   spawned nothing), and recording mtime or size before and after stays by hand here. What closed
+   the gap where it bit (zheref/hatsu#146: a 95-commit-stale `.ipa` one green `--run` from
+   TestFlight) is [`kagutsuchi`](../kagutsuchi/SKILL.md) § 3a — before any send, the build SHA
+   § 5a's `nameFrom` records must be the checkout's `HEAD` and the tip of `origin/<branch.base>`,
+   on a clean tree — and [`kamui`](../kamui/SKILL.md), which archives in a fresh worktree at that tip
+   so the property holds by construction. **Existence is still not freshness; the send now checks.**
 3. **RETIRED at nen `0.5`: build proof.** A green `nen shu build` writes
    `.nen/proof/<lane>.json` (`nen.shu.proof/v0.1`: `contract`, `lane`, `verb`, `treeHash`, `at`,
    `exitCode`), a red one removes it, and `nen commit check --repo <path> --require-proof <lane>`
