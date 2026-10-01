@@ -20,6 +20,9 @@
 #                 classifies the FIRST match only: AppData and the rest of $USERPROFILE fail, Program
 #                 Files passes over a stale later AppData match, no match is not found, and no path
 #                 is ever printed (Feitan BC-9, Nobunaga; Copilot on zheref/nen#318)
+#   remedy        no ::error:: line names a tool-templated install path or Program Files, and every
+#                 per-user remedy names the tool and the MACHINE PATH (Copilot on zheref/nen#320 and
+#                 zheref/hatsu#179)
 #
 # Properties, not bytes: the template is not byte-identical to nen's own test template
 # (src/runner/fixtures/runner-preflight.template.yml) since F5, and nothing here compares them.
@@ -297,6 +300,44 @@ for src in template rendering; do
       fail "appdata step ($src)$name: USERPROFILE=$prof, where.exe [$path] -> exit $code '$first' (path printed: $printed), not exit $want_code '$want' with no path printed"
     fi
   done
+done
+
+# 2c. The remedy text names no install path (Copilot on zheref/nen#320): Git for Windows puts git.exe and
+# bash.exe in subdirectories of C:\Program Files\Git, and GitHub CLI does not install under
+# C:\Program Files\gh, so telling the maintainer to put C:\Program Files\<tool> on the PATH can leave the
+# preflight failing. No ::error:: line may carry a tool-templated path segment, and every per-user remedy
+# line -- the 127 one and the Windows resolution one -- still names the tool and the MACHINE PATH.
+templated_path='[\\/]+(\$\{?tool\b|<tool>)'
+for src in template render-windows-x64 render-macos-arm64; do
+  case "$src" in
+    template) from="$template" ;;
+    *) from="$work/${src#render-}.yml" ;;
+  esac
+  [ -f "$from" ] || { fail "remedy ($src): no file to read at $from"; continue; }
+  errors="$(grep -F '::error::' "$from")"
+  bad_lines="$(printf '%s\n' "$errors" | grep -E "$templated_path")"
+  if [ -n "$bad_lines" ]; then
+    fail "remedy ($src): an ::error:: line names a tool-templated install path: $(printf '%s\n' "$bad_lines" | sed 's/^[[:space:]]*//' | tr '\n' ' ')"
+  else
+    pass "remedy ($src): no ::error:: line names a tool-templated install path"
+  fi
+  # Copilot on zheref/hatsu#179: a machine-wide tool may live outside Program Files, so no remedy names
+  # an install location at all.
+  bad_lines="$(printf '%s\n' "$errors" | grep -F 'Program Files')"
+  if [ -n "$bad_lines" ]; then
+    fail "remedy ($src): an ::error:: line names an install location (Program Files): $(printf '%s\n' "$bad_lines" | sed 's/^[[:space:]]*//' | tr '\n' ' ')"
+  else
+    pass "remedy ($src): no ::error:: line names an install location"
+  fi
+  per_user="$(printf '%s\n' "$errors" | grep -E '\$verdict|exit 127')"
+  missing="$(printf '%s\n' "$per_user" | grep -v -e "'\$tool'" -e '^$' ; printf '%s\n' "$per_user" | grep -v -e 'MACHINE PATH' -e '^$')"
+  if [ -z "$per_user" ]; then
+    fail "remedy ($src): no per-user ::error:: line found (the 127 and the Windows resolution remedies)"
+  elif [ -n "$missing" ]; then
+    fail "remedy ($src): a per-user ::error:: line does not name both the tool and the MACHINE PATH: $(printf '%s\n' "$missing" | sed 's/^[[:space:]]*//' | sort -u | tr '\n' ' ')"
+  else
+    pass "remedy ($src): every per-user ::error:: line names the tool and the MACHINE PATH ($(printf '%s\n' "$per_user" | wc -l | tr -d ' ') line(s))"
+  fi
 done
 
 # 3. Negative: a hostile copy -- pull_request_target added, the repository binding dropped. nen renders
