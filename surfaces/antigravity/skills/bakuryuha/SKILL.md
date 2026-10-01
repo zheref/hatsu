@@ -155,7 +155,7 @@ fast-forward or newest `vX.Y.Z` tag; the new `ten`, on its own authority; readin
 - **Never types, relays or simulates a human-only command**, never quits or restarts the app.
 - **Never touches configuration beyond Hatsu's own install**: no hand edit of any settings file, no
   `autoUpdate`, no other plugin or marketplace, no host `~/.local/bin/nen` link of its own — that is
-  `ten` § 2's host path, through `scripts/nen_global.sh`, which the new `ten` it runs performs, and
+  `ten` § 2's host default, through `scripts/nen_global.sh`, which the new `ten` it runs performs, and
   `ten` § 2c's verification (row `host-nen-link`'s offer the fallback).
 - **Never edits or runs git in a plugin cache, a placed copy or `surfaces/`**, and follows a body
   from no path but § 5's.

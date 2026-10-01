@@ -572,8 +572,9 @@ this skill's own action** — it targets *other repositories*, which no `nen` ve
 `dependency.source`, the tag this skill just cut is this session's own `nen`, and the binary on `PATH`
 predates it. **The host re-pin is [`mugetsu`](../mugetsu/SKILL.md) § 7's**, after its § 5 attaches
 the release assets — nothing here waits on mugetsu (§ Composition: it never runs from inside this
-skill) — so this skill says one line and stops: `host nen: <version> on PATH, pre-release; the re-pin
-is mugetsu § 7's once the assets attach`. `nen/contract.json`'s pin is not touched by either skill: a
+skill) — so this skill says one line and stops: `session nen: <version> on PATH, pre-release; the
+session re-pin is mugetsu § 7's once the assets attach; the host link follows the contract's pin (ten
+§ 2)`. `nen/contract.json`'s pin is not touched by either skill: a
 repin of `minimum` or `pinned_ref` is a pull request at the declaration gate (ten § 1).
 
 ## 7a. A deploy — the plan is printed at G3; the run is the maintainer's

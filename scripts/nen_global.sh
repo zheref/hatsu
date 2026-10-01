@@ -6,7 +6,7 @@
 # contract pins available under the name `nen` on the machine's own PATH, for
 # agents and for a human at a terminal alike, and keeps it current: the
 # SessionStart hook (hooks/session-start.sh) runs it first on every session.
-# This binds the name `nen` on the host — ten § 2 (a), made the default by the
+# This binds the name `nen` on the host — ten § 2 (the host default), made the default by the
 # maintainer's ruling of 2026-09-30 — and runs nen's OWN checksum-verified
 # bootstrap at the contract's pin; it never vendors, pipes or improvises the
 # bootstrap. Steps:
@@ -313,16 +313,21 @@ rc_one() {
     printf '%s\n' "# >>> hatsu nen-global >>>"
     printf '%s\n' "case \":\$PATH:\" in *\":\"${bin_q}\":\"*) ;; *) export PATH=${bin_q}\":\$PATH\" ;; esac"
     printf '%s\n' "# <<< hatsu nen-global <<<"
-  } >>"$_f" 2>/dev/null; then
+  } 2>/dev/null >>"$_f"; then
     rc_note "added $_f"
   else
-    # roll the record back: no block was written, so none may read as user-removed later
-    if grep -Fxv -- "$_f" "$rc_record" >"$rc_record.tmp.$$" 2>/dev/null || [ ! -s "$rc_record.tmp.$$" ]; then
-      mv -f -- "$rc_record.tmp.$$" "$rc_record" 2>/dev/null
-    fi
-    rm -f -- "$rc_record.tmp.$$" 2>/dev/null
+    # Roll the record back: no block was written, so none may read as user-removed later.
+    # grep rc 0 = lines kept, 1 = none left (an empty record is right), 2 = the record could
+    # not be read: it is left untouched rather than truncated, and the summary says so.
+    grep -Fxv -- "$_f" "$rc_record" >"$rc_record.tmp.$$" 2>/dev/null
+    _g=$?
     echo "nen-global: could not write $_f" >&2
-    rc_note "failed $_f"
+    if [ "$_g" -le 1 ] && mv -f -- "$rc_record.tmp.$$" "$rc_record" 2>/dev/null; then
+      rc_note "failed $_f"
+    else
+      rm -f -- "$rc_record.tmp.$$" 2>/dev/null
+      rc_note "failed $_f (record not rolled back)"
+    fi
   fi
 }
 
@@ -482,6 +487,7 @@ if [ "$state" = need ]; then
   mkdir -p "$bindir" 2>/dev/null || die 4 "host write refused: cannot create $bindir"
   [ ! -d "$link" ] || die 4 "host write refused: $link is a directory"
   oldtarget=""; [ ! -L "$link" ] || oldtarget="$(readlink "$link" 2>/dev/null)"
+  restored=0
   tmplink="$link.tmp.$$"
   rm -f "$tmplink" 2>/dev/null
   ln -s -- "$verified" "$tmplink" 2>/dev/null || die 4 "host write refused: cannot write $bindir"
@@ -492,11 +498,18 @@ if [ "$state" = need ]; then
   got="$(version_of "$link")"
   if [ "$got" != "$pin" ]; then
     if [ -n "$oldtarget" ]; then
-      if ln -s -- "$oldtarget" "$tmplink" 2>/dev/null; then mv -f -- "$tmplink" "$link" 2>/dev/null; fi
+      if ln -s -- "$oldtarget" "$tmplink" 2>/dev/null && mv -f -- "$tmplink" "$link" 2>/dev/null; then restored=1; fi
+      rm -f "$tmplink" 2>/dev/null
     else
       rm -f -- "$link" 2>/dev/null   # there was no link before: a failing one is never left behind
     fi
-    die 5 "$link does not print the pin $pin after linking; the previous link was restored, or the new one removed where there was none"
+    if [ -z "$oldtarget" ]; then
+      die 5 "$link does not print the pin $pin after linking; there was no previous link, so the new one removed"
+    elif [ "$restored" -eq 1 ]; then
+      die 5 "$link does not print the pin $pin after linking; the previous link was restored"
+    else
+      die 5 "$link does not print the pin $pin after linking; restore failed; $link now points at $verified"
+    fi
   fi
   how="linked from $verified"
 elif [ "$state" = kept-newer ]; then

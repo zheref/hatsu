@@ -12,7 +12,7 @@
 # (found beside this hook) and, on a mirrored copy, only AFTER its plugin root
 # has been verified; steps 1 and 2 are mutually exclusive:
 #
-#   0. The host binding (ten § 2 (a), made the default by the maintainer's
+#   0. The host binding (ten § 2 (the host default), made the default by the maintainer's
 #      ruling of 2026-09-30 — the hooks' third purpose, beside the bell and the
 #      base-branch guard). It runs scripts/nen_global.sh, which binds the
 #      contract-pinned `nen` on the host PATH through nen's own checksum-verified

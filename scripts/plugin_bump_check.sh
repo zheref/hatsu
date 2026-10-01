@@ -143,7 +143,7 @@ fi
 #                       commit (a mirror re-run with no source edit) bump the
 #                       version too.
 #   scripts/nen_global.sh
-#                     — the host nen linker (ten § 2 (a), the maintainer's
+#                     — the host nen linker (ten § 2 (the host default), the maintainer's
 #                       ruling of 2026-09-30). hooks/session-start.sh runs it
 #                       first on every session from the installed copy; a stale
 #                       copy would bind the wrong nen, or none, on every machine.

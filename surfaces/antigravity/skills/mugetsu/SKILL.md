@@ -406,11 +406,11 @@ One block, then stop:
   <reason>`. **The report line names the version now on `PATH`** — `session nen: <version> on PATH
   (re-pinned from <old>)` — and **its absence is the signal that the step was skipped**. The host
   link, `~/.local/bin/nen`, follows the contract's pin, never this tag: `scripts/nen_global.sh` (ten
-  § 2's host path) re-binds it at the next session start once the installed Hatsu carries the repin —
+  § 2's host default) re-binds it at the next session start once the installed Hatsu carries the repin —
   through `ten` § 4b or [`bakuryuha`](../bakuryuha/SKILL.md), not the PR landing (ruling 2026-09-30) —
   and ten § 2c then verifies the login shell resolves it: `host:` there is the login shell's verdict,
-  `session nen:` this binding, and row `host-nen-link`'s offer is the fallback where the hook did not
-  bind the host, taken on the maintainer's word. Applies to nen and nothing else.
+  `session nen:` this binding, and row `host-nen-link`'s offer is the fallback by ten § 2c's predicate,
+  verbatim: offered where the login shell reads installed, not reachable; never where it reads reachable; an opt-out skip is no offer (host: opted out), win32 is not read, and a removed-by-user rc entry withholds the PATH half of option A — taken on the maintainer's word. Applies to nen and nothing else.
 
 **The same quote goes onto the release PR or the tracking issue** — through the one verb that owns a
 caller-written comment, never a raw `gh`:

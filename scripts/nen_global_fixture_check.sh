@@ -325,13 +325,54 @@ if [ "$rc" -eq 0 ] && [ ! -e "$h/.zshrc" ] && [ ! -e "$h/.zprofile" ] \
   pass "an unwritable removal record -> no block added, reported"
 else fail "record unwritable" "rc=$rc out=$out"; fi
 
-# 21c. every platform the pinned release publishes has a digest in the REAL contract (linux included)
-missing=""
-for p in darwin-arm64 linux-x64 windows-x64; do
-  grep -q "\"$p\": \"[0-9a-f]\{64\}\"" "$root/nen/contract.json" || missing="$missing $p"
+# 21c. every platform the pinned release publishes has a digest in the REAL contract (linux included), and each
+#      digest is the one the CURRENT pin's own record in pinned_ref_semantics (before its first `Before it,`) carries,
+#      so a repin that moves pinned_ref without moving the digests goes red. Platform = asset name minus `nen-` and `.exe`.
+missing=""; mismatch=""
+cur_rec="$(sed -n 's/^[[:space:]]*"pinned_ref_semantics"[[:space:]]*:[[:space:]]*"\(.*\)/\1/p' "$root/nen/contract.json" | head -n 1 | sed 's/Before it,.*//')"
+plats="$(awk '/"published_binaries"/ { inb = 1; next } inb && /\]/ { exit } inb { gsub(/[ ",]/, ""); sub(/^nen-/, ""); sub(/\.exe$/, ""); if ($0 != "") print }' "$root/nen/contract.json")"
+[ -n "$plats" ] || missing=" (no published_binaries read)"
+for p in $plats; do
+  d="$(sed -n "s/^[[:space:]]*\"$p\"[[:space:]]*:[[:space:]]*\"\\([0-9a-f]\\{64\\}\\)\".*/\\1/p" "$root/nen/contract.json" | head -n 1)"
+  if [ -z "$d" ]; then missing="$missing $p"
+  elif ! printf '%s' "$cur_rec" | grep -qF "$d"; then mismatch="$mismatch $p"; fi
 done
-if [ -z "$missing" ]; then pass "the contract records a sha256 for darwin-arm64, linux-x64 and windows-x64"
-else fail "contract digests" "missing:$missing"; fi
+if [ -z "$missing" ] && [ -z "$mismatch" ]; then pass "every published platform ($(echo $plats)) has a contract digest, and it is the current pin's own record"
+else fail "contract digests" "missing:$missing; not in the current pin's record:$mismatch"; fi
+
+# 21d. a failed rc write rolls its record entry back: another file's tombstone survives, and once the
+#      directory exists the file is ADDED (never read as removed-by-user)
+h="$(newhome rcroll)"; mkdir -p "$h/.config/hatsu"; printf '/other\n' >"$h/.config/hatsu/nen-global.rc-added"
+mkstub ok "$pin" 0
+runstub "$h" /bin/zsh --rc "$h/nodir/rc"
+rec="$(cat "$h/.config/hatsu/nen-global.rc-added")"
+if [ "$rc" -eq 0 ] && has "failed $h/nodir/rc" && [ "$rec" = "/other" ] && ! printf '%s' "$out" | grep -q 'line [0-9]\|Permission\|No such'; then
+  pass "a failed rc write: reported, no raw shell error, record rolled back to exactly the other tombstone"
+else fail "record rollback" "rc=$rc out=$out record=$rec"; fi
+mkdir -p "$h/nodir"
+runstub "$h" /bin/zsh --rc "$h/nodir/rc"
+if [ "$rc" -eq 0 ] && has "added $h/nodir/rc" && ! has 'removed-by-user'; then pass "after the rollback the file is added, not removed-by-user"
+else fail "after rollback" "rc=$rc out=$out"; fi
+
+# 21e. the record is appendable but unreadable: the rollback leaves it untouched (no truncation) and says so
+h="$(newhome rcunread)"; mkdir -p "$h/.config/hatsu"; printf '/other\n' >"$h/.config/hatsu/nen-global.rc-added"
+chmod 200 "$h/.config/hatsu/nen-global.rc-added"
+mkstub ok "$pin" 0
+runstub "$h" /bin/zsh --rc "$h/nodir/rc"
+chmod 600 "$h/.config/hatsu/nen-global.rc-added"
+if [ "$rc" -eq 0 ] && has 'record not rolled back' && grep -Fxq '/other' "$h/.config/hatsu/nen-global.rc-added" \
+  && ! ls "$h/.config/hatsu" | grep -q 'tmp'; then
+  pass "an unreadable record is not truncated by the rollback, and the summary says record not rolled back"
+else fail "unreadable record" "rc=$rc out=$out record=$(cat "$h/.config/hatsu/nen-global.rc-added")"; fi
+
+# 21f. fetch failure with a working in-range older nen already linked: exit 5, the link is untouched
+h="$(newhome oldkept)"; mkdir -p "$h/.local/bin" "$work/inrange"
+printf '#!/bin/sh\necho "%s.0"\n' "${pin%.*}" >"$work/inrange/nen"; chmod +x "$work/inrange/nen"
+ln -s "$work/inrange/nen" "$h/.local/bin/nen"; mkstub fetchfail "$pin" 4
+runstub "$h" /bin/zsh
+if [ "$rc" -eq 5 ] && [ "$(readlink "$h/.local/bin/nen")" = "$work/inrange/nen" ] && [ "$("$h/.local/bin/nen" --version)" = "${pin%.*}.0" ]; then
+  pass "a failed bootstrap leaves a working in-range nen link untouched (exit 5)"
+else fail "old link on failure" "rc=$rc out=$out link=$(readlink "$h/.local/bin/nen")"; fi
 
 # 22. lock: a live holder -> skipped after the wait; a dead holder's lock is broken
 h="$(newhome locked)"; mkdir -p "$h/.cache/nen/.nen-global.lock"; echo $$ >"$h/.cache/nen/.nen-global.lock/pid"

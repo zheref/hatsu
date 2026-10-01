@@ -120,6 +120,14 @@ not a paraphrase). A requested reviewer round not yet posted at the current head
 (`nen pr ready` row 4; [`sharingan`](../claude/skills/sharingan/SKILL.md) § 5). Under `getsuga` § 3 the
 release proposal's verdict returns to getsuga and § 3a merges: en rings no bell for it.
 
+**`ten` § 4's fields and § 4b's line.** Every value of ten's one line is quoted from `nen shu tools`:
+the version from `found`, the range from `pinned`, the floor from the `compat floor:` line — else
+`floor not reported (nen <version>)` — never inferred from the pin. § 4b's line, carried verbatim by
+every surface (zheref/hatsu#67), off Claude Code § 5's too: what was placed (or `mirrors: current` /
+`not applicable`), the surface CLI's version (Cursor below its skills minimum **unclaimed**), every
+rejected, walked-up or out-versioned root, Cursor's skill names (shadowing), and which `nen` § 2 bound —
+the host link or the session bind.
+
 ## Publishing a report
 
 **On an artifact-capable surface, a report is an Artifact:**
@@ -274,6 +282,12 @@ paragraph ending in a question mark. **A deferred picker tool is loaded first**,
 absent; only a surface with none prints lettered options in chat, closing with *answer with a letter*,
 and says so.
 
+**`ten` § 5's rules.** `scripts/surface_mirror_check.sh` exit `0` is `mirrors: current`; `1` is stale
+**in the plugin** — said, still placed, regenerated in a PR; on Claude Code there is no mirror
+(`mirrors: not applicable`, the permission pack only; [`SURFACES.md`](SURFACES.md) § 2). **Ten never
+generates a mirror**; `surface_bootstrap.sh` is the pre-skill shell carve-out; Cursor lists
+`.cursor/skills` **before installing**; the models are the TARGET's `nen/workflow.json` → `models`.
+
 ## Residue and owned dependencies
 
 **A step no nen verb owns is named as residue in the report, never presented as a verb's output**, and
@@ -286,8 +300,10 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   plugin root (and ordering the checkout's manifest version against the bound pin's, zheref/hatsu#67), updating the plugin source and binding the pinned `nen` on the host (`scripts/nen_global.sh`: the
   `~/.local/bin/nen` link and the shell rc's PATH block, around nen's own bootstrap) are done by the warm-up's scripts and by hand: no nen
   verb owns a checkout's local exclude, a host's `PATH` or its shell profile, and where Hatsu is checked out is the host's property. The
-  login-shell probe (`"${SHELL:?}" -lic 'command -v nen && nen shu tools --repo "$1"' nen-probe "$hatsu_root" </dev/null`) and the name-correct host link ten § 2c offers as the fallback on its
-  verdict, where `nen_global.sh` did not bind the host, are the same kind (zheref/hatsu#164): a shell's `PATH` is the maintainer's, and nen binds no name on a host.
+  login-shell probe (`"${SHELL:?}" -lic 'command -v nen && nen shu tools --repo "$1"' nen-probe "$hatsu_root" </dev/null`) and the name-correct host link ten § 2c offers as the fallback by its
+  offer predicate (stated once there, verbatim in row `host-nen-link`) are the same kind (zheref/hatsu#164): a shell's `PATH` is the maintainer's, and nen binds no name on a host. § 6's reads —
+  `gh auth status`/`gh auth token`, `gh pr list --head <branch> --state all`, `git branch --merged origin/<branch.base>` — are hand-spelt too; an unnamed human-call prerequisite at its step 7 stops,
+  named, and the maintainer names the skill it is for by typing `then aka+mukai`.
   Cursor's version check is a string compare on a date part; the host-global half of the skill-name
   collision question has no answer from inside a repository.
 - **`shibari`.** The evidence mirror's publish step, the base-ref read (`gh pr view --json
