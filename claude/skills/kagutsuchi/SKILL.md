@@ -186,4 +186,4 @@ is reserved** — not this skill, not a composite.
   retries exit `3`, routes around a seat, sends twice, or claims a send it did not read.
 - **Never tags an undeclared target**, composes a tag name, tags after a plan-only run or a failed
   send, re-tags, or routes around a tag refusal; a green send is not a cut tag, and **G3** still
-  needs its own recorded go.
+  needs its own go.

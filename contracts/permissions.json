@@ -289,7 +289,7 @@
     {
       "exe": "gh",
       "args": "release create *",
-      "why": "G3 is mugetsu on a recorded go"
+      "why": "G3 is mugetsu on the maintainer's own go (mugetsu § 0)"
     },
     {
       "exe": "gh",
