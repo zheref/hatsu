@@ -623,7 +623,7 @@ FAIL by pointer — and [`docs/WORKFLOW.md`](docs/WORKFLOW.md) documents both.
 
 ### The range
 
-*Current pin, echoed for convenience:* **`nen >= 0.18`**, with the bootstrap installing **`v0.18.1`**.
+*Current pin, echoed for convenience:* **`nen >= 0.18`**, with the bootstrap installing **`v0.18.2`**.
 Those are two values and they move independently. Hatsu adopts the `nen runner` family, introduced in
 v0.18.0 and executed by `hatsu:jusshin`, on top of `nen canon pin` and `nen canon mirror generate|check
 --surfaces` (v0.16.0, `hatsu:limbo`), the futon label selector, `then` skill chains and advance-go gate, the
