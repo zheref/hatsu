@@ -161,3 +161,14 @@ taken option A asks the probe again. Option A gained `mkdir -p ~/.local/bin`, th
 rc file it would append to. Phinks proved 3/3 that a `## Unreleased` heading beside a 0.70.0 bump
 refuses at `scripts/release-publish.sh --dry-run`; the section is `## v0.70.0 — …` now. mugetsu § 7's
 `host nen:` token is `session nen:` so `host` means the login shell in every skill.
+
+**After Copilot's round (HA-PR-#181, head `ca467b1b`).** Five threads. The checkout path was embedded
+inside the single-quoted `-c` program — an apostrophe in it would change the command — so the probe now
+passes `"$hatsu_root"` as the program's `$1` (`… -lic '… --repo "$1"' nen-probe "$hatsu_root"`). The
+`ok` route's link operand "the real path of the `nen` § 1 ran, under the bootstrap cache" proved
+nothing about provenance (an in-range `/usr/local/bin/nen` satisfies § 1), so on `ok` the operand is
+what § 2b prints when run for its path — a cache hit, checksum verified — and never a path the
+bootstrap did not print; the row says the same. And the third reading had swallowed the issue's own
+case: a login shell that runs fine and finds no `nen` answered `not read` with no offer. Now exit `1`
+with nothing printed is the shell answering *no `nen`* — `installed, not reachable (no nen)`, the offer
+made — and `not read` is only the shell itself failing. The changelog bullet and the README say so.

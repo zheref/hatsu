@@ -120,8 +120,9 @@ installed copy runs does.)
 > directory `codex exec -s workspace-write` makes writable — so a session under that sandbox has nowhere to
 > install to. A Cursor session did run the bootstrap itself, checksum-verified, and put the result on its
 > own session `PATH`. Either way the warm-up then asks **your own login shell** whether `nen` resolves inside the contract's range
-> ([`ten`](claude/skills/ten/SKILL.md) § 2c) and, when it does not, reports *installed, not reachable* and offers the
-> one name-correct link (`~/.local/bin/nen`) — stated first, taken only on your word.
+> ([`ten`](claude/skills/ten/SKILL.md) § 2c): a build outside it, or no `nen` on that shell's `PATH`, reads *installed, not
+> reachable* and offers the one name-correct link (`~/.local/bin/nen`) — stated first, taken only on your word; a shell
+> the probe cannot run (unset or non-POSIX `$SHELL`, win32) reads *not read*, with no offer.
 
 ## Install
 
