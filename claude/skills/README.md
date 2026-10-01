@@ -4,12 +4,12 @@ This directory is the plugin's skill surface (`plugin.json` → `"skills": "./cl
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together
 under *Skills* by `claude plugin details`, which is why they are described together here.
 
-**Forty-eight skills at `v0.71.0`** (forty-seven at `v0.68.0`, forty-six at `v0.66.0`, forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`, forty-nine directories per surface with `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
+**Forty-eight skills at `v0.72.0`** (forty-seven at `v0.68.0`, forty-six at `v0.66.0`, forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`, forty-nine directories per surface with `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
 surface complete at `v0.1.0` — one of them, `drive`, **renamed to [`sharingan`](sharingan/) at `v0.5.0`** —
 the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side,
 **[`byakugan`](byakugan/) at `v0.24.0`**, the
 **three added at `v0.6.0`** that close the release side,
-**[`third-hand`](third-hand/) at `v0.27.0`** (a separate phase after En from `v0.28.0`), **[`great-hiker`](great-hiker/) at `v0.43.0`** (the canon-authoring skill, in its own section), **[`limbo`](limbo/) at `v0.60.0`** (the canon-mirror sync, beside `tenkai`), **[`bakuryuha`](bakuryuha/) at `v0.66.0`** (the plugin-update skill, in its own section), **[`jusshin`](jusshin/) at `v0.68.0`** (a consumer's self-hosted runners, beside `tenkai` and `limbo`), **[`rikugan`](rikugan/) at `v0.71.0`** (the final state upon delivery, beside `spiritual-message` — the name returns as a skill for the Rikugan page, distinct from its pre-`v0.42.0` meaning), and the **two roster-machinery residents** that
+**[`third-hand`](third-hand/) at `v0.27.0`** (a separate phase after En from `v0.28.0`), **[`great-hiker`](great-hiker/) at `v0.43.0`** (the canon-authoring skill, in its own section), **[`limbo`](limbo/) at `v0.60.0`** (the canon-mirror sync, beside `tenkai`), **[`bakuryuha`](bakuryuha/) at `v0.66.0`** (the plugin-update skill, in its own section), **[`jusshin`](jusshin/) at `v0.68.0`** (a consumer's self-hosted runners, beside `tenkai` and `limbo`), **[`rikugan`](rikugan/) at `v0.72.0`** (the final state upon delivery, beside `spiritual-message` — the name returns as a skill for the Rikugan page, distinct from its pre-`v0.42.0` meaning), and the **two roster-machinery residents** that
 arrived with the skeleton ([zheref/hatsu#1][1]) and are counted separately. Nothing here is reserved, and
 nothing here is a placeholder.
 
@@ -112,7 +112,7 @@ native option picker.
 ### The twenty-five workflow skills — twenty-one atomic, four composite
 
 **Atomic** — one phase each. The first nine shipped at `v0.4.0`; the five after them at `v0.5.0`; the last
-three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase split `v0.28.0`); `amenotejikara` at `v0.45.0`; `rikugan` at `v0.71.0`:
+three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase split `v0.28.0`); `amenotejikara` at `v0.45.0`; `rikugan` at `v0.72.0`:
 
 | Skill | What it does |
 |---|---|
@@ -167,7 +167,7 @@ without them, and they are recorded here rather than folded silently into the co
 
 | Resident | Why it exists |
 |---|---|
-| [`ten/SKILL.md`](ten/SKILL.md) | The **D10 dependency contract executing**. It probes `nen --version` against the range declared in [`../../nen/contract.json`](../../nen/contract.json) — kept at nen's own location and in nen's own shape, so `nen schema check --repo <this checkout>` validates the `dependency` block it reads (at `0.x`, `minimum: "0.3"` means `>=0.3.0 <0.4.0` — a different minor is out of range in *both* directions); when nen is **absent** it runs nen's own checksum-verified bootstrap directly, and when nen is **present but out of range** it re-pins through `nen bootstrap --script`. It halts with the exact command **only** if that bootstrap itself fails. It must run before any other Nen-owned work, including every skill above. Since `v0.49.0` (formerly `hatsu-warmup`) it also takes the invoking phase's name — `hatsu:ten <phase>` — and catches up that phase's missing safe prerequisites (fresh base, effort branch, catch-up, proven base, auth, declarations), stopping at any that is the maintainer's call (§ 6). |
+| [`ten/SKILL.md`](ten/SKILL.md) | The **D10 dependency contract executing**. It probes `nen --version` against the range declared in [`../../nen/contract.json`](../../nen/contract.json) — kept at nen's own location and in nen's own shape, so `nen schema check --repo <this checkout>` validates the `dependency` block it reads (at `0.x`, `minimum: "0.3"` means `>=0.3.0 <0.4.0` — a different minor is out of range in *both* directions); when nen is **absent** it runs nen's own checksum-verified bootstrap directly, and when nen is **present but out of range** it re-pins through `nen bootstrap --script`. It halts with the exact command **only** if that bootstrap itself fails. It must run before any other Nen-owned work, including every skill above. Since `v0.49.0` (formerly `hatsu-warmup`) it also takes the invoking phase's name — `hatsu:ten <phase>` — and catches up that phase's missing safe prerequisites (fresh base, effort branch, catch-up, proven base, auth, declarations), stopping at any that is the maintainer's call (§ 6). Since `v0.71.0` it also asks the maintainer's **own login shell** whether `nen` resolves inside the contract's range (§ 2c, zheref/hatsu#164): *installed, not reachable* is an unmet dependency with that reason; the name-correct host link is `scripts/nen_global.sh`'s to make at session start by default (§ 2, ruling A of 2026-09-30), and only where it did not bind the host, or the shell still resolves another `nen`, is the link an offer taken on their word (row `host-nen-link`, the fallback). |
 | [`../commands/kurapika.md`](../commands/kurapika.md) | The `/kurapika` summon surface both manifests advertise. An agent definition alone creates no invocable command, so without this the manifests would describe a surface that does not exist. |
 
 ---

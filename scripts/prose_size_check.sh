@@ -45,7 +45,7 @@ SKILL_MAX=12288
 RULES_MAX=12000
 
 # The twenty: fifteen from CHANGELOG v0.42.0 "The diet" plus black-voice, great-hiker, limbo,
-# bakuryuha and rikugan (new at v0.71.0), which were authored under the ceiling rather than reduced
+# bakuryuha and rikugan (new at v0.72.0), which were authored under the ceiling rather than reduced
 # to it. scripts/prose_size_check_fixture.sh reads THIS list, so it is the only one.
 DIETED_SKILLS="amaterasu backlog-board backlog-loop bakuryuha black-voice breath build futon great-hiker
 hanten limbo ten jujutsu jutaisho kagutsuchi kokusen rikugan spiritual-message sharingan shibari"
