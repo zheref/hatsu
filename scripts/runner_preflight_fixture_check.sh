@@ -16,8 +16,10 @@
 #   log hygiene   no step prints the service account's name or a resolved tool path (hanten F5)
 #   rendering     no @@PLACEHOLDER@@ left standing
 #   appdata       the Windows step normalises with nen's two-backslash form, and, lifted from the live
-#                 template and its rendering and run against a stubbed where.exe on three CRLF lines,
-#                 fails AppData and passes Program Files (Feitan BC-9, Nobunaga)
+#                 template and its rendering and run against a stubbed where.exe printing CRLF lines,
+#                 classifies the FIRST match only: AppData and the rest of $USERPROFILE fail, Program
+#                 Files passes over a stale later AppData match, no match is not found, and no path
+#                 is ever printed (Feitan BC-9, Nobunaga; Copilot on zheref/nen#318)
 #
 # Properties, not bytes: the template is not byte-identical to nen's own test template
 # (src/runner/fixtures/runner-preflight.template.yml) since F5, and nothing here compares them.
@@ -221,19 +223,23 @@ done
 # (Feitan BC-9 and Nobunaga on zheref/nen's rendering: the template carried `${line//\//}` -- ONE
 # backslash, so the pattern was a literal '/', where.exe's backslashes stood, */appdata/* never matched
 # and the step could only pass). The normalisation must be nen's own fixture's two-backslash form, and
-# the step, with where.exe stubbed as a shell function printing one CRLF-terminated line, must fail a
+# the step, with where.exe stubbed as a shell function printing CRLF-terminated lines, must fail a
 # backslash and a forward-slash path under AppData, pass a Program Files path, and never print the
-# path. Placeholder account names only.
-norm_lines="$(grep -E '^[[:space:]]*norm=' "$template" | sed 's/^[[:space:]]*//')"
-if [ "$norm_lines" = 'norm="${line//\\//}"' ]; then
-  pass "appdata step: the template normalises with norm=\"\${line//\\\\//}\" and nothing else"
+# path. Copilot's review of zheref/nen#318 added the rest: only the FIRST where.exe line is what a job
+# runs, so a stale later AppData match must not fail a Program Files first match; anywhere else under
+# $USERPROFILE (scoop shims, a profile bin) is per-user too, matched without regard to case; and no
+# line at all is 'not found'. Placeholder account names only.
+norm_lines="$(grep -E '^[[:space:]]*(norm|profile)=.*\\' "$template" | sed 's/^[[:space:]]*//')"
+want_norm="$(printf '%s\n' 'profile="${profile//\\//}"' 'norm="${first//\\//}"')"
+if [ "$norm_lines" = "$want_norm" ]; then
+  pass "appdata step: the template normalises the first match and the profile with the two-backslash \${x//\\\\//}"
 else
-  fail "appdata step: the template's normalisation is [$norm_lines], not exactly norm=\"\${line//\\\\//}\" (BC-9)"
+  fail "appdata step: the template's normalisation is [$norm_lines], not exactly [$want_norm] (BC-9)"
 fi
-if grep -Fq '${line//\//}' "$template"; then
-  fail "appdata step: the one-backslash \${line//\\//} (deletes '/', keeps '\\') is in the template (BC-9)"
+if grep -Fq '//\//}' "$template"; then
+  fail "appdata step: a one-backslash \${x//\\//} (deletes '/', keeps '\\') is in the template (BC-9)"
 else
-  pass "appdata step: the one-backslash \${line//\\//} is absent"
+  pass "appdata step: no one-backslash \${x//\\//} is present"
 fi
 # step_body <file> : the run: block of the Windows resolution step, de-indented.
 step_body() {
@@ -249,20 +255,38 @@ step_body() {
 for src in template rendering; do
   from="$template"; [ "$src" = rendering ] && from="$work/windows-x64.yml"
   step="$work/appdata-step-$src.sh"
-  { echo "where.exe() { printf '%s\\r\\n' \"\$STUB_PATH\"; }"; step_body "$from"; } > "$step"
+  # The stub prints each ';'-separated STUB_PATH entry as one CRLF line, in order, and nothing when empty.
+  { echo "where.exe() { local l; while IFS= read -r -d ';' l; do printf '%s\\r\\n' \"\$l\"; done <<< \"\${STUB_PATH:+\$STUB_PATH;}\"; }"
+    step_body "$from"; } > "$step"
   grep -q 'appdata' "$step" || { fail "appdata step ($src): the Windows resolution step was not found"; continue; }
-  for probe in 'C:\Users\x\AppData\Local\Programs\gh\gh.exe|1|gh: per-user (AppData)' \
-               'C:/Users/x/AppData/Local/gh.exe|1|gh: per-user (AppData)' \
-               'C:\Program Files\GitHub CLI\gh.exe|0|gh: machine-wide'; do
-    path="${probe%%|*}" rest="${probe#*|}"
+  # <USERPROFILE, '-' = unset>|<where.exe lines, ';'-separated>|<exit>|<first output line>
+  for probe in 'C:\Users\x|C:\Users\x\AppData\Local\Programs\gh\gh.exe|1|gh: per-user (AppData)' \
+               'C:\Users\x|C:/Users/x/AppData/Local/gh.exe|1|gh: per-user (AppData)' \
+               'C:\Users\x|C:\Program Files\GitHub CLI\gh.exe|0|gh: machine-wide' \
+               'C:\Users\x|C:\Program Files\GitHub CLI\gh.exe;C:\Users\x\AppData\Local\gh.exe|0|gh: machine-wide' \
+               'C:\Users\x|C:\Users\x\scoop\shims\gh.exe|1|gh: per-user (profile)' \
+               '-|C:\Users\x\AppData\Local\Programs\gh\gh.exe|1|gh: per-user (AppData)' \
+               '-|C:\Program Files\GitHub CLI\gh.exe|0|gh: machine-wide' \
+               'c:\users\X|C:\Users\x\bin\gh.exe|1|gh: per-user (profile)' \
+               'C:\Users\x||1|gh: not found'; do
+    prof="${probe%%|*}" rest="${probe#*|}"
+    path="${rest%%|*}" rest="${rest#*|}"
     want_code="${rest%%|*}" want="${rest#*|}"
-    out="$(STUB_PATH="$path" TOOLS=gh bash "$step" 2>&1)"
+    if [ "$prof" = - ]; then
+      out="$(env -u USERPROFILE STUB_PATH="$path" TOOLS=gh bash "$step" 2>&1)"
+    else
+      out="$(USERPROFILE="$prof" STUB_PATH="$path" TOOLS=gh bash "$step" 2>&1)"
+    fi
     code=$?
     first="$(printf '%s\n' "$out" | head -n 1)"
-    if [ "$code" = "$want_code" ] && [ "$first" = "$want" ] && [ "${out#*Users}" = "$out" ]; then
-      pass "appdata step ($src): $path (CRLF) -> exit $code, '$want', path not printed"
+    case "$out" in
+      *'Users\x'*|*'Users/x'*|*'users/x'*|*'users\x'*|*'Users\X'*|*'users\X'*) printed=yes ;;
+      *) printed=no ;;
+    esac
+    if [ "$code" = "$want_code" ] && [ "$first" = "$want" ] && [ "$printed" = no ]; then
+      pass "appdata step ($src): USERPROFILE=$prof, where.exe [$path] (CRLF) -> exit $code, '$want', no path printed"
     else
-      fail "appdata step ($src): $path -> exit $code '$first', not exit $want_code '$want' (BC-9: the AppData check fails open), or the path was printed"
+      fail "appdata step ($src): USERPROFILE=$prof, where.exe [$path] -> exit $code '$first' (path printed: $printed), not exit $want_code '$want' with no path printed"
     fi
   done
 done
