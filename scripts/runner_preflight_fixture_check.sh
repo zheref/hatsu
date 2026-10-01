@@ -255,11 +255,16 @@ step_body() {
 for src in template rendering; do
   from="$template"; [ "$src" = rendering ] && from="$work/windows-x64.yml"
   step="$work/appdata-step-$src.sh"
-  # The stub prints each ';'-separated STUB_PATH entry as one CRLF line, in order, and nothing when empty.
-  { echo "where.exe() { local l; while IFS= read -r -d ';' l; do printf '%s\\r\\n' \"\$l\"; done <<< \"\${STUB_PATH:+\$STUB_PATH;}\"; }"
+  # The stub prints each ';'-separated STUB_PATH entry as one CRLF line, in order, and nothing when empty
+  # -- the PATH search. Like the real where.exe, a bare `where.exe <tool>` searches the current directory
+  # FIRST, where the job just checked the repository out, so without the `$PATH:` prefix the stub prints
+  # a checkout-local C:\a\checkout\gh.exe ahead of those lines (Copilot on zheref/hatsu#178). Every case
+  # below therefore also proves the step calls `where.exe "\$PATH:<tool>"`.
+  { echo "where.exe() { local l; case \"\$1\" in '\$PATH:'*) ;; *) printf '%s\\r\\n' 'C:\\a\\checkout\\gh.exe' ;; esac"
+    echo "  while IFS= read -r -d ';' l; do printf '%s\\r\\n' \"\$l\"; done <<< \"\${STUB_PATH:+\$STUB_PATH;}\"; }"
     step_body "$from"; } > "$step"
   grep -q 'appdata' "$step" || { fail "appdata step ($src): the Windows resolution step was not found"; continue; }
-  # <USERPROFILE, '-' = unset>|<where.exe lines, ';'-separated>|<exit>|<first output line>
+  # <USERPROFILE, '-' = unset>|<where.exe PATH lines, ';'-separated>|<exit>|<first output line>[|<case name>]
   for probe in 'C:\Users\x|C:\Users\x\AppData\Local\Programs\gh\gh.exe|1|gh: per-user (AppData)' \
                'C:\Users\x|C:/Users/x/AppData/Local/gh.exe|1|gh: per-user (AppData)' \
                'C:\Users\x|C:\Program Files\GitHub CLI\gh.exe|0|gh: machine-wide' \
@@ -268,10 +273,13 @@ for src in template rendering; do
                '-|C:\Users\x\AppData\Local\Programs\gh\gh.exe|1|gh: per-user (AppData)' \
                '-|C:\Program Files\GitHub CLI\gh.exe|0|gh: machine-wide' \
                'c:\users\X|C:\Users\x\bin\gh.exe|1|gh: per-user (profile)' \
-               'C:\Users\x||1|gh: not found'; do
+               'C:\Users\x||1|gh: not found' \
+               'C:\Users\x|C:\Users\x\AppData\Local\Programs\gh\gh.exe|1|gh: per-user (AppData)|a checkout-local same-named gh.exe must not hide the per-user one on PATH ($PATH: form)'; do
     prof="${probe%%|*}" rest="${probe#*|}"
     path="${rest%%|*}" rest="${rest#*|}"
-    want_code="${rest%%|*}" want="${rest#*|}"
+    want_code="${rest%%|*}" rest="${rest#*|}"
+    want="${rest%%|*}" name=""
+    [ "$want" != "$rest" ] && name=" [${rest#*|}]"
     if [ "$prof" = - ]; then
       out="$(env -u USERPROFILE STUB_PATH="$path" TOOLS=gh bash "$step" 2>&1)"
     else
@@ -284,9 +292,9 @@ for src in template rendering; do
       *) printed=no ;;
     esac
     if [ "$code" = "$want_code" ] && [ "$first" = "$want" ] && [ "$printed" = no ]; then
-      pass "appdata step ($src): USERPROFILE=$prof, where.exe [$path] (CRLF) -> exit $code, '$want', no path printed"
+      pass "appdata step ($src)$name: USERPROFILE=$prof, where.exe [$path] (CRLF) -> exit $code, '$want', no path printed"
     else
-      fail "appdata step ($src): USERPROFILE=$prof, where.exe [$path] -> exit $code '$first' (path printed: $printed), not exit $want_code '$want' with no path printed"
+      fail "appdata step ($src)$name: USERPROFILE=$prof, where.exe [$path] -> exit $code '$first' (path printed: $printed), not exit $want_code '$want' with no path printed"
     fi
   done
 done

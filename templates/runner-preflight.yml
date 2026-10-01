@@ -144,6 +144,12 @@ jobs:
       # (AppData); anywhere else under the service user's profile ($USERPROFILE
       # -- scoop shims, a profile bin) is per-user (profile); the rest is
       # machine-wide. Every tool is classified before the step fails on any.
+      # where.exe is called as `$PATH:<tool>` (the dollar escaped from bash):
+      # a bare `where.exe <tool>` searches the CURRENT DIRECTORY first, and the
+      # job has just checked the repository out there, so a same-named file in
+      # it would become the first match and hide a per-user one. The form
+      # searches the PATH directories only -- the service's PATH, which is what
+      # a machine-located tool (W1) has to be on.
       # Each tool's NAME and verdict are printed, never the path it resolved to
       # nor the profile: either carries an account name, and on a public
       # repository this log is public. Bash built-ins only.
@@ -160,7 +166,7 @@ jobs:
           profile="${profile//\\//}"
           profile="${profile%/}"
           for tool in $TOOLS; do
-            resolved="$(where.exe "$tool" 2>/dev/null || true)"
+            resolved="$(where.exe "\$PATH:$tool" 2>/dev/null || true)"
             first=""
             IFS= read -r first <<< "$resolved" || true
             first="${first//$'\r'/}"
