@@ -97,7 +97,7 @@ There are two execution/policy configuration files, and the split is not stylist
 | **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — both at the build `nen/contract.json` pins; dated evidence retains the version it actually exercised |
 
 > **The nen DEPENDENCY is the third block of the first file, and its two version values move
-> independently.** `dependency.minimum` is `0.18` and `dependency.pinned_ref` is `v0.18.1`: the first is the
+> independently.** `dependency.minimum` is `0.18` and `dependency.pinned_ref` is `v0.18.2`: the first is the
 > pin this repository declares, the second is the build its bootstrap installs. **The range `minimum`
 > stands for is nen's answer, not a document's** — the binary ships `COMPATIBLE_MINOR_FLOOR`, the lowest
 > `minimum` pin it satisfies, and `nen shu tools` applies it, prints it as `compat floor:` and carries it
