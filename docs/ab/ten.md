@@ -158,8 +158,8 @@ win32 each landed on "nothing" and would have triggered the offer; a third readi
 <first stderr line>)`, now covers them with no offer, and the probe reads `</dev/null` so a prompting
 rc file cannot block it. § 4 says what replaces `warm-up clear` (`warm-up: unmet — host: …`), and a
 taken option A asks the probe again. Option A gained `mkdir -p ~/.local/bin`, the `PATH` read and the
-rc file it would append to. Phinks proved 3/3 that a `## Unreleased` heading beside a 0.70.0 bump
-refuses at `scripts/release-publish.sh --dry-run`; the section is `## v0.70.0 — …` now. mugetsu § 7's
+rc file it would append to. Phinks proved 3/3 that a `## Unreleased` heading beside a 0.71.0 bump
+refuses at `scripts/release-publish.sh --dry-run`; the section is `## v0.71.0 — …` now. mugetsu § 7's
 `host nen:` token is `session nen:` so `host` means the login shell in every skill.
 
 **After Copilot's round (HA-PR-#181, head `ca467b1b`).** Five threads. The checkout path was embedded

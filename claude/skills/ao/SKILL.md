@@ -85,9 +85,16 @@ before it touches anything: `state.branch`, `state.isTrunk`, `state.dirty`, `sta
 > **`nen wc classify` is not a conflict detector, and a half-finished merge reads as ordinary
 > dirt — verified live (`docs/ab/ao.md` § 2.2).** Run inside an unresolved merge it reports
 > `on-branch-dirty` with the conflicted paths counted among "uncommitted path(s)", saying nothing
-> about the merge in progress. So **check for one before classifying**: a `.git/MERGE_HEAD` or
-> `.git/rebase-merge` present means a previous run stopped here, and this run reports that state
-> rather than starting a second operation on top of it.
+> about the merge in progress. So **ask git for one before classifying**, never `.git/` on disk (in a
+> linked worktree `.git` is a file): `git rev-parse -q --verify MERGE_HEAD` resolving, or `git
+> rebase --show-current-patch` exiting `0` (a rebase stopped on a patch: a conflict, or an `edit`
+> stop), means a previous operation stopped here, and this run **reports that state and starts
+> nothing** — never a second operation on top of it, and never a re-run of `wc catch-up` from here,
+> which would commit a merge with git's default message and no re-proved build (§ 5). The probe's
+> other answers: `1` (a rebase paused with no current patch, at a `break` or a failed `exec`) is not
+> ao's, so the run **reports it with git's own `--continue` / `--abort` and stops here**, never relying
+> on catch-up to refuse it, which a host still on nen 0.18.0 or 0.18.1 does not (zheref/hatsu#182);
+> `128` is no rebase, so classify; anything else is left to § 3's unanswered-probe row.
 
 ## 3. Which operation — rebase or merge, decided by whether anything was published
 
@@ -102,10 +109,18 @@ nen wc catch-up --repo <path> --base <base> [--strategy rebase|merge|auto] [--dr
 **The verb fetches first, then decides, and the decision is made against what origin says now**,
 never against what this checkout last heard. `auto` (what ao passes) rebases when nothing of the
 branch is on `@{upstream}` and merges otherwise; `--strategy rebase|merge` names one only where the
-caller has a reason, said out loud. A dirty tree refuses at exit `2` before any mutation. Exit `0`
+caller has a reason, said out loud. Exit `0`
 reports `{base, strategy, before, after, behindBefore, aheadBefore, noOp}`, and **a `noOp: true` is
-still reported with both SHAs**, never as "nothing to do". A conflict exits `1` with
-`conflicted: [{path, ours, theirs}]` and the abort line printed, and § 4 takes over.
+still reported with both SHAs**, never as "nothing to do". Every other exit, read off nen v0.18.2:
+
+| Exit | What it is | ao |
+|---|---|---|
+| `1`, **with** a report whose `conflicted[]` is non-empty | a conflict; the abort line is printed | § 4 takes over |
+| `1`, **no** report | a fetch, status or HEAD read failed, a rebase or merge failed without a conflict, or a `--continue` failed | stop: quote nen's stderr sentence verbatim, say the tree is as git left it; never § 4 |
+| `2`, a rebase paused at a `break` or a failed `exec` (v0.18.2) | not ao's rebase | quote nen's sentence, which names `git rebase --continue` / `--abort`; never continue or abort it |
+| `2`, a rebase probe git did not answer (v0.18.2) | there may be no rebase at all | quote nen's sentence and stop, naming no git command |
+| `2`, anything else | a refusal before any mutation: a dirty tree, a `--base` git rejects, a `--strategy` that disagrees with the operation in progress, a git too old for `--end-of-options`, no repository root | quote it verbatim and stop |
+| any other exit | unexpected | stop and quote it |
 
 - **`strategy: merge`** → the branch exists on the remote → the base merged in.
 - **`strategy: rebase`** → nothing published → the branch replayed onto `origin/<base>`.
@@ -295,8 +310,9 @@ and the pair of SHAs is the cheapest possible way to say so.
    off the porcelain table.
 5. **RETIRED at nen `0.13`: showing both sides** (§ 6) is `conflicted[]`'s `ours`/`theirs`; only a
    `:1:` base stage is still `git show`.
-6. **The in-progress-merge check** (§ 2) — `.git/MERGE_HEAD` / `.git/rebase-merge` on disk;
-   `nen wc classify` folds an unresolved merge into `on-branch-dirty` (verified live).
+6. **The in-progress check** (§ 2) — `git rev-parse -q --verify MERGE_HEAD` and `git rebase
+   --show-current-patch`, asked of git, never of `.git/` on disk, which a linked worktree's `.git`
+   file hides; `nen wc classify` folds an unresolved merge into `on-branch-dirty` (verified live).
 7. **RETIRED at nen `0.13`: the merge commit itself** (§ 5) is `nen commit write --message-file`,
    gated on `commit format`'s exit code with the two streams kept apart; a rebase finishes by
    re-running `wc catch-up`.
