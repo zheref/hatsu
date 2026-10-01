@@ -307,8 +307,9 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
 - **`jusshin`.** The elevated launch on Windows has no verb by design: the session runs `nen runner script --json`'s own `launch` line (`Start-Process -Verb RunAs`) through the harness's own permission prompt — no allow row exists, so that prompt is the maintainer's advance consent — and the UAC consent and the typed service-account password are the maintainer's on-device acts, as `sudo bash <script>` on Linux and the Login Items approval on macOS are. Reading the one-line `register-<ts>.summary` newer than the launch is by hand, and the transcript is never read. The script is rendered outside the runner root; locking the root down, keeping the secrets off `config.cmd`'s argv and writing the summary file are nen's, owned in [zheref/nen#312](https://github.com/zheref/nen/issues/312). The shared `_work/_actions` cache across one host's runners, runner removal, organization runner groups and `--ephemeral` supervisors have no verb yet — owed, unfiled — and are named, never improvised.
 - **`rikugan`.** Which objects the last completed workflow touched is read from that run's own record
   and the checkout (`gh pr list --head <branch> --state all`, the PR body's closing lines) — no nen verb
-  derives a run's scope; `nen report data --prs <n,...>` then fetches them, because `--backlog` returns
-  open objects only and a merged PR or closed issue in the scope is fetched by number, never dropped.
+  derives a run's scope; `nen report data --base origin/<branch.base> --prs <n,...> --issues <n,...>`
+  then fetches them in one call, merged PRs and closed issues included (`--base` is required, exit 2
+  without it; verified nen 0.18.1, 2026-09-30).
 - **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`.
 - **`kagutsuchi` § 3a.** The freshness gate is `scripts/send_freshness_check.sh` — a `git fetch`,
   `rev-parse`, `rev-list` and `status --porcelain` over the archive's recorded build SHA — and the

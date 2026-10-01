@@ -10,6 +10,19 @@ bootstrap="$hatsu_root/scripts/surface_bootstrap.sh"
 fixture_root="$(mktemp -d "${TMPDIR:-/tmp}/hatsu-surface-bootstrap.XXXXXX")"
 trap 'rm -rf "$fixture_root"' EXIT
 
+# HERMETIC HOOKS. hooks/session-start.sh's step 0 binds the host nen (scripts/nen_global.sh):
+# it may fetch from the network and write ~/.local/bin, ~/.cache/nen and the shell profiles. No
+# case here may reach the real HOME or the network, so the opt-out is exported for the whole
+# script AND every hook invocation runs under a throwaway HOME/XDG tree that is asserted empty
+# at the end (scripts/nen_global_fixture_check.sh owns the step-0 cases).
+export HATSU_NEN_GLOBAL=0
+hook_home="$fixture_root/hook-home"
+mkdir -p "$hook_home"
+hook_env() {
+  env -u PLUGIN_ROOT -u CLAUDE_PLUGIN_ROOT HOME="$hook_home" XDG_CACHE_HOME="$hook_home/.cache" \
+    XDG_CONFIG_HOME="$hook_home/.config" HATSU_NEN_GLOBAL=0 "$@"
+}
+
 fail() {
   echo "surface-bootstrap-fixture: $*" >&2
   exit 1
@@ -664,7 +677,7 @@ session_start="$hatsu_root/hooks/session-start.sh"
 
 # (a) The source copy (no marker on line 2) prints the warm-up reminder and
 #     exits 0 -- this is the plugin running under Claude Code itself.
-source_copy_output="$(HATSU_PLUGIN_ROOT= "$session_start" 2>&1)"
+source_copy_output="$(hook_env HATSU_PLUGIN_ROOT= "$session_start" 2>&1)"
 source_copy_status=$?
 [ "$source_copy_status" -eq 0 ] || fail "session-start.sh source copy exited $source_copy_status, expected 0"
 case "$source_copy_output" in
@@ -683,7 +696,7 @@ mkdir -p "$non_consumer_target/.cursor"
 exclude_path="$(git -C "$non_consumer_target" rev-parse --git-path info/exclude)"
 case "$exclude_path" in /*) ;; *) exclude_path="$non_consumer_target/$exclude_path" ;; esac
 [ -f "$exclude_path" ] && cp "$exclude_path" "$fixture_root/hook-non-consumer-exclude-before" || : > "$fixture_root/hook-non-consumer-exclude-before"
-( cd "$non_consumer_target" && HATSU_PLUGIN_ROOT="$hatsu_root" "$hatsu_root/surfaces/cursor/hooks/session-start.sh" >/dev/null 2>&1 )
+( cd "$non_consumer_target" && hook_env HATSU_PLUGIN_ROOT="$hatsu_root" "$hatsu_root/surfaces/cursor/hooks/session-start.sh" >/dev/null 2>&1 )
 [ -z "$(find "$non_consumer_target/.cursor" -mindepth 1)" ] || fail "session-start.sh installed into a non-consumer target's empty .cursor/"
 if [ -f "$exclude_path" ]; then
   cmp -s "$fixture_root/hook-non-consumer-exclude-before" "$exclude_path" || fail "session-start.sh changed info/exclude for a non-consumer target"
@@ -698,7 +711,7 @@ new_fixture "$both_dirs_target"
 mkdir -p "$both_dirs_target/.codex" "$both_dirs_target/.cursor"
 mark_adopted "$both_dirs_target" cursor
 rm -rf "$both_dirs_target/.nen"
-( cd "$both_dirs_target" && HATSU_PLUGIN_ROOT="$hatsu_root" "$hatsu_root/surfaces/cursor/hooks/session-start.sh" >/dev/null 2>&1 )
+( cd "$both_dirs_target" && hook_env HATSU_PLUGIN_ROOT="$hatsu_root" "$hatsu_root/surfaces/cursor/hooks/session-start.sh" >/dev/null 2>&1 )
 [ -f "$both_dirs_target/.nen/session-start.log" ] || fail "cursor-marked session-start.sh copy did not run the bootstrap at all"
 grep -q 'surface bootstrap: cursor' "$both_dirs_target/.nen/session-start.log" || fail "cursor-marked session-start.sh copy picked a surface other than its own marker: $(cat "$both_dirs_target/.nen/session-start.log")"
 
@@ -712,7 +725,7 @@ chmod +x "$hostile_root/scripts/surface_bootstrap.sh"
 hostile_target="$fixture_root/hook-hostile-root-target"
 new_fixture "$hostile_target"
 mark_adopted "$hostile_target" cursor
-( cd "$hostile_target" && HATSU_PLUGIN_ROOT="$hostile_root" "$hatsu_root/surfaces/cursor/hooks/session-start.sh" >/dev/null 2>&1 )
+( cd "$hostile_target" && hook_env HATSU_PLUGIN_ROOT="$hostile_root" "$hatsu_root/surfaces/cursor/hooks/session-start.sh" >/dev/null 2>&1 )
 [ ! -e "$hostile_root/EXECUTED" ] || fail "session-start.sh executed scripts/surface_bootstrap.sh out of an unverified HATSU_PLUGIN_ROOT"
 
 # The v0.49.0 rename cases (Phinks P-1 and P-3, docs/ROSTER.md ruling 9):
@@ -731,5 +744,8 @@ if command -v nen >/dev/null 2>&1; then
 else
   echo "surface-bootstrap-fixture: getsuga default cut point case skipped (nen not on PATH)"
 fi
+
+# Step 0 was opted out and homed under a throwaway tree: that tree is still empty.
+[ -z "$(ls -A "$hook_home")" ] || fail "a hook run wrote into its HOME ($(ls -A "$hook_home" | tr '\n' ' ')); step 0 must have been opted out"
 
 echo "surface-bootstrap-fixture: Codex, Cursor, and Antigravity first-run bootstrap checks passed"

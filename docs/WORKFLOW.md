@@ -641,7 +641,7 @@ surface for exactly this reason: **the tier is the policy and the alias is the s
 | `fast` — `worker`, `measurer` | `sonnet` | `terra` | `composer` | `flash` |
 | `economy` — `watcher`, `formatter` | `haiku` | `luna` | `composer` | `flash` |
 | **how a subagent is raised** | the harness's **Agent tool**; Hanten **omits** `isolation` — `isolation: "worktree"` would isolate the *plugin's* repository, not the target | **in-session `spawn_agent`** (ChatGPT app, CLI, IDE). Hanten's isolated reviewer is still a second **`codex exec -m <id> -C <dir> -s workspace-write`** because that reviewer must not share the author's tree | a **subagent definition** at `.cursor/agents/<persona>.md`, mirrored there from `claude/agents/` | the harness's **`invoke_subagent` tool**, `Workspace: "branch"` (reviewers and all builder efforts) or `"inherit"` (Third-Hand's Netero, En's Illumi), `Model: "pro"` |
-| **isolation** | Hanten's reviewer: **`git -C <target> worktree add --detach <target>/.nen/worktrees/claude-code/hanten-<persona> HEAD` first**, the path in the prompt with *"do not request a worktree"*, removed when the review returns ([`hanten`](../claude/skills/hanten/SKILL.md) § 4) | in-session spawn **shares the parent**; Hanten's reviewer is still **`git worktree add` first**, at `<target>/.nen/worktrees/codex/hanten-<persona>` — `-C` takes a directory and creates none | the surface's own; the skill states which it got — a worktree Hatsu makes is `<target>/.nen/worktrees/cursor/<name>` | **`Workspace: "branch"`** by default for all builder efforts and Hanten reviewers; **`"inherit"`** for Third-Hand's Netero (`share` only when it is the same checkout); the lead's own `git worktree add` goes to `.nen/worktrees/antigravity/<name>`. Core checkout is untouched by default unless maintainer explicitly waives in prose |
+| **isolation** | Hanten's reviewer: **`<core>` resolved first — `nen wc worktrees --repo <target> --json` → `core` — then `git -C <target> worktree add --detach <core>/.nen/worktrees/claude-code/hanten-<persona> HEAD`**, the path in the prompt with *"do not request a worktree"*, removed when the review returns ([`hanten`](../claude/skills/hanten/SKILL.md) § 4) | in-session spawn **shares the parent**; Hanten's reviewer is still **`git worktree add` first**, at `<core>/.nen/worktrees/codex/hanten-<persona>` — `-C` takes a directory and creates none | the surface's own; the skill states which it got — a worktree Hatsu makes is `<core>/.nen/worktrees/cursor/<name>` | **`Workspace: "branch"`** by default for all builder efforts and Hanten reviewers; **`"inherit"`** for Third-Hand's Netero (`share` only when it is the same checkout); the lead's own `git worktree add` goes to `.nen/worktrees/antigravity/<name>`. Core checkout is untouched by default unless maintainer explicitly waives in prose |
 
 Every worktree Hatsu makes, on every surface, lives under `<core>/.nen/worktrees/<surface>/` — § *Where
 worktrees live*, the ruling of 2026-09-30.
@@ -1249,10 +1249,13 @@ cache, which is what the version bump in `.claude-plugin/plugin.json` exists to 
 
 ## 6 · The hooks
 
-[`../hooks/hooks.json`](../hooks/hooks.json) carries three Claude Code hooks: `SessionStart` (`hooks/session-start.sh`: first the pinned `nen` bound on the host through `scripts/nen_global.sh` — `~/.local/bin/nen` and the shell rc's PATH block, opt-out `HATSU_NEN_GLOBAL=0`, ruling 2026-09-30 — then a warm-up reminder on Claude Code and, on a mirrored surface, a mirror refresh in a repository that already adopted Hatsu, fail-open; [`docs/SURFACES.md`](SURFACES.md) § 1), `Stop` and `PreToolUse`. **None is a nen-owned step** — the binding runs nen's own bootstrap and links what it verified.
+[`../hooks/hooks.json`](../hooks/hooks.json) carries three Claude Code hooks: `SessionStart` (`hooks/session-start.sh`: first the pinned `nen` bound on the host through `scripts/nen_global.sh` — `~/.local/bin/nen` and the shell rc's PATH block, opt-out `HATSU_NEN_GLOBAL=0|false|no|off` or `${XDG_CONFIG_HOME:-$HOME/.config}/hatsu/nen-global` reading `off`, ruling 2026-09-30 — then a warm-up reminder on Claude Code and, on a mirrored surface, a mirror refresh in a repository that already adopted Hatsu, fail-open; [`docs/SURFACES.md`](SURFACES.md) § 1), `Stop` and `PreToolUse`. **None is a nen-owned step** — the binding runs nen's own bootstrap and links what it verified.
 They are executed by the harness *around* a session rather than by a skill *inside* one, and they exist for
-the two things a skill structurally cannot do: a skill only runs when the model calls it, and by the time the
-model has stopped talking, or has already typed the push, it is too late.
+the three things a skill structurally cannot do: a skill only runs when the model calls it, by the time the
+model has stopped talking, or has already typed the push, it is too late — and **binding the host's `nen`
+before any skill runs** (the hooks' third purpose, ruling of 2026-09-30). That step 0 runs on the source
+copy always, and on a mirrored copy only once its plugin root (`HATSU_PLUGIN_ROOT`, Codex's `PLUGIN_ROOT`)
+is verified; a watchdog bounds it at about 50 s even where no `timeout` exists.
 
 | Hook | Event | What it does |
 |---|---|---|
@@ -1710,9 +1713,9 @@ because the script's idempotence is built on the path being fixed.
 ### Integrity
 
 - **A nested worktree survives `git clean -fdx`** (verified locally, 2026-09-30): a linked worktree at
-  an ignored `.nen/worktrees/claude/wt1` holding an uncommitted file stayed — git prints *Skipping
-  repository .nen/worktrees/claude/wt1* — because `clean` does not enter a nested repository on one
-  `-f`. **`git clean -ffdx` removes `.nen/` wholesale**, every worktree's uncommitted work with it. So
+  an ignored `.nen/worktrees/claude-code/wt1` — the verified probe — holding an uncommitted file
+  stayed — git prints *Skipping repository .nen/worktrees/claude-code/wt1* — because `clean` does not
+  enter a nested repository on one `-f`. **`git clean -ffdx` removes `.nen/` wholesale**, every worktree's uncommitted work with it. So
   **`git clean -ff…` is never run in a core checkout that holds worktrees**; the sweep is `git worktree
   remove <path>` per worktree, then `git worktree prune`.
 - **Containment is both ways.** Deleting the core checkout deletes its worktrees, and a worktree's

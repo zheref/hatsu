@@ -309,7 +309,7 @@ run would have measured.
 > This run did not do it, and starting it is your call.
 
 Where the successor differs by outcome, all applicable ones are named. Where the phase is terminal in
-its own pipeline (`jutaisho`, `mugetsu`, `kagutsuchi`, `third-hand`), **it says that instead** — the
+its own pipeline (`jutaisho`, `mugetsu`, `kagutsuchi`, `third-hand`, `rikugan`), **it says that instead** — the
 terminal statement discharges this clause exactly as a hand-back line does.
 
 **Naming is not offering, and where a skill's own prose forbids even the naming, its prose wins.**
@@ -349,7 +349,7 @@ both.
 | [`mugetsu`](../claude/skills/mugetsu/SKILL.md) | nothing new — `G3` | nothing, except a missing part of a go on the maintainer's own same-turn `hatsu:mugetsu <target>`, typed. **The go is the maintainer's** |
 | [`third-hand`](../claude/skills/third-hand/SKILL.md) | S3 — "this sitting", from the branch and any open PR | the harvest pick, as it always did |
 | [`murasaki`](../claude/skills/murasaki/SKILL.md) | S1 — the base, hence the catch-up; conflicts classified before one is touched | only a dirty working copy, before git state moves |
-| [`rikugan`](../claude/skills/rikugan/SKILL.md) | S3 + S4 — the scope: the objects the session's last completed workflow touched, read from that run's record, else from the checkout (the branch's open or merged PR and the issues its body closes); **P3 is declined** — the subject is a state, not a delta, and `(fetched <sha>)` is never asserted. Terminal in its own pipeline: the hand-back line says so | the scope, as **free text**, only when neither the session nor the checkout yields one (`missing-argument`) — never the whole backlog by default |
+| [`rikugan`](../claude/skills/rikugan/SKILL.md) | S3 + S4 — the scope, in its § 2 order: handed over by the composite that names it, typed, the objects the session's last completed workflow touched (read from that run's record), else the checkout (the branch's open or merged PR and the issues its body closes); **P1b is declined** (read-only) and **P3 is declined** — the subject is a state, not a delta, and `(fetched <sha>)` is never asserted. Terminal in its own pipeline: the hand-back line says so | the scope, as **free text**, only when neither the session nor the checkout yields one (`missing-argument`) — never the whole backlog by default |
 
 
 ### 7b · Twelve whose `## 0.` adds P1, orientation and expectations only

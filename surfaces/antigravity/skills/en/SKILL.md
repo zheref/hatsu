@@ -205,7 +205,7 @@ Past the maximum the run ends at not-ready with the board. Neither is a G5. `nen
 | 4 | **drive again** | [`/sharingan`](../sharingan/SKILL.md) | after step 3 moved the tree underneath it |
 | 5 | **observe** | this file, § 6 | while CI or a reviewer round is pending; each poll runs `nen wake verify` in dry-run (no `--run`), and `--run` only when a swallowed run is found; rebuild the current-head snapshot on every change, returning to steps 2–4 when action is needed |
 | 6 | **the merge, then the bell** | this file, § 5; the report through [`/jutaisho`](../jutaisho/SKILL.md)'s four parts | **after verified Ready or § 6's sixth stop**, and only then — **not under `getsuga` § 3**, where the verdict returns to getsuga and § 3a merges |
-| 7 | **the dated final report** | [`/backlog-board`](../backlog-board/SKILL.md) § 3, `--variant final` | after the bell; this is En's successful terminus |
+| 7 | **the dated final report** | [`/rikugan`](../rikugan/SKILL.md) (§ 8), which composes backlog-board § 3's `--variant final` | after the bell; this is En's successful terminus |
 
 **Four orderings are en's own assertions:**
 

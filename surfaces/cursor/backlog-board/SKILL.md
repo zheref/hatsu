@@ -66,7 +66,7 @@ with `nen pr ready`'s verdict), status colour (`nen color status`), the expected
 Then the object rows, from the verb that owns them:
 
 ```bash
-nen report data --repo <path> --target <owner/name> --backlog --json
+nen report data --repo <path> --base origin/<branch.base> --target <owner/name> --backlog --json  # --base is required: exit 2 without it
 ```
 
 `objects[]` is one row per open issue and PR:
@@ -138,8 +138,8 @@ empty and the block does not render.
 final`, titled by the effort's headline (§ *Report titles*): one effort, a cleared desk, at
 `<reports.dir>/<generatedDateLocal>-<effort>.html` (ruling 2026-09-19) — the one render kept on disk.
 **Its callable entry is [`/rikugan`](../rikugan/SKILL.md)** (ruling 2026-09-30): typed, a futon
-`then rikugan` step, or the closing step of any composite — it composes this section by name and
-this section stays the render path.
+`then rikugan` step, or the closing step of a composite that names it (`en`, `futon`, `backlog-loop`)
+— it composes this section by name and this section stays the render path.
 
 ## 4. Publish it
 

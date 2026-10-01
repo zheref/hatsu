@@ -382,13 +382,13 @@ One block, then stop:
 - **The host re-pin, when the repository just published IS this session's `nen`** (zheref/hatsu#90):
   the target's `origin` (`nen repo resolve --repo <path> --from <path>`) resolves to the plugin's
   `nen/contract.json` → `dependency.source`, and § 5 has just attached the assets. Then, **before any
-  further `nen` invocation**, [`ten`](../ten/SKILL.md) § 2b's verb and nothing else, for **the tag this
+  further `nen` invocation**, [`ten`](../ten/SKILL.md) § 2's verb line and nothing else, for **the tag this
   run published, read back from the release § 5 wrote** — never a tag listing; a `<newTag>` that is not
   that release is a halt, not a fallback:
 
   ```bash
   d="$(mktemp -d)"; curl -fsSL <dependency.bootstrap.url with <newTag> in place of the pinned ref> -o "$d/nen-bootstrap.sh"
-  out="$(nen bootstrap --ref <newTag> --source <dependency.source> --script "$d/nen-bootstrap.sh")" || { rc=$?; repin="FAILED: rc $rc"; }   # ten § 2b's verb; NOT ten § 3's halt
+  out="$(nen bootstrap --ref <newTag> --source <dependency.source> --script "$d/nen-bootstrap.sh")" || { rc=$?; repin="FAILED: rc $rc"; }   # ten § 2's verb line; NOT ten § 3's halt
   verified="${out##*$'\n'}"; { [ -z "${rc:-}" ] && [ -x "$verified" ]; } || repin="${repin:-FAILED: not executable}"   # BEFORE any ln or PATH
   [ -n "${repin:-}" ] || { mkdir -p "$d/bin" && ln -sfn "$verified" "$d/bin/nen" && export PATH="$d/bin:$PATH"; }   # (b) this session
   ```
@@ -397,7 +397,7 @@ One block, then stop:
   halt; here § 5 has already published, so a failed re-pin **links nothing, keeps the pre-release
   binary the session came in with on PATH (said), and goes into the report** as `host nen: <version>
   on PATH; re-pin FAILED: rc <n>` — § 6's release-PR comment and the publication report still go out,
-  and the next session's `ten` § 2b meets the new pin or halts there. A failed re-pin and a skipped
+  and the next session's `ten` § 2 meets the new pin or halts there. A failed re-pin and a skipped
   one are two different lines (ten § 2: *neither path hides its exit code*).
 
   The script at `<newTag>` is fetched outside the contract's pin — the one call site where it is —
@@ -406,8 +406,9 @@ One block, then stop:
   the current binary and say so — `host nen: <version> on PATH, pre-release; re-pin deferred:
   <reason>`. **The report line names the version now on `PATH`** — `host nen: <version> on PATH
   (re-pinned from <old>)` — and **its absence is the signal that the step was skipped**. ten § 2's
-  (a), the `~/.local/bin/nen` link, follows the contract's pin, never this tag: `scripts/nen_global.sh`
-  re-binds the host at the next session start once the repin PR lands (ruling 2026-09-30). Applies to
+  host path, the `~/.local/bin/nen` link, follows the contract's pin, never this tag: `scripts/nen_global.sh`
+  re-binds the host at the next session start once the installed Hatsu carries the repin — through
+  `ten` § 4b or [`bakuryuha`](../bakuryuha/SKILL.md), not the PR landing (ruling 2026-09-30). Applies to
   nen and nothing else.
 
 **The same quote goes onto the release PR or the tracking issue** — through the one verb that owns a

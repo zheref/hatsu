@@ -1,6 +1,6 @@
 ---
 name: futon
-description: Work one selector of a repo's backlog — a severity band or one exact label — into PRs with an actor behind them, then run what follows then. Use when the maintainer invokes hatsu:futon <repo>@<severity[+] | label> [then tag | tag+fanout | <skill>[@<target>][+<skill>…] | <prose>], or asks to work a band or a label. Kurapika scopes backlog-loop's engine to one selector; every PR is his own (Hatsu carries no CI plane), so done means CON-32 Ready and a per-PR merge prompt. Nothing after then runs before that; a typed then step is the maintainer's own call for the skill it names (the advance go, mugetsu § 3). Never merges main, never publishes a release itself.
+description: Work one selector of a repo's backlog — a severity band or one exact label — into PRs with an actor behind them, then run what follows then. Use when the maintainer invokes hatsu:futon <repo>@<severity[+] | label> [then tag | tag+fanout | <skill>[@<target>][+<skill>…] | <prose>], or asks to work a band or a label. every PR is Kurapika's own (Hatsu carries no CI plane), so done means CON-32 Ready and a per-PR merge prompt. Nothing after then runs before that; a typed then step is the maintainer's own call for the skill it names (the advance go, mugetsu § 3). Never merges main, never publishes a release.
 ---
 
 **Shared policy:** [`PROCESS.md`](../../../docs/PROCESS.md) § *Standalone entry*.
@@ -16,8 +16,8 @@ description: Work one selector of a repo's backlog — a severity band or one ex
 Per issue, futon is [`build`](../build/SKILL.md) → [`tensho`](../tensho/SKILL.md) →
 [`en`](../en/SKILL.md); what follows `then` is § 8's, never futon's own.
 
-Futon is a **scoped, terminated [`backlog-loop`](../backlog-loop/SKILL.md)**, winning on three
-things — a **selector**, an **explicit `then`**, and **who is behind every PR**.
+Futon is a **scoped, terminated [`backlog-loop`](../backlog-loop/SKILL.md)**: a **selector**, an
+**explicit `then`**, and **who is behind every PR**.
 
 > **Hatsu carries no CI plane** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Building an issue
 > with no CI plane*): **Kurapika builds every issue this run releases.** A PR opened *before* this run
@@ -129,8 +129,8 @@ driving them. A legacy-CI PR does not hold it. Then, as `nen parse futon` classi
   **in order**, each resolved against the installed skills (bare `name` as `hatsu:name`; an
   unresolved token makes the clause prose) and run **under its own authority, gates and grammar**,
   never futon's delegation (§ 7), `@<target>` its argument (getsuga's token, `branch.base` with none; a
-  destination otherwise); **`then rikugan`** is the delivery summary ([`rikugan`](../rikugan/SKILL.md)
-  § 6). The typed invocation is the **advance go** of [`mugetsu`](../mugetsu/SKILL.md)
+  destination otherwise); **`then rikugan`** is § 10's final render — **one render, after the `then`
+  outcome exists**, said at the echo ([`rikugan`](../rikugan/SKILL.md) § 6). The typed invocation is the **advance go** of [`mugetsu`](../mugetsu/SKILL.md)
   § 3, not restated — quoted at the echo; a delivery merge is en's,
   and only a **G5 or a halt** ends it. **The gate is the parse's**: a step of a skill
   `futon.advanceGo` lists (`nen/workflow.json`, or nen's default) is refused **unless** it carries
@@ -164,9 +164,10 @@ its blocker named — **and the `then` clause, if typed, has run or is held at i
 
 > **A run that ends with one of its own PRs short of merged has not ended — it has stopped.**
 
-Say the run has ended; the delegation lapses. The final report is [`hatsu:rikugan`](../rikugan/SKILL.md)'s
-**`final`** over this run's scope — its § 2 row for futon: selector, issues with their plane, every
-authored PR's verdict verbatim, triage, labels with times, the `then` outcome, the maintainer's plate. **Futon never resumes itself**; re-invoke it.
+Say the run has ended; the delegation lapses. The final report is [`hatsu:rikugan`](../rikugan/SKILL.md)
+over this run's scope — its § 2 futon row, the `then` outcome included — **the one render a typed
+`then rikugan` is, never a second**; `final` only if every PR merged, else `register` with the asks.
+**Futon never resumes itself**; re-invoke it.
 
 ## 11. Hard limits
 
@@ -187,5 +188,5 @@ authored PR's verdict verbatim, triage, labels with times, the `then` outcome, t
 - **Never hand-authors the status board** (§ 9); **never leaves the delegation open**.
 
 *History and residue: this effort's history file; dated verifications: `docs/ab/futon.md`. The label
-selector, the `then` chain and its fail-closed `gate` need nen v0.15.1+ (pin v0.18.1); an older
+selector, `then` chain and fail-closed `gate` need nen v0.15.1+ (pin v0.18.1); an older
 binary's exit `2` is relayed, never worked around.*
