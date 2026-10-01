@@ -91,8 +91,10 @@ before it touches anything: `state.branch`, `state.isTrunk`, `state.dirty`, `sta
 > stop), means a previous operation stopped here, and this run **reports that state and starts
 > nothing** — never a second operation on top of it, and never a re-run of `wc catch-up` from here,
 > which would commit a merge with git's default message and no re-proved build (§ 5). The probe's
-> other answers: `1` (a rebase paused with no current patch) is not ao's, and catch-up refuses it
-> (§ 3); `128` is no rebase, so classify; anything else is left to § 3's unanswered-probe row.
+> other answers: `1` (a rebase paused with no current patch, at a `break` or a failed `exec`) is not
+> ao's, so the run **reports it with git's own `--continue` / `--abort` and stops here**, never relying
+> on catch-up to refuse it, which a host still on nen 0.18.0 or 0.18.1 does not (zheref/hatsu#182);
+> `128` is no rebase, so classify; anything else is left to § 3's unanswered-probe row.
 
 ## 3. Which operation — rebase or merge, decided by whether anything was published
 
