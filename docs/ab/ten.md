@@ -146,3 +146,18 @@ already searches is repointed on a bump and the shell line never changes again.
 **Residue.** The login-shell probe is harness shell — no nen verb reads a host's `PATH`, and none binds
 a name on a host (`PROCESS.md` § Residue, ten). The verdict distinguishes installed from reachable in
 the report line; `nen shu tools` keeps answering only what the shell it runs in resolves.
+
+**After the pre-PR review (2026-09-30, hanten on `4b8d4668`).** Chrollo and Nobunaga showed § 1's `ok`
+row reaches § 2c with no bootstrap, so the offer's `$verified` was undefined exactly on this host's
+state — § 2c now names the operand for both routes (after § 2, `$verified`; on `ok`, the real path of
+the binary § 1 ran, under the bootstrap cache). Both showed two version rules in one skill — § 1's
+contract range against § 2c's exact-pin compare — so the probe now runs `nen shu tools` in the login
+shell and reads its `nen` row: `ok` is reachable, anything else is `installed, not reachable (<row>)`.
+Chrollo showed the fall-through: an unset or non-POSIX `$SHELL`, a non-zero exit with no path, and
+win32 each landed on "nothing" and would have triggered the offer; a third reading, `not read (<rc>,
+<first stderr line>)`, now covers them with no offer, and the probe reads `</dev/null` so a prompting
+rc file cannot block it. § 4 says what replaces `warm-up clear` (`warm-up: unmet — host: …`), and a
+taken option A asks the probe again. Option A gained `mkdir -p ~/.local/bin`, the `PATH` read and the
+rc file it would append to. Phinks proved 3/3 that a `## Unreleased` heading beside a 0.69.0 bump
+refuses at `scripts/release-publish.sh --dry-run`; the section is `## v0.69.0 — …` now. mugetsu § 7's
+`host nen:` token is `session nen:` so `host` means the login shell in every skill.
