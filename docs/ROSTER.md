@@ -898,6 +898,20 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   never at `main`, and never write to it.
 
 
+## Rulings of 2026-09-30 — reviewer-round caps by default
+
+**The maintainer's request, verbatim** (typed after NN-PR-#316 drew four Copilot rounds because `zheref/nen` declared no `round_policy`):
+
+> Let's also go ahead and open a separate PR setting the same caps we already feature on Hatsu. Let's also make the canon default.
+
+| Ruling | What it says |
+|---|---|
+| **No repository is unbounded** | Hatsu's two reviewer-round keys, `round_policy.minRounds` (N) and `.maxRounds` (M), have a canon default in [`contracts/round_policy.default.json`](../contracts/round_policy.default.json). [`sharingan`](../claude/skills/sharingan/SKILL.md) § 6 states the one rule: per key, a target value that is absent, not a non-negative integer, or leaves N above M takes the default, with the file named as the source; an unreadable default is a stop |
+| **The home is Hatsu's alone** | the default carries only Hatsu's two keys. `stallMinutes` stays nen's, with nen's own built-in default, and `contracts/reference.gates.json` stays the frozen reference repository's identity file |
+| **A target may still declare its own** | a well-formed target value wins; `zheref/nen` declares the same caps in its own `nen/gates.json` (NN-PR-#321) |
+
+---
+
 ## Rulings of 2026-09-30 — jusshin: the target, the machine and the service identity are the maintainer's word
 
 **The maintainer's request, verbatim** (typed while `hatsu:jusshin` was specified):
