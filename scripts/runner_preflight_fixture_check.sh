@@ -20,8 +20,9 @@
 #                 classifies the FIRST match only: AppData and the rest of $USERPROFILE fail, Program
 #                 Files passes over a stale later AppData match, no match is not found, and no path
 #                 is ever printed (Feitan BC-9, Nobunaga; Copilot on zheref/nen#318)
-#   remedy        no ::error:: line names a tool-templated install path, and every per-user remedy
-#                 names the tool and the MACHINE PATH (Copilot on zheref/nen#320)
+#   remedy        no ::error:: line names a tool-templated install path or Program Files, and every
+#                 per-user remedy names the tool and the MACHINE PATH (Copilot on zheref/nen#320 and
+#                 zheref/hatsu#179)
 #
 # Properties, not bytes: the template is not byte-identical to nen's own test template
 # (src/runner/fixtures/runner-preflight.template.yml) since F5, and nothing here compares them.
@@ -319,6 +320,14 @@ for src in template render-windows-x64 render-macos-arm64; do
     fail "remedy ($src): an ::error:: line names a tool-templated install path: $(printf '%s\n' "$bad_lines" | sed 's/^[[:space:]]*//' | tr '\n' ' ')"
   else
     pass "remedy ($src): no ::error:: line names a tool-templated install path"
+  fi
+  # Copilot on zheref/hatsu#179: a machine-wide tool may live outside Program Files, so no remedy names
+  # an install location at all.
+  bad_lines="$(printf '%s\n' "$errors" | grep -F 'Program Files')"
+  if [ -n "$bad_lines" ]; then
+    fail "remedy ($src): an ::error:: line names an install location (Program Files): $(printf '%s\n' "$bad_lines" | sed 's/^[[:space:]]*//' | tr '\n' ' ')"
+  else
+    pass "remedy ($src): no ::error:: line names an install location"
   fi
   per_user="$(printf '%s\n' "$errors" | grep -E '\$verdict|exit 127')"
   missing="$(printf '%s\n' "$per_user" | grep -v -e "'\$tool'" -e '^$' ; printf '%s\n' "$per_user" | grep -v -e 'MACHINE PATH' -e '^$')"
