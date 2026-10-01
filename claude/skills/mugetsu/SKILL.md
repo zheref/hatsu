@@ -404,7 +404,9 @@ One block, then stop:
   the current binary and say so — `host nen: <version> on PATH, pre-release; re-pin deferred:
   <reason>`. **The report line names the version now on `PATH`** — `host nen: <version> on PATH
   (re-pinned from <old>)` — and **its absence is the signal that the step was skipped**. ten § 2's
-  (a), the `~/.local/bin/nen` link, stays the maintainer's word. Applies to nen and nothing else.
+  (a), the `~/.local/bin/nen` link, follows the contract's pin, never this tag: `scripts/nen_global.sh`
+  re-binds the host at the next session start once the repin PR lands (ruling 2026-09-30). Applies to
+  nen and nothing else.
 
 **The same quote goes onto the release PR or the tracking issue** — through the one verb that owns a
 caller-written comment, never a raw `gh`:

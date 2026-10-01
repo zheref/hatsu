@@ -47,7 +47,7 @@ RULES_MAX=12000
 # The nineteen: fifteen from CHANGELOG v0.42.0 "The diet" plus black-voice, great-hiker, limbo and
 # bakuryuha, which were authored under the ceiling rather than reduced to it.
 DIETED_SKILLS="amaterasu backlog-board backlog-loop bakuryuha black-voice breath build futon great-hiker
-hanten limbo ten jujutsu jutaisho kagutsuchi kokusen spiritual-message sharingan shibari"
+hanten limbo ten jujutsu jutaisho kagutsuchi kokusen rikugan spiritual-message sharingan shibari"
 
 usage_error() { echo "prose_size_check.sh: $1" >&2; exit 2; }
 

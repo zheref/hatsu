@@ -112,7 +112,7 @@ pin — the one `ten` § 2 bound, since **a subagent inherits no `PATH`** (#107)
 end is the reviewer's to declare.
 
 ```bash
-git -C <target repo> worktree add --detach <target repo>/.claude/worktrees/hanten-<persona> HEAD
+git -C <target repo> worktree add --detach <target repo>/.nen/worktrees/<surface>/hanten-<persona> HEAD
 ```
 
 **The isolated checkout makes *never edits non-test source* a property of where the reviewer stands**,

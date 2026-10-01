@@ -1,6 +1,6 @@
 ---
 name: spiritual-message
-description: Render one turn of work as a rich report (HTML page or native surface artifact), never a chat summary — the desk above the fold, the last turn, what landed and what did not, the delta graph, evidence, spend, launch, decisions. Use when the maintainer invokes hatsu:spiritual-message [as turn|landing], asks to see the report, or when hatsu:ren, hatsu:mukai or hatsu:en reaches its reporting step. Which blocks a variant renders is configuration; the dated final report is hatsu:backlog-board's.
+description: Render one turn of work as a rich report (HTML page or native surface artifact), never a chat summary — the desk above the fold, the last turn, what landed and what did not, the delta graph, evidence, spend, launch, decisions. Use when the maintainer invokes hatsu:spiritual-message [as turn|landing], asks to see the report, or when hatsu:ren, hatsu:mukai or hatsu:en reaches its reporting step. Which blocks a variant renders is configuration; the dated final report is hatsu:rikugan's.
 ---
 
 **Shared policy:** [`PROCESS.md`](../../../docs/PROCESS.md) § *Standalone entry*.
@@ -41,9 +41,9 @@ last turn only. **`landing`** at `mukai` step 9 (after the PR opened) and `en`'s
 first step — the turn blocks **+ the PR body**, the verdict quoted inside the ask. Each publishes
 `reports.sections.<variant>.blocks`, never a remembered list.
 
-**No `final` here.** The dated final report is a **one-effort Rikugan with a cleared desk**,
-[`backlog-board`](../backlog-board/SKILL.md) § 3's variant `final` into
-`<reports.dir>/<YYYY-MM-DD>-<effort>.html` (ruling 2026-09-19). Hand over.
+**No `final` here.** The dated final report is a **one-effort Rikugan with a cleared desk** —
+[`hatsu:rikugan`](../rikugan/SKILL.md), through [`backlog-board`](../backlog-board/SKILL.md) § 3's
+path, into `<reports.dir>/<YYYY-MM-DD>-<effort>.html` (ruling 2026-09-19). Hand over.
 
 After [`hatsu:aka`](../aka/SKILL.md) (pushed, no PR) re-render `turn` at the same address, the push
 in *Landed*.
@@ -178,7 +178,7 @@ or a delegation ([`PROCESS.md`](../../../docs/PROCESS.md) § *Authority every ph
 
 - **Never lets a chat summary stand in for the report**, or dumps a raw chat markdown recap in place of publishing the artifact or HTML page. (Markdown is permitted strictly as the native artifact document on artifact-capable surfaces such as Antigravity).
 - **Never writes outside `<reports.dir>`** (except when publishing the native artifact in the surface's declared conversation artifact directory on Antigravity), gives a `turn` or `landing` render a kept file, or
-  renders the dated final report — [`backlog-board`](../backlog-board/SKILL.md) § 3's.
+  renders the dated final report — [`rikugan`](../rikugan/SKILL.md)'s.
 - **Never claims readiness by eye** — the verdict is `nen pr ready`'s, quoted, or absent — never
   omits the desk, or `ask` from the data (`null` or the § 4 object).
 - **Never fills the session blocks from only the last request**, puts earlier-turn work into *this

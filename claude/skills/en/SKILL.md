@@ -465,9 +465,11 @@ maintainer sees a budget being continued rather than one silently restarting.
 **Not under getsuga § 3** (§ 5): the proposal's report is getsuga's own.
 
 After the deterministic Ready verdict and step 6's bell, render the **`final`** variant — a
-**one-effort Rikugan with a cleared desk**, this effort's register, spend and legend —
-through [`backlog-board`](../backlog-board/SKILL.md) § 3, which owns that render path (maintainer's
-ruling, 2026-09-19). **There is no `spiritual-message as final` any more**; hand over and say so.
+**one-effort Rikugan with a cleared desk**, this effort's register, spend and legend — by naming
+[`hatsu:rikugan`](../rikugan/SKILL.md) over this PR and the issues it closes (its § 2 row for en;
+ruling 2026-09-30), which composes [`backlog-board`](../backlog-board/SKILL.md) § 3, the render
+path (maintainer's ruling, 2026-09-19). **There is no `spiritual-message as final` any more**; hand
+over and say so.
 
 ```
 <reports.dir>/<YYYY-MM-DD>-<effort>.html

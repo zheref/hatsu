@@ -4,12 +4,12 @@ This directory is the plugin's skill surface (`plugin.json` → `"skills": "./cl
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together
 under *Skills* by `claude plugin details`, which is why they are described together here.
 
-**Forty-seven skills at `v0.68.0`** (forty-six at `v0.66.0`, forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`, forty-eight directories per surface with `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
+**Forty-eight skills at `v0.69.0`** (forty-seven at `v0.68.0`, forty-six at `v0.66.0`, forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`, forty-nine directories per surface with `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
 surface complete at `v0.1.0` — one of them, `drive`, **renamed to [`sharingan`](sharingan/) at `v0.5.0`** —
 the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side,
 **[`byakugan`](byakugan/) at `v0.24.0`**, the
 **three added at `v0.6.0`** that close the release side,
-**[`third-hand`](third-hand/) at `v0.27.0`** (a separate phase after En from `v0.28.0`), **[`great-hiker`](great-hiker/) at `v0.43.0`** (the canon-authoring skill, in its own section), **[`limbo`](limbo/) at `v0.60.0`** (the canon-mirror sync, beside `tenkai`), **[`bakuryuha`](bakuryuha/) at `v0.66.0`** (the plugin-update skill, in its own section), **[`jusshin`](jusshin/) at `v0.68.0`** (a consumer's self-hosted runners, beside `tenkai` and `limbo`), and the **two roster-machinery residents** that
+**[`third-hand`](third-hand/) at `v0.27.0`** (a separate phase after En from `v0.28.0`), **[`great-hiker`](great-hiker/) at `v0.43.0`** (the canon-authoring skill, in its own section), **[`limbo`](limbo/) at `v0.60.0`** (the canon-mirror sync, beside `tenkai`), **[`bakuryuha`](bakuryuha/) at `v0.66.0`** (the plugin-update skill, in its own section), **[`jusshin`](jusshin/) at `v0.68.0`** (a consumer's self-hosted runners, beside `tenkai` and `limbo`), **[`rikugan`](rikugan/) at `v0.69.0`** (the final state upon delivery, beside `spiritual-message` — the name returns as a skill for the Rikugan page, distinct from its pre-`v0.42.0` meaning), and the **two roster-machinery residents** that
 arrived with the skeleton ([zheref/hatsu#1][1]) and are counted separately. Nothing here is reserved, and
 nothing here is a placeholder.
 
@@ -95,7 +95,7 @@ every-session `--auto` refresh stays as it is.
 
 ## The way of working
 
-The twenty-one request-answering skills above and `great-hiker` each answer a request. The twenty-four below are the **loop that carries every request** —
+The twenty-one request-answering skills above and `great-hiker` each answer a request. The twenty-five below are the **loop that carries every request** —
 warm up, build, commit, launch, report, ring; pull, test, push — and the phases the maintainer calls by
 hand. [`../../docs/WORKFLOW.md`](../../docs/WORKFLOW.md) is the authority on all of it: the two configuration
 files ([`nen/contract.json`](../../nen/contract.json) → `project`, what nen **executes**;
@@ -109,10 +109,10 @@ required tests, coverage under the ladder's minimum, a semantic conflict, an uns
 `sharingan` escalation. A stop is `nen stop`'s banner plus the question asked through the surface's own
 native option picker.
 
-### The twenty-four workflow skills — twenty atomic, four composite
+### The twenty-five workflow skills — twenty-one atomic, four composite
 
 **Atomic** — one phase each. The first nine shipped at `v0.4.0`; the five after them at `v0.5.0`; the last
-three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase split `v0.28.0`); `amenotejikara` at `v0.45.0`:
+three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase split `v0.28.0`); `amenotejikara` at `v0.45.0`; `rikugan` at `v0.69.0`:
 
 | Skill | What it does |
 |---|---|
@@ -121,7 +121,8 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 | [`kokusen`](kokusen/) | **Verify, focused-test, then commit — locally, automatically.** Runs the shared `iteration.checks` and, for changed executable behavior, a declared scoped `test` lane. A missing scoped route stops before checkpoint; a prose-only change reports not applicable. It never runs full regression, coverage, or push. |
 | [`amaterasu`](amaterasu/) | **Launch, every turn.** Builds the configured target and starts it **from the core working directory, never a worktree**; the dry-run argv goes into the report and the chat. A disconnected device is reported by name. Parallel subagent efforts launch nothing. |
 | [`tsukuyomi`](tsukuyomi/) | **Focused tests.** The scoped lane for the behavior this turn changed — rasengan may run it for feedback, kokusen must run it at every local checkpoint. It never walks `tests.required` and never measures coverage. |
-| [`spiritual-message`](spiritual-message/) | **The rich report** — `turn`, `turn-fast` and `landing` — rendered from `templates/spiritual-message.html` (or native Markdown artifact on Antigravity), **never a chat summary**: the desk, this last turn, then session-wide accomplished, challenges, not delivered, the architecture delta as a graph, screenshots, how to launch, decisions. **The dated `final` report is not this skill's**: it is a one-effort Rikugan rendered through [`backlog-board`](backlog-board/) § 3 to `<reports.dir>/<YYYY-MM-DD>-<effort>.html`, the only report written to `Reports/`. |
+| [`spiritual-message`](spiritual-message/) | **The rich report** — `turn`, `turn-fast` and `landing` — rendered from `templates/spiritual-message.html` (or native Markdown artifact on Antigravity), **never a chat summary**: the desk, this last turn, then session-wide accomplished, challenges, not delivered, the architecture delta as a graph, screenshots, how to launch, decisions. **The dated `final` report is not this skill's**: it is [`rikugan`](rikugan/)'s, a one-effort Rikugan rendered through [`backlog-board`](backlog-board/) § 3 to `<reports.dir>/<YYYY-MM-DD>-<effort>.html`, the only report written to `Reports/`. |
+| [`rikugan`](rikugan/) | **The final state, upon delivery.** `hatsu:rikugan [for <CODE>#<N>[,…] \| <owner/name>] [as final\|register]` renders what a just-completed workflow left behind — one register row per issue and PR it touched, each PR's `nen pr ready` verdict quoted verbatim, the desk cleared or every ask still open, spend, legend — the `final` variant through [`backlog-board`](backlog-board/) § 3's render path (composed by name, never restated) to `<reports.dir>/<YYYY-MM-DD>-<effort>.html`, published as the surface's artifact. The scope defaults to what the session's last completed workflow touched (futon's selector run, build's issue and PR, en's PR, backlog-loop's cycle, getsuga's release unit), stated with its source; cold with nothing typed it asks. Reached typed, as a `futon` `then rikugan` step, or as the closing step of any composite. Read-only: never labels, merges, pushes or comments. |
 | [`jutaisho`](jutaisho/) | **The bell.** Rings `workflow.json → notifications` and drops the marker that [`../../hooks/stop-bell.sh`](../../hooks/stop-bell.sh) reads; where no hook is installed it rings the notifier itself **and says that it did**. |
 | [`ao`](ao/) | **Pull from the base.** Fetch, then rebase if the branch is unpushed and merge if it is not; mechanical conflicts are resolved, a **semantic** one is a **G5** with both sides shown. It never pushes. |
 | [`aka`](aka/) | **Push — human-called.** Lint → squash only unpushed commits → `ao` → re-lint if catch-up changed the tree → push. No project-wide tests. Regression and coverage wait for mukai. |
@@ -144,7 +145,7 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 | [`ren`](ren/) | **The per-request loop.** `breath`¹ (first turn only, and it proves the base) → `rasengan`² (author the change) → `kokusen`³ (verify the tree, then commit) → `amaterasu`⁴ → `spiritual-message`⁵ → `jutaisho`⁶. It loops until the maintainer calls the next phase, and **it never pushes**. |
 | [`murasaki`](murasaki/) | **Pull + update push.** `ao` → shared iteration checks → if catch-up changed the tree, return to the caller so kotoamatsukami can refresh tests and byakugan can recapture coverage → push only an already-published branch. Never squashes, first-publishes, or runs tests or coverage itself. |
 | [`mukai`](mukai/) | **The review-and-publication phase — human-called.** `murasaki`¹ → `hanten`² → kokusen checkpoint³ → `kotoamatsukami` impacted tests⁴ → `byakugan` coverage⁵ → final unchanged catch-up and update push⁶ → existing UI evidence⁷ → `shibari` PR⁸ → landing report⁹ → **offer `en`** and end Mukai (`nen/workflow.json` → `mukai.autoEn: true` starts En immediately in the same turn instead; default off). |
-| [`en`](en/) | **The readiness watch, `izanagi`-capped** by `nen/workflow.json` → `monitor`. [`spiritual-message`](spiritual-message/)¹ (landing) → [`sharingan`](sharingan/)² → `murasaki`³ when the branch is behind → `sharingan`⁴ → observe⁵ required CI/current-head review → [`jutaisho`](jutaisho/)⁶ at Ready → the dated final report (a one-effort Rikugan, [`backlog-board`](backlog-board/) § 3) and stop at the human gate. **A run with no acting cap does not run; quiet observations spend none**. A long hold may be handed to **Illumi**, read-only. When En has completed, the next phase is [`third-hand`](third-hand/). |
+| [`en`](en/) | **The readiness watch, `izanagi`-capped** by `nen/workflow.json` → `monitor`. [`spiritual-message`](spiritual-message/)¹ (landing) → [`sharingan`](sharingan/)² → `murasaki`³ when the branch is behind → `sharingan`⁴ → observe⁵ required CI/current-head review → [`jutaisho`](jutaisho/)⁶ at Ready → the dated final report ([`rikugan`](rikugan/), a one-effort Rikugan through [`backlog-board`](backlog-board/) § 3) and stop at the human gate. **A run with no acting cap does not run; quiet observations spend none**. A long hold may be handed to **Illumi**, read-only. When En has completed, the next phase is [`third-hand`](third-hand/). |
 
 > **The release side closed at `v0.6.0`.** [`susanoo`](susanoo/), [`kagutsuchi`](kagutsuchi/) and
 > [`mugetsu`](mugetsu/) are the last three rows of the atomic table above, so **every phase a skill can
@@ -161,7 +162,7 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 
 ## The two roster-machinery residents
 
-Neither is one of the forty-seven. They landed with the skeleton because the plugin does not function
+Neither is one of the forty-eight. They landed with the skeleton because the plugin does not function
 without them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |

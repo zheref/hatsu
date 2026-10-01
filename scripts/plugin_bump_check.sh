@@ -65,12 +65,12 @@ fi
 #   claude/*          — everything plugin.json points at: `agents` (kurapika,
 #                       gon, hisoka, phinks, uvogin, and — from Hatsu 0.5.0 —
 #                       feitan, chrollo, illumi; from Hatsu 0.25.0, netero; from 0.67.0, leorio), `commands` (/kurapika), and
-#                       `skills` (forty-eight skill directories, `ten` among
+#                       `skills` (forty-nine skill directories, `ten` among
 #                       them — 35 until Hatsu 0.6.0 added susanoo, kagutsuchi
 #                       and mugetsu, 38 until 0.24.0 added byakugan, 39 until
 #                       0.27.0 added third-hand, 45 until 0.60.0 added limbo,
 #                       46 until 0.66.0 added bakuryuha, 47 until 0.68.0 added
-#                       jusshin), plus
+#                       jusshin, 48 until 0.69.0 added rikugan), plus
 #                       `templates/` where a skill renders from one.
 #   nen/*             — the D10 dependency contract, `nen/contract.json`. Read
 #                       at run time through `$CLAUDE_PLUGIN_ROOT/nen/contract.json`
@@ -142,6 +142,12 @@ fi
 #                       covers: this row is what makes a regeneration-only
 #                       commit (a mirror re-run with no source edit) bump the
 #                       version too.
+#   scripts/nen_global.sh
+#                     — the host nen linker (ten § 2 (a), the maintainer's
+#                       ruling of 2026-09-30). hooks/session-start.sh runs it
+#                       first on every session from the installed copy; a stale
+#                       copy would bind the wrong nen, or none, on every machine.
+#                       Its fixture beside it is test-only and is not covered.
 #   scripts/surface_bootstrap.sh
 #                     — the one non-skill first-run installer for Codex and
 #                       Cursor. It is invoked from an installed checkout before
@@ -253,6 +259,7 @@ PLUGIN_SURFACE_GLOBS=(
   'templates/*'
   'surfaces/*'
   'scripts/surface_bootstrap.sh'
+  'scripts/nen_global.sh'
   'scripts/hanten_cycle_ledger.sh'
   'scripts/hatsu_plugin_update.sh'
   'scripts/hatsu_root.sh'

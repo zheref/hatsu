@@ -135,6 +135,9 @@ empty and the block does not render.
 (`WORKFLOW.md` § *Report time*). The **dated final report** is the same template at `--variant
 final`, titled by the effort's headline (§ *Report titles*): one effort, a cleared desk, at
 `<reports.dir>/<generatedDateLocal>-<effort>.html` (ruling 2026-09-19) — the one render kept on disk.
+**Its callable entry is [`hatsu:rikugan`](../rikugan/SKILL.md)** (ruling 2026-09-30): typed, a futon
+`then rikugan` step, or the closing step of any composite — it composes this section by name and
+this section stays the render path.
 
 ## 4. Publish it
 

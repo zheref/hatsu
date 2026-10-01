@@ -1771,7 +1771,8 @@ def items(ctx):
     out = [NenDeclaration(path, what) for path, what in NEN_DECLARATIONS]
     out.append(ColorsFile())
     out.append(IgnoredDir("dirs/reports", "Reports", "where the retained final Rikugan report is written"))
-    out.append(IgnoredDir("dirs/nen-state", ".nen", "where the hanten cycle ledger and the stop marker live"))
+    out.append(IgnoredDir("dirs/nen-state", ".nen", "where the hanten cycle ledger, the stop marker and every Hatsu-made worktree (.nen/worktrees/<surface>/) live"))
+    out.append(IgnoredDir("dirs/claude-worktrees", ".claude/worktrees", "where Claude Code's own isolation places its worktrees -- the one harness-native exception to .nen/worktrees/<surface>/ (ruling of 2026-09-30)"))
     out.append(NenCommitMsgHook())
     out.append(GuardRegistration())
     out.append(ReadinessWorkflow())

@@ -722,7 +722,7 @@ templates.**
 | **Five variants, declared in `nen/workflow.json`** | `reports.sections.<variant>` carries a `template` and a `blocks` list, validated by `nen schema check` and injected as presence flags by `nen report render --variant`. Every value inside a block stays the model's |
 | **`turn`, `turn-fast` and `landing` are Spiritual Message** | [`templates/spiritual-message.html`](../templates/spiritual-message.html). `turn` every Ren turn; `turn-fast` the same step under the fast profile — **the desk and the last turn, nothing else**; `landing` at `mukai` step 9 and `en` step 1, adding the PR body and the readiness verdict quoted |
 | **`final` and `register` are the Rikugan** | [`templates/rikugan.html`](../templates/rikugan.html), Hatsu's counterpart of the Ichigo gate register: desk grouped by gate and ranked by unblocking power, one collapsible row per issue and pull request, spend, legend |
-| **The dated final report is a one-effort Rikugan with a cleared desk** | written to `<reports.dir>/<YYYY-MM-DD>-<effort>.html`, and it is **the only report kept on disk**. **`spiritual-message as final` is retired** — the render path is [`backlog-board`](../claude/skills/backlog-board/SKILL.md) § 3, the same one `futon` and `backlog-loop` use for `register` |
+| **The dated final report is a one-effort Rikugan with a cleared desk** | written to `<reports.dir>/<YYYY-MM-DD>-<effort>.html`, and it is **the only report kept on disk**. **`spiritual-message as final` is retired** — the render path is [`backlog-board`](../claude/skills/backlog-board/SKILL.md) § 3, the same one `futon` and `backlog-loop` use for `register`. From `v0.69.0` its callable entry is [`hatsu:rikugan`](../claude/skills/rikugan/SKILL.md) (§ *Rulings of 2026-09-30 — rikugan is callable*) |
 | **No more hand-authored board HTML** | a board is `nen report render --variant register` over the fixed template. A hand-filled page and a rendered one are not the same bytes, and only one of them is checkable |
 | **The architecture delta is a graph document, drawn client-side** | the model authors `nen.report.graph/v0.1` — nodes and edges with a `change` on each — and the page lays it out with **dagre 0.8.5, pinned from cdnjs under an SRI hash**, one renderer shared by both templates, the node and edge list under `<details>` as the fallback when the script cannot load. **Never a hand-built SVG, never a file-line inventory**, and the same document yields the PR body's mermaid through `nen report mermaid` |
 
@@ -897,6 +897,51 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   (`UX-{n}`), `handbooks/uzf-core.md` (`UZF-26`). That repository is **frozen**; read it at its snapshot tag,
   never at `main`, and never write to it.
 
+
+## Rulings of 2026-09-30 — rikugan is callable; nen is bound on the host at session start; worktrees live under `.nen/worktrees/<surface>`
+
+**The maintainer's requests, verbatim** (2026-09-30):
+
+> **A.** When a new session starts, it is expected global NEN binary to be updated and made available on global profile both for agentic and human-manual usage (on PATH or bash/zsh profile/rc as applicable).
+
+> **B.** How come Rikugan is not available as a callable skill? I tried to call Rikugan as a suffix after "then" clause on a futon skill invokation and it rejected it saying the skill DOES NOT exist. It should! And it should work upon any completed workflow to summarize the final state of work upon delivery.
+
+> **C.** Noticed under some circumstances and for more than one surface, since worktrees are encouraged by default, worktrees are being created and worked one used inconsistent practices for each. ... I saw worktrees being generated as sibling folders of the core checkout directory. I don't like this approach and as possible we should generate a git-ignored folder (maybe for each surface) where surfaces can install the worktrees and safely work within a contaned environment without creating bad hygiene outside the actual workspaces. ... it would be great to make it canon and clear on all surfaces.
+
+**The ruling on C, verbatim**: *"go with .nen/worktrees/<surface> as canon"*.
+
+**What B found.** Since the names swapped at `v0.42.0` (§ *Rulings of 2026-09-19*), the Rikugan was only
+[`templates/rikugan.html`](../templates/rikugan.html) — the `final` and `register` variants — reached
+through `backlog-board` § 3's render path, and no skill carried the name. `futon` § 8 resolves a `then`
+step against the installed skills, so `then rikugan` resolved to nothing and the clause fell to prose:
+the refusal the maintainer saw was the grammar working on a roster with a hole in it.
+
+| Ruling | What it says |
+|---|---|
+| **B · `rikugan` is a skill again — for the Rikugan page** | [`hatsu:rikugan`](../claude/skills/rikugan/SKILL.md) renders the **final state** of a just-completed workflow, or any named scope, as the Rikugan page: the `final` variant by default (one effort, the desk cleared or the asks still open, one register row per issue and PR the workflow touched, each PR's `nen pr ready` verdict quoted verbatim, spend, legend), `register` on request. **The name is distinct from its pre-`v0.42.0` meaning**: the per-turn and landing report stays `spiritual-message`; older sections keep the names they were written under |
+| **B · It composes, never restates** | `backlog-board` § 3 remains the render path — the data shape, the escaping, the verb; rikugan composes it by name and writes `<reports.dir>/<YYYY-MM-DD>-<effort>.html`, the one report kept on disk (`retain: final-only`). No hand-authored page |
+| **B · The scope is the completed workflow's, said with its source** | untyped, the objects the session's last completed workflow touched — futon's selector run, build's issue and PR, en's PR, backlog-loop's cycle, getsuga's release unit, black-voice's PR — stated in the first line with its source; a typed `for <CODE>#<N>[,…] \| <owner/name>` always wins; a cold session with nothing typed asks as free text (`missing-argument`), never the whole backlog by default |
+| **B · Reached three ways** | typed; as a `futon` `then rikugan` step (`nen parse futon` already classifies it as a `kind: skills` step, and `then getsuga+rikugan` chains it after the cut — `then tag+rikugan` is refused because `tag` is the terminal's own word); and as the closing step every composite names upon delivery — `en` § 8, `futon` § 10, `backlog-loop` § 10, getsuga's own proposal, build's delivery |
+| **B · Read-only, and readiness is the quoted verdict** | never labels, merges, pushes or comments; never claims readiness by eye; a requested Rikugan is not a gate event — no banner, no bell |
+| **A · The host link is the DEFAULT** | `ten` § 2 (a) — `~/.local/bin/nen` — was *the maintainer's word only* and (b), the session-only `mktemp` bind, the default, so each session ran the pin while the host's `nen` stayed behind. Now (a) is the default: `scripts/nen_global.sh --root <hatsu_root>` reads the contract's `pinned_ref`, runs nen's own checksum-verified two-step bootstrap only when `~/.local/bin/nen --version` is not the pin, links `ln -sfn <verified> ~/.local/bin/nen`, and appends an idempotent marked `# >>> hatsu nen-global >>>` PATH block to the shell rc and profile (`$SHELL` zsh → `~/.zshrc` + `~/.zprofile`; bash → `~/.bashrc` + `~/.bash_profile`; else `~/.profile`) when the bin dir is not already on `PATH` — the human's terminal and the agent on one binary |
+| **A · Performed by the hook and by ten** | `hooks/session-start.sh` runs it first on every surface (step 0, fail-open, bounded, through the already-verified root only) and on Claude Code appends its summary line to the additional context; `ten` § 2 runs it as (a) and quotes the line in § 4 — `nen-global: nen <pin> at <link> (<current\|linked>) · rc: <per profile file>`. Opt-out `HATSU_NEN_GLOBAL=0`. Exit `0` ok, `2` usage, `3` a non-symlink at `~/.local/bin/nen` refused, `5` bootstrap or verify failed. Lane `nen-global-guard` holds it |
+| **A · The session bind is the fallback, not the rule** | on exit `3`, or where the harness refuses the host write, `ten` § 2 (b) binds the verified binary for the session, quotes the verified path and hands the maintainer the one command `ln -sfn <verified> ~/.local/bin/nen`. A failed bootstrap is still § 3's halt. `mugetsu` § 7's re-pin after publishing nen itself leaves the host link to the contract's pin: it follows the repin PR at the next session start |
+| **A · What this does not rule** | ruling 7's unruled next step (a) above — the hook running ten's whole catch-up — stays unruled: the hook binds `nen`; it runs no phase prerequisite |
+
+**What C found.** Rule 6 of [`claude/rules/hatsu.md`](../claude/rules/hatsu.md) and
+[`docs/surfaces/antigravity.md`](surfaces/antigravity.md) § 11.1 required a worktree per effort and
+named no location (`git worktree add <dir> <branch>`); `hanten` § 4 put its reviewer at
+`.claude/worktrees/hanten-<persona>`, the stash-and-restore proof at `<tmp>`, kagutsuchi at
+`.nen/worktrees/kagutsuchi`; and each surface's native isolation lands wherever the tool puts it. A
+sibling folder was the easiest answer to a rule with no path in it.
+
+| Ruling | What it says |
+|---|---|
+| **C · One path, every surface** | **every worktree Hatsu creates lives at `<core>/.nen/worktrees/<surface>/<name>`** — `claude-code`, `codex`, `cursor`, `antigravity` — git-ignored, inside the core checkout; **never a sibling (`../<name>`), never `/tmp`, never outside the checkout**. The full rule, with each surface's native location quoted from its page, is [`docs/WORKFLOW.md`](WORKFLOW.md) § *Where worktrees live*; rule 6 carries it in one clause; `hanten` § 4's reviewer is `hanten-<persona>` there, the proof `prove-<n>`, a lead-session effort its branch slug |
+| **C · The harness-native exceptions, named** | Claude Code's own isolation (`--worktree`, Agent `isolation: "worktree"`, a background session) stays at `.claude/worktrees/` — "By default, the worktree is created under `.claude/worktrees/<name>/` at your repository root" — git-ignored, the one documented exception; Codex's app worktrees under `$CODEX_HOME/worktrees` (its *Worktree root* setting), Cursor's under its machine worktree root, Antigravity's `Workspace: "branch"` where the IDE puts it: each contained in the tool's own home, accepted as it comes, never relocated to a sibling. A Hatsu-made worktree on Claude Code is entered by `EnterWorktree` `path`, its one approval prompt answered |
+| **C · Containment is both ways** | a nested worktree survives `git clean -fdx` (verified 2026-09-30: *Skipping repository*), but **`git clean -ffdx` deletes `.nen/` wholesale**, so **`git clean -ff…` is never run in a core checkout that holds worktrees**; deleting the core checkout deletes its worktrees. **A worktree is removed when its effort lands** (`git worktree remove`, then `prune`) — on Hatsu's own checkout without exception, because Codex's plugin install copies ignored worktrees too |
+| **C · kagutsuchi keeps its fixed path** | `.nen/worktrees/kagutsuchi` (`scripts/kagutsuchi_worktree.sh`) is the one purpose-named path without a surface segment: the script's idempotence is built on it, and it is already under `.nen/worktrees/` |
+| **C · What this does not rule** | the native modes' own locations are the tool's and are not reconfigured by Hatsu; `.nen/` needs no new ignore rule (Hatsu's `.gitignore`, tenkai's `dirs/nen-state` row); nen has no verb that creates or removes a worktree, so `git worktree add` stays hand-spelt residue (`docs/PROCESS.md` § *Residue*) |
 
 ## Rulings of 2026-09-30 — jusshin: the target, the machine and the service identity are the maintainer's word
 

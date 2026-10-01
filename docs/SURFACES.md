@@ -27,7 +27,7 @@ placement reads.
 | rules file | none | `AGENTS.override.md` (32 KiB cap) | `.cursor/rules/hatsu.mdc` | `rules/hatsu.md`, 12,000 characters max |
 | invocation spelling | `hatsu:<name>` | `$hatsu:<name>` (plugin); `$<name>` (legacy copy) | `/<name>` | `/<name>` |
 | turn-end hook | **yes**, `Stop` in `hooks/hooks.json` | **yes**, `Stop` in `surfaces/codex/hooks.json`, named by the plugin overlay (legacy: `.codex/hooks.json`) | **yes**, `stop` in `.cursor/hooks.json` | **yes**, `Stop` in the plugin's `hooks.json` |
-| session-start hook | `SessionStart`, `hooks/session-start.sh` (a reminder; the plugin is read in place) | `SessionStart` (mirror refresh, adopted repositories only) | `sessionStart` (the same) | `PreInvocation` (no `SessionStart` exists; the same) |
+| session-start hook | `SessionStart`, `hooks/session-start.sh` (binds the pinned `nen` on the host first — `scripts/nen_global.sh`: `~/.local/bin/nen` and the rc PATH block, opt-out `HATSU_NEN_GLOBAL=0` — then a reminder; the plugin is read in place) | `SessionStart` (the nen binding, then the mirror refresh, adopted repositories only) | `sessionStart` (the same) | `PreInvocation` (no `SessionStart` exists; the same) |
 | trunk guard | `PreToolUse` on `Bash`, `permissionDecision: deny` | `PreToolUse`, `permissionDecision: deny` (`ask` not honoured yet) | `beforeShellExecution`, `permission: deny` | `PreToolUse` on `run_command`, `decision: deny` |
 | permissions | `.claude/settings.local.json`, `Bash(<exe> <args>)` | `.codex/config.toml`: `sandbox_mode`, `writable_roots` (the one root-scoped surface) | `.cursor/cli.json`, `Shell(<exe> <args>)` | per-agent `commandExecutionPolicy`; the guard is the enforcement |
 | in-session subagent | the Agent tool | `spawn_agent` | `.cursor/agents/` | `invoke_subagent`, `Workspace` `inherit`, `branch` or `share` |
@@ -88,7 +88,7 @@ and nen hard-codes no system's vocabulary.
 
 | Path | |
 |---|---|
-| `claude/skills/<name>/SKILL.md` | **authored.** The one source, 48 directories (forty-seven plus `ten`) |
+| `claude/skills/<name>/SKILL.md` | **authored.** The one source, 49 directories (forty-eight plus `ten`) |
 | `claude/agents/<persona>.md` | **authored.** The one source, twelve personas plus the preamble include (`_review-preamble.md`, the shared reviewer protocol and not a persona: `agents/_review-preamble.md` on Cursor and Antigravity, a `## _review-preamble` section in Codex's `AGENTS.md`) |
 | `hooks/hooks.json`, `contracts/permissions.json`, `nen/workflow.json` | **authored.** The inputs the generator renders hooks, permissions and model config from |
 | `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `.codex-plugin/plugin.json` | **authored.** The manifests: Claude Code's, the marketplace both Claude Code and Codex read, and the Codex overlay (`skills`, `hooks`, `interface`), held at the Claude manifest's `version` by `scripts/plugin_bump_check.sh` |

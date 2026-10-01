@@ -78,7 +78,7 @@ destination keeps it tracked and an `ln -sfn` or `rm -rf` over it destroys a fil
 Nothing there: create it. A previous Hatsu install (a symlink into `<hatsu root>/surfaces/`, or a
 directory whose `SKILL.md` carries the marker above): replace it. Anything else, and a tracked path is
 always anything else: leave it untouched, install nothing under that name, and name it in the report. A
-skipped name is reported, never swallowed; the warm-up would rather place forty of forty-seven and say
+skipped name is reported, never swallowed; the warm-up would rather place forty of forty-eight and say
 so than overwrite one file it did not write.
 
 ```sh
@@ -117,10 +117,13 @@ hook file is placed the skill also removes `.nen/last-stop.json` once the stop i
 hook fired, the hook consumed the marker and the skill does not.
 
 **The session-start refresh.** `hooks/session-start.sh`, mirrored as each surface's session-start row,
+first binds the pinned `nen` on the host — `scripts/nen_global.sh --root <hatsu_root>`, fail-open,
+opt-out `HATSU_NEN_GLOBAL=0` (ruling 2026-09-30: `~/.local/bin/nen` linked to the verified pin and a
+marked PATH block in the shell rc, so the human's terminal and the agent run the same binary) — then
 refreshes a consumer's mirrors only in a repository that already adopted Hatsu (it carries
 `nen/workflow.json` or `nen/contract.json` and a placed marker), only for the surface its own generated
 marker names, and writes its report to `.nen/session-start.log`; the plugin source copy under Claude
-Code only prints the warm-up reminder. Adoption is `tenkai`'s, never a hook's
+Code binds `nen` and prints the warm-up reminder. Adoption is `tenkai`'s, never a hook's
 ([`docs/SURFACES.md`](../SURFACES.md) § 1).
 
 **Keeping the plugin checkout current.** `scripts/hatsu_plugin_update.sh --root "$HATSU_PLUGIN_ROOT"`

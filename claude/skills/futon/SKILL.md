@@ -56,7 +56,7 @@ has started**: a named run holds a bounded `CON-25` delegation (§ 7), announced
 ## 2. The queue is the selector's scope — and only that
 
 `nen backlog fetch --repo-slug <owner/name> --json` — never cached, never `--limit`; a capped fetch
-is reported **truncated**, never complete. Then:
+is reported **truncated**. Then:
 
 - **Select** — by band: every issue whose `bankai:severity/*` label is in the band; with `+`, that
   severity **and every severity above it**. By label: **every open issue carrying that exact label**,
@@ -76,7 +76,7 @@ run's auditable scope.
 ## 3. The engine is `backlog-loop`'s, invoked
 
 Triage and briefing, ordering, the monitor and its fetch triggers, conflict discipline and the hard
-limits are that skill's. **A CI-lane label picks Kurapika's MODE**
+limits are its. **A CI-lane label picks Kurapika's MODE**
 ([`build`](../build/SKILL.md) § 3); an issue carrying none gets a proposal and a `DECIDE` (`CON-37`).
 
 ## 4. Releasing into build
@@ -122,15 +122,16 @@ authored is short of `CON-32` Ready (§ 5) — hold it, name every PR still shor
 driving them. A legacy-CI PR does not hold it. Then, as `nen parse futon` classified it:
 
 - **`then tag` / `then tag+fanout`** (`terminal`) go to [`getsuga`](../getsuga/SKILL.md), whose lane
-  the whole cut is. `then tag` hands off with **fan-out skipped and its issues left open** — say so:
+  the whole cut is. `then tag` hands off with **fan-out skipped, its issues left open** — say so:
   consumers stay on the previous tag; `tag+fanout` adds it. **A refused tag capability HALTS, the exact
   command handed over**; never route around it; this run never writes `latest` (`CON-14`).
 - **`then <skill>[@<target>][+…]`** (`kind: skills`, `steps` inside; bare or `hatsu:`-prefixed) run
   **in order**, each resolved against the installed skills (bare `name` as `hatsu:name`; an
   unresolved token makes the clause prose) and run **under its own authority, gates and grammar**,
-  never futon's delegation (§ 7), `@<target>` its argument (getsuga's token, its configuration default — `branch.base` — with none; a
-  destination otherwise). The typed invocation is the **advance go** [`mugetsu`](../mugetsu/SKILL.md)
-  § 3 defines and this file does not restate — quoted at the echo; a delivery merge is en's,
+  never futon's delegation (§ 7), `@<target>` its argument (getsuga's token, `branch.base` with none; a
+  destination otherwise); **`then rikugan`** is the delivery summary ([`rikugan`](../rikugan/SKILL.md)
+  § 6). The typed invocation is the **advance go** of [`mugetsu`](../mugetsu/SKILL.md)
+  § 3, not restated — quoted at the echo; a delivery merge is en's,
   and only a **G5 or a halt** ends it. **The gate is the parse's**: a step of a skill
   `futon.advanceGo` lists (`nen/workflow.json`, or nen's default) is refused **unless** it carries
   `gate: allowed: true` — no `gate` or `allowed: false` fails closed — relayed at the echo by its
@@ -163,10 +164,9 @@ its blocker named — **and the `then` clause, if typed, has run or is held at i
 
 > **A run that ends with one of its own PRs short of merged has not ended — it has stopped.**
 
-Say the run has ended; the delegation lapses. The final report is backlog-board § 3's **`final`**:
-the selector, every issue with its plane, every
-authored PR's verdict verbatim, triage in and out, labels with times, the `then` outcome, and what is on
-the maintainer's plate. **Futon never resumes itself**; re-invoke it.
+Say the run has ended; the delegation lapses. The final report is [`hatsu:rikugan`](../rikugan/SKILL.md)'s
+**`final`** over this run's scope — its § 2 row for futon: selector, issues with their plane, every
+authored PR's verdict verbatim, triage, labels with times, the `then` outcome, the maintainer's plate. **Futon never resumes itself**; re-invoke it.
 
 ## 11. Hard limits
 
@@ -187,5 +187,5 @@ the maintainer's plate. **Futon never resumes itself**; re-invoke it.
 - **Never hand-authors the status board** (§ 9); **never leaves the delegation open**.
 
 *History and residue: this effort's history file; dated verifications: `docs/ab/futon.md`. The label
-selector, the `then` chain and its fail-closed `gate` need nen v0.15.1 or newer (the pin is v0.18.1); an older binary's
-exit `2` is relayed, never worked around.*
+selector, the `then` chain and its fail-closed `gate` need nen v0.15.1+ (pin v0.18.1); an older
+binary's exit `2` is relayed, never worked around.*

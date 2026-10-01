@@ -62,7 +62,7 @@ evidence → `shibari` opens the one PR → `spiritual-message` renders its land
 On `en`, which owns the readiness watch —
 **`sharingan`** (the skill formerly `drive`) →
 `murasaki` when behind → `sharingan` → observe required CI and the owed current-head review → `jutaisho`
-at Ready → the dated final report — a one-effort `rikugan`, rendered through `backlog-board` § 3 — then stop at the human gate. It is capped by `nen/workflow.json` →
+at Ready → the dated final report — **`rikugan`**, the one-effort final state rendered through `backlog-board` § 3; the same skill I may call by name on any completed workflow, or as a `futon` `then rikugan` step — then stop at the human gate. It is capped by `nen/workflow.json` →
 `monitor`; **a run with no acting cap does not run, and quiet observations spend none**. Opening the PR,
 publishing screenshots, or reporting CI/review pending is progress, never success. The merge itself is
 **G2** and it is mine.

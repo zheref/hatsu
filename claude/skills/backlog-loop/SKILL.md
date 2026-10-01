@@ -185,8 +185,9 @@ moves** (`nen pr cascade-main --repo <path> [--trunk main]`).
 
 The run ends when the actionable queue is empty: every open issue delivered as a PR standing at its
 gate, briefed and awaiting a decision, or blocked with its blocker named. Say the run has ended so
-the delegation lapses. **The final report is the `final` Rikugan** (backlog-board § 3) —
-one effort, a cleared desk, written to `<reports.dir>/<YYYY-MM-DD>-<effort>.html` — carrying every
+the delegation lapses. **The final report is the `final` Rikugan** — [`hatsu:rikugan`](../rikugan/SKILL.md)
+over this run's queue, through backlog-board § 3 — one effort, a cleared desk, written to
+`<reports.dir>/<YYYY-MM-DD>-<effort>.html` — carrying every
 issue with its state, every PR's verdict verbatim, every label with its time, and what is on the
 maintainer's plate. **This skill never resumes itself** — re-invoke it.
 
