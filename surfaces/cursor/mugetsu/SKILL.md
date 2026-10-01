@@ -58,7 +58,7 @@ go is § 3's, it is always the maintainer's own, quoted verbatim as the record, 
 
 | Form | What it is |
 |---|---|
-| **(1) By name** | the maintainer's typed `/mugetsu [<target>]` ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *The human gates, and who may cross them*, the G3 row: *"publishing runs only on the maintainer's typed go — by name, or as a `mugetsu` step of their own `futon` chain"*); no version or target is needed (ruling 2(a) of § *Rulings of 2026-09-26/27/28*: *"Mugetsu should always default to latest unpublished cut tag. It should never be mandatory, not even when called directly"*; clarified 2026-09-30: the typed direct call is the whole go) |
+| **(1) By name** | the maintainer's typed `/mugetsu [<target>]`, in whatever spelling their surface invokes this skill by, the plugin-namespaced form included ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *The human gates, and who may cross them*, the G3 row: *"publishing runs only on the maintainer's typed go — by name, or as a `mugetsu` step of their own `futon` chain"*); no version or target is needed (ruling 2(a) of § *Rulings of 2026-09-26/27/28*: *"Mugetsu should always default to latest unpublished cut tag. It should never be mandatory, not even when called directly"*; clarified 2026-09-30: the typed direct call is the whole go) |
 | **(2) In their own words** | a message the maintainer typed in this session saying to publish (§ 1: *in their own words or by name*) |
 | **(3) The advance go** | a typed futon `then` step that `nen parse futon` parsed as `mugetsu`, its `gate.allowed` true (§ 3) |
 
@@ -163,10 +163,14 @@ afterwards.
 Nothing below is optional and nothing below is reordered.
 
 1. **The go exists, and the destination resolves** — § 3, § 1: one of § 0's three forms — the typed
-   invocation, the maintainer's own words, or the advance go — and the destination named or the single declared one. Without a go the run ends here; with several destinations and none named, P4's
-   same-turn exception asks, and nothing past this step runs until the maintainer types it.
+   invocation, the maintainer's own words, or the advance go — and the destination named or the single declared one. Without a go, steps 2–4 still run, being read-only, so the preflight and the plan are printed, and
+   the run stops before step 5; with several destinations and none named, P4's same-turn exception asks,
+   and nothing past this step runs until the maintainer types it.
 2. **The tag is cut, and it resolves on `origin`** — § 3's second half: the one named, or the latest
-   cut tag with no published release, printed. No cut tag at all is refused.
+   cut tag with no published release, printed. No cut tag at all is refused. **A named version that
+   already has a published release at the destination publishes nothing**: steps 3–5 are skipped and only
+   § 7's record is written (Residue 8's hand-run recovery). For a GitHub Release destination that is read
+   with `gh release view <tag> --repo <owner/name>`, before any publication call (no nen verb reads it).
 3. **`nen release preflight` reads clean at the tagged commit** — § 4, and read its one inverted row
    carefully.
 4. **The plan is printed** — `nen shu release … --dry-run`, or

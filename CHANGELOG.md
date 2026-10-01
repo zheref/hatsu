@@ -11,6 +11,7 @@
 - **Residue 8's later go is reachable.** A bare call resolves to the latest cut tag with no published release, so it can never find a hand-published tag. The text now says it is a go naming that version, the own-words form. Its token reads `not published` (handed over: <command>), matching § 7's `published` or `not published`. § 1's first consequence, P4 and § 2 allow the one destination ask on a same-turn go in either of the first two forms.
 - **Open for the maintainer:** whether to add `disable-model-invocation: true` to mugetsu's frontmatter. It would stop the model loading the skill itself, and it would also stop a futon `then` step from reaching it, so it is not added here.
 - Settles hanten round 1 (Chrollo, Nobunaga, Phinks) and Nobunaga's pass 2. Plugin bumped to 0.70.0 (Claude manifest and Codex overlay); mirrors regenerated at that stamp.
+- **Copilot's round settled.** Form (1) names the skill as the surface spells it, plugin-namespaced included, so a Codex plugin call is a go. § 2 step 1 runs the read-only steps 2–4 before stopping without a go, as § 0 promises. § 2 step 2 skips publication and writes only the record when a named version is already published at the destination, so Residue 8's hand-run recovery is reachable.
 
 ## v0.69.1 — the runner preflight's per-user remedy names no install path
 
