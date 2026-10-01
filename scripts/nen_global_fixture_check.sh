@@ -297,6 +297,42 @@ if [ "$rc" -eq 0 ] && has "removed-by-user $h/.zshrc" && [ "$(count_blocks "$h/.
   pass "a removed block is reported removed-by-user and not re-added"
 else fail "removed block" "rc=$rc out=$out"; fi
 
+# 21a. no previous link and the post-link probe fails -> exit 5 and NO link left behind
+#      (the binary answers the pin when run by its cache path, and 9.9.9 through the new link)
+h="$(newhome nolinkflip)"
+flipbin="$(printf '#!/bin/sh\ncase "$0" in */.local/bin/*) echo 9.9.9 ;; *) echo "%s" ;; esac\n' "$pin")"
+stub="$work/stub-flip.sh"; stubsha="$(printf '%s\n' "$flipbin" | sha)"
+cat >"$stub" <<EOS
+#!/bin/sh
+d="\${XDG_CACHE_HOME:-\$HOME/.cache}/nen/stub"; mkdir -p "\$d"
+cat >"\$d/nen-flip" <<'EOB'
+$flipbin
+EOB
+chmod +x "\$d/nen-flip"; echo "\$d/nen-flip"
+EOS
+chmod +x "$stub"
+runstub "$h" /bin/zsh
+if [ "$rc" -eq 5 ] && [ ! -e "$h/.local/bin/nen" ] && [ ! -L "$h/.local/bin/nen" ] && has 'new one removed'; then
+  pass "no previous link and a failing post-link probe -> exit 5, no link left behind"
+else fail "post-link no old" "rc=$rc out=$out ls=$(ls -A "$h/.local/bin" 2>/dev/null)"; fi
+
+# 21b. the removal record cannot be written -> no block is added, so none can be re-added later
+h="$(newhome norecord)"; mkdir -p "$h/.config"; printf 'not a dir\n' >"$h/.config/hatsu"
+mkstub ok "$pin" 0
+runstub "$h" /bin/zsh
+if [ "$rc" -eq 0 ] && [ ! -e "$h/.zshrc" ] && [ ! -e "$h/.zprofile" ] \
+  && has "failed $h/.zshrc (record unwritable)"; then
+  pass "an unwritable removal record -> no block added, reported"
+else fail "record unwritable" "rc=$rc out=$out"; fi
+
+# 21c. every platform the pinned release publishes has a digest in the REAL contract (linux included)
+missing=""
+for p in darwin-arm64 linux-x64 windows-x64; do
+  grep -q "\"$p\": \"[0-9a-f]\{64\}\"" "$root/nen/contract.json" || missing="$missing $p"
+done
+if [ -z "$missing" ]; then pass "the contract records a sha256 for darwin-arm64, linux-x64 and windows-x64"
+else fail "contract digests" "missing:$missing"; fi
+
 # 22. lock: a live holder -> skipped after the wait; a dead holder's lock is broken
 h="$(newhome locked)"; mkdir -p "$h/.cache/nen/.nen-global.lock"; echo $$ >"$h/.cache/nen/.nen-global.lock/pid"
 mkstub ok "$pin" 0

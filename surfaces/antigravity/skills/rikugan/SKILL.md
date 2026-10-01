@@ -139,8 +139,8 @@ no bell — a composite that owed a bell rang it before this step ([`jutaisho`](
 ## 7. When the pipeline cannot run
 
 `nen report render` or `report data` unavailable (nen out of range is `ten`'s D10 contract), or the
-sweep failing for its own reasons: **relay it in one line, then fall back to
-[`backlog-state`](../backlog-state/SKILL.md)'s markdown table over the same scope**, saying so. Never a
+sweep failing for its own reasons: **relay it in one line and stop** — no page is published, and
+nothing stands in: `backlog-state` reads the open backlog, never this scope's merged objects. Never a
 hand-authored page, never a chat recap standing in for the file.
 
 ## Residue

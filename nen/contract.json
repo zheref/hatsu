@@ -35,6 +35,7 @@
       "sha256": {
         "$comment": "The release digests of the pinned binary, keyed by platform. They mirror pinned_ref_semantics and move with the pin; scripts/nen_global.sh refuses to link any binary whose sha256 differs, and a platform with no key here is never linked unverified.",
         "darwin-arm64": "81ce7b2e5c666bcaf5f6a4756af7ad8a19e25b36747f1b39e4398143cb9c8821",
+        "linux-x64": "43f28e13d612127f9f4492fe174ec83c945171229fa11e7c8844062d0fc3a7a2",
         "windows-x64": "5f8b3f1d04db1da1f737068ccadfc07e1c4c464d4c1e6c275aba21d971b9549c"
       },
       "url": "https://raw.githubusercontent.com/zheref/nen/v0.18.1/bootstrap/nen.sh",

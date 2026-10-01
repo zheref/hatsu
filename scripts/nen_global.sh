@@ -302,15 +302,25 @@ rc_one() {
     rc_note "removed-by-user $_f"; return 0
   fi
   if [ "$dry" -eq 1 ]; then rc_note "would-add $_f"; return 0; fi
+  # The record is part of the write: it is saved FIRST, so a block is never added without the
+  # tombstone that lets a later session see the user removed it (never re-added).
+  if ! { mkdir -p "$cfgdir" 2>/dev/null && printf '%s\n' "$_f" >>"$rc_record" 2>/dev/null; }; then
+    echo "nen-global: could not record $_f in $rc_record; block not added" >&2
+    rc_note "failed $_f (record unwritable)"; return 0
+  fi
   if {
     [ ! -s "$_f" ] || [ -z "$(tail -c 1 "$_f" 2>/dev/null)" ] || printf '\n'
     printf '%s\n' "# >>> hatsu nen-global >>>"
     printf '%s\n' "case \":\$PATH:\" in *\":\"${bin_q}\":\"*) ;; *) export PATH=${bin_q}\":\$PATH\" ;; esac"
     printf '%s\n' "# <<< hatsu nen-global <<<"
   } >>"$_f" 2>/dev/null; then
-    mkdir -p "$cfgdir" 2>/dev/null && printf '%s\n' "$_f" >>"$rc_record" 2>/dev/null
     rc_note "added $_f"
   else
+    # roll the record back: no block was written, so none may read as user-removed later
+    if grep -Fxv -- "$_f" "$rc_record" >"$rc_record.tmp.$$" 2>/dev/null || [ ! -s "$rc_record.tmp.$$" ]; then
+      mv -f -- "$rc_record.tmp.$$" "$rc_record" 2>/dev/null
+    fi
+    rm -f -- "$rc_record.tmp.$$" 2>/dev/null
     echo "nen-global: could not write $_f" >&2
     rc_note "failed $_f"
   fi
@@ -481,8 +491,12 @@ if [ "$state" = need ]; then
   fi
   got="$(version_of "$link")"
   if [ "$got" != "$pin" ]; then
-    if [ -n "$oldtarget" ] && ln -s -- "$oldtarget" "$tmplink" 2>/dev/null; then mv -f -- "$tmplink" "$link" 2>/dev/null; fi
-    die 5 "$link does not print the pin $pin after linking; the previous link was restored where there was one"
+    if [ -n "$oldtarget" ]; then
+      if ln -s -- "$oldtarget" "$tmplink" 2>/dev/null; then mv -f -- "$tmplink" "$link" 2>/dev/null; fi
+    else
+      rm -f -- "$link" 2>/dev/null   # there was no link before: a failing one is never left behind
+    fi
+    die 5 "$link does not print the pin $pin after linking; the previous link was restored, or the new one removed where there was none"
   fi
   how="linked from $verified"
 elif [ "$state" = kept-newer ]; then
