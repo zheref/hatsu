@@ -132,7 +132,11 @@ is a hole.
 
 `stallMinutes` is nen's: a review request older than it reads `not-ready: reviewer round stalled`.
 `minRounds` (**N**) and `maxRounds` (**M**) are **Hatsu's own keys** (zheref/hatsu#102; nen preserves them as
-raw data — counting them in `nen pr ready --explain` is zheref/nen#240). **The rule that reads them is
+raw data — counting them in `nen pr ready --explain` is zheref/nen#240). **Neither key is ever unbounded:** a
+repository that omits one, or declares one sharingan cannot read, takes Hatsu's canon default in
+[`contracts/round_policy.default.json`](../contracts/round_policy.default.json), by sharingan § 6's
+per-key rule ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-30 — reviewer-round caps by default*).
+**The rule that reads them is
 [`sharingan`](../claude/skills/sharingan/SKILL.md) § 6's, stated there once**; what a consumer needs to
 know under nen's `bounded` policy (zheref/nen#214) is one sentence of it: **a push re-owes the reviewer's
 round at the new head, but an owed round is not a request** — the skill does not ask again because its

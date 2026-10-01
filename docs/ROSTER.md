@@ -722,7 +722,7 @@ templates.**
 | **Five variants, declared in `nen/workflow.json`** | `reports.sections.<variant>` carries a `template` and a `blocks` list, validated by `nen schema check` and injected as presence flags by `nen report render --variant`. Every value inside a block stays the model's |
 | **`turn`, `turn-fast` and `landing` are Spiritual Message** | [`templates/spiritual-message.html`](../templates/spiritual-message.html). `turn` every Ren turn; `turn-fast` the same step under the fast profile — **the desk and the last turn, nothing else**; `landing` at `mukai` step 9 and `en` step 1, adding the PR body and the readiness verdict quoted |
 | **`final` and `register` are the Rikugan** | [`templates/rikugan.html`](../templates/rikugan.html), Hatsu's counterpart of the Ichigo gate register: desk grouped by gate and ranked by unblocking power, one collapsible row per issue and pull request, spend, legend |
-| **The dated final report is a one-effort Rikugan with a cleared desk** | written to `<reports.dir>/<YYYY-MM-DD>-<effort>.html`, and it is **the only report kept on disk**. **`spiritual-message as final` is retired** — the render path is [`backlog-board`](../claude/skills/backlog-board/SKILL.md) § 3, the same one `futon` and `backlog-loop` use for `register`. From `v0.69.0` its callable entry is [`hatsu:rikugan`](../claude/skills/rikugan/SKILL.md) (§ *Rulings of 2026-09-30 — rikugan is callable*) |
+| **The dated final report is a one-effort Rikugan with a cleared desk** | written to `<reports.dir>/<YYYY-MM-DD>-<effort>.html`, and it is **the only report kept on disk**. **`spiritual-message as final` is retired** — the render path is [`backlog-board`](../claude/skills/backlog-board/SKILL.md) § 3, the same one `futon` and `backlog-loop` use for `register`. From `v0.70.0` its callable entry is [`hatsu:rikugan`](../claude/skills/rikugan/SKILL.md) (§ *Rulings of 2026-09-30 — rikugan is callable*) |
 | **No more hand-authored board HTML** | a board is `nen report render --variant register` over the fixed template. A hand-filled page and a rendered one are not the same bytes, and only one of them is checkable |
 | **The architecture delta is a graph document, drawn client-side** | the model authors `nen.report.graph/v0.1` — nodes and edges with a `change` on each — and the page lays it out with **dagre 0.8.5, pinned from cdnjs under an SRI hash**, one renderer shared by both templates, the node and edge list under `<details>` as the fallback when the script cannot load. **Never a hand-built SVG, never a file-line inventory**, and the same document yields the PR body's mermaid through `nen report mermaid` |
 
@@ -942,6 +942,22 @@ sibling folder was the easiest answer to a rule with no path in it.
 | **C · Containment is both ways** | a nested worktree survives `git clean -fdx` (verified 2026-09-30: *Skipping repository*), but **`git clean -ffdx` deletes `.nen/` wholesale**, so **`git clean -ff…` is never run in a core checkout that holds worktrees**; deleting the core checkout deletes its worktrees. **A worktree is removed when its effort lands** (`git worktree remove`, then `prune`) — on Hatsu's own checkout without exception, because Codex's plugin install copies ignored worktrees too |
 | **C · kagutsuchi keeps its fixed path** | `.nen/worktrees/kagutsuchi` (`scripts/kagutsuchi_worktree.sh`) is the one purpose-named path without a surface segment: the script's idempotence is built on it, and it is already under `.nen/worktrees/` |
 | **C · What this does not rule** | the native modes' own locations are the tool's and are not reconfigured by Hatsu; `.nen/` needs no new ignore rule (Hatsu's `.gitignore`, tenkai's `dirs/nen-state` row); nen has no verb that creates or removes a worktree, so `git worktree add` stays hand-spelt residue (`docs/PROCESS.md` § *Residue*) |
+
+---
+
+## Rulings of 2026-09-30 — reviewer-round caps by default
+
+**The maintainer's request, verbatim** (typed after NN-PR-#316 drew four Copilot rounds because `zheref/nen` declared no `round_policy`):
+
+> Let's also go ahead and open a separate PR setting the same caps we already feature on Hatsu. Let's also make the canon default.
+
+| Ruling | What it says |
+|---|---|
+| **No repository is unbounded** | Hatsu's two reviewer-round keys, `round_policy.minRounds` (N) and `.maxRounds` (M), have a canon default in [`contracts/round_policy.default.json`](../contracts/round_policy.default.json). [`sharingan`](../claude/skills/sharingan/SKILL.md) § 6 states the one rule: per key, a target value that is absent, not a non-negative integer, or leaves N above M takes the default, with the file named as the source; an unreadable default is a stop |
+| **The home is Hatsu's alone** | the default carries only Hatsu's two keys. `stallMinutes` stays nen's, with nen's own built-in default, and `contracts/reference.gates.json` stays the frozen reference repository's identity file |
+| **A target may still declare its own** | a well-formed target value wins; `zheref/nen` declares the same caps in its own `nen/gates.json` (NN-PR-#321) |
+
+---
 
 ## Rulings of 2026-09-30 — jusshin: the target, the machine and the service identity are the maintainer's word
 

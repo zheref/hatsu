@@ -1,0 +1,5 @@
+{
+  "$comment": "THE CANON DEFAULT for Hatsu's two reviewer-round keys (docs/ROSTER.md § Rulings of 2026-09-30 — reviewer-round caps by default). sharingan § 6 states the one rule that reads it: per key, a target's nen/gates.json -> round_policy.minRounds (N) or .maxRounds (M) that is absent, not a non-negative integer, or leaves N above M takes this file's value, and the run names this file as the source. Hatsu-owned and nothing else: stallMinutes is nen's key with nen's own built-in default and is deliberately not here, and contracts/reference.gates.json stays the frozen reference repository's identity file alone.",
+  "minRounds": 1,
+  "maxRounds": 3
+}

@@ -13,7 +13,7 @@ description: Render the FINAL STATE of a just-completed workflow — or any name
 
 [`spiritual-message`](../spiritual-message/SKILL.md) is the **turn** and the **landing** — what one
 request did; **this skill is the state a workflow leaves when it completes** — one effort or one
-scope, every object it touched, each with its verdict. The name returned as a skill at `v0.69.0` for
+scope, every object it touched, each with its verdict. The name returned as a skill at `v0.70.0` for
 the Rikugan page (`templates/rikugan.html`, the `final` and `register` variants), distinct from its
 pre-`v0.42.0` meaning ([`ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-30 — rikugan*).
 
