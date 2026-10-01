@@ -284,7 +284,9 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
 - **`ten`.** Copying a mirror (the drift check is nen's), composing `AGENTS.override.md`,
   writing `info/exclude` and proving it took, the first install on Codex and Cursor, resolving the
   plugin root (and ordering the checkout's manifest version against the bound pin's, zheref/hatsu#67) and updating the plugin source are done by the warm-up's scripts and by hand: no nen
-  verb owns a checkout's local exclude, and where Hatsu is checked out is the host's property.
+  verb owns a checkout's local exclude, and where Hatsu is checked out is the host's property. The
+  login-shell probe (`"${SHELL:?}" -lic 'command -v nen && nen shu tools --repo "$1"' nen-probe "$hatsu_root" </dev/null`) and the name-correct host link ten § 2c offers on its
+  verdict are the same kind (zheref/hatsu#164): a shell's `PATH` is the maintainer's, and nen binds no name on a host.
   Cursor's version check is a string compare on a date part; the host-global half of the skill-name
   collision question has no answer from inside a repository.
 - **`shibari`.** The evidence mirror's publish step, the base-ref read (`gh pr view --json
