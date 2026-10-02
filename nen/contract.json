@@ -127,12 +127,17 @@
       "prose-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/prose_size_check.sh, the prose-diet guard (zheref/hatsu#119), following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: throwaway plugin-shaped trees prove a tree within every ceiling is exit 0 with kurapika.md exempt, --headroom prints one row per measured file smallest margin first with the plain run's exit code, exactly at the ceiling is within it and one byte over is named with size and ceiling, a rules file is measured in characters, a dieted skill missing from disk is named, and an unknown flag or a non-Hatsu root is a wiring refusal at exit 2."
+        "$comment": "The focused lane for scripts/prose_size_check.sh, the prose-diet guard (zheref/hatsu#119), following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: throwaway plugin-shaped trees prove a tree within every ceiling is exit 0 with kurapika.md exempt, --headroom prints one row per measured file smallest margin first with the plain run's exit code, exactly at the ceiling is within it and one byte over is named with size and ceiling, a rules file is measured in characters, a dieted skill missing from disk is named, an unknown flag or a non-Hatsu root is a wiring refusal at exit 2, and every skill's frontmatter description in source and mirrors is measured whole in the forms the generator writes (plain, quoted, folded, literal, continued, CRLF) against the 1024-character Agent Skills cap (zheref/hatsu#186); a duplicate key, invalid UTF-8 (checked exactly), a quoted key, a space before the colon, an alias or anchor value, a BOM before the frontmatter and an unlistable skill directory are each an offender by name, never skipped."
       },
       "tenkai-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/tenkai_adopt.sh, the hatsu:tenkai engine. The repository's pattern is ONE focused lane per executable guard -- the `test` seat on the `plugin` lane says so in its own words: 'Executable guards have their own focused lanes'. The engine shipped with a --self-test and no lane, so its assertions ran only when somebody typed the command: tsukuyomi had nothing to route to and no CI job covered it. An unrun check is exactly what that seat refuses to let read as a clean one."
+      },
+      "config-values-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/config_values.sh, the settable-values engine tenkai section 6d and ten section 6 step 5b call, and for contracts/config-catalogue.json, which its self-test validates row by row. Same one-lane-per-executable-guard pattern as tenkai-guard."
       },
       "workflow-policy-guard": {
         "stack": "claude-code-plugin",
@@ -163,6 +168,11 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/send_freshness_check.sh, kagutsuchi's freshness gate (zheref/hatsu#146), following this repository's one-lane-per-executable-guard pattern. Its fixtures are hermetic and offline: a bare repository stands in for origin so the fetch is real, and they prove every refusal the gate exists to make -- a dirty tree before the send, an absent, symlinked, out-of-tree or SHA-less nameFrom, a non-hex build SHA, an archive built from a commit that is not HEAD, one at HEAD but behind origin/<base>'s tip, a --base origin does not carry, a two-arg flag given no argument -- plus the fresh case and the exit-3 unverified case where no tags.identity is declared. It sends nothing and tags nothing."
+      },
+      "publish-integrity-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/branch_authorship_check.sh (zheref/hatsu#170: every commit in the OUTGOING range -- @{upstream} or the ls-remote SHA, never origin/<base> -- carries the run's Hatsu-Agent provenance under --require-agent, with identity as the weak second signal; --trunk drops the base's own history and exempts only a merge of the trunk whose tree is git's own clean merge; hanten § 4's return, aka § 4 before the squash and aka § 7 / murasaki § 6 before the push run it) and scripts/publish_gate_check.sh (zheref/hatsu#188: every documented catch-up-and-publish block is one && chain with nothing negated on it, and murasaki shows the full gated form once). Hermetic and offline: throwaway repositories and files under a temp dir; nothing is pushed but a local bare repository."
       },
       "ledger-guard": {
         "stack": "claude-code-plugin",
@@ -197,7 +207,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, freshness-guard, fresh-worktree-guard, ledger-guard, runner-preflight-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, config-values-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, freshness-guard, fresh-worktree-guard, ledger-guard, runner-preflight-guard, publish-integrity-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/spiritual-message.html, which is a report template, not an application."
@@ -327,6 +337,16 @@
           "$comment": "The hatsu:tenkai engine's own fixtures -- hermetic and offline. It builds throwaway git repositories under a temp dir, proves the runner derivation at every input, idempotence across three applies, every drift direction detected AND repaired, the read-only guarantee by content hash over the whole tree including .git/hooks, the two-PR ordering staged rather than hit, and that a hostile slug, a missing slug, a non-git directory and somebody else's workflow are each refused. Every fixture is removed on every path. Run it as `nen shu test --lane tenkai-guard --repo <hatsu>` when scripts/tenkai_adopt.sh or templates/pr-readiness.yml changes."
         }
       },
+      "config-values-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/config_values.sh",
+            "--self-test"
+          ],
+          "$comment": "Hermetic and offline: fixture declarations under a temp dir prove fill writes only absent defaults and `$<key>` option annotations, keeps hand formatting, is idempotent, never creates a declaration or rewrites a set value, that set refuses a value outside its options and a secret-shaped value, that on-use and optional values never block adoption, and that every row of the shipped catalogue is well-formed against claude/skills/. Run it as `nen shu test --lane config-values-guard --repo <hatsu>` when scripts/config_values.sh or contracts/config-catalogue.json changes."
+        }
+      },
       "workflow-policy-guard": {
         "test": {
           "exe": "ruby",
@@ -386,6 +406,15 @@
             "--self-test"
           ],
           "$comment": "The freshness gate's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Every fixture is removed on every path. Run it as `nen shu test --lane freshness-guard --repo <hatsu>` when scripts/send_freshness_check.sh changes."
+        }
+      },
+      "publish-integrity-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/publish_integrity_fixture.sh"
+          ],
+          "$comment": "Hermetic and offline, 73 cases. branch_authorship_check.sh: a clean branch, an empty range and a present trailer pass; --require-agent stops a reviewer persona's commit and a trailer-less one on the maintainer's own identity; a foreign author or committer and a missing required trailer stop at exit 1 naming the SHA, author and file count; a clean trunk merge passes only with --trunk, an evil merge and a clean merge of a non-trunk branch stop even with it; trunk history a catch-up brought in is out of range; RED-1 the outgoing range passes past a published web-flow commit; hostile subjects are sanitised; a malformed --require-trailer, --require-agent or --allow-email, an unresolvable base or trunk, a non-repository, an unknown argument, no identity at all and --trunk on a git without merge-tree --write-tree are exit 2. publish_gate_check.sh: the full gated && block passes (redirections are not separators, a quoted # hides nothing); a ;, a ||, a bare newline, a pipe (glued to the publish too), a lone &, a negated catch-up, authorship check or noOp read, a second ungated publish, an authorship check on its own line and a ~~~, nested or unterminated fence each fail, as does a publish spelled with doubled spaces or a tab; a murasaki with no full gated block fails; the owners carry a file-level policy -- in murasaki or mukai every publish needs its own catch-up and authorship check, in aka its own authorship check, so a bare publish block beside a gated one fails, and anywhere a publish ahead of the check its block names fails (Copilot on HA-PR-#192); a directory or unreadable file is exit 2; the live skills pass. Run it as `nen shu test --lane publish-integrity-guard --repo <hatsu>` when either script or the publish prose changes."
         }
       },
       "ledger-guard": {

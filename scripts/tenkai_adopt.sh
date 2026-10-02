@@ -30,6 +30,12 @@
 # `nen/contract.json`. A Nen-owned operation is never improvised in prose, and it
 # is not improvised in a script either.
 #
+# THE ONE EXCEPTION, ruled 2026-10-01 (docs/ROSTER.md): the `config/defaults`
+# item's repair runs scripts/config_values.sh fill, which writes absent catalogue
+# defaults and their `$<key>` option notes into a declaration that ALREADY
+# EXISTS — behaviour-neutral by construction, never a new file, never a value
+# somebody set. Creating a declaration is still nen's (`nen scaffold init`).
+#
 # USAGE
 #   scripts/tenkai_adopt.sh diagnose      --repo <path> [--slug <owner/name>] [--json]
 #   scripts/tenkai_adopt.sh apply         --repo <path> [--slug <owner/name>] [--json]
@@ -1795,6 +1801,63 @@ class ReviewerFallback(Item):
         return self.detect(ctx)
 
 
+class ConfigValues(Item):
+    """Every settable value the catalogue lists (contracts/config-catalogue.json), read through
+    scripts/config_values.sh — the maintainer's ruling of 2026-10-01. Two items, split by owner:
+    `config/defaults` is Hatsu's (apply writes absent defaults and `$<key>` option annotations,
+    behaviour-neutral by construction), `config/needed` is the consumer's (a value with no default
+    that a skill needs is the owner's answer, asked in tenkai § 6d and never written by apply)."""
+
+    FILL_STATES = {"default-unwritten", "unannotated"}
+    ASK_STATES = {"required-missing", "invalid"}
+
+    def __init__(self, ident, title, owner):
+        super().__init__(ident, title, owner)
+
+    def _engine(self, ctx, mode):
+        script = ctx.hatsu_root / "scripts" / "config_values.sh"
+        out = subprocess.run(["bash", str(script), mode, "--repo", str(ctx.repo),
+                              "--hatsu-root", str(ctx.hatsu_root), "--json"],
+                             capture_output=True, text=True, timeout=60)
+        if out.returncode not in (0, 1):
+            raise RuntimeError(f"config_values.sh {mode} exited {out.returncode}: {out.stderr.strip()}")
+        return json.loads(out.stdout)["values"]
+
+    def detect(self, ctx):
+        values = self._engine(ctx, "diagnose")
+        blocked = sorted({v["file"] for v in values if v["state"] == "blocked"})
+        if blocked:
+            return self.row(BLOCKED, "not read — " + ", ".join(blocked) + " cannot be read safely (unparseable, "
+                            "a symlink, or outside the repository); its own row names why",
+                            "repair the declaration by hand, then re-diagnose")
+        absent = sorted({v["file"] for v in values if v["state"] == "file-missing"})
+        not_read = (" (not read: " + ", ".join(absent) + " absent — its own row routes it)") if absent else ""
+        if self.id == "config/defaults":
+            owed = [v for v in values if v["state"] in self.FILL_STATES]
+            if not owed:
+                return self.row(SATISFIED, "every settable value with a default is written out, and every "
+                                "fixed-set value carries its `$<key>` options" + not_read)
+            return self.row(MISSING, f"{len(owed)} value(s) not written out: "
+                            + ", ".join(v["id"] for v in owed),
+                            f"apply runs config_values.sh fill --repo {ctx.repo}")
+        asks = [v for v in values if v["state"] in self.ASK_STATES]
+        later = [v for v in values if v["state"] in ("asked-on-use", "optional")]
+        tail = (f"; {len(later)} more offered in § 6d (" + ", ".join(v["id"] for v in later) + ")") if later else ""
+        if not asks:
+            return self.row(SATISFIED, "every value a skill needs is set" + not_read + tail)
+        return self.row(ROUTED, f"{len(asks)} value(s) a skill needs have no default: "
+                        + ", ".join(v["id"] for v in asks) + tail,
+                        f"tenkai § 6d asks each; config_values.sh set --repo {ctx.repo} --id <id> --value <JSON>")
+
+    def repair(self, ctx):
+        before = self.detect(ctx)
+        if self.id != "config/defaults" or before["state"] == SATISFIED:
+            return before
+        self._engine(ctx, "fill")
+        after = self.detect(ctx)
+        return after if after["state"] != SATISFIED else self.row(REPAIRED, before["detail"] + " — written")
+
+
 def items(ctx):
     out = [NenDeclaration(path, what) for path, what in NEN_DECLARATIONS]
     out.append(ColorsFile())
@@ -1816,6 +1879,8 @@ def items(ctx):
     out.append(PrivilegedWorkflows())
     out.append(CheckExclusions())
     out.append(ReviewerFallback())
+    out.append(ConfigValues("config/defaults", "every settable value written out at its default", "hatsu"))
+    out.append(ConfigValues("config/needed", "every value a skill needs, set", "consumer configuration"))
     return out
 
 
@@ -2839,6 +2904,30 @@ def self_test() -> int:
     check("an empty chain is DRIFT", r["state"] == DRIFT)
     gr.write_text(json.dumps({"reviewers": [{"name": "copilot"}], "reviewer_fallback": "x"}))
     check("a non-object reviewer_fallback is DRIFT", ReviewerFallback().detect(ctx_for(dr))["state"] == DRIFT)
+
+    print("\nsettable values — written out at their defaults, the needed ones asked (ruling 2026-10-01)")
+    dv = fixture()
+    (dv / "nen" / "workflow.json").write_text('{\n  "branch": {"base": "trunk"}\n}\n')
+    defaults, needed = (ConfigValues("config/defaults", "x", "hatsu"),
+                        ConfigValues("config/needed", "x", "consumer configuration"))
+    check("an absent default is MISSING and Hatsu's to write", defaults.detect(ctx_for(dv))["state"] == MISSING)
+    check("a value a skill needs with no default is ROUTED to its owner",
+          needed.detect(ctx_for(dv))["state"] == ROUTED and "workflow.review.scopes" in needed.detect(ctx_for(dv))["detail"])
+    check("apply writes the defaults", defaults.repair(ctx_for(dv))["state"] == REPAIRED)
+    written = json.loads((dv / "nen" / "workflow.json").read_text())
+    check("apply keeps a set value and annotates a fixed set",
+          written["branch"]["base"] == "trunk" and written["mukai"]["$autoEn"] == "one of: true | false")
+    check("a second apply writes nothing", defaults.repair(ctx_for(dv))["state"] == SATISFIED)
+    check("apply never answers a needed value", needed.repair(ctx_for(dv))["state"] == ROUTED
+          and "scopes" not in written.get("review", {}))
+    dnone = fixture()
+    check("no declaration yet: nothing to write, and the row says it read nothing",
+          defaults.detect(ctx_for(dnone))["state"] == SATISFIED
+          and "not read" in defaults.detect(ctx_for(dnone))["detail"])
+    dblk = fixture()
+    (dblk / "nen" / "workflow.json").write_text("{not json")
+    check("an unparseable declaration is BLOCKED, never 'every value is set'",
+          needed.detect(ctx_for(dblk))["state"] == BLOCKED and defaults.detect(ctx_for(dblk))["state"] == BLOCKED)
 
     print("\nblocked states are reported, never repaired around")
     d5 = fixture()
