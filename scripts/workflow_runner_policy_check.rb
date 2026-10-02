@@ -456,6 +456,103 @@ READINESS_FROZEN_STEPS = {
   READINESS_PUBLISH_STEP => READINESS_FROZEN_PUBLISH
 }.freeze
 #
+# THE RENDERED FORM -- the second, and only other, admitted pr-readiness.yml
+# (Copilot on HA-PR-#211). tenkai renders templates/pr-readiness.yml into a
+# process repository, which carries a copy of this validator (tenkai § 5d), and
+# four of that rendering's steps are not Hatsu's own: both checkouts pin
+# actions/checkout by commit SHA, the policy step tolerates a missing guard for
+# a repository that adopted before carrying one, and the pin step validates the
+# contract's shape and may fall back to the ref tenkai rendered. Freezing only
+# Hatsu's form refused that rendering at its first step, so a process
+# repository that followed § 5d (land this validator, then re-render) would
+# have failed its own trusted policy step before reaching the verdict.
+#
+# It is frozen exactly like the first: every key, the run byte for byte. The
+# ONLY free values are tenkai's three render-time placeholders, each held to
+# the values tenkai writes (RENDERED_ENV_VALUES) and, together, to the two
+# role pairs it renders (TENKAI_RENDERED_PAIRS). The job is ONE form or the
+# other, never a mix: the head checkout's `uses:` selects the form and every
+# step is then compared against that form alone. The SHA-pinned checkout and
+# the TENKAI_* env keys are admitted in pr-readiness.yml only -- no other
+# workflow's allowlist grows. The bootstrap, verdict and Publish steps are
+# identical in both forms. Where the root carries templates/pr-readiness.yml
+# (Hatsu itself), the self-test renders it for both roles and validates the
+# result, so the template and these constants cannot drift apart unseen.
+READINESS_RENDERED_CHECKOUT = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+# A first refusal only: TENKAI_RENDERED_PAIRS below admits two boolean pairs
+# and nothing else, so it subsumes this pattern (a mutant loosening it alone
+# survives the self-test by design).
+TENKAI_BOOLEAN = /\A(?:true|false)\z/.freeze
+# The pin step's own ref shape: a plain git ref, never '..' or '//'.
+TENKAI_PLAIN_REF = %r{\A(?!.*\.\.)(?!.*//)[A-Za-z0-9][A-Za-z0-9._/-]{0,99}\z}.freeze
+# [TENKAI_GUARD_REQUIRED, TENKAI_PIN_FALLBACK_ALLOWED]: process, product.
+TENKAI_RENDERED_PAIRS = [%w[true false], %w[false true]].freeze
+READINESS_RENDERED_HEAD_CHECKOUT = READINESS_FROZEN_HEAD_CHECKOUT.merge("uses" => READINESS_RENDERED_CHECKOUT).freeze
+READINESS_RENDERED_TRUSTED_CHECKOUT = READINESS_FROZEN_TRUSTED_CHECKOUT.merge("uses" => READINESS_RENDERED_CHECKOUT).freeze
+READINESS_RENDERED_POLICY = {
+  "env" => {
+    "TENKAI_GUARD_REQUIRED" => TENKAI_BOOLEAN
+  },
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -euo pipefail
+    if [ -f .trusted/scripts/workflow_runner_policy_check.rb ]; then
+      ruby .trusted/scripts/workflow_runner_policy_check.rb --self-test "$PWD"
+    elif [ "$TENKAI_GUARD_REQUIRED" = true ]; then
+      echo "::error::The process repository's trusted workflow guard is missing."
+      exit 1
+    else
+      echo "::notice::No repository workflow guard is installed; Tenkai checks the rendered workflow at adoption."
+    fi
+  RUN
+}.freeze
+READINESS_RENDERED_PIN = {
+  "id" => "pin",
+  "env" => {
+    "TENKAI_PIN_FALLBACK_ALLOWED" => TENKAI_BOOLEAN,
+    "TENKAI_FALLBACK_REF" => TENKAI_PLAIN_REF
+  },
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -euo pipefail
+    ref=""
+    if [ -f .trusted/nen/contract.json ]; then
+      if ! ref="$(jq -r '
+        if type != "object" then error("root must be an object")
+        elif has("dependency") and (.dependency | type) != "object" then error("dependency must be an object")
+        elif (.dependency.pinned_ref | type) != "string" and (.dependency.pinned_ref | type) != "null" then error("dependency.pinned_ref must be a string")
+        elif .dependency.pinned_ref == "" then error("dependency.pinned_ref must not be empty")
+        else .dependency.pinned_ref // empty end
+      ' .trusted/nen/contract.json)"; then
+        echo "::error::Trusted nen/contract.json is malformed or unreadable."
+        exit 1
+      fi
+    fi
+    if [ -z "$ref" ] && [ "$TENKAI_PIN_FALLBACK_ALLOWED" = true ]; then
+      ref="$TENKAI_FALLBACK_REF"
+      echo "Using the Nen ref rendered from Hatsu's dependency contract: $ref"
+    fi
+    [ -n "$ref" ] || { echo "::error::nen/contract.json carries no dependency.pinned_ref."; exit 1; }
+    case "$ref" in
+      *..*|*//*) echo "::error::dependency.pinned_ref '$ref' is not a valid git ref (contains '..' or '//')."; exit 1 ;;
+    esac
+    if [[ ! "$ref" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$ ]]; then
+      echo "::error::dependency.pinned_ref is not a plain git ref ([A-Za-z0-9][A-Za-z0-9._/-]{0,99}); refusing to use it in a URL or a shell."
+      exit 1
+    fi
+    echo "ref=$ref" >> "$GITHUB_OUTPUT"
+    echo "pinned nen ref: $ref"
+  RUN
+}.freeze
+READINESS_RENDERED_STEPS = READINESS_FROZEN_STEPS.merge(
+  "Checkout PR head (data only — nothing from here is executed)" => READINESS_RENDERED_HEAD_CHECKOUT,
+  "Checkout guard code from the trusted workflow revision" => READINESS_RENDERED_TRUSTED_CHECKOUT,
+  "Enforce workflow runner policy from trusted workflow revision" => READINESS_RENDERED_POLICY,
+  "Read the pinned nen ref from trusted nen/contract.json" => READINESS_RENDERED_PIN
+).freeze
+READINESS_RENDERED_USES = [READINESS_RENDERED_CHECKOUT].freeze
+READINESS_RENDERED_ENV = %w[TENKAI_GUARD_REQUIRED TENKAI_PIN_FALLBACK_ALLOWED TENKAI_FALLBACK_REF].freeze
+#
 # surface-mirror-regenerate.yml (zheref/hatsu#165): create-pull-request pushes
 # its branch BEFORE asking GitHub for the PR, so a repository whose "Allow
 # GitHub Actions to create and approve pull requests" toggle is off strands
@@ -671,12 +768,21 @@ def require_frozen_step(step, frozen, label)
   allowed = (["name"] + frozen.keys).sort
   fail_policy("#{label} may carry only #{allowed.join(", ")}") unless step.keys.sort == allowed
   frozen.each do |key, value|
-    actual = if value.is_a?(Hash)
-               # `env` and a checkout's `with`: an exact mapping, every key and
-               # every value, so an added RUBYOPT/PATH/BASH_ENV or a moved ref
-               # is a byte inequality like any other.
-               mapping(step[key], "#{label} #{key}").transform_values { |node| scalar(node) }
-             elsif key == "run"
+    if value.is_a?(Hash)
+      # `env` and a checkout's `with`: an exact mapping, every key and every
+      # value, so an added RUBYOPT/PATH/BASH_ENV or a moved ref is a byte
+      # inequality like any other. A Regexp value is one of tenkai's render-time
+      # placeholders (READINESS_RENDERED_STEPS): the key is still exact, and
+      # the value must match the pattern whole.
+      actual = mapping(step[key], "#{label} #{key}").transform_values { |node| scalar(node) }
+      fail_policy("#{label} #{key} must carry exactly #{value.keys.join(", ")}") unless actual.keys.sort == value.keys.sort
+      value.each do |name, want|
+        ok = want.is_a?(Regexp) ? actual[name].is_a?(String) && want.match?(actual[name]) : actual[name] == want
+        fail_policy("#{label} #{key} #{name} must be exactly the frozen form") unless ok
+      end
+      next
+    end
+    actual = if key == "run"
                scalar(step["run"]).to_s.strip
              else
                scalar(step[key])
@@ -747,7 +853,10 @@ ADMITTED_STEP_ENV = %w[
   GH_TOKEN REPO HEAD_SHA PR BASE_SHA PR_BODY CHECK_ID JOB_STATUS PINNED_REF NEN_BIN
   NEN STAMP RUN_ID EVENT_HEAD TITLE SUMMARY
 ].freeze
-def refuse_unadmitted_step_shapes(path, job_name, job, step_maps, job_keys)
+# `extra_uses` / `extra_env`: admitted for ONE workflow's job only -- the
+# rendered pr-readiness.yml's SHA-pinned checkout and TENKAI_* keys -- so no
+# other workflow's allowlist grows.
+def refuse_unadmitted_step_shapes(path, job_name, job, step_maps, job_keys, extra_uses: [], extra_env: [])
   extra = job.keys - job_keys
   fail_policy("#{path} job #{job_name} carries #{extra.join(", ")}, which this policy does not admit (#{job_keys.join(", ")} only)") unless extra.empty?
   step_maps.each do |step|
@@ -756,7 +865,7 @@ def refuse_unadmitted_step_shapes(path, job_name, job, step_maps, job_keys)
     fail_policy("#{path} step #{name} carries #{extra.join(", ")}, which this policy does not admit") unless extra.empty?
     if step.key?("uses")
       uses = scalar(step["uses"])
-      fail_policy("#{path} step #{name} uses #{uses.inspect}, which is not an admitted action (#{ADMITTED_USES.join(", ")})") unless ADMITTED_USES.include?(uses)
+      fail_policy("#{path} step #{name} uses #{uses.inspect}, which is not an admitted action (#{ADMITTED_USES.join(", ")})") unless (ADMITTED_USES + extra_uses).include?(uses)
       fail_policy("#{path} step #{name} both runs and uses an action") if step.key?("run")
     end
     if step.key?("run")
@@ -766,7 +875,7 @@ def refuse_unadmitted_step_shapes(path, job_name, job, step_maps, job_keys)
     end
     next unless step["env"]
     keys = mapping(step["env"], "#{path} step #{name} env").keys
-    bad = keys - ADMITTED_STEP_ENV
+    bad = keys - ADMITTED_STEP_ENV - extra_env
     fail_policy("#{path} step #{name} sets env #{bad.join(", ")}, which is not on the admitted list") unless bad.empty?
   end
 end
@@ -900,12 +1009,30 @@ def validate_workflow(path)
     # verdict step, and EVERY step of the job is admitted only in its exact
     # frozen form (READINESS_FROZEN_STEPS), so no earlier step can reach the
     # verdict through the environment, the PATH, a shell or an action.
+    extra_uses = []
+    extra_env = []
     if File.basename(path) == "pr-readiness.yml"
-      READINESS_FROZEN_STEPS.each do |name, frozen|
-        require_frozen_step(step_maps.find { |step| scalar(step["name"]) == name }, frozen, "#{path} frozen readiness step #{name.inspect}")
+      # ONE form for the whole job, selected by the head checkout's `uses:`:
+      # Hatsu's own, or tenkai's rendering (READINESS_RENDERED_STEPS). Every
+      # step is then compared against that form alone, so the two never mix.
+      head_step = step_maps.find { |step| scalar(step["name"]) == READINESS_FROZEN_STEPS.keys.first }
+      rendered = head_step && head_step.key?("uses") && scalar(head_step["uses"]) == READINESS_RENDERED_CHECKOUT
+      form = rendered ? READINESS_RENDERED_STEPS : READINESS_FROZEN_STEPS
+      kind = rendered ? "rendered" : "frozen"
+      form.each do |name, frozen|
+        require_frozen_step(step_maps.find { |step| scalar(step["name"]) == name }, frozen, "#{path} #{kind} readiness step #{name.inspect}")
+      end
+      if rendered
+        guard = scalar(mapping(step_maps[2]["env"], "#{path} policy env")["TENKAI_GUARD_REQUIRED"])
+        fallback = scalar(mapping(step_maps[3]["env"], "#{path} pin env")["TENKAI_PIN_FALLBACK_ALLOWED"])
+        unless TENKAI_RENDERED_PAIRS.include?([guard, fallback])
+          fail_policy("#{path} rendered readiness pairs TENKAI_GUARD_REQUIRED=#{guard} with TENKAI_PIN_FALLBACK_ALLOWED=#{fallback}, which tenkai never renders")
+        end
+        extra_uses = READINESS_RENDERED_USES
+        extra_env = READINESS_RENDERED_ENV
       end
     end
-    refuse_unadmitted_step_shapes(path, job_name, job, step_maps, PR_JOB_KEYS)
+    refuse_unadmitted_step_shapes(path, job_name, job, step_maps, PR_JOB_KEYS, extra_uses: extra_uses, extra_env: extra_env)
     starter = step_maps.first
     finisher = step_maps.last
     expected_check_name = File.basename(path) == "plugin-bump-check.yml" ? "check" : job_name
@@ -1519,14 +1646,19 @@ def self_test(root)
     # forms -- rendered from the constants, so this is the exact text step 2 copies.
     readiness = File.join(tmp, ".github/workflows/pr-readiness.yml")
     readiness_original = File.read(readiness)
-    # Everything before the verdict step is the checkout's own; the verdict and
-    # Publish steps are rebuilt from the frozen constants, never read back, so
-    # a fixture can never inherit a drifted body from the checkout.
-    verdict_at = readiness_original.index("      - name: #{READINESS_VERDICT_STEP}\n")
-    fail_policy("self-test: pr-readiness.yml has no #{READINESS_VERDICT_STEP.inspect} step") unless verdict_at
-    readiness_prefix = readiness_original[0...verdict_at]
+    # Only the header -- triggers, permissions, the job's keys -- is the
+    # checkout's own. EVERY step is rebuilt from Hatsu's frozen constants, never
+    # read back, so a fixture can never inherit a drifted body from the
+    # checkout, and the same fixtures run whichever admitted form the checkout
+    # holds: Hatsu's own, or a process repository's tenkai rendering
+    # (READINESS_RENDERED_STEPS, Copilot on HA-PR-#211), whose own fixtures
+    # follow below.
+    first_step_at = readiness_original.index("      - name: #{READINESS_FROZEN_STEPS.keys.first}\n")
+    fail_policy("self-test: pr-readiness.yml has no #{READINESS_FROZEN_STEPS.keys.first.inspect} step") unless first_step_at
+    readiness_prefix = readiness_original[0...first_step_at]
+    readiness_earlier = READINESS_FROZEN_STEPS.first(5).map { |name, frozen| render_step(name, frozen) + "\n" }.join
     readiness_with = lambda do |verdict: READINESS_FROZEN_VERDICT, publish: READINESS_FROZEN_PUBLISH|
-      readiness_prefix + render_step(READINESS_VERDICT_STEP, verdict) + "\n" + render_step(READINESS_PUBLISH_STEP, publish)
+      readiness_prefix + readiness_earlier + render_step(READINESS_VERDICT_STEP, verdict) + "\n" + render_step(READINESS_PUBLISH_STEP, publish)
     end
     readiness_frozen = readiness_with.call
     pin_out = %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"\n}
@@ -1669,6 +1801,92 @@ def self_test(root)
       fail_policy("self-test: #{label} equals its base, so it tests nothing") if text == base
       File.write(readiness, text)
       expect_rejected(label) { validate_repo(tmp) }
+    end
+    File.write(readiness, readiness_original)
+    validate_repo(tmp, announce: false)
+
+    # --- pr-readiness.yml: tenkai's RENDERED form (Copilot on HA-PR-#211) --
+    # Built from READINESS_RENDERED_STEPS with tenkai's three placeholders
+    # filled, on the checkout's own header. A process rendering is the base;
+    # each fixture breaks one arm of the second admitted form.
+    rendered_with = lambda do |guard: "true", fallback: "false", ref: "v0.18.2", steps: READINESS_RENDERED_STEPS|
+      fill = { "TENKAI_GUARD_REQUIRED" => guard, "TENKAI_PIN_FALLBACK_ALLOWED" => fallback, "TENKAI_FALLBACK_REF" => ref }
+      readiness_prefix + steps.map do |name, frozen|
+        concrete = frozen.transform_values do |value|
+          value.is_a?(Hash) ? value.to_h { |key, val| [key, val.is_a?(Regexp) ? fill.fetch(key) : val] } : value
+        end
+        render_step(name, concrete)
+      end.join("\n")
+    end
+    rendered_process = rendered_with.call
+    File.write(readiness, rendered_process)
+    validate_repo(tmp, announce: false)
+    File.write(readiness, rendered_with.call(guard: "false", fallback: "true"))
+    validate_repo(tmp, announce: false)
+    policy_name = "Enforce workflow runner policy from trusted workflow revision"
+    pin_name = "Read the pinned nen ref from trusted nen/contract.json"
+    head_name = READINESS_FROZEN_STEPS.keys[0]
+    trusted_name = READINESS_FROZEN_STEPS.keys[1]
+    {
+      "rendered readiness with a placeholder that is not a boolean" => rendered_with.call(guard: "maybe"),
+      "rendered readiness pairing a required guard with the pin fallback" => rendered_with.call(guard: "true", fallback: "true"),
+      "rendered readiness pairing an optional guard with no fallback" => rendered_with.call(guard: "false", fallback: "false"),
+      "rendered readiness with a fallback ref holding '..'" => rendered_with.call(ref: "v0..18"),
+      "rendered readiness with a fallback ref holding a command substitution" => rendered_with.call(ref: "$(id)"),
+      "rendered readiness with an extra TENKAI_ env key on the policy step" =>
+        rendered_process.sub("          TENKAI_GUARD_REQUIRED: true\n", "          TENKAI_GUARD_REQUIRED: true\n          TENKAI_EXTRA: x\n"),
+      "rendered readiness with RUBYOPT on the pin step" =>
+        rendered_process.sub("          TENKAI_FALLBACK_REF: v0.18.2\n", "          TENKAI_FALLBACK_REF: v0.18.2\n          RUBYOPT: -r./x.rb\n"),
+      "rendered checkouts with Hatsu's own policy step (a mixed form)" =>
+        rendered_with.call(steps: READINESS_RENDERED_STEPS.merge(policy_name => READINESS_FROZEN_POLICY)),
+      "Hatsu's checkouts with the rendered pin step (a mixed form)" =>
+        readiness_frozen.sub(render_step(pin_name, READINESS_FROZEN_PIN), rendered_with.call.then { |text| text[text.index("      - name: #{pin_name}\n")...text.index("      - name: #{READINESS_FROZEN_STEPS.keys[4]}\n")] }.chomp("\n")),
+      "Hatsu's head checkout with the SHA-pinned trusted checkout (a mixed form)" =>
+        readiness_frozen.sub(render_step(trusted_name, READINESS_FROZEN_TRUSTED_CHECKOUT), render_step(trusted_name, READINESS_RENDERED_TRUSTED_CHECKOUT)),
+      # Caught ONLY by whole-form selection: per step, each of these steps
+      # alone is one of the two admitted forms.
+      "the rendered head checkout with Hatsu's trusted checkout (a mixed form)" =>
+        rendered_with.call(steps: READINESS_RENDERED_STEPS.merge(trusted_name => READINESS_FROZEN_TRUSTED_CHECKOUT)),
+      # Caught ONLY by the exact env key set: GH_TOKEN is on every allowlist.
+      "rendered readiness with GH_TOKEN on the policy step" =>
+        rendered_process.sub("          TENKAI_GUARD_REQUIRED: true\n", "          TENKAI_GUARD_REQUIRED: true\n          GH_TOKEN: ${{ github.token }}\n"),
+      "rendered readiness whose policy run is off by one byte" =>
+        rendered_with.call(steps: READINESS_RENDERED_STEPS.merge(policy_name => READINESS_RENDERED_POLICY.merge("run" => READINESS_RENDERED_POLICY["run"].sub("exit 1", "exit 0")))),
+      "rendered readiness whose head checkout reads the base" =>
+        rendered_process.sub("        uses: #{READINESS_RENDERED_CHECKOUT}\n        with:\n          ref: ${{ github.event.pull_request.head.sha }}\n",
+          "        uses: #{READINESS_RENDERED_CHECKOUT}\n        with:\n          ref: ${{ github.event.pull_request.base.sha }}\n")
+    }.each do |label, text|
+      fail_policy("self-test: #{label} equals its base, so it tests nothing") if text == rendered_process || text == readiness_frozen
+      File.write(readiness, text)
+      expect_rejected(label) { validate_repo(tmp) }
+    end
+    # The SHA-pinned checkout is admitted in pr-readiness.yml ONLY.
+    plugin_before = File.read(plugin)
+    plugin_pinned = plugin_before.sub("uses: actions/checkout@v7\n", "uses: #{READINESS_RENDERED_CHECKOUT}\n")
+    fail_policy("self-test: the SHA-pinned checkout fixture equals its base") if plugin_pinned == plugin_before
+    File.write(readiness, readiness_original)
+    File.write(plugin, plugin_pinned)
+    expect_rejected("plugin-bump-check with the SHA-pinned checkout only pr-readiness.yml admits") { validate_repo(tmp) }
+    plugin_tenkai_env = plugin_before.sub("      - name: Enforce workflow runner policy from trusted workflow revision\n",
+      "      - name: Enforce workflow runner policy from trusted workflow revision\n        env:\n          TENKAI_GUARD_REQUIRED: true\n")
+    fail_policy("self-test: the TENKAI_ env fixture equals its base") if plugin_tenkai_env == plugin_before
+    File.write(plugin, plugin_tenkai_env)
+    expect_rejected("plugin-bump-check with a TENKAI_ env key only pr-readiness.yml admits") { validate_repo(tmp) }
+    File.write(plugin, plugin_before)
+    # The TEMPLATE ITSELF, rendered the way tenkai renders it for each role,
+    # where the root carries it (Hatsu): the constants above and the shipped
+    # template cannot drift apart without this failing.
+    template = File.join(root, "templates/pr-readiness.yml")
+    if File.file?(template)
+      TENKAI_RENDERED_PAIRS.each do |guard, fallback|
+        text = File.read(template)
+                   .gsub("@@REPO_SLUG@@", "zheref/hatsu").gsub("@@RUNS_ON@@", HOSTED_RUNNER)
+                   .gsub("@@RUNNER_REASON@@", "self-test").gsub("@@GUARD_REQUIRED@@", guard)
+                   .gsub("@@PIN_FALLBACK_ALLOWED@@", fallback).gsub("@@NEN_REF@@", "v0.18.2")
+        fail_policy("self-test: templates/pr-readiness.yml carries a placeholder this self-test does not fill") if text.include?("@@")
+        File.write(readiness, text)
+        validate_repo(tmp, announce: false)
+      end
     end
     File.write(readiness, readiness_original)
     validate_repo(tmp, announce: false)

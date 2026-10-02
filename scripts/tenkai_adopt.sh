@@ -2612,6 +2612,33 @@ def self_test() -> int:
           "TENKAI_PIN_FALLBACK_ALLOWED: true" in product_workflow
           and f"TENKAI_FALLBACK_REF: {ctx_for(dprod).nen_ref()}" in product_workflow
           and 'ref="$TENKAI_FALLBACK_REF"' in product_workflow)
+    # END TO END THROUGH THE SHIPPED VALIDATOR (Copilot on HA-PR-#211): a
+    # process repository that follows § 5d lands this validator and then
+    # re-renders, so the rendering must be one the validator admits. Rendered
+    # for each role on a hosted runner, then validated with Hatsu's own
+    # scripts/workflow_runner_policy_check.rb beside Hatsu's other workflows.
+    # The slug is swapped for Hatsu's: the validator's job guard names its own
+    # repository, and a process repository's copy carries that repository's.
+    validator = root / "scripts" / "workflow_runner_policy_check.rb"
+    def validate_rendering(text):
+        with tempfile.TemporaryDirectory() as vtmp:
+            wf = Path(vtmp) / ".github" / "workflows"
+            wf.mkdir(parents=True)
+            for src in (root / ".github" / "workflows").glob("*.yml"):
+                shutil.copy(src, wf / src.name)
+            (wf / "pr-readiness.yml").write_text(text)
+            return subprocess.run(["ruby", str(validator), vtmp], capture_output=True, text=True)
+    for role in (ROLE_PROCESS, ROLE_PRODUCT):
+        dv = fixture(role=role)
+        run("apply", ctx_for(dv, vis="public", sh=0))
+        text = (dv / WORKFLOW_PATH).read_text().replace("acme/widget", "zheref/hatsu")
+        check(f"the {role} rendering runs on the hosted runner the validator admits",
+              re.search(r"^    runs-on: ubuntu-latest$", text, re.M) is not None)
+        result = validate_rendering(text)
+        check(f"the shipped validator admits the {role} rendering",
+              result.returncode == 0, result.stderr.strip()[-300:])
+    tampered = validate_rendering(text.replace("TENKAI_FALLBACK_REF: ", "TENKAI_FALLBACK_REF: x..", 1))
+    check("and refuses a rendering whose fallback ref was edited", tampered.returncode == 1)
     pin_step = product_workflow.split(
         "      - name: Read the pinned nen ref from trusted nen/contract.json", 1)[1]
     pin_step = pin_step.split("      - name: Bootstrap nen at the trusted pinned ref", 1)[0]
