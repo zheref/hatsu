@@ -19,6 +19,7 @@ among twelve events.
 | config read from | `~/.codex/config.toml` (user), `.codex/config.toml` (project, trusted projects only) |
 | hooks read from | the plugin's `.codex-plugin/plugin.json` → `"hooks": "./surfaces/codex/hooks.json"`, the generated rows, run with `PLUGIN_ROOT` set; `~/.codex/hooks.json` and `<repo>/.codex/hooks.json` (legacy placement) |
 | invocation spelling | `$hatsu:<name>` under the plugin (the documented `$<plugin>:<skill>` form); `$<name>` for a legacy placed copy |
+| worktrees | the app's own: "Codex creates worktrees in `$CODEX_HOME/worktrees`." / "To choose another location, open **Settings > Worktrees** and change **Worktree root**." (https://learn.chatgpt.com/docs/environments/git-worktrees, 2026-09-30) — one global root, outside the workspace but inside the tool's home; accepted as it comes, never a sibling. **Hatsu-made** (hanten's second `codex exec`, a lead-session effort): `<core>/.nen/worktrees/codex/<name>`, removed when the effort lands — `docs/WORKFLOW.md` § *Where worktrees live* |
 | headless command | `codex exec -C <repo> -s workspace-write --add-dir "$(git -C <repo> rev-parse --path-format=absolute --git-common-dir)" -m "$sol" "<prompt>"`, with `sol` resolved live from `codex debug models`; a G5 is answered with `codex exec resume --last -m "$sol" --skip-git-repo-check -c 'sandbox_workspace_write.writable_roots=[…]' -o <file> "<answer>"`. The full record, including why `--add-dir` is mandatory in a linked worktree and which flags `resume` refuses, is [`evidence/surfaces.md`](evidence/surfaces.md) § 7 F3, F6 and Appendix A |
 | pointing at a local checkout | the marketplace **is** the local checkout; after it moves, `codex plugin add hatsu@hatsu` again (Codex does not notice a newer source, evidence § 10 F6), which `scripts/hatsu_plugin_update.sh --codex` does |
 | update and activation | `hatsu:bakuryuha`: § 3 installs the plugin where copies were placed, § 4 fast-forwards the marketplace checkout and re-adds the plugin, the new `ten` places personas only (`--plugin`); running sessions refresh skills and hooks after an external plugin upgrade (codex-cli 0.154.0), personas load at the next run, and a changed hook is skipped until trusted in `/hooks` (§ 9, § 10) |
@@ -86,7 +87,8 @@ lands in a config file; `models.rule` forbids it, and the id moves (evidence § 
 no bare `sol`, no `gpt-6-sol`).
 
 In-session delegation is `spawn_agent`. Hanten's isolated reviewer still runs as a second `codex exec`
-in a worktree, because that reviewer must not share the author's tree.
+in a worktree at `<core>/.nen/worktrees/codex/hanten-<persona>` (§ 1), because that reviewer must not
+share the author's tree.
 
 ## 4. Hooks
 
@@ -142,7 +144,7 @@ nen surface mirror generate --surface codex \
 
 | emits | from |
 |---|---|
-| `surfaces/codex/<name>/SKILL.md`, 48 files (forty-seven plus `ten`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `$<name>` | `claude/skills/**` |
+| `surfaces/codex/<name>/SKILL.md`, 49 files (forty-eight plus `ten`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `$<name>` | `claude/skills/**` |
 | `surfaces/codex/AGENTS.md`, the appendix the warm-up copies into `AGENTS.override.md` after the target's own `AGENTS.md`, twelve personas plus the preamble include as sections (`## _review-preamble`) | `claude/agents/**` |
 | `surfaces/codex/agents/<persona>.toml`, one per persona, `name`, `description`, `developer_instructions`, `model` from the persona's tier | `claude/agents/**` and `nen/workflow.json` |
 | `surfaces/codex/config.toml`, the pack: `approval_policy`, `sandbox_mode`, `writable_roots` | `contracts/permissions.json` |

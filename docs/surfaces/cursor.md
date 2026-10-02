@@ -18,6 +18,7 @@ since v0.41.0.
 | permissions read from | `<project>/.cursor/cli.json`; `~/.cursor/cli-config.json` globally |
 | hooks read from | `<project>/.cursor/hooks.json`; a home-directory copy |
 | invocation spelling | `/<name>` |
+| worktrees | the IDE's own live in a machine worktree root — "Cursor 3.5 keeps a modified time checkpoint for the machine worktree root" (https://cursor.com/docs/configuration/worktrees, 2026-09-30); the location is not documented as configurable, and `.cursor/worktrees.json` configures setup, not location; accepted as it comes. **Hatsu-made** (hanten's `.cursor/agents/` reviewer, a lead-session effort): `<core>/.nen/worktrees/cursor/<name>`, removed when the effort lands — `docs/WORKFLOW.md` § *Where worktrees live* |
 | headless command | `cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"`, with `grok` resolved live from `cursor-agent models` (newest `cursor-grok-*`, plain `-high`, never `-fast`); a G5 is answered with the same line plus `--resume <chatId>`. The full record is [`evidence/surfaces.md`](evidence/surfaces.md) § 8 and Appendix A |
 | pointing at a local checkout | `surface_bootstrap.sh --surface cursor --target "$HATSU_PLUGIN_ROOT" --install-all` when authoring Hatsu on Cursor, so `.cursor/skills/` links into this `surfaces/cursor/`; otherwise Cursor discovers Claude's versioned cache and serves last-tag prose. **The tree is named, never trusted by itself** (zheref/hatsu#67): inside a Hatsu checkout whose manifest is newer than the bound pin's, `scripts/hatsu_root.sh` keeps the pin and prints the deferral on stderr — the bodies Cursor inlined this session are the pin's; read `<checkout>/claude/skills/<name>/SKILL.md`; the quoted `export HATSU_PLUGIN_ROOT='<checkout>'` binds the tree from the next session. That line exists from the first installed pin that carries it (0.53.0 or later); below it the export is the only form. Whether `.cursor/skills/` then outranks the Claude cache Cursor also discovers is § 10's open gap |
 | commit attribution | Cursor appends `Co-authored-by: Cursor <cursoragent@cursor.com>` at `git commit` time; turn it off before the first commit — Cursor Settings → Git & Pull Requests → *Commit Attribution*, or `attribution.attributeCommitsToAgent: false` in `~/.cursor/cli-config.json` (§ 9, forum-sourced, not verified live; [`docs/WORKFLOW.md`](../WORKFLOW.md) § `commits`, zheref/hatsu#66); `kokusen` § 5 reads the written tip back and `aka` § 7 every outgoing commit before the push and stop on an attribution key (a key ending `-by`/`-with`, or listed in `forbiddenTrailers`; `Closes` is ordinary) outside `allowedAttributionTrailers` |
@@ -51,7 +52,7 @@ Claude Code plugin skills, `build` and `drive` among them (evidence § 8 F4). Th
 inferred, not proven: two probes could not tell two rival `build` entries apart because the surviving
 descriptions are too short. The warm-up lists every name already standing under `.cursor/skills/`
 before it installs anything and says that a host-level collision it cannot see may still win. Hatsu
-claims forty-eight ordinary words at once, `build`, `file`, `en`, `ao`, `ren`, `breath` among them.
+claims forty-nine ordinary words at once, `build`, `file`, `en`, `ao`, `ren`, `breath` among them.
 
 **Do not shorten a description to fit thirty characters.** Asked for the length of `build`'s
 description, a session answered "30 characters long"; the description dies inside its first clause, and
@@ -71,7 +72,7 @@ routing work, which is the argument for keeping names distinctive.
 
 `--model grok` does not exist: `cursor-agent` refuses an alias and lists the catalogue. The id is read
 from `cursor-agent models` (`cursor-grok-4.6-high` on 2026-09-10, evidence § 8 F1). Hanten's isolated
-reviewer is a `.cursor/agents/` subagent in a worktree.
+reviewer is a `.cursor/agents/` subagent in a worktree at `<core>/.nen/worktrees/cursor/hanten-<persona>` (§ 1).
 
 ## 4. Hooks
 
@@ -124,7 +125,7 @@ nen surface mirror generate --surface cursor \
 
 | emits | from |
 |---|---|
-| `surfaces/cursor/<name>/SKILL.md`, 48 files (forty-seven plus `ten`), frontmatter reduced to the documented keys, `hatsu:<name>` respelled `/<name>` | `claude/skills/**` |
+| `surfaces/cursor/<name>/SKILL.md`, 49 files (forty-eight plus `ten`), frontmatter reduced to the documented keys, `hatsu:<name>` respelled `/<name>` | `claude/skills/**` |
 | `surfaces/cursor/agents/<persona>.md`, 13 files (twelve personas plus the preamble include), `model: inherit` | `claude/agents/**`, `nen/workflow.json` |
 | `surfaces/cursor/.cursor/rules/hatsu.mdc` | the surface row and the matrix |
 | `surfaces/cursor/.cursor/cli.json` | `contracts/permissions.json` |

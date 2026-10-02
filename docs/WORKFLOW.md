@@ -359,8 +359,9 @@ data` stamps the checkout's directory name, which in a worktree is the worktree'
 
 **The retention rule — and what it does *not* say.** A report is published at three moments — every
 turn, at landing, and once current-head readiness is verified — and `retain: final-only` means **only
-the last one is KEPT**: the **`final`** variant, a one-effort Rikugan with a cleared desk,
-rendered through [`backlog-board`](../claude/skills/backlog-board/SKILL.md) § 3 to
+the last one is KEPT**: the **`final`** variant, a one-effort Rikugan with a cleared desk —
+[`hatsu:rikugan`](../claude/skills/rikugan/SKILL.md), callable on any completed workflow or named scope
+(ruling 2026-09-30), rendered through [`backlog-board`](../claude/skills/backlog-board/SKILL.md) § 3 to
 `<reports.dir>/<YYYY-MM-DD>-<effort>.html`. A directory holding one report per turn is a directory
 nobody opens; the final one is the one with the register, the tests run and the touched coverage on
 it, and it is the one worth finding six months later.
@@ -640,7 +641,10 @@ surface for exactly this reason: **the tier is the policy and the alias is the s
 | `fast` — `worker`, `measurer` | `sonnet` | `terra` | `composer` | `flash` |
 | `economy` — `watcher`, `formatter` | `haiku` | `luna` | `composer` | `flash` |
 | **how a subagent is raised** | the harness's **Agent tool**; Hanten **omits** `isolation` — `isolation: "worktree"` would isolate the *plugin's* repository, not the target | **in-session `spawn_agent`** (ChatGPT app, CLI, IDE). Hanten's isolated reviewer is still a second **`codex exec -m <id> -C <dir> -s workspace-write`** because that reviewer must not share the author's tree | a **subagent definition** at `.cursor/agents/<persona>.md`, mirrored there from `claude/agents/` | the harness's **`invoke_subagent` tool**, `Workspace: "branch"` (reviewers and all builder efforts) or `"inherit"` (Third-Hand's Netero, En's Illumi), `Model: "pro"` |
-| **isolation** | Hanten's reviewer: **`git -C <target> worktree add --detach <target>/.claude/worktrees/hanten-<persona> HEAD` first**, the path in the prompt with *"do not request a worktree"*, removed when the review returns ([`hanten`](../claude/skills/hanten/SKILL.md) § 4) | in-session spawn **shares the parent**; Hanten's reviewer is still **`git worktree add` first** — `-C` takes a directory and creates none | the surface's own; the skill states which it got | **`Workspace: "branch"`** by default for all builder efforts and Hanten reviewers; **`"inherit"`** for Third-Hand's Netero (`share` only when it is the same checkout). Core checkout is untouched by default unless maintainer explicitly waives in prose |
+| **isolation** | Hanten's reviewer: **`<core>` resolved first — `nen wc worktrees --repo <target> --json` → `core` — then `git -C <target> worktree add --detach <core>/.nen/worktrees/claude-code/hanten-<persona> HEAD`**, the path in the prompt with *"do not request a worktree"*, removed when the review returns ([`hanten`](../claude/skills/hanten/SKILL.md) § 4) | in-session spawn **shares the parent**; Hanten's reviewer is still **`git worktree add` first**, at `<core>/.nen/worktrees/codex/hanten-<persona>` — `-C` takes a directory and creates none | the surface's own; the skill states which it got — a worktree Hatsu makes is `<core>/.nen/worktrees/cursor/<name>` | **`Workspace: "branch"`** by default for all builder efforts and Hanten reviewers; **`"inherit"`** for Third-Hand's Netero (`share` only when it is the same checkout); the lead's own `git worktree add` goes to `.nen/worktrees/antigravity/<name>`. Core checkout is untouched by default unless maintainer explicitly waives in prose |
+
+Every worktree Hatsu makes, on every surface, lives under `<core>/.nen/worktrees/<surface>/` — § *Where
+worktrees live*, the ruling of 2026-09-30.
 
 `nen/workflow.json` → `models` is the source and this table a convenience copy of it; where the two
 disagree the file wins and the table is the bug.
@@ -1194,7 +1198,7 @@ Then `shibari` hands the PR to `en` and stops. It never applies a gate label and
 [`sharingan`](../claude/skills/sharingan/)² → [`murasaki`](../claude/skills/murasaki/)³ when the branch is
 behind → `sharingan`⁴ → **observe⁵ while required CI or the current-head reviewer round is pending**, still
 reacting to new comments, threads, reviews and conflicts → [`jutaisho`](../claude/skills/jutaisho/)⁶ once
-at Ready → the dated **final** report, a one-effort Rikugan rendered through `nen report render --variant final` (`backlog-board` § 3's path), **the only report written to `Reports/`**, then stop at the human gate.
+at Ready → the dated **final** report, [`rikugan`](../claude/skills/rikugan/)'s one-effort Rikugan rendered through `nen report render --variant final` (`backlog-board` § 3's path), **the only report written to `Reports/`**, then stop at the human gate.
 
 **Who starts en:** [`mukai`](../claude/skills/mukai/) (its offer, or `mukai.autoEn`), [`futon`](../claude/skills/futon/)'s
 per-issue chain, the maintainer by name — and [`getsuga`](../claude/skills/getsuga/) § 3 for the release
@@ -1245,10 +1249,13 @@ cache, which is what the version bump in `.claude-plugin/plugin.json` exists to 
 
 ## 6 · The hooks
 
-[`../hooks/hooks.json`](../hooks/hooks.json) carries three Claude Code hooks: `SessionStart` (`hooks/session-start.sh`, a warm-up reminder on Claude Code and, on a mirrored surface, a mirror refresh in a repository that already adopted Hatsu, fail-open; [`docs/SURFACES.md`](SURFACES.md) § 1), `Stop` and `PreToolUse`. **None is a nen-owned step.**
+[`../hooks/hooks.json`](../hooks/hooks.json) carries three Claude Code hooks: `SessionStart` (`hooks/session-start.sh`: first the pinned `nen` bound on the host through `scripts/nen_global.sh` — `~/.local/bin/nen` and the shell rc's PATH block, opt-out `HATSU_NEN_GLOBAL=0|false|no|off` or `${XDG_CONFIG_HOME:-$HOME/.config}/hatsu/nen-global` reading `off`, ruling 2026-09-30 — then a warm-up reminder on Claude Code and, on a mirrored surface, a mirror refresh in a repository that already adopted Hatsu, fail-open; [`docs/SURFACES.md`](SURFACES.md) § 1), `Stop` and `PreToolUse`. **None is a nen-owned step** — the binding runs nen's own bootstrap and links what it verified.
 They are executed by the harness *around* a session rather than by a skill *inside* one, and they exist for
-the two things a skill structurally cannot do: a skill only runs when the model calls it, and by the time the
-model has stopped talking, or has already typed the push, it is too late.
+the three things a skill structurally cannot do: a skill only runs when the model calls it, by the time the
+model has stopped talking, or has already typed the push, it is too late — and **binding the host's `nen`
+before any skill runs** (the hooks' third purpose, ruling of 2026-09-30). That step 0 runs on the source
+copy always, and on a mirrored copy only once its plugin root (`HATSU_PLUGIN_ROOT`, Codex's `PLUGIN_ROOT`)
+is verified; a watchdog bounds it at about 50 s even where no `timeout` exists.
 
 | Hook | Event | What it does |
 |---|---|---|
@@ -1671,6 +1678,71 @@ screenshot a PR body carries sits in a **cell** of this shape, on the first writ
   root, lane `pr-body-guard`) refuses any image outside a table and any image without alt text, each
   by line number. A refusal is fixed in the body file and re-checked; it never reaches the PR.
 
+## Where worktrees live — ruling of 2026-09-30
+
+**The maintainer's request, verbatim** (2026-09-30): *"Noticed under some circumstances and for more
+than one surface, since worktrees are encouraged by default, worktrees are being created and worked one
+used inconsistent practices for each. ... I saw worktrees being generated as sibling folders of the
+core checkout directory. I don't like this approach and as possible we should generate a git-ignored
+folder (maybe for each surface) where surfaces can install the worktrees and safely work within a
+contaned environment without creating bad hygiene outside the actual workspaces. ... it would be great
+to make it canon and clear on all surfaces."* **The ruling**: *"go with .nen/worktrees/<surface> as
+canon"*.
+
+**Every worktree Hatsu creates lives at `<core>/.nen/worktrees/<surface>/<name>`.** `<core>` is the
+core checkout — `nen wc worktrees --json`'s `core`, the parent of `git rev-parse --git-common-dir`;
+`<surface>` is the slug `ten` § 5 passes as `surface=`: `claude-code`, `codex`, `cursor`, `antigravity`.
+**Never a sibling of the checkout (`../<name>`), never `/tmp`, never anywhere outside the core
+checkout.** `.nen/` is already ignored — Hatsu's own `.gitignore`, and in a consumer tenkai's
+`dirs/nen-state` row — so the directory needs no new ignore rule. The names in use: `hanten-<persona>`
+([`hanten`](../claude/skills/hanten/SKILL.md) § 4's reviewer), `prove-<n>` (the stash-and-restore
+shape's proof, below), the effort's branch slug for a lead-session effort (rule 6 of
+[`claude/rules/hatsu.md`](../claude/rules/hatsu.md)), and kagutsuchi's fixed `.nen/worktrees/kagutsuchi`
+(§ 3b, `scripts/kagutsuchi_worktree.sh`) — the one purpose-named path with no surface segment, kept
+because the script's idempotence is built on the path being fixed.
+
+### Per surface — the harness's own worktrees, and what Hatsu does
+
+| Surface | The harness's own worktrees (quoted, fetched 2026-09-30) | What Hatsu does |
+|---|---|---|
+| **Claude Code** | "By default, the worktree is created under `.claude/worktrees/<name>/` at your repository root, on a new branch named `worktree-<name>`" ([worktrees](https://code.claude.com/docs/en/worktrees)). A `WorktreeCreate` hook may relocate it, but a hook-created directory inside a git repository is refused — the page says to "have the hook create its directories outside any repository"; the `worktree.*` settings (`baseRef`, `bgIsolation`, `sparsePaths`, `symlinkDirectories`; [settings reference](https://code.claude.com/docs/en/settings-reference)) set no location | **Hatsu-made**: `git worktree add .nen/worktrees/claude-code/<name>`, then `EnterWorktree` by `path` — a path outside `.claude/worktrees/` asks the maintainer's approval once; it is answered, not routed around. **The harness's own isolation** — `claude --worktree`, the Agent tool's `isolation: "worktree"`, a background session — stays at `.claude/worktrees/`: **the one documented exception**, git-ignored (Hatsu's `.gitignore`; tenkai's `dirs/claude-worktrees` row in a consumer), never relocated |
+| **Codex** | "Codex creates worktrees in `$CODEX_HOME/worktrees`." / "To choose another location, open **Settings > Worktrees** and change **Worktree root**." ([git worktrees](https://learn.chatgpt.com/docs/environments/git-worktrees)) — one global root, not per repository | The app's own worktree is accepted where it is: outside the workspace but contained in the tool's home, never a sibling. **Hatsu-made** (hanten's second `codex exec`, a lead-session effort): `.nen/worktrees/codex/<name>` |
+| **Cursor** | native worktrees live in a machine worktree root — "Cursor 3.5 keeps a modified time checkpoint for the machine worktree root" ([worktrees](https://cursor.com/docs/configuration/worktrees)); the location is not documented as configurable, and `.cursor/worktrees.json` configures setup, not location | The native worktree is accepted where it is. **Hatsu-made** (hanten's `.cursor/agents/` reviewer, a lead-session effort): `.nen/worktrees/cursor/<name>` |
+| **Antigravity** | "New worktree mode: The agent operates in an isolated Git worktree." ([getting started](https://antigravity.google/docs/getting-started)); the location is undocumented | `invoke_subagent` with `Workspace: "branch"` is accepted where the IDE puts it. **Hatsu-made** (the lead's direct work, [`docs/surfaces/antigravity.md`](surfaces/antigravity.md) § 11.1): `git worktree add .nen/worktrees/antigravity/<name> -b <branch>` |
+
+### Integrity
+
+- **A nested worktree survives `git clean -fdx`** (verified locally, 2026-09-30): a linked worktree at
+  an ignored `.nen/worktrees/claude-code/wt1` — the verified probe — holding an uncommitted file
+  stayed — git prints *Skipping repository .nen/worktrees/claude-code/wt1* — because `clean` does not
+  enter a nested repository on one `-f`. **`git clean -ffdx` removes `.nen/` wholesale**, every worktree's uncommitted work with it. So
+  **`git clean -ff…` is never run in a core checkout that holds worktrees**; the sweep is `git worktree
+  remove <path>` per worktree, then `git worktree prune`.
+- **Containment is both ways.** Deleting the core checkout deletes its worktrees, and a worktree's
+  `.git` file points only into core's `.git/worktrees/<name>`: nothing outside the checkout references
+  it, and nothing of it is left behind.
+- **Remove on landing.** A worktree is removed when its effort lands or is abandoned — `git worktree
+  remove <path>` (`--force` only on a tree the report has shown dirty and the maintainer has released),
+  then `git worktree prune`. hanten § 4 removes the reviewer's when the review returns; the proof below
+  removes its own on every path.
+
+### Performance
+
+- Tools that honour `.gitignore` — git, `rg`, most language servers — never see `.nen/worktrees/`.
+  Tools that do not — an IDE indexer, a jest or Metro watcher, a `tsc` `include` glob, a bare `find` —
+  may scan every nested copy; the dot-prefixed `.nen/` is skipped by most of them by default, and
+  where one still bites, that tool's own exclude names `.nen/` once.
+- **Codex copies ignored paths.** `codex plugin add` copies the whole marketplace checkout, ignored
+  worktrees included ([`docs/surfaces/codex.md`](surfaces/codex.md) § 1), so a stale worktree in the
+  Hatsu checkout costs Codex install time and cache space on every `add`: on Hatsu's own checkout the
+  remove-on-landing rule has no exception.
+
+**What this does not rule.** The native modes' own locations (Codex's *Worktree root*, Cursor's machine
+root, Antigravity's root) are the tool's and are not reconfigured by Hatsu; and nen carries no verb that
+creates or removes a worktree at the canonical path — `nen wc worktrees` reads, `nen wc swap` swaps —
+so every `git worktree add` above is hand-spelt residue ([`docs/PROCESS.md`](PROCESS.md) § *Residue*;
+[zheref/nen#299](https://github.com/zheref/nen/issues/299) is the kagutsuchi-shaped verb).
+
 ## The standalone stash-and-restore shape
 
 Moved here 2026-09-20 out of [`breath`](../claude/skills/breath/SKILL.md) § 0, which is its only
@@ -1684,7 +1756,8 @@ maintainer's own commits on that tip, with their uncommitted changes still uncom
   addressed **by SHA, never by `stash@{0}`**, warms, and restores by `stash apply <sha>` with a
   checked drop; a conflicting restore leaves the stash in place and stops as `nen/decisions.json`
   row `semantic-conflict`. **Never `--discard`, `git checkout -- .` or `reset --hard`.**
-- **Prove.** An isolated `git worktree add --detach <tmp> origin/<base>` is preferred and removed on
+- **Prove.** An isolated `git worktree add --detach <core>/.nen/worktrees/<surface>/prove-<n>
+  origin/<base>` (§ *Where worktrees live*; never `/tmp`, never a sibling) is preferred and removed on
   every path; fall back to the maintainer's working directory only where a lane cannot run outside
   it, **saying which**. A red base is a **G5**; a seat (exit `4`) is not red.
 - **Place.** Unpublished commits are replayed onto the proven tip through

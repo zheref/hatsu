@@ -9,7 +9,7 @@ description: Have the change read adversarially pre-PR — classify with `nen re
 > fixed, or refused with a reason I can check.**
 
 **No fixed mode**: hanten holds the nature the change was authored in;
-[`mukai`](../mukai/SKILL.md)'s second step, after `murasaki`, and invocable
+`mukai`'s second step, after `murasaki`, and invocable
 alone. **Pre-PR a finding costs an edit, not a review round — a review, not a gate.**
 
 ## 1. Invocation
@@ -25,8 +25,7 @@ nen parse hanten \
 ```
 
 **`against <base>` names the base**; with none, base and change set are P3's (`origin/<branch.base>`
-fetched, the delta plus `git status --porcelain`; [STANDALONE-ENTRY.md](../../../docs/STANDALONE-ENTRY.md)
-§ 3). **`all` is every scope the diff raises**, `for <scope>` narrows, never widens; an unknown scope
+fetched, the delta plus `git status --porcelain`; STANDALONE-ENTRY.md § 3). **`all` is every scope the diff raises**, `for <scope>` narrows, never widens; an unknown scope
 (exit `2`) asks with the nine as options; a missing argument or configuration item is set up inline
 (`missing-argument`, `missing-configuration`; [WORKFLOW.md](../../../docs/WORKFLOW.md) § 4).
 
@@ -112,11 +111,12 @@ pin — the one `ten` § 2 bound, since **a subagent inherits no `PATH`** (#107)
 end is the reviewer's to declare.
 
 ```bash
-git -C <target repo> worktree add --detach <target repo>/.claude/worktrees/hanten-<persona> HEAD
+core=<`nen wc worktrees --repo <target repo> --json` → core>
+git -C <target repo> worktree add --detach "$core"/.nen/worktrees/<surface>/hanten-<persona> HEAD
 ```
 
-**The isolated checkout makes *never edits non-test source* a property of where the reviewer stands**,
-removed when the review returns; **never `isolation: "worktree"`**, which isolates the *plugin's* repo.
+**The isolated checkout makes *never edits non-test source* a property of where the reviewer
+stands** (WORKFLOW § *Where worktrees live*), removed when the review returns; **never `isolation: "worktree"`**, which isolates the *plugin's* repo.
 **Say what was raised before the reviews return**: scopes, personas, aliases, gaps, each `used`/`max`.
 **As each returns, one `nen usage record` — never a transcription after the round** (#100;
 WORKFLOW.md § *The effort's ledgers*): `--effort <branch>` (only the cycle ledger is PR-keyed),
@@ -178,7 +178,7 @@ and pickers**: the worker at the scope's tier, a copy of the repo under review, 
 Preamble § 7 is every reviewer's refusal list. **Hanten may** read the working copy, raise reviewers,
 write the findings record and Leorio's report, the cycle and usage ledgers, edit the working copy to
 settle a finding, and render the stop. **It may not** push, commit, PR, label,
-merge, tag, deploy or vote ([PROCESS.md](../../../docs/PROCESS.md) § Authority every phase shares).
+merge, tag, deploy or vote (PROCESS.md § Authority every phase shares).
 
 ## Hard limits
 

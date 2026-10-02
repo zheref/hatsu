@@ -17,6 +17,7 @@ event or a permission rule is made against a quoted line and not a memory.
 | hooks read from | `hooks/hooks.json` at the plugin root, active while the plugin is enabled |
 | permissions | `.claude/settings.local.json` in the target checkout (the pack), never a plugin file |
 | invocation spelling | `hatsu:<name>` |
+| worktrees | the harness's own: "By default, the worktree is created under `.claude/worktrees/<name>/` at your repository root, on a new branch named `worktree-<name>`" (https://code.claude.com/docs/en/worktrees, 2026-09-30) — `--worktree`, Agent `isolation: "worktree"`, background sessions; git-ignored, **the one harness-native exception**. A `WorktreeCreate` hook may relocate it only outside any repository, and no `worktree.*` setting sets a location. **Hatsu-made**: `git worktree add .nen/worktrees/claude-code/<name>`, then `EnterWorktree` by `path` (one approval prompt for a path outside `.claude/worktrees/`) — `docs/WORKFLOW.md` § *Where worktrees live* |
 | headless command | `claude -p "<prompt>"` in the target checkout with the plugin enabled |
 | pointing at a local checkout | the link above is the local checkout: `"$HATSU_PLUGIN_ROOT/scripts/hatsu_surface_link.sh" --surface claude-code --root "$HATSU_PLUGIN_ROOT"`. A new commit there is served at the next `/reload-plugins` or session, with no version bump and no `claude plugin update`; `claude plugin list --json` shows `hatsu@skills-dir` and the link as `installPath` |
 | update and activation | `hatsu:bakuryuha`: § 3 retargets a cache install onto the link, § 4 fast-forwards the linked checkout (`hatsu_plugin_update.sh --claude`), the new `ten` runs from disk, and `installPath` is read back; the switch is `/reload-plugins` **typed by the human** or the next session, never an app restart (§ 9) |
@@ -67,8 +68,8 @@ A persona's `model` is a tier alias resolved from the matrix, never a versioned 
 | file | `hooks/hooks.json` (plugin); `.claude/settings.json` (project, committable) |
 | events | 33, including `SessionStart`, `PreToolUse`, `PostToolUse`, `Stop`, `SubagentStop`, `SessionEnd`, `UserPromptSubmit`, `PreCompact`, `Notification`, `PermissionRequest`, `WorktreeCreate`, `Setup`, `ConfigChange`, `Elicitation` |
 | `PreToolUse` decision | `hookSpecificOutput.permissionDecision`: `allow`, `deny`, `ask` or `defer`, with `permissionDecisionReason` |
-| what Hatsu installs | `SessionStart` → `hooks/session-start.sh` (the warm-up reminder; on a mirrored surface the mirror refresh); `Stop` → `hooks/stop-bell.sh` (rungs 2 and 3 off `.nen/last-stop.json`); `PreToolUse` on `Bash` → `hooks/guard-base-branch.sh` (refuses `git commit` and `git push` on the base branch) |
-| session start | none installed; the plugin is read in place, so there is nothing to refresh |
+| what Hatsu installs | `SessionStart` → `hooks/session-start.sh` (first the nen binding — `scripts/nen_global.sh --root <hatsu_root>`, fail-open, its summary line appended to the additional context — then the warm-up reminder; on a mirrored surface the mirror refresh); `Stop` → `hooks/stop-bell.sh` (rungs 2 and 3 off `.nen/last-stop.json`); `PreToolUse` on `Bash` → `hooks/guard-base-branch.sh` (refuses `git commit` and `git push` on the base branch) |
+| session start | the pinned `nen` bound on the host — `~/.local/bin/nen` linked to the checksum-verified pin (a non-symlink there is refused, exit 3) and a marked `# >>> hatsu nen-global >>>` PATH block in the shell rc when the bin dir is not on `PATH`; `HATSU_NEN_GLOBAL=0` opts out (ruling 2026-09-30). The plugin itself is read in place, so there is nothing to refresh |
 
 Both scripts are POSIX sh, use no jq, yq or python, and fail open except the guard, which fails closed
 on the five forms where the branch it can see is not the branch the write would land on. The permission
@@ -162,7 +163,7 @@ generated file.
 - A `hatsu` marketplace or `hatsu@hatsu` enable declared in a **project** or **managed** settings scope: the handover clears the user scope only, and such a declaration could bring a shadowing copy back after the name is freed (Feitan's note, 2026-09-29); Claude Code's own trust prompt stands in front of a project declaration.
 - Whether live `SKILL.md` change detection ("picks up the change within the current session") reaches a
   skills-directory plugin's nested `claude/skills/` bodies, and what watching a linked checkout that holds
-  `.claude/worktrees/` costs. Not claimed: `hatsu:bakuryuha` names `/reload-plugins` or a new session.
+  worktrees (`.claude/worktrees/`, the harness's own; `.nen/worktrees/claude-code/`, Hatsu's — § 1) costs. Not claimed: `hatsu:bakuryuha` names `/reload-plugins` or a new session.
 
 ## 11. How this guide evolves
 

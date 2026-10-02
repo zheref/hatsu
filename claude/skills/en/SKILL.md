@@ -204,7 +204,7 @@ Past the maximum the run ends at not-ready with the board. Neither is a G5. `nen
 | 4 | **drive again** | [`hatsu:sharingan`](../sharingan/SKILL.md) | after step 3 moved the tree underneath it |
 | 5 | **observe** | this file, § 6 | while CI or a reviewer round is pending; each poll runs `nen wake verify` in dry-run (no `--run`), and `--run` only when a swallowed run is found; rebuild the current-head snapshot on every change, returning to steps 2–4 when action is needed |
 | 6 | **the merge, then the bell** | this file, § 5; the report through [`hatsu:jutaisho`](../jutaisho/SKILL.md)'s four parts | **after verified Ready or § 6's sixth stop**, and only then — **not under `getsuga` § 3**, where the verdict returns to getsuga and § 3a merges |
-| 7 | **the dated final report** | [`hatsu:backlog-board`](../backlog-board/SKILL.md) § 3, `--variant final` | after the bell; this is En's successful terminus |
+| 7 | **the dated final report** | [`hatsu:rikugan`](../rikugan/SKILL.md) (§ 8), which composes backlog-board § 3's `--variant final` | after the bell; this is En's successful terminus |
 
 **Four orderings are en's own assertions:**
 
@@ -465,9 +465,11 @@ maintainer sees a budget being continued rather than one silently restarting.
 **Not under getsuga § 3** (§ 5): the proposal's report is getsuga's own.
 
 After the deterministic Ready verdict and step 6's bell, render the **`final`** variant — a
-**one-effort Rikugan with a cleared desk**, this effort's register, spend and legend —
-through [`backlog-board`](../backlog-board/SKILL.md) § 3, which owns that render path (maintainer's
-ruling, 2026-09-19). **There is no `spiritual-message as final` any more**; hand over and say so.
+**one-effort Rikugan with a cleared desk**, this effort's register, spend and legend — by naming
+[`hatsu:rikugan`](../rikugan/SKILL.md) over this PR and the issues it closes (its § 2 row for en;
+ruling 2026-09-30), which composes [`backlog-board`](../backlog-board/SKILL.md) § 3, the render
+path (maintainer's ruling, 2026-09-19). **There is no `spiritual-message as final` any more**; hand
+over and say so.
 
 ```
 <reports.dir>/<YYYY-MM-DD>-<effort>.html

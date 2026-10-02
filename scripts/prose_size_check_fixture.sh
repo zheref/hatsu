@@ -55,8 +55,12 @@ bytes() {
   printf '\n' >> "$path"
 }
 
-DIETED="amaterasu backlog-board backlog-loop bakuryuha black-voice breath build futon great-hiker
-hanten ten jujutsu jutaisho kagutsuchi kokusen spiritual-message sharingan shibari limbo"
+# ONE LIST: the dieted skills are read out of the guard itself, never copied here, so a skill added to
+# DIETED_SKILLS (rikugan, v0.73.0) is counted by this fixture the moment it is added to the guard.
+DIETED="$(sed -n '/^DIETED_SKILLS="/,/"$/p' "$guard" | sed 's/^DIETED_SKILLS="//; s/"$//' | tr '\n' ' ')"
+[ -n "$DIETED" ] || fail "could not read DIETED_SKILLS from $guard"
+# the dieted skills, two agents and one rules file
+total=$(( $(printf '%s\n' $DIETED | wc -l | tr -d ' ') + 3 ))
 
 # make_root <dir>: every dieted skill at 100 bytes, two agents at 100 bytes, kurapika.md far over its
 # would-be ceiling, one rules file of 11950 characters (the smallest margin in the tree).
@@ -73,7 +77,7 @@ make_root() {
 clean="$fixture_root/clean"
 make_root "$clean"
 run 0 "$clean"
-assert_contains "$out" 'prose ok: 22 files within their ceilings' 'nineteen skills, two agents and one rules file are counted; kurapika.md is not'
+assert_contains "$out" "prose ok: $total files within their ceilings" 'every dieted skill (rikugan among them), two agents and one rules file are counted; kurapika.md is not'
 assert_lacks "$out" 'kurapika' 'the exempt persona is never named'
 
 # --- --headroom: one row per file, smallest margin first, exit unchanged ---
@@ -87,8 +91,8 @@ skill_row="$(printf '%s\n' "$out" | grep 'claude/skills/breath/SKILL.md')"
 assert_contains "$skill_row" ' 12188 claude/skills/breath/SKILL.md' 'a skill row carries its margin and path'
 assert_contains "$skill_row" '100/12288  bytes' 'a skill row carries size/ceiling and unit'
 rows="$(printf '%s\n' "$out" | grep -c -E ' (bytes|chars)$' || true)"
-[ "$rows" -eq 22 ] || fail "expected 22 report rows, got $rows: $out"
-assert_contains "$out" 'prose ok: 22 files' 'the verdict line follows the report'
+[ "$rows" -eq "$total" ] || fail "expected $total report rows, got $rows: $out"
+assert_contains "$out" "prose ok: $total files" 'the verdict line follows the report'
 run 0 "$clean" --headroom
 assert_contains "$out" '  left file' 'the flag is read in either position'
 
@@ -146,7 +150,7 @@ norules="$fixture_root/norules"
 make_root "$norules"
 rm -r "$norules/claude/rules"
 run 0 --headroom "$norules"
-assert_contains "$out" 'prose ok: 21 files' 'a checkout with no claude/rules measures the agents and skills alone'
+assert_contains "$out" "prose ok: $((total - 1)) files" 'a checkout with no claude/rules measures the agents and skills alone'
 assert_lacks "$out" '/12000  chars' 'no rules row is invented'
 run 2 "$fixture_root/nowhere"
 assert_contains "$out" 'is not a Hatsu checkout' 'a root without claude/agents and claude/skills is refused'
@@ -155,7 +159,7 @@ assert_contains "$out" 'empty repo-root argument' 'an empty root is refused, nev
 run 2 "$clean" "$edge"
 assert_contains "$out" 'more than one repo-root argument' 'a second root is refused, never the last one wins'
 run 0 -- "$clean"
-assert_contains "$out" 'prose ok: 22 files' '-- ends the flags and the root follows'
+assert_contains "$out" "prose ok: $total files" '-- ends the flags and the root follows'
 run 0 --headroom -- "$clean"
 assert_contains "$out" '  left file' 'a flag before -- still applies'
 
@@ -172,7 +176,7 @@ inside="$fixture_root/inside"
 make_root "$inside"
 ln -s ../agents/chrollo.md "$inside/claude/rules/linked.md"
 run 0 "$inside"
-assert_contains "$out" 'prose ok: 23 files' 'a symlink that stays inside the root is measured like a file'
+assert_contains "$out" "prose ok: $((total + 1)) files" 'a symlink that stays inside the root is measured like a file'
 dangling="$fixture_root/dangling"
 make_root "$dangling"
 ln -s /nope/nothing "$dangling/claude/agents/ghost.md"

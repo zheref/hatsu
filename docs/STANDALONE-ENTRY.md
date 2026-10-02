@@ -104,7 +104,7 @@ case and the pattern is general — **preserve, prove, place, restore**:
 | Step | What it does | The rule it carries |
 |---|---|---|
 | **Preserve** | `nen shu warmup --carry` (nen `0.13`): the stash includes untracked paths, **SHA captured and printed** | Addressed by SHA, never `stash@{0}` — that index moves; a conflicting restore leaves the stash in place and stops. Never `--discard`, never `reset --hard` |
-| **Prove** | The declared checks against `origin/<branch.base>`, in an isolated worktree | The tree under test holds none of the effort. A red here is the base's, and it is a **G5** before anything returns |
+| **Prove** | The declared checks against `origin/<branch.base>`, in an isolated worktree at `<core>/.nen/worktrees/<surface>/prove-<n>` (`WORKFLOW.md` § *Where worktrees live*) | The tree under test holds none of the effort. A red here is the base's, and it is a **G5** before anything returns |
 | **Place** | The maintainer's commits replayed onto the proven tip | Through [`hatsu:ao`](../claude/skills/ao/SKILL.md): rebase when nothing is published, **merge when something is**. A published commit is never rewritten |
 | **Restore** | The stash reapplied, still uncommitted | The working copy comes back. On any failure the stash is **not dropped**, and the SHA is printed with the recovery command |
 
@@ -318,7 +318,7 @@ run would have measured.
 > This run did not do it, and starting it is your call.
 
 Where the successor differs by outcome, all applicable ones are named. Where the phase is terminal in
-its own pipeline (`jutaisho`, `mugetsu`, `kagutsuchi`, `third-hand`), **it says that instead** — the
+its own pipeline (`jutaisho`, `mugetsu`, `kagutsuchi`, `third-hand`, `rikugan`), **it says that instead** — the
 terminal statement discharges this clause exactly as a hand-back line does.
 
 **Naming is not offering, and where a skill's own prose forbids even the naming, its prose wins.**
@@ -337,11 +337,11 @@ doing* (`ROSTER.md` § *Rulings of 2026-09-09*, 1).
 
 ## 7. The skills that carry a `## 0. Standalone entry`
 
-**Twenty-five do**, and they fall into two groups. The split is the useful fact: a reader asking *what
+**Twenty-six do**, and they fall into two groups. The split is the useful fact: a reader asking *what
 will this derive if I type it cold* needs the first table, and a reader asking *does P1 apply* needs
 both.
 
-### 7a · Thirteen whose `## 0.` derives state (S1–S4)
+### 7a · Fourteen whose `## 0.` derives state (S1–S4)
 
 | Skill | What it derives cold | What it asks for |
 |---|---|---|
@@ -358,6 +358,7 @@ both.
 | [`mugetsu`](../claude/skills/mugetsu/SKILL.md) | nothing new — `G3` | nothing, except the destination, on the maintainer's own same-turn `hatsu:mugetsu` naming none where several are declared, typed. **The go is the maintainer's** |
 | [`third-hand`](../claude/skills/third-hand/SKILL.md) | S3 — "this sitting", from the branch and any open PR | the harvest pick, as it always did |
 | [`murasaki`](../claude/skills/murasaki/SKILL.md) | S1 — the base, hence the catch-up; conflicts classified before one is touched | only a dirty working copy, before git state moves |
+| [`rikugan`](../claude/skills/rikugan/SKILL.md) | S3 + S4 — the scope, in its § 2 order: handed over by the composite that names it, typed, the objects the session's last completed workflow touched (read from that run's record), else the checkout (the branch's open or merged PR and the issues its body closes); **P1b is declined** (read-only) and **P3 is declined** — the subject is a state, not a delta, and `(fetched <sha>)` is never asserted. Terminal in its own pipeline: the hand-back line says so | the scope, as **free text**, only when neither the session nor the checkout yields one (`missing-argument`) — never the whole backlog by default |
 
 
 ### 7b · Twelve whose `## 0.` adds P1, orientation and expectations only

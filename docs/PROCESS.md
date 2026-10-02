@@ -120,6 +120,14 @@ not a paraphrase). A requested reviewer round not yet posted at the current head
 (`nen pr ready` row 4; [`sharingan`](../claude/skills/sharingan/SKILL.md) § 5). Under `getsuga` § 3 the
 release proposal's verdict returns to getsuga and § 3a merges: en rings no bell for it.
 
+**`ten` § 4's fields and § 4b's line.** Every value of ten's one line is quoted from `nen shu tools`:
+the version from `found`, the range from `pinned`, the floor from the `compat floor:` line — else
+`floor not reported (nen <version>)` — never inferred from the pin. § 4b's line, carried verbatim by
+every surface (zheref/hatsu#67), off Claude Code § 5's too: what was placed (or `mirrors: current` /
+`not applicable`), the surface CLI's version (Cursor below its skills minimum **unclaimed**), every
+rejected, walked-up or out-versioned root, Cursor's skill names (shadowing), and which `nen` § 2 bound —
+the host link or the session bind.
+
 ## Publishing a report
 
 **On an artifact-capable surface, a report is an Artifact:**
@@ -274,6 +282,12 @@ paragraph ending in a question mark. **A deferred picker tool is loaded first**,
 absent; only a surface with none prints lettered options in chat, closing with *answer with a letter*,
 and says so.
 
+**`ten` § 5's rules.** `scripts/surface_mirror_check.sh` exit `0` is `mirrors: current`; `1` is stale
+**in the plugin** — said, still placed, regenerated in a PR; on Claude Code there is no mirror
+(`mirrors: not applicable`, the permission pack only; [`SURFACES.md`](SURFACES.md) § 2). **Ten never
+generates a mirror**; `surface_bootstrap.sh` is the pre-skill shell carve-out; Cursor lists
+`.cursor/skills` **before installing**; the models are the TARGET's `nen/workflow.json` → `models`.
+
 ## Residue and owned dependencies
 
 **A step no nen verb owns is named as residue in the report, never presented as a verb's output**, and
@@ -283,10 +297,13 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
 
 - **`ten`.** Copying a mirror (the drift check is nen's), composing `AGENTS.override.md`,
   writing `info/exclude` and proving it took, the first install on Codex and Cursor, resolving the
-  plugin root (and ordering the checkout's manifest version against the bound pin's, zheref/hatsu#67) and updating the plugin source are done by the warm-up's scripts and by hand: no nen
-  verb owns a checkout's local exclude, and where Hatsu is checked out is the host's property. The
-  login-shell probe (`"${SHELL:?}" -lic 'command -v nen && nen shu tools --repo "$1"' nen-probe "$hatsu_root" </dev/null`) and the name-correct host link ten § 2c offers on its
-  verdict are the same kind (zheref/hatsu#164): a shell's `PATH` is the maintainer's, and nen binds no name on a host.
+  plugin root (and ordering the checkout's manifest version against the bound pin's, zheref/hatsu#67), updating the plugin source and binding the pinned `nen` on the host (`scripts/nen_global.sh`: the
+  `~/.local/bin/nen` link and the shell rc's PATH block, around nen's own bootstrap) are done by the warm-up's scripts and by hand: no nen
+  verb owns a checkout's local exclude, a host's `PATH` or its shell profile, and where Hatsu is checked out is the host's property. The
+  login-shell probe (`"${SHELL:?}" -lic 'command -v nen && nen shu tools --repo "$1"' nen-probe "$hatsu_root" </dev/null`) and the name-correct host link ten § 2c offers as the fallback by its
+  offer predicate (stated once there, verbatim in row `host-nen-link`) are the same kind (zheref/hatsu#164): a shell's `PATH` is the maintainer's, and nen binds no name on a host. § 6's reads —
+  `gh auth status`/`gh auth token`, `gh pr list --head <branch> --state all`, `git branch --merged origin/<branch.base>` — are hand-spelt too; an unnamed human-call prerequisite at its step 7 stops,
+  named, and the maintainer names the skill it is for by typing `then aka+mukai`.
   Cursor's version check is a string compare on a date part; the host-global half of the skill-name
   collision question has no answer from inside a repository.
 - **`shibari`.** The evidence mirror's publish step, the base-ref read (`gh pr view --json
@@ -306,6 +323,11 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   plugin: an owned dependency, zheref/nen#298 (BC-11 reads the scripts' branching shell as a verb's
   job, a G4 question until the verb lands).
 - **`jusshin`.** The elevated launch on Windows has no verb by design: the session runs `nen runner script --json`'s own `launch` line (`Start-Process -Verb RunAs`) through the harness's own permission prompt — no allow row exists, so that prompt is the maintainer's advance consent — and the UAC consent and the typed service-account password are the maintainer's on-device acts, as `sudo bash <script>` on Linux and the Login Items approval on macOS are. Reading the one-line `register-<ts>.summary` newer than the launch is by hand, and the transcript is never read. The script is rendered outside the runner root; locking the root down, keeping the secrets off `config.cmd`'s argv and writing the summary file are nen's, owned in [zheref/nen#312](https://github.com/zheref/nen/issues/312). The shared `_work/_actions` cache across one host's runners, runner removal, organization runner groups and `--ephemeral` supervisors have no verb yet — owed, unfiled — and are named, never improvised.
+- **`rikugan`.** Which objects the last completed workflow touched is read from that run's own record
+  and the checkout (`gh pr list --head <branch> --state all`, the PR body's closing lines) — no nen verb
+  derives a run's scope; `nen report data --base origin/<branch.base> --prs <n,...> --issues <n,...>`
+  then fetches them in one call, merged PRs and closed issues included (`--base` is required, exit 2
+  without it; verified nen 0.18.1, 2026-09-30).
 - **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`.
 - **`kagutsuchi` § 3a.** The freshness gate is `scripts/send_freshness_check.sh` — a `git fetch`,
   `rev-parse`, `rev-list` and `status --porcelain` over the archive's recorded build SHA — and the
@@ -316,6 +338,13 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   inside `scripts/kagutsuchi_worktree.sh`, because **nen has no worktree verb** (`nen wc worktrees` reads,
   never writes); core is resolved the way that verb resolves it (`git rev-parse --git-common-dir`) and
   the report quotes the script's own `core:` line beside the verb's.
+- **Every worktree Hatsu makes** (rule 6 of `claude/rules/hatsu.md`, `hanten` § 4, the stash-and-restore
+  proof, `docs/surfaces/antigravity.md` § 11.1). `git worktree add <core>/.nen/worktrees/<surface>/<name>`,
+  `git worktree remove` and `git worktree prune` are hand-spelt wherever Hatsu creates a worktree, for the
+  same reason: nen has no worktree verb that writes. The canonical path is `docs/WORKFLOW.md` § *Where
+  worktrees live* (the ruling of 2026-09-30), and the lapse would be a `nen wc worktree add|remove
+  --surface <s> <name>` that resolves core and the canonical path itself — the same family as the
+  owned dependency below.
 
 **Owned dependencies.** A worktree verb that cuts, reuses, moves and drops one detached worktree at a
 fixed path, with the core-to-worktree copy ([zheref/nen#299](https://github.com/zheref/nen/issues/299)),

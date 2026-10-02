@@ -1,191 +1,193 @@
 ---
 name: ten
-description: Satisfy Hatsu's hard Nen dependency (D10) before any Nen-owned work — probe `nen --version`, read `nen shu tools`' verdict, bootstrap the pinned build when absent or unsatisfied, and prove the maintainer's own login shell resolves `nen`. Then refresh the surface and catch up the calling phase's safe prerequisites, stopping at the maintainer's call. P1 of every phase.
+description: Satisfy Hatsu's hard Nen dependency (D10) before any Nen-owned work: probe `nen --version`, read `nen shu tools`' verdict, bind the pinned build on the host or the session, prove the maintainer's login shell resolves `nen`, catch up the calling phase's safe prerequisites, stop at the maintainer's call. P1 of every phase.
 ---
 
 # Ten — the Nen contract, executed; prerequisites caught up
 
 **`nen/contract.json` at the plugin root is the single source of truth**; every value here is a
-**convenience copy** and **the contract wins**. Run **first, every session.** **Transmuter.**
-`hatsu:ten [<phase>]`.
+copy; **the contract wins**. Run **first, every session.** **Transmuter.** `hatsu:ten [<phase>]`.
 
 ## 0 · Resolve the root, THEN read the contract yourself
 
-The resolver is the **plugin root's**, never the skill directory's, walking a handed skill directory
-up to it (#105). **A newer checkout in front of you is named, never bound** —
-`export HATSU_PLUGIN_ROOT` binds it ([SURFACES](../../../docs/SURFACES.md) § 1, #67).
+The resolver is the **plugin root's**, walking a handed skill directory up to it (#105).
+**A newer checkout in front of you is named, never bound** — `export HATSU_PLUGIN_ROOT` binds it
+(SURFACES § 1, #67).
 
 ```bash
-root=${HATSU_PLUGIN_ROOT:-}; for r in "$root" "$base_dir/../../.." "$base_dir/../../../.."; do [ -x "$r/scripts/hatsu_root.sh" ] && root=$r && break; done  # export, Claude Code, mirror
-hatsu_root="$("$root/scripts/hatsu_root.sh" "$base_dir")" || exit 1  # 1 = NOT INSTALLED: stop. --quoted: the pasteable literal
+root=${HATSU_PLUGIN_ROOT:-}; for r in "$root" "$base_dir/../../.." "$base_dir/../../../.."; do [ -x "$r/scripts/hatsu_root.sh" ] && root=$r && break; done
+hatsu_root="$("$root/scripts/hatsu_root.sh" "$base_dir")" || exit 1  # 1 = NOT INSTALLED: stop; --quoted: pasteable literal
 cat "$hatsu_root/nen/contract.json"
 nen schema check --repo "$hatsu_root"  # once nen is on PATH
 ```
 
-**Every block using `$hatsu_root` SETS it there**, from the script or typed as `hatsu_root='<§ 0's
-absolute path>'`, a shell variable, never an export; *as `ten` § 0 says* means this.
+**Every block using `$hatsu_root` SETS it there** — the script, or typed
+`hatsu_root='<§ 0's absolute path>'` — a shell variable, never an export.
 
-**You are the JSON parser**: `dependency.minimum`, `.pinned_ref`, `.source`, `.version_probe` (argv,
-run as is) and `.bootstrap.url` are the **literal values** below — **no `jq`, `yq`, `python`, no
-version from memory.** **`nen schema check` validates, never extracts** (its two rows; minimum and
-pin **independent**; a `FAIL` on either **stops this gate**). Registry `nen/repos.json`.
+**You are the JSON parser**: `dependency.minimum`, `.pinned_ref`, `.source`, `.version_probe` and
+`.bootstrap.url` are **literal values** — **no `jq`, `yq`, `python`, no version from
+memory**. **`nen schema check` validates, never extracts**; minimum and pin are **two independent
+values**; **a `FAIL` on either stops this gate**.
 
-## 0a · Adoption is Tenkai's, once; this skill VERIFIES
+## 0a · Adoption is Tenkai's; this skill VERIFIES
 
-*At the pin*, *reachable* (§ 2c) and *source current* (§ 4b) are this skill's, every session; *does
-this repo CARRY what the skills read* is [`tenkai`](../tenkai/SKILL.md)'s —
-`"$hatsu_root/scripts/tenkai_adopt.sh" diagnose --repo <target> --json`, read-only, **no pipe**,
-findings **REPORTED, never repaired here**. A missing argument or configuration item is asked and
-set up inline (`missing-argument`, `missing-configuration`). **§ 3's halt and § 0's stops are
-refusals, not gaps.**
+*At the pin*, *reachable* (§ 2c) and *source current* (§ 4b) are this skill's; *does this repo
+CARRY what the skills read* is `tenkai`'s: `"$hatsu_root/scripts/tenkai_adopt.sh" diagnose --repo
+<target> --json`, read-only, **no pipe**, findings **REPORTED, never repaired here**. A missing
+argument or configuration item: asked, set up inline (`missing-argument`, `missing-configuration`). **§ 3's halt and § 0's stops are refusals,
+not gaps.**
 
 ## 1 · Probe; nen decides the range
 
 ```bash
-nen --version  # dependency.version_probe, spelled out
+nen --version  # dependency.version_probe
 nen shu tools --repo "$hatsu_root"  # HATSU's checkout, not the target
 ```
 
-Exit `0` with a semver → the rows; **not found, non-zero or unparseable is absent** — § 2.
+A probe exiting `0` with a semver reads the `nen` row: **`ok`** → § 2's `nen_global.sh` runs
+**FIRST**, then **§ 2c**; there its exit **only feeds § 2c's predicate** — `5` and `2` quoted in
+§ 4's `nen-global:` token, **never § 3**, no session bind (the session is satisfied). Every other
+row → **§ 2** — `WRONG` with a **repin** remedy (the pin below the floor — a `nen/contract.json`
+PR, never an install), `WRONG` without one, `MISSING`, or the verb absent. **Not found, non-zero
+or unparseable is absent** — § 2 too. Exit `5` for every non-satisfied row, **never `1`**. **The
+range rule is the contract's**; a build predating the floor prints no floor line — **said**, never
+inferred.
 
-| The `nen` row | Next |
-|---|---|
-| `ok` — satisfied at the printed range | **§ 2c** |
-| `WRONG` + a **repin** remedy (pin **below** the floor) | **§ 2b**; the repin is a `nen/contract.json` PR, never an install's |
-| `WRONG`, no floor complaint — the binary is **older** than the pin | **§ 2b** |
-| `MISSING` — the probe would not start | **§ 2a** |
-| the verb absent | **§ 2b** |
+## 2 · Auto-install — host first, session as fallback
 
-Exit `5` for every non-satisfied row, **never `1`**. **The range rule is the contract's**; a build
-predating the floor prints no floor line — **said**, never inferred.
-
-## 2 · Auto-install — two cases
-
-Absent or unsatisfied is an install, not a halt; **§ 1 decides the path**. Two steps in a private
-`mktemp -d` (`0700`), **never a predictable `/tmp` path**:
+Absent or unsatisfied is an install, not a halt. **The host is the DEFAULT** (ROSTER § Rulings of
+2026-09-30 — *nen is bound on the host at session start*, ruling A): **the hook acts, § 2c
+verifies.** Its checksum-verified shell two-step is **the sanctioned exception to *shell only when
+nen is absent***. **The session always resolves the pin** — through the host link (`PATH` exported
+in the block) or, where the host was not bound, the session bind.
 
 ```bash
-d="$(mktemp -d)"
-curl -fsSL <dependency.bootstrap.url at the pinned ref> -o "$d/nen-bootstrap.sh"
-out="$(bash "$d/nen-bootstrap.sh" --ref <pinned_ref>)" || { rc=$?; <§ 3 halt, quoting rc>; }  # § 2a, nen ABSENT — or:
-out="$(nen bootstrap --ref <pinned_ref> --source <source> --script "$d/nen-bootstrap.sh")" || { rc=$?; <§ 3 halt, quoting rc>; }  # § 2b
-verified="${out##*$'\n'}"; [ -x "$verified" ] || { <§ 3 halt: not executable>; }  # BEFORE any ln or PATH
-mkdir -p "$d/bin" && ln -sfn "$verified" "$d/bin/nen" && export PATH="$d/bin:$PATH"  # (b) this session, always
+"$hatsu_root/scripts/nen_global.sh" --root "$hatsu_root"  # host: bootstrap if ≠ pin, link, rc PATH block
 ```
 
-- ⚠️ **Fetch to a file; never pipe the script into bash**: piped, it **exits `1`, a code in no table**.
-- **§ 2a's shell is permitted here only**; **§ 2b's `--script` is required**, `--source` shape-checked;
-  **no pipe hides an exit code** — non-zero is § 3 quoting `rc`, nothing linked. Codes, retries:
-  `dependency.bootstrap.exit_codes`/`.retry_policy`.
-- **The verified path is not reachable as `nen`**: quote what the bootstrap printed and **bind the
-  name** — (b) here, always; (a), the host's, is § 2c's offer; **never copy or rename the binary.**
-  **Publishing `nen` itself → § 2b for its tag** ([`mugetsu`](../mugetsu/SKILL.md) § 7).
+| Exit | Then |
+|---|---|
+| `0` `current` · `linked` · `kept-newer` — **the host BOUND** | re-probe via `command -v nen` (`PATH` missing the link → `export PATH="$HOME/.local/bin:$PATH"` **in the block**); still not `ok` → the session bind; **§ 2c**, summary line quoted |
+| `0` `skipped (<reason>)` · `3` a real file at the link · `4` host write refused — **NOT bound** | the session bind, then **§ 2c** |
+| `2` usage, contract unreadable, URL off `<source>/<pinned_ref>` | fix, rerun **once**; unfixed → **NOT bound**, the row above |
+| `5` bootstrap or verification failed | **§ 3** |
+
+**The session bind** — a private `mktemp -d`, **never a predictable `/tmp` path**:
+
+```bash
+d="$(mktemp -d)"; curl -fsSL <dependency.bootstrap.url> -o "$d/nen-bootstrap.sh"
+out="$(bash "$d/nen-bootstrap.sh" --ref <pinned_ref>)" || <§ 3>  # shell line: nen ABSENT; or
+out="$(nen bootstrap --ref <pinned_ref> --source <source> --script "$d/nen-bootstrap.sh")" || <§ 3>  # verb line: nen present
+verified="${out##*$'\n'}"; [ -x "$verified" ] || <§ 3: not executable>  # BEFORE any ln or PATH
+mkdir -p "$d/bin" && ln -sfn "$verified" "$d/bin/nen" && export PATH="$d/bin:$PATH"
+```
+
+- ⚠️ **Fetch to a file; never pipe the script into bash** (piped, it **exits `1`, a code in no
+  table**); **the shell line only with nen absent**; **the verb line's `--script` required**,
+  `--source` shape-checked; **no pipe hides an exit code** — non-zero is § 3, `rc` quoted, nothing
+  linked.
+- **Never copy or rename the binary.** **Publishing `nen` itself → the verb line for its tag**
+  (`mugetsu` § 7); the host link follows the repin (§ 4b, `bakuryuha`).
 
 ## 2c · Reachable, not merely installed
 
-§§ 1–2 prove `nen` runs **for this session**; every argv handed back is pasted into the
-**maintainer's own shell** ([PROCESS](../../../docs/PROCESS.md) § *Running a declared verb*; #164).
-Ask that shell, once — never this session's `PATH`:
+§§ 1–2 prove `nen` runs **for this session**; handed-back argv runs in the **maintainer's own
+shell** (#164). Ask it once, after § 2, never this session's `PATH`:
 
 ```bash
 "${SHELL:?}" -lic 'command -v nen && nen shu tools --repo "$1"' nen-probe "$hatsu_root" </dev/null  # the path as $1, never inline
 ```
 
 **Three readings, by § 1's range rule, never a pin compare.** A path and `ok`: **`reachable at
-<path>`**. A path and any other row, or exit `1` with nothing printed (no `nen` on that `PATH`):
-**`installed, not reachable (<row | no nen>)`** — an unmet dependency with that reason, never
-`satisfied`; the run goes on with the session's binding. The shell itself failing — any other exit,
-`$SHELL` unset or not POSIX, `win32`: **`not read (<rc>, <first stderr line>)`**, no offer. Each goes
-to § 4.
+<path>`**. A path and any other row, or exit `1` with nothing printed: **`installed, not reachable
+(<row | no nen>)`** — an unmet dependency, never `satisfied`; the run goes on. The shell itself
+failing — any other exit, `$SHELL` unset or not POSIX, win32: **`not read (<rc>, <first stderr
+line>)`**.
 
-**Not reachable is an offer, never an act** — row `host-nen-link`, option A the whole change: a
-**name-correct** `nen` symlink on a directory that shell already searches, `~/.local/bin/nen` → the
-path the bootstrap printed (`$verified`; on `ok`, § 2b run for it (a cache hit), never a path it did
-not print), plus one `PATH` line only where that `PATH` lacks the directory — never the versioned
-directory (the platform asset alone). **State the change; take it on the maintainer's word only**;
-taken, ask again, and § 4 reads the second answer.
+**The offer predicate** — row `host-nen-link`, **the host's FALLBACK**, an offer never an act:
+offered where the login shell reads installed, not reachable; never where it reads reachable; an opt-out skip is no offer (host: opted out), win32 is not read, and a removed-by-user rc entry withholds the PATH half of option A.
+**Option A's halves follow § 2's state.** Host **BOUND** (`current`, `linked`, `kept-newer`): the
+one `PATH` line only, **never a relink** (`kept-newer` is never downgraded), what that shell
+resolved instead named. **NOT bound** (`2` unfixed, `3`, `4`, `skipped (another session is
+binding)`): the **name-correct** `~/.local/bin/nen` link → the verified path (`$verified`,
+nen_global's, or the verb line's cache hit — never one no bootstrap printed) plus the `PATH` line
+only where that `PATH` lacks the directory, never the versioned one. **Exit `3`**: name the real
+file — path, `ls -l`, `--version` — and that A **REPLACES** it; the star moves to **B**. **Stated,
+taken on the maintainer's word only**; taken, ask again — § 4 reads the second answer.
 
 ## 3 · Halt — only when the bootstrap failed
 
-**The only supply-chain halt** (row `supply-chain-failure`): print the contract's
-`halt.message_template` with the code and meaning filled in, then **stop** and report a **G5**. **The
-Nen-owned operation then does not happen** — not with raw `gh`, not improvised (D10): that report is
-the *correct* outcome.
+**The only supply-chain halt** (row `supply-chain-failure`), from § 2 only, and only after
+`dependency.bootstrap.retry_policy` — `4` retried once; `2`/`7` fixed and re-run; nothing else —
+`rc` quoted. Print the contract's `halt.message_template`, code and meaning filled in; **stop**,
+report a **G5**. **The Nen-owned operation then does not happen** — not with raw `gh`, not
+improvised (D10): that report is *correct*.
 
 ## 4 · Report, in one line
 
-**Every value is quoted from `nen shu tools`, never assembled** — version from `found`, range from
-`pinned`, floor from the `compat floor:` line, else `floor not reported (nen <version>)`, never
-**inferred from the pin**; the host token is § 2c's verdict. A clear run reads
-`Nen <v> · floor <f> · satisfies <range> · host: reachable at <path> · warm-up clear`; an install adds
-`bootstrapped to <ref> (checksum verified)`, a pin below the floor `owes a repin to "<f>"`; § 2c's
-other verdicts end the line `warm-up: unmet — host: installed, not reachable (<row>)` or `warm-up:
-host not read (<rc>, …)` instead; a failure reads `HALTED — G5`, code and name. **Not run is reported
-not run.** Then `ten <phase> · caught up: <steps> · stopped at: <step|none>`.
-
-**Every surface carries § 4b's line verbatim** — what was placed, the CLI's version, every rejected
-or out-versioned root (#67), which `nen` § 2 bound.
+**Every value is quoted from `nen shu tools`, never assembled or inferred from the pin** (the
+fields: PROCESS § *Reporting a phase*, *ten § 4*). A clear run reads
+`Nen <v> · floor <f> · satisfies <range> · host: reachable at <path> · warm-up clear`, beside it
+§ 2's `nen-global:` token (exit, summary line; `5`/`2` on § 1's `ok` route) and **which `nen` § 2
+bound** (host link or session bind), every route; an install adds `bootstrapped to <ref> (checksum
+verified)`, a pin below the floor `owes a repin to "<f>"`; § 2c's other verdicts end it `warm-up:
+unmet — host: installed, not reachable (<row>)`, `warm-up: host not read (<rc>, …)` or `host:
+opted out`; a failure reads `HALTED — G5`, code and name. **Not run is reported not run.** Then
+`ten <phase> · caught up: <steps> · stopped at: <step|none>`.
 
 ## 4b · Keep the plugin source current
 
 § 5 places what `$hatsu_root` holds, so **update it first**, every surface:
 `"$hatsu_root/scripts/hatsu_plugin_update.sh" --root "$hatsu_root" --auto [--claude|--codex]`;
-`--auto`'s contract is [`docs/surfaces/README.md`](../../../docs/surfaces/README.md) § *Shared rules
-the warm-up follows*: **quote every skip and continue.**
+`--auto`'s contract is `docs/surfaces/README.md` § *Shared rules the warm-up follows*: **quote every
+skip and continue**; **every surface carries this line verbatim** (#67).
 
 ## 5 · Surfaces — what a target gets
 
-**[`docs/SURFACES.md`](../../../docs/SURFACES.md) § 2 is what each surface gets.**
+**`docs/SURFACES.md` § 2 is what each surface gets.**
 
 ```sh
-hatsu_root='<the absolute path § 0 printed>'; target="$(git rev-parse --show-toplevel)"; surface='<codex|cursor|antigravity|claude-code>'
+hatsu_root='<§ 0's absolute path>'; target="$(git rev-parse --show-toplevel)"; surface='<codex|cursor|antigravity|claude-code>'
 [ "$surface" = claude-code ] || "$hatsu_root/scripts/surface_mirror_check.sh" "$hatsu_root"  # FIRST
 [ "$surface" = claude-code ] || "$hatsu_root/scripts/surface_bootstrap.sh" --surface "$surface" --target "$target" --install-all [--plugin]  # --plugin iff codex lists hatsu@hatsu
-"$hatsu_root/scripts/permissions_pack.sh" --surface "$surface" --install --target "$target" [--plugin]  # every surface
+"$hatsu_root/scripts/permissions_pack.sh" --surface "$surface" --install --target "$target" [--plugin]
 ```
 
-**Claude Code has no mirror** (its link serves the checkout in place): `mirrors: not applicable`, the
-pack only. `0` is `mirrors: current`; `1` is stale **in the
-plugin** — said, still placed, regenerated in a Hatsu PR. **Ten never generates a mirror**;
-`surface_bootstrap.sh` is the pre-skill shell carve-out; Cursor lists `.cursor/skills` **before installing**; models: the TARGET's `nen/workflow.json` → `models`.
+**Claude Code has no mirror** (`mirrors: not applicable`, the pack only); the verdicts and the
+rest: PROCESS § *Surfaces and pickers*, *ten § 5's rules*.
 
 ## 6 · Catch-up: the prerequisites of the phase that called me
 
-Ten is P1 of every Nen-owned phase ([`STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 3);
-**every composite opens with `hatsu:ten <its name>`**. After §§ 1–5, the orient line —
-`nen wc classify --repo . --base <branch.base> --json`, before any change — then `<phase>`'s missing
-SAFE prerequisites, in order, **stopping (never skipping) at the first that is the maintainer's
-call**. No phase → nothing, said. Every step is a verb or a skill;
-**`breath` and `ao` run here skip their § 0**.
+P1 of every Nen-owned phase (STANDALONE-ENTRY § 3). After §§ 1–5, the orient line —
+`nen wc classify --repo . --base <branch.base> --json`, before any change — then `<phase>`'s
+missing SAFE prerequisites, in order, **stopping (never skipping) at the first that is the
+maintainer's call**; no phase → nothing, said. **`breath` and `ao` run here skip their § 0**.
 
 | Step | Read | Missing → run | Stops |
 |---|---|---|---|
-| 1 base & branch | the orient line | detached HEAD or trunk → [`breath`](../breath/SKILL.md) §§ 2–3: fast-forward `branch.base`, cut the branch off it; `must-move` → `--carry` | breath's |
-| 2 base fresh | behind `origin/<branch.base>` | [`ao`](../ao/SKILL.md): mechanical conflicts resolved unasked; on the trunk → `satisfied`; security paths, lockfiles: semantic (ao § 5) | ao § 6's G5; its refusals quoted |
-| 3 base proven | step 1 cut the branch **in this run** | breath § 4, preserve → prove → place → restore; cut earlier → `satisfied` | breath § 4's red |
-| 4 authenticated | `gh auth status` | red is the only G5 here, naming the fix, never an elevation; signed in → `export GH_TOKEN="$(gh auth token)"` **in the block needing it**, never printed | red |
+| 1 base & branch | the orient line | detached HEAD or trunk → `breath` §§ 2–3 (`must-move` → `--carry`) | breath's |
+| 2 base fresh | behind `origin/<branch.base>` | `ao`: mechanical unasked, security paths and lockfiles semantic (ao § 5); on the trunk → `satisfied` | ao § 6's G5 |
+| 3 base proven | step 1 cut the branch **in this run** | breath § 4; cut earlier → `satisfied` | its red |
+| 4 authenticated | `gh auth status` | red: the one G5 here, fix named, never elevated; green → `export GH_TOKEN="$(gh auth token)"` **in the block needing it**, never printed | red |
 | 5 declarations | `nen schema check --repo .` | nothing — `FAIL` stops **before the phase** | `FAIL` |
-| 6 stale state | this branch's PR, open or merged | open → **refuse a second PR**, offer [`en`](../en/SKILL.md) on it ([`mukai`](../mukai/SKILL.md) § 2); merged → say so, offer breath | never |
+| 6 stale state | this branch's PR, open or merged | open → **refuse a second PR**, offer `en` on it (mukai § 2); merged → say so, offer breath | never |
 | 7 the human's call | a gate the maintainer crosses | **never auto-run** | always, named |
 
 | Invoking phase | Steps, in order |
 |---|---|
 | `ren`, `rasengan`, `kokusen` | 1 · 2 · 3 · 5 |
 | `aka`, `murasaki` | 1 · 5 (each owns its catch-up) |
-| `mukai`, `shibari` | 4 · 5 · 6 · 7 (unpublished → **stop, name [`aka`](../aka/SKILL.md)**; catch-up murasaki's) |
-| `en`, `sharingan`, `pr-state`, `getsuga`, `mugetsu`, `kagutsuchi` | 4 · 5 (catch-up theirs; a go never ten's) |
-| `futon`, `build`, `backlog-loop` | 4 · 5 (breath runs in their efforts) |
-| any other with no catch-up of its own (`gyo`, `tsukuyomi`…) | 2 · 4 · 5, said |
-| any other | 4 · 5, said |
+| `mukai`, `shibari` | 4 · 5 · 6 · 7 (unpublished → **stop, name `aka`**; catch-up murasaki's) |
+| `en`, `sharingan`, `getsuga`, `mugetsu`, `kagutsuchi` · `futon`, `build`, `backlog-loop` | 4 · 5 (catch-up theirs; no go is ten's) |
+| read-only reporters: `rikugan`, `backlog-board`, `backlog-state`, `pr-state`, `spiritual-message` | 4 · 5 |
+| any other owning no catch-up (`gyo`, `tsukuyomi`…) | 2 · 4 · 5, said |
+| any other, owning its catch-up | 4 · 5, said |
 
-Step 7's exception: a typed `futon` `then` step is the maintainer's call **for the skill it names
-only** ([`ROSTER.md`](../../../docs/ROSTER.md) § Rulings of 2026-09-26/27/28, 2b); an unnamed
-human-call prerequisite still stops, named — type `then aka+mukai`. Suggested next steps: ruling 7.
-
-**Residue** (no nen verb): step 4's `gh auth status`/`gh auth token`; step 6's `gh pr list --head
-<branch> --state all`, `git branch --merged origin/<branch.base>`.
+Step 7's exception (ROSTER ruling 2b): a typed `futon` `then` step is the maintainer's call **for
+the skill it names only**; an unnamed one still stops, named. Suggested next steps: ruling 7.
 
 ## Residue
 
-Manual steps no nen verb owns: [PROCESS.md](../../../docs/PROCESS.md) § Residue (§ 2c's probe included). **Not `nen warmup`** (read-only) nor **`nen shu warmup`** (breath's); they compose:
-**this skill first**, then `nen warmup --current <vX.Y.Z>` against the target.
+PROCESS § Residue (§ 2c's probe, § 6's `gh`/`git` reads). **Not `nen warmup`** (read-only) nor
+**`nen shu warmup`** (breath's): **this skill first**, then `nen warmup --current <vX.Y.Z>` on the
+target.

@@ -90,7 +90,7 @@ authoring branch is served as it stands, said. Git never runs in a surface's plu
 Run the new `ten` from disk as `hatsu:ten bakuryuha`, `$base_dir` its directory: Claude Code
 `<checkout>/claude/skills/ten/`, Codex `<after cache root>/claude/skills/ten/`, Antigravity
 `<checkout>/surfaces/antigravity/skills/ten/`, Cursor `<checkout>/surfaces/cursor/ten/`. nen follows
-the new pin (ten § 2b; the host link stays the maintainer's call), mirrors are checked, and ten § 5
+the new pin (ten § 2's verb line; the host link is step 0's, ten § 2; § 2c reads the host), mirrors are checked, and ten § 5
 places what the target still needs — on Codex with the plugin, personas only (`--plugin`), removing
 the old skill copies.
 
@@ -153,7 +153,9 @@ fast-forward or newest `vX.Y.Z` tag; the new `ten`, on its own authority; readin
 - **Never discards, stashes, forces, or moves an authoring branch**: a refusal is a question.
 - **Never types, relays or simulates a human-only command**, never quits or restarts the app.
 - **Never touches configuration beyond Hatsu's own install**: no hand edit of any settings file, no
-  `autoUpdate`, no other plugin or marketplace, no host `~/.local/bin/nen` link (`ten` § 2c, row `host-nen-link`).
+  `autoUpdate`, no other plugin or marketplace, no host `~/.local/bin/nen` link of its own — that is
+  `ten` § 2's host default, through `scripts/nen_global.sh`, which the new `ten` it runs performs, and
+  `ten` § 2c's verification (row `host-nen-link`'s offer the fallback).
 - **Never edits or runs git in a plugin cache, a placed copy or `surfaces/`**, and follows a body
   from no path but § 5's.
 - **Never claims a served version it did not read back**, and **never ends without the Next block.**

@@ -19,6 +19,7 @@ workflows are deprecated and retire on 2026-11-01, so nothing here emits a workf
 | rules read from | plugin `rules/`; workspace `<repo>/.agents/rules/`; each file at most 12,000 characters |
 | hooks read from | plugin `hooks.json`; workspace `<repo>/.agents/hooks.json`; global `~/.gemini/config/hooks.json` |
 | invocation spelling | `/<name>` |
+| worktrees | the IDE's own: "New worktree mode: The agent operates in an isolated Git worktree." (https://antigravity.google/docs/getting-started, 2026-09-30); the location is undocumented, and `invoke_subagent` `Workspace: "branch"` is accepted where the IDE puts it. **Hatsu-made** (the lead's direct work, § 11.1): `git worktree add .nen/worktrees/antigravity/<name> -b <branch>` from the core checkout, removed when the effort lands — `docs/WORKFLOW.md` § *Where worktrees live* |
 | headless command | `agy --model pro "<prompt>"` in the target repository |
 | pointing at a local checkout | the global link names the checkout's `surfaces/antigravity`; a commit there is served from the next conversation, no copy to refresh |
 | update and activation | `hatsu:bakuryuha`: § 3 makes the link where `.agents/` copies stood, § 4 fast-forwards the checkout the link names, and `agy plugin validate` reads the plugin back; a new conversation lists the updated skills, and the CLI's `/skills reload` (from v1.2.4, typed) reloads them in the running one (§ 9); the IDE documents no reload, so personas, rules and hooks there are claimed on restart only |
@@ -131,7 +132,7 @@ nen surface mirror generate --surface antigravity \
 
 | emits | from |
 |---|---|
-| `surfaces/antigravity/skills/<name>/SKILL.md`, 48 files (forty-seven plus `ten`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `/<name>` (anchored on the prefix, never a bare `gsub`) | `claude/skills/**` |
+| `surfaces/antigravity/skills/<name>/SKILL.md`, 49 files (forty-eight plus `ten`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `/<name>` (anchored on the prefix, never a bare `gsub`) | `claude/skills/**` |
 | `surfaces/antigravity/agents/<persona>.md`, 13 files (twelve personas plus the preamble include), `model` from the tier where admissible | `claude/agents/**`, `nen/workflow.json` |
 | `surfaces/antigravity/rules/hatsu.md`, under 12,000 characters | the surface row and the matrix |
 | `surfaces/antigravity/hooks.json`: `PreInvocation`, `PreToolUse` on `run_command`, `Stop` | `hooks/hooks.json` |
@@ -202,7 +203,7 @@ Antigravity executes autonomous subagents via the `invoke_subagent` tool. In Hat
 ### 11.1 Worktree isolation by default and delegation
 1. **Isolated Worktrees by Default**: By default, all authoring, implementation, and PR delivery tasks—both those delegated to subagents and those run directly by the lead session—MUST execute in separate, isolated git worktrees.
    - **Subagents**: MUST be invoked with `Workspace: "branch"` (or `"share"` when sharing underlying objects without duplicating storage). Spawning builder subagents on `Workspace: "inherit"` is strictly forbidden as it risks concurrent dirtying of the core worktree. Reviewers (`hanten`) and read-only observers (`izanami`, `en · illumi`) may use `inherit`.
-   - **Lead Session Direct Tasks**: When the lead persona (Kurapika) executes authoring tasks directly rather than delegating, it must provision a dedicated worktree (`git worktree add <dir> <branch>` or `amenotejikara`) and operate within that directory, leaving the core checkout parked on the trunk (`main`).
+   - **Lead Session Direct Tasks**: When the lead persona (Kurapika) executes authoring tasks directly rather than delegating, it must provision a dedicated worktree (`git worktree add .nen/worktrees/antigravity/<name> -b <branch>` from the core checkout, or `amenotejikara`) and operate within that directory, leaving the core checkout parked on the trunk (`main`). The path is canon (`docs/WORKFLOW.md` § *Where worktrees live*, the ruling of 2026-09-30): never a sibling folder of the checkout, never `/tmp`; the worktree is removed when the effort lands, and `git clean -ff…` is never run in a core checkout that holds worktrees.
 2. **Maintainer Waiver for Core Checkout**: Working directly in the core checkout is permitted ONLY when the human maintainer explicitly states so in prose in the prompt (e.g. "work on the core checkout", "in-place", etc.). In the absence of an explicit maintainer instruction, an agent must never branch, edit, or commit in the core checkout.
 3. **Canonical Lifecycle in Subagents**: A subagent tasked with delivering a feature, bugfix, or CI configuration must run the full Hatsu sequence:
    - `ren`: author changes and locally verify them.
