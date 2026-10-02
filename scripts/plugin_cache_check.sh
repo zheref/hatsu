@@ -216,7 +216,7 @@ judge() {
 if [ "$cache" != auto ]; then
   case "$cache" in *[[:cntrl:]]*) die "--cache carries a control character" ;; esac
   [ -d "$cache" ] || die "cache '$(safe "$cache")' is not a directory"
-  [ -f "$cache/.claude-plugin/plugin.json" ] || die "cache '$(safe "$cache")' holds no .claude-plugin/plugin.json"
+  is_hatsu "$cache" || die "cache '$(safe "$cache")' is not a Hatsu copy (no .claude-plugin/plugin.json naming hatsu, or no claude/skills)"
   judge "$(realdir "$cache")"; exit $?
 fi
 
@@ -231,8 +231,8 @@ judge_path() {   # judge_path PATH LABEL
   if [ -L "$p" ] && ! r="$(realdir "$p")"; then broken "$label $(safe "$p") is a dangling or looping link"; return; fi
   [ -d "$p" ] || { broken "$label $(safe "$p") is not a directory"; return; }
   r="$(realdir "$p")" || { broken "$label $(safe "$p") cannot be resolved"; return; }
-  [ -f "$r/.claude-plugin/plugin.json" ] && [ -d "$r/claude/skills" ] \
-    || { broken "$label $(safe "$p") holds no Hatsu plugin (.claude-plugin/plugin.json and claude/skills)"; return; }
+  is_hatsu "$r" \
+    || { broken "$label $(safe "$p") holds no Hatsu plugin (a .claude-plugin/plugin.json naming hatsu, and claude/skills)"; return; }
   case "$judged" in *" $r "*) return ;; esac   # the same copy reached twice is judged once
   judged="$judged$r "
   judge "$r"; code=$?

@@ -60,6 +60,12 @@ fresh manifest; printf '{"name":"hatsu","version":"1.1.0"}\n' > "$work/manifest/
 expect 1 "a different manifest is different" --root "$src" --cache "$work/manifest"
 has "plugin 1.1.0" "both versions are printed"
 
+# Copilot (#212): a copy whose manifest names another plugin is not Hatsu -- never judged as drift
+fresh othername; printf '{"name":"otherplug","version":"1.0.0"}\n' > "$work/othername/.claude-plugin/plugin.json"
+expect 2 "an explicit cache naming another plugin is wiring, never drift" --root "$src" --cache "$work/othername"
+has "is not a Hatsu copy" "the identity refusal is named"
+hasnt "refresh it" "no refresh instruction for a non-Hatsu copy"
+
 fresh mktjson; printf '{"name":"hatsu","plugins":[{}]}\n' > "$work/mktjson/.claude-plugin/marketplace.json"
 expect 1 "a different marketplace.json is different" --root "$src" --cache "$work/mktjson"
 has "differs:        .claude-plugin/marketplace.json" "marketplace.json is compared"
@@ -131,6 +137,11 @@ expect 3 "auto ignores other plugins' entries" --root "$src" --cache auto
 record "{\"version\":2,\"plugins\":{\"hatsu@hatsu\":[{\"installPath\":\"$work/same\"}]}}"
 expect 0 "auto reads the hatsu@ installPath" --root "$src" --cache auto
 expect 4 "auto: the recorded copy given as root, nothing independent: not comparable" --root "$work/same" --cache auto
+record "{\"version\":2,\"plugins\":{\"hatsu@hatsu\":[{\"installPath\":\"$work/othername\"}]}}"
+expect 5 "auto: a recorded hatsu@ copy naming another plugin is a broken install" --root "$src" --cache auto
+has "holds no Hatsu plugin" "the broken install names the identity"
+hasnt "refresh it" "no refresh instruction for a non-Hatsu record"
+record "{\"version\":2,\"plugins\":{\"hatsu@hatsu\":[{\"installPath\":\"$work/same\"}]}}"
 printf '{"mk":{"source":{"source":"directory","path":"%s"}}}\n' "$src" > "$cfg/plugins/known_marketplaces.json"
 record "{\"version\":2,\"plugins\":{\"hatsu@mk\":[{\"installPath\":\"$work/drift\"}]}}"
 expect 1 "auto: a stale copy given as root is compared with its directory marketplace" --root "$work/drift" --cache auto
