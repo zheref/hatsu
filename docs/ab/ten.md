@@ -172,3 +172,28 @@ bootstrap did not print; the row says the same. And the third reading had swallo
 case: a login shell that runs fine and finds no `nen` answered `not read` with no offer. Now exit `1`
 with nothing printed is the shell answering *no `nen`* — `installed, not reachable (no nen)`, the offer
 made — and `not read` is only the shell itself failing. The changelog bullet and the README say so.
+
+## 2026-10-02 — § 5 on Claude Code reads the installed copy (zheref/hatsu#122)
+
+Plugin 0.82.0 on the integration branch, the maintainer's host (`~/.claude/skills/hatsu` → the core
+checkout, at 0.81.0; nineteen version directories under `plugins/cache/hatsu/hatsu/`, no
+`hatsu@hatsu` in `installed_plugins.json`). `scripts/plugin_cache_check.sh` closes the residue above:
+
+```text
+$ HATSU_PLUGIN_ROOT=<core> scripts/plugin_cache_check.sh            # exit 0
+plugin-cache: linked (identical by construction)
+$ HATSU_PLUGIN_ROOT=<this worktree> scripts/plugin_cache_check.sh   # exit 1: the link serves the core, not this branch
+plugin-cache-check: the installed copy is NOT the source: 22 differ, 0 missing, 0 extra (60 identical).
+plugin-cache: stale (22 paths)
+$ scripts/plugin_cache_check.sh --root <this worktree> --installed $cache/0.61.0   # exit 1
+plugin-cache-check: the installed copy is NOT the source: 46 differ, 7 missing, 0 extra (29 identical).
+$ scripts/plugin_cache_check.sh --root <this worktree> --installed $cache          # exit 2
+... is not an installed Hatsu ...; it holds the versions 0.14.0 0.33.0 ... 0.61.0 — name one of them
+$ scripts/surface_mirror_check.sh --installed $cache                               # exit 2, names plugin_cache_check.sh
+```
+
+The second line is the point of #118's class: the version alone (0.81.0 served, 0.82.0 in front of you)
+says *older*, while the byte compare names which 22 files a session would read differently.
+`--self-test` covers identical, one differing, one missing, one extra, a same-version copy with
+different bytes, the symlinked install, the auto-detected link and shadowing cache, and the wiring
+defects.

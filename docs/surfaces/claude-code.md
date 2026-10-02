@@ -25,8 +25,8 @@ event or a permission rule is made against a quoted line and not a memory.
 **Whatever the linked checkout holds is what Claude Code serves**, at the next reload or session: a
 feature branch, a swap `hatsu:amenotejikara` made in core, uncommitted edits. So the checkout stays on its
 trunk, and the updater never moves an authoring branch; it says which branch is served instead. There is
-no mirror to drift-check on this surface (zheref/hatsu#106): `ten` § 5 records `mirrors: not applicable`
-and places the permission pack only. `ten` § 4b runs `scripts/hatsu_plugin_update.sh --auto --claude`,
+no mirror to drift-check on this surface (zheref/hatsu#106): `ten` § 5 runs the installed-copy check
+(§ 8) and places the permission pack. `ten` § 4b runs `scripts/hatsu_plugin_update.sh --auto --claude`,
 which fast-forwards the linked checkout, never runs `claude plugin update` for it, and names a shadowing
 `hatsu@hatsu`; on a host still on the cache it keeps the #118 path, the marketplace source first. An
 update reaches the running session only through `/reload-plugins`, which the human types, or a new
@@ -101,15 +101,34 @@ rather than a checklist row (see *Known gaps*).
 
 ## 8. Generation
 
-Nothing is generated for this surface, and nothing is drift-checked on it (zheref/hatsu#106): the
-canonical copy is `claude/skills/**` and `claude/agents/**`, the three mirrors are generated from it
-(see the other guides), and the versioned cache is read in place. `nen surface mirror check --surface
-claude-code --installed <cache>` diffs a target `.claude/` layout Hatsu never places and reads every
-skill `missing` against the cache (measured in `docs/ab/ten.md`), so `ten` § 5 records `mirrors: not
-applicable` here and places the permission pack only; what keeps the cache current is `ten` § 4b
-(`hatsu_plugin_update.sh --auto --claude`, § 1 above). A check that can tell a stale cache from a
-fresh one is still owed — zheref/hatsu#122. There is no marker on this surface because there is no
-generated file.
+Nothing is generated for this surface, and no mirror is drift-checked on it (zheref/hatsu#106): the
+canonical copy is `claude/skills/**` and `claude/agents/**`, and the three mirrors are generated from it
+(see the other guides). `nen surface mirror check --surface claude-code --installed <cache>` diffs a
+target `.claude/` layout Hatsu never places and reads every skill `missing` against the cache (measured
+in `docs/ab/ten.md`), so `scripts/surface_mirror_check.sh --installed` refuses and names the check that
+replaced it.
+
+**The installed-copy check** (zheref/hatsu#122) is
+[`scripts/plugin_cache_check.sh`](../../scripts/plugin_cache_check.sh) `[--installed <path>] [--root
+<checkout>]`. It byte-compares the copy Claude Code serves against the source root `ten` § 0 resolves
+(`scripts/hatsu_root.sh`), over `claude/skills`, `claude/agents`, `hooks/`, `templates/`, `contracts/`
+and `.claude-plugin/` (every file listed on both sides, every common one compared with `cmp`; nothing
+written). Without `--installed` it takes the copy Claude Code serves: an installed `hatsu@hatsu`'s
+`installPath` from `plugins/installed_plugins.json` (it shadows the link, § 9), else
+`~/.claude/skills/hatsu`.
+
+| Exit | Last line | Means |
+|---|---|---|
+| `0` | `plugin-cache: linked (identical by construction)` | the install resolves to the source checkout itself (the skills-directory link, § 1): nothing is copied, nothing can be stale |
+| `0` | `plugin-cache: current` | a copy, byte-identical to the source |
+| `1` | `plugin-cache: stale (<n> paths)` | each path named `differs:`, `missing:` or `extra:`; a same-version copy with different bytes (#118's class) is said as one |
+| `2` | none | a wiring defect: no source root, a source root that is itself a plugin cache (a copy cannot judge a copy; export `HATSU_PLUGIN_ROOT`), no install found, or a path that is not an installed Hatsu (a cache's parent directory is answered with the versions it holds) |
+
+`ten` § 5 quotes the last line, or `plugin-cache: not checked (<reason>)` on exit `2`
+([`PROCESS.md`](../PROCESS.md) § *`ten` § 5's rules*). `bash scripts/plugin_cache_check.sh --self-test`
+is its hermetic fixture. A stale copy is refreshed by `hatsu:bakuryuha` (§ 1), or on a host that keeps
+the cache by `ten` § 4b's `hatsu_plugin_update.sh --auto --claude`. There is no marker on this surface
+because there is no generated file.
 
 ## 9. Dated checklist
 

@@ -3,7 +3,8 @@
 # surface; a drift fails at exit 1 and is never re-checked at another root; a refusal keeps its own
 # exit code and is named; each surface is handed its own --hooks-root. The next-root re-check that
 # zheref/hatsu#153 added for the Codex root's two-step landing is gone since zheref/hatsu#151 made
-# that root current (docs/GATE-CONFIGURATION.md, 2026-09-30). Offline and hermetic: a stub `nen`
+# that root current (docs/GATE-CONFIGURATION.md, 2026-09-30); --installed is refused, naming
+# scripts/plugin_cache_check.sh (zheref/hatsu#122). Offline and hermetic: a stub `nen`
 # stands in for the generator, answering each check by surface, and logging every call under mktemp.
 
 set -euo pipefail
@@ -120,4 +121,15 @@ in_sed="$(grep -o "sed 's#[^#]*#\${HATSU_PLUGIN_ROOT:-./.codex}#g'" "$repo/scrip
 [ "'$in_sed'" = "$(grep -o "codex) printf %s '[^']*'" "$guard" | sed "s/^codex) printf %s //")" ] ||
   fail "roots: surface_bootstrap.sh rewrites $in_sed, which is not the check's Codex root"
 
-echo 'surface-mirror-check-fixture: ok (clean, codex drift checked once, refusal kept, cursor drift checked once, one root per surface everywhere it is written)'
+# (f) --installed is refused (zheref/hatsu#122): exit 2, the new check named, nen never asked — it
+# used to read every file of a Claude Code plugin cache `missing`.
+export STUB_LOG="$fixture_root/installed.log"
+: > "$STUB_LOG"
+code=0
+out="$(NEN_BIN="$stub" bash "$guard" --installed "$fixture_root/cache" "$tree" 2>&1)" || code=$?
+[ "$code" -eq 2 ] || fail "installed-refused: exit $code, expected 2. Output: $out"
+expect_in installed-refused "$out" 'scripts/plugin_cache_check.sh'
+expect_in installed-refused "$out" 'zheref/hatsu#122'
+[ ! -s "$STUB_LOG" ] || fail "installed-refused: nen was asked: $(cat "$STUB_LOG")"
+
+echo 'surface-mirror-check-fixture: ok (clean, codex drift checked once, refusal kept, cursor drift checked once, one root per surface everywhere it is written, --installed refused naming plugin_cache_check.sh)'

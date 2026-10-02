@@ -124,7 +124,7 @@ release proposal's verdict returns to getsuga and § 3a merges: en rings no bell
 the version from `found`, the range from `pinned`, the floor from the `compat floor:` line — else
 `floor not reported (nen <version>)` — never inferred from the pin. § 4b's line, carried verbatim by
 every surface (zheref/hatsu#67), off Claude Code § 5's too: what was placed (or `mirrors: current` /
-`not applicable`), the surface CLI's version (Cursor below its skills minimum **unclaimed**), every
+on Claude Code the `plugin-cache:` verdict), the surface CLI's version (Cursor below its skills minimum **unclaimed**), every
 rejected, walked-up or out-versioned root, Cursor's skill names (shadowing), and which `nen` § 2 bound —
 the host link or the session bind.
 
@@ -309,8 +309,11 @@ absent; only a surface with none prints lettered options in chat, closing with *
 and says so.
 
 **`ten` § 5's rules.** `scripts/surface_mirror_check.sh` exit `0` is `mirrors: current`; `1` is stale
-**in the plugin** — said, still placed, regenerated in a PR; on Claude Code there is no mirror
-(`mirrors: not applicable`, the permission pack only; [`SURFACES.md`](SURFACES.md) § 2). **Ten never
+**in the plugin** — said, still placed, regenerated in a PR. On Claude Code there is no mirror:
+`scripts/plugin_cache_check.sh` compares the installed copy with the source (zheref/hatsu#122) and its
+last line is quoted — `plugin-cache: current`, `linked (identical by construction)` or `stale (<n>
+paths)`; exit `2` is `plugin-cache: not checked (<its `plugin-cache-check:` reason>)` — then the permission pack
+([`SURFACES.md`](SURFACES.md) § 2, [`claude-code.md`](surfaces/claude-code.md) § 8). **Ten never
 generates a mirror**; `surface_bootstrap.sh` is the pre-skill shell carve-out; Cursor lists
 `.cursor/skills` **before installing**; the models are the TARGET's `nen/workflow.json` → `models`.
 
