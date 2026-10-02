@@ -339,7 +339,9 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   in tenkai's Residue for Netero's harvest.
 - **`shibari`.** The evidence mirror's publish step, the base-ref read (`gh pr view --json
   baseRefName`), the last-pushed-commit comparison and Development linking are named raw calls; the
-  PR itself is `nen pr open`.
+  PR itself is `nen pr open`. Verifying the links is `scripts/pr_development_link_check.sh`, reading
+  `closingIssuesReferences` and `closedByPullRequestsReferences` through `gh`: an **owned dependency**
+  on a `nen pr ready` row (zheref/hatsu#203), until which shibari quotes the guard's `0` beside it.
 - **`sharingan`.** A reply's head-chain check (§ *Reviewer rounds and review threads*) is `git -C <path> fetch` then `git -C <path>
   merge-base --is-ancestor <sha> <head>`, because nen reads a PR's head but not the ancestry of a commit in it.
 - **`getsuga`.** The release proposal's base read-back after a retarget (`gh pr view <N> --json

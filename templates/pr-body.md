@@ -95,11 +95,19 @@
 <!-- Every issue this PR addresses, in the body AND in GitHub's Development association — shibari's
      linkage contract. One row per issue: the canonical URL, the scope this PR implements, and whether
      merging COMPLETES it or delivers part of it. Prerequisites and incidental references are listed
-     separately; a PR with no associated issue says so rather than inventing one. -->
+     separately; a PR with no associated issue says so rather than inventing one.
+     THE CELL CONVENTION (zheref/hatsu#203): a COMPLETES-ROW's *Merging this* cell begins `completes
+     it` or `closes it` (emphasis allowed) and never says `part`; any other wording is not closing.
+     Every completes-row, and only those, gets its own closing-keyword line below the table, alone on
+     its line — `Closes #N`, or `Closes owner/name#N` for another repository. Checked by
+     "$hatsu_root/scripts/pr_development_link_check.sh": `--body <file> --target <owner/name>` before
+     the PR exists, `--pr <owner/name#N>` live, both directions, after every open and body edit. -->
 
 | Issue | Scope this PR implements | Merging this |
 |---|---|---|
 | <canonical URL> | <the part of it this PR delivers> | **completes it** / **delivers part** |
+
+Closes <owner/name#N, one line per completes-row>
 
 ## Agent attribution
 

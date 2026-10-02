@@ -57,8 +57,7 @@ expected and named in § 5's line, never a G5.
 - **The range is `origin/<branch.base>...HEAD`, after `git -C <path> fetch origin <branch.base>`** —
   nothing fast-forwards *local* `main`, and **`nen gate derive` and
   `nen changelog fragment-required` take `--files`, so a wrong set gives a confident wrong answer.**
-- `nen shu evidence --repo <path> --base <ref>` reads `project.evidence`, but the rows come from
-  `mukai` step 7 and **shibari re-uses them, never re-derives them**.
+- The evidence rows are `mukai` step 7's (`nen shu evidence`), **re-used, never re-derived**.
 
 ## 3. The body
 
@@ -81,11 +80,9 @@ body is written**, on the first write and on every rewrite after a review, which
   at every scope amendment and at handover; the body table carries each canonical URL, the scope this
   PR implements, and whether merging **completes** it or delivers part, with prerequisites listed
   separately and a PR with no associated issue saying so.
-- After opening or editing, compare the expected set against **live** Development associations — a
-  body mention alone is not proof. A separate
-  supported closing clause per issue creates it on a default-branch PR; otherwise use GitHub's own
-  linking interface and verify. **Never invent a Nen link verb; never assume `Part of #N` links.**
-  Non-default bases, cross-repository links and the UI's link-count limit need live checks.
+- **Only a completes-row links**, by its own `Closes <ref>` line (`owner/name#N` across repositories)
+  on a default-branch PR, else through GitHub's Development sidebar; a body mention is not proof, and
+  § 4's guard checks it live. **Never invent a Nen link verb; never assume `Part of #N` links.**
 - **Linking and completion are different claims**: never mislabel partial work as complete to tidy the
   sidebar, never change auto-close settings, preserve a partial issue's remaining scope, and report an
   auto-close conflict for the maintainer's disposition before merge.
@@ -110,15 +107,15 @@ nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,nen/,sc
   --fragment-dir changelog.d --files <the changed paths> --head-changelog <path to CHANGELOG.md> \
   [--body-from <abs path>]
 nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-run] [--json]
+"$hatsu_root/scripts/pr_development_link_check.sh" --pr <owner/name#n>
 ```
 
 - **The two refs must be equal**; if not, the run **stops and says which is ahead**. **`pr open` refuses a head that is not on the remote at
   exit `2` and exits `1` naming an open PR for the branch**; it opens **once**, draft or ready
   being the repository's convention.
 - **`body-check` reports every requirement**; **exit `1` is a finding to fix**.
-- **`fragment-required` has four verdicts** — `not-applicable`, `required` (exit `1`),
-  `fragment-present`, and `opt-out` where `--body-from` carries a `no CHANGELOG entry: <reason>` line.
-  **Keep both `nen/` and `schemas/`**; **a missing `--head-changelog` is exit `2`**; **`fragment-present` needs the fragment on disk at head as well as in `--files`**.
+- **`fragment-required`'s four verdicts, both kept prefixes and its exit `2` are the template's
+  check (b)**, binding as written there.
 - **The gate is derived as [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation*
   says**, and **the body names it as a FORECAST, never a status** — a PR just opened is not ready.
   **Shibari derives the gate and never labels one**: a label is a readiness
@@ -128,6 +125,9 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
   **every later revision is an edit**: `nen pr edit-body` replaces the body outright and **certifies
   the number before any write**, refusing a 404/410. **A relative `--body-file` resolves against
   `--repo`'s root**, so the body is written to an **absolute** path.
+- **The Development guard runs after `pr open` and each `pr edit-body`** (zheref/hatsu#203): `1`
+  names every missing or extra link, fixed in the body or the sidebar, never claimed; `2` is no pass.
+  **`en`/`sharingan` re-run it on any body rewrite, quoting its `0` beside `nen pr ready`.**
 
 ## 5. Reviewers, and the hand to `en`
 
@@ -142,7 +142,7 @@ threads***: the maintainer's token, Copilot through `--add-bots <node id>`, and 
 the mutation's own response, never from the ids sent**.
 
 **Then one line, and stop**: the notation, the base, the gate **forecast**, whether the three checks
-passed, the evidence mechanism — and, where the harness classifier stopped its publish step, the field
+passed, the Development guard's quoted `0`, the evidence mechanism — and, where the harness classifier stopped its publish step, the field
 `permission stop: expected — <consumer> declares no allow row for <script>` naming the missing grant
 (§ 1; zheref/hatsu#101), never a G5 — who was requested, and — from `mukai` — its offer of [`en`](../en/SKILL.md) on the PR
 (En has it already only under `mukai.autoEn`). **No `nen stop` banner** — opening a PR is not a gate event, and
