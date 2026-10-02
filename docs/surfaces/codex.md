@@ -60,6 +60,7 @@ has not been trusted runs with the user's config and none of the pack.
 | file | `.agents/skills/<name>/SKILL.md` |
 | frontmatter kept by the mirror | `name`, `description` |
 | description guidance | "Explain exactly when this skill should and should not trigger." |
+| description length | at most **1,024 characters**, the Agent Skills spec's cap. Codex 0.154.0 **truncates** a longer description to 1,021 characters plus "..." (measured with `codex debug prompt-input` on 2026-10-01; upstream `codex-rs/skills/src/parser.rs` validates only `name`'s length; the refusal reported in [openai/codex#13941](https://github.com/openai/codex/issues/13941) is older behaviour), which drops the tail where a description's "never" clauses sit; Copilot CLI drops such a skill silently (github/copilot-cli#3494). `scripts/prose_size_check.sh` fails on any source or mirror description over it, measured whole in the forms the generator writes, any other form (a quoted key, an alias, a BOM) refused by name (zheref/hatsu#186) |
 | list budget | the skill list is capped at 2% of the model's context window, or 8,000 characters; descriptions are shortened to fit |
 | name listed as | bare `name` for a copy; `<plugin>:<name>` through a symlink into a plugin root |
 

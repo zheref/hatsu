@@ -5,7 +5,11 @@
 # file, smallest margin first, with the same exit code as the plain run; an unknown flag, an empty root,
 # a second root and a root that is not a Hatsu checkout are wiring refusals at exit 2; a symlink that
 # leaves the root, a dangling symlink and an unreadable file are offenders by name (SEC-7), never
-# measured and never skipped green. Offline, hermetic, writes only under mktemp.
+# measured and never skipped green; a skill's frontmatter description is measured whole in the forms the generator writes
+# (single line, quoted, folded, literal, continued, CRLF) against the 1024-character cap in source and
+# every mirror layout, with a duplicate key, invalid UTF-8 (checked exactly), a quoted key, a space before
+# the colon, an alias or anchor value and a BOM refused by name and an unlistable skill directory an
+# offender (zheref/hatsu#186). Offline, hermetic, writes only under mktemp.
 
 set -euo pipefail
 export LC_ALL=C
@@ -113,7 +117,7 @@ bytes "$over/claude/agents/chrollo.md" 6145
 run 1 "$over"
 assert_contains "$out" 'OVER  claude/skills/hanten/SKILL.md  12289 > 12288 bytes' 'an over skill is named with size and ceiling'
 assert_contains "$out" 'OVER  claude/agents/chrollo.md  6145 > 6144 bytes' 'an over agent is named with size and ceiling'
-assert_contains "$out" '2 file(s) over the ceiling' 'the count of offenders'
+assert_contains "$out" '2 offence(s):' 'the count of offenders'
 run 1 --headroom "$over"
 assert_contains "$out" '    -1 claude/skills/hanten/SKILL.md' 'a negative margin heads the report'
 assert_contains "$out" 'OVER  claude/agents/chrollo.md' 'the report never hides the offence'
@@ -131,7 +135,7 @@ bad="$fixture_root/badutf8"
 make_root "$bad"
 head -c 60000 /dev/zero | LC_ALL=C tr '\0' '\277' > "$bad/claude/rules/hatsu.md"
 run 1 "$bad"
-assert_contains "$out" 'UNMEASURABLE  claude/rules/hatsu.md -- not valid UTF-8 (60000 bytes, 0 code points), not measured' 'raw continuation bytes are refused by name'
+assert_contains "$out" 'UNMEASURABLE  claude/rules/hatsu.md -- not valid UTF-8 (60000 bytes), not measured' 'raw continuation bytes are refused by name'
 assert_lacks "$out" 'prose ok' 'a file five times the ceiling never reads green'
 
 # --- a dieted skill missing from disk is named, never skipped ---
@@ -171,7 +175,7 @@ ln -s "$fixture_root/outside.md" "$escape/claude/agents/zz.md"
 run 1 --headroom "$escape"
 assert_contains "$out" 'OUTSIDE  claude/agents/zz.md -- resolves to a path outside the root, not measured' 'a symlink leaving the root is an offender, never measured'
 assert_lacks "$out" 'claude/agents/zz.md  ' 'the escaped path has no report row'
-assert_contains "$out" 'file(s) over the ceiling, unreadable, dangling or outside the root' 'the verdict names the class'
+assert_contains "$out" 'unreadable, unlistable, unmeasurable, dangling or outside the root' 'the verdict names the class'
 inside="$fixture_root/inside"
 make_root "$inside"
 ln -s ../agents/chrollo.md "$inside/claude/rules/linked.md"
@@ -185,6 +189,7 @@ assert_contains "$out" 'DANGLING  claude/agents/ghost.md -- a symlink to nothing
 rm "$dangling/claude/skills/futon/SKILL.md"; ln -s /nope/nothing "$dangling/claude/skills/futon/SKILL.md"
 run 1 "$dangling"
 assert_contains "$out" 'DANGLING  claude/skills/futon/SKILL.md' 'a dangling dieted-skill symlink is named as dangling, not missing'
+[ "$(printf '%s\n' "$out" | grep -c 'DANGLING  claude/skills/futon/SKILL.md')" -eq 1 ] || fail 'a dangling dieted skill is named once, not again by the description loop'
 if [ "$(id -u)" -ne 0 ]; then
   # an unlistable directory (Phinks, QA-16: the glob expanded to nothing and the run read green)
   unlistable="$fixture_root/unlistable"
@@ -205,8 +210,128 @@ if [ "$(id -u)" -ne 0 ]; then
   run 1 "$locked"
   assert_contains "$out" 'UNREADABLE  claude/agents/chrollo.md -- could not be measured' 'an unreadable file is an offender by name'
   assert_lacks "$out" 'syntax error' 'no arithmetic error escapes; the scan continues past it'
-  assert_contains "$out" '1 file(s) over the ceiling, unreadable, dangling or outside the root' 'the rest of the tree was still measured'
+  assert_contains "$out" '1 offence(s):' 'the rest of the tree was still measured'
   chmod 644 "$locked/claude/agents/chrollo.md"
 fi
 
-echo "prose-size-fixture: ok (clean, headroom report and its order, the ceiling edge, over by one, characters, invalid UTF-8, a missing diet entry, the argument refusals, a symlink out, a dangling one, an unlistable directory, an unreadable file)"
+# --- a skill's frontmatter description over the Agent Skills cap (zheref/hatsu#186) ---
+# desc_skill <path> <n> [quote]: a SKILL.md whose description is exactly n characters -- n-1 'x' and one
+# em dash (three bytes), so a byte count would read n+2 and only a character count reads n.
+desc_skill() {
+  local path="$1" n="$2" q="${3:-}" v
+  mkdir -p "$(dirname -- "$path")"
+  v="$(awk -v n="$((n - 1))" 'BEGIN { for (i = 0; i < n; i++) printf "x" }')—"
+  printf -- '---\nname: zz\ndescription: %s%s%s\n---\n\n# zz\n' "$q" "$v" "$q" > "$path"
+}
+desc="$fixture_root/desc"
+make_root "$desc"
+desc_skill "$desc/claude/skills/zz/SKILL.md" 1024
+run 0 "$desc"
+assert_contains "$out" '1 skill descriptions within the 1024-character cap' 'exactly 1024 characters is within the cap, counted in characters not bytes'
+desc_skill "$desc/claude/skills/zz/SKILL.md" 1025
+run 1 "$desc"
+assert_contains "$out" 'OVER-DESCRIPTION  claude/skills/zz/SKILL.md  1025 > 1024 chars' 'one over the cap is an offender by name, any skill, dieted or not'
+desc_skill "$desc/claude/skills/zz/SKILL.md" 1024 '"'
+run 0 "$desc"
+assert_contains "$out" '1 skill descriptions within the 1024-character cap' 'the surrounding quotes are not counted'
+desc_skill "$desc/surfaces/codex/zz/SKILL.md" 1025
+desc_skill "$desc/surfaces/antigravity/skills/zz/SKILL.md" 1025
+run 1 "$desc"
+assert_contains "$out" 'OVER-DESCRIPTION  surfaces/codex/zz/SKILL.md' 'a mirror is measured on its own: its length is the one the surface reads'
+assert_contains "$out" 'OVER-DESCRIPTION  surfaces/antigravity/skills/zz/SKILL.md' 'the nested antigravity mirror path is measured too'
+assert_lacks "$out" 'OVER-DESCRIPTION  claude/skills/zz' 'the source within the cap is not named'
+
+# --- descriptions YAML reads whole (Phinks R1-R4, Feitan, Nobunaga, Chrollo on c82d81d0): every form is measured
+# as the value a reader sees, never as its first physical line ---
+form="$fixture_root/form"
+xs() { awk -v n="$1" 'BEGIN { for (i = 0; i < n; i++) printf "x" }'; }
+form_skill() { mkdir -p "$(dirname -- "$1")"; printf -- '---\nname: zz\n%s\n---\n\n# zz\n' "$2" > "$1"; }
+make_root "$form"
+form_skill "$form/claude/skills/zz/SKILL.md" "description: >-
+  $(xs 600)
+  $(xs 600)"
+run 1 "$form"
+assert_contains "$out" 'OVER-DESCRIPTION  claude/skills/zz/SKILL.md  1201 > 1024' 'a folded block scalar is measured whole, its lines joined by spaces'
+form_skill "$form/claude/skills/zz/SKILL.md" "description: |
+  $(xs 600)
+  $(xs 600)"
+run 1 "$form"
+assert_contains "$out" 'OVER-DESCRIPTION  claude/skills/zz/SKILL.md  1202 > 1024' 'a literal block scalar is measured whole, its lines joined by newlines, its clipped final line break counted'
+# chomping (Copilot on HA-PR-#194): clip (default) keeps one final line break, strip (-) none, keep (+) every one
+form_skill "$form/claude/skills/zz/SKILL.md" "description: |
+  $(xs 1024)"
+run 1 "$form"
+assert_contains "$out" 'OVER-DESCRIPTION  claude/skills/zz/SKILL.md  1025 > 1024' 'a clipped literal of 1024 visible characters is 1025 with its final line break'
+form_skill "$form/claude/skills/zz/SKILL.md" "description: |-
+  $(xs 1024)"
+run 0 "$form"
+assert_contains "$out" 'skill descriptions within the 1024-character cap' 'a stripped literal of 1024 visible characters is within the cap'
+form_skill "$form/claude/skills/zz/SKILL.md" "description: >+
+  $(xs 1022)
+
+
+"
+run 1 "$form"
+assert_contains "$out" 'OVER-DESCRIPTION  claude/skills/zz/SKILL.md  1026 > 1024' 'a kept folded block counts its final line break and every trailing blank line (1022 visible)'
+form_skill "$form/claude/skills/zz/SKILL.md" "description: $(xs 600)
+  $(xs 600)"
+run 1 "$form"
+assert_contains "$out" 'OVER-DESCRIPTION  claude/skills/zz/SKILL.md  1201 > 1024' 'a plain scalar continued on an indented line is measured whole'
+form_skill "$form/claude/skills/zz/SKILL.md" "description: >-
+  $(xs 300)
+  $(xs 300)"
+run 0 "$form"
+assert_contains "$out" 'skill descriptions within the 1024-character cap' 'a short block scalar is measured and passes'
+form_skill "$form/claude/skills/zz/SKILL.md" "description: '$(xs 1100)'"
+run 1 "$form"
+assert_contains "$out" 'OVER-DESCRIPTION  claude/skills/zz/SKILL.md  1100 > 1024' 'a single-quoted value is measured without its quotes'
+form_skill "$form/claude/skills/zz/SKILL.md" "description: $(xs 1100)"
+LC_ALL=C perl -pi -e 's/\n/\r\n/' "$form/claude/skills/zz/SKILL.md"
+run 1 "$form"
+assert_contains "$out" 'OVER-DESCRIPTION  claude/skills/zz/SKILL.md  1100 > 1024' 'a CRLF file is read, its CRs dropped, never skipped'
+form_skill "$form/claude/skills/zz/SKILL.md" "description: PLACEHOLDER"
+LC_ALL=C perl -pi -e 's/PLACEHOLDER/"\xa0" x 1100/e' "$form/claude/skills/zz/SKILL.md"
+run 1 "$form"
+assert_contains "$out" 'UNMEASURABLE  claude/skills/zz/SKILL.md -- the description is not valid UTF-8' 'an invalid-UTF-8 description is refused by name, never skipped'
+form_skill "$form/claude/skills/zz/SKILL.md" "description: short
+description: $(xs 1100)"
+run 1 "$form"
+assert_contains "$out" 'UNMEASURABLE  claude/skills/zz/SKILL.md -- two description keys' 'a duplicate description key is refused: readers disagree on which wins'
+form_skill "$form/claude/skills/zz/SKILL.md" "description: PLACEHOLDER"
+LC_ALL=C perl -pi -e 's/PLACEHOLDER/("x" x 1000) . ("\x80" x 3)/e' "$form/claude/skills/zz/SKILL.md"
+run 1 "$form"
+assert_contains "$out" 'UNMEASURABLE  claude/skills/zz/SKILL.md -- the description is not valid UTF-8' 'a mostly-ASCII description with a few stray continuation bytes is refused: validity is exact, never a ratio (Nobunaga)'
+
+# --- forms the reader does not follow are refused by name, never skipped (Nobunaga on 2dff3218: YAML and Codex
+# read each of these in full, at 1100 characters, while a line-oriented reader would skip or mismeasure them) ---
+form_skill "$form/claude/skills/zz/SKILL.md" "\"description\": $(xs 1100)"
+run 1 "$form"
+assert_contains "$out" 'UNMEASURABLE  claude/skills/zz/SKILL.md -- the description is written as a quoted key or a space before the colon' 'a quoted description key is refused by name'
+form_skill "$form/claude/skills/zz/SKILL.md" "description : $(xs 1100)"
+run 1 "$form"
+assert_contains "$out" 'UNMEASURABLE  claude/skills/zz/SKILL.md -- the description is written as a quoted key or a space before the colon' 'a space before the colon is refused by name'
+form_skill "$form/claude/skills/zz/SKILL.md" "x: &d $(xs 1100)
+description: *d"
+run 1 "$form"
+assert_contains "$out" 'UNMEASURABLE  claude/skills/zz/SKILL.md -- the description is written as an alias or anchor value' 'an alias value is refused, never measured as its two characters'
+form_skill "$form/claude/skills/zz/SKILL.md" "description: &d $(xs 1100)"
+run 1 "$form"
+assert_contains "$out" 'UNMEASURABLE  claude/skills/zz/SKILL.md -- the description is written as an alias or anchor value' 'an anchored value is refused by name'
+form_skill "$form/claude/skills/zz/SKILL.md" "description: $(xs 1100)"
+LC_ALL=C perl -pi -e 's/\A/\xef\xbb\xbf/ if $. == 1' "$form/claude/skills/zz/SKILL.md"
+run 1 "$form"
+assert_contains "$out" 'UNMEASURABLE  claude/skills/zz/SKILL.md -- the description is written as a BOM before ---' 'a BOM before the frontmatter is refused, never a silently shorter count'
+rm -rf "$form/claude/skills/zz"
+if [ "$(id -u)" -ne 0 ]; then
+  mkdir -p "$form/surfaces/codex/zz"; form_skill "$form/surfaces/codex/zz/SKILL.md" "description: ok"
+  chmod 000 "$form/surfaces/codex"
+  run 1 "$form"
+  assert_contains "$out" 'UNLISTABLE  surfaces/codex -- the directory exists but could not be listed' 'an unlistable mirror directory is an offender, never a shorter green'
+  chmod 755 "$form/surfaces/codex"
+  chmod 000 "$form/surfaces/codex/zz"
+  run 1 "$form"
+  assert_contains "$out" 'UNLISTABLE  surfaces/codex/zz' 'an unlistable skill directory is an offender too'
+  chmod 755 "$form/surfaces/codex/zz"
+fi
+
+echo "prose-size-fixture: ok (clean, headroom report and its order, the ceiling edge, over by one, characters, invalid UTF-8, a missing diet entry, the argument refusals, a symlink out, a dangling one, an unlistable directory, an unreadable file, a description over the 1024-character cap in source and mirrors, block, folded, multi-line, quoted and CRLF descriptions measured whole with their chomping, invalid UTF-8 (exactly, a few stray bytes included) and duplicate keys refused, quoted keys, a space before the colon, aliases, anchors and a BOM refused by name, unlistable mirror directories, one finding per path)"
