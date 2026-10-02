@@ -122,9 +122,9 @@ turn 2+ of a loop whose step 1 already cut *this* branch in this session.
 
 **When a later turn of this effort, or [`/mukai`](../mukai/SKILL.md), re-enters
 [`/hanten`](../hanten/SKILL.md), it reuses the same cycle ledger** —
-`.nen/hanten/<branch-slug>.cycle.json`. Remediation does not reset reviewer counts. Breath cutting
-a new branch is the only new cycle
-([zheref/hatsu#63](https://github.com/zheref/hatsu/issues/63); hanten § 2a).
+`.nen/hanten/<branch-slug>.cycle.json`. Remediation does not reset reviewer counts. A new cycle opens
+only where none exists: Breath's `init` on a branch it cuts, else hanten § 1's `ensure`
+([zheref/hatsu#63](https://github.com/zheref/hatsu/issues/63), #169; hanten § 2b).
 
 ### 2a. Profiles, and the phase ledger
 
