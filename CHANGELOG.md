@@ -2,6 +2,35 @@
 
 All notable changes to Hatsu are documented in this file. Releases follow [Semantic Versioning](https://semver.org/).
 
+## v0.85.0 — hanten opens a missing review ledger itself, and ten tells a stale Claude Code plugin cache from a fresh one
+
+- **A branch breath did not cut gets its review ledger** (#169). The desktop app's worktree, or a hand-made branch, had no `.nen/hanten/<branch>.cycle.json`, and hanten's fail-closed ledger refused it. New `scripts/hanten_cycle_ledger.sh ensure --repo <path> --branch <name> [--pr <n>] [--base <trunk>]` opens it with the same `init` breath uses, and hanten § 1 runs it on every entry, passing `--pr` once the effort has a PR. It returns `opened` only when no trace of an earlier ledger survives, and says so. It returns `present` for breath's ledger or an earlier ensure's, left byte for byte, and for the current PR's own PR-keyed ledger. It exits `3` on the trunk (`--base`, else `nen/workflow.json` `branch.base`, else `origin/HEAD`, else `main`), and `4` for a **lost** ledger, which is never re-opened: hanten § 1's recovery path owns it.
+- **The trace outlives `.nen/`.** Every `init` (breath's, ensure's, recover-first's, the PR-keyed one) also writes `<git-common-dir>/hatsu/hanten/<key>.opened`. `git clean` never touches it, and every worktree of the clone shares it. It is read without `--path-format`, so git older than 2.31 answers too. `ensure` reads as lost:
+  - that marker, or another PR's (exactly `<key>-pr<digits>`, so `x/ten-preflight` is never `x/ten`'s);
+  - another PR's ledger in this checkout;
+  - the same key's ledger or lock in any other `git worktree list` checkout;
+  - a lock older than 30 s, its age read before ensure waits and never dropped.
+
+  A younger lock is an init in flight, waited on. 30-trial race tests pin both. **Not traces, by design:** a pushed branch or an open PR, because hanten first runs on an already-pushed branch (mukai). **Not covered:** a fresh clone reads `opened`. **Fail closed:** a branch name reused after its branch was merged and deleted reads lost and is settled through recover-first (`docs/WORKFLOW.md` § 4). `docs/STANDALONE-ENTRY.md` S4 names the branch ledger's two openers. The ledger self-test (79 cases) fails the `ledger-guard` lane on any failure.
+- **`ten` § 5 tells a stale Claude Code plugin cache from a fresh one** (#122). New `scripts/plugin_cache_check.sh --root <source> --cache <dir|auto>` compares the shipped trees byte for byte: `claude/skills`, `claude/agents`, `claude/rules`, `hooks`, `templates`, `contracts`, `scripts`, `.claude-plugin/plugin.json` and `marketplace.json`. `auto` judges every recorded copy: each `hatsu@` installPath in `installed_plugins.json`, and `skills/hatsu`. Exits:
+  - `0` identical, or served by link to a git checkout named independently;
+  - `1` different, every path named;
+  - `2` wiring, including an unreadable file or directory;
+  - `3` not installed;
+  - `4` not comparable;
+  - `5` broken install (no usable installPath, a stale record, a dangling or looping link, a control character).
+
+  **A copy is never its own evidence:** where the served copy is `--root`, the source must come from `HATSU_PLUGIN_ROOT`, a `directory` marketplace, or the checkout the caller stands in, and the last only on its trunk or the served copy's own branch (a feature worktree is the change being authored). Otherwise it is not comparable. A symlink is compared by target and never opened. A control character is never printed raw. **jq is optional**: without it the record is reported unread, never a wiring stop. `surface_mirror_check.sh --installed` hands a cache-shaped path to it (a missing or non-executable comparator is wiring). `docs/PROCESS.md` maps every exit to ten § 5's `mirrors:` word. New lane `plugin-cache-guard` (73 hermetic cases).
+- **Residue, and a question for you.** The cache comparison is deterministic work that belongs to nen: an owned dependency, zheref/nen#339 (`docs/PROCESS.md` § *Residue*). **BC-11, a G4 question, not decided here:** the new shell verdict machinery and `hanten_cycle_ledger.sh`'s growing embedded Python. Does BC-11's embedded-Python freeze bind the ledger? The README now says `python3` is required and `jq` is optional.
+- **What the pre-PR review changed** (hanten: Nobunaga ×2, Feitan, Chrollo, Phinks):
+  - **Phinks (fail ❌).** Five red tests, ported and now green: a cleaned ledger re-opened with a fresh budget; a race read as lost; broken installs read as not installed; a split installPath; an unrunnable comparator read as drift.
+  - **Chrollo (divergent ❌).** The self-comparison, the hard jq dependency and the missing residue entry.
+  - **Feitan.** Control characters and followed symlinks.
+  - **Nobunaga's second pass.** A prefix glob that misread sibling branches; the current PR's ledger read as lost; a probe race that dropped the stale-lock trace; a feature-branch working directory used as the source.
+  - **Corrected facts.** The base self-test already exited 1 on a failure; `ten` shrank 5 bytes, not 20.
+  - **Verification.** The last fixes had no reviewer pass of their own; fixtures and mutants are their verification.
+- `hanten` stays within its 12,288-byte ceiling (12,286). Plugin bumped to 0.85.0 (Claude manifest and Codex overlay); mirrors regenerated at that stamp.
+
 ## v0.82.0 — align build skill to canonical Akatsuki lifecycle and worktree isolation
 
 - **Align `build` skill to canonical Akatsuki lifecycle**: Replaced legacy Bankai CI builder agent routing (`bankai:agent/*`), CI stage labels, chain-position mappings, wave coordinators, and wake ladders with Hatsu's canonical 5-phase delivery sequence (`ren` -> `aka` -> `mukai` -> `en` -> `third-hand`).

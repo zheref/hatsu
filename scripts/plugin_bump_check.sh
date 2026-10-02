@@ -233,6 +233,11 @@ fi
 #                       repository (zheref/hatsu#149); a stale copy would let a
 #                       private repository's name through. Its fixture beside it
 #                       is test-only and is not covered.
+#   scripts/plugin_cache_check.sh
+#                     — ten § 5 runs it from `$hatsu_root/scripts/` on Claude Code to judge
+#                       whether the served copy is the source (zheref/hatsu#122), and
+#                       surface_mirror_check.sh --installed calls it; a stale copy would
+#                       misjudge the cache. Its fixture beside it is test-only.
 #   scripts/prose_size_check.sh
 #                     — hanten § 2 runs the link guard and § 6 the prose guard
 #                       from `$hatsu_root/scripts/` in every review, consumers'
@@ -284,6 +289,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/surface_link_check.sh'
   'scripts/prose_size_check.sh'
   'scripts/private_name_check.sh'
+  'scripts/plugin_cache_check.sh'
   'scripts/tenkai_adopt.sh'
   'scripts/release-publish.sh'
   'scripts/report_time.sh'

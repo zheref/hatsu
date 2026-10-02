@@ -84,9 +84,12 @@ any new release tag is considered.
 | `git` + [`gh`](https://cli.github.com), authenticated | the skills read and write GitHub as **you**. |
 | a [`nen/contract.json`](nen/contract.json) in the repository you point Hatsu at | **the only thing Hatsu asks of your project.** It declares what *your* build, test, lint, archive and deploy commands are, so nothing here is bound to a language, a framework, a build system or a product. A repository that declares none gets the git half of every skill and its own documented commands, said plainly rather than guessed at. |
 
-**On the installed plugin path**, nothing here needs `jq`, `yq` or Python: one binary, plus `git` and `gh`.
-(The repository's own CI is a separate matter — `scripts/plugin_bump_check.sh` uses `jq`, but nothing an
-installed copy runs does.)
+**On the installed plugin path** you need one binary, plus `git`, `gh` and the `python3` every macOS
+and Linux host ships: several skill scripts run Python (`hanten`'s cycle ledger, `tenkai`'s adoption,
+`kagutsuchi`'s worktree among them). `jq` is optional there: the warm-up's checks use it when present and
+say what they could not read without it (`ten` § 5 reports Claude Code's install record unread, never a
+stop). `yq` is never needed. (The repository's own CI is a separate matter — `scripts/plugin_bump_check.sh`
+requires `jq`.)
 
 ### Per surface
 
