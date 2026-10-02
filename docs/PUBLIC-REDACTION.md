@@ -83,6 +83,41 @@ the **fact** is kept in words and the id is dropped, rather than replacing one o
 See the incident record at the head of
 [`scripts/plugin_bump_check.sh`](../scripts/plugin_bump_check.sh).
 
+## How it is guarded
+
+[`scripts/private_name_check.sh`](../scripts/private_name_check.sh) compares text against the **live**
+private list — every private repository the maintainer's own credentials can see, whoever owns it
+(`gh api 'user/repos?visibility=private'`, paginated) — by bare name, case-insensitive, whole-word
+(`_` and `.` bound a word, so markdown emphasis is a hit), `owner/name` slugs and URLs included. A
+line that could hide a name is also read normalised — URL encoding, HTML entities, inline tags,
+backslash escapes, NFKC, invisible format characters and dashes — and then with HTML comments, `*`
+and backticks removed, so intraword emphasis, a code span or a comment splitting a name is still a
+hit. Those transformations are the whole claim: an intraword `_` is not removed, because CommonMark
+never renders it as emphasis. A list that reads empty, or one the ignore file empties, is a refusal,
+never a pass. The list is never committed here and never cached in the
+tree; a CI form needs it as a secret (`--names-file`). A hit, a path and a label are printed with an
+index into that list, never the name; a path or label that names a repository only once normalised is
+withheld whole. Of the exemptions above only the predecessor generator's marker
+is a repository name: it passes only as the exact `<!-- GENERATED from <name>@` shape, and only for
+the name `hatsu:limbo`'s own marker line carries. Names the maintainer rules too generic to police (a
+repository called after an ordinary word) go in an ignore file on their own machine, never in this
+tree, and only the maintainer writes it.
+
+- **Issue text:** [`hatsu:file`](../claude/skills/file/SKILL.md) § 4 runs it on every drafted title,
+  body and comment before the plan, so the plan shows checked text; § 8 forbids writing to a public
+  repository anything it has not passed. [`hatsu:backlog-synthesis`](../claude/skills/backlog-synthesis/SKILL.md),
+  [`hatsu:mugetsu`](../claude/skills/mugetsu/SKILL.md) § 7 and
+  [`hatsu:sharingan`](../claude/skills/sharingan/SKILL.md) § 7 run it before their own `nen issue`
+  writes. A private target is skipped. The check belongs in nen's `issue` verbs (zheref/nen#329);
+  until it lands, a caller outside these skills is unguarded.
+- **Tree content:** `bash scripts/private_name_check.sh --tree .`, run by the maintainer, reads every
+  tracked and untracked-not-ignored file's contents, its path and a symlink's target, and counts what
+  it skips. **The tree is not yet clean**: on 2026-10-01 it read 173 mentions, or 60 with two
+  ordinary-word names ignored, most in the kagutsuchi worktree script and its A/B record. So it is not
+  a CI step or a kokusen check yet — **issue #149's criterion 2(b) is deferred** until the tree is
+  redacted (kokusen also has no room for it within its prose ceiling). The lane `redaction-guard`
+  runs its hermetic fixture.
+
 ## Scope
 
 Tree content and GitHub issue bodies. The commit messages and pull-request bodies of past changes are

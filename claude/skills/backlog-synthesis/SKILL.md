@@ -224,7 +224,9 @@ given** (`--allow-open-pr` overrides it for the *whole* call, never selectively)
 is never handed to one call. Partitioning first, and handing each set to the verb that matches its
 disposition, is what makes the choreography exact instead of an override the plan never asked for.
 
-Per approved group:
+Per approved group — and **every title, body and comment below** (the issue, each `nen issue
+comment`, each `--close-comment-map` text, the `nen issue edit-body` file) passes
+[`hatsu:file`](../file/SKILL.md) § 4's private-name check first, reading `0` or `skipped`:
 
 **1 — File the consolidated issue**, labels **in the create call**, matching
 [`hatsu:file`](../file/SKILL.md) § 5's own discipline exactly:
@@ -439,5 +441,7 @@ separate go-signal.
   an old page presented as current carries stale numbers with a fresh page's authority.
 - **Never trusts a re-guard's absence.** Step 2's `open-pr-check` runs immediately before step 3,
   never reused from the plan's own earlier run — the backlog moves under a long-running synthesis.
+- **Never writes to a public repository text the private-name guard has not passed (exit `0`) or
+  skipped** ([`hatsu:file`](../file/SKILL.md) § 4).
 - **Never posts a comment with a raw `gh issue comment`.** The per-child close text is
   `--close-comment-map`'s; any other comment is `nen issue comment`'s (nen `v0.2.0`).
