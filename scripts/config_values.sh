@@ -57,14 +57,21 @@ export CONFIG_VALUES_DEFAULT_ROOT="$(dirname "$HERE")"
 
 python3 - "$@" <<'PY'
 import contextlib
-import fcntl
 import json
 import os
+import threading
+import time
 import re
 import shutil
 import sys
 import tempfile
 from pathlib import Path
+
+if os.name == "nt":   # the same split scripts/hanten_cycle_ledger.sh makes for its own lock
+    import msvcrt
+    _windows_thread_lock = threading.Lock()
+else:
+    import fcntl
 
 CATALOGUE = Path("contracts") / "config-catalogue.json"
 WRITABLE_FILES = ("nen/workflow.json", "nen/gates.json", "nen/contract.json")
@@ -371,8 +378,15 @@ def source_drift(root, rows):
         if "default" not in r or "docs/WORKFLOW.md" not in str(r.get("source", "")):
             continue
         leaf = r["path"].split(".")[-1]
-        hits = [ln for ln in lines if ln.startswith("|") and f"`{leaf}`" in ln.split("|")[1]]
+        if r.get("sourceTable") is False:
+            # documented in WORKFLOW's prose, declared so: the key and its default must still meet on a line
+            hits = [ln for ln in lines if f"`{leaf}`" in ln or f'"{leaf}"' in ln]
+        else:
+            hits = [ln for ln in lines if ln.startswith("|") and f"`{leaf}`" in ln.split("|")[1]]
         if not hits:
+            out.append(f"row {r['id']!r}: cites docs/WORKFLOW.md but no "
+                       f"{'line' if r.get('sourceTable') is False else 'key-table row'} there names `{leaf}` "
+                       f"— the drift guard would read nothing; restore the row, or re-cite the source")
             continue
         d = r["default"]
         shown_d = json.dumps(d) if not isinstance(d, str) else d
@@ -648,6 +662,37 @@ def declaration_lock(repo):
     d = repo.path / "nen"
     if not d.is_dir() or d.is_symlink():
         yield
+        return
+    if os.name == "nt":
+        # a directory cannot be byte-range locked on Windows: lock a file under .nen/, which
+        # tenkai git-ignores, with msvcrt as hanten_cycle_ledger.sh does
+        (repo.path / ".nen").mkdir(exist_ok=True)
+        fd = os.open(str(repo.path / ".nen" / "config_values.lock"), os.O_RDWR | os.O_CREAT, 0o600)
+        _windows_thread_lock.acquire()
+        try:
+            if os.fstat(fd).st_size == 0:
+                os.write(fd, b"\0")
+            os.lseek(fd, 0, os.SEEK_SET)
+            deadline = time.monotonic() + 30
+            while True:
+                try:
+                    msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+                    break
+                except OSError:
+                    if time.monotonic() >= deadline:
+                        raise Defect("another config_values.sh write held the lock for 30 s; nothing written")
+                    time.sleep(0.05)
+            repo.texts.clear()
+            repo.errors.clear()
+            yield
+        finally:
+            try:
+                os.lseek(fd, 0, os.SEEK_SET)
+                msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
+            except OSError:
+                pass
+            os.close(fd)
+            _windows_thread_lock.release()
         return
     fd = os.open(str(d), os.O_RDONLY)
     try:
@@ -1058,6 +1103,11 @@ def self_test(root):
     shipped = {r["id"]: r for r in load_catalogue(root)[1]}
     check("profile.default is derived from profile.allowed, so fill never writes it",
           "default" not in shipped.get("workflow.profile.default", {"default": 1}))
+
+    ghost = [{"id": "z.ghost", "file": "nen/workflow.json", "path": "nosuch.ghostKey", "domain": "development",
+              "kind": "open", "default": 1, "readers": ["mukai"], "describe": "x", "source": "docs/WORKFLOW.md § 2"}]
+    check("a docs-sourced default with no WORKFLOW row is a catalogue problem",
+          any("ghostKey" in p for p in source_drift(root, ghost)))
 
     real_cat, real_rows = load_catalogue(root)
     probs = catalogue_problems(root, real_cat, real_rows)

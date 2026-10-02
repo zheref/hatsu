@@ -45,6 +45,8 @@
   - Every finding is fixed except two deferred to named records: coverage measurement (zheref/hatsu#148) and the nen owned dependency (tenkai's Residue). Phinks's red reproductions now pass, the race 3/3.
   - `.gitleaksignore` names the one fingerprint of a fake `sk-live-…` fixture in the already-published `29fac9e2`, which is never rewritten.
   - Hatsu's own `nen/` is not filled here: that is a G4 change to this repository's own declarations.
+- **Hatsu's own `mukai.autoEn` is `true`**, on the maintainer's request of 2026-10-01 ("Let's configure this repository for autoEn (let's make it enabled)"): a `hatsu:mukai` here now starts `hatsu:en` on the PR it opened instead of offering it. Written with this PR's own `config_values.sh set`, which added the `$autoEn` options note beside it.
+- **Copilot's round settled.** `config_values.sh` no longer imports `fcntl` on Windows: there the lock is `msvcrt` on a file under `.nen/`, as `hanten_cycle_ledger.sh` does it, while POSIX keeps `flock` on `nen/`. `check-catalogue` now fails when a WORKFLOW-sourced default has no key-table row to check against, instead of passing silently. The four defaults documented in WORKFLOW's prose declare `sourceTable: false` and are held to a line naming the key.
 - **New focused lane `config-values-guard`** (`nen shu test --lane config-values-guard`). `tenkai-guard` now has 222 assertions.
 - Plugin bumped to 0.74.0 after catching up with v0.73.0 (HA-PR-#183) (Claude manifest and Codex overlay); mirrors regenerated at that stamp.
 
