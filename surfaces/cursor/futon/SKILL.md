@@ -16,7 +16,7 @@ summary: Work one selector of a repo's
 > prompted for your merge — then, if you typed `then`, what follows it, on your own typed word.**
 
 Per issue, futon is [`build`](../build/SKILL.md) → [`tensho`](../tensho/SKILL.md) →
-[`en`](../en/SKILL.md); what follows `then` is § 8's, never futon's own.
+[`en`](../en/SKILL.md).
 
 Futon is a **scoped, terminated [`backlog-loop`](../backlog-loop/SKILL.md)**: a **selector**, an
 **explicit `then`**, and **who is behind every PR**.
@@ -91,11 +91,12 @@ nen label apply <CODE>-IS-#<N> --label bankai:stage/building --repo-slug <owner/
 declares as [`build`](../build/SKILL.md) § 5 lays them out, in the effort's own worktree, exits read per
 kurapika.md § *The `shu` verbs*; work a local session cannot do is a **G5**, gap named.
 
-## 5. Done is merged
+## 5. Done is Ready, then merged
 
-> Every PR futon produces is Kurapika's own: **not done at PR-open**, but when
-> `nen pr ready` **and** `nen pr body-check` both pass, quoted, and en § 5 has merged it
-> **on `branch.base`** (ruling 2026-09-29 (3)) — it **holds its slot** till then.
+> A PR is **not done at PR-open**, but when `nen pr ready` **and** `nen pr body-check` pass, quoted,
+> and it is merged — **into `main` by the maintainer** at en § 5's prompt, or **by futon, unasked,
+> into a non-`main` integration branch it created**, head pinned (ruling 2026-09-30). It **holds its
+> slot** till then.
 
 ## 6. Two concurrency budgets, counted separately
 
@@ -133,7 +134,7 @@ driving them. A legacy-CI PR does not hold it. Then, as `nen parse futon` classi
   never futon's delegation (§ 7), `@<target>` its argument (getsuga's token, `branch.base` with none; a
   destination otherwise); **`then rikugan`** is § 10's final render — **one render, after the `then`
   outcome exists**, said at the echo ([`rikugan`](../rikugan/SKILL.md) § 6). The typed invocation is the **advance go** of [`mugetsu`](../mugetsu/SKILL.md)
-  § 3, not restated — quoted at the echo; a delivery merge is en's,
+  § 3, not restated — quoted at the echo; a merge into `main` is the maintainer's,
   and only a **G5 or a halt** ends it. **The gate is the parse's**: a step of a skill
   `futon.advanceGo` lists (`nen/workflow.json`, or nen's default) is refused **unless** it carries
   `gate: allowed: true` — no `gate` or `allowed: false` fails closed — relayed at the echo by its
@@ -153,7 +154,7 @@ triage in and out, and every label with its time; notations per
 `nen pr ready`'s output verbatim; a `CI (legacy)` row is reported, never driven.
 
 **Every gate stop is [`jutaisho`](../jutaisho/SKILL.md) § 4's full four parts**, the register as its
-report: **G4/G2** only for a PR the run did not author (its own it merges, en § 5),
+report: **G4/G2** at en § 5's merge prompt for every PR into `main`,
 **G5** for a build Kurapika cannot do, a stall past the escalation ladder, or a briefed policy call.
 **A needed maintainer never stops the whole run** — notify, record, keep
 advancing.
@@ -173,11 +174,11 @@ over this run's scope — its § 2 futon row, the `then` outcome included — **
 
 ## 11. Hard limits
 
-- **Merges only its own PR, at its terminus, through en § 5** (ruling 2026-09-29 (3)); never self-reviews, impersonates a reviewer or casts
+- **Merges only into a non-`main` integration branch it created** (§ 5), never into
+  `main`; never self-reviews, impersonates a reviewer or casts
   `request_changes`; **never publishes a release itself** — the cut is getsuga's,
   publication mugetsu's; **never cuts without a typed `then`**.
-- **Never claims a CI author for a PR it opened**, and never abandons its own at PR-open — it holds
-  the slot until merged.
+- **Never claims a CI author for a PR it opened**, and never abandons its own at PR-open (§ 5).
 - **Never claims readiness `nen pr ready` + `nen pr body-check` did not give**, quoted.
 - **Never exceeds 2 CI-plane objects or 7 local worktrees**; never lets two efforts share a file.
 - **Never widens its selector**: a bare severity never carries an implied `+`, and **a label is never
