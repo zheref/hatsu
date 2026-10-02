@@ -8,8 +8,14 @@
 # serving the old wording, silently — the same class of failure an un-bumped
 # `plugin.json` produces, and the reason both guards exist.
 #
-# The whole decision lives in `scripts/surface_mirror_check.sh` so it can be
-# exercised offline; the recorded transcripts are in `docs/surfaces/evidence/surfaces.md`.
+# The whole decision lives in two trusted scripts, so it can be exercised offline: drift in
+# `scripts/surface_mirror_check.sh`, then link correctness in `scripts/surface_link_check.sh`
+# (zheref/hatsu#72); the recorded transcripts are in `docs/surfaces/evidence/surfaces.md` and
+# `docs/ab/surface-link-check.md`. Both run inside ONE step whose name, "Surface-mirror drift
+# check", is frozen by scripts/workflow_runner_policy_check.rb (renaming it is a two-step landing):
+# the name now covers both guards. Links are judged only on a drift-clean tree; a drift-red run
+# reports nothing about links. Each guard's output is printed between `::stop-commands::` and its
+# resume token, so a name or link in the PR's tree can never be read by the runner as a command.
 #
 # The two hardening choices are `plugin-bump-check.yml`'s, deliberately identical:
 #   1. The guard script is checked out from the trusted workflow revision and never run from the
@@ -238,8 +244,20 @@ jobs:
           # failed every pull request, which is the outcome the header says it
           # exists to avoid. Same idiom, same reason, as the loop inside
           # scripts/surface_mirror_check.sh.
+          #
+          # The guards print names and links taken from the PR's tree. Between
+          # `::stop-commands::<token>` and `::<token>::` the runner reads no
+          # workflow command, so nothing in that output can be a forged
+          # `::error`, `::add-mask` or `::set-output`; the token is fresh per run.
+          # Each guard's stderr is folded into its stdout (`2>&1`): the runner
+          # reads the two streams on separate readers, so a late stderr line could
+          # otherwise land after the resume token. The token is printed after a
+          # newline, so it starts a line even when a guard's last line lacks one.
+          stop="stop_$(openssl rand -hex 16)"
           code=0
-          bash "$guard" "$PWD" || code=$?
+          echo "::stop-commands::${stop}"
+          bash "$guard" "$PWD" 2>&1 || code=$?
+          printf '\n::%s::\n' "$stop"
 
           case "$code" in
             0)
@@ -261,6 +279,35 @@ jobs:
             *)
               echo "::error::surfaces/ has drifted from claude/skills + claude/agents. Regenerate with 'nen surface mirror generate' (both surfaces) and commit the result — see the guard output above and docs/SURFACES.md § 3."
               exit "$code"
+              ;;
+          esac
+
+          # CORRECTNESS, NOT ONLY DRIFT (zheref/hatsu#72). The drift check above
+          # proves surfaces/ matches a fresh generation; a generator bug that is
+          # reproduced faithfully on every regeneration passes it forever. The
+          # link guard resolves every relative link in the generated markdown
+          # from its own file's directory and fails on one that dangles. Same
+          # trust shape: the guard is the trusted revision's, the PR checkout is
+          # only the root it judges. It needs no nen, so it never exits 3. It is
+          # reached only when the drift verdict above is 0: a drift-red run says
+          # nothing about links, and the PR sees the link verdict once it regenerates.
+          link_guard=.trusted/scripts/surface_link_check.sh
+          [ -f "$link_guard" ] || { echo "::error::trusted workflow revision has no scripts/surface_link_check.sh"; exit 1; }
+          link=0
+          echo "::stop-commands::${stop}"
+          bash "$link_guard" "$PWD" 2>&1 || link=$?
+          printf '\n::%s::\n' "$stop"
+          case "$link" in
+            0)
+              echo "every relative link under surfaces/ resolves."
+              ;;
+            1)
+              echo "::error::a relative link under surfaces/ dangles (file, link and resolved path are listed above). Fix the authored source or the generator, regenerate, and commit — never an allowlist. See scripts/surface_link_check.sh."
+              exit 1
+              ;;
+            *)
+              echo "::error::the surface link guard could not run (exit $link). Exit 2 is a wiring defect: the root is not a Hatsu checkout, surfaces/ is empty, a file is unreadable, or a file name carries a control character. Any other exit is unexpected. See the guard output above."
+              exit 1
               ;;
           esac
 
