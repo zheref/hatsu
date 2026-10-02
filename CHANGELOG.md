@@ -1,5 +1,55 @@
 # Changelog
 
+## v0.75.0 — every settable value is written out, and asked for before a skill needs it
+
+- **One list of what a consumer can set** ([`docs/ROSTER.md`](docs/ROSTER.md) § *Rulings of 2026-10-01*). `contracts/config-catalogue.json` holds 33 values Hatsu skills read from a consumer's `nen/workflow.json`, `nen/gates.json` and `nen/contract.json`, grouped by domain (development, versioning, testing, review, reporting, notifications, deployment, publishing). Each row carries:
+  - the default canon already states, with its `source`;
+  - the options, for a fixed set (`enum`) or a list drawn from one (`subset`);
+  - its readers and the skills that cannot run without it;
+  - any step on an outside platform: a store record, an API key exported under an environment-variable name, a reviewer app, a runner host.
+- **Exclusions are named, not implied.** The catalogue's `$comment` names every key it leaves out, with the reason. A written snapshot or a guess would change behaviour for each of them:
+  - derived at run time: `iteration.lane`, `reports.timeZone`, and `profile.default`, which nen derives from `profile.allowed`;
+  - resolved from a Hatsu canon file only when absent: `round_policy`;
+  - also read by nen, whose own default may differ: the `commits` trailer keys, `futon.advanceGo`;
+  - structural blocks that are the repository's own: `models`, `reports.sections`, the gates identity blocks.
+
+  `check-catalogue` holds 15 defaults against `docs/WORKFLOW.md`'s key tables, so the two statements of one default cannot drift apart.
+- **`scripts/config_values.sh` is the one reader.** It follows `tenkai_adopt.sh`'s pattern: a bash wrapper over embedded python3, with a hermetic `--self-test`. Its commands:
+  - `diagnose` reports every value by domain.
+  - `fill` writes each absent defaulted value, plus a `$<key>` note naming the options (`"$autoEn": "one of: true | false"`, `any of:` for a subset). nen reads `$`-prefixed keys as metadata. Text is inserted in place, so a file's hand formatting and line endings survive. `fill` is idempotent, never creates a declaration, and never rewrites a set value or a `$<key>` note of the maintainer's own.
+  - `need --skill <s>` lists what one phase cannot run without. It refuses an unknown skill.
+  - `set` writes one answered value. It refuses a value outside its options (`1` is not `true`), a target its `candidatesFrom` does not declare, a production `deploy.defaultTarget`, and any credential-shaped string inside the value.
+  - `check-catalogue` validates the catalogue.
+
+  Read and write alike refuse a declaration that is a symlink, sits under a symlinked `nen/`, or resolves outside the repository. A duplicate key, a deep nest or an unwritable directory is `blocked` or exit 2, never a traceback. `fill` and `set` hold an advisory lock on `nen/`, so a concurrent write is never lost.
+- **Values only some repositories need never block adoption.**
+  - An `on-use` value (self-hosted `runners`, `project.targets`) is offered and may be deferred.
+  - An `optional` value is offered, and nothing stops for it.
+  - A `null` marked `nullIsAnswer` is a deliberate answer: "ask on each call" for `deploy.defaultTarget` and `launch.default`.
+  - `deploy.defaultTarget` stays *typed, never picked* (WORKFLOW § 4, row `missing-maintainer-choice`): its candidates are listed for reference, none starred.
+  - A new `project.targets` entry lands through its declaration PR before the phase that asked runs on it.
+- **`tenkai` § 6d writes the values out and asks the rest up front.**
+  - Its engine gains `config/defaults` (Hatsu-owned, repaired by `apply` through `fill`) and `config/needed` (consumer configuration, routed to the owner's answer). Either reads `blocked`, never "every value is set", when a declaration cannot be read.
+  - § 1's Apply picker names the values `fill` will write.
+  - § 3's nen row now scopes nen's ownership to the file, with the values inside it the consumer's.
+  - § 6d's state table covers every state the engine emits.
+  - The description, Hard limits and Authority name both engine writes, `fill` and `set`.
+  - `tenkai_adopt.sh`'s header states the exception.
+- **A missing value is asked, never a hard stop.**
+  - `ten` § 6 gains step 5b in every phase row: `"$hatsu_root/scripts/config_values.sh" need --repo . --skill <phase>`. Exit 1 asks, sets up and resumes; exit 2 stops, quoted. A declined answer falls back to the phase's own ask.
+  - § 0a keeps its `missing-argument` / `missing-configuration` citation.
+  - To fit the 12,288-byte ceiling, `ten` quotes ruling A by date and letter and drops 32 emphasis-only bold markers and a ⚠️ (counted against main: 178 `**` → 114). No rule was removed.
+  - `docs/WORKFLOW.md` § 4 names the catalogue as what counts as required, and step 3 names `fill`'s answer.
+- **Residue and owned dependency.** No nen verb writes a declaration value, and the `$`-metadata convention is followed by nen's loaders but stated in no published contract. Both are named in tenkai's Residue and `docs/PROCESS.md` § Residue as an owned dependency on `zheref/nen`, not yet filed.
+- **Pre-PR review settled** (hanten, first cycle: Feitan 4, Chrollo 16, Nobunaga 15, Phinks 13).
+  - Every finding is fixed except two deferred to named records: coverage measurement (zheref/hatsu#148) and the nen owned dependency (tenkai's Residue). Phinks's red reproductions now pass, the race 3/3.
+  - `.gitleaksignore` names the one fingerprint of a fake `sk-live-…` fixture in the already-published `29fac9e2`, which is never rewritten.
+  - Hatsu's own `nen/` is not filled here: that is a G4 change to this repository's own declarations.
+- **Hatsu's own `mukai.autoEn` is `true`**, on the maintainer's request of 2026-10-01 ("Let's configure this repository for autoEn (let's make it enabled)"): a `hatsu:mukai` here now starts `hatsu:en` on the PR it opened instead of offering it. Written with this PR's own `config_values.sh set`, which added the `$autoEn` options note beside it.
+- **Copilot's round settled.** `config_values.sh` no longer imports `fcntl` on Windows: there the lock is `msvcrt` on a file under `.nen/`, as `hanten_cycle_ledger.sh` does it, while POSIX keeps `flock` on `nen/`. `check-catalogue` now fails when a WORKFLOW-sourced default has no key-table row to check against, instead of passing silently. The four defaults documented in WORKFLOW's prose declare `sourceTable: false` and are held to a line naming the key.
+- **New focused lane `config-values-guard`** (`nen shu test --lane config-values-guard`). `tenkai-guard` now has 222 assertions.
+- Plugin bumped to 0.75.0 after catching up with v0.73.0 (HA-PR-#183) and v0.74.0 (HA-PR-#189) (Claude manifest and Codex overlay); mirrors regenerated at that stamp.
+
 ## v0.74.0 — Antigravity writes each report as one artifact per conversation
 
 - **The Antigravity report contract is complete** (zheref/hatsu#145, criteria 1 and 2). `docs/PROCESS.md` § *Publishing a report* now holds the Antigravity half of the one-address rule: one `<report-name>.md` per conversation, keyed by `<conversation-id>`, written with `Overwrite: true` whenever it already exists, never a new file per turn; an effort that continues in a new conversation starts its own file. `spiritual-message` § 7 points there rather than restating it, and its block list now cites `reports.sections.<variant>.blocks` instead of copying it (the old copy had drifted).
