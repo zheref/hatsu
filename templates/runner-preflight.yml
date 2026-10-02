@@ -206,9 +206,13 @@ jobs:
       # classified: no match is not on the service PATH; an \AppData\ segment
       # is per-user (AppData); anywhere else under the service user's profile
       # ($USERPROFILE -- scoop shims, a profile bin) is per-user (profile); the
-      # rest is machine-wide. Every tool is classified before the step fails on
-      # any. A missing recording fails the step: nothing can be classified
-      # against a PATH that was not read.
+      # rest is machine-wide ONCE THE MATCH ITSELF RUNS: where.exe locates and
+      # never executes, so the match is run with --version, output discarded,
+      # and a 126 (refused to the service account) or any other non-zero exit
+      # (a broken install Git Bash's own copy hid from the step above) fails
+      # it. Every tool is classified before the step fails on any. A missing
+      # recording fails the step: nothing can be classified against a PATH that
+      # was not read.
       # Each tool's NAME and verdict are printed, never the path it resolved to,
       # the profile nor the PATH: each carries an account name, and on a public
       # repository this log is public.
@@ -253,13 +257,33 @@ jobs:
             elif [ -n "$profile" ] && [[ "$norm" == "$profile"/* ]]; then
               verdict="per-user (profile)"
             else
-              verdict="machine-wide"
+              # where.exe LOCATES; it never executes. The toolchain step above ran
+              # on Git Bash's PATH, so Git's own copy may have answered there while
+              # the service's match is broken, or refused to the service account
+              # (Copilot on zheref/hatsu#202). The match itself is run, output
+              # discarded, and its exit classified: 126 is the ACL, anything else
+              # non-zero a broken install.
+              rc=0
+              "$norm" --version >/dev/null 2>&1 || rc=$?
+              case "$rc" in
+                0) verdict="machine-wide" ;;
+                126) verdict="machine-wide, refused on exec (exit 126)" ;;
+                *) verdict="machine-wide, exited $rc" ;;
+              esac
             fi
             echo "$tool: $verdict"
-            if [ "$verdict" != "machine-wide" ]; then
-              echo "::error::'$tool' is $verdict -- the runner service cannot rely on it. Install it machine-wide, put its directory on the MACHINE PATH, then restart the runner services."
-              bad=1
-            fi
+            case "$verdict" in
+              "machine-wide") ;;
+              "machine-wide, refused"*)
+                echo "::error::'$tool' resolves machine-wide but the runner service account cannot EXECUTE it (exit 126). An ACL problem, not a PATH problem: grant Users read-and-execute on the file it resolves to, then restart the runner services."
+                bad=1 ;;
+              "machine-wide, exited"*)
+                echo "::error::'$tool' resolves machine-wide and ran, but its --version exited non-zero -- a broken install the service cannot use, which Git Bash's own copy hid from the step above. Reinstall it machine-wide, put its directory on the MACHINE PATH, then restart the runner services."
+                bad=1 ;;
+              *)
+                echo "::error::'$tool' is $verdict -- the runner service cannot rely on it. Install it machine-wide, put its directory on the MACHINE PATH, then restart the runner services."
+                bad=1 ;;
+            esac
           done
           exit "$bad"
 

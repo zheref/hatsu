@@ -30,6 +30,10 @@
 #                 RUNNER_TEMP (`$SERVICE_PATH:<tool>`), never Git Bash's own: a tool present only under
 #                 Git's mingw64\bin reads not on the service PATH and fails, and a missing recording
 #                 fails the step instead of classifying against nothing (#198 item 2, Phinks QA-18)
+#   exec probe    a machine-wide match is RUN (--version, output discarded) before it reads machine-wide:
+#                 the step's lifted body runs a real stub executable whose exit the harness sets, and a 126
+#                 reads "machine-wide, refused on exec (exit 126)", any other non-zero "machine-wide,
+#                 exited N", both failing with the tool and the MACHINE PATH named (Copilot on #202)
 #   remedy        no ::error:: line names a tool-templated install path or Program Files, and every
 #                 per-user remedy names the tool and the MACHINE PATH (Copilot on zheref/nen#320 and
 #                 zheref/hatsu#179)
@@ -305,6 +309,14 @@ printf 'Path=%s\r\nPATHEXT=.COM;.EXE;.BAT;.CMD\r\n' "$stub_recorded" > "$work/ru
 # (printenv), as the real where.exe would: a shell function also sees an unexported variable, so a step
 # that dropped `export` would pass a variable-reading stub here and fail on a host (Nobunaga N4 on
 # zheref/hatsu#198; 2d below holds that mutant).
+# A machine-wide match is RUN by the step (where.exe locates, it never executes -- Copilot on
+# zheref/hatsu#202: Git Bash's own copy can answer the toolchain step while the service's match is
+# broken or refused), so the machine-wide answers below point at this real stub executable, whose exit
+# is STUB_EXEC_RC: 0 is a working install, 126 the ACL refusal, anything else a broken one.
+mkdir -p "$work/mw"
+printf '#!/bin/sh\nexit "${STUB_EXEC_RC:-0}"\n' > "$work/mw/gh.exe"
+chmod +x "$work/mw/gh.exe"
+mw_gh="$work/mw/gh.exe"
 cat > "$work/where-stub.sh" <<'STUB'
 where.exe() {
   local l list=""
@@ -329,40 +341,44 @@ for src in template rendering; do
   # therefore also proves the step calls `where.exe "\$SERVICE_PATH:<tool>"` with the recording exported.
   { cat "$work/where-stub.sh"; step_body "$from"; } > "$step"
   grep -q 'appdata' "$step" || { fail "appdata step ($src): the Windows resolution step was not found"; continue; }
-  # <USERPROFILE, '-' = unset>|<service PATH where.exe lines, ';'-separated>|<Git Bash-only lines>|<exit>|<first output line>[|<case name>]
-  for probe in 'C:\Users\x|C:\Users\x\AppData\Local\Programs\gh\gh.exe||1|gh: per-user (AppData)' \
-               'C:\Users\x|C:/Users/x/AppData/Local/gh.exe||1|gh: per-user (AppData)' \
-               'C:\Users\x|C:\Program Files\GitHub CLI\gh.exe||0|gh: machine-wide' \
-               'C:\Users\x|C:\Program Files\GitHub CLI\gh.exe;C:\Users\x\AppData\Local\gh.exe||0|gh: machine-wide' \
-               'C:\Users\x|C:\Users\x\scoop\shims\gh.exe||1|gh: per-user (profile)' \
-               '-|C:\Users\x\AppData\Local\Programs\gh\gh.exe||1|gh: per-user (AppData)' \
-               '-|C:\Program Files\GitHub CLI\gh.exe||0|gh: machine-wide' \
-               'c:\users\X|C:\Users\x\bin\gh.exe||1|gh: per-user (profile)' \
-               'C:\Users\x|||1|gh: not on the service PATH' \
-               'C:\Users\x|C:\Users\x\AppData\Local\Programs\gh\gh.exe||1|gh: per-user (AppData)|a checkout-local same-named gh.exe must not hide the per-user one on PATH ($SERVICE_PATH: form)' \
-               'C:\Users\x||C:\Program Files\Git\mingw64\bin\gh.exe|1|gh: not on the service PATH|a tool present only under Git Bash'"'"'s mingw64\bin is not on the service PATH (#198 item 2)' \
-               'C:\Users\x|C:\Users\x\AppData\Local\Programs\gh\gh.exe|C:\Program Files\Git\mingw64\bin\gh.exe|1|gh: per-user (AppData)|the service PATH decides, not Git Bash'"'"'s first match (a per-user tool that Git Bash shadows machine-wide)'; do
+  # <USERPROFILE, '-' = unset>|<service PATH where.exe lines, ';'-separated; MW = the stub executable>|<Git Bash-only lines>|<the stub executable's exit>|<exit>|<first output line>[|<case name>]
+  for probe in 'C:\Users\x|C:\Users\x\AppData\Local\Programs\gh\gh.exe||0|1|gh: per-user (AppData)' \
+               'C:\Users\x|C:/Users/x/AppData/Local/gh.exe||0|1|gh: per-user (AppData)' \
+               'C:\Users\x|MW||0|0|gh: machine-wide' \
+               'C:\Users\x|MW;C:\Users\x\AppData\Local\gh.exe||0|0|gh: machine-wide' \
+               'C:\Users\x|C:\Users\x\scoop\shims\gh.exe||0|1|gh: per-user (profile)' \
+               '-|C:\Users\x\AppData\Local\Programs\gh\gh.exe||0|1|gh: per-user (AppData)' \
+               '-|MW||0|0|gh: machine-wide' \
+               'c:\users\X|C:\Users\x\bin\gh.exe||0|1|gh: per-user (profile)' \
+               'C:\Users\x||||1|gh: not on the service PATH' \
+               'C:\Users\x|C:\Users\x\AppData\Local\Programs\gh\gh.exe||0|1|gh: per-user (AppData)|a checkout-local same-named gh.exe must not hide the per-user one on PATH ($SERVICE_PATH: form)' \
+               'C:\Users\x||C:\Program Files\Git\mingw64\bin\gh.exe|0|1|gh: not on the service PATH|a tool present only under Git Bash'"'"'s mingw64\bin is not on the service PATH (#198 item 2)' \
+               'C:\Users\x|C:\Users\x\AppData\Local\Programs\gh\gh.exe|C:\Program Files\Git\mingw64\bin\gh.exe|0|1|gh: per-user (AppData)|the service PATH decides, not Git Bash'"'"'s first match (a per-user tool that Git Bash shadows machine-wide)' \
+               'C:\Users\x|MW|C:\Program Files\Git\mingw64\bin\gh.exe|126|1|gh: machine-wide, refused on exec (exit 126)|a machine-wide match the service account cannot execute, shadowed by Git Bash'"'"'s copy (Copilot on #202)' \
+               'C:\Users\x|MW|C:\Program Files\Git\mingw64\bin\gh.exe|3|1|gh: machine-wide, exited 3|a broken machine-wide install shadowed by Git Bash'"'"'s copy (Copilot on #202)'; do
     prof="${probe%%|*}" rest="${probe#*|}"
     path="${rest%%|*}" rest="${rest#*|}"
     bash_path="${rest%%|*}" rest="${rest#*|}"
+    exec_rc="${rest%%|*}" rest="${rest#*|}"
     want_code="${rest%%|*}" rest="${rest#*|}"
     want="${rest%%|*}" name=""
     [ "$want" != "$rest" ] && name=" [${rest#*|}]"
+    path="${path//MW/$mw_gh}"
     if [ "$prof" = - ]; then
-      out="$(env -u USERPROFILE RUNNER_TEMP="$work/runner-temp" STUB_RECORDED="$stub_recorded" STUB_PATH="$path" STUB_BASH_PATH="$bash_path" TOOLS=gh bash "$step" 2>&1)"
+      out="$(env -u USERPROFILE RUNNER_TEMP="$work/runner-temp" STUB_RECORDED="$stub_recorded" STUB_PATH="$path" STUB_BASH_PATH="$bash_path" STUB_EXEC_RC="${exec_rc:-0}" TOOLS=gh bash "$step" 2>&1)"
     else
-      out="$(USERPROFILE="$prof" RUNNER_TEMP="$work/runner-temp" STUB_RECORDED="$stub_recorded" STUB_PATH="$path" STUB_BASH_PATH="$bash_path" TOOLS=gh bash "$step" 2>&1)"
+      out="$(USERPROFILE="$prof" RUNNER_TEMP="$work/runner-temp" STUB_RECORDED="$stub_recorded" STUB_PATH="$path" STUB_BASH_PATH="$bash_path" STUB_EXEC_RC="${exec_rc:-0}" TOOLS=gh bash "$step" 2>&1)"
     fi
     code=$?
     first="$(printf '%s\n' "$out" | head -n 1)"
     case "$out" in
-      *'Users\x'*|*'Users/x'*|*'users/x'*|*'users\x'*|*'Users\X'*|*'users\X'*|*'svc\bin'*|*'svc/bin'*) printed=yes ;;
+      *'Users\x'*|*'Users/x'*|*'users/x'*|*'users\x'*|*'Users\X'*|*'users\X'*|*'svc\bin'*|*'svc/bin'*|*"$work"*) printed=yes ;;
       *) printed=no ;;
     esac
     if [ "$code" = "$want_code" ] && [ "$first" = "$want" ] && [ "$printed" = no ]; then
-      pass "appdata step ($src)$name: USERPROFILE=$prof, service [$path], git-bash [$bash_path] (CRLF) -> exit $code, '$want', no path printed"
+      pass "appdata step ($src)$name: USERPROFILE=$prof, service [${path//$mw_gh/MW}], git-bash [$bash_path], exec rc ${exec_rc:-0} (CRLF) -> exit $code, '$want', no path printed"
     else
-      fail "appdata step ($src)$name: USERPROFILE=$prof, service [$path], git-bash [$bash_path] -> exit $code '$first' (path printed: $printed), not exit $want_code '$want' with no path printed"
+      fail "appdata step ($src)$name: USERPROFILE=$prof, service [${path//$mw_gh/MW}], git-bash [$bash_path], exec rc ${exec_rc:-0} -> exit $code '$first' (path printed: $printed), not exit $want_code '$want' with no path printed"
     fi
   done
   # No recording at all (the cmd step did not run, or wrote nothing): the step fails by name rather than

@@ -242,12 +242,15 @@ restart line above); a runner on another host is proven by nothing until a run l
 or macOS user-scope hit only warns. On Windows the verdict is the service's own `PATH`, recorded from
 `cmd.exe`, never Git Bash's: a tool present only under Git's `mingw64\bin` reads *not on the service
 PATH* and is J4. **A pool spanning hosts** is dispatched again (`preflight` above, from the default
-branch) until every host's runner name has appeared green, **at most three dispatches**: GitHub
-hands a run to any idle runner carrying the labels and nothing steers it to a host, so a host still
-unseen after three is handed over — the maintainer stops the proven hosts' services for one more
-dispatch, or accepts the unproven host and § 9 says so — never dispatched indefinitely, and never
-steered by a per-host label (that is zheref/hatsu#198 item 6, the maintainer's ruling). § 8 is
-passed the **latest green `runId`**, once every host has one.
+branch) until every host's runner name has appeared green, **at most three unsteered dispatches**:
+GitHub hands a run to any idle runner carrying the labels and nothing steers it to a host. Each host
+still unseen after three gets **one controlled dispatch of its own**: the maintainer stops every
+proven host's services (their act, elevated: § 7's restart line in reverse), § 7 dispatches once, the
+run can land only on an unproven host, and the services are started again — repeated per unseen
+host. A host that cannot be reached that way **stops the run before § 8** with the proof reported
+incomplete, naming it; the pool is never enabled on it, and no per-host label is invented to steer
+the run (that is zheref/hatsu#198 item 6, the maintainer's ruling). § 8 is passed the **latest green
+`runId`**, once every host has one.
 
 ## 8. Switch it on
 
