@@ -16,7 +16,8 @@
 #   pins          every uses: pinned by a 40-hex commit SHA with an exact dotted '# vN.N(.N)' tag
 #                 comment -- a bare '# vN' names a moving major alias (Feitan SEC-14; #198 item 5)
 #   time bound    timeout-minutes on the job
-#   log hygiene   no step prints the service account's name, a resolved tool path or the PATH (hanten F5)
+#   log hygiene   no line of the job's own prints the service account's name, a resolved tool path or the
+#                 PATH (hanten F5); a tool's `--version` output is the tool's and is not held here
 #   rendering     no @@PLACEHOLDER@@ left standing
 #   appdata       the Windows step normalises with nen's two-backslash form, and, lifted from the live
 #                 template and its rendering and run against a stubbed where.exe printing CRLF lines,
@@ -284,6 +285,21 @@ step_body() {
 stub_recorded='C:\svc\bin;C:\Windows\system32'
 mkdir -p "$work/runner-temp" "$work/empty-temp"
 printf 'Path=%s\r\nPATHEXT=.COM;.EXE;.BAT;.CMD\r\n' "$stub_recorded" > "$work/runner-temp/service-path.txt"
+# The where.exe stub, prepended to every lifted step. It reads SERVICE_PATH from the EXPORTED environment
+# (printenv), as the real where.exe would: a shell function also sees an unexported variable, so a step
+# that dropped `export` would pass a variable-reading stub here and fail on a host (Nobunaga N4 on
+# zheref/hatsu#198; 2d below holds that mutant).
+cat > "$work/where-stub.sh" <<'STUB'
+where.exe() {
+  local l list=""
+  case "$1" in
+    '$SERVICE_PATH:'*) [ "$(printenv SERVICE_PATH 2>/dev/null)" = "$STUB_RECORDED" ] && list="${STUB_PATH:-}" ;;
+    '$PATH:'*) list="${STUB_BASH_PATH:-${STUB_PATH:-}}" ;;
+    *) printf '%s\r\n' 'C:\a\checkout\gh.exe'; list="${STUB_BASH_PATH:-${STUB_PATH:-}}" ;;
+  esac
+  while IFS= read -r -d ';' l; do printf '%s\r\n' "$l"; done <<< "${list:+$list;}"
+}
+STUB
 for src in template rendering; do
   from="$template"; [ "$src" = rendering ] && from="$work/windows-x64.yml"
   step="$work/appdata-step-$src.sh"
@@ -295,18 +311,7 @@ for src in template rendering; do
   # directory FIRST, where the job just checked the repository out, so it prints a checkout-local
   # C:\a\checkout\gh.exe ahead of Git Bash's lines (Copilot on zheref/hatsu#178). Every case below
   # therefore also proves the step calls `where.exe "\$SERVICE_PATH:<tool>"` with the recording exported.
-  { cat <<'STUB'
-where.exe() {
-  local l list=""
-  case "$1" in
-    '$SERVICE_PATH:'*) [ "${SERVICE_PATH:-}" = "$STUB_RECORDED" ] && list="${STUB_PATH:-}" ;;
-    '$PATH:'*) list="${STUB_BASH_PATH:-${STUB_PATH:-}}" ;;
-    *) printf '%s\r\n' 'C:\a\checkout\gh.exe'; list="${STUB_BASH_PATH:-${STUB_PATH:-}}" ;;
-  esac
-  while IFS= read -r -d ';' l; do printf '%s\r\n' "$l"; done <<< "${list:+$list;}"
-}
-STUB
-    step_body "$from"; } > "$step"
+  { cat "$work/where-stub.sh"; step_body "$from"; } > "$step"
   grep -q 'appdata' "$step" || { fail "appdata step ($src): the Windows resolution step was not found"; continue; }
   # <USERPROFILE, '-' = unset>|<service PATH where.exe lines, ';'-separated>|<Git Bash-only lines>|<exit>|<first output line>[|<case name>]
   for probe in 'C:\Users\x|C:\Users\x\AppData\Local\Programs\gh\gh.exe||1|gh: per-user (AppData)' \
@@ -320,7 +325,7 @@ STUB
                'C:\Users\x|||1|gh: not on the service PATH' \
                'C:\Users\x|C:\Users\x\AppData\Local\Programs\gh\gh.exe||1|gh: per-user (AppData)|a checkout-local same-named gh.exe must not hide the per-user one on PATH ($SERVICE_PATH: form)' \
                'C:\Users\x||C:\Program Files\Git\mingw64\bin\gh.exe|1|gh: not on the service PATH|a tool present only under Git Bash'"'"'s mingw64\bin is not on the service PATH (#198 item 2)' \
-               'C:\Users\x|C:\Windows\system32\gh.exe|C:\Program Files\Git\mingw64\bin\gh.exe|0|gh: machine-wide|the service PATH decides, not Git Bash'"'"'s first match'; do
+               'C:\Users\x|C:\Users\x\AppData\Local\Programs\gh\gh.exe|C:\Program Files\Git\mingw64\bin\gh.exe|1|gh: per-user (AppData)|the service PATH decides, not Git Bash'"'"'s first match (a per-user tool that Git Bash shadows machine-wide)'; do
     prof="${probe%%|*}" rest="${probe#*|}"
     path="${rest%%|*}" rest="${rest#*|}"
     bash_path="${rest%%|*}" rest="${rest#*|}"
@@ -358,6 +363,26 @@ STUB
     fail "appdata step ($src) [no recording]: exit $code (named: $seen), not exit 1 naming the missing recording: $out"
   fi
 done
+
+# 2d. Negative: a step that reads the recording but does not EXPORT it. The real where.exe reads the
+# environment ("Environment variable SERVICE_PATH is not found", exit 1), so such a step classifies every
+# tool as not on the service PATH; the printenv-reading stub must refuse it the same way (Nobunaga N4).
+unexported="$work/unexported.yml"
+sed 's/^          export SERVICE_PATH="\$service_path"$/          SERVICE_PATH="$service_path"/' "$template" > "$unexported"
+if cmp -s "$unexported" "$template"; then
+  fail "appdata step [unexported mutant]: the template carries no 'export SERVICE_PATH=\"\$service_path\"' line to mutate"
+else
+  step="$work/appdata-step-unexported.sh"
+  { cat "$work/where-stub.sh"; step_body "$unexported"; } > "$step"
+  out="$(USERPROFILE='C:\Users\x' RUNNER_TEMP="$work/runner-temp" STUB_RECORDED="$stub_recorded" STUB_PATH='C:\Windows\system32\gh.exe' TOOLS=gh bash "$step" 2>&1)"
+  code=$?
+  first="$(printf '%s\n' "$out" | head -n 1)"
+  if [ "$code" -eq 1 ] && [ "$first" = "gh: not on the service PATH" ]; then
+    pass "appdata step [unexported mutant]: a step that does not export SERVICE_PATH is answered as where.exe would -- exit 1, 'gh: not on the service PATH'"
+  else
+    fail "appdata step [unexported mutant]: exit $code '$first', not exit 1 'gh: not on the service PATH' -- the stub reads a shell variable the real where.exe cannot see"
+  fi
+fi
 
 # 2c. The remedy text names no install path (Copilot on zheref/nen#320): Git for Windows puts git.exe and
 # bash.exe in subdirectories of C:\Program Files\Git, and GitHub CLI does not install under

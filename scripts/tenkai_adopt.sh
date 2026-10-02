@@ -962,20 +962,34 @@ class ReadinessWorkflow(Item):
                 drifts.append(f"a checkout step is missing `persist-credentials: false` "
                               f"({name.group(1).strip() if name else 'unnamed'}), leaving a "
                               f"credential in the workspace of a pull_request_target job")
-        # PINNED BY SHA, WITH THE EXACT TAG (zheref/hatsu#198). The template pins
-        # `actions/checkout` to a 40-hex commit with its exact tag as a trailing
-        # comment: a consumer that requires full-length SHA pins refuses a floating
-        # `@v7` on the next pull_request_target event, and a hand pin in a
-        # rendering is drift by the template's own rule. A rendering whose checkout
-        # ref is anything else -- the `@v7` every earlier rendering carries -- is
-        # DRIFT, so `apply` re-renders it to the pinned shape.
-        for m_uses in re.finditer(r"uses:\s*actions/checkout@(\S+)(.*)", live):
-            ref, tail = m_uses.group(1), m_uses.group(2)
-            if not (re.fullmatch(r"[0-9a-f]{40}", ref) and re.match(r"\s*#\s*v\d+(\.\d+)+\s*$", tail)):
-                drifts.append(f"a checkout is `actions/checkout@{ref}`, not a 40-hex commit SHA with its "
-                              f"exact `# vN.N.N` tag comment — a consumer requiring SHA-pinned actions "
-                              f"refuses it, and the pin is the template's, never a hand edit")
-                break
+        # PINNED BY SHA, EXACTLY AS THE TEMPLATE RENDERS IT (zheref/hatsu#198, #199).
+        # The template pins `actions/checkout` to a 40-hex commit with its exact tag
+        # as a trailing comment: a consumer that requires full-length SHA pins
+        # refuses a floating `@v7` on the next pull_request_target event, and a
+        # hand pin in a rendering is drift by the template's own rule. THE SHAPE IS
+        # NOT THE CHECK (Feitan on this change): 40 hex plus a dotted comment would
+        # pass an impostor commit with a lying comment, or a stale pin after the
+        # template is bumped -- and `apply` repairs drift only, so no consumer
+        # would ever move forward. Every checkout `uses:` in the live rendering
+        # must therefore EQUAL, ref and comment, the line the template renders for
+        # this repository. The scalar may be quoted in valid YAML, so quotes are
+        # stripped before comparing; a floating `@v7` -- every earlier rendering --
+        # is DRIFT, so `apply` re-renders it to the pinned shape. EVERY `uses:`,
+        # not only the checkouts (Nobunaga on this change; zheref/hatsu#199 asks
+        # for floating `uses:` refs to be rejected): a step this template never
+        # rendered, floating or not, is an action running in the privileged job
+        # that the template does not vouch for, so the whole set of `uses:`
+        # scalars must equal the template's.
+        def uses_set(source):
+            return sorted(re.sub(r"\s+", " ", m.group(1) + m.group(2)).strip()
+                          for m in re.finditer(r"^\s*(?:- )?uses:\s*['\"]?([^'\"\s#]+)['\"]?(.*)$", source, re.M))
+        got_uses, want_uses = uses_set(live), uses_set(expected_live)
+        if got_uses != want_uses:
+            odd = next((u for u in got_uses if u not in want_uses), "(a step the template renders is missing)")
+            drifts.append(f"a step is `uses: {odd}`, not one of the template's "
+                          f"({', '.join(sorted(set(want_uses))) or 'none'}) — every action is the template's own "
+                          f"pin, a 40-hex commit SHA with its exact tag comment, never a hand edit or a floating "
+                          f"ref; a consumer requiring SHA-pinned actions refuses a floating one")
         # EVERY VALID YAML FORM, not one indentation of one shape. `write-all`, an
         # inline mapping `permissions: { contents: write }` and a differently
         # indented block all previously produced no drift at all.
@@ -2289,14 +2303,39 @@ def self_test() -> int:
     # U3b -- a floating checkout tag, the shape every rendering before zheref/hatsu#198 carried
     assert "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1" in base2, \
         "the rendering does not carry the SHA-pinned checkout the mutation below floats"
-    row = mut2(lambda t: t.replace("actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1",
-                                   "actions/checkout@v7", 1))
-    check("a checkout pinned to a floating tag is DRIFT (zheref/hatsu#198)",
-          row["state"] == DRIFT and "40-hex" in row["detail"])
-    row = mut2(lambda t: t.replace("actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1",
-                                   "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7", 1))
-    check("a SHA pin whose comment names the moving major alias is DRIFT (zheref/hatsu#198)",
-          row["state"] == DRIFT and "40-hex" in row["detail"])
+    pinned = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1"
+    for label, mutated in (
+            ("a checkout pinned to a floating tag", "actions/checkout@v7"),
+            ("a SHA pin whose comment names the moving major alias",
+             "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7"),
+            # Feitan F1 on zheref/hatsu#198: a well-shaped pin that is NOT the template's -- an impostor
+            # commit with a lying comment, or the pin of another tag -- must read as drift too.
+            ("an impostor 40-hex SHA with a lying exact-tag comment",
+             "actions/checkout@deadbeefdeadbeefdeadbeefdeadbeefdeadbeef # v7.0.1"),
+            ("a stale pin of another tag (the template moved on)",
+             "actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0")):
+        row = mut2(lambda t, m=mutated: t.replace(pinned, m, 1))
+        check(f"{label} is DRIFT (zheref/hatsu#198)",
+              row["state"] == DRIFT and "not one of the template's" in row["detail"])
+    # Feitan F2: a QUOTED `uses:` scalar is valid YAML and accepted by Actions; a floating tag hidden in
+    # one on the PR-head checkout must not read as clean.
+    row = mut2(lambda t: t.replace("uses: " + pinned, "uses: 'actions/checkout@v7'", 1))
+    check("a quoted floating checkout scalar is DRIFT (zheref/hatsu#198)",
+          row["state"] == DRIFT and "not one of the template's" in row["detail"])
+    row = mut2(lambda t: t.replace("uses: " + pinned, "uses: \"" + pinned.split(" #")[0] + "\" # v7.0.1", 1))
+    check("a quoted scalar carrying the template's own pin is not drift",
+          row["state"] != DRIFT or "not one of the template's" not in row["detail"])
+    # Nobunaga N1 (zheref/hatsu#199): a floating action in ANY step -- one the template never rendered --
+    # runs in the privileged job unvouched for, and must read as drift, not only a floating checkout.
+    row = mut2(lambda t: t.replace("    steps:\n", "    steps:\n      - uses: some/action@v1\n", 1))
+    check("a floating non-checkout step the template never rendered is DRIFT (zheref/hatsu#199)",
+          row["state"] == DRIFT and "some/action@v1" in row["detail"])
+    # Chrollo C1: `apply` on a well-shaped impostor pin restores the template's SHA.
+    w2.write_text(base2.replace(pinned, "actions/checkout@deadbeefdeadbeefdeadbeefdeadbeefdeadbeef # v7.0.1", 1))
+    run("apply", ctx_for(dr2, vis="public", sh=0, labels=None))
+    check("apply re-renders an impostor pin back to the template's SHA (zheref/hatsu#198)",
+          w2.read_text().count(pinned) == 2 and "deadbeef" not in w2.read_text())
+    w2.write_text(base2)
 
     # U3c -- a PRIVATE consumer with declared self-hosted labels (zheref/hatsu#199: KroWindows' pool,
     # whose Actions policy requires full-length SHA pins): the rendering carries the SHA pin on BOTH

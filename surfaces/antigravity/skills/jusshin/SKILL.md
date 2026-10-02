@@ -224,7 +224,7 @@ the host, then § 7 again. The rows carry bankai-core's `docs/SETUP-SELF-HOSTED-
 | J1 | Windows: service *"cannot start … timely fashion"* | a local account, logged in once; § 5 again |
 | J2 | Windows: `config.cmd` rejects the password | a local-only account |
 | J3 | `Access to the path … is denied` | `(RX)` on every parent up the hierarchy |
-| J4 | exit `127` | Windows: machine-scope install, `C:\Program Files\Git\bin` on the machine `PATH` (no installer adds it); Linux/macOS: a system path the service user reads; then restart |
+| J4 | exit `127`, or Windows: *not on the service PATH* | Windows: machine-scope install, `C:\Program Files\Git\bin` on the machine `PATH` (no installer adds it); Linux/macOS: a system path the service user reads; then restart |
 | J5 | exit `126` | Windows: created in place under `C:\Program Files\<tool>\`, never a winget portable or a `Move-Item`, `Get-Acl` showing `Users` `ReadAndExecute`; Linux/macOS: `chmod`/owner on the resolved file; then restart |
 | J6 | landed on another OS | `runs-on` as rendered; an online runner with all three labels on **this** repository |
 | J7 | macOS: runner offline after start | Login Items → Allow in the Background, then `launchctl kickstart -kp gui/$(id -u)/<service>`, per runner |
@@ -235,20 +235,30 @@ the host, then § 7 again. The rows carry bankai-core's `docs/SETUP-SELF-HOSTED-
 `start` per runner dir; macOS `launchctl kickstart -kp gui/$(id -u)/<service>`.
 
 **What one green run proves** (the template's own header, § *WHAT ONE GREEN RUN PROVES*): the runner
-`runnerName` names — its host's machine `PATH` and its service account's execute rights — and, with
-it, the siblings this pass registered on that host under that account, which share both. A runner on
-another host is proven by nothing until a run lands there, so **a pool spanning hosts is dispatched
-again** (`preflight` above, from the default branch) **until every host's runner name has appeared
-green**, each run quoted, before § 8. On Windows the verdict is the service's own `PATH`, recorded
-from `cmd.exe`, never Git Bash's: a tool present only under Git's `mingw64\bin` reads *not on the
-service PATH* and is J4.
+`runnerName` names, for the declared tools — its service's `PATH` resolves each machine-wide and its
+account may execute them — and nothing broader (CON-49(c)). A sibling on that host under that
+account shares the stored machine `PATH` and the ACLs but holds the `PATH` it was *started* with, so
+it is covered only once every service on the host was restarted after the last `PATH` change (the
+restart line above); a runner on another host is proven by nothing until a run lands there; a Linux
+or macOS user-scope hit only warns. On Windows the verdict is the service's own `PATH`, recorded from
+`cmd.exe`, never Git Bash's: a tool present only under Git's `mingw64\bin` reads *not on the service
+PATH* and is J4. **A pool spanning hosts** is dispatched again (`preflight` above, from the default
+branch) until every host's runner name has appeared green, **at most three dispatches**: GitHub
+hands a run to any idle runner carrying the labels and nothing steers it to a host, so a host still
+unseen after three is handed over — the maintainer stops the proven hosts' services for one more
+dispatch, or accepts the unproven host and § 9 says so — never dispatched indefinitely, and never
+steered by a per-host label (that is zheref/hatsu#198 item 6, the maintainer's ruling). § 8 is
+passed the **latest green `runId`**, once every host has one.
 
 ## 8. Switch it on
 
 The pool's `enableVariable` is read from the declaration first. **None: ungated** — the jobs are live
 on registration, said, and the verb is not run. Otherwise, **and only once § 7 has a green run per
 host** — `nen runner enable` reads the one run it is given as the pool's go (ab row 10), so the claim
-that every host can run a job is this skill's to have earned, never the verb's:
+that every host can run a job is this skill's to have earned, never the verb's. **A variable already
+on** (a pass adding a host to a live pool) means the new host serves jobs from registration, before
+§ 7 proves it: switching it off for the pass and restoring `previous` after, or accepting that
+window, is the maintainer's call — asked, never assumed — and § 9 records which:
 
 ```bash
 nen runner enable --repo '<path>' --target <t> --pool <id> --after-run <runId> --json

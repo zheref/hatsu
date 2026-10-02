@@ -32,9 +32,13 @@
 # profile/AppData classifier read against the service's own PATH -- are held
 # on this template by zheref/hatsu:scripts/runner_preflight_fixture_check.sh;
 # a consumer's copy carries no such guard, which is why it is re-rendered and
-# never edited. The body is not byte-identical to nen's own test template: the
-# job never prints an account name, a profile, a resolved tool path or the
-# PATH itself.
+# never edited. The body is not byte-identical to nen's own test template: no
+# line of the job's OWN prints an account name, a profile, a resolved tool
+# path or the PATH itself. A tool's `--version` output is printed as the tool
+# prints it -- it is the diagnostic the toolchain step exists for -- and on a
+# public repository that log is public, so a tool whose version line names
+# its install path (pip, maven) names a per-user path with the account in it;
+# declare such a tool only where it is installed machine-wide.
 #
 # runner-preflight -- proves that a runner of the self-hosted @@POOL_ID@@ pool
 # can RUN a job, not merely that it is registered. Rendered by @@RENDERED_BY@@
@@ -54,14 +58,21 @@
 #   nen runner preflight --target @@REPO_SLUG@@ --workflow @@WORKFLOW_FILE@@
 #
 # WHAT ONE GREEN RUN PROVES. A run lands on ONE runner -- the `runner name`
-# line in its log -- and proves that runner: the machine PATH of its host and
-# the execute rights of its service account. A sibling registered on the same
-# host under the same account (what one hatsu:jusshin pass raises) shares
-# both, so it is proven with it; a runner on another host is proven by nothing
-# until a run lands there. `nen runner enable` reads one green run as the
-# pool's go, so enabling a pool that spans hosts is a claim about every host:
-# have `nen runner preflight` dispatch this workflow again until each host's
-# runner name has appeared green, and only then enable.
+# line in its log -- and proves that runner's service for the declared tools:
+# the PATH that service was started with resolves each one machine-wide, and
+# its account may execute the file each resolves to. Nothing broader. A
+# sibling registered on the same host under the same account shares the
+# stored machine PATH and the files' ACLs, but every service holds the PATH it
+# was STARTED with, so the sibling is covered only once each service on that
+# host was restarted after the last PATH change (hatsu:jusshin § 7's restart
+# line); a runner on another host is proven by nothing until a run lands
+# there; and on Linux and macOS a user-scope hit only warns, so a green run
+# there says nothing about the machine PATH. `nen runner enable` reads one
+# green run as the pool's go, so enabling a pool that spans hosts is a claim
+# this job cannot make alone: GitHub hands a dispatched run to ANY idle runner
+# carrying the labels and nothing steers it to a host, so a host may stay
+# unseen however often `nen runner preflight` dispatches -- jusshin § 7 bounds
+# the dispatches and hands the rest to the maintainer.
 #
 # FORK SAFETY. This job runs arbitrary steps on a physical machine, so the
 # trigger set is the control. `push` fires only in the repository the push
@@ -105,8 +116,7 @@ jobs:
     # it waits, the check it reports on a pushed head stays pending -- not
     # Ready under CON-32(a) -- and once cancelled it reads CANCELLED, which
     # `nen pr ready` also reads as not ready. A preflight that never starts is
-    # itself the answer ('nen runner preflight' names it: `queued`, then
-    # `timeout`).
+    # itself the answer ('nen runner preflight' names it: `queued`).
     timeout-minutes: 5
     steps:
       # Checkout shells out to git, so a host without a working git fails

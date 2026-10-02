@@ -51,8 +51,9 @@
 # KroWindows#98) would otherwise see its readiness check refused on the next
 # event. A hand pin in a rendering is drift by this file's own rule -- it is
 # re-rendered, never edited -- so the pin lives here: `tenkai_adopt.sh diagnose`
-# reports a checkout whose ref is not a 40-hex SHA with such a comment as DRIFT,
-# and a consumer moves the pin by re-rendering after this template is bumped.
+# reports a checkout that is not exactly this template's pin, ref and comment,
+# as DRIFT (a well-shaped impostor or a stale pin included), and a consumer
+# moves the pin by re-rendering after this template is bumped.
 #
 # ---- provenance: the rationale this template inherits, unchanged ----
 #
