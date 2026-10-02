@@ -204,7 +204,7 @@ Past the maximum the run ends at not-ready with the board. Neither is a G5. `nen
 | 3 | **catch up** | [`hatsu:murasaki`](../murasaki/SKILL.md) | **only when the branch is behind its PR's base** (`baseRefName`, § 2) |
 | 4 | **drive again** | [`hatsu:sharingan`](../sharingan/SKILL.md) | after step 3 moved the tree underneath it |
 | 5 | **observe** | this file, § 6 | while CI or a reviewer round is pending; each poll runs `nen wake verify` in dry-run (no `--run`), and `--run` only when a swallowed run is found; rebuild the current-head snapshot on every change, returning to steps 2–4 when action is needed |
-| 6 | **the bell, with the merge prompt** | this file, § 5; the report through [`hatsu:jutaisho`](../jutaisho/SKILL.md)'s four parts | **after verified Ready or § 6's sixth stop**, and only then — **not under `getsuga` § 3**, where the verdict returns to getsuga and § 3a merges, **nor for a PR off `branch.base`**, where en reports the verdict and the base and prompts nothing (§ 5) |
+| 6 | **the bell, with the merge prompt** | this file, § 5; the report through [`hatsu:jutaisho`](../jutaisho/SKILL.md)'s four parts | **after verified Ready or § 6's sixth stop**, and only then — **not under `getsuga` § 3**, where the verdict returns to getsuga and § 3a merges, **nor for a PR off `branch.base`**, where en reports the verdict, the base and the guard's `retarget-pending` line and prompts nothing (§ 5) |
 | 7 | **the dated final report** | [`hatsu:rikugan`](../rikugan/SKILL.md) (§ 8), which composes backlog-board § 3's `--variant final` | after the bell; this is En's successful terminus |
 
 **Four orderings are en's own assertions:**
@@ -245,10 +245,12 @@ one-directional confirmation pass that may only veto. Read it there.
 Two things en relies on and does not re-derive:
 
 - **A PR is Ready iff `nen pr ready` says `ready` AND `nen pr body-check` says every requirement is
-  satisfied AND the Development guard (`"$hatsu_root/scripts/pr_development_link_check.sh" --pr
-  <owner/name#N>`, [`shibari`](../shibari/SKILL.md) § 4, zheref/hatsu#203) prints its `0`**, all
-  deterministic, none re-derived by eye. On `branch.base` the guard's `0` is owed; off it, its quoted
-  `retarget-pending` line stands, never a pass. `sharingan` § 4's rule, and
+  satisfied**, both deterministic, neither re-derived by eye — **and, on a PR into the default branch,
+  the Development guard's `0`** (`"$hatsu_root/scripts/pr_development_link_check.sh" --pr
+  <owner/name#N> --base <branch.base>`, zheref/hatsu#203). Off the default branch its quoted
+  `retarget-pending` line stands beside them, neither a pass nor a veto.
+  [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Build accountability and issue associations*
+  states the rule once. `sharingan` § 4's rule, and
   [`hatsu:pr-state`](../pr-state/SKILL.md)'s before it: **a readiness claim is that verdict, quoted,
   or it is not made.**
 - **A body this run rewrites** — new or re-recorded screenshots after a review — **re-renders the whole
@@ -275,7 +277,9 @@ that stop** and presents this section's prompt for the proposal.
 
 **A PR off `branch.base` gets no prompt.** If check 1 below cannot bring its base to `branch.base`
 (no stacked delivery has merged), en reports the quoted verdict, the PR's base and the guard's quoted
-`retarget-pending` line, and ends there.
+`retarget-pending` line, and ends there. **Where the guard prints `not-applicable` (`branch.base` is not
+the default branch), en quotes that line and stops at G5**: nothing the guard verifies can act there,
+and whether to merge regardless is the maintainer's.
 Steps 6 and 7 do not run: there is no gate event for the bell or the dated final report to record.
 Futon opens no PR into its integration branch (futon § 5 merges there locally), so
 this is never futon's path.
@@ -298,7 +302,8 @@ and resolved. **Its terminus is the merge prompt, after five checks in order, ev
    rounds were the review.
 3. **The body** — `nen pr body-check` satisfied against the live body.
 4. **The Development links** — the guard's `0` quoted against the live PR, re-run after check 2's
-   `edit-body`; anything else, `retarget-pending` included, is not a prompt.
+   `edit-body`; `retarget-pending` is check 1 failing, `not-applicable` is the G5 above, and any other
+   line is a finding to fix, never a prompt.
 5. **The head pinned** — the commit `nen pr ready` judged is GitHub's head, and the prompt's line names it.
 
 The prompt presents the PR's link and one line the maintainer may run, **offered and never run by en**.
@@ -395,7 +400,7 @@ en acts, and the `<n>/<cap>` the verb prints is the number the report carries.
 | **the PR converted to draft, or its base retargeted** | outside the hold's vocabulary: name it, end the watch, and hand back — a draft is not driven, and a retarget re-derives the gate (WORKFLOW § *Gate derivation*) |
 | **a new review, comment or thread** | inspect and classify it first. If it requires remediation or a reviewer re-request, claim an acting cycle, then return to step 2; an approval or informational event that needs only a read spends no cycle. [`hatsu:sharingan`](../sharingan/SKILL.md) addresses every inline and summary finding through its own channel, and decides whether a further round may be requested (§ 6 there; *owed at head* after en's own request or push is not a reason) |
 | **the branch fell behind, or the PR went `dirty`** | claim an acting cycle, then step 3 and step 4 — catch up, then re-decide. A conflicted PR gets *no checks at all*, which reads as "clean" rather than "broken" (`sharingan` § 5) |
-| the PR becomes Ready | step 6 — bell and stop at the human gate |
+| the PR becomes Ready (§ 4: on the default branch with the Development guard's `0`; off it with its `retarget-pending` line quoted, never a veto) | into the default branch, step 6 — bell and stop at the human gate; off it, § 5's off-base report, no prompt |
 | **a round owed at head to a reviewer with a live `reviewer_fallback.exhausted[]` row, the chain exhausted** ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *The fallback chain*) | **not a pending state — the round will not arrive.** End the hold and go to step 6 with the verdict quoted verbatim and the Hatsu exhaustion line beside it; no cycle is spent |
 | the PR merged before the gate handoff | end as a terminal external state, naming that readiness was not the run's observed terminus |
 | the PR closed unmerged | the run ends, saying so — there is nothing to land, and reopening is the maintainer's call |

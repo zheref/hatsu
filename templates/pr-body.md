@@ -106,7 +106,9 @@
      THE VERDICT is the Merging this cell's leading bold span, from a CLOSED VOCABULARY, in ASCII:
        closing      completes it · closes it
        non-closing  delivers part · part of it · cited · prerequisite · relates to it · delivers none of it
-     A remark may follow after " — ". Every closing row, and only those, gets its own keyword line
+     A remark may follow after " — " and nothing else. The Issue cell holds exactly one reference. The
+     section holds that one table (or the exact phrase) and no HTML, and ends at the next `##` heading,
+     so a criteria table goes under its own heading. Every closing row, and only those, gets its own keyword line
      below the table, after a blank line — `Closes #N`, or `Closes owner/name#N` for another
      repository — and no other closing keyword (close/fix/resolve and their forms) appears anywhere
      outside code, because GitHub acts on one wherever it stands. Check (d) refuses anything else. -->

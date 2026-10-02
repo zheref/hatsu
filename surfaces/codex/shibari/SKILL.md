@@ -108,7 +108,7 @@ nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,nen/,sc
 nen pr open --target <owner/name> --base <branch.base> --title-file <abs> --body-file <abs> \
   [--head <branch>] [--draft] [--dry-run] [--json]   # title-file: the one commit's subject
 nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-run] [--json]
-"$hatsu_root/scripts/pr_development_link_check.sh" --pr <owner/name#n>
+"$hatsu_root/scripts/pr_development_link_check.sh" --pr <owner/name#n> --base <branch.base>
 ```
 
 - **The two refs must be equal**; if not, the run **stops and says which is ahead**. **`pr open` refuses a head that is not on the remote at
@@ -127,8 +127,8 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
   the number before any write**, refusing a 404/410. **A relative `--body-file` resolves against
   `--repo`'s root**, so the body is written to an **absolute** path.
 - **The Development guard**: `--body` beside `body-check` before every write, `--pr` after `pr open`
-  and each `edit-body`; a refusal is fixed in the body or the sidebar, never claimed, and off the
-  default branch it says `retarget-pending`. Re-runs: [`en`](../en/SKILL.md) §§ 4–5 and
+  and each `edit-body`; a refusal is fixed in the body or the sidebar, never claimed; off the
+  default branch it says `retarget-pending`, or `not-applicable`. Re-runs: [`en`](../en/SKILL.md) §§ 4–5,
   [`sharingan`](../sharingan/SKILL.md) § 4.
 
 ## 5. Reviewers, and the hand to `en`

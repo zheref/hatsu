@@ -55,7 +55,8 @@ maintainer cancelling.
 2. **Decide readiness** (§ 4); Ready ⇒ § 5 and stop.
 3. **Name the FIRST blocking condition** and act only on it: conflict → red required check → owed
    round → unresolved thread → missing body requirement (`## How to verify`, `CON-17`; a
-   `changelog.d/` fragment where `CON-33(a)` needs one).
+   `changelog.d/` fragment where `CON-33(a)` needs one) → Development guard refusal (channel:
+   § 4's WORKFLOW cite).
 4. **Act through its channel** (§ 7).
 5. **Observe while that blocker is pending** — neither stop nor outcome: classify it with `nen
    parse izanami`, then `nen watch until`, a paced window of exactly two observations at
@@ -78,8 +79,8 @@ never re-derived by eye (`export GH_TOKEN=$(gh auth token)` first).
 or resolved without a reply; every context **required for the base branch** in the current-head
 rollup (union `gh api repos/<owner>/<repo>/rules/branches/<base>` with
 `…/protection/required_status_checks`, 404 = absent — **a missing one vetoes Ready even when all that
-reported is green**); the Development guard (shibari § 4) quoted: `0` on `branch.base`, else
-`retarget-pending`. **A failing
+reported is green**); every implemented issue in the body table, dispositioned; the Development guard
+per [WORKFLOW](../../../../docs/WORKFLOW.md) § *Build accountability and issue associations*. **A failing
 verb or an objecting pass is not-ready: the pass only vetoes, never promotes.**
 
 ## 5. The stop, the authority, and the hard limits
@@ -143,8 +144,7 @@ prompt with **the verb's verdict quoted verbatim and one Hatsu line beside it, n
 [PROCESS.md](../../../../docs/PROCESS.md) § *Reviewer rounds and review threads*** — a reply names a
 commit only once it is on the PR's head chain (zheref/hatsu#139).
 
-A fix that adds or re-records screenshots **re-renders the whole *Evidence* table** in the body and
-passes `"$hatsu_root/scripts/pr_body_evidence_check.sh" --body <file>` first — never images appended below it
+Screenshots **re-render the whole *Evidence* table**, checked first
 ([`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *The UZF-26 evidence shape*).
 
 ## 7. The other channels, and the escalation ladder

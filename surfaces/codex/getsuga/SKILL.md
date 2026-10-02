@@ -370,6 +370,13 @@ repository, G2 in a consumer), which names the retarget as the blocking step. Re
 reader can run: `gh pr view 232 -R zheref/nen --json baseRefName` and the same for `222` both return a
 `fable/…` branch — this rule would have stopped both merges.
 
+**The proposal closes no issue, so its body's `## Associated issues` section reads exactly `No associated
+issue.`** — each collated PR closed its own issues when it merged, and a closing keyword here would claim
+a closure that is not this PR's (zheref/hatsu#203). The Development guard passes such a body with `0`:
+`"$hatsu_root/scripts/pr_development_link_check.sh" --body <file> --target <owner/name>` before the open,
+then `--pr <owner/name#N> --base <branch.base>` after it, after the retarget read-back and after every
+`edit-body` ([`shibari`](../shibari/SKILL.md) § 4).
+
 **Then run `$en` on the proposal to its G2 readiness gates, then merge through § 3a — and under
 getsuga, en returns a verdict, never a bell** (zheref/hatsu#103). An excerpt of the maintainer's words of
 2026-10-01 (`docs/ROSTER.md` § *Rulings of 2026-09-30 — En never merges*, the release-proposal
@@ -407,8 +414,9 @@ PR number and head SHA**, plus **`<preflightTip>`** — `origin/<branch.base>`'s
 preflight ran, the one point the merge-time re-check below measures from — and **re-record the head at en's hand-back**: the pair § 3a merges is the PR
 number plus the `judged head:` en's `ready` verdict names, because en may have pushed a fix to settle a
 thread (a fix on a release proposal stays inside `release.unitPaths`, or the proposal falls back to the
-maintainer). That pair, and no other object, is what § 3a may merge, and only once § 3's two conditions
-hold (the base reads `branch.base`; en's returned verdict is `ready`) — stated in the report, never
+maintainer). That pair, and no other object, is what § 3a may merge, and only once § 3's three conditions
+hold (the base reads `branch.base`; en's returned verdict is `ready`; the Development guard's `0`, quoted
+in en's hand-back) — stated in the report, never
 re-derived here. The verb then runs **five gates** in order, every one regardless of an
 earlier failure, and prints every verdict line verbatim — **quote those lines in the report**, never a
 summary of them:
@@ -469,7 +477,8 @@ gate naming the PRs that moved — a base that keeps moving is the maintainer's 
 added (or "none") — so a maintainer merging at the fall-back sees it. `nen pr edit-body` **replaces
 the body outright**: read the live body (residue — `nen pr fetch` returns none:
 `gh pr view <N> --repo <owner/name> --json body -q .body > <file>`), amend that section in `<file>`,
-and write the whole of it back with `nen pr edit-body --body-file <file>`. An
+and write the whole of it back with `nen pr edit-body --body-file <file>`, then re-run the Development
+guard `--pr`: anything but its `0` is **no merge**, a stop at the declaration gate quoting its line. An
 `edit-body` failure is its own row — **no merge**, stop at the declaration gate quoting it. A PR that
 merges after `<baseNow>` was read slips past this check by design; **§ 4's re-verification of § 2 at the
 cut SHA is the backstop** for that window. A second same-window release PR for PRs that merged before the first
