@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.77.0 — amend build skill to canonical local-plane delivery pipeline
+
+- **Align `build` skill to canonical Akatsuki lifecycle**: Replaced legacy Bankai CI builder agent routing (`bankai:agent/*`), CI stage labels, chain-position mappings, wave coordinators, and wake ladders with Hatsu's canonical 5-phase delivery sequence (`ren` -> `aka` -> `mukai` -> `en` -> `third-hand`).
+- **Worktree isolation**: Builds run in isolated worktrees under `<core>/.nen/worktrees/<surface>/<name>` preserving core checkout stability on `main`.
+- **Diet & mirrors**: Kept `build/SKILL.md` within the 12,288-byte ceiling (12,022 bytes); regenerated Codex, Cursor, and Antigravity surface mirrors at stamp 0.77.0 using Nen 0.18.2.
+
 ## v0.76.0 — a push after review is gated on catch-up, checks and provenance, in one `&&` chain
 
 - **The post-review push is one gated chain, written once** (#188: `mukai` step 6 pushed while its own catch-up had exited 1 mid-merge, because the rule lived only in prose). `murasaki` § 6 now spells the push as one `&&` chain: `nen wc catch-up --json` must read `"noOp": true`, `HEAD` must equal the `<proved>` SHA that steps 3–5 proved, `@{upstream}` must resolve (both the published precondition and the range base), the lane's declared check runs, then `scripts/branch_authorship_check.sh`, then `nen wc publish` (never `--set-upstream` there). `mukai` step 6 points at it. `aka` § 7's two push forms are chained to the check with `&&`, and `aka` § 4 runs it before the squash, routing exit 1 (every SHA reported, nothing squashed, the maintainer decides) and exit 2 (a wiring stop) as § 7's step 0b does.
