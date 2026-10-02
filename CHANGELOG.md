@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.74.0 — every settable value is written out, and asked for before a skill needs it
+## v0.75.0 — every settable value is written out, and asked for before a skill needs it
 
 - **One list of what a consumer can set** ([`docs/ROSTER.md`](docs/ROSTER.md) § *Rulings of 2026-10-01*). `contracts/config-catalogue.json` holds 33 values Hatsu skills read from a consumer's `nen/workflow.json`, `nen/gates.json` and `nen/contract.json`, grouped by domain (development, versioning, testing, review, reporting, notifications, deployment, publishing). Each row carries:
   - the default canon already states, with its `source`;
@@ -48,7 +48,15 @@
 - **Hatsu's own `mukai.autoEn` is `true`**, on the maintainer's request of 2026-10-01 ("Let's configure this repository for autoEn (let's make it enabled)"): a `hatsu:mukai` here now starts `hatsu:en` on the PR it opened instead of offering it. Written with this PR's own `config_values.sh set`, which added the `$autoEn` options note beside it.
 - **Copilot's round settled.** `config_values.sh` no longer imports `fcntl` on Windows: there the lock is `msvcrt` on a file under `.nen/`, as `hanten_cycle_ledger.sh` does it, while POSIX keeps `flock` on `nen/`. `check-catalogue` now fails when a WORKFLOW-sourced default has no key-table row to check against, instead of passing silently. The four defaults documented in WORKFLOW's prose declare `sourceTable: false` and are held to a line naming the key.
 - **New focused lane `config-values-guard`** (`nen shu test --lane config-values-guard`). `tenkai-guard` now has 222 assertions.
-- Plugin bumped to 0.74.0 after catching up with v0.73.0 (HA-PR-#183) (Claude manifest and Codex overlay); mirrors regenerated at that stamp.
+- Plugin bumped to 0.75.0 after catching up with v0.73.0 (HA-PR-#183) and v0.74.0 (HA-PR-#189) (Claude manifest and Codex overlay); mirrors regenerated at that stamp.
+
+## v0.74.0 — Antigravity writes each report as one artifact per conversation
+
+- **The Antigravity report contract is complete** (zheref/hatsu#145, criteria 1 and 2). `docs/PROCESS.md` § *Publishing a report* now holds the Antigravity half of the one-address rule: one `<report-name>.md` per conversation, keyed by `<conversation-id>`, written with `Overwrite: true` whenever it already exists, never a new file per turn; an effort that continues in a new conversation starts its own file. `spiritual-message` § 7 points there rather than restating it, and its block list now cites `reports.sections.<variant>.blocks` instead of copying it (the old copy had drifted).
+- **A per-turn rule in the always-loaded rules** (`claude/rules/hatsu.md` item 9): on Antigravity, every turn that renders a report (docs/PROCESS.md § *Reporting a phase*) writes it as that report's native artifact before yielding — `spiritual-message.md` for a turn or landing report, the report's own name otherwise — the same file each render, `Overwrite: true` once it exists; a chat summary never stands in. It is keyed on PROCESS's predicate, not a list of skills, so `aka` and `mugetsu` are covered and `en`'s quiet polls are not forced to write. This deliberately replaces the issue's literal "every ren, en, mukai turn" and narrows "every turn of an effort" to "per conversation", because the artifact path is conversation-scoped.
+- **`docs/surfaces/antigravity.md`** records `write_to_file`'s `TargetFile` and `Overwrite` parameters with a dated provenance row, marked third-party and unverified on any `agy` here.
+- **Not closable here:** criterion 3, agents reliably writing the artifact every turn, is host model behaviour; the repository can only state the rule.
+- Plugin bumped to 0.74.0 (Claude manifest and Codex overlay); mirrors regenerated at that stamp.
 
 ## v0.73.0 — `hatsu:rikugan` renders the final state upon delivery, the session binds the pinned nen on the host, and every worktree lives under `.nen/worktrees/<surface>`
 
