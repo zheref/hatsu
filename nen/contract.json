@@ -124,6 +124,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/surface_link_check.sh (zheref/hatsu#72), the generated-surface LINK guard: surface_mirror_check.sh proves the mirrors match a fresh generation, this one proves the generated bodies' relative .md links resolve at the depth each mirror sits at. One lane per executable guard. Its fixture is hermetic and offline: a clean tree, one dangling link named by file, link and resolved path, the #71 nested-depth regression, --summary, and the wiring refusals. The guard itself is red against this repository's mirrors until nen's generator rewrites links per depth (the companion nen issue); it is deliberately not a CI step until then, because nen pr ready counts every reported check."
       },
+      "redaction-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/private_name_check.sh (zheref/hatsu#149), the private-repository-name guard docs/PUBLIC-REDACTION.md names: text is compared against the LIVE list of every private repository the maintainer's credentials can see (`gh api 'user/repos?visibility=private'`, paginated; --owner adds an owner, never narrows), or a --names-file a fixture or a CI secret supplies; the list is never committed, and an empty one -- read empty, or emptied by the ignore file -- is exit 2 (--allow-empty to accept it); an empty or comment-only ignore file ignores nothing. Bare names, case-insensitive, whole-word with `_` and `.` as boundaries, a line that could hide a name also read normalised (URL encoding, HTML entities, tags, backslash escapes, NFKC, format characters, dashes) and then with HTML comments, `*` and backticks removed (intraword emphasis, code spans, comment splits); a hit, a path and a label printed with an index and never the name, and a path or label that names one only once normalised withheld whole; the predecessor marker exempt only as the exact `<!-- GENERATED from <name>@` shape and only for the name limbo's marker line carries, the same name elsewhere on that line, spelt plainly or normalised, still a hit; under --tree, paths and symlink targets checked, UTF-16 with a BOM (U+FEFF) decoded (without one it is binary), skips counted; a private --target skipped; every wiring fault exit 2 (perl lacking Encode or Unicode::Normalize, or the scan dying in perl, included; an unreadable file named as one). hatsu:file (before its plan), backlog-synthesis, mugetsu and sharingan run it before writing to a public repository; nen's issue verbs owe it (zheref/nen#329). Its fixture is hermetic and offline (invented names, a stub gh; 115 cases). The tree check itself (`bash scripts/private_name_check.sh --tree .`) needs the live list and the tree is not yet clean, so it is a maintainer command and not a CI or kokusen step: #149's criterion 2(b) is deferred until the tree is redacted."
+      },
       "prose-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -207,7 +212,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, config-values-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, freshness-guard, fresh-worktree-guard, ledger-guard, runner-preflight-guard, publish-integrity-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, config-values-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, freshness-guard, fresh-worktree-guard, ledger-guard, runner-preflight-guard, publish-integrity-guard, redaction-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/spiritual-message.html, which is a report template, not an application."
@@ -316,6 +321,15 @@
             "scripts/surface_link_check_fixture.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the surface link guard. Run it as `nen shu test --lane surface-link-guard --repo <hatsu>` when scripts/surface_link_check.sh or its fixture changes; run the guard itself (`bash scripts/surface_link_check.sh --summary`) to read the live mirrors."
+        }
+      },
+      "redaction-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/private_name_check_fixture.sh"
+          ],
+          "$comment": "A permanent, deterministic fixture for the private-repository-name guard. Run it as `nen shu test --lane redaction-guard --repo <hatsu>` when scripts/private_name_check.sh or its fixture changes; run the guard itself against the tree with `bash scripts/private_name_check.sh --tree .` on the maintainer's own credentials."
         }
       },
       "prose-guard": {
@@ -470,7 +484,7 @@
         "darwin",
         "linux"
       ],
-      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/nen_global_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/permissions_pack_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/kagutsuchi_worktree.sh --self-test, scripts/runner_preflight_fixture_check.sh) use a POSIX shell, git and mktemp (the last also nen itself) and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
+      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/nen_global_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/permissions_pack_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/kagutsuchi_worktree.sh --self-test, scripts/runner_preflight_fixture_check.sh, scripts/private_name_check_fixture.sh) use a POSIX shell, git and mktemp (runner_preflight also nen itself; private_name_check also perl with its core Encode and Unicode::Normalize) and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
     },
     "targets": {},
     "toolchain": {

@@ -227,6 +227,12 @@ fi
 #                       covered anyway so that the version bakuryuha reports back
 #                       names a change to how it links, registers or hands over.
 #   scripts/surface_link_check.sh
+#   scripts/private_name_check.sh
+#                     — hatsu:file § 5 runs it from `$hatsu_root/scripts/` before
+#                       every body, title or comment it writes to a public
+#                       repository (zheref/hatsu#149); a stale copy would let a
+#                       private repository's name through. Its fixture beside it
+#                       is test-only and is not covered.
 #   scripts/prose_size_check.sh
 #                     — hanten § 2 runs the link guard and § 6 the prose guard
 #                       from `$hatsu_root/scripts/` in every review, consumers'
@@ -277,6 +283,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/hatsu_surface_link.sh'
   'scripts/surface_link_check.sh'
   'scripts/prose_size_check.sh'
+  'scripts/private_name_check.sh'
   'scripts/tenkai_adopt.sh'
   'scripts/release-publish.sh'
   'scripts/report_time.sh'
