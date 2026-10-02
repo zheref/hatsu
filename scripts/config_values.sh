@@ -22,8 +22,16 @@
 #   a value without a default, and inserts text surgically, so the file's own formatting survives.
 #
 #   `set` writes ONE value the maintainer chose, by catalogue id, after the question was asked
-#   (docs/WORKFLOW.md § 4 step 3). A fixed-set value outside its options is refused, and a
-#   `secret-env` value must be an environment-variable NAME, never the secret.
+#   (docs/WORKFLOW.md § 4 step 3). A fixed-set value outside its options is refused; a `secret-env`
+#   value must be an environment-variable NAME; and every string inside any value is screened before
+#   the write — a `requiresEnv` entry that is not a NAME, a string shaped like a known credential, a
+#   literal following a credential-named flag (`--api-key <literal>`), or a credential-named key
+#   holding a literal is refused, and the confirmation line prints keys, never the value. The screen
+#   is a shape check, not proof of absence: `nen stage triage` still runs on the written file.
+#
+#   CONFINEMENT. A declaration that is a symlink, under a `nen/` that is a symlink, or resolving
+#   outside --repo is `blocked` — read and write alike — and the check is repeated immediately before
+#   the replace, so a link swapped in between is refused rather than followed (SEC-1).
 #
 # USAGE
 #   scripts/config_values.sh diagnose --repo <path> [--domain <d>] [--json]
@@ -48,6 +56,8 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export CONFIG_VALUES_DEFAULT_ROOT="$(dirname "$HERE")"
 
 python3 - "$@" <<'PY'
+import contextlib
+import fcntl
 import json
 import os
 import re
@@ -58,7 +68,22 @@ from pathlib import Path
 
 CATALOGUE = Path("contracts") / "config-catalogue.json"
 WRITABLE_FILES = ("nen/workflow.json", "nen/gates.json", "nen/contract.json")
-KINDS = ("enum", "open", "external", "secret-env")
+KINDS = ("enum", "subset", "open", "external", "secret-env")
+ANNOTATED = ("enum", "subset")
+ANNOTATION_PREFIXES = ("one of: ", "any of: ")
+
+
+def in_options(value, options):
+    """Membership that keeps JSON types apart: 1 is not true, 0 is not false (QA-18)."""
+    return any(type(value) is type(o) and value == o for o in options)
+
+
+def valid_for(row, value):
+    if row["kind"] == "enum":
+        return in_options(value, row["options"])
+    if row["kind"] == "subset":
+        return isinstance(value, list) and all(in_options(v, row["options"]) for v in value)
+    return True
 ASK_WHEN = ("adoption", "on-use")
 
 SET, UNANNOTATED, INVALID, UNWRITTEN, REQUIRED, ON_USE, OPTIONAL, NA, FILE_MISSING, BLOCKED = (
@@ -69,6 +94,38 @@ FILLABLE = {UNANNOTATED, UNWRITTEN}
 GLYPH = {SET: "ok  ", UNANNOTATED: "NOTE", INVALID: "BAD ", UNWRITTEN: "DFLT",
          REQUIRED: "ASK ", ON_USE: "LATR", OPTIONAL: "OPT ", NA: "n/a ", FILE_MISSING: "MISS", BLOCKED: "BLOK"}
 ENV_NAME = re.compile(r"^[A-Z][A-Z0-9_]{0,127}$")
+SECRET_SHAPES = re.compile(
+    r"(sk|pk|rk)[-_](live|test)[-_]|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_|AKIA[0-9A-Z]{16}|xox[abposr]-"
+    r"|AIza[0-9A-Za-z_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY|eyJ[A-Za-z0-9_-]{10,}\\.eyJ")
+CREDENTIAL_NAME = re.compile(r"(api[-_]?key|token|secret|passw(or)?d|credential|private[-_]?key)", re.I)
+
+
+def secret_problems(value, where="value"):
+    """Every string leaf that looks like a credential rather than a reference to one."""
+    out = []
+    if isinstance(value, dict):
+        for k, v in value.items():
+            if k == "requiresEnv":
+                names = v if isinstance(v, list) else [v]
+                out += [f"{where}.requiresEnv: {n!r} is not an environment-variable NAME"
+                        for n in names if not (isinstance(n, str) and ENV_NAME.match(n))]
+                continue
+            if CREDENTIAL_NAME.search(k) and isinstance(v, str) and not ENV_NAME.match(v):
+                out.append(f"{where}.{k}: a credential-named key holds a literal, not an environment-variable NAME")
+            out += secret_problems(v, f"{where}.{k}")
+    elif isinstance(value, list):
+        for i, v in enumerate(value):
+            prev = value[i - 1] if i > 0 else None
+            if (isinstance(v, str) and isinstance(prev, str) and prev.startswith("-")
+                    and CREDENTIAL_NAME.search(prev) and "=" not in prev and not v.startswith("$")):
+                out.append(f"{where}[{i}]: a literal follows the credential-named flag {prev!r}")
+            elif (isinstance(v, str) and v.startswith("-") and "=" in v
+                    and CREDENTIAL_NAME.search(v.split("=", 1)[0]) and not v.split("=", 1)[1].startswith("$")):
+                out.append(f"{where}[{i}]: a credential-named flag carries a literal")
+            out += secret_problems(v, f"{where}[{i}]")
+    elif isinstance(value, str) and SECRET_SHAPES.search(value):
+        out.append(f"{where}: shaped like a credential")
+    return out
 
 
 class Defect(Exception):
@@ -124,6 +181,9 @@ def _value(s, i):
                 raise ValueError(f"expected a key at offset {i}")
             k_end = _string_end(s, i)
             key = json.loads(s[i:k_end])
+            if member(node, key) is not None:
+                raise ValueError(f"duplicate key {key!r}: JSON keeps the last, so an in-place edit would "
+                                 f"land in the copy every reader ignores")
             j = _skip(s, k_end)
             if s[j] != ":":
                 raise ValueError(f"expected ':' at offset {j}")
@@ -166,10 +226,10 @@ def _value(s, i):
 
 
 def scan(text):
+    json.loads(text)   # json is the authority on validity, and rejects a truncated file before the walk
     root = _value(text, 0)
     if root.kind != "object" or _skip(text, root.end) != len(text):
         raise ValueError("a declaration must be one JSON object")
-    json.loads(text)   # the scanner finds spans; json is the authority on validity
     return root
 
 
@@ -194,29 +254,34 @@ def member_indent(text, obj):
     return line_indent(text, obj.start) + "  "
 
 
-def render(value, indent):
+def newline_of(text):
+    return "\r\n" if "\r\n" in text else "\n"
+
+
+def render(value, indent, nl="\n"):
     out = json.dumps(value, indent=2, ensure_ascii=False)
-    return out.replace("\n", "\n" + indent)
+    return out.replace("\n", nl + indent)
 
 
 def insert_member(text, obj, key, value, after_key=None):
     """Insert `"key": value` into obj — after `after_key`'s member when named, else last."""
     ind = member_indent(text, obj)
-    piece = f'"{key}": {render(value, ind)}'
+    nl = newline_of(text)
+    piece = f'"{key}": {render(value, ind, nl)}'
     if not obj.members:
         close_ind = line_indent(text, obj.start)
-        return text[:obj.start] + "{\n" + ind + piece + "\n" + close_ind + "}" + text[obj.end:]
+        return text[:obj.start] + "{" + nl + ind + piece + nl + close_ind + "}" + text[obj.end:]
     anchor = obj.members[-1][2]
     if after_key is not None:
         found = member(obj, after_key)
         if found:
             anchor = found[1]
-    return text[:anchor.end] + ",\n" + ind + piece + text[anchor.end:]
+    return text[:anchor.end] + "," + nl + ind + piece + text[anchor.end:]
 
 
 def replace_value(text, node, value):
     ind = line_indent(text, node.start)
-    return text[:node.start] + render(value, ind) + text[node.end:]
+    return text[:node.start] + render(value, ind, newline_of(text)) + text[node.end:]
 
 
 # --------------------------------------------------------------------------
@@ -258,13 +323,13 @@ def catalogue_problems(root, cat, rows):
         if r.get("domain") not in domains:
             problems.append(f"{where}: domain {r.get('domain')!r} is not declared under `domains`")
         opts = r.get("options")
-        if r.get("kind") == "enum":
+        if r.get("kind") in ANNOTATED:
             if not isinstance(opts, list) or len(opts) < 2:
-                problems.append(f"{where}: an enum row needs at least two options")
-            elif "default" in r and r["default"] not in opts:
+                problems.append(f"{where}: an {r.get('kind')} row needs at least two options")
+            elif "default" in r and r["default"] is not None and not valid_for(r, r["default"]):
                 problems.append(f"{where}: default {r['default']!r} is not among its options")
         elif opts is not None:
-            problems.append(f"{where}: only an enum row carries options")
+            problems.append(f"{where}: only an enum or subset row carries options")
         if r.get("kind") == "secret-env" and r.get("default") not in (None,) and "default" in r:
             if not ENV_NAME.match(str(r["default"])):
                 problems.append(f"{where}: a secret-env default must be an environment-variable NAME")
@@ -276,6 +341,10 @@ def catalogue_problems(root, cat, rows):
             problems.append(f"{where}: no readers — a value nobody reads is not configuration")
         if not isinstance(r.get("describe"), str) or not r["describe"]:
             problems.append(f"{where}: no describe")
+        if r.get("choice") not in (None, "maintainer"):
+            problems.append(f"{where}: choice {r.get('choice')!r} is not 'maintainer'")
+        if r.get("nullIsAnswer") and r.get("requiredBy"):
+            problems.append(f"{where}: a null that is an answer cannot also be required")
         if r.get("ask") == "on-use" and not r.get("requiredBy"):
             problems.append(f"{where}: ask on-use names the skills that ask, so it needs requiredBy")
         if r.get("ask", "adoption") not in ASK_WHEN:
@@ -286,17 +355,48 @@ def catalogue_problems(root, cat, rows):
             ref = r.get(field)
             if ref is not None and not (isinstance(ref, str) and "#" in ref and ref.split("#")[0] in WRITABLE_FILES):
                 problems.append(f"{where}: {field} {ref!r} must be <file>#<dotted.path>")
+    problems += source_drift(root, rows)
     return problems
 
 
-def annotation(options):
+def source_drift(root, rows):
+    """A default restated in docs/WORKFLOW.md's key tables must agree with the catalogue's — the two
+    are one fact in two places, so a mismatch is a catalogue problem, never a silent fill."""
+    out = []
+    try:
+        lines = (root / "docs" / "WORKFLOW.md").read_text().splitlines()
+    except OSError:
+        return out
+    for r in rows:
+        if "default" not in r or "docs/WORKFLOW.md" not in str(r.get("source", "")):
+            continue
+        leaf = r["path"].split(".")[-1]
+        hits = [ln for ln in lines if ln.startswith("|") and f"`{leaf}`" in ln.split("|")[1]]
+        if not hits:
+            continue
+        d = r["default"]
+        shown_d = json.dumps(d) if not isinstance(d, str) else d
+        forms = {shown_d, str(d).lower(), json.dumps(d), str(d)}
+        if isinstance(d, list):
+            forms |= {", ".join(json.dumps(x) for x in d), json.dumps(d, separators=(",", ":"))}
+        if not any(any(f in h for f in forms) for h in hits):
+            out.append(f"row {r['id']!r}: default {json.dumps(d)} does not appear in docs/WORKFLOW.md's "
+                       f"`{leaf}` row — one of the two has drifted")
+    return out
+
+
+def annotation(options, kind="enum"):
     def show(v):
         if v is None:
             return "null"
         if isinstance(v, bool):
             return "true" if v else "false"
         return str(v)
-    return "one of: " + " | ".join(show(o) for o in options)
+    return ("any of: " if kind == "subset" else "one of: ") + " | ".join(show(o) for o in options)
+
+
+def ann_for(row):
+    return annotation(row["options"], row["kind"]) if row["kind"] in ANNOTATED else None
 
 
 # --------------------------------------------------------------------------
@@ -307,17 +407,34 @@ class Repo:
         self.path = path
         self.texts, self.errors = {}, {}
 
+    def confined(self, rel):
+        """None when rel is a regular path inside the repo, else why it is refused (SEC-1)."""
+        cur = self.path
+        for part in Path(rel).parts:
+            cur = cur / part
+            if cur.is_symlink():
+                return f"{cur.relative_to(self.path)} is a symlink; refusing to read or write through it"
+        try:
+            (self.path / rel).resolve().relative_to(self.path.resolve())
+        except ValueError:
+            return f"{rel} resolves outside the repository"
+        return None
+
     def text(self, rel):
         if rel not in self.texts and rel not in self.errors:
             p = self.path / rel
-            if not p.is_file():
+            refusal = self.confined(rel)
+            if refusal:
+                self.errors[rel] = refusal
+            elif not p.is_file():
                 self.texts[rel] = None
             else:
                 try:
-                    t = p.read_text()
+                    with open(p, newline="") as fh:   # CRLF survives the round trip
+                        t = fh.read()
                     scan(t)
                     self.texts[rel] = t
-                except (OSError, ValueError) as exc:
+                except (OSError, ValueError, IndexError, RecursionError, UnicodeDecodeError) as exc:
                     self.errors[rel] = str(exc)
         return self.texts.get(rel)
 
@@ -360,10 +477,16 @@ def candidates(repo, row):
 
 
 def annotation_state(repo, row):
-    """True when the `$<key>` sibling carries the catalogue's current option list."""
+    """True when the `$<key>` sibling carries the current option list, or carries a note of the
+    maintainer's own (one not written by this engine), which is never overwritten."""
     parent, _, leaf = row["path"].rpartition(".")
     present, holder = repo.lookup(row["file"], parent) if parent else (True, json.loads(repo.text(row["file"])))
-    return isinstance(holder, dict) and holder.get("$" + leaf) == annotation(row["options"])
+    if not isinstance(holder, dict):
+        return False
+    note = holder.get("$" + leaf)
+    if isinstance(note, str) and not note.startswith(ANNOTATION_PREFIXES):
+        return True
+    return note == ann_for(row)
 
 
 def shown(value):
@@ -380,18 +503,39 @@ def classify(repo, row, for_skill=None):
     if rel in repo.errors:
         return BLOCKED, f"{rel} does not parse: {repo.errors[rel]}"
     if t is None:
+        if rel == "nen/gates.json":
+            return FILE_MISSING, (f"{rel} is absent — nen scaffold init does not write it; "
+                                  f"tenkai § 4a and docs/GATE-CONFIGURATION.md author it")
         return FILE_MISSING, f"{rel} is absent — nen scaffold init --repo <path> creates it"
     if not applies(repo, row):
         return NA, f"does not apply: {row['when']} is absent or empty"
+    cur, keys = json.loads(t), row["path"].split(".")
+    for i, k in enumerate(keys[:-1]):
+        if not isinstance(cur, dict) or k not in cur:
+            break
+        cur = cur[k]
+        if not isinstance(cur, dict):
+            return INVALID, (f"{'.'.join(keys[:i + 1])} is not an object, so {row['path']} cannot be "
+                             f"written beneath it; fill skips it")
     present, value = repo.lookup(rel, row["path"])
     has_default = "default" in row
     needed = bool(row.get("requiredBy"))
+    if present and value is None and row.get("nullIsAnswer"):
+        if row.get("question"):
+            return OPTIONAL, ("null — a deliberate answer: its readers ask on each call; "
+                              "Tenkai offers a standing value, nothing stops for it")
+        return SET, "null — a deliberate answer: its readers ask on each call"
+    if present and value is None and row["kind"] in ANNOTATED and not in_options(None, row["options"]):
+        return INVALID, f"null is not among the options ({ann_for(row)})"
     if present and value is not None:
-        if row["kind"] == "enum" and value not in row["options"]:
-            return INVALID, f"{value!r} is not one of the options ({annotation(row['options'])})"
+        if not valid_for(row, value):
+            return INVALID, f"{json.dumps(value)} is not within the options ({ann_for(row)})"
+        cands = candidates(repo, row) if row.get("candidatesFrom") else None
+        if cands and not in_options(value, cands):
+            return INVALID, f"{json.dumps(value)} names no key of {row['candidatesFrom']} ({' | '.join(cands)})"
         if row["kind"] == "secret-env" and not (isinstance(value, str) and ENV_NAME.match(value)):
             return INVALID, "must name an environment variable, never carry the secret itself"
-        if row["kind"] == "enum" and not annotation_state(repo, row):
+        if row["kind"] in ANNOTATED and not annotation_state(repo, row):
             return UNANNOTATED, f"set to {json.dumps(value)}; its `$` option annotation is absent or stale"
         return SET, shown(value)
     if not present and has_default and not (needed and row["default"] is None):
@@ -402,7 +546,7 @@ def classify(repo, row, for_skill=None):
     if needed:
         return REQUIRED, (f"{'null' if present else 'absent'} with no usable default — "
                           f"{', '.join(row['requiredBy'])} cannot run until it is set")
-    if present and row["kind"] == "enum" and not annotation_state(repo, row):
+    if present and row["kind"] in ANNOTATED and not annotation_state(repo, row):
         return UNANNOTATED, "null; its `$` option annotation is absent or stale"
     if present:
         return SET, "null (a deliberate absence its readers handle)"
@@ -424,8 +568,10 @@ def diagnose(repo, rows, domain=None, for_skill=None):
             row["options"] = candidates(repo, r)
             row["setup"] = r.get("setup", [])
             row["write"] = f"config_values.sh set --repo <path> --id {r['id']} --value <JSON>"
-            if r.get("satisfiedByArgument"):
-                row["satisfiedByArgument"] = r["satisfiedByArgument"]
+            if r.get("choice") == "maintainer":
+                row["typed"] = True
+            if r.get("landsByPR"):
+                row["landsByPR"] = True
         out.append(row)
     return out
 
@@ -433,11 +579,26 @@ def diagnose(repo, rows, domain=None, for_skill=None):
 # --------------------------------------------------------------------------
 # Writing
 # --------------------------------------------------------------------------
-def write_atomic(path, text):
+def write_atomic(repo, rel, text):
+    try:
+        _write_atomic(repo, rel, text)
+    except OSError as exc:
+        raise Defect(f"cannot write {rel}: {exc.strerror or exc}")
+
+
+def _write_atomic(repo, rel, text):
+    path = repo.path / rel
+    refusal = repo.confined(rel)
+    if refusal:
+        raise Defect(f"refusing to write: {refusal}")
     fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".config_values.")
-    with os.fdopen(fd, "w") as fh:
+    with os.fdopen(fd, "w", newline="") as fh:
         fh.write(text)
     shutil.copymode(str(path), tmp)
+    refusal = repo.confined(rel)   # re-checked at the last moment: a link swapped in is refused, never followed
+    if refusal:
+        os.unlink(tmp)
+        raise Defect(f"refusing to write: {refusal}")
     os.replace(tmp, str(path))
 
 
@@ -473,12 +634,38 @@ def ensure_and_write(text, path_keys, value, annotate=None, overwrite=False):
         ann = member(node, "$" + leaf)
         if ann is None:
             text = insert_member(text, node, "$" + leaf, annotate, after_key=leaf)
-        elif json.loads(text[ann[1].start:ann[1].end]) != annotate:
-            text = replace_value(text, ann[1], annotate)
+        else:
+            old = json.loads(text[ann[1].start:ann[1].end])
+            if old != annotate and isinstance(old, str) and old.startswith(ANNOTATION_PREFIXES):
+                text = replace_value(text, ann[1], annotate)   # only this engine's own note is rewritten
     return text
 
 
+@contextlib.contextmanager
+def declaration_lock(repo):
+    """Serialise fill and set across processes: a second session's `set` waits for a running `fill`,
+    and each re-reads the declaration under the lock, so neither writes from a stale copy (QA-16)."""
+    d = repo.path / "nen"
+    if not d.is_dir() or d.is_symlink():
+        yield
+        return
+    fd = os.open(str(d), os.O_RDONLY)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        repo.texts.clear()
+        repo.errors.clear()
+        yield
+    finally:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        os.close(fd)
+
+
 def fill(repo, rows):
+    with declaration_lock(repo):
+        return _fill(repo, rows)
+
+
+def _fill(repo, rows):
     written = []
     for r in rows:
         state, _ = classify(repo, r)
@@ -487,12 +674,16 @@ def fill(repo, rows):
         placeholder = not present and "default" in r and state in (REQUIRED, ON_USE)
         if state not in FILLABLE and not placeholder:
             continue
-        ann = annotation(r["options"]) if r["kind"] == "enum" else None
-        new = ensure_and_write(repo.text(rel), r["path"].split("."),
-                               value if present else r["default"], annotate=ann)
+        ann = ann_for(r)
+        try:
+            new = ensure_and_write(repo.text(rel), r["path"].split("."),
+                                   value if present else r["default"], annotate=ann)
+        except Defect as exc:
+            written.append({"id": r["id"], "file": rel, "path": r["path"], "wrote": f"nothing — {exc}"})
+            continue
         if new != repo.texts[rel]:
             json.loads(new)
-            write_atomic(repo.path / rel, new)
+            write_atomic(repo, rel, new)
             repo.texts[rel] = new
             written.append({"id": r["id"], "file": rel, "path": r["path"],
                             "wrote": "annotation" if present else f"default {json.dumps(r['default'])}"})
@@ -500,6 +691,11 @@ def fill(repo, rows):
 
 
 def set_value(repo, rows, rid, literal):
+    with declaration_lock(repo):
+        return _set_value(repo, rows, rid, literal)
+
+
+def _set_value(repo, rows, rid, literal):
     row = next((r for r in rows if r["id"] == rid), None)
     if row is None:
         raise Defect(f"no catalogue row {rid!r}")
@@ -507,17 +703,33 @@ def set_value(repo, rows, rid, literal):
         value = json.loads(literal)
     except ValueError:
         raise Defect(f"--value must be a JSON literal (a string is quoted): {literal!r}")
-    if row["kind"] == "enum" and value not in row["options"]:
-        raise Defect(f"refusing {value!r}: {row['path']} is {annotation(row['options'])}")
+    if row["kind"] in ANNOTATED and not valid_for(row, value):
+        raise Defect(f"refusing {json.dumps(value)}: {row['path']} is {ann_for(row)}")
+    if row.get("candidatesFrom") and value is not None:
+        cands = candidates(repo, row)
+        if not in_options(value, cands or []):
+            raise Defect(f"refusing {json.dumps(value)}: it names no key of {row['candidatesFrom']} "
+                         f"({' | '.join(cands or []) or 'none declared'})")
     if row["kind"] == "secret-env" and not (isinstance(value, str) and ENV_NAME.match(value)):
         raise Defect(f"refusing: {row['path']} takes an environment-variable NAME, never the secret")
+    if row.get("nonProductionTarget") and value is not None:
+        _, targets = repo.lookup("nen/contract.json", "project.targets")
+        why = (targets or {}).get(value, {}).get("why", "") if isinstance(targets, dict) and isinstance(value, str) else ""
+        if "non-production" not in str(why).lower():
+            raise Defect(f"refusing {value!r}: it must name a project.targets key whose `why` reads "
+                         f"non-production (kagutsuchi § 2 reads it failing closed); production is mugetsu's at G3")
+    problems = secret_problems(value, row["path"])
+    if problems:
+        raise Defect("refusing to write a credential into a tracked file — export it and write only its "
+                     "environment-variable NAME: " + "; ".join(problems))
     rel = row["file"]
     if repo.text(rel) is None:
-        raise Defect(f"{rel} is absent or unparseable — nen scaffold init owns creating it")
-    ann = annotation(row["options"]) if row["kind"] == "enum" else None
+        why = repo.errors.get(rel, "absent — nen scaffold init owns creating it")
+        raise Defect(f"{rel}: {why}")
+    ann = ann_for(row)
     new = ensure_and_write(repo.text(rel), row["path"].split("."), value, annotate=ann, overwrite=True)
     json.loads(new)
-    write_atomic(repo.path / rel, new)
+    write_atomic(repo, rel, new)
     return {"id": rid, "file": rel, "path": row["path"], "value": value}
 
 
@@ -541,11 +753,13 @@ def report(cat, rows_out, as_json, title):
             if "question" in r:
                 print(f"        ? {r['question']}")
                 if r.get("options"):
-                    print(f"          options: {' | '.join(map(str, r['options']))}")
+                    label = ("candidates, for reference — typed, never picked, none starred"
+                             if r.get("typed") else "options")
+                    print(f"          {label}: {' | '.join(map(str, r['options']))}")
                 for step in r.get("setup", []):
                     print(f"          setup: {step}")
-                if r.get("satisfiedByArgument"):
-                    print(f"          (a typed {r['satisfiedByArgument']} satisfies it for that run)")
+                if r.get("landsByPR"):
+                    print("          lands through its declaration PR before it runs; the phase does not resume on it")
                 print(f"          → {r['write']}")
     n = sum(1 for r in rows_out if r["state"] in OUTSTANDING)
     print()
@@ -565,7 +779,7 @@ def self_test(root):
             failures.append(name)
 
     cat = {
-        "domains": {"development": "d", "deployment": "x"},
+        "domains": {"development": "d", "deployment": "x", "review": "r", "reporting": "p", "notifications": "n"},
         "values": [
             {"id": "a.flag", "file": "nen/workflow.json", "path": "mukai.autoEn", "domain": "development",
              "kind": "enum", "default": False, "options": [True, False], "readers": ["mukai"],
@@ -643,8 +857,8 @@ def self_test(root):
         except Defect:
             pass
         try:
-            set_value(Repo(repo_path), rows, "a.key", '"sk-live-abc123"')
-            check("set refuses a secret-shaped value for a secret-env row", False)
+            set_value(Repo(repo_path), rows, "a.key", '"the literal credential, not a name"')
+            check("set refuses anything but an environment-variable NAME on a secret-env row", False)
         except Defect:
             pass
         set_value(Repo(repo_path), rows, "a.target", '"beta"')
@@ -664,6 +878,43 @@ def self_test(root):
         check("fill leaves an invalid value alone",
               json.loads((repo_path / "nen/workflow.json").read_text())["mukai"]["autoEn"] == "maybe")
 
+        for bad in ('{"beta": {"args": ["--api-key", "PLAIN-LITERAL"], "why": "x"}}',
+                    '{"beta": {"args": ["--token=PLAIN"], "why": "x"}}',
+                    '{"beta": {"requiresEnv": ["not a name"], "why": "x"}}',
+                    '{"beta": {"apiKey": "plain-literal-value"}}',
+                    '{"beta": {"args": ["' + "gh" + 'p_abcdefghijklmnopqrstuvwxyz0123"]}}'):
+            before = (repo_path / "nen/workflow.json").read_text()
+            try:
+                set_value(Repo(repo_path), rows, "a.dir", bad)
+                check(f"set refuses a credential inside an object value: {bad}", False)
+            except Defect:
+                check("a refused value writes nothing", (repo_path / "nen/workflow.json").read_text() == before)
+        set_value(Repo(repo_path), rows, "a.dir",
+                  '{"beta": {"args": ["--api-key", "$BETA_KEY"], "requiresEnv": ["BETA_KEY"]}}')
+
+        outside = Path(d) / "outside"
+        outside.mkdir()
+        (outside / "workflow.json").write_text('{"private": "x"}\n')
+        linked = Path(d) / "linked"
+        (linked / "nen").mkdir(parents=True)
+        os.symlink(outside / "workflow.json", linked / "nen/workflow.json")
+        check("a symlinked declaration is blocked", diagnose(Repo(linked), rows)[0]["state"] == BLOCKED)
+        fill(Repo(linked), rows)
+        check("fill never writes through a symlinked declaration",
+              (outside / "workflow.json").read_text() == '{"private": "x"}\n'
+              and (linked / "nen/workflow.json").is_symlink())
+        try:
+            set_value(Repo(linked), rows, "a.mode", '"all"')
+            check("set refuses a symlinked declaration", False)
+        except Defect:
+            pass
+        linkdir = Path(d) / "linkdir"
+        linkdir.mkdir()
+        os.symlink(outside, linkdir / "nen")
+        fill(Repo(linkdir), rows)
+        check("fill never writes through a symlinked nen/",
+              (outside / "workflow.json").read_text() == '{"private": "x"}\n')
+
         (repo_path / "nen/workflow.json").write_text('{"mukai": ')
         check("an unparseable declaration is blocked",
               diagnose(Repo(repo_path), rows)[0]["state"] == BLOCKED)
@@ -672,6 +923,141 @@ def self_test(root):
               diagnose(Repo(repo_path), rows)[0]["state"] == FILE_MISSING)
         check("fill never creates a declaration", fill(Repo(repo_path), rows) == []
               and not (repo_path / "nen/workflow.json").exists())
+
+    # the remaining branches: not-applicable, null handling, stale annotation, need through main()
+    extra = [
+        {"id": "b.enum", "file": "nen/workflow.json", "path": "x.mode", "domain": "development",
+         "kind": "enum", "default": "a", "options": ["a", "b"], "readers": ["mukai"], "describe": "x"},
+        {"id": "b.target", "file": "nen/workflow.json", "path": "deploy.defaultTarget", "domain": "deployment",
+         "kind": "open", "default": None, "nullIsAnswer": True, "choice": "maintainer",
+         "nonProductionTarget": True, "readers": ["kagutsuchi"], "question": "Which?",
+         "when": "nen/contract.json#project.targets", "candidatesFrom": "nen/contract.json#project.targets",
+         "describe": "x"},
+        {"id": "b.env", "file": "nen/workflow.json", "path": "x.keyEnv", "domain": "deployment",
+         "kind": "secret-env", "readers": ["kagutsuchi"], "requiredBy": ["kagutsuchi"], "question": "?",
+         "describe": "x"},
+    ]
+    check("extra fixture rows are valid", catalogue_problems(root, cat, extra) == [])
+    with tempfile.TemporaryDirectory() as d:
+        rp = Path(d)
+        (rp / "nen").mkdir()
+        (rp / "nen/workflow.json").write_text(
+            '{\n  "x": {"mode": null, "keyEnv": "sk-live-not-a-name"},\n  "deploy": {"defaultTarget": null}\n}\n')
+        st = {r["id"]: r for r in diagnose(Repo(rp), extra)}
+        check("a when-row whose source is absent is not-applicable", st["b.target"]["state"] == NA)
+        check("a present null on an enum outside its options is invalid", st["b.enum"]["state"] == INVALID)
+        check("a secret-env value that is not a NAME is invalid in diagnose", st["b.env"]["state"] == INVALID)
+        (rp / "nen/contract.json").write_text(
+            '{"project": {"targets": {"beta": {"why": "non-production beta"}, "store": {"why": "the App Store"}}}}\n')
+        st = {r["id"]: r for r in diagnose(Repo(rp), extra)}
+        check("a deliberate null is an answer: optional, offered, never outstanding",
+              st["b.target"]["state"] == OPTIONAL and st["b.target"].get("typed"))
+        try:
+            set_value(Repo(rp), extra, "b.target", '"store"')
+            check("set refuses a production default target", False)
+        except Defect:
+            pass
+        set_value(Repo(rp), extra, "b.target", '"beta"')
+        check("set accepts a non-production default target",
+              json.loads((rp / "nen/workflow.json").read_text())["deploy"]["defaultTarget"] == "beta")
+        (rp / "nen/workflow.json").write_text('{\n  "x": {"mode": "b", "$mode": "one of: stale"}\n}\n')
+        fill(Repo(rp), extra[:1])
+        check("a stale annotation is rewritten in place",
+              json.loads((rp / "nen/workflow.json").read_text())["x"]["$mode"] == "one of: a | b")
+        import io
+        import contextlib
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc_known = main(["need", "--repo", str(rp), "--skill", "gyo", "--hatsu-root", str(root)])
+            rc_cat = main(["check-catalogue", "--hatsu-root", str(root)])
+        check("need through main exits 0 when nothing the skill needs is missing", rc_known == 0)
+        check("check-catalogue exits 0 on the shipped catalogue", rc_cat == 0)
+        try:
+            with contextlib.redirect_stdout(buf):
+                main(["need", "--repo", str(rp), "--skill", "no-such-skill", "--hatsu-root", str(root)])
+            check("need refuses an unknown skill", False)
+        except Defect:
+            pass
+
+    # Nobunaga's corpus: CRLF, truncation, non-object parent, typed options, foreign notes, subsets
+    more = [
+        {"id": "c.flag", "file": "nen/workflow.json", "path": "mukai.autoEn", "domain": "review",
+         "kind": "enum", "default": False, "options": [True, False], "readers": ["mukai"], "describe": "x"},
+        {"id": "c.dir", "file": "nen/workflow.json", "path": "reports.dir", "domain": "reporting",
+         "kind": "open", "default": "Reports", "readers": ["spiritual-message"], "describe": "x"},
+        {"id": "c.rungs", "file": "nen/workflow.json", "path": "notifications.rungs", "domain": "notifications",
+         "kind": "subset", "default": ["push", "os"], "options": ["push", "os", "sound"],
+         "readers": ["jutaisho"], "describe": "x"},
+    ]
+    check("subset fixture rows are valid", catalogue_problems(root, cat, more) == [])
+    with tempfile.TemporaryDirectory() as d:
+        rp = Path(d)
+        (rp / "nen").mkdir()
+        wf = rp / "nen/workflow.json"
+        wf.write_bytes(b'{\r\n  "mukai": {\r\n    "autoEn": false\r\n  }\r\n}\r\n')
+        fill(Repo(rp), more)
+        raw = wf.read_bytes()
+        check("CRLF line endings survive fill", b"\r\n" in raw and b"\n" not in raw.replace(b"\r\n", b""))
+        check("a subset is annotated with any-of", json.loads(raw)["notifications"]["$rungs"] == "any of: push | os | sound")
+        for broken in ('{"mukai": {"autoEn": false}', "{"):
+            wf.write_text(broken)
+            check(f"a truncated declaration is blocked, never a crash: {broken!r}",
+                  diagnose(Repo(rp), more)[0]["state"] == BLOCKED)
+        wf.write_text('{"reports": "Reports", "mukai": {}}\n')
+        st = {r["id"]: r["state"] for r in diagnose(Repo(rp), more)}
+        check("a non-object parent is invalid in diagnose", st["c.dir"] == INVALID)
+        wrote = {w["id"]: w["wrote"] for w in fill(Repo(rp), more)}
+        check("fill skips a non-object parent and still writes the rows after it",
+              "c.dir" not in wrote and json.loads(wf.read_text())["mukai"]["autoEn"] is False)
+        wf.write_text('{"mukai": {"autoEn": 1}}\n')
+        check("1 is not true: a typed enum check", diagnose(Repo(rp), more)[0]["state"] == INVALID)
+        try:
+            set_value(Repo(rp), more, "c.flag", "1")
+            check("set refuses 1 for a boolean option set", False)
+        except Defect:
+            pass
+        wf.write_text('{"mukai": {"autoEn": false, "$autoEn": "keep false until the beta"}}\n')
+        fill(Repo(rp), more)
+        check("a maintainer's own note is never overwritten",
+              json.loads(wf.read_text())["mukai"]["$autoEn"] == "keep false until the beta")
+        wf.write_text('{"notifications": {"rungs": ["push", "pager"]}}\n')
+        check("a subset item outside the options is invalid",
+              {r["id"]: r["state"] for r in diagnose(Repo(rp), more)}["c.rungs"] == INVALID)
+        (rp / "nen/contract.json").write_text('{"project": {"targets": {"beta": {"why": "non-production"}}}}\n')
+        wf.write_text('{"deploy": {"defaultTarget": "gamma"}}\n')
+        tgt = [dict(extra[1])]
+        check("a default naming an undeclared target is invalid", diagnose(Repo(rp), tgt)[0]["state"] == INVALID)
+        try:
+            set_value(Repo(rp), tgt, "b.target", '"gamma"')
+            check("set refuses an undeclared target", False)
+        except Defect:
+            pass
+
+    # Phinks's corpus: duplicates, deep nesting, read-only, gates routing, a derived default never written
+    with tempfile.TemporaryDirectory() as d:
+        rp = Path(d)
+        (rp / "nen").mkdir()
+        wf = rp / "nen/workflow.json"
+        wf.write_text('{"mukai": {"autoEn": true}, "mukai": {}}\n')
+        check("duplicate keys are blocked", diagnose(Repo(rp), more)[0]["state"] == BLOCKED)
+        wf.write_text("[" * 50000 + "]" * 50000)
+        check("deep nesting is blocked, never a traceback", diagnose(Repo(rp), more)[0]["state"] == BLOCKED)
+        gates_row = [{"id": "g", "file": "nen/gates.json", "path": "approval_policy", "domain": "review",
+                      "kind": "open", "readers": ["sharingan"], "question": "?", "describe": "x"}]
+        check("an absent gates.json is not routed to nen scaffold init",
+              "does not write it" in diagnose(Repo(rp), gates_row)[0]["detail"])
+        wf.write_text('{"mukai": {}}\n')
+        os.chmod(rp / "nen", 0o555)
+        try:
+            fill(Repo(rp), more)
+            check("a read-only nen/ is refused cleanly", False)
+        except Defect:
+            pass
+        finally:
+            os.chmod(rp / "nen", 0o755)
+    shipped = {r["id"]: r for r in load_catalogue(root)[1]}
+    check("profile.default is derived from profile.allowed, so fill never writes it",
+          "default" not in shipped.get("workflow.profile.default", {"default": 1}))
 
     real_cat, real_rows = load_catalogue(root)
     probs = catalogue_problems(root, real_cat, real_rows)
@@ -720,6 +1106,8 @@ def main(argv):
     if not repo_path.is_dir():
         raise Defect(f"no such repository: {repo_path}")
     repo = Repo(repo_path)
+    if opts.get("domain") and opts["domain"] not in cat.get("domains", {}):
+        raise Defect(f"no domain {opts['domain']!r}; the catalogue declares {', '.join(cat.get('domains', {}))}")
     if mode == "diagnose":
         out = diagnose(repo, rows, opts.get("domain"))
         report(cat, out, opts.get("json"), "diagnose")
@@ -738,6 +1126,8 @@ def main(argv):
     if mode == "need":
         if "skill" not in opts:
             raise Defect("need takes --skill <name>")
+        if not (root / "claude" / "skills" / opts["skill"] / "SKILL.md").is_file():
+            raise Defect(f"no skill {opts['skill']!r} under {root / 'claude' / 'skills'} — a typo would read clean")
         out = [r for r in diagnose(repo, rows, for_skill=opts["skill"])
                if opts["skill"] in r["requiredBy"] and r["state"] in (REQUIRED, INVALID, FILE_MISSING, BLOCKED)]
         if opts.get("json"):
@@ -751,7 +1141,7 @@ def main(argv):
         if "id" not in opts or "value" not in opts:
             raise Defect("set takes --id <catalogue id> --value <JSON literal>")
         res = set_value(repo, rows, opts["id"], opts["value"])
-        print(f"set {res['file']} → {res['path']} = {json.dumps(res['value'])}; "
+        print(f"set {res['file']} → {res['path']} = {shown(res['value'])}; "
               f"now run nen schema check --repo {repo_path}")
         return 0
     raise Defect(f"unknown mode {mode!r}")
@@ -761,5 +1151,8 @@ try:
     sys.exit(main(sys.argv[1:]))
 except Defect as exc:
     print(f"config_values.sh: {exc}", file=sys.stderr)
+    sys.exit(2)
+except Exception as exc:  # noqa: BLE001 -- exit 1 means "work remains"; a crash must never read as that
+    print(f"config_values.sh: internal error, nothing further written: {type(exc).__name__}: {exc}", file=sys.stderr)
     sys.exit(2)
 PY

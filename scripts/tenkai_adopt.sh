@@ -30,6 +30,12 @@
 # `nen/contract.json`. A Nen-owned operation is never improvised in prose, and it
 # is not improvised in a script either.
 #
+# THE ONE EXCEPTION, ruled 2026-10-01 (docs/ROSTER.md): the `config/defaults`
+# item's repair runs scripts/config_values.sh fill, which writes absent catalogue
+# defaults and their `$<key>` option notes into a declaration that ALREADY
+# EXISTS — behaviour-neutral by construction, never a new file, never a value
+# somebody set. Creating a declaration is still nen's (`nen scaffold init`).
+#
 # USAGE
 #   scripts/tenkai_adopt.sh diagnose      --repo <path> [--slug <owner/name>] [--json]
 #   scripts/tenkai_adopt.sh apply         --repo <path> [--slug <owner/name>] [--json]
@@ -1791,12 +1797,18 @@ class ConfigValues(Item):
 
     def detect(self, ctx):
         values = self._engine(ctx, "diagnose")
+        blocked = sorted({v["file"] for v in values if v["state"] == "blocked"})
+        if blocked:
+            return self.row(BLOCKED, "not read — " + ", ".join(blocked) + " cannot be read safely (unparseable, "
+                            "a symlink, or outside the repository); its own row names why",
+                            "repair the declaration by hand, then re-diagnose")
+        absent = sorted({v["file"] for v in values if v["state"] == "file-missing"})
+        not_read = (" (not read: " + ", ".join(absent) + " absent — its own row routes it)") if absent else ""
         if self.id == "config/defaults":
             owed = [v for v in values if v["state"] in self.FILL_STATES]
             if not owed:
                 return self.row(SATISFIED, "every settable value with a default is written out, and every "
-                                "fixed-set value carries its `$<key>` options (or no declaration exists yet "
-                                "to write into — its own row routes it)")
+                                "fixed-set value carries its `$<key>` options" + not_read)
             return self.row(MISSING, f"{len(owed)} value(s) not written out: "
                             + ", ".join(v["id"] for v in owed),
                             f"apply runs config_values.sh fill --repo {ctx.repo}")
@@ -1804,7 +1816,7 @@ class ConfigValues(Item):
         later = [v for v in values if v["state"] in ("asked-on-use", "optional")]
         tail = (f"; {len(later)} more offered in § 6d (" + ", ".join(v["id"] for v in later) + ")") if later else ""
         if not asks:
-            return self.row(SATISFIED, "every value a skill needs is set" + tail)
+            return self.row(SATISFIED, "every value a skill needs is set" + not_read + tail)
         return self.row(ROUTED, f"{len(asks)} value(s) a skill needs have no default: "
                         + ", ".join(v["id"] for v in asks) + tail,
                         f"tenkai § 6d asks each; config_values.sh set --repo {ctx.repo} --id <id> --value <JSON>")
@@ -2831,8 +2843,13 @@ def self_test() -> int:
     check("apply never answers a needed value", needed.repair(ctx_for(dv))["state"] == ROUTED
           and "scopes" not in written.get("review", {}))
     dnone = fixture()
-    check("no declaration yet: nothing to write, its own row routes it",
-          defaults.detect(ctx_for(dnone))["state"] == SATISFIED)
+    check("no declaration yet: nothing to write, and the row says it read nothing",
+          defaults.detect(ctx_for(dnone))["state"] == SATISFIED
+          and "not read" in defaults.detect(ctx_for(dnone))["detail"])
+    dblk = fixture()
+    (dblk / "nen" / "workflow.json").write_text("{not json")
+    check("an unparseable declaration is BLOCKED, never 'every value is set'",
+          needed.detect(ctx_for(dblk))["state"] == BLOCKED and defaults.detect(ctx_for(dblk))["state"] == BLOCKED)
 
     print("\nblocked states are reported, never repaired around")
     d5 = fixture()

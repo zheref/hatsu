@@ -1,6 +1,6 @@
 {
   "$schema": "hatsu.config-catalogue/v1",
-  "$comment": "Every value a consumer may set in its nen/workflow.json, nen/gates.json or nen/contract.json that a Hatsu skill reads, with the default its readers apply when it is absent. The maintainer's ruling of 2026-10-01 (docs/ROSTER.md § Rulings of 2026-10-01): the configuration files show every optionally settable value at its default, a fixed-set value carries a `$<key>` sibling listing its options, and a skill that needs a value nobody has set guides the maintainer through setting it instead of stopping. scripts/config_values.sh is the only reader: `diagnose` reports, `fill` writes the defaults and annotations (behaviour-neutral by construction), `need --skill <s>` lists what a phase cannot run without, `set` writes one chosen value. Each `default` is the one canon already states, cited in `source`; a value whose default is derived at run time (iteration.lane from project.defaultLane, reports.timeZone from the host) is not listed, because writing a snapshot of a derived value would stop it following its source. Row fields: `kind` enum (a fixed set, `options` lists it) | open (any value of its shape) | external (needs a step on an outside platform, `setup` names it) | secret-env (an environment-variable NAME, never the secret); `requiredBy` the skills that cannot run while it is unset; `ask` adoption (Tenkai asks for it) | on-use (only some repositories need it: Tenkai offers it, and the first skill in `requiredBy` to run asks then); `when` a <file>#<path> that must be non-empty for the row to apply; `candidatesFrom` a <file>#<path> whose keys are the picker's options. `nen schema check` stays the authority on each file's validity; this catalogue is Hatsu's list of what Hatsu reads.",
+  "$comment": "The values a consumer may set in its nen/workflow.json, nen/gates.json or nen/contract.json that a Hatsu skill reads and that either carry a canon default safe to write out or are needed by a skill, with the default its readers apply when it is absent. The maintainer's ruling of 2026-10-01 (docs/ROSTER.md § Rulings of 2026-10-01): the configuration files show every optionally settable value at its default, a fixed-set value carries a `$<key>` sibling listing its options, and a skill that needs a value nobody has set guides the maintainer through setting it instead of stopping. scripts/config_values.sh is the only reader: `diagnose` reports, `fill` writes the defaults and annotations (behaviour-neutral by construction), `need --skill <s>` lists what a phase cannot run without, `set` writes one chosen value. Each `default` is the one canon already states, cited in `source`, and `check-catalogue` holds it against docs/WORKFLOW.md's key tables. Two kinds of value are not listed, because writing a snapshot would stop it following its source: one derived at run time (iteration.lane from project.defaultLane, reports.timeZone from the host), and one whose default a reader resolves from a Hatsu canon file only when the key is absent (gates.json round_policy, sharingan § 6 and contracts/round_policy.default.json). NOT LISTED, each for a stated reason (a snapshot or a guess would change behaviour, or nen owns the key): values derived at run time (iteration.lane, reports.timeZone; profile.default, which nen derives from profile.allowed, is listed for its options and never given a default); values a reader resolves from a Hatsu canon file only when absent (gates round_policy.minRounds/.maxRounds); values nen also reads whose built-in default may differ from the skills' (commits.allowedAttributionTrailers, commits.forbiddenTrailers, commits.runTrailer, futon.advanceGo, gates round_policy.stallMinutes, gates version); structural blocks whose shape is the repository's own (models, reports.sections, gates delivery, dependabot_carve_out, check_exclusions, reviewer_fallback, default_approvers, base_reviewers); and nen/repos.json, nen/labels.json and the YAML files, which tenkai's other items own. Row fields: `kind` enum (a fixed set, `options` lists it) | subset (a list drawn from a fixed set, annotated `any of:`) | open (any value of its shape) | external (needs a step on an outside platform, `setup` names it) | secret-env (an environment-variable NAME, never the secret); `requiredBy` the skills that cannot run while it is unset; `ask` adoption (Tenkai asks for it) | on-use (only some repositories need it: Tenkai offers it, and the first skill in `requiredBy` to run asks then); `when` a <file>#<path> that must be non-empty for the row to apply; `candidatesFrom` a <file>#<path> whose keys are the picker's options; `nullIsAnswer` a null its readers treat as a deliberate answer (ask on each call), never outstanding; `choice: maintainer` a value WORKFLOW § 4 says is typed, never picked (row missing-maintainer-choice): candidates shown for reference, none starred; `nonProductionTarget` `set` refuses a target whose `why` does not read non-production; `landsByPR` a value that lands through its declaration PR before it runs, so the phase does not resume on it. `nen schema check` stays the authority on each file's validity; this catalogue is Hatsu's list of what Hatsu reads.",
   "domains": {
     "development": "the inner loop: which checks run while authoring, what launches",
     "versioning": "branches, commits and tags",
@@ -149,19 +149,16 @@
       "domain": "development",
       "kind": "open",
       "default": null,
-      "describe": "The project.launch target amaterasu starts at the end of a turn. null with targets declared means every turn asks.",
+      "describe": "The project.launch target amaterasu starts at the end of a turn. null is an answer: with targets declared, each turn asks.",
       "readers": [
         "amaterasu",
         "ren"
-      ],
-      "requiredBy": [
-        "amaterasu"
       ],
       "when": "nen/contract.json#project.launch",
       "candidatesFrom": "nen/contract.json#project.launch",
       "question": "Which launch target should every turn start by default?",
       "source": "amaterasu § 1",
-      "satisfiedByArgument": "hatsu:amaterasu <target>"
+      "nullIsAnswer": true
     },
     {
       "id": "workflow.launch.fallback",
@@ -176,7 +173,8 @@
       ],
       "when": "nen/contract.json#project.launch",
       "candidatesFrom": "nen/contract.json#project.launch",
-      "source": "amaterasu § 3"
+      "source": "amaterasu § 3",
+      "nullIsAnswer": true
     },
     {
       "id": "workflow.deploy.defaultTarget",
@@ -185,18 +183,17 @@
       "domain": "deployment",
       "kind": "open",
       "default": null,
-      "describe": "The NON-PRODUCTION project.targets key a hatsu:kagutsuchi with no typed target sends to. A typed target always overrides it; a production target here is refused.",
+      "describe": "The NON-PRODUCTION project.targets key an untargeted hatsu:kagutsuchi sends to. null is an answer: the target is typed on each call. A typed target always overrides it; a production target here is refused by `set` and by kagutsuchi.",
       "readers": [
-        "kagutsuchi"
-      ],
-      "requiredBy": [
         "kagutsuchi"
       ],
       "when": "nen/contract.json#project.targets",
       "candidatesFrom": "nen/contract.json#project.targets",
-      "question": "Which non-production target should an untargeted hatsu:kagutsuchi upload to?",
+      "question": "Should an untargeted hatsu:kagutsuchi send to a standing non-production target? Typed, never picked: name one of the declared non-production targets, or keep null and type the target on each call.",
       "source": "kagutsuchi § 1; docs/WORKFLOW.md § 2 (deploy)",
-      "satisfiedByArgument": "hatsu:kagutsuchi <target>"
+      "nullIsAnswer": true,
+      "choice": "maintainer",
+      "nonProductionTarget": true
     },
     {
       "id": "workflow.reports.dir",
@@ -307,8 +304,13 @@
       "file": "nen/workflow.json",
       "path": "notifications.rungs",
       "domain": "notifications",
-      "kind": "open",
+      "kind": "subset",
       "default": [
+        "push",
+        "os",
+        "sound"
+      ],
+      "options": [
         "push",
         "os",
         "sound"
@@ -351,44 +353,36 @@
       "source": "docs/WORKFLOW.md § 2 (notifications)"
     },
     {
-      "id": "workflow.commits.runTrailer",
-      "file": "nen/workflow.json",
-      "path": "commits.runTrailer",
-      "domain": "versioning",
-      "kind": "open",
-      "default": null,
-      "describe": "A trailer key nen's commit-msg hook stamps with the run id; null stamps none.",
-      "readers": [
-        "kokusen"
-      ],
-      "source": "docs/WORKFLOW.md § 2 (commits)"
-    },
-    {
       "id": "workflow.profile.default",
       "file": "nen/workflow.json",
       "path": "profile.default",
       "domain": "development",
       "kind": "enum",
-      "default": "standard",
       "options": [
         "fast",
         "standard",
         "thorough"
       ],
-      "describe": "The ren profile a turn runs under when none is typed.",
+      "describe": "The ren profile a turn runs under when none is typed. Derived by nen from profile.allowed when absent, so fill annotates it and never writes a default.",
       "readers": [
         "ren",
         "amaterasu"
       ],
-      "source": "docs/WORKFLOW.md § 2 (profile)"
+      "source": "docs/WORKFLOW.md § 2 (profile)",
+      "question": "Which ren profile should a turn run under when none is typed? Absent, nen derives it from profile.allowed (standard when allowed lists it)."
     },
     {
       "id": "workflow.profile.allowed",
       "file": "nen/workflow.json",
       "path": "profile.allowed",
       "domain": "development",
-      "kind": "open",
+      "kind": "subset",
       "default": [
+        "fast",
+        "standard",
+        "thorough"
+      ],
+      "options": [
         "fast",
         "standard",
         "thorough"
@@ -487,32 +481,6 @@
       "source": "docs/GATE-CONFIGURATION.md § 3"
     },
     {
-      "id": "gates.round_policy.minRounds",
-      "file": "nen/gates.json",
-      "path": "round_policy.minRounds",
-      "domain": "review",
-      "kind": "open",
-      "default": 1,
-      "describe": "Reviewer rounds owed before readiness; sharingan applies the canon default when absent.",
-      "readers": [
-        "sharingan"
-      ],
-      "source": "contracts/round_policy.default.json"
-    },
-    {
-      "id": "gates.round_policy.maxRounds",
-      "file": "nen/gates.json",
-      "path": "round_policy.maxRounds",
-      "domain": "review",
-      "kind": "open",
-      "default": 3,
-      "describe": "The ceiling on reviewer rounds sharingan requests on one PR.",
-      "readers": [
-        "sharingan"
-      ],
-      "source": "contracts/round_policy.default.json"
-    },
-    {
       "id": "contract.project.defaultLane",
       "file": "nen/contract.json",
       "path": "project.defaultLane",
@@ -526,15 +494,10 @@
         "rasengan",
         "tenkai"
       ],
-      "requiredBy": [
-        "susanoo",
-        "kagutsuchi"
-      ],
       "when": "nen/contract.json#project.lanes",
       "candidatesFrom": "nen/contract.json#project.lanes",
       "question": "Which lane is this repository's default?",
-      "source": "susanoo § 1",
-      "satisfiedByArgument": "--lane <lane>"
+      "source": "susanoo § 1"
     },
     {
       "id": "contract.project.kind",
@@ -569,8 +532,7 @@
         "getsuga"
       ],
       "requiredBy": [
-        "kagutsuchi",
-        "mugetsu"
+        "kagutsuchi"
       ],
       "ask": "on-use",
       "question": "Where should builds go — a beta channel (TestFlight, Play internal, a staging URL) and the production store or environment?",
@@ -579,7 +541,8 @@
         "Create its upload credential there (App Store Connect API key, Play service account, deploy token) and export it under an environment-variable NAME — only the name is written",
         "A new target lands through its declaration PR at this repository's gate before it runs"
       ],
-      "source": "kagutsuchi § 2; mugetsu § 1; docs/WORKFLOW.md § 4 step 3"
+      "source": "kagutsuchi § 2; mugetsu § 1; docs/WORKFLOW.md § 4 step 3",
+      "landsByPR": true
     },
     {
       "id": "contract.project.launch",

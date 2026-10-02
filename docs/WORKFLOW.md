@@ -1016,7 +1016,8 @@ scaffolding piece — **does not end the operation**. In order:
    init` for a nen declaration, `scripts/tenkai_adopt.sh apply` for a Hatsu-owned piece,
    [`jujutsu`](../claude/skills/jujutsu/SKILL.md) for a device, the file's own key otherwise — validate
    with `nen schema check`, and say which file changed. **Any write to a tracked file needs the step-2
-   answer; nothing is written unasked.** A tracked file rides this effort's branch, or its own
+   answer; nothing is written unasked** — Tenkai's `fill` included, whose answer is Tenkai § 1's
+   Apply, naming the values it writes. A tracked file rides this effort's branch, or its own
    declaration PR at that repository's gate when the effort is elsewhere. **A new lane, a verb `argv`
    or a `project.targets` entry lands through its declaration PR at that repository's gate before it
    runs** — never executed from an unmerged edit. **A value that looks like a secret is never
@@ -1032,14 +1033,9 @@ scaffolding piece — **does not end the operation**. In order:
 
 **What counts as "required" is data, not each skill's memory** (the maintainer's ruling of
 2026-10-01, [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-01*): [`contracts/config-catalogue.json`](../contracts/config-catalogue.json)
-names, per value, its default, its options when it is a fixed set, and the skills that cannot run
-without it. Every phase's warm-up asks [`scripts/config_values.sh`](../scripts/config_values.sh)
-`need --skill <phase>` ([`ten`](../claude/skills/ten/SKILL.md) § 6, step 5b), and each row it prints
-is a step-2 question here — its `question`, its options or `candidatesFrom` keys, its outside-platform
-`setup` steps named — written on the answer by `config_values.sh set`, then step 3's validation. A
-value the invocation typed (a target, a lane) satisfies its row for that run. Tenkai writes every
-defaulted value out with its `$<key>` options and asks the rest up front
-([`tenkai`](../claude/skills/tenkai/SKILL.md) § 6d), so a configuration file shows what is left to set.
+names each settable value, its default and the skills that cannot run without it. Every phase's
+warm-up asks for that phase's missing ones ([`ten`](../claude/skills/ten/SKILL.md) § 6, step 5b) as
+step-2 questions here; the mechanics are [`tenkai`](../claude/skills/tenkai/SKILL.md) § 6d's.
 
 **Every skill routes a missing repository declaration through Tenkai's diagnosis and guided
 readiness pass**, then resumes its own verb after validation. The caller remains responsible for

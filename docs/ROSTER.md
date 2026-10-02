@@ -906,10 +906,13 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
 
 | Ruling | What it says |
 |---|---|
-| **One list of what is settable** | [`contracts/config-catalogue.json`](../contracts/config-catalogue.json) lists every consumer value a Hatsu skill reads in `nen/workflow.json`, `nen/gates.json` and `nen/contract.json`: its default as canon states it, its options when it is a fixed set, its readers, the skills that cannot run without it, and any outside-platform setup. [`scripts/config_values.sh`](../scripts/config_values.sh) is its only reader |
+| **One list of what is settable** | [`contracts/config-catalogue.json`](../contracts/config-catalogue.json) lists the consumer values Hatsu skills read in `nen/workflow.json`, `nen/gates.json` and `nen/contract.json` that carry a canon default safe to write out or that a skill needs — and names every key it leaves out, with the reason: its default as canon states it, its options when it is a fixed set, its readers, the skills that cannot run without it, and any outside-platform setup. [`scripts/config_values.sh`](../scripts/config_values.sh) is its only reader |
 | **Written out at the default** | Tenkai's `apply` writes every absent value that has a default at that default, and a `$<key>` sibling beside each fixed-set value naming its options (`"$autoEn": "one of: true \| false"`) — [`tenkai`](../claude/skills/tenkai/SKILL.md) § 6d. nen reads `$`-prefixed keys as metadata. It is the one write the engine makes into a nen declaration, and it is behaviour-neutral: never a new file, never a set value rewritten, never a value without a default |
 | **Tenkai asks for every value a skill needs** | by domain — development, versioning, testing, review, reporting, notifications, deployment, publishing — naming each outside-platform step (store records, API keys as environment-variable names, reviewer apps, runner hosts). Values only some repositories need are offered and may be deferred to first use |
-| **A missing value is never a hard stop** | every phase's warm-up runs `config_values.sh need --skill <phase>` ([`ten`](../claude/skills/ten/SKILL.md) § 6, step 5b); each value that phase needs and nobody set is asked, set up and the phase resumed — [`WORKFLOW.md`](WORKFLOW.md) § 4, unchanged in its gates: a secret, a human gate or a G3 go is still never asked as configuration |
+| **A missing value is never a hard stop** | every phase's warm-up runs `config_values.sh need --skill <phase>` ([`ten`](../claude/skills/ten/SKILL.md) § 6, step 5b); each value that phase needs and nobody set is asked, set up and the phase resumed — [`WORKFLOW.md`](WORKFLOW.md) § 4, unchanged in its gates: a secret, a human gate or a G3 go is still never asked as configuration, and a value WORKFLOW § 4 says is *typed, never picked* (row `missing-maintainer-choice`, the 2026-09-23 class — a deploy target among them) stays typed: its candidates are listed for reference, none starred |
+
+---
+
 ## Rulings of 2026-09-30 — rikugan is callable; nen is bound on the host at session start; worktrees live under `.nen/worktrees/<surface>`
 
 **The maintainer's requests, verbatim** (2026-09-30):
