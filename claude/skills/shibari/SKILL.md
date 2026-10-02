@@ -66,7 +66,7 @@ disclosed as its own `## Completion checklist` line — `injected attribution tr
 published before the switch; not rewritten` — not in the ledger.
 
 **The body is [`templates/pr-body.md`](../../../templates/pr-body.md), filled** — its parts in order,
-the optional ones as its own comments say, § 4's three checks commented at its top. The target's own
+the optional ones as its own comments say, § 4's checks commented at its top. The target's own
 template governs the section *names* where it has one, and **the `UZF-26` evidence shape is
 [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The UZF-26 evidence shape***. **Every screenshot is a
 cell of that section's table** — states as named columns, variants as labelled rows, one fixed-width
@@ -76,13 +76,12 @@ body is written**, on the first write and on every rewrite after a review, which
 
 **Associated issues — body AND Development** (ruling 2026-09-12), which shibari enforces:
 
-- **Every** issue the PR addresses appears in **both**, on single-issue and combined PRs, at creation,
-  at every scope amendment and at handover; the body table carries each canonical URL, the scope this
-  PR implements, and whether merging **completes** it or delivers part, with prerequisites listed
-  separately and a PR with no associated issue saying so.
-- **Only a completes-row links**, by its own `Closes <ref>` line (`owner/name#N` across repositories)
-  on a default-branch PR, else through GitHub's Development sidebar; a body mention is not proof, and
-  § 4's guard checks it live. **Never invent a Nen link verb; never assume `Part of #N` links.**
+- **Every** issue the PR addresses is in the **body** table (canonical URL, scope, and a *Merging
+  this* verdict from the template's closed vocabulary) on single-issue and combined PRs, at creation,
+  every scope amendment and handover; prerequisites listed separately, a PR with none saying so.
+- **Only a closing row is in Development** (zheref/hatsu#203): its own `Closes <ref>` line on a
+  default-branch PR, else the sidebar; a body mention is not proof. **Never invent a Nen link verb;
+  never assume `Part of #N` links.**
 - **Linking and completion are different claims**: never mislabel partial work as complete to tidy the
   sidebar, never change auto-close settings, preserve a partial issue's remaining scope, and report an
   auto-close conflict for the maintainer's disposition before merge.
@@ -99,13 +98,13 @@ git -C <path> fetch origin <branch>
 git -C <path> rev-parse HEAD refs/remotes/origin/<branch>     # the two MUST be equal
 nen repo resolve --repo <path> --from <path>                  # -> <owner>/<name> (<CODE>)
 nen ref format --code <CODE> --kind PR --number <n>
-nen pr open --target <owner/name> --base <branch.base> --title-file <abs> --body-file <abs> \
-  [--head <branch>] [--draft] [--dry-run] [--json]   # title-file: the one commit's subject
-
 nen pr body-check --body-from <abs path> --requirements-from <path>
+"$hatsu_root/scripts/pr_development_link_check.sh" --body <abs path> --target <owner/name>
 nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,nen/,schemas/,agents/,.github/workflows/" \
   --fragment-dir changelog.d --files <the changed paths> --head-changelog <path to CHANGELOG.md> \
   [--body-from <abs path>]
+nen pr open --target <owner/name> --base <branch.base> --title-file <abs> --body-file <abs> \
+  [--head <branch>] [--draft] [--dry-run] [--json]   # title-file: the one commit's subject
 nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-run] [--json]
 "$hatsu_root/scripts/pr_development_link_check.sh" --pr <owner/name#n>
 ```
@@ -121,13 +120,14 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
   **Shibari derives the gate and never labels one**: a label is a readiness
   claim, and readiness is `nen pr ready`'s verdict inside [`en`](../en/SKILL.md), after this run (in `zheref/hatsu`, `pr-readiness.yml` publishes it as the `readiness` check; shibari never
   writes that either).
-- **The body is written back only after all three checks have run.** The create is the first write and
+- **The body is written back only after every check has run.** The create is the first write and
   **every later revision is an edit**: `nen pr edit-body` replaces the body outright and **certifies
   the number before any write**, refusing a 404/410. **A relative `--body-file` resolves against
   `--repo`'s root**, so the body is written to an **absolute** path.
-- **The Development guard runs after `pr open` and each `pr edit-body`** (zheref/hatsu#203): `1`
-  names every missing or extra link, fixed in the body or the sidebar, never claimed; `2` is no pass.
-  **`en`/`sharingan` re-run it on any body rewrite, quoting its `0` beside `nen pr ready`.**
+- **The Development guard**: `--body` beside `body-check` before every write, `--pr` after `pr open`
+  and each `edit-body`; a refusal is fixed in the body or the sidebar, never claimed, and off the
+  default branch it says `retarget-pending`. **`en`/`sharingan` re-run it on any body rewrite, quoting
+  its `0` beside `nen pr ready`.**
 
 ## 5. Reviewers, and the hand to `en`
 
@@ -141,8 +141,8 @@ nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <a,b> [--a
 threads***: the maintainer's token, Copilot through `--add-bots <node id>`, and **success read from
 the mutation's own response, never from the ids sent**.
 
-**Then one line, and stop**: the notation, the base, the gate **forecast**, whether the three checks
-passed, the Development guard's quoted `0`, the evidence mechanism — and, where the harness classifier stopped its publish step, the field
+**Then one line, and stop**: the notation, the base, the gate **forecast**, whether the checks
+passed, the Development guard's line quoted, the evidence mechanism — and, where the harness classifier stopped its publish step, the field
 `permission stop: expected — <consumer> declares no allow row for <script>` naming the missing grant
 (§ 1; zheref/hatsu#101), never a G5 — who was requested, and — from `mukai` — its offer of [`en`](../en/SKILL.md) on the PR
 (En has it already only under `mukai.autoEn`). **No `nen stop` banner** — opening a PR is not a gate event, and

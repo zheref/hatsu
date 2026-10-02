@@ -1567,8 +1567,10 @@ Implementation, passing checks, completed review handling and formal readiness a
 claims. Every inline and summary finding needs a disposition before a review round is complete;
 thread replies/resolutions are verified directly, not inferred from a worker's report.
 
-Every PR author lists every addressed issue in the body and verifies each Development association,
-including all issues in a combined PR. Scope changes trigger reconciliation of that full set.
+Every PR author lists every addressed issue in the body, including all issues in a combined PR, and
+verifies the Development association of exactly the issues the PR closes, no more and no fewer
+(amended by zheref/hatsu#203: Development is GitHub's closing association, so a partial or cited
+issue there would be closed on merge). Scope changes trigger reconciliation of that full set.
 Dependencies are listed separately. Closing clauses reflect completed issue scope; partial work
 must not be silently closed merely to obtain a sidebar link. Shibari owns the procedure and the
 GitHub auto-close caveat; build and sharingan enforce it at handover.
