@@ -160,8 +160,8 @@ Template language, exit codes and `--dry-run`: [`docs/WORKFLOW.md`](../../../doc
   via `write_to_file` with `ArtifactMetadata` (`{ Summary: "<Variant> report for <effort>", UserFacing: true, RequestFeedback: false }`):
   one file per conversation, overwritten in place (PROCESS.md § *Publishing a report*).
   It renders the variant's declared blocks (`reports.sections.<variant>.blocks`; the Desk quotes `nen pr ready`
-  verbatim) and a G5 blocker in `<div id="g5-blocker">`, as GFM tables, alerts (`> [!NOTE]`), the delta as ```mermaid (`graphMermaid`) and Generative UI.
-- **Elsewhere `<reports.dir>/current.html`** (from § 6), overwritten every render, transient.
+  verbatim) and a G5 blocker in `<div id="g5-blocker">`, as GFM tables, alerts (`> [!NOTE]`), the delta in a `mermaid` fence (`graphMermaid`) and Generative UI.
+- **Elsewhere `<reports.dir>/current.html`** (from § 6), overwritten each render, transient.
 
 **Say one line in chat and stop** — variant, branch, link or path.
 
