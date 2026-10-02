@@ -1598,7 +1598,9 @@ verifies the Development association of exactly the issues the PR closes, no mor
 issue there would be closed on merge). Scope changes trigger reconciliation of that full set.
 Dependencies are listed separately. Closing clauses reflect completed issue scope; partial work
 must not be silently closed merely to obtain a sidebar link. Shibari owns the procedure and the
-GitHub auto-close caveat; build and sharingan enforce it at handover.
+GitHub auto-close caveat; build, sharingan and en enforce it at handover through
+`scripts/pr_development_link_check.sh` (zheref/hatsu#203): its `0` on the default branch, its quoted
+`retarget-pending` line off it, never a pass.
 
 ---
 

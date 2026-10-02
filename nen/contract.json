@@ -169,6 +169,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/pr_body_evidence_check.sh, which refuses a pull request body whose screenshots are not cells of the UZF-26 evidence table or carry no alt text (docs/WORKFLOW.md, The UZF-26 evidence shape, The table exactly). One lane per executable guard. Its fixtures are hermetic and offline: bodies with no images, a markdown table and an HTML table of labelled images pass; a loose markdown image, a loose <img>, images stacked one per line, an unlabeled markdown image, an <img> with an empty or no alt, and a second unlabeled <img> on a labelled line are refused; an image inside a code fence is ignored; an unreadable body and an unknown argument are usage errors."
       },
+      "development-link-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/pr_development_link_check.sh (zheref/hatsu#203), which refuses a pull request whose closing issues are not linked both ways in GitHub's Development field: the expected set is the body's Associated issues rows whose Merging this verdict closes, each needing its own `Closes <ref>` line; live, closingIssuesReferences must equal that set and each issue must list the PR in closedByPullRequestsReferences; off the default branch it prints retarget-pending and never passes. It FAILS CLOSED, refusing by name whatever its parser does not model: a NUL, invalid UTF-8, a lone CR; a fence not closed by its own character and length, or never closed; an HTML comment not at line start once code spans are stripped, text after its -->, or one never closed; an unbalanced code span; a missing, duplicate or lookalike Associated issues section (setext and closing-hash headings read); a pipe row without a leading pipe or delimiter row, a line under the table, a second table with both columns; a verdict outside the closed ASCII vocabulary; an alias reference with no URL, a pull request URL on a closing row, a . or .. segment; more than 50 references; any closing keyword GitHub would act on whose reference is not a closing row. shibari section 4 runs it (--body before every write, --pr after each open and edit-body), en sections 4-5 and sharingan section 4 quote it."
+      },
       "freshness-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -412,6 +417,16 @@
           "$comment": "The PR-body evidence check's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Run it as `nen shu test --lane pr-body-guard --repo <hatsu>` when scripts/pr_body_evidence_check.sh changes."
         }
       },
+      "development-link-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/pr_development_link_check.sh",
+            "--self-test"
+          ],
+          "$comment": "The Development-link guard's own fixtures -- hermetic and offline, run under bash (3.2-portable) with jq, awk (under LC_ALL=C) and iconv; live mode is exercised through a stub gh, and the parser's own failure modes (awk absent, exiting non-zero, writing no END record) are exit 2. Run it as `nen shu test --lane development-link-guard --repo <hatsu>` when scripts/pr_development_link_check.sh changes."
+        }
+      },
       "freshness-guard": {
         "test": {
           "exe": "sh",
@@ -484,7 +499,7 @@
         "darwin",
         "linux"
       ],
-      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/nen_global_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/permissions_pack_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/kagutsuchi_worktree.sh --self-test, scripts/runner_preflight_fixture_check.sh, scripts/private_name_check_fixture.sh) use a POSIX shell, git and mktemp (runner_preflight also nen itself; private_name_check also perl with its core Encode and Unicode::Normalize) and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
+      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/nen_global_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/permissions_pack_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/pr_development_link_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/kagutsuchi_worktree.sh --self-test, scripts/runner_preflight_fixture_check.sh, scripts/private_name_check_fixture.sh) use a POSIX shell, git and mktemp (runner_preflight also nen itself; private_name_check also perl with its core Encode and Unicode::Normalize; pr_development_link_check also bash, jq and iconv) and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
     },
     "targets": {},
     "toolchain": {

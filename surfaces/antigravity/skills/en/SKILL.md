@@ -246,12 +246,16 @@ one-directional confirmation pass that may only veto. Read it there.
 Two things en relies on and does not re-derive:
 
 - **A PR is Ready iff `nen pr ready` says `ready` AND `nen pr body-check` says every requirement is
-  satisfied**, both deterministic, neither re-derived by eye. `sharingan` § 4's rule, and
+  satisfied AND the Development guard (`"$hatsu_root/scripts/pr_development_link_check.sh" --pr
+  <owner/name#N>`, [`shibari`](../shibari/SKILL.md) § 4, zheref/hatsu#203) prints its `0`**, all
+  deterministic, none re-derived by eye. On `branch.base` the guard's `0` is owed; off it, its quoted
+  `retarget-pending` line stands, never a pass. `sharingan` § 4's rule, and
   [`/pr-state`](../pr-state/SKILL.md)'s before it: **a readiness claim is that verdict, quoted,
   or it is not made.**
 - **A body this run rewrites** — new or re-recorded screenshots after a review — **re-renders the whole
   *Evidence* table** and passes `"$hatsu_root/scripts/pr_body_evidence_check.sh" --body <file>` before it is written
   ([`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *The UZF-26 evidence shape*, *The table, exactly*).
+  **Every `nen pr edit-body` this run makes is followed by the Development guard**, its line quoted.
 - **`sharingan`'s escalation is a G5 and it ends this run's cycle**, not just its step. A PR that
   will not reach Ready is one of the plane's five genuine stops
   ([`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4), and en does not spend the rest of its cap
@@ -265,13 +269,14 @@ because a long watch is where the temptation compounds.
 ## 5. The merge prompt — en never merges
 
 **Not under [`getsuga`](../getsuga/SKILL.md) § 3.** For a release proposal getsuga started en on, this
-step and § 8 do not run: en hands the quoted `nen pr ready` and `body-check` verdicts and its
+step and § 8 do not run: en hands the quoted `nen pr ready`, `body-check` and Development-guard verdicts and its
 `judged head:` back to getsuga, because § 3a is that PR's merge (ROSTER ruling 4 of 2026-09-26, kept
 by the exception of 2026-10-01). **Where § 3a falls back to the declaration gate, getsuga § 3a owns
 that stop** and presents this section's prompt for the proposal.
 
 **A PR off `branch.base` gets no prompt.** If check 1 below cannot bring its base to `branch.base`
-(no stacked delivery has merged), en reports the quoted verdict and the PR's base and ends there.
+(no stacked delivery has merged), en reports the quoted verdict, the PR's base and the guard's quoted
+`retarget-pending` line, and ends there.
 Steps 6 and 7 do not run: there is no gate event for the bell or the dated final report to record.
 Futon opens no PR into its integration branch (futon § 5 merges there locally), so
 this is never futon's path.
@@ -280,11 +285,12 @@ this is never futon's path.
 En never merges*: *"En is NOT meant to merge by default."*), stated here once; `futon` § 5, `kurapika.md`,
 the gate tables (ROSTER, README, WORKFLOW) and `nen/decisions.json` row `own-pr-merge` cite it. It
 supersedes ruling 3 of 2026-09-29. En's work is the drive: every finding fixed, every thread answered
-and resolved. **Its terminus is the merge prompt, after four checks in order, every verdict line printed**:
+and resolved. **Its terminus is the merge prompt, after five checks in order, every verdict line printed**:
 
 1. **On `branch.base`** — the base read back (`gh pr view <N> --json baseRefName`); a stacked PR whose
    delivery just merged is retargeted through `nen pr retarget` first (getsuga § 3's mechanism,
-   [`jujisho`](../jujisho/SKILL.md)'s) — **a PR off the trunk is presented nowhere** (ruling 2026-09-29 (2)).
+   [`jujisho`](../jujisho/SKILL.md)'s), and the guard re-run after that read-back — **a PR off the trunk is
+   presented nowhere** (ruling 2026-09-29 (2)).
 2. **The verdict** — `nen pr ready --explain` says `ready`; **or** its one failing row is a reviewer with a
    live `reviewer_fallback.exhausted[]` row and the chain exhausted, § 6's sixth stop
    ([PROCESS.md § *Reviewer rounds and review threads*](../../../../docs/PROCESS.md), *The fallback chain*):
@@ -292,7 +298,9 @@ and resolved. **Its terminus is the merge prompt, after four checks in order, ev
    completion checklist through `nen pr edit-body` before the prompt — the durable record that hanten's
    rounds were the review.
 3. **The body** — `nen pr body-check` satisfied against the live body.
-4. **The head pinned** — the commit `nen pr ready` judged is GitHub's head, and the prompt's line names it.
+4. **The Development links** — the guard's `0` quoted against the live PR, re-run after check 2's
+   `edit-body`; anything else, `retarget-pending` included, is not a prompt.
+5. **The head pinned** — the commit `nen pr ready` judged is GitHub's head, and the prompt's line names it.
 
 The prompt presents the PR's link and one line the maintainer may run, **offered and never run by en**.
 Its picker never carries the merge act; the maintainer merges outside the session (jutaisho § 4). So it

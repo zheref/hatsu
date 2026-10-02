@@ -74,11 +74,12 @@ never re-derived by eye (`export GH_TOKEN=$(gh auth token)` first).
   green shim contexts, not a round.
 
 **Then the confirmation pass, one-directional** — after `ready`, ask what the gate cannot: every
-**summary-level** finding addressed, prose objections included; no thread promising an unpushed fix
+**summary-level** finding addressed, prose objections too; no thread promising an unpushed fix
 or resolved without a reply; every context **required for the base branch** in the current-head
 rollup (union `gh api repos/<owner>/<repo>/rules/branches/<base>` with
 `…/protection/required_status_checks`, 404 = absent — **a missing one vetoes Ready even when all that
-reported is green**); every implemented issue in body and Development, dispositioned. **A failing
+reported is green**); the Development guard (shibari § 4) quoted: `0` on `branch.base`, else
+`retarget-pending`. **A failing
 verb or an objecting pass is not-ready: the pass only vetoes, never promotes.**
 
 ## 5. The stop, the authority, and the hard limits

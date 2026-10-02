@@ -128,8 +128,8 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
   `--repo`'s root**, so the body is written to an **absolute** path.
 - **The Development guard**: `--body` beside `body-check` before every write, `--pr` after `pr open`
   and each `edit-body`; a refusal is fixed in the body or the sidebar, never claimed, and off the
-  default branch it says `retarget-pending`. **`en`/`sharingan` re-run it on any body rewrite, quoting
-  its `0` beside `nen pr ready`.**
+  default branch it says `retarget-pending`. Re-runs: [`en`](../en/SKILL.md) §§ 4–5 and
+  [`sharingan`](../sharingan/SKILL.md) § 4.
 
 ## 5. Reviewers, and the hand to `en`
 
