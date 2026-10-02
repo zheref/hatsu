@@ -2,6 +2,33 @@
 
 All notable changes to Hatsu are documented in this file. Releases follow [Semantic Versioning](https://semver.org/).
 
+## v0.83.0 — the surface link guard runs in CI, and judges a pull request's tree without trusting it
+
+- **The generated-surface link guard runs on every pull request** (#72). `scripts/surface_link_check.sh` proves what the drift check cannot: that the generated bodies' relative links resolve. It now runs in `.github/workflows/surface-mirror-check.yml`'s existing *Surface-mirror drift check* step, from the trusted revision (`.trusted/`), against the PR checkout as the root it judges, once the drift verdict is clean. It stayed out of CI while it was red on main by design: until nen v0.17.0 (zheref/nen#270, fixed by zheref/nen#285) the generator copied relative links verbatim, so they dangled at every mirror depth, and a context red on every pull request would have read every one not-ready for a defect none of them made. The pin now carries the fix and 2,931 of 2,931 links resolve. Folding the guard into the existing step needs no two-step landing: the trusted validator freezes the step names and their order, not this step's body, and main's validator accepts the change. `pull_request_target` runs main's workflow, so the step takes effect on pull requests opened or updated after this one merges.
+- **The guard reads a pull request's tree as untrusted input.**
+  - **File list:** listed NUL-delimited. A name outside `surfaces/` or carrying a control character is refused (exit `2`) and printed escaped with `%q`.
+  - **Fenced output:** both guards' output, stderr included, sits between `::stop-commands::` and a fresh per-run token printed on its own line, so nothing in the tree is read as a workflow command.
+  - **Path folding:** `.` and `..` are folded as text, and a trailing `/` is kept.
+  - **Never stat'ed:** a target that climbs above the root, or whose folded path passes through a symbolic link, is reported dangling without a stat, so the guard cannot probe the runner's filesystem.
+  - **Reference definitions:** judged even in a file with no inline link.
+  - **NUL bytes:** a file holding one is read as text (`grep -a`), never skipped as binary.
+- **#72's criteria:**
+  - Met as written: the guard and its fixture, the exit contract, the companion nen issue, and 0 dangling links.
+  - Met by supersession, three times:
+    - The guard runs *inside* surface-mirror-check, not beside it.
+    - Exit `3` is reserved and never used, because the guard needs no nen.
+    - `scripts/antigravity_mirror_sync.sh` is retired, and nen's generator now emits the correct depth.
+
+  `docs/ab/surface-link-check.md` ticks each criterion with its evidence.
+- **What the pre-PR review changed** (hanten: Chrollo, Leorio, Feitan, Nobunaga ×2).
+  - **Chrollo:** confirmed the fold over a separately named step. The workflow header, the frozen step name's scope, the drift-clean ordering and SURFACES § 4 now say so.
+  - **Leorio:** charted about +1.3 s per run and about +9.5 runner-minutes a month. That is USD 0 as configured, on a public repo with a standard runner.
+  - **Feitan:** newline file names, `..` escapes, and a `set -e` gap that skipped reference definitions.
+  - **Nobunaga, two passes:** symlinked paths, the stderr stream outside the fence, NUL-holding files, a trailing slash, and an invalid shellcheck directive.
+
+  Nobunaga's second-pass fixes had no reviewer pass of their own. Each carries a fixture case that is red on the previous guard or on a mutant of the new one.
+- Plugin bumped to 0.83.0 (Claude manifest and Codex overlay); mirrors regenerated at that stamp.
+
 ## v0.82.0 — align build skill to canonical Akatsuki lifecycle and worktree isolation
 
 - **Align `build` skill to canonical Akatsuki lifecycle**: Replaced legacy Bankai CI builder agent routing (`bankai:agent/*`), CI stage labels, chain-position mappings, wave coordinators, and wake ladders with Hatsu's canonical 5-phase delivery sequence (`ren` -> `aka` -> `mukai` -> `en` -> `third-hand`).
