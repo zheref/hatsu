@@ -918,7 +918,7 @@ It loops. **It never pushes and never opens a pull request.**
 | [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → kokusen checkpoint → `kotoamatsukami` impacted tests → `byakugan` coverage → publish proven updates → evidence → `shibari` opens the PR → landing report → ring, **offer** `en` through the picker and end Mukai. **§ 5 is the full shape** | En runs on the maintainer's answer (or at once under `mukai.autoEn`); pending is En's in-progress state |
 | **merge** | **G2** (`merge`) and **G4** (`canon-merge`) | **the run's own PR, at its terminus, on `branch.base`** — [`en`](../claude/skills/en/) § 5 merges it, at either row ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-29*, ruling 3); [`getsuga`](../claude/skills/getsuga/) § 3a merges **its own release-proposal PR** through `nen pr merge --release-unit`; never another's PR, never past a `gh` refusal |
 | [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always; § 3a's freshness gate reads the archive's build SHA against `HEAD` and `origin/<branch.base>`'s tip on a clean tree, and **only when it is not the tip's build** § 3b runs `susanoo` first in one idempotent clean worktree under core's `.nen/` (the maintainer's gitignored files copied from core, `project.fromCore`, § 3) and sends from there; `--run` acts only on a call — the target **typed, or the declared `deploy.defaultTarget`** (§ 2) | the blast radius leaves this machine |
-| [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3**: only on a recorded go, with the preflight green and the tag already cut — one target per call; with no target typed, the single declared destination and the latest cut tag with no published release (ruling of 2026-09-28) | the blast radius is other people's users |
+| [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3**: only on the maintainer's own go (mugetsu § 0), with the preflight green and the tag already cut — one target per call; with no target typed, the single declared destination and the latest cut tag with no published release (ruling of 2026-09-28) | the blast radius is other people's users |
 
 **The per-target rule is the whole of the last two rows, and it is not a formality.** A go for one
 destination is a go for *that* destination: `kagutsuchi`'s target is **typed, or the one the maintainer
@@ -1061,7 +1061,7 @@ invention — and **"never write the file unasked to silence a message"** holds 
 silenced by the maintainer's answer, never by a write nobody asked for.
 
 **The maintainer's word is never derived.** Where a skill requires a value to be the maintainer's own
-choice — a deploy or release target (`kagutsuchi`, `mugetsu`), a G3 go (`mugetsu`), an iteration cap
+choice — a deploy or release target (`kagutsuchi`, `mugetsu`), an iteration cap
 (`izanagi`), a device to trust (`jujutsu`), the request itself (`ren`), a runner pool's target,
 machine code and service identity (`jusshin`, ROSTER § *Rulings of 2026-09-30 — jusshin*) — it is
 **typed, never picked** (row `missing-maintainer-choice`, whose `governs` list names those keys, with no `default`

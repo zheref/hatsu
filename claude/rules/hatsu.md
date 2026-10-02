@@ -31,7 +31,7 @@ A tier is named, never a model version: frontier for the maintainer's own sessio
 
 - **G1** the mode label on an epic.
 - **G2 / G4** the merge of a delivery or canon pull request.
-- **G3** publishing a release or deploying to production, on a recorded go.
+- **G3** publishing a release or deploying to production, on the maintainer's own go (mugetsu § 0).
 - **G5** a stop the canon cannot answer: a semantic conflict, a new business rule, signing material, an on-device trust prompt, a supply-chain failure.
 
 Every other stop has a fixed default in `nen/decisions.json`: a dirty tree is carried, a red lint goes back to the author, a missing tool is installed, an owed reviewer round is requested on the maintainer's behalf. When a real stop is reached the report is rendered and linked, the options are lettered with a star on the recommended decision, and a process issue is proposed. A missing argument or configuration item never aborts a skill: it is derived for this run, else asked per item through the picker, set up on the answer through its owner (nothing tracked is written unasked), and the operation resumes (rows `missing-argument`, `missing-configuration`). Never derived: a target, a go, a cap, a device, the request — the maintainer's word is typed, never picked, the candidates listed for reference with none starred (row `missing-maintainer-choice`). What is not a gap is refused, never asked; the one list is docs/WORKFLOW.md § 4 *What is not a gap*. Every ask on a report reaches the surface's own picker in the same turn, and which asks make the bell a stop is the jutaisho skill's § 1; a deferred picker tool is loaded, not treated as missing.

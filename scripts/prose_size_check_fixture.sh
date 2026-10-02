@@ -56,7 +56,7 @@ bytes() {
 }
 
 # ONE LIST: the dieted skills are read out of the guard itself, never copied here, so a skill added to
-# DIETED_SKILLS (rikugan, v0.72.0) is counted by this fixture the moment it is added to the guard.
+# DIETED_SKILLS (rikugan, v0.73.0) is counted by this fixture the moment it is added to the guard.
 DIETED="$(sed -n '/^DIETED_SKILLS="/,/"$/p' "$guard" | sed 's/^DIETED_SKILLS="//; s/"$//' | tr '\n' ' ')"
 [ -n "$DIETED" ] || fail "could not read DIETED_SKILLS from $guard"
 # the dieted skills, two agents and one rules file

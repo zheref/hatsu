@@ -46,8 +46,9 @@ ends on a refusal the maintainer has to retype around. *It does not matter that 
 was authored as somebody's step.*
 
 **Rule 2 — no skill is ever indefinitely independent.** Standalone entry is an **entry**, not a mode.
-A skill is a **wireable** unit: the same run must be identical whether a composite called it or the
-maintainer did, and a standalone run therefore:
+A skill is a **wireable** unit: the same run must be identical in what it does, never in what it may
+authorise, whether a composite called it or the maintainer did (who typed it decides only whether a
+gate is crossed), and a standalone run therefore:
 
 - **absorbs no later phase.** `kokusen` called alone still does not push. `hanten` called alone still
   does not open a PR. Filling in for a caller that is not there is how a phase becomes a composite
@@ -55,8 +56,9 @@ maintainer did, and a standalone run therefore:
 - **creates no standing authority.** Nothing derived in § 3 survives the run. The next invocation
   re-derives it. A go, a grant, a gate crossing, a delegation — none of these are ever a by-product of
   starting cold.
-- **crosses no gate the wired run would not cross.** `G1`–`G5` are unmoved by who typed the name.
-  `mugetsu` standalone is still `G3`; `aka` standalone is still the maintainer's call alone.
+- **crosses no gate the wired run would not cross.** Standalone entry moves no gate. The maintainer
+  typing a gated skill's name is the maintainer crossing that gate, as with `aka`; an agent typing it
+  crosses nothing. `mugetsu` standalone is still `G3`; `aka` standalone is still the maintainer's call alone.
 - **ends by naming its successor** (§ 6), so the maintainer can wire the rest by hand or hand it to
   the composite that owns it.
 
@@ -265,7 +267,8 @@ where a maintainer believes a change has been reviewed, tested and reported beca
 
 ## 5. The gates standalone entry never moves
 
-**`G1`–`G5` are unmoved by who typed a skill's name** (§ 2, Rule 2). Four are worth naming explicitly,
+**Standalone entry moves no gate** (§ 2, Rule 2): the maintainer typing a gated skill's name is the
+maintainer crossing it, and an agent typing it crosses nothing. Four are worth naming explicitly,
 because a cold entry is where each is most likely to be quietly re-read:
 
 - **`G1` (`CON-4`) — product intake**, and **`G1-M`**, the mode label. A standalone run files nothing
@@ -277,9 +280,15 @@ because a cold entry is where each is most likely to be quietly re-read:
 - **`G3` (`CON-6`) — publication.** [`hatsu:mugetsu`](../claude/skills/mugetsu/SKILL.md) is *already*
   standalone-only: no composite may reach it on its own authority — `futon`'s `then` chain only on the
   maintainer's advance go (its § 3, which from the ruling of 2026-09-28 is their call for `aka` and
-  `mukai` too) — and no agent may propose it. Its § 0 therefore adds
-  **nothing** to what it may do — it only makes the preamble's orientation and refusals legible, so a
-  cold invocation prints the preflight and the plan and reports that it has no go, exactly as before.
+  `mukai` too) — and no agent may propose it. Its § 0 adds
+  **nothing** to what it may do — it only makes the preamble's orientation and refusals legible. The
+  maintainer's own typed `hatsu:mugetsu [<target>]` is the go by name because the G3 row in
+  [`ROSTER.md`](ROSTER.md) § *The human gates, and who may cross them* says so, with no version or target
+  needed (ruling 2(a) of § *Rulings of 2026-09-26/27/28*: *"Mugetsu should always default to latest
+  unpublished cut tag. It should never be mandatory, not even when called directly"*, clarified
+  2026-09-30). A message in their own words saying to publish is the go too. Any other reach — scheduled,
+  looped, headless, hook-injected, self-loaded or resumed included — prints the preflight and the plan
+  and reports that it has no go (mugetsu § 0).
 - **`G4` (`CON-7`) — canon and machinery, *in a canon repository*.** The gate is the repository's role,
   not the file's kind (maintainer's ruling, 2026-09-18 — [`ROSTER.md`](ROSTER.md) § *Rulings of
   2026-09-18*): it is the repositories `nen repo classify` reports as `role: canon` (`nen/repos.json` → `maintained_tools`; ruling 6 of 2026-09-27), whose product is the process,
@@ -346,7 +355,7 @@ both.
 | [`hanten`](../claude/skills/hanten/SKILL.md) | S4 — asks `breath` for a missing ledger, then routes a still-missing one through Tenkai diagnosis and review-history inspection; recovers a confirmed first cycle with an audited marker or restores prior used counts. An unreconstructable prior cycle is a safety stop. S1 — scope classification, path-raised by `nen review scopes` and content-raised by hanten § 2 (a `## 0.` or routing-table edit is a totality pass). | whether this is the first Hanten cycle under this effort key when evidence cannot settle it; the review scope when the delta does not classify cleanly |
 | [`spiritual-message`](../claude/skills/spiritual-message/SKILL.md) | S1 + S3 — turns and session context, read from git and the session | which variant, when it is not derivable |
 | [`kagutsuchi`](../claude/skills/kagutsuchi/SKILL.md) | S2 — the target, from the invocation or, omitted, `nen/workflow.json` → `deploy.defaultTarget` (HA#146), the source said; the archive's commit, read as § 3a's freshness gate, and § 3b's rebuild through `susanoo` (whose `## 0.` it holds) only when that gate finds it stale | a target neither typed nor declared, **typed, never picked** (`missing-maintainer-choice`). **The call is the maintainer's** — typed, or a futon `then` step |
-| [`mugetsu`](../claude/skills/mugetsu/SKILL.md) | nothing new — `G3` | nothing, except a missing part of a go on the maintainer's own same-turn `hatsu:mugetsu <target>`, typed. **The go is the maintainer's** |
+| [`mugetsu`](../claude/skills/mugetsu/SKILL.md) | nothing new — `G3` | nothing, except the destination, on the maintainer's own same-turn `hatsu:mugetsu` naming none where several are declared, typed. **The go is the maintainer's** |
 | [`third-hand`](../claude/skills/third-hand/SKILL.md) | S3 — "this sitting", from the branch and any open PR | the harvest pick, as it always did |
 | [`murasaki`](../claude/skills/murasaki/SKILL.md) | S1 — the base, hence the catch-up; conflicts classified before one is touched | only a dirty working copy, before git state moves |
 | [`rikugan`](../claude/skills/rikugan/SKILL.md) | S3 + S4 — the scope, in its § 2 order: handed over by the composite that names it, typed, the objects the session's last completed workflow touched (read from that run's record), else the checkout (the branch's open or merged PR and the issues its body closes); **P1b is declined** (read-only) and **P3 is declined** — the subject is a state, not a delta, and `(fetched <sha>)` is never asserted. Terminal in its own pipeline: the hand-back line says so | the scope, as **free text**, only when neither the session nor the checkout yields one (`missing-argument`) — never the whole backlog by default |
