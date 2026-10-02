@@ -134,12 +134,12 @@ attribution key outside `commits.allowedAttributionTrailers` is a stop with a de
 `injected-attribution-trailer`): the tip just written is unpublished, so **drop it with
 `git -C <path> reset --soft HEAD~1`** — never an earlier commit, never an amend — and ask once for the
 switch (row `harness-attribution-switch`, the maintainer's toggle); then re-run. `aka` § 7 reads every
-outgoing commit before the push. Never `--no-verify`.
+outgoing commit before the push.
 
 ## 6. Residue
 
-The explicit per-path `git add`, the tip read-back and its `git -C <path> reset --soft HEAD~1` are
-the raw calls (on the verb's `--repo <path>`) ([PROCESS.md](../../../docs/PROCESS.md) § Residue and owned dependencies; the read-back is
+The explicit per-path `git -C <path> add`, the tip read-back and its `git -C <path> reset --soft HEAD~1` are
+the raw calls ([PROCESS.md](../../../docs/PROCESS.md) § Residue and owned dependencies; the read-back is
 owned, [nen#273](https://github.com/zheref/nen/issues/273)). Of WORKFLOW § `commits`'s three enforcement layers the
 `commit-msg` hook exists only in a repository `nen scaffold init` stood up, so **say which layers
 the repository in front of you actually has**. **Whether two changes are one coherent commit is
