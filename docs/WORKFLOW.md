@@ -745,6 +745,13 @@ at step 5), `build` § 4 (its own steps; usage at every § 7 report), `hanten` �
 reviewer, as each returns), `spiritual-message` § 4 and `backlog-board` § 3 (usage before a render).
 `nen report data` merges both as `phases[]` and `usage[]`.
 
+**The third, Hanten's cycle ledger** (`.nen/hanten/<branch-slug>[-pr<N>].cycle.json`, the review
+budgets), opens once per branch: [`breath`](../claude/skills/breath/SKILL.md) § 3b's `init` when Breath
+cuts it, else [`hanten`](../claude/skills/hanten/SKILL.md) § 1's `ensure`, which every Hanten entry runs —
+it opens a missing ledger through the same `init`, reports a present one untouched, and refuses the
+trunk and a lost ledger (a PR-keyed ledger or a findings record for the branch, but no branch ledger:
+§ 4's recovery, never a fresh budget). The PR-keyed one is Hanten § 2b's.
+
 ## 3 · `project.launch` and `project.evidence`
 
 Two blocks of nen's `project` shape that began as Hatsu extensions. **At the pinned nen `0.7.0` both are
@@ -1040,9 +1047,11 @@ step-2 questions here; the mechanics are [`tenkai`](../claude/skills/tenkai/SKIL
 **Every skill routes a missing repository declaration through Tenkai's diagnosis and guided
 readiness pass**, then resumes its own verb after validation. The caller remains responsible for
 its operation; Tenkai owns detection and the setup conversation. An effort artifact is different:
-the `.nen/hanten/` review ledger is local audit state, normally created by Breath when the branch
-starts. Tenkai diagnoses its absence on an active effort branch, but its `apply` cannot create review
-history. Hanten inspects prior review evidence; after the maintainer confirms this is the first
+the `.nen/hanten/` review ledger is local audit state, created by Breath when it cuts the branch, or
+by Hanten § 1's `hanten_cycle_ledger.sh ensure` on a branch cut elsewhere (the desktop app's worktree,
+zheref/hatsu#169) — idempotent, never a reset, refused on the trunk and wherever review evidence exists
+with no ledger. Tenkai diagnoses its absence on an active effort branch, but its `apply` cannot create
+review history. Hanten inspects prior review evidence; after the maintainer confirms this is the first
 cycle under the key, Hanten runs `hanten_cycle_ledger.sh recover-first
 --confirmed-first-cycle`, recording the recovery in the file. Otherwise it restores the original
 used counts. Unreconstructable prior review history is a **safety precondition**, not a missing

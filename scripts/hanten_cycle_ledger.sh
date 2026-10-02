@@ -17,10 +17,22 @@
 #
 # Usage:
 #   scripts/hanten_cycle_ledger.sh init   --repo <path> --branch <name> [--pr <n>]
+#   scripts/hanten_cycle_ledger.sh ensure --repo <path> --branch <name> [--base <trunk>]
 #   scripts/hanten_cycle_ledger.sh decide --repo <path> --branch <name> [--pr <n>] --applicable <csv>
 #   scripts/hanten_cycle_ledger.sh record --repo <path> --branch <name> [--pr <n>] --persona <id> --outcome ran|skipped-exhausted
 #   scripts/hanten_cycle_ledger.sh show   --repo <path> --branch <name> [--pr <n>]
 #   scripts/hanten_cycle_ledger.sh --self-test
+#
+# `ensure` (zheref/hatsu#169) is the branch-only `init` for a branch breath
+# did not cut (the desktop app's worktree): it opens the ledger only when the
+# branch has none, through the same init. It is idempotent and never resets:
+# a present ledger is reported `present` (init's "already exists"), byte for
+# byte untouched, exit 0. It REFUSES (exit 2, nothing written) the trunk --
+# --base, else nen/workflow.json branch.base, else main -- and a detached
+# HEAD, and a branch that already shows review evidence with no branch ledger
+# (a PR-keyed ledger for the branch, or hanten's findings record at
+# <reports.dir>/hanten/<slug>.json): that is a LOST ledger, hanten § 1's
+# recovery, never a fresh budget.
 python3 - "$@" <<'PY'
 from __future__ import annotations
 import json
@@ -291,6 +303,51 @@ def init(repo: Path, branch: str, pr: str | None = None, *, first_cycle_recovery
     return doc
 
 
+def trunk_name(repo: Path, base: str | None) -> str:
+    if base and base.strip():
+        return base.strip()
+    try:
+        value = json.loads((repo / "nen" / "workflow.json").read_text()).get("branch", {}).get("base")
+    except (OSError, ValueError, AttributeError):
+        value = None
+    return value.strip() if isinstance(value, str) and value.strip() else "main"
+
+
+def review_evidence(repo: Path, branch: str) -> list[str]:
+    """Paths proving a review already ran on this branch (a lost-ledger signal)."""
+    base = slug(branch)
+    found = sorted(str(p) for p in (repo / ".nen" / "hanten").glob(f"{base}-pr*.cycle.json")
+                   if p.name[len(base) + 3:-len(".cycle.json")].isdigit())
+    reports = "Reports"
+    try:
+        value = json.loads((repo / "nen" / "workflow.json").read_text()).get("reports", {}).get("dir")
+        if isinstance(value, str) and value.strip():
+            reports = value.strip()
+    except (OSError, ValueError, AttributeError):
+        pass
+    findings = repo / reports / "hanten" / f"{base}.json"
+    if findings.is_file():
+        found.append(str(findings))
+    return found
+
+
+def ensure(repo: Path, branch: str, base: str | None = None) -> str:
+    """Open the branch-only ledger iff absent; never reset; refuse trunk and lost ledgers."""
+    trunk = trunk_name(repo, base)
+    if branch.strip() in ("", "HEAD") or branch == trunk:
+        refuse(f"hanten_cycle_ledger: ensure refuses {branch!r}: the trunk ({trunk}) and a detached HEAD get no ledger")
+    if ledger_path(repo, branch).is_file():
+        return "present"
+    evidence = review_evidence(repo, branch)
+    if evidence:
+        refuse(
+            f"hanten_cycle_ledger: no ledger at {ledger_path(repo, branch)} but review evidence exists "
+            f"({', '.join(evidence)}): a lost ledger -- recover it (hanten § 1), never a fresh budget"
+        )
+    init(repo, branch)
+    return "opened"
+
+
 def parse_applicable(raw: str) -> list[str]:
     if not raw.strip():
         return []
@@ -366,14 +423,14 @@ def record(doc: dict, persona: str, outcome: str) -> dict:
 def parse_args(argv):
     if not argv or argv[0] in ("-h", "--help"):
         refuse(
-            "hanten_cycle_ledger.sh init|recover-first|decide|record|show|--self-test "
-            "[--repo PATH --branch NAME --applicable CSV --persona ID --outcome ran|skipped-exhausted]"
+            "hanten_cycle_ledger.sh init|ensure|recover-first|decide|record|show|--self-test "
+            "[--repo PATH --branch NAME --base TRUNK --applicable CSV --persona ID --outcome ran|skipped-exhausted]"
         )
     cmd = argv[0]
     opts = {}
     i = 1
     while i < len(argv):
-        if argv[i] in ("--repo", "--branch", "--pr", "--applicable", "--persona", "--outcome") and i + 1 < len(argv):
+        if argv[i] in ("--repo", "--branch", "--pr", "--base", "--applicable", "--persona", "--outcome") and i + 1 < len(argv):
             opts[argv[i][2:]] = argv[i + 1]
             i += 2
             continue
@@ -720,7 +777,18 @@ def main(argv):
     branch = opts["branch"]
     pr = parse_pr(opts.get("pr"))
     budgets(repo)
+    if opts.get("base") and cmd != "ensure":
+        refuse("hanten_cycle_ledger: --base is only valid with ensure")
     with LedgerLock(repo, branch, pr):
+        if cmd == "ensure":
+            if pr:
+                refuse("hanten_cycle_ledger: ensure opens the branch-only ledger; the PR-keyed one is hanten § 2b's init --pr")
+            action = ensure(repo, branch, opts.get("base"))
+            path = ledger_path(repo, branch)
+            json.dump({"path": str(path), "branch": branch, "action": action, "contract": CONTRACT},
+                      sys.stdout, indent=2)
+            sys.stdout.write("\n")
+            return
         if cmd in ("init", "recover-first"):
             if cmd == "recover-first" and not opts.get("confirmed-first-cycle"):
                 refuse("hanten_cycle_ledger: recover-first requires --confirmed-first-cycle after the maintainer confirms no review ran under this effort key")

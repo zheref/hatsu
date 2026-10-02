@@ -16,6 +16,12 @@
 # after he existed, or hydrated once) and holds the fix (personasAtOpen,
 # lateHydrated) to refusing a lost row there.
 #
+# It also holds `ensure` (zheref/hatsu#169), the open for a branch breath did
+# not cut: an app-created branch (no ledger, then opened, a second ensure
+# untouched), a breath-created branch (present, byte for byte untouched), the
+# trunk and a detached HEAD (refused, none opened), and a lost ledger (review
+# evidence, no branch ledger: refused, never a fresh budget).
+#
 #   bash scripts/hanten_cycle_ledger_late_persona_fixture.sh   (lane: ledger-guard)
 #
 # Exit 0 when every case holds; exit 1 naming each that did not.
@@ -103,6 +109,75 @@ edit "$repo/.nen/hanten/topic-pre.cycle.json" 'del r["leorio"]'
 bash "$LEDGER" decide --repo "$repo" --branch "$branch" --applicable leorio >/dev/null 2>&1; code=$?
 if [ "$code" -eq 2 ]; then pass "a hydrated-then-deleted leorio row in a pre-0.67 ledger refuses"
 else fail "hydrated-then-deleted leorio row in a pre-0.67 ledger: exit $code"; fi
+
+# --- ensure (zheref/hatsu#169) ----------------------------------------------
+ens() { bash "$LEDGER" ensure "$@" 2>&1; }
+action_of() { printf '%s' "$1" | python3 -c 'import json,sys
+try: print(json.load(sys.stdin)["action"])
+except Exception: print("?")'; }
+sum_of() { python3 -c 'import hashlib,sys; print(hashlib.sha256(open(sys.argv[1],"rb").read()).hexdigest())' "$1"; }
+
+# Case 4 -- an app-created branch: no ledger, ensure opens it through init; a
+# second ensure (a resumed session) reports present and changes nothing.
+repo="$root/app"; branch="opus/kurapika/app-cut"; f="$repo/.nen/hanten/opus-kurapika-app-cut.cycle.json"
+mkdir -p "$repo"
+out="$(ens --repo "$repo" --branch "$branch")"; code=$?
+if [ "$code" -eq 0 ] && [ "$(action_of "$out")" = opened ] && [ -f "$f" ] \
+   && bash "$LEDGER" decide --repo "$repo" --branch "$branch" --applicable chrollo >/dev/null 2>&1; then
+  pass "ensure: app-created branch with no ledger is opened, and decide reads it"
+else fail "ensure: app-created branch: exit $code, $out"; fi
+before="$(sum_of "$f")"
+out="$(ens --repo "$repo" --branch "$branch")"; code=$?
+if [ "$code" -eq 0 ] && [ "$(action_of "$out")" = present ] && [ "$(sum_of "$f")" = "$before" ]; then
+  pass "ensure: a second ensure on the app-created branch reports present, file unchanged"
+else fail "ensure: second ensure: exit $code, $out"; fi
+
+# Case 5 -- a breath-created branch: breath's init, a review recorded; ensure
+# must report present and leave every byte (and the spent count) alone.
+repo="$root/breath"; branch="opus/kurapika/breath-cut"; f="$repo/.nen/hanten/opus-kurapika-breath-cut.cycle.json"
+mkdir -p "$repo"
+bash "$LEDGER" init --repo "$repo" --branch "$branch" >/dev/null 2>&1 \
+  && bash "$LEDGER" record --repo "$repo" --branch "$branch" --persona chrollo --outcome ran >/dev/null 2>&1 \
+  || { echo "setup failed" >&2; exit 2; }
+before="$(sum_of "$f")"
+out="$(ens --repo "$repo" --branch "$branch")"; code=$?
+if [ "$code" -eq 0 ] && [ "$(action_of "$out")" = present ] && [ "$(sum_of "$f")" = "$before" ]; then
+  pass "ensure: breath-created branch is present and untouched (chrollo stays 1/1)"
+else fail "ensure: breath-created branch: exit $code, $out"; fi
+
+# Case 6 -- the trunk gets no ledger: main by default, the declared
+# branch.base when nen/workflow.json names one, --base when given, and a
+# detached HEAD. Each refuses at exit 2 and writes nothing.
+repo="$root/trunk"; mkdir -p "$repo"
+for args in "--branch main" "--branch HEAD" "--branch develop --base develop"; do
+  # shellcheck disable=SC2086
+  out="$(ens --repo "$repo" $args)"; code=$?
+  if [ "$code" -eq 2 ] && [ -z "$(ls -A "$repo/.nen/hanten" 2>/dev/null | grep cycle.json)" ]; then
+    pass "ensure: refused on $args, none opened"
+  else fail "ensure: $args: exit $code, $out"; fi
+done
+mkdir -p "$repo/nen"; printf '{"branch": {"base": "trunk"}}\n' > "$repo/nen/workflow.json"
+out="$(ens --repo "$repo" --branch trunk)"; code=$?
+if [ "$code" -eq 2 ] && [ ! -f "$repo/.nen/hanten/trunk.cycle.json" ]; then
+  pass "ensure: the declared branch.base is the trunk, refused, none opened"
+else fail "ensure: declared branch.base: exit $code, $out"; fi
+
+# Case 7 -- a lost ledger: review evidence for the branch (a PR-keyed ledger,
+# or hanten's findings record) with no branch ledger refuses, writes nothing.
+repo="$root/lost-pr"; branch="opus/kurapika/lost"; mkdir -p "$repo"
+bash "$LEDGER" init --repo "$repo" --branch "$branch" --pr 9 >/dev/null 2>&1 || { echo "setup failed" >&2; exit 2; }
+out="$(ens --repo "$repo" --branch "$branch")"; code=$?
+if [ "$code" -eq 2 ] && [ ! -f "$repo/.nen/hanten/opus-kurapika-lost.cycle.json" ]; then
+  pass "ensure: a PR-keyed ledger with no branch ledger is a lost ledger, refused"
+else fail "ensure: PR-keyed evidence: exit $code, $out"; fi
+repo="$root/lost-findings"; mkdir -p "$repo/Reports/hanten"; printf '{}\n' > "$repo/Reports/hanten/opus-kurapika-lost.json"
+out="$(ens --repo "$repo" --branch "$branch")"; code=$?
+if [ "$code" -eq 2 ] && [ ! -f "$repo/.nen/hanten/opus-kurapika-lost.cycle.json" ]; then
+  pass "ensure: a hanten findings record with no branch ledger is a lost ledger, refused"
+else fail "ensure: findings evidence: exit $code, $out"; fi
+out="$(ens --repo "$root/app" --branch "opus/kurapika/app-cut" --pr 3)"; code=$?
+if [ "$code" -eq 2 ]; then pass "ensure: --pr refused (the PR-keyed ledger is hanten § 2b's init --pr)"
+else fail "ensure: --pr: exit $code, $out"; fi
 
 [ "$fails" -eq 0 ] || { echo "hanten_cycle_ledger_late_persona_fixture: $fails case(s) did not hold" >&2; exit 1; }
 echo "hanten_cycle_ledger_late_persona_fixture: all cases hold"

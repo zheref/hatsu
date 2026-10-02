@@ -130,8 +130,9 @@ nen shu warmup --repo <path> --branch <rendered name> --from <branch.base> [--dr
 **§ 3b · Opening the Hanten cycle ledger.** Once the branch exists (exit `0` or `4`, or a
 no-declaration git half that cut `--branch`):
 `"$hatsu_root/scripts/hanten_cycle_ledger.sh" init --repo <path> --branch <rendered name>`. Exit `0`
-is a new cycle; `2 already exists` is reported, never reset; a file missing later is a lost ledger
-for [`hanten`](../hanten/SKILL.md), not a second `init`. **One `init` per branch, never silent;
+is a new cycle; `2 already exists` is reported, never reset; a branch cut elsewhere
+gets it from [`hanten`](../hanten/SKILL.md) § 1's `ensure`; a file missing later is a lost ledger, not a
+second `init`. **One `init` per branch, never silent;
 continuation never cuts or inits again.**
 
 ## 4. Proving the base tip
