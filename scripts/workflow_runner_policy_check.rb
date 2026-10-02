@@ -3,6 +3,7 @@
 require "psych"
 require "tmpdir"
 require "fileutils"
+require "stringio"
 
 # Every workflow YAML this script reads is UTF-8 (git, GitHub Actions, this
 # repository's own editors). Ruby 2.6's `File.read` otherwise decodes with
@@ -257,11 +258,11 @@ EXPECTED_STEPS = {
     "Enforce workflow runner policy from trusted workflow revision",
     "Read the pinned nen ref from trusted nen/contract.json",
     "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)",
+    # No freshness step: the verdict's `--require-head "$EVENT_HEAD"` pins the
+    # judgement to the event head and exits 8 on a mismatch, which is what that
+    # step only approximated (zheref/hatsu#160). The verdict and Publish steps
+    # are FROZEN below, so the pin cannot be dropped with the step.
     "Readiness verdict",
-    # The freshness confirmation is a DECLARED step rather than an implementation
-    # detail: it is what stops an in-flight older run publishing a verdict about a
-    # head that has since moved, so removing it must fail the guard.
-    "Confirm the verdict still describes the event head",
     "Publish the check on the exact PR head"
   ],
   "surface-mirror-regenerate.yml" => [
@@ -272,23 +273,22 @@ EXPECTED_STEPS = {
     "Regenerate every surface",
     "Detect drift",
     "Verify the regenerated tree passes its own drift check",
-    "Open a pull request with the regenerated mirrors"
+    "Open a pull request with the regenerated mirrors",
+    "Delete the branch when the pull request could not be opened"
   ]
 }.freeze
 
-# TWO STEP SHAPES, BOTH ACCEPTED, for the two workflows a pending change
-# reshapes -- the two-step landing (docs/GATE-CONFIGURATION.md, 2026-09-20):
-# `main`'s trusted copy of this validator judges every pull request, so this
-# PR teaches it the NEXT shape beside the current one, and only the follow-up
-# PR flips the live workflows (and narrows this table back to one shape).
+# ONE STEP SHAPE EACH, FROZEN, after the two-step landing (docs/GATE-
+# CONFIGURATION.md, 2026-09-20): step one (zheref/hatsu#193) taught `main`'s
+# trusted copy of this validator the next shapes beside the current ones; step
+# two flipped the live workflows and narrowed this table back to one shape.
 #
-# pr-readiness.yml (zheref/hatsu#160): the bespoke freshness step goes, because
-# `nen pr ready --require-head` pins the judgement to the event head and exits 8
-# on a mismatch -- closing the window the step only approximated. Its guarantee
-# moves into the verdict step, so the NEXT shape is admitted ONLY with the
-# verdict and Publish steps in the exact, frozen forms below
-# (READINESS_NEXT_VERDICT, READINESS_NEXT_PUBLISH): dropping the step without
-# the flags must still fail the guard, as the step's comment above promises.
+# pr-readiness.yml (zheref/hatsu#160): the bespoke freshness step is gone,
+# because `nen pr ready --require-head` pins the judgement to the event head and
+# exits 8 on a mismatch -- closing the window the step only approximated. Its
+# guarantee lives in the verdict step, so the verdict and Publish steps are
+# admitted ONLY in the exact, frozen forms below (READINESS_FROZEN_VERDICT,
+# READINESS_FROZEN_PUBLISH): a verdict without the flags fails the guard.
 #
 # FROZEN, NOT PATTERN-MATCHED, for the reason the cleanup step below is: a
 # per-invocation matcher over the run let an unpinned `pr ready` through spelled
@@ -308,9 +308,78 @@ EXPECTED_STEPS = {
 # answer, no verdict: the arm titles the check `superseded`, asserts nothing,
 # and the step still exits 0, so the run for the new head is the one that
 # counts. Publish no longer reads the dropped step's output.
+# EVERY STEP OF pr-readiness.yml IS FROZEN, not only the verdict and Publish
+# (hanten round 1 on step two: Feitan, Nobunaga, Phinks; the v0.78.0 promise).
+# Freezing two bodies byte for byte did not decide what ran INSIDE them: an
+# earlier, unfrozen step could still write BASH_ENV into $GITHUB_ENV through a
+# name assembled at run time (`printenv | sed`, `eval "$GITHUB_E""NV"`, a glob
+# over `$RUNNER_TEMP/_runner_file_comm*`), set RUBYOPT or PATH in its own env,
+# pick another `shell:`, call a local `uses:` action, or have the bootstrap
+# step print a PR-checkout path as `bin` -- which the frozen verdict then runs
+# as $NEN with GH_TOKEN. A text check cannot see every spelling of those, so
+# the job has exactly ONE admitted form: each step below, compared key for key
+# and the run byte for byte, exactly as require_frozen_step compares the verdict.
+# Only `name` and the YAML comments above each step are free.
+READINESS_FROZEN_HEAD_CHECKOUT = {
+  "uses" => "actions/checkout@v7",
+  "with" => {
+    "ref" => "${{ github.event.pull_request.head.sha }}",
+    "persist-credentials" => "false"
+  }
+}.freeze
+READINESS_FROZEN_TRUSTED_CHECKOUT = {
+  "uses" => "actions/checkout@v7",
+  "with" => {
+    "ref" => "${{ github.event.pull_request.base.sha }}",
+    "path" => ".trusted",
+    "persist-credentials" => "false"
+  }
+}.freeze
+READINESS_FROZEN_POLICY = {
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -euo pipefail
+    ruby .trusted/scripts/workflow_runner_policy_check.rb --self-test "$PWD"
+  RUN
+}.freeze
+READINESS_FROZEN_PIN = {
+  "id" => "pin",
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -euo pipefail
+    ref="$(jq -r '.dependency.pinned_ref // empty' .trusted/nen/contract.json)"
+    [ -n "$ref" ] || { echo "::error::nen/contract.json carries no dependency.pinned_ref."; exit 1; }
+    case "$ref" in
+      *..*|*//*) echo "::error::dependency.pinned_ref '$ref' is not a valid git ref (contains '..' or '//')."; exit 1 ;;
+    esac
+    if [[ ! "$ref" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$ ]]; then
+      echo "::error::dependency.pinned_ref is not a plain git ref ([A-Za-z0-9][A-Za-z0-9._/-]{0,99}); refusing to use it in a URL or a shell."
+      exit 1
+    fi
+    echo "ref=$ref" >> "$GITHUB_OUTPUT"
+    echo "pinned nen ref: $ref"
+  RUN
+}.freeze
+READINESS_FROZEN_BOOTSTRAP = {
+  "id" => "nen",
+  "env" => {
+    "PINNED_REF" => "${{ steps.pin.outputs.ref }}"
+  },
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -euo pipefail
+    ref="$PINNED_REF"
+    url="https://raw.githubusercontent.com/zheref/nen/${ref}/bootstrap/nen.sh"
+    curl -fsSL "$url" -o "${RUNNER_TEMP}/nen-bootstrap.sh"
+    bin="$(bash "${RUNNER_TEMP}/nen-bootstrap.sh" --ref "$ref")"
+    [ -x "$bin" ] || { echo "::error::bootstrap printed '$bin', which is not executable."; exit 1; }
+    echo "bin=$bin" >> "$GITHUB_OUTPUT"
+    echo "nen: $("$bin" --version) at $bin"
+  RUN
+}.freeze
 READINESS_VERDICT_STEP = "Readiness verdict"
 READINESS_PUBLISH_STEP = "Publish the check on the exact PR head"
-READINESS_NEXT_VERDICT = {
+READINESS_FROZEN_VERDICT = {
   "id" => "verdict",
   "env" => {
     "GH_TOKEN" => "${{ github.token }}",
@@ -352,7 +421,7 @@ READINESS_NEXT_VERDICT = {
     } >> "$GITHUB_OUTPUT"
   RUN
 }.freeze
-READINESS_NEXT_PUBLISH = {
+READINESS_FROZEN_PUBLISH = {
   "if" => "${{ always() }}",
   "env" => {
     "GH_TOKEN" => "${{ github.token }}",
@@ -376,6 +445,16 @@ READINESS_NEXT_PUBLISH = {
     echo "readiness: ${title}"
   RUN
 }.freeze
+# Name -> frozen form, in EXPECTED_STEPS order: every step of the job.
+READINESS_FROZEN_STEPS = {
+  "Checkout PR head (data only — nothing from here is executed)" => READINESS_FROZEN_HEAD_CHECKOUT,
+  "Checkout guard code from the trusted workflow revision" => READINESS_FROZEN_TRUSTED_CHECKOUT,
+  "Enforce workflow runner policy from trusted workflow revision" => READINESS_FROZEN_POLICY,
+  "Read the pinned nen ref from trusted nen/contract.json" => READINESS_FROZEN_PIN,
+  "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)" => READINESS_FROZEN_BOOTSTRAP,
+  READINESS_VERDICT_STEP => READINESS_FROZEN_VERDICT,
+  READINESS_PUBLISH_STEP => READINESS_FROZEN_PUBLISH
+}.freeze
 #
 # surface-mirror-regenerate.yml (zheref/hatsu#165): create-pull-request pushes
 # its branch BEFORE asking GitHub for the PR, so a repository whose "Allow
@@ -384,7 +463,7 @@ READINESS_NEXT_PUBLISH = {
 # /repos/{owner}/{repo}/actions/permissions/workflow needs the repository
 # Administration (read) permission, which GITHUB_TOKEN cannot be granted; only a
 # secret-held GitHub App installation token or a personal access token could read
-# it, and this job declines to hold one (SEC-9). So the NEXT shape gives the PR
+# it, and this job declines to hold one (SEC-9). So the frozen shape gives the PR
 # step `id: cpr` and adds one cleanup step after it, admitted only in the exact,
 # frozen form validate_builder_workflow checks (REGENERATE_CLEANUP).
 REGENERATE_CLEANUP_STEP = "Delete the branch when the pull request could not be opened"
@@ -408,13 +487,7 @@ REGENERATE_CLEANUP = {
     gh api -X DELETE "repos/${REPO}/git/refs/heads/bot/surface-mirror-regenerate" || echo "::error::could not delete bot/surface-mirror-regenerate; delete it by hand"
   RUN
 }.freeze
-NEXT_STEPS = {
-  "pr-readiness.yml" => EXPECTED_STEPS.fetch("pr-readiness.yml") - ["Confirm the verdict still describes the event head"],
-  "surface-mirror-regenerate.yml" => EXPECTED_STEPS.fetch("surface-mirror-regenerate.yml") + [REGENERATE_CLEANUP_STEP]
-}.freeze
-ALLOWED_STEP_SHAPES = EXPECTED_STEPS.keys.each_with_object({}) do |file, memo|
-  memo[file] = [EXPECTED_STEPS.fetch(file), NEXT_STEPS[file]].compact
-end.freeze
+ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.freeze
 
 # surface-mirror-regenerate.yml's own trigger shape. `nil` marks an event that
 # carries no further keys at all (`workflow_dispatch: {}` — a bare mapping
@@ -540,8 +613,14 @@ end
 # else -- a sibling `attacker.trusted/`, a traversal `../.trusted/` -- is refused.
 TRUSTED_PREFIX = %r{\A["']?(?:\$PWD/|\$\{PWD\}/)?\.trusted/\z}.freeze
 
+# Messages carry PR-controlled text (workflow file names, step names) and are
+# printed in the trusted policy step, outside any `::stop-commands::` window.
+# A file named `x\n::warning title=forged::y.yml` would otherwise start a log
+# line with a workflow command (hanten on step two, Feitan SEC-7), so every
+# control character is printed escaped, never raw.
 def fail_policy(message)
-  warn "workflow-runner-policy: #{message}"
+  safe = message.to_s.gsub(/[\x00-\x1f\x7f]/) { |c| format("\\x%02x", c.ord) }
+  warn "workflow-runner-policy: #{safe}"
   raise SystemExit, 1
 end
 
@@ -592,8 +671,11 @@ def require_frozen_step(step, frozen, label)
   allowed = (["name"] + frozen.keys).sort
   fail_policy("#{label} may carry only #{allowed.join(", ")}") unless step.keys.sort == allowed
   frozen.each do |key, value|
-    actual = if key == "env"
-               mapping(step["env"], "#{label} env").transform_values { |node| scalar(node) }
+    actual = if value.is_a?(Hash)
+               # `env` and a checkout's `with`: an exact mapping, every key and
+               # every value, so an added RUBYOPT/PATH/BASH_ENV or a moved ref
+               # is a byte inequality like any other.
+               mapping(step[key], "#{label} #{key}").transform_values { |node| scalar(node) }
              elsif key == "run"
                scalar(step["run"]).to_s.strip
              else
@@ -609,12 +691,84 @@ def render_step(name, frozen)
   text = +"      - name: #{name}\n"
   frozen.each do |key, value|
     case key
-    when "env" then text << "        env:\n" << value.map { |var, val| "          #{var}: #{val}\n" }.join
+    when "env", "with" then text << "        #{key}:\n" << value.map { |var, val| "          #{var}: #{val}\n" }.join
     when "run" then text << "        run: |\n" << value.lines.map { |line| "          #{line.chomp}\n" }.join
     else text << "        #{key}: #{value}\n"
     end
   end
   text
+end
+
+# A TRIPWIRE, NOT THE BOUNDARY. A line appended to $GITHUB_ENV becomes every
+# later step's environment (`BASH_ENV=./x.sh` makes bash source a PR-checkout
+# file before even a frozen body), and a line appended to $GITHUB_PATH puts a
+# PR directory ahead of `nen`, `gh` and `openssl`. No workflow here needs
+# either, so a LITERAL mention in a run -- comment lines included, since a text
+# check cannot tell a write from a quote -- is refused, with the runner's
+# file-command directory and `${!` indirection. THAT IS ALL IT CATCHES: a name
+# assembled at run time (`printenv | sed -n 's/^GITHUB_E.V=//p'`, `eval` over
+# `"$GITHUB_E""NV"`, a glob over `$RUNNER_TEMP/_runner_file_comm*`) passes it
+# (hanten on step two: Feitan, Nobunaga, Phinks). The control that closes those
+# is structural: in pr-readiness.yml every step is frozen (READINESS_FROZEN_
+# STEPS), so no step can carry such a line at all; in the other workflows the
+# step keys, `uses:`, `shell:` and env keys are held to exact allowlists below.
+# A step-level `BASH_ENV` or `ENV` is refused here within its own step.
+ENV_FILE_COMMANDS = /GITHUB_ENV|GITHUB_PATH|_runner_file_commands|\$\{!/.freeze
+def refuse_env_writes(path, step)
+  name = scalar(step["name"]).inspect
+  if scalar(step["run"]).to_s.match?(ENV_FILE_COMMANDS)
+    fail_policy("#{path} step #{name} touches $GITHUB_ENV, $GITHUB_PATH or an indirect expansion; " \
+                "a later step, frozen or not, would inherit what it writes (BASH_ENV, PATH)")
+  end
+  return unless step["env"]
+  keys = mapping(step["env"], "#{path} step #{name} env").keys
+  bad = keys & %w[BASH_ENV ENV]
+  fail_policy("#{path} step #{name} sets #{bad.join(", ")}, which makes bash source a file first") unless bad.empty?
+end
+
+# EXACT ALLOWLISTS for the shape of every job and step, in every workflow this
+# policy validates. A job key outside the list (`container:`, `services:`,
+# `env:`, `defaults:`, `strategy:`) changes where or how every step runs; a step
+# key outside it (`continue-on-error`, `working-directory`, `timeout-minutes`)
+# changes what a failure means; a `uses:` other than the pinned entries runs an
+# action this policy never read -- `./.github/actions/x` would run from the PR
+# checkout -- and a `shell:` other than plain bash (`bash --rcfile ./x.sh -i
+# {0}`) sources a file before the run. An env key outside the list (RUBYOPT,
+# PATH, LD_PRELOAD, NODE_OPTIONS, ...) loads code into the step's interpreter.
+# The lists are the keys these workflows use today and nothing else.
+PR_JOB_KEYS = %w[if runs-on timeout-minutes steps].freeze
+BUILDER_JOB_KEYS = %w[runs-on timeout-minutes steps].freeze
+STEP_KEYS = %w[name id if env shell run uses with].freeze
+ADMITTED_USES = [
+  "actions/checkout@v7",
+  "peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676"
+].freeze
+ADMITTED_STEP_ENV = %w[
+  GH_TOKEN REPO HEAD_SHA PR BASE_SHA PR_BODY CHECK_ID JOB_STATUS PINNED_REF NEN_BIN
+  NEN STAMP RUN_ID EVENT_HEAD TITLE SUMMARY
+].freeze
+def refuse_unadmitted_step_shapes(path, job_name, job, step_maps, job_keys)
+  extra = job.keys - job_keys
+  fail_policy("#{path} job #{job_name} carries #{extra.join(", ")}, which this policy does not admit (#{job_keys.join(", ")} only)") unless extra.empty?
+  step_maps.each do |step|
+    name = scalar(step["name"]).inspect
+    extra = step.keys - STEP_KEYS
+    fail_policy("#{path} step #{name} carries #{extra.join(", ")}, which this policy does not admit") unless extra.empty?
+    if step.key?("uses")
+      uses = scalar(step["uses"])
+      fail_policy("#{path} step #{name} uses #{uses.inspect}, which is not an admitted action (#{ADMITTED_USES.join(", ")})") unless ADMITTED_USES.include?(uses)
+      fail_policy("#{path} step #{name} both runs and uses an action") if step.key?("run")
+    end
+    if step.key?("run")
+      fail_policy("#{path} step #{name} must declare shell: bash, exactly") unless scalar(step["shell"]) == "bash"
+    elsif step.key?("shell")
+      fail_policy("#{path} step #{name} declares a shell with nothing to run")
+    end
+    next unless step["env"]
+    keys = mapping(step["env"], "#{path} step #{name} env").keys
+    bad = keys - ADMITTED_STEP_ENV
+    fail_policy("#{path} step #{name} sets env #{bad.join(", ")}, which is not on the admitted list") unless bad.empty?
+  end
 end
 
 def sequence(node, context)
@@ -742,14 +896,16 @@ def validate_workflow(path)
     step_maps = steps.each_with_index.map { |node, index| mapping(node, "#{path} job #{job_name} step #{index + 1}") }
     step_names = step_maps.map { |step| scalar(step["name"]) }
     fail_policy("#{path} job #{job_name} step set or order changed") unless ALLOWED_STEP_SHAPES.fetch(File.basename(path)).include?(step_names)
-    # The NEXT readiness shape (no freshness step) carries that step's guarantee
-    # in the verdict step, so both steps it changes must be EXACTLY the frozen
-    # forms (READINESS_NEXT_VERDICT, READINESS_NEXT_PUBLISH), or it is not admitted.
-    if File.basename(path) == "pr-readiness.yml" && step_names == NEXT_STEPS.fetch("pr-readiness.yml")
-      { READINESS_VERDICT_STEP => READINESS_NEXT_VERDICT, READINESS_PUBLISH_STEP => READINESS_NEXT_PUBLISH }.each do |name, frozen|
-        require_frozen_step(step_maps.find { |step| scalar(step["name"]) == name }, frozen, "#{path} next readiness shape #{name.inspect}")
+    # The readiness shape carries no freshness step: its guarantee is in the
+    # verdict step, and EVERY step of the job is admitted only in its exact
+    # frozen form (READINESS_FROZEN_STEPS), so no earlier step can reach the
+    # verdict through the environment, the PATH, a shell or an action.
+    if File.basename(path) == "pr-readiness.yml"
+      READINESS_FROZEN_STEPS.each do |name, frozen|
+        require_frozen_step(step_maps.find { |step| scalar(step["name"]) == name }, frozen, "#{path} frozen readiness step #{name.inspect}")
       end
     end
+    refuse_unadmitted_step_shapes(path, job_name, job, step_maps, PR_JOB_KEYS)
     starter = step_maps.first
     finisher = step_maps.last
     expected_check_name = File.basename(path) == "plugin-bump-check.yml" ? "check" : job_name
@@ -867,6 +1023,7 @@ def validate_workflow(path)
       steps_node.children.each do |step_node|
         step_map = mapping(step_node, "#{path} step")
         fail_policy("#{path} step #{scalar(step_map["name"]).inspect} sets working-directory") if step_map.key?("working-directory")
+        refuse_env_writes(path, step_map)
       end
     end
     REQUIRED_STEP_ARGS.fetch(File.basename(path), {}).each do |step_name, spec|
@@ -1019,7 +1176,8 @@ def validate_builder_workflow(path)
   step_maps = steps_node.children.each_with_index.map { |node, index| mapping(node, "#{path} job #{expected_job} step #{index + 1}") }
   step_names = step_maps.map { |step| scalar(step["name"]) }
   fail_policy("#{path} job #{expected_job} step set or order changed") unless ALLOWED_STEP_SHAPES.fetch(basename).include?(step_names)
-  if step_names.include?(REGENERATE_CLEANUP_STEP)
+  refuse_unadmitted_step_shapes(path, expected_job, job, step_maps, BUILDER_JOB_KEYS)
+  begin
     cleanup = step_maps.find { |step| scalar(step["name"]) == REGENERATE_CLEANUP_STEP }
     require_frozen_step(cleanup, REGENERATE_CLEANUP, "#{path} #{REGENERATE_CLEANUP_STEP.inspect}")
     pr_with_id = step_maps.find { |step| scalar(step["name"]) == "Open a pull request with the regenerated mirrors" }
@@ -1041,6 +1199,7 @@ def validate_builder_workflow(path)
   step_maps.each do |step|
     code = code_of(scalar(step["run"]))
     fail_policy("#{path} step #{scalar(step["name"]).inspect} sets working-directory") if step.key?("working-directory")
+    refuse_env_writes(path, step)
     if code =~ /\bgit\s+push\b/
       fail_policy("#{path} step #{scalar(step["name"]).inspect} pushes directly with git — this builder must only open a pull request onto bot/surface-mirror-regenerate")
     end
@@ -1062,159 +1221,22 @@ def validate_builder_workflow(path)
   fail_policy("#{path} must checkout main") unless checkout_steps.any? { |step| scalar(mapping(step["with"], "#{path} checkout with")["ref"]) == "main" }
 end
 
-# The CURRENT readiness shape's tail -- the verdict, freshness and Publish
-# steps exactly as pr-readiness.yml carries them before step two flips it --
-# held as an INDEPENDENT baseline (Copilot on #193). The self-test runs main's
-# trusted validator against the PR checkout, so it must build its current-
-# and next-shape fixtures whichever shape that checkout holds: deriving the
-# current shape from the checkout itself fails the moment step two removes the
-# freshness step. Step two's narrowing deletes this with the current shape.
-CURRENT_READINESS_TAIL = <<'CURRENT_READINESS_TAIL'.freeze
-      - name: Readiness verdict
-        # The reviewer identities come from the TRUSTED gates file, never the
-        # PR's copy -- a PR that could edit the gate judging it is worth nothing,
-        # the same reason the guard code is trusted-only. `--gates` takes an
-        # absolute path so it is not resolved against --repo's root. This matters
-        # more than it looks: with the flag dropped, nen 0.10.0 falls back to
-        # <cwd>/nen/gates.json, and the cwd here is the PR HEAD checkout. The
-        # policy guard asserts this argument so the flag cannot be quietly lost.
-        #
-        # ERREXIT IS NOT RE-ENABLED, DELIBERATELY. `nen pr ready` exits 1 for
-        # `not-ready`, which is the COMMON case and the one this workflow exists
-        # to report. An earlier draft restored `set -e` and then ran the verb in a
-        # pipeline: the pipeline returned 1, the assignment failed, and the step
-        # died BEFORE writing $GITHUB_OUTPUT -- so every not-ready PR published
-        # "readiness undetermined" and discarded the explain table. That is the
-        # exact regression `surface-mirror-check.yml` already documents. The `rc`
-        # dispatch below is the control flow; errexit would fight it.
-        #
-        # ONE EVALUATION, NOT TWO. The title is taken from the bytes already in
-        # hand, so the title and the summary can never describe different
-        # evaluations of a PR that changed between them.
-        id: verdict
-        env:
-          GH_TOKEN: ${{ github.token }}
-          NEN: ${{ steps.nen.outputs.bin }}
-          REPO: ${{ github.repository }}
-          PR: ${{ github.event.pull_request.number }}
-          RUN_ID: ${{ github.run_id }}
-        shell: bash
-        run: |
-          set -uo pipefail
-          explain="$("$NEN" pr ready "$PR" --gh-repo "$REPO" --explain \
-            --gates "$PWD/.trusted/nen/gates.json" \
-            --exclude-run "$RUN_ID" 2>&1)" || rc=$?
-          rc="${rc:-0}"
-          # nen's output embeds PR-DERIVED STRINGS -- reported check names and
-          # reviewer logins are interpolated into its failure lines. Echoing it
-          # raw would put attacker-influenced text on the runner's WORKFLOW-COMMAND
-          # channel, where a line starting `::` is interpreted rather than printed
-          # (`::error::`, `::set-output`). `::stop-commands::` with a nonce is
-          # GitHub's own mechanism for exactly this.
-          nonce="stop_$(openssl rand -hex 16)"
-          echo "::stop-commands::${nonce}"
-          printf '%s\n' "$explain"
-          echo "::${nonce}::"
-          # First line of the verb's own output, minus the "<repo>#<n>: " prefix.
-          title="$(printf '%s\n' "$explain" | head -1)"
-          title="${title#*: }"
-          case "$rc" in
-            0) title="ready — ${title}" ;;
-            1) : ;;
-            *) title="readiness undetermined — nen exited ${rc}" ;;
-          esac
-          # Bash substring, NOT `| head -c`: head is a BYTE cut that can land
-          # mid-UTF-8 (these strings carry em dashes) and, under pipefail, a
-          # SIGPIPE'd printf returns 141 and kills the step at the truncation
-          # boundary. Parameter expansion is character-wise and spawns nothing.
-          title="${title:0:240}"
-          # THE DELIMITER IS RANDOM PER RUN. With a fixed `EOF`, a value
-          # containing a line that is exactly `EOF` closes the heredoc early and
-          # the runner parses the rest as further file commands -- forging the
-          # step output the next step publishes. GitHub's docs require a random
-          # delimiter for multiline values for this reason.
-          d="EOF_$(openssl rand -hex 16)"
-          {
-            printf 'title<<%s\n%s\n%s\n' "$d" "$title" "$d"
-            printf 'summary<<%s\n%s\n%s\n' "$d" "$explain" "$d"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Confirm the verdict still describes the event head
-        # `nen pr ready` takes a PR NUMBER and reads that PR's LIVE head, but the
-        # check run was created against `github.event.pull_request.head.sha`.
-        # Cancellation is not atomic, so an in-flight older run can evaluate a
-        # NEWER head and PATCH that verdict onto the older SHA's check -- a
-        # verdict about a tree that check does not describe. Concurrency makes
-        # this rare, not impossible, which is exactly the kind of race that shows
-        # up once and is never reproduced.
-        id: fresh
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          PR: ${{ github.event.pull_request.number }}
-          EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
-        shell: bash
-        run: |
-          set -uo pipefail
-          live="$(gh api "repos/${REPO}/pulls/${PR}" --jq .head.sha 2>/dev/null || true)"
-          if [ -z "$live" ]; then
-            echo "stale=unknown" >> "$GITHUB_OUTPUT"
-          elif [ "$live" = "$EVENT_HEAD" ]; then
-            echo "stale=no" >> "$GITHUB_OUTPUT"
-          else
-            echo "stale=yes" >> "$GITHUB_OUTPUT"
-            echo "head moved ${EVENT_HEAD} -> ${live}; this run's verdict is not published"
-          fi
-
-      - name: Publish the check on the exact PR head
-        # CREATED HERE, AFTER THE VERDICT, AND THAT ORDERING IS LOAD-BEARING.
-        # This check is always `success` (see the header), so if it existed while
-        # `nen pr ready` ran it would be a REPORTED GREEN CHECK -- and CON-32(a)
-        # passes on a non-empty all-green rollup while FAILING on an empty one.
-        # On a pull request with no other checks the gate would then read `ready`
-        # because of this check's own existence: a false READY, which is the
-        # worst failure this signal has. Creating it only now means the rollup
-        # the verdict saw never contained it.
-        #
-        # `always()`, so a failure in any earlier step still publishes an honest
-        # `undetermined` rather than leaving the pull request with no check at
-        # all -- fail closed, visibly.
-        if: ${{ always() }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          TITLE: ${{ steps.verdict.outputs.title }}
-          SUMMARY: ${{ steps.verdict.outputs.summary }}
-          STALE: ${{ steps.fresh.outputs.stale }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          title="${TITLE:-readiness undetermined — the verdict step did not report}"
-          summary="${SUMMARY:-The readiness step did not complete. Nothing is asserted about this PR.}"
-          # A verdict computed against a head that has since moved describes a
-          # different tree than this check run. Say so rather than publishing it.
-          if [ "${STALE:-}" = "yes" ]; then
-            title="superseded — the head moved while this run was evaluating"
-            summary="A newer commit was pushed before this run finished, so its verdict would have described a different tree. The run for the new head publishes the verdict that counts. Nothing is asserted about this SHA."
-          elif [ "${STALE:-}" != "no" ]; then
-            title="readiness undetermined — could not confirm the head"
-            summary="The live head could not be read, so this run cannot confirm its verdict describes this SHA. Nothing is asserted."
-          fi
-          # Always `success`: see the header. The verdict is the title, never the
-          # conclusion, so this check can never be the red check that makes
-          # CON-32(a) unsatisfiable.
-          gh api --method POST "repos/${REPO}/check-runs" \
-            -f name=readiness \
-            -f head_sha="$HEAD_SHA" \
-            -f status=completed \
-            -f conclusion=success \
-            -f "output[title]=${title}" \
-            -f "output[summary]=${summary}" >/dev/null
-          echo "readiness: ${title}"
-CURRENT_READINESS_TAIL
-
 def self_test(root)
+  # fail_policy prints PR-controlled names escaped: no raw newline can start a
+  # log line with a workflow command (hanten on step two, Feitan SEC-7).
+  begin
+    real_stderr = $stderr
+    $stderr = StringIO.new
+    begin
+      fail_policy("x\n::warning title=forged::y.yml\r")
+    rescue SystemExit
+      nil
+    end
+    printed = $stderr.string
+  ensure
+    $stderr = real_stderr
+  end
+  fail_policy("self-test: fail_policy printed a raw control character") unless printed.lines.length == 1 && !printed.chomp.match?(/[\x00-\x1f]/)
   fail_policy("same-repository predicate rejected owner head") unless same_repository?("zheref/hatsu", "zheref/hatsu")
   fail_policy("same-repository predicate admitted fork") if same_repository?("zheref/hatsu", "fork/hatsu")
   fail_policy("same-repository predicate admitted missing head repository") if same_repository?("zheref/hatsu", nil)
@@ -1492,38 +1514,31 @@ def self_test(root)
 
     File.write(surface, surface_original)
 
-    # --- pr-readiness.yml: the NEXT step shape (zheref/hatsu#160) -----------
+    # --- pr-readiness.yml: the frozen step shape (zheref/hatsu#160) ---------
     # The freshness step dropped, the verdict and Publish steps in their frozen
     # forms -- rendered from the constants, so this is the exact text step 2 copies.
     readiness = File.join(tmp, ".github/workflows/pr-readiness.yml")
     readiness_original = File.read(readiness)
-    # Whichever shape the checkout holds, everything before the verdict step is
-    # shared; the steps from the verdict on are rebuilt from the two baselines --
-    # CURRENT_READINESS_TAIL and the frozen next constants -- never read back
-    # from the checkout, so a step-two checkout builds the same fixtures.
+    # Everything before the verdict step is the checkout's own; the verdict and
+    # Publish steps are rebuilt from the frozen constants, never read back, so
+    # a fixture can never inherit a drifted body from the checkout.
     verdict_at = readiness_original.index("      - name: #{READINESS_VERDICT_STEP}\n")
     fail_policy("self-test: pr-readiness.yml has no #{READINESS_VERDICT_STEP.inspect} step") unless verdict_at
     readiness_prefix = readiness_original[0...verdict_at]
-    readiness_current = readiness_prefix + CURRENT_READINESS_TAIL
-    confirm_at = readiness_current.index("      - name: Confirm the verdict still describes the event head\n")
-    publish_at = readiness_current.index("      - name: #{READINESS_PUBLISH_STEP}\n")
-    unless confirm_at && publish_at && verdict_at < confirm_at && confirm_at < publish_at
-      fail_policy("self-test: the current readiness baseline has no verdict, freshness and Publish steps in that order")
-    end
-    File.write(readiness, readiness_current)
-    validate_repo(tmp, announce: false) # the current shape, from its baseline: must pass
-    readiness_with = lambda do |verdict: READINESS_NEXT_VERDICT, publish: READINESS_NEXT_PUBLISH|
+    readiness_with = lambda do |verdict: READINESS_FROZEN_VERDICT, publish: READINESS_FROZEN_PUBLISH|
       readiness_prefix + render_step(READINESS_VERDICT_STEP, verdict) + "\n" + render_step(READINESS_PUBLISH_STEP, publish)
     end
-    readiness_next = readiness_with.call
-    File.write(readiness, readiness_next)
+    readiness_frozen = readiness_with.call
+    pin_out = %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"\n}
+    fail_policy("self-test: the pin step's GITHUB_OUTPUT line is not where the env-write fixtures expect it") unless readiness_frozen.scan(pin_out).length == 1
+    File.write(readiness, readiness_frozen)
     validate_repo(tmp, announce: false)
-    verdict_run = READINESS_NEXT_VERDICT.fetch("run")
-    publish_run = READINESS_NEXT_PUBLISH.fetch("run")
-    with_run = ->(run) { readiness_with.call(verdict: READINESS_NEXT_VERDICT.merge("run" => run)) }
+    verdict_run = READINESS_FROZEN_VERDICT.fetch("run")
+    publish_run = READINESS_FROZEN_PUBLISH.fetch("run")
+    with_run = ->(run) { readiness_with.call(verdict: READINESS_FROZEN_VERDICT.merge("run" => run)) }
     # Lines inserted right after `set -uo pipefail`, the verdict run's first line.
     inserted = ->(lines) { with_run.call(verdict_run.sub("set -uo pipefail\n", "set -uo pipefail\n#{lines}\n")) }
-    verdict_env = READINESS_NEXT_VERDICT.fetch("env")
+    verdict_env = READINESS_FROZEN_VERDICT.fetch("env")
     unpinned = %Q{"$NEN" pr ready "$PR" --gh-repo "$REPO" --gates "$PWD/.trusted/nen/gates.json"}
     unflagged_run = verdict_run.sub(%Q{ \\\n  --exclude-check readiness \\\n  --require-head "$EVENT_HEAD"}, "")
     fail_policy("self-test: could not drop the pinning flags from the frozen verdict") if unflagged_run == verdict_run
@@ -1531,87 +1546,162 @@ def self_test(root)
     # failure: a `sub` that silently matched nothing would otherwise re-test the
     # accepted shape and report a refusal it never exercised.
     {
-      "readiness drops the freshness step but keeps the current verdict and Publish" =>
-        [readiness_next, readiness_current[0...confirm_at] + readiness_current[publish_at..]],
-      "readiness next shape without --require-head and --exclude-check" => [readiness_next, with_run.call(unflagged_run)],
-      "readiness next shape with the flags only in a comment" =>
-        [readiness_next, with_run.call(unflagged_run.sub("set -uo pipefail\n", %Q{set -uo pipefail\n# verdict pinned: --require-head "$EVENT_HEAD" --exclude-check readiness\n}))],
-      "readiness next shape with the flags only in an echo" =>
-        [readiness_next, with_run.call(unflagged_run.sub("set -uo pipefail\n", %Q{set -uo pipefail\necho 'pinned with --require-head "$EVENT_HEAD" and --exclude-check readiness'\n}))],
-      "readiness next shape with the verdict body off by one byte" => [readiness_next, with_run.call(verdict_run.sub("${title:0:240}", "${title:0:2400}"))],
-      "readiness next shape with a comment line inside the pr ready continuation" =>
-        [readiness_next, with_run.call(verdict_run.sub(%Q{--explain \\\n}, %Q{--explain \\\n# a comment ends the call before its pinning flags\n}))],
-      "readiness next shape excluding a check named readiness-x" => [readiness_next, with_run.call(verdict_run.sub("--exclude-check readiness", "--exclude-check readiness-x"))],
-      "readiness next shape with an extra --exclude-check dropping a real check (N16)" =>
-        [readiness_next, with_run.call(verdict_run.sub("--exclude-check readiness", "--exclude-check readiness --exclude-check plugin"))],
-      "readiness next shape with --require-head twice (N12)" =>
-        [readiness_next, with_run.call(verdict_run.sub(%Q{--require-head "$EVENT_HEAD"}, %Q{--require-head "$EVENT_HEAD" --require-head "$LIVE"}))],
-      "readiness next shape with unicode quotes round EVENT_HEAD (N15)" =>
-        [readiness_next, with_run.call(verdict_run.sub(%Q{--require-head "$EVENT_HEAD"}, %Q{--require-head “$EVENT_HEAD”}))],
-      "readiness next shape whose sole call carries the flags in a trailing comment (N11b)" =>
-        [readiness_next, with_run.call(unflagged_run.sub(%Q{2>&1)" || rc=$?}, %Q{2>&1)" || rc=$? # --require-head "$EVENT_HEAD" --exclude-check readiness}))],
-      "readiness next shape without the exit-8 superseded arm" =>
-        [readiness_next, with_run.call(verdict_run.sub(/^  8\)\n.*?^    ;;\n/m, ""))],
-      "readiness next shape with a second, unpinned pr ready invocation" => [readiness_next, inserted.call(%Q{x="$(#{unpinned} 2>&1)"})],
-      "readiness next shape overwriting explain via pr  ready (N01b)" => [readiness_next, inserted.call(%Q{explain="$("$NEN" pr  ready "$PR" --gh-repo "$REPO" --explain)"})],
-      "readiness next shape with an unpinned call over a line continuation (N02)" => [readiness_next, inserted.call(%Q{x="$("$NEN" pr \\\nready "$PR")"})],
-      "readiness next shape with pr \"ready\" (N03)" => [readiness_next, inserted.call(%Q{x="$("$NEN" pr "ready" "$PR")"})],
-      "readiness next shape with pr $sub (N04)" => [readiness_next, inserted.call(%Q{sub=ready\nx="$("$NEN" pr $sub "$PR")"})],
-      "readiness next shape with pr ready inside a function (N05)" => [readiness_next, inserted.call(%Q{f() { "$NEN" pr "$@"; }\nx="$(f ready "$PR")"})],
-      "readiness next shape with pr ready assembled by eval (N06)" => [readiness_next, inserted.call(%Q{eval "x=\\$(\\"\\$NEN\\" pr re""ady \\"\\$PR\\")"})],
-      "readiness next shape with pr ready under bash -c (N07)" => [readiness_next, inserted.call(%Q{x="$(bash -c '"$NEN" pr "re"ady "$PR"')"})],
-      "readiness next shape with pr ready in a here-doc (N08)" => [readiness_next, inserted.call(%Q{x="$(bash <<'EOF'\n"$NEN" pr ready "$PR"\nEOF\n)"})],
-      "readiness next shape with an echo wrapping the call (N09)" => [readiness_next, inserted.call(%Q{echo "$(#{unpinned})" > /tmp/v})],
-      "readiness next shape overwriting explain via printf -v (N09b)" => [readiness_next, inserted.call(%Q{printf -v explain '%s' "$(#{unpinned} 2>&1)"})],
-      "readiness next shape with a printf wrapping the call (N10)" => [readiness_next, inserted.call(%Q{printf '%s' "$(#{unpinned})" > /tmp/v})],
-      "readiness next shape with the flags in an env prefix (N13)" => [readiness_next, inserted.call(%Q{X=' --require-head "$EVENT_HEAD" --exclude-check readiness ' #{unpinned} >/dev/null})],
-      "readiness next shape with the flags in another argument (N14)" => [readiness_next, inserted.call(%Q{#{unpinned} --title ' --require-head "$EVENT_HEAD" --exclude-check readiness ' >/dev/null})],
-      "readiness next shape reassigning EVENT_HEAD to the live head" => [readiness_next, inserted.call(%Q{EVENT_HEAD="$(gh api "repos/${REPO}/pulls/${PR}" --jq .head.sha)"})],
-      "readiness next shape exporting a new EVENT_HEAD" => [readiness_next, inserted.call("export EVENT_HEAD=deadbeef")],
-      "readiness next shape reassigning EVENT_HEAD through eval (E01)" => [readiness_next, inserted.call(%Q{eval "EVENT_HEAD=$LIVE"})],
-      "readiness next shape reassigning EVENT_HEAD in a for loop (E02)" => [readiness_next, inserted.call(%Q{for EVENT_HEAD in "$LIVE"; do :; done})],
-      "readiness next shape reassigning EVENT_HEAD as an array element (E03)" => [readiness_next, inserted.call(%Q{EVENT_HEAD[0]="$LIVE"})],
-      "readiness next shape reassigning EVENT_HEAD by a quoted export (E04)" => [readiness_next, inserted.call(%Q{export "EVENT_HEAD=$LIVE"})],
-      "readiness next shape reassigning EVENT_HEAD through a nameref (E05)" => [readiness_next, inserted.call(%Q{declare -n ref=EVENT_HEAD\nref="$LIVE"})],
-      "readiness next shape reassigning EVENT_HEAD by printf -v (E06)" => [readiness_next, inserted.call(%Q{printf -v "EVENT_HEAD" '%s' "$LIVE"})],
-      "readiness next shape reassigning EVENT_HEAD by sourcing a process substitution (E07)" => [readiness_next, inserted.call(%Q{source <(echo "EVENT_HEAD=$LIVE")})],
-      "readiness next shape reassigning EVENT_HEAD by getopts (E08)" => [readiness_next, inserted.call("getopts a: EVENT_HEAD -a")],
-      "readiness next shape reassigning EVENT_HEAD by let (E09)" => [readiness_next, inserted.call("let EVENT_HEAD=1")],
-      "readiness next shape without EVENT_HEAD bound" =>
-        [readiness_next, readiness_with.call(verdict: READINESS_NEXT_VERDICT.merge("env" => verdict_env.reject { |key, _| key == "EVENT_HEAD" }))],
-      "readiness next shape binding EVENT_HEAD to the live head" =>
-        [readiness_next, readiness_with.call(verdict: READINESS_NEXT_VERDICT.merge("env" => verdict_env.merge("EVENT_HEAD" => "${{ github.event.pull_request.head.ref }}")))],
-      "readiness next shape with an extra verdict env key" =>
-        [readiness_next, readiness_with.call(verdict: READINESS_NEXT_VERDICT.merge("env" => verdict_env.merge("BASH_ENV" => "/tmp/x")))],
-      "readiness next shape with the verdict under shell: sh" => [readiness_next, readiness_with.call(verdict: READINESS_NEXT_VERDICT.merge("shell" => "sh"))],
-      "readiness next shape with the verdict step id changed" => [readiness_next, readiness_with.call(verdict: READINESS_NEXT_VERDICT.merge("id" => "verdict2"))],
-      "readiness next shape with continue-on-error on the verdict" => [readiness_next, readiness_with.call(verdict: READINESS_NEXT_VERDICT.merge("continue-on-error" => "true"))],
-      "readiness next shape with working-directory on the verdict" => [readiness_next, readiness_with.call(verdict: READINESS_NEXT_VERDICT.merge("working-directory" => "/tmp"))],
-      "readiness next shape whose Publish still reads steps.fresh" =>
-        [readiness_next, readiness_with.call(publish: READINESS_NEXT_PUBLISH.merge("env" => READINESS_NEXT_PUBLISH.fetch("env").merge("STALE" => "${{ steps.fresh.outputs.stale }}")))],
-      "readiness next shape whose Publish still branches on STALE" =>
-        [readiness_next, readiness_with.call(publish: READINESS_NEXT_PUBLISH.merge("run" => publish_run.sub(%Q{gh api}, %Q{if [ "${STALE:-}" = "yes" ]; then title=superseded; fi\ngh api})))],
-      "readiness next shape whose Publish runs only on success" =>
-        [readiness_next, readiness_with.call(publish: READINESS_NEXT_PUBLISH.merge("if" => "${{ success() }}"))],
-      "readiness next shape with continue-on-error on Publish" =>
-        [readiness_next, readiness_with.call(publish: READINESS_NEXT_PUBLISH.merge("continue-on-error" => "true"))],
-      "readiness next shape with a merge key in the verdict env (N24)" =>
-        [readiness_next, readiness_next.sub("          EVENT_HEAD: ${{ github.event.pull_request.head.sha }}\n",
+      # The old shape, now refused: the freshness step back between the verdict
+      # and Publish, and the old unpinned verdict (below, "without --require-head").
+      "readiness with the old freshness step restored" =>
+        [readiness_frozen, readiness_with.call.sub("\n      - name: #{READINESS_PUBLISH_STEP}\n",
+          "\n" + render_step("Confirm the verdict still describes the event head", { "id" => "fresh", "shell" => "bash", "run" => "true" }) +
+          "\n      - name: #{READINESS_PUBLISH_STEP}\n")],
+      "readiness frozen shape without --require-head and --exclude-check" => [readiness_frozen, with_run.call(unflagged_run)],
+      "readiness frozen shape with the flags only in a comment" =>
+        [readiness_frozen, with_run.call(unflagged_run.sub("set -uo pipefail\n", %Q{set -uo pipefail\n# verdict pinned: --require-head "$EVENT_HEAD" --exclude-check readiness\n}))],
+      "readiness frozen shape with the flags only in an echo" =>
+        [readiness_frozen, with_run.call(unflagged_run.sub("set -uo pipefail\n", %Q{set -uo pipefail\necho 'pinned with --require-head "$EVENT_HEAD" and --exclude-check readiness'\n}))],
+      "readiness frozen shape with the verdict body off by one byte" => [readiness_frozen, with_run.call(verdict_run.sub("${title:0:240}", "${title:0:2400}"))],
+      "readiness frozen shape with a comment line inside the pr ready continuation" =>
+        [readiness_frozen, with_run.call(verdict_run.sub(%Q{--explain \\\n}, %Q{--explain \\\n# a comment ends the call before its pinning flags\n}))],
+      "readiness frozen shape excluding a check named readiness-x" => [readiness_frozen, with_run.call(verdict_run.sub("--exclude-check readiness", "--exclude-check readiness-x"))],
+      "readiness frozen shape with an extra --exclude-check dropping a real check (N16)" =>
+        [readiness_frozen, with_run.call(verdict_run.sub("--exclude-check readiness", "--exclude-check readiness --exclude-check plugin"))],
+      "readiness frozen shape with --require-head twice (N12)" =>
+        [readiness_frozen, with_run.call(verdict_run.sub(%Q{--require-head "$EVENT_HEAD"}, %Q{--require-head "$EVENT_HEAD" --require-head "$LIVE"}))],
+      "readiness frozen shape with unicode quotes round EVENT_HEAD (N15)" =>
+        [readiness_frozen, with_run.call(verdict_run.sub(%Q{--require-head "$EVENT_HEAD"}, %Q{--require-head “$EVENT_HEAD”}))],
+      "readiness frozen shape whose sole call carries the flags in a trailing comment (N11b)" =>
+        [readiness_frozen, with_run.call(unflagged_run.sub(%Q{2>&1)" || rc=$?}, %Q{2>&1)" || rc=$? # --require-head "$EVENT_HEAD" --exclude-check readiness}))],
+      "readiness frozen shape without the exit-8 superseded arm" =>
+        [readiness_frozen, with_run.call(verdict_run.sub(/^  8\)\n.*?^    ;;\n/m, ""))],
+      "readiness frozen shape with a second, unpinned pr ready invocation" => [readiness_frozen, inserted.call(%Q{x="$(#{unpinned} 2>&1)"})],
+      "readiness frozen shape overwriting explain via pr  ready (N01b)" => [readiness_frozen, inserted.call(%Q{explain="$("$NEN" pr  ready "$PR" --gh-repo "$REPO" --explain)"})],
+      "readiness frozen shape with an unpinned call over a line continuation (N02)" => [readiness_frozen, inserted.call(%Q{x="$("$NEN" pr \\\nready "$PR")"})],
+      "readiness frozen shape with pr \"ready\" (N03)" => [readiness_frozen, inserted.call(%Q{x="$("$NEN" pr "ready" "$PR")"})],
+      "readiness frozen shape with pr $sub (N04)" => [readiness_frozen, inserted.call(%Q{sub=ready\nx="$("$NEN" pr $sub "$PR")"})],
+      "readiness frozen shape with pr ready inside a function (N05)" => [readiness_frozen, inserted.call(%Q{f() { "$NEN" pr "$@"; }\nx="$(f ready "$PR")"})],
+      "readiness frozen shape with pr ready assembled by eval (N06)" => [readiness_frozen, inserted.call(%Q{eval "x=\\$(\\"\\$NEN\\" pr re""ady \\"\\$PR\\")"})],
+      "readiness frozen shape with pr ready under bash -c (N07)" => [readiness_frozen, inserted.call(%Q{x="$(bash -c '"$NEN" pr "re"ady "$PR"')"})],
+      "readiness frozen shape with pr ready in a here-doc (N08)" => [readiness_frozen, inserted.call(%Q{x="$(bash <<'EOF'\n"$NEN" pr ready "$PR"\nEOF\n)"})],
+      "readiness frozen shape with an echo wrapping the call (N09)" => [readiness_frozen, inserted.call(%Q{echo "$(#{unpinned})" > /tmp/v})],
+      "readiness frozen shape overwriting explain via printf -v (N09b)" => [readiness_frozen, inserted.call(%Q{printf -v explain '%s' "$(#{unpinned} 2>&1)"})],
+      "readiness frozen shape with a printf wrapping the call (N10)" => [readiness_frozen, inserted.call(%Q{printf '%s' "$(#{unpinned})" > /tmp/v})],
+      "readiness frozen shape with the flags in an env prefix (N13)" => [readiness_frozen, inserted.call(%Q{X=' --require-head "$EVENT_HEAD" --exclude-check readiness ' #{unpinned} >/dev/null})],
+      "readiness frozen shape with the flags in another argument (N14)" => [readiness_frozen, inserted.call(%Q{#{unpinned} --title ' --require-head "$EVENT_HEAD" --exclude-check readiness ' >/dev/null})],
+      "readiness frozen shape reassigning EVENT_HEAD to the live head" => [readiness_frozen, inserted.call(%Q{EVENT_HEAD="$(gh api "repos/${REPO}/pulls/${PR}" --jq .head.sha)"})],
+      "readiness frozen shape exporting a new EVENT_HEAD" => [readiness_frozen, inserted.call("export EVENT_HEAD=deadbeef")],
+      "readiness frozen shape reassigning EVENT_HEAD through eval (E01)" => [readiness_frozen, inserted.call(%Q{eval "EVENT_HEAD=$LIVE"})],
+      "readiness frozen shape reassigning EVENT_HEAD in a for loop (E02)" => [readiness_frozen, inserted.call(%Q{for EVENT_HEAD in "$LIVE"; do :; done})],
+      "readiness frozen shape reassigning EVENT_HEAD as an array element (E03)" => [readiness_frozen, inserted.call(%Q{EVENT_HEAD[0]="$LIVE"})],
+      "readiness frozen shape reassigning EVENT_HEAD by a quoted export (E04)" => [readiness_frozen, inserted.call(%Q{export "EVENT_HEAD=$LIVE"})],
+      "readiness frozen shape reassigning EVENT_HEAD through a nameref (E05)" => [readiness_frozen, inserted.call(%Q{declare -n ref=EVENT_HEAD\nref="$LIVE"})],
+      "readiness frozen shape reassigning EVENT_HEAD by printf -v (E06)" => [readiness_frozen, inserted.call(%Q{printf -v "EVENT_HEAD" '%s' "$LIVE"})],
+      "readiness frozen shape reassigning EVENT_HEAD by sourcing a process substitution (E07)" => [readiness_frozen, inserted.call(%Q{source <(echo "EVENT_HEAD=$LIVE")})],
+      "readiness frozen shape reassigning EVENT_HEAD by getopts (E08)" => [readiness_frozen, inserted.call("getopts a: EVENT_HEAD -a")],
+      "readiness frozen shape reassigning EVENT_HEAD by let (E09)" => [readiness_frozen, inserted.call("let EVENT_HEAD=1")],
+      "readiness frozen shape without EVENT_HEAD bound" =>
+        [readiness_frozen, readiness_with.call(verdict: READINESS_FROZEN_VERDICT.merge("env" => verdict_env.reject { |key, _| key == "EVENT_HEAD" }))],
+      "readiness frozen shape binding EVENT_HEAD to the live head" =>
+        [readiness_frozen, readiness_with.call(verdict: READINESS_FROZEN_VERDICT.merge("env" => verdict_env.merge("EVENT_HEAD" => "${{ github.event.pull_request.head.ref }}")))],
+      "readiness frozen shape with an extra verdict env key" =>
+        [readiness_frozen, readiness_with.call(verdict: READINESS_FROZEN_VERDICT.merge("env" => verdict_env.merge("BASH_ENV" => "/tmp/x")))],
+      "readiness frozen shape with the verdict under shell: sh" => [readiness_frozen, readiness_with.call(verdict: READINESS_FROZEN_VERDICT.merge("shell" => "sh"))],
+      "readiness frozen shape with the verdict step id changed" => [readiness_frozen, readiness_with.call(verdict: READINESS_FROZEN_VERDICT.merge("id" => "verdict2"))],
+      "readiness frozen shape with continue-on-error on the verdict" => [readiness_frozen, readiness_with.call(verdict: READINESS_FROZEN_VERDICT.merge("continue-on-error" => "true"))],
+      "readiness frozen shape with working-directory on the verdict" => [readiness_frozen, readiness_with.call(verdict: READINESS_FROZEN_VERDICT.merge("working-directory" => "/tmp"))],
+      "readiness frozen shape whose Publish still reads steps.fresh" =>
+        [readiness_frozen, readiness_with.call(publish: READINESS_FROZEN_PUBLISH.merge("env" => READINESS_FROZEN_PUBLISH.fetch("env").merge("STALE" => "${{ steps.fresh.outputs.stale }}")))],
+      "readiness frozen shape whose Publish still branches on STALE" =>
+        [readiness_frozen, readiness_with.call(publish: READINESS_FROZEN_PUBLISH.merge("run" => publish_run.sub(%Q{gh api}, %Q{if [ "${STALE:-}" = "yes" ]; then title=superseded; fi\ngh api})))],
+      "readiness frozen shape whose Publish runs only on success" =>
+        [readiness_frozen, readiness_with.call(publish: READINESS_FROZEN_PUBLISH.merge("if" => "${{ success() }}"))],
+      "readiness frozen shape with continue-on-error on Publish" =>
+        [readiness_frozen, readiness_with.call(publish: READINESS_FROZEN_PUBLISH.merge("continue-on-error" => "true"))],
+      "readiness frozen shape with a merge key in the verdict env (N24)" =>
+        [readiness_frozen, readiness_frozen.sub("          EVENT_HEAD: ${{ github.event.pull_request.head.sha }}\n",
                                             "          EVENT_HEAD: ${{ github.event.pull_request.head.sha }}\n          <<: {BASH_ENV: /tmp/x}\n")],
-      "readiness next shape under a job-level BASH_ENV" =>
-        [readiness_next, readiness_next.sub("    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    env:\n      BASH_ENV: ./evil.sh\n")],
-      "readiness next shape under a workflow-level BASH_ENV" => [readiness_next, readiness_next.sub("\njobs:\n", "\nenv:\n  BASH_ENV: ./evil.sh\njobs:\n")],
-      "readiness next shape binding EVENT_HEAD through a YAML alias" =>
-        [readiness_next, readiness_next.sub("          GH_TOKEN: ${{ github.token }}\n          NEN:", "          GH_TOKEN: &token ${{ github.token }}\n          NEN:")
+      "readiness frozen shape under a job-level BASH_ENV" =>
+        [readiness_frozen, readiness_frozen.sub("    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    env:\n      BASH_ENV: ./evil.sh\n")],
+      "readiness with an earlier step writing BASH_ENV to $GITHUB_ENV" =>
+        [readiness_frozen, readiness_frozen.sub(%Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"\n}, %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"\n          echo "BASH_ENV=$PWD/x.sh" >> "$GITHUB_ENV"\n})],
+      "readiness with an earlier step prepending to $GITHUB_PATH" =>
+        [readiness_frozen, readiness_frozen.sub(%Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"\n}, %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"\n          echo "$PWD/bin" >> "$GITHUB_PATH"\n})],
+      "readiness with an earlier step writing through an indirect expansion" =>
+        [readiness_frozen, readiness_frozen.sub(%Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"\n}, %Q{          v=GITHUB_E""NV; echo "BASH_ENV=$PWD/x.sh" >> "${!v}"\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"\n})],
+      # Run-time-assembled env writes (hanten on step two, Phinks' red test
+      # workflow_env_write_bypass_red.sh, Feitan M2-M4): each passes the
+      # literal tripwire and is refused only because the pin step is frozen.
+      "readiness with an earlier step finding $GITHUB_ENV through printenv" =>
+        [readiness_frozen, readiness_frozen.sub(pin_out, pin_out + %Q{          f="$(printenv | sed -n "s/^GITHUB_E[N]V=//p")"; echo "BASH_ENV=$PWD/x.sh" >> "$f"\n})],
+      "readiness with an earlier step naming $GITHUB_ENV through eval" =>
+        [readiness_frozen, readiness_frozen.sub(pin_out, pin_out + %Q{          eval "echo BASH_ENV=$PWD/x.sh >> \\"\\$GITHUB_E""NV\\""\n})],
+      "readiness with an earlier step globbing the runner's file commands" =>
+        [readiness_frozen, readiness_frozen.sub(pin_out, pin_out + %Q{          for f in "$RUNNER_TEMP"/_runner_file_comm*/set_env_*; do echo "BASH_ENV=$PWD/x.sh" >> "$f"; done\n})],
+      "readiness with an earlier step writing under _runner_file_commands literally" =>
+        [readiness_frozen, readiness_frozen.sub(pin_out, pin_out + %Q{          echo "BASH_ENV=$PWD/x.sh" >> "$RUNNER_TEMP/_runner_file_commands/set_env_x"\n})],
+      "readiness with RUBYOPT on the policy step (M5)" =>
+        [readiness_frozen, readiness_frozen.sub("      - name: Enforce workflow runner policy from trusted workflow revision\n",
+          "      - name: Enforce workflow runner policy from trusted workflow revision\n        env:\n          RUBYOPT: -r./x.rb\n")],
+      "readiness with PATH on the bootstrap step (M10)" =>
+        [readiness_frozen, readiness_frozen.sub("          PINNED_REF: ${{ steps.pin.outputs.ref }}\n",
+          "          PINNED_REF: ${{ steps.pin.outputs.ref }}\n          PATH: ./bin:/usr/bin:/bin\n")],
+      "readiness with an rcfile shell on the pin step (M6)" =>
+        [readiness_frozen, readiness_frozen.sub("        id: pin\n        shell: bash\n", "        id: pin\n        shell: bash --rcfile ./x.sh -i {0}\n")],
+      "readiness with a local action from the PR checkout (M9)" =>
+        [readiness_frozen, readiness_frozen.sub("      - name: Checkout PR head (data only — nothing from here is executed)\n        uses: actions/checkout@v7\n",
+          "      - name: Checkout PR head (data only — nothing from here is executed)\n        uses: ./.github/actions/x\n")],
+      "readiness with a job container (M14)" =>
+        [readiness_frozen, readiness_frozen.sub("    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    container: node:20\n")],
+      "readiness with job services" =>
+        [readiness_frozen, readiness_frozen.sub("    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    services:\n      db:\n        image: postgres\n")],
+      "readiness whose bootstrap prints a PR-checkout binary (M11)" =>
+        [readiness_frozen, readiness_frozen.sub(%Q{          echo "bin=$bin" >> "$GITHUB_OUTPUT"\n}, %Q{          bin=$PWD/tools/nen\n          echo "bin=$bin" >> "$GITHUB_OUTPUT"\n})],
+      "readiness with continue-on-error on the pin step" =>
+        [readiness_frozen, readiness_frozen.sub("        id: pin\n", "        id: pin\n        continue-on-error: true\n")],
+      "readiness whose trusted checkout reads the PR head" =>
+        [readiness_frozen, readiness_frozen.sub("          ref: ${{ github.event.pull_request.base.sha }}\n", "          ref: ${{ github.event.pull_request.head.sha }}\n")],
+      "readiness with BASH_ENV on an earlier step" =>
+        [readiness_frozen, readiness_frozen.sub(%Q{        id: pin\n}, %Q{        id: pin\n        env:\n          BASH_ENV: ./x.sh\n})],
+      "readiness frozen shape under a workflow-level BASH_ENV" => [readiness_frozen, readiness_frozen.sub("\njobs:\n", "\nenv:\n  BASH_ENV: ./evil.sh\njobs:\n")],
+      "readiness frozen shape binding EVENT_HEAD through a YAML alias" =>
+        [readiness_frozen, readiness_frozen.sub("          GH_TOKEN: ${{ github.token }}\n          NEN:", "          GH_TOKEN: &token ${{ github.token }}\n          NEN:")
                                        .sub("          EVENT_HEAD: ${{ github.event.pull_request.head.sha }}\n", "          EVENT_HEAD: *token\n")],
-      "readiness next shape whose verdict run is a mapping" =>
-        [readiness_next, readiness_with.call(verdict: READINESS_NEXT_VERDICT.merge("run" => "{ cmd: true }")).sub("        run: |\n          { cmd: true }\n", "        run: { cmd: true }\n")]
+      "readiness frozen shape whose verdict run is a mapping" =>
+        [readiness_frozen, readiness_with.call(verdict: READINESS_FROZEN_VERDICT.merge("run" => "{ cmd: true }")).sub("        run: |\n          { cmd: true }\n", "        run: { cmd: true }\n")]
     }.each do |label, (base, text)|
       fail_policy("self-test: #{label} equals its base, so it tests nothing") if text == base
       File.write(readiness, text)
       expect_rejected(label) { validate_repo(tmp) }
     end
     File.write(readiness, readiness_original)
+    validate_repo(tmp, announce: false)
+
+    # --- the exact allowlists, on the workflows that are not frozen whole ---
+    # plugin-bump-check.yml and surface-mirror-check.yml keep their pattern
+    # checks; these fixtures pin the job/step key, `uses:`, `shell:` and env
+    # allowlists that hold an earlier step back from the guard's own run.
+    {
+      plugin => [
+        ["plugin-bump-check job with a container", ->(t) { t.sub("    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    container: node:20\n") }],
+        ["plugin-bump-check step with RUBYOPT", ->(t) { t.sub("      - name: Enforce workflow runner policy from trusted workflow revision\n", "      - name: Enforce workflow runner policy from trusted workflow revision\n        env:\n          RUBYOPT: -r./x.rb\n") }],
+        ["plugin-bump-check step with an rcfile shell", ->(t) { t.sub(/(      - name: Plugin-bump guard check\n(?:        #.*\n)*)        shell: bash\n/) { "#{$1}        shell: bash --rcfile ./x.sh -i {0}\n" } }],
+        ["plugin-bump-check step with continue-on-error", ->(t) { t.sub("      - name: Plugin-bump guard check\n", "      - name: Plugin-bump guard check\n        continue-on-error: true\n") }],
+        ["plugin-bump-check step with a local action", ->(t) { t.sub("      - name: Checkout PR head (data only — nothing from here is executed)\n        uses: actions/checkout@v7\n", "      - name: Checkout PR head (data only — nothing from here is executed)\n        uses: ./.github/actions/x\n") }],
+        # Still an actions/checkout, still persist-credentials: false, still the
+        # trusted ref -- only the admitted-uses list refuses a moved pin.
+        ["plugin-bump-check trusted checkout at a floating ref", ->(t) { t.sub("      - name: Checkout guard code from the trusted workflow revision\n", "      - name: Checkout guard code from the trusted workflow revision\n        uses: actions/checkout@main\n").sub(/(      - name: Checkout guard code from the trusted workflow revision\n        uses: actions\/checkout@main\n(?:        #.*\n)*)        uses: actions\/checkout@v7\n/) { $1 } }]
+      ],
+      surface => [
+        ["surface-mirror-check step with PATH in its env", ->(t) { t.sub("          PINNED_REF: ${{ steps.pin.outputs.ref }}\n", "          PINNED_REF: ${{ steps.pin.outputs.ref }}\n          PATH: ./bin:/usr/bin:/bin\n") }],
+        ["surface-mirror-check job with services", ->(t) { t.sub("    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    services:\n      db:\n        image: postgres\n") }]
+      ]
+    }.each do |file, cases|
+      before = File.read(file)
+      cases.each do |label, change|
+        text = change.call(before)
+        fail_policy("self-test: #{label} equals its base, so it tests nothing") if text == before
+        File.write(file, text)
+        expect_rejected(label) { validate_repo(tmp) }
+      end
+      File.write(file, before)
+    end
     validate_repo(tmp, announce: false)
 
     # --- surface-mirror-regenerate.yml: the builder pipeline, OPTIONAL ------
@@ -1670,16 +1760,15 @@ def self_test(root)
       %Q{      - name: Checkout main\n        uses: actions/checkout@v7\n        with:\n          ref: main\n\n      - name: Push straight to main\n        shell: bash\n        run: |\n          git push origin HEAD:main\n}))
     expect_rejected("regenerate workflow pushes directly with git instead of only opening a PR") { validate_repo(tmp) }
 
-    # The NEXT shape (zheref/hatsu#165): one cleanup step after the PR step,
-    # naming the toggle and deleting only bot/surface-mirror-regenerate, and
-    # only when the PR step itself failed.
+    # The shape since step two (zheref/hatsu#165): one cleanup step after the PR
+    # step, naming the toggle and deleting only bot/surface-mirror-regenerate,
+    # and only when the PR step itself failed.
     pr_line = "      - name: Open a pull request with the regenerated mirrors\n"
     fail_policy("self-test: regenerate has no pull request step") unless regenerate_original.include?(pr_line)
-    # A CURRENT-shape baseline first (Copilot on #193): a step-two checkout
-    # already carries `id: cpr` and the cleanup step, and building the next
-    # shape on top of it would add a second id and a second cleanup. So the
-    # cleanup step (the last step when present) and the PR step's id are taken
-    # off, the baseline must validate, and every next fixture builds from it.
+    # The OLD shape is rebuilt first (Copilot on #193): the cleanup step (the
+    # last step) and the PR step's id are taken off. Since step two it is
+    # REFUSED, and every fixture below builds on it again, so none can inherit
+    # a second id or a second cleanup from the checkout.
     cleanup_at = regenerate_original.index("      - name: #{REGENERATE_CLEANUP_STEP}\n")
     regenerate_current = (cleanup_at ? regenerate_original[0...cleanup_at].rstrip + "\n" : regenerate_original)
                            .sub(pr_line + "        id: cpr\n", pr_line)
@@ -1687,7 +1776,7 @@ def self_test(root)
       fail_policy("self-test: could not reduce surface-mirror-regenerate.yml to its current shape")
     end
     File.write(regenerate, regenerate_current)
-    validate_repo(tmp, announce: false) # the current shape: must pass
+    expect_rejected("regenerate in its old shape, without id: cpr and the cleanup step") { validate_repo(tmp) }
     regenerate_with_id = regenerate_current.sub(pr_line, pr_line + "        id: cpr\n")
     regenerate_with = ->(cleanup) { regenerate_with_id.rstrip + "\n\n" + render_step(REGENERATE_CLEANUP_STEP, cleanup) }
     regenerate_next = regenerate_with.call(REGENERATE_CLEANUP)
@@ -1740,9 +1829,14 @@ def self_test(root)
       "regenerate cleanup step under a job-level BASH_ENV" =>
         regenerate_next.sub("    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    env:\n      BASH_ENV: ./evil.sh\n"),
       "regenerate cleanup step under a workflow-level BASH_ENV" => regenerate_next.sub("\njobs:\n", "\nenv:\n  BASH_ENV: ./evil.sh\njobs:\n"),
+      "regenerate with ENV set on an earlier step" =>
+        regenerate_next.sub(%Q{        id: stamp\n}, %Q{        id: stamp\n        env:\n          ENV: ./x.sh\n}),
       "regenerate cleanup step twice (N26)" => regenerate_next + "\n" + render_step(REGENERATE_CLEANUP_STEP, REGENERATE_CLEANUP),
       "regenerate cleanup step while the pull request step has no id: cpr" =>
-        regenerate_current.rstrip + "\n\n" + render_step(REGENERATE_CLEANUP_STEP, REGENERATE_CLEANUP)
+        regenerate_current.rstrip + "\n\n" + render_step(REGENERATE_CLEANUP_STEP, REGENERATE_CLEANUP),
+      "regenerate job with a container" => regenerate_next.sub("    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    container: node:20\n"),
+      "regenerate step with NODE_OPTIONS in its env" =>
+        regenerate_next.sub("          NEN_BIN: ${{ steps.nen.outputs.bin }}\n", "          NEN_BIN: ${{ steps.nen.outputs.bin }}\n          NODE_OPTIONS: --require ./x.js\n")
     }.each do |label, text|
       fail_policy("self-test: #{label} equals its base, so it tests nothing") if text == regenerate_next
       File.write(regenerate, text)

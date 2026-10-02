@@ -124,8 +124,11 @@
 # last changing input is a check -- a re-run with no review after it -- stays
 # stale until something else happens.
 #
-# Hardening is inherited from `plugin-bump-check.yml` unchanged: the guard code
-# and the nen pin come from the trusted workflow revision, never from the PR;
+# Hardening is inherited from `plugin-bump-check.yml` unchanged. On
+# `pull_request_target`, the event that runs the base branch's copy of this
+# file: the guard code and the nen pin come from the trusted workflow revision,
+# never from the PR (on `pull_request_review` GitHub runs the file from the PR's
+# merge ref, so these guarantees hold there once the change is merged);
 # both checkouts set `persist-credentials: false`; the job is same-repository
 # only; and the pinned ref reaches the shell through `env`, never through a
 # `${{ }}` expansion inside a `run:` block.
@@ -263,26 +266,64 @@ jobs:
           echo "nen: $("$bin" --version) at $bin"
 
       - name: Readiness verdict
+        # FROZEN. scripts/workflow_runner_policy_check.rb admits this step only in
+        # its exact form (READINESS_FROZEN_VERDICT): keys, id, env, shell and the run
+        # compared byte for byte, comment lines included -- as it admits every
+        # other step of this job (READINESS_FROZEN_STEPS). Only `name` and these
+        # YAML comments are free, so the run carries no prose of its own. The
+        # freeze binds the copy on the base branch: `pull_request_target` runs
+        # that copy, but on `pull_request_review` GitHub runs the workflow file
+        # from the pull request's merge ref, so a same-repository PR's edited
+        # copy runs on its review events before the trusted validator judges it.
+        #
         # The reviewer identities come from the TRUSTED gates file, never the
         # PR's copy -- a PR that could edit the gate judging it is worth nothing,
         # the same reason the guard code is trusted-only. `--gates` takes an
-        # absolute path so it is not resolved against --repo's root. This matters
-        # more than it looks: with the flag dropped, nen 0.10.0 falls back to
-        # <cwd>/nen/gates.json, and the cwd here is the PR HEAD checkout. The
-        # policy guard asserts this argument so the flag cannot be quietly lost.
+        # absolute path so it is not resolved against --repo's root: with the flag
+        # dropped, nen falls back to <cwd>/nen/gates.json, and the cwd here is the
+        # PR HEAD checkout.
         #
-        # ERREXIT IS NOT RE-ENABLED, DELIBERATELY. `nen pr ready` exits 1 for
-        # `not-ready`, which is the COMMON case and the one this workflow exists
-        # to report. An earlier draft restored `set -e` and then ran the verb in a
-        # pipeline: the pipeline returned 1, the assignment failed, and the step
-        # died BEFORE writing $GITHUB_OUTPUT -- so every not-ready PR published
-        # "readiness undetermined" and discarded the explain table. That is the
-        # exact regression `surface-mirror-check.yml` already documents. The `rc`
-        # dispatch below is the control flow; errexit would fight it.
+        # PINNED TO THE EVENT HEAD, AND BLIND TO ITS OWN PRIOR VERDICT
+        # (zheref/hatsu#160). `--require-head "$EVENT_HEAD"` makes nen judge
+        # exactly the SHA this run's check is published on and exit 8 when the
+        # live head has moved, so an in-flight older run can never publish a
+        # verdict about a newer tree. `--exclude-check readiness` drops this
+        # workflow's own PREVIOUS `readiness` check from the rollup by name, so a
+        # repository whose only reporting check is this one can no longer read
+        # `ready` on the strength of the last readiness check alone. By the same
+        # rule it never reads ready at all: excluding its only check leaves an
+        # empty rollup, which nen judges `not-ready: no checks reported` on every
+        # event -- add a real CI check before relying on this one.
+        # `--exclude-run` still drops THIS run's own checks.
         #
-        # ONE EVALUATION, NOT TWO. The title is taken from the bytes already in
-        # hand, so the title and the summary can never describe different
-        # evaluations of a PR that changed between them.
+        # `shell: bash` runs this as `bash -eo pipefail`, and `set -uo pipefail`
+        # does not turn errexit off. `nen pr ready` exits 1 for `not-ready`, the
+        # common case this workflow exists to report, so the `|| rc=$?` on the
+        # assignment is what keeps that exit from killing the step before it
+        # writes $GITHUB_OUTPUT; the `rc` dispatch is the control flow. Exit 8
+        # (head mismatch, no verdict) titles the check `superseded`, asserts
+        # nothing about this SHA, and the step still exits 0: the run for the new
+        # head publishes the verdict that counts.
+        #
+        # ONE EVALUATION, NOT TWO: the title is the first line of the bytes
+        # already in hand, minus the "<repo>#<n>: " prefix, so the title and the
+        # summary can never describe different evaluations.
+        #
+        # nen's output embeds PR-DERIVED STRINGS (check names, reviewer logins), so
+        # it is echoed between `::stop-commands::` markers with a random nonce --
+        # GitHub's own mechanism for keeping attacker-influenced text off the
+        # workflow-command channel. The title is cut to 240 with a bash
+        # substring, which is character-wise, never `head -c`, which can split
+        # UTF-8. KNOWN, FAILS CLOSED: the first-line read `printf | head -1` is
+        # itself a pipe, so under pipefail an explain larger than the pipe buffer
+        # (128 KiB measured on macOS; a real one is a few hundred bytes) can die
+        # on SIGPIPE -- the step fails and Publish posts `readiness undetermined`,
+        # never a verdict. The fix (`${explain%%$'\n'*}`) changes this frozen
+        # body, which `main`'s trusted validator compares byte for byte, so it
+        # needs its own two-step landing (hanten on step two; recorded in
+        # docs/GATE-CONFIGURATION.md). THE HEREDOC DELIMITER IS RANDOM PER RUN: a
+        # fixed `EOF` lets a value line reading `EOF` close it early and forge
+        # the step output the next step publishes.
         id: verdict
         env:
           GH_TOKEN: ${{ github.token }}
@@ -290,87 +331,55 @@ jobs:
           REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
           RUN_ID: ${{ github.run_id }}
+          EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
         shell: bash
         run: |
           set -uo pipefail
           explain="$("$NEN" pr ready "$PR" --gh-repo "$REPO" --explain \
             --gates "$PWD/.trusted/nen/gates.json" \
-            --exclude-run "$RUN_ID" 2>&1)" || rc=$?
+            --exclude-run "$RUN_ID" \
+            --exclude-check readiness \
+            --require-head "$EVENT_HEAD" 2>&1)" || rc=$?
           rc="${rc:-0}"
-          # nen's output embeds PR-DERIVED STRINGS -- reported check names and
-          # reviewer logins are interpolated into its failure lines. Echoing it
-          # raw would put attacker-influenced text on the runner's WORKFLOW-COMMAND
-          # channel, where a line starting `::` is interpreted rather than printed
-          # (`::error::`, `::set-output`). `::stop-commands::` with a nonce is
-          # GitHub's own mechanism for exactly this.
           nonce="stop_$(openssl rand -hex 16)"
           echo "::stop-commands::${nonce}"
           printf '%s\n' "$explain"
           echo "::${nonce}::"
-          # First line of the verb's own output, minus the "<repo>#<n>: " prefix.
           title="$(printf '%s\n' "$explain" | head -1)"
           title="${title#*: }"
           case "$rc" in
             0) title="ready — ${title}" ;;
             1) : ;;
+            8)
+              title="superseded — the head moved while this run was evaluating"
+              explain="A newer commit was pushed before this run finished, so its verdict would have described a different tree. The run for the new head publishes the verdict that counts. Nothing is asserted about this SHA."
+              ;;
             *) title="readiness undetermined — nen exited ${rc}" ;;
           esac
-          # Bash substring, NOT `| head -c`: head is a BYTE cut that can land
-          # mid-UTF-8 (these strings carry em dashes) and, under pipefail, a
-          # SIGPIPE'd printf returns 141 and kills the step at the truncation
-          # boundary. Parameter expansion is character-wise and spawns nothing.
           title="${title:0:240}"
-          # THE DELIMITER IS RANDOM PER RUN. With a fixed `EOF`, a value
-          # containing a line that is exactly `EOF` closes the heredoc early and
-          # the runner parses the rest as further file commands -- forging the
-          # step output the next step publishes. GitHub's docs require a random
-          # delimiter for multiline values for this reason.
           d="EOF_$(openssl rand -hex 16)"
           {
             printf 'title<<%s\n%s\n%s\n' "$d" "$title" "$d"
             printf 'summary<<%s\n%s\n%s\n' "$d" "$explain" "$d"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Confirm the verdict still describes the event head
-        # `nen pr ready` takes a PR NUMBER and reads that PR's LIVE head, but the
-        # check run was created against `github.event.pull_request.head.sha`.
-        # Cancellation is not atomic, so an in-flight older run can evaluate a
-        # NEWER head and PATCH that verdict onto the older SHA's check -- a
-        # verdict about a tree that check does not describe. Concurrency makes
-        # this rare, not impossible, which is exactly the kind of race that shows
-        # up once and is never reproduced.
-        id: fresh
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          PR: ${{ github.event.pull_request.number }}
-          EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
-        shell: bash
-        run: |
-          set -uo pipefail
-          live="$(gh api "repos/${REPO}/pulls/${PR}" --jq .head.sha 2>/dev/null || true)"
-          if [ -z "$live" ]; then
-            echo "stale=unknown" >> "$GITHUB_OUTPUT"
-          elif [ "$live" = "$EVENT_HEAD" ]; then
-            echo "stale=no" >> "$GITHUB_OUTPUT"
-          else
-            echo "stale=yes" >> "$GITHUB_OUTPUT"
-            echo "head moved ${EVENT_HEAD} -> ${live}; this run's verdict is not published"
-          fi
-
       - name: Publish the check on the exact PR head
+        # FROZEN (READINESS_FROZEN_PUBLISH), like the verdict above.
+        #
         # CREATED HERE, AFTER THE VERDICT, AND THAT ORDERING IS LOAD-BEARING.
         # This check is always `success` (see the header), so if it existed while
         # `nen pr ready` ran it would be a REPORTED GREEN CHECK -- and CON-32(a)
         # passes on a non-empty all-green rollup while FAILING on an empty one.
-        # On a pull request with no other checks the gate would then read `ready`
-        # because of this check's own existence: a false READY, which is the
-        # worst failure this signal has. Creating it only now means the rollup
-        # the verdict saw never contained it.
+        # Creating it only now means the rollup this run's verdict saw never
+        # contained it; `--exclude-check readiness` keeps the PREVIOUS runs' copies
+        # out too.
         #
         # `always()`, so a failure in any earlier step still publishes an honest
         # `undetermined` rather than leaving the pull request with no check at
-        # all -- fail closed, visibly.
+        # all -- fail closed, visibly. A superseded run arrives here as the
+        # verdict's own title. Always `success`: the verdict is the title, never
+        # the conclusion, so this check can never be the red check that makes
+        # CON-32(a) unsatisfiable.
         if: ${{ always() }}
         env:
           GH_TOKEN: ${{ github.token }}
@@ -378,24 +387,11 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           TITLE: ${{ steps.verdict.outputs.title }}
           SUMMARY: ${{ steps.verdict.outputs.summary }}
-          STALE: ${{ steps.fresh.outputs.stale }}
         shell: bash
         run: |
           set -euo pipefail
           title="${TITLE:-readiness undetermined — the verdict step did not report}"
           summary="${SUMMARY:-The readiness step did not complete. Nothing is asserted about this PR.}"
-          # A verdict computed against a head that has since moved describes a
-          # different tree than this check run. Say so rather than publishing it.
-          if [ "${STALE:-}" = "yes" ]; then
-            title="superseded — the head moved while this run was evaluating"
-            summary="A newer commit was pushed before this run finished, so its verdict would have described a different tree. The run for the new head publishes the verdict that counts. Nothing is asserted about this SHA."
-          elif [ "${STALE:-}" != "no" ]; then
-            title="readiness undetermined — could not confirm the head"
-            summary="The live head could not be read, so this run cannot confirm its verdict describes this SHA. Nothing is asserted."
-          fi
-          # Always `success`: see the header. The verdict is the title, never the
-          # conclusion, so this check can never be the red check that makes
-          # CON-32(a) unsatisfiable.
           gh api --method POST "repos/${REPO}/check-runs" \
             -f name=readiness \
             -f head_sha="$HEAD_SHA" \
