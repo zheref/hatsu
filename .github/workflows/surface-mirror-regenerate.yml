@@ -47,11 +47,10 @@
 # the cause, and the toggle cannot be read first: its endpoint needs the
 # repository Administration (read) permission, which GITHUB_TOKEN cannot be
 # granted; only a secret-held GitHub App installation token or a personal access
-# token could read it, and this job declines to hold one (SEC-9). The follow-up
-# PR adds a step that runs only when the pull request step itself failed: it
-# names this toggle as an `::error::` on every such failure, then deletes the
-# stranded branch, or says to delete it by hand if that delete fails. Until it
-# lands, delete the branch by hand.
+# token could read it, and this job declines to hold one (SEC-9). So the last
+# step runs only when the pull request step itself failed: it names this toggle
+# as an `::error::` on every such failure, then deletes the stranded branch, or
+# says to delete it by hand if that delete fails.
 #
 # `workflow_dispatch` exists for the same reason `getsuga`'s and `futon`'s
 # manual triggers do: a maintainer who wants to force a regeneration RIGHT NOW
@@ -208,6 +207,7 @@ jobs:
           bash scripts/surface_mirror_check.sh "$PWD"
 
       - name: Open a pull request with the regenerated mirrors
+        id: cpr
         if: steps.drift.outputs.dirty == 'true'
         uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
         with:
@@ -235,3 +235,24 @@ jobs:
             `main`, merge on the strength of the in-job verification above,
             or push an empty commit to re-trigger the PR-side check under a
             human actor.
+
+      - name: Delete the branch when the pull request could not be opened
+        # FROZEN (REGENERATE_CLEANUP in scripts/workflow_runner_policy_check.rb):
+        # keys, if, env, shell and the two-line run compared byte for byte; only
+        # `name` and these comments are free. It reads the PR step's own outcome,
+        # so a failure BEFORE the PR step never deletes a branch an earlier run's
+        # PR still uses. It fails visible, never `|| true`: line 1 names the
+        # toggle on EVERY failure of the PR step -- the likeliest cause, and the
+        # one a successful delete would otherwise hide -- and line 2 deletes the
+        # branch or says to delete it by hand (zheref/hatsu#165). It also fires
+        # when the PR step fails while UPDATING a regeneration PR an earlier run
+        # opened (a transient API error, say): deleting the branch then closes
+        # that PR, and the next run that finds drift opens it again.
+        if: failure() && steps.cpr.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          echo "::error::the regeneration PR could not be opened; if GitHub Actions is not permitted to create pull requests, turn on Settings → Actions → General → Allow GitHub Actions to create and approve pull requests"
+          gh api -X DELETE "repos/${REPO}/git/refs/heads/bot/surface-mirror-regenerate" || echo "::error::could not delete bot/surface-mirror-regenerate; delete it by hand"
