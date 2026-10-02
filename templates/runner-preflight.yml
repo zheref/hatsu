@@ -182,11 +182,19 @@ jobs:
       # the next step classifies against that recording. `set PATH` prints the
       # variable as `Path=...` without re-parsing its value, which an `echo
       # %PATH%` would; it lands in a file under RUNNER_TEMP, never in a step
-      # output, and the value is never printed.
+      # output, and the value is never printed. cmd.exe writes a redirected
+      # file in the console's OEM code page, in which a non-ASCII directory name
+      # (a localised Program Files, an accented account) comes out as bytes
+      # bash cannot hand back to where.exe, so the tool there would read as not
+      # on the service PATH -- a false red (Phinks on zheref/hatsu#198). The code
+      # page is set to UTF-8 for this cmd process first; it changes nothing
+      # outside the step.
       - name: Record the PATH the service hands a job (Windows)
         if: runner.os == 'Windows'
         shell: cmd
-        run: (set PATH) > "%RUNNER_TEMP%\service-path.txt"
+        run: |
+          chcp 65001 >nul
+          (set PATH) > "%RUNNER_TEMP%\service-path.txt"
 
       # The recording is read back (bash built-ins only), exported as
       # SERVICE_PATH, and where.exe is called as `$SERVICE_PATH:<tool>`: the

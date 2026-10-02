@@ -24,6 +24,8 @@
 #                 classifies the FIRST match only: AppData and the rest of $USERPROFILE fail, Program
 #                 Files passes over a stale later AppData match, no match is not on the service PATH,
 #                 and no path is ever printed (Feitan BC-9, Nobunaga; Copilot on zheref/nen#318)
+#   recording     the cmd step is exactly `chcp 65001 >nul` then `(set PATH) > "%RUNNER_TEMP%\service-path.txt"`
+#                 -- UTF-8 first, or a non-ASCII directory on the service PATH reads as absent (Phinks P2)
 #   service path  the Windows step classifies against the PATH the cmd step before it recorded under
 #                 RUNNER_TEMP (`$SERVICE_PATH:<tool>`), never Git Bash's own: a tool present only under
 #                 Git's mingw64\bin reads not on the service PATH and fails, and a missing recording
@@ -186,6 +188,20 @@ check() {
     fail "$label: a step prints the service account's name or a resolved tool path (a public log)"
   else
     pass "$label: no step prints an account name or a resolved path"
+  fi
+
+  # The cmd recording step, exactly: UTF-8 code page first (cmd writes a redirected file in the console's
+  # OEM code page, so a non-ASCII directory on the service PATH came back as bytes where.exe could not
+  # match and read as not on the service PATH -- Phinks P2 on zheref/hatsu#198), then `set PATH` into the
+  # file under RUNNER_TEMP. Not lifted and run: cmd.exe is not a fixture dependency.
+  got="$(awk '/^      - name: Record the PATH the service hands a job \(Windows\)/ { s = 1 }
+              s && /^        run: \|/ { r = 1; next }
+              r && /^          / { sub(/^          /, ""); print; next }
+              r { exit }' "$file" | tr '\n' '|')"
+  if [ "$got" = 'chcp 65001 >nul|(set PATH) > "%RUNNER_TEMP%\service-path.txt"|' ]; then
+    pass "$label: the cmd step sets the UTF-8 code page, then records 'set PATH' under RUNNER_TEMP"
+  else
+    fail "$label: the cmd recording step is [$got], not exactly 'chcp 65001 >nul' then '(set PATH) > \"%RUNNER_TEMP%\\service-path.txt\"'"
   fi
 
   if [ "$rendered" = yes ]; then
