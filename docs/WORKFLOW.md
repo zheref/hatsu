@@ -1040,8 +1040,11 @@ step-2 questions here; the mechanics are [`tenkai`](../claude/skills/tenkai/SKIL
 **Every skill routes a missing repository declaration through Tenkai's diagnosis and guided
 readiness pass**, then resumes its own verb after validation. The caller remains responsible for
 its operation; Tenkai owns detection and the setup conversation. An effort artifact is different:
-the `.nen/hanten/` review ledger is local audit state, normally created by Breath when the branch
-starts. Tenkai diagnoses its absence on an active effort branch, but its `apply` cannot create review
+the `.nen/hanten/` review ledger is local audit state, created by Breath when it cuts the branch, or
+by Hanten § 1's `ensure` for a branch Breath did not cut when no trace of an earlier ledger survives
+(`hanten_cycle_ledger.sh` header). Recovery is for a **lost** one — `ensure`'s exit `4`: a trace says a
+ledger was opened under the key before. A branch name reused after its branch was merged and deleted
+reads lost too, by design: its marker never expires, so it is settled here, never silently re-opened. Tenkai diagnoses it, but its `apply` cannot create review
 history. Hanten inspects prior review evidence; after the maintainer confirms this is the first
 cycle under the key, Hanten runs `hanten_cycle_ledger.sh recover-first
 --confirmed-first-cycle`, recording the recovery in the file. Otherwise it restores the original

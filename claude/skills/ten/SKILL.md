@@ -153,8 +153,8 @@ hatsu_root='<§ 0's absolute path>'; target="$(git rev-parse --show-toplevel)"; 
 "$hatsu_root/scripts/permissions_pack.sh" --surface "$surface" --install --target "$target" [--plugin]
 ```
 
-**Claude Code has no mirror** (`mirrors: not applicable`, the pack only); the verdicts and the
-rest: PROCESS § *Surfaces and pickers*, *ten § 5's rules*.
+**Claude Code has no mirror**: `mirrors:` is the cache check in PROCESS § *Surfaces and pickers*,
+*ten § 5's rules*, beside the pack.
 
 ## 6 · Catch-up: the prerequisites of the phase that called me
 

@@ -25,8 +25,9 @@ event or a permission rule is made against a quoted line and not a memory.
 **Whatever the linked checkout holds is what Claude Code serves**, at the next reload or session: a
 feature branch, a swap `hatsu:amenotejikara` made in core, uncommitted edits. So the checkout stays on its
 trunk, and the updater never moves an authoring branch; it says which branch is served instead. There is
-no mirror to drift-check on this surface (zheref/hatsu#106): `ten` § 5 records `mirrors: not applicable`
-and places the permission pack only. `ten` § 4b runs `scripts/hatsu_plugin_update.sh --auto --claude`,
+no mirror to drift-check on this surface (zheref/hatsu#106). What `ten` § 5 records as `mirrors:` is
+whether the served copy — this link, or a cache — IS the source, byte for byte
+(`scripts/plugin_cache_check.sh --root <hatsu_root> --cache auto`, zheref/hatsu#122), and it places the permission pack. `ten` § 4b runs `scripts/hatsu_plugin_update.sh --auto --claude`,
 which fast-forwards the linked checkout, never runs `claude plugin update` for it, and names a shadowing
 `hatsu@hatsu`; on a host still on the cache it keeps the #118 path, the marketplace source first. An
 update reaches the running session only through `/reload-plugins`, which the human types, or a new
@@ -105,10 +106,13 @@ Nothing is generated for this surface, and nothing is drift-checked on it (zhere
 canonical copy is `claude/skills/**` and `claude/agents/**`, the three mirrors are generated from it
 (see the other guides), and the versioned cache is read in place. `nen surface mirror check --surface
 claude-code --installed <cache>` diffs a target `.claude/` layout Hatsu never places and reads every
-skill `missing` against the cache (measured in `docs/ab/ten.md`), so `ten` § 5 records `mirrors: not
-applicable` here and places the permission pack only; what keeps the cache current is `ten` § 4b
-(`hatsu_plugin_update.sh --auto --claude`, § 1 above). A check that can tell a stale cache from a
-fresh one is still owed — zheref/hatsu#122. There is no marker on this surface because there is no
+skill `missing` against the cache (measured in `docs/ab/ten.md`), so it is not what `ten` § 5 runs.
+`ten` § 5 records `mirrors:` as `scripts/plugin_cache_check.sh --root <hatsu_root> --cache auto`'s
+verdict on every recorded copy (each `hatsu@` installPath and `skills/hatsu`), byte for byte against
+a source named independently of the copy, and places the permission pack; the verdicts and their
+`mirrors:` words are [`docs/PROCESS.md`](../PROCESS.md) § *ten § 5's rules*, and the script is
+residue owed to zheref/nen#339. What keeps the copy current is `ten` § 4b
+(`hatsu_plugin_update.sh --auto --claude`, § 1 above). There is no marker on this surface because there is no
 generated file.
 
 ## 9. Dated checklist

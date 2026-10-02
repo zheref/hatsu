@@ -84,9 +84,13 @@ any new release tag is considered.
 | `git` + [`gh`](https://cli.github.com), authenticated | the skills read and write GitHub as **you**. |
 | a [`nen/contract.json`](nen/contract.json) in the repository you point Hatsu at | **the only thing Hatsu asks of your project.** It declares what *your* build, test, lint, archive and deploy commands are, so nothing here is bound to a language, a framework, a build system or a product. A repository that declares none gets the git half of every skill and its own documented commands, said plainly rather than guessed at. |
 
-**On the installed plugin path**, nothing here needs `jq`, `yq` or Python: one binary, plus `git` and `gh`.
-(The repository's own CI is a separate matter — `scripts/plugin_bump_check.sh` uses `jq`, but nothing an
-installed copy runs does.)
+**On the installed plugin path** you need one binary, plus `git`, `gh` and **`python3`, a
+prerequisite you install yourself where the host lacks it** — a minimal Linux image, or a macOS host
+without the Command Line Tools, has none: several skill scripts run Python (`hanten`'s cycle ledger,
+`tenkai`'s adoption, `kagutsuchi`'s worktree among them), and without it those steps stop. `jq` is optional there: the warm-up's checks use it when present and
+say what they could not read without it (`ten` § 5 reports Claude Code's install record unread, never a
+stop). `yq` is never needed. (The repository's own CI is a separate matter — `scripts/plugin_bump_check.sh`
+requires `jq`.)
 
 ### Per surface
 
@@ -1212,11 +1216,12 @@ surface is `.claude-plugin/**`, `.codex-plugin/**`, `claude/**`, `nen/**`, `cont
 `.mcp.json`, the shipped docs (`docs/ROSTER.md`, `docs/delegation-grammar-DRAFT.md`, `docs/WORKFLOW.md`,
 `docs/DISCOVERY.md`, `docs/LAUNCH-MIGRATION.md`, `docs/AGENT-ATTRIBUTION.md`, `docs/STANDALONE-ENTRY.md`,
 `docs/GATE-CONFIGURATION.md`, `docs/PROCESS.md`, `docs/SURFACES.md`, `docs/PUBLIC-REDACTION.md`) and every
-runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scripts/hanten_cycle_ledger.sh`,
-`scripts/hatsu_plugin_update.sh`, `scripts/hatsu_root.sh`, `scripts/surface_mirror_check.sh`,
-`scripts/permissions_pack.sh`, `scripts/dist_tag.sh`, `scripts/send_freshness_check.sh`, `scripts/kagutsuchi_worktree.sh`,
-`scripts/hatsu_surface_link.sh`, `scripts/surface_link_check.sh`, `scripts/prose_size_check.sh`,
-`scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
+runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scripts/nen_global.sh`,
+`scripts/hanten_cycle_ledger.sh`, `scripts/branch_authorship_check.sh`, `scripts/hatsu_plugin_update.sh`,
+`scripts/hatsu_root.sh`, `scripts/surface_mirror_check.sh`, `scripts/permissions_pack.sh`, `scripts/dist_tag.sh`,
+`scripts/send_freshness_check.sh`, `scripts/kagutsuchi_worktree.sh`, `scripts/hatsu_surface_link.sh`,
+`scripts/surface_link_check.sh`, `scripts/prose_size_check.sh`, `scripts/private_name_check.sh`,
+`scripts/plugin_cache_check.sh`, `scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
 `scripts/report_time.sh`, `scripts/pr_body_evidence_check.sh`) — the one list is `PLUGIN_SURFACE_GLOBS` in the
 script, from which the refusal message is generated; this paragraph is a copy of it — everything an
 installed runtime reads, the generated Codex and Cursor mirrors included: the warm-up reads plugin resources
