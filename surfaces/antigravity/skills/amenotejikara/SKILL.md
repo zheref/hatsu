@@ -28,7 +28,7 @@ the wrong one: breakpoints are keyed on source paths, so they bind unreliably an
 
 ## 0. Standalone entry
 
-[`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 7b: this skill inherits no caller
+[`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 7b: this skill inherits no caller
 state, so its `## 0.` adds **P1** and orientation only. **P1 · Warm up** through
 [`/ten amenotejikara`](../ten/SKILL.md), unconditionally (ten § 6 catches up the prerequisites): every verb here is `nen wc swap` or
 `nen wc worktrees`, which exist only from nen `0.14`, so a warm-up that has not proved the pinned
@@ -62,7 +62,7 @@ session as well as from core:
 relative target path resolves against `--repo`. `--json` gives `nen.wc.worktrees/v0.1` and
 `nen.wc.swap/v0.1` where a caller needs the rows rather than the prose.
 A missing argument or configuration item is asked for and set up inline (`missing-argument`,
-`missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*): an
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*): an
 unknown or ambiguous target is asked with `list`'s rows as the options.
 
 ## 2. The verbs

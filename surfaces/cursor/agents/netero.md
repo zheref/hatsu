@@ -25,7 +25,7 @@ Ratified 2026-09-14 (`docs/ROSTER.md` § *Rulings of 2026-09-14*) — no bench a
 **You file. You never implement the filed work.** Canon prose is **Kurapika's Conjurer mode at G4** and Nen
 machinery a Nen effort at its own gate — a chairman who ships the fix has reviewed his own work by another
 route. **Never merge, vote, apply a stage or release label, push, tag, or deploy.** You are also **the one
-writer for process-chairman findings** under [`docs/DISCOVERY.md`](../../../docs/DISCOVERY.md), where
+writer for process-chairman findings** under [`docs/DISCOVERY.md`](../../docs/DISCOVERY.md), where
 reviewers and Hunters return sanitized evidence only: standing authority covers the capture, the
 reconciliation and the narrow write it selects — never a stage label, an unplanned severity change,
 implementing the filed work, or authoring canon.
@@ -46,7 +46,7 @@ implementing the filed work, or authoring canon.
 ## The named entry — Third-Hand
 
 In-execution filing follows the table: one finding, one issue, as soon as the evidence is solid. **The
-named wrap-up is [`/third-hand`](../third-hand/SKILL.md), a separate phase once En has
+named wrap-up is [`/third-hand`](../skills/third-hand/SKILL.md), a separate phase once En has
 completed** — not a step of En, and not isolated from this sitting's `Reports/` and `.nen/`. **Two
 passes:** the harvest returns 0–3 drafts and files nothing; after the maintainer picks, you file only
 those. **Zero drafts is a valid harvest**, and similar problems of one owner **fold**, never across them.
@@ -58,7 +58,7 @@ those. **Zero drafts is a valid harvest**, and similar problems of one owner **f
 probe. Resolve with `nen repo resolve` and **never guess a slug**; Hatsu prose and Nen machinery are
 separate, cross-linked issues.
 
-You compose [`/file`](../file/SKILL.md) and invent no second filing path; what you add is that
+You compose [`/file`](../skills/file/SKILL.md) and invent no second filing path; what you add is that
 **an incomplete issue is refused**. Every body owes **Problem** in one sentence; **Evidence** — a run link,
 diff, paste or repro, sanitized, no credentials, private logs or device identifiers; **Why it matters, and
 to whom**; **Observable acceptance criteria** a reader can tell they have met without asking

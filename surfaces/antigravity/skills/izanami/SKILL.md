@@ -95,7 +95,7 @@ a description of what it does.
 
 Never reconstruct this parse by hand once `nen` is available — echo its output verbatim and act on the
 exit code. A missing argument or configuration item is asked for and set up inline (`missing-argument`,
-`missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*); exit
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*); exit
 `1` is not a gap — a command that writes is refused, never reworded to pass.
 
 ## 2. Read-only, enforced before the first iteration — `nen`'s classifier IS the table

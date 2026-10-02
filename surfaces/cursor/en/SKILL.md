@@ -424,10 +424,10 @@ file, so a re-invocation on the same PR resumes the same count (§ 2) — the wa
 cap is per readiness drive. Say the resumed `<n>/<cap>` out loud on the first claim of a resumed run, so the
 maintainer sees a budget being continued rather than one silently restarting.
 
-> **A pre-Ready observation hold measured in hours is [`Illumi`](../agents/illumi.md)'s, and from `v0.5.0` he has a
+> **A pre-Ready observation hold measured in hours is [`Illumi`](../../agents/illumi.md)'s, and from `v0.5.0` he has a
 > definition to be raised as.** The roster's ruling of 2026-09-09 **partially closes `OPEN-1`** —
 > *"Illumi is provisioned for `en`'s long watch, and only when one is needed"* — and
-> [`claude/agents/illumi.md`](../agents/illumi.md) **landed in this same wave**, because a
+> [`claude/agents/illumi.md`](../../agents/illumi.md) **landed in this same wave**, because a
 > provision that cannot be executed is a provision in name only (`docs/ROSTER.md` § *Rulings*, 5).
 > On a surface with in-session subagents, step 5 is **handed over**, not abandoned: a subagent titled
 > **`en · illumi · <model alias>`**, on the **fast** tier at effort `medium`, holding the same
@@ -516,7 +516,7 @@ returned. Harvesting is that phase's, not En's.
    reading a file is not residue.
 4. **A watch that survives the session has no mechanism at all** (§ 7) — not a missing verb: no
    timer, no background pass, no deferral primitive anywhere in this plane. **The long watch itself
-   is no longer a gap** — [`illumi.md`](../agents/illumi.md) landed at `v0.5.0` and step 5 hands
+   is no longer a gap** — [`illumi.md`](../../agents/illumi.md) landed at `v0.5.0` and step 5 hands
    to `en · illumi`, which buys attention for hours; **persistence past the session is what remains
    unavailable *in this plane*, and it is named rather than improvised around. **In `zheref/hatsu`
    only**, one half of it is now supplied from OUTSIDE the plane:

@@ -14,7 +14,7 @@ section with no fact behind it says so. The landing report is rendered **after**
 
 ## 0. Standalone entry
 
-Already total ([`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 4): cold entry adds
+Already total ([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4): cold entry adds
 **P1** and **P2**, carrying the one precondition a cold call can fail — **the branch must already be
 pushed**. State the branch, whether it is published and how many commits are unpushed; a PR would
 omit them, so **stop and name [`aka`](../aka/SKILL.md)**, never pushing for the maintainer. Evidence that does not exist because `hanten`, `kotoamatsukami` or
@@ -32,7 +32,7 @@ missing prerequisites under its own name; the phases this run calls skip theirs)
 No arguments, so no `nen parse`: the branch is the input, the base comes from
 the workflow file (§ 2), the issue from the branch's own commits. **The maintainer's `/mukai`
 or `/shibari` call is this run's authorization**: opening a PR is a human call
-([`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4) no agent proposes and no composite reaches
+([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4) no agent proposes and no composite reaches
 unasked, and that call covers the evidence mechanism's publish step, not asked again per scene — **in
 Hatsu's terms** (zheref/hatsu#101): the harness's own permission classifier is a separate layer reading
 `-y` as a blind apply, so the publish command carries `-y` only because its own confirmation would block a
@@ -53,8 +53,8 @@ expected and named in § 5's line, never a G5.
 | `project.evidence.globs`/`.scene`/`.mechanism` | `nen/contract.json` | the `UZF-26` rows, scene naming, and which mechanism the stack is on | **no globs is the no-evidence case**, stated in the body; `{suite}-{scene}`; **the committed-path mechanism**, never the mirror |
 
 - A missing configuration item is asked for and set up inline (`missing-configuration`;
-  [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*); both files are read and
-  validated as [`PROCESS.md`](../../../../docs/PROCESS.md) § *Invocation and parsing* says.
+  [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*); both files are read and
+  validated as [`PROCESS.md`](../../../docs/PROCESS.md) § *Invocation and parsing* says.
 - **The range is `origin/<branch.base>...HEAD`, after `git -C <path> fetch origin <branch.base>`** —
   nothing fast-forwards *local* `main`, and **`nen gate derive` and
   `nen changelog fragment-required` take `--files`, so a wrong set gives a confident wrong answer.**
@@ -67,10 +67,10 @@ expected and named in § 5's line, never a G5.
 disclosed as its own `## Completion checklist` line — `injected attribution trailer: <sha> <key>,
 published before the switch; not rewritten` — not in the ledger.
 
-**The body is [`templates/pr-body.md`](../../../../templates/pr-body.md), filled** — its parts in order,
+**The body is [`templates/pr-body.md`](../../../templates/pr-body.md), filled** — its parts in order,
 the optional ones as its own comments say, § 4's three checks commented at its top. The target's own
 template governs the section *names* where it has one, and **the `UZF-26` evidence shape is
-[`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *The UZF-26 evidence shape***. **Every screenshot is a
+[`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The UZF-26 evidence shape***. **Every screenshot is a
 cell of that section's table** — states as named columns, variants as labelled rows, one fixed-width
 labelled image per cell — and **`"$hatsu_root/scripts/pr_body_evidence_check.sh" --body <file>` passes before the
 body is written**, on the first write and on every rewrite after a review, which re-renders the whole
@@ -92,7 +92,7 @@ body is written**, on the first write and on every rewrite after a review, which
   auto-close conflict for the maintainer's disposition before merge.
 
 **Agent attribution** is the final heading, exactly as
-[`docs/AGENT-ATTRIBUTION.md`](../../../../docs/AGENT-ATTRIBUTION.md) specifies: **every and only the
+[`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md) specifies: **every and only the
 agents that actually participated**, never one inferred from the branch, a reviewer request or a model
 label.
 
@@ -120,7 +120,7 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
 - **`fragment-required` has four verdicts** — `not-applicable`, `required` (exit `1`),
   `fragment-present`, and `opt-out` where `--body-from` carries a `no CHANGELOG entry: <reason>` line.
   **Keep both `nen/` and `schemas/`**; **a missing `--head-changelog` is exit `2`**; **`fragment-present` needs the fragment on disk at head as well as in `--files`**.
-- **The gate is derived as [`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *Gate derivation*
+- **The gate is derived as [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation*
   says**, and **the body names it as a FORECAST, never a status** — a PR just opened is not ready.
   **Shibari derives the gate and never labels one**: a label is a readiness
   claim, and readiness is `nen pr ready`'s verdict inside [`en`](../en/SKILL.md), after this run (in `zheref/hatsu`, `pr-readiness.yml` publishes it as the `readiness` check; shibari never
@@ -138,7 +138,7 @@ nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <a,b> [--a
 
 **The reviewer-round policy is [`sharingan`](../sharingan/SKILL.md) § 6's** — one Copilot round after
 [`hanten`](../hanten/SKILL.md) settles, never before — and this skill makes only the first request.
-**The request's mechanics are [PROCESS.md](../../../../docs/PROCESS.md) § *Reviewer rounds and review
+**The request's mechanics are [PROCESS.md](../../../docs/PROCESS.md) § *Reviewer rounds and review
 threads***: the maintainer's token, Copilot through `--add-bots <node id>`, and **success read from
 the mutation's own response, never from the ids sent**.
 
@@ -151,7 +151,7 @@ passed, the evidence mechanism — and, where the harness classifier stopped its
 
 ## 6. Residue, authority and hard limits
 
-Named raw calls: [`PROCESS.md`](../../../../docs/PROCESS.md) § *Residue and owned dependencies*.
+Named raw calls: [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned dependencies*.
 
 - **Permitted, only on the maintainer's own `/mukai` or `/shibari` call:** read the working
   copy and its history; write the body file; open **one** PR against `branch.base` from the last

@@ -16,7 +16,7 @@ filing. Never copy or invent a second policy in the target repository.
 # Third Hand — the chairman's last look at the sitting
 
 **Nature: Manipulator.** The harvest is GitHub-side filing under
-[`claude/agents/netero.md`](../agents/netero.md). Name **Conjurer** alongside it when a proposal
+[`claude/agents/netero.md`](../../agents/netero.md). Name **Conjurer** alongside it when a proposal
 is constitution or canon prose, **Transmuter** when it is machinery. Never blend two under one
 header (`claude/agents/kurapika.md`).
 

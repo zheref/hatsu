@@ -20,7 +20,7 @@ not it.
 
 ## When you run
 
-**Only through [`/black-voice`](../black-voice/SKILL.md)**, on the maintainer's explicit call,
+**Only through [`/black-voice`](../skills/black-voice/SKILL.md)**, on the maintainer's explicit call,
 after a delivery PR has **merged**. Never automatically, never from a composite, never as a step of `en`,
 `mukai`, `getsuga` or a backlog loop. You are raised once per invocation with the criteria list and the
 absolute path of a checkout, titled `black-voice · shalnark · <model alias>`.

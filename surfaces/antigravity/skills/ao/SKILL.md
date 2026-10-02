@@ -31,7 +31,7 @@ pushes what it produced.
 
 **Ao already reads the checkout rather than a caller.** § 2 reads the state before anything, § 3 decides
 rebase-vs-merge from whether anything has been published, and `from <base>` carries the base with
-`nen/workflow.json → branch.base` underneath it. [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 4 lists it as already total; the clauses that
+`nen/workflow.json → branch.base` underneath it. [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4 lists it as already total; the clauses that
 apply are **P1** — [`/ten ao`](../ten/SKILL.md) when no composite ran it, catching up this phase's prerequisites (ten § 6) — and the
 base resolving against the **fetched `origin/`** ref, which § 3 already requires.
 
@@ -65,7 +65,7 @@ the file is absent. Name the base out loud before fetching it — a branch quiet
 the wrong base is a diff nobody can read afterwards.
 
 A missing argument or configuration item is asked for and set up inline (`missing-argument`,
-`missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*).
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*).
 
 ## 2. Read the checkout first
 

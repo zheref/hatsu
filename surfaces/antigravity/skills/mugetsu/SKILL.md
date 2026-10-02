@@ -16,7 +16,7 @@ trigger a duplicate filing. Never copy or invent a second policy in the target r
 # Mugetsu — the last cut: one release, one destination, on one recorded word
 
 > **The gate on a declaration change is the REPOSITORY's role, not the file's kind.** Maintainer's
-> ruling, 2026-09-18 ([`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is
+> ruling, 2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is
 > the repository's role, not the file's kind*): **`G4` (`CON-7`) in a canon repository** —
 > the repositories `nen repo classify` reports as `role: canon` (`nen/repos.json` → `maintained_tools`), whose product *is* the process — and **`G2`
 > (`CON-5`) in a consumer repository**, where a `nen/contract.json`, `nen/workflow.json` or
@@ -48,7 +48,7 @@ calls it on its own authority* — not `getsuga`, not `en`, not `mukai`, not `re
 the carrier of § 3's advance go, which is the maintainer's typed word and not the composite's — *no
 agent proposes it, a go with no tag is refused unless it is that advance go, and one go publishes one
 target once*. The contract in
-[`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) is explicit that it **moves no gate**
+[`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is explicit that it **moves no gate**
 (§ 5), and this section is written to be read as **subtracting** rather than adding.
 
 **Nothing in this section is the go** — not the warm-up, not the orientation block, not the plan. The
@@ -57,7 +57,7 @@ go is § 3's, it is always the maintainer's own, quoted verbatim as the record, 
 
 | Form | What it is |
 |---|---|
-| **(1) By name** | the maintainer's typed `/mugetsu [<target>]`, in whatever spelling their surface invokes this skill by, the plugin-namespaced form included ([`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *The human gates, and who may cross them*, the G3 row: *"publishing runs only on the maintainer's typed go — by name, or as a `mugetsu` step of their own `futon` chain"*); no version or target is needed (ruling 2(a) of § *Rulings of 2026-09-26/27/28*: *"Mugetsu should always default to latest unpublished cut tag. It should never be mandatory, not even when called directly"*; clarified 2026-09-30: the typed direct call is the whole go) |
+| **(1) By name** | the maintainer's typed `/mugetsu [<target>]`, in whatever spelling their surface invokes this skill by, the plugin-namespaced form included ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *The human gates, and who may cross them*, the G3 row: *"publishing runs only on the maintainer's typed go — by name, or as a `mugetsu` step of their own `futon` chain"*); no version or target is needed (ruling 2(a) of § *Rulings of 2026-09-26/27/28*: *"Mugetsu should always default to latest unpublished cut tag. It should never be mandatory, not even when called directly"*; clarified 2026-09-30: the typed direct call is the whole go) |
 | **(2) In their own words** | a message the maintainer typed in this session saying to publish (§ 1: *in their own words or by name*) |
 | **(3) The advance go** | a typed futon `then` step that `nen parse futon` parsed as `mugetsu`, its `gate.allowed` true (§ 3) |
 
@@ -107,12 +107,12 @@ second publication needs a second go. Not a subagent's self-authorisation, at th
 
 **`<target>` names the destination** — a key of `nen/contract.json → project.targets` where the
 repository publishes through `deploy`, or the lane whose `release` row is the publication step where it
-publishes through `release` (§ 4). **By the maintainer's ruling of 2026-09-28** ([`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*), naming it is
+publishes through `release` (§ 4). **By the maintainer's ruling of 2026-09-28** ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*), naming it is
 **never mandatory, not even on a direct call**: with none typed, this skill publishes to the
 repository's **single** declared destination, and the version it publishes is **the latest cut
 (getsuga release) tag that has no published release yet** — resolved at publish time, printed, and
 quoted beside the go in the report. Only **two or more declared destinations and none named** is a
-gap, asked as **free text** (`missing-maintainer-choice`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md)
+gap, asked as **free text** (`missing-maintainer-choice`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md)
 § 4 *The maintainer's word is never derived*): the declared keys listed for reference, none starred,
 none a picker option that publishes. **The go itself is never derived or defaulted.** **An undeclared
 target is refused**, naming the declaration PR that would add it — a `project.targets` entry at that
@@ -140,9 +140,9 @@ repository's declaration gate — and nothing is written or run here.
 
 **On a delegated session — the maintainer AFK, with rules recorded — a delegation is NOT the go, and
 there is no arrangement under which it becomes one.** `G3` is ruled **not delegable**:
-[`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *The human gates, and who may cross them* gives it as
+[`docs/ROSTER.md`](../../../docs/ROSTER.md) § *The human gates, and who may cross them* gives it as
 **"Never. Preparing a release is allowed; publishing is not"**, and
-[`docs/delegation-grammar-DRAFT.md`](../../../../docs/delegation-grammar-DRAFT.md) § *Never delegated,
+[`docs/delegation-grammar-DRAFT.md`](../../../docs/delegation-grammar-DRAFT.md) § *Never delegated,
 inside a run or outside it* names `G3` (`CON-6`) in the same line as G2 and G4 — a document that is
 itself a **DRAFT**, open as `OPEN-2`, so it could not open this gate even if it were read as trying to.
 A recorded delegation may be **quoted in the report as the reason the session is running**; it
@@ -223,10 +223,10 @@ so by rule as well.
 
 ### The advance go — the one go typed before the tag exists
 
-**Maintainer's ruling, 2026-09-26** ([`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*): a futon invocation whose `then` chain
+**Maintainer's ruling, 2026-09-26** ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*): a futon invocation whose `then` chain
 names this skill — `/futon <repo>@<selector> then getsuga+mugetsu[@<target>]` — **is itself the
 go**, given in advance of the tag. It is the one way a composite reaches this skill, and it is
-narrower than the ordinary go on every axis. **This is the canonical definition** (recorded in [`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*); [`futon`](../futon/SKILL.md)
+narrower than the ordinary go on every axis. **This is the canonical definition** (recorded in [`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*); [`futon`](../futon/SKILL.md)
 § 8, [`getsuga`](../getsuga/SKILL.md) § 1, [`kagutsuchi`](../kagutsuchi/SKILL.md) § 1, [`aka`](../aka/SKILL.md)
 § 0 and [`mukai`](../mukai/SKILL.md) § 1 cite it and restate none of it. **By the ruling of
 2026-09-28 (b) it is wider than this skill**: a typed chain step is the maintainer's own call for
@@ -252,7 +252,7 @@ prompted for and never proposed; the chain is the call.
   chain does not wait for is getsuga's own release-proposal PR, which getsuga merges itself through
   its § 3a (the same rulings section).
 - **Repository kind — this skill only.** Allowed only on a repository of kind **`process`** or
-  **`library`** ([`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *Repository kinds* defines the three).
+  **`library`** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Repository kinds* defines the three).
   **The policy is data, not prose**: `nen/workflow.json` → `futon.advanceGo` (nen's built-in default
   where none is declared, from nen v0.15.1), read by `nen parse futon`, which annotates
   the step with `gate: {allowed, kind, reason, source}` from `nen repo classify`'s own verdict —

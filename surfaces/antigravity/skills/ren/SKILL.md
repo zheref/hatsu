@@ -56,7 +56,7 @@ Verified live at `v0.3.0` (`docs/ab/ren.md` § 2.1): a request line parses to
 required and the line does not supply it"* — with the corrected line printed. **A turn with no
 request is never inferred from what the session was last doing — it is asked for as free text**:
 the request is the maintainer's word (row `missing-maintainer-choice`,
-[`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *The maintainer's word is never derived*), so any
+[`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *The maintainer's word is never derived*), so any
 readings the session suggests are listed for reference, none starred and none a picker option, and
 the turn runs on what the maintainer types.
 
@@ -78,7 +78,7 @@ say so on the first one, so nobody is surprised by the report and the bell at th
 > **Step 2 is the change itself, and it stopped being half-numbered on 2026-09-10.** This table used
 > to carry a step `1.5` — *"the work"*, owned by no skill — beside a step 2 called *build*, which read
 > `rasengan` as *run the build command* rather than *build the thing*. The maintainer's ruling
-> ([`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-10*) settles it: **`rasengan` IS
+> ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-10*) settles it: **`rasengan` IS
 > the authoring phase**, so the work has a skill, the six whole numbers are six skills again, and the
 > compile-before-commit sits with the phase that stages the tree.
 
@@ -103,7 +103,7 @@ say so on the first one, so nobody is surprised by the report and the bell at th
 - **5 before 6.** The bell carries the report's link. A bell that rings before the page exists sends
   the maintainer to nothing.
 
-**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) is the
+**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
 contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
 from this run — the warm-up, the orientation, the change set and every derived argument — and
 re-deriving them would produce a second answer to a question this composite already settled. Each phase
@@ -146,7 +146,7 @@ taken. Coverage is captured by no ren profile; that is [`byakugan`](../byakugan/
 
 **A landing (`mukai`) always runs thorough**, whatever the turns before it named.
 
-**Every step is one ledger entry** ([`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *The effort's ledgers* owns the
+**Every step is one ledger entry** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The effort's ledgers* owns the
 mechanism; what is ren's is which steps and when). Before a step, `nen phase begin --effort <branch> --phase
 <step-name> --surface <s> [--model <alias>]`; after it, `nen phase end --effort <branch> --phase
 <step-name> --exit <code>`, so `.nen/phases/<effort>.json` carries one timed entry per phase, a refused
@@ -224,7 +224,7 @@ integration suites the change can affect) and
 by the words “turn complete,” by a local commit, or by collecting
 a report. No nested skill or declared coverage command may hide a full-suite run outside its owner.
 
-Every phase, subagent, composite and resumed run follows [the common discovery protocol](../../../../docs/DISCOVERY.md).
+Every phase, subagent, composite and resumed run follows [the common discovery protocol](../../../docs/DISCOVERY.md).
 Concrete out-of-scope gaps are reconciled and captured under standing filing authority; unchanged
 findings produce no write. Report created/updated/unchanged/pending and continue this request where
 possible. Capture never authorizes an unrelated build, a stage label, closure, merge or release.
@@ -247,13 +247,13 @@ owns which, so a maintainer tuning the file knows where the effect lands:
 **Each step states its own default when a key is absent.** Ren neither supplies a default nor
 overrides one — a composite that quietly substituted a value would make the file a lie for the step
 that owns it. A key a step needs and cannot default is asked for and set up inline by that step
-(row `missing-configuration`, [`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set up,
+(row `missing-configuration`, [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up,
 continue*).
 
 ## 6. Reporting the turn in chat
 
 One line, then the report link, **led by where the effort is** — the same values the page's status
-line carries ([`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *Where the effort is*):
+line carries ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Where the effort is*):
 
 ```
 Turn 4 · authoring · gate: none — local · worktree quirky-chatterjee-88d5f6 · <branch>

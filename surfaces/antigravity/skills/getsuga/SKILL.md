@@ -86,7 +86,7 @@ missing prerequisites under its own name; the phases this run calls skip theirs)
 | `<branch-name>` | that branch's tip |
 | `checkout` | the current working copy's `HEAD` |
 
-**The cut point is never required** (maintainer's ruling of 2026-09-28, [`ROSTER.md`](../../../../docs/ROSTER.md)
+**The cut point is never required** (maintainer's ruling of 2026-09-28, [`ROSTER.md`](../../../docs/ROSTER.md)
 § Rulings of 2026-09-26/27/28, rulings 7 and 9). getsuga always *accepts* an override and never
 *asks* for one: with no token the run's **first line after the mode header** states the cut point and
 its source — `cut point: origin/develop (configuration default: nen/workflow.json branch.base =
@@ -112,7 +112,7 @@ release-proposal PR merged by § 3a or else standing at its declaration gate, th
 publication of its own; a later step of the same chain is that skill's own run, never this one's.
 
 A missing argument or configuration item **other than the cut point** is asked for and set up inline
-(`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask,
+(`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask,
 set up, continue*) — **the maintainer's word, never derived** (row `missing-maintainer-choice`)
 still holds for everything else here: a version the changelog and manifest do not settle, a go, a
 destination. The cut point alone is the configuration's, by ruling. A missing registry or
@@ -149,7 +149,7 @@ before it can be tagged` — exit `1`, never a refusal to run.
 **A dirty `checkout` is never the cut point.** Hand it to
 [`/tensho`](../tensho/SKILL.md), which is the verb for that, and resume once its PR lands.
 
-**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) is the
+**The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
 contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
 from this run — the warm-up, the orientation, the change set and every derived argument — and
 re-deriving them would produce a second answer to a question this composite already settled. Each phase
@@ -251,7 +251,7 @@ never verified at all.
 > *plan* and stops for that reason.
 
 `CON-33(b)` wants a release PR merged before the tag cuts — **this skill's own, and from the
-maintainer's ruling of 2026-09-26 this skill merges it itself** (§ 3a; [`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*). **One PR carries all of it:**
+maintainer's ruling of 2026-09-26 this skill merges it itself** (§ 3a; [`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*). **One PR carries all of it:**
 
 1. **Collate** every `changelog.d/` fragment into a dated `### vX.Y.Z — <theme>` section:
 
@@ -329,7 +329,7 @@ maintainer's ruling of 2026-09-26 this skill merges it itself** (§ 3a; [`docs/R
    consumers current while they sit a tag behind. No `nen` verb owns this write either — residue, a
    direct edit; prefer the bump to a `no plugin bump:` opt-out. **Where the surface stamp follows
    `plugin.json` and the delivery PR carries the bump — hatsu, by the maintainer's ruling of
-   2026-09-28 ([`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*) — this step is a no-op**: the release PR
+   2026-09-28 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*) — this step is a no-op**: the release PR
    touches the changelog only, and `release.unitPaths` says exactly that.
 
 **What cannot fold: the `CON-22` repin PRs.** They target *other repositories*. One PR per affected
@@ -382,7 +382,7 @@ the declaration gate, and that stop's line is the verdict, **quoted** — never 
 
 ### 3a. The release-proposal PR merges itself — bounded
 
-> **Maintainer's ruling of 2026-09-26** ([`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*)**:** *"If I call getsuga, I don't expect to be called just to
+> **Maintainer's ruling of 2026-09-26** ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*)**:** *"If I call getsuga, I don't expect to be called just to
 > approve and merge a PR that is only touching hatsu-related changes … I expect getsuga to handle
 > that itself and then get to the actual tag completely autonomously."*
 
@@ -443,9 +443,9 @@ nen stop --who kurapika --gate <G4|G2> <efforts.md>
 
 **`--gate` is not a constant here.** A hard-coded `G4` prints a canon-repository banner over a
 consumer's release proposal, which is the misclassification the 2026-09-18 ruling exists to remove
-([`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role,
+([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role,
 not the file's kind*). Outside § 3a's gates a delivery PR is `en` § 5's to merge at its terminus (ruling 2026-09-29 (3)) and
-another's PR the maintainer's — the 2026-09-18 ruling moves the gate, and the ruling of 2026-09-26 ([`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*)
+another's PR the maintainer's — the 2026-09-18 ruling moves the gate, and the ruling of 2026-09-26 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*)
 opens exactly one PR's worth of it, at `merge` and at `canon-merge` alike, through
 `nen pr merge --release-unit` and nothing else.
 

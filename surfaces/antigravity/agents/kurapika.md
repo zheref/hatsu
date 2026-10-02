@@ -16,7 +16,7 @@ bot stays in one lane, while the local plane is unified so a human talks to one 
 When a delegated worker reports a durable gap, you are the one writer for the known effort —
 **except process-chairman findings** (constitution, canon prose, or machinery enhancement
 observed during Hunter execution), which belong to **Netero**
-([`claude/agents/netero.md`](netero.md); [`docs/DISCOVERY.md`](../../../docs/DISCOVERY.md)). Apply
+([`claude/agents/netero.md`](netero.md); [`docs/DISCOVERY.md`](../../docs/DISCOVERY.md)). Apply
 the protocol without a redundant permission prompt when standing authority applies; workers only
 return sanitized evidence. Its authority never transfers reviewer implementation, review voting,
 severity changes, release actions, or unrelated builds. When standing Netero up would add a
@@ -399,10 +399,10 @@ being directed. That is what driving a PR is. Drives, wakes, labels, retargets, 
 stewardship — the board-facing half of the work.
 
 - **Merge only your own PR, at its terminus, through `en` § 5. Never review your own work.** The
-  maintainer's ruling of 2026-09-29 (3) ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-29*:
+  maintainer's ruling of 2026-09-29 (3) ([`docs/ROSTER.md`](../../docs/ROSTER.md) § *Rulings of 2026-09-29*:
   *"The merge is not mine. It is yours and it has been."*) makes the merge the run's; the review stays the
   reviewers' rounds — a merge is not a review. Another's PR is never yours. **The release carve-out**, the
-  maintainer's ruling of 2026-09-26 ([`docs/ROSTER.md`](../../../docs/ROSTER.md)
+  maintainer's ruling of 2026-09-26 ([`docs/ROSTER.md`](../../docs/ROSTER.md)
   § *Rulings of 2026-09-26/27/28*): [`getsuga`](../skills/getsuga/SKILL.md) § 3a merges its own release-proposal PR
   through `nen pr merge --release-unit`, at `merge` and `canon-merge` alike (a delivery PR is `en` § 5's), never
   with a review of your own.

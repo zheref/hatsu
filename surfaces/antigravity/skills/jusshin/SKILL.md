@@ -12,7 +12,7 @@ act: one consent, and every planned runner stands as a service.
 > **Plan the names, render the host script outside the runner root, let the maintainer consent, then
 > prove the pool from inside a job before anything is switched on.**
 
-The verbs are nen `v0.18.0`'s `runner` family ([`docs/ab/jusshin.md`](../../../../docs/ab/jusshin.md)),
+The verbs are nen `v0.18.0`'s `runner` family ([`docs/ab/jusshin.md`](../../../docs/ab/jusshin.md)),
 reading the target's `nen/workflow.json` → `runners` (`naming`, `pools[]`). [`tenkai`](../tenkai/SKILL.md)
 § 5b **derives** which runner a readiness workflow targets; jusshin **provisions** the pools a
 consumer declares.
@@ -23,7 +23,7 @@ verbatim, nothing further runs, and **Next** is the line that reproduces it.
 ## 0. Standalone entry
 
 Typed by the maintainer — its wired position; no composite provisions runners
-([`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 7b). **Reached from one, skip this
+([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 7b). **Reached from one, skip this
 section.**
 
 | Step | What jusshin does |
@@ -56,9 +56,9 @@ and § 5's render with `--dry-run`; it launches nothing, and §§ 6–8 do not r
 ## 2. Elicit
 
 A missing argument or configuration item is asked for and set up inline (`missing-argument`,
-`missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*).
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*).
 The target, the machine code and the service identity are the maintainer's word — **typed, never
-picked** (`missing-maintainer-choice`; [`ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of
+picked** (`missing-maintainer-choice`; [`ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of
 2026-09-30 — jusshin*); the rest is derived and stated, and asked only where it cannot be.
 
 | Item | Source | Asked as |
@@ -76,7 +76,7 @@ picked** (`missing-maintainer-choice`; [`ROSTER.md`](../../../../docs/ROSTER.md)
 written into the target's `nen/workflow.json`, `nen schema check` and `nen stage triage` run on it
 (row `secret-shape`), and **landed through its declaration PR at the gate before a verb reads it
 live**. Whatever the target's visibility, the rendered preflight takes no `pull_request` event
-([`templates/runner-preflight.yml`](../../../../templates/runner-preflight.yml) § *FORK SAFETY*, held by
+([`templates/runner-preflight.yml`](../../../templates/runner-preflight.yml) § *FORK SAFETY*, held by
 `scripts/runner_preflight_fixture_check.sh`; nen's own by its `runner-policy` test), and for a public
 target tenkai § 5b still derives a hosted readiness runner — nothing here changes that.
 
@@ -151,7 +151,7 @@ The script mints each token itself, verifies the download's SHA-256 and skips a 
 configured. What runs it is `--json`'s **`launch` field, verbatim** — never typed from memory:
 
 - **Windows**: the session runs `launch`, and **the harness asks first by design** — no allow row
-  exists ([`contracts/permissions.json`](../../../../contracts/permissions.json)); its permission prompt,
+  exists ([`contracts/permissions.json`](../../../contracts/permissions.json)); its permission prompt,
   showing the exact string, is the maintainer's advance consent. The UAC prompt and the password typed
   once into the elevated window follow — the maintainer's on-device acts (row `on-device-act`). The
   launch returns before the script's exit can be read, so the session notes the time and reads **only
@@ -260,7 +260,7 @@ The first that holds: **dry run** — the same line without `--dry-run`; **a ref
 the one act, then the same line again; **declaration unmerged** — its PR at `<gate>`, then the same
 line again; **preflight unmerged** — `/mukai` in `<path>`, then `/jusshin for <t> pool <id>
 x 0`; **exclusion edit pending** — that PR at `<gate>`; **live** — *nothing — the pool is live*;
-**otherwise** — F's line. Then the hand-back line ([`STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md)
+**otherwise** — F's line. Then the hand-back line ([`STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md)
 § 6). Never a picker option.
 
 ## Residue
@@ -273,7 +273,7 @@ x 0`; **exclusion edit pending** — that PR at `<gate>`; **live** — *nothing 
 6. The root lockdown, secrets off `config.cmd`'s argv, and the summary file — zheref/nen#312.
 7. `nen parse` carries no alternation and no integer slot, as for great-hiker; § 1's read-back stands in.
 
-Listed in [PROCESS.md](../../../../docs/PROCESS.md) § *Residue*.
+Listed in [PROCESS.md](../../../docs/PROCESS.md) § *Residue*.
 
 ## Authority and hard limits
 

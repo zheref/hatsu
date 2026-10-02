@@ -12,17 +12,17 @@ onto this branch under a message that says what changed and why. Phase three of 
 launches; it opens nothing, touches no remote, and **never pushes** — publishing is `/aka`'s.
 
 **The compile-before-commit is this skill's** (ruling 2026-09-10,
-[`docs/ROSTER.md`](../../../../docs/ROSTER.md)): [`breath`](../breath/SKILL.md) proves the **base tip**,
+[`docs/ROSTER.md`](../../../docs/ROSTER.md)): [`breath`](../breath/SKILL.md) proves the **base tip**,
 `rasengan` runs the declared checks as inner-loop feedback, and **kokusen verifies the finished tree
 and refuses to commit on red**.
 
 ## 0. Standalone entry
 
-[`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) is the contract, and **inside `ren`
+[`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the contract, and **inside `ren`
 this section is skipped**. Cold, kokusen inherits state class **`S1`, the turn boundary** — *changed*
 has no referent until this section supplies one.
 
-**P3 · The delta is [`STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 3's** — the fetched
+**P3 · The delta is [`STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 3's** — the fetched
 `origin/<branch.base>` (or `against <base>`) diff plus `git status --porcelain`; name the resolved base
 and both counts out loud. **An empty union is a stop, not a commit**: say there is nothing to record
 and what would make that untrue.
@@ -68,12 +68,12 @@ Both flags hint § 5's message; with neither, type and scope are read off the di
 defaults from `docs/WORKFLOW.md`"* — and use them. **The defaults are the strict reading
 deliberately**: a repository that has said nothing about attribution gets the workflow's rule, not the
 harness's habit. Any other missing argument or configuration item is asked for and set up inline
-(`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set
+(`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set
 up, continue*); a missing scoped lane is authored by rasengan (`missing-focused-route`).
 
 ## 3. The verification gate — before anything is staged
 
-**The gate's five steps are [`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *The local verification
+**The gate's five steps are [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The local verification
 gate***, run **here, now**: the declared `iteration.checks` in order on
 `iteration.lane`; a consumer's canon mirror regenerated and staged where `.claude/canon-values.yml`
 changed (#111); the focused tests for changed executable behaviour through
@@ -118,7 +118,7 @@ about to write is what makes `unmentioned-deletion` mean anything.
 
 ## 5. The message, and the commit
 
-**Both are [`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *Writing a commit — the message and the
+**Both are [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Writing a commit — the message and the
 two streams***: `nen commit format --repo …`'s shape validation, the canonical-trailer rule from that
 document's § `commits`, the exit-code gate, the two-stream discipline and the exit table. What is this
 skill's: **the gate is § 3's, the staging is § 4's** — stage explicitly, path by path, from § 4's
@@ -130,7 +130,7 @@ index, and reports `{sha, subject, trailers}`.
 **Then read the tip back** — `git -C <path> log -1 --format='%(trailers:only,unfold)'` (§ 6): a
 harness can append a trailer at `git commit` time (Cursor's `Co-authored-by`, zheref/hatsu#66). **An
 attribution key outside `commits.allowedAttributionTrailers` is a stop with a default** —
-[WORKFLOW](../../../../docs/WORKFLOW.md) § `commits`'s rule: a key ending `-by`/`-with` or in
+[WORKFLOW](../../../docs/WORKFLOW.md) § `commits`'s rule: a key ending `-by`/`-with` or in
 `forbiddenTrailers`, case-insensitive; `Closes` is ordinary (`nen/decisions.json` row
 `injected-attribution-trailer`): the tip just written is unpublished, so **drop it with
 `git -C <path> reset --soft HEAD~1`** — never an earlier commit, never an amend — and ask once for the
@@ -140,7 +140,7 @@ outgoing commit before the push. Never `--no-verify`.
 ## 6. Residue
 
 The explicit per-path `git add`, the tip read-back and its `git -C <path> reset --soft HEAD~1` are
-the raw calls (on the verb's `--repo <path>`) ([PROCESS.md](../../../../docs/PROCESS.md) § Residue and owned dependencies; the read-back is
+the raw calls (on the verb's `--repo <path>`) ([PROCESS.md](../../../docs/PROCESS.md) § Residue and owned dependencies; the read-back is
 owned, [nen#273](https://github.com/zheref/nen/issues/273)). Of WORKFLOW § `commits`'s three enforcement layers the
 `commit-msg` hook exists only in a repository `nen scaffold init` stood up, so **say which layers
 the repository in front of you actually has**. **Whether two changes are one coherent commit is

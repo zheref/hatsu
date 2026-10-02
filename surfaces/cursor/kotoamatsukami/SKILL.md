@@ -401,7 +401,7 @@ write, the second is a truthful "this change re-recorded nothing".
 
 **Where the declaration carries no `project.evidence` block**, say so — *"no evidence globs declared;
 no scene table"* — and do not invent a glob. A repository that records no images is entitled to say
-so, and `UZF-26`'s two sanctioned incompletenesses are checked by [`hisoka`](../agents/hisoka.md),
+so, and `UZF-26`'s two sanctioned incompletenesses are checked by [`hisoka`](../../agents/hisoka.md),
 not manufactured here.
 
 A seat for `ui-test` is quoted and the evidence table is empty for the same reason: there was no

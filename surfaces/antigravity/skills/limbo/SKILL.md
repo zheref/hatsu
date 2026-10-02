@@ -22,14 +22,14 @@ mirror exactly the canon (`CON-13`). Machinery, not prose: limbo authors no rule
 > result in front of the maintainer at that repository's own gate.**
 
 The verbs are nen `v0.16.0`'s; every claim below was verified live against a fixture consumer,
-2026-09-29 ([`docs/ab/limbo.md`](../../../../docs/ab/limbo.md)). **The marker is the
+2026-09-29 ([`docs/ab/limbo.md`](../../../docs/ab/limbo.md)). **The marker is the
 ownership claim**: `generate` refuses the whole run at exit `2`, before the first byte on any surface,
 when a destination exists without one.
 
 ## 0. Standalone entry — when no composite is holding the run
 
 Typed by the maintainer — **today, always**. A canon release's `CON-22` fan-out is where this belongs
-([`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 7b), but `getsuga` does not call it
+([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 7b), but `getsuga` does not call it
 yet, so no composite holds it. **Reached from one, skip this section.**
 
 | Step | What limbo does |
@@ -56,7 +56,7 @@ Verified live: every clause is optional, the empty line parses with each `(claus
 a **repin** (§ 4); with no `as` the run diagnoses, then asks through the picker —
 ⭐ **Sync** · **Report only** · **Stop** — `as sync` supplies that answer, `as check` never asks and
 never writes. A missing argument or configuration item is asked and set up inline
-(`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4).
+(`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4).
 
 ## 2. The run, in order
 

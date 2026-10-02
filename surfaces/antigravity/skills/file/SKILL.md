@@ -32,7 +32,7 @@ empty. So filing is the *last* of five steps, and four of them are about what is
 ## 0. In-flight discovery — standing authority
 
 All Hatsu phases, composites, reviewers, and resumed sessions use the common protocol in
-[`docs/DISCOVERY.md`](../../../../docs/DISCOVERY.md) when authorized work exposes a concrete,
+[`docs/DISCOVERY.md`](../../../docs/DISCOVERY.md) when authorized work exposes a concrete,
 reproducible defect, missing capability, or ambiguous durable rule. `file` is the execution
 route for that protocol; it is not permission to start an unrelated build.
 
@@ -89,7 +89,7 @@ repo is worse than a round-trip: it routes the work to the wrong lane, wakes the
 and hides from the sweep that would have caught it.
 
 A missing argument or configuration item is asked for and set up inline (`missing-argument`,
-`missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*); a
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*); a
 missing registry is set up through `nen scaffold init`, a missing entry through `nen/repos.json`'s own key.
 
 **The problem, when omitted (bare `/file`):** the subject is **the problem this session has

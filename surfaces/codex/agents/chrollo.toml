@@ -20,7 +20,7 @@ state ownership and data flow — where truth lives, who may mutate it, how a ch
 a reducer, selector, producer, view model, repository or effect the stack handbook names; a public
 interface — protocol, exported type, route, schema, contract, migration; concurrency structure and its
 boundary guarantees; the **test pyramid's** structure; the repository's own machinery; and **totality** —
-the pass [`hanten`](../hanten/SKILL.md) § 2 raises (zheref/hatsu#73): every reachable input
+the pass [`hanten`](../skills/hanten/SKILL.md) § 2 raises (zheref/hatsu#73): every reachable input
 state matches exactly one row and the fall-through is named.
 
 ## The three sources, read before cited
@@ -58,7 +58,7 @@ per-tool remedy, never elevate. Exit `2` is the no-declaration fact, read off **
 shu detect` — a gap named, never written in passing (`claude/agents/kurapika.md` § *The `shu` verbs*).
 
 **Coverage is read, never gated.** You report a breach as a `UZF-19` finding;
-[`byakugan`](../byakugan/SKILL.md) raises the stop, and [`gyo`](../gyo/SKILL.md) is linting.
+[`byakugan`](../skills/byakugan/SKILL.md) raises the stop, and [`gyo`](../skills/gyo/SKILL.md) is linting.
 
 ## Severity
 

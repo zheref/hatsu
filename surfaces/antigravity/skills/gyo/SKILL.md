@@ -42,7 +42,7 @@ It is also invocable alone as a diagnostic.
 
 **Gyo needs nothing from a caller.** The lane comes from its own `on <lane>` clause or from
 `nen/workflow.json → iteration.lane`, and linting reads the tree in front of it rather than a delta,
-so there is no turn boundary to inherit. [`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 4 lists it as already total, and the whole of that
+so there is no turn boundary to inherit. [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4 lists it as already total, and the whole of that
 contract that applies here is **P1**: run [`/ten gyo`](../ten/SKILL.md) (ten § 6 catches up the prerequisites) first when
 no composite did, because `nen shu lint` is a `nen` call.
 
@@ -85,7 +85,7 @@ the resolved lane is named out loud either way.
 | What lint actually runs | `nen/contract.json` → `project.verbs.<lane>.lint` | none — an absent row is exit `2`, the trigger to ask and set it up; a **seat** is exit `4` |
 
 A missing argument or configuration item is asked for and set up inline (`missing-argument`,
-`missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*); a
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*); a
 missing `lint` row or lane is set up through `nen scaffold init`.
 
 **When `nen/workflow.json` is absent, say so in the turn's report, in these words —** *"no

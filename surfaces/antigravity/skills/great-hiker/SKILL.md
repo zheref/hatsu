@@ -31,7 +31,7 @@ Exit `2` there is not a refusal but the request shape, parsed by the second line
 refuse, or an empty one, is the trigger to ask as **free text**, nen's corrected line shown for
 reference, never a starred or pickable option (row `missing-maintainer-choice`). A missing
 argument or configuration item is asked for and set up inline (`missing-argument`,
-`missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) —
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) —
 the request is **the maintainer's word: never derived** or inferred from the session.
 
 ## 2. Classify: what kind of change, and how much model it needs
@@ -47,7 +47,7 @@ in either direction and is quoted in the title; a mixed request is two subsessio
 prose first so the machinery reads the wording it must carry.
 
 How a subsession is raised, per surface, is [`hanten`](../hanten/SKILL.md) § 4 and § 7 (a surface that
-is not Claude Code) and [`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *The matrix, per surface*, and
+is not Claude Code) and [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The matrix, per surface*, and
 none of it is restated here. What is this skill's: which tier each kind runs on, prose on a Fable
 subsession at the effort above (on Claude Code `fable`; on Antigravity `pro` via `invoke_subagent`)
 and machinery on `models.<surface>.fast` (Sonnet on Claude, `flash` on Antigravity), and the effort
@@ -69,10 +69,10 @@ under 6,144 (`scripts/prose_size_check.sh`).
 
 **One body, four readers.** Claude Code and the Codex plugin read `claude/skills/` first-party, both
 listing `hatsu:<name>`; Cursor, Antigravity and a legacy Codex placement read the generated mirror. So a body names a harness tool only
-through [PROCESS.md](../../../../docs/PROCESS.md) § *Surfaces and pickers*, spells every invocation
+through [PROCESS.md](../../../docs/PROCESS.md) § *Surfaces and pickers*, spells every invocation
 `hatsu:<name>` for the generator to respell, builds plugin paths from `$hatsu_root`, keeps frontmatter
-to `name` and `description` within the smallest budget [`SURFACES.md`](../../../../docs/SURFACES.md) § 1
-records, and reaches shared policy through `$hatsu_root` ([PROCESS.md](../../../../docs/PROCESS.md)
+to `name` and `description` within the smallest budget [`SURFACES.md`](../../../docs/SURFACES.md) § 1
+records, and reaches shared policy through `$hatsu_root` ([PROCESS.md](../../../docs/PROCESS.md)
 § *Standalone entry*), never a relative link a mirror cannot resolve. A fact true on one surface is that surface's
 row, never the rule.
 

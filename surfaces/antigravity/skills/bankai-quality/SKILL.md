@@ -46,7 +46,7 @@ target is not recorded anywhere in it, or it is recorded but carries no `scenari
 at `v0.3.0` against nen's bundled registry) — every one a finding about the registry, never a licence to
 guess a scenario. **Each is the trigger to ask and set up, not the end**: a missing argument or
 configuration item is asked for and set up inline (`missing-argument`, `missing-configuration`;
-[`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) — the `scenario` offered in
+[`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) — the `scenario` offered in
 the picker and written to the `nen/repos.json` entry in the registry's own checkout, on its own
 declaration PR at that repository's gate, then the resolution re-run.
 

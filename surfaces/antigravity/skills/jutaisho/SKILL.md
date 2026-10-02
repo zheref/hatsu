@@ -16,7 +16,7 @@ is a bell nobody hears.**
 
 ## 0. Standalone entry
 
-Already total ([`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 4): cold entry adds
+Already total ([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4): cold entry adds
 only **P1**, and says **whether anything happened** — over a quiet checkout, nothing to announce.
 **Terminal**: a gate's successor is the maintainer's decision, named in the options, never prompted.
 
@@ -31,7 +31,7 @@ An empty `--line` or a bare `at` parses to `gate: (clause absent)`, exit `0` —
 gap**: no `at <gate>` is a **turn bell**, nothing asked
 and no banner; with a gate it is a **stop** and § 4's whole shape is owed. An unparseable line or an
 absent `notifications` item is asked for and set up inline (`missing-argument`,
-`missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*).
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*).
 
 | The run | Rungs that fire |
 |---|---|
@@ -87,7 +87,7 @@ nen stop --who Kurapika --gate <gate> --notified --mark \
 ```
 
 **The marker is nen's file** (`nen.stop.mark/v0.2`, one `options[]` entry `recommended`), **never
-hand-written** ([`PROCESS.md`](../../../../docs/PROCESS.md) § *History*). `sound` and `rungs` are not in it — the hook reads them from
+hand-written** ([`PROCESS.md`](../../../docs/PROCESS.md) § *History*). `sound` and `rungs` are not in it — the hook reads them from
 `nen/workflow.json` — and `nen stop show` validates a marker while `nen stop clear` consumes one where
 there is no hook.
 
@@ -126,20 +126,20 @@ issue** (`--propose-issue`, Netero's completeness shape) so the next session doe
 stop. **A condition whose row is `autonomous` never reaches this part**: it was resolved by its default, and the
 turn page says so with the row id.
 
-**4 · The question through the surface's own option picker** ([`docs/SURFACES.md`](../../../../docs/SURFACES.md)'s
+**4 · The question through the surface's own option picker** ([`docs/SURFACES.md`](../../../docs/SURFACES.md)'s
 *native option picker* row; `nen surface capabilities --surface <s>` names it) — never a paragraph
 ending in a question mark; its options are the marker's, verbatim (§ 1). **A `DO` or `MERGE` ask's picker never carries the act**,
 which is the maintainer's outside the session — a `MERGE` ask exists only for a PR the run did not author
 (its own it merges, `en` § 5, ruling 2026-09-29 (3)).
 
-**Only a genuine stop interrupts** — the five G5s [`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4
+**Only a genuine stop interrupts** — the five G5s [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4
 lists, plus G1/G2/G3/G4 when one is genuinely due. Everything else is a turn bell.
 
 ## 5. Surfaces, and the fallback without a hook
 
 **Which side fires rungs 2–3 is one fact: was a hook file placed here?**
-([`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 6.) The fallback's commands, sanitising and
-read-stderr rules are [`docs/surfaces/README.md`](../../../../docs/surfaces/README.md) § *Shared rules*.
+([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 6.) The fallback's commands, sanitising and
+read-stderr rules are [`docs/surfaces/README.md`](../../../docs/surfaces/README.md) § *Shared rules*.
 Here: **the fallback is announced every time**, **an unfired rung is never rendered as fired**, **the marker
 is removed by the side that consumed it** (the hook, when it fired; the fallback, only where no hook
 file is placed), and **the stop still stands** whichever path rang, § 4's four parts being the real bell.
@@ -151,7 +151,7 @@ until`; `osascript`'s stderr, never its exit code, is the evidence.
 **Permitted:** write `.nen/last-stop.json` through `nen stop --mark`; run `nen stop`; fire the
 workflow's declared rungs; ask through the surface's option picker. **Not permitted:** any git or
 GitHub write, any label, merge or push — jutaisho ends a turn, it never advances one — and **no
-delegation** ([`PROCESS.md`](../../../../docs/PROCESS.md) § *Authority every phase shares*).
+delegation** ([`PROCESS.md`](../../../docs/PROCESS.md) § *Authority every phase shares*).
 
 ## Hard limits
 

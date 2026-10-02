@@ -12,12 +12,12 @@ description: Send a build to a declared NON-PRODUCTION destination by running th
 > if it is not. Then, because I called for it, send it — once.**
 
 A **human call, per target**. Plugin root and the declaration gate by role:
-[PROCESS.md](../../../../docs/PROCESS.md) § *Authority every phase shares*.
+[PROCESS.md](../../../docs/PROCESS.md) § *Authority every phase shares*.
 
 ## 0. Standalone entry
 
 Reached from a composite, skipped, and the composite says it holds it
-([`docs/STANDALONE-ENTRY.md`](../../../../docs/STANDALONE-ENTRY.md) § 4). Cold: **P1**; **P2** inside
+([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4). Cold: **P1**; **P2** inside
 § 3's plan; **S2**, the target typed or `deploy.defaultTarget`, its source said (§ 1); the artifact's
 commit is § 3a's gate.
 
@@ -32,7 +32,7 @@ missing prerequisites under its own name; the phases this run calls skip theirs)
 
 **`<target>` is a key of `nen/contract.json` → `project.targets`, and the call is the
 authorization.** Two sources, **and the report says which** (§ 5). **Typed**: the maintainer's word,
-never a near-match; not a declared key → **refused**, naming the declaration PR, the keys listed. **Omitted**: `nen/workflow.json` → `deploy.defaultTarget` ([`WORKFLOW.md`](../../../../docs/WORKFLOW.md)
+never a near-match; not a declared key → **refused**, naming the declaration PR, the keys listed. **Omitted**: `nen/workflow.json` → `deploy.defaultTarget` ([`WORKFLOW.md`](../../../docs/WORKFLOW.md)
 § 2 → `deploy`; ruling 2026-09-29, HA#146), read in the checkout the send runs from (§ 3b), **one
 row per state** — `null`/absent → **asked as free text** (`missing-maintainer-choice`), the keys
 listed, none starred; a declared key whose `why` reads non-production (§ 2) → the target; one whose
@@ -71,7 +71,7 @@ nen shu deploy --repo <path> [--lane <lane>] --target <name> --dry-run
 ```
 
 The `target:` line, the host row and every precondition
-([PROCESS.md](../../../../docs/PROCESS.md) § *Running a declared verb*). **Write
+([PROCESS.md](../../../docs/PROCESS.md) § *Running a declared verb*). **Write
 `--dry-run`** though the bare form is read-only; **what is sent is what was shown.**
 
 ### 3a. The freshness gate — before `--run`, every time
@@ -122,8 +122,8 @@ failure read § 5, fix the named fact and re-run under the same call.
 
 A repository may ask for what was sent to be tagged by declaring `tags.identity.nameFrom` (the identity, then the build SHA; [`susanoo`](../susanoo/SKILL.md)
 § 5a) and `tags.deploy.<target>` (whether, and whether pushed). **Every check and the cut live in
-[`scripts/dist_tag.sh`](../../../../scripts/dist_tag.sh)** — its header is the contract — run **only
-after a green `--run`**, the target in a file ([PROCESS.md](../../../../docs/PROCESS.md) § *Escaping the
+[`scripts/dist_tag.sh`](../../../scripts/dist_tag.sh)** — its header is the contract — run **only
+after a green `--run`**, the target in a file ([PROCESS.md](../../../docs/PROCESS.md) § *Escaping the
 maintainer's words*):
 
 ```sh

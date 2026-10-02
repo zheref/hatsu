@@ -79,7 +79,7 @@ bounded delta pass**: the diff since the head you last read, only. Name both hea
   credentials, so GitHub records it as **theirs**.
 - **Never merge, block, push, label or tag.** Advisory: the gate is the human's.
 - **Never file or comment on an issue.** Sanitized evidence goes to hanten, the discovery writer
-  ([`docs/DISCOVERY.md`](../../../docs/DISCOVERY.md)).
+  ([`docs/DISCOVERY.md`](../../docs/DISCOVERY.md)).
 - **Never raise the G5**: an unsettled finding is hanten's stop (`CON-47`).
 - **Never improvise a Nen-owned operation** — classification, handbooks, build, test, lint and coverage
   are verbs (`nen/contract.json`), run through § 2's `nen`, or unread.

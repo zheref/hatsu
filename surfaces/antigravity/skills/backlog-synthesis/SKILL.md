@@ -53,7 +53,7 @@ enormously different runs and neither is a safe assumption:
 A missing filter, or a token that does not match the closed enum above (case-insensitively), is the
 trigger to ask for one, the five values as the picker's options — never a guess at which was meant.
 A missing argument or configuration item is asked for and set up inline (`missing-argument`,
-`missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) —
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) —
 the severity filter is **the maintainer's word: never derived**, even where one band is all that is open.
 
 **The repo, when given**, is resolved the same way `/file` § 1 resolves its own trailing

@@ -111,7 +111,7 @@ repair by writing a registry entry: its scenario is `bankai-machinery`, read fro
 (§ 2) — the one direct read this skill keeps, spelled out in [`bankai-quality`](../bankai-quality/SKILL.md) § 1.
 
 A target neither registry records is a **`missing-configuration`** finding, asked for and set up
-inline (`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4
+inline (`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4
 *Ask, set up, continue*): relay the verb's sentence, offer the `scenario` in the picker, and land it on
 that repository's **own** declaration PR at its own gate — never by writing to
 `zheref/bankai-handbooks`' registry (a canon repository at `G4`, and one whose redaction policy names

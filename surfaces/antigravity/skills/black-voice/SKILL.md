@@ -35,7 +35,7 @@ session drove none, the target is asked for, never guessed**: this skill validat
 merged, and guessing which PR the maintainer meant is the one mistake that wastes a whole validation
 run. Ask through the surface's own option picker, seeded with the merged PRs the session can see, and
 run on the answer. A missing argument or configuration item is asked for and set up inline
-(`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set
+(`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set
 up, continue*); an unparseable line is the same trigger, never the end.
 
 **A PR that is not merged is refused, naming its state.** Black Voice runs after the merge, because until

@@ -68,7 +68,7 @@ included, before raising anyone.**
 
 ### 2a · The security scope's deterministic rows, before Feitan reads
 
-Hanten runs [Feitan's table](../AGENTS.md#feitan) — secret scan, dependency audit, secret shapes,
+Hanten runs [Feitan's table](../../agents/feitan.md) — secret scan, dependency audit, secret shapes,
 builder-touching workflow, each with its failure rule — and hands him the output. **A
 row that cannot run is not scanned, never clean**; values are `$hatsu_root/contracts/scans.json`'s.
 
@@ -134,7 +134,7 @@ readout the surface's own figure at return (Claude Code: the Agent tool's totals
 | Field | What it must carry |
 |---|---|
 | `rule` | **a rule id** (`UX-3`, `SEC-…`, `ECON-4`, a WCAG SC, a HIG reference), never a bare preference |
-| `severity` | `critical` \| `high` \| `medium` \| `low` \| `nit` ([Hisoka's ladder](../AGENTS.md#hisoka)) |
+| `severity` | `critical` \| `high` \| `medium` \| `low` \| `nit` ([Hisoka's ladder](../../agents/hisoka.md)) |
 | `path`, `line` | where, exactly; no location is a note |
 | `evidence` | **what was observed or measured**, a number with its method; never the rule restated |
 | `proposedFix` | what would settle it, proposed, never applied |

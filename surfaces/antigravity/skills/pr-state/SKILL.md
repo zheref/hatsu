@@ -61,7 +61,7 @@ a refusal names it). Do not pre-resolve the code by hand or guess one
 from the working directory.
 
 A missing argument or configuration item is asked for and set up inline (`missing-argument`,
-`missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*); a
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*); a
 registry entry is set up through the registry's own key, never by this read-only skill.
 
 > **Write the `#`.** This port filed a finding against `v0.1.0` (`docs/ab/pr-state.md` § 4): the no-`#`
@@ -126,12 +126,12 @@ or, with a bare number against a repo slug directly, the same three shapes with 
 **The exclusion flag rides beside the identity flag, and it is read from a declared home only**
 (zheref/hatsu#104). A maintainer's ruling that a check is not watched — an absent self-hosted runner,
 a matrix leg ruled out — lives in the target's `nen/gates.json` → `check_exclusions[]` (`name`,
-`reason`, `ruled`, `until`; [`docs/GATE-CONFIGURATION.md`](../../../../docs/GATE-CONFIGURATION.md) § 3),
+`reason`, `ruled`, `until`; [`docs/GATE-CONFIGURATION.md`](../../../docs/GATE-CONFIGURATION.md) § 3),
 never in chat or a brief: **every row `scripts/tenkai_adopt.sh diagnose` reports live** goes on the
 call as `--exclude-check <a,b>`, **each name its own argv element, never interpolated into a
 `--command` string or a shell line** (SEC-7 — the target's gates file is third-party data next to a
 live token), and the verdict is quoted with the exclusion named. **A ruling with no row is
-`missing-configuration`** ([`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*):
+`missing-configuration`** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*):
 written into the declaration at that repository's gate, then the verb re-read — never a verdict read
 around. **A row the flag cannot carry** — a comma in the name (the flag's separator, zheref/nen#243),
 a quote, a metacharacter, a lapsed or malformed date — **is refused at the declaration and never put
@@ -139,7 +139,7 @@ on the call**: `tenkai diagnose` names it `drift`, the verdict is read without i
 stands, **never `ready` on a row nobody could pass** and never a check dropped by a split name. The
 row `CON-32(a)` then reads by eye is the one the declaration owes nen (zheref/nen#249), and reading it
 by eye is the failure this flag exists to end. **An exhausted reviewer is the same shape one key over** — `reviewer_fallback.exhausted[]`, ruling
-2026-09-29, [PROCESS.md § *Reviewer rounds and review threads*](../../../../docs/PROCESS.md) *The fallback chain* — read the same way: the row named,
+2026-09-29, [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md) *The fallback chain* — read the same way: the row named,
 **the verb's verdict quoted verbatim with the one Hatsu exhaustion line beside it**, never `ready`; nen has
 no exhausted-reviewer read yet (zheref/nen#275), so the narrowing is the skill's to say, never a `--gates`
 file with the reviewer struck out, which nen refuses (verified live at nen 0.15.1, `docs/ab/sharingan.md`
@@ -160,7 +160,7 @@ parsing a manifest, and the root the warm-up printed is what that block hands in
 It is spelled that way and never as
 `$CLAUDE_PLUGIN_ROOT` alone because that variable is Claude Code's: exported by that harness inside a skill
 invocation and nowhere else, and on Codex and Cursor — where this body runs as a verbatim mirror
-([`docs/SURFACES.md`](../../../../docs/SURFACES.md)) — usually unset or, from a shell profile, naming a
+([`docs/SURFACES.md`](../../../docs/SURFACES.md)) — usually unset or, from a shell profile, naming a
 different plugin. `--explain` and `--json`'s
 `meta.identities.path` print the resolved absolute path (`identities <abs path>` on the `--explain` header
 line), so the report itself says which file decided.
