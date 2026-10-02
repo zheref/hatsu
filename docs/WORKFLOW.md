@@ -1900,7 +1900,8 @@ never responsibility for the final claim. Before a handover:
 2. Verify the fix **at the pushed SHA** — a green test run, a pushed commit or a delegate's "done" is
    not that evidence.
 3. Post each on-thread disposition through `nen pr threads reply`, resolving a thread only when it is
-   addressed.
+   addressed. A reply naming a delegate's commit names one on the PR's head chain
+   ([PROCESS.md](PROCESS.md) § *Reviewer rounds and review threads*, zheref/hatsu#139).
 4. Confirm a **fresh** snapshot carries no unresolved prior-round threads.
 5. Reconcile the associated-issue set under [`shibari`](../claude/skills/shibari/SKILL.md)'s linkage
    contract — every issue in the body **and** in Development, completion or partial stated,
