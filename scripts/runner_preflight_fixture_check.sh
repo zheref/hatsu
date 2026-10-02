@@ -6,20 +6,27 @@
 # a rendering of it for two fixture pools:
 #
 #   on:           exactly workflow_dispatch and push -- no pull_request, no pull_request_target
-#   push.paths    exactly one entry, the rendered file itself
+#   push          exactly branches and paths: branches holds only '**' (every branch, no tag -- GitHub
+#                 evaluates no paths filter on a tag push, so paths alone wakes the pool on every tag;
+#                 zheref/hatsu#198 item 1, Phinks QA-17), paths holds only the rendered file itself
 #   jobs          one job, preflight, whose `if:` binds github.repository to the one slug
 #   runs-on       the pool's labels, exactly (a bare self-hosted is never rendered)
 #   permissions   contents: read at the top, none widened on the job
 #   checkout      persist-credentials: false
-#   pins          every uses: pinned by a 40-hex commit SHA with a '# vN' comment (Feitan SEC-14)
+#   pins          every uses: pinned by a 40-hex commit SHA with an exact dotted '# vN.N(.N)' tag
+#                 comment -- a bare '# vN' names a moving major alias (Feitan SEC-14; #198 item 5)
 #   time bound    timeout-minutes on the job
-#   log hygiene   no step prints the service account's name or a resolved tool path (hanten F5)
+#   log hygiene   no step prints the service account's name, a resolved tool path or the PATH (hanten F5)
 #   rendering     no @@PLACEHOLDER@@ left standing
 #   appdata       the Windows step normalises with nen's two-backslash form, and, lifted from the live
 #                 template and its rendering and run against a stubbed where.exe printing CRLF lines,
 #                 classifies the FIRST match only: AppData and the rest of $USERPROFILE fail, Program
-#                 Files passes over a stale later AppData match, no match is not found, and no path
-#                 is ever printed (Feitan BC-9, Nobunaga; Copilot on zheref/nen#318)
+#                 Files passes over a stale later AppData match, no match is not on the service PATH,
+#                 and no path is ever printed (Feitan BC-9, Nobunaga; Copilot on zheref/nen#318)
+#   service path  the Windows step classifies against the PATH the cmd step before it recorded under
+#                 RUNNER_TEMP (`$SERVICE_PATH:<tool>`), never Git Bash's own: a tool present only under
+#                 Git's mingw64\bin reads not on the service PATH and fails, and a missing recording
+#                 fails the step instead of classifying against nothing (#198 item 2, Phinks QA-18)
 #   remedy        no ::error:: line names a tool-templated install path or Program Files, and every
 #                 per-user remedy names the tool and the MACHINE PATH (Copilot on zheref/nen#320 and
 #                 zheref/hatsu#179)
@@ -28,9 +35,10 @@
 # (src/runner/fixtures/runner-preflight.template.yml) since F5, and nothing here compares them.
 # Negative cases: a hostile copy that adds pull_request_target and drops the repository binding is
 # refused by this guard (nen itself renders it at exit 0 -- the reason this guard exists), a bare
-# self-hosted runs-on is refused, and a leftover placeholder is refused by nen at exit 1 with nothing
-# written, which jusshin § 7 maps. Needs `nen` (>= 0.18) on PATH, which a lane run through
-# `nen shu test` always has; offline, hermetic, writes only under mktemp.
+# self-hosted runs-on is refused, a push that admits a tag ref -- `paths:` alone (the shape before
+# #198) or a `tags:` filter beside it -- is refused, and a leftover placeholder is refused by nen at
+# exit 1 with nothing written, which jusshin § 7 maps. Needs `nen` (>= 0.18) on PATH, which a lane run
+# through `nen shu test` always has; offline, hermetic, writes only under mktemp.
 #
 # Usage: bash scripts/runner_preflight_fixture_check.sh      exit 0 all hold; 1 a conjunct failed;
 #                                                             5 nen could not be started
@@ -96,12 +104,25 @@ check() {
   esac
 
   got="$(printf '%s\n' "$on_block" | awk '/^  push:/ { p = 1; next } /^  [^ ]/ { p = 0 } p' | children 4)"
-  if [ "$got" = "paths" ]; then
-    pass "$label: push carries a paths filter and nothing else"
+  if [ "$got" = "branches paths" ]; then
+    pass "$label: push carries a branches filter and a paths filter and nothing else"
   else
-    fail "$label: push's filters are '$got', not exactly 'paths'"
+    fail "$label: push's filters are '$got', not exactly 'branches paths' -- without branches a tag push is admitted (GitHub evaluates no paths filter on a tag push), and tags/tags-ignore admit tag refs"
   fi
-  got="$(printf '%s\n' "$on_block" | awk '/^  push:/ { p = 1; next } /^  [^ ]/ { p = 0 } p && /^      - / { sub(/^      - /, ""); print }')"
+  # push_list <key>: the `- ` entries under push.<key>, in order.
+  push_list() {
+    printf '%s\n' "$on_block" | awk -v key="$1" '
+      /^  push:/ { p = 1; next } /^  [^ ]/ { p = 0 }
+      p && $0 ~ "^    " key ":" { k = 1; next } p && /^    [^ ]/ { k = 0 }
+      p && k && /^      - / { sub(/^      - /, ""); print }'
+  }
+  got="$(push_list branches)"
+  if [ "$got" = "'**'" ]; then
+    pass "$label: push.branches holds only '**' (every branch, no tag ref)"
+  else
+    fail "$label: push.branches is [$got], not exactly ['**']"
+  fi
+  got="$(push_list paths)"
   if [ "$got" = "'$wf_path'" ]; then
     pass "$label: push.paths holds only the file itself"
   else
@@ -148,10 +169,10 @@ check() {
   got="$(grep -E '^[[:space:]]*(- )?uses:' "$file")"
   if [ -z "$got" ]; then
     fail "$label: no uses: line at all (the checkout step is gone)"
-  elif printf '%s\n' "$got" | grep -Evq '^[[:space:]]*(- )?uses: [A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+@[0-9a-f]{40} # v[0-9]+[[:space:]]*$'; then
-    fail "$label: a uses: is not pinned by a 40-hex commit SHA with a '# vN' comment (SEC-14): $(printf '%s\n' "$got" | grep -Ev '@[0-9a-f]{40} # v[0-9]+' | sed 's/^[[:space:]]*//' | tr '\n' ' ')"
+  elif printf '%s\n' "$got" | grep -Evq '^[[:space:]]*(- )?uses: [A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+@[0-9a-f]{40} # v[0-9]+(\.[0-9]+)+[[:space:]]*$'; then
+    fail "$label: a uses: is not pinned by a 40-hex commit SHA with an exact dotted '# vN.N(.N)' tag comment (SEC-14; a bare '# vN' names a moving major alias): $(printf '%s\n' "$got" | grep -Ev '@[0-9a-f]{40} # v[0-9]+(\.[0-9]+)+[[:space:]]*$' | sed 's/^[[:space:]]*//' | tr '\n' ' ')"
   else
-    pass "$label: every uses: is pinned by a 40-hex SHA with a '# vN' comment"
+    pass "$label: every uses: is pinned by a 40-hex SHA with an exact dotted '# vN.N(.N)' tag comment"
   fi
 
   if grep -Eq '^    timeout-minutes: [1-9][0-9]*[[:space:]]*$' "$file"; then
@@ -255,51 +276,87 @@ step_body() {
     r { sub(/^          /, ""); print }
   ' "$1"
 }
+# The recording the cmd step leaves under RUNNER_TEMP (zheref/hatsu#198 item 2): `set PATH` output, CRLF,
+# `Path=` first and `PATHEXT=` after it. The step must read the Path line back and export it as
+# SERVICE_PATH; the stub below answers the `$SERVICE_PATH:` form ONLY when that export equals this
+# recording, so a step that searched anything else -- Git Bash's own PATH, the current directory -- is
+# answered as it would be on a host: with Git's own tools, or with nothing.
+stub_recorded='C:\svc\bin;C:\Windows\system32'
+mkdir -p "$work/runner-temp" "$work/empty-temp"
+printf 'Path=%s\r\nPATHEXT=.COM;.EXE;.BAT;.CMD\r\n' "$stub_recorded" > "$work/runner-temp/service-path.txt"
 for src in template rendering; do
   from="$template"; [ "$src" = rendering ] && from="$work/windows-x64.yml"
   step="$work/appdata-step-$src.sh"
-  # The stub prints each ';'-separated STUB_PATH entry as one CRLF line, in order, and nothing when empty
-  # -- the PATH search. Like the real where.exe, a bare `where.exe <tool>` searches the current directory
-  # FIRST, where the job just checked the repository out, so without the `$PATH:` prefix the stub prints
-  # a checkout-local C:\a\checkout\gh.exe ahead of those lines (Copilot on zheref/hatsu#178). Every case
-  # below therefore also proves the step calls `where.exe "\$PATH:<tool>"`.
-  { echo "where.exe() { local l; case \"\$1\" in '\$PATH:'*) ;; *) printf '%s\\r\\n' 'C:\\a\\checkout\\gh.exe' ;; esac"
-    echo "  while IFS= read -r -d ';' l; do printf '%s\\r\\n' \"\$l\"; done <<< \"\${STUB_PATH:+\$STUB_PATH;}\"; }"
+  # The stub prints each ';'-separated entry of the list it selects as one CRLF line, in order, and
+  # nothing when the list is empty -- the PATH search. `$SERVICE_PATH:<tool>` is the service's PATH
+  # (STUB_PATH), answered only when the step exported the recording; `$PATH:<tool>` is Git Bash's own
+  # PATH (STUB_BASH_PATH, else STUB_PATH -- the pre-#198 template searched this and read Git's own
+  # curl as machine-wide); and, like the real where.exe, a bare `where.exe <tool>` searches the current
+  # directory FIRST, where the job just checked the repository out, so it prints a checkout-local
+  # C:\a\checkout\gh.exe ahead of Git Bash's lines (Copilot on zheref/hatsu#178). Every case below
+  # therefore also proves the step calls `where.exe "\$SERVICE_PATH:<tool>"` with the recording exported.
+  { cat <<'STUB'
+where.exe() {
+  local l list=""
+  case "$1" in
+    '$SERVICE_PATH:'*) [ "${SERVICE_PATH:-}" = "$STUB_RECORDED" ] && list="${STUB_PATH:-}" ;;
+    '$PATH:'*) list="${STUB_BASH_PATH:-${STUB_PATH:-}}" ;;
+    *) printf '%s\r\n' 'C:\a\checkout\gh.exe'; list="${STUB_BASH_PATH:-${STUB_PATH:-}}" ;;
+  esac
+  while IFS= read -r -d ';' l; do printf '%s\r\n' "$l"; done <<< "${list:+$list;}"
+}
+STUB
     step_body "$from"; } > "$step"
   grep -q 'appdata' "$step" || { fail "appdata step ($src): the Windows resolution step was not found"; continue; }
-  # <USERPROFILE, '-' = unset>|<where.exe PATH lines, ';'-separated>|<exit>|<first output line>[|<case name>]
-  for probe in 'C:\Users\x|C:\Users\x\AppData\Local\Programs\gh\gh.exe|1|gh: per-user (AppData)' \
-               'C:\Users\x|C:/Users/x/AppData/Local/gh.exe|1|gh: per-user (AppData)' \
-               'C:\Users\x|C:\Program Files\GitHub CLI\gh.exe|0|gh: machine-wide' \
-               'C:\Users\x|C:\Program Files\GitHub CLI\gh.exe;C:\Users\x\AppData\Local\gh.exe|0|gh: machine-wide' \
-               'C:\Users\x|C:\Users\x\scoop\shims\gh.exe|1|gh: per-user (profile)' \
-               '-|C:\Users\x\AppData\Local\Programs\gh\gh.exe|1|gh: per-user (AppData)' \
-               '-|C:\Program Files\GitHub CLI\gh.exe|0|gh: machine-wide' \
-               'c:\users\X|C:\Users\x\bin\gh.exe|1|gh: per-user (profile)' \
-               'C:\Users\x||1|gh: not found' \
-               'C:\Users\x|C:\Users\x\AppData\Local\Programs\gh\gh.exe|1|gh: per-user (AppData)|a checkout-local same-named gh.exe must not hide the per-user one on PATH ($PATH: form)'; do
+  # <USERPROFILE, '-' = unset>|<service PATH where.exe lines, ';'-separated>|<Git Bash-only lines>|<exit>|<first output line>[|<case name>]
+  for probe in 'C:\Users\x|C:\Users\x\AppData\Local\Programs\gh\gh.exe||1|gh: per-user (AppData)' \
+               'C:\Users\x|C:/Users/x/AppData/Local/gh.exe||1|gh: per-user (AppData)' \
+               'C:\Users\x|C:\Program Files\GitHub CLI\gh.exe||0|gh: machine-wide' \
+               'C:\Users\x|C:\Program Files\GitHub CLI\gh.exe;C:\Users\x\AppData\Local\gh.exe||0|gh: machine-wide' \
+               'C:\Users\x|C:\Users\x\scoop\shims\gh.exe||1|gh: per-user (profile)' \
+               '-|C:\Users\x\AppData\Local\Programs\gh\gh.exe||1|gh: per-user (AppData)' \
+               '-|C:\Program Files\GitHub CLI\gh.exe||0|gh: machine-wide' \
+               'c:\users\X|C:\Users\x\bin\gh.exe||1|gh: per-user (profile)' \
+               'C:\Users\x|||1|gh: not on the service PATH' \
+               'C:\Users\x|C:\Users\x\AppData\Local\Programs\gh\gh.exe||1|gh: per-user (AppData)|a checkout-local same-named gh.exe must not hide the per-user one on PATH ($SERVICE_PATH: form)' \
+               'C:\Users\x||C:\Program Files\Git\mingw64\bin\gh.exe|1|gh: not on the service PATH|a tool present only under Git Bash'"'"'s mingw64\bin is not on the service PATH (#198 item 2)' \
+               'C:\Users\x|C:\Windows\system32\gh.exe|C:\Program Files\Git\mingw64\bin\gh.exe|0|gh: machine-wide|the service PATH decides, not Git Bash'"'"'s first match'; do
     prof="${probe%%|*}" rest="${probe#*|}"
     path="${rest%%|*}" rest="${rest#*|}"
+    bash_path="${rest%%|*}" rest="${rest#*|}"
     want_code="${rest%%|*}" rest="${rest#*|}"
     want="${rest%%|*}" name=""
     [ "$want" != "$rest" ] && name=" [${rest#*|}]"
     if [ "$prof" = - ]; then
-      out="$(env -u USERPROFILE STUB_PATH="$path" TOOLS=gh bash "$step" 2>&1)"
+      out="$(env -u USERPROFILE RUNNER_TEMP="$work/runner-temp" STUB_RECORDED="$stub_recorded" STUB_PATH="$path" STUB_BASH_PATH="$bash_path" TOOLS=gh bash "$step" 2>&1)"
     else
-      out="$(USERPROFILE="$prof" STUB_PATH="$path" TOOLS=gh bash "$step" 2>&1)"
+      out="$(USERPROFILE="$prof" RUNNER_TEMP="$work/runner-temp" STUB_RECORDED="$stub_recorded" STUB_PATH="$path" STUB_BASH_PATH="$bash_path" TOOLS=gh bash "$step" 2>&1)"
     fi
     code=$?
     first="$(printf '%s\n' "$out" | head -n 1)"
     case "$out" in
-      *'Users\x'*|*'Users/x'*|*'users/x'*|*'users\x'*|*'Users\X'*|*'users\X'*) printed=yes ;;
+      *'Users\x'*|*'Users/x'*|*'users/x'*|*'users\x'*|*'Users\X'*|*'users\X'*|*'svc\bin'*|*'svc/bin'*) printed=yes ;;
       *) printed=no ;;
     esac
     if [ "$code" = "$want_code" ] && [ "$first" = "$want" ] && [ "$printed" = no ]; then
-      pass "appdata step ($src)$name: USERPROFILE=$prof, where.exe [$path] (CRLF) -> exit $code, '$want', no path printed"
+      pass "appdata step ($src)$name: USERPROFILE=$prof, service [$path], git-bash [$bash_path] (CRLF) -> exit $code, '$want', no path printed"
     else
-      fail "appdata step ($src)$name: USERPROFILE=$prof, where.exe [$path] -> exit $code '$first' (path printed: $printed), not exit $want_code '$want' with no path printed"
+      fail "appdata step ($src)$name: USERPROFILE=$prof, service [$path], git-bash [$bash_path] -> exit $code '$first' (path printed: $printed), not exit $want_code '$want' with no path printed"
     fi
   done
+  # No recording at all (the cmd step did not run, or wrote nothing): the step fails by name rather than
+  # classifying every tool against an empty PATH as 'not on the service PATH'.
+  out="$(USERPROFILE='C:\Users\x' RUNNER_TEMP="$work/empty-temp" STUB_RECORDED="$stub_recorded" STUB_PATH='C:\Windows\system32\gh.exe' TOOLS=gh bash "$step" 2>&1)"
+  code=$?
+  case "$out" in
+    *'::error::'*'was not recorded'*) seen=yes ;;
+    *) seen=no ;;
+  esac
+  if [ "$code" -eq 1 ] && [ "$seen" = yes ]; then
+    pass "appdata step ($src) [no recording]: exit 1 naming the missing recording, nothing classified"
+  else
+    fail "appdata step ($src) [no recording]: exit $code (named: $seen), not exit 1 naming the missing recording: $out"
+  fi
 done
 
 # 2c. The remedy text names no install path (Copilot on zheref/nen#320): Git for Windows puts git.exe and
@@ -375,6 +432,37 @@ case "$neg" in
   *"FAIL: bare: runs-on is not exactly"*) pass "negative: a bare self-hosted runs-on is refused" ;;
   *) fail "negative: a bare self-hosted runs-on was not refused: $neg" ;;
 esac
+
+# 4b. Negative: a push that admits a tag ref is refused (zheref/hatsu#198 item 1) -- `paths:` alone, the
+# shape before #198 (GitHub evaluates no paths filter on a tag push, so every tag woke the pool: nen run
+# 36801489069 on the v0.18.2 tag), and a `tags:` filter beside the branches one. nen renders both at
+# exit 0; this guard refuses the copy and its rendering on the push-filters conjunct.
+for shape in paths-only tags-added; do
+  tagged="$work/$shape.yml"
+  case "$shape" in
+    paths-only) awk '/^    branches:$/ { skip = 1; next } skip && /^      - / { next } { skip = 0; print }' "$template" > "$tagged" ;;
+    tags-added) awk '/^    paths:$/ { print "    tags:"; print "      - '"'"'v*'"'"'" } { print }' "$template" > "$tagged" ;;
+  esac
+  for target in template rendering; do
+    file="$tagged"
+    expect_slug='@@REPO_SLUG@@'
+    is_rendered=no
+    if [ "$target" = rendering ]; then
+      render "$tagged" windows-x64 "$work/$shape-rendered.yml"
+      [ "$render_code" -eq 0 ] || { fail "negative ($shape): nen refused the copy (exit $render_code), so it is not the case this guard exists for: $render_out"; continue; }
+      file="$work/$shape-rendered.yml"
+      expect_slug="$slug"
+      is_rendered=yes
+    fi
+    before=$failures
+    neg="$(check "tag $shape $target" "$file" "$expect_slug" '[self-hosted, Windows, X64]' '.github/workflows/runner-preflight-windows-x64.yml' "$is_rendered")"
+    failures=$before
+    case "$neg" in
+      *"FAIL: tag $shape $target: push's filters are"*) pass "negative ($shape, $target): a push admitting a tag ref is refused" ;;
+      *) fail "negative ($shape, $target): a push admitting a tag ref was not refused: $neg" ;;
+    esac
+  done
+done
 
 # 5. Negative: a leftover placeholder is nen's exit 1, nothing written.
 leftover="$work/leftover.yml"

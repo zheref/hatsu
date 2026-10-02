@@ -962,6 +962,20 @@ class ReadinessWorkflow(Item):
                 drifts.append(f"a checkout step is missing `persist-credentials: false` "
                               f"({name.group(1).strip() if name else 'unnamed'}), leaving a "
                               f"credential in the workspace of a pull_request_target job")
+        # PINNED BY SHA, WITH THE EXACT TAG (zheref/hatsu#198). The template pins
+        # `actions/checkout` to a 40-hex commit with its exact tag as a trailing
+        # comment: a consumer that requires full-length SHA pins refuses a floating
+        # `@v7` on the next pull_request_target event, and a hand pin in a
+        # rendering is drift by the template's own rule. A rendering whose checkout
+        # ref is anything else -- the `@v7` every earlier rendering carries -- is
+        # DRIFT, so `apply` re-renders it to the pinned shape.
+        for m_uses in re.finditer(r"uses:\s*actions/checkout@(\S+)(.*)", live):
+            ref, tail = m_uses.group(1), m_uses.group(2)
+            if not (re.fullmatch(r"[0-9a-f]{40}", ref) and re.match(r"\s*#\s*v\d+(\.\d+)+\s*$", tail)):
+                drifts.append(f"a checkout is `actions/checkout@{ref}`, not a 40-hex commit SHA with its "
+                              f"exact `# vN.N.N` tag comment — a consumer requiring SHA-pinned actions "
+                              f"refuses it, and the pin is the template's, never a hand edit")
+                break
         # EVERY VALID YAML FORM, not one indentation of one shape. `write-all`, an
         # inline mapping `permissions: { contents: write }` and a differently
         # indented block all previously produced no drift at all.
@@ -2267,10 +2281,35 @@ def self_test() -> int:
         return row
 
     # U3 -- an arbitrary action wearing the .trusted marker
-    row = mut2(lambda t: t.replace("uses: actions/checkout@v7\n        with:\n          ref: ${{ github.event.pull_request.base.sha }}\n          path: .trusted",
+    row = mut2(lambda t: t.replace("uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n        with:\n          ref: ${{ github.event.pull_request.base.sha }}\n          path: .trusted",
                                    "uses: evil/action@v1\n        with:\n          ref: ${{ github.event.pull_request.base.sha }}\n          path: .trusted"))
     check("a non-checkout action in the .trusted block is DRIFT",
           row["state"] == DRIFT and "actions/checkout" in row["detail"])
+
+    # U3b -- a floating checkout tag, the shape every rendering before zheref/hatsu#198 carried
+    assert "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1" in base2, \
+        "the rendering does not carry the SHA-pinned checkout the mutation below floats"
+    row = mut2(lambda t: t.replace("actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1",
+                                   "actions/checkout@v7", 1))
+    check("a checkout pinned to a floating tag is DRIFT (zheref/hatsu#198)",
+          row["state"] == DRIFT and "40-hex" in row["detail"])
+    row = mut2(lambda t: t.replace("actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1",
+                                   "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7", 1))
+    check("a SHA pin whose comment names the moving major alias is DRIFT (zheref/hatsu#198)",
+          row["state"] == DRIFT and "40-hex" in row["detail"])
+
+    # U3c -- a PRIVATE consumer with declared self-hosted labels (zheref/hatsu#199: KroWindows' pool,
+    # whose Actions policy requires full-length SHA pins): the rendering carries the SHA pin on BOTH
+    # checkouts and the labelled runs-on, and diagnoses satisfied -- nothing is left to hand-edit.
+    dsh = fixture()
+    sh_ctx = ctx_for(dsh, vis="private", sh=5, labels="[self-hosted, Windows, X64]")
+    run("apply", sh_ctx)
+    wsh = (dsh / WORKFLOW_PATH).read_text()
+    check("a private self-hosted rendering pins both checkouts by SHA with the exact tag (zheref/hatsu#199)",
+          wsh.count("uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1") == 2
+          and "actions/checkout@v7" not in wsh and "runs-on: [self-hosted, Windows, X64]" in wsh)
+    check("that rendering diagnoses satisfied -- no hand edit left for a SHA-pinning consumer",
+          ReadinessWorkflow().detect(sh_ctx)["state"] == SATISFIED)
 
     # U4 -- a JOB-level permissions block overrides the workflow-level one
     row = mut2(lambda t: t.replace("    runs-on:", "    permissions:\n      contents: write\n    runs-on:", 1))

@@ -198,10 +198,13 @@ through [`hatsu:kokusen --type ci --scope runners`](../kokusen/SKILL.md). Exit `
 committed, `unchanged` is not. `1`: *"differs … N line(s)"* is asked — `--force` only on the answer;
 a leftover placeholder or invalid YAML is a **finding against the template**, never `--force`
 (`hatsu:file`). `2`: an unknown pool or no block → § 2; an unreadable template → `$hatsu_root`
-unresolved, `hatsu:ten jusshin` again. Else F. A consumer whose policy wants SHA pins re-pins
-`actions/checkout` in the PR; a red check there is row `red-lint`; a registration-first guard takes
-tenkai § 5a's two-PR order. **The branch is ready to go up; `hatsu:mukai` is the maintainer's call**,
-at the target's gate. After the merge, `x 0` resumes here.
+unresolved, `hatsu:ten jusshin` again. Else F. The template pins `actions/checkout` by commit SHA
+with its exact tag, so a consumer requiring SHA-pinned actions edits nothing — a hand pin in a
+rendering is drift, re-rendered on the next bump; a red check there is row `red-lint`; a
+registration-first guard takes tenkai § 5a's two-PR order. **The branch is ready to go up;
+`hatsu:mukai` is the maintainer's call**, at the target's gate. The push run on that branch is the
+pre-merge proof (the trigger is branches and the file, so a tag push never wakes the pool). After the
+merge, `x 0` resumes here.
 
 ```bash
 nen runner preflight --target <t> --workflow <pool.preflightWorkflow> --wait 600 --json
@@ -209,9 +212,11 @@ nen runner preflight --target <t> --workflow <pool.preflightWorkflow> --wait 600
 
 Exit `0` (quote `runId`, `runnerName`) → § 8. `2` — not on the ref: *"merge the preflight workflow
 first"*. `1` by `verdict`: `failure` → the failing step's log against the table below; `queued` → no
-free runner, quoted with the inventory; `timeout` → unfinished, the same line later. `5` →
-`missing-tool`. Else F. Every remedy is the maintainer's act on the host, then § 7 again. The rows
-carry bankai-core's `docs/SETUP-SELF-HOSTED-RUNNERS.md` § *Troubleshooting* (T7–T13) under local ids:
+free runner, quoted with the inventory (GitHub cancels a job queued 24 hours, and a PR check it left
+pending then reads cancelled — not Ready under CON-32(a) — until the pool runs it); `timeout` →
+unfinished, the same line later. `5` → `missing-tool`. Else F. Every remedy is the maintainer's act on
+the host, then § 7 again. The rows carry bankai-core's `docs/SETUP-SELF-HOSTED-RUNNERS.md`
+§ *Troubleshooting* (T7–T13) under local ids:
 
 | Id | Seen | Remedy |
 |---|---|---|
@@ -228,10 +233,21 @@ carry bankai-core's `docs/SETUP-SELF-HOSTED-RUNNERS.md` § *Troubleshooting* (T7
 `Get-Service "actions.runner.<owner>-<repo>.*" | Restart-Service`; Linux `sudo ./svc.sh stop` then
 `start` per runner dir; macOS `launchctl kickstart -kp gui/$(id -u)/<service>`.
 
+**What one green run proves** (the template's own header, § *WHAT ONE GREEN RUN PROVES*): the runner
+`runnerName` names — its host's machine `PATH` and its service account's execute rights — and, with
+it, the siblings this pass registered on that host under that account, which share both. A runner on
+another host is proven by nothing until a run lands there, so **a pool spanning hosts is dispatched
+again** (`preflight` above, from the default branch) **until every host's runner name has appeared
+green**, each run quoted, before § 8. On Windows the verdict is the service's own `PATH`, recorded
+from `cmd.exe`, never Git Bash's: a tool present only under Git's `mingw64\bin` reads *not on the
+service PATH* and is J4.
+
 ## 8. Switch it on
 
 The pool's `enableVariable` is read from the declaration first. **None: ungated** — the jobs are live
-on registration, said, and the verb is not run. Otherwise:
+on registration, said, and the verb is not run. Otherwise, **and only once § 7 has a green run per
+host** — `nen runner enable` reads the one run it is given as the pool's go (ab row 10), so the claim
+that every host can run a job is this skill's to have earned, never the verb's:
 
 ```bash
 nen runner enable --repo '<path>' --target <t> --pool <id> --after-run <runId> --json

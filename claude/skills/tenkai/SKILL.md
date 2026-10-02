@@ -333,6 +333,12 @@ provenance banner that quotes the defect it prevents, including the literal slug
 - any surviving `@@TOKEN@@`, which means the file was copied rather than rendered;
 - a **trigger set that is not exactly the admitted two** — § 5c; it matters in both directions,
   because an extra one may be an event no workflow can even register with.
+- an **`actions/checkout` that is not pinned to a 40-hex commit SHA with its exact `# vN.N.N` tag
+  comment** (zheref/hatsu#198, #199). The template pins it; a consumer whose Actions policy requires
+  full-length SHA pins would otherwise see a floating `@v7` refused on the next event, and a hand pin
+  in a rendering is drift by the template's own rule. **A consumer adopts a bumped pin by re-rendering
+  — `hatsu:tenkai apply` on the new plugin version — never by editing the rendering**; every earlier
+  `@v7` rendering reads `drift` until it does.
 - a consumer workflow that assumes Hatsu's Ruby policy guard exists, or assumes the consumer
   contract has a `dependency.pinned_ref`. The rendered product workflow treats the guard as
   optional and uses Hatsu's trusted, pinned Nen ref when the consumer declares no dependency pin.

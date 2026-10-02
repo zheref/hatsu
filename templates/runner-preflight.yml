@@ -20,22 +20,25 @@
 # Nen refuses a rendering with any placeholder left standing (exit 1, named)
 # and one that does not parse as YAML.
 #
-# `actions/checkout` is pinned by commit SHA, its tag as a trailing comment:
-# the job runs on a persistent physical host with a GITHUB_TOKEN, so a movable
-# tag is not acceptable, and a rendering is never hand-edited. A consumer moves
-# the pin by re-rendering after this template is bumped.
+# `actions/checkout` is pinned by commit SHA, its EXACT tag as a trailing
+# comment (`# v4.4.0`, never a major alias such as `# v4`, which moves): the job
+# runs on a persistent physical host with a GITHUB_TOKEN, so a movable tag is
+# not acceptable, and a rendering is never hand-edited. A consumer moves the
+# pin by re-rendering after this template is bumped.
 #
-# Its safety properties -- the trigger set, the repository binding, runs-on,
-# the read-only token, the unpersisted credential, the SHA-pinned checkout, the
-# time bound, the first-match profile/AppData classifier -- are held on this
-# template by zheref/hatsu:scripts/runner_preflight_fixture_check.sh; a
-# consumer's copy carries no such guard, which is why it is re-rendered and
+# Its safety properties -- the trigger set and the branch-only push, the
+# repository binding, runs-on, the read-only token, the unpersisted credential,
+# the SHA-pinned checkout with its exact tag, the time bound, the first-match
+# profile/AppData classifier read against the service's own PATH -- are held
+# on this template by zheref/hatsu:scripts/runner_preflight_fixture_check.sh;
+# a consumer's copy carries no such guard, which is why it is re-rendered and
 # never edited. The body is not byte-identical to nen's own test template: the
-# job never prints an account name, a profile or a resolved tool path.
+# job never prints an account name, a profile, a resolved tool path or the
+# PATH itself.
 #
-# runner-preflight -- proves the self-hosted @@POOL_ID@@ pool can RUN a job,
-# not merely that it is registered. Rendered by @@RENDERED_BY@@ for
-# @@REPO_SLUG@@; re-render it rather than editing it.
+# runner-preflight -- proves that a runner of the self-hosted @@POOL_ID@@ pool
+# can RUN a job, not merely that it is registered. Rendered by @@RENDERED_BY@@
+# for @@REPO_SLUG@@; re-render it rather than editing it.
 #
 # WHY IT EXISTS. A runner GitHub shows as Idle proves the runner PROCESS works.
 # It says nothing about whether the HOST carries the tools a job invokes, or
@@ -50,6 +53,16 @@
 #
 #   nen runner preflight --target @@REPO_SLUG@@ --workflow @@WORKFLOW_FILE@@
 #
+# WHAT ONE GREEN RUN PROVES. A run lands on ONE runner -- the `runner name`
+# line in its log -- and proves that runner: the machine PATH of its host and
+# the execute rights of its service account. A sibling registered on the same
+# host under the same account (what one hatsu:jusshin pass raises) shares
+# both, so it is proven with it; a runner on another host is proven by nothing
+# until a run lands there. `nen runner enable` reads one green run as the
+# pool's go, so enabling a pool that spans hosts is a claim about every host:
+# have `nen runner preflight` dispatch this workflow again until each host's
+# runner name has appeared green, and only then enable.
+#
 # FORK SAFETY. This job runs arbitrary steps on a physical machine, so the
 # trigger set is the control. `push` fires only in the repository the push
 # landed in and `workflow_dispatch` needs write access; `pull_request` is
@@ -58,13 +71,19 @@
 # canonical repository so a fork that enables Actions on its copy skips before
 # a runner is ever assigned.
 #
-# `push` is path-filtered to this file: it costs nothing on any other change
-# and still proves itself on the branch that changes it.
+# `push` is filtered to BRANCHES and to this file. GitHub does not evaluate
+# `paths` for a tag push, so `paths` alone would wake this job -- and a runner
+# of the pool -- on every tag; `branches: ['**']` beside it admits every branch
+# and no tag, because a push filtered on branches never matches a tag ref. On a
+# branch it costs nothing on any other change and still proves itself on the
+# branch that changes it.
 name: runner-preflight-@@POOL_ID@@
 
 on:
   workflow_dispatch:
   push:
+    branches:
+      - '**'
     paths:
       - '.github/workflows/@@WORKFLOW_FILE@@'
 
@@ -81,16 +100,20 @@ jobs:
     # Exactly the pool's labels. A job queues until a runner carrying all of
     # them is free; it never falls back to another pool.
     runs-on: @@RUNS_ON@@
-    # Bounds the RUN, not the wait: a job queues indefinitely when every slot
-    # is busy or offline, and a preflight that never starts is itself the
-    # answer ('nen runner preflight' names it).
+    # Bounds the RUN, not the wait: a job waits in the queue for a runner
+    # carrying every label, and GitHub cancels it after 24 hours there. While
+    # it waits, the check it reports on a pushed head stays pending -- not
+    # Ready under CON-32(a) -- and once cancelled it reads CANCELLED, which
+    # `nen pr ready` also reads as not ready. A preflight that never starts is
+    # itself the answer ('nen runner preflight' names it: `queued`, then
+    # `timeout`).
     timeout-minutes: 5
     steps:
       # Checkout shells out to git, so a host without a working git fails
       # here -- already a finding. Pinned by SHA (see the header): re-render to
       # move it, never edit it in place.
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -115,7 +138,10 @@ jobs:
       # file the PATH entry resolves to). Every PATH-shaped check passes during
       # a 126, so the two are named apart. Every tool is tried and named; the
       # step exits with the first non-zero code. Bash built-ins only: this step
-      # diagnoses a broken toolchain and must not depend on one.
+      # diagnoses a broken toolchain and must not depend on one. On Windows this
+      # bash is Git's, with its own usr\bin and mingw64\bin ahead of the
+      # service's PATH, so a 0 here is not yet a machine-wide verdict -- the
+      # Windows step below holds that.
       - name: Host toolchain -- every tool a job on this pool invokes
         shell: bash
         env:
@@ -136,23 +162,38 @@ jobs:
           done
           exit "$status"
 
-      # A Windows service runs with the MACHINE environment. A tool installed for
-      # the maintainer's user resolves in their shell and is invisible here, so
-      # a per-user resolution fails the run. where.exe prints every match in
-      # PATH order and a job runs only the FIRST, so only the first is
-      # classified: no match is not found; an \AppData\ segment is per-user
-      # (AppData); anywhere else under the service user's profile ($USERPROFILE
-      # -- scoop shims, a profile bin) is per-user (profile); the rest is
-      # machine-wide. Every tool is classified before the step fails on any.
-      # where.exe is called as `$PATH:<tool>` (the dollar escaped from bash):
-      # a bare `where.exe <tool>` searches the CURRENT DIRECTORY first, and the
-      # job has just checked the repository out there, so a same-named file in
-      # it would become the first match and hide a per-user one. The form
-      # searches the PATH directories only -- the service's PATH, which is what
-      # a machine-located tool (W1) has to be on.
-      # Each tool's NAME and verdict are printed, never the path it resolved to
-      # nor the profile: either carries an account name, and on a public
-      # repository this log is public. Bash built-ins only.
+      # A Windows service runs with the MACHINE environment, and a job's steps
+      # see that environment through cmd.exe and PowerShell. `shell: bash` does
+      # not: it is Git for Windows, whose bash puts its own usr\bin and
+      # mingw64\bin at the front of PATH, so a tool that exists only there --
+      # Git's own curl, tar or ssh -- resolves in a bash step and fails in a
+      # powershell or cmd one. The PATH a job is handed is therefore recorded
+      # from cmd.exe, which inherits the runner's environment unchanged, and
+      # the next step classifies against that recording. `set PATH` prints the
+      # variable as `Path=...` without re-parsing its value, which an `echo
+      # %PATH%` would; it lands in a file under RUNNER_TEMP, never in a step
+      # output, and the value is never printed.
+      - name: Record the PATH the service hands a job (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: (set PATH) > "%RUNNER_TEMP%\service-path.txt"
+
+      # The recording is read back (bash built-ins only), exported as
+      # SERVICE_PATH, and where.exe is called as `$SERVICE_PATH:<tool>`: the
+      # form searches the directories of the named variable only -- not the
+      # current directory, where the job has just checked the repository out
+      # and a same-named file would become the first match, and not bash's own
+      # PATH, where Git's tools would read machine-wide. where.exe prints every
+      # match in PATH order and a job runs only the FIRST, so only the first is
+      # classified: no match is not on the service PATH; an \AppData\ segment
+      # is per-user (AppData); anywhere else under the service user's profile
+      # ($USERPROFILE -- scoop shims, a profile bin) is per-user (profile); the
+      # rest is machine-wide. Every tool is classified before the step fails on
+      # any. A missing recording fails the step: nothing can be classified
+      # against a PATH that was not read.
+      # Each tool's NAME and verdict are printed, never the path it resolved to,
+      # the profile nor the PATH: each carries an account name, and on a public
+      # repository this log is public.
       - name: Resolution must be machine-wide (Windows)
         if: runner.os == 'Windows'
         shell: bash
@@ -162,17 +203,33 @@ jobs:
           set -uo pipefail
           bad=0
           shopt -s nocasematch
+          recorded="${RUNNER_TEMP:-}/service-path.txt"
+          recorded="${recorded//\\//}"
+          service_path=""
+          if [ -f "$recorded" ]; then
+            while IFS= read -r line || [ -n "$line" ]; do
+              case "$line" in
+                path=*) service_path="${line#*=}"; break ;;
+              esac
+            done < "$recorded"
+          fi
+          service_path="${service_path//$'\r'/}"
+          if [ -z "$service_path" ]; then
+            echo "::error::The PATH the service hands a job was not recorded (the step before this one did not run, or wrote nothing), so no tool can be classified against it."
+            exit 1
+          fi
+          export SERVICE_PATH="$service_path"
           profile="${USERPROFILE:-}"
           profile="${profile//\\//}"
           profile="${profile%/}"
           for tool in $TOOLS; do
-            resolved="$(where.exe "\$PATH:$tool" 2>/dev/null || true)"
+            resolved="$(where.exe "\$SERVICE_PATH:$tool" 2>/dev/null || true)"
             first=""
             IFS= read -r first <<< "$resolved" || true
             first="${first//$'\r'/}"
             norm="${first//\\//}"
             if [ -z "$norm" ]; then
-              verdict="not found"
+              verdict="not on the service PATH"
             elif [[ "$norm" == */appdata/* ]]; then
               verdict="per-user (AppData)"
             elif [ -n "$profile" ] && [[ "$norm" == "$profile"/* ]]; then
