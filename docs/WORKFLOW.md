@@ -911,7 +911,7 @@ report) → `jutaisho` (the bell).
 It loops. **It never pushes and never opens a pull request.**
 
 **Five phases are the maintainer's to call, and no agent ever prompts for them** (the merge prompt at
-`en` § 5 presents a PR's link and merge line and asks nothing — [`ROSTER.md`](ROSTER.md) § *Rulings of
+`en` § 5 presents a PR's link and merge line; its picker never carries the merge act; the maintainer merges outside the session — [`ROSTER.md`](ROSTER.md) § *Rulings of
 2026-09-30 — En never merges*):
 
 | Phase | What it does | Why it is the human's |

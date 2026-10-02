@@ -272,8 +272,9 @@ by the exception of 2026-10-01). **Where § 3a falls back to the declaration gat
 that stop** and presents this section's prompt for the proposal.
 
 **A PR off `branch.base` gets no prompt.** If check 1 below cannot bring its base to `branch.base`
-(no stacked delivery merged, no caller holding the PR), en reports the quoted verdict and the PR's base
-and ends there. Futon opens no PR into its integration branch (futon § 5 merges there locally), so
+(no stacked delivery has merged), en reports the quoted verdict and the PR's base and ends there.
+Steps 6 and 7 do not run: there is no gate event for the bell or the dated final report to record.
+Futon opens no PR into its integration branch (futon § 5 merges there locally), so
 this is never futon's path.
 
 **En never merges — the maintainer's ruling of 2026-09-30** (`docs/ROSTER.md` § *Rulings of 2026-09-30 —
@@ -295,7 +296,8 @@ and resolved. **Its terminus is the merge prompt, after four checks in order, ev
 4. **The head pinned** — the commit `nen pr ready` judged is GitHub's head, and the prompt's line names it.
 
 The prompt presents the PR's link and one line the maintainer may run, **offered and never run by en**.
-It asks nothing and offers no act, so it is not a prompt for the merge phase, which no agent makes
+Its picker never carries the merge act; the maintainer merges outside the session (jutaisho § 4). So it
+never offers the act, which is what no agent may do for the merge phase
 (ROSTER § *Rulings of 2026-09-30 — En never merges*):
 
 ```bash
