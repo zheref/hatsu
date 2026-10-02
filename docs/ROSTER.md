@@ -898,6 +898,18 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   never at `main`, and never write to it.
 
 
+## Rulings of 2026-10-01 — every settable value written out, and asked for before it is needed
+
+**The maintainer's request, verbatim** (excerpt):
+
+> it is never clear what is left to set up when reading any of the configuration files installed on any consumer repo […] I expect the config files to hold the default value (when they have NOT BEEN SET yet) and offer an inline comment showing all the potentially expected values so that it's easy to tell what are the options when applicable as a fixed set of options only (not open values). […] When calling a skill that requires values that may not have been set yet (no default values applicable), instead of failing and hard-stopping, it offers a way to the user to set those values up.
+
+| Ruling | What it says |
+|---|---|
+| **One list of what is settable** | [`contracts/config-catalogue.json`](../contracts/config-catalogue.json) lists every consumer value a Hatsu skill reads in `nen/workflow.json`, `nen/gates.json` and `nen/contract.json`: its default as canon states it, its options when it is a fixed set, its readers, the skills that cannot run without it, and any outside-platform setup. [`scripts/config_values.sh`](../scripts/config_values.sh) is its only reader |
+| **Written out at the default** | Tenkai's `apply` writes every absent value that has a default at that default, and a `$<key>` sibling beside each fixed-set value naming its options (`"$autoEn": "one of: true \| false"`) — [`tenkai`](../claude/skills/tenkai/SKILL.md) § 6d. nen reads `$`-prefixed keys as metadata. It is the one write the engine makes into a nen declaration, and it is behaviour-neutral: never a new file, never a set value rewritten, never a value without a default |
+| **Tenkai asks for every value a skill needs** | by domain — development, versioning, testing, review, reporting, notifications, deployment, publishing — naming each outside-platform step (store records, API keys as environment-variable names, reviewer apps, runner hosts). Values only some repositories need are offered and may be deferred to first use |
+| **A missing value is never a hard stop** | every phase's warm-up runs `config_values.sh need --skill <phase>` ([`ten`](../claude/skills/ten/SKILL.md) § 6, step 5b); each value that phase needs and nobody set is asked, set up and the phase resumed — [`WORKFLOW.md`](WORKFLOW.md) § 4, unchanged in its gates: a secret, a human gate or a G3 go is still never asked as configuration |
 ## Rulings of 2026-09-30 — rikugan is callable; nen is bound on the host at session start; worktrees live under `.nen/worktrees/<surface>`
 
 **The maintainer's requests, verbatim** (2026-09-30):

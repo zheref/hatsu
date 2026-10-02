@@ -1,6 +1,6 @@
 ---
 name: tenkai
-description: Make a repository — new or existing, consumer or not — a working Hatsu consumer, deterministically and idempotently. It DIAGNOSES before it writes, reports what was satisfied, missing or drifted, repairs Hatsu-owned surfaces, and guides the owner through every remaining development-workflow decision. Use when the maintainer invokes hatsu:tenkai [<path>], asks to adopt, onboard or set up a repository, asks why a Hatsu skill does not work somewhere, or when hatsu:ten's verification reports an adoption item unsatisfied. The engine never writes a nen-owned declaration; the agent may configure a consumer's declaration after an owner decision and validation. It never invents a colour taxonomy, merges, pushes or opens a pull request.
+description: Make a repository — new or existing, consumer or not — a working Hatsu consumer, deterministically and idempotently. It DIAGNOSES before it writes, reports what was satisfied, missing or drifted, repairs Hatsu-owned surfaces, writes every settable value out at its default with its options, and guides the owner through every value a skill needs. Use when the maintainer invokes hatsu:tenkai [<path>], asks to adopt, onboard or set up a repository, asks why a Hatsu skill does not work somewhere, or when hatsu:ten's verification reports an adoption item unsatisfied. The engine writes into a nen declaration only the catalogue's behaviour-neutral defaults; the agent may configure a consumer's declaration after an owner decision and validation. It never invents a colour taxonomy, merges, pushes or opens a pull request.
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
@@ -190,6 +190,8 @@ either operation.
 | `gates/check-exclusions` | **Hatsu** | **Observation only.** Reads `nen/gates.json` → `check_exclusions[]` (zheref/hatsu#104): none, or every row live, is `satisfied`; a row lapsed, malformed, or carrying a name the flag cannot be handed is `drift`, named — the maintainer removes or re-rules it; the engine never rewrites a gate |
 | `gates/reviewer-fallback` | **Hatsu** | **Observation only.** Reads `nen/gates.json` → `reviewer_fallback` (ruling 2026-09-29): a chain of identities, `terminal: hanten`, a live exhaustion is `satisfied`; a chain step `reviewers[]` does not carry is `routed` (declare it once the app is installed); a lapsed or malformed row, a terminal that is not `hanten`, or the terminal inside the chain is `drift`, named |
 | `workflow/review-scopes` | **consumer configuration** | Guide the owner through `review.scopes` when absent; validate with `nen schema check` before Hanten resumes |
+| `config/defaults` | **Hatsu** | Every value [`contracts/config-catalogue.json`](../../../contracts/config-catalogue.json) gives a default is written out at it, and every fixed-set value carries its `$<key>` options — `apply` runs `config_values.sh fill` (§ 6d) |
+| `config/needed` | **consumer configuration** | A value a skill cannot run without and no default covers is `routed` to the owner's answer, asked in § 6d and written by `config_values.sh set`; `apply` never answers one |
 | `effort/review-ledger` | **Hanten** | On an active effort branch, diagnose the branch ledger or its PR-keyed ledger when one exists; multiple PR candidates route exact-key selection to Hanten. Hanten checks history and uses `recover-first --confirmed-first-cycle` only after the maintainer confirms no review ran under this key; otherwise restore used counts. Tenkai `apply` does not mint a review budget |
 
 **Seven states, and `drift` is the one the whole skill is for:**
@@ -610,6 +612,9 @@ Work the outstanding rows in dependency order, carrying prior owner answers forw
    Ask only for missing owner choices. External accounts, certificates and production targets are
    named prerequisites, never invented values. Stop before any upload or publication at G3.
 
+4. **Settable values:** § 6d, after the three above, so a value whose candidates come from a
+   lane, target or launch entry is asked once those exist.
+
 Use the surface's native Crazy Slots picker for genuine choices, at most three related questions
 per call. Offer a recommendation with the consequence of each option. The question is about the
 workflow behaviour the maintainer wants, not a request to fill JSON. Do not re-ask a decision
@@ -628,6 +633,57 @@ that cannot run. Re-diagnose after every batch, preserve already satisfied rows,
 an item-by-item status and the remaining owner questions. No phase here commits, pushes, opens a
 PR, tags, uploads, or publishes.
 
+## 6d. Every settable value — written out, and the needed ones asked
+
+**The maintainer's ruling of 2026-10-01** ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of
+2026-10-01*): reading a consumer's configuration must show what is left to set, and a repository
+Tenkai has adopted must be ready for every skill, not discover a missing value when one runs. The
+list of what is settable is data — [`contracts/config-catalogue.json`](../../../contracts/config-catalogue.json),
+one row per value with its file, path, domain, default, options, readers, the skills that require
+it, and any outside-platform setup — and one engine reads it:
+
+```bash
+"$hatsu_root/scripts/config_values.sh" diagnose --repo <path> [--domain <d>] [--json]
+"$hatsu_root/scripts/config_values.sh" fill     --repo <path>      # on apply
+"$hatsu_root/scripts/config_values.sh" set      --repo <path> --id <id> --value <JSON literal>
+```
+
+**1 · Written out, at the default.** `fill` inserts every absent value that has a default, at that
+default, and a `$<key>` sibling beside every fixed-set value naming its options —
+`"autoEn": false, "$autoEn": "one of: true | false"`. nen reads every `$`-prefixed key as metadata,
+so `nen schema check` is unchanged by it; an open value (a path, a number, a list) carries no
+annotation, because it has no list to show. This is **the one write into a nen declaration the
+engine makes, and it is behaviour-neutral by construction**: a key written at the default its
+readers already apply changes nothing they do. It never creates a declaration (`nen scaffold init`
+does), never rewrites a set value — one outside its options is `invalid` and asked — and inserts
+text in place, so the file's own formatting survives. A value whose default is derived at run time
+(`iteration.lane`, `reports.timeZone`) is not in the catalogue: a snapshot would stop following its
+source.
+
+**2 · Asked, by domain.** Work the rows in the catalogue's domain order — development, versioning,
+testing, review, reporting, notifications, deployment, publishing — through § 6c's picker rules:
+
+| State | What Tenkai does |
+|---|---|
+| `required-missing` | a skill cannot run without it: **ask now**, the row's `question` with its candidates (`options`, or the keys of `candidatesFrom`) as picker options, the recommended one starred |
+| `asked-on-use` | only some repositories need it (self-hosted runners, deploy targets): **offer it**, with "later — ask when <skill> first runs" as an option; deferring is an answer |
+| `optional` | its readers work without it: offer it in the same pass, never block on it |
+| `invalid` | set outside its options: ask, quoting the value and the options; never rewritten unasked |
+
+A row with `setup` steps needs something done on an outside platform first — an App Store Connect
+or Play Console record, an API key, a reviewer app, a runner host. **Name each step and where it is
+done, and ask whether it is done**; a credential is exported under an environment-variable name and
+only the NAME is written (WORKFLOW § 4 step 3's secret rule, and `set` refuses anything else on a
+`secret-env` row). A step not yet done leaves the row `routed` with that step as its action.
+
+**3 · Written on the answer.** `set` writes one chosen value by catalogue id, refusing a fixed-set
+value outside its options; then `nen schema check`, `nen stage triage`, and a re-diagnose. A new
+`project.targets` or `project.launch` entry still lands through its declaration PR before it runs.
+
+**The same list closes the gap when Tenkai never ran.** Every phase's warm-up runs `config_values.sh
+need --skill <phase>` (ten § 6, step 5b): a value that phase needs and nobody set is asked there,
+one question per item, set up, and the phase resumes — WORKFLOW § 4, never a stop.
+
 ## 7. Report — per item, and never a summary that hides a row
 
 **Relay the engine's rows.** Every item, including the satisfied ones: *"what was already satisfied"*
@@ -641,11 +697,13 @@ State, out loud, in this order:
 3. for each outstanding item, the named action and its **owner**;
 4. the outstanding count, and — where anything is `staged` — **the order the pull requests must land
    in**;
-5. the policy inbox and execution verdict: whether `nen warmup` found unpinned or stale
+5. the settable values by domain: how many `fill` wrote, which were answered, which were deferred
+   to first use, and any `setup` step still outstanding;
+6. the policy inbox and execution verdict: whether `nen warmup` found unpinned or stale
    consumers and whether its handbook questions were checked; which declared build, lint,
    selected tests, result parser, coverage, launch and CI checks actually ran, and which
    were unread or blocked on this host;
-6. the successor: **nothing**. Adoption is not a phase of the loop. A repository whose required
+7. the successor: **nothing**. Adoption is not a phase of the loop. A repository whose required
    checks Tenkai has proved is ready for [`hatsu:ren`](../ren/SKILL.md); otherwise name each
    outstanding prerequisite without calling the workflow ready.
 
@@ -671,7 +729,9 @@ State, out loud, in this order:
 
 - **Permitted:** read any checkout on this machine; render `templates/**` into a target repository;
   create and ignore `Reports/` and `.nen/`; route the `commit-msg` hook to Nen; derive and report the
-  runner policy; guide and validate consumer configuration after an owner choice under § 6c;
+  runner policy; guide and validate consumer configuration after an owner choice under § 6c; write the
+  catalogue's defaults and option annotations into an existing declaration, and an answered value,
+  under § 6d;
   name the owner and the exact command for every routed item.
 - **Not permitted:** push, commit, open a pull request, label, merge, deploy, tag; write any
   canon repository's `nen/*.json` during consumer adoption; run `nen scaffold init` on the
@@ -685,8 +745,10 @@ State, out loud, in this order:
 - **Never writes before it diagnoses.** Every item detects first, on every run, including `apply`.
 - **Never reports an item it did not actually check**, and never re-derives one by eye that the
   engine reports.
-- **The engine never writes a `nen`-owned declaration.** The agent uses an available Nen verb
-  or makes a scoped consumer configuration edit after the owner decision and § 6c validation.
+- **The engine never writes a `nen`-owned declaration, save § 6d's fill**: an absent key at the
+  catalogue's default and its `$<key>` options, into a file that already exists. The agent uses an
+  available Nen verb or makes a scoped consumer configuration edit after the owner decision and
+  § 6c/§ 6d validation.
 - **Never invents a colour family**, and never compares a tuned `colors.yml` byte-for-byte against
   the seed.
 - **Never writes a workflow into a repository whose guard has not registered it.** The ordering is

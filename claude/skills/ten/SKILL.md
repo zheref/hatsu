@@ -6,7 +6,7 @@ description: Satisfy Hatsu's hard Nen dependency (D10) before any Nen-owned work
 # Ten — the Nen contract, executed; prerequisites caught up
 
 **`nen/contract.json` at the plugin root is the single source of truth**; every value here is a
-copy; **the contract wins**. Run **first, every session.** **Transmuter.** `hatsu:ten [<phase>]`.
+copy; the contract wins. Run first, every session. **Transmuter.** `hatsu:ten [<phase>]`.
 
 ## 0 · Resolve the root, THEN read the contract yourself
 
@@ -26,15 +26,15 @@ nen schema check --repo "$hatsu_root"  # once nen is on PATH
 
 **You are the JSON parser**: `dependency.minimum`, `.pinned_ref`, `.source`, `.version_probe` and
 `.bootstrap.url` are **literal values** — **no `jq`, `yq`, `python`, no version from
-memory**. **`nen schema check` validates, never extracts**; minimum and pin are **two independent
-values**; **a `FAIL` on either stops this gate**.
+memory**. **`nen schema check` validates, never extracts**; minimum and pin are two independent
+values; **a `FAIL` on either stops this gate**.
 
 ## 0a · Adoption is Tenkai's; this skill VERIFIES
 
 *At the pin*, *reachable* (§ 2c) and *source current* (§ 4b) are this skill's; *does this repo
 CARRY what the skills read* is `tenkai`'s: `"$hatsu_root/scripts/tenkai_adopt.sh" diagnose --repo
 <target> --json`, read-only, **no pipe**, findings **REPORTED, never repaired here**. A missing
-argument or configuration item: asked, set up inline (`missing-argument`, `missing-configuration`). **§ 3's halt and § 0's stops are refusals,
+argument or value: asked, set up inline (§ 6, 5b). **§ 3's halt and § 0's stops are refusals,
 not gaps.**
 
 ## 1 · Probe; nen decides the range
@@ -49,14 +49,14 @@ A probe exiting `0` with a semver reads the `nen` row: **`ok`** → § 2's `nen_
 § 4's `nen-global:` token, **never § 3**, no session bind (the session is satisfied). Every other
 row → **§ 2** — `WRONG` with a **repin** remedy (the pin below the floor — a `nen/contract.json`
 PR, never an install), `WRONG` without one, `MISSING`, or the verb absent. **Not found, non-zero
-or unparseable is absent** — § 2 too. Exit `5` for every non-satisfied row, **never `1`**. **The
-range rule is the contract's**; a build predating the floor prints no floor line — **said**, never
+or unparseable is absent** — § 2 too. Exit `5` for every non-satisfied row, never `1`. **The
+range rule is the contract's**; a build predating the floor prints no floor line — said, never
 inferred.
 
 ## 2 · Auto-install — host first, session as fallback
 
 Absent or unsatisfied is an install, not a halt. **The host is the DEFAULT** (ROSTER § Rulings of
-2026-09-30 — *nen is bound on the host at session start*, ruling A): **the hook acts, § 2c
+2026-09-30, ruling A): **the hook acts, § 2c
 verifies.** Its checksum-verified shell two-step is **the sanctioned exception to *shell only when
 nen is absent***. **The session always resolves the pin** — through the host link (`PATH` exported
 in the block) or, where the host was not bound, the session bind.
@@ -82,9 +82,9 @@ verified="${out##*$'\n'}"; [ -x "$verified" ] || <§ 3: not executable>  # BEFOR
 mkdir -p "$d/bin" && ln -sfn "$verified" "$d/bin/nen" && export PATH="$d/bin:$PATH"
 ```
 
-- ⚠️ **Fetch to a file; never pipe the script into bash** (piped, it **exits `1`, a code in no
-  table**); **the shell line only with nen absent**; **the verb line's `--script` required**,
-  `--source` shape-checked; **no pipe hides an exit code** — non-zero is § 3, `rc` quoted, nothing
+- **Fetch to a file; never pipe the script into bash** (piped, it **exits `1`, a code in no
+  table**); the shell line only with nen absent; the verb line's `--script` required,
+  `--source` shape-checked; no pipe hides an exit code — non-zero is § 3, `rc` quoted, nothing
   linked.
 - **Never copy or rename the binary.** **Publishing `nen` itself → the verb line for its tag**
   (`mugetsu` § 7); the host link follows the repin (§ 4b, `bakuryuha`).
@@ -170,6 +170,7 @@ maintainer's call**; no phase → nothing, said. **`breath` and `ao` run here sk
 | 3 base proven | step 1 cut the branch **in this run** | breath § 4; cut earlier → `satisfied` | its red |
 | 4 authenticated | `gh auth status` | red: the one G5 here, fix named, never elevated; green → `export GH_TOKEN="$(gh auth token)"` **in the block needing it**, never printed | red |
 | 5 declarations | `nen schema check --repo .` | nothing — `FAIL` stops **before the phase** | `FAIL` |
+| 5b values (every row) | `config_values.sh need --repo . --skill <phase>` | exit 1 → asked, set up, resumed (tenkai § 6d) | declined |
 | 6 stale state | this branch's PR, open or merged | open → **refuse a second PR**, offer `en` on it (mukai § 2); merged → say so, offer breath | never |
 | 7 the human's call | a gate the maintainer crosses | **never auto-run** | always, named |
 

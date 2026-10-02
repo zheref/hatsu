@@ -1030,6 +1030,17 @@ scaffolding piece — **does not end the operation**. In order:
    repository's gate and the verb re-read, never carried in prose or a subagent's brief.
 4. **Resume the original operation in the same turn**, with the completed line re-parsed.
 
+**What counts as "required" is data, not each skill's memory** (the maintainer's ruling of
+2026-10-01, [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-01*): [`contracts/config-catalogue.json`](../contracts/config-catalogue.json)
+names, per value, its default, its options when it is a fixed set, and the skills that cannot run
+without it. Every phase's warm-up asks [`scripts/config_values.sh`](../scripts/config_values.sh)
+`need --skill <phase>` ([`ten`](../claude/skills/ten/SKILL.md) § 6, step 5b), and each row it prints
+is a step-2 question here — its `question`, its options or `candidatesFrom` keys, its outside-platform
+`setup` steps named — written on the answer by `config_values.sh set`, then step 3's validation. A
+value the invocation typed (a target, a lane) satisfies its row for that run. Tenkai writes every
+defaulted value out with its `$<key>` options and asks the rest up front
+([`tenkai`](../claude/skills/tenkai/SKILL.md) § 6d), so a configuration file shows what is left to set.
+
 **Every skill routes a missing repository declaration through Tenkai's diagnosis and guided
 readiness pass**, then resumes its own verb after validation. The caller remains responsible for
 its operation; Tenkai owns detection and the setup conversation. An effort artifact is different:
