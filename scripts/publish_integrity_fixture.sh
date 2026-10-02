@@ -211,6 +211,18 @@ w1 '```bash' 'nen wc catch-up --repo . && echo " #"; nen wc publish --repo .' '`
 expect 'a # inside quotes does not hide a ; chain' 1 "$gate" "$o"
 w1 '```bash' 'nen wc catch-up --repo . && echo " # x" && nen wc publish --repo .   # trailing ; comment' '```'
 expect 'a quoted # in a gated chain, and a real trailing comment, pass' 0 "$gate" "$o"
+# Copilot on HA-PR-#192: blocks are read one at a time, so the owners carry a file-level policy.
+printf '%s\n' "$full" '' '```bash' 'nen wc publish --repo .' '```' > "$m/SKILL.md"
+expect 'an owner pairing a gated block with a bare publish block fails' 1 "$gate" "$m/SKILL.md"
+printf '%s\n' "$full" '' '```bash' 'nen wc publish --repo . && nen wc catch-up --repo . && "$hatsu_root/scripts/branch_authorship_check.sh" --repo . --base x' '```' > "$m/SKILL.md"
+expect 'an owner publish placed before its gates fails' 1 "$gate" "$m/SKILL.md"
+k="$tmp/skills/claude/skills/aka"; mkdir -p "$k"
+printf '%s\n' '```bash' '"$hatsu_root/scripts/branch_authorship_check.sh" --repo . --base x \' '  && nen wc publish --repo .' '```' > "$k/SKILL.md"
+expect 'aka: a check-and-publish chain passes' 0 "$gate" "$k/SKILL.md"
+printf '%s\n' '```bash' '"$hatsu_root/scripts/branch_authorship_check.sh" --repo . --base x \' '  && nen wc publish --repo .' '```' '' '```bash' 'nen wc publish --repo . --set-upstream' '```' > "$k/SKILL.md"
+expect 'aka: a second block with a bare publish fails' 1 "$gate" "$k/SKILL.md"
+w1 '```bash' 'nen wc publish --repo . \' '  && "$hatsu_root/scripts/branch_authorship_check.sh" --repo . --base x' '```'
+expect 'a publish ahead of the authorship check in its block fails' 1 "$gate" "$o"
 mkdir -p "$tmp/adir"
 expect 'RED-5 a directory is exit 2' 2 "$gate" "$tmp/adir"
 expect 'an unreadable file is exit 2' 2 "$gate" "$tmp/missing.md"

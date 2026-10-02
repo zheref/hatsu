@@ -19,7 +19,16 @@
 #     through `&&` alone: no `;`, no `||`, no bare newline, no `|` (a pipe's status is its last
 #     stage's, #161; a pipe glued to the publish, `x |nen wc publish`, counts), no lone `&` (a
 #     backgrounded step's exit is never read); fd redirections (`2>&1`, `&>`) are not separators;
-#   - a publish with no catch-up before it, in a block that names one, is a finding;
+#   - a publish with no catch-up before it, in a block that names one, is a finding; so is a
+#     publish with no branch_authorship_check.sh before it, in a block that names one (a publish
+#     placed ahead of the check is ungated, whatever follows it);
+#   - THE OWNERS' FILE-LEVEL POLICY: blocks are read one at a time, so a file could otherwise pair
+#     one fully gated block with a separate, bare `nen wc publish` block. In the skills that own a
+#     push, every publish carries its own gates in its own chain, whatever the other blocks hold:
+#     murasaki/SKILL.md and mukai/SKILL.md (the post-review push) need both a catch-up and the
+#     authorship check before each publish; aka/SKILL.md (the first publish and the pre-review
+#     push, whose range step 0 already proved) needs the authorship check. Any other file is held
+#     only to the gates its own block names (prose and tables are never read: only fenced code);
 #   - a negated command (`! ...`) is a finding wherever it stands on that chain: the catch-up, the
 #     authorship check, or any step between either and the publish (`&& ! grep ... noOp`) — a
 #     negated step passes on the very failure it exists to catch.
@@ -43,7 +52,12 @@ for f in "$@"; do
     echo "publish_gate_check: not a readable regular file: $f" >&2
     exit 2
   fi
-  out="$(awk -v file="$f" -v sq="'" '
+  case "$f" in
+    */murasaki/SKILL.md|*/mukai/SKILL.md) needcu=1; needau=1 ;;
+    */aka/SKILL.md) needcu=0; needau=1 ;;
+    *) needcu=0; needau=0 ;;
+  esac
+  out="$(awk -v file="$f" -v sq="'" -v needcu="$needcu" -v needau="$needau" '
     function fence(s,   c, n, i) {        # "<char><len>" if s opens or closes a fence, else ""
       sub(/^[ \t]*/, "", s); c = substr(s, 1, 1)
       if (c != "`" && c != "~") return ""
@@ -90,7 +104,8 @@ for f in "$@"; do
       while ((q = index(substr(t, p + 1), "nen wc publish")) > 0) {
         p += q
         cu = lastpos(t, "nen wc catch-up", p); au = lastpos(t, "branch_authorship_check.sh", p)
-        if (index(t, "nen wc catch-up") > 0 && cu == 0) { report("a nen wc publish has no nen wc catch-up before it"); continue }
+        if ((needcu || index(t, "nen wc catch-up") > 0) && cu == 0) { report("a nen wc publish has no nen wc catch-up before it"); continue }
+        if ((needau || index(t, "branch_authorship_check.sh") > 0) && au == 0) { report("a nen wc publish has no branch_authorship_check.sh before it"); continue }
         if (cu > 0) {
           if (negated(t, cu)) { report("a negated catch-up publishes on a failure"); continue }
           msg = badseg(substr(t, cu, p - cu), "catch-up to publish"); if (msg != "") { report(msg); continue }
