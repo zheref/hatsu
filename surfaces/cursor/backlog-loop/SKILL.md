@@ -195,7 +195,7 @@ maintainer's plate. **This skill never resumes itself** — re-invoke it.
 
 ## 11. Hard limits
 
-- **Never merges another's PR or a chore/integration branch**; its own PRs into `main` end at `en` § 5's merge prompt (ruling 2026-09-30).
+- **Never merges into `main`**: its own PRs end at `en` § 5's merge prompt (ruling 2026-09-30). The one integration-branch carve-out is futon's, futon § 5 (a local merge), never this loop's.
 - **Never self-reviews, never impersonates a reviewer, never casts `request_changes`** — binding even
   when the finding is real.
 - **Never applies a G1 mode label** — human-only, inside a run or outside it.

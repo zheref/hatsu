@@ -910,13 +910,15 @@ report) → `jutaisho` (the bell).
 
 It loops. **It never pushes and never opens a pull request.**
 
-**Five phases are the maintainer's to call, and no agent ever prompts for them:**
+**Five phases are the maintainer's to call, and no agent ever prompts for them** (the merge prompt at
+`en` § 5 presents a PR's link and merge line and asks nothing — [`ROSTER.md`](ROSTER.md) § *Rulings of
+2026-09-30 — En never merges*):
 
 | Phase | What it does | Why it is the human's |
 |---|---|---|
 | [`aka`](../claude/skills/aka/) | lint → squash the unpushed commits → `ao` → re-lint if catch-up moved the tree → push | publishing work is a decision, and a squash is destructive |
 | [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → kokusen checkpoint → `kotoamatsukami` impacted tests → `byakugan` coverage → publish proven updates → evidence → `shibari` opens the PR → landing report → ring, **offer** `en` through the picker and end Mukai. **§ 5 is the full shape** | En runs on the maintainer's answer (or at once under `mukai.autoEn`); pending is En's in-progress state |
-| **merge** | **G2** (`merge`) and **G4** (`canon-merge`) | **every PR into `main` is the maintainer's** — [`en`](../claude/skills/en/) § 5 ends it at the merge prompt, its link and an inline `gh pr merge` line, at either row ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-30 — En never merges*); [`getsuga`](../claude/skills/getsuga/) § 3a merges **its own release-proposal PR** through `nen pr merge --release-unit`; [`futon`](../claude/skills/futon/) § 5 merges into its own non-`main` integration branch |
+| **merge** | **G2** (`merge`) and **G4** (`canon-merge`) | **every PR into `main` is the maintainer's** — [`en`](../claude/skills/en/) § 5 ends it at the merge prompt, its link and an inline `gh pr merge` line, at either row ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-30 — En never merges*); [`getsuga`](../claude/skills/getsuga/) § 3a merges **its own release-proposal PR** through `nen pr merge --release-unit`; [`futon`](../claude/skills/futon/) § 5 merges effort branches locally (`git merge --no-ff`) into its own integration branch — no sub-PR, no `gh pr merge` |
 | [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always; § 3a's freshness gate reads the archive's build SHA against `HEAD` and `origin/<branch.base>`'s tip on a clean tree, and **only when it is not the tip's build** § 3b runs `susanoo` first in one idempotent clean worktree under core's `.nen/` (the maintainer's gitignored files copied from core, `project.fromCore`, § 3) and sends from there; `--run` acts only on a call — the target **typed, or the declared `deploy.defaultTarget`** (§ 2) | the blast radius leaves this machine |
 | [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3**: only on the maintainer's own go (mugetsu § 0), with the preflight green and the tag already cut — one target per call; with no target typed, the single declared destination and the latest cut tag with no published release (ruling of 2026-09-28) | the blast radius is other people's users |
 

@@ -1179,9 +1179,9 @@ rewrite; [`docs/ROSTER.md`](docs/ROSTER.md) carries the same table.
 |---|---|---|
 | **G1 — Epic approval** — the human applies one delivery-mode label | `CON-4` | **Never** |
 | **G1-M — Release into build** — applying the building stage label | `CON-25` | **The one delegated crossing** — only under `CON-25`'s four exhaustive, named carve-outs |
-| **G2 — Merge to `main`** | `CON-5` | **Never, save one PR.** Every PR into `main` ends at `en` § 5's merge prompt (`docs/ROSTER.md` § *Rulings of 2026-09-30 — En never merges*); `getsuga` § 3a merges its own release proposal through `nen pr merge --release-unit`. Futon may merge into its own non-`main` integration branch. |
+| **G2 — Merge to `main`** | `CON-5` | **Never, save one PR.** Every PR into `main` ends at `en` § 5's merge prompt (`docs/ROSTER.md` § *Rulings of 2026-09-30 — En never merges*); `getsuga` § 3a merges its own release proposal through `nen pr merge --release-unit`. Futon's local `git merge` into its own integration branch (futon § 5) is not a G2 act. |
 | **G3 — Release go/no-go** | `CON-6` | **Never on an agent's word.** Preparing a release is allowed; publishing runs only on your typed go — by name, or as a `mugetsu` step of your own `futon` chain. |
-| **G4 — Policy / spec change**, meaning **authoring or maintaining a canon repository** — the repositories `nen repo classify` reports as `role: canon`, whose product *is* the process | `CON-7` | **The same as G2** — the run's own PR at its terminus, and `getsuga` § 3a's own release proposal at `canon-merge`; never another's |
+| **G4 — Policy / spec change**, meaning **authoring or maintaining a canon repository** — the repositories `nen repo classify` reports as `role: canon`, whose product *is* the process | `CON-7` | **The same as G2** — every PR into `main` ends at `en` § 5's merge prompt (`docs/ROSTER.md` § *Rulings of 2026-09-30 — En never merges*); only `getsuga` § 3a's own release proposal is merged by an agent, at `canon-merge` too. Futon's local `git merge` into its own integration branch (futon § 5) is not a G4 act. |
 | **G5 — Anything else human-only** | `CON-47` | **Never** — its definition *is* "the decision is yours" |
 
 > **G4 is the repository's role, not the file's kind (maintainer's ruling, 2026-09-18).** A change is

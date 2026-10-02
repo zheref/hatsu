@@ -321,7 +321,8 @@ Do not start the next Ren turn. Do not prompt for `aka`, `mukai`, merge, `kaguts
 - **Never merges, never votes, never implements the filed work.**
 - **Never files more than three issues from one harvest**, and never files a draft the
   maintainer did not pick.
-- **Never prompts for the merge**, and never waits for it to close the sitting.
+- **Never prompts for the merge** (`en` § 5's merge prompt is En's and asks nothing), and never waits
+  for it to close the sitting.
 - **Never raises Netero on the frontier tier**, and never omits the title
   `third-hand · netero · <model alias>`.
 - **Never isolates him from this sitting's evidence** in a worktree that hides `Reports/` or

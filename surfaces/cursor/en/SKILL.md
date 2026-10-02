@@ -58,8 +58,8 @@ Started by [`/mukai`](../mukai/SKILL.md) with no clause under `mukai.autoEn` —
 step 8 just opened — by [`/getsuga`](../getsuga/SKILL.md) § 3 for the release proposal it just
 opened (**there en runs steps 1–5 and returns its quoted verdict to getsuga; step 6's bell is not rung,
 because getsuga § 3a is that PR's merge**), by [`futon`](../futon/SKILL.md)'s per-issue chain for the
-PR its effort opened (into futon's own integration branch, en returns its verdict and futon merges, futon
-§ 5), or by the maintainer, naming a PR that is already open (mukai's offer line). The
+PR its effort opened, or for its integration→main PR (futon § 5 opens no PR into its integration
+branch; it merges there locally), or by the maintainer, naming a PR that is already open (mukai's offer line). The
 rule that every PR a session opens or causes to be opened reaches the maintainer through this run or
 with the verdict quoted is [`docs/PROCESS.md`](../../../docs/PROCESS.md) § *Reporting a phase*'s
 (zheref/hatsu#103), cited, not restated:
@@ -115,7 +115,7 @@ inherited, or forgotten.*
 |---|---|---|---|
 | `monitor.maxCycles` | `nen/workflow.json` | **the cap** — the count of *acting* cycles (§ 6) | `20` |
 | `monitor.pollSeconds` | `nen/workflow.json` | the interval between observations, as `--interval-ms` | `300` (→ `--interval-ms 300000`) |
-| `branch.base` | `nen/workflow.json` | what step 3 catches up from, and what "behind" means | `main` |
+| `branch.base` | `nen/workflow.json` | the base § 5 prompts on. Step 3 catches up from, and "behind" is measured against, the PR's own `baseRefName` (`gh pr view <N> --json baseRefName`), which is `branch.base` for every PR en prompts on | `main` |
 | `reports.dir` / `.sections` / `.retain` | `nen/workflow.json` | step 7's file — [`backlog-board`](../backlog-board/SKILL.md) § 3's keys | `Reports` / five variants / `final-only` |
 | `notifications.rungs` / `.sound` | `nen/workflow.json` | step 6's rungs — [`/jutaisho`](../jutaisho/SKILL.md)'s keys | `["push","os","sound"]` / `Glass` |
 
@@ -203,10 +203,10 @@ Past the maximum the run ends at not-ready with the board. Neither is a G5. `nen
 |---|---|---|---|
 | 1 | **landing report** | [`/spiritual-message`](../spiritual-message/SKILL.md) `as landing` | once, at the start — 00–07 plus **08 PR body** and **09 Readiness**. If this En was started by mukai (`autoEn`) or typed from its offer in the same sitting with no newer human request, **00** still answers that mukai request |
 | 2 | **drive** | [`/sharingan`](../sharingan/SKILL.md) | first blocking condition, threads, checks, the confirmation pass |
-| 3 | **catch up** | [`/murasaki`](../murasaki/SKILL.md) | **only when the branch is behind `branch.base`** |
+| 3 | **catch up** | [`/murasaki`](../murasaki/SKILL.md) | **only when the branch is behind its PR's base** (`baseRefName`, § 2) |
 | 4 | **drive again** | [`/sharingan`](../sharingan/SKILL.md) | after step 3 moved the tree underneath it |
 | 5 | **observe** | this file, § 6 | while CI or a reviewer round is pending; each poll runs `nen wake verify` in dry-run (no `--run`), and `--run` only when a swallowed run is found; rebuild the current-head snapshot on every change, returning to steps 2–4 when action is needed |
-| 6 | **the bell, with the merge prompt** | this file, § 5; the report through [`/jutaisho`](../jutaisho/SKILL.md)'s four parts | **after verified Ready or § 6's sixth stop**, and only then — **not under `getsuga` § 3** (§ 3a merges) **nor for a PR into futon's integration branch** (futon § 5 merges): there the verdict returns to the caller |
+| 6 | **the bell, with the merge prompt** | this file, § 5; the report through [`/jutaisho`](../jutaisho/SKILL.md)'s four parts | **after verified Ready or § 6's sixth stop**, and only then — **not under `getsuga` § 3**, where the verdict returns to getsuga and § 3a merges, **nor for a PR off `branch.base`**, where en reports the verdict and the base and prompts nothing (§ 5) |
 | 7 | **the dated final report** | [`/rikugan`](../rikugan/SKILL.md) (§ 8), which composes backlog-board § 3's `--variant final` | after the bell; this is En's successful terminus |
 
 **Four orderings are en's own assertions:**
@@ -265,12 +265,16 @@ because a long watch is where the temptation compounds.
 
 ## 5. The merge prompt — en never merges
 
-**Not under [`getsuga`](../getsuga/SKILL.md) § 3, and not into futon's integration branch.** For a
-release proposal getsuga started en on, this step and § 8 do not run: en hands the quoted `nen pr ready`
-+ `body-check` verdict and its `judged head:` back to getsuga, because § 3a is that PR's merge (ROSTER
-ruling 4 of 2026-09-26, kept by the exception of 2026-10-01). A PR into a non-`main` integration branch
-futon created returns the same way, to futon § 5. Where § 3a falls back to the declaration gate, this
-section's prompt is the one presented.
+**Not under [`getsuga`](../getsuga/SKILL.md) § 3.** For a release proposal getsuga started en on, this
+step and § 8 do not run: en hands the quoted `nen pr ready` and `body-check` verdicts and its
+`judged head:` back to getsuga, because § 3a is that PR's merge (ROSTER ruling 4 of 2026-09-26, kept
+by the exception of 2026-10-01). **Where § 3a falls back to the declaration gate, getsuga § 3a owns
+that stop** and presents this section's prompt for the proposal.
+
+**A PR off `branch.base` gets no prompt.** If check 1 below cannot bring its base to `branch.base`
+(no stacked delivery merged, no caller holding the PR), en reports the quoted verdict and the PR's base
+and ends there. Futon opens no PR into its integration branch (futon § 5 merges there locally), so
+this is never futon's path.
 
 **En never merges — the maintainer's ruling of 2026-09-30** (`docs/ROSTER.md` § *Rulings of 2026-09-30 —
 En never merges*: *"En is NOT meant to merge by default."*), stated here once; `futon` § 5, `kurapika.md`,
@@ -290,7 +294,9 @@ and resolved. **Its terminus is the merge prompt, after four checks in order, ev
 3. **The body** — `nen pr body-check` satisfied against the live body.
 4. **The head pinned** — the commit `nen pr ready` judged is GitHub's head, and the prompt's line names it.
 
-The prompt carries the PR's link and one line the maintainer may run, **offered and never run by en**:
+The prompt presents the PR's link and one line the maintainer may run, **offered and never run by en**.
+It asks nothing and offers no act, so it is not a prompt for the merge phase, which no agent makes
+(ROSTER § *Rulings of 2026-09-30 — En never merges*):
 
 ```bash
 gh pr merge <N> --repo <owner/name> --merge --match-head-commit <judged head>   # the maintainer's; never --admin, never --auto
@@ -549,7 +555,8 @@ returned. Harvesting is that phase's, not En's.
 ## Hard limits
 
 - **Never merges** (ruling 2026-09-30, `docs/ROSTER.md` § *Rulings of 2026-09-30 — En never merges*).
-  Every PR into `main` ends at § 5's merge prompt, and en never runs the line it offers: not at Ready,
+  Every PR into `main` ends at § 5's merge prompt, save getsuga § 3a's own release proposal, which
+  getsuga merges. En never runs the line it offers: not at Ready,
   not at the cap, not on `nen pr staleness`'s own `mergePermitted` field, not because the PR has been
   Ready for hours. This is the skill standing closest to that gate for the longest, which is exactly why
   the limit is first.

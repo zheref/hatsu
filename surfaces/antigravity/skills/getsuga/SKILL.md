@@ -370,9 +370,10 @@ reader can run: `gh pr view 232 -R zheref/nen --json baseRefName` and the same f
 `fable/…` branch — this rule would have stopped both merges.
 
 **Then run `/en` on the proposal to its G2 readiness gates, then merge through § 3a — and under
-getsuga, en returns a verdict, never a bell** (zheref/hatsu#103). The maintainer's words of 2026-10-01
-(`docs/ROSTER.md` § *Rulings of 2026-09-30 — En never merges*, the release-proposal exception): *"run
-proper 'en' against the proposal PR and iterate on it until resolving all G2 readiness gates"*. So the
+getsuga, en returns a verdict, never a bell** (zheref/hatsu#103). An excerpt of the maintainer's words of
+2026-10-01 (`docs/ROSTER.md` § *Rulings of 2026-09-30 — En never merges*, the release-proposal
+exception): *"… run proper 'en' against the proposal PR and iterate on it until resolving all G2
+readiness gates …"*. So the
 invocation is the real skill, never a watch or a snapshot hand-rolled in its place (zheref/hatsu#207).
 Once the base reads `branch.base`, `/en on <CODE>#<N>`: en runs its steps 1–5
 — the landing report, the drive, catch-up when behind, the drive again, and the observation hold over
@@ -380,8 +381,8 @@ the required checks, the asynchronous reviewer round `nen/gates.json` configures
 after a request or a push; a proposal opened minutes ago is not ready while it is outstanding, `nen pr
 ready` row 4) and every thread — and **hands its quoted `nen pr ready` verdict back to this skill. Its
 step 6 bell and `MERGE` ask are not rung**, because § 3a is this PR's merge (the maintainer's ruling of
-2026-09-26, ROSTER ruling 4: *"completely autonomously"*; kept on 2026-10-01: *"one of the exceptions
-where agent (as emitter) is enabled to merge on my behalf"*). It is the one PR into `main` an agent
+2026-09-26, ROSTER ruling 4: *"completely autonomously"*; kept on 2026-10-01: *"… one of the exceptions
+where agent (as emitter) is enabled to merge on my behalf …"*). It is the one PR into `main` an agent
 merges; every delivery PR ends at en § 5's merge prompt. The bell rings only where § 3a falls back to
 the declaration gate, and that stop's line is the verdict, **quoted** — never "green", never
 `gh pr checks`, never a delegate's "checks passed". En's Ready is a verdict, not a human gate.
@@ -488,7 +489,8 @@ and **only this PR**: a delivery PR — futon's, build's, anything a `then` chai
 for the maintainer at its gate; `--release-unit` is the verb's own refusal of anything else.
 
 A fall-back **stops at the declaration gate** (`nen/decisions.json` row `canon-merge` in a canon
-repository, `merge` in a consumer) with the banner and the board — **`G4` in a canon repository
+repository, `merge` in a consumer) with the banner, the board and `en` § 5's merge prompt for the
+proposal — this skill owns that stop — **`G4` in a canon repository
 (`nen repo classify` → `role: canon`, read from `nen/repos.json`'s `maintained_tools`, never a list
 remembered here), `G2` in a consumer one**, because a release proposal in a repository whose product is not the process
 is that repository's own configuration:

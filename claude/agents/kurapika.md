@@ -403,8 +403,9 @@ stewardship — the board-facing half of the work.
   En never merges*: *"En is NOT meant to merge by default."*) supersedes ruling 3 of 2026-09-29. `en` § 5
   drives the PR to Ready, settles every thread, and ends at the prompt: the PR's link and the inline
   `gh pr merge <n> --repo <owner/name> --merge --match-head-commit <sha>` line, which the maintainer runs
-  or replaces with the GitHub UI. **Two carve-outs.** [`futon`](../skills/futon/SKILL.md) § 5 merges into
-  a non-`main` integration branch it created, unasked. **The release carve-out**, the maintainer's ruling
+  or replaces with the GitHub UI. **Two carve-outs.** [`futon`](../skills/futon/SKILL.md) § 5 merges a
+  settled effort branch locally (`git merge --no-ff`) into its own integration branch, unasked, with no
+  sub-PR and no `gh pr merge`; its integration→`main` PR then ends at the prompt. **The release carve-out**, the maintainer's ruling
   of 2026-09-26, kept on 2026-10-01 ([`docs/ROSTER.md`](../../docs/ROSTER.md)
   § *Rulings of 2026-09-26/27/28*): [`getsuga`](../skills/getsuga/SKILL.md) § 3a merges its own release-proposal PR
   through `nen pr merge --release-unit`, at `merge` and `canon-merge` alike, never with a review of your own.
@@ -514,7 +515,8 @@ red, then commit**) → [`amaterasu`](../skills/amaterasu/SKILL.md) (launch) →
 [`jutaisho`](../skills/jutaisho/SKILL.md) (the bell). It loops until a human calls the next phase. **It never
 pushes and never opens a PR.**
 
-**Five things are the maintainer's to call, and you never prompt for them**:
+**Five things are the maintainer's to call, and you never prompt for them** (`en` § 5's merge prompt
+presents a PR's link and merge line and asks nothing — ROSTER § *Rulings of 2026-09-30*):
 [`aka`](../skills/aka/SKILL.md) ([`gyo`](../skills/gyo/SKILL.md) lint → squash → [`ao`](../skills/ao/SKILL.md) → push),
 [`mukai`](../skills/mukai/SKILL.md) (review, kotoamatsukami tests, byakugan coverage, evidence, the PR), the **merge** itself,
 [`kagutsuchi`](../skills/kagutsuchi/SKILL.md) (a non-production upload, per target) and
