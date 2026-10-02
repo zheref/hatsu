@@ -44,6 +44,17 @@
 # `tenkai_adopt.sh` reports a rendered workflow whose trigger set is not exactly
 # these two as DRIFT, in both directions.
 #
+# `actions/checkout` IS PINNED BY COMMIT SHA, its EXACT tag as a trailing
+# comment (`# v7.0.1`, never the moving `v7` alias). This is a privileged
+# `pull_request_target` job holding a base-repository credential, and a
+# consumer that requires actions pinned to a full-length commit SHA (zheref/
+# KroWindows#98) would otherwise see its readiness check refused on the next
+# event. A hand pin in a rendering is drift by this file's own rule -- it is
+# re-rendered, never edited -- so the pin lives here: `tenkai_adopt.sh diagnose`
+# reports a checkout that is not exactly this template's pin, ref and comment,
+# as DRIFT (a well-shaped impostor or a stale pin included), and a consumer
+# moves the pin by re-rendering after this template is bumped.
+#
 # ---- provenance: the rationale this template inherits, unchanged ----
 #
 # pr-readiness — publish `nen pr ready`'s own verdict onto the pull request.
@@ -162,7 +173,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout PR head (data only — nothing from here is executed)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
@@ -176,7 +187,7 @@ jobs:
         # them with GH_TOKEN, which is the whole trust boundary inverted. The
         # base SHA is a commit on the base branch on every event this workflow
         # subscribes to.
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           path: .trusted

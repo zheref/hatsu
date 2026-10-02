@@ -74,7 +74,12 @@ picked** (`missing-maintainer-choice`; [`ROSTER.md`](../../../docs/ROSTER.md) §
 **No `runners` block** (a verb exits `2` naming the key): `missing-configuration`, asked per field,
 written into the target's `nen/workflow.json`, `nen schema check` and `nen stage triage` run on it
 (row `secret-shape`), and **landed through its declaration PR at the gate before a verb reads it
-live**. Whatever the target's visibility, the rendered preflight takes no `pull_request` event
+live**. **The pool's labels** are the three nen admits today — `self-hosted`, the OS, the arch — and the
+maintainer's ruling of 2026-10-02 (zheref/hatsu#198 item 6) is that a pool carries a label of its own
+beyond them, so a later registration of that OS and arch never joins it unproven; until nen's
+schema, the runner-policy guard and tenkai's derivation admit the fourth label together
+(zheref/hatsu#204), membership is OS and arch and the inventory's `unpooled` row is read with that in
+mind. Whatever the target's visibility, the rendered preflight takes no `pull_request` event
 ([`templates/runner-preflight.yml`](../../../templates/runner-preflight.yml) § *FORK SAFETY*, held by
 `scripts/runner_preflight_fixture_check.sh`; nen's own by its `runner-policy` test), and for a public
 target tenkai § 5b still derives a hosted readiness runner — nothing here changes that.
@@ -198,10 +203,13 @@ through [`hatsu:kokusen --type ci --scope runners`](../kokusen/SKILL.md). Exit `
 committed, `unchanged` is not. `1`: *"differs … N line(s)"* is asked — `--force` only on the answer;
 a leftover placeholder or invalid YAML is a **finding against the template**, never `--force`
 (`hatsu:file`). `2`: an unknown pool or no block → § 2; an unreadable template → `$hatsu_root`
-unresolved, `hatsu:ten jusshin` again. Else F. A consumer whose policy wants SHA pins re-pins
-`actions/checkout` in the PR; a red check there is row `red-lint`; a registration-first guard takes
-tenkai § 5a's two-PR order. **The branch is ready to go up; `hatsu:mukai` is the maintainer's call**,
-at the target's gate. After the merge, `x 0` resumes here.
+unresolved, `hatsu:ten jusshin` again. Else F. The template pins `actions/checkout` by commit SHA
+with its exact tag, so a consumer requiring SHA-pinned actions edits nothing — a hand pin in a
+rendering is drift, re-rendered on the next bump; a red check there is row `red-lint`; a
+registration-first guard takes tenkai § 5a's two-PR order. **The branch is ready to go up;
+`hatsu:mukai` is the maintainer's call**, at the target's gate. The push run on that branch is the
+pre-merge proof (the trigger is branches and the file, so a tag push never wakes the pool). After the
+merge, `x 0` resumes here.
 
 ```bash
 nen runner preflight --target <t> --workflow <pool.preflightWorkflow> --wait 600 --json
@@ -209,16 +217,18 @@ nen runner preflight --target <t> --workflow <pool.preflightWorkflow> --wait 600
 
 Exit `0` (quote `runId`, `runnerName`) → § 8. `2` — not on the ref: *"merge the preflight workflow
 first"*. `1` by `verdict`: `failure` → the failing step's log against the table below; `queued` → no
-free runner, quoted with the inventory; `timeout` → unfinished, the same line later. `5` →
-`missing-tool`. Else F. Every remedy is the maintainer's act on the host, then § 7 again. The rows
-carry bankai-core's `docs/SETUP-SELF-HOSTED-RUNNERS.md` § *Troubleshooting* (T7–T13) under local ids:
+free runner, quoted with the inventory (GitHub cancels a job queued 24 hours, and a PR check it left
+pending then reads cancelled — not Ready under CON-32(a) — until the pool runs it); `timeout` →
+unfinished, the same line later. `5` → `missing-tool`. Else F. Every remedy is the maintainer's act on
+the host, then § 7 again. The rows carry bankai-core's `docs/SETUP-SELF-HOSTED-RUNNERS.md`
+§ *Troubleshooting* (T7–T13) under local ids:
 
 | Id | Seen | Remedy |
 |---|---|---|
 | J1 | Windows: service *"cannot start … timely fashion"* | a local account, logged in once; § 5 again |
 | J2 | Windows: `config.cmd` rejects the password | a local-only account |
 | J3 | `Access to the path … is denied` | `(RX)` on every parent up the hierarchy |
-| J4 | exit `127` | Windows: machine-scope install, `C:\Program Files\Git\bin` on the machine `PATH` (no installer adds it); Linux/macOS: a system path the service user reads; then restart |
+| J4 | exit `127`, or Windows: *not on the service PATH* | Windows: machine-scope install, `C:\Program Files\Git\bin` on the machine `PATH` (no installer adds it); Linux/macOS: a system path the service user reads; then restart |
 | J5 | exit `126` | Windows: created in place under `C:\Program Files\<tool>\`, never a winget portable or a `Move-Item`, `Get-Acl` showing `Users` `ReadAndExecute`; Linux/macOS: `chmod`/owner on the resolved file; then restart |
 | J6 | landed on another OS | `runs-on` as rendered; an online runner with all three labels on **this** repository |
 | J7 | macOS: runner offline after start | Login Items → Allow in the Background, then `launchctl kickstart -kp gui/$(id -u)/<service>`, per runner |
@@ -228,10 +238,34 @@ carry bankai-core's `docs/SETUP-SELF-HOSTED-RUNNERS.md` § *Troubleshooting* (T7
 `Get-Service "actions.runner.<owner>-<repo>.*" | Restart-Service`; Linux `sudo ./svc.sh stop` then
 `start` per runner dir; macOS `launchctl kickstart -kp gui/$(id -u)/<service>`.
 
+**What one green run proves** (the template's own header, § *WHAT ONE GREEN RUN PROVES*): the runner
+`runnerName` names, for the declared tools — its service's `PATH` resolves each machine-wide and its
+account may execute them — and nothing broader (CON-49(c)). A sibling on that host under that
+account shares the stored machine `PATH` and the ACLs but holds the `PATH` it was *started* with, so
+it is covered only once every service on the host was restarted after the last `PATH` change (the
+restart line above); a runner on another host is proven by nothing until a run lands there; a Linux
+or macOS user-scope hit only warns. On Windows the verdict is the service's own `PATH`, recorded from
+`cmd.exe`, never Git Bash's: a tool present only under Git's `mingw64\bin` reads *not on the service
+PATH* and is J4. **A pool spanning hosts** is dispatched again (`preflight` above, from the default
+branch) until every host's runner name has appeared green, **at most three unsteered dispatches**:
+GitHub hands a run to any idle runner carrying the labels and nothing steers it to a host. Each host
+still unseen after three gets **one controlled dispatch of its own**: the maintainer stops every
+proven host's services (their act, elevated: § 7's restart line in reverse), § 7 dispatches once, the
+run can land only on an unproven host, and the services are started again — repeated per unseen
+host. A host that cannot be reached that way **stops the run before § 8** with the proof reported
+incomplete, naming it; the pool is never enabled on it, and no per-host label is invented to steer
+the run (that is zheref/hatsu#198 item 6, the maintainer's ruling). § 8 is passed the **latest green
+`runId`**, once every host has one.
+
 ## 8. Switch it on
 
 The pool's `enableVariable` is read from the declaration first. **None: ungated** — the jobs are live
-on registration, said, and the verb is not run. Otherwise:
+on registration, said, and the verb is not run. Otherwise, **and only once § 7 has a green run per
+host** — `nen runner enable` reads the one run it is given as the pool's go (ab row 10), so the claim
+that every host can run a job is this skill's to have earned, never the verb's. **A variable already
+on** (a pass adding a host to a live pool) means the new host serves jobs from registration, before
+§ 7 proves it: switching it off for the pass and restoring `previous` after, or accepting that
+window, is the maintainer's call — asked, never assumed — and § 9 records which:
 
 ```bash
 nen runner enable --repo '<path>' --target <t> --pool <id> --after-run <runId> --json
