@@ -10,7 +10,8 @@
 # at-signs; each is filled from the pool's declaration:
 #
 #   REPO_SLUG      the consumer repository (owner/name) the job is bound to
-#   RUNS_ON        the pool's labels, exactly -- never a bare self-hosted
+#   RUNS_ON        the pool's labels, exactly -- never a bare self-hosted, and
+#                  never GitHub's defaults alone (the ruling below)
 #   OS             the pool's OS in GitHub's own case: Windows, Linux, macOS
 #   TOOLS          the pool's tools[], space-separated, each run with --version
 #   POOL_ID        the pool's id
@@ -109,7 +110,17 @@ jobs:
   preflight:
     if: github.repository == '@@REPO_SLUG@@'
     # Exactly the pool's labels. A job queues until a runner carrying all of
-    # them is free; it never falls back to another pool.
+    # them is free; it never falls back to another pool. THE RULING OF
+    # 2026-10-02 (zheref/hatsu#198 item 6): one of them is to be the pool's
+    # own, because GitHub's defaults alone -- self-hosted, the OS, the arch --
+    # are what every runner of that OS and arch gets at registration, so a
+    # later registration on the repository joins the pool unproven and can
+    # pick up this preflight and the pool's jobs. NOT YET RENDERABLE: nen's
+    # schema, zheref/hatsu's runner-policy guard and tenkai's runner
+    # derivation all hold the three-label set and refuse a fourth, so until
+    # zheref/hatsu#204 lands this line is the defaults and membership is OS
+    # and arch -- said here so a reader does not take the defaults for the
+    # rule.
     runs-on: @@RUNS_ON@@
     # Bounds the RUN, not the wait: a job waits in the queue for a runner
     # carrying every label, and GitHub cancels it after 24 hours there. While

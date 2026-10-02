@@ -154,6 +154,14 @@ check() {
   else
     fail "$label: runs-on is not exactly '$runs_on'"
   fi
+  # NOT YET HELD: the maintainer's ruling of 2026-10-02 on zheref/hatsu#198 item 6 -- a pool's labels
+  # carry one of the pool's own, because GitHub's defaults (self-hosted, the OS, the arch) are what every
+  # runner of that OS and arch gets at registration, so a rendering whose runs-on is the defaults alone
+  # admits any later registration into the pool unproven. nen's schema refuses a fourth label at exit 2
+  # ("a pool's labels are exactly [self-hosted, <os>, <arch>]"), citing this repository's own
+  # runner-policy guard, so the conjunct cannot be rendered until nen's schema, the Ruby guard and
+  # tenkai's runner derivation admit a pool-own label together: zheref/hatsu#204. A conjunct that cannot
+  # run is not written as one.
 
   got="$(block "$file" permissions | sed 's/[[:space:]]*$//')"
   if [ "$got" = "  contents: read" ]; then

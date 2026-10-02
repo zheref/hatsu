@@ -75,7 +75,12 @@ picked** (`missing-maintainer-choice`; [`ROSTER.md`](../../../../docs/ROSTER.md)
 **No `runners` block** (a verb exits `2` naming the key): `missing-configuration`, asked per field,
 written into the target's `nen/workflow.json`, `nen schema check` and `nen stage triage` run on it
 (row `secret-shape`), and **landed through its declaration PR at the gate before a verb reads it
-live**. Whatever the target's visibility, the rendered preflight takes no `pull_request` event
+live**. **The pool's labels** are the three nen admits today — `self-hosted`, the OS, the arch — and the
+maintainer's ruling of 2026-10-02 (zheref/hatsu#198 item 6) is that a pool carries a label of its own
+beyond them, so a later registration of that OS and arch never joins it unproven; until nen's
+schema, the runner-policy guard and tenkai's derivation admit the fourth label together
+(zheref/hatsu#204), membership is OS and arch and the inventory's `unpooled` row is read with that in
+mind. Whatever the target's visibility, the rendered preflight takes no `pull_request` event
 ([`templates/runner-preflight.yml`](../../../../templates/runner-preflight.yml) § *FORK SAFETY*, held by
 `scripts/runner_preflight_fixture_check.sh`; nen's own by its `runner-policy` test), and for a public
 target tenkai § 5b still derives a hosted readiness runner — nothing here changes that.
