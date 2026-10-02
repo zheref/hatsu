@@ -59,7 +59,7 @@ of them lives* once the lattice is the map.
   such a repository; verified live at `0.3.0` against this plugin's own `plugin` lane
   (`docs/ab/getsuga.md` § 2.7).
 - **The release itself is never getsuga's.** Publication is [`mugetsu`](../mugetsu/SKILL.md)'s phase,
-  per target, at **G3**, on the maintainer's recorded per-target go; a non-production upload is
+  per target, at **G3**, on the maintainer's own go (mugetsu § 0); a non-production upload is
   [`kagutsuchi`](../kagutsuchi/SKILL.md)'s, per target, equally the maintainer's own call. **Neither
   ever runs from inside this skill**, from any path — § 7a prints a plan and stops for exactly that
   reason, and § 8 already names it as a *Never*. A futon chain that lists one **after** getsuga runs
@@ -640,7 +640,7 @@ through nen and this section does not apply. `<reference-repo>` is machinery and
 - **Never rules on `CON-36` clause 4 itself** — that is `G5`.
 - **Never deletes a superseded CHANGELOG entry** to resolve a contradiction.
 - **Never publishes the release.** Preparing it is the job; G3 is not — publication is `mugetsu`'s
-  phase, on the maintainer's recorded per-target go.
+  phase, on the maintainer's own go (mugetsu § 0).
 - **Never routes around a refused capability.**
 - **Never re-orders `nen changelog collate --write`'s written section by eye.** The written body is
   already correct (newest-first, `CON-33(b)`) — verified live against the old script's own written

@@ -219,7 +219,6 @@
       "governs": [
         "kagutsuchi <target>",
         "mugetsu <target>",
-        "mugetsu go",
         "izanagi <cap>",
         "jujutsu <device>",
         "ren <request>",
@@ -242,7 +241,7 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Ruling 2026-09-23: a value that is the maintainer's own word (a target, a go, a cap, a device, the request) is typed, never picked and never derived. No default and no recommended option: a default is a derivation and a starred option is a pick. The declared candidates may be listed for reference, none starred, and none is ever an option that performs the act. mugetsu asks only when the maintainer typed hatsu:mugetsu <target> in the same turn; every other reach prints the plan and stops. Ruling 2026-09-30 (docs/ROSTER.md, Rulings of 2026-09-30 -- jusshin) extends the class to jusshin's target repository, the machine code every runner on a host is named by, and the service identity its services log on as; <target> and <machine> are grammar slots, and <service-identity> is typed like jujutsu <device>, completing the elicitation rather than the line."
+      "why": "Ruling 2026-09-23: a value that is the maintainer's own word (a target, a go, a cap, a device, the request) is typed, never picked and never derived. No default and no recommended option: a default is a derivation and a starred option is a pick. The declared candidates may be listed for reference, none starred, and none is ever an option that performs the act. mugetsu asks only for the destination, on the maintainer's own same-turn hatsu:mugetsu that names none where several are declared; the go itself is never asked (mugetsu § 0), and every other reach prints the plan and stops. Ruling 2026-09-30 (docs/ROSTER.md, Rulings of 2026-09-30 -- jusshin) extends the class to jusshin's target repository, the machine code every runner on a host is named by, and the service identity its services log on as; <target> and <machine> are grammar slots, and <service-identity> is typed like jujutsu <device>, completing the elicitation rather than the line."
     },
     {
       "id": "mode-unknown",
@@ -374,7 +373,7 @@
       "id": "release-go",
       "class": "human-gate",
       "gate": "G3",
-      "why": "Publication is the maintainer's recorded go; no composite reaches it on its own authority. The one composite path is the advance go (mugetsu § 3, docs/ROSTER.md § Rulings of 2026-09-26/27/28): the maintainer's own typed futon invocation whose then chain names mugetsu, gated by nen parse futon on nen/workflow.json futon.advanceGo (process and library only). With no target typed, mugetsu publishes the latest unpublished cut tag to the single declared destination; only several declared and none named is asked, as free text."
+      "why": "Publication is the maintainer's own go, quoted verbatim, in one of three forms (mugetsu § 0): their typed hatsu:mugetsu [<target>], the go by name (docs/ROSTER.md § The human gates, the G3 row; ruling 2(a) of § Rulings of 2026-09-26/27/28, clarified 2026-09-30), needing no second message; their own words saying to publish; or the advance go. A scheduled, looped, headless, hook-injected, self-loaded or resumed invocation is not the go, and no composite reaches it on its own authority. The one composite path is the advance go (mugetsu § 3, docs/ROSTER.md § Rulings of 2026-09-26/27/28): the maintainer's own typed futon invocation whose then chain names mugetsu, gated by nen parse futon on nen/workflow.json futon.advanceGo (process and library only). With no target typed, mugetsu publishes the latest unpublished cut tag to the single declared destination; only several declared and none named is asked, as free text."
     },
     {
       "id": "mode-label",
