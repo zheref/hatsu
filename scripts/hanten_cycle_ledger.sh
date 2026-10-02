@@ -17,30 +17,40 @@
 #
 # Usage:
 #   scripts/hanten_cycle_ledger.sh init   --repo <path> --branch <name> [--pr <n>]
-#   scripts/hanten_cycle_ledger.sh ensure --repo <path> --branch <name> [--base <trunk>]
+#   scripts/hanten_cycle_ledger.sh ensure --repo <path> --branch <name> [--base <trunk>] [--no-pr-check]
 #   scripts/hanten_cycle_ledger.sh decide --repo <path> --branch <name> [--pr <n>] --applicable <csv>
 #   scripts/hanten_cycle_ledger.sh record --repo <path> --branch <name> [--pr <n>] --persona <id> --outcome ran|skipped-exhausted
 #   scripts/hanten_cycle_ledger.sh show   --repo <path> --branch <name> [--pr <n>]
 #   scripts/hanten_cycle_ledger.sh --self-test
 #
-# `ensure` (zheref/hatsu#169) is the branch-only `init` for a branch breath
-# did not cut (the desktop app's worktree): it opens the ledger only when the
-# branch has none, through the same init. It is idempotent and never resets:
-# a present ledger is reported `present` (init's "already exists"), byte for
-# byte untouched, exit 0. It REFUSES (exit 2, nothing written) the trunk --
-# --base, else nen/workflow.json branch.base, else main -- and a detached
-# HEAD, and a branch that already shows review evidence with no branch ledger
-# (a PR-keyed ledger for the branch, or hanten's findings record at
-# <reports.dir>/hanten/<slug>.json): that is a LOST ledger, hanten § 1's
-# recovery, never a fresh budget.
+# `ensure` (zheref/hatsu#169) opens the branch-only ledger, through the same
+# init, for a branch breath did not cut (the desktop app's worktree). One JSON
+# document on stdout, `action` + `reason`/`row` (ENSURE_ROWS is hanten § 1's
+# table): exit 0 `opened` (stamped openedAs "ensure" with what was searched)
+# or `present` (this branch's ledger LOADS; untouched); exit 3 `lost-ledger`
+# (review evidence and no ledger here); exit 2 `trunk`, `detached-head` or
+# `refused`. Before any lock or write it refuses --pr, --confirmed-first-cycle,
+# an empty/HEAD/invalid branch, the trunk (main, --base and every declared
+# branch.base, origin/ stripped, from the working tree and origin/<base>), a
+# --repo that is not a git toplevel or not on --branch, a malformed
+# workflow.json (only a missing one falls back), and a tracked or symlinked
+# .nen/hanten. Evidence: in every `git worktree list` checkout, the branch's
+# ledger or lock, its PR-keyed ledgers, hanten's findings record (Reports and
+# the declared reports.dir), all under the branch's name and any name the
+# reflog says it was renamed from; a lock left here with no ledger; and a PR
+# whose head is the branch (gh, unless --no-pr-check, the maintainer's word).
+# A remote ref alone is never evidence. What it guarantees is no fresh budget
+# where that evidence survives; history with no trace anywhere is beyond it.
 python3 - "$@" <<'PY'
 from __future__ import annotations
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import threading
 import time
+import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -292,60 +302,270 @@ def save(repo: Path, doc: dict) -> Path:
     return path
 
 
-def init(repo: Path, branch: str, pr: str | None = None, *, first_cycle_recovery: bool = False) -> dict:
+def init(repo: Path, branch: str, pr: str | None = None, *, first_cycle_recovery: bool = False,
+         opened_as: str | None = None, searched: dict | None = None) -> dict:
     path = ledger_path(repo, branch, pr)
     if path.is_file():
         refuse(f"hanten_cycle_ledger: ledger already exists at {path}")
     doc = new_doc(branch, pr)
     if first_cycle_recovery:
         doc["openedAs"] = "confirmed-first-cycle-recovery"
+    elif opened_as:
+        doc["openedAs"] = opened_as
+        doc["evidenceSearched"] = searched or {}
     save(repo, doc)
     return doc
 
 
-def trunk_name(repo: Path, base: str | None) -> str:
-    if base and base.strip():
-        return base.strip()
-    try:
-        value = json.loads((repo / "nen" / "workflow.json").read_text()).get("branch", {}).get("base")
-    except (OSError, ValueError, AttributeError):
-        value = None
-    return value.strip() if isinstance(value, str) and value.strip() else "main"
+# ---- ensure (zheref/hatsu#169) ----------------------------------------------
+# Every refusal is a JSON document on stdout ({"action": "refused", "reason":
+# <row>, ...}) plus one line on stderr. The rows ARE hanten § 1's table:
+ENSURE_ROWS = {
+    "opened": "exit 0 -- no ledger and no review evidence: opened by init, openedAs ensure; report it",
+    "present": "exit 0 -- this branch's ledger loads; untouched, never re-init, never reset",
+    "lost-ledger": "exit 3 -- review evidence with no ledger here: recover it (hanten § 1, WORKFLOW.md § 4); never a fresh budget",
+    "trunk": "exit 2 -- the trunk gets no ledger: stop",
+    "detached-head": "exit 2 -- a detached HEAD gets no ledger: stop",
+    "refused": "exit 2 -- any other refusal (usage, checkout, declaration, ledger state): stop, stderr quoted",
+}
+LOST_EXIT = 3
 
 
-def review_evidence(repo: Path, branch: str) -> list[str]:
-    """Paths proving a review already ran on this branch (a lost-ledger signal)."""
-    base = slug(branch)
-    found = sorted(str(p) for p in (repo / ".nen" / "hanten").glob(f"{base}-pr*.cycle.json")
-                   if p.name[len(base) + 3:-len(".cycle.json")].isdigit())
-    reports = "Reports"
+def ensure_refuse(reason: str, msg: str, code: int = 2, **extra):
+    doc = {"action": "refused", "reason": reason, "row": ENSURE_ROWS[reason], "message": msg}
+    doc.update(extra)
+    json.dump(doc, sys.stdout, indent=2)
+    sys.stdout.write("\n")
+    print(f"hanten_cycle_ledger: ensure: {msg}", file=sys.stderr)
+    raise SystemExit(code)
+
+
+def git(repo: Path | None, *args, timeout: int = 30):
+    cmd = ["git"] + (["-C", str(repo)] if repo is not None else []) + list(args)
     try:
-        value = json.loads((repo / "nen" / "workflow.json").read_text()).get("reports", {}).get("dir")
-        if isinstance(value, str) and value.strip():
-            reports = value.strip()
-    except (OSError, ValueError, AttributeError):
-        pass
-    findings = repo / reports / "hanten" / f"{base}.json"
-    if findings.is_file():
-        found.append(str(findings))
+        return subprocess.run(cmd, capture_output=True, timeout=timeout)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        ensure_refuse("refused", f"git could not run ({' '.join(cmd[:4])}...): {exc}")
+
+
+def nfc(text: str) -> str:
+    return unicodedata.normalize("NFC", text)
+
+
+def strip_origin(name: str) -> str:
+    name = name.strip()
+    return name[len("origin/"):] if name.startswith("origin/") else name
+
+
+def parse_workflow(raw: bytes, source: str) -> tuple[str | None, str | None]:
+    """(branch.base, reports.dir) from one nen/workflow.json; malformed refuses, absent keys are None."""
+    try:
+        doc = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as exc:
+        ensure_refuse("refused", f"{source} is present but malformed ({exc}); only a missing file falls back")
+    if not isinstance(doc, dict):
+        ensure_refuse("refused", f"{source} is not a JSON object")
+    base = reports = None
+    branch = doc.get("branch")
+    if branch is not None:
+        if not isinstance(branch, dict):
+            ensure_refuse("refused", f"{source} branch is not an object")
+        if "base" in branch:
+            base = branch["base"]
+            if not isinstance(base, str) or not base.strip():
+                ensure_refuse("refused", f"{source} branch.base is not a non-empty string")
+            base = strip_origin(base)
+    rep = doc.get("reports")
+    if rep is not None:
+        if not isinstance(rep, dict):
+            ensure_refuse("refused", f"{source} reports is not an object")
+        if "dir" in rep:
+            reports = rep["dir"]
+            if not isinstance(reports, str) or not reports.strip():
+                ensure_refuse("refused", f"{source} reports.dir is not a non-empty string")
+            p = Path(reports.strip())
+            if p.is_absolute() or ".." in p.parts:
+                ensure_refuse("refused", f"{source} reports.dir {reports!r} is absolute or climbs out of the checkout")
+            reports = reports.strip()
+    return base, reports
+
+
+def scan(directory: Path, names: set[str]) -> list[Path]:
+    """Entries of directory whose NFC name is in names (NFC); never follows a missing dir."""
+    try:
+        entries = list(directory.iterdir())
+    except OSError:
+        return []
+    return sorted(p for p in entries if nfc(p.name) in names)
+
+
+def evidence_in(checkout: Path, branches: list[str], report_dirs: list[str], skip_own: Path | None) -> list[str]:
+    """Review evidence for any of branches in one checkout (fail closed on unreadable files)."""
+    found = []
+    hanten = checkout / ".nen" / "hanten"
+    for name in branches:
+        s = nfc(slug(name))
+        if skip_own is None or checkout.resolve() != skip_own or name != branches[0]:
+            # Another checkout's ledger or lock, or one under a pre-rename name, is this effort's history.
+            found += [str(p) for p in scan(hanten, {f"{s}.cycle.json", f"{s}.cycle.lock"})]
+        try:
+            entries = list(hanten.iterdir())
+        except OSError:
+            entries = []
+        for p in sorted(entries):
+            n = nfc(p.name)
+            if not (n.startswith(f"{s}-pr") and n.endswith(".cycle.json")):
+                continue
+            num = n[len(s) + 3:-len(".cycle.json")]
+            if not num.isdigit():
+                continue
+            # Counted unless it READS as another branch's ledger (branch x vs a
+            # branch named x-pr3); unreadable or a pr mismatch is counted.
+            try:
+                d = json.loads(p.read_text())
+                other = isinstance(d, dict) and isinstance(d.get("branch"), str) and nfc(d["branch"]) != nfc(name)
+            except (OSError, ValueError):
+                other = False
+            if not other:
+                found.append(str(p))
+        for rd in report_dirs:
+            found += [str(p) for p in scan(checkout / rd / "hanten", {f"{s}.json"})]
     return found
 
 
-def ensure(repo: Path, branch: str, base: str | None = None) -> str:
-    """Open the branch-only ledger iff absent; never reset; refuse trunk and lost ledgers."""
-    trunk = trunk_name(repo, base)
-    if branch.strip() in ("", "HEAD") or branch == trunk:
-        refuse(f"hanten_cycle_ledger: ensure refuses {branch!r}: the trunk ({trunk}) and a detached HEAD get no ledger")
-    if ledger_path(repo, branch).is_file():
-        return "present"
-    evidence = review_evidence(repo, branch)
-    if evidence:
-        refuse(
-            f"hanten_cycle_ledger: no ledger at {ledger_path(repo, branch)} but review evidence exists "
-            f"({', '.join(evidence)}): a lost ledger -- recover it (hanten § 1), never a fresh budget"
-        )
-    init(repo, branch)
-    return "opened"
+def pr_evidence(repo: Path, branch: str) -> tuple[list[str], str]:
+    """PRs whose head is this branch (a remote ref alone is never evidence)."""
+    try:
+        r = subprocess.run(["gh", "pr", "list", "--head", branch, "--state", "all",
+                            "--json", "number,headRefName", "--limit", "100"],
+                           cwd=str(repo), capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        ensure_refuse("refused", f"the PR check could not run (gh: {exc}); pass --no-pr-check only on the maintainer's word")
+    if r.returncode != 0:
+        ensure_refuse("refused", f"the PR check failed (gh exit {r.returncode}: {r.stderr.strip()[:200]}); "
+                      "pass --no-pr-check only on the maintainer's word")
+    try:
+        rows = json.loads(r.stdout or "[]")
+        prs = [f"PR #{row['number']}" for row in rows if nfc(str(row.get("headRefName"))) == nfc(branch)]
+    except (ValueError, TypeError, KeyError) as exc:
+        ensure_refuse("refused", f"the PR check returned unreadable output: {exc}")
+    return prs, "gh pr list --head (state all)"
+
+
+def ensure_main(opts) -> None:
+    if opts.get("pr"):
+        ensure_refuse("refused", "ensure opens the branch-only ledger; the PR-keyed one is hanten § 2b's init --pr")
+    if opts.get("confirmed-first-cycle"):
+        ensure_refuse("refused", "--confirmed-first-cycle is only valid with recover-first")
+    if not opts.get("repo"):
+        ensure_refuse("refused", "missing --repo")
+    branch = opts.get("branch") or ""
+    if branch.strip() in ("", "HEAD"):
+        ensure_refuse("detached-head", f"{branch!r}: a detached HEAD gets no ledger (missing --branch reads the same)")
+    if git(None, "check-ref-format", "--branch", branch).returncode != 0:
+        ensure_refuse("refused", f"{branch!r} is not a valid branch name (git check-ref-format --branch)")
+    repo = Path(opts["repo"]).resolve()
+    if not repo.is_dir():
+        ensure_refuse("refused", f"--repo {repo} is not a directory")
+    # The trunk set only ever GROWS: main, --base, and every declared branch.base.
+    trunks = {"main"}
+    if opts.get("base"):
+        trunks.add(strip_origin(opts["base"]))
+    report_dirs = ["Reports"]
+    sources = []
+    wt_file = repo / "nen" / "workflow.json"
+    wt_base = None
+    if wt_file.exists():
+        try:
+            raw = wt_file.read_bytes()
+        except OSError as exc:
+            ensure_refuse("refused", f"{wt_file} is present but unreadable: {exc}")
+        wt_base, rd = parse_workflow(raw, str(wt_file))
+        sources.append(str(wt_file))
+        if wt_base:
+            trunks.add(wt_base)
+        if rd:
+            report_dirs.append(rd)
+    if nfc(branch) in {nfc(t) for t in trunks}:
+        ensure_refuse("trunk", f"{branch!r} is the trunk ({', '.join(sorted(trunks))}); the trunk gets no ledger")
+    top = git(repo, "rev-parse", "--show-toplevel")
+    if top.returncode != 0:
+        ensure_refuse("refused", f"--repo {repo} is not a git checkout; ensure searches every worktree and refuses without git")
+    if Path(top.stdout.decode().strip()).resolve() != repo:
+        ensure_refuse("refused", f"--repo {repo} is not the checkout toplevel ({top.stdout.decode().strip()})")
+    for ref in ["origin/main"] + ([f"origin/{wt_base}"] if wt_base and wt_base != "main" else []):
+        shown = git(repo, "show", f"{ref}:nen/workflow.json")
+        if shown.returncode == 0:
+            b, rd = parse_workflow(shown.stdout, f"{ref}:nen/workflow.json")
+            sources.append(f"{ref}:nen/workflow.json")
+            if b:
+                trunks.add(b)
+            if rd and rd not in report_dirs:
+                report_dirs.append(rd)
+    if nfc(branch) in {nfc(t) for t in trunks}:
+        ensure_refuse("trunk", f"{branch!r} is the trunk ({', '.join(sorted(trunks))}); the trunk gets no ledger")
+    current = git(repo, "branch", "--show-current").stdout.decode().strip()
+    if not current:
+        ensure_refuse("detached-head", f"{repo} has a detached HEAD; it gets no ledger")
+    if nfc(current) != nfc(branch):
+        ensure_refuse("refused", f"--branch {branch!r} is not the branch checked out in {repo} ({current!r})")
+    hanten_dir = repo / ".nen" / "hanten"
+    if git(repo, "ls-files", "--", ".nen/hanten").stdout.strip():
+        ensure_refuse("refused", ".nen/hanten is tracked by git; a ledger must be local, untracked state")
+    for p in (repo / ".nen", hanten_dir):
+        if (p.exists() or p.is_symlink()) and (p.is_symlink() or repo not in p.resolve().parents):
+            ensure_refuse("refused", f"{p} is a symlink or resolves outside {repo}")
+    # Every checkout of this repository, plus old names from a rename.
+    wl = git(repo, "worktree", "list", "--porcelain")
+    if wl.returncode != 0:
+        ensure_refuse("refused", "git worktree list failed; evidence across worktrees cannot be searched")
+    checkouts = [repo] + [Path(line[len("worktree "):]).resolve() for line in wl.stdout.decode().splitlines()
+                          if line.startswith("worktree ")]
+    names = [branch]
+    reflog = git(repo, "reflog", "show", "--format=%gs", f"refs/heads/{branch}", "--")
+    for line in reflog.stdout.decode(errors="replace").splitlines():
+        if line.startswith("Branch: renamed refs/heads/") and " to refs/heads/" in line:
+            old = line[len("Branch: renamed refs/heads/"):].split(" to refs/heads/")[0]
+            if old and old not in names:
+                names.append(old)
+    lock_existed = lock_path(repo, branch).exists()
+    # The PR check runs before the lock, so a failed check writes nothing; a
+    # present ledger needs no check at all.
+    prs, how = [], "not needed (ledger present)"
+    if not ledger_path(repo, branch).is_file():
+        if opts.get("no-pr-check"):
+            how = "skipped (--no-pr-check, the maintainer's word)"
+        else:
+            prs, how = pr_evidence(repo, branch)
+    with LedgerLock(repo, branch):
+        path = ledger_path(repo, branch)
+        if path.is_file():
+            try:
+                load(repo, branch)
+            except (ValueError, OSError) as exc:
+                ensure_refuse("refused", f"{path} exists but does not load ({exc}); restore it, never re-init")
+            except SystemExit:
+                ensure_refuse("refused", f"{path} exists but is not this branch's valid ledger; restore it, never re-init")
+            json.dump({"action": "present", "row": ENSURE_ROWS["present"], "path": str(path), "branch": branch,
+                       "contract": CONTRACT}, sys.stdout, indent=2)
+            sys.stdout.write("\n")
+            return
+        evidence = []
+        if lock_existed:
+            evidence.append(str(lock_path(repo, branch)) + " (a ledger command ran here; its ledger is gone)")
+        for checkout in dict.fromkeys(checkouts):
+            evidence += evidence_in(checkout, names, report_dirs, repo if checkout == repo else None)
+        searched = {"checkouts": [str(c) for c in dict.fromkeys(checkouts)], "names": names,
+                    "reportDirs": report_dirs, "workflow": sources}
+        evidence += prs
+        searched["prCheck"] = how
+        if evidence:
+            ensure_refuse("lost-ledger", "review evidence with no ledger here: a lost ledger, recovered per hanten § 1, "
+                          "never a fresh budget", LOST_EXIT, evidence=sorted(set(evidence)), searched=searched)
+        doc = init(repo, branch, opened_as="ensure", searched=searched)
+        json.dump({"action": "opened", "row": ENSURE_ROWS["opened"], "path": str(path), "branch": branch,
+                   "contract": CONTRACT, "openedAs": doc["openedAs"], "searched": searched}, sys.stdout, indent=2)
+        sys.stdout.write("\n")
 
 
 def parse_applicable(raw: str) -> list[str]:
@@ -433,6 +653,10 @@ def parse_args(argv):
         if argv[i] in ("--repo", "--branch", "--pr", "--base", "--applicable", "--persona", "--outcome") and i + 1 < len(argv):
             opts[argv[i][2:]] = argv[i + 1]
             i += 2
+            continue
+        if argv[i] == "--no-pr-check":
+            opts["no-pr-check"] = True
+            i += 1
             continue
         if argv[i] == "--confirmed-first-cycle":
             opts["confirmed-first-cycle"] = True
@@ -770,6 +994,13 @@ def main(argv):
     cmd, opts = parse_args(argv)
     if cmd == "--self-test":
         raise SystemExit(self_test())
+    if cmd == "ensure":
+        if opts.get("repo") and Path(opts["repo"]).resolve().is_dir():
+            budgets(Path(opts["repo"]).resolve())
+        ensure_main(opts)
+        return
+    if opts.get("no-pr-check"):
+        refuse("hanten_cycle_ledger: --no-pr-check is only valid with ensure")
     require(opts, "repo", "branch")
     repo = Path(opts["repo"]).resolve()
     if not repo.is_dir():
@@ -780,15 +1011,6 @@ def main(argv):
     if opts.get("base") and cmd != "ensure":
         refuse("hanten_cycle_ledger: --base is only valid with ensure")
     with LedgerLock(repo, branch, pr):
-        if cmd == "ensure":
-            if pr:
-                refuse("hanten_cycle_ledger: ensure opens the branch-only ledger; the PR-keyed one is hanten § 2b's init --pr")
-            action = ensure(repo, branch, opts.get("base"))
-            path = ledger_path(repo, branch)
-            json.dump({"path": str(path), "branch": branch, "action": action, "contract": CONTRACT},
-                      sys.stdout, indent=2)
-            sys.stdout.write("\n")
-            return
         if cmd in ("init", "recover-first"):
             if cmd == "recover-first" and not opts.get("confirmed-first-cycle"):
                 refuse("hanten_cycle_ledger: recover-first requires --confirmed-first-cycle after the maintainer confirms no review ran under this effort key")

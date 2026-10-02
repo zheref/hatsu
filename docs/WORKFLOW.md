@@ -745,12 +745,19 @@ at step 5), `build` § 4 (its own steps; usage at every § 7 report), `hanten` �
 reviewer, as each returns), `spiritual-message` § 4 and `backlog-board` § 3 (usage before a render).
 `nen report data` merges both as `phases[]` and `usage[]`.
 
-**The third, Hanten's cycle ledger** (`.nen/hanten/<branch-slug>[-pr<N>].cycle.json`, the review
-budgets), opens once per branch: [`breath`](../claude/skills/breath/SKILL.md) § 3b's `init` when Breath
-cuts it, else [`hanten`](../claude/skills/hanten/SKILL.md) § 1's `ensure`, which every Hanten entry runs —
-it opens a missing ledger through the same `init`, reports a present one untouched, and refuses the
-trunk and a lost ledger (a PR-keyed ledger or a findings record for the branch, but no branch ledger:
-§ 4's recovery, never a fresh budget). The PR-keyed one is Hanten § 2b's.
+**Beside those two, Hanten's cycle ledger** (`.nen/hanten/<branch-slug>[-pr<N>].cycle.json`, the
+review budgets — PR-keyed once a PR exists, so not one of the two above) opens once per branch:
+[`breath`](../claude/skills/breath/SKILL.md) § 3b's `init` when Breath cuts it, else
+[`hanten`](../claude/skills/hanten/SKILL.md) § 1's `scripts/hanten_cycle_ledger.sh ensure`, which every
+Hanten entry runs. `ensure` answers one JSON `action` per row (the script's `ENSURE_ROWS` is the table):
+exit `0` `opened` (through the same `init`, stamped `openedAs: "ensure"` with what it searched) or
+`present` (this branch's ledger loads; untouched); exit `3` `lost-ledger` — review evidence with no
+ledger here: in any `git worktree list` checkout the branch's ledger or lock, its PR-keyed ledgers or
+its findings record, under its name or a name the reflog says it was renamed from, a lock left here, or
+a PR whose head is the branch (a pushed remote ref alone is never evidence) — recovered per § 4; exit
+`2` `trunk`, `detached-head` or `refused` (anything else, stderr quoted). It guarantees no fresh budget
+where any of that evidence survives; review history that left no trace anywhere is beyond what it can
+see. The PR-keyed one is Hanten § 2b's.
 
 ## 3 · `project.launch` and `project.evidence`
 
@@ -1049,8 +1056,8 @@ readiness pass**, then resumes its own verb after validation. The caller remains
 its operation; Tenkai owns detection and the setup conversation. An effort artifact is different:
 the `.nen/hanten/` review ledger is local audit state, created by Breath when it cuts the branch, or
 by Hanten § 1's `hanten_cycle_ledger.sh ensure` on a branch cut elsewhere (the desktop app's worktree,
-zheref/hatsu#169) — idempotent, never a reset, refused on the trunk and wherever review evidence exists
-with no ledger. Tenkai diagnoses its absence on an active effort branch, but its `apply` cannot create
+zheref/hatsu#169) — idempotent, never a reset, refused on the trunk, and exit `3` `lost-ledger` wherever
+review evidence survives with no ledger (§ *The effort's ledgers* lists what counts). Tenkai diagnoses its absence on an active effort branch, but its `apply` cannot create
 review history. Hanten inspects prior review evidence; after the maintainer confirms this is the first
 cycle under the key, Hanten runs `hanten_cycle_ledger.sh recover-first
 --confirmed-first-cycle`, recording the recovery in the file. Otherwise it restores the original

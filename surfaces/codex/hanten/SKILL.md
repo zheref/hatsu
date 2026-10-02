@@ -33,13 +33,13 @@ fetched, the delta plus `git status --porcelain`; STANDALONE-ENTRY.md § 3). **`
 
 **The cycle ledger is fail-closed**: `.nen/hanten/<branch-slug>.cycle.json`; `decide`/`record`/`show`
 refuse a missing file. **First, every entry**: `"$hatsu_root/scripts/hanten_cycle_ledger.sh" ensure --repo <path> --branch <branch>`
-opens it by `init` where `breath` § 3b did not (HA#169); `present` is init's `2 already
-exists`, reported, never reset. Exit `2` on a feature branch is review evidence with no ledger:
-recover it **in this turn** per WORKFLOW.md § 4 — `$tenkai diagnose`, the prior evidence; a first
-cycle the maintainer confirms in the native picker is `recover-first --repo <path> --branch <branch>
---confirmed-first-cycle`; reviews that ran restore the original ledger, counts kept; history not
-establishable is a G5 naming the restore path. On the trunk, headless, or another refusal,
-stop. **Never fabricate review history, never reset a budget.** The
+(HA#169), rows by exit and JSON `action`/`reason` (`row` quotes each): `0 opened` (`breath` § 3b
+did not) — **say so**; `0 present` — proceed; `3 lost-ledger`
+→ recover it **in this turn** per WORKFLOW.md § 4 from the evidence it names; a
+first cycle the maintainer confirms in the native picker is `recover-first --repo
+<path> --branch <branch> --confirmed-first-cycle`; reviews that ran restore the original ledger, counts
+kept; unestablishable history is a G5 naming the restore path; `2 trunk`, `2 detached-head`, headless,
+or any other non-zero → stop, stderr quoted. **Never fabricate review history, never reset a budget.** The
 PR-keyed ledger is § 2b's.
 
 ## 2. Classify — by path, then by content

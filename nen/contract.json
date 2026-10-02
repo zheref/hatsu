@@ -182,7 +182,7 @@
       "ledger-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/hanten_cycle_ledger.sh, hanten's fail-closed review-budget ledger. It shipped with an embedded --self-test and no lane (Phinks, hanten on 265c2533), so a budget-minting defect could land with nothing routed to catch it. One entry runs both: the late-persona fixture calls the script's --self-test first, then drives the ledgers that already knew a late persona."
+        "$comment": "The focused lane for scripts/hanten_cycle_ledger.sh, hanten's fail-closed review-budget ledger. It shipped with an embedded --self-test and no lane (Phinks, hanten on 265c2533), so a budget-minting defect could land with nothing routed to catch it. One entry runs all of it: scripts/hanten_cycle_ledger_fixture.sh calls the script's --self-test first, then drives the ledgers that already knew a late persona, then `ensure` (zheref/hatsu#169), the open for a branch breath did not cut."
       },
       "fresh-worktree-guard": {
         "stack": "claude-code-plugin",
@@ -435,9 +435,9 @@
         "test": {
           "exe": "bash",
           "argv": [
-            "scripts/hanten_cycle_ledger_late_persona_fixture.sh"
+            "scripts/hanten_cycle_ledger_fixture.sh"
           ],
-          "$comment": "Hermetic and offline: throwaway repositories under a temp dir. The script's own --self-test (budgets from workflow.json, decide/record, recover-first, PR-keyed ledgers, concurrency, late-persona hydration), then a lost, deleted or re-cased late-persona row refused in a ledger that already knew him (personasAtOpen, lateHydrated), with a 0.66.0-shaped ledger still hydrating. Run it as `nen shu test --lane ledger-guard --repo <hatsu>` when scripts/hanten_cycle_ledger.sh changes."
+          "$comment": "Hermetic and offline: throwaway repositories under a temp dir. The script's own --self-test (budgets from workflow.json, decide/record, recover-first, PR-keyed ledgers, concurrency, late-persona hydration), then a lost, deleted or re-cased late-persona row refused in a ledger that already knew him (personasAtOpen, lateHydrated), with a 0.66.0-shaped ledger still hydrating; then `ensure` on throwaway git checkouts with a fake gh on PATH -- app-created opened and stamped, breath-created present byte for byte, the trunk and a detached HEAD refused with nothing written, every lost-ledger signal at exit 3 (another worktree, a leftover lock, a PR-keyed ledger, a findings record, a pre-rename name, a PR on the head), a pushed remote ref and a fresh rename not evidence, every other refusal at exit 2, and 20 concurrent ensures opening once. Run it as `nen shu test --lane ledger-guard --repo <hatsu>` when scripts/hanten_cycle_ledger.sh changes."
         }
       },
       "fresh-worktree-guard": {

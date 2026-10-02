@@ -1436,14 +1436,18 @@ class ReviewLedger(Item):
                             "Hanten identifies the current PR number and diagnoses its exact ledger; never pick a prior PR's budget")
         expected_pr = int(pr_candidates[0].name.removeprefix(f"{slug}-pr").removesuffix(".cycle.json")) if pr_candidates else None
         path = pr_candidates[0] if pr_candidates else ledger_dir / f"{slug}.cycle.json"
+        # The ONE table (hanten § 1; hanten_cycle_ledger.sh ENSURE_ROWS): a
+        # PR-keyed ledger alone is diagnosed above as the effort's ledger (the
+        # branch-only one is unread once a PR exists, hanten § 2b); neither
+        # present is routed to Hanten's `ensure` -- opened where no review
+        # evidence exists, exit 3 `lost-ledger` where it does. Tenkai never runs it.
         if not path.is_file():
-            return self.row(ROUTED, f"no branch-keyed review ledger for '{name}' at {path}; "
-                            "Tenkai cannot establish whether an open PR needs its own key or whether review history was lost",
-                            "Hanten identifies the active branch or PR effort key, checks prior review evidence, "
-                            "then asks whether this is the first cycle under that exact key; "
-                            "only a confirmed first cycle may run hanten_cycle_ledger.sh recover-first "
-                            "--confirmed-first-cycle. "
-                            "If reviews already ran, restore their ledger without resetting used counts")
+            return self.row(ROUTED, f"no review ledger for '{name}' at {path} (neither branch-keyed nor PR-keyed)",
+                            "Hanten § 1 runs hanten_cycle_ledger.sh ensure: `opened` on a branch with no review "
+                            "evidence (a first cycle, e.g. an app-cut branch); exit 3 `lost-ledger` where evidence "
+                            "exists, then the maintainer confirms or denies a first cycle under that exact key -- "
+                            "only a confirmed first cycle may run recover-first --confirmed-first-cycle; "
+                            "if reviews already ran, restore their ledger without resetting used counts")
         try:
             doc = json.loads(path.read_text())
         except (OSError, ValueError) as exc:
