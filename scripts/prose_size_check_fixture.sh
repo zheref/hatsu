@@ -256,7 +256,23 @@ form_skill "$form/claude/skills/zz/SKILL.md" "description: |
   $(xs 600)
   $(xs 600)"
 run 1 "$form"
-assert_contains "$out" 'OVER-DESCRIPTION  claude/skills/zz/SKILL.md  1201 > 1024' 'a literal block scalar is measured whole, its lines joined by newlines'
+assert_contains "$out" 'OVER-DESCRIPTION  claude/skills/zz/SKILL.md  1202 > 1024' 'a literal block scalar is measured whole, its lines joined by newlines, its clipped final line break counted'
+# chomping (Copilot on HA-PR-#194): clip (default) keeps one final line break, strip (-) none, keep (+) every one
+form_skill "$form/claude/skills/zz/SKILL.md" "description: |
+  $(xs 1024)"
+run 1 "$form"
+assert_contains "$out" 'OVER-DESCRIPTION  claude/skills/zz/SKILL.md  1025 > 1024' 'a clipped literal of 1024 visible characters is 1025 with its final line break'
+form_skill "$form/claude/skills/zz/SKILL.md" "description: |-
+  $(xs 1024)"
+run 0 "$form"
+assert_contains "$out" 'skill descriptions within the 1024-character cap' 'a stripped literal of 1024 visible characters is within the cap'
+form_skill "$form/claude/skills/zz/SKILL.md" "description: >+
+  $(xs 1022)
+
+
+"
+run 1 "$form"
+assert_contains "$out" 'OVER-DESCRIPTION  claude/skills/zz/SKILL.md  1026 > 1024' 'a kept folded block counts its final line break and every trailing blank line (1022 visible)'
 form_skill "$form/claude/skills/zz/SKILL.md" "description: $(xs 600)
   $(xs 600)"
 run 1 "$form"
@@ -318,4 +334,4 @@ if [ "$(id -u)" -ne 0 ]; then
   chmod 755 "$form/surfaces/codex/zz"
 fi
 
-echo "prose-size-fixture: ok (clean, headroom report and its order, the ceiling edge, over by one, characters, invalid UTF-8, a missing diet entry, the argument refusals, a symlink out, a dangling one, an unlistable directory, an unreadable file, a description over the 1024-character cap in source and mirrors, block, folded, multi-line, quoted and CRLF descriptions measured whole, invalid UTF-8 (exactly, a few stray bytes included) and duplicate keys refused, quoted keys, a space before the colon, aliases, anchors and a BOM refused by name, unlistable mirror directories, one finding per path)"
+echo "prose-size-fixture: ok (clean, headroom report and its order, the ceiling edge, over by one, characters, invalid UTF-8, a missing diet entry, the argument refusals, a symlink out, a dangling one, an unlistable directory, an unreadable file, a description over the 1024-character cap in source and mirrors, block, folded, multi-line, quoted and CRLF descriptions measured whole with their chomping, invalid UTF-8 (exactly, a few stray bytes included) and duplicate keys refused, quoted keys, a space before the colon, aliases, anchors and a BOM refused by name, unlistable mirror directories, one finding per path)"

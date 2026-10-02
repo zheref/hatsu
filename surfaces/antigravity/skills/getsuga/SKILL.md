@@ -446,8 +446,9 @@ At the same moment **re-assert § 2's `changelog.d/` row and § 1's tag check** 
 `version` and the top `CHANGELOG.md` section. A fragment there routes back exactly as a `missing[]`
 does; a tag mismatch stops naming both, as § 1 does.
 
-**Route back** means, in order: bring `origin/<baseNow>` into the release branch
-([`murasaki`](../murasaki/SKILL.md), as en step 3 does — the moved PRs' `changelog.d/` fragments are on
+**Route back** means, in order: bring the recorded `<baseNow>` SHA itself into the release branch
+([`murasaki`](../murasaki/SKILL.md), as en step 3 does, passed the SHA — never `origin/<baseNow>`, a ref that
+does not exist, nor `origin/<branch.base>`, which may have moved again — the moved PRs' `changelog.d/` fragments are on
 the base, not the branch, so collating without this collates nothing); § 3 item 1 (`collate --write`;
 in a direct-entry repository, an entry under the open dated section instead); then item 3
 (completeness over `<vPrev>..<baseNow>`), which **must exit `0` before the push**. Push, let en re-judge
