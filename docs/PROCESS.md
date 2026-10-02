@@ -265,14 +265,15 @@ chooses to — Cursor Bugbot, `cursor[bot]`, is installed and reviews on its own
 PR** until nen reads the chain, so the declaration is the maintainer's call, never the run's); **a fallback request
 is a round and counts toward `round_policy.maxRounds` as any other**. With the chain exhausted, `terminal:
 hanten` — **hanten's rounds are the review**: no round is requested, no bound is touched, this terminus
-outranks `cap-reached`, and the PR is merged by `en` § 5 (§ 6 there, the sixth stop) with **the verb's
+outranks `cap-reached`, and the PR goes to `en` § 5's merge prompt (§ 6 there, the sixth stop) with **the verb's
 verdict quoted verbatim** — today `not-ready: a configured reviewer's round is
 still owed at the current head (CON-32b): copilot (no round at head)` — **and one Hatsu line beside it,
 never in its place**: `Hatsu: reviewer copilot declared exhausted (nen/gates.json reviewer_fallback, ruled
 2026-09-29); nen does not read this — zheref/nen#275`. The same line goes into the PR body's completion
-checklist through `nen pr edit-body`, written by `en` before the merge — the one durable record that a
-hanten-only review happened. **The merge is the run's**: the ruling's *and merge* means `en` § 5 merges
-it (ruling 2026-09-29 (3): *"The merge is not mine. It is yours and it has been."*). No Hatsu-side
+checklist through `nen pr edit-body`, written by `en` before the prompt — the one durable record that a
+hanten-only review happened. **The merge is the maintainer's**: `en` never merges, and every PR into
+`main` ends at the merge prompt (`docs/ROSTER.md` § *Rulings of 2026-09-30 — En never merges*, which
+supersedes ruling 3 of 2026-09-29). No Hatsu-side
 narrowing can make the verb read past an exhausted reviewer — `--reviewers ""` is ignored where the
 target ships `nen/gates.json`, and a derived gates file with `reviewers: []` is refused by name
 (measured at nen 0.15.1, `docs/ab/sharingan.md` § *Dated 2026-09-29 — the reviewer fallback chain*) — so
@@ -337,6 +338,12 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   (`src/schema/source.ts`) that no published contract states. Both are an **owned dependency** on
   `zheref/nen` (a value-setting verb and a documented metadata-key guarantee), not yet filed — named
   in tenkai's Residue for Netero's harvest.
+- **`hanten` § 1 and § 2b.** The review-cycle ledger is `scripts/hanten_cycle_ledger.sh`, embedded
+  Python that holds every budget verdict and `ensure`'s open-or-refuse logic (the worktree, reflog and
+  findings-record evidence search, the trunk set) and makes a raw `gh pr list --head <name> --state all
+  --repo <owner/name>` call — no nen verb owns a review ledger. An **owned dependency** on `zheref/nen`
+  (a review-ledger verb), not yet filed; BC-11 reads that branching logic as a verb's job, a G4
+  question until the verb lands.
 - **`shibari`.** The evidence mirror's publish step, the base-ref read (`gh pr view --json
   baseRefName`), the last-pushed-commit comparison and Development linking are named raw calls; the
   PR itself is `nen pr open`. Verifying the links is `scripts/pr_development_link_check.sh`, which

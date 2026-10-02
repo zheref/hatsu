@@ -195,7 +195,7 @@ maintainer's plate. **This skill never resumes itself** — re-invoke it.
 
 ## 11. Hard limits
 
-- **Never merges another's PR or a chore/integration branch**; its own PRs are `en` § 5's to merge, at their terminus (ruling 2026-09-29 (3)).
+- **Never merges** — any PR, any branch; its own PRs end at `en` § 5's merge prompt (ruling 2026-09-30).
 - **Never self-reviews, never impersonates a reviewer, never casts `request_changes`** — binding even
   when the finding is real.
 - **Never applies a G1 mode label** — human-only, inside a run or outside it.

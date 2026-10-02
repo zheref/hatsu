@@ -130,8 +130,8 @@ turn page says so with the row id.
 **4 · The question through the surface's own option picker** ([`docs/SURFACES.md`](../../../docs/SURFACES.md)'s
 *native option picker* row; `nen surface capabilities --surface <s>` names it) — never a paragraph
 ending in a question mark; its options are the marker's, verbatim (§ 1). **A `DO` or `MERGE` ask's picker never carries the act**,
-which is the maintainer's outside the session — a `MERGE` ask exists only for a PR the run did not author
-(its own it merges, `en` § 5, ruling 2026-09-29 (3)).
+which is the maintainer's outside the session — a `MERGE` ask is `en` § 5's merge prompt for every PR
+into `main`, the run's own included: its link and the inline `gh pr merge` line (ruling 2026-09-30).
 
 **Only a genuine stop interrupts** — the five G5s [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4
 lists, plus G1/G2/G3/G4 when one is genuinely due. Everything else is a turn bell.

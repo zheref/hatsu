@@ -23,7 +23,7 @@ trigger a duplicate filing. Never copy or invent a second policy in the target r
 > whose product *is* the process — and **`G2` (`CON-5`) in a consumer repository**, where a
 > `nen/contract.json`, `nen/workflow.json` or `nen/gates.json` is that repository's own configuration
 > and governs nothing else. **This skill exists to run against consumer checkouts**, so its ordinary
-> case is `G2`. The merge is `en` § 5's either way — the ruling moves the gate, never the
+> case is `G2`. The merge prompt is `en` § 5's either way — the ruling moves the gate, never the
 > owner.
 
 **Nature: Transmuter** carries every run. Adoption shapes machinery: it renders templates, installs a
@@ -195,7 +195,7 @@ either operation.
 | `workflow/review-scopes` | **consumer configuration** | Guide the owner through `review.scopes` when absent; validate with `nen schema check` before Hanten resumes |
 | `config/defaults` | **Hatsu** writes the canon default; the value is the consumer's once set | Every value [`contracts/config-catalogue.json`](../../../contracts/config-catalogue.json) gives a default is written out at it, and every fixed-set value carries its `$<key>` options — `apply` runs `config_values.sh fill` (§ 6d) |
 | `config/needed` | **consumer configuration** | A value a skill cannot run without and no default covers is `routed` to the owner's answer, asked in § 6d and written by `config_values.sh set`; `apply` never answers one |
-| `effort/review-ledger` | **Hanten** | On an active effort branch, diagnose the branch ledger or its PR-keyed ledger when one exists; multiple PR candidates route exact-key selection to Hanten. Hanten checks history and uses `recover-first --confirmed-first-cycle` only after the maintainer confirms no review ran under this key; otherwise restore used counts. Tenkai `apply` does not mint a review budget |
+| `effort/review-ledger` | **Hanten** | On an active effort branch, diagnose the branch ledger, or the PR-keyed one when it exists (alone it is the effort's ledger, hanten § 2b); multiple PR candidates route exact-key selection to Hanten. Neither present routes to hanten § 1's `ensure` and its rows: `opened` with no review evidence, exit 3 `lost-ledger` with it, then `recover-first --confirmed-first-cycle` only after the maintainer confirms no review ran under this key; otherwise restore used counts. Tenkai `apply` does not mint a review budget |
 
 **Seven states, and `drift` is the one the whole skill is for:**
 
