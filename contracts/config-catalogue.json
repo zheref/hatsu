@@ -1,0 +1,569 @@
+{
+  "$schema": "hatsu.config-catalogue/v1",
+  "$comment": "The values a consumer may set in its nen/workflow.json, nen/gates.json or nen/contract.json that a Hatsu skill reads and that either carry a canon default safe to write out or are needed by a skill, with the default its readers apply when it is absent. The maintainer's ruling of 2026-10-01 (docs/ROSTER.md § Rulings of 2026-10-01): the configuration files show every optionally settable value at its default, a fixed-set value carries a `$<key>` sibling listing its options, and a skill that needs a value nobody has set guides the maintainer through setting it instead of stopping. scripts/config_values.sh is the only reader: `diagnose` reports, `fill` writes the defaults and annotations (behaviour-neutral by construction), `need --skill <s>` lists what a phase cannot run without, `set` writes one chosen value. Each `default` is the one canon already states, cited in `source`, and `check-catalogue` holds it against docs/WORKFLOW.md's key tables. Two kinds of value are not listed, because writing a snapshot would stop it following its source: one derived at run time (iteration.lane from project.defaultLane, reports.timeZone from the host), and one whose default a reader resolves from a Hatsu canon file only when the key is absent (gates.json round_policy, sharingan § 6 and contracts/round_policy.default.json). NOT LISTED, each for a stated reason (a snapshot or a guess would change behaviour, or nen owns the key): values derived at run time (iteration.lane, reports.timeZone; profile.default, which nen derives from profile.allowed, is listed for its options and never given a default); values a reader resolves from a Hatsu canon file only when absent (gates round_policy.minRounds/.maxRounds); values nen also reads whose built-in default may differ from the skills' (commits.allowedAttributionTrailers, commits.forbiddenTrailers, commits.runTrailer, futon.advanceGo, gates round_policy.stallMinutes, gates version); structural blocks whose shape is the repository's own (models, reports.sections, gates delivery, dependabot_carve_out, check_exclusions, reviewer_fallback, default_approvers, base_reviewers); and nen/repos.json, nen/labels.json and the YAML files, which tenkai's other items own. Row fields: `kind` enum (a fixed set, `options` lists it) | subset (a list drawn from a fixed set, annotated `any of:`) | open (any value of its shape) | external (needs a step on an outside platform, `setup` names it) | secret-env (an environment-variable NAME, never the secret); `requiredBy` the skills that cannot run while it is unset; `ask` adoption (Tenkai asks for it) | on-use (only some repositories need it: Tenkai offers it, and the first skill in `requiredBy` to run asks then); `when` a <file>#<path> that must be non-empty for the row to apply; `candidatesFrom` a <file>#<path> whose keys are the picker's options; `nullIsAnswer` a null its readers treat as a deliberate answer (ask on each call), never outstanding; `choice: maintainer` a value WORKFLOW § 4 says is typed, never picked (row missing-maintainer-choice): candidates shown for reference, none starred; `sourceTable: false` a default documented in docs/WORKFLOW.md's prose rather than its key tables, which `check-catalogue` then holds to a line naming the key; `nonProductionTarget` `set` refuses a target whose `why` does not read non-production; `landsByPR` a value that lands through its declaration PR before it runs, so the phase does not resume on it. `nen schema check` stays the authority on each file's validity; this catalogue is Hatsu's list of what Hatsu reads.",
+  "domains": {
+    "development": "the inner loop: which checks run while authoring, what launches",
+    "versioning": "branches, commits and tags",
+    "testing": "which suites run and the coverage ladder",
+    "review": "pre-PR review routing, reviewer rounds and the readiness monitor",
+    "reporting": "where reports are written and what they keep",
+    "notifications": "how the end of a turn is announced",
+    "deployment": "non-production destinations a build is sent to",
+    "publishing": "release units and production destinations"
+  },
+  "values": [
+    {
+      "id": "workflow.branch.base",
+      "file": "nen/workflow.json",
+      "path": "branch.base",
+      "domain": "versioning",
+      "kind": "open",
+      "default": "main",
+      "describe": "The trunk: breath fast-forwards it, ao catches up from it, getsuga cuts from it, and the base-branch hook refuses a commit on it.",
+      "readers": [
+        "breath",
+        "ao",
+        "murasaki",
+        "getsuga",
+        "kagutsuchi",
+        "shibari"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (branch); getsuga § 1"
+    },
+    {
+      "id": "workflow.branch.template",
+      "file": "nen/workflow.json",
+      "path": "branch.template",
+      "domain": "versioning",
+      "kind": "open",
+      "default": "{model}/{persona}/{descriptor}",
+      "describe": "How breath names an effort's branch; {model} is the model alias, {persona} the roster persona, {descriptor} a short kebab phrase.",
+      "readers": [
+        "breath"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (branch)"
+    },
+    {
+      "id": "workflow.iteration.checks",
+      "file": "nen/workflow.json",
+      "path": "iteration.checks",
+      "domain": "development",
+      "kind": "open",
+      "default": [
+        "build"
+      ],
+      "describe": "The declared verbs run on every turn: breath proves them on the fresh base, rasengan while authoring, kokusen before every commit. `lint` here is hatsu:gyo.",
+      "readers": [
+        "breath",
+        "rasengan",
+        "kokusen",
+        "gyo",
+        "murasaki"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (iteration)"
+    },
+    {
+      "id": "workflow.tests.required",
+      "file": "nen/workflow.json",
+      "path": "tests.required",
+      "domain": "testing",
+      "kind": "open",
+      "default": [
+        "test"
+      ],
+      "describe": "The project-wide suites kotoamatsukami runs at mukai when the change can affect them. An empty list is a statement that there is no suite.",
+      "readers": [
+        "kotoamatsukami"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (tests)"
+    },
+    {
+      "id": "workflow.tests.extra",
+      "file": "nen/workflow.json",
+      "path": "tests.extra",
+      "domain": "testing",
+      "kind": "open",
+      "default": [],
+      "describe": "Further declared suites (ui-test, an integration lane) kotoamatsukami may select when the change can affect them.",
+      "readers": [
+        "kotoamatsukami"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (tests)"
+    },
+    {
+      "id": "workflow.coverage.minimum",
+      "file": "nen/workflow.json",
+      "path": "coverage.minimum",
+      "domain": "testing",
+      "kind": "open",
+      "default": 80,
+      "describe": "Percent line coverage of touched files under which byakugan stops at G5; the bar is never lowered by a run.",
+      "readers": [
+        "byakugan"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (coverage)"
+    },
+    {
+      "id": "workflow.coverage.recommended",
+      "file": "nen/workflow.json",
+      "path": "coverage.recommended",
+      "domain": "testing",
+      "kind": "open",
+      "default": 85,
+      "describe": "The middle rung of the coverage ladder byakugan reports against.",
+      "readers": [
+        "byakugan"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (coverage)"
+    },
+    {
+      "id": "workflow.coverage.ideal",
+      "file": "nen/workflow.json",
+      "path": "coverage.ideal",
+      "domain": "testing",
+      "kind": "open",
+      "default": 90,
+      "describe": "The top rung of the coverage ladder byakugan reports against.",
+      "readers": [
+        "byakugan"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (coverage)"
+    },
+    {
+      "id": "workflow.coverage.scope",
+      "file": "nen/workflow.json",
+      "path": "coverage.scope",
+      "domain": "testing",
+      "kind": "open",
+      "default": "touched",
+      "describe": "What the ladder measures. `touched` is the only scope nen measures today; another is a G4 change plus a nen capability.",
+      "readers": [
+        "byakugan"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (coverage); byakugan § 2"
+    },
+    {
+      "id": "workflow.launch.default",
+      "file": "nen/workflow.json",
+      "path": "launch.default",
+      "domain": "development",
+      "kind": "open",
+      "default": null,
+      "describe": "The project.launch target amaterasu starts at the end of a turn. null is an answer: with targets declared, each turn asks.",
+      "readers": [
+        "amaterasu",
+        "ren"
+      ],
+      "when": "nen/contract.json#project.launch",
+      "candidatesFrom": "nen/contract.json#project.launch",
+      "question": "Which launch target should every turn start by default?",
+      "source": "amaterasu § 1",
+      "nullIsAnswer": true
+    },
+    {
+      "id": "workflow.launch.fallback",
+      "file": "nen/workflow.json",
+      "path": "launch.fallback",
+      "domain": "development",
+      "kind": "open",
+      "default": null,
+      "describe": "The project.launch target amaterasu falls back to when the default's device is absent. null means it says so and stops.",
+      "readers": [
+        "amaterasu"
+      ],
+      "when": "nen/contract.json#project.launch",
+      "candidatesFrom": "nen/contract.json#project.launch",
+      "source": "amaterasu § 3",
+      "nullIsAnswer": true
+    },
+    {
+      "id": "workflow.deploy.defaultTarget",
+      "file": "nen/workflow.json",
+      "path": "deploy.defaultTarget",
+      "domain": "deployment",
+      "kind": "open",
+      "default": null,
+      "describe": "The NON-PRODUCTION project.targets key an untargeted hatsu:kagutsuchi sends to. null is an answer: the target is typed on each call. A typed target always overrides it; a production target here is refused by `set` and by kagutsuchi.",
+      "readers": [
+        "kagutsuchi"
+      ],
+      "when": "nen/contract.json#project.targets",
+      "candidatesFrom": "nen/contract.json#project.targets",
+      "question": "Should an untargeted hatsu:kagutsuchi send to a standing non-production target? Typed, never picked: name one of the declared non-production targets, or keep null and type the target on each call.",
+      "source": "kagutsuchi § 1; docs/WORKFLOW.md § 2 (deploy)",
+      "nullIsAnswer": true,
+      "choice": "maintainer",
+      "nonProductionTarget": true,
+      "sourceTable": false
+    },
+    {
+      "id": "workflow.reports.dir",
+      "file": "nen/workflow.json",
+      "path": "reports.dir",
+      "domain": "reporting",
+      "kind": "open",
+      "default": "Reports",
+      "describe": "Where the retained final report and the transient current.html are written; Tenkai git-ignores it.",
+      "readers": [
+        "spiritual-message",
+        "en",
+        "backlog-board"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (reports)"
+    },
+    {
+      "id": "workflow.reports.retain",
+      "file": "nen/workflow.json",
+      "path": "reports.retain",
+      "domain": "reporting",
+      "kind": "open",
+      "default": "final-only",
+      "describe": "What is kept: final-only keeps a dated file for the final readiness report alone; per-turn and landing reports are published, not retained.",
+      "readers": [
+        "spiritual-message"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (reports)"
+    },
+    {
+      "id": "workflow.reports.template",
+      "file": "nen/workflow.json",
+      "path": "reports.template",
+      "domain": "reporting",
+      "kind": "enum",
+      "default": "spiritual-message",
+      "options": [
+        "spiritual-message",
+        "rikugan"
+      ],
+      "describe": "The templates/<name>.html in the Hatsu plugin the turn report renders with.",
+      "readers": [
+        "spiritual-message"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (reports); templates/"
+    },
+    {
+      "id": "workflow.reports.captures",
+      "file": "nen/workflow.json",
+      "path": "reports.captures",
+      "domain": "reporting",
+      "kind": "open",
+      "default": "Reports/captures",
+      "describe": "Where visual evidence captures are written.",
+      "readers": [
+        "spiritual-message",
+        "kotoamatsukami"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (reports)"
+    },
+    {
+      "id": "workflow.mukai.autoEn",
+      "file": "nen/workflow.json",
+      "path": "mukai.autoEn",
+      "domain": "review",
+      "kind": "enum",
+      "default": false,
+      "options": [
+        true,
+        false
+      ],
+      "describe": "true makes mukai start hatsu:en on the PR it opened in the same turn; false makes it offer En and wait.",
+      "readers": [
+        "mukai"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (mukai)"
+    },
+    {
+      "id": "workflow.monitor.maxCycles",
+      "file": "nen/workflow.json",
+      "path": "monitor.maxCycles",
+      "domain": "review",
+      "kind": "open",
+      "default": 20,
+      "describe": "En's acting-cycle cap on one PR; quiet polls spend none.",
+      "readers": [
+        "en",
+        "senkei"
+      ],
+      "source": "en § 1"
+    },
+    {
+      "id": "workflow.monitor.pollSeconds",
+      "file": "nen/workflow.json",
+      "path": "monitor.pollSeconds",
+      "domain": "review",
+      "kind": "open",
+      "default": 300,
+      "describe": "Seconds between En's quiet observations of a pending PR.",
+      "readers": [
+        "en",
+        "sharingan"
+      ],
+      "source": "en § 1"
+    },
+    {
+      "id": "workflow.notifications.rungs",
+      "file": "nen/workflow.json",
+      "path": "notifications.rungs",
+      "domain": "notifications",
+      "kind": "subset",
+      "default": [
+        "push",
+        "os",
+        "sound"
+      ],
+      "options": [
+        "push",
+        "os",
+        "sound"
+      ],
+      "describe": "Which escalation rungs may fire, any subset of push, os and sound; an unlisted rung never fires.",
+      "readers": [
+        "jutaisho",
+        "en"
+      ],
+      "source": "jutaisho § 1; docs/WORKFLOW.md § 2 (notifications)",
+      "sourceTable": false
+    },
+    {
+      "id": "workflow.notifications.sound",
+      "file": "nen/workflow.json",
+      "path": "notifications.sound",
+      "domain": "notifications",
+      "kind": "open",
+      "default": "Glass",
+      "describe": "The macOS system sound (/System/Library/Sounds/<sound>.aiff) the audible rung plays.",
+      "readers": [
+        "jutaisho"
+      ],
+      "source": "jutaisho § 1"
+    },
+    {
+      "id": "workflow.notifications.turn",
+      "file": "nen/workflow.json",
+      "path": "notifications.turn",
+      "domain": "notifications",
+      "kind": "enum",
+      "default": "rung1",
+      "options": [
+        "rung1",
+        "all"
+      ],
+      "describe": "What an ordinary turn rings: rung1 only, or every declared rung.",
+      "readers": [
+        "jutaisho"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (notifications)",
+      "sourceTable": false
+    },
+    {
+      "id": "workflow.profile.default",
+      "file": "nen/workflow.json",
+      "path": "profile.default",
+      "domain": "development",
+      "kind": "enum",
+      "options": [
+        "fast",
+        "standard",
+        "thorough"
+      ],
+      "describe": "The ren profile a turn runs under when none is typed. Derived by nen from profile.allowed when absent, so fill annotates it and never writes a default.",
+      "readers": [
+        "ren",
+        "amaterasu"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (profile)",
+      "question": "Which ren profile should a turn run under when none is typed? Absent, nen derives it from profile.allowed (standard when allowed lists it)."
+    },
+    {
+      "id": "workflow.profile.allowed",
+      "file": "nen/workflow.json",
+      "path": "profile.allowed",
+      "domain": "development",
+      "kind": "subset",
+      "default": [
+        "fast",
+        "standard",
+        "thorough"
+      ],
+      "options": [
+        "fast",
+        "standard",
+        "thorough"
+      ],
+      "describe": "Which of fast, standard and thorough a typed profile may name; any other is refused with this list quoted.",
+      "readers": [
+        "ren"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (profile)",
+      "sourceTable": false
+    },
+    {
+      "id": "workflow.review.scopes",
+      "file": "nen/workflow.json",
+      "path": "review.scopes",
+      "domain": "review",
+      "kind": "open",
+      "describe": "Hanten's routing: scope name → {persona, tier, budget, paths[]}. Without it no change set can be classified and no reviewer raised.",
+      "readers": [
+        "hanten"
+      ],
+      "requiredBy": [
+        "hanten",
+        "mukai"
+      ],
+      "question": "Which review scopes should pre-PR review route to? Recommended: start from Hatsu's own nen/workflow.json → review.scopes (code, security, architecture, ui, performance, surfaces, economics, release) and drop the ones this repository never touches.",
+      "source": "hanten § 1; tenkai § 3 (workflow/review-scopes)"
+    },
+    {
+      "id": "workflow.release.unitPaths",
+      "file": "nen/workflow.json",
+      "path": "release.unitPaths",
+      "domain": "publishing",
+      "kind": "open",
+      "describe": "The paths (globs, or {path, keys[]}) a release-proposal PR may touch; getsuga merges its own release PR only when its diff is this unit.",
+      "readers": [
+        "getsuga"
+      ],
+      "question": "Which files make up a release unit here (version manifests, CHANGELOG.md)? getsuga merges its own release PR only when its diff is exactly these.",
+      "source": "getsuga § 3a"
+    },
+    {
+      "id": "workflow.runners",
+      "file": "nen/workflow.json",
+      "path": "runners",
+      "domain": "deployment",
+      "kind": "external",
+      "describe": "Self-hosted GitHub Actions runner naming and pools jusshin provisions.",
+      "readers": [
+        "jusshin"
+      ],
+      "requiredBy": [
+        "jusshin"
+      ],
+      "ask": "on-use",
+      "question": "How should self-hosted runners be named and pooled (naming, pools[] with their root per OS)?",
+      "setup": [
+        "Repository or organisation admin rights on GitHub (Settings → Actions → Runners)",
+        "A host machine for each pool, with the OS service account jusshin will run it under"
+      ],
+      "source": "jusshin § 2"
+    },
+    {
+      "id": "gates.approval_policy",
+      "file": "nen/gates.json",
+      "path": "approval_policy",
+      "domain": "review",
+      "kind": "enum",
+      "options": [
+        "required",
+        "review-round-only"
+      ],
+      "describe": "Whether readiness needs an APPROVED review from default_approvers (required) or only a completed reviewer round (review-round-only). nen refuses an empty default_approvers without it.",
+      "readers": [
+        "sharingan",
+        "en"
+      ],
+      "question": "Should a PR need an explicit approval to read ready, or is a completed reviewer round enough?",
+      "source": "docs/GATE-CONFIGURATION.md § 3"
+    },
+    {
+      "id": "gates.reviewers",
+      "file": "nen/gates.json",
+      "path": "reviewers",
+      "domain": "review",
+      "kind": "external",
+      "describe": "The automated reviewer identities a round is owed from ({name, login_pattern}); nen has no built-in set.",
+      "readers": [
+        "sharingan",
+        "en"
+      ],
+      "question": "Which automated reviewer should owe a round on every PR (for example Copilot, or Cursor Bugbot)?",
+      "setup": [
+        "Install or enable the reviewer on the repository (Copilot code review in the repository's settings; the Cursor Bugbot GitHub App)",
+        "Confirm its login on a test PR, so login_pattern matches what GitHub reports"
+      ],
+      "source": "docs/GATE-CONFIGURATION.md § 3"
+    },
+    {
+      "id": "contract.project.defaultLane",
+      "file": "nen/contract.json",
+      "path": "project.defaultLane",
+      "domain": "development",
+      "kind": "open",
+      "describe": "The lane a verb runs on when none is named; without it every lane-taking verb needs --lane.",
+      "readers": [
+        "susanoo",
+        "kagutsuchi",
+        "gyo",
+        "rasengan",
+        "tenkai"
+      ],
+      "when": "nen/contract.json#project.lanes",
+      "candidatesFrom": "nen/contract.json#project.lanes",
+      "question": "Which lane is this repository's default?",
+      "source": "susanoo § 1"
+    },
+    {
+      "id": "contract.project.kind",
+      "file": "nen/contract.json",
+      "path": "project.kind",
+      "domain": "publishing",
+      "kind": "enum",
+      "options": [
+        "product",
+        "process",
+        "library"
+      ],
+      "describe": "The repository's own word on its kind; product and process are otherwise derived, library is declared only. It decides the advance-go policy and hanten's tiers.",
+      "readers": [
+        "mugetsu",
+        "futon",
+        "hanten"
+      ],
+      "question": "Is this repository a product, a process repository, or a library shared across repositories?",
+      "source": "docs/WORKFLOW.md § Repository kinds"
+    },
+    {
+      "id": "contract.project.targets",
+      "file": "nen/contract.json",
+      "path": "project.targets",
+      "domain": "deployment",
+      "kind": "external",
+      "describe": "Where builds are sent: name → {args, requiresEnv (environment-variable NAMES only), why}. `why` states production or non-production.",
+      "readers": [
+        "kagutsuchi",
+        "mugetsu",
+        "getsuga"
+      ],
+      "requiredBy": [
+        "kagutsuchi"
+      ],
+      "ask": "on-use",
+      "question": "Where should builds go — a beta channel (TestFlight, Play internal, a staging URL) and the production store or environment?",
+      "setup": [
+        "Create the destination on its platform (App Store Connect app record, Play Console app, hosting project) and note its id",
+        "Create its upload credential there (App Store Connect API key, Play service account, deploy token) and export it under an environment-variable NAME — only the name is written",
+        "A new target lands through its declaration PR at this repository's gate before it runs"
+      ],
+      "source": "kagutsuchi § 2; mugetsu § 1; docs/WORKFLOW.md § 4 step 3",
+      "landsByPR": true
+    },
+    {
+      "id": "contract.project.launch",
+      "file": "nen/contract.json",
+      "path": "project.launch",
+      "domain": "development",
+      "kind": "external",
+      "describe": "How the app is started after a turn: name → {verb, args, device, readyWhen, ...}.",
+      "readers": [
+        "amaterasu",
+        "jujutsu"
+      ],
+      "question": "How should a turn launch the app — which simulator, device or local command?",
+      "setup": [
+        "For a physical device: pair and trust it once through hatsu:jujutsu"
+      ],
+      "source": "docs/WORKFLOW.md § 3 (project.launch); amaterasu § 1"
+    }
+  ]
+}

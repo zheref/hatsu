@@ -200,6 +200,31 @@ an unfixed finding resolved to clear a counter**.
 **Thread hygiene is a verb**: every inline thread gets an on-thread **disposition** (a reply) and is
 **resolved only when addressed**.
 
+**A reply that names a commit names one on the pull request's head chain** (zheref/hatsu#139). The
+commit is the `sha` this invocation's `nen commit write --json` reported (exit `0`, `sha` not null) —
+read **after** kokusen § 5's tip read-back settles, so a commit that read-back dropped and re-ran is
+replaced by the re-run's `sha`; an earlier commit (a delegate's, or one already pushed before a
+session died) is read from the commit that carries the fix **in the fetched head's history** — read the head from
+`nen pr ready <ref>`'s *judged head* line and `git -C <path> fetch` first, then
+`git -C <path> log <head> -- <path of the fix>`, because another checkout may have pushed it and the
+local `HEAD` can be stale — never from memory. The check below proves the commit is on the chain, not that it is this fix's — the
+`sha`'s origin does that. After the
+push, read the PR's head from `nen pr ready <ref>`'s *judged head* line (run inside the checkout with
+`GH_TOKEN` set; a `judged head: (unread)` line is a read that could not be made), `git -C <path> fetch`,
+and require `git -C <path> merge-base --is-ancestor <sha> <head>` to exit `0` — the head itself, or a
+later commit on top of it. Where nothing may have landed after it, `nen pr ready <ref> --require-head
+<sha>` pins the exact head; **the test is the *judged head* line naming `<sha>`, never the exit code**:
+exit `8` is a mismatch and holds the reply, and exit `0` or `1` counts as pinned only when that line
+names `<sha>` (exit `1` also means a matched head that is merely not ready, or an unread head). A `sha`
+not yet on the chain right after a push that exited `0` is read once more after the push registers
+(a push in flight is judged as its parent) before it is reported as held. Only then is the reply written, naming that `sha`; compose its body
+after these reads, never before. **Every other outcome holds the reply** — never posted naming a SHA —
+and reports the step, its exit and the SHAs it read: a refused write (a missing message file, a red
+proof, a hook refusal: the head unmoved), a write that made no commit (`--dry-run`: exit `0`, no `sha`),
+a refused push, a `sha` not on the head chain, or a read that could not be made (the PR read, the fetch).
+**A held reply is released** when a later write-and-push reads back clean, or when the held `sha` is
+found on the head chain — the resume case, a commit pushed before the session that wrote it died.
+
 ```bash
 nen pr threads list    --target <owner/name> --pr <n>
 nen pr threads reply   --target <owner/name> --pr <n> --thread <id> --body-file <abs path>
@@ -306,13 +331,21 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   named, and the maintainer names the skill it is for by typing `then aka+mukai`.
   Cursor's version check is a string compare on a date part; the host-global half of the skill-name
   collision question has no answer from inside a repository.
+- **`tenkai` § 6d and `ten` § 6 step 5b.** Writing a declaration value — `scripts/config_values.sh`
+  `fill` and `set`, a JSON span scanner that inserts in place — has no nen verb, and the `$<key>`
+  option notes rely on nen reading every `$`-prefixed key as metadata, a convention its loaders follow
+  (`src/schema/source.ts`) that no published contract states. Both are an **owned dependency** on
+  `zheref/nen` (a value-setting verb and a documented metadata-key guarantee), not yet filed — named
+  in tenkai's Residue for Netero's harvest.
 - **`shibari`.** The evidence mirror's publish step, the base-ref read (`gh pr view --json
   baseRefName`), the last-pushed-commit comparison and Development linking are named raw calls; the
   PR itself is `nen pr open`.
+- **`sharingan`.** A reply's head-chain check (§ *Reviewer rounds and review threads*) is `git -C <path> fetch` then `git -C <path>
+  merge-base --is-ancestor <sha> <head>`, because nen reads a PR's head but not the ancestry of a commit in it.
 - **`getsuga`.** The release proposal's base read-back after a retarget (`gh pr view <N> --json
   baseRefName`), because nen exposes no read of a PR's base (zheref/hatsu#98); the retarget itself is
   `nen pr retarget`.
-- **`kokusen`.** The explicit per-path `git add`, the tip read-back (`git -C <path> log -1
+- **`kokusen`.** The explicit per-path `git -C <path> add -- <file>`, the tip read-back (`git -C <path> log -1
   --format='%(trailers:only,unfold)'`) and the drop of a just-written tip on an injected attribution key
   (`git -C <path> reset --soft HEAD~1`, row `injected-attribution-trailer`) are the raw calls; the commit is
   `nen commit write --message-file`, gated on `nen commit format`.

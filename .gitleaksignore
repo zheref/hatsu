@@ -1,0 +1,5 @@
+# A test fixture, not a credential: 29fac9e2's config_values.sh self-test fed `set` a made-up
+# `sk-live-…` string to prove it refuses one. The fixture no longer carries that shape, but the commit
+# is published and is never rewritten (nen/decisions.json row `rewrite-published-history`), so its
+# fingerprint is named here instead (hanten · feitan, SEC-1, low).
+29fac9e2193ae92a94f0db6d4e8295bb166e4e8d:scripts/config_values.sh:generic-api-key:646

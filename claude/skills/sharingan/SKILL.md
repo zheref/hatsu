@@ -138,8 +138,8 @@ prompt with **the verb's verdict quoted verbatim and one Hatsu line beside it, n
 
 **Round completeness, thread hygiene (`nen pr threads list|reply|resolve`) and the Copilot request
 (`nen pr request-reviews --add-bots <node id>`, verified by `nen pr ready`, never REST) are
-[PROCESS.md](../../../docs/PROCESS.md) § *Reviewer rounds and review threads*** — a thread resolved
-only when addressed, never an unfixed finding resolved to clear a counter (§ 5).
+[PROCESS.md](../../../docs/PROCESS.md) § *Reviewer rounds and review threads*** — a reply names a
+commit only once it is on the PR's head chain (zheref/hatsu#139).
 
 A fix that adds or re-records screenshots **re-renders the whole *Evidence* table** in the body and
 passes `"$hatsu_root/scripts/pr_body_evidence_check.sh" --body <file>` first — never images appended below it

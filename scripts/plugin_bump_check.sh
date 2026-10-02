@@ -162,6 +162,11 @@ fi
 #                       `$hatsu_root/scripts/` on every hanten invocation; a
 #                       stale copy would reset or ignore cycle counts and
 #                       re-raise Chrollo after remediation.
+#   scripts/branch_authorship_check.sh
+#                     — the authorship gate (zheref/hatsu#170), run from
+#                       `$hatsu_root/scripts/` at hanten § 4's return and before
+#                       every post-review push (aka § 7, murasaki § 6); a stale copy
+#                       pushes a foreign commit a fixed one stops.
 #   scripts/hatsu_plugin_update.sh
 #                     — the plugin-source updater (Hatsu 0.31.0). Warm-up § 4b
 #                       runs it with --auto from `$hatsu_root/scripts/` on every
@@ -267,6 +272,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/surface_bootstrap.sh'
   'scripts/nen_global.sh'
   'scripts/hanten_cycle_ledger.sh'
+  'scripts/branch_authorship_check.sh'
   'scripts/hatsu_plugin_update.sh'
   'scripts/hatsu_root.sh'
   'scripts/surface_mirror_check.sh'

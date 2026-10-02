@@ -16,6 +16,22 @@
 #                                                     source file is measured against; counted as
 #                                                     UTF-8 code points, the same under every locale
 #                                                     -- was `wc -m`, which counted bytes under C)
+#   every skill's frontmatter `description`   <=  1024 characters (zheref/hatsu#186: the Agent Skills
+#                                                     spec's cap; Codex 0.154.0 truncates past it, dropping
+#                                                     the tail, and Copilot CLI drops the skill --
+#                                                     docs/surfaces/codex.md). Measured in claude/skills/*/
+#                                                     SKILL.md AND every generated mirror's SKILL.md under
+#                                                     surfaces/, since a mirror's own length is the one its
+#                                                     surface reads. Measured whole in the forms the
+#                                                     generator writes -- a `description:` key at column 0
+#                                                     holding a plain, quoted, folded or literal scalar,
+#                                                     indented continuations, CRLF -- and in no other: a
+#                                                     quoted key, a space before the colon, an alias or
+#                                                     anchor value, a BOM before `---`, a duplicate key or
+#                                                     a value that is not valid UTF-8 (checked exactly, by
+#                                                     perl's Encode) is UNMEASURABLE by name, never skipped. A
+#                                                     SKILL.md with no frontmatter description is not
+#                                                     measured. This is branching shell owed to a nen verb.
 #
 # --headroom (zheref/hatsu#119): print every measured file with its size, its ceiling and the bytes
 # (or characters) left, smallest headroom first, so a reviewer or an author states the remaining
@@ -34,15 +50,16 @@
 # decision to hold it at 12 KB from then on.
 #
 # exit 0  every file is within its ceiling
-# exit 1  at least one is over, unreadable, unlistable, unmeasurable, dangling or outside the root, each named
+# exit 1  at least one is over (a description included), unreadable, unlistable, unmeasurable, dangling or outside the root, each named
 # exit 2  the repository root does not look like a Hatsu checkout, an unknown flag, an empty root
-#         argument, or more than one root argument
+#         argument, more than one root argument, or no perl to check UTF-8 with
 
 set -eu
 
 AGENT_MAX=6144
 SKILL_MAX=12288
 RULES_MAX=12000
+DESC_MAX=1024
 
 # The twenty: fifteen from CHANGELOG v0.42.0 "The diet" plus black-voice, great-hiker, limbo,
 # bakuryuha and rikugan (new at v0.73.0), which were authored under the ceiling rather than reduced
@@ -75,7 +92,14 @@ fi
   || usage_error "$root is not a Hatsu checkout (no claude/agents, claude/skills)"
 root="$(cd -P -- "$root" && pwd -P)"
 
+command -v perl >/dev/null 2>&1 || usage_error "no perl on PATH -- UTF-8 validity is checked exactly, never guessed"
+
 size_of() { wc -c <"$1" | tr -d ' '; }
+# valid_utf8: 0 when stdin is entirely valid UTF-8 -- Encode's strict decoder refuses any stray, truncated,
+# overlong or surrogate sequence. Not iconv: macOS's refuses a valid character straddling its 1024-byte buffer.
+valid_utf8() {
+  perl -e 'use Encode (); local $/; my $s = <STDIN>; exit(eval { Encode::decode("UTF-8", $s, Encode::FB_CROAK); 1 } ? 0 : 1)' 2>/dev/null
+}
 # characters = UTF-8 code points, whatever the locale: drop the continuation bytes (0x80-0xBF) and count what is left.
 chars_of() { LC_ALL=C tr -d '\200-\277' <"$1" | wc -c | tr -d ' '; }
 
@@ -137,13 +161,14 @@ if listable "$root/claude/agents"; then
   done
 fi
 
+diet_offended="|"
 for s in $DIETED_SKILLS; do
   f="$root/claude/skills/$s/SKILL.md"
   if [ ! -e "$f" ] && [ ! -L "$f" ]; then
     offend "MISSING  claude/skills/$s/SKILL.md -- named on the diet list and not on disk"
     continue
   fi
-  admit "$f" || continue
+  admit "$f" || { diet_offended="$diet_offended${f#"$root"/}|"; continue; }
   measure "${f#"$root"/}" "$(size_of "$f" 2>/dev/null || true)" "$SKILL_MAX" bytes
 done
 
@@ -152,16 +177,106 @@ if [ -d "$root/claude/rules" ] && listable "$root/claude/rules"; then
     admit "$f" || continue
     bytes="$(size_of "$f" 2>/dev/null || true)"
     chars="$(chars_of "$f" 2>/dev/null || true)"
-    # a code-point count that cannot be right for its byte count (no lead bytes at all, or fewer than a
-    # quarter as many characters as bytes) is not valid UTF-8 and is refused, never undercounted
-    case "$bytes$chars" in *[!0-9]*|'') ;; *)
-      if [ "$bytes" -gt 0 ] && { [ "$chars" -eq 0 ] || [ $((chars * 4)) -lt "$bytes" ]; }; then
-        offend "UNMEASURABLE  ${f#"$root"/} -- not valid UTF-8 ($bytes bytes, $chars code points), not measured"; continue
-      fi ;;
-    esac
+    # a file that is not valid UTF-8 has no true code-point count: refused, never undercounted
+    if ! valid_utf8 <"$f"; then
+      offend "UNMEASURABLE  ${f#"$root"/} -- not valid UTF-8 ($bytes bytes), not measured"; continue
+    fi
     measure "${f#"$root"/}" "$chars" "$RULES_MAX" chars
   done
 fi
+
+# description_of <file>: the frontmatter `description` in the forms the generator writes, on stdout after a status word:
+# "OK <value>|" (the value measured whole, a "|" sentinel after it -- a folded `>` block joined by spaces, a
+# literal `|` block by newlines, either with its chomping indicator applied as YAML does, a plain or quoted scalar continued on indented lines joined by spaces, a trailing CR dropped
+# the way Codex's frontmatter reader trims it), "DUP" for a second `description:` key (readers disagree on
+# which wins, so it is never measured), "NONCANON <why>" for a form this reader does not follow (a BOM
+# before `---`, a quoted key or a space before the colon at column 0, an alias or anchor value -- each one
+# YAML and Codex read in full), or nothing when the file opens no frontmatter or carries no description. Read as bytes (LC_ALL=C) so an invalid byte never stops awk; UTF-8 validity is checked after.
+description_of() {
+  LC_ALL=C awk '
+    # block(): a `|` or `>` value as YAML builds it -- literal lines joined by newlines, folded lines by
+    # spaces with each blank line a newline, then the chomping indicator: strip (-) no final line break,
+    # clip (default) one, keep (+) one plus every trailing blank line.
+    function block(   i, j, last, lead, gap, out) {
+      if (style == "plain" || built) return
+      built = 1; last = 0
+      for (i = 1; i <= nl; i++) if (L[i] != "") last = i
+      out = ""; lead = 1; gap = 0
+      for (i = 1; i <= last; i++) {
+        if (style == "literal") { out = (i == 1 ? L[i] : out "\n" L[i]); continue }
+        if (L[i] == "") { gap++; continue }
+        if (lead) { for (j = 0; j < gap; j++) out = out "\n"; out = out L[i]; lead = 0 }
+        else if (gap) { for (j = 0; j < gap; j++) out = out "\n"; out = out L[i] }
+        else out = out " " L[i]
+        gap = 0
+      }
+      if (last && chomp != "strip") out = out "\n"
+      if (last && chomp == "keep") for (i = last + 1; i <= nl; i++) out = out "\n"
+      v = out
+    }
+    { sub(/\r$/, "") }
+    NR == 1 {
+      if (substr($0, 1, 3) == "\357\273\277" && substr($0, 4) == "---") { nc = "a BOM before ---"; exit }
+      if ($0 != "---") exit
+      next
+    }
+    /^---$/ { exit }
+    indesc && style != "plain" && (/^[ \t]/ || /^$/) { line = $0; sub(/^[ \t]+/, "", line); L[++nl] = line; next }
+    indesc && /^[ \t]/ {
+      line = $0; sub(/^[ \t]+/, "", line)
+      if (line != "") v = (v == "" ? line : v " " line)
+      next
+    }
+    indesc && /^$/ { next }
+    { if (indesc) block(); indesc = 0 }
+    /^["\047]?description["\047]?[ \t]*:/ && !/^description:/ { nc = "a quoted key or a space before the colon"; exit }
+    /^description:/ {
+      if (seen) { dup = 1; exit }
+      seen = 1; indesc = 1; v = $0; sub(/^description:[ \t]*/, "", v)
+      if (v ~ /^[>|][-+0-9]*[ \t]*$/) {
+        style = (substr(v, 1, 1) == ">" ? "folded" : "literal")
+        chomp = (index(v, "-") ? "strip" : (index(v, "+") ? "keep" : "clip")); v = ""; nl = 0
+      }
+      else if (v ~ /^[*&]/) { nc = "an alias or anchor value"; exit }
+      else style = "plain"
+    }
+    END { if (indesc) block(); if (nc != "") print "NONCANON " nc; else if (dup) print "DUP"; else if (seen) print "OK " v "|" }' "$1" 2>/dev/null || true
+}
+
+# Every directory the globs below walk must be listable, or a skill inside it is silently unmeasured.
+for d0 in "$root/claude/skills" "$root/surfaces" "$root"/surfaces/*/ "$root"/surfaces/*/skills/ "$root"/claude/skills/*/ "$root"/surfaces/*/*/ "$root"/surfaces/*/skills/*/; do
+  d0="${d0%/}"; [ -d "$d0" ] || continue
+  if [ ! -r "$d0" ] || [ ! -x "$d0" ]; then offend "UNLISTABLE  ${d0#"$root"/} -- the directory exists but could not be listed"; fi
+done
+
+# One finding per path: a SKILL.md the diet loop already offended against is not offended against again.
+described=0
+for f in "$root"/claude/skills/*/SKILL.md "$root"/surfaces/*/*/SKILL.md "$root"/surfaces/*/skills/*/SKILL.md; do
+  [ -e "$f" ] || [ -L "$f" ] || continue
+  rel="${f#"$root"/}"
+  case "$diet_offended" in *"|$rel|"*) continue ;; esac
+  admit "$f" || continue
+  out="$(description_of "$f")"
+  case "$out" in
+    '') continue ;;
+    DUP) offend "UNMEASURABLE  $rel -- two description keys in the frontmatter, not measured"; continue ;;
+    NONCANON\ *) offend "UNMEASURABLE  $rel -- the description is written as ${out#NONCANON }, a form this check does not read; not measured"; continue ;;
+  esac
+  d="${out#OK }"; d="${d%|}"   # the "|" sentinel keeps a block value'"'"'s final line breaks from $(...)
+  case "$d" in
+    \"*\") d="${d#\"}"; d="${d%\"}" ;;
+    \'*\') d="${d#\'}"; d="${d%\'}" ;;
+  esac
+  if ! printf '%s' "$d" | valid_utf8; then
+    offend "UNMEASURABLE  $rel -- the description is not valid UTF-8, not measured"; continue
+  fi
+  n="$(printf '%s' "$d" | LC_ALL=C tr -d '\200-\277' | wc -c | tr -d ' ')"
+  case "$n" in ''|*[!0-9]*) offend "UNMEASURABLE  $rel -- the description could not be measured"; continue ;; esac
+  described=$((described + 1))
+  if [ "$n" -gt "$DESC_MAX" ]; then
+    offend "OVER-DESCRIPTION  $rel  $n > $DESC_MAX chars -- the Agent Skills cap; Codex truncates past it, dropping the tail (zheref/hatsu#186)"
+  fi
+done
 
 if [ "$headroom" -eq 1 ]; then
   printf '%6s %-52s %6s/%-6s %s\n' left file size ceiling unit
@@ -169,8 +284,8 @@ if [ "$headroom" -eq 1 ]; then
 fi
 
 if [ "$offenders" -eq 0 ]; then
-  echo "prose ok: $checked files within their ceilings (agents $AGENT_MAX, dieted skills $SKILL_MAX, rules $RULES_MAX chars)"
+  echo "prose ok: $checked files within their ceilings (agents $AGENT_MAX, dieted skills $SKILL_MAX, rules $RULES_MAX chars); $described skill descriptions within the $DESC_MAX-character cap"
   exit 0
 fi
-echo "prose_size_check.sh: $offenders file(s) over the ceiling, unreadable, dangling or outside the root" >&2
+echo "prose_size_check.sh: $offenders offence(s): a file over its ceiling or a description over the cap, or a path unreadable, unlistable, unmeasurable, dangling or outside the root" >&2
 exit 1
