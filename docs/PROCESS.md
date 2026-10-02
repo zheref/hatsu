@@ -204,8 +204,10 @@ an unfixed finding resolved to clear a counter**.
 commit is the `sha` this invocation's `nen commit write --json` reported (exit `0`, `sha` not null) —
 read **after** kokusen § 5's tip read-back settles, so a commit that read-back dropped and re-ran is
 replaced by the re-run's `sha`; an earlier commit (a delegate's, or one already pushed before a
-session died) is read from the commit that carries the fix (`git -C <path> log -- <path of the fix>`),
-never from memory. The check below proves the commit is on the chain, not that it is this fix's — the
+session died) is read from the commit that carries the fix **in the fetched head's history** — read the head from
+`nen pr ready <ref>`'s *judged head* line and `git -C <path> fetch` first, then
+`git -C <path> log <head> -- <path of the fix>`, because another checkout may have pushed it and the
+local `HEAD` can be stale — never from memory. The check below proves the commit is on the chain, not that it is this fix's — the
 `sha`'s origin does that. After the
 push, read the PR's head from `nen pr ready <ref>`'s *judged head* line (run inside the checkout with
 `GH_TOKEN` set; a `judged head: (unread)` line is a read that could not be made), `git -C <path> fetch`,
