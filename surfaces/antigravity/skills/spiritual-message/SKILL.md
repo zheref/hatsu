@@ -156,10 +156,10 @@ Template language, exit codes and `--dry-run`: [`docs/WORKFLOW.md`](../../../../
   § *Publishing a report*). Headline title ≤ 60 chars, stable across turns
   ([`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *Report titles*).
 - **On Antigravity a native Markdown artifact** in `<appDataDir>/brain/<conversation-id>/spiritual-message.md`
-  via `write_to_file` with `ArtifactMetadata` (`{ Summary: "<Variant> report for <effort>", UserFacing: true, RequestFeedback: false }`).
-  The bridge renders declared variant blocks (`reports.sections.<variant>.blocks`, including `prBody`,
-  `decisions`, `readiness`, Desk/Ask with quoted `nen pr ready` verdict, Last turn, Tally, delta `graphMermaid`,
-  Evidence, coverage, Spend, Launch), G5 blocker in `<div id="g5-blocker">`, via GFM tables, alerts (`> [!NOTE]`), Generative UI.
+  via `write_to_file` with `ArtifactMetadata` (`{ Summary: "<Variant> report for <effort>", UserFacing: true, RequestFeedback: false }`):
+  **the same path every turn of an effort, `Overwrite: true` after the first, never a new file per turn**.
+  It renders the variant's declared blocks (`reports.sections.<variant>.blocks`; the Desk quotes `nen pr ready`
+  verbatim) and a G5 blocker in `<div id="g5-blocker">`, as GFM tables, alerts (`> [!NOTE]`) and Generative UI.
 - **Elsewhere `<reports.dir>/current.html`** (from § 6), overwritten every render, transient.
 
 **Say one line in chat and stop** — variant, branch, link or path.
