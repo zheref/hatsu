@@ -436,6 +436,7 @@ One block, then stop:
 caller-written comment, never a raw `gh`:
 
 ```bash
+bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> <path>   # first: 0 or skipped (file § 4)
 nen issue comment --target <owner/name> --issue <the release PR or issue number> --body-file <path>
 ```
 

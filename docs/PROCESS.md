@@ -328,6 +328,11 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   derives a run's scope; `nen report data --base origin/<branch.base> --prs <n,...> --issues <n,...>`
   then fetches them in one call, merged PRs and closed issues included (`--base` is required, exit 2
   without it; verified nen 0.18.1, 2026-09-30).
+- **`file`.** The private-name check before every write to a public repository
+  (`scripts/private_name_check.sh`, zheref/hatsu#149) is owed to nen (zheref/nen#329): `nen issue
+  file`, `nen issue comment` and `nen issue edit-body` read no private list, so `file`,
+  `backlog-synthesis`, `mugetsu` and `sharingan` pipe each title, body and comment through the script
+  first. It reads `gh api 'user/repos?visibility=private'` live; nothing caches it.
 - **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`.
 - **`kagutsuchi` § 3a.** The freshness gate is `scripts/send_freshness_check.sh` — a `git fetch`,
   `rev-parse`, `rev-list` and `status --porcelain` over the archive's recorded build SHA — and the
