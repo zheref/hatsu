@@ -39,6 +39,20 @@
 # actor. Nothing here is trusted more than the PR it opens; the in-job check
 # only makes sure that PR is never proposed already broken.
 #
+# A REPOSITORY SETTING IS A PREREQUISITE (zheref/hatsu#165): Settings -> Actions
+# -> General -> "Allow GitHub Actions to create and approve pull requests" must
+# be ON. With it off, the PR step fails with "GitHub Actions is not permitted to
+# create or approve pull requests" AFTER create-pull-request has pushed
+# bot/surface-mirror-regenerate, stranding that branch. The job grant above is not
+# the cause, and the toggle cannot be read first: its endpoint needs the
+# repository Administration (read) permission, which GITHUB_TOKEN cannot be
+# granted; only a secret-held GitHub App installation token or a personal access
+# token could read it, and this job declines to hold one (SEC-9). The follow-up
+# PR adds a step that runs only when the pull request step itself failed: it
+# names this toggle as an `::error::` on every such failure, then deletes the
+# stranded branch, or says to delete it by hand if that delete fails. Until it
+# lands, delete the branch by hand.
+#
 # `workflow_dispatch` exists for the same reason `getsuga`'s and `futon`'s
 # manual triggers do: a maintainer who wants to force a regeneration RIGHT NOW
 # (after a template or contract change lands out of band, or to confirm the
