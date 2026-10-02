@@ -338,6 +338,12 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   (`src/schema/source.ts`) that no published contract states. Both are an **owned dependency** on
   `zheref/nen` (a value-setting verb and a documented metadata-key guarantee), not yet filed — named
   in tenkai's Residue for Netero's harvest.
+- **`hanten` § 1 and § 2b.** The review-cycle ledger is `scripts/hanten_cycle_ledger.sh`, embedded
+  Python that holds every budget verdict and `ensure`'s open-or-refuse logic (the worktree, reflog and
+  findings-record evidence search, the trunk set) and makes a raw `gh pr list --head <name> --state all
+  --repo <owner/name>` call — no nen verb owns a review ledger. An **owned dependency** on `zheref/nen`
+  (a review-ledger verb), not yet filed; BC-11 reads that branching logic as a verb's job, a G4
+  question until the verb lands.
 - **`shibari`.** The evidence mirror's publish step, the base-ref read (`gh pr view --json
   baseRefName`), the last-pushed-commit comparison and Development linking are named raw calls; the
   PR itself is `nen pr open`.

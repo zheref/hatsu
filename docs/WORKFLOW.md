@@ -745,6 +745,27 @@ at step 5), `build` § 4 (its own steps; usage at every § 7 report), `hanten` �
 reviewer, as each returns), `spiritual-message` § 4 and `backlog-board` § 3 (usage before a render).
 `nen report data` merges both as `phases[]` and `usage[]`.
 
+**Beside those two, Hanten's cycle ledger** (`.nen/hanten/<branch-slug>[-pr<N>].cycle.json`, the
+review budgets — PR-keyed once a PR exists, so not one of the two above) opens once per branch:
+[`breath`](../claude/skills/breath/SKILL.md) § 3b's `init` when Breath cuts it, else
+[`hanten`](../claude/skills/hanten/SKILL.md) § 1's `scripts/hanten_cycle_ledger.sh ensure`, which every
+Hanten entry runs. Every answer, refusals included, is one JSON document whose `action`/`reason` names
+its row (the script's `ENSURE_ROWS` is the table):
+
+| Exit | Row | Means |
+|---|---|---|
+| `0` | `opened` | no ledger and no review evidence: opened through the same `init`, stamped `openedAs: "ensure"` with what it searched |
+| `0` | `present` | this effort's ledger loads here — the PR-keyed one when exactly one is here (§ 2b: the branch-only file is then not read), else the branch's; untouched |
+| `3` | `lost-ledger` | review evidence with no ledger here — in any `git worktree list` checkout, under the branch's name or any name the reflog says it was renamed from: its ledger, a PR-keyed ledger, a lock a save stamped, or its findings record (`Reports` and the declared `reports.dir`); or a PR whose head is any of those names. A pushed remote ref alone is never evidence. Recovered per § 4 |
+| `2` | `trunk` · `detached-head` | the trunk (`main`, `master`, `--base`, `origin/HEAD`, every declared `branch.base` from the tree and from `refs/remotes/origin/<base>`) or a detached HEAD gets no ledger |
+| `2` | `refused` | anything else — usage, a `--repo` that is not the toplevel or not on `--branch`, a malformed or non-regular `workflow.json`, a tracked or symlinked `.nen/hanten`, a ledger that does not load, more than one PR-keyed ledger, or a PR check that failed or answered anything but a list of PR rows; stderr quoted |
+
+**An offline first open is exit `2`**: the PR check runs `gh pr list --repo <origin's owner/name>` and
+no answer is not "no PRs"; `--no-pr-check` runs only after the maintainer answers through the native
+picker, and the ledger records `"skipped (--no-pr-check)"`. It guarantees no fresh budget where any of
+that evidence survives; review history that left no trace anywhere is beyond what it can see. The
+PR-keyed one is Hanten § 2b's.
+
 ## 3 · `project.launch` and `project.evidence`
 
 Two blocks of nen's `project` shape that began as Hatsu extensions. **At the pinned nen `0.7.0` both are
@@ -1042,9 +1063,11 @@ step-2 questions here; the mechanics are [`tenkai`](../claude/skills/tenkai/SKIL
 **Every skill routes a missing repository declaration through Tenkai's diagnosis and guided
 readiness pass**, then resumes its own verb after validation. The caller remains responsible for
 its operation; Tenkai owns detection and the setup conversation. An effort artifact is different:
-the `.nen/hanten/` review ledger is local audit state, normally created by Breath when the branch
-starts. Tenkai diagnoses its absence on an active effort branch, but its `apply` cannot create review
-history. Hanten inspects prior review evidence; after the maintainer confirms this is the first
+the `.nen/hanten/` review ledger is local audit state, created by Breath when it cuts the branch, or
+by Hanten § 1's `hanten_cycle_ledger.sh ensure` on a branch cut elsewhere (the desktop app's worktree,
+zheref/hatsu#169) — idempotent, never a reset, refused on the trunk, and exit `3` `lost-ledger` wherever
+review evidence survives with no ledger (§ *The effort's ledgers* lists what counts). Tenkai diagnoses its absence on an active effort branch, but its `apply` cannot create
+review history. Hanten inspects prior review evidence; after the maintainer confirms this is the first
 cycle under the key, Hanten runs `hanten_cycle_ledger.sh recover-first
 --confirmed-first-cycle`, recording the recovery in the file. Otherwise it restores the original
 used counts. Unreconstructable prior review history is a **safety precondition**, not a missing

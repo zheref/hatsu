@@ -1425,7 +1425,7 @@ class ReviewLedger(Item):
             base = branch_policy.get("base", "main") if isinstance(branch_policy, dict) else "main"
         except (OSError, ValueError, AttributeError):
             base = "main"  # the declaration item separately reports an unreadable workflow
-        if name == base:
+        if name == (base.removeprefix("origin/") if isinstance(base, str) else base):
             return self.row(SATISFIED, f"on trunk '{name}': no effort ledger is due")
         ledger_dir = ctx.repo / ".nen" / "hanten"
         slug = name.replace('/', '-')
@@ -1436,14 +1436,17 @@ class ReviewLedger(Item):
                             "Hanten identifies the current PR number and diagnoses its exact ledger; never pick a prior PR's budget")
         expected_pr = int(pr_candidates[0].name.removeprefix(f"{slug}-pr").removesuffix(".cycle.json")) if pr_candidates else None
         path = pr_candidates[0] if pr_candidates else ledger_dir / f"{slug}.cycle.json"
+        # The ONE table (hanten § 1; hanten_cycle_ledger.sh ENSURE_ROWS): a
+        # PR-keyed ledger alone is diagnosed above as the effort's ledger (the
+        # branch-only one is unread once a PR exists, hanten § 2b); neither
+        # present is routed to Hanten's `ensure` -- opened where no review
+        # evidence exists, exit 3 `lost-ledger` where it does. Tenkai never runs it.
         if not path.is_file():
-            return self.row(ROUTED, f"no branch-keyed review ledger for '{name}' at {path}; "
-                            "Tenkai cannot establish whether an open PR needs its own key or whether review history was lost",
-                            "Hanten identifies the active branch or PR effort key, checks prior review evidence, "
-                            "then asks whether this is the first cycle under that exact key; "
-                            "only a confirmed first cycle may run hanten_cycle_ledger.sh recover-first "
-                            "--confirmed-first-cycle. "
-                            "If reviews already ran, restore their ledger without resetting used counts")
+            return self.row(ROUTED, f"no review ledger for '{name}' at {path} (neither branch-keyed nor PR-keyed)",
+                            "routes to hanten § 1's hanten_cycle_ledger.sh ensure and its rows (ENSURE_ROWS): "
+                            "`opened` where no review evidence exists; exit 3 `lost-ledger` where it does, and only "
+                            "a first cycle the maintainer confirms under that exact key may run recover-first "
+                            "--confirmed-first-cycle; if reviews already ran, restore their ledger without resetting used counts")
         try:
             doc = json.loads(path.read_text())
         except (OSError, ValueError) as exc:
@@ -2049,6 +2052,17 @@ def self_test() -> int:
                                      "pr": 7, "reviewers": full_reviewers}))
     check("a PR-keyed ledger satisfies the effort without its branch ledger",
           ReviewLedger().detect(review_ctx)["state"] == SATISFIED)
+    # ONE table: hanten_cycle_ledger.sh ensure reads the same PR-keyed-only state as present.
+    ensured = subprocess.run(["bash", str(Path(os.environ["TENKAI_DEFAULT_ROOT"]) / "scripts" / "hanten_cycle_ledger.sh"),
+                              "ensure", "--repo", str(review_repo), "--branch", "topic/review", "--no-pr-check"],
+                             capture_output=True, text=True, timeout=120)
+    try:
+        ensured_doc = json.loads(ensured.stdout)
+    except ValueError:
+        ensured_doc = {}
+    check("ensure agrees: a PR-keyed ledger alone is present, pr 7, no branch ledger opened",
+          ensured.returncode == 0 and ensured_doc.get("action") == "present" and ensured_doc.get("pr") == 7
+          and not ledger.exists())
     another_pr = ledger.with_name("topic-review-pr8.cycle.json")
     another_pr.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review",
                                      "pr": 8, "reviewers": full_reviewers}))
