@@ -177,6 +177,8 @@ runs the generator on drift and opens a pull request with the regenerated mirror
 `sync-canon` did, so a source change merged without its mirrors is repaired by a PR rather than by a
 red check nobody reads.
 
+**One repository setting is a prerequisite** (zheref/hatsu#165): *Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests"* must be on, or the regeneration PR fails with *"GitHub Actions is not permitted to create or approve pull requests"* after `bot/surface-mirror-regenerate` was already pushed. The workflow cannot read that toggle first: its endpoint needs the repository Administration (read) permission, which `GITHUB_TOKEN` cannot be granted, and only a secret-held GitHub App installation token or a personal access token could read it, which this job declines to hold (SEC-9). Turn it on once per repository that runs the workflow; until the failure-only cleanup step lands, delete a stranded branch by hand.
+
 **Not a second lint.** `nen/contract.json`'s `plugin` lane keeps one `lint` seat,
 `claude plugin validate . --strict`, and `nen/workflow.json`'s `iteration.checks` keeps that one entry.
 The check runs beside the regeneration, in `mukai`, before `shibari` opens the PR
