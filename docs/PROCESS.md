@@ -132,7 +132,7 @@ the host link or the session bind.
 
 **On an artifact-capable surface, a report is an Artifact:**
 - **On Claude Code**, republished to ONE URL per key — the skill names the key (the branch for a turn or landing page, the repository for a gate register); a new URL only for a key that has none yet, and a better title never mints a new one. **Read before you overwrite**: a republish notice, or a listing showing a version this session did not publish, means the page moved — re-read it and re-resolve the data rather than repainting what this session happens to be holding.
-- **On Antigravity**, published as a native Markdown artifact into `<appDataDir>/brain/<conversation-id>/<report-name>.md` (e.g. `spiritual-message.md` for turn/landing reports, `backlog-board.md` for gate registers, `black-voice.md` for validation) via `write_to_file` with `ArtifactMetadata` (`{ Summary: "<Variant> report for <effort>", UserFacing: true, RequestFeedback: false }`), formatted with GFM tables, alert callouts (`> [!NOTE]`, `> [!IMPORTANT]`), and Mermaid diagrams (`graphMermaid`), updated on each turn.
+- **On Antigravity**, published as a native Markdown artifact into `<appDataDir>/brain/<conversation-id>/<report-name>.md` (e.g. `spiritual-message.md` for turn/landing reports, `backlog-board.md` for gate registers, `black-voice.md` for validation) via `write_to_file` with `ArtifactMetadata` (`{ Summary: "<Variant> report for <effort>", UserFacing: true, RequestFeedback: false }`), formatted with GFM tables, alert callouts (`> [!NOTE]`, `> [!IMPORTANT]`), and Mermaid diagrams (`graphMermaid`). **One file per report name per conversation**: the path is keyed by `<conversation-id>`, so every render in a conversation writes the same `<report-name>.md`, with `Overwrite: true` whenever it already exists in that conversation's directory, and never a new file per turn; an effort that continues in a new conversation starts its own file there.
 - **Elsewhere** (surfaces without native artifact capability, e.g. Cursor, Codex), the page is `<reports.dir>/current.html`, overwritten every render, git-ignored, **transient**. **Say which happened.**
 
 **Every object notation on a page is `nen ref format`'s output.** Where it cannot be resolved — no
@@ -306,6 +306,12 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   named, and the maintainer names the skill it is for by typing `then aka+mukai`.
   Cursor's version check is a string compare on a date part; the host-global half of the skill-name
   collision question has no answer from inside a repository.
+- **`tenkai` § 6d and `ten` § 6 step 5b.** Writing a declaration value — `scripts/config_values.sh`
+  `fill` and `set`, a JSON span scanner that inserts in place — has no nen verb, and the `$<key>`
+  option notes rely on nen reading every `$`-prefixed key as metadata, a convention its loaders follow
+  (`src/schema/source.ts`) that no published contract states. Both are an **owned dependency** on
+  `zheref/nen` (a value-setting verb and a documented metadata-key guarantee), not yet filed — named
+  in tenkai's Residue for Netero's harvest.
 - **`shibari`.** The evidence mirror's publish step, the base-ref read (`gh pr view --json
   baseRefName`), the last-pushed-commit comparison and Development linking are named raw calls; the
   PR itself is `nen pr open`.
