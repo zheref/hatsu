@@ -78,8 +78,8 @@ never writes. A missing argument or configuration item is asked and set up inlin
 
 **PR body**: what changes for the consumer (pin, surfaces, per-surface counts), the
 `Surface | File | Issue` table `--markdown-out` wrote, **`## How to verify`** (step 5's command,
-expected `drift: none`, exit `0`), `Closes #N` where a repin issue exists. The merge is `en` § 5's at
-the PR's terminus (row `own-pr-merge`); **limbo performs none**.
+expected `drift: none`, exit `0`), `Closes #N` where a repin issue exists. The merge is the maintainer's,
+at `en` § 5's prompt (row `own-pr-merge`); **limbo performs none**.
 
 ## 3. The drift classes, and the two that stop the run
 

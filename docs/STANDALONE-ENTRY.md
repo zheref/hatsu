@@ -331,7 +331,8 @@ the general rule and the skill states its own stricter one.
 **It never offers to run the successor.** The five phases that are the maintainer's alone —
 `aka`, `mukai`, the merge, `kagutsuchi`, `mugetsu` — are never prompted for, from a standalone run
 least of all, because a cold entry is exactly where a prompt reads as *the pipeline knows what it is
-doing* (`ROSTER.md` § *Rulings of 2026-09-09*, 1).
+doing* (`ROSTER.md` § *Rulings of 2026-09-09*, 1). `en` § 5's merge prompt is not such a prompt: it
+presents a PR's link and merge line; its picker never carries the merge act; the maintainer merges outside the session (`ROSTER.md` § *Rulings of 2026-09-30*).
 
 ---
 

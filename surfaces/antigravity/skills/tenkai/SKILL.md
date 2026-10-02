@@ -22,7 +22,7 @@ trigger a duplicate filing. Never copy or invent a second policy in the target r
 > whose product *is* the process — and **`G2` (`CON-5`) in a consumer repository**, where a
 > `nen/contract.json`, `nen/workflow.json` or `nen/gates.json` is that repository's own configuration
 > and governs nothing else. **This skill exists to run against consumer checkouts**, so its ordinary
-> case is `G2`. The merge is `en` § 5's either way — the ruling moves the gate, never the
+> case is `G2`. The merge prompt is `en` § 5's either way — the ruling moves the gate, never the
 > owner.
 
 **Nature: Transmuter** carries every run. Adoption shapes machinery: it renders templates, installs a

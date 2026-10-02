@@ -23,7 +23,7 @@ trigger a duplicate filing. Never copy or invent a second policy in the target r
 > (`CON-5`) in a consumer repository**, where a `nen/contract.json`, `nen/workflow.json` or
 > `nen/gates.json` is that repository's own configuration and governs nothing else. **This skill runs
 > against consumer checkouts by design**, so every declaration-gate instruction below names both
-> halves explicitly rather than asking you to reinterpret a bare "G4". The merge is `en` § 5's
+> halves explicitly rather than asking you to reinterpret a bare "G4". The merge prompt is `en` § 5's
 > either way — the ruling moves the gate, never the owner.
 
 **Nature: Transmuter** carries every run: susanoo executes declared machinery — one lane's `archive`
