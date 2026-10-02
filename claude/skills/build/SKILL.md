@@ -52,10 +52,11 @@ is one nobody can end.
 Read the target issue before touching code:
 
 ```bash
-gh issue view <N> --repo <owner/name> --json title,body,state,labels
+gh issue view <N> --repo <owner/name> --json title,body,state,labels,closedByPullRequestsReferences
 ```
 
-- **If closed**: the run ends immediately, reporting what closed it and which PR delivered it.
+- **If closed**: the run ends immediately, reporting what closed it and which PR delivered it (from
+  `closedByPullRequestsReferences`).
 - **If an epic awaiting approval**: stop at **G1** (row `mode-label`) — the mode label is the
   maintainer's decision (`CON-4`), never an agent's.
 - **Read requirements**: extract issue title, body, acceptance criteria, and technical constraints.
@@ -181,11 +182,10 @@ A stall is reported plainly in-session — the blocker, and whether it needs the
 
 ## 7. Reporting
 
-Every turn that renders a report writes its native artifact before yielding
-([`docs/PROCESS.md`](../../../docs/PROCESS.md) § *Reporting a phase*):
-- `spiritual-message.md` for `ren` turn reports and `mukai` landing reports.
-- `rikugan.md` for final delivery state upon completion of `en`.
-- Gate determinations require quoting `nen pr ready`'s verdict verbatim.
+Every report follows [`docs/PROCESS.md`](../../../docs/PROCESS.md) § *Reporting a phase*:
+- [`spiritual-message`](../spiritual-message/SKILL.md) for `ren` turn and `mukai` landing reports (Artifact on Claude Code, `<reports.dir>/current.html` elsewhere, or `spiritual-message.md` on Antigravity).
+- [`rikugan`](../rikugan/SKILL.md) for final delivery state on `en` (`<reports.dir>/<YYYY-MM-DD>-<effort>.html`, or `rikugan.md` on Antigravity).
+- Gate determinations quote `nen pr ready`'s verdict verbatim.
 
 | Gate | When | The ask |
 |---|---|---|
@@ -199,16 +199,15 @@ and that delegation lapsed.
 ## 8. Resuming & Residue
 
 [`docs/PROCESS.md`](../../../docs/PROCESS.md) § *Resuming a run*; each phase is idempotent, and worktree/branch
-state records progress. Mode reasoning and G5 diagnosis remain agent judgment. Repos with no `project`
-block build with documented commands. PR-vs-issue check stays `gh api` read until dedicated verb.
+state records progress. Mode reasoning and G5 diagnosis remain agent judgment.
 
 ## 9. Hard limits
 
-- **Never merges a pull request** (`CON-5`/`CON-7`, rows `merge`/`canon-merge`); G2/G4 remain maintainer's gate.
+- **Never merges a PR** (`CON-5`/`CON-7`, rows `merge`/`canon-merge`); G2/G4 remain maintainer's gate.
 - **Never applies a G1 mode label** on an epic.
-- **Never votes, self-reviews, impersonates a reviewer, or casts `request_changes`** (`CON-26`).
-- **Never claims a CI builder is doing the work** or uses retired CI capabilities from bankai-core.
-- **Never authors, branches, or commits directly on core checkout** by default (Rule 6).
-- **Never uses raw `gh pr create`** or skips Mukai's composite steps (pre-PR review, tests, coverage, Shibari body).
+- **Never votes, self-reviews, or casts `request_changes`** (`CON-26`).
+- **Never routes work to CI builders** or invokes retired Bankai CI capabilities.
+- **Never authors, branches, or commits on core checkout** by default (Rule 6).
+- **Never uses raw `gh pr create`** or skips Mukai's composite steps.
 - **Never commits without Conventional Commits body and `Hatsu-Agent: Kurapika` trailer**.
 - **Never leaves delegation open** — say when it ends.
