@@ -1062,6 +1062,158 @@ def validate_builder_workflow(path)
   fail_policy("#{path} must checkout main") unless checkout_steps.any? { |step| scalar(mapping(step["with"], "#{path} checkout with")["ref"]) == "main" }
 end
 
+# The CURRENT readiness shape's tail -- the verdict, freshness and Publish
+# steps exactly as pr-readiness.yml carries them before step two flips it --
+# held as an INDEPENDENT baseline (Copilot on #193). The self-test runs main's
+# trusted validator against the PR checkout, so it must build its current-
+# and next-shape fixtures whichever shape that checkout holds: deriving the
+# current shape from the checkout itself fails the moment step two removes the
+# freshness step. Step two's narrowing deletes this with the current shape.
+CURRENT_READINESS_TAIL = <<'CURRENT_READINESS_TAIL'.freeze
+      - name: Readiness verdict
+        # The reviewer identities come from the TRUSTED gates file, never the
+        # PR's copy -- a PR that could edit the gate judging it is worth nothing,
+        # the same reason the guard code is trusted-only. `--gates` takes an
+        # absolute path so it is not resolved against --repo's root. This matters
+        # more than it looks: with the flag dropped, nen 0.10.0 falls back to
+        # <cwd>/nen/gates.json, and the cwd here is the PR HEAD checkout. The
+        # policy guard asserts this argument so the flag cannot be quietly lost.
+        #
+        # ERREXIT IS NOT RE-ENABLED, DELIBERATELY. `nen pr ready` exits 1 for
+        # `not-ready`, which is the COMMON case and the one this workflow exists
+        # to report. An earlier draft restored `set -e` and then ran the verb in a
+        # pipeline: the pipeline returned 1, the assignment failed, and the step
+        # died BEFORE writing $GITHUB_OUTPUT -- so every not-ready PR published
+        # "readiness undetermined" and discarded the explain table. That is the
+        # exact regression `surface-mirror-check.yml` already documents. The `rc`
+        # dispatch below is the control flow; errexit would fight it.
+        #
+        # ONE EVALUATION, NOT TWO. The title is taken from the bytes already in
+        # hand, so the title and the summary can never describe different
+        # evaluations of a PR that changed between them.
+        id: verdict
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEN: ${{ steps.nen.outputs.bin }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          explain="$("$NEN" pr ready "$PR" --gh-repo "$REPO" --explain \
+            --gates "$PWD/.trusted/nen/gates.json" \
+            --exclude-run "$RUN_ID" 2>&1)" || rc=$?
+          rc="${rc:-0}"
+          # nen's output embeds PR-DERIVED STRINGS -- reported check names and
+          # reviewer logins are interpolated into its failure lines. Echoing it
+          # raw would put attacker-influenced text on the runner's WORKFLOW-COMMAND
+          # channel, where a line starting `::` is interpreted rather than printed
+          # (`::error::`, `::set-output`). `::stop-commands::` with a nonce is
+          # GitHub's own mechanism for exactly this.
+          nonce="stop_$(openssl rand -hex 16)"
+          echo "::stop-commands::${nonce}"
+          printf '%s\n' "$explain"
+          echo "::${nonce}::"
+          # First line of the verb's own output, minus the "<repo>#<n>: " prefix.
+          title="$(printf '%s\n' "$explain" | head -1)"
+          title="${title#*: }"
+          case "$rc" in
+            0) title="ready — ${title}" ;;
+            1) : ;;
+            *) title="readiness undetermined — nen exited ${rc}" ;;
+          esac
+          # Bash substring, NOT `| head -c`: head is a BYTE cut that can land
+          # mid-UTF-8 (these strings carry em dashes) and, under pipefail, a
+          # SIGPIPE'd printf returns 141 and kills the step at the truncation
+          # boundary. Parameter expansion is character-wise and spawns nothing.
+          title="${title:0:240}"
+          # THE DELIMITER IS RANDOM PER RUN. With a fixed `EOF`, a value
+          # containing a line that is exactly `EOF` closes the heredoc early and
+          # the runner parses the rest as further file commands -- forging the
+          # step output the next step publishes. GitHub's docs require a random
+          # delimiter for multiline values for this reason.
+          d="EOF_$(openssl rand -hex 16)"
+          {
+            printf 'title<<%s\n%s\n%s\n' "$d" "$title" "$d"
+            printf 'summary<<%s\n%s\n%s\n' "$d" "$explain" "$d"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Confirm the verdict still describes the event head
+        # `nen pr ready` takes a PR NUMBER and reads that PR's LIVE head, but the
+        # check run was created against `github.event.pull_request.head.sha`.
+        # Cancellation is not atomic, so an in-flight older run can evaluate a
+        # NEWER head and PATCH that verdict onto the older SHA's check -- a
+        # verdict about a tree that check does not describe. Concurrency makes
+        # this rare, not impossible, which is exactly the kind of race that shows
+        # up once and is never reproduced.
+        id: fresh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          live="$(gh api "repos/${REPO}/pulls/${PR}" --jq .head.sha 2>/dev/null || true)"
+          if [ -z "$live" ]; then
+            echo "stale=unknown" >> "$GITHUB_OUTPUT"
+          elif [ "$live" = "$EVENT_HEAD" ]; then
+            echo "stale=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "stale=yes" >> "$GITHUB_OUTPUT"
+            echo "head moved ${EVENT_HEAD} -> ${live}; this run's verdict is not published"
+          fi
+
+      - name: Publish the check on the exact PR head
+        # CREATED HERE, AFTER THE VERDICT, AND THAT ORDERING IS LOAD-BEARING.
+        # This check is always `success` (see the header), so if it existed while
+        # `nen pr ready` ran it would be a REPORTED GREEN CHECK -- and CON-32(a)
+        # passes on a non-empty all-green rollup while FAILING on an empty one.
+        # On a pull request with no other checks the gate would then read `ready`
+        # because of this check's own existence: a false READY, which is the
+        # worst failure this signal has. Creating it only now means the rollup
+        # the verdict saw never contained it.
+        #
+        # `always()`, so a failure in any earlier step still publishes an honest
+        # `undetermined` rather than leaving the pull request with no check at
+        # all -- fail closed, visibly.
+        if: ${{ always() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          TITLE: ${{ steps.verdict.outputs.title }}
+          SUMMARY: ${{ steps.verdict.outputs.summary }}
+          STALE: ${{ steps.fresh.outputs.stale }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="${TITLE:-readiness undetermined — the verdict step did not report}"
+          summary="${SUMMARY:-The readiness step did not complete. Nothing is asserted about this PR.}"
+          # A verdict computed against a head that has since moved describes a
+          # different tree than this check run. Say so rather than publishing it.
+          if [ "${STALE:-}" = "yes" ]; then
+            title="superseded — the head moved while this run was evaluating"
+            summary="A newer commit was pushed before this run finished, so its verdict would have described a different tree. The run for the new head publishes the verdict that counts. Nothing is asserted about this SHA."
+          elif [ "${STALE:-}" != "no" ]; then
+            title="readiness undetermined — could not confirm the head"
+            summary="The live head could not be read, so this run cannot confirm its verdict describes this SHA. Nothing is asserted."
+          fi
+          # Always `success`: see the header. The verdict is the title, never the
+          # conclusion, so this check can never be the red check that makes
+          # CON-32(a) unsatisfiable.
+          gh api --method POST "repos/${REPO}/check-runs" \
+            -f name=readiness \
+            -f head_sha="$HEAD_SHA" \
+            -f status=completed \
+            -f conclusion=success \
+            -f "output[title]=${title}" \
+            -f "output[summary]=${summary}" >/dev/null
+          echo "readiness: ${title}"
+CURRENT_READINESS_TAIL
+
 def self_test(root)
   fail_policy("same-repository predicate rejected owner head") unless same_repository?("zheref/hatsu", "zheref/hatsu")
   fail_policy("same-repository predicate admitted fork") if same_repository?("zheref/hatsu", "fork/hatsu")
@@ -1345,14 +1497,23 @@ def self_test(root)
     # forms -- rendered from the constants, so this is the exact text step 2 copies.
     readiness = File.join(tmp, ".github/workflows/pr-readiness.yml")
     readiness_original = File.read(readiness)
+    # Whichever shape the checkout holds, everything before the verdict step is
+    # shared; the steps from the verdict on are rebuilt from the two baselines --
+    # CURRENT_READINESS_TAIL and the frozen next constants -- never read back
+    # from the checkout, so a step-two checkout builds the same fixtures.
     verdict_at = readiness_original.index("      - name: #{READINESS_VERDICT_STEP}\n")
-    confirm_at = readiness_original.index("      - name: Confirm the verdict still describes the event head\n")
-    publish_at = readiness_original.index("      - name: #{READINESS_PUBLISH_STEP}\n")
-    unless verdict_at && confirm_at && publish_at && verdict_at < confirm_at && confirm_at < publish_at
-      fail_policy("self-test: pr-readiness.yml has no verdict, freshness and Publish steps in that order")
+    fail_policy("self-test: pr-readiness.yml has no #{READINESS_VERDICT_STEP.inspect} step") unless verdict_at
+    readiness_prefix = readiness_original[0...verdict_at]
+    readiness_current = readiness_prefix + CURRENT_READINESS_TAIL
+    confirm_at = readiness_current.index("      - name: Confirm the verdict still describes the event head\n")
+    publish_at = readiness_current.index("      - name: #{READINESS_PUBLISH_STEP}\n")
+    unless confirm_at && publish_at && verdict_at < confirm_at && confirm_at < publish_at
+      fail_policy("self-test: the current readiness baseline has no verdict, freshness and Publish steps in that order")
     end
+    File.write(readiness, readiness_current)
+    validate_repo(tmp, announce: false) # the current shape, from its baseline: must pass
     readiness_with = lambda do |verdict: READINESS_NEXT_VERDICT, publish: READINESS_NEXT_PUBLISH|
-      readiness_original[0...verdict_at] + render_step(READINESS_VERDICT_STEP, verdict) + "\n" + render_step(READINESS_PUBLISH_STEP, publish)
+      readiness_prefix + render_step(READINESS_VERDICT_STEP, verdict) + "\n" + render_step(READINESS_PUBLISH_STEP, publish)
     end
     readiness_next = readiness_with.call
     File.write(readiness, readiness_next)
@@ -1371,7 +1532,7 @@ def self_test(root)
     # accepted shape and report a refusal it never exercised.
     {
       "readiness drops the freshness step but keeps the current verdict and Publish" =>
-        [readiness_next, readiness_original[0...confirm_at] + readiness_original[publish_at..]],
+        [readiness_next, readiness_current[0...confirm_at] + readiness_current[publish_at..]],
       "readiness next shape without --require-head and --exclude-check" => [readiness_next, with_run.call(unflagged_run)],
       "readiness next shape with the flags only in a comment" =>
         [readiness_next, with_run.call(unflagged_run.sub("set -uo pipefail\n", %Q{set -uo pipefail\n# verdict pinned: --require-head "$EVENT_HEAD" --exclude-check readiness\n}))],
@@ -1514,7 +1675,20 @@ def self_test(root)
     # only when the PR step itself failed.
     pr_line = "      - name: Open a pull request with the regenerated mirrors\n"
     fail_policy("self-test: regenerate has no pull request step") unless regenerate_original.include?(pr_line)
-    regenerate_with_id = regenerate_original.sub(pr_line, pr_line + "        id: cpr\n")
+    # A CURRENT-shape baseline first (Copilot on #193): a step-two checkout
+    # already carries `id: cpr` and the cleanup step, and building the next
+    # shape on top of it would add a second id and a second cleanup. So the
+    # cleanup step (the last step when present) and the PR step's id are taken
+    # off, the baseline must validate, and every next fixture builds from it.
+    cleanup_at = regenerate_original.index("      - name: #{REGENERATE_CLEANUP_STEP}\n")
+    regenerate_current = (cleanup_at ? regenerate_original[0...cleanup_at].rstrip + "\n" : regenerate_original)
+                           .sub(pr_line + "        id: cpr\n", pr_line)
+    if regenerate_current.include?(REGENERATE_CLEANUP_STEP) || regenerate_current.include?("        id: cpr\n")
+      fail_policy("self-test: could not reduce surface-mirror-regenerate.yml to its current shape")
+    end
+    File.write(regenerate, regenerate_current)
+    validate_repo(tmp, announce: false) # the current shape: must pass
+    regenerate_with_id = regenerate_current.sub(pr_line, pr_line + "        id: cpr\n")
     regenerate_with = ->(cleanup) { regenerate_with_id.rstrip + "\n\n" + render_step(REGENERATE_CLEANUP_STEP, cleanup) }
     regenerate_next = regenerate_with.call(REGENERATE_CLEANUP)
     File.write(regenerate, regenerate_next)
@@ -1568,7 +1742,7 @@ def self_test(root)
       "regenerate cleanup step under a workflow-level BASH_ENV" => regenerate_next.sub("\njobs:\n", "\nenv:\n  BASH_ENV: ./evil.sh\njobs:\n"),
       "regenerate cleanup step twice (N26)" => regenerate_next + "\n" + render_step(REGENERATE_CLEANUP_STEP, REGENERATE_CLEANUP),
       "regenerate cleanup step while the pull request step has no id: cpr" =>
-        regenerate_original.rstrip + "\n\n" + render_step(REGENERATE_CLEANUP_STEP, REGENERATE_CLEANUP)
+        regenerate_current.rstrip + "\n\n" + render_step(REGENERATE_CLEANUP_STEP, REGENERATE_CLEANUP)
     }.each do |label, text|
       fail_policy("self-test: #{label} equals its base, so it tests nothing") if text == regenerate_next
       File.write(regenerate, text)
