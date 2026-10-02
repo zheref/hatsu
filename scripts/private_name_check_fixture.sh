@@ -265,7 +265,7 @@ case "$*" in
   "repo list extra --visibility private --limit 1000"*) echo extra/plinth ;;
   "repo view acme/private-one --json visibility -q .visibility") echo PRIVATE ;;
   "repo view acme/public-one --json visibility -q .visibility") echo PUBLIC ;;
-  "repo view acme/broken --json visibility -q .visibility") echo "not found" >&2; exit 1 ;;
+  "repo view acme/broken --json visibility -q .visibility") echo "GraphQL: Could not resolve to a Repository with the name acme/broken." >&2; exit 1 ;;
   *) echo "stub gh: unexpected '$*'" >&2; exit 9 ;;
 esac
 EOF
@@ -284,9 +284,12 @@ has 'read EMPTY' "an empty live list names the token's scope"
 live 2 "--owner list possibly truncated" --owner acme "$work/clean.md"
 live 0 "target private: skipped" --target acme/private-one "$work/bare.md"
 has 'skipped' "skip stated"
+hasnt 'private-one' "a skipped private target is never named"
 live 1 "target public: checked" --target acme/public-one "$work/bare.md"
 live 2 "target visibility unreadable" --target acme/broken "$work/bare.md"
+hasnt 'broken' "an unreadable target is never named, nor gh's message"
 live 2 "target not owner/name" --target broken "$work/bare.md"
+hasnt 'broken' "a malformed target is never echoed"
 mkdir -p "$work/nogh" && ln -sf "$(command -v perl)" "$work/nogh/perl"
 for t in bash env sed sort grep awk tr head mktemp rm cat cp git dirname; do
   p="$(command -v "$t")" && ln -sf "$p" "$work/nogh/$t"

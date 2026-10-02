@@ -140,14 +140,14 @@ trap 'rm -rf "$tmp"' EXIT
 
 # --- the target: a private destination leaks nothing ------------------------------------------
 if [ -n "$target" ] && [ -z "$resolve" ]; then
-  case "$target" in */*) : ;; *) die "--target must be owner/name, got '$target'" ;; esac
+  case "$target" in */*) : ;; *) die "--target must be owner/name (the value is not echoed: it may name a private repository)" ;; esac
   command -v gh >/dev/null 2>&1 || die "gh is required to read --target's visibility"
   vis="$(gh repo view "$target" --json visibility -q .visibility 2>"$tmp/vis.err")" \
-    || die "could not read $target's visibility ($(head -1 "$tmp/vis.err"))"
+    || die "could not read --target's visibility (gh exited non-zero; its message is not echoed, since it may name the repository)"
   case "$vis" in
-    PRIVATE|INTERNAL) echo "private_name_check: skipped -- $target is $vis, so naming a private repository there leaks nothing"; exit 0 ;;
+    PRIVATE|INTERNAL) echo "private_name_check: skipped -- the --target repository is $vis, so naming a private repository there leaks nothing"; exit 0 ;;
     PUBLIC) : ;;
-    *) die "unexpected visibility '$vis' for $target" ;;
+    *) die "unexpected visibility for --target (not PUBLIC, PRIVATE or INTERNAL)" ;;
   esac
 fi
 
