@@ -124,7 +124,7 @@ release proposal's verdict returns to getsuga and § 3a merges: en rings no bell
 the version from `found`, the range from `pinned`, the floor from the `compat floor:` line — else
 `floor not reported (nen <version>)` — never inferred from the pin. § 4b's line, carried verbatim by
 every surface (zheref/hatsu#67), off Claude Code § 5's too: what was placed (or `mirrors: current` /
-on Claude Code the `plugin-cache:` verdict), the surface CLI's version (Cursor below its skills minimum **unclaimed**), every
+`not applicable`), the surface CLI's version (Cursor below its skills minimum **unclaimed**), every
 rejected, walked-up or out-versioned root, Cursor's skill names (shadowing), and which `nen` § 2 bound —
 the host link or the session bind.
 
@@ -309,15 +309,23 @@ absent; only a surface with none prints lettered options in chat, closing with *
 and says so.
 
 **`ten` § 5's rules.** `scripts/surface_mirror_check.sh` exit `0` is `mirrors: current`; `1` is stale
-**in the plugin** — said, still placed, regenerated in a PR; `2` (the nen on `PATH` has no `surface`
-verb, or a wiring defect) and `3` (no `nen`) are `mirrors: not checked (<its reason>)`, and § 5
-**stops before placing** — a copy placed from an unchecked source is the silent staleness the check
-exists to catch. On Claude Code there is no mirror: `scripts/plugin_cache_check.sh` compares the
-installed copy with the source (zheref/hatsu#122) and its last line is quoted — `plugin-cache:
-current`, `linked (identical by construction)`, `stale (<n> paths)`, `linked to <target> (not
-<root>)` (the link serves another checkout's branch) or `plugin-dir <target> (not <root>)`; exit `2` prints no `plugin-cache:` line and is
-quoted `plugin-cache: not checked (<its reason on stderr>)` — then the permission pack, whatever the
-verdict ([`SURFACES.md`](SURFACES.md) § 2, [`claude-code.md`](surfaces/claude-code.md) § 8). **Ten never
+**in the plugin** — said, still placed, regenerated in a PR. **On Claude Code there is no mirror**, so
+`mirrors:` is whether the copy Claude Code serves IS the source (zheref/hatsu#122), the permission pack
+placed beside it ([`SURFACES.md`](SURFACES.md) § 2):
+
+```bash
+"$hatsu_root/scripts/plugin_cache_check.sh" --root "$hatsu_root" --cache auto
+```
+
+It judges every copy Claude Code has recorded for Hatsu (each `hatsu@` installPath and `skills/hatsu`),
+and **a copy is never its own evidence**: where the served copy IS `--root` (ten § 0 resolves it from
+the served skill directory), it compares against a source named independently — `HATSU_PLUGIN_ROOT`,
+a `directory` marketplace, or the Hatsu checkout ten stands in. `0` is `mirrors: current (<the line>)`;
+`1` is `mirrors: stale cache` with the differing paths, and § 4b's update is what refreshes it (re-run
+it after); `3` is `mirrors: not installed` (no `hatsu@` install record and no `skills/hatsu`); `4` is
+`mirrors: not comparable (<the line>)` — the served copy is the only copy (a working directory on a feature branch is no source), or no `jq` read the record;
+`5` is `mirrors: broken install (<the line>)` — an entry with no usable installPath, a stale record, a
+dangling link; `2` is a wiring stop, quoted. Only `0` reads current. **Ten never
 generates a mirror**; `surface_bootstrap.sh` is the pre-skill shell carve-out; Cursor lists
 `.cursor/skills` **before installing**; the models are the TARGET's `nen/workflow.json` → `models`.
 
@@ -338,11 +346,14 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   `gh auth status`/`gh auth token`, `gh pr list --head <branch> --state all`, `git branch --merged origin/<branch.base>` — are hand-spelt too; an unnamed human-call prerequisite at its step 7 stops,
   named, and the maintainer names the skill it is for by typing `then aka+mukai`.
   Cursor's version check is a string compare on a date part; the host-global half of the skill-name
-  collision question has no answer from inside a repository. Comparing Claude Code's installed copy
-  with the source (`scripts/plugin_cache_check.sh`, § 5, zheref/hatsu#122) is a script too: nen's
-  `surface mirror check --surface claude-code --installed` diffs a layout Hatsu never places, so the
-  installed-copy read is an owned dependency of the host-install family, zheref/nen#298 (BC-11 reads
-  the script's branching shell as a verb's job, a G4 question until the verb lands).
+  collision question has no answer from inside a repository. **§ 5's Claude Code `mirrors:` is
+  `scripts/plugin_cache_check.sh`**, a byte comparison with six exit codes (five verdicts and a wiring stop) that no verb owns: an
+  owned dependency, zheref/nen#339 (a plugin-layout mode of `surface mirror check --installed`, or a
+  check under zheref/nen#298's status verb); its fixture is the reference behaviour, and it retires
+  when the verb lands. **BC-11 debt, a G4 question for the maintainer, not decided here:** that script
+  is new branching shell carrying a verdict, and `scripts/hanten_cycle_ledger.sh`'s embedded Python
+  grew (`ensure`, its trace reads and their self-tests, zheref/hatsu#169) — does BC-11's
+  embedded-Python freeze bind the ledger?
 - **`futon` § 5.** The local `git merge --no-ff` of a hanten-settled effort branch into the run's
   integration branch, in a worktree on that branch, has no nen verb (`nen wc catch-up` brings a branch
   up to date with its base; it is not a delivery merge). It is named residue, the verb **not yet filed**
@@ -354,12 +365,6 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   (`src/schema/source.ts`) that no published contract states. Both are an **owned dependency** on
   `zheref/nen` (a value-setting verb and a documented metadata-key guarantee), not yet filed — named
   in tenkai's Residue for Netero's harvest.
-- **`hanten` § 1 and § 2b.** The review-cycle ledger is `scripts/hanten_cycle_ledger.sh`, embedded
-  Python that holds every budget verdict and `ensure`'s open-or-refuse logic (the worktree, reflog and
-  findings-record evidence search, the trunk set) and makes a raw `gh pr list --head <name> --state all
-  --repo <owner/name>` call — no nen verb owns a review ledger. An **owned dependency** on `zheref/nen`
-  (a review-ledger verb), not yet filed; BC-11 reads that branching logic as a verb's job, a G4
-  question until the verb lands.
 - **`shibari`.** The evidence mirror's publish step, the base-ref read (`gh pr view --json
   baseRefName`), the last-pushed-commit comparison and Development linking are named raw calls; the
   PR itself is `nen pr open`. Verifying the links is `scripts/pr_development_link_check.sh`, which

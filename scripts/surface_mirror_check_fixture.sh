@@ -3,8 +3,7 @@
 # surface; a drift fails at exit 1 and is never re-checked at another root; a refusal keeps its own
 # exit code and is named; each surface is handed its own --hooks-root. The next-root re-check that
 # zheref/hatsu#153 added for the Codex root's two-step landing is gone since zheref/hatsu#151 made
-# that root current (docs/GATE-CONFIGURATION.md, 2026-09-30); --installed is refused, naming
-# scripts/plugin_cache_check.sh (zheref/hatsu#122). Offline and hermetic: a stub `nen`
+# that root current (docs/GATE-CONFIGURATION.md, 2026-09-30). Offline and hermetic: a stub `nen`
 # stands in for the generator, answering each check by surface, and logging every call under mktemp.
 
 set -euo pipefail
@@ -121,15 +120,44 @@ in_sed="$(grep -o "sed 's#[^#]*#\${HATSU_PLUGIN_ROOT:-./.codex}#g'" "$repo/scrip
 [ "'$in_sed'" = "$(grep -o "codex) printf %s '[^']*'" "$guard" | sed "s/^codex) printf %s //")" ] ||
   fail "roots: surface_bootstrap.sh rewrites $in_sed, which is not the check's Codex root"
 
-# (f) --installed is refused (zheref/hatsu#122): exit 2, the new check named, nen never asked — it
-# used to read every file of a Claude Code plugin cache `missing`.
-export STUB_LOG="$fixture_root/installed.log"
-: > "$STUB_LOG"
-code=0
-out="$(NEN_BIN="$stub" bash "$guard" --installed "$fixture_root/cache" "$tree" 2>&1)" || code=$?
-[ "$code" -eq 2 ] || fail "installed-refused: exit $code, expected 2. Output: $out"
-expect_in installed-refused "$out" 'scripts/plugin_cache_check.sh'
-expect_in installed-refused "$out" 'zheref/hatsu#122'
-[ ! -s "$STUB_LOG" ] || fail "installed-refused: nen was asked: $(cat "$STUB_LOG")"
+# (f) --installed on a real plugin cache (the source's own layout) is compared byte for byte by
+# plugin_cache_check.sh and never handed to nen's claude-code row, which read every file `missing`
+# against it (zheref/hatsu#122); any other path still goes to nen.
+printf 'ten\n' > "$tree/claude/skills/ten/SKILL.md"
+cache="$fixture_root/cache"; cp -R "$tree" "$cache"
+run_installed() {
+  local name="$1" expected="$2" path="$3" code=0
+  export STUB_LOG="$fixture_root/$name.log"; : > "$STUB_LOG"
+  out="$(NEN_BIN="$stub" bash "$guard" --installed "$path" "$tree" 2>&1)" || code=$?
+  calls="$(cat "$STUB_LOG")"
+  [ "$code" -eq "$expected" ] || fail "$name: exit $code, expected $expected. Output: $out"
+}
+run_installed cache-identical 0 "$cache"
+expect_in cache-identical "$out" 'identical'
+[ -z "$calls" ] || fail "cache-identical: nen was asked about a plugin cache: $calls"
+printf 'ten, stale\n' > "$cache/claude/skills/ten/SKILL.md"
+run_installed cache-stale 1 "$cache"
+expect_in cache-stale "$out" 'differs:        claude/skills/ten/SKILL.md'
+[ -z "$calls" ] || fail "cache-stale: nen was asked about a plugin cache: $calls"
+# a comparator that cannot run is wiring (exit 2), never drift: bash 3.2 under set -e hands back 1
+# for a command it cannot execute (Phinks, hanten on 029322fb)
+cp -R "$tree" "$fixture_root/cache2"
+mkdir -p "$fixture_root/scripts_copy"
+cp "$guard" "$repo/scripts/plugin_cache_check.sh" "$fixture_root/scripts_copy/"
+chmod -x "$fixture_root/scripts_copy/plugin_cache_check.sh"
+code=0; out="$(NEN_BIN="$stub" /bin/bash "$fixture_root/scripts_copy/surface_mirror_check.sh" --installed "$fixture_root/cache2" "$tree" 2>&1)" || code=$?
+[ "$code" -eq 2 ] || fail "unrunnable-comparator: exit $code, expected 2 (wiring). Output: $out"
+rm "$fixture_root/scripts_copy/plugin_cache_check.sh"
+code=0; out="$(NEN_BIN="$stub" /bin/bash "$fixture_root/scripts_copy/surface_mirror_check.sh" --installed "$fixture_root/cache2" "$tree" 2>&1)" || code=$?
+[ "$code" -eq 2 ] || fail "missing-comparator: exit $code, expected 2 (wiring). Output: $out"
+# a relative --installed path names the caller's directory, not the root it cds into
+export STUB_LOG="$fixture_root/relative.log"; : > "$STUB_LOG"
+code=0; out="$(cd "$fixture_root" && NEN_BIN="$stub" bash "$guard" --installed cache2 "$tree" 2>&1)" || code=$?
+[ "$code" -eq 0 ] || fail "relative-installed: exit $code, expected 0. Output: $out"
+expect_in relative-installed "$out" 'installed plugin cache'
+[ -z "$(cat "$STUB_LOG")" ] || fail "relative-installed: the relative path was not resolved and went to nen: $(cat "$STUB_LOG")"
+target_layout="$fixture_root/target/.claude"; mkdir -p "$target_layout/skills"
+run_installed target-layout 0 "$target_layout"
+expect_in target-layout "$calls" 'claude-code'
 
-echo 'surface-mirror-check-fixture: ok (clean, codex drift checked once, refusal kept, cursor drift checked once, one root per surface everywhere it is written, --installed refused naming plugin_cache_check.sh)'
+echo 'surface-mirror-check-fixture: ok (clean, codex drift checked once, refusal kept, cursor drift checked once, one root per surface everywhere it is written, a plugin cache compared byte for byte, an unrunnable comparator read as wiring, a relative --installed path resolved)'

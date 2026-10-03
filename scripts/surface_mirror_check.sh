@@ -37,14 +37,16 @@
 #
 # USAGE
 #   scripts/surface_mirror_check.sh [repo-root]
+#   scripts/surface_mirror_check.sh --installed <path> [repo-root]
 #   NEN_BIN=/path/to/nen scripts/surface_mirror_check.sh
 #
-# `--installed <path>` is REFUSED at exit 2, naming scripts/plugin_cache_check.sh
-# (zheref/hatsu#122). It used to run nen's `claude-code` row against the plugin
-# cache, a target `.claude/` layout Hatsu never places, so it read every file
-# `missing` (docs/ab/ten.md); plugin_cache_check.sh byte-compares the installed
-# Claude Code copy against the source instead. A whole mirror copy is checked by
-# hand with nen's own `--installed` line (docs/surfaces/<surface>.md § 8).
+# `--installed <path>` checks an INSTALLED copy instead of the in-tree
+# `surfaces/<surface>/` mirrors. A path holding the source's own plugin layout
+# (.claude-plugin/plugin.json and claude/skills -- Claude Code's plugin cache,
+# or the skills-directory install) is compared byte for byte with the source
+# by scripts/plugin_cache_check.sh (zheref/hatsu#122); any other path is a
+# target `.claude/` layout and runs `nen surface mirror check --installed <path>
+# --surface claude-code` alongside the shared flags.
 #
 # 2 is not "nothing to check". A guard that reported success when it could not
 # run is an unperformed check rendered as a passing one — the failure
@@ -70,6 +72,7 @@
 # the loop (docs/WORKFLOW.md § 2 → `iteration`), run beside the regeneration and
 # inside `mukai`, not a verb bolted into the declaration.
 set -euo pipefail
+SELF_DIR="$(cd "$(dirname "$0")" && pwd)"   # resolved before main cds into the root
 
 SOURCE_DIR="claude/skills"
 AGENTS_DIR="claude/agents"
@@ -124,8 +127,9 @@ check_one() {
     --stamp "$stamp" \
     --invocation-prefix "$INVOCATION_PREFIX"
 }
+installed_path=""
 
-# --- usage: surface_mirror_check.sh [repo-root] ------------------------------
+# --- usage: surface_mirror_check.sh [--installed <path>] [repo-root] -------
 # With no argument, the repository this script ships in — however it was
 # invoked, so typing `scripts/surface_mirror_check.sh` from a subdirectory still
 # checks the mirror rather than failing on a relative path.
@@ -184,14 +188,9 @@ main() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
       --installed)
-        cat >&2 <<'EOF'
-surface-mirror-check: --installed is refused (zheref/hatsu#122). nen's claude-code
-row diffs a target .claude/ layout Hatsu never places, so against a plugin cache
-it read every file `missing`. Check the installed Claude Code copy with
-  scripts/plugin_cache_check.sh [--installed <path>]
-and a whole mirror copy with nen's own --installed line (docs/surfaces/<s>.md § 8).
-EOF
-        exit 2
+        [ "$#" -ge 2 ] || { echo "surface-mirror-check: --installed requires a path argument." >&2; exit 2; }
+        installed_path="$2"
+        shift 2
         ;;
       *)
         args+=("$1")
@@ -202,8 +201,27 @@ EOF
   root="${args[0]:-$(repo_root)}"
   nen="$(nen_bin)"
   [ -d "$root" ] || { echo "surface-mirror-check: '$root' is not a directory." >&2; exit 2; }
+  # a relative --installed path names the caller's directory, so it is resolved before the cd
+  case "$installed_path" in ""|/*) : ;; *) installed_path="$PWD/$installed_path" ;; esac
   cd "$root"
   [ -d "$SOURCE_DIR" ] || { echo "surface-mirror-check: '$root' carries no $SOURCE_DIR — wrong root." >&2; exit 2; }
+
+  # A real Claude Code plugin cache (or the skills-directory install) is the source's OWN layout,
+  # not the target `.claude/` layout nen's claude-code row judges -- against that row it read every
+  # file `missing` (zheref/hatsu#122). It gets the byte comparison it actually needs instead.
+  if [ -n "$installed_path" ] && [ -f "$installed_path/.claude-plugin/plugin.json" ] && [ -d "$installed_path/claude/skills" ]; then
+    echo "--- claude-code (installed plugin cache: $installed_path)"
+    local pcode=0 pcheck="$SELF_DIR/plugin_cache_check.sh"
+    # tested before it runs: bash 3.2 under `set -e` hands back 1 for a command it cannot execute,
+    # which would read as drift (Phinks, hanten) -- a missing or non-executable check is wiring
+    [ -f "$pcheck" ] && [ -x "$pcheck" ] || { echo "surface-mirror-check: '$pcheck' is missing or not executable — a wiring defect, not drift." >&2; exit 2; }
+    "$pcheck" --root "$PWD" --cache "$installed_path" || pcode=$?
+    case "$pcode" in
+      0) return 0 ;;
+      1) echo "surface-mirror-check: the installed plugin cache at '$installed_path' differs from the source. Refresh it the way ten does (docs/SURFACES.md § 4)." >&2; return 1 ;;
+      *) echo "surface-mirror-check: plugin_cache_check.sh exited $pcode (not identical, not different: see its line above) — reported, never read as a pass or as drift." >&2; exit 2 ;;
+    esac
+  fi
 
   if ! command -v "$nen" >/dev/null 2>&1 && [ ! -x "$nen" ]; then
     echo "surface-mirror-check: no 'nen' on PATH (and NEN_BIN names nothing executable)." >&2
@@ -229,6 +247,38 @@ EOF
 
   stamp="$(plugin_stamp "$MANIFEST_FILE")"
   echo "surface-mirror-check: nen $("$nen" --version 2>/dev/null || echo "?") · source $SOURCE_DIR · agents $AGENTS_DIR · stamp ${stamp:-<none>}"
+
+  if [ -n "$installed_path" ]; then
+    echo "--- claude-code (installed: $installed_path)"
+    local code=0
+    # claude-code's row is the source's OWN plugin layout, copied verbatim —
+    # never rewritten through a tier-to-alias map or an invocation-prefix
+    # rewrite the way codex/cursor/antigravity are. --models and
+    # --source-surface are refused here (nen: "'--models' declares no
+    # 'models.claude-code'" — there is no claude-code row in nen/workflow.json
+    # to read tiers from), so neither is passed on this row.
+    "$nen" surface mirror check \
+      --source "$SOURCE_DIR" \
+      --agents "$AGENTS_DIR" \
+      --surface claude-code \
+      --installed "$installed_path" \
+      --permissions "$PERMISSIONS_FILE" \
+      --hooks "$HOOKS_FILE" \
+      --rules "$RULES_FILE" \
+      --stamp "$stamp" \
+      --invocation-prefix "$INVOCATION_PREFIX" || code=$?
+    case "$code" in
+      0) echo "surface-mirror-check: installed plugin cache matches a fresh generation." ; return 0 ;;
+      1)
+        echo "surface-mirror-check: the installed plugin cache at '$installed_path' has drifted from a fresh generation. Refresh it the way ten does (docs/SURFACES.md § 4)." >&2
+        return 1
+        ;;
+      *)
+        echo "surface-mirror-check: 'nen surface mirror check --installed $installed_path' refused at exit $code — an invocation or declaration defect, not drift." >&2
+        exit "$code"
+        ;;
+    esac
+  fi
 
   local surface code
   for surface in "${SURFACES[@]}"; do

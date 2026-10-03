@@ -154,14 +154,14 @@ with the same flags for codex, cursor and antigravity, and writes nothing:
 | `2` | the `nen` on `PATH` has no `surface` verb, or a wiring defect; never silently passed |
 | `3` | no `nen` on `PATH` |
 
-**On Claude Code there is no mirror to check** (zheref/hatsu#106): nen's `claude-code` row mirrors into
-a target's `.claude/` (`skills/`, `agents/`, `hooks/hooks.json`, `settings.local.json`), a layout Hatsu
-never places. `ten` § 5 runs [`scripts/plugin_cache_check.sh`](../scripts/plugin_cache_check.sh)
-instead, which compares the whole installed tree (the versioned cache; the skills-directory link is
-identical by construction only when it resolves to the source root, and a link to another checkout
-is said as one) against the source root and exits `0`/`1`/`2` (zheref/hatsu#122,
-[`claude-code.md`](surfaces/claude-code.md) § 8); `surface_mirror_check.sh --installed` refuses and names it.
-The verb's `--installed <path>`
+**On Claude Code there is no mirror to check** (zheref/hatsu#106): the plugin is read in place from the
+versioned cache, and nen's `claude-code` row mirrors into a target's `.claude/` (`skills/`, `agents/`,
+`hooks/hooks.json`, `settings.local.json`), a layout Hatsu never places. What can go stale there is the
+served copy itself — the versioned cache, or the `skills/hatsu` install — so `ten` § 5 records
+`scripts/plugin_cache_check.sh --root <hatsu_root> --cache auto`'s byte comparison of it against a
+source named independently of it as `mirrors:` (zheref/hatsu#122; PROCESS § *ten § 5's rules*), and places the permission pack.
+`scripts/surface_mirror_check.sh --installed <path>` hands a path holding the source's own plugin layout
+to that check rather than to nen. The verb's `--installed <path>`
 diffs a FULL mirror (`AGENTS.md`, `agents/`, `config.toml`, `hooks/` included) against a fresh
 generation, so a skills-only copy the warm-up placed, or the versioned cache, always reads `missing`
 under it; the warm-up therefore runs this script without `--installed` (the source against
@@ -185,7 +185,7 @@ runs the generator on drift and opens a pull request with the regenerated mirror
 `sync-canon` did, so a source change merged without its mirrors is repaired by a PR rather than by a
 red check nobody reads.
 
-**One repository setting is a prerequisite** (zheref/hatsu#165): *Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests"* must be on, or the regeneration PR fails with *"GitHub Actions is not permitted to create or approve pull requests"* after `bot/surface-mirror-regenerate` was already pushed. The workflow cannot read that toggle first: its endpoint needs the repository Administration (read) permission, which `GITHUB_TOKEN` cannot be granted, and only a secret-held GitHub App installation token or a personal access token could read it, which this job declines to hold (SEC-9). Turn it on once per repository that runs the workflow; until the failure-only cleanup step lands, delete a stranded branch by hand.
+**One repository setting is a prerequisite** (zheref/hatsu#165): *Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests"* must be on, or the regeneration PR fails with *"GitHub Actions is not permitted to create or approve pull requests"* after `bot/surface-mirror-regenerate` was already pushed. The workflow cannot read that toggle first: its endpoint needs the repository Administration (read) permission, which `GITHUB_TOKEN` cannot be granted, and only a secret-held GitHub App installation token or a personal access token could read it, which this job declines to hold (SEC-9). Turn it on once per repository that runs the workflow. If it is off, the workflow's last step names the toggle as an error and deletes the stranded branch, or says to delete it by hand when that delete fails. The same step fires when the PR step fails while updating a regeneration PR an earlier run opened; deleting the branch then closes that PR, and the next run that finds drift opens it again.
 
 **Not a second lint.** `nen/contract.json`'s `plugin` lane keeps one `lint` seat,
 `claude plugin validate . --strict`, and `nen/workflow.json`'s `iteration.checks` keeps that one entry.

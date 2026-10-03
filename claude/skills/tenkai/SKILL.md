@@ -193,7 +193,7 @@ either operation.
 | `workflow/review-scopes` | **consumer configuration** | Guide the owner through `review.scopes` when absent; validate with `nen schema check` before Hanten resumes |
 | `config/defaults` | **Hatsu** writes the canon default; the value is the consumer's once set | Every value [`contracts/config-catalogue.json`](../../../contracts/config-catalogue.json) gives a default is written out at it, and every fixed-set value carries its `$<key>` options — `apply` runs `config_values.sh fill` (§ 6d) |
 | `config/needed` | **consumer configuration** | A value a skill cannot run without and no default covers is `routed` to the owner's answer, asked in § 6d and written by `config_values.sh set`; `apply` never answers one |
-| `effort/review-ledger` | **Hanten** | On an active effort branch, diagnose the branch ledger, or the PR-keyed one when it exists (alone it is the effort's ledger, hanten § 2b); multiple PR candidates route exact-key selection to Hanten. Neither present routes to hanten § 1's `ensure` and its rows: `opened` with no review evidence, exit 3 `lost-ledger` with it, then `recover-first --confirmed-first-cycle` only after the maintainer confirms no review ran under this key; otherwise restore used counts. Tenkai `apply` does not mint a review budget |
+| `effort/review-ledger` | **Hanten** | On an active effort branch, diagnose the branch ledger or its PR-keyed ledger when one exists; multiple PR candidates route exact-key selection to Hanten. Hanten checks history and uses `recover-first --confirmed-first-cycle` only after the maintainer confirms no review ran under this key; otherwise restore used counts. Tenkai `apply` does not mint a review budget |
 
 **Seven states, and `drift` is the one the whole skill is for:**
 
@@ -406,6 +406,19 @@ guard.** `GuardRegistration` scoring a missing guard as *"no ordering constraint
 about the **ordering** and says nothing about **enforcement**: the byte-compared same-repository
 guard, the write-permission refusal and the trusted-data rules all live in
 `scripts/workflow_runner_policy_check.rb`, which Tenkai does not install.
+
+**A process repository that carries its own copy of that validator takes the newer validator first.**
+The readiness template's verdict step is pinned to the event head and drops its own prior check by
+name (`--require-head "$EVENT_HEAD"`, `--exclude-check readiness`; zheref/hatsu#160), and its
+freshness step is gone. A trusted validator older than Hatsu 0.78.0 knows only the previous shape and
+refuses the re-rendered workflow. A validator from 0.78.0 through 0.81.x admits both renderings, so it
+is the safe first step: land it on that repository's base branch in its own PR, then re-render
+(`docs/GATE-CONFIGURATION.md`, the two-step landing). The validator this change ships admits only the
+new rendering, so landing it must be followed at once by the re-render, or every pull request between
+the two fails. A consumer with no validator of its own re-renders directly; `diagnose` reports an older
+rendering as drift and `apply` re-renders it. **With no other reporting check, the pinned verdict never
+reads ready:** excluding its only check leaves an empty rollup, which nen judges `not-ready: no checks
+reported` on every event — add a real CI check first.
 
 The rendered job checks for that file on its **trusted** checkout. A process repository fails
 if it is absent; a consumer emits a notice and continues under the rendered job's own guards.

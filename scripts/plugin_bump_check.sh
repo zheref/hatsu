@@ -210,11 +210,6 @@ fi
 #                     — ten § 5 runs it from `$hatsu_root/scripts/` on every
 #                       mirrored-surface warm-up (Hatsu 0.50.0, #106); the same
 #                       script is CI's drift guard, which is the trusted copy.
-#   scripts/plugin_cache_check.sh
-#                     — ten § 5 runs it from `$hatsu_root/scripts/` on every
-#                       Claude Code warm-up (zheref/hatsu#122); a stale copy
-#                       judges the installed copy by an old ignore list and an
-#                       old registry reader.
 #   scripts/permissions_pack.sh
 #                     — ten § 5 places the permission pack through it on every
 #                       surface, Claude Code included; a stale copy places a
@@ -244,6 +239,11 @@ fi
 #                       repository (zheref/hatsu#149); a stale copy would let a
 #                       private repository's name through. Its fixture beside it
 #                       is test-only and is not covered.
+#   scripts/plugin_cache_check.sh
+#                     — ten § 5 runs it from `$hatsu_root/scripts/` on Claude Code to judge
+#                       whether the served copy is the source (zheref/hatsu#122), and
+#                       surface_mirror_check.sh --installed calls it; a stale copy would
+#                       misjudge the cache. Its fixture beside it is test-only.
 #   scripts/prose_size_check.sh
 #                     — hanten § 2 runs the link guard and § 6 the prose guard
 #                       from `$hatsu_root/scripts/` in every review, consumers'
@@ -287,7 +287,6 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/hatsu_plugin_update.sh'
   'scripts/hatsu_root.sh'
   'scripts/surface_mirror_check.sh'
-  'scripts/plugin_cache_check.sh'
   'scripts/permissions_pack.sh'
   'scripts/dist_tag.sh'
   'scripts/send_freshness_check.sh'
@@ -296,6 +295,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/surface_link_check.sh'
   'scripts/prose_size_check.sh'
   'scripts/private_name_check.sh'
+  'scripts/plugin_cache_check.sh'
   'scripts/tenkai_adopt.sh'
   'scripts/release-publish.sh'
   'scripts/report_time.sh'

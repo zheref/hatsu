@@ -744,7 +744,14 @@ class GuardRegistration(Item):
     # fails every required check for one cause. `PORTABLE_HOSTED_WORKFLOWS` is
     # excluded on purpose: the routed action tells the maintainer NOT to add the
     # file there, so mentioning it must not satisfy the gate either.
-    REGISTRATION_CONSTANTS = ("EXPECTED_JOBS", "EXPECTED_TYPES", "EXPECTED_STEPS")
+    # The trigger-types table was renamed when the guard learned two shapes
+    # (zheref/hatsu dee5eb9c): EXPECTED_TYPES became BASE_TYPES / HARDENED_TYPES.
+    # Requiring the old name read a process repository carrying the CURRENT
+    # guard as unregistered, so `apply` staged pr-readiness.yml and tenkai
+    # § 5d's re-render could not run through the engine (hanten on step two,
+    # Phinks). Each slot is satisfied by any one of its names.
+    REGISTRATION_CONSTANTS = (("EXPECTED_JOBS",), ("EXPECTED_TYPES", "HARDENED_TYPES", "BASE_TYPES"),
+                              ("EXPECTED_STEPS",))
 
     @staticmethod
     def state_of(ctx):
@@ -753,8 +760,8 @@ class GuardRegistration(Item):
             return "absent"          # no guard: no ordering constraint at all
         src = "\n".join(l for l in g.read_text().splitlines()
                         if not l.lstrip().startswith("#"))
-        named = [c for c in GuardRegistration.REGISTRATION_CONSTANTS
-                 if re.search(rf"{c}\s*=.*?pr-readiness\.yml", src, re.S)]
+        named = [slot for slot in GuardRegistration.REGISTRATION_CONSTANTS
+                 if any(re.search(rf"\b{c}\s*=.*?pr-readiness\.yml", src, re.S) for c in slot)]
         return "registered" if len(named) == len(GuardRegistration.REGISTRATION_CONSTANTS) else "unregistered"
 
     def detect(self, ctx):
@@ -899,6 +906,28 @@ class ReadinessWorkflow(Item):
         if pin_block(live) != pin_block(expected_live):
             drifts.append("the Nen pin step differs from Hatsu's current trusted rendering; "
                           "a consumer with no dependency block may fail before readiness")
+        # THE VERDICT AND PUBLISH STEPS ARE COMPARED WHOLE, like the release
+        # publisher's body (zheref/hatsu#160; hanten on step two, Phinks H1). A
+        # rendering adopted before the verdict was pinned -- no `--exclude-check
+        # readiness`, no `--require-head "$EVENT_HEAD"`, the freshness step still
+        # between the verdict and Publish -- passed every snippet check above, so
+        # `diagnose` said satisfied and `apply` never re-rendered it: the consumer
+        # kept the verdict that reads a false READY off its previous readiness
+        # check. Each block, comments stripped, must equal the template's.
+        def step_block(source, name):
+            want = f"- name: {name}"
+            blocks = re.split(r"\n(?=\s*- name:)", source)
+            return next((block.strip() for block in blocks
+                         if any(line.strip() == want for line in block.splitlines())), None)
+        for step_name, what in (("Readiness verdict", "the verdict step"),
+                                ("Publish the check on the exact PR head", "the Publish step")):
+            if step_block(live, step_name) != step_block(expected_live, step_name):
+                drifts.append(f"{what} differs from Hatsu's current rendering — an older verdict without "
+                              f"`--exclude-check readiness` and `--require-head \"$EVENT_HEAD\"` reads a false "
+                              f"READY off its own previous readiness check (zheref/hatsu#160)")
+        if step_block(live, "Confirm the verdict still describes the event head") is not None:
+            drifts.append("the retired freshness step is still present; the pinned verdict replaces it "
+                          "(`--require-head` exits 8, titled `superseded`)")
         # THE INVARIANTS THE TEMPLATE SAYS IT INHERITS. Checking the slug, the
         # runner and the triggers left every security property of a PRIVILEGED,
         # CREDENTIALED workflow unchecked: a rendered file was mutated with the
@@ -1425,7 +1454,7 @@ class ReviewLedger(Item):
             base = branch_policy.get("base", "main") if isinstance(branch_policy, dict) else "main"
         except (OSError, ValueError, AttributeError):
             base = "main"  # the declaration item separately reports an unreadable workflow
-        if name == (base.removeprefix("origin/") if isinstance(base, str) else base):
+        if name == base:
             return self.row(SATISFIED, f"on trunk '{name}': no effort ledger is due")
         ledger_dir = ctx.repo / ".nen" / "hanten"
         slug = name.replace('/', '-')
@@ -1436,17 +1465,14 @@ class ReviewLedger(Item):
                             "Hanten identifies the current PR number and diagnoses its exact ledger; never pick a prior PR's budget")
         expected_pr = int(pr_candidates[0].name.removeprefix(f"{slug}-pr").removesuffix(".cycle.json")) if pr_candidates else None
         path = pr_candidates[0] if pr_candidates else ledger_dir / f"{slug}.cycle.json"
-        # The ONE table (hanten § 1; hanten_cycle_ledger.sh ENSURE_ROWS): a
-        # PR-keyed ledger alone is diagnosed above as the effort's ledger (the
-        # branch-only one is unread once a PR exists, hanten § 2b); neither
-        # present is routed to Hanten's `ensure` -- opened where no review
-        # evidence exists, exit 3 `lost-ledger` where it does. Tenkai never runs it.
         if not path.is_file():
-            return self.row(ROUTED, f"no review ledger for '{name}' at {path} (neither branch-keyed nor PR-keyed)",
-                            "routes to hanten § 1's hanten_cycle_ledger.sh ensure and its rows (ENSURE_ROWS): "
-                            "`opened` where no review evidence exists; exit 3 `lost-ledger` where it does, and only "
-                            "a first cycle the maintainer confirms under that exact key may run recover-first "
-                            "--confirmed-first-cycle; if reviews already ran, restore their ledger without resetting used counts")
+            return self.row(ROUTED, f"no branch-keyed review ledger for '{name}' at {path}; "
+                            "Tenkai cannot establish whether an open PR needs its own key or whether review history was lost",
+                            "Hanten identifies the active branch or PR effort key, checks prior review evidence, "
+                            "then asks whether this is the first cycle under that exact key; "
+                            "only a confirmed first cycle may run hanten_cycle_ledger.sh recover-first "
+                            "--confirmed-first-cycle. "
+                            "If reviews already ran, restore their ledger without resetting used counts")
         try:
             doc = json.loads(path.read_text())
         except (OSError, ValueError) as exc:
@@ -2052,17 +2078,6 @@ def self_test() -> int:
                                      "pr": 7, "reviewers": full_reviewers}))
     check("a PR-keyed ledger satisfies the effort without its branch ledger",
           ReviewLedger().detect(review_ctx)["state"] == SATISFIED)
-    # ONE table: hanten_cycle_ledger.sh ensure reads the same PR-keyed-only state as present.
-    ensured = subprocess.run(["bash", str(Path(os.environ["TENKAI_DEFAULT_ROOT"]) / "scripts" / "hanten_cycle_ledger.sh"),
-                              "ensure", "--repo", str(review_repo), "--branch", "topic/review", "--no-pr-check"],
-                             capture_output=True, text=True, timeout=120)
-    try:
-        ensured_doc = json.loads(ensured.stdout)
-    except ValueError:
-        ensured_doc = {}
-    check("ensure agrees: a PR-keyed ledger alone is present, pr 7, no branch ledger opened",
-          ensured.returncode == 0 and ensured_doc.get("action") == "present" and ensured_doc.get("pr") == 7
-          and not ledger.exists())
     another_pr = ledger.with_name("topic-review-pr8.cycle.json")
     another_pr.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review",
                                      "pr": 8, "reviewers": full_reviewers}))
@@ -2163,6 +2178,44 @@ def self_test() -> int:
     ReadinessWorkflow().repair(ctx_for(d))
     check("--gates is restored", ReadinessWorkflow().detect(ctx_for(d))["state"] == SATISFIED)
 
+    # zheref/hatsu#160, a consumer that adopted BEFORE the verdict was pinned
+    # (hanten on step two, Phinks' red test tenkai_stale_readiness_render_red.sh):
+    # no `--exclude-check readiness`, no `--require-head`, the freshness step
+    # back between the verdict and Publish. Every snippet check passed it, so
+    # diagnose said satisfied and apply never re-rendered it.
+    pinned = w.read_text()
+    unpinned_verdict = re.sub(r' \\\n\s*--exclude-check readiness \\\n\s*--require-head "\$EVENT_HEAD"', "", pinned)
+    check("self-test: the pinning flags were found to drop", unpinned_verdict != pinned)
+    w.write_text(unpinned_verdict)
+    row = ReadinessWorkflow().detect(ctx_for(d))
+    check("a verdict without --exclude-check and --require-head is DRIFT",
+          row["state"] == DRIFT and "false READY" in row["detail"])
+    ReadinessWorkflow().repair(ctx_for(d))
+    repaired = w.read_text()
+    check("apply re-renders the verdict with both flags",
+          "--exclude-check readiness" in repaired and '--require-head "$EVENT_HEAD"' in repaired
+          and ReadinessWorkflow().detect(ctx_for(d))["state"] == SATISFIED)
+    old_fresh = repaired.replace("      - name: Publish the check on the exact PR head\n",
+                                 "      - name: Confirm the verdict still describes the event head\n"
+                                 "        id: fresh\n        shell: bash\n        run: echo stale=no >> \"$GITHUB_OUTPUT\"\n\n"
+                                 "      - name: Publish the check on the exact PR head\n", 1)
+    check("self-test: the freshness step was inserted", old_fresh != repaired)
+    w.write_text(old_fresh)
+    row = ReadinessWorkflow().detect(ctx_for(d))
+    check("the retired freshness step is DRIFT", row["state"] == DRIFT and "freshness" in row["detail"])
+    ReadinessWorkflow().repair(ctx_for(d))
+    check("apply removes the freshness step",
+          "Confirm the verdict still describes" not in w.read_text()
+          and ReadinessWorkflow().detect(ctx_for(d))["state"] == SATISFIED)
+    w.write_text(w.read_text().replace('title="${title#*: }"', 'title="${title#*:}"'))
+    check("a one-byte change to the verdict body is DRIFT",
+          ReadinessWorkflow().detect(ctx_for(d))["state"] == DRIFT)
+    ReadinessWorkflow().repair(ctx_for(d))
+    w.write_text(w.read_text().replace("conclusion=success", "conclusion=neutral"))
+    check("a changed Publish step is DRIFT", ReadinessWorkflow().detect(ctx_for(d))["state"] == DRIFT)
+    ReadinessWorkflow().repair(ctx_for(d))
+    check("both are restored", ReadinessWorkflow().detect(ctx_for(d))["state"] == SATISFIED)
+
     # THE SINGLE-TRIGGER BUG, which a consumer would otherwise inherit silently.
     t = re.sub(r"^  pull_request_review:\n(?:    .*\n)*", "", w.read_text(), flags=re.M)
     w.write_text(t)
@@ -2213,6 +2266,72 @@ def self_test() -> int:
           "pull_request_review_thread:" not in tmpl_live)
     check("the shipped template carries the widened CON-32(b) types",
           "review_requested" in tmpl_live and "review_request_removed" in tmpl_live)
+    # zheref/hatsu#160: the verdict drops its own prior readiness check by name and
+    # is pinned to the event head, so a consumer whose only check is this one
+    # cannot read a false READY, and an older run cannot judge a newer tree.
+    check("the shipped template excludes its own prior readiness check by name",
+          "--exclude-check readiness" in tmpl_live)
+    check("the shipped template pins the verdict to the event head",
+          '--require-head "$EVENT_HEAD"' in tmpl_live
+          and "EVENT_HEAD: ${{ github.event.pull_request.head.sha }}" in tmpl_live)
+    check("the shipped template carries no freshness step and no STALE branch",
+          "steps.fresh" not in tmpl_live and "STALE" not in tmpl_live)
+    # The RENDERED output, not only the template source (Nobunaga on step two):
+    # render(ctx) is placeholder replacement today, and this pins that a
+    # rendering carries what the source promises.
+    rendered = ReadinessWorkflow().render(ctx_for(fixture()))
+    rendered_live = "\n".join(l for l in rendered.splitlines() if not l.lstrip().startswith("#"))
+    check("a rendering excludes its own prior readiness check and pins the event head",
+          "--exclude-check readiness" in rendered_live and '--require-head "$EVENT_HEAD"' in rendered_live
+          and "EVENT_HEAD: ${{ github.event.pull_request.head.sha }}" in rendered_live
+          and "steps.fresh" not in rendered_live and "@@" not in rendered_live)
+
+    # THE #160 REPRO, BEFORE AND AFTER (hanten on step two, Nobunaga H3). The
+    # rendered verdict body is RUN under bash against a stub `nen` that answers
+    # the way nen v0.18.2 documents and tests it (`nen pr ready --help`: "An
+    # EMPTY rollup after exclusion is 'not-ready: no checks reported'"; nen's own
+    # src/gates/ready.test.ts at v0.18.2, "excluding the ONLY check present ...
+    # never `ready`"): the rollup holds ONE check, a prior green `readiness`. The
+    # body WITHOUT the pinning flags -- what consumers ran before #160 -- titles
+    # the check `ready`, the false READY; the shipped body titles it not-ready.
+    # What this proves is the workflow half -- the flag reaches nen and the exits
+    # route to the right title. nen's half is nen's own test, cited, not re-run.
+    def verdict_body(text):
+        lines = text.splitlines()
+        at = next(i for i, l in enumerate(lines) if l.strip() == "- name: Readiness verdict")
+        run_at = next(i for i in range(at, len(lines)) if lines[i].strip() == "run: |")
+        body = []
+        for l in lines[run_at + 1:]:
+            if l.strip().startswith("- name:"):
+                break
+            body.append(l[10:] if l.startswith(" " * 10) else l.strip())
+        return "\n".join(body).strip() + "\n"
+    def run_verdict(body):
+        with tempfile.TemporaryDirectory() as td:
+            tdp = Path(td)
+            stub = tdp / "nen"
+            stub.write_text("#!/bin/sh\n"
+                            "case \" $* \" in\n"
+                            "  *' --exclude-check readiness '*) echo 'acme/widget#7: not-ready: no checks reported (after excluding: readiness) (CON-32a)'; exit 1 ;;\n"
+                            "  *) echo 'acme/widget#7: ready'; exit 0 ;;\n"
+                            "esac\n")
+            stub.chmod(0o755)
+            out = tdp / "out"
+            out.write_text("")
+            env = dict(os.environ, NEN=str(stub), PR="7", REPO="acme/widget", RUN_ID="1",
+                       EVENT_HEAD="a" * 40, GITHUB_OUTPUT=str(out), GH_TOKEN="x")
+            subprocess.run(["bash", "--noprofile", "--norc", "-e", "-o", "pipefail", "-c", body],
+                           env=env, cwd=td, capture_output=True, text=True, check=False)
+            m = re.search(r"^title<<(\S+)\n(.*?)\n\1$", out.read_text(), re.M | re.S)
+            return m.group(2) if m else None
+    after = verdict_body(rendered)
+    before = re.sub(r' \\\n\s*--exclude-check readiness \\\n\s*--require-head "\$EVENT_HEAD"', "", after)
+    check("self-test: the repro's before body differs from the shipped one", before != after)
+    before_title, after_title = run_verdict(before), run_verdict(after)
+    check("#160 before: with only a prior readiness check, the unpinned verdict titles itself ready (the false READY)",
+          (before_title or "").startswith("ready"))
+    check("#160 after: the shipped verdict titles the same rollup not-ready: no checks reported",
+          (after_title or "").startswith("not-ready: no checks reported"))
     check("the engine mirrors the guard's own ALLOWED_TRIGGERS",
           set(REQUIRED_TRIGGERS) == {"pull_request_target", "pull_request_review"})
 
@@ -2251,6 +2370,20 @@ def self_test() -> int:
     check("PORTABLE_HOSTED_WORKFLOWS' double duty is named in the action",
           "required-PRESENCE list" in (by["guard/registration"]["action"] or ""))
     check("the run is outstanding, so nobody reads it as done", res["outstanding"] > 0)
+
+    # The CURRENT guard names its types table HARDENED_TYPES / BASE_TYPES, not
+    # EXPECTED_TYPES (hanten on step two, Phinks): a guard in that shape is
+    # registered, and so is this repository's own guard.
+    dt = fixture(with_guard=True, registered=True)
+    (dt / GUARD_PATH).write_text((dt / GUARD_PATH).read_text().replace("EXPECTED_TYPES", "HARDENED_TYPES"))
+    check("a guard naming HARDENED_TYPES instead of EXPECTED_TYPES is registered",
+          GuardRegistration.state_of(ctx_for(dt)) == "registered")
+    (dt / GUARD_PATH).write_text((root / GUARD_PATH).read_text())
+    check("this repository's own current guard reads as registered",
+          GuardRegistration.state_of(ctx_for(dt)) == "registered")
+    (dt / GUARD_PATH).write_text("# HARDENED_TYPES = pr-readiness.yml in a comment only\nEXPECTED_JOBS = {'pr-readiness.yml' => 1}\nEXPECTED_STEPS = {'pr-readiness.yml' => 1}\n")
+    check("a types table named only in a comment still reads unregistered",
+          GuardRegistration.state_of(ctx_for(dt)) == "unregistered")
 
     d3 = fixture(with_guard=True, registered=True)
     res = run("apply", ctx_for(d3))
@@ -2479,6 +2612,33 @@ def self_test() -> int:
           "TENKAI_PIN_FALLBACK_ALLOWED: true" in product_workflow
           and f"TENKAI_FALLBACK_REF: {ctx_for(dprod).nen_ref()}" in product_workflow
           and 'ref="$TENKAI_FALLBACK_REF"' in product_workflow)
+    # END TO END THROUGH THE SHIPPED VALIDATOR (Copilot on HA-PR-#211): a
+    # process repository that follows § 5d lands this validator and then
+    # re-renders, so the rendering must be one the validator admits. Rendered
+    # for each role on a hosted runner, then validated with Hatsu's own
+    # scripts/workflow_runner_policy_check.rb beside Hatsu's other workflows.
+    # The slug is swapped for Hatsu's: the validator's job guard names its own
+    # repository, and a process repository's copy carries that repository's.
+    validator = root / "scripts" / "workflow_runner_policy_check.rb"
+    def validate_rendering(text):
+        with tempfile.TemporaryDirectory() as vtmp:
+            wf = Path(vtmp) / ".github" / "workflows"
+            wf.mkdir(parents=True)
+            for src in (root / ".github" / "workflows").glob("*.yml"):
+                shutil.copy(src, wf / src.name)
+            (wf / "pr-readiness.yml").write_text(text)
+            return subprocess.run(["ruby", str(validator), vtmp], capture_output=True, text=True)
+    for role in (ROLE_PROCESS, ROLE_PRODUCT):
+        dv = fixture(role=role)
+        run("apply", ctx_for(dv, vis="public", sh=0))
+        text = (dv / WORKFLOW_PATH).read_text().replace("acme/widget", "zheref/hatsu")
+        check(f"the {role} rendering runs on the hosted runner the validator admits",
+              re.search(r"^    runs-on: ubuntu-latest$", text, re.M) is not None)
+        result = validate_rendering(text)
+        check(f"the shipped validator admits the {role} rendering",
+              result.returncode == 0, result.stderr.strip()[-300:])
+    tampered = validate_rendering(text.replace("TENKAI_FALLBACK_REF: ", "TENKAI_FALLBACK_REF: x..", 1))
+    check("and refuses a rendering whose fallback ref was edited", tampered.returncode == 1)
     pin_step = product_workflow.split(
         "      - name: Read the pinned nen ref from trusted nen/contract.json", 1)[1]
     pin_step = pin_step.split("      - name: Bootstrap nen at the trusted pinned ref", 1)[0]

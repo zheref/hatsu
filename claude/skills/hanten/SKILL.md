@@ -30,14 +30,14 @@ fetched, the delta plus `git status --porcelain`; STANDALONE-ENTRY.md § 3). **`
 (WORKFLOW.md § 4).
 
 **The cycle ledger is fail-closed**: `.nen/hanten/<branch-slug>.cycle.json`; `decide`/`record`/`show`
-refuse a missing file. **First, every entry**: `"$hatsu_root/scripts/hanten_cycle_ledger.sh" ensure --repo <path> --branch <branch>`
-(HA#169), rows by exit and JSON `action`/`reason` (`row` quotes each): `0 opened`/`0 present` — **say
-so**, proceed; `3 lost-ledger` → recover it **in this turn** per WORKFLOW.md § 4 from the evidence it
-names — a first cycle the maintainer confirms in the native picker is the same script's `recover-first
---repo <path> --branch <branch> --confirmed-first-cycle`, reviews that ran restore the original ledger,
-counts kept, unestablishable history is a G5 naming the restore path; headless, stop, evidence quoted;
-`2 trunk`, `2 detached-head` or any other non-zero → stop, stderr quoted. **Never fabricate review
-history, never reset a budget.** The PR-keyed ledger is § 2b's.
+refuse a missing file. Every entry first runs `"$hatsu_root/scripts/hanten_cycle_ledger.sh" ensure --repo <path>
+--branch <branch> [--pr <n>]`: `opened` (no prior trace; said) or `present`, untouched;
+exit `3` is the trunk, stop; `4` is a lost ledger, recovered **in this turn** per WORKFLOW.md § 4 —
+`hatsu:tenkai diagnose` and the prior review evidence; a first cycle the maintainer confirms through
+the native picker is its `recover-first <same args> --confirmed-first-cycle`;
+reviews that already ran restore the original ledger, counts kept; history that cannot be established
+is a G5 naming the restore path. Tenkai `apply` never creates a ledger; headless or refused, stop.
+**Never fabricate review history, never reset a budget.** The PR-keyed ledger is § 2b's.
 
 ## 2. Classify — by path, then by content
 
@@ -73,12 +73,12 @@ row that cannot run is not scanned, never clean**; values are `$hatsu_root/contr
 ## 2b · Budgets — one effort, one ledger
 
 **A Hanten invocation is not a new review budget**: remediation, a resumed session, a later `ren` turn
-or `mukai` continue the **same cycle**. **An effort is a branch PLUS its pull request**
+and `mukai` re-entering continue the **same cycle**. **An effort is a branch PLUS its pull request**
 (ROSTER ruling 9 R2) — keyed `<branch-slug>`, then `<branch-slug>-pr<N>`, so a new PR number is a fresh
 ledger, every budget full. **Hanten opens the PR-keyed one itself, once**: missing →
-the script's `init --repo <path> --branch <branch> --pr <N>` before the first `decide`; present
-→ never re-`init` (exit `2`); the branch-only ledger is unread thereafter. **Each scope's maximum is its own `budget`, per effort, never per session or repository**,
-counted by the ledger; **one persona, one budget** (his smallest): two scopes
+the ledger script's `init --repo <path> --branch <branch> --pr <N>` before the first `decide`; present
+→ never re-`init` (exit `2`); the branch-only ledger is unread thereafter. **Each scope's maximum is its own `budget`, per effort, never per session or repository** (ruling
+2026-09-28), counted by the ledger; **one persona, one budget** (his smallest): two scopes
 he owns raised together are one raise for both.
 
 ```bash
@@ -102,12 +102,12 @@ the persona, the raising paths, **this scope not reviewed** — never a pass, ne
 
 On Claude Code the reviewer is an Agent-tool subagent, one per scope, in parallel:
 `subagent_type` `hatsu:<persona>`, `description` **`hanten · <persona> · <model alias>`**, `model`
-`models.<surface>.<tier>` for the scope's `tier` (**not passed** where the persona pins one), the `prompt` carrying the checkout path, scope, base, raising paths, § 5's
+`models.<surface>.<tier>` for the scope's `tier` (**not passed** where the persona pins one), `isolation` **omitted**, the `prompt` carrying the checkout path, scope, base, raising paths, § 5's
 shape, the preamble's **absolute** path (and ECONOMICS.md's, where `economics` is raised),
 *"do not request a worktree"*, and `nen: <path>` with its
 pin — the one `ten` § 2 bound, since **a subagent inherits no `PATH`** (#107), never a bare `command -v nen` — prefixing every block (preamble
 § 2). Unresolvable, the prompt names every Nen-owned check **unread** once; one failing at the reviewer's
-end is the reviewer's to declare.
+end is his to declare.
 
 ```bash
 git -C <target repo> rev-parse HEAD refs/heads/<branch>   # print both SHAs, quote them
@@ -121,7 +121,7 @@ stands** (WORKFLOW § *Where worktrees live*), removed when the review returns; 
 `"$hatsu_root/scripts/branch_authorship_check.sh" --repo <path> --base <printed HEAD> --require-agent <responsible-persona>`**:
 a moved ref or any commit in that range is a G5 naming the range, never built on (#170);
 exit `2` is a wiring stop, quoted.
-**Say what was raised before the reviews return**: scopes, personas, aliases, gaps, each `used`/`max`.
+**Say what was raised before the reviews return**: scopes, personas, aliases, gaps, `used`/`max`.
 **As each returns, one `nen usage record` — never a transcription after the round** (#100;
 WORKFLOW.md § *The effort's ledgers*, its flags): `--effort <branch>` (only the cycle ledger is
 PR-keyed), `--source "hanten § 4: <persona>, <readout>"`.
