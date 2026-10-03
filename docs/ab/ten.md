@@ -172,3 +172,30 @@ bootstrap did not print; the row says the same. And the third reading had swallo
 case: a login shell that runs fine and finds no `nen` answered `not read` with no offer. Now exit `1`
 with nothing printed is the shell answering *no `nen`* — `installed, not reachable (no nen)`, the offer
 made — and `not read` is only the shell itself failing. The changelog bullet and the README say so.
+
+## 2026-10-02 — § 5 on Claude Code reads the installed copy (zheref/hatsu#122)
+
+Plugin 0.82.0 on the integration branch, the maintainer's host (`~/.claude/skills/hatsu` → the core
+checkout, at 0.81.0; nineteen version directories under `plugins/cache/hatsu/hatsu/`, no `hatsu@`
+entry in `installed_plugins.json`). `scripts/plugin_cache_check.sh` closes the residue above, measured
+at the head that carries its review round (the whole tree minus the ignore list, 223 files):
+
+```text
+$ HATSU_PLUGIN_ROOT=<core> scripts/plugin_cache_check.sh           # exit 0
+plugin-cache: linked (identical by construction)
+$ scripts/plugin_cache_check.sh                                    # exit 1, run from this worktree, nothing exported
+plugin-cache: linked to <core> (not <this worktree>)
+$ scripts/plugin_cache_check.sh --root <this worktree> --installed $cache/0.61.0   # exit 1
+plugin-cache-check: the installed copy is NOT the source: 100 differ, 28 missing, 0 extra (95 identical).
+$ scripts/plugin_cache_check.sh --root <this worktree> --installed $cache          # exit 2
+... is not an installed Hatsu ...; it holds the versions 0.14.0 0.33.0 ... 0.61.0 — name one of them
+$ scripts/surface_mirror_check.sh --installed $cache                               # exit 2, names plugin_cache_check.sh
+```
+
+The second line is the case the first cut read as `stale (22 paths)` with a circular remedy: the link
+serves another checkout's branch, and that is now said as such. The 0.61.0 copy reads 128 paths where
+the first cut, comparing six directories, read 53: the scripts a hook runs, `nen/contract.json` and
+`claude/commands` were outside it. `--self-test` (the `plugin-cache-guard` lane, 3.3 s) folds the
+pre-PR review's red suite and corpus: the whole tree, type, link and mode, the registry read in Claude
+Code's own shape only (minified, truncated, ambiguous and dangling records refused), a root that is
+any recorded copy, and the wiring defects.

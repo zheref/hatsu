@@ -388,7 +388,7 @@ remains and the recommended next step.
 - **Never accumulates authority across iterations** — each resolves fresh and lapses (§ 2).
 - **Never routes the act through `nen watch until`** — verified live (§ 3) to refuse it outright;
   the act runs directly, under the looped task's own machinery.
-- **Never merges (the merge is `en` § 5's, never a loop's), never applies a G1 mode label, never casts a review vote** — the looped
+- **Never merges (the merge is the maintainer's at `en` § 5's prompt, never a loop's), never applies a G1 mode label, never casts a review vote** — the looped
   task's limits are the loop's limits, and looping cannot widen them (`kurapika.md`'s Manipulator
   rules, unchanged by looping).
 - **Never reports convergence it did not observe** — the condition's evidence from `nen watch until`,

@@ -185,6 +185,12 @@ fi
 #                     — the UZF-26 evidence-table check (Hatsu 0.45.0),
 #                       run from `$hatsu_root/scripts/` before every PR body
 #                       write; a stale copy passes a body a fixed one refuses.
+#   scripts/pr_development_link_check.sh
+#                     — shibari § 4's Development-link guard (zheref/hatsu#203),
+#                       run from `$hatsu_root/scripts/` before every PR body write
+#                       and after every open and body edit, and quoted by en and
+#                       sharingan; a stale copy passes a PR whose closing issues
+#                       are unlinked, or a body a fixed one refuses.
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #   docs/SURFACES.md  — the authority on how personas and skills reach Codex,
@@ -204,6 +210,11 @@ fi
 #                     — ten § 5 runs it from `$hatsu_root/scripts/` on every
 #                       mirrored-surface warm-up (Hatsu 0.50.0, #106); the same
 #                       script is CI's drift guard, which is the trusted copy.
+#   scripts/plugin_cache_check.sh
+#                     — ten § 5 runs it from `$hatsu_root/scripts/` on every
+#                       Claude Code warm-up (zheref/hatsu#122); a stale copy
+#                       judges the installed copy by an old ignore list and an
+#                       old registry reader.
 #   scripts/permissions_pack.sh
 #                     — ten § 5 places the permission pack through it on every
 #                       surface, Claude Code included; a stale copy places a
@@ -276,6 +287,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/hatsu_plugin_update.sh'
   'scripts/hatsu_root.sh'
   'scripts/surface_mirror_check.sh'
+  'scripts/plugin_cache_check.sh'
   'scripts/permissions_pack.sh'
   'scripts/dist_tag.sh'
   'scripts/send_freshness_check.sh'
@@ -288,6 +300,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/release-publish.sh'
   'scripts/report_time.sh'
   'scripts/pr_body_evidence_check.sh'
+  'scripts/pr_development_link_check.sh'
   '.mcp.json'
 )
 

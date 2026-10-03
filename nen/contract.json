@@ -114,6 +114,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/permissions_pack.sh, which ten § 5 and tenkai run on every surface, following the one-lane-per-executable-guard pattern (its fixture existed and no lane ran it until 0.66.0). Hermetic and offline: throwaway consumer repositories prove Codex writable_roots are filled, the placed .codex/hooks.json drops PLUGIN_ROOT with nen's marker kept and the same rewrite as scripts/surface_bootstrap.sh (CWE-426), --plugin leaves .codex/hooks.json to the Codex plugin and is refused off codex, a re-install is idempotent, and a tracked file is left alone."
       },
+      "plugin-cache-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/plugin_cache_check.sh (zheref/hatsu#122), the installed-copy check ten § 5 runs on Claude Code: it compares what Claude Code serves (a Hatsu tree in CLAUDE_CODE_PLUGIN_DIRS, else a hatsu@<marketplace> entry in installed_plugins.json under ${CLAUDE_CODE_PLUGIN_CACHE_DIR:-~/.claude/plugins} placed by scope, else the skills-directory link) against the root ten § 0 resolves, over the whole plugin tree minus a top-level ignore list (.git .nen Reports .claude .cursor .codex .agents .gemini surfaces node_modules .in_use .orphaned_at .DS_Store): type, link string, user executable bit and bytes, untracked-in-source differences said as such. Exit 0 identical or the source itself served in place, 1 each differing, missing or extra path named, or another tree served in place (a link, a plugin dir), 2 on a wiring defect or any unexpected failure. Its --self-test is hermetic and offline: the verdicts and their wording (same-version bytes, extra files only, untracked in source), the whole tree (commands, hook-executed scripts, the nen pin, rules, ignored residue including .in_use, nested ignored names compared), types and modes (a lost x bit, user-only x, link against file, link strings, a FIFO never opened, a control byte, a non-ASCII name), the wiring refusals (missing and unresolvable root, a cache parent, a root that is a cache, an unknown flag, an unreadable directory), the root resolved with no exported plugin root, links and plugin dirs to the source and to another tree, registry detection (a shadowing cache, an extra field, minified, truncated, unreadable, not a file, an entry with no path, another marketplace, an unknown scope, a project entry with no path, several and ambiguous scopes, project over user, local over project, a project entry from its linked worktree and for another project, an empty array, a dangling path, nothing installed), CLAUDE_CODE_PLUGIN_CACHE_DIR's registry, and a copy judging itself through a symlinked or relocated cache, with or without --installed."
+      },
       "surface-mirror-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -169,6 +174,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/pr_body_evidence_check.sh, which refuses a pull request body whose screenshots are not cells of the UZF-26 evidence table or carry no alt text (docs/WORKFLOW.md, The UZF-26 evidence shape, The table exactly). One lane per executable guard. Its fixtures are hermetic and offline: bodies with no images, a markdown table and an HTML table of labelled images pass; a loose markdown image, a loose <img>, images stacked one per line, an unlabeled markdown image, an <img> with an empty or no alt, and a second unlabeled <img> on a labelled line are refused; an image inside a code fence is ignored; an unreadable body and an unknown argument are usage errors."
       },
+      "development-link-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/pr_development_link_check.sh (zheref/hatsu#203), which refuses a pull request whose closing issues are not linked both ways in GitHub's Development field: the expected set is the body's Associated issues rows whose Merging this verdict closes, each needing its own `Closes <ref>` line; live, closingIssuesReferences must equal that set and each issue must list the PR in closedByPullRequestsReferences. Applicability is the PR's own baseRefName first (zheref/hatsu#213): a PR into the default branch is verified fully whatever --base says (a differing --base only prints a note); off the default branch it prints retarget-pending first (neither a pass nor a veto) where --base is the default branch or absent, and not-applicable where --base names a branch.base that is not the default branch either; both exit 1 (docs/WORKFLOW.md, Build accountability and issue associations). It FAILS CLOSED, refusing by name whatever its parser does not model: a NUL, invalid UTF-8, a lone CR; a fence not closed by its own character and length, or never closed; an HTML comment not at line start once code spans are stripped (a backslash-escaped backtick opens none), text after the --> that ends it (any line containing --> ends it, the opener included), or one never closed; an unbalanced code span; a missing, duplicate or lookalike section (ATX, setext and HTML headings read), ending only at a level-1 or level-2 heading; HTML or a second table in the section, an Issue and Merging table outside it; a tableless section reading anything but exactly No associated issue.; a pipe row without a leading pipe or delimiter row, a line under the table; a verdict that is not a leading bold span, or outside the template's closed ASCII vocabulary matched exactly (closing: completes it, closes it; non-closing: delivers part, part of it, cited, prerequisite, relates to it, delivers none of it), or followed by anything but an em-dash remark; an Issue cell holding anything but exactly one canonical issue URL (#N and owner/name#N shorthand stays valid on the keyword lines only); a pull request on a closing row; more than 50 references; any closing keyword GitHub would act on, read across joined paragraph lines with emphasis, escapes, &nbsp; and link brackets removed, GH-N and www. included, whose reference is not a closing row. PR_DEV_LINK_AWK set is never a verdict. shibari section 4 runs it (--body before every write, --pr --base after each open and edit-body); en sections 4-6, sharingan sections 3-4 and getsuga sections 3-3a quote it."
+      },
       "freshness-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -182,7 +192,7 @@
       "ledger-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/hanten_cycle_ledger.sh, hanten's fail-closed review-budget ledger. It shipped with an embedded --self-test and no lane (Phinks, hanten on 265c2533), so a budget-minting defect could land with nothing routed to catch it. One entry runs both: the late-persona fixture calls the script's --self-test first, then drives the ledgers that already knew a late persona."
+        "$comment": "The focused lane for scripts/hanten_cycle_ledger.sh, hanten's fail-closed review-budget ledger. It shipped with an embedded --self-test and no lane (Phinks, hanten on 265c2533), so a budget-minting defect could land with nothing routed to catch it. One entry runs all of it: scripts/hanten_cycle_ledger_fixture.sh calls the script's --self-test first, then drives the ledgers that already knew a late persona, then `ensure` (zheref/hatsu#169), the open for a branch breath did not cut."
       },
       "fresh-worktree-guard": {
         "stack": "claude-code-plugin",
@@ -212,7 +222,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, config-values-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, freshness-guard, fresh-worktree-guard, ledger-guard, runner-preflight-guard, publish-integrity-guard, redaction-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, plugin-cache-guard, surface-link-guard, prose-guard, tenkai-guard, config-values-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, freshness-guard, fresh-worktree-guard, ledger-guard, runner-preflight-guard, publish-integrity-guard, redaction-guard, development-link-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/spiritual-message.html, which is a report template, not an application."
@@ -294,6 +304,16 @@
             "scripts/permissions_pack_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the permission pack. Run it as `nen shu test --lane permissions-pack-guard --repo <hatsu>` when scripts/permissions_pack.sh, its fixture, or the Codex placed-hooks rewrite changes."
+        }
+      },
+      "plugin-cache-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/plugin_cache_check.sh",
+            "--self-test"
+          ],
+          "$comment": "A permanent, deterministic fixture for the installed-copy check. Run it as `nen shu test --lane plugin-cache-guard --repo <hatsu>` when scripts/plugin_cache_check.sh changes; run the check itself (`bash scripts/plugin_cache_check.sh`) to read this host's installed copy."
         }
       },
       "surface-mirror-guard": {
@@ -412,6 +432,16 @@
           "$comment": "The PR-body evidence check's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Run it as `nen shu test --lane pr-body-guard --repo <hatsu>` when scripts/pr_body_evidence_check.sh changes."
         }
       },
+      "development-link-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/pr_development_link_check.sh",
+            "--self-test"
+          ],
+          "$comment": "The Development-link guard's own fixtures -- hermetic and offline, run under bash (3.2-portable) with jq, awk (under LC_ALL=C) and iconv; live mode is exercised through a stub gh, and the parser's own failure modes (awk absent, exiting non-zero, writing no END record) are exit 2. Run it as `nen shu test --lane development-link-guard --repo <hatsu>` when scripts/pr_development_link_check.sh changes."
+        }
+      },
       "freshness-guard": {
         "test": {
           "exe": "sh",
@@ -435,9 +465,9 @@
         "test": {
           "exe": "bash",
           "argv": [
-            "scripts/hanten_cycle_ledger_late_persona_fixture.sh"
+            "scripts/hanten_cycle_ledger_fixture.sh"
           ],
-          "$comment": "Hermetic and offline: throwaway repositories under a temp dir. The script's own --self-test (budgets from workflow.json, decide/record, recover-first, PR-keyed ledgers, concurrency, late-persona hydration), then a lost, deleted or re-cased late-persona row refused in a ledger that already knew him (personasAtOpen, lateHydrated), with a 0.66.0-shaped ledger still hydrating. Run it as `nen shu test --lane ledger-guard --repo <hatsu>` when scripts/hanten_cycle_ledger.sh changes."
+          "$comment": "Hermetic and offline: throwaway repositories under a temp dir. The script's own --self-test (budgets from workflow.json, decide/record, recover-first, PR-keyed ledgers, concurrency, late-persona hydration), then a lost, deleted or re-cased late-persona row refused in a ledger that already knew him (personasAtOpen, lateHydrated), with a 0.66.0-shaped ledger still hydrating; then `ensure` on throwaway git checkouts with a fake gh on PATH -- app-created opened and stamped, breath-created present byte for byte, the trunk and a detached HEAD refused with nothing written, a PR-keyed ledger alone present, every lost-ledger signal at exit 3 (another worktree's ledger or PR-keyed ledger, a stamped lock, a findings record, a pre-rename name in a chain, a PR on any of those heads), a pushed remote ref, a fresh rename and a refused read's bare lock not evidence, every PR-check answer that is not a list of PR rows refused, every other refusal at exit 2 in the same JSON row shape, and 20 concurrent ensures opening once. Run it as `nen shu test --lane ledger-guard --repo <hatsu>` when scripts/hanten_cycle_ledger.sh changes."
         }
       },
       "fresh-worktree-guard": {
@@ -484,7 +514,7 @@
         "darwin",
         "linux"
       ],
-      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/nen_global_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/permissions_pack_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/kagutsuchi_worktree.sh --self-test, scripts/runner_preflight_fixture_check.sh, scripts/private_name_check_fixture.sh) use a POSIX shell, git and mktemp (runner_preflight also nen itself; private_name_check also perl with its core Encode and Unicode::Normalize) and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
+      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/nen_global_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/permissions_pack_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/pr_development_link_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/kagutsuchi_worktree.sh --self-test, scripts/runner_preflight_fixture_check.sh, scripts/private_name_check_fixture.sh, scripts/plugin_cache_check.sh --self-test) use a POSIX shell, git and mktemp (runner_preflight also nen itself; private_name_check also perl with its core Encode and Unicode::Normalize; pr_development_link_check also bash, jq and iconv; plugin_cache_check also bash, find, sort, comm and cmp) and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
     },
     "targets": {},
     "toolchain": {

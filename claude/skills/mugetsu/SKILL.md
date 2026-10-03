@@ -21,7 +21,7 @@ trigger a duplicate filing. Never copy or invent a second policy in the target r
 > (`CON-5`) in a consumer repository**, where a `nen/contract.json`, `nen/workflow.json` or
 > `nen/gates.json` is that repository's own configuration and governs nothing else. **This skill runs
 > against consumer checkouts by design**, so every declaration-gate instruction below names both
-> halves explicitly rather than asking you to reinterpret a bare "G4". The merge is `en` § 5's
+> halves explicitly rather than asking you to reinterpret a bare "G4". The merge prompt is `en` § 5's
 > either way — the ruling moves the gate, never the owner.
 
 **Nature: Emitter.** Publication is the far end of the release line, and it is the one act in the
@@ -243,7 +243,7 @@ prompted for and never proposed; the chain is the call.
   **single** declared one; two or more declared and none named → asked as free text
   (`missing-maintainer-choice`), never picked.
 - **Single use.** One go, one target, once. It **lapses** if the run ends, halts or stops at a **G5**
-  before this step is reached (a delivery merge is en § 5's, never a stop), or if a getsuga step
+  before this step is reached (a delivery PR's merge prompt, en § 5, is a G2 stop and lapses nothing), or if a getsuga step
   ahead of it cut a tag and the tag in hand is not that one. Never carried to another run.
 - **Order.** This step runs only after its tag exists on `origin`, with every precondition of § 2 and
   § 4 still holding — `nen release preflight` green, the plan printed. **Delivery merges stay the

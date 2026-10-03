@@ -154,10 +154,14 @@ with the same flags for codex, cursor and antigravity, and writes nothing:
 | `2` | the `nen` on `PATH` has no `surface` verb, or a wiring defect; never silently passed |
 | `3` | no `nen` on `PATH` |
 
-**On Claude Code there is no mirror to check** (zheref/hatsu#106): the plugin is read in place from the
-versioned cache, and nen's `claude-code` row mirrors into a target's `.claude/` (`skills/`, `agents/`,
-`hooks/hooks.json`, `settings.local.json`), a layout Hatsu never places — so `ten` § 5 records
-`mirrors: not applicable` there and places the permission pack only. The verb's `--installed <path>`
+**On Claude Code there is no mirror to check** (zheref/hatsu#106): nen's `claude-code` row mirrors into
+a target's `.claude/` (`skills/`, `agents/`, `hooks/hooks.json`, `settings.local.json`), a layout Hatsu
+never places. `ten` § 5 runs [`scripts/plugin_cache_check.sh`](../scripts/plugin_cache_check.sh)
+instead, which compares the whole installed tree (the versioned cache; the skills-directory link is
+identical by construction only when it resolves to the source root, and a link to another checkout
+is said as one) against the source root and exits `0`/`1`/`2` (zheref/hatsu#122,
+[`claude-code.md`](surfaces/claude-code.md) § 8); `surface_mirror_check.sh --installed` refuses and names it.
+The verb's `--installed <path>`
 diffs a FULL mirror (`AGENTS.md`, `agents/`, `config.toml`, `hooks/` included) against a fresh
 generation, so a skills-only copy the warm-up placed, or the versioned cache, always reads `missing`
 under it; the warm-up therefore runs this script without `--installed` (the source against

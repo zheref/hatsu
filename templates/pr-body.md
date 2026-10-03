@@ -7,7 +7,7 @@
   surface changed, so there is no evidence table (logic-only change, UZF-26 exempt)." is a complete
   answer, a blank heading is not, and nothing here is written from what the change was supposed to do.
 
-  THE THREE MECHANICAL CHECKS, all run before the body is written back (shibari § 5):
+  THE MECHANICAL CHECKS, (a), (b) and (d) run before the body is written back (shibari § 4):
 
     (a) nen pr body-check --body-from <this file, filled> --requirements-from <path>
         --requirements-from is a JSON array of {name, pattern} from the target's own template
@@ -28,6 +28,14 @@
     (c) The gate is derived, never asserted — docs/WORKFLOW.md § Gate derivation. THE BODY NAMES THE
         GATE AS A FORECAST, NEVER AS A STATUS, because a PR shibari just opened is by definition not
         ready, and shibari never labels one.
+
+    (d) "$hatsu_root/scripts/pr_development_link_check.sh" --body <this file, filled> --target <owner/name>
+        before every write, then --pr <owner/name#N> after pr open and each edit-body (zheref/hatsu#203):
+        the Associated issues section below, read fail-closed, against the live Development links in
+        both directions, decided by the PR's own base first: a PR into the default branch is verified
+        fully whatever --base says. Exit 1 names every refusal; `retarget-pending` (the PR's base is not
+        the default branch, branch.base is) and `not-applicable` (neither is) are never a pass; exit 2
+        is GitHub unread.
 -->
 
 ## Why
@@ -92,14 +100,27 @@
 
 ## Associated issues
 
-<!-- Every issue this PR addresses, in the body AND in GitHub's Development association — shibari's
-     linkage contract. One row per issue: the canonical URL, the scope this PR implements, and whether
-     merging COMPLETES it or delivers part of it. Prerequisites and incidental references are listed
-     separately; a PR with no associated issue says so rather than inventing one. -->
+<!-- Every issue this PR addresses is in this BODY table; only the issues it CLOSES are also in
+     GitHub's Development association (shibari § 3, zheref/hatsu#203). One row per issue: the canonical
+     issue URL (never an alias such as HA#3 alone), the scope this PR implements, and the verdict.
+     Prerequisites and incidental references are listed separately; a PR with no associated issue keeps
+     this heading and says exactly "No associated issue." (no other phrase) rather than inventing one.
+     THE VERDICT is the Merging this cell's leading bold span, from a CLOSED VOCABULARY, in ASCII:
+       closing      completes it · closes it
+       non-closing  delivers part · part of it · cited · prerequisite · relates to it · delivers none of it
+     A remark may follow after " — " and nothing else. The Issue cell holds exactly one reference, the
+     canonical issue URL (alone or as [text](url)); `#N` and `owner/name#N` belong to keyword lines only. The
+     section holds that one table (or the exact phrase) and no HTML, and ends at the next `##` heading,
+     so a criteria table goes under its own heading. Every closing row, and only those, gets its own keyword line
+     below the table, after a blank line — `Closes #N`, or `Closes owner/name#N` for another
+     repository — and no other closing keyword (close/fix/resolve and their forms) appears anywhere
+     outside code, because GitHub acts on one wherever it stands. Check (d) refuses anything else. -->
 
 | Issue | Scope this PR implements | Merging this |
 |---|---|---|
 | <canonical URL> | <the part of it this PR delivers> | **completes it** / **delivers part** |
+
+Closes <owner/name#N, one line per completes-row>
 
 ## Agent attribution
 

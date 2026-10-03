@@ -745,6 +745,27 @@ at step 5), `build` § 4 (its own steps; usage at every § 7 report), `hanten` �
 reviewer, as each returns), `spiritual-message` § 4 and `backlog-board` § 3 (usage before a render).
 `nen report data` merges both as `phases[]` and `usage[]`.
 
+**Beside those two, Hanten's cycle ledger** (`.nen/hanten/<branch-slug>[-pr<N>].cycle.json`, the
+review budgets — PR-keyed once a PR exists, so not one of the two above) opens once per branch:
+[`breath`](../claude/skills/breath/SKILL.md) § 3b's `init` when Breath cuts it, else
+[`hanten`](../claude/skills/hanten/SKILL.md) § 1's `scripts/hanten_cycle_ledger.sh ensure`, which every
+Hanten entry runs. Every answer, refusals included, is one JSON document whose `action`/`reason` names
+its row (the script's `ENSURE_ROWS` is the table):
+
+| Exit | Row | Means |
+|---|---|---|
+| `0` | `opened` | no ledger and no review evidence: opened through the same `init`, stamped `openedAs: "ensure"` with what it searched |
+| `0` | `present` | this effort's ledger loads here — the PR-keyed one when exactly one is here (§ 2b: the branch-only file is then not read), else the branch's; untouched |
+| `3` | `lost-ledger` | review evidence with no ledger here — in any `git worktree list` checkout, under the branch's name or any name the reflog says it was renamed from: its ledger, a PR-keyed ledger, a lock a save stamped, or its findings record (`Reports` and the declared `reports.dir`); or a PR whose head is any of those names. A pushed remote ref alone is never evidence. Recovered per § 4 |
+| `2` | `trunk` · `detached-head` | the trunk (`main`, `master`, `--base`, `origin/HEAD`, every declared `branch.base` from the tree and from `refs/remotes/origin/<base>`) or a detached HEAD gets no ledger |
+| `2` | `refused` | anything else — usage, a `--repo` that is not the toplevel or not on `--branch`, a malformed or non-regular `workflow.json`, a tracked or symlinked `.nen/hanten`, a ledger that does not load, more than one PR-keyed ledger, or a PR check that failed or answered anything but a list of PR rows; stderr quoted |
+
+**An offline first open is exit `2`**: the PR check runs `gh pr list --repo <origin's owner/name>` and
+no answer is not "no PRs"; `--no-pr-check` runs only after the maintainer answers through the native
+picker, and the ledger records `"skipped (--no-pr-check)"`. It guarantees no fresh budget where any of
+that evidence survives; review history that left no trace anywhere is beyond what it can see. The
+PR-keyed one is Hanten § 2b's.
+
 ## 3 · `project.launch` and `project.evidence`
 
 Two blocks of nen's `project` shape that began as Hatsu extensions. **At the pinned nen `0.7.0` both are
@@ -910,13 +931,15 @@ report) → `jutaisho` (the bell).
 
 It loops. **It never pushes and never opens a pull request.**
 
-**Five phases are the maintainer's to call, and no agent ever prompts for them:**
+**Five phases are the maintainer's to call, and no agent ever prompts for them** (the merge prompt at
+`en` § 5 presents a PR's link and merge line; its picker never carries the merge act; the maintainer merges outside the session — [`ROSTER.md`](ROSTER.md) § *Rulings of
+2026-09-30 — En never merges*):
 
 | Phase | What it does | Why it is the human's |
 |---|---|---|
 | [`aka`](../claude/skills/aka/) | lint → squash the unpushed commits → `ao` → re-lint if catch-up moved the tree → push | publishing work is a decision, and a squash is destructive |
 | [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → kokusen checkpoint → `kotoamatsukami` impacted tests → `byakugan` coverage → publish proven updates → evidence → `shibari` opens the PR → landing report → ring, **offer** `en` through the picker and end Mukai. **§ 5 is the full shape** | En runs on the maintainer's answer (or at once under `mukai.autoEn`); pending is En's in-progress state |
-| **merge** | **G2** (`merge`) and **G4** (`canon-merge`) | **the run's own PR, at its terminus, on `branch.base`** — [`en`](../claude/skills/en/) § 5 merges it, at either row ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-29*, ruling 3); [`getsuga`](../claude/skills/getsuga/) § 3a merges **its own release-proposal PR** through `nen pr merge --release-unit`; never another's PR, never past a `gh` refusal |
+| **merge** | **G2** (`merge`) and **G4** (`canon-merge`) | **every PR into `main` is the maintainer's** — [`en`](../claude/skills/en/) § 5 ends it at the merge prompt, its link and an inline `gh pr merge` line, at either row ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-30 — En never merges*); [`getsuga`](../claude/skills/getsuga/) § 3a merges **its own release-proposal PR** through `nen pr merge --release-unit`; [`futon`](../claude/skills/futon/) § 5 merges effort branches locally (`git merge --no-ff`) into its own integration branch — no sub-PR, no `gh pr merge` |
 | [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always; § 3a's freshness gate reads the archive's build SHA against `HEAD` and `origin/<branch.base>`'s tip on a clean tree, and **only when it is not the tip's build** § 3b runs `susanoo` first in one idempotent clean worktree under core's `.nen/` (the maintainer's gitignored files copied from core, `project.fromCore`, § 3) and sends from there; `--run` acts only on a call — the target **typed, or the declared `deploy.defaultTarget`** (§ 2) | the blast radius leaves this machine |
 | [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3**: only on the maintainer's own go (mugetsu § 0), with the preflight green and the tag already cut — one target per call; with no target typed, the single declared destination and the latest cut tag with no published release (ruling of 2026-09-28) | the blast radius is other people's users |
 
@@ -957,7 +980,7 @@ attrition. The loop simply stops and waits.
 2. **touched-file coverage under `coverage.minimum`** — in `byakugan`
 3. **a semantic conflict** — in `ao`. A *mechanical* conflict is resolved, not escalated
 4. **an unsettled adversarial finding** — in `hanten`, after Kurapika has fixed it or pushed back with a reason
-5. **a `sharingan` escalation** — a PR that will not reach Ready. **A declared reviewer exhaustion is not one** (ruling 2026-09-29): the PR is merged by `en` § 5 on hanten's review, `nen/decisions.json` rows `reviewer-exhausted` and `own-pr-merge`, `docs/PROCESS.md` § *Reviewer rounds and review threads*
+5. **a `sharingan` escalation** — a PR that will not reach Ready. **A declared reviewer exhaustion is not one** (ruling 2026-09-29): the PR goes to `en` § 5's merge prompt on hanten's review, `nen/decisions.json` rows `reviewer-exhausted` and `own-pr-merge`, `docs/PROCESS.md` § *Reviewer rounds and review threads*
 
 **A red *iteration* check is not a sixth condition, and the ruling of 2026-09-10 did not make it one.** It is
 fixed where it is found: inside `rasengan`'s inner loop while the change is being written, or by handing the
@@ -1040,9 +1063,11 @@ step-2 questions here; the mechanics are [`tenkai`](../claude/skills/tenkai/SKIL
 **Every skill routes a missing repository declaration through Tenkai's diagnosis and guided
 readiness pass**, then resumes its own verb after validation. The caller remains responsible for
 its operation; Tenkai owns detection and the setup conversation. An effort artifact is different:
-the `.nen/hanten/` review ledger is local audit state, normally created by Breath when the branch
-starts. Tenkai diagnoses its absence on an active effort branch, but its `apply` cannot create review
-history. Hanten inspects prior review evidence; after the maintainer confirms this is the first
+the `.nen/hanten/` review ledger is local audit state, created by Breath when it cuts the branch, or
+by Hanten § 1's `hanten_cycle_ledger.sh ensure` on a branch cut elsewhere (the desktop app's worktree,
+zheref/hatsu#169) — idempotent, never a reset, refused on the trunk, and exit `3` `lost-ledger` wherever
+review evidence survives with no ledger (§ *The effort's ledgers* lists what counts). Tenkai diagnoses its absence on an active effort branch, but its `apply` cannot create
+review history. Hanten inspects prior review evidence; after the maintainer confirms this is the first
 cycle under the key, Hanten runs `hanten_cycle_ledger.sh recover-first
 --confirmed-first-cycle`, recording the recovery in the file. Otherwise it restores the original
 used counts. Unreconstructable prior review history is a **safety precondition**, not a missing
@@ -1567,11 +1592,45 @@ Implementation, passing checks, completed review handling and formal readiness a
 claims. Every inline and summary finding needs a disposition before a review round is complete;
 thread replies/resolutions are verified directly, not inferred from a worker's report.
 
-Every PR author lists every addressed issue in the body and verifies each Development association,
-including all issues in a combined PR. Scope changes trigger reconciliation of that full set.
+Every PR author lists every addressed issue in the body, including all issues in a combined PR, and
+verifies the Development association of exactly the issues the PR closes, no more and no fewer
+(amended by zheref/hatsu#203: Development is GitHub's closing association, so a partial or cited
+issue there would be closed on merge). Scope changes trigger reconciliation of that full set.
 Dependencies are listed separately. Closing clauses reflect completed issue scope; partial work
 must not be silently closed merely to obtain a sidebar link. Shibari owns the procedure and the
-GitHub auto-close caveat; build and sharingan enforce it at handover.
+GitHub auto-close caveat; build, sharingan and en enforce it at handover through
+`scripts/pr_development_link_check.sh` (zheref/hatsu#203).
+
+**The Development guard at readiness, stated once** (zheref/hatsu#203; en § 4–6, sharingan § 3–4 and
+shibari § 4 cite this paragraph):
+
+The three cases below are mutually exclusive and total, and **the PR's own base decides first**
+(zheref/hatsu#213): (1) is every PR into the default branch, whatever `branch.base` declares; (2) and
+(3) split the rest on `branch.base`.
+
+- **(1) the PR's base is the default branch**, whatever `branch.base` declares: closing keywords and
+  Development links act on it, so the guard verifies fully and readiness is `nen pr ready` + `nen pr
+  body-check` **and** the guard's `0` (`--pr <owner/name#N> --base <branch.base>`). A `--base` naming
+  another branch prints an informational note and bypasses nothing. Any other guard line vetoes
+  Ready; its channel is the body through `nen pr edit-body`, or a sidebar link surfaced to the
+  maintainer. A PR on `branch.base` gets en § 5's merge prompt; one off it, the off-base report.
+- **(2) the PR's base is not the default branch and `branch.base` is** (stacked on another delivery
+  branch): readiness is `nen pr ready` + `nen pr body-check` alone. The guard's `retarget-pending` line
+  is quoted beside them, **neither a pass nor a veto**, and the PR goes to en § 5's off-base report: it
+  never gets a prompt.
+- **(3) `branch.base` is not the default branch and neither is the PR's base**: the guard prints
+  `not-applicable (branch.base 'X' is not the default branch 'Y', and neither is the PR's base 'Z')`
+  and exits `1`, because nothing it verifies can act there. Readiness is `nen pr ready` + `nen pr
+  body-check`, and a PR on `branch.base` gets en § 5's **merge prompt** with that line quoted in place
+  of the guard's `0`: the merge is the maintainer's either way. It is the G2/G4 merge stop, **not a
+  G5** (the plane's genuine stops stay five, § 4). A PR off `branch.base` still gets the off-base
+  report. Hatsu never reaches this case (its `branch.base` is its default branch); canon states it so
+  a consumer's is total.
+- **Every `nen pr edit-body` and every retarget read-back is followed by the guard**, its line quoted.
+- The reading that keywords and links act only on the default branch is GitHub's documented
+  behaviour (*Linking a pull request to an issue*); treating it as never-a-pass-never-a-veto, and
+  case (3) as the merge prompt rather than a stop of its own, is the run's G4 interpretation, recorded in [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-30 — En never
+  merges* and the maintainer's to correct.
 
 ---
 

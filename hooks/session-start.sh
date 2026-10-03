@@ -50,8 +50,9 @@
 # environment variable. A copy carrying a marker naming a surface this script
 # does not recognise exits 0 with one line on stderr rather than guessing.
 #
-# It is NOT a nen-owned step: the warm-up's `nen surface mirror check
-# --installed` is the check of record; this hook only keeps a consumer's copy
+# It is NOT a nen-owned step: the warm-up's scripts/surface_mirror_check.sh
+# (and, on Claude Code, scripts/plugin_cache_check.sh) is the check of
+# record; this hook only keeps a consumer's copy
 # from going stale between warm-ups. POSIX sh, no jq, no python, fails open —
 # a hook that cannot help must never block a session (zheref/hatsu#93).
 set -u
