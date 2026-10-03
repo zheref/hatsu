@@ -408,6 +408,19 @@ about the **ordering** and says nothing about **enforcement**: the byte-compared
 guard, the write-permission refusal and the trusted-data rules all live in
 `scripts/workflow_runner_policy_check.rb`, which Tenkai does not install.
 
+**A process repository that carries its own copy of that validator takes the newer validator first.**
+The readiness template's verdict step is pinned to the event head and drops its own prior check by
+name (`--require-head "$EVENT_HEAD"`, `--exclude-check readiness`; zheref/hatsu#160), and its
+freshness step is gone. A trusted validator older than Hatsu 0.78.0 knows only the previous shape and
+refuses the re-rendered workflow. A validator from 0.78.0 through 0.81.x admits both renderings, so it
+is the safe first step: land it on that repository's base branch in its own PR, then re-render
+(`docs/GATE-CONFIGURATION.md`, the two-step landing). The validator this change ships admits only the
+new rendering, so landing it must be followed at once by the re-render, or every pull request between
+the two fails. A consumer with no validator of its own re-renders directly; `diagnose` reports an older
+rendering as drift and `apply` re-renders it. **With no other reporting check, the pinned verdict never
+reads ready:** excluding its only check leaves an empty rollup, which nen judges `not-ready: no checks
+reported` on every event — add a real CI check first.
+
 The rendered job checks for that file on its **trusted** checkout. A process repository fails
 if it is absent; a consumer emits a notice and continues under the rendered job's own guards.
 The Nen ref comes from the trusted contract when present, otherwise from the pinned Hatsu
