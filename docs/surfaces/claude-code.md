@@ -110,36 +110,55 @@ replaced it.
 
 **The installed-copy check** (zheref/hatsu#122) is
 [`scripts/plugin_cache_check.sh`](../../scripts/plugin_cache_check.sh) `[--installed <path>] [--root
-<checkout>]`. It compares the copy Claude Code serves against the source root `ten` § 0 resolves
+<checkout>]`. It compares what Claude Code serves against the source root `ten` § 0 resolves
 (`scripts/hatsu_root.sh`, handed the script's own plugin root, so a § 5 call that never exported
-`$hatsu_root` still resolves one). It compares the **whole tree** minus an ignore list — `.git`,
-`.nen`, `Reports`, `.claude`, `.cursor`, `.codex`, `.agents`, `.gemini`, `surfaces`, `node_modules`,
-`.orphaned_at`, `.DS_Store` files — so the scripts a hook executes from the plugin root, the
+`$hatsu_root` still resolves one). It compares the **whole tree** minus a top-level ignore list —
+`.git`, `.nen`, `Reports`, `.claude`, `.cursor`, `.codex`, `.agents`, `.gemini`, `surfaces`,
+`node_modules`, `.in_use` (Claude Code's `.in_use/<pid>` marker in the version it serves),
+`.orphaned_at`, and `.DS_Store` files — so the scripts a hook executes from the plugin root, the
 `nen/contract.json` pin, `claude/commands` and `claude/rules` are in it, and a directory the plugin
 starts loading cannot fall outside it. Per path it compares the type first (two links by their link
-strings; a FIFO or device is never opened), then the executable bit, then the bytes; nothing is
-written. A source root that is a copy — under `*/plugins/cache/*`, or the same directory as any
-recorded `installPath` — is refused.
+strings; a FIFO or device is never opened), then the executable bit for this user, then the bytes; a
+difference on a path the source checkout does not track is said as `(untracked in source)`; nothing
+is written. A source root that is a copy — under `*/plugins/cache/*` or the plugins root, or the same
+directory as any recorded `installPath` or as an `--installed` path under a plugins root — is
+refused.
 
-**Which copy it reads.** Without `--installed`: a `hatsu@<any marketplace>` entry in
-`plugins/installed_plugins.json` (the most specific scope that applies — `local`, then `project`, each
-only when its `projectPath` is this checkout, then `user`; two at that scope are refused as
-ambiguous; an empty array is "not installed"), else `~/.claude/skills/hatsu`. The registry is read in
-the one two-space-indented v2 shape Claude Code writes; a file that mentions `"hatsu@` in any other
-shape, or a chosen `installPath` that does not resolve, is refused rather than read as "not
-installed", which would report the link while a stale copy shadows it. **Shadowing predicate:** the
-check follows § 9's documented precedence line — an *installed* marketplace plugin wins — while
-`hatsu:bakuryuha` § 2 reads the serving row of `claude plugin list --json`, where only an *enabled*
-`hatsu@hatsu` shadows. An installed-but-disabled copy is therefore still checked here (a stale alarm
-for a copy that may not be served, never a miss); settling the one predicate is owed, unfiled.
+**Which copy it reads**, in the loading page's name-conflict order
+([plugins/loading](https://code.claude.com/docs/en/plugins/loading) § *Name conflicts*), without
+`--installed`:
+
+1. a Hatsu tree named by `CLAUDE_CODE_PLUGIN_DIRS` (`:`-separated, absolute or `~` paths), which loads
+   in place ahead of every installed or skills-directory copy; it is judged like a link. The
+   `--plugin-dir` **flag** is out of scope — a flag on the parent's command line is invisible to a
+   child process — and so is a managed-settings lock;
+2. a `hatsu@<any marketplace>` entry in `installed_plugins.json` under the plugins root
+   (`${CLAUDE_CODE_PLUGIN_CACHE_DIR:-~/.claude/plugins}`,
+   [env-vars](https://code.claude.com/docs/en/env-vars)): the most specific scope that applies wins —
+   `local`, then `project`, each only when its `projectPath` is this checkout (its git toplevel, or
+   the main checkout of a linked worktree), then `user`, `managed` (an organisation-pinned install,
+   placed like `user`) or no scope. Two at that scope are refused as ambiguous; a project or local
+   entry for another project is passed over; one with no `projectPath`, or at a scope the check does
+   not know, is refused and named; an empty array is "not installed";
+3. else `~/.claude/skills/hatsu`.
+
+The registry is read in the one two-space-indented v2 shape Claude Code writes. A registry that
+cannot be read, is not a regular file, or mentions `"hatsu@` in any other shape, and a chosen
+`installPath` that does not resolve, are refused rather than read as "not installed", which would
+report the link while a stale copy shadows it. **Shadowing predicate:** the loading page orders
+*enabled* plugins, and `hatsu:bakuryuha` § 2 reads the serving row of `claude plugin list --json`;
+this check reads the install record, so an installed-but-disabled copy is still checked (a stale
+alarm for a copy that may not be served, never a miss). Reading `enabled` would mean spawning the CLI
+inside a hermetic check; settling the one predicate is owed, unfiled.
 
 | Exit | Last line | Means |
 |---|---|---|
-| `0` | `plugin-cache: linked (identical by construction)` | the install resolves to the source checkout itself (the skills-directory link, § 1): nothing is copied, nothing can be stale |
+| `0` | `plugin-cache: linked (identical by construction)` | what is served resolves to the source checkout itself (the skills-directory link, § 1, or a plugin dir): nothing is copied, nothing can be stale |
 | `0` | `plugin-cache: current` | a copy, identical to the source |
-| `1` | `plugin-cache: stale (<n> paths)` | each path named `differs:` (with `(type)`, `(link)` or `(mode)` where that is the difference), `missing:` or `extra:`; a same-version copy with different bytes (#118's class) is said as one |
+| `1` | `plugin-cache: stale (<n> paths)` | each path named `differs:` (with `(type)`, `(link)` or `(mode)` where that is the difference), `missing:` or `extra:`; a same-version copy with different bytes (#118's class) is said as one, extra files only and untracked-only differences as what they are |
 | `1` | `plugin-cache: linked to <target> (not <root>)` | the link serves ANOTHER checkout's branch, not the root this session resolved; repoint it with `hatsu:bakuryuha`, or bind that checkout with `export HATSU_PLUGIN_ROOT` |
-| `2` | no `plugin-cache:` line; the reason is on stderr | a wiring defect: no source root, a source root that is a copy, no install found, an unreadable registry, an ambiguous or dangling entry, a path that is not an installed Hatsu (a cache's parent directory is answered with the versions it holds), a path carrying a control byte, an unreadable directory — and any unexpected failure, so a crash never reads as `stale` |
+| `1` | `plugin-cache: plugin-dir <target> (not <root>)` | `CLAUDE_CODE_PLUGIN_DIRS` serves another Hatsu tree in place, ahead of every copy |
+| `2` | no `plugin-cache:` line; the reason is on stderr | a wiring defect: no source root, a source root that is a copy, no install found, an unreadable or non-file registry, an unknown scope, a project entry with no path, an ambiguous or dangling entry, a path that is not an installed Hatsu (a cache's parent directory is answered with the versions it holds), a path carrying a control byte, an unreadable directory — and any unexpected failure, so a crash never reads as `stale` |
 
 `ten` § 5 quotes the last line, or `plugin-cache: not checked (<reason>)` on exit `2`
 ([`PROCESS.md`](../PROCESS.md) § *`ten` § 5's rules*). `bash scripts/plugin_cache_check.sh --self-test`

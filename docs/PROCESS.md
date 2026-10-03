@@ -314,8 +314,8 @@ verb, or a wiring defect) and `3` (no `nen`) are `mirrors: not checked (<its rea
 **stops before placing** — a copy placed from an unchecked source is the silent staleness the check
 exists to catch. On Claude Code there is no mirror: `scripts/plugin_cache_check.sh` compares the
 installed copy with the source (zheref/hatsu#122) and its last line is quoted — `plugin-cache:
-current`, `linked (identical by construction)`, `stale (<n> paths)`, or `linked to <target> (not
-<root>)` (the link serves another checkout's branch); exit `2` prints no `plugin-cache:` line and is
+current`, `linked (identical by construction)`, `stale (<n> paths)`, `linked to <target> (not
+<root>)` (the link serves another checkout's branch) or `plugin-dir <target> (not <root>)`; exit `2` prints no `plugin-cache:` line and is
 quoted `plugin-cache: not checked (<its reason on stderr>)` — then the permission pack, whatever the
 verdict ([`SURFACES.md`](SURFACES.md) § 2, [`claude-code.md`](surfaces/claude-code.md) § 8). **Ten never
 generates a mirror**; `surface_bootstrap.sh` is the pre-skill shell carve-out; Cursor lists
