@@ -210,6 +210,11 @@ fi
 #                     — ten § 5 runs it from `$hatsu_root/scripts/` on every
 #                       mirrored-surface warm-up (Hatsu 0.50.0, #106); the same
 #                       script is CI's drift guard, which is the trusted copy.
+#   scripts/plugin_cache_check.sh
+#                     — ten § 5 runs it from `$hatsu_root/scripts/` on every
+#                       Claude Code warm-up (zheref/hatsu#122); a stale copy
+#                       judges the installed copy by an old ignore list and an
+#                       old registry reader.
 #   scripts/permissions_pack.sh
 #                     — ten § 5 places the permission pack through it on every
 #                       surface, Claude Code included; a stale copy places a
@@ -282,6 +287,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/hatsu_plugin_update.sh'
   'scripts/hatsu_root.sh'
   'scripts/surface_mirror_check.sh'
+  'scripts/plugin_cache_check.sh'
   'scripts/permissions_pack.sh'
   'scripts/dist_tag.sh'
   'scripts/send_freshness_check.sh'
