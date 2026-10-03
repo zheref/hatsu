@@ -114,6 +114,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/permissions_pack.sh, which ten § 5 and tenkai run on every surface, following the one-lane-per-executable-guard pattern (its fixture existed and no lane ran it until 0.66.0). Hermetic and offline: throwaway consumer repositories prove Codex writable_roots are filled, the placed .codex/hooks.json drops PLUGIN_ROOT with nen's marker kept and the same rewrite as scripts/surface_bootstrap.sh (CWE-426), --plugin leaves .codex/hooks.json to the Codex plugin and is refused off codex, a re-install is idempotent, and a tracked file is left alone."
       },
+      "plugin-cache-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/plugin_cache_check.sh (zheref/hatsu#122), the installed-copy check ten § 5 runs on Claude Code: it compares what Claude Code serves (a Hatsu tree in CLAUDE_CODE_PLUGIN_DIRS, else a hatsu@<marketplace> entry in installed_plugins.json under ${CLAUDE_CODE_PLUGIN_CACHE_DIR:-~/.claude/plugins} placed by scope, else the skills-directory link) against the root ten § 0 resolves, over the whole plugin tree minus a top-level ignore list (.git .nen Reports .claude .cursor .codex .agents .gemini surfaces node_modules .in_use .orphaned_at .DS_Store): type, link string, user executable bit and bytes, untracked-in-source differences said as such. Exit 0 identical or the source itself served in place, 1 each differing, missing or extra path named, or another tree served in place (a link, a plugin dir), 2 on a wiring defect or any unexpected failure. Its --self-test is hermetic and offline: the verdicts and their wording (same-version bytes, extra files only, untracked in source), the whole tree (commands, hook-executed scripts, the nen pin, rules, ignored residue including .in_use, nested ignored names compared), types and modes (a lost x bit, user-only x, link against file, link strings, a FIFO never opened, a control byte, a non-ASCII name), the wiring refusals (missing and unresolvable root, a cache parent, a root that is a cache, an unknown flag, an unreadable directory), the root resolved with no exported plugin root, links and plugin dirs to the source and to another tree, registry detection (a shadowing cache, an extra field, minified, truncated, unreadable, not a file, an entry with no path, another marketplace, an unknown scope, a project entry with no path, several and ambiguous scopes, project over user, local over project, a project entry from its linked worktree and for another project, an empty array, a dangling path, nothing installed), CLAUDE_CODE_PLUGIN_CACHE_DIR's registry, and a copy judging itself through a symlinked or relocated cache, with or without --installed."
+      },
       "surface-mirror-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -217,7 +222,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, config-values-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, freshness-guard, fresh-worktree-guard, ledger-guard, runner-preflight-guard, publish-integrity-guard, redaction-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, plugin-cache-guard, surface-link-guard, prose-guard, tenkai-guard, config-values-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, freshness-guard, fresh-worktree-guard, ledger-guard, runner-preflight-guard, publish-integrity-guard, redaction-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/spiritual-message.html, which is a report template, not an application."
@@ -299,6 +304,16 @@
             "scripts/permissions_pack_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the permission pack. Run it as `nen shu test --lane permissions-pack-guard --repo <hatsu>` when scripts/permissions_pack.sh, its fixture, or the Codex placed-hooks rewrite changes."
+        }
+      },
+      "plugin-cache-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/plugin_cache_check.sh",
+            "--self-test"
+          ],
+          "$comment": "A permanent, deterministic fixture for the installed-copy check. Run it as `nen shu test --lane plugin-cache-guard --repo <hatsu>` when scripts/plugin_cache_check.sh changes; run the check itself (`bash scripts/plugin_cache_check.sh`) to read this host's installed copy."
         }
       },
       "surface-mirror-guard": {
