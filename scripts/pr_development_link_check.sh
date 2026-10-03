@@ -9,13 +9,13 @@
 # THE EXPECTED SET IS DERIVED FROM THE BODY, never restated. The body's one `## Associated issues`
 # section (it ends at the next heading of level 1 or 2) holds ONE pipe table whose header names an
 # *Issue* and a *Merging this* column (templates/pr-body.md), or reads exactly `No associated issue.`
-# or `None.`. Each row's Issue cell holds exactly one reference — a canonical issue URL (alone or as
-# `[text](url)`), `owner/name#N` or `#N` — and its *Merging this* cell holds a VERDICT: a bold span,
-# or plain text, optionally followed by ` — <remark>` and nothing else, lowercased, ASCII only, from a
-# CLOSED VOCABULARY matched as whole words:
-#   closing      completes it · completes · closes it · closes
-#   non-closing  delivers part · delivers part of it · part of · part of it · cited · cited only ·
-#                prerequisite · relates to it · delivers none of it
+# and nothing else. Each row's Issue cell holds exactly one reference, the canonical issue URL
+# `https://github.com/<owner>/<name>/issues/<N>` (alone or as `[text](url)`); `#N` and `owner/name#N`
+# shorthand is refused there (it stays valid on the keyword lines). Its *Merging this* cell holds a
+# VERDICT: a LEADING BOLD SPAN, optionally followed by ` — <remark>` and nothing else, lowercased,
+# ASCII only, from the template's CLOSED VOCABULARY, matched exactly (no alias):
+#   closing      completes it · closes it
+#   non-closing  delivers part · part of it · cited · prerequisite · relates to it · delivers none of it
 # A pull request on a non-closing row is listed, not verified. The closing rows are the expected set.
 #
 # FAIL CLOSED. Anything the parser does not model is refused by name (exit 1), never guessed past:
@@ -26,8 +26,8 @@
 # a second one, or a lookalike heading (ATX with closing hashes, setext, and HTML headings read); HTML
 # in the section; a second table in the section, or an Issue and Merging table outside it; a pipe row
 # without a leading pipe or delimiter row; a line directly under the table; a verdict outside the
-# vocabulary, not ASCII, not rendered bold, or followed by anything but ` — `; an alias, a second
-# reference or a `.`/`..` segment in an Issue cell; a pull request on a closing row; a tableless
+# vocabulary, not ASCII, not a leading bold span, or followed by anything but ` — `; shorthand, an
+# alias, a second reference or a `.`/`..` segment in an Issue cell; a pull request on a closing row; a tableless
 # section saying anything but the exact phrase; more than 50 references (the API budget).
 #
 # KEYWORDS. GitHub links `close[sd]?|fix(e[sd])?|resolve[sd]?`, an optional colon, optional blanks,
@@ -37,15 +37,21 @@
 # a closing row is refused, in both modes. Each closing row also needs its OWN keyword line: the keyword
 # and reference alone on a plain line, one trailing `/` or `.` allowed.
 #
-# LIVE (--pr). On a PR into the default branch: closingIssuesReferences must equal the expected set and
-# each expected issue must list the PR in closedByPullRequestsReferences; a non-closing issue in either
-# set is refused, and after a body refusal no issue is read. On any other base the FIRST line is
-# `retarget-pending` and the exit is 1, never a pass: GitHub acts on closing keywords and Development
-# links only on a PR into the default branch (GitHub Docs, *Linking a pull request to an issue*), and
-# the run reads that as never-a-pass-never-a-veto — a G4 interpretation recorded in docs/ROSTER.md
-# § *Rulings of 2026-09-30 — En never merges*, row *Closing keywords act only on the default branch*,
-# the maintainer's to correct. With `--base <branch.base>` naming a branch that is not the default,
-# the line is `not-applicable` and the exit 1: nothing this guard verifies can act there. Remedies name
+# LIVE (--pr). APPLICABILITY IS DECIDED FROM THE PR'S OWN baseRefName, never from --base first
+# (zheref/hatsu#213): GitHub acts on closing keywords and Development links only on a PR into the
+# default branch (GitHub Docs, *Linking a pull request to an issue*), so
+#   PR base = default                     verified fully, whatever --base says (a --base naming another
+#                                         branch prints an informational note and bypasses nothing):
+#                                         closingIssuesReferences must equal the expected set, each
+#                                         expected issue must list the PR in closedByPullRequestsReferences,
+#                                         a non-closing issue in either set is refused, and after a body
+#                                         refusal no issue is read
+#   PR base ≠ default, --base = default   the FIRST line is `retarget-pending`, exit 1 (also with no --base)
+#   PR base ≠ default, --base ≠ default   the line is `not-applicable`, exit 1: nothing this guard
+#                                         verifies can act there
+# Neither line is a pass; the run reads them as never-a-pass-never-a-veto — a G4 interpretation
+# recorded in docs/ROSTER.md § *Rulings of 2026-09-30 — En never merges*, row *Closing keywords act
+# only on the default branch*, the maintainer's to correct. Remedies name
 # GitHub's Development sidebar (at most 10 linked issues per PR) or the platform's GraphQL linking;
 # there is no Nen verb, and no link is ever claimed.
 #
@@ -113,8 +119,7 @@ parse_body() {
       if (s ~ /^https?:\/\/(www\.)?github\.com\/[a-z0-9_.-]+\/[a-z0-9_.-]+\/issues\/[0-9]+$/) {
         sub(/^https?:\/\/(www\.)?github\.com\//, "", s); split(s, t, "/"); CREF = t[1] "/" t[2] "#" t[4]
       } else if (s ~ /^https?:\/\/(www\.)?github\.com\/[a-z0-9_.-]+\/[a-z0-9_.-]+\/pull\/[0-9]+$/) CKIND = "pull"
-      else if (s ~ /^[a-z0-9_.-]+\/[a-z0-9_.-]+#[0-9]+$/) CREF = s
-      else if (s ~ /^#[0-9]+$/) CREF = def s
+      else if (s ~ /^[a-z0-9_.-]+\/[a-z0-9_.-]+#[0-9]+$/ || s ~ /^#[0-9]+$/) CKIND = "short"
       else if (s ~ /github\.com\// || s ~ /[a-z0-9_.-]+\/[a-z0-9_.-]+#[0-9]/) CKIND = "none"
       else if (s ~ /[a-z0-9-]#[0-9]/ || s ~ /(^|[^a-z0-9])gh-[0-9]/) CKIND = "alias"
       else CKIND = "none"
@@ -134,9 +139,7 @@ parse_body() {
         if (!e) { VERR = "an unclosed bold span in the Merging this cell"; return "" }
         inner = substr(m, 3, e - 1); rest = substr(m, e + 4)
         if (inner == "" || inner ~ /^[ \t]/ || inner ~ /[ \t]$/) { VERR = "a Merging this bold span GitHub does not render as bold"; return "" }
-      } else {
-        p = index(m, DASH); if (p) { inner = substr(m, 1, p - 1); rest = substr(m, p) } else { inner = m; rest = "" }
-      }
+      } else { VERR = "a Merging this verdict that is not a leading bold span; write it as **completes it**"; return "" }
       if (rest != "" && rest != "." && index(rest, DASH) != 1) { VERR = "text after the Merging this verdict other than ` \342\200\224 <remark>`"; return "" }
       v = tolower(inner); gsub(/[ \t]+/, " ", v); v = trim(v); sub(/\.$/, "", v)
       if (v ~ /[*_`<>\[\]]/) { VERR = "markup inside the Merging this verdict"; return "" }
@@ -192,8 +195,8 @@ parse_body() {
       KW = "(close[sd]?|fix(e[sd])?|resolve[sd]?)"
       REF = "(https?://(www\\.)?github\\.com/[a-z0-9_.-]+/[a-z0-9_.-]+/issues/[0-9]+|[a-z0-9_.-]+/[a-z0-9_.-]+#[0-9]+|#[0-9]+|gh-[0-9]+)"
       KWRE = KW ":?[ \t]*" REF; KWLINE = "^" KW ":?[ \t]+" REF "/?\\.?$"
-      split("completes it|completes|closes it|closes", a, "|"); for (k in a) CLOSING[a[k]] = 1
-      split("delivers part|delivers part of it|part of|part of it|cited|cited only|prerequisite|relates to it|delivers none of it", a, "|")
+      split("completes it|closes it", a, "|"); for (k in a) CLOSING[a[k]] = 1
+      split("delivers part|part of it|cited|prerequisite|relates to it|delivers none of it", a, "|")
       for (k in a) OTHER[a[k]] = 1
     }
     { L[NR] = $0 }
@@ -305,20 +308,21 @@ parse_body() {
         if (VERR != "") { fail(j, VERR); continue }
         if (v in CLOSING) cls = "completes"
         else if (v in OTHER) cls = "other"
-        else { fail(j, "a Merging this verdict outside the closed vocabulary: `" v "` (closing: completes it, closes it; non-closing: delivers part, part of, cited, prerequisite, relates to it, delivers none of it)"); continue }
+        else { fail(j, "a Merging this verdict outside the closed vocabulary: `" v "` (closing: completes it, closes it; non-closing: delivers part, part of it, cited, prerequisite, relates to it, delivers none of it)"); continue }
         cellref(dc[icol])
         if (CKIND == "pull") { if (cls == "completes") fail(j, "a pull request URL on a closing row; a closing row names an issue"); continue }
-        if (CKIND == "alias") fail(j, "an alias reference with no canonical URL (" dc[icol] "); use the canonical URL, alone or as [text](url)")
+        if (CKIND == "short") fail(j, "a shorthand reference in the Issue cell (" dc[icol] "); the cell holds the canonical issue URL https://github.com/<owner>/<name>/issues/<N>, alone or as [text](url) (shorthand stays valid on the keyword lines)")
+        else if (CKIND == "alias") fail(j, "an alias reference with no canonical URL (" dc[icol] "); use the canonical URL, alone or as [text](url)")
         else if (CKIND == "dots") fail(j, "a reference with a . or .. segment")
-        else if (CKIND == "none") fail(j, "the Issue cell must hold exactly one reference, a canonical issue URL (alone or as [text](url)), owner/name#N or #N: " dc[icol])
+        else if (CKIND == "none") fail(j, "the Issue cell must hold exactly one reference, the canonical issue URL https://github.com/<owner>/<name>/issues/<N> (alone or as [text](url)): " dc[icol])
         else print "ROW\t" cls "\t" CREF
       }
       if (!ss) print "SECTION\tabsent"
       else if (matched) print "SECTION\ttable"
       else {
         st = norm(stext)
-        if (st == "no associated issue." || st == "none.") print "SECTION\tnone"
-        else fail(ss - 1, "the Associated issues section has no table and does not read exactly `No associated issue.` (or `None.`)")
+        if (st == "no associated issue.") print "SECTION\tnone"
+        else fail(ss - 1, "the Associated issues section has no table and does not read exactly `No associated issue.`")
       }
 
       unit = ""; uline = 0
@@ -409,14 +413,19 @@ check_pr() {  # check_pr <owner/name#N> <work dir>
   def="$(fetch repo "$repo")" || exit 2
   def="$(printf '%s\n' "$def" | jq -r '.defaultBranchRef.name // empty' | printable)"
   [ -n "$def" ] || die2 "defaultBranchRef missing for $repo"
-  if [ -n "$wbase" ] && [ "$wbase" != "$def" ]; then
-    echo "not-applicable (branch.base '$wbase' is not the default branch '$def'): GitHub acts on closing keywords and Development links only on a PR into the default branch, so nothing this guard verifies can act here. A stop for the maintainer, never a pass." | printable >&2
-    return 1
-  fi
   pr="$(fetch pr "$repo" "$num")" || exit 2
   base="$(printf '%s\n' "$pr" | jq -r '.baseRefName // empty' | printable)"
   [ -n "$base" ] || die2 "baseRefName missing for $self"
-  if [ "$base" != "$def" ]; then
+  # Applicability is the PR's own base first (zheref/hatsu#213): a PR into the default branch has
+  # live closing links, so it is verified fully whatever --base declares.
+  if [ "$base" = "$def" ]; then
+    if [ -n "$wbase" ] && [ "$wbase" != "$base" ]; then
+      echo "note: --base '$wbase' (branch.base) differs from the PR's base '$base', the default branch; closing keywords and Development links act on this PR, so it is verified fully." | printable >&2
+    fi
+  elif [ -n "$wbase" ] && [ "$wbase" != "$def" ]; then
+    echo "not-applicable (branch.base '$wbase' is not the default branch '$def', and neither is the PR's base '$base'): GitHub acts on closing keywords and Development links only on a PR into the default branch, so nothing this guard verifies can act here. A stop for the maintainer, never a pass." | printable >&2
+    return 1
+  else
     off=1
     echo "retarget-pending (base '$base' is not the default branch '$def'): closing keywords and links do not act here; the closing set is verified on the PR that reaches the default branch. Neither a pass nor a veto; the lines below are informational." >&2
   fi
@@ -517,7 +526,7 @@ Closes #3
 ## Agent attribution"
   none='## Associated issues
 
-None.
+No associated issue.
 '
 
   # --- live shape, through --fixture ------------------------------------------------------------
@@ -525,7 +534,10 @@ None.
   run "matched: closing row keyworded and linked both ways, partial unlinked" 0 matched
   if grep -Fq "GitHub not read" "$st_dir/matched.out"; then echo "ok    a fixture pass says GitHub was not read"; else echo "FAIL  fixture pass line"; st_fails=$((st_fails + 1)); fi
   run "--base naming the default branch is read as such" 0 matched "" "--base main"
-  run "--base naming another branch is not-applicable" 1 matched "not-applicable (branch.base 'develop' is not the default branch 'main')" "--base develop"
+  # applicability is the PR's own base first (zheref/hatsu#213)
+  run "a PR into the default branch is verified fully whatever --base says, with a note" 0 matched "note: --base 'develop' (branch.base) differs from the PR's base 'main'" "--base develop"
+  mk ondefunlinked main "$m_body" ""; issue ondefunlinked octo/demo#3 ""; issue ondefunlinked octo/demo#4 ""
+  run "a PR into the default branch is never bypassed by a non-default --base" 1 ondefunlinked "pr side: missing: octo/demo#3" "--base develop"
 
   mk nokw main "$table
 | https://github.com/octo/demo/issues/3 | all of it | **completes it** |" "octo/demo#3"; issue nokw octo/demo#3 "octo/demo#7"
@@ -536,12 +548,15 @@ None.
   run "a non-default base names the unlinked issue, informational" 1 nondefault "pr side (informational): missing: octo/demo#3"
   run "a non-default base names the sidebar's 10-link limit" 1 nondefault "at most 10 linked issues"
   if head -1 "$st_dir/nondefault.err" | grep -Fq "retarget-pending (base 'feature/x'"; then echo "ok    retarget-pending is the first line"; else echo "FAIL  retarget-pending first"; st_fails=$((st_fails + 1)); fi
+  run "a non-default base with --base the default branch is retarget-pending" 1 nondefault "retarget-pending (base 'feature/x'" "--base main"
+  run "a non-default base with a non-default --base is not-applicable" 1 nondefault "not-applicable (branch.base 'develop' is not the default branch 'main', and neither is the PR's base 'feature/x')" "--base develop"
+  if grep -Fq "pr side" "$st_dir/nondefault.err"; then echo "FAIL  not-applicable reads nothing further"; st_fails=$((st_fails + 1)); else echo "ok    not-applicable reads nothing further"; fi
   mk nondeflinked feature/x "$m_body" "octo/demo#3"
   run "a non-default base linked by hand is still never a pass" 1 nondeflinked "retarget-pending"
 
   mk partkw main "$table
 | https://github.com/octo/demo/issues/3 | all of it | **completes it** |
-| https://github.com/octo/demo/issues/4 | the first half | part of it |
+| https://github.com/octo/demo/issues/4 | the first half | **part of it** |
 
 Closes #3
 Closes #4" "octo/demo#3 octo/demo#4"; issue partkw octo/demo#3 "octo/demo#7"; issue partkw octo/demo#4 "octo/demo#7"
@@ -588,7 +603,7 @@ No associated issue." ""
 
   big="$table"; k=1
   while [ "$k" -le 51 ]; do big="$big
-| https://github.com/octo/demo/issues/$k | x | cited |"; k=$((k + 1)); done
+| https://github.com/octo/demo/issues/$k | x | **cited** |"; k=$((k + 1)); done
   mk big main "$big" ""
   run "more than 50 references is refused, naming the count, before any issue is read" 1 big "51 distinct issue references"
 
@@ -615,19 +630,19 @@ No associated issue.
   # --- the body parser, fail closed (--body mode) -----------------------------------------------
   body "the body alone passes before the PR exists" 0 "$m_body"
   body "Closes #3. with one trailing dot is a keyword line" 0 "$table
-| #3 | all | **completes it** |
+| https://github.com/octo/demo/issues/3 | all | **completes it** |
 
 Closes #3."
   body "Closes <url>/ with a trailing slash is a keyword line" 0 "$table
-| #3 | all | **completes it** |
+| https://github.com/octo/demo/issues/3 | all | **completes it** |
 
 Closes https://github.com/octo/demo/issues/3/"
   body "upper case keyword and verdict are read" 0 "$table
-| #3 | all | **COMPLETES IT** |
+| https://github.com/octo/demo/issues/3 | all | **COMPLETES IT** |
 
 CLOSES #3"
   body "a keyword inside a code fence or HTML comment does not count" 1 "$table
-| #3 | all | **closes it** |
+| https://github.com/octo/demo/issues/3 | all | **closes it** |
 
 \`\`\`
 Closes #3
@@ -637,11 +652,11 @@ Closes #3
 <!-- fixes #4 -->
 \`fixes #4\` is how not to write it."
   body "a keyword inside a sentence is not a keyword line of its own" 1 "$table
-| #3 | all | **completes it** |
+| https://github.com/octo/demo/issues/3 | all | **completes it** |
 
 This PR closes #3 and more." "has no keyword line of its own"
   body "a list-item keyword is not a keyword line of its own" 1 "$table
-| #3 | all | **completes it** |
+| https://github.com/octo/demo/issues/3 | all | **completes it** |
 
 - Closes #3" "has no keyword line of its own"
   body "an inline keyword for a partial issue is refused (GitHub would link it)" 1 "$m_body
@@ -651,7 +666,7 @@ Resolves: octo/elsewhere#12" "a closing keyword for octo/elsewhere#12"
   body "a keyword in a heading is refused" 1 "$m_body
 
 ## Fixes #9 follow-up" "a closing keyword for octo/demo#9"
-  # Feitan F2: every keyword form GitHub may link, each in a section that reads None.
+  # Feitan F2: every keyword form GitHub may link, each in a section that reads No associated issue.
   for v in 'Closes #4' 'Closes: #4' 'Closes:#4' 'Closes	#4' 'CLOSES #4' 'Resolved octo/demo#4' \
       'closes https://github.com/octo/demo/issues/4' 'closes https://www.github.com/octo/demo/issues/4' \
       '- [x] Closes #4' '> Closes #4' '1. Fixes #4' 'Fixes #4, #5' 'Closes #4 and closes #5' \
@@ -684,7 +699,7 @@ A literal \\\` then fixes #4 then \`real code\`." "a closing keyword for octo/de
   body "RED-2: an inline-code <!-- leaves the closing row read" 1 "Notes: \`<!--\` is literal.
 
 $table
-| #3 | x | **completes it** |" "closing row octo/demo#3 has no keyword line"
+| https://github.com/octo/demo/issues/3 | x | **completes it** |" "closing row octo/demo#3 has no keyword line"
   body "an HTML comment not at line start is refused" 1 "$m_body
 text <!-- Closes #4 -->" "does not start its line"
   body "text after --> is refused" 1 "$m_body
@@ -708,7 +723,7 @@ x
   body "an unbalanced code span is refused" 1 "$m_body
 a \`stray backtick" "unbalanced code span"
   body "a lone CR is refused" 1 "$(printf '%s\nx\ry' "$m_body")" "lone carriage return"
-  printf '%s\r\n' "## Associated issues" "" "| Issue | Scope | Merging this |" "|---|---|---|" "| #3 | x | **completes it** |" "" "Closes #3" > "$st_dir/crlf.md"
+  printf '%s\r\n' "## Associated issues" "" "| Issue | Scope | Merging this |" "|---|---|---|" "| https://github.com/octo/demo/issues/3 | x | **completes it** |" "" "Closes #3" > "$st_dir/crlf.md"
   bash "$st_self" --body "$st_dir/crlf.md" --target octo/demo > /dev/null 2>&1
   verdict "CRLF line ends are read" 0 $?
   printf '%s\n' "$m_body" > "$st_dir/nul.md"; printf 'x\000y\n' >> "$st_dir/nul.md"
@@ -735,28 +750,28 @@ None closed here, though https://github.com/octo/demo/issues/5 is completed by t
 
 | Issue | Scope | Merging this |
 |---|---|---|
-| #3 | all | **completes it** |" "closing row octo/demo#3 has no keyword line"
+| https://github.com/octo/demo/issues/3 | all | **completes it** |" "closing row octo/demo#3 has no keyword line"
   body "a level-3 heading does not end the section (Feitan subhead)" 1 "$none
 ### Detail
 
 | Issue | Scope | Merging this |
 |---|---|---|
-| #3 | all | **completes it** |" "closing row octo/demo#3 has no keyword line"
+| https://github.com/octo/demo/issues/3 | all | **completes it** |" "closing row octo/demo#3 has no keyword line"
   body "an Issue and Merging table outside the section is refused" 1 "$none
 ## Notes
 
 | Issue | Scope | Merging this |
 |---|---|---|
-| #3 | all | **completes it** |" "outside the Associated issues section"
+| https://github.com/octo/demo/issues/3 | all | **completes it** |" "outside the Associated issues section"
   body "another table in the section is refused (Feitan altheader)" 1 "## Associated issues
 
 | Ticket | Scope | Result |
 |---|---|---|
-| #3 | all | **completes it** |
+| https://github.com/octo/demo/issues/3 | all | **completes it** |
 
-None." "another table in the Associated issues section"
+No associated issue." "another table in the Associated issues section"
   body "a second table after the one table is refused (HA-PR-#210 shape)" 1 "$table
-| #3 | x | **closes it** |
+| https://github.com/octo/demo/issues/3 | x | **closes it** |
 
 #3 criteria:
 
@@ -766,7 +781,7 @@ None." "another table in the Associated issues section"
 
 Closes #3" "another table in the Associated issues section"
   body "a second table with both columns is refused" 1 "$table
-| #3 | x | **closes it** |
+| https://github.com/octo/demo/issues/3 | x | **closes it** |
 
 | Issue | Scope | Merging this |
 |---|---|---|
@@ -780,58 +795,58 @@ Closes #3" "a second table with Issue and Merging this columns"
 
 | Issue | Scope | Merging this |
 |---|---|---|
-| #3 | all | **completes it** |
+| https://github.com/octo/demo/issues/3 | all | **completes it** |
 </details>
 
-None." "HTML in the Associated issues section"
+No associated issue." "HTML in the Associated issues section"
   body "an HTML table in the section is refused" 1 "## Associated issues
 
 <table><tr><th>Issue</th><th>Merging this</th></tr><tr><td>#3</td><td><b>completes it</b></td></tr></table>
 
-None." "HTML in the Associated issues section"
+No associated issue." "HTML in the Associated issues section"
   body "an HTML heading lookalike is refused" 1 "$none
 <h2>Associated issues</h2>" "HTML heading that looks like"
   body "a table inside a blockquote is refused" 1 "## Associated issues
 
 > | Issue | Scope | Merging this |
 > |---|---|---|
-> | #3 | all | **completes it** |
+> | https://github.com/octo/demo/issues/3 | all | **completes it** |
 
-None." "without a leading pipe"
+No associated issue." "without a leading pipe"
   body "a table inside a list item is read and refused" 1 "## Associated issues
 
 - item
 
   | Issue | Scope | Merging this |
   |---|---|---|
-  | #3 | all | **completes it** |
+  | https://github.com/octo/demo/issues/3 | all | **completes it** |
 
-None." "closing row octo/demo#3 has no keyword line"
+No associated issue." "closing row octo/demo#3 has no keyword line"
   body "a setext Associated issues heading is read" 0 "Associated issues
 -----------------
 
 | Issue | Scope | Merging this |
 |---|---|---|
-| #3 | x | **closes it** |
+| https://github.com/octo/demo/issues/3 | x | **closes it** |
 
 Closes #3"
   body "a closing-hash heading is read" 0 "## Associated issues ##
 
 | Issue | Scope | Merging this |
 |---|---|---|
-| #3 | x | **closes it** |
+| https://github.com/octo/demo/issues/3 | x | **closes it** |
 
 Closes #3"
   body "a lookalike heading is refused" 1 "## Associated Issues:
 
 | Issue | Scope | Merging this |
 |---|---|---|
-| #3 | x | **closes it** |" "looks like the Associated issues section"
+| https://github.com/octo/demo/issues/3 | x | **closes it** |" "looks like the Associated issues section"
   body "a heading with a trailing no-break space is a lookalike" 1 "$none
 $(printf '## Associated issues\302\240')" "looks like the Associated issues section"
   body "a level-3 Associated issues heading is a lookalike" 1 "### Associated issues
 
-None." "looks like the Associated issues section"
+No associated issue." "looks like the Associated issues section"
   body "a bold pseudo-heading is refused" 1 "$m_body
 
 **Associated issues**" "looks like the Associated issues heading"
@@ -840,44 +855,86 @@ None." "looks like the Associated issues section"
 $none" "a second Associated issues section"
   # rows and cells
   body "a row without a leading pipe is refused" 1 "$table
-| #3 | x | **completes it** |
+| https://github.com/octo/demo/issues/3 | x | **completes it** |
 #4 | y | **completes it** |
 
 Closes #3" "without a leading pipe"
   body "an escaped pipe stays inside its cell" 0 "$table
-| #3 | a \\| b | **completes it** |
+| https://github.com/octo/demo/issues/3 | a \\| b | **completes it** |
 
 Closes #3"
   body "a line directly under the table is refused" 1 "$table
-| #3 | x | **completes it** |
+| https://github.com/octo/demo/issues/3 | x | **completes it** |
 Closes #3" "directly under the Associated issues table"
   body "a table with an Issue column and no Merging column is refused" 1 "## Associated issues
 
 | Issue | Scope |
 |---|---|
-| #3 | all |" "another table in the Associated issues section"
+| https://github.com/octo/demo/issues/3 | all |" "another table in the Associated issues section"
   body "a verdict outside the vocabulary is refused" 1 "$table
-| #3 | x | **partly done** |" "outside the closed vocabulary: \`partly done\`"
+| https://github.com/octo/demo/issues/3 | x | **partly done** |" "outside the closed vocabulary: \`partly done\`"
   body "a remark after an em dash is allowed" 1 "$table
-| #3 | x | **completes it** — the departure board |" "closing row octo/demo#3 has no keyword line"
-  body "a plain verdict with a remark after an em dash is allowed" 0 "$table
-| #3 | x | **closes it** |
-| #4 | y | cited — background only |
+| https://github.com/octo/demo/issues/3 | x | **completes it** — the departure board |" "closing row octo/demo#3 has no keyword line"
+  body "a bold non-closing verdict with a remark after an em dash is allowed" 0 "$table
+| https://github.com/octo/demo/issues/3 | x | **closes it** |
+| https://github.com/octo/demo/issues/4 | y | **cited** — background only |
 
 Closes #3"
+  # the verdict is a LEADING BOLD SPAN (zheref/hatsu#213)
+  body "a plain verdict with a remark after an em dash is refused" 1 "$table
+| https://github.com/octo/demo/issues/3 | x | **closes it** |
+| https://github.com/octo/demo/issues/4 | y | cited — background only |
+
+Closes #3" "not a leading bold span"
+  body "a plain closing verdict is refused" 1 "$table
+| https://github.com/octo/demo/issues/3 | x | completes it |
+
+Closes #3" "not a leading bold span"
+  # exactly the template's closed vocabulary, no alias (zheref/hatsu#213)
+  for v in completes closes 'delivers part of it' 'part of' 'cited only'; do
+    body "the retired alias **$v** is outside the vocabulary" 1 "$table
+| https://github.com/octo/demo/issues/3 | x | **$v** |" "outside the closed vocabulary: \`$v\`"
+  done
+  for v in 'completes it' 'closes it'; do
+    body "closing **$v** is in the vocabulary" 0 "$table
+| https://github.com/octo/demo/issues/3 | x | **$v** |
+
+Closes #3"
+  done
+  for v in 'delivers part' 'part of it' 'cited' 'prerequisite' 'relates to it' 'delivers none of it'; do
+    body "non-closing **$v** is in the vocabulary" 0 "$table
+| https://github.com/octo/demo/issues/3 | x | **$v** |"
+  done
+  # the Issue cell holds the canonical URL, never shorthand (zheref/hatsu#213)
+  body "a #N Issue cell is refused, naming the canonical URL" 1 "$table
+| #3 | x | **closes it** |
+
+Closes #3" "the cell holds the canonical issue URL https://github.com/<owner>/<name>/issues/<N>"
+  body "an owner/name#N Issue cell is refused, naming the canonical URL" 1 "$table
+| octo/demo#3 | x | **closes it** |
+
+Closes octo/demo#3" "a shorthand reference in the Issue cell (octo/demo#3)"
+  body "a [text](url) Issue cell with the canonical URL passes" 0 "$table
+| [OD-IS-#3](https://github.com/octo/demo/issues/3) | x | **closes it** |
+
+Closes octo/demo#3"
+  # the tableless phrase is exactly No associated issue. (zheref/hatsu#213)
+  body "a tableless section reading None. is refused" 1 "## Associated issues
+
+None." "does not read exactly \`No associated issue.\`"
   body "text after a bold verdict without an em dash is refused (Feitan boldthen)" 1 "$table
-| #3 | all | **cited** completes it |" "other than"
+| https://github.com/octo/demo/issues/3 | all | **cited** completes it |" "other than"
   body "a second bold span after an underscore verdict is refused (Feitan underscore)" 1 "$table
-| #3 | all | __cited__ **completes it** |" "other than"
+| https://github.com/octo/demo/issues/3 | all | __cited__ **completes it** |" "other than"
   body "a <br> after a bold verdict is refused (Feitan br)" 1 "$table
-| #3 | all | **cited**<br>**completes it** |" "other than"
+| https://github.com/octo/demo/issues/3 | all | **cited**<br>**completes it** |" "other than"
   body "a plain verdict with a hyphen remark is refused (Feitan remark)" 1 "$table
-| #3 | all | part of - no, it completes it |" "outside the closed vocabulary"
+| https://github.com/octo/demo/issues/3 | all | part of - no, it completes it |" "not a leading bold span"
   body "a spaced bold span is not bold (Feitan spacedbold)" 1 "$table
-| #3 | all | ** completes it ** |" "does not render as bold"
-  body "a zero-width space after the verdict is refused (Feitan zwsp)" 1 "$(printf '%s\n| #3 | all | **closes it**\342\200\213 |' "$table")" "other than"
+| https://github.com/octo/demo/issues/3 | all | ** completes it ** |" "does not render as bold"
+  body "a zero-width space after the verdict is refused (Feitan zwsp)" 1 "$(printf '%s\n| https://github.com/octo/demo/issues/3 | all | **closes it**\342\200\213 |' "$table")" "other than"
   body "a non-ASCII verdict is refused, not normalised" 1 "$table
-| #3 | x | **ｃｏｍｐｌｅｔｅｓ it** |" "not ASCII"
+| https://github.com/octo/demo/issues/3 | x | **ｃｏｍｐｌｅｔｅｓ it** |" "not ASCII"
   body "an alias reference with no URL is refused" 1 "$table
 | HA#3 | x | **closes it** |" "use the canonical URL"
   body "a dashed alias reference with no URL is refused" 1 "$table
@@ -887,16 +944,16 @@ Closes #3"
 
 Closes #3" "exactly one reference"
   body "two references in one Issue cell are refused (Feitan dup)" 1 "$table
-| o/r1#1 o/r2#2 | x | cited |" "exactly one reference"
+| o/r1#1 o/r2#2 | x | **cited** |" "exactly one reference"
   body "a pull request URL on a closing row is refused" 1 "$table
 | https://github.com/octo/demo/pull/3 | x | **closes it** |" "a pull request URL on a closing row"
   body "a pull request on a prerequisite row is listed, not verified" 0 "$table
-| #3 | x | **closes it** |
-| [HA-PR-#2](https://github.com/octo/demo/pull/2) | step one | prerequisite |
+| https://github.com/octo/demo/issues/3 | x | **closes it** |
+| [HA-PR-#2](https://github.com/octo/demo/pull/2) | step one | **prerequisite** |
 
 Closes #3"
   body "a .. segment in a reference is refused" 1 "$table
-| ../demo#3 | x | **closes it** |" "segment"
+| https://github.com/../demo/issues/3 | x | **closes it** |" "segment"
   body "a row with no issue reference is refused" 1 "$table
 | the login bug | all of it | **completes it** |" "exactly one reference"
   body "control characters in an echoed cell are replaced" 1 "$(printf '%s\n| the bug\001::error:: | x | **closes it** |' "$table")" "the bug?::error::"

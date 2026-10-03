@@ -249,11 +249,12 @@ Two things en relies on and does not re-derive:
 - **A PR is Ready iff `nen pr ready` says `ready` AND `nen pr body-check` says every requirement is
   satisfied**, both deterministic, neither re-derived by eye — and the Development guard
   (`"$hatsu_root/scripts/pr_development_link_check.sh" --pr <owner/name#N> --base <branch.base>`,
-  zheref/hatsu#203) in exactly one of three cases: **(1)** `branch.base` is the default branch and so is
-  the PR's base — the guard's `0` is required; **(2)** `branch.base` is the default branch and the PR's
-  base is not — its quoted `retarget-pending` line stands beside them, neither a pass nor a veto;
-  **(3)** `branch.base` is not the default branch, whatever the PR's base — its quoted `not-applicable`
-  line stands beside them, neither a pass nor a veto.
+  zheref/hatsu#203) in exactly one of three cases, decided by the PR's own base first: **(1)** the PR's
+  base is the default branch, whatever `branch.base` declares — the guard verifies fully and its `0` is
+  required (a `--base` naming another branch only adds an informational note); **(2)** the PR's base is
+  not the default branch and `branch.base` is — its quoted `retarget-pending` line stands beside them,
+  neither a pass nor a veto; **(3)** neither `branch.base` nor the PR's base is the default branch — its
+  quoted `not-applicable` line stands beside them, neither a pass nor a veto.
   [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Build accountability and issue associations*
   states the rule once. `sharingan` § 4's rule, and
   [`$pr-state`](../pr-state/SKILL.md)'s before it: **a readiness claim is that verdict, quoted,
@@ -284,7 +285,7 @@ that stop** and presents this section's prompt for the proposal.
 (no stacked delivery has merged), en reports the quoted verdict, the PR's base and the guard's quoted
 line — `retarget-pending` in case (2), `not-applicable` in case (3) (§ 4) — and ends there. Steps 6 and
 7 do not run: there is no gate event for the bell or the dated final report to record.
-**A PR on `branch.base` in case (3)** — `branch.base` is not the default branch — **gets the prompt**:
+**A PR on `branch.base` in case (3)** — neither `branch.base` nor the PR's base is the default branch — **gets the prompt**:
 the guard's quoted `not-applicable` line stands in place of its `0` at check 4, because the merge is the
 maintainer's either way. It is the G2/G4 merge stop, never a G5 (ROSTER § *Rulings of 2026-09-30 — En
 never merges*, row *Closing keywords act only on the default branch*). Futon opens no PR into its integration branch (futon § 5 merges there locally), so
@@ -406,7 +407,7 @@ en acts, and the `<n>/<cap>` the verb prints is the number the report carries.
 | **the PR converted to draft, or its base retargeted** | outside the hold's vocabulary: name it, end the watch, and hand back — a draft is not driven, and a retarget re-derives the gate (WORKFLOW § *Gate derivation*) |
 | **a new review, comment or thread** | inspect and classify it first. If it requires remediation or a reviewer re-request, claim an acting cycle, then return to step 2; an approval or informational event that needs only a read spends no cycle. [`$sharingan`](../sharingan/SKILL.md) addresses every inline and summary finding through its own channel, and decides whether a further round may be requested (§ 6 there; *owed at head* after en's own request or push is not a reason) |
 | **the branch fell behind, or the PR went `dirty`** | claim an acting cycle, then step 3 and step 4 — catch up, then re-decide. A conflicted PR gets *no checks at all*, which reads as "clean" rather than "broken" (`sharingan` § 5) |
-| the PR becomes Ready (§ 4's three cases: (1) with the Development guard's `0`; (2) with its `retarget-pending` line quoted; (3) with its `not-applicable` line quoted — neither line a veto) | on `branch.base` — case (1), or case (3) with the `not-applicable` line in the `0`'s place — step 6, bell and stop at the human gate (the merge prompt, never a G5); off `branch.base`, in case (2) or (3), § 5's off-base report, no prompt |
+| the PR becomes Ready (§ 4's three cases, the PR's own base first: (1) a PR into the default branch, with the Development guard's `0`; (2) with its `retarget-pending` line quoted; (3) with its `not-applicable` line quoted — neither line a veto) | on `branch.base` — case (1), or case (3) with the `not-applicable` line in the `0`'s place — step 6, bell and stop at the human gate (the merge prompt, never a G5); off `branch.base`, in any case, § 5's off-base report, no prompt |
 | **a round owed at head to a reviewer with a live `reviewer_fallback.exhausted[]` row, the chain exhausted** ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *The fallback chain*) | **not a pending state — the round will not arrive.** End the hold and go to step 6 with the verdict quoted verbatim and the Hatsu exhaustion line beside it; no cycle is spent |
 | the PR merged before the gate handoff | end as a terminal external state, naming that readiness was not the run's observed terminus |
 | the PR closed unmerged | the run ends, saying so — there is nothing to land, and reopening is the maintainer's call |

@@ -455,13 +455,21 @@ def read_ref_workflow(repo: Path, ref: str):
     return shown.stdout
 
 
-def scan(directory: Path, names: set[str]) -> list[Path]:
-    """Entries of directory whose NFC name is in names; an absent or unlistable dir has none."""
+def listdir_or_none(directory: Path) -> list[Path]:
+    """Entries of directory. ONLY an absent directory (FileNotFoundError) has none; any other
+    listing error (permission, not a directory) is unknown evidence and refuses -- an unlistable
+    directory is never read as "no review here" (zheref/hatsu#213, thread 4171140297)."""
     try:
-        entries = list(directory.iterdir())
-    except (OSError, ValueError):
+        return list(directory.iterdir())
+    except FileNotFoundError:
         return []
-    return sorted(p for p in entries if nfc(p.name) in names)
+    except (OSError, ValueError) as exc:
+        ensure_refuse("refused", f"{directory} cannot be listed ({exc}); the evidence search cannot read it as empty")
+
+
+def scan(directory: Path, names: set[str]) -> list[Path]:
+    """Entries of directory whose NFC name is in names; an absent dir has none, an unlistable one refuses."""
+    return sorted(p for p in listdir_or_none(directory) if nfc(p.name) in names)
 
 
 def stamped_lock(path: Path) -> bool:
@@ -480,10 +488,7 @@ def pr_ledgers(checkout: Path, name: str) -> list[tuple[Path, int, bool]]:
     """(path, pr, readsAsThisBranch) for <slug>-pr<N>.cycle.json in one checkout."""
     s = slug(name)
     out = []
-    try:
-        entries = sorted(( checkout / ".nen" / "hanten").iterdir())
-    except (OSError, ValueError):
-        return out
+    entries = sorted(listdir_or_none(checkout / ".nen" / "hanten"))
     for p in entries:
         n = nfc(p.name)
         if not (n.startswith(f"{s}-pr") and n.endswith(".cycle.json")):

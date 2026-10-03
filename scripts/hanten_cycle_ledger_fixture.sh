@@ -376,6 +376,24 @@ evil"; mkrepo "$m" feat/n; git -C "$m" worktree add -q -b other "$nl"; mkdir -p 
 bash "$LEDGER" init --repo "$nl" --branch feat/n >/dev/null 2>&1
 lost "a worktree path with a newline is still searched (-z)" "$m" feat/n
 
+# 9. Only an ABSENT evidence directory reads as none (zheref/hatsu#213, thread
+# 4171140297): an unlistable one (chmod 000) or one that is not a directory
+# refuses with the JSON row at exit 2 and opens nothing.
+if [ "$(id -u)" != 0 ]; then
+  r="$root/e9-perm"; mkrepo "$r" opus/k/perm; mkdir -p "$r/Reports/hanten"; chmod 000 "$r/Reports/hanten"
+  out="$(ens --repo "$r" --branch opus/k/perm)"; code=$?; chmod 755 "$r/Reports/hanten"
+  expect "an unlistable (chmod 000) findings directory refuses" 2 refused $code "$out"
+  no_ledger "$r" && pass "ensure: ... and opens nothing" || fail "ensure: an unlistable evidence dir opened a ledger"
+  m="$root/e9-wtperm/main"; wt="$root/e9-wtperm/wt"; mkrepo "$m" main; git -C "$m" worktree add -q -b feat/p "$wt"
+  mkdir -p "$m/.nen/hanten"; chmod 000 "$m/.nen/hanten"
+  out="$(ens --repo "$wt" --branch feat/p)"; code=$?; chmod 755 "$m/.nen/hanten"
+  expect "another worktree's unlistable .nen/hanten refuses" 2 refused $code "$out"
+  no_ledger "$wt" && pass "ensure: ... and opens nothing" || fail "ensure: an unlistable worktree evidence dir opened a ledger"
+fi
+r="$root/e9-file"; mkrepo "$r" opus/k/nd; mkdir -p "$r/Reports"; printf 'x\n' > "$r/Reports/hanten"
+out="$(ens --repo "$r" --branch opus/k/nd)"; expect "a findings path that is not a directory refuses" 2 refused $? "$out"
+no_ledger "$r" && pass "ensure: ... and opens nothing" || fail "ensure: a not-a-directory evidence path opened a ledger"
+
 # 7. Controls: 20 concurrent ensures open once (C1); cwd=/ with a spaced absolute --repo (C2).
 r="$root/e-race"; mkrepo "$r" opus/k/race
 for i in $(seq 1 20); do (ens --repo "$r" --branch opus/k/race > "$root/race.$i"; echo $? >> "$root/race.rc") & done; wait

@@ -1604,24 +1604,28 @@ GitHub auto-close caveat; build, sharingan and en enforce it at handover through
 **The Development guard at readiness, stated once** (zheref/hatsu#203; en § 4–6, sharingan § 3–4 and
 shibari § 4 cite this paragraph):
 
-The three cases below are mutually exclusive and total: (1) and (2) hold only where `branch.base` is
-the default branch, and (3) is every configuration where it is not, whatever the PR's base.
+The three cases below are mutually exclusive and total, and **the PR's own base decides first**
+(zheref/hatsu#213): (1) is every PR into the default branch, whatever `branch.base` declares; (2) and
+(3) split the rest on `branch.base`.
 
-- **(1) `branch.base` is the default branch and the PR's base is the default branch**: readiness is
-  `nen pr ready` + `nen pr body-check` **and** the guard's `0` (`--pr <owner/name#N> --base
-  <branch.base>`). Any other guard line vetoes Ready; its channel is the body through `nen pr
-  edit-body`, or a sidebar link surfaced to the maintainer. The PR gets en § 5's merge prompt.
-- **(2) `branch.base` is the default branch and the PR's base is not** (stacked on another delivery
+- **(1) the PR's base is the default branch**, whatever `branch.base` declares: closing keywords and
+  Development links act on it, so the guard verifies fully and readiness is `nen pr ready` + `nen pr
+  body-check` **and** the guard's `0` (`--pr <owner/name#N> --base <branch.base>`). A `--base` naming
+  another branch prints an informational note and bypasses nothing. Any other guard line vetoes
+  Ready; its channel is the body through `nen pr edit-body`, or a sidebar link surfaced to the
+  maintainer. A PR on `branch.base` gets en § 5's merge prompt; one off it, the off-base report.
+- **(2) the PR's base is not the default branch and `branch.base` is** (stacked on another delivery
   branch): readiness is `nen pr ready` + `nen pr body-check` alone. The guard's `retarget-pending` line
   is quoted beside them, **neither a pass nor a veto**, and the PR goes to en § 5's off-base report: it
   never gets a prompt.
-- **(3) `branch.base` is not the default branch**, whatever the PR's base: the guard prints
-  `not-applicable (branch.base 'X' is not the default branch 'Y')` and exits `1`, because nothing it
-  verifies can act there. Readiness is `nen pr ready` + `nen pr body-check`, and a PR on `branch.base`
-  gets en § 5's **merge prompt** with that line quoted in place of the guard's `0`: the merge is the
-  maintainer's either way. It is the G2/G4 merge stop, **not a G5** (the plane's genuine stops stay
-  five, § 4). A PR off `branch.base` still gets the off-base report. Hatsu never reaches this case
-  (its `branch.base` is its default branch); canon states it so a consumer's is total.
+- **(3) `branch.base` is not the default branch and neither is the PR's base**: the guard prints
+  `not-applicable (branch.base 'X' is not the default branch 'Y', and neither is the PR's base 'Z')`
+  and exits `1`, because nothing it verifies can act there. Readiness is `nen pr ready` + `nen pr
+  body-check`, and a PR on `branch.base` gets en § 5's **merge prompt** with that line quoted in place
+  of the guard's `0`: the merge is the maintainer's either way. It is the G2/G4 merge stop, **not a
+  G5** (the plane's genuine stops stay five, § 4). A PR off `branch.base` still gets the off-base
+  report. Hatsu never reaches this case (its `branch.base` is its default branch); canon states it so
+  a consumer's is total.
 - **Every `nen pr edit-body` and every retarget read-back is followed by the guard**, its line quoted.
 - The reading that keywords and links act only on the default branch is GitHub's documented
   behaviour (*Linking a pull request to an issue*); treating it as never-a-pass-never-a-veto, and

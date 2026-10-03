@@ -32,8 +32,10 @@
     (d) "$hatsu_root/scripts/pr_development_link_check.sh" --body <this file, filled> --target <owner/name>
         before every write, then --pr <owner/name#N> after pr open and each edit-body (zheref/hatsu#203):
         the Associated issues section below, read fail-closed, against the live Development links in
-        both directions. Exit 1 names every refusal; `retarget-pending` means the base is not the
-        default branch, so nothing links there and it is never a pass; exit 2 is GitHub unread.
+        both directions, decided by the PR's own base first: a PR into the default branch is verified
+        fully whatever --base says. Exit 1 names every refusal; `retarget-pending` (the PR's base is not
+        the default branch, branch.base is) and `not-applicable` (neither is) are never a pass; exit 2
+        is GitHub unread.
 -->
 
 ## Why
@@ -102,11 +104,12 @@
      GitHub's Development association (shibari § 3, zheref/hatsu#203). One row per issue: the canonical
      issue URL (never an alias such as HA#3 alone), the scope this PR implements, and the verdict.
      Prerequisites and incidental references are listed separately; a PR with no associated issue keeps
-     this heading and says "No associated issue." rather than inventing one.
+     this heading and says exactly "No associated issue." (no other phrase) rather than inventing one.
      THE VERDICT is the Merging this cell's leading bold span, from a CLOSED VOCABULARY, in ASCII:
        closing      completes it · closes it
        non-closing  delivers part · part of it · cited · prerequisite · relates to it · delivers none of it
-     A remark may follow after " — " and nothing else. The Issue cell holds exactly one reference. The
+     A remark may follow after " — " and nothing else. The Issue cell holds exactly one reference, the
+     canonical issue URL (alone or as [text](url)); `#N` and `owner/name#N` belong to keyword lines only. The
      section holds that one table (or the exact phrase) and no HTML, and ends at the next `##` heading,
      so a criteria table goes under its own heading. Every closing row, and only those, gets its own keyword line
      below the table, after a blank line — `Closes #N`, or `Closes owner/name#N` for another

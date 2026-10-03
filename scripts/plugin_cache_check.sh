@@ -187,7 +187,15 @@ compare_one() {
   if [ -x "$a" ]; then xa=1; fi
   if [ -x "$b" ]; then xb=1; fi
   [ "$xa" -eq "$xb" ] || m="mode"
-  cmp -s "$a" "$b" || c="content"
+  # cmp: 0 same, 1 differ, >1 trouble (an unreadable file). Trouble is a wiring defect, never
+  # "differs" (zheref/hatsu#213, thread 4171140338).
+  local crc=0
+  cmp -s "$a" "$b" || crc=$?
+  case "$crc" in
+    0) ;;
+    1) c="content" ;;
+    *) die2 "could not compare $(safe "$1") (cmp exit $crc: a side is unreadable); refused rather than reported as differing" ;;
+  esac
   if [ -n "$m" ] && [ -n "$c" ]; then printf ' (mode, content)'; elif [ -n "$m" ]; then printf ' (mode)'; elif [ -n "$c" ]; then printf ' '; fi
 }
 
@@ -279,11 +287,13 @@ EOF
   else
     # 1. CLAUDE_CODE_PLUGIN_DIRS: a Hatsu tree there loads in place ahead of every other copy.
     if [ -n "${CLAUDE_CODE_PLUGIN_DIRS:-}" ]; then
-      local IFS_save="$IFS"; IFS=:
-      # shellcheck disable=SC2086 # split on ':' is the variable's documented form
-      set -- $CLAUDE_CODE_PLUGIN_DIRS
-      IFS="$IFS_save"
-      for d in "$@"; do
+      # Split on ':' with read -a, never an unquoted expansion: a path carrying [ ] * ? is a
+      # literal path, not a glob (zheref/hatsu#213, thread 4171140358).
+      local plugin_dirs
+      IFS=: read -r -a plugin_dirs <<EOF_DIRS
+$CLAUDE_CODE_PLUGIN_DIRS
+EOF_DIRS
+      for d in ${plugin_dirs[@]+"${plugin_dirs[@]}"}; do
         case "$d" in "~"/*) d="$HOME/${d#"~/"}" ;; /*) ;; *) continue ;; esac
         if [ -d "$d" ] && is_hatsu_tree "$d"; then in_place plugin-dir "$d" "CLAUDE_CODE_PLUGIN_DIRS, loaded in place ahead of every installed copy"; fi
       done
@@ -362,7 +372,7 @@ EOF
 
   local p how n_diff=0 n_miss=0 n_extra=0 n_same=0 n_untracked=0 tag
   while IFS= read -r p; do
-    how="$(compare_one "$p")"
+    how="$(compare_one "$p")" || exit 2  # compare_one's die2 ran in the substitution
     if [ -z "$how" ]; then n_same=$((n_same + 1)); continue; fi
     tag=""; if grep -qxF -- "$p" "$tmp/untracked"; then tag=" (untracked in source)"; n_untracked=$((n_untracked + 1)); fi
     echo "  differs: $(safe "$p")${how% }$tag"; n_diff=$((n_diff + 1))
@@ -524,6 +534,13 @@ self_test() {
   run unreadable-dir 2 bash "$self" --root "$fx/src2" --installed "$fx/inst"
   has unreadable-dir "$out" 'could not list'
   chmod 755 "$fx/src2/docs/locked"; rm -rf "$fx/src2"
+  # an unreadable installed file is a wiring defect (cmp exit 2), never "differs"
+  fresh; chmod 000 "$fx/inst/docs/notes.md"
+  run unreadable-installed-file 2 bash "$self" --root "$fx/src" --installed "$fx/inst"
+  has unreadable-installed-file "$out" 'could not compare docs/notes.md'
+  hasnt unreadable-installed-file "$out" 'plugin-cache:'
+  hasnt unreadable-installed-file "$out" 'differs:'
+  chmod 644 "$fx/inst/docs/notes.md"
 
   # -- ten § 5 as written: $hatsu_root is never exported, both plugin roots unset; the root resolves
   fresh; run root-from-own-location 0 bash "$self" --installed "$fx/inst"
@@ -654,6 +671,11 @@ EOF
   last_is plugin-dirs-other "$out" "plugin-cache: plugin-dir $fx/inst (not $fx/src)"
   run plugin-dirs-source 0 env CLAUDE_CONFIG_DIR="$fx/cfg3" CLAUDE_CODE_PLUGIN_DIRS="$fx/docs-none:$fx/src" bash "$self"
   last_is plugin-dirs-source "$out" 'plugin-cache: linked (identical by construction)'
+  # a plugin dir named with [ ] is a literal path: the decoy its glob would match is never served
+  mkdir -p "$fx/pd"; ln -s "$fx/src" "$fx/pd/[x]"; cp -Rp "$fx/src" "$fx/pd/x"
+  run plugin-dirs-no-glob 0 env CLAUDE_CONFIG_DIR="$fx/cfg3" CLAUDE_CODE_PLUGIN_DIRS="$fx/pd/[x]" bash "$self"
+  last_is plugin-dirs-no-glob "$out" 'plugin-cache: linked (identical by construction)'
+  hasnt plugin-dirs-no-glob "$out" "$fx/pd/x "
   # placement: an unknown scope, or project/local with no projectPath, is refused and named
   reg "$fx/cfg3" "        \"scope\": \"enterprise\",
         \"installPath\": \"$fx/inst\""
@@ -696,7 +718,7 @@ EOF
   has untracked-in-source "$out" 'not a stale copy'
   hasnt untracked-in-source "$out" 'different bytes'
 
-  echo 'plugin-cache-check self-test: ok (verdicts: identical, one differs, one missing, one extra, same-version bytes, older version; whole tree: commands, scripts, nen pin, rules, ignored residue, .DS_Store dir; types: mode, link vs file, link strings, fifo, control byte; wiring: missing root, unresolvable root, cache parent, root is a cache, unknown flag, unreadable dir; root from own location; links: to the source, to another checkout; detection: link, shadowing cache, extra field, minified, truncated, entry without path, other marketplace, several scopes, ambiguous, empty array, dangling, nothing; copy judging itself; round 2: .in_use, nested ignored names, extra-only wording, user-x mode, non-ASCII, unreadable and non-file registry, plugin-cache dir and its copy, --installed copy, plugin dirs other and source, unknown scope, project without path, project beats user, local beats project, project from a worktree, untracked in source)'
+  echo 'plugin-cache-check self-test: ok (verdicts: identical, one differs, one missing, one extra, same-version bytes, older version; whole tree: commands, scripts, nen pin, rules, ignored residue, .DS_Store dir; types: mode, link vs file, link strings, fifo, control byte; wiring: missing root, unresolvable root, cache parent, root is a cache, unknown flag, unreadable dir, unreadable installed file; root from own location; links: to the source, to another checkout; detection: link, shadowing cache, extra field, minified, truncated, entry without path, other marketplace, several scopes, ambiguous, empty array, dangling, nothing; copy judging itself; round 2: .in_use, nested ignored names, extra-only wording, user-x mode, non-ASCII, unreadable and non-file registry, plugin-cache dir and its copy, --installed copy, plugin dirs other, source and no glob, unknown scope, project without path, project beats user, local beats project, project from a worktree, untracked in source)'
   finished=1
 }
 
