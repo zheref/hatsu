@@ -1592,11 +1592,32 @@ Implementation, passing checks, completed review handling and formal readiness a
 claims. Every inline and summary finding needs a disposition before a review round is complete;
 thread replies/resolutions are verified directly, not inferred from a worker's report.
 
-Every PR author lists every addressed issue in the body and verifies each Development association,
-including all issues in a combined PR. Scope changes trigger reconciliation of that full set.
+Every PR author lists every addressed issue in the body, including all issues in a combined PR, and
+verifies the Development association of exactly the issues the PR closes, no more and no fewer
+(amended by zheref/hatsu#203: Development is GitHub's closing association, so a partial or cited
+issue there would be closed on merge). Scope changes trigger reconciliation of that full set.
 Dependencies are listed separately. Closing clauses reflect completed issue scope; partial work
 must not be silently closed merely to obtain a sidebar link. Shibari owns the procedure and the
-GitHub auto-close caveat; build and sharingan enforce it at handover.
+GitHub auto-close caveat; build, sharingan and en enforce it at handover through
+`scripts/pr_development_link_check.sh` (zheref/hatsu#203).
+
+**The Development guard at readiness, stated once** (zheref/hatsu#203; en § 4–6, sharingan § 3–4 and
+shibari § 4 cite this paragraph):
+
+- **On a PR into the default branch**, readiness is `nen pr ready` + `nen pr body-check` **and** the
+  guard's `0` (`--pr <owner/name#N> --base <branch.base>`). Any other guard line vetoes Ready; its
+  channel is the body through `nen pr edit-body`, or a sidebar link surfaced to the maintainer.
+- **On a PR off the default branch** (stacked, or into an integration branch), readiness is `nen pr
+  ready` + `nen pr body-check` alone. The guard's `retarget-pending` line is quoted beside them,
+  **neither a pass nor a veto**, and the PR goes to en § 5's off-base report: it never gets a prompt.
+- **When `branch.base` is not the default branch**, the guard prints `not-applicable (branch.base 'X'
+  is not the default branch 'Y')` and exits `1`: nothing it verifies can act there. That line is a stop
+  for the maintainer (en § 5), never a pass.
+- **Every `nen pr edit-body` and every retarget read-back is followed by the guard**, its line quoted.
+- The reading that keywords and links act only on the default branch is GitHub's documented
+  behaviour (*Linking a pull request to an issue*); treating it as never-a-pass-never-a-veto is the
+  run's G4 interpretation, recorded in [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-30 — En never
+  merges* and the maintainer's to correct.
 
 ---
 
