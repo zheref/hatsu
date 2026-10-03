@@ -2,6 +2,32 @@
 
 All notable changes to Hatsu are documented in this file. Releases follow [Semantic Versioning](https://semver.org/).
 
+## v0.84.0 — every PR into main ends at the maintainer's merge prompt, closing issues are linked both ways by a guard, and two silent warm-up gaps close
+
+Four efforts from the `hatsu:futon hatsu@bug` run of 2026-10-02. Each was hanten-settled on its own branch and merged locally into the run's integration branch `opus/kurapika/futon-bug-2026-10-02` (no sub-PRs). This release unit carries all four.
+
+- **The merge-authority ruling of 2026-09-30 is canon** (#207). `docs/ROSTER.md` § *Rulings of 2026-09-30 — En never merges* quotes the maintainer and states the rows that follow:
+  - En never merges. Every PR into `main` ends at en § 5's merge prompt: the PR link and the inline `gh pr merge <n> --repo <o/r> --merge --match-head-commit <sha>` line. Its picker never carries the merge act; the maintainer merges outside the session.
+  - The one PR into `main` an agent merges is getsuga § 3a's own release proposal, through `nen pr merge --release-unit`, after `hatsu:en` takes it to its G2 readiness gates.
+  - Futon may cut one integration branch per run. Hanten-settled efforts land on it by a **local** `git merge --no-ff` (no sub-PR, no `gh pr merge`), pushed with `nen wc publish`. The integration PR into `branch.base` is the run's terminus, carries the bump and the CHANGELOG, and ends at the merge prompt. `git merge --no-ff` is named residue in `claude/rules/hatsu.md` § 4.
+  - futon § 8 holds `then` until every PR the run authored is merged into `branch.base`; "done" means merged, not Ready.
+  - "main" reads as `branch.base` — recorded as the run's G4 interpretation, the maintainer's to correct.
+  - `en`, `futon`, `getsuga`, `sharingan`, `backlog-loop`, `kurapika.md`, `claude/rules/hatsu.md`, WORKFLOW, README's gate tables and `nen/decisions.json` (`own-pr-merge`, `merge`, `canon-merge`, `reviewer-exhausted`) agree. Ruling 3 of 2026-09-29 is marked superseded in place.
+- **A guard verifies every closing issue is linked both ways in GitHub's Development field** (#203). New `scripts/pr_development_link_check.sh` (`--pr`, `--body --target`, `--base`, `--fixture`, `--self-test`; bash 3.2, jq, awk under `LC_ALL=C`).
+  - The expected closing set comes from the body's *Associated issues* table, read through a closed verdict vocabulary; only `completes`/`closes` rows link. Each needs its own keyword line, and a keyword GitHub would act on anywhere else is refused.
+  - Live, both directions must match exactly: the PR's `closingIssuesReferences` and each issue's `closedByPullRequestsReferences`.
+  - It **fails closed** on anything its parser does not model (fences, comments, code spans, lookalike headings and verdicts, escaped pipes, a second table, control bytes, more than 50 references) and exits `0`/`1`/`2`.
+  - Off the default branch it prints `retarget-pending`, never a pass; where `branch.base` is not the default branch, `not-applicable`, a stop.
+  - Wired into shibari § 4 (before open and after every body edit), en § 4's Ready predicate and § 5's prompt checks, sharingan § 4's veto pass, and getsuga § 3/§ 3a (a proposal's section reads `No associated issue.`). WORKFLOW states the readiness rule once. Lane `development-link-guard` (154 cases).
+- **The hanten cycle ledger opens on a branch the desktop app cut** (#169). `scripts/hanten_cycle_ledger.sh ensure` runs at hanten § 1 on every entry and opens a missing ledger through the same `init`.
+  - It refuses the trunk (built-in `main`/`master`, `origin/HEAD`, every declared base), a detached HEAD, and any trace of review history — another worktree's ledger or stamped lock, a PR-keyed ledger, a findings record, a reflog-renamed name, or a PR on the head branch (`gh pr list --head`, fail-closed, `--no-pr-check` only on the maintainer's word) — so a spent budget is never minted fresh.
+  - Rows are keyed JSON (`ENSURE_ROWS`; lost ledger is exit `3`); tenkai's `ReviewLedger.detect` follows the same table. Fixture renamed `hanten_cycle_ledger_fixture.sh` (111 checks).
+- **A check tells a stale Claude Code plugin copy from a fresh one** (#122). New `scripts/plugin_cache_check.sh` compares the copy Claude Code serves (the install registry's `hatsu@<marketplace>` entry by scope, `CLAUDE_CODE_PLUGIN_DIRS`, else the skills-directory link) against ten § 0's root, over the whole tree minus a stated ignore list, by type, link, executable bit and bytes.
+  - Last line `plugin-cache: current | linked … | linked to <target> (not <root>) | plugin-dir … | stale (<n> paths)`; exit `0`/`1`/`2`, failing closed on a registry it cannot read, an ambiguous or unplaceable entry, and a copy judging itself.
+  - ten § 5 reports it on Claude Code in place of `mirrors: not applicable`; `surface_mirror_check.sh --installed` refuses with a pointer to it. Lane `plugin-cache-guard`.
+- **Residue named** in `docs/PROCESS.md`: the ledger's embedded Python and its raw `gh pr list`, the Development guard's raw `gh` reads, and the cache check — each an owned dependency on a nen verb (zheref/nen#298 for the cache check; the others not yet filed), BC-11 a G4 question until the verbs land.
+- Plugin bumped to 0.84.0 (Claude manifest and Codex overlay); mirrors regenerated at that stamp.
+
 ## v0.83.0 — the surface link guard runs in CI, and judges a pull request's tree without trusting it
 
 - **The generated-surface link guard runs on every pull request** (#72). `scripts/surface_link_check.sh` proves what the drift check cannot: that the generated bodies' relative links resolve. It now runs in `.github/workflows/surface-mirror-check.yml`'s existing *Surface-mirror drift check* step, from the trusted revision (`.trusted/`), against the PR checkout as the root it judges, once the drift verdict is clean. It stayed out of CI while it was red on main by design: until nen v0.17.0 (zheref/nen#270, fixed by zheref/nen#285) the generator copied relative links verbatim, so they dangled at every mirror depth, and a context red on every pull request would have read every one not-ready for a defect none of them made. The pin now carries the fix and 2,931 of 2,931 links resolve. Folding the guard into the existing step needs no two-step landing: the trusted validator freezes the step names and their order, not this step's body, and main's validator accepts the change. `pull_request_target` runs main's workflow, so the step takes effect on pull requests opened or updated after this one merges.
