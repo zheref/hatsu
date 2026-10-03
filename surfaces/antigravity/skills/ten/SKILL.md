@@ -136,31 +136,33 @@ unmet — host: installed, not reachable (<row>)`, `warm-up: host not read (<rc>
 opted out`; a failure reads `HALTED — G5`, code and name. Not run is reported not run. Then
 `ten <phase> · caught up: <steps> · stopped at: <step|none>`.
 
-## 4b · Keep the plugin source current
+## 4b · Target/source guard
 
-Before § 5, update `$hatsu_root` on every surface:
-`"$hatsu_root/scripts/hatsu_plugin_update.sh" --root "$hatsu_root" --auto [--claude|--codex]`;
-`--auto`: `docs/surfaces/README.md` § *Shared rules the warm-up follows*; **quote skips and continue**.
-**Every surface carries the command verbatim** (#67).
+**Before refresh/placement**, bind/reverify absolute effort `target` under
+`$hatsu_root/docs/WORKFLOW.md` § *Where worktrees live* (resumed/original waiver included).
+Its source guard applies to EVERY entry: protected core/shared refresh skips; target waiver
+grants none. Only effort-owned isolated Hatsu source may refresh as `hatsu_root`; no surface redirects.
+Dependency/host setup stays separate.
+
+Eligible: `"$hatsu_root/scripts/hatsu_plugin_update.sh" --root "$hatsu_root" --auto`.
+Quote skips (#67; README § *Shared rules the warm-up follows*), continue.
 
 ## 5 · Surfaces — what a target gets
 
-**After § 4b, BEFORE writes:** authoring/parity/PR phases bind/reverify `target` under
-`$hatsu_root/docs/WORKFLOW.md` § *Where worktrees live*: absolute effort path, new/resumed,
-original-prompt waiver. Read-only/no-phase keeps its starting target without provisioning.
-Each block binds that path, never rediscovers cwd. Placement/catch-up use its cwd; failed isolation
-stops writes, never falls back to core. Installation semantics stay SURFACES § 2's.
+Read-only/no-phase: inspect only, **skip placement/provisioning**. Explicit setup is Tenkai's.
+Writable phases retain § 4b's target/root/cwd, never rediscover or fall back. Failed isolation
+stops writes. Installation: SURFACES § 2.
 
 ```sh
-hatsu_root='<§ 0's absolute path>'; target='<selected absolute target>'; surface='<codex|cursor|antigravity|claude-code>'
+hatsu_root='<§ 4b's guarded root>'; target='<§ 4b's bound target>'; surface='<codex|cursor|antigravity|claude-code>'
 cd "$target" || exit 1
 [ "$surface" = claude-code ] || "$hatsu_root/scripts/surface_mirror_check.sh" "$hatsu_root"  # FIRST
 [ "$surface" = claude-code ] || "$hatsu_root/scripts/surface_bootstrap.sh" --surface "$surface" --target "$target" --install-all [--plugin]  # --plugin: Codex hatsu@hatsu
 "$hatsu_root/scripts/permissions_pack.sh" --surface "$surface" --install --target "$target" [--plugin]
 ```
 
-**Claude Code: no mirror**, pack only (`mirrors: not applicable`); verdicts: PROCESS § *Surfaces
-and pickers*, *ten § 5's rules*.
+Claude Code: pack only, `mirrors: not applicable`; verdicts: PROCESS § *Surfaces and pickers*,
+*ten § 5's rules*.
 
 ## 6 · Catch-up: the prerequisites of the phase that called me
 

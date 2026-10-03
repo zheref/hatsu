@@ -1737,6 +1737,20 @@ Before Ten's catch-up, Breath's standalone preservation or any authoring/PR muta
    session's cwd: use the returned checkout explicitly. Before running warmup, inspect its dry run;
    if it would move core's checked-out trunk or work, report the blocker and do not run it.
 
+**Plugin-source refresh is included, before Ten's target placement.** Bind the effort target before
+any refresh that could move core. Dependency installation and host setup remain separate. Ordinary
+authoring never fast-forwards or otherwise refreshes core or a shared plugin checkout: use a
+verified effort-owned isolated Hatsu source when available, or report `refresh skipped: protected
+core/shared source` and continue reading the loaded source. A target-authoring waiver is not a
+source-refresh grant. The source must be a validated Hatsu checkout, not a consumer with copied
+skills. Rebind the eligible source's absolute root for refresh/placement; preserve the bound target.
+Authoring uses the plain updater without `--claude`/`--codex`, since those flags can update shared
+links/marketplaces independently of `--root`. Quote its own skip on an authoring branch; do not
+switch that branch to make it refreshable. Read-only/no-phase entry inspects without worktree
+provisioning; it skips protected core/shared refresh and all project-local placement (`--install-all`,
+permission-pack installation). Report those skips instead of describing a mutation as a read.
+Dedicated plugin update or target setup requires its own explicit invocation; Ten does not infer it.
+
 An unavailable creation tool or a harness write/trust refusal is reported with the path and exact
 failed operation; use an already-authorized adapter alternative when available. **Never change
 permissions, silently fall back to core, or widen authorization to finish.**

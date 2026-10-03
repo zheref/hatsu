@@ -83,10 +83,12 @@ nothing.
 
 **nen will not stop you** (`cwd:` renders the worktree, silently), so the rule is this skill's.
 Resolve core with `nen wc worktrees --repo <bound effort path> --json`, but **never redirect an
-isolated Ren turn there to launch**, serial or parallel. Render § 4's dry-run command against the
-bound effort checkout and label it `core launch deferred; explicit maintainer call required`;
-a refused dry run is reported with its exact reason, never invented argv. Continue the report
-and bell without asking for approval. The command describes a plan, not a build or launch result.
+isolated Ren turn there to launch**, serial or parallel. Render § 4's command with **`--repo <core>
+--target <name> --dry-run` only**, retaining the authoring cwd/binding. Never execute the bare
+launch, build or swap to obtain the plan. Label it `core launch deferred; explicit maintainer call
+required`; report any refusal/precondition verbatim, never invent argv or repair core. Core's
+declaration/tree may differ from this effort's: name that limit beside the exact plan. Continue
+report/bell without asking for approval. A plan is not a build or launch result.
 
 Only a maintainer's explicit `hatsu:amaterasu` call authorizes the core launch; if core needs the
 effort's tree, `hatsu:amenotejikara` is a separate explicit call. An original-prompt core-authoring
@@ -118,7 +120,7 @@ outside those four is forbidden.**
 | No `device` declared | straight to the dry run |
 
 ```bash
-nen shu <verb> --repo <core working directory> [--lane <lane>] --dry-run [--json]
+nen shu <verb> --repo <core working directory> --target <name> [--lane <lane>] --dry-run [--json]
 nen shu <verb> --repo <core working directory> --target <name> [--lane <lane>]
 ```
 
