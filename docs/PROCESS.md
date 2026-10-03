@@ -309,11 +309,15 @@ absent; only a surface with none prints lettered options in chat, closing with *
 and says so.
 
 **`ten` § 5's rules.** `scripts/surface_mirror_check.sh` exit `0` is `mirrors: current`; `1` is stale
-**in the plugin** — said, still placed, regenerated in a PR. On Claude Code there is no mirror:
-`scripts/plugin_cache_check.sh` compares the installed copy with the source (zheref/hatsu#122) and its
-last line is quoted — `plugin-cache: current`, `linked (identical by construction)` or `stale (<n>
-paths)`; exit `2` is `plugin-cache: not checked (<its `plugin-cache-check:` reason>)` — then the permission pack
-([`SURFACES.md`](SURFACES.md) § 2, [`claude-code.md`](surfaces/claude-code.md) § 8). **Ten never
+**in the plugin** — said, still placed, regenerated in a PR; `2` (the nen on `PATH` has no `surface`
+verb, or a wiring defect) and `3` (no `nen`) are `mirrors: not checked (<its reason>)`, and § 5
+**stops before placing** — a copy placed from an unchecked source is the silent staleness the check
+exists to catch. On Claude Code there is no mirror: `scripts/plugin_cache_check.sh` compares the
+installed copy with the source (zheref/hatsu#122) and its last line is quoted — `plugin-cache:
+current`, `linked (identical by construction)`, `stale (<n> paths)`, or `linked to <target> (not
+<root>)` (the link serves another checkout's branch); exit `2` prints no `plugin-cache:` line and is
+quoted `plugin-cache: not checked (<its reason on stderr>)` — then the permission pack, whatever the
+verdict ([`SURFACES.md`](SURFACES.md) § 2, [`claude-code.md`](surfaces/claude-code.md) § 8). **Ten never
 generates a mirror**; `surface_bootstrap.sh` is the pre-skill shell carve-out; Cursor lists
 `.cursor/skills` **before installing**; the models are the TARGET's `nen/workflow.json` → `models`.
 
@@ -334,7 +338,11 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   `gh auth status`/`gh auth token`, `gh pr list --head <branch> --state all`, `git branch --merged origin/<branch.base>` — are hand-spelt too; an unnamed human-call prerequisite at its step 7 stops,
   named, and the maintainer names the skill it is for by typing `then aka+mukai`.
   Cursor's version check is a string compare on a date part; the host-global half of the skill-name
-  collision question has no answer from inside a repository.
+  collision question has no answer from inside a repository. Comparing Claude Code's installed copy
+  with the source (`scripts/plugin_cache_check.sh`, § 5, zheref/hatsu#122) is a script too: nen's
+  `surface mirror check --surface claude-code --installed` diffs a layout Hatsu never places, so the
+  installed-copy read is an owned dependency of the host-install family, zheref/nen#298 (BC-11 reads
+  the script's branching shell as a verb's job, a G4 question until the verb lands).
 - **`tenkai` § 6d and `ten` § 6 step 5b.** Writing a declaration value — `scripts/config_values.sh`
   `fill` and `set`, a JSON span scanner that inserts in place — has no nen verb, and the `$<key>`
   option notes rely on nen reading every `$`-prefixed key as metadata, a convention its loaders follow
