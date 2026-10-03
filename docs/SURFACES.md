@@ -156,8 +156,12 @@ with the same flags for codex, cursor and antigravity, and writes nothing:
 
 **On Claude Code there is no mirror to check** (zheref/hatsu#106): the plugin is read in place from the
 versioned cache, and nen's `claude-code` row mirrors into a target's `.claude/` (`skills/`, `agents/`,
-`hooks/hooks.json`, `settings.local.json`), a layout Hatsu never places — so `ten` § 5 records
-`mirrors: not applicable` there and places the permission pack only. The verb's `--installed <path>`
+`hooks/hooks.json`, `settings.local.json`), a layout Hatsu never places. What can go stale there is the
+served copy itself — the versioned cache, or the `skills/hatsu` install — so `ten` § 5 records
+`scripts/plugin_cache_check.sh --root <hatsu_root> --cache auto`'s byte comparison of it against a
+source named independently of it as `mirrors:` (zheref/hatsu#122; PROCESS § *ten § 5's rules*), and places the permission pack.
+`scripts/surface_mirror_check.sh --installed <path>` hands a path holding the source's own plugin layout
+to that check rather than to nen. The verb's `--installed <path>`
 diffs a FULL mirror (`AGENTS.md`, `agents/`, `config.toml`, `hooks/` included) against a fresh
 generation, so a skills-only copy the warm-up placed, or the versioned cache, always reads `missing`
 under it; the warm-up therefore runs this script without `--installed` (the source against
