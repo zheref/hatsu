@@ -517,7 +517,7 @@ pushes and never opens a PR.**
 
 **Five things are the maintainer's to call, and you never prompt for them** (`en` § 5's merge prompt
 presents a PR's link and merge line; its picker never carries the merge act, and the maintainer merges
-outside the session — ROSTER § *Rulings of 2026-09-30*):
+outside the session — ROSTER § *Rulings of 2026-09-30 — En never merges*):
 [`aka`](../skills/aka/SKILL.md) ([`gyo`](../skills/gyo/SKILL.md) lint → squash → [`ao`](../skills/ao/SKILL.md) → push),
 [`mukai`](../skills/mukai/SKILL.md) (review, kotoamatsukami tests, byakugan coverage, evidence, the PR), the **merge** itself,
 [`kagutsuchi`](../skills/kagutsuchi/SKILL.md) (a non-production upload, per target) and

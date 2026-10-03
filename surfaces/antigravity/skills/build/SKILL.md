@@ -131,8 +131,9 @@ Run [`/mukai`](../mukai/SKILL.md) to execute the pre-PR verification composite a
 4. **Impacted tests**: Run impacted unit, UI, and integration suites ([`kotoamatsukami`](../kotoamatsukami/SKILL.md)).
 5. **Coverage**: Capture instrumented coverage and measure against threshold ([`byakugan`](../byakugan/SKILL.md)).
 6. **PR body and opening**: Compose 9-part PR body from `templates/pr-body.md` with UZF-26 evidence table,
-   completion checklist linking issue (`Closes #<N>`), attribution ledger, validate with `nen pr body-check`
-   and `pr_body_evidence_check.sh`, open PR ([`shibari`](../shibari/SKILL.md)).
+   Associated issues table (each `Closes #<N>` on its own line under it, not in the checklist), attribution
+   ledger; validate with `nen pr body-check`, `pr_body_evidence_check.sh` and the Development guard
+   (`--body … --target` before the write, `--pr … --base` after), open PR ([`shibari`](../shibari/SKILL.md)).
 7. **Landing report**: Render landing report artifact (`spiritual-message as landing`).
 8. **Handover**: Offer or automatically start [`/en`](../en/SKILL.md) under `mukai.autoEn`.
 

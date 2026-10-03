@@ -149,13 +149,12 @@ skip and continue**; **every surface carries this line verbatim** (#67).
 ```sh
 hatsu_root='<§ 0's absolute path>'; target="$(git rev-parse --show-toplevel)"; surface='<codex|cursor|antigravity|claude-code>'
 if [ "$surface" = claude-code ]; then "$hatsu_root/scripts/plugin_cache_check.sh"; else  # #122
-"$hatsu_root/scripts/surface_mirror_check.sh" "$hatsu_root"  # FIRST
+"$hatsu_root/scripts/surface_mirror_check.sh" "$hatsu_root"; [ $? -lt 2 ] &&  # FIRST; 2|3 stop here
 "$hatsu_root/scripts/surface_bootstrap.sh" --surface "$surface" --target "$target" --install-all [--plugin]; fi  # --plugin iff codex lists hatsu@hatsu
 "$hatsu_root/scripts/permissions_pack.sh" --surface "$surface" --install --target "$target" [--plugin]
 ```
 
-Claude Code's verdict is the cache check's last line; the rest: PROCESS § *Surfaces and
-pickers*, *ten § 5's rules*.
+Every verdict and exit: PROCESS § *Surfaces and pickers*, *ten § 5's rules*.
 
 ## 6 · Catch-up: the prerequisites of the phase that called me
 

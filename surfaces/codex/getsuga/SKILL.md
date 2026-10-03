@@ -372,10 +372,15 @@ reader can run: `gh pr view 232 -R zheref/nen --json baseRefName` and the same f
 
 **The proposal closes no issue, so its body's `## Associated issues` section reads exactly `No associated
 issue.`** — each collated PR closed its own issues when it merged, and a closing keyword here would claim
-a closure that is not this PR's (zheref/hatsu#203). The Development guard passes such a body with `0`:
+a closure that is not this PR's (zheref/hatsu#203). **Where `branch.base` is the default branch**, the
+Development guard passes such a body with `0`:
 `"$hatsu_root/scripts/pr_development_link_check.sh" --body <file> --target <owner/name>` before the open,
 then `--pr <owner/name#N> --base <branch.base>` after it, after the retarget read-back and after every
-`edit-body` ([`shibari`](../shibari/SKILL.md) § 4).
+`edit-body` ([`shibari`](../shibari/SKILL.md) § 4). **Where it is not** (case (3) of
+[`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Build accountability and issue associations*), the
+`--pr` run prints `not-applicable` and exits `1`: en hands that line back, quoted, in the guard's place,
+and § 3a — whose gate is the guard's `0` — does not merge; it falls back to the declaration gate with
+that line quoted, en § 5's merge prompt presenting it in the `0`'s place.
 
 **Then run `$en` on the proposal to its G2 readiness gates, then merge through § 3a — and under
 getsuga, en returns a verdict, never a bell** (zheref/hatsu#103). An excerpt of the maintainer's words of
@@ -417,7 +422,8 @@ thread (a fix on a release proposal stays inside `release.unitPaths`, or the pro
 maintainer). That pair, and no other object, is what § 3a may merge, and only once § 3's three conditions
 hold (the base reads `branch.base`; en's returned verdict is `ready`; the Development guard's `0`, quoted
 in en's hand-back) — stated in the report, never
-re-derived here. The verb then runs **five gates** in order, every one regardless of an
+re-derived here. A hand-back carrying the guard's `not-applicable` (`branch.base` is not the default
+branch, § 3) fails the third: **no merge**, the declaration gate with that line quoted. The verb then runs **five gates** in order, every one regardless of an
 earlier failure, and prints every verdict line verbatim — **quote those lines in the report**, never a
 summary of them:
 

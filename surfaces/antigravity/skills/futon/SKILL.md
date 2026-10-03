@@ -157,7 +157,7 @@ report: **G4/G2** at en § 5's merge prompt for every PR into `branch.base`,
 ## 10. Ending the run
 
 The run ends when **every issue in the selector's scope** is merged into `branch.base` — **none
-stranded on the integration branch** (a closed integration PR is a G5, § 5) — (or, legacy-CI, open with its own actor), or briefed awaiting
+stranded on the integration branch** (a closed integration PR ends the run, en § 6) — (or, legacy-CI, open with its own actor), or briefed awaiting
 a decision, or blocked with its blocker named — **and the `then` clause, if typed, has run or is
 held at its gate**.
 
@@ -185,5 +185,5 @@ over this run's scope — its § 2 futon row, the `then` outcome included — **
   typed `then` step** (mugetsu § 3) whose parse `gate` reads `allowed: true`, never from prose.
 - **Never hand-authors the status board** (§ 9); **never leaves the delegation open**.
 
-*Dated verifications: `docs/ab/futon.md`. The label selector, `then` chain and fail-closed `gate`
+*Residue: PROCESS § Residue and owned dependencies; dated verifications: `docs/ab/futon.md`. The label selector, `then` chain and fail-closed `gate`
 need nen v0.15.1+ (pin v0.18.2); an older binary's exit `2` is relayed, never worked around.*

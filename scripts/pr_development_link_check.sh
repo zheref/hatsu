@@ -61,13 +61,14 @@
 # exit 0  every closing row is keyworded, no other keyword acts, and both directions match exactly
 # exit 1  a refusal (every one listed on stderr, control characters replaced by `?`), retarget-pending,
 #         not-applicable, or a parser override
-# exit 2  GitHub (or the fixture) could not be read, malformed JSON, the parser failed or is absent,
+# exit 2  a body over 65536 bytes (refused before parsing), GitHub (or the fixture) could not be read, malformed JSON, the parser failed or is absent,
 #         jq or iconv missing, or a usage error
 #
 # Bash 3.2 portable: no associative arrays; sets are newline-delimited temp files; awk runs under LC_ALL=C.
 
 AWK="${PR_DEV_LINK_AWK:-awk}"
 REF_CAP=50
+BODY_CAP=65536  # GitHub's own ceiling on a PR body; anything larger is not a body GitHub would hold
 
 usage() {
   echo "usage: pr_development_link_check.sh --pr <owner/name#N> [--base <branch.base>] [--fixture <dir>]" >&2
@@ -367,9 +368,11 @@ fetch() {
 # check_body <body file> <owner/name> <work dir>: writes the expected/other/kw/ikw sets; prints refusals.
 # Returns 0/1; sets too_many=1 when the reference cap is crossed.
 check_body() {
-  local body="$1" repo="$2" w="$3" bad=0 kind a b r count
+  local body="$1" repo="$2" w="$3" bad=0 kind a b r count size
   too_many=0
   : > "$w/expected"; : > "$w/other"; : > "$w/kw"; : > "$w/ikw"
+  size="$(wc -c < "$body" | tr -d ' ')"
+  [ "$size" -le "$BODY_CAP" ] || die2 "the body is $size bytes, over the $BODY_CAP-byte cap (GitHub's own PR-body ceiling); refused before parsing"
   if ! LC_ALL=C tr -d '\000' < "$body" | cmp -s - "$body"; then echo "body: a NUL byte, which the parser does not model" >&2; return 1; fi
   if ! iconv -f UTF-8 -t UTF-8 < "$body" > /dev/null 2>&1; then echo "body: not valid UTF-8, which the parser does not model" >&2; return 1; fi
   parse_body "$repo" < "$body" > "$w/parsed" || die2 "the body parser failed ($AWK exited non-zero); nothing is passed"
@@ -904,6 +907,9 @@ Closes #3"
   verdict "awk absent is exit 2" 2 $?
   PR_DEV_LINK_AWK=false bash "$st_self" --body "$st_dir/body.md" --target octo/demo > /dev/null 2>&1
   verdict "a parser that exits non-zero is exit 2" 2 $?
+  { printf '%s\n' "$m_body"; head -c 65536 /dev/zero | tr '\000' 'x'; } > "$st_dir/huge.md"
+  bash "$st_self" --body "$st_dir/huge.md" --target octo/demo > /dev/null 2> "$st_dir/huge.err"
+  verdict "a body over 65536 bytes is exit 2 before parsing" 2 $? "$st_dir/huge.err" "over the 65536-byte cap"
   PR_DEV_LINK_AWK=true bash "$st_self" --body "$st_dir/body.md" --target octo/demo > /dev/null 2>&1
   verdict "a parser with no END record is exit 2" 2 $?
   printf '#!/bin/sh\ncat >/dev/null; printf "SECTION\\ttable\\nEND\\t1\\n"\n' > "$st_dir/fakeawk"; chmod +x "$st_dir/fakeawk"

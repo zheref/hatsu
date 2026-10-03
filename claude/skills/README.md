@@ -105,7 +105,7 @@ the coverage ladder, the human-called phases, the five G5 stops, and the two har
 
 Two rules govern every one of them. **Five phases are the maintainer's to call and no agent ever prompts for
 them** — `aka`, `mukai`, the merge, `kagutsuchi`, `mugetsu` (`en` § 5's merge prompt presents a PR's link
-and merge line; its picker never carries the merge act; the maintainer merges outside the session — `docs/ROSTER.md` § *Rulings of 2026-09-30*). And **only a genuine G5 stops the loop**: red
+and merge line; its picker never carries the merge act; the maintainer merges outside the session — `docs/ROSTER.md` § *Rulings of 2026-09-30 — En never merges*). And **only a genuine G5 stops the loop**: red
 required tests, coverage under the ladder's minimum, a semantic conflict, an unsettled adversarial finding, a
 `sharingan` escalation. A stop is `nen stop`'s banner plus the question asked through the surface's own
 native option picker.

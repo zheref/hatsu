@@ -343,6 +343,11 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   `surface mirror check --surface claude-code --installed` diffs a layout Hatsu never places, so the
   installed-copy read is an owned dependency of the host-install family, zheref/nen#298 (BC-11 reads
   the script's branching shell as a verb's job, a G4 question until the verb lands).
+- **`futon` § 5.** The local `git merge --no-ff` of a hanten-settled effort branch into the run's
+  integration branch, in a worktree on that branch, has no nen verb (`nen wc catch-up` brings a branch
+  up to date with its base; it is not a delivery merge). It is named residue, the verb **not yet filed**
+  ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-30 — En never merges*, row *Futon merges into its own
+  integration branch, locally*). The branch is published with `nen wc publish`, never through `aka`.
 - **`tenkai` § 6d and `ten` § 6 step 5b.** Writing a declaration value — `scripts/config_values.sh`
   `fill` and `set`, a JSON span scanner that inserts in place — has no nen verb, and the `$<key>`
   option notes rely on nen reading every `$`-prefixed key as metadata, a convention its loaders follow
