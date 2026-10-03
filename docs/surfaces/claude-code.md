@@ -33,6 +33,26 @@ update reaches the running session only through `/reload-plugins`, which the hum
 session; until then `hatsu:bakuryuha` § 6 follows the new skill bodies from the checkout, and hooks and
 personas stay the loaded version's (§ 9).
 
+## Authoring checkout adapter
+
+Apply WORKFLOW § *Where worktrees live* to every lead and delegated authoring/parity/PR effort,
+new or resumed; the sole core exception is explicit authorization in the ORIGINAL effort prompt.
+Reuse the verified effort-owned linked worktree. Otherwise enter a native worktree with
+`EnterWorktree`, or restart with `claude --worktree <name>`; Hatsu's manual `git worktree add`
+residue uses `<core>/.nen/worktrees/claude-code/<name>`, followed by entering that absolute path.
+Bind the actual checkout before Breath or Ten catch-up, not the plugin root.
+
+Delegated authors need their own checkout: Agent `isolation: "worktree"` is used only when it
+isolates the intended target repository; otherwise provision the target worktree explicitly and
+hand its absolute path to the agent. Hanten's target-specific procedure remains separate.
+An entry/trust/permission refusal is named and reported; never disable it, change settings or
+fall back to core. The original core-authoring waiver grants no automatic core launch or swap.
+
+Evidence fetched 2026-10-03: "Pass `--worktree` or `-w` with a name"; "creates one with the
+`EnterWorktree` tool"; "adding `isolation: worktree` to its frontmatter" ([official worktree
+guide](https://code.claude.com/docs/en/worktrees)). Entry outside `.claude/worktrees/` still
+requires the harness approval in § 1; an unavailable approval is a reported blocker.
+
 ## 2. Skills
 
 | | |

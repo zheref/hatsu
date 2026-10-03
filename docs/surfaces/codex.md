@@ -87,6 +87,24 @@ worker tier's alias, resolved to the id the host serves today only at run time. 
 lands in a config file; `models.rule` forbids it, and the id moves (evidence § 3.5: `gpt-5.6-sol` today,
 no bare `sol`, no `gpt-6-sol`).
 
+### Authoring checkout adapter
+
+**Every lead and delegated authoring/parity/PR effort follows WORKFLOW § *Where worktrees live***,
+including a continuation; only the ORIGINAL effort prompt's explicit core instruction waives it.
+In the app, when exposed, inspect `list_artifacts` and reuse this effort's suitable active worktree.
+Otherwise call `create_worktree` with its declared schema and intentional start ref; wait for a
+pending operation to complete. Bind the returned **workspace directory**: creation does not move
+the calling session. Use that absolute directory for every command cwd, `--repo` and edit. These
+are host-exposed Codex app tool contracts, not CLI commands; their availability and returned path
+are read at use. The native root in § 1 is accepted, never reconfigured.
+
+When those app tools are absent (CLI/IDE), use the shared policy's named `git worktree add`
+residue at `<core>/.nen/worktrees/codex/<name>`; Nen inventories worktrees, it does not create them.
+`spawn_agent` shares the parent's cwd and creates no isolation. Provision an independent checkout
+for each delegated authoring effort and hand it that absolute path with explicit cwd/edit scope;
+or start a separately scoped `codex exec -C <effort-path>` using the host's existing authorization.
+A sandbox refusal is reported, never repaired by changing permissions or working in core.
+
 In-session delegation is `spawn_agent`. Hanten's isolated reviewer still runs as a second `codex exec`
 in a worktree at `<core>/.nen/worktrees/codex/hanten-<persona>` (§ 1), because that reviewer must not
 share the author's tree.

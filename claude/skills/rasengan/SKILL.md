@@ -1,6 +1,6 @@
 ---
 name: rasengan
-description: Author the requested change and its focused tests on the declared stack. It may execute the repository's declared scoped test lane for feedback and runs the inexpensive iteration checks while writing; kokusen owns the mandatory focused-test checkpoint. Rasengan runs as phase two of ren, commits nothing, pushes nothing, and never expands authoring into the full regression suite or coverage.
+description: Author the requested change and focused tests in the verified effort worktree by default. Runs as Ren phase two or to resume a warm effort. Use the declared stack, inexpensive iteration checks and scoped test lane for feedback; kokusen owns the finished-tree checkpoint. Never commits, pushes or expands into full regression or coverage.
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
@@ -31,6 +31,10 @@ it switches and why, and never blend two under one header (`claude/agents/kurapi
 
 > **Read what I actually asked for, work out how this repository does that kind of thing, and write
 > it — keeping your own build honest as you go.**
+
+**Before authoring or standalone catch-up**, re-verify the bound absolute effort checkout under
+`$hatsu_root/docs/WORKFLOW.md` § *Where worktrees live*, including resumed efforts. Use it for
+every edit, command cwd and `--repo`; a warm branch alone never waives isolation.
 
 Rasengan is **automatic**: phase two of `ren`, taken on the branch [`hatsu:breath`](../breath/SKILL.md)
 cut and proved, and handed to [`hatsu:kokusen`](../kokusen/SKILL.md) when the tree is finished. It is
