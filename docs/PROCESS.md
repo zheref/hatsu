@@ -202,8 +202,8 @@ an unfixed finding resolved to clear a counter**.
 
 **A reply that names a commit names one on the pull request's head chain** (zheref/hatsu#139). The
 commit is the `sha` this invocation's `nen commit write --json` reported (exit `0`, `sha` not null) —
-read **after** kokusen § 5's tip read-back settles, so a commit that read-back dropped and re-ran is
-replaced by the re-run's `sha`; an earlier commit (a delegate's, or one already pushed before a
+read **after** kokusen § 5's exit `3` settles (the verb's own read-back, nen `0.19`), so a commit that
+exit `3` dropped and re-ran is replaced by the re-run's `sha`; an earlier commit (a delegate's, or one already pushed before a
 session died) is read from the commit that carries the fix **in the fetched head's history** — read the head from
 `nen pr ready <ref>`'s *judged head* line and `git -C <path> fetch` first, then
 `git -C <path> log <head> -- <path of the fix>`, because another checkout may have pushed it and the
@@ -378,9 +378,9 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
 - **`getsuga`.** The release proposal's base read-back after a retarget (`gh pr view <N> --json
   baseRefName`), because nen exposes no read of a PR's base (zheref/hatsu#98); the retarget itself is
   `nen pr retarget`.
-- **`kokusen`.** The explicit per-path `git -C <path> add -- <file>`, the tip read-back (`git -C <path> log -1
-  --format='%(trailers:only,unfold)'`) and the drop of a just-written tip on an injected attribution key
-  (`git -C <path> reset --soft HEAD~1`, row `injected-attribution-trailer`) are the raw calls; the commit is
+- **`kokusen`.** The explicit per-path `git -C <path> add -- <file>` and the drop of a just-written tip on
+  `commit write`'s exit `3` (the undo line nen prints, `git -C <path> reset --soft HEAD~1` for a non-root
+  commit; row `injected-attribution-trailer`) are the raw calls; the commit is
   `nen commit write --message-file`, gated on `nen commit format`.
 - **`bakuryuha`.** The first-party install is `scripts/hatsu_surface_link.sh` and updating the checkout is
   `scripts/hatsu_plugin_update.sh`, as for `ten`; the served-version read-backs (`claude plugin list
@@ -414,7 +414,7 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   file`, `nen issue comment` and `nen issue edit-body` read no private list, so `file`,
   `backlog-synthesis`, `mugetsu` and `sharingan` pipe each title, body and comment through the script
   first. It reads `gh api 'user/repos?visibility=private'` live; nothing caches it.
-- **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`.
+- **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`; and the undo of `wc squash`'s exit `3`, `git -C <path> reset --soft ORIG_HEAD` (§ 4).
 - **`kagutsuchi` § 3a.** The freshness gate is `scripts/send_freshness_check.sh` — a `git fetch`,
   `rev-parse`, `rev-list` and `status --porcelain` over the archive's recorded build SHA — and the
   default target is a `nen/workflow.json` key nen neither validates nor reads (`deploy.defaultTarget`);
@@ -445,7 +445,7 @@ and `deploy.defaultTarget` validated by pointer with a per-stack default in `nen
 pack ([zheref/nen#300](https://github.com/zheref/nen/issues/300)) are nen's to add (zheref/hatsu#146);
 until then the two scripts above are the mechanism and are named as such.
 
-**Owned dependencies.** `nen commit write` / `nen wc squash` should read back the trailers of the commit they wrote and report an injected key ([zheref/nen#273](https://github.com/zheref/nen/issues/273)); until then the read-back above is prose.
+**RETIRED at nen `0.19`:** `nen commit write` and `nen wc squash` read back the trailers of the commit they wrote, and exit `3` with `injected[]` ([zheref/nen#273](https://github.com/zheref/nen/issues/273), closed by zheref/nen#357). kokusen § 5 and aka § 4 map that exit. aka § 7's step-0 read of the whole outgoing range stays, because a clean catch-up merge is written by `nen wc catch-up`, which reads no trailers back (zheref/nen#357 covers `commit write` and `wc squash` only).
 
 - **`nen report data` derives less than a page needs**
   ([zheref/nen#258](https://github.com/zheref/nen/issues/258)). It does not derive `effortStage`,

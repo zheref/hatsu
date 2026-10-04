@@ -952,6 +952,23 @@ equal to its alias's, labels.json parity) only by the review's one-off checks an
 `nen direct registry`; whether a Hatsu guard lane is owed too is BC-9/BC-11's question. Both are filed as
 handbook-questions on `zheref/hatsu`.
 
+## Rulings of 2026-10-04 — interactive runner pools: the overlap is asked, two more typed keys, shibari opens no draft
+
+**The maintainer's answers, verbatim** (to three questions put through the picker while `hatsu:build HA#206` settled its review round, 2026-10-04):
+
+> A runner labelled [self-hosted, Windows, X64, desktop] also takes every job aimed at [self-hosted, Windows, X64] … How should jusshin handle an interactive pool beside a same-arch Windows service pool? — **"Say it and ask once (Recommended)"**
+>
+> jusshin now asks two values typed, never picked: the `--accept-daily-account` word and the overlap answer … Should those two join the row? — **"Yes, add both keys (Recommended)"**
+>
+> Since nen 0.19 a draft PR is never Ready … Whose act is moving a draft to ready? — **"shibari, at open"** (*"shibari never opens drafts, so there is no transition to own: `pr open` without `--draft`"*)
+
+| Ruling | What it says |
+|---|---|
+| **The overlap is said and asked once** | Before [`jusshin`](../claude/skills/jusshin/SKILL.md) § 3 plans an interactive Windows pool in a repository that also declares a Windows service pool of the same arch, it names the jobs the `desktop` runner would also take (GitHub matches label subsets) and asks, typed, never defaulted. It neither refuses nor filters the service pool's proof. The real fix is a label of its own for every pool: zheref/hatsu#204 and zheref/nen#340 |
+| **Two more typed keys** | `nen/decisions.json` → `missing-maintainer-choice.governs` gains `jusshin <accept-daily-account>` (the word that lets `nen runner script` render a plan whose identity is the account computing or rendering it) and `jusshin <desktop-overlap>` (the answer above). Neither is a grammar slot: like `jusshin <service-identity>`, each completes the elicitation, not the line. [`WORKFLOW.md`](WORKFLOW.md) § 4's enumeration names them |
+| **shibari opens no draft** | [`shibari`](../claude/skills/shibari/SKILL.md) runs `nen pr open` without `--draft`, so no run owns a draft-to-ready transition. `nen pr mark-ready` (nen `0.19`) is for a draft someone else opened, at the maintainer's word |
+| **What it does not settle** | the 2026-09-30 jusshin ruling's two open questions (the question budget, and whether a sign-in is an on-device act) stay open |
+
 ---
 
 ## Rulings of 2026-10-01 — every settable value written out, and asked for before it is needed

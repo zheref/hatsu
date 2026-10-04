@@ -126,21 +126,21 @@ clean list **plus every flagged path that got an explicit yes**, and nothing els
 makes the commit: it validates the file as `commit format` does, refuses a red proof and an empty
 index, and reports `{sha, subject, trailers}`.
 
-**Then read the tip back** — `git -C <path> log -1 --format='%(trailers:only,unfold)'` (§ 6): a
-harness can append a trailer at `git commit` time (Cursor's `Co-authored-by`, zheref/hatsu#66). **An
-attribution key outside `commits.allowedAttributionTrailers` is a stop with a default** —
+**Exit `3`: the commit exists and a hook added a refused trailer** (`injected[]`; the verb reads it back,
+nen `0.19`, zheref/nen#357). Exit `1` whose stderr begins *"committed"* also exists, unchecked: never
+committed again. **An attribution key outside `commits.allowedAttributionTrailers` is a stop with a
+default** —
 [WORKFLOW](../../../docs/WORKFLOW.md) § `commits`'s rule: a key ending `-by`/`-with` or in
 `forbiddenTrailers`, case-insensitive; `Closes` is ordinary (`nen/decisions.json` row
-`injected-attribution-trailer`): the tip just written is unpublished, so **drop it with
-`git -C <path> reset --soft HEAD~1`** — never an earlier commit, never an amend — and ask once for the
+`injected-attribution-trailer`): the tip just written is unpublished, so **drop it with the undo line
+nen prints** — never an earlier commit, never an amend — and ask once for the
 switch (row `harness-attribution-switch`, the maintainer's toggle); then re-run. `aka` § 7 reads every
 outgoing commit before the push.
 
 ## 6. Residue
 
-The explicit per-path `git -C <path> add`, the tip read-back and its `git -C <path> reset --soft HEAD~1` are
-the raw calls ([PROCESS.md](../../../docs/PROCESS.md) § Residue and owned dependencies; the read-back is
-owned, [nen#273](https://github.com/zheref/nen/issues/273)). Of WORKFLOW § `commits`'s three enforcement layers the
+The explicit per-path `git -C <path> add` and the exit-`3` undo nen prints are the raw calls
+([PROCESS.md](../../../docs/PROCESS.md) § Residue and owned dependencies). Of WORKFLOW § `commits`'s three enforcement layers the
 `commit-msg` hook exists only in a repository `nen scaffold init` stood up, so **say which layers
 the repository in front of you actually has**. **Whether two changes are one coherent commit is
 judgment.** **Reusable focused selection is an owned dependency**

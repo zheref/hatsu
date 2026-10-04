@@ -104,14 +104,14 @@ nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,nen/,sc
   --fragment-dir changelog.d --files <the changed paths> --head-changelog <path to CHANGELOG.md> \
   [--body-from <abs path>]
 nen pr open --target <owner/name> --base <branch.base> --title-file <abs> --body-file <abs> \
-  [--head <branch>] [--draft] [--dry-run] [--json]   # title-file: the one commit's subject
+  [--head <branch>] [--dry-run] [--json]   # title-file: the one commit's subject
 nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-run] [--json]
 "$hatsu_root/scripts/pr_development_link_check.sh" --pr <owner/name#n> --base <branch.base>
 ```
 
 - **The two refs must be equal**; if not, the run **stops and says which is ahead**. **`pr open` refuses a head that is not on the remote at
-  exit `2` and exits `1` naming an open PR for the branch**; it opens **once**, draft or ready
-  being the repository's convention.
+  exit `2` and exits `1` naming an open PR for the branch**; it opens **once**, never as a draft
+  (never Ready from nen `0.19`; ROSTER, 2026-10-04).
 - **`body-check` reports every requirement**; **exit `1` is a finding to fix**.
 - **`fragment-required`'s four verdicts, both kept prefixes and its exit `2` are the template's
   check (b)**, binding as written there.
