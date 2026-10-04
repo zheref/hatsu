@@ -27,10 +27,14 @@ feature branch, a swap `hatsu:amenotejikara` made in core, uncommitted edits. So
 trunk, and the updater never moves an authoring branch; it says which branch is served instead. There is
 no mirror to drift-check on this surface (zheref/hatsu#106). What `ten` § 5 records as `mirrors:` is
 whether the served copy — this link, or a cache — IS the source, byte for byte
-(`scripts/plugin_cache_check.sh --root <hatsu_root> --cache auto`, zheref/hatsu#122), and it places the permission pack. `ten` § 4b runs `scripts/hatsu_plugin_update.sh --auto --claude`,
-which fast-forwards the linked checkout, never runs `claude plugin update` for it, and names a shadowing
-`hatsu@hatsu`; on a host still on the cache it keeps the #118 path, the marketplace source first. An
-update reaches the running session only through `/reload-plugins`, which the human types, or a new
+(`scripts/plugin_cache_check.sh --root <hatsu_root> --cache auto`, zheref/hatsu#122); writable entries
+place the permission pack in the bound target. `ten` § 4b first applies the target/source guard in
+[`WORKFLOW.md`](../WORKFLOW.md) § *Where worktrees live*: plain `--auto` only for an eligible isolated
+Hatsu source; protected core/shared sources skip refresh, with the reason reported. Ordinary warm-up
+uses neither `--claude` nor `--codex`, which can redirect the updater to a shared source. On an explicit
+`hatsu:bakuryuha` call, `--claude` fast-forwards the linked checkout, names a shadowing `hatsu@hatsu`,
+and uses the #118 marketplace/cache path where applicable. An update reaches the running session only
+through `/reload-plugins`, which the human types, or a new
 session; until then `hatsu:bakuryuha` § 6 follows the new skill bodies from the checkout, and hooks and
 personas stay the loaded version's (§ 9).
 
@@ -131,9 +135,9 @@ skill `missing` against the cache (measured in `docs/ab/ten.md`), so it is not w
 verdict on every recorded copy (each `hatsu@` installPath and `skills/hatsu`), byte for byte against
 a source named independently of the copy, and places the permission pack; the verdicts and their
 `mirrors:` words are [`docs/PROCESS.md`](../PROCESS.md) § *ten § 5's rules*, and the script is
-residue owed to zheref/nen#339. What keeps the copy current is `ten` § 4b
-(`hatsu_plugin_update.sh --auto --claude`, § 1 above). There is no marker on this surface because there is no
-generated file.
+residue owed to zheref/nen#339. Refresh follows `ten` § 4b's guarded-source eligibility (§ 1 above);
+an explicit `hatsu:bakuryuha` call owns updating a protected/shared install. Read-only entry skips
+placement. There is no marker on this surface because there is no generated file.
 
 ## 9. Dated checklist
 
