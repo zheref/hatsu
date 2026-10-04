@@ -27,12 +27,36 @@ feature branch, a swap `hatsu:amenotejikara` made in core, uncommitted edits. So
 trunk, and the updater never moves an authoring branch; it says which branch is served instead. There is
 no mirror to drift-check on this surface (zheref/hatsu#106). What `ten` § 5 records as `mirrors:` is
 whether the served copy — this link, or a cache — IS the source, byte for byte
-(`scripts/plugin_cache_check.sh --root <hatsu_root> --cache auto`, zheref/hatsu#122), and it places the permission pack. `ten` § 4b runs `scripts/hatsu_plugin_update.sh --auto --claude`,
-which fast-forwards the linked checkout, never runs `claude plugin update` for it, and names a shadowing
-`hatsu@hatsu`; on a host still on the cache it keeps the #118 path, the marketplace source first. An
-update reaches the running session only through `/reload-plugins`, which the human types, or a new
+(`scripts/plugin_cache_check.sh --root <hatsu_root> --cache auto`, zheref/hatsu#122); writable entries
+place the permission pack in the bound target. `ten` § 4b first applies the target/source guard in
+[`WORKFLOW.md`](../WORKFLOW.md) § *Where worktrees live*: plain `--auto` only for an eligible isolated
+Hatsu source; protected core/shared sources skip refresh, with the reason reported. Ordinary warm-up
+uses neither `--claude` nor `--codex`, which can redirect the updater to a shared source. On an explicit
+`hatsu:bakuryuha` call, `--claude` fast-forwards the linked checkout, names a shadowing `hatsu@hatsu`,
+and uses the #118 marketplace/cache path where applicable. An update reaches the running session only
+through `/reload-plugins`, which the human types, or a new
 session; until then `hatsu:bakuryuha` § 6 follows the new skill bodies from the checkout, and hooks and
 personas stay the loaded version's (§ 9).
+
+## Authoring checkout adapter
+
+Apply WORKFLOW § *Where worktrees live* to every lead and delegated authoring/parity/PR effort,
+new or resumed; the sole core exception is explicit authorization in the ORIGINAL effort prompt.
+Reuse the verified effort-owned linked worktree. Otherwise enter a native worktree with
+`EnterWorktree`, or restart with `claude --worktree <name>`; Hatsu's manual `git worktree add`
+residue uses `<core>/.nen/worktrees/claude-code/<name>`, followed by entering that absolute path.
+Bind the actual checkout before Breath or Ten catch-up, not the plugin root.
+
+Delegated authors need their own checkout: Agent `isolation: "worktree"` is used only when it
+isolates the intended target repository; otherwise provision the target worktree explicitly and
+hand its absolute path to the agent. Hanten's target-specific procedure remains separate.
+An entry/trust/permission refusal is named and reported; never disable it, change settings or
+fall back to core. The original core-authoring waiver grants no automatic core launch or swap.
+
+Evidence fetched 2026-10-03: "Pass `--worktree` or `-w` with a name"; "creates one with the
+`EnterWorktree` tool"; "adding `isolation: worktree` to its frontmatter" ([official worktree
+guide](https://code.claude.com/docs/en/worktrees)). Entry outside `.claude/worktrees/` still
+requires the harness approval in § 1; an unavailable approval is a reported blocker.
 
 ## 2. Skills
 
@@ -111,9 +135,9 @@ skill `missing` against the cache (measured in `docs/ab/ten.md`), so it is not w
 verdict on every recorded copy (each `hatsu@` installPath and `skills/hatsu`), byte for byte against
 a source named independently of the copy, and places the permission pack; the verdicts and their
 `mirrors:` words are [`docs/PROCESS.md`](../PROCESS.md) § *ten § 5's rules*, and the script is
-residue owed to zheref/nen#339. What keeps the copy current is `ten` § 4b
-(`hatsu_plugin_update.sh --auto --claude`, § 1 above). There is no marker on this surface because there is no
-generated file.
+residue owed to zheref/nen#339. Refresh follows `ten` § 4b's guarded-source eligibility (§ 1 above);
+an explicit `hatsu:bakuryuha` call owns updating a protected/shared install. Read-only entry skips
+placement. There is no marker on this surface because there is no generated file.
 
 ## 9. Dated checklist
 
