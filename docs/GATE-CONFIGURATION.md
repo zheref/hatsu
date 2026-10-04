@@ -79,7 +79,7 @@ set makes the approve limb of the readiness gate vacuously true*. That refusal i
 which of the two you mean; do not arrive at an empty set by omission.
 
 > **Solo maintainer, no second human?** `"review-round-only"` with an automated reviewer declared is
-> the honest shape — the round is real, and the run merges its own PR at its terminus (`en` § 5). Setting `"required"` and listing
+> the honest shape — the round is real, and the run ends each PR at your merge prompt (`en` § 5). Setting `"required"` and listing
 > yourself makes the approve limb vacuous by a different route.
 
 ### `default_approvers` — whose approval counts
@@ -288,3 +288,22 @@ now reads `hand-edited`.
 `${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}` in `hooks_root_for`, the regenerate workflow, `docs/SURFACES.md` § 3 and
 `docs/surfaces/README.md`; `hooks_root_next_for`, its re-check and its fixture cases are gone, and a Codex mirror at the old
 root reads `hand-edited: hooks.json` again.
+
+**2026-10-02. The readiness pin and the regenerate cleanup, both steps landed.** Step one
+([zheref/hatsu#193](https://github.com/zheref/hatsu/pull/193), Hatsu 0.78.0) taught the validator two
+frozen next shapes beside the current ones. Step two flips the live workflows and narrows the
+validator to the new shapes alone: `pr-readiness.yml` drops its freshness step and passes
+`--exclude-check readiness --require-head "$EVENT_HEAD"` (zheref/hatsu#160), and
+`surface-mirror-regenerate.yml` gives its PR step `id: cpr` and adds the failure-only cleanup step
+(zheref/hatsu#165). The verdict, Publish and cleanup steps are compared byte for byte.
+Every other step of `pr-readiness.yml` is frozen the same way (`READINESS_FROZEN_STEPS`), so no
+earlier step can reach the verdict through the environment, the `PATH`, a `shell:` or an action; the
+other workflows' job keys, step keys, `uses:`, `shell:` and step env keys are held to exact allowlists.
+
+**Step three, recorded, not done.** Two fixes change a frozen body or the job structure, which `main`'s
+trusted copy compares exactly, so each needs a two-step landing of its own: the verdict's first-line
+read (`printf '%s\n' "$explain" | head -1`) can die on SIGPIPE under `pipefail` when the explain
+outgrows the pipe buffer — it fails closed, Publish posting `readiness undetermined` — and the fix is
+`${explain%%$'\n'*}`; and splitting the verdict (read-only token) from Publish (the only step that
+needs `checks: write`) into two jobs changes `EXPECTED_JOBS` (hanten on step two, Phinks and Feitan).
+

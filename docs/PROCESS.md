@@ -265,14 +265,15 @@ chooses to — Cursor Bugbot, `cursor[bot]`, is installed and reviews on its own
 PR** until nen reads the chain, so the declaration is the maintainer's call, never the run's); **a fallback request
 is a round and counts toward `round_policy.maxRounds` as any other**. With the chain exhausted, `terminal:
 hanten` — **hanten's rounds are the review**: no round is requested, no bound is touched, this terminus
-outranks `cap-reached`, and the PR is merged by `en` § 5 (§ 6 there, the sixth stop) with **the verb's
+outranks `cap-reached`, and the PR goes to `en` § 5's merge prompt (§ 6 there, the sixth stop) with **the verb's
 verdict quoted verbatim** — today `not-ready: a configured reviewer's round is
 still owed at the current head (CON-32b): copilot (no round at head)` — **and one Hatsu line beside it,
 never in its place**: `Hatsu: reviewer copilot declared exhausted (nen/gates.json reviewer_fallback, ruled
 2026-09-29); nen does not read this — zheref/nen#275`. The same line goes into the PR body's completion
-checklist through `nen pr edit-body`, written by `en` before the merge — the one durable record that a
-hanten-only review happened. **The merge is the run's**: the ruling's *and merge* means `en` § 5 merges
-it (ruling 2026-09-29 (3): *"The merge is not mine. It is yours and it has been."*). No Hatsu-side
+checklist through `nen pr edit-body`, written by `en` before the prompt — the one durable record that a
+hanten-only review happened. **The merge is the maintainer's**: `en` never merges, and every PR into
+`main` ends at the merge prompt (`docs/ROSTER.md` § *Rulings of 2026-09-30 — En never merges*, which
+supersedes ruling 3 of 2026-09-29). No Hatsu-side
 narrowing can make the verb read past an exhausted reviewer — `--reviewers ""` is ignored where the
 target ships `nen/gates.json`, and a derived gates file with `reviewers: []` is refused by name
 (measured at nen 0.15.1, `docs/ab/sharingan.md` § *Dated 2026-09-29 — the reviewer fallback chain*) — so
@@ -308,8 +309,23 @@ absent; only a surface with none prints lettered options in chat, closing with *
 and says so.
 
 **`ten` § 5's rules.** `scripts/surface_mirror_check.sh` exit `0` is `mirrors: current`; `1` is stale
-**in the plugin** — said, still placed, regenerated in a PR; on Claude Code there is no mirror
-(`mirrors: not applicable`, the permission pack only; [`SURFACES.md`](SURFACES.md) § 2). **Ten never
+**in the plugin** — said, still placed, regenerated in a PR. **On Claude Code there is no mirror**, so
+`mirrors:` is whether the copy Claude Code serves IS the source (zheref/hatsu#122), the permission pack
+placed beside it ([`SURFACES.md`](SURFACES.md) § 2):
+
+```bash
+"$hatsu_root/scripts/plugin_cache_check.sh" --root "$hatsu_root" --cache auto
+```
+
+It judges every copy Claude Code has recorded for Hatsu (each `hatsu@` installPath and `skills/hatsu`),
+and **a copy is never its own evidence**: where the served copy IS `--root` (ten § 0 resolves it from
+the served skill directory), it compares against a source named independently — `HATSU_PLUGIN_ROOT`,
+a `directory` marketplace, or the Hatsu checkout ten stands in. `0` is `mirrors: current (<the line>)`;
+`1` is `mirrors: stale cache` with the differing paths, and § 4b's update is what refreshes it (re-run
+it after); `3` is `mirrors: not installed` (no `hatsu@` install record and no `skills/hatsu`); `4` is
+`mirrors: not comparable (<the line>)` — the served copy is the only copy (a working directory on a feature branch is no source), or no `jq` read the record;
+`5` is `mirrors: broken install (<the line>)` — an entry with no usable installPath, a stale record, a
+dangling link; `2` is a wiring stop, quoted. Only `0` reads current. **Ten never
 generates a mirror**; `surface_bootstrap.sh` is the pre-skill shell carve-out; Cursor lists
 `.cursor/skills` **before installing**; the models are the TARGET's `nen/workflow.json` → `models`.
 
@@ -330,7 +346,19 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   `gh auth status`/`gh auth token`, `gh pr list --head <branch> --state all`, `git branch --merged origin/<branch.base>` — are hand-spelt too; an unnamed human-call prerequisite at its step 7 stops,
   named, and the maintainer names the skill it is for by typing `then aka+mukai`.
   Cursor's version check is a string compare on a date part; the host-global half of the skill-name
-  collision question has no answer from inside a repository.
+  collision question has no answer from inside a repository. **§ 5's Claude Code `mirrors:` is
+  `scripts/plugin_cache_check.sh`**, a byte comparison with six exit codes (five verdicts and a wiring stop) that no verb owns: an
+  owned dependency, zheref/nen#339 (a plugin-layout mode of `surface mirror check --installed`, or a
+  check under zheref/nen#298's status verb); its fixture is the reference behaviour, and it retires
+  when the verb lands. **BC-11 debt, a G4 question for the maintainer, not decided here:** that script
+  is new branching shell carrying a verdict, and `scripts/hanten_cycle_ledger.sh`'s embedded Python
+  grew (`ensure`, its trace reads and their self-tests, zheref/hatsu#169) — does BC-11's
+  embedded-Python freeze bind the ledger?
+- **`futon` § 5.** The local `git merge --no-ff` of a hanten-settled effort branch into the run's
+  integration branch, in a worktree on that branch, has no nen verb (`nen wc catch-up` brings a branch
+  up to date with its base; it is not a delivery merge). It is named residue, the verb **not yet filed**
+  ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-30 — En never merges*, row *Futon merges into its own
+  integration branch, locally*). The branch is published with `nen wc publish`, never through `aka`.
 - **`tenkai` § 6d and `ten` § 6 step 5b.** Writing a declaration value — `scripts/config_values.sh`
   `fill` and `set`, a JSON span scanner that inserts in place — has no nen verb, and the `$<key>`
   option notes rely on nen reading every `$`-prefixed key as metadata, a convention its loaders follow
@@ -339,7 +367,12 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   in tenkai's Residue for Netero's harvest.
 - **`shibari`.** The evidence mirror's publish step, the base-ref read (`gh pr view --json
   baseRefName`), the last-pushed-commit comparison and Development linking are named raw calls; the
-  PR itself is `nen pr open`.
+  PR itself is `nen pr open`. Verifying the links is `scripts/pr_development_link_check.sh`, which
+  reads the body's *Associated issues* table and `closingIssuesReferences` /
+  `closedByPullRequestsReferences` through `gh`: an **owned dependency** on `zheref/nen`, a
+  `nen pr ready` row, not yet filed (origin zheref/hatsu#203). Until it lands, shibari and en quote
+  the guard's `0` beside the verdict (BC-11 reads the guard's branching shell as a verb's job, a G4
+  question until the verb lands).
 - **`sharingan`.** A reply's head-chain check (§ *Reviewer rounds and review threads*) is `git -C <path> fetch` then `git -C <path>
   merge-base --is-ancestor <sha> <head>`, because nen reads a PR's head but not the ancestry of a commit in it.
 - **`getsuga`.** The release proposal's base read-back after a retarget (`gh pr view <N> --json

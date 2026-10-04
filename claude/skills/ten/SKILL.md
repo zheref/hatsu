@@ -160,8 +160,8 @@ cd "$target" || exit 1
 "$hatsu_root/scripts/permissions_pack.sh" --surface "$surface" --install --target "$target" [--plugin]
 ```
 
-Claude Code: pack only, `mirrors: not applicable`; verdicts: PROCESS § *Surfaces and pickers*,
-*ten § 5's rules*.
+Claude Code: `mirrors:` is PROCESS § *Surfaces and pickers*, *ten § 5's rules*' served-cache
+check beside the pack.
 
 ## 6 · Catch-up: the prerequisites of the phase that called me
 

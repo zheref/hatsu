@@ -21,7 +21,7 @@ trigger a duplicate filing. Never copy or invent a second policy in the target r
 > whose product *is* the process — and **`G2` (`CON-5`) in a consumer repository**, where a
 > `nen/contract.json`, `nen/workflow.json` or `nen/gates.json` is that repository's own configuration
 > and governs nothing else. **This skill exists to run against consumer checkouts**, so its ordinary
-> case is `G2`. The merge is `en` § 5's either way — the ruling moves the gate, never the
+> case is `G2`. The merge prompt is `en` § 5's either way — the ruling moves the gate, never the
 > owner.
 
 **Nature: Transmuter** carries every run. Adoption shapes machinery: it renders templates, installs a
@@ -406,6 +406,19 @@ guard.** `GuardRegistration` scoring a missing guard as *"no ordering constraint
 about the **ordering** and says nothing about **enforcement**: the byte-compared same-repository
 guard, the write-permission refusal and the trusted-data rules all live in
 `scripts/workflow_runner_policy_check.rb`, which Tenkai does not install.
+
+**A process repository that carries its own copy of that validator takes the newer validator first.**
+The readiness template's verdict step is pinned to the event head and drops its own prior check by
+name (`--require-head "$EVENT_HEAD"`, `--exclude-check readiness`; zheref/hatsu#160), and its
+freshness step is gone. A trusted validator older than Hatsu 0.78.0 knows only the previous shape and
+refuses the re-rendered workflow. A validator from 0.78.0 through 0.81.x admits both renderings, so it
+is the safe first step: land it on that repository's base branch in its own PR, then re-render
+(`docs/GATE-CONFIGURATION.md`, the two-step landing). The validator this change ships admits only the
+new rendering, so landing it must be followed at once by the re-render, or every pull request between
+the two fails. A consumer with no validator of its own re-renders directly; `diagnose` reports an older
+rendering as drift and `apply` re-renders it. **With no other reporting check, the pinned verdict never
+reads ready:** excluding its only check leaves an empty rollup, which nen judges `not-ready: no checks
+reported` on every event — add a real CI check first.
 
 The rendered job checks for that file on its **trusted** checkout. A process repository fails
 if it is absent; a consumer emits a notice and continues under the rendered job's own guards.

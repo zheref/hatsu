@@ -133,7 +133,7 @@ no-declaration git half that cut `--branch`):
 `"$hatsu_root/scripts/hanten_cycle_ledger.sh" init --repo <path> --branch <rendered name>`. Exit `0`
 is a new cycle; `2 already exists` is reported, never reset; a file missing later is a lost ledger
 for [`hanten`](../hanten/SKILL.md), not a second `init`. **One `init` per branch, never silent;
-continuation never cuts or inits again.**
+continuation never cuts or inits again.** A branch breath did not cut gets it from hanten § 1's `ensure`.
 
 ## 4. Proving the base tip
 

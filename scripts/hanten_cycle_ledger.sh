@@ -17,15 +17,52 @@
 #
 # Usage:
 #   scripts/hanten_cycle_ledger.sh init   --repo <path> --branch <name> [--pr <n>]
+#   scripts/hanten_cycle_ledger.sh ensure --repo <path> --branch <name> [--pr <n>] [--base <trunk>]
 #   scripts/hanten_cycle_ledger.sh decide --repo <path> --branch <name> [--pr <n>] --applicable <csv>
 #   scripts/hanten_cycle_ledger.sh record --repo <path> --branch <name> [--pr <n>] --persona <id> --outcome ran|skipped-exhausted
 #   scripts/hanten_cycle_ledger.sh show   --repo <path> --branch <name> [--pr <n>]
 #   scripts/hanten_cycle_ledger.sh --self-test
+#
+# `ensure` (zheref/hatsu#169) opens the branch ledger for a branch breath § 3b
+# did not cut -- the desktop app's worktree, a hand-made branch -- with the same
+# `init`, and is safe to run on every entry (hanten § 1 passes --pr <n> once the
+# effort has a PR):
+#   0  {"ensure":"opened"}   no ledger and no trace of an earlier one: opened now
+#   0  {"ensure":"present"}  already there (breath's, or an earlier ensure): untouched;
+#                            with --pr <n>, that PR's own PR-keyed ledger (hanten
+#                            § 2b's) also reads present ("keyed":"pr")
+#   3  the branch is the trunk (--base, else nen/workflow.json branch.base, else
+#      origin/HEAD, else main) or empty: no ledger is opened, hanten stops
+#   4  no ledger here, but a ledger was opened under this key before: LOST.
+#      Never a fresh init -- hanten § 1's recovery path owns it.
+# THE TRACE OUTLIVES .nen/. A lock file beside the ledger dies with it (git
+# clean -X, a removed worktree), so it cannot be the only trace. Every init
+# (breath's, ensure's, recover-first's, the PR-keyed one) also writes
+# <git-common-dir>/hatsu/hanten/<key>.opened, which git clean never touches
+# and every worktree of the clone shares (git rev-parse --git-common-dir, read
+# without --path-format so git older than 2.31 still answers; a relative answer
+# is resolved against --repo; anything but one line is no trace, and `opened`
+# says so). `ensure` reads, before opening: that marker or a
+# <key>-pr<digits> one for ANOTHER PR (a branch whose slug merely extends this
+# one's, x/ten-preflight beside x/ten, is another branch), another PR's ledger
+# in this checkout, the same key's ledger or lock in any other `git worktree
+# list` checkout, and a lock file here older than STALE_LOCK_SECONDS. Any one is
+# a lost ledger. The lock's age is read once, before ensure waits on anything,
+# and never dropped: a younger lock is an init or ensure in flight (it creates
+# the lock before it saves), so ensure waits on it and reads again.
+# What no local trace survives is a fresh clone: that reads `opened`. A
+# pushed branch or an open PR is not a trace -- hanten first runs on an
+# already-pushed branch (mukai). A marker never expires: a branch name reused
+# after its branch was merged and deleted reads LOST, by design (fail closed),
+# and is settled through recover-first (WORKFLOW.md § 4).
+# decide/record/show on a MISSING ledger refuse before taking the lock, so a
+# refused read never fakes a trace.
 python3 - "$@" <<'PY'
 from __future__ import annotations
 import json
 import os
 import sys
+import subprocess
 import tempfile
 import threading
 import time
@@ -280,6 +317,39 @@ def save(repo: Path, doc: dict) -> Path:
     return path
 
 
+def _git(repo: Path, *args: str) -> str | None:
+    """One git read in repo, or None when git is absent, refuses, or the path is no repository."""
+    try:
+        r = subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, timeout=15)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return r.stdout if r.returncode == 0 else None
+
+
+def trace_dir(repo: Path) -> Path | None:
+    """<git-common-dir>/hatsu/hanten: outlives .nen/ (git clean -X, a removed worktree), never tracked."""
+    out = _git(repo, "rev-parse", "--git-common-dir")  # no --path-format: that needs git >= 2.31
+    lines = (out or "").strip().splitlines()
+    if len(lines) != 1 or not lines[0].strip():
+        return None  # no repository, or a git that answered something else: no durable trace (said by ensure)
+    d = Path(lines[0].strip())
+    if not d.is_absolute():
+        d = repo / d
+    return d.resolve() / "hatsu" / "hanten"
+
+
+def note_opened(repo: Path, key: str) -> None:
+    """Record, outside .nen/, that a ledger was opened under key. Best effort: no repository, no trace."""
+    d = trace_dir(repo)
+    if d is None:
+        return
+    try:
+        d.mkdir(parents=True, exist_ok=True)
+        (d / f"{key}.opened").write_text(f"{utc_now()} {repo}\n")
+    except OSError:
+        pass
+
+
 def init(repo: Path, branch: str, pr: str | None = None, *, first_cycle_recovery: bool = False) -> dict:
     path = ledger_path(repo, branch, pr)
     if path.is_file():
@@ -288,6 +358,7 @@ def init(repo: Path, branch: str, pr: str | None = None, *, first_cycle_recovery
     if first_cycle_recovery:
         doc["openedAs"] = "confirmed-first-cycle-recovery"
     save(repo, doc)
+    note_opened(repo, slug(branch, pr))
     return doc
 
 
@@ -366,14 +437,14 @@ def record(doc: dict, persona: str, outcome: str) -> dict:
 def parse_args(argv):
     if not argv or argv[0] in ("-h", "--help"):
         refuse(
-            "hanten_cycle_ledger.sh init|recover-first|decide|record|show|--self-test "
+            "hanten_cycle_ledger.sh init|ensure|recover-first|decide|record|show|--self-test "
             "[--repo PATH --branch NAME --applicable CSV --persona ID --outcome ran|skipped-exhausted]"
         )
     cmd = argv[0]
     opts = {}
     i = 1
     while i < len(argv):
-        if argv[i] in ("--repo", "--branch", "--pr", "--applicable", "--persona", "--outcome") and i + 1 < len(argv):
+        if argv[i] in ("--repo", "--branch", "--pr", "--applicable", "--persona", "--outcome", "--base") and i + 1 < len(argv):
             opts[argv[i][2:]] = argv[i + 1]
             i += 2
             continue
@@ -389,6 +460,115 @@ def require(opts, *keys):
     missing = [k for k in keys if not opts.get(k)]
     if missing:
         refuse("hanten_cycle_ledger: missing " + ", ".join("--" + k for k in missing))
+
+
+def trunk_of(repo: Path, explicit: str | None) -> str:
+    """The trunk ensure must never open a ledger on: --base, else workflow.json branch.base, else origin/HEAD, else main."""
+    if explicit and explicit.strip():
+        return explicit.strip()
+    try:
+        base = json.loads((repo / "nen" / "workflow.json").read_text()).get("branch", {}).get("base")
+        if isinstance(base, str) and base.strip():
+            return base.strip()
+    except (OSError, ValueError, AttributeError):
+        pass
+    head = _git(repo, "symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD")
+    if head and head.strip().startswith("origin/") and head.strip() != "origin/":
+        return head.strip()[len("origin/"):]
+    return "main"
+
+
+STALE_LOCK_SECONDS = 30
+
+
+def stale_lock(repo: Path, branch: str) -> bool:
+    """A lock file older than STALE_LOCK_SECONDS is a trace; a younger one is an init or ensure in flight.
+
+    Read once, before ensure waits on anything, and never dropped by a later probe (Nobunaga, hanten
+    on 449dda6b: a non-blocking flock probe made two concurrent ensures read each other as in flight
+    and drop the trace). LedgerLock creates the file before it saves, so an in-flight init is always
+    young; os.open on an existing lock file leaves its mtime alone, so a stale one stays old."""
+    try:
+        return time.time() - lock_path(repo, branch).stat().st_mtime > STALE_LOCK_SECONDS
+    except OSError:
+        return False
+
+
+def _pr_keyed(name: str, key: str, suffix: str) -> str | None:
+    """The PR number when name is exactly <key>-pr<digits><suffix>, else None (never a longer branch's key)."""
+    head = f"{key}-pr"
+    if not (name.startswith(head) and name.endswith(suffix)):
+        return None
+    n = name[len(head):len(name) - len(suffix)]
+    return n if n.isdigit() else None
+
+
+def traces(repo: Path, branch: str) -> list[str]:
+    """Evidence that a ledger was opened under this branch before, from places .nen/ does not hold.
+
+    A PR-keyed name counts only as exactly <key>-pr<digits> (a branch whose slug merely extends this
+    one's with -pr..., e.g. -preflight, is another branch). The current PR's own PR-keyed ledger never
+    reaches here: ensure returns it as present first (hanten § 2b reads it)."""
+    key = slug(branch)
+    found = []
+    d = trace_dir(repo)
+    if d is not None and d.is_dir():
+        for m in sorted(d.glob(f"{key}.opened")):
+            found.append(f"opened before under this repository's git dir ({m.name})")
+        for m in sorted(d.glob(f"{key}-pr[0-9]*.opened")):
+            if _pr_keyed(m.name, key, ".opened"):
+                found.append(f"opened before under this repository's git dir ({m.name})")
+    for p in sorted((repo / ".nen" / "hanten").glob(f"{key}-pr[0-9]*.cycle.json")):
+        if _pr_keyed(p.name, key, ".cycle.json"):
+            found.append(f"a PR-keyed ledger for another PR exists here ({p.name})")
+    me = repo.resolve()
+    for line in (_git(repo, "worktree", "list", "--porcelain") or "").splitlines():
+        if not line.startswith("worktree "):
+            continue
+        wt = Path(line[len("worktree "):])
+        try:
+            if wt.resolve() == me:
+                continue
+        except OSError:
+            continue
+        h = wt / ".nen" / "hanten"
+        others = [q for q in sorted(h.glob(f"{key}-pr[0-9]*.cycle.json")) if _pr_keyed(q.name, key, ".cycle.json")]
+        for p in [h / f"{key}.cycle.json", h / f"{key}.cycle.lock", *others]:
+            if p.exists():
+                found.append(f"another checkout of this repository holds {p}")
+    return found
+
+
+def ensure(repo: Path, branch: str, base: str | None = None, pr: str | None = None) -> tuple[int, dict]:
+    """Open the branch ledger for a branch breath did not cut; never reset, never re-open a lost one.
+
+    With --pr N, a PR-keyed ledger for that PR is the effort's live ledger (hanten § 2b): present."""
+    trunk = trunk_of(repo, base)
+    path = ledger_path(repo, branch)
+    if not branch.strip() or branch.strip() in (trunk, "HEAD") or branch.strip().startswith("refs/"):
+        return 3, {"ensure": "refused", "reason": f"{branch!r} is the trunk ({trunk}) or not a branch: no ledger is opened", "path": str(path)}
+    if pr and ledger_path(repo, branch, pr).is_file():
+        return 0, {"ensure": "present", "keyed": "pr", "path": str(ledger_path(repo, branch, pr))}
+    if path.is_file():
+        return 0, {"ensure": "present", "path": str(path)}
+    # Read the lock's age BEFORE waiting on it, and never drop that reading: a stale lock is a trace,
+    # a young one is an init or ensure in flight (it creates the lock before it saves), so wait and re-read.
+    stale = stale_lock(repo, branch)
+    with LedgerLock(repo, branch):
+        if pr and ledger_path(repo, branch, pr).is_file():
+            return 0, {"ensure": "present", "keyed": "pr", "path": str(ledger_path(repo, branch, pr))}
+        if path.is_file():  # the in-flight init, or a concurrent ensure, won
+            return 0, {"ensure": "present", "path": str(path)}
+        found = traces(repo, branch)
+        if stale:
+            found.append("its lock file remains in this checkout (older than an init in flight)")
+        if found:
+            return 4, {"ensure": "lost", "reason": "no ledger here, but a ledger was opened under this key before: recover it (hanten § 1), never a fresh init", "traces": found, "path": str(path)}
+        init(repo, branch)
+    out = {"ensure": "opened", "reason": "no trace of an earlier ledger was found", "path": str(path)}
+    if trace_dir(repo) is None:
+        out["note"] = "no git common dir was readable here, so no durable trace exists for a later ensure"
+    return 0, out
 
 
 def self_test() -> int:
@@ -703,8 +883,198 @@ def self_test() -> int:
     if failures:
         print(f"{len(failures)} failed", file=sys.stderr)
         return 1
+    # ensure (zheref/hatsu#169): app-created branch opened, breath's untouched, trunk refused, lost reported
+    with tempfile.TemporaryDirectory() as tmp:
+        repo = Path(tmp)
+        app = "opus/kurapika/app-cut"
+        code, out = ensure(repo, app)
+        check("ensure-opens-an-app-created-branch", code == 0 and out["ensure"] == "opened" and ledger_path(repo, app).is_file(), str(out))
+        before = ledger_path(repo, app).read_bytes()
+        code, out = ensure(repo, app)
+        check("ensure-is-idempotent", code == 0 and out["ensure"] == "present" and ledger_path(repo, app).read_bytes() == before, str(out))
+        cut = "opus/kurapika/breath-cut"
+        with LedgerLock(repo, cut):
+            init(repo, cut)
+        doc = load(repo, cut)
+        doc["reviewers"]["nobunaga"]["used"] = 1
+        doc["reviewers"]["nobunaga"]["invocations"] = [{"at": "x", "outcome": "ran"}]
+        save(repo, doc)
+        before = ledger_path(repo, cut).read_bytes()
+        code, out = ensure(repo, cut)
+        check("ensure-leaves-a-breath-ledger-untouched", code == 0 and out["ensure"] == "present" and ledger_path(repo, cut).read_bytes() == before, str(out))
+        for trunk_case in ("main", "HEAD", ""):
+            code, out = ensure(repo, trunk_case)
+            check(f"ensure-refuses-trunk-{trunk_case or 'empty'}", code == 3 and not ledger_path(repo, trunk_case or "x").is_file() and not any(repo.glob(".nen/hanten/main.*")), str(out))
+        code, out = ensure(repo, "develop", "develop")
+        check("ensure-refuses-the-declared-base", code == 3, str(out))
+        (repo / "nen").mkdir()
+        (repo / "nen" / "workflow.json").write_text(json.dumps({"branch": {"base": "trunk"}}))
+        code, out = ensure(repo, "trunk")
+        check("ensure-reads-branch-base-from-workflow", code == 3, str(out))
+        ledger_path(repo, cut).unlink()
+        old = time.time() - STALE_LOCK_SECONDS - 60
+        os.utime(lock_path(repo, cut), (old, old))  # a lock left long ago, not an init in flight
+        code, out = ensure(repo, cut)
+        check("ensure-reports-a-lost-ledger-never-reinits", code == 4 and out["ensure"] == "lost" and not ledger_path(repo, cut).is_file(), str(out))
+        fresh = "opus/kurapika/never-reviewed"
+        try:
+            main(["decide", "--repo", str(repo), "--branch", fresh, "--applicable", "nobunaga"])
+            check("refused-read-leaves-no-lock", False, "decide succeeded")
+        except SystemExit as e:
+            check("refused-read-leaves-no-lock", e.code == 2 and not lock_path(repo, fresh).exists(), str(e))
+        code, out = ensure(repo, fresh)
+        check("ensure-opens-after-a-refused-read", code == 0 and out["ensure"] == "opened", str(out))
+        # --pr N: that PR's own PR-keyed ledger is the live one (hanten § 2b), present; another PR's is a trace
+        prb = "opus/kurapika/pr-keyed"
+        with LedgerLock(repo, prb, "9"):
+            init(repo, prb, "9")
+        code, out = ensure(repo, prb, None, "9")
+        check("ensure-pr-keyed-ledger-of-this-pr-is-present", code == 0 and out["ensure"] == "present" and out.get("keyed") == "pr" and not ledger_path(repo, prb).is_file(), str(out))
+        # a sibling branch's ledger here (no git, so no marker) is never a PR key: x/ten beside x/ten-preflight
+        with LedgerLock(repo, "x/ten-preflight"):
+            init(repo, "x/ten-preflight")
+        with LedgerLock(repo, "x/ten-pr2-notes"):
+            init(repo, "x/ten-pr2-notes")
+        code, out = ensure(repo, "x/ten")
+        check("ensure-a-sibling-branch-ledger-is-no-trace", code == 0 and out["ensure"] == "opened", str(out))
+        check("ensure-pr-keyed-present-makes-no-branch-lock", not lock_path(repo, prb).exists(), "a branch lock with no branch ledger would read stale later")
+        code, out = ensure(repo, prb, None, "10")
+        check("ensure-pr-keyed-ledger-of-another-pr-is-a-trace", code == 4 and any("another PR" in x for x in out.get("traces", [])), str(out))
+        try:
+            main(["ensure", "--repo", str(repo), "--branch", prb, "--pr", "9"])
+            check("ensure-cli-takes-pr", False, "no exit")
+        except SystemExit as e:
+            check("ensure-cli-takes-pr", e.code == 0, str(e))
+        try:
+            main(["show", "--repo", str(repo), "--branch", fresh, "--base", "main"])
+            check("base-only-with-ensure", False, "succeeded")
+        except SystemExit as e:
+            check("base-only-with-ensure", e.code == 2, str(e))
+
+    # ensure's traces outlive .nen/ (Chrollo/Nobunaga/Phinks, hanten on 029322fb): git-backed cases
+    def sh(*args, cwd=None):
+        return subprocess.run(list(args), cwd=cwd, capture_output=True, text=True, timeout=30)
+    def mkrepo(path: Path, branch: str = "app/feature") -> Path:
+        sh("git", "init", "-q", "-b", "main", str(path))
+        (path / ".gitignore").write_text(".nen/\n")
+        sh("git", "-C", str(path), "add", ".gitignore")
+        sh("git", "-C", str(path), "-c", "user.name=t", "-c", "user.email=t@example.invalid", "commit", "-q", "-m", "init")
+        sh("git", "-C", str(path), "checkout", "-q", "-b", branch)
+        return path
+    def spend(repo: Path, branch: str = "app/feature"):
+        ensure(repo, branch)
+        with LedgerLock(repo, branch):
+            doc = load(repo, branch)
+            record(doc, "phinks", "ran")
+            save(repo, doc)
+    if sh("git", "--version").returncode == 0:
+        with tempfile.TemporaryDirectory() as tmp:
+            t = Path(tmp)
+            a = mkrepo(t / "a"); spend(a)
+            sh("git", "-C", str(a), "clean", "-fdxq")
+            code, out = ensure(a, "app/feature")
+            check("ensure-lost-after-git-clean", code == 4 and out["ensure"] == "lost" and not ledger_path(a, "app/feature").is_file(), str(out))
+            core = mkrepo(t / "core"); sh("git", "-C", str(core), "checkout", "-q", "main")
+            wt = core / ".nen" / "worktrees" / "x" / "feature"
+            sh("git", "-C", str(core), "worktree", "add", "-q", str(wt), "app/feature")
+            spend(wt)
+            code, out = ensure(core / ".nen" / "worktrees" / "x" / "feature", "app/feature")
+            check("ensure-present-in-the-worktree-that-holds-it", code == 0 and out["ensure"] == "present", str(out))
+            sh("git", "-C", str(core), "checkout", "-q", "-b", "app/other")
+            code, out = ensure(core, "app/feature")
+            check("ensure-lost-when-another-worktree-holds-it", code == 4 and any("another checkout" in x for x in out.get("traces", [])), str(out))
+            sh("git", "-C", str(core), "worktree", "remove", "--force", str(wt))
+            sh("git", "-C", str(core), "checkout", "-q", "app/feature")
+            code, out = ensure(core, "app/feature")
+            check("ensure-lost-after-the-worktree-is-removed", code == 4 and any(".opened" in x for x in out.get("traces", [])), str(out))
+            # another worktree holding a sibling branch's ledger (x/ten-pr2-notes beside x/ten) is no trace
+            sib = mkrepo(t / "sib", "x/ten"); sh("git", "-C", str(sib), "branch", "x/ten-pr2-notes")
+            swt = t / "sib-wt"
+            sh("git", "-C", str(sib), "worktree", "add", "-q", str(swt), "x/ten-pr2-notes")
+            save(swt, new_doc("x/ten-pr2-notes"))
+            code, out = ensure(sib, "x/ten")
+            check("ensure-a-sibling-ledger-in-another-worktree-is-no-trace", code == 0 and out["ensure"] == "opened", str(out))
+            b = mkrepo(t / "b", "app/pr-only")
+            with LedgerLock(b, "app/pr-only", "9"):
+                init(b, "app/pr-only", "9")
+            for m in (trace_dir(b) or t).glob("*.opened"):
+                m.unlink()
+            code, out = ensure(b, "app/pr-only", None, "9")
+            check("ensure-present-for-the-current-prs-ledger", code == 0 and out["ensure"] == "present" and out.get("keyed") == "pr", str(out))
+            code, out = ensure(b, "app/pr-only")
+            check("ensure-lost-when-another-prs-ledger-exists", code == 4 and any("another PR" in x for x in out.get("traces", [])), str(out))
+            # a branch whose slug extends this one's with -pr... is another branch, never a PR key (Nobunaga M1)
+            e2 = mkrepo(t / "e2", "x/ten-preflight")
+            code, out = ensure(e2, "x/ten-preflight")
+            check("ensure-opens-the-longer-branch", code == 0 and out["ensure"] == "opened", str(out))
+            sh("git", "-C", str(e2), "checkout", "-q", "-b", "x/ten-pr2-notes")
+            code, out = ensure(e2, "x/ten-pr2-notes")
+            check("ensure-opens-a-pr-digit-prefixed-branch", code == 0 and out["ensure"] == "opened", str(out))
+            sh("git", "-C", str(e2), "checkout", "-q", "-b", "x/ten")
+            code, out = ensure(e2, "x/ten")
+            check("ensure-opens-a-branch-whose-name-prefixes-another", code == 0 and out["ensure"] == "opened", str(out))
+            c = mkrepo(t / "c", "app/new")
+            code, out = ensure(c, "app/new")
+            check("ensure-opened-says-no-trace", code == 0 and out["ensure"] == "opened" and "no trace" in out.get("reason", ""), str(out))
+            d = mkrepo(t / "d", "develop")
+            sh("git", "-C", str(d), "update-ref", "refs/remotes/origin/develop", "HEAD")
+            sh("git", "-C", str(d), "symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/develop")
+            code, out = ensure(d, "develop")
+            check("ensure-refuses-the-trunk-from-origin-head", code == 3 and "develop" in out.get("reason", ""), str(out))
+    # a held lock is an init in flight: wait for it, never call it lost (Phinks M2)
+    with tempfile.TemporaryDirectory() as tmp:
+        repo = Path(tmp)
+        for writes, want in ((False, "opened"), (True, "present")):
+            br = f"app/inflight-{want}"
+            lock_path(repo, br).parent.mkdir(parents=True, exist_ok=True)
+            held = threading.Event()
+            def holder():
+                fd = os.open(lock_path(repo, br), os.O_CREAT | os.O_RDWR, 0o644)
+                fcntl.flock(fd, fcntl.LOCK_EX)
+                held.set()
+                time.sleep(0.6)
+                if writes:
+                    save(repo, new_doc(br))
+                fcntl.flock(fd, fcntl.LOCK_UN)
+                os.close(fd)
+            th = threading.Thread(target=holder)
+            if os.name != "nt":
+                th.start(); held.wait(5)
+                code, out = ensure(repo, br)
+                th.join()
+                check(f"ensure-waits-on-an-in-flight-lock-{want}", code == 0 and out["ensure"] == want, str(out))
+
+    # races (Nobunaga M3 on 449dda6b, Phinks M2 on 029322fb), 30 trials each, two concurrent ensures
+    if os.name != "nt":
+        bad_stale = bad_fresh = 0
+        for trial in range(30):
+            with tempfile.TemporaryDirectory() as tmp:
+                repo = Path(tmp)
+                br = f"app/race-{trial}"
+                lp = lock_path(repo, br)
+                lp.parent.mkdir(parents=True, exist_ok=True)
+                lp.write_text("")
+                old = time.time() - STALE_LOCK_SECONDS - 60
+                os.utime(lp, (old, old))  # a stale lock is the only trace (no git, no marker)
+                res = []
+                ths = [threading.Thread(target=lambda: res.append(ensure(repo, br)[0])) for _ in range(2)]
+                for th in ths: th.start()
+                for th in ths: th.join()
+                if res != [4, 4] or ledger_path(repo, br).is_file():
+                    bad_stale += 1
+                br2 = f"app/fresh-{trial}"
+                res = []
+                ths = [threading.Thread(target=lambda: res.append(ensure(repo, br2))) for _ in range(2)]
+                for th in ths: th.start()
+                for th in ths: th.join()
+                states = sorted(o["ensure"] for _, o in res)
+                if any(c != 0 for c, _ in res) or states != ["opened", "present"]:
+                    bad_fresh += 1
+        check("race-a-stale-lock-reads-lost-in-every-trial", bad_stale == 0, f"{bad_stale}/30 trials opened a fresh budget")
+        check("race-a-fresh-branch-never-reads-lost", bad_fresh == 0, f"{bad_fresh}/30 trials read lost or opened twice")
+
     print(f"self-test: {passed} passed, {len(failures)} failed")
-    return 0
+    return 1 if failures else 0  # a failed case must fail the ledger-guard lane, which reads this exit
 
 
 def main(argv):
@@ -720,6 +1090,15 @@ def main(argv):
     branch = opts["branch"]
     pr = parse_pr(opts.get("pr"))
     budgets(repo)
+    if opts.get("base") and cmd != "ensure":
+        refuse("hanten_cycle_ledger: --base is only valid with ensure")
+    if cmd == "ensure":
+        code, out = ensure(repo, branch, opts.get("base"), pr)
+        json.dump(out, sys.stdout, indent=2)
+        sys.stdout.write("\n")
+        raise SystemExit(code)
+    if cmd in ("decide", "record", "show") and not ledger_path(repo, branch, pr).is_file():
+        load(repo, branch, pr)  # refuses with the missing-ledger message, before any lock file is made
     with LedgerLock(repo, branch, pr):
         if cmd in ("init", "recover-first"):
             if cmd == "recover-first" and not opts.get("confirmed-first-cycle"):
