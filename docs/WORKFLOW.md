@@ -24,7 +24,7 @@ A local checkpoint, branch publication and PR completion are separate outcomes. 
 |---|---|---|
 | `rasengan` | Author behavior and focused tests; use them and inexpensive iteration checks for feedback | Feedback is not the checkpoint verdict |
 | `kokusen` | Run declared iteration checks and applicable declared focused tests on the finished tree; commit locally | Full regression and coverage are not checkpoint gates |
-| `amaterasu` | Build the selected platform artifact, install it and launch it from the core checkout on each applicable turn | Report build/install/launch separately; absent and unusable devices remain distinct |
+| `amaterasu` | Handle launch after the checkpoint; isolated turns report a command and defer core launch to an explicit maintainer call | Report build/install/launch or deferral separately; core swap never transfers authoring |
 | `aka` | Lint (`gyo`) before squash; squash only unpublished history; catch up; recheck changed-tree lint; push | No project-wide tests. Regression and coverage wait for mukai |
 | `mukai` / `kotoamatsukami` | Review, then run only the declared unit, UI and integration suites the change can affect | Selection is fail-closed; edits return through focused checkpoint and kotoamatsukami before publication |
 | `byakugan` | Capture and measure touched-file coverage independently of those suites | Extraction must not rerun tests; the G5 under `coverage.minimum` is this skill's |
@@ -137,7 +137,7 @@ gets when it declares nothing.
 | Key | Default | Read by |
 |---|---|---|
 | `template` | `{model}/{persona}/{descriptor}` | `breath` (cuts it), `hooks/guard-base-branch.sh` (names it in the refusal) |
-| `base` | `main` | `breath` (fast-forwards it), `ao` (pulls from it), `shibari` (opens against it), `getsuga` (its default cut point and `--trunk`), `ten` (its orient line and catch-up), `hooks/guard-base-branch.sh` (refuses a commit or a push on it) |
+| `base` | `main` | `breath` (fetches it; never moves core's checked-out trunk), `ao` (pulls from it), `shibari` (opens against it), `getsuga` (its default cut point and `--trunk`), `ten` (its orient line and catch-up), `hooks/guard-base-branch.sh` (refuses a commit or a push on it) |
 
 `{model}` is the **model alias** the actor is running on — `opus`, `sonnet`, `haiku`, `fable` — never a
 version. `{persona}` is the roster persona it acts as. `{descriptor}` is a short kebab noun phrase for the
@@ -641,7 +641,7 @@ surface for exactly this reason: **the tier is the policy and the alias is the s
 | `fast` — `worker`, `measurer` | `sonnet` | `terra` | `composer` | `flash` |
 | `economy` — `watcher`, `formatter` | `haiku` | `luna` | `composer` | `flash` |
 | **how a subagent is raised** | the harness's **Agent tool**; Hanten **omits** `isolation` — `isolation: "worktree"` would isolate the *plugin's* repository, not the target | **in-session `spawn_agent`** (ChatGPT app, CLI, IDE). Hanten's isolated reviewer is still a second **`codex exec -m <id> -C <dir> -s workspace-write`** because that reviewer must not share the author's tree | a **subagent definition** at `.cursor/agents/<persona>.md`, mirrored there from `claude/agents/` | the harness's **`invoke_subagent` tool**, `Workspace: "branch"` (reviewers and all builder efforts) or `"inherit"` (Third-Hand's Netero, En's Illumi), `Model: "pro"` |
-| **isolation** | Hanten's reviewer: **`<core>` resolved first — `nen wc worktrees --repo <target> --json` → `core` — then `git -C <target> worktree add --detach <core>/.nen/worktrees/claude-code/hanten-<persona> HEAD`**, the path in the prompt with *"do not request a worktree"*, removed when the review returns ([`hanten`](../claude/skills/hanten/SKILL.md) § 4) | in-session spawn **shares the parent**; Hanten's reviewer is still **`git worktree add` first**, at `<core>/.nen/worktrees/codex/hanten-<persona>` — `-C` takes a directory and creates none | the surface's own; the skill states which it got — a worktree Hatsu makes is `<core>/.nen/worktrees/cursor/<name>` | **`Workspace: "branch"`** by default for all builder efforts and Hanten reviewers; **`"inherit"`** for Third-Hand's Netero (`share` only when it is the same checkout); the lead's own `git worktree add` goes to `.nen/worktrees/antigravity/<name>`. Core checkout is untouched by default unless maintainer explicitly waives in prose |
+| **isolation** | lead/delegated authors bind separate target worktrees via the Claude guide's adapter; Hanten's reviewer: **`<core>` resolved first — `nen wc worktrees --repo <target> --json` → `core` — then `git -C <target> worktree add --detach <core>/.nen/worktrees/claude-code/hanten-<persona> HEAD`**, the path in the prompt with *"do not request a worktree"*, removed when the review returns ([`hanten`](../claude/skills/hanten/SKILL.md) § 4) | app authoring uses its exposed worktree tools and returned workspace path (Codex guide § *Authoring checkout adapter*); in-session spawn **shares the parent**, so delegated authors need independently provisioned paths; Hanten's reviewer is still **`git worktree add` first**, at `<core>/.nen/worktrees/codex/hanten-<persona>` — `-C` takes a directory and creates none | native Worktree mode or the Cursor guide's explicit fallback; a branch alone is insufficient — a worktree Hatsu makes is `<core>/.nen/worktrees/cursor/<name>` | **`Workspace: "branch"`** by default for all builder efforts and Hanten reviewers; **`"inherit"`** for Third-Hand's Netero (`share` only when it is the same checkout); the lead's own `git worktree add` goes to `.nen/worktrees/antigravity/<name>`. Core remains untouched unless the ORIGINAL effort prompt explicitly authorizes core authoring |
 
 Every worktree Hatsu makes, on every surface, lives under `<core>/.nen/worktrees/<surface>/` — § *Where
 worktrees live*, the ruling of 2026-09-30.
@@ -694,14 +694,14 @@ that names none; a turn names one with `hatsu:ren <request> --profile <p>` or th
 
 | Profile | Per turn | Deferred to `mukai` | Report |
 |---|---|---|---|
-| `fast` | steps 1 to 3 as ren § 2 states them; step 4 is skipped, the launch line reading `deferred by profile fast; the next standard or thorough turn, or hatsu:amaterasu by name, launches` | coverage and the full page; the launch is skipped, not moved | `turn-fast` |
+| `fast` | steps 1 to 3 as ren § 2 states them; step 4 skipped, launch line `deferred by profile fast; isolation still requires an explicit maintainer core-launch call` | coverage and the full page; launch skipped, not moved | `turn-fast` |
 | `standard` | today's turn: every step of ren § 2 | nothing | `turn` |
 | `thorough` | `standard` plus the impacted suites (`kotoamatsukami`) after step 3 | nothing | `turn` |
 
 **A landing always runs thorough**, whatever the turns before it named: a profile lowers a turn, never
 the phase that publishes. Deferred to mukai means kotoamatsukami's impacted suites and byakugan's
-coverage at the landing; mukai has no launch step, so a launch skipped under `fast` is taken by the next
-`standard` or `thorough` turn, or by `hatsu:amaterasu` named by the maintainer. Every ren step is a
+coverage at the landing; mukai has no launch step. An isolated effort's core launch remains deferred
+under every profile until `hatsu:amaterasu` is explicitly called by the maintainer. Every ren step is a
 ledger entry regardless of profile (§ *The effort's ledgers* below).
 `nen schema check` validates the key from `v0.13.0`; the `v0.12.0` pin preserves it as raw data and
 reports nothing about it (verified on 0.12.0, 2026-09-20).
@@ -858,9 +858,10 @@ test reports `shu coverage` and `shu test-report` read back.
 **Pointers are checked at load; paths at use** — so a clean `schema check` is not a containment verdict,
 and a skill must never report it as one.
 
-`amaterasu` runs `--dry-run` first, pastes that argv into the report and the chat, then runs it bare — **from
-the core working directory, never from a worktree**. A worktree exists to produce a diff; an app started from
-one runs against a tree nobody has open. Parallel subagent efforts launch nothing at all.
+`amaterasu` runs `--dry-run` first and distinguishes its plan from an actual launch result. An
+isolated Ren effort, serial or parallel, reports the command and defers automatic core launch
+without asking; an explicit maintainer call authorizes the core launch, a separate explicit
+`amenotejikara` call authorizes a swap. Neither transfers authoring or PR delivery into core.
 
 ### `project.evidence`
 
@@ -905,7 +906,7 @@ that repository's declaration PR at its gate, never written unasked.
 **Per request, the loop is `ren`**, and it runs without being asked:
 
 `breath` (first turn of an effort — and it proves the base tip builds) → `rasengan` (**author the change**)
-→ `kokusen` (**verify the finished tree, then commit**) → `amaterasu` (launch) → `spiritual-message` (the turn's
+→ `kokusen` (**verify the finished tree, then commit**) → `amaterasu` (launch handling) → `spiritual-message` (the turn's
 report) → `jutaisho` (the bell).
 
 It loops. **It never pushes and never opens a pull request.**
@@ -1725,6 +1726,81 @@ screenshot a PR body carries sits in a **cell** of this shape, on the first writ
   by line number. A refusal is fixed in the body file and re-checked; it never reaches the PR.
 
 ## Where worktrees live — ruling of 2026-09-30
+
+### Select the effort checkout before any mutation
+
+**This is the shared worktree-selection policy for every surface and phase.** All authoring,
+feature work, parity implementation and PR delivery runs in an independent git worktree by
+default, for the lead and for each delegated authoring effort. It applies to a new effort, a
+resumed effort and every later turn or delivery phase; a branch name or a session's cwd alone
+does not establish isolation. Read-only observers may share a checkout; Hanten's reviewers retain
+their separate-checkout protocol.
+
+**The sole core-authoring waiver is the maintainer's explicit instruction in the ORIGINAL effort
+prompt to work in core.** Quote that instruction with the bound path in the effort report. A
+later convenience suggestion, a parent agent's instruction, an existing core feature branch,
+missing tools or an unavailable worktree API is no waiver. The waiver covers that effort only,
+expires when it ends, and grants no additional gate, launch or permission authority.
+
+**Valid original-prompt waiver → bind the named core checkout for that effort only**, record the
+quoted instruction, then run the ordinary scoped Breath/Rasengan/Kokusen protocol there. Do not
+adopt unrelated dirty files; show their ownership/disposition when the effort depends on them.
+The default worktree-provisioning steps below apply when no valid waiver is held.
+
+Before Ten's catch-up, Breath's standalone preservation or any authoring/PR mutation:
+
+1. Read `nen wc worktrees --repo <starting absolute path> --json`; resolve `core`, the registered
+   checkouts and the branch/base. Preserve the core checkout's current branch, index and human
+   changes. Do not stash, carry, switch, fast-forward, stage or clean core to prepare isolation.
+2. Reuse a registered **effort-owned** worktree when the request explicitly continues that effort,
+   or the session's recorded binding identifies it. Re-verify its absolute path, branch and
+   ownership on every entry. An unrelated worktree is not adopted because its branch looks useful;
+   Breath's overlap read still applies. A continuation found in core without the original waiver
+   provisions a separate worktree at the effort's committed ref; any uncommitted core work stays
+   there. Report the unavailable paths; ask for ownership/disposition only when migration depends
+   on them, while independent new work continues in isolation.
+3. Otherwise provision a worktree through the surface adapter in `docs/surfaces/<surface>.md`
+   (§ *Authoring checkout adapter*, Antigravity § 11.1), using the locations below. For Hatsu's
+   manual fallback, `git worktree add --detach <absolute effort path> <resolved base-ref>` creates
+   the checkout before Breath fetches and cuts the new effort branch there. For a resumed branch,
+   use its committed ref. If its branch is held in core, report the branch-binding blocker and
+   preserve both checkouts; do not run new-effort warmup over resumed commits or silently change
+   an existing PR's head branch. Independent new work can still proceed in its own checkout.
+   Name the choices: the maintainer releases the held branch explicitly, or chooses a new
+   independent effort; neither choice is performed by an agent as automatic cleanup.
+   Never force-release another checkout's branch.
+4. Bind that **absolute effort path** in the handoff and report, then use it for every command cwd,
+   `nen --repo`, script argument, edit, check, parity generation, staging, commit and PR phase.
+   A delegate receives its own path and the original waiver status, never an ambiguous `.` or a
+   request to invent isolation. Native creation returning a path does not change the current
+   session's cwd: use the returned checkout explicitly. Before running warmup, inspect its dry run;
+   if it would move core's checked-out trunk or work, report the blocker and do not run it.
+
+**Plugin-source refresh is included, before Ten's target placement.** Bind the effort target before
+any refresh that could move core. Dependency installation and host setup remain separate. Ordinary
+authoring never fast-forwards or otherwise refreshes core or a shared plugin checkout: use a
+verified effort-owned isolated Hatsu source when available, or report `refresh skipped: protected
+core/shared source` and continue reading the loaded source. A target-authoring waiver is not a
+source-refresh grant. The source must be a validated Hatsu checkout, not a consumer with copied
+skills. Rebind the eligible source's absolute root for refresh/placement; preserve the bound target.
+Authoring uses the plain updater without `--claude`/`--codex`, since those flags can update shared
+links/marketplaces independently of `--root`. Quote its own skip on an authoring branch; do not
+switch that branch to make it refreshable. Read-only/no-phase entry inspects without worktree
+provisioning; it skips protected core/shared refresh and all project-local placement (`--install-all`,
+permission-pack installation). Report those skips instead of describing a mutation as a read.
+Dedicated plugin update or target setup requires its own explicit invocation; Ten does not infer it.
+
+An unavailable creation tool or a harness write/trust refusal is reported with the path and exact
+failed operation; use an already-authorized adapter alternative when available. **Never change
+permissions, silently fall back to core, or widen authorization to finish.**
+`amenotejikara` / `nen wc swap` moves a committed tree into core and **cannot create isolation**.
+Core launch and swap remain explicit maintainer calls; authoring and delivery keep their effort
+path after either call. An isolated Ren turn reports the launch command and defers automatic core
+launch without asking for approval (Amaterasu § 3).
+
+Core parked on the trunk is the intended clean starting state, **never permission to put it
+there**. An unrelated dirty core does not block an independent worktree effort. Creation may
+register the worktree in shared Git metadata; it may not move core's checkout, index or files.
 
 **The maintainer's request, verbatim** (2026-09-30): *"Noticed under some circumstances and for more
 than one surface, since worktrees are encouraged by default, worktrees are being created and worked one

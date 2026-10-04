@@ -417,6 +417,13 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   --surface <s> <name>` that resolves core and the canonical path itself — the same family as the
   owned dependency below.
 
+**Effort checkout selection precedes every authoring and PR phase's standalone catch-up.**
+Read `$hatsu_root/docs/WORKFLOW.md` § *Where worktrees live* and its surface adapter; bind the
+absolute effort path before preservation or git mutation, then use it as cwd and every `--repo`.
+New, resumed and delegated efforts follow that one policy. Native app creation tools, when
+exposed, are used as their schemas declare; manual `git worktree add` remains the named residue
+when no native tool is available. Neither Nen's inventory nor `wc swap` provisions isolation.
+
 **Owned dependencies.** A worktree verb that cuts, reuses, moves and drops one detached worktree at a
 fixed path, with the core-to-worktree copy ([zheref/nen#299](https://github.com/zheref/nen/issues/299)),
 and `deploy.defaultTarget` validated by pointer with a per-stack default in `nen shu detect`'s reference
