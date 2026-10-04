@@ -1108,6 +1108,19 @@ PR at that repository's gate**, and GitHub is synced only after (`nen labels syn
 derived at run time by the taxonomy's `domains.rule`, never labelled. Nothing else about classification is
 authored here.
 
+### `direct` — the model, surface and effort, as a configuration consequence
+
+The same rulings; [`direct`](../claude/skills/direct/) is the home of the procedure, this the consequence for the
+two files. [`contracts/direct.registry.json`](../contracts/direct.registry.json) is plugin canon: stable
+aliases map onto a provider, a model **family**, their Hatsu surface and a **tier** of this file's `models`
+block — never a model version — so the `models` matrix is the only per-surface fact a consumer declares and a
+model release moves nothing in either file. The verdict persists only in `.nen/direct/<effort>.json`
+(generated output under `.nen/`). **The matrix's two rules stand**: `SEMANTIC_MAX` names the frontier tier and
+may be recommended for the maintainer's own session, where that tier lives; a subagent is still never raised on
+it. **One question the rulings did not settle is returned to the maintainer** (ROSTER § *Rulings of
+2026-10-04*, *Open questions*): whether `models.roles.reviewer` stays `deep` when direct's verdict for the
+session is a lower tier.
+
 ---
 
 ## 5 · The PR side — `mukai`, and everything it runs

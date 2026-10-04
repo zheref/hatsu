@@ -450,6 +450,28 @@
       "class": "autonomous",
       "default": "leave the axis empty; list the issue as undecidable with the reason in the classify table; a later run picks it up",
       "why": "Ruling 2026-10-04: an axis the classifier cannot decide with confidence is never filled with a best guess -- nen's own undecidable discipline (effort classify). Low-confidence keys are listed and never applied by hatsu:classify; nen classify apply --include-low exists for the maintainer's own hand."
+    },
+    {
+      "id": "direct-mismatch",
+      "class": "ask-once-per-run",
+      "default": "ask once when hatsu:direct's recommended surface, model alias or effort (compared in the surface's own dial) differs from the session's; an unread session value is never a mismatch; the recommendation is for the maintainer's own session and never blocks the build (the maintainer's ruling of 2026-10-04: the typed hatsu:build is already the decision to work here)",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "continue here, on this model and effort",
+          "command": "nen direct answer --record <effort id> --answer continue --repo <checkout>, then continue the build without another word",
+          "consequence": "the work runs where it was started; the verdict and the mismatch stay in the ledger and the report",
+          "recommended": true
+        },
+        {
+          "key": "B",
+          "label": "stop so I restart on the recommended surface",
+          "command": "nen direct answer --record <effort id> --answer stop --repo <checkout>; end the run naming the restart line direct quoted (surfaces.<s>.restart, its placeholders filled from models.<surface>.<tier> and effort.surfaceMap only)",
+          "consequence": "nothing is authored here; the maintainer opens the recommended surface and types hatsu:build there"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Ruling 2026-10-04: direct advises, never gates -- a mismatch is asked once through the picker with continue starred, and a build is never blocked from starting on a non-recommended model or effort."
     }
   ]
 }

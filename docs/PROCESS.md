@@ -394,6 +394,13 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   derives a run's scope; `nen report data --base origin/<branch.base> --prs <n,...> --issues <n,...>`
   then fetches them in one call, merged PRs and closed issues included (`--base` is required, exit 2
   without it; verified nen 0.18.1, 2026-09-30).
+- **`direct`.** The latest-version read (direct § 4) is prose by design — the surface CLIs (`codex debug
+  models`, `cursor-agent --model help`, the in-session model picker) and the provider pages the registry cites
+  are read by the session and quoted with their date; nen stores no version and the registry's `snapshot` is
+  the stated fallback. Reading the session's own surface, model alias and effort for the mismatch check is the
+  harness's fact, hand-read per surface and passed as `unread` where it cannot be. `nen direct registry|resolve`
+  land in the nen release that ships the direct family (an owned dependency: zheref/nen#371 (branch `sonnet/kurapika/direct-verbs`), cited in `nen/contract.json`; `v0.19.0` shipped on 2026-10-04 without it); on the `v0.18.2` pin they are absent, § 2's probe says so, and `build` continues unrouted
+  (row `missing-tool`) — an **owned dependency** on `zheref/nen` until the pin moves.
 - **`classify`.** The judgement — reading an issue's title, body and paths and deciding its `lang/` and
   `job/` keys (classify § 3) — is prose by design: nen owns operations, not reading an issue. The issue read
   (`gh issue view --json title,body,labels`) is a raw call until `nen classify status` carries the body.
