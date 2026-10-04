@@ -47,8 +47,8 @@ launch target set up through [`jujutsu`](../jujutsu/SKILL.md).
 `ren` turn, trains the maintainer to dismiss it — no question, stop or bell; continue.
 
 **§ 1a · The profile.** Under `nen/workflow.json` → `profile` `fast`, [`ren`](../ren/SKILL.md) § 2a
-skips this phase and the launch line reads `deferred by profile fast; the next standard or thorough
-turn, or $amaterasu by name, launches` — nothing built or moved (mukai has no launch step).
+skips this phase and the launch line reads `deferred by profile fast; isolation still requires an
+explicit maintainer core-launch call` — nothing built or moved (mukai has no launch step).
 Named by the maintainer, it runs under any profile.
 
 ## 2. The parameters, and the completion the launch owes
@@ -83,9 +83,19 @@ one port, derived-data directory and bundle id; a fresh worktree **fails the
 declaration's own preconditions**, and **launching writes to a SHARED device**, so isolation buys
 nothing.
 
-**nen will not stop you** (`cwd:` renders the worktree, silently), so the rule is this skill's:
-**core is `nen wc worktrees --repo <any checkout> --json`'s `core`**, passed as `--repo`; and **a
-parallel subagent effort never launches**, reporting § 4's dry-run argv verbatim and stopping.
+**nen will not stop you** (`cwd:` renders the worktree, silently), so the rule is this skill's.
+Resolve core with `nen wc worktrees --repo <bound effort path> --json`, but **never redirect an
+isolated Ren turn there to launch**, serial or parallel. Render § 4's command with **`--repo <core>
+--target <name> --dry-run` only**, retaining the authoring cwd/binding. Never execute the bare
+launch, build or swap to obtain the plan. Label it `core launch deferred; explicit maintainer call
+required`; report any refusal/precondition verbatim, never invent argv or repair core. Core's
+declaration/tree may differ from this effort's: name that limit beside the exact plan. Continue
+report/bell without asking for approval. A plan is not a build or launch result.
+
+Only a maintainer's explicit `$amaterasu` call authorizes the core launch; if core needs the
+effort's tree, `$amenotejikara` is a separate explicit call. An original-prompt core-authoring
+waiver alone does not authorize either action. After either call, authoring, parity and delivery
+remain in the bound effort checkout under WORKFLOW § *Where worktrees live*.
 
 **Then `nen wc swap --status --repo <core>`.** An active swap ([`amenotejikara`](../amenotejikara/SKILL.md))
 is **named** in the launch line — branch or commit, view or take — since core builds that tree. A status that does not answer (exit `1`/`2`) is **refused**: no launch on a
@@ -112,7 +122,7 @@ outside those four is forbidden.**
 | No `device` declared | straight to the dry run |
 
 ```bash
-nen shu <verb> --repo <core working directory> [--lane <lane>] --dry-run [--json]
+nen shu <verb> --repo <core working directory> --target <name> [--lane <lane>] --dry-run [--json]
 nen shu <verb> --repo <core working directory> --target <name> [--lane <lane>]
 ```
 
