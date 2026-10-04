@@ -257,7 +257,8 @@ all of it. The plan states, in this order:
 
 1. **What is being filed** — the drafted title and body, in full. Not a summary of a body you
    will write afterwards; the actual text.
-2. **The labels** that will be applied, each with its one-line basis (§ 5).
+2. **The labels** that will be applied, each with its one-line basis (§ 5) — the classification rows
+   (`lang/`, `job/`) with their confidence, from [`hatsu:classify`](../classify/SKILL.md) § 3.
 3. **Duplicates found** — which issue is being amended, with what comment, and any severity bump.
 4. **Fold candidates** — which issue absorbs which requirement, or *none, and why not*.
 5. **Supersede candidates** — which issues close, with the comment text, and any excluded for an
@@ -312,6 +313,7 @@ skill's create labels; where a real family exists, the flag makes that exclusion
 | **Lane / agent** | Whichever labels route this problem to its owning discipline in the target repo's own taxonomy — several when it spans lanes | Read from `nen/labels.json` at run time, never from memory; a label this port hasn't seen before is still a real one if the taxonomy carries it |
 | **Severity** | Exactly one severity label from the target repo's own severity vocabulary | Propose with one line of reasoning; the plan carries it |
 | **Kind** | Bug / handbook-question / epic / QA / observation-fix, as the target repo's taxonomy names them | What the issue *is* |
+| **Classification** | The `lang/<key>` and `job/<key>` keys [`hatsu:classify`](../classify/SKILL.md) § 3 proposes for the drafted text — **always run, every filing, every repository** (the maintainer's ruling of 2026-10-04); the rows join this plan and this one confirmation. **One reading per state:** the families declared in the target's `nen/labels.json` **and** present on GitHub (classify § 2's `declared` and `github` both `ok`) → the keys travel in the create call's `--label`; the `nen classify` verbs absent at the pin, or declared but not yet synced, or not declared → the keys are **shown in the plan and named owed**, kept out of `--label`, and **the filing proceeds** without them (never a declaration started from `file`; classify § 4 names the owed landing). An axis classify cannot decide stays empty, said | Proposed from `contracts/classify.taxonomy.json`, validated against the target's `nen/labels.json` (the one source of truth for its labels); never a key the target has not declared |
 | **Stage** | **None** | Zero stage labels before release; the stage-that-is-the-release-trigger is the human's. Use `--forbid-family` only when the target's declared taxonomy supplies that family. |
 
 **Assign the human maintainer** — a specific user, never an org login — so the issue reaches
