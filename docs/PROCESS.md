@@ -423,7 +423,7 @@ and `deploy.defaultTarget` validated by pointer with a per-stack default in `nen
 pack ([zheref/nen#300](https://github.com/zheref/nen/issues/300)) are nen's to add (zheref/hatsu#146);
 until then the two scripts above are the mechanism and are named as such.
 
-**Owned dependencies.** `nen commit write` / `nen wc squash` should read back the trailers of the commit they wrote and report an injected key ([zheref/nen#273](https://github.com/zheref/nen/issues/273)); until then the read-back above is prose.
+**RETIRED at nen `0.19`:** `nen commit write` and `nen wc squash` read back the trailers of the commit they wrote, and exit `3` with `injected[]` ([zheref/nen#273](https://github.com/zheref/nen/issues/273), closed by zheref/nen#357). kokusen § 5 and aka § 4 map that exit. aka § 7's step-0 read of the whole outgoing range stays, because a catch-up merge commit is written by no nen verb.
 
 - **`nen report data` derives less than a page needs**
   ([zheref/nen#258](https://github.com/zheref/nen/issues/258)). It does not derive `effortStage`,

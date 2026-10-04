@@ -2,6 +2,37 @@
 
 All notable changes to Hatsu are documented in this file. Releases follow [Semantic Versioning](https://semver.org/).
 
+## v0.87.0 — nen repinned to v0.19.0, and the runner preflight proves an interactive desktop pool
+
+- **`nen/contract.json` → `dependency.minimum` moves `0.18` → `0.19`, and `pinned_ref` moves `v0.18.2` → `v0.19.0`** ([zheref/nen v0.19.0](https://github.com/zheref/nen/releases/tag/v0.19.0), released by [zheref/nen#358](https://github.com/zheref/nen/pull/358) and [#362](https://github.com/zheref/nen/pull/362), published 2026-10-04 UTC).
+  - The minimum moves for a feature and for the floor. Hatsu adopts nen's interactive runner mode ([zheref/nen#333](https://github.com/zheref/nen/issues/333)), and v0.19.0 raises the compatibility floor to `0.19` for breaking consumer notes, so every 0.19+ build refuses a `0.18` pin.
+  - `pinned_ref_semantics` records the release and its darwin-arm64, linux-x64 and windows-x64 checksums, and `bootstrap.sha256` carries the same three.
+  - The top `$comment`, the bootstrap `url` and `fetch`, the two-step `wrong`/`right`, both `install_paths` and the halt message point at `v0.19.0`.
+  - The convenience copies follow: the README's Requirements line, `docs/WORKFLOW.md`, the marketplace descriptions, `futon`'s history line, `surface-mirror-check.yml`'s comment and STANDALONE-ENTRY's `jusshin` row.
+- **v0.19.0's breaking consumer notes are absorbed:**
+  - **kokusen § 5** — `nen commit write` reads the written commit's trailers back itself, through git's own parser, and exits `3` with `injected[]` when a hook added a refused key ([zheref/nen#357](https://github.com/zheref/nen/pull/357)). Exit 3 means the commit exists. It goes to the same `injected-attribution-trailer` stop as before: drop the tip with `reset --soft HEAD~1`, then ask the switch. The raw tip read-back is retired, and so is its PROCESS owned-dependency line (zheref/nen#273, closed).
+  - **aka § 4** maps `nen wc squash` exit `3` the same way: undo with `reset --soft ORIG_HEAD`, ask the switch, squash again. It also says that `wc squash` now loads `nen/workflow.json` on every run. § 7's step-0 read of the whole outgoing range stays, because a catch-up merge commit is written by no nen verb.
+  - **shibari § 4** — a draft is never Ready (`nen pr ready` row 1, [zheref/nen#342](https://github.com/zheref/nen/pull/342)). The transition is `nen pr mark-ready --require-head` ([zheref/nen#355](https://github.com/zheref/nen/pull/355)), never a raw `gh pr ready`.
+  - **jusshin § 7** — `nen runner enable` certifies only a default-branch `workflow_dispatch` run ([zheref/nen#334](https://github.com/zheref/nen/pull/334)). The branch's push run is the pre-merge proof, never the go.
+  - The codex `ten` mirror's quoted `summary:` ([zheref/nen#343](https://github.com/zheref/nen/pull/343)) arrives with this release's regeneration.
+- **`templates/runner-preflight.yml` proves an interactive (desktop) pool** ([zheref/hatsu#206](https://github.com/zheref/hatsu/issues/206)).
+  - **`MODE`** — the eighth placeholder. The header names eight, and says a 0.18 binary refuses the template.
+  - **A new step, "Desktop session present (interactive Windows pool)".** It is gated `runner.os == 'Windows' && '@@MODE@@' == 'interactive'`, which renders as a constant, so a service pool never runs it. It reads the job's session id through `powershell.exe` and fails session 0 or an unknown session, naming the remedy: register from an interactive plan, and sign the account in. It prints the id and never an account.
+  - **Mode-aware remediation.** The toolchain and Windows steps take `MODE`. For an interactive Windows runner the restart is signing its account out and back in, which restarts its logon task. A per-user (AppData or profile) match is a `::warning::` for it, because a logon task runs with its own account's environment. Not-found, refused and broken matches still fail.
+  - **The `runs-on` comment** says an interactive Windows pool already carries its own label (`desktop`). A service pool still waits on zheref/hatsu#204.
+- **`scripts/runner_preflight_fixture_check.sh` holds it.** A third fixture pool, interactive Windows, renders `runs-on: [self-hosted, Windows, X64, desktop]` with `MODE: 'interactive'` on both steps; a service pool renders `MODE: 'service'`.
+  - The probe's `if:` is checked exactly on the template and as a constant on all three renderings.
+  - The probe, lifted and run against a stubbed `powershell.exe`, passes session 2 and fails session 0, no output, and a failed `powershell.exe`, printing no account.
+  - The Windows step, lifted and run with `MODE=interactive`, warns and passes on AppData and profile matches, and still fails a missing match and a refused exec, naming the sign-in.
+  - It runs 146 conjuncts, up from 106. Three mutants are each refused: session 0 passing, the probe ungated by `MODE`, and an interactive per-user match failing. The guard needs nen 0.19.
+- **`jusshin`** learns the mode:
+  - § 2 asks for it with its cost and takes the four-label set for an interactive Windows pool. It also says a `desktop` runner matches the plain set's jobs too.
+  - § 3 relays the plan's `note:` lines. `dailyAccount` is the maintainer's typed `--accept-daily-account` or a re-asked identity, never a default.
+  - § 4 has an interactive Windows row, and § 5 says the script asks no password and that the tasks wait for logon.
+  - § 6 reads `offline` as a signed-out or locked account, and § 7 adds J8 (session 0) and J9 (a per-user warning) and the sign-in restart.
+  - The hard limits never pass `--accept-daily-account` on the session's own reading.
+- Plugin bumped to 0.87.0, a minor: a new minimum and pinned ref, a template step, and skill behaviour changes (Claude manifest and Codex overlay). Mirrors regenerated at that stamp.
+
 ## v0.86.0 — every PR into main ends at the maintainer's merge prompt, and closing issues are linked both ways by a guard
 
 Two efforts from the `hatsu:futon hatsu@bug` run of 2026-10-02. Each was hanten-settled on its own branch and merged locally into the run's integration branch `opus/kurapika/futon-bug-2026-10-02` (no sub-PRs). This release unit carries both.

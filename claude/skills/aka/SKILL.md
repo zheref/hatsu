@@ -290,6 +290,15 @@ nen wc squash --repo <path> --onto <ref> --message-file <file> [--dry-run] [--js
 > `ORIG_HEAD` and the reflog, which the verb's own error names. It never touches a remote beyond the
 > read-only fetch, never pushes, and never force-anything.
 
+**Exit `3` — the squash happened, and a hook put a refused trailer on it (nen `0.19`, zheref/nen#357).**
+The verb reads the commit it just wrote back through git's own trailer parser. Its `injected[]` lists
+each refused key: one a `prepare-commit-msg` or `commit-msg` hook added, or one the message carried.
+**The commit exists.** Exit 3 is never "nothing was squashed". The commit is unpublished, so it is
+row `injected-attribution-trailer`'s stop, the same as § 7 step 0's: `git -C <path> reset --soft
+ORIG_HEAD` (the undo the verb's stderr names) restores the folded commits, row
+`harness-attribution-switch` is asked once, and the squash runs again. Since nen `0.19` the verb also
+loads `nen/workflow.json` on every run, so a malformed policy is exit `1` before anything moves.
+
 **Enforcement of the trailer rule is three-layered, and the third layer is now the binary's.** (a)
 **This skill refuses to write the trailer** — the rendered message is read and compared against
 `commits.forbiddenTrailers` before the commit, agent-side, and it is the layer that is live

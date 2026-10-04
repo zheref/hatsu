@@ -111,7 +111,10 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
 
 - **The two refs must be equal**; if not, the run **stops and says which is ahead**. **`pr open` refuses a head that is not on the remote at
   exit `2` and exits `1` naming an open PR for the branch**; it opens **once**, draft or ready
-  being the repository's convention.
+  being the repository's convention. **A draft is never Ready** (`nen pr ready` row 1, from nen
+  `0.19`, zheref/nen#342). The transition is `nen pr mark-ready --target <owner/name> --pr <n>
+  --require-head <sha>` (zheref/nen#355), never a raw `gh pr ready`, and its exit `8` (the head moved)
+  is a fresh read, not a retry.
 - **`body-check` reports every requirement**; **exit `1` is a finding to fix**.
 - **`fragment-required`'s four verdicts, both kept prefixes and its exit `2` are the template's
   check (b)**, binding as written there.
