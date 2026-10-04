@@ -250,6 +250,19 @@ nen pr request-reviews --target <owner/name> --pr <n> [--add-reviewers <a,b>] [-
 **Verify with `nen pr ready`, never REST** (REST shows a pending bot as `[]`): *no round at head* is
 one owed; *review requested, not yet posted* is one in flight — wait.
 
+**One bot reviewer suffices — the round quorum** (the maintainer's ruling of 2026-09-29, *Copilot OR
+Cursor*, restated 2026-10-04: [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-04 — one bot reviewer
+suffices*; **stated once, here**, cited by `sharingan` § 6, `en` § 5 and
+[`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3). The repository declares it as **nen's** key
+`round_quorum` in `nen/gates.json` — `{ "any_of": [<reviewer names>], "minimum": <n> }`: at least `minimum`
+of `any_of` must **have** a round at head, each with its configured rounds. **Once met, the quorum fulfils
+the owed round of a member that is unavailable** — no run at head, or one that completed without a round, an
+exhausted reviewer among them — **never one still in flight** (zheref/nen#361). So where Bugbot is exhausted
+Copilot's round suffices, and the other way around. `nen pr ready` reads the key from nen `0.17`; the
+*fulfils* half lands in the nen release after `v0.19.0`, so until that repin the pinned binary still reads an
+unavailable member's round as owed — the verdict is quoted as read, the `exhausted[]` row of
+`reviewer_fallback` names why, and the PR goes to the merge prompt on hanten's round (ruling 2026-09-29).
+
 **The fallback chain** (ruling 2026-09-29, `docs/ROSTER.md` § *Rulings of 2026-09-29* — **stated once,
 here**; `sharingan` § 6, `en` § 5/§ 6, `pr-state` § 2, `nen/decisions.json` row `reviewer-exhausted` and
 `docs/GATE-CONFIGURATION.md` § 3 cite this paragraph and restate nothing). A request the mutation accepts

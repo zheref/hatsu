@@ -900,6 +900,20 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   never at `main`, and never write to it.
 
 
+## Rulings of 2026-10-04 — one bot reviewer suffices (the round quorum)
+
+**The maintainer's words, verbatim:**
+
+> It is made canon (not sure where that piece of spec landed), we expect at least 1 bot reviewer with a given amount of configured rounds. So, if Bugbot is exhausted, Copilot should suffice if available, or the other way around.
+
+| Ruling | What it says |
+|---|---|
+| **The quorum is the gate, not every member** | A PR's reviewer rows are satisfied when at least one configured bot reviewer has posted its round with its configured rounds; an unavailable member — exhausted credits, no run at head, a run that completed without a round — is fulfilled by the quorum, a member still in flight never is (zheref/nen#361) |
+| **Where it lives** | **nen's** `round_quorum` key in `nen/gates.json` (`any_of`, `minimum`), read by `nen pr ready` from nen `0.17`; the *fulfils* half ships in the nen release after `v0.19.0`. Hatsu's canon cites it in [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads* and [`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3; Hatsu's own `nen/gates.json` declares it over Copilot alone until Bugbot is enrolled on this repository |
+| **Until the repin** | the pinned `v0.18.2` reads an unavailable member as owed; the verdict is quoted as read, `reviewer_fallback.exhausted[]` names why, and the PR reaches the merge prompt on hanten's round (the ruling of 2026-09-29) |
+
+---
+
 ## Rulings of 2026-10-04 — classify and direct
 
 **The maintainer's request, verbatim** (excerpt), on the document *Version-Decoupled Model Selection Matrix

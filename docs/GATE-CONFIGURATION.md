@@ -192,6 +192,24 @@ counting, the terminus, the quoted verdict and its one annotation line, the merg
 [`docs/PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *The fallback chain*, stated once.
 nen reads neither key (zheref/nen#275).
 
+### `round_quorum` — at least one bot reviewer's round
+
+```json
+"round_quorum": { "any_of": ["copilot", "bugbot"], "minimum": 1 }
+```
+
+**nen's key** (from nen `0.17`; the maintainer's ruling of 2026-09-29, restated 2026-10-04). At least
+`minimum` of the named reviewers must **have** a round at head; every name must be a `reviewers[]` entry.
+Once met, the quorum fulfils the owed round of a member that is unavailable — no run at head, a run that
+completed without a round — never one still in flight (zheref/nen#361, in the nen release after `v0.19.0`;
+the pinned binary before it reads the unavailable member as owed, which `reviewer_fallback`'s `exhausted[]`
+row then explains). **Cost if wrong**: a member named here but not in `reviewers[]` is refused at load; a
+group of one is the same gate as no key; a second bot named before it is enrolled on the repository makes
+every PR wait on a round nobody posts until the repin that reads nen#361. Hatsu's own file names Copilot
+alone until Bugbot is enrolled there; nen's names both. The behaviour is
+[`docs/PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *One bot reviewer suffices*, stated
+once.
+
 ### Hatsu's own keys in `nen/gates.json` — the convention
 
 Three keys here are Hatsu's, not nen's: `round_policy.minRounds`/`.maxRounds` (`stallMinutes` in the
