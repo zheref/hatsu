@@ -684,7 +684,7 @@
         {
           "key": "parity",
           "title": "Cross-platform parity work (domain marker)",
-          "description": "Porting a behaviour across platforms; sets the parity domain for every other job on the issue",
+          "description": "Porting a behaviour across platforms; in a product repo it sets the parity domain for every job",
           "weight": 3,
           "origin": "hatsu",
           "phases": {
@@ -803,7 +803,7 @@
             ]
           }
         },
-        "$comment": "the issue carries job/parity, the marker job"
+        "$comment": "the issue carries job/parity, the marker job -- reached only in a product repository: rows 1 and 2 (a process or library repository) win first and keep their own table"
       },
       {
         "order": 4,

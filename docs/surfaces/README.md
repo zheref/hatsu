@@ -129,7 +129,12 @@ Code binds `nen` and prints the warm-up reminder. Adoption is `tenkai`'s, never 
 **Keeping the plugin checkout current.** `scripts/hatsu_plugin_update.sh --root "$HATSU_PLUGIN_ROOT"`
 with `--channel trunk` (ff-only on the base), `--channel release` (newest `vX.Y.Z` tag) or `--auto` (the
 warm-up form: skip on a dirty tree, an authoring branch, a missing `origin`, a diverged trunk, or a fetch
-failure, and say so). `--auto --claude` on Claude Code refreshes the versioned cache through
+failure, and say so). Before ordinary warm-up, `ten` § 4b applies the target/source guard in
+[`WORKFLOW.md`](../WORKFLOW.md) § *Where worktrees live*: only an eligible effort-owned isolated Hatsu
+source gets plain `--auto`; protected core/shared sources skip refresh, with the reason reported.
+Warm-up never adds `--claude` or `--codex`, which can redirect to linked or marketplace sources.
+The following redirect behavior belongs to an explicit `hatsu:bakuryuha` maintenance call.
+`--claude` on Claude Code refreshes the versioned cache through
 `claude plugin update hatsu@hatsu -y` instead of treating it as a checkout — after bringing the
 `hatsu` marketplace's Directory source current when it is a git checkout (read from Claude Code's own
 `plugins/known_marketplaces.json`), or stating in the same report line why it could not, because that

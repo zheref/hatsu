@@ -931,14 +931,14 @@ Answered through the surface's picker, 2026-10-04:
 | **Persistence** | `direct`'s verdict lives in the report and the local ledger `.nen/direct/<effort>.json`; no issue comment, no label |
 | **Undecidable stays empty** | An axis the classifier cannot decide with confidence gets no label; the issue is listed as undecidable with the reason, and a re-run picks it up |
 
-**What follows from them.** [`classify`](../claude/skills/classify/SKILL.md) lands at `v0.87.0` with
+**What follows from them.** [`classify`](../claude/skills/classify/SKILL.md) lands at `v0.88.0` with
 `file` § 5 running it on every filing and `nen/decisions.json` row `classify-undecidable` (autonomous: leave
-the axis empty, list); `hatsu:direct` lands **stacked, at `v0.88.0`**, with `build` running `ten → classify
+the axis empty, list); `hatsu:direct` lands **stacked, at `v0.89.0`**, with `build` running `ten → classify
 (when unclassified) → direct → breath → rasengan → … → aka → mukai → en → rikugan → third-hand` and row
 `direct-mismatch` (ask once). The deterministic halves are nen's `classify` and `direct` families; the
 judgement (reading an issue) and the live version lookup are prose, named as such. **Dated note, 2026-10-04:**
 nen `v0.19.0` shipped the same day without either family and moved the compatibility floor to `0.19`; the
-families ship in the release after it, and the repin that adopts them absorbs the floor (`zheref/hatsu#206`).
+families ship in the release after it, and the repin that adopts them absorbs the floor (`zheref/hatsu#168`, the open repin issue).
 Until then the verbs are absent and both skills continue where they can (row `missing-tool`).
 
 **Open questions, returned to the maintainer by the pre-PR review of 2026-10-04 (G4, not adjudicated

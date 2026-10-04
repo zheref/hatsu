@@ -74,6 +74,22 @@ routing work, which is the argument for keeping names distinctive.
 from `cursor-agent models` (`cursor-grok-4.6-high` on 2026-09-10, evidence § 8 F1). Hanten's isolated
 reviewer is a `.cursor/agents/` subagent in a worktree at `<core>/.nen/worktrees/cursor/hanten-<persona>` (§ 1).
 
+## Authoring checkout adapter
+
+All lead and delegated authoring, parity and PR efforts select and re-verify their checkout
+under WORKFLOW § *Where worktrees live*, new or resumed. Only explicit core authorization in the
+ORIGINAL effort prompt waives isolation. Reuse this effort's verified worktree; otherwise select
+the IDE's native **Worktree** mode or use Hatsu's named `git worktree add` fallback at
+`<core>/.nen/worktrees/cursor/<name>`, then bind its absolute directory for every cwd, edit and
+`--repo`. A new branch in the existing core workspace does not satisfy the rule.
+Each delegated author receives an independent target checkout and its absolute scope; a subagent
+definition alone establishes no isolation. Report unavailable creation or write access with the
+actual path and command; never change permissions, invoke a swap or fall back to core.
+Native root/setup facts are § 1's cited worktree guide, not a Hatsu location setting.
+Evidence fetched 2026-10-03: "Start a task with `/worktree`" in a "separate checkout"
+([official worktree guide](https://cursor.com/docs/configuration/worktrees)); use that IDE
+entry when exposed, otherwise the manual fallback above.
+
 ## 4. Hooks
 
 | | |
