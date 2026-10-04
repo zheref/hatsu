@@ -444,6 +444,12 @@
         }
       ],
       "proposeIssue": false
+    },
+    {
+      "id": "classify-undecidable",
+      "class": "autonomous",
+      "default": "leave the axis empty; list the issue as undecidable with the reason in the classify table; a later run picks it up",
+      "why": "Ruling 2026-10-04: an axis the classifier cannot decide with confidence is never filled with a best guess -- nen's own undecidable discipline (effort classify). Low-confidence keys are listed and never applied by hatsu:classify; nen classify apply --include-low exists for the maintainer's own hand."
     }
   ]
 }
