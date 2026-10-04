@@ -1,6 +1,6 @@
 ### Changed
 
-- **nen repinned to v0.19.0, and the runner preflight proves an interactive desktop pool** ([zheref/hatsu#206](https://github.com/zheref/hatsu/issues/206)).
+- **nen repinned to v0.19.0, and the runner preflight proves an interactive desktop pool** ([zheref/hatsu#206](https://github.com/zheref/hatsu/issues/206), [#226](https://github.com/zheref/hatsu/pull/226)).
 - **`nen/contract.json` → `dependency.minimum` moves `0.18` → `0.19`, and `pinned_ref` moves `v0.18.2` → `v0.19.0`** ([zheref/nen v0.19.0](https://github.com/zheref/nen/releases/tag/v0.19.0), released by [zheref/nen#358](https://github.com/zheref/nen/pull/358) and [#362](https://github.com/zheref/nen/pull/362), published 2026-10-04 UTC).
   - The minimum moves for a feature and for the floor. Hatsu adopts nen's interactive runner mode ([zheref/nen#333](https://github.com/zheref/nen/issues/333)), and v0.19.0 raises the compatibility floor to `0.19` for breaking consumer notes, so every 0.19+ build refuses a `0.18` pin.
   - `pinned_ref_semantics` records the release and its darwin-arm64, linux-x64 and windows-x64 checksums, and `bootstrap.sha256` carries the same three.
