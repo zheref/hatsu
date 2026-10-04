@@ -204,8 +204,9 @@ size. The loader refuses an undeclared name, a duplicate, a `minimum` below `1` 
 non-integer, by pointer, so `nen schema check` fails the file. Each member is counted **whether or not it is
 a base reviewer or `bounded_policy_exempt`**, so a group of one is a floor for that member even where
 nothing is owed; otherwise the verdict is unchanged and row 4 gains the quorum clause. **Cost if wrong**:
-every member's `login_pattern` and `round_check_pattern` must be **anchored and bot-only** (`^…$` over the
-bot's exact logins and check name, as nen's own file spells them) — one member's round now covers the
+every member's `login_pattern`, and any `round_check_pattern` it declares (optional: Copilot posts reviews
+and has none), must be **anchored and bot-only** (`^…$` over the bot's exact logins and check name, as nen's
+own file spells them) — one member's round now covers the
 others, so a broad member pattern lets any login or check containing the word satisfy the whole group; and
 the `reviewers[]` entry `any_of` requires is owed on every PR once its check enrols it, which only the
 *fulfils* half of zheref/nen#361 excuses — Hatsu's own file names Copilot alone until Cursor Bugbot
