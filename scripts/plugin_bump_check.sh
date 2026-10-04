@@ -185,6 +185,12 @@ fi
 #                     — the UZF-26 evidence-table check (Hatsu 0.45.0),
 #                       run from `$hatsu_root/scripts/` before every PR body
 #                       write; a stale copy passes a body a fixed one refuses.
+#   scripts/pr_development_link_check.sh
+#                     — shibari § 4's Development-link guard (zheref/hatsu#203),
+#                       run from `$hatsu_root/scripts/` before every PR body write
+#                       and after every open and body edit, and quoted by en and
+#                       sharingan; a stale copy passes a PR whose closing issues
+#                       are unlinked, or a body a fixed one refuses.
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #   docs/SURFACES.md  — the authority on how personas and skills reach Codex,
@@ -294,6 +300,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/release-publish.sh'
   'scripts/report_time.sh'
   'scripts/pr_body_evidence_check.sh'
+  'scripts/pr_development_link_check.sh'
   '.mcp.json'
 )
 

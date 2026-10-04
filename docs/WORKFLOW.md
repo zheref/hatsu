@@ -910,13 +910,15 @@ report) → `jutaisho` (the bell).
 
 It loops. **It never pushes and never opens a pull request.**
 
-**Five phases are the maintainer's to call, and no agent ever prompts for them:**
+**Five phases are the maintainer's to call, and no agent ever prompts for them** (the merge prompt at
+`en` § 5 presents a PR's link and merge line; its picker never carries the merge act; the maintainer merges outside the session — [`ROSTER.md`](ROSTER.md) § *Rulings of
+2026-09-30 — En never merges*):
 
 | Phase | What it does | Why it is the human's |
 |---|---|---|
 | [`aka`](../claude/skills/aka/) | lint → squash the unpushed commits → `ao` → re-lint if catch-up moved the tree → push | publishing work is a decision, and a squash is destructive |
 | [`mukai`](../claude/skills/mukai/) | `murasaki` → `hanten` review → kokusen checkpoint → `kotoamatsukami` impacted tests → `byakugan` coverage → publish proven updates → evidence → `shibari` opens the PR → landing report → ring, **offer** `en` through the picker and end Mukai. **§ 5 is the full shape** | En runs on the maintainer's answer (or at once under `mukai.autoEn`); pending is En's in-progress state |
-| **merge** | **G2** (`merge`) and **G4** (`canon-merge`) | **the run's own PR, at its terminus, on `branch.base`** — [`en`](../claude/skills/en/) § 5 merges it, at either row ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-29*, ruling 3); [`getsuga`](../claude/skills/getsuga/) § 3a merges **its own release-proposal PR** through `nen pr merge --release-unit`; never another's PR, never past a `gh` refusal |
+| **merge** | **G2** (`merge`) and **G4** (`canon-merge`) | **every PR into `main` is the maintainer's** — [`en`](../claude/skills/en/) § 5 ends it at the merge prompt, its link and an inline `gh pr merge` line, at either row ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-30 — En never merges*); [`getsuga`](../claude/skills/getsuga/) § 3a merges **its own release-proposal PR** through `nen pr merge --release-unit`; [`futon`](../claude/skills/futon/) § 5 merges effort branches locally (`git merge --no-ff`) into its own integration branch — no sub-PR, no `gh pr merge` |
 | [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always; § 3a's freshness gate reads the archive's build SHA against `HEAD` and `origin/<branch.base>`'s tip on a clean tree, and **only when it is not the tip's build** § 3b runs `susanoo` first in one idempotent clean worktree under core's `.nen/` (the maintainer's gitignored files copied from core, `project.fromCore`, § 3) and sends from there; `--run` acts only on a call — the target **typed, or the declared `deploy.defaultTarget`** (§ 2) | the blast radius leaves this machine |
 | [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3**: only on the maintainer's own go (mugetsu § 0), with the preflight green and the tag already cut — one target per call; with no target typed, the single declared destination and the latest cut tag with no published release (ruling of 2026-09-28) | the blast radius is other people's users |
 
@@ -957,7 +959,7 @@ attrition. The loop simply stops and waits.
 2. **touched-file coverage under `coverage.minimum`** — in `byakugan`
 3. **a semantic conflict** — in `ao`. A *mechanical* conflict is resolved, not escalated
 4. **an unsettled adversarial finding** — in `hanten`, after Kurapika has fixed it or pushed back with a reason
-5. **a `sharingan` escalation** — a PR that will not reach Ready. **A declared reviewer exhaustion is not one** (ruling 2026-09-29): the PR is merged by `en` § 5 on hanten's review, `nen/decisions.json` rows `reviewer-exhausted` and `own-pr-merge`, `docs/PROCESS.md` § *Reviewer rounds and review threads*
+5. **a `sharingan` escalation** — a PR that will not reach Ready. **A declared reviewer exhaustion is not one** (ruling 2026-09-29): the PR goes to `en` § 5's merge prompt on hanten's review, `nen/decisions.json` rows `reviewer-exhausted` and `own-pr-merge`, `docs/PROCESS.md` § *Reviewer rounds and review threads*
 
 **A red *iteration* check is not a sixth condition, and the ruling of 2026-09-10 did not make it one.** It is
 fixed where it is found: inside `rasengan`'s inner loop while the change is being written, or by handing the
@@ -1570,11 +1572,45 @@ Implementation, passing checks, completed review handling and formal readiness a
 claims. Every inline and summary finding needs a disposition before a review round is complete;
 thread replies/resolutions are verified directly, not inferred from a worker's report.
 
-Every PR author lists every addressed issue in the body and verifies each Development association,
-including all issues in a combined PR. Scope changes trigger reconciliation of that full set.
+Every PR author lists every addressed issue in the body, including all issues in a combined PR, and
+verifies the Development association of exactly the issues the PR closes, no more and no fewer
+(amended by zheref/hatsu#203: Development is GitHub's closing association, so a partial or cited
+issue there would be closed on merge). Scope changes trigger reconciliation of that full set.
 Dependencies are listed separately. Closing clauses reflect completed issue scope; partial work
 must not be silently closed merely to obtain a sidebar link. Shibari owns the procedure and the
-GitHub auto-close caveat; build and sharingan enforce it at handover.
+GitHub auto-close caveat; build, sharingan and en enforce it at handover through
+`scripts/pr_development_link_check.sh` (zheref/hatsu#203).
+
+**The Development guard at readiness, stated once** (zheref/hatsu#203; en § 4–6, sharingan § 3–4 and
+shibari § 4 cite this paragraph):
+
+The three cases below are mutually exclusive and total, and **the PR's own base decides first**
+(zheref/hatsu#213): (1) is every PR into the default branch, whatever `branch.base` declares; (2) and
+(3) split the rest on `branch.base`.
+
+- **(1) the PR's base is the default branch**, whatever `branch.base` declares: closing keywords and
+  Development links act on it, so the guard verifies fully and readiness is `nen pr ready` + `nen pr
+  body-check` **and** the guard's `0` (`--pr <owner/name#N> --base <branch.base>`). A `--base` naming
+  another branch prints an informational note and bypasses nothing. Any other guard line vetoes
+  Ready; its channel is the body through `nen pr edit-body`, or a sidebar link surfaced to the
+  maintainer. A PR on `branch.base` gets en § 5's merge prompt; one off it, the off-base report.
+- **(2) the PR's base is not the default branch and `branch.base` is** (stacked on another delivery
+  branch): readiness is `nen pr ready` + `nen pr body-check` alone. The guard's `retarget-pending` line
+  is quoted beside them, **neither a pass nor a veto**, and the PR goes to en § 5's off-base report: it
+  never gets a prompt.
+- **(3) `branch.base` is not the default branch and neither is the PR's base**: the guard prints
+  `not-applicable (branch.base 'X' is not the default branch 'Y', and neither is the PR's base 'Z')`
+  and exits `1`, because nothing it verifies can act there. Readiness is `nen pr ready` + `nen pr
+  body-check`, and a PR on `branch.base` gets en § 5's **merge prompt** with that line quoted in place
+  of the guard's `0`: the merge is the maintainer's either way. It is the G2/G4 merge stop, **not a
+  G5** (the plane's genuine stops stay five, § 4). A PR off `branch.base` still gets the off-base
+  report. Hatsu never reaches this case (its `branch.base` is its default branch); canon states it so
+  a consumer's is total.
+- **Every `nen pr edit-body` and every retarget read-back is followed by the guard**, its line quoted.
+- The reading that keywords and links act only on the default branch is GitHub's documented
+  behaviour (*Linking a pull request to an issue*); treating it as never-a-pass-never-a-veto, and
+  case (3) as the merge prompt rather than a stop of its own, is the run's G4 interpretation, recorded in [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-30 — En never
+  merges* and the maintainer's to correct.
 
 ---
 

@@ -751,7 +751,7 @@ is holding, so you can catch him holding the wrong one *before* he acts on it.
 
 | Mode | Lane | Where its work stops |
 |---|---|---|
-| **Enhancer** | **Product code** — edit, build and test locally, open the PR; `en` § 5 merges it at its terminus (ruling 2026-09-29 (3)). Never another's PR, never votes, never self-reviews. | the merge — the run's own PR only |
+| **Enhancer** | **Product code** — edit, build and test locally, open the PR; `en` § 5 drives it to Ready and ends at the maintainer's merge prompt (ruling 2026-09-30). Never merges into `main`, never votes, never self-reviews. | the merge — the maintainer's, at the prompt |
 | **Conjurer** | **Canon & governance authoring** — constitutions, handbooks, schemas, agent definitions, taxonomies, thresholds. Conjured contracts *with conditions*: a clause states what it binds, what it costs, when it lapses, and what happens when it is broken. | the policy gate — **yours** |
 | **Transmuter** | **Machinery** — Nen verbs and their tests, scaffolding, hooks, workflows, generators, plugin manifests, contract files. The standing transmutation is *improvised shell → deterministic verb*. | the policy gate — **yours** |
 | **Manipulator** | **GitHub-side ops** — drives, wakes, labels, retargets, cascades, thread stewardship. | drives *to* a gate, crosses none |
@@ -847,7 +847,7 @@ Forty-eight, invoked as `hatsu:<name>` (forty-nine directories with `ten`). Long
 | `bankai-quality` | Resolves the adversarial-test tooling, performance tooling and `QA-{n}` rules for a repo's scenario, before a release is cut — from the same `zheref/bankai-handbooks` checkout. |
 | `build` | Takes one issue from wherever it sits to a delivery PR standing ready at its human gate. |
 | `file` | Files one well-formed, correctly-labelled, non-duplicate issue — reconciled against the open backlog first. |
-| `futon` | Takes one selector's worth of the backlog — a whole severity band (`@<severity>[+]`), or every open issue carrying one exact label (`@<label>`) — from open issues to PRs with an actor behind them, then **gates** whatever you typed after `then` — `tag`/`tag+fanout` handed to `getsuga`, any installed skill run under its own authority, or prose mapped to skills and verbs before acting; nothing runs until every PR this run authored is Ready, and it never cuts a tag itself. |
+| `futon` | Takes one selector's worth of the backlog — a whole severity band (`@<severity>[+]`), or every open issue carrying one exact label (`@<label>`) — from open issues to PRs with an actor behind them, then **gates** whatever you typed after `then` — `tag`/`tag+fanout` handed to `getsuga`, any installed skill run under its own authority, or prose mapped to skills and verbs before acting; nothing runs until every PR this run authored is merged into `branch.base`, and it never cuts a tag itself. |
 | `getsuga` | **Cuts** a release tag locally, end to end — the cut point defaulting to `nen/workflow.json` → `branch.base` (plain `main` when none is declared), never required — preconditions, one folded **release-proposal** PR it merges itself through `nen pr merge --release-unit` (otherwise you merge), the **post-merge** tag, the fan-out and the consumers' repin PRs. The release unit is `susanoo`'s; publication is `mugetsu`'s. Never publishes a release. |
 | `izanagi` | Repeats a task that **acts** until a condition holds, under a **mandatory** iteration cap. No cap, no run. |
 | `izanami` | Repeats a **read-only** task until a condition holds. It looks, reports, and stops. |
@@ -944,7 +944,8 @@ apart is what keeps the second class of mistake visible.
   kotoamatsukami's impacted tests and byakugan's coverage bar, then the evidence, then `shibari` opening one PR and
   the picker offering `en`'s capped readiness watch (started at once only under `mukai.autoEn`). Required CI and the owed current-head reviewer round
   are observed after every push; opening the PR or reporting either as pending is not success. Reviewers
-  advise and never vote; **the run merges its own PR at its terminus** (`en` § 5, ruling 2026-09-29 (3)).
+  advise and never vote; **every PR into `main` ends at your merge prompt** — its link and an inline
+  `gh pr merge` line you run (`en` § 5, ruling 2026-09-30).
 - **Only a genuine G5 interrupts you** — red required tests, touched-file coverage under the ladder's
   minimum, a *semantic* merge conflict, an unsettled adversarial finding, a stuck-PR escalation. Five, and
   nothing else. A stop is `nen stop`'s banner, the report link, and the question asked through your surface's
@@ -1182,9 +1183,9 @@ rewrite; [`docs/ROSTER.md`](docs/ROSTER.md) carries the same table.
 |---|---|---|
 | **G1 — Epic approval** — the human applies one delivery-mode label | `CON-4` | **Never** |
 | **G1-M — Release into build** — applying the building stage label | `CON-25` | **The one delegated crossing** — only under `CON-25`'s four exhaustive, named carve-outs |
-| **G2 — Merge to `main`** | `CON-5` | **The run's own PR, at its terminus, on `branch.base`** — `en` § 5 merges it (`docs/ROSTER.md` § *Rulings of 2026-09-29*, ruling 3); `getsuga` § 3a merges its own release proposal through `nen pr merge --release-unit`. **Never** another's PR. |
+| **G2 — Merge to `main`** | `CON-5` | **Never, save one PR.** Every PR into `main` ends at `en` § 5's merge prompt (`docs/ROSTER.md` § *Rulings of 2026-09-30 — En never merges*); `getsuga` § 3a merges its own release proposal through `nen pr merge --release-unit`. Futon's local `git merge` into its own integration branch (futon § 5) is not a G2 act. |
 | **G3 — Release go/no-go** | `CON-6` | **Never on an agent's word.** Preparing a release is allowed; publishing runs only on your typed go — by name, or as a `mugetsu` step of your own `futon` chain. |
-| **G4 — Policy / spec change**, meaning **authoring or maintaining a canon repository** — the repositories `nen repo classify` reports as `role: canon`, whose product *is* the process | `CON-7` | **The same as G2** — the run's own PR at its terminus, and `getsuga` § 3a's own release proposal at `canon-merge`; never another's |
+| **G4 — Policy / spec change**, meaning **authoring or maintaining a canon repository** — the repositories `nen repo classify` reports as `role: canon`, whose product *is* the process | `CON-7` | **The same as G2** — every PR into `main` ends at `en` § 5's merge prompt (`docs/ROSTER.md` § *Rulings of 2026-09-30 — En never merges*); only `getsuga` § 3a's own release proposal is merged by an agent, at `canon-merge` too. Futon's local `git merge` into its own integration branch (futon § 5) is not a G4 act. |
 | **G5 — Anything else human-only** | `CON-47` | **Never** — its definition *is* "the decision is yours" |
 
 > **G4 is the repository's role, not the file's kind (maintainer's ruling, 2026-09-18).** A change is
@@ -1222,7 +1223,7 @@ runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scri
 `scripts/send_freshness_check.sh`, `scripts/kagutsuchi_worktree.sh`, `scripts/hatsu_surface_link.sh`,
 `scripts/surface_link_check.sh`, `scripts/prose_size_check.sh`, `scripts/private_name_check.sh`,
 `scripts/plugin_cache_check.sh`, `scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
-`scripts/report_time.sh`, `scripts/pr_body_evidence_check.sh`) — the one list is `PLUGIN_SURFACE_GLOBS` in the
+`scripts/report_time.sh`, `scripts/pr_body_evidence_check.sh`, `scripts/pr_development_link_check.sh`) — the one list is `PLUGIN_SURFACE_GLOBS` in the
 script, from which the refusal message is generated; this paragraph is a copy of it — everything an
 installed runtime reads, the generated Codex and Cursor mirrors included: the warm-up reads plugin resources
 from `$CLAUDE_PLUGIN_ROOT`, while first-run bootstrap and the plugin-source updater read their scripts

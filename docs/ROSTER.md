@@ -34,7 +34,7 @@ believes he is holding, so they can catch him holding the wrong one before he ac
 | **Enhancer** | **Product code.** Edit product/feature code in the local checkout, build and test locally, open the PR. Branch `kurapika/<slug>`. | **G2** (`CON-5`) |
 | **Conjurer** | **Canon & governance authoring** — the constitution, handbooks, schemas, agent definitions, taxonomies, thresholds. Conjured contracts *with conditions*: a clause states what it binds, what it costs, when it lapses, and what happens when it is broken. | **G4** (`CON-7`) **in a canon repository** (the repositories `nen repo classify` reports as `role: canon` (`nen/repos.json` → `maintained_tools`)); the same edit in a consumer repository is **G2** — § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind* |
 | **Transmuter** | **Machinery** — Nen verbs and their tests, scaffolding, hooks, workflows, generators, plugin manifests, contract files. The standing transmutation is *improvised shell → deterministic verb*. | **G4** (`CON-7`) **for canon machinery** — machinery in a canon repository (the repositories `nen repo classify` reports as `role: canon` (`nen/repos.json` → `maintained_tools`)), which *is* the process. The same file kinds in a consumer repository are that repository's **configuration** and stand at **G2** — § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind* |
-| **Manipulator** | **GitHub-side ops** — drives, wakes, labels, retargets, cascades, thread stewardship, and the merge of the run's own PR at its terminus (`en` § 5, § *Rulings of 2026-09-29* ruling 3). Never another's PR, never votes, never self-reviews. | drives *to* a gate; crosses G2/G4 for its own PR only |
+| **Manipulator** | **GitHub-side ops** — drives, wakes, labels, retargets, cascades, thread stewardship, and the merge prompt that ends every PR into `main` (`en` § 5, § *Rulings of 2026-09-30 — En never merges*). Merges only locally (`git merge --no-ff`) into futon's own integration branch, never a PR. Never votes, never self-reviews. | drives *to* a gate; never crosses G2/G4 |
 | **Emitter** | **Release & fan-out** — `susanoo` builds the release unit, `getsuga` opens the release-proposal PR, merges it himself through `nen pr merge --release-unit` (§ *Rulings of 2026-09-26/27/28*) and cuts the post-merge tag, and the repin fan-out follows: collation, preflight, `latest`. Prepares a release; publishes one, or uploads a build, only on the maintainer's own go — by name, in their own words, or as a step of their own `futon` `then` chain (the advance go, `mugetsu` § 3), which Emitter runs (amended in place by the 2026-09-30 clarification under § *Rulings of 2026-09-26/27/28*, ruling 2(a)). | **G3** stays the human's (`CON-6`) |
 | **Specialist** | **Product intake** — his kept Product-Owner canon. A raw thought elicited into a decision-complete brief, filed only on explicit confirmation. | **G1** stays the human's (`CON-4`) |
 
@@ -104,7 +104,9 @@ The local loop is [`ren`](../claude/skills/ren/) and it runs on every request wi
 `breath` → `rasengan` → `kokusen` → `amaterasu` → `spiritual-message` → `jutaisho` — where `rasengan` **authors the
 change** and `kokusen` **verifies the tree and commits it** (§ *Rulings of 2026-09-10*, *`rasengan` is the
 AUTHORING phase*). **It never pushes and never opens a
-pull request.** Five phases are the maintainer's to call, and **no agent ever prompts for any of them**:
+pull request.** Five phases are the maintainer's to call, and **no agent ever prompts for any of them**
+(the merge prompt at `en` § 5 presents a PR's link and merge line; its picker never carries the merge act; the maintainer merges outside the session — § *Rulings of
+2026-09-30 — En never merges*):
 `aka` (push), `mukai` (review, coverage, evidence, the PR), the **merge** itself (**G2**, `CON-5`),
 `kagutsuchi` (a non-production upload, per target) and `mugetsu` (publication, per target, **G3**, `CON-6`).
 
@@ -857,9 +859,9 @@ Clause ids are the inherited constitution's; the rewritten constitution keeps th
 |---|---|---|---|
 | **G1** | `CON-4` | Epic approval — the human applies one delivery-mode label | **Never** |
 | **G1-M** | `CON-25` | Release into build — applying the building stage label | Only under `CON-25`'s four exhaustive carve-outs |
-| **G2** | `CON-5` | Merge to `main` | **The run's own PR, at its terminus, on `branch.base` — `en` § 5 merges it** (§ *Rulings of 2026-09-29*, ruling 3: *"The merge is not mine. It is yours and it has been."*), and `getsuga` § 3a merges its own release proposal through `nen pr merge --release-unit` (§ *Rulings of 2026-09-26/27/28*). **Never** another's PR, never past a `gh` refusal |
+| **G2** | `CON-5` | Merge to `main` | **Never, save one PR.** Every PR into `main` ends at the merge prompt (`en` § 5), with its link and an inline `gh pr merge` line the maintainer runs (§ *Rulings of 2026-09-30 — En never merges*, which supersedes ruling 3 of 2026-09-29). The one exception is `getsuga` § 3a's own release proposal, merged through `nen pr merge --release-unit` (§ *Rulings of 2026-09-26/27/28*, ruling 4). Futon's local `git merge` into its own integration branch (futon § 5) is not a G2 act |
 | **G3** | `CON-6` | Release go/no-go | **Never on an agent's word.** Preparing a release is allowed; publishing runs only on the maintainer's own go — by name, in their own words, or as a `mugetsu` step of their own `futon` chain (§ *Rulings of 2026-09-26/27/28*; amended in place by its 2026-09-30 clarification under ruling 2(a)) |
-| **G4** | `CON-7` | Policy / spec change — **authoring or maintaining a canon repository** (the repositories `nen repo classify` reports as `role: canon` (`nen/repos.json` → `maintained_tools`)): the repositories whose product is the process, so a merge there changes what every other repository does. A consumer repository's own `nen/*.json`, CI workflow or `scripts/` entry is **configuration, and stands at G2** (§ *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*) | **The same as G2** — the run's own PR at its terminus (`en` § 5, ruling 3 of 2026-09-29) and `getsuga` § 3a's own release proposal at `canon-merge`; **never** another's |
+| **G4** | `CON-7` | Policy / spec change — **authoring or maintaining a canon repository** (the repositories `nen repo classify` reports as `role: canon` (`nen/repos.json` → `maintained_tools`)): the repositories whose product is the process, so a merge there changes what every other repository does. A consumer repository's own `nen/*.json`, CI workflow or `scripts/` entry is **configuration, and stands at G2** (§ *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*) | **The same as G2** — every PR into `main` ends at the merge prompt (`en` § 5, ruling of 2026-09-30); only `getsuga` § 3a's own release proposal is merged by an agent, at `canon-merge` too. Futon's local `git merge` into its own integration branch (futon § 5) is not a G4 act |
 | **G5** | `CON-47` | Any other human-only decision or action | **Never** — its definition *is* "the decision is theirs" |
 
 **No agent in this roster casts a `request_changes` review — for any reason, on any PR.** They run on the
@@ -910,6 +912,47 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
 | **Written out at the default** | Tenkai's `apply` writes every absent value that has a default at that default, and a `$<key>` sibling beside each fixed-set value naming its options (`"$autoEn": "one of: true \| false"`) — [`tenkai`](../claude/skills/tenkai/SKILL.md) § 6d. nen reads `$`-prefixed keys as metadata. It is the one write the engine makes into a nen declaration, and it is behaviour-neutral: never a new file, never a set value rewritten, never a value without a default |
 | **Tenkai asks for every value a skill needs** | by domain — development, versioning, testing, review, reporting, notifications, deployment, publishing — naming each outside-platform step (store records, API keys as environment-variable names, reviewer apps, runner hosts). Values only some repositories need are offered and may be deferred to first use |
 | **A missing value is never a hard stop** | every phase's warm-up runs `config_values.sh need --skill <phase>` ([`ten`](../claude/skills/ten/SKILL.md) § 6, step 5b); each value that phase needs and nobody set is asked, set up and the phase resumed — [`WORKFLOW.md`](WORKFLOW.md) § 4, unchanged in its gates: a secret, a human gate or a G3 go is still never asked as configuration, and a value WORKFLOW § 4 says is *typed, never picked* (row `missing-maintainer-choice`, the 2026-09-23 class — a deploy target among them) stays typed: its candidates are listed for reference, none starred |
+
+---
+
+## Rulings of 2026-09-30 — En never merges; every PR into `main` ends at the merge prompt
+
+**The maintainer's ruling, verbatim** (2026-09-30, typos preserved; the message's opening "No." and the
+second paragraph's "Also:" are cut). It was given in the `hatsu:futon nen@bug` sitting, in answer to
+the run's proposal to allow en § 5's `gh pr merge` in the permission pack after the harness denied the
+merge of NN-PR-#315:
+
+> "En is NOT meant to merge by default. En is MEANT TO resolve all observations from bot/human reviewers
+> automatically by authoring whatever needs to be fixed and resolving the conversations with a proper
+> comment."
+
+> "Futon is allowed to merge by itself ONLY when target is NOT main. It may put together several
+> similar/code-common operations on an chore/integration branch and work against it withut my consent.
+> Otherwise (every time main is target) I should be prompted to merge myself either from the GitHub UI
+> or from a command line offered inline."
+
+**The exception, in two excerpts** (2026-10-01, as quoted in zheref/hatsu#207). It was given in the
+`hatsu:getsuga` sitting on HA-PR-#191, the v0.73.0 release proposal, after the run hand-rolled the
+proposal's watch instead of invoking `hatsu:en`:
+
+> "… run proper 'en' against the proposal PR and iterate on it until resolving all G2 readiness gates …"
+
+> "… this is one of the exceptions where agent (as emitter) is enabled to merge on my behalf any PR
+> around publishing/tag-cutting arrangements …"
+
+| Ruling | What it says |
+|---|---|
+| **En never merges** | [`en`](../claude/skills/en/SKILL.md) drives the PR to `CON-32` Ready. It authors every fix a bot or human reviewer's finding needs, and settles each thread with a reply and a resolve. It then ends at the merge prompt (en § 5). **This supersedes ruling 3 of 2026-09-29** (*"The merge is not mine"*), which made the run merge its own PR on `branch.base` |
+| **Every PR into `main` ends at the merge prompt** | The prompt is part of `jutaisho`'s stop. It carries the PR's link, the quoted `nen pr ready`, `body-check` and Development-guard verdicts (the guard's `0`, zheref/hatsu#203), and one inline line the maintainer can run: `gh pr merge <n> --repo <owner/name> --merge --match-head-commit <judged head>`. The merge itself is the maintainer's, from the GitHub UI or that line. **No agent runs it** |
+| **The prompt never offers the act** | In `jutaisho` § 4's own words, its picker never carries the merge act; the maintainer merges outside the session. The five-phase rule of § *Rulings of 2026-09-09* (1) rests on exactly that: no agent offers or performs the merge, and presenting the link and the line is neither |
+| **"main" reads as `branch.base`; closing keywords act only on the default branch** | Two readings, one statement. *First*: the maintainer said "main", and canon reads it as `nen/workflow.json` → `branch.base`, which is `main` in Hatsu, so a consumer with another trunk gets the same rule — every PR on `branch.base` ends at the merge prompt. *Second*: GitHub links a closing keyword, and closes a Development-linked issue, only on a PR into the repository's default branch (GitHub Docs, *Linking a pull request to an issue*), so the Development guard (`scripts/pr_development_link_check.sh`, zheref/hatsu#203) can certify only there. The two compose into three mutually exclusive cases, the PR's own base deciding first (zheref/hatsu#213): **(1)** the PR's base is the default branch, whatever `branch.base` declares — closing links act there, so the guard verifies fully and its `0` is required before the prompt (a `--base` naming another branch only adds an informational note); **(2)** the PR's base is not the default branch and `branch.base` is (stacked) — the guard prints `retarget-pending`, quoted beside `nen pr ready` and `body-check` as **neither a pass nor a veto**, and the PR goes to en § 5's off-base report, no prompt; **(3)** neither `branch.base` nor the PR's base is the default branch — the guard prints `not-applicable`, and a PR on `branch.base` still gets **the merge prompt** with that line quoted in place of the `0`, because the first reading makes the merge the maintainer's either way. Case (3) is the G2/G4 merge stop, **not a G5**; the plane's genuine stops stay five. Stated once in [`WORKFLOW.md`](WORKFLOW.md) § *Build accountability and issue associations*. *Both readings, and case (3)'s, are the run's (a G4 interpretation, 2026-10-02) and are the maintainer's to correct* |
+| **Futon merges into its own integration branch, locally** | [`futon`](../claude/skills/futon/SKILL.md) § 5 may cut one integration branch per run from `origin/<branch.base>` with `nen shu warmup`, named under `branch.template` with the descriptor `futon-<selector>-<YYYY-MM-DD>` (the run of 2026-10-02 used `opus/kurapika/futon-bug-2026-10-02`). A hanten-settled effort branch is merged into it with `git merge --no-ff` in a worktree on that branch, and the branch is pushed with `nen wc publish` — **never through `aka`**, whose squash would flatten the merges. `git merge --no-ff` has no nen verb: it is named residue (`claude/rules/hatsu.md` § 4; a verb not yet filed). **There is no sub-PR and no `gh pr merge`**, so no base can be retargeted under futon and no reviewer chain runs on effort branches. The permission pack's deny row covers `gh pr merge` only; the merge paths it leaves open are listed under *What it does not rule* |
+| **Where an effort stops** | With an integration branch, an effort runs `ren` (breath, rasengan, kokusen), then `aka` to publish its own effort branch, then `hanten` settled, then the local merge. **No `mukai`, `shibari` or `en` per effort.** `kotoamatsukami`, `byakugan` and `mukai` run once, on the integration PR. An effort branch that must catch up with the integration branch (an earlier effort landed there first) does so with `nen wc catch-up --base <integration branch> --strategy merge`, passing the **bare** branch name: the `origin/<branch>` form double-prefixes the remote. Those catch-up merge commits carry no `Hatsu-Agent:` trailer, and that is expected — the verb writes git's own merge message, and the trailer rule binds authored commits |
+| **The integration PR is the terminus** | It opens once every in-scope effort is locally merged, through `tensho`/`shibari`; futon runs `en` on it and it ends at the merge prompt like any other. A later local merge after it opens lands as a new head that `en` re-judges, and reconciles the integration PR's *Associated issues* table through `shibari` first: `nen pr edit-body`, then the Development guard `--pr`. It carries the version bump and the CHANGELOG section for every effort it lands. An effort on the integration branch is done only when that PR merges |
+| **Slots and stops** | An effort's local slot (futon § 6) frees at its local merge; its issue stays not-done until the integration PR merges. A local merge that conflicts is the semantic-conflict **G5** (`ao`'s). The integration PR closing unmerged ends the run, its efforts named as stranded (en § 6, *the PR closed unmerged*); it is not a G5, and the plane's genuine stops stay five |
+| **The release-proposal exception** | [`getsuga`](../claude/skills/getsuga/SKILL.md) § 3 runs `hatsu:en` on its release proposal until every G2 readiness gate resolves. § 3a then merges that one PR through `nen pr merge --release-unit`, as the Emitter, on the maintainer's behalf. This is ruling 4 of 2026-09-26, kept. No other PR into `main` is merged by an agent |
+| **Where it is stated** | en § 5 and its hard limits; futon § 5, § 8, § 9, § 10 and § 11; getsuga § 3; `kurapika.md`'s header and Manipulator mode; `nen/decisions.json` rows `own-pr-merge`, `merge`, `canon-merge` and `reviewer-exhausted`; the gate tables here, in README and in WORKFLOW; PROCESS § *Reviewer rounds and review threads* |
+| **What it does not rule** | the permission-pack rows for `gh pr merge` (zheref/hatsu#154, whose premise this supersedes) and `nen shu release` (#156); the pack's push denies, which name a literal `main` rather than `branch.base`; the `git merge *` allow row, whose why ("ao catches the branch up") now also carries futon's local merge, left for #154 to restate; how `nen pr merge` works. **Merge paths the pack's `gh pr merge` deny row does not cover, deferred to zheref/hatsu#154**: the `gh api` merge endpoints (`PUT repos/<o>/<n>/pulls/<N>/merge`) and the GraphQL `mergePullRequest` mutation, which neither the pack nor the base-branch hook blocks; a `git merge` on the trunk itself, which nothing guards; and the stale reasons on the `git merge *` and `gh pr merge *` rows. This ruling edits neither `contracts/permissions.json` nor any hook |
 
 ---
 
@@ -1037,6 +1080,8 @@ meant this; the reading below that made it a prompt was the run's error, correct
 so. Another's PR, and a release proposal outside getsuga § 3a, stay the maintainer's; a `gh` refusal
 (branch protection) stands the PR at the declaration gate. `nen pr merge` merges a release unit only —
 the delivery form is the owned dependency zheref/nen#286.
+**Superseded on 2026-09-30** (§ *Rulings of 2026-09-30 — En never merges*): en never merges, and every
+PR into `main` ends at the merge prompt. Ruling 3 is kept here as the record of what was ruled then.
 
 **Rulings 4–7 (HA-IS-#146, the KroApple `hatsu:ao then /kagu` sitting).** A `hatsu:kagutsuchi testflight`
 from a fresh worktree found no archive there and one in core — identity `v1.0.0+1251`, built nine days
@@ -1068,7 +1113,9 @@ reserved.** The per-target rule holds: one call, one target, one send; `mugetsu`
 expect that to happen at all."* So: **a merge prompt exists only for a PR whose base is `branch.base`**.
 A stacked PR is retargeted through `nen pr retarget` and its base read back the moment its delivery
 merges — getsuga § 3 already said it for release proposals; `en` § 5 now says it for every PR the bell
-rings for, and `futon` § 5's *done* is merged on `branch.base`. The register desk that listed #127's prompt before
+rings for, and `futon` § 5's *done* is merged on `branch.base`. (**Amended 2026-10-02** under § *Rulings
+of 2026-09-30 — En never merges*: futon's efforts may first merge locally into its own integration
+branch, and are done when the integration→`branch.base` PR merges at the prompt.) The register desk that listed #127's prompt before
 its retarget was the run's error, not the spec's.
 
 
@@ -1088,8 +1135,8 @@ chain*) states the rule and its mechanics once, `sharingan` § 6 cites it, `nen/
    and the PR is presented at its merge prompt with `nen pr ready`'s verdict **quoted verbatim** (today
    `not-ready: a configured reviewer's round is still owed at the current head (CON-32b): copilot (no round
    at head)`) and one Hatsu line beside it, never in its place — never `ready`, never a string the verb did
-   not print. ***"and merge"* means merged, by the run** — `en` § 5 (ruling 3 above corrects the
-   earlier reading here that made it a prompt). nen reads neither key;
+   not print. The merge is the maintainer's, at the merge prompt (`en` § 5): ruling 3 above read
+   *"and merge"* as a merge by the run, and the ruling of 2026-09-30 supersedes that reading. nen reads neither key;
    an exhausted-reviewer read in `pr ready` is the owned dependency zheref/nen#275.
 
 ## Rulings of 2026-09-26/27/28 — futon's selector and chains, the advance go, three kinds, getsuga's own merge, nen decides
