@@ -111,15 +111,8 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
 ```
 
 - **The two refs must be equal**; if not, the run **stops and says which is ahead**. **`pr open` refuses a head that is not on the remote at
-  exit `2` and exits `1` naming an open PR for the branch**; it opens **once**, and **never as a
-  draft**: `pr open` runs without `--draft` (ROSTER § *Rulings of 2026-10-04 — interactive runner
-  pools*), because a draft is never Ready (`nen pr ready` row 1, from nen `0.19`, zheref/nen#342) and no
-  run owns the transition. For a draft someone else opened, the maintainer's word decides, and the transition is then `nen pr mark-ready --target <owner/name> --pr <n>
-  --require-head <sha>` (zheref/nen#355), never a raw `gh pr ready`. Its readings: exit `0`
-  `marked-ready`, or `already-ready` with nothing sent; exit `8`, the head pin refused before the write,
-  or `marked-ready-head-moved` (the PR left draft, so a fresh read follows and it is never retried);
-  exit `3`, closed or merged, which ends the transition; exit `2`, a target that does not resolve;
-  exit `1`, refused or unconfirmed, which is never reported as ready.
+  exit `2` and exits `1` naming an open PR for the branch**; it opens **once**, never as a draft
+  (never Ready from nen `0.19`; ROSTER, 2026-10-04).
 - **`body-check` reports every requirement**; **exit `1` is a finding to fix**.
 - **`fragment-required`'s four verdicts, both kept prefixes and its exit `2` are the template's
   check (b)**, binding as written there.

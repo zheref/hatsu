@@ -234,8 +234,8 @@ trailer on it** (`injected[]`). The run takes row `injected-attribution-trailer`
 re-run**. The undo nen prints (`reset --soft HEAD~1`) would drop the merge's second parent, and a re-commit
 would then be a non-merge commit. So the stop is handed to the maintainer with the merge commit's sha:
 the switch (row `harness-attribution-switch`) first, then this catch-up again from the pre-merge tip.
-Exit `1` after the write is the same reading, the trailers unchecked: the merge commit exists and is
-never committed again.
+An exit `1` whose stderr begins *"committed"* is the same reading, the trailers unchecked: the merge
+commit exists and is never committed again. Any other exit `1` committed nothing.
 
 **RETIRED at nen `0.5`: pass `--repo <path>` and the binary enforces the house rule.** Verified live
 at the pin against this repository: `--trailer "Co-Authored-By=someone"` is refused at exit `2` naming
