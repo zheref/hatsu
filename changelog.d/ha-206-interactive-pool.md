@@ -34,4 +34,4 @@
   - § 6 reads `offline` as a signed-out account or a stopped logon task (a locked screen keeps a runner online), and § 7 adds J8 (session 0), J9 (a per-user warning, writable by every job) and the sign-in restart. W1, the proof paragraph, the controlled dispatch, `--labels` and J6 read an interactive pool too, and nen#312 is marked done.
   - The hard limits never pass `--accept-daily-account` on the session's own reading.
 - **The maintainer's rulings of 2026-10-04** are recorded in ROSTER: the overlap is asked once, `missing-maintainer-choice.governs` gains `jusshin <accept-daily-account>` and `jusshin <desktop-overlap>` (WORKFLOW § 4 names them), and shibari opens no draft.
-- Plugin bumped to 0.88.0, a minor (0.87.0 was taken on main by #214): a new minimum and pinned ref, a template step, and skill behaviour changes (Claude manifest and Codex overlay). Mirrors regenerated at that stamp.
+- Plugin bumped to 0.90.0, a minor (0.87.0 to 0.89.0 were taken on main by #214, #224 and #225): a new minimum and pinned ref, a template step, and skill behaviour changes (Claude manifest and Codex overlay). Mirrors regenerated at that stamp.

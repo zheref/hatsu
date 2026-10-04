@@ -8,7 +8,7 @@
 # nothing measures is a limit that has already been exceeded, so this measures it.
 #
 #   every claude/agents/*.md except kurapika.md   <=  6144 bytes
-#   the twenty dieted skills                      <= 12288 bytes
+#   the twenty-two dieted skills                  <= 12288 bytes
 #   every claude/rules/*.md                       <= 12000 characters (Antigravity's own documented
 #                                                     rules-file limit, docs/surfaces/antigravity.md --
 #                                                     the smallest limit any surface documents for a
@@ -61,10 +61,10 @@ SKILL_MAX=12288
 RULES_MAX=12000
 DESC_MAX=1024
 
-# The twenty: fifteen from CHANGELOG v0.42.0 "The diet" plus black-voice, great-hiker, limbo,
-# bakuryuha and rikugan (new at v0.73.0), which were authored under the ceiling rather than reduced
-# to it. scripts/prose_size_check_fixture.sh reads THIS list, so it is the only one.
-DIETED_SKILLS="amaterasu backlog-board backlog-loop bakuryuha black-voice breath build futon great-hiker
+# The twenty-two: fifteen from CHANGELOG v0.42.0 "The diet" plus black-voice, great-hiker, limbo,
+# bakuryuha, rikugan (new at v0.73.0), classify (v0.88.0) and direct (v0.89.0), which were authored
+# under the ceiling rather than reduced to it. scripts/prose_size_check_fixture.sh reads THIS list, so it is the only one.
+DIETED_SKILLS="amaterasu backlog-board backlog-loop bakuryuha black-voice breath build classify direct futon great-hiker
 hanten limbo ten jujutsu jutaisho kagutsuchi kokusen rikugan spiritual-message sharingan shibari"
 
 usage_error() { echo "prose_size_check.sh: $1" >&2; exit 2; }

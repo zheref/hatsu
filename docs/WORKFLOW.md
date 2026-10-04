@@ -1099,6 +1099,33 @@ nothing restated:
 and naming the owner that sets up a skill-specific item (a lane, a target, a registry entry) when it
 is not the file's own key.
 
+### `classify` — the two label axes, and the one place their vocabulary lives
+
+The maintainer's rulings of 2026-10-04 ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-04 — classify and
+direct*) are recorded there and executed by [`classify`](../claude/skills/classify/); this section states only
+the **configuration consequence**. The two label families (`lang/<key>`, `job/<key>`) are read structurally
+through their prefixes, and their vocabulary — every key, prefix and colour — is written in **one** place,
+[`contracts/classify.taxonomy.json`](../contracts/classify.taxonomy.json), plugin canon read through
+`$hatsu_root`. A **consumer's `nen/labels.json` stays the one source of truth for that repository's labels**:
+`nen classify install --write` populates it from the taxonomy, the change **lands through its own declaration
+PR at that repository's gate**, and GitHub is synced only after (`nen labels sync` at the `v0.19.0` pin;
+`nen classify install --sync`, which refuses an unlanded declaration, once the family ships). The domains are
+derived at run time by the taxonomy's `domains.rule`, never labelled. Nothing else about classification is
+authored here.
+
+### `direct` — the model, surface and effort, as a configuration consequence
+
+The same rulings; [`direct`](../claude/skills/direct/) is the home of the procedure, this the consequence for the
+two files. [`contracts/direct.registry.json`](../contracts/direct.registry.json) is plugin canon: stable
+aliases map onto a provider, a model **family**, their Hatsu surface and a **tier** of this file's `models`
+block — never a model version — so the `models` matrix is the only per-surface fact a consumer declares and a
+model release moves nothing in either file. The verdict persists only in `.nen/direct/<effort>.json`
+(generated output under `.nen/`). **The matrix's two rules stand**: `SEMANTIC_MAX` names the frontier tier and
+may be recommended for the maintainer's own session, where that tier lives; a subagent is still never raised on
+it. **One question the rulings did not settle is returned to the maintainer** (ROSTER § *Rulings of
+2026-10-04*, *Open questions*): whether `models.roles.reviewer` stays `deep` when direct's verdict for the
+session is a lower tier.
+
 ---
 
 ## 5 · The PR side — `mukai`, and everything it runs

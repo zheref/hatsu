@@ -900,6 +900,58 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   never at `main`, and never write to it.
 
 
+## Rulings of 2026-10-04 — classify and direct
+
+**The maintainer's request, verbatim** (excerpt), on the document *Version-Decoupled Model Selection Matrix
+for Engineering Workflows* (registry snapshot 2026-10-04):
+
+> let's have this skill evaluate the scope of a given issue or textual effort and classify it on 2 axis: (1)
+> the programming languages needed […] and (2) the specific development job or phase the scoped work is around
+> […] Classify SHOULD ALWAYS run when running the skill "file" […] "hatsu:classify backlog" SHOULD go across all
+> backlog issues […] let's have this skill deterministically find and set the ideal model (and potential
+> alternative from the runner-ups) depending on the work scope AND/OR already set labels […] as well as finding
+> the latest available version […] Effort should also be calculated/recommended […] This skill should use a nen
+> verb for the deterministic piece as well as accurate prose specification for any non-deterministic action.
+> […] "hatsu:build" caller can always cross this recommendation and continue the flow as wished by maintainer
+> (this should never block work from being started on a non-recommended model/effort).
+
+Answered through the surface's picker, 2026-10-04:
+
+| Ruling | What it says |
+|---|---|
+| **A compact job axis** | The document's 114 phase keys fold into **39 domain-agnostic jobs** (`job/<key>`), each carrying the phases it stands for per domain in [`contracts/classify.taxonomy.json`](../contracts/classify.taxonomy.json); the five domains are **derived** from the repository's kind, the issue's kind label and `job/parity` — never a label. Four jobs are Hatsu's own additions, proven on Hatsu, nen and the consuming product repositories — `onboarding`, `backlog`, `provisioning`, `delivery-ops` — and `parity` is the one marker job. **This run's interpretation, the maintainer's to correct:** the derivation reads a fourth input, the jobs' own domain coverage (an issue whose every job lists only maintenance phases is maintenance work) |
+| **Label spelling** | `lang/<key>` and `job/<key>`, **no namespace** — two bare families nen reads structurally through their prefixes |
+| **The registry lives in Hatsu, versions are read live** | `contracts/direct.registry.json`: stable aliases (`SEMANTIC_FRONTIER`, `EXECUTION_FRONTIER`…) → provider, model family, Hatsu surface and the `models.<surface>` **tier** the consumer spells it as. **No version in the file**: the latest recommended version is read at run time from the surface's CLI and the provider's model page, quoted with its source; the document's dated snapshot is the stated fallback |
+| **The sweep's authority** | `hatsu:classify backlog` classifies everything first, renders one table, takes **one** confirmation for the batch, applies high- and medium-confidence rows and lists low ones |
+| **Effort vocabulary** | `low \| medium \| high \| max`, mapped onto each surface's own dial (Codex `xhigh`, Claude Code `max`; `high`, said, where a surface has no top setting) |
+| **A mismatch asks once** | When `build` runs `direct` and the session's surface, tier or effort differs, it asks **once** through the picker (⭐ continue here · stop so the maintainer restarts elsewhere) — an `ask-once-per-run` row, never a gate, never a block |
+| **PR layout** | Stacked per repository: `direct` on `classify`, in Hatsu and in nen |
+| **The declaration PR first, GitHub after** | Installing the families on a consumer writes its tracked `nen/labels.json`; that change **lands through its own PR at the repository's gate before any label is applied**, and `nen classify install --sync` refuses until it has. labels.json stays the one source of truth for a repository's labels |
+| **Actionable surfaces are Hatsu's four** | The winner and runner-up always name `claude-code`, `codex`, `cursor` or `antigravity`, so `build` can compare and name a restart; native IDE integrations (with the providers they offer), the Cursor IDE and GitHub Copilot are the **interactive equivalents** column |
+| **Persistence** | `direct`'s verdict lives in the report and the local ledger `.nen/direct/<effort>.json`; no issue comment, no label |
+| **Undecidable stays empty** | An axis the classifier cannot decide with confidence gets no label; the issue is listed as undecidable with the reason, and a re-run picks it up |
+
+**What follows from them.** [`classify`](../claude/skills/classify/SKILL.md) lands at `v0.88.0` with
+`file` § 5 running it on every filing and `nen/decisions.json` row `classify-undecidable` (autonomous: leave
+the axis empty, list); `hatsu:direct` lands **stacked, at `v0.89.0`**, with `build` running `ten → classify
+(when unclassified) → direct → breath → rasengan → … → aka → mukai → en → rikugan → third-hand` and row
+`direct-mismatch` (ask once). The deterministic halves are nen's `classify` and `direct` families; the
+judgement (reading an issue) and the live version lookup are prose, named as such. **Dated note, 2026-10-04:**
+nen `v0.19.0` shipped the same day without either family and moved the compatibility floor to `0.19`; the
+families ship in the release after it, and the repin that adopts them absorbs the floor (`zheref/hatsu#168`, the open repin issue).
+Until then the verbs are absent and both skills continue where they can (row `missing-tool`).
+
+**Open questions, returned to the maintainer by the pre-PR review of 2026-10-04 (G4, not adjudicated
+here):** (1) **the reviewer tier against a lower session** — `direct` may send the maintainer's session to the
+`fast` tier (`BALANCED_AUTHOR`), while `models.roles.reviewer` raises hanten's reviewers at `deep`; the rule's
+letter holds (no subagent on the frontier tier) but its rationale — *a delegate that outranks its caller has
+inverted the delegation* — does not: cap the reviewer tier at the session's, or record that reviewers stay at
+`deep` and amend the sentence; (2) **a guard for a canon data contract** — `contracts/classify.taxonomy.json`
+and `contracts/direct.registry.json` hold their invariants (unique keys, 114 phases covered, a cell's surface
+equal to its alias's, labels.json parity) only by the review's one-off checks and, once pinned, by
+`nen direct registry`; whether a Hatsu guard lane is owed too is BC-9/BC-11's question. Both are filed as
+handbook-questions on `zheref/hatsu`.
+
 ## Rulings of 2026-10-04 — interactive runner pools: the overlap is asked, two more typed keys, shibari opens no draft
 
 **The maintainer's answers, verbatim** (to three questions put through the picker while `hatsu:build HA#206` settled its review round, 2026-10-04):
