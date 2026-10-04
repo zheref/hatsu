@@ -37,11 +37,6 @@
       "enrolment_check_pattern": { "pattern": "bugbot", "ignoreCase": true }
     }
   ],
-  "round_quorum": {
-    "$comment": "nen's key (from nen 0.17), the maintainer's ruling of 2026-09-29 restated 2026-10-04 (docs/ROSTER.md): at least `minimum` of `any_of` must have a round at head; once met it fulfils an unavailable member's owed round, never one in flight (zheref/nen#361). The group names this reference's bot reviewers; a consumer names its own, every one a reviewers[] entry.",
-    "any_of": ["copilot", "bugbot"],
-    "minimum": 1
-  },
   "default_approvers": ["sasuke", "tenma"],
   "base_reviewers": ["sasuke", "tenma", "copilot"],
   "delivery": {

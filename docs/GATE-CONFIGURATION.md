@@ -174,13 +174,13 @@ decision: nothing is excluded.
 
 ```json
 "reviewer_fallback": {
-  "chain": ["copilot", "cursor"], "terminal": "hanten",
+  "chain": ["copilot", "bugbot"], "terminal": "hanten",
   "exhausted": [ { "reviewer": "copilot", "reason": "credits exhausted", "ruled": "2026-09-29", "until": "condition: the credits are restored" } ]
 }
 ```
 
 **Hatsu's own key** (ruling 2026-09-29). **The shape**: `chain` is reviewer identities in fallback order —
-each requestable only where `reviewers[]` carries it (a step it does not carry is passed over; Cursor Bugbot is `cursor[bot]`,
+each requestable only where `reviewers[]` carries it (a step it does not carry is passed over; Cursor Bugbot is `bugbot` in every key here, login `cursor[bot]`,
 `BOT_kgDODFXTxQ`, and declaring it in `reviewers[]` makes its round required on every PR until nen
 reads the chain — the maintainer's call); `terminal` is the one non-reviewer, the
 local hanten rounds, never requested; `exhausted[]` rows are `check_exclusions` rows one key over
@@ -198,22 +198,27 @@ nen reads neither key (zheref/nen#275).
 "round_quorum": { "any_of": ["copilot", "bugbot"], "minimum": 1 }
 ```
 
-**nen's key** (from nen `0.17`; the maintainer's ruling of 2026-09-29, restated 2026-10-04). At least
-`minimum` of the named reviewers must **have** a round at head; every name must be a `reviewers[]` entry.
-Once met, the quorum fulfils the owed round of a member that is unavailable — no run at head, a run that
-completed without a round — never one still in flight (zheref/nen#361, in the nen release after `v0.19.0`;
-the pinned binary before it reads the unavailable member as owed, which `reviewer_fallback`'s `exhausted[]`
-row then explains). **Cost if wrong**: a member named here but not in `reviewers[]` is refused at load; a
-group of one is the same gate as no key; a second bot named before it is enrolled on the repository makes
-every PR wait on a round nobody posts until the repin that reads nen#361. Hatsu's own file names Copilot
-alone until Bugbot is enrolled there; nen's names both. The behaviour is
-[`docs/PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *One bot reviewer suffices*, stated
-once.
+**nen's key** (from nen `0.17`; the maintainer's ruling of 2026-09-29, restated 2026-10-04). **The shape**:
+`any_of` is reviewer names, every one a `reviewers[]` entry; `minimum` an integer from `1` to the group's
+size. The loader refuses an undeclared name, a duplicate, a `minimum` below `1` or above the group and a
+non-integer, by pointer, so `nen schema check` fails the file. Each member is counted **whether or not it is
+a base reviewer or `bounded_policy_exempt`**, so a group of one is a floor for that member even where
+nothing is owed; otherwise the verdict is unchanged and row 4 gains the quorum clause. **Cost if wrong**:
+every member's `login_pattern` and `round_check_pattern` must be **anchored and bot-only** (`^…$` over the
+bot's exact logins and check name, as nen's own file spells them) — one member's round now covers the
+others, so a broad member pattern lets any login or check containing the word satisfy the whole group; and
+the `reviewers[]` entry `any_of` requires is owed on every PR once its check enrols it, which only the
+*fulfils* half of zheref/nen#361 excuses — Hatsu's own file names Copilot alone until Cursor Bugbot
+(`bugbot` here, the fallback chain's name for it) is enrolled on the repository and the pin reads that
+release. The behaviour — what counts as a round, which unavailable member a met quorum fulfils, the one in
+flight it never does, the route under the pin — is [`docs/PROCESS.md`](PROCESS.md) § *Reviewer rounds and
+review threads*, *One bot reviewer suffices*, stated once.
 
 ### Hatsu's own keys in `nen/gates.json` — the convention
 
 Three keys here are Hatsu's, not nen's: `round_policy.minRounds`/`.maxRounds` (`stallMinutes` in the
-same object is nen's — the `$comment` says which is which), `check_exclusions[]` and `reviewer_fallback`.
+same object is nen's — the `$comment` says which is which), `check_exclusions[]` and `reviewer_fallback`;
+`round_quorum`, beside them, is nen's.
 Each is a gate **declaration**, so it lives in the gate's file; each is **preserved, not read**, by `nen
 schema check` (a string `minRounds` reads `ok` — nothing validates these at 0.15.1); an object-valued key
 carries its `$comment` inside, an array-valued key a `$`-prefixed sibling; each names its ruling, the one
