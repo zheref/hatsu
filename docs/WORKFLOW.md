@@ -494,16 +494,19 @@ prevent.
 **Cursor has its own mandate, and `includeCoAuthoredBy` does not reach it** (zheref/hatsu#66). Cursor
 appends `Co-authored-by: Cursor <cursoragent@cursor.com>` at `git commit` time, at the tooling layer and
 before hooks run — observed on the raw `git commit --file` residue path (HA-PR-#64's `4ee8ce3`,
-`c202034`, `516ed5f`, `75c8ce8`, `2025e84`, `06b45cf` carry it beside `Hatsu-Agent`); **whether it reaches
-the `git commit` that `nen commit write` or `nen wc squash` spawn is not verified here**, and the
-read-back below catches it either way. The off-switch is Cursor's: **Cursor Settings → Git & Pull
+`c202034`, `516ed5f`, `75c8ce8`, `2025e84`, `06b45cf` carry it beside `Hatsu-Agent`). **From nen
+`0.19` the two verbs catch it themselves** (zheref/nen#357): `nen commit write` and `nen wc squash` read
+the commit they just wrote back through git's own trailer parser and exit `3`, with the refused keys
+in `injected[]`, when a hook added one. The commit exists at exit `3`, and nen prints the undo that
+applies. The off-switch is Cursor's: **Cursor Settings → Git & Pull
 Requests → *Commit Attribution* off** (and *PR Attribution*), or for the CLI
 `"attribution": { "attributeCommitsToAgent": false }` in `~/.cursor/cli-config.json` — Cursor's own
 forum answer of 2026-08-21 ([`docs/surfaces/cursor.md`](surfaces/cursor.md) § 9 quotes it, § 10 the
 executor path reported to ignore it and the second `Made-with: Cursor` trailer); **forum-sourced and not
-verified live on this host, which runs no Cursor**. Because the switch is per machine, harness-owned
-and unverified, the guard of record is agent-side: `kokusen` § 5 reads the tip back after every
-`commit write` and `aka` § 7 reads **every outgoing commit** immediately before `nen wc publish` (`git -C <path> log
+verified live on this host, which runs no Cursor**. The switch is per machine, harness-owned and
+unverified, so two readings stand together: the verbs' own exit `3` (`kokusen` § 5 and `aka` § 4 map it),
+and `aka` § 7, which reads **every outgoing commit** immediately before `nen wc publish`, because a
+clean catch-up merge is written by `nen wc catch-up`, which reads no trailers back (`git -C <path> log
 <the SHA ls-remote printed | origin/<base>>..HEAD`, after § 5's catch-up and § 6's re-lint — ao may add a merge
 above the squash, so the tip alone would miss the squash parent the push also sends). **What they classify is an
 attribution key, and this is the one rule for it:** a trailer key that ends in `-by` or `-with`
@@ -1075,7 +1078,9 @@ silenced by the maintainer's answer, never by a write nobody asked for.
 **The maintainer's word is never derived.** Where a skill requires a value to be the maintainer's own
 choice — a deploy or release target (`kagutsuchi`, `mugetsu`), an iteration cap
 (`izanagi`), a device to trust (`jujutsu`), the request itself (`ren`), a runner pool's target,
-machine code and service identity (`jusshin`, ROSTER § *Rulings of 2026-09-30 — jusshin*) — it is
+machine code and service identity (`jusshin`, ROSTER § *Rulings of 2026-09-30 — jusshin*), and for an
+interactive pool the `--accept-daily-account` word and the answer to the service-pool overlap
+(ROSTER § *Rulings of 2026-10-04 — interactive runner pools*) — it is
 **typed, never picked** (row `missing-maintainer-choice`, whose `governs` list names those keys, with no `default`
 and no recommended option). Step 1 never substitutes a candidate, even a single one; the ask takes the
 maintainer's free-text answer; the declared candidates may be listed for reference, **none starred**,

@@ -224,7 +224,9 @@
         "ren <request>",
         "jusshin <target>",
         "jusshin <machine>",
-        "jusshin <service-identity>"
+        "jusshin <service-identity>",
+        "jusshin <accept-daily-account>",
+        "jusshin <desktop-overlap>"
       ],
       "preferred": [
         {
@@ -241,7 +243,7 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Ruling 2026-09-23: a value that is the maintainer's own word (a target, a go, a cap, a device, the request) is typed, never picked and never derived. No default and no recommended option: a default is a derivation and a starred option is a pick. The declared candidates may be listed for reference, none starred, and none is ever an option that performs the act. mugetsu asks only for the destination, on the maintainer's own same-turn hatsu:mugetsu that names none where several are declared; the go itself is never asked (mugetsu § 0), and every other reach prints the plan and stops. Ruling 2026-09-30 (docs/ROSTER.md, Rulings of 2026-09-30 -- jusshin) extends the class to jusshin's target repository, the machine code every runner on a host is named by, and the service identity its services log on as; <target> and <machine> are grammar slots, and <service-identity> is typed like jujutsu <device>, completing the elicitation rather than the line."
+      "why": "Ruling 2026-09-23: a value that is the maintainer's own word (a target, a go, a cap, a device, the request) is typed, never picked and never derived. No default and no recommended option: a default is a derivation and a starred option is a pick. The declared candidates may be listed for reference, none starred, and none is ever an option that performs the act. mugetsu asks only for the destination, on the maintainer's own same-turn hatsu:mugetsu that names none where several are declared; the go itself is never asked (mugetsu § 0), and every other reach prints the plan and stops. Ruling 2026-09-30 (docs/ROSTER.md, Rulings of 2026-09-30 -- jusshin) extends the class to jusshin's target repository, the machine code every runner on a host is named by, and the service identity its services log on as; <target> and <machine> are grammar slots, and <service-identity> is typed like jujutsu <device>, completing the elicitation rather than the line. Ruling 2026-10-04 (docs/ROSTER.md, Rulings of 2026-10-04 -- interactive runner pools) adds jusshin's <accept-daily-account> word and its <desktop-overlap> answer, both completing the elicitation the same way."
     },
     {
       "id": "mode-unknown",

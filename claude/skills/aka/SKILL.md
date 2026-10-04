@@ -293,9 +293,9 @@ nen wc squash --repo <path> --onto <ref> --message-file <file> [--dry-run] [--js
 **Exit `3` — the squash happened, and a hook put a refused trailer on it (nen `0.19`, zheref/nen#357).**
 The verb reads the commit it just wrote back through git's own trailer parser. Its `injected[]` lists
 each refused key: one a `prepare-commit-msg` or `commit-msg` hook added, or one the message carried.
-**The commit exists.** Exit 3 is never "nothing was squashed". The commit is unpublished, so it is
-row `injected-attribution-trailer`'s stop, the same as § 7 step 0's: `git -C <path> reset --soft
-ORIG_HEAD` (the undo the verb's stderr names) restores the folded commits, row
+**The commit exists.** Exit 3 is never "nothing was squashed". The commit is unpublished, so row
+`injected-attribution-trailer`'s autonomous drop applies, as at § 7 step 0: the undo line the verb's
+stderr prints (`git -C <path> reset --soft ORIG_HEAD`) restores the folded commits. Then row
 `harness-attribution-switch` is asked once, and the squash runs again. Since nen `0.19` the verb also
 loads `nen/workflow.json` on every run, so a malformed policy is exit `1` before anything moves.
 
@@ -391,9 +391,8 @@ unpublished by construction and is re-squashed once the maintainer answers row
 `harness-attribution-switch` (their own toggle; no file this skill writes). **A commit at or below the
 squash point that carries one is published and is never rewritten** (row `rewrite-published-history`):
 it is disclosed by [`shibari`](../shibari/SKILL.md) § 3 as its own checklist line, outside the
-attribution ledger, and the switch is fixed before the next commit. The read-back and the verb's own
-report differ on purpose: the verb reports the message file's trailers, the read-back the commit's
-([nen#273](https://github.com/zheref/nen/issues/273)).
+attribution ledger, and the switch is fixed before the next commit. Step 0's read stays although `wc squash` reads its own
+commit back (nen `0.19`, § 4's exit `3`): a clean catch-up merge is written by `nen wc catch-up`, which reads no trailers back.
 
 **RETIRED at nen `0.13`: the push is a verb.** `wc publish` pushes the current branch to `origin`
 and nothing else: it refuses a detached `HEAD`, the trunk and any refspec or force form at exit `2`,
@@ -457,6 +456,9 @@ that content.
    rather than something this skill notices by eye. § 2's keys are still read here — reading a file is
    not residue; nothing in nen hands the policy out except `shu coverage`'s ladder and
    `commit format`'s trailer list.
+6. **The exit-`3` undo after `nen wc squash`** — `git -C <path> reset --soft ORIG_HEAD`, the line the
+   verb's stderr names (§ 4): a raw git write, owned by no nen verb.
+
 
 ## Authority
 

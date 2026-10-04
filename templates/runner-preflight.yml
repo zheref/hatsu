@@ -79,7 +79,12 @@
 # host was restarted after the last PATH change (hatsu:jusshin § 7's restart
 # line); a runner on another host is proven by nothing until a run lands
 # there; and on Linux and macOS a user-scope hit only warns, so a green run
-# there says nothing about the machine PATH. `nen runner enable` reads one
+# there says nothing about the machine PATH -- nor does one on an interactive
+# Windows pool, where a per-user hit warns too. There a sibling logon task is
+# covered once its account signs out and back in, not after a service restart,
+# and the session step proves the job is not in session 0, not that the
+# session is unlocked (a locked or disconnected session keeps its id).
+# `nen runner enable` reads one
 # green run as the pool's go, so enabling a pool that spans hosts is a claim
 # this job cannot make alone: GitHub hands a dispatched run to ANY idle runner
 # carrying the labels and nothing steers it to a host, so a host may stay
@@ -324,7 +329,7 @@ jobs:
                 bad=1 ;;
               "per-user"*)
                 if [ "$interactive" = yes ]; then
-                  echo "::warning::'$tool' is $verdict -- it resolves for this runner's account only and would not survive another account. Prefer a machine-wide install with its directory on the MACHINE PATH."
+                  echo "::warning::'$tool' is $verdict -- writable by every job this runner takes, so one job can replace it for the next, and it would not survive another account. Prefer a machine-wide install with its directory on the MACHINE PATH."
                 else
                   echo "::error::'$tool' is $verdict -- the runner service cannot rely on it. Install it machine-wide, put its directory on the MACHINE PATH, then $restart."
                   bad=1
@@ -348,8 +353,11 @@ jobs:
         run: |
           set -uo pipefail
           session="$(powershell.exe -NoProfile -NonInteractive -Command '[System.Diagnostics.Process]::GetCurrentProcess().SessionId' 2>/dev/null | tr -d '\r')" || session=""
+          # Digits only: anything else (padding, a BOM, a second line, an error
+          # message) is unknown and fails. Compared as a number, so 00 is 0.
+          case "$session" in ''|*[!0-9]*) session="" ;; esac
           echo "session id: ${session:-unknown}"
-          if [ -z "$session" ] || [ "$session" = "0" ]; then
+          if [ -z "$session" ] || [ "$((10#$session))" -eq 0 ]; then
             echo "::error::This job runs in session ${session:-unknown}, not in a signed-in desktop session, so a job that drives a UI cannot run here. A runner installed as a service lives in session 0: register this pool from an interactive plan ('nen runner script' renders a logon task), and sign its account in to the desktop."
             exit 1
           fi

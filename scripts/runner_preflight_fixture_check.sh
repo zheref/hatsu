@@ -69,6 +69,12 @@ template="$repo_root/templates/runner-preflight.yml"
 [ "$#" -eq 0 ] || { echo "runner-preflight-fixture: takes no arguments" >&2; exit 2; }
 [ -f "$template" ] || { echo "runner-preflight-fixture: no template at $template" >&2; exit 2; }
 command -v nen >/dev/null 2>&1 || { echo "runner-preflight-fixture: nen could not be started (not on PATH)" >&2; exit 5; }
+nen_version="$(nen --version 2>/dev/null | head -n 1)"
+nen_minor="${nen_version#*.}"; nen_minor="${nen_minor%%.*}"
+if [ "${nen_version%%.*}" = 0 ] && [ -n "$nen_minor" ] && [ "$nen_minor" -lt 19 ] 2>/dev/null; then
+  echo "runner-preflight-fixture: needs nen >= 0.19 (MODE and the desktop pool); nen on PATH is $nen_version" >&2
+  exit 5
+fi
 
 work="$(mktemp -d "${TMPDIR:-/tmp}/hatsu-runner-preflight.XXXXXX")"
 trap 'rm -rf "$work"' EXIT
@@ -205,10 +211,15 @@ check() {
     fail "$label: the job carries no timeout-minutes bound"
   fi
 
-  if printf '%s\n' "$code" | grep -Eq '(echo|printf)[^#]*\$\{?(USERNAME|USER|LOGNAME|acct|resolved|path)\b'; then
+  if printf '%s\n' "$code" | grep -Eq '(echo|printf)[^#]*\$\{?(USERNAME|USER|LOGNAME|USERPROFILE|USERDOMAIN|HOME|acct|resolved|path)\b'; then
     fail "$label: a step prints the service account's name or a resolved tool path (a public log)"
   else
     pass "$label: no step prints an account name or a resolved path"
+  fi
+  if printf '%s\n' "$code" | grep -Eq '(^|[^A-Za-z_-])whoami([^A-Za-z_-]|$)|\$env:USER(NAME|PROFILE|DOMAIN)'; then
+    fail "$label: a step calls whoami or reads the account from PowerShell's environment (a public log)"
+  else
+    pass "$label: no step calls whoami or reads the account from PowerShell's environment"
   fi
 
   # The cmd recording step, exactly: UTF-8 code page first (cmd writes a redirected file in the console's
@@ -523,20 +534,35 @@ probe_body() {
     r { sub(/^          /, ""); print }
   ' "$1"
 }
+# The probe's command, exactly (Phinks F3): the stub below ignores its arguments, so a probe that read
+# another process's session (explorer's) would pass every lifted case. Its own process, and no other.
+probe_cmd='session="$(powershell.exe -NoProfile -NonInteractive -Command '"'"'[System.Diagnostics.Process]::GetCurrentProcess().SessionId'"'"' 2>/dev/null | tr -d '"'"'\r'"'"')" || session=""'
+for src in template rendering; do
+  from="$template"; [ "$src" = rendering ] && from="$work/windows-x64-desktop.yml"
+  got="$(probe_body "$from" | grep -F 'powershell.exe')"
+  if [ "$got" = "$probe_cmd" ]; then
+    pass "desktop probe ($src): the one powershell.exe call reads the job's OWN process's SessionId, exactly"
+  else
+    fail "desktop probe ($src): the powershell.exe call is [$got], not exactly [$probe_cmd]"
+  fi
+done
 for src in template rendering; do
   from="$template"; [ "$src" = rendering ] && from="$work/windows-x64-desktop.yml"
   step="$work/probe-$src.sh"
-  { printf '%s\n' 'powershell.exe() { [ -n "${STUB_SESSION:-}" ] && printf '"'"'%s\r\n'"'"' "$STUB_SESSION"; return "${STUB_PS_RC:-0}"; }'; probe_body "$from"; } > "$step"
+  { printf '%s\n' 'powershell.exe() { [ -n "${STUB_SESSION:-}" ] && printf '"'"'%s\r\n'"'"' "$STUB_SESSION"; return "${STUB_PS_RC:-0}"; }' \
+      'whoami() { printf '"'"'%s\r\n'"'"' "fixture-domain\\fixture-account"; }'; probe_body "$from"; } > "$step"
   grep -q 'SessionId' "$step" || { fail "desktop probe ($src): the session probe step was not found"; continue; }
   # <session id printed, '' = none>|<powershell exit>|<want exit>|<want first line>
-  for probe in '2|0|0|session id: 2' '0|0|1|session id: 0' '|0|1|session id: unknown' '|1|1|session id: unknown'; do
+  for probe in '2|0|0|session id: 2' '0|0|1|session id: 0' '|0|1|session id: unknown' '|1|1|session id: unknown' \
+               ' 0|0|1|session id: unknown' 'not-a-number|0|1|session id: unknown' '2|1|1|session id: unknown' \
+               '00|0|1|session id: 00' $'\xef\xbb\xbf0|0|1|session id: unknown' $'0\n1|0|1|session id: unknown'; do
     sess="${probe%%|*}" rest="${probe#*|}"
     ps_rc="${rest%%|*}" rest="${rest#*|}"
     want_code="${rest%%|*}" want="${rest#*|}"
-    out="$(USERNAME=fixture-account STUB_SESSION="$sess" STUB_PS_RC="$ps_rc" bash "$step" 2>&1)"
+    out="$(USERNAME=fixture-account USERPROFILE='C:\Users\fixture-account' USERDOMAIN=fixture-domain STUB_SESSION="$sess" STUB_PS_RC="$ps_rc" bash "$step" 2>&1)"
     code=$?
     first="$(printf '%s\n' "$out" | head -n 1)"
-    case "$out" in *fixture-account*) printed=yes ;; *) printed=no ;; esac
+    case "$out" in *fixture-account*|*fixture-domain*) printed=yes ;; *) printed=no ;; esac
     named=yes
     if [ "$want_code" = 1 ]; then case "$out" in *'::error::'*'session'*'sign its account in'*) ;; *) named=no ;; esac; fi
     if [ "$code" = "$want_code" ] && [ "$first" = "$want" ] && [ "$printed" = no ] && [ "$named" = yes ]; then
@@ -546,6 +572,48 @@ for src in template rendering; do
     fi
   done
 done
+# The toolchain step, lifted and run (Nobunaga N1): its restart remedy is the sign-in only for an
+# interactive pool on Windows, and the service restart everywhere else. A stub tool exits 127, then 126.
+toolchain_body() {
+  awk '
+    /^      - name: Host toolchain -- every tool a job on this pool invokes/ { s = 1; next }
+    s && /^      - / { exit }
+    s && /^        run: \|/ { r = 1; next }
+    r && /^        [^ ]/ { exit }
+    r { sub(/^          /, ""); print }
+  ' "$1"
+}
+step="$work/toolchain-step.sh"
+toolchain_body "$template" > "$step"
+grep -q 'restart=' "$step" || fail "toolchain step: the mode-aware restart was not found"
+mkdir -p "$work/tc"
+for rc in 127 126; do
+  printf '#!/bin/sh\nexit %s\n' "$rc" > "$work/tc/faketool$rc"
+  chmod +x "$work/tc/faketool$rc"
+done
+# <MODE>|<RUNNER_OS>|<the restart the remedy must carry>
+for case_ in "interactive|Windows|sign the runner's account out and back in" \
+             "interactive|macOS|restart the runner services" \
+             "service|Windows|restart the runner services" \
+             "|Windows|restart the runner services"; do
+  mode="${case_%%|*}" rest="${case_#*|}"
+  os="${rest%%|*}" want="${rest#*|}"
+  for rc in 127 126; do
+    if [ -n "$mode" ]; then
+      out="$(MODE="$mode" RUNNER_OS="$os" TOOLS="$work/tc/faketool$rc" bash "$step" 2>&1)"
+    else
+      out="$(env -u MODE RUNNER_OS="$os" TOOLS="$work/tc/faketool$rc" bash "$step" 2>&1)"
+    fi
+    code=$?
+    case "$out" in *"::error::"*"then $want"*) carried=yes ;; *) carried=no ;; esac
+    if [ "$code" = "$rc" ] && [ "$carried" = yes ]; then
+      pass "toolchain step [MODE=${mode:-unset}, $os, exit $rc]: the remedy carries 'then $want'"
+    else
+      fail "toolchain step [MODE=${mode:-unset}, $os, exit $rc]: exit $code, remedy carried '$want': $carried"
+    fi
+  done
+done
+
 # The Windows resolution step, lifted from the desktop rendering and run with MODE=interactive: a per-user
 # match is a ::warning:: and passes; not found and a refused exec still fail, naming the sign-in.
 step="$work/appdata-step-desktop.sh"
@@ -572,6 +640,20 @@ for probe in "C:\\Users\\x\\AppData\\Local\\Programs\\gh\\gh.exe|0|0|gh: per-use
     fail "desktop windows step [MODE=interactive]: service [${path//$mw_gh/MW}], exec rc $exec_rc -> exit $code '$first' (carries: $carried, path printed: $printed), not exit $want_code '$want' carrying \"$carry\""
   fi
 done
+
+# The service rendering's Windows step, run with the MODE it renders (Phinks F2): a per-user match still
+# fails there. Only `interactive` downgrades it to a warning.
+step="$work/appdata-step-service.sh"
+{ cat "$work/where-stub.sh"; step_body "$work/windows-x64.yml"; } > "$step"
+out="$(MODE=service USERPROFILE='C:\Users\x' RUNNER_TEMP="$work/runner-temp" STUB_RECORDED="$stub_recorded" STUB_PATH='C:\Users\x\AppData\Local\gh.exe' STUB_EXEC_RC=0 TOOLS=gh bash "$step" 2>&1)"
+code=$?
+case "$out" in *"::error::'gh' is per-user (AppData)"*) named=yes ;; *) named=no ;; esac
+case "$out" in *'::warning::'*) warned=yes ;; *) warned=no ;; esac
+if [ "$code" -eq 1 ] && [ "$named" = yes ] && [ "$warned" = no ]; then
+  pass "service windows step [MODE=service]: a per-user match fails with ::error::, never a warning"
+else
+  fail "service windows step [MODE=service]: exit $code (error named: $named, warned: $warned), not exit 1 with ::error:: and no warning"
+fi
 
 # 3. Negative: a hostile copy -- pull_request_target added, the repository binding dropped. nen renders
 # it (exit 0); this guard must refuse both the copy and its rendering, each conjunct by name.

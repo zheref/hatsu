@@ -32,7 +32,7 @@ section.**
 | **`P2`** | `nen repo classify --repo '<path>' --json` (slug, role, gate) and `nen wc classify --repo '<path>' --json`, read out loud |
 | **`P3`** | **Declined**: the subject is a host and a declared pool, not a change set; `(fetched <sha>)` is never asserted |
 | **`P4`** | § 2's asks |
-| **`P5`** | `standalone entry · no composite is holding this run · <t> (role <role> → <gate>) · pool <id> <labels> · machine <CODE> · x <n> · identity <id> · root <dir> (<source>) · not running: aka, mukai, the merge (the preflight PR is yours)` |
+| **`P5`** | `standalone entry · no composite is holding this run · <t> (role <role> → <gate>) · pool <id> <labels> (<mode>) · machine <CODE> · x <n> · identity <id> · root <dir> (<source>) · not running: aka, mukai, the merge (the preflight PR is yours)` |
 
 **The gate** is the target's **declaration gate** — **G4** for a canon repository, **G2** for a
 consumer, as `nen repo classify` answers (PROCESS § *Authority every phase shares*).
@@ -83,9 +83,14 @@ the mode is asked with that cost said (`missing-configuration`), never assumed. 
 are the three nen admits for a service pool — `self-hosted`, the OS, the arch — and exactly
 `[self-hosted, Windows, <arch>, desktop]` for an interactive Windows pool. A runner carrying `desktop`
 also matches every job aimed at the plain three-label set on that repository, so it takes those jobs
-too, in that desktop session. The maintainer's ruling of 2026-10-02 (zheref/hatsu#198 item 6) is that
+too, in that desktop session, with that account's profile and credentials (Feitan, SEC-16). **So
+before § 3 plans an interactive pool in a repository that also declares a Windows service pool of the
+same arch, the overlap is said and asked once** (`missing-maintainer-choice`, key `jusshin <desktop-overlap>`;
+ROSTER § *Rulings of 2026-10-04 — interactive runner pools*): which jobs the
+desktop runner would take, and the alternatives (no service pool, or waiting for every pool to carry
+a label of its own, zheref/hatsu#204 and zheref/nen#340). Never defaulted. The maintainer's ruling of 2026-10-02 (zheref/hatsu#198 item 6) is that
 every pool carries a label of its own beyond the defaults, so a later registration of that OS and arch
-never joins it unproven. `desktop` is that label for an interactive pool. For a service pool, until
+never joins it unproven. `desktop` is that label for an interactive Windows pool, and it protects that pool only: it opens a same-arch service pool to the desktop runner, as above. For a service pool, until
 nen's schema, the runner-policy guard and tenkai's derivation admit a fourth label together
 (zheref/hatsu#204), membership is OS and arch, and the inventory's `unpooled` row is read with that in
 mind. Whatever the target's visibility, the rendered preflight takes no `pull_request` event
@@ -114,8 +119,8 @@ it takes runs with that account's profile and credentials. They are relayed verb
 identity is the account computing the plan, it prints a `warning:` and records `dailyAccount: true`**,
 and § 5's `script` then refuses the plan at exit `2` unless it is given `--accept-daily-account`.
 **That flag is the maintainer's typed word, never passed by default and never picked**
-(`missing-maintainer-choice`). The recommendation is a dedicated local account, and § 2's identity is
-asked again.
+(`missing-maintainer-choice`, key `jusshin <accept-daily-account>`). The cost is stated, the other
+answer is § 2's identity asked again, and neither is starred.
 
 **The count.** Plan adds `n` at the lowest free slots; it never resumes. **The resume is `x 0`**:
 plan and § 5 are skipped, and § 6 expects the inventory's runners in this pool whose parsed machine
@@ -125,6 +130,7 @@ After a partial registration, `n` is the total wanted minus what stands, declare
 | Exit | Message | Reaction |
 |---|---|---|
 | `0` | — | § 4 |
+| `0` | a `warning:` and `dailyAccount: true` (an interactive Windows plan whose identity is the account computing it) | the identity is re-asked (§ 2), or the maintainer types `--accept-daily-account`, carried to § 5; never defaulted |
 | `1` | *"needs admin on `<target>`"* (inventory) | refused, never asked: the maintainer's `repo` scope and admin role |
 | `1` | no runner package for the pool's OS/arch | quoted; the pool re-asked |
 | `1` | a planned name *"is already registered"* | quoted; inventory and plan once more, then F |
@@ -140,7 +146,9 @@ After a partial registration, `n` is the total wanted minus what stands, declare
 
 - **W1 — machine-located and machine-readable.** A service resolves tools on the **machine** `PATH`,
   as its own account, with no profile: each declared tool must be on it **and** grant that account (or
-  `BUILTIN\Users`) `ReadAndExecute` on the file the entry resolves to.
+  `BUILTIN\Users`) `ReadAndExecute` on the file the entry resolves to. **An interactive runner** is a
+  logon task with its account's own profile and `PATH`, so a per-user tool also resolves for it. The
+  preflight then warns rather than fails (J9), and machine-wide stays the recommendation.
 - **W2 — `126` ≠ `127`.** `127` is not found — location. `126` is found and refused — an ACL; every
   `PATH` check passes during a `126`, so re-running them proves nothing.
 - **W3 — registration is not capability.** `online` and `Idle` prove the runner process. Only a job
@@ -157,16 +165,20 @@ After a partial registration, `n` is the total wanted minus what stands, declare
 ## 5. Render and run the host script
 
 ```bash
-nen runner script --repo '<path>' --plan '<path>/.nen/jusshin/<id>.plan.json' --out '<script>' --json
+nen runner script --repo '<path>' --plan '<path>/.nen/jusshin/<id>.plan.json' --out '<script>' [--accept-daily-account] --json
 ```
 
 **The script is rendered outside the runner root**, where only the maintainer can write: Windows
 `'C:\Users\<you>\AppData\Local\nen\jusshin\register-<id>.ps1'` — the literal of `%LOCALAPPDATA%`,
 never `$LOCALAPPDATA` inside single quotes, which does not expand — and Linux/macOS
-`'<home>/.local/state/nen/jusshin/register-<id>.sh'`, the home written out. The runner root stays
-writable by others until zheref/nen#312 locks it down.
+`'<home>/.local/state/nen/jusshin/register-<id>.sh'`, the home written out. The Windows script locks
+the runner root down before it uses it (zheref/nen#312, from nen `0.18.1`).
 
-`script` exit `0` → the run below. `2`: *"not a runner plan"* → § 3 again; identity still `ask` → the
+`--accept-daily-account` is passed only when § 3 carried the maintainer's typed word. `script`
+re-checks the daily account on Windows itself: the account that computed the plan **or the one
+rendering it**. So a plan computed elsewhere can still be refused here.
+
+`script` exit `0` → the run below. `2`: *"…your own daily account…"* → § 3's `dailyAccount` row (re-ask the identity, or the typed flag); *"not a runner plan"* → § 3 again; identity still `ask` → the
 identity asked, § 3 again; an `--out` with a space or quote → a path without one asked
 (`missing-argument`); else F.
 
@@ -185,7 +197,7 @@ configured. What runs it is `--json`'s **`launch` field, verbatim** — never ty
   (zheref/nen#312), and then § 6 alone reads the result. **An interactive pool's script asks no
   password**: it registers a Scheduled Task per runner and never a service. When the identity is not
   signed in, it says the tasks wait for that account's logon. Signing in is the maintainer's on-device
-  act (row `on-device-act`), and § 6 follows it.
+  act, and § 6 follows it. Whether row `on-device-act` covers it is the open handbook question the 2026-09-30 jusshin ruling left.
 - **Linux**: `launch` (`sudo bash <script>`) is **printed for the maintainer**, never run — an
   install needing `sudo` is refused, never asked (WORKFLOW § 4). Its exits are theirs to read; § 6
   follows their word.
@@ -198,7 +210,7 @@ configured. What runs it is `--json`'s **`launch` field, verbatim** — never ty
 ## 6. Verify
 
 ```bash
-nen runner verify --target <t> --expect <name,…> --labels <a,b,c> --wait 120 --json
+nen runner verify --target <t> --expect <name,…> --labels <the pool's labels> --wait 120 --json
 ```
 
 `--expect` is plan's `runners[].name`, or `x 0`'s inventory set (§ 3). **Never a partial pass.**
@@ -207,7 +219,7 @@ nen runner verify --target <t> --expect <name,…> --labels <a,b,c> --wait 120 -
 |---|---|---|
 | `0` | all `ok` | § 7 |
 | `1` | `missing` | not registered: § 5's outcome — the summary line, or the Linux command still owed |
-| `1` | `offline` | the service is not running: J1, J7, or a restart (§ 7). For an interactive pool, the account is not signed in, its session is locked, or the `run.cmd` window was closed: the maintainer signs in, and § 6 runs again |
+| `1` | `offline` | the service is not running: J1, J7, or a restart (§ 7). For an interactive pool, the account is not signed in, or its logon task (the `run.cmd` window) stopped: the maintainer signs in, or restarts the task, and § 6 runs again. A locked screen does not take a runner offline; it only fails UI jobs |
 | `1` | `labels: missing <x>` | the registration and the declaration disagree; the runner is the maintainer's to remove (residue 3) |
 | `2` | usage | F |
 | `5` | `gh` | `missing-tool` |
@@ -252,10 +264,10 @@ the host, then § 7 again. The rows carry bankai-core's `docs/SETUP-SELF-HOSTED-
 | J3 | `Access to the path … is denied` | `(RX)` on every parent up the hierarchy |
 | J4 | exit `127`, or Windows: *not on the service PATH* | Windows: machine-scope install, `C:\Program Files\Git\bin` on the machine `PATH` (no installer adds it); Linux/macOS: a system path the service user reads; then restart |
 | J5 | exit `126` | Windows: created in place under `C:\Program Files\<tool>\`, never a winget portable or a `Move-Item`, `Get-Acl` showing `Users` `ReadAndExecute`; Linux/macOS: `chmod`/owner on the resolved file; then restart |
-| J6 | landed on another OS | `runs-on` as rendered; an online runner with all three labels on **this** repository |
+| J6 | landed on another OS | `runs-on` as rendered; an online runner with all of the pool's labels on **this** repository |
 | J7 | macOS: runner offline after start | Login Items → Allow in the Background, then `launchctl kickstart -kp gui/$(id -u)/<service>`, per runner |
 | J8 | interactive: *"runs in session 0"* (or `unknown`) at the session probe | the runner was registered as a service, or the task is not running in a desktop session: re-register from an interactive plan (§ 3, nen `0.19`), sign its account in, then § 7 again |
-| J9 | interactive: a `::warning::` that a tool is per-user | not a failure: it works for that account and would not survive another one. A machine-wide install is the remedy, the maintainer's call |
+| J9 | interactive: a `::warning::` that a tool is per-user | not a failure, but not free either. Every job this runner takes can rewrite that file, so one job can replace the tool for the next (and for the account's own shell). It would also not survive another account. A machine-wide install is the remedy and is recommended for every interactive pool; whether to make it is the maintainer's call |
 | — | anything else | F, with the failing step's log quoted |
 
 **A service reads `PATH` at start** — the restart, elevated and the maintainer's: Windows
@@ -270,14 +282,17 @@ account may execute them — and nothing broader (CON-49(c)). A sibling on that 
 account shares the stored machine `PATH` and the ACLs but holds the `PATH` it was *started* with, so
 it is covered only once every service on the host was restarted after the last `PATH` change (the
 restart line above); a runner on another host is proven by nothing until a run lands there; a Linux
-or macOS user-scope hit only warns. On Windows the verdict is the service's own `PATH`, recorded from
+or macOS user-scope hit only warns, and so does a per-user hit on an **interactive** Windows runner
+(J9). There, a green run proves the account's own session can run each tool, not that the install is
+machine-wide. On Windows the verdict is the service's own `PATH`, recorded from
 `cmd.exe`, never Git Bash's: a tool present only under Git's `mingw64\bin` reads *not on the service
 PATH* and is J4. **A pool spanning hosts** is dispatched again (`preflight` above, from the default
 branch) until every host's runner name has appeared green, **at most three unsteered dispatches**:
 GitHub hands a run to any idle runner carrying the labels and nothing steers it to a host. Each host
 still unseen after three gets **one controlled dispatch of its own**: the maintainer stops every
-proven host's services (their act, elevated: § 7's restart line in reverse), § 7 dispatches once, the
-run can land only on an unproven host, and the services are started again — repeated per unseen
+proven host's services (their act, elevated: § 7's restart line in reverse), or, for an interactive
+pool, signs those hosts' runner accounts out; § 7 dispatches once, the
+run can land only on an unproven host, and the services are started again (the accounts signed back in) — repeated per unseen
 host. A host that cannot be reached that way **stops the run before § 8** with the proof reported
 incomplete, naming it; the pool is never enabled on it, and no per-host label is invented to steer
 the run (that is zheref/hatsu#198 item 6, the maintainer's ruling). § 8 is passed the **latest green
@@ -308,7 +323,7 @@ the answer, at the gate (`missing-configuration`).
 
 ## 9. Report
 
-The P5 line; the fleet table — **name · labels · status · service · install dir** — from §§ 3 and 6;
+The P5 line; the maintainer's typed `--accept-daily-account`, quoted, when § 3 carried it; the fleet table — **name · labels · status · service · install dir** — from §§ 3 and 6;
 the summary line; the preflight run; the enable line; and the **off switch**, the maintainer's own
 act: the services stopped (`Stop-Service`, `svc.sh stop`, `launchctl bootout`) and the variable
 restored to the `previous` § 8 quoted. Then, every run, last:
@@ -331,7 +346,7 @@ x 0`; **exclusion edit pending** — that PR at `<gate>`; **live** — *nothing 
 3. Removal and deregistration — owed, unfiled.
 4. The shared `_work/_actions` cache — owed, unfiled.
 5. Runner groups on organization accounts; `--ephemeral` supervisors — owed, unfiled.
-6. The root lockdown, secrets off `config.cmd`'s argv, and the summary file — zheref/nen#312.
+6. **RETIRED at nen `0.18.1`:** the root lockdown, secrets off `config.cmd`'s argv, and the summary file — zheref/nen#312.
 7. `nen parse` carries no alternation and no integer slot, as for great-hiker; § 1's read-back stands in.
 
 Listed in [PROCESS.md](../../../docs/PROCESS.md) § *Residue*.

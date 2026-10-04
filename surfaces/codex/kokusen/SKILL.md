@@ -132,19 +132,23 @@ index, and reports `{sha, subject, trailers}`.
 at `git commit` time (Cursor's `Co-authored-by`, zheref/hatsu#66), so `commit write` reads the
 commit it just wrote through git's own trailer parser. **Exit `3` means the commit exists and carries
 a refused key**, listed in `injected[]`. On a real write, `--json`'s `trailers` is the commit's own,
-hook-added keys included. Exit 3 is never "nothing was committed". **An attribution key outside
-`commits.allowedAttributionTrailers` is a stop with a default** —
+hook-added keys included. Exit 3 is never "nothing was committed". **Exit `1` after the write**
+(nen: *"a read-back git could not answer"*) also means the commit exists, unchecked: `git -C <path> log
+-1 --format='%H%n%(trailers:only,unfold)'` shows the new tip, which is read once by hand and never
+committed again. **An attribution key outside `commits.allowedAttributionTrailers` is a stop with a
+default** —
 [WORKFLOW](../../../docs/WORKFLOW.md) § `commits`'s rule: a key ending `-by`/`-with` or in
 `forbiddenTrailers`, case-insensitive; `Closes` is ordinary (`nen/decisions.json` row
-`injected-attribution-trailer`): the tip just written is unpublished, so **drop it with
-`git -C <path> reset --soft HEAD~1`** — never an earlier commit, never an amend — and ask once for the
+`injected-attribution-trailer`): the tip just written is unpublished, so **drop it with the undo line
+nen prints** — `git -C <path> reset --soft HEAD~1`, or the root-commit form it names instead — never an
+earlier commit, never an amend — and ask once for the
 switch (row `harness-attribution-switch`, the maintainer's toggle); then re-run. `aka` § 7 reads every
 outgoing commit before the push.
 
 ## 6. Residue
 
-The explicit per-path `git -C <path> add` and the exit-`3` undo `git -C <path> reset --soft HEAD~1` are
-the raw calls ([PROCESS.md](../../../docs/PROCESS.md) § Residue and owned dependencies). **RETIRED at
+The explicit per-path `git -C <path> add` and the exit-`3` undo nen prints (`git -C <path> reset --soft
+HEAD~1` for a non-root commit) are the raw calls ([PROCESS.md](../../../docs/PROCESS.md) § Residue and owned dependencies). **RETIRED at
 nen `0.19`: the tip read-back.** `commit write` reads the trailers back itself and exits `3`
 ([nen#273](https://github.com/zheref/nen/issues/273), closed by zheref/nen#357). Of WORKFLOW § `commits`'s three enforcement layers the
 `commit-msg` hook exists only in a repository `nen scaffold init` stood up, so **say which layers
