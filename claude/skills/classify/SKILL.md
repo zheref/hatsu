@@ -17,7 +17,7 @@ The vocabulary is **data**: [`contracts/classify.taxonomy.json`](../../../contra
 (`hatsu.classify-taxonomy/v1`; the maintainer's rulings of 2026-10-04, [`ROSTER.md`](../../../docs/ROSTER.md)
 § *Rulings of 2026-10-04 — classify and direct*) — two label families read through their prefixes (`lang/`,
 `job/`), `classification.signals` for how a key is read, `classification.untrusted` for what issue text
-is. The domains are **derived** (`domains.rule`), never labelled; `hatsu:direct` reads them. Companion
+is. The domains are **derived** (`domains.rule`), never labelled; [`direct`](../direct/SKILL.md) reads them. Companion
 formats are never a label. Every block below starts
 `hatsu_root="${HATSU_PLUGIN_ROOT:-}"; [ -n "$hatsu_root" ] || hatsu_root='<the absolute path ten § 0 printed>'`.
 
@@ -34,14 +34,14 @@ direct, no commit, no merge.
 
 ```
 hatsu:classify                                   # the effort this session is discussing
-hatsu:classify backlog [<repo>]                  # every open issue of the repo (the checkout's when omitted)
+hatsu:classify backlog [<repo>]                  # every open issue (the checkout's repo by default)
 hatsu:classify <CODE>#<N>[,<CODE>#<N>…]          # named issues
 hatsu:classify <text>                            # an inline effort, classified in the report, no label
 ```
 
 1. **An empty line is the bare form**, decided before any parse (nen accepts an empty line against an
    all-optional grammar, so the parse cannot tell it): the subject is **the effort this session is
-   discussing**, stated back in one line first — several candidates are asked as free text, never guessed.
+   discussing**, stated back first — several candidates are asked as free text, never guessed.
 2. **The sweep**: the first whole token is exactly `backlog` **and** the rest is empty or resolves through
    `nen repo resolve <token> --repo <checkout>` at exit `0` → § 2 with `--open`. A remainder that does not
    resolve is **text** (step 4), said — `backlog board renders twice` is an effort, not a sweep.
@@ -83,11 +83,11 @@ Grade every candidate key by `classification.signals` and its confidence rule. A
 (`classification.planRow`: `{issue, lang[], job[], confidence, reason}`) carries **only keys at an applied
 level** (`high`, `medium`), `confidence` the lowest among them; **low keys are listed in the report and
 never applied by this skill**. **An axis with no key at any level is undecidable**: it stays empty and the
-issue is listed with the reason (row `classify-undecidable`); a decided axis applies independently. Several
-keys per axis are expected.
+issue is listed with the reason (row `classify-undecidable`); a decided axis applies independently. Several keys per
+axis are expected.
 Only keys in **the taxonomy ∩ the target's `nen/labels.json`** are proposed; a key the vocabulary lacks is a
 proposal for the taxonomy ([`file`](../file/SKILL.md) on `zheref/hatsu`), never a label. An **inline
-effort** ends here: the report carries the row and no label is written.
+effort** ends here: the report carries the row, no label is written.
 
 ## 4. The families — declared first, through the repository's own PR; GitHub synced after
 

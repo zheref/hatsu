@@ -941,6 +941,17 @@ nen `v0.19.0` shipped the same day without either family and moved the compatibi
 families ship in the release after it, and the repin that adopts them absorbs the floor (`zheref/hatsu#206`).
 Until then the verbs are absent and both skills continue where they can (row `missing-tool`).
 
+**Open questions, returned to the maintainer by the pre-PR review of 2026-10-04 (G4, not adjudicated
+here):** (1) **the reviewer tier against a lower session** — `direct` may send the maintainer's session to the
+`fast` tier (`BALANCED_AUTHOR`), while `models.roles.reviewer` raises hanten's reviewers at `deep`; the rule's
+letter holds (no subagent on the frontier tier) but its rationale — *a delegate that outranks its caller has
+inverted the delegation* — does not: cap the reviewer tier at the session's, or record that reviewers stay at
+`deep` and amend the sentence; (2) **a guard for a canon data contract** — `contracts/classify.taxonomy.json`
+and `contracts/direct.registry.json` hold their invariants (unique keys, 114 phases covered, a cell's surface
+equal to its alias's, labels.json parity) only by the review's one-off checks and, once pinned, by
+`nen direct registry`; whether a Hatsu guard lane is owed too is BC-9/BC-11's question. Both are filed as
+handbook-questions on `zheref/hatsu`.
+
 ---
 
 ## Rulings of 2026-10-01 — every settable value written out, and asked for before it is needed
