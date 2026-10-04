@@ -89,7 +89,8 @@ nen <version>; build continues unrouted, repin owed` — then § 3. Otherwise a 
 every run, `hatsu:direct <CODE>#<N>` with the session's `--surface`, `--model` and `--effort` (`unread` where
 unexposed): [`direct`](../direct/SKILL.md) § 5 reports the verdict beside the session's and § 6 owns the
 mismatch — row `direct-mismatch`, asked once, **never a block**; **B** ends the run naming what to open. The
-verdict is recorded in `.nen/direct/<CODE>-IS-#<N>.json`.
+verdict is recorded in `.nen/direct/<CODE>-IS-%23<N>.json` (the id percent-encoded by the verb), the answer by
+`nen direct answer`.
 
 ## 3. Worktree isolation by default
 

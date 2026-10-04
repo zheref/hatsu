@@ -459,14 +459,14 @@
         {
           "key": "A",
           "label": "continue here, on this model and effort",
-          "command": "record the answer in .nen/direct/<effort>.json and continue the build without another word",
+          "command": "nen direct answer --record <effort id> --answer continue --repo <checkout>, then continue the build without another word",
           "consequence": "the work runs where it was started; the verdict and the mismatch stay in the ledger and the report",
           "recommended": true
         },
         {
           "key": "B",
           "label": "stop so I restart on the recommended surface",
-          "command": "end the run naming the restart line direct quoted (surfaces.<s>.restart, its placeholders filled from models.<surface>.<tier> and effort.surfaceMap only)",
+          "command": "nen direct answer --record <effort id> --answer stop --repo <checkout>; end the run naming the restart line direct quoted (surfaces.<s>.restart, its placeholders filled from models.<surface>.<tier> and effort.surfaceMap only)",
           "consequence": "nothing is authored here; the maintainer opens the recommended surface and types hatsu:build there"
         }
       ],

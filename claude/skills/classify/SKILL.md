@@ -17,7 +17,7 @@ The vocabulary is **data**: [`contracts/classify.taxonomy.json`](../../../contra
 (`hatsu.classify-taxonomy/v1`; the maintainer's rulings of 2026-10-04, [`ROSTER.md`](../../../docs/ROSTER.md)
 § *Rulings of 2026-10-04 — classify and direct*) — two label families read through their prefixes (`lang/`,
 `job/`), `classification.signals` for how a key is read, `classification.untrusted` for what issue text
-is. The domains are **derived** (`domains.rule`), never labelled; `hatsu:direct` reads them. Companion
+is. The domains are **derived** (`domains.rule`), never labelled; [`direct`](../direct/SKILL.md) reads them. Companion
 formats are never a label. Every block below starts
 `hatsu_root="${HATSU_PLUGIN_ROOT:-}"; [ -n "$hatsu_root" ] || hatsu_root='<the absolute path ten § 0 printed>'`.
 
