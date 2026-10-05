@@ -228,15 +228,15 @@ disposition, is what makes the choreography exact instead of an override the pla
 
 Per approved group — and **every title, body and comment below** (the issue, each `nen issue
 comment`, each `--close-comment-map` text, the `nen issue edit-body` file) passes
-[`/file`](../file/SKILL.md) § 4's private-name check first, reading `0` or `skipped`, and each `nen issue`
-write takes that section's ignore-file flag and reads its exits `4` and `1` there:
+[`/file`](../file/SKILL.md) § 4's private-name check first, reading `0` or `skipped`, and each `nen issue file`,
+`comment` and `edit-body` write (never `consolidate-close`, which refuses it) takes that section's ignore-file flag and reads its exits `4` and `1` there:
 
 **1 — File the consolidated issue**, labels **in the create call**, matching
 [`/file`](../file/SKILL.md) § 5's own discipline exactly:
 
 ```bash
 nen issue file --target <owner/name> --repo <path to a checkout carrying nen/labels.json — or schemas/labels.json under the fallback nen keeps until v0.4.0> \
-  --title "<title>" --body-file <path> \
+  --title "<title>" --body-file <path> [--private-names-ignore-file <file § 4's ignore file>] \
   --label <severity>,<lane-union>,<kind> --assignee <human> \
   --forbid-family <the target repo's stage-label family>
 ```
@@ -368,7 +368,7 @@ PR in front of them), that member moves to step 3's `closeSet` instead, with `--
 > **So the write this skill performs is a nen verb, not a raw `gh`.** Take the returned lines, fold
 > them into **the parent's CURRENT body plus these lines** — `nen issue edit-body` REPLACES a body,
 > so handing it only the lines loses the body — write that to a file, and run
-> `nen issue edit-body --target <owner/name> --issue <parent#> --body-file <path>`. Then **re-verify**
+> `nen issue edit-body --target <owner/name> --issue <parent#> --body-file <path> [--private-names-ignore-file <file § 4's ignore file>]`. Then **re-verify**
 > by re-reading the parent (`gh issue view <parent#> --json body`) and confirming the lines are
 > actually present before reporting the attach as done: relaying a field without performing the write
 > leaves a **claimed graph that does not exist**.

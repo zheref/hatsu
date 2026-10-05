@@ -84,8 +84,8 @@ maintainer applies it** (`CON-4`).
 nen classify status --taxonomy "$hatsu_root/contracts/classify.taxonomy.json" --repo <checkout> --target <owner/name> --issue <N> --json
 ```
 
-Verbs absent at this pin (`unknown command`; row `missing-tool`): one line — `classify/direct unavailable at
-nen <version>; build continues unrouted, repin owed` — then § 3. Otherwise a `missing` axis runs
+The host nen predates the pin (`unknown command`; row `missing-tool`): one line — `classify/direct unavailable at
+nen <version>; build continues unrouted, install the pin (ten § 2)` — then § 3. Otherwise a `missing` axis runs
 [`$classify`](../classify/SKILL.md) § 3 here, its rows shown then applied under this run's go (classify
 § 5); an undecidable axis stays empty, said (row `classify-undecidable`), never re-classified downstream. Then,
 every run, `$direct <CODE>#<N>` with the session's `--surface`, `--model` and `--effort` (`unread` where

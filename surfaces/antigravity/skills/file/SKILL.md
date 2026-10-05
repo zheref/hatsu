@@ -148,14 +148,15 @@ here is itself a finding to report, not a clean empty search.
 existing issue with the new evidence:
 
 ```bash
-nen issue comment --target <owner/name> --issue <n> --body-file <path> --dry-run   # the exact gh call and the exact bytes
-nen issue comment --target <owner/name> --issue <n> --body-file <path>             # post it
+nen issue comment --target <owner/name> --issue <n> --body-file <path> [--private-names-ignore-file <file § 4's ignore file>] --dry-run   # the exact gh call and the exact bytes
+nen issue comment --target <owner/name> --issue <n> --body-file <path> [--private-names-ignore-file <file § 4's ignore file>]             # post it
 ```
 
 `nen issue comment` is new in nen `v0.2.0` and **retires the residue this port carried** (the A/B doc's
 "no `nen` verb owns posting a plain issue comment" is history): exactly one of `--body`/`--body-file`,
 an empty or whitespace-only body refused at exit `2`, `--issue` held to digits only (`1e3` is refused,
-not read as 1000), and `--dry-run` fully offline — it prints `would run: gh issue comment …` and the
+not read as 1000), and `--dry-run` writes nothing but, from nen `0.20`, reads the target's visibility and, for a public target,
+the private list (§ 4) — it prints `would run: gh issue comment …` and the
 body fenced between `--- body as it would be posted ---` markers, stating whether it ends in a newline
 (verified live at `v0.3.0`). **`--body-file` resolves against `--repo`'s root from nen `0.7`**, where through `v0.6.0` it
 resolved against the process's cwd (`zheref/nen#100`); the RESOLVED path is what travels onward to
@@ -192,7 +193,7 @@ explaining the addition — the comment through `nen issue comment`, exactly as 
 edit replaces the whole prepared body through:
 
 ```bash
-nen issue edit-body --target <owner/name> --issue <n> --body-file <path>
+nen issue edit-body --target <owner/name> --issue <n> --body-file <path> [--private-names-ignore-file <file § 4's ignore file>] --json
 ```
 
 `edit-body` certifies that `<n>` is an issue before it writes and replaces the body byte-for-byte;
@@ -258,10 +259,11 @@ indices, never names; keep it that way in the report.
 guard's own, `--private-names-ignore-file "${XDG_CONFIG_HOME:-$HOME/.config}/hatsu/redaction-ignore"`,
 where that file exists (a missing one given to the flag exits `2`) — one list, two guards. Their exit `4`
 sent nothing: after the guard read `0` it is the two guards disagreeing — stop and report it; never redact
-a name the maintainer ignored, never `--skip-private-name-check`. Their exit `1` is the guard's exit `2`
-only where its own refusal shows (stderr, or `--json`'s `privateNameCheck`); otherwise it is `issue file`'s
-label, assignee or title refusal (§ 5), or on `edit-body` an uncertain write — pass `--json`, read
-`outcome`, and read the body back before any retry. Their dry runs read the target's visibility, so they
+a name the maintainer ignored, never `--skip-private-name-check`. Their exit `1` is read on `--json`, per verb: `privateNameCheck.result` `unavailable` is the
+guard's exit `2`; on `issue file`, a § 5 label, assignee or title refusal only where stderr names that check,
+else a create that may have landed — `nen issue search` the title before any re-file; on `issue comment`,
+`not posted, unverified` — read the comments back before any retry; on `edit-body`, `outcome`, the body
+read back before any retry. Their dry runs read the target's visibility, so they
 are not offline, and `--body-file` resolves a relative path against `--repo`'s root: pass an absolute path.
 
 Present **one plan** covering everything that will be written, and take **one** confirmation for
@@ -302,7 +304,7 @@ Applied **in the create call**, never as a follow-up edit:
 
 ```bash
 nen issue file --target <owner/name> --repo <path to a checkout carrying nen/labels.json — or schemas/labels.json under the fallback nen keeps until v0.4.0> \
-  --title "<title>" --body-file <path> --label <a,b,...> --assignee <user> \
+  --title "<title>" --body-file <path> --label <a,b,...> --assignee <user> [--private-names-ignore-file <file § 4's ignore file>] \
   [--forbid-family <a real, declared target stage-label family>]
 ```
 

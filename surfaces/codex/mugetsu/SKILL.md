@@ -439,7 +439,8 @@ caller-written comment, never a raw `gh`:
 
 ```bash
 bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> <path> &&   # 0 or skipped, else no write (file § 4)
-  nen issue comment --target <owner/name> --issue <the release PR or issue number> --body-file <path>
+  nen issue comment --target <owner/name> --issue <the release PR or issue number> --body-file <path> \
+    [--private-names-ignore-file <file § 4's ignore file>]
 ```
 
 A pull request **is** an issue to this verb, which is why there is no `nen pr comment` and none is
