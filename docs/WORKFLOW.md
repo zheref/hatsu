@@ -1126,9 +1126,12 @@ may be recommended for the maintainer's own session, where that tier lives; a su
 it. **One question the rulings did not settle is returned to the maintainer** (ROSTER § *Rulings of
 2026-10-04*, *Open questions*): whether `models.roles.reviewer` stays `deep` when direct's verdict for the
 session is a lower tier. **The readable mirror** is [`DIRECT-MATRIX.md`](DIRECT-MATRIX.md): every job ×
-domain × language cell, the alias table, the effort rule and worked examples. It is rendered from the registry,
-the taxonomy and this file's `models` by `scripts/direct_matrix_doc.sh` (lane `direct-matrix-guard` fails when
-the page is stale; `--verify` checks each cell against `nen direct resolve`). It is never edited by hand.
+domain × language cell, the alias table, the effort rule and worked examples. `scripts/direct_matrix_doc.sh`
+renders its tables and rule text from the registry, the taxonomy and Hatsu's own `models` block; only its
+opening walkthrough is hand-written. The registry stays canon and the page is never edited by hand. Lane
+`direct-matrix-guard` runs the generator's `--self-test` and fails on a stale page. `--verify` asks
+`nen direct resolve` about every claim the page prints. Each runs only when invoked: CI wiring for data-only
+edits and a `--verify` step at every nen repin are zheref/hatsu#234.
 
 ---
 

@@ -152,7 +152,7 @@
       "direct-matrix-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/direct_matrix_doc.sh, which renders docs/DIRECT-MATRIX.md -- the human-readable mirror of every decision hatsu:direct makes -- from contracts/direct.registry.json, contracts/classify.taxonomy.json and nen/workflow.json -> models. Same one-lane-per-executable-guard pattern as tenkai-guard: a page nothing re-renders is a second copy of the routing that rots."
+        "$comment": "The focused lane for scripts/direct_matrix_doc.sh, which renders docs/DIRECT-MATRIX.md -- the human-readable mirror of every decision hatsu:direct makes -- from contracts/direct.registry.json, contracts/classify.taxonomy.json and nen/workflow.json -> models. Same one-lane-per-executable-guard pattern as tenkai-guard: its argv is the guard's own --self-test. This lane guards that the RENDERING is fresh; it is not a guard of the registry's or taxonomy's own invariants, so ROSTER § Rulings of 2026-10-04, Open question (does a canon data contract owe a guard lane?), stays open."
       },
       "workflow-policy-guard": {
         "stack": "claude-code-plugin",
@@ -390,9 +390,9 @@
           "exe": "bash",
           "argv": [
             "scripts/direct_matrix_doc.sh",
-            "--check"
+            "--self-test"
           ],
-          "$comment": "Hermetic and offline (python3 only, no nen, no network): re-renders docs/DIRECT-MATRIX.md from the registry, the taxonomy and nen/workflow.json -> models and fails when the committed page differs. Run it as `nen shu test --lane direct-matrix-guard --repo <hatsu>` when any of those four files or scripts/direct_matrix_doc.sh changes. The stronger proof, `bash scripts/direct_matrix_doc.sh --verify`, asks `nen direct resolve` for every rendered cell, fallback and worked example; it needs the pinned nen on PATH, so it is run by hand at a registry edit rather than seated here."
+          "$comment": "Hermetic and offline (python3 only, no nen, no network): fixtures under a temp dir prove --check exits 1 on a missing, hand-edited or data-moved page and 0 on a fresh one, that malformed data (an unrouted job, no otherwise domain row, an unbanded effort score, a missing registry) refuses by name at exit 2, and that the re-implemented domain, aggregation and effort rules hold at their edges; then --check on the committed page. Run it as `nen shu test --lane direct-matrix-guard --repo <hatsu>` when the registry, the taxonomy, nen/workflow.json, the page or scripts/direct_matrix_doc.sh changes -- a data-only edit is not selected by its argv and no CI job runs it yet (zheref/hatsu#234). The stronger proof, `bash scripts/direct_matrix_doc.sh --verify`, asks `nen direct resolve` about every claim the page prints; it needs the pinned nen (NEN=<path> overrides), so it is run by hand at a registry edit and at a nen repin rather than seated here."
         }
       },
       "workflow-policy-guard": {
