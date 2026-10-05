@@ -149,6 +149,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/config_values.sh, the settable-values engine tenkai section 6d and ten section 6 step 5b call, and for contracts/config-catalogue.json, which its self-test validates row by row. Same one-lane-per-executable-guard pattern as tenkai-guard."
       },
+      "direct-matrix-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/direct_matrix_doc.sh, which renders docs/DIRECT-MATRIX.md -- the human-readable mirror of every decision hatsu:direct makes -- from contracts/direct.registry.json, contracts/classify.taxonomy.json and nen/workflow.json -> models. Same one-lane-per-executable-guard pattern as tenkai-guard: a page nothing re-renders is a second copy of the routing that rots."
+      },
       "workflow-policy-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -222,7 +227,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, config-values-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, ledger-guard, runner-preflight-guard, publish-integrity-guard, redaction-guard, plugin-cache-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, config-values-guard, direct-matrix-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, ledger-guard, runner-preflight-guard, publish-integrity-guard, redaction-guard, plugin-cache-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/spiritual-message.html, which is a report template, not an application."
@@ -378,6 +383,16 @@
             "--self-test"
           ],
           "$comment": "Hermetic and offline: fixture declarations under a temp dir prove fill writes only absent defaults and `$<key>` option annotations, keeps hand formatting, is idempotent, never creates a declaration or rewrites a set value, that set refuses a value outside its options and a secret-shaped value, that on-use and optional values never block adoption, and that every row of the shipped catalogue is well-formed against claude/skills/. Run it as `nen shu test --lane config-values-guard --repo <hatsu>` when scripts/config_values.sh or contracts/config-catalogue.json changes."
+        }
+      },
+      "direct-matrix-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/direct_matrix_doc.sh",
+            "--check"
+          ],
+          "$comment": "Hermetic and offline (python3 only, no nen, no network): re-renders docs/DIRECT-MATRIX.md from the registry, the taxonomy and nen/workflow.json -> models and fails when the committed page differs. Run it as `nen shu test --lane direct-matrix-guard --repo <hatsu>` when any of those four files or scripts/direct_matrix_doc.sh changes. The stronger proof, `bash scripts/direct_matrix_doc.sh --verify`, asks `nen direct resolve` for every rendered cell, fallback and worked example; it needs the pinned nen on PATH, so it is run by hand at a registry edit rather than seated here."
         }
       },
       "workflow-policy-guard": {
