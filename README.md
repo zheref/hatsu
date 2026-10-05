@@ -11,6 +11,10 @@ verb is a verb** from the [**Nen**](https://github.com/zheref/nen) CLI: Nen dete
 verifies; the skill supplies only the judgment a binary cannot. Where no verb exists yet, the residue is
 **named per skill** in [`docs/ab/`](docs/ab/) rather than quietly improvised.
 
+**Which model will do your work?** [`docs/DIRECT-MATRIX.md`](docs/DIRECT-MATRIX.md) shows, for every job in
+every domain and language, the model, surface and effort `hatsu:direct` will recommend. It is rendered from
+the same registry the verb reads, so you can look up the answer without running the skill.
+
 No GitHub App. No bot identity. Nothing here casts a review vote, and nothing here merges `main` except `getsuga` merging its own release-proposal PR through `nen pr merge --release-unit` (your ruling of 2026-09-26, `docs/ROSTER.md` § *Rulings of 2026-09-26/27/28*). **Nothing here publishes a release on its own authority**: from `v0.40.0` the `plugin` lane declares a real `release` row, so `hatsu:mugetsu` has something to run — but it runs it only on your typed go at **`G3`** — by name, or in advance as a step of your own `futon` `then` chain (the advance go) — never a composite's own and never an agent's.
 
 > **The current release is whatever [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json)'s `version`
