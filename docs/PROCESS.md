@@ -250,6 +250,31 @@ nen pr request-reviews --target <owner/name> --pr <n> [--add-reviewers <a,b>] [-
 **Verify with `nen pr ready`, never REST** (REST shows a pending bot as `[]`): *no round at head* is
 one owed; *review requested, not yet posted* is one in flight — wait.
 
+**One bot reviewer suffices — the round quorum** (the maintainer's ruling of 2026-09-29, recorded in nen's
+`docs/USAGE.md` § *`round_quorum`* — *"at least one round of reviews from both Copilot OR Cursor (or
+both)"* — and restated 2026-10-04: [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-04 — one bot reviewer
+suffices*; **stated once, here**, cited by [`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3 and that
+ROSTER section; it complements *The fallback chain* below and replaces none of it). The repository declares
+it as **nen's** key `round_quorum` in `nen/gates.json` — `{ "any_of": [<reviewers[] names>], "minimum": <n> }`
+— and `nen pr ready` reads it from nen `0.17`: at least `minimum` of `any_of` must **have** a round on the
+PR (a posted review or a `SUCCESS` round check, at any earlier head under the `bounded` reading Hatsu runs;
+how many rounds Hatsu asks for is `round_policy.minRounds`, `sharingan` § 6). **Once met, the quorum fulfils
+the owed round of every `any_of` member that is unavailable** — in nen's own terms: no round-check run at
+head; a run that completed without a round (`NEUTRAL`, error, `CANCELLED`, `SKIPPED`, `FAILURE` — an
+exhausted reviewer among them); or a member with only a pending review request and no round check,
+Copilot's shape — and **never a member whose round-check run at head is still in flight** (`QUEUED`,
+`IN_PROGRESS`, `PENDING`, `WAITING`: mid-review, still owed). That is a narrower *in flight* than *review
+requested, not yet posted — wait* above: a pending request with no check is excused once the quorum is met
+(zheref/nen#361). So where Bugbot is exhausted Copilot's round suffices, and the other way around; a
+reviewer not in `any_of` is owed as before, and a stalled request or an unresolved thread fails as before.
+An unmet quorum with no member owed (an exempt member in `any_of`; unreachable in Hatsu's own file) reads
+`round quorum not met` and is one owed round of the first `any_of` member `reviewers[]` can request, under
+`sharingan` § 6's bounds (this run's reading, listed in ROSTER). The *fulfils* half ships in the nen release
+after `v0.19.0`; until the repin that reads it the pinned binary still reads an unavailable member's round
+as owed, the verdict is quoted as the verb prints it, and the owed member is handled by the rules that
+already exist — a live `exhausted[]` row: *The fallback chain* below, to the merge prompt; no row:
+`sharingan` § 6's request bound. Nothing in this paragraph is read by a Hatsu script; the verb reads the key.
+
 **The fallback chain** (ruling 2026-09-29, `docs/ROSTER.md` § *Rulings of 2026-09-29* — **stated once,
 here**; `sharingan` § 6, `en` § 5/§ 6, `pr-state` § 2, `nen/decisions.json` row `reviewer-exhausted` and
 `docs/GATE-CONFIGURATION.md` § 3 cite this paragraph and restate nothing). A request the mutation accepts
@@ -266,8 +291,9 @@ PR** until nen reads the chain, so the declaration is the maintainer's call, nev
 is a round and counts toward `round_policy.maxRounds` as any other**. With the chain exhausted, `terminal:
 hanten` — **hanten's rounds are the review**: no round is requested, no bound is touched, this terminus
 outranks `cap-reached`, and the PR goes to `en` § 5's merge prompt (§ 6 there, the sixth stop) with **the verb's
-verdict quoted verbatim** — today `not-ready: a configured reviewer's round is
-still owed at the current head (CON-32b): copilot (no round at head)` — **and one Hatsu line beside it,
+verdict quoted as it prints it** — e.g. `not-ready: a configured reviewer's round is
+still owed at the current head (CON-32b): copilot (no round at head)`, the `round_quorum` clause appended
+where the file declares one — **and one Hatsu line beside it,
 never in its place**: `Hatsu: reviewer copilot declared exhausted (nen/gates.json reviewer_fallback, ruled
 2026-09-29); nen does not read this — zheref/nen#275`. The same line goes into the PR body's completion
 checklist through `nen pr edit-body`, written by `en` before the prompt — the one durable record that a

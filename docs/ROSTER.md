@@ -900,6 +900,31 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   never at `main`, and never write to it.
 
 
+## Rulings of 2026-10-04 — one bot reviewer suffices (the round quorum)
+
+**The maintainer's words, verbatim:**
+
+> It is made canon (not sure where that piece of spec landed), we expect at least 1 bot reviewer with a given amount of configured rounds. So, if Bugbot is exhausted, Copilot should suffice if available, or the other way around.
+
+The ruling of 2026-09-29 these words restate is recorded in nen's `docs/USAGE.md` § *`round_quorum`*: *"Let's
+make it canon on the repo so that we solve at least one round of reviews from both Copilot OR Cursor (or
+both) as applicable."* It complements ruling 1 of 2026-09-29 (*the reviewer fallback chain*, below), which
+still governs how a round is requested, and replaces none of it.
+
+| Ruling | What it says |
+|---|---|
+| **The quorum is the gate, not every member** | A PR's reviewer rows are satisfied when at least one configured bot reviewer has posted its round (how many rounds Hatsu asks for is `round_policy.minRounds`); a met quorum fulfils the owed round of an unavailable member — exhausted credits, no run at head, a run that completed without a round (zheref/nen#361) |
+| **Where it lives** | **nen's** `round_quorum` key in `nen/gates.json` (`any_of`, `minimum`), read by `nen pr ready` from nen `0.17`; the *fulfils* half ships in the nen release after `v0.19.0`. The behaviour is [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *One bot reviewer suffices*, stated once; the key is [`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3; Hatsu's own `nen/gates.json` declares it over Copilot alone until Bugbot is enrolled on this repository |
+
+So: what the pinned binary prints before that release, and where the PR goes, is PROCESS's paragraph, not
+this table. **Two readings this run made, not ruled (G4 if the maintainer reads them otherwise):** (1) *in
+flight* is nen's sense — a round-check run at head still running stays owed, while a pending review request
+with no round check (Copilot's shape) is excused once the quorum is met; (2) an unmet quorum with no member
+owed (an exempt member in `any_of`, unreachable in Hatsu's own file) is one owed round of the first `any_of`
+member `reviewers[]` can request, under `sharingan` § 6's bounds.
+
+---
+
 ## Rulings of 2026-10-04 — classify and direct
 
 **The maintainer's request, verbatim** (excerpt), on the document *Version-Decoupled Model Selection Matrix
