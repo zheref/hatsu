@@ -475,10 +475,10 @@ until then the two scripts above are the mechanism and are named as such.
 **RETIRED at nen `0.19`:** `nen commit write` and `nen wc squash` read back the trailers of the commit they wrote, and exit `3` with `injected[]` ([zheref/nen#273](https://github.com/zheref/nen/issues/273), closed by zheref/nen#357). kokusen § 5 and aka § 4 map that exit. aka § 7's step-0 read of the whole outgoing range stays, because a clean catch-up merge is written by `nen wc catch-up`, which reads no trailers back (zheref/nen#357 covers `commit write` and `wc squash` only).
 
 - **`nen report data` derives less than a page needs**
-  ([zheref/nen#258](https://github.com/zheref/nen/issues/258)). It does not derive `effortStage`,
-  `gate`, `turnLabel`, `worktree` or `generatedAtLocal`, so the caller fills them (the last through
-  `scripts/report_time.sh`); and it stamps `repo` from the **worktree directory's** name rather than
-  the project's, so the caller overwrites `repo` with the project name
+  ([zheref/nen#258](https://github.com/zheref/nen/issues/258)). From nen `v0.20.0` (zheref/nen#375) it derives
+  `repo` (the hosted `owner/name`), `worktree`, `effortStage`, `gate` and `stageClass`, each `null` with its
+  reason on stderr when a fact is missing; the caller still fills `turnLabel` and `generatedAtLocal` (the
+  latter through `scripts/report_time.sh`), and a `null` `repo` from `nen repo resolve`
   ([`WORKFLOW.md`](WORKFLOW.md) § `reports`, *Where the effort is*). Each filled value is named as
   residue on the page until the verb derives it.
 

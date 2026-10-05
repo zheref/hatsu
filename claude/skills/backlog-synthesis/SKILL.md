@@ -320,7 +320,7 @@ never silently reconciled by trusting whichever number is newer.
 > port carried after every `consolidate-close` return is retired, and there is no longer any raw `gh`
 > in this skill's execution path. Where a member needs a comment that is *not* its close — a later
 > clarification, a pointer from the parent back to a member — the verb is `nen issue comment --target
-> <owner/name> --issue <n> --body-file <abs path>` (`--dry-run` to see the exact bytes first), never a
+> <owner/name> --issue <n> --body-file <abs path> [--private-names-ignore-file <file § 4's ignore file>]` (`--dry-run` to see the exact bytes first), never a
 > hand-run `gh`.
 
 **4 — Attach the `linkOnlySet`, without closing:**

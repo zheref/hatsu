@@ -60,7 +60,7 @@ maintainer cancelling.
    § 4's WORKFLOW cite).
 4. **Act through its channel** (§ 7).
 5. **Observe while that blocker is pending** — neither stop nor outcome: classify it with `nen
-   parse izanami`, then `nen watch until`, a paced window of exactly two observations at
+   parse izanami`, then `nen watch until`, two paced observations at
    `monitor.pollSeconds`, **the verb owning the wait**, rebuilding step 1's snapshot after each; a
    quiet observation spends no cycle.
 
@@ -152,7 +152,7 @@ Screenshots **re-render the whole *Evidence* table**, checked first
 
 ```bash
 bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> <path> &&
-  nen issue comment --target <owner/name> --issue <N> --body-file <path> # disposition: file § 4
+  nen issue comment --target <owner/name> --issue <N> --body-file <path> [--private-names-ignore-file <file § 4's>]
 nen pr cascade-main --repo <path> [--trunk main]  # conflicted: merge only
 nen wake fire   --repo-slug <owner/name> --ref <CODE>-PR-#<N> --label bankai:wake/iterate --run
 nen wake verify --repo-slug <owner/name> --now <ISO> --author-pattern <regex>

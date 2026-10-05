@@ -354,8 +354,9 @@ is `Turn <n>`, `n` counting the `report` entries in `nen report data`'s `phases[
 included; with no ledger, the turns this session has reported); a `landing` reads `Landing · after
 turn <n>`. **`worktree`** is the checkout's directory name when `git rev-parse --git-dir` and
 `--git-common-dir` differ, else `core`. Red stays reserved for needs-you: only `ready` and `blocked`
-are red. **`repo`** is overridden with `nen repo resolve --from <path>`'s `owner/name`: `nen report
-data` stamps the checkout's directory name, which in a worktree is the worktree's, not the project's.
+are red. **`repo`** is `nen report data`'s hosted `owner/name` from nen `0.20` (zheref/nen#375), `null`
+for a local-path or `file://` origin, which the caller fills from `nen repo resolve --from <path>`; before
+`0.20` it was the checkout's directory name, the worktree's in a worktree.
 
 **The retention rule — and what it does *not* say.** A report is published at three moments — every
 turn, at landing, and once current-head readiness is verified — and `retain: final-only` means **only

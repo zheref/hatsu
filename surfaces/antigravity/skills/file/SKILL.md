@@ -219,7 +219,7 @@ closingIssuesReferences,body`, byte-identical). **Exit `0`** clears every candid
 > usually *exclude it from the supersede set and let its PR land first* — and let the
 > maintainer's approval cover whatever the plan states. Closing the issue itself is two acts: the
 > comment naming this issue and why goes through `nen issue comment --target <owner/name> --issue <n>
-> --body-file <path>` (never a raw `gh issue comment`), and the close is `gh issue close <n> --repo
+> --body-file <path> [--private-names-ignore-file <file § 4's ignore file>]` (never a raw `gh issue comment`), and the close is `gh issue close <n> --repo
 > <owner/name>` — **residue**, narrowed: no `nen` verb closes a *single* issue outside the multi-child
 > `consolidate-close` choreography in (d), which is the one verb that closes, and it takes two or more
 > children and a parent. Comment first, then close, so the close never points at a comment that does
