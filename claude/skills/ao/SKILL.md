@@ -161,8 +161,8 @@ Verified live against a constructed fixture carrying one of each (`docs/ab/ao.md
 | `UD` / `DU` | **delete-modify** — one side deleted what the other edited | the surviving side only |
 | `DD`, `AU`, `UA` | the rarer shapes; classify by the same table and name them | as git reports |
 
-> **`nen wc catch-up --json` carries `conflicted[]` at exit `1`, one entry per unmerged path, with
-> `ours` and `theirs` verbatim.** What it does not carry is the *kind*, so the porcelain table above
+> **`nen wc catch-up --json` carries `conflicted[]` at exit `1` or `3`, one entry per unmerged path, with
+> `ours` and `theirs` verbatim** (and, from `nen.wc.catch-up/v0.2`, nen's `class`). What it does not carry is the *kind*, so the porcelain table above
 > is still read for that, and § 6 shows `ours`/`theirs` exactly as the verb printed them. The verb's
 > own rule is the one worth quoting where it lands: it never picks a side.
 

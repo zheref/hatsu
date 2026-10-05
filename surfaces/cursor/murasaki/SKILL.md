@@ -248,7 +248,7 @@ d="$(mktemp -d)" \
 ```
 
 - **The catch-up is a freshness re-probe**, not a second catch-up of ao's: § 3 step 1 already ran
-  ao's. Exit `1` or `2` goes to [`/ao`](../ao/SKILL.md)'s classification; `noOp: false` means
+  ao's. Exit `1`, `2` or `3` goes to [`/ao`](../ao/SKILL.md)'s classification; `noOp: false` means
   the base moved again, and the changed tree returns to the caller (§ 5). `$d` holds only the
   re-probe's JSON: `rm -rf "$d"` once the chain's exit is read, pushed or not.
 - **`<proved>` is the `HEAD` the caller's steps 3–5 proved, printed and quoted.** A merge made in

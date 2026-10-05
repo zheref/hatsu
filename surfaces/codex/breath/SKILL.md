@@ -85,7 +85,7 @@ with that `--add-dir` named, and **stops**. The file is shared by every worktree
 
 **§ 2c · The host.** `nen shu tools --repo <path> [--dry-run | --install]` on a host this repository
 was never built on, and after a toolchain pin moves; `--install` covers only what corepack activates,
-never sudo or an unpinned version. **Exit `5` is a host not set up, not a red build** — relay the
+never sudo or an unpinned version. **Exit `5`, or `7` (behind the pin), is a host not set up, not a red build** — relay the
 per-tool `remedy` lines, resolve a missing tool through the surface's catalogue probe (row
 `missing-tool`), and leave a `verify-only` row to a human, named with its pin. **Exit `2` here is the
 stale tree, not the host**: record it *deferred* and **re-probe after the cut**, reporting that

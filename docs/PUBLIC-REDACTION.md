@@ -108,8 +108,10 @@ tree, and only the maintainer writes it.
   repository anything it has not passed. [`hatsu:backlog-synthesis`](../claude/skills/backlog-synthesis/SKILL.md),
   [`hatsu:mugetsu`](../claude/skills/mugetsu/SKILL.md) § 7 and
   [`hatsu:sharingan`](../claude/skills/sharingan/SKILL.md) § 7 run it before their own `nen issue`
-  writes. A private target is skipped. The check belongs in nen's `issue` verbs (zheref/nen#329);
-  until it lands, a caller outside these skills is unguarded.
+  writes. A private target is skipped. From nen `v0.20.0` (zheref/nen#367, closing #329) `nen issue file`,
+  `comment` and `edit-body` refuse a private name bound for a public target at exit `4`, reading the same
+  ignore file when passed it (`file` § 4); a raw `gh` write, `issue consolidate-close`'s close comments and
+  the `pr` writers (zheref/nen#363) remain unguarded outside these skills.
 - **Tree content:** `bash scripts/private_name_check.sh --tree .`, run by the maintainer, reads every
   tracked and untracked-not-ignored file's contents, its path and a symlink's target, and counts what
   it skips. **The tree is not yet clean**: on 2026-10-01 it read 173 mentions, or 60 with two

@@ -22,7 +22,7 @@
 #
 # Nen refuses a rendering with any placeholder left standing (exit 1, named)
 # and one that does not parse as YAML. MODE is filled from nen 0.19, so a 0.18
-# binary refuses this template; Hatsu's minimum is 0.19 for that reason.
+# binary refuses this template; Hatsu's minimum became 0.19 for that reason (0.20 now).
 #
 # `actions/checkout` is pinned by commit SHA, its EXACT tag as a trailing
 # comment (`# v4.4.0`, never a major alias such as `# v4`, which moves): the job

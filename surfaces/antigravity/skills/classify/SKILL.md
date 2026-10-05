@@ -63,9 +63,9 @@ nen classify status --taxonomy "$hatsu_root/contracts/classify.taxonomy.json" --
   --target <owner/name> (--issue <n,…> | --open) --with-body --json
 ```
 
-**The probe first**: `unknown command` means the family is absent at this pin (row `missing-tool`, autonomous —
+**The probe first**: `unknown command` means the host nen predates the pin (row `missing-tool`, autonomous —
 *the run continues where it can*): § 3's judgement runs and is shown, `status`, `install` and `apply` are
-reported **unread**, nothing is labelled by hand, and the owed repin is named. With the verbs present, one
+reported **unread**, nothing is labelled by hand, and ten § 2's install is named. With the verbs present, one
 call answers, quoted in the report: per issue its `lang`, `job`, `unknown` keys and `missing`
 axes; `declared` — the consumer's `nen/labels.json` carries every taxonomy key (an absent or drifted
 one reads `missing <n>`, routed to § 4; `install`'s report names which); `github` — the

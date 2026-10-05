@@ -253,7 +253,7 @@
     },
     {
       "color": "5319e7",
-      "description": "Porting a behaviour across platforms; sets the parity domain for every other job on the issue",
+      "description": "Porting a behaviour across platforms; in a product repo it sets the parity domain for every job",
       "name": "job/parity"
     },
     {

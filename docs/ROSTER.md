@@ -914,7 +914,7 @@ still governs how a round is requested, and replaces none of it.
 | Ruling | What it says |
 |---|---|
 | **The quorum is the gate, not every member** | A PR's reviewer rows are satisfied when at least one configured bot reviewer has posted its round (how many rounds Hatsu asks for is `round_policy.minRounds`); a met quorum fulfils the owed round of an unavailable member — exhausted credits, no run at head, a run that completed without a round (zheref/nen#361) |
-| **Where it lives** | **nen's** `round_quorum` key in `nen/gates.json` (`any_of`, `minimum`), read by `nen pr ready` from nen `0.17`; the *fulfils* half ships in the nen release after `v0.19.0`. The behaviour is [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *One bot reviewer suffices*, stated once; the key is [`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3; Hatsu's own `nen/gates.json` declares it over Copilot alone until Bugbot is enrolled on this repository |
+| **Where it lives** | **nen's** `round_quorum` key in `nen/gates.json` (`any_of`, `minimum`), read by `nen pr ready` from nen `0.17`; the *fulfils* half ships in nen `v0.20.0`, the pin from zheref/hatsu#168. The behaviour is [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *One bot reviewer suffices*, stated once; the key is [`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3; Hatsu's own `nen/gates.json` declares it over Copilot alone until Bugbot is enrolled on this repository |
 
 So: what the pinned binary prints before that release, and where the PR goes, is PROCESS's paragraph, not
 this table. **Two readings this run made, not ruled (G4 if the maintainer reads them otherwise):** (1) *in
@@ -965,7 +965,7 @@ judgement (reading an issue) and the live version lookup are prose, named as suc
 nen `v0.19.0` shipped the same day without either family and moved the compatibility floor to `0.19`; the
 families ship in the release after it, and the repin that adopts them absorbs the floor (`zheref/hatsu#168`, the open repin issue).
 Until then the verbs are absent and both skills continue where they can (row `missing-tool`). **Superseded
-2026-10-05:** nen `v0.20.0` ships both families and moves the floor to `0.20`, and zheref/hatsu#168's repin
+2026-10-05 UTC:** nen `v0.20.0` ships both families and moves the floor to `0.20`, and zheref/hatsu#168's repin
 adopts them.
 
 **Open questions, returned to the maintainer by the pre-PR review of 2026-10-04 (G4, not adjudicated

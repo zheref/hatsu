@@ -226,7 +226,8 @@ disposition, is what makes the choreography exact instead of an override the pla
 
 Per approved group — and **every title, body and comment below** (the issue, each `nen issue
 comment`, each `--close-comment-map` text, the `nen issue edit-body` file) passes
-[`hatsu:file`](../file/SKILL.md) § 4's private-name check first, reading `0` or `skipped`:
+[`hatsu:file`](../file/SKILL.md) § 4's private-name check first, reading `0` or `skipped`, and each `nen issue`
+write takes that section's ignore-file flag and reads its exits `4` and `1` there:
 
 **1 — File the consolidated issue**, labels **in the create call**, matching
 [`hatsu:file`](../file/SKILL.md) § 5's own discipline exactly:
@@ -239,7 +240,7 @@ nen issue file --target <owner/name> --repo <path to a checkout carrying nen/lab
 ```
 
 (`--repo` names the checkout whose `nen/labels.json`
-validates the labels; `--body-file` resolves against the cwd, so pass an absolute path.)
+validates the labels; `--body-file` resolves against `--repo`'s root from nen `0.20`, so pass an absolute path.)
 
 Body carries: the merged problem statement; every member's acceptance criteria, attributed; the
 shape (one PR, or a chore with its legs); the convergence rationale (§ 3's signal, quoted); and the

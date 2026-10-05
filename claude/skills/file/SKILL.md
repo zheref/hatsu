@@ -252,11 +252,16 @@ Exit `1` → replace each reported line's name with the legend's placeholder (`<
 write nothing; report the guard's line — an unread private list is never a pass. The guard prints
 indices, never names; keep it that way in the report.
 
-**nen runs the same refusal at the write** (nen `0.20`, zheref/nen#367): `issue file`, `issue comment`
-and `issue edit-body` exit `4` before writing a private name to a public target — nothing was sent;
-handle it as the guard's exit `1` (redact, re-run both) — and exit `1` when their guard could not run,
-handled as the guard's exit `2`. Their dry runs read the target's visibility, so they are not offline, and
-`issue file --body-file` resolves a relative path against `--repo`'s root: pass an absolute path.
+**nen runs the same refusal at the write** (nen `0.20`, zheref/nen#367, closing #329): `issue file`,
+`issue comment` and `issue edit-body` read **no default ignore file**, so every such write passes the
+guard's own, `--private-names-ignore-file "${XDG_CONFIG_HOME:-$HOME/.config}/hatsu/redaction-ignore"`,
+where that file exists (a missing one given to the flag exits `2`) — one list, two guards. Their exit `4`
+sent nothing: after the guard read `0` it is the two guards disagreeing — stop and report it; never redact
+a name the maintainer ignored, never `--skip-private-name-check`. Their exit `1` is the guard's exit `2`
+only where its own refusal shows (stderr, or `--json`'s `privateNameCheck`); otherwise it is `issue file`'s
+label, assignee or title refusal (§ 5), or on `edit-body` an uncertain write — pass `--json`, read
+`outcome`, and read the body back before any retry. Their dry runs read the target's visibility, so they
+are not offline, and `--body-file` resolves a relative path against `--repo`'s root: pass an absolute path.
 
 Present **one plan** covering everything that will be written, and take **one** confirmation for
 all of it. The plan states, in this order:

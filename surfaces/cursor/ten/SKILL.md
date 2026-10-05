@@ -51,7 +51,7 @@ FIRST, then § 2c; there its exit only feeds § 2c's predicate — `5` and `2` q
 § 4's `nen-global:` token, never § 3, no session bind (the session is satisfied). Every other
 row → § 2 — `WRONG` with a repin remedy (the pin below the floor — a `nen/contract.json`
 PR, never an install), `WRONG` without one, `MISSING`, or the verb absent. Not found, non-zero
-or unparseable is absent — § 2 too. Exit `5` per unsatisfied row (`BEHIND`: `7`), never `1`. The
+or unparseable is absent — § 2 too. Exit `5` per non-`ok` row (`BEHIND`: `7`), never `1`. The
 range rule is the contract's; a pre-floor build prints no floor line — said, never
 inferred.
 
@@ -102,7 +102,7 @@ shell** (#164). Ask it once, after § 2, never this session's `PATH`:
 
 **Three readings, by § 1's range rule, never a pin compare.** A path and `ok`: **`reachable at
 <path>`**. A path and any other row (`BEHIND`'s `7` too), or exit `1` with nothing printed: **`installed, not reachable
-(<row | no nen>)`** — an unmet dependency, never `satisfied`; the run goes on. The shell itself
+(<row | no nen>)`** — an unmet dependency, never `ok`; the run goes on. The shell itself
 failing — any other exit, `$SHELL` unset or not POSIX, win32: **`not read (<rc>, <first stderr
 line>)`**.
 

@@ -432,13 +432,15 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   is `nen classify status --with-body`'s. Every other step is the `nen classify` family (`labels`, `install`,
   `status`, `apply`), which ships in nen `v0.20.0` (zheref/nen#370, carried to `main` by #380), the pin
   zheref/hatsu#168 moved; on an older binary those verbs are absent, § 2's probe says so, and the skill
-  continues where it can (row `missing-tool`: the judgement shown, nothing labelled by hand, the repin named).
+  continues where it can (row `missing-tool`: the judgement shown, nothing labelled by hand, ten § 2's install named).
   The GitHub half of a declaration is `nen classify install --sync`, with `nen labels sync` the whole-file form.
 - **`file`.** The private-name check before every write to a public repository
-  (`scripts/private_name_check.sh`, zheref/hatsu#149) is owed to nen (zheref/nen#329): `nen issue
-  file`, `nen issue comment` and `nen issue edit-body` read no private list, so `file`,
-  `backlog-synthesis`, `mugetsu` and `sharingan` pipe each title, body and comment through the script
-  first. It reads `gh api 'user/repos?visibility=private'` live; nothing caches it.
+  (`scripts/private_name_check.sh`, zheref/hatsu#149) stays the first guard, run before the plan so the plan
+  shows checked text: `file`, `backlog-synthesis`, `mugetsu` and `sharingan` pipe each title, body and
+  comment through it. It reads `gh api 'user/repos?visibility=private'` live; nothing caches it. From nen
+  `v0.20.0` (zheref/nen#367, closing #329) `nen issue file`, `comment` and `edit-body` refuse too, at exit `4`,
+  given the script's ignore file (`file` § 4). What nen does not guard yet — `issue consolidate-close`'s
+  close comments and the `pr` writers (zheref/nen#363) — is the script's alone.
 - **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`; and the undo of `wc squash`'s exit `3`, `git -C <path> reset --soft ORIG_HEAD` (§ 4).
 - **`kagutsuchi` § 3a.** The freshness gate is `scripts/send_freshness_check.sh` — a `git fetch`,
   `rev-parse`, `rev-list` and `status --porcelain` over the archive's recorded build SHA — and the
