@@ -11,4 +11,4 @@
     - `--self-test` proves the guard's negative paths on hermetic fixtures, then runs `--check`. It is the argv of the new focused lane `direct-matrix-guard` in `nen/contract.json`.
     - `--verify` asks `nen direct resolve` about **every claim the page prints**: 2,017 at nen `v0.20.0`, all agreeing. A planted renderer bug turns it red with 93 disagreements.
     - The rendering re-implements the verb's rules to work offline, and that re-implementation is named as residue in the script. Running both checks automatically, in CI on data-only edits and at every nen repin, is zheref/hatsu#234.
-  - Linked from the README's introduction and from `docs/WORKFLOW.md` § *`direct` — the model, surface and effort*.
+  - Linked from the README's introduction and from `docs/WORKFLOW.md` § *`direct` — the model, surface and effort*. The WORKFLOW paragraph and the new lane are shipped surfaces, so the plugin is bumped to 0.92.1 (Claude manifest and Codex overlay) and the mirrors are regenerated at that stamp.

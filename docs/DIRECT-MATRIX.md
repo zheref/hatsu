@@ -406,8 +406,8 @@ The actionable recommendation is always one of Hatsu's 4 surfaces. `direct` fill
 
 | Surface | Restart line | Effort control | Model lookup | Interactive twin |
 |---|---|---|---|---|
-| **Claude Code** | `claude --model <alias> (then /effort <level>)` | /effort low|medium|high|max | the harness's model picker (/model) lists the served aliases | the Claude desktop app or claude.ai, the same model family |
-| **Codex** | `codex -m <alias> -c model_reasoning_effort=<level>` | model_reasoning_effort low|medium|high|xhigh | codex debug models | ChatGPT's Codex web app or the Codex IDE extension, the same model family |
+| **Claude Code** | `claude --model <alias> (then /effort <level>)` | /effort low\|medium\|high\|max | the harness's model picker (/model) lists the served aliases | the Claude desktop app or claude.ai, the same model family |
+| **Codex** | `codex -m <alias> -c model_reasoning_effort=<level>` | model_reasoning_effort low\|medium\|high\|xhigh | codex debug models | ChatGPT's Codex web app or the Codex IDE extension, the same model family |
 | **Cursor** | `cursor-agent --model <alias>` | the model's own thinking setting | cursor-agent --model help lists the served models | the Cursor IDE chat and Composer, the same model |
 | **Antigravity** | `the Antigravity workspace with Model: <alias> on the lead` | the model's thinking budget (pro) -- no four-step dial | the workspace's model picker | the Antigravity IDE itself, or the Gemini app for a conversation |
 

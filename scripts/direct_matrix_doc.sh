@@ -137,6 +137,10 @@ FORCE = {"aigov": ("process", None, []), "library": ("library", None, []),
          "parity": ("product", None, [])}
 # -------------------------------------------------------------------------------------------------
 
+def esc(x):
+    """A data string bound for a table cell: GFM splits cells on | even inside a code span."""
+    return str(x).replace("|", "\\|")
+
 def dname(d): return DOMAIN_NAME.get(d, d)
 def dshort(d): return DOMAIN_SHORT.get(d, d)
 def lname(l): return LANG_NAME.get(l, l)
@@ -382,8 +386,8 @@ def render():
         t = typed(name)
         tt = f"`{t}` (tier `{a['tier']}`)" if t else "—"
         mid = f" `{s['modelId']}`" if s.get("modelId") else ""
-        w(f"| {dot} | `{name}` | {a['provider']} | `{a['family']}` | {surf} | {tt} | **{s['primary']}**{mid} | "
-          f"{s['fallback']} | {a['selection']} |")
+        w(f"| {dot} | `{name}` | {a['provider']} | `{a['family']}` | {surf} | {tt} | **{esc(s['primary'])}**{mid} | "
+          f"{esc(s['fallback'])} | {esc(a['selection'])} |")
     w("")
     providers = []
     for name in precedence:
@@ -415,7 +419,7 @@ def render():
     aigov_add = any(p.get("key") == "aigov" for p in reg["effort"]["rule"]["plusOne"])
     for j in jobs:
         k = j["key"]
-        row = [f"**`{k}`**<br><sub>{j['title']}</sub>"]
+        row = [f"**`{k}`**<br><sub>{esc(j['title'])}</sub>"]
         for d in domains:
             if reach(k, d) is None:
                 row.append("—")
@@ -453,7 +457,7 @@ def render():
     w("| # | Domain | When |")
     w("|---|---|---|")
     for r in rules:
-        w(f"| {r['order']} | **{dname(r['domain'])}** (`{r['domain']}`) | {r['$comment']} |")
+        w(f"| {r['order']} | **{dname(r['domain'])}** (`{r['domain']}`) | {esc(r['$comment'])} |")
     w("")
     w(f"`domains.fallback`: *{tax['domains']['fallback']}*")
     w("")
@@ -480,7 +484,7 @@ def render():
             rd = route_domain(k, d)
             r = routing[k][rd]
             star = r["cells"]["*"]
-            ph = f"`{r['phase']}` {r['phaseName']}"
+            ph = f"`{r['phase']}` {esc(r['phaseName'])}"
             if r.get("alsoPhases"):
                 ph += "<br><sub>also " + ", ".join(f"`{p}`" for p in r["alsoPhases"]) + "</sub>"
             jc = f"`{k}`"
@@ -501,7 +505,7 @@ def render():
                         if x.get(f) and x[f] not in extra:
                             extra.append(x[f])
                 if extra:
-                    s_ += "<br><sub><i>" + " · ".join(extra) + "</i></sub>"
+                    s_ += "<br><sub><i>" + " · ".join(esc(x) for x in extra) + "</i></sub>"
                 cols.append(s_)
                 claims.append({"t": "cell", "job": k, "d": d, "lang": l, "routed": rd, "phase": r["phase"],
                                "winner": effective(wn), "runnerUp": effective(ru), "extra": extra})
@@ -588,7 +592,7 @@ def render():
     w("|---|---|---|---|---|")
     for s in surface_keys:
         v = surfaces[s]
-        w(f"| **{v['label']}** | `{v['restart']}` | {v['effortControl']} | {v['lookup']} | {v['interactive']} |")
+        w(f"| **{esc(v['label'])}** | `{esc(v['restart'])}` | {esc(v['effortControl'])} | {esc(v['lookup'])} | {esc(v['interactive'])} |")
     w("")
     w("Native IDE equivalents by language (offered beside the winner as the *interactive* row):")
     w("")
@@ -596,7 +600,7 @@ def render():
     w("|---|---|")
     for l, v in reg["nativeInteractive"].items():
         if not l.startswith("$"):
-            w(f"| {lname(l)} | {v} |")
+            w(f"| {lname(l)} | {esc(v)} |")
     w("")
 
     # versions
@@ -610,7 +614,7 @@ def render():
     w("|---|---|---|")
     for p, v in reg["liveLookup"].items():
         if not p.startswith("$"):
-            w(f"| {p} | {v['cli'] or '—'} | " + "<br>".join(v["docs"]) + " |")
+            w(f"| {p} | {esc(v['cli'] or '—')} | " + "<br>".join(esc(x) for x in v["docs"]) + " |")
     w("")
 
     # sync
@@ -813,6 +817,18 @@ def self_test():
 
     print("the committed page:")
     page_now, _ = render()
+    def cells(line):
+        return len(re.split(r"(?<!\\)\|", line.strip())) - 2
+    ragged, hdr = [], None
+    for n, line in enumerate(page_now.split("\n"), 1):
+        if not line.startswith("|"):
+            hdr = None
+            continue
+        if hdr is None:
+            hdr = cells(line)
+        elif cells(line) != hdr:
+            ragged.append(n)
+    ok(not ragged, f"every table row has its header's cell count{'' if not ragged else f' (ragged at lines {ragged[:5]})'}")
     cur = open(os.path.join(root, OUT_PATH), encoding="utf-8").read() if os.path.exists(os.path.join(root, OUT_PATH)) else None
     ok(cur == page_now, f"{OUT_PATH} is current")
     if fails:
