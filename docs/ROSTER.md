@@ -964,7 +964,9 @@ the axis empty, list); `hatsu:direct` lands **stacked, at `v0.89.0`**, with `bui
 judgement (reading an issue) and the live version lookup are prose, named as such. **Dated note, 2026-10-04:**
 nen `v0.19.0` shipped the same day without either family and moved the compatibility floor to `0.19`; the
 families ship in the release after it, and the repin that adopts them absorbs the floor (`zheref/hatsu#168`, the open repin issue).
-Until then the verbs are absent and both skills continue where they can (row `missing-tool`).
+Until then the verbs are absent and both skills continue where they can (row `missing-tool`). **Superseded
+2026-10-05:** nen `v0.20.0` ships both families and moves the floor to `0.20`, and zheref/hatsu#168's repin
+adopts them.
 
 **Open questions, returned to the maintainer by the pre-PR review of 2026-10-04 (G4, not adjudicated
 here):** (1) **the reviewer tier against a lower session** — `direct` may send the maintainer's session to the

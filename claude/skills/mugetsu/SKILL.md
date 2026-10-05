@@ -446,7 +446,8 @@ general primitive every other verb here lacked, so a mechanized choreography no 
 back to a hand-run 'gh issue comment' for the one step written in a human's own words"*). Use
 `--body-file` rather than `--body` — a go quoted verbatim carries newlines and may begin with a
 character the parser would read as a flag. **The comment is the durable record; the session's
-transcript is not.**
+transcript is not.** An exit `4` (nen `0.20`) is the verb's own private-name refusal: nothing was
+posted, and the report says `record not written` with its line — the go is never reworded to pass it.
 
 **Re-render the turn report before stopping** — [`hatsu:spiritual-message`](../spiritual-message/SKILL.md) § 5's `turn`
 variant, at the same address, with the publication written into **01 Accomplished**.

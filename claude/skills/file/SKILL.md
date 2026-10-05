@@ -252,6 +252,12 @@ Exit `1` → replace each reported line's name with the legend's placeholder (`<
 write nothing; report the guard's line — an unread private list is never a pass. The guard prints
 indices, never names; keep it that way in the report.
 
+**nen runs the same refusal at the write** (nen `0.20`, zheref/nen#367): `issue file`, `issue comment`
+and `issue edit-body` exit `4` before writing a private name to a public target — nothing was sent;
+handle it as the guard's exit `1` (redact, re-run both) — and exit `1` when their guard could not run,
+handled as the guard's exit `2`. Their dry runs read the target's visibility, so they are not offline, and
+`issue file --body-file` resolves a relative path against `--repo`'s root: pass an absolute path.
+
 Present **one plan** covering everything that will be written, and take **one** confirmation for
 all of it. The plan states, in this order:
 

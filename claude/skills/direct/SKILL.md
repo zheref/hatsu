@@ -131,10 +131,9 @@ carries the decision to work here.
 
 The live version read (§ 4) is prose by design — the surface CLIs and provider pages are read by the
 session and quoted; nen stores no version. Reading the session's own surface, model and effort is the
-harness's fact, hand-read per surface and passed as `unread` where it cannot be. `nen direct registry|resolve`
-land in the nen release that ships the direct family (an owned dependency: zheref/nen#371 (branch
-`sonnet/kurapika/direct-verbs`), cited in `nen/contract.json`; `v0.19.0` shipped on 2026-10-04 without it);
-until the pin moves § 2's probe says so and the run continues where it can. The `snapshot` is refreshed as a
+harness's fact, hand-read per surface and passed as `unread` where it cannot be. `nen direct registry|resolve|answer`
+ship in nen `v0.20.0` (zheref/nen#371, carried to `main` by #380), the pin zheref/hatsu#168 moved; on an
+older binary § 2's probe says so and the run continues where it can. The `snapshot` is refreshed as a
 data edit through `great-hiker` § 7; a change to an alias's **meaning** is a ruling, never a data edit.
 
 ## Authority

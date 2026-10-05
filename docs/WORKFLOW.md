@@ -97,7 +97,7 @@ There are two execution/policy configuration files, and the split is not stylist
 | **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — both at the build `nen/contract.json` pins; dated evidence retains the version it actually exercised |
 
 > **The nen DEPENDENCY is the third block of the first file, and its two version values move
-> independently.** `dependency.minimum` is `0.19` and `dependency.pinned_ref` is `v0.19.0`: the first is the
+> independently.** `dependency.minimum` is `0.20` and `dependency.pinned_ref` is `v0.20.0`: the first is the
 > pin this repository declares, the second is the build its bootstrap installs. **The range `minimum`
 > stands for is nen's answer, not a document's** — the binary ships `COMPATIBLE_MINOR_FLOOR`, the lowest
 > `minimum` pin it satisfies, and `nen shu tools` applies it, prints it as `compat floor:` and carries it
@@ -1108,8 +1108,8 @@ through their prefixes, and their vocabulary — every key, prefix and colour �
 [`contracts/classify.taxonomy.json`](../contracts/classify.taxonomy.json), plugin canon read through
 `$hatsu_root`. A **consumer's `nen/labels.json` stays the one source of truth for that repository's labels**:
 `nen classify install --write` populates it from the taxonomy, the change **lands through its own declaration
-PR at that repository's gate**, and GitHub is synced only after (`nen labels sync` at the `v0.19.0` pin;
-`nen classify install --sync`, which refuses an unlanded declaration, once the family ships). The domains are
+PR at that repository's gate**, and GitHub is synced only after (`nen classify install --sync`,
+which refuses an unlanded declaration — the family ships from the `v0.20.0` pin). The domains are
 derived at run time by the taxonomy's `domains.rule`, never labelled. Nothing else about classification is
 authored here.
 

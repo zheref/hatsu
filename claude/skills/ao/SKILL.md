@@ -111,11 +111,12 @@ never against what this checkout last heard. `auto` (what ao passes) rebases whe
 branch is on `@{upstream}` and merges otherwise; `--strategy rebase|merge` names one only where the
 caller has a reason, said out loud. Exit `0`
 reports `{base, strategy, before, after, behindBefore, aheadBefore, noOp}`, and **a `noOp: true` is
-still reported with both SHAs**, never as "nothing to do". Every other exit, read off nen v0.18.2:
+still reported with both SHAs**, never as "nothing to do". Every other exit, read off nen v0.20.0:
 
 | Exit | What it is | ao |
 |---|---|---|
 | `1`, **with** a report whose `conflicted[]` is non-empty | a conflict; the abort line is printed | § 4 takes over |
+| `3`, a report whose `conflicted[]` paths are **all** in `nen/contract.json`'s `mechanical` block (v0.20.0) | a conflict nen classed manifest, changelog or mirror; the abort line and each class's commands are printed, **none run** | § 4 takes over, nen's classes and commands quoted as evidence; § 4 still classifies every path itself. Hatsu declares no `mechanical` block, so its own catch-ups stop at `1` |
 | `1`, **no** report | a fetch, status or HEAD read failed, a rebase or merge failed without a conflict, or a `--continue` failed | stop: quote nen's stderr sentence verbatim, say the tree is as git left it; never § 4 |
 | `2`, a rebase paused at a `break` or a failed `exec` (v0.18.2) | not ao's rebase | quote nen's sentence, which names `git rebase --continue` / `--abort`; never continue or abort it |
 | `2`, a rebase probe git did not answer (v0.18.2) | there may be no rebase at all | quote nen's sentence and stop, naming no git command |
