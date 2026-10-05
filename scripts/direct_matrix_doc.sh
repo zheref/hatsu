@@ -188,6 +188,20 @@ def match(w, kind, role, labels, jl):
 def actionable(a):
     return a if not aliases[a].get("reviewer") else None
 
+FORCE = {"aigov": ("process", None, []), "library": ("library", None, []),
+         "maintenance": ("product", None, ["bug"]), "feature": ("product", None, []),
+         "parity": ("product", None, [])}
+
+def reach(k, d):
+    """The job list that puts job k in domain d under FORCE[d], or None when no issue can."""
+    kind, role, labels = FORCE[d]
+    jl = [k] if d != "parity" or k == "parity" else ["parity", k]
+    if derive_domain(kind, role, labels, jl) == d:
+        return jl
+    comp = next(x["key"] for x in jobs if x["key"] != k and len(routing[x["key"]]) == len(domains))
+    jl = jl + [comp]
+    return jl if derive_domain(kind, role, labels, jl) == d else None
+
 def resolve(ex):
     dom = derive_domain(ex["kind"], ex["role"], ex["labels"], ex["job"])
     ls = [l for l in ex["lang"] if l != "prose"] or ["*"]
@@ -254,7 +268,7 @@ def render():
                  ("The models — ten aliases", "the-models--ten-aliases"),
                  ("The grid — every job in every domain", "the-grid--every-job-in-every-domain"),
                  ("Which domain am I in?", "which-domain-am-i-in"),
-                 ("Domain by domain — runner-ups and language differences", "domain-by-domain--runner-ups-and-language-differences"),
+                 ("Job × language — one matrix per domain", "job--language--one-matrix-per-domain"),
                  ("How hard — the effort rule", "how-hard--the-effort-rule"),
                  ("Several jobs or languages on one issue", "several-jobs-or-languages-on-one-issue"),
                  ("Worked examples", "worked-examples"),
@@ -318,11 +332,12 @@ def render():
     # grid
     w("## The grid — every job in every domain")
     w("")
-    w("The **winner** for each job when the issue carries that job alone — every language, unless a "
-      "language is named beneath it with its own winner. *↪ italics* means the job has no phase in that "
-      "domain and borrows the route of the domain named. *Effort alone* is that job's level by itself "
+    w("The **winner** of each job's own cell — for every language, unless a language is named beneath it "
+      "with its own winner. *↪ italics* means the job has no phase in that domain and borrows the route of "
+      "the domain named. *—* means no issue can put that job in that domain (`job/parity` in a product "
+      "repository always derives the parity domain). *Effort alone* is that job's level by itself "
       "(one more step in AI governance). Runner-ups are in "
-      "[the domain tables](#domain-by-domain--runner-ups-and-language-differences).")
+      "[the job × language matrices](#job--language--one-matrix-per-domain).")
     w("")
     key = []
     for name in precedence:
@@ -339,6 +354,9 @@ def render():
         k = j["key"]
         row = [f"**`{k}`**<br><sub>{j['title']}</sub>"]
         for d in domains:
+            if reach(k, d) is None:
+                row.append("—")
+                continue
             rd = route_domain(k, d)
             r = routing[k][rd]
             c = r["cells"]["*"]["winner"]
@@ -370,56 +388,53 @@ def render():
       "order: the derived domain, then " + ", ".join(fb_order) + " — and `direct` names the substitution.")
     w("")
 
-    # per-domain detail
-    w("## Domain by domain — runner-ups and language differences")
+    # per-domain job x language matrices
+    w("## Job × language — one matrix per domain")
     w("")
-    w("Each table lists the jobs routed in that domain. *Winner* and *Runner-up* are the shared cell every "
-      "language uses; *Language differences* lists only the languages routed otherwise, with the interactive "
-      "tool the source matrix prefers for them.")
+    w("The registry's routing is keyed **(job, domain, language)**: the source document's five tables, one per "
+      "domain, each varying by language. Pick your domain, find your job's row, read your language's column. "
+      "Each cell is that pair's **winner**, then its runner-up, then the interactive tool the source prefers "
+      "where it names one. A **bold** winner is routed for that language specifically, unlike the shared "
+      "cell. A row in *↪ italics* has no phase in this domain and borrows the route of the domain named — "
+      "you meet it when the issue's other jobs put it in this domain. `prose` always reads the shared cell.")
     w("")
     for d in domains:
         w(f"### {DOMAIN_NAME.get(d, d)} (`{d}` · `{tax['domains']['tablePrefix'][d]}`)")
         w("")
-        w("| Job | Phase | Winner | Runner-up | Language differences |")
-        w("|---|---|---|---|---|")
+        w("| Job | Phase | " + " | ".join(LANG_NAME.get(l, l) for l in lang_keys) + " |")
+        w("|---|---|" + "---|" * len(lang_keys))
         for j in jobs:
             k = j["key"]
-            if d not in routing[k]:
-                continue
-            r = routing[k][d]
+            if reach(k, d) is None:
+                continue  # no issue can put this job in this domain
+            rd = route_domain(k, d)
+            r = routing[k][rd]
             star = r["cells"]["*"]
             ph = f"`{r['phase']}` {r['phaseName']}"
             if r.get("alsoPhases"):
                 ph += "<br><sub>also " + ", ".join(f"`{p}`" for p in r["alsoPhases"]) + "</sub>"
-            def side(c):
-                s = cell_text(c, surface=True)
-                if c.get("interactive"):
-                    s += f"<br><sub>interactive: {c['interactive']}</sub>"
-                if c.get("note"):
-                    s += f"<br><sub>{c['note']}</sub>"
-                return s
-            diffs = []
+            jc = f"`{k}`"
+            if rd != d:
+                jc = f"*`{k}`<br>↪ {DOMAIN_SHORT.get(rd, rd).lower()}*"
+                ph = f"*{ph}*"
+            cols = []
             for l in lang_keys:
-                if l in r["cells"] and l != "*":
-                    c = r["cells"][l]
-                    changes, extra = [], []
-                    for role, nm in (("winner", "winner"), ("runnerUp", "runner-up")):
-                        x = c[role]
-                        if not same_alias(x, star[role]):
-                            changes.append(f"{nm} {cell_text(x, surface=True)}")
-                        for f in ("interactive", "note"):
-                            if x.get(f) and x[f] not in extra:
-                                extra.append(x[f])
-                    s = f"**{LANG_NAME.get(l, l)}**: " + ("; ".join(changes) if changes else "same models")
-                    if extra:
-                        s += "<br><sub>" + " · ".join(extra) + "</sub>"
-                    diffs.append(s)
-            w(f"| `{k}` | {ph} | {side(star['winner'])} | {side(star['runnerUp'])} | "
-              f"{'<br>'.join(diffs) if diffs else '—'} |")
+                c = r["cells"].get(l) if l != "prose" else None
+                c = c or star
+                win = cell_text(c["winner"])
+                if not same_alias(c["winner"], star["winner"]):
+                    win = f"**{win}**"
+                s_ = win + f"<br><sub>runner-up {cell_text(c['runnerUp'])}</sub>"
+                extra = []
+                for x in (c["winner"], c["runnerUp"]):
+                    for f in ("interactive", "note"):
+                        if x.get(f) and x[f] not in extra:
+                            extra.append(x[f])
+                if extra:
+                    s_ += "<br><sub><i>" + " · ".join(extra) + "</i></sub>"
+                cols.append(s_)
+            w(f"| {jc} | {ph} | " + " | ".join(cols) + " |")
         w("")
-    w("*Same models* means the language keeps the shared winner and runner-up and differs only in the "
-      "interactive tool named beneath it.")
-    w("")
 
     # effort
     w("## How hard — the effort rule")
@@ -550,10 +565,6 @@ def nen(kind, role, labels, lang, job):
         raise SystemExit(f"nen direct resolve failed ({' '.join(cmd)}): {p.stderr.strip()}")
     return json.loads(p.stdout)
 
-FORCE = {"aigov": ("process", None, []), "library": ("library", None, []),
-         "maintenance": ("product", None, ["bug"]), "feature": ("product", None, []),
-         "parity": ("product", None, [])}
-
 def verify():
     checked = 0
     bad = []
@@ -561,9 +572,9 @@ def verify():
         k = j["key"]
         for d in domains:
             kind, role, labels = FORCE[d]
-            jl = [k] if d != "parity" or k == "parity" else ["parity", k]
-            if derive_domain(kind, role, labels, jl) != d:
-                continue  # this job can never be reached in that domain alone (e.g. a maintenance-only job)
+            jl = reach(k, d)
+            if jl is None:
+                continue  # no issue reaches this pair; the page renders it as unreachable
             rd = route_domain(k, d)
             for l in lang_keys:
                 out = nen(kind, role, labels, [l], jl)
