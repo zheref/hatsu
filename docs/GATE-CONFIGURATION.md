@@ -210,8 +210,8 @@ own file spells them) — one member's round now covers the
 others, so a broad member pattern lets any login or check containing the word satisfy the whole group; and
 the `reviewers[]` entry `any_of` requires is owed on every PR once its check enrols it, which only the
 *fulfils* half of zheref/nen#361 excuses — Hatsu's own file names Copilot alone until Cursor Bugbot
-(`bugbot` here, the fallback chain's name for it) is enrolled on the repository and the pin reads that
-release. The behaviour — what counts as a round, which unavailable member a met quorum fulfils, the one in
+(`bugbot` here, the fallback chain's name for it) is enrolled on the repository (the v0.20.0 pin carries the
+*fulfils* half). The behaviour — what counts as a round, which unavailable member a met quorum fulfils, the one in
 flight it never does, the route under the pin — is [`docs/PROCESS.md`](PROCESS.md) § *Reviewer rounds and
 review threads*, *One bot reviewer suffices*, stated once.
 

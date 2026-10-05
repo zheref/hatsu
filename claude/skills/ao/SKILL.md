@@ -111,11 +111,12 @@ never against what this checkout last heard. `auto` (what ao passes) rebases whe
 branch is on `@{upstream}` and merges otherwise; `--strategy rebase|merge` names one only where the
 caller has a reason, said out loud. Exit `0`
 reports `{base, strategy, before, after, behindBefore, aheadBefore, noOp}`, and **a `noOp: true` is
-still reported with both SHAs**, never as "nothing to do". Every other exit, read off nen v0.18.2:
+still reported with both SHAs**, never as "nothing to do". Every other exit, read off nen v0.20.0:
 
 | Exit | What it is | ao |
 |---|---|---|
 | `1`, **with** a report whose `conflicted[]` is non-empty | a conflict; the abort line is printed | § 4 takes over |
+| `3`, a report whose `conflicted[]` paths are **all** in `nen/contract.json`'s `mechanical` block (v0.20.0) | a conflict nen classed manifest, changelog or mirror; the abort line and each class's commands are printed, **none run** | § 4 takes over, nen's classes and commands quoted as evidence; § 4 still classifies every path itself. Hatsu declares no `mechanical` block, so its own catch-ups stop at `1` |
 | `1`, **no** report | a fetch, status or HEAD read failed, a rebase or merge failed without a conflict, or a `--continue` failed | stop: quote nen's stderr sentence verbatim, say the tree is as git left it; never § 4 |
 | `2`, a rebase paused at a `break` or a failed `exec` (v0.18.2) | not ao's rebase | quote nen's sentence, which names `git rebase --continue` / `--abort`; never continue or abort it |
 | `2`, a rebase probe git did not answer (v0.18.2) | there may be no rebase at all | quote nen's sentence and stop, naming no git command |
@@ -160,8 +161,8 @@ Verified live against a constructed fixture carrying one of each (`docs/ab/ao.md
 | `UD` / `DU` | **delete-modify** — one side deleted what the other edited | the surviving side only |
 | `DD`, `AU`, `UA` | the rarer shapes; classify by the same table and name them | as git reports |
 
-> **`nen wc catch-up --json` carries `conflicted[]` at exit `1`, one entry per unmerged path, with
-> `ours` and `theirs` verbatim.** What it does not carry is the *kind*, so the porcelain table above
+> **`nen wc catch-up --json` carries `conflicted[]` at exit `1` or `3`, one entry per unmerged path, with
+> `ours` and `theirs` verbatim** (and, from `nen.wc.catch-up/v0.2`, nen's `class`). What it does not carry is the *kind*, so the porcelain table above
 > is still read for that, and § 6 shows `ours`/`theirs` exactly as the verb printed them. The verb's
 > own rule is the one worth quoting where it lands: it never picks a side.
 

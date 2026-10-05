@@ -437,7 +437,8 @@ caller-written comment, never a raw `gh`:
 
 ```bash
 bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> <path> &&   # 0 or skipped, else no write (file § 4)
-  nen issue comment --target <owner/name> --issue <the release PR or issue number> --body-file <path>
+  nen issue comment --target <owner/name> --issue <the release PR or issue number> --body-file <path> \
+    [--private-names-ignore-file <file § 4's ignore file>]
 ```
 
 A pull request **is** an issue to this verb, which is why there is no `nen pr comment` and none is
@@ -446,7 +447,9 @@ general primitive every other verb here lacked, so a mechanized choreography no 
 back to a hand-run 'gh issue comment' for the one step written in a human's own words"*). Use
 `--body-file` rather than `--body` — a go quoted verbatim carries newlines and may begin with a
 character the parser would read as a flag. **The comment is the durable record; the session's
-transcript is not.**
+transcript is not.** The verb takes [`file`](../file/SKILL.md) § 4's
+ignore-file flag; its exit `4` or `1` is read there — nothing posted is `record not written`, with its line,
+and the go is never reworded to pass it.
 
 **Re-render the turn report before stopping** — [`hatsu:spiritual-message`](../spiritual-message/SKILL.md) § 5's `turn`
 variant, at the same address, with the publication written into **01 Accomplished**.

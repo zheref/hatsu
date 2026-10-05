@@ -269,8 +269,8 @@ requested, not yet posted — wait* above: a pending request with no check is ex
 reviewer not in `any_of` is owed as before, and a stalled request or an unresolved thread fails as before.
 An unmet quorum with no member owed (an exempt member in `any_of`; unreachable in Hatsu's own file) reads
 `round quorum not met` and is one owed round of the first `any_of` member `reviewers[]` can request, under
-`sharingan` § 6's bounds (this run's reading, listed in ROSTER). The *fulfils* half ships in the nen release
-after `v0.19.0`; until the repin that reads it the pinned binary still reads an unavailable member's round
+`sharingan` § 6's bounds (this run's reading, listed in ROSTER). The *fulfils* half ships in nen `v0.20.0`,
+the pin zheref/hatsu#168 moved; a binary older than it still reads an unavailable member's round
 as owed, the verdict is quoted as the verb prints it, and the owed member is handled by the rules that
 already exist — a live `exhausted[]` row: *The fallback chain* below, to the merge prompt; no row:
 `sharingan` § 6's request bound. Nothing in this paragraph is read by a Hatsu script; the verb reads the key.
@@ -424,22 +424,23 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   models`, `cursor-agent --model help`, the in-session model picker) and the provider pages the registry cites
   are read by the session and quoted with their date; nen stores no version and the registry's `snapshot` is
   the stated fallback. Reading the session's own surface, model alias and effort for the mismatch check is the
-  harness's fact, hand-read per surface and passed as `unread` where it cannot be. `nen direct registry|resolve`
-  land in the nen release that ships the direct family (an owned dependency: zheref/nen#371 (branch `sonnet/kurapika/direct-verbs`), cited in `nen/contract.json`; `v0.19.0` shipped on 2026-10-04 without it); on the `v0.18.2` pin they are absent, § 2's probe says so, and `build` continues unrouted
-  (row `missing-tool`) — an **owned dependency** on `zheref/nen` until the pin moves.
+  harness's fact, hand-read per surface and passed as `unread` where it cannot be. `nen direct registry|resolve|answer`
+  ship in nen `v0.20.0` (zheref/nen#371, carried to `main` by #380), the pin zheref/hatsu#168 moved; on an older
+  binary they are absent, § 2's probe says so, and `build` continues unrouted (row `missing-tool`).
 - **`classify`.** The judgement — reading an issue's title, body and paths and deciding its `lang/` and
   `job/` keys (classify § 3) — is prose by design: nen owns operations, not reading an issue. The issue read
-  (`gh issue view --json title,body,labels`) is a raw call until `nen classify status` carries the body.
-  Every other step is the `nen classify` family (`labels`, `install`, `status`, `apply`), which lands in
-  the nen release that ships the classify family (an owned dependency: zheref/nen#370 (branch `sonnet/kurapika/classify-verbs`), cited in `nen/contract.json`; `v0.19.0` shipped on 2026-10-04 without it); on the `v0.18.2` pin those verbs are absent, § 2's probe says so, and the skill continues where
-  it can (row `missing-tool`: the judgement shown, nothing labelled by hand, the repin named) — an **owned
-  dependency** on `zheref/nen` until the pin moves. The GitHub half of a declaration is `nen labels sync` at
-  this pin and `nen classify install --sync` once it ships.
+  is `nen classify status --with-body`'s. Every other step is the `nen classify` family (`labels`, `install`,
+  `status`, `apply`), which ships in nen `v0.20.0` (zheref/nen#370, carried to `main` by #380), the pin
+  zheref/hatsu#168 moved; on an older binary those verbs are absent, § 2's probe says so, and the skill
+  continues where it can (row `missing-tool`: the judgement shown, nothing labelled by hand, ten § 2's install named).
+  The GitHub half of a declaration is `nen classify install --sync`, with `nen labels sync` the whole-file form.
 - **`file`.** The private-name check before every write to a public repository
-  (`scripts/private_name_check.sh`, zheref/hatsu#149) is owed to nen (zheref/nen#329): `nen issue
-  file`, `nen issue comment` and `nen issue edit-body` read no private list, so `file`,
-  `backlog-synthesis`, `mugetsu` and `sharingan` pipe each title, body and comment through the script
-  first. It reads `gh api 'user/repos?visibility=private'` live; nothing caches it.
+  (`scripts/private_name_check.sh`, zheref/hatsu#149) stays the first guard, run before the plan so the plan
+  shows checked text: `file`, `backlog-synthesis`, `mugetsu` and `sharingan` pipe each title, body and
+  comment through it. It reads `gh api 'user/repos?visibility=private'` live; nothing caches it. From nen
+  `v0.20.0` (zheref/nen#367, closing #329) `nen issue file`, `comment` and `edit-body` refuse too, at exit `4`,
+  given the script's ignore file (`file` § 4). What nen does not guard yet — `issue consolidate-close`'s
+  close comments and the `pr` writers (zheref/nen#363) — is the script's alone.
 - **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`; and the undo of `wc squash`'s exit `3`, `git -C <path> reset --soft ORIG_HEAD` (§ 4).
 - **`kagutsuchi` § 3a.** The freshness gate is `scripts/send_freshness_check.sh` — a `git fetch`,
   `rev-parse`, `rev-list` and `status --porcelain` over the archive's recorded build SHA — and the
@@ -474,10 +475,10 @@ until then the two scripts above are the mechanism and are named as such.
 **RETIRED at nen `0.19`:** `nen commit write` and `nen wc squash` read back the trailers of the commit they wrote, and exit `3` with `injected[]` ([zheref/nen#273](https://github.com/zheref/nen/issues/273), closed by zheref/nen#357). kokusen § 5 and aka § 4 map that exit. aka § 7's step-0 read of the whole outgoing range stays, because a clean catch-up merge is written by `nen wc catch-up`, which reads no trailers back (zheref/nen#357 covers `commit write` and `wc squash` only).
 
 - **`nen report data` derives less than a page needs**
-  ([zheref/nen#258](https://github.com/zheref/nen/issues/258)). It does not derive `effortStage`,
-  `gate`, `turnLabel`, `worktree` or `generatedAtLocal`, so the caller fills them (the last through
-  `scripts/report_time.sh`); and it stamps `repo` from the **worktree directory's** name rather than
-  the project's, so the caller overwrites `repo` with the project name
+  ([zheref/nen#258](https://github.com/zheref/nen/issues/258)). From nen `v0.20.0` (zheref/nen#375) it derives
+  `repo` (the hosted `owner/name`), `worktree`, `effortStage`, `gate` and `stageClass`, each `null` with its
+  reason on stderr when a fact is missing; the caller still fills `turnLabel` and `generatedAtLocal` (the
+  latter through `scripts/report_time.sh`), and a `null` `repo` from `nen repo resolve`
   ([`WORKFLOW.md`](WORKFLOW.md) § `reports`, *Where the effort is*). Each filled value is named as
   residue on the page until the verb derives it.
 

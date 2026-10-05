@@ -57,8 +57,8 @@ nen classify status --taxonomy "$hatsu_root/contracts/classify.taxonomy.json" --
 nen repo classify --repo <checkout> --json
 ```
 
-**The probe first**: `unknown command` means the family is absent at this pin (row `missing-tool`,
-autonomous — the run continues where it can): the report says `direct unavailable at nen <version>; repin owed`
+**The probe first**: `unknown command` means the host nen predates the pin (row `missing-tool`,
+autonomous — the run continues where it can): the report says `direct unavailable at nen <version>; install the pin (ten § 2)`
 and **`build` continues unrouted**; standalone, that line is the answer. With the verbs present, the `lang` and
 `job` keys are the labels, read, never re-derived. **Standalone, a missing axis** is classify § 3 run here on
 the text — rows labelled **proposed**, applied only through classify's own confirmation; **inside `build`,
@@ -123,7 +123,7 @@ model **alias** against `models.<surface>.<winner tier>`, and the effort **in di
 `max` reading `high` on Cursor and Antigravity — matches a session at that dial); `unread` is reported, never
 a mismatch. A difference on any readable compare is one picker, row `direct-mismatch` (`ask-once-per-run`):
 ⭐ **A** continue here · **B** stop so the maintainer restarts on the recommended surface, the restart line
-quoted. The answer goes into the same record, `nen direct answer --record <effort id> --answer continue|stop`;
+quoted. The answer goes into the same record, `nen direct answer --record <effort id> --answer continue|stop --repo <checkout>`;
 **A continues without another word, B ends the run naming what to open**; a match is one line. **It is never a gate and never a block**: the typed `hatsu:build` already
 carries the decision to work here.
 
@@ -131,10 +131,9 @@ carries the decision to work here.
 
 The live version read (§ 4) is prose by design — the surface CLIs and provider pages are read by the
 session and quoted; nen stores no version. Reading the session's own surface, model and effort is the
-harness's fact, hand-read per surface and passed as `unread` where it cannot be. `nen direct registry|resolve`
-land in the nen release that ships the direct family (an owned dependency: zheref/nen#371 (branch
-`sonnet/kurapika/direct-verbs`), cited in `nen/contract.json`; `v0.19.0` shipped on 2026-10-04 without it);
-until the pin moves § 2's probe says so and the run continues where it can. The `snapshot` is refreshed as a
+harness's fact, hand-read per surface and passed as `unread` where it cannot be. `nen direct registry|resolve|answer`
+ship in nen `v0.20.0` (zheref/nen#371, carried to `main` by #380), the pin zheref/hatsu#168 moved; on an
+older binary § 2's probe says so and the run continues where it can. The `snapshot` is refreshed as a
 data edit through `great-hiker` § 7; a change to an alias's **meaning** is a ruling, never a data edit.
 
 ## Authority

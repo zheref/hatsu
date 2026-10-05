@@ -185,4 +185,4 @@ over this run's scope — its § 2 futon row, the `then` outcome included — **
 - **Never hand-authors the status board** (§ 9); **never leaves the delegation open**.
 
 *Residue: PROCESS § Residue and owned dependencies; dated verifications: `docs/ab/futon.md`. The label selector, `then` chain and fail-closed `gate`
-need nen v0.15.1+ (pin v0.19.0); an older binary's exit `2` is relayed, never worked around.*
+need nen v0.15.1+ (pin v0.20.0); an older binary's exit `2` is relayed, never worked around.*
