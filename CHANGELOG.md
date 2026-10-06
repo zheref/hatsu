@@ -2,6 +2,36 @@
 
 All notable changes to Hatsu are documented in this file. Releases follow [Semantic Versioning](https://semver.org/).
 
+## v0.93.0 — the registry rebalanced for cost, three picks per cell, Grok on Cursor, and the model matrix as a readable page
+
+Two deliveries merged since `v0.92.0`, folded here from their `changelog.d/` fragments, newest first. `v0.92.1` was never tagged and ships inside `v0.93.0`.
+
+**Net effect at `v0.93.0`:** `contracts/direct.registry.json` carries twelve aliases and three picks per cell (primary, fallback, recommended) by #237, and the matrix page #233 introduced now renders that registry — #233's entry below describes the page as it first landed (ten aliases, winner and runner-up), superseded inside this same release; its generator and guard are unchanged in shape and gained the registry's invariants.
+
+### The registry rebalance: Sol as the execution default, Grok on Cursor, three picks per cell, opt-in publish and the backlog sweep ([#237](https://github.com/zheref/hatsu/pull/237), 0.93.0)
+
+- **`contracts/direct.registry.json` — the registry rebalance of 2026-10-05.** The execution default moves from the frontier tier (GPT Astra) to the deep tier (GPT Sol) as `EXECUTION_FRONTIER`; Astra becomes the `EXECUTION_MAX` escalation, mirroring `SEMANTIC_MAX`; Terra becomes `EXECUTION_VALUE` on the fast tier. Grok on Cursor enters as `EDITOR_FRONTIER` (Cursor's deep tier): the primary on the eight editor-shaped TypeScript cells and the cross-provider fallback for execution work. Every cell now yields **three picks** — primary (cost-aligned best), fallback (on another provider or surface in every cell; 66 cells moved in all, 60 of them to satisfy `picks.fallbackRule`) and recommended (cost-agnostic, by `picks.recommended`). Each alias carries its model **line** (`claude | gpt | gemini | grok | composer`) and **escalation**; the snapshot is re-read live with list prices and served ids per surface; Codex's dial gains `max`, Cursor's `xhigh`; Grok Build and Copilot are listed as non-actionable surfaces. Standalone `review` cells route to the semantic reader. The realised saving lags the price sheet where a surface still serves an older id: Codex serves `gpt-5.6-sol` at $4 / $20 today, recorded in `snapshot.served`. (the maintainer's rulings of 2026-10-05, `docs/ROSTER.md`; [#237](https://github.com/zheref/hatsu/pull/237))
+- **`hatsu:direct` reports three picks on five axes** — line, tier, version and effort dial (read live), surface — compares the session against the whole set (`within the registry's set`, one line, never asked), keeps companion jobs (`review`, `delivery-ops`, flagged in `contracts/classify.taxonomy.json`) out of the verb call that decides and reports them from a second call, names the other-pool aggregate fallback where the verb's runner-up shares the primary's pool (zheref/nen#389), and **publishes only where `nen/workflow.json` → `direct.publish` opts in**: `label` applies one `model/<line>` label through `nen label apply`; `label+comment` adds one marker-keyed issue comment with a `Direct:` trailer; `hatsu:direct backlog [<repo>]` sweeps every open classified issue — one table, one confirmation, then label and comment per issue (never under `ren`, which cannot leave the machine). The five `model/` labels are declared in `nen/labels.json` (sync after this lands). `build` § 2b and `ren` § 2 run the compare; `nen/decisions.json` row `direct-mismatch` reads the set.
+- **`docs/DIRECT-MATRIX.md`** re-rendered: the alias table gains line, escalation and list price, a *Primary, fallback, recommended* section, served ids, the non-actionable surfaces and the live effort-dial column; `scripts/direct_matrix_doc.sh --self-test` now checks the registry's own invariants over every cell; `--verify` agrees on 2,019 printed claims at nen `v0.20.0`.
+- **`docs/surfaces/cursor.md`**: the live `grok` resolve matches `grok-4.7-*` as well as `cursor-grok-*` (the served 4.7 ids carry no prefix, read 2026-10-05); Cursor's model sheet quoted.
+- `contracts/config-catalogue.json` gains `workflow.direct.publish`; `docs/WORKFLOW.md` § 2 gains the `direct` key block and its consequence paragraph. The plugin is bumped to 0.93.0 (Claude manifest and Codex overlay) and the mirrors regenerated at that stamp.
+
+### `docs/DIRECT-MATRIX.md` — the model matrix, readable without running `hatsu:direct` ([#233](https://github.com/zheref/hatsu/pull/233), 0.92.1)
+
+- **`docs/DIRECT-MATRIX.md` — the model matrix, readable without running `hatsu:direct`.** One page answers which model, surface and effort `direct` will recommend for any work:
+  - the ten aliases, each with its provider, family, surface, the name you type and the dated snapshot model;
+  - a grid of all 39 jobs × 5 domains naming each winner, with per-language winners inline, fallback routes marked, and the two cells no issue can reach (`parity` in feature and maintenance) shown as `—`;
+  - five job × language matrices, one per domain as the registry routes them, each cell giving that pair's winner, runner-up, phase and interactive tool;
+  - the domain rules, the fallback sentence and the aggregation rule, quoted from the data; the effort rule with job weights and each surface's dial;
+  - seven worked examples with their restart lines. ([#233](https://github.com/zheref/hatsu/pull/233))
+  - **Rendered, never hand-written.** `scripts/direct_matrix_doc.sh` builds the page from `contracts/direct.registry.json`, `contracts/classify.taxonomy.json` and `nen/workflow.json` → `models`, the files `nen direct resolve` reads.
+    - `--check` fails on a stale or missing page.
+    - `--self-test` proves the guard's negative paths on hermetic fixtures, then runs `--check`. It is the argv of the new focused lane `direct-matrix-guard` in `nen/contract.json`.
+    - `--verify` asks `nen direct resolve` about **every claim the page prints**: 2,017 at nen `v0.20.0`, all agreeing. A planted renderer bug turns it red with 93 disagreements.
+    - The rendering re-implements the verb's rules to work offline, and that re-implementation is named as residue in the script. Running both checks automatically, in CI on data-only edits and at every nen repin, is zheref/hatsu#234.
+  - Linked from the README's introduction and from `docs/WORKFLOW.md` § *`direct` — the model, surface and effort*. The WORKFLOW paragraph and the new lane are shipped surfaces, so the plugin is bumped to 0.92.1 (Claude manifest and Codex overlay) and the mirrors are regenerated at that stamp.
+Release unit for `v0.92.0..v0.93.0`: [#233](https://github.com/zheref/hatsu/pull/233) (the model matrix page, v0.92.1), [#237](https://github.com/zheref/hatsu/pull/237) (the registry rebalance, v0.93.0) and [#239](https://github.com/zheref/hatsu/pull/239) (this release proposal). `v0.92.1` was never tagged: its section ships inside `v0.93.0`. This line is where the range's PRs are cited, which is what `CON-33(c)` reconciles against.
+
 ## v0.92.0 — classify and direct route every issue, one bot reviewer suffices, and nen v0.20.0 is the pin
 
 Six deliveries merged since `v0.86.0`, folded here from their `changelog.d/` fragments, newest first. `v0.87.0` through `v0.91.0` were never tagged and ship inside `v0.92.0`.
