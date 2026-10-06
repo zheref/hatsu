@@ -30,6 +30,7 @@ Two deliveries merged since `v0.92.0`, folded here from their `changelog.d/` fra
     - `--verify` asks `nen direct resolve` about **every claim the page prints**: 2,017 at nen `v0.20.0`, all agreeing. A planted renderer bug turns it red with 93 disagreements.
     - The rendering re-implements the verb's rules to work offline, and that re-implementation is named as residue in the script. Running both checks automatically, in CI on data-only edits and at every nen repin, is zheref/hatsu#234.
   - Linked from the README's introduction and from `docs/WORKFLOW.md` § *`direct` — the model, surface and effort*. The WORKFLOW paragraph and the new lane are shipped surfaces, so the plugin is bumped to 0.92.1 (Claude manifest and Codex overlay) and the mirrors are regenerated at that stamp.
+Release unit for `v0.92.0..v0.93.0`: [#233](https://github.com/zheref/hatsu/pull/233) (the model matrix page, v0.92.1), [#237](https://github.com/zheref/hatsu/pull/237) (the registry rebalance, v0.93.0) and [#239](https://github.com/zheref/hatsu/pull/239) (this release proposal). `v0.92.1` was never tagged: its section ships inside `v0.93.0`. This line is where the range's PRs are cited, which is what `CON-33(c)` reconciles against.
 
 ## v0.92.0 — classify and direct route every issue, one bot reviewer suffices, and nen v0.20.0 is the pin
 
