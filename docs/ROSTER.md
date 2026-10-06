@@ -959,6 +959,8 @@ the primary and the report keeps the within read, both named as such until zhere
 vocabulary has **five** lines, not the four the request named: `composer` is a line of its own because a
 `MECHANICAL_EDITOR` primary needs a label too — the maintainer's to correct.
 
+**Added on 2026-10-06, at the maintainer's word** (*"run it batched against a whole repository's backlog so that all issues are labeled+commented on the resolved model selection axes"*): `hatsu:direct backlog [<repo>]` (direct § 8) — every open classified issue resolved, one table, one confirmation for the batch (publish as configured, or for this sweep at `label` or `label+comment` where the key reads `none`, or report only), then the per-issue publish. Under `ren`, direct stays report-only: Ren cannot leave the machine (Copilot's round on the PR, settled).
+
 **What follows.** The registry's `revision` block records the transform; `scripts/direct_matrix_doc.sh
 --self-test` now holds the registry's invariants over every cell (the fallback rule, every alias's line and
 escalation, no frontier primary, every companion routed, every list price sourced); `ren` § 2 runs `direct` on a

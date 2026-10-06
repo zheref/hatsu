@@ -284,11 +284,10 @@
         "label",
         "label+comment"
       ],
-      "describe": "Whether hatsu:direct writes its verdict to the issue: none keeps it in the report and the local ledger; label applies one model/<line> label (the primary pick's model line, through nen label); label+comment adds one marker-keyed issue comment with the primary, fallback and recommended picks, tier, surface, effort and live version.",
+      "describe": "Whether hatsu:direct writes its verdict to the issue: none keeps it in the report and the local ledger; label applies one model/<line> label (the primary pick's model line, through nen label); label+comment adds one marker-keyed issue comment with the primary, fallback and recommended picks, tier, surface, effort and live version. Acts under build or standalone, never under ren.",
       "readers": [
         "direct",
-        "build",
-        "ren"
+        "build"
       ],
       "source": "docs/WORKFLOW.md § 2 (direct); contracts/direct.registry.json -> publish"
     },

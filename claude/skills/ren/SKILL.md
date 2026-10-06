@@ -111,8 +111,7 @@ names an issue (`<CODE>#<N>` in the request) or a text classify already labelled
 `--surface`, `--model` and `--effort` (`unread` where the harness hides one), exactly as `build` § 2b does; its
 § 6 owns the compare and the one ask, and the typed `hatsu:ren` is already the decision to work here, so it
 **never blocks**. Its answer **B** ends this *turn*, not the loop: steps 5 and 6 still run and the report names
-the restart line. An effort with no `job/` label is `undirectable`, one line, and the turn goes on. It is not a
-seventh step and asserts no order of its own: it reads inside the warm-up, asks at most once, authors nothing.
+the restart line. An effort with no `job/` label is `undirectable`, one line, and the turn goes on. It is not a seventh step and asserts no order of its own: it reads inside the warm-up, asks at most once, authors nothing — and its § 7 publish step **does not run here**: Ren cannot leave the machine (§ 3), so the verdict stays in the report and the local ledger, and `direct.publish` acts only under `build` or standalone.
 
 **Warmup runs once per effort; checkout selection is checked on EVERY entry.** Later turns and
 PR phases re-verify the bound absolute effort path under `$hatsu_root/docs/WORKFLOW.md` § *Where
@@ -172,7 +171,7 @@ delivered*.
 **Produces:** local commits on the effort's branch, a launch result or explicit deferral under
 Amaterasu § 3, one report at the branch's report address, and at most one bell.
 
-**Never produces:** a push, a pull request, a tag, a label, a comment, a release, a deploy. **Ren is
+**Never produces:** a push, a pull request, a tag, a label, a comment (direct's opt-in `model/` label and comment included: under Ren, direct is report-only), a release, a deploy. **Ren is
 the phase that cannot leave the machine**, and that is what makes it safe to run on every request
 without asking. The moment work needs to leave, a human says so.
 
