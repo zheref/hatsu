@@ -87,10 +87,11 @@ nen <version>; build continues unrouted, install the pin (ten § 2)` — then §
 [`hatsu:classify`](../classify/SKILL.md) § 3 here, its rows shown then applied under this run's go (classify
 § 5); an undecidable axis stays empty, said (row `classify-undecidable`), never re-classified downstream. Then,
 every run, `hatsu:direct <CODE>#<N>` with the session's `--surface`, `--model` and `--effort` (`unread` where
-unexposed): [`direct`](../direct/SKILL.md) § 5 reports the verdict beside the session's and § 6 owns the
-mismatch — row `direct-mismatch`, asked once, **never a block**; **B** ends the run naming what to open. The
-verdict is recorded in `.nen/direct/<CODE>-IS-%23<N>.json` (the id percent-encoded by the verb), the answer by
-`nen direct answer`.
+unexposed): [`direct`](../direct/SKILL.md) § 5 reports the three picks beside the session's and § 6 owns the
+compare — a session on the primary, the fallback or the recommended is one line; outside that set, row
+`direct-mismatch`, asked once, **never a block**; **B** ends the run naming what to open. The verdict is
+recorded in `.nen/direct/<CODE>-IS-%23<N>.json` (percent-encoded by the verb), the answer by
+`nen direct answer`; direct § 7 publishes under `direct.publish` only.
 
 ## 3. Worktree isolation by default
 

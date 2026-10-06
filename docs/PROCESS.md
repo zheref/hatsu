@@ -420,11 +420,17 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   derives a run's scope; `nen report data --base origin/<branch.base> --prs <n,...> --issues <n,...>`
   then fetches them in one call, merged PRs and closed issues included (`--base` is required, exit 2
   without it; verified nen 0.18.1, 2026-09-30).
-- **`direct`.** The latest-version read (direct § 4) is prose by design — the surface CLIs (`codex debug
-  models`, `cursor-agent --model help`, the in-session model picker) and the provider pages the registry cites
-  are read by the session and quoted with their date; nen stores no version and the registry's `snapshot` is
-  the stated fallback. Reading the session's own surface, model alias and effort for the mismatch check is the
-  harness's fact, hand-read per surface and passed as `unread` where it cannot be. `nen direct registry|resolve|answer`
+- **`direct`.** The latest-version and effort-dial reads (direct § 4) are prose by design — the surface CLIs
+  (`codex debug models`, `cursor-agent models`, the in-session model picker) and the provider pages the registry
+  cites are read by the session and quoted with their date; nen stores no version and the registry's `snapshot`
+  is the stated fallback. Reading the session's own surface, model alias and effort for the compare is the
+  harness's fact, hand-read per surface and passed as `unread` where it cannot be. Three reads the verb does not
+  make yet are the reader's, from the verb's own document and the registry's stated rules (direct §§ 3, 6;
+  zheref/nen#389): the **recommended** pick (`picks.recommended`), the **within-set** compare over the
+  recommended and the fallback (`mismatch.within`) and the **aggregate fallback** where the verb's runner-up
+  shares the primary's pool; companion jobs are kept out of the deciding call rather than struck. Under
+  `direct.publish`, the marker read on an issue's comments is `gh api`, read-only, and `nen label` has no
+  `--remove`, so an older `model/` label is named, never removed (zheref/nen#389). `nen direct registry|resolve|answer`
   ship in nen `v0.20.0` (zheref/nen#371, carried to `main` by #380), the pin zheref/hatsu#168 moved; on an older
   binary they are absent, § 2's probe says so, and `build` continues unrouted (row `missing-tool`).
 - **`classify`.** The judgement — reading an issue's title, body and paths and deciding its `lang/` and
