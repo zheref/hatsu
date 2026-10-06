@@ -273,6 +273,26 @@
       "source": "docs/WORKFLOW.md § 2 (mukai)"
     },
     {
+      "id": "workflow.direct.publish",
+      "file": "nen/workflow.json",
+      "path": "direct.publish",
+      "domain": "review",
+      "kind": "enum",
+      "default": "none",
+      "options": [
+        "none",
+        "label",
+        "label+comment"
+      ],
+      "describe": "Whether hatsu:direct writes its verdict to the issue: none keeps it in the report and the local ledger; label applies one model/<line> label (the primary pick's model line, through nen label); label+comment adds one marker-keyed issue comment with the primary, fallback and recommended picks, tier, surface, effort and live version.",
+      "readers": [
+        "direct",
+        "build",
+        "ren"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (direct); contracts/direct.registry.json -> publish"
+    },
+    {
       "id": "workflow.monitor.maxCycles",
       "file": "nen/workflow.json",
       "path": "monitor.maxCycles",

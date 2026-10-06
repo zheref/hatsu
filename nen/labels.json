@@ -1,5 +1,5 @@
 {
-  "$comment": "Existing GitHub labels for zheref/hatsu, verified 2026-09-12. Filing validation only; no stage, routing, or gate labels are invented. Update this declaration with the owning label policy when labels change. The lang/ and job/ families are the two classification axes of contracts/classify.taxonomy.json (hatsu:classify; the maintainer's rulings of 2026-10-04), declared here first and synced to GitHub after this declaration lands (nen labels sync at the v0.18.2 pin; nen classify install --sync once that family ships). This one declaration was written by hand, byte-equal to what nen classify install --write writes, because the verb is absent at the pin; every later one is the verb's.",
+  "$comment": "Existing GitHub labels for zheref/hatsu, verified 2026-09-12. Filing validation only; no stage, routing, or gate labels are invented. Update this declaration with the owning label policy when labels change. The lang/ and job/ families are the two classification axes of contracts/classify.taxonomy.json (hatsu:classify; the maintainer's rulings of 2026-10-04), declared here first and synced to GitHub after this declaration lands (nen labels sync at the v0.18.2 pin; nen classify install --sync once that family ships). This one declaration was written by hand, byte-equal to what nen classify install --write writes, because the verb is absent at the pin; every later one is the verb's. The model/ family (five lines: claude, gpt, gemini, grok, composer) is hatsu:direct's opt-in verdict label (contracts/direct.registry.json -> publish; nen/workflow.json -> direct.publish), declared here first and applied through nen label apply, never nen classify (whose contract carries exactly lang and job); synced to GitHub with nen labels sync once this declaration lands.",
   "labels": [
     {
       "color": "f143ab",
@@ -270,6 +270,31 @@
       "color": "5319e7",
       "description": "Commits, PR preparation, reviewer rounds, thread settlement, catch-up, CI redrive, release PRs",
       "name": "job/delivery-ops"
+    },
+    {
+      "color": "0e8a16",
+      "description": "hatsu:direct's primary pick is on the Claude line (Anthropic)",
+      "name": "model/claude"
+    },
+    {
+      "color": "0e8a16",
+      "description": "hatsu:direct's primary pick is on the GPT line (OpenAI)",
+      "name": "model/gpt"
+    },
+    {
+      "color": "0e8a16",
+      "description": "hatsu:direct's primary pick is on the Gemini line (Google)",
+      "name": "model/gemini"
+    },
+    {
+      "color": "0e8a16",
+      "description": "hatsu:direct's primary pick is on the Grok line (xAI, served by Cursor)",
+      "name": "model/grok"
+    },
+    {
+      "color": "0e8a16",
+      "description": "hatsu:direct's primary pick is on Cursor's Composer line",
+      "name": "model/composer"
     }
   ]
 }

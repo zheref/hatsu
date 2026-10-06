@@ -106,6 +106,14 @@ from this run — the warm-up, the orientation, the change set and every derived
 re-deriving them would produce a second answer to a question this composite already settled. Each phase
 says which composite is holding it instead.
 
+**Inside step 1, once per classified effort, [`hatsu:direct`](../direct/SKILL.md) runs** — for an effort that
+names an issue (`<CODE>#<N>` in the request) or a text classify already labelled — with this session's
+`--surface`, `--model` and `--effort` (`unread` where the harness hides one), exactly as `build` § 2b does; its
+§ 6 owns the compare and the one ask, and the typed `hatsu:ren` is already the decision to work here, so it
+**never blocks**. Its answer **B** ends this *turn*, not the loop: steps 5 and 6 still run and the report names
+the restart line. An effort with no `job/` label is `undirectable`, one line, and the turn goes on. It is not a
+seventh step and asserts no order of its own: it reads inside the warm-up, asks at most once, authors nothing.
+
 **Warmup runs once per effort; checkout selection is checked on EVERY entry.** Later turns and
 PR phases re-verify the bound absolute effort path under `$hatsu_root/docs/WORKFLOW.md` § *Where
 worktrees live* before step 2 or any catch-up. Report the path, original-prompt waiver status and

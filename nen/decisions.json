@@ -456,7 +456,7 @@
     {
       "id": "direct-mismatch",
       "class": "ask-once-per-run",
-      "default": "ask once when hatsu:direct's recommended surface, model alias or effort (compared in the surface's own dial) differs from the session's; an unread session value is never a mismatch; the recommendation is for the maintainer's own session and never blocks the build (the maintainer's ruling of 2026-10-04: the typed hatsu:build is already the decision to work here)",
+      "default": "ask once when the session's surface, model alias or effort (compared in the surface's own dial) is outside the SET of hatsu:direct's picks -- the primary, the recommended and the fallback (contracts/direct.registry.json -> mismatch.within); a session on the recommended or the fallback is one line, `within the registry's set`, never asked; an unread session value is never a mismatch; the recommendation is for the maintainer's own session and never blocks build or ren (the maintainer's rulings of 2026-10-04 and 2026-10-05: the typed hatsu:build or hatsu:ren is already the decision to work here)",
       "preferred": [
         {
           "key": "A",
@@ -467,13 +467,13 @@
         },
         {
           "key": "B",
-          "label": "stop so I restart on the recommended surface",
+          "label": "stop so I restart on the primary's surface",
           "command": "nen direct answer --record <effort id> --answer stop --repo <checkout>; end the run naming the restart line direct quoted (surfaces.<s>.restart, its placeholders filled from models.<surface>.<tier> and effort.surfaceMap only)",
-          "consequence": "nothing is authored here; the maintainer opens the recommended surface and types hatsu:build there"
+          "consequence": "nothing is authored here; the maintainer opens the primary's surface and types hatsu:build (or hatsu:ren) there"
         }
       ],
       "proposeIssue": false,
-      "why": "Ruling 2026-10-04: direct advises, never gates -- a mismatch is asked once through the picker with continue starred, and a build is never blocked from starting on a non-recommended model or effort."
+      "why": "Ruling 2026-10-04: direct advises, never gates -- a mismatch is asked once through the picker with continue starred, and a build is never blocked from starting on a non-recommended model or effort. Ruling 2026-10-05: the compare runs against the whole set of picks, so a session already on the cost-agnostic recommended or the cost-aligned fallback pick is within the registry and is told so in one line."
     }
   ]
 }

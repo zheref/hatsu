@@ -385,6 +385,16 @@ conflict waiting to be resolved by coin toss.
 |---|---|---|
 | `autoEn` | `false` | `mukai` only. **Only JSON `true` starts `en` immediately** once the PR is open and the landing report rendered; `false`, absent or any other value makes mukai ring the turn bell and ask through the surface's native picker whether to start `hatsu:en on <CODE>#<N>` now (rulings 8 and 9 R4). `nen schema check` tolerates the block (it does not validate it) |
 
+### `direct`
+
+```json
+"direct": { "publish": "none" }
+```
+
+| Key | Default | Read by |
+|---|---|---|
+| `publish` | `none` | `direct` only, under `build` and `ren` or standalone on an issue. **`none`** (absent reads the same) keeps the verdict in the report and the local ledger `.nen/direct/<effort>.json`; **`label`** applies the primary pick's model **line** as one `model/<line>` label (`claude`, `gpt`, `gemini`, `grok`, `composer`) through `nen label apply`, a label the consumer's `nen/labels.json` has not declared being the verb's refusal; **`label+comment`** adds one marker-keyed issue comment carrying the primary, fallback and recommended picks with tier, surface, effort dial and the live-read version ([`direct`](../claude/skills/direct/) § 7; `contracts/direct.registry.json` → `publish`). The maintainer's ruling of 2026-10-05; `nen schema check` tolerates the block |
+
 ### `review`
 
 ```json
@@ -603,6 +613,7 @@ never the committed `nen/`. Two consequences worth stating here rather than only
   "claude": { "frontier": "fable", "deep": "opus", "fast": "sonnet", "economy": "haiku" },
   "codex":  { "frontier": "astra", "deep": "sol",  "fast": "terra",  "economy": "luna" },
   "cursor": { "frontier": "grok",  "deep": "grok", "fast": "composer", "economy": "composer" },
+  "antigravity": { "frontier": "ultra", "deep": "pro", "fast": "flash", "economy": "flash" },
   "roles":  { "reviewer": "deep", "worker": "fast", "measurer": "fast", "orchestrator": "frontier",
               "watcher": "economy", "formatter": "economy" }
 }
@@ -1116,22 +1127,33 @@ authored here.
 
 ### `direct` — the model, surface and effort, as a configuration consequence
 
-The same rulings; [`direct`](../claude/skills/direct/) is the home of the procedure, this the consequence for the
-two files. [`contracts/direct.registry.json`](../contracts/direct.registry.json) is plugin canon: stable
-aliases map onto a provider, a model **family**, their Hatsu surface and a **tier** of this file's `models`
-block — never a model version — so the `models` matrix is the only per-surface fact a consumer declares and a
-model release moves nothing in either file. The verdict persists only in `.nen/direct/<effort>.json`
-(generated output under `.nen/`). **The matrix's two rules stand**: `SEMANTIC_MAX` names the frontier tier and
-may be recommended for the maintainer's own session, where that tier lives; a subagent is still never raised on
-it. **One question the rulings did not settle is returned to the maintainer** (ROSTER § *Rulings of
-2026-10-04*, *Open questions*): whether `models.roles.reviewer` stays `deep` when direct's verdict for the
-session is a lower tier. **The readable mirror** is [`DIRECT-MATRIX.md`](DIRECT-MATRIX.md): every job ×
-domain × language cell, the alias table, the effort rule and worked examples. `scripts/direct_matrix_doc.sh`
+The same rulings, and the rebalance of 2026-10-05 (ROSTER § *Rulings of 2026-10-05 — the registry rebalance*);
+[`direct`](../claude/skills/direct/) is the home of the procedure, this the consequence for the two files.
+[`contracts/direct.registry.json`](../contracts/direct.registry.json) is plugin canon: stable aliases map onto a
+provider, a model **line** (`claude`, `gpt`, `gemini`, `grok`, `composer`), a model **family**, their Hatsu
+surface, a **tier** of this file's `models` block and an **escalation** — never a model version — so the `models`
+matrix is the only per-surface fact a consumer declares and a model release moves nothing in either file. **The
+primaries live on the deep and fast tiers** (`opus`, `sol`, `grok`, `pro`; `sonnet`, `terra`, `composer`,
+`flash`) and the frontier aliases (`SEMANTIC_MAX`, `EXECUTION_MAX`) are reached only as the **recommended**
+pick, for the maintainer's own session; a subagent is still never raised on them. **Every cell yields three
+picks**: the primary (the cell's winner, the cost-aligned best), the fallback (its runner-up, on another
+provider or surface in every cell, so the work can move when one pool's funds run out — at the aggregate of
+several pairs the reader names the other-pool alias where the verb's runner-up shares the primary's pool,
+zheref/nen#389) and the recommended (the primary's escalation on a weight-4 job or a `max` effort, else the
+primary). **Companion jobs** (`review`, `delivery-ops`, flagged in the taxonomy) are kept out of the verb call
+that decides and reported from a second call: that work runs on the **session's** surface — the surface the
+effort runs on, where hanten raises its reviewers (§ *The matrix, per surface*) — at `models.roles.<role>`, the
+tier beside a lower-tier session being zheref/hatsu#222's question. The verdict persists in `.nen/direct/<effort>.json`, and on
+GitHub only where `direct.publish` (§ 2) opts in. **One question the rulings did not settle is returned to the
+maintainer** (ROSTER § *Rulings of 2026-10-04*, *Open questions*; zheref/hatsu#222): whether
+`models.roles.reviewer` stays `deep` when direct's verdict for the session is a lower tier. **The readable
+mirror** is [`DIRECT-MATRIX.md`](DIRECT-MATRIX.md): every job × domain × language cell, the alias table with
+list prices and served ids, the three picks, the effort rule and worked examples. `scripts/direct_matrix_doc.sh`
 renders its tables and rule text from the registry, the taxonomy and Hatsu's own `models` block; only its
 opening walkthrough is hand-written. The registry stays canon and the page is never edited by hand. Lane
-`direct-matrix-guard` runs the generator's `--self-test` and fails on a stale page. `--verify` asks
-`nen direct resolve` about every claim the page prints. Each runs only when invoked: CI wiring for data-only
-edits and a `--verify` step at every nen repin are zheref/hatsu#234.
+`direct-matrix-guard` runs the generator's `--self-test` — the registry's own invariants over every cell among
+them — and fails on a stale page. `--verify` asks `nen direct resolve` about every claim the page prints. Each
+runs only when invoked: CI wiring for data-only edits and a `--verify` step at every nen repin are zheref/hatsu#234.
 
 ---
 

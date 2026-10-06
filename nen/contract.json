@@ -152,7 +152,7 @@
       "direct-matrix-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/direct_matrix_doc.sh, which renders docs/DIRECT-MATRIX.md -- the human-readable mirror of every decision hatsu:direct makes -- from contracts/direct.registry.json, contracts/classify.taxonomy.json and nen/workflow.json -> models. Same one-lane-per-executable-guard pattern as tenkai-guard: its argv is the guard's own --self-test. This lane guards that the RENDERING is fresh; it is not a guard of the registry's or taxonomy's own invariants, so ROSTER § Rulings of 2026-10-04, Open question (does a canon data contract owe a guard lane?), stays open."
+        "$comment": "The focused lane for scripts/direct_matrix_doc.sh, which renders docs/DIRECT-MATRIX.md -- the human-readable mirror of every decision hatsu:direct makes -- from contracts/direct.registry.json, contracts/classify.taxonomy.json and nen/workflow.json -> models. Same one-lane-per-executable-guard pattern as tenkai-guard: its argv is the guard's own --self-test. This lane guards that the RENDERING is fresh and, from 2026-10-05, that the registry's own stated invariants hold over every cell (picks.fallbackRule, every alias's line and escalation, no frontier primary, every companion job routed, every list price sourced); whether a canon data contract owes a lane of its own beyond this one is still ROSTER \u00a7 Rulings of 2026-10-04's open question (zheref/hatsu#223)."
       },
       "workflow-policy-guard": {
         "stack": "claude-code-plugin",

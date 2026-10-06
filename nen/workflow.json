@@ -341,5 +341,10 @@
       "getsuga": ["product", "process", "library"],
       "kagutsuchi": ["product", "process", "library"]
     }
+  },
+  "direct": {
+    "publish": "none",
+    "$publish": "one of: none | label | label+comment",
+    "$comment": "Maintainer's ruling of 2026-10-05 (docs/ROSTER.md section Rulings of 2026-10-05 -- the registry rebalance): whether hatsu:direct writes its verdict to the issue on GitHub. none (the default, and the 2026-10-04 behaviour): report and the local ledger .nen/direct/<effort>.json only. label: the model LINE of the primary pick as one model/<line> label through nen label apply. label+comment: that label plus one marker-keyed comment carrying the primary, fallback and recommended picks with tier, surface, effort dial and the live-read version (contracts/direct.registry.json -> publish). Read by the direct skill, under build and ren or standalone; any other value reads none, said; nen validates the file and hands no value out."
   }
 }

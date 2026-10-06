@@ -10,8 +10,10 @@
 #                grid cell, each "Effort alone" level, each unreachable "—", each worked example — and
 #                exit 1 on any disagreement. Needs nen at contracts' pin (NEN=<path> overrides `nen`).
 #   --self-test  hermetic fixtures under a temp dir: --check fails on a stale, missing or mutated page,
-#                malformed data refuses by name, the re-implemented rules hold at their edges; then
-#                --check on the real tree. This is the direct-matrix-guard lane's argv.
+#                malformed data refuses by name, the re-implemented rules hold at their edges, the
+#                registry's own invariants hold over every cell (the fallback rule, every alias's line
+#                and escalation, every companion job routed); then --check on the real tree. This is
+#                the direct-matrix-guard lane's argv.
 #
 #   exit 0 ok · 1 stale page or a disagreement · 2 usage, unreadable data or a refused rule shape
 #
@@ -92,12 +94,19 @@ try:
     bands = reg["effort"]["rule"]["bands"]
     levels = reg["effort"]["levels"]
     surface_map = reg["effort"]["surfaceMap"]
+    picks = reg["picks"]
+    companions = reg["companions"]
+    non_actionable = reg["surfaces"].get("$nonActionable", {})
+    live_lookup = reg["liveLookup"]
 except (KeyError, TypeError) as e:
     refuse(f"a key the renderer needs is missing: {e}")
 job_by_key = {j["key"]: j for j in jobs}
 lang_keys = [l["key"] for l in langs]
 code_lang = {l["key"]: l.get("code", True) is not False for l in langs}
 surface_keys = [s for s in surfaces if not s.startswith("$")]
+companion_jobs = [j["key"] for j in jobs if j.get("companion") is True]
+actionable = [a for a in precedence if not aliases[a].get("reviewer")]
+escalations = [a for a in actionable if aliases[a]["tier"] == "frontier"]
 for j in jobs:
     if j["key"] not in routing:
         refuse(f"job '{j['key']}' has no routing row in {REG_PATH}")
@@ -130,6 +139,10 @@ EXAMPLES = [
      "job": ["parity", "ui"]},
     {"title": "A repository-wide mechanical rename in C#",
      "kind": "product", "role": None, "labels": [], "lang": ["csharp"], "job": ["mechanical-edit"]},
+    {"title": "A React component and its unit tests",
+     "kind": "product", "role": None, "labels": [], "lang": ["typescript"], "job": ["ui", "unit-tests"]},
+    {"title": "A security threat model for a Swift feature",
+     "kind": "product", "role": None, "labels": [], "lang": ["swift"], "job": ["security"]},
 ]
 # the facts that put an issue in each domain, for the grid, the matrices and --verify
 FORCE = {"aigov": ("process", None, []), "library": ("library", None, []),
@@ -272,6 +285,20 @@ def resolve(ex):
         d = route_domain(j, dom)
         for l in ls:
             pairs.append(cell_for(j, d, l))
+    winner, runner = aggregate(pairs)
+    w = max(job_by_key[j]["weight"] for j in ex["job"])
+    adds = []
+    if len(ex["job"]) >= 3: adds.append("three or more jobs")
+    if sum(1 for l in ex["lang"] if code_lang.get(l, True)) >= 2: adds.append("two or more code languages")
+    if dom == "aigov": adds.append("aigov domain")
+    level = band(w + len(adds))
+    return {"undirectable": False, "domain": dom, "winner": winner, "runner": runner,
+            "weight": w, "adds": adds, "effort": level, "recommended": recommended(winner, w, level),
+            "aggFallback": agg_fallback(pairs, winner, runner)}
+
+def aggregate(pairs):
+    """aggregation.$comment, as the verb applies it: the winner by winner positions, the runner-up by the
+    next-highest winner count, else the winner's pairs' most frequent runner-up; None when none is distinct."""
     tally = {}
     for c in pairs:
         a = effective(c["winner"])
@@ -280,21 +307,38 @@ def resolve(ex):
     rank = sorted(tally, key=lambda a: (-tally[a], precedence.index(a)))
     winner = rank[0]
     if len(rank) > 1:
-        runner = rank[1]
-    else:
-        rt = {}
-        for c in pairs:
-            a = effective(c["runnerUp"])
-            if a and a != winner:
-                rt[a] = rt.get(a, 0) + 1
-        runner = sorted(rt, key=lambda a: (-rt[a], precedence.index(a)))[0] if rt else None
-    w = max(job_by_key[j]["weight"] for j in ex["job"])
-    adds = []
-    if len(ex["job"]) >= 3: adds.append("three or more jobs")
-    if sum(1 for l in ex["lang"] if code_lang.get(l, True)) >= 2: adds.append("two or more code languages")
-    if dom == "aigov": adds.append("aigov domain")
-    return {"undirectable": False, "domain": dom, "winner": winner, "runner": runner,
-            "weight": w, "adds": adds, "effort": band(w + len(adds))}
+        return winner, rank[1]
+    rt = {}
+    for c in pairs:
+        a = effective(c["runnerUp"])
+        if a and a != winner:
+            rt[a] = rt.get(a, 0) + 1
+    return winner, (sorted(rt, key=lambda a: (-rt[a], precedence.index(a)))[0] if rt else None)
+
+def same_pool(a, b):
+    return aliases[a]["provider"] == aliases[b]["provider"] and aliases[a]["surface"] == aliases[b]["surface"]
+
+def agg_fallback(pairs, winner, runner):
+    """picks.fallback at the aggregate: the verb's runner-up when it sits in another pool than the primary,
+    else the highest-precedence other-pool alias among the pairs' winners and runner-ups (None when none)."""
+    if runner and not same_pool(winner, runner):
+        return runner
+    pool = {effective(c[k]) for c in pairs for k in ("winner", "runnerUp")}
+    others = [a for a in pool if a and not same_pool(winner, a)]
+    return min(others, key=precedence.index) if others else None
+
+def recommended(primary, max_weight, level):
+    """picks.recommended: the primary's escalation on a weight-4 job or a max effort, else the primary."""
+    esc = aliases[primary].get("escalation")
+    return esc if esc and (max_weight == 4 or level == "max") else primary
+
+def fallback_ok(c):
+    """picks.fallbackRule: the actionable fallback sits on another provider or another surface."""
+    return not same_pool(effective(c["winner"]), effective(c["runnerUp"]))
+
+def price(alias):
+    lp = snap["aliases"][alias].get("listPrice")
+    return f"${lp['input']:g} / ${lp['output']:g}" if lp else "—"
 
 def restart(alias, level):
     a = aliases[alias]
@@ -311,6 +355,7 @@ def render():
     H = {
         "how": "How a recommendation is made",
         "models": f"The models — {len(precedence)} aliases",
+        "picks": "Primary, fallback, recommended — the three picks",
         "grid": "The grid — every job in every domain",
         "domain": "Which domain am I in?",
         "matrix": "Job × language — one matrix per domain",
@@ -357,13 +402,15 @@ def render():
       f"`); `job/` is the kind of work ({len(jobs)} keys, below). `hatsu:classify` applies them; `direct` only reads them.")
     w(f"2. **The domain is derived, never labelled** — from the repository's kind and role, the issue's "
       f"labels and its jobs ([rules](#{slug(H['domain'])})).")
-    w("3. **One cell per (job, language).** Every cell names a *winner* and a *runner-up* alias. A language "
+    w("3. **One cell per (job, language), three picks.** Every cell names a *winner* — the **primary**, the "
+      "cost-aligned best — and a *runner-up* — the **fallback**, on another provider or surface; the "
+      f"**recommended** (cost-agnostic) pick follows by rule ([the three picks](#{slug(H['picks'])})). A language "
       "column only exists in the data where that language is routed differently; otherwise the shared `*` "
       "cell applies (and `prose` always reads `*`).")
-    w("4. **An alias is stable; a version is not.** The alias names a provider, a model family and the Hatsu "
-      "surface it runs on. The name you type comes from `nen/workflow.json` → `models.<modelsKey>.<tier>` "
-      "(`claude`, `codex`, `cursor`, `antigravity`); the newest version is read live when `direct` runs, with "
-      "the dated snapshot below as the fallback.")
+    w("4. **An alias is stable; a version is not.** The alias names a provider, a model line, a model family, "
+      "the Hatsu surface it runs on and its tier. The name you type comes from `nen/workflow.json` → "
+      "`models.<modelsKey>.<tier>` (`claude`, `codex`, `cursor`, `antigravity`); the newest version and the "
+      "effort dial are read live when `direct` runs, with the dated snapshot below as the fallback.")
     w("5. **No `job/` label, no recommendation** — `emptyAxis.job`: *" + reg["emptyAxis"]["job"] + "*")
     w("")
     w("*This walkthrough is a hand-written summary; every section below it is rendered from the data.*")
@@ -376,8 +423,8 @@ def render():
       "same family when it can read one. *You type* is Hatsu's own `models` spelling — a consumer repository "
       "may spell a tier differently in its own `nen/workflow.json`.")
     w("")
-    w("| | Alias | Provider | Family | Surface | You type | Model (snapshot) | If unavailable | What it is for |")
-    w("|---|---|---|---|---|---|---|---|---|")
+    w("| | Alias | Provider · line | Family | Surface | You type | Escalation | List price in / out | Model (snapshot) | If unavailable | What it is for |")
+    w("|---|---|---|---|---|---|---|---|---|---|---|")
     for name in precedence:
         a = aliases[name]
         s = snap["aliases"][name]
@@ -386,7 +433,9 @@ def render():
         t = typed(name)
         tt = f"`{t}` (tier `{a['tier']}`)" if t else "—"
         mid = f" `{s['modelId']}`" if s.get("modelId") else ""
-        w(f"| {dot} | `{name}` | {a['provider']} | `{a['family']}` | {surf} | {tt} | **{esc(s['primary'])}**{mid} | "
+        line = f"{a['provider']} · `{a['line']}`" if a.get("line") else a["provider"]
+        up = f"`{a['escalation']}`" if a.get("escalation") else ("*(a frontier alias)*" if a.get("tier") == "frontier" else "—")
+        w(f"| {dot} | `{name}` | {line} | `{a['family']}` | {surf} | {tt} | {up} | {price(name)} | **{esc(s['primary'])}**{mid} | "
           f"{esc(s['fallback'])} | {esc(a['selection'])} |")
     w("")
     providers = []
@@ -396,8 +445,53 @@ def render():
             providers.append(p)
     w("Legend: " + " · ".join(f"{DOT.get(p, '⚪')} {PROVIDER_NAME.get(p, p)}" for p in providers) +
       " · 🔍 a PR review bot — never a session recommendation; where one wins a cell, the actionable alias "
-      "after its arrow is what you run. Row order is the tie-break `precedence`. `SEMANTIC_MAX` may be "
-      "recommended for **your own** session, never for a subagent.")
+      "after its arrow is what you run. Row order is the tie-break `precedence`. List prices are the snapshot "
+      f"of **{snap['asOf']}** in USD per million tokens, each row's source in the registry — evidence for the "
+      "cost-aligned ordering, never today's price. The frontier aliases (" + ", ".join(f"`{a}`" for a in escalations) +
+      ") are reached only as the *recommended* pick, for **your own** session, never for a subagent.")
+    w("")
+    served = [(n, snap["aliases"][n]["served"]) for n in actionable if snap["aliases"][n].get("served")]
+    if served:
+        w(f"What each surface's own lookup served on {snap['asOf']} (the alias you type resolves to this id, which may lag the provider's newest):")
+        w("")
+        w("| Alias | Surface | Served id |")
+        w("|---|---|---|")
+        for n, sv in served:
+            for sk, txt in sv.items():
+                w(f"| `{n}` | {surfaces[sk]['label']} | {esc(txt)} |")
+        w("")
+
+    # picks
+    w(f"## {H['picks']}")
+    w("")
+    w(f"> {picks['$comment']}")
+    w("")
+    w("| Pick | What it is | Where it comes from |")
+    w("|---|---|---|")
+    w(f"| **primary** | {esc(picks['primary'])} | the cell's `winner`, `nen direct resolve`'s winner |")
+    w(f"| **fallback** | {esc(picks['fallback'])} | the cell's `runnerUp`, the verb's runner-up |")
+    w(f"| **recommended** | {esc(picks['recommended']['describe'])} | {esc(picks['recommended']['rule'])} |")
+    w("")
+    w(f"`picks.fallbackRule`: *{esc(picks['fallbackRule'])}*")
+    w("")
+    w("What each primary escalates to when the rule fires:")
+    w("")
+    w("| Primary | Recommended on a weight-4 job or a `max` effort |")
+    w("|---|---|")
+    for a in actionable:
+        up = aliases[a].get("escalation")
+        w(f"| {label(a, surface=True)} | " + (label(up, surface=True) if up else "itself — nothing above it") + " |")
+    w("")
+    w(f"`picks.tiers`: *{esc(picks['tiers'])}*")
+    w("")
+    w("**Companion jobs** (`companion: true` in the taxonomy): " + ", ".join(f"`{j}`" for j in companion_jobs) +
+      f". {esc(companions['$comment'])}")
+    w("")
+    w("| Companion job | Runs on the primary's surface at |")
+    w("|---|---|")
+    for j, role in companions["role"].items():
+        tier = models.get("roles", {}).get(role)
+        w(f"| `{j}` | `models.roles.{role}`" + (f" → tier `{tier}`" if tier else "") + " |")
     w("")
 
     # grid
@@ -558,16 +652,20 @@ def render():
     w("`precedence`, earliest first: " + " › ".join(f"`{a}`" for a in precedence) + ".")
     w("")
     w("Where no other alias is left the verb returns no runner-up, and `direct` reports it as "
-      "*runner-up: none distinct* ([`direct`](../claude/skills/direct/SKILL.md) § 5).")
+      "*fallback: none distinct* ([`direct`](../claude/skills/direct/SKILL.md) § 5). Where the verb's runner-up "
+      "shares the primary's provider and surface, the aggregate fallback is the highest-precedence alias in another "
+      "pool among the pairs' winners and runner-ups, named beside it (`picks.fallback`; zheref/nen#389).")
     w("")
 
     # examples
     w(f"## {H['examples']}")
     w("")
-    w("Each is checked against `nen direct resolve` by `--verify`.")
+    w("Domain, primary, the verb's runner-up, effort and restart line are checked against `nen direct resolve` by "
+      "`--verify`; the recommended column and the aggregate fallback are this page's reading of `picks.recommended` "
+      "and `picks.fallback`, which the verb does not compute yet (zheref/nen#389).")
     w("")
-    w("| Work | Labels | Domain | Winner | Runner-up | Effort | Restart line |")
-    w("|---|---|---|---|---|---|---|")
+    w("| Work | Labels | Domain | Primary | Fallback | Recommended | Effort | Restart line |")
+    w("|---|---|---|---|---|---|---|---|")
     for ex in EXAMPLES:
         r = resolve(ex)
         lbl = " ".join(f"`lang/{l}`" for l in ex["lang"]) + " " + " ".join(f"`job/{j}`" for j in ex["job"])
@@ -576,8 +674,11 @@ def render():
         why = f"weight {r['weight']}" + "".join(f" + {a}" for a in r["adds"])
         line = restart(r["winner"], r["effort"])
         ru = label(r["runner"], surface=True) if r["runner"] else "none distinct"
+        if r["aggFallback"] and r["aggFallback"] != r["runner"]:
+            ru += f"<br><sub>verb's runner-up, same pool · aggregate fallback {label(r['aggFallback'], surface=True)}</sub>"
+        rec = "the primary" if r["recommended"] == r["winner"] else label(r["recommended"], surface=True)
         w(f"| {ex['title']}<br><sub>repo kind `{ex['kind']}`</sub> | {lbl} | {dshort(r['domain'])} | "
-          f"{label(r['winner'], surface=True)} | {ru} | **{r['effort']}**<br><sub>{why}</sub> | `{line}` |")
+          f"{label(r['winner'], surface=True)} | {ru} | {rec} | **{r['effort']}**<br><sub>{why}</sub> | `{line}` |")
         claims.append({"t": "example", "ex": ex, "domain": r["domain"], "winner": r["winner"],
                        "runnerUp": r["runner"], "effort": r["effort"], "restart": line})
     w("")
@@ -594,6 +695,16 @@ def render():
         v = surfaces[s]
         w(f"| **{esc(v['label'])}** | `{esc(v['restart'])}` | {esc(v['effortControl'])} | {esc(v['lookup'])} | {esc(v['interactive'])} |")
     w("")
+    na = [(k, v) for k, v in non_actionable.items() if not k.startswith("$")]
+    if na:
+        w("Surfaces `direct` knows of and never recommends as actionable (`surfaces.$nonActionable`): " +
+          esc(non_actionable.get("$comment", "")))
+        w("")
+        w("| Surface | Provider | What it is | Lookup |")
+        w("|---|---|---|---|")
+        for k, v in na:
+            w(f"| **{esc(v['label'])}** (`{k}`) | {esc(v.get('provider', '—'))} | {esc(v['what'])} | {esc(v['lookup'])} |")
+        w("")
     w("Native IDE equivalents by language (offered beside the winner as the *interactive* row):")
     w("")
     w("| Language | Native interactive option |")
@@ -606,15 +717,16 @@ def render():
     # versions
     w(f"## {H['versions']}")
     w("")
-    w("At run time `direct` reads the newest version of the recommended family — the surface's own lookup "
-      "first, then the provider's model page, quoted with its URL and date. Only when neither can be read does "
-      f"it quote the snapshot above, **with its date ({snap['asOf']})**.")
+    w("At run time `direct` reads the newest version of each pick's family and the effort dial its surface "
+      "offers — the surface's own lookup first, then the provider's model page, quoted with its URL and date. "
+      f"Only when neither can be read does it quote the snapshot above, **with its date ({snap['asOf']})**, "
+      "and the effort map's dial.")
     w("")
-    w("| Provider | Surface lookup | Model pages |")
-    w("|---|---|---|")
-    for p, v in reg["liveLookup"].items():
+    w("| Provider | Surface lookup | Effort dial, read live | Model pages |")
+    w("|---|---|---|---|")
+    for p, v in live_lookup.items():
         if not p.startswith("$"):
-            w(f"| {p} | {esc(v['cli'] or '—')} | " + "<br>".join(esc(x) for x in v["docs"]) + " |")
+            w(f"| {p} | {esc(v['cli'] or '—')} | {esc(v.get('effort') or 'no dial')} | " + "<br>".join(esc(x) for x in v["docs"]) + " |")
     w("")
 
     # sync
@@ -811,9 +923,45 @@ def self_test():
            "job": ["delivery-ops", "implementation"]}
     ok(resolve(lib)["runner"] == "SEMANTIC_FRONTIER", "prose beside a code language keeps its own pair")
     sec = {"kind": "library", "role": None, "labels": [], "lang": ["prose"], "job": ["security"]}
-    ok(resolve(sec)["runner"] is None, "a runner-up equal to the winner leaves none distinct")
+    ok(resolve(sec)["runner"] not in (None, resolve(sec)["winner"]),
+       "a review bot's also never shares the winner's pool, so the fallback stays distinct (picks.fallbackRule)")
+    same = [{"winner": {"alias": "SEMANTIC_FRONTIER"}, "runnerUp": {"alias": "SEMANTIC_FRONTIER"}}]
+    ok(aggregate(same) == ("SEMANTIC_FRONTIER", None), "a runner-up equal to the winner leaves none distinct (fixture)")
+    ok(agg_fallback(same, "SEMANTIC_FRONTIER", None) is None, "no other-pool alias among the pairs leaves no aggregate fallback (fixture)")
+    mixed = [{"winner": {"alias": "BALANCED_AUTHOR"}, "runnerUp": {"alias": "EDITOR_FRONTIER"}},
+             {"winner": {"alias": "SEMANTIC_FRONTIER"}, "runnerUp": {"alias": "EXECUTION_FRONTIER"}}]
+    ok(aggregate(mixed) == ("SEMANTIC_FRONTIER", "BALANCED_AUTHOR") and agg_fallback(mixed, "SEMANTIC_FRONTIER", "BALANCED_AUTHOR") == "EXECUTION_FRONTIER",
+       "a same-pool aggregate runner-up yields the highest-precedence other-pool alias as the fallback (fixture)")
+    ok(all(not same_pool(r_["winner"], r_["aggFallback"]) for r_ in (resolve(e) for e in EXAMPLES) if r_["aggFallback"]),
+       "every worked example's aggregate fallback sits in another pool than its primary")
     ok(effective({"alias": "PR_QUALITY_REVIEW", "also": "EXECUTION_FRONTIER"}) == "EXECUTION_FRONTIER",
        "a review bot's cell counts for its also")
+
+    print("the registry's own invariants (picks, companions), over every cell:")
+    broken = [f"{j}/{d}/{l}" for j, doms in routing.items() for d, r_ in doms.items() if not d.startswith("$")
+              for l, c in r_["cells"].items() if not fallback_ok(c)]
+    ok(not broken, f"picks.fallbackRule: every fallback is on another provider or surface{'' if not broken else ' (broken: ' + ', '.join(broken[:5]) + ')'}")
+    ok(all(aliases[a].get("line") for a in actionable), "every actionable alias names its model line")
+    ok(all(aliases[a].get("escalation") in (None,) or aliases[a]["escalation"] in actionable for a in actionable),
+       "every escalation names an actionable alias or is null")
+    TIERS = ["fast", "deep", "frontier"]
+    ok(all(TIERS.index(aliases[aliases[a]["escalation"]]["tier"]) == TIERS.index(aliases[a]["tier"]) + 1
+           and aliases[aliases[a]["escalation"]]["surface"] == aliases[a]["surface"]
+           for a in actionable if aliases[a].get("escalation")),
+       "every escalation climbs exactly one tier on the same surface")
+    ok(all(aliases[a]["tier"] == "frontier" or any(aliases[b]["tier"] == TIERS[TIERS.index(aliases[a]["tier"]) + 1]
+                                                   and aliases[b]["surface"] == aliases[a]["surface"] for b in actionable) is False
+           for a in actionable if aliases[a].get("escalation") is None),
+       "an alias with no escalation has no actionable alias one tier above it on its surface")
+    ok(not any(c["winner"]["alias"] in escalations for doms in routing.values() for d, r_ in doms.items()
+               if not d.startswith("$") for c in r_["cells"].values()),
+       "no cell names a frontier alias as its primary (frontier is reached only as recommended)")
+    ok(set(companions["role"]) == set(companion_jobs), "companions.role names exactly the taxonomy's companion jobs")
+    ok(all(j in routing for j in companion_jobs), "every companion job still has its own routing row")
+    ok(recommended("SEMANTIC_FRONTIER", 4, "high") == "SEMANTIC_MAX" and recommended("SEMANTIC_FRONTIER", 3, "high") == "SEMANTIC_FRONTIER"
+       and recommended("BALANCED_AUTHOR", 2, "max") == "SEMANTIC_FRONTIER" and recommended("EDITOR_FRONTIER", 4, "max") == "EDITOR_FRONTIER",
+       "picks.recommended at its edges: weight 4 or max climbs, else the primary; nothing above stays")
+    ok(all(snap["aliases"][a].get("listPrice", {}).get("source") for a in actionable), "every actionable alias's list price cites its source")
 
     print("the committed page:")
     page_now, _ = render()

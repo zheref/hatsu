@@ -409,7 +409,8 @@
             "aigov": [
               "AIGOV.REPO.017"
             ]
-          }
+          },
+          "companion": true
         },
         {
           "key": "release",
@@ -736,9 +737,11 @@
             "maintenance": [
               "MAINT.OPS.022"
             ]
-          }
+          },
+          "companion": true
         }
-      ]
+      ],
+      "$companion": "`companion: true` marks a job that is a phase of the effort carrying it, never standalone work by itself: review (hanten's adversarial pass, en's rounds) and delivery-ops (aka, mukai, shibari). hatsu:direct reads the flag (contracts/direct.registry.json -> companions): such a job never decides the surface when the issue carries any other job; nen classify ignores the key."
     }
   },
   "domains": {

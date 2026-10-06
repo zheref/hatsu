@@ -900,6 +900,76 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   never at `main`, and never write to it.
 
 
+## Rulings of 2026-10-05 — the registry rebalance
+
+**The maintainer's request, verbatim** (excerpt), on `hatsu:great-hiker`, 2026-10-05:
+
+> I noticed several cases where the model selection feels unbalanced. I'm specially concerned around Astra
+> selection. As far as I know, Sol 6.1 was introduced recently and it closely matches Astra's capabilities with
+> a way more affordable cost. […] keep models aligned with based on their complexity power, meaning matching
+> Opus, Sol and Pro as Deep tier, Sonnet, Terra and Flash as fast tier […] 5 output axes […]: model family
+> (claude, gpt, gemini, grok), complexity tier (light, fast, deep, frontier), version (always with live check
+> […]), effort level (live value […]) and surface […]. "recommended choice" (cost-agnostic best selection),
+> "primary" (cost-aligned best selection), "fallback" (cost-aligned second best selection from a different
+> provider or surface so that it can be used whenever we run out of funds on one or the other). […] Grok is
+> barely mentioned […] several jobs may never be assigned because they belong to further phases along a
+> specific execution. So, for example PR reviews will never be issues […] optionally (based on maintainers
+> input) sets labels for the resulting direct output model family (only the model family) while the rest of
+> recommended agentic parameters are stated under a commend or body trailer.
+
+**What the investigation found, read live on 2026-10-05** (every line cited in `contracts/direct.registry.json`
+→ `snapshot`): the registry was asymmetric by construction — the Anthropic side won on the deep tier (Opus, 71
+cells) with the frontier tier (Fable) only an escalation runner-up, while the OpenAI side won on the frontier
+tier (Astra, 75 cells) with the deep tier (Sol) only a runner-up. OpenAI's changelog of 2026-09-29 lists GPT-6.1
+Sol at $2 / $10 per million tokens against Astra's $10 / $50, and Artificial Analysis places Sol one index point
+under Astra and two on its coding-agent index, at *"less than a quarter of GPT-6 Astra per Intelligence Index
+task ($0.72 vs $3.26)"* at max effort (https://artificialanalysis.ai/articles/gpt-6-1-sol-replaces-gpt-6-sol-after-just-7-days-with-near-astra-intelligence,
+article of 2026-09-29, read 2026-10-05; the quotes are in `contracts/direct.registry.json` →
+`snapshot.sources.artificialAnalysis`). Cursor's model sheet
+lists Grok 4.7, 4.6 and 4.5 as Cursor-pool models at $2 / $6 beside Composer 2.5 at $0.5 / $2.5;
+`cursor-agent models` serves `grok-4.7-{low,medium,high,xhigh}` with no `cursor-` prefix; Cursor was acquired
+by SpaceXAI in August 2026. Gemini 4 Argon was announced 2026-09-30 with restricted access, and the Gemini API
+lists 3.1 Pro as the current Pro. Codex serves `gpt-5.6-sol`, not 6.1, and exposes effort levels up to `ultra`.
+
+Answered through the surface's picker, 2026-10-05:
+
+| Ruling | What it says |
+|---|---|
+| **Sol is the execution default, Astra the escalation** | `EXECUTION_FRONTIER` names the GPT Sol family on Codex's `deep` tier; a new `EXECUTION_MAX` names Astra on the `frontier` tier as the escalation, mirroring `SEMANTIC_MAX`; `EXECUTION_VALUE` moves to Terra on the `fast` tier. No cell names a frontier alias as its primary |
+| **Grok enters as a Cursor deep alias** | `EDITOR_FRONTIER` (provider `cursor`, line `grok`, Cursor's `deep` tier) is the primary on the eight editor-shaped TypeScript cells the source document preferred the Cursor IDE for (ui, implementation, bug-fix, migration, delivery-ops) and the cross-provider fallback for execution work elsewhere. Grok Build and GitHub Copilot are listed as **non-actionable** surfaces (`surfaces.$nonActionable`); a fifth Hatsu surface is a proposal (zheref/hatsu#236), never a registry edit. The Cursor guide's live-resolve pattern is corrected to match both `grok-*` and `cursor-grok-*` ids |
+| **Three picks, the recommended by rule** | Every cell yields a **primary** (the cell's winner: cost-aligned best), a **fallback** (its runner-up, on another provider or surface in every cell — `picks.fallbackRule`; 66 cells moved in all, 60 of them to satisfy it; at the aggregate of several pairs the reader names the highest-precedence other-pool alias where the verb's runner-up shares the primary's pool, until zheref/nen#389) and a **recommended** (cost-agnostic best) derived by `picks.recommended`: the primary's `escalation` when the highest job weight is 4 or the effort is `max`, else the primary. Deterministic from facts the verb reports; computing it inside `nen direct resolve` is a nen follow-up |
+| **Publishing is opt-in** | `nen/workflow.json` → `direct.publish`, one of `none` (default, the 2026-10-04 behaviour) \| `label` \| `label+comment` (catalogue id `workflow.direct.publish`). `label` applies the primary's model **line** only, as `model/<line>` (`claude`, `gpt`, `gemini`, `grok`, `composer`) through `nen label apply` — declared in the consumer's `nen/labels.json` first, by hand, because nen's classify contract carries exactly two axes; `label+comment` adds one marker-keyed issue comment with the three picks, tier, surface, dial and live version, closing with a `Direct:` trailer. The PR body stays free of model metadata (CON-51) |
+
+**Pushed back, and recorded as this run's reading (the maintainer's to correct):** (1) the tier keys stay
+`frontier / deep / fast / economy` — the request's `light` is `economy`, and renaming a key touches every
+consumer's `models` block, the generator and the catalogue for no behavioural gain; (2) the five output axes
+are the alias's **line**, its **tier**, the **version** and the **effort dial** read live (`liveLookup.<provider>.effort`,
+`effort.surfaceMap` the fallback) and the **surface** — the `family` stays as the finer fact beneath the line;
+(3) **companion jobs** are `review` and `delivery-ops`, flagged `companion: true` in the taxonomy: beside
+another job they are kept out of the verb call that decides (a second call reports them as companion rows), the
+work runs on the **session's** surface — the surface the effort runs on, where hanten raises its reviewers — at
+`models.roles.<role>` with the tier beside a lower-tier session left to zheref/hatsu#222, and alone they direct
+themselves through their own cells; `unit-tests`, `ui-automation` and
+`performance` stay standalone-able and are not flagged; (4) ties in the aggregate still break toward the
+semantic alias of a tier (`precedence`), since a tie carries at least one semantic pair and the fallback shows
+the execution model beside it; (5) the compare in `build` and `ren` runs against the **set** of picks, in the order primary › recommended ›
+fallback: a session on the recommended or the fallback is `within the registry's set: <which>`, one line, never
+asked; every compare unread is `unread: no readable compare`; the verb's record keeps its own compare against
+the primary and the report keeps the within read, both named as such until zheref/nen#389; (6) the label
+vocabulary has **five** lines, not the four the request named: `composer` is a line of its own because a
+`MECHANICAL_EDITOR` primary needs a label too — the maintainer's to correct.
+
+**What follows.** The registry's `revision` block records the transform; `scripts/direct_matrix_doc.sh
+--self-test` now holds the registry's invariants over every cell (the fallback rule, every alias's line and
+escalation, no frontier primary, every companion routed, every list price sourced); `ren` § 2 runs `direct` on a
+classified effort as `build` § 2b does; `nen/decisions.json` row `direct-mismatch` reads the set. **Owed to
+nen** (zheref/nen#389): `nen direct resolve` computing the recommended pick, the within-set compare and the companion
+strike, and `nen direct registry` checking the fallback rule. **Open:** zheref/hatsu#222 (the reviewer tier
+against a lower session) is untouched by this ruling — the companion rule fixes the surface (the session's) and names the role's tier
+only pending that question.
+
+---
+
 ## Rulings of 2026-10-04 — one bot reviewer suffices (the round quorum)
 
 **The maintainer's words, verbatim:**

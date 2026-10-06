@@ -1,61 +1,187 @@
 {
   "$schema": "hatsu.direct-registry/v1",
   "contract": "hatsu-direct-registry",
-  "$comment": "The model-selection registry hatsu:direct resolves through `nen direct resolve --registry <this path>` (TRANSCRIBED from the source document's five tables by a one-off generator that is not shipped; source.documentSha256 identifies the document; `nen direct registry` validates the result) (the maintainer's rulings of 2026-10-04, docs/ROSTER.md section Rulings of 2026-10-04 -- classify and direct). It separates STABLE ALIASES (SEMANTIC_FRONTIER, EXECUTION_FRONTIER, ...) from REPLACEABLE VERSIONS, as the source document does: every routing cell names an alias and a surface, never a model version. An alias resolves to a provider, a model FAMILY, the Hatsu surface it runs on and the TIER of nen/workflow.json -> models.<surface> that surface spells it as (deep -> opus on Claude Code, frontier -> astra on Codex, ...), so the concrete alias the maintainer types comes from the consumer's own models block and the version is never in this file. The `snapshot` block is the document's dated version table and is the stated FALLBACK only: the latest recommended version is read LIVE at run time through `liveLookup` (a surface CLI where one lists models, the provider's model page fetched and quoted) and reported with its source; where the lookup fails the snapshot is quoted with its date. The actionable winner and runner-up always name one of Hatsu's four surfaces (claude-code, codex, cursor, antigravity); native IDE integrations (with the providers they offer), the Cursor IDE and GitHub Copilot appear as INTERACTIVE equivalents where the document names them. `routing` is keyed job -> domain -> cells, transcribed from the document's five tables (39 jobs, 95 job x domain routes, 204 cells with their language overrides): `*` is the cell every language shares and a language key appears only where the document differs; `prose` reads `*`. `effort` is the deterministic rule for the recommended effort level (low | medium | high | max) from the taxonomy's job weights, the job and language counts, the domain and the repository's gate. Nothing here is a fact about a machine: `nen direct resolve` reads this file and the consumer's nen/workflow.json and hard-codes none of it.",
+  "$comment": "The model-selection registry hatsu:direct resolves through `nen direct resolve --registry <this path>` (the maintainer's rulings of 2026-10-04 and 2026-10-05, docs/ROSTER.md). It separates STABLE ALIASES (SEMANTIC_FRONTIER, EXECUTION_FRONTIER, EDITOR_FRONTIER, ...) from REPLACEABLE VERSIONS: every routing cell names an alias and a surface, never a model version. An alias resolves to a provider, a model LINE (claude | gpt | gemini | grok | composer -- the label vocabulary), a model FAMILY, the Hatsu surface it runs on, the TIER of nen/workflow.json -> models.<surface> that surface spells it as (deep -> opus on Claude Code, deep -> sol on Codex, deep -> grok on Cursor, deep -> pro on Antigravity) and its ESCALATION alias (the frontier tier above it, where one exists), so the concrete alias the maintainer types comes from the consumer's own models block and the version is never in this file. Each cell yields THREE PICKS (`picks`): the primary (cost-aligned best, the cell's winner), the fallback (cost-aligned second best on another provider or surface, the cell's runnerUp) and the recommended (cost-agnostic best, derived by rule). The `snapshot` block is the dated version and list-price table and is the stated FALLBACK only: the latest recommended version and the effort dial are read LIVE at run time through `liveLookup` and reported with their source; where the lookup fails the snapshot is quoted with its date. The actionable picks always name one of Hatsu's four surfaces (claude-code, codex, cursor, antigravity); native IDE integrations, the Cursor IDE, GitHub Copilot and Grok Build appear as INTERACTIVE or non-actionable equivalents. `routing` is keyed job -> domain -> cells (39 jobs, 95 job x domain routes, 204 cells with their language overrides): `*` is the cell every language shares and a language key appears only where the route differs; `prose` reads `*`. `effort` is the deterministic rule for the recommended effort level (low | medium | high | max) from the taxonomy's job weights, the job and language counts and the domain. `companions` names the jobs that never decide a surface; `publish` the opt-in GitHub write. Nothing here is a fact about a machine: `nen direct resolve` reads this file and the consumer's nen/workflow.json and hard-codes none of it.",
   "source": {
     "document": "Version-Decoupled Model Selection Matrix for Engineering Workflows, registry snapshot 2026-10-04",
-    "rulings": "docs/ROSTER.md section Rulings of 2026-10-04 -- classify and direct",
+    "rulings": [
+      "docs/ROSTER.md section Rulings of 2026-10-04 -- classify and direct",
+      "docs/ROSTER.md section Rulings of 2026-10-05 -- the registry rebalance"
+    ],
     "taxonomy": "contracts/classify.taxonomy.json",
     "documentSha256": "baf720e3ffac80dc84640751ed3e0567fe61940bd1a505688a17f49c17937a93",
+    "revision": {
+      "date": "2026-10-05",
+      "what": "the execution default moved from the frontier tier (Astra) to the deep tier (Sol) with Astra as EXECUTION_MAX; Terra became EXECUTION_VALUE; Grok on Cursor entered as EDITOR_FRONTIER (primary on the eight editor-shaped TypeScript cells the document preferred the Cursor IDE for, fallback elsewhere); every runner-up moved onto a different provider or surface (66 cells moved in all, counted cell by cell on the primary alias or the actionable fallback alias -- a reviewer alias read through its `also`; 60 of them to satisfy picks.fallbackRule, the other 6 forced by a primary move); standalone review cells route to the semantic reader; the picks, companions, publish and within-set blocks were added; the snapshot, list prices, served ids and effort dials were re-read live",
+      "transform": "a one-off script, not shipped; the resulting invariants are stated in this file (picks.fallbackRule, every alias's line and escalation, no frontier primary, every companion routed, every list price sourced) and checked by scripts/direct_matrix_doc.sh --self-test; the nen direct registry check is zheref/nen#389. The choice of each new runner-up followed the fallback rule by pool (an Anthropic primary falls back to Sol on Codex; an OpenAI primary to Grok on Cursor in product domains and to Opus on Claude Code in aigov; a Sonnet primary to Grok on Cursor, or to Sol for prose-shaped jobs), stated here so the moves can be re-derived."
+    },
     "readers": [
       "hatsu:direct",
       "hatsu:build",
-      "nen direct resolve"
+      "hatsu:ren",
+      "nen direct resolve",
+      "scripts/direct_matrix_doc.sh"
     ]
   },
   "snapshot": {
-    "asOf": "2026-10-04",
-    "$comment": "The document's Current version registry. A fallback quoted with its date when the live lookup fails -- never the answer while a provider page or surface CLI can be read.",
+    "asOf": "2026-10-05",
+    "$comment": "The dated version AND list-price table, refreshed 2026-10-05 from the provider pages and surface CLIs named in liveLookup (every row cites its source and read date; ECON-8). A fallback quoted with its date when the live lookup fails -- never the answer while a provider page or surface CLI can be read. `served` is what each surface's own lookup listed on the read date: the alias the maintainer types resolves to THAT id, which may lag the provider's newest (Codex serves GPT-5.6 Sol while the API lists 6.1). `listPrice` is the evidence behind the cost-aligned ordering of the picks, never a number a skill prints as today's price.",
     "aliases": {
-      "SEMANTIC_FRONTIER": {
-        "primary": "Claude Opus 5.5",
-        "modelId": "claude-opus-5-5",
-        "fallback": "Claude Fable 5.1"
-      },
       "SEMANTIC_MAX": {
         "primary": "Claude Fable 5.1",
         "modelId": "claude-fable-5-1",
-        "fallback": "Claude Opus 5.5 at higher effort"
+        "fallback": "Claude Opus 5.5 at higher effort",
+        "listPrice": {
+          "input": 10,
+          "output": 50,
+          "unit": "USD per 1M tokens, standard tier, short context",
+          "source": "https://platform.claude.com/docs/en/models/overview",
+          "readOn": "2026-10-05"
+        },
+        "served": {
+          "claude-code": "fable (the /model picker, read in-session)"
+        }
+      },
+      "SEMANTIC_FRONTIER": {
+        "primary": "Claude Opus 5.5",
+        "modelId": "claude-opus-5-5",
+        "fallback": "GPT-6.1 Sol on Codex",
+        "listPrice": {
+          "input": 4,
+          "output": 20,
+          "unit": "USD per 1M tokens, standard tier, short context",
+          "source": "https://platform.claude.com/docs/en/models/overview",
+          "readOn": "2026-10-05"
+        },
+        "served": {
+          "claude-code": "opus (the /model picker, read in-session)"
+        }
       },
       "BALANCED_AUTHOR": {
         "primary": "Claude Sonnet 5.5",
         "modelId": "claude-sonnet-5-5",
-        "fallback": "GPT-6.1 Sol"
+        "fallback": "Grok 4.7 on Cursor",
+        "listPrice": {
+          "input": 2,
+          "output": 10,
+          "unit": "USD per 1M tokens, standard tier, short context",
+          "source": "https://platform.claude.com/docs/en/models/overview",
+          "readOn": "2026-10-05"
+        },
+        "served": {
+          "claude-code": "sonnet (the /model picker, read in-session)"
+        }
       },
-      "EXECUTION_FRONTIER": {
+      "EXECUTION_MAX": {
         "primary": "GPT-6 Astra",
         "modelId": "gpt-6-astra",
-        "fallback": "Claude Opus 5.5"
+        "fallback": "Claude Fable 5.1",
+        "listPrice": {
+          "input": 10,
+          "output": 50,
+          "unit": "USD per 1M tokens, standard tier, short context",
+          "source": "https://developers.openai.com/api/docs/pricing",
+          "readOn": "2026-10-05"
+        },
+        "served": {
+          "codex": "gpt-6-astra (codex debug models, 2026-10-05; levels low|medium|high|xhigh|max|ultra)"
+        }
       },
-      "EXECUTION_VALUE": {
+      "EXECUTION_FRONTIER": {
         "primary": "GPT-6.1 Sol",
         "modelId": "gpt-6.1-sol",
-        "fallback": "Claude Sonnet 5.5"
+        "fallback": "Claude Opus 5.5",
+        "listPrice": {
+          "input": 2,
+          "output": 10,
+          "unit": "USD per 1M tokens, standard tier, short context",
+          "source": "https://developers.openai.com/api/docs/pricing",
+          "readOn": "2026-10-05",
+          "note": "GPT-5.6 Sol, the slug Codex still serves, lists at $4 / $20"
+        },
+        "served": {
+          "codex": "gpt-5.6-sol (codex debug models, 2026-10-05: no gpt-6.1-sol or gpt-6-sol slug is listed yet, so the sol tier resolves to 5.6 on this surface until the CLI catches up)"
+        },
+        "evidence": "snapshot.sources.artificialAnalysis"
+      },
+      "EXECUTION_VALUE": {
+        "primary": "GPT-5.6 Terra",
+        "modelId": "gpt-5.6-terra",
+        "fallback": "Claude Sonnet 5.5",
+        "listPrice": {
+          "input": 2,
+          "output": 12,
+          "unit": "USD per 1M tokens, standard tier, short context",
+          "source": "https://developers.openai.com/api/docs/pricing",
+          "readOn": "2026-10-05",
+          "note": "no GPT-6 Terra exists: the 2026-09-22 changelog shipped GPT-6 Sol and GPT-6 Luna only"
+        },
+        "served": {
+          "codex": "gpt-5.6-terra (codex debug models, 2026-10-05)"
+        }
       },
       "VISUAL_ORCHESTRATOR": {
-        "primary": "Gemini 4 Argon",
-        "modelId": null,
-        "fallback": "Gemini 3.8 Flash"
+        "primary": "Gemini 3.1 Pro",
+        "modelId": "gemini-3.1-pro-preview",
+        "fallback": "Gemini 3.8 Flash",
+        "listPrice": {
+          "input": 2,
+          "output": 12,
+          "unit": "USD per 1M tokens, standard tier, short context",
+          "source": "https://ai.google.dev/gemini-api/docs/pricing",
+          "readOn": "2026-10-05",
+          "note": "Gemini 4 Argon was announced 2026-09-30 with access limited to paid API customers and AI Ultra subscribers, no model page or price on the Gemini API pricing sheet yet; it replaces this row when the persona key `pro` resolves to it"
+        },
+        "served": {
+          "antigravity": "pro (the workspace model picker; the persona key admits inherit | flash | pro)"
+        }
       },
       "VISUAL_FALLBACK": {
         "primary": "Gemini 3.8 Flash",
-        "modelId": null,
-        "fallback": "Claude Sonnet 5.5"
+        "modelId": "gemini-3.8-flash",
+        "fallback": "Claude Sonnet 5.5",
+        "listPrice": {
+          "input": 0.75,
+          "output": 3.75,
+          "unit": "USD per 1M tokens, standard tier, short context",
+          "source": "https://ai.google.dev/gemini-api/docs/pricing",
+          "readOn": "2026-10-05",
+          "note": "$1.50 / $7.50 from 2027-01-01"
+        },
+        "served": {
+          "antigravity": "flash"
+        }
+      },
+      "EDITOR_FRONTIER": {
+        "primary": "Grok 4.7",
+        "modelId": "grok-4.7",
+        "fallback": "Claude Sonnet 5.5",
+        "listPrice": {
+          "input": 2,
+          "output": 6,
+          "unit": "USD per 1M tokens, standard tier, short context",
+          "source": "https://docs.x.ai/docs/models",
+          "readOn": "2026-10-05",
+          "note": "the same $2 / $6 on Cursor's own sheet (https://cursor.com/docs/models); $4 / $12 past 200k tokens"
+        },
+        "served": {
+          "cursor": "grok-4.7-high (cursor-agent models, 2026-10-05: grok-4.7-{low,medium,high,xhigh}[-fast] beside cursor-grok-4.6-*; the 4.7 ids carry no cursor- prefix)"
+        }
       },
       "MECHANICAL_EDITOR": {
         "primary": "Cursor Composer 2.5",
-        "modelId": null,
-        "fallback": "Claude Sonnet 5.5"
+        "modelId": "composer-2.5",
+        "fallback": "Claude Sonnet 5.5",
+        "listPrice": {
+          "input": 0.5,
+          "output": 2.5,
+          "unit": "USD per 1M tokens, standard tier, short context",
+          "source": "https://cursor.com/docs/models",
+          "readOn": "2026-10-05"
+        },
+        "served": {
+          "cursor": "composer-2.5 (cursor-agent models, 2026-10-05)"
+        }
       },
       "PR_QUALITY_REVIEW": {
         "primary": "Cursor Bugbot",
@@ -67,84 +193,166 @@
         "modelId": null,
         "fallback": "EXECUTION_FRONTIER"
       }
+    },
+    "sources": {
+      "artificialAnalysis": {
+        "url": "https://artificialanalysis.ai/articles/gpt-6-1-sol-replaces-gpt-6-sol-after-just-7-days-with-near-astra-intelligence",
+        "readOn": "2026-10-05",
+        "articleDate": "2026-09-29",
+        "quoted": [
+          "GPT-6.1 Sol gains 4 points in the Intelligence Index vs GPT-6 Sol, and 5 points vs GPT-5.6 Sol - landing 1 point below GPT-6 Astra.",
+          "GPT-6.1 Sol gains 3 points on GPT-6 Sol at max effort in the Artificial Analysis Coding Agent Index, and sits 2 points below GPT-6 Astra.",
+          "At max effort, GPT-6.1 Sol costs less than a quarter of GPT-6 Astra per Intelligence Index task ($0.72 vs $3.26)."
+        ],
+        "$comment": "the capability evidence behind moving the execution default to Sol (ECON-8: the cost-per-task figure's basis is the Intelligence Index task set at max effort, per the article); a third-party measurement, cited beside the first-party price sheets, never a routing instruction"
+      }
     }
   },
   "aliases": {
-    "SEMANTIC_FRONTIER": {
-      "provider": "anthropic",
-      "family": "claude-opus",
-      "surface": "claude-code",
-      "tier": "deep",
-      "selection": "Best approved model for requirements, architecture, repository comprehension, state/effect semantics, difficult authorship, compatibility, and final semantic judgment"
-    },
     "SEMANTIC_MAX": {
       "provider": "anthropic",
       "family": "claude-fable",
+      "line": "claude",
       "surface": "claude-code",
       "tier": "frontier",
+      "escalation": null,
       "selection": "Escalation model for unusually ambiguous, long-horizon, or reasoning-dominant work when the default semantic frontier falls short"
+    },
+    "SEMANTIC_FRONTIER": {
+      "provider": "anthropic",
+      "family": "claude-opus",
+      "line": "claude",
+      "surface": "claude-code",
+      "tier": "deep",
+      "escalation": "SEMANTIC_MAX",
+      "selection": "Best approved model for requirements, architecture, repository comprehension, state/effect semantics, difficult authorship, compatibility, and final semantic judgment"
     },
     "BALANCED_AUTHOR": {
       "provider": "anthropic",
       "family": "claude-sonnet",
+      "line": "claude",
       "surface": "claude-code",
       "tier": "fast",
+      "escalation": "SEMANTIC_FRONTIER",
       "selection": "Fast frontier-quality model for scoped implementation, tests, documentation, interactive work, and high-volume maintenance"
+    },
+    "EXECUTION_MAX": {
+      "provider": "openai",
+      "family": "gpt-astra",
+      "line": "gpt",
+      "surface": "codex",
+      "tier": "frontier",
+      "escalation": null,
+      "selection": "Escalation model for the hardest tool-heavy, long-horizon execution when the execution default falls short -- the maintainer's own Codex session, never a subagent (the frontier tier)"
     },
     "EXECUTION_FRONTIER": {
       "provider": "openai",
-      "family": "gpt-astra",
+      "family": "gpt-sol",
+      "line": "gpt",
       "surface": "codex",
-      "tier": "frontier",
-      "selection": "Best approved model for tool-heavy build/test/debug loops, machinery, CI/CD, migrations, security execution, and computer use"
+      "tier": "deep",
+      "escalation": "EXECUTION_MAX",
+      "selection": "Best cost-aligned model for tool-heavy build/test/debug loops, machinery, CI/CD, migrations, security execution, and computer use -- within one to two index points of the frontier execution model at one fifth of its list price (OpenAI changelog and Artificial Analysis, 2026-09-29)"
     },
     "EXECUTION_VALUE": {
       "provider": "openai",
-      "family": "gpt-sol",
+      "family": "gpt-terra",
+      "line": "gpt",
       "surface": "codex",
-      "tier": "deep",
-      "selection": "Near-frontier execution model for routine coding, parallel workers, CI fixes, and high-volume automation"
+      "tier": "fast",
+      "escalation": "EXECUTION_FRONTIER",
+      "selection": "Fast execution model for routine coding, parallel workers, CI fixes, and high-volume automation"
     },
     "VISUAL_ORCHESTRATOR": {
       "provider": "google",
       "family": "gemini-pro",
+      "line": "gemini",
       "surface": "antigravity",
       "tier": "deep",
+      "escalation": null,
       "selection": "Best approved model for multimodal UI work, parallel-agent orchestration, long-context synthesis, and visual validation"
     },
     "VISUAL_FALLBACK": {
       "provider": "google",
       "family": "gemini-flash",
+      "line": "gemini",
       "surface": "antigravity",
       "tier": "fast",
+      "escalation": "VISUAL_ORCHESTRATOR",
       "selection": "Generally available visual/orchestration fallback when the frontier visual model is restricted"
+    },
+    "EDITOR_FRONTIER": {
+      "provider": "cursor",
+      "family": "grok",
+      "line": "grok",
+      "surface": "cursor",
+      "tier": "deep",
+      "escalation": null,
+      "selection": "Editor-native frontier-class agent, served by Cursor from the Grok line: the primary for editor-shaped TypeScript work (UI, implementation, bug fixes, migrations, delivery-ops) and the cost-aligned cross-provider fallback for execution work elsewhere"
     },
     "MECHANICAL_EDITOR": {
       "provider": "cursor",
       "family": "composer",
+      "line": "composer",
       "surface": "cursor",
       "tier": "fast",
+      "escalation": "EDITOR_FRONTIER",
       "selection": "Cost-efficient model for repetitive, low-ambiguity, repository-wide transformations"
     },
     "PR_QUALITY_REVIEW": {
       "provider": "cursor",
       "family": "bugbot",
+      "line": null,
       "surface": null,
       "tier": null,
+      "escalation": null,
       "reviewer": true,
       "selection": "Automated PR reviewer for quality, correctness, and repository-policy findings"
     },
     "PR_SECURITY_REVIEW": {
       "provider": "cursor",
       "family": "security-review",
+      "line": null,
       "surface": null,
       "tier": null,
+      "escalation": null,
       "reviewer": true,
       "selection": "Automated PR reviewer dedicated to exploitable security defects"
     }
   },
+  "picks": {
+    "$comment": "The three picks every cell yields, and what each is for (the maintainer's ruling of 2026-10-05, docs/ROSTER.md section Rulings of 2026-10-05 -- the registry rebalance). The cell keys stay `winner` and `runnerUp` because nen direct resolve reads those; this block fixes their meaning. One more word of the verb's is fixed here: `mismatch.compares[].recommended` in the resolve document is the PRIMARY's value (the verb's word predates the three picks); its rename is zheref/nen#389.",
+    "primary": "the cell's `winner`: the cost-aligned best -- the lowest tier that loses nothing material on the job (ECON-3). It is what nen direct resolve reports as the winner, what the restart line names and what build compares the session against first.",
+    "fallback": "the cell's `runnerUp`: the cost-aligned second best on a DIFFERENT provider or surface (`fallbackRule`), so the work can move when one pool's funds or credits run out. A reviewer alias in that position resolves through its `also`. AT THE AGGREGATE (several pairs), the verb's runner-up is the fallback when it sits in another pool than the primary; when it shares the primary's pool, the fallback is the highest-precedence alias in another pool among the pairs' winners and runner-ups, named beside the verb's runner-up with the word `aggregate` -- derived by the reader from the resolve document until the verb applies the rule (zheref/nen#389).",
+    "fallbackRule": "for every cell: the actionable fallback's provider differs from the primary's, or its surface does. Checked by scripts/direct_matrix_doc.sh --self-test over every cell; the nen direct registry check is zheref/nen#389.",
+    "recommended": {
+      "describe": "the cost-agnostic best: what to run when price is no object",
+      "rule": "aliases.<primary>.escalation when the resolve's highest job weight is 4 OR its effort level is max, and that escalation is not null; otherwise the primary itself",
+      "when": {
+        "anyOf": [
+          {
+            "maxJobWeight": 4
+          },
+          {
+            "effortLevel": "max"
+          }
+        ]
+      },
+      "then": "aliases.<primary>.escalation",
+      "else": "primary",
+      "$comment": "Deterministic from facts the verb already reports (the pairs' jobs and the effort level, over the NON-COMPANION call), so the reader derives it from the resolve document and the page renders it; computing it inside nen direct resolve is zheref/nen#389. The escalation aliases (SEMANTIC_MAX, EXECUTION_MAX) are recommended only here and only for the maintainer's own session: a subagent is never raised on the frontier tier."
+    },
+    "tiers": "the alias's `tier` is one of nen/workflow.json -> models' four keys -- frontier, deep, fast, economy -- and the primaries live on deep and fast: Opus, Sol, Grok and Pro are the deep tier; Sonnet, Terra, Composer and Flash the fast tier; Fable and Astra the frontier tier, reached only as `recommended`. No alias names the economy tier: it is the watcher and formatter roles' (WORKFLOW section models), never a pick."
+  },
+  "companions": {
+    "$comment": "Jobs that never stand alone on an issue because they are phases of the effort that carries them -- flagged `companion: true` in contracts/classify.taxonomy.json (review, delivery-ops). THE VERB KEEPS DECIDING: beside any non-companion job, `--job` carries ONLY the non-companion jobs, and that call's aggregate, effort, picks, compare and --record are the verdict; a second `nen direct resolve` over the companion jobs alone reports them as companion rows -- that work runs on the SESSION'S surface (the surface the effort runs on, which is where hanten raises its reviewers: hanten sections 4 and 7) at models.roles.<role> (review -> reviewer, delivery-ops -> worker; the tier beside a lower-tier session is zheref/hatsu#222, open, not ruled here). An issue carrying ONLY companion jobs (review alone, review + delivery-ops, a hotfix backport) is one call over them, no strike: its own cells direct it. The companion rows never change the primary, the fallback, the effort or the compare. A `companion` flag honoured by the verb itself (one call, the rows marked) is zheref/nen#389.",
+    "role": {
+      "review": "reviewer",
+      "delivery-ops": "worker"
+    }
+  },
   "surfaces": {
-    "$comment": "Hatsu's four actionable surfaces. A `restart` line's placeholders are filled ONLY from the consumer's nen/workflow.json -> models.<modelsKey>.<tier> (<alias>) and from effort.surfaceMap (<level>) -- never from a fetched page and never from the snapshot; the live-read version is quoted beside the line, never inside it (Feitan, 2026-10-04). `interactive` is the surface's own conversational twin.",
+    "$comment": "Hatsu's four actionable surfaces. A `restart` line's placeholders are filled ONLY from the consumer's nen/workflow.json -> models.<modelsKey>.<tier> (<alias>) and from effort.surfaceMap (<level>) -- never from a fetched page and never from the snapshot; the live-read version is quoted beside the line, never inside it (Feitan, 2026-10-04). `interactive` is the surface's own conversational twin. `$nonActionable` lists the surfaces direct knows of and never recommends.",
     "claude-code": {
       "label": "Claude Code",
       "modelsKey": "claude",
@@ -158,16 +366,16 @@
       "modelsKey": "codex",
       "restart": "codex -m <alias> -c model_reasoning_effort=<level>",
       "interactive": "ChatGPT's Codex web app or the Codex IDE extension, the same model family",
-      "effortControl": "model_reasoning_effort low|medium|high|xhigh",
-      "lookup": "codex debug models"
+      "effortControl": "model_reasoning_effort low|medium|high|xhigh|max (ultra, automatic task delegation, exists and is never recommended)",
+      "lookup": "codex debug models (slugs, default_reasoning_level and supported_reasoning_levels per slug)"
     },
     "cursor": {
       "label": "Cursor",
       "modelsKey": "cursor",
-      "restart": "cursor-agent --model <alias>",
+      "restart": "cursor-agent --model <alias> (the alias is resolved to its served id first, docs/surfaces/cursor.md section 1; the id carries the dial as its suffix, -<level>)",
       "interactive": "the Cursor IDE chat and Composer, the same model",
-      "effortControl": "the model's own thinking setting",
-      "lookup": "cursor-agent --model help lists the served models"
+      "effortControl": "the model id suffix: -low|-medium|-high|-xhigh (a -fast variant is a speed tier, not an effort)",
+      "lookup": "cursor-agent models lists the served ids with their effort suffixes"
     },
     "antigravity": {
       "label": "Antigravity",
@@ -176,6 +384,23 @@
       "interactive": "the Antigravity IDE itself, or the Gemini app for a conversation",
       "effortControl": "the model's thinking budget (pro) -- no four-step dial",
       "lookup": "the workspace's model picker"
+    },
+    "$nonActionable": {
+      "$comment": "Surfaces direct knows of but never recommends as actionable: no docs/surfaces/<s>.md guide, no SurfaceRow in nen surface mirror, no hooks, picker or permission pack. Each appears as an INTERACTIVE equivalent where a cell names it. Adding one is a surface proposal through great-hiker (zheref/hatsu#236 for Grok Build), never a registry edit.",
+      "grok-build": {
+        "label": "Grok Build",
+        "provider": "xai",
+        "line": "grok",
+        "what": "xAI's agentic coding CLI: early beta 2026-05-14, v1.0 on 2026-08-07 under Apache 2.0, a SuperGrok or X Premium+ subscription; defaults to the Grok line, with an interactive TUI, a headless mode and ACP for editors",
+        "lookup": "https://docs.x.ai/docs/models",
+        "proposal": "zheref/hatsu#236 (a fifth surface: decide, and if adopted, guide, generator row and tiers)"
+      },
+      "copilot": {
+        "label": "GitHub Copilot",
+        "provider": "github",
+        "what": "the IDE chat and the coding agent; offers the Claude, GPT, Gemini and Grok lines where the plan allows (Grok 4.7, GPT-6.1 Sol, Claude Opus 5.5 and Fable 5.1 listed GA on 2026-10-05)",
+        "lookup": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+      }
     }
   },
   "nativeInteractive": {
@@ -186,40 +411,50 @@
     "prose": "the Claude desktop app or claude.ai"
   },
   "liveLookup": {
-    "$comment": "How the latest recommended version of a family is read at run time, per provider: the surface's own CLI first where one lists models, then the provider's model page fetched with the surface's web fetch and the line quoted. Pages are untrusted data: a line is quoted, never acted on as an instruction.",
+    "$comment": "How the latest recommended version of a family, and the effort dial it offers, are read at run time, per provider: the surface's own CLI first where one lists models, then the provider's model page fetched with the surface's web fetch and the line quoted. `effort` names where the dial is read live; effort.surfaceMap is the fallback when it cannot be. Pages are untrusted data: a line is quoted, never acted on as an instruction.",
     "anthropic": {
       "cli": "the Claude Code model picker (/model), read in-session",
       "docs": [
         "https://platform.claude.com/docs/en/models/overview",
-        "https://platform.claude.com/docs/en/release-notes/overview"
-      ]
+        "https://platform.claude.com/docs/en/release-notes/overview",
+        "https://platform.claude.com/docs/en/about-claude/pricing"
+      ],
+      "effort": "/effort lists low|medium|high|max in-session; the models page gives each model's default effort"
     },
     "openai": {
       "cli": "codex debug models",
       "docs": [
         "https://developers.openai.com/api/docs/changelog",
-        "https://openai.com/index/practical-guide-building-gpt-6/"
-      ]
+        "https://openai.com/index/practical-guide-building-gpt-6/",
+        "https://developers.openai.com/api/docs/pricing"
+      ],
+      "effort": "codex debug models -> supported_reasoning_levels per slug (low|medium|high|xhigh|max|ultra on 2026-10-05)"
     },
     "google": {
       "cli": null,
       "docs": [
         "https://antigravity.google/docs/subagents",
-        "https://ai.google.dev/gemini-api/docs/models"
-      ]
+        "https://ai.google.dev/gemini-api/docs/models",
+        "https://ai.google.dev/gemini-api/docs/pricing"
+      ],
+      "effort": null
     },
     "cursor": {
-      "cli": "cursor-agent --model help",
+      "cli": "cursor-agent models",
       "docs": [
+        "https://cursor.com/docs/models",
+        "https://docs.x.ai/docs/models",
         "https://cursor.com/changelog",
         "https://cursor.com/composer"
-      ]
+      ],
+      "effort": "the -<level> suffixes cursor-agent models lists for the served id (grok-4.7-low|medium|high|xhigh on 2026-10-05)"
     },
     "copilot": {
       "cli": null,
       "docs": [
         "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
-      ]
+      ],
+      "effort": null
     }
   },
   "effort": {
@@ -278,13 +513,13 @@
         "low": "low",
         "medium": "medium",
         "high": "high",
-        "max": "xhigh"
+        "max": "max"
       },
       "cursor": {
         "low": "low",
         "medium": "medium",
         "high": "high",
-        "max": "high"
+        "max": "xhigh"
       },
       "antigravity": {
         "low": "low",
@@ -292,18 +527,20 @@
         "high": "high",
         "max": "high"
       },
-      "$collapsed": "cursor and antigravity have no top setting: max maps to high there, said in the report; a session at high on those surfaces MATCHES a recommended max because effort is compared in dial space (see mismatch)."
+      "$collapsed": "antigravity has no top setting: max maps to high there, said in the report; a session at high on antigravity MATCHES a recommended max because effort is compared in dial space (see mismatch). Codex gained max (and ultra) and Cursor's ids carry -xhigh, read live on 2026-10-05, so neither collapses any more; a dial the live read lists that this map lacks is quoted beside the line, never typed into it."
     }
   },
   "aggregation": {
-    "$comment": "An issue carrying several jobs or languages resolves ONE actionable recommendation. Each (job, language) pair yields its cell. WINNER: count winner positions only; the alias with the most wins, ties broken by `precedence` (earlier wins). A reviewer alias (aliases.<a>.reviewer true) is never the winner: a pair it wins counts for its `also` alias. RUNNER-UP: the alias with the next-highest winner count among the other winning aliases, ties by `precedence`; when the winner won every pair, the most frequent runnerUp alias across the winner's pairs, a reviewer alias resolving to its `also`, ties by `precedence`. Every reviewer runnerUp in this file carries an `also`, so a runner-up always resolves to an actionable alias. Every per-pair cell is still reported so the maintainer can see where the aggregate departs from a pair.",
+    "$comment": "An issue carrying several jobs or languages resolves ONE actionable recommendation. Each (job, language) pair yields its cell. WINNER (the PRIMARY pick): count winner positions only; the alias with the most wins, ties broken by `precedence` (earlier wins). A reviewer alias (aliases.<a>.reviewer true) is never the winner: a pair it wins counts for its `also` alias. RUNNER-UP (the FALLBACK pick): the alias with the next-highest winner count among the other winning aliases, ties by `precedence`; when the winner won every pair, the most frequent runnerUp alias across the winner's pairs, a reviewer alias resolving to its `also`, ties by `precedence`. Every reviewer runnerUp in this file carries an `also`, so a runner-up always resolves to an actionable alias. Every per-pair cell is still reported so the maintainer can see where the aggregate departs from a pair. PRECEDENCE ranks the semantic alias of a tier before the execution alias of the same tier: a tie carries at least one semantic pair, and the semantic reader is the one pick the fallback cannot replace at parity (ruling of 2026-10-05); the two escalation aliases are ranked first only because nen direct registry requires every alias ranked -- no cell names one as a winner or a runner-up, so those two slots are unreachable. Companion jobs (`companions`) are kept out of the call that decides, never struck from a tally.",
     "precedence": [
       "SEMANTIC_MAX",
+      "EXECUTION_MAX",
       "SEMANTIC_FRONTIER",
       "EXECUTION_FRONTIER",
       "VISUAL_ORCHESTRATOR",
-      "EXECUTION_VALUE",
+      "EDITOR_FRONTIER",
       "BALANCED_AUTHOR",
+      "EXECUTION_VALUE",
       "VISUAL_FALLBACK",
       "MECHANICAL_EDITOR",
       "PR_QUALITY_REVIEW",
@@ -311,7 +548,7 @@
     ]
   },
   "mismatch": {
-    "$comment": "What hatsu:build compares when it runs direct: the session's surface (one of surfaces), its model ALIAS (compared to models.<surface>.<winner tier> -- aliases, not tiers, because frontier and deep both read grok on Cursor) and its effort, compared in DIAL space after effort.surfaceMap (a collapsed top equals its dial). A session value the harness does not expose is passed as `unread` and that compare is reported unread, never a mismatch. A difference on any readable compare is a mismatch: build asks ONCE through the surface's picker (nen/decisions.json row direct-mismatch; continue here is the starred default, never a gate) and records the answer in the direct ledger. It never blocks the work.",
+    "$comment": "What hatsu:build (and ren, on a classified effort) compares when it runs direct: the session's surface (one of surfaces), its model ALIAS (compared to models.<surface>.<tier> -- aliases, not tiers, because frontier and deep both read grok on Cursor) and its effort, compared in DIAL space after effort.surfaceMap (a collapsed top equals its dial). A session value the harness does not expose is passed as `unread` and that compare is reported unread, never a mismatch. The compare runs against the SET of picks (`within`, in the order primary > recommended > fallback, the first match named): a session on the primary matches in one line; on the recommended or the fallback it is `within the registry's set: <which>` in one line and never asked (coinciding picks said, `fallback = recommended`); with every compare unread it is `unread: no readable compare`, one line, never asked; outside the set on any readable compare it is one picker, nen/decisions.json row direct-mismatch (continue here is the starred default, never a gate), its answer recorded in the direct ledger. It never blocks the work.",
     "compares": [
       "surface",
       "model",
@@ -323,14 +560,66 @@
       "effort": "--effort <level|unread>"
     },
     "ledger": ".nen/direct/<effort>.json",
-    "effortId": "the effort's identity, known before any branch exists: <CODE>-IS-#<N> for an issue (nen ref format), `inline-<ISO-8601 UTC seconds>` for a textual effort; percent-encoded in the file name as nen usage record encodes --effort; written under --repo's .nen/ (core, before a worktree exists). The verb refuses `..`, an absolute path or any resolved path outside .nen/direct/ at exit 2."
+    "effortId": "the effort's identity, known before any branch exists: <CODE>-IS-#<N> for an issue (nen ref format), `inline-<ISO-8601 UTC seconds>` for a textual effort; percent-encoded in the file name as nen usage record encodes --effort; written under --repo's .nen/ (core, before a worktree exists). The verb refuses `..`, an absolute path or any resolved path outside .nen/direct/ at exit 2.",
+    "within": {
+      "set": [
+        "primary",
+        "recommended",
+        "fallback"
+      ],
+      "order": "primary > recommended > fallback: the first pick the session matches is the one named; coinciding picks are said (fallback = recommended)",
+      "match": "surface equal and alias equal to models.<surface>.<that pick's tier>, effort compared in dial space; a compare the harness cannot read is unread and never decides",
+      "allUnread": "`unread: no readable compare` -- one line, never asked, the record kept",
+      "record": "--record holds the verb's own compare against the primary (its `match`); the within read and the picker's answer live in the report and in nen direct answer's entry -- the verb's document is the record, the reader's read is the report, and the two are named as such until the verb reads the set (zheref/nen#389)",
+      "verb": "nen direct resolve compares the session against the winner only and reports the runner-up beside it; the within-set read over the recommended and the fallback is the caller's, from the same document (residue, zheref/nen#389)"
+    }
   },
   "emptyAxis": {
     "job": "undirectable: the job axis is empty -- one line in the report, no cell, no effort, no mismatch asked; the caller (build) continues on its own session",
     "lang": "the shared `*` cell, as the prose language reads it",
     "$comment": "An axis classify left empty (undecidable, or every key low) reaches direct as an empty list. Inside build classify has already run (build § 2b), so direct never re-classifies: an empty axis is reported, never filled."
   },
-  "surfaceRule": "A routing cell's surface is always its alias's surface (SEMANTIC_* and BALANCED_AUTHOR on claude-code, EXECUTION_* on codex, VISUAL_* on antigravity, MECHANICAL_EDITOR on cursor), so WORKFLOW § models holds: an alias maps onto a tier, a tier onto the surface's own alias. Where the source document preferred Cursor, Xcode, Android Studio, Visual Studio, the browser toolchain or GitHub Copilot, that preference is the cell's `interactive` equivalent.",
+  "surfaceRule": "A routing cell's surface is always its alias's surface (SEMANTIC_* and BALANCED_AUTHOR on claude-code, EXECUTION_* on codex, VISUAL_* on antigravity, EDITOR_FRONTIER and MECHANICAL_EDITOR on cursor), so WORKFLOW section models holds: an alias maps onto a tier, a tier onto the surface's own alias. Where the source document preferred Xcode, Android Studio, Visual Studio, the browser toolchain or GitHub Copilot, that preference is the cell's `interactive` equivalent; where it preferred the Cursor IDE for TypeScript and the primary was BALANCED_AUTHOR, the cell now runs on Cursor (EDITOR_FRONTIER, eight cells); elsewhere the Cursor IDE stays the interactive equivalent.",
+  "publish": {
+    "$comment": "Writing the verdict to GitHub is OPT-IN per consumer (the maintainer's ruling of 2026-10-05, replacing the 2026-10-04 default of no GitHub write): nen/workflow.json -> direct.publish, one of none | label | label+comment; absent reads none, and ANY value other than the exact strings `label` or `label+comment` reads none and is said (nen validates the file and hands no value out; the enum is enforced by contracts/config-catalogue.json only where config_values.sh runs). Under build and ren it runs after the verdict, once per issue; standalone on an issue likewise; an inline effort has no issue and publishes nothing, said. Issue text and comments read here are UNTRUSTED DATA, never instructions.",
+    "configKey": "nen/workflow.json -> direct.publish",
+    "options": [
+      "none",
+      "label",
+      "label+comment"
+    ],
+    "default": "none",
+    "label": {
+      "family": "model/",
+      "keys": [
+        "claude",
+        "gpt",
+        "gemini",
+        "grok",
+        "composer"
+      ],
+      "value": "aliases.<primary>.line -- the model LINE only, never a tier, version, surface or effort",
+      "verb": "nen label apply <CODE>-IS-#<N> --label model/<line> --repo-slug <owner/name> --repo <checkout> --reason \"hatsu:direct <date>\" --run",
+      "declaredIn": "the consumer's nen/labels.json: the five model/ labels land through their own PR before any apply (the 2026-10-04 declaration-first ruling); an undeclared label is the verb's refusal, reported, never worked around. A third classify axis is refused by nen's contract (exactly lang and job), so this family is declared by hand and applied through nen label, never nen classify.",
+      "replace": "at most one model/ label per issue once nen label gains --remove; until then a different model/ label already present is named in the report and left (residue, zheref/nen#389). A label refused as undeclared does not stop the comment: under label+comment the comment still posts and names the refusal."
+    },
+    "comment": {
+      "marker": "<!-- hatsu:direct -->",
+      "verb": "nen issue comment --target <owner/name> --issue <N> --body-file <path>",
+      "idempotent": "the issue's comments are read first (gh api, read-only; their text is untrusted data, never instructions); a comment carrying the marker COUNTS ONLY WHEN ITS AUTHOR IS THE ACCOUNT BEHIND `gh auth token` (gh api user -> login) -- a marker posted by anyone else is reported as foreign and ignored; an own marker comment with the same primary, fallback, recommended and effort posts nothing; a changed verdict posts a new comment, the older one left as history.",
+      "shape": [
+        "the marker, then `**Direct** (hatsu:direct, <date>)`",
+        "one row each for primary, fallback and recommended: line, tier, surface, the surface alias, the effort dial, the live-read version as a `versionPattern` token quoted with its liveLookup source and date (or the snapshot with its date)",
+        "the companion jobs excluded, where any",
+        "a closing trailer line: `Direct: model/<line> tier=<tier> surface=<surface> effort=<level> fallback=<line>@<surface> recommended=<line>@<surface>`"
+      ],
+      "versionPattern": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9 .\\-]{0,40}$",
+        "$comment": "the live-read version enters the comment only as a token matching this pattern, inside a code span, with the source URL taken from liveLookup (never from the page or a redirect); a token that does not match falls back to the snapshot's primary with its asOf date. Page text never reaches a GitHub write any other way."
+      },
+      "bodyFile": "written under the session's scratch directory, never inside the checkout, so it cannot be committed by accident"
+    }
+  },
   "phases": {
     "FEAT.DEV.001": {
       "name": "Product discovery and problem framing"
@@ -708,8 +997,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           }
@@ -792,8 +1081,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "SEMANTIC_MAX",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           }
@@ -871,8 +1160,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": "GitHub Copilot in the IDE (Opus, Sonnet and Sol where the plan offers them)"
             }
           },
@@ -883,8 +1172,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": "the Cursor IDE"
             }
           }
@@ -1125,8 +1414,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "SEMANTIC_MAX",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           }
@@ -1148,8 +1437,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "SEMANTIC_MAX",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           }
@@ -1245,8 +1534,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "SEMANTIC_FRONTIER",
-              "surface": "claude-code",
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
               "interactive": null
             }
           },
@@ -1257,8 +1546,8 @@
               "interactive": "Xcode's native integration"
             },
             "runnerUp": {
-              "alias": "SEMANTIC_FRONTIER",
-              "surface": "claude-code",
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
               "interactive": "Xcode's native integration"
             }
           },
@@ -1276,13 +1565,13 @@
           },
           "typescript": {
             "winner": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
-              "interactive": "the Cursor IDE"
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
+              "interactive": null
             },
             "runnerUp": {
-              "alias": "VISUAL_ORCHESTRATOR",
-              "surface": "antigravity",
+              "alias": "BALANCED_AUTHOR",
+              "surface": "claude-code",
               "interactive": null
             }
           },
@@ -1293,8 +1582,8 @@
               "interactive": "Visual Studio's native integration"
             },
             "runnerUp": {
-              "alias": "SEMANTIC_FRONTIER",
-              "surface": "claude-code",
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
               "interactive": "Visual Studio's native integration"
             }
           }
@@ -1312,8 +1601,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "SEMANTIC_FRONTIER",
-              "surface": "claude-code",
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
               "interactive": null
             }
           },
@@ -1324,8 +1613,8 @@
               "interactive": "Xcode's native integration"
             },
             "runnerUp": {
-              "alias": "SEMANTIC_FRONTIER",
-              "surface": "claude-code",
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
               "interactive": null
             }
           },
@@ -1343,13 +1632,13 @@
           },
           "typescript": {
             "winner": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
-              "interactive": "the Cursor IDE"
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
+              "interactive": null
             },
             "runnerUp": {
-              "alias": "VISUAL_ORCHESTRATOR",
-              "surface": "antigravity",
+              "alias": "BALANCED_AUTHOR",
+              "surface": "claude-code",
               "interactive": null
             }
           },
@@ -1360,8 +1649,8 @@
               "interactive": "Visual Studio's native integration"
             },
             "runnerUp": {
-              "alias": "SEMANTIC_FRONTIER",
-              "surface": "claude-code",
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
               "interactive": null
             }
           }
@@ -1383,8 +1672,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           },
@@ -1395,8 +1684,8 @@
               "interactive": "Xcode's native integration"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": "Xcode's native integration"
             }
           },
@@ -1407,19 +1696,19 @@
               "interactive": "Android Studio / IntelliJ's native integration"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": "Android Studio / IntelliJ's native integration"
             }
           },
           "typescript": {
             "winner": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
-              "interactive": "the Cursor IDE"
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
+              "interactive": null
             },
             "runnerUp": {
-              "alias": "SEMANTIC_FRONTIER",
+              "alias": "BALANCED_AUTHOR",
               "surface": "claude-code",
               "interactive": null
             }
@@ -1431,8 +1720,8 @@
               "interactive": "Visual Studio's native integration"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": "Visual Studio's native integration"
             }
           }
@@ -1450,8 +1739,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           },
@@ -1462,8 +1751,8 @@
               "interactive": "Xcode's native integration"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           },
@@ -1474,19 +1763,19 @@
               "interactive": "Android Studio / IntelliJ's native integration"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           },
           "typescript": {
             "winner": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
-              "interactive": "the Cursor IDE"
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
+              "interactive": null
             },
             "runnerUp": {
-              "alias": "SEMANTIC_FRONTIER",
+              "alias": "BALANCED_AUTHOR",
               "surface": "claude-code",
               "interactive": null
             }
@@ -1498,8 +1787,8 @@
               "interactive": "Visual Studio's native integration"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           }
@@ -1519,8 +1808,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           },
@@ -1531,8 +1820,8 @@
               "interactive": "Xcode's native integration"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           },
@@ -1543,19 +1832,19 @@
               "interactive": "Android Studio / IntelliJ's native integration"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           },
           "typescript": {
             "winner": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
-              "interactive": "the Cursor IDE"
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
+              "interactive": null
             },
             "runnerUp": {
-              "alias": "SEMANTIC_FRONTIER",
+              "alias": "BALANCED_AUTHOR",
               "surface": "claude-code",
               "interactive": null
             }
@@ -1567,8 +1856,8 @@
               "interactive": "Visual Studio's native integration"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           }
@@ -1690,7 +1979,7 @@
               "alias": "PR_SECURITY_REVIEW",
               "surface": null,
               "interactive": null,
-              "also": "EXECUTION_FRONTIER"
+              "also": "SEMANTIC_FRONTIER"
             }
           }
         }
@@ -1730,8 +2019,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": "GitHub Copilot in the IDE (Opus, Sonnet and Sol where the plan offers them)"
             }
           },
@@ -1742,8 +2031,8 @@
               "interactive": "Xcode's native integration"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": "GitHub Copilot in the IDE (Opus, Sonnet and Sol where the plan offers them)"
             }
           },
@@ -1754,8 +2043,8 @@
               "interactive": "Android Studio / IntelliJ's native integration"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": "GitHub Copilot in the IDE (Opus, Sonnet and Sol where the plan offers them)"
             }
           },
@@ -1766,8 +2055,8 @@
               "interactive": "the Cursor IDE"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": "the Cursor IDE"
             }
           },
@@ -1778,8 +2067,8 @@
               "interactive": "Visual Studio's native integration"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": "GitHub Copilot in the IDE (Opus, Sonnet and Sol where the plan offers them)"
             }
           }
@@ -1797,8 +2086,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           },
@@ -1809,8 +2098,8 @@
               "interactive": "the native IDE integration (Xcode, Android Studio / IntelliJ, the browser toolchain, Visual Studio)"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           },
@@ -1821,8 +2110,8 @@
               "interactive": "the native IDE integration (Xcode, Android Studio / IntelliJ, the browser toolchain, Visual Studio)"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           },
@@ -1833,8 +2122,8 @@
               "interactive": "the native IDE integration (Xcode, Android Studio / IntelliJ, the browser toolchain, Visual Studio)"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           },
@@ -1845,8 +2134,8 @@
               "interactive": "the native IDE integration (Xcode, Android Studio / IntelliJ, the browser toolchain, Visual Studio)"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           }
@@ -2109,8 +2398,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "EXECUTION_VALUE",
-              "surface": "codex",
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
               "interactive": null
             }
           }
@@ -2526,13 +2815,13 @@
         "cells": {
           "*": {
             "winner": {
-              "alias": "EXECUTION_FRONTIER",
-              "surface": "codex",
+              "alias": "SEMANTIC_FRONTIER",
+              "surface": "claude-code",
               "interactive": null
             },
             "runnerUp": {
-              "alias": "SEMANTIC_FRONTIER",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           }
@@ -2565,14 +2854,14 @@
         "cells": {
           "*": {
             "winner": {
-              "alias": "EXECUTION_FRONTIER",
-              "surface": "codex",
+              "alias": "SEMANTIC_FRONTIER",
+              "surface": "claude-code",
               "interactive": null,
               "note": "EXECUTION_FRONTIER reviews semantic author"
             },
             "runnerUp": {
-              "alias": "SEMANTIC_FRONTIER",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null,
               "note": "SEMANTIC_FRONTIER reviews execution author"
             }
@@ -2733,8 +3022,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "EXECUTION_VALUE",
-              "surface": "codex",
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
               "interactive": null
             }
           },
@@ -2745,8 +3034,8 @@
               "interactive": "SwiftPM"
             },
             "runnerUp": {
-              "alias": "EXECUTION_VALUE",
-              "surface": "codex",
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
               "interactive": null
             }
           },
@@ -2757,8 +3046,8 @@
               "interactive": "the Gradle toolchain"
             },
             "runnerUp": {
-              "alias": "EXECUTION_VALUE",
-              "surface": "codex",
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
               "interactive": null
             }
           },
@@ -2769,8 +3058,8 @@
               "interactive": "npm"
             },
             "runnerUp": {
-              "alias": "EXECUTION_VALUE",
-              "surface": "codex",
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
               "interactive": null
             }
           },
@@ -2781,8 +3070,8 @@
               "interactive": "NuGet"
             },
             "runnerUp": {
-              "alias": "EXECUTION_VALUE",
-              "surface": "codex",
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
               "interactive": null
             }
           }
@@ -2800,8 +3089,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "EXECUTION_VALUE",
-              "surface": "codex",
+              "alias": "SEMANTIC_FRONTIER",
+              "surface": "claude-code",
               "interactive": null
             }
           }
@@ -2821,8 +3110,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "EXECUTION_VALUE",
-              "surface": "codex",
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
               "interactive": null
             }
           }
@@ -2984,8 +3273,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": "GitHub Copilot in the IDE (Opus, Sonnet and Sol where the plan offers them)"
             }
           },
@@ -2996,8 +3285,8 @@
               "interactive": "the native IDE integration (Xcode, Android Studio / IntelliJ, the browser toolchain, Visual Studio)"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": "GitHub Copilot in the IDE (Opus, Sonnet and Sol where the plan offers them)"
             }
           },
@@ -3008,19 +3297,19 @@
               "interactive": "the native IDE integration (Xcode, Android Studio / IntelliJ, the browser toolchain, Visual Studio)"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": "GitHub Copilot in the IDE (Opus, Sonnet and Sol where the plan offers them)"
             }
           },
           "typescript": {
             "winner": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
-              "interactive": "the Cursor IDE"
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
+              "interactive": null
             },
             "runnerUp": {
-              "alias": "SEMANTIC_FRONTIER",
+              "alias": "BALANCED_AUTHOR",
               "surface": "claude-code",
               "interactive": null
             }
@@ -3032,8 +3321,8 @@
               "interactive": "the native IDE integration (Xcode, Android Studio / IntelliJ, the browser toolchain, Visual Studio)"
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": "GitHub Copilot in the IDE (Opus, Sonnet and Sol where the plan offers them)"
             }
           }
@@ -3074,7 +3363,7 @@
             "runnerUp": {
               "alias": "MECHANICAL_EDITOR",
               "surface": "cursor",
-              "interactive": "the Cursor IDE"
+              "interactive": null
             }
           },
           "swift": {
@@ -3086,7 +3375,7 @@
             "runnerUp": {
               "alias": "MECHANICAL_EDITOR",
               "surface": "cursor",
-              "interactive": "the Cursor IDE"
+              "interactive": null
             }
           },
           "kotlin": {
@@ -3098,7 +3387,7 @@
             "runnerUp": {
               "alias": "MECHANICAL_EDITOR",
               "surface": "cursor",
-              "interactive": "the Cursor IDE"
+              "interactive": null
             }
           },
           "typescript": {
@@ -3110,7 +3399,7 @@
             "runnerUp": {
               "alias": "MECHANICAL_EDITOR",
               "surface": "cursor",
-              "interactive": "the Cursor IDE"
+              "interactive": null
             }
           },
           "csharp": {
@@ -3122,7 +3411,7 @@
             "runnerUp": {
               "alias": "MECHANICAL_EDITOR",
               "surface": "cursor",
-              "interactive": "the Cursor IDE"
+              "interactive": null
             }
           }
         }
@@ -3296,8 +3585,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "EXECUTION_VALUE",
-              "surface": "codex",
+              "alias": "SEMANTIC_FRONTIER",
+              "surface": "claude-code",
               "interactive": null
             }
           }
@@ -3317,8 +3606,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "SEMANTIC_FRONTIER",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           }
@@ -3336,8 +3625,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "SEMANTIC_FRONTIER",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           }
@@ -3397,19 +3686,19 @@
             "runnerUp": {
               "alias": "MECHANICAL_EDITOR",
               "surface": "cursor",
-              "interactive": "the Cursor IDE"
+              "interactive": null
             }
           },
           "typescript": {
             "winner": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
-              "interactive": "the Cursor IDE"
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
+              "interactive": null
             },
             "runnerUp": {
-              "alias": "MECHANICAL_EDITOR",
-              "surface": "cursor",
-              "interactive": "the Cursor IDE"
+              "alias": "BALANCED_AUTHOR",
+              "surface": "claude-code",
+              "interactive": null
             }
           }
         }
@@ -3468,8 +3757,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "SEMANTIC_MAX",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           }
@@ -3505,7 +3794,7 @@
             "winner": {
               "alias": "MECHANICAL_EDITOR",
               "surface": "cursor",
-              "interactive": "the Cursor IDE"
+              "interactive": null
             },
             "runnerUp": {
               "alias": "BALANCED_AUTHOR",
@@ -3517,7 +3806,7 @@
             "winner": {
               "alias": "MECHANICAL_EDITOR",
               "surface": "cursor",
-              "interactive": "the Cursor IDE"
+              "interactive": null
             },
             "runnerUp": {
               "alias": "BALANCED_AUTHOR",
@@ -3536,7 +3825,7 @@
             "winner": {
               "alias": "MECHANICAL_EDITOR",
               "surface": "cursor",
-              "interactive": "the Cursor IDE"
+              "interactive": null
             },
             "runnerUp": {
               "alias": "BALANCED_AUTHOR",
@@ -3560,8 +3849,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           }
@@ -3602,8 +3891,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "EXECUTION_VALUE",
-              "surface": "codex",
+              "alias": "SEMANTIC_FRONTIER",
+              "surface": "claude-code",
               "interactive": null
             }
           }
@@ -3627,8 +3916,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "SEMANTIC_MAX",
-              "surface": "claude-code",
+              "alias": "EXECUTION_FRONTIER",
+              "surface": "codex",
               "interactive": null
             }
           }
@@ -3690,8 +3979,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "EXECUTION_VALUE",
-              "surface": "codex",
+              "alias": "SEMANTIC_FRONTIER",
+              "surface": "claude-code",
               "interactive": null
             }
           }
@@ -3845,8 +4134,8 @@
               "interactive": null
             },
             "runnerUp": {
-              "alias": "EXECUTION_VALUE",
-              "surface": "codex",
+              "alias": "SEMANTIC_FRONTIER",
+              "surface": "claude-code",
               "interactive": null
             }
           }
@@ -3873,13 +4162,13 @@
           },
           "typescript": {
             "winner": {
-              "alias": "BALANCED_AUTHOR",
-              "surface": "claude-code",
-              "interactive": "the Cursor IDE"
+              "alias": "EDITOR_FRONTIER",
+              "surface": "cursor",
+              "interactive": null
             },
             "runnerUp": {
-              "alias": "EXECUTION_VALUE",
-              "surface": "codex",
+              "alias": "BALANCED_AUTHOR",
+              "surface": "claude-code",
               "interactive": null
             }
           }
