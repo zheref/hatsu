@@ -136,6 +136,10 @@ Nothing server-side changed, so rollback is removing the install:
 `scripts/hatsu_surface_link.sh --surface claude-code --status` reads back what the surface serves without
 changing anything.
 
+Reinstalling the predecessor *bankai* plugin is the **maintainer's own** path back, not a public one:
+its marketplace is private, and the links to it in this repository resolve only for someone who already
+has access.
+
 ## 6 · Caveats
 
 - **Keep the checkout on `main`.** Whatever it holds is what every session serves; an authoring branch

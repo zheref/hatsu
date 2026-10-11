@@ -88,9 +88,9 @@ resolving one is an agent answering confidently from the wrong file.
 **What the warm-up refuses**, and these are hard limits rather than preferences:
 
 - **A destination it did not create is left untouched, and named in the report.** A previous Hatsu install
-  is replaced; a **tracked** path is always somebody else's, whatever it looks like. Forty-nine ordinary
+  is replaced; a **tracked** path is always somebody else's, whatever it looks like. Fifty-one ordinary
   words are being claimed at once — `build`, `file`, `en`, `ao`, `ren` — so a collision is not a rare case,
-  and the warm-up would rather install thirty-seven and say so than overwrite one file it did not write.
+  and the warm-up would rather install fewer and say so than overwrite one file it did not write.
 - **It never writes your `.gitignore`.** Everything it places is excluded through the repository's own
   `info/exclude`, found with `git rev-parse --git-path info/exclude` — which in a **linked worktree**
   resolves to the *main* repository's file, shared by every checkout of it, and is stated in the report by
@@ -138,12 +138,6 @@ Kurapika is the persona here through the untracked `AGENTS.override.md` the warm
 separate summon. The plugin serves skills and hooks; `ten` places personas in the target repository.
 For headless use and the linked-worktree sandbox setting, see [the Codex surface guide](../surfaces/codex.md).
 
-
-Install from a checkout with [`scripts/hatsu_surface_link.sh --surface codex`](#2--setup).
-Codex lists the plugin skills as `$hatsu:<name>`: invoke `$hatsu:ten` for the warm-up,
-`$hatsu:ren` for the local work loop, and the human-called phases `$hatsu:aka` and
-`$hatsu:mukai` when you choose them. The plugin supplies skills and hooks; `ten` places
-`AGENTS.override.md` and the project-scoped persona files in the target repository.
 
 The [Codex surface guide](../surfaces/codex.md) covers plugin read-back, hook trust,
 model selection, sandbox roots for linked worktrees, headless runs and the legacy

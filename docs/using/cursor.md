@@ -34,7 +34,7 @@
 > **The floor is a month, not a build id.** [Cursor's CLI changelog](https://cursor.com/docs/cli/changelog)
 > dates *"Skills, rules, and commands in the CLI"* to its **January 2026** entry and groups by month, while
 > `cursor-agent -v` prints `YYYY.MM.DD-<sha>` — so there is no exact version string to pin and the
-> comparison is the date part. The build every Cursor fact in this README was measured on is
+> comparison is the date part. The build every Cursor fact on this page was measured on is
 > **`2026.09.08-6caf4ff`**. **The warm-up prints `cursor-agent -v` beside the install count and refuses to
 > claim the surface below the minimum**, because an install that succeeded onto a build that cannot read it
 > is the exact shape of an unperformed step reported as a passing one.
@@ -99,7 +99,7 @@ scripts/surface_mirror_check.sh
 
 Personas are `.cursor/agents/<persona>.md`, and `/ren` runs as Kurapika. Headless:
 `cursor-agent -p --output-format text --model "$grok" -f '/ren <request>'` — the full form, with the model
-id resolved rather than remembered, is under [Using Hatsu on Cursor → Headless](#headless-for-automation).
+id resolved rather than remembered, is under [Headless, for automation](#headless-for-automation).
 
 
 **Same loop, same gates, same roster.** What changes is the spelling, how much of a description survives,
@@ -120,8 +120,7 @@ Unchanged: **`/ren` on every request** — `/breath`, `/rasengan`, `/kokusen`, `
 `/jutaisho` — never pushing. Yours to call: `/aka`, `/mukai`, the **merge**, `/kagutsuchi` and `/mugetsu`
 (**G3**). A **G5** stop is the banner, the report link, the lettered options with a star on the recommended decision (the report linked, never an option; `HATSU_ATTENTION=off` silences rungs 2 and 3 on any host), and
 the question asked through this surface's own option picker — the same four parts, and all four or it is
-not a stop. As on Codex, **the picker is not the turn-end hook**: the missing hook is a fact about the
-*bell*, below.
+not a stop. As on Codex, **the picker is not the turn-end hook**; the bell is a separate matter, below.
 
 ### Personas and reviewers
 
@@ -271,7 +270,7 @@ That writes `.cursor/skills/<name>` → `surfaces/cursor/<name>` of **this tree*
 `info/exclude`, and that workspace path is what Cursor lists ahead of `~/.claude/plugins/cache/hatsu/…`.
 `$HATSU_PLUGIN_ROOT` already belongs in the shell profile; without the bootstrap, Cursor still discovers
 the Claude cache and serves last-tag prose while you edit current canon. `--auto` will skip this tree
-while you are on a feature branch — correctly — and § 5 still installs the branch's own mirrors.
+while you are on a feature branch — correctly — and `ten` § 5 still installs the branch's own mirrors.
 
 ## 5 · Uninstall and rollback
 

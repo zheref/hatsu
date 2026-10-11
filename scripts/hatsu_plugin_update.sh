@@ -781,7 +781,7 @@ elif [ "$surface_cache" -eq 1 ] || ! is_git_worktree; then
     echo "hatsu-plugin-update: $root is a surface plugin cache (v$plugin_ver) — a surface's own copied plugin install (Claude Code's versioned cache, or Codex's copy of the whole plugin root, .git included). It is never git-pulled here. Refresh through the surface's own update path instead:" >&2
     echo "  Claude Code: claude plugin marketplace update && claude plugin update hatsu@hatsu -y" >&2
     echo "  Codex:       codex plugin marketplace upgrade hatsu (or a git fast-forward of its checkout) && codex plugin add hatsu@hatsu" >&2
-    echo "Or clone zheref/hatsu and point the surface at that checkout — docs/SURFACES.md § Targeting a local checkout." >&2
+    echo "Or clone zheref/hatsu and point the surface at that checkout — docs/using/README.md § Targeting a local checkout." >&2
     exit 4
   fi
   if [ "$auto" -eq 1 ]; then
@@ -791,7 +791,7 @@ elif [ "$surface_cache" -eq 1 ] || ! is_git_worktree; then
   echo "hatsu-plugin-update: $root is a Hatsu tree but not a git checkout (Claude versioned plugin cache v$plugin_ver). It cannot be git-pulled. Run:" >&2
   echo "  claude plugin marketplace update" >&2
   echo "  claude plugin update hatsu@hatsu -y" >&2
-  echo "then type /reload-plugins in the running session, or open a new session. Or clone zheref/hatsu and point the surface at that checkout — docs/SURFACES.md § Targeting a local checkout." >&2
+  echo "then type /reload-plugins in the running session, or open a new session. Or clone zheref/hatsu and point the surface at that checkout — docs/using/README.md § Targeting a local checkout." >&2
   exit 4
 fi
 

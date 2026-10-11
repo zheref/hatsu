@@ -374,7 +374,7 @@ nen/                this repository's own declarations: contract.json, workflow.
 contracts/          plugin-owned registries: permissions, the classify taxonomy, the direct registry, the config catalogue, scan rows
 templates/          the PR body, the report pages (spiritual-message.html, rikugan.html), the readiness and preflight workflows, release-publish.sh
 scripts/            the guards and runtime scripts an installed copy executes, each with its fixture
-docs/               WORKFLOW · PROCESS · ROSTER · STANDALONE-ENTRY · SURFACES · GATE-CONFIGURATION · DIRECT-MATRIX · ECONOMICS · NEN-CONTRACT
+docs/               WORKFLOW · PROCESS · ROSTER · STANDALONE-ENTRY · GATE-CONFIGURATION · DIRECT-MATRIX · ECONOMICS · NEN-CONTRACT
 docs/using/         setup, usage and maintenance per surface          docs/config/   every configuration file, key by key
 docs/surfaces/      each surface's dated evolution record              docs/ab/       per-skill evidence of the port
 CHANGELOG.md        what each release changed; changelog.d/ holds the fragments getsuga collates

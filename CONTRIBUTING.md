@@ -31,7 +31,8 @@ that already has the plugin installed** — no error, no warning, the fix ships 
 surface is `.claude-plugin/**`, `.codex-plugin/**`, `claude/**`, `nen/**`, `contracts/**`, `hooks/**`, `templates/**`, `surfaces/**`,
 `.mcp.json`, the shipped docs (`docs/ROSTER.md`, `docs/delegation-grammar-DRAFT.md`, `docs/WORKFLOW.md`,
 `docs/DISCOVERY.md`, `docs/LAUNCH-MIGRATION.md`, `docs/AGENT-ATTRIBUTION.md`, `docs/STANDALONE-ENTRY.md`,
-`docs/GATE-CONFIGURATION.md`, `docs/PROCESS.md`, `docs/SURFACES.md`, `docs/PUBLIC-REDACTION.md`) and every
+`docs/GATE-CONFIGURATION.md`, `docs/PROCESS.md`, `docs/SURFACES.md`, `docs/using/README.md`, `docs/using/mirrors.md`,
+`docs/PUBLIC-REDACTION.md`) and every
 runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scripts/nen_global.sh`,
 `scripts/hanten_cycle_ledger.sh`, `scripts/branch_authorship_check.sh`, `scripts/hatsu_plugin_update.sh`,
 `scripts/hatsu_root.sh`, `scripts/surface_mirror_check.sh`, `scripts/permissions_pack.sh`, `scripts/dist_tag.sh`,

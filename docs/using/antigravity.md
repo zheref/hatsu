@@ -40,7 +40,7 @@ Link Hatsu's generated Antigravity plugin into your global plugins directory, in
 
 **Link, never `agy plugin install`**: install copies into that same directory (evidence § 10 F8), which
 would freeze the version and could write through an existing link. A commit to the checkout is served
-from the next conversation; `/hatsu:bakuryuha` fast-forwards it and ends with what to open.
+from the next conversation; `/bakuryuha` fast-forwards it and ends with what to open.
 
 The mirror follows the layout the Antigravity plugins page documents ([`docs/surfaces/antigravity.md`](../surfaces/antigravity.md) § 1; the CLI reader is a named gap in its § 10):
 - `plugin.json` — Antigravity plugin manifest
@@ -76,7 +76,7 @@ Everything is cleanly excluded through `.git/info/exclude`; `.gitignore` is neve
 - **Completion Bell (`Stop`)**: `hooks/stop-bell.sh` fires at turn completion to ring the local audio and notification bell when human review or decision is needed.
 
 **In-Session Subagents:**
-Reviewers (Feitan, Chrollo, Hisoka, Phinks) run as isolated subagents via `invoke_subagent` with `Workspace: "branch"` and `Model: "pro"`. Workers and measurers run on `fast` (`flash`), maximizing throughput and SWE-bench efficiency under Google AI Pro or Ultra subscriptions.
+Every reviewer `hanten` raises (the personas `review.scopes` routes: Nobunaga, Feitan, Chrollo, Hisoka, Uvogin, Phinks, Leorio) runs as an isolated subagent via `invoke_subagent` with `Workspace: "branch"`, at the tier `models.roles.reviewer` names (`pro`; a persona pinned to a fast model keeps its pin). Workers and measurers run on `fast` (`flash`), maximizing throughput and SWE-bench efficiency under Google AI Pro or Ultra subscriptions.
 
 ## 3 · Usage
 

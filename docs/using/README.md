@@ -61,7 +61,7 @@ read-only. `hatsu:bakuryuha` runs it when a surface is still on its legacy form.
 holds is what every surface serves, so it stays on its trunk. Fixture:
 `scripts/hatsu_surface_link_fixture_check.sh`; the live record is evidence § 10.
 
-
+**First-run discovery on Cursor, and in the legacy placements, is a bootstrap, not an environment variable.** `HATSU_PLUGIN_ROOT` names a
 checkout; it cannot make an undiscovered skill callable. Codex, Cursor and Antigravity workspace mode
 need one command before their first warm-up:
 `"$HATSU_PLUGIN_ROOT/scripts/surface_bootstrap.sh" --surface <codex|cursor|antigravity> --target . --bootstrap`,
@@ -278,6 +278,7 @@ ln -sfn "$HATSU_PLUGIN_ROOT/surfaces/antigravity" ~/.gemini/config/plugins/hatsu
 The linked folder carries the documented plugin layout (`plugin.json`, `skills/`, `agents/`, `rules/`,
 `hooks.json`). Authority for the rest of the mechanism: [`mirrors.md`](mirrors.md).
 
+**Authoring the plugin: the tree is named, never trusted by itself** (zheref/hatsu#67). When the working
 tree is a Hatsu checkout — its `.claude-plugin/plugin.json` names `hatsu` — and its manifest version is
 newer than the resolved candidate's, [`scripts/hatsu_root.sh`](../../scripts/hatsu_root.sh) **keeps the
 candidate** (a directory's claim about itself never picks the root later steps run scripts from) and says

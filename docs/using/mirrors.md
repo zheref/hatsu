@@ -89,7 +89,7 @@ with the same flags for codex, cursor and antigravity, and writes nothing:
 | `3` | no `nen` on `PATH` |
 
 **On Claude Code there is no mirror to check** (zheref/hatsu#106): the plugin is read in place from the
-versioned cache, and nen's `claude-code` row mirrors into a target's `.claude/` (`skills/`, `agents/`,
+checkout (`hatsu@skills-dir`), or from the versioned cache on a legacy install, and nen's `claude-code` row mirrors into a target's `.claude/` (`skills/`, `agents/`,
 `hooks/hooks.json`, `settings.local.json`), a layout Hatsu never places. What can go stale there is the
 served copy itself — the versioned cache, or the `skills/hatsu` install — so `ten` § 5 records
 `scripts/plugin_cache_check.sh --root <hatsu_root> --cache auto`'s byte comparison of it against a

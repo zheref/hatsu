@@ -118,6 +118,8 @@ run_case 'SemVer: valid build metadata (1.2.3+build.5) with a real increase pass
 # --- guarded-surface rows added at 0.51.0 (zheref/hatsu#74, and the two runtime
 # scripts Phinks proved unguarded on the #105/#106 delivery) ------------------
 printf '%s\n' 'docs/SURFACES.md' > "$fixture_root/changed-surfaces-doc.txt"
+printf '%s\n' 'docs/using/mirrors.md' > "$fixture_root/changed-using-mirrors.txt"
+printf '%s\n' 'docs/using/README.md' > "$fixture_root/changed-using-hub.txt"
 printf '%s\n' 'docs/PUBLIC-REDACTION.md' > "$fixture_root/changed-redaction-doc.txt"
 printf '%s\n' 'scripts/hatsu_root.sh' > "$fixture_root/changed-root-resolver.txt"
 printf '%s\n' 'scripts/surface_mirror_check.sh' > "$fixture_root/changed-mirror-check.txt"
@@ -131,6 +133,9 @@ run_case 'mirror check script unchanged version' 1 "$fixture_root/changed-mirror
 run_case 'permissions pack unchanged version' 1 "$fixture_root/changed-permissions-pack.txt" "$fixture_root/head-unchanged.json" 'scripts/permissions_pack.sh'
 run_case 'dist tag script unchanged version' 1 "$fixture_root/changed-dist-tag.txt" "$fixture_root/head-unchanged.json" 'scripts/dist_tag.sh'
 run_case 'SURFACES.md bumped version' 0 "$fixture_root/changed-surfaces-doc.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
+run_case 'docs/using/mirrors.md unchanged version' 1 "$fixture_root/changed-using-mirrors.txt" "$fixture_root/head-unchanged.json" 'docs/using/mirrors.md'
+run_case 'docs/using/mirrors.md bumped version' 0 "$fixture_root/changed-using-mirrors.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
+run_case 'docs/using/README.md unchanged version' 1 "$fixture_root/changed-using-hub.txt" "$fixture_root/head-unchanged.json" 'docs/using/README.md'
 run_case 'a fixture script alone does not apply' 0 "$fixture_root/changed-this-fixture.txt" "$fixture_root/head-unchanged.json" 'no plugin-shipped surface changed'
 
 # --- the stamp lag (zheref/hatsu#99): a real bump beside mirrors still stamped
@@ -151,7 +156,7 @@ make_tree "$fixture_root/tree-lagging" '0.16.1' '0.16.0'
 make_tree "$fixture_root/tree-restamped" '0.16.1' '0.16.1'
 mkdir -p "$fixture_root/tree-nomirrors/.claude-plugin"; printf '%s\n' '{"version":"0.16.1"}' > "$fixture_root/tree-nomirrors/.claude-plugin/plugin.json"
 run_case 'bump with lagging mirror stamps fails by name' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/tree-lagging/.claude-plugin/plugin.json" 'surfaces/antigravity: stamp(s) 0.16.0 (needs 0.16.1 on every generated file)'
-run_case 'bump with lagging mirror stamps names the one owner of the regeneration' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/tree-lagging/.claude-plugin/plugin.json" 'docs/SURFACES.md § 3 is the one owner of the command'
+run_case 'bump with lagging mirror stamps names the one owner of the regeneration' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/tree-lagging/.claude-plugin/plugin.json" 'docs/using/mirrors.md § 3 is the one owner of the command'
 # a detached head manifest (every pre-existing 'bumped' case above) names no head tree: the stamp
 # check is skipped and says so, never scanning whatever surfaces/ sits beside the file's parent
 run_case 'a detached head manifest skips the stamp check and says so' 0 "$fixture_root/changed-discovery.txt" "$fixture_root/head-bumped.json" 'stamp check skipped (the head manifest is not at <root>/.claude-plugin/plugin.json'
