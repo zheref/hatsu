@@ -176,7 +176,8 @@ check() {
   # ("a pool's labels are exactly [self-hosted, <os>, <arch>]"), citing this repository's own
   # runner-policy guard, so the conjunct cannot be rendered until nen's schema, the Ruby guard and
   # tenkai's runner derivation admit a pool-own label together: zheref/hatsu#204. A conjunct that cannot
-  # run is not written as one.
+  # run is not written as one. From nen 0.21 nen appends the pool's own pool-<id> itself, and the runs-on
+  # line above asserts it under such a binary; the Ruby guard and tenkai's derivation stay #204's.
 
   got="$(block "$file" permissions | sed 's/[[:space:]]*$//')"
   if [ "$got" = "  contents: read" ]; then
@@ -284,10 +285,18 @@ check "template" "$template" '@@REPO_SLUG@@' '@@RUNS_ON@@' '.github/workflows/@@
 # 2. Its rendering for each fixture pool.
 for pool in windows-x64 macos-arm64 windows-x64-desktop; do
   case "$pool" in
-    windows-x64) runs_on='[self-hosted, Windows, X64]' ;;
-    macos-arm64) runs_on='[self-hosted, macOS, ARM64]' ;;
-    windows-x64-desktop) runs_on='[self-hosted, Windows, X64, desktop]' ;;
+    windows-x64) runs_on='[self-hosted, Windows, X64' ;;
+    macos-arm64) runs_on='[self-hosted, macOS, ARM64' ;;
+    windows-x64-desktop) runs_on='[self-hosted, Windows, X64, desktop' ;;
   esac
+  # From nen 0.21 (zheref/nen#340, #395) every pool's label set ends in its own pool-<id>, which runner
+  # workflow renders into runs-on last; an older nen renders the declared set alone. Read off the binary
+  # that renders, so the lane holds the same shape under the pin and under the base a PR is judged on.
+  if [ "${nen_version%%.*}" = 0 ] && [ "$nen_minor" -lt 21 ] 2>/dev/null; then
+    runs_on="$runs_on]"
+  else
+    runs_on="$runs_on, pool-$pool]"
+  fi
   render "$template" "$pool" "$work/$pool.yml"
   if [ "$render_code" -eq 0 ] && [ -f "$work/$pool.yml" ]; then
     pass "render $pool: nen runner workflow exit 0"

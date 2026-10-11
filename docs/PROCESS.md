@@ -115,8 +115,8 @@ unresolved threads, or hands the PR to `en`** — a quoted `not-ready` is report
 never left unheld, and "checks green" is never a terminus; **the words *ready*, *G2-ready* and *G4-ready*
 appear in a report or chat line only beside the quoted verdict line**; and **a `not-ready` verdict on an
 excluded or infrastructure row stays `not-ready`, naming the row** — never softened into "ready" because the
-failing check is one the maintainer ruled out (`--exclude-check` is how that ruling reaches the verdict,
-not a paraphrase). A requested reviewer round not yet posted at the current head is `not-ready` too
+failing check is one the maintainer ruled out (a `checks.excluded` entry in `nen/gates.json`, which nen reads
+at the pull request's base, is how that ruling reaches the verdict, not a paraphrase). A requested reviewer round not yet posted at the current head is `not-ready` too
 (`nen pr ready` row 4; [`sharingan`](../claude/skills/sharingan/SKILL.md) § 5). Under `getsuga` § 3 the
 release proposal's verdict returns to getsuga and § 3a merges: en rings no bell for it.
 
@@ -254,7 +254,8 @@ one owed; *review requested, not yet posted* is one in flight — wait.
 `docs/USAGE.md` § *`round_quorum`* — *"at least one round of reviews from both Copilot OR Cursor (or
 both)"* — and restated 2026-10-04: [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-04 — one bot reviewer
 suffices*; **stated once, here**, cited by [`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3 and that
-ROSTER section; it complements *The fallback chain* below and replaces none of it). The repository declares
+ROSTER section; since the maintainer's ruling of 2026-10-04, *retire 2, adopt 2*, it is also what replaced
+the fallback chain, below). The repository declares
 it as **nen's** key `round_quorum` in `nen/gates.json` — `{ "any_of": [<reviewers[] names>], "minimum": <n> }`
 — and `nen pr ready` reads it from nen `0.17`: at least `minimum` of `any_of` must **have** a round on the
 PR (a posted review or a `SUCCESS` round check, at any earlier head under the `bounded` reading Hatsu runs;
@@ -271,39 +272,24 @@ An unmet quorum with no member owed (an exempt member in `any_of`; unreachable i
 `round quorum not met` and is one owed round of the first `any_of` member `reviewers[]` can request, under
 `sharingan` § 6's bounds (this run's reading, listed in ROSTER). The *fulfils* half ships in nen `v0.20.0`,
 the pin zheref/hatsu#168 moved; a binary older than it still reads an unavailable member's round
-as owed, the verdict is quoted as the verb prints it, and the owed member is handled by the rules that
-already exist — a live `exhausted[]` row: *The fallback chain* below, to the merge prompt; no row:
-`sharingan` § 6's request bound. Nothing in this paragraph is read by a Hatsu script; the verb reads the key.
+as owed, the verdict is quoted as the verb prints it, and the owed member is handled by `sharingan` § 6's
+request bound. **A quorum no member can meet** — every `any_of` member exhausted, or no member able to post
+— is that same bound: no request past `round_policy.maxRounds` (nen refuses one at exit `2` from
+`v0.21.0`), not-ready reported with `nen pr ready --explain` quoted and the board, never `ready` and never a
+merge prompt on a verdict the verb did not print (this delivery's reading, listed in ROSTER § *Rulings of
+2026-10-04 — retire 2, adopt 2*). Nothing in this paragraph is read by a Hatsu script; the verb reads the
+key.
 
-**The fallback chain** (ruling 2026-09-29, `docs/ROSTER.md` § *Rulings of 2026-09-29* — **stated once,
-here**; `sharingan` § 6, `en` § 5/§ 6, `pr-state` § 2, `nen/decisions.json` row `reviewer-exhausted` and
-`docs/GATE-CONFIGURATION.md` § 3 cite this paragraph and restate nothing). A request the mutation accepts
-with no pending reviewer coming back — `(none reported back)`, no `review_requested` event — is not a
-request; it is the signal to read `nen/gates.json` → `reviewer_fallback`. **An exhaustion is declared,
-dated, never guessed**: a **live** `exhausted[]` row (not past its `until` date, a condition row not
-unconfirmed past 90 days from `ruled`, well-formed — `tenkai diagnose` row `gates/reviewer-fallback` names
-the rest as drift and a lapsed row is not honoured) naming the configured reviewer moves the request to
-the next identity in `chain` that `reviewers[]` carries, through the verb; **a step `reviewers[]` does not
-carry is passed over, not asked about** (declaring it is `missing-configuration` only when the maintainer
-chooses to — Cursor Bugbot, `cursor[bot]`, is installed and reviews on its own, HA-PR-#127 at
-`0e080a49` unrequested on 2026-09-29; declared in `reviewers[]` its round becomes **required on every
-PR** until nen reads the chain, so the declaration is the maintainer's call, never the run's); **a fallback request
-is a round and counts toward `round_policy.maxRounds` as any other**. With the chain exhausted, `terminal:
-hanten` — **hanten's rounds are the review**: no round is requested, no bound is touched, this terminus
-outranks `cap-reached`, and the PR goes to `en` § 5's merge prompt (§ 6 there, the sixth stop) with **the verb's
-verdict quoted as it prints it** — e.g. `not-ready: a configured reviewer's round is
-still owed at the current head (CON-32b): copilot (no round at head)`, the `round_quorum` clause appended
-where the file declares one — **and one Hatsu line beside it,
-never in its place**: `Hatsu: reviewer copilot declared exhausted (nen/gates.json reviewer_fallback, ruled
-2026-09-29); nen does not read this — zheref/nen#275`. The same line goes into the PR body's completion
-checklist through `nen pr edit-body`, written by `en` before the prompt — the one durable record that a
-hanten-only review happened. **The merge is the maintainer's**: `en` never merges, and every PR into
-`main` ends at the merge prompt (`docs/ROSTER.md` § *Rulings of 2026-09-30 — En never merges*, which
-supersedes ruling 3 of 2026-09-29). No Hatsu-side
-narrowing can make the verb read past an exhausted reviewer — `--reviewers ""` is ignored where the
-target ships `nen/gates.json`, and a derived gates file with `reviewers: []` is refused by name
-(measured at nen 0.15.1, `docs/ab/sharingan.md` § *Dated 2026-09-29 — the reviewer fallback chain*) — so
-the read in `pr ready` is nen's to add (zheref/nen#275).
+**The fallback chain — retired** (ruling 2026-09-29, retired by the maintainer's ruling of 2026-10-04,
+*retire 2, adopt 2*: [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-04 — retire 2, adopt 2*;
+zheref/hatsu#227). Hatsu's `nen/gates.json` → `reviewer_fallback` — a chain of reviewer identities, a
+`terminal: hanten`, and dated `exhausted[]` rows that sent a PR to the merge prompt on hanten's review alone
+— is deleted, superseded by `round_quorum` and zheref/nen#361: one available bot's round fulfils an
+exhausted member's, which is what the chain existed to buy. nen `v0.21.0` refuses the key outright
+(zheref/nen#310), so it cannot be declared again. **No exhaustion is declared anywhere now**, and nothing
+narrows the verdict past an owed reviewer on Hatsu's side; a request the mutation accepts with no pending
+reviewer coming back is refused by the verb itself (zheref/nen#277). The 2026-09-29 record stays in ROSTER
+as history; `docs/ab/sharingan.md` § *Dated 2026-09-29 — the reviewer fallback chain* is its evidence.
 
 ## Resuming a run
 

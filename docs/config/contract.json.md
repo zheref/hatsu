@@ -26,7 +26,7 @@ The `$schema` is `nen.contract/v0.1`. Beside nen's two blocks, Hatsu's own file 
 
 ### `dependency`
 
-The pin and the build move independently: `minimum` is the `MAJOR.MINOR` capability pin this repository declares, `pinned_ref` is the release tag its bootstrap installs. **The range `minimum` stands for is nen's answer, not a document's**: the binary ships its compatibility floor, `nen shu tools` applies it and prints it as `compat floor:`, and `hatsu:ten` § 1 reads that verdict rather than computing it. At the time of writing, `dependency.pinned_ref` reads `v0.20.0` and `dependency.minimum` reads `0.20` in Hatsu's own file; neither is a fact to remember, and the deep treatment is [docs/NEN-CONTRACT.md](../NEN-CONTRACT.md).
+The pin and the build move independently: `minimum` is the `MAJOR.MINOR` capability pin this repository declares, `pinned_ref` is the release tag its bootstrap installs. **The range `minimum` stands for is nen's answer, not a document's**: the binary ships its compatibility floor, `nen shu tools` applies it and prints it as `compat floor:`, and `hatsu:ten` § 1 reads that verdict rather than computing it. At the time of writing, `dependency.pinned_ref` reads `v0.21.0` and `dependency.minimum` reads `0.21` in Hatsu's own file; neither is a fact to remember, and the deep treatment is [docs/NEN-CONTRACT.md](../NEN-CONTRACT.md).
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|

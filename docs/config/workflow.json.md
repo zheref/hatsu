@@ -61,7 +61,7 @@ Which `project.launch` target `hatsu:amaterasu` starts at the end of a turn, and
 
 ### `deploy`
 
-Hatsu's own key, read by `hatsu:kagutsuchi` § 1 and by nothing in nen (the maintainer's ruling of 2026-09-29, zheref/hatsu#146). `nen shu deploy` is unchanged: the skill always passes `--target` explicitly, so *nen never chooses where a build goes* stays true of nen; the choice lives here.
+Read by `hatsu:kagutsuchi` § 1 (the maintainer's ruling of 2026-09-29, zheref/hatsu#146); from nen `v0.21.0` nen knows the key too and `nen schema check` FAILs a `defaultTarget` naming an undeclared target or one not marked `project.targets.<name>.nonProduction: true` (zheref/nen#300), so a default target carries that flag as well as a non-production `why`. `nen shu deploy` is unchanged: the skill always passes `--target` explicitly, so *nen never chooses where a build goes* stays true of nen; the choice lives here.
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|

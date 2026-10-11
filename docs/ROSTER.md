@@ -972,6 +972,29 @@ only pending that question.
 
 ---
 
+## Rulings of 2026-10-04 — retire 2, adopt 2 (the gates keys nen does not read)
+
+**The maintainer's ruling, as recorded on zheref/nen#310** (from the `hatsu:futon nen@enhancement` run):
+*"retire 2, adopt 2. Hatsu's `check_exclusions` moves to nen's `checks.excluded` (#249), and
+`reviewer_fallback` is deleted (superseded by `round_quorum` + #361). Both happen in a Hatsu PR after the
+release. `round_policy.minRounds`/`maxRounds` become real nen keys through #240. #310 then refuses every
+unknown key with no carve-out; only `$`-prefixed keys are exempt."* nen `v0.21.0` ships #240 and #310;
+zheref/hatsu#227 lands the Hatsu half together with the repin to it.
+
+| Ruling | What it says |
+|---|---|
+| **`check_exclusions` → nen's `checks.excluded`** | A ruling that a check is not watched is declared as `nen/gates.json` → `checks.excluded[]` (`name`, `match`, `reason`, `ruled`, `until` as a date or `{condition}`), which `nen pr ready` reads at the pull request's base and applies itself; the skills pass no `--exclude-check` for it ([`pr-state`](../claude/skills/pr-state/SKILL.md) § 2). Hatsu's own list was empty and is declared empty in nen's form |
+| **`reviewer_fallback` deleted** | The chain, its `terminal: hanten` and its dated `exhausted[]` rows go, with the declared-exhaustion stop that sent a PR to the merge prompt on hanten's review (ruling 1 of 2026-09-29, below). [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *One bot reviewer suffices*, is the rule that replaces it |
+| **`round_policy.minRounds`/`.maxRounds` stay, as nen's** | nen reads them from `v0.21.0`: `pr request-reviews` refuses a bot's request past `maxRounds` at exit `2`; `pr ready --explain` prints requested and posted counts. nen counts `minRounds` against **posted** rounds, Hatsu's skills against **resolved** ones ([`sharingan`](../claude/skills/sharingan/SKILL.md) § 6); neither is a readiness conjunct |
+
+**One reading this delivery made, not ruled (G4 if the maintainer reads it otherwise):** a round quorum
+**no** member can meet — every `any_of` member exhausted — is `sharingan` § 6's round ceiling: not-ready,
+`--explain` quoted, no merge prompt. The retired chain sent that PR to the merge prompt on hanten's rounds;
+the ruling deleted the chain and named no replacement for that one case, so this reading keeps the stricter
+verdict rather than invent a declaration the ruling retired.
+
+---
+
 ## Rulings of 2026-10-04 — one bot reviewer suffices (the round quorum)
 
 **The maintainer's words, verbatim:**
@@ -980,8 +1003,9 @@ only pending that question.
 
 The ruling of 2026-09-29 these words restate is recorded in nen's `docs/USAGE.md` § *`round_quorum`*: *"Let's
 make it canon on the repo so that we solve at least one round of reviews from both Copilot OR Cursor (or
-both) as applicable."* It complements ruling 1 of 2026-09-29 (*the reviewer fallback chain*, below), which
-still governs how a round is requested, and replaces none of it.
+both) as applicable."* When made, it complemented ruling 1 of 2026-09-29 (*the reviewer fallback chain*, below) and
+replaced none of it; since § *Rulings of 2026-10-04 — retire 2, adopt 2* (above) the chain is retired and
+the quorum is the rule that replaces it.
 
 | Ruling | What it says |
 |---|---|
@@ -1289,9 +1313,10 @@ branch, and are done when the integration→`branch.base` PR merges at the promp
 its retarget was the run's error, not the spec's.
 
 
-One ruling, recorded here once; `docs/PROCESS.md` § *Reviewer rounds and review threads* (*The fallback
-chain*) states the rule and its mechanics once, `sharingan` § 6 cites it, `nen/gates.json` → `reviewer_fallback` the declaration, and `nen/decisions.json` row
-`reviewer-exhausted` the default.
+One ruling, recorded here once. **Retired on 2026-10-04** (§ *Rulings of 2026-10-04 — retire 2, adopt 2*;
+zheref/hatsu#227): `nen/gates.json` → `reviewer_fallback` is deleted and the round quorum replaces it;
+`nen/decisions.json` row `reviewer-exhausted` now states the quorum's default. Ruling 1 is kept below as the
+record of what was ruled then.
 
 1. **When a configured reviewer's credits are exhausted, the review falls back down a declared chain, and
    the chain's end is hanten** (2026-09-29, at the G5 stop of the futon hatsu@enhancement run, HA-PR-#126
