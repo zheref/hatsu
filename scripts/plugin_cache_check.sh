@@ -208,7 +208,7 @@ judge() {
   if [ "$rc" -eq 0 ]; then
     echo "plugin_cache_check: identical -- $(safe "$c") (plugin ${cv:-?}) matches the source $(safe "$src")${how:+ (named by $how)} (plugin ${sv:-?})"
   else
-    echo "plugin_cache_check: different -- $(safe "$c") (plugin ${cv:-?}) is not the source $(safe "$src")${how:+ (named by $how)} (plugin ${sv:-?}); refresh it (docs/SURFACES.md § 4)"
+    echo "plugin_cache_check: different -- $(safe "$c") (plugin ${cv:-?}) is not the source $(safe "$src")${how:+ (named by $how)} (plugin ${sv:-?}); refresh it (docs/using/mirrors.md § 4)"
   fi
   return "$rc"
 }

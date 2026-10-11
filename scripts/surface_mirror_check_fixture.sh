@@ -98,20 +98,20 @@ run cursor-drift 1 STUB_CURSOR=1
 [ "$(printf '%s\n' "$calls" | grep -c '^cursor ')" = 1 ] || fail "cursor-drift: cursor was checked more than once: $calls"
 
 # (e) one root per surface, written the same everywhere it is written: hooks_root_for in the check,
-# the regenerate workflow's case arms, docs/SURFACES.md § 3's loop (Codex and Antigravity; Cursor
+# the regenerate workflow's case arms, docs/using/mirrors.md § 3's loop (Codex and Antigravity; Cursor
 # goes through its generic arm) and the search side of surface_bootstrap.sh's placed-hooks sed. The
 # workflow's copy drifted once (zheref/hatsu#151); this is the check that it cannot again.
 repo="$(CDPATH='' cd -- "$script_dir/.." >/dev/null 2>&1 && pwd -P)"
 for s in codex cursor antigravity; do
-  in_check="$(grep -o "$s) printf %s '[^']*'" "$guard" | sed "s/^$s) printf %s //")"
-  in_workflow="$(grep -o "$s) root='[^']*'" "$repo/.github/workflows/surface-mirror-regenerate.yml" | sed "s/^$s) root=//")"
+  in_check="$(grep -o "$s) printf %s '[^']*'" "$guard" | sed "s/^$s) printf %s //" || true)"
+  in_workflow="$(grep -o "$s) root='[^']*'" "$repo/.github/workflows/surface-mirror-regenerate.yml" | sed "s/^$s) root=//" || true)"
   [ -n "$in_check" ] || fail "roots: no $s root in hooks_root_for"
   [ "$in_check" = "$in_workflow" ] || fail "roots: $s is $in_check in the check but $in_workflow in surface-mirror-regenerate.yml"
   case "$s" in
     cursor) ;;
     *)
-      in_docs="$(grep -o "$s) root='[^']*'" "$repo/docs/SURFACES.md" | sed "s/^$s) root=//")"
-      [ "$in_check" = "$in_docs" ] || fail "roots: $s is $in_check in the check but $in_docs in docs/SURFACES.md § 3"
+      in_docs="$(grep -o "$s) root='[^']*'" "$repo/docs/using/mirrors.md" | sed "s/^$s) root=//" || true)"
+      [ "$in_check" = "$in_docs" ] || fail "roots: $s is $in_check in the check but ${in_docs:-<none>} in docs/using/mirrors.md § 3"
       ;;
   esac
 done

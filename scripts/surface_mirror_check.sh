@@ -218,7 +218,7 @@ main() {
     "$pcheck" --root "$PWD" --cache "$installed_path" || pcode=$?
     case "$pcode" in
       0) return 0 ;;
-      1) echo "surface-mirror-check: the installed plugin cache at '$installed_path' differs from the source. Refresh it the way ten does (docs/SURFACES.md § 4)." >&2; return 1 ;;
+      1) echo "surface-mirror-check: the installed plugin cache at '$installed_path' differs from the source. Refresh it the way ten does (docs/using/mirrors.md § 4)." >&2; return 1 ;;
       *) echo "surface-mirror-check: plugin_cache_check.sh exited $pcode (not identical, not different: see its line above) — reported, never read as a pass or as drift." >&2; exit 2 ;;
     esac
   fi
@@ -240,7 +240,7 @@ could not run is not a check that succeeded.
   the pin      : nen/contract.json -> dependency.pinned_ref
 
 Regenerate and check with a nen that carries the verb; the pinned build is
-expected to gain it when dependency.pinned_ref moves. docs/SURFACES.md § 3-4.
+expected to gain it when dependency.pinned_ref moves. docs/using/mirrors.md § 3-4.
 EOF
     exit 2
   fi
@@ -270,7 +270,7 @@ EOF
     case "$code" in
       0) echo "surface-mirror-check: installed plugin cache matches a fresh generation." ; return 0 ;;
       1)
-        echo "surface-mirror-check: the installed plugin cache at '$installed_path' has drifted from a fresh generation. Refresh it the way ten does (docs/SURFACES.md § 4)." >&2
+        echo "surface-mirror-check: the installed plugin cache at '$installed_path' has drifted from a fresh generation. Refresh it the way ten does (docs/using/mirrors.md § 4)." >&2
         return 1
         ;;
       *)
@@ -315,7 +315,7 @@ surface-mirror-check: the committed mirror is not what the source generates.
   stale        generated, but for the OTHER surface
   hand-edited  somebody edited the mirror instead of the source
 
-Fix it by regenerating — never by editing surfaces/ (docs/SURFACES.md § 2):
+Fix it by regenerating — never by editing surfaces/ (docs/using/mirrors.md § 1):
 
   nen surface mirror generate --source $SOURCE_DIR --agents $AGENTS_DIR \\
     --surface codex      --out surfaces/codex      --models $MODELS_FILE --permissions $PERMISSIONS_FILE --hooks $HOOKS_FILE --rules $RULES_FILE --source-surface $SOURCE_SURFACE --hooks-root '$(hooks_root_for codex)' --manifest $MANIFEST_FILE --stamp "$stamp" --invocation-prefix "$INVOCATION_PREFIX"

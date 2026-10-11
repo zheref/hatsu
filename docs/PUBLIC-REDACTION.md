@@ -61,7 +61,7 @@ they are the evidence's internal cross-references.
   `bankai-machinery` replaced, at handbook set v0.6, a scenario id that *was* the frozen repository's own
   name, and its `BC-` prefix is kept so existing citations stay valid.
 - **The plugin name "bankai"** where it means the predecessor plugin a reader may already have installed
-  (the rollback line in [`README.md`](../README.md)).
+  (the rollback paragraph in [`docs/using/claude-code.md`](using/claude-code.md) § 5).
 - **Public repositories** — `zheref/nen`, `zheref/kro-pwa`, this repository, and **`zheref/bankai-handbooks`**,
   the canon repository (public, MIT): the Bankai handbooks, `CONSTITUTION.md` (`CON-{n}`) and the shared
   agent conventions live there since 2026-09-28 (`CON-13`), it is named directly and never placeheld, and

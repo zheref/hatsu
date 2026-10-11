@@ -197,7 +197,14 @@ fi
 #                       Cursor and Antigravity, read by ten § 5 (the one skill
 #                       that places them) from the plugin root at run time
 #                       (Hatsu 0.51.0, zheref/hatsu#74). Same criterion as
-#                       docs/ROSTER.md.
+#                       docs/ROSTER.md. From 0.93.1 it is a redirect stub, and
+#   docs/using/README.md, docs/using/mirrors.md
+#                     — where its § 1 and § 2 content now lives: the four
+#                       surfaces compared (the permissions row ten § 5 and
+#                       mukai § 1 cite), what the warm-up places, the one
+#                       regeneration loop (the surface-mirror-guard fixture
+#                       reads its root arms) and the check. The skills reach
+#                       them through the stub, so the same criterion holds.
 #   docs/PUBLIC-REDACTION.md
 #                     — cited from the redaction notice docs/ROSTER.md,
 #                       docs/STANDALONE-ENTRY.md and claude/skills/README.md
@@ -276,6 +283,8 @@ PLUGIN_SURFACE_GLOBS=(
   'docs/GATE-CONFIGURATION.md'
   'docs/PROCESS.md'
   'docs/SURFACES.md'
+  'docs/using/README.md'
+  'docs/using/mirrors.md'
   'docs/PUBLIC-REDACTION.md'
   'hooks/*'
   'templates/*'
@@ -720,7 +729,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
             esac
           done
           echo "A bump restamps every mirror file: the cause is this bump, the fix is a regeneration at stamp ${head_version_now}, never a source edit (zheref/hatsu#99)."
-          echo "Regenerate and commit the result: docs/SURFACES.md § 3 is the one owner of the command; scripts/surface_mirror_check.sh reproduces its exact flags per surface."
+          echo "Regenerate and commit the result: docs/using/mirrors.md § 3 is the one owner of the command; scripts/surface_mirror_check.sh reproduces its exact flags per surface."
         } >&2
         exit 1
       fi

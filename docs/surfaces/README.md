@@ -2,7 +2,7 @@
 
 One guide per agent surface Hatsu runs on. Each guide is the evolution record for that surface: what
 the surface reads, where, under which keys, and the official page every one of those facts was read
-from, with the line quoted and the day it was fetched. [`docs/SURFACES.md`](../SURFACES.md) is the hub
+from, with the line quoted and the day it was fetched. [`docs/using/README.md`](../using/README.md) is the hub
 that compares the four; these files carry the detail.
 
 | Guide | Surface | Layout the generator writes |
@@ -124,7 +124,7 @@ refreshes a consumer's mirrors only in a repository that already adopted Hatsu (
 `nen/workflow.json` or `nen/contract.json` and a placed marker), only for the surface its own generated
 marker names, and writes its report to `.nen/session-start.log`; the plugin source copy under Claude
 Code binds `nen` and prints the warm-up reminder. Adoption is `tenkai`'s, never a hook's
-([`docs/SURFACES.md`](../SURFACES.md) § 1).
+([`docs/using/README.md`](../using/README.md) § *The four surfaces, compared*).
 
 **Keeping the plugin checkout current.** `scripts/hatsu_plugin_update.sh --root "$HATSU_PLUGIN_ROOT"`
 with `--channel trunk` (ff-only on the base), `--channel release` (newest `vX.Y.Z` tag) or `--auto` (the
