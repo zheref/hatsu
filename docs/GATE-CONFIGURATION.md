@@ -177,7 +177,9 @@ honoured until the file is edited and warned on at every evaluation. **What nen 
 missing or blank field, surrounding whitespace, a near-miss date (`2026/10/01`, `2026-10-1`, a timestamp —
 never read as a condition), an `until` before `ruled`, an unknown `match`, a short glob and the same name
 twice. **How it is read**: `nen pr ready` and `pr next-blocker` read the block **at the pull request's
-base**, never its head, so a PR cannot add an exclusion for its own red check; they drop each honoured
+base**, never its head, so a PR cannot add an exclusion for its own red check — on a PR into the default
+branch that base is the reviewed trunk, but a stacked or integration base's file may not have passed the
+trunk's gate, so an entry there binds only as far as that branch's protection (SEC-6); they drop each honoured
 entry's checks from `CON-32(a)` and name each beside its reason. **The skills pass no `--exclude-check`
 for it** ([`pr-state`](../claude/skills/pr-state/SKILL.md) § 2 owns the rule) and quote the verdict as the
 verb prints it. **Matching is by label only**, with no origin pinning: any check reporting under a
@@ -227,6 +229,7 @@ maintainer's ruling of 2026-10-04, *retire 2, adopt 2*, settled the three: the r
 `check_exclusions` moved into `checks.excluded`, and `reviewer_fallback` was deleted. **A new gate a
 repository wants to declare is a nen issue first**, never a Hatsu key in this file: a key nen does not read
 fails `nen pr ready` at exit `2` on every pull request.
+
 ---
 
 ## 4. Validate it, and read the pointer

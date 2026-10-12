@@ -273,12 +273,16 @@ An unmet quorum with no member owed (an exempt member in `any_of`; unreachable i
 `sharingan` § 6's bounds (this run's reading, listed in ROSTER). The *fulfils* half ships in nen `v0.20.0`,
 the pin zheref/hatsu#168 moved; a binary older than it still reads an unavailable member's round
 as owed, the verdict is quoted as the verb prints it, and the owed member is handled by `sharingan` § 6's
-request bound. **A quorum no member can meet** — every `any_of` member exhausted, or no member able to post
-— is that same bound: no request past `round_policy.maxRounds` (nen refuses one at exit `2` from
-`v0.21.0`), not-ready reported with `nen pr ready --explain` quoted and the board, never `ready` and never a
-merge prompt on a verdict the verb did not print (this delivery's reading, listed in ROSTER § *Rulings of
-2026-10-04 — retire 2, adopt 2*). Nothing in this paragraph is read by a Hatsu script; the verb reads the
-key.
+request bound. **Unavailable is observed, never declared**: `nen pr request-reviews` exit `9`, the bot
+named in `unrecordedBots` — GitHub accepted the request and never recorded it (zheref/nen#277) — means
+that `any_of` member is unavailable at this head; it is never retried and never counted as requested
+(`sharingan` § 6 states the predicate once). A met quorum excuses it. **When every `any_of` member is at
+exit `9`**, the PR goes to `en` § 5's merge prompt on hanten's rounds (§ 6 there, the sixth stop), the
+not-ready verdict quoted verbatim and never called `ready`, one Hatsu line beside it naming the bots —
+the maintainer's ruling of 2026-10-11, [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-11 — prompt on
+hanten*, which keeps the 2026-09-29 intent. That terminus outranks the round ceiling; any other unmet
+quorum stays under `sharingan` § 6's bounds. Nothing in this paragraph is read by a Hatsu script; the verb
+reads the key.
 
 **The fallback chain — retired** (ruling 2026-09-29, retired by the maintainer's ruling of 2026-10-04,
 *retire 2, adopt 2*: [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-04 — retire 2, adopt 2*;
@@ -288,7 +292,9 @@ zheref/hatsu#227). Hatsu's `nen/gates.json` → `reviewer_fallback` — a chain 
 exhausted member's, which is what the chain existed to buy. nen `v0.21.0` refuses the key outright
 (zheref/nen#310), so it cannot be declared again. **No exhaustion is declared anywhere now**, and nothing
 narrows the verdict past an owed reviewer on Hatsu's side; a request the mutation accepts with no pending
-reviewer coming back is refused by the verb itself (zheref/nen#277). The 2026-09-29 record stays in ROSTER
+reviewer coming back is reported by the verb at exit `9`, the bot in `unrecordedBots` (zheref/nen#277) —
+the observation the paragraph above acts on. The chain's terminus survives in that form, by the ruling of
+2026-10-11. The 2026-09-29 record stays in ROSTER
 as history; `docs/ab/sharingan.md` § *Dated 2026-09-29 — the reviewer fallback chain* is its evidence.
 
 ## Resuming a run
@@ -436,7 +442,8 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
 - **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`; and the undo of `wc squash`'s exit `3`, `git -C <path> reset --soft ORIG_HEAD` (§ 4).
 - **`kagutsuchi` § 3a.** The freshness gate is `scripts/send_freshness_check.sh` — a `git fetch`,
   `rev-parse`, `rev-list` and `status --porcelain` over the archive's recorded build SHA — and the
-  default target is a `nen/workflow.json` key nen neither validates nor reads (`deploy.defaultTarget`);
+  default target is a `nen/workflow.json` key nen validates from `v0.21.0` and never acts on (`deploy.defaultTarget`,
+  whose target must carry `project.targets.<name>.nonProduction: true`, zheref/nen#300);
   nen's own `shu deploy` still takes `--target` explicitly, and the skill still passes it.
 - **`kagutsuchi` § 3b.** `git fetch`, `git worktree list|add --detach|remove --force`, `git checkout
   --detach`, `git ls-files`, `git check-ignore`, `git status --porcelain`, `mktemp`, `cp -p` and `mv -f`

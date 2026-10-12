@@ -32,7 +32,7 @@ missing prerequisites under its own name; the phases this run calls skip theirs)
 
 **`<target>` is a key of `nen/contract.json` → `project.targets`, and the call is the
 authorization.** Two sources, **and the report says which** (§ 5). **Typed**: the maintainer's word,
-never a near-match; not a declared key → **refused**, naming the declaration PR, the keys listed. **Omitted**: `nen/workflow.json` → `deploy.defaultTarget` ([`WORKFLOW.md`](../../../../docs/WORKFLOW.md)
+never a near-match; not a declared key → **refused**, naming the declaration PR and the keys. **Omitted**: `nen/workflow.json` → `deploy.defaultTarget` ([`WORKFLOW.md`](../../../../docs/WORKFLOW.md)
 § 2 → `deploy`; ruling 2026-09-29, HA#146), read in the checkout the send runs from (§ 3b), **one
 row per state** — `null`/absent → **asked as free text** (`missing-maintainer-choice`), the keys
 listed, none starred; a declared key whose `why` reads non-production (§ 2) → the target; one whose
@@ -60,9 +60,9 @@ a build only if owed (§ 3b), the report (§ 5).
 | The target when none is typed; the archive's commit | `deploy.defaultTarget` (§ 1); `nameFrom` line 2 (§ 3a) |
 | § 3b's trunk and copies | `branch.base`; `project.fromCore[]` (WORKFLOW § 3) — **read from core**; the rest from the worktree |
 
-**Non-production is the `why`'s PROSE, not a typed field** (§ Residue), read failing closed: a `why`
-that implies the destination **reaches end users** is [`mugetsu`](../mugetsu/SKILL.md)'s at **G3**
-(row `release-go`); **no `why`**, or one not clearly non-production, is refused.
+**Non-production is the `why`, read failing closed** (a default also needs `nonProduction: true`, nen
+`0.21`): a `why` implying the destination **reaches end users** is [`mugetsu`](../mugetsu/SKILL.md)'s at
+**G3** (row `release-go`); **no `why`**, or one not clearly non-production, is refused.
 
 ## 3. The plan — printed always, before anything
 
@@ -162,9 +162,9 @@ report**, the upload in **01 Accomplished**, and **say nothing about what is nex
 
 ## Residue
 
-**Nothing marks a target as production** (§ 2 reads the `why`), **exit `1` says nothing about the far end**, **nothing records the authorisation** (no
-per-run log, zheref/nen#91), and **§ 3a, § 3b and the default target are Hatsu's** — two scripts, and
-a key nen neither validates nor reads; nen has no worktree verb; a per-stack default is nen's to add
+**Only a default is typed** (§ 2 reads every `why`), **exit `1` says nothing about the far end**, **nothing records the authorisation** (no
+per-run log, zheref/nen#91), and **§ 3a, § 3b and the default's choice are Hatsu's** — two scripts, and
+a key nen validates, never acts on; § 3b predates `nen wc worktree`; a per-stack default is nen's to add
 (PROCESS.md § *Residue and owned dependencies*). **`kamui`
 is reserved** — not this skill, not a composite.
 

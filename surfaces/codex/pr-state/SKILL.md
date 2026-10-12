@@ -130,7 +130,8 @@ an absent self-hosted runner, a matrix leg ruled out — lives in the target's `
 `checks.excluded[]` (`name`, `match`, `reason`, `ruled`, `until`; nen's key from `v0.20.0`,
 zheref/nen#249; [`docs/GATE-CONFIGURATION.md`](../../../docs/GATE-CONFIGURATION.md) § 3), never in chat
 or a brief. **`nen pr ready` reads it itself, at the pull request's base and never its head** — so a PR
-cannot exempt its own red check — drops every honoured entry's checks from `CON-32(a)`, names each beside
+cannot exempt its own red check; on a PR into the default branch that base is the reviewed trunk, while a
+stacked or integration base's file may not have passed the trunk's gate (SEC-6) — drops every honoured entry's checks from `CON-32(a)`, names each beside
 its reason, and warns on a lapsed, not-yet-ruled or condition entry. So **the skill passes no
 `--exclude-check` for a declared ruling** and quotes the verdict as the verb prints it, the honoured
 exclusions in it; an entry that is in the head's file and not yet in the base's is named by the verb as
@@ -144,7 +145,8 @@ check, `templates/pr-readiness.yml`), never for a maintainer's ruling. **An exha
 declared anywhere any more**: Hatsu's `reviewer_fallback` is retired (the maintainer's ruling of
 2026-10-04, *retire 2, adopt 2*; zheref/hatsu#227), and nen's `round_quorum` decides — a met quorum
 fulfils an unavailable member's round (zheref/nen#361) and an unmet one is the verdict quoted as nen
-prints it ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *One bot
+prints it — or, with every member at `request-reviews` exit `9`, en § 5's prompt on hanten (ruling
+2026-10-11; [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *One bot
 reviewer suffices*).
 
 **Always the `$hatsu_root`-anchored form when `--gates` is the one in play, never a bare `contracts/reference.gates.json`.** The

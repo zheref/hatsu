@@ -29,8 +29,8 @@ missing prerequisites under its own name; the phases this run calls skip theirs)
   **none** names [`shibari`](../shibari/SKILL.md) or [`tensho`](../tensho/SKILL.md), which open one.
   **An explicit ref wins.**
 - A missing argument or configuration item is asked for and set up inline (`missing-argument`,
-  `missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*):
-  several PRs, a trunk or detached checkout, or an unresolved code triggers the ask, an absent code set up in `nen/repos.json`.
+  `missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4): several PRs, a trunk or
+  detached checkout, or an unresolved code asks; an absent code is set up in `nen/repos.json`.
 
 ## 2. The target gate is verified, never accepted
 
@@ -119,7 +119,8 @@ non-negative integer, or N > M takes `$hatsu_root/contracts/round_policy.default
 AND resolved < N**, and only through `nen pr request-reviews` — never raw GraphQL or `gh api`. *Resolved*: every finding it posted fixed in a pushed commit, replied to, its thread resolved;
 *requested*: this run's own requests plus the one `nen pr ready` row 4 reports in flight. `nen pr ready
 --explain` prints requested and **posted** counts (`meta.roundCounts`); *resolved* stays this skill's
-read. **`nen pr request-reviews` refuses a bot past M at exit `2`**: the bound reached, never retried.
+read. **`request-reviews` exit `2` with a `refused:` line is M reached**, never retried; any other `2`
+is usage, relayed.
 **An owed round inside both bounds is re-requested without asking** (row `cap-reached`); **once N
 resolved rounds exist none is requested — *owed at head* after your own push or request is not a
 reason**; **never after a push that changed nothing reviewable** — count commits and diff since the last
@@ -134,10 +135,11 @@ git diff --stat <reviewed-head>..HEAD
 ends the run** — M requested, or N resolved with the verdict still not-ready (a round owed at head that
 no bound lets the run request is an impossible condition, not one to poll) — not-ready,
 `--explain` quoted, the board, never a question, never a G5, never a ceiling raised in-session.
-**An exhausted reviewer is never declared** (`reviewer_fallback` retired, ruling 2026-10-04): the round
-quorum decides ([PROCESS.md § *Reviewer rounds and review threads*](../../../../docs/PROCESS.md), *One bot
-reviewer suffices*). A met quorum fulfils its member's round, so nothing is requested; a quorum no member
-can meet is the bound above. **The merge is the maintainer's**, at en § 5's prompt (ruling 2026-09-30).
+**Exit `9` is the one observable unavailability** — the bot in `unrecordedBots`, accepted and never
+recorded (zheref/nen#277): that `any_of` member is unavailable at this head, never retried, never counted
+as requested. A met quorum excuses it (nen#361); **every member at `9`** goes to en § 5's merge prompt on
+hanten's rounds, not-ready quoted verbatim, never `ready` (ruling 2026-10-11; PROCESS, *One bot
+reviewer suffices*). No exhaustion is declared. **The merge is the maintainer's**.
 
 **Round completeness, thread hygiene (`nen pr threads list|reply|resolve`) and the Copilot request
 (`nen pr request-reviews --add-bots <node id>`, verified by `nen pr ready`, never REST) are

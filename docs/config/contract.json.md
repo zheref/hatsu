@@ -116,7 +116,7 @@ Which host platforms may run which verbs. `*` is the default for every verb; a v
 
 ### `project.targets`
 
-Where builds are sent. One named destination per key; `why` states whether it is production or non-production, because nothing else marks a destination as production and `hatsu:kagutsuchi` honours `deploy.defaultTarget` only for one whose `why` reads non-production. Credentials are asserted, never handled: `requiresEnv` carries environment-variable **names** only, and nen checks each is set without reading it.
+Where builds are sent. One named destination per key; `why` states whether it is production or non-production, and `hatsu:kagutsuchi` reads it failing closed for every send; from nen `v0.21.0` the typed `nonProduction: true` is also required on a target named by `deploy.defaultTarget` (zheref/nen#300). Credentials are asserted, never handled: `requiresEnv` carries environment-variable **names** only, and nen checks each is set without reading it.
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
@@ -124,6 +124,7 @@ Where builds are sent. One named destination per key; `why` states whether it is
 | `targets.<name>.args` | string[] | appended to the `deploy` row's `argv` | What distinguishes this destination on the command line | `nen shu deploy` |
 | `targets.<name>.requiresEnv` | string[] | environment-variable **names** | The credentials the send needs set in the environment; a literal here is refused by `config_values.sh set` and flagged by `nen stage triage` | `nen shu deploy` (asserts each is set), `hatsu:kagutsuchi` § 5 |
 | `targets.<name>.why` | string | prose reading production or non-production | What the destination is and which gate reaches it (G3 for production) | `hatsu:kagutsuchi` § 1, `hatsu:mugetsu`, `config_values.sh set` (refuses a production target as `deploy.defaultTarget`) |
+| `targets.<name>.nonProduction` | boolean | optional; `true` marks the destination non-production; a non-boolean is refused by pointer | nen's typed mark; required on the target `deploy.defaultTarget` names (`nen schema check` FAILs it otherwise, nen `v0.21.0`) | `nen schema check`, `nen shu detect` (proposes `testflight` only so marked), `config_values.sh set` |
 | `targets.<name>.unsupported` | string | the reason | A destination the repository names but cannot send to from here | `hatsu:kagutsuchi` (quotes it) |
 
 ### `project.launch`

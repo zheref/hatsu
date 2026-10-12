@@ -972,26 +972,44 @@ only pending that question.
 
 ---
 
+## Rulings of 2026-10-11 — prompt on hanten (every quorum member unavailable)
+
+**The maintainer's answer, verbatim**, through the picker at the G4 stop of `hatsu:build HA#227`
+(2026-10-11), asked what happens when no member of the round quorum can post its round:
+
+> Prompt on hanten
+
+| Ruling | What it says |
+|---|---|
+| **The observable predicate** | A member is **unavailable** when `nen pr request-reviews` answers exit `9` for it, the bot named in `unrecordedBots` — GitHub accepted the request and never recorded it (zheref/nen#277). It is never retried and never counted as requested; [`sharingan`](../claude/skills/sharingan/SKILL.md) § 6 states the predicate once |
+| **Every member unavailable → the merge prompt on hanten** | When every `round_quorum.any_of` member is at exit `9` at this head, the PR goes to `en` § 5's merge prompt (§ 6's sixth stop) with hanten's rounds as the review. `nen pr ready`'s not-ready verdict is quoted verbatim, one Hatsu line beside it names the bots, and it is **never called `ready`**. The terminus outranks the round ceiling |
+| **What it keeps** | The intent of ruling 1 of 2026-09-29 — *"if limit has been reached, proceed with just the local hanten review rounds and merge"* — without the declared chain the 2026-10-04 ruling retired: the trigger is nen's observation, never a dated row in `nen/gates.json`. The merge stays the maintainer's (§ *Rulings of 2026-09-30 — En never merges*) |
+
+It replaces the strict reading first written for zheref/hatsu#227 (the round ceiling, no prompt). Stated in
+`docs/PROCESS.md` § *Reviewer rounds and review threads* (*One bot reviewer suffices*), `en` §§ 5–6, `sharingan`
+§ 6, `nen/decisions.json` row `reviewer-exhausted` and `docs/WORKFLOW.md`'s G5 list.
+
+---
+
 ## Rulings of 2026-10-04 — retire 2, adopt 2 (the gates keys nen does not read)
 
 **The maintainer's ruling, as recorded on zheref/nen#310** (from the `hatsu:futon nen@enhancement` run):
 *"retire 2, adopt 2. Hatsu's `check_exclusions` moves to nen's `checks.excluded` (#249), and
 `reviewer_fallback` is deleted (superseded by `round_quorum` + #361). Both happen in a Hatsu PR after the
 release. `round_policy.minRounds`/`maxRounds` become real nen keys through #240. #310 then refuses every
-unknown key with no carve-out; only `$`-prefixed keys are exempt."* nen `v0.21.0` ships #240 and #310;
-zheref/hatsu#227 lands the Hatsu half together with the repin to it.
+unknown key with no carve-out; only `$`-prefixed keys are exempt. It lands after #240 and the Hatsu
+cleanup."* nen `v0.21.0` shipped #310 before this cleanup had landed, so Hatsu's `main` read exit `2` under
+it; zheref/hatsu#227 closes that gap, together with the repin to `v0.21.0`.
 
 | Ruling | What it says |
 |---|---|
 | **`check_exclusions` → nen's `checks.excluded`** | A ruling that a check is not watched is declared as `nen/gates.json` → `checks.excluded[]` (`name`, `match`, `reason`, `ruled`, `until` as a date or `{condition}`), which `nen pr ready` reads at the pull request's base and applies itself; the skills pass no `--exclude-check` for it ([`pr-state`](../claude/skills/pr-state/SKILL.md) § 2). Hatsu's own list was empty and is declared empty in nen's form |
-| **`reviewer_fallback` deleted** | The chain, its `terminal: hanten` and its dated `exhausted[]` rows go, with the declared-exhaustion stop that sent a PR to the merge prompt on hanten's review (ruling 1 of 2026-09-29, below). [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *One bot reviewer suffices*, is the rule that replaces it |
+| **`reviewer_fallback` deleted** | The chain, its `terminal: hanten` and its dated `exhausted[]` rows go, with the *declared* exhaustion stop (ruling 1 of 2026-09-29, below); its terminus, the merge prompt on hanten's review, returns observed rather than declared by § *Rulings of 2026-10-11 — prompt on hanten*. [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *One bot reviewer suffices*, is the rule that replaces it |
 | **`round_policy.minRounds`/`.maxRounds` stay, as nen's** | nen reads them from `v0.21.0`: `pr request-reviews` refuses a bot's request past `maxRounds` at exit `2`; `pr ready --explain` prints requested and posted counts. nen counts `minRounds` against **posted** rounds, Hatsu's skills against **resolved** ones ([`sharingan`](../claude/skills/sharingan/SKILL.md) § 6); neither is a readiness conjunct |
 
-**One reading this delivery made, not ruled (G4 if the maintainer reads it otherwise):** a round quorum
-**no** member can meet — every `any_of` member exhausted — is `sharingan` § 6's round ceiling: not-ready,
-`--explain` quoted, no merge prompt. The retired chain sent that PR to the merge prompt on hanten's rounds;
-the ruling deleted the chain and named no replacement for that one case, so this reading keeps the stricter
-verdict rather than invent a declaration the ruling retired.
+**Amended 2026-10-11** by § *Rulings of 2026-10-11 — prompt on hanten* (below): a round quorum no member
+can meet goes to the merge prompt on hanten's rounds. The strict reading this delivery first wrote — the
+round ceiling, no prompt — was not adopted.
 
 ---
 
@@ -1010,7 +1028,7 @@ the quorum is the rule that replaces it.
 | Ruling | What it says |
 |---|---|
 | **The quorum is the gate, not every member** | A PR's reviewer rows are satisfied when at least one configured bot reviewer has posted its round (how many rounds Hatsu asks for is `round_policy.minRounds`); a met quorum fulfils the owed round of an unavailable member — exhausted credits, no run at head, a run that completed without a round (zheref/nen#361) |
-| **Where it lives** | **nen's** `round_quorum` key in `nen/gates.json` (`any_of`, `minimum`), read by `nen pr ready` from nen `0.17`; the *fulfils* half ships in nen `v0.20.0`, the pin from zheref/hatsu#168. The behaviour is [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *One bot reviewer suffices*, stated once; the key is [`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3; Hatsu's own `nen/gates.json` declares it over Copilot alone until Bugbot is enrolled on this repository |
+| **Where it lives** | **nen's** `round_quorum` key in `nen/gates.json` (`any_of`, `minimum`), read by `nen pr ready` from nen `0.17`; the *fulfils* half ships in nen `v0.20.0` (the pin from zheref/hatsu#168 until zheref/hatsu#227 moved it to `v0.21.0`). The behaviour is [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *One bot reviewer suffices*, stated once; the key is [`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3; Hatsu's own `nen/gates.json` declares it over Copilot alone until Bugbot is enrolled on this repository |
 
 So: what the pinned binary prints before that release, and where the PR goes, is PROCESS's paragraph, not
 this table. **Two readings this run made, not ruled (G4 if the maintainer reads them otherwise):** (1) *in
@@ -1209,6 +1227,10 @@ sibling folder was the easiest answer to a rule with no path in it.
 | **No repository is unbounded** | Hatsu's two reviewer-round keys, `round_policy.minRounds` (N) and `.maxRounds` (M), have a canon default in [`contracts/round_policy.default.json`](../contracts/round_policy.default.json). [`sharingan`](../claude/skills/sharingan/SKILL.md) § 6 states the one rule: per key, a target value that is absent, not a non-negative integer, or leaves N above M takes the default, with the file named as the source; an unreadable default is a stop |
 | **The home is Hatsu's alone** | the default carries only Hatsu's two keys. `stallMinutes` stays nen's, with nen's own built-in default, and `contracts/reference.gates.json` stays the frozen reference repository's identity file |
 | **A target may still declare its own** | a well-formed target value wins; `zheref/nen` declares the same caps in its own `nen/gates.json` (NN-PR-#321) |
+
+**Annotated 2026-10-11** (§ *Rulings of 2026-10-04 — retire 2, adopt 2*): both caps are nen's keys from
+`v0.21.0` (zheref/nen#240). The default file stays the skills' default when a target omits one, and nen
+enforces no ceiling it was not given; "Hatsu's two keys" above is the record of 2026-09-30.
 
 ---
 
