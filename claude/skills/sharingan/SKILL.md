@@ -137,7 +137,7 @@ no bound lets the run request is an impossible condition, not one to poll) — n
 Each request records `headRefOid`, read just before it, with its `--json` verbatim. **Exit `9`**
 (`unrecordedBots`, nen#277) is never retried or counted as requested. A met quorum excuses an
 unavailable member; **every member unavailable** is the sixth stop, its predicate stated once in PROCESS,
-*One bot reviewer suffices* (ruling 2026-10-11). No exhaustion is declared. **The merge is the maintainer's**.
+*The sixth stop* (ruling 2026-10-11). No exhaustion is declared. **The merge is the maintainer's**.
 
 **Round completeness, thread hygiene (`nen pr threads list|reply|resolve`) and the Copilot request
 (`nen pr request-reviews --add-bots <node id>`, verified by `nen pr ready`, never REST) are

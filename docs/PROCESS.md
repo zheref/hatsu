@@ -280,7 +280,7 @@ of 2026-10-11, *Prompt on hanten* ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-
 hanten*), keeps the 2026-09-29 intent: such a PR goes to `en` § 5's merge prompt on hanten's rounds (`en`
 § 6, the sixth stop). **Stated once, here**; `sharingan` § 6, `en` §§ 5–6, `nen/decisions.json` rows
 `reviewer-exhausted` and `own-pr-merge`, `docs/WORKFLOW.md`'s G5 list, `docs/config/decisions.json.md` and
-that ROSTER section cite this paragraph and restate nothing. It is reached **only when all four hold**,
+that ROSTER section cite this paragraph and restate nothing. It is reached **only when all five hold**,
 read from `nen pr ready <ref> --json` at the judged head (`judgedHead`):
 
 - **(a) A quorum is declared.** `nen/gates.json` carries `round_quorum` with a non-empty `any_of`. With no
@@ -288,27 +288,37 @@ read from `nen pr ready <ref> --json` at the judged head (`judgedHead`):
 - **(b) The round row is the only failing row.** `failing` is exactly `["rounds-owed"]` (CON-32(b)). Any
   other failing row — `mergeable` (a conflict or a draft), `checks-green`, `round-stalled`,
   `approvals-at-head`, `unresolved-threads`, or one this list does not name — ends at row `cap-reached`'s
-  not-ready terminus, no prompt.
+  not-ready terminus, no prompt. And on that row only `any_of` members may be owed: (e).
 - **(c) Every `any_of` member is unavailable at this head**, each by one of two observations, never by
   declaration:
   - `nen pr request-reviews` answered **exit `9`** for it, the bot named in `unrecordedBots` — GitHub
     accepted the request and never recorded it (zheref/nen#277). Such a request is never retried and never
     counted as requested. Exit `1` in the same call wins and is relayed as a failure, never read as `9`;
-  - nen's own zheref/nen#361 classification on the `rounds-owed` row (`--explain`, or `--json`'s
-    `conjuncts[]` and its `roundQuorum`): a round-check member with **no run at head**, or a run that
-    **completed without a round** (`NEUTRAL`, `CANCELLED`, `SKIPPED`, `FAILURE`). A run still **in flight**
-    (`QUEUED`, `IN_PROGRESS`, `PENDING`, `WAITING`) never counts, and neither does a pending request that
-    never came back at exit `9`: that is a wait, or `round-stalled`.
+  - a round-check run **at the judged head that completed without a round**, read structurally from the
+    `rounds-owed` row's `roundQuorum.members[].roundCheck`: `from` is `head` and `conclusion` is one of
+    `NEUTRAL`, `CANCELLED`, `SKIPPED`, `FAILURE` (zheref/nen#361's classification — Cursor Bugbot's
+    `NEUTRAL` "usage limit reached" is the case). **No run at head never counts**: right after a push it
+    cannot be told from a run not yet created, so it is a wait, or `round-stalled`. Nor does a run still
+    **in flight** (`QUEUED`, `IN_PROGRESS`, `PENDING`, `WAITING`), nor a pending request that never came
+    back at exit `9`.
 - **(d) The observation is bound to the judged head.** Read `headRefOid` immediately before each
   `nen pr request-reviews` call and record it with that call's `--json` output (`unrecordedBots` and
   `message`) **verbatim**. An exit `9` counts only when that head equals the head `en` § 5 check 5 judged;
   otherwise it is stale, and one fresh request at the new head is owed, inside `round_policy.maxRounds`.
+- **(e) No reviewer outside `any_of` is owed.** nen's `rounds-owed` row also carries configured reviewers
+  that are not quorum members, and a met or unmet quorum never excuses them. nen `v0.21.0`'s `--json`
+  exposes **no structured list of the owed reviewers** — the row's `reason` is prose, never parsed;
+  `roundQuorum.members` names only `any_of`, and `meta.roundCounts` counts rounds, not who is owed at head.
+  So the sixth stop is reachable **only where every `reviewers[]` name in the target's `nen/gates.json` is
+  in `round_quorum.any_of`** (true of Hatsu's own file today: `copilot` in both). Where a reviewer lies
+  outside `any_of`, the PR ends at `cap-reached`'s not-ready terminus, no prompt, until nen exposes the
+  owed list.
 
 At the stop, `nen pr ready`'s **not-ready verdict is quoted verbatim and never called `ready`**, and the one
 Hatsu line `en` writes into the PR body through `nen pr edit-body` carries the recorded head and the
 verbatim `--json` output of each exit-`9` call — what nen observed, not a paraphrase. The stop outranks
 the round ceiling; the merge stays the maintainer's (`en` never merges). Any unmet quorum that misses
-one of (a)–(d) stays under `sharingan` § 6's bounds. Nothing in this paragraph is read by a Hatsu script; the verb
+one of (a)–(e) stays under `sharingan` § 6's bounds. Nothing in this paragraph is read by a Hatsu script; the verb
 reads the key.
 
 **The fallback chain — retired** (ruling 2026-09-29, retired by the maintainer's ruling of 2026-10-04,
