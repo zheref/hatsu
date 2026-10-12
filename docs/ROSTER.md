@@ -974,20 +974,25 @@ only pending that question.
 
 ## Rulings of 2026-10-11 — prompt on hanten (every quorum member unavailable)
 
-**The maintainer's answer, verbatim**, through the picker at the G4 stop of `hatsu:build HA#227`
-(2026-10-11), asked what happens when no member of the round quorum can post its round:
+**The maintainer's words are the picker's answer alone**, at the G4 stop of `hatsu:build HA#227`
+(2026-10-11). The question, as asked: *"When every bot in Hatsu's round quorum is out (Copilot is the only
+member, and today it answers exit 9), what should happen to a PR into main?"* The answer:
 
 > Prompt on hanten
 
 | Ruling | What it says |
 |---|---|
-| **The observable predicate** | A member is **unavailable** when `nen pr request-reviews` answers exit `9` for it, the bot named in `unrecordedBots` — GitHub accepted the request and never recorded it (zheref/nen#277). It is never retried and never counted as requested; [`sharingan`](../claude/skills/sharingan/SKILL.md) § 6 states the predicate once |
-| **Every member unavailable → the merge prompt on hanten** | When every `round_quorum.any_of` member is at exit `9` at this head, the PR goes to `en` § 5's merge prompt (§ 6's sixth stop) with hanten's rounds as the review. `nen pr ready`'s not-ready verdict is quoted verbatim, one Hatsu line beside it names the bots, and it is **never called `ready`**. The terminus outranks the round ceiling |
-| **What it keeps** | The intent of ruling 1 of 2026-09-29 — *"if limit has been reached, proceed with just the local hanten review rounds and merge"* — without the declared chain the 2026-10-04 ruling retired: the trigger is nen's observation, never a dated row in `nen/gates.json`. The merge stays the maintainer's (§ *Rulings of 2026-09-30 — En never merges*) |
+| **Every member unavailable → the merge prompt on hanten** | The PR goes to `en` § 5's merge prompt (§ 6's sixth stop) with hanten's rounds as the review. `nen pr ready`'s not-ready verdict is quoted verbatim and **never called `ready`**. The terminus outranks the round ceiling; the merge stays the maintainer's (§ *Rulings of 2026-09-30 — En never merges*) |
+| **This delivery's reading of the ruling — the predicate** | The stop is reached only when four conditions hold at the judged head: (a) a `round_quorum` with a non-empty `any_of` is declared; (b) `failing` is exactly `["rounds-owed"]`, any other failing row ending at `cap-reached`'s not-ready terminus; (c) every `any_of` member is unavailable, observed either as `nen pr request-reviews` exit `9` (`unrecordedBots`, zheref/nen#277) or by nen's zheref/nen#361 classification (no round-check run at head, or one completed without a round), never a run in flight; (d) each exit `9` is bound to the head read just before its call, recorded with its `--json` verbatim. Stated once in [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *The sixth stop*; everything else cites it |
+| **What it keeps** | The intent of ruling 1 of 2026-09-29 — *"if limit has been reached, proceed with just the local hanten review rounds and merge"* — without the declared chain the 2026-10-04 ruling retired: the trigger is nen's observation, never a dated row in `nen/gates.json` |
 
-It replaces the strict reading first written for zheref/hatsu#227 (the round ceiling, no prompt). Stated in
-`docs/PROCESS.md` § *Reviewer rounds and review threads* (*One bot reviewer suffices*), `en` §§ 5–6, `sharingan`
-§ 6, `nen/decisions.json` row `reviewer-exhausted` and `docs/WORKFLOW.md`'s G5 list.
+**Read under the constitution:** the ruling is read under `CON-16`'s *"Only enabled reviewers gate … no
+deadlock"* clause, and `CON-32(b)` is why the verdict at the prompt is quoted not-ready and never called
+ready.
+
+It replaces the strict reading first written for zheref/hatsu#227 (the round ceiling, no prompt). Cited
+from `en` §§ 5–6, `sharingan` § 6, `nen/decisions.json` rows `reviewer-exhausted` and `own-pr-merge`,
+`docs/WORKFLOW.md`'s G5 list and `docs/config/decisions.json.md`.
 
 ---
 
@@ -1007,7 +1012,7 @@ it; zheref/hatsu#227 closes that gap, together with the repin to `v0.21.0`.
 | **`reviewer_fallback` deleted** | The chain, its `terminal: hanten` and its dated `exhausted[]` rows go, with the *declared* exhaustion stop (ruling 1 of 2026-09-29, below); its terminus, the merge prompt on hanten's review, returns observed rather than declared by § *Rulings of 2026-10-11 — prompt on hanten*. [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *One bot reviewer suffices*, is the rule that replaces it |
 | **`round_policy.minRounds`/`.maxRounds` stay, as nen's** | nen reads them from `v0.21.0`: `pr request-reviews` refuses a bot's request past `maxRounds` at exit `2`; `pr ready --explain` prints requested and posted counts. nen counts `minRounds` against **posted** rounds, Hatsu's skills against **resolved** ones ([`sharingan`](../claude/skills/sharingan/SKILL.md) § 6); neither is a readiness conjunct |
 
-**Amended 2026-10-11** by § *Rulings of 2026-10-11 — prompt on hanten* (below): a round quorum no member
+**Amended 2026-10-11** by § *Rulings of 2026-10-11 — prompt on hanten* (above): a round quorum no member
 can meet goes to the merge prompt on hanten's rounds. The strict reading this delivery first wrote — the
 round ceiling, no prompt — was not adopted.
 
@@ -1337,8 +1342,9 @@ its retarget was the run's error, not the spec's.
 
 One ruling, recorded here once. **Retired on 2026-10-04** (§ *Rulings of 2026-10-04 — retire 2, adopt 2*;
 zheref/hatsu#227): `nen/gates.json` → `reviewer_fallback` is deleted and the round quorum replaces it;
-`nen/decisions.json` row `reviewer-exhausted` now states the quorum's default. Ruling 1 is kept below as the
-record of what was ruled then.
+`nen/decisions.json` row `reviewer-exhausted` now states the quorum's default. Its terminus — the merge
+prompt on hanten's rounds — returned on 2026-10-11 in observed form (§ *Rulings of 2026-10-11 — prompt on
+hanten*). Ruling 1 is kept below as the record of what was ruled then.
 
 1. **When a configured reviewer's credits are exhausted, the review falls back down a declared chain, and
    the chain's end is hanten** (2026-09-29, at the G5 stop of the futon hatsu@enhancement run, HA-PR-#126

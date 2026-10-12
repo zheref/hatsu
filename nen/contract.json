@@ -44,7 +44,7 @@
         "rule": "ALWAYS fetch to a file, then run that file. NEVER pipe the script into bash.",
         "why": "The script runs under `set -u` and reads ${BASH_SOURCE[0]}. Piped into `bash -s --` there is no BASH_SOURCE, so it dies with `BASH_SOURCE[0]: unbound variable` and exits 1 — a code that appears in NO table here, from a script that never reached its own argument parsing. It looks like an ordinary failure and is not one; it means the invocation form was wrong. Reproduced against this contract's pinned ref.",
         "wrong": "curl -fsSL <url> | bash -s -- --ref v0.21.0",
-        "right": "curl -fsSL <url> -o /tmp/nen-bootstrap.sh && bash /tmp/nen-bootstrap.sh --ref v0.21.0"
+        "right": "curl -fsSL <url> -o /tmp/nen-bootstrap.sh && bash /tmp/nen-bootstrap.sh --ref v0.21.0 --source zheref/nen"
       },
       "flags": {
         "--ref": "Required, no default. The tag to pin to.",

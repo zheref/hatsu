@@ -134,11 +134,10 @@ git diff --stat <reviewed-head>..HEAD
 ends the run** — M requested, or N resolved with the verdict still not-ready (a round owed at head that
 no bound lets the run request is an impossible condition, not one to poll) — not-ready,
 `--explain` quoted, the board, never a question, never a G5, never a ceiling raised in-session.
-**Exit `9` is the one observable unavailability** — the bot in `unrecordedBots`, accepted and never
-recorded (zheref/nen#277): that `any_of` member is unavailable at this head, never retried, never counted
-as requested. A met quorum excuses it (nen#361); **every member at `9`** goes to en § 5's merge prompt on
-hanten's rounds, not-ready quoted verbatim, never `ready` (ruling 2026-10-11; PROCESS, *One bot
-reviewer suffices*). No exhaustion is declared. **The merge is the maintainer's**.
+Each request records `headRefOid`, read just before it, with its `--json` verbatim. **Exit `9`**
+(`unrecordedBots`, nen#277) is never retried or counted as requested. A met quorum excuses an
+unavailable member; **every member unavailable** is the sixth stop, its predicate stated once in PROCESS,
+*One bot reviewer suffices* (ruling 2026-10-11). No exhaustion is declared. **The merge is the maintainer's**.
 
 **Round completeness, thread hygiene (`nen pr threads list|reply|resolve`) and the Copilot request
 (`nen pr request-reviews --add-bots <node id>`, verified by `nen pr ready`, never REST) are
