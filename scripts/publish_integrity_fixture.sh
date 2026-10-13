@@ -42,6 +42,22 @@ expect 'clean branch passes' 0 "$auth" --repo "$r" --base main
 expect 'clean branch passes provenance' 0 "$auth" --repo "$r" --base main --require-agent kurapika
 expect 'empty range passes' 0 "$auth" --repo "$r" --base effort
 expect 'required trailer present passes' 0 "$auth" --repo "$r" --base main --require-trailer Hatsu-Agent
+expect 'forbidden trailer gate passes a clean range' 0 "$auth" --repo "$r" --base main --forbid-trailers-from "$here/../nen/workflow.json" --forbidden-only
+echo injected > "$r/injected"; g "$r" add injected
+g "$r" commit -q -m 'harness attribution' -m 'Co-Authored-By: Example <example@invalid.test>'
+bad_trailer="$(g "$r" rev-parse --short HEAD)"
+expect 'forbidden trailer gate refuses an injected trailer' 1 "$auth" --repo "$r" --base main --forbid-trailers-from "$here/../nen/workflow.json" --forbidden-only
+expect_out 'forbidden trailer finding names its commit and key' "$bad_trailer" "$auth" --repo "$r" --base main --forbid-trailers-from "$here/../nen/workflow.json" --forbidden-only
+expect_out 'forbidden trailer finding names its key' 'forbidden trailer co-authored-by' "$auth" --repo "$r" --base main --forbid-trailers-from "$here/../nen/workflow.json" --forbidden-only
+g "$r" reset -q --hard HEAD~1
+d="$tmp/diverged"; new_repo "$d"
+echo base > "$d/f"; g "$d" add f; g "$d" commit -q -m base
+g "$d" checkout -q -b effort
+echo own > "$d/g"; g "$d" add g; g "$d" commit -q -m own
+g "$d" checkout -q main
+echo newer > "$d/h"; g "$d" add h; g "$d" commit -q -m newer
+g "$d" checkout -q effort
+expect 'forbidden trailer gate accepts a PR whose base advanced' 0 "$auth" --repo "$d" --base main --forbid-trailers-from "$here/../nen/workflow.json" --forbidden-only
 
 mkdir -p "$r/src/billing"; echo x > "$r/src/billing/charge.ts"; g "$r" add src
 env GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=a@b GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=a@b git -C "$r" commit -q -m f
