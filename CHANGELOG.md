@@ -2,6 +2,12 @@
 
 All notable changes to Hatsu are documented in this file. Releases follow [Semantic Versioning](https://semver.org/).
 
+## v0.97.0 — direct refuses a same-PR first opt-in and names its label ledger
+
+### `hatsu:direct` § 7 states the first-opt-in sequence and the ledger path ([#240](https://github.com/zheref/hatsu/issues/240), 0.97.0)
+
+- **A consumer's first opt-in to `direct.publish` is two steps, never one PR** ([#240](https://github.com/zheref/hatsu/issues/240)): where the key is absent at the start of a sitting nothing publishes; the `model/` labels are declared and the key set in the consumer's own PR and merged (classify § 4's declaration-first sequence, ruling of 2026-10-04), and `nen labels sync` and the applies follow from the next sitting. A maintainer's typed waiver is the one exception, quoted in `nen/labels.json`'s `$comment` and in that PR. **The label ledger's expected path is `.nen/direct/label-ledger.jsonl`**: every `nen label apply` under § 7 and the § 8 sweep passes `--ledger` with it, since the verb's default lands beside a `changelog.d/` a consumer may not keep (the nen half is zheref/nen#391). A reader can now tell from the skill alone what to do when the key is absent. Four passages were shortened to pay for the rule under the ceiling. Plugin bumped to 0.97.0; mirrors regenerated at that stamp.
+
 ## v0.96.1 — bakuryuha binds the host `nen` link to the new pin before the reload
 
 ### `bakuryuha` § 5 names the host-link step for the pinned nen, before § 6's reload ([#201](https://github.com/zheref/hatsu/issues/201), 0.96.1)
