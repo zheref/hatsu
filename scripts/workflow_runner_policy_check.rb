@@ -4,6 +4,9 @@ require "psych"
 require "tmpdir"
 require "fileutils"
 require "stringio"
+require "digest"
+require "json"
+require "open3"
 
 # Every workflow YAML this script reads is UTF-8 (git, GitHub Actions, this
 # repository's own editors). Ruby 2.6's `File.read` otherwise decodes with
@@ -726,7 +729,68 @@ REGENERATE_PR_WITH = {
   "title" => "chore(surfaces): regenerate mirrors",
   "body" => nil
 }.freeze
-ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.freeze
+
+# THE BOOTSTRAPPED BINARY, HASHED AGAINST THE CONTRACT (zheref/hatsu#230). The
+# bootstrap script checks the binary against SHA256SUMS from the SAME release,
+# so a moved tag or replaced assets verify against themselves. The contract
+# records each platform's binary digest (dependency.bootstrap.sha256), and only
+# scripts/nen_global.sh read it. This step hashes the binary the bootstrap
+# printed and compares it with the TRUSTED copy's linux-x64 digest (every job
+# here is ubuntu), failing closed on a mismatch or a missing or malformed key
+# with both digests named. A malformed value is printed with every character
+# outside [0-9A-Za-z] as `?`, so even the trusted file cannot start a log line
+# with a workflow command. The builder's copy reads main's own checkout.
+#
+# TWO-STEP LANDING (docs/GATE-CONFIGURATION.md): this validator admits each of
+# the three workflows with and without the step, frozen when present; the PR
+# that adds it to the live files narrows Hatsu's own shapes to carrying it.
+# Tenkai's rendered readiness form never carries it: a product repository's
+# contract need not record nen's digest, so rendering it is tenkai's change.
+NEN_DIGEST_STEP = "Verify the nen binary against trusted nen/contract.json's sha256"
+NEN_DIGEST_FROZEN = {
+  "env" => {
+    "NEN_BIN" => "${{ steps.nen.outputs.bin }}"
+  },
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -euo pipefail
+    [ -f "$NEN_BIN" ] || { echo "::error::no bootstrapped nen binary to hash at '${NEN_BIN}'."; exit 1; }
+    observed="$(sha256sum "$NEN_BIN")"
+    observed="${observed%% *}"
+    expected="$(jq -r '.dependency.bootstrap.sha256["linux-x64"] // empty' .trusted/nen/contract.json 2>/dev/null)" || expected=""
+    if [[ ! "$expected" =~ ^[0-9a-f]{64}$ ]]; then
+      shown="${expected//[^0-9A-Za-z]/?}"
+      echo "::error::trusted nen/contract.json records no well-formed dependency.bootstrap.sha256[\"linux-x64\"]: expected 64 lowercase hex characters, found '${shown:0:80}'; observed ${observed}."
+      exit 1
+    fi
+    if [ "$observed" != "$expected" ]; then
+      echo "::error::the bootstrapped nen binary does not match trusted nen/contract.json: expected sha256 ${expected}, observed ${observed}."
+      exit 1
+    fi
+    echo "nen binary sha256 ${observed} matches trusted nen/contract.json (linux-x64)."
+  RUN
+}.freeze
+# The builder's form: the same body, reading the contract in main's checkout.
+REGENERATE_NEN_DIGEST_STEP = "Verify the nen binary against nen/contract.json's sha256"
+REGENERATE_NEN_DIGEST_FROZEN = NEN_DIGEST_FROZEN.merge(
+  "run" => NEN_DIGEST_FROZEN.fetch("run").gsub(".trusted/nen/contract.json", "nen/contract.json")
+                                         .gsub("trusted nen/contract.json", "nen/contract.json")
+).freeze
+NEN_DIGEST_STEPS = {
+  "surface-mirror-check.yml" => [NEN_DIGEST_STEP, NEN_DIGEST_FROZEN],
+  "pr-readiness.yml" => [NEN_DIGEST_STEP, NEN_DIGEST_FROZEN],
+  "surface-mirror-regenerate.yml" => [REGENERATE_NEN_DIGEST_STEP, REGENERATE_NEN_DIGEST_FROZEN]
+}.freeze
+
+# A step list with the digest step right after its bootstrap step.
+def with_nen_digest(steps, digest)
+  at = steps.index { |name| name.start_with?("Bootstrap nen at ") }
+  steps[0..at] + [digest] + steps[(at + 1)..-1]
+end
+ALLOWED_STEP_SHAPES = EXPECTED_STEPS.map do |file, steps|
+  digest = NEN_DIGEST_STEPS[file]
+  [file, digest ? [steps, with_nen_digest(steps, digest.first)].freeze : [steps].freeze]
+end.to_h.freeze
 
 # surface-mirror-regenerate.yml's own trigger shape. `nil` marks an event that
 # carries no further keys at all (`workflow_dispatch: {}` — a bare mapping
@@ -1373,6 +1437,7 @@ def validate_workflow(path)
     # verdict through the environment, the PATH, a shell or an action.
     extra_uses = []
     extra_env = []
+    rendered = false
     if File.basename(path) == "pr-readiness.yml"
       # ONE form for the whole job, selected by the head checkout's `uses:`:
       # Hatsu's own, or tenkai's rendering (READINESS_RENDERED_STEPS). Every
@@ -1393,6 +1458,13 @@ def validate_workflow(path)
         extra_uses = READINESS_RENDERED_USES
         extra_env = READINESS_RENDERED_ENV
       end
+    end
+    # The nen digest step (zheref/hatsu#230), in its one admitted form wherever
+    # a workflow carries it; tenkai's rendered readiness form carries none.
+    digest_name, digest_frozen = NEN_DIGEST_STEPS[File.basename(path)]
+    if digest_name && step_names.include?(digest_name)
+      fail_policy("#{path} tenkai's rendered readiness form carries no #{digest_name.inspect} step") if rendered
+      require_frozen_step(step_maps.find { |step| scalar(step["name"]) == digest_name }, digest_frozen, "#{path} #{digest_name.inspect}")
     end
     refuse_unadmitted_step_shapes(path, job_name, job, step_maps, PR_JOB_KEYS, extra_uses: extra_uses, extra_env: extra_env)
     starter = step_maps.first
@@ -1672,6 +1744,10 @@ def validate_builder_workflow(path)
     # (REGENERATE_FROZEN_STEPS, zheref/hatsu#190), the cleanup step included.
     REGENERATE_FROZEN_STEPS.each do |name, frozen|
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == name }, frozen, "#{path} #{name.inspect}")
+    end
+    digest_name, digest_frozen = NEN_DIGEST_STEPS.fetch(basename)
+    if step_names.include?(digest_name)
+      require_frozen_step(step_maps.find { |step| scalar(step["name"]) == digest_name }, digest_frozen, "#{path} #{digest_name.inspect}")
     end
     pr_with_id = step_maps.find { |step| scalar(step["name"]) == "Open a pull request with the regenerated mirrors" }
     unless pr_with_id && scalar(pr_with_id["id"]) == REGENERATE_PR_STEP_ID
@@ -2500,6 +2576,97 @@ def self_test(root)
                  step: "Surface-mirror drift check")
     File.write(surface, surface_original)
     validate_repo(tmp, announce: false)
+
+    # --- the nen digest step (zheref/hatsu#230): step one of its landing -----
+    # Each workflow that bootstraps nen is admitted with the step right after
+    # its bootstrap step, rendered from the constants; the edits below are each
+    # refused. Built from the live files WHICHEVER shape they hold: the pull
+    # request that adds the step to them is judged by this validator on `main`,
+    # fixtures included (docs/GATE-CONFIGURATION.md; the #96 lesson above).
+    digest_block = ->(name) { /^      - name: #{Regexp.escape(name)}\n.*?(?=^      - name: )/m }
+    digest_into = lambda do |label, base, before_step, name, frozen|
+      next base if base.include?("      - name: #{name}\n")
+      fixture_sub(label, base, "      - name: #{before_step}\n", render_step(name, frozen) + "\n      - name: #{before_step}\n", step: name)
+    end
+    surface_digest = digest_into.call("surface-mirror-check with the nen digest step", surface_original,
+                                      "Surface-mirror drift check", NEN_DIGEST_STEP, NEN_DIGEST_FROZEN)
+    readiness_digest = digest_into.call("pr-readiness with the nen digest step", readiness_frozen,
+                                        READINESS_VERDICT_STEP, NEN_DIGEST_STEP, NEN_DIGEST_FROZEN)
+    regenerate_digest = digest_into.call("surface-mirror-regenerate with the nen digest step", regenerate_original,
+                                         "Read the plugin stamp", REGENERATE_NEN_DIGEST_STEP, REGENERATE_NEN_DIGEST_FROZEN)
+    surface_bare = surface_original.sub(digest_block.call(NEN_DIGEST_STEP), "")
+    [[surface, surface_digest, surface_original], [readiness, readiness_digest, readiness_original],
+     [regenerate, regenerate_digest, regenerate_original]].each do |file, text, restore|
+      File.write(file, text)
+      validate_repo(tmp, announce: false)
+      File.write(file, restore)
+    end
+    digest_mismatch = %Q{expected sha256 ${expected}, observed ${observed}."\n            exit 1\n}
+    [
+      ["nen digest step reading the PR head's contract", surface, surface_digest,
+       ".trusted/nen/contract.json 2>/dev/null", "nen/contract.json 2>/dev/null", NEN_DIGEST_STEP],
+      ["nen digest step comparing the darwin-arm64 digest", readiness, readiness_digest,
+       %q{sha256["linux-x64"]}, %q{sha256["darwin-arm64"]}, NEN_DIGEST_STEP],
+      ["nen digest step that passes a mismatch", readiness, readiness_digest,
+       digest_mismatch, digest_mismatch.sub("exit 1", "exit 0"), NEN_DIGEST_STEP],
+      ["nen digest step hashing another file", regenerate, regenerate_digest,
+       %Q{sha256sum "$NEN_BIN"}, %Q{sha256sum "$0"}, REGENERATE_NEN_DIGEST_STEP],
+      ["nen digest step with GH_TOKEN in its env", regenerate, regenerate_digest,
+       "          NEN_BIN: ${{ steps.nen.outputs.bin }}\n        shell: bash\n",
+       "          NEN_BIN: ${{ steps.nen.outputs.bin }}\n          GH_TOKEN: ${{ github.token }}\n        shell: bash\n", REGENERATE_NEN_DIGEST_STEP],
+      ["nen digest step before the bootstrap step it checks", surface, surface_bare,
+       "      - name: Bootstrap nen at the trusted pinned ref",
+       render_step(NEN_DIGEST_STEP, NEN_DIGEST_FROZEN) + "\n      - name: Bootstrap nen at the trusted pinned ref", NEN_DIGEST_STEP],
+      ["nen digest step in tenkai's rendered readiness form", readiness, rendered_process,
+       "      - name: #{READINESS_VERDICT_STEP}\n", render_step(NEN_DIGEST_STEP, NEN_DIGEST_FROZEN) + "\n      - name: #{READINESS_VERDICT_STEP}\n",
+       NEN_DIGEST_STEP]
+    ].each do |label, file, base, from, to, step|
+      hostile.call(label, file, base, from, to, step: step)
+      File.write(file, { surface => surface_original, readiness => readiness_original, regenerate => regenerate_original }.fetch(file))
+    end
+    validate_repo(tmp, announce: false)
+
+    # --- the digest step RUNS as frozen (zheref/hatsu#230, criterion 3) -----
+    # The one place this self-test executes shell, and only its own constants,
+    # never a workflow's text: each body under bash as Actions runs it, against
+    # a scratch binary and contract, in a clean environment. The recorded
+    # digest passes; a tampered one fails closed naming both digests; a missing
+    # or malformed key, a missing contract and a missing binary fail closed. jq
+    # and sha256sum are what the step runs: without them these cases cannot
+    # run, which is a failure here, never a skip.
+    %w[bash jq sha256sum].each do |tool|
+      found = ENV.fetch("PATH", "").split(File::PATH_SEPARATOR).any? { |dir| File.executable?(File.join(dir, tool)) }
+      fail_policy("self-test: the nen digest step's runtime cases need #{tool} on PATH") unless found
+    end
+    [[NEN_DIGEST_STEP, NEN_DIGEST_FROZEN, ".trusted/nen/contract.json"],
+     [REGENERATE_NEN_DIGEST_STEP, REGENERATE_NEN_DIGEST_FROZEN, "nen/contract.json"]].each do |name, frozen, contract_path|
+      Dir.mktmpdir("hatsu-nen-digest") do |dir|
+        binary = File.join(dir, "nen-linux-x64")
+        File.write(binary, "a scratch stand-in for the bootstrapped nen\n")
+        recorded = Digest::SHA256.file(binary).hexdigest
+        tampered = Digest::SHA256.hexdigest("a binary that moved under its tag\n")
+        contract = File.join(dir, contract_path)
+        FileUtils.mkdir_p(File.dirname(contract))
+        [
+          ["the recorded digest", { "linux-x64" => recorded }, binary, 0, ["matches"]],
+          ["a tampered digest", { "linux-x64" => tampered }, binary, 1, ["::error::", "expected sha256 #{tampered}", "observed #{recorded}"]],
+          ["no linux-x64 key", { "darwin-arm64" => recorded }, binary, 1, ["::error::", "found ''", "observed #{recorded}"]],
+          ["an uppercase digest", { "linux-x64" => recorded.upcase }, binary, 1, ["::error::", "observed #{recorded}"]],
+          ["a digest that is an object", { "linux-x64" => { "sha256" => recorded } }, binary, 1, ["::error::", "observed #{recorded}"]],
+          ["sha256 that is a string", recorded, binary, 1, ["::error::", "observed #{recorded}"]],
+          ["a digest carrying a workflow command", { "linux-x64" => "#{recorded}\n::warning::forged" }, binary, 1, ["::error::", "???warning??"]],
+          ["no contract at all", nil, binary, 1, ["::error::", "found ''"]],
+          ["no binary at the printed path", { "linux-x64" => recorded }, File.join(dir, "absent"), 1, ["::error::"]]
+        ].each do |label, sha256, bin, want_status, want_text|
+          FileUtils.rm_f(contract)
+          File.write(contract, JSON.generate("dependency" => { "bootstrap" => { "sha256" => sha256 } })) unless sha256.nil?
+          out, status = Open3.capture2e({ "PATH" => ENV.fetch("PATH"), "NEN_BIN" => bin }, "bash", "--noprofile", "--norc", "-eo", "pipefail",
+                                        "-c", frozen.fetch("run"), chdir: dir, unsetenv_others: true)
+          ok = status.exitstatus == want_status && want_text.all? { |text| out.include?(text) } && out.lines.none? { |line| line.start_with?("::warning") }
+          fail_policy("self-test: #{name.inspect} with #{label} exited #{status.exitstatus}, printing #{out.strip.inspect}") unless ok
+        end
+      end
+    end
 
     # Remove the builder again: the ABSENT case must still validate after all
     # of this file's churn, confirming its optionality one more time.
