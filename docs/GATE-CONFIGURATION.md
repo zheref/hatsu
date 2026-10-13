@@ -402,3 +402,14 @@ script runs, since the script runs before any check here can. **Open, a G4 for t
 whether this check (shell in a workflow step that hashes a fetched binary and reads the contract with
 `jq`) falls under BC-11's bootstrap allowance or is residue owed to a nen verb; nothing here decides it.
 
+**2026-10-13. The prose-diet guard is a pull request check
+([zheref/hatsu#135](https://github.com/zheref/hatsu/issues/135)), both steps landed.**
+`scripts/prose_size_check.sh` ran only by hand and in its focused lane, so a file over its ceiling
+reached `main` with #129. `prose-size-check.yml` runs the trusted revision's guard against every pull
+request's checkout and fails the `prose-size-check` check on any offender, the guard's own `OVER` row
+naming the file, its size and its ceiling. A new workflow lands in the #80 order: step one registered
+it (known and judged, not yet required) while it shipped inert at `templates/prose-size-check.yml`;
+step two installed it, which made its absence a refusal. Its guard step is frozen
+(`PROSE_FROZEN_GUARD`). Making the check required is a ruleset edit, the maintainer's; until then it is
+advisory, and a red run still reads the pull request not-ready under CON-32(a).
+

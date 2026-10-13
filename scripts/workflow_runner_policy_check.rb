@@ -36,16 +36,11 @@ HOSTED_RUNNER = "ubuntu-latest"
 # the FILE's presence and shape are enforced by a guard that a required check
 # runs. Removing it from this list does not "relax" anything -- it stops the
 # workflow's deletion being caught at all.
-PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml pr-readiness.yml].freeze
-
-# REGISTERED AHEAD OF ITS FILE (zheref/hatsu#135, the #80 ordering): a portable,
-# hosted pull-request workflow this policy knows and judges wherever it sits,
-# but does not yet require to exist -- `main`'s validator refuses any
-# workflow it does not know, so the registration has to land first. Until the
-# follow-up installs it, the workflow ships at templates/<name> and the
-# self-test judges it from there; that follow-up moves it into
-# PORTABLE_HOSTED_WORKFLOWS, which also makes its absence a refusal.
-PENDING_HOSTED_WORKFLOWS = %w[prose-size-check.yml].freeze
+#
+# prose-size-check.yml (zheref/hatsu#135) was registered ahead of its file, the
+# #80 ordering: step one knew and judged it without requiring it, while it
+# shipped inert at templates/; step two installed it and listed it here.
+PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml pr-readiness.yml prose-size-check.yml].freeze
 
 # The one non-PR-targeting workflow this policy admits: a push-to-main /
 # workflow_dispatch BUILDER that regenerates surfaces/ and opens a PR, never a
@@ -63,7 +58,7 @@ BUILDER_WORKFLOWS = %w[surface-mirror-regenerate.yml].freeze
 # the thing a PR-controlled diff could add to gain a privileged trigger this
 # policy never reasoned about, so silence is not an option the fail-closed
 # design allows.
-KNOWN_WORKFLOWS = (PORTABLE_HOSTED_WORKFLOWS + PENDING_HOSTED_WORKFLOWS + BUILDER_WORKFLOWS).freeze
+KNOWN_WORKFLOWS = (PORTABLE_HOSTED_WORKFLOWS + BUILDER_WORKFLOWS).freeze
 
 EXPECTED_JOBS = {
   "plugin-bump-check.yml" => "check",
@@ -1570,7 +1565,7 @@ def validate_workflow(path, hatsu: false)
     runner = runner_node.is_a?(Psych::Nodes::Sequence) ? sequence(runner_node, "runs-on") : scalar(runner_node)
     allowed = runner == MAC_RUNNER || runner == WINDOWS_RUNNER || runner == HOSTED_RUNNER
     fail_policy("#{path} job #{job_name} uses an unapproved runner #{runner.inspect}") unless allowed
-    if (PORTABLE_HOSTED_WORKFLOWS + PENDING_HOSTED_WORKFLOWS).include?(File.basename(path)) && runner != HOSTED_RUNNER
+    if PORTABLE_HOSTED_WORKFLOWS.include?(File.basename(path)) && runner != HOSTED_RUNNER
       fail_policy("#{path} is portable and must use GitHub-hosted ubuntu-latest")
     end
 
@@ -2929,10 +2924,11 @@ def self_test(root)
     end
 
     # --- prose-size-check.yml (zheref/hatsu#135) ----------------------------
-    # Judged wherever it lives, as the builder is: at templates/ before the
-    # follow-up installs it, under .github/workflows/ after. A checkout carrying
-    # neither (a process repository without Hatsu's prose guard) has no such
-    # workflow for these cases to judge.
+    # Judged wherever it lives, as the builder is: it shipped at templates/
+    # before step two installed it under .github/workflows/, where its absence
+    # is now refused. A checkout carrying neither (a process repository without
+    # Hatsu's prose guard) is already refused for the missing file; these cases
+    # have no workflow to judge there.
     prose_source = [File.join(root, ".github/workflows", PROSE_WORKFLOW), File.join(root, "templates", PROSE_WORKFLOW)].find { |path| File.file?(path) }
     if prose_source
       prose = File.join(tmp, ".github/workflows", PROSE_WORKFLOW)
@@ -2940,6 +2936,9 @@ def self_test(root)
       prose_original = File.read(prose_source)
       File.write(prose, prose_original)
       validate_repo(tmp, announce: false)
+      FileUtils.rm(prose)
+      expect_rejected("#{PROSE_WORKFLOW} missing") { validate_repo(tmp) }
+      File.write(prose, prose_original)
       prose_offender = %Q{Diet the file; ceilings are not raised (zheref/hatsu#119)."\n              exit 1\n}
       [
         ["prose guard run from the PR checkout", "guard=.trusted/scripts/prose_size_check.sh", "guard=scripts/prose_size_check.sh", PROSE_GUARD_STEP],
