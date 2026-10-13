@@ -402,3 +402,22 @@ script runs, since the script runs before any check here can. **Open, a G4 for t
 whether this check (shell in a workflow step that hashes a fetched binary and reads the contract with
 `jq`) falls under BC-11's bootstrap allowance or is residue owed to a nen verb; nothing here decides it.
 
+**2026-10-13. The prose-diet guard is a pull request check
+([zheref/hatsu#135](https://github.com/zheref/hatsu/issues/135)), both steps landed.**
+`scripts/prose_size_check.sh` ran only by hand and in its focused lane, so a file over its ceiling
+reached `main` with #129. `prose-size-check.yml` runs the trusted revision's guard against every pull
+request's checkout and fails the `prose-size-check` check on any offender, the guard's own `OVER` row
+naming the file, its size and its ceiling. It is a check of its own because `pr-readiness.yml`
+concludes `success` by construction. Its guard step is frozen (`PROSE_FROZEN_GUARD`) and refuses to
+measure without a fresh fence token, and the exact-head check every guard workflow creates and
+finishes is frozen at both ends, so no conclusion mapping can be edited into a green. Making the check
+required is a ruleset edit, the maintainer's, sent as the whole ruleset (the `PUT` shape above); until
+then it is advisory, and a red run still reads the pull request not-ready under CON-32(a).
+
+**The new-workflow rule.** A new pull-request workflow lands in two pull requests, the #80 order. The
+first registers it in `PENDING_HOSTED_WORKFLOWS` (known, judged wherever it sits, not yet required) and
+stages its file at `templates/<name>`, where the self-test judges it as if installed; the second
+installs it under `.github/workflows/` and moves it to `PORTABLE_HOSTED_WORKFLOWS`, which makes its
+absence a refusal. `PENDING_HOSTED_WORKFLOWS` stays in the validator, empty when nothing is pending, and
+every per-workflow table is checked at load to cover exactly the workflows it should.
+
