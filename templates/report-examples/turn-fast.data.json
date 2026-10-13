@@ -1,0 +1,111 @@
+{
+  "contract": "nen.report.data/v0.1",
+  "repo": "zheref/hatsu",
+  "branch": "fable/kurapika/ha-215-markdown-report-templates",
+  "base": "origin/main",
+  "generatedAt": "2026-10-13T05:47:50.052Z",
+  "commits": [
+    {
+      "sha": "f005832944c9a59470640b1944342de774decd9f",
+      "subject": "feat(reports): Markdown templates beside the HTML ones",
+      "author": "Sample",
+      "date": "2026-10-13T09:00:00Z"
+    }
+  ],
+  "files": [
+    {
+      "path": "templates/spiritual-message.md",
+      "status": "A",
+      "tier": null
+    }
+  ],
+  "evidence": [],
+  "coverage": null,
+  "proof": null,
+  "phases": [],
+  "lastStop": null,
+  "usage": [],
+  "objects": [],
+  "worktree": "fmc-215",
+  "effortStage": "in review",
+  "gate": "G4 — pending",
+  "stageClass": "warn",
+  "turnNumber": null,
+  "generatedAtLocal": "2026-10-13 11:00 CEST",
+  "generatedDateLocal": "2026-10-13",
+  "timeZone": "America/Bogota",
+  "title": "Markdown report templates for Antigravity",
+  "footerNote": "Object notation from nen ref format; verdicts quoted from nen pr ready.",
+  "turnLabel": "turn 3",
+  "tallyNeedsYou": 1,
+  "tallyBlockers": 0,
+  "tallyLanded": 4,
+  "tallyGaps": 1,
+  "deskCleared": "nothing is owed this turn | the loop continues",
+  "ask": null,
+  "readiness": [],
+  "lastTurnRequest": "Render the Antigravity artifact from a template | not by hand",
+  "lastTurnRequestFull": "Add templates/spiritual-message.md & templates/rikugan.md;\nfill them with nen report render <variant>.",
+  "lastTurnHighlights": [
+    {
+      "text": "Two Markdown templates beside the HTML ones",
+      "outcome": "landed",
+      "outcomeClass": "ok",
+      "why": "one data document | two renders"
+    },
+    {
+      "text": "A stdout render for the brain directory",
+      "outcome": "not delivered",
+      "outcomeClass": "gap",
+      "why": "--out must resolve inside --repo; the copy goes through <reports.dir>/current.md"
+    }
+  ],
+  "mukaiLastTurn": false,
+  "lastTurnCorrections": [],
+  "lastTurnCheckIssues": [],
+  "lastTurnStops": [],
+  "accomplished": [
+    {
+      "text": "templates/spiritual-message.md & templates/rikugan.md",
+      "why": "the blocks, order and desk rules of the HTML | verbatim"
+    }
+  ],
+  "challenges": [
+    {
+      "text": "Escaped values inside code spans",
+      "why": "GFM shows &amp; literally there, so commands render in <code>"
+    }
+  ],
+  "notDelivered": [
+    {
+      "text": "A render to stdout",
+      "why": "a nen request | tracked separately"
+    }
+  ],
+  "decisions": [
+    {
+      "text": "Free text rides in lists, never table cells",
+      "why": "a | in a value would split the cell"
+    }
+  ],
+  "architectureCaption": "The report path: one data document, two templates per report",
+  "captures": [],
+  "evidenceUnavailable": "",
+  "tests": [
+    {
+      "suite": "report-markdown-guard",
+      "name": "every variant renders | blocks in order & one star per ask",
+      "status": "passed"
+    }
+  ],
+  "touchedCoverage": [],
+  "spendPhases": [],
+  "hasSpendPhases": false,
+  "noSpendPhases": true,
+  "actionsMinutes": "not read",
+  "spendNote": "",
+  "spendUsage": [],
+  "launch": "nen report render --variant turn --template \"$hatsu_root/templates/spiritual-message.md\" \\\n  --data <doc> --out Reports/current.md --repo . && cat Reports/current.md",
+  "prBody": [],
+  "variant": "turn-fast"
+}

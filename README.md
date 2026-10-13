@@ -372,7 +372,7 @@ surfaces/           GENERATED mirrors for codex/, cursor/, antigravity/: never e
 hooks/              the three harness hooks: session start (binds nen), stop bell, base-branch guard; POSIX sh, no jq
 nen/                this repository's own declarations: contract.json, workflow.json, gates.json, labels.json, repos.json, colors.yml, decisions.json
 contracts/          plugin-owned registries: permissions, the classify taxonomy, the direct registry, the config catalogue, scan rows
-templates/          the PR body, the report pages (spiritual-message.html, rikugan.html), the readiness and preflight workflows, release-publish.sh
+templates/          the PR body, the report pages (spiritual-message and rikugan, as .html and .md, with report-examples/), the readiness and preflight workflows, release-publish.sh
 scripts/            the guards and runtime scripts an installed copy executes, each with its fixture
 docs/               WORKFLOW · PROCESS · ROSTER · STANDALONE-ENTRY · GATE-CONFIGURATION · DIRECT-MATRIX · ECONOMICS · NEN-CONTRACT
 docs/using/         setup, usage and maintenance per surface          docs/config/   every configuration file, key by key

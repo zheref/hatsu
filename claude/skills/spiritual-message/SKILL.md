@@ -150,11 +150,11 @@ Template language, exit codes and `--dry-run`: [`docs/WORKFLOW.md`](../../../doc
 - **On Claude Code an Artifact, ONE URL per branch** ([`PROCESS.md`](../../../docs/PROCESS.md)
   § *Publishing a report*). Headline title ≤ 60 chars, stable across turns
   ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Report titles*).
-- **On Antigravity a native Markdown artifact** in `<appDataDir>/brain/<conversation-id>/spiritual-message.md`
-  via `write_to_file` with the `ArtifactMetadata` [`PROCESS.md`](../../../docs/PROCESS.md)
-  § *Publishing a report* states: one file per conversation, overwritten in place.
-  It renders the variant's declared blocks (`reports.sections.<variant>.blocks`; the Desk quotes `nen pr ready`
-  verbatim) and a G5 blocker in `<div id="g5-blocker">`, as GFM tables, alerts (`> [!NOTE]`), the delta in a `mermaid` fence (`graphMermaid`) and Generative UI.
+- **On Antigravity a native Markdown artifact**, `<appDataDir>/brain/<conversation-id>/spiritual-message.md`,
+  one per conversation, overwritten in place: § 6's fill of
+  [`templates/spiritual-message.md`](../../../templates/spiritual-message.md) (same document, `.md` for `.html`,
+  `--out <reports.dir>/current.md`), copied verbatim into `write_to_file` and read back, never composed
+  by hand — [`PROCESS.md`](../../../docs/PROCESS.md) § *The Markdown report*.
 - **On Codex the ACTIVE worktree's `<reports.dir>/current.html`** (from § 6), overwritten each render,
   transient: the chat line names its absolute path, worktree and branch; a render from another
   worktree moves the line to its own file; an older tab is never presented as current (hatsu#205;
@@ -177,7 +177,7 @@ or a delegation ([`PROCESS.md`](../../../docs/PROCESS.md) § *Authority every ph
 
 ## Hard limits
 
-- **Never lets a chat summary stand in for the report**, or dumps a raw chat markdown recap in place of publishing the artifact or HTML page. (Markdown only as Antigravity's native artifact).
+- **Never lets a chat summary stand in for the report**, or dumps a raw chat markdown recap in place of publishing the artifact or HTML page. (Markdown only as Antigravity's artifact, the template's fill).
 - **Never writes outside `<reports.dir>`** (Antigravity's artifact directory excepted), gives a `turn` or `landing` render a kept file, or
   renders the dated final report — [`rikugan`](../rikugan/SKILL.md)'s.
 - **Never claims readiness by eye** — the verdict is `nen pr ready`'s, quoted, or absent — never

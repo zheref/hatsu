@@ -1,0 +1,240 @@
+{
+  "contract": "nen.report.data/v0.1",
+  "repo": "zheref/hatsu",
+  "branch": "fable/kurapika/ha-215-markdown-report-templates",
+  "base": "origin/main",
+  "generatedAt": "2026-10-13T05:47:50.052Z",
+  "commits": [
+    {
+      "sha": "f005832944c9a59470640b1944342de774decd9f",
+      "subject": "feat(reports): Markdown templates beside the HTML ones",
+      "author": "Sample",
+      "date": "2026-10-13T09:00:00Z"
+    }
+  ],
+  "files": [
+    {
+      "path": "templates/spiritual-message.md",
+      "status": "A",
+      "tier": null
+    }
+  ],
+  "evidence": [],
+  "coverage": {
+    "lane": "plugin",
+    "path": "Reports/coverage.json",
+    "format": "json-summary",
+    "total": {
+      "lines": {
+        "percent": 88
+      }
+    }
+  },
+  "proof": null,
+  "phases": [],
+  "lastStop": null,
+  "usage": [],
+  "objects": [],
+  "worktree": "fmc-215",
+  "effortStage": "in review",
+  "gate": "G4 — pending",
+  "stageClass": "warn",
+  "turnNumber": null,
+  "generatedAtLocal": "2026-10-13 11:00 CEST",
+  "generatedDateLocal": "2026-10-13",
+  "timeZone": "America/Bogota",
+  "title": "Markdown report templates for Antigravity",
+  "footerNote": "Object notation from nen ref format; verdicts quoted from nen pr ready.",
+  "turnLabel": "landing",
+  "tallyNeedsYou": 1,
+  "tallyBlockers": 0,
+  "tallyLanded": 4,
+  "tallyGaps": 1,
+  "deskCleared": "",
+  "ask": {
+    "kind": "MERGE",
+    "gate": "G4",
+    "question": "Merge HA-PR-#250 into main?",
+    "whyNow": "nen pr ready says ready & every thread is settled",
+    "objects": [
+      {
+        "label": "HA-PR-#250",
+        "url": "https://github.com/zheref/hatsu/pull/250"
+      },
+      {
+        "label": "HA-IS-#215",
+        "url": "https://github.com/zheref/hatsu/issues/215"
+      }
+    ],
+    "options": [
+      {
+        "letter": "A",
+        "label": "Merge it",
+        "command": "gh pr merge 250 --repo zheref/hatsu --merge --match-head-commit 0123abc",
+        "consequence": "the templates ship in the next release",
+        "star": "recommended",
+        "starredClass": "starred"
+      },
+      {
+        "letter": "B",
+        "label": "Ask for another round",
+        "command": "none",
+        "consequence": "the PR waits | a round is owed",
+        "star": "",
+        "starredClass": ""
+      },
+      {
+        "letter": "C",
+        "label": "Close it",
+        "command": "gh pr close 250 --repo zheref/hatsu",
+        "consequence": "the Antigravity reports stay hand-authored",
+        "star": "",
+        "starredClass": ""
+      }
+    ],
+    "blocker": null
+  },
+  "readiness": [
+    {
+      "gate": "G4",
+      "verdict": "ready",
+      "reason": "ready: 6/6 checks green & 0 unresolved threads <head 0123abc>"
+    }
+  ],
+  "lastTurnRequest": "Render the Antigravity artifact from a template | not by hand",
+  "lastTurnRequestFull": "Add templates/spiritual-message.md & templates/rikugan.md;\nfill them with nen report render <variant>.",
+  "lastTurnHighlights": [
+    {
+      "text": "Two Markdown templates beside the HTML ones",
+      "outcome": "landed",
+      "outcomeClass": "ok",
+      "why": "one data document | two renders"
+    },
+    {
+      "text": "A stdout render for the brain directory",
+      "outcome": "not delivered",
+      "outcomeClass": "gap",
+      "why": "--out must resolve inside --repo; the copy goes through <reports.dir>/current.md"
+    }
+  ],
+  "mukaiLastTurn": true,
+  "lastTurnCorrections": [
+    {
+      "what": "Commands render in <code>, not a code span",
+      "who": "hanten · Hisoka",
+      "whyAsked": "a span shows &amp; literally",
+      "howHandled": "fixed | both templates"
+    }
+  ],
+  "lastTurnCheckIssues": [
+    {
+      "check": "prose-guard",
+      "issue": "rikugan 2 bytes from its ceiling",
+      "howHandled": "trimmed § 4 & § 5"
+    }
+  ],
+  "lastTurnStops": [
+    {
+      "why": "none this turn",
+      "autonomy": "autonomous",
+      "policy": "decisions.json | default"
+    }
+  ],
+  "accomplished": [
+    {
+      "text": "templates/spiritual-message.md & templates/rikugan.md",
+      "why": "the blocks, order and desk rules of the HTML | verbatim"
+    }
+  ],
+  "challenges": [
+    {
+      "text": "Escaped values inside code spans",
+      "why": "GFM shows &amp; literally there, so commands render in <code>"
+    }
+  ],
+  "notDelivered": [
+    {
+      "text": "A render to stdout",
+      "why": "a nen request | tracked separately"
+    }
+  ],
+  "decisions": [
+    {
+      "text": "Free text rides in lists, never table cells",
+      "why": "a | in a value would split the cell"
+    }
+  ],
+  "architectureCaption": "The report path: one data document, two templates per report",
+  "captures": [],
+  "evidenceUnavailable": "",
+  "tests": [
+    {
+      "suite": "report-markdown-guard",
+      "name": "every variant renders | blocks in order & one star per ask",
+      "status": "passed"
+    }
+  ],
+  "touchedCoverage": [
+    {
+      "file": "scripts/report_markdown_check.sh",
+      "percent": 92,
+      "band": "ideal"
+    },
+    {
+      "file": "templates/rikugan.md",
+      "percent": 81,
+      "band": "minimum"
+    }
+  ],
+  "spendPhases": [
+    {
+      "lane": "rasengan",
+      "percent": 100,
+      "amount": "4 m 05 s",
+      "steps": "render 2.1 s · guard 9.8 s"
+    },
+    {
+      "lane": "kokusen",
+      "percent": 37.5,
+      "amount": "1 m 32 s",
+      "steps": ""
+    }
+  ],
+  "hasSpendPhases": true,
+  "noSpendPhases": false,
+  "actionsMinutes": "6",
+  "spendNote": "Antigravity reports no token counts | recorded as not reported",
+  "spendUsage": [
+    {
+      "surface": "claude-code",
+      "model": "opus",
+      "input": 120400,
+      "output": 18200,
+      "cacheRead": 990000,
+      "cacheWrite": 41000,
+      "minutes": 22,
+      "source": "/cost",
+      "notReported": false,
+      "reported": true
+    },
+    {
+      "surface": "antigravity",
+      "model": "pro",
+      "input": "",
+      "output": "",
+      "cacheRead": "",
+      "cacheWrite": "",
+      "minutes": "",
+      "source": "",
+      "notReported": true,
+      "reported": false
+    }
+  ],
+  "launch": "nen report render --variant turn --template \"$hatsu_root/templates/spiritual-message.md\" \\\n  --data <doc> --out Reports/current.md --repo . && cat Reports/current.md",
+  "prBody": [
+    {
+      "markdown": "## Why\n\nAntigravity reports drift | the template fixes the structure & order.\n\n## How to verify\n\n```bash\nnen shu test --repo . --lane report-markdown-guard\n```"
+    }
+  ],
+  "variant": "landing"
+}
