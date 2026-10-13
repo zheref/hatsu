@@ -972,6 +972,24 @@ only pending that question.
 
 ---
 
+## Rulings of 2026-10-12 — stacked pull requests, one PR per issue, merged bottom-up
+
+**The maintainer's words, verbatim** (2026-10-12, mid-run on `hatsu:futon hatsu@model/claude`, after the run
+had proposed futon § 5's one integration branch):
+
+> I'd like all PRs delivered by next time I visit the session (not by batches). Feel free to use stacked
+> PRs and make sure the final report comes with a clear, step-by-step review/merge instructions to make
+> sure I follow the plan exactly to avoid potential conflicts as possible.
+
+| Ruling | What it says |
+|---|---|
+| **One PR per issue, delivered, not batched** | A selector run delivers every issue as its own pull request — standing in its stack, the bottom one at the merge prompt — never folded into one integration PR, when the maintainer says so; futon § 5's integration branch stays the other shape, typed |
+| **Overlap is a stack** | Efforts whose diffs touch common paths — the changelog, the version, the mirrors, a shared skill — are cut each from the previous one's published branch and opened each against the previous one's branch; only the bottom PR targets `branch.base`. The rules are [`WORKFLOW.md`](WORKFLOW.md) § *Stacked pull requests*, stated once |
+| **The report carries the merge plan** | The final register's desk lists the stack bottom-up as one plan line with one `MERGE` ask, for the PR whose base reads `branch.base` — merge with `--merge`, delete the head branch, let GitHub retarget the next PR (else `nen pr retarget`), re-run its checks, then the next — so the maintainer follows the plan exactly. A stacked PR is presented as mergeable nowhere (ruling 2 of 2026-09-29) |
+| **Closes zheref/hatsu#219** | *Parallel Pull Request Stacking Strategy*: the workflow prose now defines the strategy, and a delegate authoring beside another effort on overlapping files stacks on it rather than parallelising blindly |
+
+---
+
 ## Rulings of 2026-10-11 — AI reviewers per consumer
 
 **The maintainer's answers, verbatim**, through the picker during `hatsu:build HA#227` (2026-10-11), after
