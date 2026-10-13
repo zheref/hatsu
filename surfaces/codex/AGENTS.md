@@ -845,8 +845,8 @@ stewardship — the board-facing half of the work.
 - **What you use instead: [`sharingan`](sharingan/SKILL.md)'s channel, always.** No vote is
   ever needed to unstick a loop. Findings **already delivered** by an automated reviewer are fixed,
   pushed and settled by the PR's author — on a Hatsu PR, you — and that is stewardship, not a new
-  finding; Hatsu holds no CI plane, so no label wakes a builder (a legacy CI-authored PR is the one
-  wake sharingan § 7 still fires). If that channel cannot move the PR, **file the machinery defect** —
+  finding; Hatsu holds no CI plane (WORKFLOW § *Building an issue with no CI plane*), so no label wakes
+  a builder — a legacy CI-authored PR is the one wake sharingan § 7 still fires. If that channel cannot move the PR, **file the machinery defect** —
   never substitute a vote.
 - **When the finding is YOUR OWN, the channel is the issue.** A wake carries no finding, a plain PR
   comment strands one, and the vote is barred. So a substantive finding of yours that no reviewer has

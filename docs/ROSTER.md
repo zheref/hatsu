@@ -867,7 +867,7 @@ Clause ids are the inherited constitution's; the rewritten constitution keeps th
 **No agent in this roster casts a `request_changes` review — for any reason, on any PR.** They run on the
 human's credentials, so GitHub records the vote as **theirs**, and casting one manufactures their governance
 vote on a PR they have not read. The substitutes: **`sharingan`'s channel** for findings an automated reviewer
-already delivered — the author fixes and settles them, and Hatsu holds no CI plane for a label to wake — and a
+already delivered — the author fixes and settles them, and Hatsu holds no CI plane for a label to wake (WORKFLOW § *Building an issue with no CI plane*; the one legacy wake is `kurapika.md`'s) — and a
 **filed issue** for a substantive finding of the agent's own. **That binds the reviewers
 activated on 2026-09-19 exactly as it binds the rest**: **Nobunaga** hands his findings to `hanten` in its
 fixed shape and crosses no gate, and **Shalnark** hands his pass / fail / not-testable rows to
