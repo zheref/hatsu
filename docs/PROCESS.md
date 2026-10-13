@@ -132,17 +132,79 @@ the host link or the session bind.
 
 **On an artifact-capable surface, a report is an Artifact:**
 - **On Claude Code**, republished to ONE URL per key — the skill names the key (the branch for a turn or landing page, the repository for a gate register); a new URL only for a key that has none yet, and a better title never mints a new one. **Read before you overwrite**: a republish notice, or a listing showing a version this session did not publish, means the page moved — re-read it and re-resolve the data rather than repainting what this session happens to be holding.
-- **On Antigravity**, published as a native Markdown artifact into `<appDataDir>/brain/<conversation-id>/<report-name>.md` (e.g. `spiritual-message.md` for turn/landing reports, `backlog-board.md` for gate registers, `black-voice.md` for validation) via `write_to_file` with `ArtifactMetadata` (`{ Summary: "<Variant> report for <effort>", UserFacing: true, RequestFeedback: false }`), formatted with GFM tables, alert callouts (`> [!NOTE]`, `> [!IMPORTANT]`), and Mermaid diagrams (`graphMermaid`). **One file per report name per conversation**: the path is keyed by `<conversation-id>`, so every render in a conversation writes the same `<report-name>.md`, with `Overwrite: true` whenever it already exists in that conversation's directory, and never a new file per turn; an effort that continues in a new conversation starts its own file there.
+- **On Antigravity**, published as a native Markdown artifact into `<appDataDir>/brain/<conversation-id>/<report-name>.md` (e.g. `spiritual-message.md` for turn/landing reports, `backlog-board.md` for gate registers, `black-voice.md` for validation) via `write_to_file` with `ArtifactMetadata` (`{ Summary: "<Variant> report for <effort>", UserFacing: true, RequestFeedback: false }`). **Its body is a template's fill, never composed by hand**: § *The Markdown report* below. **One file per report name per conversation**: the path is keyed by `<conversation-id>`, so every render in a conversation writes the same `<report-name>.md`, with `Overwrite: true` whenever it already exists in that conversation's directory, and never a new file per turn; an effort that continues in a new conversation starts its own file there.
 - **Elsewhere** (surfaces without native artifact capability, e.g. Cursor, Codex), the page is `<reports.dir>/current.html`, overwritten every render, git-ignored, **transient**. **Say which happened.**
 
 **Every object notation on a page is `nen ref format`'s output.** Where it cannot be resolved — no
 `nen/repos.json` — the page falls back to `<owner>/<name>#<n>` and the failed resolution goes into
 `footerNote`.
 
+## The Markdown report
+
+**One data document, two renders.** Every report variant has a Markdown template beside its HTML one —
+[`templates/spiritual-message.md`](../templates/spiritual-message.md) (`turn`, `turn-fast`, `landing`) and
+[`templates/rikugan.md`](../templates/rikugan.md) (`final`, `register`) — in `nen report render`'s template
+language, filled by the same verb from **the same data document** (spiritual-message § 4; the `--register`
+document of backlog-board § 3) and the same `reports.sections.<variant>.blocks`. The surface picks the
+extension and nothing else, so the two renders cannot disagree on which blocks a variant shows. The
+`report-markdown-guard` lane (`scripts/report_markdown_check.sh`) holds it (zheref/hatsu#215).
+
+**The render path where the report is a Markdown artifact (Antigravity):**
+
+1. `nen report render --variant <v> --template "$hatsu_root/templates/<spiritual-message|rikugan>.md" --data <the
+   document> --out <reports.dir>/current.md --repo <path> [--graph <file>]` — the HTML render's line, `.md` for `.html`.
+   `--out` must resolve inside `--repo` (`nen report render --help`, nen `0.21.0`), so the verb cannot write the
+   brain directory itself.
+2. `write_to_file` with `TargetFile` the artifact path above and **the content of `<reports.dir>/current.md`,
+   verbatim** — not re-read, re-flowed, trimmed or summarised.
+3. **Read it back**: `cmp <reports.dir>/current.md <TargetFile>`. Exit `0` is the published report; a difference
+   is written again, never accepted; a file the shell cannot read is said in the chat line as `artifact not read
+   back`, never as published.
+
+The dated `final` file stays the HTML render rikugan § 4 keeps; the artifact carries the Markdown render of
+the same document.
+
+**Where enforcement is impossible, and what holds instead.** Step 2 is the one path no verb performs: the
+copy into `write_to_file` is the model's own act, so step 3 is its check, and the fixed structure below is
+what a reader checks the artifact against. A turn where `nen report render` cannot run is **not** such a path:
+no page is published and nothing stands in (rikugan § 7, kurapika's Nen-first rule) — a hand-authored file is
+never a fallback. **The fixed structure** (the template is the authority; this names it so a file can be
+checked): the blocks are `reports.sections.<variant>.blocks`, in that order, each opening with
+`<!-- hatsu:block <name> -->`; a block not declared is absent, never empty; a horizontal rule then the
+footer close the file.
+
+| Block | Heading | Shape |
+|---|---|---|
+| `masthead` | `# <title>` | spiritual-message: `<turnLabel> · Hatsu · spiritual-message · <variant>`, then `<repo> · against <base> · <time>`, then `stage … · <gate> · worktree … · branch …`; rikugan: `Hatsu · rikugan · <variant>`, then `<scope> · <gate> · <time>` |
+| `tally` | none | one table: need you, blockers, landed, gaps (rikugan: in scope, need you, blockers, ready, in flight) |
+| `desk` | `## Your desk` | rikugan groups by `### <gate> · <label>`, every gate shown, a cleared one as a `> [!NOTE]` **cleared** alert. Each ask opens `<!-- hatsu:ask -->`, then `**<DECIDE\|DO\|MERGE>** · <gate or rank>`, the question as a heading, why, the lettered options (`- **A** · <label>`, **exactly one** `⭐ recommended`, consequence, `<code>command</code>`), `Objects:` links, the verdict quoted from `nen pr ready` in a `> [!IMPORTANT]` alert, and a G5's evidence in `<details id="g5-blocker" open>` with a `> [!CAUTION]` alert. spiritual-message's cleared desk is a `> [!NOTE]` |
+| `lastTurn` | `## This last turn` | the request, the full request in `<details>` / `<pre>`, the highlights list; after Mukai `### Corrections, check fallout and half-run stops` with three lists |
+| `landed` | `## Landed, fought back, not delivered` | `### Landed`, `### Fought back`, `### Not delivered`, each a list of `text — why` |
+| `delta` | `## Architecture delta` | the caption, a `mermaid` fence holding `graphMermaid`, the nodes and edges as lists in `<details>` |
+| `evidence` | `## Evidence` | a `> [!NOTE]` when unavailable, the captures as images, `### Tests` (a list), `### Touched-file coverage` (a table) |
+| `spend` | `## Spend` | `Where the time went` and `Tokens by model` tables, the Actions minutes line (rikugan: per effort, under `### <effort>`) |
+| `launch` | `## How to launch` | one `<pre>` |
+| `decisions` | `## Decisions already made` | a list of `text — why` |
+| `prBody` | `## The pull request body` | `<details>` with one `<pre>` per body |
+| `register` | `## The register` | one `<details>` per object, summary `<notation> · <title> · <marks> · <gate>`, then State, Verdict, Checks, Threads, Linked, Needs, Driving, Head, Thought and Link; a graph as `### <caption>` and a `mermaid` fence |
+| `legend` | `## Legend` | a list: the star, grouped by gate, then `legendRows` |
+
+**The checked example per variant** is `templates/report-examples/<variant>.md`, rendered from
+`<variant>.data.json` beside it (with [`templates/graph.example.json`](../templates/graph.example.json) where
+the document carries no graph); the guard fails when one is not byte for byte a fresh render.
+
+**Escaping in Markdown.** The renderer escapes `&`, `<`, `>`, `"` and `'` to entities, and GFM shows an entity
+decoded in text, a table cell, `<code>` and `<pre>` — and **literally** in a code span or a fence. So no
+escaped value sits in either: a command renders in `<code>`, a multi-line value in `<pre>`. The one raw slot is
+`graphMermaid`, alone inside the `mermaid` fence: nen refuses a newline in a graph's `caption`, `label` or
+`rel`, so no line of it can close the fence. **A `|` in a value splits a GFM table cell**, so a table carries
+only counts, paths, model names, percentages and fixed words; free text rides in lists. A value's own Markdown
+syntax is live, as its HTML is not.
+
 ## Escaping and validation of report data
 
-These bind every document handed to `nen report render`, for both `templates/spiritual-message.html`
-and `templates/rikugan.html`.
+These bind every document handed to `nen report render`, for `templates/spiritual-message.html`,
+`templates/rikugan.html` and their Markdown twins (§ *The Markdown report*).
 
 **Every key is always present, empty where there is nothing, and every row key is spelled**, because
 the template iterates them. A missing token is exit `2` **by design**: a blank cell in a published
