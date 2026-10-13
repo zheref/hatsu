@@ -9,21 +9,32 @@
 
   THE MECHANICAL CHECKS, (a), (b) and (d) run before the body is written back (shibari § 4):
 
-    (a) nen pr body-check --body-from <this file, filled> --requirements-from <path>
-        --requirements-from is a JSON array of {name, pattern} from the target's own template
-        convention, INCLUDING `## Agent attribution` as the final heading. Every requirement is
-        reported, never stopped at the first miss, and exit 1 is a finding to fix: write the missing
-        section and re-run.
+    EVERY INPUT BELOW IS DECLARED ONCE, in contracts/pr-composition.json (zheref/hatsu#171), and
+    read from there: never retyped, never copied into a body or a skill.
 
-    (b) nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,nen/,schemas/,agents/,.github/workflows/" \
-          --fragment-dir changelog.d --files <the changed paths> --head-changelog <path to CHANGELOG.md> \
-          [--body-from <this file, filled>]
+    (a) nen pr body-check --body-from <this file, filled> \
+          --requirements-from "$hatsu_root/contracts/pr-body.requirements.json"
+        The {name, pattern} array derived from THIS file: every `##` heading below except the two
+        whose comments make them optional (bodyRequirements.optionalHeadings), with
+        `## Agent attribution` required as the final heading. Every requirement is reported, never
+        stopped at the first miss, and exit 1 is a finding to fix: write the missing section and
+        re-run. A heading added, renamed or made optional here changes that file in the same commit;
+        scripts/pr_composition_check.sh fails until it does.
+
+    (b) nen changelog fragment-required --repo <path> --spec-paths <changelogFragment.specPaths> \
+          --fragment-dir <.fragmentDir> --head-changelog <.headChangelog> \
+          --files <the changed paths> [--body-from <this file, filled>]
         A separate, DIFF-shaped check, because body-check never looks at changed paths. Four
         verdicts: not-applicable, required (exit 1), fragment-present, and opt-out where --body-from
-        carries a `no CHANGELOG entry: <reason>` line. KEEP BOTH `nen/` AND `schemas/` — a prefix is
-        taken literally and dropping it would under-derive. --head-changelog must exist or the verb
-        refuses at exit 2, reported as the fact it is and never as a clean verdict, and
-        fragment-present needs the fragment on disk at head as well as in --files.
+        carries the opt-out line (never spelled out in this comment: nen honours the phrase
+        anywhere in a body, a kept comment included). The declared specPaths keep both `nen/` and
+        `schemas/`: a prefix is taken literally and dropping one would under-derive. A diff that
+        changes a spec path adds its changelog.d/ fragment and needs no opt-out. THE ONE OPT-OUT is
+        changelogFragment.directSection.optOut, copied verbatim into the Completion checklist, and
+        ONLY when the diff itself changes CHANGELOG.md (futon's integration PR writes its own
+        section); over any other diff it is a false statement the verb cannot see. --head-changelog
+        must exist or the verb refuses at exit 2, reported as the fact it is and never as a clean
+        verdict, and fragment-present needs the fragment on disk at head as well as in --files.
 
     (c) The gate is derived, never asserted — docs/WORKFLOW.md § Gate derivation. THE BODY NAMES THE
         GATE AS A FORECAST, NEVER AS A STATUS, because a PR shibari just opened is by definition not
@@ -93,9 +104,8 @@
 - [x] Touched-file coverage — byakugan against `coverage.minimum` (not a hardcoded 80): lowest touched file `<n>%` / `not measurable here` with the reason
 - [x] Adversarial review settled — <reviewer> · <persona>, <n> findings, all disposed (hanten)
 - [x] Economics report — `## Economics` pasted from `<reports.dir>/hanten/<branch-slug>[-pr<N>].economics.md` / `n/a — the economics scope was not raised` / `not run: <gap | skipped-exhausted>, economics not reviewed`
-- [x] `## What this changes for you` and `## How to verify` present — `nen pr body-check`, 3/3
-- [x] Final `## Agent attribution` present — `nen pr body-check`, 4/4
-- [x] changelog fragment — `nen changelog fragment-required`: <verdict>
+- [x] Every required section present, `## Agent attribution` last — `nen pr body-check` against `contracts/pr-body.requirements.json`, <n>/<n>
+- [x] changelog fragment — `nen changelog fragment-required`: <verdict>, and the declared opt-out line here only where this diff changes `CHANGELOG.md`
 - [ ] <a condition that is NOT met, with what is missing>
 
 ## Associated issues

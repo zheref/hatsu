@@ -1,0 +1,28 @@
+{
+  "contract": "hatsu.pr-composition/v1",
+  "$comment": "THE ONE SOURCE of the inputs the PR-composition step hands three nen verbs on every pull request (zheref/hatsu#171): the body-check requirements, the two gate-derive path sets, and the changelog-fragment inputs. nen ships none of them by design -- each verb's --help says the sets are the target repository's own canon -- so before this file every run retyped them from prose and they drifted from each other. shibari section 4, tensho section 5 and jujisho section 6 read the values here and pass them as flags; docs/WORKFLOW.md section Gate derivation, templates/pr-body.md and CONTRIBUTING.md cite this file and carry no copy; `readers` lists all six, and each must cite it. Where a copy anywhere disagrees with this file, this file wins and the copy is the bug: scripts/pr_composition_check.sh (lane pr-composition-guard) fails on a copy, on a WORKFLOW.md section that names a set member this file lacks, and on a requirements file that drifts from the template. The nen half -- reading a declared home in the verb itself -- is zheref/nen#239.",
+  "readers": ["claude/skills/shibari/SKILL.md", "claude/skills/tensho/SKILL.md", "claude/skills/jujisho/SKILL.md", "templates/pr-body.md", "docs/WORKFLOW.md", "CONTRIBUTING.md"],
+  "bodyRequirements": {
+    "$comment": "nen pr body-check --requirements-from takes a bare JSON array of {name, pattern}, so the array is its own file. It is derived from the template: every level-2 heading of `template` outside its HTML comments, in order, except `optionalHeadings`, whose own comments say when they appear. Patterns are matched with nen's flags (case-insensitive, multiline); the last one also refuses any level-1 or level-2 heading after the ledger, because the template makes Agent attribution the final heading.",
+    "file": "contracts/pr-body.requirements.json",
+    "template": "templates/pr-body.md",
+    "optionalHeadings": ["The flow", "Economics"]
+  },
+  "gateDerive": {
+    "$comment": "nen gate derive --policy-paths / --process-paths, keyed by the canon repository (owner/name) whose own canon the sets are. A consumer repository is G2 by role and the verb is not run (docs/WORKFLOW.md section Gate derivation, step 1); a canon repository with no row here has no declared sets, which the run states and asks for (docs/WORKFLOW.md section 4, Ask, set up, continue) and never improvises. Each value is passed comma-joined, in the order written. Both nen/ and schemas/ stay listed: a prefix is taken literally, and an un-migrated target still edits a real schemas/*.json.",
+    "zheref/hatsu": {
+      "policyPaths": ["CONSTITUTION.md", "handbooks/", "agents/", "nen/", "schemas/"],
+      "processPaths": [".github/workflows/", "claude/", "scripts/", "tests/", "docs/"]
+    }
+  },
+  "changelogFragment": {
+    "$comment": "nen changelog fragment-required --spec-paths (comma-joined) --fragment-dir --head-changelog, every target; --head-changelog resolves against --repo. A pull request that changes a specPaths path owes a fragment under fragmentDir (CONTRIBUTING.md, Changelog fragments) and reads fragment-present with no opt-out. directSection is the one case that does not: a pull request that writes its own section into headChangelog, as futon's integration PR does (docs/ROSTER.md, Rulings of 2026-09-30 -- En never merges: the terminus carries the CHANGELOG). Its body carries `optOut` verbatim, and only when its own diff changes headChangelog; a body carrying it over any other diff is the defect, because the verb honours the line whatever the paths.",
+    "specPaths": ["CONSTITUTION.md", "handbooks/", "nen/", "schemas/", "agents/", ".github/workflows/"],
+    "fragmentDir": "changelog.d",
+    "headChangelog": "CHANGELOG.md",
+    "directSection": {
+      "when": "the pull request's own changed files include headChangelog",
+      "optOut": "no CHANGELOG entry: this pull request writes its own CHANGELOG.md section (contracts/pr-composition.json, changelogFragment.directSection)"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+[
+  { "name": "Why", "pattern": "^## Why\\s*$" },
+  { "name": "How", "pattern": "^## How\\s*$" },
+  { "name": "What this changes for you", "pattern": "^## What this changes for you\\s*$" },
+  { "name": "How to verify", "pattern": "^## How to verify\\s*$" },
+  { "name": "Evidence", "pattern": "^## Evidence\\s*$" },
+  { "name": "Completion checklist", "pattern": "^## Completion checklist\\s*$" },
+  { "name": "Associated issues", "pattern": "^## Associated issues\\s*$" },
+  { "name": "Agent attribution", "pattern": "^## Agent attribution\\s*$(?![\\s\\S]*^#{1,2}[ \\t])" }
+]

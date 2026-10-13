@@ -98,11 +98,10 @@ git -C <path> fetch origin <branch>
 git -C <path> rev-parse HEAD refs/remotes/origin/<branch>     # the two MUST be equal
 nen repo resolve --repo <path> --from <path>                  # -> <owner>/<name> (<CODE>)
 nen ref format --code <CODE> --kind PR --number <n>
-nen pr body-check --body-from <abs path> --requirements-from <path>
+nen pr body-check --body-from <abs path> --requirements-from "$hatsu_root/contracts/pr-body.requirements.json"
 "$hatsu_root/scripts/pr_development_link_check.sh" --body <abs path> --target <owner/name>
-nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,nen/,schemas/,agents/,.github/workflows/" \
-  --fragment-dir changelog.d --files <the changed paths> --head-changelog <path to CHANGELOG.md> \
-  [--body-from <abs path>]
+nen changelog fragment-required --repo <path> --spec-paths <specPaths> --fragment-dir <fragmentDir> \
+  --head-changelog <headChangelog> --files <the changed paths> [--body-from <abs path>]
 nen pr open --target <owner/name> --base <branch.base> --title-file <abs> --body-file <abs> \
   [--head <branch>] [--dry-run] [--json]   # title-file: the one commit's subject
 nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-run] [--json]
@@ -112,13 +111,13 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
 - **The two refs must be equal**; if not, the run **stops and says which is ahead**. **`pr open` refuses a head that is not on the remote at
   exit `2` and exits `1` naming an open PR for the branch**; it opens **once**, never as a draft
   (never Ready from nen `0.19`; ROSTER, 2026-10-04).
-- **`body-check` reports every requirement**; **exit `1` is a finding to fix**.
-- **`fragment-required`'s four verdicts, both kept prefixes and its exit `2` are the template's
-  check (b)**, binding as written there.
+- **Inputs, the gate sets too, are [`contracts/pr-composition.json`](../../../contracts/pr-composition.json)'s**:
+  never retyped (zheref/hatsu#171). **`body-check` exit `1` is a finding to fix**;
+  **`fragment-required`'s verdicts and exit `2` are the template's check (b)**, binding as written.
 - **The gate is derived as [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation*
   says**, and **the body names it as a FORECAST, never a status** — a PR just opened is not ready.
   **Shibari derives the gate and never labels one**: a label is a readiness
-  claim, and readiness is `nen pr ready`'s verdict inside [`en`](../en/SKILL.md), after this run (in `zheref/hatsu`, `pr-readiness.yml` publishes it as the `readiness` check; shibari never
+  claim, and readiness is `nen pr ready`'s verdict inside [`en`](../en/SKILL.md), after this run (`zheref/hatsu`'s `readiness` check, from `pr-readiness.yml`; shibari never
   writes that either).
 - **The body is written back only after every check has run.** The create is the first write and
   **every later revision is an edit**: `nen pr edit-body` replaces the body outright and **certifies
@@ -159,8 +158,8 @@ Named raw calls: [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned 
 - **Not permitted:** any merge, label, review vote or commit; any push, force-push or `--no-verify`,
   even to satisfy its own precondition; a second PR, or one for a branch whose `HEAD` is ahead of
   `origin/<branch>`; touching a PR this run did not open.
-- **Never opens a PR without `# What this changes for you`, `## How to verify`, the final
-  `## Agent attribution`, and the `changelog.d/` fragment where one is owed** — all decided by verb.
+- **Never opens a PR missing a declared body requirement (§ 4), or the `changelog.d/` fragment
+  where one is owed** — decided by verb.
 - **Never writes a section with no fact behind it**, and **never ticks a completion box by assertion**.
 - **Never stages a capture that is not one of the branch's re-recorded test artifacts**, and never
   treats an untracked evidence gap as a sanctioned incompleteness.

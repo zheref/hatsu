@@ -94,18 +94,22 @@ harness's own co-author trailer (on Claude Code, `includeCoAuthoredBy: false` in
 
 A change that touches the shipped surface owes a fragment under `changelog.d/`, collated into
 [`CHANGELOG.md`](CHANGELOG.md) at release time by `getsuga`. Whether a given diff owes one is the verb's
-answer, not a guess:
+answer, not a guess, and its inputs are declared once, in
+[`contracts/pr-composition.json`](contracts/pr-composition.json) → `changelogFragment` (zheref/hatsu#171):
 
 ```sh
-nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,nen/,schemas/,agents/,.github/workflows/" \
-  --fragment-dir changelog.d --range origin/main..HEAD --head-changelog CHANGELOG.md
+nen changelog fragment-required --spec-paths <specPaths, comma-joined> \
+  --fragment-dir <fragmentDir> --range origin/main..HEAD --head-changelog <headChangelog>
 ```
 
-A change that touches none of those paths answers `not-applicable`, which is the verb's word for a
-docs-only PR.
+A change that touches none of the declared `specPaths` answers `not-applicable`, which is the verb's
+word for a docs-only PR; one that touches them and adds its fragment answers `fragment-present`, with
+no opt-out line.
 
 `shibari` runs it before the PR opens and names the fragment in the PR body. Never edit `CHANGELOG.md`
-directly for an unreleased change.
+directly for an unreleased change. The one exception is a pull request that writes its own section,
+as futon's integration PR does ([`docs/ROSTER.md`](docs/ROSTER.md) § *Rulings of 2026-09-30 — En never
+merges*): its body carries the declared `directSection.optOut` line verbatim, and no other PR carries it.
 
 ## Redaction
 

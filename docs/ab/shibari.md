@@ -467,3 +467,42 @@ Scenarios include multiple completed issues (one closing clause each), scope add
 (reconcile both sets), dependency-only reference (do not claim implementation), and partial work
 (auto-close conflict surfaced before merge, never a false completion claim). UI/permission/limit
 failures are explicit blockers. Evidence is a live association read, not a string search in a body.
+
+## The three inputs declared — 2026-10-13 (zheref/hatsu#171)
+
+§ 2.1–2.3 above passed every input by hand, which is how every run since passed them: HA#162, HA#167 and
+HA-PR-#233 each rebuilt the requirements array, and every Hatsu body touching `nen/` carried a hand-written
+fragment opt-out. They are declared once now, in `contracts/pr-composition.json` and the array it names,
+`contracts/pr-body.requirements.json`; § 4 of the skill reads them. Run live at nen `v0.21.0` against this
+change's own diff:
+
+```
+$ nen pr body-check --body-from good.md --requirements-from contracts/pr-body.requirements.json
+8/8 requirement(s) satisfied                                                    exit=0
+$ nen pr body-check --body-from <the same, `## How to verify` renamed> --requirements-from …
+7/8 requirement(s) satisfied … MISSING  How to verify                           exit=1
+$ nen pr body-check --body-from <the same, a `## Notes` heading after the ledger> --requirements-from …
+7/8 requirement(s) satisfied … MISSING  Agent attribution                       exit=1
+```
+
+The bodies of HA-PR-#233, #241, #244 and #245 each read `8/8` against the declared file.
+
+```
+$ nen gate derive --policy-paths <gateDerive.zheref/hatsu.policyPaths> --process-paths <….processPaths> --files-from <diff>
+G4: the diff touches policy/spec (nen/), which only the human merges.          exit=0
+$ nen changelog fragment-required --repo . --spec-paths <changelogFragment.specPaths> --fragment-dir changelog.d \
+    --head-changelog CHANGELOG.md --files-from <diff>
+required … touches a spec/canon path (.github/workflows/, nen/) but adds no changelog.d/ fragment   exit=1
+$ … --files-from <diff + changelog.d/171-probe.md, on disk>
+fragment-present                                                                 exit=0
+$ … --files-from <diff + CHANGELOG.md> --body-from <a body carrying directSection.optOut>
+opt-out                                                                          exit=0
+```
+
+A pull request that adds its fragment needs no opt-out line; the declared one is for a diff that writes its
+own `CHANGELOG.md` section, and only that diff. **One hazard found on the way:** nen honours the opt-out
+phrase anywhere in a body, an HTML comment included, and the template's top comment spelled it out — a body
+that kept the comment opted itself out silently. Measured: `--body-from` the unfilled template at the
+base reads `opt-out`, exit `0`, over `nen/contract.json`; at this change it reads `required`, exit `1`.
+The comment no longer spells the phrase.
+
