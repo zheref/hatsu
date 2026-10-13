@@ -941,6 +941,165 @@ def expect_rejected(label)
   fail_policy("#{label} was accepted") unless rejected
 end
 
+# --- A HOSTILE FIXTURE CHANGES WHAT RUNS, OR STOPS AS BROKEN (zheref/hatsu#136)
+# Most hostile fixtures edit a REAL workflow at a literal, and `String#sub`
+# takes the FIRST occurrence -- which a comment can hold. On #134 a comment
+# above surface-mirror-check.yml's pin step spelled the trusted contract path,
+# the edit landed in the comment, the read it attacks was left as it was, and
+# the case went red. That was the loud form. The quiet one is an edit
+# redirected somewhere that still leaves the guard something to reject: the
+# suite stays green while the case no longer tests what it names.
+#
+# So no occurrence is taken on trust. `fixture_sub` tries each in order and
+# keeps the first whose edit changes what the parser and the shell see (YAML
+# comments are not in the parse; fixture_code drops a run's comment text) --
+# inside the one step the fixture names, and nowhere else, or outside every
+# step when it names none. When no occurrence qualifies, the self-test stops
+# as a BROKEN FIXTURE naming the case. Prose in a workflow may therefore spell
+# any literal a fixture edits.
+
+# A run as bash reads it, for the fixtures' comparisons only, never a verdict:
+# each comment's text is dropped and its `#` kept, so a comment can neither
+# hold a fixture's edit nor hide that one was added. A `#` opens a comment
+# where bash's does -- at the start of a word, outside quotes, escapes and
+# `${...}`, with `$(...)` nesting tracked. A heredoc body is read as code, so a
+# misreading can only hide an edit, and a hidden edit stops the self-test as a
+# broken fixture rather than passing it.
+def fixture_code(run)
+  out = +""
+  stack = [:code]
+  prev = "\n"
+  i = 0
+  while i < run.length
+    ch = run[i]
+    state = stack.last
+    opener = ch == "$" && (state == :dq ? %w[( {] : %w[{]).include?(run[i + 1])
+    if state == :sq
+      stack.pop if ch == "'"
+    elsif ch == "\\" && i + 1 < run.length
+      out << ch << run[i + 1]
+      prev = run[i + 1]
+      i += 2
+      next
+    elsif opener
+      stack.push(run[i + 1] == "(" ? :code : :brace)
+      out << ch << run[i + 1]
+      prev = run[i + 1]
+      i += 2
+      next
+    elsif state == :dq
+      stack.pop if ch == '"'
+    elsif ch == "#" && state == :code && prev.match?(/[\s;&|()<>]/)
+      out << ch
+      i += 1 while i < run.length && run[i] != "\n"
+      prev = ch
+      next
+    elsif ch == "'" || ch == '"'
+      stack.push(ch == "'" ? :sq : :dq)
+    elsif ch == "("
+      stack.push(:code)
+    elsif (ch == ")" && state == :code && stack.length > 1) || (ch == "}" && state == :brace)
+      stack.pop
+    end
+    out << ch
+    prev = ch
+    i += 1
+  end
+  out
+end
+
+# What the parser and the shell see of a workflow, comments gone: the node tree,
+# quoting ignored, every `run` through fixture_code. `mask`, one step mapping,
+# is left out of its sequence, so the rest can be compared without it.
+def fixture_view(node, mask = nil, key = nil)
+  case node
+  when Psych::Nodes::Document then fixture_view(node.root, mask)
+  when Psych::Nodes::Mapping
+    [:map, node.anchor, node.tag, node.children.each_slice(2).map { |name, value|
+      [fixture_view(name, mask), fixture_view(value, mask, name.is_a?(Psych::Nodes::Scalar) ? name.value : nil)]
+    }]
+  when Psych::Nodes::Sequence
+    [:seq, node.anchor, node.tag, node.children.reject { |child| child.equal?(mask) }.map { |child| fixture_view(child, mask) }]
+  when Psych::Nodes::Scalar then [:scalar, node.anchor, node.tag, key == "run" ? fixture_code(node.value) : node.value]
+  when Psych::Nodes::Alias then [:alias, node.anchor]
+  else [node.class.name]
+  end
+end
+
+def fixture_key(node, key)
+  return nil unless node.is_a?(Psych::Nodes::Mapping)
+  pair = node.children.each_slice(2).find { |name, _| name.is_a?(Psych::Nodes::Scalar) && name.value == key }
+  pair && pair.last
+end
+
+# Every step mapping under jobs.*.steps, as [name, node], in order.
+def fixture_steps(document)
+  jobs = fixture_key(document.root, "jobs")
+  return [] unless jobs.is_a?(Psych::Nodes::Mapping)
+  jobs.children.each_slice(2).flat_map do |_, job|
+    steps = fixture_key(job, "steps")
+    next [] unless steps.is_a?(Psych::Nodes::Sequence)
+    steps.children.map do |step|
+      name = fixture_key(step, "name")
+      [name.is_a?(Psych::Nodes::Scalar) ? name.value : nil, step]
+    end
+  end
+end
+
+# Each place `from` (a String, or a Regexp whose `to` may be a lambda over the
+# match) occurs in `text`, as [start, finish, replacement], in order.
+def fixture_occurrences(text, from, to)
+  found = []
+  if from.is_a?(Regexp)
+    text.scan(from) { match = Regexp.last_match; found << [match.begin(0), match.end(0), to.respond_to?(:call) ? to.call(match) : to] }
+  else
+    at = 0
+    while (index = text.index(from, at))
+      found << [index, index + from.length, to]
+      at = index + 1
+    end
+  end
+  found
+end
+
+# `base` with the first occurrence of `from` that changes the step named
+# `step` (absent before, for a step the edit adds) and nothing else -- or, with
+# no step named, something outside every step and no step at all.
+def fixture_sub(label, base, from, to, step: nil)
+  before = Psych.parse(base)
+  before_steps = fixture_steps(before)
+  before_step = step && before_steps.find { |name, _| name == step }&.last
+  before_view = fixture_view(before, before_step)
+  fixture_occurrences(base, from, to).each do |start, finish, replacement|
+    text = base[0...start] + replacement + base[finish..-1]
+    after = begin
+      Psych.parse(text)
+    rescue Psych::SyntaxError
+      next
+    end
+    after_steps = fixture_steps(after)
+    if step
+      after_step = after_steps.find { |name, _| name == step }&.last
+      next unless after_step
+      next if before_step && fixture_view(after_step) == fixture_view(before_step)
+      next unless fixture_view(after, after_step) == before_view
+    else
+      next unless after_steps.map { |_, node| fixture_view(node) } == before_steps.map { |_, node| fixture_view(node) }
+      next if fixture_view(after) == before_view
+    end
+    return text
+  end
+  where = step ? "step #{step.inspect} and only it" : "the workflow outside its steps"
+  fail_policy("self-test: BROKEN FIXTURE #{label.inspect}: no occurrence of #{from.inspect} outside a comment " \
+              "changes #{where}, so the case would test nothing")
+end
+
+# A fixture built whole rather than by fixture_sub must still change what runs.
+def fixture_changed!(label, base, text)
+  return unless fixture_view(Psych.parse(text)) == fixture_view(Psych.parse(base))
+  fail_policy("self-test: BROKEN FIXTURE #{label.inspect}: it changes nothing but comments, so the case would test nothing")
+end
+
 def validate_workflow(path)
   document = Psych.parse_file(path)
   reject_duplicate_keys(document.root, path)
@@ -1376,8 +1535,34 @@ def self_test(root)
 
     plugin = File.join(tmp, ".github/workflows/plugin-bump-check.yml")
     original = File.read(plugin)
-    File.write(plugin, original.sub(/^    if: .*\n/, "").sub(/^      - name: Checkout PR head/, "      - if: #{SAME_REPO_GUARD}\n        name: Checkout PR head"))
-    expect_rejected("step-only same-repository guard") { validate_repo(tmp) }
+    # Every hostile edit of a real workflow goes through fixture_sub (zheref/
+    # hatsu#136): `step:` names the one step the edit attacks; without it the
+    # edit must land outside every step. The base is validated first, in the
+    # scratch tree as it stands, so the refusal can only be the edit's: a file
+    # an earlier case left edited would otherwise answer for it.
+    hostile = lambda do |label, file, base, from, to, step: nil, control: true|
+      text = fixture_sub(label, base, from, to, step: step)
+      if control
+        File.write(file, base)
+        begin
+          validate_repo(tmp, announce: false)
+        rescue SystemExit
+          fail_policy("self-test: BROKEN FIXTURE #{label.inspect}: the scratch tree is refused before its edit, " \
+                      "so the refusal would not be the edit's")
+        end
+      end
+      File.write(file, text)
+      expect_rejected(label) { validate_repo(tmp) }
+    end
+    head_step = "Checkout PR head (data only — nothing from here is executed)"
+    start_step = "Start required check on the exact PR head"
+    policy_step = "Enforce workflow runner policy from trusted workflow revision"
+    guard_step = "Plugin-bump guard check"
+    # The one case whose base is refused alone: the guard leaves the job in one
+    # edit and reaches a step in the next, and the two are judged together.
+    unguarded = fixture_sub("step-only same-repository guard", original, /^    if: .*\n/, "")
+    hostile.call("step-only same-repository guard", plugin, unguarded,
+                 /^      - name: Checkout PR head/, "      - if: #{SAME_REPO_GUARD}\n        name: Checkout PR head", step: head_step, control: false)
 
     File.write(plugin, original)
     extra = File.join(tmp, ".github/workflows/untrusted-new.yml")
@@ -1397,30 +1582,17 @@ def self_test(root)
     expect_rejected("new workflow with an unexpected event") { validate_repo(tmp) }
 
     FileUtils.rm(extra)
-    File.write(plugin, original.sub(/^    types: \[.*\]\n/, "    types: [closed]\n"))
-    expect_rejected("changed pull_request_target types") { validate_repo(tmp) }
-
-    File.write(plugin, original.sub("jobs:\n  check:", "jobs:\n  renamed:"))
-    expect_rejected("renamed required check job") { validate_repo(tmp) }
-
-    File.write(plugin, original.sub("  check:\n    if:", "  check:\n    permissions:\n      contents: read\n    if:"))
-    expect_rejected("job permission override") { validate_repo(tmp) }
-
-    File.write(plugin, original.sub("runs-on: ubuntu-latest", "runs-on: [self-hosted, macOS, ARM64]"))
-    expect_rejected("portable workflow on a self-hosted Mac runner") { validate_repo(tmp) }
-
-    File.write(plugin, original.sub("-f name=check ", "-f name=check-other "))
-    expect_rejected("wrong exact-head check name") { validate_repo(tmp) }
-
-    File.write(plugin, original.sub('ruby .trusted/scripts/workflow_runner_policy_check.rb --self-test "$PWD"', "true"))
-    expect_rejected("missing trusted workflow policy invocation") { validate_repo(tmp) }
-
-    File.write(plugin, original.sub(%Q{          bash "$guard" \\\n}, %Q{          bash scripts/plugin_bump_check.sh \\\n}))
-    expect_rejected("PR-root script execution") { validate_repo(tmp) }
-
-    nested_duplicate = original.sub("          GH_TOKEN: ${{ github.token }}", "          GH_TOKEN: first\n          GH_TOKEN: second")
-    File.write(plugin, nested_duplicate)
-    expect_rejected("nested duplicate YAML key") { validate_repo(tmp) }
+    hostile.call("changed pull_request_target types", plugin, original, /^    types: \[.*\]\n/, "    types: [closed]\n")
+    hostile.call("renamed required check job", plugin, original, "jobs:\n  check:", "jobs:\n  renamed:")
+    hostile.call("job permission override", plugin, original, "  check:\n    if:", "  check:\n    permissions:\n      contents: read\n    if:")
+    hostile.call("portable workflow on a self-hosted Mac runner", plugin, original, "runs-on: ubuntu-latest", "runs-on: [self-hosted, macOS, ARM64]")
+    hostile.call("wrong exact-head check name", plugin, original, "-f name=check ", "-f name=check-other ", step: start_step)
+    hostile.call("missing trusted workflow policy invocation", plugin, original,
+                 'ruby .trusted/scripts/workflow_runner_policy_check.rb --self-test "$PWD"', "true", step: policy_step)
+    hostile.call("PR-root script execution", plugin, original,
+                 %Q{          bash "$guard" \\\n}, %Q{          bash scripts/plugin_bump_check.sh \\\n}, step: guard_step)
+    hostile.call("nested duplicate YAML key", plugin, original,
+                 "          GH_TOKEN: ${{ github.token }}", "          GH_TOKEN: first\n          GH_TOKEN: second", step: start_step)
 
     File.write(plugin, original)
     surface = File.join(tmp, ".github/workflows/surface-mirror-check.yml")
@@ -1436,132 +1608,112 @@ def self_test(root)
     # executable line reads the PR's own copy. An `include?` guard passes this.
     FileUtils.rm(extra)
     surface_original = File.read(surface)
-    File.write(surface, surface_original.sub(
+    pin_step = TRUSTED_PIN_STEP
+    hostile.call("pin read from the PR checkout with the trusted path in a comment", surface, surface_original,
       %Q{ref="$(jq -r '.dependency.pinned_ref // empty' .trusted/nen/contract.json)"},
-      %Q{# sourced from .trusted/nen/contract.json\n          ref="$(jq -r '.dependency.pinned_ref // empty' nen/contract.json)"}))
-    expect_rejected("pin read from the PR checkout with the trusted path in a comment") { validate_repo(tmp) }
+      %Q{# sourced from .trusted/nen/contract.json\n          ref="$(jq -r '.dependency.pinned_ref // empty' nen/contract.json)"}, step: pin_step)
 
     # The same rule for the gates file, which selects REVIEWER IDENTITIES: an
     # unprefixed read is the PR choosing the gate that judges it.
-    File.write(surface, surface_original.sub(
+    hostile.call("gates file read from the PR checkout", surface, surface_original,
       %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
-      %Q{          cat nen/gates.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
-    expect_rejected("gates file read from the PR checkout") { validate_repo(tmp) }
+      %Q{          cat nen/gates.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}, step: pin_step)
 
     # The widened trigger policy is still a CLOSED set, and this fixture is what
     # makes that true rather than asserted. `check_suite` is the specific event
     # that looks reasonable and is not admitted: its payload has no
     # `github.event.pull_request`, so the byte-compared SAME_REPO_GUARD above
     # would evaluate to null and the job would not be guarded as intended.
-    File.write(surface, surface_original.sub(
-      "  pull_request_target:", "  check_suite:\n    types: [completed]\n  pull_request_target:"))
-    expect_rejected("workflow triggered by a non-admitted privileged event") { validate_repo(tmp) }
+    hostile.call("workflow triggered by a non-admitted privileged event", surface, surface_original,
+      "  pull_request_target:", "  check_suite:\n    types: [completed]\n  pull_request_target:")
 
     # A workflow may not quietly GAIN an admitted trigger either -- the set is
     # compared against its declared map, not merely against the allowlist.
-    File.write(surface, surface_original.sub(
-      "  pull_request_target:", "  pull_request_review:\n    types: [submitted]\n  pull_request_target:"))
-    expect_rejected("workflow gaining an undeclared admitted trigger") { validate_repo(tmp) }
+    hostile.call("workflow gaining an undeclared admitted trigger", surface, surface_original,
+      "  pull_request_target:", "  pull_request_review:\n    types: [submitted]\n  pull_request_target:")
 
     # THE DIAGNOSTIC EXEMPTION MUST BE SCOPED TO ITS OWN COMMAND. The reviewer's
     # own example: an earlier `echo` on the same shell line must not suppress
     # validation of a LATER command that really does read the PR's file.
-    File.write(surface, surface_original.sub(
+    hostile.call("read hidden behind an earlier echo on the same line", surface, surface_original,
       %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
-      %Q{          echo ok; cat nen/gates.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
-    expect_rejected("read hidden behind an earlier echo on the same line") { validate_repo(tmp) }
+      %Q{          echo ok; cat nen/gates.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}, step: pin_step)
 
     # The same, separated by `&&` rather than `;`.
-    File.write(surface, surface_original.sub(
+    hostile.call("read hidden behind an earlier echo joined by &&", surface, surface_original,
       %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
-      %Q{          echo ok && jq . nen/contract.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
-    expect_rejected("read hidden behind an earlier echo joined by &&") { validate_repo(tmp) }
+      %Q{          echo ok && jq . nen/contract.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}, step: pin_step)
 
     # A COMMAND SUBSTITUTION INSIDE `echo` IS A READ. The reviewer's example: the
     # segment begins with `echo`, so a command-word test exempts it, while the
     # substitution really does read the PR's contract and emit its value as the
     # pin.
-    File.write(surface, surface_original.sub(
+    hostile.call("read inside a command substitution within a diagnostic", surface, surface_original,
       %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
-      %Q{          echo "ref=$(jq -r .dependency.pinned_ref nen/contract.json)"\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
-    expect_rejected("read inside a command substitution within a diagnostic") { validate_repo(tmp) }
+      %Q{          echo "ref=$(jq -r .dependency.pinned_ref nen/contract.json)"\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}, step: pin_step)
 
     # PROCESS SUBSTITUTION RUNS A COMMAND AND CARRIES NO `$`. `echo > >(cat
     # nen/gates.json)` begins with `echo`, contains neither `$(` nor a backtick,
     # and reads the PR-controlled gates file in a subshell.
-    File.write(surface, surface_original.sub(
+    hostile.call("read through an output process substitution in a diagnostic", surface, surface_original,
       %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
-      %Q{          echo > >(cat nen/gates.json)\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
-    expect_rejected("read through an output process substitution in a diagnostic") { validate_repo(tmp) }
+      %Q{          echo > >(cat nen/gates.json)\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}, step: pin_step)
 
-    File.write(surface, surface_original.sub(
+    hostile.call("read through an input process substitution in a diagnostic", surface, surface_original,
       %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
-      %Q{          echo hi < <(cat nen/contract.json)\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
-    expect_rejected("read through an input process substitution in a diagnostic") { validate_repo(tmp) }
+      %Q{          echo hi < <(cat nen/contract.json)\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}, step: pin_step)
 
     # A BARE `&` IS A COMMAND SEPARATOR. `echo ok & cat nen/gates.json` runs
     # `cat`; splitting only on `&&` left the whole line reading as one `echo`.
-    File.write(surface, surface_original.sub(
+    hostile.call("read after a bare & separator in a diagnostic", surface, surface_original,
       %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
-      %Q{          echo ok & cat nen/gates.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
-    expect_rejected("read after a bare & separator in a diagnostic") { validate_repo(tmp) }
+      %Q{          echo ok & cat nen/gates.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}, step: pin_step)
 
     # A `cd` behind a keyword is still a `cd`. This is why the rule is now a word
     # test rather than a position test.
-    File.write(surface, surface_original.sub(
+    hostile.call("cd behind an if keyword", surface, surface_original,
       %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
-      %Q{          if cd evil; then echo x; fi\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
-    expect_rejected("cd behind an if keyword") { validate_repo(tmp) }
+      %Q{          if cd evil; then echo x; fi\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}, step: pin_step)
 
     # `working-directory` moves the cwd DECLARATIVELY and was unchecked entirely.
-    File.write(surface, surface_original.sub(
+    hostile.call("step-level working-directory", surface, surface_original,
       "      - name: Surface-mirror drift check",
-      "      - name: Surface-mirror drift check\n        working-directory: evil"))
-    expect_rejected("step-level working-directory") { validate_repo(tmp) }
+      "      - name: Surface-mirror drift check\n        working-directory: evil", step: "Surface-mirror drift check")
 
     # PLAIN REDIRECTION READS THE FILE without running any sub-command, so a
     # construct list built only from substitutions missed it.
-    File.write(surface, surface_original.sub(
+    hostile.call("read through plain input redirection in a diagnostic", surface, surface_original,
       %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
-      %Q{          echo < nen/gates.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
-    expect_rejected("read through plain input redirection in a diagnostic") { validate_repo(tmp) }
+      %Q{          echo < nen/gates.json\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}, step: pin_step)
 
     # A SIBLING DIRECTORY IS NOT THE TRUSTED CHECKOUT. `attacker.trusted/` ends
-    # with `.trusted/`, which a suffix test accepted.
-    File.write(surface, surface_original.sub(
-      ".trusted/nen/contract.json", "attacker.trusted/nen/contract.json"))
-    expect_rejected("pin read from a sibling directory ending in .trusted") { validate_repo(tmp) }
+    # with `.trusted/`, which a suffix test accepted. fixture_sub skips any
+    # mention of the path in a comment and edits the pin step's own read.
+    hostile.call("pin read from a sibling directory ending in .trusted", surface, surface_original,
+      ".trusted/nen/contract.json", "attacker.trusted/nen/contract.json", step: pin_step)
 
     # Nor is a traversal out of it.
-    File.write(surface, surface_original.sub(
-      ".trusted/nen/contract.json", "../.trusted/nen/contract.json"))
-    expect_rejected("pin read through a traversal out of the trusted checkout") { validate_repo(tmp) }
+    hostile.call("pin read through a traversal out of the trusted checkout", surface, surface_original,
+      ".trusted/nen/contract.json", "../.trusted/nen/contract.json", step: pin_step)
 
     # A STEP MAY NOT MOVE THE WORKING DIRECTORY. Every trusted-path check above is
     # lexical and relative; a `cd` into a PR-controlled directory defeats all of
     # them while still matching TRUSTED_PREFIX.
-    File.write(surface, surface_original.sub(
+    hostile.call("step that changes the working directory", surface, surface_original,
       %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"},
-      %Q{          cd "$RUNNER_TEMP"\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}))
-    expect_rejected("step that changes the working directory") { validate_repo(tmp) }
+      %Q{          cd "$RUNNER_TEMP"\n          echo "ref=$ref" >> "$GITHUB_OUTPUT"}, step: pin_step)
 
     # `pull_request_review_thread` is a WEBHOOK event, not an Actions trigger. A
     # workflow naming it cannot register, so the allowlist must refuse it.
-    File.write(surface, surface_original.sub(
-      "  pull_request_target:", "  pull_request_review_thread:\n    types: [resolved, unresolved]\n  pull_request_target:"))
-    expect_rejected("workflow naming the non-existent pull_request_review_thread trigger") { validate_repo(tmp) }
+    hostile.call("workflow naming the non-existent pull_request_review_thread trigger", surface, surface_original,
+      "  pull_request_target:", "  pull_request_review_thread:\n    types: [resolved, unresolved]\n  pull_request_target:")
     File.write(surface, surface_original)
 
     # --- concurrency / timeout-minutes / draft-skip / paths (2026-09-20) -----
 
-    File.write(plugin, original.sub(/^    timeout-minutes: \d+\n/, ""))
-    expect_rejected("job missing timeout-minutes") { validate_repo(tmp) }
-
-    File.write(plugin, original.sub("cancel-in-progress: true", "cancel-in-progress: false"))
-    expect_rejected("guard workflow with cancel-in-progress: false") { validate_repo(tmp) }
-
-    File.write(plugin, original.sub(/\n\s*cancel-in-progress: true\n/, "\n"))
-    expect_rejected("guard workflow with no cancel-in-progress at all") { validate_repo(tmp) }
+    hostile.call("job missing timeout-minutes", plugin, original, /^    timeout-minutes: \d+\n/, "")
+    hostile.call("guard workflow with cancel-in-progress: false", plugin, original, "cancel-in-progress: true", "cancel-in-progress: false")
+    hostile.call("guard workflow with no cancel-in-progress at all", plugin, original, /\n\s*cancel-in-progress: true\n/, "\n")
 
     # BOTH SHAPES ARE ACCEPTED (two-step landing, see ALLOWED_JOB_GUARDS), and
     # so is either shape's OWN `types:` line, INDEPENDENTLY of which shape
@@ -1608,8 +1760,7 @@ def self_test(root)
     # shape-independent way -- a regex against whatever `types:` line is
     # currently live -- rather than against a hardcoded literal.
     foreign_types_line = "    types: [#{(live_types + ["labeled"]).join(", ")}]\n"
-    File.write(plugin, base_if.sub(/^    types: \[.*\]\n/, foreign_types_line))
-    expect_rejected("pull_request_target types gains an undeclared foreign type") { validate_repo(tmp) }
+    hostile.call("pull_request_target types gains an undeclared foreign type", plugin, base_if, /^    types: \[.*\]\n/, foreign_types_line)
 
     File.write(plugin, original)
 
@@ -1619,13 +1770,12 @@ def self_test(root)
     # not one of the two exact accepted strings, but a regex or suffix test in
     # place of the exact-string check could easily let it through.
     malformed_guard = "#{SAME_REPO_GUARD} && github.event.pull_request.draft == false"
-    File.write(plugin, original.sub(/^    if: .*\n/, "    if: #{malformed_guard}\n"))
-    expect_rejected("draft conjunct written outside the ${{ }} expression (string-concatenation bug)") { validate_repo(tmp) }
+    hostile.call("draft conjunct written outside the ${{ }} expression (string-concatenation bug)", plugin, original,
+                 /^    if: .*\n/, "    if: #{malformed_guard}\n")
 
-    File.write(plugin, original.sub(
-      /^(    types: \[.*\]\n)/,
-      "\\1    paths: ['claude/**']\n"))
-    expect_rejected("plugin-bump-check gains a paths filter — it must judge every PR") { validate_repo(tmp) }
+    paths_after_types = ->(match) { "#{match[0]}    paths: ['claude/**']\n" }
+    hostile.call("plugin-bump-check gains a paths filter — it must judge every PR", plugin, original,
+                 /^    types: \[.*\]\n/, paths_after_types)
 
     File.write(plugin, original)
 
@@ -1634,10 +1784,8 @@ def self_test(root)
     # never wakes for a PR whose diff misses every listed path is a PR that
     # cannot merge -- a deadlock, not a false negative. Gaining one back is
     # therefore rejected the same way plugin-bump-check.yml gaining one is.
-    File.write(surface, surface_original.sub(
-      /^(    types: \[.*\]\n)/,
-      "\\1    paths: ['claude/**']\n"))
-    expect_rejected("surface-mirror-check gains a paths filter — it must judge every PR") { validate_repo(tmp) }
+    hostile.call("surface-mirror-check gains a paths filter — it must judge every PR", surface, surface_original,
+                 /^    types: \[.*\]\n/, paths_after_types)
 
     File.write(surface, surface_original)
 
@@ -1655,7 +1803,14 @@ def self_test(root)
     # follow below.
     first_step_at = readiness_original.index("      - name: #{READINESS_FROZEN_STEPS.keys.first}\n")
     fail_policy("self-test: pr-readiness.yml has no #{READINESS_FROZEN_STEPS.keys.first.inspect} step") unless first_step_at
-    readiness_prefix = readiness_original[0...first_step_at]
+    # Its comment lines are dropped (zheref/hatsu#136), so no prose in the
+    # header can hold a literal a fixture below edits. The header carries no
+    # block scalar, which the parse comparison proves rather than assumes.
+    readiness_header = readiness_original[0...first_step_at]
+    readiness_prefix = readiness_header.lines.reject { |line| line.lstrip.start_with?("#") }.join
+    unless fixture_view(Psych.parse(readiness_prefix)) == fixture_view(Psych.parse(readiness_header))
+      fail_policy("self-test: dropping pr-readiness.yml's header comments changed what the header declares")
+    end
     readiness_earlier = READINESS_FROZEN_STEPS.first(5).map { |name, frozen| render_step(name, frozen) + "\n" }.join
     readiness_with = lambda do |verdict: READINESS_FROZEN_VERDICT, publish: READINESS_FROZEN_PUBLISH|
       readiness_prefix + readiness_earlier + render_step(READINESS_VERDICT_STEP, verdict) + "\n" + render_step(READINESS_PUBLISH_STEP, publish)
@@ -1674,9 +1829,10 @@ def self_test(root)
     unpinned = %Q{"$NEN" pr ready "$PR" --gh-repo "$REPO" --gates "$PWD/.trusted/nen/gates.json"}
     unflagged_run = verdict_run.sub(%Q{ \\\n  --exclude-check readiness \\\n  --require-head "$EVENT_HEAD"}, "")
     fail_policy("self-test: could not drop the pinning flags from the frozen verdict") if unflagged_run == verdict_run
-    # EACH FIXTURE CARRIES ITS BASE, and one equal to its base is a self-test
-    # failure: a `sub` that silently matched nothing would otherwise re-test the
-    # accepted shape and report a refusal it never exercised.
+    # EACH FIXTURE CARRIES ITS BASE, and one that changes nothing but comments
+    # against it is a BROKEN FIXTURE (fixture_changed!, zheref/hatsu#136): a
+    # `sub` that silently matched nothing would otherwise re-test the accepted
+    # shape and report a refusal it never exercised.
     {
       # The old shape, now refused: the freshness step back between the verdict
       # and Publish, and the old unpinned verdict (below, "without --require-head").
@@ -1798,7 +1954,7 @@ def self_test(root)
       "readiness frozen shape whose verdict run is a mapping" =>
         [readiness_frozen, readiness_with.call(verdict: READINESS_FROZEN_VERDICT.merge("run" => "{ cmd: true }")).sub("        run: |\n          { cmd: true }\n", "        run: { cmd: true }\n")]
     }.each do |label, (base, text)|
-      fail_policy("self-test: #{label} equals its base, so it tests nothing") if text == base
+      fixture_changed!(label, base, text)
       File.write(readiness, text)
       expect_rejected(label) { validate_repo(tmp) }
     end
@@ -1856,22 +2012,18 @@ def self_test(root)
         rendered_process.sub("        uses: #{READINESS_RENDERED_CHECKOUT}\n        with:\n          ref: ${{ github.event.pull_request.head.sha }}\n",
           "        uses: #{READINESS_RENDERED_CHECKOUT}\n        with:\n          ref: ${{ github.event.pull_request.base.sha }}\n")
     }.each do |label, text|
-      fail_policy("self-test: #{label} equals its base, so it tests nothing") if text == rendered_process || text == readiness_frozen
+      fixture_changed!(label, rendered_process, text)
+      fixture_changed!(label, readiness_frozen, text)
       File.write(readiness, text)
       expect_rejected(label) { validate_repo(tmp) }
     end
     # The SHA-pinned checkout is admitted in pr-readiness.yml ONLY.
     plugin_before = File.read(plugin)
-    plugin_pinned = plugin_before.sub("uses: actions/checkout@v7\n", "uses: #{READINESS_RENDERED_CHECKOUT}\n")
-    fail_policy("self-test: the SHA-pinned checkout fixture equals its base") if plugin_pinned == plugin_before
     File.write(readiness, readiness_original)
-    File.write(plugin, plugin_pinned)
-    expect_rejected("plugin-bump-check with the SHA-pinned checkout only pr-readiness.yml admits") { validate_repo(tmp) }
-    plugin_tenkai_env = plugin_before.sub("      - name: Enforce workflow runner policy from trusted workflow revision\n",
-      "      - name: Enforce workflow runner policy from trusted workflow revision\n        env:\n          TENKAI_GUARD_REQUIRED: true\n")
-    fail_policy("self-test: the TENKAI_ env fixture equals its base") if plugin_tenkai_env == plugin_before
-    File.write(plugin, plugin_tenkai_env)
-    expect_rejected("plugin-bump-check with a TENKAI_ env key only pr-readiness.yml admits") { validate_repo(tmp) }
+    hostile.call("plugin-bump-check with the SHA-pinned checkout only pr-readiness.yml admits", plugin, plugin_before,
+                 "uses: actions/checkout@v7\n", "uses: #{READINESS_RENDERED_CHECKOUT}\n", step: head_step)
+    hostile.call("plugin-bump-check with a TENKAI_ env key only pr-readiness.yml admits", plugin, plugin_before,
+                 "      - name: #{policy_step}\n", "      - name: #{policy_step}\n        env:\n          TENKAI_GUARD_REQUIRED: true\n", step: policy_step)
     File.write(plugin, plugin_before)
     # The TEMPLATE ITSELF, rendered the way tenkai renders it for each role,
     # where the root carries it (Hatsu): the constants above and the shipped
@@ -1894,30 +2046,32 @@ def self_test(root)
     # --- the exact allowlists, on the workflows that are not frozen whole ---
     # plugin-bump-check.yml and surface-mirror-check.yml keep their pattern
     # checks; these fixtures pin the job/step key, `uses:`, `shell:` and env
-    # allowlists that hold an earlier step back from the guard's own run.
+    # allowlists that hold an earlier step back from the guard's own run. Each
+    # case is [label, from, to, step], applied through fixture_sub.
+    trusted_step = "Checkout guard code from the trusted workflow revision"
     {
       plugin => [
-        ["plugin-bump-check job with a container", ->(t) { t.sub("    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    container: node:20\n") }],
-        ["plugin-bump-check step with RUBYOPT", ->(t) { t.sub("      - name: Enforce workflow runner policy from trusted workflow revision\n", "      - name: Enforce workflow runner policy from trusted workflow revision\n        env:\n          RUBYOPT: -r./x.rb\n") }],
-        ["plugin-bump-check step with an rcfile shell", ->(t) { t.sub(/(      - name: Plugin-bump guard check\n(?:        #.*\n)*)        shell: bash\n/) { "#{$1}        shell: bash --rcfile ./x.sh -i {0}\n" } }],
-        ["plugin-bump-check step with continue-on-error", ->(t) { t.sub("      - name: Plugin-bump guard check\n", "      - name: Plugin-bump guard check\n        continue-on-error: true\n") }],
-        ["plugin-bump-check step with a local action", ->(t) { t.sub("      - name: Checkout PR head (data only — nothing from here is executed)\n        uses: actions/checkout@v7\n", "      - name: Checkout PR head (data only — nothing from here is executed)\n        uses: ./.github/actions/x\n") }],
+        ["plugin-bump-check job with a container", "    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    container: node:20\n", nil],
+        ["plugin-bump-check step with RUBYOPT", "      - name: #{policy_step}\n", "      - name: #{policy_step}\n        env:\n          RUBYOPT: -r./x.rb\n", policy_step],
+        ["plugin-bump-check step with an rcfile shell", /(      - name: Plugin-bump guard check\n(?:        #.*\n)*)        shell: bash\n/,
+         ->(match) { "#{match[1]}        shell: bash --rcfile ./x.sh -i {0}\n" }, guard_step],
+        ["plugin-bump-check step with continue-on-error", "      - name: #{guard_step}\n", "      - name: #{guard_step}\n        continue-on-error: true\n", guard_step],
+        ["plugin-bump-check step with a local action", "      - name: #{head_step}\n        uses: actions/checkout@v7\n",
+         "      - name: #{head_step}\n        uses: ./.github/actions/x\n", head_step],
         # Still an actions/checkout, still persist-credentials: false, still the
         # trusted ref -- only the admitted-uses list refuses a moved pin.
-        ["plugin-bump-check trusted checkout at a floating ref", ->(t) { t.sub("      - name: Checkout guard code from the trusted workflow revision\n", "      - name: Checkout guard code from the trusted workflow revision\n        uses: actions/checkout@main\n").sub(/(      - name: Checkout guard code from the trusted workflow revision\n        uses: actions\/checkout@main\n(?:        #.*\n)*)        uses: actions\/checkout@v7\n/) { $1 } }]
+        ["plugin-bump-check trusted checkout at a floating ref", /(      - name: #{trusted_step}\n(?:        #.*\n)*)        uses: actions\/checkout@v7\n/,
+         ->(match) { "#{match[1]}        uses: actions/checkout@main\n" }, trusted_step]
       ],
       surface => [
-        ["surface-mirror-check step with PATH in its env", ->(t) { t.sub("          PINNED_REF: ${{ steps.pin.outputs.ref }}\n", "          PINNED_REF: ${{ steps.pin.outputs.ref }}\n          PATH: ./bin:/usr/bin:/bin\n") }],
-        ["surface-mirror-check job with services", ->(t) { t.sub("    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    services:\n      db:\n        image: postgres\n") }]
+        ["surface-mirror-check step with PATH in its env", "          PINNED_REF: ${{ steps.pin.outputs.ref }}\n",
+         "          PINNED_REF: ${{ steps.pin.outputs.ref }}\n          PATH: ./bin:/usr/bin:/bin\n",
+         "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)"],
+        ["surface-mirror-check job with services", "    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    services:\n      db:\n        image: postgres\n", nil]
       ]
     }.each do |file, cases|
       before = File.read(file)
-      cases.each do |label, change|
-        text = change.call(before)
-        fail_policy("self-test: #{label} equals its base, so it tests nothing") if text == before
-        File.write(file, text)
-        expect_rejected(label) { validate_repo(tmp) }
-      end
+      cases.each { |label, from, to, step| hostile.call(label, file, before, from, to, step: step) }
       File.write(file, before)
     end
     validate_repo(tmp, announce: false)
@@ -1952,31 +2106,20 @@ def self_test(root)
       end
     end
 
-    File.write(regenerate, regenerate_original.sub(
-      "group: surface-mirror-regenerate-${{ github.ref }}",
-      "group: surface-mirror-regenerate-${{ github.ref }}\n  cancel-in-progress: true"))
-    expect_rejected("regenerate workflow cancels in progress — a mid-run cancel risks a half-written surfaces/ tree") { validate_repo(tmp) }
-
-    File.write(regenerate, regenerate_original.sub(/^    timeout-minutes: \d+\n/, ""))
-    expect_rejected("regenerate job missing timeout-minutes") { validate_repo(tmp) }
-
-    File.write(regenerate, regenerate_original.sub(
-      /uses: peter-evans\/create-pull-request@[0-9a-f]{40} # v7\.0\.11/,
-      "uses: peter-evans/create-pull-request@v7"))
-    expect_rejected("regenerate PR step pinned by a mutable tag instead of a full commit SHA") { validate_repo(tmp) }
-
-    File.write(regenerate, regenerate_original.sub(
-      "branch: bot/surface-mirror-regenerate", "branch: main"))
-    expect_rejected("regenerate PR step targets main directly") { validate_repo(tmp) }
-
-    File.write(regenerate, regenerate_original.sub(
-      /(jobs:\n  regenerate:\n)/, "\\1    if: ${{ true }}\n"))
-    expect_rejected("regenerate job carries an if guard that does not exist on push/workflow_dispatch") { validate_repo(tmp) }
-
-    File.write(regenerate, regenerate_original.sub(
-      %Q{      - name: Checkout main\n        uses: actions/checkout@v7\n        with:\n          ref: main\n},
-      %Q{      - name: Checkout main\n        uses: actions/checkout@v7\n        with:\n          ref: main\n\n      - name: Push straight to main\n        shell: bash\n        run: |\n          git push origin HEAD:main\n}))
-    expect_rejected("regenerate workflow pushes directly with git instead of only opening a PR") { validate_repo(tmp) }
+    pr_step = "Open a pull request with the regenerated mirrors"
+    hostile.call("regenerate workflow cancels in progress — a mid-run cancel risks a half-written surfaces/ tree", regenerate, regenerate_original,
+                 "group: surface-mirror-regenerate-${{ github.ref }}", "group: surface-mirror-regenerate-${{ github.ref }}\n  cancel-in-progress: true")
+    hostile.call("regenerate job missing timeout-minutes", regenerate, regenerate_original, /^    timeout-minutes: \d+\n/, "")
+    hostile.call("regenerate PR step pinned by a mutable tag instead of a full commit SHA", regenerate, regenerate_original,
+                 /uses: peter-evans\/create-pull-request@[0-9a-f]{40} # v7\.0\.11/, "uses: peter-evans/create-pull-request@v7", step: pr_step)
+    hostile.call("regenerate PR step targets main directly", regenerate, regenerate_original,
+                 "branch: bot/surface-mirror-regenerate", "branch: main", step: pr_step)
+    hostile.call("regenerate job carries an if guard that does not exist on push/workflow_dispatch", regenerate, regenerate_original,
+                 "jobs:\n  regenerate:\n", "jobs:\n  regenerate:\n    if: ${{ true }}\n")
+    hostile.call("regenerate workflow pushes directly with git instead of only opening a PR", regenerate, regenerate_original,
+                 %Q{      - name: Checkout main\n        uses: actions/checkout@v7\n        with:\n          ref: main\n},
+                 %Q{      - name: Checkout main\n        uses: actions/checkout@v7\n        with:\n          ref: main\n\n      - name: Push straight to main\n        shell: bash\n        run: |\n          git push origin HEAD:main\n},
+                 step: "Push straight to main")
 
     # The shape since step two (zheref/hatsu#165): one cleanup step after the PR
     # step, naming the toggle and deleting only bot/surface-mirror-regenerate,
@@ -2037,29 +2180,28 @@ def self_test(root)
       "regenerate cleanup step with continue-on-error (N21)" => with_cleanup.call("continue-on-error" => "true"),
       "regenerate cleanup step with an id" => with_cleanup.call("id" => "cleanup"),
       "regenerate cleanup step with working-directory (N20)" => with_cleanup.call("working-directory" => "/tmp"),
-      "regenerate cleanup step with its two lines folded into one (N22)" =>
-        regenerate_next.sub(/        run: \|\n(?!.*        run: \|)/m, "        run: >-\n"),
-      "regenerate cleanup step with a merge key in its env (N24)" =>
-        regenerate_next.sub("          REPO: ${{ github.repository }}\n        shell: bash",
-                            "          REPO: ${{ github.repository }}\n          <<: {GH_HOST: attacker.invalid}\n        shell: bash"),
-      "regenerate cleanup step behind a pull request step with continue-on-error (N25)" =>
-        regenerate_next.sub("        id: cpr\n", "        id: cpr\n        continue-on-error: true\n"),
-      "regenerate cleanup step under a job-level BASH_ENV" =>
-        regenerate_next.sub("    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    env:\n      BASH_ENV: ./evil.sh\n"),
-      "regenerate cleanup step under a workflow-level BASH_ENV" => regenerate_next.sub("\njobs:\n", "\nenv:\n  BASH_ENV: ./evil.sh\njobs:\n"),
-      "regenerate with ENV set on an earlier step" =>
-        regenerate_next.sub(%Q{        id: stamp\n}, %Q{        id: stamp\n        env:\n          ENV: ./x.sh\n}),
       "regenerate cleanup step twice (N26)" => regenerate_next + "\n" + render_step(REGENERATE_CLEANUP_STEP, REGENERATE_CLEANUP),
       "regenerate cleanup step while the pull request step has no id: cpr" =>
-        regenerate_current.rstrip + "\n\n" + render_step(REGENERATE_CLEANUP_STEP, REGENERATE_CLEANUP),
-      "regenerate job with a container" => regenerate_next.sub("    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    container: node:20\n"),
-      "regenerate step with NODE_OPTIONS in its env" =>
-        regenerate_next.sub("          NEN_BIN: ${{ steps.nen.outputs.bin }}\n", "          NEN_BIN: ${{ steps.nen.outputs.bin }}\n          NODE_OPTIONS: --require ./x.js\n")
+        regenerate_current.rstrip + "\n\n" + render_step(REGENERATE_CLEANUP_STEP, REGENERATE_CLEANUP)
     }.each do |label, text|
-      fail_policy("self-test: #{label} equals its base, so it tests nothing") if text == regenerate_next
+      fixture_changed!(label, regenerate_next, text)
       File.write(regenerate, text)
       expect_rejected(label) { validate_repo(tmp) }
     end
+    # The same refusals reached by editing the workflow's own text, each
+    # [label, from, to, step] through fixture_sub (zheref/hatsu#136).
+    [
+      ["regenerate cleanup step with its two lines folded into one (N22)", "        run: |\n", "        run: >-\n", REGENERATE_CLEANUP_STEP],
+      ["regenerate cleanup step with a merge key in its env (N24)", "          REPO: ${{ github.repository }}\n        shell: bash",
+       "          REPO: ${{ github.repository }}\n          <<: {GH_HOST: attacker.invalid}\n        shell: bash", REGENERATE_CLEANUP_STEP],
+      ["regenerate cleanup step behind a pull request step with continue-on-error (N25)", "        id: cpr\n", "        id: cpr\n        continue-on-error: true\n", pr_step],
+      ["regenerate cleanup step under a job-level BASH_ENV", "    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    env:\n      BASH_ENV: ./evil.sh\n", nil],
+      ["regenerate cleanup step under a workflow-level BASH_ENV", "\njobs:\n", "\nenv:\n  BASH_ENV: ./evil.sh\njobs:\n", nil],
+      ["regenerate with ENV set on an earlier step", %Q{        id: stamp\n}, %Q{        id: stamp\n        env:\n          ENV: ./x.sh\n}, "Read the plugin stamp"],
+      ["regenerate job with a container", "    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    container: node:20\n", nil],
+      ["regenerate step with NODE_OPTIONS in its env", "          NEN_BIN: ${{ steps.nen.outputs.bin }}\n",
+       "          NEN_BIN: ${{ steps.nen.outputs.bin }}\n          NODE_OPTIONS: --require ./x.js\n", "Verify the regenerated tree passes its own drift check"]
+    ].each { |label, from, to, step| hostile.call(label, regenerate, regenerate_next, from, to, step: step) }
 
     File.write(regenerate, regenerate_original)
     validate_repo(tmp, announce: false)
