@@ -33,8 +33,8 @@ stage {{effortStage}} · {{gate}} · worktree {{worktree}} · branch {{branch}}
 {{ask.whyNow}}
 
 {{#each ask.options}}- **{{letter}}** · {{label}}{{#if star}} ⭐ {{star}}{{/if}}\
-  {{consequence}}\
-  <code>{{command}}</code>
+  {{consequence}}
+  <pre>{{command}}</pre>
 {{/each}}
 {{#if ask.objects}}Objects:{{#each ask.objects}} [{{label}}](<{{url}}>){{/each}}
 {{/if}}{{#each readiness}}
@@ -93,7 +93,7 @@ Half-run stops:
 {{/if}}{{#if sections.landed}}<!-- hatsu:block landed -->
 ## Landed, fought back, not delivered
 
-The whole session against <code>{{base}}</code>, not just this turn.
+The whole session against {{base}}, not just this turn.
 
 ### Landed
 

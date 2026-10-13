@@ -97,7 +97,7 @@ nen report render --variant <final|register> --template "$hatsu_root/templates/r
 ```
 
 A Markdown-artifact surface fills [`templates/rikugan.md`](../../../templates/rikugan.md) from the same
-document, `--out <reports.dir>/current.md` ([`PROCESS.md`](../../../docs/PROCESS.md) § *The Markdown report*).
+document, `--out <reports.dir>/current.md`, always `--graph` ([`PROCESS.md`](../../../docs/PROCESS.md) § *The Markdown report*).
 
 `$hatsu_root` is set in the block as [`ten`](../ten/SKILL.md) § 0 says; `generatedAtLocal` is
 `"$hatsu_root/scripts/report_time.sh"`; the `title` is the effort's headline
