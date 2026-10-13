@@ -76,8 +76,8 @@ A dirty effort tree plus a new request **asks**, showing every uncommitted path.
 
 **§ 2b · The third door — untracked paths** (`.idea/`, `.claude/worktrees/`, `.nen/`,
 the surface mirror): **append them to `info/exclude`** (`rev-parse --git-path`, **never `--git-dir`**;
-**never `.gitignore`**; [`surfaces/README.md`](../../../docs/surfaces/README.md) § *Shared rules*) — **only ignorable,
-untracked paths none of the effort's business**, shown first, under a dated comment;
+**never `.gitignore`**; [`surfaces/README.md`](../../../docs/surfaces/README.md) § *Shared rules*) — **only ignorable
+paths none of the effort's business**, shown first;
 then **re-run `nen wc classify`** (expect `uncommittedPaths: []`). A sandbox refusal is reported
 with that `--add-dir` named, and **stops**. The file is shared by every worktree: **name it by path**.
 
