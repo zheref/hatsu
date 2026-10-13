@@ -2,6 +2,12 @@
 
 All notable changes to Hatsu are documented in this file. Releases follow [Semantic Versioning](https://semver.org/).
 
+## v0.99.0 — stacked pull requests are the strategy for overlapping efforts
+
+### WORKFLOW § *Stacked pull requests* and the ruling of 2026-10-12 ([#219](https://github.com/zheref/hatsu/issues/219), 0.99.0)
+
+- **Overlapping efforts are delivered as a stack, never raced against the trunk** ([#219](https://github.com/zheref/hatsu/issues/219); the maintainer's words of 2026-10-12, recorded in `docs/ROSTER.md` § *Rulings of 2026-10-12*). `docs/WORKFLOW.md` gains § *Stacked pull requests*: when to stack (a common path, the bump and changelog counted), how to cut (each effort from the previous one's published branch, a delegate from the stack's tip, never the trunk), one mechanical commit per PR at stack time (bump, changelog section, mirrors), one PR per issue based on the previous effort's branch with only the bottom one on `branch.base`, bottom-up merging with the head branch deleted so GitHub retargets the next PR, and the order said on the register desk and in every PR body. A stacked PR is presented as mergeable nowhere (ruling 2 of 2026-09-30). The integration branch of futon § 5 remains the other sequencing shape, the maintainer's word choosing. Plugin bumped to 0.99.0; mirrors regenerated at that stamp.
+
 ## v0.98.0 — build says what a target with no stage taxonomy owes, when P1 is mandatory, and one checkout per effort
 
 ### `hatsu:build` §§ 1, 3 and 4 answer the three questions a run had to guess at ([#229](https://github.com/zheref/hatsu/issues/229), 0.98.0)
