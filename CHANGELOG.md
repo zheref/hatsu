@@ -2,6 +2,12 @@
 
 All notable changes to Hatsu are documented in this file. Releases follow [Semantic Versioning](https://semver.org/).
 
+## v0.94.4 — `reports.sections` is required for a render, and the skill says so
+
+### `spiritual-message` § 3 documents `reports.sections` as required, with the adoption path ([#108](https://github.com/zheref/hatsu/issues/108), 0.94.4)
+
+- **`spiritual-message` § 3's parameter table no longer promises a default `nen report render` refuses** ([#108](https://github.com/zheref/hatsu/issues/108)). The `reports.sections.<variant>` row now reads *required*: the verb refuses an undeclared variant at exit `2` naming the declared ones, and a `nen/workflow.json` with no `sections` renders nothing; a repository that has never declared it sets the block up as `missing-configuration` (WORKFLOW § 4) before `aka` § 8, `mukai` step 9 or `en` § 8 reach their render, copying the five-variant block `docs/config/workflow.json.md` § `reports` documents, in its own PR. The one default that is real is kept: a declared variant with no `blocks` renders every block. Two sentences in § 6 and the hard limits were shortened to pay for the row under the 12288-byte ceiling. Plugin bumped to 0.94.4; mirrors regenerated at that stamp.
+
 ## v0.94.3 — the BC-11 ruling on the hanten ledger is recorded
 
 ### BC-11 binds the hanten ledger; the ledger is owed to nen ([#216](https://github.com/zheref/hatsu/issues/216), 0.94.3)
