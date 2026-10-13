@@ -359,22 +359,24 @@ Each refresh window has exactly two observations: the first establishes the wind
 `nen pr ready` alone cannot expose new review activity that leaves its verdict unchanged:
 
 ```bash
-export GH_TOKEN=$(gh auth token)
-nen watch until --command "nen pr ready <CODE>#<N> --repo <path> <identity flags>" \   # no exclusion flag: nen reads checks.excluded
-  --max-iterations 2 --interval-ms <monitor.pollSeconds × 1000> # one paced refresh window
+"$hatsu_root/scripts/gh_token_env.sh" nen watch until --pr <CODE>#<N> --until ready --repo <path> <identity flags> \
+  --max-iterations 2 --interval-ms <monitor.pollSeconds × 1000>   # one paced refresh window; no exclusion flag
 ```
+
+**`--pr` is `nen pr ready`'s own in-process read** (zheref/nen#264), so the watched verdict and the
+quoted one never disagree, and no command string is handed over (shapes (3) and (b) of
+[PROCESS.md](../../../docs/PROCESS.md) § *Residue and owned dependencies*, #218). The wrapper puts the token in the verb's
+environment and nowhere else; `--interval-ms` is at least `30000` under `--pr`.
 
 `<identity flags>` is selected by [`sharingan`](../sharingan/SKILL.md) § 4 for the target: omit it
 when the target ships `nen/gates.json`; use `--gates "$hatsu_root/contracts/reference.gates.json"`
 only for `<reference-repo>`; otherwise pass the target's hand-supplied `--reviewers` and explicit
 `--approvers`. **Never point one repository's gates file at another repository.** **No exclusion flag rides
-the `--command` string, and none is needed** ([`pr-state`](../pr-state/SKILL.md) § 2): a declared
+the call, and none is needed** ([`pr-state`](../pr-state/SKILL.md) § 2): a declared
 ruling lives in the target's `nen/gates.json` → `checks.excluded`, which `nen pr ready` reads itself at
 the pull request's base, so the watched verdict and the one that counts are the same verdict, every
 honoured exclusion named in it. A ruling with no entry is `missing-configuration`, and a check nobody
-ruled out keeps the PR not-ready — the verb's verdict quoted verbatim — never `ready`. (Were a flag ever
-needed, it would not go in that string: `nen watch until` splits it itself, and a check name with a
-space would split into two words — SEC-7.)
+ruled out keeps the PR not-ready — the verb's verdict quoted verbatim — never `ready`.
 
 **`nen pr ready` classifies `[read-only]`** — verified live at `v0.3.0` (`docs/ab/en.md` § 2.3):
 `nen parse izanami "nen pr ready HA#41 --repo /path --gates /abs/gates.json until it is ready"` →

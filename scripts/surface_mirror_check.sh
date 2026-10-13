@@ -150,6 +150,18 @@ nen_bin() {
   printf '%s' "${NEN_BIN:-nen}"
 }
 
+# --- nen_present NEN ----------------------------------------------------------
+# A bare name is looked up on PATH and nowhere else; a path is tested as a file.
+# `[ -x nen ]` on a bare name used to resolve against the CURRENT directory, and
+# main has cd'd into the root, whose own nen/ directory then read as an
+# executable `nen`: no nen on PATH exited 2 ("no surface verb"), not 3.
+nen_present() {
+  case "$1" in
+    */*) [ -f "$1" ] && [ -x "$1" ] ;;
+    *) command -v "$1" >/dev/null 2>&1 ;;
+  esac
+}
+
 # --- has_surface_verb -------------------------------------------------------
 # Probe rather than parse a version: a version string says which release this
 # is, and what we need to know is whether THIS binary carries the verb. The
@@ -223,7 +235,7 @@ main() {
     esac
   fi
 
-  if ! command -v "$nen" >/dev/null 2>&1 && [ ! -x "$nen" ]; then
+  if ! nen_present "$nen"; then
     echo "surface-mirror-check: no 'nen' on PATH (and NEN_BIN names nothing executable)." >&2
     echo "  Install it the way nen/contract.json's warm-up does, then re-run." >&2
     exit 3
@@ -315,7 +327,8 @@ surface-mirror-check: the committed mirror is not what the source generates.
   stale        generated, but for the OTHER surface
   hand-edited  somebody edited the mirror instead of the source
 
-Fix it by regenerating — never by editing surfaces/ (docs/using/mirrors.md § 1):
+Fix it by regenerating — never by editing surfaces/ (docs/using/mirrors.md § 1). One command
+runs all three: bash scripts/surface_mirror_regenerate.sh (zheref/hatsu#218); its lines are:
 
   nen surface mirror generate --source $SOURCE_DIR --agents $AGENTS_DIR \\
     --surface codex      --out surfaces/codex      --models $MODELS_FILE --permissions $PERMISSIONS_FILE --hooks $HOOKS_FILE --rules $RULES_FILE --source-surface $SOURCE_SURFACE --hooks-root '$(hooks_root_for codex)' --manifest $MANIFEST_FILE --stamp "$stamp" --invocation-prefix "$INVOCATION_PREFIX"
@@ -332,4 +345,8 @@ EOF
   echo "surface-mirror-check: all mirrors match a fresh generation."
 }
 
-main "$@"
+# Sourced, main does not run: scripts/surface_mirror_regenerate.sh reads the constants, hooks_root_for,
+# plugin_stamp and the nen probes above, so generation and this check are one table (zheref/hatsu#218).
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+  main "$@"
+fi

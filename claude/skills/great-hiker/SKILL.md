@@ -78,15 +78,12 @@ row, never the rule.
 ## 4. Propagate: one generate per surface, then two checks
 
 ```bash
-for s in codex cursor antigravity; do
-  nen surface mirror generate --surface $s --source claude/skills --agents claude/agents \
-    --out surfaces/$s --invocation-prefix hatsu: --models nen/workflow.json \
-    --permissions contracts/permissions.json --hooks hooks/hooks.json --rules claude/rules/hatsu.md --source-surface claude --hooks-root <the surface's root expression> \
-    --manifest .claude-plugin/plugin.json --stamp <plugin version>
-done
+bash scripts/surface_mirror_regenerate.sh --dry-run   # the three generate lines, nothing written
+bash scripts/surface_mirror_regenerate.sh             # codex, cursor, antigravity at the manifest's stamp
 ```
 
-`--models` renders the model map (Cursor's `inherit`, Codex's `[agents]` fragment), `--permissions`
+One plain call (#218): the check's own flags per surface, a refusal exiting with nen's code and
+generating nothing after it. `--models` renders the model map (Cursor's `inherit`, Codex's `[agents]` fragment), `--permissions`
 the permission pack, `--hooks` the hook rows, `--rules` the rules file (under the surface's limit), and `--stamp` the plugin version into the marker, so
 the installed-copy check can tell a stale copy from a drifted one. Then, in this order:
 

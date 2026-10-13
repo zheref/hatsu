@@ -137,8 +137,7 @@ says which composite is holding it instead.
 ## 2. Enumerate the target repo's backlog — `nen repo inventory`
 
 ```
-export GH_TOKEN=$(gh auth token)
-nen repo inventory --target <owner/name> --epic-label <label> --integration-prefix <prefix> [--trunk main]
+"$hatsu_root/scripts/gh_token_env.sh" nen repo inventory --target <owner/name> --epic-label <label> --integration-prefix <prefix> [--trunk main]
 ```
 
 This is senkei's own live enumeration, named as such in the verb's own `--help`: every open issue
@@ -265,8 +264,7 @@ For each open PR, state a **Ready / not-Ready** determination **with the reason*
 (`hatsu:pr-state`, `docs/ab/pr-state.md`):
 
 ```
-export GH_TOKEN=$(gh auth token)
-nen pr ready <ref> --gh-repo <owner/name> [--gates <path> | --reviewers a,b,c --approvers a,b] --explain
+"$hatsu_root/scripts/gh_token_env.sh" nen pr ready <ref> --gh-repo <owner/name> [--gates <path> | --reviewers a,b,c --approvers a,b] --explain
 ```
 
 **Most product repos ship no gates file of their own — verified against `<product-repo-A>`, not

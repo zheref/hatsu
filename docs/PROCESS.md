@@ -290,8 +290,8 @@ nen pr threads reply   --target <owner/name> --pr <n> --thread <id> --body-file 
 nen pr threads resolve --target <owner/name> --pr <n> --thread <id>
 ```
 
-**Requesting a round.** `export GH_TOKEN=$(gh auth token)` first — the **maintainer's** user token; a
-bot token silently no-ops. Humans go through `--add-reviewers <a,b>`. **Copilot is a `Bot`**, which
+**Requesting a round.** Through `scripts/gh_token_env.sh` (§ *Residue and owned dependencies*,
+#218) — the **maintainer's** user token; a bot token silently no-ops. Humans go through `--add-reviewers <a,b>`. **Copilot is a `Bot`**, which
 `gh pr edit --add-reviewer` and `…/requested_reviewers` never resolve, so it goes through
 `--add-bots <node id>`, the id **data** read off the target's own reviewer set (`BOT_kgDOCnlnWA` in
 `zheref/hatsu`); `--add-bots copilot` cannot resolve it today (zheref/nen#160). A bare login that is
@@ -525,7 +525,7 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   plugin root (and ordering the checkout's manifest version against the bound pin's, zheref/hatsu#67), updating the plugin source and binding the pinned `nen` on the host (`scripts/nen_global.sh`: the
   `~/.local/bin/nen` link and the shell rc's PATH block, around nen's own bootstrap) are done by the warm-up's scripts and by hand: no nen
   verb owns a checkout's local exclude, a host's `PATH` or its shell profile, and where Hatsu is checked out is the host's property. The
-  login-shell probe (`"${SHELL:?}" -lic 'command -v nen && nen shu tools --repo "$1"' nen-probe "$hatsu_root" </dev/null`) and the name-correct host link ten § 2c offers as the fallback by its
+  login-shell probe (`scripts/nen_reach_probe.sh --root "$hatsu_root"`, which runs `"$SHELL" -lic 'command -v nen && nen shu tools --repo "$1"' nen-probe <root> </dev/null`, zheref/hatsu#218) and the name-correct host link ten § 2c offers as the fallback by its
   offer predicate (stated once there, verbatim in row `host-nen-link`) are the same kind (zheref/hatsu#164): a shell's `PATH` is the maintainer's, and nen binds no name on a host. § 6's reads —
   `gh auth status`/`gh auth token`, `gh pr list --head <branch> --state all`, `git branch --merged origin/<branch.base>` — are hand-spelt too; an unnamed human-call prerequisite at its step 7 stops,
   named, and the maintainer names the skill it is for by typing `then aka+mukai`.
@@ -638,6 +638,80 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   worktrees live* (the ruling of 2026-09-30), and the lapse would be a `nen wc worktree add|remove
   --surface <s> <name>` that resolves core and the canonical path itself — the same family as the
   owned dependency below.
+
+**Worktree-isolated sessions: one plain command per call** (zheref/hatsu#218). In a Claude Code
+session isolated with `EnterWorktree`, the harness's guard refuses compound shell (a pipe, `$(…)`, a
+loop, `export VAR=$(…)`, a `;`, `&&` or `||` chain, `cd … &&`) with sentences such as *"names git in a
+form too complex to verify … Split it into plain, separate commands"*, and its write guard refuses a
+path under `<core>` outside the session's own worktree, `<core>/.nen/worktrees/` included. The guard
+is Claude Code's, not Hatsu's (an upstream report is the maintainer's); the record, refusal text
+verbatim, is [`docs/ab/worktree-isolation.md`](ab/worktree-isolation.md). The Hatsu side, and
+only as far as it is true: **the blocks the table below names** are plain single commands or a
+shipped `scripts/` entry, each exit read before the next call, and `$hatsu_root` in any block is ten
+§ 0's printed path, typed in its place (ten § 0). The blocks still carrying a refused shape are
+listed under *Not yet converted*, below the table. **A refusal of any block on neither list is a
+named stop (G5)**, the block and the guard's sentence quoted; **a throwaway helper script is never the
+workaround**: it puts unreviewed shell on the run's own authority, and where it re-creates a verb it
+is determinism drift.
+
+**A write gated by a check stays chained to it with `&&`**: `branch_authorship_check.sh … && nen wc
+squash|publish` in `aka` §§ 4, 7 (zheref/hatsu#170, held by `scripts/publish_gate_check.sh`, #188) and
+`private_name_check.sh … && nen issue comment` (`file` § 4, `mugetsu` § 7, `sharingan` § 7). Split,
+the gate would rest on an agent reading an exit, the failure #188 was filed after. Whether the guard
+accepts a bare `a && b` is not on record (shape 8's refused chains also carried `cd` and `;`); where
+it refuses one, the write is a named stop. **#188's own required chain is not bare**: `murasaki` § 6's
+gated push carries `$(mktemp -d)` and `$(git rev-parse …)`, shapes on record as refused. Split it,
+ship it as a script, or rule the chain exempt: a G4 question on the maintainer's desk, not answered
+here; until it is ruled, that chain refused is a named stop, never split by hand.
+
+**`GH_TOKEN` and `PATH`, set without a refused shape.** `nen` reads its token from `GH_TOKEN` only and
+never picks one up ambiently; a block hands it one as `"$hatsu_root/scripts/gh_token_env.sh" nen …`,
+the token `gh auth token` prints, in that one command's environment, never printed (lane
+`gh-token-guard`). A session-bound `nen` (ten § 2's `<d>/bin`) reaches a call through the wrapper's
+`--path <d>/bin`, the form on record; a `PATH=<d>/bin:$PATH` prefix on a plain call is **unproven**
+against the guard (the record's session saw no Bash refusal at all). The host link (`~/.local/bin`,
+ten § 2) needs neither once the login profile carries it.
+
+| # | Refused shape | Owning block | Replacement |
+|---|---|---|---|
+| 1 | `d="$(mktemp -d)"; curl …; out="$(bash <file> --ref <pin>)"` | `ten` § 2, the session bind; `mugetsu` § 7, the host re-pin after a publish of nen itself | one call per line: `mktemp -d`; `curl -fsSL <url> -o <d>/nen-bootstrap.sh`; `bash <d>/nen-bootstrap.sh --ref <pin>` (or `nen bootstrap … --script <d>/nen-bootstrap.sh`); `test -x <verified>`; `mkdir -p <d>/bin`; `ln -sfn <verified> <d>/bin/nen`, each exit read before the next; `<verified>` only from a bootstrap that exited `0` |
+| 2 | `nen commit format … --body "$(cat <file>)" > <msg>` | [`WORKFLOW.md`](WORKFLOW.md) § *Writing a commit* (`aka` § 4, `kokusen` § 5, `ao`, `tensho` § 4) | the literal `--body "<paragraphs>"`, one quoted argument; a body-file flag is nen's to add |
+| 3 | `export GH_TOKEN=$(gh auth token); nen …` | `en` § 6; `getsuga` §§ 2, 3a; `mugetsu` § 4; `pr-state` § 2; `sharingan` § 4; `file` § 3; `classify` § 2; `direct` § 2; `senkei` §§ 2, 4; `backlog-state` § 5; `backlog-synthesis` § 2; `tensho` §§ 5, 6; `ten` § 6 step 4; *Requesting a round* above | `"$hatsu_root/scripts/gh_token_env.sh" nen …` |
+| 4 | `for p in …; do git worktree add --detach …; done` | `hanten` § 4 | one `git -C <repo> worktree add --detach <core>/.nen/worktrees/<surface>/hanten-<persona> HEAD` per persona |
+| 5 | `for l in …; do s=$(date +%s); nen shu test --lane $l …; done` | `kotoamatsukami` § 7 | one `nen shu test --repo <path> --lane <lane>` per selected row; a duration is `--json`'s `durationMs` |
+| 6 | `git show origin/main:<f> \| grep …`; `git show <ref>:<f> > a; git diff --no-index a b` | improvised `ao`/`getsuga` reads; `getsuga` § 1's `git rev-parse … \|\| <refuse>` | `git -C <path> show <ref>:<f>`, read whole; `git -C <path> diff <ref-a> <ref-b> -- <f>`; `git rev-parse --verify -q '<token>^{commit}'` alone, its exit read |
+| 7 | `for n in …; do gh pr view $n -q …; done` | an improvised PR sweep | one `gh pr list --repo <owner/name> --state all --json <fields> --jq <filter>`, or `nen report data --prs <n,…>` |
+| 8 | `cd <dir> && git init … && git worktree add …`; `CHG=… sh <script>; nen wc publish …; nen pr edit-body …` | an improvised git probe and chain; `aka` § 4's `cat-file … \|\| fetch` and `$(git merge-base …)` | `git -C <dir> …`, one command per call, each exit read before the next; a SHA is read, then typed; a gated write keeps its `&&` (above) |
+| a | any command inside `<core>/.nen/worktrees/claude-code/hanten-<persona>` | `hanten` § 4 | on an **observed** refusal of that `git worktree add` (never pre-empted): no reviewer worktree; the reviewer reads the effort checkout read-only at the printed HEAD, disclosed; the author's tree is held by § 4's ref and authorship checks and an unchanged `git -C <path> status --porcelain` ([`WORKFLOW.md`](WORKFLOW.md) § *Where worktrees live*) |
+| b | `nen watch until --command "<string>"` | `en` § 6 | `gh_token_env.sh nen watch until --pr <ref> --until ready` (zheref/nen#264). A `--command` observation no `--pr` predicate expresses (`izanami`, Illumi) keeps its form; refused, the one workaround is the same line in the maintainer's own terminal, reported as handed over |
+| c | `"${SHELL}" -lic '…'`, the login-shell probe | `ten` § 2c | `"$hatsu_root/scripts/nen_reach_probe.sh" --root "$hatsu_root"` (lane `reach-probe-guard`) |
+| d | `rm -rf <scratch>` | an improvised cleanup | a run's scratch lives under the session's temp directory and is left there; a named file goes with a plain `rm <file>`; only a shipped fixture's own `trap` removes its own `mktemp -d` |
+
+The same shapes outside those blocks went the same way: `ten` § 0's resolver loop and `$(…)`, `ten`
+§ 5's `cd … ||` and `[ … ] ||` lines, the `hatsu_root=…; [ … ] || …` resolution in `pr-state` § 2
+and `tensho` § 6 (its two root checks kept, one `test` each), `file` § 4's `cat … |` into the
+private-name guard, and [`docs/using/mirrors.md`](using/mirrors.md) § 3's regeneration loop are plain
+calls.
+
+**Not yet converted** — still carrying a refused shape, each a named stop where the guard refuses it:
+
+| Block | Shape | Why it stays, for now |
+|---|---|---|
+| `murasaki` § 6, the gated push | `$(mktemp -d)`, `$(git rev-parse …)`, `up="$(…)"` inside the `&&` chain #188 requires | the G4 question above |
+| `susanoo` § 5a, the announced tag | `$(git rev-parse --show-toplevel)`, an inline `python3` read, `case "$(cd … && pwd -P)"`, `$(sed … \| tr …)` | an inline script; its shipped form (beside `scripts/dist_tag.sh`'s) is owed, not written here |
+| `izanagi`, the v0.3.0 transcript | `export GH_TOKEN=$(gh auth token)` | a dated record of what ran, never a block to run |
+| `illumi.md`, the long watch | `nen watch until --command "<string>"` | row (b)'s workaround; no `--pr` predicate expresses it |
+
+**The mirror regeneration** `great-hiker` § 4 and `docs/using/mirrors.md` § 3 run after every
+source change is `scripts/surface_mirror_regenerate.sh`, one plain call: the three `nen surface mirror
+generate` calls at the manifest's stamp, built from `scripts/surface_mirror_check.sh`'s own constants
+and hooks-root table, which it sources (one table, never a copy; lane `mirror-regenerate-guard`). It is
+run in the Hatsu checkout being authored, never by an installed copy. **Owned dependencies**, filed
+at this run's third-hand harvest after En, their numbers added then: a body-file flag on `nen commit
+format`; a title-file flag on `nen issue file` (`file` § 4 types the title literally meanwhile);
+`nen shu test` over several lanes in one call with one report — **judged needed**, since hanten § 4 runs
+every lane a diff selects; and a nen verb that generates every surface a repository declares, which
+would retire the regenerator's branching (BC-11).
 
 **Effort checkout selection precedes every authoring and PR phase's standalone catch-up.**
 Read `$hatsu_root/docs/WORKFLOW.md` § *Where worktrees live* and its surface adapter; bind the

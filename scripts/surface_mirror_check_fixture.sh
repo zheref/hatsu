@@ -98,8 +98,8 @@ run cursor-drift 1 STUB_CURSOR=1
 [ "$(printf '%s\n' "$calls" | grep -c '^cursor ')" = 1 ] || fail "cursor-drift: cursor was checked more than once: $calls"
 
 # (e) one root per surface, written the same everywhere it is written: hooks_root_for in the check,
-# the regenerate workflow's case arms, docs/using/mirrors.md § 3's loop (Codex and Antigravity; Cursor
-# goes through its generic arm) and the search side of surface_bootstrap.sh's placed-hooks sed. The
+# the regenerate workflow's case arms and the search side of surface_bootstrap.sh's placed-hooks sed
+# (docs/using/mirrors.md § 3 runs scripts/surface_mirror_regenerate.sh, which sources the check). The
 # workflow's copy drifted once (zheref/hatsu#151); this is the check that it cannot again.
 repo="$(CDPATH='' cd -- "$script_dir/.." >/dev/null 2>&1 && pwd -P)"
 for s in codex cursor antigravity; do
@@ -107,18 +107,21 @@ for s in codex cursor antigravity; do
   in_workflow="$(grep -o "$s) root='[^']*'" "$repo/.github/workflows/surface-mirror-regenerate.yml" | sed "s/^$s) root=//" || true)"
   [ -n "$in_check" ] || fail "roots: no $s root in hooks_root_for"
   [ "$in_check" = "$in_workflow" ] || fail "roots: $s is $in_check in the check but $in_workflow in surface-mirror-regenerate.yml"
-  case "$s" in
-    cursor) ;;
-    *)
-      in_docs="$(grep -o "$s) root='[^']*'" "$repo/docs/using/mirrors.md" | sed "s/^$s) root=//" || true)"
-      [ "$in_check" = "$in_docs" ] || fail "roots: $s is $in_check in the check but ${in_docs:-<none>} in docs/using/mirrors.md § 3"
-      ;;
-  esac
 done
+# docs/using/mirrors.md § 3 no longer writes the roots: it runs scripts/surface_mirror_regenerate.sh,
+# which sources hooks_root_for from the check itself (zheref/hatsu#218); a copy coming back is a finding.
+! grep -q ") root='" "$repo/docs/using/mirrors.md" || fail "roots: docs/using/mirrors.md writes its own hooks roots again; § 3 runs scripts/surface_mirror_regenerate.sh"
 # The Codex placed-copy sed is the one whose replacement is the workspace root ./.codex.
 in_sed="$(grep -o "sed 's#[^#]*#\${HATSU_PLUGIN_ROOT:-./.codex}#g'" "$repo/scripts/surface_bootstrap.sh" | sed "s/^sed 's#//; s/#.*//")"
 [ "'$in_sed'" = "$(grep -o "codex) printf %s '[^']*'" "$guard" | sed "s/^codex) printf %s //")" ] ||
   fail "roots: surface_bootstrap.sh rewrites $in_sed, which is not the check's Codex root"
+
+# (e2) a bare `nen` is looked up on PATH only: the root's own nen/ directory is never read as the
+# binary (it was, through `[ -x nen ]` after the cd into the root), so no nen on PATH is 3, not 2.
+mkdir -p "$tree/nen"
+code=0; nonen_out="$(env -u NEN_BIN PATH=/usr/bin:/bin bash "$guard" "$tree" 2>&1)" || code=$?
+[ "$code" = 3 ] || fail "no nen on PATH with a nen/ directory in the root exited $code, not 3: $nonen_out"
+rmdir "$tree/nen"
 
 # (f) --installed on a real plugin cache (the source's own layout) is compared byte for byte by
 # plugin_cache_check.sh and never handed to nen's claude-code row, which read every file `missing`

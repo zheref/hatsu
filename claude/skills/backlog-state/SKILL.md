@@ -268,8 +268,7 @@ with the discipline of quoting rather than paraphrasing, is
 [`hatsu:pr-state`](../pr-state/SKILL.md):
 
 ```bash
-export GH_TOKEN=$(gh auth token)
-nen pr ready <CODE>#<N> --repo <path> --explain   # a repository ships its own nen/gates.json
+"$hatsu_root/scripts/gh_token_env.sh" nen pr ready <CODE>#<N> --repo <path> --explain   # a repository ships its own nen/gates.json
 ```
 
 (or `<N> --gh-repo <owner/repo>` for a bare number.) **Which identity flag actually goes on that call

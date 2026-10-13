@@ -307,8 +307,7 @@ documented commands, said so — `claude/agents/kurapika.md` § *The `shu` verbs
 open:
 
 ```bash
-export GH_TOKEN=$(gh auth token)
-nen pr request-reviews --target <owner/name> --pr <n> --add-bots BOT_kgDOCnlnWA
+"$hatsu_root/scripts/gh_token_env.sh" nen pr request-reviews --target <owner/name> --pr <n> --add-bots BOT_kgDOCnlnWA
 ```
 
 Copilot is a **`Bot`**, so it goes through `--add-bots` with its node id, never `--add-reviewers
@@ -331,15 +330,13 @@ bare readiness reading when the PR can actually be driven.
 needs): the readiness **check** by itself is [`hatsu:pr-state`](../pr-state/SKILL.md)'s verb —
 
 ```bash
-export GH_TOKEN=$(gh auth token)
-# $hatsu_root is THIS plugin's checkout, ABSOLUTE: the root ten § 0 already resolved, taken
-# from $HATSU_PLUGIN_ROOT where the session exports it, else from the single-quoted line § 0 printed,
-# pasted verbatim in place of '<…>' (quotes included, nothing else). No manifest is parsed here: with
-# neither in hand, re-resolve through ten § 0 rather than reading plugin.json inline.
-hatsu_root="${HATSU_PLUGIN_ROOT:-}"; [ -n "$hatsu_root" ] || hatsu_root='<the absolute path § 0 printed>'
-[ -f "$hatsu_root/.claude-plugin/plugin.json" ] && [ -d "$hatsu_root/claude/skills" ] \
-  || { echo "no Hatsu root in hand: re-run ten § 0, or pass --reviewers and explicit --approvers by hand (sharingan § 4)" >&2; exit 1; }
-nen pr ready <CODE>#<N> --repo <path> --gates "$hatsu_root/contracts/reference.gates.json" --explain
+# $hatsu_root is THIS plugin's checkout, ABSOLUTE: the root ten § 0 printed, typed in its place
+# (ten § 0, #218). No manifest is parsed here; the two checks are one plain call each, and either
+# non-zero means no Hatsu root in hand: re-run ten § 0, or pass --reviewers and explicit
+# --approvers by hand (sharingan § 4).
+test -f "$hatsu_root/.claude-plugin/plugin.json"
+test -d "$hatsu_root/claude/skills"
+"$hatsu_root/scripts/gh_token_env.sh" nen pr ready <CODE>#<N> --repo <path> --gates "$hatsu_root/contracts/reference.gates.json" --explain
 ```
 
 The `--gates` shown is [`sharingan`](../sharingan/SKILL.md) § 4's identity rule, cited rather than

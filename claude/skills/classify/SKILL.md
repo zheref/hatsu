@@ -57,8 +57,7 @@ A missing argument or configuration item is asked for and set up inline (`missin
 
 ```bash
 nen classify labels --taxonomy "$hatsu_root/contracts/classify.taxonomy.json" >/dev/null   # the capability probe
-export GH_TOKEN="$(gh auth token)"   # in the block, never printed
-nen classify status --taxonomy "$hatsu_root/contracts/classify.taxonomy.json" --repo <checkout> \
+"$hatsu_root/scripts/gh_token_env.sh" nen classify status --taxonomy "$hatsu_root/contracts/classify.taxonomy.json" --repo <checkout> \
   --target <owner/name> (--issue <n,…> | --open) --with-body --json
 ```
 
