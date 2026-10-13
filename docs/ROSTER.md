@@ -972,6 +972,32 @@ only pending that question.
 
 ---
 
+## Rulings of 2026-10-11 — AI reviewers per consumer
+
+**The maintainer's answers, verbatim**, through the picker during `hatsu:build HA#227` (2026-10-11), after
+Leorio's economics review showed that deleting `reviewer_fallback` also removed the declared off switch for
+Copilot spend (zheref/hatsu#245):
+
+1. *"What values should the new per-consumer AI-reviewer setting take?"*
+   > required | optional | off
+2. *"What should Hatsu itself be set to when this lands?"*
+   > optional
+
+| Ruling | What it says |
+|---|---|
+| **One consumer value** | `nen/workflow.json` → `aiReviewers` (top level, Hatsu's own key — nen `v0.21.0` refuses an unread key in `nen/gates.json`, so it cannot live there), one of `required`, `optional`, `off`, for every automated reviewer in `reviewers[]`. It gates both the **use** (requesting) and the **expectation** (waiting). Absent reads `required`, today's behaviour. Settable by hand or by an agent (`config_values.sh set`, `tenkai` § 6d) on any consumer, Hatsu included |
+| **`optional` and `off`** | `optional` requests within `round_policy`'s caps and never waits; `off` never requests (zero AI-reviewer spend). Under both, a PR whose only failing row is `rounds-owed`, hanten settled, goes to the merge prompt on hanten's rounds with the not-ready verdict quoted verbatim; nothing else is relaxed. The rule is [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *AI reviewers per consumer*, stated once |
+| **Hatsu's own value** | `optional`, written by `config_values.sh set` |
+
+**It amends § *Rulings of 2026-10-04 — retire 2, adopt 2*'s *"`reviewer_fallback` deleted"*:** the off switch
+returns, as one consumer value rather than a dated exhaustion row. Under `required`, § *Rulings of 2026-10-11 —
+prompt on hanten* (below) is unchanged; under `optional` and `off` this rule replaces it, being the wider one.
+It is read under `CON-16` (only enabled reviewers gate, and the maintainer has declared these not expected) and
+`CON-32(b)` (the verdict is quoted not-ready, never represented as ready). `round_policy.maxRounds: 0` is not
+an off switch: it stops requests while nen still owes the round.
+
+---
+
 ## Rulings of 2026-10-11 — prompt on hanten (every quorum member unavailable)
 
 **The maintainer's words are the picker's answer alone**, at the G4 stop of `hatsu:build HA#227`

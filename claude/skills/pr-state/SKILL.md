@@ -143,8 +143,8 @@ check, `templates/pr-readiness.yml`), never for a maintainer's ruling. **An exha
 declared anywhere any more**: Hatsu's `reviewer_fallback` is retired (the maintainer's ruling of
 2026-10-04, *retire 2, adopt 2*; zheref/hatsu#227), and nen's `round_quorum` decides — a met quorum
 fulfils an unavailable member's round (zheref/nen#361) and an unmet one is the verdict quoted as nen
-prints it — or, at PROCESS's *The sixth stop* (every member unavailable), en § 5's prompt on hanten
-(ruling 2026-10-11; [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *One bot
+prints it — or, at PROCESS's *The sixth stop* (every member unavailable), or under `aiReviewers:
+optional | off` (PROCESS, *AI reviewers per consumer*), en § 5's prompt on hanten (ruling 2026-10-11; [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *One bot
 reviewer suffices*).
 
 **Always the `$hatsu_root`-anchored form when `--gates` is the one in play, never a bare `contracts/reference.gates.json`.** The

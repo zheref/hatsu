@@ -1129,6 +1129,36 @@ def self_test(root):
     for p in probs:
         failures.append(f"shipped catalogue: {p}")
 
+    # aiReviewers (the maintainer's rulings of 2026-10-11, zheref/hatsu#245): a top-level enum,
+    # required | optional | off, default required, settable by hand or by an agent on any consumer.
+    ai = [r for r in real_rows if r.get("id") == "workflow.aiReviewers"]
+    check("the shipped catalogue carries workflow.aiReviewers as enum required | optional | off, default required",
+          len(ai) == 1 and ai[0]["kind"] == "enum" and ai[0]["options"] == ["required", "optional", "off"]
+          and ai[0]["default"] == "required" and ai[0]["path"] == "aiReviewers")
+    if len(ai) == 1:
+        with tempfile.TemporaryDirectory() as d:
+            ap = Path(d)
+            (ap / "nen").mkdir()
+            (ap / "nen/workflow.json").write_text('{\n  "branch": {"base": "main"}\n}\n')
+            st = {r["id"]: r["state"] for r in diagnose(Repo(ap), ai)}
+            check("aiReviewers absent is its default unwritten, never outstanding", st["workflow.aiReviewers"] == UNWRITTEN)
+            try:
+                set_value(Repo(ap), ai, "workflow.aiReviewers", '"maybe"')
+                check("set refuses an aiReviewers value outside its three, naming them", False)
+            except Defect as e:
+                check("set refuses an aiReviewers value outside its three, naming them",
+                      all(v in str(e) for v in ("required", "optional", "off")))
+            for v in ("optional", "off", "required"):
+                set_value(Repo(ap), ai, "workflow.aiReviewers", json.dumps(v))
+                doc = json.loads((ap / "nen/workflow.json").read_text())
+                check(f"set writes aiReviewers {v} at the top level, annotated",
+                      doc.get("aiReviewers") == v and doc.get("$aiReviewers") == "one of: required | optional | off")
+            check("aiReviewers set is ok in diagnose",
+                  {r["id"]: r["state"] for r in diagnose(Repo(ap), ai)}["workflow.aiReviewers"] == SET)
+            (ap / "nen/workflow.json").write_text('{"aiReviewers": "sometimes"}\n')
+            check("an aiReviewers value outside the three is invalid in diagnose",
+                  {r["id"]: r["state"] for r in diagnose(Repo(ap), ai)}["workflow.aiReviewers"] == INVALID)
+
     for f in failures:
         print(f"FAIL  {f}")
     print(f"config_values self-test: {'PASS' if not failures else 'FAIL'} ({len(failures)} failure(s))")

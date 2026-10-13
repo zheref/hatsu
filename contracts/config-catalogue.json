@@ -292,6 +292,27 @@
       "source": "docs/WORKFLOW.md § 2 (direct); contracts/direct.registry.json -> publish"
     },
     {
+      "id": "workflow.aiReviewers",
+      "file": "nen/workflow.json",
+      "path": "aiReviewers",
+      "domain": "review",
+      "kind": "enum",
+      "default": "required",
+      "options": [
+        "required",
+        "optional",
+        "off"
+      ],
+      "describe": "Whether this repository uses and expects its automated (AI) reviewers -- every bot in nen/gates.json reviewers[]. required: requested within round_policy's caps and expected; the merge prompt comes only at verified Ready or at PROCESS's sixth stop. optional: requested within the caps but not waited for; with nen pr ready failing exactly rounds-owed and hanten settled, the PR goes to the merge prompt on hanten's rounds, the not-ready verdict quoted verbatim. off: never requested (zero AI-reviewer spend), the same prompt as optional. Neither relaxes any other readiness row.",
+      "readers": [
+        "sharingan",
+        "en"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (aiReviewers); docs/PROCESS.md § Reviewer rounds and review threads, AI reviewers per consumer",
+      "ask": "adoption",
+      "question": "Should this repository's AI reviewers be required (requested and waited for), optional (requested, never waited for) or off (never requested, no AI-reviewer spend)?"
+    },
+    {
       "id": "workflow.monitor.maxCycles",
       "file": "nen/workflow.json",
       "path": "monitor.maxCycles",

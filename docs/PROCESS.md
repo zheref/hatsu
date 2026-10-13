@@ -280,7 +280,8 @@ of 2026-10-11, *Prompt on hanten* ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-
 hanten*), keeps the 2026-09-29 intent: such a PR goes to `en` § 5's merge prompt on hanten's rounds (`en`
 § 6, the sixth stop). **Stated once, here**; `sharingan` § 6, `en` §§ 5–6, `nen/decisions.json` rows
 `reviewer-exhausted` and `own-pr-merge`, `docs/WORKFLOW.md`'s G5 list, `docs/config/decisions.json.md` and
-that ROSTER section cite this paragraph and restate nothing. It is reached **only when all five hold**,
+that ROSTER section cite this paragraph and restate nothing. **It applies under `aiReviewers: required`**
+(the default; *AI reviewers per consumer*, below, replaces it under `optional` and `off`). It is reached **only when all five hold**,
 read from `nen pr ready <ref> --json` at the judged head (`judgedHead`):
 
 - **(a) A quorum is declared.** `nen/gates.json` carries `round_quorum` with a non-empty `any_of`. With no
@@ -320,6 +321,39 @@ verbatim `--json` output of each exit-`9` call — what nen observed, not a para
 the round ceiling; the merge stays the maintainer's (`en` never merges). Any unmet quorum that misses
 one of (a)–(e) stays under `sharingan` § 6's bounds. Nothing in this paragraph is read by a Hatsu script; the verb
 reads the key.
+
+**AI reviewers per consumer — `aiReviewers`** (the maintainer's rulings of 2026-10-11,
+[`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-11 — AI reviewers per consumer*; zheref/hatsu#245 —
+**stated once, here**; `sharingan` § 6, `en` §§ 5–6, `pr-state` § 2, `nen/decisions.json` row
+`ai-reviewers`, `docs/WORKFLOW.md` § 2 → `aiReviewers` and `docs/config/workflow.json.md` cite this
+paragraph). `nen/workflow.json` → `aiReviewers` is one value for **every automated reviewer** in
+`nen/gates.json` → `reviewers[]` (`CON-16`'s *configured automated reviewer*), and it gates both their
+**use** — whether `nen pr request-reviews` is called for them — and their **expectation** — whether the
+run waits for their round:
+
+| Value | Use | Expectation | Terminus |
+|---|---|---|---|
+| **`required`** (absent reads the same — every consumer keeps today's behaviour) | requested within `round_policy`'s caps (`sharingan` § 6) | expected | verified Ready, or *The sixth stop* (a)–(e) above |
+| **`optional`** | requested within the caps | never waited for | Ready, or the **hanten prompt** below |
+| **`off`** | **never requested** — `sharingan` and `en` skip `request-reviews` for `reviewers[]`; zero AI-reviewer spend | never waited for | Ready, or the **hanten prompt** below |
+
+**The hanten prompt** (under `optional` and `off`): when `nen pr ready <ref> --json` at the judged head has
+`failing` exactly `["rounds-owed"]` and `hanten` has settled every finding for the change set, the PR goes
+to `en` § 5's merge prompt on hanten's rounds. `nen pr ready`'s **not-ready verdict is quoted verbatim and
+never called `ready`**, with one Hatsu line beside it naming the setting (`aiReviewers: <value>`, nen/workflow.json),
+written into the body's completion checklist through `nen pr edit-body`. **A bot that does post is settled
+first**: its threads are answered and resolved, and an unresolved thread is `unresolved-threads`, its own
+failing row, so no prompt until then. **Nothing else is relaxed**: any other failing row — `mergeable`,
+`checks-green`, `round-stalled`, `approvals-at-head`, `unresolved-threads` — ends at `cap-reached`'s
+not-ready terminus, no prompt; `CON-32(a)`, `(c)` and `(d)` stand as they are. This is coherent with
+`CON-16`, under which only enabled reviewers gate and the maintainer has declared these not expected, and
+with `CON-32(b)`, because the verdict is still quoted not-ready and never represented as ready; the merge
+stays the maintainer's. **Precedence:** under `required`, *The sixth stop* is unchanged; under `optional`
+and `off` this rule replaces it, being the wider one. **A value outside the three** is not read as any of
+them: it is `missing-configuration`, set through `scripts/config_values.sh set` (which refuses it, naming
+the three), and `required` applies meanwhile. **`round_policy.maxRounds: 0` is not an off switch** — it
+stops requests, but nen still owes the round, so under `required` the PR stays not-ready with no prompt;
+this key is the off switch.
 
 **The fallback chain — retired** (ruling 2026-09-29, retired by the maintainer's ruling of 2026-10-04,
 *retire 2, adopt 2*: [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-04 — retire 2, adopt 2*;
