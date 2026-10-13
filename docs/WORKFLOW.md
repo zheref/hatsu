@@ -2200,6 +2200,57 @@ host that can, never a retry. **A repository with no `project` block** refuses e
 and either way its own documented commands are run, **saying plainly that no declaration exists and
 which case it was**.
 
+### Stacked pull requests — overlapping efforts are delivered in order, never raced (ruling of 2026-10-12)
+
+**The failure this prevents.** Several PRs opened in parallel against the trunk, each touching the same
+files — the top of `CHANGELOG.md`, the plugin manifests' `version`, the generated mirrors, one shared
+skill — merge one at a time and break every sibling's base as they land: the second needs a catch-up
+merge, the third a conflict pass, and the human gate turns into a conflict-resolver loop
+(zheref/hatsu#219, KRO#242's three PRs). **Overlap is sequenced, not raced**, and the sequence is a
+**stack**: one PR per issue, each branch cut from the previous effort's tip, each PR based on the
+previous effort's branch, merged **bottom-up** by the maintainer.
+
+**The rules, stated once here**:
+
+1. **When to stack.** Two efforts in one run whose diffs would touch a common path — read from the
+   files each touches, the bump and the changelog counted as touched by every plugin-shipped change — go
+   in one stack. Efforts with disjoint paths may run as independent PRs against `branch.base`; an
+   effort found to overlap after it was cut is rebased onto the stack's tip (`nen wc catch-up --base
+   <the previous effort's branch> --strategy rebase` while unpublished, `merge` once published) rather
+   than left to race.
+2. **Cutting.** The first effort is cut from `origin/<branch.base>` with `nen shu warmup`; every later
+   one from the previous effort's **published** branch (`nen shu warmup --repo <wt> --branch <next>
+   --from <previous branch>` — in a linked worktree the cut comes from `origin/<previous branch>`,
+   `--no-track`). A delegate authoring beside another effort on overlapping files cuts from the
+   stack's tip, never from the trunk.
+3. **One mechanical commit per PR at stack time.** The bump (monotonic along the stack: patch for
+   wording, minor for behaviour, as README's bump policy says), the `changelog.d/` fragment
+   (CONTRIBUTING § *Changelog fragments*: `CHANGELOG.md` is never edited for an unreleased change,
+   getsuga collates at the cut) and the regenerated mirrors land on each branch after its content, so
+   a catch-up over the previous PR's mechanical commit is trivial and the review reads the content
+   apart from the churn.
+4. **The PRs.** Each PR's base is the previous effort's branch; only the bottom PR targets
+   `branch.base`. Every PR is reviewed on its own (hanten per effort, its own budgets), carries its own
+   `Closes #<N>` and Development link, and reads its guards against its stacked base. **A stacked PR is
+   presented nowhere as mergeable** (ruling 2 of 2026-09-30): the merge prompt exists only for the PR
+   whose base is `branch.base` at that moment.
+5. **Merging, bottom-up, one at a time.** The maintainer merges the bottom PR and **deletes its head
+   branch**; GitHub then retargets the next PR to the default branch (its *Linking* and *Retarget*
+   behaviour on a deleted base). The run's register desk carries the exact order as a `MERGE` ask per
+   PR: merge, delete the branch, wait for the next PR's base to read `main` and its checks to re-run at
+   that base, then merge the next. **Nothing in a stack is merged out of order**, and a PR whose base
+   has not yet become `branch.base` is never merged.
+6. **Said in the report.** The stack order, each PR's base and version, and the merge steps are on
+   the desk and in every PR body's *Associated issues* note (`stacked on #<prev>`), so the reader
+   never has to derive the order.
+
+Where an effort's PR is retargeted by GitHub after its base merges, en § 5's rule holds unchanged: its
+base is read back before any prompt, and the guards re-run at the new base. The integration branch of
+futon § 5 is the other sequencing shape — one local merge per effort, one PR at the end — and the
+maintainer's word picks between them (2026-10-12: *"I'd like all PRs delivered by next time I visit the
+session (not by batches). Feel free to use stacked PRs and make sure the final report comes with a clear,
+step-by-step review/merge instructions"*).
+
 ### A target repository with no delivery-stage taxonomy
 
 Registry and labels are separate prerequisites, so a verified `nen/repos.json` and `nen/labels.json`

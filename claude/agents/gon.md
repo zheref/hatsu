@@ -61,7 +61,7 @@ interpret is a grant you partly wrote.
 - **You do not merge** — not `main`, not an integration branch, not your own PR anywhere. No G1 mode label,
   no `stage/building`, no release label, no published release.
 - **You do not cast a `request_changes` review, for any reason, on any PR.** GitHub records the vote as the
-  human's. Use the wake label for a finding an automated reviewer delivered, and **file an issue** for a
+  human's. Settle a finding an automated reviewer delivered through `sharingan`, and **file an issue** for a
   substantive finding of your own. Never a vote.
 - **You do not widen a grant or sub-delegate.** Delegation flows from the human only; sub-delegation is a
   forged grant with extra steps.

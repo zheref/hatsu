@@ -866,8 +866,9 @@ Clause ids are the inherited constitution's; the rewritten constitution keeps th
 
 **No agent in this roster casts a `request_changes` review — for any reason, on any PR.** They run on the
 human's credentials, so GitHub records the vote as **theirs**, and casting one manufactures their governance
-vote on a PR they have not read. The substitutes: a **wake label** for findings an automated reviewer already
-delivered, and a **filed issue** for a substantive finding of the agent's own. **That binds the reviewers
+vote on a PR they have not read. The substitutes: **`sharingan`'s channel** for findings an automated reviewer
+already delivered — the author fixes and settles them, and Hatsu holds no CI plane for a label to wake — and a
+**filed issue** for a substantive finding of the agent's own. **That binds the reviewers
 activated on 2026-09-19 exactly as it binds the rest**: **Nobunaga** hands his findings to `hanten` in its
 fixed shape and crosses no gate, and **Shalnark** hands his pass / fail / not-testable rows to
 `hatsu:black-voice`, which files only on the maintainer's own pick.
@@ -969,6 +970,24 @@ nen** (zheref/nen#389): `nen direct resolve` computing the recommended pick, the
 strike, and `nen direct registry` checking the fallback rule. **Open:** zheref/hatsu#222 (the reviewer tier
 against a lower session) is untouched by this ruling — the companion rule fixes the surface (the session's) and names the role's tier
 only pending that question.
+
+---
+
+## Rulings of 2026-10-12 — stacked pull requests, one PR per issue, merged bottom-up
+
+**The maintainer's words, verbatim** (2026-10-12, mid-run on `hatsu:futon hatsu@model/claude`, after the run
+had proposed futon § 5's one integration branch):
+
+> I'd like all PRs delivered by next time I visit the session (not by batches). Feel free to use stacked
+> PRs and make sure the final report comes with a clear, step-by-step review/merge instructions to make
+> sure I follow the plan exactly to avoid potential conflicts as possible.
+
+| Ruling | What it says |
+|---|---|
+| **One PR per issue, delivered, not batched** | A selector run delivers every issue as its own pull request standing at its merge prompt, never folded into one integration PR, when the maintainer says so; futon § 5's integration branch stays the other shape, the maintainer's word choosing |
+| **Overlap is a stack** | Efforts whose diffs touch common paths — the changelog, the version, the mirrors, a shared skill — are cut each from the previous one's published branch and opened each against the previous one's branch; only the bottom PR targets `branch.base`. The rules are [`WORKFLOW.md`](WORKFLOW.md) § *Stacked pull requests*, stated once |
+| **The report carries the merge plan** | The final register's desk lists the stack bottom-up with one `MERGE` ask per PR — merge, delete the head branch, wait for GitHub to retarget the next PR and for its checks to re-run, then the next — so the maintainer follows the plan exactly. A stacked PR is presented as mergeable nowhere (ruling 2 of 2026-09-30) |
+| **Closes zheref/hatsu#219** | *Parallel Pull Request Stacking Strategy*: the workflow prose now defines the strategy, and a delegate authoring beside another effort on overlapping files stacks on it rather than parallelising blindly |
 
 ---
 
@@ -1140,6 +1159,22 @@ handbook-questions on `zheref/hatsu`.
 | **Two more typed keys** | `nen/decisions.json` → `missing-maintainer-choice.governs` gains `jusshin <accept-daily-account>` (the word that lets `nen runner script` render a plan whose identity is the account computing or rendering it) and `jusshin <desktop-overlap>` (the answer above). Neither is a grammar slot: like `jusshin <service-identity>`, each completes the elicitation, not the line. [`WORKFLOW.md`](WORKFLOW.md) § 4's enumeration names them |
 | **shibari opens no draft** | [`shibari`](../claude/skills/shibari/SKILL.md) runs `nen pr open` without `--draft`, so no run owns a draft-to-ready transition. `nen pr mark-ready` (nen `0.19`) is for a draft someone else opened, at the maintainer's word |
 | **What it does not settle** | the 2026-09-30 jusshin ruling's two open questions (the question budget, and whether a sign-in is an on-device act) stay open |
+
+---
+
+## Rulings of 2026-10-03 — BC-11 binds the hanten ledger; it ports to a nen verb
+
+**The maintainer's answer, verbatim** (2026-10-03, on the final report of the `hatsu:futon hatsu@bug` run,
+to the open question `docs/PROCESS.md` § *Residue and owned dependencies* had carried since HA-PR-#212 —
+*does BC-11's embedded-Python freeze bind the ledger?*):
+
+> It binds. The ledger ports to a nen verb.
+
+| Ruling | What it says |
+|---|---|
+| **BC-11 binds `scripts/hanten_cycle_ledger.sh`** | The embedded-Python freeze of BC-11 (`zheref/bankai-handbooks`, the bash handbook) binds the hanten cycle ledger exactly as it binds every other guard: the script is **frozen** — fixes only, no new subcommand, no new verdict, no new trace read — from this date until the verb lands. Its header says so |
+| **The ledger is owed to nen** | zheref/nen#346 owns the review-cycle ledger (`init`, `ensure`, `decide`, `record`, `show`, `recover-first`) as a nen verb. When it ships, `hanten` §§ 1–4 and `breath` § 3b call the verb, the script and its self-test retire, and lane `ledger-guard` points at nen's own tests. zheref/hatsu#216 closes on that step, not before |
+| **Where it is stated** | `docs/PROCESS.md` § *Residue and owned dependencies* (the `ten` § 5 entry) names the owned dependency; the script header names the freeze; this section is the ruling's record |
 
 ---
 

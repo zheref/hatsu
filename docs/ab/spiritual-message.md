@@ -547,3 +547,29 @@ testing it, so a `sections` object that omits an undeclared block makes `{{#if s
 **unknown token at exit 2**, not a false. Either inject every block name with `false` for the ones
 the variant does not declare, or make a missing later segment of a claimed dotted path falsey. The
 hand-built sample documents carry all thirteen block keys for exactly this reason.
+
+## 2026-10-13 — Codex: the active worktree's report is the one surfaced (zheref/hatsu#205)
+
+**The gap.** On Codex the page is `<reports.dir>/current.html`, one per worktree. With two efforts in two
+worktrees, the maintainer's open tab kept showing the first worktree's page while the second effort
+rendered into its own file, so a pending product decision on the second desk read as absent
+(zheref/KroWindows#57, 2026-10-02). § 7 now says: the one chat line names the ACTIVE worktree's file by
+absolute path with the worktree and the branch; a render from another worktree moves that line to its
+own file; an older tab is never presented as current; a product decision is a `DECIDE` ask on the desk,
+never `ask.blocker`, and goes through `request_user_input` when it is required.
+
+**The manual scenario, to be walked on Codex when the surface is at hand** (no Codex session was
+available to this run, so this is the documented scenario the criterion asks for, not a transcript):
+
+1. Two worktrees under `<core>/.nen/worktrees/codex/`, `a` on branch `A` and `b` on branch `B`, each with
+   its own `Reports/current.html` from an earlier turn. Open `a`'s page in a browser tab.
+2. In the Codex conversation bound to `b`, run a `ren` turn that leaves a pending product decision on the
+   desk (a `DECIDE` ask with lettered options and one star, `ask.blocker: null`).
+3. Expected: the chat line reads `turn · <core>/.nen/worktrees/codex/b · B · <abs path>/Reports/current.html`
+   (variant, worktree, branch, path) and the `DECIDE` ask is asked through `request_user_input`. The tab
+   from step 1 is not cited anywhere; opening the path from the line shows `b`'s desk with the decision.
+4. Switch to a conversation bound to `a` and render again: the line names `a`'s path, and nothing claims
+   `b`'s page is current. The two files both still exist and neither is deleted.
+
+**What is not changed.** Nen's `report data`/`render` contracts; the G5 definition (a `DECIDE` is not a
+halt); where the page lives on Claude Code (an Artifact) or Antigravity (the brain directory).

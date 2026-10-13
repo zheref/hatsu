@@ -2,12 +2,6 @@
 
 All notable changes to Hatsu are documented in this file. Releases follow [Semantic Versioning](https://semver.org/).
 
-## v0.94.1 — the skills cite `docs/using` in place of the superseded `docs/SURFACES.md`
-
-### Skill citations repointed from `docs/SURFACES.md` to `docs/using/README.md` and `docs/using/mirrors.md` ([#242](https://github.com/zheref/hatsu/issues/242), 0.94.1)
-
-- **No skill, skill index or agent file cites `docs/SURFACES.md` any more** ([#242](https://github.com/zheref/hatsu/issues/242)). The shared policy preamble that 22 skills carry now lists `docs/using/README.md` and `docs/using/mirrors.md` in place of `docs/SURFACES.md`; the seven section citations name the page and section that hold the content today — `docs/using/README.md` § *The four surfaces, compared* (`mukai` § 1's permissions row, `bakuryuha` § 1's install rows, `jutaisho` § 4's native-picker row, `great-hiker` § 1's frontmatter budget), § *Targeting a local checkout* (`bakuryuha` § 5's inlined pin), `docs/using/mirrors.md` § 1 (`pr-state` § 2's mirror note, `claude/skills/README.md`'s authority line) and § 2 (`breath` § 2b's `info/exclude` rule); `docs/GATE-CONFIGURATION.md` points at `mirrors.md` § 3 for the regenerate loop. `limbo` takes the one-line `**Shared policy:**` preamble the dieted skills use, and `breath` shortens its link text, so both stay under their 12288-byte ceiling. `docs/SURFACES.md` stays as the redirect stub: the fixture `scripts/surface_link_check_fixture.sh` and the dated evidence under `docs/ab/` still name it, and removing it is a separate decision. Plugin bumped to 0.94.1 (Claude manifest and Codex overlay); the three mirrors regenerated at that stamp.
-
 ## v0.94.0 — nen v0.21.0, the gates keys retired, prompt on hanten, per-consumer AI reviewers, opt-in direct publishing and the README redesign
 
 Three deliveries merged since `v0.93.0`, folded here from their `changelog.d/` fragments, newest first. `v0.93.1` and `v0.93.2` were never tagged and ship inside `v0.94.0`.
