@@ -599,7 +599,7 @@
         "composer"
       ],
       "value": "aliases.<primary>.line -- the model LINE only, never a tier, version, surface or effort",
-      "verb": "nen label apply <CODE>-IS-#<N> --label model/<line> --repo-slug <owner/name> --repo <checkout> --reason \"hatsu:direct <date>\" --run",
+      "verb": "nen label apply <CODE>-IS-#<N> --label model/<line> --repo-slug <owner/name> --repo <checkout> --reason \"hatsu:direct <date>\" --ledger <checkout>/.nen/direct/label-ledger.jsonl --run",
       "declaredIn": "the consumer's nen/labels.json: the five model/ labels land through their own PR before any apply (the 2026-10-04 declaration-first ruling); an undeclared label is the verb's refusal, reported, never worked around. A third classify axis is refused by nen's contract (exactly lang and job), so this family is declared by hand and applied through nen label, never nen classify.",
       "replace": "at most one model/ label per issue once nen label gains --remove; until then a different model/ label already present is named in the report and left (residue, zheref/nen#389). A label refused as undeclared does not stop the comment: under label+comment the comment still posts and names the refusal."
     },

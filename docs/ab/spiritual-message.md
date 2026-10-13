@@ -556,7 +556,8 @@ rendered into its own file, so a pending product decision on the second desk rea
 (zheref/KroWindows#57, 2026-10-02). § 7 now says: the one chat line names the ACTIVE worktree's file by
 absolute path with the worktree and the branch; a render from another worktree moves that line to its
 own file; an older tab is never presented as current; a product decision is a `DECIDE` ask on the desk,
-never `ask.blocker`, and goes through `request_user_input` when it is required.
+`ask.gate: null`, never `ask.blocker`, and reaches `request_user_input` in the same turn (jutaisho § 1); the
+rule itself is stated once in PROCESS § *Publishing a report*, which the skill cites.
 
 **The manual scenario, to be walked on Codex when the surface is at hand** (no Codex session was
 available to this run, so this is the documented scenario the criterion asks for, not a transcript):
@@ -564,12 +565,15 @@ available to this run, so this is the documented scenario the criterion asks for
 1. Two worktrees under `<core>/.nen/worktrees/codex/`, `a` on branch `A` and `b` on branch `B`, each with
    its own `Reports/current.html` from an earlier turn. Open `a`'s page in a browser tab.
 2. In the Codex conversation bound to `b`, run a `ren` turn that leaves a pending product decision on the
-   desk (a `DECIDE` ask with lettered options and one star, `ask.blocker: null`).
-3. Expected: the chat line reads `turn · <core>/.nen/worktrees/codex/b · B · <abs path>/Reports/current.html`
-   (variant, worktree, branch, path) and the `DECIDE` ask is asked through `request_user_input`. The tab
+   desk (a `DECIDE` ask with lettered options and one star, `ask.gate: null`, `ask.blocker: null`).
+3. Expected: the chat line reads `turn · b · B · <core>/.nen/worktrees/codex/b/Reports/current.html`
+   (variant, worktree name, branch, absolute path) and the `DECIDE` ask reaches `request_user_input` in
+   the same turn (jutaisho § 1). The tab
    from step 1 is not cited anywhere; opening the path from the line shows `b`'s desk with the decision.
 4. Switch to a conversation bound to `a` and render again: the line names `a`'s path, and nothing claims
    `b`'s page is current. The two files both still exist and neither is deleted.
 
-**What is not changed.** Nen's `report data`/`render` contracts; the G5 definition (a `DECIDE` is not a
-halt); where the page lives on Claude Code (an Artifact) or Antigravity (the brain directory).
+**What is not changed.** Nen's `report data`/`render` contracts; which class a non-gate stop belongs to
+(PROCESS § *Reporting a phase*'s "a stop that is not a gate is a G5 with a `DECIDE` or `DO` ask" against
+WORKFLOW § 4's five G5s is an open handbook-question for the maintainer, not decided here); where the page
+lives on Claude Code (an Artifact) or Antigravity (the brain directory).

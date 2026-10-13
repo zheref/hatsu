@@ -523,3 +523,43 @@ gate: {allowed: true, kind: "process", reason: …}}, {skill: "mugetsu", …}]}`
 carry no `gate` because `futon.advanceGo` does not list them (§ 8's fail-closed rule applies only to a
 listed skill); at 0.15.0 the duplicate `getsuga+getsuga` chain is accepted and the `gate` line carries no
 `[declared]` suffix — both are the release after v0.15.0 (the duplicate refused, the source printed).
+
+## Dated verification, 2026-10-13 — the register rendered through `--register` at nen 0.21.0 (zheref/hatsu#221)
+
+The futon run `hatsu@model/claude` (26 issues, no `then`) rendered its board through backlog-board § 3's
+two-pass path on this branch, the desk composed by hand and every fact nen's. Observed, in order:
+
+```
+$ nen report data --repo . --base origin/main --target zheref/hatsu --issues 108,135,…,242 \
+    --register desk.json --json > data.json
+# desk.json carrying gates[0].cleared: false
+exit=2  nen report: 'desk.json': gates[0] has 'cleared' of a boolean, not a string. The desk is the
+        judgement half of the register -- { variant, title, scope, gate, generatedAtLocal?, … }
+# desk.json carrying gates[0].cleared: "no" beside gates[0].asks
+exit=2  nen report: 'desk.json': gates[0] has asks AND a 'cleared' line; a gate is cleared only when
+        nothing on it is owed.
+# desk.json with no cleared line (one DECIDE ask), generatedAtLocal from scripts/report_time.sh
+exit=0  timeZone: the register desk set generatedAtLocal, so the desk owns the page's clock;
+        generatedDateLocal and timeZone reported as null.
+        effortStage: origin/fable/kurapika/ha-221-register-verb exists and no PR row matched this
+        branch (--issues reads no pull request); effortStage, gate and stageClass reported as null.
+        turnNumber: the 'fable/kurapika/ha-221-register-verb' ledger records no 'report' phase;
+        reported as null.
+$ jq '{tallyScope,tallyNeedsYou,tallyBlockers,tallyReady,tallyInFlight,footerCount}' data.json
+{ "tallyScope": 26, "tallyNeedsYou": 1, "tallyBlockers": 0, "tallyReady": 0, "tallyInFlight": 0,
+  "footerCount": "26 objects in scope · 1 ask on the desk" }
+$ nen report render --variant register --template templates/rikugan.html --data data.json \
+    --out "$TMPDIR/trial.html" --repo .
+exit=2  nen report: --out '…/trial.html' resolves outside the repository at <checkout>. … 'report
+        render' writes the report INTO the repository it is reporting on and nowhere else
+$ nen report render … --out Reports/current.html --repo .
+exit=0  wrote Reports/current.html            # 46939 bytes; 26 `HA-IS-#n` rows; the one ask present
+```
+
+Read against the skill: the five tallies are the verb's (§ 3's list), an issue-only scope counts no
+PR into `tallyReady`/`tallyInFlight`/`tallyBlockers`, and the 26 objects each carry `notation`,
+`labelsLine` and the empty `verdict` the template quotes verbatim. Two desk shapes the skill does not
+spell out are refused by name: a boolean `cleared`, and a `cleared` line on a gate that still holds
+asks. `--out` must sit under `--repo` (a scratch path is refused), which is the render-to-stdout
+request zheref/hatsu#215 words for nen. The run's final register is the same two calls over its PRs
+and issues once the PRs exist.

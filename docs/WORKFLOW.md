@@ -278,7 +278,7 @@ add ([zheref/nen#300](https://github.com/zheref/nen/issues/300)).
 | `template` | `spiritual-message` | `templates/<name>.html` in this repository |
 | `captures` | `Reports/captures` | where screenshots land before they are inlined as data URIs |
 | `sections.<variant>.template` | — | which of `templates/*.html` this variant renders: `spiritual-message` for `turn`, `turn-fast` and `landing`, `rikugan` for `final` and `register` |
-| `sections.<variant>.blocks` | — | the block names this variant renders, injected as `sections.<block>` presence flags by `nen report render --variant`. A variant declaring none renders every block |
+| `sections.<variant>.blocks` | — | the block names this variant renders, injected as `sections.<block>` presence flags by `nen report render --variant`. **Required and non-empty**: a variant with no `blocks`, an empty one, or no `template` makes nen refuse the whole file (exit `1`); an undeclared variant, or a file with no `sections` at all, is exit `2` — nothing renders. **The adoption sentence, stated once here** (zheref/hatsu#108): a repository that has never declared `sections` sets up the five-variant block [`docs/config/workflow.json.md`](config/workflow.json.md) § `reports` documents as `missing-configuration` (§ 4) at the first phase that will render, the write landing as § 4 step 3 says — on the effort's branch or its own PR; the rendering skills cite this line and name no default |
 | `timeZone` | the host's zone | the IANA zone every report's clock is said in (`America/Bogota`); see *Report time* below |
 
 **The template language `nen report render` fills these with.** `{{token}}` (escaped),
@@ -2181,7 +2181,7 @@ effort is `"plane":"local"`**, so a slot never frees on "the PR opened": it free
 both `"ready":true` **and** `"prompted":true` — the maintainer has actually been shown the `MERGE`
 ask. **`--local-cap` is required** (the old default of `7` was removed) and `--efforts` resolves
 against the process cwd, so pass an absolute path; say which effort is waiting when the cap binds.
-**Never let two children touch the same file at once** — sequence them and say so; no verb governs it.
+**Never let two children touch the same file at once** — sequence them, as a stack (§ *Stacked pull requests*) or futon § 5's integration branch, and say so; no verb governs it.
 
 **Verification runs through the phase owners** — [`rasengan`](../claude/skills/rasengan/SKILL.md) for
 authoring feedback, [`kokusen`](../claude/skills/kokusen/SKILL.md) for the finished-tree checkpoint;
@@ -2214,46 +2214,53 @@ merge, the third a conflict pass, and the human gate turns into a conflict-resol
 **stack**: one PR per issue, each branch cut from the previous effort's tip, each PR based on the
 previous effort's branch, merged **bottom-up** by the maintainer.
 
-**The rules, stated once here**:
+**The rules, stated once here** (futon § 5 and breath § 3 cite them):
 
-1. **When to stack.** Two efforts in one run whose diffs would touch a common path — read from the
-   files each touches, the bump and the changelog counted as touched by every plugin-shipped change — go
-   in one stack. Efforts with disjoint paths may run as independent PRs against `branch.base`; an
-   effort found to overlap after it was cut is rebased onto the stack's tip (`nen wc catch-up --base
+1. **When to stack — the default on overlap.** Two efforts in one run whose diffs would touch a common
+   path — read from the files each touches; the manifests' `version` and the regenerated mirrors count
+   as touched by every plugin-shipped change, while `changelog.d/` fragments do not collide — go in one
+   stack. That is the default when the maintainer gives no word; futon § 5's integration branch is the
+   other shape, typed. Efforts with disjoint paths may run as independent PRs against `branch.base`; an
+   effort found to overlap after it was cut is caught up onto the stack's tip (`nen wc catch-up --base
    <the previous effort's branch> --strategy rebase` while unpublished, `merge` once published) rather
    than left to race.
 2. **Cutting.** The first effort is cut from `origin/<branch.base>` with `nen shu warmup`; every later
-   one from the previous effort's **published** branch (`nen shu warmup --repo <wt> --branch <next>
-   --from <previous branch>` — in a linked worktree the cut comes from `origin/<previous branch>`,
-   `--no-track`). A delegate authoring beside another effort on overlapping files cuts from the
-   stack's tip, never from the trunk.
+   one from the previous effort's **published** branch — `nen shu warmup --repo <wt> --branch <next>
+   --from <previous branch>`, which needs a local branch of that name (`git branch <prev> origin/<prev>`
+   where only origin has it) and, in a linked worktree, cuts from `origin/<previous branch>`,
+   `--no-track`. A delegate authoring beside another effort on overlapping files cuts from the stack's
+   tip, never from the trunk.
 3. **One mechanical commit per PR at stack time.** The bump (monotonic along the stack: patch for
-   wording, minor for behaviour, as README's bump policy says), the `changelog.d/` fragment
-   (CONTRIBUTING § *Changelog fragments*: `CHANGELOG.md` is never edited for an unreleased change,
-   getsuga collates at the cut) and the regenerated mirrors land on each branch after its content, so
-   a catch-up over the previous PR's mechanical commit is trivial and the review reads the content
-   apart from the churn.
+   wording, minor for behaviour — CONTRIBUTING § *A change to a shipped surface needs a version bump*),
+   the `changelog.d/` fragment (CONTRIBUTING § *Changelog fragments*) and the stamp-only mirror churn
+   land on each branch after its content; a mirrored skill's own body change regenerates in the same
+   commit as its source (README). A catch-up over the previous PR's mechanical commit conflicts on the
+   manifests and the stamps — Hatsu declares no `mechanical` block — and is resolved by keeping the
+   branch's own manifests and regenerating the mirrors at its stamp, said.
 4. **The PRs.** Each PR's base is the previous effort's branch; only the bottom PR targets
    `branch.base`. Every PR is reviewed on its own (hanten per effort, its own budgets), carries its own
    `Closes #<N>` and Development link, and reads its guards against its stacked base. **A stacked PR is
-   presented nowhere as mergeable** (ruling 2 of 2026-09-30): the merge prompt exists only for the PR
-   whose base is `branch.base` at that moment.
-5. **Merging, bottom-up, one at a time.** The maintainer merges the bottom PR and **deletes its head
-   branch**; GitHub then retargets the next PR to the default branch (its *Linking* and *Retarget*
-   behaviour on a deleted base). The run's register desk carries the exact order as a `MERGE` ask per
-   PR: merge, delete the branch, wait for the next PR's base to read `main` and its checks to re-run at
-   that base, then merge the next. **Nothing in a stack is merged out of order**, and a PR whose base
-   has not yet become `branch.base` is never merged.
-6. **Said in the report.** The stack order, each PR's base and version, and the merge steps are on
-   the desk and in every PR body's *Associated issues* note (`stacked on #<prev>`), so the reader
-   never has to derive the order.
+   presented nowhere as mergeable** (ruling 2 of 2026-09-29, kept by the 2026-09-30 amendment): the
+   merge prompt exists only for the PR whose base reads `branch.base` at that moment. A stacked effort's
+   local slot is counted freed when its PR stands at its stacked base with hanten settled — `nen loop
+   slots` cannot read a stack, a handbook-question said on the desk.
+5. **Merging, bottom-up, one at a time, with `--merge`, never a squash** (a squash would re-carry the
+   lower PR's commits into the next diff). The maintainer merges the bottom PR and **deletes its head
+   branch**; GitHub then retargets the next PR to the merged PR's base, which is `branch.base` (GitHub
+   Docs, *Deleting and restoring branches in a pull request*). After each merge the run — or
+   `hatsu:en <next>` — reads the next PR's base back; where it does not read `branch.base` it runs
+   `nen pr retarget --base <branch.base>` (en § 5, check 1); then en § 5's remaining checks run at the
+   new base (the readiness check re-runs on a push or a re-run, since `pr-readiness.yml` does not fire
+   on `edited`), and only then the one `MERGE` ask. A PR whose base is neither is stranded (en § 6).
+   **Nothing in a stack is merged out of order.**
+6. **Said in the report.** The desk carries the stack as one plan line (order, each PR's base and
+   version) and one `MERGE` ask — for the PR whose base reads `branch.base` — and every PR body's
+   *Associated issues* note reads `stacked on #<prev>`, so the reader never has to derive the order.
 
-Where an effort's PR is retargeted by GitHub after its base merges, en § 5's rule holds unchanged: its
-base is read back before any prompt, and the guards re-run at the new base. The integration branch of
-futon § 5 is the other sequencing shape — one local merge per effort, one PR at the end — and the
-maintainer's word picks between them (2026-10-12: *"I'd like all PRs delivered by next time I visit the
+The integration branch of futon § 5 is the other sequencing shape — one local merge per effort, one PR
+at the end — typed by the maintainer (2026-10-12: *"I'd like all PRs delivered by next time I visit the
 session (not by batches). Feel free to use stacked PRs and make sure the final report comes with a clear,
-step-by-step review/merge instructions"*).
+step-by-step review/merge instructions …"*).
 
 ### A target repository with no delivery-stage taxonomy
 
