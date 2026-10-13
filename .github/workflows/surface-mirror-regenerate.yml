@@ -151,20 +151,23 @@ jobs:
           bin="$(bash "${RUNNER_TEMP}/nen-bootstrap.sh" --ref "$ref")"
           [ -x "$bin" ] || { echo "::error::bootstrap printed '$bin', which is not executable."; exit 1; }
           echo "bin=$bin" >> "$GITHUB_OUTPUT"
-          echo "nen: $("$bin" --version) at $bin"
 
       - name: Verify the nen binary against nen/contract.json's sha256
         # FROZEN (REGENERATE_FROZEN_STEPS, zheref/hatsu#230): the check the pull
-        # request workflows run, against the contract in this checkout of main.
+        # request workflows run, against the contract in this checkout of main; the
+        # bootstrap above prints only the path, and `--version` runs here, after
+        # the match.
         env:
           NEN_BIN: ${{ steps.nen.outputs.bin }}
         shell: bash
         run: |
           set -euo pipefail
           [ -f "$NEN_BIN" ] || { echo "::error::no bootstrapped nen binary to hash at '${NEN_BIN}'."; exit 1; }
-          observed="$(sha256sum "$NEN_BIN")"
+          [ -f nen/contract.json ] || { echo "::error::no nen/contract.json to read the expected sha256 from."; exit 1; }
+          observed="$(sha256sum "$NEN_BIN")" || { echo "::error::could not hash the bootstrapped nen binary at '${NEN_BIN}'."; exit 1; }
           observed="${observed%% *}"
-          expected="$(jq -r '.dependency.bootstrap.sha256["linux-x64"] // empty' nen/contract.json 2>/dev/null)" || expected=""
+          expected="$(jq -j '.dependency.bootstrap.sha256["linux-x64"] // empty' nen/contract.json 2>/dev/null && printf .)" || expected=""
+          expected="${expected%.}"
           if [[ ! "$expected" =~ ^[0-9a-f]{64}$ ]]; then
             shown="${expected//[^0-9A-Za-z]/?}"
             echo "::error::nen/contract.json records no well-formed dependency.bootstrap.sha256[\"linux-x64\"]: expected 64 lowercase hex characters, found '${shown:0:80}'; observed ${observed}."
@@ -175,6 +178,7 @@ jobs:
             exit 1
           fi
           echo "nen binary sha256 ${observed} matches nen/contract.json (linux-x64)."
+          echo "nen: $("$NEN_BIN" --version) at $NEN_BIN"
 
       - name: Read the plugin stamp
         id: stamp

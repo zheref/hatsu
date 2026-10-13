@@ -382,14 +382,23 @@ script verifies the binary against `SHA256SUMS` from the same release, so a move
 assets verify against themselves. `surface-mirror-check.yml`, `pr-readiness.yml` and
 `surface-mirror-regenerate.yml` now hash the binary right after bootstrapping it and compare it with
 the trusted checkout's `dependency.bootstrap.sha256["linux-x64"]` (the builder's own checkout of
-`main`), failing closed with both digests named. Step one taught the validator the step beside the
-current shapes; step two added it to the live files and narrowed Hatsu's own forms to carrying it,
-frozen (`NEN_DIGEST_FROZEN`). **A repin moves the linux-x64 digest with `dependency.pinned_ref`, in the
-same pull request**: that pull request is still judged by `main`'s old pin and digest, but once it
-merges a digest that does not match the new release fails every pull request closed, the one that
-fixes it included, until an administrator merges past the ruleset. **Tenkai's rendered readiness form
-carries no such step**: a product repository's contract need not record nen's digest, since its pin can
-fall back to the ref tenkai renders, so a check there needs a rendered digest beside that ref, which is
-tenkai's change. The bootstrap script's own digest is not recorded, and the script runs before any
-check here can.
+`main`), failing closed with both digests named. Nothing runs the binary before that: the bootstrap
+step prints only its path (nen's script verifies and places the binary, never runs it), and
+`nen --version` runs last in the check, after the match; a bootstrap that still prints the version
+beside the check is refused as the old order. Step one taught the validator the step and the
+bootstrap's next form beside the current shapes; step two added both to the live files and narrowed
+Hatsu's own forms to carrying them, frozen (`NEN_DIGEST_FROZEN`, `NEN_BOOTSTRAP_NEXT`). Where the root
+holds `templates/pr-readiness.yml`, tenkai's rendered readiness form is refused, so no pull request here
+can trade the checked bootstrap for the consumer's. **A repin moves the linux-x64 digest with
+`dependency.pinned_ref`, in the same pull request**: that pull request is still judged by `main`'s old
+pin and digest, but once it merges a digest that does not match the new release fails every pull
+request closed, the one that fixes it included, until an administrator merges past the ruleset.
+`scripts/nen_global_fixture_check.sh` (case 21c, lane `nen-global-guard`) holds every digest to the
+current pin's own record, and that record to `pinned_ref`. **Tenkai's rendered readiness form carries
+no such step**: a product repository's contract need not record nen's digest, since its pin can fall
+back to the ref tenkai renders. Two follow-ups are owed, filed by the run's harvest: tenkai rendering a
+digest beside that ref, and recording the bootstrap script's own sha256 and checking it before the
+script runs, since the script runs before any check here can. **Open, a G4 for the maintainer:**
+whether this check (shell in a workflow step that hashes a fetched binary and reads the contract with
+`jq`) falls under BC-11's bootstrap allowance or is residue owed to a nen verb; nothing here decides it.
 

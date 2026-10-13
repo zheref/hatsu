@@ -327,7 +327,10 @@ else fail "record unwritable" "rc=$rc out=$out"; fi
 
 # 21c. every platform the pinned release publishes has a digest in the REAL contract (linux included), and each
 #      digest is the one the CURRENT pin's own record in pinned_ref_semantics (before its first `Before it,`) carries,
-#      so a repin that moves pinned_ref without moving the digests goes red. Platform = asset name minus `nen-` and `.exe`.
+#      so a repin that moves pinned_ref without moving the digests goes red. That record must be the pin's own -- it
+#      starts `Bootstrap release ref v<pinned_ref>` -- or a repin moving pinned_ref alone, record and digests left
+#      behind, would pass and fail CI's digest step on every later PR (hanten on #230, Chrollo). Platform = asset name
+#      minus `nen-` and `.exe`.
 missing=""; mismatch=""
 cur_rec="$(sed -n 's/^[[:space:]]*"pinned_ref_semantics"[[:space:]]*:[[:space:]]*"\(.*\)/\1/p' "$root/nen/contract.json" | head -n 1 | sed 's/Before it,.*//')"
 plats="$(awk '/"published_binaries"/ { inb = 1; next } inb && /\]/ { exit } inb { gsub(/[ ",]/, ""); sub(/^nen-/, ""); sub(/\.exe$/, ""); if ($0 != "") print }' "$root/nen/contract.json")"
@@ -337,8 +340,13 @@ for p in $plats; do
   if [ -z "$d" ]; then missing="$missing $p"
   elif ! printf '%s' "$cur_rec" | grep -qF "$d"; then mismatch="$mismatch $p"; fi
 done
-if [ -z "$missing" ] && [ -z "$mismatch" ]; then pass "every published platform ($(echo $plats)) has a contract digest, and it is the current pin's own record"
-else fail "contract digests" "missing:$missing; not in the current pin's record:$mismatch"; fi
+case "$cur_rec" in
+  "Bootstrap release ref v$pin "*) named="" ;;
+  *) named=" (the current record does not start 'Bootstrap release ref v$pin')" ;;
+esac
+if [ -z "$missing" ] && [ -z "$mismatch" ] && [ -z "$named" ]; then
+  pass "every published platform ($(echo $plats)) has a contract digest, and it is the current pin's own record, which names v$pin"
+else fail "contract digests" "missing:$missing; not in the current pin's record:$mismatch$named"; fi
 
 # 21d. a failed rc write rolls its record entry back: another file's tombstone survives, and once the
 #      directory exists the file is ADDED (never read as removed-by-user)

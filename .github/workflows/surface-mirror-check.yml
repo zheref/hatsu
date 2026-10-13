@@ -218,7 +218,6 @@ jobs:
           bin="$(bash "${RUNNER_TEMP}/nen-bootstrap.sh" --ref "$ref")"
           [ -x "$bin" ] || { echo "::error::bootstrap printed '$bin', which is not executable."; exit 1; }
           echo "bin=$bin" >> "$GITHUB_OUTPUT"
-          echo "nen: $("$bin" --version) at $bin"
 
       - name: Verify the nen binary against trusted nen/contract.json's sha256
         # FROZEN (NEN_DIGEST_FROZEN in scripts/workflow_runner_policy_check.rb,
@@ -226,18 +225,22 @@ jobs:
         # the SAME release, so a moved tag or replaced release assets would verify
         # against themselves. This hashes the binary the bootstrap printed and
         # compares it with the trusted checkout's dependency.bootstrap.sha256
-        # linux-x64 digest, never the pull request's copy: a mismatch, or a missing or
-        # malformed key, fails the job before anything runs the binary, naming both
-        # digests. A repin moves that digest with dependency.pinned_ref, in one PR.
+        # linux-x64 digest, never the pull request's copy: a mismatch, a missing or
+        # malformed key or a missing contract fails the job, naming both digests.
+        # Nothing runs the binary before that: the bootstrap step above prints only
+        # its path, and this step runs `--version` last, after the match. A repin
+        # moves that digest with dependency.pinned_ref, in one PR.
         env:
           NEN_BIN: ${{ steps.nen.outputs.bin }}
         shell: bash
         run: |
           set -euo pipefail
           [ -f "$NEN_BIN" ] || { echo "::error::no bootstrapped nen binary to hash at '${NEN_BIN}'."; exit 1; }
-          observed="$(sha256sum "$NEN_BIN")"
+          [ -f .trusted/nen/contract.json ] || { echo "::error::no trusted nen/contract.json to read the expected sha256 from."; exit 1; }
+          observed="$(sha256sum "$NEN_BIN")" || { echo "::error::could not hash the bootstrapped nen binary at '${NEN_BIN}'."; exit 1; }
           observed="${observed%% *}"
-          expected="$(jq -r '.dependency.bootstrap.sha256["linux-x64"] // empty' .trusted/nen/contract.json 2>/dev/null)" || expected=""
+          expected="$(jq -j '.dependency.bootstrap.sha256["linux-x64"] // empty' .trusted/nen/contract.json 2>/dev/null && printf .)" || expected=""
+          expected="${expected%.}"
           if [[ ! "$expected" =~ ^[0-9a-f]{64}$ ]]; then
             shown="${expected//[^0-9A-Za-z]/?}"
             echo "::error::trusted nen/contract.json records no well-formed dependency.bootstrap.sha256[\"linux-x64\"]: expected 64 lowercase hex characters, found '${shown:0:80}'; observed ${observed}."
@@ -248,6 +251,7 @@ jobs:
             exit 1
           fi
           echo "nen binary sha256 ${observed} matches trusted nen/contract.json (linux-x64)."
+          echo "nen: $("$NEN_BIN" --version) at $NEN_BIN"
 
       - name: Surface-mirror drift check
         env:
