@@ -2,6 +2,12 @@
 
 All notable changes to Hatsu are documented in this file. Releases follow [Semantic Versioning](https://semver.org/).
 
+## v0.96.1 — bakuryuha binds the host `nen` link to the new pin before the reload
+
+### `bakuryuha` § 5 names the host-link step for the pinned nen, before § 6's reload ([#201](https://github.com/zheref/hatsu/issues/201), 0.96.1)
+
+- **`bakuryuha` § 5 now says, in its own words, that the host `nen` link is bound to the NEW pin as part of re-proving from the new body, before anything in § 6 switches** ([#201](https://github.com/zheref/hatsu/issues/201)): the new `ten` § 2 runs `scripts/nen_global.sh --root <checkout>` (bootstrap when the host's `~/.local/bin/nen` is not the pin, link, rc `PATH` block kept), its `nen-global:` line is quoted in § 7, a not-bound exit (`3`/`4`) is ten § 2c's `host-nen-link` offer made then and never left for after `/skills reload`, and `5` is ten § 3's halt. A surface with no session-start hook (Antigravity, Cursor) gets the link from this step alone — the gap the v0.74.0 → v0.75.0 upgrade on Antigravity hit. Plugin bumped to 0.96.1 (wording in a shipped skill); mirrors regenerated at that stamp.
+
 ## v0.96.0 — the register is built by `nen report data --register`, never by hand
 
 ### `backlog-board` § 3 and `rikugan` §§ 3–4 build the register document with `nen report data --register <desk>` ([#221](https://github.com/zheref/hatsu/issues/221), 0.96.0)

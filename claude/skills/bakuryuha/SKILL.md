@@ -89,10 +89,15 @@ authoring branch is served as it stands, said. Git never runs in a surface's plu
 
 Run the new `ten` from disk as `hatsu:ten bakuryuha`, `$base_dir` its directory: Claude Code
 `<checkout>/claude/skills/ten/`, Codex `<after cache root>/claude/skills/ten/`, Antigravity
-`<checkout>/surfaces/antigravity/skills/ten/`, Cursor `<checkout>/surfaces/cursor/ten/`. nen follows
-the new pin (ten § 2's verb line; the host link is step 0's, ten § 2; § 2c reads the host), mirrors are checked, and ten § 5
-places what the target still needs — on Codex with the plugin, personas only (`--plugin`), removing
-the old skill copies.
+`<checkout>/surfaces/antigravity/skills/ten/`, Cursor `<checkout>/surfaces/cursor/ten/`. **The host
+link is bound here, to the NEW pin, before anything in § 6** (hatsu#201): the new `ten` § 2 runs
+`"$checkout/scripts/nen_global.sh" --root "$checkout"` — the contract's `pinned_ref` bootstrapped
+when `~/.local/bin/nen --version` is not the pin, linked, the rc `PATH` block kept — and its summary
+line (`nen-global: nen <pin> at <link> (current|linked|kept-newer) · rc: …`) is quoted in § 7; `3`/`4`
+(not bound) is ten § 2c's `host-nen-link` offer, made **now**, never left for after the reload; `5` is
+ten § 3's halt. Then mirrors are checked and ten § 5 places what the target still needs — on Codex
+with the plugin, personas only (`--plugin`), removing the old skill copies. A surface with no
+session-start hook (Antigravity, Cursor) gets the link from this step alone.
 
 ## 6. Activate — what switches, and what waits for you
 
