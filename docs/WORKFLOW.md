@@ -1716,7 +1716,11 @@ nen gate derive --policy-paths <policyPaths> --process-paths <processPaths> \
   each passed comma-joined; this section carries no copy (zheref/hatsu#171), and
   `scripts/pr_composition_check.sh` (lane `pr-composition-guard`) fails on one. A canon repository
   with no row there has no declared sets: the run says so and asks (§ 4 *Ask, set up, continue*),
-  never improvising one.
+  never improvising one, and the row is written by a Hatsu PR at Hatsu's `G4`.
+- **`zheref/hatsu`'s process set carries `contracts/` and `templates/`**, so a diff of the
+  declaration, `contracts/pr-body.requirements.json` or `templates/pr-body.md` derives `G4`, as it
+  did while this section held the sets — **this run's reading, the maintainer's to confirm at the
+  `G4` merge (zheref/hatsu#171)**.
 - **`--files` is caller data** — the verb fetches nothing — and comes from
   `gh pr diff <n> --repo <owner/name> --name-only`. A wrong file set gives the verb, and
   `nen changelog fragment-required` beside it, a confident wrong answer.

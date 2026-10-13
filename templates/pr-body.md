@@ -32,7 +32,10 @@
         changes a spec path adds its changelog.d/ fragment and needs no opt-out. THE ONE OPT-OUT is
         changelogFragment.directSection.optOut, copied verbatim into the Completion checklist, and
         ONLY when the diff itself changes CHANGELOG.md (futon's integration PR writes its own
-        section); over any other diff it is a false statement the verb cannot see. --head-changelog
+        section); over any other diff it is a false statement the verb cannot see. UNENFORCED BY
+        NEN: the verb honours the phrase anywhere, over any diff, so a Hatsu-side raw-body check is
+        owed (zheref/hatsu#171); this comment never spells the phrase, and
+        scripts/pr_composition_check.sh fails if it does. --head-changelog
         must exist or the verb refuses at exit 2, reported as the fact it is and never as a clean
         verdict, and fragment-present needs the fragment on disk at head as well as in --files.
 

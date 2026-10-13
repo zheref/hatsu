@@ -795,8 +795,9 @@ over unshipped paths only, #130 and #137 (`CHANGELOG.md`) and #187 (`docs/ab/jus
 already reported *does not apply*.
 
 **The fix.** The line no longer skips the version check. Where no path in `PLUGIN_SURFACE_GLOBS` changed it
-is accepted and named in the pass line; where one did, it is refused by name, listing the shipped paths,
-before the ordinary refusal. The ordinary refusal stops offering the line. The script header,
+is accepted and named in the pass line; where one did and the version is not bumped, it is refused by name,
+listing the shipped paths, before the ordinary refusal. Beside a bump the line is inert, and the pass line
+says it was ignored (hanten, Chrollo and Nobunaga: it was silently dropped). The ordinary refusal stops offering the line. The script header,
 `CONTRIBUTING.md` § *A change to a shipped surface needs a version bump* and the README's contributing
 paragraph say the same. Transcripts, against HA-PR-#233's and HA-PR-#187's own changed files with an
 unbumped manifest:
@@ -820,8 +821,8 @@ no plugin-shipped surface changed — plugin-bump guard does not apply; the `no 
 exit=0
 ```
 
-Fixture: six cases — refused over a shipped doc, naming it; accepted over unshipped files only; refused over a
-mixed diff, listing only the shipped path; a real bump beside the line passes on the bump; the ordinary
+Fixture: seven cases — refused over a shipped doc, naming it; accepted over unshipped files only; refused over a
+mixed diff, listing only the shipped path; a real bump beside the line passes on the bump and names the line ignored; the ordinary
 refusal no longer offers the line. **The trusted-revision caveat (§ 5.1) applies**: the check runs the guard
 from the workflow's own revision, so the change takes effect on the pull requests opened after it merges,
 not on its own.
