@@ -56,7 +56,7 @@ From the target's `nen/workflow.json`, read as [`PROCESS.md`](../../../docs/PROC
 | Key | Used for | Default |
 |---|---|---|
 | `reports.dir` / `.template` / `.captures` | kept-report dir, template, capture dir | `Reports` / `spiritual-message` / `<dir>/captures` |
-| `reports.sections.<variant>` | **the blocks this variant renders** | **required**: `nen report render` refuses an undeclared variant (exit `2`) and a file with no `sections` renders nothing; a repository that has never declared it sets it up as `missing-configuration` **before** `aka` § 8, `mukai` step 9 or `en` § 8 render — the five-variant block `docs/config/workflow.json.md` § `reports` documents, in its own PR (hatsu#108). A declared variant with no `blocks` renders every block |
+| `reports.sections.<variant>` | **the blocks this variant renders** | **required**, no default — [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 2 → `reports`, its adoption sentence included: an undeclared variant or a file with no `sections` is exit `2`; a variant without `template` or a non-empty `blocks` refuses the whole file, exit `1` (hatsu#108) |
 | `coverage.minimum` / `.recommended` / `.ideal` | the coverage band | `80` / `85` / `90` |
 | `branch.base` | the delta's base | `main` |
 | `reports.timeZone` | the page's clock | the host's zone |
@@ -169,14 +169,14 @@ phase*; **a chat summary or markdown dump in chat is never the fallback**. The b
 page's link.
 
 **Permitted:** read working copy, history, `nen/*.json`; publish/republish **this branch's**
-report Artifact (Antigravity's brain directory included); write under
+report Artifact (Antigravity's `brain/<conversation-id>/` included); write under
 `<reports.dir>`. **Not permitted:** anything else on disk, any GitHub write, label, merge or push,
 or a delegation ([`PROCESS.md`](../../../docs/PROCESS.md) § *Authority every phase shares*).
 
 ## Hard limits
 
 - **Never lets a chat summary stand in for the report**, or dumps a raw chat markdown recap in place of publishing the artifact or HTML page. (Markdown only as Antigravity's native artifact).
-- **Never writes outside `<reports.dir>`** (Antigravity's artifact directory excepted), gives a `turn` or `landing` render a kept file, or
+- **Never writes outside `<reports.dir>`** (Antigravity's `brain/<conversation-id>/` excepted), gives a `turn` or `landing` render a kept file, or
   renders the dated final report — [`rikugan`](../rikugan/SKILL.md)'s.
 - **Never claims readiness by eye** — the verdict is `nen pr ready`'s, quoted, or absent — never
   omits the desk, or `ask` from the data (`null` or the § 4 object).
