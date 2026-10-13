@@ -7,11 +7,9 @@
 #
 # FROZEN (the maintainer's ruling of 2026-10-03, docs/ROSTER.md § Rulings of
 # 2026-10-03 — BC-11 binds the hanten ledger): BC-11's embedded-Python freeze
-# binds this script. Fixes only -- no new subcommand, no new verdict, no new
-# trace read -- until the review-cycle ledger ships as a nen verb
-# (zheref/nen#346). Then hanten §§ 1-4 and breath § 3b call the verb, this
-# script and its self-test retire, and lane `ledger-guard` points at nen's own
-# tests (zheref/hatsu#216 closes on that step).
+# binds this script. Fixes only -- no new subcommand, no new verdict -- until
+# the review-cycle ledger ships as a nen verb (zheref/nen#346); the retirement
+# step is that ROSTER section's, cited here (zheref/hatsu#216 closes on it).
 #
 # AN EFFORT IS A BRANCH PLUS ITS PULL REQUEST (maintainer's ruling of
 # 2026-09-28, docs/ROSTER.md § Rulings of 2026-09-26/27/28, ruling 9): the

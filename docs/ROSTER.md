@@ -1153,7 +1153,7 @@ to the open question `docs/PROCESS.md` § *Residue and owned dependencies* had c
 
 | Ruling | What it says |
 |---|---|
-| **BC-11 binds `scripts/hanten_cycle_ledger.sh`** | The embedded-Python freeze of BC-11 (`zheref/bankai-handbooks`, the bash handbook) binds the hanten cycle ledger exactly as it binds every other guard: the script is **frozen** — fixes only, no new subcommand, no new verdict, no new trace read — from this date until the verb lands. Its header says so |
+| **BC-11 binds `scripts/hanten_cycle_ledger.sh`** | BC-11 (`zheref/bankai-handbooks` v0.6.0, the `bankai-machinery` stack handbook: embedded Python that predates RR-PR-#753 is frozen debt, and growing it is a finding) binds the hanten cycle ledger. The ledger's Python grew on 2026-10-02 (zheref/hatsu#169, `ensure` and its trace reads) — that growth is the BC-11 finding, and zheref/nen#346 is its remediation. Until the verb lands the script is **frozen**: fixes only, no new subcommand or verdict (the issue's words; "no new trace read" is the recorder's reading of the same clause). Its header says so |
 | **The ledger is owed to nen** | zheref/nen#346 owns the review-cycle ledger (`init`, `ensure`, `decide`, `record`, `show`, `recover-first`) as a nen verb. When it ships, `hanten` §§ 1–4 and `breath` § 3b call the verb, the script and its self-test retire, and lane `ledger-guard` points at nen's own tests. zheref/hatsu#216 closes on that step, not before |
 | **Where it is stated** | `docs/PROCESS.md` § *Residue and owned dependencies* (the `ten` § 5 entry) names the owned dependency; the script header names the freeze; this section is the ruling's record |
 
