@@ -102,6 +102,11 @@ its own to a newer release inside the range, which is exactly what `v0.7.0` → 
 "compatible within a major" reading applies from **`1.0` onward**, and the contract is bumped to say so
 when nen gets there.
 
+**A repin moves the digests with the pin.** `dependency.bootstrap.sha256` moves with `pinned_ref`, in
+the same pull request: the three workflows that bootstrap nen compare the linux-x64 binary with `main`'s
+copy of that digest, so a digest left behind fails every later pull request closed
+([`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md), the 2026-10-13 nen-digest record).
+
 ## What happens when the range is not satisfied
 
 Two cases, two paths, chosen by the probe (`nen --version`) and never by preference:
