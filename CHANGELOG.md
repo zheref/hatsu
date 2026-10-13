@@ -2,6 +2,12 @@
 
 All notable changes to Hatsu are documented in this file. Releases follow [Semantic Versioning](https://semver.org/).
 
+## v0.94.3 — the BC-11 ruling on the hanten ledger is recorded
+
+### BC-11 binds the hanten ledger; the ledger is owed to nen ([#216](https://github.com/zheref/hatsu/issues/216), 0.94.3)
+
+- **The maintainer's ruling of 2026-10-03 is recorded: BC-11's embedded-Python freeze binds `scripts/hanten_cycle_ledger.sh`, and the ledger ports to a nen verb (zheref/nen#346)** ([#216](https://github.com/zheref/hatsu/issues/216)). `docs/ROSTER.md` gains § *Rulings of 2026-10-03 — BC-11 binds the hanten ledger*; `docs/PROCESS.md` § *Residue and owned dependencies* replaces its open question with the ruling and names zheref/nen#346 as the owned dependency; the script's header says it is frozen — fixes only, no new subcommand, verdict or trace read — until the verb lands. The issue stays open for its last step: when zheref/nen#346 ships, `hanten` §§ 1–4 and `breath` § 3b call the verb and the script retires. Plugin bumped to 0.94.3 (a shipped doc and a shipped runtime script changed); the mirrors restamped.
+
 ## v0.94.2 — the exit-code canon says that `$?` after a pipe is the last stage's status
 
 ### `$?` after a pipeline is the last stage's status, stated once in the general exit-code canon ([#161](https://github.com/zheref/hatsu/issues/161), 0.94.2)

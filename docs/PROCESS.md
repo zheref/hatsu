@@ -475,10 +475,14 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   `scripts/plugin_cache_check.sh`**, a byte comparison with six exit codes (five verdicts and a wiring stop) that no verb owns: an
   owned dependency, zheref/nen#339 (a plugin-layout mode of `surface mirror check --installed`, or a
   check under zheref/nen#298's status verb); its fixture is the reference behaviour, and it retires
-  when the verb lands. **BC-11 debt, a G4 question for the maintainer, not decided here:** that script
-  is new branching shell carrying a verdict, and `scripts/hanten_cycle_ledger.sh`'s embedded Python
-  grew (`ensure`, its trace reads and their self-tests, zheref/hatsu#169) — does BC-11's
-  embedded-Python freeze bind the ledger?
+  when the verb lands. **BC-11 binds the hanten ledger — the maintainer's ruling of 2026-10-03**
+  ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-03 — BC-11 binds the hanten ledger*): the embedded
+  Python in `scripts/hanten_cycle_ledger.sh` (`ensure`, its trace reads and their self-tests,
+  zheref/hatsu#169) is frozen — fixes only — and the ledger is an owned dependency, zheref/nen#346,
+  the review-cycle ledger as a nen verb; when it lands, `hanten` §§ 1–4 and `breath` § 3b call it and
+  the script, its self-test and lane `ledger-guard`'s fixture retire (zheref/hatsu#216 closes then).
+  `scripts/plugin_cache_check.sh` is new branching shell carrying a verdict, and the same reading
+  applies to it through zheref/nen#339.
 - **`futon` § 5.** The local `git merge --no-ff` of a hanten-settled effort branch into the run's
   integration branch, in a worktree on that branch, has no nen verb (`nen wc catch-up` brings a branch
   up to date with its base; it is not a delivery merge). It is named residue, the verb **not yet filed**

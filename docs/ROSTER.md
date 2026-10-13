@@ -1143,6 +1143,22 @@ handbook-questions on `zheref/hatsu`.
 
 ---
 
+## Rulings of 2026-10-03 — BC-11 binds the hanten ledger; it ports to a nen verb
+
+**The maintainer's answer, verbatim** (2026-10-03, on the final report of the `hatsu:futon hatsu@bug` run,
+to the open question `docs/PROCESS.md` § *Residue and owned dependencies* had carried since HA-PR-#212 —
+*does BC-11's embedded-Python freeze bind the ledger?*):
+
+> It binds. The ledger ports to a nen verb.
+
+| Ruling | What it says |
+|---|---|
+| **BC-11 binds `scripts/hanten_cycle_ledger.sh`** | The embedded-Python freeze of BC-11 (`zheref/bankai-handbooks`, the bash handbook) binds the hanten cycle ledger exactly as it binds every other guard: the script is **frozen** — fixes only, no new subcommand, no new verdict, no new trace read — from this date until the verb lands. Its header says so |
+| **The ledger is owed to nen** | zheref/nen#346 owns the review-cycle ledger (`init`, `ensure`, `decide`, `record`, `show`, `recover-first`) as a nen verb. When it ships, `hanten` §§ 1–4 and `breath` § 3b call the verb, the script and its self-test retire, and lane `ledger-guard` points at nen's own tests. zheref/hatsu#216 closes on that step, not before |
+| **Where it is stated** | `docs/PROCESS.md` § *Residue and owned dependencies* (the `ten` § 5 entry) names the owned dependency; the script header names the freeze; this section is the ruling's record |
+
+---
+
 ## Rulings of 2026-10-01 — every settable value written out, and asked for before it is needed
 
 **The maintainer's request, verbatim** (excerpt):
